@@ -611,8 +611,7 @@ Bạn có thể đổi màu nền cho chúng, nhưng nếu phía máy chủ thay
     <string name="revanced_change_start_page_entry_gaming">Trò chơi</string>
     <string name="revanced_change_start_page_entry_history">Lịch sử</string>
     <string name="revanced_change_start_page_entry_home">Màn hình chính trang bắt đầu trong revanced</string>
-    <string name="revanced_change_start_page_entry_hype">Khuấy động</string>
-    <string name="revanced_change_start_page_entry_library">Thư viện</string>
+    <string name="revanced_change_start_page_entry_library">Bạn</string>
     <string name="revanced_change_start_page_entry_liked_videos">Video đã thích</string>
     <string name="revanced_change_start_page_entry_live">Trực tiếp</string>
     <string name="revanced_change_start_page_entry_movies">Phim</string>
@@ -620,14 +619,12 @@ Bạn có thể đổi màu nền cho chúng, nhưng nếu phía máy chủ thay
     <string name="revanced_change_start_page_entry_news">Tin tức</string>
     <string name="revanced_change_start_page_entry_notifications">Thông báo</string>
     <string name="revanced_change_start_page_entry_playlists">Danh sách phát</string>
-    <string name="revanced_change_start_page_entry_podcasts">Podcast</string>
     <string name="revanced_change_start_page_entry_search">Tìm kiếm</string>
     <string name="revanced_change_start_page_entry_settings">Cài đặt thay đổi trang khởi động trong revanced</string>
     <string name="revanced_change_start_page_entry_shopping">Mua sắm</string>
     <string name="revanced_change_start_page_entry_shorts">Shorts</string>
     <string name="revanced_change_start_page_entry_sports">Thể thao</string>
     <string name="revanced_change_start_page_entry_subscriptions">Kênh đăng ký</string>
-    <string name="revanced_change_start_page_entry_trending">Xu hướng</string>
     <string name="revanced_change_start_page_entry_virtual_reality">Thực tế ảo</string>
     <string name="revanced_change_start_page_entry_watch_later">Xem sau</string>
     <string name="revanced_change_start_page_entry_your_clips">Clip của bạn</string>

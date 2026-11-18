@@ -29,25 +29,20 @@ CompiledBundle.release
 
 # Disable analytics
 KickPrivacy.allowAnalyticsCollection
-KickPrivacy.unavailablePalNonce
 
 # Clean share links
 KickPrivacy.putShareExtra
 
 # Background audio
-KickPlayer.onUserLeaveHint
+KickPlayer.staysActive
 KickPlayer.autoEnterPip
-KickPlayer.keepAudio
-KickPlayer.onResume
 
 # Normal latency
-KickPlayer.lowLatency
+KickPlayer.normalLatency
 
 # Sleep timer
-KickPlayer.onPlay
+KickPlayer.onPlayWhenReady
 KickPlayer.onStop
-KickPlayer.onViewPlay
-SleepTimer.guardPauseOperation
 
 # Default startup tab
 KickStartup.rewriteLaunch
@@ -62,18 +57,17 @@ KickInterface.compactNumbers
 KickPlayer.resizeMode
 
 # Show video stats
-KickStats.onStatistics
+KickStats.onTimeUpdate
 
 # Player gestures: MainActivity's dispatchTouchEvent
 KickTouch.dispatch
 
 # Mute stitched live ads
-KickAds.onCue
-KickAds.onAdBreakStarted
-KickAds.onAdBreakEnded
+KickAds.onMetadata
 KickAds.onMediaTailorEvent
 KickAds.muteRequest
+KickAds.onPlayerLoad
 KickAds.onLoad
 
 # Default video quality (not selected by default)
-# KickPlayer.autoQualityCeiling
+# KickPlayer.maxResolution

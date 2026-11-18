@@ -1,3 +1,9 @@
+## [1.3.0](https://github.com/jibon-k/notes-morphe-patches/compare/v1.2.0...v1.3.0) (2026-11-18)
+
+### ✨ New Features
+
+* system file picker instead of Samsung My Files ([45f2f09](https://github.com/jibon-k/notes-morphe-patches/commit/45f2f09058167f08222f32ee085929c923f71078)), closes [#1](https://github.com/jibon-k/notes-morphe-patches/issues/1)
+
 ## [1.2.0](https://github.com/jibon-k/notes-morphe-patches/compare/v1.1.0...v1.2.0) (2026-11-17)
 
 ### ✨ New Features

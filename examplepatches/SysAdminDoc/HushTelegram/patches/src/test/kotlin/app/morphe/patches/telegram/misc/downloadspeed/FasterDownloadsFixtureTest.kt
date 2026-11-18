@@ -8,7 +8,6 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.PlusPending
 import app.morphe.util.names.origRef
 import app.morphe.util.names.addInstruction
 import app.morphe.util.names.replaceInstruction
@@ -64,8 +63,7 @@ internal fun dataSaverClasses(build: File): Collection<ClassDef> {
     return (player + starters).map(ImmutableClassDef::of)
 }
 
-/** FileLoadOperation.updateParams on both declared builds, where Telegram picks a download's piece size. */
-@PlusPending
+/** FileLoadOperation.updateParams on every declared build, where Telegram picks a download's piece size. */
 class FasterDownloadsFixtureTest {
     private fun context(build: File): BytecodePatchContext {
         val queue = "Lorg/telegram/messenger/FileLoaderPriorityQueue;"
@@ -139,13 +137,24 @@ class FasterDownloadsFixtureTest {
             // A no still goes to the 128 KB tier, and forceSmallChunk still sends a yes there too.
             val flow = ControlFlow.of(plan.method)
             // 13.2 loads the 128 KB size once at the top and the tier only stores it.
-            val small = flow.normal[read + 3].single { it != read + 4 }
-            val big = literal(after, BIG_PIECE)
-            assertEquals("$name: the stock branch", setOf(read + 4, small), flow.normal[read + 3].toSet())
+            val no = flow.normal[read + 3].single { it != read + 4 }
+            assertEquals("$name: the stock branch", setOf(read + 4, no), flow.normal[read + 3].toSet())
             assertEquals(FORCE_SMALL_CHUNK, after[read + 4].controlRef())
-            assertEquals("$name: the fallback", setOf(read + 6, small), flow.normal[read + 5].toSet())
-            assertEquals("$name: a yes reaches the 512 KB tier", read + 6, big)
-            assertEquals(CHUNK_SIZE, after[big + 1].controlRef())
+            assertEquals("$name: the fallback", setOf(read + 6, no), flow.normal[read + 5].toSet())
+            val big = bigTier(after, flow, read + 6)
+            val small = smallTierFrom(after, flow, no)!!
+            if (name.startsWith("plus-")) {
+                // Plus Messenger's no asks its own speed setting first, and a yes jumps to the 512 KB tier that setting shares.
+                assertTrue("$name: the no goes past Plus's setting", small > no)
+                assertEquals(Opcode.GOTO, after[read + 6].opcode)
+                assertEquals("$name: a yes reaches the 512 KB tier", flow.normal[read + 6].single(), big)
+                assertEquals(CHUNK_SIZE, after[big!!].controlRef())
+            } else {
+                assertEquals("$name: the no lands on the 128 KB tier", no, small)
+                assertEquals("$name: a yes reaches the 512 KB tier", read + 6, big)
+                assertEquals(read + 6, literal(after, BIG_PIECE))
+                assertEquals(CHUNK_SIZE, after[big!! + 1].controlRef())
+            }
             val store = if (after[small].opcode == Opcode.IPUT) small else small + 1
             assertEquals(CHUNK_SIZE, after[store].controlRef())
             val size = (after[store] as TwoRegisterInstruction).registerA

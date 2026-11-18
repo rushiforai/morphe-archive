@@ -88,3 +88,9 @@ _work/
 AGENTS.md
 # The MX Player codec pack ships inside the bundle; CI must have it.
 !patches/src/main/resources/mxplayer/*.zip
+
+# Local patch tests (real app files, never committed)
+build-test/
+
+# Names of the private apps, for tools/audit.py; never committed
+tools/private-names.txt

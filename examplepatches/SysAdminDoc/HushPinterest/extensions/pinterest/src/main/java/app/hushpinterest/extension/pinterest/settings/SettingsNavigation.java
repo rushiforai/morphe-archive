@@ -255,6 +255,7 @@ final class SettingsNavigation extends BaseAdapter {
         aliases.put(Settings.BLACK_SAVE_SHEET.key, L10n.t("AMOLED dark theme"));
         aliases.put(Settings.BLACK_SHEETS.key, L10n.t("AMOLED dark theme"));
         aliases.put(Settings.BLACK_BOARDS.key, L10n.t("AMOLED dark theme"));
+        aliases.put(Settings.BLACK_TOASTS.key, L10n.t("AMOLED dark theme"));
         aliases.put(Settings.HIDE_PIN_MENU_VISUAL_SEARCH.key, L10n.t("Reverse image search"));
         aliases.put(Settings.HIDE_PIN_MENU_PIN_BOOST.key, L10n.t("Boost pin"));
         return Collections.unmodifiableMap(aliases);

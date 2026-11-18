@@ -18,7 +18,6 @@ import app.morphe.util.ControlFlow
 import app.morphe.util.namedRegisters
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -41,6 +40,8 @@ private const val NOT_IN_CHAT = "Lorg/telegram/messenger/ChatObject;->isNotInCha
 private const val REPLY_USER = "Lorg/telegram/messenger/UserObject;->isReplyUser(Lorg/telegram/tgnet/TLRPC\$User;)Z"
 /** How far after a label's read the button's text is set, in instructions. */
 private const val LABEL_WINDOW = 5
+/** How far after isNotInChat's answer the update tests it, in instructions. */
+private const val TEST_WINDOW = 4
 
 /**
  * What the Mute switch needs from the chat screen's bar update, or [missing], why this build can't
@@ -125,8 +126,12 @@ private fun BytecodePatchContext.resolveMuteBubble(): MuteBubble? {
  * The chat screen's bar update names the middle button Mute or Unmute in several places: for a
  * joined channel, and for the user chats and bots that borrow the bar. A joined channel's are the
  * two that come after the update asks whether the chat is one you're not in and before it asks
- * about a reply user. The update ends by setting its last button on the bar, which is the place to
- * decide, and the bar's own setVisibility keeps Telegram's other code from showing it again.
+ * about a reply user, on the side of that question a chat you're in takes: every path to them goes
+ * through where the answer sends such a chat. Plus Messenger asks the same question once more near
+ * the top of the update, to decide on a linked-chat button of its own, and both sides of that one
+ * meet again long before the user chats' Mute and Unmute that follow it, so those stay out. The
+ * update ends by setting its last button on the bar, which is the place to decide, and the bar's
+ * own setVisibility keeps Telegram's other code from showing it again.
  */
 internal fun BytecodePatchContext.resolveChannelMute(plan: ChannelBarPlan): ChannelMuteBar {
     controlHook(CHANNEL_MUTE, "begin", emptyList(), "V")
@@ -138,9 +143,11 @@ internal fun BytecodePatchContext.resolveChannelMute(plan: ChannelBarPlan): Chan
     fun missing(why: String) = ChannelMuteBar(null, null, null, emptyList(), 0, 0, why)
 
     val body = plan.update.controlBody()
+    val flow = ControlFlow.of(plan.update)
     val owners = body.indices.filter { body[it].controlRef() == NOT_IN_CHAT || body[it].controlRef() == REPLY_USER }
-    val joined = labelUses(plan.update, body).filter { (at, _) ->
-        owners.lastOrNull { it < at }?.let { body[it].controlRef() == NOT_IN_CHAT } == true
+    val joined = labelUses(flow, body).filter { (at, _) ->
+        val owner = owners.lastOrNull { it < at }
+        owner != null && body[owner].controlRef() == NOT_IN_CHAT && inChatBranch(flow, owner)?.let { flow.onEveryPath(it, at) } == true
     }
     if (joined.size != 2 || joined.map { it.second }.toSet() != setOf(MUTE_LABEL, UNMUTE_LABEL)) {
         return missing("the chat screen no longer names a joined channel's button Mute and Unmute in one place each (${joined.size})")
@@ -167,14 +174,55 @@ internal fun BytecodePatchContext.resolveChannelMute(plan: ChannelBarPlan): Chan
 }
 
 /**
- * Each call in [method] that is handed the Mute or Unmute label, with that label. 13.1.1 reads a label
+ * Where the update goes from the isNotInChat call at [call] for a chat you're in: the side of the
+ * test on its answer that a no takes. Null unless the answer is tested within [TEST_WINDOW] plain
+ * instructions of the call (13.2 tests it at once, Plus Messenger's own ask clears a register first).
+ */
+private fun inChatBranch(flow: ControlFlow, call: Int): Int? {
+    val body = flow.instructions
+    if (body.getOrNull(call + 1)?.opcode != Opcode.MOVE_RESULT) return null
+    val answer = body[call + 1].namedRegisters().single()
+    for (i in call + 2 until minOf(body.size, call + 2 + TEST_WINDOW)) {
+        val test = body[i]
+        if ((test.opcode == Opcode.IF_EQZ || test.opcode == Opcode.IF_NEZ) && test.namedRegisters() == listOf(answer)) {
+            val taken = flow.normal[i].singleOrNull { it != i + 1 } ?: return null
+            return if (test.opcode == Opcode.IF_EQZ) taken else i + 1
+        }
+        if (answer in test.namedRegisters() || flow.normal[i] != listOf(i + 1)) return null
+    }
+    return null
+}
+
+/**
+ * Whether every path from the start of the method to [at] goes through [through]. 13.2 sends a
+ * joined channel's branch two ways (its isNotInChat's no, and the yes side's next test failing), so
+ * this asks about the place both land on, not one jump.
+ */
+private fun ControlFlow.onEveryPath(through: Int, at: Int): Boolean {
+    if (through == at || through == 0) return true
+    val seen = BooleanArray(instructions.size).also { it[0] = true }
+    val pending = ArrayDeque(listOf(0))
+    while (pending.isNotEmpty()) {
+        val i = pending.removeFirst()
+        if (i == at) return false
+        for (next in normal[i] + exceptional[i]) {
+            if (next != through && !seen[next]) {
+                seen[next] = true
+                pending += next
+            }
+        }
+    }
+    return true
+}
+
+/**
+ * Each call in [flow]'s method that is handed the Mute or Unmute label, with that label. 13.1.1 reads a label
  * just before each use; 13.2 loads both once at the top of the update and passes the registers on, so
  * a call counts when every path to it leaves one label, and only that label, in a register it reads.
  */
-private fun labelUses(method: Method, body: List<Instruction>): List<Pair<Int, String>> {
+private fun labelUses(flow: ControlFlow, body: List<Instruction>): List<Pair<Int, String>> {
     val labels = setOf(MUTE_LABEL, UNMUTE_LABEL)
     if (body.none { it.controlRef() in labels }) return emptyList()
-    val flow = ControlFlow.of(method)
     val predecessors = Array(body.size) { mutableSetOf<Int>() }
     for (i in body.indices) for (next in flow.normal[i] + flow.exceptional[i]) predecessors[next] += i
     fun writes(i: Int, register: Int): Boolean {

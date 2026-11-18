@@ -18,9 +18,8 @@ private const val APPLICATION_CLASS = "Lcom/dubox/drive/shell/ShellApplication;"
 @Suppress("unused")
 val spoofSignaturePatch = bytecodePatch(
     name = "Spoof signature",
-    description = "Makes the re-signed APK report the stock developer certificate and disables Play " +
-        "Integrity token requests, so Google login and TeraBox's anti-cheat accept the patched app. " +
-        "Skip it when patching with another set that already spoofs the signature.",
+    description = "Reports the stock certificate and skips Play Integrity so Google login and " +
+        "TeraBox's anti-cheat accept the re-signed APK. Not for sets that already spoof it.",
     default = false
 ) {
     compatibleWith(Constants.TERABOX_COMPATIBILITY)

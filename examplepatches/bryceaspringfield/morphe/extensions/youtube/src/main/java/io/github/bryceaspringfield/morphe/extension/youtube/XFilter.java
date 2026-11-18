@@ -54,8 +54,7 @@ public final class XFilter extends Filter {
         SaveChooser.register();
         QualityAudioRow.register();
         NavTapFix.register();
-        FeedRefresh.register();
-        HomeMore.register();
+        ResumedActivity.register();
         if (!"off".equals(XSettings.AUTO_WATCHED.get())) AccountHistory.refresh();
         SuggestedCard.register();
         PlaybackExtras.register();
@@ -132,8 +131,6 @@ public final class XFilter extends Filter {
         final String reason = found != null ? found
                 : watchedPlace(contextInterface) && watchedItem(item, buffer) ? "watched" : null;
         if ("watched".equals(reason) && homeOrRelated(contextInterface)) Feedback.onWatched(item);
-        HomeMore.onFeedItem(place == Place.HOME);
-        if (place == Place.HOME && homeSelected && reason == null && !item.playlist && !item.mix) HomeMore.onShown(item.videoId);
         if (XSettings.DEBUG.get()) {
             Logger.printDebug(() -> "YouTube Extras: " + place + " " + item + (reason == null ? "" : " HIDDEN by " + reason));
             if (item.videoId == null || item.playlist || item.seconds < 0) {
@@ -168,13 +165,20 @@ public final class XFilter extends Filter {
         if ("off".equals(mode) || item.videoId == null || item.playlist || item.mix) return false;
         boolean fully = "fully".equals(mode);
         float p = VideoItem.progress(buffer);
-        if (p >= (fully ? 0.9f : 0.005f)) return true;
-        // A feed item's data has no progress on most layouts: YouTube draws the red bar from the account's history.
         int account = AccountHistory.percent(item.videoId);
-        if (account >= (fully ? 90 : 1)) return true;
-        if (!item.videoId.equals(app.morphe.extension.youtube.patches.VideoInformation.getStartingOrPlayingVideoId())
-                && WatchHistory.fraction(item.videoId) >= (fully ? 0.9f : 0.02f)) return true;
-        return Feedback.isWatched(item.videoId);
+        float local = WatchHistory.fraction(item.videoId);
+        boolean playing = item.videoId.equals(app.morphe.extension.youtube.patches.VideoInformation.getStartingOrPlayingVideoId());
+        boolean marked = Feedback.isWatched(item.videoId);
+        boolean watched = p >= (fully ? 0.9f : 0.005f)
+                // A feed item's data has no progress on most layouts: YouTube draws the red bar from the account's history.
+                || account >= (fully ? 90 : 1)
+                || (!playing && local >= (fully ? 0.9f : 0.02f))
+                || marked;
+        if (XSettings.DEBUG.get()) {
+            Logger.printDebug(() -> "YouTube Extras: watched? " + item.videoId + " card " + p + " account " + account
+                    + " local " + local + " marked " + marked + " -> " + watched);
+        }
+        return watched;
     }
 
     /** True when Home's own button is the selected one (not merely unknown); only then Home-only rules may hide an item. */
@@ -184,7 +188,7 @@ public final class XFilter extends Filter {
         ChannelRules.Rule rule = ChannelRules.match(item);
         if (rule != null) return "channel rule " + rule.channel.label() + " " + rule.kind;
         if (place == Place.HOME && XSettings.HIDE_HOME_PLAYLISTS.get() && item.playlist) return "home playlist";
-        if (place == Place.HOME && homeSelected && HomeMore.shownBefore(item.videoId)) return "shown before the new Home batch";
+        if (place == Place.HOME && XSettings.HIDE_HOME_LIVE.get() && item.live && !item.playlist) return "home live stream";
         if (XSettings.HIDE_PAST_STREAMS.get() && !item.live && !item.shorts && item.text != null
                 && VideoItem.PAST_STREAM.matcher(item.text).find()) return "past stream";
         if (item.seconds >= 0 && !item.shorts) {

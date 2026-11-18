@@ -45,9 +45,12 @@ val stayOnChannelPatch = bytecodePatch(
  * N seconds" toast, and the countdown's end does the rest.
  *
  * The countdown now starts only once Watch now is pressed: `startOnMount` is `pressed` instead of true, so the
- * dialog waits, countdown paused, for Watch now, Cancel or close. The literal's startOnMount slot is a constant,
- * so its store takes the place of the memo cache write that follows the onEnd store. Without it the options
- * object is rebuilt on every render, which useCountdown, reading only its fields, doesn't notice.
+ * dialog waits, countdown paused, for Watch now, Cancel or close; useCountdown's start effect runs again when it
+ * changes. The literal's startOnMount slot is a constant, so the store needs four bytes the function doesn't have:
+ * the options object is made with the short NewObjectWithBuffer form instead of the long one, which leaves room for
+ * the store right after it. Its 16-bit value offset reaches only the first 64 KiB of the literal buffer: a copy of the
+ * same values there if there is one, else three nulls, since the dialog stores every slot (duration, startOnMount,
+ * onEnd) before it hands the object to useCountdown, and nothing reads it in between.
  */
 private fun countdownAfterWatchNow() {
     val dialog = kickHermes.function("JoinHostDialogContent")
@@ -61,29 +64,33 @@ private fun countdownAfterWatchNow() {
         ?: fail("state destructuring")
     val pressed = copy.u8(1)
 
-    val options = code.filter { it.opcode == HermesOp.NEW_OBJECT_WITH_BUFFER || it.opcode == HermesOp.NEW_OBJECT_WITH_BUFFER_LONG }
-        .singleOrNull { kickHermes.objectKeys(it) == listOf("duration", "startOnMount", "onEnd") }
-        ?: fail("countdown options")
-    // PutOwnBySlotIdx rObject, rValue, slot
-    fun store(slot: Int) = code.singleOrNull { it.opcode == HermesOp.PUT_OWN_BY_SLOT_IDX && it.u8(1) == options.u8(1) && it.u8(3) == slot }
+    val options = code.singleOrNull {
+        it.opcode == HermesOp.NEW_OBJECT_WITH_BUFFER_LONG && kickHermes.objectKeys(it) == listOf("duration", "startOnMount", "onEnd")
+    } ?: fail("countdown options")
+    val target = options.u8(1)
+    // PutOwnBySlotIdx rObject, rValue, slot: Kick fills duration and onEnd, then calls useCountdown with the object.
+    fun store(slot: Int) = code.singleOrNull { it.opcode == HermesOp.PUT_OWN_BY_SLOT_IDX && it.u8(1) == target && it.u8(3) == slot }
         ?: fail("countdown options slot $slot")
-    val duration = store(0)
+    store(0)
     val onEnd = store(2)
-    val at = code.indexOf(onEnd)
-    // LoadConstUInt8 r0, index; PutByValStrict rCache, r0, rOnEnd
-    val (cacheIndex, cacheWrite) = (code.getOrNull(at + 1) ?: fail("memo")) to (code.getOrNull(at + 2) ?: fail("memo"))
-    if (code.getOrNull(at - 1) != duration || cacheIndex.opcode != HermesOp.LOAD_CONST_UINT8 || cacheIndex.u8(1) != 0 ||
-        cacheWrite.opcode != HermesOp.PUT_BY_VAL_STRICT || cacheWrite.u8(2) != 0 || cacheWrite.u8(3) != onEnd.u8(2)) {
-        fail("countdown options memo")
-    }
-    // Nothing writes the state register before the edit. Writes name their register first; jumps start with an offset.
-    if (code.any { it.offset in (copy.offset + 1) until cacheIndex.offset && it.targets().isEmpty() &&
+    if (code.any { it.opcode == HermesOp.PUT_OWN_BY_SLOT_IDX && it.u8(1) == target && it.u8(3) == 1 }) fail("countdown options")
+    // Nothing writes the state register between its copy and the options object, so it still holds `pressed` there.
+    // Writes name their register first; jumps start with an offset.
+    if (code.any { it.offset in (copy.offset + 1) until options.offset && it.targets().isEmpty() &&
             it.bytes.size > 1 && it.u8(1) == pressed }) {
         fail("state register")
     }
-    val startOnMount = byteArrayOf(HermesOp.PUT_OWN_BY_SLOT_IDX.toByte(), options.bytes[1], pressed.toByte(), 1)
-    val nothing = byteArrayOf(HermesOp.MOV.toByte(), 0, 0) // Mov r0, r0; r0 is reloaded next
-    val kept = duration.bytes + onEnd.bytes
-    kickHermes.replace(dialog, KEY, kept + cacheIndex.bytes + cacheWrite.bytes, kept + startOnMount + nothing,
-        defaultEnabled = false)
+    if (onEnd.offset < options.offset) fail("countdown options order")
+
+    val shape = options.u32(2)
+    val values = options.u32(6)
+    if (shape > 0xffff) fail("countdown options shape")
+    val serialized = kickHermes.literal(values, kickHermes.valuesEnd(values, 3) - values)
+    val short = kickHermes.shortLiteralOffset(serialized, 3) ?: kickHermes.shortNullsOffset(3)
+    val after = byteArrayOf(
+        HermesOp.NEW_OBJECT_WITH_BUFFER.toByte(), target.toByte(),
+        shape.toByte(), (shape ushr 8).toByte(), short.toByte(), (short ushr 8).toByte(),
+        HermesOp.PUT_OWN_BY_SLOT_IDX.toByte(), target.toByte(), pressed.toByte(), 1,
+    )
+    kickHermes.replaceInstruction(dialog, KEY, options, after, defaultEnabled = false)
 }

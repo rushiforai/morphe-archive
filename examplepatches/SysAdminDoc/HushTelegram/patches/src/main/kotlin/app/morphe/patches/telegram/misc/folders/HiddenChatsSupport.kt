@@ -409,6 +409,9 @@ private fun BytecodePatchContext.serverPinsCall(): ServerPinsPlan {
  * R8 merged several of the storage's queue tasks into [task], which picks its work by a case the
  * constructor sets. Throws unless the constructor the answer uses picks the case that runs the
  * unpin query, and no other case reaches it.
+ *
+ * Plus Messenger's task picks case 3, which isn't a key of the switch, so its unpin query runs on
+ * the switch's default path, and every keyed case must stay clear of it.
  */
 private fun unpinCaseChecked(task: ClassDef) {
     val inits = task.methods.filter { it.name == "<init>" && it.origParameterTypes == UNPIN_TASK_SHAPE }
@@ -438,8 +441,9 @@ private fun unpinCaseChecked(task: ClassDef) {
     fun at(offset: Int) = body.indices.firstOrNull { address[it] == address[switch] + offset }
     val payload = at((body[switch] as OffsetInstruction).codeOffset)?.let { body[it] as? SwitchPayload }
     val starts = payload?.switchElements?.associate { it.key to at(it.offset) }
-    val start = starts?.get(case)
-    hiddenFits(start != null && starts.values.all { it != null }, "the unpin task's case is missing")
+    hiddenFits(starts != null && starts.values.all { it != null }, "the unpin task's case is missing")
+    // A case the switch has no key for runs what follows it.
+    val start = starts!![case] ?: (switch + 1)
     val query = body.indices.filter { body[it].controlString() == UNPIN_QUERY }
     val flow = ControlFlow.of(run)
     fun reached(from: Int): Set<Int> {
@@ -451,8 +455,8 @@ private fun unpinCaseChecked(task: ClassDef) {
         }
         return seen
     }
-    val others = starts!!.filterKeys { it != case }.values.filterNotNull() + (switch + 1)
-    hiddenFits(query.size == 1 && query.single() in reached(start!!) && others.none { query.single() in reached(it) },
+    val others = starts.filterKeys { it != case }.values.filterNotNull() + listOfNotNull((switch + 1).takeIf { case in starts })
+    hiddenFits(query.size == 1 && query.single() in reached(start) && others.none { query.single() in reached(it) },
         "the unpin task's case no longer runs the unpin query alone")
 }
 
@@ -629,9 +633,19 @@ internal const val UNCOUNTED_SIZE = 3
 /**
  * Where one of MessagesStorage's unread counts has just read a chat's id into [chat] and [chat]+1:
  * a hidden chat goes on at [to] instead of [at]. [storage] holds the MessagesStorage there and
- * [scratch] is free to take the hook's answer.
+ * [scratch] is free to take the hook's answer. [restores] are copies a hidden chat makes first,
+ * putting back registers the id read wrote over, for a way on at [to] that reads them.
  */
-internal class CountSkip(val method: MutableMethod, val at: Int, val to: Int, val storage: Int, val chat: Int, val scratch: Int)
+internal class CountSkip(val method: MutableMethod, val at: Int, val to: Int, val storage: Int, val chat: Int, val scratch: Int,
+    val restores: List<Restore> = emptyList()) {
+    /** How many instructions the skip adds: the hook, its answer and the jump, and with restores a test, them and a goto. */
+    val size get() = UNCOUNTED_SIZE + if (restores.isEmpty()) 0 else restores.size + 1
+}
+
+/** A copy back into [into] from [from], where the id read's way saved it: `move-object/from16` when [isObject], else `move/from16`. */
+internal class Restore(val into: Int, val from: Int, val isObject: Boolean) {
+    val smali get() = "${if (isObject) "move-object/from16" else "move/from16"} v$into, v$from"
+}
 
 /**
  * The skips in calcUnreadCounters and updateFiltersReadCounter, found and checked before anything
@@ -643,13 +657,24 @@ internal class UnreadCountsPlan(val skips: List<CountSkip>, val missing: String?
             val method = into(skip.method)
             val stock = method.implementation!!.instructions.count { it.opcode != Opcode.NOP }
             // Nothing but the read jumps onto [at], so every chat the count reads is asked about.
-            method.addInstructionsWithLabels(skip.at, """
-                invoke-static {v${skip.storage}, v${skip.chat}, v${skip.chat + 1}}, $UNCOUNTED
-                move-result v${skip.scratch}
-                if-nez v${skip.scratch}, :hush_uncounted
-            """, ExternalLabel("hush_uncounted", method.getInstruction(skip.to)))
+            if (skip.restores.isEmpty()) {
+                method.addInstructionsWithLabels(skip.at, """
+                    invoke-static {v${skip.storage}, v${skip.chat}, v${skip.chat + 1}}, $UNCOUNTED
+                    move-result v${skip.scratch}
+                    if-nez v${skip.scratch}, :hush_uncounted
+                """, ExternalLabel("hush_uncounted", method.getInstruction(skip.to)))
+            } else {
+                method.addInstructionsWithLabels(skip.at, """
+                    invoke-static {v${skip.storage}, v${skip.chat}, v${skip.chat + 1}}, $UNCOUNTED
+                    move-result v${skip.scratch}
+                    if-eqz v${skip.scratch}, :hush_counted
+                    ${skip.restores.joinToString("\n") { it.smali }}
+                    goto/16 :hush_uncounted
+                """, ExternalLabel("hush_counted", method.getInstruction(skip.at)),
+                    ExternalLabel("hush_uncounted", method.getInstruction(skip.to)))
+            }
             // smali drops an instruction it can't build and only logs it.
-            hiddenFits(method.implementation!!.instructions.count { it.opcode != Opcode.NOP } - stock == UNCOUNTED_SIZE,
+            hiddenFits(method.implementation!!.instructions.count { it.opcode != Opcode.NOP } - stock == skip.size,
                 "the unread count's skip didn't compile whole")
         }
     }
@@ -726,11 +751,44 @@ private fun BytecodePatchContext.unreadRowSkip(): CountSkip {
     val flow = flowOf(method)
     // The head is the walk's: later code comes back to it for the next row.
     hiddenFits(flow.normal.withIndex().any { (index, next) -> index > at && head in next }, "the unread count's row walk changed")
-    // Back at the head, the walk reads nothing the row's start wrote, so the next row starts as it would have.
+    // Back at the head, the walk reads nothing the row's start wrote, so the next row starts as it would have:
+    // the skip goes back to the head, or to the walk's own way there that first puts back what the start wrote over.
     val live = RegisterLiveness.of(method).liveInto(head)
-    hiddenFits((head until at).none { index -> live.any { body[index].writesRegister(it) } },
-        "the unread count's row walk keeps a register its start writes")
-    return countSkip(method, flow, at, head, chat)
+    val clobbered = live.filter { register -> (head until at).any { body[it].writesRegister(register) } }.toSet()
+    val to = if (clobbered.isEmpty()) head else restoredHead(body, flow, head, at, live, clobbered)
+    hiddenFits(to != null, "the unread count's row walk keeps a register its start writes")
+    return countSkip(method, flow, at, to!!, chat)
+}
+
+/**
+ * Where a row whose start writes over [clobbered], registers the walk keeps from row to row, goes
+ * on to the next one: the one straight run past [at] that copies each back from the register the
+ * start saved it in before writing over it, and nothing else, then goes to [head]. Null when a
+ * save or that run is missing or ambiguous.
+ *
+ * Plus Messenger's R8 gave the chat id's upper half the register of an object the walk keeps
+ * across rows. The row's start saves it to another register first, and Plus's own ways to the next
+ * row put it back before the head, so a hidden chat takes the one way on that does only that.
+ */
+private fun restoredHead(body: List<Instruction>, flow: ControlFlow, head: Int, at: Int, live: Set<Int>, clobbered: Set<Int>): Int? {
+    val saves = mutableMapOf<Int, Int>()
+    for (register in clobbered) {
+        val found = (head until at).filter { index ->
+            val named = body[index].namedRegisters()
+            body[index].opcode in COPIES && named.size == 2 && named[1] == register && named[0] !in live &&
+                (head until index).none { body[it].writesRegister(register) } && (index + 1 until at).none { body[it].writesRegister(named[0]) }
+        }
+        if (found.size != 1) return null
+        saves[register] = body[found.single()].namedRegisters()[0]
+    }
+    return (at + 1 until body.size).filter { start ->
+        val goto = start + clobbered.size
+        goto < body.size && body[goto].opcode in GOTOS && flow.normal[goto] == listOf(head) &&
+            (start until goto).all { body[it].opcode in COPIES && flow.normal[it] == listOf(it + 1) } &&
+            (start until goto).map { body[it].namedRegisters() }.let { moves ->
+                moves.all { it.size == 2 && saves[it[0]] == it[1] } && moves.map { it[0] }.toSet() == clobbered
+            }
+    }.singleOrNull()
 }
 
 /**
@@ -749,42 +807,85 @@ private fun BytecodePatchContext.readChangeSkip(): CountSkip {
     hiddenFits(splits.size == 1, "the read counter's split is missing or ambiguous")
     val at = splits.single()
     val chat = (body[at - 1] as OneRegisterInstruction).registerA
-    // The read side's first step takes the chat out of dialogsWithUnread (or dialogsWithMentions).
-    val side = at + 1
+    val flow = flowOf(method)
+    val straight = { from: Int, until: Int -> (from until until).all { flow.normal[it] == listOf(it + 1) } }
+    // The read side's first step takes the chat out of dialogsWithUnread (or dialogsWithMentions). Plus Messenger
+    // asks a switch of its own first, whose no goes where the split sends a chat with new messages.
+    val newSide = flow.normal[at].singleOrNull { it != at + 1 }
+    val switch = body.getOrNull(at + 1)
+    val side = if (switch?.opcode == Opcode.SGET_BOOLEAN && body.getOrNull(at + 2)?.opcode == Opcode.IF_EQZ &&
+        body[at + 2].namedRegisters() == switch.namedRegisters() && newSide != null &&
+        flow.normal[at + 2].toSet() == setOf(at + 3, newSide)) at + 3 else at + 1
     val take = body.getOrNull(side + 1)
-    val drop = body.getOrNull(side + 2)
     val unread = take?.controlField()
     hiddenFits(body.getOrNull(side)?.opcode == Opcode.IF_NEZ && take?.opcode == Opcode.IGET_OBJECT && unread != null &&
-        take.controlRef()!!.startsWith(WITH_UNREAD) && drop?.opcode == Opcode.INVOKE_VIRTUAL &&
-        drop.namedRegisters() == listOf((take as TwoRegisterInstruction).registerA, chat, chat + 1) &&
-        drop.controlRef()!!.let { it.startsWith("${unread.type}->") && it.endsWith("(J)V") },
-        "the read counter's read side changed")
-    // A changed chat's way starts by keeping a register the id is about to overwrite.
-    val copy = at - 3
-    val kept = body.getOrNull(copy)?.namedRegisters().orEmpty()
-    hiddenFits(copy >= 0 && body[copy].opcode in COPIES && kept.size == 2 && kept[1] in listOf(chat, chat + 1) && kept[0] !in listOf(chat, chat + 1),
+        take.controlRef()!!.startsWith(WITH_UNREAD), "the read counter's read side changed")
+    // The take: Telegram drops the chat from that field's list straight away. Plus Messenger first keeps the
+    // chat's old count, then reads the field again to drop it.
+    val storageRegister = (take as TwoRegisterInstruction).registerB
+    val drop = (side + 2 until minOf(side + 10, body.size)).firstOrNull { index ->
+        body[index].opcode == Opcode.INVOKE_VIRTUAL && body[index].controlRef()!!.let { it.startsWith("${unread!!.type}->") && it.endsWith("(J)V") }
+    }
+    hiddenFits(drop != null && straight(side + 1, drop) && body[drop].namedRegisters().let { named ->
+        named.size == 3 && named[1] == chat && named[2] == chat + 1 &&
+            (side + 1 until drop).lastOrNull { body[it].writesRegister(named[0]) }?.let { from ->
+                body[from].opcode == Opcode.IGET_OBJECT && body[from].controlRef() == take.controlRef() &&
+                    (body[from] as TwoRegisterInstruction).registerB == storageRegister
+            } == true
+    }, "the read counter's read side changed")
+    // A changed chat's way starts by keeping the registers the id is about to overwrite: one copy on
+    // Telegram, one for each half on Plus Messenger.
+    val savesId = { index: Int -> body[index].opcode in COPIES && body[index].namedRegisters().let { it.size == 2 && it[1] in listOf(chat, chat + 1) && it[0] !in listOf(chat, chat + 1) } }
+    val last = at - 3
+    hiddenFits(last >= 0 && savesId(last), "the read counter's changed chat no longer starts the same way")
+    var first = last
+    while (first > 0 && savesId(first - 1) && flow.normal[first - 1] == listOf(first)) first--
+    val saves = (first..last).toList()
+    // Nothing jumps into the middle of the saves and the id read, so a changed chat always makes every save.
+    hiddenFits(saves.map { body[it].namedRegisters()[1] }.distinct().size == saves.size && straight(first, at) &&
+        flow.normal.withIndex().none { (index, next) -> next.any { it in first + 1 until at && it != index + 1 } } &&
+        flow.exceptional.none { next -> next.any { it in first + 1 until at } },
         "the read counter's changed chat no longer starts the same way")
-    val value = (copy - 1 downTo 0).firstOrNull { body[it].controlRef() == VALUE_AT }
+    val value = (first - 1 downTo 0).firstOrNull { body[it].controlRef() == VALUE_AT }
     hiddenFits(value != null && body[value].opcode == Opcode.INVOKE_VIRTUAL && body.getOrNull(value + 1)?.opcode == Opcode.MOVE_RESULT,
         "the read counter's count read changed")
     val counted = value!! + 1
     val count = (body[counted] as OneRegisterInstruction).registerA
-    val flow = flowOf(method)
-    // The unchanged chat's way, where a test of the count goes: the same copy, then on to the next chat.
-    val unchanged = body.indices.filter { index ->
-        index != copy && body[index].opcode == body[copy].opcode && body[index].namedRegisters() == kept &&
-            (counted until copy).any { body[it].opcode in COUNT_TESTS && count in body[it].namedRegisters() && index in flow.normal[it] }
-    }
+    // The count, or where Plus Messenger copies it right away before its tests.
+    val counts = setOf(count) + listOfNotNull(body.getOrNull(counted + 1)?.takeIf { it.opcode in COPIES && it.namedRegisters().getOrNull(1) == count }
+        ?.namedRegisters()?.first())
+    // The unchanged chat's way, where a test of the count goes (straight, or through a goto): a run of
+    // copies holding each of the changed chat's saves, then on to the next chat.
+    val runEnd = { start: Int -> (start until body.size).firstOrNull { body[it].opcode !in COPIES }?.takeIf { end ->
+        end > start && body[end].opcode in GOTOS && straight(start, end) } }
+    val unchanged = (counted until first).filter { test -> body[test].opcode in COUNT_TESTS && body[test].namedRegisters().any { it in counts } }
+        .flatMap { test -> flow.normal[test].flatMap { next -> if (body[next].opcode in GOTOS) flow.normal[next] else listOf(next) } }
+        .filter { start -> start !in first..at && runEnd(start) != null }.distinct()
     hiddenFits(unchanged.size == 1, "the read counter's unchanged chat is missing or ambiguous")
-    val to = unchanged.single() + 1
-    // Past the copy, that way reads nothing a changed chat's start leaves different.
+    val run = unchanged.single() until runEnd(unchanged.single())!!
+    val copied = saves.map { save -> run.filter { body[it].opcode == body[save].opcode && body[it].namedRegisters() == body[save].namedRegisters() } }
+    hiddenFits(copied.all { it.size == 1 }, "the read counter's unchanged chat is missing or ambiguous")
+    // Where the run starts with the same copies, a hidden chat goes on past them. Otherwise it copies the saved
+    // id registers back and takes the whole run, which copies them again.
+    val inOrder = saves.indices.all { copied[it].single() == run.first + it }
+    val to = if (inOrder) run.first + saves.size else run.first
+    val restores = if (inOrder) emptyList() else saves.map { save ->
+        val (kept, from) = body[save].namedRegisters()
+        Restore(from, kept, body[save].opcode in MOVE_OBJECTS)
+    }
+    // Past those, that way reads nothing a changed chat's start leaves different, and what it copied was the same value.
     val live = RegisterLiveness.of(method).liveInto(to)
-    hiddenFits(chat !in live && chat + 1 !in live && flow.definitionReaches(counted, copy, kept[1]) &&
-        flow.definitionReaches(counted, unchanged.single(), kept[1]) &&
-        (live - kept[0]).all { flow.definitionReaches(counted, to, it) && flow.definitionReaches(counted, at, it) },
+    val restored = restores.map { it.into }.toSet()
+    val keptIn = saves.map { body[it].namedRegisters()[0] }.toSet()
+    hiddenFits((listOf(chat, chat + 1) - restored).none { it in live } &&
+        saves.indices.all { i -> body[saves[i]].namedRegisters()[1].let { from ->
+            flow.definitionReaches(counted, saves[i], from) && flow.definitionReaches(counted, copied[i].single(), from) } } &&
+        (live - keptIn - restored).all { flow.definitionReaches(counted, to, it) && flow.definitionReaches(counted, at, it) },
         "the read counter's next chat keeps a register a changed chat writes")
-    return countSkip(method, flow, at, to, chat).also {
-        hiddenFits((take as TwoRegisterInstruction).registerB == it.storage, "the read counter's storage register changed")
+    return countSkip(method, flow, at, to, chat).let {
+        hiddenFits(storageRegister == it.storage, "the read counter's storage register changed")
+        hiddenFits(it.scratch !in keptIn, "the unread count's skip has no free register")
+        CountSkip(it.method, it.at, it.to, it.storage, it.chat, it.scratch, restores)
     }
 }
 

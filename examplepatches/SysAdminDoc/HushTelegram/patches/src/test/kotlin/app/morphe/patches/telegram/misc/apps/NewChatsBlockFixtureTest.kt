@@ -7,7 +7,6 @@ package app.morphe.patches.telegram.misc.apps
 import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
-import app.morphe.PlusPending
 import app.morphe.hostsOf
 import app.morphe.PatchContexts
 import app.morphe.util.names.origRef
@@ -30,6 +29,7 @@ import app.morphe.patches.telegram.misc.extension.resolveSendRequestGate
 import app.morphe.util.ControlFlow
 import app.morphe.util.namedRegisters
 import app.morphe.util.numberOfParameterRegisters
+import app.morphe.util.writesReaching
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -63,7 +63,6 @@ private const val PLAIN_POLL = "$MESSAGES_CONTROLLER->startShortPoll(${TL_CHAT}I
  * asks before it sets up a channel or supergroup you aren't in, and the topic list asks before it
  * loads a forum you aren't in. A build that has moved any of it leaves all three stock and says why.
  */
-@PlusPending
 class NewChatsBlockFixtureTest {
     @Test fun `every join the block drops is a class each declared build still has under that name`() {
         val named = ExtensionDex.classes().single { it.origType == NEW_CHATS_BLOCK }.methods.flatMap { it.body() }
@@ -222,6 +221,34 @@ class NewChatsBlockFixtureTest {
         }
     }
 
+    /**
+     * A member's watch is the plain one only when every way into it hands it no callback. Telegram's
+     * builds null the callback once, Plus Messenger once on each of its two ways in, so a callback
+     * planted on any one of them leaves all three stock for the member's reason.
+     */
+    @Test fun `a callback handed to a member's watch on any way in keeps all three stock`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val found = contextFor(build).resolveNewChatsBlock()
+            assertNull("${build.name}: ${found.missing}", found.missing)
+            val writes = memberCallbackWrites(found.sites[0].method)
+            assertTrue("${build.name}: a member's watch has its callback nulled", writes.isNotEmpty())
+            for (write in writes) {
+                val where = "${build.name} callback written at $write"
+                val context = contextFor(build)
+                val stock = context.resolveNewChatsBlock()
+                assertNull("$where: stock first: ${stock.missing}", stock.missing)
+                val method = stock.sites[0].method
+                method.replaceInstruction(write, "const/4 v${method.body()[write].namedRegisters().single()}, 0x1")
+                val before = snapshot(context, build)
+                val plan = context.resolveNewChatsBlock()
+                assertEquals(where, "a member's way through the chat screen no longer watches the chat", plan.missing)
+                assertTrue("$where: no site without its partners", plan.sites.isEmpty())
+                plan.apply()
+                assertEquals("$where: nothing is edited", before, snapshot(context, build))
+            }
+        }
+    }
+
     /** smali drops an instruction it can't build and only logs it; the rehearsal counts what went in. */
     @Test fun `a check that loses an instruction is caught by the rehearsal and the screen stays stock`() {
         for (build in Fixtures.declaredBuilds()) {
@@ -370,6 +397,20 @@ class NewChatsBlockFixtureTest {
         assertEquals("$where: the stock screen is whole", original.operations(),
             after.drop(TOPICS_OPEN_CHECK_SIZE).filter { it.opcode != Opcode.NOP }.map(::operation))
         assertEquals("$where: no register added", original.implementation!!.registerCount, patched.implementation!!.registerCount)
+    }
+
+    /**
+     * Where the callback of a member's watch, the next one after the visitor's, is written on its
+     * ways in, each a `const/4` null, in order.
+     */
+    private fun memberCallbackWrites(method: Method): List<Int> {
+        val body = method.body()
+        val visitor = body.indexOfFirst { it.isVisitorPoll() }
+        val member = body.indices.first { it > visitor && body[it].isPoll() }
+        val writes = ControlFlow.of(method).writesReaching(member, body[member].namedRegisters().last())
+        assertTrue("${method.definingClass}: $writes", writes.all { it >= 0 && body[it].opcode == Opcode.CONST_4 &&
+            (body[it] as NarrowLiteralInstruction).narrowLiteral == 0 })
+        return writes.sorted()
     }
 
     private fun Instruction.isVisitorPoll() = ref()?.let { it.startsWith("$MESSAGES_CONTROLLER->startShortPoll(${TL_CHAT}IZ") && it != PLAIN_POLL } == true

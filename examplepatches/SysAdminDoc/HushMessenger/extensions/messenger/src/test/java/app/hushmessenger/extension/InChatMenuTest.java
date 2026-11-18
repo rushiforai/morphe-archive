@@ -1,6 +1,7 @@
 package app.hushmessenger.extension;
 
 import android.app.Activity;
+import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.os.Build;
 import android.os.Looper;
@@ -41,6 +42,8 @@ import static org.robolectric.Shadows.shadowOf;
 @LooperMode(LooperMode.Mode.PAUSED)
 public class InChatMenuTest {
     private static final String[] LABELS = {"Reply", "Copy", "Delete", "More"};
+    /** How far under its place the emoji row waits before sliding in. */
+    private static final float PARKED = 56f;
     private final BiConsumer<View, Float> effect = MenuBlur.screenEffect;
     /** Every blur radius put on each view, 0 for a cleared one. */
     private final Map<View, List<Float>> effects = new HashMap<>();
@@ -189,24 +192,29 @@ public class InChatMenuTest {
         assertNotNull(lift());
     }
 
-    /** Dressed while the row is still on its way, the message 150 px over it would be too far off to be found. */
-    @Test public void theMenuWaitsForTheEmojiRowToFinishSlidingIn() {
+    /**
+     * On the S22 the row waits 20 dp under its place, invisible, for a few frames before it slides up. Judged from there
+     * the pressed message is too far off to be found, so the row counts from where it's going to rest.
+     */
+    @Test public void aRowParkedUnderItsPlaceStillFindsThePressedMessage() {
         assumeTrue(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S);
         on(MenuBlur.KEY);
 
         open();
         fillIn();
-        // Litho sliding the row up into place from 150 px under it, 10 px a frame.
-        for (int left = 150; left > 0; left -= 10) {
-            panel.setTranslationY(left);
-            frame();
-            assertNull("Nothing happens while the row moves", lift());
-        }
-        panel.setTranslationY(0f);
+        panel.setTranslationY(PARKED);
         idle();
 
         assertNotNull(lift());
         assertSame(message, lift().message);
+        for (float left = PARKED; left > 0; left -= 10) {
+            panel.setTranslationY(left);
+            frame();
+        }
+        panel.setTranslationY(0f);
+        idle();
+        assertSame("The slide changes nothing", message, lift().message);
+        assertEquals(Arrays.asList(24f), effects.get(column));
     }
 
     @Test public void aMenuThatNeverFillsInIsLeftAsMessengerDrewIt() {
@@ -314,6 +322,154 @@ public class InChatMenuTest {
         chat.removeView(menu);
         assertEquals("Put back where Messenger had it", 0f, panel.getTranslationY(), 0f);
         assertTrue(Settings.hookErrors.isEmpty());
+    }
+
+    @Test public void theLastMessageRisesFromWhereItsRowRestsWhileTheRowIsStillParked() {
+        assumeTrue(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S);
+        on(MenuBlur.KEY, FloatingMenu.KEY);
+        int top = chat.getHeight() - 70;
+        column.getChildAt(0).getLayoutParams().height = top;
+        column.requestLayout();
+        idle();
+
+        open(top - 60);
+        panel.setTranslationY(PARKED);
+        fillIn();
+        idle();
+
+        float density = activity.getResources().getDisplayMetrics().density;
+        int gap = (int) (FloatingMenu.GAP_DP * density), edge = (int) (FloatingMenu.EDGE_DP * density);
+        int rise = top + 60 + gap + FloatingMenu.height(LABELS.length, density) - (chat.getHeight() - edge);
+        assertSame(message, lift().message);
+        assertEquals(rise, lift().rise);
+        assertEquals(-rise, panel.getTranslationY(), 0f);
+        assertEquals(top + 60 - rise + gap, ((FrameLayout.LayoutParams) card().getLayoutParams()).topMargin);
+
+        // Messenger's slide keeps writing the row until it ends.
+        panel.setTranslationY(PARKED / 2);
+        frame();
+        assertEquals(-rise, panel.getTranslationY(), 0f);
+
+        chat.removeView(menu);
+        assertEquals("Back at its place, not where it was parked", 0f, panel.getTranslationY(), 0f);
+    }
+
+    /** Makes the pressed message a tall bubble on the right, like a video: 400 px high, starting 200 px down. */
+    private void makeTheMessageTall(int height) {
+        LinearLayout.LayoutParams tall = new LinearLayout.LayoutParams(200, height);
+        tall.gravity = Gravity.END;
+        message.setLayoutParams(tall);
+        idle();
+    }
+
+    /** On the S22 a video's emoji row lands across the video, nowhere near its top. */
+    @Test public void aMessageTooTallForTheRowKeepsItsPlaceWithTheCardUnderTheRow() {
+        assumeTrue(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S);
+        on(MenuBlur.KEY, FloatingMenu.KEY);
+        makeTheMessageTall(400);
+
+        open(300);
+        idle();
+        fillIn();
+        idle();
+
+        float density = activity.getResources().getDisplayMetrics().density;
+        int gap = (int) (FloatingMenu.GAP_DP * density), edge = (int) (FloatingMenu.EDGE_DP * density);
+        assertSame(message, lift().message);
+        assertEquals(0, lift().rise);
+        assertEquals(0f, panel.getTranslationY(), 0f);
+        FrameLayout.LayoutParams placed = (FrameLayout.LayoutParams) card().getLayoutParams();
+        assertEquals("Right under the row", 350 + gap, placed.topMargin);
+        assertEquals("On the message's side", chat.getWidth() - edge - (int) (FloatingMenu.WIDTH_DP * density), placed.leftMargin);
+    }
+
+    /** Messenger's round Forward button sits beside a video, and can start right where the emoji row ends. */
+    @Test public void aButtonBesideATallMessageIsNotThePressedMessage() {
+        assumeTrue(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S);
+        on(MenuBlur.KEY, FloatingMenu.KEY);
+        makeTheMessageTall(400);
+        View forward = new View(activity);
+        forward.setClickable(true);
+        FrameLayout.LayoutParams beside = new FrameLayout.LayoutParams(40, 40);
+        beside.topMargin = 352;
+        chat.addView(forward, beside);
+        idle();
+
+        open(300);
+        idle();
+        fillIn();
+        idle();
+
+        assertSame(message, lift().message);
+    }
+
+    @Test public void aWholeLineOfTheChatUnderTheRowIsNotThePressedMessage() {
+        assumeTrue(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S);
+        on(MenuBlur.KEY);
+        message.getLayoutParams().height = 400;
+        message.requestLayout();
+        idle();
+
+        open(300);
+        idle();
+        fillIn();
+        idle();
+
+        assertNull(lift().message);
+    }
+
+    @Test public void theCopyOfAMessageStopsWhereTheChatDoes() {
+        assumeTrue(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S);
+        on(MenuBlur.KEY);
+        makeTheMessageTall(5000);
+        open(300);
+        idle();
+        fillIn();
+        idle();
+        assertSame(message, lift().message);
+
+        Rect[] clip = new Rect[1];
+        lift().onDraw(new Canvas() {
+            @Override public boolean clipRect(Rect rect) {
+                clip[0] = new Rect(rect);
+                return true;
+            }
+        });
+
+        assertEquals(new Rect(0, 0, 200, chat.getHeight() - 200), clip[0]);
+    }
+
+    @Test public void theCopyOfAMessageKeepsTheLayerItDrawsOn() {
+        assumeTrue(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S);
+        on(MenuBlur.KEY);
+        openFilledIn();
+        assertSame(message, lift().message);
+
+        int[] layers = {0};
+        Canvas counting = new Canvas() {
+            @Override public int saveLayer(float left, float top, float right, float bottom, android.graphics.Paint paint) {
+                layers[0]++;
+                return 1;
+            }
+        };
+        lift().onDraw(counting);
+        assertEquals(0, layers[0]);
+
+        message.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+        lift().onDraw(counting);
+        assertEquals(1, layers[0]);
+    }
+
+    @Test public void aDressedMenuIsUpUntilItGoes() {
+        assumeTrue(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S);
+        on(MenuBlur.KEY);
+        assertFalse(InChatMenu.isUp(chat));
+
+        openFilledIn();
+        assertTrue(InChatMenu.isUp(chat));
+
+        chat.removeView(menu);
+        assertFalse(InChatMenu.isUp(chat));
     }
 
     @Test public void withNoCopyOfTheMessageToMoveTheCardGoesOverTheEmojiRow() {

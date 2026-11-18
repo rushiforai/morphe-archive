@@ -10,6 +10,7 @@ import static app.morphe.extension.instagram.utils.IgStr.str;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -20,7 +21,6 @@ import android.app.FragmentManager;
 
 import app.morphe.extension.rex.RexUtils;
 import app.morphe.extension.rex.downloader.FolderPickerFragment;
-import app.morphe.extension.rex.downloader.StorageUtils;
 import app.morphe.extension.instagram.constants.Constants;
 import app.morphe.extension.instagram.patches.dm.DeletedMessagesActivity;
 import app.morphe.extension.instagram.patches.instants.InstantsVaultActivity;
@@ -31,10 +31,10 @@ import app.morphe.extension.shared.Logger;
 public class ActivityHook {
 
     private static final String PROXY_ACTIVITY_CLASS = "com.instagram.modal.ModalActivity";
-    private static final String PROXY_TRANSPARENT_ACTIVITY_CLASS = "com.instagram.modal.TransparentModalActivity";
     private static final String EXTRA_REX = "rex";
     private static final String EXTRA_REX_LAUNCH_TYPE = "rex_launch_type";
     private static final String EXTRA_SHORTCUT = "shortcut";
+    public static final String EXTRA_INLINE_HOST = "rex_inline_host";
 
     static final String LAUNCH_TYPE_SETTINGS = "settings";
     static final String LAUNCH_TYPE_BACKUP = "backup";
@@ -42,7 +42,6 @@ public class ActivityHook {
     static final String LAUNCH_TYPE_FOLDER_PICKER = "folder_picker";
     static final String LAUNCH_TYPE_DELETED_MESSAGES = "deleted_messages";
     static final String LAUNCH_TYPE_INSTANTS_VAULT = "instants_vault";
-
 
     public static void launchActivity(Context context, Class<?> activityClass) {
         if (activityClass != null && activityClass.equals(InstantsVaultActivity.class)) {
@@ -183,8 +182,14 @@ public class ActivityHook {
 
     private static void attachPickerFragment(Activity activity, String launchType, Bundle extras) {
         FragmentManager fm = activity.getFragmentManager();
-        if (fm == null || fm.findFragmentByTag("rex_picker") != null) {
+        if (fm == null) {
             return;
+        }
+        Fragment existing = fm.findFragmentByTag("rex_picker");
+        if (existing != null) {
+            try {
+                fm.beginTransaction().remove(existing).commitAllowingStateLoss();
+            } catch (Throwable ignored) {}
         }
         Fragment fragment;
         switch (launchType) {
@@ -240,12 +245,33 @@ public class ActivityHook {
         launchActivity(context, intent);
     }
 
+    private static Activity resolveHostActivity(Context ctx) {
+        Context c = ctx;
+        while (c instanceof ContextWrapper) {
+            if (c instanceof Activity) {
+                Activity a = (Activity) c;
+                if (!a.isFinishing() && !a.isDestroyed()) return a;
+            }
+            Context base = ((ContextWrapper) c).getBaseContext();
+            if (base == c) break;
+            c = base;
+        }
+        Activity fallback = app.morphe.extension.shared.Utils.getActivity();
+        if (fallback != null && !fallback.isFinishing() && !fallback.isDestroyed()) {
+            return fallback;
+        }
+        return null;
+    }
+
     public static void launchFragment(Context ctx, String bundleKey) {
         String launchType;
-        if (bundleKey.equals("rex_export_dev_overrides") || bundleKey.equals("rex_export_pref")) {
+        if (bundleKey.equals("rex_export_dev_overrides") || bundleKey.equals("rex_export_pref")
+                || bundleKey.equals("rex_export_initial_features")) {
             launchType = LAUNCH_TYPE_BACKUP;
         } else if (bundleKey.equals("rex_import_dev_overrides") || bundleKey.equals("rex_import_id_mapping")
-                || bundleKey.equals("rex_import_pref") || bundleKey.equals("rex_pref_add_font") || bundleKey.equals("rex_pref_add_emoji_font") || bundleKey.equals("rex_pref_add_story_font")) {
+                || bundleKey.equals("rex_import_pref") || bundleKey.equals("rex_pref_add_font")
+                || bundleKey.equals("rex_pref_add_emoji_font") || bundleKey.equals("rex_pref_add_story_font")
+                || bundleKey.equals("rex_import_initial_features")) {
             launchType = LAUNCH_TYPE_RESTORE;
         } else if (bundleKey.equals("rex_download_set_path")) {
             launchType = LAUNCH_TYPE_FOLDER_PICKER;
@@ -253,10 +279,20 @@ public class ActivityHook {
             return;
         }
 
-        Intent intent = createProxyIntent(ctx, PROXY_TRANSPARENT_ACTIVITY_CLASS);
+        // Attach directly onto the active Activity's FragmentManager so we never launch TransparentModalActivity (fixes 23473.png crash)
+        Activity hostAct = resolveHostActivity(ctx);
+        if (hostAct != null) {
+            Bundle args = new Bundle();
+            args.putBoolean(bundleKey, true);
+            args.putBoolean(EXTRA_INLINE_HOST, true);
+            attachPickerFragment(hostAct, launchType, args);
+            return;
+        }
+
+        Intent intent = createProxyIntent(ctx != null ? ctx : RexUtils.getContext(), PROXY_ACTIVITY_CLASS);
         intent.putExtra(EXTRA_REX_LAUNCH_TYPE, launchType);
         intent.putExtra(bundleKey, true);
-        launchActivity(ctx, intent);
+        launchActivity(ctx != null ? ctx : RexUtils.getContext(), intent);
     }
 
     public static void handleUrlIntent(Boolean isVideo, String mediaUrl) {

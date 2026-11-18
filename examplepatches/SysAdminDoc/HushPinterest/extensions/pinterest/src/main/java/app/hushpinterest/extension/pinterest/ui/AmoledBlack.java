@@ -17,10 +17,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.view.ViewTreeObserver;
+import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -61,8 +65,8 @@ import app.hushpinterest.extension.shared.settings.BooleanSetting;
  * (14.44.0, #39): Pinterest's Gestalt sheets (Create, a board's Board view and sort sheets, Add
  * collaborators) as each is set up, and its older lego menus (a board's Options, a profile's sort
  * menu) as each is built. A sheet with a switch of its own keeps it, so the Save to sheet, also a
- * Gestalt sheet, follows Black Save to sheet. Their buttons and Create's tiles keep their gray. A
- * last switch takes the gray bar that floats over a board, the filter buttons on a profile and the
+ * Gestalt sheet, follows Black Save to sheet. The drawer a pin's chevron slides up follows the same
+ * switch (14.45.0, #21). Their buttons and Create's tiles keep their gray. A last switch takes the gray bar that floats over a board, the filter buttons on a profile and the
  * empty header card on Edit board. The bar is a card whose tint changes. The filter buttons are
  * drawn by Compose with no fill on a view, so they're drawn through a layer that maps Pinterest's
  * dark grays to black and keeps white white.
@@ -72,6 +76,7 @@ public final class AmoledBlack {
 
     /** The fill or tint each painted view had before, so off, Pause or light mode gives it back. */
     private static final Map<GradientDrawable, ColorStateList> shapes = new WeakHashMap<>();
+    private static final Map<GradientDrawable, int[]> fades = new WeakHashMap<>();
     private static final Map<ColorDrawable, Integer> colors = new WeakHashMap<>();
     private static final Map<View, ColorStateList> tints = new WeakHashMap<>();
     /** The bars drawn so far. Each one repaints after its layout passes, and glass under one washes black. */
@@ -228,6 +233,17 @@ public final class AmoledBlack {
         built(menu, Settings.BLACK_SHEETS, true, true, false, null, null, "menu", "modal_header", "modal_container",
                 "lego_modal_scroll_view", "lego_modal_container", "lego_modal_content_container", "lego_close_container",
                 "lego_close_container_sticky");
+    }
+
+    /**
+     * Called with the drawer a pin's chevron slides up, as soon as its layout is inflated (14.45.0,
+     * #21). The sheet and the strip with its drag handle are rounded shapes in the sheet's gray, the
+     * footer holds Visit site and Save, and a fade runs from the gray to clear above the footer. The
+     * buttons keep their gray.
+     */
+    public static void pinDetails(View drawer) {
+        built(drawer, Settings.BLACK_SHEETS, true, false, false, null, null, "pin details", "metadata_drawer_bottom_sheet",
+                "drag_handle_container", "metadata_drawer_footer", "footer_container", "metadata_drawer_footer_fade");
     }
 
     /** The views' fills and tints, which off, Pause or light mode give back, follow on their layout passes. */
@@ -701,6 +717,35 @@ public final class AmoledBlack {
     }
 
     /**
+     * Called with each toast as Pinterest's container builds it, before it's shown. Every toast is
+     * a new view, so nothing has to go back when the switch goes off. In dark mode Pinterest's toast
+     * is white with dark words, so the words and icons turn white with it. A picture, an avatar and
+     * a button keep their own colors.
+     */
+    public static void toast(View toast) {
+        try {
+            if (toast == null || !UiHooks.enabled(FamilyNames.AMOLED_BLACK, Settings.BLACK_TOASTS) || !night(toast)) return;
+            paintToast(toast);
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.AMOLED_BLACK, "toast", failure);
+        }
+    }
+
+    private static void paintToast(View view) {
+        String name = view.getClass().getName();
+        if (view instanceof Button || name.endsWith(".GestaltThumbnail") || name.endsWith(".GestaltAvatar")) return;
+        paintFill(view, true, true);
+        if (view instanceof TextView) {
+            ((TextView) view).setTextColor(Color.WHITE);
+        } else if (view instanceof ImageView && name.startsWith("com.pinterest.gestalt.icon")) {
+            ((ImageView) view).setImageTintList(ColorStateList.valueOf(Color.WHITE));
+        }
+        if (!(view instanceof ViewGroup)) return;
+        ViewGroup group = (ViewGroup) view;
+        for (int index = 0; index < group.getChildCount(); index++) paintToast(group.getChildAt(index));
+    }
+
+    /**
      * A view that holds a sheet's gray, whether as its own fill or as a layer of one. A ripple is a
      * layer list too. [washes] also takes a layer's see-through gray, as [paint] does for a shape.
      * A tint draws over every layer's own color (14.43.0's Gestalt buttons, #21), so it's the tint
@@ -713,8 +758,29 @@ public final class AmoledBlack {
         }
         Drawable background = fill.getBackground();
         if (background instanceof LayerDrawable) paint((LayerDrawable) background, black, washes);
-        else if (background instanceof GradientDrawable) paint((GradientDrawable) background, black, washes);
+        else if (background instanceof GradientDrawable) {
+            GradientDrawable shape = (GradientDrawable) background;
+            if (!washes && (shape.getColors() != null || fades.containsKey(shape))) paintFade(shape, black);
+            else paint(shape, black, washes);
+        }
         else if (background instanceof ColorDrawable) paint((ColorDrawable) background, black, washes);
+    }
+
+    /** A sheet's fade into its buttons, a gradient from the sheet's gray to clear: the same fade, from black. */
+    private static void paintFade(GradientDrawable fade, boolean black) {
+        if (!black) {
+            int[] original = fades.remove(fade);
+            if (original != null) fade.setColors(original);
+            return;
+        }
+        int[] stops = fade.getColors();
+        if (stops == null || fades.containsKey(fade)) return;
+        int[] dark = new int[stops.length];
+        for (int index = 0; index < stops.length; index++) dark[index] = stops[index] & 0xFF000000;
+        if (Arrays.equals(dark, stops)) return;
+        fade.mutate();
+        fades.put(fade, stops);
+        fade.setColors(dark);
     }
 
     /**

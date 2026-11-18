@@ -3195,3 +3195,21 @@ The Widget circle at the end of the stories tray goes. TikTok's home screen widg
 # context: Feed screen settings, a switch under Show video length on profile grids. It removes the view count and the play icon from each video tile on profile grids. If the date, video length or engagement rate are switched on, they take the first line instead.
 Hide view counts on profile grids	Скрывать число просмотров в сетке профиля
 Takes the view count and its play icon off each video on profile grids. Dates, lengths and the engagement rate you turned on move up in its place.	Убирает число просмотров и значок воспроизведения у каждого видео в сетке профиля. Включённые вами даты, длительность и уровень вовлечённости поднимаются на их место.
+Video bitrate limit	Лимит битрейта видео
+%1$s Mb/s	%1$s Мбит/с
+A video heavier than this plays a lighter version. If none fits, it plays its lightest one.	Более тяжёлое видео воспроизводится в облегчённой версии. Если ни одна не подходит, включается самая лёгкая.
+Use an imported emoji font	Использовать импортированный шрифт эмодзи
+Shows emoji in the font file you import below, whichever font the text is in. Restart TikTok to see the change.	Показывает эмодзи шрифтом из файла, который вы импортируете ниже, каким бы шрифтом ни был набран текст. Перезапустите TikTok, чтобы увидеть изменения.
+Import an emoji font file	Импортировать файл шрифта эмодзи
+Remove the imported emoji font	Удалить импортированный шрифт эмодзи
+No emoji font is imported	Шрифт эмодзи не импортирован
+%1$s is imported. Turn on Use an imported emoji font to see it.	%1$s импортирован. Включите Использовать импортированный шрифт эмодзи, чтобы увидеть его.
+Write the month as a word	Писать месяц словом
+Writes TikTok's date by the creator's name with the month's name, like Oct 12. Day before month makes it 12 Oct.	Пишет дату TikTok рядом с именем автора с названием месяца, например Oct 12. С параметром «День перед месяцем» получится 12 Oct.
+Fade the name, date and caption	Приглушить имя, дату и подпись
+Draws the creator's name, the date, the caption and the music line over the video at this level, and they still take taps. At 100 they follow Fade the video controls. At 0 they're hidden.	Показывает имя автора, дату, подпись и строку с музыкой поверх видео на этом уровне, и на них по-прежнему можно нажимать. При 100 они следуют настройке Приглушить кнопки поверх видео. При 0 они скрыты.
+LIVE buttons in the long-press menu	Кнопки LIVE в меню долгого нажатия
+Takes the Record and Auto tap buttons off the video and puts them in the menu you get by holding the middle of a LIVE.	Убирает кнопки Запись и Автонажатие с видео и помещает их в меню, которое открывается при долгом нажатии на середину LIVE.
+Auto tap started	Автонажатие запущено
+Hide stories from accounts you don't follow	Скрывать истории аккаунтов, на которые вы не подписаны
+Stories from accounts you don't follow leave the stories tray. Stories from accounts you follow stay.	Истории аккаунтов, на которые вы не подписаны, исчезают из панели историй. Истории аккаунтов, на которые вы подписаны, остаются.

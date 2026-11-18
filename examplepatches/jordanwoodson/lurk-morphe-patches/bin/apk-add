@@ -26,7 +26,8 @@ slug="$(slug_for_package "$package")" ||
 apk_py extract-base "$file" "$tmp/base.apk"
 certs="$("$(build_tool apksigner)" verify --print-certs "$tmp/base.apk" 2>/dev/null)" ||
     die "base APK signature does not verify: corrupted or tampered file"
-digest="$(sed -n 's/^Signer #1 certificate SHA-256 digest: //p' <<<"$certs")"
+# build-tools 36 prints "Signer #1 certificate ...", 37 "V3.0 Signer: certificate ..." (one line per scheme).
+digest="$(sed -En 's/^(Signer #1|V[0-9.]+ Signer:) certificate SHA-256 digest: //p' <<<"$certs" | head -1)"
 constants="$(app_constants "$slug")"
 
 case "$(apk_py pin "$constants" "$digest")" in

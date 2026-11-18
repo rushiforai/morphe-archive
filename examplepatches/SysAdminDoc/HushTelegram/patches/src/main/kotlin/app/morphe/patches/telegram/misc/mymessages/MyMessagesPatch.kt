@@ -75,7 +75,7 @@ val myMessagesPatch = bytecodePatch(
 ) {
     category("Search")
     dependsOn(settingsPatch, telegramExtensionPatch)
-    compatibleWith(*AppCompatibilities.telegramOnly())
+    compatibleWith(*AppCompatibilities.telegram())
     execute {
         val site = resolveMyMessages()
         // Assembled on copies first, so a refusal leaves the app untouched.
@@ -137,24 +137,25 @@ internal fun BytecodePatchContext.resolveMyMessages(): MyMessagesSite {
     controlHook(MY_MESSAGES, "addHeaderItem", listOf(OBJECT, "I", "I", "Ljava/lang/String;"), OBJECT)
     controlHook(MY_MESSAGES, "chatOf", listOf(OBJECT), OBJECT)
 
-    // The instant search: the one method of a screen that reads the argument from its bundle.
-    val readers = mutableListOf<Pair<String, String>>()
+    // The instant search: the one method of a screen that reads the argument from its bundle and looks
+    // the member up. Plus keeps a second reader that reads it and drops it, so a reader that looks
+    // nobody up isn't the search.
+    val readers = mutableListOf<Triple<String, String, Boolean>>()
     forEachClassMentioning(Mention.string(FROM_USER)) { cls ->
         if (cls.origType.startsWith("Lapp/hushtelegram/")) return@forEachClassMentioning
         cls.methods.forEach { m ->
             val body = m.controlBody()
             if (!AccessFlags.STATIC.isSet(m.accessFlags) && m.origReturnType == "V" && m.parameterTypes.isEmpty() &&
                 body.indices.any { i -> body[i].controlString() == FROM_USER && body.drop(i + 1).take(3).any { it.readsBundleId() } }
-            ) readers += cls.type to "${m.name}()V"
+            ) readers += Triple(cls.type, "${m.name}()V", body.any { it.controlRef() == GET_USER } && body.any { it.controlRef() == GET_CHAT })
         }
     }
-    val (chat, readerName) = readers.controlSingle("the instant search")
+    controlShape(readers.isEmpty() || readers.any { it.third }, "the instant search no longer looks up the member it searches for")
+    val (chat, readerName) = readers.filter { it.third }.map { it.first to it.second }.controlSingle("the instant search")
     val chatClass = tgMutableClassDefBy(chat)
     controlShape(AccessFlags.PUBLIC.isSet(chatClass.accessFlags), "the chat screen is inaccessible")
     val reader = chatClass.methods.single { "${it.name}()V" == readerName && it.parameterTypes.isEmpty() }
     val steps = reader.controlBody()
-    controlShape(steps.any { it.controlRef() == GET_USER } && steps.any { it.controlRef() == GET_CHAT },
-        "the instant search no longer looks up the member it searches for")
 
     val ownCalls = steps.mapNotNull { it.call() }.filter { it.definingClass == chat }.distinctBy { it.toString() }
     val openSearch = ownCalls.filter { it.origParameterTypes == listOf("Ljava/lang/String;") && it.origReturnType == "V" }

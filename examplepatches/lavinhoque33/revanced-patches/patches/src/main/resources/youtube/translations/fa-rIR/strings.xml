@@ -537,7 +537,7 @@
     <string name="revanced_change_start_page_entry_fashion">مد و زیبایی</string>
     <string name="revanced_change_start_page_entry_gaming">بازی</string>
     <string name="revanced_change_start_page_entry_history">سابقه</string>
-    <string name="revanced_change_start_page_entry_library">کتابخانه</string>
+    <string name="revanced_change_start_page_entry_library">شما</string>
     <string name="revanced_change_start_page_entry_liked_videos">ویدئوهای پسندیده</string>
     <string name="revanced_change_start_page_entry_live">زنده</string>
     <string name="revanced_change_start_page_entry_movies">فیلم‌ها</string>
@@ -550,7 +550,6 @@
     <string name="revanced_change_start_page_entry_shorts">Shorts</string>
     <string name="revanced_change_start_page_entry_sports">ورزش</string>
     <string name="revanced_change_start_page_entry_subscriptions">عضویت‌ها</string>
-    <string name="revanced_change_start_page_entry_trending">محبوب‌ها</string>
     <string name="revanced_change_start_page_entry_virtual_reality">واقعیت مجازی</string>
     <string name="revanced_change_start_page_entry_watch_later">بعداً تماشا می‌کنم</string>
     <string name="revanced_change_start_page_entry_your_clips">کلیپ‌های شما</string>

@@ -8,7 +8,6 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.PlusPending
 import app.morphe.patches.telegram.misc.blocked.MESSAGE_OBJECT
 import app.morphe.patches.telegram.misc.blocked.TL_MESSAGE
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
@@ -26,7 +25,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /** Bookmark in the message menu: the stubs that read a message's place and Telegram's stars, or a clean refusal. */
-@PlusPending
 class BookmarksFixtureTest {
     @Test fun `the stubs read Telegram's own topic and stars and the build flag goes on`() {
         for (build in Fixtures.declaredBuilds()) {

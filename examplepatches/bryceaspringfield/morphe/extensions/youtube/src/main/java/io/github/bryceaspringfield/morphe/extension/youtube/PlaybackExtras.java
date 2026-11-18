@@ -113,7 +113,7 @@ public final class PlaybackExtras {
     /** Every 2 s: picture in picture opens by itself on leaving while a video plays in the watch player (Android 12+). */
     private static void pipTick() {
         try {
-            Activity a = HomeMore.resumedMain();
+            Activity a = ResumedActivity.main();
             if (a != null && android.os.Build.VERSION.SDK_INT >= 31) {
                 // The state is null in Morphe Patches 2.3.0 until it changes (seen 2026-11-17, a live stream playing), so a
                 // video whose time moved since the last tick counts as playing too.

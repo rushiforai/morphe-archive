@@ -9,7 +9,7 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
-import app.zeldrisho.patches.shared.Constants.COMPATIBILITY_ZALO
+import app.zeldrisho.patches.shared.Constants.COMPATIBILITY_ZALO_STABLE
 
 /**
  * Requires exact pinned literal counts; fail closed when app strings drift.
@@ -78,7 +78,7 @@ private val changeZaloPackageNameResourcesPatch = resourcePatch(
         "may be affected.",
     default = false,
 ) {
-    compatibleWith(COMPATIBILITY_ZALO)
+    compatibleWith(COMPATIBILITY_ZALO_STABLE)
 
     val packageName by packageNameOption()
 
@@ -96,7 +96,7 @@ val changeZaloPackageNamePatch = bytecodePatch(
         "may be affected.",
     default = false,
 ) {
-    compatibleWith(COMPATIBILITY_ZALO)
+    compatibleWith(COMPATIBILITY_ZALO_STABLE)
     dependsOn(changeZaloPackageNameResourcesPatch)
 
     val packageName by packageNameOption()

@@ -57,6 +57,7 @@ public final class PostRules {
     final boolean reblogs;
     final boolean keepTaggedReblogs;
     final boolean keepReblogsWithContent;
+    final boolean keepCommunityReblogs;
     final boolean video;
     final boolean photo;
     final boolean text;
@@ -69,12 +70,13 @@ public final class PostRules {
     final boolean wordsSummary;
     final boolean filtered;
 
-    PostRules(boolean reblogs, boolean keepTaggedReblogs, boolean keepReblogsWithContent, boolean video,
-              boolean photo, boolean text, List<String> words, List<String> allowedWords, boolean wordsCurrentText,
+    PostRules(boolean reblogs, boolean keepTaggedReblogs, boolean keepReblogsWithContent,
+              boolean keepCommunityReblogs, boolean video, boolean photo, boolean text, List<String> words, List<String> allowedWords, boolean wordsCurrentText,
               boolean wordsReblogTrail, boolean wordsTags, boolean wordsSummary, boolean filtered) {
         this.reblogs = reblogs;
         this.keepTaggedReblogs = keepTaggedReblogs;
         this.keepReblogsWithContent = keepReblogsWithContent;
+        this.keepCommunityReblogs = keepCommunityReblogs;
         this.video = video;
         this.photo = photo;
         this.text = text;
@@ -114,7 +116,8 @@ public final class PostRules {
         if (!reblogs && !video && !photo && !text && words.isEmpty() && !filtered) return null;
         List<String> allowed = words.isEmpty() ? Collections.emptyList() : cachedWordList(TextSettings.ALLOWED_WORDS.get(), true);
         return new PostRules(reblogs, reblogs && Settings.KEEP_TAGGED_REBLOGS.get(),
-                reblogs && Settings.KEEP_REBLOGS_WITH_CONTENT.get(), video, photo, text,
+                reblogs && Settings.KEEP_REBLOGS_WITH_CONTENT.get(),
+                reblogs && Settings.KEEP_COMMUNITY_REBLOGS.get(), video, photo, text,
                 words, allowed, current, trail, tags, summary, filtered);
     }
 
@@ -147,7 +150,8 @@ public final class PostRules {
         List<?> trail = reblogs || video || photo || text || !words.isEmpty() && wordsReblogTrail
                 ? post.hushTrail() : null;
         if (reblogs && isReblog(post, trail) && !(keepTaggedReblogs && hasCurrentTags(post))
-                && !(keepReblogsWithContent && hasCurrentContent(post))) return FamilyNames.HIDE_REBLOGS;
+                && !(keepReblogsWithContent && hasCurrentContent(post))
+                && !(keepCommunityReblogs && isCommunityPost(payload))) return FamilyNames.HIDE_REBLOGS;
         if (video || photo || text) {
             Kind kind = kindOf(post, trail);
             if (video && kind == Kind.VIDEO) return FamilyNames.HIDE_VIDEO_POSTS;
@@ -185,6 +189,11 @@ public final class PostRules {
     /** Whether Tumblr sent [payload] as a post the signed-in account had liked. */
     static boolean isLiked(@Nullable Object payload) {
         return payload instanceof HushLikedPost && ((HushLikedPost) payload).hushLiked();
+    }
+
+    /** Whether Tumblr sent [payload] as a post shared to a community. */
+    static boolean isCommunityPost(@Nullable Object payload) {
+        return payload instanceof HushCommunityPost && ((HushCommunityPost) payload).hushCommunity() != null;
     }
 
     /** The post [payload] is, or null when it isn't one. */

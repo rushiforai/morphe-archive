@@ -10,6 +10,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.PopupMenu;
 
+import com.facebook.graphservice.tree.TreeJNI;
 import com.facebook.graphql.model.GraphQLMedia;
 import com.facebook.graphql.model.GraphQLStory;
 import com.facebook.graphql.model.GraphQLStoryAttachment;
@@ -102,7 +103,15 @@ public final class VideoMenuItemForTests {
         Context context = RuntimeEnvironment.getApplication();
         Menu menu = facebooksMenu(context);
         int before = menu.size();
-        VideoMenuItem.add(menu, new View(context), videoPost(), ICON, ATTACHMENTS, MEDIA, ATTACHED_STORY);
+        VideoMenuItem.add(menu, new View(context), videoPost(), ICON, ATTACHMENTS, MEDIA, ATTACHED_STORY, PhotoMenuItemForTests.SUBATTACHMENTS);
+        return menu.size() > before;
+    }
+
+    /** Hands the viewer's hook a video the way the patch does and says whether it added its row. */
+    public static boolean addsTheViewerRow() {
+        Menu menu = facebooksMenu(RuntimeEnvironment.getApplication());
+        int before = menu.size();
+        ViewerVideoItem.add(menu, null, null, new TreeJNI("Video").with("id", "1234567890123456"), ICON);
         return menu.size() > before;
     }
 
@@ -110,7 +119,7 @@ public final class VideoMenuItemForTests {
     public static boolean addsTheOpenItem() {
         Context context = RuntimeEnvironment.getApplication();
         Menu menu = facebooksMenu(context);
-        VideoMenuItem.add(menu, new View(context), videoPost(), ICON, ATTACHMENTS, MEDIA, ATTACHED_STORY);
+        VideoMenuItem.add(menu, new View(context), videoPost(), ICON, ATTACHMENTS, MEDIA, ATTACHED_STORY, PhotoMenuItemForTests.SUBATTACHMENTS);
         for (int i = 0; i < menu.size(); i++) {
             if ("Open in another app".equals(String.valueOf(menu.getItem(i).getTitle()))) return true;
         }

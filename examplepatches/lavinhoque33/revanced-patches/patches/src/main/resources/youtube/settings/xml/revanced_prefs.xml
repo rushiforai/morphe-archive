@@ -192,6 +192,25 @@
             <SwitchPreference android:title="@string/revanced_hide_snack_bar_title" android:key="revanced_hide_snack_bar" android:summaryOn="@string/revanced_hide_snack_bar_summary_on" android:summaryOff="@string/revanced_hide_snack_bar_summary_off" />
             <SwitchPreference android:title="@string/revanced_hide_server_side_snack_bar_title" android:key="revanced_hide_server_side_snack_bar" android:summaryOn="@string/revanced_hide_server_side_snack_bar_summary_on" android:summaryOff="@string/revanced_hide_server_side_snack_bar_summary_off" />
             <SwitchPreference android:title="@string/revanced_invert_snack_bar_theme_title" android:key="revanced_invert_snack_bar_theme" android:summaryOn="@string/revanced_invert_snack_bar_theme_summary_on" android:summaryOff="@string/revanced_invert_snack_bar_theme_summary_off" />
+            <app.morphe.extension.shared.settings.preference.SliderPreference
+                android:key="revanced_snack_bar_corner_radius" android:inputType="numberDecimal"
+                android:title="@string/revanced_snack_bar_corner_radius_title" />
+            <app.morphe.extension.shared.settings.preference.ColorPickerWithOpacitySliderPreference
+                android:key="revanced_snack_bar_light_fill" android:title="@string/revanced_snack_bar_light_fill_title"
+                android:summary="@string/revanced_snack_bar_light_fill_summary" />
+            <app.morphe.extension.shared.settings.preference.ColorPickerWithOpacitySliderPreference
+                android:key="revanced_snack_bar_dark_fill" android:title="@string/revanced_snack_bar_dark_fill_title"
+                android:summary="@string/revanced_snack_bar_dark_fill_summary" />
+            <app.morphe.extension.shared.settings.preference.ColorPickerWithOpacitySliderPreference
+                android:key="revanced_snack_bar_stroke_color"
+                android:title="@string/revanced_snack_bar_stroke_color_title" />
+            <app.morphe.extension.shared.settings.preference.SliderPreference
+                android:key="revanced_snack_bar_stroke_width" android:inputType="numberDecimal"
+                android:title="@string/revanced_snack_bar_stroke_width_title"
+                android:summary="@string/revanced_snack_bar_stroke_width_summary" />
+            <SwitchPreference android:key="revanced_snack_bar_playlist_radius"
+                android:title="@string/revanced_snack_bar_playlist_radius_title"
+                android:summary="@string/revanced_snack_bar_playlist_radius_summary" />
             <PreferenceCategory android:title="@string/revanced_preference_category_experimental_flag" android:layout="@layout/revanced_settings_preferences_category"/>
             <SwitchPreference android:title="@string/revanced_change_server_side_snack_bar_background_title" android:key="revanced_change_server_side_snack_bar_background" android:summaryOn="@string/revanced_change_server_side_snack_bar_background_summary_on" android:summaryOff="@string/revanced_change_server_side_snack_bar_background_summary_off" />
         </PreferenceScreen>SETTINGS: SNACK_BAR_COMPONENTS -->
@@ -885,6 +904,11 @@
 
             <!-- SETTINGS: MINIPLAYER_HIDE_TITLE
             <SwitchPreference android:title="@string/revanced_miniplayer_hide_title_title" android:key="revanced_miniplayer_hide_title" />SETTINGS: MINIPLAYER_HIDE_TITLE -->
+
+            <!-- SETTINGS: MINIPLAYER_GLASS
+            <SwitchPreference android:title="@string/revanced_miniplayer_glass_title"
+                android:key="revanced_miniplayer_glass" android:summary="@string/revanced_miniplayer_glass_summary"
+                />SETTINGS: MINIPLAYER_GLASS -->
 
             <!-- SETTINGS: MINIPLAYER_WIDTH_DIP
             <app.morphe.extension.shared.settings.preference.SliderPreference android:title="@string/revanced_miniplayer_width_dip_title" android:key="revanced_miniplayer_width_dip" android:summary="@string/revanced_miniplayer_width_dip_summary" android:inputType="number" />SETTINGS: MINIPLAYER_WIDTH_DIP -->

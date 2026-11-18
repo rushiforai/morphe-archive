@@ -25,9 +25,11 @@ public final class ZaloMicroGSupport {
   private static final Map<Object, RefreshRequest> PENDING_REFRESHES = new WeakHashMap<>();
   /**
    * Account-refresh method names by target version: {@code A6} on 26.08.01, {@code P6} on
-   * 26.10.02. Keep in sync with {@code MicroGContracts.isAccountRefreshCall} in the patch module.
+   * 26.10.02, and {@code R6} in diagnostic 26.11.01 builds. Keep in sync with
+   * {@code MicroGContracts.isAccountRefreshCall} in the patch module.
    */
-  private static final String[] REFRESH_METHOD_NAMES = {"A6", "P6"};
+  private static final String[] REFRESH_METHOD_NAMES = {"A6", "P6", "R6"};
+  private static final String REFRESH_OWNER = "com.zing.zalo.ui.backuprestore.drive.SyncGoogleAccountBaseView";
 
   /** Resolved refresh methods by view class; guarded by {@link #REFRESH_LOCK}. */
   private static final Map<Class<?>, Method> REFRESH_METHODS = new WeakHashMap<>();
@@ -128,8 +130,8 @@ public final class ZaloMicroGSupport {
   }
 
   /**
-   * Resolves the version-specific account-refresh method for {@code viewClass}. Both supported
-   * versions declare a public instance {@code (String)V}; only the obfuscated name differs, so a
+   * Resolves the version-specific account-refresh method for {@code viewClass}. The target base
+   * views declare a public instance {@code (String)V}; only the obfuscated name differs, so a
    * miss is not cached and the next refresh retries the remaining names.
    *
    * <p>Callers must hold {@link #REFRESH_LOCK}.
@@ -140,7 +142,8 @@ public final class ZaloMicroGSupport {
     for (String name : REFRESH_METHOD_NAMES) {
       try {
         Method candidate = viewClass.getMethod(name, String.class);
-        if (candidate.getReturnType() == Void.TYPE && !Modifier.isStatic(candidate.getModifiers())) {
+        if (candidate.getReturnType() == Void.TYPE && !Modifier.isStatic(candidate.getModifiers())
+            && REFRESH_OWNER.equals(candidate.getDeclaringClass().getName())) {
           REFRESH_METHODS.put(viewClass, candidate);
           return candidate;
         }

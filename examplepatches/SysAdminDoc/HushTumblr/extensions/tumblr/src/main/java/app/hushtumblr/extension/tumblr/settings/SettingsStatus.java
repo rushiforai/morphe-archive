@@ -39,6 +39,10 @@ public final class SettingsStatus {
     public static boolean photoAltTextCaptions() { return false; }
     public static boolean galleryAltTextCaptions() { return false; }
     public static boolean shareVideoLinks() { return false; }
+    public static boolean fitFullScreenVideos() { return false; }
+    public static boolean fullScreenVideoFit() { return false; }
+    public static boolean tapToPlayFeedVideos() { return false; }
+    public static boolean feedVideoTap() { return false; }
     public static boolean sharperImages() { return false; }
     public static boolean imageSizes() { return false; }
     public static boolean collapseLongPosts() { return false; }

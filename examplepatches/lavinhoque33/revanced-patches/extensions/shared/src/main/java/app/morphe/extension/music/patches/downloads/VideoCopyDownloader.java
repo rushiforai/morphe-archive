@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-17.
  * Written by lavinhoque33, 2026-11-09.
  * Modified by lavinhoque33, 2026-11-10
  */
@@ -17,6 +18,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 
 import app.morphe.extension.music.patches.misc.requests.MusicBrowseRequest;
 import app.morphe.extension.music.patches.spoof.SpoofVideoStreamsPatch;
@@ -69,8 +71,7 @@ final class VideoCopyDownloader {
             Utils.verifyOffMainThread();
             if (!StreamSwap.supported() || songIds.isEmpty()) return Outcome.NONE;
 
-            VideoPairingLogic.Result pairing = VideoPairingLogic.pair(songsOf(songIds),
-                    queueOf(sourceId, songIds.get(0), songIds.size()));
+            VideoPairingLogic.Result pairing = pairing(sourceId, songIds);
             if (pairing.skipReason() != null) {
                 Logger.printWarn(() -> "VideoCopy: video pairing skipped: " + pairing.skipReason() + " list="
                         + sourceId);
@@ -86,6 +87,30 @@ final class VideoCopyDownloader {
             Logger.printException(() -> "VideoCopy: video pairing failed, list=" + sourceId, ex);
             return Outcome.NONE;
         }
+    }
+
+    /** Use the playlist's existing pairing rules, but transfer only counterparts needed by new members. */
+    static void ensureForSync(String sourceId, String title, List<String> songIds, Set<String> additions,
+                              Function<String, String> copyId, DownloadQuality quality) throws Exception {
+        VideoPairingLogic.Result pairing = pairing(sourceId, songIds);
+        if (pairing.skipReason() != null) throw new IOException(pairing.skipReason());
+
+        Set<VideoPairingLogic.Pair> seen = new HashSet<>();
+        List<VideoPairingLogic.Pair> pairs = new ArrayList<>();
+        for (VideoPairingLogic.Pair pair : pairing.pairs()) {
+            if (!additions.contains(pair.songId())) continue;
+            String id = copyId.apply(pair.songId());
+            if (id.equals(pair.videoId())) continue;
+            VideoPairingLogic.Pair canonical = new VideoPairingLogic.Pair(id, pair.videoId());
+            if (seen.add(canonical)) pairs.add(canonical);
+        }
+        if (!pairs.isEmpty() && download(sourceId, title, pairs, quality).failed() > 0) {
+            throw new IOException("An added playlist video could not be saved");
+        }
+    }
+
+    private static VideoPairingLogic.Result pairing(String sourceId, List<String> songIds) throws Exception {
+        return VideoPairingLogic.pair(songsOf(songIds), queueOf(sourceId, songIds.get(0), songIds.size()));
     }
 
     private static List<VideoPairingLogic.Song> songsOf(List<String> songIds) {
@@ -258,9 +283,9 @@ final class VideoCopyDownloader {
             download(pair.songId(), title, selection.audio(), audioTemporary);
             long durationMs = durationOf(selection.video(), response);
             byte[] stored = OfflineResponseTrim.fromVideoDownload(response, selection);
-            boolean kept = VideoCopyStore.retain(videoId, pair.songId(), sourceId, videoTemporary, audioTemporary,
-                    new VideoCopyLogic.Download(VideoCopyLogic.Stream.of(selection.video()),
-                            VideoCopyLogic.Stream.of(selection.audio()), durationMs, stored));
+            boolean kept = PlaylistSync.publishMedia(() -> VideoCopyStore.retain(videoId, pair.songId(), sourceId,
+                    videoTemporary, audioTemporary, new VideoCopyLogic.Download(VideoCopyLogic.Stream.of(
+                            selection.video()), VideoCopyLogic.Stream.of(selection.audio()), durationMs, stored)));
             Logger.printWarn(() -> "VideoCopy: v=" + videoId + " song=" + pair.songId() + " client=" + candidate.client()
                     + " video=" + selection.video().getItag() + ":" + selection.video().getContentLength()
                     + " audio=" + selection.audio().getItag() + ":" + selection.audio().getContentLength()

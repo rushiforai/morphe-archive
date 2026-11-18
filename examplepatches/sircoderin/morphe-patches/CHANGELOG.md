@@ -1,3 +1,15 @@
+## [1.1.0](https://github.com/sircoderin/morphe-patches/compare/v1.0.1...v1.1.0) (2026-11-18)
+
+### ✨ New Features
+
+* **twilight:** add "Untint screenshots" patch ([34e28d5](https://github.com/sircoderin/morphe-patches/commit/34e28d5029037d54a98c9a54135c1d59ec48e36c))
+
+## [1.1.0-dev.1](https://github.com/sircoderin/morphe-patches/compare/v1.0.1...v1.1.0-dev.1) (2026-11-18)
+
+### ✨ New Features
+
+* **twilight:** add "Untint screenshots" patch ([34e28d5](https://github.com/sircoderin/morphe-patches/commit/34e28d5029037d54a98c9a54135c1d59ec48e36c))
+
 ## [1.0.1](https://github.com/sircoderin/morphe-patches/compare/v1.0.0...v1.0.1) (2026-11-15)
 
 ### 🐛 Bug Fixes

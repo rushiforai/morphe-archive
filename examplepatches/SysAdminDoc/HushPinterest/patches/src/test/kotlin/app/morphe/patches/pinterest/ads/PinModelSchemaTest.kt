@@ -45,7 +45,8 @@ class PinModelSchemaTest {
 
     /** The models a pin's videos and story_pin_data point at, with an id like Pinterest's video model. */
     private val videos = model("Lfixture/Videos;", mapOf("id" to "Ljava/lang/String;", "video_list" to "Ljava/util/Map;"))
-    private val storyData = model("Lfixture/StoryData;", mapOf("total_video_duration" to "Ljava/lang/String;", "page_count" to "Ljava/lang/Integer;"))
+    private val storyPages = mapOf("pages" to "Ljava/util/List;", "pages_preview" to "Ljava/util/List;")
+    private val storyData = model("Lfixture/StoryData;", storyPages + mapOf("total_video_duration" to "Ljava/lang/String;", "page_count" to "Ljava/lang/Integer;"))
 
     private fun model(type: String, json: Map<String, String>, visibility: Int = AnnotationVisibility.RUNTIME, flags: Int = AccessFlags.PUBLIC.value): ClassDef =
         ImmutableClassDef(type, AccessFlags.PUBLIC.value, "Ljava/lang/Object;", null, null, null,
@@ -83,9 +84,13 @@ class PinModelSchemaTest {
         assertEquals(listOf("Lfixture/Videos; (Lfixture/Pin;'s videos) field video_list is Ljava/util/List;, expected Ljava/util/Map;",
             "Lfixture/StoryData; (Lfixture/Pin;'s story_pin_data) has no field named total_video_duration (expected Ljava/lang/String;)"),
             problems(board, model("Lfixture/Videos;", mapOf("video_list" to "Ljava/util/List;")),
-                model("Lfixture/StoryData;", mapOf("page_count" to "Ljava/lang/Integer;")), model("Lfixture/Pin;", pinFields)))
+                model("Lfixture/StoryData;", storyPages + mapOf("page_count" to "Ljava/lang/Integer;")), model("Lfixture/Pin;", pinFields)))
         assertEquals(listOf("Lfixture/Pin; field videos is Lfixture/Videos;, which isn't a model with JSON names"),
             problems(board, storyData, model("Lfixture/Pin;", pinFields)))
+        assertEquals(listOf("Lfixture/StoryData; (Lfixture/Pin;'s story_pin_data) has no field named pages (expected Ljava/util/List;)",
+            "Lfixture/StoryData; (Lfixture/Pin;'s story_pin_data) field pages_preview is Ljava/lang/String;, expected Ljava/util/List;"),
+            problems(board, videos, model("Lfixture/StoryData;", mapOf("total_video_duration" to "Ljava/lang/String;", "pages_preview" to "Ljava/lang/String;")),
+                model("Lfixture/Pin;", pinFields)))
     }
 
     @Test

@@ -1,0 +1,24 @@
+# Private key that signs the patches file (never commit)
+morphe-signing.key
+
+*.class
+*.log
+*.zip
+*.apk
+hs_err_pid*
+
+# Jars are build products or tools, except the wrapper and the compile-only rif stubs
+*.jar
+!gradle-wrapper.jar
+!extensions/extension/libs/rif-stubs.jar
+
+.gradle
+**/build/
+!src/**/build/
+.kotlin/
+.idea/
+.vscode/
+local.properties
+
+# Manifest of what dev/morphe-sync.py generated (the release script checks the commit against it)
+.sync-files

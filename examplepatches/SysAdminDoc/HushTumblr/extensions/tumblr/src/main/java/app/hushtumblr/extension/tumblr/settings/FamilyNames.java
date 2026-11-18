@@ -33,6 +33,8 @@ public final class FamilyNames {
     public static final String MUTE_ROOT_POSTS = "Mute posts locally";
     public static final String VISIBLE_ALT_TEXT = "Visible image descriptions";
     public static final String SHARE_VIDEO_LINKS = "Share video links";
+    public static final String FIT_FULL_SCREEN_VIDEOS = "Fit full-screen videos";
+    public static final String TAP_TO_PLAY_FEED_VIDEOS = "Tap to play feed videos";
     public static final String SHARPER_IMAGES = "Sharper images";
     public static final String COLLAPSE_LONG_POSTS = "Collapse long posts";
     public static final String SHOW_POST_TIMESTAMPS = "Show post timestamps";

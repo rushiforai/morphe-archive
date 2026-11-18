@@ -7,7 +7,6 @@ package app.morphe.patches.telegram.misc.api
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.PlusPending
 import app.morphe.util.names.addInstruction
 import app.morphe.util.names.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
@@ -59,7 +58,6 @@ import app.morphe.util.names.tgMutableClassDefBy
 import app.morphe.util.names.tgClassDefBy
 
 /** Registered credentials change two initialization literals and tag the native init version. Authentication stays intact. */
-@PlusPending
 class UseRegisteredApiCredentialsFixtureTest {
     @Test
     fun `credential patch is optional and both input options remain optional`() {
@@ -116,7 +114,7 @@ class UseRegisteredApiCredentialsFixtureTest {
                 ControlFlow.of(plan.initializer).normal.toList())
             assertEquals("${build.name}: initializer exception edges stay intact", ControlFlow.of(oldInitializer).exceptional.toList(),
                 ControlFlow.of(plan.initializer).exceptional.toList())
-            assertEquals(5 + firebaseLogins(build), plan.readers.size)
+            assertEquals(5 + firebaseLogins(build) + plusLogins(build), plan.readers.size)
             assertEquals(CONNECTIONS, plan.connectionInitializer.definingClass)
         }
     }
@@ -335,13 +333,13 @@ class UseRegisteredApiCredentialsFixtureTest {
 
     @Test
     fun `every removed reader refuses before credentials change`() {
-        // Seven reads, and two more where the Play build signs in by Firebase number check; a build
-        // with fewer goes round its own reads again.
-        for (reader in 0 until 9) refusal { _, plan ->
+        // Seven reads, two more for each Firebase number check, QR code or bot sign-in (all three in
+        // Plus Messenger); a build with fewer goes round its own reads again.
+        for (reader in 0 until 13) refusal { _, plan ->
             val accesses = plan.readers.flatMap { method -> method.instructions().mapIndexedNotNull { index, instruction ->
                 instruction.field()?.takeIf { it.isCredential() }?.let { method to index }
             } }
-            assertEquals(7 + 2 * firebaseLogins(plan), accesses.size)
+            assertEquals(7 + 2 * (firebaseLogins(plan) + plusLogins(plan)), accesses.size)
             val (method, index) = accesses[reader % accesses.size]
             (method as MutableMethod).replaceInstruction(index, "nop")
         }
@@ -349,11 +347,11 @@ class UseRegisteredApiCredentialsFixtureTest {
 
     @Test
     fun `each reader with the wrong static field opcode refuses before credentials change`() {
-        for (reader in 0 until 9) refusal { _, plan ->
+        for (reader in 0 until 13) refusal { _, plan ->
             val accesses = plan.readers.flatMap { method -> method.instructions().mapIndexedNotNull { index, instruction ->
                 instruction.field()?.takeIf { it.isCredential() }?.let { method to index }
             } }
-            assertEquals(7 + 2 * firebaseLogins(plan), accesses.size)
+            assertEquals(7 + 2 * (firebaseLogins(plan) + plusLogins(plan)), accesses.size)
             val (method, index) = accesses[reader % accesses.size]
             val instruction = method.instructions()[index]
             val wrongOpcode = if (instruction.opcode == Opcode.SGET) "sget-object" else "sget"
@@ -399,6 +397,26 @@ class UseRegisteredApiCredentialsFixtureTest {
                 val alternate = (registers[1] + 1) % method.implementation!!.registerCount
                 method.replaceInstruction(index, "${instruction.opcode.name} v${registers[0]}, v$alternate, ${instruction.field()}")
             }
+        }
+    }
+
+    /** Plus Messenger's own bot sign-in request has no field names, so its serializer has to keep saying which is which. */
+    @Test
+    fun `Plus Messenger's bot sign-in refuses when its request stops serializing as one`() {
+        val plus = Fixtures.declaredBuilds().filter { it.name.startsWith("plus-") }
+        fun serializer(context: BytecodePatchContext) = context.tgMutableClassDefBy(hosts(plus.single()).single { host ->
+            host.methods.any { it.isBotSerializer() } }.type).methods.single { it.isBotSerializer() }
+        refusal(plus) { context, _ ->
+            val method = serializer(context)
+            method.replaceInstruction(0, "const v${method.instructions()[0].namedRegisters().single()}, 0x67a3ff2d")
+        }
+        // The hash read from the bot token's field instead: the sign-in's hash store no longer matches.
+        refusal(plus) { context, _ ->
+            val method = serializer(context)
+            val strings = method.instructions().indices.filter { method.instructions()[it].opcode == Opcode.IGET_OBJECT }
+            assertEquals("the hash and the bot token", 2, strings.size)
+            val registers = method.instructions()[strings[0]].namedRegisters()
+            method.replaceInstruction(strings[0], "iget-object v${registers[0]}, v${registers[1]}, ${method.instructions()[strings[1]].field()}")
         }
     }
 
@@ -452,8 +470,8 @@ class UseRegisteredApiCredentialsFixtureTest {
         refusal { _, plan -> plan.initializer.addInstruction(plan.id.index + 2, "sput v${plan.id.register}, $BUILD_VARS->APP_ID:I") }
     }
 
-    private fun refusal(change: (BytecodePatchContext, ApiCredentialsPlan) -> Unit) {
-        for (build in Fixtures.declaredBuilds()) {
+    private fun refusal(builds: List<File> = Fixtures.declaredBuilds(), change: (BytecodePatchContext, ApiCredentialsPlan) -> Unit) {
+        for (build in builds) {
             val hosts = hosts(build)
             val context = PatchContexts.of(hosts)
             val plan = context.resolveApiCredentials()
@@ -500,6 +518,8 @@ class UseRegisteredApiCredentialsFixtureTest {
             { method -> method.instructions().any { it.field()?.isCredential() == true } }).associateBy { it.type }.toMutableMap()
         selected.putAll(FixtureDex.classes(build, setOf(BUILD_VARS, CONNECTIONS, "Lorg/telegram/messenger/PasskeysController;"))
             .values.associateBy { it.type })
+        // Plus Messenger's bot sign-in request, whose serializer names its fields.
+        selected.putAll(FixtureDex.classesWhere(build, { true }, { it.isBotSerializer() }).associateBy { it.type })
         selected.values.toList().also { HOSTS[build.absolutePath] = SoftReference(it) }
     }
     /** 1 where [build] sends the credentials with Firebase phone number sign-in (Play 13.2.1 on), else 0. */
@@ -508,6 +528,15 @@ class UseRegisteredApiCredentialsFixtureTest {
     } }) 1 else 0
     private fun firebaseLogins(plan: ApiCredentialsPlan) =
         plan.readers.count { method -> method.instructions().any { it.field()?.origDefiningClass == FIREBASE_LOGIN } }
+    /** Plus Messenger's QR code and bot sign-in: 2 there, else 0. */
+    private fun plusLogins(build: File) = if (build.name.startsWith("plus-")) 2 else 0
+    /** Sign-ins past phone, passkey and Firebase, read from [plan]; the main test pins the total per build. */
+    private fun plusLogins(plan: ApiCredentialsPlan) = plan.readers.count { method -> method.instructions().any { instruction ->
+        instruction.field()?.let { it.isCredential() && it.origName == "APP_HASH" } == true
+    } } - 2 - firebaseLogins(plan)
+    private fun Method.isBotSerializer() = name == "serializeToStream" && instructions().firstOrNull()?.let {
+        it.opcode == Opcode.CONST && (it as NarrowLiteralInstruction).narrowLiteral == IMPORT_BOT_AUTHORIZATION
+    } == true
     private fun Method.instructions(): List<Instruction> = implementation?.instructions?.toList().orEmpty()
     private fun Instruction.field() = (this as? ReferenceInstruction)?.reference as? FieldReference
     private fun FieldReference.isCredential() = origDefiningClass == BUILD_VARS && origName in setOf("APP_ID", "APP_HASH")
@@ -522,6 +551,8 @@ class UseRegisteredApiCredentialsFixtureTest {
         const val ID = "12345678"
         const val HASH = "0123456789abcdef0123456789abcdef"
         const val FIREBASE_LOGIN = "Lorg/telegram/tgnet/TLRPC\$TL_auth_initFirebasePnvLogin;"
+        /** auth.importBotAuthorization's constructor. */
+        const val IMPORT_BOT_AUTHORIZATION = 0x67a3ff2c
         val HOSTS = mutableMapOf<String, SoftReference<List<ClassDef>>>()
     }
 }

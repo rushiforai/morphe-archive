@@ -632,8 +632,7 @@ API キーは決して共有しないでください。キーにアクセスで�
     <string name="revanced_change_start_page_entry_gaming">ゲーム</string>
     <string name="revanced_change_start_page_entry_history">履歴</string>
     <string name="revanced_change_start_page_entry_home">ホーム</string>
-    <string name="revanced_change_start_page_entry_hype">ハイプ</string>
-    <string name="revanced_change_start_page_entry_library">ライブラリ</string>
+    <string name="revanced_change_start_page_entry_library">マイページ</string>
     <string name="revanced_change_start_page_entry_liked_videos">高く評価した動画</string>
     <string name="revanced_change_start_page_entry_live">ライブ</string>
     <string name="revanced_change_start_page_entry_movies">ムービー＆TV</string>
@@ -641,14 +640,12 @@ API キーは決して共有しないでください。キーにアクセスで�
     <string name="revanced_change_start_page_entry_news">ニュース</string>
     <string name="revanced_change_start_page_entry_notifications">通知</string>
     <string name="revanced_change_start_page_entry_playlists">再生リスト</string>
-    <string name="revanced_change_start_page_entry_podcasts">ポッドキャスト</string>
     <string name="revanced_change_start_page_entry_search">検索</string>
     <string name="revanced_change_start_page_entry_settings">設定</string>
     <string name="revanced_change_start_page_entry_shopping">ショッピング</string>
     <string name="revanced_change_start_page_entry_shorts">ショート</string>
     <string name="revanced_change_start_page_entry_sports">スポーツ</string>
     <string name="revanced_change_start_page_entry_subscriptions">登録チャンネル</string>
-    <string name="revanced_change_start_page_entry_trending">急上昇</string>
     <string name="revanced_change_start_page_entry_virtual_reality">バーチャル リアリティ</string>
     <string name="revanced_change_start_page_entry_watch_later">後で見る</string>
     <string name="revanced_change_start_page_entry_your_clips">クリップ</string>

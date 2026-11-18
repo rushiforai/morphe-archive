@@ -8,7 +8,6 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.PlusPending
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
 import app.morphe.patches.telegram.misc.extension.SETTINGS_STATUS
 import app.morphe.patches.telegram.misc.localcontrols.controlBody
@@ -52,7 +51,6 @@ internal fun photoEditHosts(build: File, base: List<ClassDef>): List<ClassDef> {
 }
 
 /** Edit a copy in the message menu: the stub that opens a photo the way the chat opens a video for editing, or a clean refusal. */
-@PlusPending
 class PhotoEditFixtureTest {
     @Test fun `the stub makes the chat's own editor calls for a photo and the build flag goes on`() {
         for (build in Fixtures.declaredBuilds()) {

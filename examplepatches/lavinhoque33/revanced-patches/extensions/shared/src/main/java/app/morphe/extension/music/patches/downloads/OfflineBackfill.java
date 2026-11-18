@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-17.
  * Written by lavinhoque33, 2026-11-08.
  * Modified by lavinhoque33, 2026-11-10.
  */
@@ -122,7 +123,7 @@ final class OfflineBackfill {
     }
 
     @Nullable
-    private static String fetchAndStore(String videoId) {
+    static String fetchAndStore(String videoId) {
         try {
             RawAudioFiles.Entry raw = RawAudioStore.find(videoId);
             if (raw == null) return "no copy";
@@ -157,8 +158,8 @@ final class OfflineBackfill {
                 // The setting may have been turned off while the request was out.
                 if (!OfflineReplay.enabled()) return "setting off";
 
-                OfflineCopyStore.Outcome outcome = OfflineCopyStore.storeBackfilled(videoId,
-                        stream.streamingData(), raw.itag());
+                OfflineCopyStore.Outcome outcome = PlaylistSync.publishMedia(() ->
+                        OfflineCopyStore.storeBackfilled(videoId, stream.streamingData(), raw.itag()));
                 if (outcome.written() == null) return outcome.reason();
 
                 int bytes = outcome.written().responseBytes();

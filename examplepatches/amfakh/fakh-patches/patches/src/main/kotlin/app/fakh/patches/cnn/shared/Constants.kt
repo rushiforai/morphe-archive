@@ -10,6 +10,9 @@ object Constants {
         packageName = "com.cnn.indonesia",
         apkFileType = ApkFileType.APK,
         appIconColor = 0xCC0000,
-        targets = listOf(AppTarget(version = "2.50.7", versionCode = 209)),
+        targets = listOf(
+            AppTarget(version = "2.50.7", versionCode = 209),
+            AppTarget(version = "2.50.8", versionCode = 224),
+        ),
     )
 }

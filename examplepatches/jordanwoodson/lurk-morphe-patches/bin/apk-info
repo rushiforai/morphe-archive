@@ -26,4 +26,4 @@ echo "version:      $version ($version_code)"
 echo "format:       $format"
 echo "app:          $(slug_for_package "$package" || echo '(none yet: bin/new-app)')"
 "$(build_tool apksigner)" verify --print-certs "$tmp/base.apk" 2>/dev/null |
-    sed -n 's/^Signer #1 certificate SHA-256 digest: /signing cert: /p'
+    sed -En 's/^(Signer #1|V[0-9.]+ Signer:) certificate SHA-256 digest: /signing cert: /p' | head -1

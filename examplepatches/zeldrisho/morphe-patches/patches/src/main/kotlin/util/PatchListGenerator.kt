@@ -55,11 +55,14 @@ private fun generatePatchList(version: String, patches: Set<Patch>) {
                     appIconColor = compat.appIconColor?.let { "#%06X".format(it) },
                     signatures = compat.signatures,
                     formFactor = compat.formFactor?.name,
-                    targets = compat.targets.map { target ->
+                    // Normalize duplicate version metadata at the producer boundary. If any
+                    // declaration marks a version experimental, keep that safer classification.
+                    targets = compat.targets.groupBy { it.version }.map { (_, declarations) ->
+                        val target = declarations.first()
                         JsonCompatibility.Target(
                             version = target.version,
                             versionCodes = target.versionCodes?.mapKeys { it.key.name },
-                            isExperimental = target.isExperimental,
+                            isExperimental = declarations.any { it.isExperimental },
                             minSdk = target.minSdk,
                             description = target.description,
                         )

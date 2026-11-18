@@ -96,18 +96,24 @@ public final class DropsArtProbe {
         // The presenter's drops repository: its state subject (Twitch pushes the claiming state there first) and
         // its claim service, whose API holds the GraphQL client, absent here.
         Field repository = null;
+        Class<?> repositoryType = null;
         for (Field field : instanceFields(presenter.getClass())) {
-            if (field.getType().isInterface() || field.getType().isPrimitive()) continue;
-            boolean subject = false;
-            boolean service = false;
-            for (Field inner : instanceFields(field.getType())) {
-                if (inner.getType().getName().startsWith("io.reactivex.subjects.")) subject = true;
-                if (claimService(inner.getType()) != null) service = true;
+            if (isRepository(field.getType())) {
+                repository = field;
+                repositoryType = field.getType();
             }
-            if (subject && service) repository = field;
         }
-        check(repository != null, "No drops repository in the presenter");
-        Object drops = allocate(repository.getType());
+        if (repository == null) {
+            // R8 merged the presenter with others into a class whose fields are Objects (32.1.0): the repository is
+            // the constructor parameter of that shape, kept in field n (Twitch 32.1.0's R8 name).
+            for (Constructor<?> constructor : presenter.getClass().getDeclaredConstructors()) {
+                for (Class<?> type : constructor.getParameterTypes()) if (isRepository(type)) repositoryType = type;
+            }
+            repository = presenter.getClass().getDeclaredField("n");
+            repository.setAccessible(true);
+        }
+        check(repositoryType != null, "No drops repository in the presenter");
+        Object drops = allocate(repositoryType);
         repository.set(presenter, drops);
         for (Field field : instanceFields(drops.getClass())) {
             if (field.getType().getName().startsWith("io.reactivex.subjects.")) {
@@ -123,6 +129,18 @@ public final class DropsArtProbe {
             client = instanceFields(api.getType()).get(0).getType();
         }
         check(client != null, "No claim service in the drops repository");
+    }
+
+    /** The drops repository shape: a state subject (Twitch pushes the claiming state there first) and a claim service. */
+    private static boolean isRepository(Class<?> type) {
+        if (type.isInterface() || type.isPrimitive() || type.getName().startsWith("java.")) return false;
+        boolean subject = false;
+        boolean service = false;
+        for (Field inner : instanceFields(type)) {
+            if (inner.getType().getName().startsWith("io.reactivex.subjects.")) subject = true;
+            if (claimService(inner.getType()) != null) service = true;
+        }
+        return subject && service;
     }
 
     /**
@@ -159,13 +177,13 @@ public final class DropsArtProbe {
         Method instanceId = Class.forName(DROPS).getDeclaredMethod("dropInstanceId", Object.class);
         instanceId.setAccessible(true);
         Object first = drop("drop-1");
-        Method change = null;
-        for (Method method : presentation.getDeclaredMethods()) {
-            if (method.getParameterTypes().length == 0 && method.getReturnType() == claimableInit.getDeclaringClass().getSuperclass()) {
-                change = method;
-            }
+        // The presentation's drop (its getter is inlined since 32.1.0, so the field).
+        Field change = null;
+        for (Field field : instanceFields(presentation)) {
+            if (field.getType() == claimableInit.getDeclaringClass().getSuperclass()) change = field;
         }
-        check("drop-1".equals(instanceId.invoke(null, change.invoke(first))), "The bridge must read the drop instance ID");
+        check(change != null, "The drop presentation has no drop");
+        check("drop-1".equals(instanceId.invoke(null, change.get(first))), "The bridge must read the drop instance ID");
 
         settings.put("drops_auto_claim", false);
         present(first);

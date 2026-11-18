@@ -59,6 +59,8 @@ import java.util.regex.Pattern;
 
 import app.morphe.extension.instagram.entity.MediaData;
 import app.morphe.extension.instagram.patches.dm.HiddenChatsPref;
+import app.morphe.extension.instagram.settings.ActivityHook;
+import app.morphe.extension.instagram.patches.customise.font.FontStorage;
 import app.morphe.extension.instagram.settings.Settings;
 import app.morphe.extension.rex.sharedPreference.SharedPref;
 import app.morphe.extension.shared.Logger;
@@ -663,6 +665,201 @@ public final class RexRuntimeFeatures {
                     Utils.showToastShort("Last Active Format: " + chosen);
                     if (onUpdated != null) onUpdated.run();
                 });
+    }
+
+    public static void showStoryFontSourcePicker(final Context context, final Runnable onUpdated) {
+        final String[] sources = {
+                "Default Story Fonts",
+                "XBOYREX Story Font Pack",
+                "Custom Story Font File(s)"
+        };
+        String current = SharedPref.getStringPref(Settings.STORY_FONT_SOURCE);
+        if (current == null || current.isEmpty()) current = "XBOYREX Story Font Pack";
+
+        final AlertDialog dialog = new AlertDialog.Builder(context).create();
+        LinearLayout root = RexDialogs.createDialogSheet(context, "text-plus", "Story Font Source");
+        int pad = RexVectorIcons.dp(context, 12);
+        for (final String src : sources) {
+            LinearLayout row = new LinearLayout(context);
+            row.setOrientation(LinearLayout.HORIZONTAL);
+            row.setGravity(Gravity.CENTER_VERTICAL);
+            row.setPadding(pad, pad, pad, pad);
+            boolean sel = src.equalsIgnoreCase(current);
+            ImageView icon = new ImageView(context);
+            RexIcon.bindOrAnimateState(icon, sel ? "circle-check" : "circle", sel, 0xFFA4ACB8, InstagramPreferenceStyle.accentColor(), 22, false);
+            LinearLayout.LayoutParams iLp = new LinearLayout.LayoutParams(RexVectorIcons.dp(context, 22), RexVectorIcons.dp(context, 22));
+            iLp.setMarginEnd(RexVectorIcons.dp(context, 12));
+            row.addView(icon, iLp);
+
+            TextView tv = new TextView(context);
+            tv.setText(src);
+            tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f);
+            tv.setTextColor(sel ? InstagramPreferenceStyle.accentColor() : InstagramPreferenceStyle.primaryTextColor());
+            row.addView(tv, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+
+            row.setOnClickListener(v -> {
+                RexHaptics.tap(v);
+                SharedPref.setStringPref(Settings.STORY_FONT_SOURCE.key, src);
+                dialog.dismiss();
+                if ("XBOYREX Story Font Pack".equals(src)) {
+                    showXboyrexStoryFontPackBrowser(context, onUpdated);
+                } else if ("Custom Story Font File(s)".equals(src)) {
+                    ActivityHook.launchFragment(context, "rex_pref_add_story_font");
+                } else {
+                    if (onUpdated != null) onUpdated.run();
+                }
+            });
+            root.addView(row);
+        }
+        RexDialogs.showBlurredDialog(context, dialog);
+        dialog.setView(root);
+    }
+
+    public static void showXboyrexStoryFontPackBrowser(final Context context, final Runnable onUpdated) {
+        final AlertDialog dialog = new AlertDialog.Builder(context).create();
+        LinearLayout root = RexDialogs.createDialogSheet(context, "list-checks", "XBOYREX Story Font Pack (14 Fonts)");
+
+        TextView sub = new TextView(context);
+        sub.setText("Preview each bundled Story Font in its real typeface and choose which fonts to register in the Story & Reel text editor.");
+        sub.setTextColor(InstagramPreferenceStyle.secondaryTextColor());
+        sub.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f);
+        sub.setPadding(0, 0, 0, RexVectorIcons.dp(context, 10));
+        root.addView(sub);
+
+        final String[][] items = FontStorage.XBOYREX_STORY_FONT_ITEMS;
+        final boolean[] checked = new boolean[items.length];
+        for (int i = 0; i < items.length; i++) {
+            checked[i] = FontStorage.isXboyrexStoryFontEnabled(context, items[i][0]);
+        }
+
+        LinearLayout bulkRow = new LinearLayout(context);
+        bulkRow.setOrientation(LinearLayout.HORIZONTAL);
+        bulkRow.setPadding(0, 0, 0, RexVectorIcons.dp(context, 8));
+
+        final List<ImageView> checkIcons = new ArrayList<>();
+
+        TextView selectAllBtn = new TextView(context);
+        selectAllBtn.setText("Select All");
+        selectAllBtn.setTextColor(InstagramPreferenceStyle.accentColor());
+        selectAllBtn.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
+        selectAllBtn.setPadding(RexVectorIcons.dp(context, 10), RexVectorIcons.dp(context, 6), RexVectorIcons.dp(context, 16), RexVectorIcons.dp(context, 6));
+        selectAllBtn.setOnClickListener(v -> {
+            RexHaptics.tap(v);
+            for (int i = 0; i < items.length; i++) {
+                checked[i] = true;
+                FontStorage.setXboyrexStoryFontEnabled(context, items[i][0], true);
+                if (i < checkIcons.size()) {
+                    RexIcon.bindOrAnimateState(checkIcons.get(i), "circle-check", true, 0xFFA4ACB8, InstagramPreferenceStyle.accentColor(), 22, false);
+                }
+            }
+            Utils.showToastShort("Enabled all 14 XBOYREX Story Fonts");
+        });
+        bulkRow.addView(selectAllBtn);
+
+        TextView deselectAllBtn = new TextView(context);
+        deselectAllBtn.setText("Deselect All");
+        deselectAllBtn.setTextColor(0xFFF05D69);
+        deselectAllBtn.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
+        deselectAllBtn.setPadding(RexVectorIcons.dp(context, 10), RexVectorIcons.dp(context, 6), RexVectorIcons.dp(context, 10), RexVectorIcons.dp(context, 6));
+        deselectAllBtn.setOnClickListener(v -> {
+            RexHaptics.tap(v);
+            for (int i = 0; i < items.length; i++) {
+                checked[i] = false;
+                FontStorage.setXboyrexStoryFontEnabled(context, items[i][0], false);
+                if (i < checkIcons.size()) {
+                    RexIcon.bindOrAnimateState(checkIcons.get(i), "circle", false, 0xFFA4ACB8, InstagramPreferenceStyle.accentColor(), 22, false);
+                }
+            }
+            Utils.showToastShort("Cleared XBOYREX Story Fonts selection");
+        });
+        bulkRow.addView(deselectAllBtn);
+        root.addView(bulkRow);
+
+        ScrollView scroll = new ScrollView(context);
+        LinearLayout list = new LinearLayout(context);
+        list.setOrientation(LinearLayout.VERTICAL);
+        int pad = RexVectorIcons.dp(context, 10);
+
+        for (int i = 0; i < items.length; i++) {
+            final int idx = i;
+            final String rawRes = items[i][0];
+            final String title = items[i][1];
+
+            LinearLayout row = new LinearLayout(context);
+            row.setOrientation(LinearLayout.HORIZONTAL);
+            row.setGravity(Gravity.CENTER_VERTICAL);
+            row.setPadding(pad, pad, pad, pad);
+
+            final ImageView cb = new ImageView(context);
+            RexIcon.bindOrAnimateState(cb, checked[idx] ? "circle-check" : "circle", checked[idx], 0xFFA4ACB8, InstagramPreferenceStyle.accentColor(), 22, false);
+            checkIcons.add(cb);
+            LinearLayout.LayoutParams cbLp = new LinearLayout.LayoutParams(RexVectorIcons.dp(context, 22), RexVectorIcons.dp(context, 22));
+            cbLp.setMarginEnd(RexVectorIcons.dp(context, 12));
+            row.addView(cb, cbLp);
+
+            LinearLayout textCol = new LinearLayout(context);
+            textCol.setOrientation(LinearLayout.VERTICAL);
+
+            TextView nameTv = new TextView(context);
+            nameTv.setText(title);
+            nameTv.setTextColor(InstagramPreferenceStyle.primaryTextColor());
+            nameTv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14.5f);
+            nameTv.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
+            textCol.addView(nameTv);
+
+            TextView sampleTv = new TextView(context);
+            sampleTv.setText("InstaRex • XBOYREX Story Font Preview 123");
+            sampleTv.setTextColor(InstagramPreferenceStyle.secondaryTextColor());
+            sampleTv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f);
+            Typeface previewTf = FontStorage.previewBundledStoryFont(rawRes);
+            if (previewTf != null) {
+                sampleTv.setTypeface(previewTf);
+            }
+            textCol.addView(sampleTv);
+
+            row.addView(textCol, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+            row.setOnClickListener(v -> {
+                RexHaptics.tap(v);
+                checked[idx] = !checked[idx];
+                FontStorage.setXboyrexStoryFontEnabled(context, rawRes, checked[idx]);
+                RexIcon.bindOrAnimateState(cb, checked[idx] ? "circle-check" : "circle", checked[idx], 0xFFA4ACB8, InstagramPreferenceStyle.accentColor(), 22, true);
+            });
+            list.addView(row);
+        }
+
+        scroll.addView(list);
+        LinearLayout.LayoutParams sLp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                RexVectorIcons.dp(context, 340)
+        );
+        root.addView(scroll, sLp);
+
+        TextView doneBtn = new TextView(context);
+        doneBtn.setText("Done");
+        doneBtn.setGravity(Gravity.CENTER);
+        doneBtn.setTextColor(Color.WHITE);
+        doneBtn.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f);
+        doneBtn.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
+        int bPad = RexVectorIcons.dp(context, 12);
+        doneBtn.setPadding(bPad, bPad, bPad, bPad);
+        GradientDrawable doneBg = new GradientDrawable();
+        doneBg.setColor(InstagramPreferenceStyle.accentColor());
+        doneBg.setCornerRadius(RexVectorIcons.dp(context, 14));
+        doneBtn.setBackground(doneBg);
+        LinearLayout.LayoutParams dLp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        dLp.topMargin = RexVectorIcons.dp(context, 12);
+        doneBtn.setOnClickListener(v -> {
+            RexHaptics.tap(v);
+            dialog.dismiss();
+            if (onUpdated != null) onUpdated.run();
+        });
+        root.addView(doneBtn, dLp);
+
+        dialog.setView(root);
+        RexDialogs.showBlurredDialog(context, dialog);
     }
 
     public static void showEmojiTypePicker(final Context context, final Runnable onUpdated) {
@@ -1324,7 +1521,7 @@ public final class RexRuntimeFeatures {
             Utils.showToastShort((label == null ? "Text" : label) + " is empty");
             return;
         }
-        final String raw = text.trim();
+        final String raw = text.trim().length() > 4500 ? text.trim().substring(0, 4500) : text.trim();
         final String targetLangName = SharedPref.getStringPref(Settings.TRANSLATOR_LANGUAGE);
         final String safeLangName = (targetLangName == null || targetLangName.trim().isEmpty()) ? "English" : targetLangName.trim();
         final String tl = languageCodeFor(safeLangName);

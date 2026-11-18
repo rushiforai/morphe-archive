@@ -102,6 +102,10 @@ public class ScreenBuilder {
             buildInstantsSection();
         } else if (Constants.REX_FRAGMENT_FONT.equals(fragmentName)) {
             buildFontSection();
+        } else if (Constants.REX_FRAGMENT_INITIAL_FEATURES.equals(fragmentName)) {
+            buildInitialFeaturesSection();
+        } else if (Constants.REX_FRAGMENT_CACHE_CLEANER.equals(fragmentName)) {
+            buildCacheCleanerSection();
         }
         assignCardGroupPositions(screen, fragmentName);
     }
@@ -204,6 +208,16 @@ public class ScreenBuilder {
                 "Downloads",
                 "Zero-Prompt Direct Download, DASH 4K/1080p Muxer, Audio MP3 & Folder by Username",
                 Constants.REX_FRAGMENT_DOWNLOAD_MEDIA
+        ));
+        addPreference(helper.categoryPreference(
+                "Initial Features",
+                "72 verified Instagram experimental flags across 10 categories (Media, Reels, Stories, DM, Profiles, UI & Notes)",
+                Constants.REX_FRAGMENT_INITIAL_FEATURES
+        ));
+        addPreference(helper.categoryPreference(
+                "App Cache Cleaner",
+                "Inspect cache size (" + app.morphe.extension.instagram.settings.feature.AppCacheCleaner.getStatusSummary(context) + ") & configure auto-clean limits",
+                Constants.REX_FRAGMENT_CACHE_CLEANER
         ));
         addPreference(helper.categoryPreference(
                 "Developer Options",
@@ -708,25 +722,30 @@ public class ScreenBuilder {
                 "rex_chat_wallpaper_picker"
         ));
 
-        PreferenceCategory catEmojiFonts = addCategory("Emoji and Fonts");
+        PreferenceCategory catEmojiFonts = addCategory("Typography & Emojis (3-System Engine)");
         addPreference(catEmojiFonts, helper.buttonPreference(
-                "Choose Emoji Type",
-                "You can apply iOS Emoji across the app.",
-                "rex_emoji_type_btn"
+                "Typography & Emojis Manager",
+                "Configure App Font, Story Fonts (XBOYREX Story Font Pack), and Emoji Replacement",
+                Constants.REX_FRAGMENT_FONT
         ));
         addPreference(catEmojiFonts, helper.buttonPreference(
-                "Choose Font Type",
-                "You can apply iOS Font across the app.",
+                "System 1 — App Font (" + SharedPref.getStringPref(Settings.CHOOSE_FONT_TYPE) + ")",
+                "Choose Default, System Default, iOS San Francisco, or Custom .ttf/.otf font",
                 "rex_font_type_btn"
         ));
         addPreference(catEmojiFonts, helper.buttonPreference(
-                "Add Custom Story Fonts",
-                "You can add unlimited custom story fonts",
-                "rex_add_story_fonts_btn"
+                "System 2 — Story Fonts (" + SharedPref.getStringPref(Settings.STORY_FONT_SOURCE) + ")",
+                "Browse XBOYREX Story Font Pack or import custom Story Fonts",
+                "rex_browse_xboyrex_story_fonts_btn"
+        ));
+        addPreference(catEmojiFonts, helper.buttonPreference(
+                "System 3 — Emoji Pack (" + SharedPref.getStringPref(Settings.CHOOSE_EMOJI_TYPE) + ")",
+                "Apply iOS 17.4 / 18.4 / 26.4, JoyPixels, Twemoji, Samsung, or custom Emoji font",
+                "rex_emoji_type_btn"
         ));
         addPreference(catEmojiFonts, helper.buttonPreference(
                 "Creative Fonts for DMs",
-                "You can send stylish text using cool fonts in your DMs, It makes your messages look unique and stand out from others.",
+                "Send stylish Unicode font styles inside Direct Messages",
                 "rex_creative_fonts_btn"
         ));
 
@@ -1017,8 +1036,13 @@ public class ScreenBuilder {
                 "rex_video_splitter_btn"
         ));
         addPreference(catVaults, helper.buttonPreference(
-                "Clear Temporary Media & Cache",
-                "Delete cached repost/download temp files and free storage space",
+                "App Cache Cleaner & Auto-Limit",
+                app.morphe.extension.instagram.settings.feature.AppCacheCleaner.getStatusSummary(context),
+                Constants.REX_FRAGMENT_CACHE_CLEANER
+        ));
+        addPreference(catVaults, helper.buttonPreference(
+                "Clear Temporary Media & Cache Now",
+                "Delete cached repost/download temp files and free storage space immediately",
                 "rex_clear_cache_btn"
         ));
         if (SettingsStatus.instantsDownload) {
@@ -1144,6 +1168,12 @@ public class ScreenBuilder {
     public void buildDeveloperSection() {
         if (!SettingsStatus.developerOptionsSection()) return;
 
+        addPreference(helper.buttonPreference(
+                "Initial Features (72 Experimental Flags)",
+                "Browse all 72 verified Instagram experimental flags across 10 categories with safe presets",
+                Constants.REX_FRAGMENT_INITIAL_FEATURES
+        ));
+
         if (SettingsStatus.recommendedFlags) {
             addPreference(helper.buttonPreference(
                     str("rex_category_rec_flags"),
@@ -1238,27 +1268,17 @@ public class ScreenBuilder {
     public void buildFontSection() {
         if (!SettingsStatus.fontSection()) return;
 
-        addPreference(helper.buttonPreference(
-                "Choose Emoji Type",
-                "You can apply iOS Emoji across the app.",
-                "rex_emoji_type_btn"
+        PreferenceCategory appFontCat = addCategory("SYSTEM 1 — APP FONT (UI TYPOGRAPHY)");
+        addPreference(appFontCat, helper.switchPreference(
+                "Enable Custom App Font",
+                "Apply selected App Font across Instagram UI without breaking icon glyphs",
+                Settings.ENABLE_APP_FONT
         ));
-        addPreference(helper.buttonPreference(
-                "Choose Font Type",
-                "You can apply iOS Font across the app.",
+        addPreference(appFontCat, helper.buttonPreference(
+                "App Font Source",
+                "Active: " + SharedPref.getStringPref(Settings.CHOOSE_FONT_TYPE) + " (Default, System Default, iOS San Francisco, Custom .ttf/.otf)",
                 "rex_font_type_btn"
         ));
-        addPreference(helper.buttonPreference(
-                "Add Custom Story Fonts",
-                "You can add unlimited custom story fonts",
-                "rex_add_story_fonts_btn"
-        ));
-        addPreference(helper.buttonPreference(
-                "Creative Fonts for DMs",
-                "You can send stylish text using cool fonts in your DMs, It makes your messages look unique and stand out from others.",
-                "rex_creative_fonts_btn"
-        ));
-
         SwitchPref useSystemFont = new SwitchPref(context);
         useSystemFont.setTitle(str("rex_use_system_font"));
         useSystemFont.setSummary(str("rex_use_system_font_desc"));
@@ -1269,18 +1289,60 @@ public class ScreenBuilder {
             FontStorage.setUseSystemFont(Boolean.TRUE.equals(newValue));
             return true;
         });
-        addPreference(useSystemFont);
-
-        addPreference(helper.buttonPreference(
-                str("rex_pref_add_font"),
+        addPreference(appFontCat, useSystemFont);
+        addPreference(appFontCat, helper.buttonPreference(
+                "Import Custom App Font (.ttf / .otf)",
                 str("rex_pref_add_font_desc"),
                 "rex_pref_add_font"
         ));
-
-        addPreference(helper.buttonPreference(
-                str("rex_pref_delete_font"),
-                "",
+        addPreference(appFontCat, helper.buttonPreference(
+                "Reset / Delete Custom App Font",
+                "Remove imported custom_font.ttf and revert to default typography",
                 "rex_pref_delete_font"
+        ));
+
+        PreferenceCategory storyFontCat = addCategory("SYSTEM 2 — STORY FONTS (STORY & REEL TEXT)");
+        addPreference(storyFontCat, helper.switchPreference(
+                "Enable Custom Story Fonts",
+                "Register custom fonts into Instagram Story & Reel text editor",
+                Settings.ENABLE_STORY_FONTS
+        ));
+        addPreference(storyFontCat, helper.buttonPreference(
+                "Story Font Source",
+                "Active Source: " + SharedPref.getStringPref(Settings.STORY_FONT_SOURCE),
+                "rex_story_font_source_btn"
+        ));
+        addPreference(storyFontCat, helper.buttonPreference(
+                "Browse XBOYREX Story Font Pack",
+                "Preview individual Story Fonts, toggle specific fonts, or Select All / Deselect All",
+                "rex_browse_xboyrex_story_fonts_btn"
+        ));
+        addPreference(storyFontCat, helper.buttonPreference(
+                "Install Curated Story Font Packs / Import .ttf/.otf/.zip",
+                "Install Official, AnshulDixit, Askxtylishh, Affan, Valentines, or local Story Fonts",
+                "rex_add_story_fonts_btn"
+        ));
+        addPreference(storyFontCat, helper.buttonPreference(
+                "Creative Fonts for DMs",
+                "Send stylish Unicode font styles inside Direct Messages",
+                "rex_creative_fonts_btn"
+        ));
+
+        PreferenceCategory emojiCat = addCategory("SYSTEM 3 — EMOJI REPLACEMENT");
+        addPreference(emojiCat, helper.switchPreference(
+                "Enable Custom Emoji Pack",
+                "Render selected Emoji font across Feed, Reels, Stories, Comments & DMs",
+                Settings.ENABLE_EMOJI_FONT
+        ));
+        addPreference(emojiCat, helper.buttonPreference(
+                "Choose Emoji Pack",
+                "Active: " + SharedPref.getStringPref(Settings.CHOOSE_EMOJI_TYPE) + " (System, iOS 17.4/18.4/26.4, JoyPixels, Twemoji, Custom)",
+                "rex_emoji_type_btn"
+        ));
+        addPreference(emojiCat, helper.buttonPreference(
+                "Import Custom Emoji Font (.ttf / .otf)",
+                "Import a local AppleColorEmoji / NotoColorEmoji .ttf file with glyph validation",
+                "rex_pref_add_emoji_font"
         ));
     }
 
@@ -1378,6 +1440,11 @@ public class ScreenBuilder {
                 "Clear all Boolean and Numeric flag overrides back to Default",
                 "rex_rec_flags_reset_all"
         ));
+        addPreference(controlsCat, helper.buttonPreference(
+                "Restart InstaRex Now",
+                "Apply all pending Recommended Flag changes immediately",
+                "rex_rec_flags_restart_now"
+        ));
 
         List<Flag> recFlags = RecommendedFlags.getFlags(notifyErrors);
         PreferenceCategory boolCat = addCategory("BOOLEAN EXPERIMENT FLAGS");
@@ -1402,6 +1469,112 @@ public class ScreenBuilder {
                 ));
             }
         }
+    }
+
+    public void buildInitialFeaturesSection() {
+        List<app.morphe.extension.instagram.patches.devFlags.InitialFeaturesManager.FeatureEntry> allEntries =
+                app.morphe.extension.instagram.patches.devFlags.InitialFeaturesManager.getAllEntries(context);
+        List<app.morphe.extension.instagram.patches.devFlags.InitialFeaturesManager.FeatureEntry> filtered =
+                app.morphe.extension.instagram.patches.devFlags.InitialFeaturesManager.getFilteredEntries(context);
+
+        PreferenceCategory filterCat = addCategory("SEARCH, FILTER & PRESETS (" + filtered.size() + " / " + allEntries.size() + " FLAGS)");
+        String q = app.morphe.extension.instagram.patches.devFlags.InitialFeaturesManager.getSearchQuery();
+        addPreference(filterCat, helper.buttonPreference(
+                "Search Initial Features",
+                (q == null || q.isEmpty()) ? "Search by flag name, category, parameter, or description" : ("Filter: \"" + q + "\""),
+                "rex_initial_features_search_btn"
+        ));
+        addPreference(filterCat, helper.buttonPreference(
+                "Filter by Category",
+                "Active Category: " + app.morphe.extension.instagram.patches.devFlags.InitialFeaturesManager.getActiveCategoryFilter(),
+                "rex_initial_features_category_btn"
+        ));
+        addPreference(filterCat, helper.buttonPreference(
+                "Filter by Status / Risk",
+                "Active Status: " + app.morphe.extension.instagram.patches.devFlags.InitialFeaturesManager.getActiveStatusFilter(),
+                "rex_initial_features_status_btn"
+        ));
+        addPreference(filterCat, helper.buttonPreference(
+                "Apply Curated Preset",
+                "10 Safe & Category Presets (Recommended Safe, Media Quality, Reels, Stories, DM, Notes, UI)",
+                "rex_initial_features_presets_btn"
+        ));
+        addPreference(filterCat, helper.buttonPreference(
+                "Enable All Recommended Safe Flags",
+                "Enable all LOW-risk verified Initial Features and resolve mutually exclusive conflicts",
+                "rex_initial_features_enable_safe_btn"
+        ));
+        addPreference(filterCat, helper.buttonPreference(
+                "Reset All Initial Features to Default",
+                "Clear all Initial Feature overrides back to clean defaults",
+                "rex_initial_features_reset_all_btn"
+        ));
+        addPreference(filterCat, helper.buttonPreference(
+                "Export Initial Features (.json)",
+                "Save active Initial Features configuration to Download/xboyrex",
+                "rex_initial_features_export_btn"
+        ));
+        addPreference(filterCat, helper.buttonPreference(
+                "Import Initial Features (.json)",
+                "Restore Initial Features overrides from a JSON file",
+                "rex_import_initial_features"
+        ));
+        addPreference(filterCat, helper.buttonPreference(
+                "Restart InstaRex Now",
+                "Relaunch app cleanly to activate cold-boot MobileConfig & Initial Features",
+                "rex_initial_features_restart_now"
+        ));
+
+        java.util.LinkedHashMap<String, List<app.morphe.extension.instagram.patches.devFlags.InitialFeaturesManager.FeatureEntry>> byCat =
+                new java.util.LinkedHashMap<>();
+        for (app.morphe.extension.instagram.patches.devFlags.InitialFeaturesManager.FeatureEntry e : filtered) {
+            List<app.morphe.extension.instagram.patches.devFlags.InitialFeaturesManager.FeatureEntry> list = byCat.get(e.category);
+            if (list == null) {
+                list = new java.util.ArrayList<>();
+                byCat.put(e.category, list);
+            }
+            list.add(e);
+        }
+
+        for (Map.Entry<String, List<app.morphe.extension.instagram.patches.devFlags.InitialFeaturesManager.FeatureEntry>> group : byCat.entrySet()) {
+            PreferenceCategory cat = addCategory(group.getKey().toUpperCase(Locale.ROOT) + " (" + group.getValue().size() + ")");
+            for (app.morphe.extension.instagram.patches.devFlags.InitialFeaturesManager.FeatureEntry entry : group.getValue()) {
+                addPreference(cat, new app.morphe.extension.instagram.settings.preference.widgets.InitialFeaturePreference(context, entry));
+            }
+        }
+    }
+
+    public void buildCacheCleanerSection() {
+        PreferenceCategory statusCat = addCategory("CACHE STATUS & MANUAL CLEANUP");
+        addPreference(statusCat, helper.buttonPreference(
+                "Current Cache Status",
+                app.morphe.extension.instagram.settings.feature.AppCacheCleaner.getStatusSummary(context),
+                "rex_cache_cleaner_status_btn"
+        ));
+        addPreference(statusCat, helper.buttonPreference(
+                "Clean Cache Now",
+                "Safely purge image/video/reel/temp cache while preserving login session, downloads & preferences",
+                "rex_cache_cleaner_clean_now_btn"
+        ));
+
+        PreferenceCategory autoCat = addCategory("AUTOMATIC CACHE LIMIT");
+        addPreference(autoCat, helper.switchPreference(
+                "Enable Automatic Cache Cleaning",
+                "Automatically clean temporary media cache on app startup when cache exceeds the configured limit",
+                Settings.AUTO_CACHE_CLEAN_ENABLED
+        ));
+        addPreference(autoCat, helper.buttonPreference(
+                "Cache Size Limit Preset",
+                "Current Limit: " + app.morphe.extension.instagram.settings.feature.AppCacheCleaner.formatLimitLabel(
+                        app.morphe.extension.instagram.settings.feature.AppCacheCleaner.getLimitMb()
+                ) + " (250 MB, 500 MB, 1 GB, 2 GB, 3 GB, 5 GB, Custom)",
+                "rex_cache_cleaner_limit_btn"
+        ));
+        addPreference(autoCat, helper.buttonPreference(
+                "Set Custom Cache Limit (50 MB – 20 GB)",
+                "Enter an exact MB or GB cache ceiling",
+                "rex_cache_cleaner_custom_limit_btn"
+        ));
     }
 
     public void aboutSection(TreeMap<String, Boolean> flags) {

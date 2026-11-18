@@ -8,7 +8,6 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.PlusPending
 import app.morphe.util.names.origRef
 import app.morphe.util.names.addInstruction
 import app.morphe.util.names.addInstructionsWithLabels
@@ -48,7 +47,6 @@ import app.morphe.util.names.origType
 import app.morphe.util.names.tgMutableClassDefBy
 
 /** Exercises the real declared fixture's state merges, including cached rings and community taps. */
-@PlusPending
 class HideStoriesFixtureTest {
     @Test
     fun `every declared build has all five targets and preserves stock profile archive and community paths`() {

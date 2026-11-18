@@ -131,6 +131,8 @@ public class Settings extends BaseSettings {
     // Use system font's hook draws TikTok's text in the imported font file while this is on and
     // the file loads; it wins over SYSTEM_FONT. The file itself lives in TikTok's files, not here.
     public static final BooleanSetting IMPORTED_FONT = new BooleanSetting("imported_font", FALSE, true);
+    // The same hook puts this file behind the text font, for emoji alone (#458).
+    public static final BooleanSetting IMPORTED_EMOJI_FONT = new BooleanSetting("imported_emoji_font", FALSE, true);
     // On by default: AMOLED dark theme is in a build only when it was picked, so black is the ask.
     // Off puts TikTok's own dark grays back at the next start (#372).
     public static final BooleanSetting AMOLED_DARK_MODE = new BooleanSetting("amoled_dark_mode", TRUE, true);
@@ -148,6 +150,8 @@ public class Settings extends BaseSettings {
                     Setting.parent(AUTOMATIC_CLEAR_DISPLAY)).withRange(0, 30000);
     public static final StringSetting PLAYBACK_QUALITY = new StringSetting("playback_quality", "auto");
     public static final StringSetting PLAYBACK_QUALITY_METERED = new StringSetting("playback_quality_metered", "off");
+    /** The heaviest video to play, in Mb/s, or "off" (#454). */
+    public static final StringSetting PLAYBACK_BITRATE_LIMIT = new StringSetting("playback_bitrate_limit", "off");
     public static final BooleanSetting PLAY_SDR = new BooleanSetting("play_sdr", FALSE);
     public static final BooleanSetting PREFER_H264 = new BooleanSetting("prefer_h264", FALSE);
     public static final StringSetting DOWNLOAD_VIDEO_QUALITY = new StringSetting("download_video_quality", "auto");
@@ -885,6 +889,11 @@ public class Settings extends BaseSettings {
     /** How big Hushfeed's buttons in a LIVE room are, in dp (#359). Read as a room's buttons are drawn. */
     public static final StringSetting LIVE_BUTTON_SIZE = new StringSetting("live_button_size", "48");
     /**
+     * Keeps Record and Auto tap off the video and offers them in the menu from holding the middle
+     * of a LIVE (#359). Read as a room's buttons are drawn and as the menu opens, so no restart.
+     */
+    public static final BooleanSetting LIVE_BUTTONS_IN_MENU = new BooleanSetting("live_buttons_in_menu", FALSE);
+    /**
      * Alerts you when your name comes up in a LIVE (#424); the LIVE controls patch. Read on each
      * message the room gets, so no restart.
      */
@@ -938,6 +947,8 @@ public class Settings extends BaseSettings {
             "publish_date_short_date", FALSE, false, Setting.parent(PUBLISH_DATE_EXACT_TIME));
     /** TikTok's date by the creator's name written day first with dots, 29.09 (#438). */
     public static final BooleanSetting PUBLISH_DATE_DAY_FIRST = new BooleanSetting("publish_date_day_first", FALSE);
+    /** TikTok's date by the creator's name with the month as a word, Oct 12, or 12 Oct with day first (#461). */
+    public static final BooleanSetting PUBLISH_DATE_MONTH_NAME = new BooleanSetting("publish_date_month_name", FALSE);
     public static final BooleanSetting PUBLISH_DATE_ON_GRID = new BooleanSetting("publish_date_on_grid", FALSE);
     public static final BooleanSetting VIDEO_LENGTH_ON_GRID = new BooleanSetting("video_length_on_grid", FALSE);
     public static final BooleanSetting HIDE_GRID_VIEW_COUNT = new BooleanSetting("hide_grid_view_count", FALSE);
@@ -1213,6 +1224,13 @@ public class Settings extends BaseSettings {
     public static final IntegerSetting FADE_CONTROLS_OPACITY =
             new IntegerSetting("fade_controls_opacity", 100).withRange(0, 100);
     /**
+     * The level the caption frame alone is drawn at: the creator's name, the date, the caption and
+     * the music line (#462). 100 leaves the frame to FADE_CONTROLS_OPACITY, lower wins over it, and
+     * 0 takes the frame out of sight the way a fade of 0 does.
+     */
+    public static final IntegerSetting FADE_CAPTION_OPACITY =
+            new IntegerSetting("fade_caption_opacity", 100).withRange(0, 100);
+    /**
      * Whether a fade between 0 and 100 keeps the controls in sight in Clear display (#84). Off,
      * Clear display takes them away as it does at 100, and the fade only reaches them outside it,
      * for those who want the fade on the feed and Clear display still clear.
@@ -1404,6 +1422,9 @@ public class Settings extends BaseSettings {
     /** LIVEs in the Inbox's stories tray from accounts the viewer doesn't follow (#449). */
     public static final BooleanSetting HIDE_INBOX_SUGGESTED_LIVES =
             new BooleanSetting("hide_inbox_suggested_lives", FALSE);
+    /** Stories in the Inbox's tray from accounts the viewer doesn't follow (#462). */
+    public static final BooleanSetting HIDE_INBOX_SUGGESTED_STORIES =
+            new BooleanSetting("hide_inbox_suggested_stories", FALSE);
     /** The Widget circle at the end of the Inbox's stories tray (#449). */
     public static final BooleanSetting HIDE_INBOX_WIDGET_GUIDE =
             new BooleanSetting("hide_inbox_widget_guide", FALSE);

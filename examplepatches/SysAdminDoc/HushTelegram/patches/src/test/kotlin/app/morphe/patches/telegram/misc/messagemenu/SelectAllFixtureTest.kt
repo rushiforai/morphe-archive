@@ -8,7 +8,6 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.PlusPending
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
 import app.morphe.patches.telegram.misc.extension.SETTINGS_STATUS
 import app.morphe.patches.telegram.misc.localcontrols.controlBody
@@ -28,7 +27,6 @@ import app.morphe.util.names.origType
 import app.morphe.util.names.tgMutableClassDefBy
 
 /** Select all in a chat's bar and in shared media's, and the stubs that reach them, on the pinned builds. */
-@PlusPending
 class SelectAllFixtureTest {
     private val showing = "$SELECT_ALL->showing(Ljava/lang/Object;Z)V"
 

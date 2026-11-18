@@ -13,7 +13,9 @@ import java.util.List;
  * Lurk in account menu's native half on ART: React Native's real, patched IntentModule.openURL (made without its
  * constructor), called the way Kick's JavaScript calls Linking.openURL. Lurk's link (lurk://settings) opens the Lurk
  * settings activity and resolves the promise with true without reaching Android; any other link goes on into React
- * Native's own code. Usage: SettingsLinkProbe <patched.apk>; bin/test-kick runs it.
+ * Native's own code. Usage: SettingsLinkProbe <patched.apk>; bin/test-kick runs it. Lurk opens its activity only when
+ * the installed app declares it (Settings.open asks the package manager), so the patched APK must be installed on the
+ * device: the probe acts as that package.
  */
 public final class SettingsLinkProbe {
     private static final String SETTINGS = "io.github.jordanwoodson.extension.shared.settings.SettingsActivity";
@@ -36,8 +38,14 @@ public final class SettingsLinkProbe {
         Object thread = Class.forName("android.app.ActivityThread").getMethod("systemMain").invoke(null);
         Context system = (Context) thread.getClass().getMethod("getSystemContext").invoke(thread);
         List<Intent> started = new ArrayList<>();
+        String packageName = system.getPackageManager().getPackageArchiveInfo(args[0], 0).packageName;
+        if (system.getPackageManager().resolveActivity(new Intent().setClassName(packageName, SETTINGS), 0) == null) {
+            throw new AssertionError("install the patched APK on the device first: " + packageName +
+                " has no " + SETTINGS);
+        }
         Context context = new ContextWrapper(system) {
             @Override public Context getApplicationContext() { return this; }
+            @Override public String getPackageName() { return packageName; }
             @Override public void startActivity(Intent intent) { started.add(intent); }
         };
         Class<?> settings = Class.forName("io.github.jordanwoodson.extension.shared.settings.Settings");

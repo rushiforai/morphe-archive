@@ -17,6 +17,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import app.hushpinterest.extension.pinterest.ads.ModelFields;
+import app.hushpinterest.extension.pinterest.ads.ModuleItems;
 import app.hushpinterest.extension.pinterest.privacy.PlainPinLinks;
 
 /** Resolves public media and metadata Pinterest already supplied with a pin, without inspecting a file. */
@@ -92,58 +93,18 @@ final class PinMedia {
         if (pin instanceof Resolution) return (Resolution) pin;
         String id = id(pin);
         if (id == null) return null;
-        Object videoList = field(field(pin, "videos"), "video_list");
-        if (videoList instanceof Map<?, ?>) {
-            // A sorted copy makes equal-size alternatives deterministic across model map types.
-            TreeMap<String, Object> videos = new TreeMap<>();
-            for (Map.Entry<?, ?> entry : ((Map<?, ?>) videoList).entrySet()) {
-                if (entry.getKey() instanceof String) videos.put((String) entry.getKey(), entry.getValue());
-            }
-            Source best = null, streamed = null;
-            Object selected = null, unsupported = null, streamedFrom = null;
-            double largest = -1;
-            double largestUnsupported = -1;
-            double largestStream = -1;
-            boolean adaptive = false;
-            for (Object video : videos.values()) {
-                double area = dimension(field(video, "width")) * dimension(field(video, "height"));
-                URI supplied = field(video, "url") instanceof String ? mediaUri((String) field(video, "url")) : null;
-                if (supplied != null && supplied.getPath() != null) {
-                    String path = supplied.getPath().toLowerCase(java.util.Locale.ROOT);
-                    adaptive |= path.endsWith(".m3u8") || path.endsWith(".mpd");
-                }
-                if (unsupported == null || area > largestUnsupported) {
-                    unsupported = video;
-                    largestUnsupported = area;
-                }
-                Source candidate = sourceUrl(field(video, "url"), true);
-                if (candidate == null) {
-                    Source stream = streamUrl(field(video, "url"));
-                    if (stream != null && (streamed == null || area > largestStream)) {
-                        streamed = stream;
-                        streamedFrom = video;
-                        largestStream = area;
-                    }
-                    continue;
-                }
-                if (best == null || area > largest) {
-                    best = candidate;
-                    selected = video;
-                    largest = area;
-                }
-            }
-            if (best != null) return new Resolution(id, best, null, selected, null);
-            // Pinterest streams most videos as HLS alone. Download pin joins the stream into an MP4 (#27).
-            if (streamed != null) return new Resolution(id, streamed, null, streamedFrom, null);
-            // A supplied playlist still identifies a video when is_video was omitted.
-            if (!((Map<?, ?>) videoList).isEmpty()) {
-                return new Resolution(id, null, adaptive ? Refusal.ADAPTIVE_VIDEO : Refusal.MP4_MISSING, unsupported, null);
-            }
-        }
+        Resolution listed = videoFrom(id, field(field(pin, "videos"), "video_list"));
+        if (listed != null && listed.source != null) return listed;
+        // An idea pin keeps its video on its pages, or in a block on a page, not in videos (#45).
+        Object story = field(pin, "story_pin_data");
+        Resolution paged = pageVideo(id, story);
+        if (paged != null && paged.source != null) return paged;
+        if (listed != null) return listed;
+        if (paged != null) return paged;
         // A video thumbnail is not the video the user asked to save.
         if (Boolean.TRUE.equals(field(pin, "is_video"))) return new Resolution(id, null, Refusal.MP4_MISSING, null, null);
-        // An idea pin keeps its video in its pages rather than in videos, and says how long it runs.
-        Object duration = field(field(pin, "story_pin_data"), "total_video_duration");
+        // A pin that says how long its pages run is a video even when none of them came with this model.
+        Object duration = field(story, "total_video_duration");
         if (duration instanceof String && ((String) duration).matches(".*[1-9].*")) {
             return new Resolution(id, null, Refusal.MP4_MISSING, null, null);
         }
@@ -186,6 +147,88 @@ final class PinMedia {
         Refusal refusal = !(link instanceof String) ? Refusal.IMAGE_MISSING
                 : mediaUri((String) link) == null ? Refusal.PUBLIC_LINK : Refusal.IMAGE_TYPE;
         return new Resolution(id, null, refusal, refused, null);
+    }
+
+    /**
+     * The best video in a video_list: the largest MP4, else the largest HLS stream, else a refusal
+     * naming what was offered. Null when there's no list or it's empty.
+     */
+    private static Resolution videoFrom(String id, Object videoList) {
+        if (!(videoList instanceof Map<?, ?>)) return null;
+        // A sorted copy makes equal-size alternatives deterministic across model map types.
+        TreeMap<String, Object> videos = new TreeMap<>();
+        for (Map.Entry<?, ?> entry : ((Map<?, ?>) videoList).entrySet()) {
+            if (entry.getKey() instanceof String) videos.put((String) entry.getKey(), entry.getValue());
+        }
+        Source best = null, streamed = null;
+        Object selected = null, unsupported = null, streamedFrom = null;
+        double largest = -1;
+        double largestUnsupported = -1;
+        double largestStream = -1;
+        boolean adaptive = false;
+        for (Object video : videos.values()) {
+            double area = dimension(field(video, "width")) * dimension(field(video, "height"));
+            URI supplied = field(video, "url") instanceof String ? mediaUri((String) field(video, "url")) : null;
+            if (supplied != null && supplied.getPath() != null) {
+                String path = supplied.getPath().toLowerCase(java.util.Locale.ROOT);
+                adaptive |= path.endsWith(".m3u8") || path.endsWith(".mpd");
+            }
+            if (unsupported == null || area > largestUnsupported) {
+                unsupported = video;
+                largestUnsupported = area;
+            }
+            Source candidate = sourceUrl(field(video, "url"), true);
+            if (candidate == null) {
+                Source stream = streamUrl(field(video, "url"));
+                if (stream != null && (streamed == null || area > largestStream)) {
+                    streamed = stream;
+                    streamedFrom = video;
+                    largestStream = area;
+                }
+                continue;
+            }
+            if (best == null || area > largest) {
+                best = candidate;
+                selected = video;
+                largest = area;
+            }
+        }
+        if (best != null) return new Resolution(id, best, null, selected, null);
+        // Pinterest streams most videos as HLS alone. Download pin joins the stream into an MP4 (#27).
+        if (streamed != null) return new Resolution(id, streamed, null, streamedFrom, null);
+        // A supplied playlist still identifies a video when is_video was omitted.
+        if (videos.isEmpty()) return null;
+        return new Resolution(id, null, adaptive ? Refusal.ADAPTIVE_VIDEO : Refusal.MP4_MISSING, unsupported, null);
+    }
+
+    /**
+     * The first video an idea pin's pages offer, on a page itself or in one of its blocks. The full
+     * pages come first, then the previews a grid pin may carry instead. Pinterest wraps each block in
+     * a holder with no JSON names, one slot per block type. Null when no page has a video.
+     */
+    private static Resolution pageVideo(String id, Object story) {
+        Resolution refused = null;
+        for (String pages : new String[]{"pages", "pages_preview"}) {
+            Object list = field(story, pages);
+            if (!(list instanceof List<?>)) continue;
+            for (Object page : (List<?>) list) {
+                List<Object> holders = new ArrayList<>();
+                holders.add(page);
+                Object blocks = field(page, "blocks");
+                if (blocks instanceof List<?>) {
+                    for (Object block : (List<?>) blocks) {
+                        holders.add(block instanceof Map<?, ?> ? block : ModuleItems.model(block));
+                    }
+                }
+                for (Object holder : holders) {
+                    Resolution found = videoFrom(id, field(field(holder, "video"), "video_list"));
+                    if (found == null) continue;
+                    if (found.source != null) return found;
+                    if (refused == null) refused = found;
+                }
+            }
+        }
+        return refused;
     }
 
     /** Pinterest's keys for the original upload in a pin's images. */

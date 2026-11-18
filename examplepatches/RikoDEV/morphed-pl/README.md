@@ -40,7 +40,7 @@
 All patches are enabled by default.
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.7.3](https://github.com/RikoDEV/morphed-pl/releases/tag/v1.7.3)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;41 patches total
+> **[v1.7.5](https://github.com/RikoDEV/morphed-pl/releases/tag/v1.7.5)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;44 patches total
 <details open>
 <summary>📦 Lidl Plus&nbsp;&nbsp;•&nbsp;&nbsp;16 patches</summary>
 <br>
@@ -113,8 +113,8 @@ All patches are enabled by default.
 
 **🎯 Supported versions:**
 
-| 4.23.1 |
-| :---: |
+| 4.23.1 | 4.24.0 |
+| :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -162,18 +162,21 @@ All patches are enabled by default.
 </details>
 
 <details open>
-<summary>📦 Żappka&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<summary>📦 Żappka&nbsp;&nbsp;•&nbsp;&nbsp;6 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 4.50.0 |
-| :---: |
+| 4.50.0 | 4.51.2 |
+| :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Block telemetry](#block-telemetry) | Blocks the Żabka CDP event pipeline (device, root, network and carrier data attached to every event), Sentry, AppsFlyer, Synerise event tracking, Firebase Analytics, Facebook app events and Google datatransport uploads. |  |
 | [Custom Google Maps key](#custom-google-maps-key) | Replaces the app's Google Maps API key. The original key is locked to the developer's signing certificate, so maps stay grey in a re-signed app. Use a key you own that allows the app's package name and the SHA-1 of the key the patched app is signed with. | • Google Maps API key |
+| [Hide home carousels and stories](#hide-home-carousels-and-stories) | Removes the hero banner carousel and its fallback photo at the top of the home feed, the autoplay/swipe banner carousels and the Instagram-style stories rows. Other home sections stay. |  |
+| [Hide home shortcuts](#hide-home-shortcuts) | Removes chosen tiles from the home shortcut grid (Strefa kuponów, Menu Żabki, ...). Pick the tiles to hide in the patch options; by default only the "Strefa Gier Triki" tile. | • Hide "Strefa Gier Triki"<br>• Hide "Strefa kuponów"<br>• Hide "Wszystko za żappsy"<br>• Hide "Menu Żabki"<br>• Hide "Oferta Żabki"<br>• Hide "Strefa Partnerów"<br>• Hide "Alcostore w Żabce Jush!"<br>• Hide "Taxi"<br>• Hide "Paczki w Żabce"<br>• Hide "Zakupy z dostawą"<br>• Hide "Pakiety"<br>• Hide "Nano 24/7"<br>• Hide "Automaty vendingowe"<br>• Other tiles to hide |
+| [Hide Żabka screen banner carousels](#hide-abka-screen-banner-carousels) | Removes the large swipeable banner carousels (with pager dots, e.g. "Sprawdź to!") from the Żabka tab screens (Strefa Żabki, Menu Żabki). Other sections stay. |  |
 | [Spoof signing certificate](#spoof-signing-certificate) | Reports Żabka's original signing certificate to Firebase, so login works after the app is re-signed by patching. |  |
 
 </details>

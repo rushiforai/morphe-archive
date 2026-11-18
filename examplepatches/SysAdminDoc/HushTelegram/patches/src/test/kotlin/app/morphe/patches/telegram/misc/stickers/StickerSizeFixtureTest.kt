@@ -8,7 +8,6 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.PlusPending
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
 import app.morphe.patches.telegram.misc.extension.SETTINGS_STATUS
 import app.morphe.patches.telegram.misc.localcontrols.controlBody
@@ -30,7 +29,6 @@ import app.morphe.util.names.origName
 import app.morphe.util.names.tgMutableClassDefBy
 
 /** The message bubble's content setter, Telegram's message model and the runtime. */
-@PlusPending
 class StickerSizeFixtureTest {
     private val contentLabel = "Lorg/telegram/messenger/R\$string;->SponsoredMessageAdWhatIsThis:I"
 
@@ -52,7 +50,9 @@ class StickerSizeFixtureTest {
             val at = plan.multiply
             assertEquals("$name: two instructions", before.size + 2, after.size)
             assertEquals(Opcode.MUL_FLOAT_2ADDR, after[at].opcode)
-            assertEquals(Opcode.CONST_HIGH16, after[at - 1].opcode)
+            // Plus Messenger adds its own size setting to the 0.5 right before the multiply.
+            val entry = if (after[at - 1].opcode == Opcode.ADD_FLOAT_2ADDR) at - 1 else at
+            assertEquals(Opcode.CONST_HIGH16, after[entry - 1].opcode)
             assertEquals(SIZE_HOOK, after[at + 1].controlRef())
             assertEquals("$name: the message and the size", listOf(plan.message, plan.size), after[at + 1].namedRegisters())
             assertEquals(Opcode.MOVE_RESULT, after[at + 2].opcode)
@@ -66,7 +66,8 @@ class StickerSizeFixtureTest {
             }
             // The phone's share falls into the multiply and the tablet's jumps to it, so both reach the hook.
             val flow = ControlFlow.of(plan.method)
-            assertEquals("$name: the phone and the tablet", 2, flow.normal.indices.count { at in flow.normal[it] })
+            assertEquals("$name: the phone and the tablet", 2, flow.normal.indices.count { entry in flow.normal[it] })
+            if (entry != at) assertEquals("$name: and only the add reaches the multiply", listOf(entry), flow.normal.indices.filter { at in flow.normal[it] })
             assertEquals("$name: only the multiply reaches the hook", listOf(at), flow.normal.indices.filter { at + 1 in flow.normal[it] })
 
             val stub = context.tgMutableClassDefBy(STICKER_SIZE).methods.single { it.origName == "emoji" }.controlBody().map { it.controlRef() }

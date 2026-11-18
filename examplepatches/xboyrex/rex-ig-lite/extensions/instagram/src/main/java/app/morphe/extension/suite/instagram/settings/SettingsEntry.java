@@ -196,6 +196,7 @@ public final class SettingsEntry {
         SaveLeftovers.sweepAfterStart(context);
         // With the patch in, the media cache is cleared on the way to the background once it's too large.
         MediaCache.watch(context);
+        app.morphe.extension.instagram.settings.feature.AppCacheCleaner.checkAndAutoCleanOnStartup(context);
         publishShortcut(context);
     }
 

@@ -75,6 +75,7 @@ val blockAppTelemetryPatch = bytecodePatch(
             "tab presses, experiments, app speed and errors.",
     default = true
 ) {
+    category("Privacy")
     compatibleWith(COMPATIBILITY_QUORA)
 
     extendWith("extensions/extension.mpe")
@@ -103,6 +104,7 @@ val disableTrackingJobsPatch = bytecodePatch(
             "and every day whether notifications are on.",
     default = true
 ) {
+    category("Privacy")
     compatibleWith(COMPATIBILITY_QUORA)
 
     execute {

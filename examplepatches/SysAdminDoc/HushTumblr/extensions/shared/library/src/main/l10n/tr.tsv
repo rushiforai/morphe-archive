@@ -397,6 +397,9 @@ Keep tagged reblogs	Etiketli yeniden bloglamaları tut
 When reblogs are hidden, keep ones with tags. Other post filters still apply.	Yeniden bloglamalar gizlenirken etiketli olanları tutar. Diğer gönderi filtreleri uygulanmaya devam eder.
 Keep reblogs with added content	Eklenen içeriği olan yeniden bloglamaları tut
 When reblogs are hidden, keep ones where the reblogger added something of their own. Other post filters still apply.	Yeniden bloglamalar gizlenirken, yeniden bloglayanın kendi eklemesi olanları tutar. Diğer gönderi filtreleri uygulanmaya devam eder.
+# context: an option under Hide reblogs on the Feed page, and its summary
+Keep reblogs in communities	Topluluklardaki yeniden bloglamaları tut
+When reblogs are hidden, keep ones shared to a community. Other post filters still apply.	Yeniden bloglamalar gizlenirken bir toplulukta paylaşılanları tutar. Diğer gönderi filtreleri uygulanmaya devam eder.
 Hide your own reblogs	Kendi yeniden bloglarını gizle
 Takes the reblogs you made out of your dashboard. Your blog and the rest of Tumblr still show them.	Yaptığın yeniden blogları panondan kaldırır. Blogun ve Tumblr'ın geri kalanı onları göstermeye devam eder.
 # context: a switch on the Feed page, next to Hide your own reblogs. It hides posts where someone else reblogged a post you made, or reblogged it from you.
@@ -499,6 +502,12 @@ Couldn't update muted posts. Try again.	Susturulan gönderiler güncellenemedi. 
 # context: the Share video links switch on the Posts page, and its summary
 Share video links	Video bağlantılarını paylaş
 Long-press a video in a post to share or copy its link, or save it.	Bağlantısını paylaşmak, kopyalamak ya da videoyu kaydetmek için gönderideki bir videoya uzun basın.
+# context: the Fit full-screen videos switch on the Interface page, and its summary. Tall means taller than it is wide
+Fit full-screen videos	Tam ekran videoları sığdır
+Shows tall videos whole when you open them full screen, instead of cutting off the sides.	Uzun videoları tam ekranda açtığınızda kenarlarını kesmeden bütün olarak gösterir.
+# context: the Tap to play feed videos switch on the Interface page, and its summary. A stopped video is one not playing right now
+Tap to play feed videos	Akıştaki videoları dokunarak oynat
+Tap a stopped video in your feed to play it right there. Tap it again while it plays to open it full screen.	Akışınızda durmuş bir videoya dokunarak olduğu yerde oynatın. Oynarken yeniden dokunursanız tam ekran açılır.
 # context: the Sharper images switch on the Posts page, and its summary
 Sharper images	Daha net resimler
 Loads images in posts at a higher resolution. Uses more data.	Gönderilerdeki resimleri daha yüksek çözünürlükte yükler. Daha fazla veri kullanır.

@@ -17,4 +17,18 @@ object Constants {
             AppTarget(version = null, isExperimental = true),
         )
     )
+
+    val COMPATIBILITY_TWILIGHT = Compatibility(
+        name = "Twilight",
+        packageName = "com.urbandroid.lux",
+        // Play Store split install (base + config splits), merged by Morphe Manager.
+        apkFileType = ApkFileType.APKM,
+        appIconColor = 0xC62828,
+        targets = listOf(
+            // Developed and verified against this version.
+            AppTarget(version = "14.32"),
+            // The patched classes are unobfuscated; likely fine on nearby versions.
+            AppTarget(version = null, isExperimental = true),
+        )
+    )
 }

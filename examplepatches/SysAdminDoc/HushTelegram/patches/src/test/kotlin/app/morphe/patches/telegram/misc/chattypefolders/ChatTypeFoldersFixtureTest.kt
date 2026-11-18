@@ -8,7 +8,6 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.PlusPending
 import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
@@ -47,7 +46,6 @@ import app.morphe.util.names.origString
 import app.morphe.util.names.tgMutableClassDefBy
 
 /** The folder stubs on both declared builds: Telegram's own folder list, limit, update request and local list. */
-@PlusPending
 class ChatTypeFoldersFixtureTest {
     private val hosts = setOf(MESSAGES_CONTROLLER, LOCAL_FILTER, USER_CONFIG, CONNECTIONS, SERVER_FILTER, NEW_FILTER, TITLE,
         UPDATE_FILTER, UPDATE_ORDER, STORAGE, NOTIFICATIONS, "Lorg/telegram/messenger/support/LongSparseIntArray;",
@@ -96,7 +94,7 @@ class ChatTypeFoldersFixtureTest {
      * Each of those is checked against Telegram's own post of that lambda with that case, and the case
      * against the storage's own [internal] save or delete.
      */
-    private fun BytecodePatchContext.storageRefs(name: String, stub: String, kept: String, internal: List<String>,
+    private fun BytecodePatchContext.storageRefs(name: String, stub: String, kept: String, internal: Set<List<String>>,
         storage: Int, folder: Int, savers: List<ClassDef>): List<String> {
         val body = stub(stub)
         if (tgMutableClassDefBy(STORAGE).methods.any { it.origString() == kept }) {
@@ -109,11 +107,14 @@ class ChatTypeFoldersFixtureTest {
         assertEquals("$name: $stub lambda", Opcode.NEW_INSTANCE, body[read + 1].opcode)
         val lambda = ((body[read + 1] as ReferenceInstruction).reference as TypeReference).type
         val made = (body[read + 1] as OneRegisterInstruction).registerA
-        val key = (body[read + 2] as NarrowLiteralInstruction).narrowLiteral
-        val keyRegister = (body[read + 2] as OneRegisterInstruction).registerA
-        val init = body[read + 3].call()!!
-        val passed = body[read + 3].namedRegisters()
-        val posted = body[read + 4]
+        val (call, copies, literals) = checkNotNull(posting(body, read)) { "$name: $stub has no lambda constructor" }
+        val init = body[call].call()!!
+        val passed = body[call].namedRegisters().map { copies[it] ?: it }
+        val ints = init.parameterTypes.map { it.toString() }
+        assertEquals("$name: $stub takes one case", 1, ints.count { it == "I" })
+        val keyAt = ints.indexOf("I") + 1
+        val key = checkNotNull(literals[passed[keyAt]]) { "$name: $stub case isn't a literal" }
+        val posted = body[call + 1]
         assertEquals("$name: $stub init", lambda, init.definingClass)
         assertEquals("$name: $stub init", made, passed.first())
         assertEquals("$name: $stub post", listOf(queue.registerA, made), posted.namedRegisters())
@@ -125,14 +126,11 @@ class ChatTypeFoldersFixtureTest {
                 ((b.getOrNull(it + 1) as? ReferenceInstruction)?.reference as? TypeReference)?.type == lambda }.map { b to it }
         }
         assertTrue("$name: $stub posts what Telegram posts", telegram.any { (b, at) ->
-            val call = (at + 2..minOf(at + 4, b.lastIndex)).firstOrNull { b[it].opcode == Opcode.INVOKE_DIRECT } ?: return@any false
-            val args = b[call].namedRegisters()
-            val constants = (at + 2 until call).mapNotNull { i ->
-                (b[i] as? NarrowLiteralInstruction)?.let { (b[i] as OneRegisterInstruction).registerA to it.narrowLiteral }
-            }.toMap()
-            b[call].call().toString() == init.toString() && b.getOrNull(call + 1)?.call().toString() == posted.call().toString() &&
+            val (theirCall, theirCopies, theirLiterals) = posting(b, at) ?: return@any false
+            val args = b[theirCall].namedRegisters().map { theirCopies[it] ?: it }
+            b[theirCall].call().toString() == init.toString() && b.getOrNull(theirCall + 1)?.call().toString() == posted.call().toString() &&
                 args.size == passed.size && args.indices.all { n -> (args[n] == (b[at] as TwoRegisterInstruction).registerB) == (passed[n] == storage) } &&
-                constants[args[passed.indexOf(keyRegister)]] == key
+                theirLiterals[args[keyAt]] == key
         })
         // The folder goes in at the one object place left.
         val objects = init.parameterTypes.indices.filter { init.parameterTypes[it].startsWith("L") && passed[it + 1] != storage }
@@ -146,9 +144,32 @@ class ChatTypeFoldersFixtureTest {
             ?.takeIf { it.definingClass == lambda }
         val case = if (own == null) opened else lambdaClass.methods.single { it.name == own.name && it.parameterTypes.isEmpty() }.controlBody().take(12)
         assertTrue("$name: $stub case $key", case.any { c ->
-            c.call()?.let { it.origDefiningClass == STORAGE && it.origParameterTypes == internal } == true })
-        return listOf(read, read + 1, read + 3, read + 4).map { body[it].controlRef()!! }
+            c.call()?.let { it.origDefiningClass == STORAGE && it.origParameterTypes in internal } == true })
+        return listOf(read, read + 1, call, call + 1).map { body[it].controlRef()!! }
     }
+
+    /**
+     * Where the storage queue post read at [read] calls its lambda's constructor, with what each register
+     * filled on the way holds: the register a move copied, or a literal. Plus copies the arguments into a
+     * range first, so its constructor comes up to six on, and a stub filling five roles there comes seven on.
+     */
+    private fun posting(body: List<Instruction>, read: Int): Triple<Int, Map<Int, Int>, Map<Int, Int>>? {
+        val call = (read + 2..minOf(read + 8, body.lastIndex)).firstOrNull {
+            body[it].opcode == Opcode.INVOKE_DIRECT || body[it].opcode == Opcode.INVOKE_DIRECT_RANGE } ?: return null
+        val copies = mutableMapOf<Int, Int>()
+        val literals = mutableMapOf<Int, Int>()
+        for (i in read + 2 until call) {
+            val filled = body[i]
+            if (filled is NarrowLiteralInstruction) literals[(filled as OneRegisterInstruction).registerA] = filled.narrowLiteral
+            else if (filled.opcode in MOVES) (filled as TwoRegisterInstruction).let { copies[it.registerA] = copies[it.registerB] ?: it.registerB }
+        }
+        return Triple(call, copies, literals)
+    }
+
+    private val MOVES = setOf(Opcode.MOVE, Opcode.MOVE_FROM16, Opcode.MOVE_16, Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16)
+
+    /** The storage's internal save, with Plus's second flag or without. */
+    private val SAVE_INTERNAL = setOf(listOf(LOCAL_FILTER, "Z"), listOf(LOCAL_FILTER, "Z", "Z"))
 
     private fun ClassDef.method(name: String) = methods.single { it.origName == name }
     private fun BytecodePatchContext.method(name: String) = tgMutableClassDefBy(CHAT_TYPE_FOLDERS).method(name)
@@ -289,7 +310,7 @@ class ChatTypeFoldersFixtureTest {
 
             val posters = savers(build)
             val add = context.stub("addFolder").refs()
-            val saved = context.storageRefs(name, "addFolder", SAVE_FILTER, listOf(LOCAL_FILTER, "Z"), 1, 0, posters)
+            val saved = context.storageRefs(name, "addFolder", SAVE_FILTER, SAVE_INTERNAL, 1, 0, posters)
             assertEquals(listOf(LOCAL_FILTER, LOCAL_INIT, LOCAL_ID, LOCAL_NAME, LOCAL_FLAGS, LOCAL_COLOR, LOCAL_UNREAD,
                 LOCAL_PENDING_UNREAD, CONTROLLER_INSTANCE, ADD_FILTER, STORAGE_INSTANCE) + saved + listOf(NOTIFICATIONS_INSTANCE,
                 FILTERS_UPDATED, "[Ljava/lang/Object;"), add.dropLast(1))
@@ -310,7 +331,7 @@ class ChatTypeFoldersFixtureTest {
             assertTrue(name, delete.none { it.controlRef() == UPDATE_FILTER_FIELD })
 
             assertEquals(listOf(CONTROLLER_INSTANCE, FILTERS_BY_ID, sparseGet, LOCAL_FILTER, REMOVE_FILTER, STORAGE_INSTANCE) +
-                context.storageRefs(name, "dropFolder", DELETE_FILTER, listOf(LOCAL_FILTER), 0, 1, posters),
+                context.storageRefs(name, "dropFolder", DELETE_FILTER, setOf(listOf(LOCAL_FILTER)), 0, 1, posters),
                 context.stub("dropFolder").refs())
             context.assertParams(name, "dropFolder", listOf(CONTROLLER_INSTANCE to 0, STORAGE_INSTANCE to 0))
             assertEquals(name, context.method("dropFolder").param(1),
@@ -344,7 +365,7 @@ class ChatTypeFoldersFixtureTest {
             val recolor = context.stub("setFolderColor").refs()
             val folder = context.stub("setFolderColor").single { it.controlRef() == LOCAL_FILTER }.namedRegisters().single()
             assertEquals(listOf(CONTROLLER_INSTANCE, FILTERS_BY_ID, sparseGet, LOCAL_FILTER, LOCAL_COLOR, STORAGE_INSTANCE) +
-                context.storageRefs(name, "setFolderColor", SAVE_FILTER, listOf(LOCAL_FILTER, "Z"), 1, folder, posters) +
+                context.storageRefs(name, "setFolderColor", SAVE_FILTER, SAVE_INTERNAL, 1, folder, posters) +
                 listOf(NOTIFICATIONS_INSTANCE, FILTERS_UPDATED, "[Ljava/lang/Object;"), recolor.dropLast(1))
             assertEquals(name, post, recolor.last())
             context.assertParams(name, "setFolderColor", listOf(CONTROLLER_INSTANCE to 0, LOCAL_COLOR to 2,

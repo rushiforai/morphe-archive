@@ -86,7 +86,7 @@ The settings file was saved, but it doesn't match what Hushfacebook wrote. Save 
 There's no app here that can open or share this saved file.	Keine App kann diese gespeicherte Datei öffnen oder teilen.
 # context: line at the top of a settings page while paused; Lock Facebook keeps working while paused
 Until you resume, every switch but Debug logging and Lock Facebook acts as if it were off. Changes made when you patched stay in.	Bis zum Fortsetzen verhält sich jeder Schalter außer der Debug-Protokollierung und „Facebook sperren“, als wäre er aus. Was beim Patchen festgelegt wurde, bleibt aktiv.
-Shows your phone's own emoji instead of Facebook's. Reactions and stickers don't change. Restart Facebook to see the change.	Zeigt die Emoji deines Telefons statt der von Facebook. Reaktionen und Sticker bleiben gleich. Starte Facebook neu, um die Änderung zu sehen.
+Shows your phone's own emoji instead of Facebook's, or the ones in a font file you choose below. Reactions and stickers don't change. Restart Facebook to see the change.	Zeigt die Emoji deines Telefons statt der von Facebook oder die aus einer Schriftdatei, die du unten wählst. Reaktionen und Sticker bleiben gleich. Starte Facebook neu, um die Änderung zu sehen.
 # context: switch title under Appearance; the tab bar is Facebook's row of tabs, Home, Video, Marketplace and the rest
 Tab bar at the bottom	Tab-Leiste unten
 # context: switch title under Appearance, next to Tab bar at the bottom; puts Facebook's row of tabs at the top of the screen
@@ -1358,6 +1358,8 @@ Save photo	Foto speichern
 Save video	Video speichern
 # context: menu item in a post's three-dot menu that saves every photo of a post with several photos
 Save all photos	Alle Fotos speichern
+# context: menu item in a post's three-dot menu that saves every video of a post with several videos
+Save all videos	Alle Videos speichern
 # context: short message shown when the photos of a post could not start saving
 Couldn't save this post's photos. Try again in a moment.	Die Fotos dieses Beitrags ließen sich nicht speichern. Versuche es gleich noch einmal.
 # context: row in a comment's long-press sheet that saves the GIF the comment holds; keep it short like Save photo
@@ -2726,9 +2728,9 @@ Hide pictures on the Blocked list	Bilder in der Blockierliste ausblenden
 People you've blocked show without their profile pictures on the Blocking page in Facebook's settings. Reopen the page if it's already open.	Blockierte Personen erscheinen auf der Seite Blockieren in den Facebook-Einstellungen ohne Profilbild. Öffne die Seite neu, wenn sie schon offen ist.
 Hide Up next on videos	Als Nächstes bei Videos ausblenden
 Takes the UP NEXT bar with the next video off the bottom of a video you open from the feed, and the empty space kept for it, so the seek bar stays at the bottom. A change shows from the next video you open.	Nimmt die Leiste ALS NÄCHSTES mit dem nächsten Video unten von einem Video weg, das du aus dem Feed öffnest, samt dem leeren Platz dafür, sodass die Fortschrittsleiste unten bleibt. Eine Änderung gilt ab dem nächsten Video, das du öffnest.
-Icons look soft on this screen. Repatch with the 240-640dpi bundle.	Symbole wirken auf diesem Bildschirm unscharf. Patche erneut mit dem 240-640dpi-Bundle.
+Icons look soft on this screen. Repatch with the 120-480dpi bundle.	Symbole wirken auf diesem Bildschirm unscharf. Patche erneut mit dem 120-480dpi-Bundle.
 Icons look soft on this screen	Symbole wirken auf diesem Bildschirm unscharf
-The Facebook you patched has no images made for this screen, so some icons are enlarged. Patch Facebook again from the (arm64-v8a) (240-640dpi) bundle on APKMirror, which has images for every screen.	Das Facebook, das du gepatcht hast, hat keine Bilder für diesen Bildschirm, daher werden einige Symbole vergrößert. Patche Facebook erneut aus dem Bundle (arm64-v8a) (240-640dpi) von APKMirror, das Bilder für jeden Bildschirm hat.
+The Facebook you patched has no images made for this screen, so some icons are enlarged. Patch Facebook again from the (arm64-v8a) (120-480dpi) bundle on APKMirror, which has images for every screen.	Das Facebook, das du gepatcht hast, hat keine Bilder für diesen Bildschirm, daher werden einige Symbole vergrößert. Patche Facebook erneut aus dem Bundle (arm64-v8a) (120-480dpi) von APKMirror, das Bilder für jeden Bildschirm hat.
 Let each post come back once	Jeden Beitrag einmal zurückkommen lassen
 A post you scrolled past shows up one more time, and scrolling past it again hides it. Fewer posts go missing after a quick scroll.	Ein Beitrag, an dem du vorbeigescrollt bist, erscheint noch einmal, und wenn du wieder an ihm vorbeiscrollst, wird er ausgeblendet. So gehen nach schnellem Scrollen weniger Beiträge verloren.
 There's no Facebook link in what you shared.	In dem, was du geteilt hast, ist kein Facebook-Link.
@@ -2953,3 +2955,50 @@ Ask before reacting to a story	Vor Reaktionen auf eine Story fragen
 A tap on a reaction at the bottom of a story asks first, and the story waits. Only Continue sends the reaction.	Ein Tippen auf eine Reaktion unten in einer Story fragt zuerst nach, und die Story wartet. Erst Weiter sendet die Reaktion.
 # context: the question shown after a tap on a reaction at the bottom of a story; Continue sends the reaction, Cancel leaves it
 React to this story?	Auf diese Story reagieren?
+# context: In-app proxy, an HTTP proxy address (host:port) Facebook's connections go through
+In-app proxy	In-App-Proxy
+The address and port of an HTTP proxy for Facebook's connections, like %1$s. The local proxy port of a VLESS or V2Ray app such as v2rayNG works here. Leave it blank to connect the way your phone does.	Adresse und Port eines HTTP-Proxys für die Verbindungen von Facebook, zum Beispiel %1$s. Der lokale Proxy-Port einer VLESS- oder V2Ray-App wie v2rayNG funktioniert hier. Leer lassen, um wie dein Handy zu verbinden.
+Type an HTTP proxy's address and port, like %1$s.	Gib Adresse und Port eines HTTP-Proxys ein, zum Beispiel %1$s.
+Facebook connects the way your phone does. Type a proxy's address and port to send its connections through it.	Facebook verbindet sich so wie dein Handy. Gib Adresse und Port eines Proxys ein, um die Verbindungen darüber zu leiten.
+Facebook's connections go through the proxy at %1$s.	Die Verbindungen von Facebook laufen über den Proxy %1$s.
+# context: switch title on the Downloads page; on, a tap on a download button asks first
+Ask before downloading	Vor dem Herunterladen fragen
+A reel's Download button, the Download button under a post and a video's Download to phone ask first, so a stray tap saves nothing. With Choose quality on each save on, a video's list of qualities does the asking.	Der Download-Button eines Reels, der Download-Button unter einem Beitrag und „Aufs Handy herunterladen“ eines Videos fragen zuerst, damit ein versehentliches Tippen nichts speichert. Ist „Qualität bei jedem Speichern wählen“ an, fragt bei Videos die Liste der Qualitäten.
+# context: the question over the screen after a tap on a download button, answered Continue or Cancel
+Start this download?	Diesen Download starten?
+# context: the settings row that opens a file picker for a font holding emoji
+Emoji font file	Emoji-Schriftdatei
+# context: the settings row that deletes the saved emoji font and goes back to the phone's emoji
+Remove emoji font file	Emoji-Schriftdatei entfernen
+# context: under Remove emoji font file while Use the phone's emoji is on
+Removes the saved emoji font file. Restart Facebook to use your phone's emoji.	Entfernt die gespeicherte Emoji-Schriftdatei. Starte Facebook neu, um die Emojis deines Handys zu verwenden.
+# context: under Remove emoji font file while Use the phone's emoji is off
+Removes the saved emoji font file. Use the phone's emoji stays off.	Entfernt die gespeicherte Emoji-Schriftdatei. "Emojis des Handys verwenden" bleibt ausgeschaltet.
+# context: under Emoji font file with nothing picked; %1$d is a number of megabytes
+No file chosen. Choose a .ttf or .otf emoji font of up to %1$d MB.	Keine Datei gewählt. Wähle eine .ttf- oder .otf-Emoji-Schrift mit bis zu %1$d MB.
+# context: under Emoji font file; %1$s is the file's name
+Selected %1$s. Emoji changes apply after restarting Facebook.	%1$s ausgewählt. Emoji-Änderungen gelten nach einem Neustart von Facebook.
+# context: under Emoji font file while the switch is off; %1$s is the file's name
+Selected %1$s. Use the phone's emoji is off. Turn it on and restart Facebook to use this file.	%1$s ausgewählt. "Emojis des Handys verwenden" ist aus. Aktiviere es und starte Facebook neu, um diese Datei zu verwenden.
+# context: toast after an emoji font is picked; %1$s is the file's name
+Selected %1$s. Restart Facebook to apply the emoji change.	%1$s ausgewählt. Starte Facebook neu, damit die Emoji-Änderung gilt.
+# context: toast after an emoji font is picked while the switch is off; %1$s is the file's name
+Selected %1$s. Turn on Use the phone's emoji and restart Facebook to use it.	%1$s ausgewählt. Aktiviere "Emojis des Handys verwenden" und starte Facebook neu, um sie zu verwenden.
+# context: under Emoji font file while the picked file is copied
+Copying the emoji font file	Emoji-Schriftdatei wird kopiert
+# context: toast when the file picked as an emoji font isn't a font
+That isn't a .ttf or .otf font file. Your emoji didn't change.	Das ist keine .ttf- oder .otf-Schriftdatei. Deine Emojis haben sich nicht geändert.
+# context: toast when the emoji font is too large; %1$d is a number of megabytes
+That font file is over %1$d MB. Your emoji didn't change.	Diese Schriftdatei ist größer als %1$d MB. Deine Emojis haben sich nicht geändert.
+# context: toast when Android can't load the picked emoji font
+Android couldn't use that font file. Your emoji didn't change.	Android konnte diese Schriftdatei nicht verwenden. Deine Emojis haben sich nicht geändert.
+# context: toast when the font picked as an emoji font is a text font
+That font has no emoji in it. Your emoji didn't change.	Diese Schrift enthält keine Emojis. Deine Emojis haben sich nicht geändert.
+# context: toast when the picked emoji font can't be read
+Couldn't open that file. Your emoji didn't change.	Diese Datei ließ sich nicht öffnen. Deine Emojis haben sich nicht geändert.
+# context: toast after Remove emoji font file
+Emoji font file cleared. Restart Facebook to apply the emoji change.	Emoji-Schriftdatei entfernt. Starte Facebook neu, damit die Emoji-Änderung gilt.
+# context: toast when Remove emoji font file fails
+Couldn't go back to your phone's emoji. Try again.	Die Rückkehr zu den Emojis deines Handys hat nicht geklappt. Versuche es noch einmal.
+# context: toast when the app holding the emoji font doesn't answer in time
+The app holding that font file is taking too long, so Hushfacebook stopped waiting. Your emoji didn't change.	Die App, in der die Schriftdatei liegt, braucht zu lange, deshalb wartet Hushfacebook nicht mehr. Deine Emojis haben sich nicht geändert.

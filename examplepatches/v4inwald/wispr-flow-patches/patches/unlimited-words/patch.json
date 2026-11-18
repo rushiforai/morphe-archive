@@ -1,0 +1,36 @@
+{
+  "$schema": "See patches/README.md for the field reference.",
+  "name": "unlimited-words",
+  "title": "Unlimited words",
+  "summary": "Removes the free-plan weekly word limit, so dictation keeps working past the quota.",
+  "compatibility": {
+    "package": "com.wispr.flowapp",
+    "version": "2.8.7",
+    "minSdk": 33,
+    "evidence": "analysis/wispr-flow-2.8.7.md"
+  },
+  "hooks": [
+    {
+      "id": "WordLimitPolicy.computeState",
+      "class": "com/wispr/payment/wordlimit/WordLimitPolicy",
+      "why": "computeState maps the plan plus the weekly word limits onto Warning/Exhausted/HardCapped. Returning None makes every caller see an unlimited plan, which is the state the free plan would have if the quota did not exist. computeGate turns None into DictationGate$Allow.",
+      "method": ".method public final computeState(ZILcom/wispr/payment/wordlimit/WeeklyWordLimits;J)Lcom/wispr/payment/wordlimit/WordLimitState;",
+      "anchor": "    invoke-virtual {p3}, Ljava/lang/Object;->getClass()Ljava/lang/Class;\n",
+      "original": "    invoke-virtual {p3}, Ljava/lang/Object;->getClass()Ljava/lang/Class;\n",
+      "replacement": "    sget-object p0, Lcom/wispr/payment/wordlimit/WordLimitState$None;->INSTANCE:Lcom/wispr/payment/wordlimit/WordLimitState$None;\n\n    return-object p0\n",
+      "marker": "patch:unlimited-words:computeState",
+      "returns": "Lcom/wispr/payment/wordlimit/WordLimitState$None;"
+    },
+    {
+      "id": "WordLimitEngine.resolveLimited",
+      "class": "com/wispr/payment/wordlimit/WordLimitEngine",
+      "why": "resolveLimited decides whether the engine treats the account as limited. Forcing it to false stops the engine from re-deriving a limited plan after a dictation, so the quota state cannot come back between two refresh passes.",
+      "method": ".method private final resolveLimited(J)Ljava/lang/Boolean;",
+      "anchor": "    iget-object v0, p0, Lcom/wispr/payment/wordlimit/WordLimitEngine;->overrideSource:Lcom/wispr/payment/repository/PlanStateOverrideSource;\n",
+      "original": "    iget-object v0, p0, Lcom/wispr/payment/wordlimit/WordLimitEngine;->overrideSource:Lcom/wispr/payment/repository/PlanStateOverrideSource;\n",
+      "replacement": "    sget-object p0, Ljava/lang/Boolean;->FALSE:Ljava/lang/Boolean;\n\n    return-object p0\n",
+      "marker": "patch:unlimited-words:resolveLimited",
+      "returns": "Ljava/lang/Boolean;"
+    }
+  ]
+}

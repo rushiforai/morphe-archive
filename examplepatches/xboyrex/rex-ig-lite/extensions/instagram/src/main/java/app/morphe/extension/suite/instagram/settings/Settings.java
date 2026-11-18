@@ -1686,7 +1686,7 @@ public class Settings extends BaseSettings {
      * starts, so a change takes a restart. Off to start.
      */
     public static final BooleanSetting GLASS_TAB_BAR =
-            new BooleanSetting("xboyrex_glass_tab_bar", FALSE, true);
+            new BooleanSetting("xboyrex_glass_tab_bar", TRUE, true);
 
     /**
      * The status bar and the navigation bar hide while Reels shows, in the Reels tab and in the full
@@ -1772,7 +1772,7 @@ public class Settings extends BaseSettings {
      * slot. Read each frame, so a change shows without a restart.
      */
     public static final BooleanSetting GLASS_TAB_BAR_REELS_BEHIND =
-            new BooleanSetting("xboyrex_glass_tab_bar_reels_behind", FALSE, false, parent(GLASS_TAB_BAR_FLOAT));
+            new BooleanSetting("xboyrex_glass_tab_bar_reels_behind", TRUE, false, parent(GLASS_TAB_BAR_FLOAT));
 
     /**
      * Under {@link #GLASS_TAB_BAR}: a light tick each time the highlight slides across a tab, so the

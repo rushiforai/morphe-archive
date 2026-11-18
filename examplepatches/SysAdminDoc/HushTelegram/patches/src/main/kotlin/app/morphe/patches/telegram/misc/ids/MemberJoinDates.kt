@@ -22,6 +22,7 @@ import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.call
 import app.morphe.util.definitionReaches
 import app.morphe.util.namedRegisters
+import app.morphe.util.writesReaching
 import app.morphe.util.names.loadsInt
 import app.morphe.util.names.tgClassDefByOrNull
 import app.morphe.util.names.tgMutableClassDefBy
@@ -31,6 +32,7 @@ import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 
@@ -62,6 +64,7 @@ internal val JD_TYPES = setOf(JD_CHAT_PARTICIPANT, JD_CHANNEL_PARTICIPANT, JD_WR
 
 private const val JD_CELLS = "Lorg/telegram/ui/Cells/"
 private const val JD_TL_OBJECT = "Lorg/telegram/tgnet/TLObject;"
+private val JD_INT_LITERALS = setOf(Opcode.CONST_4, Opcode.CONST_16, Opcode.CONST, Opcode.CONST_HIGH16)
 private val JD_UNSAFE_SITES = setOf(Opcode.MOVE_EXCEPTION, Opcode.MOVE_RESULT, Opcode.MOVE_RESULT_WIDE, Opcode.MOVE_RESULT_OBJECT,
     Opcode.PACKED_SWITCH_PAYLOAD, Opcode.SPARSE_SWITCH_PAYLOAD, Opcode.ARRAY_PAYLOAD)
 
@@ -69,12 +72,13 @@ private val JD_UNSAFE_SITES = setOf(Opcode.MOVE_EXCEPTION, Opcode.MOVE_RESULT, O
  * Where each hook goes: the lists that bind a member to a row ([binders], each with the member
  * hook and the row hook), the rows that write a member's last seen line ([cells], each with the
  * hook at its start and one after each place the line's text is made), and the saved member
- * list's reader ([loader], with the hook right before it writes over a member's join date).
+ * list's reader ([loader], with the hook right before it writes over a member's join date). Plus
+ * Messenger's reader never writes over it, so there [loader] is null and the reader stays as it is.
  */
 internal class MemberJoinDatesPlan(
     val binders: List<MutableMethod>,
     val cells: List<MutableMethod>,
-    val loader: MutableMethod,
+    val loader: MutableMethod?,
     private val edits: Map<MutableMethod, List<Pair<Int, String>>>,
 ) {
     val methods: Set<MutableMethod> get() = edits.keys
@@ -102,14 +106,16 @@ private fun joinNeeded(ok: Boolean, why: String) {
 /**
  * Member join dates read the date Telegram already sends with each member of a group. Two lists
  * show members: the Members page (the one list adapter that reads both who removed someone and
- * when they joined) and the list on the group's profile (the adapters that read a member's user ID
- * and then set that row's role). Each gets a hook naming the member it binds and the row it binds
- * it to. The rows themselves get a hook at the start of the method that writes their second line
- * and one after each of the two places that line's last seen text is made, so a row showing a role,
- * a restriction or its own status keeps it. Telegram also saves a group's members with the time it
- * saved them and, reading them back, writes that time over each member's own date, so a hook just
- * before that write keeps the date the member came with. A build where any of it can't be found
- * keeps the rest of the patch.
+ * when they joined, and casts each row before it takes the row's member; Plus Messenger's member
+ * search reads both too but takes the member first) and the list on the group's profile (the
+ * adapters that read a member's user ID and then set that row's role). Each gets a hook naming the
+ * member it binds and the row it binds it to. The rows themselves get a hook at the start of the
+ * method that writes their second line and one after each of the two places that line's last seen
+ * text is made, so a row showing a role, a restriction or its own status keeps it. Telegram also
+ * saves a group's members with the time it saved them and, reading them back, writes that time over
+ * each member's own date, so a hook just before that write keeps the date the member came with.
+ * Plus Messenger never reads that time back, so its members keep their own date and its reader
+ * gets no hook. A build where any of it can't be found keeps the rest of the patch.
  *
  * @return the plan, and null; or null and why there's none
  */
@@ -164,27 +170,38 @@ private fun BytecodePatchContext.memberJoinDatesPlan(): MemberJoinDatesPlan {
     }
 
     // The Members page: its adapter takes each row's member from getItem(position) and binds the row it cast before.
+    fun itemCalls(method: Method, body: List<Instruction>) = body.indices.filter { at ->
+        body[at].isVirtualCall() && body[at].call()?.let { c ->
+            c.definingClass == method.definingClass && c.parameterTypes.map { it.toString() } == listOf("I") && c.returnType == JD_TL_OBJECT
+        } == true && body.getOrNull(at + 1)?.opcode == Opcode.MOVE_RESULT_OBJECT
+    }
+    fun rowBefore(body: List<Instruction>, item: Int) = (item downTo 0).firstOrNull { body[it].castType()?.startsWith(JD_CELLS) == true }
+    // Plus Messenger's member search list reads the same two fields and casts rows too, but it takes its member
+    // before it casts the row that shows it, so a list counts only when each member it takes goes to the row cast first.
+    fun bindsRowCastFirst(method: Method): Boolean {
+        val body = method.controlBody()
+        val flow = ControlFlow.of(method)
+        return itemCalls(method, body).all { item ->
+            rowBefore(body, item)?.let { flow.definitionReaches(it, item + 2, body[it].namedRegisters().first()) } == true
+        }
+    }
     val pages = classDefsMentioning(Mention.reference(JD_KICKED_BY) and Mention.reference(JD_MEMBER_DATE))
         .filter { it.outsideExtension() }
         .flatMap { owner -> owner.methods.filter { method -> method.controlBody().let { body ->
             body.any { it.controlRef() == JD_KICKED_BY } && body.any { it.controlRef() == JD_MEMBER_DATE } &&
                 body.any { it.castType()?.startsWith(JD_CELLS) == true }
-        } } }
+        } && bindsRowCastFirst(method) } }
     joinNeeded(pages.size == 1, "the Members page's list is missing or ambiguous")
     val page = pages.single()
     val pageBody = page.controlBody()
-    val items = pageBody.indices.filter { at ->
-        pageBody[at].isVirtualCall() && pageBody[at].call()?.let { c ->
-            c.definingClass == page.definingClass && c.parameterTypes.map { it.toString() } == listOf("I") && c.returnType == JD_TL_OBJECT
-        } == true && pageBody.getOrNull(at + 1)?.opcode == Opcode.MOVE_RESULT_OBJECT
-    }
+    val items = itemCalls(page, pageBody)
     joinNeeded(items.size == 1, "the Members page no longer takes one member per row")
     val item = items.single()
     val pageFlow = ControlFlow.of(page)
     val bound = item + 2
     joinNeeded(bound < pageBody.size && pageFlow.onlyFrom(bound, item + 1), "something else reaches the Members page's member")
     val member = pageBody[item + 1].namedRegisters().single()
-    val cast = (item downTo 0).firstOrNull { pageBody[it].castType()?.startsWith(JD_CELLS) == true }
+    val cast = rowBefore(pageBody, item)
     joinNeeded(cast != null, "the Members page's row is missing")
     val pageCell = pageBody[cast!!].castType()!!
     val pageCellRegister = pageBody[cast].namedRegisters().first()
@@ -194,7 +211,8 @@ private fun BytecodePatchContext.memberJoinDatesPlan(): MemberJoinDatesPlan {
         invoke-static/range {v$pageCellRegister .. v$pageCellRegister}, $JD_CELL_HOOK
     """)
 
-    // The profile's lists: each reads a member's user ID once and then sets that member's row role.
+    // The profile's lists: each reads a member's user ID and then sets that member's row role. Plus Messenger's
+    // reads the ID twice, both times from the same member; the hook goes at the last read.
     val binders = classDefsMentioning(Mention.reference(JD_MEMBER_USER))
         .filter { it.outsideExtension() }
         .flatMap { owner -> owner.methods.filter { it.toString() != page.toString() && it.controlBody().any { i -> i.controlRef() == JD_MEMBER_USER } } }
@@ -202,11 +220,17 @@ private fun BytecodePatchContext.memberJoinDatesPlan(): MemberJoinDatesPlan {
             val body = method.controlBody()
             val reads = body.indices.filter { body[it].opcode == Opcode.IGET_WIDE && body[it].controlRef() == JD_MEMBER_USER }
             val roles = body.indices.filter { body[it].isRoleCall() }
-            if (reads.size != 1 || roles.size != 1) return@mapNotNull null
+            if (reads.isEmpty() || roles.size != 1) return@mapNotNull null
+            val read = reads.last()
+            val participant = body[read].namedRegisters().last()
             val flow = ControlFlow.of(method)
+            // Every earlier read comes before the last on every way there, from the member the last one reads, left in place.
+            if (reads.dropLast(1).any { earlier -> val (to, from) = body[earlier].namedRegisters()
+                    from != participant || to == participant || to + 1 == participant || !flow.definitionReaches(earlier, read, participant) })
+                return@mapNotNull null
             // A list looking a member up in a loop (the invite link sheet) isn't binding that member.
-            if (!flow.definitionReaches(reads.single(), roles.single()) || flow.loops(reads.single())) return@mapNotNull null
-            Triple(method, reads.single(), roles.single())
+            if (!flow.definitionReaches(read, roles.single()) || reads.any { flow.loops(it) }) return@mapNotNull null
+            Triple(method, read, roles.single())
         }
     joinNeeded(binders.isNotEmpty(), "the profile's member list is missing")
     val roleOwners = binders.map { (method, _, role) -> method.controlBody()[role].call()!!.definingClass }.toSet()
@@ -254,30 +278,40 @@ private fun BytecodePatchContext.memberJoinDatesPlan(): MemberJoinDatesPlan {
 
     // The saved member list: reading a member back, Telegram writes the time it saved the list over the member's
     // own join date (and leaves the owner, who has none, joined "now"). The date it came with is kept just before.
+    // Plus Messenger saves that time too but never reads it back, so each member keeps its own date with no hook.
     val loaders = classDefsMentioning(Mention.string(JD_SAVED_MEMBERS))
         .filter { it.outsideExtension() }
         .flatMap { owner -> owner.methods.filter { method -> method.controlBody().any { it.controlString() == JD_SAVED_MEMBERS } } }
     joinNeeded(loaders.size == 1, "the saved member list is missing or ambiguous")
     val loader = loaders.single()
     val loaderBody = loader.controlBody()
-    val overwrites = loaderBody.indices.filter { loaderBody[it].opcode == Opcode.IPUT && loaderBody[it].controlRef() == JD_CHANNEL_DATE }
-    joinNeeded(overwrites.size == 1, "the saved member list no longer sets one member date")
-    val overwrite = overwrites.single()
-    val (saved, held) = loaderBody[overwrite].namedRegisters()
     val loaderFlow = ControlFlow.of(loader)
-    val reads = loaderBody.indices.filter { at ->
-        loaderBody[at].controlRef() == JD_CURSOR_INT && loaderBody.getOrNull(at + 1)?.opcode == Opcode.MOVE_RESULT &&
-            loaderBody[at + 1].namedRegisters().single() == saved && loaderFlow.definitionReaches(at + 1, overwrite, saved)
+    val overwrites = loaderBody.indices.filter { loaderBody[it].opcode == Opcode.IPUT && loaderBody[it].controlRef() == JD_CHANNEL_DATE }
+    // Column 3 of the query is cu.date, the time a row was saved. A column not loaded as a plain number may be it.
+    val savedTimes = loaderBody.indices.filter { at ->
+        loaderBody[at].controlRef() == JD_CURSOR_INT && loaderFlow.writesReaching(at, loaderBody[at].namedRegisters()[1]).any { from ->
+            from < 0 || loaderBody[from].opcode !in JD_INT_LITERALS || (loaderBody[from] as WideLiteralInstruction).wideLiteral == 3L
+        }
     }
-    joinNeeded(reads.size == 1, "the saved member list's date no longer comes from the saved row")
-    edit(loader, overwrite, "invoke-static/range {v$held .. v$held}, $JD_STORED_HOOK")
+    val hooked = if (overwrites.isEmpty() && savedTimes.isEmpty()) null else {
+        joinNeeded(overwrites.size == 1, "the saved member list no longer sets one member date")
+        val overwrite = overwrites.single()
+        val (saved, held) = loaderBody[overwrite].namedRegisters()
+        val reads = loaderBody.indices.filter { at ->
+            loaderBody[at].controlRef() == JD_CURSOR_INT && loaderBody.getOrNull(at + 1)?.opcode == Opcode.MOVE_RESULT &&
+                loaderBody[at + 1].namedRegisters().single() == saved && loaderFlow.definitionReaches(at + 1, overwrite, saved)
+        }
+        joinNeeded(reads.size == 1 && savedTimes == reads, "the saved member list's date no longer comes from the saved row")
+        edit(loader, overwrite, "invoke-static/range {v$held .. v$held}, $JD_STORED_HOOK")
+        loader
+    }
 
     val mutableEdits = edits.entries.associate { (method, code) -> mutable(method) to code.toList() }
     val byMethod = mutableEdits.keys.associateBy { it.toString() }
     return MemberJoinDatesPlan(
         binders = (listOf(page) + binders.map { it.first }).map { byMethod.getValue(it.toString()) },
         cells = cells.map { byMethod.getValue(it.toString()) },
-        loader = byMethod.getValue(loader.toString()),
+        loader = hooked?.let { byMethod.getValue(it.toString()) },
         edits = mutableEdits,
     ).also { it.rehearse() }
 }

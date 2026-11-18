@@ -8,7 +8,6 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.PlusPending
 import app.morphe.util.names.origRef
 import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
@@ -50,7 +49,6 @@ import app.morphe.util.names.tgClassDefByOrNull
 import app.morphe.util.names.tgMutableClassDefBy
 
 /** TranslateController, MessageObject, the chat screen, and the runtime. */
-@PlusPending
 class HideTranslateBarFixtureTest {
     @Test fun `the chat screen's two reads ask the runtime and message translation stays Telegram's`() {
         for (build in Fixtures.declaredBuilds()) {
@@ -131,9 +129,11 @@ class HideTranslateBarFixtureTest {
             // Telegram's no-info branch is its hide path: the screen's hide, then the chat laid out again.
             val hide = stockFlow.normal[info + 3].first()
             // The first check asks whether this is a comment thread, and a plain chat goes on to the info.
+            // Plus Messenger loads its closed pin key between the read and the test.
             val head = stockBody.indices.single { at -> stockBody[at].fieldType() == MESSAGE_OBJECT &&
-                stockBody[at].controlField()?.definingClass == screen && stockBody[at + 1].opcode == Opcode.IF_EQZ &&
-                stockFlow.normal[at + 1].first() == info }
+                stockBody[at].controlField()?.definingClass == screen &&
+                (if (stockBody[at + 1].controlString() != null) at + 2 else at + 1).let { test ->
+                    stockBody[test].opcode == Opcode.IF_EQZ && stockFlow.normal[test].first() == info } }
 
             assertEquals(emptyList<String>(), PatchLogCapture.warnings { hideTranslateBarPatch.execute(context) })
             val changed = pinnedDecision(context, screen)
@@ -164,7 +164,8 @@ class HideTranslateBarFixtureTest {
                 "the user's info isn't asked" to { body, m -> val at = body.indices.single { body.chatInfoAt(it) } + 2
                     m.replaceInstruction(at, "const/16 v${body[at].namedRegisters().first()}, 0x0") },
                 "the hide path returns at once" to { body, m -> m.replaceInstruction(ControlFlow.of(m).normal[body.indices.single { body.chatInfoAt(it) } + 3].first(), "return-void") },
-                "no thread check comes first" to { body, m -> val at = body.indices.single { body.chatInfoAt(it) } - 4
+                "no thread check comes first" to { body, m -> val info = body.indices.single { body.chatInfoAt(it) }
+                    val at = (info - 1 downTo 0).first { body[it].fieldType() == MESSAGE_OBJECT }
                     m.replaceInstruction(at, "const/16 v${body[at].namedRegisters().first()}, 0x0") },
             )
             for ((case, change) in cases) {

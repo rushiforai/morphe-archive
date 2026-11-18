@@ -11,6 +11,8 @@ import app.zeldrisho.patches.shared.Constants.COMPATIBILITY_ZALO
 
 private const val SMALI_HEX_RADIX = 16
 
+private data class PhotoCopy(val owner: String, val name: String, val parameters: List<String>, val source: Int, val destination: Int, val target: Int)
+
 /** Returns the referenced field name, or null when the instruction has no field reference. */
 private fun fieldName(instruction: Instruction): String? = ((instruction as? ReferenceInstruction)?.reference as? FieldReference)?.name
 
@@ -91,26 +93,27 @@ val sendZaloOriginalMediaPatch = bytecodePatch(
 
     execute {
         val current = packageMetadata.versionName == "26.10.02"
-        fun select(old: app.morphe.patcher.Fingerprint, updated: app.morphe.patcher.Fingerprint) =
-            (if (current) updated else old).matchAll(1..1).single()
-        val selectedQuality = select(SelectedMediaQuality, SelectedMediaQuality261002)
-        val pickerArguments = select(QualityPickerArguments, QualityPickerArguments261002)
-        val pickerInitialization = select(PickerQualityInitialization, PickerQualityInitialization261002)
-        val photoChip = select(PhotoQualityChipUpdate, PhotoQualityChipUpdate261002)
-        val landingUpdate = select(LandingPageQualityChipUpdate, LandingPageQualityChipUpdate261002)
-        val landingInitialization = select(LandingPageQualityChipInitialization, LandingPageQualityChipInitialization261002)
-        val chatChip = select(ChatInputBarQualityChipUpdate, ChatInputBarQualityChipUpdate261002)
-        val photoFlag = select(SelectedPhotoOriginalFlag, SelectedPhotoOriginalFlag261002)
-        val qualityEnabled = select(OriginalMediaQualityEnabled, OriginalMediaQualityEnabled261002)
-        val qualityEntitled = select(OriginalMediaQualityEntitled, OriginalMediaQualityEntitled261002)
-        val qualityAvailable = select(OriginalMediaQualityAvailable, OriginalMediaQualityAvailable261002)
+        val diagnostic = packageMetadata.versionName == "26.11.01"
+        fun select(old: app.morphe.patcher.Fingerprint, updated: app.morphe.patcher.Fingerprint, next: app.morphe.patcher.Fingerprint) =
+            (if (diagnostic) next else if (current) updated else old).matchAll(1..1).single()
+        val selectedQuality = select(SelectedMediaQuality, SelectedMediaQuality261002, SelectedMediaQuality261101)
+        val pickerArguments = select(QualityPickerArguments, QualityPickerArguments261002, QualityPickerArguments261101)
+        val pickerInitialization = select(PickerQualityInitialization, PickerQualityInitialization261002, PickerQualityInitialization261101)
+        val photoChip = select(PhotoQualityChipUpdate, PhotoQualityChipUpdate261002, PhotoQualityChipUpdate261101)
+        val landingUpdate = select(LandingPageQualityChipUpdate, LandingPageQualityChipUpdate261002, LandingPageQualityChipUpdate261101)
+        val landingInitialization = select(LandingPageQualityChipInitialization, LandingPageQualityChipInitialization261002, LandingPageQualityChipInitialization261101)
+        val chatChip = select(ChatInputBarQualityChipUpdate, ChatInputBarQualityChipUpdate261002, ChatInputBarQualityChipUpdate261101)
+        val photoFlag = if (diagnostic) null else select(SelectedPhotoOriginalFlag, SelectedPhotoOriginalFlag261002, SelectedPhotoOriginalFlag261002)
+        val qualityEnabled = select(OriginalMediaQualityEnabled, OriginalMediaQualityEnabled261002, OriginalMediaQualityEnabled261101)
+        val qualityEntitled = select(OriginalMediaQualityEntitled, OriginalMediaQualityEntitled261002, OriginalMediaQualityEntitled261101)
+        val qualityAvailable = select(OriginalMediaQualityAvailable, OriginalMediaQualityAvailable261002, OriginalMediaQualityAvailable261101)
         val chipLabel = QualityChipLabel.matchAll(1..1).single()
-        val landingField = if (current) "R2" else "Z1"
-        val chatField = if (current) "C1" else "J0"
-        val qualityEnum = if (current) "Lyl1/d;" else "Lvh1/d;"
-        val qualityFormatter = if (current) "Lyl1/c;" else "Lvh1/c;"
+        val landingField = if (diagnostic) "J2" else if (current) "R2" else "Z1"
+        val chatField = if (diagnostic) "t1" else if (current) "C1" else "J0"
+        val qualityEnum = if (diagnostic) "Lamf;" else if (current) "Lyl1/d;" else "Lvh1/d;"
+        val qualityFormatter = if (diagnostic) "Lzlf;" else if (current) "Lyl1/c;" else "Lvh1/c;"
         if (current) {
-            val flag = photoFlag.instructionMatches.first()
+            val flag = photoFlag!!.instructionMatches.first()
             val store = photoFlag.instructionMatches.last()
             check((flag.instruction as? com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction)?.registerA == 13 &&
                 store.index == flag.index + 1
@@ -177,7 +180,7 @@ val sendZaloOriginalMediaPatch = bytecodePatch(
             landingInitialization.method,
             landingInitialization.instructionMatches.map { it.index to it.instruction },
             landingField,
-            "const/4 p3, 0x2",
+            if (diagnostic) "const/4 p2, 0x2" else "const/4 p3, 0x2",
             "LandingPageView quality-chip initialization moved; re-hunt W4()",
         )
 
@@ -199,8 +202,8 @@ val sendZaloOriginalMediaPatch = bytecodePatch(
         chipLabel.method.addInstructions(
             0,
             """
-            const/4 v0, 0x2
-            invoke-static {v0}, $qualityFormatter->a(I)Ljava/lang/String;
+            const/4 p1, 0x2
+            invoke-static {p1}, $qualityFormatter->a(I)Ljava/lang/String;
             move-result-object p1
             """.trimIndent(),
         )
@@ -209,10 +212,32 @@ val sendZaloOriginalMediaPatch = bytecodePatch(
         // model. The picker UI can display Original while this flag remains
         // false, which causes the upload to use HD. Change only that copy;
         // the other q read feeds metadata and is intentionally untouched.
-        replaceEarliestMediaItemFlag(
-            photoFlag.method,
-            photoFlag.instructionMatches.map { it.index to it.instruction },
-        )
+        if (diagnostic) {
+            for ((owner, name, parameters, source, destination, target) in listOf(
+                PhotoCopy("Lyl1;", "run", emptyList(), 0, 7, 15),
+                PhotoCopy("Lrf;", "run", emptyList(), 0, 15, 13),
+                PhotoCopy("Linq;", "J", listOf("Ljava/util/ArrayList;"), 5, 4, 15),
+            )) {
+                val method = photoConversion261101(owner, name, parameters).matchAll(1..1).single().method
+                val instructions = method.implementation?.instructions?.toList() ?: error("Photo conversion has no body")
+                val indices = instructions.indices.filter { index ->
+                    (instructions[index] as? ReferenceInstruction)?.reference?.toString() ==
+                        "Lcom/zing/zalo/data/mediapicker/model/MediaItem;->q:Z" &&
+                        instructions.getOrNull(index + 1)?.let { next ->
+                            (next as? ReferenceInstruction)?.reference?.toString() == "Lcc4;->Q:Z"
+                        } == true
+                }
+                check(indices.size == 1) { "Original photo flag copy changed in $owner" }
+                val index = indices.single()
+                val read = instructions[index] as? com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+                val store = instructions[index + 1] as? com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+                check(read?.registerA == destination && read.registerB == source &&
+                    store?.registerA == destination && store.registerB == target) { "Original photo register flow changed in $owner" }
+                method.replaceInstruction(index, "const/4 v$destination, 0x1")
+            }
+        } else {
+            replaceEarliestMediaItemFlag(photoFlag!!.method, photoFlag.instructionMatches.map { it.index to it.instruction })
+        }
 
         // The picker checks these helpers directly before it calls e(). In
         // 26.08.01, f() is the account/config entitlement check that sends a

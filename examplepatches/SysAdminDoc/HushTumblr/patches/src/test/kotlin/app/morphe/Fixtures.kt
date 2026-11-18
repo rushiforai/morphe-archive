@@ -24,7 +24,7 @@ import com.reandroid.apk.ApkModule
 import com.reandroid.arsc.chunk.TableBlock
 import com.reandroid.arsc.value.ResTableMapEntry
 import com.reandroid.arsc.value.ValueItem
-import com.reandroid.arsc.value.ValueType
+import com.reandroid.arsc.value.DataType
 import java.io.File
 import java.nio.file.Files
 import java.security.MessageDigest
@@ -270,8 +270,8 @@ internal object Fixtures {
 
     private fun valueText(value: ValueItem?): String = when {
         value == null -> "none"
-        value.valueType == ValueType.STRING -> "\"${value.valueAsString}\""
-        else -> "${value.valueType}:${value.data}"
+        value.dataType == DataType.STRING -> "\"${value.dataAsString}\""
+        else -> "${value.dataType}:${value.data}"
     }
 
     private fun isDex(name: String): Boolean = Regex("classes\\d*\\.dex").matches(name)

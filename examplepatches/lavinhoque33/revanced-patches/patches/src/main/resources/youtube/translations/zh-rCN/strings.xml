@@ -584,8 +584,7 @@
     <string name="revanced_change_start_page_entry_fashion">时尚 &amp; 美妆</string>
     <string name="revanced_change_start_page_entry_gaming">游戏</string>
     <string name="revanced_change_start_page_entry_history">历史记录</string>
-    <string name="revanced_change_start_page_entry_hype">热门</string>
-    <string name="revanced_change_start_page_entry_library">媒体库</string>
+    <string name="revanced_change_start_page_entry_library">我</string>
     <string name="revanced_change_start_page_entry_liked_videos">已点赞的视频</string>
     <string name="revanced_change_start_page_entry_live">直播</string>
     <string name="revanced_change_start_page_entry_movies">电影</string>
@@ -593,13 +592,11 @@
     <string name="revanced_change_start_page_entry_news">新闻</string>
     <string name="revanced_change_start_page_entry_notifications">通知</string>
     <string name="revanced_change_start_page_entry_playlists">播放列表</string>
-    <string name="revanced_change_start_page_entry_podcasts">播客</string>
     <string name="revanced_change_start_page_entry_search">搜索</string>
     <string name="revanced_change_start_page_entry_shopping">购物</string>
     <string name="revanced_change_start_page_entry_shorts">Shorts</string>
     <string name="revanced_change_start_page_entry_sports">体育</string>
     <string name="revanced_change_start_page_entry_subscriptions">订阅</string>
-    <string name="revanced_change_start_page_entry_trending">趋势</string>
     <string name="revanced_change_start_page_entry_virtual_reality">虚拟实境</string>
     <string name="revanced_change_start_page_entry_watch_later">稍后观看</string>
     <string name="revanced_change_start_page_entry_your_clips">你的剪辑</string>

@@ -50,6 +50,8 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting MUTE_ROOT_POSTS = new BooleanSetting("hushtumblr_mute_root_posts", FALSE);
     public static final BooleanSetting SHOW_IMAGE_DESCRIPTIONS = new BooleanSetting("hushtumblr_show_image_descriptions", FALSE);
     public static final BooleanSetting SHARE_VIDEO_LINKS = new BooleanSetting("hushtumblr_share_video_links", FALSE);
+    public static final BooleanSetting FIT_FULL_SCREEN_VIDEOS = new BooleanSetting("hushtumblr_fit_full_screen_videos", FALSE);
+    public static final BooleanSetting TAP_TO_PLAY_FEED_VIDEOS = new BooleanSetting("hushtumblr_tap_to_play_feed_videos", FALSE);
     public static final BooleanSetting SHARPER_IMAGES = new BooleanSetting("hushtumblr_sharper_images", FALSE);
     public static final BooleanSetting COLLAPSE_LONG_POSTS = new BooleanSetting("hushtumblr_collapse_long_posts", FALSE);
     public static final BooleanSetting SHOW_POST_TIMESTAMPS = new BooleanSetting("hushtumblr_show_post_timestamps", FALSE);
@@ -318,6 +320,10 @@ public class Settings extends BaseSettings {
     /** Keep reblogs whose own content isn't empty, while leaving the other enabled post rules in force. */
     public static final BooleanSetting KEEP_REBLOGS_WITH_CONTENT =
             new BooleanSetting("hushtumblr_keep_reblogs_with_content", FALSE);
+
+    /** Keep reblogs shared to a community, while leaving the other enabled post rules in force. */
+    public static final BooleanSetting KEEP_COMMUNITY_REBLOGS =
+            new BooleanSetting("hushtumblr_keep_community_reblogs", FALSE);
 
     /**
      * Reblogs made on a blog of yours, the ones Tumblr says you can edit, leave each page of the

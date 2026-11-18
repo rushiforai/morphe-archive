@@ -3,6 +3,8 @@ package app.zeldrisho.patches.zalo.microg
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.classDefBy
+import app.morphe.patcher.patch.mutableClassDefBy
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
@@ -180,6 +182,32 @@ internal fun bypassDriveContactsPermissionGate(classType: String, method: Mutabl
     )
 }
 
+/** Bypasses one locally verified Drive permission check without changing shared permission helpers. */
+internal fun bypassDrivePermissionCheck261101(method: MutableMethod) {
+    val instructions = method.implementation?.instructions?.toList()
+        ?: error("Zalo Drive Contacts bypass: ${method.name} has no implementation")
+    val checks = instructions.indices.filter { index ->
+        val reference = (instructions[index] as? ReferenceInstruction)?.reference as? MethodReference
+        reference?.definingClass == "Ly520;" && reference.name == "a" &&
+            reference.parameterTypes == listOf("Lvrv;") && reference.returnType == "Z"
+    }
+    check(checks.size == 1) { "Zalo Drive Contacts bypass: expected one local permission check in ${method.name}" }
+    val index = checks.single()
+    val result = instructions.getOrNull(index + 1) as? OneRegisterInstruction
+    val next = instructions.getOrNull(index + 2)
+    // The management callback loads its mode constant between move-result and the branch.
+    val hasModeConstant = next?.opcode == Opcode.CONST_4
+    val branch = instructions.getOrNull(index + if (hasModeConstant) 3 else 2) as? OneRegisterInstruction
+    val branchOpcode = instructions.getOrNull(index + if (hasModeConstant) 3 else 2)?.opcode
+    check(instructions[index].opcode == Opcode.INVOKE_STATIC &&
+        instructions.getOrNull(index + 1)?.opcode == Opcode.MOVE_RESULT && result != null &&
+        (!hasModeConstant || (next as? OneRegisterInstruction)?.registerA != result.registerA) &&
+        branchOpcode in setOf(Opcode.IF_EQZ, Opcode.IF_NEZ) && branch?.registerA == result.registerA
+    ) { "Zalo Drive Contacts bypass: unexpected local permission branch in ${method.name}" }
+    method.replaceInstruction(index, "const/16 v${result.registerA}, 0x1")
+    method.replaceInstruction(index + 1, "nop")
+}
+
 /**
  * Avoids Zalo's Contacts/account-list permission request in Drive photo restore by using Android's
  * account picker. It does not grant Contacts access; Android still enforces READ_CONTACTS.
@@ -193,6 +221,34 @@ val zaloDriveContactsPermissionBypassPatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_ZALO)
 
     execute {
+        if (packageMetadata.versionName == "26.11.01") {
+            // Experimental target: 26.11.01 is advertised but not fully device-qualified.
+            val targets = listOf(
+                Triple("Lgmp;", "run", emptyList()),
+                Triple(MEDIA_RESTORE_VIEW, "y5", CONTACT_RESULT_PARAMETERS),
+                Triple(MEDIA_RESTORE_VIEW, "onActivityResult", listOf("I", "I", "Landroid/content/Intent;")),
+                Triple(MANAGE_GOOGLE_ACCOUNT_VIEW, "y5", CONTACT_RESULT_PARAMETERS),
+                Triple(MANAGE_GOOGLE_ACCOUNT_VIEW, "e5", listOf("Landroid/os/Bundle;")),
+                Triple(MANAGE_GOOGLE_ACCOUNT_VIEW, "z5", emptyList()),
+            )
+            // Resolve every method before mutating any of them. A late mismatch must be atomic.
+            val originals = targets.map { (classType, name, parameters) ->
+                val classDef = classDefBy(classType)
+                classDef.methods.singleOrNull { method ->
+                    method.name == name && method.parameterTypes == parameters &&
+                        method.returnType == "V" && method.implementation != null
+                } ?: error("Zalo Drive Contacts bypass: expected one $classType->$name$parameters")
+                classDef
+            }
+            originals.forEachIndexed { index, classDef ->
+                val (_, name, parameters) = targets[index]
+                val mutableMethod = mutableClassDefBy(classDef).methods.single { method ->
+                    method.name == name && method.parameterTypes == parameters && method.returnType == "V"
+                }
+                bypassDrivePermissionCheck261101(mutableMethod)
+            }
+            return@execute
+        }
         val version261002 = packageMetadata.versionName == "26.10.02"
         val clickType = if (version261002) "Lpf1/t;" else MEDIA_RESTORE_ACCOUNT_CLICK
         val lookupName = if (version261002) "U6" else MEDIA_RESTORE_ACCOUNT_LOOKUP_METHOD

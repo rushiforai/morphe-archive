@@ -602,8 +602,7 @@ Bei serverseitigen Änderungen kann sich die Hintergrundfarbe der Snackleiste ni
     <string name="revanced_change_start_page_entry_fashion">Mode &amp; Schönheit</string>
     <string name="revanced_change_start_page_entry_gaming">Spielen</string>
     <string name="revanced_change_start_page_entry_history">Verlauf</string>
-    <string name="revanced_change_start_page_entry_hype">Hype</string>
-    <string name="revanced_change_start_page_entry_library">Bibliothek</string>
+    <string name="revanced_change_start_page_entry_library">Mein YouTube</string>
     <string name="revanced_change_start_page_entry_liked_videos">Videos, die ich mag</string>
     <string name="revanced_change_start_page_entry_live">Live</string>
     <string name="revanced_change_start_page_entry_movies">Filme</string>
@@ -611,13 +610,11 @@ Bei serverseitigen Änderungen kann sich die Hintergrundfarbe der Snackleiste ni
     <string name="revanced_change_start_page_entry_news">Nachrichten</string>
     <string name="revanced_change_start_page_entry_notifications">Benachrichtigungen</string>
     <string name="revanced_change_start_page_entry_playlists">Playlisten</string>
-    <string name="revanced_change_start_page_entry_podcasts">Podcasts</string>
     <string name="revanced_change_start_page_entry_search">Suchen</string>
     <string name="revanced_change_start_page_entry_shopping">Einkaufen</string>
     <string name="revanced_change_start_page_entry_shorts">Shorts</string>
     <string name="revanced_change_start_page_entry_sports">Sport</string>
     <string name="revanced_change_start_page_entry_subscriptions">Abonnements</string>
-    <string name="revanced_change_start_page_entry_trending">Beliebt</string>
     <string name="revanced_change_start_page_entry_virtual_reality">Virtuelle Realität</string>
     <string name="revanced_change_start_page_entry_watch_later">Später ansehen</string>
     <string name="revanced_change_start_page_entry_your_clips">Deine Clips</string>

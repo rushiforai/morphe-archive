@@ -9,12 +9,12 @@ import app.morphe.patcher.patch.patch
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 
-/** DetailItemEmbedViewHolder.initializeRecommendationVideo: sets up the "Video Pilihan" WebView under an article. */
+/** DetailItemEmbedViewHolder.loadRecommendationVideo: points the embed WebView at the "Video Pilihan" block under an article. */
 private object RecommendationVideoFingerprint : Fingerprint(
     definingClass = "Lcom/ertanto/kompas/official/detail/itemView/content/DetailItemEmbedViewHolder;",
-    name = "initializeRecommendationVideo",
+    name = "loadRecommendationVideo",
     returnType = "V",
-    parameters = listOf("Landroid/view/View;", "Ljava/lang/String;"),
+    parameters = listOf("Ljava/lang/String;"),
 )
 
 @Suppress("unused")
@@ -29,7 +29,7 @@ val stopAutoplayPatch = patch(
 
     execute {
         RecommendationVideoFingerprint.method.apply {
-            // The last client set is the one that opens tapped links; the extension wraps it.
+            // The client set here opens tapped links; the extension wraps it.
             val setClient = instructions.indexOfLast {
                 (it as? ReferenceInstruction)?.reference?.toString() ==
                     "Landroid/webkit/WebView;->setWebViewClient(Landroid/webkit/WebViewClient;)V"

@@ -7,14 +7,31 @@ package app.loki.patches.universal
 
 import app.morphe.patcher.patch.ResourcePatchContext
 
-/** Resource name of the Loki Patches launcher icon written by [writeLokiIcon]. */
-internal const val LOKI_ICON = "@drawable/loki_patches_icon"
+/** Resource name of the Loki Patches mark written by [writeLokiLogo]: the L, the brand, in the app drawer too. */
+internal const val LOKI_ICON = "@drawable/loki_logo"
 
 /** Material's puzzle piece ("extension"), the Loki Patches mark, on a 24x24 grid. */
 internal const val PUZZLE =
     "M20.5,11H19V7c0,-1.1 -0.9,-2 -2,-2h-4V3.5C13,2.12 11.88,1 10.5,1S8,2.12 8,3.5V5H4c-1.1,0 -1.99,0.9 " +
         "-1.99,2v3.8H3.5c1.49,0 2.7,1.21 2.7,2.7s-1.21,2.7 -2.7,2.7H2V20c0,1.1 0.9,2 2,2h3.8v-1.5c0,-1.49 1.21,-2.7 " +
         "2.7,-2.7 1.49,0 2.7,1.21 2.7,2.7V22H17c1.1,0 2,-0.9 2,-2v-4h1.5c1.38,0 2.5,-1.12 2.5,-2.5S21.88,11 20.5,11z"
+
+/**
+ * Writes the brand mark - the L - as a bitmap drawable. The same artwork is `patches-bundle.png` in the repo, so
+ * the icon Morphe Manager shows for this source and the icon inside the app are one logo, not two.
+ *
+ * It ships inside the patch bundle as `loki/loki_logo.png`; nothing is fetched at patch time.
+ */
+internal fun ResourcePatchContext.writeLokiLogo() {
+    val bytes = LokiIconSource::class.java.getResourceAsStream("/loki/loki_logo.png")?.use { it.readBytes() }
+        ?: throw app.morphe.patcher.patch.PatchException("loki/loki_logo.png is missing from the bundle")
+    val dir = get("res").resolve("drawable-nodpi")
+    dir.mkdirs()
+    dir.resolve("loki_logo.png").writeBytes(bytes)
+}
+
+/** Anchor for the class loader that reads the bundled artwork. */
+internal object LokiIconSource
 
 /**
  * Writes the launcher icon of the optional "Loki Patches" app-drawer entry: the teal tile with the white puzzle

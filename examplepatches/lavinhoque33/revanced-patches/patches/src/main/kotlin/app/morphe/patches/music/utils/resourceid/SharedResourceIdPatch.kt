@@ -32,8 +32,6 @@ var colorGrey = -1L
     private set
 var darkBackground = -1L
     private set
-var designBottomSheetDialog = -1L
-    private set
 var elementsContainer = -1L
     private set
 var elementsLottieAnimationViewTagId = -1L
@@ -137,7 +135,6 @@ internal val sharedResourceIdPatch = resourcePatch(
         chipCloud = getResourceId(LAYOUT, "chip_cloud")
         colorGrey = getResourceId(COLOR, "ytm_color_grey_12")
         darkBackground = getResourceId(ID, "dark_background")
-        designBottomSheetDialog = getResourceId(LAYOUT, "design_bottom_sheet_dialog")
         elementsContainer = getResourceId(ID, "elements_container")
         elementsLottieAnimationViewTagId =
             getResourceId(ID, "elements_lottie_animation_view_tag_id")

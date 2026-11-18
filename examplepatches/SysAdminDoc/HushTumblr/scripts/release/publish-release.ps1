@@ -10,7 +10,8 @@
     of a whole-app walk of the signed bundle on a release phone or an emulator (walk-receipt.ps1),
     and the source census has to pass Test-SourceReleaseGate. Then it goes in this order:
 
-      1. The notes: every bullet of the released CHANGELOG section, between -Intro and -Tail.
+      1. The notes: the released section's Tumblr bullets between -Intro and -Tail, a tail
+         with the update steps and no Validation. The Tooling bullets stay in the CHANGELOG.
       2. gh release create vX.Y.Z at the prepare commit with the five assets. GitHub's tag is
          fetched and held to that commit, and each hosted asset is downloaded and compared.
       3. The index: patches-bundle.json, the README sentence, the bug form and the GitHub

@@ -68,6 +68,8 @@ public class RestorePrefFragment extends Fragment {
     private boolean isFontImport;
     private boolean isEmojiFontImport;
     private boolean isStoryFontImport;
+    private boolean isInitialFeaturesImport;
+    private boolean inlineHosted;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -77,6 +79,7 @@ public class RestorePrefFragment extends Fragment {
         Bundle args = getArguments();
 
         if (args != null) {
+            inlineHosted = args.getBoolean(app.morphe.extension.instagram.settings.ActivityHook.EXTRA_INLINE_HOST, false);
             if (args.containsKey("rex_import_dev_overrides")) {
                 destinationFile = new File(context.getFilesDir() + "/mobileconfig", "mc_overrides.json");
             } else if (args.containsKey("rex_import_id_mapping")) {
@@ -96,10 +99,12 @@ public class RestorePrefFragment extends Fragment {
             } else if (args.containsKey("rex_pref_add_story_font")) {
                 isFontImport = true;
                 isStoryFontImport = true;
+            } else if (args.containsKey("rex_import_initial_features")) {
+                isInitialFeaturesImport = true;
             }
         }
         if (savedInstanceState == null) {
-            if (destinationFile != null || isFontImport) {
+            if (destinationFile != null || isFontImport || isInitialFeaturesImport) {
                 if (args != null && args.containsKey("rex_import_pref") && getActivity() != null) {
                     InboxLock.confirmIfLocked(getActivity(), this::requestFileForRestore, this::finishHost);
                 } else {
@@ -646,6 +651,22 @@ public class RestorePrefFragment extends Fragment {
             } else if (isFontImport) {
                 receiveFont(ctx, uri);
                 return;
+            } else if (isInitialFeaturesImport) {
+                try (InputStream in = ctx.getContentResolver().openInputStream(uri)) {
+                    if (in != null) {
+                        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                        byte[] buf = new byte[4096];
+                        int r;
+                        while ((r = in.read(buf)) != -1) bos.write(buf, 0, r);
+                        int count = app.morphe.extension.instagram.patches.devFlags.InitialFeaturesManager.importJsonConfig(
+                                new String(bos.toByteArray(), StandardCharsets.UTF_8));
+                        toast(count > 0 ? ("Imported " + count + " Initial Features overrides") : str("rex_import_fail"));
+                        app.morphe.extension.instagram.settings.SettingsActivity.refreshCurrentScreen(ctx);
+                    }
+                } catch (Exception e) {
+                    Logger.printException(() -> "InitialFeatures import failed", e);
+                    toast(str("rex_import_fail"));
+                }
             } else {
                 receiveFileForRestore(ctx, uri);
             }
@@ -654,8 +675,14 @@ public class RestorePrefFragment extends Fragment {
     }
 
     private void finishHost() {
-        if (getActivity() != null) {
-            getActivity().finish();
+        Activity activity = getActivity();
+        if (activity == null) return;
+        if (inlineHosted) {
+            try {
+                activity.getFragmentManager().beginTransaction().remove(this).commitAllowingStateLoss();
+            } catch (Throwable ignored) {}
+        } else {
+            activity.finish();
         }
     }
 

@@ -233,7 +233,7 @@ public final class FontStorage {
                 }
             } else {
                 Typeface tf = Typeface.createFromFile(temp);
-                if (tf == null || tf == Typeface.DEFAULT) {
+                if (tf == null || tf == Typeface.DEFAULT || !hasValidEmojiGlyphs(tf)) {
                     return ImportResult.NOT_A_FONT;
                 }
             }
@@ -722,6 +722,9 @@ public final class FontStorage {
 
     public static Typeface resolveStoryDescriptorTypeface(String descriptorStr) {
         if (descriptorStr == null) return null;
+        if (!Boolean.TRUE.equals(SharedPref.getBooleanPref(Settings.ENABLE_STORY_FONTS))) return null;
+        String storySource = SharedPref.getStringPref(Settings.STORY_FONT_SOURCE);
+        if ("Default Story Fonts".equalsIgnoreCase(storySource)) return null;
         Context ctx = Utils.getContext();
         if (ctx != null) {
             File dir = storyFontsDir(ctx);
@@ -854,6 +857,74 @@ public final class FontStorage {
                 || "OTTO".equals(tag)
                 || "ttcf".equals(tag)
                 || "true".equals(tag);
+    }
+
+    public static boolean hasValidEmojiGlyphs(Typeface typeface) {
+        if (typeface == null) return false;
+        try {
+            android.graphics.Paint p = new android.graphics.Paint();
+            p.setTypeface(typeface);
+            p.setTextSize(32f);
+            return p.hasGlyph("\uD83D\uDE00") || p.hasGlyph("\u2764\uFE0F") || p.hasGlyph("\uD83D\uDD25");
+        } catch (Throwable ignored) {
+            return true;
+        }
+    }
+
+    public static final String[][] XBOYREX_STORY_FONT_ITEMS = new String[][]{
+            {"rex_font_ios_classic", "iOS Classic San Francisco"},
+            {"rex_font_ios_modern", "iOS Modern Display"},
+            {"rex_font_ios_neon", "iOS Neon Script"},
+            {"rex_font_ios_typewriter", "iOS Typewriter Mono"},
+            {"rex_font_ios_strong", "iOS Strong Condensed"},
+            {"rex_font_ios_elegant", "iOS Elegant Serif"},
+            {"rex_font_ios_literature", "iOS Literature Editorial"},
+            {"rex_font_ios_beach", "iOS Beach Handwritten"},
+            {"rex_font_ios_directional", "iOS Directional Heavy"},
+            {"rex_font_ios_papyrus", "iOS Papyrus Display"},
+            {"rex_font_ios_hindi", "iOS Devanagari / Hindi"},
+            {"rex_font_ios_indic", "iOS Indic Multi-Script"},
+            {"rex_font_ios_extrabold_ct", "XBOYREX ExtraBold Headline"},
+            {"rex_font_ios_semibold_lite_ct", "XBOYREX SemiBold Caption"}
+    };
+
+    public static boolean isXboyrexStoryFontEnabled(Context context, String rawResName) {
+        File dir = storyFontsDir(context);
+        if (dir == null) return false;
+        return new File(dir, "xboyrex_" + rawResName + ".ttf").isFile()
+                || new File(dir, "official_" + rawResName + ".ttf").isFile();
+    }
+
+    public static boolean setXboyrexStoryFontEnabled(Context context, String rawResName, boolean enabled) {
+        if (context == null || rawResName == null) return false;
+        File dir = storyFontsDir(context);
+        if (dir == null) return false;
+        File target = new File(dir, "xboyrex_" + rawResName + ".ttf");
+        File legacy = new File(dir, "official_" + rawResName + ".ttf");
+        if (!enabled) {
+            if (target.exists()) target.delete();
+            if (legacy.exists()) legacy.delete();
+            STORY_FILE_TYPEFACE_CACHE.clear();
+            return true;
+        }
+        int rawId = context.getResources().getIdentifier(rawResName, "raw", context.getPackageName());
+        if (rawId == 0) return false;
+        try (InputStream in = context.getResources().openRawResource(rawId);
+             OutputStream fos = new FileOutputStream(target)) {
+            byte[] buf = new byte[8192];
+            int n;
+            while ((n = in.read(buf)) != -1) fos.write(buf, 0, n);
+            STORY_FILE_TYPEFACE_CACHE.clear();
+            syncToSuiteStoryFonts(context, dir);
+            CustomFont.reload();
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public static Typeface previewBundledStoryFont(String rawResName) {
+        return loadBundledTypefaceByRawName(rawResName);
     }
 
     private static Typeface parse(File file) {

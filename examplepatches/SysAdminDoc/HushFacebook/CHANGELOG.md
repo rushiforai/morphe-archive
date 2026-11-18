@@ -9,16 +9,29 @@ Changes in each Hushfacebook version, newest first. Versions 0.1.0 to 0.19.0 are
 * `Ask before reacting to a story` under Stories makes a tap on a reaction at the bottom of a story ask "React to this story?" first. The story pauses while the question is up, and only Continue sends the reaction. Cancel, Back or a tap outside sends nothing and the story plays on. It's part of `Ask before a like` and starts off. (#502)
 * `Hide friends' reactions on photos and videos` under News feed takes away the little picture of a friend with their reaction on it that Facebook puts in the corner of a photo or video someone you know reacted to. It's off until you turn it on. (#483)
 * `Hide who reacted under posts` under News feed takes away the line under a post that names a friend or Page who reacted, like "Name and others reacted". It's off until you turn it on. (#483)
+* `In-app proxy` under Privacy sends Facebook's connections through an HTTP proxy you name, like `127.0.0.1:10808`. A VLESS or V2Ray app's local port works there (v2rayNG's is `127.0.0.1:10808`), so Facebook can go through VLESS without the whole phone on a VPN. Leave it blank and Facebook connects the way your phone does. [Help](https://github.com/SysAdminDoc/Hushfacebook/blob/main/docs/help.md#facebook-through-vless-or-another-proxy) walks through setting it up. (#504)
+* `Ask before downloading` under Downloads puts a Continue or Cancel question in front of a reel's Download button, the Download button under a post and a video's `Download to phone`. It starts off. (#511)
+* `Emoji font file` under Appearance lets you pick your own .ttf or .otf emoji font for `Use the phone's emoji`. Facebook needs a restart to pick it up, and a font with no emoji in it gets refused. (#513)
+* A video opened from a post with several photos or videos now has `Download to phone` in the three-dot menu at the top. (#509)
 
 ### Changed
 
+* Hushfacebook now patches Facebook 588.0.0.42.55 and no longer takes 587. On a 64-bit phone download the (arm64-v8a) (120-480dpi) (Android 11+) bundle, build 707615136, and on a 32-bit phone the (arm-v7a) (320dpi) (Android 11+) bundle, build 707615135. Update Facebook before you patch.
+* **Tooling:** The GitHub release notes leave out the Tooling bullets and the What was checked paragraph. How to update opens with the Facebook build the release targets, which is the sentence the in-app update check reads.
 * The README is about half as long. The patch list moved to [docs/patches.md](https://github.com/SysAdminDoc/Hushfacebook/blob/main/docs/patches.md) and the help topics to [docs/help.md](https://github.com/SysAdminDoc/Hushfacebook/blob/main/docs/help.md), and the README links to each topic.
 * The changelog starts at 0.20.0 now, so Morphe Manager has a lot less to download when it shows what changed. Versions 0.1.0 to 0.19.0 are in the [changelog archive](https://github.com/SysAdminDoc/Hushfacebook/blob/main/docs/changelog-archive.md), word for word.
 
 ### Fixed
 
+* With `Keep playing in the background` on, a video playing in the picture-in-picture window keeps its sound when you lock the phone. (#495)
 * With `Open comments at` on `Full height` or `Half height`, Comment on the Reels tab now slides the regular sheet straight up over the reel. Before, the reel shrank into the top of the screen first, the way Facebook's split view opens, and at full height the sheet covered it a moment later. (#501)
 * With the tab bar at the bottom and `See-through bars` or `Rounded tab bar` on, a reel's buttons and caption sit above the tab bar again instead of behind it. Each reel stops at the top of the bar now, and the strip under the bar stays black, so the next reel still doesn't peek out there. (#503)
+* `Fold long text` now holds to the number of lines you picked on posts it used to miss, including the first ones in the feed. Comments fold by how they actually wrap on your screen, so 8 lines means about 8 lines, and a video's caption follows the count you picked for posts. (#506)
+* The download button under a post and the post's menu now find videos that sit behind a photo or inside an album. A post with several videos gets `Save all videos`. (#509)
+* Your own story stays first in the tray when `Move seen stories to the end` or a similar switch is on. (#510)
+* The progress line on a reel opened from the feed sits above the gesture bar instead of under it. (#469)
+* `Hide the tab bar on the Reels tab` no longer leaves a grey line under the Reels title when your tabs are at the top. The line comes back with the bar on the other tabs. (#508)
+* `Seek bar on feed videos` stays out of Facebook's own video viewer, so a video you open from the feed only shows Facebook's bar. (#505)
 
 ## 0.23.0 (2026-11-17)
 

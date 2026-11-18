@@ -50,7 +50,7 @@ val showLocalIdsPatch = bytecodePatch(
 ) {
     category("Interface")
     dependsOn(settingsPatch, telegramExtensionPatch)
-    compatibleWith(*AppCompatibilities.telegramOnly())
+    compatibleWith(*AppCompatibilities.telegram())
     execute {
         val plan = resolveLocalIds()
         resolveProfileDc()

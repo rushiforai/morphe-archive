@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-17.
  * Modified by lavinhoque33, 2026-11-13
  * Written by lavinhoque33, 2026-11-07.
  * Modified by lavinhoque33, 2026-11-10
@@ -11,16 +12,20 @@ import android.net.Uri;
 
 import androidx.annotation.Nullable;
 
+import org.json.JSONException;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BooleanSupplier;
 
 import app.morphe.extension.music.patches.androidauto.AndroidAutoPatch;
 import app.morphe.extension.shared.innertube.PlayerResponseOuterClass.Format;
@@ -81,6 +86,32 @@ final class OfflineCopyStore {
         return Storage.sources.ids().contains(sourceId);
     }
 
+    @Nullable
+    static OfflineSourceStore.Source source(String sourceId) {
+        return Storage.sources.get(sourceId);
+    }
+
+    static File stagePlaylistPage(byte[] response) throws IOException {
+        return Storage.sources.stageBrowsePage(response);
+    }
+
+    static boolean commitPlaylist(OfflineSourceStore.Source previous, List<String> tracks, File page,
+                                  BooleanSupplier allowed) throws IOException, JSONException {
+        return Storage.sources.replacePlaylist(previous, tracks, page, previous.updatedAt(), allowed);
+    }
+
+    @Nullable
+    static byte[] readPlaylistPage(String sourceId) throws IOException {
+        return Storage.sources.readBrowsePage(sourceId);
+    }
+
+    static void overlaySyncedTrackLists(Map<String, List<String>> tracks) {
+        Storage.sources.ensureLoaded();
+        for (OfflineSourceStore.Source source : Storage.sources.sources()) {
+            if (source.browsePage() != null) tracks.put(source.id(), source.videoIds());
+        }
+    }
+
     /** The song ids of every remembered source, by source id. In memory, empty until loaded. */
     static Map<String, List<String>> tracksBySource() {
         warmUp();
@@ -137,13 +168,32 @@ final class OfflineCopyStore {
         return tracksBySource();
     }
 
+    static Map<String, List<String>> copyTrackLists() {
+        Map<String, List<String>> sources = allTrackLists();
+        Map<String, String> aliases = RawAudioStore.aliases();
+        if (aliases.isEmpty()) return sources;
+
+        Set<String> own = RawAudioStore.copyIds();
+        sources.replaceAll((id, tracks) -> {
+            List<String> canonical = new ArrayList<>(tracks.size());
+            for (String track : tracks) canonical.add(copyId(track, own, aliases));
+            return canonical;
+        });
+        return sources;
+    }
+
+    static String copyId(String videoId, Set<String> own, Map<String, String> aliases) {
+        return own.contains(videoId) ? videoId : aliases.getOrDefault(videoId, videoId);
+    }
+
     /** The downloaded playlists and albums that still have a stream copy, the latest first. */
     static List<OfflineSourceStore.Source> sources() {
         Utils.verifyOffMainThread();
         Storage.sources.ensureLoaded();
         adoptEarlierSources();
 
-        Set<String> copyIds = RawAudioStore.copyIds();
+        Set<String> copyIds = new HashSet<>(RawAudioStore.copyIds());
+        copyIds.addAll(RawAudioStore.aliases().keySet());
         List<OfflineSourceStore.Source> present = new ArrayList<>();
         for (OfflineSourceStore.Source source : Storage.sources.sources()) {
             if (!Collections.disjoint(source.videoIds(), copyIds)) present.add(source);
@@ -159,16 +209,18 @@ final class OfflineCopyStore {
     private static void adoptEarlierSources() {
         if (!StreamSwap.supported()) return;
 
-        try {
-            Map<String, List<String>> adoptable = OfflineSourceStore.adoptable(DownloadedMarkers.savedTrackLists(),
-                    Storage.sources.ids());
-            for (Map.Entry<String, List<String>> saved : adoptable.entrySet()) {
-                Storage.sources.remember(saved.getKey(), null, saved.getValue(), 0);
-                Logger.printDebug(() -> "OfflineCopyStore: adopted " + saved.getKey() + " tracks="
-                        + saved.getValue().size());
+        synchronized (PlaylistSync.MUTATION) {
+            try {
+                Map<String, List<String>> adoptable = OfflineSourceStore.adoptable(DownloadedMarkers.savedTrackLists(),
+                        Storage.sources.ids());
+                for (Map.Entry<String, List<String>> saved : adoptable.entrySet()) {
+                    Storage.sources.remember(saved.getKey(), null, saved.getValue(), 0);
+                    Logger.printDebug(() -> "OfflineCopyStore: adopted " + saved.getKey() + " tracks="
+                            + saved.getValue().size());
+                }
+            } catch (Exception ex) {
+                Logger.printException(() -> "OfflineCopyStore: could not adopt the earlier sources", ex);
             }
-        } catch (Exception ex) {
-            Logger.printException(() -> "OfflineCopyStore: could not adopt the earlier sources", ex);
         }
     }
 
@@ -202,7 +254,13 @@ final class OfflineCopyStore {
         OfflineSourceStore.Source source = Storage.sources.get(sourceId);
         if (source == null) return new ArrayList<>();
 
-        return OfflineSourceStore.tracksOf(source, RawAudioStore.copyIds(), Storage.copies::metadata);
+        Set<String> own = RawAudioStore.copyIds();
+        DownloadedRegistry markers = DownloadedMarkers.loadedRegistry();
+        if (markers != null) {
+            return OfflineSourceStore.tracksOf(source, own, Storage.copies::metadata, markers::canonicalId);
+        }
+        Map<String, String> aliases = RawAudioStore.aliases();
+        return OfflineSourceStore.tracksOf(source, own, Storage.copies::metadata, id -> copyId(id, own, aliases));
     }
 
     /**
@@ -321,11 +379,12 @@ final class OfflineCopyStore {
      * Remembers a downloaded playlist or album; a null header keeps what is known of it. Nothing is recorded while
      * Play downloads locally is off, so a file-only download writes no stream data.
      */
-    static void rememberSource(String sourceId, @Nullable SourceHeader header, List<String> videoIds) {
+    static void rememberSource(String sourceId, @Nullable SourceHeader header, List<String> videoIds,
+                               boolean explicitStream) {
         if (!StreamSwap.supported()) return;
         try {
             Utils.verifyOffMainThread();
-            Storage.sources.remember(sourceId, header, videoIds, System.currentTimeMillis());
+            Storage.sources.remember(sourceId, header, videoIds, System.currentTimeMillis(), explicitStream);
             AndroidAutoPatch.onPlaylistsChanged();
         } catch (Exception ex) {
             Logger.printException(() -> "OfflineCopyStore: could not remember the source " + sourceId, ex);
@@ -386,7 +445,9 @@ final class OfflineCopyStore {
     static void retainOnly(Set<String> copyIds, long copyIdsReadAt) {
         try {
             Storage.copies.retainOnly(copyIds, copyIdsReadAt);
-            Storage.sources.retainWithCopies(copyIds);
+            Set<String> retained = new HashSet<>(copyIds);
+            retained.addAll(RawAudioStore.aliases().keySet());
+            Storage.sources.retainWithCopies(retained);
             OfflineBrowsePages.retainOnly(Storage.sources.ids());
         } catch (Exception ex) {
             Logger.printException(() -> "OfflineCopyStore: could not clean up the stored data", ex);

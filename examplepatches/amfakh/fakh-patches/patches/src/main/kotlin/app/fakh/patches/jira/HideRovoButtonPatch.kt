@@ -39,18 +39,22 @@ private val rovoSearchFingerprint = Fingerprint(
 
 private const val EXTENSION = "Lapp/fakh/extension/jira/MaterialYou;"
 
-/** Makes a composable draw nothing while the Hide Rovo switch is on. The first register is free at a method's start. */
+/**
+ * Makes a composable draw nothing while the Hide Rovo switch is on. The first register is free at a method's start. A
+ * composable that R8 turned into a lambda body returns Unit instead of nothing.
+ */
 private fun MutableMethod.hideWhileEnabled() {
     if (implementation!!.registerCount <= parameterTypes.size + (if (accessFlags and 8 != 0) 0 else 1)) {
         throw PatchException("No free register in $definingClass->$name")
     }
+    val exit = if (returnType == "V") "return-void" else "sget-object v0, Lkotlin/Unit;->INSTANCE:Lkotlin/Unit;\n            return-object v0"
     addInstructionsWithLabels(
         0,
         """
             invoke-static { }, $EXTENSION->hideRovo()Z
             move-result v0
             if-eqz v0, :show
-            return-void
+            $exit
             :show
             nop
         """,
@@ -70,7 +74,8 @@ val hideRovoButtonPatch = patch(
 
     execute {
         val composables = mutableClassDefBy(rovoFabFingerprint.classDef.type).methods.filter {
-            it.returnType == "V" && it.parameterTypes.size in setOf(3, 4, 7, 8, 9)
+            it.returnType in setOf("V", "Lkotlin/Unit;") && it.parameterTypes.size in setOf(3, 5, 7, 8, 9) &&
+                it.parameterTypes.firstOrNull()?.toString() != "Z"
         }
         if (composables.size != 6) throw PatchException("Expected six Rovo button composables, found ${composables.size}")
         composables.forEach { it.hideWhileEnabled() }

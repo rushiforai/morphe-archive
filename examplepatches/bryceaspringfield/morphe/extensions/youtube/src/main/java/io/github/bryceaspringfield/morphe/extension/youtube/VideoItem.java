@@ -146,7 +146,7 @@ final class VideoItem {
         // A playlist lockup may link "watch?v=FIRST&list=PL..." as well as "playlist?list=PL..."; a card (lockup.eml)
         // names the playlist page's browse ID, "VLPL...". Albums are playlists too (OLAK5uy_).
         boolean playlist = text.contains("list=PL") || text.contains("VLPL") || text.contains("list=OLAK5uy")
-                || text.contains("VLOLAK5uy") || Metadata.isCourse(text) || PLAYLIST_ID.matcher(text).find();
+                || text.contains("VLOLAK5uy") || Metadata.isCourse(text) || Metadata.isPlaylistLabel(text) || PLAYLIST_ID.matcher(text).find();
         boolean mix = !playlist && ((text.contains("youtube.com/playlist?list=RD") && !text.contains("youtube.com/watch?v="))
                 || (p.startsWith("lockup.") && text.contains("VLRD")));
         if (live || playlist || mix) seconds = -1;

@@ -57,15 +57,18 @@ public final class KickHttp implements Interceptor {
         Response response = chain.proceed(request);
         try {
             String host = request.url().host();
-            if (!host.endsWith("kick.com")) return response;
+            String path = request.url().encodedPath();
+            // Login, sign-up, token, and account answers are never read (2026-11-18: a login failed with the patch on):
+            // only the list answers of kick.com are looked at, and an answer which no filter changes is returned as it came.
+            if (!host.endsWith("kick.com") || host.startsWith("id.") || !request.method().equals("GET")
+                    || isAccountPath(path)) return response;
             ResponseBody body = response.body();
             MediaType type = body == null ? null : body.contentType();
-            String path = request.url().encodedPath();
             if (body == null || type == null || !type.toString().contains("json") || body.contentLength() > MAX_BODY) {
                 if (Kick.debug()) Kick.log("http " + response.code() + " " + host + path + " " + type);
                 return response;
             }
-            String text = body.string();
+            String text = response.peekBody(MAX_BODY).string();
             String out = rewrite(host + path, text);
             if (Kick.debug()) {
                 Kick.log("http " + response.code() + " " + host + path + " " + text.length() + " chars"
@@ -75,11 +78,18 @@ public final class KickHttp implements Interceptor {
                     Kick.log("body " + path + ": " + text.substring(0, Math.min(1500, text.length())));
                 }
             }
+            if (out == text) return response;
             return response.newBuilder().removeHeader("Content-Length").body(ResponseBody.create(out, type)).build();
         } catch (Throwable t) {
             Kick.error("answer not filtered: " + request.url(), t);
             return response;
         }
+    }
+
+    private static boolean isAccountPath(String path) {
+        String p = path.toLowerCase(Locale.ROOT);
+        return p.contains("login") || p.contains("auth") || p.contains("token") || p.contains("register")
+                || p.contains("password") || p.contains("session") || p.contains("/user") || p.contains("verify");
     }
 
     private static String keys(String text) {

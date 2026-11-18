@@ -42,13 +42,13 @@ public final class XSettings {
     public static final BooleanSetting WATCHED_RELATED = new BooleanSetting("yx_watched_related", true);
 
     // Playlists (not mixes) in the home feed.
+    /** Live streams are hidden in the Home feed only; the Subscriptions feed keeps them. */
+    public static final BooleanSetting HIDE_HOME_LIVE = new BooleanSetting("yx_hide_home_live", FALSE);
     public static final BooleanSetting HIDE_HOME_PLAYLISTS = new BooleanSetting("yx_hide_home_playlists", FALSE);
     /** Home suggestions of a never-opened video before it gets Not interested; "0" turns it off. */
     public static final StringSetting RESUGGESTED_LIMIT = new StringSetting("yx_resuggested_limit", "3");
     /** Seconds between two visits of Home which count a video's suggestion twice (not shown; tests shorten it). */
     public static final StringSetting RESUGGESTED_GAP = new StringSetting("yx_resuggested_gap_s", "600");
-    /** When Home runs out, it reloads and hides the videos already shown, so scrolling keeps finding new ones. */
-    public static final BooleanSetting HOME_MORE = new BooleanSetting("yx_home_more", FALSE);
     public static final BooleanSetting HIDE_PAST_STREAMS = new BooleanSetting("yx_hide_past_streams", FALSE);
 
     // Topic presets (comma-separated keys of Topics.KEYS) and the user's own channels to hide.

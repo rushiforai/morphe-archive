@@ -1,8 +1,8 @@
 ## Current prerelease
 
-[0.11.0-beta.2](https://github.com/BDCrusher/ytmusic-lyrics/releases/tag/v0.11.0-beta.2) targets original YouTube Music **9.45.51 / 94551240** and **9.46.51 / 94651240** arm64. **Full Collection** installs the complete personal setup. **Singles** offers the same Shaders, Volume Boost, Better Lyrics and Downloads features for official Morphe 2.3.0, including the personal lyrics renderer and Audio/Video pop-out. [Current source](https://github.com/BDCrusher/ytmusic-lyrics/tree/v0.11.0-beta.2).
+[0.11.0-beta.6](https://github.com/BDCrusher/ytmusic-lyrics/releases/tag/v0.11.0-beta.6) targets original YouTube Music **9.45.51 / 94551240** and **9.46.51 / 94651240** arm64. It improves the album-art backdrop, lyric timing when playback pauses or resumes, search completion, and credential setup for protected lyric sources. [Current source](https://github.com/BDCrusher/ytmusic-lyrics/tree/v0.11.0-beta.6).
 
-Use **Expert mode** for individual patch selection. Enable **Pre-release patches** and **Experimental app versions** for this source, then refresh it and patch the supported original APK. Enable official **Third-party lyrics** with Better Lyrics (Single) and official **Downloads** with Downloads (Single).
+Enable **Pre-release patches** and **Experimental app versions** and refresh the source. Select official **Third-party lyrics** with Better Lyrics (Single) and official **Downloads** with Downloads (Single). With official Morphe 2.4.0-dev.1, list the official source first.
 
 The records below cover earlier releases and APK targets.
 

@@ -484,6 +484,11 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                     L10n.t("Hide search history"),
                     L10n.t("Hides your recent searches. It doesn't delete your account's search history. The change "
                         + "shows the next time the screen updates."), SettingsIcons.BLOCK);
+            if (build.contains(PatchFamily.HIDE_SEARCH_HISTORY) && PatchFamily.Capability.SEARCH_LANDING.installed()) {
+                ui.addPreference(mark(toggle(context, Settings.BLANK_SEARCH_PAGE, L10n.t("Blank Search page"),
+                        L10n.t("Leaves only the search bar on the Search page, with nothing under it. Searching works "
+                            + "as usual. The change shows the next time the page updates.")), SettingsIcons.BLOCK));
+            }
             patchToggle(ui, context, build, PatchFamily.HIDE_NAVIGATION_BUTTONS, Settings.HIDE_NAV_CREATE,
                     L10n.t("Hide Create button"), L10n.t("Hides Create in the bottom bar and at the top of Home. The "
                         + "change shows the next time they update."), SettingsIcons.BLOCK);
@@ -493,6 +498,16 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
             patchToggle(ui, context, build, PatchFamily.HIDE_NAVIGATION_BUTTONS, Settings.HIDE_NAV_SEARCH,
                     L10n.t("Hide Search button"), L10n.t("Hides Search in the bottom bar. The change shows the next "
                         + "time the bar updates."), SettingsIcons.BLOCK);
+            if (build.contains(PatchFamily.HIDE_NAVIGATION_BUTTONS) && PatchFamily.Capability.HOME_TABS.installed()) {
+                ui.addPreference(mark(toggle(context, Settings.HIDE_HOME_TABS, L10n.t("Hide Home tabs"),
+                        L10n.t("Takes the row of tabs, All and your board names, off the top of Home. The change "
+                            + "shows the next time Home updates.")), SettingsIcons.BLOCK));
+            }
+            if (build.contains(PatchFamily.HIDE_NAVIGATION_BUTTONS) && PatchFamily.Capability.SEARCH_KEYBOARD.installed()) {
+                ui.addPreference(mark(toggle(context, Settings.SEARCH_TAB_KEYBOARD, L10n.t("Second Search tap opens the keyboard"),
+                        L10n.t("On the Search page, pressing Search in the bottom bar again puts the cursor in the "
+                            + "search bar and opens the keyboard.")), SettingsIcons.SEARCH));
+            }
             patchToggle(ui, context, build, PatchFamily.HIDE_HEADER_BUTTONS, Settings.HIDE_HEADER_BUTTONS,
                     L10n.t("Hide header buttons"),
                     L10n.t("Hides the small icon buttons at the end of the top bar. Back, text buttons and account "
@@ -534,6 +549,12 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                         L10n.t("In dark mode, paints the gray bar that floats over a board and the filter buttons on your "
                             + "profile pure black, along with the empty cover on Edit board. Light mode stays as it is. The "
                             + "change shows the next time you open a board or your profile.")),
+                        SettingsIcons.DARK_MODE));
+            }
+            if (build.contains(PatchFamily.AMOLED_BLACK) && PatchFamily.Capability.BLACK_TOASTS.installed()) {
+                ui.addPreference(mark(toggle(context, Settings.BLACK_TOASTS, L10n.t("Black toasts"),
+                        L10n.t("In dark mode, paints the messages Pinterest pops up, such as the one after you save or "
+                            + "download a pin, pure black. Light mode stays as it is. The change shows on the next message.")),
                         SettingsIcons.DARK_MODE));
             }
             patchToggle(ui, context, build, PatchFamily.HIDE_CLOSEUP_BUTTONS, Settings.HIDE_CLOSEUP_BACK,
@@ -588,10 +609,36 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                     L10n.t("Hide creator name on pins"),
                     L10n.t("Hides the creator's name and badge under a pin you open. Their picture stays and still "
                         + "opens their profile. The change shows on the next pin you open."), SettingsIcons.BLOCK);
+            patchToggle(ui, context, build, PatchFamily.HIDE_PIN_AUTHOR, Settings.HIDE_PIN_AUTHOR,
+                    L10n.t("Hide pin author"),
+                    L10n.t("Removes the creator's whole row, picture and name included, from under a pin you open. The "
+                        + "change shows on the next pin you open."), SettingsIcons.BLOCK);
+            patchToggle(ui, context, build, PatchFamily.HIDE_PIN_DESCRIPTION, Settings.HIDE_PIN_DESCRIPTION,
+                    L10n.t("Hide pin title and description"),
+                    L10n.t("Removes the title and description under a pin you open. The likes and comments bar stays, "
+                        + "and so do the posted date and image size when they're on. The change shows on the next pin "
+                        + "you open."), SettingsIcons.BLOCK);
+            patchToggle(ui, context, build, PatchFamily.SHOW_IMAGE_SIZE, Settings.SHOW_IMAGE_SIZE,
+                    L10n.t("Show image size"),
+                    L10n.t("Shows a picture's width and height under it when you open a pin, beside the posted date "
+                        + "when that's on. It reads the largest copy Pinterest sends the app, which can be smaller "
+                        + "than the original upload. Videos show nothing. The change shows on the next pin you open."), SettingsIcons.TOOLS);
+            patchToggle(ui, context, build, PatchFamily.HIDE_HIGHLIGHT_RING, Settings.HIDE_HIGHLIGHT_RING,
+                    L10n.t("Hide blue highlight ring"),
+                    L10n.t("Stops the thick blue ring Pinterest draws over buttons such as Save to point out a feature."), SettingsIcons.BLOCK);
+            patchToggle(ui, context, build, PatchFamily.HIDE_VISUAL_SEARCH_THUMBNAILS, Settings.HIDE_VISUAL_SEARCH_THUMBNAILS,
+                    L10n.t("Hide visual search thumbnails"),
+                    L10n.t("Keeps a pin's lens button plain, without the little stack of cropped pictures Pinterest "
+                        + "puts on it. The change shows on the next pin you open."), SettingsIcons.BLOCK);
             patchToggle(ui, context, build, PatchFamily.HIDE_RELATED_PINS, Settings.HIDE_RELATED_PINS,
                     L10n.t("Hide related pins"),
                     L10n.t("Leaves the grid of more pins out from under a pin you open, so it doesn't load. "
                         + "The change shows on the next pin you open."), SettingsIcons.BLOCK);
+            patchToggle(ui, context, build, PatchFamily.FOLD_RELATED_PINS, Settings.FOLD_RELATED_PINS,
+                    L10n.t("Fold related pins"),
+                    L10n.t("Puts an arrow under a pin you open. Related pins stay folded and don't load until you tap "
+                        + "it, and tapping again folds them. Your last choice is kept. Hide related pins wins when "
+                        + "both are on. The change shows on the next pin you open."), SettingsIcons.TOOLS);
             patchToggle(ui, context, build, PatchFamily.CUSTOM_SAVE_SOUND, Settings.CUSTOM_SAVE_SOUND,
                     L10n.t("Custom save sound"),
                     L10n.t("Plays the sound you pick below when you save a pin, instead of Pinterest's. With no sound "
@@ -604,6 +651,22 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                     L10n.t("Shows the logo picked when patching on the screen you see while Pinterest starts, "
                         + "instead of Pinterest's. Android 13 and newer. It shows from the next start."),
                     SettingsIcons.OPENING);
+            patchToggle(ui, context, build, PatchFamily.BOARD_TABS, Settings.HIDE_BOARD_TAB_BUTTON,
+                    L10n.t("Hide See board on board tabs"),
+                    L10n.t("Takes the See board button off the picture at the top of a board tab on Home. "
+                        + "The change shows the next time the tab opens."), SettingsIcons.BLOCK);
+            patchToggle(ui, context, build, PatchFamily.BOARD_TABS, Settings.HIDE_BOARD_TAB_SUBTITLE,
+                    L10n.t("Hide More ideas for on board tabs"),
+                    L10n.t("Takes More ideas for and any other small text off that picture, so only the board "
+                        + "name is left. The change shows the next time the tab opens."), SettingsIcons.BLOCK);
+            if (build.contains(PatchFamily.BOARD_TABS)) {
+                ui.addPreference(mark(new BoardTabPositionPreference(context), SettingsIcons.SETTINGS));
+            }
+            if (build.contains(PatchFamily.BOARD_TABS) && PatchFamily.Capability.BOARD_TAB_COVERS.installed()) {
+                ui.addPreference(mark(toggle(context, Settings.BOARD_TAB_COVERS, L10n.t("Choose board tab covers"),
+                        L10n.t("Long-press the picture at the top of a board tab on Home to keep it, use a pin "
+                            + "or a photo, or go black.")), SettingsIcons.SETTINGS));
+            }
             patchToggle(ui, context, build, PatchFamily.HIDE_PIN_MENU_ITEMS, Settings.HIDE_PIN_MENU_COLLAGE,
                     L10n.t("Hide collage menu items"),
                     L10n.t("Hides Add to collage and Remix collage in pin menus you open from now on. A menu that's "
@@ -616,6 +679,12 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                     L10n.t("Hide Promote pin menu item"),
                     L10n.t("Hides Promote pin in pin menus you open from now on. A menu that's already open won't "
                         + "change."), SettingsIcons.BLOCK);
+            if (build.contains(PatchFamily.HIDE_PIN_MENU_ITEMS) && PatchFamily.Capability.PIN_MENU_ROWS.installed()) {
+                ui.addPreference(mark(toggle(context, Settings.HIDE_PIN_MENU_ROWS, L10n.t("Hide pin menu rows"),
+                        L10n.t("Hides the rows you pick below from pin menus you open from now on. A menu that's "
+                            + "already open won't change.")), SettingsIcons.BLOCK));
+                ui.addPreference(mark(new PinMenuRowsPreference(this, context), SettingsIcons.BLOCK));
+            }
             patchToggle(ui, context, build, PatchFamily.HIDE_COMMENTS, Settings.HIDE_COMMENTS,
                     L10n.t("Hide comments"),
                     L10n.t("Hides comments and comment previews under pins. It doesn't change who can comment. The "
@@ -653,6 +722,11 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
             patchToggle(ui, context, build, PatchFamily.HIDE_SAVE_TOASTS, Settings.HIDE_SAVE_TOASTS,
                     L10n.t("Hide save toasts"),
                     L10n.t("Saving a pin no longer shows the \"Saved to\" message or a suggestion to follow its creator. The pin is still saved."), SettingsIcons.BELL);
+            if (build.contains(PatchFamily.HIDE_SAVE_TOASTS) && PatchFamily.Capability.DOWNLOAD_TOASTS.installed()) {
+                ui.addPreference(mark(toggle(context, Settings.HIDE_DOWNLOAD_TOASTS, L10n.t("Hide download toasts"),
+                        L10n.t("Downloading a pin no longer shows the message that it started or finished. Errors still "
+                            + "show, and Android's own download notification stays.")), SettingsIcons.BELL));
+            }
             patchToggle(ui, context, build, PatchFamily.ORIGINAL_IMAGES, Settings.ORIGINAL_IMAGES,
                     L10n.t("Original-quality images"),
                     L10n.t("Shows the original image instead of the large size in pin closeups and collages, when "

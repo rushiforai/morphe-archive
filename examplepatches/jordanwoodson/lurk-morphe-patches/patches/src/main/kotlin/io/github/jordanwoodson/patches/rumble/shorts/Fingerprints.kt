@@ -4,6 +4,7 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.fieldAccess
 import com.android.tools.smali.dexlib2.Opcode
 import io.github.jordanwoodson.patches.rumble.shared.composableFingerprint
+import io.github.jordanwoodson.patches.shared.compose.dtoGetterFingerprint
 
 // The horizontal Shorts row (title, "View all" and cards) on Home, My Feed, channels, search and
 // My Videos.
@@ -24,3 +25,8 @@ internal object CreatorTabsFingerprint : Fingerprint(
     parameters = emptyList(),
     filters = listOf(fieldAccess(definingClass = "this", name = "tabs", opcode = Opcode.IGET_OBJECT)),
 )
+
+// FollowingFeedPillsData.items: My Feed's filter pills ("all", "today", "live", "videos", "shorts",
+// "continue-watching", "reposts"), which the server sends since 3.22.0.
+internal val FeedPillsFingerprint =
+    dtoGetterFingerprint("Lcom/rumble/network/dto/video/FollowingFeedPillsData;", "items", "Ljava/util/List;")

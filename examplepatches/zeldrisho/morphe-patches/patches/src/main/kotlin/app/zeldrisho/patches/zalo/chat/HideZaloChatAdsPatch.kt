@@ -20,7 +20,8 @@ val hideZaloChatListAdsPatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_ZALO)
 
     execute {
-        val matches = ZinstantAdListInsertion.matchAll(0..1) + ZinstantAdListInsertion261002.matchAll(0..1)
+        val matches = ZinstantAdListInsertion.matchAll(0..1) + ZinstantAdListInsertion261002.matchAll(0..1) +
+            ZinstantAdListInsertion261101.matchAll(0..1)
         check(matches.size == 1) { "Expected exactly one Zinstant ad insertion" }
         val match = matches.single()
         val insertion = match.instructionMatches.single { it.instruction.opcode == Opcode.INVOKE_DIRECT }
@@ -61,6 +62,17 @@ internal fun suppressZinstantAdInsertionAfterConstructor(
 internal fun suppressZinstantAdInsertion(method: app.morphe.patcher.util.proxy.mutableTypes.MutableMethod, index: Int) {
     method.replaceInstruction(index, "nop")
 }
+
+// Experimental target: 26.11.01 is advertised but not fully device-qualified.
+internal object ZinstantAdListInsertion261101 : Fingerprint(
+    definingClass = "Lp8g;", name = "e",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL), returnType = "V",
+    parameters = listOf("Ljava/util/ArrayList;"),
+    filters = listOf(
+        methodCall(definingClass = "Lx5w;", name = "<init>", parameters = listOf("Lqow;"), returnType = "V"),
+        methodCall(definingClass = "Ljava/util/ArrayList;", name = "add", parameters = listOf("I", "Ljava/lang/Object;"), returnType = "V"),
+    ),
+)
 
 /** Matches the dedicated Zinstant ad-card model in Zalo 26.10.02. */
 internal object ZinstantAdListInsertion261002 : Fingerprint(

@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-17.
  * Modified by lavinhoque33, 2026-11-12.
  * Written by lavinhoque33, 2026-11-07.
  * Modified by lavinhoque33, 2026-11-10
@@ -86,7 +87,10 @@ public final class StreamDownloads {
      * Off the main thread.
      */
     public static void remove(String videoId) {
-        RawAudioStore.delete(videoId);
+        synchronized (PlaylistSync.MUTATION) {
+            PlaylistSync.cancel();
+            RawAudioStore.delete(videoId);
+        }
     }
 
     /**
@@ -97,15 +101,18 @@ public final class StreamDownloads {
      * @return How many songs lost their copy.
      */
     public static int removeSource(String sourceId) {
-        Map<String, List<String>> sources = OfflineCopyStore.allTrackLists();
-        CopyOwnership.Removal removal = CopyOwnership.removing(sourceId, sources, RawAudioStore.individualIds(),
-                RawAudioStore.copyIds());
-        for (String videoId : removal.deleteVideos()) VideoCopyStore.deleteForSong(videoId);
-        for (String videoId : removal.deleteCopies()) RawAudioStore.delete(videoId);
+        synchronized (PlaylistSync.MUTATION) {
+            PlaylistSync.cancel();
+            Map<String, List<String>> sources = OfflineCopyStore.copyTrackLists();
+            CopyOwnership.Removal removal = CopyOwnership.removing(sourceId, sources, RawAudioStore.individualIds(),
+                    RawAudioStore.copyIds());
+            for (String videoId : removal.deleteVideos()) VideoCopyStore.deleteForSong(videoId);
+            for (String videoId : removal.deleteCopies()) RawAudioStore.delete(videoId);
 
-        OfflineCopyStore.removeSource(sourceId);
-        DownloadedMarkers.onSourceRemoved(sourceId);
-        return removal.deleteCopies().size();
+            DownloadedMarkers.onSourceRemoved(sourceId);
+            OfflineCopyStore.removeSource(sourceId);
+            return removal.deleteCopies().size();
+        }
     }
 
     /**
@@ -115,6 +122,10 @@ public final class StreamDownloads {
      * @return How many copies were deleted.
      */
     public static int deleteAll() {
-        return RawAudioStore.clearAll();
+        synchronized (PlaylistSync.MUTATION) {
+            PlaylistSync.cancel();
+            DownloadedMarkers.forgetCompletedSources();
+            return RawAudioStore.clearAll();
+        }
     }
 }

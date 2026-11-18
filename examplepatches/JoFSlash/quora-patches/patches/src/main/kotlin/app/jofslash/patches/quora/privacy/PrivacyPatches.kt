@@ -53,6 +53,7 @@ val blockAdvertisingIdPatch = bytecodePatch(
     description = "Stops the app from sending your advertising ID and Android ID to Quora.",
     default = true
 ) {
+    category("Privacy")
     compatibleWith(COMPATIBILITY_QUORA)
 
     execute {
@@ -73,6 +74,7 @@ val blockClipboardReadingPatch = bytecodePatch(
     description = "Stops Quora's pages from reading what you copied. Pasting with the keyboard still works.",
     default = true
 ) {
+    category("Privacy")
     compatibleWith(COMPATIBILITY_QUORA)
 
     execute {
@@ -96,6 +98,7 @@ val disableWebViewDebuggingPatch = bytecodePatch(
             "which would show your account's cookies.",
     default = true
 ) {
+    category("Privacy")
     compatibleWith(COMPATIBILITY_QUORA)
 
     execute {

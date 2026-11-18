@@ -2859,3 +2859,21 @@ Hide the Widget circle,Sembunyikan lingkaran Widget
 The Widget circle at the end of the stories tray goes. TikTok's home screen widget still works.,Lingkaran Widget di akhir deret Story hilang. Widget layar utama TikTok tetap berfungsi.
 Hide view counts on profile grids,Sembunyikan jumlah tayangan di kisi profil
 "Takes the view count and its play icon off each video on profile grids. Dates, lengths and the engagement rate you turned on move up in its place.","Menghapus jumlah tayangan dan ikon putarnya dari setiap video di kisi profil. Tanggal, durasi, dan tingkat interaksi yang kamu aktifkan naik ke tempatnya."
+Video bitrate limit,Batas bitrate video
+%1$s Mb/s,%1$s Mb/s
+"A video heavier than this plays a lighter version. If none fits, it plays its lightest one.","Video yang lebih berat diputar dalam versi lebih ringan. Jika tidak ada yang pas, diputar versi paling ringan."
+Use an imported emoji font,Gunakan font emoji yang diimpor
+"Shows emoji in the font file you import below, whichever font the text is in. Restart TikTok to see the change.","Menampilkan emoji dengan berkas font yang kamu impor di bawah, apa pun font teksnya. Mulai ulang TikTok untuk melihat perubahannya."
+Import an emoji font file,Impor berkas font emoji
+Remove the imported emoji font,Hapus font emoji yang diimpor
+No emoji font is imported,Belum ada font emoji yang diimpor
+%1$s is imported. Turn on Use an imported emoji font to see it.,%1$s sudah diimpor. Nyalakan Gunakan font emoji yang diimpor untuk melihatnya.
+Write the month as a word,Tulis bulan sebagai kata
+"Writes TikTok's date by the creator's name with the month's name, like Oct 12. Day before month makes it 12 Oct.","Menulis tanggal TikTok di samping nama kreator dengan nama bulan, seperti Oct 12. Hari sebelum bulan membuatnya 12 Oct."
+"Fade the name, date and caption","Pudarkan nama, tanggal, dan keterangan"
+"Draws the creator's name, the date, the caption and the music line over the video at this level, and they still take taps. At 100 they follow Fade the video controls. At 0 they're hidden.","Menampilkan nama kreator, tanggal, keterangan, dan baris musik di atas video pada level ini, dan semuanya tetap bisa diketuk. Di 100 mengikuti Pudarkan kontrol video. Di 0 disembunyikan."
+LIVE buttons in the long-press menu,Tombol LIVE di menu tekan lama
+Takes the Record and Auto tap buttons off the video and puts them in the menu you get by holding the middle of a LIVE.,Memindahkan tombol Rekam dan Ketuk otomatis dari video ke menu yang muncul saat menekan lama bagian tengah LIVE.
+Auto tap started,Ketuk otomatis dimulai
+Hide stories from accounts you don't follow,Sembunyikan Story dari akun yang tidak kamu ikuti
+Stories from accounts you don't follow leave the stories tray. Stories from accounts you follow stay.,Story dari akun yang tidak kamu ikuti hilang dari deret Story. Story dari akun yang kamu ikuti tetap ada.

@@ -15,12 +15,12 @@ import android.os.LocaleList;
 import java.util.Locale;
 import java.util.concurrent.ConcurrentHashMap;
 
-import app.morphe.extension.instagram.settings.Settings;
 import app.morphe.extension.rex.sharedPreference.SharedPref;
 import app.morphe.extension.shared.Utils;
 
 public final class IgStr {
 
+    public static final String KEY_APP_UI_LANGUAGE = "rex_app_ui_language";
     private static final ConcurrentHashMap<String, Integer> idCache = new ConcurrentHashMap<>();
     private static volatile Context baseContext;
     private static volatile Context localizedContext;
@@ -29,16 +29,25 @@ public final class IgStr {
     private IgStr() {
     }
 
-    public static Locale resolveSelectedLocale() {
-        String lang = "English";
+    public static String getAppUiLanguageName() {
         try {
-            String pref = SharedPref.getStringPref(Settings.TRANSLATOR_LANGUAGE);
+            String pref = SharedPref.getStringPref(KEY_APP_UI_LANGUAGE, "English");
             if (pref != null && !pref.trim().isEmpty()) {
-                lang = pref.trim();
+                return pref.trim();
             }
         } catch (Throwable ignored) {
         }
-        return localeForLanguageName(lang);
+        return "English";
+    }
+
+    public static void setAppUiLanguageName(String languageName) {
+        String safe = (languageName == null || languageName.trim().isEmpty()) ? "English" : languageName.trim();
+        SharedPref.setStringPref(KEY_APP_UI_LANGUAGE, safe);
+        refreshLocale();
+    }
+
+    public static Locale resolveSelectedLocale() {
+        return localeForLanguageName(getAppUiLanguageName());
     }
 
     public static Locale localeForLanguageName(String languageName) {
@@ -82,6 +91,8 @@ public final class IgStr {
                 Configuration cfg = new Configuration(res.getConfiguration());
                 cfg.setLocale(target);
                 cfg.setLocales(new LocaleList(target));
+                // Keep LTR layout direction for Settings cards unless explicitly requested
+                cfg.setLayoutDirection(Locale.ENGLISH);
                 res.updateConfiguration(cfg, res.getDisplayMetrics());
                 return ctx.createConfigurationContext(cfg);
             }
@@ -117,14 +128,7 @@ public final class IgStr {
     private static Context localizedContext() {
         Context base = baseContext();
         if (base == null) return null;
-        String currentLang = "English";
-        try {
-            String pref = SharedPref.getStringPref(Settings.TRANSLATOR_LANGUAGE);
-            if (pref != null && !pref.trim().isEmpty()) {
-                currentLang = pref.trim();
-            }
-        } catch (Throwable ignored) {
-        }
+        String currentLang = getAppUiLanguageName();
         Context loc = localizedContext;
         if (loc != null && currentLang.equals(cachedLangKey)) {
             return loc;
@@ -135,6 +139,7 @@ public final class IgStr {
                 Configuration cfg = new Configuration(base.getResources().getConfiguration());
                 cfg.setLocale(target);
                 cfg.setLocales(new LocaleList(target));
+                cfg.setLayoutDirection(Locale.ENGLISH);
                 localizedContext = base.createConfigurationContext(cfg);
                 cachedLangKey = currentLang;
                 return localizedContext;

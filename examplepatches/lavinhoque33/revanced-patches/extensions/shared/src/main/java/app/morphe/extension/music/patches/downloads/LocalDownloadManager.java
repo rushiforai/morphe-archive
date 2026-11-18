@@ -6,6 +6,7 @@
  *
  * Modified by lavinhoque33, 2026-11-07.
  * Modified by lavinhoque33, 2026-11-10
+ * Modified by lavinhoque33, 2026-11-17.
  */
 
 package app.morphe.extension.music.patches.downloads;
@@ -371,10 +372,16 @@ public final class LocalDownloadManager {
                 uri = NativeAudioStore.finish(videoId, destination);
                 destination = null;
             } else if (work.keepsStreamCopy()) {
-                if (!RawAudioStore.retain(videoId, temporary, format, request.individual())) {
-                    throw new IOException("Could not keep the stream copy");
-                }
-                OfflineCopyStore.storeDownloaded(videoId, format, resolved.details(), tags);
+                File completed = temporary;
+                Format savedFormat = format;
+                ResolvedStream selected = resolved;
+                PlaylistSync.publishMedia(() -> {
+                    if (!RawAudioStore.retain(videoId, completed, savedFormat, request.individual())) {
+                        throw new IOException("Could not keep the stream copy");
+                    }
+                    OfflineCopyStore.storeDownloaded(videoId, savedFormat, selected.details(), tags);
+                    return true;
+                });
             }
             awaitNotificationSlot();
             showDownloadNotification(videoId, title, 100, false, str(mode.localFiles()
@@ -443,6 +450,8 @@ public final class LocalDownloadManager {
 
     /** @return Whether a progress update may be posted without the system dropping it. */
     static boolean canPostProgress() { // shared with playlist progress.
+        if (PlaylistSync.automaticTransfer()) return false;
+
         long now = System.currentTimeMillis();
         long previous = lastNotificationTime.get();
         return now - previous >= NOTIFICATION_INTERVAL_MILLISECONDS
@@ -455,6 +464,8 @@ public final class LocalDownloadManager {
      * took the slot first. Must be called off the main thread.
      */
     static void awaitNotificationSlot() {
+        if (PlaylistSync.automaticTransfer()) return;
+
         while (true) {
             long now = System.currentTimeMillis();
             long previous = lastNotificationTime.get();
@@ -514,7 +525,8 @@ public final class LocalDownloadManager {
         long rangeSize = Math.min(MAX_RANGE_SIZE, (totalLength + SEGMENT_COUNT - 1) / SEGMENT_COUNT);
         long rangeCount = (totalLength + rangeSize - 1) / rangeSize;
         int workers = (int) Math.min(MAX_CONNECTIONS, rangeCount);
-        RangeQueue queue = new RangeQueue(url, temporary, totalLength, rangeSize, downloaded, progress);
+        Requester.ConnectionProvider route = Requester.scopedConnection();
+        RangeQueue queue = new RangeQueue(url, temporary, totalLength, rangeSize, downloaded, progress, route);
 
         // Android's ExecutorService is not AutoCloseable, so it is shut down in the finally below.
         //noinspection resource
@@ -523,7 +535,7 @@ public final class LocalDownloadManager {
 
         try {
             for (int index = 0; index < workers; index++) {
-                completion.submit(queue::work);
+                completion.submit(route == null ? queue::work : () -> Requester.withConnection(route, queue::work));
             }
 
             for (int index = 0; index < workers; index++) {
@@ -562,18 +574,20 @@ public final class LocalDownloadManager {
         private final long rangeSize;
         private final AtomicLong downloaded;
         private final ProgressCallback progress;
+        private final Requester.ConnectionProvider route;
         private final AtomicLong nextStart = new AtomicLong();
         private final Set<HttpURLConnection> connections = ConcurrentHashMap.newKeySet();
         private volatile boolean stopped;
 
         RangeQueue(String url, NativeAudioStore.Destination destination, long totalLength, long rangeSize,
-                   AtomicLong downloaded, ProgressCallback progress) {
+                   AtomicLong downloaded, ProgressCallback progress, @Nullable Requester.ConnectionProvider route) {
             this.url = url;
             this.destination = destination;
             this.totalLength = totalLength;
             this.rangeSize = rangeSize;
             this.downloaded = downloaded;
             this.progress = progress;
+            this.route = route;
         }
 
         /** Aborts every connection, so blocked reads fail at once instead of timing out. */
@@ -599,7 +613,9 @@ public final class LocalDownloadManager {
         }
 
         private void checkStopped() {
-            if (stopped) throw new CancellationException("Download stopped");
+            if (stopped || (route != null && route.cancelled())) {
+                throw new CancellationException("Download stopped");
+            }
         }
 
         private void downloadRange(long start, long end, FileOutputStream output,
@@ -718,7 +734,9 @@ public final class LocalDownloadManager {
                  FileOutputStream output = destination.openOutput()) {
                 byte[] buffer = new byte[BUFFER_SIZE];
                 int read;
+                Requester.ConnectionProvider route = Requester.scopedConnection();
                 while ((read = input.read(buffer)) != -1) {
+                    if (route != null && route.cancelled()) throw new IOException("Download cancelled");
                     output.write(buffer, 0, read);
                 }
             }
@@ -734,6 +752,8 @@ public final class LocalDownloadManager {
      */
     static void showDownloadNotification(String key, String title, int progress,
                                          boolean ongoing, String text) {
+        if (PlaylistSync.automaticTransfer()) return;
+
         Utils.runOnMainThread(() -> postDownloadNotification(key, title, progress, ongoing, text));
     }
 

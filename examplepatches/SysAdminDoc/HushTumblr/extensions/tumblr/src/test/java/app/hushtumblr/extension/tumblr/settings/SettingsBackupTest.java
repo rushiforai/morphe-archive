@@ -278,6 +278,7 @@ public class SettingsBackupTest {
                 Settings.HIDE_REBLOGS,
                 Settings.KEEP_TAGGED_REBLOGS,
                 Settings.KEEP_REBLOGS_WITH_CONTENT,
+                Settings.KEEP_COMMUNITY_REBLOGS,
                 Settings.HIDE_OWN_REBLOGS,
                 Settings.HIDE_REBLOGS_OF_YOURS,
                 Settings.HIDE_LIKED_POSTS,
@@ -300,6 +301,8 @@ public class SettingsBackupTest {
                 Settings.SHOW_POST_TIMESTAMPS,
                 Settings.SHOW_IMAGE_DESCRIPTIONS,
                 Settings.SHARE_VIDEO_LINKS,
+                Settings.FIT_FULL_SCREEN_VIDEOS,
+                Settings.TAP_TO_PLAY_FEED_VIDEOS,
                 Settings.SHARPER_IMAGES,
                 Settings.COLLAPSE_LONG_POSTS,
                 Settings.MUTE_ROOT_POSTS,
@@ -337,7 +340,7 @@ public class SettingsBackupTest {
         Settings.CHECK_FOR_RELEASES.save(true);
         BaseSettings.PAUSED.save(true);
         BaseSettings.DEBUG.save(true);
-        BaseSettings.DEBUG_LOG_FILTERS.save("feed");
+        BaseSettings.DEBUG_LOG_FILTERS.save("log-filter-value");
         PauseForTests.pause(HushTumblrPause.Reason.CRASH_LOOP);
         String cookie = "sessionid=100012345678901%3Asecret-session; ds_user_id=100012345678901";
         LogBufferManager.appendToLogBuffer("sentinel line " + cookie);
@@ -364,7 +367,7 @@ public class SettingsBackupTest {
             assertFalse(setting.key + " is in the file", text.contains(setting.key));
         }
         for (String leak : new String[]{"sentinel", "sessionid", "ds_user_id", "100012345678901", "secret-session",
-                app.getPackageName(), FamilyNames.HIDE_ADVERTISING_ID, "feed"}) {
+                app.getPackageName(), FamilyNames.HIDE_ADVERTISING_ID, "log-filter-value"}) {
             assertFalse("the file carries " + leak + ":\n" + text, text.contains(leak));
         }
     }
@@ -2569,15 +2572,18 @@ public class SettingsBackupTest {
         for (int schema : new int[]{1, 2}) {
             Settings.KEEP_TAGGED_REBLOGS.save(true);
             Settings.KEEP_REBLOGS_WITH_CONTENT.save(true);
+            Settings.KEEP_COMMUNITY_REBLOGS.save(true);
             JSONObject file = new JSONObject().put("format", SettingsBackup.FORMAT).put("schema", schema)
                     .put("settings", new JSONObject().put(Settings.HIDE_REBLOGS.key, true));
             SettingsBackup.apply(SettingsBackup.parse(file.toString()));
             assertTrue(Settings.HIDE_REBLOGS.savedValue());
             assertFalse(Settings.KEEP_TAGGED_REBLOGS.savedValue());
             assertFalse(Settings.KEEP_REBLOGS_WITH_CONTENT.savedValue());
+            assertFalse(Settings.KEEP_COMMUNITY_REBLOGS.savedValue());
             assertEquals(SettingsBackup.UndoResult.UNDONE, SettingsBackup.undo());
             assertTrue(Settings.KEEP_TAGGED_REBLOGS.savedValue());
             assertTrue(Settings.KEEP_REBLOGS_WITH_CONTENT.savedValue());
+            assertTrue(Settings.KEEP_COMMUNITY_REBLOGS.savedValue());
         }
         SettingsBackup.apply(SettingsBackup.parse(new JSONObject().put("format", SettingsBackup.FORMAT)
                 .put("schema", 2).put("settings", new JSONObject().put(Settings.HIDE_ADS.key, true)).toString()));

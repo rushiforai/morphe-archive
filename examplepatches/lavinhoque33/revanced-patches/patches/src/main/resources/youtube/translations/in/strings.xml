@@ -632,8 +632,7 @@ Jika ada perubahan di sisi server, warna latar belakang bilah camilan mungkin ti
     <string name="revanced_change_start_page_entry_gaming">Permainan</string>
     <string name="revanced_change_start_page_entry_history">Riwayat</string>
     <string name="revanced_change_start_page_entry_home">Beranda</string>
-    <string name="revanced_change_start_page_entry_hype">Hype</string>
-    <string name="revanced_change_start_page_entry_library">Koleksi</string>
+    <string name="revanced_change_start_page_entry_library">Anda</string>
     <string name="revanced_change_start_page_entry_liked_videos">Video yang disukai</string>
     <string name="revanced_change_start_page_entry_live">Siaran langsung</string>
     <string name="revanced_change_start_page_entry_movies">Film</string>
@@ -641,14 +640,12 @@ Jika ada perubahan di sisi server, warna latar belakang bilah camilan mungkin ti
     <string name="revanced_change_start_page_entry_news">Berita</string>
     <string name="revanced_change_start_page_entry_notifications">Notifikasi</string>
     <string name="revanced_change_start_page_entry_playlists">Daftar Putar</string>
-    <string name="revanced_change_start_page_entry_podcasts">Podcast</string>
     <string name="revanced_change_start_page_entry_search">Telusuri</string>
     <string name="revanced_change_start_page_entry_settings">Pengaturan</string>
     <string name="revanced_change_start_page_entry_shopping">Belanja</string>
     <string name="revanced_change_start_page_entry_shorts">Shorts</string>
     <string name="revanced_change_start_page_entry_sports">Olahraga</string>
     <string name="revanced_change_start_page_entry_subscriptions">Subscription</string>
-    <string name="revanced_change_start_page_entry_trending">Sedang tren</string>
     <string name="revanced_change_start_page_entry_virtual_reality">Realitas Virtual</string>
     <string name="revanced_change_start_page_entry_watch_later">Tonton nanti</string>
     <string name="revanced_change_start_page_entry_your_clips">Klip Anda</string>

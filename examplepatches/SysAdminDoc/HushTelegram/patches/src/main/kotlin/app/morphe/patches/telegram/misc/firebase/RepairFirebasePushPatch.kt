@@ -69,6 +69,9 @@ private const val URL = "Ljava/net/URL;"
 internal const val SHARED_CONFIG = "Lorg/telegram/messenger/SharedConfig;"
 internal const val USER_CONFIG = "Lorg/telegram/messenger/UserConfig;"
 internal const val TOKEN_READER = "hushTelegramTokenPresence"
+
+/** How many accounts the app keeps slots for: four on Telegram, ten on Plus Messenger. */
+private val ACCOUNT_SLOT_COUNTS = setOf(4, 10)
 internal const val ACCOUNT_READER = "hushTelegramAccountCounts"
 internal const val PUSH_CONTROLLER = "Lorg/telegram/messenger/MessagesController;"
 internal const val BASE_CONTROLLER = "Lorg/telegram/messenger/BaseController;"
@@ -98,7 +101,7 @@ val repairFirebasePushPatch = bytecodePatch(
 ) {
     category("Fixes")
     dependsOn(settingsPatch, telegramExtensionPatch, keepAliveServicePatch)
-    compatibleWith(*AppCompatibilities.telegramOnly())
+    compatibleWith(*AppCompatibilities.telegram())
 
     execute {
         requireStatusMethod("repairFirebasePush")
@@ -348,11 +351,11 @@ internal fun BytecodePatchContext.resolveLocalNotificationReaders(): LocalNotifi
     field(user, "currentUser", "Lorg/telegram/tgnet/TLRPC\$User;", AccessFlags.PRIVATE.value)
     field(user, "registeredForPush", "Z", AccessFlags.PUBLIC.value)
     // 13.2's R8 folded the slot limit into its readers and dropped the field. The account array's
-    // initializer below still pins the four slots on every build.
-    if (user.fields.any { it.origName == "MAX_ACCOUNT_COUNT" }) {
-        val limit = field(user, "MAX_ACCOUNT_COUNT", "I", publicStatic or AccessFlags.FINAL.value)
-        shape((limit.initialValue as? IntEncodedValue)?.value == 4, "local account slot limit changed")
-    }
+    // initializer below still pins the slots on every build.
+    val limit = if (user.fields.any { it.origName == "MAX_ACCOUNT_COUNT" }) {
+        (field(user, "MAX_ACCOUNT_COUNT", "I", publicStatic or AccessFlags.FINAL.value).initialValue as? IntEncodedValue)?.value
+            .also { shape(it in ACCOUNT_SLOT_COUNTS, "local account slot limit changed") }
+    } else null
     // 13.2's R8 also made the readers final, which changes nothing about calling them.
     fun read(owner: ClassDef, name: String, result: String, static: Boolean): Method = owner.methods
         .filter { it.origName == name }.unique("local $name reader").also {
@@ -381,8 +384,9 @@ internal fun BytecodePatchContext.resolveLocalNotificationReaders(): LocalNotifi
         (body[4] as NarrowLiteralInstruction).narrowLiteral == 1 && (body[6] as NarrowLiteralInstruction).narrowLiteral == 0 &&
         flow.normal[3].toSet() == setOf(4, 6) && flow.normal[5] == listOf(7), "active account reader changed")
     val initialize = user.methods.filter { it.origName == "<clinit>" }.unique("local account array initializer").instructions()
-    shape(initialize.map { it.opcode } == listOf(Opcode.CONST_4, Opcode.NEW_ARRAY, Opcode.SPUT_OBJECT, Opcode.RETURN_VOID) &&
-        (initialize[0] as NarrowLiteralInstruction).narrowLiteral == 4 &&
+    val slots = (initialize.firstOrNull() as? NarrowLiteralInstruction)?.narrowLiteral
+    shape(initialize.map { it.opcode } in listOf(Opcode.CONST_4, Opcode.CONST_16).map { listOf(it, Opcode.NEW_ARRAY, Opcode.SPUT_OBJECT, Opcode.RETURN_VOID) } &&
+        slots in ACCOUNT_SLOT_COUNTS && (limit == null || limit == slots) &&
         initialize.map { it.namedRegisters() } == listOf(listOf(0), listOf(0, 0), listOf(0), emptyList()) &&
         initialize[1].origRef() == "[$USER_CONFIG" &&
         initialize[2].origRef() == "$USER_CONFIG->Instance:[$USER_CONFIG", "existing account array shape changed")
@@ -406,8 +410,10 @@ internal fun BytecodePatchContext.resolveLocalNotificationReaders(): LocalNotifi
             load[at - 1].namedRegisters() == listOf(value) &&
             (owner !== shared || load[at - 3].string() == "" && load[at - 3].namedRegisters() == listOf(operands[2])),
             "local $key no longer comes from preferences")
-        shape(load[0].field()?.origName == "sync" &&
-            load[1].opcode == Opcode.MONITOR_ENTER && load[2].field()?.origName == "configLoaded" &&
+        // Plus Messenger loads a log string's constant ahead of the lock.
+        val entry = load.indexOfFirst { it.field()?.origName == "sync" }
+        shape(entry >= 0 && load.take(entry).all { it.opcode in setOf(Opcode.CONST_STRING, Opcode.CONST_STRING_JUMBO) } &&
+            load[entry + 1].opcode == Opcode.MONITOR_ENTER && load[entry + 2].field()?.origName == "configLoaded" &&
             load.count { it.field()?.origName == "configLoaded" && it.opcode in setOf(Opcode.SPUT_BOOLEAN, Opcode.IPUT_BOOLEAN) } == 1,
             "local $key load readiness changed")
         val ready = load.indexOfFirst { it.field()?.origName == "configLoaded" && it.opcode in setOf(Opcode.SPUT_BOOLEAN, Opcode.IPUT_BOOLEAN) }
@@ -462,13 +468,13 @@ internal fun BytecodePatchContext.resolveLocalNotificationReaders(): LocalNotifi
         sget-object v1, $USER_CONFIG->Instance:[$USER_CONFIG
         if-eqz v1, :unknown
         array-length v2, v1
-        const/4 v3, 0x4
+        const/16 v3, $slots
         if-ne v2, v3, :unknown
         const/4 v2, 0x0
         const/4 v3, 0x0
         const/4 v4, 0x0
         :next
-        const/4 v5, 0x4
+        const/16 v5, $slots
         if-ge v2, v5, :finish
         aget-object v5, v1, v2
         if-eqz v5, :unknown
@@ -513,7 +519,8 @@ internal fun BytecodePatchContext.resolveFirebaseHeader(): FirebaseHeaderPlan {
     classDefForEach { if (!it.origType.startsWith("Lapp/hushtelegram/extension/")) classes[it.type] = it }
     // Each search reads the classes as they were above, among those naming what it looks for.
     fun methods(mentioning: Mention) = classDefsMentioning(mentioning).mapNotNull { classes[it.type] }.flatMap { it.methods.toList() }
-    val anchors = listOf("X-Android-Cert", "X-Android-Package", "x-goog-api-key", "SHA1", "Could not get fingerprint hash for package: ")
+    // Plus Messenger hashes the certificate in a helper, so "SHA1" isn't one of them.
+    val anchors = listOf("X-Android-Cert", "X-Android-Package", "x-goog-api-key", "Could not get fingerprint hash for package: ")
     val header = methods(Mention.allOf(anchors.map { Mention.string(it) })).filter { it.hasShape(listOf(URL, STRING), HTTP) &&
         anchors.all { anchor -> anchor in it.strings() }
     }.unique("Firebase certificate header method")

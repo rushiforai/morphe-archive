@@ -28,6 +28,7 @@ import app.morphe.util.ControlFlow
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.call
 import app.morphe.util.namedRegisters
+import app.morphe.util.readsAfter
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -69,7 +70,7 @@ val hideStoriesPatch = bytecodePatch(
 ) {
     category("Stories")
     dependsOn(settingsPatch, telegramExtensionPatch)
-    compatibleWith(*AppCompatibilities.telegramOnly())
+    compatibleWith(*AppCompatibilities.telegram())
 
     execute {
         requireStatusMethod("hideStories")
@@ -235,13 +236,19 @@ private fun cameraHook(method: MutableMethod, camera: FieldReference): StoryHook
     val instructions = method.instructions()
     val read = instructions.indices.filter { instructions[it].opcode == Opcode.IGET_OBJECT && instructions[it].field() == camera }
         .unique("camera visibility field read") ?: throw PatchException("$PATCH: no camera field read")
-    val at = read + 2
+    val held = instructions[read].namedRegisters()[0]
+    // Plus Messenger works its own Hide camera switch into the answer first, so the call can sit a few lines down.
+    val at = (read + 2..minOf(read + 8, instructions.lastIndex)).firstOrNull { index ->
+        instructions[index].call()?.hasShape(listOf("Z", "Z"), "V") == true && instructions[index].namedRegisters().firstOrNull() == held
+    } ?: (read + 2)
     val call = instructions.getOrNull(at)?.call()
     val registers = instructions.getOrNull(at)?.namedRegisters().orEmpty()
     shape(instructions.getOrNull(read + 1)?.opcode == Opcode.IF_EQZ && call?.hasShape(listOf("Z", "Z"), "V") == true &&
-        registers.size == 3 && registers[0] == instructions[read].namedRegisters()[0] && registers.distinct().size == 3 &&
+        registers.size == 3 && registers[0] == held && registers.distinct().size == 3 &&
+        (read + 2 until at).none { index -> instructions[index].opcode.setsRegister() &&
+            instructions[index].namedRegisters().firstOrNull() == held } &&
         ControlFlow.of(method).normal[read + 1].contains(at + 1) &&
-        instructions.take(at).count { it.call() == call } == 1 && instructions.getOrNull(at + 1)?.opcode == Opcode.RETURN_VOID,
+        instructions.take(at).count { it.call() == call } == 1 && method.readsAfter(at, registers[1]).isEmpty(),
         "camera does not share the compose visibility call and finish the update")
     val visible = registers[1]
     shape(visible <= 255, "camera visibility register is too high")
@@ -347,11 +354,14 @@ private fun avatarHook(method: MutableMethod, force: FieldReference): StoryHook 
         instructions[at].field()?.origDefiningClass == force.origDefiningClass && instructions[at].namedRegisters()[1] == params,
         "avatar state comparison is not after the force-state override")
     val current = instructions[at].field()
+    // Both copies hold the same state and the hook clears both. Plus Messenger stores the second.
     val immediate = instructions.indices.mapNotNull { index ->
         if (instructions[index].opcode != Opcode.IF_EQZ) return@mapNotNull null
         val target = flow.normal[index].singleOrNull { it != index + 1 } ?: return@mapNotNull null
+        val stored = instructions[target].namedRegisters()
         if (instructions[target].opcode == Opcode.IPUT && instructions[target].field() == current &&
-            instructions[target].namedRegisters() == listOf(state, params) && instructions.getOrNull(target + 1)?.opcode == Opcode.IPUT &&
+            stored.size == 2 && stored[0] in listOf(state, unread) && stored[1] == params &&
+            instructions.getOrNull(target + 1)?.opcode == Opcode.IPUT &&
             instructions[target + 1].field()?.origType == "F" && instructions[target + 1].namedRegisters()[1] == params) index to target else null
     }.unique("avatar nonanimated state update") ?: throw PatchException("$PATCH: no avatar nonanimated state update")
     val animated = instructions[immediate.first].namedRegisters()[0]

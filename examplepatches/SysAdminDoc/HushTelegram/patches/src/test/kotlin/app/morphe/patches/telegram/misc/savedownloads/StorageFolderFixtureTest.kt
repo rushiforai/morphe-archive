@@ -8,7 +8,6 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.PlusPending
 import app.morphe.patcher.PatcherConfig
 import app.morphe.util.names.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
@@ -48,7 +47,6 @@ import app.morphe.util.names.origType
 import app.morphe.util.names.tgMutableClassDefBy
 
 /** ImageLoader's Android 11 folder for Telegram's own files on both declared builds, where the storage folder switch reaches it (#7). */
-@PlusPending
 class StorageFolderFixtureTest {
     @Rule @JvmField val temporary = TemporaryFolder()
 
@@ -90,6 +88,21 @@ class StorageFolderFixtureTest {
             val stock = context.mediaPaths().controlBody().map { it.shape() }
             val stockPath = context.attachPath().controlBody().map { it.shape() }
             val stockStart = context.loadStart().controlBody().map { it.shape() }
+            if (name.startsWith("plus-")) {
+                // Plus Messenger moves its folder to Internal storage itself, so the hooks that follow the folder stay out.
+                assertTrue(name, context.resolveStorageFolder().ownFolder)
+                assertEquals(emptyList<String>(), PatchLogCapture.warnings { saveDownloadsPatch.execute(context) })
+                assertEquals(name, stock, context.mediaPaths().controlBody().map { it.shape() })
+                assertEquals(name, stockStart, context.loadStart().controlBody().map { it.shape() })
+                assertEquals(name, 0, context.attachPaths().sumOf { m -> m.controlBody().count { it.controlRef() == STORAGE_OLDER_FILE } })
+                assertEquals(name, 1, context.attachPaths().sumOf { m -> m.controlBody().count { it.controlRef() == KNOWN_FILE } })
+                assertEquals(name, 0L, context.flag("storageFolder"))
+                assertEquals(name, 1L, context.flag("galleryFolder"))
+                assertEquals(name, 1L, context.flag("knownFiles"))
+                assertEquals(name, 1L, context.flag("saveDownloads"))
+                continue
+            }
+            assertEquals(name, false, context.resolveStorageFolder().ownFolder)
             // telegramPath is written on the older Android path and the fallback too. Only the Android 11 one is moved.
             assertTrue(name, stock.count { it[2] == STORAGE_TELEGRAM_PATH } > 1)
             assertEquals("$name: nothing missing", null, context.resolveStorageFolder().missing)
@@ -301,10 +314,12 @@ class StorageFolderFixtureTest {
             // The jump doesn't pass the object's copy, so files you already have are left as Telegram shows them.
             assertEquals(listOf("Save downloaded files: Telegram's download path is reached another way. The patch goes on without recognizing files you already have."),
                 PatchLogCapture.warnings { saveDownloadsPatch.execute(context) })
+            // Plus Messenger keeps its own folder, so nothing older is looked for there.
+            val older = if (build.name.startsWith("plus-")) 0 else 1
             for (method in listOf(context.attachPath(), context.loadStart())) {
                 val target = method.getInstruction<BuilderOffsetInstruction>(0).target.location.index
-                assertEquals("${build.name}: ${method.name}", STORAGE_OLDER_FILE, method.getInstruction(target).controlRef())
-                assertEquals("${build.name}: ${method.name}", 1, method.controlBody().count { it.controlRef() == STORAGE_OLDER_FILE })
+                if (older == 1) assertEquals("${build.name}: ${method.name}", STORAGE_OLDER_FILE, method.getInstruction(target).controlRef())
+                assertEquals("${build.name}: ${method.name}", older, method.controlBody().count { it.controlRef() == STORAGE_OLDER_FILE })
             }
             assertEquals(build.name, 0, context.attachPath().controlBody().count { it.controlRef() == KNOWN_FILE })
             assertEquals(build.name, 0L, context.flag("knownFiles"))

@@ -391,7 +391,7 @@ switch ($Stage) {
         if (-not $walked.Valid) { throw "The whole-app walk doesn't back $bundleName, so nothing was published: $($walked.Reason)." }
         Write-Step "walked on $($walked.Receipt.device): $($walked.Receipt.screens) screens, no crash"
         $notes = Join-Path $work 'notes.md'
-        Invoke-Python -I (Join-Path $root 'scripts/release_notes.py') --root $root --version $Version --walk (Resolve-Path -LiteralPath $Walk).Path --out $notes
+        Invoke-Python -I (Join-Path $root 'scripts/release_notes.py') --root $root --version $Version --out $notes
         $existing = & git -C $root tag -l $tag
         if (-not $existing) { Write-Step "tag $tag"; Invoke-Git tag -a $tag -m $tag }
         elseif ((& git -C $root rev-list -n 1 $tag).Trim() -ne $build.commit) { throw "$tag already points at another commit." }

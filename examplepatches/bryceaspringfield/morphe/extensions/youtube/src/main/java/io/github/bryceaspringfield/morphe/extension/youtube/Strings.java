@@ -63,10 +63,10 @@ final class Strings {
         put("sleep_timer", "Stop playback after (minutes)", "Detener la reproducción tras (minutos)");
         put("sleep_timer_summary", "A sleep timer: the first playback starts the countdown, and a video still playing when it ends is paused; playing again starts a new one. Blank is off",
                 "Un temporizador: la primera reproducción inicia la cuenta atrás y un video que sigue sonando al terminar se pausa; reproducir de nuevo inicia otra. En blanco está desactivado");
-        put("home_more", "Keep Home going", "Mantener Inicio sin fin");
-        put("home_more_summary", "When Home runs out of videos, it reloads with a new batch and hides the videos it showed before, so scrolling keeps finding new ones",
-                "Cuando Inicio se queda sin videos, se recarga con un lote nuevo y oculta los que ya mostró, así que al desplazarte siguen apareciendo videos nuevos");
         put("home_playlists", "Hide playlists on Home", "Ocultar playlists en Inicio");
+        put("home_live", "Hide live streams on Home", "Ocultar directos en Inicio");
+        put("home_live_summary", "Live streams in the home feed; the Subscriptions feed keeps them",
+                "Los directos del feed de Inicio; el feed de Suscripciones los conserva");
         put("resuggested", "Not interested after repeated suggestions", "No me interesa tras sugerencias repetidas");
         put("resuggested_summary", "Now %d: a video Home suggests this many times (visits 10 minutes or more apart) which you never opened gets Not interested and is hidden",
                 "Ahora %d: un vídeo que Inicio sugiere estas veces (visitas con 10 minutos o más entre ellas) y que nunca abriste recibe No me interesa y se oculta");
@@ -76,8 +76,8 @@ final class Strings {
         put("past_streams", "Hide past live streams", "Ocultar directos pasados");
         put("past_streams_summary", "Recordings of live streams which have ended (\"Streamed 2 days ago\"), in every feed; streams live now stay",
                 "Grabaciones de directos ya terminados (\"Emitido hace 2 días\"), en todos los feeds; los directos en curso se quedan");
-        put("home_playlists_summary", "Playlists and courses in the home feed (mixes: Morphe's Hide mix playlists)",
-                "Playlists y cursos del feed de Inicio (las mezclas: Ocultar playlists mix de Morphe)");
+        put("home_playlists_summary", "Playlists, podcasts, and courses in the home feed (mixes: Morphe's Hide mix playlists)",
+                "Playlists, podcasts y cursos del feed de Inicio (las mezclas: Ocultar playlists mix de Morphe)");
         put("topics", "Hide by topic", "Ocultar por tema");
         put("topics_summary", "Videos and channels whose titles or names promote the topics chosen",
                 "Videos y canales cuyos títulos o nombres promueven los temas elegidos");

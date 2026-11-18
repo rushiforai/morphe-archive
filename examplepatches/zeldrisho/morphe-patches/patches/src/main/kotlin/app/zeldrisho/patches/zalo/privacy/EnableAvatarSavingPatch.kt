@@ -24,7 +24,8 @@ val enableZaloAvatarSavingPatch = bytecodePatch(
 ) {
     compatibleWith(COMPATIBILITY_ZALO)
     execute {
-        val matches = AvatarScreenshotPolicy.matchAll(0..1) + AvatarScreenshotPolicy261002.matchAll(0..1)
+        val matches = AvatarScreenshotPolicy.matchAll(0..1) + AvatarScreenshotPolicy261002.matchAll(0..1) +
+            AvatarScreenshotPolicy261101.matchAll(0..1)
         check(matches.size == 1) { "Expected exactly one avatar screenshot policy" }
         val match = matches.single()
         val instruction = match.instructionMatches.single { it.instruction.opcode == Opcode.XOR_INT_2ADDR }
@@ -43,6 +44,28 @@ internal fun allowAvatarScreenshots(
 ) {
     method.replaceInstruction(index, "const/4 v$register, 0x0")
 }
+
+/** Experimental profile-avatar entry point in Zalo 26.11.01; not fully device-qualified. */
+private object AvatarScreenshotPolicy261101 : Fingerprint(
+    definingClass = "Lcom/zing/zalo/social/presentation/profile/friend_profile/UserProfileView;",
+    name = "P8",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "V",
+    parameters = listOf("Ljava/lang/String;", "Ljava/lang/String;"),
+    filters = listOf(
+        string("avatarPhoto"),
+        methodCall(
+            definingClass = "Landroid/text/TextUtils;", name = "equals",
+            parameters = listOf("Ljava/lang/CharSequence;", "Ljava/lang/CharSequence;"), returnType = "Z",
+        ),
+        opcode(Opcode.XOR_INT_2ADDR),
+        string("EXTRA_SHOULD_PREVENT_SCREENSHOT"),
+        methodCall(
+            definingClass = "Landroid/os/BaseBundle;", name = "putBoolean",
+            parameters = listOf("Ljava/lang/String;", "Z"), returnType = "V",
+        ),
+    ),
+)
 
 /** Profile-avatar entry point in Zalo 26.10.02. */
 private object AvatarScreenshotPolicy261002 : Fingerprint(

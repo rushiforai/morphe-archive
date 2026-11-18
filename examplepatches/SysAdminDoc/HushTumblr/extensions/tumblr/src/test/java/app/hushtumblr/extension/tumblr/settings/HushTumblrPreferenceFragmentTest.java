@@ -140,6 +140,8 @@ public class HushTumblrPreferenceFragmentTest {
         ROW_TITLES.put(PatchFamily.SHOW_POST_TIMESTAMPS, "Show post timestamps");
         ROW_TITLES.put(PatchFamily.VISIBLE_ALT_TEXT, "Visible image descriptions");
         ROW_TITLES.put(PatchFamily.SHARE_VIDEO_LINKS, "Share video links");
+        ROW_TITLES.put(PatchFamily.FIT_FULL_SCREEN_VIDEOS, "Fit full-screen videos");
+        ROW_TITLES.put(PatchFamily.TAP_TO_PLAY_FEED_VIDEOS, "Tap to play feed videos");
         ROW_TITLES.put(PatchFamily.SHARPER_IMAGES, "Sharper images");
         ROW_TITLES.put(PatchFamily.COLLAPSE_LONG_POSTS, "Collapse long posts");
         ROW_TITLES.put(PatchFamily.MUTE_ROOT_POSTS, "Mute posts locally");

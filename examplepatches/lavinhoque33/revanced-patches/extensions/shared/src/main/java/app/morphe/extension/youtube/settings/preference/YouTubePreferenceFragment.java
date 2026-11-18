@@ -2,7 +2,7 @@
  * Original author(s):
  * - anddea (https://github.com/anddea)
  * - COOLak (https://github.com/COOLak)
- * Modified by lavinhoque33, 2026-11-17.
+ * Modified by lavinhoque33, 2026-11-18.
  */
 
 package app.morphe.extension.youtube.settings.preference;
@@ -16,6 +16,7 @@ import android.app.Dialog;
 import android.content.SharedPreferences;
 import android.content.Intent;
 import android.preference.Preference;
+import android.preference.PreferenceGroup;
 import android.preference.PreferenceScreen;
 import android.preference.SwitchPreference;
 import android.widget.Toolbar;
@@ -48,6 +49,8 @@ public class YouTubePreferenceFragment extends ToolbarPreferenceFragment {
      * The main PreferenceScreen used to display the current set of preferences.
      */
     private PreferenceScreen preferenceScreen;
+    private Preference glassMiniplayerPreference;
+    private PreferenceGroup glassMiniplayerParent;
 
     @SuppressLint("SuspiciousIndentation")
     private final SharedPreferences.OnSharedPreferenceChangeListener preferenceChangeListener = (sharedPreferences, str) -> {
@@ -94,6 +97,11 @@ public class YouTubePreferenceFragment extends ToolbarPreferenceFragment {
 
         try {
             preferenceScreen = getPreferenceScreen();
+            glassMiniplayerPreference = findPreference(Settings.MINIPLAYER_GLASS.key);
+            if (glassMiniplayerPreference != null) {
+                glassMiniplayerParent = glassMiniplayerPreference.getParent();
+                updateGlassMiniplayerVisibility();
+            }
             Utils.sortPreferenceGroups(preferenceScreen);
 
             setPreferenceScreenToolbar(preferenceScreen);
@@ -112,6 +120,32 @@ public class YouTubePreferenceFragment extends ToolbarPreferenceFragment {
             NewSettingsIndicator.markNewPreferences(preferenceScreen);
         } catch (Exception ex) {
             Logger.printException(() -> "initialize failure", ex);
+        }
+    }
+
+    @Override
+    protected void updateUIAvailability() {
+        super.updateUIAvailability();
+        updateGlassMiniplayerVisibility();
+    }
+
+    private void updateGlassMiniplayerVisibility() {
+        if (glassMiniplayerParent == null) return;
+
+        boolean available = Settings.MINIPLAYER_GLASS.isAvailable();
+        boolean shown = glassMiniplayerPreference.getParent() == glassMiniplayerParent;
+        if (available == shown) return;
+
+        if (available) {
+            glassMiniplayerParent.addPreference(glassMiniplayerPreference);
+            syncSettingWithPreference(glassMiniplayerPreference, Settings.MINIPLAYER_GLASS, true);
+            updatePreferenceAvailability(glassMiniplayerPreference, Settings.MINIPLAYER_GLASS);
+        } else {
+            glassMiniplayerParent.removePreference(glassMiniplayerPreference);
+        }
+
+        if (isResumed() && YouTubeActivityHook.searchViewController != null) {
+            YouTubeActivityHook.searchViewController.onPreferenceVisibilityChanged();
         }
     }
 

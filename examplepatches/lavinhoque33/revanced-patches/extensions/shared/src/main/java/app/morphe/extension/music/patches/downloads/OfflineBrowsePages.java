@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-17.
  * Modified by lavinhoque33, 2026-11-14
  * Modified by lavinhoque33, 2026-11-13
  * Written by lavinhoque33, 2026-11-08.
@@ -86,7 +87,8 @@ public final class OfflineBrowsePages {
 
     /** Whether a page is recorded under the id. In memory, so the main thread may ask; false until loaded. */
     static boolean has(String pageId) {
-        return ids.contains(pageId);
+        OfflineSourceStore.Source source = OfflineCopyStore.source(pageId);
+        return (source != null && source.browsePage() != null) || ids.contains(pageId);
     }
 
     /** Canonical playback playlist of a saved album page, when its recorded response established the mapping. */
@@ -128,6 +130,16 @@ public final class OfflineBrowsePages {
     /** The recorded page under the id, or null when there is none or it cannot be read. */
     @Nullable
     static byte[] read(String pageId) {
+        OfflineSourceStore.Source source = OfflineCopyStore.source(pageId);
+        if (source != null && source.browsePage() != null) {
+            try {
+                return OfflineCopyStore.readPlaylistPage(pageId);
+            } catch (IOException ex) {
+                Logger.printException(() -> "OfflineBrowsePages: could not read synced page " + pageId, ex);
+                return null;
+            }
+        }
+
         if (!ids.contains(pageId) || !OfflineBrowsePagesLogic.isFileSafe(pageId)) return null;
 
         try {

@@ -1,28 +1,24 @@
 package io.github.jordanwoodson.patches.kick.playback
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
-import com.android.tools.smali.dexlib2.iface.reference.FieldReference
-import com.android.tools.smali.dexlib2.iface.reference.MethodReference
-import io.github.jordanwoodson.patches.kick.player.ActivityResumeFingerprint
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import io.github.jordanwoodson.patches.kick.player.ApplyPipParamsFingerprint
 import io.github.jordanwoodson.patches.kick.player.KICK_PLAYER
-import io.github.jordanwoodson.patches.kick.player.ShouldRunAudioServiceFingerprint
-import io.github.jordanwoodson.patches.kick.player.UpdatePipParamsFingerprint
-import io.github.jordanwoodson.patches.kick.player.UserLeaveHintFingerprint
+import io.github.jordanwoodson.patches.kick.player.PlayerViewSetAutoEnterPipFingerprint
+import io.github.jordanwoodson.patches.kick.player.StaysActiveInBackgroundFingerprint
 import io.github.jordanwoodson.patches.kick.settings.kickMatch
 import io.github.jordanwoodson.patches.kick.settings.kickSettings
 import io.github.jordanwoodson.patches.kick.settings.kickSettingsPatch
 import io.github.jordanwoodson.patches.kick.shared.Constants.COMPATIBILITY_KICK
-import io.github.jordanwoodson.patches.shared.bridge
+import io.github.jordanwoodson.patches.shared.invokeStatic
+import io.github.jordanwoodson.patches.shared.parameterRegister
 import io.github.jordanwoodson.patches.shared.settings.Section
 import io.github.jordanwoodson.patches.shared.settings.SwitchSetting
-import io.github.jordanwoodson.patches.shared.settings.requireLocals
 
 @Suppress("unused")
 val backgroundAudioPatch = bytecodePatch(
@@ -35,68 +31,42 @@ val backgroundAudioPatch = bytecodePatch(
     dependsOn(kickSettingsPatch)
 
     execute {
-        // Kick already plays audio with the screen locked and in picture-in-picture, through its media-playback
-        // foreground service. Leaving without picture-in-picture starts nothing, so the audio stops once the
-        // app is frozen. Start the service while Kick is still in front, so Android allows it.
-        UserLeaveHintFingerprint.kickMatch("MainActivity.onUserLeaveHint").method.apply {
-            val superCall = implementation!!.instructions.singleOrNull { it.opcode == Opcode.INVOKE_SUPER }
-                ?: throw PatchException("Kick: onUserLeaveHint no longer calls its superclass once")
-            val reference = (superCall as ReferenceInstruction).reference as MethodReference
-            requireLocals(1)
-            addInstructionsWithLabels(0, """
-                invoke-static/range { p0 .. p0 }, $KICK_PLAYER->onUserLeaveHint(Landroid/app/Activity;)Z
-                move-result v0
-                if-eqz v0, :kick_pip
-                invoke-super/range { p0 .. p0 }, $reference
-                return-void
-            """, ExternalLabel("kick_pip", getInstruction(0)))
-        }
-
-        // On Android 12 and later Kick also lets the system enter picture-in-picture on its own when you leave
-        // (auto-enter in the window's picture-in-picture parameters). Kick's own picture-in-picture button enters
-        // it directly and keeps working.
-        UpdatePipParamsFingerprint.kickMatch("player view updatePipParams").method.addInstructions(0, """
-            invoke-static/range { p1 .. p1 }, $KICK_PLAYER->autoEnterPip(Z)Z
-            move-result p1
-        """)
-
-        // Kick stops the service whenever its rule (locked screen or picture-in-picture) no longer holds: on each
-        // player state change, on unlock and on resume. Keep it while Kick was left playing.
-        ShouldRunAudioServiceFingerprint.kickMatch("shouldRunAudioService").method.apply {
-            val isPlaying = getInstruction(0)
-            val field = (isPlaying as? ReferenceInstruction)?.reference as? FieldReference
-            if (isPlaying.opcode != Opcode.SGET_BOOLEAN || field?.name != "isPlaying") {
-                throw PatchException("Kick: shouldRunAudioService no longer starts with isPlaying")
+        // Kick's player keeps playing in the background, with its media notification and playback service, while its
+        // staysActiveInBackground is set; Kick sets it for its main player. Both places that pause players when Kick
+        // goes to the background (the video manager and the picture-in-picture manager) read it through this getter,
+        // so the switch decides there: on, Kick's value; off, the player pauses when you leave, unless it goes into
+        // picture-in-picture.
+        StaysActiveInBackgroundFingerprint.kickMatch("player staysActiveInBackground").method.apply {
+            val read = getInstruction(0)
+            val field = ((read as? ReferenceInstruction)?.reference)?.toString()
+            if (read.opcode != Opcode.IGET_BOOLEAN || field?.endsWith("->staysActiveInBackground:Z") != true ||
+                getInstruction(1).opcode != Opcode.RETURN) {
+                throw PatchException("Kick: staysActiveInBackground is no longer a plain getter")
             }
-            requireLocals(1)
-            addInstructionsWithLabels(0, """
-                invoke-static { }, $KICK_PLAYER->keepAudio()Z
-                move-result v0
-                if-eqz v0, :kick_rule
-                sget-boolean v0, $field
-                return v0
-            """, ExternalLabel("kick_rule", getInstruction(0)))
+            val value = (read as TwoRegisterInstruction).registerA
+            addInstructions(1, """
+                ${invokeStatic("$KICK_PLAYER->staysActive(Z)Z", value)}
+                move-result v$value
+            """)
         }
 
-        val resume = ActivityResumeFingerprint.kickMatch("KickIvsPlayerV2Manager.onActivityResume").method
-        resume.addInstructions(0, "invoke-static { }, $KICK_PLAYER->onResume()V")
-
-        // The extension reaches the player module through bridges, so it never names Kick's classes.
-        val companion = resume.implementation!!.instructions.mapNotNull {
-            (it as? ReferenceInstruction)?.reference as? FieldReference
-        }.singleOrNull { it.type.endsWith("/AudioService\$Companion;") }
-            ?: throw PatchException("Kick: onActivityResume no longer stops AudioService")
-        bridge(KICK_PLAYER, "startAudioService", """
-            sget-object v0, $companion
-            invoke-virtual { v0, p0 }, ${companion.type}->start(Landroid/content/Context;)V
-            return-void
-        """, locals = 1)
-        bridge(KICK_PLAYER, "isPlaying", """
-            sget-object v0, ${resume.definingClass}->INSTANCE:${resume.definingClass}
-            invoke-virtual { v0 }, ${resume.definingClass}->isPlaying()Z
-            move-result v0
-            return v0
-        """, locals = 1)
+        // Kick lets the system enter picture-in-picture on its own when you leave (auto-enter in the activity's
+        // picture-in-picture parameters, Android 12 and later, which Kick requires), for a player view whose
+        // startsPictureInPictureAutomatically React Native sets. Both places that pause players on leaving leave such a
+        // view playing, expecting the window. So the switch goes in at both: the view's own flag (for players opened
+        // afterwards) and the activity's parameters. Kick's own picture-in-picture button enters it directly and keeps
+        // working.
+        listOf(
+            PlayerViewSetAutoEnterPipFingerprint to "player view setAutoEnterPiP",
+            ApplyPipParamsFingerprint to "player picture-in-picture parameters",
+        ).forEach { (fingerprint, what) ->
+            fingerprint.kickMatch(what).method.apply {
+                addInstructions(0, """
+                    ${invokeStatic("$KICK_PLAYER->autoEnterPip(Z)Z", parameterRegister(1))}
+                    move-result p1
+                """)
+            }
+        }
 
         kickSettings.add(
             SwitchSetting(

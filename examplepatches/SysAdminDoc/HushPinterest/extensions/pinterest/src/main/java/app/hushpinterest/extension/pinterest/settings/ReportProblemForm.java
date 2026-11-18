@@ -9,13 +9,17 @@ package app.hushpinterest.extension.pinterest.settings;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.preference.Preference;
 import android.preference.PreferenceGroup;
 import android.preference.TwoStatePreference;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import app.hushpinterest.extension.shared.L10n;
 import app.hushpinterest.extension.shared.Logger;
@@ -68,14 +72,48 @@ final class ReportProblemForm {
     /** Opens the report in a browser, in a task of its own, or says no app here can. */
     static void open(Context context, PreferenceGroup screen) {
         try {
-            context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(issueUrl(screen)))
-                    .addCategory(Intent.CATEGORY_BROWSABLE)
-                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+            context.startActivity(browserIntent(context, issueUrl(screen)));
         } catch (ActivityNotFoundException | SecurityException missing) {
             // No browser, or none switched on. Uncaught, Android's exception closed Pinterest.
             Logger.printInfo(() -> "No app opened the bug report link");
             Utils.showToastLong(L10n.f("No app can open %1$s.",
                     L10n.isolate(HushPinterestPreferenceFragment.SOURCE_ADDRESS)));
         }
+    }
+
+    /**
+     * GitHub's own app takes github.com links, shows its template list and drops every filled-in
+     * value, so the report is aimed at a browser.
+     */
+    static Intent browserIntent(Context context, String url) {
+        PackageManager packages = context.getPackageManager();
+        // A neutral address finds the browsers, not the app that claims github.com.
+        Intent probe = new Intent(Intent.ACTION_VIEW, Uri.parse("https://example.com/"))
+                .addCategory(Intent.CATEGORY_BROWSABLE);
+        Set<String> browsers = new LinkedHashSet<>();
+        for (ResolveInfo handler : packages.queryIntentActivities(probe, 0)) {
+            if (handler.activityInfo != null && handler.activityInfo.exported
+                    && !context.getPackageName().equals(handler.activityInfo.packageName)) {
+                browsers.add(handler.activityInfo.packageName);
+            }
+        }
+        ResolveInfo preferred = packages.resolveActivity(probe, 0);
+        return route(url, browsers, preferred == null || preferred.activityInfo == null
+                ? null : preferred.activityInfo.packageName);
+    }
+
+    /** The default browser, the only one, or a choice of them. With none found Android decides. */
+    static Intent route(String url, Set<String> browsers, String preferred) {
+        Intent target = new Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                .addCategory(Intent.CATEGORY_BROWSABLE)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        if (browsers.isEmpty()) return target;
+        if (browsers.contains(preferred)) return target.setPackage(preferred);
+        if (browsers.size() == 1) return target.setPackage(browsers.iterator().next());
+        List<Intent> choices = new ArrayList<>();
+        for (String browser : browsers) choices.add(new Intent(target).setPackage(browser));
+        Intent chooser = Intent.createChooser(choices.remove(0), L10n.t("Report a problem"));
+        chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS, choices.toArray(new Intent[0]));
+        return chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
     }
 }

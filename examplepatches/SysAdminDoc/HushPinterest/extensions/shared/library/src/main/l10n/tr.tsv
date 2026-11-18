@@ -236,7 +236,7 @@ Saving a pin plays the sound you picked. Tap to pick another sound or use Pinter
 Saving a pin plays %s. Tap to pick another sound or use Pinterest's again.	Bir pini kaydetmek %s sesini çalar. Başka bir ses seçmek ya da Pinterest'in sesine dönmek için dokun.
 Pick another sound	Başka ses seç
 Use Pinterest's sound again	Yeniden Pinterest'in sesini kullan
-That app won't let Pinterest keep the sound. Pick one saved on the phone.	Bu uygulama Pinterest'in sesi saklamasına izin vermiyor. Telefonda kayıtlı bir ses seç.
+That app can't share the sound. Pick one saved on the phone.	Bu uygulama sesi paylaşmıyor. Telefonda kayıtlı bir ses seç.
 Saving a pin will play the sound you picked.	Bir pini kaydetmek artık seçtiğin sesi çalacak.
 Saving a pin will play %s.	Bir pini kaydetmek artık %s sesini çalacak.
 Saving a pin will play Pinterest's sound again.	Bir pini kaydetmek yeniden Pinterest'in sesini çalacak.
@@ -762,3 +762,62 @@ saved pins in More to explore	"Daha fazlasını keşfet" bölümündeki kayıtl�
 Shop the look under pins	pinlerin altındaki Shop the look bölümü
 Back leaves Home right away	Geri, Ana Sayfa'dan hemen çıkar
 When you've scrolled down Home, Back leaves Pinterest instead of jumping to the top and loading new pins first.	Ana Sayfa'da aşağı kaydırdığında Geri, önce en üste atlayıp yeni pinler yüklemek yerine Pinterest'ten çıkar.
+Hide download toasts	İndirme bildirimlerini gizle
+Downloading a pin no longer shows the message that it started or finished. Errors still show, and Android's own download notification stays.	Bir pini indirirken başladığını veya bittiğini söyleyen mesaj artık görünmez. Hatalar yine gösterilir ve Android'in kendi indirme bildirimi kalır.
+Black toasts	Siyah bildirimler
+In dark mode, paints the messages Pinterest pops up, such as the one after you save or download a pin, pure black. Light mode stays as it is. The change shows on the next message.	Karanlık modda, bir pini kaydettikten veya indirdikten sonra çıkan gibi Pinterest mesajlarını tam siyaha boyar. Açık mod olduğu gibi kalır. Değişiklik bir sonraki mesajda görünür.
+Hide Home tabs	Ana sayfa sekmelerini gizle
+Takes the row of tabs, All and your board names, off the top of Home. The change shows the next time Home updates.	Tümü ve pano adlarının bulunduğu sekme satırını Ana sayfanın üstünden kaldırır. Değişiklik Ana sayfa bir sonraki güncellenişinde görünür.
+Blank Search page	Boş Arama sayfası
+Leaves only the search bar on the Search page, with nothing under it. Searching works as usual. The change shows the next time the page updates.	Ara sayfasında yalnızca arama çubuğunu bırakır, altında hiçbir şey kalmaz. Arama her zamanki gibi çalışır. Değişiklik sayfa bir sonraki güncellenişinde görünür.
+Second Search tap opens the keyboard	Ara'ya ikinci dokunuş klavyeyi açar
+On the Search page, pressing Search in the bottom bar again puts the cursor in the search bar and opens the keyboard.	Ara sayfasındayken alt çubuktaki Ara'ya yeniden basmak imleci arama çubuğuna getirir ve klavyeyi açar.
+Hide pin menu rows	Pin menüsü satırlarını gizle
+Hides the rows you pick below from pin menus you open from now on. A menu that's already open won't change.	Aşağıda seçtiğin satırları bundan sonra açtığın pin menülerinden gizler. Zaten açık olan menü değişmez.
+Pick pin menu rows	Pin menüsü satırlarını seç
+Pick the rows to take out of a pin's menu.	Bir pinin menüsünden kaldırılacak satırları seç.
+Hidden from pin menus: %s. Tap to change.	Pin menülerinde gizli: %s. Değiştirmek için dokun.
+Picked: %s. Hide pin menu rows is off, so they still show.	Seçilenler: %s. Pin menüsü satırlarını gizle kapalı, bu yüzden hâlâ görünüyorlar.
+Why you're seeing this pin	Bu pini neden görüyorsun
+Customize board tabs	Pano sekmelerini özelleştir
+Board tab header	Pano sekmesi başlığı
+Hide See board on board tabs	Pano sekmelerinde Panoyu gör düğmesini gizle
+Takes the See board button off the picture at the top of a board tab on Home. The change shows the next time the tab opens.	Ana sayfadaki pano sekmesinin üstündeki resimden Panoyu gör düğmesini kaldırır. Değişiklik sekme bir sonraki açılışında görünür.
+Hide More ideas for on board tabs	Pano sekmelerinde daha fazla fikir yazısını gizle
+Takes More ideas for and any other small text off that picture, so only the board name is left. The change shows the next time the tab opens.	Bu resimden daha fazla fikir yazısını ve diğer küçük yazıları kaldırır, yalnızca pano adı kalır. Değişiklik sekme bir sonraki açılışında görünür.
+Board name position	Pano adının konumu
+%s. Moves the board name on the picture at the top of a board tab on Home. The change shows the next time the tab opens.	%s. Ana sayfadaki pano sekmesinin üstündeki resimde pano adını taşır. Değişiklik sekme bir sonraki açılışında görünür.
+Where Pinterest puts it	Pinterest'in koyduğu yer
+Top left	Sol üst
+Top center	Üst orta
+Middle	Orta
+Bottom center	Alt orta
+Bottom right	Sağ alt
+Board tab covers	Pano sekmesi kapakları
+Board tab cover	Pano sekmesi kapağı
+Choose board tab covers	Pano sekmesi kapaklarını seç
+Long-press the picture at the top of a board tab on Home to keep it, use a pin or a photo, or go black.	Ana sayfadaki pano sekmesinin üstündeki resme uzun basarak onu koruyabilir, bir pin veya fotoğraf kullanabilir ya da siyah yapabilirsin.
+Keep this picture	Bu resmi koru
+Pin from this board	Bu panodan pin
+Image from phone	Telefondan resim
+No image	Resim yok
+Pinterest's choice	Pinterest'in seçimi
+Use as tab cover	Sekme kapağı yap
+Open a pin's menu and pick Use as tab cover.	Pin menüsünde Sekme kapağı yap seçeneğini seç.
+Board tab cover set.	Kapak ayarlandı.
+That file couldn't be read as a picture.	Bu dosya resim olarak okunamadı.
+Hide pin author	Pin sahibini gizle
+Removes the creator's whole row, picture and name included, from under a pin you open. The change shows on the next pin you open.	Açtığın pinin altındaki içerik üreticisi satırını, fotoğrafı ve adıyla birlikte tamamen kaldırır. Değişiklik açtığın bir sonraki pinde görünür.
+Hide pin title and description	Pin başlığını ve açıklamasını gizle
+Removes the title and description under a pin you open. The likes and comments bar stays, and so do the posted date and image size when they're on. The change shows on the next pin you open.	Açtığın pinin altındaki başlığı ve açıklamayı kaldırır. Beğeni ve yorum çubuğu kalır, açıksa paylaşım tarihi ve görsel boyutu da kalır. Değişiklik açtığın bir sonraki pinde görünür.
+Show image size	Görsel boyutunu göster
+Shows a picture's width and height under it when you open a pin, beside the posted date when that's on. It reads the largest copy Pinterest sends the app, which can be smaller than the original upload. Videos show nothing. The change shows on the next pin you open.	Bir pin açtığında görselin genişliğini ve yüksekliğini altında, açıksa paylaşım tarihinin yanında gösterir. Pinterest'in uygulamaya gönderdiği en büyük kopyayı okur, bu kopya yüklenen orijinalden küçük olabilir. Videolarda hiçbir şey görünmez. Değişiklik açtığın bir sonraki pinde görünür.
+Hide blue highlight ring	Mavi vurgu halkasını gizle
+# context: Pin page switch. Save is Pinterest's own Save button, under its label in this language.
+Stops the thick blue ring Pinterest draws over buttons such as Save to point out a feature.	Pinterest'in bir özelliği göstermek için Kaydet gibi düğmelerin üzerine çizdiği kalın mavi halkayı durdurur.
+Hide visual search thumbnails	Görsel arama küçük resimlerini gizle
+Keeps a pin's lens button plain, without the little stack of cropped pictures Pinterest puts on it. The change shows on the next pin you open.	Pinin mercek düğmesini sade bırakır, Pinterest'in üstüne koyduğu küçük kırpılmış görsel yığını görünmez. Değişiklik açtığın bir sonraki pinde görünür.
+Fold related pins	İlgili pinleri daralt
+Puts an arrow under a pin you open. Related pins stay folded and don't load until you tap it, and tapping again folds them. Your last choice is kept. Hide related pins wins when both are on. The change shows on the next pin you open.	Açtığın pinin altına bir ok koyar. İlgili pinler daraltılmış kalır ve oka dokunana kadar yüklenmez, tekrar dokunmak onları yine daraltır. Son seçimin saklanır. İkisi de açıksa İlgili pinleri gizle geçerli olur. Değişiklik açtığın bir sonraki pinde görünür.
+# context: what a screen reader says for the arrow under a pin while its related pins are folded
+Show related pins	İlgili pinleri göster

@@ -4,7 +4,7 @@ Questions about setting up, or about whether a Facebook build works, go in [Disc
 
 ## Unsupported Version
 
-Manager shows this before it patches, usually with "This is a different build of the same version". Facebook 587.0.0.39.55 comes in several builds, each compiled separately, and Hushfacebook declares only the two its patches are checked against, 707414333 for 64-bit phones and 707414338 for 32-bit ones. Download one of those as [Install](../README.md#install) describes and the warning goes away. **Proceed anyway** patches the build you have, but other builds haven't been tried, and if a patch can't find what it changes, patching stops and names it. The same check is why Manager won't offer the Facebook you installed from Google Play unless it's that exact build.
+Manager shows this before it patches, usually with "This is a different build of the same version". Facebook 588.0.0.42.55 comes in several builds, each compiled separately, and Hushfacebook declares only the two its patches are checked against, 707615136 for 64-bit phones and 707615135 for 32-bit ones. Download one of those as [Install](../README.md#install) describes and the warning goes away. **Proceed anyway** patches the build you have, but other builds haven't been tried, and if a patch can't find what it changes, patching stops and names it. The same check is why Manager won't offer the Facebook you installed from Google Play unless it's that exact build.
 
 ## Patching stops on one patch
 
@@ -71,6 +71,12 @@ A patched Facebook can't install Meta's updates, so it stays on the version you 
 ## Signing in keeps going back to verification
 
 Some people get through the password and then land on a browser or Google verification that keeps coming back, even after they approve it. So far it's been accounts with a passkey. What got them in: sign in to facebook.com in a browser, remove the passkey in Accounts Center under Password and security, then sign in on the patched app again. Facebook then asks you to approve the login from another device, and that goes through. A patched Messenger that loops the same way gets in after the same change.
+
+## Facebook through VLESS or another proxy
+
+**In-app proxy** under Privacy sends Facebook's connections through an HTTP proxy, so you don't have to put the whole phone on a VPN. For VLESS, VMess, Trojan or Shadowsocks, add your server to a proxy app like v2rayNG, set its mode to **Proxy only** and connect. Then type `127.0.0.1:10808` in **In-app proxy** and restart Facebook. That's v2rayNG's local port, and it takes HTTP as well as SOCKS. In another app, use the local HTTP or mixed port it shows.
+
+Facebook can't connect while the proxy app is off, so clear the row when you want your phone's normal connection back. Messenger and Instagram are separate apps. v2rayNG's **Per-app proxy** can send just those two through VLESS.
 
 ## Facebook keeps closing
 

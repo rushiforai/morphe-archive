@@ -11,18 +11,22 @@ import android.view.View;
 
 /**
  * Wires a "Loki Patches" row into an app's own navigation drawer. The drawer item class of the host
- * app is obfuscated, so everything is done through reflection with names supplied at patch time.
- * Every failure is swallowed: a renamed host class only costs the row, never the app.
+ * app is obfuscated, so everything is done through reflection with the names the patch read out of
+ * this build. Every failure is swallowed: a renamed host class only costs the row, never the app.
  */
 public final class DrawerSupport {
     /** Filled in by the patch so the helper matches this build of the app. */
     public static String itemClass;      // the drawer item class, e.g. "bn7"
-    public static String iconClass;      // e.g. "f00", its x(Icon2, int, int) builds a font icon
+    public static String iconClass;      // e.g. "f00", its builder turns an Icon2 + two colours into a glyph
     public static String iconEnumClass;  // e.g. "...CommunityMaterial$Icon2"
     public static String iconEnumValue;  // e.g. "cmd_shield_outline"
     public static String stringRes;      // app resource name of the row label
     public static String iconRes1;       // app color resource for the icon
     public static String iconRes2;       // app color resource for the icon glyph
+    /** Method names read from the same build; each falls back to the last known name when unset. */
+    public static String labelMethod;    // item.<label>(int) sets the row label
+    public static String iconMethod;     // iconClass.<glyph>(IIcon, int, int) builds the glyph
+    public static String iconSetter;     // super.<iconSetter>(glyph) puts it on the row
     public static long identifier = 7331L; // must stay in sync with the patch's click hook
 
     private DrawerSupport() {
@@ -42,8 +46,8 @@ public final class DrawerSupport {
             if (name == 0) {
                 return null;
             }
-            // hi0.g(int): the row label.
-            item.getMethod("g", int.class).invoke(row, name);
+            // The row label: item.<label>(int).
+            callLabel(item, row, name);
 
             if (iconClass != null && iconEnumClass != null && iconEnumValue != null) {
                 try {
@@ -51,30 +55,15 @@ public final class DrawerSupport {
                     Object icon = Enum.valueOf((Class<? extends Enum>) enumClass.asSubclass(Enum.class), iconEnumValue);
                     int color1 = id(context, iconRes1, "color");
                     int color2 = id(context, iconRes2, "color");
-                    // f00.x takes the IIcon interface, not the enum class, so match by name and arity.
-                    Object glyph = null;
-                    for (java.lang.reflect.Method m : Class.forName(iconClass).getMethods()) {
-                        if (m.getName().equals("x") && m.getParameterCount() == 3
-                                && m.getParameterTypes()[0].isInstance(icon)) {
-                            glyph = m.invoke(null, icon, color1, color2);
-                            break;
-                        }
-                    }
-                    // hi0.f(ro4): the row icon.
-                    for (java.lang.reflect.Method m : item.getSuperclass().getMethods()) {
-                        if (m.getName().equals("f") && m.getParameterCount() == 1
-                                && m.getParameterTypes()[0].isInstance(glyph)) {
-                            m.invoke(row, glyph);
-                            break;
-                        }
-                    }
+                    Object glyph = buildGlyph(icon, color1, color2);
+                    setIcon(item, row, glyph);
                 } catch (Exception e) {
                     // A row without an icon is fine; log why for debugging.
                     android.util.Log.e("LokiDrawer", "icon", e);
                 }
             }
 
-            // f3.a: the row identifier; f3.c=false keeps it unselectable like the other rows.
+            // The row identifier lives on the item's own fields; the selection flag keeps it unselectable.
             java.lang.reflect.Field idField = null;
             for (Class<?> c = item; c != null && idField == null; c = c.getSuperclass()) {
                 try {
@@ -95,6 +84,85 @@ public final class DrawerSupport {
             return row;
         } catch (Exception e) {
             return null;
+        }
+    }
+
+    /** item.&lt;label&gt;(int): the configured name first, then any single-int setter. */
+    private static void callLabel(Class<?> item, Object row, int name) {
+        String configured = labelMethod == null ? "g" : labelMethod;
+        for (Class<?> c = item; c != null; c = c.getSuperclass()) {
+            for (java.lang.reflect.Method m : c.getMethods()) {
+                if (m.getName().equals(configured) && m.getParameterCount() == 1
+                        && m.getParameterTypes()[0] == int.class) {
+                    try {
+                        m.invoke(row, name);
+                    } catch (Exception ignored) {
+                    }
+                    return;
+                }
+            }
+        }
+    }
+
+    /** iconClass.&lt;glyph&gt;(IIcon, int, int): the configured name first, then any static 3-arg builder. */
+    private static Object buildGlyph(Object icon, int color1, int color2) {
+        String configured = iconMethod == null ? "x" : iconMethod;
+        Class<?> cls;
+        try {
+            cls = Class.forName(iconClass);
+        } catch (Exception e) {
+            return null;
+        }
+        java.lang.reflect.Method fallback = null;
+        for (java.lang.reflect.Method m : cls.getMethods()) {
+            if (m.getParameterCount() != 3 || !m.getParameterTypes()[0].isInstance(icon)) {
+                continue;
+            }
+            if (m.getName().equals(configured)) {
+                try {
+                    return m.invoke(null, icon, color1, color2);
+                } catch (Exception ignored) {
+                    return null;
+                }
+            }
+            fallback = m;
+        }
+        if (fallback != null) {
+            try {
+                return fallback.invoke(null, icon, color1, color2);
+            } catch (Exception ignored) {
+            }
+        }
+        return null;
+    }
+
+    /** super.&lt;iconSetter&gt;(glyph): the configured name first, then any single-argument setter that takes the glyph. */
+    private static void setIcon(Class<?> item, Object row, Object glyph) {
+        if (glyph == null) {
+            return;
+        }
+        String configured = iconSetter == null ? "f" : iconSetter;
+        java.lang.reflect.Method fallback = null;
+        for (Class<?> c = item; c != null; c = c.getSuperclass()) {
+            for (java.lang.reflect.Method m : c.getMethods()) {
+                if (m.getParameterCount() != 1 || !m.getParameterTypes()[0].isInstance(glyph)) {
+                    continue;
+                }
+                if (m.getName().equals(configured)) {
+                    try {
+                        m.invoke(row, glyph);
+                    } catch (Exception ignored) {
+                    }
+                    return;
+                }
+                fallback = m;
+            }
+        }
+        if (fallback != null) {
+            try {
+                fallback.invoke(row, glyph);
+            } catch (Exception ignored) {
+            }
         }
     }
 

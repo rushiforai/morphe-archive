@@ -602,6 +602,8 @@ public class SettingsStatus {
     public static void enableNoLoginRequirement() { noLoginRequirementEnabled = true; }
     public static boolean googleLoginFixEnabled = false;
     public static void enableGoogleLoginFix() { googleLoginFixEnabled = true; }
+    public static boolean searchTabNameFixEnabled = false;
+    public static void enableSearchTabNameFix() { searchTabNameFixEnabled = true; }
     public static boolean commentPublishDiagnosticsEnabled = false;
     public static void enableCommentPublishDiagnostics() { commentPublishDiagnosticsEnabled = true; }
     public static boolean commentSendFixEnabled = false;

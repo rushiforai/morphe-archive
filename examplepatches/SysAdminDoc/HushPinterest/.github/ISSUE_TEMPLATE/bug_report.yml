@@ -73,6 +73,7 @@ body:
         - Change package name
         - Custom save sound
         - Custom splash logo
+        - Customize board tabs
         - Disable analytics
         - Disable update nag
         - Download board
@@ -81,17 +82,21 @@ body:
         - Filter pin menu
         - Expand board list
         - Fix push notifications
+        - Fold related pins
         - GmsCore support
         - Hide AI-labeled pins
         - Hide ads
         - Hide advertising ID
         - Hide Assistant
+        - Hide blue highlight ring
         - Hide closeup buttons
         - Hide comments
         - Hide creator name on pins
         - Hide header buttons
         - Hide Inbox updates
         - Hide navigation buttons
+        - Hide pin author
+        - Hide pin title and description
         - Hide pop-up banners
         - Hide related pins
         - Hide save toasts
@@ -100,6 +105,7 @@ body:
         - Hide suggested boards
         - Hide survey prompts
         - Hide topic suggestions
+        - Hide visual search thumbnails
         - HushPinterest settings
         - Keep Home feed
         - Long-press download
@@ -108,6 +114,7 @@ body:
         - Original-quality images
         - Quiet email reminders
         - Remove ad tracking permissions
+        - Show image size
         - Show posted date
         - Spoof signature for Google sign-in
         - Strip link tracking

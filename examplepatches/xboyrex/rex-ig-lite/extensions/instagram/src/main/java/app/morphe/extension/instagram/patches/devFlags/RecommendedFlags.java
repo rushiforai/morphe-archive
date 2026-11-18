@@ -6,7 +6,6 @@
 
 package app.morphe.extension.instagram.patches.devFlags;
 
-import android.app.Activity;
 import android.content.Context;
 
 import org.json.JSONArray;
@@ -19,7 +18,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -29,6 +27,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import app.morphe.extension.instagram.constants.Constants;
 import app.morphe.extension.instagram.settings.RestartPolicy;
 import app.morphe.extension.instagram.settings.SettingRegistry;
+import app.morphe.extension.instagram.settings.SettingsActivity;
 import app.morphe.extension.instagram.settings.SettingsRestart;
 import app.morphe.extension.instagram.settings.preference.widgets.RexDialogs;
 import app.morphe.extension.instagram.utils.InstaUtils;
@@ -142,13 +141,6 @@ public class RecommendedFlags {
         return new JSONArray();
     }
 
-    /**
-     * Parses and validates a JSONArray of Recommended Flag definitions:
-     * - Detects missing name/code keys
-     * - Detects duplicate code identifiers
-     * - Validates "bool" and "long" types and reports unknown types
-     * - Registers each flag's StringSetting with SettingRegistry
-     */
     public static ValidationReport parseAndValidate(JSONArray arr) {
         ValidationReport report = new ValidationReport();
         if (arr == null) return report;
@@ -209,12 +201,11 @@ public class RecommendedFlags {
 
     /**
      * Dedicated transactional controller for "Enable All Recommended Flags":
-     * - Never registers or marks "rex_rec_flags_enable_all" as a BooleanSetting (eliminating the SettingRegistry crash).
-     * - Validates all Boolean flags, preserves Long/numeric flags, and snapshots state for atomic rollback on failure.
-     * - Calculates the strongest RestartPolicy across changed flags and marks each modified flag with its explicit RestartPolicy.
-     * - Prompts the user if a restart is required and refreshes the screen.
+     * - Refreshes the PreferenceScreen in-place via SettingsActivity.refreshCurrentScreen(context)
+     *   WITHOUT calling activity.recreate() before showing the confirmation dialog (fixes 23487.png blur & missing Restart button).
      */
     public static BulkActionResult enableAllBooleanFlagsTransactionally(Context context, Runnable onScreenRefresh) {
+        RexDialogs.clearActivityBlur(context);
         Map<String, String> snapshot = FlagsSharedPref.snapshotRawStrings();
         try {
             JSONArray arr = readFlagsFromFileDir(false);
@@ -251,7 +242,7 @@ public class RecommendedFlags {
             }
             HookFlags.load();
 
-            RestartPolicy strongest = changed > 0 ? RestartPolicy.REQUIRED : RestartPolicy.NOT_REQUIRED;
+            RestartPolicy strongest = (changed > 0 || alreadyEnabled > 0) ? RestartPolicy.REQUIRED : RestartPolicy.NOT_REQUIRED;
             for (Map.Entry<String, String> entry : stagedChanges.entrySet()) {
                 SettingsRestart.markChanged(
                         entry.getKey(),
@@ -273,18 +264,21 @@ public class RecommendedFlags {
             }
             Utils.showToastShort(msg);
 
-            if (onScreenRefresh != null) {
+            // Refresh screen in-place without recreating Activity so the Restart dialog stays visible & unblurred
+            if (!SettingsActivity.refreshCurrentScreen(context) && onScreenRefresh != null && strongest == RestartPolicy.NOT_REQUIRED) {
                 onScreenRefresh.run();
             }
-            if (strongest == RestartPolicy.REQUIRED && context != null) {
-                final String dialogSummary = msg + ".\n\nRestart InstaRex now to apply all " + (changed + alreadyEnabled) + " active Recommended Flags to the current session?";
+            RexDialogs.clearActivityBlur(context);
+            if (context != null) {
+                final String dialogSummary = msg + ".\n\nTap 'Restart Now' below (or use the bottom Restart bar) to apply all "
+                        + (changed + alreadyEnabled) + " active Recommended Flags to this session.";
                 RexDialogs.showConfirmDialog(
                         context,
                         "Recommended Flags Applied",
                         dialogSummary,
                         "Restart Now",
                         false,
-                        () -> Utils.restartApp(context)
+                        () -> SettingsRestart.restartNow(context)
                 );
             }
             return new BulkActionResult(true, report.booleanCount, changed, alreadyEnabled, report.longCount, skipped, strongest, msg);
@@ -295,18 +289,15 @@ public class RecommendedFlags {
                 HookFlags.load();
             } catch (Throwable ignored) {
             }
+            RexDialogs.clearActivityBlur(context);
             String err = "Failed to enable all flags — rolled back to previous state";
             Utils.showToastShort(err);
             return new BulkActionResult(false, 0, 0, 0, 0, 0, RestartPolicy.NOT_REQUIRED, err);
         }
     }
 
-    /**
-     * Dedicated transactional controller for "Reset All Flags to Default":
-     * - Snapshots existing overrides for rollback safety.
-     * - Clears all Boolean and Long overrides back to Default and reloads HookFlags.
-     */
     public static BulkActionResult resetAllFlagsTransactionally(Context context, Runnable onScreenRefresh) {
+        RexDialogs.clearActivityBlur(context);
         Map<String, String> snapshot = FlagsSharedPref.snapshotRawStrings();
         try {
             int activeBefore = snapshot.size();
@@ -329,9 +320,11 @@ public class RecommendedFlags {
                     ? ("Reset " + activeBefore + " flag overrides back to Default")
                     : "All Recommended Flags are already at Default";
             Utils.showToastShort(msg);
-            if (onScreenRefresh != null) {
+
+            if (!SettingsActivity.refreshCurrentScreen(context) && onScreenRefresh != null && strongest == RestartPolicy.NOT_REQUIRED) {
                 onScreenRefresh.run();
             }
+            RexDialogs.clearActivityBlur(context);
             if (strongest == RestartPolicy.REQUIRED && context != null) {
                 RexDialogs.showConfirmDialog(
                         context,
@@ -339,7 +332,7 @@ public class RecommendedFlags {
                         msg + ".\n\nRestart InstaRex now to restore default behavior?",
                         "Restart Now",
                         true,
-                        () -> Utils.restartApp(context)
+                        () -> SettingsRestart.restartNow(context)
                 );
             }
             return new BulkActionResult(true, 0, activeBefore, 0, 0, 0, strongest, msg);
@@ -350,16 +343,13 @@ public class RecommendedFlags {
                 HookFlags.load();
             } catch (Throwable ignored) {
             }
+            RexDialogs.clearActivityBlur(context);
             String err = "Failed to reset flags — rolled back to previous state";
             Utils.showToastShort(err);
             return new BulkActionResult(false, 0, 0, 0, 0, 0, RestartPolicy.NOT_REQUIRED, err);
         }
     }
 
-    /**
-     * Atomically imports either a Recommended Flags catalog JSONArray (e.g. rex_recommended_flags_v3.json)
-     * or a Recommended Flags state JSONObject, with backup & rollback on failure.
-     */
     public static boolean importRecommendedFlagsJson(String jsonContent) {
         if (jsonContent == null || jsonContent.trim().isEmpty()) return false;
         Map<String, String> snapshot = FlagsSharedPref.snapshotRawStrings();
@@ -386,7 +376,6 @@ public class RecommendedFlags {
                         throw new IllegalStateException("Failed atomic replace of recommended_flags.json");
                     }
                 }
-                // Apply any explicit "state" or "value" fields included in the catalog entries
                 for (int i = 0; i < arr.length(); i++) {
                     JSONObject item = arr.optJSONObject(i);
                     if (item == null) continue;
@@ -435,8 +424,8 @@ public class RecommendedFlags {
     }
 
     private static void copyFile(File src, File dst) throws Exception {
-        try ( java.io.FileInputStream in = new java.io.FileInputStream(src);
-              FileOutputStream out = new FileOutputStream(dst)) {
+        try (java.io.FileInputStream in = new java.io.FileInputStream(src);
+             FileOutputStream out = new FileOutputStream(dst)) {
             byte[] buf = new byte[8192];
             int n;
             while ((n = in.read(buf)) != -1) out.write(buf, 0, n);

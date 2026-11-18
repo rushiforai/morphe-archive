@@ -1,9 +1,9 @@
 <!-- HEADER_START -->
 # <img src="../../assets/icons/com.mxtech.videoplayer.pro.png" width="36" height="36" align="top" alt=""> MX Player Pro
 
-![version](https://img.shields.io/badge/version-1.93.4-2563eb?style=for-the-badge&labelColor=0d1117) ![patches](https://img.shields.io/badge/patches-2-14b8a6?style=for-the-badge&labelColor=0d1117) ![file](https://img.shields.io/badge/file-APK-0ea5e9?style=for-the-badge&labelColor=0d1117) ![menu](https://img.shields.io/badge/menu-Settings-6e7681?style=for-the-badge&labelColor=0d1117)
+![version](https://img.shields.io/badge/version-1.93.4-2563eb?style=for-the-badge&labelColor=0d1117) ![patches](https://img.shields.io/badge/patches-3-14b8a6?style=for-the-badge&labelColor=0d1117) ![file](https://img.shields.io/badge/file-APK-0ea5e9?style=for-the-badge&labelColor=0d1117) ![menu](https://img.shields.io/badge/menu-Settings-6e7681?style=for-the-badge&labelColor=0d1117)
 
-[← All apps](../../README.md#apps)&nbsp;&nbsp;•&nbsp;&nbsp;`com.mxtech.videoplayer.pro`&nbsp;&nbsp;•&nbsp;&nbsp;[v3.2.1](https://github.com/lokesh-sparrow/loki-patches/releases/tag/v3.2.1)
+[← All apps](../../README.md#apps)&nbsp;&nbsp;•&nbsp;&nbsp;`com.mxtech.videoplayer.pro`&nbsp;&nbsp;•&nbsp;&nbsp;[v3.3.0](https://github.com/lokesh-sparrow/loki-patches/releases/tag/v3.3.0)
 
 **🎯 Supported versions:** `1.93.4`
 <!-- HEADER_END -->
@@ -14,6 +14,7 @@
 |---|---|
 | 💎 **Pro, licensed** | The Google Play licence check is skipped, so a patched copy never locks itself |
 | 🎞️ **All codecs** | AC3, E-AC3, DTS, DTS-HD, TrueHD and MLP audio play: the custom codec 1.87.0 is fetched while patching, checked, and written into the app in place of MX's stripped decoder |
+| 🔑 **Google Drive sign-in** | Through MicroG-RE (optional patch) |
 
 ## How-to
 
@@ -70,5 +71,6 @@ No. The patches target MX Player Pro (`com.mxtech.videoplayer.pro`).
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |---|---|---|
 | **All codecs** | Replaces MX Player's stripped decoder with the custom codec 1.87.0, so AC3, E-AC3, DTS, DTS-HD, TrueHD and MLP audio play. The codec is downloaded while patching from USBhost's public MX_FFmpeg release and checked against its SHA-256, then written into the app: nothing to set up afterwards. | • Codec file |
+| **GmsCore support (MX Player Pro)** | Routes Google sign-in and Google Drive through MicroG-RE (GmsCore) instead of Google Play services, so MX Player Pro can sign in to Google Drive on a re-signed build. MicroG-RE has to be installed and signed in to a Google account. |  |
 | **Skip license check** | MX Player Pro asks Google Play to confirm the purchase and locks itself when the answer is missing, which is always the case for a patched copy. The check is skipped and the app counts as licensed. |  |
 <!-- PATCHES_END -->

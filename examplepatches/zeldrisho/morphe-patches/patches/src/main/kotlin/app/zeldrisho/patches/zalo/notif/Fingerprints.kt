@@ -17,6 +17,20 @@ import com.android.tools.smali.dexlib2.Opcode
  * pinned to this exact version via COMPATIBILITY_ZALO — re-verify per update.
  */
 
+// Experimental target: 26.11.01 is advertised but not fully device-qualified.
+internal object StoryChannelArm261101 : Fingerprint(
+    definingClass = "Lkbu;", name = "k0", accessFlags = listOf(AccessFlags.PUBLIC),
+    returnType = "V", parameters = emptyList(),
+    filters = listOf(string("EXTRA_KEY_TYPE"),
+        fieldAccess(definingClass = "Lpbu;", name = "SOCIAL_STORY", type = "Lpbu;"), opcode(Opcode.GOTO_16)),
+)
+internal object VideoChannelArm261101 : Fingerprint(
+    definingClass = "Lkbu;", name = "k0", accessFlags = listOf(AccessFlags.PUBLIC),
+    returnType = "V", parameters = emptyList(),
+    filters = listOf(string("EXTRA_KEY_TYPE"),
+        fieldAccess(definingClass = "Lpbu;", name = "ZALO_VIDEO", type = "Lpbu;"), opcode(Opcode.GOTO)),
+)
+
 /** Timeline/Stories notification arm in Zalo 26.10.02. */
 internal object StoryChannelArm261002 : Fingerprint(
     definingClass = "Lj00/j;", name = "k0",

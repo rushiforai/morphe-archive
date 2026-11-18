@@ -594,8 +594,7 @@ AV1 視訊播放可能會卡頓或丟格"</string>
     <string name="revanced_change_start_page_entry_fashion">時尚&amp;美妝</string>
     <string name="revanced_change_start_page_entry_gaming">遊戲</string>
     <string name="revanced_change_start_page_entry_history">歷史記錄</string>
-    <string name="revanced_change_start_page_entry_hype">熱門</string>
-    <string name="revanced_change_start_page_entry_library">媒體庫</string>
+    <string name="revanced_change_start_page_entry_library">個人中心</string>
     <string name="revanced_change_start_page_entry_liked_videos">喜歡的影片</string>
     <string name="revanced_change_start_page_entry_live">直播</string>
     <string name="revanced_change_start_page_entry_movies">電影</string>
@@ -603,13 +602,11 @@ AV1 視訊播放可能會卡頓或丟格"</string>
     <string name="revanced_change_start_page_entry_news">新聞</string>
     <string name="revanced_change_start_page_entry_notifications">通知</string>
     <string name="revanced_change_start_page_entry_playlists">播放清單</string>
-    <string name="revanced_change_start_page_entry_podcasts">播客</string>
     <string name="revanced_change_start_page_entry_search">搜尋</string>
     <string name="revanced_change_start_page_entry_shopping">購物</string>
     <string name="revanced_change_start_page_entry_shorts">Shorts</string>
     <string name="revanced_change_start_page_entry_sports">運動</string>
     <string name="revanced_change_start_page_entry_subscriptions">訂閱內容</string>
-    <string name="revanced_change_start_page_entry_trending">發燒影片</string>
     <string name="revanced_change_start_page_entry_virtual_reality">虛擬實境</string>
     <string name="revanced_change_start_page_entry_watch_later">稍後觀看</string>
     <string name="revanced_change_start_page_entry_your_clips">你的剪輯</string>

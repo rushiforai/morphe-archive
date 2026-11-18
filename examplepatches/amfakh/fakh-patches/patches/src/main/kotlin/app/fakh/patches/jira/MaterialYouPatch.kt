@@ -30,6 +30,19 @@ private val rovoFabFingerprint = Fingerprint(
     },
 )
 
+/**
+ * Compose's getNativeCanvas: casts Compose's canvas to its Android implementation and returns the Android canvas it
+ * holds. Its parameter is the type of Compose's canvas.
+ */
+private val nativeCanvasFingerprint = Fingerprint(
+    returnType = "Landroid/graphics/Canvas;",
+    custom = { method, _ ->
+        method.parameterTypes.size == 1 && AccessFlags.STATIC.isSet(method.accessFlags) &&
+            method.implementation?.instructions?.map { it.opcode } ==
+            listOf(Opcode.INVOKE_VIRTUAL, Opcode.CHECK_CAST, Opcode.IGET_OBJECT, Opcode.RETURN_OBJECT)
+    },
+)
+
 /** The Theme choices are built by a lambda that casts the screen's current theme, of this type. */
 
 
@@ -262,13 +275,36 @@ val materialYouPatch = patch(
         // The glass of the button: drawn on the canvas the button's draw node gets, before its icon. The draw node is the
         // method that takes the Compose draw scope last, after a boolean and a long.
         val rovoDraw = mutableClassDefBy(rovoFabFingerprint.classDef.type).methods.single {
-            it.returnType == "V" && it.parameterTypes.size == 5 && it.parameterTypes[0].toString() == "Z" && it.parameterTypes[1].toString() == "J"
+            it.parameterTypes.size == 5 && it.parameterTypes[0].toString() == "Z" && it.parameterTypes[1].toString() == "J"
         }
+        // R8 renames Compose's draw types every release, so they are read from the code: the draw scope is the interface
+        // whose static drawCircle the node calls with itself first, its drawContext the one abstract getter that returns
+        // an object, its size the default getter that only returns drawContext's size, and the canvas the drawContext
+        // getter that returns the type getNativeCanvas takes.
+        val drawScope = rovoDraw.implementation!!.instructions.firstNotNullOfOrNull { instruction ->
+            ((instruction as? ReferenceInstruction)?.reference as? MethodReference)?.takeIf {
+                instruction.opcode == Opcode.INVOKE_STATIC_RANGE && it.parameterTypes.firstOrNull()?.toString() == it.definingClass
+            }?.definingClass
+        } ?: throw PatchException("The Rovo button's draw scope not found")
+        val drawScopeMethods = mutableClassDefBy(drawScope).methods
+        val drawContext = drawScopeMethods.single {
+            AccessFlags.ABSTRACT.isSet(it.accessFlags) && it.parameterTypes.isEmpty() && it.returnType.startsWith("L") &&
+                it.name != "getLayoutDirection"
+        }
+        val size = drawScopeMethods.single {
+            !AccessFlags.ABSTRACT.isSet(it.accessFlags) && it.parameterTypes.isEmpty() && it.returnType == "J" &&
+                it.implementation?.instructions?.count() == 5
+        }
+        val nativeCanvas = nativeCanvasFingerprint.method
+        val canvasType = nativeCanvas.parameterTypes.single().toString()
+        val drawContextClass = mutableClassDefBy(drawContext.returnType)
+        val canvas = drawContextClass.methods.single { it.parameterTypes.isEmpty() && it.returnType == canvasType }
+        val drawContextInvoke = if (AccessFlags.INTERFACE.isSet(drawContextClass.accessFlags)) "invoke-interface" else "invoke-virtual"
         mutableClassDefBy(rovoFabFingerprint.classDef.type).methods.add(
             ImmutableMethod(
                 rovoFabFingerprint.classDef.type,
                 "fakhDrawGlass",
-                listOf(ImmutableMethodParameter("Lzu6;", null, null)),
+                listOf(ImmutableMethodParameter(drawScope, null, null)),
                 "V",
                 AccessFlags.PUBLIC.value or AccessFlags.STATIC.value,
                 null,
@@ -278,13 +314,13 @@ val materialYouPatch = patch(
                 addInstructions(
                     0,
                     """
-                        invoke-interface { p0 }, Lzu6;->e()J
+                        invoke-interface { p0 }, $drawScope->${size.name}()J
                         move-result-wide v0
-                        invoke-interface { p0 }, Lzu6;->U()Lie3;
+                        invoke-interface { p0 }, $drawScope->${drawContext.name}()${drawContext.returnType}
                         move-result-object v2
-                        invoke-virtual { v2 }, Lie3;->a()Lge3;
+                        $drawContextInvoke { v2 }, ${drawContext.returnType}->${canvas.name}()$canvasType
                         move-result-object v2
-                        invoke-static { v2 }, Lyo0;->b(Lge3;)Landroid/graphics/Canvas;
+                        invoke-static { v2 }, ${nativeCanvas.definingClass}->${nativeCanvas.name}($canvasType)Landroid/graphics/Canvas;
                         move-result-object v2
                         invoke-static { v2, v0, v1 }, Lapp/fakh/extension/jira/GlassNavigationBar;->drawRovo(Landroid/graphics/Canvas;J)V
                         return-void
@@ -292,10 +328,11 @@ val materialYouPatch = patch(
                 )
             },
         )
+        // The draw scope is the last parameter: the boolean, the long's two registers and the two objects come first.
         rovoDraw.addInstructions(
             0,
             """
-                invoke-static/range { p5 .. p5 }, ${rovoFabFingerprint.classDef.type}->fakhDrawGlass(Lzu6;)V
+                invoke-static/range { p5 .. p5 }, ${rovoFabFingerprint.classDef.type}->fakhDrawGlass($drawScope)V
             """,
         )
         rovoButton.implementation!!.instructions.withIndex()

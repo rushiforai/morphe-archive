@@ -42,7 +42,7 @@ import org.robolectric.annotation.Config;
 
 /**
  * #410: the country and the post date go on a line of their own under the caption, off the
- * creator's row. The cell below is laid out the way 47.8.3's generated caption layout is: a
+ * creator's row. The cell below is laid out the way 47.9.1's generated caption layout is: a
  * vertical column holding TikTok's own caption block (a LinearLayout subclass with a hidden
  * {@code title} and the {@code desc} caption inside), then a spacer.
  */
@@ -65,6 +65,7 @@ public class CaptionLineTest {
     /** One video's cell: the creator's row above the caption's column. */
     private static final class Cell {
         final FrameLayout root;
+        final LinearLayout overlay;
         final TextView name;
         final TextView postTime;
         final LinearLayout column;
@@ -77,10 +78,10 @@ public class CaptionLineTest {
             this(context, creator, withCaption, false);
         }
 
-        /** With {@code photo}, the name sits in a group of its own with the Photo label, as a photo post's row has it. */
+        /** With {@code photo}, the name sits three groups deep beside the Photo label, as a photo post's row has it. */
         Cell(Context context, String creator, boolean withCaption, boolean photo) {
             root = new FrameLayout(context);
-            LinearLayout overlay = new LinearLayout(context);
+            overlay = new LinearLayout(context);
             overlay.setOrientation(LinearLayout.VERTICAL);
             root.addView(overlay);
 
@@ -94,12 +95,16 @@ public class CaptionLineTest {
             postTime.setTextSize(TypedValue.COMPLEX_UNIT_PX, 13);
             postTime.setTextColor(POST_TIME_COLOR);
             if (photo) {
+                LinearLayout inner = new LinearLayout(context);
+                inner.addView(name);
+                FrameLayout wrapper = new FrameLayout(context);
+                wrapper.addView(inner);
                 LinearLayout nameGroup = new LinearLayout(context);
+                nameGroup.addView(wrapper);
                 TextView label = new TextView(context);
                 label.setText("Photo");
-                nameGroup.addView(name);
-                nameGroup.addView(label);
                 row.addView(nameGroup);
+                row.addView(label);
             } else {
                 row.addView(name);
             }
@@ -138,6 +143,12 @@ public class CaptionLineTest {
         /** The line right under the caption block, or null with none there. */
         TextView line() {
             View next = column.getChildAt(1);
+            return next instanceof CaptionLine.Line ? (TextView) next : null;
+        }
+
+        /** The line right under the creator's row, or null with none there. */
+        TextView rowLine() {
+            View next = overlay.getChildAt(1);
             return next instanceof CaptionLine.Line ? (TextView) next : null;
         }
     }
@@ -269,37 +280,56 @@ public class CaptionLineTest {
     }
 
     @Test
-    public void withNoCaptionTheRowKeepsItsDate() {
+    public void withNoCaptionTheLineGoesUnderTheRow() {
         Cell cell = new Cell(context, "aittaac", false);
 
-        assertFalse(CaptionLine.show(cell.name, cell.root, "Azerbaijan"));
+        assertTrue(CaptionLine.show(cell.name, cell.root, "Azerbaijan"));
+        assertEquals("Azerbaijan · 4h ago", cell.rowLine().getText().toString());
+        assertEquals("", cell.postTime.getText().toString());
+
+        CaptionLine.clear();
+        assertNull(cell.rowLine());
         assertEquals("· 4h ago", cell.postTime.getText().toString());
+    }
+
+    @Test
+    public void withNoCaptionAndNothingToSayNoLineShows() {
+        Cell cell = new Cell(context, "aittaac", false);
+        cell.postTime.setVisibility(View.GONE);
+
+        assertFalse(CaptionLine.show(cell.name, cell.root, null));
         assertFalse(hasLine(cell.root));
     }
 
     @Test
-    public void aCaptionTikTokHidKeepsTheDateInTheRow() {
+    public void aCaptionTikTokHidPutsTheLineUnderTheRow() {
         // A post with no caption keeps the caption's views, in a block TikTok hides.
         Cell cell = new Cell(context, "junior", true);
         cell.descRoot.setVisibility(View.GONE);
 
-        assertFalse(CaptionLine.show(cell.name, cell.root, "Brazil"));
-        assertEquals("· 4h ago", cell.postTime.getText().toString());
+        assertTrue(CaptionLine.show(cell.name, cell.root, "Brazil"));
+        TextView underRow = cell.rowLine();
+        assertEquals("Brazil · 4h ago", underRow.getText().toString());
+        assertEquals("", cell.postTime.getText().toString());
         assertNull(cell.line());
 
-        // A line already under it goes, and the date comes back, when the cell is reused that way.
+        // The cell is reused for a post with a caption, and then for one without again.
         cell.descRoot.setVisibility(View.VISIBLE);
         assertTrue(CaptionLine.show(cell.name, cell.root, "Brazil"));
-        assertEquals("", cell.postTime.getText().toString());
+        assertEquals("Brazil · 4h ago", cell.line().getText().toString());
+        assertEquals(View.VISIBLE, cell.line().getVisibility());
+        assertEquals(View.GONE, underRow.getVisibility());
+
         cell.descRoot.setVisibility(View.GONE);
-        assertFalse(CaptionLine.show(cell.name, cell.root, "Brazil"));
-        assertEquals("· 4h ago", cell.postTime.getText().toString());
+        assertTrue(CaptionLine.show(cell.name, cell.root, "Brazil"));
+        assertSame(underRow, cell.rowLine());
+        assertEquals(View.VISIBLE, underRow.getVisibility());
         assertEquals(View.GONE, cell.line().getVisibility());
     }
 
     @Test
     public void aPhotoPostsDateMovesToo() {
-        // The photo row wraps the name with its Photo label, so the post time isn't its sibling.
+        // The photo row holds the name three groups deep, with the post time a level above them.
         Cell cell = new Cell(context, "disco..inspo", true, true);
 
         assertTrue(CaptionLine.show(cell.name, cell.root, "United States"));
@@ -308,6 +338,49 @@ public class CaptionLineTest {
 
         CaptionLine.clear();
         assertEquals("· 4h ago", cell.postTime.getText().toString());
+    }
+
+    @Test
+    public void anOpenedLongCaptionLeavesTheLineItsFullHeight() {
+        Cell cell = new Cell(context, "happypuppies47", true);
+        View spacer = cell.column.getChildAt(1);
+        spacer.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 67));
+        cell.caption.setHeight(1320);
+
+        assertTrue(CaptionLine.show(cell.name, cell.root, "United States"));
+        TextView line = cell.line();
+        line.setMinHeight(58);
+        int margin = ((LinearLayout.LayoutParams) line.getLayoutParams()).topMargin;
+
+        measureColumn(cell, 1373);
+        assertEquals(58, line.getMeasuredHeight());
+        assertEquals(67, spacer.getMeasuredHeight());
+        assertEquals(1373 - 58 - margin - 67, cell.block.getMeasuredHeight());
+        assertEquals(1373, cell.column.getMeasuredHeight());
+
+        // With room for everything the caption keeps its own height.
+        measureColumn(cell, 2000);
+        assertEquals(1320, cell.block.getMeasuredHeight());
+
+        // Once the line is gone the block is back the way TikTok left it.
+        CaptionLine.clear();
+        assertEquals(0f, ((LinearLayout.LayoutParams) cell.block.getLayoutParams()).weight, 0f);
+    }
+
+    @Test
+    public void aLineUnderTheRowLeavesTheCaptionBlockAlone() {
+        Cell cell = new Cell(context, "junior", true);
+        assertTrue(CaptionLine.show(cell.name, cell.root, "Brazil"));
+        assertEquals(1f, ((LinearLayout.LayoutParams) cell.block.getLayoutParams()).weight, 0f);
+
+        cell.descRoot.setVisibility(View.GONE);
+        assertTrue(CaptionLine.show(cell.name, cell.root, "Brazil"));
+        assertEquals(0f, ((LinearLayout.LayoutParams) cell.block.getLayoutParams()).weight, 0f);
+    }
+
+    private static void measureColumn(Cell cell, int limit) {
+        cell.column.measure(View.MeasureSpec.makeMeasureSpec(821, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(limit, View.MeasureSpec.AT_MOST));
     }
 
     @Test
@@ -405,11 +478,12 @@ public class CaptionLineTest {
                 assertEquals("Azerbaijan · 4h ago", cell.line().getText().toString());
                 assertEquals("", cell.postTime.getText().toString());
 
-                // With the caption hidden there's nothing to go under, so both stay in the row.
+                // With the caption hidden the line goes right under the creator's row.
                 cell.descRoot.setVisibility(View.GONE);
                 cell.root.getViewTreeObserver().dispatchOnGlobalLayout();
-                assertEquals("aittaac · AZ", cell.name.getText().toString());
-                assertEquals("· 4h ago", cell.postTime.getText().toString());
+                assertEquals("aittaac", cell.name.getText().toString());
+                assertEquals("Azerbaijan · 4h ago", cell.rowLine().getText().toString());
+                assertEquals("", cell.postTime.getText().toString());
                 cell.descRoot.setVisibility(View.VISIBLE);
                 cell.root.getViewTreeObserver().dispatchOnGlobalLayout();
                 assertEquals("aittaac", cell.name.getText().toString());

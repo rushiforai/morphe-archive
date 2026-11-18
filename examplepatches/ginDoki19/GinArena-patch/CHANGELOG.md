@@ -1,3 +1,15 @@
+## [2.12.1](https://github.com/ginDoki19/GinArena-patch/compare/v2.12.0...v2.12.1) (2026-11-18)
+
+### 🐛 Bug Fixes
+
+* **wps,cricfy:** support WPS 26.11.1 only, harden MicroG patching, fix the CricFy strip ([da8e130](https://github.com/ginDoki19/GinArena-patch/commit/da8e1307d94cc36a090613e4b24c969de5b50ce6)), closes [#56](https://github.com/ginDoki19/GinArena-patch/issues/56)
+
+## [2.12.1-dev.1](https://github.com/ginDoki19/GinArena-patch/compare/v2.12.0...v2.12.1-dev.1) (2026-11-18)
+
+### 🐛 Bug Fixes
+
+* **wps,cricfy:** support WPS 26.11.1 only, harden MicroG patching, fix the CricFy strip ([da8e130](https://github.com/ginDoki19/GinArena-patch/commit/da8e1307d94cc36a090613e4b24c969de5b50ce6)), closes [#56](https://github.com/ginDoki19/GinArena-patch/issues/56)
+
 ## [2.12.0](https://github.com/ginDoki19/GinArena-patch/compare/v2.11.1...v2.12.0) (2026-11-17)
 
 ### 🐛 Bug Fixes

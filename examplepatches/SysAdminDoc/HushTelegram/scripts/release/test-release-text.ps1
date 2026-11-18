@@ -80,17 +80,15 @@ try {
     # --- The release notes --------------------------------------------------------------------
     $intro = "HushTelegram v0.0.12 has 57 patches.`r`n"
     $install = "1. Install Morphe Manager.`n2. Patch Telegram."
-    $validation = 'Every test passed.'
     $repo = 'SysAdminDoc/HushTelegram'
-    $notes = New-ReleaseNotes -Changelog $expected -Version '0.0.12' -Intro $intro -Install $install -Validation $validation -Repository $repo
-    # Fixed before Changed, Tooling out of its group into Behind the scenes, no scope, bold in backticks.
+    $notes = New-ReleaseNotes -Changelog $expected -Version '0.0.12' -Intro $intro -Install $install -Repository $repo
+    # Fixed before Changed, the Tooling bullet left in the CHANGELOG, no scope, bold in backticks.
     $expectedNotes = "HushTelegram v0.0.12 has 57 patches.`n`nNew in this release`n`n- A new ``Quiet mode`` switch.`n`n" +
-        "Fixes`n`n- Another fix.`n`nOther changes`n`n- A clearer row.`n`nBehind the scenes`n`n- A faster gate.`n`n" +
+        "Fixes`n`n- Another fix.`n`nOther changes`n`n- A clearer row.`n`n" +
         "The [changelog](https://github.com/$repo/blob/main/CHANGELOG.md) has every earlier release too.`n`n" +
         "How to update`n`n1. Install Morphe Manager.`n2. Patch Telegram.`n`n" +
-        "The ``.mpp`` download is a patch bundle, not a Telegram APK. [Installation instructions](https://github.com/$repo#install).`n`n" +
-        "What was checked`n`nEvery test passed.`n"
-    Assert-True ($notes -ceq $expectedNotes) "The notes are not the intro, every bullet by group, the install steps and what was checked:`n$notes"
+        "The ``.mpp`` download is a patch bundle, not a Telegram APK. [Installation instructions](https://github.com/$repo#install).`n"
+    Assert-True ($notes -ceq $expectedNotes) "The notes are not the intro, the app bullets by group and the install steps:`n$notes"
     Assert-True (@(Get-MissingChangelogBullets -Changelog $expected -Version '0.0.12' -Notes $notes).Count -eq 0) `
         'Notes that carry every bullet were found to leave one out.'
     $short = $notes -replace "- Another fix\.`n", ''
@@ -104,17 +102,17 @@ try {
     Assert-True (@(Get-MissingChangelogBullets -Changelog $expected -Version '0.0.12' -Notes $scoped).Count -eq 1) `
         'A bullet still carrying its scope passed for the notes form.'
     Assert-Throws { New-ReleaseNotes -Changelog $expected -Version '0.0.12' -Intro "Fast $([char]0x2014) and safe." `
-            -Install $install -Validation $validation -Repository $repo } '*em or en dash*' 'Notes with an em dash went out.'
-    Assert-Throws { New-ReleaseNotes -Changelog $expected -Version '0.0.13' -Intro $intro -Install $install -Validation $validation `
+            -Install $install -Repository $repo } '*em or en dash*' 'Notes with an em dash went out.'
+    Assert-Throws { New-ReleaseNotes -Changelog $expected -Version '0.0.13' -Intro $intro -Install $install `
             -Repository $repo } '*no dated 0.0.13 section*' 'Notes were built for a version the CHANGELOG has no section for.'
     Assert-Throws { New-ReleaseNotes -Changelog "## 0.0.12`n`n* **Telegram:** Undated.`n" -Version '0.0.12' -Intro $intro `
-            -Install $install -Validation $validation -Repository $repo } '*no dated 0.0.12 section*' 'Notes were built from an undated section.'
+            -Install $install -Repository $repo } '*no dated 0.0.12 section*' 'Notes were built from an undated section.'
     Assert-Throws { New-ReleaseNotes -Changelog "## 0.0.12 (2026-10-20)`n`n* **Telegram:** Ungrouped.`n" -Version '0.0.12' `
-            -Intro $intro -Install $install -Validation $validation -Repository $repo } '*sits above*' 'Notes were built with a bullet under no group.'
+            -Intro $intro -Install $install -Repository $repo } '*sits above*' 'Notes were built with a bullet under no group.'
     $toolingOnly = New-ReleaseNotes -Changelog "## 0.0.13 (2026-10-21)`n`n### Changed`n`n* **Tooling:** Only a gate.`n" -Version '0.0.13' `
-        -Intro $intro -Install $install -Validation $validation -Repository $repo
-    Assert-True ($toolingOnly -notlike '*Other changes*' -and $toolingOnly -like "*Behind the scenes`n`n- Only a gate.*") `
-        "A Tooling-only release gave the notes an empty group:`n$toolingOnly"
+        -Intro $intro -Install $install -Repository $repo
+    Assert-True ($toolingOnly -notlike '*Other changes*' -and $toolingOnly -notlike '*Only a gate*') `
+        "A Tooling-only release gave the notes an empty group or its Tooling bullet:`n$toolingOnly"
 
     # --- The changes Morphe Manager lists under the description -------------------------------
     $changes = Get-ManagerChanges -Changelog $expected -Version '0.0.12'

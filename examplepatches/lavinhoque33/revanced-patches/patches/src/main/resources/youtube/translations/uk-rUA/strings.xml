@@ -647,8 +647,7 @@
     <string name="revanced_change_start_page_entry_gaming">Ігри</string>
     <string name="revanced_change_start_page_entry_history">Історія</string>
     <string name="revanced_change_start_page_entry_home">Головна</string>
-    <string name="revanced_change_start_page_entry_hype">Розголос</string>
-    <string name="revanced_change_start_page_entry_library">Вкладка \"Ви\"</string>
+    <string name="revanced_change_start_page_entry_library">Ви</string>
     <string name="revanced_change_start_page_entry_liked_videos">Відео, які сподобалися</string>
     <string name="revanced_change_start_page_entry_live">Прямі трансляції</string>
     <string name="revanced_change_start_page_entry_movies">Фільми</string>
@@ -656,14 +655,12 @@
     <string name="revanced_change_start_page_entry_news">Новини</string>
     <string name="revanced_change_start_page_entry_notifications">Сповіщення</string>
     <string name="revanced_change_start_page_entry_playlists">Списки відтворення</string>
-    <string name="revanced_change_start_page_entry_podcasts">Подкасти</string>
     <string name="revanced_change_start_page_entry_search">Пошук на YouTube</string>
     <string name="revanced_change_start_page_entry_settings">Налаштування</string>
     <string name="revanced_change_start_page_entry_shopping">Покупки</string>
     <string name="revanced_change_start_page_entry_shorts">Shorts</string>
     <string name="revanced_change_start_page_entry_sports">Спорт</string>
     <string name="revanced_change_start_page_entry_subscriptions">Підписки</string>
-    <string name="revanced_change_start_page_entry_trending">Популярне</string>
     <string name="revanced_change_start_page_entry_virtual_reality">Віртуальна реальність</string>
     <string name="revanced_change_start_page_entry_watch_later">Дивитися пізніше</string>
     <string name="revanced_change_start_page_entry_your_clips">Ваші кліпи</string>

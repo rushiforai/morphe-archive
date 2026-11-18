@@ -1,20 +1,22 @@
 <!-- HEADER_START -->
 # <img src="../../assets/icons/com.truecaller.png" width="36" height="36" align="top" alt=""> Truecaller
 
-![version](https://img.shields.io/badge/version-26.43.5-2563eb?style=for-the-badge&labelColor=0d1117) ![patches](https://img.shields.io/badge/patches-2-14b8a6?style=for-the-badge&labelColor=0d1117) ![file](https://img.shields.io/badge/file-APKM-0ea5e9?style=for-the-badge&labelColor=0d1117) ![menu](https://img.shields.io/badge/menu-Profile%20menu%20%C2%B7%20Settings-6e7681?style=for-the-badge&labelColor=0d1117)
+![version](https://img.shields.io/badge/version-26.44.6-2563eb?style=for-the-badge&labelColor=0d1117) ![patches](https://img.shields.io/badge/patches-3-14b8a6?style=for-the-badge&labelColor=0d1117) ![file](https://img.shields.io/badge/file-APKM-0ea5e9?style=for-the-badge&labelColor=0d1117) ![menu](https://img.shields.io/badge/menu-Profile%20menu%20%C2%B7%20Settings-6e7681?style=for-the-badge&labelColor=0d1117)
 
-[← All apps](../../README.md#apps)&nbsp;&nbsp;•&nbsp;&nbsp;`com.truecaller`&nbsp;&nbsp;•&nbsp;&nbsp;[v3.2.1](https://github.com/lokesh-sparrow/loki-patches/releases/tag/v3.2.1)
+[← All apps](../../README.md#apps)&nbsp;&nbsp;•&nbsp;&nbsp;`com.truecaller`&nbsp;&nbsp;•&nbsp;&nbsp;[v3.3.0](https://github.com/lokesh-sparrow/loki-patches/releases/tag/v3.3.0)
 
-**🎯 Supported versions:** `26.43.5`
+**🎯 Supported versions:** `26.43.5` · `26.44.6`
 <!-- HEADER_END -->
 
 ## Features
 
 | Feature | What you get |
 |---|---|
-| ⭐ **Premium features** | No ads, premium badge, incognito, ghost call, extended spam blocking, call recording, announce call, family sharing |
-| 📵 **No after-call screen** | The screen Truecaller shows when a call ends is skipped, with a switch in the Loki Patches menu |
-| ☁️ **Google sign-in and Drive backup** | Through MicroG-RE (optional patch) |
+| ⭐ **Premium features** | Gold plan, premium badge, incognito, ghost call, extended spam blocking, call recording, announce call |
+| 🚫 **No ads** | Call history, after-call screen, search results and the rest of the app (its own patch, works without premium) |
+| 📵 **No after-call screen** | The screen Truecaller shows when a call ends is skipped, missed calls included, with a switch in the Loki Patches menu |
+| 🕵️ **Anonymous viewing and search** | Opening a profile or searching a number does not tell the other person, with switches in Loki Patches › Privacy |
+| ☁️ **Google sign-in, Drive backup and notifications** | Through MicroG-RE (optional patch) |
 
 ## How-to
 
@@ -47,6 +49,7 @@ numbers, fraud insurance) open but stay empty, because their data is not in the 
 <!-- PATCHES_START -->
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |---|---|---|
-| **Enable premium features (Truecaller)** | Makes every premium feature the app decides on the device available, and the plan read as active instead of Free, and hides the after-call screen (switch in Loki Patches > Calls). Features whose content comes from Truecaller's servers (who viewed me, caller ID for unknown numbers, fraud insurance) open but stay empty - their data is not in the app. |  |
+| **Enable premium features (Truecaller)** | Makes the premium features the app decides on the device available, the plan read as Gold instead of Free, hides the after-call screen (switch in Loki Patches > Calls) and lets you view profiles and search numbers without the other person being told (switches in Loki Patches > Privacy). Call Assistant and Family Sharing stay off. Who viewed me, who searched for me, caller ID for unknown numbers and fraud insurance show only what Truecaller's servers send to the account. |  |
 | **GmsCore support (Truecaller)** | Routes Google sign-in, the Google Drive backup of contacts and call logs, and Firebase push through MicroG-RE (GmsCore) instead of Google Play services. Signs the FCM registration with Truecaller's original certificate, so notifications still arrive on a re-signed build. MicroG-RE has to be installed and signed in to a Google account. |  |
+| **Hide ads (Truecaller)** | Removes Truecaller's ads: in the call history, the after-call screen, search results and the rest of the app. Works on its own, with or without premium. |  |
 <!-- PATCHES_END -->

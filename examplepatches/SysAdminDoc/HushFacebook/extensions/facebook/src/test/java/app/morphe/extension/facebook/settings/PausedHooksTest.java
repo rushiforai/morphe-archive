@@ -380,6 +380,8 @@ public class PausedHooksTest {
         probes.put(Settings.DOWNLOAD_QUIET, SaveRulesForTests::finishesQuietly);
         // A reel's or a video's save asks for the quality before it starts.
         probes.put(Settings.DOWNLOAD_QUALITY_ASK, SaveRulesForTests::asksForTheQuality);
+        // A tap on a download button asks before it saves.
+        probes.put(Settings.ASK_BEFORE_DOWNLOAD, SaveRulesForTests::asksBeforeDownloading);
         return probes;
     }
 
@@ -943,12 +945,13 @@ public class PausedHooksTest {
         // the newer one so it has the button too, and a reel whose caption was seen gets Copy caption.
         probes.put(PatchFamily.REEL_DOWNLOAD, Arrays.asList(ReelDownload::showsButton,
                 () -> ReelDownload.verticalUfi(false), ReelCaptionForTests::addsTheRow));
-        // A video post's menu gets Download to phone, a video comment's sheet gets Save video, and
-        // the video recorder keeps a player. Its copied-link option reads the clipboard as a screen
-        // comes to the front.
+        // A video post's menu and the viewer's menu get Download to phone, a video comment's sheet
+        // gets Save video, and the video recorder keeps a player. Its copied-link option reads the
+        // clipboard as a screen comes to the front.
         probes.put(PatchFamily.VIDEO_DOWNLOAD, Arrays.asList(
                 VideoMenuItemForTests::addsAnItem,
                 VideoMenuItemForTests::addsTheOpenItem,
+                VideoMenuItemForTests::addsTheViewerRow,
                 CommentVideoForTests::addsARow,
                 PlayerSourcesForTests::recordsAVideoPlayer,
                 ClipboardLinkForTests::readsTheClipboard));

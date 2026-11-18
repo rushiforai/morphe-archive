@@ -20,6 +20,7 @@ val disableUpdatePromptsPatch = bytecodePatch(
     description = "Stops the app from showing the Google Play update screen and the feed's update card.",
     default = true
 ) {
+    category("App")
     compatibleWith(COMPATIBILITY_QUORA)
 
     extendWith("extensions/extension.mpe")

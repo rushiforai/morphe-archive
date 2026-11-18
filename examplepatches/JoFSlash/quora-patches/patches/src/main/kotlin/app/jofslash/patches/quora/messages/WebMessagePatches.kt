@@ -24,6 +24,7 @@ internal object HandleMessageFingerprint : Fingerprint(
  * A patch that drops the named page messages (MessageDict names) before the app handles them.
  */
 private fun blockWebMessagesPatch(
+    patchCategory: String,
     name: String,
     description: String,
     default: Boolean,
@@ -36,6 +37,7 @@ private fun blockWebMessagesPatch(
         description = description,
         default = default
     ) {
+        category(patchCategory)
         compatibleWith(COMPATIBILITY_QUORA)
 
         extendWith("extensions/extension.mpe")
@@ -69,6 +71,7 @@ private fun blockWebMessagesPatch(
 @Suppress("unused")
 val blockTrackingLogsPatch = blockWebMessagesPatch(
     name = "Block tracking logs",
+    patchCategory = "Privacy",
     description = "Stops Quora's pages from passing performance and sign-up tracking events to the app.",
     default = true,
     messages = listOf("LOG_PERF_EVENT", "LOG_SIGNUP_FOR_TRACKING"),
@@ -77,6 +80,7 @@ val blockTrackingLogsPatch = blockWebMessagesPatch(
 @Suppress("unused")
 val disableVibrationPatch = blockWebMessagesPatch(
     name = "Disable vibration",
+    patchCategory = "App",
     description = "Stops the app from vibrating when you tap buttons such as upvote.",
     default = false,
     messages = listOf("HAPTIC_VIBRATION"),
@@ -86,6 +90,7 @@ val disableVibrationPatch = blockWebMessagesPatch(
 @Suppress("unused")
 val hideBadgesPatch = blockWebMessagesPatch(
     name = "Hide badges",
+    patchCategory = "App",
     description = "Hides the red dots and counts on the bottom bar tabs.",
     default = false,
     messages = listOf("UPDATE_BADGE_PROPERTIES", "UPDATE_HOME_TAB_BADGE"),
@@ -95,6 +100,7 @@ val hideBadgesPatch = blockWebMessagesPatch(
 @Suppress("unused")
 val disableSignInPromptsPatch = blockWebMessagesPatch(
     name = "Disable sign-in prompts",
+    patchCategory = "App",
     description = "Stops Google's \"Save password?\" and automatic Google sign-in prompts. " +
             "You can still sign in with the buttons on the login page.",
     default = false,
@@ -105,6 +111,7 @@ val disableSignInPromptsPatch = blockWebMessagesPatch(
 @Suppress("unused")
 val disableTabPrefetchingPatch = blockWebMessagesPatch(
     name = "Disable tab prefetching",
+    patchCategory = "App",
     description = "Saves data by loading the other tabs only when you open them.",
     default = false,
     messages = listOf("PREFETCH_TABS"),

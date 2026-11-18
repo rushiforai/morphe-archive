@@ -4,7 +4,6 @@
  */
 package app.morphe.patches.telegram.misc.messagemenu
 
-import app.morphe.PlusPending
 import app.morphe.util.names.origParameterTypes
 import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
@@ -44,7 +43,6 @@ import app.morphe.util.names.origReturnType
 import app.morphe.util.names.tgMutableClassDefBy
 
 /** The menu builder's return, the choice handler's entry, the forward the stubs send with, and the runtime. */
-@PlusPending
 class MessageMenuFixtureTest {
     private val list = "Ljava/util/ArrayList;"
     private val fixed = setOf(
@@ -86,7 +84,8 @@ class MessageMenuFixtureTest {
             val name = build.name
             val context = PatchContexts.of(ExtensionDex.classes() + hosts(build))
             val site = context.resolveMessageMenu()
-            assertEquals("$name: Forward is option 2", 2, site.forwardOption)
+            // Plus Messenger gives Forward its own number, 150.
+            assertEquals("$name: Forward's option", if (name.startsWith("plus-")) 150 else 2, site.forwardOption)
             assertEquals("$name: articles are type 36", 36, site.article)
             val oldFill = ImmutableMethod.of(site.fill)
             val oldChoose = ImmutableMethod.of(site.choose)
@@ -130,7 +129,7 @@ class MessageMenuFixtureTest {
             assertEquals("$name: sender hidden", 1, (stub("send")[3] as NarrowLiteralInstruction).narrowLiteral)
             assertTrue("$name: forward sends through the helper", site.forward.controlBody().any { it.controlRef() == FORWARD_SEND })
             assertTrue("$name: the chat's activity", stub("activity").any { it.controlRef()?.contains("->getParentActivity()Landroid/app/Activity;") == true })
-            assertEquals(2, (stub("forwardOption").first() as NarrowLiteralInstruction).narrowLiteral)
+            assertEquals(site.forwardOption, (stub("forwardOption").first() as NarrowLiteralInstruction).narrowLiteral)
             assertEquals(36, (stub("article").first() as NarrowLiteralInstruction).narrowLiteral)
             assertEquals("Lorg/telegram/messenger/R\$drawable;->msg_retry:I", stub("repeatIcon").first().controlRef())
             assertEquals("Lorg/telegram/messenger/R\$drawable;->msg_copy:I", stub("copyIcon").first().controlRef())

@@ -58,8 +58,15 @@ public final class FamilyNames {
     public static final String HIDE_POPUP_BANNERS = "Hide pop-up banners";
     public static final String HIDE_RELATED_PINS = "Hide related pins";
     public static final String HIDE_CREATOR_NAME = "Hide creator name on pins";
+    public static final String HIDE_PIN_AUTHOR = "Hide pin author";
+    public static final String HIDE_PIN_DESCRIPTION = "Hide pin title and description";
+    public static final String SHOW_IMAGE_SIZE = "Show image size";
+    public static final String HIDE_HIGHLIGHT_RING = "Hide blue highlight ring";
+    public static final String HIDE_VISUAL_SEARCH_THUMBNAILS = "Hide visual search thumbnails";
+    public static final String FOLD_RELATED_PINS = "Fold related pins";
     public static final String CUSTOM_SAVE_SOUND = "Custom save sound";
     public static final String CUSTOM_SPLASH_LOGO = "Custom splash logo";
+    public static final String BOARD_TABS = "Customize board tabs";
     public static final String HIDE_SAVE_TOASTS = "Hide save toasts";
     public static final String ORIGINAL_IMAGES = "Original-quality images";
     public static final String SHOW_POSTED_DATE = "Show posted date";

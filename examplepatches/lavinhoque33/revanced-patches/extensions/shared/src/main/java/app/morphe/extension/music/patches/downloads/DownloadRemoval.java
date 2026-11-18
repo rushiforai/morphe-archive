@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-17.
  * Modified by lavinhoque33, 2026-11-10.
  * Written by lavinhoque33, 2026-11-10.
  */
@@ -25,7 +26,7 @@ final class DownloadRemoval {
     /** Asks whether to remove the stream copy of a song, naming the downloaded lists that hold it. */
     static void confirmSong(String songId) {
         Utils.runOnBackgroundThread(() -> {
-            int lists = CopyOwnership.listsHolding(songId, OfflineCopyStore.allTrackLists());
+            int lists = CopyOwnership.listsHolding(songId, OfflineCopyStore.copyTrackLists());
             String message = lists == 0 ? str("morphe_music_remove_song_message")
                     : str("morphe_music_remove_song_message_lists", lists);
             Utils.runOnMainThread(() -> confirm(str("morphe_music_remove_song_title"), message,

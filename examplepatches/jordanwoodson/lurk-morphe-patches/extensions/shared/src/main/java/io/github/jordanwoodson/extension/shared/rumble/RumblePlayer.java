@@ -82,7 +82,6 @@ public final class RumblePlayer {
     /** The player each video was last loaded into. */
     private static final Map<Object, WeakReference<Object>> PLAYERS = Collections.synchronizedMap(new WeakHashMap<>());
     private static volatile WeakReference<Object> lastPlayer = new WeakReference<>(null);
-    private static Object noQualityCallback;
 
     /** Injection point: a player loading a video. */
     public static void onVideoLoaded(Object player, Object video) {
@@ -169,12 +168,6 @@ public final class RumblePlayer {
         } catch (RuntimeException e) {
             Logger.d("refresh: " + e);
         }
-    }
-
-    /** Injection point (the player's reload): a quality callback that does nothing, so a reload saves no pick. */
-    public static synchronized Object noQualityCallback() {
-        if (noQualityCallback == null) noQualityCallback = function("kotlin.jvm.functions.Function2", () -> { });
-        return noQualityCallback;
     }
 
     /** A Kotlin function object (FunctionN, renamed by R8 but still an interface) that runs {@code body}. */

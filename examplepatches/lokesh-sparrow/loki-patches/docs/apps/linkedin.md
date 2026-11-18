@@ -1,11 +1,11 @@
 <!-- HEADER_START -->
 # <img src="../../assets/icons/com.linkedin.android.svg" width="36" height="36" align="top" alt=""> LinkedIn
 
-![version](https://img.shields.io/badge/version-4.1.1270-2563eb?style=for-the-badge&labelColor=0d1117) ![patches](https://img.shields.io/badge/patches-23-14b8a6?style=for-the-badge&labelColor=0d1117) ![file](https://img.shields.io/badge/file-APK%20%28Android%2010%2B%29-0ea5e9?style=for-the-badge&labelColor=0d1117) ![menu](https://img.shields.io/badge/menu-Me%20panel-6e7681?style=for-the-badge&labelColor=0d1117)
+![version](https://img.shields.io/badge/version-4.1.1272-2563eb?style=for-the-badge&labelColor=0d1117) ![patches](https://img.shields.io/badge/patches-23-14b8a6?style=for-the-badge&labelColor=0d1117) ![file](https://img.shields.io/badge/file-APK%20%28Android%2010%2B%29-0ea5e9?style=for-the-badge&labelColor=0d1117) ![menu](https://img.shields.io/badge/menu-Me%20panel-6e7681?style=for-the-badge&labelColor=0d1117)
 
-[← All apps](../../README.md#apps)&nbsp;&nbsp;•&nbsp;&nbsp;`com.linkedin.android`&nbsp;&nbsp;•&nbsp;&nbsp;[v3.2.1](https://github.com/lokesh-sparrow/loki-patches/releases/tag/v3.2.1)
+[← All apps](../../README.md#apps)&nbsp;&nbsp;•&nbsp;&nbsp;`com.linkedin.android`&nbsp;&nbsp;•&nbsp;&nbsp;[v3.3.0](https://github.com/lokesh-sparrow/loki-patches/releases/tag/v3.3.0)
 
-**🎯 Supported versions:** `4.1.1267` · `4.1.1269` · `4.1.1270`
+**🎯 Supported versions:** `4.1.1270` · `4.1.1272`
 <!-- HEADER_END -->
 
 ## Features
@@ -27,7 +27,7 @@
 | 👆 **Swipe between feeds** | Swipe left or right to switch For you and Network, and Grow and Catch up |
 | 🖼️ **Tap to hide in viewers** | Tap a document or video in full screen to hide its caption and buttons |
 | ⋯ **Post menu items** | Copy text, Download media and Save as PDF in a post's menu |
-| 🧭 **Hide bottom tabs** | Take My Network and Jobs out of the bottom bar |
+| 🧭 **Hide bottom tabs** | Take My Network, Jobs and More out of the bottom bar (More hidden by default) |
 | 🔑 **Google sign-in** | "Continue with Google" through MicroG-RE |
 
 ## How-to
@@ -39,7 +39,7 @@ Open it from the **Me** panel (tap your profile photo), or long press the Linked
 ### Sign in with Google
 
 1. Install [MicroG-RE](https://github.com/MorpheApp/microg-RE) and sign in to your Google account in it.
-2. In Morphe Manager, tick **GmsCore support** when you patch LinkedIn.
+2. In Morphe Manager, tick **GmsCore support (LinkedIn)** when you patch LinkedIn.
 3. Use **Continue with Google** in LinkedIn as usual.
 
 ### Copy text
@@ -79,7 +79,7 @@ report it.
 
 **I signed up with Google and can't sign in.**
 Signing in with your e-mail and password always works. If you have no password, set one on
-[linkedin.com](https://www.linkedin.com/checkpoint/rp/request-password-reset) first, or use **GmsCore support** with
+[linkedin.com](https://www.linkedin.com/checkpoint/rp/request-password-reset) first, or use **GmsCore support (LinkedIn)** with
 MicroG-RE.
 
 **Material You or AMOLED black doesn't change some screens.**
@@ -98,9 +98,9 @@ The colors are read when the app is patched, and a few older screens in LinkedIn
 | **Disable double-tap like** | A double tap on a post or a photo no longer likes it. |  |
 | **Download media** | Puts a download button in the full screen photo, video and document viewer; documents (PDFs and carousels) are saved as a single PDF. |  |
 | **Feed filters** | Adds a set of filters that are off until turned on in Loki Patches: focus mode, celebrations, job cards, reposts, posts from other people's activity, "Recommended for you", video posts, games, the "New posts" pill and "See translation". |  |
-| **GmsCore support** | Routes "Continue with Google" and Firebase push through MicroG-RE (GmsCore) instead of Google Play services. Signs the FCM registration with LinkedIn's original certificate, so notifications still arrive on a re-signed build. MicroG-RE has to be installed and signed in to a Google account. |  |
+| **GmsCore support (LinkedIn)** | Routes "Continue with Google" and Firebase push through MicroG-RE (GmsCore) instead of Google Play services. Signs the FCM registration with LinkedIn's original certificate, so notifications still arrive on a re-signed build. MicroG-RE has to be installed and signed in to a Google account. |  |
 | **Hide ads** | Removes sponsored (promoted) posts from the feed. |  |
-| **Hide bottom tabs** | Adds switches to take My Network and Jobs out of the bottom bar. |  |
+| **Hide bottom tabs** | Adds switches to take My Network, Jobs and More out of the bottom bar (More is hidden by default). |  |
 | **Hide Premium upsells** | Drops the Premium and AI upsell cards and banners, on profiles and in the Me panel too. |  |
 | **Hide promoted jobs** | Drops promoted job listings from the Jobs tab and from job searches. |  |
 | **Hide suggested posts** | Drops the "Suggested" posts from people outside your network. |  |

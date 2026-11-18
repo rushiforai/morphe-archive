@@ -86,7 +86,7 @@ The settings file was saved, but it doesn't match what Hushfacebook wrote. Save 
 There's no app here that can open or share this saved file.	Bu kaydedilen dosyayı açabilecek veya paylaşabilecek bir uygulama yok.
 # context: line at the top of a settings page while paused; Lock Facebook keeps working while paused
 Until you resume, every switch but Debug logging and Lock Facebook acts as if it were off. Changes made when you patched stay in.	Devam ettirene kadar Hata ayıklama günlüğü ve “Facebook'u kilitle” dışındaki her anahtar kapalıymış gibi davranır. Yamaladığında ayarlananlar devrede kalır.
-Shows your phone's own emoji instead of Facebook's. Reactions and stickers don't change. Restart Facebook to see the change.	Facebook'unkiler yerine telefonunuzun kendi emojilerini gösterir. Tepkiler ve çıkartmalar değişmez. Değişikliği görmek için Facebook'u yeniden başlatın.
+Shows your phone's own emoji instead of Facebook's, or the ones in a font file you choose below. Reactions and stickers don't change. Restart Facebook to see the change.	Facebook'unkiler yerine telefonunuzun kendi emojilerini veya aşağıda seçtiğiniz yazı tipi dosyasındakileri gösterir. Tepkiler ve çıkartmalar değişmez. Değişikliği görmek için Facebook'u yeniden başlatın.
 # context: switch title under Appearance; the tab bar is Facebook's row of tabs, Home, Video, Marketplace and the rest
 Tab bar at the bottom	Sekme çubuğu altta
 # context: switch title under Appearance, next to Tab bar at the bottom; puts Facebook's row of tabs at the top of the screen
@@ -1358,6 +1358,8 @@ Save photo	Fotoğrafı kaydet
 Save video	Videoyu kaydet
 # context: menu item in a post's three-dot menu that saves every photo of a post with several photos
 Save all photos	Tüm fotoğrafları kaydet
+# context: menu item in a post's three-dot menu that saves every video of a post with several videos
+Save all videos	Tüm videoları kaydet
 # context: short message shown when the photos of a post could not start saving
 Couldn't save this post's photos. Try again in a moment.	Bu gönderinin fotoğrafları kaydedilemedi. Birazdan tekrar dene.
 # context: row in a comment's long-press sheet that saves the GIF the comment holds; keep it short like Save photo
@@ -2726,9 +2728,9 @@ Hide pictures on the Blocked list	Engellenenler listesinde fotoğrafları gizle
 People you've blocked show without their profile pictures on the Blocking page in Facebook's settings. Reopen the page if it's already open.	Engellediğiniz kişiler, Facebook ayarlarındaki Engelleme sayfasında profil fotoğrafı olmadan görünür. Sayfa zaten açıksa yeniden açın.
 Hide Up next on videos	Videolarda Sıradaki'ni gizle
 Takes the UP NEXT bar with the next video off the bottom of a video you open from the feed, and the empty space kept for it, so the seek bar stays at the bottom. A change shows from the next video you open.	Akıştan açtığın bir videonun altındaki, sonraki videoyu gösteren SIRADAKİ çubuğunu ve onun için ayrılan boş alanı kaldırır, böylece ilerleme çubuğu altta kalır. Değişiklik açtığın bir sonraki videodan itibaren geçerli olur.
-Icons look soft on this screen. Repatch with the 240-640dpi bundle.	Simgeler bu ekranda bulanık görünüyor. 240-640dpi paketiyle yeniden yamalayın.
+Icons look soft on this screen. Repatch with the 120-480dpi bundle.	Simgeler bu ekranda bulanık görünüyor. 120-480dpi paketiyle yeniden yamalayın.
 Icons look soft on this screen	Simgeler bu ekranda bulanık görünüyor
-The Facebook you patched has no images made for this screen, so some icons are enlarged. Patch Facebook again from the (arm64-v8a) (240-640dpi) bundle on APKMirror, which has images for every screen.	Yamaladığınız Facebook'ta bu ekran için yapılmış görseller yok, bu yüzden bazı simgeler büyütülüyor. Facebook'u APKMirror'daki (arm64-v8a) (240-640dpi) paketinden yeniden yamalayın, bu pakette her ekran için görseller var.
+The Facebook you patched has no images made for this screen, so some icons are enlarged. Patch Facebook again from the (arm64-v8a) (120-480dpi) bundle on APKMirror, which has images for every screen.	Yamaladığınız Facebook'ta bu ekran için yapılmış görseller yok, bu yüzden bazı simgeler büyütülüyor. Facebook'u APKMirror'daki (arm64-v8a) (120-480dpi) paketinden yeniden yamalayın, bu pakette her ekran için görseller var.
 Let each post come back once	Her gönderinin bir kez geri gelmesine izin ver
 A post you scrolled past shows up one more time, and scrolling past it again hides it. Fewer posts go missing after a quick scroll.	Üzerinden kaydırdığınız bir gönderi bir kez daha görünür, tekrar üzerinden kaydırınca gizlenir. Hızlı kaydırmadan sonra daha az gönderi kaybolur.
 There's no Facebook link in what you shared.	Paylaştığın içerikte Facebook bağlantısı yok.
@@ -2953,3 +2955,50 @@ Ask before reacting to a story	Hikayeye tepki vermeden önce sor
 A tap on a reaction at the bottom of a story asks first, and the story waits. Only Continue sends the reaction.	Bir hikayenin altındaki bir tepkiye dokunmak önce sorar ve hikaye bekler. Tepkiyi yalnızca Devam gönderir.
 # context: the question shown after a tap on a reaction at the bottom of a story; Continue sends the reaction, Cancel leaves it
 React to this story?	Bu hikayeye tepki verilsin mi?
+# context: In-app proxy, an HTTP proxy address (host:port) Facebook's connections go through
+In-app proxy	Uygulama içi proxy
+The address and port of an HTTP proxy for Facebook's connections, like %1$s. The local proxy port of a VLESS or V2Ray app such as v2rayNG works here. Leave it blank to connect the way your phone does.	Facebook'un bağlantıları için bir HTTP proxy'nin adresi ve bağlantı noktası, örneğin %1$s. v2rayNG gibi bir VLESS veya V2Ray uygulamasının yerel proxy bağlantı noktası burada çalışır. Telefonun her zamanki gibi bağlanması için boş bırakın.
+Type an HTTP proxy's address and port, like %1$s.	Bir HTTP proxy'nin adresini ve bağlantı noktasını yazın, örneğin %1$s.
+Facebook connects the way your phone does. Type a proxy's address and port to send its connections through it.	Facebook telefonunuzun bağlandığı gibi bağlanır. Bağlantılarını bir proxy üzerinden göndermek için proxy'nin adresini ve bağlantı noktasını yazın.
+Facebook's connections go through the proxy at %1$s.	Facebook'un bağlantıları %1$s proxy'si üzerinden gider.
+# context: switch title on the Downloads page; on, a tap on a download button asks first
+Ask before downloading	İndirmeden önce sor
+A reel's Download button, the Download button under a post and a video's Download to phone ask first, so a stray tap saves nothing. With Choose quality on each save on, a video's list of qualities does the asking.	Bir Reels videosunun İndir düğmesi, gönderinin altındaki İndir düğmesi ve bir videonun Telefona indir seçeneği önce sorar, böylece yanlışlıkla dokunmak hiçbir şey kaydetmez. Her kaydetmede kaliteyi seç açıkken videolarda soruyu kalite listesi sorar.
+# context: the question over the screen after a tap on a download button, answered Continue or Cancel
+Start this download?	Bu indirme başlatılsın mı?
+# context: the settings row that opens a file picker for a font holding emoji
+Emoji font file	Emoji yazı tipi dosyası
+# context: the settings row that deletes the saved emoji font and goes back to the phone's emoji
+Remove emoji font file	Emoji yazı tipi dosyasını kaldır
+# context: under Remove emoji font file while Use the phone's emoji is on
+Removes the saved emoji font file. Restart Facebook to use your phone's emoji.	Kayıtlı emoji yazı tipi dosyasını siler. Telefonunun emojilerini kullanmak için Facebook'u yeniden başlat.
+# context: under Remove emoji font file while Use the phone's emoji is off
+Removes the saved emoji font file. Use the phone's emoji stays off.	Kayıtlı emoji yazı tipi dosyasını siler. "Telefonun emojilerini kullan" kapalı kalır.
+# context: under Emoji font file with nothing picked; %1$d is a number of megabytes
+No file chosen. Choose a .ttf or .otf emoji font of up to %1$d MB.	Dosya seçilmedi. En fazla %1$d MB boyutunda bir .ttf veya .otf emoji yazı tipi seç.
+# context: under Emoji font file; %1$s is the file's name
+Selected %1$s. Emoji changes apply after restarting Facebook.	%1$s seçildi. Emoji değişiklikleri Facebook yeniden başlatılınca uygulanır.
+# context: under Emoji font file while the switch is off; %1$s is the file's name
+Selected %1$s. Use the phone's emoji is off. Turn it on and restart Facebook to use this file.	%1$s seçildi. "Telefonun emojilerini kullan" kapalı. Bu dosyayı kullanmak için seçeneği açıp Facebook'u yeniden başlat.
+# context: toast after an emoji font is picked; %1$s is the file's name
+Selected %1$s. Restart Facebook to apply the emoji change.	%1$s seçildi. Emoji değişikliğini uygulamak için Facebook'u yeniden başlat.
+# context: toast after an emoji font is picked while the switch is off; %1$s is the file's name
+Selected %1$s. Turn on Use the phone's emoji and restart Facebook to use it.	%1$s seçildi. Kullanmak için "Telefonun emojilerini kullan" seçeneğini açıp Facebook'u yeniden başlat.
+# context: under Emoji font file while the picked file is copied
+Copying the emoji font file	Emoji yazı tipi dosyası kopyalanıyor
+# context: toast when the file picked as an emoji font isn't a font
+That isn't a .ttf or .otf font file. Your emoji didn't change.	Bu bir .ttf veya .otf yazı tipi dosyası değil. Emojilerin değişmedi.
+# context: toast when the emoji font is too large; %1$d is a number of megabytes
+That font file is over %1$d MB. Your emoji didn't change.	Bu yazı tipi dosyası %1$d MB'tan büyük. Emojilerin değişmedi.
+# context: toast when Android can't load the picked emoji font
+Android couldn't use that font file. Your emoji didn't change.	Android bu yazı tipi dosyasını kullanamadı. Emojilerin değişmedi.
+# context: toast when the font picked as an emoji font is a text font
+That font has no emoji in it. Your emoji didn't change.	Bu yazı tipinde emoji yok. Emojilerin değişmedi.
+# context: toast when the picked emoji font can't be read
+Couldn't open that file. Your emoji didn't change.	Bu dosya açılamadı. Emojilerin değişmedi.
+# context: toast after Remove emoji font file
+Emoji font file cleared. Restart Facebook to apply the emoji change.	Emoji yazı tipi dosyası kaldırıldı. Değişikliği uygulamak için Facebook'u yeniden başlat.
+# context: toast when Remove emoji font file fails
+Couldn't go back to your phone's emoji. Try again.	Telefonunun emojilerine geri dönülemedi. Tekrar dene.
+# context: toast when the app holding the emoji font doesn't answer in time
+The app holding that font file is taking too long, so Hushfacebook stopped waiting. Your emoji didn't change.	O yazı tipi dosyasını tutan uygulama çok uzun sürüyor, bu yüzden Hushfacebook beklemeyi bıraktı. Emojilerin değişmedi.

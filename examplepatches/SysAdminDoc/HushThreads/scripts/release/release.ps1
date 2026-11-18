@@ -30,7 +30,7 @@
                changing no file.
     publish    First -Walk, the walk-receipt.json of a whole-app walk of the built bundle on a
                release phone or an emulator (walk-receipt.ps1): nothing goes out without one.
-               Then the GitHub release, its notes carrying every bullet of the CHANGELOG section
+               Then the GitHub release, its notes carrying the CHANGELOG section's Threads bullets
                with -Intro above them and -Update after, and the four assets, each downloaded back
                and compared. Then a repository description that names a release, a patch count or
                a Threads build is moved to this release's. One that names none of them stays as

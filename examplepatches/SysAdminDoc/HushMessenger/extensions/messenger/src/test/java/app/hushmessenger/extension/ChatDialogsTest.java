@@ -2,12 +2,14 @@ package app.hushmessenger.extension;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.DatePickerDialog;
 import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Outline;
 import android.graphics.Rect;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.InsetDrawable;
@@ -15,9 +17,11 @@ import android.os.Build;
 import android.os.Looper;
 import android.view.PixelCopy;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.TextView;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -214,6 +218,63 @@ public class ChatDialogsTest {
         assertEquals(Color.TRANSPARENT, plain.getColor().getDefaultColor());
         assertEquals(ChatDialogs.accent(), cancel.getCurrentTextColor());
         assertNotEquals("Cancel reads as the quieter one", call.getCurrentTextColor(), cancel.getCurrentTextColor());
+    }
+
+    private View part(android.app.Dialog dialog, String name) {
+        return dialog.findViewById(activity.getResources().getIdentifier(name, "id", "android"));
+    }
+
+    private void titleIsReadable(int words) {
+        AlertDialog dialog = new AlertDialog.Builder(activity, MaterialYouTheme.chatDialogTheme())
+            .setTitle("Jump to").setMessage("Where to?").create();
+        ChatDialogs.dress(dialog);
+        dialog.show();
+        TextView title = (TextView) part(dialog, "alertTitle");
+        TextView message = (TextView) part(dialog, "message");
+        // On the S22 the title came up dark on the dark card.
+        title.setTextColor(0xFF777777);
+        message.setTextColor(0xFF777777);
+
+        ChatDialogs.dressButtons(dialog);
+
+        assertEquals(words, title.getCurrentTextColor());
+        assertEquals(words, message.getCurrentTextColor());
+        dialog.dismiss();
+    }
+
+    @Test public void theTitleAndMessageReadOnTheCard() {
+        titleIsReadable(0xFFFFFFFF);
+        MaterialYouTheme.darkModeAnswer(false);
+        titleIsReadable(0xFF000000);
+    }
+
+    @Test public void theFilledButtonKeepsOffThePlainOne() {
+        AlertDialog dialog = shown();
+        int gap = (int) (ChatDialogs.BUTTON_GAP_DP * activity.getResources().getDisplayMetrics().density);
+        View call = dialog.getButton(DialogInterface.BUTTON_POSITIVE);
+        assertEquals(gap, ((ViewGroup.MarginLayoutParams) call.getLayoutParams()).getMarginStart());
+    }
+
+    private void headerIsGlass(int words) {
+        DatePickerDialog dialog = new DatePickerDialog(activity, MaterialYouTheme.chatDialogTheme(), null, 2026, 10, 18);
+        ChatDialogs.dress(dialog);
+        dialog.show();
+        ChatDialogs.dressButtons(dialog);
+
+        View header = part(dialog, "date_picker_header");
+        assertNotNull(header);
+        assertEquals(Color.TRANSPARENT, ((ColorDrawable) header.getBackground()).getColor());
+        int[] selected = {android.R.attr.state_activated};
+        for (String name : new String[] {"date_picker_header_year", "date_picker_header_date"}) {
+            assertEquals(name, words, ((TextView) part(dialog, name)).getTextColors().getColorForState(selected, 0));
+        }
+        dialog.dismiss();
+    }
+
+    @Test public void aDatePickersHeaderIsPartOfTheGlass() {
+        headerIsGlass(0xFFFFFFFF);
+        MaterialYouTheme.darkModeAnswer(false);
+        headerIsGlass(0xFF000000);
     }
 
     /** The words on the accent have to be readable, whatever colour a pasted theme gives it. */

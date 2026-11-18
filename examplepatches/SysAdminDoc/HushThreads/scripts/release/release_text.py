@@ -27,11 +27,10 @@ from typing import NoReturn
 
 ROOT = Path(__file__).resolve().parents[2]
 APP = "Threads"
-# The scopes a released section may use, in the order the GitHub notes list them. A bullet with
-# no label is a Threads change, because this repo patches one app and a "Threads:" label only
-# repeated it. A bullet that still carries "**Threads:**" counts the same and loses the label at
-# the cut. Docs and Tooling bullets are development and documentation notes that Manager lists
-# for nobody.
+# The scopes a released section may use. A bullet with no label is a Threads change, because this
+# repo patches one app and a "Threads:" label only repeated it. A bullet that still carries
+# "**Threads:**" counts the same and loses the label at the cut. Docs and Tooling bullets are
+# development and documentation notes that Manager and the GitHub notes list for nobody.
 SCOPES = ("Threads", "Docs", "Tooling")
 VERSION = re.compile(r"^\d+\.\d+\.\d+$")
 DASHES = ("\u2014", "\u2013")
@@ -410,30 +409,17 @@ def notes(args) -> None:
     named = sorted(set(MANAGER_NAMED.findall(intro + "\n" + update)) - {floor})
     if named:
         fail(f"the notes name Morphe Manager {', '.join(named)} or newer, but the catalog pins {floor}")
-    info = catalog()
     runtime = test_count(RUNTIME_RESULTS, "runtime")
     patch = test_count(PATCH_RESULTS, "patch")
-    sections = []
-    carried = 0
-    for scope in SCOPES:
-        lines = [f"- {text}" for s, text in items if s == scope]
-        carried += len(lines)
-        if lines:
-            sections.append(f"## {scope}\n\n" + "\n".join(lines))
-    if carried != len(items):
-        fail(f"{len(items) - carried} CHANGELOG bullets didn't make it into the notes")
-    targets = info["targets"]
-    validation = (f"{runtime} runtime tests and {patch} patch tests passed locally, along with both Android lints and "
-                  f"the release script checks. All {info['count']} patches applied without forcing to Threads "
-                  f"{spoken(targets)}, and the release receipt records {runs(targets)}. The dependency advisory "
-                  "check passed.")
-    text = (intro + "\n\n" + "\n\n".join(sections) + "\n\n## Update\n\n" + update + "\n\n## Validation\n\n"
-            + validation + "\n")
+    # The notes are for the people patching Threads, so the Docs and Tooling bullets stay in the
+    # CHANGELOG. dated_section already refused a section without a Threads bullet.
+    shown = [f"- {text}" for scope, text in items if scope == APP]
+    text = intro + "\n\n" + f"## {APP}\n\n" + "\n".join(shown) + "\n\n## Update\n\n" + update + "\n"
     if any(dash in text for dash in DASHES):
         fail("the notes have an em or en dash")
     write(Path(args.out), text)
-    print(f"[release] notes for v{version}: all {len(items)} CHANGELOG bullets, {runtime} runtime and {patch} "
-          f"patch tests, {len(text)} characters")
+    print(f"[release] notes for v{version}: {len(shown)} {APP} bullets, {len(items) - len(shown)} Docs and Tooling "
+          f"left in the CHANGELOG, {runtime} runtime and {patch} patch tests passed, {len(text)} characters")
 
 
 def changelog_groups(version: str) -> str:

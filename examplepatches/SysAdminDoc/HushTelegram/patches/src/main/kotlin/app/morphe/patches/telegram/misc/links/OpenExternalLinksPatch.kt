@@ -25,7 +25,7 @@ val openExternalLinksPatch = bytecodePatch(
 ) {
     category("Privacy")
     dependsOn(settingsPatch, telegramExtensionPatch, browserVisibilityPatch)
-    compatibleWith(*AppCompatibilities.telegramOnly())
+    compatibleWith(*AppCompatibilities.telegram())
     execute {
         listOf("openExternalLinks", "externalBrowserRouting").forEach { requireStatusMethod(it) }
         requireMiniAppLocationRuntime()

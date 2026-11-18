@@ -4,7 +4,6 @@
  */
 package app.morphe.patches.telegram.misc.messagemenu
 
-import app.morphe.PlusPending
 import app.morphe.util.names.origString
 import app.morphe.util.names.origParameterTypes
 import app.morphe.ExtensionDex
@@ -34,7 +33,6 @@ import app.morphe.util.names.tgClassDefByOrNull
 import app.morphe.util.names.tgMutableClassDefBy
 
 /** The selection bar's builder, its click handler, the chat's select method and the stubs that reach them, on the pinned builds. */
-@PlusPending
 class SelectBetweenFixtureTest {
     private val list = "Ljava/util/ArrayList;"
 

@@ -20872,6 +20872,9 @@ m Lorg/telegram/messenger/BuildVars; isBetaApp ()Z Lorg/telegram/messenger/s2; a
 m Lorg/telegram/messenger/ApplicationLoader; startPushService ()V Lorg/telegram/messenger/z0; s ()V
 m Lorg/telegram/messenger/UserConfig; hasPremiumOnAccounts ()Z Lorg/telegram/messenger/e50; q ()Z
 
+# added by hand: formatString(key, fallback, res, args), which R8 kept on Plus with the resource first
+m Lorg/telegram/messenger/LocaleController; formatString (Ljava/lang/String;Ljava/lang/String;I[Ljava/lang/Object;)Ljava/lang/String; Lorg/telegram/messenger/ud; b0 (ILjava/lang/String;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/String;
+
 # added by hand: event ids Plus keeps from Play (same value and name through 348), read off the Play table
 f Lorg/telegram/messenger/NotificationCenter; premiumFloodWaitReceived I Lorg/telegram/messenger/gu; s3 I
 f Lorg/telegram/messenger/NotificationCenter; storiesListUpdated I Lorg/telegram/messenger/gu; u3 I

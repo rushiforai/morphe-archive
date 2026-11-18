@@ -1182,6 +1182,9 @@ shared-call Lapp/hushgram/extension/instagram/feed/FeedSuggestions;->homeItem(Lj
 start-call Lapp/hushgram/extension/instagram/feed/FeedSuggestions;->homePageStarts()V in instance (L*;)Ljava/lang/Object; holding feed_items pull_to_refresh_window_ms
 once-call Lapp/hushgram/extension/instagram/feed/FeedSuggestions;->homePageStarts()V in instance (L*;)Ljava/lang/Object; holding feed_items pull_to_refresh_window_ms
 shared-call Lapp/hushgram/extension/instagram/feed/FeedSuggestions;->homePageParsed()V in instance (L*;)Ljava/lang/Object; sites 2 holding feed_items pull_to_refresh_window_ms
+# Instagram adds its "New posts for you" header after a page's first post, at index 1. A page the
+# filters emptied has no index 1, so that insert goes through FeedPageHeader. Left out, Home crashes.
+once-call Lapp/hushgram/extension/instagram/feed/FeedPageHeader;->add(Ljava/util/List;ILjava/lang/Object;)V in static (L*;L*;L*;L*;Ljava/lang/Integer;ZZZZ)Z pooled holding New\sposts\sfor\syou
 # Hidden accounts learns whose Home it is from homeSession, first thing in the constructor of Home's
 # cache source (MainFeedCacheDataSource, a kept name): its one constructor taking a boolean and the
 # session, in the class holding the two strings below. 451 takes the session first, 450 took it
@@ -1779,6 +1782,16 @@ once-call Lapp/hushgram/extension/instagram/download/VideoDownload;->play(Ljava/
 once-call Lapp/hushgram/extension/instagram/download/PostInfo;->offer(Ljava/lang/Object;Ljava/util/ArrayList;)V in (*)Ljava/lang/Object; pooled holding cns_client_event
 once-call Lapp/hushgram/extension/instagram/download/PostInfo;->option()Ljava/lang/Object; in instance (Lcom/instagram/feed/media/mediaoption/MediaOption$Option;)V holding CAROUSEL_TO_REELS_ACTION_SHEET bloks_suggested_comments_network_error
 once-call Lapp/hushgram/extension/instagram/download/PostInfo;->show(Ljava/lang/Object;Ljava/lang/Object;Landroid/app/Activity;)V in instance (Lcom/instagram/feed/media/mediaoption/MediaOption$Option;)V holding CAROUSEL_TO_REELS_ACTION_SHEET bloks_suggested_comments_network_error
+# Block and Playback speed in a feed post's menu (#743): offered by the same builder, their taps answered by the
+# same handler, and the extension told of each hold-for-2x controller Instagram makes, whose player the speed goes to.
+once-call Lapp/hushgram/extension/instagram/download/FeedPostRows;->offer(Ljava/lang/Object;Ljava/util/ArrayList;)V in (*)Ljava/lang/Object; pooled holding cns_client_event
+once-call Lapp/hushgram/extension/instagram/download/FeedPostRows;->blockOption()Ljava/lang/Object; in instance (Lcom/instagram/feed/media/mediaoption/MediaOption$Option;)V holding CAROUSEL_TO_REELS_ACTION_SHEET bloks_suggested_comments_network_error
+once-call Lapp/hushgram/extension/instagram/download/FeedPostRows;->block(Ljava/lang/Object;Ljava/lang/Object;)V in instance (Lcom/instagram/feed/media/mediaoption/MediaOption$Option;)V holding CAROUSEL_TO_REELS_ACTION_SHEET bloks_suggested_comments_network_error
+once-call Lapp/hushgram/extension/instagram/download/FeedPostRows;->speedOption()Ljava/lang/Object; in instance (Lcom/instagram/feed/media/mediaoption/MediaOption$Option;)V holding CAROUSEL_TO_REELS_ACTION_SHEET bloks_suggested_comments_network_error
+once-call Lapp/hushgram/extension/instagram/download/FeedPostRows;->speed(Ljava/lang/Object;Ljava/lang/Object;Landroid/app/Activity;)V in instance (Lcom/instagram/feed/media/mediaoption/MediaOption$Option;)V holding CAROUSEL_TO_REELS_ACTION_SHEET bloks_suggested_comments_network_error
+once-call Lapp/hushgram/extension/instagram/download/FeedPostRows;->controllerMade(Ljava/lang/Object;)V in instance (Landroid/content/Context;Lcom/instagram/common/session/UserSession;Lkotlin/jvm/functions/Function0;)V pooled class-holding FeedVideo2xSpeed
+# The end of a hold for 2x asks what speed to go back to, so a speed picked from that menu survives it.
+once-call Lapp/hushgram/extension/instagram/download/FeedPostRows;->restingSpeed(Ljava/lang/Object;F)F in static (L*;Z)Z pooled holding FeedVideo2xSpeed
 # Download cover (#94): offered right after Save all by the same builder, and its tap handled by the same handler.
 once-call Lapp/hushgram/extension/instagram/download/VideoDownload;->offerCover(Ljava/lang/Object;Ljava/util/ArrayList;)V in (*)Ljava/lang/Object; pooled holding cns_client_event
 once-call Lapp/hushgram/extension/instagram/download/VideoDownload;->coverOption()Ljava/lang/Object; in instance (Lcom/instagram/feed/media/mediaoption/MediaOption$Option;)V holding CAROUSEL_TO_REELS_ACTION_SHEET bloks_suggested_comments_network_error
@@ -2532,15 +2545,16 @@ once-call Lapp/hushgram/extension/instagram/misc/Fonts;->prismTypeface(Landroid/
 next-call Lapp/hushgram/extension/instagram/misc/Fonts;->textView(Landroid/widget/TextView;)V after Lcom/instagram/common/ui/base/IgTextViewUtils;->initialize(Landroid/widget/TextView;Landroid/content/Context;Landroid/util/AttributeSet;)V in instance (Landroid/content/Context;Landroid/util/AttributeSet;II)V holding Lcom/instagram/common/ui/base/IgTextViewUtils;->initialize(Landroid/widget/TextView;Landroid/content/Context;Landroid/util/AttributeSet;)V
 # Show if a profile follows you hands the pronouns slot beside a profile's name and the header to
 # FriendshipStatus right after the name's binder shows the slot with the pronouns in it, and right
-# after it hides the slot for an account with none (0BNk.A04 on 449, the one method loading the
-# trace name below). Each hook is called once there and nowhere else, so both rules are once-call.
-# Left out, nothing is added beside the name; twice or elsewhere, it isn't the hook the patch wrote.
+# after each place it hides the slot for an account with none (the one method loading the trace
+# name below). 456 hides it in two places, one for a profile with a name and one without (#727), so
+# the second hook is called twice there and nowhere else; the first is called once.
+# Left out, nothing is added beside the name; elsewhere, it isn't the hook the patch wrote.
 # FriendshipStatusHookTest checks on the 449 fixture that each lands right after its call. The
 # stubs the patch fills, the two reading the profile screen's own answer as the options sheet does
 # (#40) among them, are the extension's own methods, called only by FriendshipStatus, so they're no
 # hook into Instagram and get no rule; FriendshipStatusHookTest checks them on every 450 build.
 once-call Lapp/hushgram/extension/instagram/profile/FriendshipStatus;->besidePronouns(Ljava/lang/Object;Ljava/lang/Object;)V in static (Landroid/content/Context;Landroid/view/View;*)V holding bindFullName
-once-call Lapp/hushgram/extension/instagram/profile/FriendshipStatus;->inPlaceOfPronouns(Ljava/lang/Object;Ljava/lang/Object;)V in static (Landroid/content/Context;Landroid/view/View;*)V holding bindFullName
+once-call Lapp/hushgram/extension/instagram/profile/FriendshipStatus;->inPlaceOfPronouns(Ljava/lang/Object;Ljava/lang/Object;)V in static (Landroid/content/Context;Landroid/view/View;*)V sites 2 holding bindFullName
 # Its second switch hands each row of a follow list to FollowingList right after the row binder's
 # static call fills the row in (0CRR.bindView on 449, the one method loading Kotlin's message for
 # its FollowRowState cast below). The hook is called once there and nowhere else. Left out, your

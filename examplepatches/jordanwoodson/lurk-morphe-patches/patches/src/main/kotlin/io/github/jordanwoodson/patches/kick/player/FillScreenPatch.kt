@@ -4,11 +4,11 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ThreeRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import io.github.jordanwoodson.patches.kick.settings.kickMatch
 import io.github.jordanwoodson.patches.kick.settings.kickSettings
 import io.github.jordanwoodson.patches.kick.settings.kickSettingsPatch
@@ -20,7 +20,6 @@ import io.github.jordanwoodson.patches.shared.settings.Section
 import io.github.jordanwoodson.patches.shared.settings.SwitchSetting
 
 private const val KEY = "fill_screen"
-private const val RESIZE_MODE = "Lcom/amazonaws/ivs/player/ResizeMode;"
 
 @Suppress("unused")
 val fillScreenPatch = bytecodePatch(
@@ -33,40 +32,44 @@ val fillScreenPatch = bytecodePatch(
     dependsOn(kickSettingsPatch)
 
     execute {
-        // Kick's player view scales its SurfaceView by the IVS resize mode, which stays FIT: React Native never
-        // passes one. The method checks the mode against FIT right before comparing the video's aspect ratio with
-        // the view's, so the hook gets both ratios there and may hand back FILL. The view runs it on every layout,
-        // so rotating or entering picture-in-picture checks again.
-        SurfaceTransformFingerprint.kickMatch("player view surface transform").method.apply {
-            Locators.record("kick.fill_screen.surface_transform", this)
+        // Kick's player is a Media3 PlayerView, whose video frame (AspectRatioFrameLayout) sizes the video by its
+        // resize mode while measuring. Kick never sets a content fit, so the mode stays FIT. The hook goes where the
+        // frame reads the mode, after it has compared the video's width / height with its own: KickPlayer.resizeMode
+        // gets the mode and both ratios and may hand back ZOOM. The frame measures again on every layout, so rotating
+        // or entering picture-in-picture checks again.
+        AspectRatioMeasureFingerprint.kickMatch("video frame measure").method.apply {
+            Locators.record("kick.fill_screen.video_frame_measure", this)
             val code = implementation!!.instructions.toList()
-            val fit = "$RESIZE_MODE->FIT:$RESIZE_MODE"
+            fun field(name: String, type: String) = "Landroidx/media3/ui/AspectRatioFrameLayout;->$name:$type"
+            val modeField = field("resizeMode", "I")
+            val ratioField = field("videoAspectRatio", "F")
             val read = code.indices.singleOrNull { i ->
-                code[i].opcode == Opcode.IGET_OBJECT &&
-                    ((code[i] as ReferenceInstruction).reference as? FieldReference)?.type == RESIZE_MODE &&
-                    code.getOrNull(i + 1)?.opcode == Opcode.SGET_OBJECT &&
-                    (code[i + 1] as ReferenceInstruction).reference.toString() == fit
-            } ?: throw PatchException("Kick: expected one FIT check in the player view's surface transform")
+                code[i].opcode == Opcode.IGET && (code[i] as ReferenceInstruction).reference.toString() == modeField
+            } ?: throw PatchException("Kick: expected one resize mode read in the video frame")
             val mode = (code[read] as TwoRegisterInstruction).registerA
-            val constant = (code[read + 1] as OneRegisterInstruction).registerA
-            val branch = code[read + 2] as? TwoRegisterInstruction
-            val compare = code.getOrNull(read + 3) as? ThreeRegisterInstruction
-            if (branch == null || branch.opcode !in setOf(Opcode.IF_EQ, Opcode.IF_NE) ||
-                setOf(branch.registerA, branch.registerB) != setOf(mode, constant) ||
-                compare == null || compare.opcode != Opcode.CMPL_FLOAT
+            // The view's own ratio: the first float division, of its measured width by its measured height.
+            val division = code.firstOrNull { it.opcode == Opcode.DIV_FLOAT } as? ThreeRegisterInstruction
+                ?: throw PatchException("Kick: the video frame no longer divides its width by its height")
+            val viewRatio = division.registerA
+            // A scratch register for the video's ratio: the one the instruction after the read overwrites without
+            // reading it.
+            val next = code.getOrNull(read + 1)
+            val scratch = (next as? OneRegisterInstruction)?.registerA
+            if (next == null || next.opcode !in setOf(Opcode.CONST_4, Opcode.CONST_16, Opcode.CONST) ||
+                scratch == null || scratch == mode || scratch == viewRatio ||
+                code.subList(code.indexOf(division as Instruction) + 1, read).any {
+                    it.opcode.setsRegister() && (it as? OneRegisterInstruction)?.registerA == viewRatio
+                }
             ) {
-                throw PatchException("Kick: the surface transform no longer compares FIT, then the aspect ratios")
+                throw PatchException("Kick: the video frame's registers around the resize mode changed")
             }
-            // cmpl-float compares the video's width / height with the view's.
             addInstructions(
                 read + 1,
                 """
-                    ${invokeStatic(
-                        "$KICK_PLAYER->resizeMode(Landroid/view/View;Ljava/lang/Object;FF)Ljava/lang/Object;",
-                        parameterRegister(0), mode, compare.registerB, compare.registerC,
-                    )}
-                    move-result-object v$mode
-                    check-cast v$mode, $RESIZE_MODE
+                    iget v$scratch, p0, $ratioField
+                    ${invokeStatic("$KICK_PLAYER->resizeMode(Landroid/view/View;IFF)I",
+                        parameterRegister(0), mode, scratch, viewRatio)}
+                    move-result v$mode
                 """,
             )
         }

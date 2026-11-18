@@ -3,10 +3,11 @@
 
 Usage (hermes-dec Python): verify_hosting.py stock.bundle patched.apk
 Or: verify_hosting.py stock.bundle patched.bundle manifest.json
-Pinned to the Kick version in kick/shared/Constants.kt (functions found by name). React hooks, JSX, scheduler
-and routing are boundary doubles;
-compiler memo caches persist across renders. Random duration is seeded at its real
-memo slot (3 seconds). This does not run React Native or a real Pusher/network event.
+Pinned to the Kick version in kick/shared/Constants.kt (functions found by name, module slots as that version has
+them). JoinHostDialogContent and useCountdown run as they are; React's hooks (state, refs, callbacks and effects, kept
+across renders), JSX, the scheduler, routing and the parent that mounts the dialog while there is a host event are
+boundary doubles. The random duration is fixed at 3 seconds. This does not run React Native or a real Pusher/network
+event.
 """
 import argparse
 import ast
@@ -24,7 +25,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))  # Also under python -I
 from test_hermes import verify as structural  # noqa: E402
 
 U = object()
-SENTINEL = object()
 
 
 def function_named(reader, name):
@@ -34,12 +34,9 @@ def function_named(reader, name):
     return ids[0]
 
 
-def closure_at(reader, data, fid, pc):
-    """The function a CreateClosure at pc in function fid creates."""
+def instructions(reader, data, fid):
     reader.file_buffer = BytesIO(data)
-    found = [i for i in parse_hbc_bytecode(reader.function_headers[fid], reader) if i.original_pos == pc]
-    assert len(found) == 1 and found[0].inst.name == 'CreateClosure', f'no CreateClosure at {pc:#x}'
-    return found[0].arg3
+    return list(parse_hbc_bytecode(reader.function_headers[fid], reader))
 
 
 def same(a, b):
@@ -59,15 +56,13 @@ class Env(dict):
 class VM:
     """Small fail-closed executor: only instructions reached by these production functions."""
     def __init__(self, reader, data):
-        self.reader, self.data, self.code = reader, data, {}
+        self.reader, self.data, self.code, self.top = reader, data, {}, {}
         self.intervals, self.next_timer = {}, 0
         self.globals = {
-            'Symbol': {'for': lambda this, key: SENTINEL},
             'Math': {'floor': lambda this, value: math.floor(value)},
             'setInterval': self.interval,
             'clearInterval': lambda this, handle: self.intervals.pop(handle, None),
         }
-        self.executed = set()
 
     def interval(self, this, callback, millis):
         assert millis == 1000
@@ -77,8 +72,12 @@ class VM:
 
     def instructions(self, fid):
         if fid not in self.code:
-            self.reader.file_buffer = BytesIO(self.data)
-            self.code[fid] = {i.original_pos: i for i in parse_hbc_bytecode(self.reader.function_headers[fid], self.reader)}
+            code = instructions(self.reader, self.data, fid)
+            self.code[fid] = {i.original_pos: i for i in code}
+            # CallBuiltin takes its arguments from the frame's highest registers, the first argument in the highest one
+            # the code names (`this` above it is never written).
+            self.top[fid] = max((getattr(i, f'arg{j}') for i in code for j, operand in
+                                 enumerate(i.inst.operands, 1) if operand.operand_type.name == 'Reg8'), default=0)
         return self.code[fid]
 
     def closure(self, fid, env):
@@ -88,23 +87,35 @@ class VM:
         if isinstance(obj, str) and key == 'startsWith':
             return lambda this, prefix: this.startswith(prefix)
         if isinstance(obj, list):
-            return obj[key] if key < len(obj) else U
+            return obj[key] if isinstance(key, int) and key < len(obj) else U
         return obj.get(key, U)
+
+    def builtin(self, fid, r, number, count):
+        top = self.top[fid]
+        args = [r.get(top - k, U) for k in range(count - 1)]
+        if number == 48:  # arraySpread(target, source, nextIndex): appends, returns the next index.
+            target, source, index = args
+            target.extend(source)
+            return index + len(source)
+        if number == 49:  # apply(function, arguments, this)
+            function, arguments, this = args
+            return function(this, *arguments)
+        raise AssertionError(f'Unsupported builtin #{number}')
 
     def run(self, fid, envs, params=(), pc=0, registers=None):
         r = {} if registers is None else registers
         code = self.instructions(fid)
         for _ in range(4000):
             i = code[pc]
-            self.executed.add((fid, pc))
             op = i.inst.name
             a = [getattr(i, f'arg{j}') for j in range(1, len(i.inst.operands) + 1)]
             pc = i.next_pos
             if op == 'GetParentEnvironment': r[a[0]] = envs[a[1]]
-            elif op in ('CreateFunctionEnvironment', 'CreateTopLevelEnvironment'): r[a[0]] = Env(envs if op == 'CreateFunctionEnvironment' else ())
+            elif op in ('CreateFunctionEnvironment', 'CreateTopLevelEnvironment'):
+                r[a[0]] = Env(envs if op == 'CreateFunctionEnvironment' else ())
             elif op == 'LoadFromEnvironment': r[a[0]] = r[a[1]].get(a[2], U)
-            elif op == 'StoreToEnvironment': r[a[0]][a[1]] = r[a[2]]
-            elif op == 'LoadParam': r[a[0]] = params[a[1]-1]
+            elif op in ('StoreToEnvironment', 'StoreNPToEnvironment'): r[a[0]][a[1]] = r[a[2]]
+            elif op == 'LoadParam': r[a[0]] = params[a[1]-1] if a[1] <= len(params) else U
             elif op == 'LoadConstUndefined': r[a[0]] = U
             elif op == 'LoadConstNull': r[a[0]] = None
             elif op == 'LoadConstTrue': r[a[0]] = True
@@ -114,17 +125,16 @@ class VM:
             elif op in ('LoadConstString', 'LoadConstStringLongIndex'): r[a[0]] = self.reader.strings[a[1]]
             elif op == 'GetGlobalObject': r[a[0]] = self.globals
             elif op in ('GetById', 'GetByIdShort', 'TryGetById'): r[a[0]] = self.get(r[a[1]], self.reader.strings[a[3]])
-            elif op == 'GetByIndex': r[a[0]] = self.get(r[a[1]], a[2])
-            elif op == 'PutByIdStrict': r[a[0]][self.reader.strings[a[3]]] = r[a[1]]
-            elif op == 'PutByValStrict': r[a[0]][r[a[1]]] = r[a[2]]
             elif op in ('NewObjectWithBuffer', 'NewObjectWithBufferLong'):
                 def literal(v):
-                    if v in ('null', 'true', 'false', 'undefined'): return {'null': None, 'true': True, 'false': False, 'undefined': U}[v]
+                    if v in ('null', 'true', 'false', 'undefined'):
+                        return {'null': None, 'true': True, 'false': False, 'undefined': U}[v]
                     return ast.literal_eval(v)
                 keys = self.reader.object_shape_keys[a[1]]
                 values = unpack_slp_array(self.reader.literal_values[a[2]:], len(keys), 99).to_strings(self.reader.strings)
                 r[a[0]] = {literal(k): literal(v) for k, v in zip(keys, values)}
             elif op == 'PutOwnBySlotIdx': r[a[0]][list(r[a[0]])[a[2]]] = r[a[1]]
+            elif op == 'PutByIdStrict': r[a[0]][self.reader.strings[a[3]]] = r[a[1]]
             elif op == 'NewArray': r[a[0]] = [U] * a[1]
             elif op == 'DefineOwnInDenseArray': r[a[0]][a[2]] = r[a[1]]
             elif op == 'Mov': r[a[0]] = r[a[1]]
@@ -135,18 +145,21 @@ class VM:
             elif op == 'IteratorClose': pass
             elif op == 'CreateClosure': r[a[0]] = self.closure(a[2], r[a[1]])
             elif op in ('Call1', 'Call2', 'Call3', 'Call4'): r[a[0]] = r[a[1]](*[r[x] for x in a[2:]])
+            elif op == 'CallBuiltin': r[a[0]] = self.builtin(fid, r, a[1], a[2])
             elif op == 'StrictEq': r[a[0]] = same(r[a[1]], r[a[2]])
+            elif op == 'Eq': r[a[0]] = same(r[a[1]], r[a[2]]) or (r[a[1]] in (None, U) and r[a[2]] in (None, U))
             elif op == 'Not': r[a[0]] = not truth(r[a[1]])
             elif op == 'Div': r[a[0]] = r[a[1]] / r[a[2]]
             elif op == 'Mod': r[a[0]] = r[a[1]] % r[a[2]]
             elif op == 'Sub': r[a[0]] = r[a[1]] - r[a[2]]
             elif op in ('Jmp', 'JmpLong'): pc = i.original_pos + a[0]
-            elif op in ('JmpTrue', 'JmpTrueLong', 'JmpFalse'):
-                if truth(r[a[1]]) == (op != 'JmpFalse'): pc = i.original_pos + a[0]
-            elif op in ('JStrictEqual', 'JStrictNotEqual', 'JNotEqual', 'JEqual', 'JGreater'):
+            elif op in ('JmpTrue', 'JmpTrueLong', 'JmpFalse', 'JmpFalseLong'):
+                if truth(r[a[1]]) == op.startswith('JmpTrue'): pc = i.original_pos + a[0]
+            elif op in ('JStrictEqual', 'JStrictNotEqual', 'JNotEqual', 'JEqual', 'JGreater', 'JNotGreater'):
                 left, right = r[a[1]], r[a[2]]
-                equal = same(left, right) or (op in ('JNotEqual', 'JEqual') and (left is None or left is U) and (right is None or right is U))
-                branch = left > right if op == 'JGreater' else (not equal if op in ('JStrictNotEqual', 'JNotEqual') else equal)
+                equal = same(left, right) or (op in ('JNotEqual', 'JEqual') and left in (None, U) and right in (None, U))
+                if op in ('JGreater', 'JNotGreater'): branch = (left > right) == (op == 'JGreater')
+                else: branch = not equal if op in ('JStrictNotEqual', 'JNotEqual') else equal
                 if branch: pc = i.original_pos + a[0]
             elif op == 'Ret': return r[a[0]]
             else: raise AssertionError(f'Unsupported executed instruction #{fid} {i.original_pos:#x}: {op}')
@@ -154,15 +167,11 @@ class VM:
 
 
 class Hooks:
+    """React's hooks for one mounted component tree, by call order: state, refs, callbacks (kept while their
+    dependencies stay the same) and effects (run after the render when their dependencies change)."""
     def __init__(self):
-        self.values, self.caches, self.effects, self.pending = [], {}, {}, []
+        self.values, self.effects, self.pending = [], {}, []
         self.cursor = 0
-
-    def memo(self, this, size):
-        if size not in self.caches:
-            self.caches[size] = [SENTINEL] * size
-            if size == 57: self.caches[size][2] = 3  # Bypass only random-duration selection.
-        return self.caches[size]
 
     def slot(self, initial):
         index = self.cursor
@@ -176,23 +185,30 @@ class Hooks:
             def set_value(this, value): cell[0] = value(U, cell[0]) if callable(value) else value
             cell[1] = set_value
             return cell
-        return self.values[self.slot(new)].copy()
+        return list(self.values[self.slot(new)])
 
     def ref(self, this, initial):
         return self.values[self.slot(lambda: {'current': initial})]
+
+    def callback(self, this, fn, deps):
+        index = self.slot(lambda: None)
+        kept = self.values[index]
+        if kept is None or len(kept[0]) != len(deps) or any(not same(a, b) for a, b in zip(kept[0], deps)):
+            self.values[index] = (list(deps), fn)
+        return self.values[index][1]
 
     def effect(self, this, fn, deps):
         index = self.slot(lambda: None)
         old = self.effects.get(index)
         if old is None or len(old[0]) != len(deps) or any(not same(a, b) for a, b in zip(old[0], deps)):
-            self.pending.append((index, deps, fn))
+            self.pending.append((index, list(deps), fn))
 
     def commit(self):
         pending, self.pending = self.pending, []
         for index, deps, fn in pending:
             old = self.effects.get(index)
             if old and callable(old[1]): old[1](U)
-            self.effects[index] = (deps.copy(), fn(U))
+            self.effects[index] = (deps, fn(U))
 
     def unmount(self):
         for _, cleanup in self.effects.values():
@@ -202,71 +218,79 @@ class Hooks:
 class Scenario:
     def __init__(self, reader, data):
         self.vm = VM(reader, data)
-        self.functions = {name: function_named(reader, name)
-                          for name in ('useCountdown', 'JoinHostDialog', 'JoinHostDialogContent')}
+        self.functions = {name: function_named(reader, name) for name in ('useCountdown', 'JoinHostDialogContent')}
         self.hooks = None
-        self.event, self.tree = None, None
-        self.parent_cache = [SENTINEL] * 13
+        self.event, self.tree, self.options = None, None, None
         self.redirects, self.toasts = [], []
         self.path = '/stream/first'
         self.clear = lambda this: setattr(self, 'event', None)
         self.redirect = lambda this: self.redirects.append(self.event['hosted']['username']) or self.clear(U)
-        self.translate = lambda this, text, *args: text
+        self.translate = lambda this, text, *args: (text, args[0] if args else None)
         self.toast = lambda this, toast: self.toasts.append(toast)
         self.jsx = lambda this, kind, props: {'type': kind, 'props': props}
-        self.module = {
-            0: {'c': lambda this, n: self.hooks.memo(this, n)},
-            1: {'useState': lambda this, value: self.hooks.state(this, value),
-                'useRef': lambda this, value: self.hooks.ref(this, value),
-                'useEffect': lambda this, fn, deps: self.hooks.effect(this, fn, deps)},
-            2: {'useTranslation': lambda this: {'t': self.translate}},
-            3: {key: key for key in ('Title', 'Close', 'Header', 'Description', 'Body', 'Confirm', 'Cancel', 'Footer', 'Root', 'Content')},
-            5: {'currentPath': {'get': lambda this: self.path}},
-            8: {'useChatStore': lambda this, selector: 'current-channel'},
-            10: {'useCountdown': self.countdown},
-            11: {'useToast': lambda this: {'showToast': self.toast}},
-            12: {'JoinHostDialogMediaTile': 'MediaTile'},
-            13: {'jsx': self.jsx, 'jsxs': self.jsx},
-            17: 'JoinHostDialogContent',
+        react = {
+            'useState': lambda this, value: self.hooks.state(this, value),
+            'useRef': lambda this, value: self.hooks.ref(this, value),
+            'useCallback': lambda this, fn, deps: self.hooks.callback(this, fn, deps),
+            'useEffect': lambda this, fn, deps: self.hooks.effect(this, fn, deps),
         }
+        # JoinHostDialogContent's module, by slot, as Kick 40.35 lays it out.
+        self.module = {
+            0: react,
+            1: {'useTranslation': lambda this: {'t': self.translate}},
+            2: {key: key for key in ('Root', 'Inner', 'Header', 'Title', 'Close', 'Body', 'Description', 'Footer',
+                                     'Confirm', 'Cancel')},
+            4: {'currentPath': {'get': lambda this: self.path}},
+            6: {'getRandomIntInclusive': lambda this, low, high: 3},  # Fixed for the test; Kick picks in [low, high].
+            7: {'useChatStore': lambda this, selector: 'current-channel'},
+            9: {'useCountdown': self.countdown},
+            10: {'useToast': lambda this: {'showToast': self.toast}},
+            11: {'JoinHostDialogMediaTile': 'MediaTile'},
+            12: {'jsx': self.jsx, 'jsxs': self.jsx},
+            14: [8, 12],
+        }
+        self.countdown_module = {0: react}
 
     def countdown(self, this, options):
-        self.options = options
-        return self.vm.run(self.functions['useCountdown'], [self.module], (options,))
+        self.options = dict(options)
+        return self.vm.run(self.functions['useCountdown'], [self.countdown_module], (options,))
 
     def render(self):
-        # Execute the actual parent's event conditional and JSX output seam. The
-        # event/scheduler/router inputs above replace Pusher delivery, not this branch.
-        parent = self.vm.run(self.functions['JoinHostDialog'], [self.module], pc=0x24b, registers={
-            9: self.event, 3: None, 7: self.parent_cache, 8: self.redirect, 12: self.clear,
-            6: self.module, 1: U,
-        })
-        if parent is None:
+        # The parent mounts the dialog while there is a host event and unmounts it when the event is cleared.
+        if self.event is None:
             if self.hooks: self.hooks.unmount()
             self.hooks, self.tree = None, None
             return
-        assert parent['type'] == 'JoinHostDialogContent'
         if self.hooks is None: self.hooks = Hooks()
         self.hooks.cursor = 0
-        self.tree = self.vm.run(self.functions['JoinHostDialogContent'], [self.module], (parent['props'],))
+        props = {'event': self.event, 'clearEvent': self.clear, 'onRedirect': self.redirect}
+        self.tree = self.vm.run(self.functions['JoinHostDialogContent'], [self.module], (props,))
         self.hooks.commit()
 
     def host(self, name):
         self.event = {'hosted': {'username': name}}
         self.render()
 
+    def find(self, node, kind):
+        if isinstance(node, list):
+            for child in node:
+                result = self.find(child, kind)
+                if result: return result
+        elif isinstance(node, dict) and 'type' in node:
+            if node['type'] == kind: return node['props']
+            return self.find(node['props'].get('children'), kind)
+        return None
+
     def button(self, kind):
-        def find(node):
-            if isinstance(node, list):
-                for child in node:
-                    result = find(child)
-                    if result: return result
-            elif isinstance(node, dict) and 'type' in node:
-                if node['type'] == kind: return node['props']['onPress']
-                return find(node['props'].get('children'))
-        found = find(self.tree)
-        assert found, f'Actual JSX has no {kind} callback'
-        return found
+        found = self.find(self.tree, kind)
+        assert found and callable(found.get('onPress')), f'Actual JSX has no {kind} callback'
+        return found['onPress']
+
+    def seconds(self):
+        """The seconds the dialog's title shows."""
+        title = self.find(self.tree, 'Title')
+        assert title, 'Actual JSX has no title'
+        return title['children'][1]['seconds']
 
     def advance(self, seconds):
         for _ in range(seconds):
@@ -281,18 +305,16 @@ def waiting(reader, data):
     assert s.options['startOnMount'] is False and not s.vm.intervals, 'on must wait for Watch now'
     s.advance(30)
     assert not s.redirects and s.tree is not None, 'waiting host redirected'
-    assert s.hooks.values[2][0] == 3, 'waiting countdown decremented'
+    assert s.seconds() == 3, 'waiting countdown decremented'
     return s
 
 
 def manual(reader, data):
     s = waiting(reader, data)
-    cache = s.hooks.caches[57]
-    s.render()
     s.button('Confirm')(U)
     assert not s.redirects and len(s.toasts) == 1, 'Watch now must toast before redirect'
     s.render()
-    assert s.hooks.caches[57] is cache and s.options['startOnMount'] is True, 'Watch now must invalidate cached waiting options'
+    assert s.options['startOnMount'] is True, 'Watch now must start the countdown'
     assert s.tree is None and len(s.vm.intervals) == 1, 'Watch now hides dialog and starts one countdown'
     s.advance(3)
     assert s.redirects == ['A'] and s.hooks is None, 'actual onEnd must redirect and parent unmount'
@@ -315,6 +337,8 @@ def verify(stock, embedded, manifest):
     selected = bytearray(stock); selected[offset:offset+len(replacement)] = replacement
     off = bytearray(selected); off[offset:offset+len(replacement)] = bytes.fromhex(edit['original'])
     assert off == stock, 'off must restore exact stock bytes'
+    # The short NewObjectWithBuffer form, then PutOwnBySlotIdx of the state into the startOnMount slot (1).
+    assert replacement[0] == 0x01 and replacement[6] == 0x52 and replacement[9] == 1, 'unexpected emitted edit'
     manual(reader, selected)
     for button in ('Cancel', 'Close'):
         for after_start in (False, True):
@@ -333,6 +357,7 @@ def verify(stock, embedded, manifest):
         s = waiting(reader, selected); s.path = path
         s.button('Confirm')(U); s.render(); s.advance(3)
         assert len(s.redirects) == count, f'actual onEnd route guard: {path}'
+
     # Mutation controls are executable failures, not comparisons against literals.
     def rejected(name, data, test):
         try: test(reader, data)
@@ -341,22 +366,30 @@ def verify(stock, embedded, manifest):
             print(f'CONTROL rejected {name}: {e}')
         else: raise AssertionError(f'Mutation survived: {name}')
     rejected('stock edit while switch on', off, waiting)
-    # Preserve old cache dependency while setting pressed on options: a prior naive
-    # implementation would reuse false on the next render. Replace the onEnd
-    # assignment with the start flag, retaining the original dependency write.
-    # The assertion fails on the rerender, before this mutation's missing onEnd
-    # could affect expiry.
-    broken = bytearray(selected)
-    broken[offset:offset+len(replacement)] = bytes.fromhex(edit['original'])
-    broken[offset+4:offset+8] = replacement[8:12]
-    rejected('start flag without memo invalidation', broken, manual)
+    # The short literal with the state stored into the duration slot (0) instead: startOnMount keeps the value the
+    # short form starts it with, and Watch now no longer starts the countdown.
+    unset = bytearray(selected)
+    unset[offset + 9] = 0
+    rejected('state stored outside startOnMount', unset, manual)
+    # onEnd returning at entry (the first version of the patch): Watch now no longer switches.
     blocked = bytearray(selected)
-    # The onEnd callback (t1) is the closure JoinHostDialogContent creates at 0xdd.
-    header = reader.function_headers[closure_at(reader, stock, function_named(reader, 'JoinHostDialogContent'), 0xdd)]
-    # Real opcodes from existing LoadConstUndefined r0; Ret r0 at callback end.
-    blocked[header.offset:header.offset+7] = stock[header.offset+0x5c:header.offset+0x60] + replacement[12:15]
-    rejected('obsolete onEnd return-at-entry', blocked, manual)
-    print('PASS: emitted host wait/Watch now/Cancel/Close/off/consecutive event, real countdown effects, route guards; three mutation controls')
+    content = function_named(reader, 'JoinHostDialogContent')
+    ends = [i.arg3 for i in instructions(reader, stock, content) if i.inst.name == 'CreateClosure' and
+            any(j.inst.name in ('LoadConstString', 'LoadConstStringLongIndex') and reader.strings[j.arg2] == '/stream'
+                for j in instructions(reader, stock, i.arg3))]
+    assert len(ends) == 1, 'one onEnd closure'
+    header = reader.function_headers[ends[0]]
+    code = instructions(reader, stock, ends[0])
+    load, ret = code[-2], code[-1]
+    assert ret.inst.name == 'Ret' and load.inst.name == 'LoadConstUndefined' and load.arg1 == ret.arg1
+    tail = stock[header.offset + load.original_pos:header.offset + ret.next_pos]
+    # Its own `return undefined` first, then a Mov r0, r0 up to the next instruction boundary, so the rest decodes.
+    boundary = next(i.next_pos for i in code if i.next_pos >= len(tail) + 3)
+    assert boundary == len(tail) + 3, 'onEnd starts with instructions that leave no room for the padding'
+    blocked[header.offset:header.offset + boundary] = tail + bytes([0x10, 0, 0])
+    rejected('onEnd return-at-entry', blocked, manual)
+    print('PASS: emitted host wait/Watch now/Cancel/Close/off/consecutive event, real countdown effects, route guards; '
+          'three mutation controls')
 
 
 if __name__ == '__main__':

@@ -45,7 +45,7 @@ private val fakhPatchesPagePatch = patch {
 /**
  * Adds the Fakh Patches card to the Account screen, under the card of Notification settings and Settings, which opens
  * the page of the patches' switches. The screen is one composable in `ProfileScreenKt` that draws its cards with
- * SpacedItemsKt.a calls, that card first; the call to the extension goes after it and only reads the composer's
+ * JiraSectionColumnKt.a calls, that card first; the call to the extension goes after it and only reads the composer's
  * register. Patches that have a switch depend on this one.
  */
 val settingsRowsPatch = patch {
@@ -59,6 +59,37 @@ val settingsRowsPatch = patch {
             "invoke-super { p0, p1 }, Landroidx/activity/ComponentActivity;->onMAMCreate(Landroid/os/Bundle;)V",
         )
 
+        // The tab sheet's Compose calls that R8 renames every release, read from the Jira code that makes them and
+        // handed to the extension as "class.method": the search title's Text, and the priority sheet's modal bottom
+        // sheet and the container color it is given.
+        fun calls(type: String) = mutableClassDefBy(type).methods.flatMap { method ->
+            method.implementation?.instructions?.mapNotNull { (it as? ReferenceInstruction)?.reference as? MethodReference }.orEmpty()
+        }
+        val title = calls("Lcom/atlassian/jira/infrastructure/compose/ui/search/DefaultSearchTitleKt;")
+        val priority = calls("Lcom/atlassian/jira/feature/issue/search/impl/priority/PriorityPickerKt;")
+        val composables = mapOf(
+            "textComposable" to title.singleOrNull {
+                it.parameterTypes.size == 20 && it.parameterTypes[0].toString() == "Ljava/lang/String;"
+            },
+            "sheetComposable" to priority.singleOrNull { it.parameterTypes.size == 18 },
+            "containerColorComposable" to priority.singleOrNull {
+                it.returnType == "J" && it.parameterTypes.firstOrNull()?.toString() ==
+                    "Lcom/atlassian/jira/infrastructure/designsystem/foundation/JiraTheme;" && it.parameterTypes.size == 2
+            },
+        )
+        val settings = mutableClassDefBy("Lapp/fakh/extension/jira/FakhSettings;")
+        composables.forEach { (getter, call) ->
+            call ?: throw PatchException("The tab sheet's $getter was not found")
+            val name = call.definingClass.removePrefix("L").removeSuffix(";").replace('/', '.') + "." + call.name
+            settings.methods.single { it.name == getter }.addInstructions(
+                0,
+                """
+                    const-string v0, "$name"
+                    return-object v0
+                """,
+            )
+        }
+
         var added = 0
         classDefForEach { classDef ->
             // The class name first: reading the code of every class in the app takes far longer.
@@ -68,7 +99,7 @@ val settingsRowsPatch = patch {
                 val cards = instructions.withIndex().filter { (_, instruction) ->
                     instruction.opcode == Opcode.INVOKE_STATIC_RANGE &&
                         ((instruction as ReferenceInstruction).reference as MethodReference).let {
-                            it.definingClass.endsWith("/SpacedItemsKt;") && it.name == "a" && it.parameterTypes.size == 7
+                            it.definingClass.endsWith("/JiraSectionColumnKt;") && it.name == "a" && it.parameterTypes.size == 7
                         }
                 }
                 if (cards.size < 2) return@forEach

@@ -59,12 +59,12 @@ project. The name "Morphe" is used only to say what the patches are for (see [NO
 Lurk is tested on these APKMirror variants. Other variants of the same version may fail to patch or
 to install, so take these:
 
-- **Twitch 31.8.0**: the [arm64-v8a bundle, 480-640dpi, Android 10+](https://www.apkmirror.com/apk/twitch-interactive-inc/twitch/twitch-live-streaming-31-8-0-release/twitch-live-streaming-31-8-0-android-apk-download/).
-- **Kick 40.34.0**: the arm64-v8a bundle, 480-640dpi, Android 10+, on the
-  [40.34.0 release page](https://www.apkmirror.com/apk/kick-live-streaming/kick-live-streaming/kick-live-streaming-40-34-0-release/)
-  (not one of the two universal builds).
-- **Rumble 3.21.0**: the universal bundle (all four architectures, 120-640dpi, Android 8.0+) on the
-  [3.21.0 release page](https://www.apkmirror.com/apk/rumble-inc/rumble/rumble-stream-watch-videos-3-21-0-release/).
+- **Twitch 32.1.0**: the universal bundle (arm64-v8a, armeabi-v7a, x86 and x86_64), Android 12L+, on the
+  [32.1.0 release page](https://www.apkmirror.com/apk/twitch-interactive-inc/twitch/twitch-live-streaming-32-1-0-release/).
+- **Kick 40.35.4**: the bundle with all four architectures (arm64-v8a, armeabi-v7a, x86_64, x86), Android 12+, on the
+  [40.35.4 release page](https://www.apkmirror.com/apk/kick-live-streaming/kick-live-streaming/kick-live-streaming-40-35-4-release/).
+- **Rumble 3.22.0**: the universal bundle (all four architectures, 120-640dpi, Android 8.0+) on the
+  [3.22.0 release page](https://www.apkmirror.com/apk/rumble-inc/rumble/rumble-stream-watch-videos-3-22-0-release/).
 
 > [!IMPORTANT]
 > **Keep your signing key.** Manager signs every app it patches with a key it creates on first use,
@@ -156,14 +156,14 @@ switch that starts off; the full list says which, and where to turn it on.
 | Hide Shorts *(off)* | Removes Shorts from the bottom bar, Home, My Feed, channels, categories and search. Shorts links still open. |
 
 <!-- PATCHES_START -->
-> **[v1.17.0](https://github.com/jordanwoodson/lurk-morphe-patches/releases/tag/v1.17.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;138 patches total
+> **[v1.17.1](https://github.com/jordanwoodson/lurk-morphe-patches/releases/tag/v1.17.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;138 patches total
 <details>
 <summary><img src="assets/kick-icon-round.webp" width="28" height="28" align="center" alt="">&nbsp;&nbsp;<b>Kick</b>&nbsp;&nbsp;•&nbsp;&nbsp;39 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 40.34.0 |
+| 40.35.4 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -194,8 +194,8 @@ switch that starts off; the full list says which, and where to turn it on.
 | Hide subscription upsells | Hides channel Subscribe and Gift a Sub buttons and the leaderboard gift-subscription prompt. Keeps the existing subscribed indicator. Starts off. Turn it on in Lurk settings > Interface. Like every patch that changes Kick's JavaScript, it turns off Kick's over-the-air JavaScript updates, so Kick's code fixes arrive only when you patch a newer version. |  |
 | Lurk icon | Replaces Kick's launcher icon with Lurk artwork, including Android's themed icon. |  |
 | Lurk in account menu | Adds a Lurk row to Kick's account menu (tap your profile picture while signed in), which opens Lurk settings. Pause Lurk leaves it on. Turn it off in Lurk settings > Advanced. Like every patch that changes Kick's JavaScript, it turns off Kick's over-the-air JavaScript updates, so Kick's code fixes arrive only when you patch a newer version. |  |
-| Mute stitched live ads | Experimental: ads could not be observed signed out. While Kick's player reports an ad break stitched into a live stream, mutes the player and covers the video with black and a small "Ad break", then restores both when the break's time is up, it ends, or another stream loads. The ad still plays for its full length and can't be skipped; this only silences and hides it. It acts on the ad signals Kick's player can get: an ad cue or ad break from Amazon IVS, or an ad of a MediaTailor session, which Kick only starts with Disable analytics off. None arrived in signed-out sessions, so this was checked only with made-up ad signals fed to Kick's own player code. Starts off. Turn it on in Lurk settings > Playback. |  |
-| Normal latency | Adds a switch that turns off low-latency mode for live streams: a few seconds more delay, fewer rebuffers on weak connections. Starts off. Turn it on in Lurk settings > Playback. |  |
+| Mute stitched live ads | Experimental: ads could not be observed signed out. While Kick's player reports an ad break stitched into a live stream, mutes the player and covers the video with black and a small "Ad break", then restores both when the break's time is up, it ends, or another stream loads. The ad still plays for its full length and can't be skipped; this only silences and hides it. It acts on the ad signals Kick's player can get: an SCTE-35 ad break in the stream itself, or an ad of a MediaTailor session, which Kick only starts with Disable analytics off. None arrived in signed-out sessions, so this was checked only with made-up ad signals fed to Kick's own player code. Starts off. Turn it on in Lurk settings > Playback. |  |
+| Normal latency | Adds a switch that turns off Kick's low-latency mode for live streams: more delay (about 15 seconds more on the streams checked), fewer rebuffers on weak connections. Starts off. Turn it on in Lurk settings > Playback. |  |
 | Player gestures | In landscape, swipe up or down on the left of the video to change the brightness, on the right to change the volume. The middle of the video keeps Kick's own swipes (out of fullscreen), and Kick's taps and pinch to zoom stay. Starts off. Turn it on in Lurk settings > Playback. |  |
 | Refresh stream | Long-press the video to reload a stuck stream from the address Kick gave the player; a video picks up where it was. On by default. Turn it off in Lurk settings > Playback. |  |
 | Remove tracking permissions | Removes advertising ID, ad attribution and Google Play install-referrer permissions. Other identifiers and analytics require separate controls. |  |
@@ -216,7 +216,7 @@ switch that starts off; the full list says which, and where to turn it on.
 
 **🎯 Supported versions:**
 
-| 3.21.0 |
+| 3.22.0 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -230,11 +230,11 @@ switch that starts off; the full list says which, and where to turn it on.
 | Change app name | Changes the name shown under Rumble's launcher icon and in Android's settings. | • App name |
 | Chat keywords | Highlights live chat messages that mention you or contain your highlight words with a tinted background, optionally with a vibration, and hides messages with blocked words or from blocked users. Mentions are on by default; the word and user lists start empty. On by default. Turn it off in Lurk settings > Chat. |  |
 | Chat timestamps | Shows the time each live chat message was sent in front of the sender's name. On by default. Turn it off in Lurk settings > Chat. |  |
-| Clean share links | Removes everything after the ? from Rumble links before they are shared, so tracking tags such as e9s (where you found the video) can't go out with them. Rumble 3.21.0 shares clean links; this keeps them clean if the server starts adding tags. |  |
+| Clean share links | Removes everything after the ? from Rumble links before they are shared, so tracking tags such as e9s (where you found the video) can't go out with them. Rumble 3.22.0 shares clean links; this keeps them clean if the server starts adding tags. |  |
 | Clone app | Installs Rumble under another package name, so it sits alongside the original app with its own sign-in and settings. Use "Change app name" to tell the two apart in the launcher. | • Package name |
 | Default playback speed | Starts videos at a chosen playback speed instead of 1x, until you pick another speed in the player. Live streams without rewind still play at 1x. Starts off (1x). Choose a speed in Lurk settings > Playback. |  |
 | Default startup tab | Opens Rumble on Home or My Feed every time, instead of the one you last chose. Starts off. Choose a tab in Lurk settings > Interface. |  |
-| Default video quality | Starts videos at a chosen quality, or the closest one available, instead of Rumble's 480p. Once you pick a quality in the player, Rumble keeps using that one. Starting live streams at it too, and a lower cap on mobile data, are separate settings. Starts off (Rumble's default). Choose a quality in Lurk settings > Playback. | • Quality<br>• Live streams too<br>• On mobile data |
+| Default video quality | Starts videos at a chosen quality, or the closest one available, instead of Rumble's Auto. A quality you pick in the player applies to that video. Starting live streams at it too, and a lower cap on mobile data, are separate settings. Starts off (Rumble's default). Choose a quality in Lurk settings > Playback. | • Quality<br>• Live streams too<br>• On mobile data |
 | Disable analytics | Stops Rumble's own analytics, which it sends whatever the consent setting: clicks, impressions, searches, watch progress and player state, with your user ID, username, advertising ID and AppsFlyer ID, to e.rumble.com and its debug log. Signed-in watch history may stop updating unless watch progress is kept. | • Keep watch progress |
 | Disable autoplay | Stops Rumble from playing the next video when one ends, and from playing muted previews in feeds, including the featured video on Home. Only the defaults change: Settings > Playback can turn either back on. Starts off. Turn them on in Lurk settings > Playback. | • Next video<br>• Feed previews |
 | Disable tracking SDKs | Switches Firebase Analytics and Firebase Performance off for good, so recorded consent can't turn them on, and stops the Facebook SDK from initializing itself fully, logging app events or reading the advertising ID by default. Crashlytics and AppsFlyer have no such switch and still follow consent; Block cookie notice keeps them off. Changes the APK when patching, so it has no switch in Lurk settings. |  |
@@ -262,7 +262,7 @@ switch that starts off; the full list says which, and where to turn it on.
 | Show exact counts | Shows view, like, comment, follower and "watching now" counts in full (12,345 instead of 12K). Starts off. Turn it on in Lurk settings > Interface. |  |
 | Show video stats | Shows a small panel in the corner of the player with what Rumble's video player reports, refreshed every second: bitrate and the network estimate, buffer, dropped frames, resolution, frame rate and codecs, and for live streams that carry wall-clock times the delay behind the broadcast. The numbers come from the player on your phone; nothing is sent anywhere, and the panel never takes a tap. Starts off. Turn it on in Lurk settings > Playback. |  |
 | Sleep timer | Pauses playback a chosen time after it last started or resumed, including background play and picture-in-picture. Starts off. Choose a time in Lurk settings > Playback. |  |
-| Unlock Premium | Turns on Rumble's local premium state once you sign in (or sign out and in again): the app then treats you as a Premium member, which skips its ad requests and Premium upsells. Rumble's server still decides premium-only videos, live gates, downloads and premium comments, and may refuse them. Checked on the app's code without a Rumble account; never tried signed in. |  |
+| Unlock Premium | Turns on Rumble's local premium state once you sign in (or sign out and in again): the app then treats you as a Premium member, which skips its ad requests and Premium upsells. Rumble's server still decides premium-only videos, live gates, downloads and premium comments, and may refuse them. |  |
 
 </details>
 
@@ -272,7 +272,7 @@ switch that starts off; the full list says which, and where to turn it on.
 
 **🎯 Supported versions:**
 
-| 31.8.0 |
+| 32.1.0 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |

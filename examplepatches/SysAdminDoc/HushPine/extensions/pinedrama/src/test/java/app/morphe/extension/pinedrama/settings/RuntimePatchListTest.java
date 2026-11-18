@@ -193,7 +193,8 @@ public class RuntimePatchListTest {
         assertEquals(new TreeSet<>(Arrays.asList("enableCommentPublishDiagnostics", "enableCommentSendFix",
                 "enableFeatureGateLab", "enableGoogleLoginFix",
                 "enableNetworkRequestReport", "enableNoLoginRequirement", "enableNoScreenCaptureDetection",
-                "enableSavedStickers", "enableSettings", "enableStickerCreator", "enableStickerRecents")), registered);
+                "enableSavedStickers", "enableSearchTabNameFix", "enableSettings", "enableStickerCreator",
+                "enableStickerRecents")), registered);
     }
 
     private static List<Path> patchSources() throws Exception {

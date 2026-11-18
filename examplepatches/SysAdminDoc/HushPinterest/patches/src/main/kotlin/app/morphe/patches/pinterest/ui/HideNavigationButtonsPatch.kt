@@ -7,10 +7,14 @@
 package app.morphe.patches.pinterest.ui
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.pinterest.misc.extension.enableCapability
 import app.morphe.patches.pinterest.misc.extension.enableStatus
 import app.morphe.patches.pinterest.misc.extension.freeLocalsAt
@@ -18,7 +22,10 @@ import app.morphe.patches.pinterest.misc.extension.parameterRegister
 import app.morphe.patches.pinterest.misc.extension.parameterRegisterNumber
 import app.morphe.patches.pinterest.misc.extension.pinterestExtensionPatch
 import app.morphe.patches.pinterest.misc.extension.requireParameterIntact
+import app.morphe.patches.pinterest.misc.extension.requireLocals
 import app.morphe.patches.pinterest.misc.extension.requireStatusMethod
+import app.morphe.patches.pinterest.misc.extension.requireStub
+import app.morphe.patches.pinterest.misc.extension.writeStub
 import app.morphe.patches.pinterest.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.Opcode
@@ -33,6 +40,12 @@ internal const val GREETING_ROW = "home_feed_greeting_header_icon_container"
 internal const val GREETING_NEWSHUB = "home_feed_greeting_header_newshub_icon"
 internal const val GREETING_CREATE = "home_feed_greeting_header_create_icon"
 internal const val GREETING_HEADER_HOOK = "$INTERFACE_CONTROLS->greetingHeader(Landroid/view/View;)V"
+
+internal const val TAB_LAYOUT = "Lcom/google/android/material/tabs/TabLayout;"
+internal const val HOME_TABS_HOOK = "$INTERFACE_CONTROLS->homeTabsHeight(Landroid/view/View;II)I"
+internal const val SEARCH_TAB_HOOK = "$INTERFACE_CONTROLS->searchTabPress(Landroid/view/View;Landroid/view/View;)I"
+private const val NAVIGATION = "Lcom/pinterest/navigation/Navigation;"
+private const val SCREEN_LOCATION = "Lcom/pinterest/framework/screens/ScreenLocation;"
 
 internal class GreetingHeader(val builder: MutableMethod, val row: Int, val hookAt: Int)
 
@@ -91,13 +104,72 @@ internal fun BytecodePatchContext.greetingHeader(): GreetingHeader {
     return GreetingHeader(builder, row, last + 1)
 }
 
+/**
+ * Every TabLayout asks the extension for its height first, and only Home's row gets a different
+ * answer. The library class is the one place to do it: Pinterest's subclass can't override the final
+ * onMeasure, and the row's container has no code of its own.
+ */
+private fun BytecodePatchContext.hideHomeTabs() {
+    val tabs = classDefByOrNull(TAB_LAYOUT) ?: throw PatchException("this build has no $TAB_LAYOUT")
+    val measure = mutableClassDefBy(tabs.type).methods.filter {
+        it.name == "onMeasure" && it.returnType == "V" && it.parameters() == listOf("I", "I")
+    }.one("TabLayout's onMeasure")
+    measure.addInstructions(0, """
+        invoke-static/range { p0 .. p2 }, $HOME_TABS_HOOK
+        move-result p2
+    """)
+    enableCapability("homeTabs")
+}
+
+/**
+ * The bottom bar is the click listener of every tab. Its handler asks the extension first, which
+ * takes a second press on Search. The handler already reads the screen its navigation is on before
+ * it decides anything, so the stub makes the same two calls.
+ */
+private fun BytecodePatchContext.searchTabKeyboard(bar: MutableClass) {
+    requireStub(INTERFACE_CONTROLS, "currentLocation")
+    val click = bar.methods.filter {
+        it.name == "onClick" && it.returnType == "V" && it.parameters() == listOf("Landroid/view/View;")
+    }.one("The bottom bar's onClick")
+    click.requireLocals("Second Search tap", 1)
+    val navigation = click.calls().filter {
+        it.definingClass == bar.type && it.parameterTypes.isEmpty() && it.returnType == NAVIGATION
+    }.distinctBy { it.toString() }.one("The bottom bar's navigation getter")
+    val locationCalls = click.instructions().filter { instruction ->
+        ((instruction as? ReferenceInstruction)?.reference as? MethodReference)?.let {
+            it.definingClass == NAVIGATION && it.parameterTypes.isEmpty() && it.returnType == SCREEN_LOCATION
+        } == true
+    }
+    val location = locationCalls.map { (it as ReferenceInstruction).reference.toString() }.distinct()
+        .one("The navigation's current screen")
+    val invoke = if (locationCalls.first().opcode == Opcode.INVOKE_INTERFACE) "invoke-interface" else "invoke-virtual"
+    writeStub(INTERFACE_CONTROLS, "currentLocation", 2, """
+        check-cast p0, ${bar.type}
+        invoke-virtual { p0 }, $navigation
+        move-result-object v0
+        if-eqz v0, :none
+        $invoke { v0 }, $location
+        move-result-object v0
+        :none
+        return-object v0
+    """)
+    click.addInstructionsWithLabels(0, """
+        invoke-static/range { p0 .. p1 }, $SEARCH_TAB_HOOK
+        move-result v0
+        if-eqz v0, :hush_search_tab
+        return-void
+    """, ExternalLabel("hush_search_tab", click.getInstruction(0)))
+    enableCapability("searchKeyboard")
+}
+
 /** Fold tabs visually without changing their indexes or the host's navigation models. */
 @Suppress("unused")
 val hideNavigationButtonsPatch = bytecodePatch(
     name = "Hide navigation buttons",
     description = "Lets you hide the Create, Notifications and Search buttons in the bottom bar, each with its own " +
         "switch. The Create and Notifications switches also cover those buttons at the top of Home. Home and " +
-        "Profile stay. Starts off. Turn them on in HushPinterest settings > Interface.",
+        "Profile stay. Two more switches take the row of tabs off the top of Home and make a second press on " +
+        "Search open the keyboard. Starts off. Turn them on in HushPinterest settings > Interface.",
 ) {
     category("Navigation")
     dependsOn(settingsPatch, pinterestExtensionPatch)
@@ -105,6 +177,8 @@ val hideNavigationButtonsPatch = bytecodePatch(
     execute {
         requireStatusMethod("hideNavigationButtons")
         requireStatusMethod("navigationButtons")
+        requireStatusMethod("homeTabs")
+        requireStatusMethod("searchKeyboard")
         val modelDescription = methodsWithString("BottomNavTabModel(type=").filter { it.name == "toString" }
             .one("Bottom navigation tab model")
         val model = classDefBy(modelDescription.definingClass)
@@ -172,6 +246,8 @@ val hideNavigationButtonsPatch = bytecodePatch(
         refreshOnMeasure(navigation, "refreshNavigation")
         greeting.builder.addInstructions(greeting.hookAt,
             "invoke-static/range { v${greeting.row} .. v${greeting.row} }, $GREETING_HEADER_HOOK")
+        optionalTarget("Hide navigation buttons", "Hide Home tabs") { hideHomeTabs() }
+        optionalTarget("Hide navigation buttons", "Second Search tap") { searchTabKeyboard(navigation) }
         enableCapability("navigationButtons")
         enableStatus("hideNavigationButtons")
     }

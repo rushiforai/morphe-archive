@@ -65,7 +65,7 @@ val disableChannelPullPatch = bytecodePatch(
 ) {
     category("Conversations")
     dependsOn(settingsPatch, telegramExtensionPatch)
-    compatibleWith(*AppCompatibilities.telegramOnly())
+    compatibleWith(*AppCompatibilities.telegram())
     execute {
         requireStatusMethod("disableChannelPull")
         val sites = resolveChannelPullSites()
@@ -204,8 +204,15 @@ internal fun BytecodePatchContext.resolveChannelPullSites(): ChannelPullSites {
         "pull no longer requires positive drag after a zero stock scroll")
 
     val offsetWrite = (commonEntry until scrollExit).filter { body[it].opcode == Opcode.IPUT && body[it].field() == offset }.one("bottom offset accumulation", ::refuse)
-    shape(body[offsetWrite - 1].opcode == Opcode.ADD_FLOAT_2ADDR && body[offsetWrite - 2].opcode == Opcode.IGET &&
-        body[offsetWrite - 2].field() == offset && body[offsetWrite].namedRegisters()[1] == holder,
+    // Plus Messenger reads the offset a few lines up, before it scales the drag.
+    val stored = body[offsetWrite].namedRegisters()[0]
+    val added = body[offsetWrite - 1]
+    val offsetRead = (offsetWrite - 5 until offsetWrite - 1).lastOrNull { it >= 0 && body[it].opcode == Opcode.IGET && body[it].field() == offset }
+    shape(added.opcode == Opcode.ADD_FLOAT_2ADDR && added.namedRegisters()[0] == stored && offsetRead != null &&
+        body[offsetRead].namedRegisters() == listOf(body[offsetRead].namedRegisters()[0], holder) &&
+        body[offsetRead].namedRegisters()[0] in added.namedRegisters() &&
+        (offsetRead + 1 until offsetWrite - 1).none { body[it].opcode.setsRegister() && body[it].namedRegisters().firstOrNull() == body[offsetRead].namedRegisters()[0] } &&
+        body[offsetWrite].namedRegisters()[1] == holder,
         "bottom pull no longer accumulates its offset")
     shape(commonEntry !in reachable(flow, 0, channelCall) && offsetWrite !in reachable(flow, 0, commonEntry),
         "bottom pull can bypass the eligibility checks")

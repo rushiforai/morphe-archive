@@ -1,6 +1,6 @@
 /*
  * Copyright 2026 Morphe.
- * Modified by lavinhoque33, 2026-11-13.
+ * Modified by lavinhoque33, 2026-11-18.
  * https://github.com/MorpheApp/morphe-patches/pull/4338
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
@@ -65,9 +65,11 @@ public final class GlassNavigationBar {
     /**
      * The opaque style wins if both are turned on.
      */
-    private static final boolean ENABLED = NavigationBarRoom.isEnabled(Settings.NAVIGATION_BAR_GLASS.get(),
-            Settings.NAVIGATION_BAR_STYLE.get() == NavigationBarStyle.OPAQUE, Settings.HIDE_NAVIGATION_BAR.get())
-            && PIVOT_BAR != 0;
+    private static final boolean ENABLED = isEnabledInSettings();
+
+    public static final int MARGIN_HORIZONTAL = Dim.dp12;
+    private static final RectF capsuleSpan = new RectF();
+    private static final int[] capsuleLocation = new int[2];
 
     /**
      * The views of the navigation buttons, by button.
@@ -105,6 +107,34 @@ public final class GlassNavigationBar {
 
     public static boolean isEnabled() {
         return ENABLED;
+    }
+
+    /** Reads the live settings for dependent preference availability, not the process-wide snapshot. */
+    public static boolean isEnabledInSettings() {
+        return PIVOT_BAR != 0 && NavigationBarRoom.isEnabled(Settings.NAVIGATION_BAR_GLASS.get(),
+                Settings.NAVIGATION_BAR_STYLE.get() == NavigationBarStyle.OPAQUE, Settings.HIDE_NAVIGATION_BAR.get());
+    }
+
+    public static float getOpacityScale() {
+        return OPACITY / 50f;
+    }
+
+    /** The actual capsule edges in this window, or false when only a rail or no bar is drawn. */
+    public static boolean getCapsuleSpanInWindow(View root, int[] out) {
+        View pivotBar = currentPivotBar.get();
+        if (pivotBar == null || !pivotBar.isShown() || !pivotBar.isAttachedToWindow()
+                || pivotBar.getRootView() != root || !(pivotBar.getBackground() instanceof GlassDrawable)
+                || !isHorizontalBottomBar(pivotBar)) {
+            return false;
+        }
+
+        getCapsuleHorizontalBounds(pivotBar, pivotBar.getWidth(), capsuleSpan);
+        if (capsuleSpan.right <= capsuleSpan.left) return false;
+
+        pivotBar.getLocationInWindow(capsuleLocation);
+        out[0] = capsuleLocation[0] + Math.round(capsuleSpan.left);
+        out[1] = capsuleLocation[0] + Math.round(capsuleSpan.right);
+        return out[1] > out[0];
     }
 
     /**
@@ -644,7 +674,7 @@ public final class GlassNavigationBar {
                                 layoutChanged = true;
                             }
 
-                            final int horizontalPadding = Math.max(GlassDrawable.MARGIN_HORIZONTAL,
+                            final int horizontalPadding = Math.max(MARGIN_HORIZONTAL,
                                     (pivotBar.getWidth() - shown * GlassCapsuleGeometry.buttonWidth(layout)) / 2);
                             if (pivotBar.getPaddingLeft() != horizontalPadding || pivotBar.getPaddingRight() != horizontalPadding
                                     || pivotBar.getPaddingTop() != paddingTop) {
@@ -704,7 +734,7 @@ public final class GlassNavigationBar {
     public static long getButtonsLayout(int barWidth, int buttons, int contentWidth, int appMinWidth,
                                         int widthPercent, int spacing) {
         return GlassCapsuleGeometry.getButtonsLayout(barWidth, buttons, contentWidth, appMinWidth,
-                widthPercent, spacing, GlassDrawable.MARGIN_HORIZONTAL, MIN_BUTTON_WIDTH, MIN_BUTTON_SPACING);
+                widthPercent, spacing, MARGIN_HORIZONTAL, MIN_BUTTON_WIDTH, MIN_BUTTON_SPACING);
     }
 
     /**
@@ -730,17 +760,28 @@ public final class GlassNavigationBar {
         return width > 0 && height > 0 && width > 2 * height;
     }
 
+    private static void getCapsuleHorizontalBounds(View host, int width, RectF out) {
+        float left = host.getPaddingLeft();
+        float right = width - host.getPaddingRight();
+        View tab = getSelectedTabView();
+        if (tab != null && tab.getParent() instanceof View tabs && tabs.getParent() == host
+                && tabs.getWidth() > 0) {
+            left = Math.max(left, tabs.getLeft() + tabs.getTranslationX());
+            right = Math.min(right, tabs.getRight() + tabs.getTranslationX());
+        }
+        out.left = left;
+        out.right = right;
+    }
+
 
     private static final class GlassDrawable extends
             app.morphe.extension.shared.ui.glass.GlassCapsuleDrawable {
-        static final int MARGIN_HORIZONTAL = Dim.dp12;
-
         private final List<View> buttons = new ArrayList<>();
         private int[] contentWidths = new int[0];
         private int capsuleTop;
 
         GlassDrawable(View host) {
-            super(host, new CapsuleHost(host), OPACITY / 50f);
+            super(host, new CapsuleHost(host), getOpacityScale());
         }
     }
 
@@ -768,16 +809,9 @@ public final class GlassNavigationBar {
                 bottom = Math.min(bottom, Math.max(bounds.bottom - bottomRoom, top));
             }
 
-            float left = bounds.left + host.getPaddingLeft();
-            float right = bounds.right - host.getPaddingRight();
-            View tab = getSelectedTabView();
-            if (tab != null && tab.getParent() instanceof View tabs && tabs.getParent() == host
-                    && tabs.getWidth() > 0) {
-                left = Math.max(left, tabs.getLeft() + tabs.getTranslationX());
-                right = Math.min(right, tabs.getRight() + tabs.getTranslationX());
-            }
+            getCapsuleHorizontalBounds(host, bounds.width(), capsule);
             final int top = host.getBackground() instanceof GlassDrawable glass ? glass.capsuleTop : 0;
-            capsule.set(left, bounds.top + top, right, bottom);
+            capsule.set(bounds.left + capsule.left, bounds.top + top, bounds.left + capsule.right, bottom);
         }
 
         @Nullable

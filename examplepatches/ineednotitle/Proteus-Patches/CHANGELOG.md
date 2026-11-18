@@ -1,3 +1,36 @@
+## [2.3.0](https://github.com/ineednotitle/Proteus-Patches/compare/v2.2.1...v2.3.0) (2026-11-18)
+
+### 🐛 Bug Fixes
+
+* **brave:** add experimental privacy patches for v2.2.4 ([8b2ac3f](https://github.com/ineednotitle/Proteus-Patches/commit/8b2ac3f3cad226e9a94279c64420a3a4a6bba10c))
+* **instagram:** avoid register exhaustion in Change like animation ([5de3b6a](https://github.com/ineednotitle/Proteus-Patches/commit/5de3b6aa74e315222d7c9ba705a45b9920e392b8))
+* **instagram:** make like-animation register allocation robust ([240a3ad](https://github.com/ineednotitle/Proteus-Patches/commit/240a3ad51a670b3e173a4123c911a41ec69dfc66))
+* **mereframe:** contain the native integrity throw in every bridge wrapper ([788c131](https://github.com/ineednotitle/Proteus-Patches/commit/788c131eb0986fc1bae4075ffb27bc7a3b619079)), closes [#5](https://github.com/ineednotitle/Proteus-Patches/issues/5) [ineednotitle/Proteus-Patches#5](https://github.com/ineednotitle/Proteus-Patches/issues/5)
+* **mereframe:** degrade to the sweep when the pinned session wrapper drifts ([2a07249](https://github.com/ineednotitle/Proteus-Patches/commit/2a07249feb2fdad0d3d13e559d994a85b55d827b))
+* **mereframe:** make the Stage 2 sweep key natives correctly and guard every wrapper ([4e37212](https://github.com/ineednotitle/Proteus-Patches/commit/4e37212844c928590677bd7460bf61fff95550b7)), closes [arity#returnType](https://github.com/ineednotitle/arity/issues/returnType)
+* **mereframe:** match opcode names case-insensitively in the Stage 2 sweep ([2c9495f](https://github.com/ineednotitle/Proteus-Patches/commit/2c9495f9d0d49eead78465c0c1acb64ec20fe575))
+* **patches:** update Meesho package, Amazon Business/ads/autoplay/screenshot, and Mereframe native bypass/Pro ([46f7362](https://github.com/ineednotitle/Proteus-Patches/commit/46f73628311383e568cd3974cf94582c720775b6))
+* **pinterest:** run URL tests without Android unit-test task ([4c55433](https://github.com/ineednotitle/Proteus-Patches/commit/4c55433c1c635498bbdc910cbaa4b38b865173fc))
+* **readme:** render app summaries and add donation buttons [skip ci] ([4320123](https://github.com/ineednotitle/Proteus-Patches/commit/4320123f51dbfe51f53c9632b1d6d4d4086119ec))
+* **reddit:** discover comment TreeData by constructor shape ([ac6bcc7](https://github.com/ineednotitle/Proteus-Patches/commit/ac6bcc75e0a046c298903d6b201d796a437d72e5))
+* **reddit:** match rotated external-browser helper types [skip ci] ([6c25bc5](https://github.com/ineednotitle/Proteus-Patches/commit/6c25bc510338ef21c0e2f655948cadc2ae8cdba9))
+* **reddit:** restore tombstone-rendered deleted comments [skip ci] ([ea4f805](https://github.com/ineednotitle/Proteus-Patches/commit/ea4f8059d9b5e80e118c2d49c40df290998c1c0a))
+* retain license texts in Android bundle ([1c3d6fe](https://github.com/ineednotitle/Proteus-Patches/commit/1c3d6fee8b32140dfa4828f00d585aa45fa5b1bd))
+* **test:** remove stray token from InstagramPatchTest import ([4a52fa6](https://github.com/ineednotitle/Proteus-Patches/commit/4a52fa62b7f3b34f1c6657eb6ba74cbf589ad6de))
+* **universal:** improve permission controls and rebuild 2.2.2 bundle ([7f4d195](https://github.com/ineednotitle/Proteus-Patches/commit/7f4d195d39e33e8b6314e2949f317cc8220db0d8))
+
+### ✨ New Features
+
+* **instagram:** add Instagram 439.0.0.37.89 patch suite and CI verification ([3c7e00f](https://github.com/ineednotitle/Proteus-Patches/commit/3c7e00f0e5ab310d7de6a0f32f068582fd33c207))
+* **instagram:** add settings UI, Ghost Mode, Reels controls and tools ([94c01ea](https://github.com/ineednotitle/Proteus-Patches/commit/94c01eadab926cc6a292125cb5edcfe07f8d27c6))
+* **pinterest:** add experimental video download ([66bf9fb](https://github.com/ineednotitle/Proteus-Patches/commit/66bf9fbe012e7afa04ac9a4b7c26100006fbbaff))
+* Reddit listing filters and Mereframe Pro unlock (v2.2.10) [skip ci] ([30be24e](https://github.com/ineednotitle/Proteus-Patches/commit/30be24e1e51886d05b2d26ac6b609d1fe52eaf8f))
+* **reddit:** add comment-tree hooks and support section [skip ci] ([9548465](https://github.com/ineednotitle/Proteus-Patches/commit/9548465511ac184b9e526acf1f77e09729c84242))
+* **release:** expand Proton Pass and Gboard patches for v2.2.10 ([2a54826](https://github.com/ineednotitle/Proteus-Patches/commit/2a548265f4a57f3b54f607f7d15e8d6313823229))
+* **universal:** optimize all 24 patches and add category-toggled aggressive permission removal (v2.2.2) ([1420f3e](https://github.com/ineednotitle/Proteus-Patches/commit/1420f3ecec508e871f42c161200f32dc11456bd0))
+
+> All releases up to and including v2.3.0 are stable releases.
+
 ## [2.3.1](https://github.com/ineednotitle/Proteus-Patches/compare/v2.3.0...v2.3.1) (2026-11-14)
 
 Pre-release re-cut: replaces the earlier v2.3.1 assets.

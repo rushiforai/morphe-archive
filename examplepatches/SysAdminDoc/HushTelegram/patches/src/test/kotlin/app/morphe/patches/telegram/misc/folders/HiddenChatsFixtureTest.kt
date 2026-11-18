@@ -7,7 +7,6 @@ package app.morphe.patches.telegram.misc.folders
 import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
-import app.morphe.PlusPending
 import app.morphe.hostsOf
 import app.morphe.PatchContexts
 import app.morphe.util.names.origRef
@@ -55,7 +54,6 @@ import app.morphe.util.names.origType
 import app.morphe.util.names.tgMutableClassDefBy
 
 /** Both pinned builds' chat sort, which hands its full lists to the extension before it drops empty folders. */
-@PlusPending
 class HiddenChatsFixtureTest {
     @Test fun `the sort hands the controller over once, right before the empty folder walk`() {
         for (build in Fixtures.declaredBuilds()) {
@@ -290,6 +288,27 @@ class HiddenChatsFixtureTest {
         }
     }
 
+    @Test fun `an unpin task built for another case leaves the server's pins as they were`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val name = build.name
+            val context = PatchContexts.of(ExtensionDex.classes() + launchFolderHosts(build))
+            context.requireHiddenChatsRuntime()
+            val pins = context.resolveHiddenChats().serverPins!!
+            // The constructor the answer uses picks case 0 instead (Telegram's own builds pick a keyed case, Plus
+            // Messenger one its switch has no key for), and case 0's work never runs the unpin query.
+            val init = context.tgMutableClassDefBy(pins.task).methods.single { it.name == "<init>" && it.parameterTypes.size == 3 }
+            val case = init.body().indexOfFirst { it.opcode == Opcode.CONST_4 }
+            init.replaceInstruction(case, "const/4 v${(init.body()[case] as OneRegisterInstruction).registerA}, 0x0")
+            val before = pins.method.body().code()
+            val plan = context.resolveHiddenChats()
+            assertNull("$name: ${plan.missing}", plan.missing)
+            assertEquals(name, listOf("the unpin task's case no longer runs the unpin query alone"), plan.pinGaps)
+            assertNull(name, plan.serverPins)
+            plan.apply()
+            assertEquals(name, before, pins.method.body().code())
+        }
+    }
+
     @Test fun `a pinned order that changed leaves the switch out and both methods as they were`() {
         for (build in Fixtures.declaredBuilds()) {
             val context = PatchContexts.of(ExtensionDex.classes() + launchFolderHosts(build))
@@ -392,7 +411,7 @@ class HiddenChatsFixtureTest {
             val refs = menuContext(build).also { it.requireHiddenChatsRuntime() }.resolveHideMenu().refs!!
             val hosts = (folderCounterHosts(build) + launchFolderHosts(build) + menuHosts(build) + allChatsPlaceHosts(build) + accountListHosts(build) + chatListAvatarHosts(build)).distinctBy { it.type }
             val context = PatchContexts.of((ExtensionDex.classes() + hosts).distinctBy { it.type })
-            assertEquals(name, emptyList<String>(), PatchLogCapture.warnings { hideFolderCountersPatch.execute(context) })
+            assertEquals(name, stockWarnings(build), PatchLogCapture.warnings { hideFolderCountersPatch.execute(context) })
             val stubs = context.tgMutableClassDefBy(HIDDEN_CHATS).methods.associateBy { it.name }
             // In source names, as ref() reads the stub's call.
             val sort = context.tgMutableClassDefBy(MESSAGES_CONTROLLER).methods.single { it.origName == "sortDialogs" }.origString()
@@ -482,7 +501,7 @@ class HiddenChatsFixtureTest {
                         m.body().mapNotNull { (it as? NarrowLiteralInstruction)?.narrowLiteral }.containsAll(listOf(0x6c, 0x6d, 0x6e, -1))
                 } }
             val context = PatchContexts.of((ExtensionDex.classes() + hosts).distinctBy { it.type })
-            val warnings = PatchLogCapture.warnings { hideFolderCountersPatch.execute(context) }
+            val warnings = beyondStock(build, PatchLogCapture.warnings { hideFolderCountersPatch.execute(context) })
             assertEquals("$name: $warnings", 1, warnings.size)
             assertTrue("$name: ${warnings.single()}", "click handler is missing or ambiguous" in warnings.single() && "without Hide from chat list" in warnings.single())
             assertEquals(1L, statusOf(context, "hiddenChats"))
@@ -513,7 +532,7 @@ class HiddenChatsFixtureTest {
             }
             val hosts = (folderCounterHosts(build) + launchFolderHosts(build) + menuHosts(build) + allChatsPlaceHosts(build) + accountListHosts(build) + chatListAvatarHosts(build)).distinctBy { it.type }
             val context = PatchContexts.of((extension + hosts).distinctBy { it.type })
-            val warnings = PatchLogCapture.warnings { hideFolderCountersPatch.execute(context) }
+            val warnings = beyondStock(build, PatchLogCapture.warnings { hideFolderCountersPatch.execute(context) })
             assertEquals("$name: $warnings", 1, warnings.size)
             assertTrue("$name: ${warnings.single()}", "selectedOf runtime hook" in warnings.single() && "without Pin on this phone" in warnings.single())
             assertEquals(0L, statusOf(context, "localPins"))
@@ -540,51 +559,99 @@ class HiddenChatsFixtureTest {
             for (type in listOf(MESSAGES_CONTROLLER, STORAGE)) {
                 assertEquals("$name: $type", "Lorg/telegram/messenger/BaseController;", context.tgMutableClassDefBy(type).origSuperclass)
             }
+            // calcUnreadCounters' yes is the walk's next row: its head, or, where the row's start writes over registers the
+            // walk keeps (only Plus Messenger's does), the walk's own way back there that copies exactly those back from
+            // where the start saved them.
+            val rows = plan.skips.first()
+            val walk = rows.method.body()
+            fun writes(at: Int, register: Int) = walk[at].opcode.setsRegister() &&
+                (walk[at] as? OneRegisterInstruction)?.registerA?.let { it == register || walk[at].opcode.setsWideRegister() && it + 1 == register } == true
+            val head = (rows.at - 1 downTo 0).first { walk[it].ref() == "Lorg/telegram/SQLite/SQLiteCursor;->next()Z" }
+            val clobbered = RegisterLiveness.of(rows.method).liveInto(head).filter { register -> (head until rows.at).any { writes(it, register) } }.toSet()
+            assertEquals("$name: $clobbered", name.startsWith("plus-"), clobbered.isNotEmpty())
+            if (clobbered.isEmpty()) {
+                assertEquals(name, head, rows.to)
+            } else {
+                val back = rows.to + clobbered.size
+                assertTrue(name, rows.to > rows.at)
+                assertTrue(name, walk[back].opcode in setOf(Opcode.GOTO, Opcode.GOTO_16, Opcode.GOTO_32))
+                assertEquals(name, listOf(head), ControlFlow.of(rows.method).normal[back])
+                val restores = (rows.to until back).map { walk[it].namedRegisters() }
+                assertEquals(name, clobbered, restores.map { it.first() }.toSet())
+                val copies = setOf(Opcode.MOVE, Opcode.MOVE_FROM16, Opcode.MOVE_16, Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16)
+                for ((into, from) in restores) {
+                    assertTrue("$name: v$into from v$from", (rows.to until back).all { walk[it].opcode in copies } &&
+                        (head until rows.at).count { walk[it].opcode in copies && walk[it].namedRegisters() == listOf(from, into) } == 1)
+                }
+            }
             val stock = plan.skips.map { it.method.body().code() }
             val landings = plan.skips.map { operands(it.method.body()[it.to]) }
             plan.apply()
             for ((i, skip) in plan.skips.withIndex()) {
                 val where = "$name ${skip.method.name}"
                 val body = skip.method.body()
-                assertEquals("$where: three instructions", stock[i].size + UNCOUNTED_SIZE, body.code().size)
+                assertEquals("$where: the skip's instructions", stock[i].size + skip.size, body.code().size)
                 // Right after the chat's id lands, the hook is handed the storage and that id.
                 assertEquals(where, Opcode.MOVE_RESULT_WIDE, body[skip.at - 1].opcode)
                 assertEquals(where, listOf(skip.chat), body[skip.at - 1].namedRegisters())
-                assertEquals(where, listOf(Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT, Opcode.IF_NEZ),
+                assertEquals(where, listOf(Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT, if (skip.restores.isEmpty()) Opcode.IF_NEZ else Opcode.IF_EQZ),
                     (skip.at until skip.at + UNCOUNTED_SIZE).map { body[it].opcode })
                 assertEquals(where, UNCOUNTED, body[skip.at].ref())
                 assertEquals(where, listOf(skip.storage, skip.chat, skip.chat + 1), body[skip.at].namedRegisters())
                 assertEquals(where, listOf(skip.scratch), body[skip.at + 1].namedRegisters())
                 assertEquals(where, listOf(skip.scratch), body[skip.at + 2].namedRegisters())
-                // A no falls through to Telegram's next instruction, a yes lands where the plan says.
-                val landing = if (skip.to < skip.at) skip.to else skip.to + UNCOUNTED_SIZE
-                assertEquals(where, listOf(skip.at + UNCOUNTED_SIZE, landing).sorted(), ControlFlow.of(skip.method).normal[skip.at + 2].sorted())
+                // A no goes on to Telegram's next instruction, a yes lands where the plan says, first copying back
+                // what the id read wrote over where the plan has restores.
+                val landing = if (skip.to < skip.at) skip.to else skip.to + skip.size
+                val after = ControlFlow.of(skip.method)
+                if (skip.restores.isEmpty()) {
+                    assertEquals(where, listOf(skip.at + UNCOUNTED_SIZE, landing).sorted(), after.normal[skip.at + 2].sorted())
+                } else {
+                    val back = skip.at + UNCOUNTED_SIZE
+                    val goto = back + skip.restores.size
+                    assertEquals(where, listOf(back, skip.at + skip.size).sorted(), after.normal[skip.at + 2].sorted())
+                    assertTrue(where, (back until goto).all { body[it].opcode in setOf(Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_FROM16) })
+                    assertEquals(where, skip.restores.map { listOf(it.into, it.from) }, (back until goto).map { body[it].namedRegisters() })
+                    assertEquals(where, listOf(landing), after.normal[goto])
+                }
                 assertEquals(where, landings[i], operands(body[landing]))
                 assertEquals("$where: Telegram's own code is unchanged around it", stock[i],
-                    (body.take(skip.at) + body.drop(skip.at + UNCOUNTED_SIZE)).code())
+                    (body.take(skip.at) + body.drop(skip.at + skip.size)).code())
                 // The answer's register is Telegram's to write before it reads it, either way on.
                 val liveness = RegisterLiveness.of(skip.method)
-                for (next in listOf(skip.at + UNCOUNTED_SIZE, landing)) assertTrue("$where: v${skip.scratch} at $next", skip.scratch !in liveness.liveInto(next))
+                for (next in listOf(skip.at + skip.size, landing)) assertTrue("$where: v${skip.scratch} at $next", skip.scratch !in liveness.liveInto(next))
             }
-            // calcUnreadCounters' yes is the walk's next row; updateFiltersReadCounter's is the way of a chat whose
-            // count didn't change, so a hidden chat skips the read side and the new messages side alike.
-            val (rows, reads) = plan.skips
-            assertEquals(name, "Lorg/telegram/SQLite/SQLiteCursor;->next()Z", rows.method.body()[rows.to].ref())
-            assertTrue(name, rows.to < rows.at)
+            // updateFiltersReadCounter's yes is the way of a chat whose count didn't change, so a hidden chat skips the
+            // read side and the new messages side alike.
+            val reads = plan.skips[1]
             val read = reads.method.body()
-            assertEquals(name, Opcode.IF_EQZ, read[reads.at + UNCOUNTED_SIZE].opcode)
-            assertEquals(name, listOf(reads.method.localRegisterCount() + 3), read[reads.at + UNCOUNTED_SIZE].namedRegisters())
-            assertTrue(name, read[reads.at + UNCOUNTED_SIZE + 2].ref().orEmpty().startsWith("$STORAGE->dialogsWithUnread:"))
+            val split = reads.at + reads.size
+            assertEquals(name, Opcode.IF_EQZ, read[split].opcode)
+            assertEquals(name, listOf(reads.method.localRegisterCount() + 3), read[split].namedRegisters())
+            // Plus Messenger asks a switch of its own between the split and the read side.
+            val side = if (name.startsWith("plus-")) split + 3 else split + 1
+            assertTrue(name, read[side + 1].ref().orEmpty().startsWith("$STORAGE->dialogsWithUnread:"))
             assertTrue(name, reads.to < reads.at)
-            // Right after the same copy a changed chat starts with, where the count's test sends an unchanged one.
-            val changed = read[reads.at - 3]
-            val unchanged = read[reads.to - 1]
-            assertEquals(name, changed.opcode to changed.namedRegisters(), unchanged.opcode to unchanged.namedRegisters())
             val flow = ControlFlow.of(reads.method)
             val value = (reads.to - 1 downTo 0).first { read[it].ref() == "Lorg/telegram/messenger/support/LongSparseIntArray;->valueAt(I)I" }
-            assertTrue(name, (value + 1 until reads.to - 1).any { read[it].opcode == Opcode.IF_NEZ && reads.to - 1 in flow.normal[it] })
+            assertEquals(name, name.startsWith("plus-"), reads.restores.isNotEmpty())
+            if (reads.restores.isEmpty()) {
+                // Right after the same copy a changed chat starts with, where the count's test sends an unchanged one.
+                val changed = read[reads.at - 3]
+                val unchanged = read[reads.to - 1]
+                assertEquals(name, changed.opcode to changed.namedRegisters(), unchanged.opcode to unchanged.namedRegisters())
+                assertTrue(name, (value + 1 until reads.to - 1).any { read[it].opcode == Opcode.IF_NEZ && reads.to - 1 in flow.normal[it] })
+            } else {
+                // Plus Messenger's changed chat saves both halves of the id's registers, and its unchanged way copies
+                // them among others: the skip copies back exactly what the saves took and goes to that way's start,
+                // where a count test's goto sends an unchanged chat.
+                val saves = (reads.at - 2 - reads.restores.size until reads.at - 2).map { read[it].namedRegisters() }
+                assertEquals(name, reads.restores.map { listOf(it.from, it.into) }, saves)
+                assertEquals(name, setOf(reads.chat, reads.chat + 1), reads.restores.map { it.into }.toSet())
+                assertTrue(name, (value + 1 until reads.at).any { read[it].opcode == Opcode.GOTO && flow.normal[it] == listOf(reads.to) })
+            }
             val live = RegisterLiveness.of(reads.method).liveInto(reads.to)
-            assertTrue("$name: $live", reads.chat !in live && reads.chat + 1 !in live)
+            assertTrue("$name: $live", (listOf(reads.chat, reads.chat + 1) - reads.restores.map { it.into }.toSet()).none { it in live })
         }
     }
 
@@ -600,7 +667,7 @@ class HiddenChatsFixtureTest {
             calc.replaceInstruction(query, "const-string v${(calc.body()[query] as OneRegisterInstruction).registerA}, \"SELECT did FROM dialogs\"")
             val counts = listOf("calcUnreadCounters", "updateFiltersReadCounter")
             val before = counts.map { count -> storage.methods.single { it.origName == count }.body().code() }
-            val warnings = PatchLogCapture.warnings { hideFolderCountersPatch.execute(context) }
+            val warnings = beyondStock(build, PatchLogCapture.warnings { hideFolderCountersPatch.execute(context) })
             assertEquals("$name: $warnings", 1, warnings.size)
             assertTrue("$name: ${warnings.single()}", "the unread count's query is missing or ambiguous" in warnings.single() &&
                 "Hidden chats go on with their unread counts" in warnings.single())
@@ -611,6 +678,28 @@ class HiddenChatsFixtureTest {
                 .none { it.ref() == RECOUNT })
             assertTrue("$name: onStorageThread stays a stub", context.tgMutableClassDefBy(HIDDEN_CHATS).methods.single { it.origName == "onStorageThread" }.body()
                 .none { it.ref() == TelegramNames.of(context).asRead(POST_RUNNABLE) })
+        }
+    }
+
+    @Test fun `a row start that writes over what the walk keeps stays as it was`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val name = build.name
+            val context = PatchContexts.of(ExtensionDex.classes() + launchFolderHosts(build))
+            context.requireHiddenChatsRuntime()
+            val calc = context.tgMutableClassDefBy(STORAGE).methods.single { it.origName == "calcUnreadCounters" }
+            val walk = calc.body()
+            val query = walk.indexOfFirst { it.opcode == Opcode.CONST_STRING && it.ref().orEmpty().startsWith("SELECT did, folder_id, unread_count") }
+            val head = (query until walk.size).first { walk[it].ref() == "Lorg/telegram/SQLite/SQLiteCursor;->next()Z" }
+            // Past the row's check, a register the walk still reads once the rows run out, written over with nothing saved.
+            val exit = ControlFlow.of(calc).normal[head + 2].single { it != head + 3 }
+            val kept = RegisterLiveness.of(calc).liveInto(exit)
+                .filter { it in 0..15 && it !in walk[head].namedRegisters() && it !in walk[0].namedRegisters() }.min()
+            calc.addInstructions(head + 3, "const/4 v$kept, 0x0")
+            val before = calc.body().code()
+            val plan = context.resolveUnreadCounts()
+            assertEquals("$name: v$kept", "the unread count's row walk keeps a register its start writes", plan.missing)
+            plan.apply()
+            assertEquals(name, before, calc.body().code())
         }
     }
 

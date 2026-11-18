@@ -11,7 +11,7 @@ import java.security.MessageDigest
 fun main(args: Array<String>) {
     val original = File(args[0]).readBytes()
     val bundle = HermesBundle(original)
-    check(bundle.function("KicksShopButton").offset == 0x8e6e61)
+    check(bundle.function("KicksShopButton").offset == 0x8b5f04)
     check(bundle.function("preferencesSettingsSlice").body.size == 97)
     fun rejects(block: () -> Unit) = check(runCatching(block).isFailure)
     rejects { HermesBundle(original.copyOf().also { it[8] = 98 }) }
@@ -22,8 +22,14 @@ fun main(args: Array<String>) {
     disabled.returnNull("KicksShopButton", "hide_buttons", defaultEnabled = false)
     check(disabled.preview().contentEquals(original))
     rejects { bundle.replace("KicksShopButton", "invalid", byteArrayOf(52), byteArrayOf(1, 2)) }
-    for (name in listOf("KicksShopButton", "GetKicksButton", "ChannelSubButton", "ChannelGiftSubButton")) {
+    for (name in listOf("KicksShopButton", "GetKicksButton")) {
         bundle.returnNull(name, "hide_buttons")
+    }
+    // ChannelSubButton, ChannelGiftSubButton and LeaderboardKicksFooter (since 40.35) load their props before their
+    // environment: returnNull refuses that prologue, returnAtEntry takes it.
+    for (name in listOf("ChannelSubButton", "ChannelGiftSubButton", "LeaderboardKicksFooter")) {
+        rejects { bundle.returnNull(name, "hide_buttons") }
+        bundle.returnAtEntry(name, "hide_buttons")
     }
     rejects { bundle.returnNull("KicksShopButton", "overlap") }
     // A whole-body replacement must keep the body's length (Disable autoplay's edit; test_hermes.py checks it).
@@ -99,30 +105,27 @@ fun main(args: Array<String>) {
     // Literal readers: every array/object literal instruction with the bytes its values occupy.
     check(bundle.literals.size > 50000)
     val skipScale = bundle.literals.single { it.keys == listOf("livestream", "vod", "live-vod", "clip") }
-    val slots = bundle.slotArrays(skipScale)
-    check(slots.keys == setOf(0, 1, 2, 3))
-    val (vod, liveVod) = slots.getValue(1) to slots.getValue(2)
-    check(vod.start == liveVod.start && vod.end - vod.start == 13)
-    val skipReaders = listOf(vod, liveVod)
-    check(bundle.literalsReading(vod.start, vod.end).size == 2)
-    // The live edge array [60] shares its value with an unrelated object: editing it is refused.
-    val live = slots.getValue(0)
-    check(bundle.literalsReading(live.start, live.end).size > 1)
-    rejects { bundle.dataChoice(live.start, "invalid", bundle.literal(live.start, 5), mapOf("1" to hex("71 3d000000")),
-        listOf(live)) }
+    val skipValues = bundle.literalValues(skipScale)
+    check(skipValues.map { it.value } == listOf(60L, 10L, 10L, 10L) && skipValues.all { it.type == 7 && it.width == 4 })
+    val skip = skipValues[1].offset
+    check(skipValues[2].offset == skip + 4)
+    val skipReaders = listOf(skipScale)
+    check(bundle.literalsReading(skip, skip + 8) == skipReaders)
+    // The live edge value [60] shares its bytes with an unrelated object: editing it is refused.
+    val live = skipValues[0].offset
+    check(bundle.literalsReading(live, live + 4).size > 1)
+    rejects { bundle.dataChoice(live, "invalid", bundle.literal(live, 4), mapOf("1" to hex("3d000000")), skipReaders) }
 
     // Literal edits: exact original bytes, only their own readers, unique windows, choices with their own bytes.
-    val skip = vod.start
-    check(bundle.literal(skip, 13).contentEquals(hex("73 0a000000 0a000000 0a000000")))
-    rejects { bundle.dataChoice(skip, "invalid", hex("73 0b000000"), mapOf("1" to hex("73 0c000000")), skipReaders) }
+    check(bundle.literal(skip, 8).contentEquals(hex("0a000000 0a000000")))
+    rejects { bundle.dataChoice(skip, "invalid", hex("0b000000"), mapOf("1" to hex("0c000000")), skipReaders) }
     rejects { bundle.dataChoice(-1, "invalid", hex("00"), mapOf("1" to hex("01")), skipReaders) }
-    rejects { bundle.dataChoice(skip, "vod_skip_seconds", hex("73 0a000000 0a000000 0a000000"),
-        mapOf("5" to hex("73 05000000 05000000 05000000")), readers = listOf(vod)) } // A reader left out.
-    val choice = bundle.dataChoice(skip, "vod_skip_seconds", hex("73 0a000000 0a000000 0a000000"),
-        mapOf("5" to hex("73 05000000 05000000 05000000"), "30" to hex("73 1e000000 1e000000 1e000000")),
-        readers = skipReaders)
+    rejects { bundle.dataChoice(skip, "vod_skip_seconds", hex("0a000000 0a000000"),
+        mapOf("5" to hex("05000000 05000000")), readers = listOf(bundle.literals.first { it !== skipScale })) } // Wrong reader.
+    val choice = bundle.dataChoice(skip, "vod_skip_seconds", hex("0a000000 0a000000"),
+        mapOf("5" to hex("05000000 05000000"), "30" to hex("1e000000 1e000000")), readers = skipReaders)
     check(choice.embedded.contentEquals(choice.original))
-    rejects { bundle.dataChoice(skip, "vod_skip_seconds", hex("73"), mapOf("x" to hex("74")), skipReaders) }
+    rejects { bundle.dataChoice(skip, "vod_skip_seconds", hex("0a"), mapOf("x" to hex("0b")), skipReaders) }
     fun id(colour: String) = bundle.stringId(colour).let { byteArrayOf(it.toByte(), (it ushr 8).toByte()) }
     val surfaceValues = byteArrayOf(0x58) + id("#1C1E20") + id("#141517") + id("#090A0B")
     val surface = bundle.literals.single {
@@ -138,8 +141,8 @@ fun main(args: Array<String>) {
     rejects { bundle.dataChoice(lowest - 1, "amoled_black", bundle.literal(lowest - 1, 2),
         mapOf("1" to bundle.literal(lowest - 1, 2).also { it[1] = (it[1] + 1).toByte() }), readers = listOf(surface)) }
     val shipped = HermesBundle(original)
-    shipped.dataChoice(skip, "vod_skip_seconds", hex("73 0a000000 0a000000 0a000000"),
-        mapOf("5" to hex("73 05000000 05000000 05000000")), readers = skipReaders, defaultValue = "5")
+    shipped.dataChoice(skip, "vod_skip_seconds", hex("0a000000 0a000000"),
+        mapOf("5" to hex("05000000 05000000")), readers = skipReaders, defaultValue = "5")
     check(shipped.replacements().single().let { (from, to) -> from != to && from.length == to.length })
 
     val patched = bundle.preview()

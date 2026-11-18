@@ -651,8 +651,7 @@ Se ci sono cambiamenti sul lato server, il colore potrebbe non cambiare"</string
     <string name="revanced_change_start_page_entry_gaming">Giochi</string>
     <string name="revanced_change_start_page_entry_history">Cronologia</string>
     <string name="revanced_change_start_page_entry_home">\"Home\"</string>
-    <string name="revanced_change_start_page_entry_hype">Dai hype</string>
-    <string name="revanced_change_start_page_entry_library">Libreria</string>
+    <string name="revanced_change_start_page_entry_library">Tu</string>
     <string name="revanced_change_start_page_entry_liked_videos">Video piaciuti</string>
     <string name="revanced_change_start_page_entry_live">In diretta</string>
     <string name="revanced_change_start_page_entry_movies">Film</string>
@@ -660,14 +659,12 @@ Se ci sono cambiamenti sul lato server, il colore potrebbe non cambiare"</string
     <string name="revanced_change_start_page_entry_news">Notizie</string>
     <string name="revanced_change_start_page_entry_notifications">Notifiche</string>
     <string name="revanced_change_start_page_entry_playlists">Playlist</string>
-    <string name="revanced_change_start_page_entry_podcasts">Podcast</string>
     <string name="revanced_change_start_page_entry_search">Cerca</string>
     <string name="revanced_change_start_page_entry_settings">Impostazioni</string>
     <string name="revanced_change_start_page_entry_shopping">Acquisti</string>
     <string name="revanced_change_start_page_entry_shorts">Shorts</string>
     <string name="revanced_change_start_page_entry_sports">Sport</string>
     <string name="revanced_change_start_page_entry_subscriptions">Iscrizioni</string>
-    <string name="revanced_change_start_page_entry_trending">Tendenze</string>
     <string name="revanced_change_start_page_entry_virtual_reality">Realtà Virtuale</string>
     <string name="revanced_change_start_page_entry_watch_later">Guarda più tardi</string>
     <string name="revanced_change_start_page_entry_your_clips">Le tue clip</string>

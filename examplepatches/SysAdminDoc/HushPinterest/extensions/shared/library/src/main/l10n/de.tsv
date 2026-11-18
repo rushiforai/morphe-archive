@@ -236,7 +236,7 @@ Saving a pin plays the sound you picked. Tap to pick another sound or use Pinter
 Saving a pin plays %s. Tap to pick another sound or use Pinterest's again.	Beim Merken eines Pins spielt %s. Tippe, um einen anderen Ton zu wählen oder wieder den von Pinterest zu nutzen.
 Pick another sound	Anderen Ton wählen
 Use Pinterest's sound again	Wieder den Ton von Pinterest nutzen
-That app won't let Pinterest keep the sound. Pick one saved on the phone.	Diese App lässt Pinterest den Ton nicht behalten. Wähle einen, der auf dem Handy gespeichert ist.
+That app can't share the sound. Pick one saved on the phone.	Diese App gibt den Ton nicht frei. Wähle einen vom Handy.
 Saving a pin will play the sound you picked.	Beim Merken eines Pins spielt jetzt der ausgewählte Ton.
 Saving a pin will play %s.	Beim Merken eines Pins spielt jetzt %s.
 Saving a pin will play Pinterest's sound again.	Beim Merken eines Pins spielt wieder der Ton von Pinterest.
@@ -762,3 +762,62 @@ saved pins in More to explore	gemerkte Pins bei „Weitere entdecken“
 Shop the look under pins	Shop the look unter Pins
 Back leaves Home right away	Zurück verlässt den Startfeed sofort
 When you've scrolled down Home, Back leaves Pinterest instead of jumping to the top and loading new pins first.	Wenn du im Startfeed nach unten gescrollt hast, verlässt Zurück Pinterest, statt erst nach oben zu springen und neue Pins zu laden.
+Hide download toasts	Download-Hinweise ausblenden
+Downloading a pin no longer shows the message that it started or finished. Errors still show, and Android's own download notification stays.	Beim Herunterladen eines Pins erscheint keine Meldung mehr, dass es begonnen hat oder fertig ist. Fehler werden weiter angezeigt, und die Download-Benachrichtigung von Android bleibt.
+Black toasts	Schwarze Hinweise
+In dark mode, paints the messages Pinterest pops up, such as the one after you save or download a pin, pure black. Light mode stays as it is. The change shows on the next message.	Färbt im Dunkelmodus die Meldungen von Pinterest, etwa nach dem Merken oder Herunterladen eines Pins, tiefschwarz. Der helle Modus bleibt, wie er ist. Die Änderung zeigt sich bei der nächsten Meldung.
+Hide Home tabs	Startseiten-Tabs ausblenden
+Takes the row of tabs, All and your board names, off the top of Home. The change shows the next time Home updates.	Entfernt die Tab-Leiste mit Alle und deinen Pinnwandnamen oben auf der Startseite. Die Änderung zeigt sich, wenn sich die Startseite das nächste Mal aktualisiert.
+Blank Search page	Leere Suchseite
+Leaves only the search bar on the Search page, with nothing under it. Searching works as usual. The change shows the next time the page updates.	Lässt auf der Suchseite nur die Suchleiste stehen, darunter bleibt alles leer. Die Suche funktioniert wie gewohnt. Die Änderung zeigt sich, wenn sich die Seite das nächste Mal aktualisiert.
+Second Search tap opens the keyboard	Zweites Tippen auf Suche öffnet die Tastatur
+On the Search page, pressing Search in the bottom bar again puts the cursor in the search bar and opens the keyboard.	Auf der Suchseite setzt ein erneutes Tippen auf Suche in der unteren Leiste den Cursor in die Suchleiste und öffnet die Tastatur.
+Hide pin menu rows	Zeilen im Pin-Menü ausblenden
+Hides the rows you pick below from pin menus you open from now on. A menu that's already open won't change.	Blendet die unten gewählten Zeilen in Pin-Menüs aus, die du ab jetzt öffnest. Ein bereits geöffnetes Menü ändert sich nicht.
+Pick pin menu rows	Zeilen im Pin-Menü wählen
+Pick the rows to take out of a pin's menu.	Wähle die Zeilen, die aus dem Menü eines Pins verschwinden sollen.
+Hidden from pin menus: %s. Tap to change.	In Pin-Menüs ausgeblendet: %s. Tippe zum Ändern.
+Picked: %s. Hide pin menu rows is off, so they still show.	Gewählt: %s. Zeilen im Pin-Menü ausblenden ist aus, deshalb erscheinen sie noch.
+Why you're seeing this pin	Warum du diesen Pin siehst
+Customize board tabs	Pinnwand-Tabs anpassen
+Board tab header	Kopfbereich der Pinnwand-Tabs
+Hide See board on board tabs	Pinnwand ansehen auf Pinnwand-Tabs ausblenden
+Takes the See board button off the picture at the top of a board tab on Home. The change shows the next time the tab opens.	Entfernt die Schaltfläche Pinnwand ansehen vom Bild oben auf einem Pinnwand-Tab der Startseite. Die Änderung zeigt sich, wenn der Tab das nächste Mal geöffnet wird.
+Hide More ideas for on board tabs	Mehr Ideen für auf Pinnwand-Tabs ausblenden
+Takes More ideas for and any other small text off that picture, so only the board name is left. The change shows the next time the tab opens.	Entfernt Mehr Ideen für und anderen kleinen Text von diesem Bild, sodass nur der Name der Pinnwand bleibt. Die Änderung zeigt sich, wenn der Tab das nächste Mal geöffnet wird.
+Board name position	Position des Pinnwand-Namens
+%s. Moves the board name on the picture at the top of a board tab on Home. The change shows the next time the tab opens.	%s. Verschiebt den Pinnwand-Namen auf dem Bild oben auf einem Pinnwand-Tab der Startseite. Die Änderung zeigt sich, wenn der Tab das nächste Mal geöffnet wird.
+Where Pinterest puts it	Wo Pinterest ihn platziert
+Top left	Oben links
+Top center	Oben mittig
+Middle	Mitte
+Bottom center	Unten mittig
+Bottom right	Unten rechts
+Board tab covers	Titelbilder der Pinnwand-Tabs
+Board tab cover	Titelbild des Pinnwand-Tabs
+Choose board tab covers	Titelbilder der Pinnwand-Tabs wählen
+Long-press the picture at the top of a board tab on Home to keep it, use a pin or a photo, or go black.	Drücke lange auf das Bild oben auf einem Pinnwand-Tab der Startseite, um es zu behalten, einen Pin oder ein Foto zu verwenden oder es schwarz zu machen.
+Keep this picture	Dieses Bild behalten
+Pin from this board	Pin aus dieser Pinnwand
+Image from phone	Bild vom Handy
+No image	Kein Bild
+Pinterest's choice	Auswahl von Pinterest
+Use as tab cover	Als Tab-Titelbild nutzen
+Open a pin's menu and pick Use as tab cover.	Wähle im Pin-Menü Als Tab-Titelbild nutzen.
+Board tab cover set.	Titelbild festgelegt.
+That file couldn't be read as a picture.	Diese Datei ließ sich nicht als Bild lesen.
+Hide pin author	Ersteller von Pins ausblenden
+Removes the creator's whole row, picture and name included, from under a pin you open. The change shows on the next pin you open.	Entfernt die ganze Zeile des Erstellers mit Bild und Namen unter einem geöffneten Pin. Die Änderung zeigt sich beim nächsten Pin, den du öffnest.
+Hide pin title and description	Titel und Beschreibung von Pins ausblenden
+Removes the title and description under a pin you open. The likes and comments bar stays, and so do the posted date and image size when they're on. The change shows on the next pin you open.	Entfernt Titel und Beschreibung unter einem geöffneten Pin. Die Leiste mit Likes und Kommentaren bleibt, ebenso Veröffentlichungsdatum und Bildgröße, wenn sie eingeschaltet sind. Die Änderung zeigt sich beim nächsten Pin, den du öffnest.
+Show image size	Bildgröße anzeigen
+Shows a picture's width and height under it when you open a pin, beside the posted date when that's on. It reads the largest copy Pinterest sends the app, which can be smaller than the original upload. Videos show nothing. The change shows on the next pin you open.	Zeigt beim Öffnen eines Pins Breite und Höhe des Bildes darunter an, neben dem Veröffentlichungsdatum, wenn es eingeschaltet ist. Gelesen wird die größte Kopie, die Pinterest an die App schickt, und die kann kleiner sein als das hochgeladene Original. Bei Videos erscheint nichts. Die Änderung zeigt sich beim nächsten Pin, den du öffnest.
+Hide blue highlight ring	Blauen Hinweisring ausblenden
+# context: Pin page switch. Save is Pinterest's own Save button, under its label in this language.
+Stops the thick blue ring Pinterest draws over buttons such as Save to point out a feature.	Verhindert den dicken blauen Ring, den Pinterest über Schaltflächen wie Merken legt, um auf eine Funktion hinzuweisen.
+Hide visual search thumbnails	Vorschaubilder der visuellen Suche ausblenden
+Keeps a pin's lens button plain, without the little stack of cropped pictures Pinterest puts on it. The change shows on the next pin you open.	Lässt die Linsen-Schaltfläche eines Pins schlicht, ohne den kleinen Stapel zugeschnittener Bilder, den Pinterest darauf legt. Die Änderung zeigt sich beim nächsten Pin, den du öffnest.
+Fold related pins	Ähnliche Pins einklappen
+Puts an arrow under a pin you open. Related pins stay folded and don't load until you tap it, and tapping again folds them. Your last choice is kept. Hide related pins wins when both are on. The change shows on the next pin you open.	Setzt einen Pfeil unter einen geöffneten Pin. Ähnliche Pins bleiben eingeklappt und laden erst, wenn du ihn antippst, und ein weiteres Tippen klappt sie wieder ein. Deine letzte Wahl bleibt erhalten. Sind beide Schalter an, gilt Ähnliche Pins ausblenden. Die Änderung zeigt sich beim nächsten Pin, den du öffnest.
+# context: what a screen reader says for the arrow under a pin while its related pins are folded
+Show related pins	Ähnliche Pins anzeigen

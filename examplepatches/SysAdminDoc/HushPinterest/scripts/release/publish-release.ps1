@@ -9,7 +9,8 @@
     name the walk-receipt.json of a whole-app walk of the signed bundle on a release phone or an
     emulator (walk-receipt.ps1). Then it goes in this order:
 
-      1. The notes: every bullet of the released CHANGELOG section, between -Intro and -Tail.
+      1. The notes: the released CHANGELOG section's Pinterest bullets, between -Intro and -Tail.
+         The tail holds the update steps and reported issues, with no Validation section.
       2. gh release create vX.Y.Z at the prepare commit with the five assets. GitHub's tag is
          fetched and held to that commit, and each hosted asset is downloaded and compared.
       3. The index: patches-bundle.json, the README sentence, the bug form and the GitHub

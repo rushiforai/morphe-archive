@@ -63,6 +63,8 @@ public class Constants {
     public static final String REX_FRAGMENT_REC_FLAGS = "rex_frag_rec_flags";
     public static final String REX_FRAGMENT_INSTANTS = "rex_frag_instants";
     public static final String REX_FRAGMENT_FONT = "rex_frag_font";
+    public static final String REX_FRAGMENT_INITIAL_FEATURES = "rex_initial_features";
+    public static final String REX_FRAGMENT_CACHE_CLEANER = "rex_cache_cleaner";
 
     public static void load() {
         StorageUtils.setStorageAccessLauncher(ctx -> ActivityHook.launchFragment(ctx, "rex_download_set_path"));

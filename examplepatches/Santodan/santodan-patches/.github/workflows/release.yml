@@ -22,6 +22,9 @@ jobs:
       id-token: write
       attestations: write
     runs-on: ubuntu-latest
+    env:
+      # D8 merges run inside Gradle; its default heap is too small for a clean bundle build.
+      GRADLE_OPTS: -Dorg.gradle.jvmargs=-Xmx4g -Dorg.gradle.workers.max=2
     steps:
       - name: Checkout
         uses: actions/checkout@v7

@@ -37,6 +37,7 @@ import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
@@ -72,7 +73,7 @@ val voiceMusicPlayerPatch = bytecodePatch(
 ) {
     category("Playback")
     dependsOn(settingsPatch, telegramExtensionPatch)
-    compatibleWith(*AppCompatibilities.telegramOnly())
+    compatibleWith(*AppCompatibilities.telegram())
     execute {
         val site = resolveVoiceMusicPlayer()
         val position = resolvePlaybackPosition()
@@ -174,9 +175,15 @@ internal fun BytecodePatchContext.resolveVoiceMusicPlayer(): VoiceMusicPlayerSit
         if (cls.origType != FRAGMENT_CONTEXT_VIEW && cls.fields.none { it.origType == FRAGMENT_CONTEXT_VIEW && !AccessFlags.STATIC.isSet(it.accessFlags) }) return@forEachClassMentioning
         cls.methods.forEach { m ->
             val body = m.controlBody()
+            val refuse: (String) -> Nothing = { why -> controlShape(false, "the player bar's music check: $why"); error(why) }
             for (i in body.indices) {
                 if (body[i].opcode !in VIRTUAL || body[i].controlRef() != IS_MUSIC) continue
-                val created = (i + 1 until minOf(body.size, i + 14)).map { body[it] }
+                // Plus Messenger jumps to the music path on a yes, so the player is built at the jump's target.
+                val jumps = i + 2 < body.size && body[i + 1].opcode == Opcode.MOVE_RESULT &&
+                    body[i + 2].opcode == Opcode.IF_NEZ &&
+                    (body[i + 2] as OneRegisterInstruction).registerA == (body[i + 1] as OneRegisterInstruction).registerA
+                val starts = listOfNotNull(i + 1, if (jumps) body.branchTarget(i + 2, refuse) else null)
+                val created = starts.flatMap { from -> (from until minOf(body.size, from + 14)).map { body[it] } }
                     .filter { it.opcode == Opcode.NEW_INSTANCE }
                     .map { ((it as ReferenceInstruction).reference as TypeReference).type }
                     .filter { isPlayer(tgClassDefByOrNull(it)) }
@@ -264,11 +271,23 @@ private fun BytecodePatchContext.resolveProfileButtons(player: String): Pair<Str
 internal fun isPlayer(cls: ClassDef?) = cls != null && PLAYER_TRAITS.all { it in cls.origInterfaces } &&
     cls.fields.any { it.origType == SAVED_MUSIC && !AccessFlags.STATIC.isSet(it.accessFlags) }
 
-/** Whether the music check at [index] leads within a few instructions into a cast to [player]. */
-private fun BytecodePatchContext.castsToPlayer(body: List<Instruction>, index: Int, player: String) =
-    (index + 1 until minOf(body.size, index + 8)).any { at ->
-        body[at].opcode == Opcode.CHECK_CAST &&
-            tgClassDefByOrNull(((body[at] as ReferenceInstruction).reference as TypeReference).type)?.origType == player
+/**
+ * Whether the music check at [index] leads within a few instructions into a cast to [player]. Plus
+ * Messenger jumps there on a yes, letting a second check into the same branch, so the jump's target
+ * counts as a start too.
+ */
+private fun BytecodePatchContext.castsToPlayer(body: List<Instruction>, index: Int, player: String): Boolean {
+    val jumps = index + 2 < body.size && body[index + 1].opcode == Opcode.MOVE_RESULT &&
+        body[index + 2].opcode == Opcode.IF_NEZ &&
+        (body[index + 2] as OneRegisterInstruction).registerA == (body[index + 1] as OneRegisterInstruction).registerA
+    val refuse: (String) -> Nothing = { why -> controlShape(false, "the player's music check: $why"); error(why) }
+    val starts = listOfNotNull(index + 1, if (jumps) body.branchTarget(index + 2, refuse) else null)
+    return starts.any { from ->
+        (from until minOf(body.size, from + 7)).any { at ->
+            body[at].opcode == Opcode.CHECK_CAST &&
+                tgClassDefByOrNull(((body[at] as ReferenceInstruction).reference as TypeReference).type)?.origType == player
+        }
     }
+}
 
 private fun signature(method: Method) = "${method.origName}${method.origDescriptor}"

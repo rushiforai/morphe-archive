@@ -52,7 +52,7 @@ import org.w3c.dom.Element
 //     - the account type is `app.revanced`;
 //     - it exports the `app.revanced.*` service actions, permissions and provider
 //       authorities this patch routes to (checked one by one in its manifest).
-//   WPS Office 26.11.0 b1650, base APK sha256-verified against the audited stock
+//   WPS Office 26.11.1 b1651, APK sha256-verified against the audited stock
 //     bundle; the signing certificate SHA-256 matches WPS_OFFICE_SIGNER_SHA256.
 // ============================================================================
 
@@ -239,8 +239,21 @@ private fun replacementFor(instruction: Instruction, replacements: Map<String, S
  * hidden-API flags. The register count is kept, so register references stay valid.
  */
 private fun MutableClass.forceBody(method: MutableMethod, body: String, label: String) {
-    val implementation = method.implementation
-        ?: throw PatchException("WPS MicroG patch: $label has no body to replace")
+    // Reading `implementation` forces dexlib2 to parse the existing code item.
+    // That throws on a structurally malformed body (an array payload with an
+    // invalid element width), and this APK has such methods. The body is being
+    // thrown away anyway, so fall back to a register frame sized from the
+    // signature: parameter registers plus a generous local area. The replacement
+    // bodies here only ever touch v0, so an oversized frame is harmless.
+    val existingRegisters = try {
+        method.implementation?.registerCount
+    } catch (t: Throwable) {
+        null
+    }
+    val registerCount = existingRegisters ?: run {
+        val isStatic = (method.accessFlags and 0x8) != 0
+        method.parameterTypes.size + (if (isStatic) 0 else 1) + 8
+    }
     val fresh = ImmutableMethod(
         method.definingClass,
         method.name,
@@ -249,7 +262,7 @@ private fun MutableClass.forceBody(method: MutableMethod, body: String, label: S
         method.accessFlags,
         method.annotations,
         method.hiddenApiRestrictions,
-        MutableMethodImplementation(implementation.registerCount),
+        MutableMethodImplementation(registerCount),
     ).toMutable()
     fresh.addInstructions(0, body)
     methods.remove(method)
@@ -260,6 +273,9 @@ internal val wpsMicroGSignInPatch = bytecodePatch(
     name = "Google sign-in via MicroG RE",
     description = "Makes Google sign-in work on a re-signed WPS by signing in as the original app. Needs MicroG RE " +
         "installed with a Google account added. WPS account login is unaffected.",
+    // Off by default on purpose: on a device with real Google Play Services this
+    // routing would break sign-in. The crash-hardening below is independent of the
+    // default and applies whenever the patch is selected.
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_WPS_OFFICE)
@@ -279,7 +295,7 @@ internal val wpsMicroGSignInPatch = bytecodePatch(
             WpsPlayServicesAvailabilityFingerprint.methodOrNull
                 ?: throw PatchException(
                     "WPS MicroG patch: GooglePlayServicesUtilLight.isGooglePlayServicesAvailable " +
-                        "not found. WPS 26.11.0 (b1650) is the supported build.",
+                        "not found. Supported build: WPS 26.11.1 (b1651). 26.11.0 support was dropped.",
                 )
         } else {
             null
@@ -288,7 +304,7 @@ internal val wpsMicroGSignInPatch = bytecodePatch(
             WpsPlayServicesEnsureFingerprint.methodOrNull
                 ?: throw PatchException(
                     "WPS MicroG patch: ensurePlayServicesAvailable not found. " +
-                        "WPS 26.11.0 (b1650) is the supported build.",
+                        "Supported build: WPS 26.11.1 (b1651). 26.11.0 support was dropped.",
                 )
         } else {
             null
@@ -298,12 +314,19 @@ internal val wpsMicroGSignInPatch = bytecodePatch(
             val replacements = gmsStringReplacements()
 
             // Collect first: classes must not be mutated while iterating them.
+            //
+            // Every body read here is guarded. dexlib2 parses a code item lazily,
+            // so `implementation.instructions` can throw on a structurally
+            // malformed method. This APK is a recompiled third-party build and
+            // does contain such methods (array payloads with an invalid element
+            // width). An unguarded read aborts the whole run; a guarded one just
+            // skips a method that cannot contain a well-formed string reference
+            // anyway.
             val targets = mutableListOf<ClassDef>()
+            var skippedCorrupt = 0
             classDefForEach { classDef ->
                 val hit = classDef.methods.any { method ->
-                    method.implementation?.instructions?.any {
-                        replacementFor(it, replacements) != null
-                    } == true
+                    method.safeInstructions().any { replacementFor(it, replacements) != null }
                 }
                 if (hit) targets += classDef
             }
@@ -312,7 +335,11 @@ internal val wpsMicroGSignInPatch = bytecodePatch(
             for (classDef in targets) {
                 val mutableClass = mutableClassDefBy(classDef)
                 for (method in mutableClass.methods) {
-                    val instructions = method.implementation?.instructions?.toList() ?: continue
+                    val instructions = method.safeInstructions()
+                    if (instructions.isEmpty()) {
+                        skippedCorrupt++
+                        continue
+                    }
                     instructions.forEachIndexed { index, instruction ->
                         val replacement = replacementFor(instruction, replacements) ?: return@forEachIndexed
                         val register = (instruction as OneRegisterInstruction).registerA
@@ -323,11 +350,34 @@ internal val wpsMicroGSignInPatch = bytecodePatch(
             }
 
             if (edits == 0) {
-                throw PatchException(
-                    "WPS MicroG patch: no Google Play services string was rewritten, the dex layout changed",
-                )
+                // Distinguish "already applied" from "layout changed". Without this,
+                // re-patching an already-patched APK aborts the whole run with a
+                // misleading message, and the reader has no way to tell that the
+                // cause is simply that this patch had already done its work.
+                var alreadyApplied = false
+                classDefForEach { classDef ->
+                    if (alreadyApplied) return@classDefForEach
+                    alreadyApplied = classDef.methods.any { method ->
+                        method.safeInstructions().any { instruction ->
+                            ((instruction as? ReferenceInstruction)?.reference as? StringReference)
+                                ?.string?.contains(MICROG_VENDOR) == true
+                        }
+                    }
+                }
+                if (alreadyApplied) {
+                    println(
+                        "MicroG: Google Play services strings are already rewritten " +
+                            "($MICROG_VENDOR present, nothing left to do). Skipping the rewrite.",
+                    )
+                } else {
+                    throw PatchException(
+                        "WPS MicroG patch: no Google Play services string was rewritten and none of " +
+                            "$MICROG_VENDOR is present either, so the dex layout is genuinely unexpected.",
+                    )
+                }
+            } else {
+                println("MicroG: rewrote $edits Google Play services string(s) in ${targets.size} class(es).")
             }
-            println("MicroG: rewrote $edits Google Play services string(s) in ${targets.size} class(es).")
         }
 
         if (availability != null) {

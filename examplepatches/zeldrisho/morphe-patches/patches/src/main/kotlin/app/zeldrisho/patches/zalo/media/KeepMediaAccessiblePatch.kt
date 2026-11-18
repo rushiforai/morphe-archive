@@ -29,7 +29,8 @@ val keepZaloMediaAccessiblePatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_ZALO)
 
     execute {
-        val matches = MediaExpiryStatus.matchAll(0..1) + MediaExpiryStatus261002.matchAll(0..1)
+        val matches = MediaExpiryStatus.matchAll(0..1) + MediaExpiryStatus261002.matchAll(0..1) +
+            MediaExpiryStatus261101.matchAll(0..1)
         check(matches.size == 1) { "Expected exactly one media expiry classifier" }
         val match = matches.single()
         val expiredLoad = match.instructionMatches

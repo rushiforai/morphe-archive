@@ -44,13 +44,23 @@ val postSidePanelPatch = patch(
                 key = "post_side_panel_width",
                 section = BinocularsModsSection.POSTS,
                 title = "Panel width",
-                summary = "How much of the feed the panel covers, in grid columns.",
+                summary = "Starting width of the panel, in grid columns. Drag the panel's edge to resize it.",
                 parentKey = "post_side_panel",
                 choices = listOf(
                     BinocularsModsChoice("one", "One column"),
                     BinocularsModsChoice("two", "Two columns"),
                 ),
                 defaultChoice = "one",
+            ),
+        )
+        addBinocularsModsSetting(
+            BinocularsModsSetting(
+                key = "post_side_panel_remember_width",
+                section = BinocularsModsSection.POSTS,
+                title = "Remember dragged width",
+                summary = "Open the next post at the width you last dragged the panel to. Turn off to always start at the Panel width above.",
+                parentKey = "post_side_panel",
+                default = true,
             ),
         )
         addBinocularsModsSetting(

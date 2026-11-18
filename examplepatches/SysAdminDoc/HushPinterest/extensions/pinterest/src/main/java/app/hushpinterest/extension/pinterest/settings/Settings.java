@@ -164,6 +164,8 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushpinterest_hide_screenshot_share", FALSE, true);
     public static final BooleanSetting HIDE_SEARCH_HISTORY =
             new BooleanSetting("hushpinterest_hide_search_history", FALSE);
+    public static final BooleanSetting BLANK_SEARCH_PAGE =
+            new BooleanSetting("hushpinterest_blank_search_page", FALSE);
     public static final BooleanSetting HIDE_NAV_CREATE =
             new BooleanSetting("hushpinterest_hide_nav_create", FALSE);
     public static final BooleanSetting HIDE_NAV_NOTIFICATIONS =
@@ -172,6 +174,10 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushpinterest_hide_nav_search", FALSE);
     public static final BooleanSetting HIDE_HEADER_BUTTONS =
             new BooleanSetting("hushpinterest_hide_header_buttons", FALSE);
+    public static final BooleanSetting HIDE_HOME_TABS =
+            new BooleanSetting("hushpinterest_hide_home_tabs", FALSE);
+    public static final BooleanSetting SEARCH_TAB_KEYBOARD =
+            new BooleanSetting("hushpinterest_search_tab_keyboard", FALSE);
     public static final BooleanSetting HIDE_ASSISTANT =
             new BooleanSetting("hushpinterest_hide_assistant", FALSE);
     public static final BooleanSetting BLACK_BOTTOM_BAR =
@@ -186,6 +192,8 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushpinterest_black_sheets", FALSE);
     public static final BooleanSetting BLACK_BOARDS =
             new BooleanSetting("hushpinterest_black_boards", FALSE);
+    public static final BooleanSetting BLACK_TOASTS =
+            new BooleanSetting("hushpinterest_black_toasts", FALSE);
     public static final BooleanSetting HIDE_CLOSEUP_BACK =
             new BooleanSetting("hushpinterest_hide_closeup_back", FALSE);
     public static final BooleanSetting HIDE_CLOSEUP_LENS =
@@ -212,6 +220,8 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushpinterest_hide_pin_menu_visual_search", FALSE);
     public static final BooleanSetting HIDE_PIN_MENU_PIN_BOOST =
             new BooleanSetting("hushpinterest_hide_pin_menu_pin_boost", FALSE);
+    public static final BooleanSetting HIDE_PIN_MENU_ROWS =
+            new BooleanSetting("hushpinterest_hide_pin_menu_rows", FALSE);
     public static final BooleanSetting HIDE_COMMENTS =
             new BooleanSetting("hushpinterest_hide_comments", FALSE);
     public static final BooleanSetting HIDE_SUGGESTED_REPLIES =
@@ -233,6 +243,18 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushpinterest_hide_related_pins", FALSE);
     public static final BooleanSetting HIDE_CREATOR_NAME =
             new BooleanSetting("hushpinterest_hide_creator_name", FALSE);
+    public static final BooleanSetting HIDE_PIN_AUTHOR =
+            new BooleanSetting("hushpinterest_hide_pin_creator", FALSE);
+    public static final BooleanSetting HIDE_PIN_DESCRIPTION =
+            new BooleanSetting("hushpinterest_hide_pin_description", FALSE);
+    public static final BooleanSetting SHOW_IMAGE_SIZE =
+            new BooleanSetting("hushpinterest_show_image_size", FALSE);
+    public static final BooleanSetting HIDE_HIGHLIGHT_RING =
+            new BooleanSetting("hushpinterest_hide_highlight_ring", FALSE);
+    public static final BooleanSetting HIDE_VISUAL_SEARCH_THUMBNAILS =
+            new BooleanSetting("hushpinterest_hide_visual_search_thumbnails", FALSE);
+    public static final BooleanSetting FOLD_RELATED_PINS =
+            new BooleanSetting("hushpinterest_fold_related_pins", FALSE);
     public static final BooleanSetting CUSTOM_SAVE_SOUND =
             new BooleanSetting("hushpinterest_custom_save_sound", FALSE);
     /**
@@ -242,8 +264,16 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting CUSTOM_SPLASH_LOGO =
             new BooleanSetting("hushpinterest_custom_splash_logo", FALSE, true);
+    public static final BooleanSetting HIDE_BOARD_TAB_BUTTON =
+            new BooleanSetting("hushpinterest_hide_board_tab_button", FALSE);
+    public static final BooleanSetting HIDE_BOARD_TAB_SUBTITLE =
+            new BooleanSetting("hushpinterest_hide_board_tab_subtitle", FALSE);
+    public static final BooleanSetting BOARD_TAB_COVERS =
+            new BooleanSetting("hushpinterest_board_tab_covers_on", FALSE);
     public static final BooleanSetting HIDE_SAVE_TOASTS =
             new BooleanSetting("hushpinterest_hide_save_toasts", FALSE);
+    public static final BooleanSetting HIDE_DOWNLOAD_TOASTS =
+            new BooleanSetting("hushpinterest_hide_download_toasts", FALSE);
     public static final BooleanSetting ORIGINAL_IMAGES =
             new BooleanSetting("hushpinterest_original_images", FALSE);
     public static final BooleanSetting SHOW_POSTED_DATE =

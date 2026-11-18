@@ -1,6 +1,6 @@
 # CNN Indonesia
 
-Patches for **CNN Indonesia** (`com.cnn.indonesia`), version `2.50.7`, as an APK from APKMirror.
+Patches for **CNN Indonesia** (`com.cnn.indonesia`), versions `2.50.7` and `2.50.8`, as an APK from APKMirror.
 
 ## Patches
 
@@ -35,5 +35,5 @@ See the [repo README](../../README.md).
 With [morphe-desktop](https://github.com/MorpheApp/morphe-cli/releases) (needs Java 21):
 
 ```bash
-java -jar morphe-desktop-1.19.1-all.jar patch -p patches/build/libs/patches-<version>.mpp -o cnn-patched.apk <CNN Indonesia 2.50.7 APK>
+java -jar morphe-desktop-1.19.1-all.jar patch -p patches/build/libs/patches-<version>.mpp -o cnn-patched.apk <CNN Indonesia 2.50.8 APK>
 ```

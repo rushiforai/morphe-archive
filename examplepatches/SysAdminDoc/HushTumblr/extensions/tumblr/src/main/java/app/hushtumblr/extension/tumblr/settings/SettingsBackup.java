@@ -135,6 +135,7 @@ public final class SettingsBackup {
             Settings.HIDE_REBLOGS,
             Settings.KEEP_TAGGED_REBLOGS,
             Settings.KEEP_REBLOGS_WITH_CONTENT,
+            Settings.KEEP_COMMUNITY_REBLOGS,
             Settings.HIDE_OWN_REBLOGS,
             Settings.HIDE_REBLOGS_OF_YOURS,
             Settings.HIDE_LIKED_POSTS,
@@ -157,6 +158,8 @@ public final class SettingsBackup {
             Settings.SHOW_POST_TIMESTAMPS,
             Settings.SHOW_IMAGE_DESCRIPTIONS,
             Settings.SHARE_VIDEO_LINKS,
+            Settings.FIT_FULL_SCREEN_VIDEOS,
+            Settings.TAP_TO_PLAY_FEED_VIDEOS,
             Settings.SHARPER_IMAGES,
             Settings.COLLAPSE_LONG_POSTS,
             Settings.MUTE_ROOT_POSTS,
@@ -738,6 +741,7 @@ public final class SettingsBackup {
             // Old Hide reblogs backups had no exceptions.
             ordered.put(Settings.KEEP_TAGGED_REBLOGS, false);
             ordered.put(Settings.KEEP_REBLOGS_WITH_CONTENT, false);
+            ordered.put(Settings.KEEP_COMMUNITY_REBLOGS, false);
         }
         if ((Integer) schema < 3 && (ordered.containsKey(Settings.HIDE_POSTS_WITH_WORDS)
                 || texts.containsKey(TextSettings.HIDDEN_WORDS))) {

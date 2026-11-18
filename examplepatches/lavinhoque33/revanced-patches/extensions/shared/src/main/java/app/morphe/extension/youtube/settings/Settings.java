@@ -590,6 +590,18 @@ public class Settings extends SharedYouTubeSettings {
     public static final BooleanSetting HIDE_SERVER_SIDE_SNACK_BAR = new BooleanSetting("revanced_hide_server_side_snack_bar", FALSE, true);
     public static final BooleanSetting CHANGE_SERVER_SIDE_SNACK_BAR_BACKGROUND = new BooleanSetting("revanced_change_server_side_snack_bar_background", FALSE, true, "revanced_change_server_side_snack_bar_background_user_dialog_message");
     public static final BooleanSetting INVERT_SNACK_BAR_THEME = new BooleanSetting("revanced_invert_snack_bar_theme", FALSE, true);
+    public static final FloatSetting SNACK_BAR_CORNER_RADIUS = new FloatSetting(
+            "revanced_snack_bar_corner_radius", 8f, new SliderConfig(0, 40, 0.5, "dp"));
+    public static final StringSetting SNACK_BAR_DARK_FILL = new StringSetting(
+            "revanced_snack_bar_dark_fill", "#FF0F0F0F");
+    public static final StringSetting SNACK_BAR_LIGHT_FILL = new StringSetting(
+            "revanced_snack_bar_light_fill", "#FFF1F1F1");
+    public static final StringSetting SNACK_BAR_STROKE_COLOR = new StringSetting(
+            "revanced_snack_bar_stroke_color", "#FF3EA6FF");
+    public static final FloatSetting SNACK_BAR_STROKE_WIDTH = new FloatSetting(
+            "revanced_snack_bar_stroke_width", 0f, new SliderConfig(0, 8, 0.5, "dp"));
+    public static final BooleanSetting SNACK_BAR_PLAYLIST_RADIUS = new BooleanSetting(
+            "revanced_snack_bar_playlist_radius", FALSE);
 
     // PreferenceScreen: General - Toolbar
     public static final BooleanSetting CHANGE_YOUTUBE_HEADER = new BooleanSetting("revanced_change_youtube_header", TRUE, true);
@@ -827,6 +839,8 @@ public class Settings extends SharedYouTubeSettings {
     public static final BooleanSetting DISABLE_RESUMING_MINIPLAYER = new BooleanSetting("revanced_disable_resuming_miniplayer", FALSE, true);
     public static final EnumSetting<MiniplayerType> MINIPLAYER_TYPE = new EnumSetting<>("revanced_miniplayer_type",
             IS_21_29_OR_GREATER ? MiniplayerType.MODERN_4 : MiniplayerType.DEFAULT, true);
+    public static final BooleanSetting MINIPLAYER_GLASS = new BooleanSetting(
+            "revanced_miniplayer_glass", TRUE, true, new MiniplayerPatch.MiniplayerGlassAvailability());
     public static final BooleanSetting MINIPLAYER_DOUBLE_TAP_ACTION = new BooleanSetting("revanced_miniplayer_double_tap_action", TRUE, true, new MiniplayerPatch.MiniplayerAnyModernAvailability());
     public static final BooleanSetting MINIPLAYER_DRAG_AND_DROP = new BooleanSetting("revanced_miniplayer_drag_and_drop", TRUE, true, new MiniplayerPatch.MiniplayerDragAndDropAvailability());
     // in stock 21.39 horizontal drag is always on and the off-screen drag pauses playback,

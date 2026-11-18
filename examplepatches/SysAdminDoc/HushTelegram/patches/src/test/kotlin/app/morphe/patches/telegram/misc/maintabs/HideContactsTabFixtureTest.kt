@@ -8,7 +8,6 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.PlusPending
 import app.morphe.util.names.addInstruction
 import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
@@ -28,7 +27,10 @@ import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -38,8 +40,10 @@ import java.io.File
 import app.morphe.util.names.origName
 import app.morphe.util.names.tgMutableClassDefBy
 
+/** Plus keeps its own bottom bar, whose sides aren't padded by one size, so the compact bar stays out there. */
+private const val PLUS_COMPACT = "the bar's four sides are no longer padded by one size"
+
 /** Telegram's main screen, its bar and tab views, its pager and the runtime. */
-@PlusPending
 class HideContactsTabFixtureTest {
     @Test fun `the Contacts tab is hidden each time the bar is set, and a swipe asks before landing on its page`() {
         for (build in Fixtures.declaredBuilds()) {
@@ -54,7 +58,9 @@ class HideContactsTabFixtureTest {
             val shownWays = shownBefore.indices.filter { plan.shownReturn in oldShownFlow.normal[it] }
             assertTrue("$name: the Calls or Settings method reaches its end more than one way", shownWays.size >= 2)
             val oldGates = plan.gates.map { ImmutableMethod.of(it.method) }
-            assertEquals(emptyList<String>(), PatchLogCapture.warnings { hideContactsTabPatch.execute(context) })
+            // Plus's own Contacts switch reads off where these read it: the stock index, which the pin keeps.
+            fun pinsIn(method: Any) = plan.pins.filter { it.first === method }.map { it.second }
+            assertEquals(name, compactWarnings(build), PatchLogCapture.warnings { hideContactsTabPatch.execute(context) })
 
             // The bar's method: the hook in front of its one return, on every way there.
             val shownAfter = plan.shown.controlBody()
@@ -67,7 +73,7 @@ class HideContactsTabFixtureTest {
             assertEquals(Opcode.RETURN_VOID, shownAfter[plan.shownReturn + 1].opcode)
             val shownFlow = ControlFlow.of(plan.shown)
             for (way in shownWays) assertTrue("$name: way $way", plan.shownReturn in shownFlow.normal[way])
-            assertStock(name, shownBefore, shownAfter) { if (it < plan.shownReturn) it else it + 1 }
+            assertStock(name, shownBefore, shownAfter, pinsIn(plan.shown)) { if (it < plan.shownReturn) it else it + 1 }
 
             // Each swipe question: the page and the way to the extension, a no on true, Telegram's own question on false.
             for ((gate, old) in plan.gates.zip(oldGates)) {
@@ -90,7 +96,7 @@ class HideContactsTabFixtureTest {
                 assertEquals("$what: false goes on to Telegram's question", 7, after.branchTarget(4) { throw AssertionError(it) })
                 assertEquals(what, 0, (after[5] as NarrowLiteralInstruction).narrowLiteral)
                 assertEquals(what, listOf(gate.position), after[6].namedRegisters())
-                assertStock(what, before, after) { it + 7 }
+                assertStock(what, before, after, pinsIn(gate.method)) { it + 7 }
             }
 
             // The stubs reach the bar, the kept tabs and the pager the way Telegram does.
@@ -135,7 +141,7 @@ class HideContactsTabFixtureTest {
     }
 
     @Test fun `each of the bar's sizes goes through the runtime right after Telegram sets it`() {
-        for (build in Fixtures.declaredBuilds()) {
+        for (build in Fixtures.declaredBuilds().filterNot(::isPlus)) {
             val name = build.name
             val context = PatchContexts.of(ExtensionDex.classes() + hosts(build))
             val compact = context.resolveCompactBar(context.resolveMainTabs())
@@ -155,7 +161,7 @@ class HideContactsTabFixtureTest {
                 val read = (size.at until stock.size).first { size.register in stock[it].namedRegisters() }
                 assertEquals("$name ${size.hook}", Opcode.INVOKE_STATIC, stock[read].opcode)
             }
-            assertEquals(emptyList<String>(), PatchLogCapture.warnings { hideContactsTabPatch.execute(context) })
+            assertEquals(name, compactWarnings(build), PatchLogCapture.warnings { hideContactsTabPatch.execute(context) })
 
             for ((method, stock) in before) {
                 val what = "$name ${method.name}"
@@ -191,7 +197,9 @@ class HideContactsTabFixtureTest {
             val plan = context.resolveMainTabs()
             val outline = context.resolveBarOutline(plan)
             assertNull("$name: ${outline.missing}", outline.missing)
-            val compactInBuild = context.resolveCompactBar(plan).sizes.count { it.method.name == outline.build!!.name }
+            val compactInBuild = context.resolveCompactBar(plan).let { bar ->
+                if (bar.missing == null) bar.sizes.count { it.method.name == outline.build!!.name } else 0
+            }
             val stock = ImmutableMethod.of(outline.build!!).controlBody()
             // One static call makes the colors, and the next instruction hands them to the call that makes the glass.
             assertEquals(name, listOf(Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT_OBJECT), listOf(stock[outline.at - 2].opcode, stock[outline.at - 1].opcode))
@@ -205,7 +213,7 @@ class HideContactsTabFixtureTest {
                 assertEquals(name, listOf(Opcode.CONST_4, Opcode.RETURN), answer.controlBody().map { it.opcode })
                 assertEquals(name, outline.factory.substringAfterLast(')'), answer.definingClass)
             }
-            assertEquals(emptyList<String>(), PatchLogCapture.warnings { hideContactsTabPatch.execute(context) })
+            assertEquals(name, compactWarnings(build), PatchLogCapture.warnings { hideContactsTabPatch.execute(context) })
 
             val after = outline.build.controlBody()
             assertEquals("$name: one instruction besides the compact bar's", stock.size + 1 + 2 * compactInBuild, after.size)
@@ -246,7 +254,7 @@ class HideContactsTabFixtureTest {
             }.associateBy { "${it.definingClass}->${it.name}()${it.returnType}" }
             assertTrue("$name: a subclass of the bar's colors answers the outline itself", stock.isNotEmpty())
             assertEquals(name, stock.keys.sorted(), outline.overrides.map { (m, _) -> "${m.definingClass}->${m.name}()${m.returnType}" }.sorted())
-            assertEquals(emptyList<String>(), PatchLogCapture.warnings { hideContactsTabPatch.execute(context) })
+            assertEquals(name, compactWarnings(build), PatchLogCapture.warnings { hideContactsTabPatch.execute(context) })
 
             for ((answer, runtime) in outline.overrides) {
                 val what = "$name: ${answer.definingClass}->${answer.name}"
@@ -259,7 +267,7 @@ class HideContactsTabFixtureTest {
                 val after = answer.controlBody()
                 assertEquals("$what: two instructions before each return", beforeBody.size + 2 * returns.size, after.size)
                 val moved = { i: Int -> i + 2 * returns.count { it <= i } }
-                assertStock(what, beforeBody, after, moved)
+                assertStock(what, beforeBody, after, moved = moved)
                 for (r in returns) {
                     val value = beforeBody[r].namedRegisters().single()
                     val at = moved(r)
@@ -279,12 +287,12 @@ class HideContactsTabFixtureTest {
             val outline = context.resolveBarOutline(context.resolveMainTabs())
             assertNull("$name: ${outline.missing}", outline.missing)
             outline.color!!.replaceInstruction(0, "const/4 v0, 0x1")
-            assertEquals(name, listOf("Hide Contacts tab: the bar's colors no longer leave the outline color at zero. " +
+            assertEquals(name, compactWarnings(build) + listOf("Hide Contacts tab: the bar's colors no longer leave the outline color at zero. " +
                 "The patch goes on without the bar outline."), PatchLogCapture.warnings { hideContactsTabPatch.execute(context) })
             assertTrue("$name: the colors aren't registered", outline.build!!.controlBody().none { it.controlRef() == BAR_GLASS })
             assertEquals("$name: the width keeps Telegram's zero", 2, outline.width!!.controlBody().size)
             assertEquals("$name: the color keeps its own answer", 2, outline.color.controlBody().size)
-            for ((flag, value) in listOf("hideContactsTab" to 1L, "compactTabBar" to 1L, "sideMenu" to 1L, "hideNewMessage" to 1L, "barOutline" to 0L)) {
+            for ((flag, value) in listOf("hideContactsTab" to 1L, "compactTabBar" to compactStatus(build), "sideMenu" to 1L, "hideNewMessage" to 1L, "barOutline" to 0L)) {
                 val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == flag }.controlBody()
                 assertEquals("$name: $flag", value, (status.first() as WideLiteralInstruction).wideLiteral)
             }
@@ -328,7 +336,7 @@ class HideContactsTabFixtureTest {
                 measure.replaceInstruction(bottom, "invoke-virtual {v$self}, Landroid/view/View;->getPaddingRight()I")
             },
         )
-        for (build in Fixtures.declaredBuilds()) {
+        for (build in Fixtures.declaredBuilds().filterNot(::isPlus)) {
             val hosts = hosts(build)
             for ((name, reason, change) in cases) {
                 val what = "${build.name}: $name"
@@ -369,7 +377,7 @@ class HideContactsTabFixtureTest {
             val oldBack = ImmutableMethod.of(back)
             val startBefore = oldStart.controlBody()
             val backBefore = oldBack.controlBody()
-            assertEquals(emptyList<String>(), PatchLogCapture.warnings { hideContactsTabPatch.execute(context) })
+            assertEquals(name, compactWarnings(build), PatchLogCapture.warnings { hideContactsTabPatch.execute(context) })
 
             // The swipe start: the pager, the event and the way, before anything else.
             val startAfter = start.controlBody()
@@ -425,10 +433,10 @@ class HideContactsTabFixtureTest {
             val start = context.tgMutableClassDefBy(plan.swipeStart.substringBefore("->")).methods
                 .single { "${it.definingClass}->${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" == plan.swipeStart }
             val before = start.controlBody().map(::operands)
-            assertEquals(name, listOf("Hide Contacts tab: Telegram's main activity is gone. The patch goes on without the side menu."),
+            assertEquals(name, compactWarnings(build) + listOf("Hide Contacts tab: Telegram's main activity is gone. The patch goes on without the side menu."),
                 PatchLogCapture.warnings { hideContactsTabPatch.execute(context) })
             assertEquals("$name: the swipe start stays Telegram's", before, start.controlBody().map(::operands))
-            for ((flag, value) in listOf("hideContactsTab" to 1L, "compactTabBar" to 1L, "sideMenu" to 0L, "hideNewMessage" to 1L)) {
+            for ((flag, value) in listOf("hideContactsTab" to 1L, "compactTabBar" to compactStatus(build), "sideMenu" to 0L, "hideNewMessage" to 1L)) {
                 val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == flag }.controlBody()
                 assertEquals("$name: $flag", value, (status.first() as WideLiteralInstruction).wideLiteral)
             }
@@ -452,7 +460,7 @@ class HideContactsTabFixtureTest {
                 stock[found.at + 1].namedRegisters().take(1))
             // The Done branch clears the registration if Telegram ever reuses a compose instance.
             assertTrue("$name: the check mark branch comes first", stock.take(found.at).any { it.controlRef()?.endsWith("->floating_check:I") == true })
-            assertEquals(emptyList<String>(), PatchLogCapture.warnings { hideContactsTabPatch.execute(context) })
+            assertEquals(name, compactWarnings(build), PatchLogCapture.warnings { hideContactsTabPatch.execute(context) })
 
             val after = method.controlBody()
             val hook = found.at + 1
@@ -497,11 +505,11 @@ class HideContactsTabFixtureTest {
             val role = found.method!!
             val beforeRole = role.controlBody().map(::operands)
             val beforeAnimation = animation.controlBody().map(::operands)
-            assertEquals(name, listOf("Hide Contacts tab: the compose button no longer has one native visibility animator (0). " +
+            assertEquals(name, compactWarnings(build) + listOf("Hide Contacts tab: the compose button no longer has one native visibility animator (0). " +
                 "The patch goes on without the new message switch."), PatchLogCapture.warnings { hideContactsTabPatch.execute(context) })
             assertEquals("$name: no compose or Done hook", beforeRole, role.controlBody().map(::operands))
             assertEquals("$name: no partial animator edit", beforeAnimation, animation.controlBody().map(::operands))
-            assertNewMessageUnavailable(context, name)
+            assertNewMessageUnavailable(context, build)
         }
     }
 
@@ -515,15 +523,16 @@ class HideContactsTabFixtureTest {
             val iconRegister = method.controlBody()[found.doneAt].namedRegisters().first()
             method.replaceInstruction(found.doneAt, "const/4 v$iconRegister, 0x0")
             val before = method.controlBody().map(::operands)
-            assertEquals(name, listOf("Hide Contacts tab: the chat list no longer sets one Done button role. " +
+            assertEquals(name, compactWarnings(build) + listOf("Hide Contacts tab: the chat list no longer sets one Done button role. " +
                 "The patch goes on without the new message switch."), PatchLogCapture.warnings { hideContactsTabPatch.execute(context) })
             assertEquals("$name: no partial role edit", before, method.controlBody().map(::operands))
-            assertNewMessageUnavailable(context, name)
+            assertNewMessageUnavailable(context, build)
         }
     }
 
-    private fun assertNewMessageUnavailable(context: BytecodePatchContext, name: String) {
-        for ((flag, value) in listOf("hideContactsTab" to 1L, "compactTabBar" to 1L, "sideMenu" to 1L, "hideNewMessage" to 0L)) {
+    private fun assertNewMessageUnavailable(context: BytecodePatchContext, build: File) {
+        val name = build.name
+        for ((flag, value) in listOf("hideContactsTab" to 1L, "compactTabBar" to compactStatus(build), "sideMenu" to 1L, "hideNewMessage" to 0L)) {
             val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == flag }.controlBody()
             assertEquals("$name: $flag", value, (status.first() as WideLiteralInstruction).wideLiteral)
         }
@@ -539,10 +548,10 @@ class HideContactsTabFixtureTest {
             val view = found.register
             method.replaceInstruction(found.at + 1, "invoke-virtual {v$view}, Landroid/view/View;->getVisibility()I")
             val before = method.controlBody().map(::operands)
-            assertEquals(name, listOf("Hide Contacts tab: the new message button's picture is no longer set right after the icon loads. " +
+            assertEquals(name, compactWarnings(build) + listOf("Hide Contacts tab: the new message button's picture is no longer set right after the icon loads. " +
                 "The patch goes on without the new message switch."), PatchLogCapture.warnings { hideContactsTabPatch.execute(context) })
             assertEquals("$name: the chat list stays Telegram's", before, method.controlBody().map(::operands))
-            for ((flag, value) in listOf("hideContactsTab" to 1L, "compactTabBar" to 1L, "sideMenu" to 1L, "hideNewMessage" to 0L)) {
+            for ((flag, value) in listOf("hideContactsTab" to 1L, "compactTabBar" to compactStatus(build), "sideMenu" to 1L, "hideNewMessage" to 0L)) {
                 val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == flag }.controlBody()
                 assertEquals("$name: $flag", value, (status.first() as WideLiteralInstruction).wideLiteral)
             }
@@ -553,24 +562,121 @@ class HideContactsTabFixtureTest {
         for (build in Fixtures.declaredBuilds()) {
             val name = build.name
             val context = PatchContexts.of(ExtensionDex.classes() + hosts(build, withChatList = false))
-            assertEquals(name, listOf("Hide Contacts tab: the chat list no longer sets its new message button in one place (0). " +
+            assertEquals(name, compactWarnings(build) + listOf("Hide Contacts tab: the chat list no longer sets its new message button in one place (0). " +
                 "The patch goes on without the new message switch."), PatchLogCapture.warnings { hideContactsTabPatch.execute(context) })
-            for ((flag, value) in listOf("hideContactsTab" to 1L, "compactTabBar" to 1L, "sideMenu" to 1L, "hideNewMessage" to 0L)) {
+            for ((flag, value) in listOf("hideContactsTab" to 1L, "compactTabBar" to compactStatus(build), "sideMenu" to 1L, "hideNewMessage" to 0L)) {
                 val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == flag }.controlBody()
                 assertEquals("$name: $flag", value, (status.first() as WideLiteralInstruction).wideLiteral)
             }
         }
     }
 
+    @Test fun `Plus keeps its own bar, so the compact switch stays out there and no bar size goes through the runtime`() {
+        for (build in Fixtures.declaredBuilds().filter(::isPlus)) {
+            val name = build.name
+            val hosts = hosts(build)
+            val context = PatchContexts.of(ExtensionDex.classes() + hosts)
+            assertEquals(name, PLUS_COMPACT, context.resolveCompactBar(context.resolveMainTabs()).missing)
+            assertEquals(name, compactWarnings(build), PatchLogCapture.warnings { hideContactsTabPatch.execute(context) })
+            val sized = hosts.flatMap { context.tgMutableClassDefBy(it.type).methods }.filter { m ->
+                m.controlBody().any { it.controlRef() in listOf(BAR_PADDING, BAR_CORNER, BAR_HEIGHT, BAR_MIN_WIDTH) }
+            }
+            assertEquals(name, emptyList<String>(), sized.map { "${it.definingClass}->${it.name}" })
+            for ((flag, value) in listOf("hideContactsTab" to 1L, "compactTabBar" to 0L, "sideMenu" to 1L, "hideNewMessage" to 1L, "barOutline" to 1L)) {
+                val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == flag }.controlBody()
+                assertEquals("$name: $flag", value, (status.first() as WideLiteralInstruction).wideLiteral)
+            }
+        }
+    }
+
+    @Test fun `Plus's own Contacts switch reads off on the main screen and hides the tab through the runtime instead`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val name = build.name
+            val hosts = hosts(build)
+            val context = PatchContexts.of(ExtensionDex.classes() + hosts)
+            val plan = context.resolveMainTabs()
+            fun answer() = context.tgMutableClassDefBy(MAIN_TABS).methods.single { it.origName == "hostHidesContacts" }.controlBody()
+            if (!isPlus(build)) {
+                assertNull(name, plan.hostFlag)
+                assertTrue(name, plan.pins.isEmpty())
+                PatchLogCapture.warnings { hideContactsTabPatch.execute(context) }
+                assertEquals("$name: Telegram has no switch of its own", listOf(Opcode.CONST_4, Opcode.RETURN), answer().map { it.opcode })
+                continue
+            }
+            val flag = plan.hostFlag!!
+            assertEquals(name, "Z", flag.substringAfterLast(':'))
+            // Read off, the switch leaves Contacts second and Profile fourth. Read as it comes, Profile could be third too.
+            val screen = context.tgMutableClassDefBy(plan.screen)
+            assertEquals(name, CONTACTS, pageBuilt(screen, CONTACTS_SCREEN, flag))
+            assertEquals(name, PROFILE, pageBuilt(screen, PROFILE_SCREEN, flag))
+            assertNull(name, pageBuilt(screen, PROFILE_SCREEN))
+
+            fun reads() = hosts.associate { cls ->
+                cls.type to context.tgMutableClassDefBy(cls.type).methods.sumOf { m ->
+                    m.controlBody().count { it.opcode == Opcode.SGET_BOOLEAN && it.controlRef() == flag }
+                }
+            }.filterValues { it > 0 }
+            val before = reads()
+            val pinned = plan.pins.map { it.first.definingClass }.toSet()
+            assertEquals("$name: the main screen, its pager and the page adapter its superclass makes", 3, pinned.size)
+            val pagerClass = context.tgMutableClassDefBy(plan.pager.substringAfter(":")).type
+            assertTrue("$name: $pinned", screen.type in pinned && pagerClass in pinned)
+            assertEquals("$name: every read in them", pinned.sumOf { before.getValue(it) }, plan.pins.size)
+            assertTrue("$name: the switch's own class reads it too", before.keys.any { it !in pinned })
+            val zeros = plan.pins.map { it.first }.distinct().associateWith { m -> m.controlBody().count(::zero) }
+            assertEquals(name, compactWarnings(build), PatchLogCapture.warnings { hideContactsTabPatch.execute(context) })
+
+            assertEquals("$name: the reads elsewhere stay", before.filterKeys { it !in pinned }, reads())
+            for ((method, count) in zeros) {
+                assertEquals("$name ${method.name}: a zero for each read", count + plan.pins.count { it.first === method }, method.controlBody().count(::zero))
+            }
+            val own = answer()
+            assertEquals(name, listOf(Opcode.SGET_BOOLEAN, Opcode.RETURN), own.map { it.opcode })
+            assertEquals(name, flag, own[0].controlRef())
+        }
+    }
+
+    private fun zero(instruction: Instruction) = instruction.opcode == Opcode.CONST_16 && (instruction as NarrowLiteralInstruction).narrowLiteral == 0
+
+    private fun isPlus(build: File) = build.name.startsWith("plus-")
+
+    /** Plus draws its own smaller bar, so the compact switch stays out there with this warning. */
+    private fun compactWarnings(build: File) =
+        if (isPlus(build)) listOf("Hide Contacts tab: $PLUS_COMPACT. The patch goes on without the compact bar.") else emptyList()
+
+    private fun compactStatus(build: File) = if (isPlus(build)) 0L else 1L
+
+    /**
+     * Plus's own Contacts switch: the class that holds it, and what the main screen's superclass
+     * builds (its page adapter), where the patch reads the switch off too. Nothing for Telegram.
+     */
+    private fun ownSwitch(build: File, screen: ClassDef?, holder: ClassDef?): List<String> = FixtureDex.namedBy(build) {
+        val reads = screen?.methods?.toList().orEmpty().filter { m ->
+            m.parameterTypes.map { it.toString() } == listOf("I") &&
+                m.controlBody().any { it.opcode == Opcode.NEW_INSTANCE && it.controlRef() == CONTACTS_SCREEN }
+        }.flatMap { m -> m.controlBody().filter { it.opcode == Opcode.SGET_BOOLEAN } }
+        if (reads.isEmpty()) return@namedBy emptyList<String>()
+        val owners = reads.map { ((it as ReferenceInstruction).reference as FieldReference).definingClass }
+        val built = holder?.methods?.toList().orEmpty().filter(::isBuild).flatMap { m ->
+            m.controlBody().filter { it.opcode == Opcode.NEW_INSTANCE }.map { ((it as ReferenceInstruction).reference as TypeReference).type }
+        }
+        owners + built
+    }
+
     private fun operands(instruction: Instruction): List<Any?> = listOf(instruction.opcode, instruction.namedRegisters(),
         instruction.controlRef(), (instruction as? NarrowLiteralInstruction)?.narrowLiteral)
 
-    /** Every stock instruction is still there, at [moved] of its old index, unchanged. */
-    private fun assertStock(what: String, before: List<Instruction>, after: List<Instruction>, moved: (Int) -> Int) {
+    /**
+     * Every stock instruction is still there, at [moved] of its old index, unchanged, but for the
+     * [pinned] reads of Plus's own Contacts switch, which read a zero into the same register.
+     */
+    private fun assertStock(what: String, before: List<Instruction>, after: List<Instruction>, pinned: Collection<Int> = emptyList(),
+        moved: (Int) -> Int) {
         for (i in before.indices) {
             val j = moved(i)
-            assertEquals("$what: stock $i", listOf(before[i].opcode, before[i].namedRegisters(), before[i].controlRef()),
-                listOf(after[j].opcode, after[j].namedRegisters(), after[j].controlRef()))
+            val expected = if (i in pinned) listOf(Opcode.CONST_16, before[i].namedRegisters(), null)
+                else listOf(before[i].opcode, before[i].namedRegisters(), before[i].controlRef())
+            assertEquals("$what: stock $i", expected, listOf(after[j].opcode, after[j].namedRegisters(), after[j].controlRef()))
         }
     }
 
@@ -607,7 +713,7 @@ class HideContactsTabFixtureTest {
             loaded.putAll(FixtureDex.classes(build, wanted))
             val holders = listOfNotNull(loaded[screens.single().type], loaded[screens.single().superclass])
             val named = holders.flatMap { cls -> cls.fields.map { it.type.trimStart('[') } } +
-                loaded.values.mapNotNull { it.superclass }
+                loaded.values.mapNotNull { it.superclass } + ownSwitch(build, loaded[screens.single().type], loaded[screens.single().superclass])
             wanted = named.filter { it.startsWith("L") && isAppType(it) && it !in asked && it !in loaded }.toSet()
         }
         return if (withChatList) loaded.values else FixtureDex.namedBy(build) { loaded.values.filterNot { cls -> cls.methods.any(::isChatListButton) } }

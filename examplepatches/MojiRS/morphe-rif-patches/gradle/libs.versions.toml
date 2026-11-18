@@ -1,0 +1,11 @@
+[versions]
+# Same pins as Patcheddit v2.3.0-v2.4.0 (checked 2026-11-17).
+morphe-patcher = "2.0.0"
+#noinspection GradleDependency
+smali = "4220ae75f7"
+
+[libraries]
+# The Gradle plugin adds these dependencies during the build; the declarations are required
+# by the plugin (it looks the aliases up) and let dependabot see them.
+#noinspection UnusedVersionCatalogEntry
+morphe-patcher = { module = "app.morphe:morphe-patcher", version.ref = "morphe-patcher" }

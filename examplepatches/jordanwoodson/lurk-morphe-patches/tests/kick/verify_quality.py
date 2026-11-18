@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
-"""Check quality defaults and execute the actual reset/selection bytecode with store doubles.
+"""Check the Default video quality edit and execute Kick's actual default-ceiling reducer with it.
 
 Requires hermes-dec. Usage:
     python tests/kick/verify_quality.py stock.bundle patched.apk [--height 1080]
     python tests/kick/verify_quality.py stock.bundle patched.bundle manifest.json
 
-This checks the emitted artifact, including the first-load regression and explicit selections.
-The limited interpreter rejects unknown instructions. It does not replace playback device tests.
+Kick's player store starts every stream, and goes back on Auto, through setDefaultMaxResolution: it reduces the
+stream's video tracks to the tallest one no taller than PlayerConfig.settings.defaultMaxAutoQualityHeight (720) and
+makes it the player's maxResolution. The patch makes that reducer's read of the default the chosen height. The two other
+reads of the default decide, in the quality picker, which picks need a signed-in account, and must stay Kick's. The
+limited interpreter rejects unknown instructions. It does not replace playback device tests.
 """
 import argparse
 import ast
@@ -32,56 +35,43 @@ def verify(stock, embedded, manifest, height):
     reader = HBCReader()
     reader.read_whole_file(BytesIO(stock))
 
-    def header(name):
-        matches = [h for h in reader.function_headers if reader.strings[h.functionName] == name]
-        assert len(matches) == 1, f"Ambiguous function: {name}"
-        return matches[0]
-
-    def instructions(name, data):
+    def instructions(header, data):
         reader.file_buffer = BytesIO(data)
-        return list(parse_hbc_bytecode(header(name), reader))
+        return list(parse_hbc_bytecode(header, reader))
 
-    # Find every real property read independently of the patch's anchors or function-ID list.
+    # Find every real read of the default independently of how the patch finds its own.
     property_id = reader.strings.index("defaultMaxAutoQualityHeight")
-    candidates = re.finditer(b"\x45..." + re.escape(struct.pack("<H", property_id)), stock, re.DOTALL)
-    sites = set()
-    owners = {}
-    for match in candidates:
+    sites = {}
+    for match in re.finditer(b"\x45..." + re.escape(struct.pack("<H", property_id)), stock, re.DOTALL):
         offset = match.start()
         for h in reader.function_headers:
             if h.offset <= offset < h.offset + h.bytecodeSizeInBytes:
-                code = structural["decoded"](reader, h, stock)
-                if any(i.original_pos + h.offset == offset and i.inst.name == "GetById" and
-                       i.arg4 == property_id for i in code):
-                    sites.add(offset)
-                    owners[offset] = h
-    assert len(sites) == 10, f"Expected ten default reads, found {len(sites)}"
+                if any(i.original_pos + h.offset == offset and i.inst.name == "GetById" and i.arg4 == property_id
+                       for i in structural["decoded"](reader, h, stock)):
+                    sites[offset] = h
+    assert len(sites) == 3, f"Expected three default reads, found {len(sites)}"
 
+    # The reducer is the closure setDefaultMaxResolution creates.
+    names = [h for h in reader.function_headers if reader.strings[h.functionName] == "setDefaultMaxResolution"]
+    assert len(names) == 1, "expected one setDefaultMaxResolution"
+    created = [i.arg3 for i in instructions(names[0], stock) if i.inst.name == "CreateClosure"]
+    reducers = [offset for offset, h in sites.items() if reader.function_headers.index(h) in created]
+    assert len(reducers) == 1, "expected one default read in a closure of setDefaultMaxResolution"
+    reducer_site = reducers[0]
+    reducer = sites[reducer_site]
+
+    edits = [edit for edit in manifest["edits"] if edit["key"] == KEY]
+    assert len(edits) == 1, "Default video quality must edit exactly the reducer's read"
+    edit = edits[0]
+    before, after = bytes.fromhex(edit["original"]), bytes.fromhex(edit["replacement"])
+    assert edit["offset"] == reducer_site and len(before) == len(after) == 6, "the edit isn't the reducer's read"
+    assert after[:2] == bytes([0x8c, before[1]]), "changed destination or instruction"
+    assert struct.unpack("<i", after[2:])[0] == height, "wrong quality option"
+    assert all(not (e["offset"] <= site < e["offset"] + len(e["original"]) // 2)
+               for e in manifest["edits"] for site in sites if site != reducer_site), "a picker gate was edited"
     selected = bytearray(stock)
-    quality_edits = [edit for edit in manifest["edits"] if edit["key"] == KEY]
-    assert len(quality_edits) == 10, "Quality patch must cover all ten consumers"
-    covered = set()
-    for edit in quality_edits:
-        before, after = bytes.fromhex(edit["original"]), bytes.fromhex(edit["replacement"])
-        offset = edit["offset"]
-        assert len(before) == len(after) == 12 and before[:6] == after[:6]
-        assert offset + 6 in sites, "Edit is not a default read"
-        assert after[6:8] == bytes([0x8c, before[7]]), "Changed destination or instruction"
-        assert struct.unpack("<i", after[8:])[0] == height, "Wrong quality option"
-        selected[offset:offset + len(after)] = after
-        covered.add(offset + 6)
-    assert covered == sites, "An unpatched default would reset the chosen ceiling"
-    for h in owners.values():
-        structural["decoded"](reader, h, selected)
-
-    def config_read(name, data):
-        original = next(i for i in instructions(name, stock)
-                        if i.inst.name == "GetById" and i.arg4 == property_id)
-        current = next(i for i in instructions(name, data) if i.original_pos == original.original_pos)
-        if current.inst.name == "GetById":
-            return 720
-        assert current.inst.name == "LoadConstInt"
-        return current.arg2
+    selected[reducer_site:reducer_site + 6] = after
+    structural["decoded"](reader, reducer, selected)
 
     def literal(value):
         if value == "undefined":
@@ -90,36 +80,22 @@ def verify(stock, embedded, manifest, height):
             return {"null": None, "true": True, "false": False}[value]
         return ast.literal_eval(value)
 
-    def equal(a, b, loose=False):
-        if loose and (a is None or a is UNDEFINED) and (b is None or b is UNDEFINED):
-            return True
-        return a is b or a == b
-
-    def execute(name, data, environments, params=()):
-        code = {i.original_pos: i for i in instructions(name, data)}
-        registers, pc = {}, 0
+    def execute(header, data, environments, params=()):
+        code = {i.original_pos: i for i in instructions(header, data)}
+        r, pc = {}, 0
         for _ in range(1000):
             i = code[pc]
             op = i.inst.name
             a = [getattr(i, f"arg{j}") for j in range(1, len(i.inst.operands) + 1)]
             pc = i.next_pos
-            r = registers
             if op == "GetParentEnvironment":
                 r[a[0]] = environments[a[1]]
             elif op == "LoadFromEnvironment":
                 r[a[0]] = r[a[1]][a[2]]
             elif op == "LoadParam":
                 r[a[0]] = params[a[1] - 1]
-            elif op == "LoadConstUndefined":
-                r[a[0]] = UNDEFINED
-            elif op == "LoadConstNull":
-                r[a[0]] = None
             elif op in ("LoadConstInt", "LoadConstUInt8"):
                 r[a[0]] = a[1]
-            elif op in ("LoadConstString", "LoadConstStringLongIndex"):
-                r[a[0]] = reader.strings[a[1]]
-            elif op in ("Call1", "Call2"):
-                r[a[0]] = r[a[1]](*[r[x] for x in a[2:]])
             elif op in ("GetById", "GetByIdShort"):
                 r[a[0]] = r[a[1]].get(reader.strings[a[3]], UNDEFINED)
             elif op in ("NewObjectWithBuffer", "NewObjectWithBufferLong"):
@@ -130,20 +106,10 @@ def verify(stock, embedded, manifest, height):
                 r[a[0]][list(r[a[0]])[a[2]]] = r[a[1]]
             elif op == "Mov":
                 r[a[0]] = r[a[1]]
-            elif op == "LessEq":
-                r[a[0]] = r[a[1]] <= r[a[2]]
-            elif op == "Eq":
-                r[a[0]] = equal(r[a[1]], r[a[2]], loose=True)
-            elif op == "DelByVal":
-                r[a[1]].pop(r[a[2]], None)
-                r[a[0]] = True
-            elif op in ("JmpFalse", "JmpTrue"):
-                truth = r[a[1]] is not UNDEFINED and bool(r[a[1]])
-                if truth == (op == "JmpTrue"):
-                    pc = i.original_pos + a[0]
-            elif op in ("JStrictEqual", "JNotEqual"):
-                same = equal(r[a[1]], r[a[2]], loose=op == "JNotEqual")
-                if same == (op == "JStrictEqual"):
+            elif op in ("JNotLessEqual", "JNotGreater", "JLessEqual", "JGreater"):
+                left, right = r[a[1]], r[a[2]]
+                holds = left <= right if "LessEqual" in op else left > right
+                if holds != op.startswith("JNot"):
                     pc = i.original_pos + a[0]
             elif op == "Ret":
                 return r[a[0]]
@@ -151,42 +117,24 @@ def verify(stock, embedded, manifest, height):
                 raise AssertionError(f"Unsupported executed instruction: {op}")
         raise AssertionError("Unexpected bytecode loop")
 
-    config = {7: {"PlayerConfig": {"defaultMaxAutoQualityHeight": 720}}}
+    config = {7: {"PlayerConfig": {"settings": {"defaultMaxAutoQualityHeight": 720}}}}
 
-    def reset(data, current):
-        initial = {"autoMaxQuality": config_read("getInitialStateFor", data),
-                   "userSelectedQuality": UNDEFINED, "autoQualityMode": True,
-                   "selectedQualityGroupPreset": "auto"}
-        state = {**current, "getInitialStateFor": lambda this, keys: initial.copy()}
-        # Mock only the Zustand get boundary and its selection of initial-state keys.
-        envs = [{1: lambda this: state}, {**config, 16: list(initial)}]
-        changes = execute("_getResetStreamLoadingStates", data, envs)
-        return {**current, **changes}
+    def ceiling(data, heights):
+        """What setDefaultMaxResolution makes the ceiling for a stream with these heights (16:9)."""
+        best = {"width": 0, "height": 0}
+        for track in heights:
+            best = execute(reducer, data, [config], (best, {"size": {"width": track * 16 // 9, "height": track}}))
+        return best["height"]
 
-    first = {"autoMaxQuality": config_read("usePlayerStoreIVSModuleSlice", selected),
-             "userSelectedQuality": UNDEFINED, "autoQualityMode": True,
-             "selectedQualityGroupPreset": "auto"}
-    assert reset(stock, dict(first, autoMaxQuality=1080))["autoMaxQuality"] == 720, "Missing regression control"
-    assert first["autoMaxQuality"] == height and reset(selected, first) == first, "First load lost ceiling"
-    lower = dict(first, autoMaxQuality=240, userSelectedQuality={"height": 240},
-                 autoQualityMode=False, selectedQualityGroupPreset="advanced")
-    assert reset(selected, lower) == lower, "Explicit lower selection was reset"
-    higher = dict(lower, autoMaxQuality=height + 360, userSelectedQuality={"height": height + 360})
-    assert reset(selected, higher) == first, "Original above-default automatic reset changed"
-
-    state = dict(lower)
-    setter = lambda this, values: state.update(values)
-    envs = [{0: setter}, config]
-    execute("setSelectedQualityGroupPreset", selected, envs, ("auto",))
-    assert state == first, "Selecting Auto did not restore chosen ceiling"
-    for explicit in (240, 2160):
-        choice = {"height": explicit}
-        execute("setUserSelectedQuality", selected, envs, (choice,))
-        assert state["autoMaxQuality"] == explicit and state["userSelectedQuality"] is choice
-    execute("setUserSelectedQuality", selected, envs, (None,))
-    assert state["autoMaxQuality"] == height, "Clearing explicit selection used old default"
-    print(f"PASS: ten quality consumers; {height}p first load and Auto; explicit lower/higher selections; "
-          "original automatic reset behavior; prior 1080-to-720 regression reproduced as control")
+    full = [1080, 936, 720, 480, 360, 160]
+    assert ceiling(stock, full) == 720, "stock doesn't start at 720"
+    assert ceiling(selected, full) == height, f"the patched reducer doesn't start at {height}p"
+    without = [h for h in full if h != height]
+    expected = max(h for h in without if h <= height)
+    assert ceiling(selected, without) == expected, "a stream without the chosen height doesn't start at the next one down"
+    assert ceiling(selected, [1440, 2160]) == 0, "a ceiling above every track"
+    print(f"PASS: one edit, the default ceiling's reducer; {height}p start and Auto (next one down without it); the "
+          "picker's two sign-in gates keep Kick's 720")
 
 
 if __name__ == "__main__":

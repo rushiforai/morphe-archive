@@ -194,6 +194,10 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
             addPreference(new ChoicePreference(context, "Size of the LIVE buttons", Settings.LIVE_BUTTON_SIZE,
                     new String[]{"Smallest", "Small", "Normal"},
                     new String[]{"32", "40", "48"}));
+            addPreference(new TogglePreference(context, "LIVE buttons in the long-press menu",
+                    "Takes the Record and Auto tap buttons off the video and puts them in the menu you "
+                            + "get by holding the middle of a LIVE.",
+                    Settings.LIVE_BUTTONS_IN_MENU));
             addPreference(new TogglePreference(context, "LIVE name alerts",
                     "Tells you when your name comes up in a LIVE, in the chat or said out loud in a room "
                             + "with captions on. You get a notification when TikTok's notifications are on, "
@@ -519,6 +523,16 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
             addPreference(new ChoicePreference(context, "On mobile data", Settings.PLAYBACK_QUALITY_METERED,
                     new String[]{"No limit", "Highest", "Lowest", "1080p", "720p", "540p", "480p", "360p"},
                     new String[]{"off", "highest", "lowest", "1080", "720", "540", "480", "360"}));
+            String[] limits = {"off", "1", "2", "4", "8", "16"};
+            String[] limitLabels = new String[limits.length];
+            limitLabels[0] = "No limit";
+            for (int i = 1; i < limits.length; i++) {
+                limitLabels[i] = L10n.f(context, "%1$s Mb/s", limits[i]);
+            }
+            addPreference(new ChoicePreference(context, "Video bitrate limit",
+                    Settings.PLAYBACK_BITRATE_LIMIT, limitLabels, limits)
+                    .withNote("A video heavier than this plays a lighter version. "
+                            + "If none fits, it plays its lightest one."));
         }
         if (SettingsStatus.sdrPlaybackEnabled) {
             addPreference(new TogglePreference(context, "Play SDR instead of HDR",

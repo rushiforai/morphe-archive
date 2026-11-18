@@ -25,7 +25,7 @@ val hideReblogsPatch = bytecodePatch(
     default = true,
 ) {
     category("Feed")
-    dependsOn(settingsPatch, tumblrExtensionPatch, timelineListHookPatch, postBridgePatch)
+    dependsOn(settingsPatch, tumblrExtensionPatch, timelineListHookPatch, postBridgePatch, communityPostBridgePatch)
     compatibleWith(*AppCompatibilities.tumblr())
 
     execute {

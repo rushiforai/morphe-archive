@@ -227,6 +227,29 @@ class PostFiltersFixtureTest {
         }
     }
 
+    /** #18: Keep reblogs in communities reads the getter Post's adapter writes under "community". */
+    @Test
+    fun `Hide reblogs bridges the community a post was shared to`() {
+        assertTrue("Hide reblogs brings the bridge", communityPostBridgePatch in hideReblogsPatch.dependencies)
+        for (build in Fixtures.declaredBuilds()) {
+            val types = setOf(COMMUNITY_POST_BRIDGE.model, COMMUNITY_POST_BRIDGE.adapter)
+            val classes = FixtureDex.classes(build, types)
+            assertEquals("${build.name}: Post and its adapter", types, classes.keys)
+            val context = PatchContexts.of(ExtensionDex.classes() + classes.values)
+
+            communityPostBridgePatch.execute(context)
+
+            val post = context.mutableClassDefBy(POST)
+            assertTrue("${build.name}: Post is a HushCommunityPost", HUSH_COMMUNITY_POST in post.interfaces)
+            val community = post.methods.single { it.name == "hushCommunity" && it.parameterTypes.isEmpty() }
+            assertEquals("${build.name}: hushCommunity returns an object", "Ljava/lang/Object;", community.returnType)
+            assertTrue("${build.name}: hushCommunity is public", AccessFlags.PUBLIC.isSet(community.accessFlags))
+            val body = community.instructionList()
+            assertEquals(listOf(Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT_OBJECT, Opcode.RETURN_OBJECT), body.map { it.opcode })
+            assertEquals("${build.name}: the community getter", "$POST->U0()$SHORT_COMMUNITY_INFO", body[0].methodRef().toString())
+        }
+    }
+
     /** Hide liked posts bridges the getter Post's adapter writes under "liked" and turns its switch on. */
     @Test
     fun `Hide liked posts bridges the post's liked state and turns its switch on`() {

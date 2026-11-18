@@ -185,17 +185,14 @@ internal object LandscapeChatWidthFingerprint : Fingerprint(
     ),
 )
 
-// The size in pixels of a chat image span's box (emote, badge, notice icon), in the chat image loader's class: its
-// size class's dp size, or the landscape one where the size class has one.
+// The size in pixels of a chat image span's box (emote, badge, notice icon), in the chat image loader's class: the
+// placeholder's size in pixels, or its landscape size (an Integer, null when its size class has none) in landscape.
 internal object ChatImageBoxFingerprint : Fingerprint(
     classFingerprint = ChatImageLoaderFingerprint,
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
     returnType = "I",
     parameters = listOf("Landroid/content/Context;", "L"),
-    filters = listOf(
-        methodCall(name = "getLandscapeSizeDp", parameters = emptyList(), returnType = "Ljava/lang/Float;"),
-        methodCall(name = "getSizeDp", parameters = emptyList(), returnType = "F"),
-    ),
+    filters = listOf(methodCall(parameters = emptyList(), returnType = "Ljava/lang/Integer;")),
 )
 
 // Emote and badge info.

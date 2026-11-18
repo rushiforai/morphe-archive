@@ -27,6 +27,7 @@ val disableNotificationPromptPatch = bytecodePatch(
             "You can still turn notifications on in Android's settings.",
     default = true
 ) {
+    category("App")
     compatibleWith(COMPATIBILITY_QUORA)
 
     extendWith("extensions/extension.mpe")

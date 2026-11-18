@@ -31,7 +31,7 @@ import java.lang.ref.WeakReference
  *
  * The patcher fills its class pool from an APK's dex files, and what takes a pool directly is
  * internal to it: the context's constructor, the pool's class and its setter. They are reached by
- * their JVM names, pinned to morphe-patcher 2.0.0. A bump that renames one fails here, naming it,
+ * their JVM names, pinned to morphe-patcher 2.4.0. A bump that renames one fails here, naming it,
  * rather than leaving a test that never ran the patch. Nothing is written to disk: the context only
  * names its work folders until something compiles the dex, which no test here asks for.
  */
@@ -49,8 +49,9 @@ internal object PatchContexts {
         val metadataType = Class.forName("app.morphe.patcher.PackageMetadata")
         val metadata = metadataType.getConstructor(
             String::class.java, String::class.java, String::class.java,
-            Class.forName("com.reandroid.archive.block.ApkSignatureBlock"),
-        ).newInstance("com.tumblr", "0", "0", null)
+            // Patcher 2.4.0 takes the bundle's OBB files after the signature block; no APK, no OBBs.
+            Class.forName("com.reandroid.archive.block.ApkSignatureBlock"), Map::class.java,
+        ).newInstance("com.tumblr", "0", "0", null, emptyMap<String, File>())
         val context = BytecodePatchContext::class.java.getConstructor(PatcherConfig::class.java, metadataType)
             .newInstance(config, metadata)
         val poolType = Class.forName("app.morphe.patcher.util.PatchClasses")

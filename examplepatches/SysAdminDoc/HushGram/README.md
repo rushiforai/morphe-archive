@@ -1,7 +1,7 @@
 ![HushGram. Keep the moments. Cut the noise.](assets/readme-hero.png)
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.0.20-E1306C" alt="Version 0.0.20">
+  <img src="https://img.shields.io/badge/version-0.0.21-E1306C" alt="Version 0.0.21">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="License GPL-3.0"></a>
   <img src="https://img.shields.io/badge/platform-Android%209%2B-3DDC84" alt="Platform Android 9+">
   <img src="https://img.shields.io/badge/Instagram-456.0.0.53.78-E1306C" alt="Instagram 456.0.0.53.78">
@@ -24,7 +24,7 @@ HushGram is a set of [Morphe](https://morphe.software) patches for Instagram on 
 
 Most switches start off, so a freshly patched Instagram looks like Instagram until you turn something on. It's the Instagram member of a small family. [Hushfacebook](https://github.com/SysAdminDoc/Hushfacebook) does the same job for Facebook, and HushGram is built on its foundation.
 
-The latest release is [v0.0.20](https://github.com/SysAdminDoc/HushGram/releases/tag/v0.0.20), with 175 patches. Add it to Morphe Manager with [this link](https://morphe.software/add-source?github=SysAdminDoc%2FHushGram).
+The latest release is [v0.0.21](https://github.com/SysAdminDoc/HushGram/releases/tag/v0.0.21), with 186 patches. Add it to Morphe Manager with [this link](https://morphe.software/add-source?github=SysAdminDoc%2FHushGram).
 
 What changed in each version is in the [changelog](CHANGELOG.md).
 
@@ -85,7 +85,7 @@ In Expert mode the patches are grouped under Ads, Ghost mode, Privacy, Messages,
 | `Ask before a follow` | Asks you to confirm before a Follow or Follow back button follows someone or sends them a request, so a stray tap on a profile or in a Followers or Following list doesn't do it for you. Starts off. Turn it on in HushGram settings > Profiles. | Included |
 | `Ask before a like` | Asks you to confirm before the Like button under a post, on a reel or on a comment likes or unlikes it, so a stray tap doesn't do it for you. Starts off. Turn it on in HushGram settings > Feed. | Included |
 | `Ask before a refresh` | Asks you to confirm before pulling down, or tapping the tab you're on again, refreshes Home, Reels or another list, so an accidental pull or tap doesn't replace what you were reading. Starts off. Turn it on in HushGram settings > Feed. | Included |
-| `Ask for VP9 instead of AV1` | Tells Instagram your phone has no AV1 decoder, so reels and stories come as VP9 or H.264, both to watch and to save. Useful when AV1 saves won't play in your gallery or editor, or Never save AV1 video can only fall back to a small file. Takes a restart. Starts off. Turn it on in HushGram settings > Downloads. | Included |
+| `Ask for VP9 instead of AV1` | Tells Instagram your phone has no AV1 decoder. Instagram doesn't always listen, so videos can still come as AV1. If they do, Convert to keep the full size gives you H.264. Takes a restart. Starts off. Turn it on in HushGram settings > Downloads. | Included |
 | `Auto scroll in Home` | Moves Home on to the next post by itself. A video moves on when it ends, a photo or carousel after the time you pick. Touching the screen holds it. Starts off. Turn it on in HushGram settings > Feed. | Included |
 | `Back leaves Home` | Makes Back on Home leave Instagram at once, instead of first scrolling the feed to the top and reloading it or saying "Tap again to exit". Starts off. Turn it on in HushGram settings > Feed. | Included |
 | `Blur the bars around Reels` | Shows a blurred copy of a reel above and below it, or beside it, where Instagram would leave black bars. Starts off. Turn it on in HushGram settings > Reels. | Included |
@@ -210,8 +210,8 @@ In Expert mode the patches are grouped under Ads, Ghost mode, Privacy, Messages,
 | `Save in the post menu` | Adds Save to the menu behind the three dots on posts in your feed, and switches that take the Save button or the Like button off them. Starts off. Turn them on in HushGram settings > Feed. | Included |
 | `Save profile picture` | Adds Save profile picture, View profile picture, Copy username and Copy bio to the menu on someone's profile. View opens the picture full screen and lets you zoom. Starts off. Turn it on in HushGram settings > Downloads. | Included |
 | `Saved on your profile` | Adds a bookmark to the tabs on your own profile, beside posts, reels and tagged, that opens Saved, and a handle to drag through Saved and your collections. Both start off. Turn them on in HushGram settings > Profiles. The bookmark needs an Instagram restart. | Included |
-| `Search comments` | Adds a search box above a post's comments. Type a word or a name and the comments scroll to the next one that has it, loading more as they go. The arrows step forward and back through the matches. Replies you haven't opened aren't searched. Starts off. Turn it on in HushGram settings > Comments. | Included |
 | `Search blocked accounts` | Adds a search box above your blocked accounts that finds them by username or name. While you type, the rest of your list loads page by page, and a line under the box says how many matched out of how many loaded. Starts off. Turn it on in HushGram settings > Ads and privacy. | Included |
+| `Search comments` | Adds a search box above a post's comments. Type a word or a name and the comments scroll to the next one that has it, loading more as they go. The arrows step forward and back through the matches. Replies you haven't opened aren't searched. Starts off. Turn it on in HushGram settings > Comments. | Included |
 | `See who a story mentions` | Adds a small label in a story's header showing how many accounts it mentions. Tap it for a list and tap an account to open their profile. Starts off. Turn it on in HushGram settings > Stories. | Included |
 | `Seek bar on feed videos` | Shows a bar along the bottom of the video playing in your feed that you can drag to jump to any point in it. Starts off. Turn it on in HushGram settings > Feed. Another switch there adds a small button on the video that shows or hides the bar, and a choice under it makes the bar see-through or puts it on frosted glass. Another puts the bar right on the video's bottom edge, where a scroll is less likely to catch it. One more lets a double tap on the left or right side of the video go back or ahead 10 seconds, while the middle still likes the post, and the arrows it flashes can be turned off. Two more choose a shape for every seek bar, story progress segments and videos in chats included, and show a preview above your finger while you drag one. Feed videos can also get a shape of their own, and the time over the bar, which a tap flips to the time left. | Included |
 | `Seek bar on stories` | Shows a bar near the bottom of a video story that you can drag to jump to any point in the video. Photos don't get one. A choice under it makes the bar see-through or puts it on frosted glass, and another moves it into the space under the Send message box. Starts off. Turn it on in HushGram settings > Stories. | Included |

@@ -12,7 +12,6 @@
 package app.morphe.patches.shared.compat
 
 import app.morphe.Fixtures
-import app.morphe.patcher.patch.ApkFileType
 import com.android.apksig.ApkVerifier
 import com.android.apksig.apk.ApkUtils
 import com.android.apksig.util.DataSources
@@ -22,7 +21,6 @@ import java.io.RandomAccessFile
 import java.io.StringReader
 import java.io.StringWriter
 import java.security.MessageDigest
-import java.util.zip.ZipFile
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -61,7 +59,7 @@ class AppCompatibilitiesMatchFixturesTest {
                 "${fixture.name} is an undeclared package ${identity.first}"
             }
             val declared = compatibility.signatures.orEmpty()
-            val result = vendorSigned(fixture, compatibility.apkFileType).let { signed ->
+            val result = Fixtures.vendorSigned(fixture).let { signed ->
                 try { ApkVerifier.Builder(signed).build().verify() } finally { if (signed != fixture) signed.delete() }
             }
             assertTrue("${fixture.name} does not verify: ${result.errors}", result.isVerified)
@@ -124,23 +122,6 @@ class AppCompatibilitiesMatchFixturesTest {
             }
         }
         assertEquals("one retained fixture for each declared package target", compatibilities.sumOf { it.targets.size }, checked)
-    }
-
-    /**
-     * The file that carries the vendor's signature. An `.apkm` fixture is its splits merged into one
-     * APK, as Manager merges them, and merging drops the signature, so the base APK comes out of the
-     * vendor's `.apkm` kept beside it.
-     */
-    private fun vendorSigned(fixture: File, type: ApkFileType?): File {
-        if (type != ApkFileType.APKM) return fixture
-        val bundle = File(fixture.parentFile, fixture.nameWithoutExtension + ".apkm")
-        assertTrue("${fixture.name} needs the vendor's ${bundle.name} beside it", bundle.isFile)
-        val base = File.createTempFile("vendor-base", ".apk")
-        ZipFile(bundle).use { zip ->
-            val entry = checkNotNull(zip.getEntry("base.apk")) { "${bundle.name} holds no base.apk" }
-            zip.getInputStream(entry).use { input -> base.outputStream().use { input.copyTo(it) } }
-        }
-        return base
     }
 
     private fun identity(fixture: File): Pair<String, String> {

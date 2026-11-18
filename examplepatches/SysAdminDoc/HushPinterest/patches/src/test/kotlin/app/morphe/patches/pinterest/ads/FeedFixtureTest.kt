@@ -120,7 +120,8 @@ class FeedFixtureTest {
                 assertEquals(build.name, read.register, (body[read.after + 1] as OneRegisterInstruction).registerA)
             }
             assertEquals(build.name, 3, elsewhere.searchFields.size)
-            assertEquals(build.name, 2, elsewhere.relatedFields.size)
+            // 14.45.0 adds a third request, the related modules for an upsell.
+            assertEquals(build.name, 3, elsewhere.relatedFields.size)
             assertEquals(build.name, 2, elsewhere.searchPages.size)
             for (page in elsewhere.searchPages) {
                 val body = context.mutable(page).implementation!!.instructions.toList()

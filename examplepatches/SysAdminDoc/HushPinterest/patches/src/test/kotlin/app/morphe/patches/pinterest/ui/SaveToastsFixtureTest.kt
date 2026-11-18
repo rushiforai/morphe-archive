@@ -44,7 +44,18 @@ class SaveToastsFixtureTest {
      * extending it, the text [builders], and the [screens], every other class that reads a text
      * with "saved" or "pinned" in its name or is a helper that shows an Android toast.
      */
-    private data class Input(val classes: List<ClassDef>, val model: String, val builders: List<ClassDef>, val screens: List<ClassDef>)
+    private data class Input(
+        val classes: List<ClassDef>,
+        val model: String,
+        val builders: List<ClassDef>,
+        val screens: List<ClassDef>,
+        /** Every other class that reads the text of the message after a finished download. */
+        val downloadScreens: List<ClassDef>,
+    )
+
+    private fun ClassDef.readsDownloadText() = methods.any { method -> method.readsDownloadText() }
+
+    private fun Method.readsDownloadText() = fields().any { it.type == "I" && it.name in DOWNLOAD_TEXT_NAMES }
 
     /**
      * Each save and pinned text in 14.40.0, recounted on 14.44.0: how many methods read its id, and how many of those
@@ -71,7 +82,7 @@ class SaveToastsFixtureTest {
             val (classes, model, builders, screens) = read(build)
             val context = PatchContexts.of(ExtensionDex.classes() + classes + builders + screens)
             hideSaveToastsPatch.execute(context)
-            for (name in listOf("hideSaveToasts", "saveToasts")) assertEquals("${build.name}: $name", 1, flag(context, name))
+            for (name in listOf("hideSaveToasts", "saveToasts", "downloadToasts")) assertEquals("${build.name}: $name", 1, flag(context, name))
             val readers = { names: (FieldReference) -> Boolean -> classes.filter { owner -> owner.type != model &&
                 owner.methods.any { method -> method.implementation?.instructions?.any {
                     ((it as? ReferenceInstruction)?.reference as? FieldReference)?.let(names) == true } == true } }.map { it.type }.toSet() }
@@ -181,6 +192,59 @@ class SaveToastsFixtureTest {
                 assertEquals("${build.name}: Android toasts taken over", listOf("I") + List(10) { "Ljava/lang/CharSequence;" },
                     taken.map { it.parameters()[1] }.sorted())
             }
+        }
+    }
+
+    @Test
+    fun `the download toast is named by the text it reads, and a build without one keeps the rest`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val (classes, model, builders, screens) = read(build)
+            val downloads = classes.filter { owner -> owner.type != model && owner.methods.any { method ->
+                method.fields().any { it.type == "I" && it.name == DOWNLOAD_TOAST_STRING } } }.map { it.type }
+            assertEquals("${build.name}: one toast says a pin reached the phone", 1, downloads.size)
+            val context = PatchContexts.of(ExtensionDex.classes() + classes + builders + screens)
+            hideSaveToastsPatch.execute(context)
+            assertEquals(build.name, downloads, checked(context, "isDownloadToast"))
+
+            val without = PatchContexts.of(ExtensionDex.classes() + classes.filter { it.type !in downloads } + builders +
+                screens.filter { !it.readsDownloadText() })
+            hideSaveToastsPatch.execute(without)
+            assertEquals("${build.name}: nothing to hide, so no switch", 0, flag(without, "downloadToasts"))
+            assertEquals("${build.name}: the save toasts stay covered", 1, flag(without, "saveToasts"))
+            assertEquals(build.name, 1, flag(without, "hideSaveToasts"))
+        }
+    }
+
+    /**
+     * "Image downloaded!" and "Video downloaded!" have no toast model of their own. Screens hand the
+     * words to the plain text toast or the text's id to a model that holds one, and the extension
+     * looks for those two things, so the switch stands on the screens that read the texts.
+     */
+    @Test
+    fun `the messages after a finished download keep the switch and can be told at the container`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val (classes, model, builders, screens, downloadScreens) = read(build)
+            val readers = (screens + downloadScreens).flatMap { it.methods }.filter { it.readsDownloadText() }
+            for (name in DOWNLOAD_TEXT_NAMES) assertTrue("${build.name}: nothing reads $name",
+                readers.any { method -> method.fields().any { it.type == "I" && it.name == name } })
+            val cameraRoll = classes.filter { owner -> owner.type != model && owner.methods.any { method ->
+                method.fields().any { it.type == "I" && it.name == DOWNLOAD_TOAST_STRING } } }.map { it.type }
+            val context = PatchContexts.of(ExtensionDex.classes() + classes.filter { it.type !in cameraRoll } + builders + screens + downloadScreens)
+            hideSaveToastsPatch.execute(context)
+            assertEquals("${build.name}: the screens alone keep the switch", 1, flag(context, "downloadToasts"))
+
+            val runtime = ExtensionDex.classDef("${UI_HOOKS.removeSuffix("UiHooks;")}DownloadToastTexts;").methods.single { it.name == "<clinit>" }
+                .strings().filter { Regex("[a-z_]+").matches(it) }.toSet()
+            assertEquals("the names the extension looks up", DOWNLOAD_TEXT_NAMES, runtime)
+
+            fun ClassDef.holds(type: String) = fields.any { !AccessFlags.STATIC.isSet(it.accessFlags) && it.type == type }
+            val byId = readers.flatMap { it.instructions() }.filter { it.opcode == Opcode.NEW_INSTANCE }
+                .map { ((it as ReferenceInstruction).reference as TypeReference).type }.toSet()
+                .mapNotNull { type -> classes.singleOrNull { it.type == type } }
+            assertTrue("${build.name}: no toast model is handed a download text's id", byId.isNotEmpty())
+            for (owner in byId) assertTrue("${build.name}: ${owner.type} keeps no id", owner.holds("I"))
+            val worded = classes.filter { owner -> owner.methods.any { it.name == "<init>" && it.parameters() == listOf("Ljava/lang/String;", "I") } }
+            assertTrue("${build.name}: the plain text toast keeps no words", worded.any { it.holds("Ljava/lang/String;") })
         }
     }
 
@@ -315,7 +379,15 @@ class SaveToastsFixtureTest {
                             read.type == "I" && named.containsMatchIn(read.name) } } == true }) screens[owner.type] = ImmutableClassDef.of(owner)
             }
         }
-        Input(selected, model, builders, screens.values.toList())
+        val downloadScreens = mutableMapOf<String, ClassDef>()
+        FixtureDex.forEach(build) { dex ->
+            if (dex.fieldSection.none { it.type == "I" && it.name in DOWNLOAD_TEXT_NAMES }) return@forEach
+            for (owner in dex.classes) {
+                if (owner.type in taken || owner.type in screens || owner.type in downloadScreens) continue
+                if (owner.readsDownloadText()) downloadScreens[owner.type] = ImmutableClassDef.of(owner)
+            }
+        }
+        Input(selected, model, builders, screens.values.toList(), downloadScreens.values.toList())
     }
 
     private companion object {

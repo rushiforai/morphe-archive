@@ -1,4 +1,4 @@
-name: 🐞 Bug report
+name: Bug report
 description: A patch doesn't work, hides the wrong thing, or the app crashes.
 title: "bug: "
 labels: ["bug"]

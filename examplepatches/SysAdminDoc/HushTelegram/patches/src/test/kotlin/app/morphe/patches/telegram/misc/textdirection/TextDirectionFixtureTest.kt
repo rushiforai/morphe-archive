@@ -8,7 +8,6 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.PlusPending
 import app.morphe.hostsOf
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.PatchException
@@ -41,7 +40,6 @@ import org.junit.Test
 private val TEXT_DIRECTION_HOSTS = ConcurrentHashMap<String, List<ClassDef>>()
 
 /** The message box's two startActionMode overrides and the method its text menu's choices go to first. */
-@PlusPending
 class TextDirectionFixtureTest {
     private val menu = "$TEXT_DIRECTION->menu(Ljava/lang/Object;Landroid/view/ActionMode;)V"
     private val chosen = "$TEXT_DIRECTION->chosen(Ljava/lang/Object;I)Z"
@@ -65,6 +63,11 @@ class TextDirectionFixtureTest {
             val site = context.resolveTextDirection()
             if (name.contains("-73039")) {
                 assertEquals("Lorg/telegram/ui/Components/ft;", site.box)
+                assertEquals("G", site.choose.name)
+            }
+            // Plus Messenger's box wraps its callback in a class R8 merged with other callbacks.
+            if (name.startsWith("plus-")) {
+                assertEquals("Lorg/telegram/ui/Components/qu;", site.box)
                 assertEquals("G", site.choose.name)
             }
             assertEquals("$name: both overloads", setOf(1, 2), site.starts.map { it.parameterTypes.size }.toSet())

@@ -238,7 +238,12 @@ public final class EmotePickerArtProbe {
         Class<?> filterClass = Class.forName(ProbeLocators.type("twitch.match.autocomplete_filter", "iv1"));
         filter = filterClass.getDeclaredMethod("performFiltering", CharSequence.class);
         filter.setAccessible(true);
-        Constructor<?> make = filterClass.getDeclaredConstructors()[0];
+        // The filter's constructor that takes its adapter (R8 merges the filter class with others since 32.1.0).
+        Constructor<?> make = null;
+        for (Constructor<?> constructor : filterClass.getDeclaredConstructors()) {
+            if (constructor.getParameterTypes().length == 1) make = constructor;
+        }
+        check(make != null, "No autocomplete filter constructor with its adapter");
         Class<?> adapter = make.getParameterTypes()[0];
         kv1 = allocate(adapter);
         Class<?> sourceType = Class.forName(ProbeLocators.type("twitch.match.emote_autocomplete", "foa"));

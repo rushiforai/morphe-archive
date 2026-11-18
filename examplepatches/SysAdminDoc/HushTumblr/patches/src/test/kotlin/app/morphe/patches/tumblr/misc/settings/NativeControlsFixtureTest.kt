@@ -9,7 +9,7 @@ import app.morphe.FixtureTests
 import app.morphe.Fixtures
 import app.morphe.RepoFiles
 import com.reandroid.arsc.chunk.TableBlock
-import com.reandroid.arsc.value.ValueType
+import com.reandroid.arsc.value.DataType
 import java.io.File
 import java.util.zip.ZipFile
 import org.junit.Assert.assertEquals
@@ -59,7 +59,7 @@ class NativeControlsFixtureTest {
                         if (entry == null || entry.isNull || entry.isComplex) continue
                         if (entry.resConfig.qualifiers.isNotEmpty()) continue
                         val value = entry.resValue ?: continue
-                        if (value.valueType == ValueType.STRING) strings[resource.name] = value.valueAsString
+                        if (value.dataType == DataType.STRING) strings[resource.name] = value.dataAsString
                     }
                 }
             }

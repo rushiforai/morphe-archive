@@ -13,9 +13,11 @@ import app.zeldrisho.patches.shared.bytecode.ensureRegisters
 import app.zeldrisho.patches.shared.Constants.COMPATIBILITY_ZALO
 
 /** Replace account discovery/add-account with the system picker. */
-internal fun replaceWithAccountPicker(method: MutableMethod, version261002: Boolean = false) {
-    method.ensureRegisters(if (version261002) 10 else ACCOUNT_PICKER_REGISTER_COUNT)
-    val contextLookup = if (version261002) {
+internal fun replaceWithAccountPicker(method: MutableMethod, version261002: Boolean = false, version261101: Boolean = false) {
+    method.ensureRegisters(if (version261002 || version261101) 10 else ACCOUNT_PICKER_REGISTER_COUNT)
+    val contextLookup = if (version261101) {
+        "invoke-virtual { p0 }, Lvrv;->getContext()Landroid/content/Context;"
+    } else if (version261002) {
         "invoke-virtual { p0 }, Lcom/zing/zalo/zview/a0;->getContext()Landroid/content/Context;"
     } else {
         """
@@ -58,9 +60,10 @@ internal fun rewriteMicroGClass(
     classType: String,
     methods: Iterable<Pair<Method, MutableMethod>>,
     version261002: Boolean = false,
+    version261101: Boolean = false,
 ): MicroGMethodReplacementCounts {
-    val authOwner = if (version261002) "Lza/a;" else "Lo9/a;"
-    val accounts = if (version261002) accountTypeClasses261002 else accountTypeClasses
+    val authOwner = if (version261101) "Llob;" else if (version261002) "Lza/a;" else "Lo9/a;"
+    val accounts = if (version261101) accountTypeClasses261101 else if (version261002) accountTypeClasses261002 else accountTypeClasses
     val replacement = when (classType) {
         authOwner -> "com.google.android.gms" to MICROG_PACKAGE
         in accounts -> "com.google" to MICROG_ACCOUNT_TYPE
@@ -70,7 +73,7 @@ internal fun rewriteMicroGClass(
     var total = MicroGMethodReplacementCounts()
     methods.forEach { (method, mutableMethod) ->
         if (method.implementation == null) return@forEach
-        val count = rewriteMicroGMethod(classType, method, mutableMethod, replacement, version261002)
+        val count = rewriteMicroGMethod(classType, method, mutableMethod, replacement, version261002, version261101)
         total = MicroGMethodReplacementCounts(
             total.binding + count.binding,
             total.accountType + count.accountType,
@@ -87,9 +90,10 @@ internal fun rewriteMicroGClasses(
     classes: Iterable<ClassDef>,
     mutableClassFor: (ClassDef) -> MutableClass,
     version261002: Boolean = false,
+    version261101: Boolean = false,
 ): MicroGMethodReplacementCounts {
-    val authOwner = if (version261002) "Lza/a;" else "Lo9/a;"
-    val accounts = if (version261002) accountTypeClasses261002 else accountTypeClasses
+    val authOwner = if (version261101) "Llob;" else if (version261002) "Lza/a;" else "Lo9/a;"
+    val accounts = if (version261101) accountTypeClasses261101 else if (version261002) accountTypeClasses261002 else accountTypeClasses
     var total = MicroGMethodReplacementCounts()
     classes.forEach { classDef ->
         if (classDef.type != authOwner && classDef.type !in accounts &&
@@ -107,7 +111,7 @@ internal fun rewriteMicroGClasses(
             }
             method to mutableMethod
         }
-        val count = rewriteMicroGClass(classDef.type, methods, version261002)
+        val count = rewriteMicroGClass(classDef.type, methods, version261002, version261101)
         total = MicroGMethodReplacementCounts(
             total.binding + count.binding,
             total.accountType + count.accountType,
@@ -116,7 +120,7 @@ internal fun rewriteMicroGClasses(
             total.launchCheck + count.launchCheck,
         )
     }
-    if (version261002) {
+    if (version261002 || version261101) {
         check(total.accountType == 7) { "Zalo microG support: expected seven account-type replacements, found ${total.accountType}" }
     }
     validateMicroGReplacementCounts(
@@ -136,7 +140,8 @@ internal fun rewriteMicroGMethod(
     mutableMethod: MutableMethod,
     replacement: Pair<String, String>,
     version261002: Boolean = false,
-): MicroGMethodReplacementCounts = rewriteMicroGMethodBody(classType, method, mutableMethod, replacement, version261002)
+    version261101: Boolean = false,
+): MicroGMethodReplacementCounts = rewriteMicroGMethodBody(classType, method, mutableMethod, replacement, version261002, version261101)
 
 /**
  * Requires one binding, two pickers, one refresh, one launch check, and at least one account type.
@@ -187,8 +192,11 @@ val zaloMicroGSupportPatch = bytecodePatch(
     execute {
         val classes = mutableListOf<ClassDef>()
         classDefForEach(classes::add)
-        // New-version owner names cross-checked against the supplied APK and Nezumi Patches
-        // (GPL-3.0), revision 0dee7cf8d2f17b9c61d5960c87fd276269c53f69.
-        rewriteMicroGClasses(classes, { classDef -> mutableClassDefBy(classDef) }, packageMetadata.versionName == "26.10.02")
+        // New-version owner names independently cross-checked against the supplied APK.
+        rewriteMicroGClasses(
+            classes, { classDef -> mutableClassDefBy(classDef) },
+            version261002 = packageMetadata.versionName == "26.10.02",
+            version261101 = packageMetadata.versionName == "26.11.01",
+        )
     }
 }

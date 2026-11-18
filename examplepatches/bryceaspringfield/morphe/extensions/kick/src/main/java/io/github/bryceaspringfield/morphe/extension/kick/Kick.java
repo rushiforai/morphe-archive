@@ -13,7 +13,7 @@ import java.util.Locale;
 
 /**
  * KICK Extras' settings (saved in the app's own preferences file "kick_extras") and log. KICK has no Morphe settings
- * screen, so {@link KickSettingsActivity} edits them, opened from its own launcher icon.
+ * screen, so {@link KickSettingsActivity} edits them, opened from the shortcut in the menu of a long press on KICK's icon.
  */
 public final class Kick {
 

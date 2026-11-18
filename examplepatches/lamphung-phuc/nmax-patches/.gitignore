@@ -1,0 +1,56 @@
+# Gradle files
+.gradle/
+build/
+
+# Local configuration file (sdk path, etc.)
+local.properties
+
+# Log/OS Files
+*.log
+Thumbs.db
+.DS_Store
+
+# Android Studio generated files and folders
+captures/
+.externalNativeBuild/
+.cxx/
+*.aab
+*.apk
+output-metadata.json
+
+# IntelliJ
+*.iml
+.idea/
+misc.xml
+deploymentTargetDropDown.xml
+render.experimental.xml
+
+# Keystore files
+*.jks
+*.keystore
+*.p12
+*.pem
+
+# Google Services (e.g. APIs or Firebase)
+google-services.json
+
+# Android Profiling
+*.hprof
+
+# NPM modules
+node_modules/
+.kotlin/
+archive/
+*.mpp
+
+# Local patching artifacts and credentials
+morphe-data/
+morphe-cli-*.jar
+morphe-desktop-*.jar
+*-result.json
+.env
+.env.*
+!.env.example
+
+# VS Code workspace state
+.vscode/

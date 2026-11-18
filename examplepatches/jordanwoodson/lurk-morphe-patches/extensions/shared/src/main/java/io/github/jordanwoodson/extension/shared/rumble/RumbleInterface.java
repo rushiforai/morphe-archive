@@ -130,6 +130,34 @@ public final class RumbleInterface {
     }
 
     // ---------------------------------------------------------------------------------------------
+    // Hide Shorts
+
+    /**
+     * Injection point: My Feed's filter pills from Rumble's server (FollowingFeedPillsData.items, whose items keep
+     * their "id" field: "all", "today", ..., "shorts"). Leaves out the Shorts pill while Hide Shorts is on;
+     * Rumble's own list otherwise.
+     */
+    public static List<?> feedPills(List<?> pills) {
+        if (pills == null || pills.isEmpty() || !on("hide_shorts")) return pills;
+        try {
+            List<Object> kept = null;
+            for (int i = 0; i < pills.size(); i++) {
+                Object pill = pills.get(i);
+                boolean drop = pill != null && "shorts".equals(RumbleChat.read(pill, "id"));
+                if (drop && kept == null) {
+                    kept = new ArrayList<>(pills.size());
+                    for (int j = 0; j < i; j++) kept.add(pills.get(j));
+                } else if (!drop && kept != null) {
+                    kept.add(pill);
+                }
+            }
+            return kept == null ? pills : kept;
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            return pills;
+        }
+    }
+
+    // ---------------------------------------------------------------------------------------------
     // Hide Home sections
 
     private static volatile Field titleField;

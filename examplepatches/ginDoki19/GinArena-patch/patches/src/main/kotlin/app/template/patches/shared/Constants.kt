@@ -192,15 +192,15 @@ object Constants {
     val COMPATIBILITY_WPS_OFFICE = Compatibility(
         name = "WPS Office",
         packageName = "cn.wps.moffice_eng",
-        apkFileType = ApkFileType.XAPK,
+        apkFileType = ApkFileType.APK,
         appIconColor = 0xE64A19,
         signatures = setOf(WPS_OFFICE_SIGNER_SHA256),
         targets = listOf(
             AppTarget(
-                version = "26.11.0",
-                versionCode = 1650,
+                version = "26.11.1",
+                versionCode = 1651,
                 minSdk = 29,
-                description = "XAPK bundle (base + config splits, arm64-v8a, Android 10+), build 1650"
+                description = "Standalone APK (arm64-v8a, Android 10+), build 1651, APKMirror"
             )
         )
     )

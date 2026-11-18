@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
 import org.junit.After;
@@ -85,7 +86,7 @@ public class SettingsVisualCaptureTest {
     /** Deterministic development preview metadata. These fixtures never represent an installed build. */
     @Implements(value = Utils.class, isInAndroidSdk = false)
     public static class CaptureMetadata {
-        @Implementation public static String getPatchesReleaseVersion() { return "0.0.20"; }
+        @Implementation public static String getPatchesReleaseVersion() { return "0.0.21"; }
         @Implementation public static String getAppVersionName() { return "453.0.0.57.79"; }
         @Implementation public static long getAppVersionCode() { return 385914557L; }
         @Implementation public static String getSourceBuildIdentity() { return "Development preview"; }
@@ -528,7 +529,8 @@ public class SettingsVisualCaptureTest {
             Object noSave = Proxy.newProxyInstance(saver.getClassLoader(), new Class<?>[]{saver},
                     (proxy, method, arguments) -> { throw new AssertionError("Capturing must never save media"); });
             Object viewer = construct("app.hushgram.extension.instagram.download.ProfilePictureViewer$Screen",
-                    new Class<?>[]{Activity.class, List.class, String.class, saver}, host, sizes, "sample.account", noSave);
+                    new Class<?>[]{Activity.class, List.class, String.class, saver, BooleanSupplier.class}, host, sizes, "sample.account", noSave,
+                    (BooleanSupplier) () -> true);
             Dialog shown = (Dialog) field(viewer, "dialog");
             Bitmap sample = null;
             try {
@@ -718,7 +720,8 @@ public class SettingsVisualCaptureTest {
                 Object noSave = Proxy.newProxyInstance(saver.getClassLoader(), new Class<?>[]{saver},
                         (proxy, method, arguments) -> { throw new AssertionError("Capturing must never save media"); });
                 Object viewer = construct("app.hushgram.extension.instagram.download.ProfilePictureViewer$Screen",
-                        new Class<?>[]{Activity.class, List.class, String.class, saver}, host, sizes, "sample.account", noSave);
+                        new Class<?>[]{Activity.class, List.class, String.class, saver, BooleanSupplier.class}, host, sizes, "sample.account", noSave,
+                    (BooleanSupplier) () -> true);
                 Dialog pictureDialog = (Dialog) field(viewer, "dialog");
                 pictureDialog.show();
                 View pictureRoot = pictureDialog.getWindow().getDecorView();

@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-17.
  * Modified by lavinhoque33, 2026-11-13
  * Written by lavinhoque33, 2026-11-07.
  * Modified by lavinhoque33, 2026-11-10
@@ -205,12 +206,14 @@ public final class DownloadedMarkers {
      * ({@code title}, subtitle, cover url) the download resolved, for the offline lists.
      */
     static void onPlaylistStarted(String sourceId, List<String> videoIds, SourceHeader header) {
-        registry.start(sourceId, videoIds);
-        if (!pendingPreferences().edit().putBoolean(sourceId, true).commit()) {
-            Logger.printException(() -> "Could not remember that a playlist download started");
+        synchronized (PlaylistSync.MUTATION) {
+            registry.start(sourceId, videoIds);
+            if (!pendingPreferences().edit().putBoolean(sourceId, true).commit()) {
+                Logger.printException(() -> "Could not remember that a playlist download started");
+            }
+            rememberSource(sourceId, videoIds, header, true);
+            refreshLater();
         }
-        rememberSource(sourceId, videoIds, header);
-        refreshLater();
     }
 
     /** Called when the whole download of a list, its videos included, ended: the list is saved from now on. */
@@ -237,6 +240,32 @@ public final class DownloadedMarkers {
         refreshLater();
     }
 
+    static boolean completedStreamSource(OfflineSourceStore.Source source) {
+        String id = source.id();
+        return trackPreferences().contains(id) && !pendingPreferences().contains(id)
+                && (source.explicitStream() || !NativePlaylistStore.savedPlaylists().containsKey(id));
+    }
+
+    static void onPlaylistSynced(String id, List<String> tracks) {
+        registry.putSource(id, tracks);
+        if (!trackPreferences().edit().putString(id, DownloadedRegistry.encode(tracks)).commit()) {
+            Logger.printException(() -> "Could not update the playlist marker for " + id);
+        }
+        refreshLater();
+    }
+
+    static void forgetCompletedSources() {
+        SharedPreferences tracks = trackPreferences();
+        Set<String> pending = pendingPreferences().getAll().keySet();
+        SharedPreferences.Editor editor = tracks.edit();
+        for (String id : tracks.getAll().keySet()) {
+            if (pending.contains(id)) continue;
+            registry.removeSource(id);
+            editor.remove(id);
+        }
+        if (!editor.commit()) Logger.printException(() -> "Could not forget the removed stream playlists");
+    }
+
     private static SharedPreferences pendingPreferences() {
         return Utils.getContext().getSharedPreferences(PENDING_PREFERENCES, 0);
     }
@@ -259,12 +288,13 @@ public final class DownloadedMarkers {
         return saved;
     }
 
-    private static void rememberSource(String sourceId, List<String> videoIds, @Nullable SourceHeader header) {
+    private static void rememberSource(String sourceId, List<String> videoIds, @Nullable SourceHeader header,
+                                       boolean explicitStream) {
         registry.putSource(sourceId, videoIds);
         if (!trackPreferences().edit().putString(sourceId, DownloadedRegistry.encode(videoIds)).commit()) {
             Logger.printException(() -> "Could not remember the tracks of a downloaded playlist");
         }
-        OfflineCopyStore.rememberSource(sourceId, header, videoIds);
+        OfflineCopyStore.rememberSource(sourceId, header, videoIds, explicitStream);
     }
 
     /** Fills the registry once, in the background. Until then no check is shown. */
@@ -277,12 +307,12 @@ public final class DownloadedMarkers {
             try {
                 registry.addAll(RawAudioStore.copyIds());
                 registry.setAliases(RawAudioStore.aliases());
-                for (Map.Entry<String, ?> entry : trackPreferences().getAll().entrySet()) {
-                    if (entry.getValue() instanceof String encoded) {
-                        registry.putSource(entry.getKey(), DownloadedRegistry.decode(encoded));
-                    }
+                synchronized (PlaylistSync.MUTATION) {
+                    Map<String, List<String>> saved = savedTrackLists();
+                    OfflineCopyStore.overlaySyncedTrackLists(saved);
+                    saved.forEach(registry::putSource);
+                    registry.setPending(pendingPreferences().getAll().keySet());
                 }
-                registry.setPending(pendingPreferences().getAll().keySet());
                 loaded = true;
                 refreshLater();
 
@@ -319,7 +349,11 @@ public final class DownloadedMarkers {
             List<Long> mediaIds = nativeTracks.get(saved.getValue());
             List<String> videoIds = mediaIds == null ? null
                     : DownloadedRegistry.resolveTracks(mediaIds, videoIdByMediaId);
-            if (videoIds != null) rememberSource(saved.getKey(), videoIds, null);
+            if (videoIds != null) {
+                synchronized (PlaylistSync.MUTATION) {
+                    if (!registry.hasSource(saved.getKey())) rememberSource(saved.getKey(), videoIds, null, false);
+                }
+            }
         }
         refreshLater();
     }

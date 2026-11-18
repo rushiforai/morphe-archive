@@ -80,6 +80,20 @@ public final class SettingsActivity {
         return activity == null ? null : sControllers.get(activity);
     }
 
+    public static boolean refreshCurrentScreen(Context context) {
+        Activity activity = null;
+        if (context instanceof Activity) {
+            activity = (Activity) context;
+        }
+        if (activity == null) return false;
+        Controller controller = getController(activity);
+        if (controller != null) {
+            controller.refreshActiveFragmentInPlace();
+            return true;
+        }
+        return false;
+    }
+
     @SuppressLint("ResourceType")
     public static void setupOnActivity(Activity activity, Bundle savedInstanceState) {
         app.morphe.extension.instagram.utils.IgStr.applyLocaleToContext(activity);
@@ -147,6 +161,8 @@ public final class SettingsActivity {
         private SettingsSearchController searchController;
         private boolean refreshSearchIndexOnResume;
         private final Runnable recommendedFlagsChanged = this::refreshSearchIndex;
+        private LinearLayout restartBanner;
+        private final Runnable restartStateChanged = this::updateRestartBannerVisibility;
         private String fragmentName;
         private String displayTitle;
         private String targetPreferenceKey;
@@ -302,6 +318,12 @@ public final class SettingsActivity {
             if (Constants.REX_FRAGMENT_DEV_OPTIONS.equals(fragment)
                     || Constants.REX_FRAGMENT_REC_FLAGS.equals(fragment)) {
                 return "Manage MetaConfig overrides, experiment mappings, and backup files";
+            }
+            if (Constants.REX_FRAGMENT_INITIAL_FEATURES.equals(fragment)) {
+                return "72 verified Instagram experimental flags across 10 categories with safe presets";
+            }
+            if (Constants.REX_FRAGMENT_CACHE_CLEANER.equals(fragment)) {
+                return "Inspect cache usage, clean temporary media, and configure automatic cache limits";
             }
             return "Configure Rex IG Lite preferences and runtime hooks";
         }
@@ -529,6 +551,13 @@ public final class SettingsActivity {
                     1f
             ));
 
+            restartBanner = createPersistentRestartBanner();
+            page.addView(restartBanner, new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+            ));
+            updateRestartBannerVisibility();
+
             chromeOverlay = new FrameLayout(activity);
             root.addView(chromeOverlay, new FrameLayout.LayoutParams(
                     FrameLayout.LayoutParams.MATCH_PARENT,
@@ -659,12 +688,76 @@ public final class SettingsActivity {
             );
         }
 
+        private LinearLayout createPersistentRestartBanner() {
+            LinearLayout bar = new LinearLayout(activity);
+            bar.setOrientation(LinearLayout.HORIZONTAL);
+            bar.setGravity(android.view.Gravity.CENTER_VERTICAL);
+            int hPad = InstagramPreferenceStyle.dp(activity, 16);
+            int vPad = InstagramPreferenceStyle.dp(activity, 12);
+            bar.setPadding(hPad, vPad, hPad, vPad);
+            android.graphics.drawable.GradientDrawable bg = new android.graphics.drawable.GradientDrawable();
+            bg.setColor(0xFF141821);
+            bg.setStroke(Math.max(1, InstagramPreferenceStyle.dp(activity, 1)), 0x333998E8);
+            bar.setBackground(bg);
+
+            TextView msg = new TextView(activity);
+            msg.setText("Restart required to apply changes");
+            msg.setTextColor(0xFFF5F7FA);
+            msg.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13.5f);
+            msg.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+            LinearLayout.LayoutParams msgLp = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+            bar.addView(msg, msgLp);
+
+            TextView btn = new TextView(activity);
+            btn.setText("Restart Now");
+            btn.setTextColor(Color.WHITE);
+            btn.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f);
+            btn.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
+            int bH = InstagramPreferenceStyle.dp(activity, 14);
+            int bV = InstagramPreferenceStyle.dp(activity, 8);
+            btn.setPadding(bH, bV, bH, bV);
+            android.graphics.drawable.GradientDrawable btnBg = new android.graphics.drawable.GradientDrawable();
+            btnBg.setColor(InstagramPreferenceStyle.accentColor());
+            btnBg.setCornerRadius(InstagramPreferenceStyle.dp(activity, 18));
+            btn.setBackground(btnBg);
+            btn.setOnClickListener(v -> {
+                RexHaptics.tap(v);
+                SettingsRestart.restartNow(activity);
+            });
+            bar.addView(btn);
+            bar.setVisibility(View.GONE);
+            return bar;
+        }
+
+        void updateRestartBannerVisibility() {
+            if (restartBanner == null) return;
+            restartBanner.post(() -> {
+                boolean show = SettingsRestart.isRestartPending();
+                restartBanner.setVisibility(show ? View.VISIBLE : View.GONE);
+            });
+        }
+
+        void refreshActiveFragmentInPlace() {
+            try {
+                RexDialogs.clearActivityBlur(activity);
+                android.app.Fragment f = activity.getFragmentManager().findFragmentById(FRAGMENT_CONTAINER_ID);
+                if (f instanceof SettingsFragment) {
+                    ((SettingsFragment) f).rebuildScreenPreservingScroll();
+                }
+                updateRestartBannerVisibility();
+            } catch (Throwable ignored) {}
+        }
+
         public void onPause() {
             RecommendedFlags.removeChangeListener(recommendedFlagsChanged);
+            SettingsRestart.removeListener(restartStateChanged);
             refreshSearchIndexOnResume = searchController != null;
         }
 
         public void onResume() {
+            RexDialogs.clearActivityBlur(activity);
+            SettingsRestart.addListener(restartStateChanged);
+            updateRestartBannerVisibility();
             if (rootSettings) {
                 RecommendedFlags.addChangeListener(recommendedFlagsChanged);
             }
@@ -821,6 +914,7 @@ public final class SettingsActivity {
 
         public void onDestroy() {
             RecommendedFlags.removeChangeListener(recommendedFlagsChanged);
+            SettingsRestart.removeListener(restartStateChanged);
             unregisterSearchBackCallback();
         }
 
@@ -997,6 +1091,19 @@ public final class SettingsActivity {
             listView.setSelector(new ColorDrawable(Color.TRANSPARENT));
             listView.setCacheColorHint(Color.TRANSPARENT);
             listView.setBackgroundColor(InstagramPreferenceStyle.backgroundColor());
+        }
+
+        void rebuildScreenPreservingScroll() {
+            int firstPos = listView != null ? listView.getFirstVisiblePosition() : 0;
+            int topOffset = (listView != null && listView.getChildCount() > 0 && listView.getChildAt(0) != null)
+                    ? listView.getChildAt(0).getTop() : 0;
+            PreferenceScreen rebuilt = buildScreen(fragmentName);
+            setPreferenceScreen(rebuilt);
+            if (listView != null) {
+                rebuilt.bind(listView);
+                styleListView();
+                listView.setSelectionFromTop(firstPos, topOffset);
+            }
         }
 
         private PreferenceScreen buildScreen(String fragmentName) {

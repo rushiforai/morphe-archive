@@ -118,11 +118,11 @@ internal enum class PatchList(
     ),
     HIDE_OVERLAY_FILTER(
         "Hide overlay filter",
-        "Removes, at compile time, the dark overlay that appears when player flyout menus are open."
+        "Adds an option to hide the dark overlay behind player flyout menus."
     ),
     HIDE_PLAYER_OVERLAY_FILTER(
         "Hide player overlay filter",
-        "Removes, at compile time, the dark overlay that appears when single-tapping in the player."
+        "Adds an option to hide the dark overlay behind the player controls."
     ),
     NAVIGATION_BAR_COMPONENTS(
         "Navigation bar components",

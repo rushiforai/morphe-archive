@@ -8,7 +8,6 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.PlusPending
 import app.morphe.util.names.origRef
 import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
@@ -51,7 +50,6 @@ import app.morphe.util.names.tgClassDefByOrNull
 import app.morphe.util.names.tgMutableClassDefBy
 
 /** The classes that parse theme files, Telegram's key lookup, and the runtime. */
-@PlusPending
 class AmoledBlackFixtureTest {
     @Test fun `one hook where the theme reader returns its colors and every stock path stays`() {
         for (build in Fixtures.declaredBuilds()) {
@@ -74,7 +72,7 @@ class AmoledBlackFixtureTest {
             assertEquals("$name: one way out", 1, site.returns.size)
             val at = site.returns.single()
             assertEquals("$name: three instructions", before.size + 3, after.size)
-            val asset = old.implementation!!.registerCount - 2
+            val asset = old.parameterRegisterNumber(1)
             val (a, b) = after[at + 2].namedRegisters()
             assertEquals(Opcode.MOVE_OBJECT_FROM16, after[at].opcode)
             assertEquals("$name: the asset name", listOf(a, asset), after[at].namedRegisters())
@@ -322,7 +320,7 @@ class AmoledBlackFixtureTest {
             // Bubbles stay the theme's own, so they still stand out on black.
             assertNotEquals(0xFF000000.toInt(), themes.getValue("night").getValue("chat_inBubble"))
             val reader = hosts(build).flatMap { it.methods }.single { it.origReturnType == SPARSE_INT_ARRAY &&
-                it.parameterTypes.map { p -> p.toString() } == THEME_FILE_PARAMETERS && it.controlBody().any { i -> i.controlString() == "WLS=" } }
+                takesThemeFile(it) && it.controlBody().any { i -> i.controlString() == "WLS=" } }
             val named = hosts(build).single { it.origType == reader.origDefiningClass }.methods.flatMap { m -> m.controlBody().mapNotNull { it.controlString() } }
             assertTrue("${build.name}: Telegram's theme class names both dark assets", "night.attheme" in named && "darkblue.attheme" in named)
         }
@@ -339,7 +337,7 @@ class AmoledBlackFixtureTest {
                 "reader returns another set" to { _, s -> s.method.replaceInstruction(s.returns.single(), "return-object v${(s.colors + 1) % 16}") },
                 "set swapped on the way out" to { _, s -> s.method.replaceInstruction(close(s), "move-object v${s.colors}, v${(s.colors + 1) % 16}") },
                 "asset parameter overwritten" to { _, s -> s.method.replaceInstruction(close(s),
-                    "move-object/from16 v${s.method.implementation!!.registerCount - 2}, v${s.colors}") },
+                    "move-object/from16 v${s.method.parameterRegisterNumber(1)}, v${s.colors}") },
                 "lookup no longer public" to { c, s -> val m = c.tgMutableClassDefBy(s.keyLookup.definingClass).methods.single {
                     it.origName == s.keyLookup.origName && it.origReturnType == "I" && it.parameterTypes.map { p -> p.toString() } == listOf("Ljava/lang/String;") }
                     m.accessFlags = m.accessFlags and AccessFlags.PUBLIC.value.inv() or AccessFlags.PRIVATE.value },

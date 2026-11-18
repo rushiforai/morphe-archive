@@ -4,13 +4,13 @@ import com.reandroid.arsc.container.SpecTypePair;
 import com.reandroid.arsc.item.StringItem;
 import com.reandroid.arsc.item.StyleSpan;
 import com.reandroid.arsc.model.ResourceEntry;
+import com.reandroid.arsc.value.DataType;
 import com.reandroid.arsc.value.Entry;
 import com.reandroid.arsc.value.ResConfig;
 import com.reandroid.arsc.value.ResTableMapEntry;
 import com.reandroid.arsc.value.ResValueMap;
 import com.reandroid.arsc.value.TableEntry;
 import com.reandroid.arsc.value.ValueItem;
-import com.reandroid.arsc.value.ValueType;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -174,7 +174,7 @@ public final class ResourceTableCheck {
         ZipEntry arsc = zip.getEntry(TableBlock.FILE_NAME);
         if (arsc == null) throw new IOException(zip.getName() + " has no " + TableBlock.FILE_NAME);
         try (InputStream in = new BufferedInputStream(zip.getInputStream(arsc))) {
-            // ARSCLib 675bed2de3 (patcher 2.3.0, desktop 2.1.x) reports read progress through a
+            // ARSCLib 50418a07a8 (patcher 2.4.0, desktop 2.2.0) reports read progress through a
             // callback here. The check reads one table at a time and reports nothing.
             return TableBlock.load(in, (read, total) -> { });
         }
@@ -631,9 +631,9 @@ public final class ResourceTableCheck {
 
     private void checkReference(String where, ValueItem value, TableBlock patched, Set<Integer> packages) {
         if (value == null) return;
-        ValueType type = value.getValueType();
-        if (type == ValueType.REFERENCE || type == ValueType.DYNAMIC_REFERENCE
-                || type == ValueType.ATTRIBUTE || type == ValueType.DYNAMIC_ATTRIBUTE) {
+        DataType type = value.getDataType();
+        if (type == DataType.REFERENCE || type == DataType.DYNAMIC_REFERENCE
+                || type == DataType.ATTRIBUTE || type == DataType.DYNAMIC_ATTRIBUTE) {
             checkId(where, value.getData(), patched, packages);
         }
     }
@@ -684,38 +684,33 @@ public final class ResourceTableCheck {
      */
     private String value(ValueItem value, String resourceType) {
         if (value == null) return "(none)";
-        ValueType type = value.getValueType();
+        DataType type = value.getDataType();
         int data = value.getData();
-        if (type == null) return String.format(Locale.ROOT, "type 0x%02x 0x%08x", value.getType() & 0xff, data);
-        switch (type) {
-            case STRING:
-                StringItem item = value.getDataAsPoolString();
-                String text = item == null ? null : item.get();
-                if (text == null) return String.format(Locale.ROOT, "string (unreadable, pool index %d)", data);
-                List<String> spans = new ArrayList<>();
-                if (item.hasStyle()) for (StyleSpan span : item.getStyle()) {
-                    String tag = span.getString();
-                    spans.add((tag == null ? "unreadable" : quoted(tag)) + " " + span.getFirstChar() + "-" + span.getLastChar());
-                }
-                if (spans.isEmpty() && resourceType != null && !"string".equals(resourceType) && text.startsWith("res/")) return "file " + text;
-                return quoted(text) + (spans.isEmpty() ? "" : " with spans " + String.join(", ", spans));
-            case REFERENCE:
-                return reference(data);
-            case DYNAMIC_REFERENCE:
-                return "dynamic " + reference(data);
-            case ATTRIBUTE:
-                return "?" + id(data);
-            case DYNAMIC_ATTRIBUTE:
-                return "dynamic ?" + id(data);
-            case COLOR_ARGB8:
-                return String.format(Locale.ROOT, "#%08x", data);
-            case COLOR_RGB8:
-            case COLOR_ARGB4:
-            case COLOR_RGB4:
-                return type.name().toLowerCase(Locale.ROOT) + String.format(Locale.ROOT, " #%08x", data);
-            default:
-                return type.name().toLowerCase(Locale.ROOT) + String.format(Locale.ROOT, " 0x%08x", data);
+        if (type == null) return String.format(Locale.ROOT, "type 0x%02x 0x%08x", value.dataType() & 0xff, data);
+        // DataType replaced the ValueType enum in ARSCLib 50418a07a8 (patcher 2.4.0). It is a class of
+        // shared constants, so it is compared by identity rather than switched on.
+        if (type == DataType.STRING) {
+            StringItem item = value.getDataAsPoolString();
+            String text = item == null ? null : item.get();
+            if (text == null) return String.format(Locale.ROOT, "string (unreadable, pool index %d)", data);
+            List<String> spans = new ArrayList<>();
+            if (item.hasStyle()) for (Iterator<StyleSpan> it = item.getStyle().getSpans(); it.hasNext(); ) {
+                StyleSpan span = it.next();
+                String tag = span.getTagWithAttributes();
+                spans.add((tag == null ? "unreadable" : quoted(tag)) + " " + span.getFirstChar() + "-" + span.getLastChar());
+            }
+            if (spans.isEmpty() && resourceType != null && !"string".equals(resourceType) && text.startsWith("res/")) return "file " + text;
+            return quoted(text) + (spans.isEmpty() ? "" : " with spans " + String.join(", ", spans));
         }
+        if (type == DataType.REFERENCE) return reference(data);
+        if (type == DataType.DYNAMIC_REFERENCE) return "dynamic " + reference(data);
+        if (type == DataType.ATTRIBUTE) return "?" + id(data);
+        if (type == DataType.DYNAMIC_ATTRIBUTE) return "dynamic ?" + id(data);
+        if (type == DataType.COLOR_ARGB8) return String.format(Locale.ROOT, "#%08x", data);
+        if (type == DataType.COLOR_RGB8 || type == DataType.COLOR_ARGB4 || type == DataType.COLOR_RGB4) {
+            return type.name().toLowerCase(Locale.ROOT) + String.format(Locale.ROOT, " #%08x", data);
+        }
+        return type.name().toLowerCase(Locale.ROOT) + String.format(Locale.ROOT, " 0x%08x", data);
     }
 
     private static String quoted(String text) {

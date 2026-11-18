@@ -7,7 +7,6 @@ package app.morphe.patches.telegram.misc.drafts
 import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
-import app.morphe.PlusPending
 import app.morphe.hostsOf
 import app.morphe.PatchContexts
 import app.morphe.util.names.origRef
@@ -57,7 +56,6 @@ private val TABS = mapOf(SearchLookup.CHANNELS to "broadcasts", SearchLookup.APP
 private val FILTERS = setOf(SearchLookup.CHAT_FILTERS, SearchLookup.MEDIA_TABS)
 
 /** Main search on the pinned builds: where each lookup leaves, and the way past it that Telegram already has. */
-@PlusPending
 class LocalSearchFixtureTest {
     @Test fun `every search lookup takes Telegram's own way past its request`() {
         for (build in Fixtures.declaredBuilds()) {

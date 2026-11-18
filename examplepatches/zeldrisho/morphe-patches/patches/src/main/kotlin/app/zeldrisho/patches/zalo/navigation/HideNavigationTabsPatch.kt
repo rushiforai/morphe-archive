@@ -5,9 +5,10 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.packageMetadata
 import app.morphe.patcher.string
 import app.morphe.patcher.util.returnEarly
-import app.zeldrisho.patches.shared.Constants.COMPATIBILITY_ZALO_261002
+import app.zeldrisho.patches.shared.Constants.COMPATIBILITY_ZALO_261002_AND_EXPERIMENTAL
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
@@ -23,11 +24,15 @@ val hideZaloNavigationTabsPatch = bytecodePatch(
     description = "Adds settings to hide Discovery, Contacts and Timeline individually. Tabs stay visible until hidden in Zeldris Patches; restart to apply.",
     default = true,
 ) {
-    compatibleWith(COMPATIBILITY_ZALO_261002)
+    compatibleWith(COMPATIBILITY_ZALO_261002_AND_EXPERIMENTAL)
     dependsOn(zeldrisSettingsPatch)
 
     execute {
-        val method = NavigationTabBuilder261002.matchAll(1..1).single().method
+        val version261101 = packageMetadata.versionName == "26.11.01"
+        val tabModel = if (version261101) "Ly5f;" else "Lkj1/v;"
+        val tabEnum = if (version261101) "Lw5f;" else "Lkj1/t;"
+        val method = (if (version261101) NavigationTabBuilder261101 else NavigationTabBuilder261002)
+            .matchAll(1..1).single().method
         val instructions = method.implementation?.instructions?.toList()
             ?: error("Zalo navigation tabs: tab builder has no implementation")
         fun find(opcode: Opcode, reference: String): Int {
@@ -38,13 +43,13 @@ val hideZaloNavigationTabsPatch = bytecodePatch(
             check(matches.size == 1) { "Zalo navigation tabs: expected one $reference, found ${matches.size}" }
             return matches.single()
         }
-        val discoveryLoad = find(Opcode.SGET_BOOLEAN, "Lxa1/i;->b:Z")
-        val discoveryStore = find(Opcode.IPUT_BOOLEAN, "Lkj1/v;->l:Z")
+        val discoveryLoad = find(Opcode.SGET_BOOLEAN, if (version261101) "Lxp5;->b:Z" else "Lxa1/i;->b:Z")
+        val discoveryStore = find(Opcode.IPUT_BOOLEAN, "$tabModel->l:Z")
         check(discoveryStore == discoveryLoad + 1 &&
             (instructions[discoveryLoad] as? OneRegisterInstruction)?.registerA == 1 &&
             (instructions[discoveryStore] as? TwoRegisterInstruction)?.registerA == 1
         ) { "Zalo navigation tabs: unexpected Discovery state flow" }
-        val timelineStore = find(Opcode.IPUT_BOOLEAN, "Lkj1/v;->k:Z")
+        val timelineStore = find(Opcode.IPUT_BOOLEAN, "$tabModel->k:Z")
         val zeroIndex = (discoveryStore + 1 until timelineStore).singleOrNull { index ->
             instructions[index].opcode == Opcode.CONST_4 &&
                 (instructions[index] as? OneRegisterInstruction)?.registerA == 3 &&
@@ -55,7 +60,7 @@ val hideZaloNavigationTabsPatch = bytecodePatch(
             (instructions[timelineStore] as? TwoRegisterInstruction)?.registerB == 10
         ) { "Zalo navigation tabs: unexpected Timeline state flow" }
 
-        val contactsLoad = find(Opcode.SGET_OBJECT, "Lkj1/t;->PHONEBOOK:Lkj1/t;")
+        val contactsLoad = find(Opcode.SGET_OBJECT, "$tabEnum->PHONEBOOK:$tabEnum")
         val contactsInstruction = instructions.getOrNull(contactsLoad + 1)
         val contactsAdd = contactsInstruction as? FiveRegisterInstruction
         check(contactsInstruction?.opcode == Opcode.INVOKE_VIRTUAL &&
@@ -64,12 +69,13 @@ val hideZaloNavigationTabsPatch = bytecodePatch(
             contactsAdd?.registerCount == 2 && contactsAdd.registerC == 0 && contactsAdd.registerD == 4
         ) { "Zalo navigation tabs: Contacts insertion changed" }
 
-        val mainView = ZaloMainViewCreate261002.matchAll(1..1).single().method
+        val mainView = (if (version261101) ZaloMainViewCreate261101 else ZaloMainViewCreate261002)
+            .matchAll(1..1).single().method
         val mainInstructions = mainView.implementation?.instructions?.toList()
             ?: error("Zeldris settings: main view has no implementation")
         val rebuildCalls = mainInstructions.indices.filter { index ->
             mainInstructions[index].opcode == Opcode.INVOKE_VIRTUAL &&
-                (mainInstructions[index] as? ReferenceInstruction)?.reference?.toString() == "Lkj1/v;->q()V"
+                (mainInstructions[index] as? ReferenceInstruction)?.reference?.toString() == "$tabModel->q()V"
         }
         check(rebuildCalls.size == 1) { "Zeldris settings: expected one guarded tab rebuild" }
         val rebuild = rebuildCalls.single()
@@ -90,15 +96,30 @@ val hideZaloNavigationTabsPatch = bytecodePatch(
         method.replaceInstruction(timelineStore, "invoke-static {v1}, Lapp/zeldrisho/zalo/extension/ZeldrisSettings;->showTimeline(Z)Z")
         method.addInstructions(timelineStore + 1, """
             move-result v1
-            iput-boolean v1, p0, Lkj1/v;->k:Z
+            iput-boolean v1, p0, $tabModel->k:Z
         """)
         method.addInstructions(discoveryLoad + 1, """
             invoke-static {v1}, Lapp/zeldrisho/zalo/extension/ZeldrisSettings;->showDiscovery(Z)Z
             move-result v1
         """)
-        mainView.replaceInstruction(rebuild, "invoke-virtual {v1}, Lkj1/v;->p()V")
+        mainView.replaceInstruction(rebuild, "invoke-virtual {v1}, $tabModel->p()V")
     }
 }
+
+// Experimental target: 26.11.01 is advertised but not fully device-qualified.
+private object NavigationTabBuilder261101 : Fingerprint(
+    definingClass = "Ly5f;",
+    name = "p",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "V",
+    parameters = emptyList(),
+    filters = listOf(
+        fieldAccess(opcode = Opcode.SGET_BOOLEAN, definingClass = "Lxp5;", name = "b", type = "Z"),
+        string("ENABLE_GROUP_TAB"),
+        string("ENABLE_TIMELINE_TAB"),
+        fieldAccess(opcode = Opcode.SGET_OBJECT, definingClass = "Lw5f;", name = "DISCOVERY", type = "Lw5f;"),
+    ),
+)
 
 private object NavigationTabBuilder261002 : Fingerprint(
     definingClass = "Lkj1/v;",

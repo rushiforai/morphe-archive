@@ -4,7 +4,6 @@
  * See the included NOTICE file for GPLv3 §7(b) terms that apply to this code.
  */
 
-
 package app.morphe.extension.instagram.entity;
 
 import java.util.List;
@@ -47,7 +46,7 @@ public class DeveloperOptions extends Entity {
     private List getAllExperiments() throws Exception {
         Class<?> quickExperimentHelper = this.getQuickExperimentHelperClass();
         Object result = super.getMethod(quickExperimentHelper, "A06");
-        if (result != null) {
+        if (result instanceof List) {
             return (List) result;
         }
         return null;
@@ -56,9 +55,13 @@ public class DeveloperOptions extends Entity {
     public DeveloperOptionsItem getDeveloperOptionsItem(Object experimentItem) throws Exception {
         Class<?> experimentItemHelperClass = this.getExperimentItemHelperClass();
 
-        String universalName = (String) super.getField(experimentItemHelperClass, experimentItem, this.getUniversalNameFieldName());
-        long mobileConfigSpecifier = (long) super.getField(experimentItemHelperClass, experimentItem, this.getMobileConfigSpecifierFieldName());
-        String paramName = (String) super.getField(experimentItemHelperClass, experimentItem, this.getParamNameFieldName());
+        Object uNameObj = super.getField(experimentItemHelperClass, experimentItem, this.getUniversalNameFieldName());
+        Object specObj = super.getField(experimentItemHelperClass, experimentItem, this.getMobileConfigSpecifierFieldName());
+        Object pNameObj = super.getField(experimentItemHelperClass, experimentItem, this.getParamNameFieldName());
+
+        String universalName = uNameObj == null ? "" : String.valueOf(uNameObj);
+        long mobileConfigSpecifier = (specObj instanceof Number) ? ((Number) specObj).longValue() : 0L;
+        String paramName = pNameObj == null ? "" : String.valueOf(pNameObj);
 
         return new DeveloperOptionsItem(mobileConfigSpecifier, universalName, paramName);
     }
@@ -67,7 +70,11 @@ public class DeveloperOptions extends Entity {
         JSONObject mappings = new JSONObject();
         try {
             List allExperiments = this.getAllExperiments();
+            if (allExperiments == null) {
+                return mappings;
+            }
             for (Object item : allExperiments) {
+                if (item == null) continue;
                 DeveloperOptionsItem developerOptionsItem = this.getDeveloperOptionsItem(item);
 
                 String universalId = developerOptionsItem.getUniversalId();
@@ -82,7 +89,6 @@ public class DeveloperOptions extends Entity {
             }
         } catch (Exception e) {
             RexUtils.logger(e);
-            RexUtils.toast("Developer options toJSONObject failed");
         }
         return mappings;
     }
@@ -95,9 +101,14 @@ public class DeveloperOptions extends Entity {
             sb.append("=====================\n\n");
 
             List allExperiments = this.getAllExperiments();
+            if (allExperiments == null || allExperiments.isEmpty()) {
+                sb.append("No decoded experiments returned by quick experiment helper.\n");
+                return sb.toString();
+            }
             Set<String> seenUniversalNames = new HashSet<>();
 
             for (Object item : allExperiments) {
+                if (item == null) continue;
                 DeveloperOptionsItem developerOptionsItem = this.getDeveloperOptionsItem(item);
 
                 long mobileConfigSpecifier = developerOptionsItem.getMobileConfigSpecifier();
@@ -116,10 +127,8 @@ public class DeveloperOptions extends Entity {
             }
         } catch (Exception e) {
             RexUtils.logger(e);
-            RexUtils.toast("Developer options extraction failed");
-            sb.append(e.toString() + "\n");
+            sb.append(e.toString()).append("\n");
         }
         return sb.toString();
     }
-
 }

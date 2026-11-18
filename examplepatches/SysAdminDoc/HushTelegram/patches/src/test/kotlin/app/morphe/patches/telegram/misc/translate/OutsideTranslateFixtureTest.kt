@@ -8,7 +8,6 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.PlusPending
 import app.morphe.util.names.origRef
 import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
@@ -51,7 +50,6 @@ import app.morphe.util.names.tgClassDefByOrNull
 import app.morphe.util.names.tgMutableClassDefBy
 
 /** The message's translation decision, the menu builder and choice, the header item and its click, and the runtime. */
-@PlusPending
 class OutsideTranslateFixtureTest {
     private val list = "Ljava/util/ArrayList;"
     private val fixed = setOf(
@@ -111,10 +109,11 @@ class OutsideTranslateFixtureTest {
             val name = build.name
             val context = PatchContexts.of(ExtensionDex.classes() + hosts(build))
             val site = context.resolveOutsideTranslate()
-            // 13.1's R8 gave both builds v0, x0 and u, and 13.2.2's gives both r0, t0 and z.
+            // 13.1's R8 gave both builds v0, x0 and u, 13.2.2's gives both r0, t0 and z, and Plus Messenger's s0, u0 and C.
             val (itemType, menuType, adder) = when {
                 name.contains("-73039") || name.contains("-73031") ->
                     Triple("Lorg/telegram/ui/ActionBar/r0;", "Lorg/telegram/ui/ActionBar/t0;", "z")
+                name.startsWith("plus-") -> Triple("Lorg/telegram/ui/ActionBar/s0;", "Lorg/telegram/ui/ActionBar/u0;", "C")
                 else -> Triple("Lorg/telegram/ui/ActionBar/v0;", "Lorg/telegram/ui/ActionBar/x0;", "u")
             }
             assertEquals("$name: the stock lazy item adder", "$menuType->$adder(IILjava/lang/String;)$itemType", site.lazyAdd.toString())

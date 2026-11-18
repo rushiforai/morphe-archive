@@ -36,6 +36,7 @@ result=$(adb -s "$serial" shell "CLASSPATH=$remote/probe.jar:$remote/app.apk app
 printf '%s\n' "$result"
 [[ "$result" == *"PASS: Show video stats"* || "$result" == *"SKIP: Show video stats"* ]] &&
     [[ "$result" == *"PASS: Mute stitched live ads"* || "$result" == *"SKIP: Mute stitched live ads"* ]] &&
+    [[ "$result" == *"PASS: Refresh stream"* || "$result" == *"SKIP: Refresh stream"* ]] &&
     [[ "$result" != *"Exception"* && "$result" != *"Error"* ]] || die "player probe did not pass"
 result=$(adb -s "$serial" shell "CLASSPATH=$remote/probe.jar:$remote/app.apk app_process /system/bin SettingsLinkProbe $remote/app.apk" 2>&1) ||
     true

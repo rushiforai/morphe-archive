@@ -71,16 +71,16 @@ Load the local `.mpp` before testing it on a
 target APK. Do not run `generatePatchesList` merely to validate loading:
 that task replaces the release-managed `patches-list.json`.
 
-The `Liquid Glass bottom bar` and `Library import, export and downloads`
-patches target Apple Music `com.apple.android.music` 7.0.0 (1614).
-Their tested input is a merged APK from an arm64 split set; direct APKM/XAPK
-support is not declared. The patches can be selected independently.
+The Apple Music patches target `com.apple.android.music` 7.0.0 (1614) and
+7.0.1 (1622). Their tested input is an APK merged from an arm64 split set.
+Merge APKM or XAPK splits before applying the patches. Each patch can be
+selected independently.
 Android 13+ provides live refraction. Older versions retain the native blur;
 that fallback has not been verified on a device.
 
 ### Library metadata repair
 
-`Repair Japanese library metadata` is a separate Apple Music 7.0.0 patch.
+`Repair Japanese library metadata` is a separate Apple Music patch.
 It adds a settings entry that scans existing cloud library items, compares
 their exact catalog IDs with Japanese catalog data, and previews metadata
 changes before selected or bulk repair. Playlist-only items are excluded.

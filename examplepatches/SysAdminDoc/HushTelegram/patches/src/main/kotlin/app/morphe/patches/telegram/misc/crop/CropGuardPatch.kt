@@ -79,7 +79,7 @@ val cropGuardPatch = bytecodePatch(
 ) {
     category("Fixes")
     dependsOn(settingsPatch, telegramExtensionPatch)
-    compatibleWith(*AppCompatibilities.telegramOnly())
+    compatibleWith(*AppCompatibilities.telegram())
     execute {
         val sites = resolveCropGuard()
         // Assembled on copies first, so a refusal leaves the app untouched.
@@ -298,13 +298,15 @@ internal fun BytecodePatchContext.resolveCropGuard(): CropGuardSites {
     val cropped = (body[bake + 1] as OneRegisterInstruction).registerA
 
     // The crop the copy is drawn with: read off the photo's edit state and handed to the viewer's just before.
+    // Plus's viewer state is a class R8 merged with others, its fields all typed Object; the check on
+    // viewLoad below still ties the field to the viewer's own state.
     val crop = (body[bake] as? FiveRegisterInstruction)?.registerD ?: ((body[bake] as RegisterRangeInstruction).startRegister + 1)
     val cropRead = (0 until bake).lastOrNull { body[it].writes(crop) } ?: -1
     controlShape(cropRead >= 0 && body[cropRead].opcode == Opcode.IGET_OBJECT && body[cropRead].controlRef() == CROP_STATE_WRITE,
         "the photo editor's cropped copy no longer takes the photo's own crop")
     val viewShare = (cropRead + 1 until bake).filter { at ->
         body[at].opcode == Opcode.IPUT_OBJECT && (body[at] as OneRegisterInstruction).registerA == crop &&
-            body[at].controlRef()?.endsWith(":$CROP_STATE") == true
+            body[at].controlRef()?.let { it.endsWith(":$CROP_STATE") || it.endsWith(":Ljava/lang/Object;") } == true
     }.controlSingle("the viewer's copy of the photo's crop")
     val photoState = (body[cropRead] as TwoRegisterInstruction).registerB
     val viewState = (body[viewShare] as TwoRegisterInstruction).registerB

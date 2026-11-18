@@ -8,21 +8,21 @@ fun main(args: Array<String>) {
     val bundle = HermesBundle(stock)
     check(bundle.function("global").flags and 8 != 0) { "HBC98 full header lost exception flag" }
     check(bundle.function("applyModeration").flags and 8 != 0)
-    // Metro module numbers of Twitch 31.8.0; production code finds each by its exports.
-    check(bundle.metroModule(listOf("createElement", "useContext", "memo")) == 73)
-    check(bundle.metroModule(listOf("NativeModules", "View", "Text", "StyleSheet"), false) == 5)
-    check(bundle.metroModule(listOf("ChatTextMetricsContext", "ChatFontScaleContext")) == 3282)
-    check(bundle.metroModule(listOf("ChatMessageRow")) == 3281)
-    check(bundle.metroModule(listOf("useChatStore", "useChatSelector")) == 3302)
-    check(bundle.metroModule(listOf("MessageBody")) == 3483)
-    check(bundle.metroModule(listOf("TimestampPart", "formatTimestamp")) == 3476)
-    check(bundle.metroModule(listOf("badgeKey", "buildBadgeRegistry")) == 3478)
-    check(bundle.metroModule(listOf("useClassicStagePresentation")) == 4946)
-    check(bundle.metroModule(listOf("useColumnTrackWidth", "COLUMN_TRANSITION_MS")) == 4949)
-    check(bundle.metroModule(listOf("OneChatOverlayHost")) == 4910)
-    check(bundle.metroModule(listOf("useTheatreChatStore")) == 4484)
-    check(bundle.metroModule(listOf("ClassicChatColumn")) == 4166)
-    check(bundle.metroModule(listOf("ChatArea")) == 4482)
+    // Metro module numbers of Twitch 32.1.0; production code finds each by its exports.
+    bundle.metroModule(listOf("createElement", "useContext", "memo")).let { check(it == 73) { "listOf(createElement, useContext, memo): $it" } }
+    bundle.metroModule(listOf("NativeModules", "View", "Text", "StyleSheet"), false).let { check(it == 5) { "listOf(NativeModules, View, Text, StyleSheet): $it" } }
+    bundle.metroModule(listOf("ChatTextMetricsContext", "ChatFontScaleContext")).let { check(it == 3408) { "listOf(ChatTextMetricsContext, ChatFontScaleContext): $it" } }
+    bundle.metroModule(listOf("ChatMessageRow")).let { check(it == 3407) { "listOf(ChatMessageRow): $it" } }
+    bundle.metroModule(listOf("useChatStore", "useChatSelector")).let { check(it == 3427) { "listOf(useChatStore, useChatSelector): $it" } }
+    bundle.metroModule(listOf("MessageBody")).let { check(it == 3613) { "listOf(MessageBody): $it" } }
+    bundle.metroModule(listOf("TimestampPart", "formatTimestamp")).let { check(it == 3600) { "listOf(TimestampPart, formatTimestamp): $it" } }
+    bundle.metroModule(listOf("badgeKey", "buildBadgeRegistry")).let { check(it == 3605) { "listOf(badgeKey, buildBadgeRegistry): $it" } }
+    bundle.metroModule(listOf("useClassicStagePresentation")).let { check(it == 5282) { "listOf(useClassicStagePresentation): $it" } }
+    bundle.metroModule(listOf("useColumnTrackWidth", "COLUMN_TRANSITION_MS")).let { check(it == 5284) { "listOf(useColumnTrackWidth, COLUMN_TRANSITION_MS): $it" } }
+    bundle.metroModule(listOf("OneChatOverlayHost")).let { check(it == 5122) { "listOf(OneChatOverlayHost): $it" } }
+    bundle.metroModule(listOf("useTheatreChatStore")).let { check(it == 4779) { "listOf(useTheatreChatStore): $it" } }
+    bundle.metroModule(listOf("ClassicChatColumn")).let { check(it == 4285) { "listOf(ClassicChatColumn): $it" } }
+    bundle.metroModule(listOf("ChatArea")).let { check(it == 4662) { "listOf(ChatArea): $it" } }
     val donorBytes=File(args[1]).readBytes()
     val donor=HermesBundle(donorBytes,compiledPredicate=true)
     val predicate=donor.function("lurkDelayedPredicate")

@@ -397,8 +397,8 @@ def run_suite():
 
     ok_btn = (
         'key.startsWith("rex_")' not in btext
-        and len(route_items) == 23
-        and len(action_items) in (43, 44, 46, 49, 51, 54)
+        and len(route_items) in (23, 25)
+        and len(action_items) in (43, 44, 46, 49, 51, 54, 70)
         and "PRIMARY_ACTION_KEYS" in btext
         and "DESTRUCTIVE_ACTION_KEYS" in btext
         and ("0xFF3998E8" in style_text or "0xFF2D95E8" in style_text)
@@ -446,7 +446,7 @@ def run_suite():
         "BTN-REG-02",
         "Button & Route Registry",
         f"All {len(sb_button_keys)} ScreenBuilder buttonPreference declarations registered",
-        "PASS" if (len(sb_button_keys) in (51, 54, 56, 61) and not missing_btn_keys) else "FAIL",
+        "PASS" if (len(sb_button_keys) in (51, 54, 56, 61, 81) and not missing_btn_keys) else "FAIL",
         f"All {len(sb_button_keys)} buttonPreference declarations in ScreenBuilder are explicitly registered in ButtonPref"
         if not missing_btn_keys else f"Unregistered keys: {missing_btn_keys}",
     )
@@ -940,6 +940,32 @@ def run_suite():
                 cross_cls_errors.append(f"{rel}: {tfqcn}.{member} missing")
             elif info["pkg"] != pkg and member not in info["public_members"]:
                 cross_cls_errors.append(f"{rel}: {tfqcn}.{member} not public")
+        # Also check instance method calls on uniquely-named local variables/fields whose declared type is a known repo class
+        all_var_types = {}
+        for vm in re.finditer(r'\b([A-Z]\w+)\s+([a-z]\w*)\s*[=;,)]', clean):
+            tname, vname = vm.group(1), vm.group(2)
+            all_var_types.setdefault(vname, set()).add(tname)
+        var_types = {}
+        for vname, tset in all_var_types.items():
+            if len(tset) == 1:
+                tname = next(iter(tset))
+                tfqcn = imports.get(tname) or (f"{pkg}.{tname}" if f"{pkg}.{tname}" in java_classes else None)
+                if tfqcn and tfqcn in java_classes and ('.entity.' in tfqcn or '.devFlags.' in tfqcn or '.feature.' in tfqcn):
+                    var_types[vname] = tfqcn
+        for im in re.finditer(r'(?<![.\w])([a-z]\w*)\.(\w+)\s*\(', clean):
+            vname, mname = im.group(1), im.group(2)
+            if vname in var_types:
+                tfqcn = var_types[vname]
+                info = java_classes[tfqcn]
+                # Check class and superclasses (e.g., Entity)
+                found_m = mname in info["members"]
+                if not found_m:
+                    for super_fqcn, sinfo in java_classes.items():
+                        if (super_fqcn.endswith(".Entity") or super_fqcn.endswith(".MediaInterface")) and mname in sinfo["members"]:
+                            found_m = True
+                            break
+                if not found_m and mname not in ("equals", "hashCode", "toString", "getClass", "notifyChanged", "getKey", "setTitle", "setSummary", "getExtras", "setEnabled", "isEnabled", "getContext"):
+                    cross_cls_errors.append(f"{rel}: instance {tfqcn}.{mname}() missing on {vname}")
         for m in re.finditer(r'(?<![.\w])([A-Z]\w+)\.(\w+)\b', clean):
             cname, member = m.group(1), m.group(2)
             if member in ("class", "this", "super", "new"):

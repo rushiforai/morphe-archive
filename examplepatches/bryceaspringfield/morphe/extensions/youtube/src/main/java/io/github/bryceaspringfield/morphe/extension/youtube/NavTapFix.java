@@ -86,6 +86,10 @@ final class NavTapFix {
                 // turns selected while the old page stays on screen. Either way the page list is the same view.
                 View now = page(v.getRootView());
                 boolean samePage = before != null && now == before && before.isShown();
+                // A different page list shows: the tap worked, the bar's highlight may lag, and a repeat would switch pages
+                // twice (2026-11-18: the bar highlighted Home while Subscriptions showed).
+                boolean switched = before != null && now != null && now != before;
+                if (switched) return;
                 if (!v.isSelected() || samePage) {
                     Logger.printDebug(() -> "YouTube Extras: bottom bar tap repeated for " + desc(v)
                             + (samePage ? " (same page shown)" : " (button not selected)"));

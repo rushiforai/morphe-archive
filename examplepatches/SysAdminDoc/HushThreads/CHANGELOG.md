@@ -2,6 +2,10 @@
 
 Changes in the source build, then released versions.
 
+## Unreleased
+
+* **Tooling:** The GitHub release notes carry the Threads bullets and the update steps now. The Docs and Tooling bullets stay here in the changelog, and the notes no longer end with a Validation section.
+
 ## 0.0.18 (2026-11-13)
 
 * Meta's own Instagram won't open Threads posts in HushThreads, and the note about it under Links in HushThreads settings now tells you what to do instead. Patch Instagram with HushGram in the same Morphe Manager so both share one key, and Instagram opens Threads posts and profiles right in HushThreads. Asked about in #8.

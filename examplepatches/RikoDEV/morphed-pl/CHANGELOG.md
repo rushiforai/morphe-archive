@@ -1,3 +1,21 @@
+## [1.7.5](https://github.com/RikoDEV/morphed-pl/compare/v1.7.4...v1.7.5) (2026-11-18)
+
+### 🐛 Bug Fixes
+
+* add support for InPost 4.24.0, resolves [#27](https://github.com/RikoDEV/morphed-pl/issues/27) ([791425e](https://github.com/RikoDEV/morphed-pl/commit/791425eea4eb6c94809e61f0b805c135559f5c7c))
+
+## [1.7.4](https://github.com/RikoDEV/morphed-pl/compare/v1.7.3...v1.7.4) (2026-11-18)
+
+### 🐛 Bug Fixes
+
+* add Żappka 4.51.2 support and home screen patches ([904006b](https://github.com/RikoDEV/morphed-pl/commit/904006b6e666a2fa6b34e049e59ad4a620a01738))
+
+## [1.7.4](https://github.com/RikoDEV/morphed-pl/compare/v1.7.3...v1.7.4) (2026-11-18)
+
+### 🐛 Bug Fixes
+
+* add Żappka 4.51.2 support and home screen patches ([904006b](https://github.com/RikoDEV/morphed-pl/commit/904006b6e666a2fa6b34e049e59ad4a620a01738))
+
 ## [1.7.3](https://github.com/RikoDEV/morphed-pl/compare/v1.7.2...v1.7.3) (2026-11-17)
 
 ### 🐛 Bug Fixes

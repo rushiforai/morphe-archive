@@ -2,8 +2,9 @@ package app.zeldrisho.patches.zalo.backup
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.packageMetadata
 import app.morphe.patcher.util.returnEarly
-import app.zeldrisho.patches.shared.Constants.COMPATIBILITY_ZALO_261002
+import app.zeldrisho.patches.shared.Constants.COMPATIBILITY_ZALO_261002_AND_EXPERIMENTAL
 import app.zeldrisho.patches.zalo.navigation.zeldrisSettingsPatch
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.ThreeRegisterInstruction
@@ -15,12 +16,15 @@ val runtimeZaloBackupIntervalPatch = bytecodePatch(
     description = "Adds a backup interval choice in Zeldris Patches. Native is the default; existing backup requirements apply.",
     default = true,
 ) {
-    compatibleWith(COMPATIBILITY_ZALO_261002)
+    compatibleWith(COMPATIBILITY_ZALO_261002_AND_EXPERIMENTAL)
     dependsOn(zeldrisSettingsPatch)
 
     execute {
-        val scheduler = BackupScheduler261002.matchAll(1..1).single().method
-        val (resultIndex, register) = locateBackupInterval(scheduler, version261002 = true)
+        val version261101 = packageMetadata.versionName == "26.11.01"
+        val scheduler = (if (version261101) BackupScheduler261101 else BackupScheduler261002)
+            .matchAll(1..1).single().method
+        val getter = if (version261101) BACKUP_INTERVAL_GETTER_261101 else BACKUP_INTERVAL_GETTER_261002
+        val (resultIndex, register) = locateBackupInterval(scheduler, getter)
         val instructions = scheduler.implementation?.instructions?.toList()
             ?: error("Zalo backup interval: scheduler has no implementation")
         val comparison = instructions.getOrNull(resultIndex + 1)

@@ -6,6 +6,7 @@
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-18.
  * Written by lavinhoque33, 2026-11-13.
  */
 
@@ -71,6 +72,11 @@ public class GlassCapsuleDrawable extends Drawable {
          *         such as the Shorts player. The bar is then kept black around the capsule.
          */
         default boolean isOverDarkPlayer() {
+            return false;
+        }
+
+        /** Uses the dark player glass colors without painting black outside the capsule. */
+        default boolean isOverVideo() {
             return false;
         }
 
@@ -338,7 +344,7 @@ public class GlassCapsuleDrawable extends Drawable {
      * Updates the colors if the theme changed or the bar moved over or away from a dark player.
      */
     public void updateStyle() {
-        final int newStyle = host.isOverDarkPlayer()
+        final int newStyle = host.isOverDarkPlayer() || host.isOverVideo()
                 ? STYLE_DARK_PLAYER
                 : BaseThemeUtils.isDarkModeEnabled() ? STYLE_DARK : STYLE_LIGHT;
         if (newStyle == style) return;
@@ -490,7 +496,7 @@ public class GlassCapsuleDrawable extends Drawable {
             // The dark player can end above the navigation bar, so the background of the window
             // would show around the capsule, which is white with the light theme.
             // The player is always dark, so the bar is kept black around the capsule.
-            if (style == STYLE_DARK_PLAYER) {
+            if (style == STYLE_DARK_PLAYER && !host.isOverVideo()) {
                 canvas.drawColor(Color.BLACK);
             }
 

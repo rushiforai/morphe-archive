@@ -182,5 +182,11 @@ public class Settings {
     public static final BooleanSetting REELS_FLOATING_TOOLBAR = new BooleanSetting("reels_floating_toolbar", true, NOT_REQUIRED);
     public static final BooleanSetting STORY_FILTERS_MASTER = new BooleanSetting("story_filters_master", true, NOT_REQUIRED);
     public static final BooleanSetting CUSTOM_HOME_WORDMARK = new BooleanSetting("custom_home_wordmark", true, NOT_REQUIRED);
-    public static final BooleanSetting LIQUID_GLASS_NAV = new BooleanSetting("xboyrex_glass_tab_bar", false, REQUIRED);
+    public static final BooleanSetting LIQUID_GLASS_NAV = new BooleanSetting("xboyrex_glass_tab_bar", true, REQUIRED);
+    public static final BooleanSetting AUTO_CACHE_CLEAN_ENABLED = new BooleanSetting("rex_auto_cache_clean_enabled", false, NOT_REQUIRED);
+    public static final StringSetting CACHE_CLEAN_LIMIT_MB = new StringSetting("rex_cache_clean_limit_mb", "1024", NOT_REQUIRED);
+    public static final BooleanSetting ENABLE_APP_FONT = new BooleanSetting("rex_enable_app_font", true, NOT_REQUIRED);
+    public static final BooleanSetting ENABLE_STORY_FONTS = new BooleanSetting("rex_enable_story_fonts", true, NOT_REQUIRED);
+    public static final StringSetting STORY_FONT_SOURCE = new StringSetting("rex_story_font_source", "XBOYREX Story Font Pack", NOT_REQUIRED);
+    public static final BooleanSetting ENABLE_EMOJI_FONT = new BooleanSetting("rex_enable_emoji_font", true, NOT_REQUIRED);
 }

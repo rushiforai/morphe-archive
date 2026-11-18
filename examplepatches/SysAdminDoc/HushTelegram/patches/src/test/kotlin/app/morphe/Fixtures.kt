@@ -11,8 +11,10 @@
  */
 package app.morphe
 
+import app.morphe.patcher.patch.ApkFileType
 import app.morphe.patches.shared.compat.AppCompatibilities
 import java.io.File
+import java.util.zip.ZipFile
 import org.junit.Assert.fail
 import org.junit.Assume.assumeTrue
 
@@ -72,6 +74,24 @@ internal object Fixtures {
         AppCompatibilities.TELEGRAM_WEB_PACKAGE -> "telegram-web"
         AppCompatibilities.PLUS_PACKAGE -> "plus"
         else -> error("No vendor fixture naming rule for $packageName")
+    }
+
+    /**
+     * The file that carries the vendor's signature. An `.apkm` fixture is its splits merged into one
+     * APK, as Manager merges them, and merging drops the signature, so the base APK comes out of the
+     * vendor's `.apkm` kept beside it, into a temporary file the caller deletes.
+     */
+    fun vendorSigned(fixture: File): File {
+        val compatibility = AppCompatibilities.telegram().single { fixture.name.startsWith("${prefix(it.packageName)}-") }
+        if (compatibility.apkFileType != ApkFileType.APKM) return fixture
+        val bundle = File(fixture.parentFile, fixture.nameWithoutExtension + ".apkm")
+        if (!bundle.isFile) fail("${fixture.name} needs the vendor's ${bundle.name} beside it")
+        val base = File.createTempFile("vendor-base", ".apk")
+        ZipFile(bundle).use { zip ->
+            val entry = checkNotNull(zip.getEntry("base.apk")) { "${bundle.name} holds no base.apk" }
+            zip.getInputStream(entry).use { input -> base.outputStream().use { input.copyTo(it) } }
+        }
+        return base
     }
 
     private val callers = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE)

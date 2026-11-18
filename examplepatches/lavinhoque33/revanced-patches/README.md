@@ -202,8 +202,8 @@ Local imports do not update automatically; import the new `.mpp` for each update
 | `Hide action bar components` | Adds options to hide action bar components and replace the offline download button with an external download button. | 9.40.51 ~ 8.12.54 |
 | `Hide ads` | Adds options to hide ads. | 9.40.51 ~ 8.12.54 |
 | `Hide layout components` | Adds options to hide general layout components. | 9.40.51 ~ 8.12.54 |
-| `Hide overlay filter` | Removes, at compile time, the dark overlay that appears when player flyout menus are open. | 9.40.51 ~ 8.12.54 |
-| `Hide player overlay filter` | Removes, at compile time, the dark overlay that appears when single-tapping in the player. | 9.40.51 ~ 8.12.54 |
+| `Hide overlay filter` | Adds an option to hide the dark overlay behind player flyout menus. | 9.40.51 ~ 8.12.54 |
+| `Hide player overlay filter` | Adds an option to hide the dark overlay behind the player controls. | 9.40.51 ~ 8.12.54 |
 | `Jam queue sharing` | Shares the host queue and playback controls through an authenticated Jam bridge. Root installation is not supported. | 9.40.51 ~ 8.12.54 |
 | `Media notification controls` | Adds options to disable the seekbar and previous/next buttons in the media notification and headphone controls. | 9.40.51 ~ 8.12.54 |
 | `Navigation bar components` | Adds options to hide or change components related to the navigation bar. | 9.40.51 ~ 8.12.54 |

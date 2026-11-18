@@ -8,7 +8,6 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.PlusPending
 import app.morphe.patches.telegram.misc.blocked.BLOCKED_TYPE
 import app.morphe.patches.telegram.misc.blocked.MESSAGE_OBJECT
 import app.morphe.patches.telegram.misc.blocked.MIGRATE_TO
@@ -41,7 +40,6 @@ import org.junit.Test
 private const val NOTIFICATION_CENTER = "Lorg/telegram/messenger/NotificationCenter;"
 
 /** Hide for me: its hook at the open chat's three type tests, beside the other two patches' hooks, and the stubs that reach Telegram. */
-@PlusPending
 class HideForMeFixtureTest {
     @Test fun `the hidden list answers each type test and the stubs reach Telegram's own`() {
         for (build in Fixtures.declaredBuilds()) {

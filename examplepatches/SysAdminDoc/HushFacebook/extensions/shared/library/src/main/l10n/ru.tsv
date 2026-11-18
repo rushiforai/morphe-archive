@@ -90,7 +90,7 @@ The settings file was saved, but it doesn't match what Hushfacebook wrote. Save 
 There's no app here that can open or share this saved file.	На устройстве нет приложения, которое может открыть этот сохраненный файл или поделиться им.
 # context: line at the top of a settings page while paused; Lock Facebook keeps working while paused
 Until you resume, every switch but Debug logging and Lock Facebook acts as if it were off. Changes made when you patched stay in.	Пока вы не возобновите работу, все переключатели, кроме «Журнал отладки» и «Блокировка Facebook», будут считаться выключенными. Изменения, внесенные при патчинге, сохраняются.
-Shows your phone's own emoji instead of Facebook's. Reactions and stickers don't change. Restart Facebook to see the change.	Использует эмодзи телефона вместо эмодзи Facebook. Реакции и стикеры не меняются. Перезапустите Facebook, чтобы увидеть изменения.
+Shows your phone's own emoji instead of Facebook's, or the ones in a font file you choose below. Reactions and stickers don't change. Restart Facebook to see the change.	Использует эмодзи телефона вместо эмодзи Facebook или эмодзи из файла шрифта, который вы выберете ниже. Реакции и стикеры не меняются. Перезапустите Facebook, чтобы увидеть изменения.
 # context: switch title under Appearance; the tab bar is Facebook's row of tabs, Home, Video, Marketplace and the rest
 Tab bar at the bottom	Панель вкладок внизу
 # context: switch title under Appearance, next to Tab bar at the bottom; puts Facebook's row of tabs at the top of the screen
@@ -1386,6 +1386,8 @@ Save photo	Сохранить фото
 Save video	Сохранить видео
 # context: menu item in a post's three-dot menu that saves every photo of a post with several photos
 Save all photos	Сохранить все фото
+# context: menu item in a post's three-dot menu that saves every video of a post with several videos
+Save all videos	Сохранить все видео
 # context: short message shown when the photos of a post could not start saving
 Couldn't save this post's photos. Try again in a moment.	Не удалось сохранить фото из этой публикации. Повторите попытку позже.
 # context: row in a comment's long-press sheet that saves the GIF the comment holds; keep it short like Save photo
@@ -2782,9 +2784,9 @@ Hide pictures on the Blocked list	Скрывать фото в списке за
 People you've blocked show without their profile pictures on the Blocking page in Facebook's settings. Reopen the page if it's already open.	Заблокированные вами люди показываются без фото профиля на странице блокировки в настройках Facebook. Если страница уже открыта, откройте её заново.
 Hide Up next on videos	Скрывать «Далее» в видео
 Takes the UP NEXT bar with the next video off the bottom of a video you open from the feed, and the empty space kept for it, so the seek bar stays at the bottom. A change shows from the next video you open.	Убирает полосу ДАЛЕЕ со следующим видео внизу видео, открытого из Ленты, вместе с пустым местом под неё, так что шкала воспроизведения остаётся внизу. Изменение действует со следующего видео, которое вы откроете.
-Icons look soft on this screen. Repatch with the 240-640dpi bundle.	Значки на этом экране выглядят размытыми. Повторите патчинг с пакетом 240-640dpi.
+Icons look soft on this screen. Repatch with the 120-480dpi bundle.	Значки на этом экране выглядят размытыми. Повторите патчинг с пакетом 120-480dpi.
 Icons look soft on this screen	Значки на этом экране выглядят размытыми
-The Facebook you patched has no images made for this screen, so some icons are enlarged. Patch Facebook again from the (arm64-v8a) (240-640dpi) bundle on APKMirror, which has images for every screen.	В пропатченном вами Facebook нет изображений для этого экрана, поэтому некоторые значки увеличены. Пропатчите Facebook заново из пакета (arm64-v8a) (240-640dpi) с APKMirror, в котором есть изображения для любого экрана.
+The Facebook you patched has no images made for this screen, so some icons are enlarged. Patch Facebook again from the (arm64-v8a) (120-480dpi) bundle on APKMirror, which has images for every screen.	В пропатченном вами Facebook нет изображений для этого экрана, поэтому некоторые значки увеличены. Пропатчите Facebook заново из пакета (arm64-v8a) (120-480dpi) с APKMirror, в котором есть изображения для любого экрана.
 Let each post come back once	Показывать каждую публикацию ещё раз
 A post you scrolled past shows up one more time, and scrolling past it again hides it. Fewer posts go missing after a quick scroll.	Публикация, мимо которой вы прокрутили, появится ещё один раз, а если снова прокрутить мимо, она будет скрыта. Так после быстрой прокрутки теряется меньше публикаций.
 There's no Facebook link in what you shared.	В том, чем вы поделились, нет ссылки на Facebook.
@@ -3011,3 +3013,50 @@ Ask before reacting to a story	Спрашивать перед реакцией 
 A tap on a reaction at the bottom of a story asks first, and the story waits. Only Continue sends the reaction.	Нажатие на реакцию внизу Истории сначала спрашивает, и История ждёт. Только «Продолжить» отправляет реакцию.
 # context: the question shown after a tap on a reaction at the bottom of a story; Continue sends the reaction, Cancel leaves it
 React to this story?	Отреагировать на эту Историю?
+# context: In-app proxy, an HTTP proxy address (host:port) Facebook's connections go through
+In-app proxy	Прокси в приложении
+The address and port of an HTTP proxy for Facebook's connections, like %1$s. The local proxy port of a VLESS or V2Ray app such as v2rayNG works here. Leave it blank to connect the way your phone does.	Адрес и порт HTTP-прокси для соединений Facebook, например %1$s. Подойдёт локальный порт прокси приложения VLESS или V2Ray, например v2rayNG. Оставьте пустым, чтобы подключаться как обычно на телефоне.
+Type an HTTP proxy's address and port, like %1$s.	Введите адрес и порт HTTP-прокси, например %1$s.
+Facebook connects the way your phone does. Type a proxy's address and port to send its connections through it.	Facebook подключается так же, как телефон. Введите адрес и порт прокси, чтобы его соединения шли через него.
+Facebook's connections go through the proxy at %1$s.	Соединения Facebook идут через прокси %1$s.
+# context: switch title on the Downloads page; on, a tap on a download button asks first
+Ask before downloading	Спрашивать перед скачиванием
+A reel's Download button, the Download button under a post and a video's Download to phone ask first, so a stray tap saves nothing. With Choose quality on each save on, a video's list of qualities does the asking.	Кнопка «Скачать» у Reels, кнопка «Скачать» под публикацией и «Скачать на телефон» у видео сначала спрашивают, так что случайное нажатие ничего не сохранит. Если включено «Выбирать качество при каждом сохранении», для видео вопросом служит список качества.
+# context: the question over the screen after a tap on a download button, answered Continue or Cancel
+Start this download?	Начать это скачивание?
+# context: the settings row that opens a file picker for a font holding emoji
+Emoji font file	Файл шрифта эмодзи
+# context: the settings row that deletes the saved emoji font and goes back to the phone's emoji
+Remove emoji font file	Удалить файл шрифта эмодзи
+# context: under Remove emoji font file while Use the phone's emoji is on
+Removes the saved emoji font file. Restart Facebook to use your phone's emoji.	Удаляет сохраненный файл шрифта эмодзи. Перезапустите Facebook, чтобы использовать эмодзи телефона.
+# context: under Remove emoji font file while Use the phone's emoji is off
+Removes the saved emoji font file. Use the phone's emoji stays off.	Удаляет сохраненный файл шрифта эмодзи. Настройка «Использовать эмодзи телефона» остается выключенной.
+# context: under Emoji font file with nothing picked; %1$d is a number of megabytes
+No file chosen. Choose a .ttf or .otf emoji font of up to %1$d MB.	Файл не выбран. Выберите шрифт эмодзи .ttf или .otf размером не более %1$d МБ.
+# context: under Emoji font file; %1$s is the file's name
+Selected %1$s. Emoji changes apply after restarting Facebook.	Выбран %1$s. Изменения эмодзи вступят в силу после перезапуска Facebook.
+# context: under Emoji font file while the switch is off; %1$s is the file's name
+Selected %1$s. Use the phone's emoji is off. Turn it on and restart Facebook to use this file.	Выбран %1$s. Настройка «Использовать эмодзи телефона» выключена. Включите ее и перезапустите Facebook, чтобы использовать этот файл.
+# context: toast after an emoji font is picked; %1$s is the file's name
+Selected %1$s. Restart Facebook to apply the emoji change.	Выбран %1$s. Перезапустите Facebook, чтобы применить изменение эмодзи.
+# context: toast after an emoji font is picked while the switch is off; %1$s is the file's name
+Selected %1$s. Turn on Use the phone's emoji and restart Facebook to use it.	Выбран %1$s. Включите «Использовать эмодзи телефона» и перезапустите Facebook, чтобы применить его.
+# context: under Emoji font file while the picked file is copied
+Copying the emoji font file	Копирование файла шрифта эмодзи
+# context: toast when the file picked as an emoji font isn't a font
+That isn't a .ttf or .otf font file. Your emoji didn't change.	Это не файл шрифта .ttf или .otf. Эмодзи не изменены.
+# context: toast when the emoji font is too large; %1$d is a number of megabytes
+That font file is over %1$d MB. Your emoji didn't change.	Размер файла шрифта превышает %1$d МБ. Эмодзи не изменены.
+# context: toast when Android can't load the picked emoji font
+Android couldn't use that font file. Your emoji didn't change.	Android не удалось использовать этот файл шрифта. Эмодзи не изменены.
+# context: toast when the font picked as an emoji font is a text font
+That font has no emoji in it. Your emoji didn't change.	В этом шрифте нет эмодзи. Эмодзи не изменены.
+# context: toast when the picked emoji font can't be read
+Couldn't open that file. Your emoji didn't change.	Не удалось открыть этот файл. Эмодзи не изменены.
+# context: toast after Remove emoji font file
+Emoji font file cleared. Restart Facebook to apply the emoji change.	Файл шрифта эмодзи удален. Перезапустите Facebook, чтобы применить изменение эмодзи.
+# context: toast when Remove emoji font file fails
+Couldn't go back to your phone's emoji. Try again.	Не удалось вернуться к эмодзи телефона. Повторите попытку.
+# context: toast when the app holding the emoji font doesn't answer in time
+The app holding that font file is taking too long, so Hushfacebook stopped waiting. Your emoji didn't change.	Приложение, в котором находится файл шрифта, слишком долго не отвечает, поэтому Hushfacebook прекратил ожидание. Эмодзи не изменены.

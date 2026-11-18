@@ -23,13 +23,15 @@ private object MixpanelOptedOutFingerprint : Fingerprint(
 )
 
 /**
- * Insider's init, called from KompasComApp.onCreate. Without it the SDK never starts a session or sends the events
- * the app logs (they stay queued in memory); its marketing pushes are still shown through the app's messaging service.
+ * Insider.init(Application, String), called from KompasComApp.onCreate with the partner name. Without it the SDK never
+ * starts a session or sends the events the app logs (they stay queued in memory); its marketing pushes are still shown
+ * through the app's messaging service.
  */
 private object InsiderInitFingerprint : Fingerprint(
+    definingClass = "Lcom/useinsider/insider/Insider;",
+    name = "init",
     returnType = "V",
-    parameters = listOf("Lcom/ertanto/kompas/official/KompasComApp;"),
-    strings = listOf("kompasindonesia"),
+    parameters = listOf("Landroid/app/Application;", "Ljava/lang/String;"),
 )
 
 @Suppress("unused")
@@ -69,7 +71,7 @@ val disableAnalyticsPatch = patch(
                 }
             }
         }
-        // init, three start overloads and two logEvent overloads.
-        if (stubbed != 6) throw PatchException("Kompas: expected 6 AppsFlyer entry points, found $stubbed")
+        // init, two start overloads and two logEvent overloads.
+        if (stubbed != 5) throw PatchException("Kompas: expected 5 AppsFlyer entry points, found $stubbed")
     }
 }

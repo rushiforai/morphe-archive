@@ -5,6 +5,7 @@
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-18.
  * Written by lavinhoque33, 2026-11-13.
  */
 
@@ -15,6 +16,7 @@ import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.RecordingCanvas;
 import android.graphics.RenderEffect;
+import android.graphics.RectF;
 import android.graphics.RenderNode;
 import android.graphics.Shader;
 import android.os.Build;
@@ -22,6 +24,8 @@ import android.view.View;
 
 import androidx.annotation.ColorInt;
 import androidx.annotation.RequiresApi;
+
+import java.util.List;
 
 /**
  * The content behind a glass capsule, recorded again for each frame into a blurred render node.
@@ -96,6 +100,39 @@ public final class GlassBackdrop {
             recording.drawColor(background);
             recording.translate(sourceLocation[0] - targetLocation[0], sourceLocation[1] - targetLocation[1]);
             source.draw(recording);
+        } finally {
+            node.endRecording();
+        }
+        canvas.drawRenderNode(node);
+    }
+
+    /** Draws only the region needed for the capsule, with room to sample beyond its edges. */
+    public void draw(Canvas canvas, View target, List<View> sources, RectF area, @ColorInt int background) {
+        final int left = (int) Math.floor(area.left);
+        final int top = (int) Math.floor(area.top);
+        final int right = (int) Math.ceil(area.right);
+        final int bottom = (int) Math.ceil(area.bottom);
+
+        target.getLocationInWindow(targetLocation);
+        node.setPosition(left, top, right, bottom);
+        RecordingCanvas recording = node.beginRecording(right - left, bottom - top);
+        try {
+            recording.drawColor(background);
+            for (int index = 0, count = sources.size(); index < count; index++) {
+                View source = sources.get(index);
+                source.getLocationInWindow(sourceLocation);
+                final int x = sourceLocation[0] - targetLocation[0] - left;
+                final int y = sourceLocation[1] - targetLocation[1] - top;
+                if (x >= right - left || y >= bottom - top
+                        || x + source.getWidth() <= 0 || y + source.getHeight() <= 0) {
+                    continue;
+                }
+
+                final int save = recording.save();
+                recording.translate(x, y);
+                source.draw(recording);
+                recording.restoreToCount(save);
+            }
         } finally {
             node.endRecording();
         }

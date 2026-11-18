@@ -8,7 +8,6 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.PlusPending
 import app.morphe.util.names.origRef
 import app.morphe.util.names.addInstructionsWithLabels
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
@@ -16,6 +15,7 @@ import app.morphe.patches.telegram.misc.extension.PatchLogCapture
 import app.morphe.patches.telegram.misc.extension.SETTINGS_STATUS
 import app.morphe.patches.telegram.misc.localcontrols.controlBody
 import app.morphe.patches.telegram.misc.localcontrols.controlRef
+import app.morphe.patches.telegram.misc.localcontrols.controlString
 import app.morphe.util.ControlFlow
 import app.morphe.util.call
 import app.morphe.util.namedRegisters
@@ -43,7 +43,6 @@ import app.morphe.util.names.origType
 import app.morphe.util.names.tgMutableClassDefBy
 
 /** The places the questions stand, the call sites that move, the stubs that run the stock work again, and the runtime. */
-@PlusPending
 class SendConfirmFixtureTest {
     private val callParameters = listOf(
         "Lorg/telegram/tgnet/TLRPC\$User;", "Z", "Z", "Landroid/app/Activity;", "Lorg/telegram/tgnet/TLRPC\$UserFull;",
@@ -68,6 +67,37 @@ class SendConfirmFixtureTest {
     private val WIDE_GOTOS = setOf(Opcode.GOTO_16, Opcode.GOTO_32)
 
     private fun Instruction.shape() = listOf(opcode, namedRegisters(), origRef())
+
+    /**
+     * The constants [register] can hold at [at], read back through moves along every path that reaches it
+     * (Plus Messenger loads 3 on one path and moves 1 in on the other). A definition that isn't a
+     * literal reads as -1.
+     */
+    private fun literalsAt(flow: ControlFlow, body: List<Instruction>, at: Int, register: Int, depth: Int = 0): Set<Int> {
+        check(depth <= 3) { "moves chain too deep at $at" }
+        // A throwing instruction doesn't write its destination, so its handler sees the value from before it.
+        val normal = Array(body.size) { mutableListOf<Int>() }
+        val thrown = Array(body.size) { mutableListOf<Int>() }
+        body.indices.forEach { from -> flow.normal[from].forEach { normal[it] += from }; flow.exceptional[from].forEach { thrown[it] += from } }
+        val found = mutableSetOf<Int>()
+        val seen = mutableSetOf<Pair<Int, Boolean>>()
+        val pending = ArrayDeque(normal[at].map { it to true } + thrown[at].map { it to false })
+        while (pending.isNotEmpty()) {
+            val (i, writes) = pending.removeFirst()
+            if (!seen.add(i to writes)) continue
+            val write = body[i]
+            if (!writes || !write.opcode.setsRegister() || write.namedRegisters().firstOrNull() != register) {
+                pending += normal[i].map { it to true } + thrown[i].map { it to false }
+                continue
+            }
+            found += when (write.opcode) {
+                Opcode.MOVE, Opcode.MOVE_FROM16, Opcode.MOVE_16 -> literalsAt(flow, body, i, write.namedRegisters()[1], depth + 1)
+                Opcode.CONST_4, Opcode.CONST_16, Opcode.CONST -> setOf((write as NarrowLiteralInstruction).narrowLiteral)
+                else -> setOf(-1)
+            }
+        }
+        return found
+    }
     private fun signature(m: Method) = "${m.definingClass}->${m.name}(${m.parameterTypes.joinToString("")})${m.returnType}"
 
     /** A method that starts a call, or one of the places that could stand in front of a send: the classes the resolver reads. */
@@ -82,6 +112,9 @@ class SendConfirmFixtureTest {
             )) return true
         val body = m.controlBody()
         if (body.isEmpty()) return false
+        // The chat header's menu, which on Plus Messenger calls from the chooser it makes.
+        if (instance && m.origReturnType == "V" && params == listOf("I") && body.any { it.controlString() == "/help" } &&
+            body.any { it.controlString() == "/settings" }) return true
         if (instance && m.origReturnType == "V" && VideoShape.values().any { it.target == params } && body.any { it.controlRef() == CAMERA_ALLOWED }) return true
         // The record button's touch handler, which hands the round video recorder its state through the chat.
         if (instance && m.origName == "onTouchEvent" && m.origReturnType == "Z" && params == listOf("Landroid/view/MotionEvent;") &&
@@ -107,8 +140,9 @@ class SendConfirmFixtureTest {
             assertEquals("$name: Telegram's end of a recording", "stopRecording", site.voice.origName)
             // 13.2 drops the stars from it and puts its ints first.
             val reordered = site.voice.origParameterTypes == VOICE_TARGET_R8
+            // Plus Messenger's recorder takes its sound flag last, after the stars.
             assertEquals("$name: the round video recorder's order of arguments",
-                VideoShape.SOUND_SECOND, site.shape)
+                if (name.startsWith("plus-")) VideoShape.SOUND_LAST else VideoShape.SOUND_SECOND, site.shape)
             val before = mapOf(
                 "sticker" to ImmutableMethod.of(site.sticker), "gif" to ImmutableMethod.of(site.gif), "voice" to ImmutableMethod.of(site.voice),
                 "video" to ImmutableMethod.of(site.video), "header" to ImmutableMethod.of(site.header), "profile" to ImmutableMethod.of(site.profile),
@@ -255,8 +289,9 @@ class SendConfirmFixtureTest {
                 assertEquals("$key: the extension's question, as the chat asks it",
                     "$SEND_CONFIRM->${site.shape.hook}(${listOf("Ljava/lang/Object;").plus(site.shape.target).joinToString("")})Z", touchGated[at].controlRef())
                 assertEquals("$key: the call's own registers", call.namedRegisters(), touchGated[at].namedRegisters())
-                assertEquals("$key: state 1", 1, (touchGated.subList(0, at).last { it.namedRegisters().firstOrNull() == call.namedRegisters()[1] }
-                    as NarrowLiteralInstruction).narrowLiteral)
+                // Plus Messenger's release can pause into its preview first (state 3), which the extension lets through.
+                val states = literalsAt(touchFlow, touchGated, at, call.namedRegisters()[1])
+                assertEquals("$key: state 1", setOf(1), if (name.startsWith("plus-")) states - 3 else states)
                 assertEquals(listOf(Opcode.MOVE_RESULT, Opcode.IF_NEZ, Opcode.CONST_16, Opcode.RETURN), touchGated.subList(at + 1, at + 5).map { it.opcode })
                 val answer = touchGated[at + 1].namedRegisters().single()
                 assertEquals("$key: the answer in a free local, true returned", List(4) { listOf(answer) }, touchGated.subList(at + 1, at + 5).map { it.namedRegisters() })
@@ -571,12 +606,25 @@ class SendConfirmFixtureTest {
         const-wide/16 v7, 0x0
     """.trimIndent()
 
-    @Test fun `the record button sends a round video only where state 1 alone reaches the call`() {
+    @Test fun `the record button sends a round video only where state 1 reaches the call, alone or beside Plus's preview`() {
         assertEquals("state 1, then the call", listOf(7), videoTapSites(touch("""
             const/4 v1, 0x1
             $rest
             invoke-interface/range {v0 .. v8}, $entry
             const/4 v9, 0x1
+            return v9
+        """), entry))
+        assertEquals("Plus's preview switch picks 3 or a moved 1", listOf(12), videoTapSites(touch("""
+            const/4 v9, 0x1
+            sget-boolean v1, Lcom/example/Button;->preview:Z
+            if-eqz v1, :send
+            const/4 v1, 0x3
+            goto :call
+            :send
+            move v1, v9
+            :call
+            $rest
+            invoke-interface/range {v0 .. v8}, $entry
             return v9
         """), entry))
         for ((what, state) in listOf("a start" to 0, "a cancel" to 2)) {
@@ -615,8 +663,10 @@ class SendConfirmFixtureTest {
             return v9
         """), entry))
         assertEquals("the state isn't a literal", emptyList<Int>(), videoTapSites(touch("""
-            const/4 v9, 0x1
+            invoke-static {}, Lcom/example/Button;->state()I
+            move-result v9
             move v1, v9
+            const/4 v9, 0x1
             $rest
             invoke-interface/range {v0 .. v8}, $entry
             return v9

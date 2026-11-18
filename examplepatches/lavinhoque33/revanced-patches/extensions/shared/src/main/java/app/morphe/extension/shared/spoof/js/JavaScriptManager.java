@@ -3,6 +3,7 @@
  * https://github.com/MorpheApp/morphe-patches
  *
  * Modified by lavinhoque33, 2026-10-24
+ * Modified by lavinhoque33, 2026-11-17.
  */
 
 package app.morphe.extension.shared.spoof.js;
@@ -334,7 +335,8 @@ public final class JavaScriptManager {
 
         try {
             final long start = System.currentTimeMillis();
-            content = Utils.submitOnBackgroundThread(() -> {
+            Requester.ConnectionProvider route = Requester.scopedConnection();
+            content = Utils.submitOnBackgroundThread(() -> Requester.withConnection(route, () -> {
                 final int connectionTimeoutMillis = 5000;
                 HttpURLConnection connection = Requester.openConnection(url);
                 connection.setFixedLengthStreamingMode(0);
@@ -348,7 +350,7 @@ public final class JavaScriptManager {
                 }
                 // Don't disconnect, as connection may be reused in the near future.
                 return null;
-            }).get();
+            })).get();
             Logger.printDebug(() -> "Download took: " + (System.currentTimeMillis() - start) + "ms for URL: " + url);
         } catch (ExecutionException | InterruptedException ex) {
             Logger.printException(() -> "Could not download URL: " + url, ex);

@@ -36,7 +36,6 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
@@ -84,7 +83,7 @@ val forwardHideSenderPatch = bytecodePatch(
 ) {
     category("Conversations")
     dependsOn(settingsPatch, telegramExtensionPatch)
-    compatibleWith(*AppCompatibilities.telegramOnly())
+    compatibleWith(*AppCompatibilities.telegram())
     execute {
         val site = resolveForwardHideSender()
         val share = site.share
@@ -93,7 +92,7 @@ val forwardHideSenderPatch = bytecodePatch(
         insertForwardStart(MutableMethod(ImmutableMethod.of(site.update)))
         flagged.forEach { (method, sends) -> insertSendFlags(MutableMethod(ImmutableMethod.of(method)), sends) }
         insertShares(MutableMethod(ImmutableMethod.of(share.made)), share)
-        insertSharePopup(MutableMethod(ImmutableMethod.of(share.popup)), share)
+        share.popup?.let { insertSharePopup(MutableMethod(ImmutableMethod.of(it.method)), it) }
         writeStub(FORWARD_SENDER, "fresh", 2, """
             check-cast p0, $PREVIEW_PARAMS
             iget-object v0, p0, $FORWARDS
@@ -138,7 +137,8 @@ val forwardHideSenderPatch = bytecodePatch(
             return-wide v0
         """)
         // The extension's stubs read and set the sheet's list and flag from outside its class.
-        tgMutableClassDefBy(share.alert).fields.filter { it.origString() == share.flag || it.origString() == share.messages }.forEach {
+        val reached = listOfNotNull(share.flag, share.messages, share.quote?.field, share.quote?.view)
+        tgMutableClassDefBy(share.alert).fields.filter { it.origString() in reached }.forEach {
             it.accessFlags = it.accessFlags and (AccessFlags.PRIVATE.value or AccessFlags.PROTECTED.value).inv() or AccessFlags.PUBLIC.value
         }
         writeStub(FORWARD_SENDER, "shareMessages", 2, """
@@ -146,22 +146,33 @@ val forwardHideSenderPatch = bytecodePatch(
             iget-object v0, p0, ${share.messages}
             return-object v0
         """)
-        writeStub(FORWARD_SENDER, "shareHide", 2, """
+        // Plus Messenger's quote switch goes off with the flag, the way its own send menu turns it.
+        val quote = share.quote?.let { """
+            iput-boolean v0, p0, ${it.field}
+            iget-object v1, p0, ${it.view}
+            if-eqz v1, :hush_none
+            invoke-virtual {v1, v0}, ${it.tick}
+            :hush_none
+        """ }.orEmpty()
+        writeStub(FORWARD_SENDER, "shareHide", 3, """
             check-cast p0, ${share.alert}
             const/4 v0, 0x0
             iput-boolean v0, p0, ${share.flag}
+            $quote
             return-void
         """)
-        writeStub(FORWARD_SENDER, "shareUncheck", 2, """
-            check-cast p0, ${share.uncheck.substringBefore("->")}
-            const/4 v0, 0x0
-            invoke-virtual {p0, v0}, ${share.uncheck}
-            return-void
-        """)
+        share.popup?.let { popup ->
+            writeStub(FORWARD_SENDER, "shareUncheck", 2, """
+                check-cast p0, ${popup.uncheck.substringBefore("->")}
+                const/4 v0, 0x0
+                invoke-virtual {p0, v0}, ${popup.uncheck}
+                return-void
+            """)
+        }
         insertForwardStart(site.update)
         flagged.forEach { (method, sends) -> insertSendFlags(method, sends) }
         insertShares(share.made, share)
-        insertSharePopup(share.popup, share)
+        share.popup?.let { insertSharePopup(it.method, it) }
         enableStatus("forwardHideSender")
     }
 }
@@ -177,8 +188,9 @@ internal class FlagSend(val method: MutableMethod, val at: Int, val first: Int, 
 
 /**
  * The Share sheet [alert], whose Show sender's name [flag] its [sends] turn around and whose
- * [messages] they forward. [made] stores the messages right before [madeAt] with the sheet in [self], and
- * [popup] ticks [uncheck]'s item [item] in the send menu right before [popupAt], the sheet in [popupAlert].
+ * [messages] they forward. [made] has the sheet in [self] and is done setting both right before
+ * [madeAt]. Telegram's send menu sets the flag again as it opens ([popup]); Plus Messenger's only
+ * shows it, and sets it from a [quote] switch of its own.
  */
 internal class ShareSheet(
     val alert: String,
@@ -188,12 +200,15 @@ internal class ShareSheet(
     val made: MutableMethod,
     val madeAt: Int,
     val self: Int,
-    val popup: MutableMethod,
-    val popupAt: Int,
-    val popupAlert: Int,
-    val item: Int,
-    val uncheck: String,
+    val popup: SharePopup?,
+    val quote: QuoteSwitch?,
 )
+
+/** The send menu [method] ticks [uncheck]'s item [item] right before [at], the sheet in [alert]. */
+internal class SharePopup(val method: MutableMethod, val at: Int, val alert: Int, val item: Int, val uncheck: String)
+
+/** Plus Messenger's quote switch: the sheet's [field] the flag is set from, and its switch [view], ticked by [tick]. */
+internal class QuoteSwitch(val field: String, val view: String, val tick: String)
 
 /** The extension sees the preview and the messages before Telegram stores them. */
 internal fun insertForwardStart(target: MutableMethod) {
@@ -216,8 +231,8 @@ internal fun insertShares(target: MutableMethod, share: ShareSheet) =
     target.addInstructions(share.madeAt, "invoke-static {v${share.self}}, $SHARES")
 
 /** The extension sees the send menu once Telegram has ticked Show sender's name. */
-internal fun insertSharePopup(target: MutableMethod, share: ShareSheet) =
-    target.addInstructions(share.popupAt, "invoke-static {v${share.popupAlert}, v${share.item}}, $SHARE_POPUP")
+internal fun insertSharePopup(target: MutableMethod, popup: SharePopup) =
+    target.addInstructions(popup.at, "invoke-static {v${popup.alert}, v${popup.item}}, $SHARE_POPUP")
 
 /**
  * MessagePreviewParams.updateForward(messages, dialog) fills the forward preview, and its
@@ -315,12 +330,16 @@ private fun BytecodePatchContext.pickerSends(sends: List<ForwardSend>): List<Fla
     return sends.filter { it.method.pickerShaped() || it.method.name != "<init>" && madeByPicker(it.owner) }.mapNotNull { send ->
         val flag = send.first + 4
         val body = send.flow.instructions
-        val zero = body.indices.filter { c ->
-            body[c].opcode in ZEROES && (body[c] as OneRegisterInstruction).registerA == flag &&
-                (body[c] as NarrowLiteralInstruction).narrowLiteral == 0 && send.flow.definitionReaches(c, send.at, flag)
+        // Plus Messenger starts the flag from its own quote-forwards switch, turned, where Telegram has a plain false.
+        fun pickerFlag(c: Int) = body[c].opcode in ZEROES && (body[c] as NarrowLiteralInstruction).narrowLiteral == 0 ||
+            body[c].opcode == Opcode.XOR_INT_LIT8 && (body[c] as NarrowLiteralInstruction).narrowLiteral == 1 &&
+            body.getOrNull(send.flow.writer(c, (body[c] as TwoRegisterInstruction).registerB))?.opcode == Opcode.SGET_BOOLEAN
+        val start = body.indices.filter { c ->
+            body[c].opcode.setsRegister() && body[c].namedRegisters().firstOrNull() == flag && !body[c].opcode.setsWideRegister() &&
+                pickerFlag(c) && send.flow.definitionReaches(c, send.at, flag)
         }.singleOrNull() ?: return@mapNotNull null
         // move-result takes the flag back, so it needs a register an 8-bit operand reaches.
-        if (flag > 255 || send.method.literalReads(zero) != listOf(send.at)) return@mapNotNull null
+        if (flag > 255 || send.method.literalReads(start) != listOf(send.at)) return@mapNotNull null
         FlagSend(mutableMethod(send.owner, send.method), send.at, send.first, PICKED)
     }
 }
@@ -345,12 +364,6 @@ private fun BytecodePatchContext.resolveShareSheet(sends: List<ForwardSend>): Sh
         Triple(owner, flag, messages) to send
     }
     val (alert, flag, messages) = found.map { it.first }.distinct().controlSingle("the Share sheet's forward")
-    val shared = found.map { (_, send) ->
-        // The send to each chat takes the extension's answer in place of the turned flag, so nothing after it may read that.
-        controlShape(send.first + 4 <= 255 && send.method.readsAfter(send.at, send.first + 4).isEmpty(),
-            "the Share sheet reads its forward's flag again after sending")
-        FlagSend(mutableMethod(send.owner, send.method), send.at, send.first, SHARED)
-    }
 
     val sheet = tgClassDefByOrNull(alert)
     controlShape(sheet != null && AccessFlags.PUBLIC.isSet(sheet.accessFlags), "the Share sheet isn't public")
@@ -371,11 +384,39 @@ private fun BytecodePatchContext.resolveShareSheet(sends: List<ForwardSend>): Sh
             body[at].controlRef()?.substringAfter("->")?.startsWith("<init>(") == true &&
             body[at].namedRegisters().firstOrNull() == self && flow.definitionReaches(at, store)
     }, "the Share sheet stores its messages before it's made")
-    controlShape(flow.after(store).none { body[it].opcode == Opcode.IPUT_BOOLEAN && body[it].controlRef() == flag },
+    // Plus Messenger sets the flag again from its own quote switch once the sheet holds the messages,
+    // so the extension hears about the sheet after that write, which every way out of it runs.
+    val rewrites = flow.after(store).filter { body[it].opcode == Opcode.IPUT_BOOLEAN && body[it].controlRef() == flag }
+    val rewrite = rewrites.singleOrNull()
+    controlShape(rewrites.isEmpty() || rewrite != null && (body[rewrite] as TwoRegisterInstruction).registerB == self &&
+        rewrite !in flow.after(rewrite) && flow.allPass(store, rewrite) &&
+        flow.after(store).none { flow.writes(it, self) && rewrite in flow.after(it) },
         "the Share sheet sets its sender flag after it holds the messages")
+    val madeAt = (rewrite ?: store) + 1
+    val quote = rewrite?.let { quoteSwitch(flow, it, self, alert, flag) }
+    quote?.let { requireReachable(it.tick, false) }
+
+    // With its quote switch off, Plus Messenger forwards from the same place with that switch turned
+    // in place of the flag, so Saved Messages gets the sender back there too.
+    val quoted = if (quote == null) emptyList() else sends.filter { send ->
+        val body = send.flow.instructions
+        val list = body.getOrNull(send.flow.writer(send.at, send.first + 1))
+        val turned = body.getOrNull(send.flow.writer(send.at, send.first + 4))
+        found.none { it.second === send } && found.any { it.second.method === send.method } &&
+            list?.opcode == Opcode.IGET_OBJECT && list.controlRef() == messages &&
+            turned?.opcode == Opcode.XOR_INT_LIT8 && (turned as NarrowLiteralInstruction).narrowLiteral == 1
+    }
+    controlShape(quote == null || quoted.size == 1, "the Share sheet's forward with its quote switch off is missing or ambiguous")
+    val shared = (found.map { it.second } + quoted).map { send ->
+        // The send to each chat takes the extension's answer in place of the turned flag, so nothing after it may read that.
+        controlShape(send.first + 4 <= 255 && send.method.readsAfter(send.at, send.first + 4).isEmpty(),
+            "the Share sheet reads its forward's flag again after sending")
+        FlagSend(mutableMethod(send.owner, send.method), send.at, send.first, SHARED)
+    }
 
     class Popup(val owner: ClassDef, val method: Method, val at: Int, val alert: Int, val item: Int, val uncheck: String)
     val popups = mutableListOf<Popup>()
+    var shown = false
     forEachClassMentioning(Mention.reference(flag)) { cls ->
         if (cls.origType.startsWith("Lapp/hushtelegram/")) return@forEachClassMentioning
         cls.methods.forEach { m ->
@@ -383,23 +424,59 @@ private fun BytecodePatchContext.resolveShareSheet(sends: List<ForwardSend>): Sh
             for (i in 0 until code.size - 2) {
                 val set = code[i]
                 val tick = code[i + 1]
-                if (set.opcode != Opcode.IPUT_BOOLEAN || set.controlRef() != flag) continue
+                if (set.opcode != Opcode.IPUT_BOOLEAN && set.opcode != Opcode.IGET_BOOLEAN || set.controlRef() != flag) continue
                 val uncheck = tick.controlRef() ?: continue
                 val operands = tick.namedRegisters()
                 if (tick.opcode != Opcode.INVOKE_VIRTUAL || !uncheck.endsWith("->setChecked(Z)V") ||
                     operands.size != 2 || operands[1] != (set as TwoRegisterInstruction).registerA) continue
-                popups += Popup(cls, m, i + 2, (set as TwoRegisterInstruction).registerB, operands[0], uncheck)
+                if (set.opcode == Opcode.IGET_BOOLEAN) shown = true
+                else popups += Popup(cls, m, i + 2, (set as TwoRegisterInstruction).registerB, operands[0], uncheck)
             }
         }
     }
-    val popup = popups.controlSingle("the Share sheet's send menu ticking Show sender's name")
-    controlShape(popup.alert <= 15 && popup.item <= 15, "the Share sheet's send menu holds the sheet in a high register")
-    requireReachable(popup.uncheck, false)
+    // Plus Messenger's send menu only ticks what the flag already says, so the sheet's own answer shows there.
+    controlShape(popups.size == 1 || popups.isEmpty() && quote != null && shown,
+        "the Share sheet's send menu ticking Show sender's name is missing or ambiguous")
+    val popup = popups.singleOrNull()
     val madeMethod = mutableMethod(sheet, made)
-    val popupMethod = mutableMethod(popup.owner, popup.method)
+    val popupMethod = popup?.let { mutableMethod(it.owner, it.method) }
+    popup?.let {
+        controlShape(it.alert <= 15 && it.item <= 15, "the Share sheet's send menu holds the sheet in a high register")
+        requireReachable(it.uncheck, false)
+    }
     controlShape(shared.none { it.method === madeMethod || it.method === popupMethod }, "the Share sheet sends from where it's made or its menu")
-    return ShareSheet(alert, flag, messages, shared, madeMethod, store + 1, self,
-        popupMethod, popup.at, popup.alert, popup.item, popup.uncheck)
+    return ShareSheet(alert, flag, messages, shared, madeMethod, madeAt, self,
+        popup?.let { SharePopup(popupMethod!!, it.at, it.alert, it.item, it.uncheck) }, quote)
+}
+
+/**
+ * Plus Messenger's quote switch, which [rewrite] copies into the sheet's flag in its constructor's
+ * [flow]: the sheet's field the copy comes from, and the switch the constructor ticks from that
+ * field's value and keeps in another field of the sheet in [self].
+ */
+private fun quoteSwitch(flow: ControlFlow, rewrite: Int, self: Int, alert: String, flag: String): QuoteSwitch {
+    val body = flow.instructions
+    val source = body.getOrNull(flow.writer(rewrite, (body[rewrite] as TwoRegisterInstruction).registerA))
+    val field = source?.takeIf { it.opcode == Opcode.IGET_BOOLEAN && (it as TwoRegisterInstruction).registerB == self }?.controlRef()
+    controlShape(field != null && field.startsWith("$alert->") && field != flag,
+        "the Share sheet sets its sender flag from something other than a switch of its own")
+    val tick = body.indices.filter { at ->
+        val set = body.getOrNull(at - 1)
+        body[at].opcode == Opcode.INVOKE_VIRTUAL && body[at].controlRef()?.endsWith("->setChecked(Z)V") == true &&
+            set is TwoRegisterInstruction && set.opcode == Opcode.IPUT_BOOLEAN && set.controlRef() == field && set.registerB == self &&
+            body[at].namedRegisters().getOrNull(1) == set.registerA
+    }.controlSingle("the Share sheet ticking its quote switch")
+    val switch = body[tick].namedRegisters()[0]
+    val made = flow.writer(tick, switch)
+    val view = body.indices.filter { at ->
+        val keep = body[at]
+        made >= 0 && keep.opcode == Opcode.IPUT_OBJECT && keep is TwoRegisterInstruction && keep.registerA == switch &&
+            keep.registerB == self && flow.writer(at, switch) == made
+    }.map { body[it].controlRef()!! }.distinct().controlSingle("the Share sheet holding its quote switch")
+    val ticks = body[tick].controlRef()!!
+    controlShape(view.startsWith("$alert->") && view.substringAfter("->").substringAfter(':') == ticks.substringBefore("->"),
+        "the Share sheet holds a different switch from the one it ticks")
+    return QuoteSwitch(field!!, view, ticks)
 }
 
 /** [method] of [owner] as the patch edits it. */
@@ -419,6 +496,19 @@ private fun ControlFlow.writes(at: Int, register: Int): Boolean {
     val destination = instruction.namedRegisters().firstOrNull()
     return instruction.opcode.setsRegister() && destination != null &&
         (destination == register || instruction.opcode.setsWideRegister() && destination + 1 == register)
+}
+
+/** Whether every path from [from] to a return, throws included, runs [through] first. */
+private fun ControlFlow.allPass(from: Int, through: Int): Boolean {
+    val seen = mutableSetOf<Int>()
+    val pending = ArrayDeque(normal[from] + exceptional[from])
+    while (pending.isNotEmpty()) {
+        val at = pending.removeFirst()
+        if (at == through || !seen.add(at)) continue
+        if (normal[at].isEmpty()) return false
+        pending += normal[at] + exceptional[at]
+    }
+    return true
 }
 
 /** Every instruction a path from [index] can reach after it. */

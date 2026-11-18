@@ -573,8 +573,7 @@ OpenRouter.ai ওপেন করতে এখানে ট্যাপ কর�
     <string name="revanced_change_start_page_entry_fashion">แฟชั่น &amp; ความงาม</string>
     <string name="revanced_change_start_page_entry_gaming">গেমিং</string>
     <string name="revanced_change_start_page_entry_history">ইতিহাস</string>
-    <string name="revanced_change_start_page_entry_hype">Hype</string>
-    <string name="revanced_change_start_page_entry_library">লাইব্রেরি</string>
+    <string name="revanced_change_start_page_entry_library">অ্যাকাউন্ট</string>
     <string name="revanced_change_start_page_entry_liked_videos">পছন্দ করা ভিডিওগুলি</string>
     <string name="revanced_change_start_page_entry_live">লাইভ</string>
     <string name="revanced_change_start_page_entry_movies">মুভি</string>
@@ -587,7 +586,6 @@ OpenRouter.ai ওপেন করতে এখানে ট্যাপ কর�
     <string name="revanced_change_start_page_entry_shorts">Shorts</string>
     <string name="revanced_change_start_page_entry_sports">খেলাধুলা</string>
     <string name="revanced_change_start_page_entry_subscriptions">সদস্যতা</string>
-    <string name="revanced_change_start_page_entry_trending">এখন জনপ্রিয়</string>
     <string name="revanced_change_start_page_entry_virtual_reality">বির্চুভ্য়াল টিএলিটি</string>
     <string name="revanced_change_start_page_entry_watch_later">পরে দেখুন</string>
     <string name="revanced_change_start_page_entry_your_clips">আপ্নার কলিপ</string>

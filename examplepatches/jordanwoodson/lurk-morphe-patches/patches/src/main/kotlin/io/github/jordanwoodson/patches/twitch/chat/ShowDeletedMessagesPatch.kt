@@ -23,6 +23,7 @@ import io.github.jordanwoodson.patches.twitch.shared.hex
 import io.github.jordanwoodson.patches.twitch.shared.installDelayedPredicate
 import io.github.jordanwoodson.patches.twitch.shared.twitchHermes
 import io.github.jordanwoodson.patches.twitch.shared.twitchHermesPatch
+import io.github.jordanwoodson.patches.twitch.shared.isFreeRegister
 import io.github.jordanwoodson.patches.twitch.shared.requireNotBranchTarget
 import io.github.jordanwoodson.patches.twitch.shared.twitchMatch
 
@@ -162,21 +163,22 @@ private fun BytecodePatchContext.ignoreChatClears() {
     if (classDefBy(event).superclass != classDefBy(userClear).superclass) throw PatchException("Twitch: unexpected chat clear event")
     val eventRegister = (instructions[clear] as OneRegisterInstruction).registerA
     Locators.record("twitch.ignore_chat_clears.ignored_result", ignored.toString())
-    // Right after it, a goto to code that sets a register before reading anything: that register is free.
-    val jump = clear + 1
-    if (instructions[jump].opcode != Opcode.GOTO) throw PatchException("Twitch: unexpected chat clear flow")
-    val landing = method.branchTarget(jump)
-    if (!landing.isConstant()) throw PatchException("Twitch: no free register after the chat clear")
-    val scratch = (landing as OneRegisterInstruction).registerA
-    if (scratch == eventRegister || scratch > 255) throw PatchException("Twitch: no free register after the chat clear")
-    method.requireNotBranchTarget(jump, "chat clear jump")
-    method.addInstructionsWithLabels(jump, """
+    // Right after it, on its own path only: the user clear jumps to the next instruction (the event's chat line, since
+    // 32.1.0) and keeps its label, so it skips this. A register dead there holds the result.
+    val next = clear + 1
+    if (instructions[next].opcode.setsRegister() && (instructions[next] as OneRegisterInstruction).registerA == eventRegister) {
+        throw PatchException("Twitch: unexpected chat clear flow")
+    }
+    val scratch = (0 until minOf(method.implementation!!.registerCount, 16)).firstOrNull {
+        it != eventRegister && method.isFreeRegister(next, it)
+    } ?: throw PatchException("Twitch: no free register after the chat clear")
+    method.addInstructionsWithLabels(next, """
         invoke-static {}, $CHAT->ignoreChatClears()Z
         move-result v$scratch
         if-eqz v$scratch, :lurk_keep
         sget-object v$scratch, $ignored
         return-object v$scratch
-    """, ExternalLabel("lurk_keep", instructions[jump]))
+    """, ExternalLabel("lurk_keep", instructions[next]))
 }
 
 /**
@@ -191,14 +193,16 @@ private fun HermesBundle.ignoreClearChatEvents() {
         hex("89 00 01 6e 00 01 02 00 76 00")
     val handler = matchingFunction(call)
     if (!handler.body.contentEquals(hex("34 00 00") + call)) throw PatchException("Twitch: unexpected clearchat handler")
-    // wireEvents subscribes it: LoadConstStringLongIndex r3, 'clearchat'; CreateClosure r2, r1, <handler>.
+    // wireEvents subscribes it: LoadConstStringLongIndex r3, 'clearchat'; StoreToEnvironment r1, 0, r3 (since 32.1.0
+    // each event's name goes in an environment of its own); CreateClosure r2, <the component's environment>, <handler>.
     val event = stringId("clearchat")
-    val subscribe = byteArrayOf(0x91.toByte(), 3) + ByteArray(4) { (event ushr (8 * it)).toByte() } +
-        byteArrayOf(0x84.toByte(), 2, 1, handler.id.toByte(), (handler.id ushr 8).toByte())
+    val subscribe = byteArrayOf(0x91.toByte(), 3) + ByteArray(4) { (event ushr (8 * it)).toByte() } + hex("37 01 00 03 84 02")
+    val id = byteArrayOf(handler.id.toByte(), (handler.id ushr 8).toByte())
     val wire = function("wireEvents").body
-    if ((0..wire.size - subscribe.size).count { at -> subscribe.indices.all { wire[at + it] == subscribe[it] } } != 1) {
-        throw PatchException("Twitch: the clearchat handler isn't wireEvents' subscriber")
+    val subscribers = (0..wire.size - subscribe.size - 1 - id.size).count { at ->
+        subscribe.indices.all { wire[at + it] == subscribe[it] } && id.indices.all { wire[at + subscribe.size + 1 + it] == id[it] }
     }
+    if (subscribers != 1) throw PatchException("Twitch: the clearchat handler isn't wireEvents' subscriber")
     val register = handler.numberRegisters + handler.nonPointerRegisters
     if (register !in 0..255 || register >= handler.frameSize) throw PatchException("Twitch: no general register")
     // LoadConstUndefined; Ret. Unreachable (0) pads the rest of the body.

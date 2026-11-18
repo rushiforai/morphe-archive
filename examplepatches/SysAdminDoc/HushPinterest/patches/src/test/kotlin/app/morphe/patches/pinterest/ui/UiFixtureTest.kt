@@ -13,6 +13,7 @@ import app.morphe.Fixtures
 import app.morphe.PatchContexts
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patches.pinterest.actions.PIN_SHEET_LOCATION
 import app.morphe.patches.pinterest.misc.extension.PatchLogCapture
 import app.morphe.patches.pinterest.misc.extension.SETTINGS_STATUS
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -69,9 +70,11 @@ class UiFixtureTest {
         "amoledBlack" to "blackBottomBar", "hideInboxUpdates" to "inboxUpdates",
         // Capabilities past here have no patch of their own at the same index.
         "amoledBlack" to "blackComments", "amoledBlack" to "blackPinMenu", "amoledBlack" to "blackSaveSheet",
-        "amoledBlack" to "blackSheets", "amoledBlack" to "blackBoards",
+        "amoledBlack" to "blackSheets", "amoledBlack" to "blackBoards", "amoledBlack" to "blackToasts",
         "hideSearchHistory" to "recentSearchRows", "hideSearchHistory" to "recentSearchHeading",
         "hideComments" to "suggestedReplies", "hideComments" to "commentPreviews",
+        "hideNavigationButtons" to "homeTabs", "hideSearchHistory" to "searchLanding",
+        "hideNavigationButtons" to "searchKeyboard", "hidePinMenuItems" to "pinMenuRows",
     )
 
     @Test fun `every interface family matches each supported vendor build without a warning`() {
@@ -354,6 +357,19 @@ class UiFixtureTest {
                 assertEquals("${build.name}: the $hook builder answers the same view right after", Opcode.RETURN_OBJECT to view,
                     built[answer + 1].opcode to (built[answer + 1] as OneRegisterInstruction).registerA)
             }
+            // A pin's details drawer is handed over as soon as its builder has the inflated layout.
+            val drawer = classes.flatMap { it.methods }.single { method ->
+                method.name == "onCreateView" && method.fields().any { it.name == PIN_DETAILS_SHEET }
+            }
+            val inflated = drawer.inflatedViewAt()
+            val drawerBody = context.mutable(drawer).instructions()
+            assertEquals("${build.name}: the drawer is handed over right after it's inflated", inflated + 1,
+                drawerBody.indexOfFirst { isCall(it, AMOLED_BLACK, "pinDetails") })
+            assertEquals("${build.name}: the drawer's builder gained its hook, nothing else", drawer.instructions().size + 1, drawerBody.size)
+            val drawerHandOver = drawerBody[inflated + 1] as RegisterRangeInstruction
+            assertEquals("${build.name}: pinDetails takes the inflated view and nothing else",
+                (drawer.instructions()[inflated] as OneRegisterInstruction).registerA to 1,
+                drawerHandOver.startRegister to drawerHandOver.registerCount)
             val original = classes.flatMap { it.methods }.single { "inAppUpdateManager" in it.strings() }
             val modified = context.mutable(original)
             assertEquals("the shared coroutine's other task must keep its dispatcher", original.instructions()[0].opcode,
@@ -365,6 +381,158 @@ class UiFixtureTest {
             assertTrue("${build.name}: the update hook runs before Play Core's update call ($guard, $prompt)",
                 guard >= 0 && prompt > guard)
         }
+    }
+
+    @Test fun `every TabLayout asks for its height before it measures, and nothing else in it changes`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val classes = read(build)
+            val stock = classes.single { it.type == TAB_LAYOUT }.methods.single { it.name == "onMeasure" }
+            val context = PatchContexts.of(ExtensionDex.classes() + classes)
+            hideNavigationButtonsPatch.execute(context)
+            assertFlag(context, "homeTabs", true)
+            val measure = context.mutable(stock).implementation!!
+            val hook = measure.instructions.first()
+            assertEquals(build.name, Opcode.INVOKE_STATIC_RANGE, hook.opcode)
+            assertEquals(build.name, HOME_TABS_HOOK, (hook as ReferenceInstruction).reference.toString())
+            assertEquals("${build.name}: the view and both specs", measure.registerCount - 3, (hook as RegisterRangeInstruction).startRegister)
+            assertEquals(build.name, 3, hook.registerCount)
+            val answer = measure.instructions[1]
+            assertEquals(build.name, Opcode.MOVE_RESULT, answer.opcode)
+            assertEquals("${build.name}: the answer becomes the height spec", measure.registerCount - 1, (answer as OneRegisterInstruction).registerA)
+            assertEquals(build.name, stock.instructions().map { it.opcode }.filter { it != Opcode.NOP },
+                measure.instructions.drop(2).map { it.opcode }.filter { it != Opcode.NOP })
+        }
+    }
+
+    @Test fun `a build without TabLayout keeps the navigation switches and says Home's tabs stay`() {
+        val build = Fixtures.declaredBuilds().last()
+        val context = PatchContexts.of(ExtensionDex.classes() + read(build).filter { it.type != TAB_LAYOUT })
+        val warnings = PatchLogCapture.warnings { hideNavigationButtonsPatch.execute(context) }
+        assertEquals(warnings.toString(), 1, warnings.size)
+        assertTrue(warnings.single(), warnings.single().contains("Hide Home tabs left out"))
+        assertFlag(context, "homeTabs", false)
+        assertFlag(context, "navigationButtons", true)
+        assertFlag(context, "hideNavigationButtons", true)
+    }
+
+    private fun List<ClassDef>.searchPage() = single { owner ->
+        owner.methods.any { method -> method.fields().any { it.name == SEARCH_LANDING_ID } }
+    }
+
+    @Test fun `the Search page hands over its root view before anything else in onViewCreated`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val classes = read(build)
+            val stock = classes.searchPage().methods.single { it.name == "onViewCreated" }
+            val context = PatchContexts.of(ExtensionDex.classes() + classes)
+            hideSearchHistoryPatch.execute(context)
+            assertFlag(context, "searchLanding", true)
+            val created = context.mutable(stock).implementation!!
+            val hook = created.instructions.first()
+            assertEquals(build.name, Opcode.INVOKE_STATIC_RANGE, hook.opcode)
+            assertEquals(build.name, SEARCH_LANDING_HOOK, (hook as ReferenceInstruction).reference.toString())
+            assertEquals("${build.name}: the root view", created.registerCount - 2, (hook as RegisterRangeInstruction).startRegister)
+            assertEquals(build.name, 1, hook.registerCount)
+            assertEquals(build.name, stock.instructions().map { it.opcode }.filter { it != Opcode.NOP },
+                created.instructions.drop(1).map { it.opcode }.filter { it != Opcode.NOP })
+        }
+    }
+
+    @Test fun `a build without the Search page keeps Hide search history and says the page stays`() {
+        val build = Fixtures.declaredBuilds().last()
+        val classes = read(build)
+        val page = classes.searchPage()
+        val context = PatchContexts.of(ExtensionDex.classes() + classes.filter { it.type != page.type })
+        val warnings = PatchLogCapture.warnings { hideSearchHistoryPatch.execute(context) }
+        assertEquals(warnings.toString(), 1, warnings.size)
+        assertTrue(warnings.single(), warnings.single().contains("Blank Search page left out"))
+        assertFlag(context, "searchLanding", false)
+        assertFlag(context, "searchHistory", true)
+        assertFlag(context, "hideSearchHistory", true)
+    }
+
+    @Test fun `the bottom bar offers every press to the extension and returns only when it was taken`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val classes = read(build)
+            val stock = classes.single { it.type == BOTTOM_BAR }.methods.single { it.name == "onClick" }
+            val context = PatchContexts.of(ExtensionDex.classes() + classes)
+            hideNavigationButtonsPatch.execute(context)
+            assertFlag(context, "searchKeyboard", true)
+            val click = context.mutable(stock).implementation!!
+            val hook = click.instructions[0]
+            assertEquals(build.name, Opcode.INVOKE_STATIC_RANGE, hook.opcode)
+            assertEquals(build.name, SEARCH_TAB_HOOK, (hook as ReferenceInstruction).reference.toString())
+            assertEquals("${build.name}: the bar and the tab", click.registerCount - 2, (hook as RegisterRangeInstruction).startRegister)
+            assertEquals(build.name, 2, hook.registerCount)
+            assertEquals(build.name, listOf(Opcode.MOVE_RESULT, Opcode.IF_EQZ, Opcode.RETURN_VOID),
+                click.instructions.subList(1, 4).map { it.opcode })
+            val branch = click.instructions[2] as BuilderOffsetInstruction
+            assertTrue("${build.name}: a press left alone runs Pinterest's handler from its start",
+                branch.target.location.index == 4)
+            assertEquals(build.name, stock.instructions().map { it.opcode }.filter { it != Opcode.NOP },
+                click.instructions.drop(4).map { it.opcode }.filter { it != Opcode.NOP })
+            val stub = context.mutableClassDefBy(INTERFACE_CONTROLS).methods.single { it.name == "currentLocation" }
+            assertEquals("${build.name}: the stub reads the screen the way the handler does",
+                listOf(BOTTOM_BAR, "Lcom/pinterest/navigation/Navigation;"), stub.calls().map { it.definingClass })
+        }
+    }
+
+    @Test fun `a bottom bar with no click handler keeps the navigation switches and the plain Search press`() {
+        val build = Fixtures.declaredBuilds().last()
+        val context = PatchContexts.of(ExtensionDex.classes() + read(build))
+        context.mutableClassDefBy(BOTTOM_BAR).methods.removeAll { it.name == "onClick" }
+        val warnings = PatchLogCapture.warnings { hideNavigationButtonsPatch.execute(context) }
+        assertEquals(warnings.toString(), 1, warnings.size)
+        assertTrue(warnings.single(), warnings.single().contains("Second Search tap left out"))
+        assertFlag(context, "searchKeyboard", false)
+        assertFlag(context, "navigationButtons", true)
+    }
+
+    /** The overflow sheet's location and the fragment it names, which the shared slice leaves out. */
+    private fun pinSheetClasses(build: File): List<ClassDef> {
+        val location = FixtureDex.classes(build, setOf(PIN_SHEET_LOCATION)).values.single()
+        val fragment = location.methods.filter { it.name == "<init>" }.flatMap { it.instructions() }
+            .filter { it.opcode == Opcode.CONST_CLASS }.map { (it as ReferenceInstruction).reference.toString() }
+            .distinct().single()
+        return listOf(location, FixtureDex.classes(build, setOf(fragment)).values.single())
+    }
+
+    @Test fun `the pin menu folds picked rows as it measures and the overflow sheet hands over its view first`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val sheet = pinSheetClasses(build)
+            val classes = (read(build) + sheet).associateBy { it.type }.values.toList()
+            val context = PatchContexts.of(ExtensionDex.classes() + classes)
+            val warnings = PatchLogCapture.warnings { hidePinMenuItemsPatch.execute(context) }
+            assertEquals(warnings.toString(), 0, warnings.size)
+            assertFlag(context, "pinMenuRows", true)
+            val menuType = context.classDefBy(PIN_MENU).fields.single { it.name == "modalView" }.type
+            val measure = context.mutableClassDefBy(menuType).methods.single { it.name == "onMeasure" }.implementation!!
+            val refresh = measure.instructions.first()
+            assertEquals(build.name, "$INTERFACE_CONTROLS->pinMenuRows(Landroid/view/View;)V",
+                (refresh as ReferenceInstruction).reference.toString())
+            assertEquals("${build.name}: the menu itself", measure.registerCount - 3,
+                (refresh as RegisterRangeInstruction).startRegister)
+            val built = context.mutableClassDefBy(sheet.last().type).methods
+                .single { it.name == "onViewCreated" && it.parameterTypes.size == 2 }.implementation!!
+            val handOver = built.instructions.first()
+            assertEquals(build.name, PIN_MENU_SHEET_HOOK, (handOver as ReferenceInstruction).reference.toString())
+            assertEquals("${build.name}: the sheet's view", built.registerCount - 2,
+                (handOver as RegisterRangeInstruction).startRegister)
+            assertEquals(build.name, 1, handOver.registerCount)
+        }
+    }
+
+    @Test fun `an overflow sheet it cannot read leaves the row picker out and keeps the other pin menu switches`() {
+        val build = Fixtures.declaredBuilds().last()
+        val sheet = pinSheetClasses(build)
+        val context = PatchContexts.of(ExtensionDex.classes() + (read(build) + sheet).associateBy { it.type }.values.toList())
+        context.mutableClassDefBy(sheet.last().type).methods.removeAll { it.name == "onViewCreated" }
+        val warnings = PatchLogCapture.warnings { hidePinMenuItemsPatch.execute(context) }
+        assertEquals(warnings.toString(), 1, warnings.size)
+        assertTrue(warnings.single(), warnings.single().contains("Hide pin menu rows left out"))
+        assertFlag(context, "pinMenuRows", false)
+        assertFlag(context, "pinMenuItems", true)
+        val menuType = context.classDefBy(PIN_MENU).fields.single { it.name == "modalView" }.type
+        assertFalse("no half-installed hook", context.mutableClassDefBy(menuType).methods.any { it.name == "onMeasure" })
     }
 
     private fun asksForAssistant(method: Method) = method.returnType == "Z" && method.parameterTypes.isEmpty() &&
@@ -721,7 +889,7 @@ class UiFixtureTest {
             "unifiedCommentsModulePresenterFactory", "CommentsZone(isVisible=", INBOX_UPDATES_FEED)
         val required = (SEARCH_HISTORY_VIEWS + TYPEAHEAD_ROW + COMMENT_PREVIEW + COMMENTS_IMAGES + COMMENTS_QUICK_REPLIES + HEADER_BAR + BOTTOM_BAR +
             BLUR_VIEW + PIN_MENU + "Lcom/pinterest/activity/pin/view/modules/PinCloseupVideoModule;" +
-            BOARD_TOOL_BAR + PROFILE_PILL + PROFILE_FILTER_BAR + BOARD_HEADER_IMAGE).toSet()
+            BOARD_TOOL_BAR + PROFILE_PILL + PROFILE_FILTER_BAR + BOARD_HEADER_IMAGE + TOAST_CONTAINER + TAB_LAYOUT).toSet()
         val found = mutableMapOf<String, ClassDef>()
         // Every class with a section adder, kept below only when it holds the Updates feed.
         val adders = mutableListOf<ClassDef>()
@@ -736,7 +904,8 @@ class UiFixtureTest {
                     owner.methods.any { method -> method.strings().any { it in anchors } ||
                         method.fields().any { it.name in FILTERABLE_PIN_MENU_TITLES ||
                             it.name == "email_verification_reminder_title" || it.name == COMMENTS_SCREEN_ID ||
-                            it.name == PIN_MENU_CARD || it.name == GREETING_ROW ||
+                            it.name == PIN_MENU_CARD || it.name == PIN_DETAILS_SHEET || it.name == GREETING_ROW ||
+                            it.name == SEARCH_LANDING_ID ||
                             it.name == GESTALT_SHEET_COORDINATOR || it.name == LEGO_CLOSE_STICKY } }
                 if (match) found[owner.type] = ImmutableClassDef.of(owner)
             }

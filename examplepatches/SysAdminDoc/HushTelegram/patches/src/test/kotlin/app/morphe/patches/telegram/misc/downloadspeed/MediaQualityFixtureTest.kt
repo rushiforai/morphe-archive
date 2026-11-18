@@ -8,7 +8,6 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.PlusPending
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
 import app.morphe.patches.telegram.misc.extension.SETTINGS_STATUS
@@ -37,7 +36,6 @@ internal fun qualityClasses(build: File): Collection<ClassDef> {
 }
 
 /** Send photos and videos in the best quality on both declared builds (#63). */
-@PlusPending
 class MediaQualityFixtureTest {
     private fun context(build: File): BytecodePatchContext {
         val queue = "Lorg/telegram/messenger/FileLoaderPriorityQueue;"

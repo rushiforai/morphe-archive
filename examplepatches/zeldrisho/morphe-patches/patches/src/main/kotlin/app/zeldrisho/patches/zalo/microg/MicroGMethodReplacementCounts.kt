@@ -32,14 +32,15 @@ internal fun rewriteMicroGMethodBody(
     mutableMethod: MutableMethod,
     replacement: Pair<String, String>,
     version261002: Boolean = false,
+    version261101: Boolean = false,
 ): MicroGMethodReplacementCounts {
     val launchCheck = addLauncherProviderCheck(classType, method, mutableMethod)
-    val picker = isAccountPickerMethod(classType, method, version261002)
-    if (picker) replaceWithAccountPicker(mutableMethod, version261002)
+    val picker = isAccountPickerMethod(classType, method, version261002, version261101)
+    if (picker) replaceWithAccountPicker(mutableMethod, version261002, version261101)
     val implementation = method.implementation
     val instructions = implementation?.instructions?.toList()
     val rewritten = if (!picker && instructions != null) {
-        rewriteMicroGInstructions(classType, method, mutableMethod, replacement, instructions, version261002)
+        rewriteMicroGInstructions(classType, method, mutableMethod, replacement, instructions, version261002, version261101)
     } else {
         MicroGMethodReplacementCounts()
     }
@@ -76,13 +77,13 @@ private fun addLauncherProviderCheck(classType: String, method: Method, mutableM
 }
 
 /** Recognizes the two supported account-picker methods by owner, name, and parameter types. */
-private fun isAccountPickerMethod(classType: String, method: Method, version261002: Boolean): Boolean = (
-    classType == SYNC_GOOGLE_ACCOUNT_BASE_VIEW && method.name == (if (version261002) "M6" else "x6") &&
+private fun isAccountPickerMethod(classType: String, method: Method, version261002: Boolean, version261101: Boolean): Boolean = (
+    classType == SYNC_GOOGLE_ACCOUNT_BASE_VIEW && method.name == (if (version261101) "O6" else if (version261002) "M6" else "x6") &&
         method.parameterTypes == listOf("Ljava/lang/String;")
     ) ||
     (
         classType == "Lcom/zing/zalo/ui/backuprestore/drive/ManageGoogleAccountView;" &&
-            method.name == (if (version261002) "X6" else "I6") && method.parameterTypes == listOf("Ljava/lang/String;")
+            method.name == (if (version261101) "Z6" else if (version261002) "X6" else "I6") && method.parameterTypes == listOf("Ljava/lang/String;")
         )
 
 /** Rewrites eligible instructions at their original indexes and totals the counted replacements. */
@@ -93,12 +94,13 @@ private fun rewriteMicroGInstructions(
     replacement: Pair<String, String>,
     instructions: Iterable<com.android.tools.smali.dexlib2.iface.instruction.Instruction>,
     version261002: Boolean,
+    version261101: Boolean,
 ): MicroGMethodReplacementCounts {
     var binding = 0
     var accountType = 0
     var accountRefresh = 0
     instructions.forEachIndexed { index, instruction ->
-        val count = rewriteMicroGInstruction(classType, method, mutableMethod, replacement, index, instruction, version261002)
+        val count = rewriteMicroGInstruction(classType, method, mutableMethod, replacement, index, instruction, version261002, version261101)
         binding += count.binding
         accountType += count.accountType
         accountRefresh += count.accountRefresh
@@ -119,12 +121,13 @@ private fun rewriteMicroGInstruction(
     index: Int,
     instruction: com.android.tools.smali.dexlib2.iface.instruction.Instruction,
     version261002: Boolean,
+    version261101: Boolean,
 ): MicroGMethodReplacementCounts {
     var binding = 0
     var accountType = 0
     var accountRefresh = 0
     val methodReference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
-    if (isAccountRefreshCall(classType, method.name, methodReference, version261002)) {
+    if (isAccountRefreshCall(classType, method.name, methodReference, version261002, version261101)) {
         mutableMethod.replaceInstruction(index, accountRefreshInvocation(instruction))
         accountRefresh = 1
     } else if (instruction.opcode == Opcode.CONST_STRING) {
@@ -139,7 +142,7 @@ private fun rewriteMicroGInstruction(
                     "sget-object v$register, Landroid/accounts/AccountManager;->KEY_ACCOUNT_NAME:Ljava/lang/String;",
                 )
             }
-            val authOwner = if (version261002) "Lza/a;" else "Lo9/a;"
+            val authOwner = if (version261101) "Llob;" else if (version261002) "Lza/a;" else "Lo9/a;"
             val isAccountTypeLiteral = reference.string == "com.google" && classType == authOwner
             if ((replacement.first.isNotEmpty() && reference.string == replacement.first) || isAccountTypeLiteral) {
                 val replacementValue = if (isAccountTypeLiteral) MICROG_ACCOUNT_TYPE else replacement.second

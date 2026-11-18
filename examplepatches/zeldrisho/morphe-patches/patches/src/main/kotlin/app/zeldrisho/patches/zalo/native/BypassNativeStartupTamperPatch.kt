@@ -2,6 +2,7 @@ package app.zeldrisho.patches.zalo.native
 
 import app.morphe.patcher.patch.deleteResource
 import app.morphe.patcher.patch.listApkEntries
+import app.morphe.patcher.patch.packageMetadata
 import app.morphe.patcher.patch.rawResourcePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.zeldrisho.patches.shared.Constants.COMPATIBILITY_ZALO
@@ -17,6 +18,12 @@ private val ORIGINAL_CONFIG_CALL = byteArrayOf(0xa9.toByte(), 0x10, 0x00, 0x94.t
 // CallStaticVoidMethodV through JNIEnv, inside the helper reached by 0x2c404.
 private const val EXIT_CALL_OFFSET = 0x2c4ecL
 private val ORIGINAL_EXIT_CALL = byteArrayOf(0x00, 0x01, 0x3f, 0xd6.toByte())
+
+// Experimental target: 26.11.01 is advertised but not fully device-qualified.
+private const val INIT_BRANCH_OFFSET_261101 = 0x26964L
+private const val CONFIG_CALL_OFFSET_261101 = 0x26998L
+private val ORIGINAL_CONFIG_CALL_261101 = byteArrayOf(0x72, 0x10, 0x00, 0x94.toByte())
+private const val EXIT_CALL_OFFSET_261101 = 0x2ac48L
 private val NOP = byteArrayOf(0x1f, 0x20, 0x03, 0xd5.toByte())
 private const val HEX_RADIX = 16
 
@@ -52,12 +59,16 @@ val bypassZaloNativeStartupTamperPatch = rawResourcePatch(
     dependsOn(keepArm64NativeLibraries)
 
     execute {
-        patchNativeLibrary(get(LIBRARY_PATH, true))
+        patchNativeLibrary(get(LIBRARY_PATH, true), packageMetadata.versionName == "26.11.01")
     }
 }
 
 /** Validates every pinned site before mutating the native library. */
-internal fun patchNativeLibrary(library: java.io.File) {
+internal fun patchNativeLibrary(library: java.io.File, version261101: Boolean = false) {
+    val initOffset = if (version261101) INIT_BRANCH_OFFSET_261101 else INIT_BRANCH_OFFSET
+    val configOffset = if (version261101) CONFIG_CALL_OFFSET_261101 else CONFIG_CALL_OFFSET
+    val configBytes = if (version261101) ORIGINAL_CONFIG_CALL_261101 else ORIGINAL_CONFIG_CALL
+    val exitOffset = if (version261101) EXIT_CALL_OFFSET_261101 else EXIT_CALL_OFFSET
     RandomAccessFile(library, "rw").use { file ->
         fun readAt(offset: Long, expected: ByteArray, label: String) {
             file.seek(offset)
@@ -68,13 +79,13 @@ internal fun patchNativeLibrary(library: java.io.File) {
             }
         }
 
-        readAt(INIT_BRANCH_OFFSET, ORIGINAL_INIT_BRANCH, "initialization-branch")
-        readAt(CONFIG_CALL_OFFSET, ORIGINAL_CONFIG_CALL, "config-call")
-        readAt(EXIT_CALL_OFFSET, ORIGINAL_EXIT_CALL, "JNI exit-call")
+        readAt(initOffset, ORIGINAL_INIT_BRANCH, "initialization-branch")
+        readAt(configOffset, configBytes, "config-call")
+        readAt(exitOffset, ORIGINAL_EXIT_CALL, "JNI exit-call")
 
-        file.seek(INIT_BRANCH_OFFSET)
+        file.seek(initOffset)
         file.write(NOP)
-        file.seek(EXIT_CALL_OFFSET)
+        file.seek(exitOffset)
         file.write(NOP)
     }
 }

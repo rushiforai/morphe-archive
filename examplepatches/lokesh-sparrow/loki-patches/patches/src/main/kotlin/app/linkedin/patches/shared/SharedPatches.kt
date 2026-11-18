@@ -17,6 +17,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.loki.patches.universal.LOKI_ICON
 import app.loki.patches.universal.writeLokiIcon
+import app.loki.patches.universal.writeLokiLogo
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.Opcode
@@ -53,6 +54,8 @@ private fun Document.node(tag: String, vararg attributes: Pair<String, String>, 
 private val extensionActivitiesManifestPatch = resourcePatch {
     execute {
         writeLokiIcon()
+        // The app-drawer alias below draws LOKI_ICON (the L), so the logo must be in this app's resources too.
+        writeLokiLogo()
         document("AndroidManifest.xml").use { manifest ->
             val application = manifest.getElementsByTagName("application").item(0)
             application.appendChild(

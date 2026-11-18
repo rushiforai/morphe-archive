@@ -31,7 +31,7 @@ import java.util.WeakHashMap;
  * its post time come off the creator's row and go on a line of their own right under the
  * caption, "United States · 2d ago".
  *
- * <p>The caption is {@code desc}, in TikTok's generated caption layout (47.8.3's
+ * <p>The caption is {@code desc}, in TikTok's generated caption layout (47.9.1's
  * common_feed_layout_video_desc): a vertical LinearLayout holding the caption block, a
  * LinearLayout subclass of TikTok's own with {@code desc} inside it. The line goes in the
  * nearest plain vertical LinearLayout above the caption, right after the child that holds it,
@@ -61,6 +61,14 @@ public final class CaptionLine {
     /** Post times emptied here, with the text each had then, so only those get it back. */
     private static final Map<TextView, CharSequence> HIDDEN = new WeakHashMap<>();
 
+    /**
+     * Caption blocks giving up room to the line. Measured first, an opened long caption takes
+     * nearly the whole column and leaves the line too short to read (#457). With a weight on the
+     * block, what comes after it is measured at full height and only the block shrinks when they
+     * don't all fit.
+     */
+    private static final Set<View> YIELDING = Collections.newSetFromMap(new WeakHashMap<>());
+
     private CaptionLine() {
     }
 
@@ -76,14 +84,15 @@ public final class CaptionLine {
 
     /**
      * Writes the line under the caption of the cell {@code name} sits in, with {@code country}
-     * (or none) and the row's post time, and says whether it shows. With no caption to put it
-     * under, or nothing to say, no line shows and the row keeps its post time. A post with no
-     * caption still has the caption's views, with TikTok hiding the block that holds them, and a
-     * line in there would carry the date off screen.
+     * (or none) and the row's post time, and says whether it shows. A post with no caption still
+     * has the caption's views, with TikTok hiding the block that holds them, and a line in there
+     * would never show, so it goes right under the creator's row instead (#453). With nowhere to
+     * put it, or nothing to say, no line shows and the row keeps its post time.
      */
     static boolean show(TextView name, View root, String country) {
         if (name == null) {
             hideOthers(null);
+            giveRoom(null);
             return false;
         }
         TextView postTime = postTimeBeside(name);
@@ -100,11 +109,17 @@ public final class CaptionLine {
                 holder = (View) parent;
             }
         }
+        boolean underCaption = host != null;
+        if (!underCaption) {
+            holder = rowOf(name, postTime, root);
+            host = holder == null ? null : (LinearLayout) holder.getParent();
+        }
         String date = dateOf(postTime);
         String text = join(country, date);
         if (host == null || text == null) {
             putBack(postTime);
             hideOthers(null);
+            giveRoom(null);
             return false;
         }
 
@@ -121,7 +136,36 @@ public final class CaptionLine {
             line.setVisibility(View.VISIBLE);
         }
         hideOthers(line);
+        giveRoom(underCaption ? holder : null);
         return true;
+    }
+
+    /**
+     * The creator's whole row, post time included, as the child of the vertical LinearLayout
+     * above it. That column is one of TikTok's own subclasses, and nothing in the row is measured
+     * against it the way the caption's block is, so any vertical one will do.
+     */
+    private static View rowOf(TextView name, TextView postTime, View root) {
+        if (postTime == null) return null;
+        View cell = GestureActions.cellOf(name);
+        View child = name;
+        for (ViewParent parent = name.getParent(); parent instanceof View; parent = parent.getParent()) {
+            if (parent instanceof LinearLayout
+                    && ((LinearLayout) parent).getOrientation() == LinearLayout.VERTICAL
+                    && holds(child, postTime)) {
+                return child;
+            }
+            if (parent == root || parent == cell) break;
+            child = (View) parent;
+        }
+        return null;
+    }
+
+    private static boolean holds(View group, View view) {
+        for (ViewParent parent = view.getParent(); parent instanceof View; parent = parent.getParent()) {
+            if (parent == group) return true;
+        }
+        return false;
     }
 
     /** Whether {@code view} and everything above it up to {@code root} is set to show. */
@@ -144,6 +188,7 @@ public final class CaptionLine {
             }
         }
         LINES.clear();
+        giveRoom(null);
         for (TextView postTime : new ArrayList<>(HIDDEN.keySet())) {
             putBack(postTime);
         }
@@ -215,8 +260,8 @@ public final class CaptionLine {
         return null;
     }
 
-    /** How many groups up from the name the post time is looked for. */
-    private static final int ROW_DEPTH = 3;
+    /** How many groups up from the name the post time is looked for: three on a video, four on a photo post. */
+    private static final int ROW_DEPTH = 4;
 
     /**
      * The caption in the name's cell. A video in a detail page with no pager around it has its
@@ -294,6 +339,30 @@ public final class CaptionLine {
                 line.setVisibility(View.GONE);
             }
         }
+    }
+
+    /** Makes {@code block} the one caption block yielding, and hands every other its weight back. */
+    private static void giveRoom(View block) {
+        for (View other : new ArrayList<>(YIELDING)) {
+            if (other != block) {
+                YIELDING.remove(other);
+                reweigh(other, 1, 0);
+            }
+        }
+        if (block != null && !YIELDING.contains(block) && reweigh(block, 0, 1)) {
+            YIELDING.add(block);
+        }
+    }
+
+    private static boolean reweigh(View view, float from, float to) {
+        ViewGroup.LayoutParams params = view.getLayoutParams();
+        if (!(params instanceof LinearLayout.LayoutParams)
+                || ((LinearLayout.LayoutParams) params).weight != from) {
+            return false;
+        }
+        ((LinearLayout.LayoutParams) params).weight = to;
+        view.requestLayout();
+        return true;
     }
 
     /** Gives a post time emptied here its text back, unless TikTok has written it since. */

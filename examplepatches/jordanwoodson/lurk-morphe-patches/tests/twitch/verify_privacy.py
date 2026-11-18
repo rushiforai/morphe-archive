@@ -7,6 +7,7 @@ come from the patched output's locators (assets/lurk/locators.json); the ones wr
 31.7.0's, used while the output has none.
 """
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -105,10 +106,21 @@ def verify(stock, patched):
     nullable = re.fullmatch(r"if-eqz v1, (:\w+)", code[5])
     assert nullable and labels[nullable[1]] == end - 1
     assert normalized(code[end:], labels, end) == normalized(before, method(stock, *core)[1])
-    # A coroutine's Spade callback (Twitch 31.8.0's dn0) resumes with TRUE on success.
-    callback, _ = method(stock, "dn0", f"{success}(Ljava/lang/Object;)V")
-    assert any("Ljava/lang/Boolean;->TRUE" in i for i in callback)
-    assert any("->resumeWith(Ljava/lang/Object;)V" in i for i in callback)
+    # A coroutine's Spade callback (dn0 in Twitch 31.8.0, fn0 in 32.1.0) resumes with TRUE on success: one
+    # subclass of the callback type does, so the empty success above completes coroutine callers too.
+    subclasses = subprocess.run(["grep", "-rlx", "--include=*.smali", f".super L{callback_type};", str(stock)],
+                                capture_output=True, text=True).stdout.split()
+    resumes = []
+    for path in subclasses:
+        cls = Path(path).read_text(errors="replace").split("\n", 1)[0].split()[-1][1:-1]
+        try:
+            callback, _ = method(stock, cls, f"{success}(Ljava/lang/Object;)V")
+        except ValueError:
+            continue
+        if any("Ljava/lang/Boolean;->TRUE" in i for i in callback) and \
+                any("->resumeWith(Ljava/lang/Object;)V" in i for i in callback):
+            resumes.append(cls)
+    assert len(resumes) == 1, f"coroutine Spade callbacks: {resumes}"
     for cls, signature in (loc.method("twitch.match.spade_batch", "dn00", "a(Ljava/util/ArrayList;)V"),
                            loc.method("twitch.match.branch_event", "jn0", "c(Ljava/lang/String;)V")):
         guarded(method(stock, cls, signature), method(patched, cls, signature),

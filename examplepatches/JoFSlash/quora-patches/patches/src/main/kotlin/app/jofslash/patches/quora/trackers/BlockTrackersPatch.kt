@@ -13,6 +13,7 @@ val blockTrackersPatch = bytecodePatch(
     description = "Blocks requests from Quora pages to third-party analytics and tracking services.",
     default = true
 ) {
+    category("Privacy")
     compatibleWith(COMPATIBILITY_QUORA)
 
     extendWith("extensions/extension.mpe")

@@ -23,7 +23,7 @@ Click the button below, or manually add this repo url to Morphe Manager: https:/
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.1.0-dev.5](https://github.com/ElectroHeavenVN/morphe-patches/releases/tag/v1.1.0-dev.5)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
+> **[v1.1.0-dev.6](https://github.com/ElectroHeavenVN/morphe-patches/releases/tag/v1.1.0-dev.6)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
 <details open>
 <summary>📦 Zalo&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -34,6 +34,7 @@ Click the button below, or manually add this repo url to Morphe Manager: https:/
 
 | 26.09.01 | 26.10.01 | 26.10.02 | 26.11.01 | 26.11.02 |
 | :---: | :---: | :---: | :---: | :---: |
+|  |  |  |  | armeabi-v7a must use the experimental LSPatch framework instead of NPatch |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|

@@ -8,7 +8,6 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.PlusPending
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
 import app.morphe.patches.telegram.misc.extension.SETTINGS_STATUS
@@ -46,7 +45,6 @@ private const val EXPANDED = "$MESSAGE_OBJECT->expandedQuotes:Ljava/util/HashSet
 private val SEARCH_MARK = listOf("Z", "I", "Ljava/lang/String;", "Z")
 
 /** The message row's search marking, the chat's search highlight and the chat's menu at the top. */
-@PlusPending
 class ChatRevealFixtureTest {
     private val menuHook = "$CHAT_REVEAL->headerMenu(Ljava/lang/Object;)V"
     private val clickHook = "$CHAT_REVEAL->headerClick(Ljava/lang/Object;I)Z"

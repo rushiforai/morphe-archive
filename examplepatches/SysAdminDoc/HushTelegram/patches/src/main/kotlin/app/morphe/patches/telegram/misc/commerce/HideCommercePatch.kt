@@ -28,6 +28,7 @@ import app.morphe.patches.telegram.misc.localcontrols.classDefsMentioning
 import app.morphe.patches.telegram.misc.settings.settingsPatch
 import app.morphe.util.ControlFlow
 import app.morphe.util.addInstructionsAtControlFlowLabel
+import app.morphe.util.branchTarget
 import app.morphe.util.call
 import app.morphe.util.namedRegisters
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -37,6 +38,7 @@ import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.formats.ArrayPayload
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import app.morphe.util.names.origDefiningClass
@@ -44,6 +46,7 @@ import app.morphe.util.names.origName
 import app.morphe.util.names.origParameterTypes
 import app.morphe.util.names.origReturnType
 import app.morphe.util.names.origType
+import app.morphe.util.names.TelegramNames
 import app.morphe.util.names.tgClassDefByOrNull
 import app.morphe.util.names.tgMutableClassDefBy
 
@@ -69,6 +72,8 @@ private const val WALLET_ROW = 25
 // The chat list's menu, found by the entries Telegram adds before Wallet with the same add.
 internal val MENU_NEIGHBORS = listOf("NewGroup", "SavedMessages").map { "Lorg/telegram/messenger/R\$string;->$it:I" }
 private val MENU_ADD = listOf("I", "Ljava/lang/CharSequence;", "Ljava/lang/Runnable;", "Z")
+/** A number loaded between walletAvailable's inlined value and its branch, the way Plus orders its chat list menu. */
+private val GATE_CONSTANTS = setOf(Opcode.CONST_4, Opcode.CONST_16, Opcode.CONST, Opcode.CONST_HIGH16)
 internal const val MENU_WALLET_LABEL = "hush_menu_wallet"
 // Telegram 13.0's Send Gram item. A profile's menu, the popup for a tapped TON address and a Gram
 // transfer's message menu each offer it behind their own walletAvailable read.
@@ -120,7 +125,7 @@ val hideCommercePatch = bytecodePatch(
 ) {
     category("Ads")
     dependsOn(settingsPatch, telegramExtensionPatch)
-    compatibleWith(*AppCompatibilities.telegramOnly())
+    compatibleWith(*AppCompatibilities.telegram())
 
     execute {
         requireStatusMethod("hideCommerce")
@@ -553,8 +558,9 @@ private fun mergedConfigGet(getter: MethodReference, flagType: String): Boolean 
 /**
  * The if-eqz that decides on the walletAvailable value read at [read], with nothing else in
  * between: through ConfigBoolean.get() (13.2's merged one included) and its result, or, where 13.2
- * inlines get(), through the flag's handler cast to its Internal and that handler's value. Null for
- * any other shape.
+ * inlines get(), through the flag's handler cast to its Internal and that handler's value. Plus
+ * Messenger loads the next entry's number into another register between the value and its branch,
+ * and that constant may sit there too. Null for any other shape.
  */
 internal fun walletGate(body: List<Instruction>, read: Int): Int? {
     val flag = body[read].namedRegisters().firstOrNull()
@@ -566,11 +572,11 @@ internal fun walletGate(body: List<Instruction>, read: Int): Int? {
         body.getOrNull(read + 2)?.opcode == Opcode.MOVE_RESULT &&
         body.getOrNull(called)?.opcode == Opcode.IF_EQZ && body[called].namedRegisters() == body[read + 2].namedRegisters()
     ) return called
-    val inlined = read + 4
     val handler = body.getOrNull(read + 1)
     val cast = body.getOrNull(read + 2)
     val value = body.getOrNull(read + 3)
     val answer = value?.namedRegisters()?.firstOrNull()
+    val inlined = read + 4 + (if (body.getOrNull(read + 4)?.let { it.opcode in GATE_CONSTANTS && it.namedRegisters().single() != answer } == true) 1 else 0)
     return inlined.takeIf {
         handler?.opcode == Opcode.IGET_OBJECT && handler.namedRegisters() == listOf(flag, flag) &&
             handler.field()?.let { it.definingClass == body[read].field()!!.type && it.type == "Ljava/lang/Object;" } == true &&
@@ -802,19 +808,42 @@ private fun footerGiftIndex(classDef: ClassDef, method: Method): Int {
         ?: throw PatchException("$PATCH: no footer icon table (before editing)")
     val icons = init.instructions()
     val icon = icons.indices.singleOrNull { icons[it].reference() == GIFT_ICON }
-        ?: throw PatchException("$PATCH: no distinct footer Gift icon (before editing)")
-    val array = (icon + 1 until icons.size).firstOrNull { icons[it].opcode == Opcode.FILLED_NEW_ARRAY }
-        ?: throw PatchException("$PATCH: no footer icon array (before editing)")
-    val iconRegister = icons[icon].namedRegisters().single()
-    shape(icons[array].reference() == "[I" && icons[array].namedRegisters().getOrNull(gift) == iconRegister &&
-        (icon + 1 until array).none { icons[it].writes(iconRegister) } &&
-        icons.getOrNull(array + 1)?.opcode == Opcode.MOVE_RESULT_OBJECT && icons.getOrNull(array + 2)?.opcode == Opcode.SPUT_OBJECT,
-        "footer Gift index does not match its icon array slot")
-    val table = icons[array + 2].reference()
+    val table = if (icon == null) {
+        giftIconData(icons, gift) ?: throw PatchException("$PATCH: no distinct footer Gift icon (before editing)")
+    } else {
+        val array = (icon + 1 until icons.size).firstOrNull { icons[it].opcode == Opcode.FILLED_NEW_ARRAY }
+            ?: throw PatchException("$PATCH: no footer icon array (before editing)")
+        val iconRegister = icons[icon].namedRegisters().single()
+        shape(icons[array].reference() == "[I" && icons[array].namedRegisters().getOrNull(gift) == iconRegister &&
+            (icon + 1 until array).none { icons[it].writes(iconRegister) } &&
+            icons.getOrNull(array + 1)?.opcode == Opcode.MOVE_RESULT_OBJECT && icons.getOrNull(array + 2)?.opcode == Opcode.SPUT_OBJECT,
+            "footer Gift index does not match its icon array slot")
+        icons[array + 2].reference()
+    }
     shape(body.indices.any { index -> body[index].reference() == table && body[index].opcode == Opcode.SGET_OBJECT &&
         body.getOrNull(index + 1)?.opcode == Opcode.AGET && body[index + 1].namedRegisters().getOrNull(2) == button },
         "footer Gift branch does not read its discovered icon table")
     return gift
+}
+
+/**
+ * Plus Messenger's R8 packs the footer's icon ids into array data, so no instruction loads the Gift
+ * icon. The one fill holding its id, at [gift] and nowhere else, names the table it's stored in.
+ */
+private fun giftIconData(icons: List<Instruction>, gift: Int): String? {
+    val id = TelegramNames.tableOf(icons.firstOrNull() ?: return null).resourceOf(GIFT_ICON) ?: return null
+    val fill = icons.indices.filter { at ->
+        if (icons[at].opcode != Opcode.FILL_ARRAY_DATA) return@filter false
+        val data = icons[icons.branchTarget(at) { throw PatchException("$PATCH: footer icon data $it (before editing)") }]
+        val ids = (data as? ArrayPayload)?.arrayElements?.map { it.toInt() }.orEmpty()
+        ids.getOrNull(gift) == id && ids.count { it == id } == 1
+    }.singleOrNull() ?: return null
+    val array = icons[fill].namedRegisters().single()
+    shape(icons.getOrNull(fill - 1)?.opcode == Opcode.NEW_ARRAY && icons[fill - 1].reference() == "[I" &&
+        icons[fill - 1].namedRegisters().first() == array &&
+        icons.getOrNull(fill + 1)?.opcode == Opcode.SPUT_OBJECT && icons[fill + 1].namedRegisters().single() == array,
+        "footer Gift index does not match its icon array slot")
+    return icons[fill + 1].reference()
 }
 
 private fun appendEdit(method: MutableMethod, index: Int, hook: String): CommerceEdit {

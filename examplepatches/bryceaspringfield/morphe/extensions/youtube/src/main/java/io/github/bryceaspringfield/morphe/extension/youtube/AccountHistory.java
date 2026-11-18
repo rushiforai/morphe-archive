@@ -25,7 +25,7 @@ import app.morphe.extension.shared.Utils;
 final class AccountHistory {
 
     private static final long REFRESH_MS = 10 * 60 * 1000;
-    private static final int PAGES = 4;
+    private static final int PAGES = 15;
     private static final Pattern VIDEO = Pattern.compile("\"videoId\":\"([A-Za-z0-9_-]{11})\"");
     private static final Pattern PERCENT = Pattern.compile(
             "\"(?:percentDurationWatched|startPercent|percent)\":(\\d+(?:\\.\\d+)?)");

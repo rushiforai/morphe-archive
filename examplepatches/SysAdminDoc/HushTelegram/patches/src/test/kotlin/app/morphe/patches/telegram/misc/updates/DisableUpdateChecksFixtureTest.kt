@@ -8,7 +8,6 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.PlusPending
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
 import app.morphe.patches.telegram.misc.extension.SETTINGS_STATUS
 import app.morphe.patches.telegram.misc.settings.MAIN_ACTIVITY
@@ -30,16 +29,17 @@ import app.morphe.util.names.tgMutableClassDefBy
 
 /**
  * Disable update checks on each declared build. telegram.org's build has the launcher activity's
- * `(boolean)` update check, found by the field it reads and the request it builds rather than by its
- * own obfuscated name, and the patch puts the extension's question in front of it and leaves the rest
- * of the method alone. Google Play's build has no update check from 13.2 on, so the patch passes
- * there without touching the activity and leaves its status off.
+ * `(boolean)` update check, found by the time it waits out rather than by its own obfuscated name,
+ * and the patch puts the extension's question in front of it and leaves the rest of the method
+ * alone. Plus Messenger's check waits out the same time before asking its own update channel.
+ * Google Play's build has no update check from 13.2 on, so the patch passes there without touching
+ * the activity and leaves its status off.
  */
-@PlusPending
 class DisableUpdateChecksFixtureTest {
     private val updateChecks = "Lapp/hushtelegram/extension/telegram/misc/UpdateChecks;"
     private val getAppUpdate = "Lorg/telegram/tgnet/TLRPC\$TL_help_getAppUpdate;"
     private val sharedConfig = "Lorg/telegram/messenger/SharedConfig;"
+    private val lastCheck = "$sharedConfig->lastUpdateCheckTime:J"
     private val pendingUpdate = "$sharedConfig->pendingAppUpdate:Lorg/telegram/tgnet/TLRPC\$TL_help_appUpdate;"
     private val pendingBuild = "$sharedConfig->pendingAppUpdateBuildVersion:I"
 
@@ -55,9 +55,7 @@ class DisableUpdateChecksFixtureTest {
 
             val checks = classes.getValue(MAIN_ACTIVITY).methods.filter {
                 it.origParameterTypes == listOf("Z") && it.origReturnType == "V" &&
-                    it.instructions().any { instruction ->
-                        instruction.opcode == Opcode.NEW_INSTANCE && instruction.origRef() == getAppUpdate
-                    }
+                    it.instructions().any { instruction -> instruction.origRef() == lastCheck }
             }
             // SharedConfig.isAppUpdateAvailable(): what the Update Telegram bar asks.
             val waiting = classes.getValue(sharedConfig).methods.filter { method ->
@@ -81,6 +79,11 @@ class DisableUpdateChecksFixtureTest {
                 continue
             }
             val original = checks.single()
+            if (build.name.startsWith("telegram-web-")) {
+                assertTrue("$where: the check sends help.getAppUpdate", original.instructions().any {
+                    it.opcode == Opcode.NEW_INSTANCE && it.origRef() == getAppUpdate
+                })
+            }
 
             val patched = context.tgMutableClassDefBy(MAIN_ACTIVITY).methods.single { it.sameSignatureAs(original) }
             val before = original.instructions()

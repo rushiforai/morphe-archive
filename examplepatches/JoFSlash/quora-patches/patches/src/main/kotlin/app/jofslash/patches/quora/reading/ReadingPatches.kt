@@ -4,10 +4,12 @@ import app.jofslash.patches.quora.ads.InterceptRequestFingerprint
 import app.jofslash.patches.quora.ads.PageFinishedFingerprint
 import app.jofslash.patches.quora.shared.Constants.COMPATIBILITY_QUORA
 import app.jofslash.patches.quora.shared.registerSetting
+import app.jofslash.patches.quora.video.InitWebViewFingerprint
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.stringOption
 
@@ -18,11 +20,12 @@ private fun smaliString(value: String) =
     value.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", " ").replace("\r", " ")
 
 /** A patch that runs one ReadingPatch method, which takes only the WebView, on every page. */
-private fun readingPatch(name: String, description: String, extensionMethod: String) = bytecodePatch(
+private fun readingPatch(patchCategory: String, name: String, description: String, extensionMethod: String) = bytecodePatch(
     name = name,
     description = description,
     default = false
 ) {
+    category(patchCategory)
     compatibleWith(COMPATIBILITY_QUORA)
 
     extendWith("extensions/extension.mpe")
@@ -37,6 +40,7 @@ private fun readingPatch(name: String, description: String, extensionMethod: Str
 
 /** A patch that runs one ReadingPatch method with the value of a text option on every page. */
 private fun readingOptionPatch(
+    patchCategory: String,
     name: String,
     description: String,
     extensionMethod: String,
@@ -50,6 +54,7 @@ private fun readingOptionPatch(
     description = description,
     default = false
 ) {
+    category(patchCategory)
     compatibleWith(COMPATIBILITY_QUORA)
 
     extendWith("extensions/extension.mpe")
@@ -78,6 +83,7 @@ private fun readingOptionPatch(
 @Suppress("unused")
 val filterKeywordsPatch = readingOptionPatch(
     name = "Filter keywords",
+    patchCategory = "Feed",
     description = "Hides answers, posts and questions that mention words you pick.",
     extensionMethod = "filterKeywords",
     optionKey = "keywords",
@@ -89,6 +95,7 @@ val filterKeywordsPatch = readingOptionPatch(
 @Suppress("unused")
 val blockAuthorsPatch = readingOptionPatch(
     name = "Block authors and Spaces",
+    patchCategory = "Feed",
     description = "Hides answers and posts by the people and Spaces you pick.",
     extensionMethod = "blockAuthors",
     optionKey = "authors",
@@ -98,8 +105,36 @@ val blockAuthorsPatch = readingOptionPatch(
 )
 
 @Suppress("unused")
+val hideSeenItemsPatch = readingOptionPatch(
+    name = "Hide seen items",
+    patchCategory = "Feed",
+    description = "Dims or hides feed items you already opened when the feed shows them again. " +
+            "The list of opened items stays on your phone.",
+    extensionMethod = "hideSeen",
+    optionKey = "seenMode",
+    optionTitle = "Seen items",
+    optionDescription = "Whether items you already opened are dimmed or hidden.",
+    optionDefault = "dim",
+    optionValues = mapOf("Dim" to "dim", "Hide" to "hide"),
+)
+
+@Suppress("unused")
+val hideOldAnswersPatch = readingOptionPatch(
+    name = "Hide old answers",
+    patchCategory = "Feed",
+    description = "Hides answers and posts older than the number of years you pick, in the feed and on question pages.",
+    extensionMethod = "hideOldAnswers",
+    optionKey = "maxAge",
+    optionTitle = "Older than",
+    optionDescription = "Answers and posts at least this many years old are hidden.",
+    optionDefault = "3",
+    optionValues = mapOf("1 year" to "1", "2 years" to "2", "3 years" to "3", "5 years" to "5", "10 years" to "10"),
+)
+
+@Suppress("unused")
 val answerFontPatch = readingOptionPatch(
     name = "Answer font",
+    patchCategory = "Reading",
     description = "Sets answers in a serif or a sans-serif font of your phone.",
     extensionMethod = "answerFont",
     optionKey = "answerFont",
@@ -112,13 +147,39 @@ val answerFontPatch = readingOptionPatch(
 @Suppress("unused")
 val expandAnswersPatch = readingPatch(
     name = "Expand answers",
+    patchCategory = "Reading",
     description = "Opens shortened answers on question pages, and shows the whole answer preview in the feed.",
     extensionMethod = "expandAnswers",
 )
 
 @Suppress("unused")
+val copyAnswerTextPatch = bytecodePatch(
+    name = "Copy answer text",
+    description = "Adds a Copy button next to Share under answers and posts. It copies their text without formatting.",
+    default = false
+) {
+    category("Reading")
+    compatibleWith(COMPATIBILITY_QUORA)
+
+    extendWith("extensions/extension.mpe")
+
+    execute {
+        PageFinishedFingerprint.method.addInstruction(
+            0,
+            "invoke-static { p1 }, $EXTENSION_CLASS->copyAnswerText(Landroid/webkit/WebView;)V"
+        )
+        // The button hands the text to the app, which puts it on the clipboard.
+        InitWebViewFingerprint.method.addInstruction(
+            0,
+            "invoke-static { p1 }, Lapp/jofslash/extension/quora/PatchSettings;->bind(Landroid/webkit/WebView;)V"
+        )
+    }
+}
+
+@Suppress("unused")
 val hidePeopleSuggestionsPatch = readingPatch(
     name = "Hide people suggestions",
+    patchCategory = "Feed",
     description = "Hides \"People you may know\" and other people to follow in the feed.",
     extensionMethod = "hidePeopleSuggestions",
 )
@@ -126,6 +187,7 @@ val hidePeopleSuggestionsPatch = readingPatch(
 @Suppress("unused")
 val amoledDarkPatch = readingPatch(
     name = "AMOLED dark mode",
+    patchCategory = "Reading",
     description = "Uses a pure black background when Quora's dark theme is on.",
     extensionMethod = "amoledDark",
 )
@@ -133,6 +195,7 @@ val amoledDarkPatch = readingPatch(
 @Suppress("unused")
 val comfortableReadingPatch = readingPatch(
     name = "Comfortable reading",
+    patchCategory = "Reading",
     description = "More space between the lines and paragraphs of answers.",
     extensionMethod = "comfortableReading",
 )
@@ -140,6 +203,7 @@ val comfortableReadingPatch = readingPatch(
 @Suppress("unused")
 val keepScreenOnPatch = readingPatch(
     name = "Keep screen on",
+    patchCategory = "Reading",
     description = "Keeps the screen from turning off while a page is open.",
     extensionMethod = "keepScreenOn",
 )
@@ -158,6 +222,7 @@ val hideAskButtonPatch = bytecodePatch(
     description = "Hides the button for asking a question in the top bar and on pages.",
     default = false
 ) {
+    category("App")
     compatibleWith(COMPATIBILITY_QUORA)
 
     extendWith("extensions/extension.mpe")
@@ -186,14 +251,24 @@ val hideAskButtonPatch = bytecodePatch(
 @Suppress("unused")
 val dataSaverPatch = bytecodePatch(
     name = "Data saver",
-    description = "Images load only when you tap them.",
+    description = "Images load only when you tap them. By default only on mobile data; on Wi-Fi they load as usual.",
     default = false
 ) {
+    category("Reading")
     compatibleWith(COMPATIBILITY_QUORA)
 
     extendWith("extensions/extension.mpe")
 
+    val loadOnWifi = booleanOption(
+        key = "loadOnWifi",
+        default = true,
+        title = "Load images on Wi-Fi",
+        description = "Images load as usual on Wi-Fi and wait for a tap only on mobile data or a hotspot. " +
+                "Can also be switched in Patch settings.",
+    )
+
     execute {
+        if (loadOnWifi.value == true) registerSetting("dataSaverOnWifi", "Data saver: load images on Wi-Fi")
         InterceptRequestFingerprint.method.addInstructionsWithLabels(
             0,
             """

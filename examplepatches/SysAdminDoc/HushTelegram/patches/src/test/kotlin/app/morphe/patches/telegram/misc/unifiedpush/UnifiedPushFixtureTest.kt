@@ -8,7 +8,6 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.PlusPending
 import app.morphe.util.names.origRef
 import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
@@ -51,7 +50,6 @@ import app.morphe.util.names.origType
 import app.morphe.util.names.tgMutableClassDefBy
 
 /** PushListenerController's sign-up and wake-up on both declared builds, where UnifiedPush plugs in. */
-@PlusPending
 class UnifiedPushFixtureTest {
     private companion object {
         val EMOJI_CENSUS = FixtureDex.ClassCensus()
@@ -132,7 +130,10 @@ class UnifiedPushFixtureTest {
             val name = build.name
             val context = context(build)
             val plan = context.resolveUnifiedPush()
-            assertEquals("$name: Telegram signs up four accounts", 4, plan.accounts)
+            // Telegram goes through four accounts, Plus Messenger through as many as its UserConfig allows.
+            if (name.startsWith("plus-")) assertTrue("$name: ${plan.accounts}",
+                Regex("sget v1, Lorg/telegram/messenger/UserConfig;->\\w+:I").matches(plan.accounts))
+            else assertEquals("$name: Telegram signs up four accounts", "const/16 v1, 4", plan.accounts)
             val old = ImmutableMethod.of(plan.signUp)
             val stockSilent = ImmutableMethod.of(context.silentCheck()).controlBody()
             assertEquals(emptyList<String>(), PatchLogCapture.warnings { unifiedPushPatch.execute(context) })
@@ -160,9 +161,16 @@ class UnifiedPushFixtureTest {
             assertEquals(listOf(POST_INIT, null), context.stub("startTelegram").refs())
             assertEquals(listOf(STAGE_QUEUE, TelegramNames.of(context).asRead(POST_RUNNABLE), null), context.stub("onStageQueue").refs())
             val wake = context.stub("wakeAccounts")
+            // Plus Messenger's account count is a field the loop reads, checked below.
             assertEquals(listOf(USER_CONFIG_INSTANCE, CLIENT_ACTIVATED, INTERNAL_PUSH, CONNECTIONS_INSTANCE, RESUME_NETWORK),
-                wake.refs().filterNotNull())
-            assertEquals(4, (wake.first { it.opcode == Opcode.CONST_16 } as NarrowLiteralInstruction).narrowLiteral)
+                wake.filter { it.opcode != Opcode.SGET }.refs().filterNotNull())
+            // The stub's loop stops where onDecryptError's does.
+            val stock = context.tgMutableClassDefBy(PUSH_CONTROLLER).method("onDecryptError").controlBody()
+            val stockBound = stock[stock.indexOfFirst { it.opcode == Opcode.IF_GE } - 1]
+            val bound = wake[wake.indexOfFirst { it.opcode == Opcode.IF_GE } - 1]
+            assertEquals("$name: the account count's source", name.startsWith("plus-"), stockBound.opcode == Opcode.SGET)
+            if (stockBound.opcode == Opcode.SGET) assertEquals(listOf(Opcode.SGET, stockBound.controlRef()), listOf(bound.opcode, bound.controlRef()))
+            else assertEquals(4, (bound as NarrowLiteralInstruction).narrowLiteral)
             // Nothing in the stub counts down processRemoteMessage's latch, which a Firebase push may be waiting on.
             assertTrue(wake.none { it.controlRef()?.contains("countDown") == true })
             assertEquals(listOf(GET_PUSH_PROVIDER, HAS_SERVICES, REQUEST_PUSH_TOKEN),

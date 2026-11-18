@@ -11,6 +11,7 @@
  * - MondayNitro (https://github.com/MondayNitro)
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-18.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -55,11 +56,8 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
-import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.colorOption
 import app.morphe.patcher.patch.resourcePatch
-import app.morphe.patcher.patch.stringOption
 import app.morphe.patcher.util.getReference
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.shared.drawable.addDrawableColorHook
@@ -73,24 +71,38 @@ import app.morphe.patches.youtube.utils.patch.PatchList.SNACK_BAR_COMPONENTS
 import app.morphe.patches.youtube.utils.resourceid.sharedResourceIdPatch
 import app.morphe.patches.youtube.utils.settings.ResourceUtils.addPreference
 import app.morphe.patches.youtube.utils.settings.settingsPatch
+import app.morphe.util.Utils.printWarn
 import app.morphe.util.findElementByAttributeValueOrThrow
 import app.morphe.util.findMethodOrThrow
 import app.morphe.util.getNode
 import app.morphe.util.indexOfFirstInstructionOrThrow
 import app.morphe.util.indexOfFirstInstructionReversedOrThrow
-import app.morphe.util.valueOrThrow
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import org.w3c.dom.Document
 import org.w3c.dom.Element
 
 private const val EXTENSION_CLASS_DESCRIPTOR =
     "$GENERAL_PATH/SnackBarPatch;"
 private const val FILTER_CLASS_DESCRIPTOR =
     "$SPANS_PATH/SnackBarFilter;"
+private const val DRAWABLE_CLASS = "app.morphe.extension.youtube.patches.general.SnackBarDrawable"
+
+private fun Document.useRuntimeDrawable(shape: Element, className: String) {
+    (renameNode(shape, null, "drawable") as Element).setAttribute("class", className)
+}
+
+private fun Document.useUniformSnackBarCorners() {
+    val corners = getNode("corners") as Element
+    arrayOf("bottomLeftRadius", "bottomRightRadius", "topLeftRadius", "topRightRadius").forEach {
+        corners.removeAttribute("android:$it")
+    }
+    corners.setAttribute("android:radius", "@dimen/snackbar_corner_radius")
+}
 
 private val snackBarComponentsBytecodePatch = bytecodePatch(
     description = "snackBarComponentsBytecodePatch"
@@ -255,6 +267,16 @@ private val snackBarComponentsBytecodePatch = bytecodePatch(
             )
         }
 
+        SnackBarOutlineFingerprint.matchOrNull()?.let { match ->
+            val index = match.instructionMatches.last().index
+            val instruction = match.method.getInstruction<FiveRegisterInstruction>(index)
+            match.method.replaceInstruction(
+                index,
+                "invoke-static {v${instruction.registerC}, v${instruction.registerD}}, " +
+                        "$EXTENSION_CLASS_DESCRIPTOR->getOutlineRadius(Landroid/content/res/Resources;I)F"
+            )
+        } ?: printWarn("Snack bar components: the stock snackbar outline was not found; keeping its original radius.")
+
         addDrawableColorHook("$EXTENSION_CLASS_DESCRIPTOR->getLithoColor(Landroid/graphics/drawable/Drawable;I)I", true, true)
         addSpanFilter(FILTER_CLASS_DESCRIPTOR)
     }
@@ -272,102 +294,9 @@ val snackBarComponentsPatch = resourcePatch(
         snackBarComponentsBytecodePatch,
     )
 
-    val ytBackgroundColorDark = "@color/yt_black3"
-    val ytBackgroundColorLight = "@color/yt_white3"
-
-    val availableDarkTheme = mapOf(
-        "YouTube Dark" to ytBackgroundColorDark,
-        "Amoled Black" to "@android:color/black",
-        "Material You (Neutral)" to "@android:color/system_neutral1_900",
-        "Material You - Primary" to "@android:color/system_accent1_800",
-        "Material You - Secondary" to "@android:color/system_accent2_800",
-        "Material You - Tertiary" to "@android:color/system_accent3_800",
-        "Modern YouTube" to "#FF0F0F0F",
-        "Classic (Old YouTube)" to "#FF212121",
-        "Catppuccin (Mocha)" to "#FF181825",
-        "Dark Pink" to "#FF290025",
-        "Dark Blue" to "#FF001029",
-        "Dark Green" to "#FF002905",
-        "Dark Yellow" to "#FF282900",
-        "Dark Orange" to "#FF291800",
-        "Dark Red" to "#FF290000",
-    )
-
-    val availableLightTheme = mapOf(
-        "YouTube Light" to ytBackgroundColorLight,
-        "White" to "@android:color/white",
-        "Material You (Neutral)" to "@android:color/system_neutral1_100",
-        "Material You - Primary" to "@android:color/system_accent1_200",
-        "Material You - Secondary" to "@android:color/system_accent2_200",
-        "Material You - Tertiary" to "@android:color/system_accent3_200",
-        "Catppuccin (Latte)" to "#FFE6E9EF",
-        "Light Pink" to "#FFFCCFF3",
-        "Light Blue" to "#FFD1E0FF",
-        "Light Green" to "#FFCCFFCC",
-        "Light Yellow" to "#FFFDFFCC",
-        "Light Orange" to "#FFFFE6CC",
-        "Light Red" to "#FFFFD6D6",
-    )
-
-    val cornerRadiusOption = stringOption(
-        key = "cornerRadius",
-        default = "8.0dip",
-        title = "Corner radius",
-        description = "Specify a corner radius for the snack bar.",
-        required = true,
-    )
-
-    val applyCornerRadiusToPlaylistBottomBarOption by booleanOption(
-        key = "applyCornerRadiusToPlaylistBottomBar",
-        default = false,
-        title = "Apply corner radius to playlist bottom bar",
-        description = "Whether to apply the same corner radius to the bottom bar of the playlist as the snack bar.",
-        required = true
-    )
-
-    val darkThemeBackgroundColor = colorOption(
-        key = "darkThemeBackgroundColor",
-        default = ytBackgroundColorDark,
-        values = availableDarkTheme,
-        title = "Dark theme background color",
-        description = "Specify a background color for the snack bar. You can specify hex color (#AARRGGBB) or color resource reference.",
-        required = true,
-    )
-
-    val lightThemeBackgroundColor = colorOption(
-        key = "lightThemeBackgroundColor",
-        default = ytBackgroundColorLight,
-        values = availableLightTheme,
-        title = "Light theme background color",
-        description = "Specify a background color for the snack bar. You can specify hex color (#AARRGGBB) or color resource reference.",
-        required = true,
-    )
-
-    val strokeColorOption = colorOption(
-        key = "strokeColor",
-        default = "",
-        values = mapOf(
-            "None" to "",
-            "Blue" to "?attr/ytThemedBlue",
-            "Chip" to "?attr/ytChipBackground"
-        ),
-        title = "Stroke color",
-        description = "Specify a stroke color for the snack bar. You can specify hex color.",
-    )
-
     execute {
-
-        // Check patch options first.
-        val cornerRadius = cornerRadiusOption
-            .valueOrThrow()
-        val applyCornerRadiusToPlaylistBottomBar =
-            applyCornerRadiusToPlaylistBottomBarOption == true
-        val darkThemeColor = darkThemeBackgroundColor
-            .valueOrThrow()
-        val lightThemeColor = lightThemeBackgroundColor
-            .valueOrThrow()
-        val strokeColor = strokeColorOption
-            .valueOrThrow()
+        val darkThemeColor = "@color/yt_black3"
+        val lightThemeColor = "@color/yt_white3"
 
         val snackBarColorAttr = "snackBarColor"
         val snackBarColorAttrReference = "?attr/$snackBarColorAttr"
@@ -417,26 +346,10 @@ val snackBarComponentsPatch = resourcePatch(
         }
 
         document("res/drawable/snackbar_rounded_corners_background.xml").use { document ->
-            document.getNode("corners").apply {
-                arrayOf(
-                    "android:bottomLeftRadius",
-                    "android:bottomRightRadius",
-                    "android:topLeftRadius",
-                    "android:topRightRadius",
-                ).forEach {
-                    attributes.getNamedItem(it).nodeValue = cornerRadius
-                }
-            }
+            document.useRuntimeDrawable(document.documentElement, DRAWABLE_CLASS)
+            document.useUniformSnackBarCorners()
             document.getNode("solid").apply {
                 attributes.getNamedItem("android:color").nodeValue = snackBarColorAttrReference
-            }
-            if (!strokeColor.isEmpty()) {
-                (document.getElementsByTagName("shape").item(0) as Element).appendChild(
-                    document.createElement("stroke").apply {
-                        setAttribute("android:width", "1.0dip")
-                        setAttribute("android:color", strokeColor)
-                    }
-                )
             }
         }
 
@@ -448,18 +361,23 @@ val snackBarComponentsPatch = resourcePatch(
                 val node = childNodes.item(i) as? Element ?: continue
                 val dimenName = node.getAttribute("name")
 
-                if (dimenName.equals("snackbar_corner_radius")) {
-                    node.textContent = cornerRadius
+                if (dimenName == "snackbar_corner_radius") {
+                    node.textContent = "8.0dip"
                     break
                 }
             }
         }
 
-        if (applyCornerRadiusToPlaylistBottomBar) {
-            document("res/drawable/playlist_entry_point_corner_drawable.xml").use { document ->
-                document.getNode("corners").apply {
-                    attributes.getNamedItem("android:radius").nodeValue = cornerRadius
-                }
+        document("res/drawable/playlist_entry_point_corner_drawable.xml").use { document ->
+            document.useRuntimeDrawable(document.documentElement, "$DRAWABLE_CLASS\$Playlist")
+        }
+
+        // Media picker already uses this same radius, but has its own fill and insets.
+        val mediaPickerBackground = "res/drawable/media_picker_snackbar_rounded_corners_background.xml"
+        if (get(mediaPickerBackground).exists()) {
+            document(mediaPickerBackground).use { document ->
+                document.useRuntimeDrawable(document.getNode("shape") as Element, "$DRAWABLE_CLASS\$RadiusOnly")
+                document.useUniformSnackBarCorners()
             }
         }
 

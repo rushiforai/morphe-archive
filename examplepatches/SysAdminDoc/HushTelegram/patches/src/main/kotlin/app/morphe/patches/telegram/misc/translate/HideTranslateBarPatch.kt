@@ -51,7 +51,7 @@ val hideTranslateBarPatch = bytecodePatch(
 ) {
     category("Conversations")
     dependsOn(settingsPatch, telegramExtensionPatch)
-    compatibleWith(*AppCompatibilities.telegramOnly())
+    compatibleWith(*AppCompatibilities.telegram())
     execute {
         val sites = resolveTranslateBar()
         val pinned = resolvePinnedBar(sites.first().method.definingClass)

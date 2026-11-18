@@ -9,21 +9,25 @@
 # bundle with its update prompt. 2.3.0 went stable on 2026-11-06 with Manager 2.5.0 and desktop
 # 2.1.0: Patch lost its type parameter, extensionStreamProviders moved up from BytecodePatch to
 # Patch, PatchClasses takes a PatcherProgress beside the class set, and ARSCLib moved to
-# 675bed2de3 (smali stays ac700e1942).
-morphe-patcher = "2.3.0"
+# 675bed2de3 (smali stays ac700e1942). 2.4.0 went stable on 2026-11-15 with Manager 2.6.0 and
+# desktop 2.2.0: smali moves to 5eaff5a2c9, ARSCLib moves to 50418a07a8 (ValueType became the
+# DataType constants and the value accessors were renamed), and PackageMetadata takes the
+# bundle's OBB files.
+morphe-patcher = "2.4.0"
 # First stable Manager release that bundled the patcher above. The release fact check holds the
 # README's stated floor to this value.
-manager-floor = "2.5.0"
+manager-floor = "2.6.0"
 # Read by the app.morphe.patches settings plugin, not by anything in this repo: remove it and
 # configuration fails with "Version with alias smali not found in version catalog". The commit
 # resolves as com.github.MorpheApp.smali through JitPack. It is not waiting on an official
 # release, which google/smali 3.0.10 delivered on 2026-08-20: the pin has to be the commit the
-# patcher above requests (2.3.0 back to 2.1.0 ask for ac700e1942; 2.0.0 asked for 4220ae75f7).
+# patcher above requests (2.4.0 asks for 5eaff5a2c9, 2.3.0 back to 2.1.0 for ac700e1942, 2.0.0 for
+# 4220ae75f7). ac700e1942 sorts above 5eaff5a2c9, so this pin has to move with the patcher.
 # Gradle keeps whichever version sorts higher, not the newer commit, and another group's smali
 # would put two copies of dexlib2 on the R8 classpath (buildAndroid fails with "Classpath type
 # already present").
 #noinspection GradleDependency
-smali = "ac700e1942"
+smali = "5eaff5a2c9"
 # The Android Gradle plugin and Kotlin come from the app.morphe.patches settings plugin
 # (2.1.0 brings AGP 9.1.0 and Kotlin 2.4.21); nothing here pins them.
 annotation = "1.10.0"

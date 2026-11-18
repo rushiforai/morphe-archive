@@ -14,10 +14,9 @@ object Constants {
         // Original signing cert (apksigner "certificate SHA-256 digest"). bin/apk-add pins it.
         signatures = setOf("1338f9b049893cc70b78432a177582f90bd4bc6296ea4ed35bcc7df59687ac53"),
         targets = listOf(
-            // Latest stable on APKMirror on 2026-10-29 (versionCode 3108006). Target only a version APKMirror lists
-            // as stable: Manager's download link can't find anything else (bin/manager-link). Google Play's 31.9.0
-            // (commit b50dd0a) waits for APKMirror, which so far has only 31.9.0_BETA, a different build.
-            AppTarget(version = "31.8.0"),
+            // Latest stable on APKMirror on 2026-11-18 (versionCode 3201006). Target only a version APKMirror lists
+            // as stable: Manager's download link can't find anything else (bin/manager-link).
+            AppTarget(version = "32.1.0"),
         ),
     )
 

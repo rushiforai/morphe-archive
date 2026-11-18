@@ -37,8 +37,8 @@ val filterZaloPromoNotificationsPatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_ZALO)
 
     execute {
-        val story = StoryChannelArm.matchAll(0..1) + StoryChannelArm261002.matchAll(0..1)
-        val video = VideoChannelArm.matchAll(0..1) + VideoChannelArm261002.matchAll(0..1)
+        val story = StoryChannelArm.matchAll(0..1) + StoryChannelArm261002.matchAll(0..1) + StoryChannelArm261101.matchAll(0..1)
+        val video = VideoChannelArm.matchAll(0..1) + VideoChannelArm261002.matchAll(0..1) + VideoChannelArm261101.matchAll(0..1)
         check(story.size == 1 && video.size == 1) { "Expected one Story and one Video notification arm" }
         dropChannelArm(story.single())
         dropChannelArm(video.single())

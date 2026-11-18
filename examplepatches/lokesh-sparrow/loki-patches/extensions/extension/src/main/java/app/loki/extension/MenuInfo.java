@@ -58,13 +58,18 @@ public final class MenuInfo {
             rows.add(new String[]{"GmsCore support (Splitwise)", flag(flags, "app.loki.menu.gmscore")});
         } else if (pkg.startsWith("com.truecaller")) {
             rows.add(new String[]{"Enable premium features (Truecaller)", flag(flags, "app.loki.menu.premium")});
+            rows.add(new String[]{"Hide ads (Truecaller)", flag(flags, "app.loki.menu.hideads")});
             rows.add(new String[]{"Hide after-call screen", flag(flags, "app.loki.menu.aftercall")});
+            rows.add(new String[]{"Anonymous profile viewing", flag(flags, "app.loki.menu.anonview")});
+            rows.add(new String[]{"Anonymous search", flag(flags, "app.loki.menu.anonsearch")});
             rows.add(new String[]{"GmsCore support (Truecaller)", flag(flags, "app.loki.menu.gmscore")});
         } else if (pkg.startsWith("com.mxtech.videoplayer")) {
             rows.add(new String[]{"All codecs", flag(flags, "app.loki.menu.codec")});
             rows.add(new String[]{"Skip license check", flag(flags, "app.loki.menu.license")});
+            rows.add(new String[]{"GmsCore support (MX Player Pro)", flag(flags, "app.loki.menu.gmscore")});
         } else {
-            rows.add(new String[]{"Enable premium features", flag(flags, "app.loki.menu.premium")});
+            rows.add(new String[]{"Enable premium features (Doc Scanner)", flag(flags, "app.loki.menu.premium")});
+            rows.add(new String[]{"Hide ads (Doc Scanner)", flag(flags, "app.loki.menu.hideads")});
             rows.add(new String[]{"Declutter", flag(flags, "app.loki.menu.declutter")});
             rows.add(new String[]{"GmsCore support (Doc Scanner)", flag(flags, "app.loki.menu.gmscore")});
             rows.add(new String[]{"Allow clone", flag(flags, "app.loki.menu.allowclone")});

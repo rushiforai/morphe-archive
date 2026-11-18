@@ -209,7 +209,7 @@ class ReleaseTextTest(unittest.TestCase):
         self.write("patches-list.json", catalog("450.0.0.51.78", version="v0.0.12"))
         self.refused(release_text.readme, "generatePatchesList", version="0.0.13")
 
-    def test_notes_carry_every_bullet_by_scope_with_counts_from_the_results(self):
+    def test_notes_carry_the_threads_bullets_and_leave_docs_and_tooling_out(self):
         self.run_command(release_text.cut, version="0.0.13", date="2026-10-09")
         self.write("intro.md", "HushThreads v0.0.13 has 2 patches.\n")
         self.write("update.md", "1. You need [Morphe Manager](https://x) 1.34.0 or newer.\n")
@@ -218,14 +218,11 @@ class ReleaseTextTest(unittest.TestCase):
                          update=str(self.root / "update.md"), out=str(out))
         notes = out.read_text(encoding="utf-8")
         self.assertTrue(notes.startswith("HushThreads v0.0.13 has 2 patches.\n\n## Threads\n\n- Hide the Instagram"))
-        self.assertIn("## Docs\n\n- The README says which connections", notes)
-        self.assertIn("## Tooling\n\n- The fixture tests run as their own task.\n\n## Update\n\n1. You need", notes)
         self.assertNotIn("**Threads:**", notes)
-        self.assertLess(notes.index("## Threads"), notes.index("## Docs"))
-        self.assertLess(notes.index("## Docs"), notes.index("## Tooling"))
-        self.assertIn("5 runtime tests and 5 patch tests passed locally", notes)
-        self.assertIn("All 2 patches applied without forcing to Threads 450.0.0.51.78, and the release receipt "
-                      "records the run.", notes)
+        for left_out in ("## Docs", "The README says which connections", "## Tooling",
+                         "The fixture tests run as their own task", "## Validation"):
+            self.assertNotIn(left_out, notes)
+        self.assertTrue(notes.endswith("\n\n## Update\n\n1. You need [Morphe Manager](https://x) 1.34.0 or newer.\n"))
 
     def test_notes_refuse_a_stale_floor_a_skipped_run_and_an_uncut_version(self):
         self.write("intro.md", "Intro.\n")

@@ -94,6 +94,11 @@ private fun fits(ok: Boolean, why: String) {
  * icon. A tab given a new title later compares it with the one it has first, so that check reads
  * the title without its icon, and the new title gets it back right before it's stored. Anything
  * else and the switch is left out.
+ *
+ * Plus Messenger draws folder tab icons of its own: its tab picks a drawable from the folder's
+ * emoji, and for an emoji it has none for it stores a title of its own without that check. So
+ * Plus gets "the folder tab stores a title without checking the old one", and ours are left out
+ * there rather than drawn twice.
  */
 internal fun BytecodePatchContext.resolveTabIcons(strip: String): TabIconsPlan = try {
     tabIcons(strip).also { it.rehearse() }
@@ -159,8 +164,9 @@ private fun BytecodePatchContext.tabIcons(strip: String): TabIconsPlan {
                 body[index - 1].controlField()?.toString() == titleField &&
                 (body[index - 1] as TwoRegisterInstruction).registerA in body[index].namedRegisters()
         }
+        fits(checks.isNotEmpty(), "the folder tab stores a title without checking the old one")
         fits(checks.size == 1, "the folder tab's title check changed")
-        val old = (body[checks.single() - 1] as TwoRegisterInstruction).registerA
+        val old =(body[checks.single() - 1] as TwoRegisterInstruction).registerA
         fits(old <= 15, "the folder tab's title check keeps its registers out of reach")
         edits += TabIconEdit(method, checks.single(), "invoke-static {v$old}, $TAB_PLAIN\nmove-result-object v$old", 2)
     }

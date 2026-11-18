@@ -62,6 +62,7 @@ public final class FeedAutoScrollPatch {
     private static WeakReference<Object> scrolledSink;
     private static WeakReference<Object> currentGridSink;
     private static boolean navBarShown = true;
+    private static boolean searchScreenShown = false;
     private static boolean activityResumed = false;
     private static SharedPreferences.OnSharedPreferenceChangeListener prefChangeListener;
     private static WeakReference<View> overlayButtonRef;
@@ -462,6 +463,20 @@ public final class FeedAutoScrollPatch {
         }
     }
 
+    public static void onScreenAttachChanged(boolean isSearchScreen, boolean attached) {
+        try {
+            if (!isSearchScreen) {
+                return;
+            }
+            searchScreenShown = attached;
+            if (attached) {
+                stopAutoScroll();
+            }
+            updateButtonVisibility();
+        } catch (Throwable ignored) {
+        }
+    }
+
     private static ImageButton createButton(Context context) {
         ImageButton button = new ImageButton(context);
         int size = dp(context, 48);
@@ -717,7 +732,7 @@ public final class FeedAutoScrollPatch {
             Context context = button.getContext();
             boolean enabled = BinocularsMods.isEnabled("feed_auto_scroll");
             boolean tablet = isTablet(context);
-            boolean visible = enabled && activityResumed && (tablet || navBarShown) && findOnScreenFeed() != null && !postPageShown();
+            boolean visible = enabled && activityResumed && (tablet || navBarShown) && findOnScreenFeed() != null && !postPageShown() && !searchScreenShown;
 
             if (!visible && isScrolling) {
                 stopAutoScroll();

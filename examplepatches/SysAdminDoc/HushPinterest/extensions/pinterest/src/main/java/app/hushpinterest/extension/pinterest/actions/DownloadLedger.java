@@ -603,7 +603,7 @@ public final class DownloadLedger {
                 HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "record native download retry", failure);
             }
             HookStatus.counted(FamilyNames.DOWNLOAD_PINS, "native download retry queued");
-            Utils.showToastLong(PinDownloads.startedMessage(saved, folder));
+            PinDownloads.started(saved, folder);
         }
     }
 

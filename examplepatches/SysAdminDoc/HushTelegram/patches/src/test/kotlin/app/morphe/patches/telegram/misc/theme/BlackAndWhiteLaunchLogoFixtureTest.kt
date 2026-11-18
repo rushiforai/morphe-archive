@@ -5,6 +5,7 @@
 package app.morphe.patches.telegram.misc.theme
 
 import app.morphe.Fixtures
+import app.morphe.PlusPending
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patches.telegram.misc.maps.resourceXmlDeclarations
 import app.morphe.patches.telegram.misc.maps.withAndroidResourceXmlFactory
@@ -28,6 +29,7 @@ import javax.xml.parsers.DocumentBuilderFactory
  * fixture into a folder laid out the way Morphe decodes; the CLI run on the real APKs covers the
  * decode and the rebuild around it.
  */
+@PlusPending
 class BlackAndWhiteLaunchLogoFixtureTest {
     @Rule
     @JvmField

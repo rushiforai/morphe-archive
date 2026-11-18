@@ -1,7 +1,11 @@
 package app.zeldrisho.zalo.extension;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
+import android.os.Build;
+import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,6 +26,9 @@ public final class ZeldrisSettingsContent {
   public static boolean hasStrangerNotificationSettings() { return false; }
   public static boolean hasBackupIntervalSettings() { return false; }
   public static boolean hasRecallSettings() { return false; }
+  public static boolean hasAccentColorSettings() { return false; }
+  public static boolean hasCustomRingtoneSettings() { return false; }
+  public static boolean hasNotificationSoundSettings() { return false; }
 
   /**
    * Appends the installed features' settings rows to {@code parent} and returns it.
@@ -81,9 +88,18 @@ public final class ZeldrisSettingsContent {
         ((ViewGroup) backup.getParent()).removeView(backup);
         parent.addView(backup);
       }
+      if (hasCustomRingtoneSettings()) {
+        addRingtoneChoice(parent, layout, notifications, preferences, vi);
+      }
+      if (hasNotificationSoundSettings()) {
+        addNotificationSoundChoice(parent, layout, notifications, vi);
+      }
+      if (hasAccentColorSettings()) {
+        addAccentColorChoice(parent, layout, privacy, preferences, vi);
+      }
       if (hasRecallSettings()) {
         addToggle(parent, layout, privacy, vi ? "Giữ tin nhắn đã thu hồi" : "Keep recalled messages",
-            "keep_recalled_messages", "zds_ic_backup_message_line_24", preferences, vi);
+            "keep_recalled_messages", "zds_ic_backup_message_line_24", false, preferences, vi);
       }
     } catch (ReflectiveOperationException | RuntimeException ignored) {
       // A host ABI mismatch must not crash the app.
@@ -91,14 +107,87 @@ public final class ZeldrisSettingsContent {
     return parent;
   }
 
+  /** Opens Android's notification settings without changing or recreating user-owned channels. */
+  private static void addNotificationSoundChoice(LinearLayout parent, int layout, int rowId,
+      boolean vi) throws ReflectiveOperationException {
+    Context context = parent.getContext();
+    LinearLayout temporary = new LinearLayout(context);
+    LayoutInflater.from(context).inflate(layout, temporary, true);
+    View row = temporary.findViewById(rowId);
+    if (row == null) return;
+    Class<?> cls = row.getClass();
+    cls.getMethod("setTitle", CharSequence.class).invoke(row,
+        vi ? "Âm thanh thông báo" : "Notification sounds");
+    configureIcon(row, "zds_ic_notif_line_24");
+    cls.getMethod("setShowChevronRight", boolean.class).invoke(row, true);
+    row.setId(View.NO_ID);
+    row.setOnClickListener(view -> {
+      try {
+        Intent intent;
+        if (Build.VERSION.SDK_INT >= 26) {
+          intent = new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+              .putExtra(Settings.EXTRA_APP_PACKAGE, context.getPackageName());
+        } else {
+          intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+              Uri.parse("package:" + context.getPackageName()));
+        }
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        context.startActivity(intent);
+      } catch (RuntimeException ignored) {
+        Toast.makeText(context, vi ? "Không thể mở cài đặt thông báo" : "Notification settings unavailable",
+            Toast.LENGTH_SHORT).show();
+      }
+    });
+    ((ViewGroup) row.getParent()).removeView(row);
+    parent.addView(row);
+  }
+
+  private static void addRingtoneChoice(LinearLayout parent, int layout, int rowId,
+      SharedPreferences preferences, boolean vi) throws ReflectiveOperationException {
+    Context context = parent.getContext();
+    LinearLayout temporary = new LinearLayout(context);
+    LayoutInflater.from(context).inflate(layout, temporary, true);
+    View row = temporary.findViewById(rowId);
+    if (row == null) return;
+    Class<?> cls = row.getClass();
+    cls.getMethod("setTitle", CharSequence.class).invoke(row,
+        vi ? "Nhạc chuông cuộc gọi" : "Call ringtone");
+    configureIcon(row, "zds_ic_notif_line_24");
+    cls.getMethod("setShowChevronRight", boolean.class).invoke(row, true);
+    row.setId(View.NO_ID);
+    row.setTag(CustomRingtone.KEY);
+    row.setOnClickListener(view -> ZeldrisSettings.openRingtoneSettings());
+    ((ViewGroup) row.getParent()).removeView(row);
+    parent.addView(row);
+  }
+
+  private static void addAccentColorChoice(LinearLayout parent, int layout, int rowId,
+      SharedPreferences preferences, boolean vi) throws ReflectiveOperationException {
+    Context context = parent.getContext();
+    LinearLayout temporary = new LinearLayout(context);
+    LayoutInflater.from(context).inflate(layout, temporary, true);
+    View row = temporary.findViewById(rowId);
+    if (row == null) return;
+    Class<?> cls = row.getClass();
+    cls.getMethod("setTitle", CharSequence.class).invoke(row,
+        vi ? "Màu nhấn" : "Accent color");
+    configureIcon(row, "zds_ic_setting_line_24");
+    cls.getMethod("setShowChevronRight", boolean.class).invoke(row, true);
+    row.setId(View.NO_ID);
+    row.setTag(AccentColor.KEY);
+    row.setOnClickListener(view -> ZeldrisSettings.openAccentSettings());
+    ((ViewGroup) row.getParent()).removeView(row);
+    parent.addView(row);
+  }
+
   /** Inflate independent template rows so feature selections never steal each other's widgets. */
   private static void addToggle(LinearLayout parent, int layout, int rowId, String title, String key,
-      String iconName, SharedPreferences preferences, boolean vi) throws ReflectiveOperationException {
+      String iconName, boolean defaultValue, SharedPreferences preferences, boolean vi) throws ReflectiveOperationException {
     LinearLayout temporary = new LinearLayout(parent.getContext());
     LayoutInflater.from(parent.getContext()).inflate(layout, temporary, true);
     View row = temporary.findViewById(rowId);
     if (row == null) return;
-    configure(row, title, key, iconName, false, preferences, vi);
+    configure(row, title, key, iconName, defaultValue, preferences, vi);
     // Reusing a template also reuses its ID; these rows are addressed by their preference key instead.
     row.setId(View.NO_ID);
     row.setTag(key);
@@ -170,6 +259,90 @@ public final class ZeldrisSettingsContent {
     }
   }
 
+  /** Accent choices are native settings rows; restart is required to update inflated views. */
+  public static View buildAccentSettings(LinearLayout parent) {
+    Context context = parent.getContext();
+    SharedPreferences preferences = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+    boolean vi = isVietnamese(context);
+    String[] titles = vi ? new String[] {"Mặc định", "Xanh dương", "Tím", "Xanh lá", "Đỏ", "Cam"}
+        : new String[] {"Default", "Blue", "Purple", "Green", "Red", "Orange"};
+    int[] colors = {0, 0xff0068ff, 0xff6941c6, 0xff067647, 0xffb42318, 0xffb54708};
+    try {
+      int layout = context.getResources().getIdentifier("setting_v2_view", "layout", context.getPackageName());
+      int rowId = context.getResources().getIdentifier("itemPrivacy", "id", context.getPackageName());
+      int selected = preferences.getInt(AccentColor.KEY, 0);
+      View[] rows = new View[colors.length];
+      for (int i = 0; i < rows.length; i++) {
+        View row = inflateChoiceRow(context, layout, rowId, titles[i], selected == colors[i]);
+        if (row == null) return parent;
+        rows[i] = row;
+      }
+      for (int i = 0; i < rows.length; i++) {
+        final int selectedIndex = i;
+        View row = rows[i];
+        row.setOnClickListener(view -> {
+          preferences.edit().putInt(AccentColor.KEY, colors[selectedIndex]).apply();
+          for (int j = 0; j < rows.length; j++) {
+            try { rows[j].getClass().getMethod("setTick", boolean.class).invoke(rows[j], j == selectedIndex); }
+            catch (ReflectiveOperationException | RuntimeException ignored) { }
+          }
+          restartNotice(view, vi);
+        });
+        parent.addView(row);
+      }
+    } catch (ReflectiveOperationException | RuntimeException ignored) { }
+    return parent;
+  }
+
+  public static View buildRingtoneSettings(LinearLayout parent) {
+    Context context = parent.getContext();
+    SharedPreferences preferences = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+    boolean vi = isVietnamese(context);
+    try {
+      int layout = context.getResources().getIdentifier("setting_v2_view", "layout", context.getPackageName());
+      int rowId = context.getResources().getIdentifier("itemNotification", "id", context.getPackageName());
+      View choose = inflateChoiceRow(context, layout, rowId, vi ? "Chọn tệp âm thanh" : "Choose audio file", false);
+      View reset = inflateChoiceRow(context, layout, rowId, vi ? "Mặc định" : "Use Zalo default", false);
+      if (choose == null || reset == null) return parent;
+      choose.setOnClickListener(view -> {
+        try {
+          Intent intent = new Intent(view.getContext(), RingtonePickerActivity.class);
+          if (!(view.getContext() instanceof android.app.Activity)) intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+          view.getContext().startActivity(intent);
+        } catch (RuntimeException ignored) {
+          Toast.makeText(view.getContext(), vi ? "Không thể mở trình chọn âm thanh" : "Audio picker unavailable", Toast.LENGTH_SHORT).show();
+        }
+      });
+      reset.setOnClickListener(view -> {
+        if (CustomRingtone.reset(view.getContext())) {
+          Toast.makeText(view.getContext(), vi ? "Đã khôi phục mặc định" : "Using Zalo default", Toast.LENGTH_SHORT).show();
+        } else {
+          Toast.makeText(view.getContext(), vi ? "Không thể khôi phục mặc định" : "Could not reset ringtone", Toast.LENGTH_SHORT).show();
+        }
+      });
+      parent.addView(choose);
+      parent.addView(reset);
+    } catch (ReflectiveOperationException | RuntimeException ignored) { }
+    return parent;
+  }
+
+  private static View inflateChoiceRow(Context context, int layout, int rowId, String title, boolean tick)
+      throws ReflectiveOperationException {
+    if (layout == 0 || rowId == 0) return null;
+    LinearLayout temporary = new LinearLayout(context);
+    LayoutInflater.from(context).inflate(layout, temporary, true);
+    View row = temporary.findViewById(rowId);
+    if (row == null) return null;
+    Class<?> cls = row.getClass();
+    cls.getMethod("setTitle", CharSequence.class).invoke(row, title);
+    cls.getMethod("setLeadingItemVisibility", int.class).invoke(row, View.GONE);
+    cls.getMethod("setShowChevronRight", boolean.class).invoke(row, false);
+    cls.getMethod("setTick", boolean.class).invoke(row, tick);
+    row.setId(View.NO_ID);
+    ((ViewGroup) row.getParent()).removeView(row);
+    return row;
+  }
+
   /** Builds a native single-choice screen; zero preserves the account's native interval. */
   public static View buildBackupInterval(LinearLayout parent) {
     Context context = parent.getContext();
@@ -220,6 +393,18 @@ public final class ZeldrisSettingsContent {
     return parent;
   }
 
+  /** Called from the host base class; native settings screens must remain unchanged. */
+  public static void setTitleForPatchedScreen(Object screen) {
+    if (screen == null) return;
+    switch (screen.getClass().getName()) {
+      case "app.zeldrisho.zalo.extension.ZeldrisSettingsView": setTitle(screen); break;
+      case "app.zeldrisho.zalo.extension.ZeldrisBackupSettingsView": setBackupTitle(screen); break;
+      case "app.zeldrisho.zalo.extension.ZeldrisAccentSettingsView": setAccentTitle(screen); break;
+      case "app.zeldrisho.zalo.extension.ZeldrisRingtoneSettingsView": setRingtoneTitle(screen); break;
+      default: break;
+    }
+  }
+
   public static void setTitle(Object screen) {
     setNativeTitle(screen, "Zeldris Patches");
   }
@@ -234,9 +419,24 @@ public final class ZeldrisSettingsContent {
     }
   }
 
+  public static void setAccentTitle(Object screen) { setLocalizedTitle(screen, "Màu nhấn", "Accent color"); }
+  public static void setRingtoneTitle(Object screen) { setLocalizedTitle(screen, "Nhạc chuông cuộc gọi", "Call ringtone"); }
+
+  private static void setLocalizedTitle(Object screen, String vi, String en) {
+    try {
+      Context context = (Context) screen.getClass().getMethod("M5").invoke(screen);
+      setNativeTitle(screen, context != null && isVietnamese(context) ? vi : en);
+    } catch (ReflectiveOperationException | RuntimeException ignored) { setNativeTitle(screen, en); }
+  }
+
   private static void setNativeTitle(Object screen, String title) {
     try {
-      Object actionBar = screen.getClass().getField("y1").get(screen);
+      Object actionBar;
+      try {
+        actionBar = screen.getClass().getField("y1").get(screen);
+      } catch (NoSuchFieldException ignored) {
+        actionBar = screen.getClass().getField("p1").get(screen);
+      }
       if (actionBar != null) actionBar.getClass().getMethod("setMiddleTitle", String.class).invoke(actionBar, title);
     } catch (ReflectiveOperationException | RuntimeException ignored) {
       // Host action bar unavailable.

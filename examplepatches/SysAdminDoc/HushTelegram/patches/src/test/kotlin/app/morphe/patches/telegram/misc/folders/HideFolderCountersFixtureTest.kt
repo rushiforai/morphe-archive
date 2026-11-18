@@ -8,7 +8,6 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.PlusPending
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
 import app.morphe.patches.telegram.misc.extension.SETTINGS_STATUS
 import app.morphe.patches.telegram.misc.localcontrols.controlBody
@@ -28,7 +27,6 @@ import app.morphe.util.names.origReturnType
 import app.morphe.util.names.tgMutableClassDefBy
 
 /** The chat list's folder tab counter and the runtime. */
-@PlusPending
 class HideFolderCountersFixtureTest {
     @Test fun `the extension answers first and a no counts the way Telegram does`() {
         for (build in Fixtures.declaredBuilds()) {
@@ -40,7 +38,7 @@ class HideFolderCountersFixtureTest {
             val context = PatchContexts.of((ExtensionDex.classes() + hosts + menuHosts(build) + allChatsPlaceHosts(build) + accountListHosts(build) + chatListAvatarHosts(build)).distinctBy { it.type })
             val counter = context.resolveHideFolderCounters()
             val old = ImmutableMethod.of(counter)
-            assertEquals(emptyList<String>(), PatchLogCapture.warnings { hideFolderCountersPatch.execute(context) })
+            assertEquals(name, stockWarnings(build), PatchLogCapture.warnings { hideFolderCountersPatch.execute(context) })
 
             val before = old.controlBody()
             val after = counter.controlBody()
@@ -55,7 +53,9 @@ class HideFolderCountersFixtureTest {
             }
             for (flag in listOf("hideFolderCounters", "launchFolder", "hideAllChats", "hiddenChats", "sortByDate", "localPins", "hiddenPasscode", "adminChats", "fitTabs", "tabIcons", "hiddenAccounts", "hiddenUnread", "chatListAvatar")) {
                 val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == flag }.controlBody()
-                assertEquals("$name: $flag", 1L, (status.first() as WideLiteralInstruction).wideLiteral)
+                // Plus Messenger draws folder tab icons of its own, so ours stay off there.
+                val on = if (flag == "tabIcons" && tabIconsGap(build) != null) 0L else 1L
+                assertEquals("$name: $flag", on, (status.first() as WideLiteralInstruction).wideLiteral)
             }
         }
     }

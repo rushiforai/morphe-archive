@@ -16,6 +16,7 @@ val textSizePatch = bytecodePatch(
     description = "Makes the text on every page larger or smaller.",
     default = false
 ) {
+    category("Reading")
     compatibleWith(COMPATIBILITY_QUORA)
 
     extendWith("extensions/extension.mpe")

@@ -636,6 +636,23 @@ public class ChatJumpTest {
         assertEquals(View.VISIBLE, arrow().getVisibility());
     }
 
+    /** It sits above the chat's own views, so it would stay sharp on top of the blur behind a message's menu. */
+    @Test public void theArrowStandsDownWhileAMessagesMenuIsUp() {
+        on(true);
+        openChat();
+        list.older = 1000;
+        ImageView arrow = arrow();
+        assertEquals(View.VISIBLE, arrow.getVisibility());
+
+        InChatMenu.up.add(content());
+        ChatJump.arrowOn(chat).update();
+        assertEquals(View.GONE, arrow.getVisibility());
+
+        InChatMenu.up.remove(content());
+        ChatJump.arrowOn(chat).update();
+        assertEquals(View.VISIBLE, arrow.getVisibility());
+    }
+
     @Test public void noArrowGoesUpWithTheSwitchOff() {
         on(false);
         openChat();

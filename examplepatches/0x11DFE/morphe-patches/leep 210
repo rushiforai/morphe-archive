@@ -1,0 +1,3 @@
+[33m69aeb58[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m refactor(mdproxy): match ad units by ca-app-pub prefix instead of exact ids
+[33m85154d2[m[33m ([m[1;33mtag: [m[1;33mv1.12.2[m[33m)[m chore: Release v1.12.2 [skip ci]
+[33m3181e26[m fix(mdproxy): skip field references when extracting call sites from bytecode

@@ -42,6 +42,21 @@ internal object OfflineAdsGate : Fingerprint(
     ),
 )
 
+// Experimental target: 26.11.01 is advertised but not fully device-qualified.
+internal object OfflineAdsWindow261101 : Fingerprint(
+    definingClass = "Lrdg;", name = "v",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC), returnType = "Z", parameters = emptyList(),
+    filters = listOf(fieldAccess(definingClass = "Laxy;", name = "I", type = "Z"),
+        methodCall(definingClass = "Ljava/lang/Long;", name = "longValue")),
+)
+
+internal object OfflineAdsGate261101 : Fingerprint(
+    definingClass = "Lrdg;", name = "u",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC), returnType = "Z", parameters = emptyList(),
+    filters = listOf(methodCall(definingClass = "Lrdg;", name = "v", returnType = "Z"),
+        fieldAccess(definingClass = "Laxy;", name = "J", type = "Z")),
+)
+
 /** Offline ad gates in Zalo 26.10.02. */
 internal object OfflineAdsWindow261002 : Fingerprint(
     definingClass = "Lje/e;", name = "h",
@@ -83,6 +98,13 @@ internal object GoogleAdsNetworkGate : Fingerprint(
     ),
 )
 
+internal object GoogleAdsNetworkGate261101 : Fingerprint(
+    definingClass = "Lcom/adtima/Adtima;", name = "updateSupportNetwork",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC), returnType = "V", parameters = emptyList(),
+    filters = listOf(fieldAccess(definingClass = "Laxy;", name = "L", type = "Z"),
+        opcode(Opcode.IF_NEZ), string("admob"), string("dfp"), string("ima")),
+)
+
 /** Google-network config gate in Zalo 26.10.02. */
 internal object GoogleAdsNetworkGate261002 : Fingerprint(
     definingClass = "Lcom/adtima/Adtima;", name = "updateSupportNetwork",
@@ -103,6 +125,16 @@ internal object StoryAdsConfig : Fingerprint(
     filters = listOf(
         string("social@story@story_ads@enable"),
         methodCall(definingClass = "Lvj0/m;", name = "f", returnType = "I"),
+        opcode(Opcode.MOVE_RESULT),
+        opcode(Opcode.IF_NE),
+    ),
+)
+
+// Experimental target: 26.11.01 is advertised but not fully device-qualified.
+internal object StoryAdsConfig261101 : Fingerprint(
+    filters = listOf(
+        string("social@story@story_ads@enable"),
+        methodCall(definingClass = "Lp9l;", name = "f", parameters = listOf("Ljava/lang/String;", "I"), returnType = "I"),
         opcode(Opcode.MOVE_RESULT),
         opcode(Opcode.IF_NE),
     ),
@@ -143,6 +175,15 @@ internal object AdtimaLatRead : Fingerprint(
     ),
 )
 
+internal object AdtimaLatRead261101 : Fingerprint(
+    definingClass = "Lqs;", name = "doInBackground",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL), returnType = "Ljava/lang/Object;", parameters = emptyList(),
+    filters = listOf(
+        methodCall(definingClass = "Lcom/google/android/gms/ads/identifier/AdvertisingIdClient;", name = "getAdvertisingIdInfo"),
+        methodCall(definingClass = "Lcom/google/android/gms/ads/identifier/AdvertisingIdClient\$Info;", name = "isLimitAdTrackingEnabled", returnType = "Z"),
+    ),
+)
+
 /** Adtima's advertising-ID worker in Zalo 26.10.02. */
 internal object AdtimaLatRead261002 : Fingerprint(
     definingClass = "Lcom/adtima/c;", name = "doInBackground",
@@ -162,6 +203,15 @@ internal object CommunityAdsConfig : Fingerprint(
     filters = listOf(
         string("community.community_ads.enable"),
         methodCall(definingClass = "Lvj0/m;", name = "f", returnType = "I"),
+        opcode(Opcode.MOVE_RESULT),
+        opcode(Opcode.IF_NE),
+    ),
+)
+
+internal object CommunityAdsConfig261101 : Fingerprint(
+    filters = listOf(
+        string("community.community_ads.enable"),
+        methodCall(definingClass = "Lp9l;", name = "f", parameters = listOf("Ljava/lang/String;", "I"), returnType = "I"),
         opcode(Opcode.MOVE_RESULT),
         opcode(Opcode.IF_NE),
     ),

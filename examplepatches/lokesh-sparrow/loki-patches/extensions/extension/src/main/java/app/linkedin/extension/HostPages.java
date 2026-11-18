@@ -37,7 +37,9 @@ final class HostPages {
             pages.add(player(context));
         }
         if (on(context, "app.loki.menu.ads") || on(context, "app.loki.menu.analytics")
-                || on(context, "app.loki.menu.adid") || on(context, "app.loki.menu.proads")) {
+                || on(context, "app.loki.menu.adid") || on(context, "app.loki.menu.proads")
+                || on(context, "app.loki.menu.hideads")
+                || (truecaller && on(context, "app.loki.menu.anonview"))) {
             pages.add(privacy(context));
         }
         if (on(context, "app.loki.menu.gmscore")) pages.add(signIn(truecaller));
@@ -55,10 +57,11 @@ final class HostPages {
                     + "conversion, itemization, default splits, totals history and export.");
         } else if (truecaller) {
             page.info("Truecaller Premium", () -> "Unlocked");
-            page.info("Included", () -> "No ads, premium badge, incognito, ghost call, extended spam blocking, "
-                    + "call recording, announce call and family sharing.");
-            page.info("Server features", () -> "Who viewed me, who searched for me, caller ID for unknown numbers "
-                    + "and fraud insurance open but stay empty: their data comes from Truecaller's servers.");
+            page.info("Included", () -> "Premium badge, incognito, ghost call, extended spam blocking, "
+                    + "call recording and announce call.");
+            page.info("Server features", () -> "Who viewed me and who searched for me list whoever Truecaller's "
+                    + "servers send to this account. Caller ID for unknown numbers and fraud insurance also depend on "
+                    + "Truecaller's servers. Call Assistant and Family sharing stay off.");
         } else if (docScanner) {
             page.info("Full version", () -> "Activated");
         } else {
@@ -98,6 +101,30 @@ final class HostPages {
         return page;
     }
 
+    /** Truecaller's profile switches, shown at the top of Privacy (as LinkedIn's anonymous viewing is). */
+    private static void profileRows(Context context, SettingsActivity.Page page) {
+        page.toggle("Anonymous profile viewing", "Opening someone's profile does not tell them you looked. "
+                + "Off: Truecaller reports the view, as usual.", new SettingsActivity.Toggle() {
+            public boolean get() {
+                return LokiSwitches.get(context, "anonymous_profile_view");
+            }
+
+            public void set(boolean on) {
+                LokiSwitches.set(context, "anonymous_profile_view", on);
+            }
+        });
+        page.toggle("Anonymous search", "Searching someone's number does not tell them you searched. "
+                + "Off: Truecaller reports the search, as usual.", new SettingsActivity.Toggle() {
+            public boolean get() {
+                return LokiSwitches.get(context, "anonymous_search");
+            }
+
+            public void set(boolean on) {
+                LokiSwitches.set(context, "anonymous_search", on);
+            }
+        });
+    }
+
     private static SettingsActivity.Page player(Context context) {
         SettingsActivity.Page page = new SettingsActivity.Page("Player", IconDrawable.STAR);
         if (on(context, "app.loki.menu.license")) {
@@ -113,8 +140,13 @@ final class HostPages {
 
     private static SettingsActivity.Page privacy(Context context) {
         SettingsActivity.Page page = new SettingsActivity.Page("Privacy", IconDrawable.SHIELD);
+        if (context.getPackageName().startsWith("com.truecaller") && on(context, "app.loki.menu.anonview")) {
+            profileRows(context, page);
+        }
         if (on(context, "app.loki.menu.proads")) page.info("Pro ads and upsells", () -> "Hidden");
-        page.info("Ads", () -> on(context, "app.loki.menu.ads") ? "Removed" : "Left as they were");
+        // An app's own Hide ads patch (Truecaller, Doc Scanner) or the universal one: either removes them.
+        page.info("Ads", () -> on(context, "app.loki.menu.hideads") || on(context, "app.loki.menu.ads")
+                ? "Removed" : "Left as they were");
         page.info("Analytics and crash reporting", () -> on(context, "app.loki.menu.analytics")
                 ? "Turned off" : "Left as they were");
         page.info("Advertising ID", () -> on(context, "app.loki.menu.adid") ? "Removed" : "Left as it was");

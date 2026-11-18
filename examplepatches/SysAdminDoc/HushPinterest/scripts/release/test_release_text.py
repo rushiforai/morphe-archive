@@ -201,7 +201,7 @@ class ReleaseTextTest(unittest.TestCase):
                                   "--tail", self.file("tail.txt", tail), "--out", str(out))
         return code, err, out.read_text(encoding="utf-8") if out.exists() else None
 
-    def test_notes_carry_every_bullet_grouped_by_scope(self):
+    def test_notes_carry_the_pinterest_bullets_and_leave_tooling_out(self):
         self.cut()
         code, err, body = self.notes()
         self.assertEqual(code, 0, err)
@@ -210,17 +210,7 @@ class ReleaseTextTest(unittest.TestCase):
             "## What's new\n\n"
             "- Hide ads now covers the shopping row.\n"
             "- Download board saves more pins.\n\n"
-            "## Behind the scenes\n\n"
-            "- The gate runs the quick checks first.\n\n"
             "## Update from 0.0.6\n\nRefresh the source and patch again.\n"))
-
-    def test_notes_leave_out_behind_the_scenes_with_no_tooling_bullet(self):
-        self.put("CHANGELOG.md", CHANGELOG.replace("* **Tooling:** The gate runs the quick checks first.\n", ""))
-        self.cut()
-        code, err, body = self.notes()
-        self.assertEqual(code, 0, err)
-        self.assertNotIn("Behind the scenes", body)
-        self.assertEqual(len(re.findall(r"(?m)^- ", body)), 2)
 
     def test_notes_refuse_an_unreleased_version_an_empty_part_or_a_section_of_their_own(self):
         code, err, body = self.notes()
@@ -229,7 +219,7 @@ class ReleaseTextTest(unittest.TestCase):
         self.assertIsNone(body)
         self.cut()
         self.assertIn("can be empty", self.notes(intro="  ")[1])
-        self.assertIn("heading of its own", self.notes(tail="## What's new\n\n- a hand-picked subset")[1])
+        self.assertIn("## What's new heading", self.notes(tail="## What's new\n\n- a hand-picked subset")[1])
         self.assertIn("em or en dash", self.notes(tail="Patch again \u2013 then install.")[1])
 
     # --- index -----------------------------------------------------------------------------------

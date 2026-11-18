@@ -14,7 +14,7 @@ https://github.com/Santodan/santodan-patches
 ## Patches
 
 <!-- PATCHES_START -->
-> **[v0.19.0](https://github.com/Santodan/santodan-patches/releases/tag/v0.19.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;39 patches total
+> **[v0.20.0](https://github.com/Santodan/santodan-patches/releases/tag/v0.20.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;40 patches total
 <details>
 <summary>📦 Car Scanner ELM OBD2&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -270,7 +270,7 @@ The premium patch also prevents subscription refreshes from resetting the notifi
 </details>
 
 <details>
-<summary>📦 TFD Companion&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<summary>📦 TFD Companion&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -281,7 +281,8 @@ The premium patch also prevents subscription refreshes from resetting the notifi
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [TFD Companion - NGSM validation diagnostics - Troubleshooting purpose](#tfd-companion-ngsm-validation-diagnostics-troubleshooting-purpose) | Logs NGSM token-result codes and failed validation values under TFD-NGSM. Does not log tokens or change authentication results. |  |
-| [TFD Companion - Remove illegal apps detection](#tfd-companion-remove-illegal-apps-detection) | Removes broad MAIN/VIEW package queries while preserving specific app integrations. For Android 11+. Leaves NGSM and authentication unchanged; other detections may still occur. |  |
+| [TFD Companion - Remove illegal apps detection](#tfd-companion-remove-illegal-apps-detection) | Removes broad MAIN/VIEW package queries while preserving specific app integrations. For Android 11+. Select only one TFD visibility patch. Leaves NGSM and authentication unchanged; other detections may still occur. |  |
+| [TFD Companion - Remove illegal apps detection (Experimental)](#tfd-companion-remove-illegal-apps-detection-experimental) | Experimental alternative without a version restriction. Select instead of the regular patch. Requires the original MAIN/VIEW query layout and Android 11+. Future compatibility is not guaranteed. |  |
 
 </details>
 

@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-17.
  * Written by lavinhoque33, 2026-11-07.
  * Modified by lavinhoque33, 2026-11-10
  */
@@ -13,6 +14,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -21,12 +23,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.function.BooleanSupplier;
 import java.util.function.Function;
+import java.util.zip.GZIPOutputStream;
 
 /**
  * The playlists and albums downloaded with stream copies: id, title, subtitle, cover url and the track ids in
@@ -38,7 +43,11 @@ final class OfflineSourceStore {
 
     /** A downloaded playlist or album. Title, subtitle and thumbnail are empty while unknown. */
     record Source(String id, String title, String subtitle, String thumbnailUrl, List<String> videoIds,
-                  long updatedAt) {
+                  long updatedAt, @Nullable String browsePage, boolean explicitStream) {
+        Source(String id, String title, String subtitle, String thumbnailUrl, List<String> videoIds, long updatedAt) {
+            this(id, title, subtitle, thumbnailUrl, videoIds, updatedAt, null, false);
+        }
+
         /** A guess from the id's prefix: audio playlists of an album (OLAK5uy_) and album pages are albums. */
         Kind kind() {
             return id.startsWith("OLAK5uy_") || id.startsWith("MPREb_") ? Kind.ALBUM : Kind.PLAYLIST;
@@ -83,6 +92,7 @@ final class OfflineSourceStore {
         }
         sources = read;
         loaded = true;
+        removeUnusedBrowsePages(read);
     }
 
     /** Whether the source is remembered but its title is not known yet. False until loaded. No disk access. */
@@ -97,13 +107,77 @@ final class OfflineSourceStore {
      */
     synchronized void remember(String sourceId, @Nullable SourceHeader header, List<String> videoIds, long now)
             throws IOException, JSONException {
+        remember(sourceId, header, videoIds, now, false);
+    }
+
+    synchronized void remember(String sourceId, @Nullable SourceHeader header, List<String> videoIds, long now,
+                               boolean explicitStream) throws IOException, JSONException {
         ensureLoaded();
         Source previous = sources.get(sourceId);
         SourceHeader kept = header != null && header.hasTitle() ? header : headerOf(previous);
         Map<String, Source> next = new HashMap<>(sources);
         next.put(sourceId, new Source(sourceId, kept.title(), kept.subtitle(), kept.thumbnailUrl(),
-                Collections.unmodifiableList(new ArrayList<>(videoIds)), now));
+                List.copyOf(videoIds), now, null, explicitStream));
         publish(next);
+    }
+
+    /** The unreferenced renderer can be written without blocking store readers or source mutations. */
+    File stageBrowsePage(byte[] response) throws IOException {
+        ensureLoaded();
+        File directory = browseDirectory();
+        if (!directory.isDirectory() && !directory.mkdirs()) throw new IOException("No synced pages directory");
+
+        File staged = File.createTempFile("playlist-", ".gz", directory);
+        try (FileOutputStream raw = new FileOutputStream(staged);
+             GZIPOutputStream output = new GZIPOutputStream(raw)) {
+            output.write(response);
+            output.finish();
+            raw.getFD().sync();
+            return staged;
+        } catch (IOException | RuntimeException ex) {
+            staged.delete();
+            throw ex;
+        }
+    }
+
+    /** One rename publishes membership and the renderer of exactly that revision. */
+    synchronized boolean replacePlaylist(Source expected, List<String> tracks, File staged, long now,
+                                         BooleanSupplier allowed) throws IOException, JSONException {
+        if (sources.get(expected.id()) != expected) return false;
+        Map<String, Source> next = new HashMap<>(sources);
+        next.put(expected.id(), new Source(expected.id(), expected.title(), expected.subtitle(),
+                expected.thumbnailUrl(), tracks, now, staged.getName(), true));
+        return publish(next, allowed);
+    }
+
+    @Nullable
+    byte[] readBrowsePage(String sourceId) throws IOException {
+        Source source = sources.get(sourceId);
+        while (source != null && source.browsePage() != null) {
+            try {
+                return OfflineBrowsePagesLogic.gunzip(
+                        Files.readAllBytes(new File(browseDirectory(), source.browsePage()).toPath()));
+            } catch (IOException ex) {
+                Source current = sources.get(sourceId);
+                if (current == source) throw ex;
+                source = current;
+            }
+        }
+        return null;
+    }
+
+    private File browseDirectory() {
+        return new File(file.getParentFile(), "rvx_offline_sync");
+    }
+
+    private void removeUnusedBrowsePages(Map<String, Source> current) {
+        File[] files = browseDirectory().listFiles();
+        if (files == null) return;
+        Set<String> retained = new HashSet<>();
+        for (Source source : current.values()) retained.add(source.browsePage());
+        for (File page : files) {
+            if (page.getName().startsWith("playlist-") && !retained.contains(page.getName())) page.delete();
+        }
     }
 
     /** Whether no source is remembered. False until loaded. No disk access. */
@@ -119,7 +193,7 @@ final class OfflineSourceStore {
 
         Map<String, Source> next = new HashMap<>(sources);
         next.put(sourceId, new Source(sourceId, header.title(), header.subtitle(), header.thumbnailUrl(),
-                previous.videoIds(), now));
+                previous.videoIds(), now, previous.browsePage(), previous.explicitStream()));
         publish(next);
     }
 
@@ -159,9 +233,15 @@ final class OfflineSourceStore {
      * copy is gone is left out; a track whose copy has no stored data is listed without it.
      */
     static List<Track> tracksOf(Source source, Set<String> copyIds, Function<String, OfflineCopyMetadata> stored) {
+        return tracksOf(source, copyIds, stored, Function.identity());
+    }
+
+    static List<Track> tracksOf(Source source, Set<String> copyIds, Function<String, OfflineCopyMetadata> stored,
+                                Function<String, String> canonical) {
         List<Track> tracks = new ArrayList<>();
         for (String videoId : source.videoIds()) {
-            if (copyIds.contains(videoId)) tracks.add(new Track(videoId, stored.apply(videoId)));
+            String id = copyIds.contains(videoId) ? videoId : canonical.apply(videoId);
+            if (copyIds.contains(id)) tracks.add(new Track(id, stored.apply(id)));
         }
         return tracks;
     }
@@ -185,9 +265,10 @@ final class OfflineSourceStore {
     }
 
     synchronized void clear() throws IOException {
+        Files.deleteIfExists(file.toPath());
         sources = Collections.emptyMap();
         loaded = true;
-        Files.deleteIfExists(file.toPath());
+        removeUnusedBrowsePages(sources);
     }
 
     private static SourceHeader headerOf(@Nullable Source source) {
@@ -196,6 +277,10 @@ final class OfflineSourceStore {
     }
 
     private void publish(Map<String, Source> next) throws IOException, JSONException {
+        publish(next, () -> true);
+    }
+
+    private boolean publish(Map<String, Source> next, BooleanSupplier allowed) throws IOException, JSONException {
         JSONObject json = new JSONObject();
         for (Source source : next.values()) json.put(source.id(), toJson(source));
 
@@ -205,24 +290,40 @@ final class OfflineSourceStore {
         File pending = new File(file.getPath() + ".part");
         try {
             Files.write(pending.toPath(), json.toString().getBytes(StandardCharsets.UTF_8));
-            Files.move(pending.toPath(), file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            if (!allowed.getAsBoolean()) return false;
+            Files.move(pending.toPath(), file.toPath(), StandardCopyOption.ATOMIC_MOVE,
+                    StandardCopyOption.REPLACE_EXISTING);
         } finally {
             Files.deleteIfExists(pending.toPath());
         }
+        Map<String, Source> previous = sources;
         sources = next;
+        for (Source source : previous.values()) {
+            Source replacement = next.get(source.id());
+            if (source.browsePage() != null
+                    && (replacement == null || !source.browsePage().equals(replacement.browsePage()))) {
+                new File(browseDirectory(), source.browsePage()).delete();
+            }
+        }
+        return true;
     }
 
     private static JSONObject toJson(Source source) throws JSONException {
         return new JSONObject().put("title", source.title())
                 .put("subtitle", source.subtitle()).put("thumbnailUrl", source.thumbnailUrl())
-                .put("videoIds", new JSONArray(source.videoIds())).put("updatedAt", source.updatedAt());
+                .put("videoIds", new JSONArray(source.videoIds())).put("updatedAt", source.updatedAt())
+                .put("browsePage", source.browsePage()).put("explicitStream", source.explicitStream());
     }
 
     private static Source fromJson(String id, JSONObject json) throws JSONException {
         JSONArray array = json.getJSONArray("videoIds");
         List<String> videoIds = new ArrayList<>(array.length());
         for (int i = 0; i < array.length(); i++) videoIds.add(array.getString(i));
+        String page = json.optString("browsePage", "");
+        boolean validPage = page.startsWith("playlist-") && page.endsWith(".gz")
+                && OfflineBrowsePagesLogic.isFileSafe(page.substring(0, page.length() - 3));
         return new Source(id, json.optString("title"), json.optString("subtitle"), json.optString("thumbnailUrl"),
-                Collections.unmodifiableList(videoIds), json.optLong("updatedAt"));
+                Collections.unmodifiableList(videoIds), json.optLong("updatedAt"), validPage ? page : null,
+                json.optBoolean("explicitStream"));
     }
 }

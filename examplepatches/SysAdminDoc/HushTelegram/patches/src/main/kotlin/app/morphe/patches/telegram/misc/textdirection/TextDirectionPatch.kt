@@ -24,6 +24,7 @@ import app.morphe.patches.telegram.misc.localcontrols.forEachClassMentioning
 import app.morphe.patches.telegram.misc.settings.settingsPatch
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.call
+import app.morphe.util.namedRegisters
 import app.morphe.util.names.TelegramNames
 import app.morphe.util.names.addInstructionsWithLabels
 import app.morphe.util.names.tgClassDefByOrNull
@@ -63,7 +64,7 @@ val textDirectionPatch = bytecodePatch(
 ) {
     category("Writing")
     dependsOn(settingsPatch, telegramExtensionPatch)
-    compatibleWith(*AppCompatibilities.telegramOnly())
+    compatibleWith(*AppCompatibilities.telegram())
     execute {
         val site = resolveTextDirection()
         // Assembled on copies first, so a refusal leaves the app untouched.
@@ -168,9 +169,17 @@ private fun Method.wrapper(box: String, base: String): String? {
         target.parameterTypes.map(CharSequence::toString) != parameterTypes.map(CharSequence::toString)) return null
     if (result.opcode != Opcode.MOVE_RESULT_OBJECT || end.opcode != Opcode.RETURN_OBJECT ||
         (result as OneRegisterInstruction).registerA != (end as OneRegisterInstruction).registerA) return null
-    return body.mapNotNull { it.call() }.filter {
+    val stock = body.mapNotNull { it.call() }.filter {
         it.name == "<init>" && it.parameterTypes.map(CharSequence::toString) == listOf(box, CALLBACK)
-    }.map { it.definingClass }.distinct().singleOrNull()
+    }.map { it.definingClass }
+    // Plus Messenger's R8 merged the wrapper with other callbacks into one class that takes a kind
+    // number, then the box and the callback.
+    val self = implementation!!.registerCount - numberOfParameterRegisters
+    val merged = body.filter { insn ->
+        insn.call()?.let { it.name == "<init>" && it.parameterTypes.map(CharSequence::toString) == listOf("I", OBJECT, OBJECT) } == true &&
+            insn.namedRegisters().drop(2) == listOf(self, self + 1)
+    }.map { it.call()!!.definingClass }
+    return (stock + merged).distinct().singleOrNull()
 }
 
 /**
@@ -187,9 +196,15 @@ private fun BytecodePatchContext.chooser(wrapper: String, box: String): MethodRe
         val asked = body[i].call()?.takeIf {
             it.definingClass == box && it.returnType == "Z" && it.parameterTypes.map(CharSequence::toString) == listOf("I")
         } ?: return@mapNotNull null
+        if (body.getOrNull(i + 1)?.opcode != Opcode.MOVE_RESULT) return@mapNotNull null
+        val answer = (body[i + 1] as OneRegisterInstruction).registerA
+        // Plus Messenger loads the callback's own answer between the box's answer and its test.
+        var test = i + 2
+        while (body.getOrNull(test)?.opcode in setOf(Opcode.CONST_4, Opcode.CONST_16) &&
+            (body[test] as OneRegisterInstruction).registerA != answer) test++
         asked.takeIf {
-            body.getOrNull(i + 1)?.opcode == Opcode.MOVE_RESULT && body.getOrNull(i + 2)?.opcode == Opcode.IF_EQZ &&
-                body.getOrNull(i + 3)?.controlRef() == FINISH
+            body.getOrNull(test)?.opcode == Opcode.IF_EQZ && (body[test] as OneRegisterInstruction).registerA == answer &&
+                body.getOrNull(test + 1)?.controlRef() == FINISH
         }
     }.distinctBy { it.toString() }.singleOrNull()
 }

@@ -15,26 +15,48 @@ private const val PLAYER = "$EXT/KickPlayer;"
 private const val SETTINGS_ACTIVITY = "io.github.bryceaspringfield.morphe.extension.kick.KickSettingsActivity"
 private const val VIDEO_PLAYER = "Lcom/kick/mobile/playerv3/player/VideoPlayer;"
 
-/** A launcher icon of its own opens the settings, since KICK has no Morphe settings screen. */
+/**
+ * KICK Extras' settings live inside the KICK app (2026-11-18): no launcher icon of its own. The screen opens from the
+ * shortcut "KICK Extras" in the menu of a long press on KICK's icon, and runs in KICK's own task.
+ */
 private val kickSettingsActivityPatch = resourcePatch {
     execute {
+        val shortcuts = get("res/xml/kick_extras_shortcuts.xml", copy = false).apply { parentFile.mkdirs() }
+        shortcuts.writeText(
+            """<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut android:shortcutId="kick_extras" android:enabled="true"
+        android:shortcutShortLabel="@string/kick_extras_shortcut" android:shortcutLongLabel="@string/kick_extras_shortcut">
+        <intent android:action="android.intent.action.VIEW" android:targetPackage="com.kick.mobile"
+            android:targetClass="$SETTINGS_ACTIVITY" />
+    </shortcut>
+</shortcuts>
+"""
+        )
+        document("res/values/strings.xml").use { document ->
+            val string = document.createElement("string")
+            string.setAttribute("name", "kick_extras_shortcut")
+            string.textContent = "KICK Extras"
+            document.documentElement.appendChild(string)
+        }
         document("AndroidManifest.xml").use { document ->
             val application = document.getElementsByTagName("application").item(0) as org.w3c.dom.Element
             val activity = document.createElement("activity")
             activity.setAttribute("android:name", SETTINGS_ACTIVITY)
             activity.setAttribute("android:label", "KICK Extras")
             activity.setAttribute("android:exported", "true")
-            activity.setAttribute("android:taskAffinity", "com.kick.mobile.extras")
             activity.setAttribute("android:theme", "@android:style/Theme.DeviceDefault.DayNight")
-            val filter = document.createElement("intent-filter")
-            val action = document.createElement("action")
-            action.setAttribute("android:name", "android.intent.action.MAIN")
-            val category = document.createElement("category")
-            category.setAttribute("android:name", "android.intent.category.LAUNCHER")
-            filter.appendChild(action)
-            filter.appendChild(category)
-            activity.appendChild(filter)
             application.appendChild(activity)
+            val activities = document.getElementsByTagName("activity")
+            for (i in 0 until activities.length) {
+                val element = activities.item(i) as org.w3c.dom.Element
+                if (!element.getAttribute("android:name").endsWith(".MainActivity")) continue
+                val meta = document.createElement("meta-data")
+                meta.setAttribute("android:name", "android.app.shortcuts")
+                meta.setAttribute("android:resource", "@xml/kick_extras_shortcuts")
+                element.appendChild(meta)
+                break
+            }
         }
     }
 }

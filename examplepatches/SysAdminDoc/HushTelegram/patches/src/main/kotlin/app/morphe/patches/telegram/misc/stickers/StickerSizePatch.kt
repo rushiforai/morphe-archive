@@ -47,9 +47,14 @@ private const val GROUPED = "Lorg/telegram/messenger/MessageObject\$GroupedMessa
 private const val PHONE_SHARE = 0x3f000000
 private const val TABLET_SHARE = 0x3ecccccd
 
-/** How far before the size the animated-emoji test sits, and how soon after it the emoji and dice tests come. */
+/**
+ * How far before the size the animated-emoji test sits, and how soon after it the emoji and dice
+ * tests come (Plus Messenger's dice test is 19 on). And how far back from the tablet's jump its
+ * shorter side is asked for (8 on Plus Messenger, which divides its own size setting there).
+ */
 private const val BEFORE = 40
-private const val AFTER = 16
+private const val AFTER = 24
+private const val TABLET_LOADS = 8
 
 @Suppress("unused")
 val stickerSizePatch = bytecodePatch(
@@ -60,7 +65,7 @@ val stickerSizePatch = bytecodePatch(
 ) {
     category("Interface")
     dependsOn(settingsPatch, telegramExtensionPatch)
-    compatibleWith(*AppCompatibilities.telegramOnly())
+    compatibleWith(*AppCompatibilities.telegram())
     execute {
         val plan = resolveStickerSize()
         // Assembled on a copy first, so a refusal leaves the app untouched.
@@ -141,18 +146,24 @@ internal fun BytecodePatchContext.resolveStickerSize(): StickerSizePlan {
 /**
  * `mul-float/2addr size, share` right after the phone's 0.5 is loaded into share, and the jump
  * target of the tablet's path, which loads 0.4 into the same register after asking for the
- * tablet's shorter side.
+ * tablet's shorter side. Plus Messenger adds its own sticker size setting to the share first: the
+ * 0.5 goes into an `add-float/2addr` right before the multiply, the tablet's path jumps to that
+ * add, and the multiply leaves the size in the share's register.
  */
 private fun shareMultiply(body: List<Instruction>, flow: ControlFlow, at: Int): Boolean {
-    if (body[at].opcode != Opcode.MUL_FLOAT_2ADDR || at == 0) return false
-    val (_, share) = body[at].namedRegisters()
-    val phone = body[at - 1]
+    if (body[at].opcode != Opcode.MUL_FLOAT_2ADDR || at < 2) return false
+    val (product, factor) = body[at].namedRegisters()
+    val added = body[at - 1].opcode == Opcode.ADD_FLOAT_2ADDR && body[at - 1].namedRegisters()[0] == product
+    val entry = if (added) at - 1 else at
+    val share = if (added) body[at - 1].namedRegisters()[1] else factor
+    val phone = body[entry - 1]
     if (phone.opcode != Opcode.CONST_HIGH16 || (phone as NarrowLiteralInstruction).narrowLiteral != PHONE_SHARE ||
         phone.namedRegisters() != listOf(share)) return false
-    val jumps = flow.normal.indices.filter { it != at - 1 && at in flow.normal[it] }
+    if (added && flow.normal.indices.any { it != entry && at in flow.normal[it] }) return false
+    val jumps = flow.normal.indices.filter { it != entry - 1 && entry in flow.normal[it] }
     if (jumps.size != 1) return false
     val tablet = jumps.single()
-    val loads = body.subList(maxOf(0, tablet - 4), tablet + 1)
+    val loads = body.subList(maxOf(0, tablet - TABLET_LOADS), tablet + 1)
     return loads.any { it.opcode == Opcode.CONST && (it as NarrowLiteralInstruction).narrowLiteral == TABLET_SHARE && it.namedRegisters() == listOf(share) } &&
         loads.any { it.controlRef() == "$UTILITIES->getMinTabletSide()I" }
 }

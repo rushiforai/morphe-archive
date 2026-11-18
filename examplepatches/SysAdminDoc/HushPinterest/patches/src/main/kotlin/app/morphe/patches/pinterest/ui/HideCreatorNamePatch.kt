@@ -48,10 +48,10 @@ internal class CreatorRow(val method: Method, val at: Int, val view: Int, val av
 
 /**
  * The row's state collector draws the avatar, the name and its badges along a few branches, then
- * all of them meet to pad the row's outer layout: it reads that layout and the row's two padding
- * sizes from the row, and hands them to setPaddingRelative with a zero bottom. That meeting point
- * is found by its shape, since the collector's own class is renamed every build, and it is checked
- * to be the only one. The row's constructor pads the same layout from locals, not the row's fields.
+ * all of them meet to pad the row's outer layout: it reads that layout and the row's top padding
+ * from the row, and hands them to setPaddingRelative with a zero bottom. That meeting point is found
+ * by its shape, since the collector's own class is renamed every build, and it is checked to be the
+ * only one. The row's constructor pads the same layout from locals, not the row's fields.
  */
 internal fun BytecodePatchContext.creatorRow(): CreatorRow {
     val row = classDefByOrNull(CREATOR_ATTRIBUTION) ?: throw PatchException("$PATCH: $CREATOR_ATTRIBUTION is missing")
@@ -74,29 +74,27 @@ internal fun BytecodePatchContext.creatorRow(): CreatorRow {
 private fun field(instruction: Instruction?) = (instruction as? ReferenceInstruction)?.reference as? FieldReference
 
 /**
- * True when [at] starts the row's padding: the row's layout and its two padding sizes read from the
- * same register, a zero, then setPaddingRelative on the layout with start, top, start and the zero.
+ * True when [at] starts the row's padding: the row's layout and its top padding read from the same
+ * register, a zero, then setPaddingRelative on the layout with that top and the zero as its bottom.
+ * 14.45.0 works out the start and end sizes earlier, so only these two reads sit next to the call,
+ * and the top's read can overwrite the row's own register.
  */
 private fun padsRow(body: List<Instruction>, at: Int): Boolean {
-    if (at + 4 >= body.size) return false
+    if (at + 3 >= body.size) return false
     val layout = body[at]
-    val start = body[at + 1]
-    val top = body[at + 2]
-    val zero = body[at + 3]
-    val pad = body[at + 4]
-    if (layout.opcode != Opcode.IGET_OBJECT || start.opcode != Opcode.IGET || top.opcode != Opcode.IGET) return false
-    val reads = listOf(layout, start, top).map { field(it) }
+    val top = body[at + 1]
+    val zero = body[at + 2]
+    val pad = body[at + 3]
+    if (layout.opcode != Opcode.IGET_OBJECT || top.opcode != Opcode.IGET) return false
+    val reads = listOf(layout, top).map { field(it) }
     if (reads.any { it == null || it.definingClass != CREATOR_ATTRIBUTION }) return false
-    if (reads[0]!!.type != "Landroid/widget/LinearLayout;" || reads[1]!!.type != "I" || reads[2]!!.type != "I") return false
-    val view = (layout as TwoRegisterInstruction).registerB
-    if ((start as TwoRegisterInstruction).registerB != view || (top as TwoRegisterInstruction).registerB != view) return false
+    if (reads[0]!!.type != "Landroid/widget/LinearLayout;" || reads[1]!!.type != "I") return false
+    if ((layout as TwoRegisterInstruction).registerB != (top as TwoRegisterInstruction).registerB) return false
     if (zero.opcode != Opcode.CONST_4 || pad.opcode != Opcode.INVOKE_VIRTUAL) return false
     if (((pad as ReferenceInstruction).reference as? MethodReference)?.toString() != SET_PADDING) return false
     val call = pad as FiveRegisterInstruction
-    val zeroRegister = (zero as OneRegisterInstruction).registerA
-    return call.registerCount == 5 && call.registerC == layout.registerA && call.registerD == start.registerA &&
-        call.registerE == top.registerA && call.registerF == start.registerA && call.registerG == zeroRegister &&
-        (zero as NarrowLiteralInstruction).narrowLiteral == 0
+    return call.registerCount == 5 && call.registerC == layout.registerA && call.registerE == top.registerA &&
+        call.registerG == (zero as OneRegisterInstruction).registerA && (zero as NarrowLiteralInstruction).narrowLiteral == 0
 }
 
 @Suppress("unused")

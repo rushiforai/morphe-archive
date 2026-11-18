@@ -1,3 +1,13 @@
+## [0.20.0](https://github.com/Santodan/santodan-patches/compare/v0.19.0...v0.20.0) (2026-11-18)
+
+### 🐛 Bug Fixes
+
+* **ci:** increase Gradle heap for release DEX merging ([c3eb359](https://github.com/Santodan/santodan-patches/commit/c3eb359af4035f0544e35214a7203d579ec0bbe2))
+
+### ✨ New Features
+
+* **tfd:** support 1.1.6 and add experimental visibility patch ([3d18a8c](https://github.com/Santodan/santodan-patches/commit/3d18a8cdf58d990a960f1fb7e07e66cc40310bd8))
+
 ## [0.19.0](https://github.com/Santodan/santodan-patches/compare/v0.18.1...v0.19.0) (2026-11-15)
 
 ### ✨ New Features

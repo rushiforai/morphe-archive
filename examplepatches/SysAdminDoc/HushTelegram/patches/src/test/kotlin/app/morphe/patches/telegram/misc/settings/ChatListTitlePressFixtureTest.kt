@@ -8,7 +8,6 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.PlusPending
 import app.morphe.util.names.addInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
@@ -38,7 +37,6 @@ import app.morphe.util.names.origRef
  * chat list makes Telegram's logo the bar's title. The context is the extension, the chat list, its
  * action bar and the holiday look's classes, which edit the same method.
  */
-@PlusPending
 class ChatListTitlePressFixtureTest {
     @Test
     fun `the chat list hands its top bar over right after the logo title on both fixtures`() {
@@ -81,7 +79,8 @@ class ChatListTitlePressFixtureTest {
 
     @Test
     fun `the holiday look's logo edits and the title hook go in either order`() {
-        for (build in Fixtures.declaredBuilds()) for (titleFirst in listOf(true, false)) {
+        // The holiday look isn't declared for Plus Messenger, whose bar checks for an empty title first.
+        for (build in Fixtures.declaredBuilds().filterNot { it.name.startsWith("plus-") }) for (titleFirst in listOf(true, false)) {
             val name = "${build.name} ${if (titleFirst) "title first" else "holiday first"}"
             val context = contextFor(build)
             val warnings = PatchLogCapture.warnings {

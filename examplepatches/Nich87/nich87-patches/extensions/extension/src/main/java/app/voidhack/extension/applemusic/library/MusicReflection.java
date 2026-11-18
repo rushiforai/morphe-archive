@@ -11,8 +11,13 @@ final class MusicReflection {
 
     interface Action { void run() throws ReflectiveOperationException; }
 
+    // The library bindings patch switches this return value for Apple Music 7.0.1.
+    static String classNameForVersion(String version700, String version701) {
+        return version700;
+    }
+
     static Object action(Action action) throws ReflectiveOperationException {
-        Class<?> function = Class.forName("pi.a");
+        Class<?> function = Class.forName(classNameForVersion("pi.a", "oi.a"));
         Object unit = Class.forName("kotlin.Unit").getField("a").get(null);
         return Proxy.newProxyInstance(function.getClassLoader(), new Class<?>[]{function}, (proxy, method, args) -> {
             switch (method.getName()) {

@@ -624,8 +624,7 @@ Sunucu tarafında değişiklikler olursa, kısa bildirim çubuğunun arkaplan re
     <string name="revanced_change_start_page_entry_fashion">Moda &amp; Güzellik</string>
     <string name="revanced_change_start_page_entry_gaming">Oyun</string>
     <string name="revanced_change_start_page_entry_history">Geçmiş</string>
-    <string name="revanced_change_start_page_entry_hype">Hype</string>
-    <string name="revanced_change_start_page_entry_library">Kitaplık</string>
+    <string name="revanced_change_start_page_entry_library">Hesabım</string>
     <string name="revanced_change_start_page_entry_liked_videos">Beğenilen videolar</string>
     <string name="revanced_change_start_page_entry_live">Canlı</string>
     <string name="revanced_change_start_page_entry_movies">Filmler</string>
@@ -633,14 +632,12 @@ Sunucu tarafında değişiklikler olursa, kısa bildirim çubuğunun arkaplan re
     <string name="revanced_change_start_page_entry_news">Haberler</string>
     <string name="revanced_change_start_page_entry_notifications">Bildirimler</string>
     <string name="revanced_change_start_page_entry_playlists">Oynatma listeleri</string>
-    <string name="revanced_change_start_page_entry_podcasts">Podcastler</string>
     <string name="revanced_change_start_page_entry_search">Arama</string>
     <string name="revanced_change_start_page_entry_settings">Ayarlar</string>
     <string name="revanced_change_start_page_entry_shopping">Alışveriş</string>
     <string name="revanced_change_start_page_entry_shorts">Shorts</string>
     <string name="revanced_change_start_page_entry_sports">Spor</string>
     <string name="revanced_change_start_page_entry_subscriptions">Abonelikler</string>
-    <string name="revanced_change_start_page_entry_trending">Trendler</string>
     <string name="revanced_change_start_page_entry_virtual_reality">Sanal Gerçeklik</string>
     <string name="revanced_change_start_page_entry_watch_later">Daha sonra izle</string>
     <string name="revanced_change_start_page_entry_your_clips">Klipleriniz</string>

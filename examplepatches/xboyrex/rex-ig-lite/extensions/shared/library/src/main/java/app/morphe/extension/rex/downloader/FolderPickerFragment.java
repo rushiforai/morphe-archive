@@ -4,7 +4,6 @@
  * See the included NOTICE file for GPLv3 §7(b) terms that apply to this code.
 */
 
-
 package app.morphe.extension.rex.downloader;
 
 import android.app.Activity;
@@ -23,10 +22,13 @@ import app.morphe.extension.rex.constants.ExtensionStrings;
 public class FolderPickerFragment extends Fragment {
 
     private static final int FOLDER_REQUEST_CODE = 43;
+    private boolean inlineHosted;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Bundle args = getArguments();
+        inlineHosted = args != null && args.getBoolean("rex_inline_host", false);
         if (savedInstanceState == null) {
             requestFolderPermission();
         }
@@ -60,7 +62,6 @@ public class FolderPickerFragment extends Fragment {
             Uri treeUri = data.getData();
             if (treeUri != null) {
                 try {
-                    // Keep only the READ/WRITE grant modes accepted by ContentResolver.
                     Activity act = getActivity();
                     if (act != null) {
                         act.getContentResolver().takePersistableUriPermission(
@@ -82,7 +83,12 @@ public class FolderPickerFragment extends Fragment {
     }
 
     private void finishHost() {
-        if (getActivity() != null) {
+        try {
+            if (getFragmentManager() != null) {
+                getFragmentManager().beginTransaction().remove(this).commitAllowingStateLoss();
+            }
+        } catch (Throwable ignored) {}
+        if (!inlineHosted && getActivity() != null) {
             getActivity().finish();
         }
     }

@@ -4,6 +4,7 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import io.github.jordanwoodson.patches.kick.settings.kickSettings
 import io.github.jordanwoodson.patches.kick.shared.Constants.COMPATIBILITY_KICK
+import io.github.jordanwoodson.patches.kick.shared.HermesInstruction
 import io.github.jordanwoodson.patches.kick.shared.HermesOp
 import io.github.jordanwoodson.patches.kick.shared.OTA_UPDATES_OFF
 import io.github.jordanwoodson.patches.kick.shared.kickHermes
@@ -24,8 +25,8 @@ val hideSubscriptionUpsellsPatch = bytecodePatch(
 
     execute {
         hideSubscribeButton()
-        kickHermes.returnNull("ChannelGiftSubButton", KEY, defaultEnabled = false)
-        kickHermes.returnNull("LeaderboardSubsFooter", KEY, defaultEnabled = false)
+        kickHermes.returnAtEntry("ChannelGiftSubButton", KEY, defaultEnabled = false)
+        kickHermes.returnAtEntry("LeaderboardSubsFooter", KEY, defaultEnabled = false)
         kickSettings.add(
             SwitchSetting(
                 KEY,
@@ -40,28 +41,41 @@ val hideSubscriptionUpsellsPatch = bytecodePatch(
 }
 
 /**
- * `ChannelSubButton` ends with `if (x.subscription) <subscribed icon> else <Subscribe button>`: the read, a forward
- * JmpTrueLong on its result to the subscribed branch, then the unsubscribed path, whose first instruction (a
- * GetByIndex from the component's memo cache) becomes `return null`. All hooks have run by then, so React's hook
- * order is unchanged; the subscribed icon, subscription state and access stay as they are. Found by the property
- * and the register flow, not by registers, cache slots or offsets.
+ * `ChannelSubButton` ends with `if (x.subscription) <subscribed icon> else <Subscribe button>`: the read, then a forward
+ * JmpTrue (or JmpTrueLong) on its register to the subscribed branch, then the unsubscribed path, whose first
+ * instructions become `return null`. All hooks have run by then, so React's hook order is unchanged; the subscribed
+ * icon, subscription state and access stay as they are. Found by the property and the register flow, not by
+ * registers, cache slots or offsets.
  */
 private fun hideSubscribeButton() {
     val button = kickHermes.function("ChannelSubButton")
-    val (_, run) = kickHermes.sequence(
-        "unsubscribed branch", listOf(button),
-        listOf(
-            kickHermes.reads("subscription"),
-            { it.opcode == HermesOp.JMP_TRUE_LONG },
-            { it.opcode == HermesOp.GET_BY_INDEX },
-        ),
-    ) { (read, jump, _) -> jump.u8(5) == read.u8(1) && jump.target()!! > jump.offset }
-    val first = run.last()
-    val register = first.u8(1)
-    if (register < button.numberRegisters + button.nonPointerRegisters) {
-        throw PatchException("Kick: ChannelSubButton's unsubscribed path starts in a register that can't hold null")
+    val code = kickHermes.instructions(button)
+    fun fail(what: String): Nothing = throw PatchException("Kick: ChannelSubButton $what")
+    val subscription = kickHermes.stringId("subscription")
+    val read = code.singleOrNull { it.propertyId() == subscription } ?: fail("reads its subscription more than once")
+    val value = read.u8(1)
+    val after = code.indexOf(read) + 1
+    val jumpIndex = (after until code.size).firstOrNull {
+        code[it].opcode == HermesOp.JMP_TRUE || code[it].opcode == HermesOp.JMP_TRUE_LONG
+    } ?: fail("has no branch on its subscription")
+    val jump = code[jumpIndex]
+    val tested = if (jump.opcode == HermesOp.JMP_TRUE_LONG) jump.u8(5) else jump.u8(2)
+    // Writes name their register first; jumps start with an offset, so they're skipped.
+    val overwritten = code.subList(after, jumpIndex).any { it.targets().isEmpty() && it.bytes.size > 1 && it.u8(1) == value }
+    if (tested != value || overwritten || jump.target()!! <= jump.offset) fail("no longer branches forward on its subscription")
+    // The unsubscribed path's first instructions, at least the four bytes `LoadConstNull r; Ret r` takes. They start by
+    // loading something into a register that then holds an object, so it can hold null.
+    val run = mutableListOf<HermesInstruction>()
+    for (instruction in code.subList(jumpIndex + 1, code.size)) {
+        if (run.sumOf { it.bytes.size } >= 4) break
+        run += instruction
     }
-    kickHermes.replaceInstruction(button, KEY, first,
-        byteArrayOf(HermesOp.LOAD_CONST_NULL.toByte(), register.toByte(), HermesOp.RET.toByte(), register.toByte()),
-        defaultEnabled = false)
+    val register = run.first().u8(1)
+    if (run.sumOf { it.bytes.size } < 4 || register < button.numberRegisters + button.nonPointerRegisters) {
+        fail("unsubscribed path starts in a register that can't hold null")
+    }
+    val replacement = ByteArray(run.sumOf { it.bytes.size })
+    byteArrayOf(HermesOp.LOAD_CONST_NULL.toByte(), register.toByte(), HermesOp.RET.toByte(), register.toByte())
+        .copyInto(replacement)
+    kickHermes.replaceInstructions(button, KEY, run, replacement, defaultEnabled = false)
 }

@@ -9,7 +9,22 @@ import java.util.WeakHashMap;
 public final class NewsfeedPromotions {
   private static final Map<View, State> HIDDEN = new WeakHashMap<>();
 
+  private static final String[] ITEM_VIEW_FIELDS = {"a", "itemView"};
+
   private NewsfeedPromotions() {}
+
+  /** Reads the first present public field from [names], or null when none exists. */
+  private static Object readField(Class<?> cls, Object holder, String[] names)
+      throws IllegalAccessException {
+    for (String name : names) {
+      try {
+        return cls.getField(name).get(holder);
+      } catch (NoSuchFieldException ignored) {
+        // Try the next layout for the other supported app version.
+      }
+    }
+    return null;
+  }
 
   private static final class State {
     final int height;
@@ -32,9 +47,21 @@ public final class NewsfeedPromotions {
     try {
       Class<?> cls = holder.getClass();
       // Always active when the patch is included; ignore obsolete switch preferences.
-      boolean promotional = cls.getField("E1").get(holder) != null
-          || cls.getField("D1").get(holder) != null;
-      View view = (View) cls.getField("a").get(holder);
+      String[] adFields;
+      String[] videoFields;
+      if (cls.getName().equals("d91.v")) {
+        adFields = new String[] {"E1"};
+        videoFields = new String[] {"D1"};
+      } else if (cls.getName().equals("yv9")) {
+        adFields = new String[] {"v1"};
+        videoFields = new String[] {"u1"};
+      } else {
+        return false;
+      }
+      boolean promotional = readField(cls, holder, adFields) != null
+          || readField(cls, holder, videoFields) != null;
+      Object itemView = readField(cls, holder, ITEM_VIEW_FIELDS);
+      View view = itemView instanceof View ? (View) itemView : null;
       if (view == null) return false;
       ViewGroup.LayoutParams layout = view.getLayoutParams();
       if (layout == null) return false;

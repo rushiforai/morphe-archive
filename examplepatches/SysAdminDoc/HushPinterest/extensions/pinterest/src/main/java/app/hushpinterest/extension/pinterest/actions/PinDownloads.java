@@ -36,6 +36,8 @@ import app.hushpinterest.extension.pinterest.settings.FamilyNames;
 import app.hushpinterest.extension.pinterest.settings.HushDialogs;
 import app.hushpinterest.extension.pinterest.settings.PatchFamily;
 import app.hushpinterest.extension.pinterest.settings.Settings;
+import app.hushpinterest.extension.pinterest.ui.BoardTabCovers;
+import app.hushpinterest.extension.pinterest.ui.UiHooks;
 import app.hushpinterest.extension.shared.L10n;
 import app.hushpinterest.extension.shared.Utils;
 import app.hushpinterest.extension.shared.diagnostics.HookStatus;
@@ -47,6 +49,7 @@ public final class PinDownloads {
     static final String ROW_TAG = "hushpinterest_download_pin";
     private static final String DETAILS_TAG = "hushpinterest_pin_media_details";
     static final String COPY_TAG = "hushpinterest_copy_media_link";
+    private static final String COVER_TAG = "hushpinterest_board_tab_cover";
     static final String COPY_IMAGE_TAG = "hushpinterest_copy_image";
     static final String SHARE_IMAGE_TAG = "hushpinterest_share_image";
 
@@ -113,8 +116,39 @@ public final class PinDownloads {
         if (sheet) dismissSheet(controller); else dismissMenu(controller);
     }
 
+    /** While a board tab's cover is being chosen, a picture pin's menu offers itself as that cover. */
+    private static void coverRow(Object controller, boolean sheet) {
+        try {
+            if (!BoardTabCovers.pickingPin()) return;
+            ViewGroup layout = sheet ? sheetView(controller) : menuView(controller);
+            PinMedia.Resolution media = PinMedia.resolve(sheet ? sheetPin(controller) : menuPin(controller));
+            if (layout == null || media == null || media.source == null || !media.source.mime.startsWith("image/")
+                    || layout.findViewWithTag(COVER_TAG) != null) return;
+            String title = L10n.t("Use as tab cover");
+            View row = row(controller, sheet, layout, title);
+            if (row == null) return;
+            row.setTag(COVER_TAG);
+            row.setFocusable(true);
+            row.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
+            row.setContentDescription(title);
+            String url = media.source.url;
+            row.setOnClickListener(ignored -> {
+                try {
+                    BoardTabCovers.usePin(url);
+                    dismiss(controller, sheet);
+                } catch (Throwable failure) {
+                    HookStatus.threw(FamilyNames.BOARD_TABS, "use a pin as board tab cover", failure);
+                }
+            });
+            layout.addView(row, sheet ? nativeIndex(layout) : 0);
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.BOARD_TABS, "board tab cover row", failure);
+        }
+    }
+
     private static void attach(Object controller, boolean sheet) {
         HookStatus.invoked(FamilyNames.DOWNLOAD_PINS);
+        coverRow(controller, sheet);
         if (!active()) return;
         try {
             Object pin = sheet ? sheetPin(controller) : menuPin(controller);
@@ -559,7 +593,7 @@ public final class PinDownloads {
                         }
                         HookStatus.counted(FamilyNames.DOWNLOAD_PINS, "stream download started");
                         report(after, Result.QUEUED);
-                        if (after == null) Utils.showToastLong(startedMessage(true, folder));
+                        if (after == null) started(true, folder);
                         return;
                     }
                     long request = manager.enqueue(request(chosen, fileName(id, chosen), folder));
@@ -567,7 +601,7 @@ public final class PinDownloads {
                     boolean tracked = DownloadLedger.record(app, request, id, folder);
                     HookStatus.counted(FamilyNames.DOWNLOAD_PINS, "pin queued in Downloads");
                     report(after, tracked ? Result.QUEUED : Result.QUEUED_UNTRACKED);
-                    if (after == null) Utils.showToastLong(startedMessage(tracked, folder));
+                    if (after == null) started(tracked, folder);
                 } catch (Throwable failure) {
                     failed(QUEUE_FAILED, failure, after == null);
                     report(after, Result.FAILED);
@@ -623,6 +657,12 @@ public final class PinDownloads {
      * The toast after a download is queued. It names the folder the download goes to, since
      * Android's Downloads list shows only the Download folder.
      */
+    /** Says a download started. A switch can quiet that, but never the warning that history wasn't saved. */
+    static void started(boolean tracked, String folder) {
+        if (tracked && UiHooks.quietDownloads()) return;
+        Utils.showToastLong(startedMessage(tracked, folder));
+    }
+
     static String startedMessage(boolean tracked, String folder) {
         if (folder != null) {
             return tracked ? L10n.f("Download started. Check %s.", folder)

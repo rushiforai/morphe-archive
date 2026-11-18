@@ -13,7 +13,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstructio
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import app.zeldrisho.patches.shared.bytecode.clearBody
-import app.zeldrisho.patches.shared.Constants.COMPATIBILITY_ZALO
+import app.zeldrisho.patches.shared.Constants.COMPATIBILITY_ZALO_STABLE
 
 private const val MAX_CONST16_REGISTER = 0xFF
 
@@ -107,7 +107,7 @@ val enableZaloGoogleDriveMediaBackupPatch = bytecodePatch(
         "Google authorization and Drive retention still apply.",
     default = false,
 ) {
-    compatibleWith(COMPATIBILITY_ZALO)
+    compatibleWith(COMPATIBILITY_ZALO_STABLE)
 
     execute {
         val current = packageMetadata.versionName == "26.10.02"

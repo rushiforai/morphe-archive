@@ -5,7 +5,7 @@
  *
  * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to this code.
  *
- * Modified by lavinhoque33, 2026-11-14
+ * Modified by lavinhoque33, 2026-11-18
  */
 
 package app.morphe.patches.youtube.player.miniplayer.general
@@ -56,9 +56,12 @@ import app.morphe.patches.youtube.utils.resourceid.scrimOverlay
 import app.morphe.patches.youtube.utils.resourceid.sharedResourceIdPatch
 import app.morphe.patches.youtube.utils.resourceid.ytOutlinePictureInPictureWhite
 import app.morphe.patches.youtube.utils.resourceid.ytOutlineXWhite
+import app.morphe.patches.youtube.utils.seekbarFingerprint
+import app.morphe.patches.youtube.utils.seekbarOnDrawFingerprint
 import app.morphe.patches.youtube.utils.settings.ResourceUtils.addPreference
 import app.morphe.patches.youtube.utils.settings.settingsPatch
 import app.morphe.util.addInstructionsAtControlFlowLabel
+import app.morphe.util.findInstructionIndicesReversed
 import app.morphe.util.findInstructionIndicesReversedOrThrow
 import app.morphe.util.fingerprint.injectLiteralInstructionBooleanCall
 import app.morphe.util.fingerprint.matchOrNull
@@ -71,6 +74,7 @@ import app.morphe.util.getWalkerMethod
 import app.morphe.util.indexOfFirstInstruction
 import app.morphe.util.indexOfFirstInstructionOrThrow
 import app.morphe.util.indexOfFirstLiteralInstructionOrThrow
+import app.morphe.util.returnEarly
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
@@ -772,7 +776,22 @@ val miniplayerPatch = bytecodePatch(
 
         // region Minimal miniplayer.
 
-        if (is_20_37_or_greater) {
+        val videoRectCall = methodCall(
+            opcode = Opcode.INVOKE_STATIC,
+            parameters = listOf("F", "Landroid/graphics/Rect;", "Landroid/graphics/Rect;"),
+            returnType = "V"
+        )
+        val seekbarDraw = seekbarOnDrawFingerprint.matchOrNull(seekbarFingerprint)?.method
+        // Earlier versions use the stock Minimal bar. They can also draw the patched bar
+        // when glass is enabled, provided the same controls, geometry and playback hooks exist.
+        val canBuildGlassOnLegacy = !is_20_37_or_greater && is_20_05_or_greater && seekbarDraw != null &&
+                MiniplayerLegacyControlsVisibilityFingerprint.matchOrNull() != null &&
+                MiniplayerSetIconsFingerprint.matchOrNull() != null &&
+                MiniplayerOffscreenHandlerFingerprint.matchOrNull() != null &&
+                MiniplayerHorizontalRepositionFingerprint.matchOrNull()?.method
+                    ?.findInstructionIndicesReversed(videoRectCall)?.isNotEmpty() == true
+
+        if (is_20_37_or_greater || canBuildGlassOnLegacy) {
             MiniplayerLegacyControlsFingerprint.let {
                 it.method.apply {
                     val index = it.instructionMatches.last().index
@@ -862,13 +881,7 @@ val miniplayerPatch = bytecodePatch(
             // Written on the rect itself rather than through its getter, because the field is
             // also read directly, including while animating.
             MiniplayerHorizontalRepositionFingerprint.method.apply {
-                findInstructionIndicesReversedOrThrow(
-                    methodCall(
-                        opcode = Opcode.INVOKE_STATIC,
-                        parameters = listOf("F", "Landroid/graphics/Rect;", "Landroid/graphics/Rect;"),
-                        returnType = "V"
-                    )
-                ).forEach { index ->
+                findInstructionIndicesReversedOrThrow(videoRectCall).forEach { index ->
                     val videoRect = getInstruction<FiveRegisterInstruction>(index).registerE
 
                     addInstruction(
@@ -892,6 +905,23 @@ val miniplayerPatch = bytecodePatch(
                     iget p4, v0, Landroid/graphics/Rect;->bottom:I
                 """
             )
+        }
+
+        if (seekbarDraw != null && (is_20_37_or_greater || canBuildGlassOnLegacy)) {
+            seekbarDraw.addInstruction(
+                0,
+                "invoke-static/range { p0 .. p1 }, $MINIMAL_EXTENSION_CLASS_DESCRIPTOR->" +
+                        "clipSeekbar(Landroid/view/View;Landroid/graphics/Canvas;)V"
+            )
+            Fingerprint(
+                definingClass = "$PLAYER_PATH/GlassMinimalMiniplayer;",
+                name = "isSupported",
+                returnType = "Z",
+                parameters = emptyList(),
+            ).method.returnEarly(true)
+            settingArray += "SETTINGS: MINIPLAYER_GLASS"
+        } else {
+            printWarn("Glass miniplayer is unavailable: this version is missing its bar or progress drawing hooks.")
         }
 
         // endregion

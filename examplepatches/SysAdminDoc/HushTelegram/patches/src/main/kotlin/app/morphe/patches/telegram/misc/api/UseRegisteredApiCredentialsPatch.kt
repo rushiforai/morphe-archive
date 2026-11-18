@@ -37,6 +37,7 @@ import app.morphe.util.names.origName
 import app.morphe.util.names.origParameterTypes
 import app.morphe.util.names.origReturnType
 import app.morphe.util.names.origType
+import app.morphe.util.names.tgClassDefByOrNull
 import app.morphe.util.names.tgMutableClassDefBy
 
 private const val PATCH = "Use registered Telegram API credentials"
@@ -47,6 +48,14 @@ private const val PASSKEYS = "Lorg/telegram/messenger/PasskeysController;"
 private val AUTH_REQUESTS = setOf("Lorg/telegram/tgnet/TLRPC\$TL_auth_sendCode;", "Lorg/telegram/tgnet/tl/TL_account\$initPasskeyLogin;")
 /** Play 13.2.1's sign-in by Firebase phone number verification sends the pair too. */
 private const val FIREBASE_LOGIN = "Lorg/telegram/tgnet/TLRPC\$TL_auth_initFirebasePnvLogin;"
+/** Plus Messenger signs in by QR code too. */
+private const val EXPORT_LOGIN_TOKEN = "Lorg/telegram/tgnet/TLRPC\$TL_auth_exportLoginToken;"
+/**
+ * auth.importBotAuthorization's constructor. Plus Messenger signs bots in with a request class of its
+ * own whose fields have no source names, so its serializer says which field is which.
+ */
+private const val IMPORT_BOT_AUTHORIZATION = 0x67a3ff2c
+private const val OUTPUT = "Lorg/telegram/tgnet/OutputSerializedData;"
 private const val UNKNOWN = -1
 internal const val QUOTE_ID_HINT =
     "On the command line, quote the ID (-O \"apiId='12345'\"): a bare number never reaches this option."
@@ -61,7 +70,7 @@ val useRegisteredApiCredentialsPatch = bytecodePatch(
     default = false,
 ) {
     category("Fixes")
-    compatibleWith(*AppCompatibilities.telegramOnly())
+    compatibleWith(*AppCompatibilities.telegram())
     val apiId by stringOption(
         key = "apiId", default = null, title = "Your API ID",
         description = "The number shown as App api_id at my.telegram.org/apps. Fill in the API hash too, " +
@@ -180,23 +189,27 @@ internal fun BytecodePatchContext.resolveApiCredentials(): ApiCredentialsPlan {
     val id = literal("APP_ID")
     val hash = literal("APP_HASH")
     val reads = accesses.filter { it !in writes }
-    // Phone and passkey sign-in read both, and the Play build's Firebase number check does too. The
-    // connection and the two support email appendices read the ID alone.
+    // Phone and passkey sign-in read both, and the Play build's Firebase number check does too. Plus
+    // Messenger adds QR code and bot sign-in. The connection and the two support email appendices read
+    // the ID alone.
     val hashReads = reads.count { it.field.origName == "APP_HASH" }
-    requireShape(hashReads in 2..3 && reads.count { it.field.origName == "APP_ID" } == hashReads + 3,
+    requireShape(hashReads in 2..5 && reads.count { it.field.origName == "APP_ID" } == hashReads + 3,
         "credential reader inventory changed")
     val authentication = reads.filter { it.field.origName == "APP_HASH" }.map { it.method }.distinct()
     val requestTypes = linkedSetOf<String>()
+    val botRequests = mutableMapOf<String, Pair<String, String>?>()
+    fun botFields(type: String) = if (type in botRequests) botRequests[type] else botRequestFields(type).also { botRequests[type] = it }
     for (method in authentication) {
         val body = method.instructions()
         val methodReads = reads.filter { it.method === method }
         requireShape(methodReads.size == 2 && methodReads.map { it.field.origName }.toSet() == setOf("APP_ID", "APP_HASH"),
             "authentication no longer reads a paired identity")
         val stores = methodReads.map { read ->
-            val fieldName = if (read.field.origName == "APP_ID") "api_id" else "api_hash"
+            val isId = read.field.origName == "APP_ID"
+            val fieldName = if (isId) "api_id" else "api_hash"
             val store = body.indices.filter { index -> body[index].field()?.let { field ->
-                field.origName == fieldName && field.origType == read.field.origType && body[index].opcode ==
-                    if (fieldName == "api_id") Opcode.IPUT else Opcode.IPUT_OBJECT
+                (field.origName == fieldName || botFields(field.origDefiningClass)?.let { if (isId) it.first else it.second } == field.origName) &&
+                    field.origType == read.field.origType && body[index].opcode == if (isId) Opcode.IPUT else Opcode.IPUT_OBJECT
             } == true && body[index].namedRegisters().firstOrNull()?.let { register ->
                 origin(method, index, register) == setOf(read.index)
             } == true }.unique("authentication $fieldName binding")
@@ -206,7 +219,7 @@ internal fun BytecodePatchContext.resolveApiCredentials(): ApiCredentialsPlan {
         requireShape(allocation != null && allocation >= 0 && stores.all { it.second == setOf(allocation) } &&
             body[allocation].opcode == Opcode.NEW_INSTANCE, "authentication pair targets different request objects")
         val request = ((body[allocation!!] as? ReferenceInstruction)?.reference as? TypeReference)?.type
-        requireShape(request in AUTH_REQUESTS + FIREBASE_LOGIN &&
+        requireShape(request != null && (request in AUTH_REQUESTS + FIREBASE_LOGIN + EXPORT_LOGIN_TOKEN || botFields(request) != null) &&
             stores.all { body[it.first].field()?.origDefiningClass == request }, "authentication request type changed")
         requireShape(requestTypes.add(request!!), "authentication request binding is ambiguous")
     }
@@ -262,6 +275,23 @@ internal fun BytecodePatchContext.resolveApiCredentials(): ApiCredentialsPlan {
 }
 
 private data class ApiAccess(val method: Method, val index: Int, val instruction: Instruction, val field: FieldReference)
+
+/**
+ * The API ID and hash fields of [type] when it serializes as auth.importBotAuthorization: its constructor
+ * first, then the flags, the ID and the hash, read from the request's own fields. Null for anything else.
+ */
+private fun BytecodePatchContext.botRequestFields(type: String): Pair<String, String>? {
+    val serializer = tgClassDefByOrNull(type)?.methods?.singleOrNull { it.origName == "serializeToStream" &&
+        it.origParameterTypes == listOf(OUTPUT) && it.origReturnType == "V" } ?: return null
+    val body = serializer.instructions()
+    val constructor = body.firstOrNull() as? NarrowLiteralInstruction
+    if (constructor?.opcode != Opcode.CONST || constructor.narrowLiteral != IMPORT_BOT_AUTHORIZATION) return null
+    val id = body.firstOrNull { it.opcode == Opcode.IGET }?.field()
+    val hash = body.firstOrNull { it.opcode == Opcode.IGET_OBJECT }?.field()
+    if (id == null || hash == null || id.origType != "I" || hash.origType != STRING ||
+        id.origDefiningClass != type || hash.origDefiningClass != type) return null
+    return id.origName to hash.origName
+}
 
 /**
  * Reaching definitions on every normal and caught-exception path; moves preserve the source

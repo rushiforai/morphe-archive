@@ -92,8 +92,11 @@ public final class SettingsStatus {
     public static boolean searchHistory() { return false; }
     public static boolean recentSearchRows() { return false; }
     public static boolean recentSearchHeading() { return false; }
+    public static boolean searchLanding() { return false; }
     public static boolean hideNavigationButtons() { return false; }
     public static boolean navigationButtons() { return false; }
+    public static boolean homeTabs() { return false; }
+    public static boolean searchKeyboard() { return false; }
     public static boolean hideHeaderButtons() { return false; }
     public static boolean headerButtons() { return false; }
     public static boolean amoledBlack() { return false; }
@@ -103,6 +106,7 @@ public final class SettingsStatus {
     public static boolean blackSaveSheet() { return false; }
     public static boolean blackSheets() { return false; }
     public static boolean blackBoards() { return false; }
+    public static boolean blackToasts() { return false; }
     public static boolean hideCloseupButtons() { return false; }
     public static boolean closeupButtons() { return false; }
     public static boolean closeupSearchLabel() { return false; }
@@ -112,6 +116,7 @@ public final class SettingsStatus {
     public static boolean closeupSaveButton() { return false; }
     public static boolean hidePinMenuItems() { return false; }
     public static boolean pinMenuItems() { return false; }
+    public static boolean pinMenuRows() { return false; }
     public static boolean hideComments() { return false; }
     public static boolean comments() { return false; }
     public static boolean suggestedReplies() { return false; }
@@ -130,14 +135,32 @@ public final class SettingsStatus {
     public static boolean relatedPins() { return false; }
     public static boolean hideCreatorName() { return false; }
     public static boolean creatorName() { return false; }
+    public static boolean hidePinAuthor() { return false; }
+    public static boolean pinAuthor() { return false; }
+    public static boolean hidePinDescription() { return false; }
+    public static boolean pinDescription() { return false; }
+    public static boolean showImageSize() { return false; }
+    public static boolean imageSize() { return false; }
+    public static boolean hideHighlightRing() { return false; }
+    public static boolean highlightRing() { return false; }
+    public static boolean hideVisualSearchThumbnails() { return false; }
+    public static boolean visualSearchThumbnails() { return false; }
+    public static boolean foldRelatedPins() { return false; }
+    public static boolean relatedPinsFold() { return false; }
     public static boolean customSaveSound() { return false; }
     public static boolean saveSound() { return false; }
     public static boolean customSplashLogo() { return false; }
+    public static boolean boardTabs() { return false; }
+    public static boolean boardTabHeader() { return false; }
+    public static boolean boardTabCovers() { return false; }
     public static boolean hideSaveToasts() { return false; }
     public static boolean saveToasts() { return false; }
+    public static boolean downloadToasts() { return false; }
     public static boolean originalImages() { return false; }
     public static boolean imageChooser() { return false; }
     public static boolean closeupImage() { return false; }
+    public static boolean pageImage() { return false; }
+    public static boolean originalRetry() { return false; }
     public static boolean showPostedDate() { return false; }
     public static boolean postedDate() { return false; }
     public static boolean hideSuggestedBoards() { return false; }

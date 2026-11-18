@@ -7,6 +7,17 @@ import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.AccessFlags
 
+// Experimental target: 26.11.01 is advertised but not fully device-qualified.
+internal object MediaExpiryStatus261101 : Fingerprint(
+    definingClass = "Lm34;", name = "m",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.FINAL),
+    returnType = "Lrx3;", parameters = listOf("Lvv3;", "Lhzj;"),
+    filters = listOf(
+        fieldAccess(definingClass = "Lrx3;", name = "BIG_FILE_EXPIRED", type = "Lrx3;"),
+        fieldAccess(definingClass = "Lrx3;", name = "BIG_FILE_NOT_EXPIRED", type = "Lrx3;"),
+    ),
+)
+
 internal object MediaExpiryStatus : Fingerprint(
     definingClass = "Lvk0/g;",
     name = "n",
@@ -47,6 +58,28 @@ internal object MediaRestoreAgeCutoff : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "J",
     parameters = emptyList(),
+    filters = listOf(string("BACKUP_MEDIA_LIMIT_TIME_DAY")),
+)
+
+/** Experimental 26.11.01 media age readers; this version is not fully device-qualified. */
+internal object MediaBackupAgeFilter261101 : Fingerprint(
+    definingClass = "Leud;", name = "k",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    returnType = "V", parameters = listOf("Ljava/util/ArrayList;"),
+    filters = listOf(string("BACKUP_MEDIA_LIMIT_TIME_DAY")),
+)
+
+internal object MediaRestoreAgeCutoff261101 : Fingerprint(
+    definingClass = "Lwsw;", name = "p",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "J", parameters = emptyList(),
+    filters = listOf(string("BACKUP_MEDIA_LIMIT_TIME_DAY")),
+)
+
+internal object MediaRestoreListAgeFilter261101 : Fingerprint(
+    definingClass = "Lwsw;", name = "B",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "V", parameters = listOf("Lppp;"),
     filters = listOf(string("BACKUP_MEDIA_LIMIT_TIME_DAY")),
 )
 
@@ -210,6 +243,60 @@ internal object SelectedPhotoOriginalFlag : Fingerprint(
         ),
         fieldAccess(definingClass = "Lo00/k0;", name = "s0", type = "Z"),
     ),
+)
+
+// Experimental target: 26.11.01 is advertised but not fully device-qualified.
+internal object SelectedMediaQuality261101 : Fingerprint(
+    definingClass = "Lgkf;", name = "c", accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    returnType = "I", parameters = emptyList(), filters = listOf(string("LAST_SELECTION_MEDIA_QUALITY_")),
+)
+internal object QualityPickerArguments261101 : Fingerprint(
+    definingClass = "Lpe2;", name = "a", accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    returnType = "V", parameters = listOf("I", "Landroid/os/Bundle;", "Ljava/lang/String;", "Ljava/lang/String;"),
+    filters = listOf(string("EXTRA_CURRENT_QUALITY")),
+)
+internal object PickerQualityInitialization261101 : Fingerprint(
+    definingClass = "Lcom/zing/zalo/ui/picker/mediapicker/MediaPickerView;", name = "v7",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL), returnType = "V", parameters = listOf("Z"),
+    filters = listOf(fieldAccess(definingClass = "Lamf;", name = "HD", type = "Lamf;")),
+)
+internal object PhotoQualityChipUpdate261101 : Fingerprint(
+    definingClass = "Lcom/zing/zalo/ui/picker/mediapicker/MediaPickerView;", name = "P6",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.FINAL), returnType = "V",
+    parameters = listOf("Lcom/zing/zalo/ui/picker/mediapicker/MediaPickerView;", "I"),
+    filters = listOf(methodCall(definingClass = "Lzlf;", name = "a", returnType = "Ljava/lang/String;")),
+)
+internal object LandingPageQualityChipUpdate261101 : Fingerprint(
+    definingClass = "Lcom/zing/zalo/ui/picker/landingpage/LandingPageView;", name = "S6",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL), returnType = "V", parameters = listOf("I"),
+    filters = listOf(fieldAccess(definingClass = "Lcom/zing/zalo/ui/picker/landingpage/LandingPageView;", name = "J2", type = "I"),
+        methodCall(definingClass = "Lzlf;", name = "a", returnType = "Ljava/lang/String;")),
+)
+internal object LandingPageQualityChipInitialization261101 : Fingerprint(
+    definingClass = "Lcom/zing/zalo/ui/picker/landingpage/LandingPageView;", name = "n5",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL), returnType = "Landroid/view/View;",
+    parameters = listOf("Landroid/view/LayoutInflater;", "Landroid/view/ViewGroup;", "Landroid/os/Bundle;"),
+    filters = listOf(fieldAccess(definingClass = "Lcom/zing/zalo/ui/picker/landingpage/LandingPageView;", name = "J2", type = "I"),
+        methodCall(definingClass = "Lzlf;", name = "a", returnType = "Ljava/lang/String;")),
+)
+internal object ChatInputBarQualityChipUpdate261101 : Fingerprint(
+    definingClass = "Lcom/zing/zalo/ui/chat/widget/inputbar/ChatInputBar;", name = "s",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL), returnType = "V", parameters = listOf("I"),
+    filters = listOf(fieldAccess(opcode = Opcode.IGET, definingClass = "Lcom/zing/zalo/ui/chat/widget/inputbar/ChatInputBar;", name = "t1", type = "I"),
+        methodCall(definingClass = "Lzlf;", name = "a", returnType = "Ljava/lang/String;")),
+)
+internal object OriginalMediaQualityEnabled261101 : Fingerprint(
+    definingClass = "Lgkf;", name = "b", accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC), returnType = "Z", parameters = emptyList(),
+)
+internal object OriginalMediaQualityEntitled261101 : Fingerprint(
+    definingClass = "Lgkf;", name = "f", accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC), returnType = "Z", parameters = emptyList(),
+)
+internal object OriginalMediaQualityAvailable261101 : Fingerprint(
+    definingClass = "Lgkf;", name = "e", accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC), returnType = "Z", parameters = emptyList(),
+    filters = listOf(methodCall(definingClass = "Lgkf;", name = "b", returnType = "Z"), methodCall(definingClass = "Lgkf;", name = "f", returnType = "Z")),
+)
+internal fun photoConversion261101(owner: String, name: String, parameters: List<String>) = Fingerprint(
+    definingClass = owner, name = name, returnType = "V", parameters = parameters,
 )
 
 /** Quality-selection targets in Zalo 26.10.02. */

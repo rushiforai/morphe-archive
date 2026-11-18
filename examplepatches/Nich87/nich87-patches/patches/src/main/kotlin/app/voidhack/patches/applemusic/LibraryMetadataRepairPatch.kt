@@ -2,9 +2,6 @@ package app.voidhack.patches.applemusic
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.ApkFileType
-import app.morphe.patcher.patch.AppTarget
-import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import com.android.tools.smali.dexlib2.Opcode
@@ -34,17 +31,8 @@ val libraryMetadataRepairPatch = bytecodePatch(
     name = "Repair Japanese library metadata",
     description = "Finds romanized library metadata and repairs selected songs using Japanese catalog data, preserving library entries and syncing changes to the account.",
 ) {
-    dependsOn(metadataRepairResources)
-    compatibleWith(
-        Compatibility(
-            name = "Apple Music",
-            packageName = "com.apple.android.music",
-            apkFileType = ApkFileType.APK,
-            appIconColor = 0xFA243C,
-            targets = listOf(AppTarget(version = "7.0.0")),
-        ),
-    )
-    extendWith("extensions/extension.mpe")
+    dependsOn(metadataRepairResources, appleMusicLibraryBindings)
+    compatibleWith(appleMusicCompatibility)
 
     execute {
         LibrarySettingsCreated.method.addInstruction(

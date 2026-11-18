@@ -18,6 +18,7 @@ disable_analytics  RumblePrivacy.watchProgressOnly
 clean_share_links  RumblePrivacy.cleanShareLink
 
 exact_counts  RumbleInterface.exactCount
+hide_shorts  RumbleInterface.feedPills
 hide_tipping|hide_join_button|hide_shop_button  RumbleInterface.actionButtons
 home_hide_categories  RumbleInterface.homeSectionKind
 startup_tab  Settings.getInt
@@ -32,8 +33,7 @@ chat_anonymous  RumbleChat.streamCookie
 chat_anonymous  RumbleChat.sendBlocked
 
 video_quality  RumblePlayback.startHeight
-video_quality  RumblePlayback.capActive
-video_quality  RumblePlayback.liveUsesAutoByDefault
+video_quality  RumblePlayback.loadingVideo
 resume_signed_out  RumblePlayback.signedOutPosition
 remember_speed|default_speed  RumblePlayback.onSpeedPicked
 remember_speed|default_speed  RumblePlayback.onSpeedReset
@@ -46,7 +46,6 @@ player_gestures  RumbleGestures.dispatch
 keep_screen_on_paused  RumblePlayer.keepScreenOn
 refresh_stream  RumblePlayer.onVideoLoaded
 refresh_stream  RumblePlayer.refreshable
-refresh_stream  RumblePlayer.noQualityCallback
 seek_seconds  RumblePlayer.seekMillis
 seek_seconds  RumblePlayer.seekBackIcon
 seek_seconds  RumblePlayer.seekForwardIcon

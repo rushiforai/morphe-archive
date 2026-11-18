@@ -9,6 +9,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-18.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -50,6 +51,7 @@
 package app.morphe.extension.youtube.patches.general;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
 import android.view.ContextThemeWrapper;
 import android.view.View;
@@ -214,19 +216,23 @@ public final class SnackBarPatch {
     }
 
     public static int getLithoColor(Drawable drawable, int originalValue) {
-        if (CHANGE_SERVER_SIDE_SNACK_BAR_BACKGROUND && isSnackbarDrawable(drawable)) {
-            if (originalValue == SNACK_BAR_BLACK_COLOR) {
-                return INVERT_SERVER_SIDE_SNACK_BAR_THEME
-                        ? getWhiteColor()
-                        : getBlackColor();
-            } else if (originalValue == SNACK_BAR_WHITE_COLOR) {
-                return INVERT_SERVER_SIDE_SNACK_BAR_THEME
-                        ? getBlackColor()
-                        : getWhiteColor();
-            }
+        if (CHANGE_SERVER_SIDE_SNACK_BAR_BACKGROUND
+                && (originalValue == SNACK_BAR_BLACK_COLOR || originalValue == SNACK_BAR_WHITE_COLOR)
+                && isSnackbarDrawable(drawable)) {
+            final boolean useLightFill = (originalValue == SNACK_BAR_WHITE_COLOR)
+                    != INVERT_SERVER_SIDE_SNACK_BAR_THEME;
+            return SnackBarDrawable.resolveFill(useLightFill, useLightFill ? getWhiteColor() : getBlackColor());
         }
 
         return originalValue;
+    }
+
+    /** Keeps the Litho snackbar's separate clipping outline in sync with the background. */
+    public static float getOutlineRadius(Resources resources, int resourceId) {
+        float radius = SnackBarDrawable.radiusDp();
+        return radius == Settings.SNACK_BAR_CORNER_RADIUS.defaultValue
+                ? resources.getDimension(resourceId)
+                : radius * resources.getDisplayMetrics().density;
     }
 
     private static boolean isSnackbarDrawable(Drawable drawable) {

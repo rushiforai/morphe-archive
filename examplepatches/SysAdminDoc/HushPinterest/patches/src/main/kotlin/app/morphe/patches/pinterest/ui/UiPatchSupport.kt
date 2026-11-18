@@ -12,6 +12,7 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patches.pinterest.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.pinterest.misc.extension.patchLog
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.iface.Method
@@ -53,6 +54,19 @@ internal fun BytecodePatchContext.methodsWithString(text: String) = classDefBySt
 
 internal fun BytecodePatchContext.mutable(method: Method) = mutableClassDefBy(method.definingClass).methods.single {
     it.name == method.name && it.returnType == method.returnType && it.parameters() == method.parameters()
+}
+
+/**
+ * One optional piece of a patch. When Pinterest no longer has its target the rest of the patch still
+ * goes in. [install] finds everything it needs before it changes anything, and ends by turning on
+ * its capability.
+ */
+internal fun optionalTarget(patch: String, what: String, install: () -> Unit) {
+    try {
+        install()
+    } catch (missing: PatchException) {
+        patchLog.warning("$patch: $what left out (${missing.message})")
+    }
 }
 
 internal fun <T> List<T>.one(what: String): T = singleOrNull()

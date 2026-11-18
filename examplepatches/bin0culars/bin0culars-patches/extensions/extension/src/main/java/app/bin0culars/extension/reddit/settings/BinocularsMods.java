@@ -215,6 +215,28 @@ public final class BinocularsMods {
         }
     }
 
+    public static float getStoredFloat(String key, float def) {
+        try {
+            SharedPreferences prefs = getPrefs();
+            if (prefs == null) {
+                return def;
+            }
+            return prefs.getFloat(key, def);
+        } catch (Throwable ignored) {
+            return def;
+        }
+    }
+
+    public static void putStoredFloat(String key, float value) {
+        try {
+            SharedPreferences prefs = getPrefs();
+            if (prefs != null) {
+                prefs.edit().putFloat(key, value).apply();
+            }
+        } catch (Throwable ignored) {
+        }
+    }
+
     public static boolean openIfOurs(Activity activity, Uri uri) {
         if (activity == null || uri == null) {
             return false;

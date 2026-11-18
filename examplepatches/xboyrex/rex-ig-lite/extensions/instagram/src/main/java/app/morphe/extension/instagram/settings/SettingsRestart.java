@@ -22,10 +22,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 import app.morphe.extension.rex.sharedPreference.SharedPref;
 import app.morphe.extension.instagram.patches.devFlags.FlagsSharedPref;
 import app.morphe.extension.instagram.settings.preference.widgets.InstagramPreferenceStyle;
+import app.morphe.extension.instagram.settings.preference.widgets.RexDialogs;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 
@@ -35,8 +37,51 @@ public final class SettingsRestart {
             "app.morphe.extension.instagram.action.SETTINGS_RESTART";
     private static final Map<String, Object> originalValues = new HashMap<>();
     private static final Map<String, RestartPolicy> changedSettings = new HashMap<>();
+    private static final Set<Runnable> listeners = new CopyOnWriteArraySet<>();
 
     private SettingsRestart() {
+    }
+
+    public static void addListener(Runnable listener) {
+        if (listener != null) listeners.add(listener);
+    }
+
+    public static void removeListener(Runnable listener) {
+        if (listener != null) listeners.remove(listener);
+    }
+
+    private static void notifyListeners() {
+        new Handler(Looper.getMainLooper()).post(() -> {
+            for (Runnable r : listeners) {
+                try {
+                    r.run();
+                } catch (Throwable ignored) {
+                }
+            }
+        });
+    }
+
+    public static synchronized boolean isRestartPending() {
+        return hasPendingRestart();
+    }
+
+    public static synchronized boolean hasPendingRestart() {
+        return changedSettings.containsValue(RestartPolicy.REQUIRED);
+    }
+
+    public static synchronized int pendingRestartCount() {
+        int count = 0;
+        for (RestartPolicy p : changedSettings.values()) {
+            if (p == RestartPolicy.REQUIRED) count++;
+        }
+        return count;
+    }
+
+    public static void restartNow(Context context) {
+        RexDialogs.clearActivityBlur(context);
+        clearPendingRestart();
+        flushPreferences();
+        Utils.restartApp(context != null ? context : Utils.getContext());
     }
 
     public static void markChanged(String key, Object previousValue, Object newValue) {
@@ -52,7 +97,6 @@ public final class SettingsRestart {
         }
 
         if (!originalValues.containsKey(key)) {
-            // Preference widgets can mutate their sets after saving.
             originalValues.put(key, previousValue instanceof Set
                     ? new HashSet<>((Set<?>) previousValue) : previousValue);
         }
@@ -65,14 +109,17 @@ public final class SettingsRestart {
         if (!changedSettings.isEmpty()) {
             startTaskService();
         }
+        notifyListeners();
     }
 
     private static void startTaskService() {
         Context context = Utils.getContext();
         if (context == null) return;
         try {
+            String svcName = taskServiceClassName();
+            if (svcName == null || svcName.isEmpty()) return;
             Intent intent = new Intent(TASK_SERVICE_ACTION);
-            intent.setClassName(context.getPackageName(), taskServiceClassName());
+            intent.setClassName(context.getPackageName(), svcName);
             if (context.startService(intent) == null) {
                 throw new IllegalStateException("Task service was not resolved");
             }
@@ -102,7 +149,6 @@ public final class SettingsRestart {
             ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
             if (manager == null || !manager.getAppTasks().isEmpty()) return;
             if (!flushPreferences()) return;
-            // A delayed callback must not terminate an app that has already been reopened.
             if (manager.getAppTasks().isEmpty()) {
                 Process.killProcess(Process.myPid());
             }
@@ -114,6 +160,7 @@ public final class SettingsRestart {
     private static synchronized void clearPendingRestart() {
         originalValues.clear();
         changedSettings.clear();
+        notifyListeners();
     }
 
     public static boolean promptRestartIfPending(Activity activity) {
@@ -125,16 +172,19 @@ public final class SettingsRestart {
         }
 
         try {
+            RexDialogs.clearActivityBlur(activity);
             new AlertDialog.Builder(InstagramPreferenceStyle.dialogContext(activity))
                     .setTitle(str("rex_restart_app"))
-                    .setPositiveButton(str("rex_ok"), (dialog, which) -> {
-                        clearPendingRestart();
-                        Utils.restartApp(activity);
+                    .setMessage("Restart InstaRex now to apply your modified settings and experimental flags?")
+                    .setPositiveButton("Restart Now", (dialog, which) -> {
+                        restartNow(activity);
                     })
-                    .setNegativeButton(str("rex_cancel"), (dialog, which) -> {
+                    .setNegativeButton("Later", (dialog, which) -> {
+                        RexDialogs.clearActivityBlur(activity);
                         activity.finish();
                     })
                     .setOnCancelListener(dialog -> {
+                        RexDialogs.clearActivityBlur(activity);
                         activity.finish();
                     })
                     .show();

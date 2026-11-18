@@ -34,7 +34,7 @@ import app.hushpinterest.extension.shared.diagnostics.HookStatus;
  *
  * <p>One level only: a module inside a module is judged as an item, not opened.
  */
-final class ModuleItems {
+public final class ModuleItems {
     private ModuleItems() {}
 
     /** The family that takes [model] out, or null to keep it. */
@@ -185,7 +185,7 @@ final class ModuleItems {
 
     /** [entry] when it's a model, the model a wrapper holds, or null for anything else. */
     @Nullable
-    static Object model(@Nullable Object entry) {
+    public static Object model(@Nullable Object entry) {
         if (entry == null) return null;
         Class<?> type = entry.getClass();
         if (!ModelFields.of(type).isEmpty()) return entry;

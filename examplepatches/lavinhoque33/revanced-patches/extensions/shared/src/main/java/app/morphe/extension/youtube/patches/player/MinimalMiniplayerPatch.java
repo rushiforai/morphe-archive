@@ -2,10 +2,11 @@
  * Copyright 2026 Morphe.
  * https://github.com/MorpheApp/morphe-patches/pull/2911
  * https://github.com/MorpheApp/morphe-patches/pull/2928
+ * https://github.com/MorpheApp/morphe-patches/pull/3280
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  *
- * Modified by lavinhoque33, 2026-10-25
+ * Modified by lavinhoque33, 2026-11-18
  */
 
 package app.morphe.extension.youtube.patches.player;
@@ -20,6 +21,7 @@ import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.res.ColorStateList;
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Insets;
 import android.graphics.Rect;
@@ -50,8 +52,10 @@ import java.lang.ref.WeakReference;
 import app.morphe.extension.shared.ui.Dim;
 import app.morphe.extension.shared.ui.ViewAnimations;
 import app.morphe.extension.shared.utils.Logger;
+import app.morphe.extension.shared.utils.PackageUtils;
 import app.morphe.extension.shared.utils.ResourceUtils;
 import app.morphe.extension.shared.utils.Utils;
+import app.morphe.extension.youtube.patches.general.GlassNavigationBar;
 import app.morphe.extension.youtube.patches.general.NavigationButtonsPatch;
 import app.morphe.extension.youtube.patches.originaltitles.RestoreOriginalTitlesPatch;
 import app.morphe.extension.youtube.settings.Settings;
@@ -93,6 +97,14 @@ public final class MinimalMiniplayerPatch {
     // this and the type the rest of the class reads disagreeing.
     private static final boolean ENABLED = getCurrentMiniplayerType() == MINIMAL_BAR
             || getCurrentMiniplayerType() == MINIMAL_BAR_2;
+
+    private static final boolean GLASS = ENABLED && MiniplayerPatch.isGlassMiniplayerEnabled();
+
+    // Before the rebuilt bar was added, the other types did not use these bounds hooks.
+    private static final boolean ADJUST_OTHER_TYPES_FOR_KEYBOARD = PackageUtils.isVersionOrGreater("20.37.00");
+
+    @Nullable
+    private static GlassMinimalMiniplayer glass;
 
     private static final boolean HIDE_TITLE =
             getCurrentMiniplayerType() == MINIMAL_BAR_2
@@ -220,6 +232,10 @@ public final class MinimalMiniplayerPatch {
      */
     private static boolean barShapeApplied;
 
+    // Leave room for the controls fade at the end, as in Morphe's minimize transition.
+    private static final float MAX_COLLAPSE_PROGRESS = 0.95f;
+    private static boolean slideStartedExpanded;
+
     /**
      * The title last set to the title view. The view can show another text, as its title is
      * replaced by {@link RestoreOriginalTitlesPatch} if enabled (original or DeArrow title),
@@ -237,12 +253,22 @@ public final class MinimalMiniplayerPatch {
         if (!ENABLED) return;
 
         try {
+            if (glass != null) {
+                glass.release();
+                setBarDrawsOverPlayer(false);
+                glass = null;
+            }
+
             controlsRef = new WeakReference<>(controlsLayout);
             barContainerRef = new WeakReference<>(
                     controlsLayout.getParent() instanceof View barContainer
                             ? barContainer
                             : null
             );
+            View barContainer = barContainerRef.get();
+            if (GLASS && barContainer != null) {
+                glass = new GlassMinimalMiniplayer(barContainer, getCurrentMiniplayerType() == MINIMAL_BAR_2);
+            }
 
             watchPlayerRef = new WeakReference<>(null);
             skipAdRef = new WeakReference<>(null);
@@ -303,7 +329,6 @@ public final class MinimalMiniplayerPatch {
                     barFill.setBounds(0, 0, 0, 0);
                     barFill = null;
                 }
-                View barContainer = barContainerRef.get();
                 Drawable barBackground = barContainer != null ? barContainer.getBackground() : null;
                 if (barBackground != null && barBackground.getConstantState() != null) {
                     barFill = barBackground.getConstantState().newDrawable();
@@ -311,7 +336,7 @@ public final class MinimalMiniplayerPatch {
             } else {
                 // The contents sit on the video rather than beside it, so it is dimmed, and
                 // they take the overlay colors. The buttons alone have a backdrop of their own.
-                controlsLayout.setBackgroundColor(HIDE_TITLE ? Color.TRANSPARENT : OVERLAY_SCRIM_COLOR);
+                controlsLayout.setBackgroundColor(HIDE_TITLE || GLASS ? Color.TRANSPARENT : OVERLAY_SCRIM_COLOR);
                 setOverlayTextColor(title, OVERLAY_PRIMARY_COLOR);
                 setOverlayTextColor(subtitle, OVERLAY_SECONDARY_COLOR);
                 setIconColor(playPause);
@@ -363,7 +388,8 @@ public final class MinimalMiniplayerPatch {
     public static Rect getMiniplayerBounds(int left, int top, int right, int bottom) {
         originalBounds.set(left, top, right, bottom);
 
-        if (!ENABLED) {
+        // The Rect setter already shaped this frame before forwarding its edges to this setter.
+        if (!ENABLED || (isCollapseSlide(PlayerType.getCurrent()) && originalBounds.equals(currentBounds))) {
             return originalBounds;
         }
 
@@ -378,6 +404,8 @@ public final class MinimalMiniplayerPatch {
     public static Rect getMinimalBarBounds(Rect original) {
         try {
             if (!ENABLED) {
+                if (!ADJUST_OTHER_TYPES_FOR_KEYBOARD) return original;
+
                 // Keeps a miniplayer other than the bar above the keyboard and the system
                 // navigation buttons, which YouTube rests it behind when the layout that holds it
                 // is not shrunk to leave them out.
@@ -419,12 +447,18 @@ public final class MinimalMiniplayerPatch {
             updateHorizontalSpan();
             dockedBounds.set(horizontalSpan.left, original.top, horizontalSpan.right, original.bottom);
             lastBounds.set(dockedBounds);
-            PlayerType getCurrent = PlayerType.getCurrent();
+            final PlayerType playerType = PlayerType.getCurrent();
+            if (isCollapseSlide(playerType)) {
+                barBoundsFor(dockedBounds);
+                interpolateCollapseBounds(dockedBounds, barBounds, currentBounds);
+                return currentBounds;
+            }
+
             // While the player is up, this is only asked when the window changes, such as the
             // keyboard closing or a rotation. What YouTube gets back is where the next collapse
             // ends, so it is the bar for the new window, as it would be had nothing changed.
-            final boolean minimized = getCurrent == PlayerType.WATCH_WHILE_MINIMIZED;
-            if (minimized || getCurrent.isMaximizedOrFullscreen()) {
+            final boolean minimized = playerType == PlayerType.WATCH_WHILE_MINIMIZED;
+            if (minimized || playerType.isMaximizedOrFullscreen()) {
                 barBoundsFor(dockedBounds);
                 currentBounds.set(barBounds);
                 if (minimized) {
@@ -440,6 +474,25 @@ public final class MinimalMiniplayerPatch {
         }
 
         return original;
+    }
+
+    private static boolean isCollapseSlide(PlayerType playerType) {
+        return slideStartedExpanded && playerType == PlayerType.WATCH_WHILE_SLIDING_MINIMIZED_MAXIMIZED;
+    }
+
+    static void interpolateCollapseBounds(Rect docked, Rect bar, Rect result) {
+        // The native slide supplies the frame position for both the swipe and its settle animation.
+        final int targetTop = bar.top > 0 ? bar.top : docked.top;
+        final float progress = targetTop > 0
+                ? Math.min(MAX_COLLAPSE_PROGRESS, Math.max(0f, (float) docked.top / targetTop))
+                : MAX_COLLAPSE_PROGRESS;
+
+        result.set(
+                interpolate(docked.left, bar.left, progress),
+                interpolate(docked.top, bar.top, progress),
+                interpolate(docked.right, bar.right, progress),
+                interpolate(docked.bottom, bar.bottom, progress)
+        );
     }
 
     private static void barBoundsFor(Rect resting) {
@@ -477,8 +530,10 @@ public final class MinimalMiniplayerPatch {
         final int bottom = Math.min(dockedBottom, windowBottomFor(playerLayout)) - BAR_MARGIN;
 
         updateHorizontalSpan();
-        barBounds.set(horizontalSpan.left + BAR_MARGIN, bottom - BAR_HEIGHT,
-                horizontalSpan.right - BAR_MARGIN, bottom);
+        final int margin = glass == null ? BAR_MARGIN
+                : Math.min(GlassNavigationBar.MARGIN_HORIZONTAL, Math.max(0, (horizontalSpan.width() - 1) / 2));
+        barBounds.set(horizontalSpan.left + margin, bottom - BAR_HEIGHT, horizontalSpan.right - margin, bottom);
+        if (glass != null) glass.fitLandscapeWidth(barBounds, playerLayout);
     }
 
     /**
@@ -498,6 +553,10 @@ public final class MinimalMiniplayerPatch {
 
             final int parentWidth = parent.getWidth();
             View root = parent.getRootView();
+            if (glass != null && parentWidth > 0) {
+                horizontalSpan.right = parentWidth;
+            }
+
             WindowInsets insets = parent.getRootWindowInsets();
             if (parentWidth <= 0 || root == null || insets == null) return;
 
@@ -525,7 +584,10 @@ public final class MinimalMiniplayerPatch {
             final int left = Math.max(0, insetLeft - windowLocation[0]);
             final int right = Math.min(parentWidth, root.getWidth() - insetRight - windowLocation[0]);
 
-            if (right - left > 2 * BAR_MARGIN) {
+            if (glass != null) {
+                final int safeLeft = Math.min(left, parentWidth);
+                horizontalSpan.set(safeLeft, 0, Math.max(safeLeft, right), 0);
+            } else if (right - left > 2 * BAR_MARGIN) {
                 horizontalSpan.set(left, 0, right, 0);
             }
         } catch (Exception ex) {
@@ -591,7 +653,8 @@ public final class MinimalMiniplayerPatch {
                 return;
             }
 
-            if (!inBarMode()) {
+            final boolean barMode = inBarMode();
+            if (!barMode && !isCollapseSlide(PlayerType.getCurrent())) {
                 videoRect.left = 0;
                 videoRect.right = getWidthPixels();
 
@@ -602,7 +665,14 @@ public final class MinimalMiniplayerPatch {
                 // Always at the left edge. In a right-to-left layout YouTube mirrors the rect
                 // itself, which already puts the video at the end of the bar.
                 videoRect.set(currentBounds);
-                videoRect.right = videoRect.left + videoWidthFor(currentBounds.height());
+                // The collapse uses interpolated geometry, but only the bar owns the glass inset.
+                if (!barMode || glass == null) {
+                    videoRect.right = videoRect.left + videoWidthFor(currentBounds.height());
+                } else {
+                    final int padding = glass.videoPadding(currentBounds.height());
+                    videoRect.inset(Math.min(padding, currentBounds.width() / 2), padding);
+                    videoRect.right = Math.min(videoRect.right, videoRect.left + videoWidthFor(videoRect.height()));
+                }
             } else {
                 // Type 2 spans the bar with the video. YouTube fits anything that is not 16:9
                 // inside the bar instead, and the miniplayer has no background of its own, so
@@ -645,12 +715,18 @@ public final class MinimalMiniplayerPatch {
         return morphing || barShapeApplied;
     }
 
+    /** Injection point, only on the native player progress view's draw pass. */
+    public static void clipSeekbar(View seekbar, Canvas canvas) {
+        if (glass != null && inBarMode()) glass.clipSeekbar(seekbar, canvas);
+    }
+
     /**
      * Injection point.
      */
     public static void setBoundsController(MiniplayerBoundsController controller) {
-        // Also kept for the other miniplayer types, to move them above the keyboard.
-        boundsControllerRef = new WeakReference<>(controller);
+        if ((ENABLED || ADJUST_OTHER_TYPES_FOR_KEYBOARD) && boundsControllerRef.get() != controller) {
+            boundsControllerRef = new WeakReference<>(controller);
+        }
     }
 
     /**
@@ -909,11 +985,17 @@ public final class MinimalMiniplayerPatch {
     private static void installListeners() {
         if (listenersInstalled) return;
         listenersInstalled = true;
+        slideStartedExpanded = PlayerType.getCurrent().isMaximizedOrFullscreen();
 
         PlayerType.getOnChange().addObserver((PlayerType type) -> {
             final boolean minimized = type == PlayerType.WATCH_WHILE_MINIMIZED;
 
             Utils.runOnMainThreadNowOrLater(() -> {
+                // Both directions share the sliding state. Keep the origin even if a swipe is reversed.
+                if (type != PlayerType.WATCH_WHILE_SLIDING_MINIMIZED_MAXIMIZED) {
+                    slideStartedExpanded = type.isMaximizedOrFullscreen();
+                }
+
                 startTicking(minimized);
 
                 if (minimized) {
@@ -1016,8 +1098,10 @@ public final class MinimalMiniplayerPatch {
      * The player changes size for every frame of a slide without asking for its bounds.
      */
     private static final View.OnLayoutChangeListener watchPlayerLayoutListener =
-            (view, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) ->
-                    updateBarFill(view);
+            (view, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
+                updateBarFill(view);
+                if (glass != null) glass.invalidate();
+            };
 
     /**
      * The window bottom the miniplayer was last placed against.
@@ -1039,7 +1123,16 @@ public final class MinimalMiniplayerPatch {
      */
     private static final ViewTreeObserver.OnGlobalLayoutListener windowLayoutListener = () -> {
         final int windowBottom = windowBottomFor(ENABLED ? barPlayerLayout() : otherPlayerLayout());
-        if (windowBottom == lastWindowBottom) return;
+        if (windowBottom == lastWindowBottom) {
+            // A capsule width or a horizontal inset can change without moving the window bottom.
+            if (glass != null && !morphing && !lastBounds.isEmpty() && inBarMode()) {
+                barBoundsFor(lastBounds);
+                if (!barBounds.equals(currentBounds)) {
+                    Utils.runOnMainThread(MinimalMiniplayerPatch::reapplyBarBounds);
+                }
+            }
+            return;
+        }
         lastWindowBottom = windowBottom;
 
         // Not from inside the layout pass the change is reported from.
@@ -1177,7 +1270,8 @@ public final class MinimalMiniplayerPatch {
 
         ViewGroup.LayoutParams params = view.getLayoutParams();
         if (params instanceof ViewGroup.MarginLayoutParams marginParams) {
-            marginParams.setMarginStart(videoWidthFor(BAR_HEIGHT));
+            final int padding = glass == null ? 0 : glass.videoPadding(BAR_HEIGHT);
+            marginParams.setMarginStart(2 * padding + videoWidthFor(BAR_HEIGHT - 2 * padding));
             view.setLayoutParams(marginParams);
         }
     }
@@ -1190,42 +1284,52 @@ public final class MinimalMiniplayerPatch {
         View watchPlayer = watchPlayer();
         if (watchPlayer == null) return;
 
-        // Not from showControls(), which YouTube bypasses when it puts the bar up itself.
-        // Called for every bounds change and tick, and does nothing once the order is set.
-        if (getCurrentMiniplayerType() == MINIMAL_BAR_2) {
-            setBarDrawsOverPlayer(inBarMode());
-        }
-
+        final boolean barMode = inBarMode();
         final int height = currentBounds.height();
         final int width = currentBounds.width();
 
+        final boolean drawGlass = barMode && width > 0 && height > 0 && glass != null;
+        if (glass != null && !drawGlass) glass.update(watchPlayer, false);
+
+        // Not from showControls(), which YouTube bypasses when it puts the bar up itself.
+        // Called for every bounds change and tick, and does nothing once the order is set.
+        if (getCurrentMiniplayerType() == MINIMAL_BAR_2) {
+            setBarDrawsOverPlayer(barMode);
+        }
+
+        if (drawGlass) glass.update(watchPlayer, true);
+
         if (getCurrentMiniplayerType() == MINIMAL_BAR) {
-            final int videoWidth = videoWidthFor(height);
+            final int padding = drawGlass ? glass.videoPadding(height) : 0;
+            final int videoWidth = videoWidthFor(height - 2 * padding);
 
             updateBarFill(watchPlayer);
 
             // Only a bar is far wider than the video it holds. Going by the state instead would
             // uncover the video for as long as the player still holds the bar shape. Ads are
             // uncovered as well, their skip button is part of the overlay this hides.
-            if (!inBarMode() || height <= 0 || width <= videoWidth || isSkipAdShown()) {
+            if (!barMode || height <= 0 || width <= videoWidth + 2 * padding || isSkipAdShown()) {
                 watchPlayer.setClipBounds(null);
+                if (drawGlass) glass.roundVideo(watchPlayer, null, width, height, 0);
                 return;
             }
 
-            clipBounds.set(0, 0, videoWidth, height);
+            clipBounds.set(padding, padding, padding + videoWidth, height - padding);
             if (Utils.isRightToLeftLocale()) {
-                clipBounds.offset(width - videoWidth, 0);
+                clipBounds.offset(width - videoWidth - 2 * padding, 0);
             }
+            if (drawGlass) glass.roundVideo(watchPlayer, clipBounds, width, height, padding);
         } else {
             // Type 2 keeps the video as the background of the bar, and YouTube lays it out at
             // the full bar width in 16:9, far taller than the bar. Uncut it hangs over the
             // feed and the navigation bar.
-            if (!inBarMode() || height <= 0) {
+            if (!barMode || height <= 0) {
                 watchPlayer.setClipBounds(null);
                 return;
             }
 
             clipBounds.set(0, 0, width, height);
+            if (drawGlass) glass.roundVideo(watchPlayer, clipBounds, width, height, 0);
         }
 
         watchPlayer.setClipBounds(clipBounds);
@@ -1312,6 +1416,8 @@ public final class MinimalMiniplayerPatch {
 
         if (barFill != null) {
             watchPlayer.getOverlay().add(barFill);
+        }
+        if (barFill != null || glass != null) {
             watchPlayer.removeOnLayoutChangeListener(watchPlayerLayoutListener);
             watchPlayer.addOnLayoutChangeListener(watchPlayerLayoutListener);
         }
@@ -1394,20 +1500,24 @@ public final class MinimalMiniplayerPatch {
 
         GradientDrawable circle = new GradientDrawable();
         circle.setShape(GradientDrawable.OVAL);
+        final int foreground = overVideo ? OVERLAY_PRIMARY_COLOR : ThemeUtils.getAppForegroundColor();
         // Beside the video this follows the theme, so a custom app color carries into the bar.
         // On the video it is a translucent scrim instead, which the video shows through.
         // Without text the video is not dimmed, and a light circle is lost on a light video.
-        circle.setColor(overVideo
-                ? (HIDE_TITLE ? OVERLAY_DARK_BUTTON_COLOR : OVERLAY_BUTTON_COLOR)
-                : ThemeUtils.adjustColorBrightness(ThemeUtils.getAppBackgroundColor(), 0.9f, 1.25f));
+        final int color;
+        if (overVideo) {
+            color = HIDE_TITLE ? OVERLAY_DARK_BUTTON_COLOR : OVERLAY_BUTTON_COLOR;
+        } else if (GLASS) {
+            color = Color.argb(28, Color.red(foreground), Color.green(foreground), Color.blue(foreground));
+        } else {
+            color = ThemeUtils.adjustColorBrightness(ThemeUtils.getAppBackgroundColor(), 0.9f, 1.25f);
+        }
+        circle.setColor(color);
 
         // 48dp is the touch target, 40dp the button, which also keeps the circles apart.
         Drawable inset = new InsetDrawable(circle, Dim.dp4);
         Drawable ripple = new InsetDrawable(new ShapeDrawable(new OvalShape()), Dim.dp4);
 
-        final int foreground = overVideo
-                ? OVERLAY_PRIMARY_COLOR
-                : ThemeUtils.getAppForegroundColor();
         RippleDrawable background = new RippleDrawable(
                 ColorStateList.valueOf(Color.argb(60, Color.red(foreground),
                         Color.green(foreground), Color.blue(foreground))),

@@ -11,8 +11,10 @@ it was written. Twelve Kick patches were implemented from it, and a second batch
 inspired by Xtra and by Lurk's own Twitch patches, added more. The notes from
 "Implemented patch set" on describe them and separate tested behavior from the
 remaining limitations. The analysis below was done on Kick 40.32.1. The patches are now
-checked against Kick 40.34.0, where the patched code is unchanged apart from renumbered
-string, shape and literal IDs.
+checked against Kick 40.35.4, which replaced the Amazon IVS player with Kick's own player on Media3
+ExoPlayer: every player patch was re-derived for it (see [Kick 40.35: the new player](#kick-4035-the-new-player)),
+and the JavaScript edits found their code again where 40.35's build moved it. Notes in the assessment below
+that name IVS classes describe 40.32 to 40.34.
 
 ## Input and analysis
 
@@ -185,7 +187,8 @@ through `Player.Listener.onCue`, which Kick's listener ignores; on the most-watc
 stream no cue of any kind arrived in eight minutes. A patch that mutes and covers the player during
 a stitched ad break could key on either signal, but neither could be observed. Ads stitched into the
 media itself can't be skipped by a client patch, only muted and covered. (Mute stitched live ads, added later and
-experimental, keys on both and on IVS's own ad break events; see [Mute stitched live ads](#mute-stitched-live-ads).)
+experimental, keyed on both and on IVS's own ad break events until 40.34; since 40.35, without the IVS player, it keys on
+SCTE-35 splices in the stream and MediaTailor's ads; see [Mute stitched live ads](#mute-stitched-live-ads).)
 
 ## Shared infrastructure and implementation order
 
@@ -311,6 +314,49 @@ JavaScript ends its Manager description with the same sentence saying so
 (`OTA_UPDATES_OFF` in `kick/shared/KickHermesPatch.kt`), so turning all of their switches off
 is not the same as an unpatched Kick: the updates stay off.
 
+## Kick 40.35: the new player
+
+Kick 40.35.4 (versionCode 60006993, Android 12 and later) dropped the Amazon IVS player
+(`com.kick.mobile.kickivsplayerv2`, `com.amazonaws.ivs.player`). Its player is now `kick-player-v3`
+(`com.kick.mobile.playerv3`), a fork of expo-video on Media3 ExoPlayer playing HLS: a `VideoPlayer` shared object (the
+ExoPlayer and its state, run on the main thread) shown by a `VideoView` (an Expo view holding a Media3 `PlayerView`), a
+`VideoManager` and a picture-in-picture manager that pause players when Kick goes to the background, and
+`KickVideoPlaybackService`, a Media3 media-session service with the now-playing notification. Analytics moved with it:
+Mux runs through `MuxStatsSdkMedia3` in a `MuxDataMonitor` the view owns, and Datazoom, MediaTailor sessions and PAL
+signals through a `DatazoomMonitor` (`com.kick.mobile.playerv3.datazoom`); PAL nonces come from
+`pal.PalNonceGenerator`. Kick's own classes and Media3's keep their names in Kick (R8 doesn't rename them), so the
+patches match them by class, method name and signature and record the matches with `Locators.record`.
+
+What each player patch hooks now, with the details in its section:
+
+| Patch | 40.34 (IVS) | 40.35 (kick-player-v3) |
+| --- | --- | --- |
+| Disable analytics | `initializeMuxAnalyticsListener`, `DatazoomAnalyticsManager.apply`, `PalSDKModuleBridge.generateNonce` | `MuxDataMonitor.setOptions`, `VideoView.setDatazoom`, `PalNonceGenerator.loadNonce` |
+| Background audio | `MainActivity.onUserLeaveHint`, `shouldRunAudioService`, `updatePipParams` | `VideoPlayer.getStaysActiveInBackground`, `VideoView.setAutoEnterPiP`, `applyPiPParams` |
+| Normal latency | IVS `setLiveLowLatencyEnabled` | `buildKickPlayerV3MediaSource`: the source's live configuration |
+| Fill screen | `updateSurfaceViewTransform` (IVS `ResizeMode`) | Media3 `AspectRatioFrameLayout.onMeasure` (resize mode) |
+| Show video stats | `handlePlayerStatistics(Player)` | `VideoPlayer.emitTimeUpdate()`, reading the ExoPlayer |
+| Player gestures, Refresh stream | `KickIvsPlayerV2View`, `setStreamUrl`, `seekTo` | `VideoView`; the player's `prepare()` with its committed source, ExoPlayer seek |
+| Sleep timer | IVS `play`/`pause`/`release`, the view's executor | `onPlayWhenReadyChanged` added to the player's listener, `close()`, ExoPlayer `pause()` |
+| Default video quality (mobile data) | `setAutoMaxQuality(Integer)` | `VideoPlayer.setMaxResolution(VideoSize)` |
+| Mute stitched live ads | IVS `AdCue`, ad break events, MediaTailor via Datazoom | Media3 timed metadata (SCTE-35), MediaTailor via Datazoom |
+
+The JavaScript also changed: the player store picks a starting `maxResolution` from the stream's tracks instead of
+quality presets (Default video quality now edits that reducer), the skip scale holds numbers instead of arrays (Seek
+interval), React's compiler memo caches are gone from the host dialog and the subscribe button (Stay on channel, Hide
+subscription upsells), the category header's tab list became a separate producer (Hide Clips), and several components
+now load their props before their environment (Hide KICKs tipping, Hide chat highlights). The Hermes bytecode is still
+v99.
+
+Kick 40.35 also asks a signed-out viewer to sign in for a quality above its 720p default: the picker marks 1080p "Login
+required", and picking it opens the sign-in screen. Those two reads of the default stay Kick's. The default/Auto ceiling
+Default video quality sets (by the reducer's read) applies signed out too, so a signed-out Auto may play up to the
+chosen height, which stock Kick only gives a signed-in account. The patch isn't selected by default.
+
+Checked on 2026-11-18 on the emulator (`emulator-5582`, Android 16, the x86_64 split of APKMirror's four-architecture
+bundle), signed out unless said, and signed in with the test account for the account menu, the subscribe buttons and
+the KICKs button: the per-patch notes below say what was seen.
+
 ## Second batch
 
 Each entry says what Kick does, what the patch changes and how it was checked. Hermes
@@ -333,14 +379,16 @@ settled so the JavaScript awaiting it carries on:
   calls Kick's JavaScript keeps making reach Datadog's own no-op objects
   (`GlobalRumMonitor.get` returns `NoOpAdvancedRumMonitor`, `Logger.Builder` on the no-op core
   builds a logger with no Datadog handler), so nothing is queued or sent.
-- Mux: `KickIvsPlayerV2View.initializeMuxAnalyticsListener` returns at once.
-  `setMuxAnalyticsConfig` still stores the config and calls it, but it is the only place a
-  `MuxAnalyticsListener`, and so `MuxStats`, is created.
-- Datazoom: `DatazoomAnalyticsManager.apply` returns at once. It is the only caller of
-  `Datazoom.init` and the only place the adapter is set; `sendDatazoomAnalyticsEvent` then only
-  records a fullscreen flag, and an ad click finds no adapter.
-- Google PAL: `PalSDKModuleBridge.generateNonce` resolves with Kick's own "SDK unavailable"
-  result, so the playback request goes out without a nonce, as on a device without PAL.
+- Mux: the player's `MuxDataMonitor.setOptions` returns at once, so the monitor keeps no options; its `sync`, the only
+  place `MuxStatsSdkMedia3` is started, then only releases. (Until 40.34: the IVS view's
+  `initializeMuxAnalyticsListener`.)
+- Datazoom: the player view's `setDatazoom` returns at once, so the view makes no `DatazoomMonitor`, the only caller of
+  `Datazoom.init` and of MediaTailor's sessions and PAL setup; ad clicks and skips then find no monitor. Without a
+  MediaTailor session Kick plays the source it already has, as when a session fails. (Until 40.34:
+  `DatazoomAnalyticsManager.apply`.)
+- Google PAL: the player's `PalNonceGenerator.loadNonce` (`generatePalNonceAsync`) resolves with no nonce; Kick's
+  JavaScript reads that as an empty nonce and requests playback without it, without the "PAL failed to load" flag a
+  rejection would set. (Until 40.34: `PalSDKModuleBridge.generateNonce`, resolved with Kick's "SDK unavailable".)
 
 Kick's own API requests are not touched, including `postPlayerTelemetry`, the playback request
 that returns the stream URLs (and tells Kick what you watch, as any streaming site's playback
@@ -356,9 +404,11 @@ through, reject the way the SDK reports a network error, before the SDK is reach
 off because sign-up and age checks can then fail. It is read on each request (no restart) and
 checks that it is registered, so an unreadable settings registry can't turn it on.
 
-Checked: `bin/test-kick` runs the real `logEvent`, Datadog `initialize`, PAL `generateNonce` and
-both FingerprintJS methods on ART and checks the promise calls; `verify_privacy.py` covers the
-switch logic. On the emulator, signed out, Kick started and loaded Home with fingerprinting blocked,
+Checked: `bin/test-kick` runs the real `logEvent`, Datadog `initialize`, PAL `loadNonce` and
+both FingerprintJS methods on ART and checks the promise calls, and Kick's real `MuxDataMonitor.setOptions` and
+`VideoView.setDatazoom` with the switch on (nothing kept or made) and off (Kick's code runs); `verify_privacy.py` covers
+the switch logic. On the emulator (40.35.4), signed out, on a live channel: with the switch off Kick's player logged its
+Mux data (`KickPlayerV3Mux`), with it on nothing from Mux appeared. On the emulator, signed out, Kick started and loaded Home with fingerprinting blocked,
 and made no FingerprintJS request at start either way; the signed-in, sign-up and age-check paths
 need an account and were checked statically only.
 
@@ -518,94 +568,106 @@ shows a "taking you to X in N seconds" toast, and the countdown's end does the s
 Cancel and close clear the event.
 
 The patch sets `startOnMount` to that `pressed` state instead of `true`, so the countdown only
-runs after Watch now. Until then the dialog waits, showing the full duration, for Watch now,
-Cancel or close. The literal's `startOnMount` is a constant, so the store goes where the
-options memo wrote its cache entry for `onEnd`; the options object is then rebuilt on each
-render, which `useCountdown`, reading only its fields, doesn't notice. (The first version
+runs after Watch now (`useCountdown` starts it from an effect that depends on `startOnMount`). Until then the dialog
+waits, showing the full duration, for Watch now, Cancel or close. The literal's `startOnMount` is a constant, and since
+40.35 the component has no memo cache whose bytes the store could take: the options object is made with the short
+`NewObjectWithBuffer` form instead of the 10-byte long one, which leaves 4 bytes for a `PutOwnBySlotIdx` of the state
+into the `startOnMount` slot right after it. The short form's 16-bit value offset only reaches the first 64 KiB of the
+literal buffer, which holds no copy of the object's values (`null, true, null`), so it points at three nulls; the
+dialog stores all three slots (duration, startOnMount, onEnd) before it hands the object to `useCountdown`, and nothing
+reads it in between. (Until 40.34 the store took the place of the memo cache write after `onEnd`. The first version
 returned from `onEnd` instead, which also stopped Watch now from switching.)
 
-Checked on the emulator with a test build that hands the app's own realtime module a host
-event, so the real dialog appears: with the switch off, the countdown ran and switched
+`verify_hosting.py` runs the real `JoinHostDialogContent` and `useCountdown` of 40.35.4 with
+the emitted edit (waiting, Watch now, Cancel and close, off, consecutive hosts, the route guard, three mutations). The
+device check below is from 40.32; a host event couldn't be brought about on 40.35.4. Checked on the emulator with a
+test build that hands the app's own realtime module a host event, so the real dialog appears: with the switch off, the countdown ran and switched
 channels; with it on, the dialog waited at "Redirect in 10s" for over half a minute, and Watch
 now switched once Kick's countdown had run.
 
 ### Background audio
 
-Kick already keeps audio going with the screen locked and in picture-in-picture: its
-`KickIvsPlayerV2Manager.shouldRunAudioService()` is `isPlaying && (screen locked ||
-picture-in-picture)`, and `AudioService` is a media-playback foreground service with a
-notification. Leaving the app without picture-in-picture (the device has none, or the
-second switch is on) starts nothing, so the audio stops once Android freezes the app.
+Since 40.35 Kick's player (kick-player-v3, see [Kick 40.35: the new player](#kick-4035-the-new-player)) keeps playing
+in the background by itself: Kick's main player setup sets the player's `staysActiveInBackground` and
+`showNowPlayingNotification`, which start Kick's media-session service (`KickVideoPlaybackService`, a media-playback
+foreground service with the now-playing notification). Two places pause players when Kick goes to the background,
+`VideoManager.onAppBackgrounded` and the picture-in-picture manager: they leave a player alone when it stays active in
+the background, or when its view enters picture-in-picture automatically (React Native's
+`startsPictureInPictureAutomatically`, which Kick sets). The system enters picture-in-picture on its own when you
+leave (`setAutoEnterEnabled` in the activity's picture-in-picture parameters; Kick 40.35 needs Android 12).
 
-The patch starts Kick's audio service from `MainActivity.onUserLeaveHint()`, while Kick is
-still in front, which Android allows; starting it later from the background would throw.
-`shouldRunAudioService()` then also returns true while Kick was left playing, so the player
-state changes, unlock and resume that would stop the service keep it, and
-`onActivityResume` hands control back to Kick's own rule. With background audio on and
-picture-in-picture off by default, the only change from stock is where Kick couldn't open
-picture-in-picture: the audio keeps playing. Closing the picture-in-picture window still
-pauses, as in stock. "No automatic picture-in-picture" skips Kick's automatic window when
-you leave while watching: both the window Kick opens from `onUserLeaveHint` and, on
-Android 12 and later, the system's auto-enter, which Kick turns on in the window's
-picture-in-picture parameters (`updatePipParams`). Kick's own picture-in-picture button
-still works. Checked on the emulator (Android 16), signed out, on a live stream: with
-the defaults, Home opens picture-in-picture and `AudioService` runs in the foreground as
-in stock; with automatic picture-in-picture off, Home leaves no window, `AudioService`
-runs in the foreground and the stream's audio track keeps playing.
+Both places read `staysActiveInBackground` through the player's getter, and the patch hooks it: with Background
+audio on (the default), Kick's own value stands, so the behavior is Kick's; with it off, or Lurk paused, the player
+pauses when you leave, unless it goes into picture-in-picture, which is what a switched-off Background audio did
+before 40.35. "No automatic picture-in-picture" turns the auto-enter off in both places Kick has it: the view's own
+flag (`VideoView.setAutoEnterPiP`, read when the view is made, so it applies to players opened afterwards), which
+Kick's pause logic reads, and the activity's parameters (`PictureInPictureUtilsKt.applyPiPParams`). Kick's own
+picture-in-picture button enters it directly and keeps working; closing the window pauses, as in stock.
+
+Checked on the emulator (Android 16), signed out, on a live channel, from the media session state, the audio
+playback state and the services: with the defaults, Home opened picture-in-picture and kept playing with
+`KickVideoPlaybackService` in the foreground, as in stock; with automatic picture-in-picture off, Home left no window
+and the stream kept playing, still playing a minute later, with the service in the foreground; with Background audio
+off as well, Home paused the player (media session PAUSED, audio track paused). `verify_player.py` covers both
+decisions. (Before the second hook, Kick's pause logic still saw the view's auto-enter flag and kept a player playing
+with Background audio off: that is why the switch goes in at the view too.)
 
 ### Normal latency
 
-Kick's player view turns on IVS low-latency mode for every player it creates, and nothing
-else sets it. The patch hooks the IVS SDK's `setLiveLowLatencyEnabled(boolean)`, the same
-hook Lurk uses on Twitch: with the switch on, the request becomes false. It applies to
-streams opened afterwards.
+Kick's low-latency mode is the live configuration its JavaScript gives a live stream's source while its remote flag
+`lowLatencyLivestream` is on (the default: `{enabled: true, targetOffsetFromLive: 2}`): a 2-second target offset from
+the live edge for Media3 (`MediaItem.LiveConfiguration`) and, through `LowLatencyHlsPlaylistParserFactory`, a rewrite
+of the HLS playlist that plays its prefetch segments. The source's Media3 item and HLS source are built in
+`DataSourceUtilsKt.buildKickPlayerV3MediaSource(Context, VideoSource)`; the patch hooks its start and, with
+`normal_latency` on, clears the source's `liveConfiguration` (a public field of Kick's `VideoSource` record, through a
+bridge). Media3 then keeps the distance the playlist asks for, as Kick does when its flag is off. It applies to
+streams loaded afterwards (Refresh stream reloads one).
+
+Checked on the emulator, signed out, on a large live channel, with Show video stats: off, the latency line read 3.4 to
+3.8 s; on, after a long press reloaded the stream (the log said `normal latency: low-latency mode off`), it read 18.8 s
+with 12.8 s of buffer. So the switch adds about 15 seconds there, more than the "few seconds" the IVS player's mode
+did; the patch description says so. `verify_player.py` checks the decision.
 
 ### Fill screen
 
-Kick's player is its own Expo view, `KickIvsPlayerV2View`, which draws the IVS player into
-a `SurfaceView` and scales that view in `updateSurfaceViewTransform()` by an IVS
-`ResizeMode`: FIT unless React Native passes a `resizeMode`, which Kick's player store
-leaves undefined. The method checks the mode against FIT right before comparing the
-video's width / height with the view's, and the patch hooks it there:
-`KickPlayer.resizeMode` gets the mode and both ratios. While `fill_screen` is on, in
-landscape, outside picture-in-picture, it hands back FILL when FIT would leave bars at
-the sides of a video wider than tall: the video fills the width and its top and bottom
-are cropped (a 16:9 stream on a 20:9 screen loses a fifth of its height). A player next to
-the chat, which FIT letterboxes, and vertical videos keep FIT, so they aren't cut down to a
-narrow band. The view runs the method on every layout, so the switch applies the next time
-the player is laid out (rotating, showing or hiding the chat) with no restart, and portrait
-goes back to FIT. Kick's own pinch-to-zoom still works on top.
+Kick's player view (`VideoView`) holds a Media3 `PlayerView`, whose video frame (`AspectRatioFrameLayout`) sizes the
+video by its resize mode while measuring. Kick never sets a content fit, so the mode stays FIT. The patch hooks
+`AspectRatioFrameLayout.onMeasure` where it reads the mode, after it has compared the video's width / height with its
+own: `KickPlayer.resizeMode` gets the mode and both ratios. While `fill_screen` is on, in landscape, outside
+picture-in-picture, it hands back ZOOM when FIT would leave bars at the sides of a video wider than tall: the video
+fills the width and its top and bottom are cropped (a 16:9 stream on a 20:9 screen loses a fifth of its height). A
+player next to the chat, which FIT letterboxes, and vertical videos keep FIT. Media3 inflates the PlayerView with the
+application context, so the activity (for the picture-in-picture check) is found through the first ancestor made with
+one, Kick's own view. The frame measures again on every layout, so the switch applies the next time the player is laid
+out (rotating, showing or hiding the chat) with no restart, and portrait goes back to FIT. Media3's names are kept in
+Kick, and Kick has no other `AspectRatioFrameLayout`.
 
-Checked: `verify_player.py` (run by `bin/test-host`) covers the decision table, and `bin/test-kick`
-runs Kick's real transform on ART with a 20:9 view (16:9 video:
-0.8 x 1 with the switch off, 1 x 1.25 on; portrait, a vertical video and an 800x720 view
-keep FIT's scale). On the emulator (720x1600), signed out, a 16:9 live stream in
-fullscreen with the chat hidden showed black bars at the sides with the switch off and
-filled the screen with it on; with the chat shown next to it, the player kept FIT's
-letterbox.
+Checked: `verify_player.py` (run by `bin/test-host`) covers the decision table, and `bin/test-kick` measures Media3's
+real frame with the hook on ART (`BundleProbe`): in a 2000x900 frame a 16:9 video is 1600x900 with the switch off and
+2000x1125 on; portrait, a vertical video (506x900) and an 800x720 frame next to the chat (800x450) keep FIT. On the
+emulator (1600x720 in landscape), signed out, on a live channel in fullscreen with the chat hidden, the stream filled the
+whole 1464x720 player, cropped top and bottom, with the switch on.
 
 ### Show video stats
 
-Kick's player view runs an observer every second while it is attached and has a player
-(`playerObserverCallback`, on its player thread). There `handlePlayerStatistics(Player)` reads the IVS player's
-average bitrate, duration and live latency for React Native's `onVideoStatistics` event, which Kick's player store
-never asks for (`sendVideoStatistics` stays false). The patch hooks the start of that method. With `video_stats` on,
-`KickStats` reads what the IVS player keeps through the public names of Amazon's SDK, which its native code needs:
-`getLiveLatency`, `getAverageBitrate`, `getBandwidthEstimate`, `getBufferedPosition` minus `getPosition`,
-`getStatistics` (the video bitrate, frame rate, dropped and decoded frames) and `getQuality` (name, size, codecs). It
-draws them as white monospace lines on a translucent box in the player's top left corner. The panel is a drawable in
-the player view's `ViewOverlay`: drawn over the video's `SurfaceView` and under Kick's own controls, which are
-separate React Native views, so it never takes a touch. The switch is read at every refresh, so the panel appears
-within a second of turning it on and goes at the next refresh after turning it off; while it is off the hook returns
-before reading anything. Recorded videos show no latency line (IVS reports none for them). In picture-in-picture Kick
-moves the video into a window-sized host above its views, which hides the panel.
+Kick's player sends React Native a time update from its interval clock (`IntervalUpdateClock`, a main-thread handler)
+at the interval Kick's player setup sets, once a second, whether it plays or not. The patch hooks the start of
+`VideoPlayer.emitTimeUpdate()`: with `video_stats` on, `KickStats` reads what the Media3 ExoPlayer keeps, through the
+public names Kick's copy of Media3 keeps (bridges hand it the player view and the ExoPlayer): the live offset
+(`getCurrentLiveOffset`, live streams only), the video format's average bitrate (else its bitrate) and the network
+estimate of Media3's shared bandwidth meter (`DefaultBandwidthMeter.getSingletonInstance`, which Kick's ExoPlayer uses as
+it is built without one of its own), the buffered duration, the video decoder's dropped, rendered and skipped frames,
+the format's frame rate and size and the video and audio codecs. It draws them as before: white monospace lines on a
+translucent box in the player view's `ViewOverlay`, over the video and under Kick's React Native controls, so it never
+takes a touch. The switch is read at every update, so the panel appears within a second of turning it on and goes at
+the next update after turning it off; while it is off the hook returns before reading anything. Recorded videos show no
+latency line.
 
-Checked on the emulator, signed out, on a live channel with about 130,000 viewers: the panel showed a latency of
-17.9 s, 569 kbps (network estimate 108.89 Mbps), 17.6 s of buffer, 74 of 371 frames dropped at 30 fps, 360p at
-640x360 and `avc1.4D401F, mp4a.40.2` (the emulator's software decoder settles on 360p and falls behind), and it was
-gone a second after the switch was turned off. `bin/test-kick` runs Kick's real `handlePlayerStatistics` on ART
-(`PlayerProbe`) with a stand-in IVS player and Amazon's own `Statistics` and `Quality`: the six expected lines with the
-switch on, drawn in the top left corner only, Kick's own code still running after the hook, nothing read from the
+Checked on the emulator, signed out, on a live channel with about 33,000 viewers: the panel showed a latency of 3.3 to
+3.8 s, 1.43 Mbps (network 5 to 150 Mbps), 4.0 s of buffer, 7 of 698 frames dropped at 30 fps, 480p at 852x480 and
+`avc1.4D401F, mp4a.40.2`; on a VOD it showed no latency line. `bin/test-kick` runs Kick's real `emitTimeUpdate` on ART
+(`PlayerProbe`) with a stand-in ExoPlayer and Media3's own `Format` and `DecoderCounters`: the six expected lines with
+the switch on, drawn in the top left corner only, Kick's own code still running after the hook, nothing read from the
 player while off, a player that throws tolerated, and the panel removed once the switch is off.
 
 ### Player gestures
@@ -613,11 +675,11 @@ player while off, a player that throws tolerated, and the panel removed once the
 The same gestures as on Rumble, under the same key (`player_gestures`, off by default): in landscape, a vertical
 swipe on the left third of the video sets the window's brightness, on the right third the media volume, with a
 "Brightness 80%" or "Volume 47%" label in the middle of the screen. Kick's player controls are React Native views
-laid over its native player view (`KickIvsPlayerV2View`), and they take the touches, so no view of the player can
+laid over its native player view (`VideoView`; `KickIvsPlayerV2View` until 40.34), and they take the touches, so no view of the player can
 see a swipe first. The touch is taken where it enters the app instead: `MainActivity` has no `dispatchTouchEvent`
 of its own, and the patch adds one that asks `KickTouch.dispatch` first and otherwise calls its superclass's, as
-Rumble's does. The patch hands `KickTouch` the player view's class (found as the class of
-`updateSurfaceViewTransform`, Fill screen's fingerprint), and a touch counts only when it starts on a shown
+Rumble's does. The patch hands `KickTouch` the player view's class (found as the class of its
+`setVideoPlayer(VideoPlayer)`), and a touch counts only when it starts on a shown
 instance of it that is at least half the window wide, between its top 15% (the minimize, cast and settings
 buttons) and bottom 20% (the seek bar), outside picture-in-picture and TalkBack. The touch down always reaches
 Kick; it becomes a swipe only once it moves past the touch slop and more than twice as far vertically as
@@ -635,120 +697,104 @@ single cancel, the volume and brightness it sets and the brightness handed back 
 with the switch on, a swipe up on the right of the video raised the media volume from 7 to 14 of 15 and a swipe
 down lowered it to 7, a swipe up on the left set the window's brightness override to 0.82, a swipe in the middle
 left both alone and let Kick leave fullscreen, and the first tap back in portrait cleared the override; with the
-switch off (no restart), the same swipes changed neither and Kick's own swipe left fullscreen.
+switch off (no restart), the same swipes changed neither and Kick's own swipe left fullscreen. On 40.35.4, in
+fullscreen with the chat hidden, a swipe up on the right raised the media volume from 7 to 15, a swipe down lowered it
+to 6, and a swipe on the left set the window's brightness override (0.86).
 
 ### Refresh stream
 
-The same switch as on Twitch and Rumble (`refresh_stream`, on by default). Kick's player view keeps the address
-React Native last gave it (`streamUri`) and loads one through `setStreamUrl(String)`, which also resets the
-view's per-stream state and sends React Native `onLoadStart`, as for any new stream. A long press on the video
-(the area Player gestures uses, in either orientation, outside picture-in-picture and TalkBack: the touch held
-within the touch slop for Android's long-press timeout) calls that method again with the same address. Kick's
-IVS addresses carry a playback token that expires after about ten minutes, but its channels don't require it: on
-2026-11-15 a live channel's playlist loaded with a token past its expiry and with no token at all (a malformed
-token is refused), so the reload works however long the stream has been open. A stream with a finite duration
-(a video; the view's `lastDuration`, from the IVS player) then seeks back to the second it was at
-(`lastPositionInSeconds`, through the view's `seekTo`); a live stream loads at the live edge. Kick's own touch
-gets a cancel, so the press doesn't end as a tap on its controls; a haptic tick and a "Refreshing stream" label
-say it happened. The touch comes in through the same `MainActivity.dispatchTouchEvent` as Player gestures; the
-patch bridges `KickTouch`'s `reload`, `duration`, `position` and `seek` stubs to the view's fields and methods and
-fails if any of them is gone. Kick has no long press of its own on the player (checked on the emulator: nothing
-happened). Kick's player error screens are React Native and replace the player, so unlike Rumble's, they aren't a
-place to tap; Kick retries once by itself when a load fails on its playback token.
+The same switch as on Twitch and Rumble (`refresh_stream`, on by default). Kick's player keeps the source React Native
+last loaded (its committed source) and loads a source through `prepare()`, with it set as the player's uncommitted one:
+`prepare()` builds the Media3 source with Kick's own data source, headers and live configuration and hands it to the
+ExoPlayer. A long press on the video (the area Player gestures uses, in either orientation, outside picture-in-picture
+and TalkBack: the touch held within the touch slop for Android's long-press timeout) loads the committed source again
+that way. The getter is private, so the patch adds a method to Kick's player (`lurkReload`) that does it; the bridges
+reach the player through the view's `getVideoPlayer()`. Kick's live addresses carry a playback token that expires after
+about ten minutes, but its channels don't require it (checked on 2026-11-15), so the reload works however long the
+stream has been open. A stream that isn't live (Media3's `isCurrentMediaItemLive()` false, with a known duration) then
+seeks back to the second it was at; a live stream loads at the live edge. Kick's own touch gets a cancel; a haptic tick
+and a "Refreshing stream" label say it happened. The touch comes in through the same `MainActivity.dispatchTouchEvent`
+as Player gestures.
 
-Checked: `tests/kick/test_touch.py` runs `KickTouch` with the four bridges swapped for recorders (as the patch swaps
-them for the view's code): a press held past the timeout reloads once with one cancel and the label, in portrait
-and with Player gestures on; moving past the slop, lifting early, a second finger, beside the player, its top edge,
-the switch off, picture-in-picture or no stream address leave the touch to Kick; a video seeks back, a live stream
-(duration -1 or endless) doesn't.
-On the emulator (Android 16), signed out, with Show video stats on, on a live channel in portrait: a long press on
-the video logged `refresh stream: reloaded (duration -1)`, showed the label, and the stats panel's dropped frames went
-from 200 to 0 and its bitrate restarted at 731 kbps while the stream kept playing; with the switch off the same press
-logged nothing and the counters kept counting. Not seen on the device: a video seeking back (both VOD pages tried
-stayed black on the signed-out emulator before any long press) and a stream that was really stuck.
+Checked: `tests/kick/test_touch.py` runs `KickTouch` with the four bridges swapped for recorders, and `bin/test-kick`
+runs the real bridges on ART (`PlayerProbe`): a video's duration and position from the ExoPlayer, none for a live
+stream or a view without a player, and the seek. On the emulator (Android 16), signed out, with Show video stats on: on a
+live channel a long press logged `refresh stream: reloaded (duration null)`, the dropped-frame counter restarted (14 of
+4455 to 0 of 92) and the stream kept playing; on a VOD it logged `reloaded at 82 s` and playback went on from there
+(the media session's position read 77.7 s before and 85.7 s a few seconds after). A stream that was really stuck wasn't
+seen.
 
 ### Mute stitched live ads
 
-Experimental, off by default, and not seen working on a real ad: none reached a signed-out session (see the live
-ads notes under [Analytics and ads](#analytics-and-ads)). Kick's player can learn of a stitched ad break three ways,
-and the patch listens to all three:
+Experimental, off by default, and not seen working on a real ad: none reached a signed-out session (see the live ads
+notes under [Analytics and ads](#analytics-and-ads)). Kick 40.35 dropped the IVS player, and with it the two signals the
+patch had from IVS (its `AdCue` and its ad break events). Kick's new player can learn of a stitched ad break two ways,
+and the patch listens to both:
 
-- IVS's `AdCue` (start, duration, pod position and count, roll type, tracking URLs), through
-  `Player.Listener.onCue`, which Kick's listener ignores. The listener is the anonymous class that is the type of the
-  view's `playerListener` field and keeps the view in a synthetic field. The hook goes at the start of its `onCue`:
-  Kick's first instruction overwrites `this` with the name for `checkNotNullParameter`, so the patch borrows that
-  register to load the view, and fails if that instruction moves. Only an `AdCue` starts a break. Any other cue (IVS
-  timed metadata, `TextMetadataCue`) is logged with Debug logging on and otherwise ignored: nothing says which timed
-  metadata would mark an ad, and streamers use it for other things.
-- IVS's own ad break events, `onAdBreakStarted` and `onAdBreakEnded(AdBreak)`, for breaks IVS inserts itself. Kick's
-  listener keeps `Player.Listener`'s empty ones; the patch adds the two methods to it, and fails if Kick ever
-  overrides them.
-- The ads of a MediaTailor session. `DatazoomAnalyticsManager` hands every forwarded session event to the view's
-  `onMuxAdEvent` callback, the constructor's lambda that takes a `MuxAdEventData`: `adStart` starts a break for the
-  ad's `durationSeconds`, `adEnd` ends it 1.5 s later unless the next ad of the pod starts. Kick only makes a session
-  when the playback response carries a MediaTailor tracking URL and Datazoom runs, so with Disable analytics on (its
+- Timed metadata in the stream. Media3 hands the ID3, EMSG and SCTE-35 entries it finds in the segments to the player's
+  listeners (`Player.Listener.onMetadata`); Kick's listener keeps the empty default, and the patch adds one that hands
+  the player's view and the metadata to `KickAds`. An SCTE-35 splice insert out of the network (Media3's
+  `SpliceInsertCommand`) starts a break for its break duration, its return ends it, and a cancelled one is ignored.
+  Other entries are logged once per kind with Debug logging on: Kick's live streams (Amazon IVS) carry ID3 frames in
+  every segment (`TRCK`, `TDEN`, `TDTG`, `TOFN`, `TSSE` and a `TXXX` "segmentmetadata" with `"cmd":"ld_lat_data"`
+  latency data), none of them about ads.
+- The ads of a MediaTailor session. The player view's Datazoom monitor keeps one when the playback response carries a
+  MediaTailor tracking URL and a PAL nonce, and hands its ad events (`adStart`, `adProgress`, `adEnd`) to the view's
+  callback, the lambda `setDatazoom$lambda$1(VideoView, MediaTailorAdEventPayload)`: `adStart` starts a break for the
+  ad's duration, `adEnd` ends it 1.5 s later unless the next ad of the pod starts. With Disable analytics on (its
   default), which stops Datazoom, this signal never comes.
 
-A break mutes the player through the view's own `setMuted`, so the command goes through Kick's player thread like
-Kick's own, and sets the view's foreground to opaque black with "Ad break" in the middle: over the video's
-`SurfaceView` and the Show video stats panel, under Kick's React Native controls. `setMuted` itself is hooked:
-`KickAds` remembers the mute React Native last asked for, keeps the player muted when Kick asks for sound during a
-break, and restores that request at the end, so a player Kick had muted stays muted. A break ends when its time is up,
-when the IVS break or the last MediaTailor ad ends, or when the view loads another stream (`setStreamUrl`,
-`loadSource`) or is destroyed. Its time: an `AdCue`'s duration for each ad left in its pod, else the cue's own span; an
-`AdBreak`'s duration; a MediaTailor ad's; else 30 s; at most 4 minutes, plus 2 s, since a cue can come a little before
-its ad. IVS gives cue times in milliseconds, and a duration under 1,000 is taken as seconds. With the switch off
-nothing starts, and a break already running still ends, so Lurk never leaves a player muted or covered. The ad keeps
-playing for its full length; this only silences and hides it, and Kick's player still reports it. In
-picture-in-picture Kick moves the video into a window-sized host, which the cover doesn't reach; the sound stays off.
+A break mutes the player through its own `setMuted` (React Native's mute, so the controls follow) and sets the view's
+foreground to opaque black with "Ad break" in the middle. `setMuted` itself is hooked: `KickAds` remembers the mute
+React Native last asked for, keeps the player muted when Kick asks for sound during a break, and restores that request at
+the end. A break ends when its time is up, when the splice returns or the last MediaTailor ad ends, or when the player
+loads another stream (`prepare`) or is released (`close`), or the view gets another player. Its time: the splice's
+break duration, a MediaTailor ad's, else 30 s; at most 4 minutes, plus 2 s. With the switch off nothing starts, and a
+break already running still ends. The ad keeps playing for its full length; this only silences and hides it.
 
-Checked with synthetic signals only. `PlayerProbe` (run by `bin/test-kick`) makes IVS `AdCue`, `AdBreak` and
-`TextMetadataCue` objects with Amazon's own classes and Kick's own `MuxAdEventData`, and feeds them to Kick's real
-listener (`onCue` and the added methods) and to the view's MediaTailor callback on ART, with the view's real `setMuted`
-and player thread in front of a stand-in IVS player that records what it's told. Off, an ad cue changes nothing; on,
-a timed-metadata cue changes nothing; an ad cue mutes and covers at once (opaque black with the label drawn), Kick's
-own unmute during the break doesn't reach the player, and both come back when the cue's time is up and not before; a
-cue for the first of three ads covers the whole pod; another stream ends a break at once; a player Kick had muted
-stays muted afterwards; the IVS break start and end and MediaTailor's `adStart`, a quick `adEnd` and `adStart` between
-two ads, and the last `adEnd` each do what they should; turning the switch off during a break still ends it. The cue
-lengths come out as expected for milliseconds, seconds, a cue's own span and none.
-On the emulator (Android 16), signed out, with the switch on and Debug logging on, 12 minutes of the most-watched live
-channel (Arabic, about 130,000 viewers) and 15 minutes of a large English one (xQc), sampled every 30 s: Kick's
-audio track was playing in 50 of 54 samples (paused in the rest while the stream rebuffered), the player was never
-covered, and neither an ad cue nor any other cue, IVS ad break or MediaTailor event arrived, so no real ad could be
-recorded; together with the earlier eight minutes, about 35 minutes of top live streams carried no ad signal of any
-kind to a signed-out client.
+Checked with synthetic signals only. `PlayerProbe` (run by `bin/test-kick`) makes Media3 `SpliceInsertCommand` and
+`EventMessage` entries and Kick's own `MediaTailorAdEventPayload` and feeds them to Kick's real player listener (the
+added `onMetadata`) and the view's MediaTailor callback on ART, with the player's real `setMuted`: off, a splice changes
+nothing; on, other metadata and a cancelled splice change nothing; a splice mutes and covers at once, Kick's own unmute
+during the break doesn't reach the player, and both come back when its time is up and not before; a splice's return and
+another stream end a break at once; MediaTailor's `adStart` and `adEnd` do what they should; a player Kick had muted
+stays muted afterwards; turning the switch off during a break still ends it. On the emulator, signed out, with the
+switch and Debug logging on, the listener received the IVS ID3 frames above on a large live channel and no ad signal of
+any kind.
 
 ### Sleep timer
 
-The shared sleep timer arms on IVS `play()` and stops tracking a player on `pause()` and
-`release()`, as on Twitch. When it fires, it pauses through Kick's player view (the one
-React Native last played through), whose `pause()` also updates the audio service and lets
-the player controls show Play. That view queues its IVS command on a player executor. The
-injected executor hook wraps only operations enqueued during a sleep dispatch and checks the
-expiry again when the command executes; a new start or resume invalidates queued broad pauses.
-Ordinary player operations keep their original Runnable. The dispatch context is cleared even if
-the action throws. Three seconds later, the fallback pauses only players eligible at expiry whose
-play generation still matches; a genuinely missed old player remains eligible even when a different
-player started afterwards. A notice says the timer paused playback.
+Every start or resume of a player, from React Native, the media notification or a headset, sets its ExoPlayer's
+`playWhenReady`, and a pause clears it; Media3 tells the player's listeners (`onPlayWhenReadyChanged`). Kick's listener
+keeps the empty default; the patch adds one that hands the player to `KickPlayer.onPlayWhenReady`, which arms the
+shared sleep timer on a start and stops tracking the player on a pause, and calls `KickPlayer.onStop` first thing in
+the player's `close()`. Buffering doesn't change `playWhenReady`, so a stream that stalls doesn't restart the timer.
+When the timer fires it pauses each started player the way Kick's own pause does (its ExoPlayer's `pause()`, on the main
+thread, where Kick's player runs), so the controls show Play and the media notification follows; a notice says the
+timer paused playback. The IVS player's command queue, and the expiry guard Lurk put on it, are gone with it.
 
-The APK-free sleep tests cover both dispatch boundaries and the fallback with bounded two-thread
-fixtures, including reentrant IVS stop callbacks. After decoding a Kick APK patched with Sleep timer,
-run `python3 -I tests/kick/verify_sleep_queue.py <apktool-dir>` to check that the actual executor
-Runnable argument receives the emitted expiry guard. Helper tests establish ordering and exclusion;
-live playback, control state and background transitions still need device UI verification.
+Checked: `tests/shared/test_sleep_timer.py` runs the real `SleepTimer` and `KickPlayer` on a virtual clock (expiry,
+a stopped player, a resume arming it again, a change of the chosen time), and `tests/kick/verify_sleep_timer.py`
+(run by `bin/test-kick-hermes`) checks the emitted listener method, the `close()` hook and the pause bridge. On the
+emulator, signed out, with the timer set to one minute through the settings file (the screen offers 15 minutes and
+more): a live stream started at 11:51:48 was paused at 11:52:48 (`sleep timer: paused 1 player`, the media session
+PAUSED and Kick's controls showing Play).
 
 ### Quality on mobile data
 
-Part of Default video quality. Every quality ceiling reaches the player through
-`KickIvsPlayerV2View.setAutoMaxQuality(Integer)`: the starting one, Auto, a picked quality
-and the re-apply on each player state. Kick doesn't remember a pick across videos, so on a
-metered network the choice caps a starting ceiling: none, Kick's 720 or the patch's own
-height. Any other height is a pick and passes through, and Kick's stored values aren't
-changed. Picking exactly 720p (or the patch's height) on mobile data can't be told apart
-from a start and is capped too. Picking Auto is capped, since Auto means "let the app
-decide". It applies when the ceiling is next set (a stream load or a player state change),
-not on a network change mid-stream.
+Part of Default video quality. Kick's player store sets the player's `maxResolution` (a video size) for every ceiling:
+the starting one and Auto (`setDefaultMaxResolution`: the tallest video track no taller than the default ceiling) and a
+picked quality (`setUserSelectedMaxResolution`). The patch hooks the start of `VideoPlayer.setMaxResolution(VideoSize)`.
+On a metered network the choice caps a starting ceiling: none, or the tallest track up to Kick's 720 or the patch's own
+height, which is what Kick's player store picks, read from Kick's own track list (`getAvailableVideoTracks`; Media3's
+own tracks can't be read there, as React Native sets the ceiling on its own thread). The capped size keeps the
+ceiling's shape. Any other size is a pick and passes through, and Kick's stored values aren't changed. Picking exactly
+the starting track on mobile data can't be told apart from a start and is capped too. It applies when the ceiling is
+next set (a stream load), not on a network change mid-stream.
+
+Checked: `verify_player.py` covers the decision table with Kick-shaped track lists. On the emulator with Wi-Fi off (on
+its metered cellular network), "Quality on mobile data" at 360p and Default video quality at 1080p, a live stream
+logged `quality on mobile data: starting ceiling 1080 -> 360` and played at 360p (640x360).
 
 ### Default startup tab
 
@@ -803,11 +849,12 @@ sections move up. The recommended row only shows when signed in.
 
 ### Seek interval
 
-Kick's player config holds `controls.skip.scale = {livestream: [60], vod: [10, 10, 10],
-'live-vod': [10, 10, 10], clip: [10]}`. The `vod` and `live-vod` arrays read the same three
-integers in the literal buffer, and nothing else reads them, so a choice edit rewrites the
-three values. The live-edge and clip arrays share their bytes with unrelated literals and
-stay.
+Kick's player config holds `controls.skip.scale = {livestream: 60, vod: 10, 'live-vod': 10, clip: 10}`, one object
+literal whose four integers are one run in the literal buffer (until 40.34 the values were arrays). The `vod` and
+`live-vod` integers sit next to each other and nothing else reads their bytes, so a choice edit rewrites the two
+values. The live-edge value shares its bytes with an unrelated literal, and the clip value stays. Checked on the
+emulator: with 30 seconds chosen, a VOD's skip buttons read 30 and one tap forward moved the position from 39.2 s to
+71.6 s.
 
 ### Don't save searches
 
@@ -872,8 +919,9 @@ with href `lurk://settings`, which expo-router's external-link test accepts; off
 `verify_literals.py` decodes every string with the switch on and off: exactly the two strings change.
 `bin/test-kick` runs Kick's real, patched `IntentModule.openURL` on ART (`SettingsLinkProbe`): Lurk's
 link starts the settings activity and resolves the promise; another link reaches React Native's own
-code. On the emulator the patched Kick starts and runs, and the switch shows under Advanced. The row
-itself on screen needs a signed-in account and wasn't checked.
+code. On the emulator the patched Kick starts and runs, and the switch shows under Advanced. On 40.35.4, signed in
+with the test account, the account menu ended with the Lurk row (after Legal policies, before the Kick logo and Log
+out), and tapping it opened Lurk settings.
 
 ### Chat page script
 
@@ -1207,8 +1255,12 @@ The edit helpers, all equal-length and fail-closed:
 - Edits only one patch needs live in that patch: Disable autoplay rewrites
   `preferencesSettingsSlice` with `replaceBody` (its body size and offsets are pinned, so any
   change fails the patch), and Hide subscription upsells finds `ChannelSubButton`'s unsubscribed
-  path with `sequence` (the `subscription` read, the forward `JmpTrueLong` on it, the next
-  `GetByIndex`). Opcodes are named in `HermesOp`.
+  path from the `subscription` read and the forward `JmpTrue` (or `JmpTrueLong`) on its register: the
+  instructions after the jump become `return null`. Opcodes are named in `HermesOp`.
+- `closures` / `closureUsing`: the functions a named function creates with `CreateClosure`, for anonymous producers
+  and callbacks (Hide Clips' category list, Default video quality's track reducer).
+- `shortLiteralOffset` / `shortNullsOffset`: a value-buffer offset below 64 KiB for the short `NewObjectWithBuffer`
+  form, a copy of given values or a single-byte run of nulls (Stay on channel).
 - `objectKeys`: an object literal's property names, read from the bundle's shape table in
   slot order, so an edit can find the slot a named property is stored in.
 - `literals` / `slotArrays`: every array and object literal instruction with the value
@@ -1234,7 +1286,9 @@ settings patch writes the records into `assets/lurk/locators.json`. Kick records
 analytics hooks (`kick.disable_analytics.firebase_log_event`, `datadog_initialize`,
 `pal_generate_nonce`, `insider_session_upload_job`, `insider_amplification_job`,
 `fingerprintjs_visitor_data`, `fingerprintjs_visitor_id`, each a full method reference) and Fill
-screen's transform (`kick.fill_screen.surface_transform`), which `BundleProbe` runs on ART, and the
+screen's video frame measure (`kick.fill_screen.video_frame_measure`) and the player's Mux and Datazoom options
+(`kick.disable_analytics.mux_options`, `datazoom_options`), which `BundleProbe` runs on ART, the player hooks
+`PlayerProbe` runs (`kick.video_stats.time_update`, `kick.mute_live_ads.player_listener`, `media_tailor_event`), and the
 Metro module IDs the 7TV composer found
 (`kick.third_party_emotes.module_store`, `module_images`, `module_session`, `module_host`,
 `module_input`), which `bin/test-kick-modules <stock bundle> <patched.apk>` compares with a fresh
@@ -1245,7 +1299,7 @@ mostly protects against library renames and Metro renumbering.
 `bin/test-kick-hermes` runs `verify_sources.py`, `test_hermes.py`, `verify_literals.py`,
 `verify_interface.py`, `verify_hosting.py`, `verify_chat_config.py`, `verify_quality.py`, `HermesProbe.kt`,
 `verify_player.py`, `verify_privacy.py`, `test_chat_parity.py`,
-`verify_sleep_queue.py` and `verify_analytics_jobs.py`, and skips (saying so) the ones for patches
+`verify_sleep_timer.py` and `verify_analytics_jobs.py`, and skips (saying so) the ones for patches
 the APK doesn't have; patch with `-e "Default video quality"` to include the quality check. The
 stock bundle's hash and the Kick version come from the patch sources (`tests/kick/pins.py`), so a
 version bump edits them in `Hermes.kt` and `Constants.kt` only.
@@ -1256,7 +1310,7 @@ version bump edits them in `Hermes.kt` and `Constants.kt` only.
 - `tests/kick/HermesProbe.kt`: actual-bundle parsing, negative controls for every
   helper, uniqueness, overlap rejection, preview literals, unique literal windows and
   exact restoration. It decodes every function of the bundle and requires every jump and
-  switch case (19 `UIntSwitchImm` and 117 `StringSwitchImm` in 40.34.0) to land on an
+  switch case (19 `UIntSwitchImm` and 117 `StringSwitchImm` in 40.34.0 and 40.35.4) to land on an
   instruction boundary, and checks that an edit whose changed bytes span a jump's or a switch
   case's landing point is refused while the same window changed only after it is accepted. It
   runs on the JVM, compiled with `kick/shared/Hermes.kt`.
@@ -1274,8 +1328,8 @@ version bump edits them in `Hermes.kt` and `Constants.kt` only.
   loader on Android, checking defaults, process snapshots, independent switches, the exact
   bytes of each choice value, exact stock restoration and the reuse of the private copy;
   invokes the two Insider job guards and checks synchronous completion without SDK dispatch. A second probe,
-  `PlayerProbe`, runs the player view's hooks in a fresh process with Kick's real player classes and a stand-in IVS
-  player (Show video stats, Mute stitched live ads). A third, `SettingsLinkProbe`, calls React Native's
+  `PlayerProbe`, runs the player hooks in a fresh process with Kick's real player classes and Media3's, and a
+  stand-in ExoPlayer (Show video stats, Mute stitched live ads, Refresh stream's bridges). A third, `SettingsLinkProbe`, calls React Native's
   patched `IntentModule.openURL` with Lurk's link and another one (Lurk in account menu).
   Hand-written invokes in the Kick patches either use `/range`, copy a parameter into low
   locals first (Datadog's `initialize`, whose promise is `v11` today) or call
@@ -1293,9 +1347,9 @@ version bump edits them in `Hermes.kt` and `Constants.kt` only.
   registers Hide Clips overwrites with undefined hold undefined there in stock code; the patch
   checks the same at patch time (every instruction naming the register first must load
   undefined or return it).
-- `tests/kick/verify_quality.py`: interprets actual reset/setter instructions to
-  verify first playback, Auto, explicit selections and clearing a selection. Its
-  negative control reproduces the initial-only patch's 1080p-to-720p reset bug.
+- `tests/kick/verify_quality.py`: finds every read of the default ceiling, checks the patch edits only the one in
+  `setDefaultMaxResolution`'s track reducer (the quality picker's two sign-in gates keep 720), and runs that reducer:
+  720 stock, the chosen height patched, the next one down without it.
 - `tests/kick/verify_analytics_jobs.py`: compares actual decoded job methods with
   stock, including unchanged instructions, branches and exception handlers when off.
 - `tests/kick/test_chat_page.py`: the chat page script in headless Chrome, offline, on a copy
@@ -1339,7 +1393,8 @@ need device/account coverage. Do not interpret SDK suppression or static VOD fal
 validation as verified removal of every video ad.
 
 Retained patch-integration regressions: `tests/kick/verify_hosting.py` executes the emitted
-`stay_on_host` manifest edit, actual JSX handlers/countdown and persistent React compiler caches.
+`stay_on_host` manifest edit, actual JSX handlers and the countdown with React's state, callbacks and effects kept across
+renders.
 It covers waiting, Watch now, Cancel/close, stock/off behavior, route guards and consecutive events,
 with three failing bytecode mutations. `bin/test-kick-chat <patched.apk>` captures production
 KickHttp/KickChat JavaScript on ART and runs it in offline Chrome, covering response preservation,

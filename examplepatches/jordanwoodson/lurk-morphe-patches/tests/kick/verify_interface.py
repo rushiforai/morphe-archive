@@ -76,6 +76,17 @@ class Bundle:
         assert len(found) == 1, f"expected one function named {name}"
         return found[0]
 
+    def closure_loading(self, parent, *texts):
+        """The one function [parent] creates as a closure (CreateClosure) that loads every string in [texts]."""
+        header = self.named(parent)
+        ids = sorted({i.arg3 for i in self.code(header, self.stock).values() if i.inst.name == "CreateClosure"})
+        wanted = {self.strings.index(text) for text in texts}
+        found = [self.reader.function_headers[f] for f in ids if wanted <= {
+            i.arg2 for i in self.code(self.reader.function_headers[f], self.stock).values()
+            if i.inst.name == "LoadConstString"}]
+        assert len(found) == 1, f"expected one closure of {parent} loading {texts}, found {len(found)}"
+        return found[0]
+
     def loading(self, *texts):
         """The one function that loads every string in [texts] (LoadConstString), for anonymous functions."""
         ids = [self.strings.index(text) for text in texts]
@@ -195,7 +206,8 @@ def entry_returns_null(bundle, key, names):
         header = bundle.named(name)
         check(returns(bundle, header, on) is None, f"{key}: {name} returns null at entry when on")
         first = bundle.code(header, off)[0]
-        check(first.inst.name in ("GetParentEnvironment", "CreateFunctionEnvironment", "LoadParam", "LoadThisNS"),
+        check(first.inst.name in ("GetParentEnvironment", "CreateFunctionEnvironment", "CreateTopLevelEnvironment",
+                                  "LoadParam", "LoadThisNS"),
               f"{key}: {name} starts its own code when off ({first.inst.name})")
 
 
@@ -203,13 +215,15 @@ def hide_clips(bundle):
     on, off = bundle.state({"hide_clips": "true"}), bundle.state({"hide_clips": "false"})
     translate = lambda this, key: key  # noqa: E731  The t() the producers call: the message key is enough.
     lists = [
-        ("Browse", ("categories.title.message", "browse.tabs.livechannels.title.message", "clips.title.message"), 0,
-         ["categories", "livestreams", "clips"]),
-        ("channel", ("channel.tabs.home.message", "channel.tabs.clips.message", "channel.tabs.chat.message"), 2,
-         ["home", "about", "videos", "clips", "chat"]),
+        ("Browse", bundle.loading("categories.title.message", "browse.tabs.livechannels.title.message",
+                                  "clips.title.message"), 0, ["categories", "livestreams", "clips"]),
+        ("channel", bundle.loading("channel.tabs.home.message", "channel.tabs.clips.message", "channel.tabs.chat.message"),
+         2, ["home", "about", "videos", "clips", "chat"]),
+        # The category header's list (Live, Clips), a producer BrowseCategoriesHeader creates.
+        ("category", bundle.closure_loading("BrowseCategoriesHeader", "browse.tabs.livechannels.title.message",
+                                            "clips.title.message"), 0, ["livestreams", "clips"]),
     ]
-    for what, texts, slot, names in lists:
-        header = bundle.loading(*texts)
+    for what, header, slot, names in lists:
         environment = [{slot: translate}]
         stock = returns(bundle, header, off, environments=environment)
         check([tab["name"] for tab in stock] == names, f"Hide Clips off: the {what} tab list is stock")
@@ -222,24 +236,6 @@ def hide_clips(bundle):
             if instruction.inst.name == "DefineOwnInDenseArray" and offset > 0:
                 _, registers = bundle.run(header, off, environments=environment, stop={offset})
                 check(registers.get(0, UNDEFINED) is UNDEFINED, f"{what} list: r0 is undefined at {offset:#x}")
-
-    # BrowseCategoriesHeader builds [Live, Clips] in the middle of the component: run just that window.
-    header = bundle.named("BrowseCategoriesHeader")
-    edit = next(e for e in bundle.manifest["edits"] if e["key"] == "hide_clips" and
-                header.offset <= e["offset"] < header.offset + header.bytecodeSizeInBytes)
-    start = edit["offset"] - header.offset
-    end = start + len(bytes.fromhex(edit["original"]))
-    seeded = {12: None, 16: "live", 21: "clips", 1: UNDEFINED}
-    _, registers = bundle.run(header, off, registers=seeded, start=start, stop={end})
-    check(registers[12] == ["live", "clips"], "Hide Clips off: the category header lists Live and Clips")
-    _, registers = bundle.run(header, on, registers=seeded, start=start, stop={end})
-    check(registers[12] == ["live"] and registers[1] is UNDEFINED,
-          "Hide Clips on: the category header lists Live only and r1 stays undefined")
-    # r1 really is undefined there in stock code: the component's only writes to it load undefined.
-    writes = [i for i in bundle.code(header, off).values() if len(i.inst.operands) and i.inst.operands[0].operand_type.name == "Reg8"
-              and i.arg1 == 1 and i.inst.name not in ("Ret",)]
-    check(writes and all(i.inst.name == "LoadConstUndefined" for i in writes),
-          "category header: every instruction naming r1 first loads undefined")
 
     # ChannelHomeContent: jsx(PopularClipsRow, {channelSlug}) becomes null in the call's result register.
     edits = [e for e in bundle.manifest["edits"] if e["key"] == "hide_clips"]
@@ -258,6 +254,12 @@ def hide_clips(bundle):
     check(registers[call.arg1] is None, "Hide Clips on: the PopularClipsRow element is null")
 
 
+class Anything(dict):
+    """A closure environment whose every slot and property is another one: enough for the loads a run passes."""
+    def __missing__(self, key):
+        return Anything()
+
+
 def hide_upsells(bundle):
     key = "hide_subscription_upsells"
     on, off = bundle.state({key: "true"}), bundle.state({key: "false"})
@@ -268,14 +270,17 @@ def hide_upsells(bundle):
     code = bundle.code(header, off)
     positions = sorted(code)
     jump = code[positions[positions.index(index) - 1]]
-    read = code[positions[positions.index(index) - 2]]
-    check(read.inst.name == "GetById" and bundle.strings[read.arg4] == "subscription" and jump.inst.name == "JmpTrueLong",
-          "ChannelSubButton: the edit follows the subscription read and its branch")
+    reads = [i for i in code.values() if i.inst.name in ("GetById", "GetByIdShort") and
+             bundle.strings[i.arg4] == "subscription"]
+    check(len(reads) == 1 and jump.inst.name in ("JmpTrue", "JmpTrueLong") and jump.arg2 == reads[0].arg1 and
+          reads[0].original_pos < jump.original_pos and jump.arg1 > 0,
+          "ChannelSubButton: the edit follows the forward branch on its subscription read")
+    read = reads[0]
     subscribed_at = jump.original_pos + jump.arg1
     after = code[index].next_pos
-    memo = [f"memo{n}" for n in range(64)]
+    environments = {i.arg2: Anything() for i in code.values() if i.inst.name == "LoadFromEnvironment"}
     for subscribed in (True, False):
-        seeded = {read.arg2: {"subscription": {"id": 1} if subscribed else None}, code[index].arg2: memo}
+        seeded = {**environments, read.arg2: {"subscription": {"id": 1} if subscribed else None}}
         for data, state in ((off, "off"), (on, "on")):
             try:
                 pc, _ = bundle.run(header, data, registers=seeded, start=read.original_pos, stop={subscribed_at, after})
@@ -376,8 +381,12 @@ def lurk_menu(bundle):
             return jsx if name in ("jsx", "jsxs") else name
 
     class Environment:
+        """A register loaded before the window: an environment (its slots are modules) or a module itself."""
         def __getitem__(self, slot):
             return Module()
+
+        def get(self, name, default=None):
+            return Module().get(name, default)
 
     for value in ("true", "false"):
         data = bundle.state({key: value})

@@ -1,0 +1,22 @@
+#!/usr/bin/env sh
+# Strip AI-agent trailers from newly written commit messages.
+#
+# Enable for a checkout with:
+#   git config core.hooksPath .githooks
+#
+# This affects only commits made after the hook is enabled. It does not
+# rewrite existing history.
+
+msg_file="$1"
+[ -f "$msg_file" ] || exit 0
+
+# Co-authored-by / Generated-by / Assisted-by lines naming a known AI agent.
+pattern='^(Co-authored-by|Generated-by|Assisted-by):.*(arena-agent|debug-cli|\[secure\]|copilot|claude|chatgpt|codex|opencode|aider|cursor|devin|github-actions|dependabot)'
+
+tmp=$(mktemp) || exit 0
+grep -viE "$pattern" "$msg_file" > "$tmp"
+if ! cmp -s "$tmp" "$msg_file"; then
+  cat "$tmp" > "$msg_file"
+fi
+rm -f "$tmp"
+exit 0

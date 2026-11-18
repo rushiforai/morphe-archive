@@ -262,6 +262,29 @@ private fun BytecodePatchContext.extendsAppsFlyerLib(def: ClassDef): Boolean {
     return false
 }
 
+/**
+ * Stops every ad SDK the app contains from starting and from loading ads (AdMob and the networks above). Shared by
+ * this universal patch and by each app's own "Hide ads (<App>)" patch, which call it on their own: the per-app
+ * patches never depend on this one. Stubbing a method twice is harmless, so both may run on one app.
+ */
+internal fun BytecodePatchContext.stopAdSdks() {
+    adRequests.forEach { fingerprint ->
+        fingerprint.matchOrNull()?.method?.takeIf { it.implementation != null }?.addInstructions(0, "return-void")
+    }
+    // Every overload that returns nothing; each method is stubbed once even if it is reached twice.
+    networkFingerprints.flatMap { it.matchAllOrNull() ?: emptyList() }
+        .map { it.method }.distinct()
+        .filter { it.implementation != null } // abstract and interface methods have no body to replace
+        .forEach { it.addInstructions(0, "return-void") }
+    adsInitProvider.matchOrNull()?.method?.addInstructions(
+        0,
+        """
+            const/4 v0, 0x0
+            return v0
+        """
+    )
+}
+
 // ---- The patch ----------------------------------------------------------------------------------------------------
 
 @Suppress("unused")
@@ -290,23 +313,7 @@ val removeAdsAndTrackersPatch = bytecodePatch(
     Choices.advertisingId = { advertisingId ?: true }
 
     execute {
-        if (ads ?: true) {
-            adRequests.forEach { fingerprint ->
-                fingerprint.matchOrNull()?.method?.takeIf { it.implementation != null }?.addInstructions(0, "return-void")
-            }
-            // Every overload that returns nothing; each method is stubbed once even if it is reached twice.
-            networkFingerprints.flatMap { it.matchAllOrNull() ?: emptyList() }
-                .map { it.method }.distinct()
-                .filter { it.implementation != null } // abstract and interface methods have no body to replace
-                .forEach { it.addInstructions(0, "return-void") }
-            adsInitProvider.matchOrNull()?.method?.addInstructions(
-                0,
-                """
-                    const/4 v0, 0x0
-                    return v0
-                """
-            )
-        }
+        if (ads ?: true) stopAdSdks()
         if (analytics ?: true) {
             crashlyticsCalls.forEach { fingerprint ->
                 fingerprint.matchOrNull()?.method?.takeIf { it.implementation != null }?.addInstructions(0, "return-void")

@@ -17,6 +17,7 @@ import app.morphe.patches.pinterest.misc.extension.enableStatus
 import app.morphe.patches.pinterest.misc.extension.freeLocalsAt
 import app.morphe.patches.pinterest.misc.extension.handleTargets
 import app.morphe.patches.pinterest.misc.extension.parameterRegisterNumber
+import app.morphe.patches.pinterest.misc.extension.patchLog
 import app.morphe.patches.pinterest.misc.extension.pinterestExtensionPatch
 import app.morphe.patches.pinterest.misc.extension.requireStatusMethod
 import app.morphe.patches.pinterest.misc.extension.requireStub
@@ -51,6 +52,16 @@ internal val SAVE_TOAST_STRINGS = setOf(
     "multi_board_save_saved_to_profile", "saved_onto_board", "saved_to_board_section",
     "saved_multiple_to_board_section", "pin_saved",
 )
+
+/** The text of the toast model that says a pin reached the phone. */
+internal const val DOWNLOAD_TOAST_STRING = "downloaded_to_camera_roll"
+
+/**
+ * The messages after a picture or video finishes downloading. Screens hand these to toast models
+ * that show other messages too, as ready-made words or as the text's id, so the extension looks
+ * each one up by name while the app runs and compares both.
+ */
+internal val DOWNLOAD_TEXT_NAMES = setOf("pin_image_download_success", "pin_video_download_success")
 
 /**
  * The ones a screen shows through a toast that says nothing about what it holds, a model handed a
@@ -102,8 +113,8 @@ internal data class AndroidToasts(val sites: List<AndroidToast>, val unsure: Int
 val hideSaveToastsPatch = bytecodePatch(
     name = PATCH,
     description = "Stops the pop-up Pinterest shows after you save a pin, such as the Saved to your board message " +
-        "or a suggestion to follow the creator. The pin is still saved. Starts off. Turn it on in " +
-        "HushPinterest settings > Interface.",
+        "or a suggestion to follow the creator. The pin is still saved. A second switch does the same for the " +
+        "messages after a download. Starts off. Turn them on in HushPinterest settings > Interface.",
 ) {
     category("Interface")
     dependsOn(settingsPatch, pinterestExtensionPatch)
@@ -112,6 +123,8 @@ val hideSaveToastsPatch = bytecodePatch(
     execute {
         requireStatusMethod("hideSaveToasts")
         requireStatusMethod("saveToasts")
+        requireStatusMethod("downloadToasts")
+        requireStub(UI_HOOKS, "isDownloadToast")
         requireStub(UI_HOOKS, "isSaveTextToast")
         requireStub(UI_HOOKS, "isMessageToast")
         requireAndroidToastStandIns()
@@ -176,6 +189,16 @@ val hideSaveToastsPatch = bytecodePatch(
             return-void
         """, ExternalLabel("hush_show_toast", method.getInstruction(0)))
         if (found == 5) enableCapability("saveToasts")
+        // The toasts that say a pin reached the phone have their own switch, so losing it costs
+        // nothing else. One kind has a model of its own. The other is told at the container by its
+        // words or text id, so all it needs is a screen that reads those texts.
+        val downloads = downloadToastModels(model)
+        if (downloads.isNotEmpty()) writeStub(UI_HOOKS, "isDownloadToast", 2, instanceChecks(downloads))
+        if (downloads.isNotEmpty() || downloadTextIsRead()) {
+            enableCapability("downloadToasts")
+        } else {
+            patchLog.warning("$PATCH: no toast that says a pin was downloaded was found, so Hide download toasts stays out.")
+        }
         enableStatus("hideSaveToasts")
     }
 }
@@ -313,6 +336,33 @@ internal fun BytecodePatchContext.saveToastModels(model: String): Pair<List<Stri
         if (fields.any { it.name == FOLLOW_UPSELL && it.type == it.definingClass }) follow += owner.type
     }
     return saved.sorted() to follow.sorted()
+}
+
+/** Concrete toast models whose own methods read the text that says a pin was downloaded to the phone. */
+internal fun BytecodePatchContext.downloadToastModels(model: String): List<String> {
+    val found = mutableListOf<String>()
+    classDefForEach { owner ->
+        if (AccessFlags.ABSTRACT.isSet(owner.accessFlags) || AccessFlags.INTERFACE.isSet(owner.accessFlags) ||
+            owner.type == model || !extendsClass(owner.type, model)) return@classDefForEach
+        if (owner.methods.any { method -> method.fields().any { it.type == "I" && it.name == DOWNLOAD_TOAST_STRING } }) found += owner.type
+    }
+    return found.sorted()
+}
+
+/** True when one of Pinterest's methods reads the text shown after a picture or video finishes downloading. */
+private fun BytecodePatchContext.downloadTextIsRead(): Boolean {
+    var read = false
+    classDefForEach { owner ->
+        if (read || owner.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
+        read = owner.methods.any { method ->
+            method.implementation?.instructions?.any { instruction ->
+                instruction.opcode == Opcode.SGET && ((instruction as ReferenceInstruction).reference as FieldReference).let {
+                    it.type == "I" && it.name in DOWNLOAD_TEXT_NAMES
+                }
+            } == true
+        }
+    }
+    return read
 }
 
 /**

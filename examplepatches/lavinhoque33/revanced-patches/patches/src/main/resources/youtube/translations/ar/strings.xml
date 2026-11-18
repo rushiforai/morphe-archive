@@ -650,8 +650,7 @@ Mistral Nemo هو الخيار الأرخص، بينما توفر Gemma 4 أعل
     <string name="revanced_change_start_page_entry_gaming">Gaming</string>
     <string name="revanced_change_start_page_entry_history">السجلّ</string>
     <string name="revanced_change_start_page_entry_home">بيت</string>
-    <string name="revanced_change_start_page_entry_hype">التشجيع</string>
-    <string name="revanced_change_start_page_entry_library">المكتبة</string>
+    <string name="revanced_change_start_page_entry_library">أنت</string>
     <string name="revanced_change_start_page_entry_liked_videos">فيديوهات أعجبتك</string>
     <string name="revanced_change_start_page_entry_live">بث مباشر</string>
     <string name="revanced_change_start_page_entry_movies">أفلام</string>
@@ -659,14 +658,12 @@ Mistral Nemo هو الخيار الأرخص، بينما توفر Gemma 4 أعل
     <string name="revanced_change_start_page_entry_news">الأخبار</string>
     <string name="revanced_change_start_page_entry_notifications">الإشعارات</string>
     <string name="revanced_change_start_page_entry_playlists">قوائم التشغيل</string>
-    <string name="revanced_change_start_page_entry_podcasts">البودكاست</string>
     <string name="revanced_change_start_page_entry_search">البحث</string>
     <string name="revanced_change_start_page_entry_settings">الإعدادات</string>
     <string name="revanced_change_start_page_entry_shopping">التسوّق</string>
     <string name="revanced_change_start_page_entry_shorts">Shorts</string>
     <string name="revanced_change_start_page_entry_sports">رياضة</string>
     <string name="revanced_change_start_page_entry_subscriptions">الاشتراكات</string>
-    <string name="revanced_change_start_page_entry_trending">المحتوى الرائج</string>
     <string name="revanced_change_start_page_entry_virtual_reality">الواقع الافتراضي</string>
     <string name="revanced_change_start_page_entry_watch_later">المشاهدة لاحقًا</string>
     <string name="revanced_change_start_page_entry_your_clips">فيديوهاتك</string>

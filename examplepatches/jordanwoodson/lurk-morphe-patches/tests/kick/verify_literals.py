@@ -59,9 +59,9 @@ EXPECTED = {
     # Lurk in account menu: the account menu's developer settings row, whose href becomes Lurk's link.
     "lurk_menu_entry": lambda found: len(found) == 1 and found[0].kind == "object" and
         found[0].function == "AccountScreen" and found[0].keys == ("href", "icon", "label", "testID", "gaEvent"),
-    # PlayerConfig.controls.skip.scale: the `vod` and `live-vod` arrays, [10, 10, 10] each.
-    "vod_skip_seconds": lambda found: len(found) == 2 and len({item.function for item in found}) == 1 and
-        all(item.kind == "array" and len(item.keys) == 3 for item in found),
+    # PlayerConfig.controls.skip.scale, {livestream: 60, vod: 10, 'live-vod': 10, clip: 10}: one object literal.
+    "vod_skip_seconds": lambda found: len(found) == 1 and found[0].kind == "object" and
+        found[0].keys == ("livestream", "vod", "live-vod", "clip"),
     # Colors.surface.default, read once.
     "amoled_black": lambda found: len(found) == 1 and found[0].kind == "object" and
         found[0].keys[:3] == ("highest", "base", "lowest"),

@@ -87,7 +87,10 @@ internal fun MutableMethod.prependReturn(smali: String) {
  * throws `IndexOutOfBoundsException`, so the list is snapshotted once and the replacements are
  * built directly (no smali compilation, so nothing triggers a fix-up mid-loop).
  */
-internal fun MutableMethod.forceInstanceOfTrue(type: String) {
+internal fun MutableMethod.forceInstanceOfTrue(type: String) = forceInstanceOf(type, true)
+
+/** Like [forceInstanceOfTrue], but makes every `instance-of <type>` evaluate to [result]. */
+internal fun MutableMethod.forceInstanceOf(type: String, result: Boolean) {
     val snapshot = instructions.toList()
 
     val targets = snapshot.mapIndexedNotNull { index, instruction ->
@@ -103,6 +106,6 @@ internal fun MutableMethod.forceInstanceOfTrue(type: String) {
     }
 
     targets.forEach { (index, register) ->
-        replaceInstruction(index, BuilderInstruction11n(Opcode.CONST_4, register, 1))
+        replaceInstruction(index, BuilderInstruction11n(Opcode.CONST_4, register, if (result) 1 else 0))
     }
 }

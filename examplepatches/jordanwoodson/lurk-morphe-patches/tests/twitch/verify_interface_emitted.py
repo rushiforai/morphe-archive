@@ -5,7 +5,8 @@ Usage: python3 tests/twitch/verify_interface_emitted.py stock-apktool patched-ap
 Version-specific class/field names belong in this independent artifact test, never fingerprints. The ones
 the patches match come from the patched output's locators (assets/lurk/locators.json); the names written
 here are Twitch 31.7.0's R8 output, used while the output has none. The preservation controls (classes no
-patch touches) and the account menu's Turbo string IDs stay pinned, to Twitch 31.8.0's names.
+patch touches) stay pinned, to Twitch 32.1.0's names; the account menu's Turbo string IDs come from the stock
+output's public.xml.
 """
 from pathlib import Path
 import re
@@ -94,14 +95,17 @@ def main():
     route = loc.type("twitch.hide_subscription_upsells.turbo_dialog_route", "le90")
     assert "hide_subscription_upsells" in source(patched, route + ".smali"), "Turbo app-start route was not guarded"
     account = source(patched, loc.type("twitch.match.account_subscriptions_section", "smj") + ".smali")
+    public = (stock / "res/values/public.xml").read_text()
+    turbo, upsell = (re.search(rf'type="string" name="{name}" id="(0x[0-9a-f]+)"', public)[1]
+                     for name in ("viewer_account_menu_turbo", "viewer_account_menu_turbo_upsell"))
     account_section = next(body for declaration, body in re.findall(r"^\.method ([^\n]+)\n(.*?)^\.end method", account, re.M | re.S)
-                           if "0x7f151732" in body and "0x7f151733" in body)  # viewer_account_menu_turbo(_upsell)
+                           if turbo in body and upsell in body)
     assert "hide_subscription_upsells" in account_section, "Native account Turbo promotion remains"
     assert re.search(r"move/from16 v\d+, p0", account_section), "Must retain actual Turbo subscription input"
-    for filename in ["vi50.smali", loc.type("twitch.match.turbo_app_start_action", "hgr") + ".smali"]:
+    for filename in ["dd50.smali", loc.type("twitch.match.turbo_app_start_action", "hgr") + ".smali"]:
         assert executable_source(source(stock, filename)) == executable_source(source(patched, filename)), filename + " changed unexpectedly"
     # Selection/argument parsing and the existing native clip bridge are preservation controls.
-    for filename in ["f82.smali", "nb1.smali", "xov.smali", "ib8.smali", "uv7.smali",
+    for filename in ["v82.smali", "vi3.smali", "yhv.smali", "j98.smali", "tt7.smali",
                      "tv/twitch/android/feature/discovery/feed/rn/bridge/TwitchRNHostNavigationModule.smali"]:
         assert executable_source(source(stock, filename)) == executable_source(source(patched, filename)), filename + " clip navigation changed unexpectedly"
     print("PASS: native UI flag writes, profile tabs, selective subscription renderer, Turbo route and stock preservation controls")

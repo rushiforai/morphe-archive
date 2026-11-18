@@ -61,6 +61,12 @@ final class DownloadsCategory {
                         L10n.t("Adds Details to a feed post's or reel's menu. It shows when it went up, who posted it, "
                                 + "its media ID and the size Download saves, with buttons to copy the file link, "
                                 + "username and caption.")));
+                downloads.addPreference(toggle(context, Settings.POST_MENU_BLOCK, L10n.t("Block in a post's menu"),
+                        L10n.t("Adds Block to the menu of someone else's feed post. It opens Instagram's own block "
+                                + "sheet, so nothing happens until you confirm there.")));
+                downloads.addPreference(toggle(context, Settings.POST_MENU_SPEED, L10n.t("Speed in a post's menu"),
+                        L10n.t("Adds Playback speed to a feed video's menu. Pick a speed from 0.5x to 3x for the "
+                                + "video that's playing.")));
                 downloads.addPreference(toggle(context, Settings.DOWNLOAD_CHOOSE_PAGES, L10n.t("Choose carousel pages"),
                         L10n.t("Adds Choose pages to a carousel's menu, after Save all, and to the download icon. "
                                 + "Tick the pages you want and only those save, in order.")));
@@ -130,8 +136,9 @@ final class DownloadsCategory {
                             + "then converts only VP9.")));
             if (build.contains(PatchFamily.VP9_VIDEO)) {
                 downloads.addPreference(toggle(context, Settings.ASK_FOR_VP9, L10n.t("Ask for VP9 instead of AV1"),
-                        L10n.t("Tells Instagram your phone has no AV1 decoder, so reels and stories come as VP9 or "
-                                + "H.264, both to watch and to save. Takes a restart.")));
+                        L10n.t("Tells Instagram your phone has no AV1 decoder. Instagram doesn't always listen, so "
+                                + "videos can still come as AV1. If they do, Convert to keep the full size gives "
+                                + "you H.264. Takes a restart.")));
             }
             downloads.addPreference(toggle(context, Settings.DOWNLOAD_NO_HDR, L10n.t("Never save HDR video"),
                     L10n.t("For apps that show HDR with a yellow or green cast, such as Messenger. A video Instagram "

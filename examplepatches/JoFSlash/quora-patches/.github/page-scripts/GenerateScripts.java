@@ -53,6 +53,10 @@ public final class GenerateScripts {
                 return "Jane Doe, Cats of Quora";
             case "answerFont":
                 return "serif";
+            case "hideOldAnswers":
+                return "3";
+            case "hideSeen":
+                return "hide";
             default:
                 return "";
         }

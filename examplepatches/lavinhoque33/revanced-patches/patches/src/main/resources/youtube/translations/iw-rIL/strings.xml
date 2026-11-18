@@ -586,8 +586,7 @@
     <string name="revanced_change_start_page_entry_gaming">גיימינג</string>
     <string name="revanced_change_start_page_entry_history">היסטוריה</string>
     <string name="revanced_change_start_page_entry_home">בית</string>
-    <string name="revanced_change_start_page_entry_hype">הייפ</string>
-    <string name="revanced_change_start_page_entry_library">ספרייה</string>
+    <string name="revanced_change_start_page_entry_library">הדף שלי</string>
     <string name="revanced_change_start_page_entry_liked_videos">סרטונים שאהבתי</string>
     <string name="revanced_change_start_page_entry_live">בשידור חי</string>
     <string name="revanced_change_start_page_entry_movies">סרטים</string>
@@ -595,14 +594,12 @@
     <string name="revanced_change_start_page_entry_news">חדשות</string>
     <string name="revanced_change_start_page_entry_notifications">עדכונים</string>
     <string name="revanced_change_start_page_entry_playlists">פלייליסטים</string>
-    <string name="revanced_change_start_page_entry_podcasts">פודקאסטים</string>
     <string name="revanced_change_start_page_entry_search">חיפוש</string>
     <string name="revanced_change_start_page_entry_settings">הגדרות</string>
     <string name="revanced_change_start_page_entry_shopping">שופינג</string>
     <string name="revanced_change_start_page_entry_shorts">Shorts</string>
     <string name="revanced_change_start_page_entry_sports">ספורט</string>
     <string name="revanced_change_start_page_entry_subscriptions">מינויים</string>
-    <string name="revanced_change_start_page_entry_trending">הסרטונים החמים</string>
     <string name="revanced_change_start_page_entry_virtual_reality">מציאות מדומה</string>
     <string name="revanced_change_start_page_entry_watch_later">לצפייה בהמשך</string>
     <string name="revanced_change_start_page_entry_your_clips">הקליפים שלך</string>

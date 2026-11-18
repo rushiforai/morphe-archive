@@ -638,7 +638,7 @@ public final class RexDialogs {
                     "Japanese",
                     "Korean"
             };
-            String currentTrans = SharedPref.getStringPref(Settings.TRANSLATOR_LANGUAGE);
+            String currentTrans = app.morphe.extension.instagram.utils.IgStr.getAppUiLanguageName();
             if (currentTrans == null || currentTrans.trim().isEmpty()) currentTrans = "English";
 
             ScrollView scroll = new ScrollView(hostCtx);
@@ -680,7 +680,7 @@ public final class RexDialogs {
 
                 row.setOnClickListener(v -> {
                     RexHaptics.tap(v);
-                    SharedPref.setStringPref(Settings.TRANSLATOR_LANGUAGE.key, lang);
+                    app.morphe.extension.instagram.utils.IgStr.setAppUiLanguageName(lang);
                     IgStr.refreshLocale();
                     IgStr.applyLocaleToContext(hostCtx);
                     Utils.showToastShort("Language & Translator set to " + lang);
@@ -897,6 +897,93 @@ public final class RexDialogs {
      * WindowManager FLAG_BLUR_BEHIND) on Android 12+ (API 31+) with a clean dim-scrim fallback
      * on older Android versions or reduced-motion/low-power configurations.
      */
+    public static void showTextInputDialog(
+            final Context context,
+            final String iconId,
+            final String title,
+            final String subtitle,
+            final String initialValue,
+            final String hint,
+            final boolean numericOnly,
+            final String confirmLabel,
+            final java.util.function.Consumer<String> onConfirm
+    ) {
+        try {
+            final Context hostCtx = resolveActivity(context) != null ? resolveActivity(context) : context;
+            final AlertDialog dialog = new AlertDialog.Builder(hostCtx).create();
+            LinearLayout sheet = createDialogSheet(hostCtx, iconId, title);
+
+            if (subtitle != null && !subtitle.isEmpty()) {
+                TextView sub = new TextView(hostCtx);
+                sub.setText(subtitle);
+                sub.setTextColor(TEXT_SECONDARY);
+                sub.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13.5f);
+                sub.setPadding(0, 0, 0, RexVectorIcons.dp(hostCtx, 10));
+                sheet.addView(sub);
+            }
+
+            final EditText input = new EditText(hostCtx);
+            input.setText(initialValue == null ? "" : initialValue);
+            input.setHint(hint == null ? "" : hint);
+            input.setHintTextColor(0xFF6E7685);
+            input.setTextColor(TEXT_PRIMARY);
+            input.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f);
+            if (numericOnly) {
+                input.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
+            } else {
+                input.setInputType(android.text.InputType.TYPE_CLASS_TEXT);
+            }
+            int pad = RexVectorIcons.dp(hostCtx, 12);
+            input.setPadding(pad, pad, pad, pad);
+            GradientDrawable inBg = new GradientDrawable();
+            inBg.setColor(0xFF0E1117);
+            inBg.setCornerRadius(RexVectorIcons.dp(hostCtx, 12));
+            inBg.setStroke(Math.max(1, RexVectorIcons.dp(hostCtx, 1)), 0xFF2B3240);
+            input.setBackground(inBg);
+            sheet.addView(input, new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+            ));
+
+            TextView btn = new TextView(hostCtx);
+            btn.setText(confirmLabel == null || confirmLabel.isEmpty() ? "Apply" : confirmLabel);
+            btn.setGravity(Gravity.CENTER);
+            btn.setTextColor(Color.WHITE);
+            btn.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14.5f);
+            btn.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
+            btn.setPadding(pad, pad, pad, pad);
+            GradientDrawable btnBg = new GradientDrawable();
+            btnBg.setColor(InstagramPreferenceStyle.accentColor());
+            btnBg.setCornerRadius(RexVectorIcons.dp(hostCtx, 14));
+            btn.setBackground(btnBg);
+            LinearLayout.LayoutParams bLp = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+            );
+            bLp.topMargin = RexVectorIcons.dp(hostCtx, 12);
+            btn.setOnClickListener(v -> {
+                RexHaptics.tap(v);
+                String val = input.getText() == null ? "" : input.getText().toString();
+                dialog.dismiss();
+                if (onConfirm != null) onConfirm.accept(val);
+            });
+            sheet.addView(btn, bLp);
+
+            dialog.setView(sheet);
+            showBlurredDialog(hostCtx, dialog);
+        } catch (Throwable ignored) {}
+    }
+
+    public static void clearActivityBlur(Context context) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return;
+        try {
+            Activity host = resolveActivity(context);
+            if (host != null && host.getWindow() != null && host.getWindow().getDecorView() != null) {
+                host.getWindow().getDecorView().setRenderEffect(null);
+            }
+        } catch (Throwable ignored) {}
+    }
+
     public static void attachBlurBehind(final Dialog dialog, Context context) {
         if (dialog == null) return;
         final Activity host = resolveActivity(context);
@@ -914,17 +1001,10 @@ public final class RexDialogs {
                 }
                 w.setAttributes(lp);
             }
-            if (!reducedMotion && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && host != null && host.getWindow() != null) {
-                final View decor = host.getWindow().getDecorView();
-                if (decor != null) {
-                    decor.setRenderEffect(RenderEffect.createBlurEffect(28f, 28f, Shader.TileMode.CLAMP));
-                    dialog.setOnDismissListener(d -> {
-                        try {
-                            decor.setRenderEffect(null);
-                        } catch (Throwable ignored) {}
-                    });
-                }
-            }
+            // Ensure any residual Activity decorView RenderEffect is cleared; rely on Window FLAG_BLUR_BEHIND
+            // so activity.recreate() or dialog replacement can never leave the Activity window permanently blurred (23487.png).
+            clearActivityBlur(host);
+            dialog.setOnDismissListener(d -> clearActivityBlur(host));
         } catch (Throwable ignored) {}
     }
 

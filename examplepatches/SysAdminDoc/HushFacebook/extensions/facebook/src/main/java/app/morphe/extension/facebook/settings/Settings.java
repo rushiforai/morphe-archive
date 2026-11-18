@@ -2751,6 +2751,15 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_hide_blocked_list_pictures", FALSE);
 
     /**
+     * An HTTP proxy Facebook's connections go through, as host:port, blank for the phone's own way
+     * out ({@link InAppProxy}, #504). The settings entry's own, so every build has it, and Pause
+     * leaves it be, as it does Lock Facebook. Set as each of Facebook's processes starts, so a change
+     * brings up the restart row. Not a switch.
+     */
+    public static final StringSetting IN_APP_PROXY =
+            new StringSetting("hushfacebook_in_app_proxy", "", true);
+
+    /**
      * Opening Facebook from its icon puts a cover that counts down {@link #OPENING_PAUSE_LENGTH}
      * over its first screen ({@link app.morphe.extension.facebook.misc.OpeningPause}). The settings
      * entry's own switch, so every build has it ({@link PatchFamily#ENTRY_SWITCHES}). Off by default.
@@ -3610,6 +3619,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_download_quality_ask", FALSE);
 
     /**
+     * A reel's Download button, the Download button under a post and a video's Download to phone
+     * ask first, and only Continue starts the save (issue #511). Off by default, so a tap saves at
+     * once. Every download patch has it ({@link PatchFamily#DOWNLOAD_SWITCHES}).
+     */
+    public static final BooleanSetting ASK_BEFORE_DOWNLOAD =
+            new BooleanSetting("hushfacebook_download_ask_first", FALSE);
+
+    /**
      * Video saves keep to what other apps open: H.264 video with AAC-LC or HE-AAC sound, within
      * {@link #DOWNLOAD_QUALITY}, or Facebook's single MP4 file when the manifest has no such pair.
      * The sharpest version Facebook streams is often AV1 with xHE-AAC sound, which Gallery and VLC
@@ -3838,4 +3855,12 @@ public class Settings extends BaseSettings {
      */
     public static final StringSetting FONT_SOURCE =
             new StringSetting("hushfacebook_font_source", "");
+
+    /**
+     * The name of the emoji font file {@link #USE_SYSTEM_EMOJI} draws in, or empty for the phone's
+     * own emoji. Its copy sits in Facebook's files, and like {@link #FONT_SOURCE} only the settings
+     * screen writes it and a settings file leaves it out.
+     */
+    public static final StringSetting EMOJI_FONT_SOURCE =
+            new StringSetting("hushfacebook_emoji_font_source", "");
 }

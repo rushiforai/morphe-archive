@@ -4,22 +4,22 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Outer rounded camera body (white stroke, exact 22951.png geometry inside 108dp safe zone) -->
+    <!-- Full-scale camera glyph inside the 66dp adaptive safe zone (26..82) matching Instagram/InstaPrime/InstaZen proportions in 23480.png -->
     <path
         android:fillColor="#00000000"
         android:strokeColor="#FFFFFFFF"
-        android:strokeWidth="4.6"
+        android:strokeWidth="5.2"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
-        android:pathData="M42,30 L66,30 C72.627,30 78,35.373 78,42 L78,66 C78,72.627 72.627,78 66,78 L42,78 C35.373,78 30,72.627 30,66 L30,42 C30,35.373 35.373,30 42,30 Z" />
+        android:pathData="M39,26.5 L69,26.5 C75.904,26.5 81.5,32.096 81.5,39 L81.5,69 C81.5,75.904 75.904,81.5 69,81.5 L39,81.5 C32.096,81.5 26.5,75.904 26.5,69 L26.5,39 C26.5,32.096 32.096,26.5 39,26.5 Z" />
     <!-- Center camera lens ring -->
     <path
         android:fillColor="#00000000"
         android:strokeColor="#FFFFFFFF"
-        android:strokeWidth="4.6"
-        android:pathData="M54,42 A12,12 0 1,1 53.99,42 Z" />
+        android:strokeWidth="5.2"
+        android:pathData="M54,40.5 A13.5,13.5 0 1,1 53.99,40.5 Z" />
     <!-- Top-right flash dot -->
     <path
         android:fillColor="#FFFFFFFF"
-        android:pathData="M67.5,37.2 A3.3,3.3 0 1,1 67.49,37.2 Z" />
+        android:pathData="M69.5,34.8 A3.6,3.6 0 1,1 69.49,34.8 Z" />
 </vector>

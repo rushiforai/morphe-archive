@@ -222,6 +222,17 @@ public class HomeSuggestionsTest {
         }
     }
 
+    /** The two rows the #30 report's module lines named, on Home with the switch on. */
+    @Test
+    public void theRowsTheReportNamedGo() {
+        Settings.HIDE_HOME_SUGGESTIONS.save(true);
+        List<Object> page = new ArrayList<>(Arrays.asList(pin,
+                new Story("exploration", "homefeed_interest_exploration_module"),
+                new Story("boardRecs", "blended_module_type_topics_board_recs"),
+                new Story("kept", "ideas_for_you")));
+        assertEquals("[pin, kept]", FeedFilter.filter(page).toString());
+    }
+
     /**
      * The board-tab Home's "More ideas for your board" row is a story over the viewer's own boards,
      * typed as 14.44.0's story binder names it (pr1/e0 and vr1/d0). A board's own ideas story and the

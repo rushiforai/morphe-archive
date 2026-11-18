@@ -9,6 +9,7 @@ package app.morphe.patches.pinterest.ui
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patches.pinterest.actions.pinSheetView
 import app.morphe.patches.pinterest.misc.extension.enableCapability
 import app.morphe.patches.pinterest.misc.extension.enableStatus
 import app.morphe.patches.pinterest.misc.extension.freeLocalsAt
@@ -29,13 +30,15 @@ internal val FILTERABLE_PIN_MENU_TITLES = setOf(
     "contextmenu_visual_search_image", "overflow_menu_pin_boost",
 )
 
+internal const val PIN_MENU_SHEET_HOOK = "$INTERFACE_CONTROLS->pinMenuSheet(Landroid/view/View;)V"
+
 /** The menu still creates its own rows and actions. Only the requested optional rows are folded. */
 @Suppress("unused")
 val hidePinMenuItemsPatch = bytecodePatch(
     name = "Filter pin menu",
     description = "Lets you hide Add to collage, Remix collage, Search image and Promote pin in a pin's menu, each " +
-        "with its own switch. Download, share and copy link stay. Starts off. Turn them on in " +
-        "HushPinterest settings > Interface.",
+        "with its own switch. Another switch takes out the rows you pick from a list, including the ones " +
+        "HushPinterest adds. Starts off. Turn them on in HushPinterest settings > Interface.",
 ) {
     category("Interface")
     dependsOn(settingsPatch, pinterestExtensionPatch)
@@ -43,6 +46,7 @@ val hidePinMenuItemsPatch = bytecodePatch(
     execute {
         requireStatusMethod("hidePinMenuItems")
         requireStatusMethod("pinMenuItems")
+        requireStatusMethod("pinMenuRows")
         val modal = classDefBy(PIN_MENU)
         val viewType = modal.fields.filter { it.name == "modalView" }.one("Pin menu view field").type
         val view = mutableClassDefBy(viewType)
@@ -85,6 +89,13 @@ val hidePinMenuItemsPatch = bytecodePatch(
                 const-string v${row.scratch}, "${row.key}"
                 invoke-static { v${row.view}, v${row.scratch} }, $INTERFACE_CONTROLS->pinMenuItem(Landroid/view/View;Ljava/lang/String;)V
             """)
+        }
+        optionalTarget("Filter pin menu", "Hide pin menu rows") {
+            // Read the sheet first, so a build it can't be read on gets neither hook.
+            val sheet = pinSheetView()
+            refreshOnMeasure(view, "pinMenuRows")
+            sheet?.second?.addInstructions(0, "invoke-static/range { p1 .. p1 }, $PIN_MENU_SHEET_HOOK")
+            enableCapability("pinMenuRows")
         }
         enableCapability("pinMenuItems")
         enableStatus("hidePinMenuItems")

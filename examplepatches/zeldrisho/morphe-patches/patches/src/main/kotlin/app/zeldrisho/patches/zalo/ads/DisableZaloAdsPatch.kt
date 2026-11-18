@@ -38,10 +38,10 @@ val disableZaloAdsPatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_ZALO)
 
     execute {
-        val windows = OfflineAdsWindow.matchAll(0..1) + OfflineAdsWindow261002.matchAll(0..1)
-        val gates = OfflineAdsGate.matchAll(0..1) + OfflineAdsGate261002.matchAll(0..1)
-        val networks = GoogleAdsNetworkGate.matchAll(0..1) + GoogleAdsNetworkGate261002.matchAll(0..1)
-        val latReads = AdtimaLatRead.matchAll(0..1) + AdtimaLatRead261002.matchAll(0..1)
+        val windows = OfflineAdsWindow.matchAll(0..1) + OfflineAdsWindow261002.matchAll(0..1) + OfflineAdsWindow261101.matchAll(0..1)
+        val gates = OfflineAdsGate.matchAll(0..1) + OfflineAdsGate261002.matchAll(0..1) + OfflineAdsGate261101.matchAll(0..1)
+        val networks = GoogleAdsNetworkGate.matchAll(0..1) + GoogleAdsNetworkGate261002.matchAll(0..1) + GoogleAdsNetworkGate261101.matchAll(0..1)
+        val latReads = AdtimaLatRead.matchAll(0..1) + AdtimaLatRead261002.matchAll(0..1) + AdtimaLatRead261101.matchAll(0..1)
         check(listOf(windows.size, gates.size, networks.size, latReads.size).all { it == 1 }) {
             "Expected one offline window, tracker gate, network gate and advertising-ID worker"
         }
@@ -74,8 +74,8 @@ val disableZaloSponsoredPatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_ZALO)
 
     execute {
-        val story = StoryAdsConfig.matchAll(0..2) + StoryAdsConfig261002.matchAll(0..2)
-        val community = CommunityAdsConfig.matchAll(0..2) + CommunityAdsConfig261002.matchAll(0..2)
+        val story = StoryAdsConfig.matchAll(0..2) + StoryAdsConfig261002.matchAll(0..2) + StoryAdsConfig261101.matchAll(0..2)
+        val community = CommunityAdsConfig.matchAll(0..2) + CommunityAdsConfig261002.matchAll(0..2) + CommunityAdsConfig261101.matchAll(0..2)
         check(story.size == 2 && community.size == 2) {
             "Expected two Story and two Community ad config reads; found ${story.size} and ${community.size}"
         }

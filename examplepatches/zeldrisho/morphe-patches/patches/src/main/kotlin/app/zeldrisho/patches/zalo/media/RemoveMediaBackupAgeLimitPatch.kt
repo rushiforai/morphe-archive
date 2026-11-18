@@ -49,6 +49,26 @@ val removeZaloMediaBackupAgeLimitPatch = bytecodePatch(
 ) {
     compatibleWith(COMPATIBILITY_ZALO)
     execute {
+        val nextBackup = MediaBackupAgeFilter261101.matchAll(0..1)
+        val nextRestore = MediaRestoreAgeCutoff261101.matchAll(0..1)
+        val nextList = MediaRestoreListAgeFilter261101.matchAll(0..1)
+        if (nextBackup.isNotEmpty() || nextRestore.isNotEmpty() || nextList.isNotEmpty()) {
+            check(nextBackup.size == 1 && nextRestore.size == 1 && nextList.size == 1) {
+                "Expected all three 26.11.01 media age readers"
+            }
+            val targets = listOf(nextBackup.single().method, nextRestore.single().method, nextList.single().method).map { method ->
+                val (index, register) = locateAgeResult(method)
+                val instructions = method.implementation!!.instructions.toList()
+                val getter = (instructions.getOrNull(index - 1) as? ReferenceInstruction)?.reference?.toString()
+                check(register == 0 && getter == "Lcfj;->t(ILjava/lang/String;Z)I" &&
+                    instructions.getOrNull(index + 1)?.opcode == Opcode.IF_LEZ &&
+                    (instructions[index + 1] as? OneRegisterInstruction)?.registerA == register
+                ) { "Zalo media age limit: unexpected 26.11.01 getter or result consumer" }
+                method to index
+            }
+            targets.forEach { (method, index) -> method.replaceInstruction(index, "const/4 v0, 0x0") }
+            return@execute
+        }
         val oldBackup = MediaBackupAgeFilter.matchAll(0..1)
         val oldRestore = MediaRestoreAgeCutoff.matchAll(0..1)
         val currentBackup = MediaBackupAgeFilter261002.matchAll(0..1)

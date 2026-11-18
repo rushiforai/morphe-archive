@@ -49,23 +49,40 @@ object Constants {
     )
 
     const val INPOST_4_23_1 = "4.23.1"
+    const val INPOST_4_24_0 = "4.24.0"
 
     val COMPATIBILITY_INPOST = Compatibility(
         name = "InPost Mobile",
         packageName = "pl.inpost.inmobile",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0xFFCD00,
-        targets = listOf(AppTarget(version = INPOST_4_23_1, versionCode = 42301000)),
+        targets = listOf(
+            AppTarget(version = INPOST_4_23_1, versionCode = 42301000),
+            AppTarget(version = INPOST_4_24_0, versionCode = 42400002),
+        ),
     )
 
     const val ZABKA_4_50_0 = "4.50.0"
+    const val ZABKA_4_51_2 = "4.51.2"
 
     val COMPATIBILITY_ZABKA = Compatibility(
         name = "Żappka",
         packageName = "pl.zabka.apb2c",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x08A848,
-        targets = listOf(AppTarget(version = ZABKA_4_50_0, versionCode = 60310)),
+        targets = listOf(
+            AppTarget(version = ZABKA_4_50_0, versionCode = 60310),
+            AppTarget(version = ZABKA_4_51_2, versionCode = 60768),
+        ),
+    )
+
+    /** For Żappka patches that pin 4.51.2 home feed names. */
+    val COMPATIBILITY_ZABKA_4_51_2 = Compatibility(
+        name = "Żappka",
+        packageName = "pl.zabka.apb2c",
+        apkFileType = ApkFileType.APKM,
+        appIconColor = 0x08A848,
+        targets = listOf(AppTarget(version = ZABKA_4_51_2, versionCode = 60768)),
     )
 
     const val LIDL_PLUS_17_13_6 = "17.13.6"

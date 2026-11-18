@@ -38,10 +38,10 @@ public final class SettingRegistry {
         if (policy != null) {
             return policy;
         }
-        // Dynamic MobileConfig / Recommended Flag keys require an app restart to reload session config
-        if (key.startsWith("rec_") || key.contains(",")) {
+        // Dynamic MobileConfig / Recommended Flag / Initial Features keys require an app restart to reload session config
+        if (key.startsWith("rec_") || key.startsWith("init_") || key.contains(",") || key.contains("::")) {
             return RestartPolicy.REQUIRED;
         }
-        return Objects.requireNonNull(policy, "No restart policy declared for setting: " + key);
+        return RestartPolicy.NOT_REQUIRED;
     }
 }

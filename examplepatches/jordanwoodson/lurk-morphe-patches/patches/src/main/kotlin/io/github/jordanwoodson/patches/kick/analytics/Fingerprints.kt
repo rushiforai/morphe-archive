@@ -40,20 +40,28 @@ internal object DatadogNativeFingerprint : Fingerprint(
     name = "initialize\$datadog_mobile_react_native_release", returnType = "V",
     parameters = listOf("Lcom/datadog/reactnative/DdSdkConfiguration;", "Z"), strings = listOf("ddSdkConfiguration"),
 )
-internal object MuxInitializationFingerprint : Fingerprint(
-    definingClass = "Lcom/kick/mobile/kickivsplayerv2/KickIvsPlayerV2View;",
-    name = "initializeMuxAnalyticsListener", returnType = "V", parameters = emptyList(),
-    strings = listOf("android_ivs"),
+private const val PLAYER_V3 = "Lcom/kick/mobile/playerv3"
+
+/** Kick's player's Mux Data options: the only way to its monitor, which is the only place Mux's SDK is started. */
+internal object MuxOptionsFingerprint : Fingerprint(
+    definingClass = "$PLAYER_V3/MuxDataMonitor;", name = "setOptions", returnType = "V",
+    parameters = listOf("$PLAYER_V3/records/MuxDataOptions;", "Landroidx/media3/exoplayer/ExoPlayer;"),
 )
-internal object DatazoomApplyFingerprint : Fingerprint(
-    definingClass = "Lcom/kick/mobile/kickivsplayerv2/DatazoomAnalyticsManager;", name = "apply", returnType = "V",
-    parameters = listOf("Lcom/kick/mobile/kickivsplayerv2/DatazoomAnalyticsConfig;",
-        "Lcom/amazonaws/ivs/player/Player;", "Landroid/view/View;"), strings = listOf("player", "playerView"),
+
+/**
+ * The player view's Datazoom options: the only place its Datazoom monitor is made, which is the only caller of
+ * Datazoom's init and of MediaTailor's sessions and PAL setup.
+ */
+internal object DatazoomOptionsFingerprint : Fingerprint(
+    definingClass = "$PLAYER_V3/VideoView;", name = "setDatazoom", returnType = "V",
+    parameters = listOf("$PLAYER_V3/datazoom/DatazoomOptions;"),
 )
+
+/** generatePalNonceAsync: loads a Google PAL nonce manager for the playback request. */
 internal object PalNonceFingerprint : Fingerprint(
-    definingClass = "Lcom/kick/mobile/kickivsplayerv2/PalSDKModuleBridge;", name = "generateNonce", returnType = "V",
-    parameters = listOf("Landroid/content/Context;", "Lcom/kick/mobile/kickivsplayerv2/PalNonceRequestConfig;", EXPO_PROMISE),
-    strings = listOf("INVALID_PAL_NONCE_REQUEST", "React context is unavailable"),
+    definingClass = "$PLAYER_V3/pal/PalNonceGenerator;", name = "loadNonce", returnType = "V",
+    parameters = listOf("Landroid/content/Context;", "$PLAYER_V3/pal/PalNonceRequestOptions;", EXPO_PROMISE),
+    strings = listOf("promise"),
 )
 private const val FPJS_MODULE = "Lcom/fingerprintjs/reactnative/RNFingerprintjsProModule;"
 private val FPJS_PARAMETERS = listOf(READABLE_MAP, STRING, "Ljava/lang/Integer;", REACT_PROMISE)

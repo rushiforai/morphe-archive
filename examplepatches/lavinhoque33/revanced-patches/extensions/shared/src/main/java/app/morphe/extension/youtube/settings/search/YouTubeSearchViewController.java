@@ -13,7 +13,7 @@
  * This file is the product of multiple backports between ReVanced and RVX.
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-10
+ * Modified by lavinhoque33, 2026-11-18
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -111,6 +111,13 @@ public class YouTubeSearchViewController extends BaseSearchViewController {
     protected boolean shouldIncludePreference(Preference preference, int currentDepth, int includeDepth) {
         return !(preference instanceof AboutPreference)
                 && super.shouldIncludePreference(preference, currentDepth, includeDepth);
+    }
+
+    public void onPreferenceVisibilityChanged() {
+        initializeSearchData();
+        if (isSearchActive && !isShowingSearchHistory) {
+            super.filterAndShowResults(searchView.getQuery().toString());
+        }
     }
 
     @Override

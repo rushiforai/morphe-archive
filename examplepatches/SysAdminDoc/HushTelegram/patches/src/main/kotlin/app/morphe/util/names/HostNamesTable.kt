@@ -82,7 +82,8 @@ internal fun hostRows(table: TelegramNames.Table, strings: Set<String>): String 
     for ((key, overloads) in table.methodsByName.toSortedMap()) {
         val name = key.substringAfter("->")
         if (name !in strings) continue
-        for ((_, member) in overloads) {
+        // A row filed under a second descriptor (TelegramNames' own-names alias) is still one member.
+        for (member in overloads.map { it.second }.distinct()) {
             if (member.name == name) continue
             out.append("m ").append(dotted(member.owner)).append(' ').append(name).append(' ')
                 .append(member.descriptor.substringBefore(')')).append(") ").append(member.name).append('\n')

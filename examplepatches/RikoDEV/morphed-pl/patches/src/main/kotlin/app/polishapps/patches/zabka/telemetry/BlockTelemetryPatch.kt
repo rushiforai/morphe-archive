@@ -91,11 +91,25 @@ val blockTelemetryPatch = bytecodePatch(
             stubbed.forEach { it.prependReturn("return-void") }
         }
 
-        singleMethod("Sentry initializer") { _, method ->
+        val sentryWrapper = singleMethod("Sentry initializer") { _, method ->
             method.returnType == "V" &&
                 method.parameterTypes.isEmpty() &&
                 method.strings().let { "SentryAndroid.init" in it && "setSentryUser" in it }
-        }.prependReturn("return-void")
+        }
+        if (sentryWrapper.name == "onCreate") {
+            // 4.51.2: R8 inlined the Sentry setup into Application.onCreate, which also starts the CDP SDK,
+            // SuperSdk and the rest of the app. Returning early there hangs the splash, so stub Sentry's own
+            // static init(OptionsContainer, OptionsConfiguration) instead. Sentry then stays uninitialized
+            // (no-op hub), the same end state as stubbing a dedicated initializer.
+            singleMethod("Sentry.init") { _, method ->
+                AccessFlags.STATIC.isSet(method.accessFlags) &&
+                    method.returnType == "V" &&
+                    method.parameterTypes.size == 2 &&
+                    method.strings().any { "Please, use SentryAndroid.init" in it }
+            }.prependReturn("return-void")
+        } else {
+            sentryWrapper.prependReturn("return-void")
+        }
 
         val tracingHelper = singleMethod("Sentry transaction context helper") { _, method ->
             AccessFlags.STATIC.isSet(method.accessFlags) &&
@@ -104,19 +118,23 @@ val blockTelemetryPatch = bytecodePatch(
                 "Sentry scope was not configured" in method.strings()
         }
         val transactionContext = tracingHelper.returnType
-        val contextConstructor = classDefBy(transactionContext).methods.singleOrNull { method ->
+        val contextConstructor = classDefBy(transactionContext).methods.filter { method ->
             method.name == "<init>" && method.parameterTypeNames().let { types ->
-                types.size == 4 && types[0] == "Ljava/lang/String;" && types[2] == "Ljava/lang/String;" &&
+                types.size in 3..4 && types[0] == "Ljava/lang/String;" && types[2] == "Ljava/lang/String;" &&
                     types[1].startsWith("Lio/sentry/protocol/")
             }
-        } ?: throw PatchException("$transactionContext: (String, TransactionNameSource, String, ...) constructor not found")
-        val (nameSource, samplingDecision) = contextConstructor.parameterTypeNames().let { it[1] to it[3] }
+        }.minByOrNull { it.parameterTypes.size }
+            ?: throw PatchException("$transactionContext: (String, TransactionNameSource, String[, ...]) constructor not found")
+        val constructorTypes = contextConstructor.parameterTypeNames()
+        val nameSource = constructorTypes[1]
+        // 4.50.0 had a trailing TracesSamplingDecision parameter, 4.51.2 does not.
+        val extraArgument = constructorTypes.getOrNull(3)
         tracingHelper.prependReturn(
             """
                 new-instance v0, $transactionContext
                 sget-object v1, $nameSource->COMPONENT:$nameSource
                 const/4 v2, 0x0
-                invoke-direct {v0, p0, v1, p1, v2}, $transactionContext-><init>(Ljava/lang/String;${nameSource}Ljava/lang/String;$samplingDecision)V
+                invoke-direct {v0, p0, v1, p1${if (extraArgument != null) ", v2" else ""}}, $transactionContext-><init>(Ljava/lang/String;${nameSource}Ljava/lang/String;${extraArgument ?: ""})V
                 return-object v0
             """,
         )

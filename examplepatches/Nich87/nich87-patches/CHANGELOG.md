@@ -1,3 +1,15 @@
+## [1.2.0](https://github.com/Nich87/nich87-patches/compare/v1.1.0...v1.2.0) (2026-11-18)
+
+### ✨ New Features
+
+* Support Apple Music 7.0.1 ([df8cdd9](https://github.com/Nich87/nich87-patches/commit/df8cdd9d2dba3076fa0763a441b15e07a151843e))
+
+## [1.2.0-dev.1](https://github.com/Nich87/nich87-patches/compare/v1.1.0...v1.2.0-dev.1) (2026-11-18)
+
+### ✨ New Features
+
+* Support Apple Music 7.0.1 ([df8cdd9](https://github.com/Nich87/nich87-patches/commit/df8cdd9d2dba3076fa0763a441b15e07a151843e))
+
 ## [1.1.0](https://github.com/Nich87/nich87-patches/compare/v1.0.0...v1.1.0) (2026-11-08)
 
 ### ✨ New Features

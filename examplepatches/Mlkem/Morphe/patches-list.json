@@ -1,7 +1,89 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.0.0-dev.1",
+  "version": "1.0.0-dev.37",
   "patches": [
+    {
+      "name": "100 Zoom Earth favourites",
+      "description": "Raises the visible and add-location limits from 3 free / 30 Pro to 100 saved places. Keeps existing saved data and works independently of Pro. Phone testing pending.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.neave.zoomearth",
+          "name": "Zoom Earth",
+          "description": "Verified 6.3.3 (52) original archive or supplied working LiteAPKs APK; experimental.",
+          "apkFileType": "APK",
+          "appIconColor": null,
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "6.3.3",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": 26,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "APKMirror search for collection apps",
+      "description": "Changes Morphe Manager's download links for this collection's supported apps. Walmart Canada 26.31, Anker eufy 6.1.20_31181/6.1.30_32823 and Gmail 2026.10.26.1012468012.Release open verified APKMirror APKM pages; other versions/apps, including Gboard and Songsterr, use a package-and-version Google search restricted to APKMirror, without nodpi. Niagara Launcher and Manager itself open their official GitHub releases. Apps outside the collection keep Manager's resolver. Does not download files automatically.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "app.morphe.manager",
+          "name": "Morphe Manager",
+          "description": "Optional APKMirror search fix; use the official Manager APK from GitHub.",
+          "apkFileType": "APK",
+          "appIconColor": null,
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "2.6.0",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": 26,
+              "description": null
+            },
+            {
+              "version": "2.4.0-dev.1",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": 26,
+              "description": null
+            },
+            {
+              "version": "2.4.0-dev.2",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": 26,
+              "description": null
+            },
+            {
+              "version": "2.4.0-dev.3",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": 26,
+              "description": null
+            },
+            {
+              "version": "2.4.0-dev.4",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": 26,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
     {
       "name": "Aisle-Sorted Checklist — Canada",
       "description": "Group remaining checklist items by supplied aisle, in natural order (A2 before A10). Unknown locations last. No floor-plan routing.",
@@ -18,10 +100,159 @@
           "formFactor": "MOBILE",
           "targets": [
             {
+              "version": "26.41.2",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": null,
+              "description": null
+            },
+            {
               "version": "26.31",
               "versionCodes": null,
               "isExperimental": true,
               "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Allow TAGTHAi accessibility apps",
+      "description": "Normalizes the local accessibility result after AppGuard completes its check. Intended for accessibility services installed from any source. Other sideloaded-app restrictions and server Play Integrity checks are not bypassed. Phone testing pending.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.thaidigitalplatform.tagthai",
+          "name": "TAGTHAi",
+          "description": "Original 4.25.1 (4251001), including its device splits. Phone testing pending.",
+          "apkFileType": "APKM",
+          "appIconColor": null,
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "4.25.1",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": 28,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Allow TAGTHAi screenshots",
+      "description": "Clears FLAG_SECURE at TAGTHAi's three identified window-control sites. Allows screenshots and may expose previews in Recents. Screen-recording detection and protected third-party screens are not changed. Phone testing pending.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.thaidigitalplatform.tagthai",
+          "name": "TAGTHAi",
+          "description": "Original 4.25.1 (4251001), including its device splits. Phone testing pending.",
+          "apkFileType": "APKM",
+          "appIconColor": null,
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "4.25.1",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": 28,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Allow Zoom Earth patched installation",
+      "description": "Experimental original-APK startup attempt; dev.10 still showed Get this app from Play on the phone. Do not select for the working LiteAPKs APK. Disables two local checks, preserves native VM assets and does not grant paid server access.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.neave.zoomearth",
+          "name": "Zoom Earth",
+          "description": "Original 6.3.3 (52) DEX required; experimental startup compatibility patch.",
+          "apkFileType": "APKM",
+          "appIconColor": null,
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "6.3.3",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": 32,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Auto-confirm Eufy mobile-data streaming",
+      "description": "Accepts only the exact Mobile Data Consuming streaming prompt. Checks Don't show again when exposed as a standard checkbox; other prompts, Wi-Fi and camera transport are unchanged. A brief prompt flash is possible. Phone testing pending.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.oceanwing.battery.cam",
+          "name": "Anker eufy",
+          "description": "Original APKMirror APKM including the required asset-pack split. 6.1.20_31181: statically verified, phone testing pending. 6.1.30_32823: CANDIDATE ONLY; input DEX, UI IDs and native startup are not yet verified. Fail closed if the protected Activity factory shape changes.",
+          "apkFileType": "APKM",
+          "appIconColor": null,
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "6.1.20_31181",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": 29,
+              "description": null
+            },
+            {
+              "version": "6.1.30_32823",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": 29,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Automatic app folders",
+      "description": "Automatically sorts newly installed apps into native Niagara folders in Favorites, then hides their separate app-list icons after saving. Ten local categories with live switches in Settings > Productivity > Auto folders. Includes sort-existing and restore controls. Unknown apps go to Other Apps. Preserves pinned favorites, manually hidden apps and other profiles. Niagara 1.16.37 only; phone testing pending.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "bitpit.launcher",
+          "name": "Niagara Launcher",
+          "description": "Use official Niagara Launcher v1.16.37 (version code 1643) from NiagaraLauncher/Niagara-Issues on GitHub. Experimental until phone tested.",
+          "apkFileType": "APK",
+          "appIconColor": null,
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "1.16.37",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": 26,
               "description": null
             }
           ]
@@ -45,6 +276,13 @@
           "formFactor": "MOBILE",
           "targets": [
             {
+              "version": "26.41.2",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": null,
+              "description": null
+            },
+            {
               "version": "26.31",
               "versionCodes": null,
               "isExperimental": true,
@@ -58,7 +296,7 @@
     },
     {
       "name": "Default Lists Tab — Canada",
-      "description": "Open Lists when entering My Items. Walmart Canada 26.31.",
+      "description": "Open Lists when entering My Items. Walmart Canada 26.31 and 26.41.2.",
       "default": true,
       "category": null,
       "compatiblePackages": [
@@ -71,6 +309,13 @@
           "signatures": null,
           "formFactor": "MOBILE",
           "targets": [
+            {
+              "version": "26.41.2",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": null,
+              "description": null
+            },
             {
               "version": "26.31",
               "versionCodes": null,
@@ -86,14 +331,14 @@
     {
       "name": "Disable Expo updates and backup restore",
       "description": "Forces the app to use the bundled local Hermes asset instead of cached Expo OTA updates or restored app data.",
-      "default": true,
+      "default": false,
       "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.musicleague.app",
           "name": "Music League",
           "description": null,
-          "apkFileType": "APK",
+          "apkFileType": "XAPK",
           "appIconColor": "#9E00C4",
           "signatures": null,
           "formFactor": "MOBILE",
@@ -104,6 +349,13 @@
               "isExperimental": false,
               "minSdk": null,
               "description": null
+            },
+            {
+              "version": "1.4.11",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": null,
+              "description": null
             }
           ]
         }
@@ -111,9 +363,44 @@
       "options": []
     },
     {
+      "name": "Disable Gboard floating and one-handed modes",
+      "description": "Suppresses long-press popups containing one-handed mode, including holding Enter, and prevents automatic, toolbar and restored floating or one-handed keyboard activation. Select alongside your usual Gboard patches on the original Gboard APK. Preserves normal and split modes. Phone testing pending.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.google.android.inputmethod.latin",
+          "name": "Gboard",
+          "description": "Optional add-on for stock Gboard 18.5.4 arm64. Can be selected with the standard Gboard patches, including GboardWu package rename, in one run.",
+          "apkFileType": "APK",
+          "appIconColor": null,
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "18.5.4.993608717-release-arm64-v8a",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": 26,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Disable Play Store updates",
+      "description": "Disables Play Store updates by setting the version code to the maximum allowed. This patch may cause unexpected issues with some apps and does not work if the app is installed by root mounting",
+      "default": false,
+      "category": null,
+      "compatiblePackages": null,
+      "options": []
+    },
+    {
       "name": "Disable Wongnai Google ads",
-      "description": "Stops the identified Google banner, native and interstitial ad loaders in Wongnai 12.11.0, and uses its existing photo-ad fallback.",
-      "default": true,
+      "description": "Stops the identified Google banner, native and interstitial ad loaders in Wongnai 12.11.0, and uses its existing photo-ad fallback. Phone testing pending.",
+      "default": false,
       "category": null,
       "compatiblePackages": [
         {
@@ -128,7 +415,7 @@
             {
               "version": "12.11.0",
               "versionCodes": null,
-              "isExperimental": false,
+              "isExperimental": true,
               "minSdk": null,
               "description": null
             }
@@ -140,14 +427,14 @@
     {
       "name": "Disable ad SDK manifest components",
       "description": "Disables bundled ad mediation components and removes ad identifier/ad services permissions.",
-      "default": true,
+      "default": false,
       "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.musicleague.app",
           "name": "Music League",
           "description": null,
-          "apkFileType": "APK",
+          "apkFileType": "XAPK",
           "appIconColor": "#9E00C4",
           "signatures": null,
           "formFactor": "MOBILE",
@@ -156,6 +443,13 @@
               "version": "1.4.9",
               "versionCodes": null,
               "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "1.4.11",
+              "versionCodes": null,
+              "isExperimental": true,
               "minSdk": null,
               "description": null
             }
@@ -167,14 +461,14 @@
     {
       "name": "Disable ad and promo remote config",
       "description": "Blackholes ad/paywall/reward feature-flag keys and remote promo payload keys so the app cannot enable ad or upsell surfaces from remote config.",
-      "default": true,
+      "default": false,
       "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.musicleague.app",
           "name": "Music League",
           "description": null,
-          "apkFileType": "APK",
+          "apkFileType": "XAPK",
           "appIconColor": "#9E00C4",
           "signatures": null,
           "formFactor": "MOBILE",
@@ -183,6 +477,162 @@
               "version": "1.4.9",
               "versionCodes": null,
               "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "1.4.11",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Enable GPS Emulator Pro",
+      "description": "GPS Emulator 3.36 (336): enables the app's shared Pro setting and 1,000 favourites at startup, and prevents billing callbacks from resetting Pro settings. Built against the original APKMirror APKM. Phone testing pending.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.rosteam.gpsemulator",
+          "name": "GPS Emulator",
+          "description": "Enable Pro on original 3.36",
+          "apkFileType": "APKM",
+          "appIconColor": null,
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "3.36",
+              "versionCodes": {},
+              "isExperimental": true,
+              "minSdk": 29,
+              "description": "Version code 336; phone testing pending"
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Enable Pro file-type handling",
+      "description": "Open with 1.2.1 (11) and 1.4 (20) local test: enables the shared Pro flag used by file-type settings and routing, and removes the two Play installation licence startup calls for a re-signed build. Phone testing pending.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.openwith.app",
+          "name": "Open with",
+          "description": "Pro file-type handling test",
+          "apkFileType": "APK",
+          "appIconColor": null,
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "1.2.1",
+              "versionCodes": {},
+              "isExperimental": true,
+              "minSdk": 32,
+              "description": "Version code 11; phone testing pending"
+            },
+            {
+              "version": "1.4",
+              "versionCodes": {},
+              "isExperimental": true,
+              "minSdk": 32,
+              "description": "Version code 20; phone testing pending"
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Enable Songsterr premium features",
+      "description": "Songsterr 7.1.6 (2012282388): selects the highest local access tier for player controls, premium UI and ad gating. Does not grant a server subscription, AI quota or unavailable content. Requires the verified original split bundle; phone testing pending.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.songsterr",
+          "name": "Songsterr",
+          "description": "Original 7.1.6 (2012282388) split bundle, or its merged APK. Keep all native/resource splits.",
+          "apkFileType": "APKM",
+          "appIconColor": null,
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "7.1.6",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": 32,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Enable Zoom Earth Pro features",
+      "description": "Enables local Pro controls, hides Pro upsells and permits up to ten daily forecast rows when data is supplied. Paid radar/model data still uses the real account entitlement; this does not create a subscription. Phone testing pending.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.neave.zoomearth",
+          "name": "Zoom Earth",
+          "description": "Verified 6.3.3 (52) original archive or supplied working LiteAPKs APK; experimental.",
+          "apkFileType": "APK",
+          "appIconColor": null,
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "6.3.3",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": 26,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Extract native libraries for merged XAPK",
+      "description": "Fixes the 1.4.11 missing-components startup path by requiring Android to extract bundled native libraries to disk. Does not bypass integrity or premium checks.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.musicleague.app",
+          "name": "Music League",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#9E00C4",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "1.4.9",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "1.4.11",
+              "versionCodes": null,
+              "isExperimental": true,
               "minSdk": null,
               "description": null
             }
@@ -207,6 +657,13 @@
           "formFactor": "MOBILE",
           "targets": [
             {
+              "version": "26.41.2",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": null,
+              "description": null
+            },
+            {
               "version": "26.31",
               "versionCodes": null,
               "isExperimental": true,
@@ -219,25 +676,25 @@
       "options": []
     },
     {
-      "name": "Hermes hide ad promo surfaces",
-      "description": "Experimental Hermes bytecode edit: makes ad-card components return null. May prevent startup; opt in only for testing.",
+      "name": "Gmail account visibility",
+      "description": "Adds Account visibility to Gmail settings and a long press on the account avatar. Hide or show individual switcher accounts, with Show all recovery. Keeps the current account visible. Does not hide mail, All inboxes, notifications or Android accounts. Creates a separate GmsCore copy; phone testing pending.",
       "default": false,
       "category": null,
       "compatiblePackages": [
         {
-          "packageName": "com.musicleague.app",
-          "name": "Music League",
-          "description": null,
-          "apkFileType": "APK",
-          "appIconColor": "#9E00C4",
+          "packageName": "com.google.android.gm",
+          "name": "Gmail",
+          "description": "Original APKMirror arm64 build 66141086. Separate no-root copy requires ReVanced GmsCore. Sign-in, sync and phone UI testing are pending.",
+          "apkFileType": "APKM",
+          "appIconColor": null,
           "signatures": null,
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "1.4.9",
+              "version": "2026.10.26.1012468012.Release",
               "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": null,
+              "isExperimental": true,
+              "minSdk": 29,
               "description": null
             }
           ]
@@ -261,10 +718,85 @@
           "formFactor": "MOBILE",
           "targets": [
             {
+              "version": "26.41.2",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": null,
+              "description": null
+            },
+            {
               "version": "26.31",
               "versionCodes": null,
               "isExperimental": true,
               "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Hide Eufy Discover, Smart and Shop",
+      "description": "Hides Discover, Smart and Shop in the main bottom navigation, retaining original tab indices. Restored hidden tabs return to Home. Other Smart controls, cameras, events and Profile are preserved. Phone testing pending.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.oceanwing.battery.cam",
+          "name": "Anker eufy",
+          "description": "Original APKMirror APKM including the required asset-pack split. 6.1.20_31181: statically verified, phone testing pending. 6.1.30_32823: CANDIDATE ONLY; input DEX, UI IDs and native startup are not yet verified. Fail closed if the protected Activity factory shape changes.",
+          "apkFileType": "APKM",
+          "appIconColor": null,
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "6.1.20_31181",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": 29,
+              "description": null
+            },
+            {
+              "version": "6.1.30_32823",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": 29,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Hide Eufy promotions",
+      "description": "Collapses the identified camera-home marketing and AI offer banners and promotional inbox cards, and closes the identified shopping and solar-panel offer popups. No network blocking or notification filtering; remote/React Native offers may remain. Phone testing pending.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.oceanwing.battery.cam",
+          "name": "Anker eufy",
+          "description": "Original APKMirror APKM including the required asset-pack split. 6.1.20_31181: statically verified, phone testing pending. 6.1.30_32823: CANDIDATE ONLY; input DEX, UI IDs and native startup are not yet verified. Fail closed if the protected Activity factory shape changes.",
+          "apkFileType": "APKM",
+          "appIconColor": null,
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "6.1.20_31181",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": 29,
+              "description": null
+            },
+            {
+              "version": "6.1.30_32823",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": 29,
               "description": null
             }
           ]
@@ -283,14 +815,14 @@
     {
       "name": "Neutralize bundled ad unit IDs and premium banners",
       "description": "Replaces bundled ad unit IDs and premium/reward banner copy in the Hermes bundle with same-length non-serving/blank values while leaving the AdMob app ID intact.",
-      "default": true,
+      "default": false,
       "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.musicleague.app",
           "name": "Music League",
           "description": null,
-          "apkFileType": "APK",
+          "apkFileType": "XAPK",
           "appIconColor": "#9E00C4",
           "signatures": null,
           "formFactor": "MOBILE",
@@ -299,6 +831,13 @@
               "version": "1.4.9",
               "versionCodes": null,
               "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "1.4.11",
+              "versionCodes": null,
+              "isExperimental": true,
               "minSdk": null,
               "description": null
             }
@@ -310,14 +849,14 @@
     {
       "name": "Neutralize premium and reward-ad prompts",
       "description": "Force-removes the remaining premium/reward banner strings from the bundled Hermes asset.",
-      "default": true,
+      "default": false,
       "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.musicleague.app",
           "name": "Music League",
           "description": null,
-          "apkFileType": "APK",
+          "apkFileType": "XAPK",
           "appIconColor": "#9E00C4",
           "signatures": null,
           "formFactor": "MOBILE",
@@ -328,6 +867,13 @@
               "isExperimental": false,
               "minSdk": null,
               "description": null
+            },
+            {
+              "version": "1.4.11",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": null,
+              "description": null
             }
           ]
         }
@@ -336,7 +882,7 @@
     },
     {
       "name": "Patch Tools — Canada",
-      "description": "Replace Sparky's bottom tab with Patch tools: live ad/recording controls, searchable price trends, watchlists and targets, CSV/JSON export and restore, scanner, shopping calculators and diagnostics.",
+      "description": "Replace Sparky with a card-based tools menu: stock checker, barcode scanner, price history, shopping calculators, settings and backups. Includes Back navigation and dark-mode support.",
       "default": true,
       "category": null,
       "compatiblePackages": [
@@ -349,6 +895,13 @@
           "signatures": null,
           "formFactor": "MOBILE",
           "targets": [
+            {
+              "version": "26.41.2",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": null,
+              "description": null
+            },
             {
               "version": "26.31",
               "versionCodes": null,
@@ -377,6 +930,13 @@
           "formFactor": "MOBILE",
           "targets": [
             {
+              "version": "26.41.2",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": null,
+              "description": null
+            },
+            {
               "version": "26.31",
               "versionCodes": null,
               "isExperimental": true,
@@ -391,14 +951,14 @@
     {
       "name": "Pin local Expo config",
       "description": "Neutralizes Expo OTA update configuration in the bundled Expo config so the APK prefers local bundled assets.",
-      "default": true,
+      "default": false,
       "category": null,
       "compatiblePackages": [
         {
           "packageName": "com.musicleague.app",
           "name": "Music League",
           "description": null,
-          "apkFileType": "APK",
+          "apkFileType": "XAPK",
           "appIconColor": "#9E00C4",
           "signatures": null,
           "formFactor": "MOBILE",
@@ -407,6 +967,13 @@
               "version": "1.4.9",
               "versionCodes": null,
               "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "1.4.11",
+              "versionCodes": null,
+              "isExperimental": true,
               "minSdk": null,
               "description": null
             }
@@ -430,6 +997,13 @@
           "signatures": null,
           "formFactor": "MOBILE",
           "targets": [
+            {
+              "version": "26.41.2",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": null,
+              "description": null
+            },
             {
               "version": "26.31",
               "versionCodes": null,
@@ -458,6 +1032,13 @@
           "formFactor": "MOBILE",
           "targets": [
             {
+              "version": "26.41.2",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": null,
+              "description": null
+            },
+            {
               "version": "26.31",
               "versionCodes": null,
               "isExperimental": true,
@@ -470,9 +1051,36 @@
       "options": []
     },
     {
+      "name": "Quiet Zoom Earth prompts",
+      "description": "Disables automatic subscription popups and review requests. Manual subscription actions, permission prompts and weather/outage notices remain available. Phone testing pending.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.neave.zoomearth",
+          "name": "Zoom Earth",
+          "description": "Verified 6.3.3 (52) original archive or supplied working LiteAPKs APK; experimental.",
+          "apkFileType": "APK",
+          "appIconColor": null,
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "6.3.3",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": 26,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Remove LiteAPKS nag",
-      "description": "Removes the injected LiteAPKS / 9MOD promotional popup from Zoom Earth.",
-      "default": true,
+      "description": "Legacy Zoom Earth 6.1 LiteAPKS/9MOD popup cleanup. Both original fingerprints must match; unverified on a phone.",
+      "default": false,
       "category": null,
       "compatiblePackages": [
         {
@@ -487,7 +1095,41 @@
             {
               "version": "6.1",
               "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Remove Music League ad card container",
+      "description": "Experimental 1.4.11 fix for the empty home-screen ad card. Returns null from AdsCard to remove its container and spacing; opt in after backing up app data.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.musicleague.app",
+          "name": "Music League",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#9E00C4",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "1.4.9",
+              "versionCodes": null,
               "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "1.4.11",
+              "versionCodes": null,
+              "isExperimental": true,
               "minSdk": null,
               "description": null
             }
@@ -512,10 +1154,71 @@
           "formFactor": "MOBILE",
           "targets": [
             {
+              "version": "26.41.2",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": null,
+              "description": null
+            },
+            {
               "version": "26.31",
               "versionCodes": null,
               "isExperimental": true,
               "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Remove Zoom Earth LiteAPKs promotions",
+      "description": "Removes the two injected promotional startup calls from the supplied working LiteAPKs 6.3.3 APK. Preserves its restored startup methods and DEX layout. Use this APK as input; do not select the original-only startup patch. Phone retest required.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.neave.zoomearth",
+          "name": "Zoom Earth",
+          "description": "Exact supplied LiteAPKs 6.3.3 (52) APK required; original Play archive is not supported by this patch.",
+          "apkFileType": "APK",
+          "appIconColor": null,
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "6.3.3",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": 26,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Remove Zoom Earth ads",
+      "description": "Stops the bundled banner controller from initializing or showing ads, and collapses the ad footer. Works independently of Pro. Phone testing pending.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.neave.zoomearth",
+          "name": "Zoom Earth",
+          "description": "Verified 6.3.3 (52) original archive or supplied working LiteAPKs APK; experimental.",
+          "apkFileType": "APK",
+          "appIconColor": null,
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "6.3.3",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": 26,
               "description": null
             }
           ]
@@ -538,6 +1241,13 @@
           "signatures": null,
           "formFactor": "MOBILE",
           "targets": [
+            {
+              "version": "26.41.2",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": null,
+              "description": null
+            },
             {
               "version": "26.31",
               "versionCodes": null,
@@ -566,10 +1276,44 @@
           "formFactor": "MOBILE",
           "targets": [
             {
+              "version": "26.41.2",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": null,
+              "description": null
+            },
+            {
               "version": "26.31",
               "versionCodes": null,
               "isExperimental": true,
               "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Select TAGTHAi text",
+      "description": "Adds a movable Select text button and a native copy/select panel for visible Flutter accessibility text. Requests semantics only after tapping Select text; no system accessibility service is needed. Does not add inline selection or OCR. Phone testing pending.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.thaidigitalplatform.tagthai",
+          "name": "TAGTHAi",
+          "description": "Original 4.25.1 (4251001), including its device splits. Phone testing pending.",
+          "apkFileType": "APKM",
+          "appIconColor": null,
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "4.25.1",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": 28,
               "description": null
             }
           ]
@@ -593,6 +1337,13 @@
           "formFactor": "MOBILE",
           "targets": [
             {
+              "version": "26.41.2",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": null,
+              "description": null
+            },
+            {
               "version": "26.31",
               "versionCodes": null,
               "isExperimental": true,
@@ -606,7 +1357,7 @@
     },
     {
       "name": "Stock Availability — Canada",
-      "description": "Show Walmart's supplied availability and message below list item names. Unknown stays unknown; purchase limits are never treated as inventory counts.",
+      "description": "Show list availability. On 26.41.2, read product-detail quantities into Patch tools → Stock checker with separate pickup, delivery and shipping labels. Missing numbers stay unknown; no watchlist or order-limit guesses.",
       "default": true,
       "category": null,
       "compatiblePackages": [
@@ -619,6 +1370,13 @@
           "signatures": null,
           "formFactor": "MOBILE",
           "targets": [
+            {
+              "version": "26.41.2",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": null,
+              "description": null
+            },
             {
               "version": "26.31",
               "versionCodes": null,
@@ -633,7 +1391,7 @@
     },
     {
       "name": "Workouts: force CrossFit class",
-      "description": "On the Workouts page, automatically selects CrossFit class from the Class type dropdown.",
+      "description": "On Workouts, defaults the visible category dropdown to CrossFit Class on each visit.",
       "default": true,
       "category": null,
       "compatiblePackages": [
@@ -648,6 +1406,20 @@
           "targets": [
             {
               "version": "3.42.0",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "3.44.0",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "3.45.0",
               "versionCodes": null,
               "isExperimental": true,
               "minSdk": null,

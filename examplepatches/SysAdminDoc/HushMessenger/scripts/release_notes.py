@@ -2,13 +2,13 @@
 
 Publish used to post the CHANGELOG section as it stood, so v0.27.0's body was rewritten by hand
 afterwards. This writes that body: the source index description's summary, then New in this
-release, Fixes and changes and Behind the scenes with every bullet of the section word for word,
-the reports the release changed something for, a link to the changelog, How to update and What was
-checked, the last filled in from the walk receipt publish has already checked. The run stops on a
-group heading it doesn't know, text outside a bullet, a dash the project's writing rules keep out
-of public text, or a body that doesn't carry every bullet exactly once.
+release and Fixes and changes with every bullet of the section word for word, the reports the
+release changed something for, a link to the changelog and How to update. The Docs and Checks
+bullets stay in the CHANGELOG, since the notes are for the people patching Messenger. The run stops
+on a group heading it doesn't know, text outside a bullet, a dash the project's writing rules keep
+out of public text, or a body that doesn't carry every bullet it shows exactly once.
 
-    py -3.13 -I scripts/release_notes.py --version 0.28.0 --walk <walk folder>/walk-receipt.json --out notes.md
+    py -3.13 -I scripts/release_notes.py --version 0.28.0 --out notes.md
 """
 
 from __future__ import annotations
@@ -26,28 +26,12 @@ GROUPS = {
     "Settings": "New in this release",
     "Reported issues": "Fixes and changes",
     "Changed and fixed": "Fixes and changes",
-    "Docs": "Behind the scenes",
-    "Checks": "Behind the scenes",
 }
-PARTS = ("New in this release", "Fixes and changes", "Behind the scenes")
+PARTS = ("New in this release", "Fixes and changes")
+# Groups the CHANGELOG keeps and the notes leave out.
+LEFT_OUT = ("Docs", "Checks")
 # Em and en dashes, and spaced hyphens standing in for one.
 DASHES = (chr(0x2014), chr(0x2013), " - ", " -- ")
-# The release walk phones by ro.product.model, as walk-receipt.ps1 lists them.
-PHONES = {"SM-S908U1": "a Galaxy S22 Ultra", "SM-S938B": "a Galaxy S25 Ultra"}
-# What each walk step opened, in plain words.
-STEPS = {
-    "chat": "a chat",
-    "inbox": "the inbox",
-    "settings-controls": "the HushMessenger Controls tab",
-    "settings-app": "the HushMessenger App tab",
-    "message-log": "the message log",
-    "auto-reply": "auto reply",
-    "settings": "Messenger's own settings",
-    "story-settings": "story settings",
-    "contact-settings": "contact settings",
-}
-# Record lines that name the APK rather than a hook, which Get-FamilyCodes in release.ps1 skips too.
-RECORD_FACTS = re.compile(r"^(#|version |code |sha256 )")
 
 
 class NotesError(Exception):
@@ -67,22 +51,27 @@ def read_section(changelog: str, version: str) -> str:
 
 
 def read_groups(section: str) -> dict[str, list[str]]:
-    """The section's bullets under the part of the body each group goes to."""
+    """The section's bullets under the part of the body each group goes to, Docs and Checks left out."""
     parts: dict[str, list[str]] = {part: [] for part in PARTS}
     group = None
+    seen = 0
     for line in section.split("\n"):
         if not line.strip():
             continue
         if line.startswith("### "):
             group = line[4:].strip()
-            if group not in GROUPS:
-                raise NotesError(f"the ### {group} group isn't one the notes know ({', '.join(GROUPS)})")
+            if group not in GROUPS and group not in LEFT_OUT:
+                raise NotesError(f"the ### {group} group isn't one the notes know ({', '.join([*GROUPS, *LEFT_OUT])})")
         elif line.startswith("- ") and group:
-            parts[GROUPS[group]].append(line[2:].strip())
+            seen += 1
+            if group in GROUPS:
+                parts[GROUPS[group]].append(line[2:].strip())
         else:
             raise NotesError(f"the section has text outside a bullet under a ### group: {line.strip()[:60]!a}")
-    if not any(parts.values()):
+    if not seen:
         raise NotesError("the section has no bullets")
+    if not any(parts.values()):
+        raise NotesError("the section has only Docs and Checks bullets, which the notes leave out")
     return parts
 
 
@@ -133,43 +122,15 @@ def read_patch_count(root: Path, version: str) -> int:
     return len(catalog["patches"])
 
 
-def read_builds(root: Path) -> tuple[list[str], int]:
-    """The version codes of the Messenger builds with a profile record, and how many families their hooks make."""
+def read_builds(root: Path) -> list[str]:
+    """The version codes of the Messenger builds with a profile record."""
     records = sorted((root / "scripts/profiles").glob("*.txt"))
     if not records:
         raise NotesError("scripts/profiles has no records")
-    families = set()
-    for record in records:
-        lines = record.read_text(encoding="utf-8").splitlines()
-        families.add("\n".join(line for line in lines if not RECORD_FACTS.match(line)))
-    return [record.stem for record in records], len(families)
+    return [record.stem for record in records]
 
 
-def read_walk(path: Path) -> str:
-    """One sentence on where the walk ran and what it opened."""
-    receipt = json.loads(path.read_text(encoding="utf-8-sig"))
-    if receipt.get("result") != "PASS" or receipt.get("crashes") != 0:
-        raise NotesError(f"the walk receipt at {path} isn't a passing walk with no crashes")
-    if receipt.get("emulator"):
-        device = f"an emulator on Android API {receipt['sdk']}" if receipt.get("sdk") else "an emulator"
-    else:
-        device = PHONES.get(receipt.get("device"), f"a {receipt.get('device')}")
-    opened = [step["id"] for step in receipt.get("steps") or [] if step.get("opened") is True]
-    if not opened:
-        raise NotesError(f"the walk receipt at {path} lists no screen it opened")
-    names = []
-    for step in opened:
-        if step in ("settings-controls", "settings-app") and {"settings-controls", "settings-app"} <= set(opened):
-            if step == "settings-controls":
-                names.append("both HushMessenger settings tabs")
-            continue
-        names.append(STEPS.get(step, step.replace("-", " ")))
-    screens = spoken(names)
-    return (f"An APK patched from this exact bundle was installed on {device}, signed in to Messenger. "
-            f"{screens[0].upper()}{screens[1:]} all opened, with no crashes.")
-
-
-def build_notes(root: Path, version: str, walk: Path) -> str:
+def build_notes(root: Path, version: str) -> str:
     section = read_section((root / "CHANGELOG.md").read_text(encoding="utf-8"), version)
     parts = read_groups(section)
     bullets = [bullet for part in PARTS for bullet in parts[part]]
@@ -177,7 +138,7 @@ def build_notes(root: Path, version: str, walk: Path) -> str:
     target, page = read_target(readme)
     manager = read_floor(readme, "Morphe Manager", r"Morphe Manager \((\d+(?:\.\d+)+) or newer\)")
     desktop = read_floor(readme, "Morphe Desktop", r"Morphe Desktop (\d+(?:\.\d+)+) or newer")
-    codes, families = read_builds(root)
+    codes = read_builds(root)
     builds = len(codes)
 
     blocks = [read_summary(root, version)]
@@ -206,14 +167,6 @@ def build_notes(root: Path, version: str, walk: Path) -> str:
     blocks.append(f"Patching on a computer? `patches-{version}.mpp` below is the same bundle for Morphe Desktop {desktop} "
                   "or newer. It's a patch bundle, not a Messenger APK. `SHA256SUMS.txt` and its signature let you "
                   "check the download, and the README says how.")
-    blocks.append("### What was checked")
-    family_text = "the one build family" if families == 1 else f"each of the {families} build families"
-    build_text = f"the one Messenger {target} build" if builds == 1 else f"all {builds} Messenger {target} builds"
-    blocks.append("\n".join([
-        f"- The full test suite, plus a patch run against {build_text} on file.",
-        f"- Morphe Desktop patched and rebuilt one APK from {family_text}.",
-        f"- {read_walk(walk)}",
-    ]))
     body = "\n\n".join(blocks) + "\n"
 
     lines = body.split("\n")
@@ -230,11 +183,10 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="The GitHub release body for one CHANGELOG section.")
     parser.add_argument("--root", default=str(Path(__file__).resolve().parents[1]))
     parser.add_argument("--version", required=True)
-    parser.add_argument("--walk", required=True, help="the walk-receipt.json publish checked")
     parser.add_argument("--out", required=True)
     args = parser.parse_args(argv)
     try:
-        body = build_notes(Path(args.root), args.version, Path(args.walk))
+        body = build_notes(Path(args.root), args.version)
     except NotesError as error:
         print(f"release notes: {error}", file=sys.stderr)
         return 1

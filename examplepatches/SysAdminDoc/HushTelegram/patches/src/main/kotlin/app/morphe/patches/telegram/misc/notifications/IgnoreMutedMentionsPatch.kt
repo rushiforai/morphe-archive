@@ -47,7 +47,7 @@ private const val FORUM = "$CONTROLLER->isForum($MESSAGE_OBJECT)Z"
 private val VIRTUAL = setOf(Opcode.INVOKE_VIRTUAL, Opcode.INVOKE_VIRTUAL_RANGE)
 
 /** How far the sender swap may sit after the mention flag's read: the pinned-message skip comes between. */
-private const val SWAP_REACH = 12
+private const val SWAP_REACH = 16
 
 @Suppress("unused")
 val ignoreMutedMentionsPatch = bytecodePatch(
@@ -58,7 +58,7 @@ val ignoreMutedMentionsPatch = bytecodePatch(
 ) {
     category("Notifications")
     dependsOn(settingsPatch, telegramExtensionPatch)
-    compatibleWith(*AppCompatibilities.telegramOnly())
+    compatibleWith(*AppCompatibilities.telegram())
     execute {
         val sites = resolveIgnoreMutedMentions()
         // Assembled on copies first, so a refusal leaves the app untouched.

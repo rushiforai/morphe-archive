@@ -18,7 +18,7 @@ mkdir -p out
 DEFAULTS=()
 for p in "Samsung framework compatibility" "Manifest compatibility" "Crash fixes" "Treat as pen device" \
     "Finger drawing" "Pen button actions" "Backup to folder" "Folder sync" "Samsung account sign-in" \
-    "Turn off telemetry" "Branding"; do DEFAULTS+=(-e "$p"); done
+    "Turn off telemetry" "System file picker" "Branding"; do DEFAULTS+=(-e "$p"); done
 $JAVA21 -Xmx6g -jar tools/morphe-cli.jar patch --exclusive \
     -p build/notes-patches.mpp "${DEFAULTS[@]}" "$@" \
     -p tools/morphe-patches.mpp -e "Clone app" -O packageName=$PKG \

@@ -8,7 +8,6 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.PlusPending
 import app.morphe.hostsOf
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.util.smali.ExternalLabel
@@ -43,7 +42,6 @@ internal fun chatListAvatarHosts(build: File): List<ClassDef> = AVATAR_HOSTS.hos
 }
 
 /** The chat row's layout, ImageReceiver and the runtime. */
-@PlusPending
 class ChatListAvatarFixtureTest {
     @Test fun `the extension gets the avatar's square right after each layout sets it`() {
         for (build in Fixtures.declaredBuilds()) {
@@ -51,8 +49,20 @@ class ChatListAvatarFixtureTest {
             val context = PatchContexts.of((ExtensionDex.classes() + chatListAvatarHosts(build)).distinctBy { it.type })
             val plan = context.resolveChatListAvatar()
             assertTrue("$name: ${plan.cellType}", plan.cellType.startsWith("Lorg/telegram/ui/Cells/"))
-            // Both builds read the square into v11 off the row in v1, which the layout moves there first.
-            assertEquals(name, listOf(11 to 1, 11 to 1), plan.squares.map { it.rect to it.cell })
+            // Each square and its row as the stock layout names them: the set's RectF, read off the row's params. Both
+            // layouts use the same pair (v11 off v1 on Telegram's own builds, v12 off v1 on Plus Messenger).
+            val stock = plan.method.controlBody()
+            fun loadOf(register: Int, before: Int) = (before - 1 downTo 0).first { stock[it].opcode == Opcode.IGET_OBJECT && stock[it].namedRegisters().first() == register }
+            for (square in plan.squares) {
+                assertEquals(name, RECT_SET, stock[square.index].controlRef())
+                val rect = stock[square.index].namedRegisters().first()
+                val load = loadOf(rect, square.index)
+                val params = loadOf(stock[load].namedRegisters()[1], load)
+                assertEquals(name, rect to stock[params].namedRegisters()[1], square.rect to square.cell)
+            }
+            assertEquals(name, 2, plan.squares.size)
+            assertEquals(name, 1, plan.squares.map { it.rect to it.cell }.distinct().size)
+            val pairs = plan.squares.sortedBy { it.index }.map { listOf(it.rect, it.cell) }
             val old = ImmutableMethod.of(plan.method)
             context.writeChatListAvatarStubs(plan)
             plan.apply()
@@ -64,9 +74,9 @@ class ChatListAvatarFixtureTest {
             val hooks = sets.mapIndexed { i, set -> set + 1 + i }
             assertEquals(name, hooks, after.indices.filter { after[it].controlRef() == AVATAR_RESIZE })
             val flow = ControlFlow.of(plan.method)
-            for (at in hooks) {
+            for ((i, at) in hooks.withIndex()) {
                 assertEquals(Opcode.INVOKE_STATIC, after[at].opcode)
-                assertEquals("$name: the square and the row", listOf(11, 1), after[at].namedRegisters())
+                assertEquals("$name: the square and the row", pairs[i], after[at].namedRegisters())
                 assertEquals(RECT_SET, after[at - 1].controlRef())
                 assertEquals("$name: only the set reaches the hook", listOf(at - 1), flow.normal.indices.filter { at in flow.normal[it] })
             }

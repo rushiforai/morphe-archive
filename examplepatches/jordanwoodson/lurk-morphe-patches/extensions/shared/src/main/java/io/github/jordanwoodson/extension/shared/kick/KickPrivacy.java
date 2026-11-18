@@ -6,9 +6,7 @@ import java.net.URI;
 import java.net.URLDecoder;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -42,14 +40,6 @@ public final class KickPrivacy {
         if (!Settings.isRegistered(BLOCK_FINGERPRINTING) || !Settings.isEnabled(BLOCK_FINGERPRINTING)) return false;
         Logger.blocked("FingerprintJS device fingerprint request");
         return true;
-    }
-
-    /** The existing Expo/Hermes unavailable-SDK contract, resolved once by the injected bridge. */
-    public static Map<String, Object> unavailablePalNonce() {
-        Map<String, Object> result = new LinkedHashMap<>();
-        result.put("sdkAvailable", false);
-        result.put("nonce", "");
-        return result;
     }
 
     /** Same return contract as Intent.putExtra; subjects, attachments and destinations stay intact. */

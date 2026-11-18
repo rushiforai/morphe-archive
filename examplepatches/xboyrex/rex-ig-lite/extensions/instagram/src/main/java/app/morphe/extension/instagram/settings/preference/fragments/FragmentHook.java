@@ -58,7 +58,11 @@ public class FragmentHook {
         } else if (Constants.REX_FRAGMENT_INSTANTS.equals(key)) {
             actionBarTitleKey = "rex_instants_title";
         } else if (Constants.REX_FRAGMENT_FONT.equals(key)) {
-            actionBarTitleKey = "rex_category_font";
+            actionBarTitleKey = "Typography & Emojis";
+        } else if (Constants.REX_FRAGMENT_INITIAL_FEATURES.equals(key)) {
+            actionBarTitleKey = "Initial Features";
+        } else if (Constants.REX_FRAGMENT_CACHE_CLEANER.equals(key)) {
+            actionBarTitleKey = "App Cache Cleaner";
         }
 
         if (actionBarTitleKey != null) {

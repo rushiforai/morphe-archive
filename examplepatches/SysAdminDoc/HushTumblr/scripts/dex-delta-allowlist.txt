@@ -65,6 +65,10 @@ method Lcom/tumblr/rumblr/model/post/asset/Filtered;->hushFilteredTags()Ljava/ut
 implements Lcom/tumblr/rumblr/model/post/Post; Lapp/hushtumblr/extension/tumblr/timeline/HushLikedPost;
 method Lcom/tumblr/rumblr/model/post/Post;->hushLiked()Z b46508ac7839e43be1b88acd71d672605653d0abc5b8ee7caf87436faac5b666
 
+[Hide reblogs]
+implements Lcom/tumblr/rumblr/model/post/Post; Lapp/hushtumblr/extension/tumblr/timeline/HushCommunityPost;
+method Lcom/tumblr/rumblr/model/post/Post;->hushCommunity()Ljava/lang/Object; 7134682be9938d99df1a4a849300b372f53106bf2580aae6b51b8b9c52f82c29
+
 [Hide reblogs of your posts]
 implements Lcom/tumblr/UserInfo; Lapp/hushtumblr/extension/tumblr/timeline/HushAccountBlogs;
 implements Lcom/tumblr/rumblr/model/blog/ShortBlogInfo; Lapp/hushtumblr/extension/tumblr/timeline/HushAccountBlog;
@@ -84,6 +88,11 @@ method Lcom/tumblr/rumblr/model/activity/ActivityNotification;->hushNotification
 [Tags open the blog's tag search]
 implements Lcom/tumblr/ui/widget/t$b; Lapp/hushtumblr/extension/tumblr/ui/HushTagBlog;
 method Lcom/tumblr/ui/widget/t$b;->hushTagBlogName()Ljava/lang/String; e1559a150b2b9ab10f354ca7f22f46c8cfa42d2f2ddd4c4571b3af16ac9efa0a
+
+[Tap to play feed videos]
+implements Lmyl; Lapp/hushtumblr/extension/tumblr/ui/HushFeedVideo;
+method Lmyl;->hushPlayInPlace()I f1ecd3d654f8f373a507fea72a937283165e138c9c904595ba5afdbfe286b724
+method Lmyl;->hushPausePlayback()V abdf601e41820834ad074a2f8dd87f23becdfe3e4c272c2b92fe9532fa4c0c59
 
 [Visible image descriptions]
 implements Lcom/tumblr/rumblr/model/post/blocks/ImageBlock; Lapp/hushtumblr/extension/tumblr/ui/HushImageDescription;

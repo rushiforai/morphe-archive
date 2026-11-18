@@ -74,8 +74,8 @@ public class CaptionToolsTest {
         // the fixture says what they stand for here rather than repeating this build's numbers.
         int textId = View.generateViewId();
         int backgroundId = View.generateViewId();
-        CaptionStyle.resolveForTests("47.8.3:dol", textId);
-        CaptionStyle.resolveForTests("47.8.3:doe", backgroundId);
+        CaptionStyle.resolveForTests("47.9.1:dtc", textId);
+        CaptionStyle.resolveForTests("47.9.1:dt6", backgroundId);
         FrameLayout root = new FrameLayout(Utils.getContext());
         TextView text = new TextView(Utils.getContext());
         text.setId(textId);
@@ -108,8 +108,8 @@ public class CaptionToolsTest {
     @Test public void chosenCaptionBackgroundKeepsTikToksRoundedCorners() {
         int textId = View.generateViewId();
         int backgroundId = View.generateViewId();
-        CaptionStyle.resolveForTests("47.8.3:dol", textId);
-        CaptionStyle.resolveForTests("47.8.3:doe", backgroundId);
+        CaptionStyle.resolveForTests("47.9.1:dtc", textId);
+        CaptionStyle.resolveForTests("47.9.1:dt6", backgroundId);
         FrameLayout root = new FrameLayout(Utils.getContext());
         FrameLayout strip = new FrameLayout(Utils.getContext());
         strip.setId(backgroundId);
@@ -156,8 +156,8 @@ public class CaptionToolsTest {
     @Test public void chosenCaptionBackgroundUsesTikToksCornersWhateverShapeItCopies() {
         int textId = View.generateViewId();
         int backgroundId = View.generateViewId();
-        CaptionStyle.resolveForTests("47.8.3:dol", textId);
-        CaptionStyle.resolveForTests("47.8.3:doe", backgroundId);
+        CaptionStyle.resolveForTests("47.9.1:dtc", textId);
+        CaptionStyle.resolveForTests("47.9.1:dt6", backgroundId);
         FrameLayout root = new FrameLayout(Utils.getContext());
         FrameLayout strip = new FrameLayout(Utils.getContext());
         strip.setId(backgroundId);
@@ -406,15 +406,15 @@ public class CaptionToolsTest {
     @Test public void aBuildWithoutTheCaptionIdsSaysSoOnTheHookStatusRow() {
         HookStatus.clear();
         // What a reshuffled resource table looks like from here: the names resolve to nothing.
-        CaptionStyle.resolveForTests("47.8.3:dol", 0);
-        CaptionStyle.resolveForTests("47.8.3:doe", 0);
+        CaptionStyle.resolveForTests("47.9.1:dtc", 0);
+        CaptionStyle.resolveForTests("47.9.1:dt6", 0);
         Settings.CAPTION_TEXT_SIZE.save(32);
         Settings.CAPTION_BACKGROUND.save("black");
 
         CaptionStyle.apply(new FrameLayout(Utils.getContext()));
 
         assertTrue(HookStatus.anyMissing());
-        assertEquals(java.util.Arrays.asList("view id '47.8.3:dol'", "view id '47.8.3:doe'"),
+        assertEquals(java.util.Arrays.asList("view id '47.9.1:dtc'", "view id '47.9.1:dt6'"),
                 HookStatus.missing("captions"));
         assertTrue(String.join(" ", HookStatus.report()).contains("captions"));
         HookStatus.clear();
@@ -431,8 +431,8 @@ public class CaptionToolsTest {
         CaptionStyle.resetLookupsForTests();
         // The ids resolve, which is what tells this apart from the case above. They just are
         // not the views in this container.
-        CaptionStyle.resolveForTests("47.8.3:dol", View.generateViewId());
-        CaptionStyle.resolveForTests("47.8.3:doe", View.generateViewId());
+        CaptionStyle.resolveForTests("47.9.1:dtc", View.generateViewId());
+        CaptionStyle.resolveForTests("47.9.1:dt6", View.generateViewId());
         Settings.CAPTION_TEXT_SIZE.save(32);
         Settings.CAPTION_BACKGROUND.save("black");
 
@@ -444,7 +444,7 @@ public class CaptionToolsTest {
         assertTrue("a build where neither caption view is reachable says nothing",
                 HookStatus.anyMissing());
         assertEquals(java.util.Arrays.asList(
-                        "view caption container#47.8.3:dol", "view caption container#47.8.3:doe"),
+                        "view caption container#47.9.1:dtc", "view caption container#47.9.1:dt6"),
                 HookStatus.missing("captions"));
         HookStatus.clear();
         CaptionStyle.resetLookupsForTests();
@@ -460,8 +460,8 @@ public class CaptionToolsTest {
     @Test public void anEmptyRendererIsNotAMissHoweverManyTimesItArrives() {
         HookStatus.clear();
         CaptionStyle.resetLookupsForTests();
-        CaptionStyle.resolveForTests("47.8.3:dol", View.generateViewId());
-        CaptionStyle.resolveForTests("47.8.3:doe", View.generateViewId());
+        CaptionStyle.resolveForTests("47.9.1:dtc", View.generateViewId());
+        CaptionStyle.resolveForTests("47.9.1:dt6", View.generateViewId());
         Settings.CAPTION_TEXT_SIZE.save(32);
         Settings.CAPTION_BACKGROUND.save("black");
 
@@ -480,8 +480,8 @@ public class CaptionToolsTest {
         CaptionStyle.resetLookupsForTests();
         int textId = View.generateViewId();
         int backgroundId = View.generateViewId();
-        CaptionStyle.resolveForTests("47.8.3:dol", textId);
-        CaptionStyle.resolveForTests("47.8.3:doe", backgroundId);
+        CaptionStyle.resolveForTests("47.9.1:dtc", textId);
+        CaptionStyle.resolveForTests("47.9.1:dt6", backgroundId);
         Settings.CAPTION_TEXT_SIZE.save(32);
         Settings.CAPTION_BACKGROUND.save("black");
 
@@ -520,8 +520,8 @@ public class CaptionToolsTest {
         HookStatus.clear();
         CaptionStyle.resetLookupsForTests();
         int textId = View.generateViewId();
-        CaptionStyle.resolveForTests("47.8.3:dol", textId);
-        CaptionStyle.resolveForTests("47.8.3:doe", View.generateViewId());
+        CaptionStyle.resolveForTests("47.9.1:dtc", textId);
+        CaptionStyle.resolveForTests("47.9.1:dt6", View.generateViewId());
         Settings.CAPTION_TEXT_SIZE.save(32);
         Settings.CAPTION_BACKGROUND.save("black");
 
@@ -536,7 +536,7 @@ public class CaptionToolsTest {
                 text.getTextSize() > 16);
         assertEquals("the half of the build that works was reported as broken, or the half "
                         + "that does not was not reported at all",
-                java.util.Collections.singletonList("view caption container#47.8.3:doe"),
+                java.util.Collections.singletonList("view caption container#47.9.1:dt6"),
                 HookStatus.missing("captions"));
         HookStatus.clear();
         CaptionStyle.resetLookupsForTests();
@@ -553,8 +553,8 @@ public class CaptionToolsTest {
         CaptionStyle.resetLookupsForTests();
         int textId = View.generateViewId();
         int backgroundId = View.generateViewId();
-        CaptionStyle.resolveForTests("47.8.3:dol", textId);
-        CaptionStyle.resolveForTests("47.8.3:doe", backgroundId);
+        CaptionStyle.resolveForTests("47.9.1:dtc", textId);
+        CaptionStyle.resolveForTests("47.9.1:dt6", backgroundId);
         Settings.CAPTION_TEXT_SIZE.save(32);
         Settings.CAPTION_BACKGROUND.save("black");
 
@@ -626,7 +626,7 @@ public class CaptionToolsTest {
     }
 
     /**
-     * Clear display carried over a swipe (#428). On 47.8.3 TikTok clears the incoming video about
+     * Clear display carried over a swipe (#428). On 47.9.1 TikTok clears the incoming video about
      * 25 ms before the feed names it current, so the kept line came back on the first video only:
      * every video after a swipe got its cues with clear display off.
      */
@@ -685,7 +685,7 @@ public class CaptionToolsTest {
             activity.setContentView(content);
             owner.windowFocusChanged(true);
             app.morphe.extension.tiktok.blockauthor.FeedVisibility.resolveForTests(
-                    activity.getPackageName(), "47.8.3:oqd", home.getId());
+                    activity.getPackageName(), "47.9.1:oxj", home.getId());
             try {
                 Settings.KEEP_CAPTIONS_CLEAR_DISPLAY.save(true);
                 CaptionTools.onVideoChanged("cleared-video");
@@ -731,7 +731,7 @@ public class CaptionToolsTest {
                         View.GONE, caption.getVisibility());
             } finally {
                 app.morphe.extension.tiktok.blockauthor.FeedVisibility.resolveForTests(
-                        activity.getPackageName(), "47.8.3:oqd", 0);
+                        activity.getPackageName(), "47.9.1:oxj", 0);
             }
         }
     }
@@ -747,7 +747,7 @@ public class CaptionToolsTest {
             var activity = owner.get();
             Utils.setContext(activity);
             int stripId = View.generateViewId();
-            CaptionStyle.resolveForTests("47.8.3:doe", stripId);
+            CaptionStyle.resolveForTests("47.9.1:dt6", stripId);
             FrameLayout source = new FrameLayout(activity);
             FrameLayout strip = new FrameLayout(activity);
             strip.setId(stripId);
@@ -768,8 +768,9 @@ public class CaptionToolsTest {
             TextView caption = find(decor, "Before any strip");
             assertNotNull(caption);
             int fallback = Math.round(12 * activity.getResources().getDisplayMetrics().density) * 8;
-            assertEquals("with no strip seen yet the line should keep its old spot",
-                    fallback, ((FrameLayout.LayoutParams) caption.getLayoutParams()).bottomMargin);
+            assertEquals("with no strip seen yet the line should sit about where TikTok's would (#456)",
+                    Math.max(fallback, decor.getHeight() / 5),
+                    ((FrameLayout.LayoutParams) caption.getLayoutParams()).bottomMargin);
 
             CaptionTools.onClear(new Video("first"), false);
             strip.setVisibility(View.VISIBLE);
@@ -805,7 +806,7 @@ public class CaptionToolsTest {
             var activity = owner.get();
             Utils.setContext(activity);
             int stripId = View.generateViewId();
-            CaptionStyle.resolveForTests("47.8.3:doe", stripId);
+            CaptionStyle.resolveForTests("47.9.1:dt6", stripId);
             FrameLayout source = new FrameLayout(activity);
             FrameLayout strip = new FrameLayout(activity);
             strip.setId(stripId);
@@ -863,7 +864,7 @@ public class CaptionToolsTest {
             var activity = owner.get();
             Utils.setContext(activity);
             int stripId = View.generateViewId();
-            CaptionStyle.resolveForTests("47.8.3:doe", stripId);
+            CaptionStyle.resolveForTests("47.9.1:dt6", stripId);
             FrameLayout source = new FrameLayout(activity);
             FrameLayout strip = new FrameLayout(activity);
             strip.setId(stripId);
@@ -912,6 +913,89 @@ public class CaptionToolsTest {
     }
 
     /**
+     * #456: TikTok draws a video's first caption during the swipe, before the feed names that
+     * video current, and doesn't send it again. Dropping it left the kept line empty until the
+     * second caption, seconds in. A caption TikTok hides on that video stays hidden.
+     */
+    @Test public void theFirstCaptionDrawnDuringTheSwipeIsKept() {
+        try (var owner = Robolectric.buildActivity(CaptionActivity.class).setup().visible()) {
+            var activity = owner.get();
+            Utils.setContext(activity);
+            FrameLayout content = new FrameLayout(activity);
+            FrameLayout first = new FrameLayout(activity);
+            FrameLayout second = new FrameLayout(activity);
+            FrameLayout third = new FrameLayout(activity);
+            content.addView(first);
+            content.addView(second);
+            content.addView(third);
+            activity.setContentView(content);
+            owner.windowFocusChanged(true);
+            Settings.KEEP_CAPTIONS_CLEAR_DISPLAY.save(true);
+            CaptionTools.onVideoChanged("first");
+            CaptionTools.onCaption(first, "first", "EXPANDED", "First video");
+            CaptionTools.onClear(new Video("first"), true);
+            TextView caption = find(activity.getWindow().getDecorView(), "First video");
+            assertNotNull(caption);
+
+            CaptionTools.onCaption(second, "second", "EXPANDED", "Opening line");
+            assertEquals("the next video's line showed before the swipe landed",
+                    "First video", caption.getText().toString());
+            CaptionTools.onClear(new Video("first"), false);
+            CaptionTools.onClear(new Video("second"), true);
+            CaptionTools.onVideoChanged("second");
+            assertEquals("the line drawn during the swipe was lost", "Opening line", caption.getText().toString());
+            assertEquals(View.VISIBLE, caption.getVisibility());
+
+            CaptionTools.onCaption(third, "third", "HIDDEN", "Already burned into the video");
+            CaptionTools.onClear(new Video("second"), false);
+            CaptionTools.onClear(new Video("third"), true);
+            CaptionTools.onVideoChanged("third");
+            assertEquals("a caption TikTok hides came back", View.GONE, caption.getVisibility());
+        }
+    }
+
+    /**
+     * #456: the kept line covered the progress bar. Whatever spot it was given, it stays above a
+     * bar that's showing, and goes back to that spot when the bar is hidden.
+     */
+    @Test @Config(qualifiers = "w360dp-h780dp-xxhdpi")
+    public void theKeptLineStaysAboveTheProgressBar() {
+        try (var owner = Robolectric.buildActivity(CaptionActivity.class).setup().visible()) {
+            var activity = owner.get();
+            Utils.setContext(activity);
+            int barId = View.generateViewId();
+            CaptionStyle.resolveForTests("video_seek_bar", barId);
+            FrameLayout source = new FrameLayout(activity);
+            View bar = new View(activity);
+            bar.setId(barId);
+            FrameLayout.LayoutParams spot = new FrameLayout.LayoutParams(-1, 30, android.view.Gravity.BOTTOM);
+            spot.bottomMargin = 500;
+            source.addView(bar, spot);
+            activity.setContentView(source);
+            owner.windowFocusChanged(true);
+            Settings.KEEP_CAPTIONS_CLEAR_DISPLAY.save(true);
+            Settings.CAPTION_CLEAR_DISPLAY_SPOT.save("bottom");
+            View decor = activity.getWindow().getDecorView();
+
+            CaptionTools.onVideoChanged("bar");
+            lay(decor);
+            CaptionTools.onCaption(source, "bar", "EXPANDED", "Over the bar");
+            CaptionTools.onClear(new Video("bar"), true);
+            lay(decor);
+            TextView caption = find(decor, "Over the bar");
+            assertNotNull(caption);
+            assertEquals(View.VISIBLE, caption.getVisibility());
+            assertTrue("the kept line covers the progress bar", bottom(caption) <= bottom(bar) - bar.getHeight());
+
+            bar.setVisibility(View.GONE);
+            CaptionTools.onCaption(source, null, "EXPANDED", "No bar now");
+            lay(decor);
+            assertEquals("with the bar hidden the line should go back to its spot",
+                    decor.getHeight() - decor.getPaddingBottom() - Math.round(dp(12)) * 8, bottom(caption));
+        }
+    }
+
+    /**
      * Every frame used to overwrite the spot, so the last frame of a strip sliding away in a swipe
      * stuck, and the next video's line went halfway up or down to the edge. A window of another
      * height can't use a spot read in this one either.
@@ -922,7 +1006,7 @@ public class CaptionToolsTest {
             var activity = owner.get();
             Utils.setContext(activity);
             int stripId = View.generateViewId();
-            CaptionStyle.resolveForTests("47.8.3:doe", stripId);
+            CaptionStyle.resolveForTests("47.9.1:dt6", stripId);
             FrameLayout source = new FrameLayout(activity);
             FrameLayout strip = new FrameLayout(activity);
             strip.setId(stripId);

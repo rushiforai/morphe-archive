@@ -397,6 +397,9 @@ Keep tagged reblogs	Reblogs mit Tags behalten
 When reblogs are hidden, keep ones with tags. Other post filters still apply.	Behält Reblogs mit Tags, wenn Reblogs ausgeblendet sind. Andere Beitragsfilter gelten weiter.
 Keep reblogs with added content	Reblogs mit eigenem Inhalt behalten
 When reblogs are hidden, keep ones where the reblogger added something of their own. Other post filters still apply.	Behält Reblogs, bei denen jemand etwas Eigenes hinzugefügt hat, wenn Reblogs ausgeblendet sind. Andere Beitragsfilter gelten weiter.
+# context: an option under Hide reblogs on the Feed page, and its summary
+Keep reblogs in communities	Reblogs in Communities behalten
+When reblogs are hidden, keep ones shared to a community. Other post filters still apply.	Behält Reblogs, die in einer Community geteilt wurden, wenn Reblogs ausgeblendet sind. Andere Beitragsfilter gelten weiter.
 Hide your own reblogs	Eigene Reblogs ausblenden
 Takes the reblogs you made out of your dashboard. Your blog and the rest of Tumblr still show them.	Entfernt die Reblogs, die du gemacht hast, aus deinem Dashboard. Dein Blog und der Rest von Tumblr zeigen sie weiterhin.
 # context: a switch on the Feed page, next to Hide your own reblogs. It hides posts where someone else reblogged a post you made, or reblogged it from you.
@@ -499,6 +502,12 @@ Couldn't update muted posts. Try again.	Stummgeschaltete Posts konnten nicht akt
 # context: the Share video links switch on the Posts page, and its summary
 Share video links	Videolinks teilen
 Long-press a video in a post to share or copy its link, or save it.	Halte ein Video in einem Beitrag gedrückt, um seinen Link zu teilen oder zu kopieren oder es zu speichern.
+# context: the Fit full-screen videos switch on the Interface page, and its summary. Tall means taller than it is wide
+Fit full-screen videos	Vollbildvideos einpassen
+Shows tall videos whole when you open them full screen, instead of cutting off the sides.	Zeigt hohe Videos im Vollbild ganz, statt die Seiten abzuschneiden.
+# context: the Tap to play feed videos switch on the Interface page, and its summary. A stopped video is one not playing right now
+Tap to play feed videos	Videos im Feed per Tippen abspielen
+Tap a stopped video in your feed to play it right there. Tap it again while it plays to open it full screen.	Tippe auf ein angehaltenes Video in deinem Feed, um es direkt dort abzuspielen. Tippe noch einmal, während es läuft, um es im Vollbild zu öffnen.
 # context: the Sharper images switch on the Posts page, and its summary
 Sharper images	Schärfere Bilder
 Loads images in posts at a higher resolution. Uses more data.	Lädt Bilder in Beiträgen in höherer Auflösung. Verbraucht mehr Daten.

@@ -60,7 +60,7 @@ jobs:
         uses: actions/attest-build-provenance@v4
         with:
           subject-name: 'Morphe Patches ${{ steps.release.outputs.new_release_git_tag }}'
-          subject-path: patches/build/libs/patches-*.mpp
+          subject-path: patches/build/libs/patches-*[0-9].mpp
 
       # No release means nothing proved the code still compiles, so build it here.
       - name: Verify the bundle compiles

@@ -6,26 +6,20 @@ Apply the same workflow used for Rumble and Kick: inspect the original app, impl
 the viable equivalents of the existing patches, verify the resulting APK and runtime
 settings, and publish a tested stable Lurk release through the repository workflow.
 
-The supported target is `tv.twitch.android.app` **31.8.0**, version code **3108006**.
-The patches were written against 31.6.0 (3106006), moved to 31.7.0 (3107006) on 2026-10-21 and to
-31.8.0 on 2026-10-29. Two APKMirror bundles of 31.8.0 are stored with `bin/apk-add`, which verified
-their signature, in `apks/twitch/31.8.0/`: the arm64-v8a 480-640 dpi bundle for phones (Android 10+,
-the default input) and the arm64-v8a, x86 and x86_64 480 dpi bundle (Android 8.0+) that emulator
-installs pick. The phone bundle's base APK SHA-256 is
-`09fad5136771353a7cd7748f894d406f03b6c129e3e637287f98baf5c48666a4`.
-
-Support for Google Play's 31.9.0 (3109006) was written in commit b50dd0a and taken back out because
-APKMirror lists only 31.9.0_BETA, a different build, so Morphe Manager's download link sent people to the
-beta. Once `bin/manager-link twitch 31.9.0` reports APKMirror's 31.9.0 release page, revert the commit that
-removed it (its generic `falseProperty` change for 32-bit string reads stayed); b50dd0a's message and its
-version of this page say what changed for the patches.
+The supported target is `tv.twitch.android.app` **32.1.0**, version code **3201006**.
+The patches were written against 31.6.0 (3106006), moved to 31.7.0 (3107006) on 2026-10-21, to
+31.8.0 (3108006) on 2026-10-29, to 31.9.0 on 2026-11-04 (rolled back the next day: APKMirror only had
+`31.9.0_BETA`, a different build, so Morphe Manager couldn't download it) and to 32.1.0 on 2026-11-18, the
+first release after 31.8.0 that APKMirror lists as stable and `bin/manager-link` passes for. The stored input
+is APKMirror's universal bundle (arm64-v8a, armeabi-v7a, x86 and x86_64; ldpi to xxhdpi; Android 12L+) in
+`apks/twitch/32.1.0/`; `bin/apk-add` verified its signature. Its x86_64 code lets the emulator run it without
+ARM translation, and the arm64 code is what phones get.
 
 Allowed sources are APKMirror, Google Play and Uptodown (see [CONTRIBUTING.md](../CONTRIBUTING.md)).
 The variants used are listed here:
 
-- [APKMirror release and variants](https://www.apkmirror.com/apk/twitch-interactive-inc/twitch/twitch-live-streaming-31-8-0-release/)
-- [APKMirror arm64-v8a bundle](https://www.apkmirror.com/apk/twitch-interactive-inc/twitch/twitch-live-streaming-31-8-0-release/twitch-live-streaming-31-8-0-android-apk-download/)
-- [APKMirror arm64-v8a + x86 + x86_64 bundle](https://www.apkmirror.com/apk/twitch-interactive-inc/twitch/twitch-live-streaming-31-8-0-release/twitch-live-streaming-31-8-0-4-android-apk-download/)
+- [Google Play](https://play.google.com/store/apps/details?id=tv.twitch.android.app)
+- [Uptodown versions](https://twitch.en.uptodown.com/android/versions)
 
 What changed from 31.6.0 to 31.7.0 for the patches: the React Native bundle (still Hermes v98)
 renumbered its strings, functions, literals and registers, and the React Native player moved its
@@ -46,11 +40,46 @@ by byte anchors and size checks (Hide Clips' three clip callbacks, compared by h
 The version-pinned tests that name R8-renamed classes, string or resource IDs or Metro module numbers
 were moved to 31.8.0's, and the stock bundle's SHA-256 they pin with it.
 
+What changed from 31.8.0 to 31.9.0: the bundle (still Hermes v98) has a new SHA-256, renumbered again, and its
+string table passed 65,535 entries, so some property reads now use the 32-bit `GetByIdLong`; `falseProperty`
+handles both forms. `SkylineLeaderboardTrophy` no longer takes a `hasBoards` prop but calls
+`useChannelLeaderboard()` and returns null without `hasLeaderboard`, which Hide chat highlights now reads as
+false. `SubscribeButton` gained a third render path (a primary-variant button) next to the text and icon
+buttons, so Hide subscription upsells guards three returns. The compiler-pinned edits (Hide Clips in
+`DiscoveryFeedContent`, whose pager array is now r96 with the jump past the third child at 0x6f61, and the
+player's Share button) were re-derived from 31.9.0's disassembly; an old Hide Clips pattern matched a different
+three-element array in 31.9.0, which the offset check caught. Natively, the Ultralight player's eligibility now
+reads `R.bool.isTablet` and leaves tablets on the native player; Tablet layout hooks that read too. The
+version-pinned tests (Hermes offsets and registers, Metro module numbers) were moved to 31.9.0's; the stock
+bundle's SHA-256 is now read from `Hermes.kt` by every test that checks it.
+
+What changed from 31.9.0 to 32.1.0: the bundle (still Hermes v98) has a new SHA-256 and renumbered again. The
+compiler-pinned Hermes edits were re-derived from 32.1.0's disassembly: Hide Clips in `DiscoveryFeedContent`
+(pager array r97, built from r98; the jump past the third child goes to 0x711b; its hook props gained
+`onSubfeedRequested` and `onEntrySurfaceRequested`, so `openClipDeepLink` is slot 7 in r86 with memo slot 220,
+and the free register for the native clip callback is r163), the player's Share button (onShare r35, props
+r85), Hide subscription upsells' primary-button cache jump (its object literal got shorter), and Block display
+ads' FeedAd branch, which `isEdgeVisible` now reads as `context.removedAdIds.has(node.id)`. `wireEvents` keeps
+each event's name in an environment of its own before it creates the handler closure, so Show deleted messages
+finds the clearchat subscriber with that store in between. Natively, R8 now merges far more classes: the drops
+notification presenter shares a class with eight other presenters (its view-event handler is the one whose
+lambda tests for the Claim event, and that lambda's constructor takes the merged presenter type), the IRC event
+parser shares one too, and getters such as `DropPresentation`'s drop were inlined into field reads. The chat
+image loader moved its height-constraint check into the constructor of its Glide target and reads box sizes
+through getters on the placeholder drawable, so Chat image size hooks that constructor and Chat appearance
+reads the size class from the placeholder at each return of the box size. The player presenters add themselves
+to the Guest Star pause registry's set inline, so Sleep timer hands the set over from the registry's
+constructor. `isTablet` gained a third read, the same Ultralight check inlined in the main screen's second
+splash, which Tablet layout hooks as well. The chat notice mapper lost its "TestModerator has been a moderator
+for 2 years!" string to a class of its own; its fingerprint uses `msg-param-gift-months` and `qa_partner`
+instead. The version-pinned tests were moved to 32.1.0's names, offsets and module numbers; several now find
+fields by type or pick a merged class's constructor by what it does instead of by name.
+
 APKMirror reports the signing certificate SHA-256 as
 `1338f9b049893cc70b78432a177582f90bd4bc6296ea4ed35bcc7df59687ac53`.
 The supplied APK's verified signature matches this certificate, which is now pinned
 in `twitch/shared/Constants.kt`. Decompiled Java, smali and resources are under
-`$MORPHE_WORK/twitch/31.8.0/` (`bin/decompile twitch`). Twitch also embeds a Hermes v98 React Native bundle
+`$MORPHE_WORK/twitch/32.1.0/` (`bin/decompile twitch`). Twitch also embeds a Hermes v98 React Native bundle
 and web-view JavaScript; native screens alone do not cover every feature.
 
 ## Coverage
@@ -393,7 +422,8 @@ fills in.
 string), which *Force ExoPlayer* plays through without ever reaching IVS
 ([issue #70](https://github.com/jordanwoodson/lurk-morphe-patches/issues/70); checked on the emulator with
 Force ExoPlayer on: the debug log shows `sleep timer: play on …core.b`, and the stream pauses when the time is up). It pauses through the Guest Star pause-all registry (native
-and portal) and through `TwitchMediaSessionModule`/`FeedPlayerRegistry` (React Native), so background
+and portal; the registry's constructor hands its player set to the extension, since 32.1.0 player presenters
+add themselves to that set inline) and through `TwitchMediaSessionModule`/`FeedPlayerRegistry` (React Native), so background
 audio can be resumed from its notification. The time can also be changed without leaving the stream
 ([issue #52](https://github.com/jordanwoodson/lurk-morphe-patches/issues/52)): the player's settings sheet
 (the gear; `stream_settings_fragment`, whose view holder looks its rows up in its constructor, found by the
@@ -788,7 +818,8 @@ presentation (`DropPresentation(change=…)`) of its list in one case of a merge
 state from the presentation and pushes it with `RxPresenter`'s state call. Right after that push,
 `TwitchDrops.presented(presenter, presentation)` runs. When the presentation's drop is a `Claimable(…)` whose
 instance ID it hasn't claimed in this process, it makes the presenter's own view-event handler (the
-`(presenter, case)` lambda its view binding subscribes to the view's `EventDispatcher` with) and hands it the
+`(presenter, case)` lambda its view binding subscribes to the view's `EventDispatcher` with; since 32.1.0 R8
+merges the presenter with others, so it is the one of those lambdas that tests for the Claim event) and hands it the
 Claim button's event, `Claim(claimingState=<the drop>, secondsPassedUntilClaim=0)`, through bridge stubs. That
 is the handler a tap reaches: it marks the drop as claiming, sends Twitch's `ClaimDropRewardsMutation` with the
 drop instance ID through the account's GraphQL client, and reports its "claim" analytics event (blocked by
@@ -1206,7 +1237,10 @@ the second seeked to 26:29.
 
 *Tablet layout* makes Twitch read its tablet resources as true. `isTablet` switches the form factor
 to Tablet, so Home and the player rotate and the player shows chat beside the video in landscape.
-`is_tablet` only affects the cast dialogs. `following_drawer_use_sidebar` gives the navigation rail,
+Since 31.9.0 Twitch also reads `isTablet` when it decides whether the React Native (Ultralight) player may
+run, and keeps tablets on the native one; with the switch on, the phone gets the native player too, as a
+real tablet does. 32.1.0 also inlines that check in the main screen's second splash (an Ultralight launch
+screen only phones get), and Tablet layout hooks that read the same way. `is_tablet` only affects the cast dialogs. `following_drawer_use_sidebar` gives the navigation rail,
 in landscape only unless "Navigation rail in portrait" is on: signed in, Twitch opens its 320 dp
 Following sidebar next to the rail, which would leave almost no room in portrait.
 
@@ -1387,7 +1421,7 @@ fragment (not part of the bundle): the row draws with the ghost icon after Priva
 opens Lurk settings. Reaching it the normal way, signed in, needs an account and wasn't checked.
 
 The original Hermes v98 bundle SHA-256 is
-`059f4713e0cea80b58e68b675fb05d63053056869e2ac60c79f5d57567a3e583` (31.8.0).
+`f3508182cc0581604ba637179d6f34e9bd93cb64c90b11d861f452930592b163` (32.1.0).
 Patch-time parsing pins that hash/version, verifies function boundaries and unique
 instruction patterns, and permits only equal-length non-overlapping edits. Every edit also passes
 `HermesBundle.requireSafeEdit`, which decodes the function with the v98 instruction lengths
@@ -1437,6 +1471,34 @@ without fatal exceptions, missing-method errors or verification errors in the
 captured startup logs. The native-only ad/consent selection has exactly two controls,
 leaves the RN loader untouched and retains the original Hermes asset without a
 manifest. The independent interface/playback selection also patches successfully.
+
+Moving to 32.1.0 was checked on 2026-11-18 with APKMirror's universal bundle, on the emulator (x86_64): with every
+patch selected, all 57 patches apply (`bin/bump`), and the default selection applies its 45. `bin/verify-hooks`
+finds all 152 expected hooks (Playlist proxy's in a build with a proxy URL set) and that every branch of the
+1,310 hooked methods lands on an instruction. `bin/test-host`, `bin/test-twitch-interface-hermes`,
+`bin/test-twitch-chat-hermes`, `tests/twitch/test_privacy_hermes.py` (74 edits in 65 functions, all-off restoring
+the stock bundle), every `bin/test-twitch*` ART probe, the stock negative controls of `bin/test-twitch-interface`
+and `bin/test-twitch-playback`, and the apktool-output checks (`verify_resources.py`, `verify_settings.py`,
+`verify_privacy.py`, `verify_interface_emitted.py`, `verify_playback_bytecode.py`, `verify_playback_js.py` with
+its stock negative control, `verify_quality_js.py`) pass. `bin/test-twitch-ad-backup`'s live stage failed once
+with the backup playlist not fetched (the emulator's network was timing out on 7TV and FrankerFaceZ at the
+time) and passed when run again. In the app, signed out, a build with every patch but Clone app starts on Home
+with the Clips tab gone, opens Lurk settings ("Twitch 32.1.0"), and plays a live channel in the native theatre
+with the latency badge, exact viewer count, chat timestamps, deleted messages kept and 7TV badges; a stitched
+pre-roll was muted, moved to picture-by-picture and back to the channel after 35 s (debug log). Twitch still
+refuses to sign in on the emulator, so the signed-in features (emote picker, favorites, autocomplete, Auto-claim
+channel points and Drops) were checked through their ART probes only, not in the app.
+
+Moving to 31.9.0 was checked on 2026-11-04: with every patch selected, all 54 patches apply (`bin/bump`), and
+the default selection applies its 42. `bin/verify-hooks` finds every expected hook (Playlist proxy's in a build with
+a proxy URL set) and that every branch of the 1,193 hooked methods lands on an instruction; `bin/test-twitch`
+counts 142 extension methods called from app code. `bin/test-host`, `bin/test-twitch-interface-hermes`,
+`bin/test-twitch-chat-hermes` and `tests/twitch/test_privacy_hermes.py` (72 edits in 63 functions, all-off
+restoring the stock bundle) pass, and so does every `bin/test-twitch*` ART probe with its stock negative controls.
+The ART probes ran on the emulator with the arm64 Play build (they only load dex); the phone's ART refuses
+`sun.misc.Unsafe`, which they use to build Twitch objects without running constructors. On the development phone
+(Android 16), signed in with a test account, the default build starts on Following with that choice, plays a
+dual-format stream in the vertical view, and shows the Sleep timer row in the player's settings sheet.
 
 Moving to 31.8.0 was checked on 2026-10-29: with every patch selected and without `-f`, all 54
 patches apply to both stored bundles (the phone bundle with a Playlist proxy URL set, so that its
@@ -1507,18 +1569,19 @@ patched APK as `assets/lurk/locators.json`:
 `ChatArtProbe`, `AdsProbe`, `PrivacyAdsProbe` and `HighlightsArtProbe` read the file through
 `ProbeLocators.java`, and `verify_privacy.py` and `verify_interface_emitted.py` through `locators.py`;
 other classes come from the located ones by reflection (constructor and parameter types, the one
-method of a signature). Each lookup carries the 31.7.0 name as a fallback, used while an APK has no
-locators. Still pinned, to 31.8.0's names: what no patch matches (in `HighlightsArtProbe` the state flag
-fields, the raid highlight, notice kinds, callout lambda, Home tab source and Following sections; the
-overlay's hidden state in `AdsProbe`; the deleted-message string ID in `ChatArtProbe`; the compile-time
-`bx50`/`nig` stubs of `PrivacyAdsProbe`; `verify_interface_emitted.py`'s preservation controls and Turbo
-string IDs; `verify_playback_js.py`'s `enabled` string ID; the stock bundle SHA-256 in `BundleProbe`,
-`test_privacy_hermes.py` and `verify_delayed_hermes.py`; `DelayedHermesProbe`'s Metro module numbers;
-the DiscoveryFeedContent offsets in `InterfaceClipNavigationProbe`), and the probes not converted yet
-(`InterfaceArtProbe` apart from its chat header buttons state, which it reads from
-`twitch.match.chat_header_buttons_state` while pinning Twitch's mapper `ow5` and `NoDiscount` `rw5`,
-`PlaybackArtProbe`, `RNBridgeProbe`, and
-`ChatStyleArtProbe` apart from its chat image box, which it reads from `twitch.match.chat_image_box`).
+method of a signature, the one field of a type). Each lookup carries an older name as a fallback, used while an
+APK has no locators. Still pinned, to 32.1.0's names: what no patch matches (in `HighlightsArtProbe` the state
+flag fields, the raid highlight, notice kinds, callout lambda, Home tab source and Following sections; the
+overlay's hidden state in `AdsProbe`; the drops repository's field in the merged presenter in `DropsArtProbe`;
+the deleted-message string ID in `ChatArtProbe`; the compile-time `jb3`/`udg` stubs of `PrivacyAdsProbe`;
+`verify_interface_emitted.py`'s preservation controls; `verify_playback_js.py`'s `enabled` string ID;
+`DelayedHermesProbe`'s Metro module numbers; the DiscoveryFeedContent offsets in
+`InterfaceClipNavigationProbe` and the SubscribeButton offsets in `InterfaceHermesProbe`), and the probes not
+converted yet (`InterfaceArtProbe` apart from its chat header buttons state, which it reads from
+`twitch.match.chat_header_buttons_state` while pinning Twitch's mapper `wo5` (case 11) and `NoDiscount` `hv5`,
+`PlaybackArtProbe`, `RNBridgeProbe`, and `ChatStyleArtProbe` apart from its chat image box and line builder,
+which it reads from the locators). Where R8 merged a class (the IRC parser, the autocomplete filter), the probes
+pick its constructor by what it takes or what it does, not by position.
 `verify_playback_bytecode.py` finds its methods by content and pins no names.
 
 Guest native VOD, replay, chapters and PiP, and the RN consumer, provider and reload paths, were

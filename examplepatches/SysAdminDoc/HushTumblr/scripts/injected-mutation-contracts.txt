@@ -40,6 +40,8 @@ family|filterActivityNotifications|Filter activity notifications|activityNotific
 family|showPostTimestamps|Show post timestamps|nativePostTimestamps
 family|visibleAltText|Visible image descriptions|photoAltTextCaptions,galleryAltTextCaptions
 family|shareVideoLinks|Share video links|videoLinkPress
+family|fitFullScreenVideos|Fit full-screen videos|fullScreenVideoFit
+family|tapToPlayFeedVideos|Tap to play feed videos|feedVideoTap
 family|sharperImages|Sharper images|imageSizes
 family|collapseLongPosts|Collapse long posts|longPostRows,longTrailRows,longPostExpand
 family|muteRootPosts|Mute posts locally|rootPostMutes
@@ -126,6 +128,8 @@ mutation|reblogPosts,ownReblogPosts,videoPosts,photoPosts,textPosts,postWords|po
 mutation|filteredPosts|postBridge|Lcom/tumblr/rumblr/model/post/Post;>Lapp/hushtumblr/extension/tumblr/timeline/HushFilteredPost;>hushFiltered:filtered|Lcom/tumblr/rumblr/model/post/asset/Filtered;>Lapp/hushtumblr/extension/tumblr/timeline/HushFiltered;>hushFilteredTags:tags,hushFilteredContent:content
 # The post's liked state as Tumblr sent it.
 mutation|likedPosts|postBridge|Lcom/tumblr/rumblr/model/post/Post;>Lapp/hushtumblr/extension/tumblr/timeline/HushLikedPost;>hushLiked:liked
+# The community a post was shared to, which it hands back as an object.
+mutation|reblogPosts|postBridge|Lcom/tumblr/rumblr/model/post/Post;>Lapp/hushtumblr/extension/tumblr/timeline/HushCommunityPost;>hushCommunity:community
 # The blogs a post was reblogged from and first made on, a blog's name, and the signed-in
 # account's blogs: UserInfo's private final list, filled from getBlogs() by its fresh
 # user/info constructor and nowhere else.
@@ -153,6 +157,12 @@ mutation|postLine|postLine|Lapp/hushtumblr/extension/tumblr/ui/PostLines;->paint
 # A video in a post hands its container and address over after the binder builds its details, and the
 # timeline controls' long-press listener goes through the extension.
 mutation|videoLinkPress|videoLinkPress|Lapp/hushtumblr/extension/tumblr/ui/VideoLinks;->bind(Landroid/view/View;Ljava/lang/String;)V|Lapp/hushtumblr/extension/tumblr/ui/VideoLinks;->press(Landroid/view/View$OnLongClickListener;)Landroid/view/View$OnLongClickListener;|Lcom/tumblr/R$layout;->tumblr_video_player_timeline_controller|Lcom/tumblr/rumblr/model/video/VideoDetails;-><init>(Ljava/lang/String;II)V|Lcom/tumblr/ui/widget/NewVideoPlayerContainer;|Lcom/tumblr/rumblr/model/post/blocks/TumblrVideoBlock;
+# The full-screen video page's answer for a tall video goes through the extension on its way into the
+# flag that picks the player's fixed-height mode.
+mutation|fullScreenVideoFit|fullScreenVideoFit|Lapp/hushtumblr/extension/tumblr/ui/VideoFit;->fillsHeight(Z)Z|Lcom/tumblr/videohub/R$id;->background_image_view
+# A tap on a feed video's overlay asks the extension before Tumblr's callback, keeping the answer in the
+# view parameter Tumblr never reads, and the overlay answers the extension's bridge.
+mutation|feedVideoTap|feedVideoTap|Lapp/hushtumblr/extension/tumblr/ui/FeedVideoTap;->onTap(Ljava/lang/Object;)I|Lcom/tumblr/R$id;->replay_button|Lcom/tumblr/R$id;->sponsored_text|Lapp/hushtumblr/extension/tumblr/ui/HushFeedVideo;
 # Each return of the image size chooser hands the image's sizes, its pick and the width asked for to the
 # extension, and Tumblr's image size answers the extension's bridge with its own public getters.
 mutation|imageSizes|imageSizes|Lapp/hushtumblr/extension/tumblr/ui/SharperImages;->pick(Ljava/util/List;Ljava/lang/Object;I)Ljava/lang/Object;|Lcom/tumblr/imageinfo/PhotoSize;|Lcom/tumblr/imageinfo/PhotoInfo;|Lapp/hushtumblr/extension/tumblr/ui/HushPhotoSize;

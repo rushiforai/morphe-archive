@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-17.
  * Written by lavinhoque33, 2026-11-07.
  * Modified by lavinhoque33, 2026-11-10
  */
@@ -50,6 +51,8 @@ final class DownloadedRegistry {
 
     /** The song id a copy is stored under for this id: the id itself unless it is the alias of a song with a copy. */
     String canonicalId(String videoId) {
+        // Prefer a direct playlist copy to an alias from an individual download.
+        if (tracks.contains(videoId)) return videoId;
         String song = aliases.get(videoId);
         return song != null && tracks.contains(song) ? song : videoId;
     }
@@ -167,7 +170,7 @@ final class DownloadedRegistry {
         if (videoIds == null || pending.contains(sourceId)) return false;
 
         List<String> available = PlaylistPage.available(videoIds);
-        return !available.isEmpty() && tracks.containsAll(available);
+        return !available.isEmpty() && available.stream().allMatch(this::isDownloaded);
     }
 
     /**

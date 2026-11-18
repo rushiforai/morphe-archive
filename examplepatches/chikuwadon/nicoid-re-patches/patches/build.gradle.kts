@@ -339,7 +339,7 @@ val dev111Smali = tasks.register<JavaExec>("dev111Smali") {
 val prepareNicoidHelpers = tasks.register<Exec>("prepareNicoidHelpers") {
     // Keep the verified v2.0.0 live payload once it is committed by the release workflow.
     // Never replace it with the earlier 1.11.1-only overlay on subsequent Gradle builds.
-    onlyIf { project.version.toString() !in setOf("2.0.0", "2.0.1", "2.0.2", "2.0.3", "2.0.4-dev.1", "2.0.4", "2.0.5-dev.1", "2.0.5-dev.2", "2.0.5-dev.3", "2.0.5-dev.4", "2.0.5-dev.5", "2.0.5-dev.6", "2.0.5-dev.7", "2.0.5-dev.8", "2.0.5-dev.9", "2.0.5-dev.10", "2.0.5-dev.11", "2.0.5-dev.12", "2.0.5-dev.13", "2.0.5-dev.14", "2.0.5-dev.15", "2.0.5-dev.16", "2.0.5-dev.17", "2.0.5") && !Regex("2\\.0\\.6(?:-dev\\.[1-9][0-9]*)?").matches(project.version.toString()) && !Regex("2\\.1\\.0(?:-dev\\.[1-9][0-9]*)?").matches(project.version.toString()) }
+    onlyIf { project.version.toString() !in setOf("2.0.0", "2.0.1", "2.0.2", "2.0.3", "2.0.4-dev.1", "2.0.4", "2.0.5-dev.1", "2.0.5-dev.2", "2.0.5-dev.3", "2.0.5-dev.4", "2.0.5-dev.5", "2.0.5-dev.6", "2.0.5-dev.7", "2.0.5-dev.8", "2.0.5-dev.9", "2.0.5-dev.10", "2.0.5-dev.11", "2.0.5-dev.12", "2.0.5-dev.13", "2.0.5-dev.14", "2.0.5-dev.15", "2.0.5-dev.16", "2.0.5-dev.17", "2.0.5") && !Regex("2\\.0\\.6(?:-dev\\.[1-9][0-9]*)?").matches(project.version.toString()) && !Regex("2\\.1\\.0(?:-dev\\.[1-9][0-9]*)?").matches(project.version.toString()) && !project.version.toString().startsWith("2.1.1-dev.") && project.version.toString() != "2.1.1" }
     dependsOn(dev111Smali)
     val revision = rootProject.file("porting/revisions/v1.11.1")
     val payloads = rootProject.file("patches/src/main/resources/nicoid")

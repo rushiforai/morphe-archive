@@ -8,7 +8,6 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.PlusPending
 import app.morphe.util.names.origRef
 import app.morphe.util.names.addInstructions
 import app.morphe.util.names.replaceInstruction
@@ -47,7 +46,6 @@ import app.morphe.util.names.origReturnType
 import app.morphe.util.names.tgMutableClassDefBy
 
 /** Real pinned host methods prove sink scope, both patch orders and untouched stock control flow. */
-@PlusPending
 class LinkRoutingFixtureTest {
     private val trackingFlags = listOf("stripLinkTracking", "openedLinkTracking", "sharedLinkTracking", "skipAutologin")
     private val externalFlags = listOf("openExternalLinks", "externalBrowserRouting")
@@ -58,7 +56,8 @@ class LinkRoutingFixtureTest {
             for (externalFirst in listOf(true, false)) {
                 val context = PatchContexts.of(ExtensionDex.classes() + classes)
                 val plan = context.resolveLinkHooks()
-                assertEquals("${build.name}: the three verified Share Link chooser sinks", 3, plan.shares.size)
+                // Plus Messenger's own Share Link menus add nine to Telegram's three.
+                assertEquals("${build.name}: the verified Share Link chooser sinks", if (build.name.startsWith("plus-")) 12 else 3, plan.shares.size)
                 assertTrue("${build.name}: the kept custom-tab share receiver is covered", plan.shares.any {
                     it.method.origDefiningClass == "Lorg/telegram/messenger/ShareBroadcastReceiver;" && it.method.origName == "onReceive"
                 })
@@ -82,8 +81,9 @@ class LinkRoutingFixtureTest {
                 assertEquals("one route guard", 1, plan.browser.instructions().count { it.ref()?.startsWith("$LINKS->tryOpenExternal(") == true })
                 assertEquals("one opened-URI cleaner", 1, plan.browser.instructions().count { it.ref()?.startsWith("$LINKS->cleanOpenedUri(") == true })
                 assertAutologinGated(build.name, plan.browser)
-                for (share in plan.shares) assertEquals("only the chooser target is passed to cleaning", 1,
-                    share.method.instructions().count { it.ref()?.startsWith("$LINKS->cleanShareIntent(") == true })
+                // Plus Messenger keeps several Share Link choosers in one menu method.
+                for ((method, sites) in plan.shares.groupBy { it.method }) assertEquals("only the chooser targets are passed to cleaning",
+                    sites.size, method.instructions().count { it.ref()?.startsWith("$LINKS->cleanShareIntent(") == true })
             }
         }
     }

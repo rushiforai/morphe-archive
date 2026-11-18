@@ -2,7 +2,7 @@ package app.zeldrisho.patches.zalo.misc
 
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.patch.stringOption
-import app.zeldrisho.patches.shared.Constants.COMPATIBILITY_ZALO
+import app.zeldrisho.patches.shared.Constants.COMPATIBILITY_ZALO_STABLE
 
 @Suppress("unused")
 val changeZaloAppNamePatch = resourcePatch(
@@ -10,7 +10,7 @@ val changeZaloAppNamePatch = resourcePatch(
     description = "Changes the app name shown in the launcher.",
     default = false,
 ) {
-    compatibleWith(COMPATIBILITY_ZALO)
+    compatibleWith(COMPATIBILITY_ZALO_STABLE)
 
     val appName by stringOption(
         key = "appName",

@@ -165,18 +165,6 @@ public final class ChatArtProbe {
                 line = method;
             }
         }
-        // Its constructor takes a logger interface first; the other two dependencies stay unused here.
-        java.lang.reflect.Constructor<?> constructor = null;
-        for (java.lang.reflect.Constructor<?> candidate : parserType.getConstructors()) {
-            Class<?>[] types = candidate.getParameterTypes();
-            if (types.length == 3 && types[0].isInterface()) {
-                check(constructor == null, "Several IRC parser constructors");
-                constructor = candidate;
-            }
-        }
-        Class<?> logger = constructor.getParameterTypes()[0];
-        Object log = Proxy.newProxyInstance(logger.getClassLoader(), new Class<?>[]{logger}, (proxy, method, values) -> null);
-        Object parser = constructor.newInstance(log, null, null);
         // The signed-in user, as Twitch makes a guest: (id, login, display name, color).
         Object user = null;
         for (java.lang.reflect.Constructor<?> candidate : parse.getParameterTypes()[1].getDeclaredConstructors()) {
@@ -187,6 +175,27 @@ public final class ChatArtProbe {
             }
         }
         Object properties = allocate(parse.getParameterTypes()[2].getName());
+        // Its constructor takes a logger interface first; the other two dependencies stay unused here. R8 merges the
+        // parser with other classes of the same shape (since 32.1.0), so the parser's constructor is the one of those
+        // whose instance parses a chat clear (with the switch off) into a chat event.
+        settings.put("chat_ignore_clears", false);
+        Object parser = null;
+        for (java.lang.reflect.Constructor<?> candidate : parserType.getConstructors()) {
+            Class<?>[] types = candidate.getParameterTypes();
+            if (types.length != 3 || !types[0].isInterface()) continue;
+            Object log = Proxy.newProxyInstance(types[0].getClassLoader(), new Class<?>[]{types[0]}, (proxy, method, values) -> null);
+            Object made;
+            try {
+                made = candidate.newInstance(log, null, null);
+                Object clear = parse.invoke(made, line.invoke(made, ":tmi.twitch.tv CLEARCHAT #somechannel"), user, properties, null, false);
+                if (clear == null || !clear.toString().startsWith("Chat(")) continue;
+            } catch (ReflectiveOperationException | RuntimeException notTheParser) {
+                continue;
+            }
+            check(parser == null, "Several IRC parser constructors parse chat");
+            parser = made;
+        }
+        check(parser != null, "No IRC parser constructor");
         Object ignored = Class.forName(ProbeLocators.type("twitch.ignore_chat_clears.ignored_result", "vjm"))
             .getField(ProbeLocators.field("twitch.ignore_chat_clears.ignored_result", "b")).get(null);
         for (boolean enabled : new boolean[]{false, true, false}) {

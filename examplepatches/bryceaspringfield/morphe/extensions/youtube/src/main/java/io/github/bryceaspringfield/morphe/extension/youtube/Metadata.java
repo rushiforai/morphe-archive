@@ -92,6 +92,20 @@ final class Metadata {
         return n * 365.25;
     }
 
+    /**
+     * A playlist or podcast card by the label it prints under the channel name, in the languages of the course label
+     * (2026-11-18: Home cards of "Playlist" and "Podcast" carried no playlist ID in the buffer read), or by its episode count.
+     */
+    private static final Pattern PLAYLIST_LABEL = Pattern.compile(
+            "(?:(?<=[\\x00-\\x1f])|[·•] )(?:Playlist|Podcast|Lista de reproducci\u00f3n|Liste de lecture|Wiedergabeliste"
+                    + "|Lista de reprodu\u00e7\u00e3o|Playlist de|Elenco)(?![\\p{L}])"
+                    + "|(?<![\\w])\\d+ (?:episodes|episodios|\u00e9pisodes|Folgen|episodi|epis\u00f3dios)(?![\\p{L}])");
+
+    /** Whether an item's raw buffer text labels it a playlist or a podcast. */
+    static boolean isPlaylistLabel(String raw) {
+        return raw != null && PLAYLIST_LABEL.matcher(raw).find();
+    }
+
     /** Whether an item's raw buffer text (its protobuf strings, cased as stated) labels it a course. */
     static boolean isCourse(String raw) {
         return raw != null && COURSE.matcher(raw).find();

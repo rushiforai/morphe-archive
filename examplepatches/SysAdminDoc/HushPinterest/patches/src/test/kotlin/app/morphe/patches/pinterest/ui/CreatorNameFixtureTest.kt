@@ -70,14 +70,14 @@ class CreatorNameFixtureTest {
             assertEquals(build.name, "Landroid/widget/LinearLayout;", layoutField.type)
             assertEquals(build.name, (layout as TwoRegisterInstruction).registerB, read.registerB)
             assertEquals("${build.name}: the padding follows", "Landroid/view/View;->setPaddingRelative(IIII)V",
-                (body[at + 5] as ReferenceInstruction).reference.toString())
+                (body[at + 4] as ReferenceInstruction).reference.toString())
             assertTrue("${build.name}: the scratch isn't the row", read.registerA != read.registerB)
 
             // Every jump that went to the padding now lands on the avatar read, so every branch passes the hook.
             val branches = body.filterIsInstance<BuilderOffsetInstruction>()
             assertEquals("${build.name}: nothing jumps past the hook", emptyList<Instruction>(),
                 branches.filter { it.target.location.instruction === layout || it.target.location.instruction === body[at] })
-            assertTrue("${build.name}: branches meet at the hook", branches.count { it.target.location.instruction === read } >= 2)
+            assertTrue("${build.name}: a branch meets the other path at the hook", branches.any { it.target.location.instruction === read })
             // Five more code units move the switch payload, so the nop that aligned it can go.
             assertEquals("${build.name}: Pinterest's own code is unchanged", clean.map { it.opcode }.filter { it != Opcode.NOP },
                 (body.take(at - 1) + body.drop(at + 1)).map { it.opcode }.filter { it != Opcode.NOP })

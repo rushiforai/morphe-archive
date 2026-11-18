@@ -15,8 +15,12 @@ import android.view.View;
 
 import java.lang.ref.WeakReference;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.WeakHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import io.github.jordanwoodson.extension.shared.Logger;
 import io.github.jordanwoodson.extension.shared.settings.Settings;
@@ -24,10 +28,10 @@ import io.github.jordanwoodson.extension.shared.settings.Settings;
 /**
  * Mute stitched live ads (experimental). While Kick's player reports an ad break, the player is muted and the video
  * covered with black and a small "Ad break"; both are restored when the break's time is up, the break ends or another
- * stream loads. The ad itself still plays: it is part of the stream. Three signals start a break, none of which a
- * signed-out session received (docs/kick.md): an IVS AdCue (Player.Listener.onCue), the IVS player's own ad break
- * events (onAdBreakStarted and onAdBreakEnded, added to Kick's listener) and the ads of the MediaTailor session that
- * Kick forwards to its analytics. With the switch off nothing starts; a break already running still ends, so Lurk never
+ * stream loads. The ad itself still plays: it is part of the stream. Two signals start a break, neither of which a
+ * signed-out session received (docs/kick.md): an SCTE-35 splice insert in the stream, which Media3 hands to the player's
+ * listener as timed metadata (onMetadata, added to Kick's listener), and the ads of the MediaTailor session Kick's
+ * player keeps through Datazoom. With the switch off nothing starts; a break already running still ends, so Lurk never
  * leaves a player muted or covered.
  */
 @SuppressWarnings("unused")
@@ -45,9 +49,12 @@ public final class KickAds {
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
     /** Breaks by Kick player view. Main thread only. */
     private static final Map<View, Break> BREAKS = new WeakHashMap<>();
-    /** The mute state Kick last asked each player view for: what the end of a break restores. */
+    /** The mute state Kick last asked each player view's player for: what the end of a break restores. */
     private static final Map<View, Boolean> REQUESTED = Collections.synchronizedMap(new WeakHashMap<>());
-    /** While Lurk itself calls a view's setMuted, so muteRequest lets the call through. Main thread only. */
+    /** The kinds of metadata already logged, so IVS's per-segment ID3 frames don't flood the log. */
+    private static final Set<String> SEEN = new HashSet<>();
+    private static final Pattern COMMAND = Pattern.compile("\"cmd\":\"([^\"]*)\"");
+    /** While Lurk itself calls a player's setMuted, so muteRequest lets the call through. Main thread only. */
     private static boolean applying;
 
     private KickAds() {
@@ -72,36 +79,42 @@ public final class KickAds {
     // Injection points
 
     /**
-     * Injection point: the start of Kick's IVS listener onCue(Cue), on the main thread, with the listener's player
-     * view. Kick ignores every cue. Only an IVS AdCue starts a break; other cues are logged (Debug logging) so that a
-     * real one can be recognised.
+     * Injection point: Player.Listener.onMetadata(Metadata), which Lurk adds to Kick's player listener, with the view
+     * the player is on, on the main thread. An SCTE-35 splice insert out of the network starts a break for its break
+     * duration and its return ends it; other metadata is logged (Debug logging) so a real ad marker can be recognised.
      */
-    public static void onCue(View view, Object cue) {
-        if (view == null || cue == null || !enabled()) return;
-        if (!isAdCue(cue)) {
-            Logger.d("ads: " + cue.getClass().getSimpleName() + " cue, not an ad");
-            return;
+    public static void onMetadata(View view, Object metadata) {
+        if (view == null || metadata == null) return;
+        try {
+            Class<?> type = metadata.getClass();
+            int length = (Integer) type.getMethod("length").invoke(metadata);
+            for (int i = 0; i < length; i++) {
+                Object entry = type.getMethod("get", int.class).invoke(metadata, i);
+                if (entry == null) continue;
+                if (!isSpliceInsert(entry)) {
+                    if (enabled()) logOnce(entry);
+                    continue;
+                }
+                Class<?> splice = entry.getClass();
+                if (splice.getField("spliceEventCancelIndicator").getBoolean(entry)) continue;
+                if (splice.getField("outOfNetworkIndicator").getBoolean(entry)) {
+                    if (!enabled()) continue;
+                    long duration = splice.getField("breakDurationUs").getLong(entry);
+                    long breakMs = duration > 0 && duration != KickStats.TIME_UNSET ? duration / 1000 : DEFAULT_MS;
+                    post(() -> start(view, breakMs, "SCTE-35 splice insert"));
+                } else {
+                    post(() -> end(view, "the SCTE-35 break returned"));
+                }
+            }
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            Logger.d("ads: metadata: " + e);
         }
-        long length = adCueMillis(cue);
-        post(() -> start(view, length, "IVS ad cue"));
-    }
-
-    /** Injection point: Player.Listener.onAdBreakStarted(AdBreak), which Lurk adds to Kick's listener. */
-    public static void onAdBreakStarted(View view, Object adBreak) {
-        if (view == null || !enabled()) return;
-        long length = adBreakMillis(adBreak);
-        post(() -> start(view, length, "IVS ad break"));
-    }
-
-    /** Injection point: Player.Listener.onAdBreakEnded(AdBreak), which Lurk adds to Kick's listener. */
-    public static void onAdBreakEnded(View view, Object adBreak) {
-        if (view != null) post(() -> end(view, "the IVS ad break ended"));
     }
 
     /**
-     * Injection point: the start of the player view's MediaTailor ad event callback (the constructor's lambda that
-     * hands each forwarded event to Mux), with the view and Kick's MuxAdEventData. Only a MediaTailor session sends
-     * these, and Kick only makes one when its playback response has a tracking URL and Datazoom is running.
+     * Injection point: the start of the player view's MediaTailor ad event callback (the lambda it gives its Datazoom
+     * monitor), with the view and Kick's MediaTailorAdEventPayload. Only a MediaTailor session sends these, and Kick only
+     * makes one when its playback response has a tracking URL and Datazoom is running.
      */
     public static void onMediaTailorEvent(View view, Object event) {
         if (view == null || event == null) return;
@@ -118,19 +131,28 @@ public final class KickAds {
     }
 
     /**
-     * Injection point: the start of the player view's setStreamUrl, loadSource and destroy. Another stream, or none,
-     * ends the break.
+     * Injection point: the start of the player's prepare() (a new stream, or the same one again) and close(). Another
+     * stream, or none, ends the break on the view the player is on.
      */
+    public static void onPlayerLoad(Object player) {
+        if (player == null) return;
+        View view = playerView(player);
+        if (view != null) onLoad(view);
+    }
+
+    /** Injection point: the start of the player view's setVideoPlayer(VideoPlayer): its player changes. */
     public static void onLoad(View view) {
         if (view != null) post(() -> end(view, "another stream loads"));
     }
 
     /**
-     * Injection point: the start of the player view's setMuted(boolean), which React Native calls with the mute Kick
-     * wants. Remembered, so the end of a break restores it; during a break the player stays muted.
+     * Injection point: the start of the player's setMuted(boolean), which React Native calls with the mute Kick wants.
+     * Remembered by the player's view, so the end of a break restores it; during a break the player stays muted.
      */
-    public static boolean muteRequest(View view, boolean muted) {
-        if (view == null || applying) return muted;
+    public static boolean muteRequest(Object player, boolean muted) {
+        if (player == null || applying) return muted;
+        View view = playerView(player);
+        if (view == null) return muted;
         REQUESTED.put(view, muted);
         if (Looper.myLooper() == Looper.getMainLooper() && !muted && BREAKS.containsKey(view)) {
             Logger.d("ads: kept the player muted until the break is over");
@@ -174,7 +196,7 @@ public final class KickAds {
         Logger.i("ads: the break is over (" + why + "): sound and video back");
     }
 
-    /** The player view's own setMuted, so its player thread and React Native's state stay in step. */
+    /** The player's own setMuted, so React Native's state follows. */
     private static void apply(View view, boolean muted) {
         applying = true;
         try {
@@ -191,44 +213,30 @@ public final class KickAds {
         else MAIN.post(action);
     }
 
-    // ---------------------------------------------------------------------------------------------
-    // Ad signals, by the public names of Amazon's IVS SDK
+    /**
+     * Logs a kind of metadata that isn't an ad the first time it arrives (Debug logging): Amazon IVS puts ID3 frames
+     * in every segment, so only a new kind (its class, ID3 frame ID and description, and the command of IVS's segment
+     * metadata) is worth a line.
+     */
+    private static void logOnce(Object entry) {
+        String text = String.valueOf(entry);
+        int values = text.indexOf("values=");
+        String kind = entry.getClass().getSimpleName() + " " + (values > 0 ? text.substring(0, values) : text);
+        Matcher command = COMMAND.matcher(text);
+        if (command.find()) kind += " cmd=" + command.group(1);
+        synchronized (SEEN) {
+            if (SEEN.size() >= 200 || !SEEN.add(kind)) return;
+        }
+        Logger.d("ads: " + entry.getClass().getSimpleName() + " metadata, not an ad: " + text);
+    }
 
-    private static boolean isAdCue(Object cue) {
+    /** Media3's SCTE-35 SpliceInsertCommand, by the public name Kick's copy of Media3 keeps. */
+    private static boolean isSpliceInsert(Object entry) {
         try {
-            return Class.forName("com.amazonaws.ivs.player.AdCue", false, cue.getClass().getClassLoader()).isInstance(cue);
+            return Class.forName("androidx.media3.extractor.metadata.scte35.SpliceInsertCommand", false,
+                    entry.getClass().getClassLoader()).isInstance(entry);
         } catch (ClassNotFoundException e) {
             return false;
-        }
-    }
-
-    /**
-     * The rest of the break an AdCue announces: its ad's duration, for each ad of the pod from this one on. IVS's cue
-     * times are in milliseconds; a duration under a second is taken to be in seconds. Without a duration, the cue's
-     * own end, else 30 seconds.
-     */
-    static long adCueMillis(Object cue) {
-        try {
-            Class<?> type = cue.getClass();
-            long duration = type.getField("duration").getLong(cue);
-            long start = type.getField("startTime").getLong(cue);
-            long end = type.getField("endTime").getLong(cue);
-            int count = type.getField("podCount").getInt(cue);
-            int position = type.getField("podPosition").getInt(cue);
-            long each = duration >= 1000 ? duration : duration > 0 ? duration * 1000 : end > start ? end - start : DEFAULT_MS;
-            return each * Math.max(1, count - position);
-        } catch (ReflectiveOperationException | RuntimeException e) {
-            return DEFAULT_MS;
-        }
-    }
-
-    /** An IVS AdBreak's duration (milliseconds, or seconds when under one), else the longest break. */
-    static long adBreakMillis(Object adBreak) {
-        try {
-            long duration = (Long) adBreak.getClass().getMethod("getDuration").invoke(adBreak);
-            return duration >= 1000 ? duration : duration > 0 ? duration * 1000 : MAX_MS;
-        } catch (ReflectiveOperationException | RuntimeException e) {
-            return MAX_MS;
         }
     }
 
@@ -239,16 +247,21 @@ public final class KickAds {
     // ---------------------------------------------------------------------------------------------
     // Bridges, filled in at patch time.
 
-    /** ((KickIvsPlayerV2View) view).setMuted(muted). */
+    /** ((VideoPlayer) player).getCurrentVideoView(): the player view the player is on, or null. */
+    private static View playerView(Object player) {
+        return null;
+    }
+
+    /** ((VideoView) view).getVideoPlayer()?.setMuted(muted). */
     private static void setMuted(View view, boolean muted) {
     }
 
-    /** ((MuxAdEventData) event).getEventName(). */
+    /** ((MediaTailorAdEventPayload) event).getType(). */
     private static String adEventName(Object event) {
         return null;
     }
 
-    /** ((MuxAdEventData) event).getDurationSeconds(). */
+    /** ((MediaTailorAdEventPayload) event).getDuration(), in seconds. */
     private static Double adEventSeconds(Object event) {
         return null;
     }

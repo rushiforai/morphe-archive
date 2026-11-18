@@ -1,5 +1,30 @@
 ## Unreleased
 
+## [1.41.0](https://github.com/lavinhoque33/revanced-patches/compare/v1.40.0...v1.41.0) (2026-11-18)
+
+### Features
+
+* **YouTube - Miniplayer:** Add optional glass styling for Minimal and Minimal 2 when Glass navigation bar
+  is enabled. The miniplayer follows the navigation bar's opacity. Refs #63.
+* **YouTube - Snack bar components:** Customize the radius, light and dark backgrounds, and border in RVX settings.
+  The same radius can optionally round the playlist bottom bar. Refs #65.
+* **Music - Player:** Toggle flyout dimming and the player controls overlay separately in RVX settings.
+  Both keep the original appearance by default. Refs #65.
+
+### Bug Fixes
+
+* **YouTube - Change start page:** Label Library as You, and remove the retired Explore and Trending start
+  pages and the non-working Hype and Podcasts choices. Refs #54.
+* **YouTube - Miniplayer:** Smooth the final part of the minimize animation for Minimal bar and Minimal bar 2.
+  Refs #64.
+
+## [1.40.0](https://github.com/lavinhoque33/revanced-patches/compare/v1.39.0...v1.40.0) (2026-11-18)
+
+### Features
+
+* **Music - Stream download:** Keep saved playlists up to date on unmetered Wi-Fi while Music is open.
+  The last playable offline list stays available if a refresh cannot finish.
+
 ## [1.39.0](https://github.com/lavinhoque33/revanced-patches/compare/v1.38.0...v1.39.0) (2026-11-18)
 
 ### Features

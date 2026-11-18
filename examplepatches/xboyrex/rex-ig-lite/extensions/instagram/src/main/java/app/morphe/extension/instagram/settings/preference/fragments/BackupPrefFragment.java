@@ -34,7 +34,7 @@ import java.util.Locale;
 
 import app.morphe.extension.instagram.constants.Constants;
 import app.morphe.extension.instagram.patches.devFlags.FlagsSharedPref;
-import app.morphe.extension.instagram.patches.devFlags.RecommendedFlags;
+import app.morphe.extension.instagram.settings.ActivityHook;
 import app.morphe.extension.rex.RexUtils;
 import app.morphe.extension.shared.Logger;
 
@@ -43,6 +43,7 @@ public class BackupPrefFragment extends Fragment {
     private File sourceFile;
     private Context context;
     private boolean isJsonExport;
+    private boolean inlineHosted;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -50,6 +51,7 @@ public class BackupPrefFragment extends Fragment {
 
         context = getActivity() != null ? getActivity() : RexUtils.getContext();
         Bundle args = getArguments();
+        inlineHosted = args != null && args.getBoolean(ActivityHook.EXTRA_INLINE_HOST, false);
 
         String filename = null;
         String ext = null;
@@ -63,6 +65,12 @@ public class BackupPrefFragment extends Fragment {
                 if (!mcDir.exists()) mcDir.mkdirs();
                 sourceFile = new File(mcDir, "mc_overrides.json");
                 ensureValidOverridesFileForExport(context, sourceFile);
+            } else if (args.containsKey("rex_export_initial_features")) {
+                filename = "InstaRex_Initial_Features_State_v3.16.0";
+                ext = ".json";
+                isJsonExport = true;
+                sourceFile = new File(context.getFilesDir(), "rex_initial_features_export.json");
+                ensureInitialFeaturesFileForExport(sourceFile);
             } else if (args.containsKey("rex_export_pref")) {
                 filename = "InstaRex_Settings_Backup_v3.16.0";
                 ext = ".xml";
@@ -86,12 +94,18 @@ public class BackupPrefFragment extends Fragment {
         }
     }
 
-    /**
-     * Ensures mc_overrides.json exists and contains valid JSON before exporting:
-     * If mc_overrides.json has not been created yet, materializes active Recommended Flag overrides
-     * or the built-in InstaRex Pro Config V6 preset so Export MetaConfig Overrides always produces a valid,
-     * round-trip importable JSON file.
-     */
+    private static void ensureInitialFeaturesFileForExport(File outFile) {
+        if (outFile == null) return;
+        try {
+            JSONObject exported = FlagsSharedPref.exportAllAsJsonObject();
+            try (FileOutputStream out = new FileOutputStream(outFile)) {
+                out.write(exported.toString(2).getBytes(StandardCharsets.UTF_8));
+                out.flush();
+            }
+        } catch (Throwable ignored) {
+        }
+    }
+
     private static void ensureValidOverridesFileForExport(Context ctx, File mcFile) {
         if (mcFile == null) return;
         if (mcFile.exists() && mcFile.length() > 2) {
@@ -145,7 +159,7 @@ public class BackupPrefFragment extends Fragment {
         try {
             long totalWritten = 0;
             try (FileInputStream in = new FileInputStream(sourceFile);
-                 OutputStream out = context.getContentResolver().openOutputStream(uri)) {
+                  OutputStream out = context.getContentResolver().openOutputStream(uri)) {
                 if (out == null) {
                     throw new IOException("Could not open destination output stream: " + uri);
                 }
@@ -162,7 +176,6 @@ public class BackupPrefFragment extends Fragment {
                 throw new IOException("Zero bytes written during export");
             }
 
-            // Round-trip verification: read back exported document and verify structure
             try (InputStream verifyIn = context.getContentResolver().openInputStream(uri)) {
                 if (verifyIn == null) {
                     throw new IOException("Could not reopen exported file for verification");
@@ -217,7 +230,12 @@ public class BackupPrefFragment extends Fragment {
     }
 
     private void finishHost() {
-        if (getActivity() != null) {
+        try {
+            if (getFragmentManager() != null) {
+                getFragmentManager().beginTransaction().remove(this).commitAllowingStateLoss();
+            }
+        } catch (Throwable ignored) {}
+        if (!inlineHosted && getActivity() != null) {
             getActivity().finish();
         }
     }

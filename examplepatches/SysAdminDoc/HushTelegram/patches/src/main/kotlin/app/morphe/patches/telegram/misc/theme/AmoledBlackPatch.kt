@@ -58,6 +58,11 @@ private const val FILE = "Ljava/io/File;"
 /** Telegram's theme file reader takes the file, the built-in theme's asset and a wallpaper slot. */
 internal val THEME_FILE_PARAMETERS = listOf(FILE, STRING, "[$STRING")
 
+/** Whether [method] takes the theme file reader's parameters, with or without the flag Plus Messenger adds last. */
+internal fun takesThemeFile(method: Method) = method.parameterTypes.map { it.toString() }.let {
+    it == THEME_FILE_PARAMETERS || it == THEME_FILE_PARAMETERS + "Z"
+}
+
 internal const val PATTERN_INTENSITY = "$BLACK_THEME->patternIntensity($SPARSE_INT_ARRAY" + "Ljava/lang/Object;I)I"
 
 /**
@@ -80,7 +85,7 @@ val amoledBlackPatch = bytecodePatch(
 ) {
     category("Theme")
     dependsOn(settingsPatch, telegramExtensionPatch)
-    compatibleWith(*AppCompatibilities.telegramOnly())
+    compatibleWith(*AppCompatibilities.telegram())
     execute {
         val site = resolveBlackTheme()
         // The picture behind the lists stands on its own: a build without its targets keeps black themes.
@@ -159,10 +164,10 @@ internal fun BytecodePatchContext.resolveBlackTheme(): BlackThemeSite {
     forEachClassMentioning(Mention.string("WLS=") and Mention.string("WPS")) { cls ->
         if (cls.origType.startsWith("Lapp/hushtelegram/")) return@forEachClassMentioning
         cls.methods.forEach { method ->
-            if (method.origReturnType == SPARSE_INT_ARRAY && method.parameterTypes.map { it.toString() } == THEME_FILE_PARAMETERS) {
+            if (method.origReturnType == SPARSE_INT_ARRAY && takesThemeFile(method)) {
                 val strings = method.controlBody().mapNotNull { it.controlString() }
                 if ("WLS=" in strings && "WPS" in strings) readers += tgMutableClassDefBy(cls.type).methods.single { it.origName == method.origName &&
-                    it.origReturnType == method.origReturnType && it.parameterTypes.map { p -> p.toString() } == THEME_FILE_PARAMETERS }
+                    it.origReturnType == method.origReturnType && it.parameterTypes.map { p -> p.toString() } == method.parameterTypes.map { p -> p.toString() } }
             }
         }
     }

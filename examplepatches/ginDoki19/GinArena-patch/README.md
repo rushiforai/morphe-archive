@@ -21,7 +21,7 @@ github.com/ginDoki19/GinArena-patch
 The table below reflects the last published release and is refreshed automatically by the release workflow.
 
 <!-- PATCHES_START -->
-> **[v2.12.0](https://github.com/ginDoki19/GinArena-patch/releases/tag/v2.12.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;36 patches total&nbsp;&nbsp;•&nbsp;&nbsp;**[⬇️ Download patches-2.12.0.mpp](https://github.com/ginDoki19/GinArena-patch/releases/download/v2.12.0/patches-2.12.0.mpp)**
+> **[v2.12.1](https://github.com/ginDoki19/GinArena-patch/releases/tag/v2.12.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;36 patches total&nbsp;&nbsp;•&nbsp;&nbsp;**[⬇️ Download patches-2.12.1.mpp](https://github.com/ginDoki19/GinArena-patch/releases/download/v2.12.1/patches-2.12.1.mpp)**
 <details>
 <summary>📦 1DM&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
 <br>
@@ -95,7 +95,7 @@ The table below reflects the last published release and is refreshed automatical
 | [Fix search keyboard focus](#fix-search-keyboard-focus) | Opens search on Android TV and helps keep the keyboard connected during category searches on TV and phones. Clears TV search on navigation or close. |  |
 | [Hide playback controls at stream open](#hide-playback-controls-at-stream-open) | Keeps playback controls hidden when a stream opens or the player switches between embedded and fullscreen. The controls remain available. |  |
 | [Improve Android TV playback controls](#improve-android-tv-playback-controls) | On Android TV, prefers the seekbar when controls open and helps retain focus when live-source tabs auto-focus. Seeking depends on the stream. |  |
-| [Remove ads, proxy & restrictions](#remove-ads-proxy--restrictions) | Stops background bandwidth sharing, removes ads, and hides the player app logo on 7.5. | • Hide promo marquee ticker<br>• Bypass update & force-update screen<br>• Block promotional push notifications<br>• Bypass clone, work-profile & sniffer checks<br>• Strip proxy & ad native libraries |
+| [Remove ads, proxy & restrictions](#remove-ads-proxy--restrictions) | Stops background bandwidth sharing, removes ads, and hides the player app logo on 7.5. | • Hide promo marquee ticker<br>• Bypass update & force-update screen<br>• Block promotional push notifications<br>• Bypass clone, work-profile & sniffer checks<br>• Strip unused ad native libraries |
 
 </details>
 
@@ -105,9 +105,9 @@ The table below reflects the last published release and is refreshed automatical
 
 **🎯 Supported versions:**
 
-| 26.11.0 |
+| 26.11.1 |
 | :---: |
-| XAPK bundle (base + config splits, arm64-v8a, Android 10+), build 1650 |
+| Standalone APK (arm64-v8a, Android 10+), build 1651, APKMirror |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -419,7 +419,7 @@ Download links and hashes live in the table above because Morphe has no field fo
 - **No player app logo** on CRICFy TV 7.5; broadcaster logos remain unchanged.
 - **Channels keep working** after patching, including live server configs.
 
-Options (on by default): hide the promo ticker, skip forced updates, block promo push notifications. Off by default: bypass clone/sniffer checks, and strip unused libraries to save ~7.7 MB.
+Options (on by default): hide the promo ticker, skip forced updates, block promo push notifications. Off by default: bypass clone/sniffer checks, and strip unused Unity ad libraries to save about 2 MB.
 
 ### Target app (CRICFy TV)
 
@@ -716,7 +716,7 @@ ship is Firebase Analytics, Tag Manager, Crashlytics and the advertising-ID perm
 
 ---
 
-## 📦 WPS Office (26.11.0, build 1650)
+## 📦 WPS Office (26.11.1, build 1651)
 
 <details>
 <summary><b>📖 App details</b> - what it does, target version and notes (click to expand)</summary>
@@ -736,7 +736,7 @@ and you get a stock-equivalent build.
 | Pass ownership checks | on | Answers "do I own this?" with yes, so premium fonts, templates and PDF tools open. |
 | Remove ads | on | Tells the app you are ad-free, so banner and full-screen ads are never requested. |
 | Hide the "already a member" popup | on | Stops the popup that says you are already a WPS Premium user. |
-| Hide the upgrade banner on tool pages | **off** | Removes the "Upgrade to WPS Membership" banner shown above the tool pages. It can invent usage counters, so it stays off until you want it. |
+| Hide the upgrade banner on tool pages | on | Removes the "Upgrade to WPS Membership" banner shown above the tool pages. Verified on device: banner gone, no hang. Turn it off if you would rather see the banner. |
 | Turn AI features off | **off** | Answers every AI request as not owned. Use it only if an AI tool keeps loading forever. |
 | Skip the ad pre-check | **off** | Tells the app ads are off before it contacts the server, so those requests never start. |
 | Report the stock signature | **off** | Only analytics reads this. It does not affect premium, ads or sign-in. |
@@ -786,14 +786,14 @@ Two gates sit outside the app entirely and cannot be patched:
 | | |
 |---|---|
 | Package | `cn.wps.moffice_eng` |
-| Version | **26.11.0** (versionCode 1650), XAPK bundle (base + config splits, `arm64-v8a`, Android 10+) |
-| Stock download | [APKPure - WPS Office](https://apkpure.com/wps-office-pdf-doc-editor/cn.wps.moffice_eng) - choose **26.11.0**, XAPK, and verify the hash below |
+| Version | **26.11.1** (versionCode 1651), standalone APK (`arm64-v8a`, Android 10+) |
+| Stock download | [APKPure - WPS Office](https://apkpure.com/wps-office-pdf-doc-editor/cn.wps.moffice_eng) - choose **26.11.1** (build 1651), verify the hash below. **26.11.0 is no longer supported.** |
 | Signing certificate SHA-256 | `643990878d3ca83952a5be5f3e58d9f8bb6cdc57bf0f228700212071c68db3d7` |
-| XAPK SHA-256 | `bd3b27b7f08a548a0b7fcb00934c75b78a51fd405abe0d3a667ef0bfa09d9ea9` |
+| APK SHA-256 | `ef7b6b169831ad1c98fd2231942049879003fb44cc154b0007f647844b868fea` |
 
 > **Before you patch:** patching changes the signature, so the stock app has to be uninstalled
-> first. Back up anything saved only inside WPS. Point Morphe at the **XAPK as downloaded** - it
-> merges the base and its config splits itself; do not pre-merge or pre-sign it.
+> first. Back up anything saved only inside WPS. Point Morphe at the **APK as downloaded** - do not
+> pre-merge or pre-sign it.
 
 </details>
 
@@ -907,7 +907,7 @@ independent settings.
 1. Add this repository as a remote patch source using the link at the top of this README.
 2. Download the stock **1DM 20.0 APKM**, **CRICFy TV 7.5 APK**, **CricZ TV 7.3 APK**,
    **PlayZ TV 2.3.1 APK**, **SK Tech TV 2.7 APK**, **MX Player 3.4.1 or 3.4.3 APK**,
-   **APK Decompiler 4.12.0 APK**, **Daylio 1.72.0 APKM**, **WPS Office 26.11.0 XAPK**, or
+   **APK Decompiler 4.12.0 APK**, **Daylio 1.72.0 APKM**, **WPS Office 26.11.1 APK**, or
    **AdGuard 4.15.2 APK** above onto your device.
 3. Updates require a compatible signing key. If Android reports a signature conflict, stop: uninstalling the existing app can permanently erase its data. Back up what you can and your Morphe signing key first.
 4. In Morphe Manager, choose **Select from storage**, pick the downloaded stock `.apkm` / `.apk`
@@ -952,7 +952,7 @@ bash gradlew :patches:buildAndroid
 
 - [Epxec/android-patches](https://github.com/Epxec/android-patches) — original Daylio premium patch for 1.69.2; re-derived for 1.71.1 and again for 1.72.0.
 - [BlazeFTL/FTL-Patches](https://github.com/BlazeFTL/FTL-Patches) — inspiration for MX Player patch ideas.
-- [hoo-dles/morphe-patches](https://github.com/hoo-dles/morphe-patches) — the earlier WPS Office "Enable Pro" idea; its anti-tamper dependency no longer exists in 26.11.0, so the WPS patch here is written from scratch against the current privilege layer.
+- [hoo-dles/morphe-patches](https://github.com/hoo-dles/morphe-patches) — the earlier WPS Office "Enable Pro" idea; its anti-tamper dependency no longer exists in 26.11.x, so the WPS patch here is written from scratch against the current privilege layer.
 - [callMeBeyonder/morphe-patches](https://github.com/callMeBeyonder/morphe-patches) — inspiration and initial CRICFy TV patch idea.
 - [rushiranpise/morphe-patches](https://github.com/rushiranpise/morphe-patches) and [hoo-dles/morphe-patches](https://github.com/hoo-dles/morphe-patches) — earlier AdGuard premium patches. Both target older builds; the AdGuard patch here is written against 4.15.2, with an idempotency guard and a stricter fetch fingerprint.
 - [Morphe](https://morphe.software/) — Morphe Patcher and Morphe Manager.

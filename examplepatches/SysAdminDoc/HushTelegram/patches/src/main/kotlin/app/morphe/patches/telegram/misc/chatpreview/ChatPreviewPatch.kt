@@ -24,10 +24,12 @@ import app.morphe.patches.telegram.misc.localcontrols.requireReachable
 import app.morphe.patches.telegram.misc.settings.settingsPatch
 import app.morphe.util.call
 import app.morphe.util.names.addInstructionsWithLabels
+import app.morphe.util.names.tgClassDefBy
 import app.morphe.util.names.tgMutableClassDefBy
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -55,7 +57,7 @@ val chatPreviewButtonsPatch = bytecodePatch(
 ) {
     category("Chats")
     dependsOn(settingsPatch, telegramExtensionPatch)
-    compatibleWith(*AppCompatibilities.telegramOnly())
+    compatibleWith(*AppCompatibilities.telegram())
     execute {
         val site = resolveChatPreview()
         // Assembled on a copy first, so a refusal leaves the app untouched.
@@ -134,7 +136,8 @@ private fun BytecodePatchContext.writeChatPreviewStubs(site: ChatPreviewSite) {
  * Pressing and holding a chat, a message thread or a profile's chat previews it through the screens'
  * base class's presentFragmentAsPreviewWithMenu, with a menu of Telegram's own items under it. The
  * base's movePreviewFragment opens a preview fully when it's dragged up far enough, but only when the
- * layout holds no menu, and that's where the layout's menu field and the call that opens it are read.
+ * layout holds no menu, and that's where the layout's menu field and the call that opens it are read
+ * (on Plus Messenger, in the layout's own move, which the base hands the drag to).
  */
 internal fun BytecodePatchContext.resolveChatPreview(): ChatPreviewSite {
     requireStatusMethod("chatPreviewButtons")
@@ -169,8 +172,15 @@ internal fun BytecodePatchContext.resolveChatPreview(): ChatPreviewSite {
         .controlSingle("the base's finishPreviewFragment").reference()
     val parentLayout = baseClass.methods.filter { it.name == "getParentLayout" && it.params().isEmpty() }
         .controlSingle("the base's getParentLayout").reference()
-    val move = baseClass.methods.filter { it.name == "movePreviewFragment" && it.params() == listOf("F") && it.returnType == "V" }
+    val baseMove = baseClass.methods.filter { it.name == "movePreviewFragment" && it.params() == listOf("F") && it.returnType == "V" }
         .controlSingle("the base's movePreviewFragment").controlBody()
+    // Plus Messenger's base hands the move to the layout, which does the same work there.
+    val move = if (baseMove.any { it.readsPreviewMenu() }) baseMove else baseMove.mapNotNull { it.call() }
+        .filter { it.definingClass == ACTION_BAR_LAYOUT && it.params() == listOf("F") && it.returnType == "V" }.distinct()
+        .controlSingle("the layout's move of a preview").let { call ->
+            tgClassDefBy(ACTION_BAR_LAYOUT).methods.filter { it.name == call.name && it.params() == listOf("F") && it.returnType == "V" }
+                .controlSingle("the layout's move of a preview").controlBody()
+        }
     val menuField = move.filter { it.opcode == Opcode.IGET_OBJECT }.mapNotNull { (it as ReferenceInstruction).reference as? FieldReference }
         .filter { it.definingClass == ACTION_BAR_LAYOUT && it.type == PREVIEW_MENU }
         .map { "${it.definingClass}->${it.name}:${it.type}" }.distinct().controlSingle("the layout's preview menu")
@@ -185,6 +195,9 @@ internal fun BytecodePatchContext.resolveChatPreview(): ChatPreviewSite {
     }
     return ChatPreviewSite(base, present, parentLayout, finish, menuField, expand, item, text)
 }
+
+private fun Instruction.readsPreviewMenu() = opcode == Opcode.IGET_OBJECT &&
+    ((this as ReferenceInstruction).reference as? FieldReference)?.let { it.definingClass == ACTION_BAR_LAYOUT && it.type == PREVIEW_MENU } == true
 
 private fun MethodReference.isPresentWithMenu() = name == PRESENT_WITH_MENU && returnType == "Z" &&
     parameterTypes.size == 2 && parameterTypes[1].toString() == PREVIEW_MENU

@@ -659,6 +659,10 @@ public final class HushTumblrPreferenceFragment extends AbstractPreferenceFragme
                     L10n.t("When reblogs are hidden, keep ones where the reblogger added something of their own. "
                         + "Other post filters still apply."),
                     SettingsIcons.BLOCK);
+            patchToggle(feed, context, build, PatchFamily.HIDE_REBLOGS, Settings.KEEP_COMMUNITY_REBLOGS,
+                    L10n.t("Keep reblogs in communities"),
+                    L10n.t("When reblogs are hidden, keep ones shared to a community. Other post filters still apply."),
+                    SettingsIcons.BLOCK);
             patchToggle(feed, context, build, PatchFamily.HIDE_OWN_REBLOGS, Settings.HIDE_OWN_REBLOGS,
                     L10n.t("Hide your own reblogs"), L10n.t("Takes the reblogs you made out of your dashboard. "
                         + "Your blog and the rest of Tumblr still show them."), SettingsIcons.BLOCK);
@@ -823,6 +827,14 @@ public final class HushTumblrPreferenceFragment extends AbstractPreferenceFragme
                     Settings.HIDE_GIFT_MESSAGE_POPUPS, L10n.t("Hide gift purchase popups"),
                     L10n.t("Hides the pop-up suggesting you buy a gift for a blog. You can still open gifting yourself."),
                     SettingsIcons.BLOCK);
+            patchToggle(ui, context, build, PatchFamily.FIT_FULL_SCREEN_VIDEOS, Settings.FIT_FULL_SCREEN_VIDEOS,
+                    L10n.t("Fit full-screen videos"),
+                    L10n.t("Shows tall videos whole when you open them full screen, instead of cutting off the sides."),
+                    SettingsIcons.INTERFACE);
+            patchToggle(ui, context, build, PatchFamily.TAP_TO_PLAY_FEED_VIDEOS, Settings.TAP_TO_PLAY_FEED_VIDEOS,
+                    L10n.t("Tap to play feed videos"),
+                    L10n.t("Tap a stopped video in your feed to play it right there. Tap it again while it plays to open it full screen."),
+                    SettingsIcons.INTERFACE);
             patchToggle(ui, context, build, PatchFamily.LINE_BETWEEN_POSTS,
                     Settings.LINE_BETWEEN_POSTS, L10n.t("Line between posts"),
                     L10n.t("Draws a thin line in the gap between posts, so it's easier to see where one ends and the next begins."),

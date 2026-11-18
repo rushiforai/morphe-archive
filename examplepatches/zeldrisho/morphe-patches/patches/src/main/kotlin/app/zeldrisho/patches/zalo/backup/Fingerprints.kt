@@ -23,7 +23,17 @@ internal object MediaBackupEligibility : Fingerprint(
     parameters = listOf("Lcom/zing/zalo/data/backuprestore/model/TargetBackupInfo;"),
 )
 
-/** Native backup scheduler and media-backup eligibility in Zalo 26.10.02. */
+/** Getter descriptors for the account-specific message-backup interval. */
+internal const val BACKUP_INTERVAL_GETTER_261002 = "Lp60/p0;->m(JZLjava/lang/String;)J"
+
+// Experimental target: 26.11.01 is advertised but not fully device-qualified.
+internal const val BACKUP_INTERVAL_GETTER_261101 = "Lcfj;->u(JZLjava/lang/String;)J"
+
+internal object BackupScheduler261101 : Fingerprint(
+    definingClass = "Lb51;", name = "e", accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "Z", parameters = listOf("I"), filters = listOf(string("SERVER_CONFIG_SYNC_MESSAGE_INTERVAL_")),
+)
+
 internal object BackupScheduler261002 : Fingerprint(
     definingClass = "Lxm/c;", name = "g", accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "Z", parameters = listOf("I"), filters = listOf(string("SERVER_CONFIG_SYNC_MESSAGE_INTERVAL_")),

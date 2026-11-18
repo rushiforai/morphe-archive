@@ -649,7 +649,6 @@ API 키는 절대로 다른 사람과 공유해서는 안 됩니다. API 키에 
     <string name="revanced_change_start_page_entry_gaming">게임</string>
     <string name="revanced_change_start_page_entry_history">기록</string>
     <string name="revanced_change_start_page_entry_home">홈</string>
-    <string name="revanced_change_start_page_entry_hype">하이프</string>
     <string name="revanced_change_start_page_entry_library">내 페이지</string>
     <string name="revanced_change_start_page_entry_liked_videos">좋아요 표시한 동영상</string>
     <string name="revanced_change_start_page_entry_live">실시간</string>
@@ -658,14 +657,12 @@ API 키는 절대로 다른 사람과 공유해서는 안 됩니다. API 키에 
     <string name="revanced_change_start_page_entry_news">뉴스</string>
     <string name="revanced_change_start_page_entry_notifications">알림</string>
     <string name="revanced_change_start_page_entry_playlists">재생목록</string>
-    <string name="revanced_change_start_page_entry_podcasts">팟캐스트</string>
     <string name="revanced_change_start_page_entry_search">검색</string>
     <string name="revanced_change_start_page_entry_settings">설정</string>
     <string name="revanced_change_start_page_entry_shopping">쇼핑</string>
     <string name="revanced_change_start_page_entry_shorts">Shorts</string>
     <string name="revanced_change_start_page_entry_sports">스포츠</string>
     <string name="revanced_change_start_page_entry_subscriptions">구독</string>
-    <string name="revanced_change_start_page_entry_trending">인기 급상승</string>
     <string name="revanced_change_start_page_entry_virtual_reality">가상 현실</string>
     <string name="revanced_change_start_page_entry_watch_later">나중에 볼 동영상</string>
     <string name="revanced_change_start_page_entry_your_clips">내 클립</string>

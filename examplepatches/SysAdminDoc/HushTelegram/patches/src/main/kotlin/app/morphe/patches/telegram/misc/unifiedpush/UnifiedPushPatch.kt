@@ -132,7 +132,7 @@ val unifiedPushPatch = bytecodePatch(
 ) {
     category("Notifications")
     dependsOn(settingsPatch, telegramExtensionPatch, unifiedPushManifestPatch)
-    compatibleWith(*AppCompatibilities.telegramOnly())
+    compatibleWith(*AppCompatibilities.telegram())
     execute {
         val plan = resolveUnifiedPush()
         val (reactions, reactionsMissing) = resolveReactionAlerts()
@@ -165,8 +165,11 @@ val unifiedPushPatch = bytecodePatch(
     }
 }
 
-/** Telegram's push sign-up, and how many accounts its wake-up goes through. */
-internal class UnifiedPushPlan(val signUp: MutableMethod, val accounts: Int)
+/**
+ * Telegram's push sign-up, and how many accounts its wake-up goes through: [accounts] is the line
+ * that loads that count into v1, a constant on Telegram and a UserConfig field on Plus Messenger.
+ */
+internal class UnifiedPushPlan(val signUp: MutableMethod, val accounts: String)
 
 /**
  * Ahead of anything in sendRegistrationToServer, the extension gets the token and then the type,
@@ -181,7 +184,7 @@ internal fun insertUnifiedPushGate(method: MutableMethod) {
     """)
 }
 
-private fun BytecodePatchContext.writeUnifiedPushStubs(accounts: Int) {
+private fun BytecodePatchContext.writeUnifiedPushStubs(accounts: String) {
     writeStub(UNIFIED_PUSH, "sendToTelegram", 2, """
         invoke-static {p0, p1}, $SEND_REGISTRATION
         return-void
@@ -203,7 +206,7 @@ private fun BytecodePatchContext.writeUnifiedPushStubs(accounts: Int) {
     writeStub(UNIFIED_PUSH, "wakeAccounts", 2, """
         const/4 v0, 0x0
         :hush_next_account
-        const/16 v1, $accounts
+        $accounts
         if-ge v0, v1, :hush_done
         invoke-static {v0}, $USER_CONFIG_INSTANCE
         move-result-object v1
@@ -286,10 +289,15 @@ internal fun BytecodePatchContext.resolveUnifiedPush(): UnifiedPushPlan {
         "Telegram's wake-up no longer reconnects each signed-in account")
     val loop = body.indices.filter { body[it].opcode == Opcode.IF_GE }.controlSingle("Telegram's account loop")
     val bound = body.getOrNull(loop - 1)
-    val accounts = (bound as? NarrowLiteralInstruction)?.narrowLiteral
-    controlShape(bound != null && bound.opcode in setOf(Opcode.CONST_4, Opcode.CONST_16) && accounts != null && accounts in 1..32 &&
-        (bound as OneRegisterInstruction).registerA == (body[loop] as TwoRegisterInstruction).registerB,
+    // Telegram goes through a fixed four. Plus Messenger reads how many accounts it allows from a
+    // UserConfig field, which the stub reads the same way.
+    val literal = (bound as? NarrowLiteralInstruction)?.narrowLiteral
+    val field = bound?.takeIf { it.opcode == Opcode.SGET }?.controlRef()
+        ?.takeIf { it.startsWith("$USER_CONFIG->") && it.endsWith(":I") }
+    controlShape(bound != null && (bound as? OneRegisterInstruction)?.registerA == (body[loop] as TwoRegisterInstruction).registerB &&
+        (bound.opcode in setOf(Opcode.CONST_4, Opcode.CONST_16) && literal != null && literal in 1..32 || field != null),
         "Telegram's account count changed")
+    if (field != null) requireReachable(field, true)
 
     for ((reference, static) in listOf(SEND_REGISTRATION to true, POST_INIT to true, POST_RUNNABLE to false,
         USER_CONFIG_INSTANCE to true, CLIENT_ACTIVATED to false, INTERNAL_PUSH to true, CONNECTIONS_INSTANCE to true,
@@ -297,5 +305,5 @@ internal fun BytecodePatchContext.resolveUnifiedPush(): UnifiedPushPlan {
         HAS_SERVICES to false, REQUEST_PUSH_TOKEN to false)) {
         requireReachable(reference, static)
     }
-    return UnifiedPushPlan(signUp, accounts!!)
+    return UnifiedPushPlan(signUp, if (field != null) "sget v1, $field" else "const/16 v1, $literal")
 }

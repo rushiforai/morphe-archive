@@ -19,6 +19,8 @@ import android.os.Bundle;
 public final class LokiSwitches {
     static final String AMOLED = "amoled_black";
     static final String HIDE_AFTER_CALL = "hide_after_call";
+    static final String ANONYMOUS_VIEW = "anonymous_profile_view";
+    static final String ANONYMOUS_SEARCH = "anonymous_search";
 
     /** Name of the night theme overlay the AMOLED patch adds (values: empty, values-night: the black items). */
     private static final String AMOLED_STYLE = "LokiAmoledBlack";
@@ -40,6 +42,26 @@ public final class LokiSwitches {
     public static boolean hideAfterCall() {
         try {
             return get(LokiLog.application(), HIDE_AFTER_CALL);
+        } catch (Throwable error) {
+            return true;
+        }
+    }
+
+    /** Called before Truecaller reports a profile view: true = do not tell the other person. */
+    public static boolean anonymousProfileView() {
+        try {
+            return get(LokiLog.application(), ANONYMOUS_VIEW);
+        } catch (Throwable error) {
+            return true;
+        }
+    }
+
+    /** Called before Truecaller reports a number search: true = do not tell that person you searched for them. */
+    public static boolean anonymousSearch() {
+        try {
+            boolean on = get(LokiLog.application(), ANONYMOUS_SEARCH);
+            if (on) LokiLog.debug("search not reported (anonymous search)");
+            return on;
         } catch (Throwable error) {
             return true;
         }

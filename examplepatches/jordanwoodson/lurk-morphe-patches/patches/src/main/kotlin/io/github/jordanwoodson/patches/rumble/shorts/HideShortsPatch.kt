@@ -1,6 +1,7 @@
 package io.github.jordanwoodson.patches.rumble.shorts
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.methodCall
@@ -20,6 +21,7 @@ import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import io.github.jordanwoodson.patches.rumble.settings.rumbleSettings
 import io.github.jordanwoodson.patches.rumble.settings.settingsPatch
 import io.github.jordanwoodson.patches.rumble.shared.Constants.COMPATIBILITY_RUMBLE
+import io.github.jordanwoodson.patches.rumble.shared.RUMBLE_INTERFACE
 import io.github.jordanwoodson.patches.shared.Locators
 import io.github.jordanwoodson.patches.rumble.shared.enumConstant
 import io.github.jordanwoodson.patches.rumble.shared.enumWith
@@ -27,6 +29,7 @@ import io.github.jordanwoodson.patches.rumble.shared.hideBottomTab
 import io.github.jordanwoodson.patches.rumble.shared.single
 import io.github.jordanwoodson.patches.shared.compose.mutableTwin
 import io.github.jordanwoodson.patches.shared.invoke
+import io.github.jordanwoodson.patches.shared.invokeStatic
 import io.github.jordanwoodson.patches.shared.parameterRegister
 import io.github.jordanwoodson.patches.shared.requireLowRegisters
 import io.github.jordanwoodson.patches.shared.settings.Section
@@ -97,6 +100,24 @@ val hideShortsPatch = bytecodePatch(
 
         hideCategoryShortsTab()
         hideSearchShortsFilter()
+
+        // My Feed's filter pills (since 3.22.0): RumbleInterface.feedPills leaves out the "shorts" pill.
+        FeedPillsFingerprint.single("My Feed pills getter").method.apply {
+            Locators.record("rumble.hide_shorts.feed_pills", this)
+            // iget-object v0, p0: only v0 is used after the read.
+            if (implementation!!.instructions.first().opcode != Opcode.IGET_OBJECT ||
+                getInstruction<OneRegisterInstruction>(0).registerA != 0
+            ) {
+                throw PatchException("Rumble: unexpected My Feed pills getter")
+            }
+            addInstructions(
+                1,
+                """
+                    ${invokeStatic("$RUMBLE_INTERFACE->feedPills(Ljava/util/List;)Ljava/util/List;", 0)}
+                    move-result-object v0
+                """,
+            )
+        }
 
         rumbleSettings.add(
             SwitchSetting(

@@ -97,6 +97,7 @@ def anchor(name):
 # of to an anchor in this README (the details no longer live in the README).
 DOC_LINKS = {
     "com.greycastel.waypoint": "docs/waypoint/README.md",
+    "com.vpnproxymd.mdproxyvpn": "docs/md-proxy/README.md",
     "com.omarea.vtools": "docs/scene/README.md",
 }
 

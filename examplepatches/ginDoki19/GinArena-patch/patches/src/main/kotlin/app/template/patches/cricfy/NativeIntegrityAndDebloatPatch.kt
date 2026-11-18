@@ -44,8 +44,9 @@ private val STUB_X86 = byteArrayOf(
 internal val stripNativeBloatOption = booleanOption(
     key = "stripNativeBloat",
     default = false,
-    title = "Strip proxy & ad native libraries",
-    description = "Deletes unused proxy/ad libraries to save about 7.7 MB. Not needed for ad removal.",
+    title = "Strip unused ad native libraries",
+    description = "Deletes Unity ad framework libraries nothing can reach, to save about 2 MB. " +
+        "Safe to leave off; not needed for ad removal.",
 )
 
 /**
@@ -71,19 +72,65 @@ internal val nativeIntegrityAndDebloatPatch = rawResourcePatch {
         }
 
         if (stripNativeBloatOption.value == true) {
+            // ------------------------------------------------------------------------------
+            // DO NOT DELETE libjnidispatch.so OR libcr_android.so. (issue #56)
+            //
+            // CricFy 7.5 still ships a live CashRaven SDK. It reaches its Rust engine
+            // (libcr_android.so) through uniffi, and uniffi reaches native code through JNA,
+            // which needs its own libjnidispatch.so. Both are loaded from Application.onCreate:
+            //
+            //   App.onCreate -> App.a() -> createManaged -> CrShare.create
+            //                -> UniffiLib.getINSTANCE -> Native.load("cr_android")
+            //                -> System.loadLibrary("jnidispatch")
+            //
+            // With either file gone, JNA throws UnsatisfiedLinkError, which surfaces as
+            // ExceptionInInitializerError. Both are java.lang.Error, and nothing on that path
+            // catches Error, so the app dies before its first screen - the "CricFy is not
+            // opening" report. There is also no fallback: this APK ships no copy of JNA's
+            // dispatcher as a resource, and its classes are not treated as debuggable.
+            //
+            // Stubbing the bootstrap does not make it safe either. The SDK store sits in
+            // App.<field>, and App.b() throws when it is null ("cashRaven"). Most callers check
+            // first, but the drawer's Bandwidth Sharing branch calls App.b() and immediately
+            // uses the result with no check - so leaving CashRaven half-removed turns a startup
+            // crash into a crash the first time that menu is opened.
+            //
+            // So the SDK is left intact and working. Those two libraries are the app's own runtime,
+            // not an ad payload: removing them reclaims about 5.4 MB and costs the app. What is
+            // still removed is about 2.1 MB that provably nothing can reach.
+            //
+            // What is still removed is genuinely not on a startup path:
+            //   * libunitycoherencenative.so is referenced only by Unity Coherence, which is
+            //     unreachable because this patch stubs AdsSdkInitializer.create.
+            //   * lib/armeabi, lib/mips and lib/mips64 ship nothing but JNA's dispatcher. Those
+            //     ABIs are dead on every Android this app supports, and removing the directories
+            //     stops Android from misdetecting an obsolete ABI.
+            //   * assets/ad-viewer is OMSDK JavaScript used by Unity Ads only.
+            // ------------------------------------------------------------------------------
             val removableSuffixes = listOf(
-                "/libcr_android.so",
-                "/libjnidispatch.so",
                 "/libunitycoherencenative.so",
             )
             // Legacy 32-bit/MIPS ABI directories in CRICFy only ship JNA's libjnidispatch.so;
             // removing those directories prevents Android from misdetecting obsolete ABIs.
             val legacyJnaOnlyAbis = setOf("lib/armeabi/", "lib/mips/", "lib/mips64/")
 
+            // lib/armeabi, lib/mips and lib/mips64 contain nothing BUT libjnidispatch.so, so the
+            // old rule deleted the dispatcher along with the directory. The guard below caught
+            // exactly that on the real APK. Keep the dispatcher, drop everything else in those
+            // directories, and leave the directory removal to Android.
+            val protectedLibs = setOf("/libjnidispatch.so", "/libcr_android.so")
+
             for (entry in listApkEntries("lib/")) {
+                if (protectedLibs.any(entry::endsWith)) continue
                 if (removableSuffixes.any(entry::endsWith) || legacyJnaOnlyAbis.any(entry::startsWith)) {
                     delete(entry)
                 }
+            }
+
+            // Belt and braces: the libraries above must survive. `get(entry)` throws when the
+            // entry is gone, which is exactly the check wanted here.
+            for (entry in listApkEntries("lib/")) {
+                if (protectedLibs.any(entry::endsWith)) get(entry)
             }
 
             delete("assets/ad-viewer/")

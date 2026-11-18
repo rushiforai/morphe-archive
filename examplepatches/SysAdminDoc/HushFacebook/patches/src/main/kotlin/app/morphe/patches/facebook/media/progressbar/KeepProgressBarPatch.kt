@@ -17,6 +17,8 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMuta
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.facebook.feed.aidetected.EXTENSION_CLASSES
 import app.morphe.patches.facebook.feed.methodsHolding
+import app.morphe.patches.facebook.feed.namesString
+import app.morphe.patches.facebook.feed.resolveStatic
 import app.morphe.patches.facebook.layout.theme.branchTargets
 import app.morphe.patches.facebook.media.resume.VIDEO_PLAYER_PARAMS
 import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
@@ -154,7 +156,7 @@ internal const val REGISTRY_ASKS = "$PROGRESS_BAR->registryAsks(ZLjava/lang/Inte
 internal const val NO_SCRUBBER = "$PROGRESS_BAR->noScrubber()V"
 internal const val MISSES_HAND_OVER = "$PROGRESS_BAR->missesHandOver(" +
     "Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;" +
-    "Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Integer;I)V"
+    "Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Integer;I)V"
 
 /** The extension's stub the patch fills with a call of the registry's hand-over. */
 internal const val HAND_OVER_AGAIN_STUB = "handOverAgain"
@@ -415,8 +417,9 @@ val keepProgressBarPatch = bytecodePatch(
         if (progress.base.type != scrubberBase(scrubber) || progress.base.type !in listOfNotNull(scrubberClass.type, scrubberClass.superclass)) {
             refuse("${progress.base.type}, which updates the progress, isn't the class holding ${scrubber.type}'s views")
         }
-        val checksOwner = lengthCheckOwner(scrubberClass, progress.base)
-        val lengthChecks = scrubberLengthChecks(checksOwner)
+        val stringTables: (MethodReference) -> Method? = { call -> classDefByOrNull(call.definingClass)?.let { resolveStatic(it, call) } }
+        val checksOwner = lengthCheckOwner(scrubberClass, progress.base, stringTables)
+        val lengthChecks = scrubberLengthChecks(checksOwner, stringTables)
         progress.body.freeLocalsAt(PATCH, dragCheck(progress.body, progress), 2)
         val info = barInfo(progress.base, lengthChecks?.minimum)
         val handOver = reelHandOver(
@@ -436,7 +439,7 @@ val keepProgressBarPatch = bytecodePatch(
         val load = scrubberLoad(progress.base, another, returns)
         load.method.freeLocalsAt(PATCH, load.at, 3)
         val holderClear = holderClear(progress.base, returns)
-        holderClear.method.freeLocalsAt(PATCH, holderClear.clear, 2, targets = listOf(holderClear.store + 1))
+        holderClear.method.freeLocalsAt(PATCH, holderClear.store, 2, targets = listOf(holderClear.store + 1))
         // Only a mount of the base's own is run virtually, so only then can a class extending it skip it.
         val baseMount = another.mount.definingClass == progress.base.type
         val delay = frameDelay(progress)
@@ -661,6 +664,8 @@ internal class ScrubberLooks(
     val labelField: String,
     /** The SeekBar field in that holder (582 `LX/9DH;->A0A`). */
     val barField: String,
+    /** The method hiding the time label: [passive], or from 588 the static helper it calls. */
+    val labelHide: Method,
 )
 
 /**
@@ -698,9 +703,10 @@ internal fun vddScrubber(holders: List<ClassDef>, activeHolders: List<ClassDef> 
     val scrubber = scrubbers.singleOrNull()
         ?: refuse("expected one class tracing both \"$SCRUBBER_ACTIVE\" and \"$SCRUBBER_PASSIVE\", found ${scrubbers.size}")
     val passive = look(scrubber, SCRUBBER_PASSIVE).single()
-    val (viewsField, labelField) = timeLabelFields(scrubber, passive)
+    val (labelHide, fields) = timeLabelHide(scrubber, passive)
+    val (viewsField, labelField) = fields
     val barField = seekBarField(passive, labelField.substringBefore("->"))
-    return ScrubberLooks(scrubber.type, active(scrubber)!!, passive, viewsField, labelField, barField)
+    return ScrubberLooks(scrubber.type, active(scrubber)!!, passive, viewsField, labelField, barField, labelHide)
 }
 
 /**
@@ -718,27 +724,36 @@ internal fun seekBarField(passive: Method, views: String): String {
 }
 
 /**
- * The time label's two fields, read from the passive look, which hides the label: the one
- * `iget-object` of a [VIEW_GROUP] field in it, straight after the `iget-object` of the scrubber's
- * own field that holds the views class declaring it. That field is declared on the scrubber, or on
- * the abstract base it extends: 582 moved the scrubber's fields and its looks' signatures to a base
+ * The time label's two fields, read from where the passive look hides the label: the one
+ * `iget-object` of a [VIEW_GROUP] field, straight after the `iget-object` of the scrubber's own
+ * field that holds the views class declaring it. That field is declared on the scrubber, or on the
+ * abstract base it extends: 582 moved the scrubber's fields and its looks' signatures to a base
  * (`LX/9c4;`, `LX/9d9;` overriding the looks), and its looks read the fields through the base.
- * Refuses unless that's exactly one field.
+ * 588 moved the hide itself out of the look into a static `(scrubber)V` helper of the scrubber
+ * (`LX/0DtI;->A0H`), so the helpers the look calls are read with it. Returns the method holding
+ * the read and the two fields. Refuses unless that's exactly one field.
  */
-internal fun timeLabelFields(scrubber: ClassDef, passive: Method): Pair<String, String> {
+internal fun timeLabelHide(scrubber: ClassDef, passive: Method): Pair<Method, Pair<String, String>> {
     val owners = setOf(scrubber.type) + listOfNotNull(scrubber.superclass)
-    val code = passive.implementation!!.instructions.toList()
-    val found = code.indices.mapNotNull { index ->
-        val label = (code[index] as? ReferenceInstruction)?.takeIf { it.opcode == Opcode.IGET_OBJECT }?.reference as? FieldReference
-        val views = (code.getOrNull(index - 1) as? ReferenceInstruction)?.takeIf { it.opcode == Opcode.IGET_OBJECT }?.reference as? FieldReference
-        if (label != null && views != null && label.type == VIEW_GROUP && views.definingClass in owners &&
-            views.type == label.definingClass
-        ) {
-            views.toString() to label.toString()
-        } else {
-            null
+    val helpers = passive.implementation!!.instructions.filter { it.opcode == Opcode.INVOKE_STATIC }
+        .mapNotNull { (it as ReferenceInstruction).reference as? MethodReference }
+        .filter { it.definingClass == scrubber.type && it.returnType == "V" && it.parameterTypes.map(CharSequence::toString) == listOf(scrubber.type) }
+        .mapNotNull { call -> scrubber.methods.singleOrNull { it.name == call.name && it.parameterTypes.map(CharSequence::toString) == listOf(scrubber.type) && it.returnType == "V" } }
+        .distinctBy { it.name }
+    val found = (listOf(passive) + helpers).flatMap { method ->
+        val code = method.implementation?.instructions?.toList().orEmpty()
+        code.indices.mapNotNull { index ->
+            val label = (code[index] as? ReferenceInstruction)?.takeIf { it.opcode == Opcode.IGET_OBJECT }?.reference as? FieldReference
+            val views = (code.getOrNull(index - 1) as? ReferenceInstruction)?.takeIf { it.opcode == Opcode.IGET_OBJECT }?.reference as? FieldReference
+            if (label != null && views != null && label.type == VIEW_GROUP && views.definingClass in owners &&
+                views.type == label.definingClass
+            ) {
+                method to (views.toString() to label.toString())
+            } else {
+                null
+            }
         }
-    }.distinct()
+    }.distinctBy { it.second }
     return found.singleOrNull()
         ?: refuse("${scrubber.type}->${passive.name} reads ${found.size} view group fields off the scrubber's views, expected the one time label")
 }
@@ -1189,25 +1204,25 @@ internal fun scrubberLoad(base: ClassDef, another: AnotherVideo, returns: Regist
 
 /**
  * Where the scrubber base's unload clears the registry's default holder ([method], 585
- * `LX/0AE0;->onUnload`): the `const` of null ([clear]), the store right after it ([store]) and the
- * register holding the registry ([registry]).
+ * `LX/0AE0;->onUnload`): the store of null ([store]) and the register holding the registry
+ * ([registry]). 588 loads that null well ahead of the store and shares it with an earlier clear
+ * (arm64 `LX/0Cng;->onUnload`, `const/4 v3` at 18, the store at 54), so the store is the place to hook.
  */
-internal class HolderClear(val method: Method, val clear: Int, val store: Int, val registry: Int)
+internal class HolderClear(val method: Method, val store: Int, val registry: Int)
 
 /**
  * Finds the [HolderClear] in [base]. Refuses unless exactly one store of the registry's default
- * holder comes right after loading null into the stored register, and nothing jumps onto the store.
+ * holder stores a register only a null constant reaches, and nothing jumps onto the store.
  */
 internal fun holderClear(base: ClassDef, returns: RegistryReturns): HolderClear {
     val clears = base.methods.flatMap { method ->
         val code = method.implementation?.instructions?.toList().orEmpty()
         code.indices.filter { index ->
             val store = code[index]
-            val zero = code.getOrNull(index - 1)
-            store.opcode == Opcode.IPUT_OBJECT && zero?.opcode == Opcode.CONST_4 &&
+            store.opcode == Opcode.IPUT_OBJECT &&
                 ((store as ReferenceInstruction).reference as FieldReference).toString() == returns.defaultHolder &&
-                (zero as OneRegisterInstruction).registerA == (store as TwoRegisterInstruction).registerA &&
-                (zero as NarrowLiteralInstruction).narrowLiteral == 0
+                method.writersReaching(index, (store as TwoRegisterInstruction).registerA).singleOrNull()
+                    ?.let { isNullConstant(code.getOrNull(it)) } == true
         }.map { method to it }
     }
     val (method, store) = clears.singleOrNull()
@@ -1217,7 +1232,7 @@ internal fun holderClear(base: ClassDef, returns: RegistryReturns): HolderClear 
     val code = method.implementation!!.instructions.toList()
     if (code.indices.any { it != store - 1 && store in flow.normal[it] }) refuse("$where has a jump onto its clear of the default holder")
     if (store + 1 >= code.size) refuse("$where ends at its clear of the default holder")
-    return HolderClear(method, store - 1, store, (code[store] as TwoRegisterInstruction).registerB)
+    return HolderClear(method, store, (code[store] as TwoRegisterInstruction).registerB)
 }
 
 /**
@@ -1253,13 +1268,14 @@ private val MINIMUM_COMPARES = arrayOf(Opcode.IF_LT, Opcode.IF_GE)
 private val SHORT_COMPARES = arrayOf(Opcode.IF_GT, Opcode.IF_LE)
 
 /**
- * The scrubber's instance length checks loading [LENGTH_CHECK_SURFACE] that compare the reel's
- * length, their int parameter, first in an [opcode] against Facebook's minimum.
+ * The scrubber's instance length checks naming [LENGTH_CHECK_SURFACE] that compare the reel's
+ * length, their int parameter, first in an [opcode] against Facebook's minimum. 588 asks a string
+ * table for the name (arm64 `LX/04eH;->A00`), which [tables] resolves.
  */
-private fun lengthChecks(scrubber: ClassDef, vararg opcodes: Opcode): List<Method> =
-    methodsHolding(scrubber, LENGTH_CHECK_SURFACE).filter {
-        !AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == "Z" &&
-            isLengthCheckShape(it.parameterTypes.map(CharSequence::toString))
+private fun lengthChecks(scrubber: ClassDef, tables: (MethodReference) -> Method?, vararg opcodes: Opcode): List<Method> =
+    scrubber.methods.filter {
+        !AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == "Z" && it.implementation != null &&
+            isLengthCheckShape(it.parameterTypes.map(CharSequence::toString)) && namesString(it, LENGTH_CHECK_SURFACE, tables)
     }.filter { check ->
         val implementation = check.implementation!!
         // The parameters take the last three registers: this, then the length and the boolean in their order.
@@ -1295,9 +1311,9 @@ internal class LengthChecks(val minimum: Method, val short: Method)
  * into the bar info builder, the Reels tab scrubber's own minimum with them (an `instance-of
  * LX/7lL;` branch there), and [barInfo] finds their answers in it instead.
  */
-internal fun scrubberLengthChecks(scrubber: ClassDef): LengthChecks? {
-    if (lengthChecks(scrubber, *MINIMUM_COMPARES).isEmpty() && lengthChecks(scrubber, *SHORT_COMPARES).isEmpty()) return null
-    return LengthChecks(minimumLengthCheck(scrubber), shortReelCheck(scrubber))
+internal fun scrubberLengthChecks(scrubber: ClassDef, tables: (MethodReference) -> Method?): LengthChecks? {
+    if (lengthChecks(scrubber, tables, *MINIMUM_COMPARES).isEmpty() && lengthChecks(scrubber, tables, *SHORT_COMPARES).isEmpty()) return null
+    return LengthChecks(minimumLengthCheck(scrubber, tables), shortReelCheck(scrubber, tables))
 }
 
 /**
@@ -1305,17 +1321,17 @@ internal fun scrubberLengthChecks(scrubber: ClassDef): LengthChecks? {
  * scrubber extends it and only the base has them. 585's Android 9 build moved the looks into a class
  * extending the base (`LX/0AFM;` below `LX/0AEa;`) and left the checks on the base (`A1M`, `A1N`).
  */
-internal fun lengthCheckOwner(scrubber: ClassDef, base: ClassDef): ClassDef =
-    if (base.type == scrubber.superclass && scrubberLengthChecks(scrubber) == null && scrubberLengthChecks(base) != null) base else scrubber
+internal fun lengthCheckOwner(scrubber: ClassDef, base: ClassDef, tables: (MethodReference) -> Method?): ClassDef =
+    if (base.type == scrubber.superclass && scrubberLengthChecks(scrubber, tables) == null && scrubberLengthChecks(base, tables) != null) base else scrubber
 
 /**
  * The scrubber's check that a reel is long enough for a bar (583 `LX/9h9;->A1U`). The scrubber has
- * two instance length checks, each loading [LENGTH_CHECK_SURFACE] first. This one answers no
+ * two instance length checks, each naming [LENGTH_CHECK_SURFACE] first. This one answers no
  * through an `if-lt` of the reel's length against Facebook's minimum, and its answer decides between
  * the passive look and no bar at all. Refuses unless there's exactly one such check.
  */
-internal fun minimumLengthCheck(scrubber: ClassDef): Method {
-    val minimum = lengthChecks(scrubber, *MINIMUM_COMPARES)
+internal fun minimumLengthCheck(scrubber: ClassDef, tables: (MethodReference) -> Method?): Method {
+    val minimum = lengthChecks(scrubber, tables, *MINIMUM_COMPARES)
     return minimum.singleOrNull()
         ?: refuse("${scrubber.type} has ${minimum.size} length check(s) failing a reel shorter than a minimum, expected one")
 }
@@ -1326,8 +1342,8 @@ internal fun minimumLengthCheck(scrubber: ClassDef): Method {
  * The scrubber asks it first, and its yes gives the reel the look that sets the bar's alpha to 0,
  * so a short reel's bar showed for a moment and went. Refuses unless there's exactly one.
  */
-internal fun shortReelCheck(scrubber: ClassDef): Method {
-    val short = lengthChecks(scrubber, *SHORT_COMPARES)
+internal fun shortReelCheck(scrubber: ClassDef, tables: (MethodReference) -> Method?): Method {
+    val short = lengthChecks(scrubber, tables, *SHORT_COMPARES)
     return short.singleOrNull()
         ?: refuse("${scrubber.type} has ${short.size} length check(s) passing only a reel at most a minimum long, expected one")
 }
@@ -1790,9 +1806,13 @@ internal class ReelBarReturn(val at: Int, val register: Int, val barClass: Strin
 /**
  * The render's return of the bar it made (585 index 360, `return-object v19` of a
  * `new-instance LX/0Ayx;` built on the render's video data), the one `return-object` whose register
- * only a `new-instance` writes. Refuses unless there's exactly one, it comes after the read, the
- * bar's class has exactly one instance field of the video data's type, and the render's return type
- * declares Litho's `setKey`.
+ * only a `new-instance` writes. 588 returns no bar through the same instruction, the register null
+ * until the `new-instance` (arm64 `LX/09G8;->render`, `if-nez v0` at 338 jumps onto the return at 360),
+ * so null constants are let through when the bar's constructor is the instruction right before the
+ * return: only the built bar comes in from there, and [borrowsReelVideo]'s code in front of the return
+ * is what the jump skips. Refuses unless there's exactly one, it comes after the read, the bar's class
+ * has exactly one instance field of the video data's type, and the render's return type declares
+ * Litho's `setKey`.
  */
 internal fun reelBarReturn(read: ReelVideoRead, classDef: (String) -> ClassDef?): ReelBarReturn {
     val method = read.method
@@ -1804,9 +1824,14 @@ internal fun reelBarReturn(read: ReelVideoRead, classDef: (String) -> ClassDef?)
     val found = code.indices.mapNotNull { at ->
         if (code[at].opcode != Opcode.RETURN_OBJECT) return@mapNotNull null
         val register = (code[at] as OneRegisterInstruction).registerA
-        val made = method.writersReaching(at, register).singleOrNull() ?: return@mapNotNull null
-        if (code[made].opcode != Opcode.NEW_INSTANCE) return@mapNotNull null
+        val writers = method.writersReaching(at, register)
+        val made = writers.singleOrNull { code.getOrNull(it)?.opcode == Opcode.NEW_INSTANCE } ?: return@mapNotNull null
         val barClass = ((code[made] as ReferenceInstruction).reference as TypeReference).type
+        if (writers.size > 1) {
+            if (!writers.all { it == made || isNullConstant(code.getOrNull(it)) }) return@mapNotNull null
+            val built = ((code[at - 1] as? ReferenceInstruction)?.reference as? MethodReference) ?: return@mapNotNull null
+            if (built.definingClass != barClass || built.name != "<init>") return@mapNotNull null
+        }
         val data = classDef(barClass)?.fields?.filter { !AccessFlags.STATIC.isSet(it.accessFlags) && it.type == read.dataType }
             ?.singleOrNull() ?: return@mapNotNull null
         ReelBarReturn(at, register, barClass, "$barClass->${data.name}:${data.type}", component)
@@ -1816,6 +1841,11 @@ internal fun reelBarReturn(read: ReelVideoRead, classDef: (String) -> ClassDef?)
     if (bar.at <= read.at + 1) refuse("the scrubber render returns its bar before it reads the video data")
     return bar
 }
+
+/** Whether [instruction] loads the int constant 0, which is also how dex loads null. */
+private fun isNullConstant(instruction: Instruction?) =
+    instruction != null && instruction.opcode in setOf(Opcode.CONST_4, Opcode.CONST_16, Opcode.CONST) &&
+        (instruction as NarrowLiteralInstruction).narrowLiteral == 0
 
 /** The Reels footer's seek bar status enum and its HIDDEN and VISIBLE values, as `class->name:type`. */
 internal class SeekBarStatus(val type: String, val hidden: String, val visible: String, val dragging: String)
@@ -1898,9 +1928,11 @@ internal fun footerSeek(owners: List<ClassDef>, visibility: FooterVisibility): F
 /**
  * The class keeping the footer's status (582 `LX/AGv;`): [update], its one store of a new status
  * into [field] at [store], from register [new] into the object in [self], with the status before it
- * in [old]; and [constructor], whose one store of the starting status is at [initialStore], done
- * with that status at [started]: right after the store, or on 584 (`LX/AEI;`), which copies the
- * start into a second field it never reads, after that copy too.
+ * in [old]; [receiver], the register `this` arrives in, which is [self] unless the update copies it
+ * into a local first (588); [handOn], the call the new status goes to after the store; and
+ * [constructor], whose one store of the starting status is at [initialStore], done with that status
+ * at [started]: right after the store, or on 584 (`LX/AEI;`), which copies the start into a second
+ * field it never reads, after that copy too.
  */
 internal class StatusHolder(
     val type: String,
@@ -1910,6 +1942,8 @@ internal class StatusHolder(
     val new: Int,
     val old: Int,
     val self: Int,
+    val receiver: Int,
+    val handOn: String,
     val constructor: Method,
     val initialStore: Int,
     val started: Int,
@@ -1923,35 +1957,62 @@ private fun stores(method: Method, field: String) = method.code().withIndex().fi
 
 /**
  * The status holder among [owners], the classes with a field of [status]' type: the one whose
- * instance `V` method stores a status into its own field once, hands that same register to
- * [FUNCTION1_INVOKE] after the store, and reads the field once before it, into a register no
- * instruction between the read and the store writes. Its one constructor stores the starting status
- * into that field once, with no branch anywhere in it. Refuses unless there's exactly one.
+ * instance `V` method stores a status into its own field once, hands that same register on after the
+ * store ([statusHandOn]), and reads the field once before it, into a register no instruction between
+ * the read and the store writes. Its one constructor stores the starting status into that field
+ * once, with no branch anywhere in it. Refuses unless there's exactly one.
  */
 internal fun statusHolder(owners: List<ClassDef>, status: SeekBarStatus): StatusHolder {
     val found = owners.distinctBy { it.type }.flatMap { owner ->
         owner.fields.filter { it.type == status.type && !AccessFlags.STATIC.isSet(it.accessFlags) }.flatMap { declared ->
             val field = "${owner.type}->${declared.name}:${status.type}"
             owner.methods.filter { !AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == "V" && it.name != "<init>" }
-                .mapNotNull { update -> holderOf(owner, field, update) }
+                .mapNotNull { update -> holderOf(owner, field, update, status) }
         }
     }
     return found.singleOrNull()
-        ?: refuse("expected one class storing a ${status.type} and handing it to a Function1, found ${found.size}")
+        ?: refuse("expected one class storing a ${status.type} and handing it on, found ${found.size}")
 }
 
-private fun holderOf(owner: ClassDef, field: String, update: Method): StatusHolder? {
+private val OBJECT_MOVES = setOf(Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16)
+
+/**
+ * Whether [register], at instruction [at], can only hold a copy of [receiver] that was made while
+ * [receiver] was still the `this` the method got. 588's update copies itself into a low local first
+ * (arm64 `LX/09ql;->A00`: `move-object/from16 v1, v19`).
+ */
+private fun Method.holdsReceiver(at: Int, register: Int, receiver: Int): Boolean {
+    val copy = writersReaching(at, register).singleOrNull()?.takeIf { it >= 0 } ?: return false
+    val move = code()[copy]
+    return move.opcode in OBJECT_MOVES && (move as TwoRegisterInstruction).registerB == receiver &&
+        writersReaching(copy, receiver) == listOf(-1)
+}
+
+/**
+ * The call [code] hands the status in [register] to after its store: [FUNCTION1_INVOKE], or from 588,
+ * where that call was inlined, the constructor of the event it builds on the status alone (arm64
+ * `new LX/09IN;(LX/09qm;)`). Null when it does neither.
+ */
+private fun statusHandOn(code: List<Instruction>, register: Int, status: String): String? = code.firstNotNullOfOrNull {
+    val call = it as? FiveRegisterInstruction ?: return@firstNotNullOfOrNull null
+    val reference = (it as? ReferenceInstruction)?.reference as? MethodReference ?: return@firstNotNullOfOrNull null
+    val handsOn = call.registerCount == 2 && call.registerD == register && when (it.opcode) {
+        Opcode.INVOKE_INTERFACE -> reference.toString() == FUNCTION1_INVOKE
+        Opcode.INVOKE_DIRECT -> reference.name == "<init>" && reference.parameterTypes.map(CharSequence::toString) == listOf(status)
+        else -> false
+    }
+    reference.toString().takeIf { handsOn }
+}
+
+private fun holderOf(owner: ClassDef, field: String, update: Method, status: SeekBarStatus): StatusHolder? {
     val code = update.code()
     val store = stores(update, field).singleOrNull() ?: return null
     val put = code[store] as TwoRegisterInstruction
     // `this` sits right after the locals.
-    val self = update.localRegisterCount()
-    if (put.registerB != self) return null
-    val handed = code.drop(store + 1).any {
-        it.opcode == Opcode.INVOKE_INTERFACE && (it as ReferenceInstruction).reference.toString() == FUNCTION1_INVOKE &&
-            (it as FiveRegisterInstruction).registerCount == 2 && it.registerD == put.registerA
-    }
-    if (!handed) return null
+    val receiver = update.localRegisterCount()
+    val self = put.registerB
+    if (self != receiver && !update.holdsReceiver(store, self, receiver)) return null
+    val handOn = statusHandOn(code.drop(store + 1), put.registerA, status.type) ?: return null
     val read = code.withIndex().filter { (index, it) ->
         index < store && it.opcode == Opcode.IGET_OBJECT && ((it as ReferenceInstruction).reference as FieldReference).toString() == field
     }.singleOrNull() ?: return null
@@ -1975,7 +2036,7 @@ private fun holderOf(owner: ClassDef, field: String, update: Method): StatusHold
         target != null && (it.opcode.setsRegister() && target == holder || it.opcode.setsWideRegister() && target + 1 == holder)
     }
     if (rewritten) return null
-    return StatusHolder(owner.type, field, update, store, put.registerA, old, self, constructor, initialStore, started)
+    return StatusHolder(owner.type, field, update, store, put.registerA, old, self, receiver, handOn, constructor, initialStore, started)
 }
 
 /** The plugin's two size methods. */
@@ -2445,14 +2506,14 @@ internal fun MutableMethod.keepsOverlayOnPress(seek: FooterSeek, visibility: Foo
 }
 
 /**
- * Ahead of the scrubber's unload clearing the registry's default holder ([HolderClear.clear]): ask the
+ * Ahead of the scrubber's unload clearing the registry's default holder ([HolderClear.store]): ask the
  * extension about what the registry holds and the scrubber's own holder. A yes skips Facebook's clear,
  * so a scrubber unloading late leaves the holder of the one loaded after it.
  */
 internal fun MutableMethod.keepsNewerHolder(clear: HolderClear, load: ScrubberLoad, returns: RegistryReturns) {
-    val (current, own) = freeLocalsAt(PATCH, clear.clear, 2, targets = listOf(clear.store + 1))
+    val (current, own) = freeLocalsAt(PATCH, clear.store, 2, targets = listOf(clear.store + 1))
     addInstructionsWithLabels(
-        clear.clear,
+        clear.store,
         """
             iget-object v$current, v${clear.registry}, ${returns.defaultHolder}
             move-object/from16 v$own, p0
@@ -2681,7 +2742,7 @@ internal fun BytecodePatchContext.fillEndScroll(progress: ProgressUpdate, scroll
 }
 
 /** The registry's hand-over takes this many arguments, the reel's key and an int last, after its own instance. */
-internal const val HAND_OVER_PARAMETERS = 9
+internal const val HAND_OVER_PARAMETERS = 8
 
 /** Whether [method] is the extension's [HAND_OVER_AGAIN_STUB]: static, void, on [MISSES_HAND_OVER]'s arguments. */
 internal fun isHandOverAgainStub(method: Method) = method.name == HAND_OVER_AGAIN_STUB &&
@@ -3213,9 +3274,11 @@ internal fun checkFooterLift(owner: ClassDef, holder: StatusHolder) {
 /**
  * First thing in the status holder's update: when it's handed no event, which only the extension's
  * [FOOTER_LIFT_HELPER] does (Facebook's code returns at once for one), and the extension keeps the
- * bar, take a HIDDEN status to VISIBLE through Facebook's own store, Function1 call and event, by
- * jumping to the store with VISIBLE as the new status and the status now as the old one. Anything
- * else returns, and an update with an event runs Facebook's code from its first instruction.
+ * bar, take a HIDDEN status to VISIBLE through Facebook's own store, hand-on and event, by jumping
+ * to the store with VISIBLE as the new status and the status now as the old one. Where the update
+ * keeps `this` in a local (588) the code fills that local first, as the jump passes Facebook's copy.
+ * Anything else returns, and an update with an event runs Facebook's code from its first instruction.
+ * Refuses if Facebook's code past the store reads any other local, which the jump would leave unset.
  * [staysLifted] goes in first, after the store, so the store keeps its index.
  */
 internal fun MutableMethod.liftsWhenAsked(holder: StatusHolder, status: SeekBarStatus) {
@@ -3227,7 +3290,10 @@ internal fun MutableMethod.liftsWhenAsked(holder: StatusHolder, status: SeekBarS
         refuse("$definingClass->$name has no store of its new status at ${holder.store} any more")
     }
     if (listOf(holder.new, holder.old, holder.self).any { it > 15 }) refuse("$definingClass->$name keeps the status past v15")
-    val event = holder.self + 1
+    val event = holder.receiver + 1
+    val unset = liveAcrossInjection(holder.store) - setOf(holder.new, holder.old, holder.self, holder.receiver, event)
+    if (unset.isNotEmpty()) refuse("$definingClass->$name reads $unset past its status store, which a jump there leaves unset")
+    val takeSelf = if (holder.self == holder.receiver) "" else "move-object/from16 v${holder.self}, v${holder.receiver}"
     addInstructionsWithLabels(
         0,
         """
@@ -3235,6 +3301,7 @@ internal fun MutableMethod.liftsWhenAsked(holder: StatusHolder, status: SeekBarS
             invoke-static { }, $LIFTS_FOOTER
             move-result v${holder.new}
             if-eqz v${holder.new}, :stays
+            $takeSelf
             iget-object v${holder.old}, v${holder.self}, ${holder.field}
             sget-object v${holder.new}, ${status.hidden}
             if-ne v${holder.old}, v${holder.new}, :stays

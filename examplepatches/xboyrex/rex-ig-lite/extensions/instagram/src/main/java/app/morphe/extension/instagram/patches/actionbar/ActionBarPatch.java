@@ -149,6 +149,8 @@ public class ActionBarPatch {
             if (Pref.liquidGlassNav()) {
                 try {
                     app.morphe.extension.suite.instagram.settings.Settings.GLASS_TAB_BAR.save(Boolean.TRUE);
+                    app.morphe.extension.suite.instagram.settings.Settings.GLASS_TAB_BAR_FLOAT.save(Boolean.TRUE);
+                    app.morphe.extension.suite.instagram.settings.Settings.GLASS_TAB_BAR_REELS_BEHIND.save(Boolean.TRUE);
                 } catch (Throwable ignored) {}
             }
             if (homeTab == null) return;

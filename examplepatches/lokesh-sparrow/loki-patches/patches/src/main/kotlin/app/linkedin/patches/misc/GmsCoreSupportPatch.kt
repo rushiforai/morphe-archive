@@ -564,7 +564,7 @@ private val gmsCoreSupportResourcePatch = resourcePatch {
 
 @Suppress("unused")
 val gmsCoreSupportPatch = bytecodePatch(
-    name = "GmsCore support",
+    name = "GmsCore support (LinkedIn)",
     description = "Routes \"Continue with Google\" and Firebase push through MicroG-RE (GmsCore) instead of Google Play " +
         "services. Signs the FCM registration with LinkedIn's original certificate, so notifications still arrive " +
         "on a re-signed build. MicroG-RE has to be installed and signed in to a Google account.",

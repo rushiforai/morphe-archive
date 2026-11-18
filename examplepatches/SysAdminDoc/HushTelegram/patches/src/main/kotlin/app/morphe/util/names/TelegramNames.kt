@@ -410,6 +410,7 @@ object TelegramNames {
         val path = "/hushtelegram/names/$build.txt"
         val stream = TelegramNames::class.java.getResourceAsStream(path) ?: error("$path is missing from the patches")
         var table: Table? = null
+        val methods = mutableListOf<List<String>>()
         stream.bufferedReader().useLines { lines ->
             for (line in lines) {
                 if (line.isEmpty() || line.startsWith("#")) continue
@@ -428,6 +429,7 @@ object TelegramNames {
                         methodFwd["${p[1]}->${p[2]}${p[3]}"] = member
                         methodsByName.getOrPut("${p[1]}->${p[2]}") { mutableListOf() } += p[3] to member
                         methodBack["${p[4]}->${p[5]}${p[6]}"] = p[2]
+                        methods += p
                     }
                     "f" -> with(table!!) {
                         fieldFwd["${p[1]}->${p[2]}"] = Member(p[4], p[5], p[6])
@@ -443,7 +445,52 @@ object TelegramNames {
         }
         return checkNotNull(table) { "$path has no build line" }.also {
             check(it.build == build) { "$path is the table of ${it.build}" }
+            fileUnderOwnNames(it, methods)
         }
+    }
+
+    /**
+     * A table matched against another build (Plus Messenger's, against Play) copies that build's
+     * descriptors, so a class neither renames is written with the other build's name: Play's
+     * `org/telegram/ui/nn` where Plus has `zo`. Callers ask in the build's own names, so each such
+     * row is also filed under them. A row whose types differ in any other way stays as written.
+     */
+    private fun fileUnderOwnNames(table: Table, methods: List<List<String>>) = with(table) {
+        for (p in methods) {
+            val source = descriptorTypes(p[3])
+            val built = descriptorTypes(p[6])
+            if (source.size != built.size) continue
+            val unnamedOnly = source.indices.all { i ->
+                val a = source[i]
+                val b = built[i]
+                a == b || mapType(a, classFwd) == b || a.trimStart('[').startsWith("L") &&
+                    a.length - a.trimStart('[').length == b.length - b.trimStart('[').length &&
+                    b.trimStart('[').startsWith("L") && a.trimStart('[') !in classFwd && b.trimStart('[') !in classBack
+            }
+            val own = mapDescriptor(p[6], classBack)
+            if (!unnamedOnly || own == p[3]) continue
+            val member = Member(p[4], p[5], p[6])
+            if (methodFwd.putIfAbsent("${p[1]}->${p[2]}$own", member) == null) {
+                methodsByName.getOrPut("${p[1]}->${p[2]}") { mutableListOf() } += own to member
+            }
+        }
+    }
+
+    /** A method descriptor's types in order, the return type last. */
+    private fun descriptorTypes(descriptor: String): List<String> {
+        val out = mutableListOf<String>()
+        var i = 0
+        while (i < descriptor.length) {
+            if (descriptor[i] == '(' || descriptor[i] == ')') {
+                i++
+                continue
+            }
+            val start = i
+            while (descriptor[i] == '[') i++
+            i = if (descriptor[i] == 'L') descriptor.indexOf(';', i) + 1 else i + 1
+            out += descriptor.substring(start, i)
+        }
+        return out
     }
 
     private fun mapType(type: String, map: Map<String, String>): String {

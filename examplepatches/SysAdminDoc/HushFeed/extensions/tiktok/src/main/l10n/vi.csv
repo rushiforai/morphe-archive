@@ -2857,3 +2857,21 @@ Hide the Widget circle,Ẩn vòng tròn Tiện ích (Widget)
 The Widget circle at the end of the stories tray goes. TikTok's home screen widget still works.,Vòng tròn Tiện ích (Widget) ở cuối khay chứa tin sẽ bị gỡ. Tiện ích màn hình chính của TikTok vẫn hoạt động.
 Hide view counts on profile grids,Ẩn số lượt xem trên lưới trang cá nhân
 "Takes the view count and its play icon off each video on profile grids. Dates, lengths and the engagement rate you turned on move up in its place.","Bỏ số lượt xem và biểu tượng phát khỏi từng video trên lưới trang cá nhân. Ngày, thời lượng và tỷ lệ tương tác bạn đã bật sẽ chuyển lên thay chỗ."
+Video bitrate limit,Giới hạn bitrate video
+%1$s Mb/s,%1$s Mb/s
+"A video heavier than this plays a lighter version. If none fits, it plays its lightest one.","Video nặng hơn sẽ phát bản nhẹ hơn. Nếu không có bản nào phù hợp, video sẽ phát bản nhẹ nhất."
+Use an imported emoji font,Sử dụng phông chữ emoji đã nhập
+"Shows emoji in the font file you import below, whichever font the text is in. Restart TikTok to see the change.","Hiển thị emoji bằng tệp phông chữ bạn nhập bên dưới, dù văn bản dùng phông chữ nào. Khởi động lại TikTok để xem thay đổi."
+Import an emoji font file,Nhập tệp phông chữ emoji
+Remove the imported emoji font,Xóa phông chữ emoji đã nhập
+No emoji font is imported,Chưa nhập phông chữ emoji nào
+%1$s is imported. Turn on Use an imported emoji font to see it.,"%1$s đã được nhập. Bật ""Sử dụng phông chữ emoji đã nhập"" để xem."
+Write the month as a word,Viết tháng bằng chữ
+"Writes TikTok's date by the creator's name with the month's name, like Oct 12. Day before month makes it 12 Oct.","Viết ngày của TikTok cạnh tên nhà sáng tạo bằng tên tháng, như Oct 12. Ngày trước tháng sẽ đổi thành 12 Oct."
+"Fade the name, date and caption","Làm mờ tên, ngày và chú thích"
+"Draws the creator's name, the date, the caption and the music line over the video at this level, and they still take taps. At 100 they follow Fade the video controls. At 0 they're hidden.","Hiển thị tên nhà sáng tạo, ngày, chú thích và dòng nhạc trên video ở mức này, và vẫn nhấn được. Ở 100 chúng theo Làm mờ điều khiển video. Ở 0 chúng bị ẩn."
+LIVE buttons in the long-press menu,Nút LIVE trong menu nhấn giữ
+Takes the Record and Auto tap buttons off the video and puts them in the menu you get by holding the middle of a LIVE.,Bỏ nút Ghi hình và Tự động chạm khỏi video và đưa chúng vào menu hiện ra khi nhấn giữ giữa LIVE.
+Auto tap started,Đã bắt đầu tự động chạm
+Hide stories from accounts you don't follow,Ẩn tin từ tài khoản bạn không theo dõi
+Stories from accounts you don't follow leave the stories tray. Stories from accounts you follow stay.,Tin từ các tài khoản bạn không theo dõi sẽ rời khỏi khay chứa tin. Tin từ các tài khoản bạn theo dõi vẫn ở lại.

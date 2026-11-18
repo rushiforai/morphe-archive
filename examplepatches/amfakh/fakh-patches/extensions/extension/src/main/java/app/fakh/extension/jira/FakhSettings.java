@@ -45,7 +45,8 @@ public final class FakhSettings {
             Context context = AppRuntime.application();
             if (context == null) return;
             ClassLoader loader = composer.getClass().getClassLoader();
-            Class<?> items = Class.forName("com.atlassian.jira.infrastructure.compose.ui.SpacedItemsKt", true, loader);
+            Class<?> items = Class.forName(
+                    "com.atlassian.jira.infrastructure.designsystem.components.molecules.listitem.JiraSectionColumnKt", true, loader);
             Class<?> screen = Class.forName("com.atlassian.jira.feature.profile.impl.view.ProfileScreenKt", true, loader);
             Class<?> function1 = Class.forName("kotlin.jvm.functions.Function1", true, loader);
             Method card = null;
@@ -80,8 +81,8 @@ public final class FakhSettings {
                     return null;
                 }
             });
-            // Modifier, gap and shape are the card's own defaults.
-            card.invoke(null, null, 0f, null, builder, composer, 0, 1 | 2 | 4);
+            // Title, modifier and gap are the card's own defaults.
+            card.invoke(null, null, null, 0f, builder, composer, 0, 1 | 2 | 4);
         } catch (Throwable error) {
             android.util.Log.w("FakhPatches", "Account card", error);
         }
@@ -121,32 +122,17 @@ public final class FakhSettings {
                 Class<?>[] types = method.getParameterTypes();
                 if (types.length == 14 && types[1] == modelClass) pickerMethod = method;
             }
-            Method themeMethod = null;
-            for (Method method : theme.getDeclaredMethods()) {
-                if (method.getName().equals("e") && method.getParameterTypes().length == 10) themeMethod = method;
-            }
-            // The text of a row: the composable the priority picker's own row slot draws a priority's name with.
-            Method textMethod = null;
-            for (Method method : Class.forName("wdk", true, loader).getDeclaredMethods()) {
-                Class<?>[] types = method.getParameterTypes();
-                if (method.getName().equals("c") && types.length == 20 && types[0] == String.class) textMethod = method;
-            }
+            Method themeMethod = themeMethod(theme);
+            // The text of a row: the composable Jira's search title draws its text with.
+            Method textMethod = composable(loader, textComposable(), 20);
             // The modal bottom sheet the priority sheet sits in, and the two colors it is given.
-            Method sheetMethod = null;
-            for (Method method : Class.forName("ezn", true, loader).getDeclaredMethods()) {
-                if (method.getName().equals("a") && method.getParameterTypes().length == 18) sheetMethod = method;
-            }
-            Method containerMethod = null;
-            for (Method method : Class.forName("aea", true, loader).getDeclaredMethods()) {
-                Class<?>[] types = method.getParameterTypes();
-                if (method.getName().equals("a") && types.length == 2 && types[0] == theme) containerMethod = method;
-            }
+            Method sheetMethod = composable(loader, sheetComposable(), 18);
+            Method containerMethod = composable(loader, containerColorComposable(), 2);
             final Method sheetCall = sheetMethod;
             final Method containerColor = containerMethod;
             final Method scrimColor = Class.forName("com.atlassian.jira.infrastructure.compose.ui.fields.FieldDefaults", true, loader)
                     .getMethod("b", sheetMethod.getParameterTypes()[14]);
-            final java.lang.reflect.Constructor<?> makeLambda = sheetMethod.getParameterTypes()[13]
-                    .getConstructor(int.class, boolean.class, Object.class);
+            final java.lang.reflect.Constructor<?> makeLambda = lambdaConstructor(loader);
             final Class<?> function3 = pickerMethod.getParameterTypes()[8];
             final Method pickerCall = pickerMethod;
             final Method themeCall = themeMethod;
@@ -256,6 +242,49 @@ public final class FakhSettings {
         } catch (Throwable failure) {
             android.util.Log.w("FakhPatches", "Tab sheet", failure);
         }
+    }
+
+    /**
+     * The Compose Text that Jira's search title calls, as "class.method". R8 renames it every release, so the patch
+     * reads it from DefaultSearchTitleKt and returns it here.
+     */
+    static String textComposable() {
+        return "";
+    }
+
+    /** The modal bottom sheet that the priority sheet sits in, as "class.method"; the patch returns it here. */
+    static String sheetComposable() {
+        return "";
+    }
+
+    /** The container color the priority sheet gives its sheet, as "class.method"; the patch returns it here. */
+    static String containerColorComposable() {
+        return "";
+    }
+
+    /** The method a "class.method" name points at that takes this many parameters. */
+    private static Method composable(ClassLoader loader, String name, int parameters) throws ClassNotFoundException {
+        int dot = name.lastIndexOf('.');
+        for (Method method : Class.forName(name.substring(0, dot), true, loader).getDeclaredMethods()) {
+            if (method.getName().equals(name.substring(dot + 1)) && method.getParameterTypes().length == parameters) return method;
+        }
+        throw new IllegalStateException("No " + name + " with " + parameters + " parameters");
+    }
+
+    /** JiraTheme's composable that puts content in the app's theme: its one method with ten parameters. */
+    static Method themeMethod(Class<?> theme) {
+        for (Method method : theme.getDeclaredMethods()) {
+            if (method.getParameterTypes().length == 10) return method;
+        }
+        throw new IllegalStateException("JiraTheme");
+    }
+
+    /**
+     * The constructor of Compose's composable lambda (key, tracked, block), the type of the modal bottom sheet's content.
+     */
+    static java.lang.reflect.Constructor<?> lambdaConstructor(ClassLoader loader) throws ReflectiveOperationException {
+        return composable(loader, sheetComposable(), 18).getParameterTypes()[13]
+                .getConstructor(int.class, boolean.class, Object.class);
     }
 
     /**

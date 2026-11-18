@@ -4,6 +4,31 @@ Every Hushfeed release, newest first.
 
 ## Unreleased
 
+### Features
+
+* `Hide stories from accounts you don't follow` clears the recommended stories TikTok mixes into the Inbox's stories tray. Stories from accounts you follow, and your own, stay (#462).
+* `LIVE buttons in the long-press menu` takes Record and Auto tap off the video and puts them in the menu you get by holding the middle of a LIVE (#359).
+* `Fade the name, date and caption` gives the creator's name, the date, the caption and the music line their own opacity over the video (#462).
+* `Write the month as a word` shows TikTok's date by the creator's name as Oct 12, or 12 Oct with `Day before month` on (#461).
+* `Use an imported emoji font` draws emoji in a font file you pick, separately from the text font. It's part of `Use system font` and needs Android 12 or newer (#458).
+* `Video bitrate limit` keeps a heavy video from eating your data. Anything over the limit plays a lighter version, and videos under it aren't touched (#454).
+* Double tap and Long press can mark the video on screen as not interested, with the same follow-up choices as the button. It needs the Not interested patch (#452).
+* Hushfeed moves to TikTok 47.9.1, and only that one. 47.8.3 isn't supported anymore. Get the 47.9.1 bundle or APK from APKMirror and patch it with your usual signing key.
+
+### Bug Fixes
+
+* The date and length on profile grids don't get cut in half anymore. The label's bar now grows when it needs a third line (#449, #462).
+* Patching no longer stops at `Settings` when TikTok's Open Debug row can't be found. You lose only the Hushfeed row in TikTok's settings, and holding Home still opens the page (#460).
+* `Save episodes` loads a mini drama's episode list again. It used to stop at "Couldn't load the episodes" (#463).
+* The note on the `White on black`, `Black on white` and `Material You` app icons, and on themed icons, has clean round edges now. TikTok's own note has dents that its colored echoes normally cover.
+* `Keep captions in Clear display` shows a video's first caption right away, sits near TikTok's own caption spot when it hasn't seen one yet, and stays above the progress bar (#456).
+* The country and date line doesn't get cut off anymore when you open a long caption (#457).
+* `Show the country and date under the caption` keeps the two together on photo posts and on videos with no caption. With no caption they go right under the creator's name (#453).
+
+### Build
+
+* The GitHub release notes leave out the Build changes and the What was checked list now. Build changes are still listed here in the changelog.
+
 ## 0.83.0 (2026-11-17)
 
 ### Features

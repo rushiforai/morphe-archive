@@ -245,8 +245,10 @@
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/SaveTo.java",
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/SendLink.java",
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/VideoMenuItem.java",
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/ViewerVideoItem.java",
         "patches/src/main/kotlin/app/morphe/patches/facebook/downloads/video/DownloadVideoPatch.kt",
-        "patches/src/main/kotlin/app/morphe/patches/facebook/downloads/video/Fingerprints.kt"
+        "patches/src/main/kotlin/app/morphe/patches/facebook/downloads/video/Fingerprints.kt",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/downloads/video/ViewerVideoMenu.kt"
       ],
       "origin": "original",
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
@@ -703,6 +705,15 @@
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
       "changes": "Written for Hushfacebook from Facebook 585 (#287): the family intent scope's null refusal asks the extension first, which hands a plain Instagram or Threads web link to that app's own exported link activity with nothing else attached."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/emoji/OwnEmoji.java"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook for issue #513: draws emoji from a font file picked in the settings."
     },
     {
       "paths": [
@@ -1940,6 +1951,15 @@
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
       "changes": "Written for Hushfacebook for issue #404: Play saved videos in a row, a switch of Clean up Reels. Facebook 585 has no route that plays Saved in order (its saved reels link bounces to the main screen, and Saved and Your library both play the tapped reel, then suggestions). The patch puts a static call first in the touch dispatch of FbFragmentActivity and of DelegatingFbFragmentFrameworkActivity, the base of the Saved page and its viewer, whose own dispatch hands touches to its delegate without running FbFragmentActivity's. The extension keeps the card a press landed on (a child of a scrolling list with a same-width sibling), starts a chain when the Reels viewer opens with a saved:: player origin soon after, and when the reel ends or a second player binds after the viewer settles, finishes the viewer, waits for the Saved page to resume, scrolls the next card into view if it has to and taps it with a synthesized finger press through the page's own dispatch."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/AskBeforeDownload.java"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook for issue #511: Ask before downloading. With the switch on, a reel's Download button, the Download button under a post and a video's Download to phone ask first, and only Continue starts the save."
     },
     {
       "paths": [

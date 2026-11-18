@@ -21,11 +21,12 @@ internal object HypeTrainHighlightTypeFingerprint : Fingerprint(
     strings = listOf("HypeTrain(isGoldenKappaTrain="),
 )
 
-// Turns each chat notice event (USERNOTICE) into a chat line, or null for none.
+// Turns each chat notice event (USERNOTICE) into a chat line, or null for none. Its test notice names the
+// "qa_partner" channel; the debug menu that also sends goal notices to it doesn't read gift months.
 internal object ChatNoticeLineFingerprint : Fingerprint(
     parameters = listOf("L", "L"),
     strings = listOf("msg-param-goal-target-contributions", "msg-param-goal-contribution-type",
-        "TestModerator has been a moderator for 2 years!"),
+        "msg-param-gift-months", "qa_partner"),
 )
 
 internal object SubscriptionNoticeEventFingerprint : Fingerprint(

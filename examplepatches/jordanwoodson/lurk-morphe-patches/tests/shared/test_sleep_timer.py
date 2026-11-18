@@ -3,6 +3,10 @@
 
 No APK, Android SDK or network required. Runtime callbacks and entire production classes
 are compiled unchanged. Only Android/platform boundaries are doubled.
+
+Twitch pauses through platform bridges that miss here, so its scenarios check the fallback that pauses missed
+players three seconds later. Kick pauses every started player directly at expiry (its bridge is empty here, so
+KickPlayer uses each player's own pause()), so its scenarios are the direct- ones.
 """
 import sys
 from pathlib import Path
@@ -20,7 +24,8 @@ public class SleepTimerProbe {
     int pauses;
     public void pause(){pauses++;SleepTimer.onStop(this);}
   }
-  static Method play,stop;
+  static Method play,stop,playWhenReady;
+  public static void playWhenReady(Object p)throws Exception{playWhenReady.invoke(null,p,true);}
   static int checks;
   static void check(boolean b,String m){if(!b)throw new AssertionError(m);checks++;}
   static void start(Player p)throws Exception{play.invoke(null,p);Handler.advance(0);}
@@ -33,7 +38,11 @@ public class SleepTimerProbe {
     }
     String[] test=args[0].split(":");
     Class<?> type=Class.forName("io.github.jordanwoodson.extension.shared."+test[0]);
-    play=type.getMethod("onPlay",Object.class);stop=type.getMethod("onStop",Object.class);
+    stop=type.getMethod("onStop",Object.class);
+    // Kick reports Media3's playWhenReady: true is a start or resume.
+    try{play=type.getMethod("onPlay",Object.class);}
+    catch(NoSuchMethodException kick){Method ready=type.getMethod("onPlayWhenReady",Object.class,boolean.class);
+      play=SleepTimerProbe.class.getDeclaredMethod("playWhenReady",Object.class);playWhenReady=ready;}
     // At expiry the platform pause bridges miss old. A different player starts during the grace period.
     if(test[1].equals("new")){
     Player old=new Player(),fresh=new Player();start(old);expire();start(fresh);Handler.advance(3000);
@@ -69,6 +78,18 @@ public class SleepTimerProbe {
     if(test[1].equals("disable")){
     Player disabled=new Player();start(disabled);expire();Settings.values.put("sleep_timer","0");Handler.advance(3000);
     check(disabled.pauses==0,"disabled timer still paused a player");end(disabled);}
+    // Direct pausing (Kick): every player started and not stopped is paused once, at expiry.
+    if(test[1].equals("direct-new")){
+    Player old=new Player(),stopped=new Player();start(old);start(stopped);end(stopped);expire();
+    check(old.pauses==1,"started player was not paused at expiry");
+    check(stopped.pauses==0,"stopped player was paused");
+    Player fresh=new Player();start(fresh);Handler.advance(3000);
+    check(fresh.pauses==0,"player started after expiry was paused");check(old.pauses==1,"paused twice");end(fresh);}
+    // A resume after the pause arms the timer again from then.
+    if(test[1].equals("direct-resume")){
+    Player resumed=new Player();start(resumed);expire();check(resumed.pauses==1,"not paused at expiry");
+    Handler.advance(30_000);start(resumed);Handler.advance(59_000);check(resumed.pauses==1,"paused before its time");
+    Handler.advance(1_000);check(resumed.pauses==2,"resumed player was not paused a minute later");}
     System.out.println("PASS: "+args[0]+" "+checks+" deterministic sleep checks");
   }
 }
@@ -76,8 +97,9 @@ public class SleepTimerProbe {
 
 if __name__ == '__main__':
     run('SleepTimerProbe', ['SleepTimer.java', 'kick/KickPlayer.java', 'twitch/TwitchPlayer.java'],
-        PROBE, [helper + ':' + scenario for helper in ['kick.KickPlayer', 'twitch.TwitchPlayer']
+        PROBE, ['twitch.TwitchPlayer:' + scenario
                 for scenario in ['new', 'resume', 'replay', 'stop', 'repeat', 'change', 'disable']]
+        + ['kick.KickPlayer:' + scenario for scenario in ['direct-new', 'direct-resume', 'change']]
         + ['concurrency:' + boundary for boundary in ['initial-expiry', 'initial-runnable', 'fallback', 'executor',
             'queued-new', 'queued-resume', 'queued-current', 'queued-stock', 'queued-failure', 'queued-disabled',
             'lockfree-stop', 'lockfree-play']],

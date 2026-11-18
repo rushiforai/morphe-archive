@@ -1,3 +1,17 @@
+## [2.3.0](https://github.com/amfakh/fakh-patches/compare/v2.2.4...v2.3.0) (2026-11-18)
+
+### New Features
+
+* **Jira:** lift the Rovo button above the glass bar in the accent color ([b3526e9](https://github.com/amfakh/fakh-patches/commit/b3526e9a94f4c5acf7a2e29ab56ed5e4dc10bff5))
+* **Jira:** draw the Rovo button as glass under the glass bar ([b4168d2](https://github.com/amfakh/fakh-patches/commit/b4168d2f4203b16c52190f03fd7d9c2e683d3051))
+
+### Updated App Support
+
+* **CNN Indonesia:** add support for `2.50.8`, next to `2.50.7` ([a3fc9cd](https://github.com/amfakh/fakh-patches/commit/a3fc9cdc48af534a136f72628ff909386f4ba5e8))
+* **LinkedIn:** add support for `4.1.1275`, next to `4.1.1272` ([a3fc9cd](https://github.com/amfakh/fakh-patches/commit/a3fc9cdc48af534a136f72628ff909386f4ba5e8))
+* **KOMPAS.com:** add support for `9.8.7`, replacing `9.8.4` ([aff5ffa](https://github.com/amfakh/fakh-patches/commit/aff5ffab67f2f06cd34a362e43331dd009e1f66a))
+* **Jira:** add support for `2026.22.0`, replacing `2026.21.2` ([4711d17](https://github.com/amfakh/fakh-patches/commit/4711d17d245c26b9b574d51ec82b50e9eb2d3d33))
+
 ## [2.2.4](https://github.com/amfakh/fakh-patches/compare/v2.2.3...v2.2.4) (2026-11-17)
 
 ### Updated App Support

@@ -8,7 +8,6 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.PlusPending
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
 import app.morphe.patches.telegram.misc.localcontrols.controlBody
 import app.morphe.patches.telegram.misc.localcontrols.controlRef
@@ -36,7 +35,6 @@ import app.morphe.util.names.tgMutableClassDefBy
  * passkey step) and the chat list's SETUP_PASSKEY banner check each hand their answer to the
  * extension, in the same register, and the rest of each method is Telegram's code unchanged.
  */
-@PlusPending
 class PasskeyGateFixtureTest {
     private fun Instruction.shape() = listOf(opcode, origRef())
 
@@ -53,8 +51,12 @@ class PasskeyGateFixtureTest {
             // already holds the extension's answer when the inlined login tests it again.
             val loginInlined = gated.none { (type, method) -> "$type->${method.origName}" == PASSKEY_LOGIN }
             if (loginInlined) assertInlinedLoginRetestsStepRead(name, gated.map { it.second })
-            val readCount = if (loginInlined) 4 else 5
+            // Plus Messenger reads it twice more: as the default of its settings_display_passkeys
+            // server config, and in the chat list's banner after the SETUP_PASSKEY check.
+            val plus = name.startsWith("plus-")
+            val readCount = (if (loginInlined) 4 else 5) + if (plus) 2 else 0
             assertEquals("$name: SUPPORTS_PASSKEYS reads", readCount, reads.size)
+            assertEquals("$name: Plus's config default reads it: $reads", plus, "Lorg/telegram/messenger/AppGlobalConfig;-><init>" in reads)
             assertTrue("$name: creation and login read it: $reads", reads.containsAll(
                 if (loginInlined) listOf("Lorg/telegram/messenger/PasskeysController;->create") else listOf("Lorg/telegram/messenger/PasskeysController;->create", PASSKEY_LOGIN)))
             assertEquals("$name: the privacy row and its tap: $reads", 2,

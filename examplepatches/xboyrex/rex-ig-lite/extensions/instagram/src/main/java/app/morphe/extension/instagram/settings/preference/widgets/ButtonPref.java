@@ -64,7 +64,9 @@ public class ButtonPref extends Preference {
             Constants.REX_FRAGMENT_REC_FLAGS,
             Constants.REX_FRAGMENT_FOCUS_LOCK,
             Constants.REX_FRAGMENT_INSTANTS,
-            Constants.REX_FRAGMENT_FONT
+            Constants.REX_FRAGMENT_FONT,
+            Constants.REX_FRAGMENT_INITIAL_FEATURES,
+            Constants.REX_FRAGMENT_CACHE_CLEANER
     )));
 
     public static final Set<String> REGISTERED_ACTION_KEYS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
@@ -120,6 +122,22 @@ public class ButtonPref extends Preference {
             "rex_color_mode_btn",
             "rex_apply_pro_config_v6",
             "rex_export_pro_config_v6",
+            "rex_story_font_source_btn",
+            "rex_browse_xboyrex_story_fonts_btn",
+            "rex_initial_features_search_btn",
+            "rex_initial_features_category_btn",
+            "rex_initial_features_status_btn",
+            "rex_initial_features_presets_btn",
+            "rex_initial_features_enable_safe_btn",
+            "rex_initial_features_reset_all_btn",
+            "rex_initial_features_export_btn",
+            "rex_import_initial_features",
+            "rex_initial_features_restart_now",
+            "rex_rec_flags_restart_now",
+            "rex_cache_cleaner_status_btn",
+            "rex_cache_cleaner_clean_now_btn",
+            "rex_cache_cleaner_limit_btn",
+            "rex_cache_cleaner_custom_limit_btn",
             Constants.REX_APP_VERSION_PREFERENCE,
             Constants.REX_PATCH_VERSION_PREFERENCE
     )));
@@ -132,7 +150,12 @@ public class ButtonPref extends Preference {
             "rex_rec_flags_refresh_file",
             "rex_quick_access_sheet",
             "rex_apply_pro_config_v6",
-            "rex_color_mode_btn"
+            "rex_color_mode_btn",
+            "rex_initial_features_presets_btn",
+            "rex_initial_features_enable_safe_btn",
+            "rex_initial_features_restart_now",
+            "rex_rec_flags_restart_now",
+            "rex_cache_cleaner_clean_now_btn"
     )));
 
     public static final Set<String> DESTRUCTIVE_ACTION_KEYS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
@@ -142,7 +165,8 @@ public class ButtonPref extends Preference {
             "rex_disable_all_ghost",
             "rex_disable_all_distractions",
             "rex_clear_cache_btn",
-            "rex_rec_flags_reset_all"
+            "rex_rec_flags_reset_all",
+            "rex_initial_features_reset_all_btn"
     )));
 
     private final Context context;
@@ -211,8 +235,9 @@ public class ButtonPref extends Preference {
                         || key.equals("rex_download_set_path")
                         || key.equals("rex_pref_add_font")
                         || key.equals("rex_pref_add_emoji_font")
-                        || key.equals("rex_pref_add_story_font")) {
-                    ActivityHook.launchFragment((Activity) context, key);
+                        || key.equals("rex_pref_add_story_font")
+                        || key.equals("rex_import_initial_features")) {
+                    ActivityHook.launchFragment(context, key);
 
                 } else if (key.equals("rex_reset_download_path")) {
                     RexDialogs.showConfirmDialog(
@@ -332,13 +357,69 @@ public class ButtonPref extends Preference {
                     RexRuntimeFeatures.showLastActiveFormatPicker(context, recreateActivityOnComplete(context));
 
                 } else if (key.equals("rex_emoji_type_btn")) {
-                    RexRuntimeFeatures.showEmojiTypePicker(context, recreateActivityOnComplete(context));
+                    RexRuntimeFeatures.showEmojiTypePicker(context, () -> app.morphe.extension.instagram.settings.SettingsActivity.refreshCurrentScreen(context));
 
                 } else if (key.equals("rex_font_type_btn")) {
-                    RexRuntimeFeatures.showFontTypePicker(context, recreateActivityOnComplete(context));
+                    RexRuntimeFeatures.showFontTypePicker(context, () -> app.morphe.extension.instagram.settings.SettingsActivity.refreshCurrentScreen(context));
 
                 } else if (key.equals("rex_add_story_fonts_btn")) {
-                    RexRuntimeFeatures.showAddStoryFontsDialog(context, recreateActivityOnComplete(context));
+                    RexRuntimeFeatures.showAddStoryFontsDialog(context, () -> app.morphe.extension.instagram.settings.SettingsActivity.refreshCurrentScreen(context));
+
+                } else if (key.equals("rex_story_font_source_btn")) {
+                    RexRuntimeFeatures.showStoryFontSourcePicker(context, () -> app.morphe.extension.instagram.settings.SettingsActivity.refreshCurrentScreen(context));
+
+                } else if (key.equals("rex_browse_xboyrex_story_fonts_btn")) {
+                    RexRuntimeFeatures.showXboyrexStoryFontPackBrowser(context, () -> app.morphe.extension.instagram.settings.SettingsActivity.refreshCurrentScreen(context));
+
+                } else if (key.equals("rex_initial_features_search_btn")) {
+                    InitialFeaturePreference.showSearchDialog(context, () -> app.morphe.extension.instagram.settings.SettingsActivity.refreshCurrentScreen(context));
+
+                } else if (key.equals("rex_initial_features_category_btn")) {
+                    InitialFeaturePreference.showCategoryFilterDialog(context, () -> app.morphe.extension.instagram.settings.SettingsActivity.refreshCurrentScreen(context));
+
+                } else if (key.equals("rex_initial_features_status_btn")) {
+                    InitialFeaturePreference.showStatusFilterDialog(context, () -> app.morphe.extension.instagram.settings.SettingsActivity.refreshCurrentScreen(context));
+
+                } else if (key.equals("rex_initial_features_presets_btn")) {
+                    InitialFeaturePreference.showPresetsDialog(context, () -> app.morphe.extension.instagram.settings.SettingsActivity.refreshCurrentScreen(context));
+
+                } else if (key.equals("rex_initial_features_enable_safe_btn")) {
+                    app.morphe.extension.instagram.patches.devFlags.InitialFeaturesManager.applyPreset(
+                            context,
+                            app.morphe.extension.instagram.patches.devFlags.InitialFeaturesManager.PRESET_RECOMMENDED_SAFE,
+                            () -> app.morphe.extension.instagram.settings.SettingsActivity.refreshCurrentScreen(context)
+                    );
+
+                } else if (key.equals("rex_initial_features_reset_all_btn")) {
+                    app.morphe.extension.instagram.patches.devFlags.InitialFeaturesManager.resetAllFlagsTransactionally(
+                            context,
+                            () -> app.morphe.extension.instagram.settings.SettingsActivity.refreshCurrentScreen(context)
+                    );
+
+                } else if (key.equals("rex_initial_features_export_btn")) {
+                    String json = app.morphe.extension.instagram.patches.devFlags.InitialFeaturesManager.exportJsonConfig();
+                    InstaUtils.writeDiagnosticJsonToDownloads("InstaRex_Initial_Features_Backup.json", json, "Exported Initial Features backup to Download/xboyrex");
+
+                } else if (key.equals("rex_initial_features_restart_now") || key.equals("rex_rec_flags_restart_now")) {
+                    app.morphe.extension.instagram.settings.SettingsRestart.restartNow(context);
+
+                } else if (key.equals("rex_cache_cleaner_status_btn") || key.equals("rex_cache_cleaner_clean_now_btn")) {
+                    app.morphe.extension.instagram.settings.feature.AppCacheCleaner.showCleanNowConfirmDialog(
+                            context,
+                            () -> app.morphe.extension.instagram.settings.SettingsActivity.refreshCurrentScreen(context)
+                    );
+
+                } else if (key.equals("rex_cache_cleaner_limit_btn")) {
+                    app.morphe.extension.instagram.settings.feature.AppCacheCleaner.showCacheLimitPickerDialog(
+                            context,
+                            () -> app.morphe.extension.instagram.settings.SettingsActivity.refreshCurrentScreen(context)
+                    );
+
+                } else if (key.equals("rex_cache_cleaner_custom_limit_btn")) {
+                    app.morphe.extension.instagram.settings.feature.AppCacheCleaner.showCustomLimitDialog(
+                            context,
+                            () -> app.morphe.extension.instagram.settings.SettingsActivity.refreshCurrentScreen(context)
+                    );
 
                 } else if (key.equals("rex_color_mode_btn")) {
                     RexRuntimeFeatures.showColorModePicker(context, recreateActivityOnComplete(context));
@@ -388,13 +469,13 @@ public class ButtonPref extends Preference {
                     FragmentHook.startFragment(key);
 
                 } else if (key.equals("rex_rec_flags_refresh_file")) {
-                    RecommendedFlags.downloadRecommendedFlagsFile(recreateActivityOnComplete(context));
+                    RecommendedFlags.downloadRecommendedFlagsFile(() -> app.morphe.extension.instagram.settings.SettingsActivity.refreshCurrentScreen(context));
 
                 } else if (key.equals("rex_rec_flags_enable_all")) {
-                    RecommendedFlags.enableAllBooleanFlagsTransactionally(context, recreateActivityOnComplete(context));
+                    RecommendedFlags.enableAllBooleanFlagsTransactionally(context, () -> app.morphe.extension.instagram.settings.SettingsActivity.refreshCurrentScreen(context));
 
                 } else if (key.equals("rex_rec_flags_reset_all")) {
-                    RecommendedFlags.resetAllFlagsTransactionally(context, recreateActivityOnComplete(context));
+                    RecommendedFlags.resetAllFlagsTransactionally(context, () -> app.morphe.extension.instagram.settings.SettingsActivity.refreshCurrentScreen(context));
 
                 } else if (SettingsStatus.FLAGS.containsKey(key)) {
                     Boolean active = SettingsStatus.FLAGS.get(key);

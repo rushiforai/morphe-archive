@@ -35,7 +35,7 @@ internal val kickPlayerTouchPatch = bytecodePatch {
         }
         val superclass = activity.superclass ?: throw PatchException("Kick: MainActivity has no superclass")
         // The touch counts when it starts on Kick's player view; the extension gets the class, not its name.
-        val playerView = SurfaceTransformFingerprint.kickMatch("player view surface transform").classDef.type
+        val playerView = PlayerViewSetPlayerFingerprint.kickMatch("player view setVideoPlayer").classDef.type
         activity.methods.add(
             ImmutableMethod(
                 activity.type,

@@ -7,7 +7,10 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.PatchException
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 internal object InitWebViewFingerprint : Fingerprint(
     definingClass = "Lcom/quora/android/fragments/qwvf/QWebViewController;",
@@ -27,6 +30,7 @@ val disableVideoAutoplayPatch = bytecodePatch(
     description = "Videos in the feed and in answers only play when you tap them.",
     default = false
 ) {
+    category("Reading")
     compatibleWith(COMPATIBILITY_QUORA)
 
     extendWith("extensions/extension.mpe")
@@ -37,7 +41,12 @@ val disableVideoAutoplayPatch = bytecodePatch(
         // start videos on their own. Pass true instead.
         InitWebViewFingerprint.let {
             it.method.apply {
-                val index = it.instructionMatches.first().index
+                // Found in the current instructions: other patches may have added some at the start.
+                val index = implementation!!.instructions.indexOfFirst { instruction ->
+                    ((instruction as? ReferenceInstruction)?.reference as? MethodReference)?.name ==
+                            "setMediaPlaybackRequiresUserGesture"
+                }
+                if (index < 0) throw PatchException("setMediaPlaybackRequiresUserGesture call not found")
                 val register = getInstruction<FiveRegisterInstruction>(index).registerD
                 addInstructions(
                     index,

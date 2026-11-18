@@ -42,6 +42,7 @@ val cleanSharedLinksPatch = bytecodePatch(
     description = "Removes tracking parameters from Quora links you copy or share.",
     default = true
 ) {
+    category("Privacy")
     compatibleWith(COMPATIBILITY_QUORA)
 
     extendWith("extensions/extension.mpe")

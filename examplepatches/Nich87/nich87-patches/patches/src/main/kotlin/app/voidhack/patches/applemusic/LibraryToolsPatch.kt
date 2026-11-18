@@ -3,9 +3,6 @@ package app.voidhack.patches.applemusic
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.ApkFileType
-import app.morphe.patcher.patch.AppTarget
-import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import com.android.tools.smali.dexlib2.Opcode
@@ -45,17 +42,17 @@ private class LibraryPrepareMenu(definingClass: String) : Fingerprint(
     returnType = "V",
 )
 
-private object LibraryComposeMenu : Fingerprint(
-    definingClass = "LAa/U;",
+private class LibraryComposeMenu(definingClass: String) : Fingerprint(
+    definingClass = definingClass,
     name = "<init>",
     parameters = listOf("Ljava/util/List;", "Landroid/content/Context;", "Z"),
     returnType = "V",
 )
 
-private object LibraryComposeMenuState : Fingerprint(
-    definingClass = "LAa/C;",
+private class LibraryComposeMenuState(definingClass: String, stateType: String) : Fingerprint(
+    definingClass = definingClass,
     name = "p",
-    parameters = listOf("Lz0/p0;", "Ljava/util/List;", "Lz0/m;", "I"),
+    parameters = listOf(stateType, "Ljava/util/List;", "Lz0/m;", "I"),
     returnType = "V",
 )
 
@@ -77,19 +74,11 @@ val libraryToolsPatch = bytecodePatch(
     name = "Library import, export and downloads",
     description = "Adds JSON library and playlist backups, additive import, and a native download action for the entire library.",
 ) {
-    dependsOn(libraryToolsResources)
-    compatibleWith(
-        Compatibility(
-            name = "Apple Music",
-            packageName = "com.apple.android.music",
-            apkFileType = ApkFileType.APK,
-            appIconColor = 0xFA243C,
-            targets = listOf(AppTarget(version = "7.0.0")),
-        )
-    )
-    extendWith("extensions/extension.mpe")
+    dependsOn(libraryToolsResources, appleMusicLibraryBindings)
+    compatibleWith(appleMusicCompatibility)
 
     execute {
+        val version701 = packageMetadata.versionName == APPLE_MUSIC_701
         listOf(
             "Lcom/apple/android/music/library3/LibraryComposeContentFragment;",
             "Lcom/apple/android/music/library2/LibraryRecyclerContentFragment;",
@@ -100,14 +89,17 @@ val libraryToolsPatch = bytecodePatch(
                 "invoke-static/range {p0 .. p1}, Lapp/voidhack/extension/applemusic/library/LibraryMenu;->addMenu(Ljava/lang/Object;Landroid/view/Menu;)V",
             )
         }
-        LibraryComposeMenu.method.addInstructions(
+        LibraryComposeMenu(if (version701) "LBa/T;" else "LAa/U;").method.addInstructions(
             0,
             """
                 invoke-static/range {p1 .. p2}, Lapp/voidhack/extension/applemusic/library/LibraryMenu;->withTools(Ljava/util/List;Landroid/content/Context;)Ljava/util/List;
                 move-result-object p1
             """,
         )
-        LibraryComposeMenuState.method.addInstructions(
+        LibraryComposeMenuState(
+            definingClass = if (version701) "LBa/C;" else "LAa/C;",
+            stateType = if (version701) "Lz0/t0;" else "Lz0/p0;",
+        ).method.addInstructions(
             0,
             """
                 invoke-static/range {p1 .. p2}, Lapp/voidhack/extension/applemusic/library/LibraryMenu;->withMenuState(Ljava/lang/Object;Ljava/util/List;)Ljava/util/List;

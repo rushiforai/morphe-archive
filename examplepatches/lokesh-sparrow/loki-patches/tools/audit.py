@@ -143,6 +143,19 @@ def check_featured():
             fail("featured", "apps.json", f"{app['name']} is featured but has no docs page")
 
 
+def check_versions():
+    """Every app carries the newest two releases, never more: an old entry is carried work nobody tests."""
+    for constants in walk(PATCHES, "Constants.kt"):
+        text = read(constants)
+        versions = re.findall(r'AppTarget\(version = "([^"]+)"\)', text)
+        # LinkedIn keeps its versions in a list that is mapped to targets.
+        for listed in re.findall(r'_BUILDS\s*=\s*listOf\(([^)]*)\)', text):
+            versions += re.findall(r'"([^"]+)"', listed)
+        if len(versions) > 2:
+            fail("versions", os.path.relpath(constants, ROOT),
+                 f"{len(versions)} versions listed ({', '.join(versions)}); the rule is the newest two")
+
+
 def check_docs_claims():
     """A patch count in prose must match the patches that exist."""
     count = len(set(re.findall(r'name\s*=\s*"([^"]+)"', "".join(read(p) for p in walk(PATCHES, ".kt")))))
@@ -154,13 +167,57 @@ def check_docs_claims():
                      f"claims {number} patches; the tree defines {count} names")
 
 
+def check_brand():
+    """The logo Manager shows for this source and the logo the app draws are one file: the Loki L."""
+    bundle = os.path.join(ROOT, "patches-bundle.png")
+    logo = os.path.join(ROOT, "patches", "src", "main", "resources", "loki", "loki_logo.png")
+    for path in (bundle, logo):
+        if not os.path.exists(path):
+            fail("brand", os.path.relpath(path, ROOT), "missing - the Loki L must ship")
+            return
+    with open(bundle, "rb") as a, open(logo, "rb") as b:
+        if a.read() != b.read():
+            fail("brand", "patches-bundle.png", "differs from loki/loki_logo.png - Manager and the app would show two logos")
+    icon = os.path.join(PATCHES, "app", "loki", "patches", "universal", "LokiIcon.kt")
+    if 'LOKI_ICON = "@drawable/loki_logo"' not in read(icon):
+        fail("brand", os.path.relpath(icon, ROOT), "LOKI_ICON no longer points at the L (@drawable/loki_logo)")
+
+
+def check_private():
+    """
+    Private apps live on this PC only: nothing in the public tree may name them. The names come from
+    tools/private-names.txt (one per line), which is git-ignored, so the check itself names nothing.
+    """
+    names_file = os.path.join(ROOT, "tools", "private-names.txt")
+    if not os.path.exists(names_file):
+        return
+    names = [line.strip() for line in read(names_file).splitlines() if line.strip()]
+    if not names:
+        return
+    words = re.compile("|".join(re.escape(n) for n in names), re.IGNORECASE)
+    bases = [os.path.join(ROOT, d) for d in ("patches", "extensions", "docs", "tools", ".github")]
+    files = [os.path.join(ROOT, "README.md"), os.path.join(ROOT, "apps.json")]
+    for base in bases:
+        for folder, dirs, names in os.walk(base):
+            dirs[:] = [d for d in dirs if d not in ("build", ".gradle")]
+            files += [os.path.join(folder, n) for n in names if not n.endswith((".png", ".jpg", ".so", ".jar"))]
+    for path in files:
+        if os.path.abspath(path) in (os.path.abspath(__file__), os.path.abspath(names_file)) or not os.path.exists(path):
+            continue
+        if words.search(read(path)):
+            fail("private", os.path.relpath(path, ROOT), "names a private app")
+
+
 def main():
     check_menu_flags()
     check_apps()
     check_logs()
     check_row_builders()
     check_featured()
+    check_versions()
     check_docs_claims()
+    check_brand()
+    check_private()
     if not failures:
         print("audit: clean")
         return 0

@@ -6,7 +6,6 @@ package app.morphe.patches.telegram.misc.updates
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.fieldAccess
-import app.morphe.patcher.newInstance
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
@@ -30,7 +29,9 @@ private const val PATCH = "Disable update checks"
  * The launcher activity's update check, `checkAppUpdate(boolean force)` in Telegram's source and
  * renamed in the APK. telegram.org's build runs it: it waits out `SharedConfig.lastUpdateCheckTime`
  * and then sends `help.getAppUpdate`. Up to 13.1 it called `ApplicationLoader.isStandaloneBuild()`
- * first; 13.2 inlines that, so the time and the request are what find it.
+ * first; 13.2 inlines that, so the time is what finds it. Plus Messenger waits out the same time and
+ * then reads its own update channel instead of sending the request, and no other (boolean) method
+ * of the activity reads that time on either build.
  */
 internal val CheckAppUpdateFingerprint by tgFingerprint {
     Fingerprint(
@@ -43,7 +44,6 @@ internal val CheckAppUpdateFingerprint by tgFingerprint {
                 name = field(SHARED_CONFIG, "lastUpdateCheckTime", "J").name,
                 type = "J",
             ),
-            newInstance(GET_APP_UPDATE),
         ),
     )
 }
@@ -106,7 +106,7 @@ val disableUpdateChecksPatch = bytecodePatch(
 ) {
     category("Updates")
     dependsOn(settingsPatch, telegramExtensionPatch)
-    compatibleWith(*AppCompatibilities.telegramOnly())
+    compatibleWith(*AppCompatibilities.telegram())
 
     execute {
         requireStatusMethod("disableUpdateChecks")

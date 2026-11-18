@@ -2,6 +2,8 @@ package io.github.jordanwoodson.patches.kick.shared
 
 import app.morphe.patcher.patch.PatchException
 import io.github.jordanwoodson.patches.kick.shared.Constants.KICK_VERSION
+import io.github.jordanwoodson.patches.kick.shared.HermesOp.CREATE_CLOSURE
+import io.github.jordanwoodson.patches.kick.shared.HermesOp.CREATE_CLOSURE_LONG_INDEX
 import io.github.jordanwoodson.patches.kick.shared.HermesOp.GET_BY_ID
 import io.github.jordanwoodson.patches.kick.shared.HermesOp.JMP_TRUE
 import io.github.jordanwoodson.patches.kick.shared.HermesOp.LOAD_CONST_UNDEFINED
@@ -294,6 +296,57 @@ internal class HermesBundle(input: ByteArray) {
 
     /** Functions with [name] and a body; a generator's wrapper and body share their name. */
     fun functionsNamed(name: String): List<HermesFunction> = functions.filter { it.name == name && it.body.isNotEmpty() }
+
+    /**
+     * The functions [function] creates as plain closures (CreateClosure and its long-index form), in bytecode order:
+     * an anonymous callback or producer is best found through the named function that makes it.
+     */
+    fun closures(function: HermesFunction): List<HermesFunction> = instructions(function).mapNotNull { instruction ->
+        when (instruction.opcode) {
+            CREATE_CLOSURE -> instruction.u16(3)
+            CREATE_CLOSURE_LONG_INDEX -> instruction.u32(3)
+            else -> null
+        }?.let { id -> functions.getOrNull(id) ?: fail("closure outside the function table in ${function.label}") }
+    }
+
+    /** The one closure [function] creates that reads every property in [reads] and loads every string in [loads]. */
+    fun closureUsing(function: HermesFunction, what: String, reads: List<String> = emptyList(),
+                     loads: List<String> = emptyList()): HermesFunction {
+        ensure(reads.isNotEmpty() || loads.isNotEmpty(), "empty closure description")
+        val properties = reads.map(::stringId)
+        val constants = loads.map(::stringId)
+        return closures(function).distinctBy { it.id }.filter { closure ->
+            val instructions = instructions(closure)
+            properties.all { id -> instructions.any { it.propertyId() == id } } &&
+                constants.all { id -> instructions.any { it.stringLoaded() == id } }
+        }.singleOrNull() ?: fail("expected one $what closure in ${function.label}")
+    }
+
+    /**
+     * A value-buffer offset below 64 KiB, where the short NewObjectWithBuffer form can point, whose serialized values
+     * are exactly [values]: the same tags and bytes, so an object made from it starts out with the same values. Null
+     * when there is none.
+     */
+    fun shortLiteralOffset(values: ByteArray, count: Int): Int? {
+        ensure(values.isNotEmpty(), "empty literal values")
+        val limit = minOf(0x10000, literalSize - values.size + 1)
+        return (0 until limit).firstOrNull { offset ->
+            bytes[literalStart + offset] == values[0] && literal(offset, values.size).contentEquals(values) &&
+                runCatching { valuesEnd(offset, count) }.getOrNull() == offset + values.size
+        }
+    }
+
+    /**
+     * A value-buffer offset below 64 KiB holding [count] nulls as one tag byte, for an object literal in the short
+     * NewObjectWithBuffer form whose code then stores every one of its slots before anything reads them.
+     */
+    fun shortNullsOffset(count: Int): Int {
+        ensure(count in 1..15, "a null run of $count needs more than one tag byte")
+        val limit = minOf(0x10000, literalSize)
+        return (0 until limit).firstOrNull { offset ->
+            u8(literalStart + offset) == count && runCatching { valuesEnd(offset, count) }.getOrNull() == offset + 1
+        } ?: fail("no run of $count nulls below 64 KiB")
+    }
 
     /** Matches an instruction reading [property] by any GetById variant. */
     fun reads(property: String): (HermesInstruction) -> Boolean {
@@ -830,7 +883,7 @@ internal class HermesBundle(input: ByteArray) {
     }
 
     companion object {
-        const val SOURCE_SHA256 = "2395d1821cbbd742e5b5e5907767ee6e0068649f8665b06508a02890aabad501"
+        const val SOURCE_SHA256 = "4ae9cac4c0e34af521cf53669c171ca2585e2eb7b15b009a493a17160f444be7"
 
         /** [HermesEdit.functionId] of an edit outside function bytecode: a literal value or a string. */
         const val DATA = -1
@@ -877,6 +930,9 @@ internal object HermesOp {
     const val PUT_BY_VAL_STRICT = 0x61
     const val CALL2 = 0x6e
     const val CALL3 = 0x6f
+    const val CREATE_CLOSURE = 0x84
+    const val CREATE_CLOSURE_LONG_INDEX = 0x85
+    const val LOAD_CONST_INT = 0x8c
     const val RET = 0x76
     const val LOAD_CONST_UINT8 = 0x8b
     const val LOAD_CONST_STRING = 0x90

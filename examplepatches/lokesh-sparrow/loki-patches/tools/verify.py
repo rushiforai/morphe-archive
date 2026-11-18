@@ -50,10 +50,20 @@ def main():
     with tempfile.TemporaryDirectory() as work:
         for apk in inputs(folder):
             data, log = patch(patcher, bundle, apk, work)
-            applied = [p.get("patchName") or p.get("name") for p in data.get("appliedPatches", [])]
-            failed = [(p.get("patchName") or p.get("name"), str(p.get("error"))[:100])
+            # appliedPatches is a list of names in some morphe versions and a list of records in others.
+            applied = [p if isinstance(p, str) else (p.get("patchName") or p.get("name"))
+                       for p in data.get("appliedPatches", [])]
+            failed = [(p if isinstance(p, str) else (p.get("patchName") or p.get("name")),
+                       "" if isinstance(p, str) else str(p.get("error"))[:100])
                       for p in data.get("failedPatches", [])]
             name = os.path.basename(apk)
+            # Patches can all apply and the APK still fail to build (a resource the manifest names is missing):
+            # the result file then says success=false, and that is a failure, not a pass.
+            if data and data.get("success") is False:
+                tail = [l for l in log.strip().splitlines() if "ERROR" in l or "not found" in l.lower()]
+                rows.append((name, "BUILD FAILED", (tail[-1] if tail else "")[:120]))
+                bad += 1
+                continue
             if not applied and not failed:
                 # Nothing matched: wrong bundle, wrong version, or a file the patcher could not read.
                 rows.append((name, "NOTHING APPLIED", log.strip().splitlines()[-1][:90] if log.strip() else ""))

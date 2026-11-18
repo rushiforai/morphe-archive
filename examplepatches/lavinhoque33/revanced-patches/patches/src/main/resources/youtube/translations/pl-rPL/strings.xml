@@ -651,8 +651,7 @@ Jeśli zajdą zmiany po stronie serwera, kolor tła tych komunikatów może się
     <string name="revanced_change_start_page_entry_gaming">Gry</string>
     <string name="revanced_change_start_page_entry_history">Historia</string>
     <string name="revanced_change_start_page_entry_home">Dom</string>
-    <string name="revanced_change_start_page_entry_hype">Podbij</string>
-    <string name="revanced_change_start_page_entry_library">Biblioteka</string>
+    <string name="revanced_change_start_page_entry_library">Ty</string>
     <string name="revanced_change_start_page_entry_liked_videos">Polubione filmy</string>
     <string name="revanced_change_start_page_entry_live">Na żywo</string>
     <string name="revanced_change_start_page_entry_movies">Filmy</string>
@@ -660,14 +659,12 @@ Jeśli zajdą zmiany po stronie serwera, kolor tła tych komunikatów może się
     <string name="revanced_change_start_page_entry_news">Wiadomości</string>
     <string name="revanced_change_start_page_entry_notifications">Powiadomienia</string>
     <string name="revanced_change_start_page_entry_playlists">Playlisty</string>
-    <string name="revanced_change_start_page_entry_podcasts">Podcasty</string>
     <string name="revanced_change_start_page_entry_search">Wyszukiwanie</string>
     <string name="revanced_change_start_page_entry_settings">Ustawienia</string>
     <string name="revanced_change_start_page_entry_shopping">Zakupy</string>
     <string name="revanced_change_start_page_entry_shorts">Shorts</string>
     <string name="revanced_change_start_page_entry_sports">Sport</string>
     <string name="revanced_change_start_page_entry_subscriptions">Subskrypcje</string>
-    <string name="revanced_change_start_page_entry_trending">Na czasie</string>
     <string name="revanced_change_start_page_entry_virtual_reality">Rzeczywistość wirtualna</string>
     <string name="revanced_change_start_page_entry_watch_later">Do obejrzenia</string>
     <string name="revanced_change_start_page_entry_your_clips">Klipy</string>

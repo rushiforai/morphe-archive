@@ -35,10 +35,11 @@ internal fun isAccountRefreshCall(
     methodName: String,
     methodReference: MethodReference?,
     version261002: Boolean = false,
+    version261101: Boolean = false,
 ): Boolean {
     if (classType != SYNC_GOOGLE_ACCOUNT_BASE_VIEW || methodName != "onActivityResult") return false
     return methodReference?.let {
-        it.name == (if (version261002) "P6" else "A6") &&
+        it.name == (if (version261101) "R6" else if (version261002) "P6" else "A6") &&
             it.parameterTypes == listOf("Ljava/lang/String;") && it.returnType == "V"
     } ?: false
 }
@@ -73,6 +74,13 @@ internal const val STOCK_VNG_CERT_HEX =
         "00aebd8af27fc3178b6082d1db7a5f66aad1db55c823145c5dd21fe721e229f90b7702738654432b5c5e8667f4995e9d" +
         "206adb7d26c3db70f2c971638d44b762416df5d510a08526ed91fdd1c1e8e6751d8832ec32154c11680e647e605c0e86" +
         "12702c70524324a611424c69c4d3e43a2756551eec5f4e4de966331194c74484a1"
+
+internal val accountTypeClasses261101 = setOf(
+    SYNC_GOOGLE_ACCOUNT_BASE_VIEW,
+    "Lcom/zing/zalo/ui/backuprestore/drive/ManageGoogleAccountView;",
+    "Lcom/zing/zalo/ui/backuprestore/drive/SyncGoogleAccountMediaRestoreView;",
+    "Lkob;", "Lh1l;", "Ls9b;",
+)
 
 internal val accountTypeClasses261002 = setOf(
     SYNC_GOOGLE_ACCOUNT_BASE_VIEW,

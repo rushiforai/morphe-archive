@@ -159,7 +159,7 @@ internal fun BytecodePatchContext.resolveSideMenu(plan: MainTabsPlan): SideMenu 
 
     // The Profile page, which the menu's first row turns to.
     val screen = tgClassDefBy(plan.screen)
-    if (pageBuilt(screen, PROFILE_SCREEN) != PROFILE) return missing("the Profile page is no longer the fourth page")
+    if (pageBuilt(screen, PROFILE_SCREEN, plan.hostFlag) != PROFILE) return missing("the Profile page is no longer the fourth page")
 
     // The account switcher Telegram shows on a long press of the Profile tab.
     val switchers = screen.methods.filter { m ->

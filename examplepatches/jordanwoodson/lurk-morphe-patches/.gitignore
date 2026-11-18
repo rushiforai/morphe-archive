@@ -132,6 +132,7 @@ local.properties
 # Workspace: downloaded apps (bin/apk-add) and tools (bin/bootstrap). Never committed.
 /apks/
 /tools/
+/scratch/
 
 # Agent state (Claude Code, Codex) and the Kotlin daemon's session files
 /.claude/

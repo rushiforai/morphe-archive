@@ -41,12 +41,14 @@ internal const val HUSH_PAID_POST = "$EXTENSION_PACKAGE/timeline/HushPaidPost;"
 internal const val HUSH_FILTERED_POST = "$EXTENSION_PACKAGE/timeline/HushFilteredPost;"
 internal const val HUSH_FILTERED = "$EXTENSION_PACKAGE/timeline/HushFiltered;"
 internal const val HUSH_LIKED_POST = "$EXTENSION_PACKAGE/timeline/HushLikedPost;"
+internal const val HUSH_COMMUNITY_POST = "$EXTENSION_PACKAGE/timeline/HushCommunityPost;"
 internal const val HUSH_REBLOG_SOURCE = "$EXTENSION_PACKAGE/timeline/HushReblogSource;"
 internal const val HUSH_ACCOUNT_BLOG = "$EXTENSION_PACKAGE/timeline/HushAccountBlog;"
 internal const val HUSH_ACCOUNT_BLOGS = "$EXTENSION_PACKAGE/timeline/HushAccountBlogs;"
 
 /** A blog as a post or an account names it, and the signed-in account Tumblr builds from user/info. */
 internal const val SHORT_BLOG_INFO = "Lcom/tumblr/rumblr/model/blog/ShortBlogInfo;"
+internal const val SHORT_COMMUNITY_INFO = "Lcom/tumblr/rumblr/communities/ShortCommunityInfo;"
 internal const val ACCOUNT_USER_INFO_MODEL = "Lcom/tumblr/UserInfo;"
 private const val USER_INFO_RESPONSE = "Lcom/tumblr/rumblr/response/UserInfoResponse;"
 private const val USER_INFO_BLOGS = "Lcom/tumblr/rumblr/model/UserInfo;->getBlogs()Ljava/util/List;"
@@ -109,6 +111,12 @@ internal val FILTERED_POST_BRIDGES = listOf(
 
 /** Post's liked state as Tumblr sent it, the like button's first state. */
 internal val LIKED_POST_BRIDGE = ModelBridge(POST, HUSH_LIKED_POST, listOf(BridgeGetter("hushLiked", "liked", "Z")))
+
+/** The community a post was shared to, which a post outside any community doesn't have. */
+internal val COMMUNITY_POST_BRIDGE = ModelBridge(
+    POST, HUSH_COMMUNITY_POST,
+    listOf(BridgeGetter("hushCommunity", "community", OBJECT, SHORT_COMMUNITY_INFO)),
+)
 
 /** The blogs a post was reblogged from and first made on, and a blog's name, as Tumblr sent them. */
 internal val REBLOG_SOURCE_BRIDGES = listOf(
@@ -217,6 +225,19 @@ internal val likedPostBridgePatch = bytecodePatch {
 
     execute {
         resolveBridges(listOf(LIKED_POST_BRIDGE)).forEach { addBridge(it) }
+    }
+}
+
+/**
+ * Makes Tumblr's `Post` implement the extension's `HushCommunityPost`, so Keep reblogs in
+ * communities can tell a reblog shared to a community from one on somebody's blog. Found by reading
+ * Tumblr 47.0.0.108 (2026-11-18): Post's community is `U0()`.
+ */
+internal val communityPostBridgePatch = bytecodePatch {
+    dependsOn(tumblrExtensionPatch)
+
+    execute {
+        resolveBridges(listOf(COMMUNITY_POST_BRIDGE)).forEach { addBridge(it) }
     }
 }
 

@@ -62,12 +62,15 @@ internal val PIN_FILTER_FIELDS: Map<String, List<String>> = linkedMapOf(
 )
 
 /**
- * The fields Filter feed reads inside a pin's nested models, by the pin field that holds the model:
- * VideoPins wants a Map for `video_list` and a String for `total_video_duration`.
+ * The fields read inside a pin's nested models, each with the pin field that holds the model:
+ * VideoPins wants a Map for `video_list` and a String for `total_video_duration`, and Download pin
+ * walks the Lists in `pages` and `pages_preview` for an idea pin's video.
  */
-internal val NESTED_FILTER_FIELDS: Map<String, Pair<String, List<String>>> = linkedMapOf(
-    "videos" to ("video_list" to MAP),
-    "story_pin_data" to ("total_video_duration" to TEXT),
+internal val NESTED_FILTER_FIELDS: List<Triple<String, String, List<String>>> = listOf(
+    Triple("videos", "video_list", MAP),
+    Triple("story_pin_data", "total_video_duration", TEXT),
+    Triple("story_pin_data", "pages", ENTRIES),
+    Triple("story_pin_data", "pages_preview", ENTRIES),
 )
 
 private fun fits(type: String, types: List<String>) = type in types || (types === OBJECT && type.startsWith("L"))
@@ -113,8 +116,7 @@ internal fun pinSchemaProblems(models: Map<String, Map<String, String>>): List<S
         }
     }
     // A missing or retyped holder field already failed above, so only a model that's there is read.
-    val nested = NESTED_FILTER_FIELDS.mapNotNull { (holder, wanted) ->
-        val (key, types) = wanted
+    val nested = NESTED_FILTER_FIELDS.mapNotNull { (holder, key, types) ->
         val model = fields[holder]?.takeIf { it.startsWith("L") } ?: return@mapNotNull null
         val type = models[model]?.get(key)
         when {

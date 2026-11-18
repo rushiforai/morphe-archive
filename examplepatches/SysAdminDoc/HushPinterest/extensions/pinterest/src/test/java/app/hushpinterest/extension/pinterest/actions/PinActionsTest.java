@@ -283,6 +283,20 @@ public class PinActionsTest {
         assertEquals(Uri.withAppendedPath(Uri.fromFile(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)), "pin.jpg"), back);
     }
 
+    /** #42: Hide download toasts quiets the started message, but never the warning that history wasn't saved. */
+    @Test public void hideDownloadToastsKeepsOnlyTheHistoryWarning() {
+        Settings.HIDE_DOWNLOAD_TOASTS.save(true);
+        try {
+            ShadowToast.reset();
+            PinDownloads.started(true, null);
+            assertNull(ShadowToast.getTextOfLatestToast());
+            PinDownloads.started(false, null);
+            assertEquals(PinDownloads.startedMessage(false, null), ShadowToast.getTextOfLatestToast());
+        } finally {
+            Settings.HIDE_DOWNLOAD_TOASTS.resetToDefault();
+        }
+    }
+
     /** #5: a folder picked by hand gets the download, its toast and its history line; Pinterest's folder still wins while on. */
     @Test public void aPickedFolderQueuesThereAndPinterestsFolderStillWins() throws Exception {
         DownloadFolder.PICKED.save("Pictures/Art");

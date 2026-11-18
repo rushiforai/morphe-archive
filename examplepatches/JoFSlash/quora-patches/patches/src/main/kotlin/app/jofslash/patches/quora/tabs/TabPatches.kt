@@ -38,6 +38,7 @@ val hideTabsPatch = bytecodePatch(
     description = "Removes the tabs you pick from the bottom bar. Home always stays.",
     default = false
 ) {
+    category("App")
     compatibleWith(COMPATIBILITY_QUORA)
 
     extendWith("extensions/extension.mpe")
@@ -93,6 +94,7 @@ val startTabPatch = bytecodePatch(
     description = "Opens the app on the tab you pick instead of Home.",
     default = false
 ) {
+    category("App")
     compatibleWith(COMPATIBILITY_QUORA)
 
     extendWith("extensions/extension.mpe")

@@ -22,14 +22,15 @@ public final class LokiPatches {
     /**
      * Injection point, before each return of HomeNavTabsManager.getHomeNavTabs(): the tabs of the bottom bar.
      *
-     * @return the tabs without My Network and Jobs when they are hidden. The list is returned as it was when it
-     * would end up with fewer than three tabs or the tabs can't be told apart, so the bar can't break.
+     * @return the tabs without My Network, Jobs and More when they are hidden. The list is returned as it was when it
+     * would end up with fewer than two tabs or the tabs can't be told apart, so the bar can't break.
      */
     public static java.util.List<?> bottomTabs(java.util.List<?> tabs) {
         try {
             boolean network = Settings.hideTabNetwork();
             boolean jobs = Settings.hideTabJobs();
-            if (tabs == null || (!network && !jobs)) return tabs;
+            boolean more = Settings.hideTabMore();
+            if (tabs == null || (!network && !jobs && !more)) return tabs;
             java.util.List<Object> kept = new java.util.ArrayList<>();
             for (Object tab : tabs) {
                 java.lang.reflect.Field f = tab.getClass().getDeclaredField("trackingControlName");
@@ -37,9 +38,10 @@ public final class LokiPatches {
                 Object name = f.get(tab);
                 if (network && "nav_people".equals(name)) continue;
                 if (jobs && "nav_jobs".equals(name)) continue;
+                if (more && "nav_more".equals(name)) continue;
                 kept.add(tab);
             }
-            return kept.size() >= 3 ? kept : tabs;
+            return kept.size() >= 2 ? kept : tabs;
         } catch (Throwable t) {
             Diagnostics.error("bottomTabs failed", t);
             return tabs;

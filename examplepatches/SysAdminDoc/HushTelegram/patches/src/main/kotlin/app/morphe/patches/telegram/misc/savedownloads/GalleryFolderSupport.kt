@@ -16,6 +16,7 @@ import app.morphe.patches.telegram.misc.localcontrols.controlHook
 import app.morphe.patches.telegram.misc.localcontrols.controlRef
 import app.morphe.patches.telegram.misc.localcontrols.controlString
 import app.morphe.util.ControlFlow
+import app.morphe.util.definitionReaches
 import app.morphe.util.namedRegisters
 import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import com.android.tools.smali.dexlib2.Opcode
@@ -147,16 +148,21 @@ private fun MutableMethod.where() = "${origDefiningClass.substringAfterLast('/')
  * "Telegram")`: twice in the ordinary save's thread (photo and video) and once in the live photo's. Each such
  * File goes past the extension right after it's made, ahead of Telegram's mkdirs, so the copy lands in the
  * folder picked. A different count, or a jump onto the instruction after one, keeps Telegram's folders there.
+ * Plus Messenger picks the folder's name, its own or Telegram's, between the public folder and the File.
  */
 private fun resolveOlderGalleryFolders(methods: Iterable<MutableMethod>): Result<List<Pair<MutableMethod, List<Int>>>> {
     val sites = methods.filter { it.implementation != null }.mapNotNull { method ->
         val body = method.controlBody()
+        val flow by lazy { ControlFlow.of(method) }
         val folders = (3 until body.size).filter { at ->
-            body[at].opcode == Opcode.INVOKE_DIRECT && body[at].controlRef() == GALLERY_FILE_IN &&
-                body[at - 1].opcode == Opcode.MOVE_RESULT_OBJECT &&
-                body[at - 1].namedRegisters().single() == body[at].namedRegisters()[1] &&
-                body[at - 2].controlRef() == GALLERY_PUBLIC_DIRECTORY &&
-                body[at - 3].opcode == Opcode.SGET_OBJECT && body[at - 3].controlRef() in setOf(GALLERY_PICTURES, GALLERY_MOVIES)
+            if (body[at].opcode != Opcode.INVOKE_DIRECT || body[at].controlRef() != GALLERY_FILE_IN) return@filter false
+            val parent = body[at].namedRegisters()[1]
+            val made = (at - 1 downTo maxOf(2, at - 6)).firstOrNull {
+                body[it].opcode.setsRegister() && body[it].namedRegisters().firstOrNull() == parent
+            } ?: return@filter false
+            body[made].opcode == Opcode.MOVE_RESULT_OBJECT && body[made - 1].controlRef() == GALLERY_PUBLIC_DIRECTORY &&
+                body[made - 2].opcode == Opcode.SGET_OBJECT && body[made - 2].controlRef() in setOf(GALLERY_PICTURES, GALLERY_MOVIES) &&
+                (made == at - 1 || flow.definitionReaches(made, at, parent))
         }
         if (folders.isEmpty()) null else method to folders
     }

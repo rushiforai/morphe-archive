@@ -10,6 +10,9 @@ import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import app.zeldrisho.patches.shared.Constants.COMPATIBILITY_ZALO
 
@@ -34,16 +37,45 @@ val hideZaloBusinessBoxPatch = bytecodePatch(
         // Returning at its constructor call prevents insertion while preserving all
         // standard Conversation categories and avoiding a broad method short-circuit.
         val insertions = BusinessBoxListInsertionFingerprint.matchAll(0..1) +
-            BusinessBoxListInsertion261002.matchAll(0..1)
+            BusinessBoxListInsertion261002.matchAll(0..1) + BusinessBoxListInsertion261101.matchAll(0..1)
         check(insertions.size == 1) { "Expected exactly one Business Box insertion" }
         val insertion = insertions.single()
-        val constructor = insertion.instructionMatches.single { it.instruction.opcode == Opcode.INVOKE_DIRECT }
-        suppressBusinessBoxInsertion(insertion.method, constructor.index)
+        if (insertion.method.definingClass == "Lp8g;") {
+            val anchor = insertion.instructionMatches.first().index
+            val instructions = insertion.method.implementation!!.instructions.toList()
+            val start = ((0 until anchor).lastOrNull { instructions[it].opcode == Opcode.RETURN_VOID }
+                ?: error("Business Box branch boundary not found")) + 1
+            val reference = (instructions.getOrNull(start) as? ReferenceInstruction)?.reference as? MethodReference
+            check(instructions[start].opcode == Opcode.INVOKE_VIRTUAL &&
+                reference?.definingClass == "Lk8g;" && reference.name == "j" &&
+                reference.parameterTypes.isEmpty() && reference.returnType == "I" &&
+                instructions.getOrNull(start + 1)?.opcode == Opcode.MOVE_RESULT
+            ) { "Business Box branch entry changed" }
+            insertion.method.replaceInstruction(start, "return-void")
+            insertion.method.replaceInstruction(start + 1, "nop")
+        } else {
+            val constructor = insertion.instructionMatches.single { it.instruction.opcode == Opcode.INVOKE_DIRECT }
+            suppressBusinessBoxInsertion(insertion.method, constructor.index)
+        }
 
         val oldPeriodic = BusinessBoxPeriodicBranchFingerprint.matchAll(0..1)
         val newPeriodic = BusinessBoxPeriodicBranch261002.matchAll(0..1)
-        check(oldPeriodic.size + newPeriodic.size == 1) { "Expected exactly one Business Box refresh handler" }
-        if (oldPeriodic.isNotEmpty()) {
+        val diagnostic = BusinessBoxPeriodicBranch261101.matchAll(0..1)
+        check(oldPeriodic.size + newPeriodic.size + diagnostic.size == 1) { "Expected exactly one Business Box refresh handler" }
+        if (diagnostic.isNotEmpty()) {
+            val method = diagnostic.single().method
+            val instructions = method.implementation!!.instructions.toList()
+            val index = instructions.indices.singleOrNull { i ->
+                instructions[i].opcode == Opcode.INSTANCE_OF &&
+                    ((instructions[i] as? ReferenceInstruction)?.reference as? TypeReference)?.type == "Lw22;"
+            } ?: error("Business Box refresh type check not uniquely found")
+            val registers = instructions[index] as? TwoRegisterInstruction
+            val branch = instructions.getOrNull(index + 1) as? OneRegisterInstruction
+            check(registers?.registerA == 4 && registers.registerB == 4 &&
+                instructions.getOrNull(index + 1)?.opcode == Opcode.IF_EQZ && branch?.registerA == 4
+            ) { "Business Box refresh type branch changed" }
+            method.replaceInstruction(index, "const/4 v4, 0x0")
+        } else if (oldPeriodic.isNotEmpty()) {
             val match = oldPeriodic.single()
             val cast = match.instructionMatches.single { it.instruction.opcode == Opcode.CHECK_CAST }
             suppressBusinessBoxPeriodicBranch(match.method, cast.index)
@@ -76,6 +108,25 @@ internal fun suppressBusinessBoxPeriodicBranch(
 ) {
     method.replaceInstruction(instructionIndex, "return-void")
 }
+
+// Experimental target: 26.11.01 is advertised but not fully device-qualified.
+internal object BusinessBoxListInsertion261101 : Fingerprint(
+    definingClass = "Lp8g;", name = "D",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL), returnType = "V",
+    parameters = listOf("Lcom/zing/zalo/data/chat/model/tabmessage/Conversation;",
+        "Ljava/util/ArrayList;", "I", "Z", "I", "Lk8g;"),
+    filters = listOf(
+        fieldAccess(opcode = Opcode.SGET_OBJECT, definingClass = "Lkf2;", name = "BizBox", type = "Lkf2;"),
+        methodCall(definingClass = "Lw22;", name = "<init>",
+            parameters = listOf("Lcom/zing/zalo/data/chat/model/tabmessage/Conversation;", "Ljava/lang/String;"), returnType = "V"),
+    ),
+)
+
+internal object BusinessBoxPeriodicBranch261101 : Fingerprint(
+    definingClass = "Lnag;", name = "a",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL), returnType = "V",
+    parameters = emptyList(), filters = listOf(string("business_box_thread")),
+)
 
 internal object BusinessBoxListInsertion261002 : Fingerprint(
     definingClass = "Ltg0/s;",

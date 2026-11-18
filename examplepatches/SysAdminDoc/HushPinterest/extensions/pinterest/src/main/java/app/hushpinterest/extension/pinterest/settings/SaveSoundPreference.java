@@ -158,7 +158,7 @@ public final class SaveSoundPreference extends Preference {
         } catch (RuntimeException refused) {
             // The app holding the file gives no lasting grant, so the sound would stop with the next restart.
             Logger.printInfo(() -> "No lasting grant for the picked sound: " + refused.getClass().getSimpleName());
-            Utils.showToastLong(L10n.t("That app won't let Pinterest keep the sound. Pick one saved on the phone."));
+            Utils.showToastLong(L10n.t("That app can't share the sound. Pick one saved on the phone."));
             return true;
         }
         Uri before = SaveSound.picked();

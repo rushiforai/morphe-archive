@@ -26,6 +26,7 @@ val disableAnalyticsPatch = resourcePatch(
             "and their advertising ID collection.",
     default = true
 ) {
+    category("Privacy")
     compatibleWith(COMPATIBILITY_QUORA)
 
     execute {

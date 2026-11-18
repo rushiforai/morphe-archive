@@ -77,11 +77,21 @@ public final class HideProbe {
         List<String> channelTabs = Arrays.asList("all", "shorts", "live");
         ProbeSupport.set(creator, "tabs", channelTabs);
         Method tabs = getterOf(creator, "tabs");
+        // My Feed's filter pills (since 3.22.0), each a Gson DTO with its id.
+        Class<?> pillType = Class.forName(DTO + "video.FollowingFeedPillItem");
+        Object all = pill(pillType, "all");
+        Object shortsPill = pill(pillType, "shorts");
+        Object live = pill(pillType, "live");
+        List<Object> feedPills = Arrays.asList(all, shortsPill, live);
+        Object pillsData = ProbeSupport.allocate(Class.forName(DTO + "video.FollowingFeedPillsData"));
+        ProbeSupport.set(pillsData, "items", feedPills);
+        Method pills = getterOf(pillsData, "items");
 
         // Off (the default): Rumble's own.
         ProbeSupport.check(composable(shortsList) instanceof Throwable, "off: ShortsListView draws");
         ProbeSupport.check("SHORTS".equals(ProbeSupport.name(parse.invoke(companion, "shorts"))), "off: Shorts sections load");
         ProbeSupport.check(tabs.invoke(creator) == channelTabs, "off: channel tabs are Rumble's");
+        ProbeSupport.check(pills.invoke(pillsData) == feedPills, "off: My Feed's pills are Rumble's");
 
         ProbeSupport.setting("hide_shorts", "true");
         ProbeSupport.check(composable(shortsList) == null, "on: ShortsListView returns at once");
@@ -91,6 +101,19 @@ public final class HideProbe {
         List<String> onlyShorts = Arrays.asList("shorts");
         ProbeSupport.set(creator, "tabs", onlyShorts);
         ProbeSupport.check(tabs.invoke(creator).equals(onlyShorts), "on: a channel's only tab stays");
+        List<?> shownPills = (List<?>) pills.invoke(pillsData);
+        ProbeSupport.check(shownPills.size() == 2 && shownPills.get(0) == all && shownPills.get(1) == live,
+                "on: My Feed has no Shorts pill");
+        List<Object> withoutShorts = Arrays.asList(all, live);
+        ProbeSupport.set(pillsData, "items", withoutShorts);
+        ProbeSupport.check(pills.invoke(pillsData) == withoutShorts, "on: pills without Shorts are Rumble's list");
+    }
+
+    private static Object pill(Class<?> type, String id) throws Exception {
+        Object pill = ProbeSupport.allocate(type);
+        ProbeSupport.set(pill, "id", id);
+        ProbeSupport.set(pill, "title", id);
+        return pill;
     }
 
     private static void upsells() throws Exception {

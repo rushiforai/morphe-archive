@@ -1,0 +1,45 @@
+name: checks
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Byte-compile Python sources
+        run: python3 -m compileall -q scripts analysis/tools tests
+
+      - name: Syntax-check shell scripts
+        run: for f in scripts/*.sh; do bash -n "$f"; done
+
+      - name: Scripts are executable
+        run: |
+          for f in scripts/*.sh gradlew; do
+            [ -x "$f" ] || { echo "not executable: $f"; exit 1; }
+          done
+
+      - name: Unit tests
+        run: python3 -m unittest discover -s tests -v
+
+      - name: No application artefact is tracked
+        run: |
+          found="$(git ls-files '*.apk' '*.dex' '*.jar' '*.jks' '*.keystore' \
+            | grep -v '^gradle/wrapper/gradle-wrapper.jar$' || true)"
+          if [ -n "$found" ]; then
+            echo "artefacts tracked in git:"; echo "$found"; exit 1
+          fi

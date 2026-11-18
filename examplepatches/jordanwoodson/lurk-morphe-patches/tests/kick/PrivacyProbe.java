@@ -60,9 +60,6 @@ public final class PrivacyProbe {
         Settings.analyticsEnabled = true;
         equal(false, KickPrivacy.allowAnalyticsCollection(true));
         equal(false, KickPrivacy.allowAnalyticsCollection(false));
-        equal(false, KickPrivacy.unavailablePalNonce().get("sdkAvailable"));
-        equal("", KickPrivacy.unavailablePalNonce().get("nonce"));
-        equal(2, KickPrivacy.unavailablePalNonce().size());
 
         // Block device fingerprinting is opt-in: off, on, and an unreadable registry (key unknown) all checked.
         equal(false, KickPrivacy.blockFingerprint());

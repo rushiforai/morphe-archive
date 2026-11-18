@@ -6,7 +6,7 @@ Adapted from the previous repository's qualification guide. A successful build o
 
 For each target, record the original APK or split bundle's package, version, version code and SHA-256; bundle path and hash; selected patches and options; output package ID; Morphe version; and device/Android version. Keep APKs, signing keys, raw logs, screenshots, and account data outside Git. Mark fingerprint resolution, patch application, installation, launch, target-path execution and observed behavior separately as PASS, FAIL, BLOCKED or UNEXECUTED.
 
-See the [target evidence template](template.md) and [bytecode reference](bytecode.md). Do not declare a new supported target until its fingerprints, reflection ABI, transformations and behavior have been independently reviewed.
+See the [target evidence template](template.md) and [bytecode reference](recon.md#bytecode-and-fingerprinting). Do not declare a new stable target until its fingerprints, reflection ABI, transformations and behavior have been independently reviewed. Experimental targets must be clearly marked and retain their unverified checks.
 
 ## Current target evidence
 
@@ -14,22 +14,28 @@ Compatibility entries in `shared/Constants.kt` describe which builds the patches
 
 | Target | Patch application | Device behavior |
 | --- | --- | --- |
-| Zalo 26.08.01 (`260801903`) | PASS | Drive/microG flow validated through initial OAuth, photo restore, and a full backup/restore cycle; see [microG](microg.md). Re-run after the account-refresh fix. |
+| Zalo 26.08.01 (`260801903`) | PASS | Drive/microG flow validated through initial OAuth, photo restore, and a full backup/restore cycle; see [microG](zalo.md#google-drive-and-microg-re). Re-run after the account-refresh fix. |
 | Zalo 26.10.02 (`261002903`) | PASS for the default set and both Drive patches | Several settings and navigation behaviors user-confirmed; Drive/microG account refresh and restore UNEXECUTED. |
+| Zalo 26.11.01 (`261101901`) | PASS for all 24 default patches in an unforced Morphe CLI diagnostic run. Listed as experimental; not fully qualified. | Installation PASS with matching signer and user approval. After hotfixes, the user confirmed settings, image picker and group muting work normally and reported the Drive Contacts regression worked. Exact Drive steps and other patch behavior remain UNEXECUTED or unrecorded. |
 | Threads 453.0.0.56.79 (`512308696`) | PASS for the default set | Signed build installed as an update and the app works normally; individual patch behavior UNEXECUTED. |
 
 Promote a row only from a recorded run, and keep the raw evidence in the ignored analysis workspace.
 
 ## Build and patch
 
+Before patching, identify and confirm the intended package from the exact input artifact. If it is unknown, stop and get operator confirmation; never infer approval from the output filename.
+
 ```bash
+INPUT=analysis/<package>/<version>/apk/<input.apk-or-apkm>
+aapt dump badging "$INPUT" | rg "^(package:|sdkVersion:)"
+# Confirm the reported package ID matches the intended app before continuing.
 ./gradlew :patches:buildAndroid --no-daemon
 morphe --help
 morphe patch --help
 morphe list-patches --patches patches/build/libs/patches-<version>.mpp --with-packages --with-versions
 ```
 
-Use the original APK or split bundle with Morphe Desktop. Ask the owner to choose an original or clone output package ID before patching. Normal validation uses the default-enabled patches; exclusive single-patch runs are diagnostic only. For unsupported versions `--force` skips compatibility checks; it does not establish support. Use `--validate` to check fingerprint uniqueness for `match()`; it does not validate `matchAll()`. Use `--verify-with-sdk` for optional SDK verification. Consult the installed CLI help and the [Morphe Desktop CLI reference](https://github.com/MorpheApp/morphe-desktop/blob/main/docs/documentation.md) for current options.
+Use the original APK or split bundle with Morphe Desktop only after confirming its package ID. Record the output package ID before installation. Normal validation uses the default-enabled patches; exclusive single-patch runs are diagnostic only. For unsupported versions `--force` skips compatibility checks; it does not establish support. Use `--validate` to check fingerprint uniqueness for `match()`; it does not validate `matchAll()`. Use `--verify-with-sdk` for optional SDK verification. Consult the installed CLI help and the [Morphe Desktop CLI reference](https://github.com/MorpheApp/morphe-desktop/blob/main/docs/documentation.md) for current options.
 
 Zalo's default native startup bypass removes non-arm64 native libraries because its binary edits are arm64-only. If the bypass is deselected for a diagnostic run, compatibility metadata does not remove other ABIs: pass `--striplibs arm64-v8a` to the Desktop CLI and inspect the output APK's `lib/` entries. This does not apply the bypass or establish that a re-signed app can launch. An arm64-only output cannot be installed on a 32-bit-only device.
 

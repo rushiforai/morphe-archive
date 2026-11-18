@@ -5,7 +5,7 @@
  *
  * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to this code.
  *
- * Modified by lavinhoque33, 2026-10-25
+ * Modified by lavinhoque33, 2026-11-18
  */
 
 package app.morphe.extension.youtube.patches.player;
@@ -50,6 +50,7 @@ import app.morphe.extension.shared.settings.preference.SeekBarPreference;
 import app.morphe.extension.shared.utils.Logger;
 import app.morphe.extension.shared.utils.ResourceUtils;
 import app.morphe.extension.shared.utils.Utils;
+import app.morphe.extension.youtube.patches.general.GlassNavigationBar;
 import app.morphe.extension.youtube.settings.Settings;
 
 @SuppressWarnings({"SpellCheckingInspection", "unused"})
@@ -189,7 +190,16 @@ public final class MiniplayerPatch {
             = ResourceUtils.getIdIdentifier("modern_miniplayer_subtitle_text");
 
 
-    private static final MiniplayerType CURRENT_TYPE = Settings.MINIPLAYER_TYPE.get();
+    private static final MiniplayerType SELECTED_TYPE = Settings.MINIPLAYER_TYPE.get();
+    private static final boolean GLASS_MINIPLAYER_ENABLED = Settings.MINIPLAYER_GLASS.get()
+            && GlassMinimalMiniplayer.isAvailable(SELECTED_TYPE, GlassMinimalMiniplayer.isSupported(),
+                    GlassNavigationBar.isEnabled());
+    private static final MiniplayerType CURRENT_TYPE =
+            GlassMinimalMiniplayer.resolveType(SELECTED_TYPE, GLASS_MINIPLAYER_ENABLED);
+
+    static boolean isGlassMiniplayerEnabled() {
+        return GLASS_MINIPLAYER_ENABLED;
+    }
 
     /**
      * Current miniplayer type captured for this app process.
@@ -275,6 +285,20 @@ public final class MiniplayerPatch {
         @Override
         public List<Setting<?>> getParentSettings() {
             return List.of(Settings.MINIPLAYER_TYPE);
+        }
+    }
+
+    public static final class MiniplayerGlassAvailability implements Setting.Availability {
+        @Override
+        public boolean isAvailable() {
+            return GlassMinimalMiniplayer.isAvailable(Settings.MINIPLAYER_TYPE.get(),
+                    GlassMinimalMiniplayer.isSupported(), GlassNavigationBar.isEnabledInSettings());
+        }
+
+        @Override
+        public List<Setting<?>> getParentSettings() {
+            return List.of(Settings.MINIPLAYER_TYPE, Settings.NAVIGATION_BAR_GLASS,
+                    Settings.NAVIGATION_BAR_STYLE, Settings.HIDE_NAVIGATION_BAR);
         }
     }
 
@@ -506,7 +530,7 @@ public final class MiniplayerPatch {
             return original;
         }
 
-        return MINIPLAYER_ROUNDED_CORNERS_ENABLED;
+        return MINIPLAYER_ROUNDED_CORNERS_ENABLED && !GLASS_MINIPLAYER_ENABLED;
     }
 
     /**

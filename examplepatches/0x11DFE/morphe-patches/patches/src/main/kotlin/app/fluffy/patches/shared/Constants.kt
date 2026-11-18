@@ -20,6 +20,17 @@ object Constants {
         ),
     )
 
+
+    val COMPATIBILITY_MDPROXY = Compatibility(
+        name = "MD PROXY VPN",
+        packageName = "com.vpnproxymd.mdproxyvpn",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x00C853,
+        targets = listOf(
+            AppTarget(version = "v1.0.8.8"),
+        ),
+    )
+
     val COMPATIBILITY_WAYPOINT = Compatibility(
         name = "Waypoint",
         packageName = "com.greycastel.waypoint",

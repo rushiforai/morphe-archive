@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-17.
  * Modified by lavinhoque33, 2026-11-14.
  * Written by lavinhoque33, 2026-11-08.
  */
@@ -15,6 +16,7 @@ import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.util.getReference
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.music.video.information.ModernVideoEndFingerprint
+import app.morphe.patches.shared.mainactivity.injectOnCreateMethodCall
 import app.morphe.patches.shared.misc.fix.proto.parseByteArrayMethodRef
 import app.morphe.util.Utils.printInfo
 import app.morphe.util.Utils.printWarn
@@ -89,6 +91,7 @@ private const val UNPLAYABLE = "Unplayable Video"
 internal fun BytecodePatchContext.installOfflineReplay() {
     if (packageMetadata.versionName !in REPLAY_VERSIONS) {
         printInfo("OfflineReplay: not available on this Music version; playback unchanged.")
+        printWarn("Playlist sync skipped: native offline browse is not installed on this Music version.")
         return
     }
 
@@ -115,6 +118,14 @@ internal fun BytecodePatchContext.installOfflineReplay() {
         installSeek?.invoke()
         installSheet?.invoke()?.let(::printInfo)
         supported.returnEarly(true)
+        if (installBrowse != null) {
+            injectOnCreateMethodCall(
+                "Lapp/morphe/extension/music/patches/downloads/PlaylistSync;",
+                "install",
+            )
+        } else {
+            printWarn("Playlist sync skipped: native offline browse is not installed on this Music version.")
+        }
         printInfo(
             "OfflineReplay: gate, player lookup and watch-next hooked; " +
                 "request $requestType",

@@ -293,7 +293,22 @@ public final class RumbleStats {
             frame.getOverlay().add(panel);
             Logger.d("video stats: shown on a player");
         }
-        panel.show(lines, frame.getWidth(), frame.getHeight());
+        int[] corner = shownCorner(frame);
+        panel.show(lines, corner[0], corner[1], frame.getWidth(), frame.getHeight());
+    }
+
+    /**
+     * The top left corner of the part of [frame] its parent shows, in the frame's coordinates. A zoomed frame
+     * (Fill screen in landscape) is larger than the player view, which centers it and clips its edges, so the
+     * panel starts there instead of at the frame's own corner.
+     */
+    static int[] shownCorner(View frame) {
+        if (!(frame.getParent() instanceof View)) return new int[]{0, 0};
+        View parent = (View) frame.getParent();
+        return new int[]{
+                Math.max(0, Math.min(-frame.getLeft(), frame.getWidth() - parent.getWidth())),
+                Math.max(0, Math.min(-frame.getTop(), frame.getHeight() - parent.getHeight())),
+        };
     }
 
     private static void remove(View frame) {
@@ -358,9 +373,9 @@ public final class RumbleStats {
             radius = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 4, metrics);
         }
 
-        void show(String[] lines, int width, int height) {
+        void show(String[] lines, int left, int top, int width, int height) {
             this.lines = lines;
-            setBounds(0, 0, width, height);
+            setBounds(left, top, width, height);
             invalidateSelf();
         }
 

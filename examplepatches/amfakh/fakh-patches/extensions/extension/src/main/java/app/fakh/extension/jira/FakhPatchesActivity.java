@@ -27,12 +27,17 @@ import app.fakh.extension.shared.RestartBar;
 
 /**
  * The Fakh Patches page, opened from its card in Jira's Account screen: the switches of the patches, in sections by
- * where they act. The cards and rows are Jira's own composables (the card of the Account screen, the switch row of
- * Settings), called by reflection, so the fonts, sizes, switches and colors are the app's own.
+ * where they act. The cards and rows are Jira's own composables (the section card of the Account screen, its list
+ * item and switch), called by reflection, so the fonts, sizes, switches and colors are the app's own.
  */
 public final class FakhPatchesActivity extends ComponentActivity {
     /** The row that opens the sheet of the bottom bar's tabs, in place of a switch number. */
     private static final int TABS = -1;
+    /**
+     * The arguments of JiraListItemKt.a that take their defaults, as the bits of its last argument: the modifier, the
+     * leading slot, the line under the title, and the title's style and the leading size. Settings' own rows pass the same.
+     */
+    private static final int LIST_ITEM_DEFAULTS = 2 | 4 | 8 | 128 | 512 | 1024;
 
     private float density;
     private int textPrimary;
@@ -98,39 +103,41 @@ public final class FakhPatchesActivity extends ComponentActivity {
      */
     private View card(int[] switches) throws Exception {
         ClassLoader loader = getClassLoader();
-        Class<?> items = Class.forName("com.atlassian.jira.infrastructure.compose.ui.SpacedItemsKt", true, loader);
-        Class<?> rows = Class.forName("com.atlassian.jira.feature.settings.impl.SettingsKt", true, loader);
+        String components = "com.atlassian.jira.infrastructure.designsystem.components.";
+        Class<?> items = Class.forName(components + "molecules.listitem.JiraSectionColumnKt", true, loader);
+        Class<?> scopeClass = Class.forName(components + "molecules.listitem.JiraColumnSectionScope", true, loader);
+        Class<?> listItems = Class.forName(components + "layouts.listitem.JiraListItemKt", true, loader);
+        Class<?> switchClass = Class.forName(components + "atoms.JiraSwitchKt", true, loader);
         Class<?> function1 = Class.forName("kotlin.jvm.functions.Function1", true, loader);
         Class<?> function2 = Class.forName("kotlin.jvm.functions.Function2", true, loader);
         Method card = null;
         Method wrapper = null;
-        Method switchRow = null;
-        Method selectableRow = null;
-        Class<?> selectable = Class.forName("com.atlassian.jira.feature.settings.impl.SelectableRowKt", true, loader);
-        for (Method method : selectable.getDeclaredMethods()) {
-            if (method.getName().equals("a") && method.getParameterTypes().length == 8) selectableRow = method;
-        }
+        Method listItem = null;
+        Method jiraSwitch = null;
         for (Method method : items.getDeclaredMethods()) {
             if (method.getName().equals("a") && method.getParameterTypes().length == 7) card = method;
-            if (method.getName().equals("b") && method.getParameterTypes().length == 5) wrapper = method;
         }
-        for (Method method : rows.getDeclaredMethods()) {
+        for (Method method : scopeClass.getDeclaredMethods()) {
             Class<?>[] types = method.getParameterTypes();
-            if (method.getName().equals("e") && types.length == 8 && types[0] == String.class) switchRow = method;
+            if (types.length == 5 && types[0] == scopeClass && types[4] == function2) wrapper = method;
         }
-        if (card == null || wrapper == null || switchRow == null || selectableRow == null) throw new IllegalStateException("Jira composables");
+        for (Method method : listItems.getDeclaredMethods()) {
+            Class<?>[] types = method.getParameterTypes();
+            if (method.getName().equals("a") && types.length == 15 && types[0] == String.class) listItem = method;
+        }
+        for (Method method : switchClass.getDeclaredMethods()) {
+            Class<?>[] types = method.getParameterTypes();
+            if (types.length == 8 && types[0] == boolean.class && types[1] == function1) jiraSwitch = method;
+        }
+        if (card == null || wrapper == null || listItem == null || jiraSwitch == null) throw new IllegalStateException("Jira composables");
         Class<?> theme = Class.forName("com.atlassian.jira.infrastructure.designsystem.foundation.JiraTheme", true, loader);
         final Object themeInstance = theme.getField("INSTANCE").get(null);
-        Method themed = null;
-        for (Method method : theme.getDeclaredMethods()) {
-            if (method.getName().equals("e") && method.getParameterTypes().length == 10) themed = method;
-        }
-        if (themed == null) throw new IllegalStateException("JiraTheme");
-        final Method themeMethod = themed;
+        final Method themeMethod = FakhSettings.themeMethod(theme);
+        final java.lang.reflect.Constructor<?> makeLambda = FakhSettings.lambdaConstructor(loader);
         final Method cardMethod = card;
         final Method wrapperMethod = wrapper;
-        final Method switchMethod = switchRow;
-        final Method selectableMethod = selectableRow;
+        final Method listItemMethod = listItem;
+        final Method switchMethod = jiraSwitch;
 
         Class<?> viewClass = Class.forName("androidx.compose.ui.platform.ComposeView", true, loader);
         final View view = (View) viewClass.getConstructor(Context.class).newInstance(this);
@@ -150,6 +157,18 @@ public final class FakhPatchesActivity extends ComponentActivity {
                             public Object invoke(Object proxy, Method method, Object[] scope) throws Throwable {
                                 if (scope == null || scope.length != 1) return MaterialYou.objectMethod(proxy, method, scope);
                                 for (int which : switches) {
+                                    // The row of the tabs opens the sheet when tapped; a switch row is changed by its switch.
+                                    Object click = which != TABS ? null : Proxy.newProxyInstance(loader,
+                                            new Class<?>[] {wrapperMethod.getParameterTypes()[2]}, new InvocationHandler() {
+                                                @Override
+                                                public Object invoke(Object proxy, Method method, Object[] none) {
+                                                    if (method.getDeclaringClass() == Object.class) {
+                                                        return MaterialYou.objectMethod(proxy, method, none);
+                                                    }
+                                                    FakhSettings.showSheet(FakhPatchesActivity.this, (Runnable) render[0]);
+                                                    return null;
+                                                }
+                                            });
                                     Object row = Proxy.newProxyInstance(loader, new Class<?>[] {function2}, new InvocationHandler() {
                                         @Override
                                         public Object invoke(Object proxy, Method method, Object[] composer) throws Throwable {
@@ -157,20 +176,10 @@ public final class FakhPatchesActivity extends ComponentActivity {
                                                 return MaterialYou.objectMethod(proxy, method, composer);
                                             }
                                             if (which == TABS) {
-                                                Object open = Proxy.newProxyInstance(loader,
-                                                        new Class<?>[] {selectableMethod.getParameterTypes()[2]}, new InvocationHandler() {
-                                                            @Override
-                                                            public Object invoke(Object proxy, Method method, Object[] none) {
-                                                                if (method.getDeclaringClass() == Object.class) {
-                                                                    return MaterialYou.objectMethod(proxy, method, none);
-                                                                }
-                                                                FakhSettings.showSheet(FakhPatchesActivity.this, (Runnable) render[0]);
-                                                                return null;
-                                                            }
-                                                        });
-                                                // The row's modifier is its own default.
-                                                selectableMethod.invoke(null, I18n.tr("Navigation bar tabs"), false, open, null,
-                                                        FakhSettings.tabsSummary(FakhPatchesActivity.this), composer[0], 0, 8);
+                                                // Modifier, leading slot and the trailing slot are the row's own defaults.
+                                                listItemMethod.invoke(null, I18n.tr("Navigation bar tabs"), null, null, null,
+                                                        FakhSettings.tabsSummary(FakhPatchesActivity.this), null,
+                                                        Integer.MAX_VALUE, 0, Integer.MAX_VALUE, null, null, composer[0], 0, 0, LIST_ITEM_DEFAULTS | 32);
                                                 return null;
                                             }
                                             Object change = Proxy.newProxyInstance(loader, new Class<?>[] {function1}, new InvocationHandler() {
@@ -188,28 +197,37 @@ public final class FakhPatchesActivity extends ComponentActivity {
                                                     return null;
                                                 }
                                             });
+                                            final boolean checked = settled[0] && MaterialYou.prefs(FakhPatchesActivity.this)
+                                                    .getBoolean(MaterialYou.KEYS[which], MaterialYou.DEFAULTS[which]);
+                                            Object trailing = Proxy.newProxyInstance(loader, new Class<?>[] {function2}, new InvocationHandler() {
+                                                @Override
+                                                public Object invoke(Object proxy, Method method, Object[] inner) throws Throwable {
+                                                    if (inner == null || inner.length != 2) return MaterialYou.objectMethod(proxy, method, inner);
+                                                    // Modifier, enabled and colors are the switch's own defaults.
+                                                    switchMethod.invoke(null, checked, change, null, false, null, inner[0], 0, 4 | 8 | 16);
+                                                    return null;
+                                                }
+                                            });
                                             String subtitle = MaterialYou.SUBTITLES[which];
-                                            switchMethod.invoke(null, I18n.tr(MaterialYou.LABELS[which]),
-                                                    settled[0] && MaterialYou.prefs(FakhPatchesActivity.this)
-                                                            .getBoolean(MaterialYou.KEYS[which], MaterialYou.DEFAULTS[which]),
-                                                    change, subtitle == null ? null : I18n.tr(subtitle), true, composer[0], 0, 0);
+                                            listItemMethod.invoke(null, I18n.tr(MaterialYou.LABELS[which]), null, null, null,
+                                                    subtitle == null ? null : I18n.tr(subtitle), trailing,
+                                                    Integer.MAX_VALUE, 0, Integer.MAX_VALUE, null, null, composer[0], 0, 0, LIST_ITEM_DEFAULTS);
                                             return null;
                                         }
                                     });
-                                    // Modifier and click are the row's own defaults.
-                                    wrapperMethod.invoke(null, scope[0], null, null, row, 1 | 4);
+                                    // The entry's key and enabled state are its own defaults.
+                                    wrapperMethod.invoke(null, scope[0], null, click, null, row);
                                 }
                                 return null;
                             }
                         });
-                        // Modifier, gap and shape are the card's own defaults.
-                        cardMethod.invoke(null, null, 0f, null, builder, args[0], 0, 1 | 2 | 4);
+                        // Title, modifier and gap are the card's own defaults.
+                        cardMethod.invoke(null, null, null, 0f, builder, args[0], 0, 1 | 2 | 4);
                         return null;
                     }
                 });
                 // The theme's content is a composable lambda of its own, so a change can redraw just it.
-                lambda[0] = Class.forName("ta4", true, loader).getConstructor(int.class, boolean.class, Object.class)
-                        .newInstance(0x5fa7, true, inner);
+                lambda[0] = makeLambda.newInstance(0x5fa7, true, inner);
                 // The screens of the app sit in its theme; every color, shape and size of it is the default.
                 setContent.invoke(view, Proxy.newProxyInstance(loader, new Class<?>[] {function2}, new InvocationHandler() {
                     @Override

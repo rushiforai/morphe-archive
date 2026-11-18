@@ -89,10 +89,18 @@ val disableAnalyticsPatch = bytecodePatch(
             InsiderInitFingerprint to "Insider initialization",
             InsiderEventFingerprint to "Insider event build",
             DatadogNativeFingerprint to "Datadog native initialization",
-            MuxInitializationFingerprint to "Mux player initialization",
-            DatazoomApplyFingerprint to "Datazoom player configuration",
         ).forEach { (fingerprint, description) ->
             fingerprint.kickMatch(description).method.addInstructionsIfEnabled(KEY, "return-void")
+        }
+        // Kick's player: Mux Data gets no options, so its monitor never starts Mux; the player view keeps no Datazoom
+        // monitor, so Datazoom isn't initialized and no MediaTailor session (ad tracking, PAL signals) is made. Without
+        // a session Kick plays the source it already has, as it does when a session fails.
+        listOf(
+            MuxOptionsFingerprint to "mux_options" to "Mux player options",
+            DatazoomOptionsFingerprint to "datazoom_options" to "Datazoom player options",
+        ).forEach { (match, description) ->
+            val (fingerprint, name) = match
+            fingerprint.located(description, name).addInstructionsIfEnabled(KEY, "return-void")
         }
         // Previously scheduled jobs can upload stored data without initializing the RN SDK.
         // Returning false reports synchronous completion: no worker was started, so jobFinished
@@ -114,12 +122,12 @@ val disableAnalyticsPatch = bytecodePatch(
             invoke-interface { v0, v1 }, $REACT_PROMISE->resolve(Ljava/lang/Object;)V
             return-void
         """, locals = 2)
-        // Hermes already handles this unavailable result. An unresolved Promise blocks its playback payload.
-        PalNonceFingerprint.located("PAL nonce bridge", "pal_generate_nonce").apply {
-            requireLowRegisters("PAL nonce bridge", parameterRegister(3))
+        // Kick's JavaScript takes a missing nonce as an empty one and sends the playback request without it. An
+        // unresolved promise would hold the request back; a rejection would report that PAL failed to load.
+        PalNonceFingerprint.located("PAL nonce loader", "pal_generate_nonce").apply {
+            requireLowRegisters("PAL nonce loader", parameterRegister(3))
             addInstructionsIfEnabled(KEY, """
-                invoke-static { }, $PRIVACY->unavailablePalNonce()Ljava/util/Map;
-                move-result-object v0
+                const/4 v0, 0x0
                 invoke-interface { p3, v0 }, $EXPO_PROMISE->resolve(Ljava/lang/Object;)V
                 return-void
             """)

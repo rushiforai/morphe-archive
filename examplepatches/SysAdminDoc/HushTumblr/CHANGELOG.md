@@ -3,6 +3,11 @@
 ## Unreleased
 
 * Settings with TalkBack and a keyboard: pressing Undo on the "HushTumblr is on" card keeps TalkBack on the card's button. When the Restart row went away above the row your keys were on, TalkBack used to jump to that row, usually Quick setups.
+* New **Keep reblogs in communities** option under Hide reblogs on the Feed page, off by default. Reblogs shared to a community stay in place even when the person added no text or tags, and every other reblog stays hidden.
+* New **Fit full-screen videos** switch on the Interface page, off by default. Tumblr stretches a tall video to the screen's full height in its full-screen player, and that can cut off the left and right sides. With the switch on you see the whole video.
+* New **Tap to play feed videos** switch on the Interface page, off by default. Tumblr sends any tap on a feed video to the full-screen player, even with auto-play off and a play button showing. With the switch on, tapping a stopped video plays it right there, and tapping it while it plays opens it full screen. Ads keep working the way they do now.
+* HushTumblr now builds on Morphe patcher 2.4.0, the one that comes with Morphe Manager 2.6.0 and Morphe Desktop 2.2.0. Update Manager to 2.6.0 or newer before you load the next release.
+* **Tooling:** The GitHub release notes carry the Tumblr bullets under What's new and the update steps now. The Tooling bullets stay here in the changelog, and a hand-written tail with a Validation section is refused.
 
 ## 0.0.11 (2026-11-14)
 

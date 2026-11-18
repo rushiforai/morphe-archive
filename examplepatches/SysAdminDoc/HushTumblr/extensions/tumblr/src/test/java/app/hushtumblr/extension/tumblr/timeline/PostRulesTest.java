@@ -66,6 +66,7 @@ public class PostRulesTest {
         Settings.HIDE_LIKED_POSTS.resetToDefault();
         Settings.KEEP_TAGGED_REBLOGS.resetToDefault();
         Settings.KEEP_REBLOGS_WITH_CONTENT.resetToDefault();
+        Settings.KEEP_COMMUNITY_REBLOGS.resetToDefault();
         Settings.HIDE_VIDEO_POSTS.resetToDefault();
         Settings.HIDE_PHOTO_POSTS.resetToDefault();
         Settings.HIDE_TEXT_POSTS.resetToDefault();
@@ -280,6 +281,49 @@ public class PostRulesTest {
         List<Object> page = Arrays.asList(TEXT, TimelineItems.reblogOf(Collections.singletonList(new TextBlock("original")),
                 new TextBlock("mine")));
         assertSame(page, TimelineFilter.filter(page));
+    }
+
+    /** #18: a community's page is mostly plain reblogs, and Hide reblogs left it nearly empty. */
+    @Test
+    public void communityExceptionStartsOffAndKeepsOnlyReblogsSharedToACommunity() {
+        assertFalse(Settings.KEEP_COMMUNITY_REBLOGS.defaultValue);
+        assertFalse(Settings.KEEP_COMMUNITY_REBLOGS.get());
+        Settings.HIDE_REBLOGS.save(true);
+        TimelineObject shared = TimelineItems.communityReblogOf(Collections.singletonList(new TextBlock("original")));
+        TimelineObject regular = TimelineItems.reblogOf(Collections.singletonList(new TextBlock("original")));
+        assertEquals(Collections.singletonList(TEXT), shown(shared, regular, TEXT));
+        Settings.KEEP_COMMUNITY_REBLOGS.save(true);
+        assertEquals(Arrays.asList(shared, TEXT), shown(shared, regular, TEXT));
+    }
+
+    @Test
+    public void keepingACommunityReblogStillAppliesTheOtherPostFilters() {
+        Settings.HIDE_REBLOGS.save(true);
+        Settings.KEEP_COMMUNITY_REBLOGS.save(true);
+        TimelineObject shared = TimelineItems.communityReblogOf(Collections.singletonList(new TextBlock("original")));
+        assertNull(PostRules.now().removes(shared.getData()));
+        Settings.HIDE_TEXT_POSTS.save(true);
+        assertEquals(FamilyNames.HIDE_TEXT_POSTS, PostRules.now().removes(shared.getData()));
+        Settings.HIDE_TEXT_POSTS.save(false);
+        Settings.HIDE_POSTS_WITH_WORDS.save(true);
+        TextSettings.HIDDEN_WORDS.save("original");
+        assertEquals(FamilyNames.HIDE_POSTS_WITH_WORDS, PostRules.now().removes(shared.getData()));
+    }
+
+    @Test
+    public void aCommunityExceptionDoesNotActivateTheRuleByItself() {
+        Settings.KEEP_COMMUNITY_REBLOGS.save(true);
+        assertNull(PostRules.now());
+    }
+
+    @Test
+    public void withoutTheReblogHookTheCommunityExceptionIsOffToo() {
+        Settings.HIDE_REBLOGS.save(true);
+        Settings.KEEP_COMMUNITY_REBLOGS.save(true);
+        Settings.HIDE_TEXT_POSTS.save(true);
+        PatchFamilyForTests.capabilities(EnumSet.complementOf(EnumSet.of(PatchFamily.Capability.REBLOG_POSTS)));
+        PostRules rules = PostRules.now();
+        assertFalse(rules.keepCommunityReblogs);
     }
 
     /** Without the reblog hook in the build, Hide reblogs and its exceptions answer off together. */

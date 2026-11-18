@@ -43,7 +43,7 @@ val hideChatHighlightsPatch = bytecodePatch(
             "FloatingGoalCard" to GOALS,
             "DropsBanner" to BANNERS,
             "StreamEventBanner" to BANNERS,
-        ).forEach { (component, key) -> kickHermes.returnNull(component, key, defaultEnabled = false) }
+        ).forEach { (component, key) -> kickHermes.returnAtEntry(component, key, defaultEnabled = false) }
         kickHermes.returnAtEntry("PinnedKicks", PINNED_KICKS, defaultEnabled = false)
         kickHermes.returnAtEntry("ConsumingCelebration", CELEBRATIONS, defaultEnabled = false)
 

@@ -1241,6 +1241,9 @@ public class SettingsNavigationTest {
         summaryContains(Settings.HIDE_NAV_CREATE.key, "Create in the bottom bar", "at the top of Home", "next time they update");
         summaryContains(Settings.HIDE_NAV_NOTIFICATIONS.key, "Notifications in the bottom bar", "Inbox at the top of Home", "next time they update");
         summaryContains(Settings.HIDE_NAV_SEARCH.key, "Search in the bottom bar", "next time the bar updates");
+        summaryContains(Settings.SEARCH_TAB_KEYBOARD.key, "pressing Search in the bottom bar again", "opens the keyboard");
+        summaryContains(Settings.BLANK_SEARCH_PAGE.key, "only the search bar", "Searching works as usual", "next time the page updates");
+        summaryContains(Settings.HIDE_HOME_TABS.key, "row of tabs", "top of Home", "next time Home updates");
         summaryContains(Settings.HIDE_HEADER_BUTTONS.key, "icon buttons at the end of the top bar", "next time the bar updates", "account controls stay");
         summaryContains(Settings.BLACK_BOTTOM_BAR.key, "In dark mode", "bottom bar pure black", "Light mode stays", "next time the bar redraws");
         summaryContains(Settings.BLACK_COMMENTS.key, "In dark mode", "comments sheet and its reply bar pure black", "Light mode stays", "next time you open comments");
@@ -1248,6 +1251,8 @@ public class SettingsNavigationTest {
         summaryContains(Settings.BLACK_SAVE_SHEET.key, "In dark mode", "lists your boards when you save a pin pure black", "Light mode stays", "next time you save a pin");
         summaryContains(Settings.BLACK_SHEETS.key, "In dark mode", "menus and sheets that slide up pure black", "Light mode stays", "next time you open one");
         summaryContains(Settings.BLACK_BOARDS.key, "In dark mode", "floats over a board", "Light mode stays", "next time you open a board or your profile");
+        summaryContains(Settings.BLACK_TOASTS.key, "In dark mode", "save or download a pin", "Light mode stays", "next message");
+        summaryContains(Settings.HIDE_DOWNLOAD_TOASTS.key, "started or finished", "Errors still show", "download notification stays");
         summaryContains(Settings.HIDE_CLOSEUP_BACK.key, "back arrow that floats over a pin", "back gesture or button", "next pin you open");
         summaryContains(Settings.HIDE_CLOSEUP_LENS.key, "visual search button", "Search image in the pin menu still works", "next pin you open");
         summaryContains(Settings.HIDE_CLOSEUP_SEARCH_LABEL.key, "Search image label", "first pins each day", "Tapping the lens still searches", "next pin you open");
@@ -1261,6 +1266,7 @@ public class SettingsNavigationTest {
         summaryContains(Settings.HIDE_PIN_MENU_COLLAGE.key, "Add to collage and Remix collage", "pin menus you open from now on", "already open won't change");
         summaryContains(Settings.HIDE_PIN_MENU_VISUAL_SEARCH.key, "Search image", "pin menus you open from now on", "already open won't change");
         summaryContains(Settings.HIDE_PIN_MENU_PIN_BOOST.key, "Promote pin", "pin menus you open from now on", "already open won't change");
+        summaryContains(Settings.HIDE_PIN_MENU_ROWS.key, "rows you pick", "pin menus you open from now on", "already open won't change");
         summaryContains(Settings.COPY_IMAGE.key, "full-size picture on the clipboard", "Needs Download pins on", "Videos don't get the row");
         summaryContains(Settings.SHARE_IMAGE.key, "full-size picture itself, not a link", "Android's share menu", "Needs Download pins on", "Videos don't get the row");
         summaryContains(Settings.SAVE_DOWNLOADED_PINS.key, "also saves it to your profile", "Grid and board downloads", "Needs Download pins on");
@@ -1289,10 +1295,19 @@ public class SettingsNavigationTest {
         summaryContains(Settings.HIDE_RELATED_PINS.key, "grid of more pins", "doesn't load", "next pin you open");
         summaryContains(Settings.HIDE_CREATOR_NAME.key, "creator's name and badge", "picture stays",
                 "still opens their profile", "next pin you open");
+        summaryContains(Settings.HIDE_PIN_AUTHOR.key, "creator's whole row", "picture and name", "next pin you open");
+        summaryContains(Settings.HIDE_PIN_DESCRIPTION.key, "title and description", "likes and comments bar stays", "posted date and image size");
+        summaryContains(Settings.SHOW_IMAGE_SIZE.key, "width and height", "largest copy", "Videos show nothing");
+        summaryContains(Settings.HIDE_HIGHLIGHT_RING.key, "thick blue ring", "buttons such as Save");
+        summaryContains(Settings.HIDE_VISUAL_SEARCH_THUMBNAILS.key, "lens button", "stack of cropped pictures", "next pin you open");
+        summaryContains(Settings.FOLD_RELATED_PINS.key, "arrow under a pin", "don't load until you tap it", "last choice is kept", "Hide related pins wins");
         summaryContains(Settings.CUSTOM_SAVE_SOUND.key, "sound you pick below", "when you save a pin",
                 "With no sound picked, Pinterest's plays");
         summaryContains(Settings.CUSTOM_SPLASH_LOGO.key, "logo picked when patching", "Android 13 and newer",
                 "from the next start");
+        summaryContains(Settings.HIDE_BOARD_TAB_BUTTON.key, "See board button", "board tab on Home", "next time the tab opens");
+        summaryContains(Settings.HIDE_BOARD_TAB_SUBTITLE.key, "More ideas for", "only the board name", "next time the tab opens");
+        summaryContains(Settings.BOARD_TAB_COVERS.key, "Long-press", "board tab on Home", "go black");
     }
 
     @Test public void aliasesKeepAccentMatchingGroupingAndTheSpokenResultCount() {
@@ -1339,6 +1354,7 @@ public class SettingsNavigationTest {
         assertTrue(contains(Settings.BLACK_SAVE_SHEET.key));
         assertTrue(contains(Settings.BLACK_SHEETS.key));
         assertTrue(contains(Settings.BLACK_BOARDS.key));
+        assertTrue(contains(Settings.BLACK_TOASTS.key));
         assertFalse(contains(Settings.BLACK_BOTTOM_BAR.key));
     }
 

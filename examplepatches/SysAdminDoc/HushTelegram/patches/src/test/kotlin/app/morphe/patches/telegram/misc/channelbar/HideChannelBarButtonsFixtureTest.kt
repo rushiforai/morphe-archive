@@ -8,7 +8,6 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.PlusPending
 import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patches.telegram.misc.commerce.COMMERCE
@@ -38,7 +37,6 @@ import app.morphe.util.names.origType
 import app.morphe.util.names.tgMutableClassDefBy
 
 /** A channel's bottom bar, the chat screen that fills it, the Recent actions log that reuses it, and the runtime. */
-@PlusPending
 class HideChannelBarButtonsFixtureTest {
     @Test fun `the chat screen hands each bar button to the extension and Recent actions keeps its own Search`() {
         for (build in Fixtures.declaredBuilds()) {
@@ -62,7 +60,7 @@ class HideChannelBarButtonsFixtureTest {
             val stock = before.filter { it.opcode != Opcode.NOP }
             val calls = plan.calls.map { at -> before.take(at).count { it.opcode != Opcode.NOP } }
             assertEquals("$name: one for one", stock.size, after.size)
-            assertEquals("$name: all four buttons", 4, plan.calls.size)
+            assertEquals("$name: every button of the bar", barButtons(build), plan.calls.size)
             for (i in stock.indices) {
                 if (i in calls) {
                     assertEquals("$name: $i", Opcode.INVOKE_STATIC, after[i].opcode)
@@ -139,6 +137,7 @@ class HideChannelBarButtonsFixtureTest {
             val context = PatchContexts.of(ExtensionDex.classes() + hosts(build))
             val plan = context.resolveChannelBarButtons()
             val body = plan.update.controlBody()
+            val placed = body.count { it.controlRef() == plan.place }
             // The update names a joined channel's button Unmute nowhere now.
             for (at in body.indices.filter { body[it].controlRef() == "Lorg/telegram/messenger/R\$string;->ChannelUnmuteNoCaps:I" }) {
                 plan.update.replaceInstruction(at, "const/16 v${body[at].namedRegisters().first()}, 0x0")
@@ -147,7 +146,7 @@ class HideChannelBarButtonsFixtureTest {
             assertEquals("${build.name}: $warnings", 1, warnings.size)
             assertTrue(warnings.single(), warnings.single().endsWith("The patch goes on without the Mute switch."))
             val after = plan.update.controlBody()
-            assertEquals(4, after.count { it.controlRef() == SET_BUTTON })
+            assertEquals("${build.name}: every button", placed, after.count { it.controlRef() == SET_BUTTON })
             assertTrue(after.none { it.controlRef() in setOf(MUTE_BEGIN, MUTE_LABELLED, MUTE_FINISH) })
             val side = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "hideChannelButtons" }.controlBody()
             assertEquals(1L, (side.first() as WideLiteralInstruction).wideLiteral)
@@ -183,12 +182,13 @@ class HideChannelBarButtonsFixtureTest {
                 val name = "${build.name} commerce first=$commerceFirst"
                 val context = PatchContexts.of(ExtensionDex.classes() + commerceReads(build, hosts(build)))
                 val plan = context.resolveChannelBarButtons()
+                val placed = plan.update.controlBody().count { it.controlRef() == plan.place }
                 if (commerceFirst) PatchLogCapture.warnings { hideCommercePatch.execute(context) }
                 assertEquals(emptyList<String>(), PatchLogCapture.warnings { hideChannelBarButtonsPatch.execute(context) })
                 if (!commerceFirst) PatchLogCapture.warnings { hideCommercePatch.execute(context) }
                 val placer = context.tgMutableClassDefBy(plan.bar).methods.single { "${it.definingClass}->${it.name}(IZZ)V" == plan.place }
                 assertTrue("$name: Gift guard", placer.controlBody().take(2).any { it.controlRef() == "$COMMERCE->showChannelGiftButton(IZ)Z" })
-                assertEquals("$name: bar calls", 4, plan.update.controlBody().count { it.controlRef() == SET_BUTTON })
+                assertEquals("$name: bar calls", placed, plan.update.controlBody().count { it.controlRef() == SET_BUTTON })
             }
         }
     }
@@ -210,6 +210,12 @@ class HideChannelBarButtonsFixtureTest {
         val message = FixtureDex.classesWhere(build, { true }) { m -> m.origDefiningClass == SHARE_MESSAGE && m.origName == SHARE_DECISION }
         return (bars + users + views + holder + message).distinctBy { it.type }
     }
+
+    /**
+     * How many buttons the chat screen places on the bar: Search, Gift, Direct messages and Info, and on
+     * Plus Messenger a fifth of its own, 5, for a joined channel's linked discussion group.
+     */
+    private fun barButtons(build: File) = if (build.name.startsWith("plus-")) 5 else 4
 
     private fun shareDecision(context: BytecodePatchContext) =
         context.tgMutableClassDefBy(SHARE_MESSAGE).methods.single { it.origName == SHARE_DECISION }

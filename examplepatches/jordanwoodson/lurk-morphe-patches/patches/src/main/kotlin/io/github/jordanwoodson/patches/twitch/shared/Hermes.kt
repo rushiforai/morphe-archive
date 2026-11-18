@@ -216,7 +216,7 @@ internal class HermesBundle(input: ByteArray, compiledPredicate: Boolean = false
 
     /**
      * Turns the function's single read of [property] (GetById) into `false` in the same register, so
-     * a prop such as `onShare` or `hasBoards` reads as false while every other prop and hook stays.
+     * a prop such as `onShare` or `hasLeaderboard` reads as false while every other prop and hook stays.
      */
     fun falseProperty(functionName: String, property: String, key: String, defaultEnabled: Boolean = true) {
         val function = function(functionName)
@@ -456,7 +456,7 @@ internal class HermesBundle(input: ByteArray, compiledPredicate: Boolean = false
     private fun align(offset: Int) = (offset + 3) and -4
 
     companion object {
-        const val SOURCE_SHA256 = "059f4713e0cea80b58e68b675fb05d63053056869e2ac60c79f5d57567a3e583"
+        const val SOURCE_SHA256 = "f3508182cc0581604ba637179d6f34e9bd93cb64c90b11d861f452930592b163"
 
         /**
          * Byte length of each v98 instruction, by opcode, in base 36. Generated from hermes-dec 0.1.7's

@@ -227,6 +227,118 @@ public final class HideContentPatch {
         evaluate(webView, COUNTS_SCRIPT, "counts");
     }
 
+    // The "823 comments from Jane Doe and more" row under an answer. It has no stable class, so it is
+    // found by its text and hidden with its wrappers. Comments still open from the comment button.
+    private static final String COMMENT_PREVIEWS_SCRIPT = "(function(){"
+            + "if(window.__jofslashComments)return;window.__jofslashComments=1;"
+            + "var re=/^[\\d.,]+\\s*[KMB]?\\s+comments?\\s+from\\s.+\\sand more$/i;"
+            + "function flat(e){return (e.textContent||'').replace(/\\s+/g,' ').trim();}"
+            + "function run(){document.querySelectorAll('div').forEach(function(d){"
+            + "if(d.hasAttribute('data-jofslash-hidden'))return;"
+            + "var t=flat(d);if(t.length>160||!re.test(t))return;"
+            + "for(var i=0;i<d.children.length;i++)if(re.test(flat(d.children[i])))return;"
+            + "var w=d;while(w.parentElement&&w.parentElement!==document.body&&flat(w.parentElement)===t)w=w.parentElement;"
+            + "w.setAttribute('data-jofslash-hidden','');w.style.setProperty('display','none','important');});}"
+            + observeScript("run")
+            + "})();";
+
+    /**
+     * Injection point: start of QWebViewClient.onPageFinished.
+     */
+    public static void hideCommentPreviews(WebView webView) {
+        if (!PatchSettings.active(webView, "hideCommentPreviews", "Hide comment previews")) return;
+        evaluate(webView, COMMENT_PREVIEWS_SCRIPT, "comment previews");
+    }
+
+    // Posts from Spaces in the feed, so that it shows answers to questions only.
+    private static final String SPACES_POSTS_SELECTORS =
+            "[class*=\"dom_annotate_multifeed_bundle_PostBundle\"],"
+                    + "[class*=\"dom_annotate_multifeed_bundle_ExplorePostBundle\"]";
+
+    /**
+     * Injection point: start of QWebViewClient.onPageFinished.
+     */
+    public static void hideSpacesPosts(WebView webView) {
+        if (!PatchSettings.active(webView, "hideSpacesPosts", "Hide Spaces posts")) return;
+        injectStyle(webView, "jofslash-hide-spaces-posts", SPACES_POSTS_SELECTORS);
+    }
+
+    // The blue "Follow" next to author and Space names, and the "·" before it.
+    private static final String FOLLOW_SCRIPT = "(function(){"
+            + "if(window.__jofslashFollow)return;window.__jofslashFollow=1;"
+            + "function hide(e){e.setAttribute('data-jofslash-hidden','');e.style.setProperty('display','none','important');}"
+            + "function run(){document.querySelectorAll('.q-click-wrapper').forEach(function(c){"
+            + "if(c.hasAttribute('data-jofslash-follow'))return;"
+            + "if(!/^Follow(ing)?$/.test((c.textContent||'').trim()))return;c.setAttribute('data-jofslash-follow','');"
+            // Only the small inline one in a header, not Follow buttons on profiles and Space pages.
+            + "var box=c.parentElement;if(!box||(box.textContent||'').trim()!==(c.textContent||'').trim())return;"
+            + "if(getComputedStyle(box).display.indexOf('inline')<0)return;"
+            + "hide(box);var dot=box.previousElementSibling;"
+            + "if(dot&&(dot.textContent||'').trim()==='·')hide(dot);});}"
+            + observeScript("run")
+            + "})();";
+
+    /**
+     * Injection point: start of QWebViewClient.onPageFinished.
+     */
+    public static void hideFollowButtons(WebView webView) {
+        if (!PatchSettings.active(webView, "hideFollowButtons", "Hide Follow buttons")) return;
+        evaluate(webView, FOLLOW_SCRIPT, "Follow buttons");
+    }
+
+    // The line under an author's name ("Lives in Vienna", "Knows English") and "Upvoted by" lines.
+    // The credential sits before the date, separated by a "·"; the date stays.
+    private static final String CREDENTIALS_SCRIPT = "(function(){"
+            + "if(window.__jofslashCredentials)return;window.__jofslashCredentials=1;"
+            + "var date=/^(\\d+[smhdwy]|[A-Z][a-z]{2} \\d{1,2}(, \\d{4})?|Mon|Tue|Wed|Thu|Fri|Sat|Sun|Updated .+)$/;"
+            + "function hide(e){e.setAttribute('data-jofslash-hidden','');e.style.setProperty('display','none','important');}"
+            + "function text(e){return (e.textContent||'').replace(/\\s+/g,' ').trim();}"
+            + "function run(){"
+            + "document.querySelectorAll('a.answer_timestamp,a.puppeteer_test_link').forEach(function(a){"
+            + "if(a.hasAttribute('data-jofslash-cred')||!date.test(text(a)))return;a.setAttribute('data-jofslash-cred','');"
+            // Up to the row that holds the credential, the "·" and the date.
+            + "var w=a;while(w.parentElement&&text(w.parentElement)===text(a))w=w.parentElement;"
+            + "var dot=w.previousElementSibling;if(!dot||text(dot)!=='·')return;"
+            + "var cred=dot.previousElementSibling;if(!cred||/^Posted by/.test(text(cred))||!text(cred))return;"
+            + "hide(cred);hide(dot);});"
+            + "document.querySelectorAll('div,span').forEach(function(e){"
+            + "if(e.children.length>2||e.hasAttribute('data-jofslash-hidden'))return;var t=text(e);"
+            + "if(!/^Upvoted by .+/.test(t)||t.length>200)return;"
+            + "var w=e;while(w.parentElement&&text(w.parentElement)===t)w=w.parentElement;hide(w);});}"
+            + observeScript("run")
+            + "})();";
+
+    /**
+     * Injection point: start of QWebViewClient.onPageFinished.
+     */
+    public static void hideCredentials(WebView webView) {
+        if (!PatchSettings.active(webView, "hideCredentials", "Hide credentials")) return;
+        evaluate(webView, CREDENTIALS_SCRIPT, "credentials");
+    }
+
+    // "How satisfied are you with your home feed experience today?" and similar boxes.
+    private static final String SURVEYS_SCRIPT = "(function(){"
+            + "if(window.__jofslashSurveys)return;window.__jofslashSurveys=1;"
+            + "var re=/^(How (satisfied|likely|would you rate)|Rate your experience|Help us improve)/i;"
+            + "function text(e){return (e.textContent||'').replace(/\\s+/g,' ').trim();}"
+            + "function run(){document.querySelectorAll('div').forEach(function(d){"
+            + "if(d.hasAttribute('data-jofslash-hidden'))return;var t=text(d);if(!re.test(t))return;"
+            + "for(var i=0;i<d.children.length;i++)if(re.test(text(d.children[i])))return;"
+            // The whole box: its wrappers start with the same question and stay short.
+            + "var w=d;while(w.parentElement&&w.parentElement!==document.body){var p=text(w.parentElement);"
+            + "if(p.indexOf(t)!==0||p.length>400)break;w=w.parentElement;}"
+            + "w.setAttribute('data-jofslash-hidden','');w.style.setProperty('display','none','important');});}"
+            + observeScript("run")
+            + "})();";
+
+    /**
+     * Injection point: start of QWebViewClient.onPageFinished.
+     */
+    public static void hideSurveys(WebView webView) {
+        if (!PatchSettings.active(webView, "hideSurveys", "Hide surveys")) return;
+        evaluate(webView, SURVEYS_SCRIPT, "surveys");
+    }
+
     /**
      * A Quora+ answer shows the start of the text cut off, with a "continue reading" overlay
      * next to it. Requiring both keeps answers with other overlays, such as videos, visible.

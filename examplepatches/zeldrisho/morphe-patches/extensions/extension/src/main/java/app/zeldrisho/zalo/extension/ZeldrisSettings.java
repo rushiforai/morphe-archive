@@ -15,6 +15,10 @@ public final class ZeldrisSettings {
   private static final String TIMELINE = "hide_timeline";
   private static final String ENTRY = "zeldris_patch_settings_entry";
   private static final String TRACKING_MARKER = "zeldris_patches_settings";
+  private static final String[] PROFILE_CLASSES = {"nj1.m0", "dsr"};
+  private static final String[] SETTING_ITEM_CLASSES = {"nj1.e", "qdn"};
+  private static final String[] ITEM_ID_CLASSES = {"xa1.q", "k49"};
+  private static final String[] SEPARATOR_CLASSES = {"nj1.a", "yk7"};
   private static WeakReference<Object> mainView = new WeakReference<>(null);
   private static volatile Boolean recallRetention;
 
@@ -27,6 +31,28 @@ public final class ZeldrisSettings {
     } catch (ReflectiveOperationException | RuntimeException ignored) {
       return null;
     }
+  }
+
+  private static Class<?> findClass(String... names) {
+    for (String name : names) {
+      try {
+        return Class.forName(name);
+      } catch (ClassNotFoundException ignored) {
+        // Try the next known target layout.
+      }
+    }
+    return null;
+  }
+
+  private static boolean isSeparator(Object item) {
+    for (String name : SEPARATOR_CLASSES) {
+      try {
+        if (Class.forName(name).isInstance(item)) return true;
+      } catch (ClassNotFoundException ignored) {
+        // Try the next known separator layout.
+      }
+    }
+    return false;
   }
 
   private static boolean visible(boolean original, String key, boolean defaultHidden) {
@@ -140,9 +166,10 @@ public final class ZeldrisSettings {
   public static void insertAfterProfile(ArrayList<?> items) {
     if (items == null) return;
     try {
-      Class<?> profileClass = Class.forName("nj1.m0");
-      Class<?> itemClass = Class.forName("nj1.e");
-      Class<?> idClass = Class.forName("xa1.q");
+      Class<?> profileClass = findClass(PROFILE_CLASSES);
+      Class<?> itemClass = findClass(SETTING_ITEM_CLASSES);
+      Class<?> idClass = findClass(ITEM_ID_CLASSES);
+      if (profileClass == null || itemClass == null || idClass == null) return;
       int profileIndex = -1;
       for (int i = 0; i < items.size(); i++) {
         Object item = items.get(i);
@@ -161,8 +188,9 @@ public final class ZeldrisSettings {
           .newInstance(id, icon, "Zeldris Patches", 5, 0);
       itemClass.getField("p").set(item, TRACKING_MARKER);
       int insertion = profileIndex + 1;
-      Class<?> separatorClass = Class.forName("nj1.a");
-      if (insertion >= items.size() || !separatorClass.isInstance(items.get(insertion))) {
+      Class<?> separatorClass = findClass(SEPARATOR_CLASSES);
+      if (separatorClass == null) return;
+      if (insertion >= items.size() || !isSeparator(items.get(insertion))) {
         ((ArrayList) items).add(insertion, separatorClass.getConstructor().newInstance());
       }
       ((ArrayList) items).add(insertion + 1, item);
@@ -175,8 +203,9 @@ public final class ZeldrisSettings {
   public static void bindSettingsRow(View view, Object item) {
     if (view == null || item == null) return;
     try {
-      Class<?> itemClass = Class.forName("nj1.e");
-      if (itemClass.isInstance(item) && TRACKING_MARKER.equals(itemClass.getField("p").get(item))) {
+      Class<?> itemClass = findClass(SETTING_ITEM_CLASSES);
+      if (itemClass != null && itemClass.isInstance(item) &&
+          TRACKING_MARKER.equals(itemClass.getField("p").get(item))) {
         view.setOnClickListener(clicked -> show(clicked.getContext()));
         view.getClass().getMethod("x", boolean.class).invoke(view, false);
       }
@@ -202,22 +231,37 @@ public final class ZeldrisSettings {
   }
 
   public static void openBackupSettings() {
-    openScreen("app.zeldrisho.zalo.extension.ZeldrisBackupSettingsView");
+    openScreen(ZeldrisBackupSettingsView.class);
+  }
+
+  public static void openAccentSettings() {
+    openScreen(ZeldrisAccentSettingsView.class);
+  }
+
+  public static void openRingtoneSettings() {
+    openScreen(ZeldrisRingtoneSettingsView.class);
   }
 
   private static void show(Context context) {
-    openScreen("app.zeldrisho.zalo.extension.ZeldrisSettingsView");
+    openScreen(ZeldrisSettingsView.class);
   }
 
-  private static void openScreen(String className) {
+  private static void openScreen(Class<?> screen) {
     try {
       Object host = mainView.get();
       if (host == null) return;
-      Object navigator = host.getClass().getMethod("T4").invoke(host);
-      if (navigator == null) return;
-      Class<?> screen = Class.forName(className);
-      navigator.getClass().getMethod("R0", Class.class, Bundle.class, int.class, String.class, int.class, boolean.class)
-          .invoke(navigator, screen, null, 0, null, 1, true);
+      for (String name : new String[] {"T4", "V4"}) {
+        try {
+          Object navigator = host.getClass().getMethod(name).invoke(host);
+          if (navigator == null) continue;
+          java.lang.reflect.Method route = navigator.getClass().getMethod(
+              "R0", Class.class, Bundle.class, int.class, String.class, int.class, boolean.class);
+          route.invoke(navigator, screen, null, 0, null, 1, true);
+          return;
+        } catch (NoSuchMethodException ignored) {
+          // An accessor may exist but return a different type on another version.
+        }
+      }
     } catch (ReflectiveOperationException | RuntimeException ignored) {
       // Do not navigate if the version-specific host ABI has changed.
     }

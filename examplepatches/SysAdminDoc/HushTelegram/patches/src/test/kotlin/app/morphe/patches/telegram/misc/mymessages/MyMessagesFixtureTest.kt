@@ -8,7 +8,6 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.PlusPending
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
@@ -40,7 +39,6 @@ import org.junit.Test
 import java.io.File
 
 /** The chat screen's instant search, its menu at the top and the click delegate My messages shares with Outside translate. */
-@PlusPending
 class MyMessagesFixtureTest {
     private val user = "Lorg/telegram/tgnet/TLRPC\$User;"
     private val chat = "Lorg/telegram/tgnet/TLRPC\$Chat;"
@@ -216,7 +214,8 @@ class MyMessagesFixtureTest {
 
     /** Both patches put their calls at the top of the same updater and delegate, whichever runs first. */
     @Test fun `Outside translate and My messages share the header in either order`() {
-        for (build in Fixtures.declaredBuilds()) for (mineFirst in listOf(true, false)) {
+        // Outside translate is offered on Telegram's own two builds only.
+        for (build in Fixtures.declaredBuilds().filterNot { it.name.startsWith("plus-") }) for (mineFirst in listOf(true, false)) {
             val name = "${build.name} (${if (mineFirst) "My messages first" else "My messages last"})"
             val context = PatchContexts.of(ExtensionDex.classes() + hosts(build))
             val site = context.resolveMyMessages()

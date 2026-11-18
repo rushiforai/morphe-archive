@@ -8,7 +8,6 @@ import app.morphe.FixtureDex
 import app.morphe.ExtensionDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.PlusPending
 import app.morphe.util.names.origRef
 import app.morphe.util.names.replaceInstruction
 import app.morphe.util.names.addInstruction
@@ -55,7 +54,6 @@ import app.morphe.util.names.origString
 import app.morphe.util.names.origType
 import app.morphe.util.names.tgMutableClassDefBy
 
-@PlusPending
 class NativeSettingsFixtureTest {
     @Test fun clickInputAndCallbackCastsRefuseDriftAtomically() {
         for (build in Fixtures.declaredBuilds()) for (change in listOf("item clobber", "owner clobber", "item cast", "view cast", "boxed argument")) {
@@ -93,7 +91,10 @@ class NativeSettingsFixtureTest {
             val hoisted = stock[account - 1].opcode == Opcode.CONST
             val landing = if (hoisted) account - 1 else account
             val skips = stock.indices.filter { landing in stockFlow.normal[it] && it != landing - 1 }
-            assertEquals("$build: the new Wallet row's time and availability skips", 2, skips.size)
+            // Plus Messenger puts its own rows and a second divider between the Wallet row and Account, so
+            // the Wallet skips land in that block and only the divider reaches Account.
+            assertEquals("$build: the new Wallet row's time and availability skips", if (build.name.startsWith("plus-")) 0 else 2,
+                skips.size)
             val divider = (landing - 1 downTo 0).first { stock[it].opcode !in setOf(Opcode.GOTO, Opcode.GOTO_16, Opcode.GOTO_32) }
             assertEquals(APPEND, stock[divider].ref())
             assertTrue("$build: the divider reaches Account", account in stockFlow.normal[landing - 1])
@@ -139,10 +140,13 @@ class NativeSettingsFixtureTest {
             assertEquals(setOf(start + 2, start + 6), flow.normal[start + 1].toSet())
             assertEquals(Opcode.IF_NE, body[start + 1].opcode)
             assertEquals(Opcode.RETURN_VOID, body[start + 5].opcode)
+            // Every other ID goes on to the stock dispatch: Telegram's loads "settings" first, Plus
+            // Messenger's tests the ID right away.
+            val dispatch = if (build.name.startsWith("plus-")) Opcode.IF_EQ else Opcode.CONST_STRING
             for (id in (1..27).toList() + listOf(-1, 0, NATIVE_ROW_ID)) {
                 val next = if (id == NATIVE_ROW_ID) start + 2 else start + 6
                 assertTrue(next in flow.normal[start + 1])
-                assertEquals(if (id == NATIVE_ROW_ID) Opcode.INVOKE_VIRTUAL else Opcode.CONST_STRING, body[next].opcode)
+                assertEquals(if (id == NATIVE_ROW_ID) Opcode.INVOKE_VIRTUAL else dispatch, body[next].opcode)
             }
             for (method in listOf(row, builder, click)) {
                 val kinds = RegisterKinds.of(method)

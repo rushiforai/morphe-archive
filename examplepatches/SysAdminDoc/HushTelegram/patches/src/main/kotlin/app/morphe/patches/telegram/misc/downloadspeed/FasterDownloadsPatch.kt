@@ -59,7 +59,7 @@ val fasterDownloadsPatch = bytecodePatch(
 ) {
     category("Playback")
     dependsOn(settingsPatch, telegramExtensionPatch)
-    compatibleWith(*AppCompatibilities.telegramOnly())
+    compatibleWith(*AppCompatibilities.telegram())
     execute {
         val plan = resolveFasterDownloads()
         requireDataSaverRuntime()
@@ -126,7 +126,8 @@ internal fun insertDownloadSpeedGate(target: MutableMethod, plan: FasterDownload
  * FileLoadOperation.updateParams reads MessagesController.getfileExperimentalParams, and an if-eqz
  * on it jumps to the 128 KB, 4-request tier. Otherwise it reads forceSmallChunk, whose if-nez
  * jumps to the same tier, and falls through to the 512 KB, 8-request one. The one read of the flag
- * is the only thing that changes, so forceSmallChunk keeps the last word.
+ * is the only thing that changes, so forceSmallChunk keeps the last word. Plus Messenger asks its
+ * own speed setting first and where a no lands, then jumps to a 512 KB tier its setting shares.
  */
 internal fun BytecodePatchContext.resolveFasterDownloads(): FasterDownloadsPlan {
     requireStatusMethod("fasterDownloads")
@@ -141,36 +142,69 @@ internal fun BytecodePatchContext.resolveFasterDownloads(): FasterDownloadsPlan 
     val register = (body[read] as TwoRegisterInstruction).registerA
     val flow = ControlFlow.of(method)
     val branch = body.getOrNull(read + 1)
-    val small = flow.normal.getOrNull(read + 1).orEmpty().filter { it != read + 2 }.singleOrNull()
-    controlShape(branch?.opcode == Opcode.IF_EQZ && branch.namedRegisters() == listOf(register) && small != null &&
-        flow.normal[read + 1].toSet() == setOf(read + 2, small), "the server's flag no longer picks the piece size")
-    controlShape(smallTier(body, flow, small!!), "the small-piece tier is missing or ambiguous")
+    val no = flow.normal.getOrNull(read + 1).orEmpty().filter { it != read + 2 }.singleOrNull()
+    controlShape(branch?.opcode == Opcode.IF_EQZ && branch.namedRegisters() == listOf(register) && no != null &&
+        flow.normal[read + 1].toSet() == setOf(read + 2, no), "the server's flag no longer picks the piece size")
+    controlShape(smallTierFrom(body, flow, no!!) != null, "the small-piece tier is missing or ambiguous")
     controlShape(flow.normal.indices.none { it != read && (read + 1) in flow.normal[it] },
         "something else jumps to the server's flag check")
     val fallback = body.getOrNull(read + 3)
     controlShape(body.getOrNull(read + 2)?.let { it.opcode == Opcode.IGET_BOOLEAN && it.controlRef() == FORCE_SMALL_CHUNK } == true &&
-        fallback?.opcode == Opcode.IF_NEZ && flow.normal[read + 3].toSet() == setOf(read + 4, small),
+        fallback?.opcode == Opcode.IF_NEZ && flow.normal[read + 3].toSet() == setOf(read + 4, no),
         "Telegram's small-piece fallback no longer follows the server's flag")
-    val big = body.subList(read + 4, small)
-    controlShape(big.firstOrNull()?.piece(BIG_PIECE) == true && big.getOrNull(1)?.controlRef() == CHUNK_SIZE &&
-        big.any { it.controlRef() == MAX_REQUESTS } && big.any { it.controlRef() == MAX_REQUESTS_BIG },
-        "the big-piece tier no longer sets 512 KB pieces and its request counts")
+    controlShape(bigTier(body, flow, read + 4) != null, "the big-piece tier no longer sets 512 KB pieces and its request counts")
     return FasterDownloadsPlan(method, read, register)
 }
 
 private fun Instruction.piece(size: Long) = (this as? WideLiteralInstruction)?.wideLiteral == size
+
+/** Whether [at] stores [size] as the piece size, from a register that holds it on every path into the store. */
+private fun storesPiece(body: List<Instruction>, flow: ControlFlow, at: Int, size: Long): Boolean {
+    val store = body[at] as? TwoRegisterInstruction ?: return false
+    if (store.opcode != Opcode.IPUT || store.controlRef() != CHUNK_SIZE) return false
+    return body.indices.any { load ->
+        body[load].piece(size) && !body[load].opcode.setsWideRegister() &&
+            body[load].namedRegisters().firstOrNull() == store.registerA && flow.definitionReaches(load, at, store.registerA)
+    }
+}
 
 /**
  * The tier the flag's no goes to starts by storing 128 KB as the piece size: loaded right there, or
  * (13.2's R8 hoists it) from a register that holds that size on every path into the store. 13.2
  * writes the register again further on, with a wide conversion of the size, after the store.
  */
-internal fun smallTier(body: List<Instruction>, flow: ControlFlow, at: Int): Boolean {
-    if (body[at].piece(SMALL_PIECE) && body.getOrNull(at + 1)?.controlRef() == CHUNK_SIZE) return true
-    val store = body[at] as? TwoRegisterInstruction ?: return false
-    if (store.opcode != Opcode.IPUT || store.controlRef() != CHUNK_SIZE) return false
-    return body.indices.any { load ->
-        body[load].piece(SMALL_PIECE) && !body[load].opcode.setsWideRegister() &&
-            body[load].namedRegisters().firstOrNull() == store.registerA && flow.definitionReaches(load, at, store.registerA)
+internal fun smallTier(body: List<Instruction>, flow: ControlFlow, at: Int): Boolean =
+    body[at].piece(SMALL_PIECE) && body.getOrNull(at + 1)?.controlRef() == CHUNK_SIZE || storesPiece(body, flow, at, SMALL_PIECE)
+
+/**
+ * The small-piece tier a no reaches first, walking on from [from] and stopping at any other piece
+ * size: Telegram's no lands on it, and Plus Messenger's passes its own speed setting on the way.
+ */
+internal fun smallTierFrom(body: List<Instruction>, flow: ControlFlow, from: Int): Int? {
+    val seen = mutableSetOf(from)
+    val queue = ArrayDeque(listOf(from))
+    while (queue.isNotEmpty()) {
+        val at = queue.removeFirst()
+        if (smallTier(body, flow, at)) return at
+        if (body[at].controlRef() == CHUNK_SIZE) continue
+        for (next in flow.normal[at]) if (seen.add(next)) queue.addLast(next)
     }
+    return null
 }
+
+/**
+ * The 512 KB tier at [from], or where a goto there lands (Plus Messenger's, which its speed setting
+ * shares): the piece size stored first, then both request counts before the tier ends.
+ */
+internal fun bigTier(body: List<Instruction>, flow: ControlFlow, from: Int): Int? {
+    val at = if (body.getOrNull(from)?.opcode in GOTOS) flow.normal[from].singleOrNull() ?: return null else from
+    val store = when {
+        body[at].piece(BIG_PIECE) && body.getOrNull(at + 1)?.controlRef() == CHUNK_SIZE -> at + 1
+        storesPiece(body, flow, at, BIG_PIECE) -> at
+        else -> return null
+    }
+    val tier = generateSequence(store) { i -> (i + 1).takeIf { flow.normal[i] == listOf(i + 1) } }.toList()
+    return at.takeIf { tier.any { body[it].controlRef() == MAX_REQUESTS } && tier.any { body[it].controlRef() == MAX_REQUESTS_BIG } }
+}
+
+private val GOTOS = setOf(Opcode.GOTO, Opcode.GOTO_16, Opcode.GOTO_32)

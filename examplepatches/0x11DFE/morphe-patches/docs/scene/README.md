@@ -24,6 +24,56 @@ uses it: the user page display and the SN-keyed cloud sync and API calls to omar
 The SN is baked per patch run. The daemon's own server report during a real code
 activation is native code and is not affected.
 
+## Unlock optional features
+
+On by default. The tuner's Optional features dialog hides three entries behind
+checks that have nothing to do with whether the feature works on the device:
+
+- **Refresh rate** - shown only when the display API reports a discrete 60Hz
+  mode next to a >60Hz mode. Samsung OneUI panels report their modes through
+  vendor interfaces instead, so the probe fails even though rate control
+  through the root daemon works. The patch makes the support check return
+  true.
+- **FAS in games** - frame-aware scheduling, the in-game FPS control. Gated on
+  a cloud `lp` profile branch with an online config source. The patch makes
+  the availability check return true; the per-game config is local.
+- **CPU limiters** - gated on the config source being Scene Online. The patch
+  removes that visibility branch in the dialog builder.
+
+`Bypass power supply` stays hidden on devices without a supported
+charging-control sysfs node (the toggle would do nothing). All three unlocked
+features were verified on SM-A256E (OneUI, 120Hz panel, fas-rs installed);
+the refresh-rate control is applied by the root daemon.
+
+The patch locates the dialog builder by fingerprint (its `View` onClick shape
+plus the `SOURCE_SCENE_ONLINE` / `CLOUD_PROFILE_BRANCH` literals), derives the
+refresh-rate check from the invoke right before the online-source anchor, and
+neutralizes the limiter gate by tracking the comparison result register to its
+branch - no obfuscated names are hardcoded, so app updates keep working as
+long as the dialog keeps this shape.
+
+## Daemon gate bypass
+
+On by default. The root scene-daemon serves the app's live stats (dashboard
+cards, system/mini/FPS overlays) through `adb-monitor-*` ops, but on rooted
+devices a local validator flips a RESTRICT flag ~40s after the app connects and
+those ops start answering empty - the well-known "stats freeze" of modded Scene
+installs. This patch makes the daemon's launcher script (raw resource `up`,
+extracted as `up.sh` and run as root on every daemon start) hold the daemon's
+internal MASTER override byte set (and RESTRICT cleared), which short-circuits
+every gate tier, without touching app bytecode.
+
+The launcher-side poker is version-tolerant: instead of hardcoding offsets per
+daemon build, it locates the daemon's AES IV string (`scene.omarea.com`) in the
+running process's data segment and derives the two gate bytes relative to it.
+Every write is validated (plausible byte values, read-back verify, restore on
+mismatch), so a daemon update that moves the globals fails safe back to stock
+behavior. A background loop re-asserts the bytes for 300s after each daemon
+launch to cover the daemon's one-shot 63s license revalidation; after that the
+gate provably stays open. Unknown or non-root setups are untouched.
+
+Logs one line per daemon instance to `files/gp.log` next to the daemon.
+
 ## Technical reference: what the unlock replicates
 
 The known "Scene N1" mod for `N1 2026.10 Alpha13` edits exactly three methods in

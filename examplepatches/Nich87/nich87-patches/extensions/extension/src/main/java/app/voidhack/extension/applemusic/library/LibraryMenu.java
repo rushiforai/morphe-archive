@@ -13,6 +13,7 @@ import java.util.List;
 
 public final class LibraryMenu {
     private static final int MENU_ID = 0x766f6964;
+    private static final String COMPOSE_MENU_ITEM = MusicReflection.classNameForVersion("Aa.C$d", "Ba.C$d");
 
     private LibraryMenu() {}
 
@@ -57,7 +58,7 @@ public final class LibraryMenu {
             List<Object> result = items == null ? new ArrayList<>() : new ArrayList<>(items);
             int icon = context.getResources().getIdentifier("ic_actionsheet_download", "drawable", context.getPackageName());
             if (icon == 0) throw new IllegalStateException("Library menu icon is unavailable");
-            result.add(MusicReflection.create("Aa.C$d", LibraryStrings.text(activity, "download_all"), icon, null, null, callback));
+            result.add(MusicReflection.create(COMPOSE_MENU_ITEM, LibraryStrings.text(activity, "download_all"), icon, null, null, callback));
             return result;
         } catch (ReflectiveOperationException | RuntimeException exception) {
             Log.w("AppleMusicLibraryTools", "Could not attach library menu", exception);

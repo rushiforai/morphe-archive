@@ -4,11 +4,10 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.res.Configuration;
-import android.os.Handler;
-import android.os.Looper;
 import android.view.View;
 
-import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.List;
 
 import io.github.jordanwoodson.extension.shared.Logger;
 import io.github.jordanwoodson.extension.shared.Network;
@@ -16,9 +15,10 @@ import io.github.jordanwoodson.extension.shared.SleepTimer;
 import io.github.jordanwoodson.extension.shared.settings.Settings;
 
 /**
- * Kick's native player: background audio, automatic picture-in-picture, normal latency, the sleep timer, the
- * mobile-data quality ceiling and Fill screen. Each hook returns Kick's own value, or does nothing, while its setting is
- * off. The bridges are filled in at patch time with calls into Kick's player classes.
+ * Kick's native player (kick-player-v3, on Media3 ExoPlayer): background audio, automatic picture-in-picture, normal
+ * latency, the sleep timer, the mobile-data quality ceiling and Fill screen. Each hook returns Kick's own value, or does
+ * nothing, while its setting is off. The bridges are filled in at patch time with calls into Kick's player classes;
+ * Media3's own classes keep their names in Kick, and are read here through them.
  */
 @SuppressWarnings("unused")
 public final class KickPlayer {
@@ -27,16 +27,16 @@ public final class KickPlayer {
     private static final String NO_AUTO_PIP = "no_auto_pip";
     private static final String NORMAL_LATENCY = "normal_latency";
     private static final String QUALITY_METERED = "quality_metered";
-    /** PlayerConfig.defaultMaxAutoQualityHeight, the starting ceiling Kick uses when no patch sets one. */
+    /** PlayerConfig.settings.defaultMaxAutoQualityHeight, the starting ceiling Kick uses when no patch sets one. */
     private static final int KICK_DEFAULT_HEIGHT = 720;
-
-    private static final Handler MAIN = new Handler(Looper.getMainLooper());
-    /** Set when Kick is left while playing with background audio on; cleared when it's back in front. */
-    private static volatile boolean leftApp;
-    private static volatile WeakReference<View> lastView = new WeakReference<>(null);
+    /** Media3's C.TRACK_TYPE_VIDEO. */
+    private static final int TRACK_TYPE_VIDEO = 2;
+    /** Media3's AspectRatioFrameLayout.RESIZE_MODE_FIT and RESIZE_MODE_ZOOM. */
+    static final int FIT = 0;
+    static final int ZOOM = 4;
 
     static {
-        SleepTimer.setExpiryAction(KickPlayer::pauseAll);
+        SleepTimer.setPauseAction(KickPlayer::pauseStarted);
     }
 
     private KickPlayer() {
@@ -46,142 +46,171 @@ public final class KickPlayer {
     // Background audio and picture-in-picture
 
     /**
-     * Injection point: the start of MainActivity.onUserLeaveHint(), while Kick is still in front, so its audio
-     * service may start. Returns true to skip Kick's automatic picture-in-picture.
+     * Injection point: the value of the player's staysActiveInBackground, which Kick sets for its main player and which
+     * decides whether Kick pauses it when you leave. With Background audio switched off (or Lurk paused) the player
+     * pauses as it did before Kick kept it playing; otherwise Kick's value stands.
      */
-    public static boolean onUserLeaveHint(Activity activity) {
-        if (enabled(BACKGROUND_AUDIO) && isPlaying()) {
-            leftApp = true;
-            try {
-                startAudioService(activity);
-            } catch (RuntimeException e) {
-                Logger.d("background audio: " + e);
-            }
-        }
-        return enabled(NO_AUTO_PIP);
+    public static boolean staysActive(boolean requested) {
+        if (requested && Settings.isRegistered(BACKGROUND_AUDIO) && !Settings.isEnabled(BACKGROUND_AUDIO)) return false;
+        return requested;
     }
 
     /**
-     * Injection point: the start of KickIvsPlayerV2View.updatePipParams(boolean, Rect, Rational): whether the system
-     * may enter picture-in-picture by itself when Kick is left (Android 12 and later).
+     * Injection point: the start of the player view's setAutoEnterPiP(boolean) (React Native's
+     * startsPictureInPictureAutomatically), which Kick's pause-on-leave logic reads, and of
+     * PictureInPictureUtilsKt.applyPiPParams(Activity, boolean, Rational), whether the system may enter
+     * picture-in-picture by itself when Kick is left (Android 12 and later).
      */
     public static boolean autoEnterPip(boolean requested) {
         return requested && !enabled(NO_AUTO_PIP);
     }
 
-    /**
-     * Injection point: the start of KickIvsPlayerV2Manager.shouldRunAudioService(). True keeps Kick's audio
-     * service (and the player) going while Kick is in the background; Kick itself only keeps it for a locked
-     * screen or picture-in-picture.
-     */
-    public static boolean keepAudio() {
-        return leftApp && enabled(BACKGROUND_AUDIO);
-    }
-
-    /** Injection point: the start of KickIvsPlayerV2Manager.onActivityResume(): Kick's own rules apply again. */
-    public static void onResume() {
-        leftApp = false;
-    }
-
     // ---------------------------------------------------------------------------------------------
     // Normal latency
 
-    /** Injection point: IVS CorePlayerImpl.setLiveLowLatencyEnabled(boolean), which Kick calls with true. */
-    public static boolean lowLatency(boolean requested) {
-        if (requested && enabled(NORMAL_LATENCY)) {
+    /**
+     * Injection point: the start of DataSourceUtilsKt.buildKickPlayerV3MediaSource(Context, VideoSource). Kick's
+     * low-latency mode is the live configuration it gives a live stream's source: a short target offset from the live
+     * edge for Media3 and a rewrite of the HLS playlist that plays its prefetch segments. Normal latency drops it, so
+     * Media3 keeps the distance the playlist asks for.
+     */
+    public static void normalLatency(Object source) {
+        if (source == null || !enabled(NORMAL_LATENCY)) return;
+        try {
+            if (liveConfiguration(source) == null) return;
+            clearLiveConfiguration(source);
             Logger.d("normal latency: low-latency mode off");
-            return false;
+        } catch (RuntimeException e) {
+            Logger.d("normal latency: " + e);
         }
-        return requested;
     }
 
     // ---------------------------------------------------------------------------------------------
     // Sleep timer
 
-    /** Injection point: the start of IVS CorePlayerImpl.play(). May run on any thread. */
-    public static void onPlay(Object player) {
-        SleepTimer.onPlay(player);
+    /**
+     * Injection point: Player.Listener.onPlayWhenReadyChanged, which Lurk adds to Kick's player listener, with Kick's
+     * player: every start or resume, from React Native, the media notification or a headset, and every pause.
+     */
+    public static void onPlayWhenReady(Object player, boolean playWhenReady) {
+        if (playWhenReady) SleepTimer.onPlay(player);
+        else SleepTimer.onStop(player);
     }
 
-    /** Injection point: the start of IVS CorePlayerImpl.pause() and release(). */
+    /** Injection point: the start of the player's close(), when React Native releases it. */
     public static void onStop(Object player) {
         SleepTimer.onStop(player);
     }
 
-    /** Injection point: the start of KickIvsPlayerV2View.play(), the view React Native plays through. */
-    public static void onViewPlay(View view) {
-        lastView = new WeakReference<>(view);
-    }
-
     /**
-     * Pauses through Kick's player view, which also updates its audio service and tells React Native, then
-     * pauses any player that view didn't stop a few seconds later.
+     * Pauses every started player the way Kick's own pause does, so its controls and notification follow. A player the
+     * bridge doesn't know (it is empty without the Sleep timer patch, as in the host tests) is paused by its own pause().
      */
-    private static void pauseAll(SleepTimer.Expiry expiry) {
-        View view = lastView.get();
-        if (view != null) {
+    static void pauseStarted() {
+        int paused = 0;
+        for (Object player : SleepTimer.started()) {
             try {
-                pauseView(view);
-            } catch (RuntimeException e) {
+                if (!pausePlayer(player)) player.getClass().getMethod("pause").invoke(player);
+                paused++;
+            } catch (ReflectiveOperationException | RuntimeException e) {
                 Logger.d("sleep timer: " + e);
             }
         }
-        MAIN.postDelayed(() -> expiry.pauseLeftovers("Kick's view"), 3000);
+        Logger.d("sleep timer: paused " + paused + " player" + (paused == 1 ? "" : "s"));
     }
 
     // ---------------------------------------------------------------------------------------------
     // Quality on mobile data
 
     /**
-     * Injection point: the start of KickIvsPlayerV2View.setAutoMaxQuality(Integer), the ceiling every stream
-     * load, Auto and quality pick goes through. On a metered network a starting ceiling (none, Kick's 720 or
-     * the Default video quality height) is capped; any other height is a pick and passes through.
+     * Injection point: the start of the player's setMaxResolution(VideoSize), the ceiling every stream load, Auto and
+     * quality pick goes through. On a metered network a starting ceiling (none, or the tallest track no taller than
+     * Kick's 720 or the Default video quality height, which is what Kick's player store picks) is capped; any other size
+     * is a pick and passes through.
      */
-    public static Integer autoQualityCeiling(View view, Integer height) {
+    public static Object maxResolution(Object player, Object size) {
         int cap = Settings.isRegistered(QUALITY_METERED) ? Settings.getInt(QUALITY_METERED) : 0;
-        if (cap <= 0 || !Network.isMetered(view.getContext())) return height;
-        if (height != null && height != KICK_DEFAULT_HEIGHT && height != lurkHeight()) return height;
-        int capped = height == null ? cap : Math.min(height, cap);
-        Logger.d("quality on mobile data: starting ceiling " + height + " -> " + capped);
-        return capped;
+        if (cap <= 0 || player == null) return size;
+        try {
+            if (!Network.isMetered(playerContext(player))) return size;
+            int width = size == null ? 0 : sizeWidth(size);
+            int height = size == null ? 0 : sizeHeight(size);
+            if (height > 0 && !isStartingCeiling(player, height)) return size;
+            if (height > 0 && height <= cap) return size;
+            int capped = width > 0 && height > 0 ? (int) Math.ceil((double) width * cap / height) : Integer.MAX_VALUE;
+            Logger.d("quality on mobile data: starting ceiling " + height + " -> " + cap);
+            return videoSize(capped, cap);
+        } catch (RuntimeException e) {
+            Logger.d("quality on mobile data: " + e);
+            return size;
+        }
+    }
+
+    /** Whether [height] is the tallest video track no taller than Kick's or Lurk's default ceiling. */
+    private static boolean isStartingCeiling(Object player, int height) {
+        List<Integer> heights = videoHeights(player);
+        for (int ceiling : new int[]{KICK_DEFAULT_HEIGHT, lurkHeight()}) {
+            if (ceiling <= 0) continue;
+            int tallest = 0;
+            for (int track : heights) if (track <= ceiling && track > tallest) tallest = track;
+            if (heights.isEmpty() ? height == ceiling : height == tallest) return true;
+        }
+        return false;
+    }
+
+    /**
+     * The heights of the player's video tracks: Kick's own list of them, the one its player store picks the starting
+     * ceiling from. (Media3's own tracks can't be read here: React Native sets the ceiling on its own thread.)
+     */
+    static List<Integer> videoHeights(Object player) {
+        List<Integer> heights = new ArrayList<>();
+        List<?> tracks = videoTracks(player);
+        if (tracks == null) return heights;
+        for (Object track : tracks) {
+            int height = trackHeight(track);
+            if (height > 0) heights.add(height);
+        }
+        return heights;
     }
 
     // ---------------------------------------------------------------------------------------------
     // Fill screen
 
     /**
-     * Injection point: KickIvsPlayerV2View.updateSurfaceViewTransform(), where it checks its IVS resize mode
-     * against FIT, with the video's and the view's width / height. Kick keeps FIT. In landscape, outside
-     * picture-in-picture, Fill screen hands back FILL when FIT would leave bars at the sides of a video wider than
-     * tall (a 16:9 stream on a 20:9 screen): the video fills the width and its top and bottom are cropped. A
-     * player next to the chat, which FIT letterboxes, and vertical videos keep FIT. The view runs this on every
-     * layout, so rotating back to portrait restores FIT.
+     * Injection point: Media3's AspectRatioFrameLayout.onMeasure, where it reads its resize mode, with the video's and
+     * its own width / height. Kick keeps FIT. In landscape, outside picture-in-picture, Fill screen hands back ZOOM
+     * when FIT would leave bars at the sides of a video wider than tall (a 16:9 stream on a 20:9 screen): the video
+     * fills the width and its top and bottom are cropped. A player next to the chat, which FIT letterboxes, and vertical
+     * videos keep FIT. The frame measures on every layout, so rotating back to portrait restores FIT.
      */
-    public static Object resizeMode(View view, Object mode, float videoAspect, float viewAspect) {
-        if (!(mode instanceof Enum) || !"FIT".equals(((Enum<?>) mode).name()) || view == null || videoAspect <= 1f
-                || viewAspect <= videoAspect || !enabled(FILL_SCREEN)) {
+    public static int resizeMode(View view, int mode, float videoAspect, float viewAspect) {
+        if (mode != FIT || view == null || videoAspect <= 1f || viewAspect <= videoAspect || !enabled(FILL_SCREEN)) {
             return mode;
         }
         try {
-            if (view.getResources().getConfiguration().orientation != Configuration.ORIENTATION_LANDSCAPE) return mode;
-            Activity activity = activity(view.getContext());
+            Activity activity = activity(view);
+            Configuration configuration = (activity != null ? activity.getResources() : view.getResources())
+                    .getConfiguration();
+            if (configuration.orientation != Configuration.ORIENTATION_LANDSCAPE) return mode;
             if (activity != null && activity.isInPictureInPictureMode()) return mode;
-            return fill((Enum<?>) mode);
+            return ZOOM;
         } catch (RuntimeException e) {
             Logger.d("fill screen: " + e);
             return mode;
         }
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Object fill(Enum<?> fit) {
-        return Enum.valueOf((Class) fit.getDeclaringClass(), "FILL");
-    }
-
-    private static Activity activity(Context context) {
-        while (context instanceof ContextWrapper) {
-            if (context instanceof Activity) return (Activity) context;
-            context = ((ContextWrapper) context).getBaseContext();
+    /**
+     * The activity [view] is in. Media3's PlayerView is inflated with the application context, so the activity is found
+     * through the first ancestor made with one: Kick's player view, a React Native view.
+     */
+    static Activity activity(View view) {
+        for (Object current = view; current instanceof View; current = ((View) current).getParent()) {
+            Context context = ((View) current).getContext();
+            while (context instanceof ContextWrapper) {
+                if (context instanceof Activity) return (Activity) context;
+                context = ((ContextWrapper) context).getBaseContext();
+            }
         }
         return null;
     }
@@ -189,17 +218,48 @@ public final class KickPlayer {
     // ---------------------------------------------------------------------------------------------
     // Bridges, filled in at patch time.
 
-    /** KickIvsPlayerV2Manager.INSTANCE.isPlaying(). */
-    private static boolean isPlaying() {
+    /** ((VideoPlayer) player).getPlayer().pause(), as Kick's own pause; true once done. */
+    private static boolean pausePlayer(Object player) {
         return false;
     }
 
-    /** AudioService.Companion.start(context): Kick's media-playback foreground service and notification. */
-    private static void startAudioService(Context context) {
+    /** ((VideoSource) source).liveConfiguration. */
+    private static Object liveConfiguration(Object source) {
+        return null;
     }
 
-    /** ((KickIvsPlayerV2View) view).pause(). */
-    private static void pauseView(View view) {
+    /** ((VideoSource) source).liveConfiguration = null. */
+    private static void clearLiveConfiguration(Object source) {
+    }
+
+    /** ((VideoPlayer) player).getContext(). */
+    private static Context playerContext(Object player) {
+        return null;
+    }
+
+    /** ((VideoPlayer) player).getAvailableVideoTracks(). */
+    private static List<?> videoTracks(Object player) {
+        return null;
+    }
+
+    /** ((VideoTrack) track).getSize().getHeight(). */
+    private static int trackHeight(Object track) {
+        return 0;
+    }
+
+    /** ((VideoSize) size).getWidth(). */
+    private static int sizeWidth(Object size) {
+        return 0;
+    }
+
+    /** ((VideoSize) size).getHeight(). */
+    private static int sizeHeight(Object size) {
+        return 0;
+    }
+
+    /** new VideoSize(width, height). */
+    private static Object videoSize(int width, int height) {
+        return null;
     }
 
     /** The Default video quality height chosen when patching, or 0 without that patch. */

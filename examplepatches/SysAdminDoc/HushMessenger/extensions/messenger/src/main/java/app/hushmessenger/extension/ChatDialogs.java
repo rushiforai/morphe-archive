@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.BitmapShader;
 import android.graphics.Canvas;
@@ -25,9 +26,11 @@ import android.os.Looper;
 import android.util.DisplayMetrics;
 import android.view.PixelCopy;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.TextView;
 
 /**
  * The look of the questions Hush asks over a chat (#179). The platform's alert sheet is a flat grey rectangle with
@@ -49,6 +52,10 @@ final class ChatDialogs {
     static final int BLUR_DP = 32;
     static final int BUTTON_CORNER_DP = 20;
     static final int BUTTON_PADDING_DP = 18;
+    /** What keeps the filled button off the plain one next to it. */
+    static final int BUTTON_GAP_DP = 8;
+    /** How much of the words' colour a date picker's header keeps on the half that isn't selected. */
+    static final int HEADER_REST_ALPHA = 0x99;
     /** The card's alpha over the blurred chat, low enough that the chat shows through as glass. Solid without it. */
     static final int GLASS_ALPHA = 0xA6;
     /** How far the copy of the chat is shrunk before it's blurred, which keeps the blur to a blink. */
@@ -222,7 +229,7 @@ final class ChatDialogs {
         @Override public int getOpacity() { return PixelFormat.TRANSLUCENT; }
     }
 
-    /** The buttons' side, set once they exist, which is after the dialog goes up. Never throws. */
+    /** The buttons and the words, set once they exist, which is after the dialog goes up. Never throws. */
     static void dressButtons(Dialog dialog) {
         try {
             if (!(dialog instanceof AlertDialog)) return;
@@ -232,9 +239,37 @@ final class ChatDialogs {
             dressButton(alert.getButton(DialogInterface.BUTTON_POSITIVE), true, light, density);
             dressButton(alert.getButton(DialogInterface.BUTTON_NEGATIVE), false, light, density);
             dressButton(alert.getButton(DialogInterface.BUTTON_NEUTRAL), false, light, density);
+            dressWords(alert, onCard(light));
         } catch (Throwable error) {
             Settings.hookFailedPrivately("chat_dialog", "Can't dress a question's buttons", error);
         }
+    }
+
+    /**
+     * The title and message take the card's own contrast rather than the theme's, which left the title dark on the dark
+     * card. A date picker's header goes see-through too, so the card is glass from the top down.
+     */
+    private static void dressWords(AlertDialog dialog, int words) {
+        for (String name : new String[] {"alertTitle", "message"}) {
+            View part = part(dialog, name);
+            if (part instanceof TextView) ((TextView) part).setTextColor(words);
+        }
+        View header = part(dialog, "date_picker_header");
+        if (header == null) return;
+        header.setBackgroundColor(Color.TRANSPARENT);
+        ColorStateList colors = new ColorStateList(
+            new int[][] {{android.R.attr.state_activated}, {}},
+            new int[] {words, (HEADER_REST_ALPHA << 24) | (words & 0x00FFFFFF)});
+        for (String name : new String[] {"date_picker_header_year", "date_picker_header_date"}) {
+            View part = part(dialog, name);
+            if (part instanceof TextView) ((TextView) part).setTextColor(colors);
+        }
+    }
+
+    /** One of the platform's own views in a dialog, by the name it has there. */
+    private static View part(Dialog dialog, String name) {
+        int id = dialog.getContext().getResources().getIdentifier(name, "id", "android");
+        return id == 0 ? null : dialog.findViewById(id);
     }
 
     private static void dressButton(Button button, boolean filled, boolean light, float density) {
@@ -245,6 +280,11 @@ final class ChatDialogs {
         if (filled) {
             pill.setColor(accent());
             button.setTextColor(onAccent());
+            if (button.getLayoutParams() instanceof ViewGroup.MarginLayoutParams) {
+                ViewGroup.MarginLayoutParams place = (ViewGroup.MarginLayoutParams) button.getLayoutParams();
+                place.setMarginStart((int) (BUTTON_GAP_DP * density));
+                button.setLayoutParams(place);
+            }
         } else {
             pill.setColor(Color.TRANSPARENT);
             pill.setStroke(Math.max(1, (int) density), outline(light));
@@ -258,6 +298,11 @@ final class ChatDialogs {
     /** The card's colour: Messenger's own surface, recoloured with the rest of the app when Material You is on. */
     static int surface(boolean light) {
         return MaterialYouTheme.fds(light ? 0xFFFFFFFF : 0xFF252728);
+    }
+
+    /** What reads on the card, by the card's own lightness, so a pasted palette still gets words that show. */
+    static int onCard(boolean light) {
+        return onAccent(surface(light));
     }
 
     /** The action button's colour: Messenger's blue, and the palette's accent when Material You is on. */

@@ -8,7 +8,6 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.PlusPending
 import app.morphe.util.names.origRef
 import app.morphe.util.names.addInstructions
 import app.morphe.util.names.replaceInstruction
@@ -17,6 +16,7 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
 import app.morphe.patches.telegram.misc.extension.SETTINGS_STATUS
 import app.morphe.util.ControlFlow
+import app.morphe.util.definitionReaches
 import app.morphe.util.namedRegisters
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -39,7 +39,6 @@ import app.morphe.util.names.origType
 import app.morphe.util.names.tgMutableClassDefBy
 
 /** The Contacts tab's class, the badge's class and the runtime are the whole context. */
-@PlusPending
 class QuietContactsNagFixtureTest {
     @Test
     fun `the Contacts tab prompt and its badge are gated and keep their stock flow`() {
@@ -63,7 +62,14 @@ class QuietContactsNagFixtureTest {
                 ControlFlow.of(sites.ask).normal[gate + 4].toSet())
             val askStock = ask.instructions()
             assertEquals("$name: a grant leaves there in stock", setOf(gate, sites.askDone), ControlFlow.of(ask).normal[gate - 1].toSet())
-            assertEquals("$name: and it's a return", Opcode.RETURN_VOID, askStock[sites.askDone].opcode)
+            // Telegram returns there. Plus Messenger runs a tail of its own first, which the prompt ends in too.
+            val tail = reachable(ControlFlow.of(ask), sites.askDone, -1)
+            if (name.startsWith("plus-")) {
+                assertTrue("$name: the prompt ends in the tail", askStock.indices.filter { it in gate until sites.askDone }
+                    .any { sites.askDone in ControlFlow.of(ask).normal[it] })
+                assertEquals("$name: the tail ends in a return", Opcode.RETURN_VOID, askStock[tail.max()].opcode)
+            } else assertEquals("$name: and it's a return", setOf(sites.askDone), tail)
+            assertEquals("$name: and it's a return", Opcode.RETURN_VOID, askStock[tail.max()].opcode)
             // The gate stands after the one-time flag clears, so a quiet visit still uses up its turn.
             val once = askStock.indexOfFirst { it.opcode == Opcode.IPUT_BOOLEAN }
             assertTrue("$name: the visit's flag clears before the gate", once in 0 until gate)
@@ -77,25 +83,39 @@ class QuietContactsNagFixtureTest {
                 }
             }
 
-            // The badge: the "!" waits on the gate, quiet goes to the clear a grant takes.
+            // In stock, a grant reaches the clear without the mark.
             val badgeAfter = sites.badge.instructions()
             val badgeGate = sites.badgeGate
-            assertEquals("$name: badge hook", HOOK, badgeAfter.subList(badgeGate, badgeGate + 5).map { it.opcode })
-            assertEquals("$name: badge asks", "$CONTACTS_NAG->hideBadge($PREFS)Z", badgeAfter[badgeGate + 2].reference())
-            val badgeMoved = assertKeepsStock("$name: badge", badge, sites.badge, badgeGate, 5)
-            assertEquals("$name: quiet clears; otherwise marks", setOf(badgeGate + 5, badgeMoved.getValue(sites.badgeClear)),
-                ControlFlow.of(sites.badge).normal[badgeGate + 4].toSet())
-            val mark = badgeAfter.indexOfFirst { it.string() == "!" }
-            assertFalse("$name: the mark is reached around the gate", mark in reachable(ControlFlow.of(sites.badge), 0, badgeGate + 4))
-            // In stock, a grant reaches the clear without the mark.
             val badgeStock = badge.instructions()
             val grant = badgeStock.indexOfFirst { it.reference()?.endsWith("->hasContactsPermission()Z") == true }
-            assertTrue("$name: a grant reaches the clear in stock", sites.badgeClear in reachable(ControlFlow.of(badge), grant, sites.badgeGate))
-            // The clear passes null where the mark passes "!".
+            assertTrue("$name: a grant reaches the clear in stock", sites.badgeClear in reachable(ControlFlow.of(badge), grant, badgeGate))
             val clearCall = (sites.badgeClear until badgeStock.size).first { badgeStock[it].opcode == Opcode.INVOKE_VIRTUAL }
             val clearText = badgeStock[clearCall].namedRegisters()[1]
-            assertTrue("$name: the clear passes null", badgeStock[clearCall - 1].let { it.opcode == Opcode.CONST_4 &&
-                it.namedRegisters()[0] == clearText && (it as NarrowLiteralInstruction).narrowLiteral == 0 })
+            if (!sites.marks) {
+                // Plus Messenger passes the same null in both arms, so its badge never shows and is left stock.
+                assertEquals("$name: the badge stays stock", badgeStock.map(::operation), badgeAfter.map(::operation))
+                assertFalse("$name: no mark", badgeStock.any { it.string() == "!" })
+                val sets = badgeStock.indices.filter { badgeStock[it].reference() == badgeStock[clearCall].reference() }
+                assertEquals("$name: the badge's two text calls", 2, sets.size)
+                val zero = (badgeGate - 1 downTo 0).first { badgeStock[it].opcode.setsRegister() && badgeStock[it].namedRegisters()[0] == clearText }
+                assertTrue("$name: the shared text is null", badgeStock[zero].opcode == Opcode.CONST_4 &&
+                    (badgeStock[zero] as NarrowLiteralInstruction).narrowLiteral == 0)
+                val badgeFlow = ControlFlow.of(badge)
+                for (set in sets) assertTrue("$name: both arms pass that null", badgeStock[set].namedRegisters()[1] == clearText &&
+                    badgeFlow.definitionReaches(zero, set, clearText))
+            } else {
+                // The badge: the "!" waits on the gate, quiet goes to the clear a grant takes.
+                assertEquals("$name: badge hook", HOOK, badgeAfter.subList(badgeGate, badgeGate + 5).map { it.opcode })
+                assertEquals("$name: badge asks", "$CONTACTS_NAG->hideBadge($PREFS)Z", badgeAfter[badgeGate + 2].reference())
+                val badgeMoved = assertKeepsStock("$name: badge", badge, sites.badge, badgeGate, 5)
+                assertEquals("$name: quiet clears; otherwise marks", setOf(badgeGate + 5, badgeMoved.getValue(sites.badgeClear)),
+                    ControlFlow.of(sites.badge).normal[badgeGate + 4].toSet())
+                val mark = badgeAfter.indexOfFirst { it.string() == "!" }
+                assertFalse("$name: the mark is reached around the gate", mark in reachable(ControlFlow.of(sites.badge), 0, badgeGate + 4))
+                // The clear passes null where the mark passes "!".
+                assertTrue("$name: the clear passes null", badgeStock[clearCall - 1].let { it.opcode == Opcode.CONST_4 &&
+                    it.namedRegisters()[0] == clearText && (it as NarrowLiteralInstruction).narrowLiteral == 0 })
+            }
 
             val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "quietContactsNag" }.instructions()
             assertEquals("$name: build fact", 1, (status[0] as NarrowLiteralInstruction).narrowLiteral)
@@ -131,14 +151,22 @@ class QuietContactsNagFixtureTest {
         for (build in Fixtures.declaredBuilds()) {
             val changes: List<Pair<String, (BytecodePatchContext, ContactsNagSites) -> Unit>> = listOf(
                 "the badge marks with something else" to { _, sites ->
-                    val mark = sites.badge.instructions().indexOfFirst { it.string() == "!" }
-                    val register = sites.badge.instructions()[mark].namedRegisters()[0]
-                    sites.badge.replaceInstruction(mark, "const-string v$register, \"?\"")
+                    val body = sites.badge.instructions()
+                    val mark = body.indexOfFirst { it.string() == "!" }
+                    if (mark >= 0) {
+                        sites.badge.replaceInstruction(mark, "const-string v${body[mark].namedRegisters()[0]}, \"?\"")
+                    } else {
+                        // Plus Messenger's mark arm passes the clear's null; give it text of its own.
+                        val set = (sites.badgeGate until sites.badgeClear).first { body[it].opcode == Opcode.INVOKE_VIRTUAL }
+                        sites.badge.addInstructions(set, "const-string v${body[set].namedRegisters()[1]}, \"?\"")
+                    }
                 },
                 "the badge clears with text" to { _, sites ->
                     val body = sites.badge.instructions()
-                    val clear = (sites.badgeClear until body.size).first { body[it].opcode == Opcode.CONST_4 }
-                    sites.badge.replaceInstruction(clear, "const/4 v${body[clear].namedRegisters()[0]}, 0x1")
+                    val call = (sites.badgeClear until body.size).first { body[it].opcode == Opcode.INVOKE_VIRTUAL }
+                    val text = body[call].namedRegisters()[1]
+                    val clear = (call - 1 downTo 0).first { body[it].opcode.setsRegister() && body[it].namedRegisters()[0] == text }
+                    sites.badge.replaceInstruction(clear, "const/4 v$text, 0x1")
                 },
                 "the prompt writes another field" to { _, sites ->
                     val body = sites.ask.instructions()

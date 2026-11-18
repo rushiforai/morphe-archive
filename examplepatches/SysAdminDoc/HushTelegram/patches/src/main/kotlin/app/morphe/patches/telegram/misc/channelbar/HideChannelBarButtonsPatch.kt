@@ -63,7 +63,7 @@ val hideChannelBarButtonsPatch = bytecodePatch(
 ) {
     category("Interface")
     dependsOn(settingsPatch, telegramExtensionPatch)
-    compatibleWith(*AppCompatibilities.telegramOnly())
+    compatibleWith(*AppCompatibilities.telegram())
     execute {
         val plan = resolveChannelBarButtons()
         val mute = resolveChannelMute(plan)
@@ -110,7 +110,10 @@ private fun setCall(call: Instruction): String {
 /**
  * A channel's bottom bar places each side button with one method taking the button's number,
  * whether to show it and whether to animate. The first time it shows a button it builds it and
- * reads its label out by the number, so the labels give each side button's number.
+ * reads its label out by the number, so the labels give each side button's number. Plus Messenger's
+ * bar has a fifth button of its own, 5 (a joined channel's linked discussion group, with no label),
+ * which the update places through the same call, so it goes to the extension too and comes out as
+ * Telegram asked, since it isn't one of the side buttons.
  */
 internal fun BytecodePatchContext.resolveChannelBarButtons(): ChannelBarPlan {
     requireStatusMethod("hideChannelButtons")

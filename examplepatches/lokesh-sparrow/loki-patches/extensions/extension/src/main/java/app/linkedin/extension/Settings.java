@@ -53,6 +53,7 @@ public final class Settings {
     static final String SWIPE_FEEDS = "swipe_feeds";
     static final String HIDE_TAB_NETWORK = "hide_tab_network";
     static final String HIDE_TAB_JOBS = "hide_tab_jobs";
+    static final String HIDE_TAB_MORE = "hide_tab_more";
     static final String COPY_TEXT = "copy_text";
     static final String COPY_TEXT_LONG_SHEET = "copy_text_long_sheet";
     static final String DISABLE_DOUBLE_TAP_LIKE = "disable_double_tap_like";
@@ -249,6 +250,11 @@ public final class Settings {
     /** Takes Jobs out of the bottom bar. */
     static boolean hideTabJobs() {
         return includedAnd(isHideTabsIncluded(), HIDE_TAB_JOBS, false);
+    }
+
+    /** Takes More out of the bottom bar. On by default: for many accounts LinkedIn's More page only shows an error. */
+    static boolean hideTabMore() {
+        return includedAnd(isHideTabsIncluded(), HIDE_TAB_MORE, true);
     }
 
     // Feed filters drop ordinary content, so every one of them waits for the user to switch it on.

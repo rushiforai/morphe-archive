@@ -52,6 +52,8 @@ final class FloatingMenu {
     static final int CHAT_SEARCH_LIMIT = 600;
     /** How far from the emoji row's edge the pressed message's own edge can be, in dp. */
     static final int ANCHOR_DP = 24;
+    /** How many emoji rows tall a message has to be for Messenger to lay the row over it instead of above it. */
+    static final int TALL_ROWS = 2;
     /** Too few actions and this isn't the menu; too many and Messenger's layout isn't what's expected. */
     static final int MIN_ACTIONS = 2, MAX_ACTIONS = 8;
 
@@ -125,7 +127,7 @@ final class FloatingMenu {
         LinearLayout card = card(context, sources, labels, density);
         int width = (int) (WIDTH_DP * density);
         int height = height(sources.size(), density);
-        Rect anchor = bounds.apply(panel);
+        Rect anchor = resting(panel);
         View message = pressed(host, overlay, anchor, density);
         Rect bubble = message == null ? null : bounds.apply(message);
         int gap = (int) (GAP_DP * density), edge = (int) (EDGE_DP * density);
@@ -133,7 +135,7 @@ final class FloatingMenu {
         if (rise > 0) {
             anchor.offset(0, -rise);
             if (bubble != null) bubble.offset(0, -rise);
-            panel.setTranslationY(panel.getTranslationY() - rise);
+            panel.setTranslationY(-rise);
             lift.accept(rise);
         }
         Rect placed = place(anchor, bubble, frame, width, height, gap, edge);
@@ -152,7 +154,7 @@ final class FloatingMenu {
      * fully on screen. With no room under the message it goes over the emoji row instead, so it never covers the row.
      */
     static Rect place(Rect panel, Rect bubble, Rect frame, int width, int height, int gap, int edge) {
-        Rect anchor = bubble == null || bubble.isEmpty() ? panel : bubble;
+        Rect anchor = under(panel, bubble);
         int top = anchor.bottom + gap;
         int left = anchor.centerX() > frame.centerX() ? anchor.right - width : anchor.left;
         left = Math.max(frame.left + edge, Math.min(left, frame.right - edge - width));
@@ -163,11 +165,22 @@ final class FloatingMenu {
     }
 
     /**
+     * What the card goes under: the pressed message, or just the emoji row when there's no message to go by. A message
+     * too tall for the row to sit over it has the row laid across it instead, so there the card goes under the row, on
+     * the message's side, rather than somewhere off the bottom of the screen.
+     */
+    private static Rect under(Rect panel, Rect bubble) {
+        if (bubble == null || bubble.isEmpty()) return panel;
+        if (bubble.top >= panel.centerY()) return bubble;
+        return new Rect(bubble.left, panel.top, bubble.right, panel.bottom);
+    }
+
+    /**
      * How far the emoji row and the pressed message have to move up for the card to fit under the message, never so
      * far that the row leaves the top of the screen. 0 when it already fits.
      */
     static int rise(Rect panel, Rect bubble, Rect frame, int height, int gap, int edge) {
-        Rect anchor = bubble == null || bubble.isEmpty() ? panel : bubble;
+        Rect anchor = under(panel, bubble);
         int missing = anchor.bottom + gap + height - (frame.bottom - edge);
         if (missing <= 0) return 0;
         int room = Math.min(panel.top, anchor.top) - (frame.top + edge);
@@ -290,26 +303,45 @@ final class FloatingMenu {
         return message == null ? null : bounds.apply(message);
     }
 
-    /** The pressed message's own view, as bubble() finds it, leaving out the menu itself when it sits in the chat. */
+    /**
+     * The pressed message's own view, as bubble() finds it, leaving out the menu itself when it sits in the chat. That's
+     * the one starting right under the emoji row, or for a message too tall for that, like a video, the biggest one the
+     * row is laid across. A whole line of the chat doesn't count there, only what sits inside one.
+     */
     static View pressed(View host, View menu, Rect panel, float density) {
         if (host == null) return null;
         int reach = (int) (ANCHOR_DP * density);
-        View closest = null;
+        int line = bounds.apply(host).width();
+        View closest = null, across = null;
         Rect closestBox = null;
-        int best = Integer.MAX_VALUE;
+        int best = Integer.MAX_VALUE, biggest = 0;
         for (View view : tree(host, menu, CHAT_SEARCH_LIMIT)) {
             if (!(view.isLongClickable() || view.isClickable()) || view.getVisibility() != View.VISIBLE) continue;
             Rect box = bounds.apply(view);
             if (box.width() <= 0 || box.height() <= 0) continue;
             int off = Math.abs(box.top - panel.bottom);
-            if (off > reach) continue;
+            if (off > reach) {
+                int area = box.width() * box.height();
+                if (box.top < panel.bottom && box.bottom > panel.bottom && box.width() < line
+                    && box.height() >= panel.height() * TALL_ROWS && area > biggest) {
+                    biggest = area;
+                    across = view;
+                }
+                continue;
+            }
             if (off < best || (off == best && closestBox != null && box.height() < closestBox.height())) {
                 best = off;
                 closest = view;
                 closestBox = box;
             }
         }
-        return closest;
+        // What starts under the row but stays within a tall message's height, like the Forward button beside a video,
+        // goes with that message.
+        if (closest != null && across != null) {
+            Rect tall = bounds.apply(across);
+            if (closestBox.top >= tall.top && closestBox.bottom <= tall.bottom) return across;
+        }
+        return closest != null ? closest : across;
     }
 
     /** The words on one of Messenger's buttons, from the button itself or the one piece of text it holds. */
@@ -378,6 +410,16 @@ final class FloatingMenu {
             view = view.getParent() instanceof View ? (View) view.getParent() : null;
         }
         return false;
+    }
+
+    /**
+     * Where a view sits once Messenger's slide on it is over: its place on screen without its own translation. The emoji
+     * row waits under its place, invisible, for a few frames before sliding up, so where it is right now says nothing.
+     */
+    static Rect resting(View view) {
+        Rect box = new Rect(bounds.apply(view));
+        box.offset(-Math.round(view.getTranslationX()), -Math.round(view.getTranslationY()));
+        return box;
     }
 
     /** Where a view is on screen. */

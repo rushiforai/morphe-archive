@@ -236,7 +236,7 @@ Saving a pin plays the sound you picked. Tap to pick another sound or use Pinter
 Saving a pin plays %s. Tap to pick another sound or use Pinterest's again.	Menyimpan pin memutar %s. Ketuk untuk memilih suara lain atau kembali ke suara Pinterest.
 Pick another sound	Pilih suara lain
 Use Pinterest's sound again	Gunakan suara Pinterest lagi
-That app won't let Pinterest keep the sound. Pick one saved on the phone.	Aplikasi itu tidak mengizinkan Pinterest menyimpan suaranya. Pilih yang tersimpan di ponsel.
+That app can't share the sound. Pick one saved on the phone.	Aplikasi itu tidak membagikan suaranya. Pilih yang ada di ponsel.
 Saving a pin will play the sound you picked.	Menyimpan pin akan memutar suara yang kamu pilih.
 Saving a pin will play %s.	Menyimpan pin akan memutar %s.
 Saving a pin will play Pinterest's sound again.	Menyimpan pin akan memutar suara Pinterest lagi.
@@ -762,3 +762,62 @@ saved pins in More to explore	pin tersimpan di "Lainnya untuk dijelajahi"
 Shop the look under pins	Shop the look di bawah pin
 Back leaves Home right away	Kembali langsung keluar dari Beranda
 When you've scrolled down Home, Back leaves Pinterest instead of jumping to the top and loading new pins first.	Saat Anda sudah menggulir ke bawah di Beranda, Kembali keluar dari Pinterest alih-alih melompat ke atas dan memuat pin baru dulu.
+Hide download toasts	Sembunyikan notifikasi unduhan
+Downloading a pin no longer shows the message that it started or finished. Errors still show, and Android's own download notification stays.	Mengunduh pin tidak lagi menampilkan pesan bahwa unduhan dimulai atau selesai. Pesan kesalahan tetap muncul, dan notifikasi unduhan Android tetap ada.
+Black toasts	Notifikasi hitam
+In dark mode, paints the messages Pinterest pops up, such as the one after you save or download a pin, pure black. Light mode stays as it is. The change shows on the next message.	Dalam mode gelap, membuat pesan yang muncul dari Pinterest, seperti setelah menyimpan atau mengunduh pin, menjadi hitam pekat. Mode terang tetap seperti semula. Perubahan terlihat pada pesan berikutnya.
+Hide Home tabs	Sembunyikan tab Beranda
+Takes the row of tabs, All and your board names, off the top of Home. The change shows the next time Home updates.	Menghapus deretan tab, Semua dan nama papan Anda, dari bagian atas Beranda. Perubahan terlihat saat Beranda diperbarui berikutnya.
+Blank Search page	Halaman Cari kosong
+Leaves only the search bar on the Search page, with nothing under it. Searching works as usual. The change shows the next time the page updates.	Hanya menyisakan bilah pencarian di halaman Cari, tanpa apa pun di bawahnya. Pencarian berfungsi seperti biasa. Perubahan terlihat saat halaman diperbarui berikutnya.
+Second Search tap opens the keyboard	Ketuk Cari kedua kali membuka keyboard
+On the Search page, pressing Search in the bottom bar again puts the cursor in the search bar and opens the keyboard.	Di halaman Cari, menekan Cari lagi di bilah bawah menempatkan kursor di bilah pencarian dan membuka keyboard.
+Hide pin menu rows	Sembunyikan baris menu pin
+Hides the rows you pick below from pin menus you open from now on. A menu that's already open won't change.	Menyembunyikan baris yang kamu pilih di bawah dari menu pin yang kamu buka mulai sekarang. Menu yang sudah terbuka tidak berubah.
+Pick pin menu rows	Pilih baris menu pin
+Pick the rows to take out of a pin's menu.	Pilih baris yang ingin dihapus dari menu pin.
+Hidden from pin menus: %s. Tap to change.	Disembunyikan dari menu pin: %s. Ketuk untuk mengubah.
+Picked: %s. Hide pin menu rows is off, so they still show.	Dipilih: %s. Sembunyikan baris menu pin nonaktif, jadi baris tetap muncul.
+Why you're seeing this pin	Alasan kamu melihat pin ini
+Customize board tabs	Sesuaikan tab papan
+Board tab header	Header tab papan
+Hide See board on board tabs	Sembunyikan Lihat papan di tab papan
+Takes the See board button off the picture at the top of a board tab on Home. The change shows the next time the tab opens.	Menghapus tombol Lihat papan dari gambar di bagian atas tab papan di Beranda. Perubahan terlihat saat tab dibuka berikutnya.
+Hide More ideas for on board tabs	Sembunyikan Ide lainnya untuk di tab papan
+Takes More ideas for and any other small text off that picture, so only the board name is left. The change shows the next time the tab opens.	Menghapus Ide lainnya untuk dan teks kecil lain dari gambar itu, sehingga hanya nama papan yang tersisa. Perubahan terlihat saat tab dibuka berikutnya.
+Board name position	Posisi nama papan
+%s. Moves the board name on the picture at the top of a board tab on Home. The change shows the next time the tab opens.	%s. Memindahkan nama papan pada gambar di bagian atas tab papan di Beranda. Perubahan terlihat saat tab dibuka berikutnya.
+Where Pinterest puts it	Posisi bawaan Pinterest
+Top left	Kiri atas
+Top center	Tengah atas
+Middle	Tengah
+Bottom center	Tengah bawah
+Bottom right	Kanan bawah
+Board tab covers	Sampul tab papan
+Board tab cover	Sampul tab papan
+Choose board tab covers	Pilih sampul tab papan
+Long-press the picture at the top of a board tab on Home to keep it, use a pin or a photo, or go black.	Tekan lama gambar di bagian atas tab papan di Beranda untuk mempertahankannya, memakai pin atau foto, atau membuatnya hitam.
+Keep this picture	Pertahankan gambar ini
+Pin from this board	Pin dari papan ini
+Image from phone	Gambar dari ponsel
+No image	Tanpa gambar
+Pinterest's choice	Pilihan Pinterest
+Use as tab cover	Jadikan sampul tab
+Open a pin's menu and pick Use as tab cover.	Pilih Jadikan sampul tab di menu pin.
+Board tab cover set.	Sampul disimpan.
+That file couldn't be read as a picture.	File itu tidak bisa dibaca sebagai gambar.
+Hide pin author	Sembunyikan pembuat pin
+Removes the creator's whole row, picture and name included, from under a pin you open. The change shows on the next pin you open.	Menghapus seluruh baris kreator, termasuk foto dan namanya, dari bawah pin yang Anda buka. Perubahan terlihat pada pin berikutnya yang Anda buka.
+Hide pin title and description	Sembunyikan judul dan deskripsi pin
+Removes the title and description under a pin you open. The likes and comments bar stays, and so do the posted date and image size when they're on. The change shows on the next pin you open.	Menghapus judul dan deskripsi di bawah pin yang Anda buka. Bilah suka dan komentar tetap ada, begitu juga tanggal posting dan ukuran gambar jika diaktifkan. Perubahan terlihat pada pin berikutnya yang Anda buka.
+Show image size	Tampilkan ukuran gambar
+Shows a picture's width and height under it when you open a pin, beside the posted date when that's on. It reads the largest copy Pinterest sends the app, which can be smaller than the original upload. Videos show nothing. The change shows on the next pin you open.	Menampilkan lebar dan tinggi gambar di bawahnya saat Anda membuka pin, di samping tanggal posting jika diaktifkan. Ukuran dibaca dari salinan terbesar yang dikirim Pinterest ke aplikasi, yang bisa lebih kecil dari unggahan aslinya. Video tidak menampilkan apa pun. Perubahan terlihat pada pin berikutnya yang Anda buka.
+Hide blue highlight ring	Sembunyikan cincin sorotan biru
+# context: Pin page switch. Save is Pinterest's own Save button, under its label in this language.
+Stops the thick blue ring Pinterest draws over buttons such as Save to point out a feature.	Menghentikan cincin biru tebal yang digambar Pinterest di atas tombol seperti Simpan untuk menunjukkan sebuah fitur.
+Hide visual search thumbnails	Sembunyikan gambar mini pencarian visual
+Keeps a pin's lens button plain, without the little stack of cropped pictures Pinterest puts on it. The change shows on the next pin you open.	Membuat tombol lensa pin tetap polos, tanpa tumpukan kecil gambar terpotong yang dipasang Pinterest di atasnya. Perubahan terlihat pada pin berikutnya yang Anda buka.
+Fold related pins	Lipat pin terkait
+Puts an arrow under a pin you open. Related pins stay folded and don't load until you tap it, and tapping again folds them. Your last choice is kept. Hide related pins wins when both are on. The change shows on the next pin you open.	Menambahkan panah di bawah pin yang Anda buka. Pin terkait tetap terlipat dan tidak dimuat sampai Anda mengetuknya, dan ketukan berikutnya melipatnya lagi. Pilihan terakhir Anda disimpan. Jika keduanya aktif, Sembunyikan pin terkait yang berlaku. Perubahan terlihat pada pin berikutnya yang Anda buka.
+# context: what a screen reader says for the arrow under a pin while its related pins are folded
+Show related pins	Tampilkan pin terkait

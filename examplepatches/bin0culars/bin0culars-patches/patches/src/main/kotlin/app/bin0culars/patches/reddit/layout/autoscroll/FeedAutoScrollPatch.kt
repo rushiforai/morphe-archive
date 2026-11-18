@@ -196,6 +196,24 @@ val feedAutoScrollPatch =
                 0,
                 "invoke-static { p0 }, $EXTENSION_CLASS->onActivityPaused(Landroid/app/Activity;)V",
             )
+
+            ScreenAttachFingerprint.method.addInstructions(
+                0,
+                """
+                    instance-of v0, p0, Lcom/reddit/typeahead/TypeaheadResultsScreen;
+                    const/4 v1, 0x1
+                    invoke-static { v0, v1 }, $EXTENSION_CLASS->onScreenAttachChanged(ZZ)V
+                """,
+            )
+
+            ScreenDetachFingerprint.method.addInstructions(
+                0,
+                """
+                    instance-of v0, p0, Lcom/reddit/typeahead/TypeaheadResultsScreen;
+                    const/4 v1, 0x0
+                    invoke-static { v0, v1 }, $EXTENSION_CLASS->onScreenAttachChanged(ZZ)V
+                """,
+            )
         }
 
         finalize {

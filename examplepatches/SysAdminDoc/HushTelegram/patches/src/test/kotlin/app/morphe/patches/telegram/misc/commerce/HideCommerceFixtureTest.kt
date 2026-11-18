@@ -8,7 +8,6 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.PlusPending
 import app.morphe.util.names.origRef
 import app.morphe.util.names.addInstructions
 import app.morphe.util.names.replaceInstruction
@@ -58,7 +57,6 @@ import app.morphe.util.names.origType
 import app.morphe.util.names.tgMutableClassDefBy
 
 /** The real fixture proves the presentation sites and the code the patch must retain. */
-@PlusPending
 class HideCommerceFixtureTest {
     @Test
     fun `all sales surfaces are hooked and purchase account and channel controls remain intact`() {
@@ -380,7 +378,9 @@ class HideCommerceFixtureTest {
             val method = if (anchor == GIFT_ICON) {
                 context.tgMutableClassDefBy(host.definingClass).methods.single { it.origName == "<clinit>" }
             } else host
-            val at = method.instructions().indices.first { method.instructions()[it].reference() == anchor }
+            // Plus Messenger keeps the footer's icon ids as array data, so its Gift icon goes with the fill.
+            val at = method.instructions().indices.firstOrNull { method.instructions()[it].reference() == anchor }
+                ?: method.instructions().indices.first { anchor == GIFT_ICON && method.instructions()[it].opcode == Opcode.FILL_ARRAY_DATA }
             val register = method.instructions()[at].namedRegisters().single()
             method.replaceInstruction(at, "const/16 v$register, 0x1")
             val before = plan.hooks.mapValues { it.value.first().method.instructions().map(::operation) }
@@ -975,10 +975,14 @@ class HideCommerceFixtureTest {
     /**
      * [gate] decides on a walletAvailable read alone: three instructions back through
      * ConfigBoolean.get() and its result, or four where 13.2 inlines get() as the flag's handler,
-     * its cast and its value.
+     * its cast and its value, or five where Plus loads a number for its next entry before the branch.
      */
     private fun assertWalletGate(where: String, body: List<Instruction>, gate: Int) {
-        val read = gate - if (body[gate - 1].opcode == Opcode.IGET_BOOLEAN) 4 else 3
+        val read = gate - when {
+            body[gate - 1].opcode == Opcode.IGET_BOOLEAN -> 4
+            body[gate - 2].opcode == Opcode.IGET_BOOLEAN -> 5
+            else -> 3
+        }
         assertTrue("$where gate reads walletAvailable", body[read].readsWalletAvailable())
         assertEquals("$where gate decides on that read alone", gate, walletGate(body, read))
     }

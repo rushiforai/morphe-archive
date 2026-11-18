@@ -22,9 +22,10 @@ val hideTippingPatch = bytecodePatch(
 
     execute {
         // These are leaf UI components. Their parents use ordinary React children without a fixed
-        // placeholder, so null removes the entry point without an empty button or modal.
+        // placeholder, so null removes the entry point without an empty button or modal. Each returns before its
+        // prologue, whichever environment and parameter loads it starts with.
         for (component in listOf("KicksShopButton", "GetKicksButton", "LeaderboardKicksFooter")) {
-            kickHermes.returnNull(component, KEY, defaultEnabled = false)
+            kickHermes.returnAtEntry(component, KEY, defaultEnabled = false)
         }
         kickSettings.add(
             SwitchSetting(

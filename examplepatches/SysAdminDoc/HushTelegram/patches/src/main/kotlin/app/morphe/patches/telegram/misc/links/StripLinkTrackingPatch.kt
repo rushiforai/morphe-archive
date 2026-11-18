@@ -27,7 +27,7 @@ val stripLinkTrackingPatch = bytecodePatch(
 ) {
     category("Privacy")
     dependsOn(settingsPatch, telegramExtensionPatch)
-    compatibleWith(*AppCompatibilities.telegramOnly())
+    compatibleWith(*AppCompatibilities.telegram())
     // The paste editors are also Use normal paste's, which runs later and refuses an editor that isn't
     // stock. Found while they still are, they get their watch once every patch has run.
     var pastes: CopyPasteSites? = null

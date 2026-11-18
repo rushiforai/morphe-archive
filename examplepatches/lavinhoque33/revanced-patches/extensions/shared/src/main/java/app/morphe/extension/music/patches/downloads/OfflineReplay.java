@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-17.
  * Modified by lavinhoque33, 2026-11-14.
  * Written by lavinhoque33, 2026-11-08.
  */
@@ -159,7 +160,7 @@ public final class OfflineReplay {
      */
     static List<OfflineWatchNext.Item> queueOf(String sourceId) {
         if (SONGS.equals(sourceId)) {
-            Set<String> loose = CopyOwnership.looseSongs(RawAudioStore.copyIds(), OfflineCopyStore.allTrackLists());
+            Set<String> loose = CopyOwnership.looseSongs(RawAudioStore.copyIds(), OfflineCopyStore.copyTrackLists());
             return OfflineReplayLogic.itemsOfSongs(OfflineCopyStore.copiesWithData(), loose);
         }
         return OfflineReplayLogic.itemsOfTracks(OfflineCopyStore.tracksOf(sourceId));
@@ -299,7 +300,11 @@ public final class OfflineReplay {
      */
     @Nullable
     private static byte[] startCommand(String sourceId, int index) {
-        List<OfflineWatchNext.Item> items = queueOf(sourceId);
+        return startCommand(sourceId, queueOf(sourceId), index);
+    }
+
+    @Nullable
+    private static byte[] startCommand(String sourceId, List<OfflineWatchNext.Item> items, int index) {
         if (index < 0 || index >= items.size()) return null;
 
         String songId = items.get(index).videoId();
@@ -415,7 +420,10 @@ public final class OfflineReplay {
 
             byte[] bytes = message.toByteArray();
             String browseId = OfflineReplayLogic.browseIdOf(bytes);
-            if (browseId != null) logDecision(HOOK_COMMAND, "browse=" + browseId);
+            if (browseId != null) {
+                logDecision(HOOK_COMMAND, "browse=" + browseId);
+                PlaylistSync.onBrowse(browseId);
+            }
 
             return takeOffline(bytes, browseId);
         } catch (Exception ex) {
@@ -453,7 +461,8 @@ public final class OfflineReplay {
             case PLAY_TRACK -> {
                 logDecision(HOOK_COMMAND, "offline watch of " + decision.videoId() + " in " + decision.sourceId()
                         + " plays the copy");
-                return playTrack(decision.sourceId(), decision.videoId());
+                int position = watch != null && decision.sourceId().equals(watch.playlistId()) ? watch.index() : -1;
+                return playTrack(decision.sourceId(), decision.videoId(), position);
             }
             default -> {
                 return false;
@@ -462,16 +471,20 @@ public final class OfflineReplay {
     }
 
     /** Starts a song with stored data as a track of the list's offline queue, with no network. Main thread. */
-    private static boolean playTrack(String sourceId, String videoId) {
+    private static boolean playTrack(String sourceId, String videoId, int position) {
         if (!canDispatch()) return false;
 
         logDecision(HOOK_COMMAND, "audio mode: " + AudioFirst.startAudioMode());
         Utils.runOnBackgroundThread(() -> {
             try {
                 List<OfflineWatchNext.Item> items = queueOf(sourceId);
-                int index = OfflineReplayLogic.currentIndex(items,
-                        OfflineReplayLogic.songOf(videoId, videoCopies()), -1);
-                byte[] command = index < 0 ? null : startCommand(sourceId, index);
+                String songId = OfflineReplayLogic.songOf(videoId, videoCopies());
+                OfflineSourceStore.Source source = OfflineCopyStore.source(sourceId);
+                DownloadedRegistry markers = DownloadedMarkers.loadedRegistry();
+                int index = source != null && source.browsePage() != null && markers != null
+                        ? PlaylistSyncPlan.readyIndex(source.videoIds(), items, songId, position, markers::canonicalId)
+                        : OfflineReplayLogic.currentIndex(items, songId, -1);
+                byte[] command = startCommand(sourceId, items, index);
                 if (command == null) {
                     Logger.printWarn(() -> "OfflineReplay: no stored song " + videoId + " in " + sourceId);
                     return;
@@ -516,7 +529,14 @@ public final class OfflineReplay {
                 }
 
                 int updates = OfflineBrowsePagesLogic.frameworkUpdatesSize(response);
-                int written = OfflineBrowsePages.write(pageId, list, response);
+                int written;
+                synchronized (PlaylistSync.MUTATION) {
+                    OfflineSourceStore.Source source = OfflineCopyStore.source(list);
+                    if (source == null || source.browsePage() != null) return;
+                    if (source.kind() == OfflineSourceStore.Kind.PLAYLIST
+                            && !PlaylistSyncPage.matchesSavedPrefix(list, response, source.videoIds())) return;
+                    written = OfflineBrowsePages.write(pageId, list, response);
+                }
                 logDecision(HOOK_BROWSE_CAPTURE, "recorded " + browseId + " list=" + list + " bytes="
                         + response.length + " frameworkUpdates=" + updates + " gzip=" + written + " fields="
                         + OfflineBrowsePagesLogic.fieldSizes(response));

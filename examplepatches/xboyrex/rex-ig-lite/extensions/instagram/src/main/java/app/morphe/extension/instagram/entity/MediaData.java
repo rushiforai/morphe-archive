@@ -356,6 +356,10 @@ public class MediaData extends Entity {
         return this.getUserDataWithoutUserSession();
     }
 
+    public HashSet<UserData> getStoryMentions() throws Exception {
+        return getMentionSet();
+    }
+
     public HashSet<UserData> getMentionSet() throws Exception {
         Object result = null;
         List<Object> receivers = new ArrayList<>();

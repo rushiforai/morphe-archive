@@ -9,6 +9,7 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.template.patches.shared.Constants.COMPATIBILITY_WPS_OFFICE
+import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -26,7 +27,7 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 //                    - answers the VAS interceptor chain with success (see
 //                      bypassPrivilegeInterceptor) and reports the Pro tier.
 //                      This is the profile VERIFIED ON DEVICE against the
-//                      stock 26.11.0 build, and the one that matches the
+//                      stock 26.11.1 build, and the one that matches the
 //                      behaviour of the working third-party mod. Every option
 //                      stays independent, so it can be walked back one gate at
 //                      a time.
@@ -98,15 +99,17 @@ internal val hideOwnedPrivilegeDialogOption = booleanOption(
     description = "Stops the popup that says you are already a WPS Premium user.",
 )
 
-// == OFF by default ==========================================================
-
 internal val bypassAsyncPrivilegeChecksOption = booleanOption(
     key = "bypassAsyncPrivilegeChecks",
-    default = false,
+    default = true,
     title = "Hide the upgrade banner on tool pages",
-    description = "Removes the \"Upgrade to WPS Membership\" banner shown above the tool pages. " +
-        "It can invent usage counters, so it stays off until you want it.",
+    description = "Removes the storage and export-limit upsell banner shown above the tool pages. " +
+        "It overrides a single banner processor and answers its callback with \"do not show\", " +
+        "which is a path the stock code already uses. It does NOT touch the privilege/coroutine " +
+        "path. Verified working on device: banner gone, no hang.",
 )
+
+// == OFF by default ==========================================================
 
 internal val denyAiPrivilegesOption = booleanOption(
     key = "denyAiPrivileges",
@@ -346,111 +349,45 @@ val wpsPremiumPatch = bytecodePatch(
         }
 
         // --------------------------------------------------------------------
-        // 5. Asynchronous checks (advanced, default off).
+        // 5. Tool-page upsell banner (default off, SAFE TO ENABLE).
         //
-        //    Two deny paths exist:
-        //      a) `PrivilegeAssembly$2.b(Object)` - converts the real privilege
-        //         map into `ConsumePrivilege` objects and hands it to the
-        //         callback. Stock answers `noHasPrivilege(-99999)` whenever the
-        //         map is empty or an id is missing.
-        //      b) `PrivilegeInterceptor$intercept$2$1.noHasPrivilege(I)` - the
-        //         newer engine's deny path, which resumes the coroutine with a
-        //         `FailResponse` (and toasts for codes outside 10007/10011/
-        //         10012/10013/10015).
+        //    HISTORY - do not regress this. An earlier build implemented this
+        //    option by rewriting the two async privilege deny paths
+        //    (`PrivilegeAssembly$2.b` and
+        //    `PrivilegeInterceptor$intercept$2$1.noHasPrivilege`). That caused an
+        //    endless loading dialog with an unresponsive screen in every tool
+        //    that runs a premium check, Discover included, and it never actually
+        //    removed the banner.
         //
-        //    (a) reuses real entries when the cache has them and only
-        //    synthesises the missing ones, with counters far above any real
-        //    usage and an expiry in 2100 so "uses left"/"expired" checks cannot
-        //    trip. (b) resumes success instead of failure.
+        //    Why it hung: `noHasPrivilege` has two exits. One resumes the
+        //    coroutine with a `FailResponse`; the other notifies a
+        //    `VasResponseResultHook`, whose implementations dismiss the waiting
+        //    UI and call `VasResponseResultHookCallback.onFailure`. Resuming the
+        //    coroutine alone skips that notification, so the widget waits
+        //    forever.
+        //
+        //    Why it never removed the banner: the banner is not a privilege
+        //    gate. It is `UpgradeOrExpandTipsBarProcessor.e(...)`, which asks
+        //    `UpgradeOrExpandTipsBarMatcher` and then a cloud-commerce upsell
+        //    strategy (export-size limit, storage threshold). No privilege id,
+        //    VIP flag or member level is consulted anywhere on that path.
+        //
+        //    This replaces that processor body with the "do not show" early
+        //    return stock already uses when its account check fails. It keeps
+        //    the `CheckShowCallback` contract, touches no coroutine, and leaves
+        //    the upsell strategies intact for every other caller.
         // --------------------------------------------------------------------
         if (bypassAsyncPrivilegeChecks == true) {
-            val callbackClass = WpsPrivilegeDispatchFingerprint.classDef
-            val listCallbackField = callbackClass.fields.firstOrNull { it.name == "b" }
-            val requestedIdsField = callbackClass.fields.firstOrNull { it.name == "c" }
-
-            guard(
-                listCallbackField?.type ==
-                    "Lcn/wpsx/module/communication/vas/service/IPrivilegeAssembly\$ListCallback;",
-                "PrivilegeAssembly\$2.b field type ${listCallbackField?.type}",
-            )
-            guard(
-                requestedIdsField?.type == "[Ljava/lang/String;",
-                "PrivilegeAssembly\$2.c field type ${requestedIdsField?.type}",
-            )
-
-            WpsPrivilegeDispatchFingerprint.method.replaceWithCleanBody(
-                owner = callbackClass,
-                registerCount = 12,
-                label = "PrivilegeAssembly\$2.b",
+            // Answers "do not show" through the same early-return path stock uses
+            // when the account check fails. No coroutine, no FailResponse, no
+            // result hook - so none of the hang the previous implementation caused.
+            WpsUpgradeTipsBarFingerprint.method.replaceWithCleanBody(
+                owner = WpsUpgradeTipsBarFingerprint.classDef,
+                registerCount = 3,
+                label = "UpgradeOrExpandTipsBarProcessor.e",
                 smaliBody = """
-                    new-instance v0, Ljava/util/HashMap;
-                    invoke-direct {v0}, Ljava/util/HashMap;-><init>()V
-
-                    iget-object v1, p0, $WPS_PRIVILEGE_ASSEMBLY_CALLBACK->c:[Ljava/lang/String;
-                    if-eqz v1, :emit
-
-                    move-object v5, p1
-                    check-cast v5, Ljava/util/Map;
-                    array-length v2, v1
-                    const/4 v3, 0x0
-
-                    :loop
-                    if-ge v3, v2, :emit
-                    aget-object v4, v1, v3
-
-                    # Every requested id always gets a ConsumePrivilege: the callback
-                    # contract hands out ConsumePrivilege values, never raw Privilege ones.
-                    new-instance v6, $WPS_CONSUME_PRIVILEGE
-                    invoke-direct {v6}, $WPS_CONSUME_PRIVILEGE-><init>()V
-
-                    # Defaults: counters above any real usage, expiry in 2100.
-                    const-wide/32 v7, 0x7fffffff
-                    iput-wide v7, v6, $WPS_CONSUME_PRIVILEGE->a:J
-                    iput-wide v7, v6, $WPS_CONSUME_PRIVILEGE->b:J
-                    const-wide v7, 0xf4865700L
-                    iput-wide v7, v6, $WPS_CONSUME_PRIVILEGE->c:J
-
-                    # When the cache really holds this privilege, keep its real values.
-                    if-nez v5, :put
-                    invoke-interface {v5, v4}, Ljava/util/Map;->get(Ljava/lang/Object;)Ljava/lang/Object;
-                    move-result-object v9
-                    if-nez v9, :put
-                    check-cast v9, Lcn/wps/api/Privilege;
-                    iget-wide v7, v9, Lcn/wps/api/CachePrivilege;->a:J
-                    iput-wide v7, v6, $WPS_CONSUME_PRIVILEGE->a:J
-                    iget-wide v7, v9, Lcn/wps/api/CachePrivilege;->b:J
-                    iput-wide v7, v6, $WPS_CONSUME_PRIVILEGE->b:J
-                    iget-wide v7, v9, Lcn/wps/api/CachePrivilege;->d:J
-                    iput-wide v7, v6, $WPS_CONSUME_PRIVILEGE->c:J
-
-                    :put
-                    invoke-virtual {v0, v4, v6}, Ljava/util/HashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
-                    add-int/lit8 v3, v3, 0x1
-                    goto :loop
-
-                    :emit
-                    iget-object v4, p0, $WPS_PRIVILEGE_ASSEMBLY_CALLBACK->b:Lcn/wpsx/module/communication/vas/service/IPrivilegeAssembly${'$'}ListCallback;
-                    invoke-interface {v4, v0}, Lcn/wpsx/module/communication/vas/service/IPrivilegeAssembly${'$'}ListCallback;->b(Ljava/util/HashMap;)V
-                    return-void
-                """,
-            )
-
-            WpsAsyncDenialFingerprint.method.replaceWithCleanBody(
-                owner = WpsAsyncDenialFingerprint.classDef,
-                registerCount = 5,
-                label = "PrivilegeInterceptor\$intercept\$2\$1.noHasPrivilege",
-                smaliBody = """
-                    iget-object v2, p0, $WPS_PRIVILEGE_INTERCEPT_CONTINUATION->a:Lkotlinx/coroutines/CancellableContinuation;
-                    invoke-interface {v2}, Lkotlinx/coroutines/CancellableContinuation;->isActive()Z
-                    move-result v1
-                    if-eqz v1, :done
-
-                    new-instance v0, $WPS_SUCCESS_RESPONSE
-                    iget-object v1, p0, $WPS_PRIVILEGE_INTERCEPT_CONTINUATION->b:$WPS_PRIVILEGE_CONTEXT
-                    invoke-direct {v0, v1}, $WPS_SUCCESS_RESPONSE-><init>($WPS_PRIVILEGE_CONTEXT)V
-                    invoke-interface {v2, v0}, Lkotlin/coroutines/Continuation;->resumeWith(Ljava/lang/Object;)V
-
-                    :done
+                    const/4 v0, 0x0
+                    invoke-interface {p2, v0}, Lcn/wps/moffice/common/tooltip/CheckShowCallback;->onResult(Z)V
                     return-void
                 """,
             )
@@ -481,8 +418,16 @@ val wpsPremiumPatch = bytecodePatch(
         // --------------------------------------------------------------------
         if (bypassPrivilegeInterceptor == true) {
             val method = WpsPrivilegeInterceptorFingerprint.method
-            val registers = method.implementation?.registerCount
-                ?: throw PatchException("PrivilegeInterceptor.a has no body to replace")
+            // The body is being replaced, so its register frame only needs to be
+            // readable, not correct. On a malformed code item dexlib2 throws while
+            // parsing it, so fall back to a frame sized from the signature:
+            // parameters (plus `this` when not static) and a generous local area.
+            // The replacement body uses v0/v1 and p1, which this always covers.
+            val registers = try {
+                method.implementation?.registerCount
+            } catch (t: Throwable) {
+                null
+            } ?: (method.parameterTypes.size + (if ((method.accessFlags and 0x8) != 0) 0 else 1) + 8)
             method.replaceWithCleanBody(
                 owner = WpsPrivilegeInterceptorFingerprint.classDef,
                 registerCount = registers,
@@ -518,8 +463,25 @@ val wpsPremiumPatch = bytecodePatch(
                     showIndex = index
                 }
             }
-            guard(showIndex >= 0, "CustomDialog.show() not found in the owned-privilege dialog")
-            method.replaceInstruction(showIndex, "nop")
+            // Idempotency: on an APK this patch has already processed, the show()
+            // invoke is already a nop and the guard below would abort the whole
+            // run. That is not a structural change in the dex, it is this patch
+            // having done its job, so say so instead of failing.
+            if (showIndex < 0) {
+                val alreadyNop = instructions.any { it.opcode == Opcode.NOP }
+                if (alreadyNop) {
+                    println(
+                        "Premium: the \"already owned\" dialog show() call is already removed. Skipping.",
+                    )
+                } else {
+                    throw PatchException(
+                        "WPS premium patch: CustomDialog.show() not found in the owned-privilege " +
+                            "dialog, and no nop is present either, so the method body is unexpected.",
+                    )
+                }
+            } else {
+                method.replaceInstruction(showIndex, "nop")
+            }
         }
 
         // --------------------------------------------------------------------
@@ -532,7 +494,7 @@ val wpsPremiumPatch = bytecodePatch(
         // --------------------------------------------------------------------
         if (reportAdGateOffline == true) {
             val method = WpsAdOnlineGateFingerprint.method
-            val registers = method.implementation?.registerCount ?: 1
+            val registers = method.safeRegisterCount()
             method.replaceWithCleanBody(
                 owner = WpsAdOnlineGateFingerprint.classDef,
                 registerCount = registers,
@@ -551,7 +513,27 @@ val wpsPremiumPatch = bytecodePatch(
 // ============================================================================
 
 private fun guard(ok: Boolean, message: String) {
-    if (!ok) throw PatchException("WPS premium patch 26.11.0 structural check failed: $message")
+    if (!ok) throw PatchException("WPS premium patch 26.11.1 structural check failed: $message")
+}
+
+/**
+ * Register count of a method, without parsing its body when that would throw.
+ *
+ * dexlib2 materialises a code item lazily and throws `Invalid element width` on a
+ * structurally malformed one. Every use in this patch is followed by replacing the
+ * body outright, so an estimated frame is always acceptable: parameters (plus
+ * `this` for an instance method) plus a local area large enough for the
+ * replacement bodies written here.
+ */
+private fun MutableMethod.safeRegisterCount(): Int {
+    val existing = try {
+        implementation?.registerCount
+    } catch (t: Throwable) {
+        null
+    }
+    if (existing != null) return existing
+    val isStatic = (accessFlags and 0x8) != 0
+    return parameterTypes.size + (if (isStatic) 0 else 1) + 8
 }
 
 /**

@@ -43,8 +43,8 @@ need it rather than skipping them.
 | `tests/shared/test_settings.py` | The real `Settings`, `Registry` and settings screen helpers against each app's registered settings (`tests/shared/registry/`): JSON round trip, parent ordering, defaults, restart flags, stored and wrongly typed values, the unreadable-registry fallback. |
 | `tests/shared/test_sleep_timer.py` | *Sleep timer* in Kick and Twitch on a virtual clock: expiry, resuming, stop and release, races at dispatch. |
 | `tests/rumble/test_state_transitions.py` | Rumble's chat keywords across sign-in changes, *Anonymous chat*'s cookie and send decisions, and *Remember playback speed* switched on, off and on. |
-| `tests/rumble/test_video_stats.py` | Rumble's *Show video stats* text from Media3-shaped format logs and decoder counters: live and VOD renditions, missing values, and keys the panel skips not running into the ones it shows. |
-| `tests/kick/verify_player.py` | Kick's player decisions: mobile-data quality ceiling, normal latency, background audio. |
+| `tests/rumble/test_video_stats.py` | Rumble's *Show video stats* text from Media3-shaped format logs and decoder counters: live and VOD renditions, missing values, and keys the panel skips not running into the ones it shows; where the panel starts in a frame Fill screen zoomed past its player view. |
+| `tests/kick/verify_player.py` | Kick's player decisions: mobile-data quality ceiling, normal latency, background audio and automatic picture-in-picture, Fill screen. |
 | `tests/kick/verify_privacy.py` | Kick's privacy helper. |
 | `tests/kick/test_touch.py` | Kick's player touches on a window double: which touches *Player gestures* takes (landscape, the video's left and right, past the touch slop) and which stay Kick's, the volume and brightness they set, and the brightness handed back in portrait; *Refresh stream*'s long press, with the patch-time bridges swapped for recorders (one reload and one cancel, a video seeking back, and what stays Kick's). |
 | `tests/kick/test_chat_page.py` | Lurk's Kick chat page script in headless Chrome, with every request answered by the test. |
@@ -112,18 +112,21 @@ one `bin/decompile kick` wrote): `verify_sources.py` (every JavaScript-editing p
 updates; no version literal outside `Constants.kt`), `test_hermes.py`, `verify_literals.py`, `verify_hosting.py`
 and `verify_quality.py` with hermes-dec (the latter two only when the APK has Stay on channel and Default video
 quality), `HermesProbe.kt` on the JVM, `verify_player.py`, `verify_privacy.py`, and on an apktool decode of the
-APK `verify_sleep_queue.py` and `verify_analytics_jobs.py`. It skips, and says so, the checks of patches the APK
+APK `verify_sleep_timer.py` and `verify_analytics_jobs.py`. It skips, and says so, the checks of patches the APK
 doesn't have. The stock bundle's hash and the Kick version are read from the patch sources (`tests/kick/pins.py`).
 `bin/test-kick` first checks that Kick's code calls every hook in `tests/kick/expected-hooks.txt`, then runs the
-bundle loader, its reuse of the prepared bundle, and the analytics promise stubs on ART.
+bundle loader, its reuse of the prepared bundle, the analytics promise stubs and player monitors, Fill screen on
+Media3's video frame, the player hooks (`PlayerProbe`) and the Lurk link (`SettingsLinkProbe`, which needs the patched
+APK installed on the device) on ART.
 `python3 -I tests/kick/refresh_chat_page_contract.py --check` compares Kick's live chat page with
 `tests/kick/chat-page-contract.json`; it needs the network and is not part of any gate.
 
 `verify_hosting.py` first verifies the stock hash, embedded bundle and manifest, then applies the
 actual `stay_on_host` edit. It executes the host content, JSX callbacks, countdown hook and timer
-callbacks, with React state/effect boundaries and persistent compiler caches. It executes the parent's
-actual event-to-child output branch to unmount between hosts. Random duration alone is seeded at its
-memo slot. Stock/off and three bytecode mutations check waiting, memo invalidation and manual routing.
+callbacks, with React's state, callbacks and effects kept across renders; the parent mounts the dialog while
+there is a host event and unmounts it after. The random duration is fixed at 3 seconds. Stock/off and three bytecode
+mutations (stock bytes with the switch on, the state stored outside `startOnMount`, `onEnd` returning at entry) check
+waiting and manual routing.
 It rejects unsupported executed instructions. Pusher delivery, React Native rendering and real routing
 remain device integration work.
 
@@ -145,7 +148,7 @@ subset. The probes read the obfuscated names they need from the APK's `assets/lu
 - `PrivacyProbe`: Disable analytics with and without Keep watch progress (only watch-progress events
   pass), Block cookie notice (the start loop starts only Airship, with essential services) and Don't save
   searches.
-- `HideProbe`: Hide Shorts, Hide Premium upsells, Hide tipping and Rants, Hide comments and related videos
+- `HideProbe`: Hide Shorts (My Feed's pills too), Hide Premium upsells, Hide tipping and Rants, Hide comments and related videos
   and Hide premium-only videos: the DTO getters, parsers and emptied composables, with the switches off as
   controls.
 - `PlaybackProbe`: Fill screen on Media3's real `AspectRatioFrameLayout`, Seek interval, Sleep timer's direct
@@ -154,9 +157,9 @@ subset. The probes read the obfuscated names they need from the APK's `assets/lu
   `SearchProbe`, `UpdateProbe`: the chat hooks, keyword filter, exact counts, home sections and bottom bar,
   player settings, Unlock Premium's getter, Default video quality, search history and Block update prompts.
 - `RefreshProbe`: the *Refresh stream* hooks: video-load registration, the error panel's tap handler, the
-  reload bridge and the stock player's reload, with ExoPlayer, Compose and the player state supplied.
-  Reloads keep the source and position without saving a quality; null sources, the switch off, a missing
-  player and stock quality changes are controls, and the callback is restored after exceptions.
+  reload bridge and the stock player's reload, with ExoPlayer, Compose state, the Composer and the player's
+  logger supplied as doubles found by type. Reloads keep the source and position; null sources, the switch
+  off and a missing player are controls, and the stock catch and escaping failures reach the caller as such.
 
 After the probes, `bin/test-rumble` runs `tests/rumble/verify_compose.py` (every Compose trace label the
 patches match must exist in the APK, and App Info must have exactly three rows, which the hidden settings

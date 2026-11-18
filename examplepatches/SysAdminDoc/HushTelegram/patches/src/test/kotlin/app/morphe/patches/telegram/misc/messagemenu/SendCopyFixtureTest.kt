@@ -8,7 +8,6 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.PlusPending
 import app.morphe.util.names.TelegramNames
 import app.morphe.util.names.origDefiningClass
 import app.morphe.util.names.origName
@@ -20,7 +19,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /** The three sends Forward as copy calls, in every declared build, and the argument mapping the stubs generate. */
-@PlusPending
 class SendCopyFixtureTest {
     private val fixed = setOf("Lorg/telegram/messenger/SendMessagesHelper;", "Lorg/telegram/messenger/AccountInstance;")
 

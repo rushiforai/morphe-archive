@@ -41,6 +41,8 @@ import app.morphe.patches.telegram.misc.localcontrols.forEachClassMentioning
 import app.morphe.patches.telegram.misc.settings.settingsPatch
 import app.morphe.util.ControlFlow
 import app.morphe.util.addInstructionsAtControlFlowLabel
+import app.morphe.util.definitionReaches
+import app.morphe.util.writesReaching
 import app.morphe.util.call
 import app.morphe.util.namedRegisters
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -122,7 +124,7 @@ val messageMenuPatch = bytecodePatch(
 ) {
     category("Conversations")
     dependsOn(settingsPatch, telegramExtensionPatch)
-    compatibleWith(*AppCompatibilities.telegramOnly())
+    compatibleWith(*AppCompatibilities.telegram())
     execute {
         val site = resolveMessageMenu()
         val selection = resolveSelectionCopy()
@@ -295,27 +297,9 @@ internal fun BytecodePatchContext.resolveMessageMenu(): MessageMenuSite {
     val (chat, chatClass, fill, built) = messageMenuBuilder(builders, NAME)
     controlShape(built.none { (it as? NarrowLiteralInstruction)?.narrowLiteral in MENU_OPTIONS }, "the message menu already uses the extension's numbers")
 
-    // Forward goes in through a helper taking the label, the option number and two of the lists
-    // (13.2's also takes the icon and hands it back boxed), right after the label and its constants.
+    // Forward goes in with its option number, inline on Plus Messenger, through a helper on Telegram.
     val label = built.indices.filter { built[it].controlRef() == FORWARD_LABEL }.controlSingle("Forward label")
-    val constants = setOf(Opcode.CONST_4, Opcode.CONST_16, Opcode.CONST)
-    val callAt = (label + 1..minOf(label + 4, built.size - 1)).firstOrNull { built[it].opcode !in constants }
-    val add = callAt?.let { built[it] }
-    val helper = add?.call()
-    controlShape(built[label].loadsInt() && add != null && add.opcode == Opcode.INVOKE_STATIC && helper != null &&
-        helper.origParameterTypes.count { it == LIST } == 2 && helper.origParameterTypes.all { it == "I" || it == LIST },
-        "Forward no longer goes into the menu with its number")
-    val helperMethod = tgClassDefByOrNull(helper!!.origDefiningClass)?.methods?.singleOrNull { signature(it) == helper.origString() }
-    val roles = helperMethod?.let(::labelHelperRoles)
-    controlShape(roles != null, "the menu's label helper changed")
-    val (labelAt, optionAt) = roles!!
-    val passed = add!!.namedRegisters()
-    val optionRegister = passed.getOrNull(optionAt)
-    val option = (label + 1 until callAt!!).lastOrNull { (built[it] as? OneRegisterInstruction)?.registerA == optionRegister }
-        ?.let { built[it] as? NarrowLiteralInstruction }
-    controlShape(passed.getOrNull(labelAt) == (built[label] as OneRegisterInstruction).registerA && option != null,
-        "Forward no longer goes into the menu with its number")
-    val forwardOption = option!!.narrowLiteral
+    val forwardOption = inlineForwardOption(built, label) ?: helperForwardOption(built, label)
 
     // The selected message and its album, as the builder reads them.
     val selected = built.firstOrNull { it.opcode == Opcode.IGET_OBJECT && it.controlField()?.let { f -> f.origDefiningClass == chat && f.origType == MESSAGE } == true }?.controlField()
@@ -335,7 +319,7 @@ internal fun BytecodePatchContext.resolveMessageMenu(): MessageMenuSite {
     controlShape(chosen.firstOrNull { it.opcode == Opcode.IGET_OBJECT && it.controlField()?.origType == MESSAGE }?.controlField().toString() == selected.toString(),
         "the menu choice no longer starts from the selected message")
     controlShape(chosen.any { it.opcode == Opcode.IPUT_OBJECT && it.controlField().toString() == group.toString() }, "the menu choice no longer clears the selected album")
-    val cases = chosen.filterIsInstance<SwitchPayload>().flatMap { it.switchElements.map { e -> e.key } }
+    val cases = chosen.filterIsInstance<SwitchPayload>().flatMap { it.switchElements.map { e -> e.key } } + optionCompares(choose, chosen)
     controlShape(forwardOption in cases && cases.none { it in MENU_OPTIONS }, "the menu choice's numbers changed")
     controlShape(ControlFlow.of(choose).normal.none { 0 in it }, "something jumps back to the start of the menu choice")
 
@@ -352,9 +336,13 @@ internal fun BytecodePatchContext.resolveMessageMenu(): MessageMenuSite {
     val providerOwner = tgClassDefByOrNull(provider.substringBefore("->"))
     // Older builds join the app's ID and ".provider"; newer ones load the joined authority as one string.
     val joined = chosen.any { it.controlRef() == APPLICATION_ID } && chosen.any { it.controlString() == ".provider" }
+    val chosenFlow by lazy { ControlFlow.of(choose) }
     val authority = if (joined) null else chosen.indices.filter { chosen[it].call()?.origString() == provider }.map { at ->
         val register = chosen[at].namedRegisters().getOrNull(1)
-        (at - 1 downTo maxOf(0, at - 3)).firstOrNull { (chosen[it] as? OneRegisterInstruction)?.registerA == register }?.let { chosen[it].controlString() }
+        val near = (at - 1 downTo maxOf(0, at - 3)).firstOrNull { (chosen[it] as? OneRegisterInstruction)?.registerA == register }
+        // Plus Messenger loads the authority once, at the top of the method, and keeps it in its register.
+        if (near != null || register == null) near?.let { chosen[it].controlString() }
+        else chosenFlow.writesReaching(at, register).map { chosen.getOrNull(it)?.controlString() }.distinct().singleOrNull()
     }.distinct().singleOrNull()
     controlShape(providerOwner != null && AccessFlags.PUBLIC.isSet(providerOwner.accessFlags) && providerOwner.methods.any {
         signature(it) == provider && AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags)
@@ -413,6 +401,80 @@ internal fun BytecodePatchContext.messageMenuBuilder(builders: List<Pair<String,
     return MessageMenuBuilder(chat, chatClass, fill, built)
 }
 
+/**
+ * Telegram's Forward: a helper taking the label, the option number and two of the lists (13.2's
+ * also takes the icon and hands it back boxed), right after the label and its constants.
+ */
+private fun BytecodePatchContext.helperForwardOption(built: List<Instruction>, label: Int): Int {
+    val constants = setOf(Opcode.CONST_4, Opcode.CONST_16, Opcode.CONST)
+    val callAt = (label + 1..minOf(label + 4, built.size - 1)).firstOrNull { built[it].opcode !in constants }
+    val add = callAt?.let { built[it] }
+    val helper = add?.call()
+    controlShape(built[label].loadsInt() && add != null && add.opcode == Opcode.INVOKE_STATIC && helper != null &&
+        helper.origParameterTypes.count { it == LIST } == 2 && helper.origParameterTypes.all { it == "I" || it == LIST },
+        "Forward no longer goes into the menu with its number")
+    val helperMethod = tgClassDefByOrNull(helper!!.origDefiningClass)?.methods?.singleOrNull { signature(it) == helper.origString() }
+    val roles = helperMethod?.let(::labelHelperRoles)
+    controlShape(roles != null, "the menu's label helper changed")
+    val (labelAt, optionAt) = roles!!
+    val passed = add!!.namedRegisters()
+    val optionRegister = passed.getOrNull(optionAt)
+    val option = (label + 1 until callAt!!).lastOrNull { (built[it] as? OneRegisterInstruction)?.registerA == optionRegister }
+        ?.let { built[it] as? NarrowLiteralInstruction }
+    controlShape(passed.getOrNull(labelAt) == (built[label] as OneRegisterInstruction).registerA && option != null,
+        "Forward no longer goes into the menu with its number")
+    return option!!.narrowLiteral
+}
+
+/**
+ * Plus Messenger's Forward, added inline: the label looked up and added to one list, then its
+ * number boxed and added to another, in the seven instructions after the label. Null when Forward
+ * goes in some other way.
+ */
+private fun inlineForwardOption(built: List<Instruction>, label: Int): Int? {
+    val text = (built[label] as? OneRegisterInstruction)?.registerA ?: return null
+    val lookup = built.getOrNull(label + 1) ?: return null
+    if (!built[label].loadsInt() || lookup.controlRef() !in LABEL_LOOKUPS || lookup.namedRegisters().firstOrNull() != text) return null
+    val labels = addedList(built, label + 2) ?: return null
+    val number = built.getOrNull(label + 4)?.takeIf { it.opcode in setOf(Opcode.CONST_4, Opcode.CONST_16, Opcode.CONST) } ?: return null
+    val box = built.getOrNull(label + 5) ?: return null
+    if (box.controlRef() != BOX_INT || box.namedRegisters().singleOrNull() != (number as OneRegisterInstruction).registerA) return null
+    val options = addedList(built, label + 6) ?: return null
+    return (number as NarrowLiteralInstruction).narrowLiteral.takeIf { labels != options }
+}
+
+/** The list a call's result goes into: the result moved out at [at] and added to that list right after. */
+private fun addedList(built: List<Instruction>, at: Int): Int? {
+    val result = (built.getOrNull(at)?.takeIf { it.opcode == Opcode.MOVE_RESULT_OBJECT } as? OneRegisterInstruction)?.registerA ?: return null
+    val add = built.getOrNull(at + 1)?.takeIf { it.controlRef() == ADD_TO_LIST && it.namedRegisters().getOrNull(1) == result } ?: return null
+    return add.namedRegisters().first()
+}
+
+/**
+ * The numbers the menu choice compares its option with one at a time, as Plus Messenger checks
+ * Forward and its own options ahead of the switch: an if-eq or if-ne of the option, or a straight
+ * copy of it, against a constant that still holds there.
+ */
+private fun optionCompares(choose: Method, chosen: List<Instruction>): List<Int> {
+    val flow = ControlFlow.of(choose)
+    val param = choose.implementation!!.registerCount - 1
+    val moves = setOf(Opcode.MOVE, Opcode.MOVE_FROM16, Opcode.MOVE_16)
+    fun lastWrite(at: Int, register: Int) = (at - 1 downTo 0).firstOrNull {
+        chosen[it].opcode.setsRegister() && chosen[it].namedRegisters().firstOrNull() == register }
+    val copies = chosen.indices.filter { m -> chosen[m].opcode in moves && chosen[m].namedRegisters()[1] == param &&
+        lastWrite(m, param) == null }
+    fun option(at: Int, register: Int) = register == param && lastWrite(at, param) == null ||
+        copies.any { m -> chosen[m].namedRegisters()[0] == register && flow.definitionReaches(m, at, register) }
+    return chosen.indices.mapNotNull { at ->
+        val test = chosen[at]
+        if (test.opcode != Opcode.IF_EQ && test.opcode != Opcode.IF_NE) return@mapNotNull null
+        val (a, b) = test.namedRegisters()
+        val other = when { option(at, a) -> b; option(at, b) -> a; else -> return@mapNotNull null }
+        val load = lastWrite(at, other) ?: return@mapNotNull null
+        (chosen[load] as? NarrowLiteralInstruction)?.takeIf { flow.definitionReaches(load, at, other) }?.narrowLiteral
+    }
+}
+
 /** LocaleController.getString(res), and the (res, key) form 13.2 left with its arguments swapped. */
 private val LABEL_LOOKUPS = setOf("$LOCALE->getString(I)$STRING", "$LOCALE->getString(I$STRING)$STRING")
 private const val BOX_INT = "Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;"
@@ -452,7 +514,9 @@ private fun labelHelperRoles(helper: Method): Pair<Int, Int>? {
 
 /**
  * The send takes the messages, Hide sender's name, Hide captions, notify, the schedule date and the
- * stars straight from the method's own parameters, each moved in just before the call.
+ * stars straight from the method's own parameters, each moved in just before the call. Plus
+ * Messenger picks the two hide flags itself in some of its own modes (a chat opened to quote, its
+ * captions switch), so each of those may also come from a constant on another branch.
  */
 private fun requireForwardArguments(forward: Method) {
     val body = forward.controlBody()
@@ -461,16 +525,25 @@ private fun requireForwardArguments(forward: Method) {
     controlShape(call != null && call.registerCount == 16, "the forward into the open chat no longer sends in one call")
     val flow = ControlFlow.of(forward)
     val self = forward.implementation!!.registerCount - 8
+    // A boolean the host chose: a const/4, or a move of a register only const/4s reach.
+    fun constant(write: Int): Boolean = write >= 0 && when (body[write].opcode) {
+        Opcode.CONST_4 -> true
+        Opcode.MOVE, Opcode.MOVE_FROM16 -> body[write].namedRegisters()[1].let { from ->
+            flow.writesReaching(write, from).let { reach -> reach.isNotEmpty() && reach.all { it >= 0 && body[it].opcode == Opcode.CONST_4 } }
+        }
+        else -> false
+    }
     // The call's slot, and the declared parameter it must hold.
     for ((slot, parameter) in listOf(1 to 0, 4 to 1, 5 to 2, 6 to 3, 7 to 4, 11 to 5)) {
         val register = call!!.startRegister + slot
-        val write = (at - 1 downTo 0).firstOrNull { i -> body[i].opcode.setsRegister() && (body[i] as? OneRegisterInstruction)?.registerA == register }
         val source = self + 1 + parameter
-        controlShape(write != null && body[write].opcode in MOVES && body[write].namedRegisters() == listOf(register, source) &&
-            (write + 1..at).all { i -> flow.normal.indices.filter { i in flow.normal[it] } == listOf(i - 1) } &&
-            (write + 1 until at).none { j -> body[j].opcode.setsWideRegister() && (body[j] as? OneRegisterInstruction)?.registerA == register - 1 },
+        val writes = flow.writesReaching(at, register)
+        val moves = writes.filter { it >= 0 && body[it].opcode in MOVES && body[it].namedRegisters() == listOf(register, source) }
+        val straight = moves.singleOrNull()?.takeIf { write -> writes.size == 1 &&
+            (write + 1..at).all { i -> flow.normal.indices.filter { i in flow.normal[it] } == listOf(i - 1) } }
+        controlShape(straight != null || slot in setOf(4, 5) && moves.isNotEmpty() && (writes - moves.toSet()).all(::constant),
             "the forward's send no longer takes its argument $slot from the method")
-        forward.requireParameterIntact(NAME, parameter, listOf(write!!))
+        forward.requireParameterIntact(NAME, parameter, moves)
     }
 }
 

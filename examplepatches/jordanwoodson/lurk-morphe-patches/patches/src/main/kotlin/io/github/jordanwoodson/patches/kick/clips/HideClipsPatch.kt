@@ -59,12 +59,13 @@ val hideClipsPatch = bytecodePatch(
         replace(channelTabs, "52 02 03 01 5a 01 02 03", "52 02 03 01 93 00 93 00")
         replace(channelTabs, "5a 01 02 04 76 01", "5a 01 02 03 76 01")
 
-        // The category header's screen list has Live and Clips. r1 is only ever undefined (checked);
-        // restoring it twice is a harmless, complete four-byte replacement for the Clips append.
-        val header = kickHermes.function("BrowseCategoriesHeader")
-        requireOnlyUndefined(header, 1)
-        replace(header,
-            "09 0c 02 00 5a 0c 10 00 5a 0c 15 01", "09 0c 01 00 5a 0c 10 00 93 01 93 01")
+        // The category header's screen list (Live, Clips) is a small producer BrowseCategoriesHeader creates, like the
+        // two lists above: the same edits. r0 is only ever undefined there (checked).
+        val header = kickHermes.closureUsing(kickHermes.function("BrowseCategoriesHeader"), "category tab list",
+            loads = listOf("browse.tabs.livechannels.title.message", "clips.title.message"))
+        requireOnlyUndefined(header, 0)
+        replace(header, "09 01 02 00 5a 01 02 00", "09 01 01 00 5a 01 02 00")
+        replace(header, "5a 01 02 01 76 01", "93 00 93 00 76 01")
 
         // Remove the PopularClipsRow React element in its parent, preserving the video and
         // recent-category rows: jsx(PopularClipsRow, {channelSlug}) becomes null in the same register.

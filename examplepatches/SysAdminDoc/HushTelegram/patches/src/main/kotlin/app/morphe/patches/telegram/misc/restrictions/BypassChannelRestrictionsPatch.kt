@@ -72,7 +72,7 @@ val bypassChannelRestrictionsPatch = bytecodePatch(
 ) {
     category("Privacy")
     dependsOn(settingsPatch, telegramExtensionPatch)
-    compatibleWith(*AppCompatibilities.telegramOnly())
+    compatibleWith(*AppCompatibilities.telegram())
 
     execute {
         requireStatusMethod("bypassChannelRestrictions")

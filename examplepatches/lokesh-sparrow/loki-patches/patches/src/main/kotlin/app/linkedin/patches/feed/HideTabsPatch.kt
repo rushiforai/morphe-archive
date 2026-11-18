@@ -28,7 +28,7 @@ private object HomeNavTabsFingerprint : Fingerprint(
 @Suppress("unused")
 val hideTabsPatch = bytecodePatch(
     name = "Hide bottom tabs",
-    description = "Adds switches to take My Network and Jobs out of the bottom bar.",
+    description = "Adds switches to take My Network, Jobs and More out of the bottom bar (More is hidden by default).",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)

@@ -69,14 +69,15 @@ val blockDisplayAdsPatch = bytecodePatch(
         val slots = twitchHermes.function("extractAdSlots")
         // After `NewArray r0, 0`, return that empty array instead of reading the feed's edges.
         twitchHermes.replace(slots, KEY, hex("08 00 00 00 89 03 01"), hex("08 00 00 00 76 00 00"))
-        // The FeedAd branch (`!adFailures.has(node.id)`, entered only by its jump) returns false.
-        // Nothing jumps into the replaced instructions; the next one is the FeedRecap branch.
+        // The FeedAd branch (`!context.removedAdIds.has(node.id)`, entered only by its jump) returns false.
+        // Nothing jumps into the replaced instructions; the next one is the FeedRecap branch. The registers are
+        // the compiler's for the supported version (removedAdIds r6, node r4).
         val visible = twitchHermes.function("isEdgeVisible")
         val has = twitchHermes.id8("has")
         val id = twitchHermes.id8("id")
         twitchHermes.replace(visible, KEY,
-            hex("89 05 04 44 04 05 02 $has 44 03 03 05 $id 6e 03 04 05 03 13 00 03 76 00"),
-            hex("96 00 76 00") + ByteArray(19))
+            hex("44 05 06 07 $has 44 04 04 0a $id 6e 04 05 06 04 13 00 04 76 00"),
+            hex("96 00 76 00") + ByteArray(16))
 
         twitchSettings.add(SwitchSetting(KEY, "Block display ads",
             "Stream display, audio, headliner and feed ads, and brand surveys. Stitched stream ads still play.",

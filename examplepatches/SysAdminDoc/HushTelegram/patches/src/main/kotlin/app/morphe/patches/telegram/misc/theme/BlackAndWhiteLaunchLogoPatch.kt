@@ -51,6 +51,8 @@ val blackAndWhiteLaunchLogoPatch = resourcePatch(
 ) {
     category("Theme")
     dependsOn(amoledBlackPatch)
+    // Plus Messenger's launch themes name no animated icon, so Android shows Plus's own launcher
+    // icon there and there's no Telegram logo to turn white.
     compatibleWith(*AppCompatibilities.telegramOnly())
     // Patcher 2.0 decodes only the files a patch asks for, and an undecoded file doesn't exist yet,
     // so each file the logo reads or checks is asked for first.

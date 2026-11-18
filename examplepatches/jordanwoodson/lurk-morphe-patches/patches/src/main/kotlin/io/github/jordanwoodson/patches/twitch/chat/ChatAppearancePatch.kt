@@ -10,6 +10,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import io.github.jordanwoodson.patches.shared.Locators
 import io.github.jordanwoodson.patches.shared.invokeStatic
 import io.github.jordanwoodson.patches.shared.parameterRegister
 import io.github.jordanwoodson.patches.twitch.emotes.EmoteUrlFingerprint
@@ -148,32 +149,40 @@ private fun BytecodePatchContext.numberLiveMessages() {
 
 /**
  * Every chat image span (emote, badge, notice icon) gets a square box sized from its size class before its image
- * loads; the loaded image is fitted into it. At each return of that size, the extension scales emotes' and badges'.
- * The size class is read once at the start and its register isn't written again.
+ * loads; the loaded image is fitted into it. At each return of that size, the extension scales emotes' and badges',
+ * given the size class, which it reads from the placeholder drawable (the second parameter, never written).
  */
 private fun BytecodePatchContext.sizeChatImages() {
     val match = ChatImageBoxFingerprint.twitchMatch("chat image box")
-    val sizeClass = match.instructionMatches.first().instruction.methodRef!!.definingClass
+    val placeholderType = match.method.parameterTypes[1].toString()
     // The size class is Twitch's enum of chat image kinds; the extension tells them apart by constant name.
-    val constants = classDefBy(sizeClass).methods.singleOrNull { it.name == "<clinit>" }?.implementation
+    val sizeField = classDefBy(placeholderType).fields.singleOrNull { field ->
+        !AccessFlags.STATIC.isSet(field.accessFlags) && classDefByOrNull(field.type)?.let { type ->
+            AccessFlags.ENUM.isSet(type.accessFlags)
+        } == true
+    } ?: throw PatchException("Twitch: the chat image placeholder has no single size class")
+    val constants = classDefBy(sizeField.type).methods.singleOrNull { it.name == "<clinit>" }?.implementation
         ?.instructions?.mapNotNull { it.stringRef }.orEmpty()
     if (!constants.containsAll(listOf("Emote", "GigantifiedEmote", "Badge"))) {
         throw PatchException("Twitch: chat image size classes changed")
     }
+    Locators.record("twitch.chat_appearance.image_size_class", "$placeholderType->${sizeField.name}:${sizeField.type}")
     match.method.apply {
         val instructions = instructionList()
-        val read = instructions.indexOfFirst { it.opcode == Opcode.IGET_OBJECT && it.fieldRef?.type == sizeClass }
-        if (read != 0) throw PatchException("Twitch: the chat image box doesn't start with its size class")
-        val kind = (instructions[read] as TwoRegisterInstruction).registerA
-        if (instructions.drop(1).any { it.opcode.setsRegister() && (it as OneRegisterInstruction).registerA == kind }) {
-            throw PatchException("Twitch: the chat image box reuses its size class register")
+        val placeholder = parameterRegister(1)
+        if (placeholder > 15) throw PatchException("Twitch: the chat image box's placeholder register is out of range")
+        if (instructions.any { it.opcode.setsRegister() && (it as OneRegisterInstruction).registerA == placeholder }) {
+            throw PatchException("Twitch: the chat image box reuses its placeholder register")
         }
         val returns = instructions.indices.filter { instructions[it].opcode == Opcode.RETURN }
         if (returns.isEmpty()) throw PatchException("Twitch: the chat image box has no return")
         returns.reversed().forEach { index ->
             val size = (instructions[index] as OneRegisterInstruction).registerA
+            // At a return every register but the result is dead.
+            val kind = (0 until 16).first { it != size && it != placeholder && it < implementation!!.registerCount }
             requireNotBranchTarget(index, "chat image box return")
             addInstructions(index, """
+                iget-object v$kind, v$placeholder, $placeholderType->${sizeField.name}:${sizeField.type}
                 ${invokeStatic("$STYLE->imageSize(ILjava/lang/Object;)I", size, kind)}
                 move-result v$size
             """)

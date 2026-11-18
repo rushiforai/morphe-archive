@@ -865,7 +865,7 @@ public final class ChatJump {
      * A round arrow at the bottom left of a chat that goes to its first message, the other way round from
      * Messenger's own arrow down to the newest one, since a long press on the chat's name is easy to miss (#177).
      * A long press on the arrow asks for a day instead. It's only up while the chat has older messages to go to,
-     * and it stands down while the count bar is on screen.
+     * and it stands down while the count bar or a message's menu is on screen.
      */
     static final class Arrow implements ViewTreeObserver.OnGlobalLayoutListener, ViewTreeObserver.OnScrollChangedListener {
         private final View chat;
@@ -934,7 +934,8 @@ public final class ChatJump {
             if (button == null || content == null) return;
             View list = chat.isShown() ? listIn(chat) : null;
             Jump jump = running;
-            boolean up = list != null && list.canScrollVertically(-1) && (jump == null || jump.chat != chat);
+            boolean up = list != null && list.canScrollVertically(-1) && (jump == null || jump.chat != chat)
+                && !InChatMenu.isUp(button);
             int wanted = up ? View.VISIBLE : View.GONE;
             if (button.getVisibility() != wanted) button.setVisibility(wanted);
         }

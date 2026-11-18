@@ -90,7 +90,7 @@ The settings file was saved, but it doesn't match what Hushfacebook wrote. Save 
 There's no app here that can open or share this saved file.	這支手機上沒有可開啟或分享該已儲存檔案的應用程式。
 # context: line at the top of a settings page while paused; Lock Facebook keeps working while paused
 Until you resume, every switch but Debug logging and Lock Facebook acts as if it were off. Changes made when you patched stay in.	繼續之前，除了「偵錯記錄」與「鎖定 Facebook」，所有開關都視為停用。修補時套用的變更仍會生效。
-Shows your phone's own emoji instead of Facebook's. Reactions and stickers don't change. Restart Facebook to see the change.	顯示手機的表情符號，取代 Facebook 的表情符號。心情與貼圖不受影響。重新啟動 Facebook 後生效。
+Shows your phone's own emoji instead of Facebook's, or the ones in a font file you choose below. Reactions and stickers don't change. Restart Facebook to see the change.	顯示手機的表情符號，取代 Facebook 的表情符號，也可改用你在下方選擇的字型檔。心情與貼圖不受影響。重新啟動 Facebook 後生效。
 # context: switch title under Appearance; the tab bar is Facebook's row of tabs, Home, Video, Marketplace and the rest
 Tab bar at the bottom	將分頁列移至底部
 # context: switch title under Appearance, next to Tab bar at the bottom; puts Facebook's row of tabs at the top of the screen
@@ -1360,6 +1360,8 @@ Couldn't get this photo. Try again in a moment.	無法取得這張相片。請�
 Save photo	儲存相片
 # context: menu item in a post's three-dot menu that saves every photo of a post with several photos
 Save all photos	儲存所有相片
+# context: menu item in a post's three-dot menu that saves every video of a post with several videos
+Save all videos	儲存所有影片
 # context: short message shown when the photos of a post could not start saving
 Couldn't save this post's photos. Try again in a moment.	無法儲存這則貼文的相片。請稍後再試。
 # context: row in a comment's long-press sheet that saves the GIF the comment holds; keep it short like Save photo
@@ -2730,9 +2732,9 @@ Hide pictures on the Blocked list	隱藏封鎖名單中的大頭貼照
 People you've blocked show without their profile pictures on the Blocking page in Facebook's settings. Reopen the page if it's already open.	你封鎖的人在 Facebook 設定的封鎖頁面上不會顯示大頭貼照。如果該頁面已開啟，請重新開啟。
 Hide Up next on videos	隱藏影片上的「接下來播放」
 Takes the UP NEXT bar with the next video off the bottom of a video you open from the feed, and the empty space kept for it, so the seek bar stays at the bottom. A change shows from the next video you open.	移除從動態消息開啟的影片底部顯示下一部影片的「接下來播放」列，以及為它保留的空白，讓進度列留在底部。變更會從你開啟的下一部影片起生效。
-Icons look soft on this screen. Repatch with the 240-640dpi bundle.	此螢幕上的圖示看起來模糊。請用 240-640dpi 套件重新修補。
+Icons look soft on this screen. Repatch with the 120-480dpi bundle.	此螢幕上的圖示看起來模糊。請用 120-480dpi 套件重新修補。
 Icons look soft on this screen	此螢幕上的圖示看起來模糊
-The Facebook you patched has no images made for this screen, so some icons are enlarged. Patch Facebook again from the (arm64-v8a) (240-640dpi) bundle on APKMirror, which has images for every screen.	你修補的 Facebook 沒有適合此螢幕的圖片，因此部分圖示被放大。請使用 APKMirror 上的 (arm64-v8a) (240-640dpi) 套件重新修補 Facebook，它包含適合所有螢幕的圖片。
+The Facebook you patched has no images made for this screen, so some icons are enlarged. Patch Facebook again from the (arm64-v8a) (120-480dpi) bundle on APKMirror, which has images for every screen.	你修補的 Facebook 沒有適合此螢幕的圖片，因此部分圖示被放大。請使用 APKMirror 上的 (arm64-v8a) (120-480dpi) 套件重新修補 Facebook，它包含適合所有螢幕的圖片。
 Let each post come back once	讓每則貼文再出現一次
 A post you scrolled past shows up one more time, and scrolling past it again hides it. Fewer posts go missing after a quick scroll.	你捲動瀏覽過的貼文會再出現一次，再次捲過後才會隱藏。快速捲動後錯過的貼文會更少。
 There's no Facebook link in what you shared.	你分享的內容中沒有 Facebook 連結。
@@ -2957,3 +2959,50 @@ Ask before reacting to a story	對限時動態留下心情前先詢問
 A tap on a reaction at the bottom of a story asks first, and the story waits. Only Continue sends the reaction.	點按限時動態底部的心情會先詢問，限時動態會暫停等待。只有點「繼續」才會送出心情。
 # context: the question shown after a tap on a reaction at the bottom of a story; Continue sends the reaction, Cancel leaves it
 React to this story?	要對這則限時動態留下心情嗎？
+# context: In-app proxy, an HTTP proxy address (host:port) Facebook's connections go through
+In-app proxy	應用程式內代理
+The address and port of an HTTP proxy for Facebook's connections, like %1$s. The local proxy port of a VLESS or V2Ray app such as v2rayNG works here. Leave it blank to connect the way your phone does.	Facebook 連線所用 HTTP 代理的位址和連接埠，例如 %1$s。v2rayNG 等 VLESS 或 V2Ray 應用程式的本機代理連接埠可以用在這裡。留空則依手機自己的方式連線。
+Type an HTTP proxy's address and port, like %1$s.	請輸入 HTTP 代理的位址和連接埠，例如 %1$s。
+Facebook connects the way your phone does. Type a proxy's address and port to send its connections through it.	Facebook 依手機自己的方式連線。輸入代理的位址和連接埠，讓它的連線經過該代理。
+Facebook's connections go through the proxy at %1$s.	Facebook 的連線經過代理 %1$s。
+# context: switch title on the Downloads page; on, a tap on a download button asks first
+Ask before downloading	下載前先詢問
+A reel's Download button, the Download button under a post and a video's Download to phone ask first, so a stray tap saves nothing. With Choose quality on each save on, a video's list of qualities does the asking.	Reels 的下載按鈕、貼文下方的下載按鈕和影片的「下載到手機」會先詢問，誤觸不會儲存任何內容。開啟「每次儲存時選擇畫質」後，影片由畫質清單來詢問。
+# context: the question over the screen after a tap on a download button, answered Continue or Cancel
+Start this download?	要開始這次下載嗎？
+# context: the settings row that opens a file picker for a font holding emoji
+Emoji font file	表情符號字型檔
+# context: the settings row that deletes the saved emoji font and goes back to the phone's emoji
+Remove emoji font file	移除表情符號字型檔
+# context: under Remove emoji font file while Use the phone's emoji is on
+Removes the saved emoji font file. Restart Facebook to use your phone's emoji.	移除已儲存的表情符號字型檔。重新啟動 Facebook 後會使用手機表情符號。
+# context: under Remove emoji font file while Use the phone's emoji is off
+Removes the saved emoji font file. Use the phone's emoji stays off.	移除已儲存的表情符號字型檔。「使用手機表情符號」仍保持停用。
+# context: under Emoji font file with nothing picked; %1$d is a number of megabytes
+No file chosen. Choose a .ttf or .otf emoji font of up to %1$d MB.	尚未選擇檔案。請選擇不超過 %1$d MB 的 .ttf 或 .otf 表情符號字型。
+# context: under Emoji font file; %1$s is the file's name
+Selected %1$s. Emoji changes apply after restarting Facebook.	已選擇 %1$s。表情符號變更在重新啟動 Facebook 後生效。
+# context: under Emoji font file while the switch is off; %1$s is the file's name
+Selected %1$s. Use the phone's emoji is off. Turn it on and restart Facebook to use this file.	已選擇 %1$s。「使用手機表情符號」已停用。請啟用並重新啟動 Facebook 以使用此檔案。
+# context: toast after an emoji font is picked; %1$s is the file's name
+Selected %1$s. Restart Facebook to apply the emoji change.	已選擇 %1$s。請重新啟動 Facebook 以套用表情符號變更。
+# context: toast after an emoji font is picked while the switch is off; %1$s is the file's name
+Selected %1$s. Turn on Use the phone's emoji and restart Facebook to use it.	已選擇 %1$s。請啟用「使用手機表情符號」並重新啟動 Facebook 以使用此字型。
+# context: under Emoji font file while the picked file is copied
+Copying the emoji font file	正在複製表情符號字型檔
+# context: toast when the file picked as an emoji font isn't a font
+That isn't a .ttf or .otf font file. Your emoji didn't change.	這不是 .ttf 或 .otf 字型檔。表情符號未變更。
+# context: toast when the emoji font is too large; %1$d is a number of megabytes
+That font file is over %1$d MB. Your emoji didn't change.	該字型檔超過 %1$d MB。表情符號未變更。
+# context: toast when Android can't load the picked emoji font
+Android couldn't use that font file. Your emoji didn't change.	Android 無法使用該字型檔。表情符號未變更。
+# context: toast when the font picked as an emoji font is a text font
+That font has no emoji in it. Your emoji didn't change.	該字型不含表情符號。表情符號未變更。
+# context: toast when the picked emoji font can't be read
+Couldn't open that file. Your emoji didn't change.	無法開啟該檔案。表情符號未變更。
+# context: toast after Remove emoji font file
+Emoji font file cleared. Restart Facebook to apply the emoji change.	已清除表情符號字型檔。請重新啟動 Facebook 以套用表情符號變更。
+# context: toast when Remove emoji font file fails
+Couldn't go back to your phone's emoji. Try again.	無法恢復使用手機表情符號。請再試一次。
+# context: toast when the app holding the emoji font doesn't answer in time
+The app holding that font file is taking too long, so Hushfacebook stopped waiting. Your emoji didn't change.	提供該字型檔的應用程式回應過慢，Hushfacebook 已停止等待。表情符號未變更。

@@ -29,6 +29,8 @@ private const val OBJECT = "Ljava/lang/Object;"
 private const val ARRAY_LIST = "Ljava/util/ArrayList;"
 private const val MEDIA_DATA = "Lorg/telegram/messenger/MediaDataController;"
 private val ENTITIES_PARAMETERS = listOf("[Ljava/lang/CharSequence;", "Z", "Z")
+/** What can follow a method's last instruction that runs: switch and array data, and the nop that aligns it. */
+private val TRAILING = setOf(Opcode.PACKED_SWITCH_PAYLOAD, Opcode.SPARSE_SWITCH_PAYLOAD, Opcode.ARRAY_PAYLOAD, Opcode.NOP)
 
 internal const val ADD_MENTIONS = "$MENTION_BY_ID->add($OBJECT$OBJECT$OBJECT)$ARRAY_LIST"
 
@@ -64,7 +66,9 @@ internal class MentionSite(
  * Telegram 13.2's R8 folded the two-argument `getEntities` into its callers, so the hook sits in the
  * three-argument one, in front of its last `return-object`. That return gives back the list; any
  * other return in the method only gives back null. `this`, the text array and the last flag are
- * never written in the body, so at the end they still hold what the caller passed.
+ * never written in the body, so at the end they still hold what the caller passed. Plus Messenger
+ * keeps a switch's data (and the nop that lines it up) after that return, so the end is the last
+ * instruction that runs, not the last one in the method.
  */
 internal fun BytecodePatchContext.resolveMentionById(): MentionSite {
     controlHook(MENTION_BY_ID, "add", listOf(OBJECT, OBJECT, OBJECT), ARRAY_LIST)
@@ -76,7 +80,7 @@ internal fun BytecodePatchContext.resolveMentionById(): MentionSite {
     }.controlSingle("the message entities method")
     controlShape(method.controlCallable(false), "the message entities method is not public")
     val body = method.controlBody()
-    val last = body.size - 1
+    val last = body.indexOfLast { it.opcode !in TRAILING }
     val result = body.getOrNull(last)?.takeIf { it.opcode == Opcode.RETURN_OBJECT }?.namedRegisters()?.singleOrNull()
     controlShape(result != null, "the message entities method no longer ends on its list")
     val kinds = RegisterKinds.of(method)

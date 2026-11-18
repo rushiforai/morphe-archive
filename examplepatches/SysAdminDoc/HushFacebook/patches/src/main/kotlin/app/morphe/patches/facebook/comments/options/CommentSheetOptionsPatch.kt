@@ -475,7 +475,7 @@ val commentSheetOptionsPatch = bytecodePatch(
             replyRow.render, feedReplyRow.render, threadPager.render, viewer.render, videoBar, inlineBar?.render,
             filter?.build, filter?.apply, filter?.listEqual, filter?.equal,
         ).map { it.descriptor() }.toSet()
-        listOf(band.builder, band.root, band.list).firstOrNull { it.descriptor() in hooked }?.let {
+        (listOf(band.builder, band.root, band.list) + band.chained.map { it.render }).firstOrNull { it.descriptor() in hooked }?.let {
             refuse("${it.descriptor()} holds the video comment band and another hook")
         }
 
@@ -1271,9 +1271,26 @@ internal fun MutableMethod.loadWholeReplyThreads(list: ReplyList) {
 internal class ReplyRowTap(val render: Method, val kept: Int, val flag: Int)
 
 /**
+ * The render behind [named], a method of [owner] naming its row. 588 moves the feed row's tap
+ * wrapper, and the name with it, into a static of the row's class (arm64 `LX/06Yv;->A0A`) that the
+ * render calls, so a static with one caller in its class stands for that caller.
+ */
+private fun rowRender(owner: ClassDef, named: Method): Method {
+    if (!AccessFlags.STATIC.isSet(named.accessFlags)) return named
+    val parameters = named.parameterTypes.map { it.toString() }
+    return owner.methods.filter { caller ->
+        calls(caller).any { call ->
+            call.definingClass == owner.type && call.name == named.name && call.returnType == named.returnType &&
+                call.parameterTypes.map { it.toString() } == parameters
+        }
+    }.singleOrNull() ?: named
+}
+
+/**
  * A View more replies row, from [holders], the classes loading [name] ([VIEW_MORE_REPLIES] or
  * [FEED_VIEW_MORE_REPLIES]). Its render is the one method naming it that answers an object, the
- * constructor and the feed row's other method answering nothing. It finishes the row with one
+ * constructor and the feed row's other method answering nothing, or the method calling that one
+ * when it's a static of the row's class ([rowRender]). It finishes the row with one
  * static call made in two places, one on each side of checks of the same boolean: an `if-eqz`
  * that falls through to the call (the boolean true, where only the words take a tap) and an
  * `if-eqz` that jumps to it (the boolean false, where the whole row is wrapped as the tap
@@ -1283,8 +1300,9 @@ internal class ReplyRowTap(val render: Method, val kept: Int, val flag: Int)
  * there. Refuses unless each holds.
  */
 internal fun replyRowTap(holders: List<ClassDef>, name: String = VIEW_MORE_REPLIES): ReplyRowTap {
-    val renders = holders.flatMap { methodsHolding(it, name) }.filter { it.returnType.startsWith("L") }
-        .distinctBy { it.descriptor() }
+    val renders = holders.flatMap { owner ->
+        methodsHolding(owner, name).filter { it.returnType.startsWith("L") }.map { rowRender(owner, it) }
+    }.distinctBy { it.descriptor() }
     val render = renders.singleOrNull()
         ?: refuse("expected one method naming \"$name\" that answers an object, found ${renders.size}")
     val where = render.descriptor()
@@ -1556,7 +1574,10 @@ private fun hideInSender(sender: Method, senderKind: SenderKind): Pair<Int, List
     val (wanted) = lowFreeRegisters(sender, switch, 1, setOf(on))
     // 585's Android 9 build sends from a merged lambda (`LX/0D8q;->invoke`) with one low register
     // free there, so the number is then compared by subtracting it, which needs no second register.
-    val free = lowRegistersFree(sender, build, setOf(number, self))
+    // 588's arm (arm64 `LX/0HFT;->A0I`) has all three locals in use, but the switch's own number is
+    // spent by then, so that argument can hold the kind.
+    val spent = listOf(on).filter { it != number && it != self && it !in RegisterLiveness.of(sender).liveInto(build) }
+    val free = (lowRegistersFree(sender, build, setOf(number, self)) + spent).distinct()
     val read = free.firstOrNull() ?: refuse("$where has no free low register at instruction $build")
     val compare = free.getOrNull(1)?.let { sent ->
         """

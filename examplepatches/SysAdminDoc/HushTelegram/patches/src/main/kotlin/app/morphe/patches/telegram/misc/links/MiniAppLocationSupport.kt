@@ -25,6 +25,7 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import app.morphe.util.names.origDefiningClass
 import app.morphe.util.names.origName
@@ -81,16 +82,25 @@ internal enum class LocationGate(val code: String, val labeled: Boolean, val siz
 }
 
 /** Each gate's method, found and checked before anything is edited, or [missing], why this build can't keep location. */
-internal class MiniAppLocationPlan(val gates: Map<LocationGate, MutableMethod>, val missing: String?) {
+/**
+ * [pages] are the other web views' geolocation prompts, an ad library's in Plus Messenger, which
+ * answer a page themselves and take the same prompt gate as Telegram's.
+ */
+internal class MiniAppLocationPlan(
+    val gates: Map<LocationGate, MutableMethod>,
+    val missing: String?,
+    val pages: List<MutableMethod> = emptyList(),
+) {
     /** Every edit, on the methods themselves or on what [into] makes of each. */
     fun apply(into: (MutableMethod) -> MutableMethod = { it }) {
-        for ((gate, method) in gates) {
+        for ((gate, method) in gates.entries.map { it.key to it.value } + pages.map { LocationGate.PROMPT to it }) {
             val target = into(method)
-            val before = target.implementation!!.instructions.size
+            val before = target.code()
             if (gate.labeled) target.addInstructionsWithLabels(0, gate.code, ExternalLabel("hush_stock", target.getInstruction(0)))
             else target.addInstructions(0, gate.code)
             // smali drops an instruction it can't build, a register out of reach among them, and only logs it.
-            need(target.implementation!!.instructions.size - before == gate.size,
+            // A switch table's alignment nop comes or goes with the gate's length, so nops don't count.
+            need(target.code() - before == gate.size,
                 "the $gate gate didn't compile whole in ${method.definingClass}->${method.name}")
         }
     }
@@ -131,24 +141,27 @@ private fun need(ok: Boolean, why: String) {
  * A Mini App gets the phone's location from Telegram's bot location manager, the one class that keeps
  * its choices in a "botlocation_" file. It checks the phone has GPS before every request and check,
  * and turns every location it reads, at once or from a listener that comes back later, into the
- * Mini App's answer through one static method. A web page asks through the one web view geolocation
- * prompt in the app, whose dialog hands its answer to one class, and nothing else answers those
- * prompts. Each must still be that shape, or the switch is left out.
+ * Mini App's answer through one static method. A web page asks through Telegram's one web view
+ * geolocation prompt, whose dialog hands its answer to one class. Any other web view prompt answers
+ * its page itself and gets the same gate, and nothing else answers those prompts. Each must still be
+ * that shape, or the switch is left out.
  */
 internal fun BytecodePatchContext.resolveMiniAppLocation(): MiniAppLocationPlan = try {
     // Rehearsed here, so edits that don't fit this build leave the switch out rather than the patch.
-    MiniAppLocationPlan(gates(), null).also { it.rehearse() }
+    gates().also { it.rehearse() }
 } catch (ungated: Ungated) {
     MiniAppLocationPlan.missing(ungated.why)
 }
 
 private fun ClassDef.isOwn() = type.startsWith("Lapp/hushtelegram/")
 
+private fun MutableMethod.code() = implementation!!.instructions.count { it.opcode != Opcode.NOP }
+
 private fun Method.static() = AccessFlags.STATIC.isSet(accessFlags)
 
 private fun Method.strings() = controlBody().mapNotNull { it.controlString() }.toSet()
 
-private fun BytecodePatchContext.gates(): Map<LocationGate, MutableMethod> {
+private fun BytecodePatchContext.gates(): MiniAppLocationPlan {
     val managers = mutableListOf<String>()
     forEachClassMentioning(Mention.string(BOT_LOCATION_PREFS)) { cls ->
         if (!cls.isOwn() && cls.methods.any { BOT_LOCATION_PREFS in it.strings() }) managers += cls.type
@@ -189,8 +202,12 @@ private fun BytecodePatchContext.gates(): Map<LocationGate, MutableMethod> {
         if (!cls.isOwn() && cls.methods.any { it.isPrompt() }) promptOwners += cls.type
     }
     val prompts = promptOwners.flatMap { owner -> tgMutableClassDefBy(owner).methods.filter { it.isPrompt() } }
-    need(prompts.size == 1, "the web view geolocation prompt is missing or ambiguous")
-    val prompt = prompts.single()
+    // Telegram's own prompt hands the page's callback to its dialog. Any other web view's prompt (an ad
+    // library's, in Plus Messenger) answers the page itself and takes the same gate.
+    val asking = prompts.filter { m -> m.controlBody().any { it.opcode == Opcode.INVOKE_DIRECT && it.handsOnCallback() } }
+    need(asking.size == 1, "the web view geolocation prompt is missing or ambiguous")
+    val prompt = asking.single()
+    val pages = prompts.filter { it !== prompt }
     val made = prompt.controlBody().filter { it.opcode == Opcode.NEW_INSTANCE }.mapNotNull { it.controlRef() }.distinct()
     val dialogs = made.mapNotNull { tgMutableClassDefByOrNull(it) }.filter { cls ->
         cls.methods.any { it.origName == "<init>" && GEO_CALLBACK in it.origParameterTypes.map(CharSequence::toString) }
@@ -200,7 +217,8 @@ private fun BytecodePatchContext.gates(): Map<LocationGate, MutableMethod> {
         it.parameterTypes.map(CharSequence::toString) == listOf("Ljava/lang/Object;") && it.origReturnType == "V" &&
         it.controlBody().any { i -> i.controlRef() == GEO_INVOKE } }
     need(dialog.size == 1, "the geolocation dialog's answer no longer answers the page")
-    val others = callers.filter { it != prompt.origDefiningClass && it != dialog.single().origDefiningClass }.sorted()
+    val answered = (prompts + dialog.single()).map { it.origDefiningClass }.toSet()
+    val others = callers.filter { it !in answered }.sorted()
     need(others.isEmpty(), "something else answers web pages' location prompts (${others.joinToString()})")
 
     val gates = mapOf(
@@ -209,7 +227,7 @@ private fun BytecodePatchContext.gates(): Map<LocationGate, MutableMethod> {
         LocationGate.PROMPT to prompt,
         LocationGate.DIALOG to dialog.single(),
     )
-    for ((gate, method) in gates) {
+    for ((gate, method) in gates.entries.map { it.key to it.value } + pages.map { LocationGate.PROMPT to it }) {
         val where = "${method.definingClass}->${method.name}"
         if (gate.labeled) {
             val locals = try {
@@ -229,8 +247,12 @@ private fun BytecodePatchContext.gates(): Map<LocationGate, MutableMethod> {
         }
         need(flow.normal.none { 0 in it } && flow.exceptional.none { 0 in it }, "something jumps back to the start of $where")
     }
-    return gates
+    return MiniAppLocationPlan(gates, null, pages)
 }
+
+/** A constructor call that takes the page's geolocation callback, as Telegram's dialog does. */
+private fun Instruction.handsOnCallback(): Boolean =
+    controlRef()?.let { it.contains("-><init>(") && GEO_CALLBACK in it.substringAfter("-><init>(").substringBefore(")") } == true
 
 /** Whether [type] is a LocationListener, itself or through a parent class or interface Telegram carries. */
 private fun BytecodePatchContext.isLocationListener(type: String, depth: Int = 0): Boolean {

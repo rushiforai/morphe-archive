@@ -640,8 +640,7 @@ Se houver alterações no lado do servidor, a cor de fundo da barra de busca pod
     <string name="revanced_change_start_page_entry_gaming">Jogos</string>
     <string name="revanced_change_start_page_entry_history">Histórico</string>
     <string name="revanced_change_start_page_entry_home">Início</string>
-    <string name="revanced_change_start_page_entry_hype">Hypar</string>
-    <string name="revanced_change_start_page_entry_library">Biblioteca</string>
+    <string name="revanced_change_start_page_entry_library">Você</string>
     <string name="revanced_change_start_page_entry_liked_videos">Videos curtidos</string>
     <string name="revanced_change_start_page_entry_live">Ao Vivo</string>
     <string name="revanced_change_start_page_entry_movies">Filmes</string>
@@ -649,14 +648,12 @@ Se houver alterações no lado do servidor, a cor de fundo da barra de busca pod
     <string name="revanced_change_start_page_entry_news">Notícias</string>
     <string name="revanced_change_start_page_entry_notifications">Notificações</string>
     <string name="revanced_change_start_page_entry_playlists">Playlists</string>
-    <string name="revanced_change_start_page_entry_podcasts">Podcasts</string>
     <string name="revanced_change_start_page_entry_search">Procurar</string>
     <string name="revanced_change_start_page_entry_settings">Configurações</string>
     <string name="revanced_change_start_page_entry_shopping">Shopping</string>
     <string name="revanced_change_start_page_entry_shorts">Shorts</string>
     <string name="revanced_change_start_page_entry_sports">Esportes</string>
     <string name="revanced_change_start_page_entry_subscriptions">Inscrições</string>
-    <string name="revanced_change_start_page_entry_trending">Em alta</string>
     <string name="revanced_change_start_page_entry_virtual_reality">Realidade virtual</string>
     <string name="revanced_change_start_page_entry_watch_later">Assistir mais tarde</string>
     <string name="revanced_change_start_page_entry_your_clips">Seus clipes</string>

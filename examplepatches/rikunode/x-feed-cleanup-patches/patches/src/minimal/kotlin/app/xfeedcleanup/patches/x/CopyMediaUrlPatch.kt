@@ -11,19 +11,12 @@ import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.util.getReference
 import app.morphe.util.returnEarly
 import app.morphe.util.getFreeRegisterProvider
-import app.morphe.util.indexOfFirstInstruction
-import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 
 private const val MEDIA_MENU = "Lapp/xfeedcleanup/extension/x/MediaLinkMenu;"
-
-private object VideoDownloaderActionFingerprint : Fingerprint(
-    definingClass = "Lcom/twitter/downloader/",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
-    returnType = "V",
-    strings = listOf("getString(...)", "isUseSnackbar"),
-)
 
 private object MediaOptionsStateFingerprint : Fingerprint(
     name = "toString",
@@ -46,6 +39,19 @@ private object MediaMainActivityFingerprint : Fingerprint(
     name = "onCreate",
     parameters = listOf("Landroid/os/Bundle;"),
 )
+private object GallerySheetRendererFingerprint : Fingerprint(
+    definingClass = "Lcom/x/dm/chat/composables/e0;",
+    name = "invoke",
+    returnType = "Ljava/lang/Object;",
+    parameters = listOf("Ljava/lang/Object;", "Ljava/lang/Object;", "Ljava/lang/Object;"),
+)
+private object GalleryPhotoActionHandlerFingerprint : Fingerprint(
+    definingClass = "Lcom/x/media/n;",
+    name = "g",
+    returnType = "V",
+    parameters = listOf("Lcom/x/media/u0;"),
+)
+
 private class MenuHelperFingerprint(name: String) : Fingerprint(definingClass = MEDIA_MENU, name = name)
 
 private fun String.javaClassName() = removePrefix("L").removeSuffix(";").replace('/', '.')
@@ -57,7 +63,7 @@ private fun String.javaClassName() = removePrefix("L").removeSuffix(";").replace
 @Suppress("unused")
 val copyMediaUrlPatch = bytecodePatch(
     name = "Copy media URL",
-    description = "Copies direct photo, video, and GIF URLs from a post's options menu.",
+    description = "Copies photo URLs from image long-press and image/video/GIF URLs from post options.",
 ) {
     compatibleWith(COMPATIBILITY_X)
     dependsOn(recommendationFilterPatch)
@@ -74,24 +80,37 @@ val copyMediaUrlPatch = bytecodePatch(
             "invoke-static { p0 }, $MEDIA_MENU->setActivity(Landroid/app/Activity;)V",
         )
 
-        // Hook the same native downloader entry as Piko's verified video menu.
-        // Unlike its unconditional override, fall back to X's original save
-        // implementation if the expected media URL or activity is unavailable.
-        VideoDownloaderActionFingerprint.method.apply {
-            val insertionIndex = indexOfFirstInstruction(Opcode.IF_EQZ) + 1
-            if (insertionIndex <= 0 || insertionIndex >= instructions.size) {
-                throw PatchException("Video downloader guard was not found")
+        // Add the extra action directly to the rendered photo sheet rows. The
+        // native PhotoAction list stays unchanged, so all four built-in actions
+        // remain intact and the sealed-action renderer never sees our marker.
+        GallerySheetRendererFingerprint.method.apply {
+            val calls = instructions.withIndex().filter { (_, instruction) ->
+                instruction.opcode == Opcode.INVOKE_STATIC &&
+                    instruction.getReference<MethodReference>()?.let { ref ->
+                        ref.definingClass == "Lcom/x/urt/items/post/quote/nested/f;" &&
+                            ref.name == "m" && ref.parameterTypes.singleOrNull() == "Ljava/lang/Iterable;"
+                    } == true
             }
-            val free = getFreeRegisterProvider(insertionIndex, 1).getFreeRegister()
+            if (calls.size != 1) throw PatchException("Photo sheet row builder is ambiguous")
+            val arg = calls.single().value as? FiveRegisterInstruction
+                ?: throw PatchException("Unsupported photo sheet invocation")
+            addInstructions(
+                calls.single().index,
+                "invoke-static { v${arg.registerC} }, $MEDIA_MENU->appendGalleryCopyUrlAction(Ljava/util/List;)V",
+            )
+        }
+
+        GalleryPhotoActionHandlerFingerprint.method.apply {
+            val free = getFreeRegisterProvider(0, 1).getFreeRegister()
             addInstructionsWithLabels(
-                insertionIndex,
+                0,
                 """
-                invoke-static { p0, p1 }, $MEDIA_MENU->handleVideoDownload(Ljava/lang/Object;Ljava/lang/Object;)Z
+                invoke-static/range { p0 .. p1 }, $MEDIA_MENU->handleGalleryCopyUrl(Ljava/lang/Object;Ljava/lang/Object;)Z
                 move-result v$free
-                if-eqz v$free, :originalVideoDownload
+                if-eqz v$free, :originalGalleryAction
                 return-void
                 """,
-                ExternalLabel("originalVideoDownload", getInstruction(insertionIndex)),
+                ExternalLabel("originalGalleryAction", getInstruction(0)),
             )
         }
 

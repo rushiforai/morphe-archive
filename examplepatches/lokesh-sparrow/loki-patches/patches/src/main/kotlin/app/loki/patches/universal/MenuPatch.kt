@@ -23,6 +23,7 @@ private const val MENU = "app.loki.extension"
 private val menuManifestPatch = resourcePatch {
     execute {
         writeLokiIcon()
+        writeLokiLogo()
         document("AndroidManifest.xml").use { document ->
             val application = document.getElementsByTagName("application").item(0) as? Element ?: return@use
             val pkg = document.documentElement.getAttribute("package")

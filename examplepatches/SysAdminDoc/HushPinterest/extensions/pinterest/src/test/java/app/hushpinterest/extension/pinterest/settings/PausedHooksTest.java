@@ -196,6 +196,29 @@ public class PausedHooksTest {
         return FeedFilter.filter(page).size() != page.size();
     }
 
+    /** A download toast reaching the container: true when the hook drops it. */
+    private static boolean dropsDownloadToast() {
+        UiHooksForTests.downloadToast(StringBuilder.class);
+        try {
+            return UiHooks.hideSaveToast(new StringBuilder());
+        } finally {
+            UiHooksForTests.downloadToast(null);
+        }
+    }
+
+    /** A dark-mode toast with its white fill, as the container hands it over: true when it turned black. */
+    private static boolean paintsToastBlack() {
+        Context context = RuntimeEnvironment.getApplication();
+        Configuration night = new Configuration(context.getResources().getConfiguration());
+        night.uiMode = Configuration.UI_MODE_NIGHT_YES | (night.uiMode & ~Configuration.UI_MODE_NIGHT_MASK);
+        LinearLayout toast = new LinearLayout(context.createConfigurationContext(night));
+        GradientDrawable fill = new GradientDrawable();
+        fill.setColor(Color.WHITE);
+        toast.setBackground(fill);
+        AmoledBlack.toast(toast);
+        return fill.getColor().getDefaultColor() == Color.BLACK;
+    }
+
     /** A save toast reaching the container: true when the hook drops it. */
     private static boolean dropsSaveToast() {
         UiHooksForTests.saveToast(StringBuilder.class);
@@ -248,8 +271,8 @@ public class PausedHooksTest {
         return name.getVisibility() != View.VISIBLE;
     }
 
-    /** A closeup title module taking a pin with a date: true when a line was added under its row. */
-    private static boolean addsPostedDate() {
+    /** A closeup title module holding its row, the way Pinterest builds it. */
+    private static LinearLayout titleModule() {
         // Pinterest's resources know the title row's chevron by name; the test app's don't.
         Context app = RuntimeEnvironment.getApplication();
         Resources base = app.getResources();
@@ -268,10 +291,37 @@ public class PausedHooksTest {
         chevron.setId(TITLE_CHEVRON_ID);
         row.addView(chevron);
         module.addView(row);
+        return module;
+    }
+
+    /** A closeup title module taking a pin with a date: true when a line was added under its row. */
+    private static boolean addsPostedDate() {
+        LinearLayout module = titleModule();
         ProbePin pin = new ProbePin();
         pin.createdAt = new Date(1_791_806_400_000L);
         PostedDate.show(module, pin);
         return module.getChildCount() > 1;
+    }
+
+    /** A closeup title module taking a picture with a known size: true when a line was added. */
+    private static boolean addsImageSize() {
+        Map<String, Object> image = new LinkedHashMap<>();
+        image.put("url", "https://i.pinimg.com/736x/aa/bb/cc/aabbcc.jpg");
+        image.put("width", 736);
+        image.put("height", 1104);
+        Map<String, Object> pin = new LinkedHashMap<>();
+        pin.put("id", "123456789");
+        pin.put("images", Collections.singletonMap("736x", image));
+        pin.put("videos", null);
+        LinearLayout module = titleModule();
+        PostedDate.showSize(module, pin);
+        return module.getChildCount() > 1;
+    }
+
+    /** A pin page's visual search crops handed over: true when they were withheld. */
+    private static boolean withholdsVisualSearchCrops() {
+        ArrayList<Object> crops = new ArrayList<>();
+        return UiHooks.visualSearchThumbnails(crops) != crops;
     }
 
     /** A closeup button handed over: true when it went GONE. */
@@ -330,7 +380,7 @@ public class PausedHooksTest {
         // Every hook is in this build, so the filter reads each family's switch.
         PatchFamily.capabilitiesForTests = EnumSet.allOf(PatchFamily.Capability.class);
         PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.DISABLE_ANALYTICS, PatchFamily.HIDE_ADVERTISING_ID,
-                PatchFamily.FIX_PUSH_NOTIFICATIONS);
+                PatchFamily.FIX_PUSH_NOTIFICATIONS, PatchFamily.FOLD_RELATED_PINS);
         Map<BooleanSetting, List<Probe>> probes = new LinkedHashMap<>();
         // A promoted pin leaves the page, and an ad-only view stays hidden and sizeless.
         probes.put(Settings.HIDE_ADS, Arrays.asList(
@@ -484,6 +534,13 @@ public class PausedHooksTest {
         probes.put(Settings.HIDE_NAV_NOTIFICATIONS, Arrays.asList(() -> hidesNavigation(Tab.NOTIFICATIONS),
                 () -> hidesGreetingButton("home_feed_greeting_header_newshub_icon")));
         probes.put(Settings.HIDE_NAV_SEARCH, Collections.singletonList(() -> hidesNavigation(Tab.SEARCH)));
+        probes.put(Settings.SEARCH_TAB_KEYBOARD, Collections.singletonList(() -> {
+            UiHooksForTests.SearchWindow window = new UiHooksForTests.SearchWindow();
+            return window.press(window.searchTab, UiHooksForTests.Screen.SEARCH_LANDING) != 0;
+        }));
+        probes.put(Settings.BLANK_SEARCH_PAGE, Collections.singletonList(PausedHooksTest::blanksSearchPage));
+        probes.put(Settings.HIDE_HOME_TABS, Collections.singletonList(() -> InterfaceControls.homeTabsHeight(
+                namedView("home_feed_view_pager_tab_layout"), MEASURE_SPEC, MEASURE_SPEC) != MEASURE_SPEC));
         probes.put(Settings.HIDE_HEADER_BUTTONS, Collections.singletonList(() -> {
             View header = namedView("end_container_icon_bt");
             InterfaceControls.headerButtons(header);
@@ -496,6 +553,7 @@ public class PausedHooksTest {
         probes.put(Settings.BLACK_SHEETS, Arrays.asList(() -> paintsSheetBlack("gestalt_sheet_footer"), () -> paintsSheetBlack("lego_modal_container")));
         probes.put(Settings.BLACK_BOARDS, Arrays.asList(PausedHooksTest::paintsBoardBarBlack,
                 PausedHooksTest::paintsBoardHeaderBlack, PausedHooksTest::tintsProfileFilters));
+        probes.put(Settings.BLACK_TOASTS, Collections.singletonList(PausedHooksTest::paintsToastBlack));
         probes.put(Settings.HIDE_CLOSEUP_BACK, Arrays.asList(() -> hidesCloseupButton(true), () -> keepsCloseupButtonHidden(true)));
         probes.put(Settings.HIDE_CLOSEUP_LENS, Arrays.asList(() -> hidesCloseupButton(false), () -> keepsCloseupButtonHidden(false)));
         probes.put(Settings.HIDE_CLOSEUP_SEARCH_LABEL, Collections.singletonList(() -> !CloseupButtons.searchLabel(true)));
@@ -514,6 +572,7 @@ public class PausedHooksTest {
         probes.put(Settings.HIDE_PIN_MENU_COLLAGE, Collections.singletonList(() -> hidesMenuItem("overflow_menu_add_to_collage")));
         probes.put(Settings.HIDE_PIN_MENU_VISUAL_SEARCH, Collections.singletonList(() -> hidesMenuItem("contextmenu_visual_search_image")));
         probes.put(Settings.HIDE_PIN_MENU_PIN_BOOST, Collections.singletonList(() -> hidesMenuItem("overflow_menu_pin_boost")));
+        probes.put(Settings.HIDE_PIN_MENU_ROWS, Collections.singletonList(UiHooksForTests::foldsPinMenuRow));
         probes.put(Settings.HIDE_COMMENTS, Arrays.asList(
                 () -> UiHooks.commentsVisibility(View.INVISIBLE) != View.INVISIBLE,
                 () -> UiHooks.commentsMeasureSpec(MEASURE_SPEC) != MEASURE_SPEC,
@@ -533,9 +592,19 @@ public class PausedHooksTest {
         probes.put(Settings.HIDE_POPUP_BANNERS, Collections.singletonList(PausedHooksTest::closesPopupBanner));
         probes.put(Settings.HIDE_RELATED_PINS, Collections.singletonList(UiHooks::hideRelatedPins));
         probes.put(Settings.HIDE_CREATOR_NAME, Collections.singletonList(PausedHooksTest::hidesCreatorName));
+        probes.put(Settings.HIDE_PIN_AUTHOR, Collections.singletonList(UiHooksForTests::hidesPinAuthor));
+        probes.put(Settings.HIDE_PIN_DESCRIPTION, Collections.singletonList(UiHooksForTests::hidesPinDescription));
+        probes.put(Settings.SHOW_IMAGE_SIZE, Collections.singletonList(PausedHooksTest::addsImageSize));
+        probes.put(Settings.HIDE_HIGHLIGHT_RING, Collections.singletonList(UiHooks::hideHighlightRing));
+        probes.put(Settings.HIDE_VISUAL_SEARCH_THUMBNAILS, Collections.singletonList(PausedHooksTest::withholdsVisualSearchCrops));
+        probes.put(Settings.FOLD_RELATED_PINS, Collections.singletonList(UiHooksForTests::foldSwitchedOn));
         probes.put(Settings.CUSTOM_SAVE_SOUND, Collections.singletonList(UiHooksForTests::playsPickedSaveSound));
         probes.put(Settings.CUSTOM_SPLASH_LOGO, Collections.singletonList(UiHooksForTests::nextStartShowsPickedLogo));
+        probes.put(Settings.HIDE_BOARD_TAB_BUTTON, Collections.singletonList(UiHooksForTests::foldsBoardTabButton));
+        probes.put(Settings.HIDE_BOARD_TAB_SUBTITLE, Collections.singletonList(UiHooksForTests::foldsBoardTabSubtitle));
+        probes.put(Settings.BOARD_TAB_COVERS, Collections.singletonList(UiHooksForTests::coversBoardTab));
         probes.put(Settings.HIDE_SAVE_TOASTS, Arrays.asList(PausedHooksTest::dropsSaveToast, UiHooksForTests::quietsSavedToast));
+        probes.put(Settings.HIDE_DOWNLOAD_TOASTS, Arrays.asList(PausedHooksTest::dropsDownloadToast, UiHooks::quietDownloads));
         probes.put(Settings.ORIGINAL_IMAGES, Arrays.asList(UiHooks::originalImages, () -> {
             Set<String> sizes = new HashSet<>();
             UiHooks.imageSizes(sizes);
@@ -689,6 +758,14 @@ public class PausedHooksTest {
         } catch (java.io.IOException failure) {
             throw new AssertionError(failure);
         }
+    }
+
+    private static boolean blanksSearchPage() {
+        FrameLayout page = new FrameLayout(RuntimeEnvironment.getApplication());
+        View list = namedView("swipe_container");
+        page.addView(list);
+        InterfaceControls.searchLanding(page);
+        return list.getVisibility() != View.INVISIBLE;
     }
 
     private static boolean hidesNavigation(Tab tab) {

@@ -8,7 +8,9 @@ import app.morphe.ExtensionDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
 import app.morphe.patches.facebook.feed.FixtureDex
+import app.morphe.patches.facebook.feed.TREE_JNI
 import app.morphe.patches.facebook.feed.methodsHolding
+import app.morphe.patches.facebook.feed.treeFieldKey
 import app.morphe.patches.facebook.media.taptoplay.isEnumNaming
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -17,6 +19,7 @@ import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
@@ -50,12 +53,12 @@ class SuggestedStoriesFixtureTest {
     /**
      * The bucket interface's type accessor and the enum it answers, per build and then by the
      * bundle's ABI. On 583 and 585 the two builds share the enum but not the accessor's name; on
-     * 586 they share both. On 587 they share neither.
+     * 586 they share both, on 587 neither, and on 588 both again.
      */
     private val expectedType = mapOf(
         AppCompatibilities.FACEBOOK_TARGET_VERSION to mapOf(
-            "arm64-v8a" to ("GEF" to "LX/02d0;"),
-            "armeabi-v7a" to ("GED" to "LX/02d6;"),
+            "arm64-v8a" to ("Grm" to "LX/02Ev;"),
+            "armeabi-v7a" to ("Grm" to "LX/02Ev;"),
             "arm64-v8a-minapi28-storeless" to ("Fuy" to "LX/02bk;"),
         ),
     )
@@ -66,8 +69,8 @@ class SuggestedStoriesFixtureTest {
      */
     private val expectedOwner = mapOf(
         AppCompatibilities.FACEBOOK_TARGET_VERSION to mapOf(
-            "arm64-v8a" to Triple("EAr", "GE7", "LX/03Yv;"),
-            "armeabi-v7a" to Triple("EAp", "GE5", "LX/03Z5;"),
+            "arm64-v8a" to Triple("EXJ", "Gre", "LX/03Yn;"),
+            "armeabi-v7a" to Triple("EXJ", "Gre", "LX/03Yn;"),
             "arm64-v8a-minapi28-storeless" to Triple("Dyt", "Fur", "LX/03Yu;"),
         ),
     )
@@ -78,8 +81,8 @@ class SuggestedStoriesFixtureTest {
      */
     private val expectedExpires = mapOf(
         AppCompatibilities.FACEBOOK_TARGET_VERSION to mapOf(
-            "arm64-v8a" to "DGa",
-            "armeabi-v7a" to "DGa",
+            "arm64-v8a" to "DY9",
+            "armeabi-v7a" to "DY9",
             "arm64-v8a-minapi28-storeless" to "D7p",
         ),
     )
@@ -99,8 +102,8 @@ class SuggestedStoriesFixtureTest {
     /** The query builders that set skip_srtt_item_list, per build and then by ABI (issue #21). */
     private val expectedSkips = mapOf(
         AppCompatibilities.FACEBOOK_TARGET_VERSION to mapOf(
-            "arm64-v8a" to setOf("LX/01w4;->A03", "LX/01w4;->A07"),
-            "armeabi-v7a" to setOf("LX/01w9;->A03", "LX/01w9;->A07"),
+            "arm64-v8a" to setOf("LX/025J;->A03", "LX/025J;->A08"),
+            "armeabi-v7a" to setOf("LX/025J;->A03", "LX/025J;->A08"),
             "arm64-v8a-minapi28-storeless" to setOf("LX/01s9;->A02", "LX/01s9;->A06"),
         ),
     )
@@ -220,6 +223,12 @@ class SuggestedStoriesFixtureTest {
                 assertEquals("${tray.bucket}->$owner()$ownerType", reference(ownerStub[1]))
                 assertEquals(Opcode.IF_EQZ, ownerStub[3].opcode)
                 assertEquals("$ownerType->$TYPE_NAME()Ljava/lang/String;", reference(ownerStub[4]))
+                val ownerIdStub = first(OWNER_ID_STUB)
+                assertEquals("${tray.bucket}->$owner()$ownerType", reference(ownerIdStub[1]))
+                assertEquals(Opcode.IF_EQZ, ownerIdStub[3].opcode)
+                assertEquals(TREE_JNI, ((ownerIdStub[4] as ReferenceInstruction).reference as TypeReference).type)
+                assertEquals(treeFieldKey(ID_FIELD), (ownerIdStub[5] as NarrowLiteralInstruction).narrowLiteral)
+                assertEquals("$TREE_JNI->getString(I)Ljava/lang/String;", reference(ownerIdStub[6]))
                 assertEquals("${tray.bucket}->$GET_ID()Ljava/lang/String;", reference(first(BUCKET_ID_STUB)[1]))
                 val expiresStub = first(EXPIRES_STUB)
                 assertEquals("${tray.bucket}->${tray.expires}()J", reference(expiresStub[1]))

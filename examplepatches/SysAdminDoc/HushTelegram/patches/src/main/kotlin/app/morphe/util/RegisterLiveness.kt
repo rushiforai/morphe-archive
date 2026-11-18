@@ -319,6 +319,38 @@ internal fun ControlFlow.definitionReaches(source: Int, use: Int, register: Int?
 }
 
 /**
+ * Every instruction whose write of [register] may reach [use] along some path, and -1 when the
+ * method's start may (a parameter, or a register nothing wrote). A throwing instruction never
+ * writes its destination, so a handler sees the writes from before it.
+ */
+internal fun ControlFlow.writesReaching(use: Int, register: Int): Set<Int> {
+    val before = Array(instructions.size) { mutableListOf<Pair<Int, Boolean>>() }
+    instructions.indices.forEach { from ->
+        normal[from].forEach { before[it] += from to true }
+        exceptional[from].forEach { before[it] += from to false }
+    }
+    val found = mutableSetOf<Int>()
+    if (use == 0) found += -1
+    val seen = mutableSetOf<Pair<Int, Boolean>>()
+    val pending = ArrayDeque(before[use])
+    while (pending.isNotEmpty()) {
+        val state = pending.removeFirst()
+        if (!seen.add(state)) continue
+        val (at, ran) = state
+        val instruction = instructions[at]
+        val destination = instruction.namedRegisters().firstOrNull()
+        if (ran && instruction.opcode.setsRegister() &&
+            (destination == register || instruction.opcode.setsWideRegister() && destination?.plus(1) == register)) {
+            found += at
+            continue
+        }
+        if (at == 0) found += -1
+        pending += before[at]
+    }
+    return found
+}
+
+/**
  * Whether the instruction at [index] reads [register] as a float and as nothing else: a float
  * compare, float arithmetic or conversion, a float argument, a float field or a float return.
  * Anything else, a move included, answers false, so a caller that needs every use to be a

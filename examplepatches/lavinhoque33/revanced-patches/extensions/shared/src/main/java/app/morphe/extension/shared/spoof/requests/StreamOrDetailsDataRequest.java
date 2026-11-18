@@ -12,6 +12,7 @@
  * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to Morphe contributions.
  *
  * Modified by lavinhoque33, 2026-11-13
+ * Modified by lavinhoque33, 2026-11-17.
  */
 
 package app.morphe.extension.shared.spoof.requests;
@@ -65,6 +66,7 @@ import app.morphe.extension.shared.innertube.PlayerResponseOuterClass.StreamingD
 import app.morphe.extension.shared.innertube.ReelItemWatchResponseOuterClass.ReelItemWatchResponse;
 import app.morphe.extension.shared.innertube.utils.AuthUtils;
 import app.morphe.extension.shared.oauth2.requests.OAuth2Requester;
+import app.morphe.extension.shared.requests.Requester;
 import app.morphe.extension.shared.requests.Route;
 import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.shared.spoof.ClientType;
@@ -316,15 +318,16 @@ public class StreamOrDetailsDataRequest {
 
         // Only playback streams are substituted. Details and downloads keep the video they were asked for.
         final boolean isPlaybackStream = endpoint == null && !forDownload;
+        Requester.ConnectionProvider route = forDownload ? Requester.scopedConnection() : null;
 
-        this.future = submitOnBackgroundThread(() -> {
+        this.future = submitOnBackgroundThread(() -> Requester.withConnection(route, () -> {
             if (isPlaybackStream && !isInline) passFetchGate(videoId);
 
             return fetch(
                     endpoint,
                     isPlaybackStream ? resolveVideoIdToFetch(videoId) : videoId,
                     isInline, playerHeaders, clientStreamOrderOverride, forDownload);
-        });
+        }));
     }
 
     /**

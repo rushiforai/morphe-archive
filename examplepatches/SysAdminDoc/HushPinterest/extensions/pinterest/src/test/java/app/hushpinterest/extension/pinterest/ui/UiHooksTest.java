@@ -76,17 +76,20 @@ public class UiHooksTest {
     // SettingsContextRule must install the context before the registry is first read.
     private static BooleanSetting[] switches() { return new BooleanSetting[] {
             Settings.HIDE_SCREENSHOT_SHARE, Settings.HIDE_ASSISTANT, Settings.HIDE_SEARCH_HISTORY,
+            Settings.BLANK_SEARCH_PAGE,
             Settings.HIDE_NAV_CREATE, Settings.HIDE_NAV_NOTIFICATIONS, Settings.HIDE_NAV_SEARCH, Settings.HIDE_HEADER_BUTTONS,
+            Settings.HIDE_HOME_TABS, Settings.SEARCH_TAB_KEYBOARD,
             Settings.BLACK_BOTTOM_BAR, Settings.BLACK_COMMENTS, Settings.BLACK_PIN_MENU, Settings.BLACK_SAVE_SHEET,
-            Settings.BLACK_SHEETS, Settings.BLACK_BOARDS,
+            Settings.BLACK_SHEETS, Settings.BLACK_BOARDS, Settings.BLACK_TOASTS,
             Settings.HIDE_CLOSEUP_BACK, Settings.HIDE_CLOSEUP_LENS, Settings.HIDE_CLOSEUP_SEARCH_LABEL,
             Settings.HIDE_CLOSEUP_LIKE, Settings.HIDE_CLOSEUP_COMMENTS, Settings.HIDE_CLOSEUP_SHARE,
             Settings.HIDE_CLOSEUP_MORE, Settings.HIDE_CLOSEUP_REMIX, Settings.HIDE_CLOSEUP_VISIT_SITE,
             Settings.SMALLER_SAVE_BUTTON,
             Settings.HIDE_PIN_MENU_COLLAGE, Settings.HIDE_PIN_MENU_VISUAL_SEARCH, Settings.HIDE_PIN_MENU_PIN_BOOST,
+            Settings.HIDE_PIN_MENU_ROWS,
             Settings.HIDE_COMMENTS, Settings.HIDE_SUGGESTED_REPLIES, Settings.HIDE_COMMENT_PREVIEWS,
             Settings.HIDE_TOPIC_SUGGESTIONS, Settings.HIDE_INBOX_UPDATES, Settings.QUIET_EMAIL_REMINDER,
-            Settings.HIDE_SURVEY_PROMPTS, Settings.HIDE_POPUP_BANNERS, Settings.HIDE_RELATED_PINS, Settings.HIDE_CREATOR_NAME, Settings.CUSTOM_SAVE_SOUND, Settings.HIDE_SAVE_TOASTS, Settings.ORIGINAL_IMAGES, Settings.SHOW_POSTED_DATE,
+            Settings.HIDE_SURVEY_PROMPTS, Settings.HIDE_POPUP_BANNERS, Settings.HIDE_RELATED_PINS, Settings.HIDE_CREATOR_NAME, Settings.HIDE_HIGHLIGHT_RING, Settings.HIDE_VISUAL_SEARCH_THUMBNAILS, Settings.CUSTOM_SAVE_SOUND, Settings.HIDE_BOARD_TAB_BUTTON, Settings.HIDE_BOARD_TAB_SUBTITLE, Settings.BOARD_TAB_COVERS, Settings.HIDE_SAVE_TOASTS, Settings.HIDE_DOWNLOAD_TOASTS, Settings.ORIGINAL_IMAGES, Settings.SHOW_POSTED_DATE,
             Settings.HIDE_SUGGESTED_BOARDS, Settings.EXPAND_BOARD_LIST,
             Settings.DISABLE_UPDATE_NAG, Settings.HIDE_SHOPPING
     }; }
@@ -236,6 +239,31 @@ public class UiHooksTest {
         assertTrue(report, report.contains("related pins left out"));
         PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
         assertFalse("paused, the grid is added", UiHooks.hideRelatedPins());
+        PauseForTests.resume();
+    }
+
+    @Test public void theHighlightRingStaysAwayOnlyWhileItsSwitchIsOn() {
+        assertFalse(UiHooks.hideHighlightRing());
+        Settings.HIDE_HIGHLIGHT_RING.save(true);
+        assertTrue(UiHooks.hideHighlightRing());
+        String report = String.join(" ", HookStatus.report());
+        assertTrue(report, report.contains("highlight ring skipped"));
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        assertFalse(UiHooks.hideHighlightRing());
+        PauseForTests.resume();
+    }
+
+    @Test public void visualSearchCropsAreWithheldOnlyWhileTheirSwitchIsOn() {
+        ArrayList<Object> crops = new ArrayList<>();
+        crops.add("crop");
+        assertSame(crops, UiHooks.visualSearchThumbnails(crops));
+        Settings.HIDE_VISUAL_SEARCH_THUMBNAILS.save(true);
+        assertNull(UiHooks.visualSearchThumbnails(crops));
+        assertNull("no crops stays no crops", UiHooks.visualSearchThumbnails(null));
+        String report = String.join(" ", HookStatus.report());
+        assertTrue(report, report.contains("visual search thumbnails hidden"));
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        assertSame(crops, UiHooks.visualSearchThumbnails(crops));
         PauseForTests.resume();
     }
 
@@ -1058,6 +1086,94 @@ public class UiHooksTest {
         Image orig = new Image("https://i.pinimg.com/originals/aa/bb/cc/b.jpg", 1600d, 1200d);
         apex.images.put("orig", orig);
         assertSame("orig comes first", orig, UiHooks.closeupImage(apex, large));
+    }
+
+    @Test public void anIdeaPinPageGetsItsOriginalForLargeSizesOnlyWhileOn() {
+        String address = "https://i.pinimg.com/originals/aa/bb/cc/page.png";
+        Map<String, Object> images = new LinkedHashMap<>();
+        images.put("736x", new Image("https://i.pinimg.com/736x/aa/bb/cc/page.jpg", 736d, 736d));
+        images.put("orig", new Image(address, 1440d, 1440d));
+        assertNull("the switch starts off", UiHooks.pageImage(images, "736x"));
+
+        Settings.ORIGINAL_IMAGES.save(true);
+        assertEquals(address, UiHooks.pageImage(images, "736x"));
+        assertEquals(address, UiHooks.pageImage(images, "1200x"));
+        // Pinterest asks for these as the picture shown while the large one loads.
+        for (String small : Arrays.asList("236x", "474x", "564x")) assertNull(small, UiHooks.pageImage(images, small));
+        for (String odd : Arrays.asList("orig", "x", "736", "", null)) assertNull(odd, UiHooks.pageImage(images, odd));
+        assertNull("a page with no image list", UiHooks.pageImage(null, "736x"));
+
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        assertNull("paused", UiHooks.pageImage(images, "736x"));
+    }
+
+    @Test public void anIdeaPinPageKeepsPinterestsPictureUnlessItsOriginalCanBeShown() {
+        Settings.ORIGINAL_IMAGES.save(true);
+        Map<String, Object> unusable = new LinkedHashMap<>();
+        unusable.put("no original", null);
+        unusable.put("no height", new Image("https://i.pinimg.com/originals/aa/bb/cc/a.jpg", 2400d, null));
+        unusable.put("zero width", new Image("https://i.pinimg.com/originals/aa/bb/cc/a.jpg", 0d, 3600d));
+        unusable.put("past the texture limit", new Image("https://i.pinimg.com/originals/aa/bb/cc/a.jpg", 9000d, 900d));
+        unusable.put("too many pixels to draw", new Image("https://i.pinimg.com/originals/aa/bb/cc/a.jpg", 6000d, 6000d));
+        unusable.put("no address", new Image(null, 2400d, 3600d));
+        unusable.put("plain http", new Image("http://i.pinimg.com/originals/aa/bb/cc/a.jpg", 2400d, 3600d));
+        unusable.put("another host", new Image("https://pinimg.com.example.net/originals/a.jpg", 2400d, 3600d));
+        for (Map.Entry<String, Object> entry : unusable.entrySet()) {
+            Map<String, Object> images = new LinkedHashMap<>();
+            images.put("orig", entry.getValue());
+            assertNull(entry.getKey(), UiHooks.pageImage(images, "736x"));
+        }
+        Map<String, Object> images = new LinkedHashMap<>();
+        images.put("originals", new Image("https://i.pinimg.com/originals/aa/bb/cc/b.webp", 8192d, 900d));
+        assertEquals("an originals entry still counts", "https://i.pinimg.com/originals/aa/bb/cc/b.webp", UiHooks.pageImage(images, "736x"));
+        images.put("orig", new Image("https://i.pinimg.com/originals/aa/bb/cc/c.jpg", 1600d, 1200d));
+        assertEquals("orig comes first", "https://i.pinimg.com/originals/aa/bb/cc/c.jpg", UiHooks.pageImage(images, "736x"));
+    }
+
+    @Test public void aRefusedOriginalWalksThroughTheOtherFileTypesToALargeCopy() {
+        String stem = "https://i.pinimg.com/originals/6b/e1/fc/6be1fc9c";
+        String large = "https://i.pinimg.com/736x/6b/e1/fc/6be1fc9c.jpg";
+        assertNull("the switch starts off", UiHooks.originalRetry(403, stem + ".jpg"));
+
+        Settings.ORIGINAL_IMAGES.save(true);
+        assertEquals(stem + ".png", UiHooks.originalRetry(403, stem + ".jpg"));
+        assertEquals(stem + ".png", UiHooks.originalRetry(404, stem + ".jpeg"));
+        assertEquals(stem + ".webp", UiHooks.originalRetry(403, stem + ".png"));
+        assertEquals(large, UiHooks.originalRetry(403, stem + ".webp"));
+        assertEquals("a type with no sibling goes straight to the copy", large, UiHooks.originalRetry(403, stem + ".gif"));
+        assertNull("the copy is the last stop", UiHooks.originalRetry(403, large));
+
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        assertNull("paused", UiHooks.originalRetry(403, stem + ".jpg"));
+    }
+
+    @Test public void onlyARefusalOfAnImageHostOriginalIsRetried() {
+        Settings.ORIGINAL_IMAGES.save(true);
+        String original = "https://i.pinimg.com/originals/aa/bb/cc/a.jpg";
+        for (int status : new int[]{200, 206, 301, 401, 410, 429, 500, 503}) assertNull("status " + status, UiHooks.originalRetry(status, original));
+        for (String other : Arrays.asList(
+                "http://i.pinimg.com/originals/aa/bb/cc/a.jpg",
+                "https://v.pinimg.com/originals/aa/bb/cc/a.jpg",
+                "https://i.pinimg.com.example.net/originals/aa/bb/cc/a.jpg",
+                "https://i.pinimg.com:8443/originals/aa/bb/cc/a.jpg",
+                "https://user@i.pinimg.com/originals/aa/bb/cc/a.jpg",
+                "https://i.pinimg.com/1200x/aa/bb/cc/a.jpg",
+                "https://api.pinterest.com/v3/pins/1/",
+                "https://i.pinimg.com/originals/aa/bb/cc/noextension",
+                "not an address at all")) {
+            assertNull(other, UiHooks.originalRetry(403, other));
+        }
+        assertNull("no address", UiHooks.originalRetry(403, null));
+    }
+
+    @Test public void everyRefusedOriginalWalkEnds() {
+        Settings.ORIGINAL_IMAGES.save(true);
+        for (String type : Arrays.asList("jpg", "jpeg", "JPG", "png", "webp", "gif", "heic")) {
+            String address = "https://i.pinimg.com/originals/aa/bb/cc/a." + type;
+            int steps = 0;
+            for (String next = UiHooks.originalRetry(403, address); next != null; next = UiHooks.originalRetry(403, next)) steps++;
+            assertTrue(type + " took " + steps + " steps", steps >= 1 && steps <= 3);
+        }
     }
 
     @Test public void menuCensusDistinguishesConstructionTimeHiddenRowsFromFilterDecisions() {

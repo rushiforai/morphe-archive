@@ -14,6 +14,7 @@ val removeAdsPatch = bytecodePatch(
             "and blocks requests to ad servers.",
     default = true
 ) {
+    category("Privacy")
     compatibleWith(COMPATIBILITY_QUORA)
 
     extendWith("extensions/extension.mpe")

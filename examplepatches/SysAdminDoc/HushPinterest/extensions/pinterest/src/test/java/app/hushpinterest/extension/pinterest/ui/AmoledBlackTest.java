@@ -6,6 +6,7 @@
  */
 package app.hushpinterest.extension.pinterest.ui;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
@@ -77,6 +78,7 @@ public class AmoledBlackTest {
         Settings.BLACK_SAVE_SHEET.resetToDefault();
         Settings.BLACK_SHEETS.resetToDefault();
         Settings.BLACK_BOARDS.resetToDefault();
+        Settings.BLACK_TOASTS.resetToDefault();
         HookStatus.clear();
         AmoledBlack.tabRoot = -1;
         AmoledBlack.searchText = -1;
@@ -535,6 +537,58 @@ public class AmoledBlackTest {
         Settings.BLACK_SHEETS.save(false);
         collaborators.layout(0, 0, 320, 490);
         assertEquals(0x4D72727E, color(board));
+    }
+
+    /** A pin's details drawer as 14.45.0 builds it, in the order pinDetails reads its views. */
+    private static FrameLayout pinDetails(boolean night) {
+        return sheet(night, "metadata_drawer_bottom_sheet", "drag_handle_container", "metadata_drawer_footer",
+                "footer_container", "metadata_drawer_footer_fade");
+    }
+
+    /** The fade over the drawer's buttons, Pinterest's sheet_footer_background: the gray at the bottom, clear on top. */
+    private static GradientDrawable footerFade() {
+        return new GradientDrawable(GradientDrawable.Orientation.BOTTOM_TOP, new int[] {ELEVATION, 0x0033332E});
+    }
+
+    /**
+     * Seen on a Galaxy S25 (14.45.0, #21): the drawer a pin's chevron slides up stayed gray under
+     * every black switch. Its fade is a gradient, which would leave a gray band over the buttons.
+     */
+    @Test public void aPinsDetailsDrawerTurnsBlackFadeIncludedAndOffGivesItAllBack() {
+        Settings.BLACK_SHEETS.save(true);
+        FrameLayout drawer = pinDetails(true);
+        GradientDrawable sheet = solid();
+        GradientDrawable handle = solid();
+        GradientDrawable fade = footerFade();
+        fill(drawer, 1, sheet);
+        fill(drawer, 2, handle);
+        View footer = fill(drawer, 4, new ColorDrawable(REACTIONS));
+        fill(drawer, 5, fade);
+        View button = fill(drawer, View.NO_ID, new ColorDrawable(BUTTON));
+        AmoledBlack.pinDetails(drawer);
+        assertEquals(Color.BLACK, sheet.getColor().getDefaultColor());
+        assertEquals("the strip with the drag handle", Color.BLACK, handle.getColor().getDefaultColor());
+        assertEquals("the row holding its buttons", Color.BLACK, color(footer));
+        assertArrayEquals("still a fade, from black", new int[] {Color.BLACK, Color.TRANSPARENT}, fade.getColors());
+        assertEquals("Visit site and Save keep their gray", BUTTON, color(button));
+        Settings.BLACK_SHEETS.save(false);
+        drawer.layout(0, 0, 320, 480);
+        assertEquals(ELEVATION, sheet.getColor().getDefaultColor());
+        assertEquals(REACTIONS, color(footer));
+        assertArrayEquals(new int[] {ELEVATION, 0x0033332E}, fade.getColors());
+    }
+
+    @Test public void aPinsDetailsDrawerStaysAsItIsInLightMode() {
+        Settings.BLACK_SHEETS.save(true);
+        FrameLayout drawer = pinDetails(false);
+        GradientDrawable sheet = solid();
+        GradientDrawable fade = footerFade();
+        fill(drawer, 1, sheet);
+        fill(drawer, 5, fade);
+        AmoledBlack.pinDetails(drawer);
+        drawer.layout(0, 0, 320, 480);
+        assertEquals(ELEVATION, sheet.getColor().getDefaultColor());
+        assertArrayEquals(new int[] {ELEVATION, 0x0033332E}, fade.getColors());
     }
 
     @Test public void aSheetWithASwitchOfItsOwnKeepsItWhicheverIsHandedOverFirst() {

@@ -1,6 +1,7 @@
 package app.bin0culars.patches.reddit.layout.autoscroll
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.resource.ResourceType
 import app.morphe.patcher.resourceLiteral
@@ -44,5 +45,28 @@ object PostPagerInflateFingerprint : Fingerprint(
     filters = listOf(
         resourceLiteral(ResourceType.LAYOUT, "fragment_pager"),
         methodCall(definingClass = "Landroid/view/LayoutInflater;", name = "inflate"),
+    ),
+)
+
+object ScreenAttachFingerprint : Fingerprint(
+    definingClass = "Lcom/reddit/navstack/",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "V",
+    parameters = listOf("Landroid/view/View;"),
+    filters = listOf(
+        fieldAccess(definingClass = "Landroidx/lifecycle/Lifecycle\$State;", name = "DESTROYED"),
+        fieldAccess(definingClass = "Landroidx/lifecycle/Lifecycle\$State;", name = "RESUMED"),
+    ),
+)
+
+object ScreenDetachFingerprint : Fingerprint(
+    definingClass = "Lcom/reddit/navstack/",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "V",
+    parameters = listOf("Landroid/view/View;"),
+    filters = listOf(
+        fieldAccess(definingClass = "Landroidx/lifecycle/Lifecycle\$State;", name = "RESUMED"),
+        methodCall(definingClass = "Landroidx/lifecycle/Lifecycle\$State;", name = "isAtLeast"),
+        fieldAccess(definingClass = "Landroidx/lifecycle/Lifecycle\$State;", name = "STARTED"),
     ),
 )

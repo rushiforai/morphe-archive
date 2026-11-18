@@ -10,6 +10,6 @@ object Constants {
         packageName = "com.ertanto.kompas.official",
         apkFileType = ApkFileType.XAPK,
         appIconColor = 0x0067B1,
-        targets = listOf(AppTarget(version = "9.8.4", versionCode = 9008004)),
+        targets = listOf(AppTarget(version = "9.8.7", versionCode = 9008007)),
     )
 }

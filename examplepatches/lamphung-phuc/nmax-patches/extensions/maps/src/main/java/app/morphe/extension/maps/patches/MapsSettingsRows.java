@@ -1,0 +1,29 @@
+package app.morphe.extension.maps.patches;
+
+/**
+ * Rows that opt-in patches add to the main Maps Settings screens. The shared Settings hook calls {@link #attach}
+ * once per screen; each owning patch makes its row switch below return true.
+ *
+ * NmaxConnect's copy of upstream gmaps-patches' class (build.sh copies it over theirs): adds the NMAX patch section.
+ * Keep upstream's rows in step when they add one.
+ */
+@SuppressWarnings("unused")
+public final class MapsSettingsRows {
+    private MapsSettingsRows() {
+    }
+
+    public static void attach(Object fragment, String schema) {
+        // Each row catches its own failures, so one row cannot hide another.
+        if (pictureInPictureRow()) PictureInPicturePatch.attach(fragment, schema);
+        if (nmaxRow()) NmaxSettings.attach(fragment, schema);
+    }
+
+    // Row switches: the owning patch rewrites the constant to true (enableSettingsRow).
+    private static boolean pictureInPictureRow() {
+        return false;
+    }
+
+    private static boolean nmaxRow() {
+        return false;
+    }
+}

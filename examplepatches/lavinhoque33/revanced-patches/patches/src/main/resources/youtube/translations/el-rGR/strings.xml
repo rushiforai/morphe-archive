@@ -587,8 +587,7 @@
     <string name="revanced_change_start_page_entry_fashion">Μόδα &amp; ομορφιά</string>
     <string name="revanced_change_start_page_entry_gaming">Παιχνίδια</string>
     <string name="revanced_change_start_page_entry_history">Ιστορικό</string>
-    <string name="revanced_change_start_page_entry_hype">Hype</string>
-    <string name="revanced_change_start_page_entry_library">Βιβλιοθήκη</string>
+    <string name="revanced_change_start_page_entry_library">Εσείς</string>
     <string name="revanced_change_start_page_entry_liked_videos">Βίντεο που σας αρέσουν</string>
     <string name="revanced_change_start_page_entry_live">Ζωντανά</string>
     <string name="revanced_change_start_page_entry_movies">Ταινίες</string>
@@ -596,13 +595,11 @@
     <string name="revanced_change_start_page_entry_news">Ειδήσεις</string>
     <string name="revanced_change_start_page_entry_notifications">Ειδοποιήσεις</string>
     <string name="revanced_change_start_page_entry_playlists">Λίστες αναπαραγωγής</string>
-    <string name="revanced_change_start_page_entry_podcasts">Podcasts</string>
     <string name="revanced_change_start_page_entry_search">Αναζήτηση</string>
     <string name="revanced_change_start_page_entry_shopping">Αγορές</string>
     <string name="revanced_change_start_page_entry_shorts">Shorts</string>
     <string name="revanced_change_start_page_entry_sports">Αθλητικά</string>
     <string name="revanced_change_start_page_entry_subscriptions">Εγγραφές</string>
-    <string name="revanced_change_start_page_entry_trending">Τάσεις</string>
     <string name="revanced_change_start_page_entry_virtual_reality">Εικονική Πραγματικότητα</string>
     <string name="revanced_change_start_page_entry_watch_later">Παρακολούθηση αργότερα</string>
     <string name="revanced_change_start_page_entry_your_clips">Τα κλιπ σας</string>

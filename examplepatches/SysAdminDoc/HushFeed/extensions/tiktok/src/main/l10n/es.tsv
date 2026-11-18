@@ -3012,3 +3012,21 @@ The Widget circle at the end of the stories tray goes. TikTok's home screen widg
 # context: Feed screen settings, a switch under Show video length on profile grids. It removes the view count and the play icon from each video tile on profile grids. If the date, video length or engagement rate are switched on, they take the first line instead.
 Hide view counts on profile grids	Ocultar las visualizaciones en la cuadrícula del perfil
 Takes the view count and its play icon off each video on profile grids. Dates, lengths and the engagement rate you turned on move up in its place.	Quita el número de visualizaciones y su icono de reproducción de cada vídeo en la cuadrícula del perfil. Las fechas, las duraciones y la tasa de interacción que activaste suben a su lugar.
+Video bitrate limit	Límite de bitrate del video
+%1$s Mb/s	%1$s Mb/s
+A video heavier than this plays a lighter version. If none fits, it plays its lightest one.	Un video más pesado se reproduce en una versión más ligera. Si ninguna cabe, se reproduce la más ligera.
+Use an imported emoji font	Usar una fuente de emoji importada
+Shows emoji in the font file you import below, whichever font the text is in. Restart TikTok to see the change.	Muestra los emojis con el archivo de fuente que importes abajo, sea cual sea la fuente del texto. Reinicia TikTok para ver el cambio.
+Import an emoji font file	Importar un archivo de fuente de emoji
+Remove the imported emoji font	Quitar la fuente de emoji importada
+No emoji font is imported	No hay ninguna fuente de emoji importada
+%1$s is imported. Turn on Use an imported emoji font to see it.	%1$s se importó. Activa Usar una fuente de emoji importada para verla.
+Write the month as a word	Escribir el mes con letras
+Writes TikTok's date by the creator's name with the month's name, like Oct 12. Day before month makes it 12 Oct.	Escribe la fecha de TikTok junto al nombre del creador con el nombre del mes, como Oct 12. Día antes del mes la deja en 12 Oct.
+Fade the name, date and caption	Atenuar el nombre, la fecha y la descripción
+Draws the creator's name, the date, the caption and the music line over the video at this level, and they still take taps. At 100 they follow Fade the video controls. At 0 they're hidden.	Muestra el nombre del creador, la fecha, la descripción y la línea de música sobre el vídeo a este nivel, y se pueden seguir tocando. En 100 siguen a Atenuar los controles del vídeo. En 0 se ocultan.
+LIVE buttons in the long-press menu	Botones de LIVE en el menú de pulsación larga
+Takes the Record and Auto tap buttons off the video and puts them in the menu you get by holding the middle of a LIVE.	Quita los botones Grabar y Toque automático del vídeo y los pone en el menú que aparece al mantener pulsado el centro de un LIVE.
+Auto tap started	Toque automático iniciado
+Hide stories from accounts you don't follow	Ocultar historias de cuentas que no sigues
+Stories from accounts you don't follow leave the stories tray. Stories from accounts you follow stay.	Las historias de cuentas que no sigues salen de la bandeja de historias. Las historias de cuentas que sigues se quedan.

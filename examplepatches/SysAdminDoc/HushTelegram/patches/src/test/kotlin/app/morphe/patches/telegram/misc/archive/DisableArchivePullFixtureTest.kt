@@ -8,7 +8,6 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.PlusPending
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
 import app.morphe.patches.telegram.misc.extension.SETTINGS_STATUS
 import app.morphe.patches.telegram.misc.extension.localRegisterCount
@@ -27,12 +26,12 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import app.morphe.util.names.origDefiningClass
 import app.morphe.util.names.origRef
 import app.morphe.util.names.origName
 import app.morphe.util.names.tgMutableClassDefBy
 
 /** hasHiddenArchive, the archive row's sort, the chat list's menu, the stubs and the runtime. */
-@PlusPending
 class DisableArchivePullFixtureTest {
     @Test fun `a hidden archive stays out of the list and the menu opens it`() {
         for (build in Fixtures.declaredBuilds()) {
@@ -46,8 +45,13 @@ class DisableArchivePullFixtureTest {
             val sites = context.resolveDisableArchivePull()
             val hidden = sites.hidden?.let { ImmutableMethod.of(it).controlBody() }
             val inlined = sites.inlined.map { (method, at) -> Triple(method, at, ImmutableMethod.of(method).controlBody()) }
-            assertTrue("$name: hasHiddenArchive itself, or both of 13.1.1's callers where it's inlined",
-                hidden != null && inlined.isEmpty() || hidden == null && inlined.size == 2)
+            // Plus Messenger keeps hasHiddenArchive, its own checks in front, under an R8 name with the
+            // folder id folded in, so its one flag read is found the way an inlined copy is.
+            val inlinedSites = if (name.startsWith("plus-")) 1 else 2
+            assertTrue("$name: hasHiddenArchive itself, or each place it's inlined",
+                hidden != null && inlined.isEmpty() || hidden == null && inlined.size == inlinedSites)
+            if (name.startsWith("plus-")) assertEquals("$name: inside MessagesController", listOf(MESSAGES_CONTROLLER),
+                inlined.map { it.first.origDefiningClass })
             val folder = ImmutableMethod.of(sites.folder).controlBody()
             val menu = ImmutableMethod.of(sites.menu).controlBody()
             assertEquals(emptyList<String>(), PatchLogCapture.warnings { disableArchivePullPatch.execute(context) })

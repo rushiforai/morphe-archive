@@ -1,3 +1,29 @@
+## 3.3.0 (2026-11-18)
+
+### New Features
+- **Doc Scanner:** Hide ads (Doc Scanner) is its own patch, so ads stay gone with or without premium.
+- **LinkedIn:** A switch hides the More tab, on by default, instead of a page that often shows "Something went wrong".
+- **MX Player Pro:** GmsCore support (MX Player Pro) signs in to Google Drive through MicroG-RE.
+- **Truecaller:** Anonymous profile viewing and anonymous search, with switches in Loki Patches › Privacy.
+- **Truecaller:** Premium reads as the Gold plan, and the after-call screen is skipped for missed calls too.
+- **Truecaller:** Hide ads (Truecaller) is its own patch and removes the ads in call history and the rest of the app, with or without premium.
+
+### Fixes
+- **Doc Scanner:** GmsCore support also brings notifications through MicroG-RE, registered with Doc Scanner's original certificate.
+- **Doc Scanner:** On a version the bundle does not list, only the drawer row is skipped instead of every patch failing.
+- **Doc Scanner:** Enable premium features is now named Enable premium features (Doc Scanner).
+- **LinkedIn:** GmsCore support is now named GmsCore support (LinkedIn), like the other apps; if you use it, tick it again once.
+- **Splitwise:** GmsCore support also brings notifications through MicroG-RE, registered with Splitwise's original certificate.
+- **Truecaller:** Premium no longer switches on Remove ads and trackers; tick it yourself for analytics and advertising-ID removal.
+- The Loki Patches entry in the app drawer shows the Loki L.
+
+### Updated App Support
+- **Doc Scanner:** Doc Scanner 6.9.14 is supported, next to 6.9.9.
+- **LinkedIn:** LinkedIn 4.1.1272 is supported, next to 4.1.1270.
+- **Truecaller:** Truecaller 26.44.6 is supported, next to 26.43.5.
+
+**41 patches for 5 apps.** Full list in the [README](https://github.com/lokesh-sparrow/loki-patches#apps).
+
 ## 3.2.1 (2026-11-17)
 
 ### Fixes

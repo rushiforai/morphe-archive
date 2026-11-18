@@ -42,8 +42,11 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import app.morphe.util.names.origDefiningClass
 import app.morphe.util.names.origInterfaces
@@ -58,6 +61,7 @@ private const val NAME = "Ask before sending a sticker"
 private const val OBJECT = "Ljava/lang/Object;"
 private const val STRING = "Ljava/lang/String;"
 private const val ACTIVITY = "Landroid/app/Activity;"
+private const val DIALOG_INTERFACE = "Landroid/content/DialogInterface;"
 private const val VIEW = "Landroid/view/View;"
 private const val MOTION_EVENT = "Landroid/view/MotionEvent;"
 private const val DOCUMENT = "Lorg/telegram/tgnet/TLRPC\$Document;"
@@ -86,8 +90,11 @@ private const val FRAGMENT_PACKAGE = "Lorg/telegram/ui/ActionBar/"
 private const val VOICE_PAUSED = "$MEDIA_CONTROLLER->isRecordingPaused()Z"
 private const val PAUSE_VOICE = "$MEDIA_CONTROLLER->toggleRecordingPause(Z)V"
 
-/** How far before a strip's send its sticker and its paid-message answer are cast, and how soon after it the typed emoji is cleared. */
-private const val STRIP_BEFORE = 60
+/**
+ * How far before a strip's send its sticker and its paid-message answer are cast, and how soon after it the typed emoji is cleared.
+ * Plus Messenger asks its own sticker question between the casts and the send, which puts the casts 82 back.
+ */
+private const val STRIP_BEFORE = 100
 private const val STRIP_AFTER = 12
 
 /** What each hook takes, in the order the method it stands in front of takes its arguments. */
@@ -137,7 +144,7 @@ val sendConfirmPatch = bytecodePatch(
 ) {
     category("Conversations")
     dependsOn(settingsPatch, telegramExtensionPatch)
-    compatibleWith(*AppCompatibilities.telegramOnly())
+    compatibleWith(*AppCompatibilities.telegram())
     execute {
         val site = resolveSendConfirm()
         // Assembled on copies first, so a refusal leaves the app untouched.
@@ -331,6 +338,9 @@ private fun reorderedVoiceGate(target: MutableMethod, hook: String) {
     )
 }
 
+/** The chat header's menu: where it calls from itself, and the classes it makes, one of them Plus Messenger's call chooser. */
+private class CallMenu(val type: String, val wanted: String, val calls: List<Int>, val made: Set<String>)
+
 /** The call to Telegram's start of a call, with the same registers, goes to the extension, which makes it or asks first. */
 private fun replaceCall(target: MutableMethod, index: Int) {
     val call = target.getInstruction(index) as RegisterRangeInstruction
@@ -345,8 +355,8 @@ private fun replaceCall(target: MutableMethod, index: Int) {
  * Five places, each a method that does the work only after a person asked for it: the chat bar's
  * sticker send, the GIF panel's listener, Telegram's end of a voice recording, the chat's
  * handling of the round video recorder and Telegram's join of a voice chat. The calls come from
- * the chat header's menu and the profile's call buttons, the two places that call by hand. The
- * chat bar's own send gets its questions where it sends a clip from its preview or the text typed
+ * the chat header's menu and the profile's call buttons, the two places that call by hand (Plus
+ * Messenger's header asks how to call first and calls from that chooser). The chat bar's own send gets its questions where it sends a clip from its preview or the text typed
  * in it.
  */
 internal fun BytecodePatchContext.resolveSendConfirm(): SendConfirmSite {
@@ -413,13 +423,16 @@ internal fun BytecodePatchContext.resolveSendConfirm(): SendConfirmSite {
     // The rest each call something: the strip's sticker send and its text clear, the camera
     // check, or the start of a call. Only classes naming one of those are read.
     val videos = mutableListOf<Triple<String, String, VideoShape>>()
-    val headers = mutableListOf<Triple<String, String, List<Int>>>()
+    val headers = mutableListOf<CallMenu>()
+    val chooserClicks = mutableListOf<Triple<String, String, List<Int>>>()
     val profiles = mutableListOf<Triple<String, String, List<Int>>>()
     val strips = mutableListOf<Triple<String, String, Int>>()
     val stripMention = Mention.member(SEND_HELPER, "sendSticker") and Mention.reference(SET_FIELD_TEXT)
     // 13.2 names a callback's run as the build names the interface's, which the table maps on the interface only.
     val callbackRun = tgMutableClassDefBy(CALLBACK).methods.filter { it.origName == "run" }.map { it.name }.toSet()
-    forEachClassMentioning(stripMention or Mention.reference(CAMERA_ALLOWED) or Mention.reference(startRef)) { cls ->
+    // Plus Messenger's header menu doesn't call itself, so it's found by its own two commands.
+    val menuMention = Mention.string("/help") and Mention.string("/settings")
+    forEachClassMentioning(stripMention or Mention.reference(CAMERA_ALLOWED) or Mention.reference(startRef) or menuMention) { cls ->
         if (cls.origType.startsWith("Lapp/hushtelegram/")) return@forEachClassMentioning
         cls.methods.forEach { m ->
             val params = m.origParameterTypes
@@ -438,11 +451,19 @@ internal fun BytecodePatchContext.resolveSendConfirm(): SendConfirmSite {
                 }
             }
             val calls = body.indices.filter { body[it].controlRef() == startRef }
-            if (instance && m.origReturnType == "V" && calls.isNotEmpty()) {
-                if (params == listOf("I") && body.any { it.controlString() == "/help" } && body.any { it.controlString() == "/settings" }) {
-                    headers += Triple(cls.type, signature(m), calls)
-                }
-                if (params == listOf("Z")) profiles += Triple(cls.type, signature(m), calls)
+            if (instance && m.origReturnType == "V" && params == listOf("I") && body.any { it.controlString() == "/help" } &&
+                body.any { it.controlString() == "/settings" }) {
+                val made = body.filter { it.opcode == Opcode.NEW_INSTANCE }.mapNotNull { ((it as? ReferenceInstruction)?.reference as? TypeReference)?.type }
+                headers += CallMenu(cls.type, signature(m), calls, made.toSet())
+            }
+            // Plus Messenger's header asks how to call first (the phone, a call or a video call), and its chooser's click calls.
+            if (instance && m.origName == "onClick" && m.origReturnType == "V" && params == listOf(DIALOG_INTERFACE, "I") && calls.isNotEmpty()) {
+                chooserClicks += Triple(cls.type, signature(m), calls)
+            }
+            // The profile's call button: an instance method, or on Plus Messenger a static one taking the profile first.
+            if (m.origReturnType == "V" && calls.isNotEmpty() &&
+                (instance && params == listOf("Z") || !instance && params == listOf(cls.origType, "Z"))) {
+                profiles += Triple(cls.type, signature(m), calls)
             }
         }
     }
@@ -597,7 +618,9 @@ internal fun BytecodePatchContext.resolveSendConfirm(): SendConfirmSite {
     }, "Telegram no longer says which call is going on")
 
     // The header menu's call item, and the profile's call button, each calling once.
-    val (headerType, headerWanted, headerCalls) = headers.controlSingle("the chat header's menu")
+    val menu = headers.controlSingle("the chat header's menu")
+    val (headerType, headerWanted, headerCalls) = if (menu.calls.isNotEmpty()) Triple(menu.type, menu.wanted, menu.calls)
+        else chooserClicks.filter { it.first in menu.made }.controlSingle("the chat header's call chooser")
     val header = tgMutableClassDefBy(headerType).methods.single { signature(it) == headerWanted }
     val headerCall = headerCalls.controlSingle("the chat header's call")
     val (profileType, profileWanted, profileCalls) = profiles.controlSingle("the profile's call button")
@@ -647,23 +670,48 @@ internal fun BytecodePatchContext.resolveSendConfirm(): SendConfirmSite {
 
 /**
  * Where [method], a record button's touch handler, sends a round video: each call of the
- * recorder's [entry] with state 1 that only the instruction before it reaches, the state set to
- * the literal 1 a few instructions earlier and still holding there. Neither a start (state 0) nor
- * a cancel (state 2) is one.
+ * recorder's [entry] that only the instruction before it reaches, with a state every path sets to
+ * the literal 1, or to 1 on one path and Plus's stop-for-preview 3 on another. Plus picks between
+ * those two with its own preview switch and moves the pick into the state, so a plain move of a
+ * literal counts as that literal. Neither a start (state 0) nor a cancel (state 2) is one.
  */
 internal fun videoTapSites(method: Method, entry: String): List<Int> {
     val body = method.controlBody()
     val flow = ControlFlow.of(method)
     val into = Array(body.size) { mutableListOf<Int>() }
     body.indices.forEach { from -> (flow.normal[from] + flow.exceptional[from]).forEach { into[it] += from } }
+
+    // The literals every definition of [register] reaching [at] loads, through plain moves, or null
+    // when one path loads something else or nothing.
+    fun literals(register: Int, at: Int, depth: Int = 0): Set<Int>? {
+        if (depth > 2 || into[at].isEmpty()) return null
+        val found = mutableSetOf<Int>()
+        val pending = ArrayDeque(into[at])
+        val seen = HashSet<Int>()
+        while (pending.isNotEmpty()) {
+            val i = pending.removeFirst()
+            if (!seen.add(i)) continue
+            val instruction = body[i]
+            if (!writes(instruction, register)) {
+                if (into[i].isEmpty()) return null
+                pending += into[i]
+                continue
+            }
+            when (instruction.opcode) {
+                Opcode.CONST_4, Opcode.CONST_16, Opcode.CONST -> found += (instruction as NarrowLiteralInstruction).narrowLiteral
+                Opcode.MOVE, Opcode.MOVE_FROM16, Opcode.MOVE_16 ->
+                    found += literals((instruction as TwoRegisterInstruction).registerB, i, depth + 1) ?: return null
+                else -> return null
+            }
+        }
+        return found
+    }
+
     return body.indices.filter { at ->
         val call = body[at] as? RegisterRangeInstruction
         if (call == null || body[at].opcode != Opcode.INVOKE_INTERFACE_RANGE || body[at].controlRef() != entry) return@filter false
-        val state = call.startRegister + 1
-        val set = (at - 1 downTo 0).firstOrNull { writes(body[it], state) } ?: return@filter false
-        val literal = body[set] as? NarrowLiteralInstruction
-        into[at] == listOf(at - 1) && literal != null && literal.narrowLiteral == 1 &&
-            body[set].opcode in setOf(Opcode.CONST_4, Opcode.CONST_16, Opcode.CONST) && flow.definitionReaches(set, at, state)
+        val states = literals(call.startRegister + 1, at) ?: return@filter false
+        into[at] == listOf(at - 1) && 1 in states && states.all { it == 1 || it == 3 }
     }
 }
 

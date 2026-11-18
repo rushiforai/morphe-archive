@@ -16,9 +16,11 @@ import static app.voidhack.extension.applemusic.library.MusicReflection.invoke;
 
 final class LibraryDownloads {
     private static final String CONTROLLER = "com.apple.android.music.download.controller.a";
+    private static final String SUBSCRIPTION = MusicReflection.classNameForVersion("Pb.a", "Qb.a");
+    private static final String CONNECTIVITY = MusicReflection.classNameForVersion("fc.d", "gc.d");
 
     static List<Object> pending(AtomicBoolean cancelled) throws ReflectiveOperationException, IOException {
-        if (!(Boolean) invoke("Pb.a", "j")) throw new LibraryFailure("subscription_required");
+        if (!(Boolean) invoke(SUBSCRIPTION, "j")) throw new LibraryFailure("subscription_required");
         if (!(Boolean) invoke(CONTROLLER, "k")) {
             throw new LibraryFailure("download_connection");
         }
@@ -39,17 +41,17 @@ final class LibraryDownloads {
     private LibraryDownloads() {}
 
     private static void checkPolicy(Activity activity) throws ReflectiveOperationException, IOException {
-        if (!(Boolean) invoke("Pb.a", "j")) throw new LibraryFailure("subscription_required");
+        if (!(Boolean) invoke(SUBSCRIPTION, "j")) throw new LibraryFailure("subscription_required");
         Object library = invoke("com.apple.android.medialibrary.library.a", "d0");
         if (library == null || !(Boolean) call(library, "isReady")) throw new LibraryFailure("sync_required");
         String transfer = "com.apple.android.music.settings.services.MediaTransferService";
         if (Class.forName(transfer).getField("f").get(null) == Class.forName(transfer + "$b").getField("ONGOING").get(null)) {
             throw new LibraryFailure("download_moving");
         }
-        if (!(Boolean) invoke(CONTROLLER, "k") || !(Boolean) invoke("fc.d", "f", activity)) {
+        if (!(Boolean) invoke(CONTROLLER, "k") || !(Boolean) invoke(CONNECTIVITY, "f", activity)) {
             throw new LibraryFailure("download_connection");
         }
-        if (!(Boolean) invoke("fc.d", "g") && (Boolean) call(invoke("ja.u0", "j"), "d",
+        if (!(Boolean) invoke(CONNECTIVITY, "g") && (Boolean) call(invoke("ja.u0", "j"), "d",
                 Class.forName("ja.u0").getField("o").get(null), false)) {
             throw new LibraryFailure("download_data_saver");
         }

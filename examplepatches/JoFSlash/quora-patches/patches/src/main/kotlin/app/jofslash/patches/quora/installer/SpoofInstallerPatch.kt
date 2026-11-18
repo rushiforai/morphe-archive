@@ -19,6 +19,7 @@ val spoofInstallerPatch = bytecodePatch(
             "as installed from an unknown source.",
     default = true
 ) {
+    category("Privacy")
     compatibleWith(COMPATIBILITY_QUORA)
 
     execute {

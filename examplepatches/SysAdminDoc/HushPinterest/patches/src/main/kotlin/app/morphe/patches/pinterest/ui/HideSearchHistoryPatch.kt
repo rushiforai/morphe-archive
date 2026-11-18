@@ -39,6 +39,9 @@ internal const val RECENT_SEARCH_PILL = "Lcom/pinterest/feature/search/typeahead
 internal const val RECENT_ROW_HOOK = "$UI_HOOKS->recentSearchRow(Landroid/view/View;Z)V"
 internal const val RECENT_ROW_MEASURE_HOOK = "$UI_HOOKS->recentSearchRowMeasureSpec(Landroid/view/View;I)I"
 
+internal const val SEARCH_LANDING_ID = "search_landing_recycler_container"
+internal const val SEARCH_LANDING_HOOK = "$INTERFACE_CONTROLS->searchLanding(Landroid/view/View;)V"
+
 internal val RECENT_ROW_BIND = listOf("Ljava/lang/String;", "Z")
 
 internal class RecentSearchRows(val row: MutableClass, val bind: MutableMethod)
@@ -117,12 +120,32 @@ internal fun BytecodePatchContext.recentSearchBlock(): MutableClass {
     return block
 }
 
+/**
+ * The Search tab's page, the one fragment that reads the id of the landing list. It gets its root
+ * view first thing in onViewCreated, which goes on to reuse both parameter registers.
+ */
+private fun BytecodePatchContext.blankSearchPage() {
+    val pages = mutableListOf<String>()
+    classDefForEach { owner ->
+        if (owner.methods.any { method -> method.fields().any { it.name == SEARCH_LANDING_ID && it.type == "I" } }) {
+            pages += owner.type
+        }
+    }
+    val created = mutableClassDefBy(pages.distinct().one("The Search page")).methods.filter {
+        it.name == "onViewCreated" && it.returnType == "V" &&
+            it.parameters() == listOf("Landroid/view/View;", "Landroid/os/Bundle;")
+    }.one("The Search page's onViewCreated")
+    created.addInstructions(0, "invoke-static/range { p1 .. p1 }, $SEARCH_LANDING_HOOK")
+    enableCapability("searchLanding")
+}
+
 /** Display-only: vendor search requests and account history are unchanged. */
 @Suppress("unused")
 val hideSearchHistoryPatch = bytecodePatch(
     name = PATCH,
     description = "Hides your recent searches on the search screen of this phone. It doesn't delete your account's " +
-        "search history. Starts off. Turn it on in HushPinterest settings > Interface.",
+        "search history. A second switch leaves only the search bar on the Search page. Starts off. Turn them on " +
+        "in HushPinterest settings > Interface.",
 ) {
     category("Interface")
     dependsOn(settingsPatch, pinterestExtensionPatch)
@@ -132,6 +155,7 @@ val hideSearchHistoryPatch = bytecodePatch(
         requireStatusMethod("searchHistory")
         requireStatusMethod("recentSearchRows")
         requireStatusMethod("recentSearchHeading")
+        requireStatusMethod("searchLanding")
         val views = SEARCH_HISTORY_VIEWS.map { mutableClassDefBy(it) }
         views.forEach { view ->
             requireOverride(view, "setVisibility", listOf("I"))
@@ -147,6 +171,7 @@ val hideSearchHistoryPatch = bytecodePatch(
             invoke-static { p0, p2 }, $RECENT_ROW_MEASURE_HOOK
             move-result p2
         """)
+        optionalTarget(PATCH, "Blank Search page") { blankSearchPage() }
         enableCapability("searchHistory")
         enableCapability("recentSearchRows")
         enableCapability("recentSearchHeading")

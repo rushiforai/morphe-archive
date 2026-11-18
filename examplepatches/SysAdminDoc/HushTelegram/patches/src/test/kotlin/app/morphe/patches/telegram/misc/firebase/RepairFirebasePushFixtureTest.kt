@@ -8,7 +8,6 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.PlusPending
 import app.morphe.util.names.origRef
 import app.morphe.util.names.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
@@ -75,22 +74,24 @@ private const val BOOL_TRUE = "Lorg/telegram/tgnet/TLRPC\$TL_boolTrue;"
 private fun Method.isDelegateRun() = name == "run" && parameterTypes.map(CharSequence::toString) == DELEGATE_PARAMETERS && returnType == "V"
 
 /** Independent signer and request census, with complete pre-mutation refusal snapshots. */
-@PlusPending
 class RepairFirebasePushFixtureTest {
     @Test
     fun `header seed is the actual official fixture signer rather than a guessed fingerprint`() {
-        val seed = ExtensionDex.classes().single { it.origType == FIREBASE_PUSH }.fields.single {
-            it.origName == "OFFICIAL_CERTIFICATE_SHA1"
-        }.initialValue as StringEncodedValue
+        val fields = ExtensionDex.classes().single { it.origType == FIREBASE_PUSH }.fields
+        fun seed(name: String) = (fields.single { it.origName == name }.initialValue as StringEncodedValue).value
         for (build in Fixtures.declaredBuilds()) {
-            val signature = ApkVerifier.Builder(build).build().verify()
+            val plus = build.name.startsWith("plus-")
+            val signed = Fixtures.vendorSigned(build)
+            val signature = try { ApkVerifier.Builder(signed).build().verify() } finally { if (signed != build) signed.delete() }
             assertTrue("${build.name}: fixture signature verifies", signature.isVerified)
             val certificates = signature.signerCertificates
             assertEquals("${build.name}: one official signer", 1, certificates.size)
             val encoded = certificates.single().encoded
             assertEquals("${build.name}: independently pinned SHA-256",
-                "49c1522548ebacd46ce322b6fd47f6092bb745d0f88082145caf35e14dcc38e1", digest("SHA-256", encoded))
-            assertEquals("${build.name}: header is the verified SHA-1", digest("SHA-1", encoded).uppercase(), seed.value)
+                if (plus) "6ebb622268aad319dbe8a1f414837d2843a9b35856aefb7dee2971a3d493f276"
+                else "49c1522548ebacd46ce322b6fd47f6092bb745d0f88082145caf35e14dcc38e1", digest("SHA-256", encoded))
+            assertEquals("${build.name}: header is the verified SHA-1", digest("SHA-1", encoded).uppercase(),
+                seed(if (plus) "PLUS_CERTIFICATE_SHA1" else "OFFICIAL_CERTIFICATE_SHA1"))
         }
     }
 
@@ -100,13 +101,14 @@ class RepairFirebasePushFixtureTest {
             val hosts = hosts(build)
             val context = PatchContexts.of(ExtensionDex.classes() + hosts)
             val original = hosts.flatMap { it.methods.toList() }
-                .single { method -> "X-Android-Cert" in method.strings() }
+                .single { method -> method.isHeaderPath() }
             val before = original.instructions()
             val at = before.indexOfFirst { it.string() == "X-Android-Cert" } + 1
             val registers = before[at].namedRegisters()
             assertEquals("${build.name}: public shared connection header path", listOf("Ljava/net/URL;", "Ljava/lang/String;"),
                 original.parameterTypes.map(CharSequence::toString))
-            assertEquals("${build.name}: native lookup stays in the method", 2,
+            // Plus Messenger reads the signature in a helper the header path calls.
+            assertEquals("${build.name}: native lookup stays in the method", if (build.name.startsWith("plus-")) 0 else 2,
                 before.count { it.reference() == "Landroid/content/pm/PackageInfo;->signatures:[Landroid/content/pm/Signature;" })
             val census = FixtureDex.methodsWhere(build, { true }) { method -> method.instructions().any {
                 it.call()?.signature() == original.signature()
@@ -297,12 +299,17 @@ class RepairFirebasePushFixtureTest {
             }
             assertEquals(-1, token.run(mapOf("sync" to null)))
             val accounts = ReadOnlyProbe(context.tgMutableClassDefBy(USER_CONFIG).methods.single { it.origName == ACCOUNT_READER })
+            // Four slots on Telegram, ten on Plus Messenger: the size the app makes its account array.
+            val count = (context.tgMutableClassDefBy(USER_CONFIG).methods.single { it.origName == "<clinit>" }
+                .implementation!!.instructions.first() as NarrowLiteralInstruction).narrowLiteral
+            assertEquals(build.name, if (build.name.startsWith("plus-")) 10 else 4, count)
             for (mask in 0 until 256) {
                 var active = 0
                 var acknowledged = 0
-                val slots = Array(4) { slot ->
-                    val signedIn = mask and (1 shl (slot * 2)) != 0
-                    val registered = mask and (2 shl (slot * 2)) != 0
+                // Slots past the fourth repeat the first four's states.
+                val slots = Array(count) { slot ->
+                    val signedIn = mask and (1 shl (slot % 4 * 2)) != 0
+                    val registered = mask and (2 shl (slot % 4 * 2)) != 0
                     if (signedIn) active++
                     if (signedIn && registered) acknowledged++
                     mapOf("sync" to Any(), "configLoaded" to 1, "registeredForPush" to if (registered) 1 else 0,
@@ -312,12 +319,12 @@ class RepairFirebasePushFixtureTest {
                     accounts.run(mapOf("Instance" to slots)))
             }
             val ready = mapOf("sync" to Any(), "configLoaded" to 1, "currentUser" to null, "registeredForPush" to 1)
-            for (slot in 0 until 4) for (missing in listOf(null, ready + ("configLoaded" to 0), ready + ("sync" to null))) {
-                val slots = Array<Map<String, Any?>?>(4) { ready }
+            for (slot in 0 until count) for (missing in listOf(null, ready + ("configLoaded" to 0), ready + ("sync" to null))) {
+                val slots = Array<Map<String, Any?>?>(count) { ready }
                 slots[slot] = missing
                 assertEquals(-1, accounts.run(mapOf("Instance" to slots)))
             }
-            for (slots in listOf(null, emptyArray<Any>(), arrayOf(ready), Array(5) { ready })) {
+            for (slots in listOf(null, emptyArray<Any>(), arrayOf(ready), Array(count - 1) { ready }, Array(count + 1) { ready })) {
                 assertEquals(-1, accounts.run(mapOf("Instance" to slots)))
             }
         }
@@ -535,7 +542,7 @@ class RepairFirebasePushFixtureTest {
     fun `ambiguous header owners and an inaccessible runtime hook refuse without partial mutation`() {
         for (build in Fixtures.declaredBuilds()) {
             val hosts = hosts(build)
-            val client = hosts.single { it.methods.any { method -> "X-Android-Cert" in method.strings() } }
+            val client = hosts.single { it.methods.any { method -> method.isHeaderPath() } }
             val duplicate = ImmutableClassDef("Ltest/OtherFirebaseClient;", client.accessFlags, client.superclass,
                 client.interfaces, client.sourceFile, client.annotations, client.fields, client.methods.map { method ->
                     ImmutableMethod("Ltest/OtherFirebaseClient;", method.name, method.parameters, method.returnType,
@@ -751,6 +758,10 @@ class RepairFirebasePushFixtureTest {
         .joinToString("") { "%02x".format(it.toInt() and 0xff) }
     private fun Method.instructions(): List<Instruction> = implementation?.instructions?.toList().orEmpty()
     private fun Method.strings() = instructions().mapNotNull { it.string() }.toSet()
+
+    /** The Firebase installations client's header path: the method taking a URL and an API key that sets X-Android-Cert. */
+    private fun Method.isHeaderPath() = "X-Android-Cert" in strings() &&
+        parameterTypes.map(CharSequence::toString) == listOf("Ljava/net/URL;", "Ljava/lang/String;")
     private fun Instruction.reference() = origRef()
     private fun Instruction.string() = ((this as? ReferenceInstruction)?.reference as? StringReference)?.string
     private fun Instruction.call() = (this as? ReferenceInstruction)?.reference as? MethodReference
@@ -774,14 +785,15 @@ class RepairFirebasePushFixtureTest {
             fun number(register: Int) = value(register) as Int
             fun zero(register: Int) = value(register) == null || value(register) == 0
             while (true) {
-                check(++steps <= 200) { "read-only reader did not terminate" }
+                // About 18 steps a slot, and Plus Messenger has ten.
+                check(++steps <= 400) { "read-only reader did not terminate" }
                 val instruction = body[index]
                 val one = instruction as? OneRegisterInstruction
                 val two = instruction as? TwoRegisterInstruction
                 val three = instruction as? ThreeRegisterInstruction
                 var branch = false
                 when (instruction.opcode) {
-                    Opcode.CONST_4 -> values[one!!.registerA] = (instruction as NarrowLiteralInstruction).narrowLiteral
+                    Opcode.CONST_4, Opcode.CONST_16 -> values[one!!.registerA] = (instruction as NarrowLiteralInstruction).narrowLiteral
                     Opcode.SGET_OBJECT, Opcode.SGET_BOOLEAN -> values[one!!.registerA] = statics[instruction.field()!!.origName]
                     Opcode.IGET_OBJECT, Opcode.IGET_BOOLEAN -> {
                         val objectFields = value(two!!.registerB) as Map<*, *>

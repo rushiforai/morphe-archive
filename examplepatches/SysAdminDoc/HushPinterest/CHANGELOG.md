@@ -4,6 +4,26 @@ Every HushPinterest release, newest first.
 
 ## Unreleased
 
+* The patches now target Pinterest 14.45.0, version code 14458020. APKMirror has it as a plain APK for Android 10 or newer. Older Pinterest versions are refused.
+* New `Customize board tabs` patch with its switches under Interface, all off to start. On a board tab on Home, `Hide See board on board tabs` and `Hide More ideas for on board tabs` clear the picture at the top so only the board name is left, and `Board name position` moves the name to the top left, top center, middle, bottom center or bottom right. (#42)
+* `Choose board tab covers`, also part of Customize board tabs, stops that picture changing. Turn it on and long-press the picture to keep the one showing, use a pin, pick a photo from your phone or go plain black. Each board remembers its own choice, and Pinterest's choice puts it back. It starts off. (#42)
+* New `Hide download toasts` switch under Interface, part of Hide save toasts. Downloading a pin no longer shows the message that it started or finished. Errors still show, and Android's own download notification stays. It starts off. (#42)
+* New `Black toasts` switch under Interface, part of AMOLED black. In dark mode, Pinterest's pop-up messages, like the one after you save or download a pin, turn pure black. It starts off. (#42)
+* New `Second Search tap opens the keyboard` switch under Interface, part of Hide navigation buttons. On the Search page, pressing Search in the bottom bar again puts the cursor in the search bar and opens the keyboard. It starts off. (#42)
+* New `Hide Home tabs` switch under Interface, part of Hide navigation buttons. It takes the row with All and your board names off the top of Home. It starts off. (#43)
+* New `Hide pin menu rows` switch under Interface, part of Filter pin menu. Pick pin menu rows lists the rows of a pin's menu, the ones HushPinterest adds included, and the ones you pick stay out of the menus you open from then on. It starts off. (#43)
+* New `Blank Search page` switch under Interface, part of Hide search history. The Search page shows only the search bar, with nothing under it, and searching works as usual. It starts off. (#44)
+* New `Hide pin title and description` patch with its own switch under Interface. Under a pin you open, the title and description go away and the likes and comments bar stays, along with the posted date and image size if you have those on. It starts off. (#43, #44)
+* New `Hide pin author` patch with its own switch under Interface. It takes the creator's whole row, picture and name included, out from under a pin you open. It starts off. (#44)
+* New `Show image size` patch with its own switch under Interface. A picture's width and height show under it when you open a pin, next to the posted date if that's on. The numbers come from the largest copy Pinterest sends the app, so they can be smaller than the original upload. Videos show nothing. It starts off. (#43, #44)
+* New `Hide blue highlight ring` patch with its own switch under Interface. It stops the thick blue ring Pinterest draws over buttons like Save when it wants to point out a feature. It starts off. (#42)
+* New `Hide visual search thumbnails` patch with its own switch under Interface. The lens button on a pin's picture stays plain instead of showing a little stack of cropped pictures. It starts off. (#42)
+* New `Fold related pins` patch with its own switch under Interface. An arrow sits under a pin you open, and related pins don't load until you tap it. Tap again and they fold away. Your last choice carries over to other pins and restarts, and Hide related pins wins if both are on. It starts off. (#46)
+* Download pin now looks for an idea pin's video on its pages and in their video blocks, where Pinterest keeps it, before saying the pin has no MP4. (#45)
+* Hide Home suggestions now also matches two row types from a Debug report of a Home showing "Inspired by your interests" and "More ideas for your board". (#30)
+* Original-quality images now reaches the picture pages of idea pins. Each page picks its own picture from its own list, so the switch never got to them before. A picture too big for Android to draw stays at Pinterest's size. Pinterest sometimes lists an original under the wrong file type and its image server refuses it, which left a grey box. The app now tries the other types, then a large copy.
+* Report a problem now opens your browser even when GitHub's app is installed. The app took the link, showed its own template list and lost everything the form had filled in.
+* `Black menus and sheets` now also covers the drawer that slides up from the arrow under a pin, along with the fade above its buttons. (#21)
 * Hide shopping and product pins now takes the Shop the look section out from under a pin you open, the title and its row of products both. Pinterest builds that section from the pin itself, not from a feed story, so the switch used to miss it. The pin's Visit button stays, and Export report lists the part as `Shop the look under pins`. (#6)
 * New `Custom splash logo` patch with its own switch under Interface. On Android 13 and newer, the screen you see while Pinterest starts shows a logo you pick instead of Pinterest's. Pick a PNG, JPEG or WebP picture in the patch's Logo option when you patch, or leave it empty for HushPinterest's logo. All of the picture shows, centered in a circle, so a square one with a clear background looks best. It starts off, and the logo shows from the next start after you turn it on. (#41)
 * New `Custom save sound` patch with its own switch under Interface. Pick a sound file with Pick a save sound and it plays when you save a pin, instead of Pinterest's chime. Picking one turns the switch on, and the row can take you back to Pinterest's sound any time. If the file goes missing, Pinterest's chime plays. (#41)
@@ -29,6 +49,7 @@ Every HushPinterest release, newest first.
 * **Tooling:** Release notes and the Morphe Manager index now link a repo file through its page on main. A link written relative to the repo, like the `morphe-signing.pub` one in 0.0.14, used to open a 404 on the release page.
 * **Tooling:** A release no longer waits on the source census. The audit still runs whenever you want to see which indexes list HushPinterest, but a stale or flaky answer from one of them can't stop a release anymore.
 * **Tooling:** The tests that only checked the build and release scripts are gone, about 10,000 lines of them. A push that changes a script now takes under a second instead of several minutes. Every test of the patches and the extension still runs.
+* **Tooling:** The GitHub release notes leave out the Tooling bullets now, and their tail can't add a Behind the scenes or Validation section. Tooling bullets are still listed here.
 
 ## 0.0.14 (2026-11-14)
 

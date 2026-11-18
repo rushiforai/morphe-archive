@@ -6,6 +6,7 @@ import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
@@ -72,18 +73,19 @@ private fun BytecodePatchContext.autoClaimDrops() {
     val claimEventInit = claimEvent.methods.singleOrNull {
         it.name == "<init>" && it.parameterTypes.map(CharSequence::toString) == listOf(claimable.definingClass, "I")
     } ?: throw PatchException("Twitch: the drop claim event no longer takes the claimable drop")
-    // What the notification shows: a drop presentation, whose change is the drop.
+    // What the notification shows: a drop presentation, whose change is the drop (a field; its getter is inlined).
     val presentation = Fingerprint(
         name = "toString", returnType = "Ljava/lang/String;", parameters = emptyList(),
         strings = listOf("DropPresentation(change=", ", dropObject="),
     ).twitchMatch("drop presentation").classDef
     val dropBase = classDefBy(claimable.definingClass).superclass
-    val change = presentation.methods.singleOrNull { it.parameterTypes.isEmpty() && it.returnType == dropBase }
-        ?: throw PatchException("Twitch: the drop presentation has no drop getter")
+    val change = presentation.fields.singleOrNull { !AccessFlags.STATIC.isSet(it.accessFlags) && it.type == dropBase }
+        ?: throw PatchException("Twitch: the drop presentation has no single drop")
 
     // The presenter's handler of its view's events (the Claim button among them): a Function1 lambda made with
     // (presenter, case) and handed the view's event stream.
-    val (handlerType, handlerCase) = viewEventHandler(presenter)
+    val handler = viewEventHandler(presenter, claimEvent.type)
+    val (handlerType, handlerCase) = handler
     Locators.record("twitch.auto_claim_drops.handler", handlerType)
     Locators.record("twitch.auto_claim_drops.handler_case", handlerCase.toString())
 
@@ -114,8 +116,7 @@ private fun BytecodePatchContext.autoClaimDrops() {
 
     bridge(DROPS, "claimableOf", """
         check-cast p0, ${presentation.type}
-        invoke-virtual { p0 }, ${presentation.type}->${change.name}()$dropBase
-        move-result-object p0
+        iget-object p0, p0, ${presentation.type}->${change.name}:$dropBase
         instance-of v0, p0, ${claimable.definingClass}
         if-nez v0, :lurk_claimable
         const/4 p0, 0x0
@@ -130,7 +131,8 @@ private fun BytecodePatchContext.autoClaimDrops() {
     bridge(DROPS, "tapClaim", """
         new-instance v0, $handlerType
         const v1, $handlerCase
-        invoke-direct { v0, p0, v1 }, $handlerType-><init>(Ljava/lang/Object;I)V
+        check-cast p0, ${handler.owner}
+        invoke-direct { v0, p0, v1 }, $handlerType-><init>(${handler.owner}I)V
         new-instance v1, ${claimEvent.type}
         const/4 v2, 0x0
         check-cast p1, ${claimable.definingClass}
@@ -158,27 +160,40 @@ private fun printedArgument(code: List<com.android.tools.smali.dexlib2.iface.ins
     return (read as ReferenceInstruction).reference.toString()
 }
 
+/** A view-event handler lambda: its class, its case, and the owner type its constructor takes with the case. */
+private data class EventHandler(val type: String, val case: Int, val owner: String)
+
 /**
  * The presenter's view-event handler: in the method that subscribes to its view's EventDispatcher, the Function1
- * made with `new T(this, case)`.
+ * made with `new T(this, case)`. R8 merges presenters into one class (since 32.1.0 the drops one shares it), so
+ * where several do that, the handler is the one whose lambda tests for the Claim event.
  */
-private fun BytecodePatchContext.viewEventHandler(presenter: ClassDef): Pair<String, Int> {
-    val found = presenter.methods.mapNotNull { method ->
-        val code = method.implementation?.instructions?.toList() ?: return@mapNotNull null
+private fun BytecodePatchContext.viewEventHandler(presenter: ClassDef, claimEvent: String): EventHandler {
+    val found = presenter.methods.flatMap { method ->
+        val code = method.implementation?.instructions?.toList() ?: return@flatMap emptyList()
         if (code.none { ((it as? ReferenceInstruction)?.reference as? MethodReference)?.let { ref -> ref.definingClass == EVENTS && ref.parameterTypes.isEmpty() } == true }) {
-            return@mapNotNull null
+            return@flatMap emptyList()
         }
-        code.indices.firstNotNullOfOrNull { i ->
+        code.indices.mapNotNull { i ->
             val init = code[i]
             val ref = (init as? ReferenceInstruction)?.reference as? MethodReference
-            if (init.opcode != Opcode.INVOKE_DIRECT || ref?.name != "<init>" ||
-                ref.parameterTypes.map(CharSequence::toString) != listOf("Ljava/lang/Object;", "I")) return@firstNotNullOfOrNull null
+            val parameters = ref?.parameterTypes?.map(CharSequence::toString)
+            if (init.opcode != Opcode.INVOKE_DIRECT || ref?.name != "<init>" || parameters?.size != 2 || parameters[1] != "I" ||
+                parameters[0] !in listOf("Ljava/lang/Object;", presenter.type)) return@mapNotNull null
             val made = code.getOrNull(i - 2)
             val case = code.getOrNull(i - 1)
             if (made?.opcode != Opcode.NEW_INSTANCE || ((made as ReferenceInstruction).reference as TypeReference).type != ref.definingClass ||
-                case !is NarrowLiteralInstruction) return@firstNotNullOfOrNull null
-            ref.definingClass to case.narrowLiteral
+                case !is NarrowLiteralInstruction) return@mapNotNull null
+            EventHandler(ref.definingClass, case.narrowLiteral, parameters[0])
+        }
+    }.distinct()
+    val claims = { handler: EventHandler ->
+        classDefBy(handler.type).methods.any { method ->
+            method.name == "invoke" && method.implementation?.instructions?.any {
+                it.opcode == Opcode.INSTANCE_OF && ((it as ReferenceInstruction).reference as TypeReference).type == claimEvent
+            } == true
         }
     }
-    return found.singleOrNull() ?: throw PatchException("Twitch: no single view-event handler in the drops notification presenter")
+    return (found.singleOrNull() ?: found.filter(claims).singleOrNull())
+        ?: throw PatchException("Twitch: no single view-event handler in the drops notification presenter")
 }

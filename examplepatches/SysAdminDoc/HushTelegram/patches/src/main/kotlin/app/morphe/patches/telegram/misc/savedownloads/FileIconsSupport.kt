@@ -312,7 +312,13 @@ private fun BytecodePatchContext.sharedFileIcons(): SharedFileIcons {
         !AccessFlags.STATIC.isSet(m.accessFlags) && m.origParameterTypes == listOf(MESSAGE_OBJECT, "Z") && m.origReturnType == "V"
     }.controlSingle("Shared media's file binding")
     val body = bind.controlBody()
-    val site = body.indices.filter { body[it].fileIconVirtualCall() && body[it].controlRef() == ICONS_SET_IMAGE }
+    fun labelShownBefore(site: Int) = (maxOf(0, site - 4) until site).any { i ->
+        val call = body[i].call()
+        body[i].fileIconVirtualCall() && call != null && call.name == "setVisibility" && call.parameterTypes.map { it.toString() } == listOf("I") &&
+            body[i].namedRegisters().first() != body[site].namedRegisters().first()
+    }
+    // Plus Messenger adds a second icon, from the type, for audio and video files; Telegram's shows the extension label first.
+    val site = body.indices.filter { body[it].fileIconVirtualCall() && body[it].controlRef() == ICONS_SET_IMAGE && labelShownBefore(it) }
         .controlSingle("Shared media's file icon")
     val (image, resource) = body[site].namedRegisters().let { it.first() to it.last() }
     val picked = if (site >= 2) body[site - 2].call() else null

@@ -28,30 +28,45 @@ fresh() { [[ -n "$force" ]] && rm -rf "$1"; [[ ! -e "$1" ]]; }
 
 [[ -f "$out/base.apk" ]] || apk_py extract-base "$input" "$out/base.apk"
 
+# Each step writes to <dir>.partial and renames it when done, so a run that was killed (or ran out of memory)
+# leaves no directory that the next run would take for finished output.
 if [[ -n "$java" ]] && fresh "$out/jadx"; then
     note "jadx -> $out/jadx"
-    # jadx exits non-zero when a few methods fail to decompile; the output is still usable.
-    "$(tool jadx)" --log-level error --show-bad-code -d "$out/jadx" "$out/base.apk" >"$out/jadx.log" 2>&1 ||
-        note "jadx reported errors (normal for big apps): $out/jadx.log"
+    rm -rf "$out/jadx.partial"
+    # jadx's launcher lets the JVM take 70% of RAM, so two decompiles at once (worktrees, agents) ran a 62 GB
+    # host out of memory: cap the heap and take turns.
+    status=0
+    flock "$WORK/jadx.lock" env JADX_OPTS="-XX:MaxRAMPercentage=40.0 ${JADX_OPTS:-}" \
+        "$(tool jadx)" --log-level error --show-bad-code -d "$out/jadx.partial" "$out/base.apk" >"$out/jadx.log" 2>&1 ||
+        status=$?
+    # jadx exits non-zero when a few methods fail to decompile; the output is still usable. Above 128 it was killed.
+    (( status <= 128 )) || die "jadx was killed (signal $((status - 128)), out of memory?): $out/jadx.log"
+    (( status == 0 )) || note "jadx reported errors (normal for big apps): $out/jadx.log"
+    mv "$out/jadx.partial" "$out/jadx"
 fi
 
 if [[ -n "$smali" ]] && fresh "$out/apktool"; then
     note "apktool -> $out/apktool"
-    java -jar "$APKTOOL_JAR" d -f -p "$WORK/apktool-framework" -o "$out/apktool" "$out/base.apk" >"$out/apktool.log" 2>&1 ||
+    rm -rf "$out/apktool.partial"
+    java -jar "$APKTOOL_JAR" d -f -p "$WORK/apktool-framework" -o "$out/apktool.partial" "$out/base.apk" >"$out/apktool.log" 2>&1 ||
         die "apktool failed: $out/apktool.log"
+    mv "$out/apktool.partial" "$out/apktool"
 fi
 
 if [[ -n "$hermes" ]] && python3 -I -c 'import sys, zipfile; sys.exit("assets/index.android.bundle" not in zipfile.ZipFile(sys.argv[1]).namelist())' "$out/base.apk" &&
     fresh "$out/hermes"; then
     note "Hermes bundle found (React Native) -> $out/hermes"
-    mkdir -p "$out/hermes"
+    h="$out/hermes.partial"
+    rm -rf "$h"
+    mkdir -p "$h"
     python3 -I -c 'import sys, zipfile; open(sys.argv[2], "wb").write(zipfile.ZipFile(sys.argv[1]).read("assets/index.android.bundle"))' \
-        "$out/base.apk" "$out/hermes/index.android.bundle"
-    "$(tool hbc-file-parser)" "$out/hermes/index.android.bundle" >"$out/hermes/header.txt" 2>&1 || true
-    "$(tool hbc-disassembler)" "$out/hermes/index.android.bundle" "$out/hermes/disassembly.hasm" >"$out/hermes/disassembler.log" 2>&1 ||
+        "$out/base.apk" "$h/index.android.bundle"
+    "$(tool hbc-file-parser)" "$h/index.android.bundle" >"$h/header.txt" 2>&1 || true
+    "$(tool hbc-disassembler)" "$h/index.android.bundle" "$h/disassembly.hasm" >"$h/disassembler.log" 2>&1 ||
         note "hbc-disassembler failed (unsupported bytecode version?): $out/hermes/disassembler.log"
-    "$(tool hbc-decompiler)" "$out/hermes/index.android.bundle" "$out/hermes/decompiled.js" >"$out/hermes/decompiler.log" 2>&1 ||
+    "$(tool hbc-decompiler)" "$h/index.android.bundle" "$h/decompiled.js" >"$h/decompiler.log" 2>&1 ||
         note "hbc-decompiler failed: $out/hermes/decompiler.log"
+    mv "$h" "$out/hermes"
 fi
 
 echo "$out"

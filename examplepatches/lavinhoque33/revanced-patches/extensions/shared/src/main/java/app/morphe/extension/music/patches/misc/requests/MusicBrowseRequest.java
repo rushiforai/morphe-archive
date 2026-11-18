@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-17.
  * Modified by lavinhoque33, 2026-11-15.
  */
 package app.morphe.extension.music.patches.misc.requests;
@@ -13,7 +14,9 @@ import androidx.annotation.Nullable;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -43,6 +46,37 @@ public final class MusicBrowseRequest {
             // The AA field mask is an optimisation, never a requirement for browsing.
             if (fields != null) return browse(context, browseId, continuation, null);
             throw ex;
+        }
+    }
+
+    /** The same authenticated browse, in the format used by Music's native page renderer. */
+    public static byte[] browseNative(Context context, String browseId, @Nullable String continuation)
+            throws IOException, JSONException {
+        JSONObject body = new JSONObject().put("context", context(context));
+        body.put(continuation == null ? "browseId" : "continuation",
+                continuation == null ? browseId : continuation);
+        HttpURLConnection connection = openPost(context, "browse", body, "&alt=proto");
+        Requester.ConnectionProvider route = Requester.scopedConnection();
+        try {
+            String type = connection.getContentType();
+            if (type == null || !type.startsWith("application/x-protobuf")) {
+                throw new IOException("Music browse did not return a native response");
+            }
+            try (InputStream input = connection.getInputStream()) {
+                ByteArrayOutputStream output = new ByteArrayOutputStream();
+                byte[] buffer = new byte[32 * 1024];
+                int count;
+                while ((count = input.read(buffer)) != -1) {
+                    if (route != null && route.cancelled()) throw new IOException("Music browse was cancelled");
+                    if (output.size() + count > 32 * 1024 * 1024) {
+                        throw new IOException("Music browse exceeds 32 MiB");
+                    }
+                    output.write(buffer, 0, count);
+                }
+                return output.toByteArray();
+            }
+        } finally {
+            connection.disconnect();
         }
     }
 
@@ -101,9 +135,22 @@ public final class MusicBrowseRequest {
 
     private static JSONObject post(Context context, String endpoint, JSONObject body, String query)
             throws IOException, JSONException {
+        HttpURLConnection connection = openPost(context, endpoint, body, query);
+        try {
+            JSONObject response = Requester.parseJSONObject(connection);
+            if (response.has("error")) throw new IOException("Music " + endpoint + " returned an error");
+            return response;
+        } finally {
+            connection.disconnect();
+        }
+    }
+
+    private static HttpURLConnection openPost(Context context, String endpoint, JSONObject body, String query)
+            throws IOException {
         String version = version(context);
         String url = "https://youtubei.googleapis.com/youtubei/v1/" + endpoint + "?prettyPrint=false" + query;
-        HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+        HttpURLConnection connection = Requester.openDirectConnection(new URL(url));
+        boolean accepted = false;
         try {
             connection.setRequestMethod("POST");
             connection.setConnectTimeout(15_000);
@@ -128,11 +175,10 @@ public final class MusicBrowseRequest {
             int status = connection.getResponseCode();
             if (status == HttpURLConnection.HTTP_BAD_REQUEST) throw new BadRequestException();
             if (status != HttpURLConnection.HTTP_OK) throw new IOException("Music " + endpoint + " HTTP " + status);
-            JSONObject response = Requester.parseJSONObject(connection);
-            if (response.has("error")) throw new IOException("Music " + endpoint + " returned an error");
-            return response;
+            accepted = true;
+            return connection;
         } finally {
-            connection.disconnect();
+            if (!accepted) connection.disconnect();
         }
     }
 }

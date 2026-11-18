@@ -276,14 +276,22 @@ public class DexDiff {
     private static final Map<String, Integer> MUTATION_COLUMNS = Map.ofEntries(
             Map.entry("feed", 4), Map.entry("views", 3), Map.entry("guard", 2), Map.entry("refresh", 2), Map.entry("draw", 2), Map.entry("drawWash", 4), Map.entry("builtView", 3),
             Map.entry("navigation", 2), Map.entry("menu", 2), Map.entry("downloads", 2), Map.entry("comments", 7), Map.entry("closeupModule", 4),
-            Map.entry("links", 6), Map.entry("analytics", 5), Map.entry("answers", 4), Map.entry("imageOrder", 1), Map.entry("closeupImage", 2), Map.entry("topicSuggestions", 2), Map.entry("inboxUpdates", 3), Map.entry("feedbackFlyout", 2), Map.entry("recentSearchRows", 2), Map.entry("recentSearchHeading", 2), Map.entry("boardMenu", 1), Map.entry("settings", 4),
+            Map.entry("links", 6), Map.entry("analytics", 5), Map.entry("answers", 4), Map.entry("imageOrder", 1), Map.entry("closeupImage", 2), Map.entry("pageImage", 1), Map.entry("originalRetry", 1), Map.entry("topicSuggestions", 2), Map.entry("inboxUpdates", 3), Map.entry("feedbackFlyout", 2), Map.entry("recentSearchRows", 2), Map.entry("recentSearchHeading", 2), Map.entry("boardMenu", 1), Map.entry("settings", 4),
             Map.entry("longPress", 4), Map.entry("surveyPrompts", 2), Map.entry("popupBanners", 1), Map.entry("relatedPins", 3), Map.entry("creatorName", 1), Map.entry("saveSound", 1), Map.entry("pinInvites", 2), Map.entry("browserId", 2), Map.entry("signInFailure", 3), Map.entry("saveAndDownload", 3), Map.entry("homePage", 3),
             Map.entry("firebaseCertificate", 1), Map.entry("closeupButtons", 3), Map.entry("closeupSearchLabel", 1),
             Map.entry("closeupRemix", 2), Map.entry("closeupActionBar", 2), Map.entry("closeupVisitSite", 2), Map.entry("closeupSaveButton", 1), Map.entry("postedDate", 1),
             Map.entry("saveSheet", 1), Map.entry("suggestedBoard", 1), Map.entry("boardListHeight", 1),
-            Map.entry("blackSheets", 2), Map.entry("blackBoards", 7),
+            Map.entry("blackSheets", 3), Map.entry("blackBoards", 7),
             Map.entry("longPressChoices", 1), Map.entry("longPressView", 2), Map.entry("savedElsewhere", 3), Map.entry("homeBack", 1),
-            Map.entry("ownAuthorities", 1));
+            Map.entry("downloadToasts", 1),
+            Map.entry("blackToasts", 1),
+            Map.entry("homeTabs", 1),
+            Map.entry("searchLanding", 1),
+            Map.entry("searchKeyboard", 1),
+            Map.entry("pinMenuRows", 2),
+            Map.entry("boardTabHeader", 1),
+            Map.entry("boardTabCovers", 1),
+            Map.entry("closeupGate", 1), Map.entry("highlightRing", 1), Map.entry("visualSearchThumbnails", 1), Map.entry("relatedPinsFold", 3), Map.entry("ownAuthorities", 1));
 
     /**
      * A start-call, next-call, sole-call or once-call line: its method reference, the next-call's
@@ -3542,6 +3550,277 @@ public class DexDiff {
             return out;
         }
 
+        /** The container's method that has a toast model build its view, as the patches pick it. */
+        Method toastShow() {
+            List<Method> targets = new ArrayList<>();
+            ClassDef container = clean.classes.get(TOAST_CONTAINER);
+            if (container != null) for (Method m : container.getMethods()) {
+                if (AccessFlags.STATIC.isSet(m.getAccessFlags()) || !m.getReturnType().equals("V") || m.getParameterTypes().size() != 1) continue;
+                String model = m.getParameterTypes().get(0).toString();
+                if (instructions(m).stream().anyMatch(i -> reference(i) instanceof MethodReference
+                        && ((MethodReference) reference(i)).getDefiningClass().equals(model)
+                        && descriptor((MethodReference) reference(i)).equals("(" + TOAST_CONTAINER + ")" + TOAST_VIEW))) targets.add(m);
+            }
+            return unique(targets, "toast container show method");
+        }
+
+        /** True when a method of the clean app reads the text shown after a picture or video finishes downloading. */
+        boolean downloadTextRead() {
+            for (ClassDef owner : clean.classes.values()) for (Method m : owner.getMethods()) for (Instruction i : instructions(m)) {
+                if (i.getOpcode() != Opcode.SGET || !(reference(i) instanceof FieldReference)) continue;
+                FieldReference f = (FieldReference) reference(i);
+                if (f.getType().equals("I") && (f.getName().equals("pin_image_download_success") || f.getName().equals("pin_video_download_success"))) return true;
+            }
+            return false;
+        }
+
+        /**
+         * The stub names exactly the concrete toast models that read the camera roll text. The switch
+         * stands on those or on a screen reading a finished download's text, which the extension
+         * tells at the container. Pinterest's code doesn't change.
+         */
+        void downloadToasts(Contract c) {
+            Method show = toastShow();
+            Set<String> expected = new TreeSet<>();
+            if (show != null) {
+                String model = show.getParameterTypes().get(0).toString();
+                for (ClassDef owner : clean.classes.values()) {
+                    if (AccessFlags.ABSTRACT.isSet(owner.getAccessFlags()) || AccessFlags.INTERFACE.isSet(owner.getAccessFlags())
+                            || owner.getType().equals(model)) continue;
+                    Set<String> seen = new HashSet<>();
+                    boolean toast = false;
+                    for (ClassDef cd = clean.classes.get(owner.getSuperclass()); cd != null && seen.add(cd.getType()); cd = clean.classes.get(cd.getSuperclass()))
+                        if (cd.getType().equals(model)) { toast = true; break; }
+                    if (!toast) continue;
+                    for (Method m : owner.getMethods()) for (Instruction i : instructions(m)) if (reference(i) instanceof FieldReference) {
+                        FieldReference f = (FieldReference) reference(i);
+                        if (f.getType().equals("I") && f.getName().equals("downloaded_to_camera_roll")) expected.add(owner.getType());
+                    }
+                }
+            }
+            if (actual(c.strings.get(0)) != null) instanceStub("isDownloadToast", expected, "download toast");
+            capability(c.callee, !expected.isEmpty() || downloadTextRead());
+        }
+
+        /** The hook takes the toast right after the container's model built it, and nothing else moves. */
+        void blackToasts(Contract c) {
+            String hook = c.strings.get(0);
+            Method m = actual(toastShow());
+            List<Integer> sites = calls(m, hook, 1);
+            boolean placed = false;
+            if (m != null && sites.size() == 1) {
+                List<Instruction> body = instructions(m);
+                int at = sites.get(0);
+                placed = at >= 2 && reference(body.get(at - 2)) instanceof MethodReference
+                        && descriptor((MethodReference) reference(body.get(at - 2))).equals("(" + TOAST_CONTAINER + ")" + TOAST_VIEW)
+                        && isMoveResult(body.get(at - 1).getOpcode())
+                        && arguments(body.get(at)).equals(List.of(firstRegister(body.get(at - 1))));
+                if (!placed) fail(hook + " doesn't take the toast the container just built in " + m);
+                else remove(m, at, at + 1);
+            }
+            capability(c.callee, placed);
+        }
+
+        /** Every TabLayout asks for its height first, handing over itself and both measure specs. */
+        void homeTabs(Contract c) {
+            String hook = c.strings.get(0);
+            Method stock = clean.methods.get("Lcom/google/android/material/tabs/TabLayout;->onMeasure(II)V");
+            if (stock == null) { fail("TabLayout has no onMeasure to take " + hook); capability(c.callee, false); return; }
+            Method m = actual(stock);
+            List<Integer> sites = calls(m, hook, 1);
+            boolean placed = false;
+            if (m != null && sites.size() == 1) {
+                List<Instruction> body = instructions(m);
+                placed = sites.get(0) == 0 && body.get(0).getOpcode() == Opcode.INVOKE_STATIC_RANGE
+                        && arguments(body.get(0)).equals(List.of(parameter(m, -1), parameter(m, 0), parameter(m, 1)))
+                        && body.get(1).getOpcode() == Opcode.MOVE_RESULT && firstRegister(body.get(1)) == parameter(m, 1);
+                if (!placed) fail(hook + " doesn't replace the height spec first thing in " + m);
+                else remove(m, 0, 2);
+            }
+            capability(c.callee, placed);
+        }
+
+        /** The one fragment reading the landing list's id gets its root view before anything else runs. */
+        void searchLanding(Contract c) {
+            String hook = c.strings.get(0);
+            Set<String> pages = new TreeSet<>();
+            for (ClassDef owner : clean.classes.values()) for (Method m : owner.getMethods())
+                if (fieldNames(m).contains("search_landing_recycler_container")) pages.add(owner.getType());
+            Method stock = pages.size() != 1 ? null
+                    : clean.methods.get(pages.iterator().next() + "->onViewCreated(Landroid/view/View;Landroid/os/Bundle;)V");
+            if (stock == null) { fail("no single Search page onViewCreated, pages " + pages); capability(c.callee, false); return; }
+            Method m = actual(stock);
+            List<Integer> sites = calls(m, hook, 1);
+            boolean placed = false;
+            if (m != null && sites.size() == 1) {
+                Instruction first = instructions(m).get(0);
+                placed = sites.get(0) == 0 && first.getOpcode() == Opcode.INVOKE_STATIC_RANGE
+                        && arguments(first).equals(List.of(parameter(m, 0)));
+                if (!placed) fail(hook + " isn't the first call, on the root view, in " + m);
+                else remove(m, 0, 1);
+            }
+            capability(c.callee, placed);
+        }
+
+        /** The bottom bar's click handler lets the extension take a press before it reads anything. */
+        void searchKeyboard(Contract c) {
+            ClassDef bar = uniqueClass(clean.classesHolding("BottomNavBar tab insertion out of range"), "navigation view");
+            Method stock = bar == null ? null : clean.methods.get(bar.getType() + "->onClick(Landroid/view/View;)V");
+            if (stock == null) { fail("the bottom bar has no onClick to guard"); capability(c.callee, false); return; }
+            Method m = actual(stock);
+            if (m != null) guard(m, c.strings.get(0), 0, List.of(parameter(m, -1), parameter(m, 0)), 0, false, false);
+            capability(c.callee, m != null);
+        }
+
+        /** The menu folds picked rows as it measures, and the overflow sheet hands its view over first. */
+        void pinMenuRows(Contract c) {
+            ClassDef layout = menuLayout();
+            if (layout == null) { capability(c.callee, false); return; }
+            view(layout.getType(), null, null, c.strings.get(0));
+            boolean placed = true;
+            ClassDef location = clean.classes.get("Lcom/pinterest/feature/GridActionsLocation$PIN_OVERFLOW_MENU_MODAL_FRAGMENT;");
+            if (location != null) {
+                Set<String> named = new TreeSet<>();
+                for (Method init : location.getMethods()) if (init.getName().equals("<init>"))
+                    for (Instruction i : instructions(init)) if (i.getOpcode() == Opcode.CONST_CLASS) named.add(String.valueOf(reference(i)));
+                ClassDef fragment = named.size() == 1 ? clean.classes.get(named.iterator().next()) : null;
+                Method m = fragment == null ? null : actual(viewCreated(fragment));
+                placed = false;
+                if (m == null) fail("pin menu sheet has no onViewCreated to hook");
+                else {
+                    List<Integer> sites = calls(m, c.strings.get(1), 1);
+                    if (sites.size() == 1) {
+                        Instruction first = instructions(m).get(0);
+                        placed = sites.get(0) == 0 && first.getOpcode() == Opcode.INVOKE_STATIC_RANGE
+                                && arguments(first).equals(List.of(parameter(m, 0)));
+                        if (!placed) fail(c.strings.get(1) + " isn't the first call, on the sheet's view, in " + m);
+                        else remove(m, 0, 1);
+                    }
+                }
+            }
+            capability(c.callee, placed && canOverride(layout.getType(), "onMeasure", "(II)V"));
+        }
+
+        /** The one call in a method that passes the method's own argument to one of the header types. */
+        int boardTabCall(Method m, Set<String> headers) {
+            int at = -1;
+            List<Instruction> body = instructions(m);
+            for (int i = 0; i < body.size(); i++) {
+                if (body.get(i).getOpcode() != Opcode.INVOKE_VIRTUAL || !(reference(body.get(i)) instanceof MethodReference)) continue;
+                MethodReference called = (MethodReference) reference(body.get(i));
+                if (!headers.contains(called.getDefiningClass()) || !called.getReturnType().equals("V")
+                        || called.getParameterTypes().size() != 1
+                        || !called.getParameterTypes().get(0).toString().equals(m.getParameterTypes().get(0).toString())) continue;
+                if (at >= 0) return -1;
+                at = i;
+            }
+            return at;
+        }
+
+        Method boardTabBinding() {
+            List<Method> found = new ArrayList<>();
+            for (Method style : clean.holding("com.pinterest.STRUCTURED_FEED_LANDING_PAGE_HEADER_STYLE")) {
+                if (!style.getParameterTypes().isEmpty() || !style.getReturnType().equals("Z")) continue;
+                ClassDef owner = clean.classes.get(style.getDefiningClass());
+                Set<String> headers = new TreeSet<>();
+                for (Field field : owner.getInstanceFields()) {
+                    ClassDef type = clean.classes.get(field.getType());
+                    if (type != null && "Landroid/widget/LinearLayout;".equals(type.getSuperclass())) headers.add(field.getType());
+                }
+                for (Method m : owner.getMethods())
+                    if (m.getImplementation() != null && m.getReturnType().equals("V") && m.getParameterTypes().size() == 1
+                            && boardTabCall(m, headers) >= 0) found.add(m);
+            }
+            return unique(found, "board tab screen binding");
+        }
+
+        /** The screen hands over its header and itself right before binding the header. */
+        void boardTabHeader(Contract c) {
+            String hook = c.strings.get(0);
+            Method m = actual(boardTabBinding());
+            List<Integer> sites = calls(m, hook, 1);
+            boolean placed = false;
+            if (m != null && sites.size() == 1) {
+                int at = sites.get(0);
+                List<Instruction> body = instructions(m);
+                Instruction next = at + 1 < body.size() ? body.get(at + 1) : null;
+                placed = next != null && next.getOpcode() == Opcode.INVOKE_VIRTUAL && !arguments(next).isEmpty()
+                        && arguments(body.get(at)).equals(List.of(arguments(next).get(0), parameter(m, -1)));
+                if (!placed) fail(hook + " isn't right before the header call, with the header and the screen, in " + m);
+                else remove(m, at, at + 1);
+            }
+            capability(c.callee, placed);
+        }
+
+        /** The one call in a method loading into a web image the String read just before it. */
+        int boardTabCoverLoad(Method m) {
+            int at = -1;
+            List<Instruction> body = instructions(m);
+            for (int i = 1; i < body.size(); i++) {
+                Instruction call = body.get(i);
+                if (call.getOpcode() != Opcode.INVOKE_VIRTUAL || !(reference(call) instanceof MethodReference)) continue;
+                MethodReference called = (MethodReference) reference(call);
+                if (!called.getDefiningClass().equals("Lcom/pinterest/ui/imageview/GenericWebImageView;")
+                        || !called.getReturnType().equals("V") || called.getParameterTypes().size() != 1
+                        || !called.getParameterTypes().get(0).toString().equals("Ljava/lang/String;")) continue;
+                Instruction read = body.get(i - 1);
+                if (read.getOpcode() != Opcode.IGET_OBJECT || !(reference(read) instanceof FieldReference)
+                        || !((FieldReference) reference(read)).getType().equals("Ljava/lang/String;")
+                        || arguments(call).size() != 2 || firstRegister(read) != arguments(call).get(1)) continue;
+                if (at >= 0) return -1;
+                at = i;
+            }
+            return at;
+        }
+
+        Method boardTabCoverBinding() {
+            Method binding = boardTabBinding();
+            String data = binding.getParameterTypes().get(0).toString();
+            Set<String> inner = new TreeSet<>();
+            for (Field header : clean.classes.get(binding.getDefiningClass()).getInstanceFields()) {
+                ClassDef outer = clean.classes.get(header.getType());
+                if (outer == null || !"Landroid/widget/LinearLayout;".equals(outer.getSuperclass())) continue;
+                for (Field part : outer.getInstanceFields()) {
+                    ClassDef type = clean.classes.get(part.getType());
+                    if (type != null && "Landroidx/constraintlayout/widget/ConstraintLayout;".equals(type.getSuperclass()))
+                        inner.add(part.getType());
+                }
+            }
+            List<Method> found = new ArrayList<>();
+            for (String type : inner) for (Method m : clean.classes.get(type).getMethods())
+                if (m.getImplementation() != null && m.getReturnType().equals("V") && m.getParameterTypes().size() == 1
+                        && m.getParameterTypes().get(0).toString().equals(data) && boardTabCoverLoad(m) >= 0) found.add(m);
+            return unique(found, "board tab cover binding");
+        }
+
+        boolean boardTabCoverSkip(List<Instruction> body, Layout layout, int at, int target, int register) {
+            Instruction branch = body.get(at);
+            return branch.getOpcode() == Opcode.IF_EQZ && firstRegister(branch) == register && branch instanceof OffsetInstruction
+                    && layout.addresses.get(at) + ((OffsetInstruction) branch).getCodeOffset() == layout.addresses.get(target);
+        }
+
+        /** A null picture goes straight to the load, and a null answer skips the load. */
+        void boardTabCovers(Contract c) {
+            String hook = c.strings.get(0);
+            Method m = actual(boardTabCoverBinding());
+            List<Integer> sites = calls(m, hook, 1);
+            boolean placed = false;
+            if (m != null && sites.size() == 1) {
+                int at = sites.get(0);
+                List<Instruction> body = instructions(m);
+                Layout layout = new Layout(m.getImplementation());
+                List<Integer> args = arguments(body.get(at));
+                placed = at > 0 && at + 4 < body.size() && args.size() == 2
+                        && boardTabCoverSkip(body, layout, at - 1, at + 3, args.get(1))
+                        && body.get(at + 1).getOpcode() == Opcode.MOVE_RESULT_OBJECT && firstRegister(body.get(at + 1)) == args.get(1)
+                        && boardTabCoverSkip(body, layout, at + 2, at + 4, args.get(1))
+                        && body.get(at + 3).getOpcode() == Opcode.INVOKE_VIRTUAL && arguments(body.get(at + 3)).equals(args);
+                if (!placed) fail(hook + " doesn't guard the picture load in " + m);
+                else remove(m, at - 1, at + 3);
+            }
+            capability(c.callee, placed);
+        }
+
         void refresh(Contract c) {
             String type = c.strings.get(1);
             if (c.callee.equals("headerButtons")) {
@@ -4782,6 +5061,140 @@ public class DexDiff {
                     if (!shaped) fail(hook + " does not answer the original rendition first, behind its switch, in " + m);
                     else { remove(m, 0, 6); found = true; }
                 }
+            }
+            capability(c.callee, found);
+        }
+
+        /**
+         * Idea pin pages: the two static lookups that answer a page's picture address, each reading the
+         * page's image map by the size it was asked for. The hook sits right in front of every such read
+         * and may answer the method. When it has nothing, the read runs as before.
+         */
+        void pageImage(Contract c) {
+            String hook = c.strings.get(0);
+            Map<Method, List<Integer>> reads = new LinkedHashMap<>();
+            for (Method m : clean.holding("1200x")) {
+                List<? extends CharSequence> types = m.getParameterTypes();
+                if (m.getDefiningClass().startsWith(OWN) || !AccessFlags.STATIC.isSet(m.getAccessFlags()) || m.getImplementation() == null
+                        || !m.getReturnType().equals("Ljava/lang/String;") || types.size() != 3 || !types.get(0).toString().startsWith("L")
+                        || !types.get(1).toString().equals("Ljava/lang/String;") || !types.get(2).toString().equals("Ljava/lang/String;")) continue;
+                int size = parameter(m, 1);
+                List<Instruction> body = instructions(m);
+                List<Integer> sites = new ArrayList<>();
+                for (int at = 0; at < body.size() && !writes(body.get(at), size); at++) {
+                    Instruction i = body.get(at);
+                    if (i.getOpcode() == Opcode.INVOKE_INTERFACE && arguments(i).size() == 2 && arguments(i).get(1) == size
+                            && "Ljava/util/Map;->get(Ljava/lang/Object;)Ljava/lang/Object;".equals(String.valueOf(reference(i)))) sites.add(at);
+                }
+                if (!sites.isEmpty()) reads.put(m, sites);
+            }
+            boolean found = reads.size() == 2;
+            if (!found) fail("found " + reads.size() + " idea pin page image lookups, expected 2");
+            for (Map.Entry<Method, List<Integer>> read : reads.entrySet()) {
+                Method m = actual(read.getKey());
+                List<Integer> wanted = read.getValue(), sites = calls(m, hook, wanted.size());
+                if (m == null || sites.size() != wanted.size()) { found = false; continue; }
+                List<Instruction> was = instructions(read.getKey()), body = instructions(m);
+                Layout code = new Layout(m.getImplementation());
+                // Later sites shift by the four instructions put in front of each earlier one.
+                for (int k = sites.size() - 1; k >= 0; k--) {
+                    int at = sites.get(k), get = wanted.get(k);
+                    boolean shaped = at == get + 4 * k && at > 0 && at + 4 < body.size()
+                            && arguments(body.get(at)).equals(arguments(was.get(get)))
+                            && body.get(at + 1).getOpcode() == Opcode.MOVE_RESULT_OBJECT
+                            && body.get(at + 2).getOpcode() == Opcode.IF_EQZ && body.get(at + 3).getOpcode() == Opcode.RETURN_OBJECT
+                            && firstRegister(body.get(at + 2)) == firstRegister(body.get(at + 1))
+                            && firstRegister(body.get(at + 3)) == firstRegister(body.get(at + 1))
+                            && body.get(at + 4).getOpcode() == Opcode.INVOKE_INTERFACE
+                            && code.addresses.get(at + 2) + ((OffsetInstruction) body.get(at + 2)).getCodeOffset() == code.addresses.get(at + 4)
+                            && onlyFrom(m, at, at - 1) && onlyFrom(m, at + 4, at + 2);
+                    if (!shaped) { fail(hook + " does not sit in front of the page image read in " + m); found = false; }
+                    else remove(m, at, at + 4);
+                }
+            }
+            capability(c.callee, found);
+        }
+
+        /** The instruction a branch at [at] lands on, or -1 when it lands between instructions. */
+        private static int branchTarget(Layout code, int at) {
+            return code.addresses.indexOf(code.addresses.get(at) + ((OffsetInstruction) code.instructions.get(at)).getCodeOffset());
+        }
+
+        private static final List<Opcode> ORIGINAL_RETRY = List.of(Opcode.IGET, Opcode.IGET_OBJECT, Opcode.IGET_OBJECT, Opcode.INVOKE_STATIC,
+                Opcode.MOVE_RESULT_OBJECT, Opcode.IF_EQZ, Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT_OBJECT, Opcode.IF_EQZ, Opcode.INVOKE_VIRTUAL,
+                Opcode.MOVE_RESULT_OBJECT, Opcode.IPUT_OBJECT, Opcode.NEW_INSTANCE, Opcode.INVOKE_DIRECT);
+
+        /** True when the retry block starts at [at], asks about [response], and gives up at [at] + 15. */
+        private boolean retryBlock(Method m, int at, int response) {
+            List<Instruction> body = instructions(m);
+            if (at < 0 || at + 15 >= body.size()) return false;
+            for (int k = 0; k < ORIGINAL_RETRY.size(); k++) if (body.get(at + k).getOpcode() != ORIGINAL_RETRY.get(k)) return false;
+            Layout code = new Layout(m.getImplementation());
+            return ((TwoRegisterInstruction) body.get(at)).getRegisterB() == response
+                    && ((TwoRegisterInstruction) body.get(at + 1)).getRegisterB() == response
+                    && arguments(body.get(at + 3)).equals(List.of(firstRegister(body.get(at)), firstRegister(body.get(at + 2))))
+                    && branchTarget(code, at + 5) == at + 15 && branchTarget(code, at + 8) == at + 15;
+        }
+
+        /**
+         * A refused original: the network library's follow-up method opens with the hook, and the loop
+         * Pinterest's Cronet client runs asks it on the path where it found no next request. Each makes
+         * a request for the address the hook names. Both are found in the clean target, by the error
+         * text each holds with the Location header, never from the hook.
+         */
+        void originalRetry(Contract c) {
+            String hook = c.strings.get(0);
+            List<Method> location = clean.holding("Location");
+            List<Method> stocks = new ArrayList<>(clean.holding("Received HTTP_PROXY_AUTH (407) code while not using proxy"));
+            stocks.retainAll(location);
+            Method stock = unique(stocks, "the follow-up method");
+            boolean found = stock != null && stock.getImplementation() != null && stock.getParameterTypes().size() == 2;
+            if (stock != null && !found) fail("the follow-up method no longer takes the response and one other object");
+            Method loop = null;
+            int exit = -1, next = -1, answer = -1;
+            if (found) {
+                String response = stock.getParameterTypes().get(0).toString(), request = stock.getReturnType();
+                List<Method> loops = new ArrayList<>();
+                for (Method m : clean.holding("Too many follow-up requests: ")) if (location.contains(m) && m.getReturnType().equals(response)) loops.add(m);
+                loop = unique(loops, "the follow-up loop");
+                found = loop != null;
+                if (found) {
+                    Layout code = new Layout(loop.getImplementation());
+                    List<Instruction> was = code.instructions;
+                    int exits = 0;
+                    for (int at = 0; at + 2 < was.size(); at++) {
+                        Instruction test = was.get(at), jump = was.get(at + 1), read = was.get(at + 2);
+                        if (test.getOpcode() != Opcode.IF_NEZ || !jump.getOpcode().name.startsWith("goto") || read.getOpcode() != Opcode.IGET_OBJECT
+                                || branchTarget(code, at) != at + 2 || ((TwoRegisterInstruction) read).getRegisterB() != firstRegister(test)
+                                || !(reference(read) instanceof FieldReference field) || !field.getDefiningClass().equals(request)) continue;
+                        int end = branchTarget(code, at + 1);
+                        if (end < 0 || was.get(end).getOpcode() != Opcode.RETURN_OBJECT) continue;
+                        exits++;
+                        exit = at + 1;
+                        next = firstRegister(test);
+                        answer = firstRegister(was.get(end));
+                    }
+                    found = exits == 1;
+                    if (!found) fail("the follow-up loop has " + exits + " exits with no next request, expected 1");
+                }
+            }
+            if (found) {
+                Method m = actual(stock);
+                List<Integer> sites = calls(m, hook, 1);
+                List<Instruction> body = m == null ? List.of() : instructions(m);
+                boolean shaped = sites.size() == 1 && sites.get(0) == 3 && retryBlock(m, 0, parameter(stock, 0))
+                        && firstRegister(body.get(12)) == firstRegister(body.get(14)) && body.get(14).getOpcode() == Opcode.RETURN_OBJECT;
+                if (!shaped) { fail(hook + " does not open the follow-up method " + stock); found = false; }
+                else remove(m, 0, 15);
+                m = actual(loop);
+                sites = calls(m, hook, 1);
+                body = m == null ? List.of() : instructions(m);
+                int first = exit;
+                shaped = sites.size() == 1 && sites.get(0) == first + 3 && retryBlock(m, first, answer) && firstRegister(body.get(first + 12)) == next
+                        && body.get(first + 14).getOpcode().name.startsWith("goto") && onlyFrom(m, first, first - 1)
+                        && branchTarget(new Layout(m.getImplementation()), first + 14) == first + 16;
+                if (!shaped) { fail(hook + " does not sit on the follow-up loop's exit in " + loop); found = false; }
+                else remove(m, first, first + 15);
             }
             capability(c.callee, found);
         }
@@ -6038,8 +6451,9 @@ public class DexDiff {
         /**
          * The closeup title module taking its pin: the one clean instance updatePin(pin) of a closeup
          * module that checks the holistic metadata experiment, in a class whose constructor builds the
-         * title row (a view whose own constructor reads the chevron's id) and adds a view. Its first
-         * instruction is the hook, a range call on the module and the pin, the frame's last two registers.
+         * title row (a view whose own constructor reads the chevron's id) and adds a view. The hook
+         * opens the method, a range call on the module and the pin, the frame's last two registers, with
+         * only the other hook writing the same line allowed ahead of it.
          */
         void postedDate(Contract c) {
             String hook = c.strings.get(0);
@@ -6054,13 +6468,206 @@ public class DexDiff {
             List<Integer> sites = calls(m, hook, 1);
             boolean placed = false;
             if (m != null && sites.size() == 1) {
-                Instruction first = instructions(m).get(0);
+                List<Instruction> body = instructions(m);
                 int registers = m.getImplementation().getRegisterCount();
-                placed = sites.get(0) == 0 && first.getOpcode() == Opcode.INVOKE_STATIC_RANGE
-                        && arguments(first).equals(List.of(registers - 2, registers - 1));
-                if (!placed) fail(hook + " isn't the first call, on the module and its pin, in " + m);
-                else remove(m, 0, 1);
+                placed = true;
+                for (int at = 0; at <= sites.get(0); at++) {
+                    Instruction i = body.get(at);
+                    placed &= i.getOpcode() == Opcode.INVOKE_STATIC_RANGE && arguments(i).equals(List.of(registers - 2, registers - 1))
+                            && String.valueOf(reference(i)).startsWith(OWN + "pinterest/ui/PostedDate;->");
+                }
+                if (!placed) fail(hook + " isn't among the first calls, on the module and its pin, in " + m);
+                else remove(m, sites.get(0), sites.get(0) + 1);
             }
+            capability(c.callee, placed);
+        }
+
+        /** One of the hooks that get the last word on whether a closeup module shows for its pin. */
+        static boolean closeupGateCall(Instruction i) {
+            String target = String.valueOf(reference(i));
+            return target.startsWith(OWN) && target.endsWith("(Landroid/view/View;I)I");
+        }
+
+        /**
+         * A closeup module asks itself whether it shows for its pin in the base class's updatePin, and
+         * the hook rewrites that answer in place, on the module and the answer's own register. Other
+         * hooks of the same shape may sit between it and Pinterest's call.
+         */
+        boolean closeupGatePlaced(String hook) {
+            List<Method> updates = new ArrayList<>();
+            ClassDef base = clean.classes.get(CLOSEUP_MODULE);
+            if (base != null) for (Method m : base.getMethods()) if (m.getName().equals("updatePin") && m.getReturnType().equals("V")
+                    && m.getParameterTypes().size() == 1 && !AccessFlags.STATIC.isSet(m.getAccessFlags()) && m.getImplementation() != null)
+                updates.add(m);
+            Method m = actual(unique(updates, "closeup module's updatePin"));
+            List<Integer> sites = calls(m, hook, 1);
+            if (m == null || sites.size() != 1) return false;
+            List<Instruction> body = instructions(m);
+            int at = sites.get(0), back = at - 1;
+            while (back >= 2 && closeupGateCall(body.get(back - 1))) back -= 2;
+            boolean placed = back >= 1 && at + 1 < body.size() && body.get(back).getOpcode() == Opcode.MOVE_RESULT
+                    && reference(body.get(back - 1)) instanceof MethodReference ask && ask.getName().equals("shouldShowForPin")
+                    && ask.getReturnType().equals("Z") && body.get(at + 1).getOpcode() == Opcode.MOVE_RESULT
+                    && firstRegister(body.get(at + 1)) == firstRegister(body.get(back))
+                    && arguments(body.get(at)).equals(List.of(parameter(m, -1), firstRegister(body.get(back))));
+            if (!placed) { fail(hook + " doesn't rewrite the module's own answer in " + m); return false; }
+            remove(m, at, at + 2);
+            return true;
+        }
+
+        void closeupGate(Contract c) {
+            capability(c.callee, closeupGatePlaced(c.strings.get(0)));
+        }
+
+        /** The ring's one method taking a size and a screen position asks the hook first and stops on yes. */
+        void highlightRing(Contract c) {
+            List<Method> places = new ArrayList<>();
+            ClassDef ring = clean.classes.get("Lcom/pinterest/education/view/EducationPulsarView;");
+            if (ring != null) for (Method m : ring.getMethods()) if (descriptor(m).equals("(II[I)V")
+                    && !AccessFlags.STATIC.isSet(m.getAccessFlags()) && m.getImplementation() != null) places.add(m);
+            Method m = actual(unique(places, "the highlight ring's placement"));
+            guard(m, c.strings.get(0), 0, List.of(), 0, false, false);
+            capability(c.callee, m != null);
+        }
+
+        /**
+         * The lens button is the one class building the one subclass of ImageStack. Each of the two pin
+         * pages hands it the pin and reads the pin's crops through one static call, and the hook takes
+         * every such result right where it lands and puts its answer back in the same register.
+         */
+        void visualSearchThumbnails(Contract c) {
+            String hook = c.strings.get(0);
+            List<ClassDef> stacks = new ArrayList<>();
+            for (ClassDef cd : clean.classes.values())
+                if ("Lcom/pinterest/design/components/images/ImageStack;".equals(cd.getSuperclass())) stacks.add(cd);
+            ClassDef stack = uniqueClass(stacks, "the lens button's stack");
+            ClassDef button = null;
+            if (stack != null) {
+                List<ClassDef> buttons = new ArrayList<>();
+                for (ClassDef cd : clean.classes.values()) {
+                    boolean builds = false;
+                    for (Method m : cd.getMethods()) {
+                        if (m.getImplementation() == null) continue;
+                        for (Instruction i : instructions(m)) if (i.getOpcode() == Opcode.NEW_INSTANCE
+                                && reference(i) instanceof TypeReference t && t.getType().equals(stack.getType())) builds = true;
+                    }
+                    if (builds) buttons.add(cd);
+                }
+                button = uniqueClass(buttons, "the lens button");
+            }
+            boolean placed = button != null;
+            int pages = 0;
+            if (button != null) for (ClassDef cd : clean.classes.values()) for (Method page : cd.getMethods()) {
+                if (!page.getReturnType().equals("V") || page.getParameterTypes().size() != 1 || page.getImplementation() == null
+                        || AccessFlags.STATIC.isSet(page.getAccessFlags())) continue;
+                String pin = page.getParameterTypes().get(0).toString();
+                List<Instruction> was = instructions(page);
+                boolean hands = false;
+                List<Integer> reads = new ArrayList<>();
+                for (int at = 0; at < was.size(); at++) {
+                    if (!(reference(was.get(at)) instanceof MethodReference r) || r.getParameterTypes().size() != 1
+                            || !r.getParameterTypes().get(0).toString().equals(pin)) continue;
+                    if (r.getDefiningClass().equals(button.getType()) && r.getReturnType().equals("V")) hands = true;
+                    if (isStaticInvoke(was.get(at).getOpcode()) && r.getReturnType().equals("Ljava/util/ArrayList;")
+                            && at + 1 < was.size() && was.get(at + 1).getOpcode() == Opcode.MOVE_RESULT_OBJECT) reads.add(at);
+                }
+                if (!hands || reads.isEmpty()) continue;
+                pages++;
+                Method m = actual(page);
+                List<Integer> sites = calls(m, hook, reads.size());
+                if (m == null || sites.size() != reads.size()) { placed = false; continue; }
+                List<Instruction> body = instructions(m);
+                for (int n = 0; n < sites.size(); n++) {
+                    int at = sites.get(n);
+                    boolean right = at == reads.get(n) + 2 + 2 * n && at + 1 < body.size()
+                            && body.get(at - 1).getOpcode() == Opcode.MOVE_RESULT_OBJECT
+                            && body.get(at).getOpcode() == Opcode.INVOKE_STATIC_RANGE
+                            && arguments(body.get(at)).equals(List.of(firstRegister(body.get(at - 1))))
+                            && body.get(at + 1).getOpcode() == Opcode.MOVE_RESULT_OBJECT
+                            && firstRegister(body.get(at + 1)) == firstRegister(body.get(at - 1));
+                    if (!right) { fail(hook + " doesn't take the crops where they land in " + m); placed = false; continue; }
+                    remove(m, at, at + 2);
+                }
+            }
+            if (button != null && pages != 2) { fail("the lens button is set up by " + pages + " pin pages, expected 2"); placed = false; }
+            capability(c.callee, placed);
+        }
+
+        /** The related pins list's own answer to the question its loadData opens with, or null. */
+        Method relatedListGate(String list) {
+            Method load = null;
+            for (String type = list; type != null && load == null; ) {
+                ClassDef cd = clean.classes.get(type);
+                if (cd == null) break;
+                for (Method m : cd.getMethods()) if (m.getName().equals("loadData") && descriptor(m).equals("()V")
+                        && m.getImplementation() != null) load = m;
+                type = cd.getSuperclass();
+            }
+            if (load == null) { fail(list + " has no loadData"); return null; }
+            if (!(reference(instructions(load).get(0)) instanceof MethodReference ask) || !ask.getReturnType().equals("Z")
+                    || !ask.getParameterTypes().isEmpty()) { fail(load + " doesn't open by asking whether there's more"); return null; }
+            List<Method> gates = new ArrayList<>();
+            ClassDef owner = clean.classes.get(list);
+            if (owner != null) for (Method m : owner.getMethods()) if (m.getName().equals(ask.getName()) && descriptor(m).equals("()Z")
+                    && m.getImplementation() != null && !AccessFlags.STATIC.isSet(m.getAccessFlags())) gates.add(m);
+            return unique(gates, "the related pins list's answer");
+        }
+
+        /**
+         * Fold related pins (#46): the list only the pin page presenters build answers "nothing more to
+         * load" while folded, ahead of its own answer. Each presenter hands itself over first thing in
+         * addDataSources, and the closeup module's answer passes through the hook that places the arrow.
+         */
+        void relatedPinsFold(Contract c) {
+            String folded = c.strings.get(0), bind = c.strings.get(1);
+            List<Method> presenters = new ArrayList<>();
+            Set<String> lists = new HashSet<>();
+            for (ClassDef cd : clean.classes.values()) {
+                if (cd.getType().startsWith(OWN)) continue;
+                String list = null;
+                for (Method m : cd.getMethods()) if (m.getName().equals("getRelatedPinsPagedList") && m.getParameterTypes().isEmpty()
+                        && m.getImplementation() != null && !AccessFlags.SYNTHETIC.isSet(m.getAccessFlags())
+                        && !AccessFlags.BRIDGE.isSet(m.getAccessFlags())) list = m.getReturnType();
+                if (list == null) continue;
+                boolean adds = false;
+                for (Method m : cd.getMethods()) if (m.getName().equals("addDataSources") && m.getReturnType().equals("V")
+                        && m.getParameterTypes().size() == 1 && !AccessFlags.STATIC.isSet(m.getAccessFlags()) && m.getImplementation() != null) {
+                    presenters.add(m);
+                    adds = true;
+                }
+                if (adds) lists.add(list);
+            }
+            boolean placed = !presenters.isEmpty() && lists.size() == 1;
+            if (!placed) fail("the pin page presenters don't share one related pins list");
+            Method gate = placed ? actual(relatedListGate(lists.iterator().next())) : null;
+            List<Integer> sites = calls(gate, folded, 1);
+            if (gate == null || sites.size() != 1) placed = false;
+            else {
+                List<Instruction> body = instructions(gate);
+                Layout layout = new Layout(gate.getImplementation());
+                boolean right = sites.get(0) == 0 && body.size() > 5 && arguments(body.get(0)).isEmpty()
+                        && body.get(1).getOpcode() == Opcode.MOVE_RESULT && body.get(2).getOpcode() == Opcode.IF_EQZ
+                        && body.get(3).getOpcode() == Opcode.CONST_4 && body.get(4).getOpcode() == Opcode.RETURN
+                        && firstRegister(body.get(2)) == firstRegister(body.get(1))
+                        && firstRegister(body.get(3)) == firstRegister(body.get(1))
+                        && firstRegister(body.get(4)) == firstRegister(body.get(1))
+                        && ((WideLiteralInstruction) body.get(3)).getWideLiteral() == 0
+                        && layout.addresses.get(2) + ((OffsetInstruction) body.get(2)).getCodeOffset() == layout.addresses.get(5);
+                if (right) remove(gate, 0, 5);
+                else { fail(folded + " doesn't answer no ahead of the list's own answer in " + gate); placed = false; }
+            }
+            for (Method presenter : presenters) {
+                Method m = actual(presenter);
+                List<Integer> binds = calls(m, bind, 1);
+                if (m == null || binds.size() != 1) { placed = false; continue; }
+                if (binds.get(0) != 0 || !arguments(instructions(m).get(0)).equals(List.of(parameter(m, -1)))) {
+                    fail(bind + " isn't the first call, on the presenter, in " + m);
+                    placed = false;
+                    continue;
+                }
+                remove(m, 0, 1);
+            }
+            if (!closeupGatePlaced(c.strings.get(2))) placed = false;
             capability(c.callee, placed);
         }
 
@@ -6155,7 +6762,8 @@ public class DexDiff {
         }
 
         static final String GESTALT_SHEET_HEADER = "gestalt_sheet_header", GESTALT_SHEET_COORDINATOR = "draggable_sheet_coordinator",
-                LEGO_MODAL_CONTAINER = "lego_modal_container", LEGO_CLOSE_STICKY = "lego_close_container_sticky";
+                LEGO_MODAL_CONTAINER = "lego_modal_container", LEGO_CLOSE_STICKY = "lego_close_container_sticky",
+                PIN_DETAILS_SHEET = "metadata_drawer_bottom_sheet", PIN_DETAILS_FOOTER = "metadata_drawer_footer";
 
         /** The clean methods outside the extension that read both ids. */
         List<Method> readingBoth(String one, String other) {
@@ -6178,11 +6786,12 @@ public class DexDiff {
          * Black menus and sheets (#39). The one method reading both a Gestalt sheet's header id and its
          * coordinator's, an instance method taking just a view, hands that view over first, a range
          * call on its first parameter. The one constructor reading both a lego menu's list id and its
-         * Close row's has its class's views handed over the way handedOverBuilt checks. Either one
-         * turns the switch on.
+         * Close row's has its class's views handed over the way handedOverBuilt checks. The onCreateView
+         * reading both ids of a pin's details drawer (#21) hands over the view it inherits, right after
+         * receiving it. Any one turns the switch on.
          */
         void blackSheets(Contract c) {
-            String sheetHook = c.strings.get(0), menuHook = c.strings.get(1);
+            String sheetHook = c.strings.get(0), menuHook = c.strings.get(1), drawerHook = c.strings.get(2);
             boolean placed = false;
             List<Method> setups = readingBoth(GESTALT_SHEET_HEADER, GESTALT_SHEET_COORDINATOR);
             Method setup = setups.isEmpty() ? null : unique(setups, "Gestalt sheet setup");
@@ -6200,6 +6809,25 @@ public class DexDiff {
             List<Method> menus = readingBoth(LEGO_MODAL_CONTAINER, LEGO_CLOSE_STICKY);
             Method menu = menus.isEmpty() ? null : unique(menus, "lego menu builder");
             if (menu != null && menu.getName().equals("<init>")) placed |= handedOverBuilt(List.of(menu.getDefiningClass()), menuHook);
+            List<Method> drawers = readingBoth(PIN_DETAILS_SHEET, PIN_DETAILS_FOOTER);
+            Method drawer = drawers.isEmpty() ? null : unique(drawers, "pin details drawer builder");
+            if (drawer != null && drawer.getName().equals("onCreateView")) {
+                Method m = actual(drawer);
+                List<Integer> sites = calls(m, drawerHook, 1);
+                if (m != null && sites.size() == 1) {
+                    List<Instruction> body = instructions(m);
+                    int at = sites.get(0);
+                    boolean handed = at >= 2 && body.get(at - 1).getOpcode() == Opcode.MOVE_RESULT_OBJECT
+                            && (body.get(at - 2).getOpcode() == Opcode.INVOKE_SUPER || body.get(at - 2).getOpcode() == Opcode.INVOKE_SUPER_RANGE)
+                            && ((ReferenceInstruction) body.get(at - 2)).getReference().toString().contains("->onCreateView(")
+                            && arguments(body.get(at)).equals(List.of(firstRegister(body.get(at - 1))));
+                    if (!handed) fail(drawerHook + " doesn't take the view " + m + " inherits, right after receiving it");
+                    else {
+                        remove(m, at, at + 1);
+                        placed = true;
+                    }
+                }
+            }
             capability(c.callee, placed);
         }
 
@@ -6409,9 +7037,11 @@ public class DexDiff {
                 List<Instruction> body = instructions(m);
                 Layout layout = new Layout(m.getImplementation());
                 FeatureFlow graph = new FeatureFlow(presenter);
+                // Fold related pins hands the presenter over first, ahead of everything here.
+                int lead = String.valueOf(reference(body.get(0))).startsWith(OWN + "pinterest/ui/RelatedPinsFold;->bind(") ? 1 : 0;
                 for (int n = 0; n < sites.size(); n++) {
                     int at = sites.get(n), add = adds.get(n);
-                    boolean skips = at == add + 3 * n && at + 4 < body.size() && arguments(body.get(at)).isEmpty()
+                    boolean skips = at == add + lead + 3 * n && at + 4 < body.size() && arguments(body.get(at)).isEmpty()
                             && body.get(at + 1).getOpcode() == Opcode.MOVE_RESULT && body.get(at + 2).getOpcode() == Opcode.IF_NEZ
                             && firstRegister(body.get(at + 1)) == firstRegister(body.get(at + 2))
                             && String.valueOf(reference(body.get(at + 3))).equals(String.valueOf(reference(was.get(add))))
@@ -6576,23 +7206,23 @@ public class DexDiff {
         }
 
         /**
-         * True when [at] starts the creator row's padding: its outer layout and two padding sizes read
-         * from the same register, a zero, then setPaddingRelative(start, top, start, zero) on the layout.
+         * True when [at] starts the creator row's padding: its outer layout and top padding read from
+         * the same register, a zero, then setPaddingRelative on the layout with that top and the zero
+         * as its bottom. 14.45.0 works out the start and end sizes earlier.
          */
         static boolean padsCreatorRow(List<Instruction> body, int at) {
-            if (at < 0 || at + 4 >= body.size()) return false;
-            Instruction layout = body.get(at), start = body.get(at + 1), top = body.get(at + 2), zero = body.get(at + 3), pad = body.get(at + 4);
-            if (layout.getOpcode() != Opcode.IGET_OBJECT || start.getOpcode() != Opcode.IGET || top.getOpcode() != Opcode.IGET) return false;
-            if (!(reference(layout) instanceof FieldReference outer) || !(reference(start) instanceof FieldReference startSize)
-                    || !(reference(top) instanceof FieldReference topSize)) return false;
-            if (!outer.getDefiningClass().equals(CREATOR_ATTRIBUTION) || !startSize.getDefiningClass().equals(CREATOR_ATTRIBUTION)
-                    || !topSize.getDefiningClass().equals(CREATOR_ATTRIBUTION) || !outer.getType().equals("Landroid/widget/LinearLayout;")
-                    || !startSize.getType().equals("I") || !topSize.getType().equals("I")) return false;
-            int view = ((TwoRegisterInstruction) layout).getRegisterB();
-            if (((TwoRegisterInstruction) start).getRegisterB() != view || ((TwoRegisterInstruction) top).getRegisterB() != view) return false;
+            if (at < 0 || at + 3 >= body.size()) return false;
+            Instruction layout = body.get(at), top = body.get(at + 1), zero = body.get(at + 2), pad = body.get(at + 3);
+            if (layout.getOpcode() != Opcode.IGET_OBJECT || top.getOpcode() != Opcode.IGET) return false;
+            if (!(reference(layout) instanceof FieldReference outer) || !(reference(top) instanceof FieldReference topSize)) return false;
+            if (!outer.getDefiningClass().equals(CREATOR_ATTRIBUTION) || !topSize.getDefiningClass().equals(CREATOR_ATTRIBUTION)
+                    || !outer.getType().equals("Landroid/widget/LinearLayout;") || !topSize.getType().equals("I")) return false;
+            if (((TwoRegisterInstruction) layout).getRegisterB() != ((TwoRegisterInstruction) top).getRegisterB()) return false;
             if (zero.getOpcode() != Opcode.CONST_4 || ((NarrowLiteralInstruction) zero).getNarrowLiteral() != 0) return false;
-            return pad.getOpcode() == Opcode.INVOKE_VIRTUAL && String.valueOf(reference(pad)).equals("Landroid/view/View;->setPaddingRelative(IIII)V")
-                    && arguments(pad).equals(List.of(firstRegister(layout), firstRegister(start), firstRegister(top), firstRegister(start), firstRegister(zero)));
+            if (pad.getOpcode() != Opcode.INVOKE_VIRTUAL || !String.valueOf(reference(pad)).equals("Landroid/view/View;->setPaddingRelative(IIII)V")) return false;
+            List<Integer> padding = arguments(pad);
+            return padding.size() == 5 && padding.get(0) == firstRegister(layout) && padding.get(2) == firstRegister(top)
+                    && padding.get(4) == firstRegister(zero);
         }
 
         /**
@@ -8150,6 +8780,8 @@ public class DexDiff {
                     case "ownAuthorities": ownAuthorities(c); break;
                     case "imageOrder": imageOrder(c); break;
                     case "closeupImage": closeupImage(c); break;
+                    case "pageImage": pageImage(c); break;
+                    case "originalRetry": originalRetry(c); break;
                     case "topicSuggestions": topicSuggestions(c); break;
                     case "inboxUpdates": inboxUpdates(c); break;
                     case "feedbackFlyout": feedbackFlyout(c); break;
@@ -8162,6 +8794,10 @@ public class DexDiff {
                     case "closeupVisitSite": closeupRows(c, true); break;
                     case "closeupSaveButton": closeupSaveButton(c); break;
                     case "postedDate": postedDate(c); break;
+                    case "closeupGate": closeupGate(c); break;
+                    case "highlightRing": highlightRing(c); break;
+                    case "visualSearchThumbnails": visualSearchThumbnails(c); break;
+                    case "relatedPinsFold": relatedPinsFold(c); break;
                     case "saveSheet": saveSheet(c); break;
                     case "blackSheets": blackSheets(c); break;
                     case "blackBoards": blackBoards(c); break;
@@ -8174,6 +8810,14 @@ public class DexDiff {
                     case "creatorName": creatorName(c); break;
                     case "saveSound": saveSound(c); break;
                     case "pinInvites": pinInvites(c); break;
+                    case "downloadToasts": downloadToasts(c); break;
+                    case "blackToasts": blackToasts(c); break;
+                    case "homeTabs": homeTabs(c); break;
+                    case "searchLanding": searchLanding(c); break;
+                    case "searchKeyboard": searchKeyboard(c); break;
+                    case "pinMenuRows": pinMenuRows(c); break;
+                    case "boardTabHeader": boardTabHeader(c); break;
+                    case "boardTabCovers": boardTabCovers(c); break;
                     case "settings": settings(c); break;
                     default: fail("unknown mutation kind " + c.target);
                 }

@@ -16,7 +16,8 @@ import org.json.JSONObject;
 
 /** Executes the injected loader on Android. All-off must reconstruct the independent stock SHA-256. */
 public final class BundleProbe {
-    private static final String STOCK = "059f4713e0cea80b58e68b675fb05d63053056869e2ac60c79f5d57567a3e583";
+    /** The stock bundle's SHA-256 as Hermes.kt pins it; bin/test-twitch passes it as the third argument. */
+    private static String STOCK;
     private static final Map<String, Boolean> switches = new HashMap<>();
 
     private static void check(boolean value, String message) {
@@ -43,6 +44,7 @@ public final class BundleProbe {
     }
 
     public static void main(String[] args) throws Exception {
+        STOCK = args[2];
         File directory = new File(args[1]);
         directory.mkdirs();
         AssetManager assets = AssetManager.class.getDeclaredConstructor().newInstance();

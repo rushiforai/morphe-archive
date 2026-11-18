@@ -487,6 +487,9 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
             case "hushpinterest_hide_nav_create": return L10n.t("Hide Create button");
             case "hushpinterest_hide_nav_notifications": return L10n.t("Hide Notifications button");
             case "hushpinterest_hide_nav_search": return L10n.t("Hide Search button");
+            case "hushpinterest_blank_search_page": return L10n.t("Blank Search page");
+            case "hushpinterest_hide_home_tabs": return L10n.t("Hide Home tabs");
+            case "hushpinterest_search_tab_keyboard": return L10n.t("Second Search tap opens the keyboard");
             case "hushpinterest_hide_header_buttons": return L10n.t("Hide header buttons");
             case "hushpinterest_black_bottom_bar": return L10n.t("Black bottom bar");
             case "hushpinterest_black_comments": return L10n.t("Black comments");
@@ -494,6 +497,7 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
             case "hushpinterest_black_save_sheet": return L10n.t("Black Save to sheet");
             case "hushpinterest_black_sheets": return L10n.t("Black menus and sheets");
             case "hushpinterest_black_boards": return L10n.t("Black board and profile buttons");
+            case "hushpinterest_black_toasts": return L10n.t("Black toasts");
             case "hushpinterest_hide_closeup_back": return L10n.t("Hide back arrow on pins");
             case "hushpinterest_hide_closeup_lens": return L10n.t("Hide lens button on pins");
             case "hushpinterest_hide_closeup_search_label": return L10n.t("Hide Search image label on pins");
@@ -507,6 +511,7 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
             case "hushpinterest_hide_pin_menu_collage": return L10n.t("Hide collage menu items");
             case "hushpinterest_hide_pin_menu_visual_search": return L10n.t("Hide Search image menu item");
             case "hushpinterest_hide_pin_menu_pin_boost": return L10n.t("Hide Promote pin menu item");
+            case "hushpinterest_hide_pin_menu_rows": return L10n.t("Hide pin menu rows");
             case "hushpinterest_hide_comments": return L10n.t("Hide comments");
             case "hushpinterest_hide_suggested_replies": return L10n.t("Hide suggested replies");
             case "hushpinterest_hide_comment_previews": return L10n.t("Hide comment previews");
@@ -517,9 +522,19 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
             case "hushpinterest_hide_popup_banners": return L10n.t("Hide pop-up banners");
             case "hushpinterest_hide_related_pins": return L10n.t("Hide related pins");
             case "hushpinterest_hide_creator_name": return L10n.t("Hide creator name on pins");
+            case "hushpinterest_hide_pin_creator": return L10n.t("Hide pin author");
+            case "hushpinterest_hide_pin_description": return L10n.t("Hide pin title and description");
+            case "hushpinterest_show_image_size": return L10n.t("Show image size");
+            case "hushpinterest_hide_highlight_ring": return L10n.t("Hide blue highlight ring");
+            case "hushpinterest_hide_visual_search_thumbnails": return L10n.t("Hide visual search thumbnails");
+            case "hushpinterest_fold_related_pins": return L10n.t("Fold related pins");
             case "hushpinterest_custom_save_sound": return L10n.t("Custom save sound");
             case "hushpinterest_custom_splash_logo": return L10n.t("Custom splash logo");
+            case "hushpinterest_hide_board_tab_button": return L10n.t("Hide See board on board tabs");
+            case "hushpinterest_hide_board_tab_subtitle": return L10n.t("Hide More ideas for on board tabs");
+            case "hushpinterest_board_tab_covers_on": return L10n.t("Choose board tab covers");
             case "hushpinterest_hide_save_toasts": return L10n.t("Hide save toasts");
+            case "hushpinterest_hide_download_toasts": return L10n.t("Hide download toasts");
             case "hushpinterest_original_images": return L10n.t("Original-quality images");
             case "hushpinterest_show_posted_date": return L10n.t("Show posted date");
             case "hushpinterest_hide_suggested_boards": return L10n.t("Hide suggested boards");

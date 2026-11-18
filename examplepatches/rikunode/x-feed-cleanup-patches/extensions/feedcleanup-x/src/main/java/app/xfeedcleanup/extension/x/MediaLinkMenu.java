@@ -11,6 +11,7 @@ import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -31,6 +32,7 @@ public final class MediaLinkMenu {
         "MediaVariant\\(url=(https://[^,\\s)]+), bitRate=(\\d+|null), contentType=([^)]+)\\)");
     private static final Pattern IMAGE = Pattern.compile("imageUrl=(https://pbs\\.twimg\\.com/[^,)\\s]+)");
     private static WeakReference<Activity> activity = new WeakReference<>(null);
+    private static volatile Object galleryCopyUrlAction;
 
     private MediaLinkMenu() {}
 
@@ -108,6 +110,128 @@ public final class MediaLinkMenu {
         return false;
     }
 
+
+    /**
+     * Adds one new row to X's existing image long-press sheet, without changing
+     * the four native actions. The callback id is a marker implementing X's
+     * otherwise method-free PhotoAction interface; no private classes are
+     * required on the extension compile classpath.
+     */
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public static void appendGalleryCopyUrlAction(List<?> rows) {
+        if (rows == null || rows.isEmpty()) return;
+        try {
+            Object copyRow = null;
+            for (Object row : rows) {
+                if (row == null || !"com.x.ui.common.sheets.a".equals(row.getClass().getName())) continue;
+                Field key = row.getClass().getDeclaredField("a");
+                key.setAccessible(true);
+                Object id = key.get(row);
+                if (id != null && "com.x.media.p".equals(id.getClass().getName())) {
+                    copyRow = row;
+                    break;
+                }
+            }
+            if (copyRow == null) return;
+            Class<?> actionType = Class.forName("com.x.media.t");
+            Object marker = galleryCopyUrlAction;
+            if (marker == null) {
+                synchronized (MediaLinkMenu.class) {
+                    marker = galleryCopyUrlAction;
+                    if (marker == null) {
+                        marker = Proxy.newProxyInstance(actionType.getClassLoader(),
+                            new Class<?>[]{actionType}, (self, method, args) -> {
+                                if ("equals".equals(method.getName())) return self == args[0];
+                                if ("hashCode".equals(method.getName())) return System.identityHashCode(self);
+                                if ("toString".equals(method.getName())) return "CopyMediaUrl";
+                                return null;
+                            });
+                        galleryCopyUrlAction = marker;
+                    }
+                }
+            }
+            Field iconField = copyRow.getClass().getDeclaredField("b");
+            iconField.setAccessible(true);
+            Object icon = iconField.get(copyRow);
+            for (Constructor<?> ctor : copyRow.getClass().getDeclaredConstructors()) {
+                Class<?>[] args = ctor.getParameterTypes();
+                if (args.length == 6 && args[0] == Object.class && args[2] == String.class
+                        && args[3] == String.class && args[4] == Boolean.class
+                        && args[5] == int.class) {
+                    ctor.setAccessible(true);
+                    String label = "ja".equals(java.util.Locale.getDefault().getLanguage())
+                        ? "メディアURLをコピー" : "Copy media URL";
+                    Object newRow = ctor.newInstance(marker, icon, label, null, null, 40);
+                    ((List) rows).add(newRow);
+                    return;
+                }
+            }
+        } catch (ReflectiveOperationException | RuntimeException | LinkageError ignored) {
+            // Unknown build: leave the native long-press sheet untouched.
+        }
+    }
+
+    /** Handles only the extra gallery row; native selections retain their handlers. */
+    public static boolean handleGalleryCopyUrl(Object gallery, Object event) {
+        Object marker = galleryCopyUrlAction;
+        if (marker == null || gallery == null || event == null
+                || !"com.x.media.n0".equals(event.getClass().getName())) return false;
+        try {
+            Field chosenField = event.getClass().getDeclaredField("a");
+            chosenField.setAccessible(true);
+            if (chosenField.get(event) != marker) return false;
+        } catch (ReflectiveOperationException | RuntimeException ignored) {
+            return false;
+        }
+        Activity screen = activity.get();
+        try {
+            gallery.getClass().getDeclaredMethod("h").invoke(gallery); // dismiss sheet
+            Field mediaField = gallery.getClass().getDeclaredField("B");
+            mediaField.setAccessible(true);
+            Object media = mediaField.get(gallery);
+            String url = galleryMediaUrl(media);
+            if (screen != null && !screen.isFinishing() && !screen.isDestroyed()) {
+                if (url != null) {
+                    ClipboardManager clipboard = (ClipboardManager)
+                        screen.getSystemService(Context.CLIPBOARD_SERVICE);
+                    if (clipboard != null) clipboard.setPrimaryClip(ClipData.newPlainText("media_url", url));
+                    Toast.makeText(screen, "ja".equals(java.util.Locale.getDefault().getLanguage())
+                        ? "メディアURLをコピーしました" : "Media URL copied", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(screen, "ja".equals(java.util.Locale.getDefault().getLanguage())
+                        ? "メディアURLを取得できません" : "Media URL unavailable", Toast.LENGTH_SHORT).show();
+                }
+            }
+        } catch (ReflectiveOperationException | RuntimeException | LinkageError ignored) {
+            if (screen != null && !screen.isFinishing() && !screen.isDestroyed()) {
+                Toast.makeText(screen, "Media URL unavailable", Toast.LENGTH_SHORT).show();
+            }
+        }
+        return true; // Never dispatch our marker to X's sealed action handler.
+    }
+
+    /** Resolves only the selected gallery item, never the post thumbnail. */
+    private static String galleryMediaUrl(Object media) throws ReflectiveOperationException {
+        if (media == null) return null;
+        if ("com.x.models.t4".equals(media.getClass().getName())) {
+            Class<?> photo = Class.forName("com.x.models.t4");
+            Method original = Class.forName("com.x.media.imageloader.i").getDeclaredMethod("e", photo);
+            original.setAccessible(true);
+            Object value = original.invoke(null, media);
+            if (!(value instanceof String)) return null;
+            Uri uri = Uri.parse((String) value);
+            return "https".equalsIgnoreCase(uri.getScheme())
+                && "pbs.twimg.com".equalsIgnoreCase(uri.getHost())
+                && uri.getPath() != null && uri.getPath().startsWith("/media/")
+                ? (String) value : null;
+        }
+        if ("com.x.models.w4".equals(media.getClass().getName())
+                || "com.x.models.q4".equals(media.getClass().getName())) {
+            List<String> urls = mediaLinks(String.valueOf(media));
+            return urls.isEmpty() ? null : urls.get(0);
+        }
+        return null;
+    }
 
     /**
      * Video player download entry point. The direct CDN URL is obtained from the

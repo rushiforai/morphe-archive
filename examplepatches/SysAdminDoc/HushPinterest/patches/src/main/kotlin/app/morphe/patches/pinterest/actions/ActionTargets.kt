@@ -54,8 +54,8 @@ internal class PinSheet(
     val list: Method,
 )
 
-/** Null when the build has no overflow sheet. Throws when it has one this can't read. */
-internal fun BytecodePatchContext.pinSheet(pin: String): PinSheet? {
+/** The overflow sheet's fragment and its onViewCreated. Null when the build has no sheet. */
+internal fun BytecodePatchContext.pinSheetView(): Pair<MutableClass, MutableMethod>? {
     val location = classDefByOrNull(PIN_SHEET_LOCATION) ?: return null
     fun fail(why: String): Nothing = throw PatchException("Pin actions: the pin overflow sheet $why")
     val named = location.methods.filter { it.name == "<init>" }.flatMap { init ->
@@ -68,6 +68,13 @@ internal fun BytecodePatchContext.pinSheet(pin: String): PinSheet? {
         method.name == "onViewCreated" && method.implementation != null &&
             method.parameterTypes.map(CharSequence::toString) == listOf("Landroid/view/View;", "Landroid/os/Bundle;")
     } ?: fail("has no onViewCreated of its own")
+    return fragment to build
+}
+
+/** Null when the build has no overflow sheet. Throws when it has one this can't read. */
+internal fun BytecodePatchContext.pinSheet(pin: String): PinSheet? {
+    val (fragment, build) = pinSheetView() ?: return null
+    fun fail(why: String): Nothing = throw PatchException("Pin actions: the pin overflow sheet $why")
     fun public(method: Method) = AccessFlags.PUBLIC.isSet(method.accessFlags) && !AccessFlags.STATIC.isSet(method.accessFlags)
     val data = fragment.methods.filter { method ->
         public(method) && method.parameterTypes.isEmpty() && method.returnType.startsWith("L") &&

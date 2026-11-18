@@ -6,6 +6,7 @@
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
+ * Modified by lavinhoque33, 2026-11-17.
  */
 
 package app.morphe.extension.shared.requests;
@@ -28,6 +29,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.Callable;
 
 import app.morphe.extension.shared.utils.PackageUtils;
 
@@ -46,16 +48,44 @@ public class Requester {
      */
     public interface ConnectionProvider {
         HttpURLConnection openConnection(URL url) throws IOException;
+
+        /** In-flight readers may stop without making a network or binder call. */
+        default boolean cancelled() { return false; }
     }
 
     @Nullable
     private static volatile ConnectionProvider connectionProvider;
+    private static final ThreadLocal<ConnectionProvider> scopedConnection = new ThreadLocal<>();
 
     private Requester() {
     }
 
     public static void setConnectionProvider(@Nullable ConnectionProvider provider) {
         connectionProvider = provider;
+    }
+
+    /** Captures a request's route for work it dispatches to a different executor. */
+    @Nullable
+    public static ConnectionProvider scopedConnection() {
+        return scopedConnection.get();
+    }
+
+    public static <T> T withConnection(@Nullable ConnectionProvider provider, Callable<T> work) throws Exception {
+        if (provider == null) return work.call();
+        ConnectionProvider previous = scopedConnection.get();
+        scopedConnection.set(provider);
+        try {
+            return work.call();
+        } finally {
+            if (previous == null) scopedConnection.remove();
+            else scopedConnection.set(previous);
+        }
+    }
+
+    /** Preserves a caller's direct transport unless the request has an explicitly scoped route. */
+    public static HttpURLConnection openDirectConnection(URL url) throws IOException {
+        ConnectionProvider provider = scopedConnection.get();
+        return provider == null ? (HttpURLConnection) url.openConnection() : provider.openConnection(url);
     }
 
     /**
@@ -89,7 +119,8 @@ public class Requester {
      * Opens a connection without setting any request property.
      */
     public static HttpURLConnection openConnection(URL url) throws IOException {
-        ConnectionProvider provider = connectionProvider;
+        ConnectionProvider provider = scopedConnection.get();
+        if (provider == null) provider = connectionProvider;
         if (provider != null) {
             return provider.openConnection(url);
         }

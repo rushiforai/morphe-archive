@@ -14,10 +14,10 @@ object Constants {
         // Original signing cert (apksigner "certificate SHA-256 digest"). bin/apk-add pins it.
         signatures = setOf("eca34178cd915ce443fa1d3900ae6a3b3a3b6532488543d22a39ecb844872b5d"),
         targets = listOf(
-            // apks/rumble/3.21.0 (APKMirror, versionCode 887). Target only a version APKMirror lists as stable:
-            // Manager's download link can't find anything else (bin/manager-link). Google Play's 3.22.0 of
-            // 2026-11-04 (commit 6b6b2fa) waits for APKMirror.
-            AppTarget(version = "3.21.0"),
+            // apks/rumble/3.22.0 (versionCode 913): APKMirror's universal APKM, the same build as Google Play's of
+            // 2026-11-04 (identical base APK). Target only a version Manager can download: as of 2026-11-18
+            // bin/manager-link rumble 3.22.0 doesn't pass yet (Morphe's API sends Manager to apkcube.com).
+            AppTarget(version = "3.22.0"),
         ),
     )
 }

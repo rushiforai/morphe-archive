@@ -16,6 +16,8 @@ import io.github.jordanwoodson.patches.shared.settings.requireLocals
 import io.github.jordanwoodson.patches.twitch.settings.twitchSettings
 import io.github.jordanwoodson.patches.twitch.settings.twitchSettingsPatch
 import io.github.jordanwoodson.patches.shared.Locators
+import io.github.jordanwoodson.patches.twitch.chat.fieldRef
+import io.github.jordanwoodson.patches.twitch.chat.methodRef
 import io.github.jordanwoodson.patches.shared.invokeStatic
 import io.github.jordanwoodson.patches.shared.parameterRegister
 import io.github.jordanwoodson.patches.twitch.shared.Constants.COMPATIBILITY_TWITCH
@@ -58,40 +60,43 @@ val sleepTimerPatch = bytecodePatch(
             }
         }
 
-        // Twitch pauses every player before a Guest Star call through a registry each player presenter
-        // joins in its constructor: registry.add(this) with an interface whose only method pauses.
+        // Twitch pauses every player before a Guest Star call through a registry each player presenter joins in its
+        // constructor: it adds itself to the registry's set (the registry's add method is inlined since 32.1.0).
+        // The set holds an interface whose only method pauses. The registry's constructor hands its set over.
         val presenter = playerPresenterClass()
         val constructor = presenter.methods.singleOrNull { it.name == "<init>" }
             ?: throw PatchException("Twitch: player presenter has more than one constructor")
         val registryType = constructor.parameterTypes.firstOrNull()?.toString()
             ?: throw PatchException("Twitch: player presenter constructor changed")
-        val add = constructor.implementation!!.instructions
-            .filter { it.opcode == Opcode.INVOKE_VIRTUAL }
-            .mapNotNull { (it as ReferenceInstruction).reference as? MethodReference }
-            .filter { reference ->
-                reference.definingClass == registryType && reference.returnType == "V" &&
-                    reference.parameterTypes.size == 1 && reference.parameterTypes[0].toString() in presenter.interfaces
-            }.distinct().singleOrNull() ?: throw PatchException("Twitch: player presenters no longer join the pause registry")
-        val pausable = classDefBy(add.parameterTypes[0].toString())
-        val pause = pausable.methods.singleOrNull()
-        if (!AccessFlags.INTERFACE.isSet(pausable.accessFlags) || pause == null ||
-            pause.parameterTypes.isNotEmpty() || pause.returnType != "V") {
-            throw PatchException("Twitch: the pause registry's player interface changed")
-        }
         val registry = mutableClassDefBy(registryType)
         val players = registry.fields.singleOrNull { it.type == "Ljava/util/Set;" }
             ?: throw PatchException("Twitch: the pause registry no longer holds a set")
-        registry.methods.single { method ->
-            method.name == add.name && method.parameterTypes.map { it.toString() } == listOf(pausable.type)
-        }.apply {
-            // v0 is a local, so it holds nothing at the start.
+        val joins = constructor.implementation!!.instructions.toList().let { code ->
+            code.any { it.opcode == Opcode.IGET_OBJECT && it.fieldRef?.let { field ->
+                field.definingClass == registryType && field.name == players.name } == true } &&
+                code.any { it.opcode == Opcode.INVOKE_INTERFACE && it.methodRef?.let { method ->
+                    method.definingClass == "Ljava/util/Set;" && method.name == "add" } == true }
+        }
+        if (!joins) throw PatchException("Twitch: player presenters no longer join the pause registry")
+        val pausable = presenter.interfaces.mapNotNull { classDefByOrNull(it) }.singleOrNull { type ->
+            AccessFlags.INTERFACE.isSet(type.accessFlags) && type.methods.singleOrNull()?.let { method ->
+                method.parameterTypes.isEmpty() && method.returnType == "V"
+            } == true
+        } ?: throw PatchException("Twitch: the pause registry's player interface changed")
+        val pause = pausable.methods.single()
+        Locators.record("twitch.sleep_timer.pause_registry", "$registryType->${players.name}:${players.type}")
+        registry.methods.singleOrNull { it.name == "<init>" }?.apply {
+            val code = implementation!!.instructions.toList()
+            val end = code.indices.singleOrNull { code[it].opcode == Opcode.RETURN_VOID }
+                ?: throw PatchException("Twitch: the pause registry constructor doesn't return once")
+            // v0 is a local, dead at the return.
             requireLocals(1)
-            addInstructions(0, """
+            addInstructions(end, """
                 move-object/from16 v0, p0
-                iget-object v0, v0, $players
+                iget-object v0, v0, $registryType->${players.name}:${players.type}
                 ${invokeStatic("$PLAYER->pauseRegistry(Ljava/util/Set;)V", 0)}
             """)
-        }
+        } ?: throw PatchException("Twitch: the pause registry has more than one constructor")
         bridge("pauseRegisteredPlayer", """
             check-cast p0, ${pausable.type}
             invoke-interface { p0 }, $pause

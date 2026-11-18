@@ -20,6 +20,7 @@ import app.morphe.util.ControlFlow
 import app.morphe.util.RegisterLiveness
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.call
+import app.morphe.util.namedRegisters
 import app.morphe.util.names.addInstructionsWithLabels
 import app.morphe.util.names.origName
 import app.morphe.util.names.origType
@@ -42,6 +43,9 @@ private const val CLOSED_PIN = "pin_"
 private const val HIDE_REACH = 6
 private val MOVES = setOf(Opcode.MOVE, Opcode.MOVE_FROM16, Opcode.MOVE_16)
 private val GOTOS = setOf(Opcode.GOTO, Opcode.GOTO_16, Opcode.GOTO_32)
+private val CONSTS = setOf(Opcode.CONST_4, Opcode.CONST_16, Opcode.CONST, Opcode.CONST_HIGH16)
+/** How far before the info check the comment thread read may sit. Plus Messenger asks about the closed pin in between. */
+private const val THREAD_REACH = 16
 
 /**
  * Where the chat screen decides whether its pinned message bar shows, or [missing], why this build
@@ -110,34 +114,51 @@ internal fun BytecodePatchContext.resolvePinnedBar(screen: String): PinnedBar {
     val hide = flow.normal[info + 3].first()
 
     // From the hide path's start, past the moves of the animate flag and the gotos, to the screen's
-    // hide, which answers whether anything changed and tags the bar hidden.
+    // hide, which answers whether anything changed and tags the bar hidden. Plus Messenger also sets
+    // a number of its own on the way, which the hide doesn't read.
     var at = hide
     var hides = false
+    val numbered = mutableSetOf<Int>()
     for (step in 1..HIDE_REACH) {
         val instruction = body.getOrNull(at) ?: break
         if (instruction.opcode in MOVES) { at++; continue }
+        if (instruction.opcode in CONSTS) { numbered += (instruction as OneRegisterInstruction).registerA; at++; continue }
         if (instruction.opcode in GOTOS) { at = flow.normal[at].single(); continue }
         val call = instruction.call()
         val hider = screenClass.methods.singleOrNull { it.name == call?.name &&
             it.parameterTypes.map(CharSequence::toString) == listOf("Z") && it.returnType == "Z" }
         hides = instruction.opcode in setOf(Opcode.INVOKE_VIRTUAL, Opcode.INVOKE_VIRTUAL_RANGE) && call != null &&
             call.definingClass == screen && body.getOrNull(at + 1)?.opcode == Opcode.MOVE_RESULT &&
+            instruction.namedRegisters().none { it in numbered } &&
             hider?.controlBody()?.any { it.controlRef() == SET_TAG } == true
         break
     }
     if (!hides) return missing("the pinned message bar's hide path no longer hides it")
 
-    val head = info - 4
+    // The comment thread check: the thread message, its null test straight to the info check, then a
+    // flag. Telegram asks right before the info check. Plus Messenger loads its closed pin key between
+    // the read and the test, and asks about the closed pin before the info check.
+    val head = (info - 1 downTo maxOf(0, info - THREAD_REACH)).firstOrNull {
+        body[it].opcode == Opcode.IGET_OBJECT && body[it].controlField()?.origType == MESSAGE_OBJECT
+    } ?: -1
     val thread = body.getOrNull(head)
     val threadField = thread?.controlField()
+    val keyed = body.getOrNull(head + 1)?.controlString() != null
+    val test = head + if (keyed) 2 else 1
     if (thread !is TwoRegisterInstruction || thread.opcode != Opcode.IGET_OBJECT || threadField == null || threadField.definingClass != screen ||
-        threadField.origType != MESSAGE_OBJECT || body[head + 1].opcode != Opcode.IF_EQZ || flow.normal[head + 1].first() != info ||
-        body[head + 2].opcode != Opcode.IGET_BOOLEAN || body[head + 3].opcode != Opcode.IF_EQZ) {
+        body.getOrNull(test)?.opcode != Opcode.IF_EQZ || (body[test] as OneRegisterInstruction).registerA != thread.registerA ||
+        flow.normal[test].first() != info || body.getOrNull(test + 1)?.opcode != Opcode.IGET_BOOLEAN ||
+        body.getOrNull(test + 2)?.opcode !in setOf(Opcode.IF_EQZ, Opcode.IF_NEZ) || !keyed && test + 3 != info) {
         return missing("the pinned message bar no longer starts by asking whether the chat is a comment thread")
     }
     val scratch = thread.registerA
-    if (scratch == thread.registerB || scratch in RegisterLiveness.of(method).liveInto(head)) {
+    val liveness = RegisterLiveness.of(method)
+    if (scratch == thread.registerB || scratch in liveness.liveInto(head)) {
         return missing("the comment thread check's register is still in use where it's loaded")
+    }
+    // The hook jumps from the read to the hide path, past the key load.
+    if (keyed && (body[head + 1] as OneRegisterInstruction).registerA in liveness.liveInto(hide)) {
+        return missing("the hide path reads the closed pin key the hook would skip")
     }
     return PinnedBar(method, head, scratch, hide, null)
 }

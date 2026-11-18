@@ -1015,6 +1015,10 @@ Please download %2$s from the website"</string>
     <string name="revanced_hide_comments_information_button_title">Hide Information button</string>
     <string name="revanced_hide_double_tap_overlay_filter_summary">Hides dark overlay that appears when double-tapping to seek</string>
     <string name="revanced_hide_double_tap_overlay_filter_title">Hide double-tap overlay filter</string>
+    <string name="revanced_hide_overlay_filter_title">Hide overlay filter</string>
+    <string name="revanced_hide_overlay_filter_summary">Removes the dimming behind player flyout menus</string>
+    <string name="revanced_hide_player_overlay_filter_title">Hide player overlay filter</string>
+    <string name="revanced_hide_player_overlay_filter_summary">Removes the dark tint behind the player controls when tapping once</string>
     <string name="revanced_hide_floating_button_summary">Hides the floating button in the Library tab</string>
     <string name="revanced_hide_floating_button_title">Hide floating button</string>
     <string name="revanced_hide_flyout_menu_3_column_component_title">Hide 3-column component</string>

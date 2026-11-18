@@ -3,7 +3,8 @@
 
 The format strings follow Media3's Format.toLogString and DecoderCounters.toString in Rumble 3.21.0: every key
 the APK writes, in its order, including the ones the panel doesn't show (decRes, par, rotation, channel_mask),
-which must not run into the values it does show.
+which must not run into the values it does show. The panel's corner (RumbleStats.shownCorner) is checked on view
+doubles: inside a frame that sits in its player view, and inside the shown part of one Fill screen zoomed.
 """
 from pathlib import Path
 import sys
@@ -31,6 +32,8 @@ public class RumbleStatsProbe {
       .invoke(null,video,audio,counters,estimate,buffered,offset));}
   @SuppressWarnings("unchecked")
   static Map<String,String> format(String log)throws Exception{return (Map<String,String>)method("format",String.class).invoke(null,log);}
+  static int[] corner(android.view.View frame)throws Exception{
+    return (int[])method("shownCorner",android.view.View.class).invoke(null,frame);}
   static void same(List<String> got,String... want){check(got.equals(List.of(want)),"got "+got+", want "+List.of(want));}
   static final long UNSET=Long.MIN_VALUE+1;
   public static void main(String[] args)throws Exception{
@@ -65,6 +68,19 @@ public class RumbleStatsProbe {
         check("60.0".equals(f.get("fps")),"fps ran into rotation: "+f);
         check("[widevine, playready]".equals(f.get("drm")),"drm list split: "+f);
         check(format(null).isEmpty(),"null log has values");break;
+      case "corner":
+        // Portrait: the frame sits inside the player view, so the panel starts at the frame's corner.
+        android.view.View parent=new android.view.View();parent.w=720;parent.h=405;
+        android.view.View frame=new android.view.View();frame.parent=parent;frame.w=720;frame.h=405;
+        check(Arrays.equals(corner(frame),new int[]{0,0}),"portrait corner "+Arrays.toString(corner(frame)));
+        // Fill screen in landscape: a 16:9 frame zoomed to a 1600x720 player view is 1600x900, centred at top -90.
+        parent.w=1600;parent.h=720;frame.l=0;frame.t=-90;frame.w=1600;frame.h=900;
+        check(Arrays.equals(corner(frame),new int[]{0,90}),"zoomed corner "+Arrays.toString(corner(frame)));
+        // Letterboxed (Fill screen off): the frame is inside the view, offset by its bars.
+        frame.l=140;frame.t=0;frame.w=1280;frame.h=720;
+        check(Arrays.equals(corner(frame),new int[]{0,0}),"letterboxed corner "+Arrays.toString(corner(frame)));
+        frame.parent=null;
+        check(Arrays.equals(corner(frame),new int[]{0,0}),"no parent "+Arrays.toString(corner(frame)));break;
       default:throw new AssertionError(args[0]);
     }
     System.out.println("PASS: Rumble video stats "+args[0]+" "+checks+" checks");
@@ -95,11 +111,14 @@ ANDROID = {
         public static float applyDimension(int u,float v,DisplayMetrics m){return v*m.density;} }''',
     'android/view/ViewOverlay.java': '''package android.view; public class ViewOverlay {
         public void add(android.graphics.drawable.Drawable d){} public void remove(android.graphics.drawable.Drawable d){} }''',
+    # A view with a position, size and parent, for the panel's corner.
     'android/view/View.java': STUBS['android/view/View.java'].replace(
-        'public int getWidth()',
-        'public boolean isAttachedToWindow(){return false;} public ViewOverlay getOverlay(){return new ViewOverlay();} '
-        'public int getWidth()'),
+        'public int getWidth(){return 0;} public int getHeight(){return 0;}',
+        'public int l,t,w,h; public View parent; public int getLeft(){return l;} public int getTop(){return t;} '
+        'public int getWidth(){return w;} public int getHeight(){return h;} '
+        'public boolean isAttachedToWindow(){return false;} public ViewOverlay getOverlay(){return new ViewOverlay();}').replace(
+        'public ViewParent getParent(){return null;}', 'public ViewParent getParent(){return parent;}'),
 }
 
 if __name__ == '__main__':
-    run('RumbleStatsProbe', ['rumble/RumbleStats.java'], PROBE, ['live', 'vod', 'empty', 'format'], ANDROID)
+    run('RumbleStatsProbe', ['rumble/RumbleStats.java'], PROBE, ['live', 'vod', 'empty', 'format', 'corner'], ANDROID)

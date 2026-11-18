@@ -8,7 +8,6 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.PlusPending
 import app.morphe.util.names.addInstructions
 import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
@@ -55,14 +54,13 @@ internal fun downloadHosts(build: File): Set<String> = synchronized(downloadExtr
     downloadExtras.getOrPut(build.path) {
         val named = FixtureDex.classes(build, setOf(IMAGE_LOADER, GALLERY_MEDIA_CONTROLLER))
         FixtureDex.namedBy(build) {
-            setOf(FILE_LOADER_OPERATIONS) + named.getValue(IMAGE_LOADER).delegateCandidates() +
+            setOf(FILE_LOADER_OPERATIONS) + named.getValue(IMAGE_LOADER).delegateCandidates { FixtureDex.classes(build, setOf(it))[it] } +
                 named.getValue(GALLERY_MEDIA_CONTROLLER).createdTypes()
         } + fileIconHosts(build)
     }
 }
 
-/** FileLoader's finished-download callback on both declared builds, and the checks the stubs borrow. */
-@PlusPending
+/** FileLoader's finished-download callback on every declared build, and the checks the stubs borrow. */
 class SaveDownloadsFixtureTest {
     private val hosts = setOf(IMAGE_LOADER, FILE_LOADER, MESSAGE_OBJECT, TL_MESSAGE, DOCUMENT, DIALOG_OBJECT, MESSAGES_CONTROLLER,
         MESSAGES_STORAGE, GALLERY_MEDIA_CONTROLLER, ANDROID_UTILITIES, LOAD_OPERATION)
@@ -83,7 +81,10 @@ class SaveDownloadsFixtureTest {
             val context = context(build)
             val callback = context.resolveSaveDownloads()
             val method = callback.method
-            assertTrue("$name: ${method.definingClass}", method.origDefiningClass.startsWith("Lorg/telegram/messenger/FileLoader$"))
+            // Plus Messenger keeps the delegate's own fileDidLoaded, where Telegram inlines it into FileLoader.
+            val plus = name.startsWith("plus-")
+            assertTrue("$name: ${method.definingClass}", if (plus) method.origDefiningClass == "Lorg/telegram/messenger/ImageLoader\$5;"
+                else method.origDefiningClass.startsWith("Lorg/telegram/messenger/FileLoader$"))
             val old = ImmutableMethod.of(method)
             val finishing = context.resolveFoundFiles()
             assertEquals("$name: ${finishing.definingClass}", LOAD_OPERATION, finishing.origDefiningClass)
@@ -119,15 +120,22 @@ class SaveDownloadsFixtureTest {
             val args = runnable.namedRegisters()
             assertEquals(RUN_ON_UI_THREAD, before[at].controlRef())
             assertEquals(listOf(args[0]), before[at].namedRegisters())
-            // The delegate's own account, read off the delegate past its null check.
-            val delegate = args[1]
+            // The delegate's own account, read off the delegate past its null check, or off `this` on Plus
+            // Messenger, which hands the runnable a copy of it.
+            val handed = (at - 2 downTo 0).first { before[it].opcode.setsRegister() && before[it].namedRegisters().first() == args[1] }
+            val delegate = if (plus) before[handed].namedRegisters()[1] else args[1]
             val account = (at - 2 downTo 0).first { before[it].opcode.setsRegister() && before[it].namedRegisters().first() == args[4] }
             assertEquals(Opcode.IGET, before[account].opcode)
             assertEquals("Lorg/telegram/messenger/ImageLoader\$5;->val\$currentAccount:I", before[account].controlRef())
             assertEquals(listOf(args[4], delegate), before[account].namedRegisters())
-            val read = (account - 1 downTo 0).first { before[it].opcode.setsRegister() && before[it].namedRegisters().first() == delegate }
-            assertEquals(Opcode.IGET_OBJECT, before[read].opcode)
-            assertTrue("$name: ${before[read].controlRef()}", before[read].controlRef()!!.startsWith("$FILE_LOADER->delegate:"))
+            if (plus) {
+                assertEquals("$name: the copy", Opcode.MOVE_OBJECT, before[handed].opcode)
+                assertEquals("$name: this", old.implementation!!.registerCount - 5, delegate)
+            } else {
+                val read = (account - 1 downTo 0).first { before[it].opcode.setsRegister() && before[it].namedRegisters().first() == delegate }
+                assertEquals(Opcode.IGET_OBJECT, before[read].opcode)
+                assertTrue("$name: ${before[read].controlRef()}", before[read].controlRef()!!.startsWith("$FILE_LOADER->delegate:"))
+            }
             assertEquals(Opcode.INVOKE_STATIC, after[at].opcode)
             assertEquals("$SAVE_DOWNLOADS->fileLoaded(ILjava/lang/String;Ljava/io/File;Ljava/lang/Object;)V", after[at].controlRef())
             // The account, then the name, the file and the parent the runnable carries.

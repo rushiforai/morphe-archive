@@ -251,6 +251,45 @@
       "options": []
     },
     {
+      "name": "Fit full-screen videos",
+      "description": "Shows tall videos whole in the full-screen player, instead of filling the screen's height and cutting off the sides. Starts off. Turn it on in Tumblr settings > HushTumblr > Interface.",
+      "category": "Interface",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "HushTumblr settings"
+      ],
+      "compatiblePackages": {
+        "com.tumblr": [
+          "47.0.0.108"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Tumblr",
+          "packageName": "com.tumblr",
+          "description": null,
+          "appIconColor": 6453,
+          "signatures": [
+            "39ac9c821ad2d605e4849f066e8aad3cca27d5e13eb03ad8755be234a2985dfd"
+          ],
+          "targets": [
+            {
+              "version": "47.0.0.108",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 1470000108,
+                "ARMEABI_V7A": 1470000108,
+                "X86": 1470000108,
+                "X86_64": 1470000108
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Fix push notifications",
       "description": "Lets the patched app sign up for push notifications. Firebase can refuse a patched Tumblr whose request doesn't name Tumblr's original signature, so this sends its fingerprint. On by default. Turn it off in Tumblr settings > HushTumblr > Notifications.",
       "category": "Notifications",
@@ -2128,6 +2167,45 @@
       "name": "Tags open the blog's tag search",
       "description": "Tapping a tag under a post opens that blog's own search for the tag, like blog.tumblr.com/tagged, in place of a search of all of Tumblr. Works on posts in the dashboard, other feeds and a post opened by itself. Starts off. Turn it on in Tumblr settings > HushTumblr > Posts.",
       "category": "Navigation",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "HushTumblr settings"
+      ],
+      "compatiblePackages": {
+        "com.tumblr": [
+          "47.0.0.108"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Tumblr",
+          "packageName": "com.tumblr",
+          "description": null,
+          "appIconColor": 6453,
+          "signatures": [
+            "39ac9c821ad2d605e4849f066e8aad3cca27d5e13eb03ad8755be234a2985dfd"
+          ],
+          "targets": [
+            {
+              "version": "47.0.0.108",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 1470000108,
+                "ARMEABI_V7A": 1470000108,
+                "X86": 1470000108,
+                "X86_64": 1470000108
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Tap to play feed videos",
+      "description": "Tapping a stopped video in your feed plays it right there, and a tap while it plays opens it full screen. Starts off. Turn it on in Tumblr settings > HushTumblr > Interface.",
+      "category": "Interface",
       "use": true,
       "dependencies": [
         "BytecodePatch",

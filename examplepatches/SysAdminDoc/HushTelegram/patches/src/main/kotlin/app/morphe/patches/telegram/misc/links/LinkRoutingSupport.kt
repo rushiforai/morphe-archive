@@ -223,8 +223,10 @@ internal fun BytecodePatchContext.resolveLinkHooks(): LinkPlan {
             checkShape(reachingWrites(method, body[constructor].namedRegisters()[1], constructor).all { body[it].string() == "android.intent.action.SEND" },
                 "share constructor isn't ACTION_SEND on every path")
             checkShape(reachingWrites(method, register, constructor).all { body[it].opcode == Opcode.NEW_INSTANCE && body[it].ref() == INTENT }, "share receiver isn't a fresh Intent")
+            // Plus's own Share Link menus start the chooser for a result; only the intent going in matters here.
             checkShape(register <= 15 && body[chooser].opcode == Opcode.INVOKE_STATIC && body[chooser + 1].opcode == Opcode.MOVE_RESULT_OBJECT &&
-                body.drop(chooser + 2).take(7).any { it.ref() == "$CONTEXT->startActivity($INTENT)V" }, "share chooser isn't an external Context launch")
+                body.drop(chooser + 2).take(7).any { it.ref() == "$CONTEXT->startActivity($INTENT)V" || it.ref() == "Landroid/app/Activity;->startActivityForResult(${INTENT}I)V" },
+                "share chooser isn't an external Context launch")
             ShareSite(mutable(method), chooser, register)
         }
     }

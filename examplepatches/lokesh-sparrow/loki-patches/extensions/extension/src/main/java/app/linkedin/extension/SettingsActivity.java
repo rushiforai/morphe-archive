@@ -264,6 +264,9 @@ public class SettingsActivity extends Activity {
                     "Takes My Network out of the bottom bar. Restart LinkedIn after changing it.");
             page.sw(Settings.HIDE_TAB_JOBS, false, "Hide the Jobs tab",
                     "Takes Jobs out of the bottom bar. Restart LinkedIn after changing it.");
+            page.sw(Settings.HIDE_TAB_MORE, true, "Hide the More tab",
+                    "Takes More out of the bottom bar, instead of a page that often shows \"Something went wrong\". "
+                            + "Restart LinkedIn after changing it.");
         }
         if (Settings.isViewerTapToHideIncluded()) {
             page.sw(Settings.VIEWER_TAP_TO_HIDE, true, "Tap to hide in viewers",
@@ -486,7 +489,7 @@ public class SettingsActivity extends Activity {
     private LinearLayout content;
     private ScrollView scroll;
 
-    // Where each screen was left scrolled. Every app in the bundle shares this screen, and every visit
+    // Where each screen was left scrolled. Every app shares this screen, and every visit
     // used to start at the top: going back from a page (or About) threw away the position the user had
     // scrolled to. Keyed by screen (see screenKey), so a page also reopens where it was left.
     private final Map<String, Integer> scrollOffsets = new HashMap<>();
@@ -586,6 +589,7 @@ public class SettingsActivity extends Activity {
                 entry("Swipe between feeds", Settings.isSwipeFeedsIncluded()),
                 entry("Hide the My Network tab", Settings.isHideTabsIncluded()),
                 entry("Hide the Jobs tab", Settings.isHideTabsIncluded()),
+                entry("Hide the More tab", Settings.isHideTabsIncluded()),
                 entry("Anonymous profile viewing", Settings.isAnonymousProfileViewingIncluded()),
                 entry("Download media", Settings.isDownloadMediaIncluded()),
                 entry("Messaging", Settings.isMessagingIncluded()),
@@ -794,7 +798,20 @@ public class SettingsActivity extends Activity {
         content.addView(navRow(IconDrawable.INFO, "About", v -> showAbout()));
     }
 
-    /** Brand card at the top of the page list: app icon, name, author, version and the update state. */
+
+    /**
+     * The Loki mark in the header and the About card. The app's own icon was used from 3.0 so the screen said which
+     * app it was running in, but it is the host's mark, not ours - and on a device whose launcher shows a contact
+     * photo it reads as a stranger's face at the top of our screen.
+     */
+    private android.graphics.drawable.Drawable lokiMark() {
+        int id = getResources().getIdentifier("loki_logo", "drawable", getPackageName());
+        if (id == 0) id = getResources().getIdentifier("loki_patches_icon", "drawable", getPackageName());
+        if (id != 0) return getDrawable(id);
+        return getApplicationInfo().loadIcon(getPackageManager());
+    }
+
+    /** Brand card at the top of the page list: the Loki mark, name, author, version and the update state. */
     private View homeHeader() {
         LinearLayout card = column();
         card.setGravity(Gravity.CENTER_HORIZONTAL);
@@ -802,7 +819,7 @@ public class SettingsActivity extends Activity {
         card.setBackground(bordered());
 
         ImageView icon = new ImageView(this);
-        icon.setImageDrawable(getApplicationInfo().loadIcon(getPackageManager()));
+        icon.setImageDrawable(lokiMark());
         card.addView(icon, square(64));
         card.addView(placed(label(BRAND, 24, ink, true), Gravity.CENTER, 10, 0));
         card.addView(placed(label(f("Made by %1$s", AUTHOR), 15, accent, false), Gravity.CENTER, 2, 0));
@@ -1028,7 +1045,7 @@ public class SettingsActivity extends Activity {
         LinearLayout card = cardShell(28, 24, true);
 
         ImageView icon = new ImageView(this);
-        icon.setImageDrawable(getApplicationInfo().loadIcon(getPackageManager()));
+        icon.setImageDrawable(lokiMark());
         card.addView(icon, square(88));
 
         card.addView(placed(label(BRAND, 26, ink, true), Gravity.CENTER, 16, 4));

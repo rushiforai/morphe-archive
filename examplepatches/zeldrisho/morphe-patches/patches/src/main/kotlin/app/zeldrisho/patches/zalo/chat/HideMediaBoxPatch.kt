@@ -24,15 +24,16 @@ val hideZaloMediaBoxPatch = bytecodePatch(
     execute {
         val oldMatches = MediaBoxListInsertion.matchAll(0..1)
         val newMatches = MediaBoxListInsertion261002.matchAll(0..1)
-        check(oldMatches.size + newMatches.size == 1) { "Expected exactly one Media Box insertion" }
+        val diagnostic = MediaBoxListInsertion261101.matchAll(0..1)
+        check(oldMatches.size + newMatches.size + diagnostic.size == 1) { "Expected exactly one Media Box insertion" }
         if (oldMatches.isNotEmpty()) {
             val match = oldMatches.single()
             val insertion = match.instructionMatches.single { it.instruction.opcode == Opcode.INVOKE_DIRECT }
             suppressMediaBoxInsertionAfterConstructor(match.method, insertion.index)
         } else {
-            val match = newMatches.single()
+            val match = (newMatches + diagnostic).single()
             val mediaBoxIndex = match.instructionMatches.first().index
-            suppressMediaBoxBranch261002(match.method, mediaBoxIndex)
+            suppressMediaBoxBranch261002(match.method, mediaBoxIndex, diagnostic.isNotEmpty())
         }
     }
 }
@@ -75,6 +76,7 @@ internal fun suppressMediaBoxInsertion(method: app.morphe.patcher.util.proxy.mut
 private fun suppressMediaBoxBranch261002(
     method: app.morphe.patcher.util.proxy.mutableTypes.MutableMethod,
     mediaBoxIndex: Int,
+    version261101: Boolean = false,
 ) {
     val instructions = method.implementation?.instructions?.toList()
         ?: error("MediaBoxListInsertion261002: matched method has no implementation")
@@ -84,13 +86,26 @@ private fun suppressMediaBoxBranch261002(
     val call = instructions.getOrNull(start) as? ReferenceInstruction
     val reference = call?.reference as? MethodReference
     check(instructions[start].opcode == Opcode.INVOKE_VIRTUAL &&
-        reference?.definingClass == "Ltg0/n;" && reference.name == "k" &&
+        reference?.definingClass == (if (version261101) "Lk8g;" else "Ltg0/n;") && reference.name == "k" &&
         reference.parameterTypes.isEmpty() && reference.returnType == "I" &&
         instructions.getOrNull(start + 1)?.opcode == Opcode.MOVE_RESULT
     ) { "MediaBoxListInsertion261002: unexpected branch entry" }
     method.replaceInstruction(start, "return-void")
     method.replaceInstruction(start + 1, "nop")
 }
+
+// Experimental target: 26.11.01 is advertised but not fully device-qualified.
+internal object MediaBoxListInsertion261101 : Fingerprint(
+    definingClass = "Lp8g;", name = "D",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL), returnType = "V",
+    parameters = listOf("Lcom/zing/zalo/data/chat/model/tabmessage/Conversation;",
+        "Ljava/util/ArrayList;", "I", "Z", "I", "Lk8g;"),
+    filters = listOf(
+        fieldAccess(opcode = Opcode.SGET_OBJECT, definingClass = "Lkf2;", name = "MediaBox", type = "Lkf2;"),
+        methodCall(definingClass = "Lk8g;", name = "v", parameters = listOf("Ltff;"), returnType = "V"),
+        methodCall(definingClass = "Ljava/util/ArrayList;", name = "add", parameters = listOf("Ljava/lang/Object;"), returnType = "Z"),
+    ),
+)
 
 /** Exact 26.10.02 branch, kept separate from the previous target's fingerprint. */
 internal object MediaBoxListInsertion261002 : Fingerprint(

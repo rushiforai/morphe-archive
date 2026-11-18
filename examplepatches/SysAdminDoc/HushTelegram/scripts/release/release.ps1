@@ -32,12 +32,11 @@
       publish    First -Walk, the walk-receipt.json of a whole-app walk of the built bundle on a
                  release phone or an emulator for each Telegram build it patches, the Play build's
                  signed in (walk-receipt.ps1): nothing goes out without them.
-                 Then release notes laid out like the other Hush repositories': -Intro, every
-                 bullet of the version's CHANGELOG section under New in this release, Fixes, Other
-                 changes and Behind the scenes, -Install under How to update and -Validation under
-                 What was checked. Then a lightweight tag on the release commit, the
-                 GitHub release with the four assets, each downloaded back and compared, and the
-                 published notes held to the section.
+                 Then release notes laid out like the other Hush repositories': -Intro, the
+                 version's CHANGELOG bullets less the Tooling ones under New in this release,
+                 Fixes and Other changes, and -Install under How to update. Then a lightweight
+                 tag on the release commit, the GitHub release with the four assets, each
+                 downloaded back and compared, and the published notes held to the section.
       index      patches-bundle.json from -Description, the version's CHANGELOG bullets less the
                  Tooling ones under "### What's new" (Manager lists them for the release a phone
                  is on) and the release's publish time, the bug form's
@@ -51,7 +50,7 @@
 
 .EXAMPLE
     scripts/release/release.ps1 -Stage prepare -Version 0.0.12
-    scripts/release/release.ps1 -Stage publish -Version 0.0.12 -Intro intro.md -Install install.md -Validation validation.md -Walk <web walk>/walk-receipt.json,<play walk>/walk-receipt.json
+    scripts/release/release.ps1 -Stage publish -Version 0.0.12 -Intro intro.md -Install install.md -Walk <web walk>/walk-receipt.json,<play walk>/walk-receipt.json
     scripts/release/release.ps1 -Stage index -Version 0.0.12 -Description manager.txt
 #>
 [CmdletBinding()]
@@ -60,10 +59,9 @@ param(
     [Parameter(Mandatory = $true)][ValidatePattern('^\d+\.\d+\.\d+$')][string]$Version,
     # prepare: the CHANGELOG heading's date. Today by default.
     [string]$Date,
-    # publish: files holding the notes' opening paragraph, the install steps and what was validated.
+    # publish: files holding the notes' opening paragraph and the install steps.
     [string]$Intro,
     [string]$Install,
-    [string]$Validation,
     # publish: the walk-receipt.json each whole-app walk of this exact bundle left, one per Telegram build.
     [string[]]$Walk,
     # index: a file holding the text Morphe Manager shows for the bundle.
@@ -457,7 +455,7 @@ switch ($Stage) {
         Save-StageRecord 'build' @{ bundleSha256 = $bundleHash; fixtures = @($fixtures | ForEach-Object { Split-Path -Leaf $_ }); minutes = $minutes }
         Write-Step "the full gate took $minutes minutes"
         foreach ($line in $sums) { Write-Step $line }
-        Write-Step "The assets are in $assets. Write the notes' intro, install steps and validation, then run -Stage publish."
+        Write-Step "The assets are in $assets. Write the notes' intro and install steps, then run -Stage publish."
     }
     'publish' {
         $built = Assert-StageFinished 'build' -Commit (Get-Head)
@@ -476,14 +474,14 @@ switch ($Stage) {
         foreach ($one in $walked.Walks) {
             Write-Step "walked $($one.Receipt.package) on $($one.Receipt.device) ($($one.Kind)): $($one.Receipt.screens) screens, no crash"
         }
-        foreach ($part in @(@('-Intro', $Intro), @('-Install', $Install), @('-Validation', $Validation))) {
+        foreach ($part in @(@('-Intro', $Intro), @('-Install', $Install))) {
             if (-not $part[1] -or -not (Test-Path -LiteralPath $part[1] -PathType Leaf)) {
                 throw "$($part[0]) names the file holding that part of the release notes."
             }
         }
         $changelog = Read-ReleaseText -Path (Join-Path $Root 'CHANGELOG.md')
         $notes = New-ReleaseNotes -Changelog $changelog -Version $Version -Intro (Read-ReleaseText -Path $Intro) `
-            -Install (Read-ReleaseText -Path $Install) -Validation (Read-ReleaseText -Path $Validation) -Repository $Repository
+            -Install (Read-ReleaseText -Path $Install) -Repository $Repository
         New-Item -ItemType Directory -Force -Path $stages | Out-Null
         $notesPath = Join-Path $stages 'notes.md'
         Write-ReleaseText -Path $notesPath -Text $notes

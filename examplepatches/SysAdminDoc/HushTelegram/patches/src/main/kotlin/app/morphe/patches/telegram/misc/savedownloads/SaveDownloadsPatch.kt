@@ -36,6 +36,7 @@ import app.morphe.patches.telegram.misc.settings.settingsPatch
 import app.morphe.util.ControlFlow
 import app.morphe.util.call
 import app.morphe.util.namedRegisters
+import app.morphe.util.numberOfParameterRegisters
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -118,7 +119,7 @@ val saveDownloadsPatch = bytecodePatch(
 ) {
     category("Playback")
     dependsOn(settingsPatch, telegramExtensionPatch, storageFolderManifestPatch)
-    compatibleWith(*AppCompatibilities.telegramOnly())
+    compatibleWith(*AppCompatibilities.telegram())
     execute {
         val callback = resolveSaveDownloads()
         val finishing = resolveFoundFiles()
@@ -158,7 +159,7 @@ val saveDownloadsPatch = bytecodePatch(
                 patchLog.warning("Save downloaded files: ${olderLoads.missing}. Photos and videos from before the storage folder moved download again.")
             }
             enableCapability("storageFolder")
-        } else {
+        } else if (!storage.ownFolder) {
             patchLog.warning("Save downloaded files: ${storage.missing}. The patch goes on without the storage folder.")
         }
         // After the storage folder's hook, so it sees the path that hook settled on.
@@ -286,9 +287,10 @@ private fun Instruction.loaderDelegate(): FieldReference? =
 
 /**
  * The types ImageLoader hands FileLoader as its delegate: each one it creates and writes straight
- * into FileLoader's delegate field.
+ * into FileLoader's delegate field. [classOf] finds a created class by its source name, for a
+ * build that keeps the field at FileLoader's delegate interface, which the class implements.
  */
-internal fun ClassDef.delegateCandidates(): List<String> = methods.flatMap { method ->
+internal fun ClassDef.delegateCandidates(classOf: (String) -> ClassDef? = { null }): List<String> = methods.flatMap { method ->
     val body = method.controlBody()
     body.indices.filter { body[it].opcode == Opcode.IPUT_OBJECT && body[it].loaderDelegate() != null }.mapNotNull { at ->
         val value = body[at].namedRegisters().first()
@@ -296,7 +298,8 @@ internal fun ClassDef.delegateCandidates(): List<String> = methods.flatMap { met
             ?: return@mapNotNull null
         val created = body[write].takeIf { it.opcode == Opcode.NEW_INSTANCE } ?: return@mapNotNull null
         val type = (created as ReferenceInstruction).reference.toString()
-        created.controlRef().takeIf { type == body[at].loaderDelegate()!!.type }
+        val field = body[at].loaderDelegate()!!.type
+        created.controlRef()?.takeIf { source -> type == field || classOf(source)?.interfaces?.contains(field) == true }
     }
 }.distinct()
 
@@ -490,11 +493,12 @@ internal fun BytecodePatchContext.resolveSaveDownloads(): DownloadCallback {
 
     val images = tgMutableClassDefByOrNull(IMAGE_LOADER)
     controlShape(images != null, "ImageLoader is missing")
-    val delegate = images!!.delegateCandidates()
+    val delegate = images!!.delegateCandidates { tgClassDefByOrNull(it) }
         .filter { it.startsWith(IMAGE_LOADER.removeSuffix(";") + "\$") }
         .controlSingle("ImageLoader's download callback")
     val accounts = tgMutableClassDefByOrNull(delegate)?.instanceFields?.filter { it.origType == "I" }.orEmpty()
         .controlSingle("the download callback's account")
+    val account = "${accounts.definingClass}->${accounts.name}:I"
     val found = mutableListOf<DownloadCallback>()
     forEachClassMentioning(Mention.member(FILE_LOADER, "delegate")) { cls ->
         if (cls.origType.startsWith("Lapp/hushtelegram/")) return@forEachClassMentioning
@@ -502,7 +506,7 @@ internal fun BytecodePatchContext.resolveSaveDownloads(): DownloadCallback {
             val body = method.controlBody()
             for (read in body.indices) {
                 if (body[read].opcode != Opcode.IGET_OBJECT || body[read].loaderDelegate() == null) continue
-                val site = delegateSite(body, read, delegate, "${accounts.definingClass}->${accounts.name}:I") ?: continue
+                val site = delegateSite(body, read, delegate, account) ?: continue
                 val owner = tgMutableClassDefBy(cls.type)
                 val mutable = owner.methods.single { it.name == method.name && it.parameterTypes == method.parameterTypes &&
                     it.returnType == method.returnType }
@@ -510,9 +514,14 @@ internal fun BytecodePatchContext.resolveSaveDownloads(): DownloadCallback {
             }
         }
     }
+    // Plus Messenger keeps the delegate's fileDidLoaded, which FileLoader calls through its delegate interface.
+    if (found.isEmpty()) for (method in tgMutableClassDefBy(delegate).methods) {
+        val site = ownDelegateSite(method, delegate, account) ?: continue
+        found += DownloadCallback(method, site.first, site.second)
+    }
     val callback = found.controlSingle("the finished-download callback")
-    controlShape(callback.method.origDefiningClass.startsWith(FILE_LOADER.removeSuffix(";") + "\$"),
-        "the finished-download callback moved out of FileLoader")
+    controlShape(callback.method.origDefiningClass.startsWith(FILE_LOADER.removeSuffix(";") + "\$") ||
+        callback.method.origDefiningClass == delegate, "the finished-download callback moved out of FileLoader")
 
     // Telegram's own Save to Downloads rules read the same three facts the stubs do.
     val loader = tgMutableClassDefByOrNull(FILE_LOADER)
@@ -552,21 +561,49 @@ private fun delegateSite(body: List<Instruction>, read: Int, delegate: String, a
     val held = body[read].namedRegisters().first()
     val check = body.getOrNull(read + 1)
     if (check?.opcode != Opcode.IF_EQZ || check.namedRegisters() != listOf(held)) return null
-    var index = read + 2
+    return runnableSite(body, read + 2, held, delegate, account)
+}
+
+/**
+ * The same runnable built in the delegate's own fileDidLoaded(name, file, parent, type), where the
+ * delegate is the method's `this`.
+ */
+private fun ownDelegateSite(method: Method, delegate: String, account: String): Pair<Int, List<Int>>? {
+    if (AccessFlags.STATIC.isSet(method.accessFlags) || method.returnType != "V" ||
+        method.origParameterTypes != listOf(STRING, FILE, OBJECT, "I")) return null
+    val self = method.implementation?.let { it.registerCount - method.numberOfParameterRegisters } ?: return null
+    return runnableSite(method.controlBody(), 0, self, delegate, account)
+}
+
+private val MOVE_OBJECTS = setOf(Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16)
+
+/**
+ * From [from] on, with the delegate in [held]: straight-line code that builds the delegate's
+ * runnable from the delegate (or a copy of it), the file, the name, the account, the parent and
+ * the type, then posts it.
+ */
+private fun runnableSite(body: List<Instruction>, from: Int, held: Int, delegate: String, account: String): Pair<Int, List<Int>>? {
+    val copies = mutableSetOf(held)
+    var index = from
     while (index < body.size) {
         val instruction = body[index]
         if (!instruction.opcode.canContinue() || instruction is OffsetInstruction) return null
-        if (instruction.opcode.setsRegister() && instruction.namedRegisters().firstOrNull().let {
-                it == held || instruction.opcode.setsWideRegister() && it?.plus(1) == held }) return null
+        val written = instruction.namedRegisters().firstOrNull()?.takeIf { instruction.opcode.setsRegister() }
+        if (written != null) {
+            if (written == held || instruction.opcode.setsWideRegister() && written + 1 == held) return null
+            copies -= written
+            if (instruction.opcode.setsWideRegister()) copies -= written + 1
+            if (instruction.opcode in MOVE_OBJECTS && instruction.namedRegisters()[1] in copies) copies += written
+        }
         val call = instruction.call()
         val args = instruction.namedRegisters()
         if ((instruction.opcode == Opcode.INVOKE_DIRECT || instruction.opcode == Opcode.INVOKE_DIRECT_RANGE) &&
             call?.name == "<init>" && call.origParameterTypes == listOf(delegate, FILE, STRING, "I", OBJECT, "I") &&
-            args.getOrNull(1) == held) {
+            args.getOrNull(1) in copies) {
             val post = body.getOrNull(index + 1)
             if (post?.opcode != Opcode.INVOKE_STATIC || post.controlRef() != RUN_ON_UI_THREAD ||
                 post.namedRegisters() != listOf(args[0])) return null
-            val accountRead = (index - 1 downTo read + 2).firstOrNull { body[it].opcode.setsRegister() &&
+            val accountRead = (index - 1 downTo from).firstOrNull { body[it].opcode.setsRegister() &&
                 body[it].namedRegisters().first() == args[4] } ?: return null
             if (body[accountRead].opcode != Opcode.IGET || body[accountRead].namedRegisters() != listOf(args[4], held) ||
                 (body[accountRead] as ReferenceInstruction).reference.toString() != account) return null

@@ -8,7 +8,6 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.PlusPending
 import app.morphe.util.names.origRef
 import app.morphe.util.names.addInstructions
 import app.morphe.util.names.addInstructionsWithLabels
@@ -47,7 +46,6 @@ import app.morphe.util.names.origType
 import app.morphe.util.names.tgMutableClassDefBy
 
 /** Both pinned builds' bot location manager, web view prompt and its dialog, gated where the switch can answer. */
-@PlusPending
 class MiniAppLocationFixtureTest {
     @Test fun `both builds keep location from Mini Apps and web pages and keep every stock instruction`() {
         for (build in Fixtures.declaredBuilds()) {
@@ -56,16 +54,27 @@ class MiniAppLocationFixtureTest {
             val plan = context.resolveMiniAppLocation()
             assertNull("$name: ${plan.missing}", plan.missing)
             assertEquals(LocationGate.values().toSet(), plan.gates.keys)
-            val original = plan.gates.mapValues { ImmutableMethod.of(it.value) }
+            // Plus Messenger's ad library has its own web view prompt, which gets Telegram's prompt gate.
+            assertEquals("$name: other web views' prompts", if (name.startsWith("plus-")) listOf(AD_LIBRARY) else emptyList(),
+                plan.pages.map { it.definingClass.substringBeforeLast('/') })
+            val gated = plan.gates.entries.map { it.key to it.value } + plan.pages.map { LocationGate.PROMPT to it }
+            val original = gated.map { ImmutableMethod.of(it.second) }
             assertEquals("$name: no warning", emptyList<String>(), PatchLogCapture.warnings { openExternalLinksPatch.execute(context) })
 
-            for ((gate, method) in plan.gates) {
+            for ((at, pair) in gated.withIndex()) {
+                val (gate, method) = pair
                 val where = "$name ${gate.name} ${method.definingClass}->${method.name}"
-                val before = original.getValue(gate).instructions()
+                val before = original[at].instructions()
                 val after = method.instructions()
                 val size = GATE_SIZES.getValue(gate)
-                assertEquals("$where: every stock instruction follows the gate", before.map(::operands), after.drop(size).map(::operands))
-                assertEquals("$where: registers are kept", original.getValue(gate).implementation!!.registerCount,
+                // A switch payload's alignment nop comes and goes with the gate's size (Plus Messenger's ad library
+                // prompt), so stock instructions are matched past nops on both sides.
+                val stockAt = before.indices.filter { before[it].opcode != Opcode.NOP }
+                val movedAt = after.indices.drop(size).filter { after[it].opcode != Opcode.NOP }
+                val moved = stockAt.zip(movedAt).toMap()
+                assertEquals("$where: every stock instruction follows the gate", stockAt.map { operands(before[it]) },
+                    movedAt.map { operands(after[it]) })
+                assertEquals("$where: registers are kept", original[at].implementation!!.registerCount,
                     method.implementation!!.registerCount)
                 val call = after[0]
                 assertTrue("$where: the gate asks the switch first", call.ref()?.startsWith("$MINI_APP_LOCATION->") == true)
@@ -78,11 +87,11 @@ class MiniAppLocationFixtureTest {
                 }, call.namedRegisters())
 
                 // Stock branches and handlers land where they did, one gate further on.
-                val oldFlow = ControlFlow.of(original.getValue(gate))
+                val oldFlow = ControlFlow.of(original[at])
                 val newFlow = ControlFlow.of(method)
-                for (index in before.indices) {
-                    assertEquals("$where: stock branch $index", oldFlow.normal[index].toSet(), newFlow.normal[index + size].map { it - size }.toSet())
-                    assertEquals("$where: stock handler $index", oldFlow.exceptional[index].toSet(), newFlow.exceptional[index + size].map { it - size }.toSet())
+                for ((index, now) in moved) {
+                    assertEquals("$where: stock branch $index", oldFlow.normal[index].map { moved[it] }.toSet(), newFlow.normal[now].toSet())
+                    assertEquals("$where: stock handler $index", oldFlow.exceptional[index].map { moved[it] }.toSet(), newFlow.exceptional[now].toSet())
                 }
                 if (gate.labeled) {
                     assertEquals(Opcode.IF_EQZ, after[2].opcode)
@@ -105,6 +114,10 @@ class MiniAppLocationFixtureTest {
             }),
             Case("no dialog", "the geolocation dialog's answer is missing or ambiguous", hosts = { hosts ->
                 hosts.removeAll { cls -> cls.methods.any { it.origName == "accept" && it.calls(GEO_INVOKE) } }
+            }),
+            // A second web view handing its page to a dialog of its own leaves no one prompt to gate.
+            Case("a second asking prompt", "the web view geolocation prompt is missing or ambiguous", hosts = { hosts ->
+                hosts += webClient("new-instance v0, $CLIENT_DIALOG\ninvoke-direct {v0, p2}, $CLIENT_DIALOG-><init>($GEO_CALLBACK)V\nreturn-void")
             }),
             Case("no listener", "the bot location manager's listener for later fixes is missing", hosts = { hosts ->
                 hosts.removeAll { LISTENER in it.origInterfaces }
@@ -164,6 +177,24 @@ class MiniAppLocationFixtureTest {
             assertFlag(context, "miniAppLocation", false)
             assertFlag(context, "openExternalLinks", true)
             assertFlag(context, "externalBrowserRouting", true)
+        }
+    }
+
+    /** Another web view that answers its page itself, like Plus Messenger's ad library, is refused the same way. */
+    @Test fun `another web view's own prompt gets the prompt gate`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val name = build.name
+            val context = PatchContexts.of(ExtensionDex.classes() + hostClasses(build) +
+                webClient("const/4 v0, 0x1\ninvoke-interface {p2, p1, v0, v0}, $GEO_INVOKE\nreturn-void"))
+            val plan = context.resolveMiniAppLocation()
+            assertNull("$name: ${plan.missing}", plan.missing)
+            assertTrue("$name: ${plan.pages.map { it.definingClass }}", plan.pages.any { it.definingClass == CLIENT })
+            assertEquals("$name: no warning", emptyList<String>(), PatchLogCapture.warnings { openExternalLinksPatch.execute(context) })
+            val after = context.tgMutableClassDefBy(CLIENT).methods.single().instructions()
+            assertEquals("$name: the page is asked about first", "$MINI_APP_LOCATION->refusePrompt(Ljava/lang/String;Ljava/lang/Object;)Z", after[0].ref())
+            assertEquals("$name: with its origin and callback", listOf(2, 3), after[0].namedRegisters())
+            assertEquals("$name: the stock answer follows", Opcode.CONST_4, after[GATE_SIZES.getValue(LocationGate.PROMPT)].opcode)
+            assertFlag(context, "miniAppLocation", true)
         }
     }
 
@@ -232,7 +263,7 @@ class MiniAppLocationFixtureTest {
         }
     }
 
-    /** The link patch's own hosts, so it runs whole, and the three classes the location switch gates. */
+    /** The link patch's own hosts, so it runs whole, and the classes the location switch gates. */
     private fun hostClasses(build: File): List<ClassDef> {
         val hosts = FixtureDex.classesWhere(build, HOST_CENSUS, { true }) { method ->
             (method.origReturnType == "V" && method.parameterTypes.size in 10..11 &&
@@ -244,7 +275,9 @@ class MiniAppLocationFixtureTest {
         }
         val kept = FixtureDex.classes(build, setOf(MC, UC))
         assertEquals("account protection definitions", setOf(MC, UC), kept.keys)
-        assertEquals("${build.name}: the manager, the prompt and its dialog", 3, hosts.count { cls -> cls.methods.any(::isLocationHost) })
+        // Plus Messenger's ad library brings a fourth: its own web view prompt.
+        assertEquals("${build.name}: the manager, the prompt and its dialog", if (build.name.startsWith("plus-")) 4 else 3,
+            hosts.count { cls -> cls.methods.any(::isLocationHost) })
         assertEquals("${build.name}: the listener for later fixes", 1, hosts.count { cls -> LISTENER in cls.origInterfaces })
         return hosts + kept.values
     }
@@ -296,6 +329,14 @@ class MiniAppLocationFixtureTest {
             addInstructions(0, smali)
         }
 
+    /** A web view client of its own whose geolocation prompt runs [smali]. */
+    private fun webClient(smali: String): ClassDef {
+        val parameters = listOf("Ljava/lang/String;", GEO_CALLBACK).map { ImmutableMethodParameter(it, null, null) }
+        val prompt = MutableMethod(ImmutableMethod(CLIENT, SHOW_PROMPT, parameters, "V", AccessFlags.PUBLIC.value, null, null,
+            ImmutableMethodImplementation(4, emptyList(), null, null))).apply { addInstructions(0, smali) }
+        return syntheticClass(CLIENT, AccessFlags.PUBLIC.value, null, prompt)
+    }
+
     private fun Method.state(): List<Any?> = listOf(accessFlags, implementation?.registerCount, instructions().map(::operands))
     private fun ClassDef.state() = methods.associate { "${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" to it.state() }
     private fun Method.instructions(): List<Instruction> = implementation?.instructions?.toList().orEmpty()
@@ -310,6 +351,9 @@ class MiniAppLocationFixtureTest {
         const val MC = "Lorg/telegram/messenger/MessagesController;"
         const val UC = "Lorg/telegram/messenger/UserConfig;"
         const val LISTENER = "Landroid/location/LocationListener;"
+        const val AD_LIBRARY = "Lcom/google/android/gms/internal/ads"
+        const val CLIENT = "Lhush/WebClient;"
+        const val CLIENT_DIALOG = "Lhush/WebClientDialog;"
         const val PARENT = "Lhush/ListenerParent;"
         const val MIDDLE = "Lhush/MiddleListener;"
         val GATE_SIZES = mapOf(LocationGate.GPS to 5, LocationGate.ANSWER to 2, LocationGate.PROMPT to 4, LocationGate.DIALOG to 2)

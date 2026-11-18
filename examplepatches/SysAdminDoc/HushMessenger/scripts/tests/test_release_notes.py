@@ -14,8 +14,6 @@ spec.loader.exec_module(notes)
 REPO = Path(__file__).parents[2]
 TARGET = "585.0.0.53.94"
 PAGE = "https://www.apkmirror.com/apk/facebook-2/messenger/facebook-messenger-585-0-0-53-94-release/"
-WALKED = ["chat", "inbox", "settings-controls", "settings-app", "message-log", "auto-reply",
-          "settings", "story-settings", "contact-settings"]
 
 
 class ReleaseNotes(unittest.TestCase):
@@ -37,12 +35,9 @@ class ReleaseNotes(unittest.TestCase):
         (self.root / "README.md").write_text(self.readme, encoding="utf-8")
         profiles = self.root / "scripts/profiles"
         profiles.mkdir(parents=True)
-        # Two records with the same hooks are one family, whatever their version code says.
         (profiles / "347015062.txt").write_text("# recorded\nversion 585\ncode 347015062\nhook A\n", encoding="utf-8")
         (profiles / "347015064.txt").write_text("version 585\ncode 347015064\nsha256 ab\nhook A\n", encoding="utf-8")
         (profiles / "347014974.txt").write_text("version 585\ncode 347014974\nhook B\n", encoding="utf-8")
-        self.walk = self.root / "walk-receipt.json"
-        self.write_walk()
 
     def write_changelog(self, section):
         (self.root / "CHANGELOG.md").write_text(
@@ -55,14 +50,8 @@ class ReleaseNotes(unittest.TestCase):
             "description": "HushMessenger for Messenger 585.0.0.53.94.\n66 patches.\n\n### New\n\n- Log out.",
         }), encoding="utf-8")
 
-    def write_walk(self, **change):
-        receipt = {"result": "PASS", "crashes": 0, "emulator": False, "device": "SM-S908U1", "sdk": 36,
-                   "steps": [{"id": step, "opened": True} for step in WALKED]} | change
-        # walk-receipt.ps1 writes it through Set-Content -Encoding utf8, which leads with a BOM.
-        self.walk.write_bytes(b"\xef\xbb\xbf" + json.dumps(receipt).encode("utf-8"))
-
     def build(self):
-        return notes.build_notes(self.root, "0.27.0", self.walk)
+        return notes.build_notes(self.root, "0.27.0")
 
     def refuses(self, expected):
         with self.assertRaises(notes.NotesError) as raised:
@@ -72,24 +61,26 @@ class ReleaseNotes(unittest.TestCase):
     def test_the_body_carries_every_bullet_once_under_v027s_layout(self):
         body = self.build()
         lines = body.split("\n")
-        bullets = [line for line in self.section.split("\n") if line.startswith("- ")]
-        self.assertEqual(28, len(bullets))
+        shown, checks = self.section.split("\n### Checks\n")
+        bullets = [line for line in shown.split("\n") if line.startswith("- ")]
+        left_out = [line for line in checks.split("\n") if line.startswith("- ")]
+        self.assertEqual((22, 6), (len(bullets), len(left_out)))
         for bullet in bullets:
             self.assertEqual(1, lines.count(bullet), bullet[:60])
+        # The Checks bullets stay in the CHANGELOG.
+        for bullet in left_out:
+            self.assertNotIn(bullet, lines)
         self.assertEqual("HushMessenger for Messenger 585.0.0.53.94. 66 patches.", lines[0])
-        headings = ["### New in this release", "### Fixes and changes", "### Behind the scenes",
-                    "### Reports this release changed something for", "### How to update", "### What was checked"]
+        headings = ["### New in this release", "### Fixes and changes",
+                    "### Reports this release changed something for", "### How to update"]
         self.assertEqual(headings, [line for line in lines if line.startswith("### ")])
         at = {heading: lines.index(heading) for heading in headings}
-        # New, then Changed and fixed, then Checks, each under its own heading.
+        # New, then Changed and fixed, each under its own heading.
         self.assertLess(at["### New in this release"], lines.index(bullets[0]))
         self.assertLess(lines.index(bullets[0]), at["### Fixes and changes"])
         changed = next(line for line in bullets if line.startswith("- HushMessenger now targets Messenger 584.1"))
         self.assertLess(at["### Fixes and changes"], lines.index(changed))
-        self.assertLess(lines.index(changed), at["### Behind the scenes"])
-        check = next(line for line in bullets if line.startswith("- The install check now names"))
-        self.assertLess(at["### Behind the scenes"], lines.index(check))
-        self.assertLess(lines.index(check), at["### Reports this release changed something for"])
+        self.assertLess(lines.index(changed), at["### Reports this release changed something for"])
         self.assertIn("#88, #89, #91, #93, #94, #98, #99, #100, #102, #103, #106 and #107.", lines)
         self.assertIn(f"1. Update Messenger to {TARGET} first. On [APKMirror's {TARGET} page]({PAGE}), take a build "
                       "whose version code is 347014974, 347015062 or 347015064. APKMirror shows the code for each "
@@ -98,29 +89,17 @@ class ReleaseNotes(unittest.TestCase):
         self.assertIn("2. In Morphe Manager (2.2.0 or newer), open **Sources** and refresh HushMessenger. "
                       "The card should say **66 patches**.", lines)
         self.assertIn("`patches-0.27.0.mpp` below is the same bundle for Morphe Desktop 1.19.1 or newer", body)
-        self.assertIn(f"- The full test suite, plus a patch run against all 3 Messenger {TARGET} builds on file.", lines)
-        self.assertIn("- Morphe Desktop patched and rebuilt one APK from each of the 2 build families.", lines)
-        self.assertIn("- An APK patched from this exact bundle was installed on a Galaxy S22 Ultra, signed in to Messenger. "
-                      "A chat, the inbox, both HushMessenger settings tabs, the message log, auto reply, Messenger's own "
-                      "settings, story settings and contact settings all opened, with no crashes.", lines)
-        self.assertTrue(body.endswith("crashes.\n"))
+        self.assertTrue(body.endswith("the README says how.\n"))
         self.assertNotIn("\r", body)
 
-    def test_an_emulator_walk_and_a_release_without_reports_read_right(self):
-        self.write_walk(emulator=True, device="sdk_gphone64_x86_64", sdk=32,
-                        steps=[{"id": "chat", "opened": True}, {"id": "settings-app", "opened": True},
-                               {"id": "inbox", "opened": False}])
+    def test_a_release_without_reports_or_with_one_build_reads_right(self):
         self.write_changelog("\n### Changed and fixed\n\n- Something small changed.\n\n")
         body = self.build()
-        self.assertIn("installed on an emulator on Android API 32, signed in to Messenger. "
-                      "A chat and the HushMessenger App tab all opened, with no crashes.", body)
         self.assertNotIn("Reports this release", body)
         self.assertNotIn("New in this release", body)
         for record in ("347015064.txt", "347014974.txt"):
             (self.root / "scripts/profiles" / record).unlink()
         body = self.build()
-        self.assertIn(f"- The full test suite, plus a patch run against the one Messenger {TARGET} build on file.", body)
-        self.assertIn("- Morphe Desktop patched and rebuilt one APK from the one build family.", body)
         self.assertIn(f"1. Update Messenger to {TARGET} first. Get build 347015062 from [APKMirror's {TARGET} page]({PAGE}).",
                       body)
 
@@ -135,13 +114,13 @@ class ReleaseNotes(unittest.TestCase):
             ("spaced hyphen", "\n### New\n\n- A thing - with a dash.\n\n", "as a dash"),
             ("en dash", "\n### New\n\n- Builds 3–5 changed.\n\n", "as a dash"),
             ("spaced double hyphen", "\n### New\n\n- A thing -- with a dash.\n\n", "as a dash"),
-            ("same bullet twice", "\n### New\n\n- Twice.\n\n### Checks\n\n- Twice.\n\n", "exactly once"),
+            ("same bullet twice", "\n### New\n\n- Twice.\n\n### Changed and fixed\n\n- Twice.\n\n", "exactly once"),
         ):
             with self.subTest(name):
                 self.write_changelog(section)
                 self.refuses(expected)
 
-    def test_facts_from_another_release_or_a_failed_walk_are_refused(self):
+    def test_facts_from_another_release_are_refused(self):
         self.write_index("0.26.0")
         self.refuses("patches-bundle.json is at 0.26.0, not 0.27.0")
         self.write_index("0.27.0")
@@ -164,24 +143,18 @@ class ReleaseNotes(unittest.TestCase):
         for record in (self.root / "scripts/profiles").glob("*.txt"):
             record.unlink()
         self.refuses("scripts/profiles has no records")
-        for change in ({"result": "PARTIAL"}, {"crashes": 1}, {"steps": [{"id": "chat", "opened": False}]}):
-            with self.subTest(change):
-                self.write_walk(**change)
-                with self.assertRaises(notes.NotesError):
-                    self.build()
 
     def test_the_command_writes_the_body_or_exits_nonzero_without_one(self):
         out = self.root / "notes.md"
-        command = [sys.executable, "-I", str(SCRIPT), "--root", str(self.root), "--version", "0.27.0",
-                   "--walk", str(self.walk), "--out", str(out)]
+        command = [sys.executable, "-I", str(SCRIPT), "--root", str(self.root), "--version", "0.27.0", "--out", str(out)]
         result = subprocess.run(command, capture_output=True, text=True, timeout=60, check=False)
         self.assertEqual(0, result.returncode, result.stderr)
         self.assertEqual(self.build().encode("utf-8"), out.read_bytes())
         out.unlink()
-        self.write_walk(crashes=2)
+        self.write_index("0.26.0")
         result = subprocess.run(command, capture_output=True, text=True, timeout=60, check=False)
         self.assertEqual(1, result.returncode)
-        self.assertIn("release notes: the walk receipt", result.stderr)
+        self.assertIn("release notes: patches-bundle.json is at 0.26.0", result.stderr)
         self.assertFalse(out.exists())
 
 

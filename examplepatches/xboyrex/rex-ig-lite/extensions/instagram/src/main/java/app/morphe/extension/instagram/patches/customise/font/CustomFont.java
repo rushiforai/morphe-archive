@@ -101,11 +101,17 @@ public class CustomFont {
 
     public static void load() {
         try {
-            if (FontStorage.hasFile()) {
+            boolean appFontEnabled = Boolean.TRUE.equals(
+                    app.morphe.extension.rex.sharedPreference.SharedPref.getBooleanPref(
+                            app.morphe.extension.instagram.settings.Settings.ENABLE_APP_FONT));
+            boolean emojiEnabled = Boolean.TRUE.equals(
+                    app.morphe.extension.rex.sharedPreference.SharedPref.getBooleanPref(
+                            app.morphe.extension.instagram.settings.Settings.ENABLE_EMOJI_FONT));
+            if (appFontEnabled && FontStorage.hasFile()) {
                 customTypeface = FontStorage.loadTypeface();
                 systemFontSelected = false;
                 active = customTypeface != null;
-            } else if (FontStorage.useSystemFont()) {
+            } else if (appFontEnabled && FontStorage.useSystemFont()) {
                 customTypeface = null;
                 systemFontSelected = true;
                 active = true;
@@ -114,7 +120,7 @@ public class CustomFont {
                 systemFontSelected = false;
                 active = false;
             }
-            emojiTypeface = FontStorage.loadEmojiTypeface();
+            emojiTypeface = emojiEnabled ? FontStorage.loadEmojiTypeface() : null;
         } catch (Throwable e) {
             Logger.printException(() -> "Failed to initialize CustomFont", e);
         }

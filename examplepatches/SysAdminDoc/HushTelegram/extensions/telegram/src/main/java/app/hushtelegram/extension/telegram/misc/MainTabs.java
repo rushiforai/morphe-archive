@@ -277,11 +277,15 @@ public final class MainTabs {
         return true;
     }
 
-    /** Whether the switch is on and HushTelegram isn't paused. */
+    /**
+     * Whether the switch is on and HushTelegram isn't paused, or the app's own switch for hiding
+     * Contacts is on. Plus has one, which the patch reads off on the main screen so the tab goes
+     * this way for either.
+     */
     static boolean on() {
         HookStatus.invoked(FamilyNames.HIDE_CONTACTS_TAB);
         try {
-            return Utils.settingsReady() && Settings.HIDE_CONTACTS_TAB.get();
+            return hostHidesContacts() || Utils.settingsReady() && Settings.HIDE_CONTACTS_TAB.get();
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.HIDE_CONTACTS_TAB, "switch", failure);
             return false;
@@ -303,4 +307,10 @@ public final class MainTabs {
      * the first page while it builds the screen. Replaced when patching.
      */
     public static void showChats(Object screen, boolean animated) {}
+
+    /**
+     * Whether the app's own switch for hiding the Contacts tab is on. False for Telegram, which has
+     * none. Replaced when patching.
+     */
+    public static boolean hostHidesContacts() { return false; }
 }

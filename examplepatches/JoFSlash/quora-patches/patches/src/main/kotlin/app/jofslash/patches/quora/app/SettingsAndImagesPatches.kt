@@ -1,6 +1,8 @@
 package app.jofslash.patches.quora.app
 
+import app.jofslash.patches.quora.ads.PageFinishedFingerprint
 import app.jofslash.patches.quora.shared.Constants.COMPATIBILITY_QUORA
+import app.jofslash.patches.quora.video.InitWebViewFingerprint
 import app.jofslash.patches.quora.tabs.SetupTabsFingerprint
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
@@ -18,10 +20,11 @@ private const val TAB_BAR = "Lcom/quora/android/controls/QTabBar;"
 @Suppress("unused")
 val patchSettingsPatch = bytecodePatch(
     name = "Patch settings",
-    description = "Long-press the Home tab to switch the page patches on and off and edit the filters, " +
-            "without patching again.",
+    description = "Long-press the Home tab, or open Settings > Morphe > Quora patches, to switch the page patches on and off and edit the filters, " +
+            "without patching again. It also tells you when Quora changes its pages so that some patches stop working.",
     default = true
 ) {
+    category("App")
     compatibleWith(COMPATIBILITY_QUORA)
 
     extendWith("extensions/extension.mpe")
@@ -43,6 +46,20 @@ val patchSettingsPatch = bytecodePatch(
                 """
             )
         }
+        // Notices when Quora changes its feed so that page patches stop working, and says so here.
+        PageFinishedFingerprint.method.addInstruction(
+            0,
+            "invoke-static { p1 }, Lapp/jofslash/extension/quora/PageCheck;->onPageFinished(Landroid/webkit/WebView;)V"
+        )
+        // A "Morphe" section with a "Quora patches" entry on Quora's settings page opens the same dialog.
+        PageFinishedFingerprint.method.addInstruction(
+            0,
+            "invoke-static { p1 }, $SETTINGS_CLASS->settingsEntry(Landroid/webkit/WebView;)V"
+        )
+        InitWebViewFingerprint.method.addInstruction(
+            0,
+            "invoke-static { p1 }, $SETTINGS_CLASS->bind(Landroid/webkit/WebView;)V"
+        )
     }
 }
 
@@ -59,6 +76,7 @@ val saveImagesPatch = bytecodePatch(
     description = "Long-press an image you opened full screen to save it to Pictures/Quora.",
     default = true
 ) {
+    category("Reading")
     compatibleWith(COMPATIBILITY_QUORA)
 
     extendWith("extensions/extension.mpe")

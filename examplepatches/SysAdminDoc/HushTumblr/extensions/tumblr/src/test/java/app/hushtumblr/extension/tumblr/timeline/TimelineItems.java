@@ -183,6 +183,14 @@ public final class TimelineItems {
         return new TimelineObject(new Post(Arrays.asList(added), trail, null, null, "100"), false);
     }
 
+    /** A reblog of a post made of [original] that was shared to a community, adding [added] of its own. */
+    public static TimelineObject communityReblogOf(List<?> original, Object... added) {
+        List<HushTrail> trail = Collections.singletonList(() -> original);
+        return new TimelineObject(new Post(Arrays.asList(added), trail, null, null, "100") {
+            @Override public Object hushCommunity() { return new Object(); }
+        }, false);
+    }
+
     /** A reblog as {@link #reblogOf} makes, whose id is [id]. */
     public static TimelineObject reblogWithId(String id, List<?> original, Object... added) {
         List<HushTrail> trail = Collections.singletonList(() -> original);
@@ -402,7 +410,8 @@ public final class TimelineItems {
     }
 
     /** A post Tumblr's model would carry, as the post bridge patches make it. */
-    static class Post extends Item implements HushPost, HushPaidPost, HushFilteredPost, HushLikedPost, HushReblogSource {
+    static class Post extends Item implements HushPost, HushPaidPost, HushFilteredPost, HushLikedPost, HushReblogSource,
+            HushCommunityPost {
         private final List<?> content;
         private final List<?> trail;
         private final List<?> tags;
@@ -429,6 +438,7 @@ public final class TimelineItems {
         @Override public boolean hushPaidContextKnown() { return true; }
         @Override public Object hushFiltered() { return null; }
         @Override public boolean hushLiked() { return false; }
+        @Override public Object hushCommunity() { return null; }
         @Override public String hushRebloggedFromName() { return null; }
         @Override public String hushRebloggedRootName() { return null; }
     }

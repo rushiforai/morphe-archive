@@ -30,24 +30,23 @@ private val intervalHours = setOf("1", "3", "6", "12")
  * @throws IllegalStateException if [method] has no implementation or the required
  * getter, key-building pattern, or argument/result registers cannot be found.
  */
-internal fun overrideBackupInterval(method: MutableMethod, hours: String, version261002: Boolean = false) {
+internal fun overrideBackupInterval(method: MutableMethod, hours: String, getter: String = INTERVAL_GETTER) {
     require(hours in intervalHours) { "Backup interval must be one of 1, 3, 6, or 12 hours" }
-    val (resultIndex, register) = locateBackupInterval(method, version261002)
+    val (resultIndex, register) = locateBackupInterval(method, getter)
     val millis = hours.toLong() * 3_600_000L
     method.replaceInstruction(resultIndex, "const-wide/32 v$register, $millis")
 }
 
 /**
  * Returns the zero-based instruction index and first register of the account-specific wide result.
- * [version261002] selects the getter used by Zalo 26.10.02 instead of the older getter.
+ * [getter] is the version-specific interval getter descriptor.
  *
  * @throws IllegalStateException if the method body or required getter, key flow, or result is absent.
  */
-internal fun locateBackupInterval(method: MutableMethod, version261002: Boolean): Pair<Int, Int> {
+internal fun locateBackupInterval(method: MutableMethod, getter: String = INTERVAL_GETTER): Pair<Int, Int> {
     val instructions = method.implementation?.instructions?.toList()
         ?: error("Zalo backup interval: scheduler has no implementation")
-    val getter = if (version261002) "Lp60/p0;->m(JZLjava/lang/String;)J" else INTERVAL_GETTER
-    val getterIndex = findIntervalGetter(instructions, getter)
+    val getterIndex = findAccountSpecificIntervalGetter(instructions, getter)
     val keyRegister = invokeRegisterAt(instructions[getterIndex], 3)
         ?: error("Zalo backup interval: getter string argument register not found")
     check(hasAccountSpecificKey(instructions, getterIndex, keyRegister)) {
@@ -63,18 +62,33 @@ internal fun locateBackupInterval(method: MutableMethod, version261002: Boolean)
 }
 
 /**
- * Returns the zero-based index of the sole static call to the known interval getter.
+ * Returns the zero-based index of the sole static interval getter call whose string argument is
+ * built from the account-specific interval key.
  *
  * @throws IllegalStateException if there are no matching calls or more than one.
  */
-private fun findIntervalGetter(instructions: List<com.android.tools.smali.dexlib2.iface.instruction.Instruction>, getter: String): Int {
-    val matches = instructions.indices.filter { index ->
-        val reference = (instructions[index] as? ReferenceInstruction)?.reference as? MethodReference
-        instructions[index].opcode in setOf(Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE) &&
-            reference?.let { "${it.definingClass}->${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" } == getter
+private fun findAccountSpecificIntervalGetter(
+    instructions: List<com.android.tools.smali.dexlib2.iface.instruction.Instruction>,
+    getter: String,
+): Int {
+    val matches = instructions.indices.filter { index -> isIntervalGetterCall(instructions[index], getter) }.filter { index ->
+        val keyRegister = invokeRegisterAt(instructions[index], 3)
+        keyRegister != null && hasAccountSpecificKey(instructions, index, keyRegister)
     }
-    check(matches.size == 1) { "Zalo backup interval: expected exactly one interval getter (found ${matches.size})" }
+    check(matches.size == 1) {
+        "Zalo backup interval: expected exactly one account-specific interval getter (found ${matches.size})"
+    }
     return matches.single()
+}
+
+/** Returns true when [instruction] calls the [getter] descriptor. */
+private fun isIntervalGetterCall(
+    instruction: com.android.tools.smali.dexlib2.iface.instruction.Instruction,
+    getter: String,
+): Boolean {
+    val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+    return instruction.opcode in setOf(Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE) &&
+        reference?.let { "${it.definingClass}->${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" } == getter
 }
 
 /**
@@ -142,6 +156,7 @@ private fun prefixFlowsToKey(
         } else if (prefixInBuilder && isGetterKeyConstruction(
                 instructions,
                 index,
+                getterIndex,
                 instruction,
                 reference,
                 builderRegister,
@@ -179,13 +194,37 @@ private fun isStringBuilderToString(reference: MethodReference): Boolean = refer
 private fun isGetterKeyConstruction(
     instructions: List<com.android.tools.smali.dexlib2.iface.instruction.Instruction>,
     index: Int,
+    getterIndex: Int,
     instruction: com.android.tools.smali.dexlib2.iface.instruction.Instruction,
     reference: MethodReference,
     builderRegister: Int?,
     keyRegister: Int,
 ): Boolean = isStringBuilderToString(reference) &&
     invokeRegisterAt(instruction, 0) == builderRegister &&
-    moveResultObjectRegister(instructions, index) == keyRegister
+    moveResultObjectRegister(instructions, index) == keyRegister &&
+    // The getter must consume this key. A later write to the same register, such as the
+    // pending-time key used by the same scheduler, means the string result was replaced.
+    (index + 2 until getterIndex).none { writesObjectRegister(instructions[it], keyRegister) }
+
+/** Returns true when [instruction] assigns a new object reference to [register]. */
+private fun writesObjectRegister(
+    instruction: com.android.tools.smali.dexlib2.iface.instruction.Instruction,
+    register: Int,
+): Boolean = instruction.opcode in OBJECT_WRITE_OPCODES &&
+    (instruction as? OneRegisterInstruction)?.registerA == register
+
+private val OBJECT_WRITE_OPCODES = setOf(
+    Opcode.MOVE_OBJECT,
+    Opcode.MOVE_OBJECT_FROM16,
+    Opcode.MOVE_OBJECT_16,
+    Opcode.MOVE_RESULT_OBJECT,
+    Opcode.CONST_STRING,
+    Opcode.CONST_STRING_JUMBO,
+    Opcode.NEW_INSTANCE,
+    Opcode.SGET_OBJECT,
+    Opcode.IGET_OBJECT,
+    Opcode.AGET_OBJECT,
+)
 
 private fun moveResultObjectRegister(
     instructions: List<com.android.tools.smali.dexlib2.iface.instruction.Instruction>,

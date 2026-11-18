@@ -17,15 +17,17 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Version-pinned integration test for Chat keywords, Chat appearance and Emote and badge info: Twitch 31.8.0's
+ * Version-pinned integration test for Chat keywords, Chat appearance and Emote and badge info: Twitch 32.1.0's
  * real chat line builder and chat image box (with the emitted hooks) and live message models, run on ART with a
  * fake settings store and a fake signed-in account. Each setting is checked on and off; off must give Twitch's own
- * line. The short class and field names below are Twitch 31.8.0's R8 output; the chat image box comes from the
+ * line. The short class and field names below are Twitch 32.1.0's R8 output; the chat image box comes from the
  * APK's locators (the first argument).
  */
 public final class ChatStyleArtProbe {
     private static final Map<String, Object> settings = new HashMap<>();
     private static final String KEYWORDS = "io.github.jordanwoodson.extension.shared.twitch.TwitchChatKeywords";
+    /** Twitch's chat line builder, from the APK's locators (gb6 in 31.9.0, i96 in 32.1.0). */
+    private static String LINE_BUILDER = "i96";
     private static final String STYLE = "io.github.jordanwoodson.extension.shared.twitch.TwitchChatStyle";
     private static Object unsafe;
     private static Context context;
@@ -78,35 +80,35 @@ public final class ChatStyleArtProbe {
 
     /** A config (click configuration) for channel chat or a whisper thread. */
     private static Object config(String source) throws Exception {
-        return Class.forName("nb6").getConstructors()[0].newInstance(true, Class.forName("tz90").getField(source).get(null), null);
+        return Class.forName("aa6").getConstructors()[0].newInstance(true, Class.forName("bt90").getField(source).get(null), null);
     }
 
     private static Object sender(String login) throws Exception {
         Class<?> tuid = Class.forName("tv.twitch.android.models.Tuid");
-        return Class.forName("ob6").getConstructor(tuid, String.class, String.class)
+        return Class.forName("ba6").getConstructor(tuid, String.class, String.class)
             .newInstance(null, login, Character.toUpperCase(login.charAt(0)) + login.substring(1));
     }
 
     private static List<Object> tokens(String text) throws Exception {
-        return Collections.singletonList(Class.forName("ywp").getConstructor(String.class).newInstance(text));
+        return Collections.singletonList(Class.forName("srp").getConstructor(String.class).newInstance(text));
     }
 
-    /** Twitch's line builder (va6.b) for one message; returns its span group (wa6). */
+    /** Twitch's line builder (i96.b) for one message; returns its span group (j96). */
     private static Object line(String login, String text, String id, boolean action, String source) throws Exception {
         Method build = null;
-        for (Method method : Class.forName("va6").getDeclaredMethods()) {
+        for (Method method : Class.forName(LINE_BUILDER).getDeclaredMethods()) {
             if (method.getName().equals("b") && method.getParameterTypes().length == 21) build = method;
         }
         check(build != null, "No line builder");
-        Object style = staticField(action ? "d340" : "e340", "f");
+        Object style = staticField(action ? "pz30" : "qz30", "a");
         // Overlay mode (second to last): no reply header or readable-colour lookups.
-        Object builder = allocate("va6");
+        Object builder = allocate(LINE_BUILDER);
         Field colors = builder.getClass().getDeclaredField("e");
         colors.setAccessible(true);
-        Object readable = allocate("rap");
-        Field contrast = readable.getClass().getDeclaredField("a");
+        Object readable = allocate("f5i");
+        Field contrast = readable.getClass().getDeclaredField("c");
         contrast.setAccessible(true);
-        contrast.set(readable, allocate("xnw"));
+        contrast.set(readable, allocate("xgw"));
         colors.set(builder, readable);
         // A near-white sender colour: readable on the overlay's black, so no colour is computed.
         return build.invoke(null, builder, context, Collections.emptyList(), sender(login), 0xFFFEFEFE, tokens(text),
@@ -173,7 +175,7 @@ public final class ChatStyleArtProbe {
     }
 
     private static Object badge(String name) throws Exception {
-        return Class.forName("nsp").getConstructor(String.class, String.class)
+        return Class.forName("knp").getConstructor(String.class, String.class)
             .newInstance(name, "https://static-cdn.jtvnw.net/badges/v1/00000000-0000-0000-0000-000000000000/2");
     }
 
@@ -383,7 +385,7 @@ public final class ChatStyleArtProbe {
         reset();
         settings.put("chat_emote_info", true);
         String url = "https://static-cdn.jtvnw.net/badges/v1/5d9f2208-5dd8-11e7-8513-2ff4adfae661/2";
-        Object model = Class.forName("nsp").getConstructor(String.class, String.class).newInstance("subscriber", url);
+        Object model = Class.forName("knp").getConstructor(String.class, String.class).newInstance("subscriber", url);
         Spanned badges = (Spanned) field(lineWithBadges(Collections.singletonList(model)), "b");
         Object badge = infoSpan(badges, 0);
         check(badge != null, "A badge gets a tap");
@@ -392,7 +394,7 @@ public final class ChatStyleArtProbe {
 
         // Twitch's badge registry reports set and version; the sheet names the badge from them.
         settings.put("chat_emote_info", true);
-        Object key = Class.forName("bh2").getConstructor(String.class, String.class).newInstance("subscriber", "12");
+        Object key = Class.forName("mh2").getConstructor(String.class, String.class).newInstance("subscriber", "12");
         Class.forName(INFO).getMethod("twitchChannelBadge", String.class, Object.class).invoke(null, url, key);
         Method describe = Class.forName(INFO).getDeclaredMethod("describe", boolean.class, String.class, String.class);
         describe.setAccessible(true);
@@ -435,19 +437,19 @@ public final class ChatStyleArtProbe {
     /** The real line builder for {@code login}'s message with these badge view models. */
     private static Object lineFrom(String login, List<Object> badges, String text, String source) throws Exception {
         Method build = null;
-        for (Method method : Class.forName("va6").getDeclaredMethods()) {
+        for (Method method : Class.forName(LINE_BUILDER).getDeclaredMethods()) {
             if (method.getName().equals("b") && method.getParameterTypes().length == 21) build = method;
         }
-        Object builder = allocate("va6");
+        Object builder = allocate(LINE_BUILDER);
         Field colors = builder.getClass().getDeclaredField("e");
         colors.setAccessible(true);
-        Object readable = allocate("rap");
-        Field contrast = readable.getClass().getDeclaredField("a");
+        Object readable = allocate("f5i");
+        Field contrast = readable.getClass().getDeclaredField("c");
         contrast.setAccessible(true);
-        contrast.set(readable, allocate("xnw"));
+        contrast.set(readable, allocate("xgw"));
         colors.set(builder, readable);
         return build.invoke(null, builder, context, badges, sender(login), 0xFFFEFEFE, tokens(text),
-            false, false, false, "b1", null, staticField("e340", "f"), false, config(source), null, null, null, null, null, true, 0);
+            false, false, false, "b1", null, staticField("qz30", "a"), false, config(source), null, null, null, null, null, true, 0);
     }
 
     private static android.content.Context viewContext() throws Exception {
@@ -487,6 +489,7 @@ public final class ChatStyleArtProbe {
 
     public static void main(String[] args) throws Exception {
         if (args.length > 0) ProbeLocators.load(args[0]);
+        LINE_BUILDER = ProbeLocators.type("twitch.match.chat_line_builder", "i96");
         install();
         section("chat keywords: mentions, highlight and blocked words, blocked users, live drops", ChatStyleArtProbe::keywords);
         section("chat keywords: highlighted users and roles, with their colors", ChatStyleArtProbe::highlightUsers);

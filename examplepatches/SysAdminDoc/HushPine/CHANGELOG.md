@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Changes
+
+* The release notes on GitHub stop after the update steps now. They no longer end with a Checked list.
+
+### Bug Fixes
+
+* Search results show a real tab name when PineDrama's server sends a placeholder like `${drama_tab_name}`. That tab now reads Drama in your app language.
+
 ## 0.2.0 (2026-11-13)
 
 ### Features

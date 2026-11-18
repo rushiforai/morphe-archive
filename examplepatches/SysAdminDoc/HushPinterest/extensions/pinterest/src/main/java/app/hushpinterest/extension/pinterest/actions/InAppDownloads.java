@@ -43,6 +43,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.LongSupplier;
 
 import app.hushpinterest.extension.pinterest.settings.FamilyNames;
+import app.hushpinterest.extension.pinterest.ui.UiHooks;
 import app.hushpinterest.extension.pinterest.settings.Settings;
 import app.hushpinterest.extension.shared.L10n;
 import app.hushpinterest.extension.shared.Utils;
@@ -200,9 +201,11 @@ public final class InAppDownloads {
                 }
             }
             if (alone) {
-                Utils.showToastLong(finished
-                        ? L10n.f("Saved in %s.", folder != null ? folder : Environment.DIRECTORY_DOWNLOADS)
-                        : L10n.t("Couldn't save this pin."));
+                if (!finished) {
+                    Utils.showToastLong(L10n.t("Couldn't save this pin."));
+                } else if (!UiHooks.quietDownloads()) {
+                    Utils.showToastLong(L10n.f("Saved in %s.", folder != null ? folder : Environment.DIRECTORY_DOWNLOADS));
+                }
             }
         }
     }
@@ -367,7 +370,7 @@ public final class InAppDownloads {
         if (failed > 0) {
             HookStatus.counted(FamilyNames.DOWNLOAD_PINS, "held download not saved");
             Utils.showToastLong(L10n.t("Couldn't save this pin."));
-        } else if (saved > 0) {
+        } else if (saved > 0 && !UiHooks.quietDownloads()) {
             Utils.showToastLong(L10n.f("Saved in %s.", folder != null ? folder : Environment.DIRECTORY_DOWNLOADS));
         }
     }

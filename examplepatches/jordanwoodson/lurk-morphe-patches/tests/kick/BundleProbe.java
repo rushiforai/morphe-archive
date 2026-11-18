@@ -4,7 +4,6 @@ import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.content.res.Configuration;
 import android.os.Looper;
-import android.view.SurfaceView;
 import android.view.View;
 import java.io.File;
 import java.lang.reflect.Field;
@@ -104,8 +103,8 @@ public final class BundleProbe {
     }
 
     /**
-     * The Firebase event bridge, Datadog's React initialization and the PAL nonce bridge settle their promise at
-     * once, so JavaScript awaiting them carries on; FingerprintJS rejects as a network error only while its own
+     * The Firebase event bridge, Datadog's React initialization and the player's PAL nonce loader settle their promise
+     * at once, so JavaScript awaiting them carries on; FingerprintJS rejects as a network error only while its own
      * switch is on. The real methods run on instances made without constructors.
      */
     @SuppressWarnings("deprecation")
@@ -132,12 +131,13 @@ public final class BundleProbe {
         datadog.getMethod(initialize[1], readableMap, reactPromise).invoke(allocate.invoke(unsafe, datadog), null, promise);
         check(calls.equals(List.of("resolve[null]")), "Datadog initialize: " + calls);
         calls.clear();
-        String[] nonce = locate("pal_generate_nonce", "com.kick.mobile.kickivsplayerv2.PalSDKModuleBridge", "generateNonce");
+        String[] nonce = locate("pal_generate_nonce", "com.kick.mobile.playerv3.pal.PalNonceGenerator", "loadNonce");
         Class<?> pal = Class.forName(nonce[0]);
-        pal.getMethod(nonce[1], Context.class, Class.forName("com.kick.mobile.kickivsplayerv2.PalNonceRequestConfig"),
-            expoPromise).invoke(allocate.invoke(unsafe, pal), null, null, expo);
-        check(calls.size() == 1 && calls.get(0).startsWith("resolve[{") && calls.get(0).contains("sdkAvailable=false"),
-            "PAL nonce: " + calls);
+        Class<?> palOptions = Class.forName("com.kick.mobile.playerv3.pal.PalNonceRequestOptions");
+        pal.getMethod(nonce[1], Context.class, palOptions, expoPromise)
+            .invoke(allocate.invoke(unsafe, pal), null, null, expo);
+        // Kick's JavaScript reads a missing nonce as an empty one and requests playback without it.
+        check(calls.equals(List.of("resolve[null]")), "PAL nonce: " + calls);
         calls.clear();
 
         for (String[] visitor : new String[][]{
@@ -157,6 +157,49 @@ public final class BundleProbe {
         }
         System.out.println("PASS: Firebase, Datadog and PAL stubs resolve their promise; FingerprintJS rejects only "
             + "with its switch on");
+        verifyPlayerAnalytics(unsafe, allocate);
+    }
+
+    /**
+     * Kick's player: Mux Data's monitor keeps no options, so it never starts Mux, and the player view makes no Datazoom
+     * monitor, with Disable analytics on. Off, Kick's own code runs: the monitor keeps the options, and the view goes
+     * on to make its Datazoom monitor, which fails here on a view made without its constructor.
+     */
+    private static void verifyPlayerAnalytics(Object unsafe, Method allocate) throws Exception {
+        String[] mux = locate("mux_options", "com.kick.mobile.playerv3.MuxDataMonitor", "setOptions");
+        Class<?> monitorType = Class.forName(mux[0]);
+        Class<?> muxOptions = Class.forName("com.kick.mobile.playerv3.records.MuxDataOptions");
+        Method setOptions = monitorType.getMethod(mux[1], muxOptions, Class.forName("androidx.media3.exoplayer.ExoPlayer"));
+        Object options = allocate.invoke(unsafe, muxOptions);
+        field(muxOptions, "environmentKey").set(options, "");
+        Field kept = field(monitorType, "options");
+        for (boolean on : new boolean[]{true, false}) {
+            switches.put("disable_analytics", on);
+            Object monitor = allocate.invoke(unsafe, monitorType);
+            setOptions.invoke(monitor, options, null);
+            check((kept.get(monitor) == null) == on, "Mux options kept with Disable analytics " + (on ? "on" : "off"));
+        }
+
+        String[] datazoom = locate("datazoom_options", "com.kick.mobile.playerv3.VideoView", "setDatazoom");
+        Class<?> viewType = Class.forName(datazoom[0]);
+        Class<?> datazoomOptions = Class.forName("com.kick.mobile.playerv3.datazoom.DatazoomOptions");
+        Method setDatazoom = viewType.getMethod(datazoom[1], datazoomOptions);
+        Field datazoomMonitor = field(viewType, "datazoomMonitor");
+        Object datazoomValue = allocate.invoke(unsafe, datazoomOptions);
+        switches.put("disable_analytics", true);
+        Object view = allocate.invoke(unsafe, viewType);
+        setDatazoom.invoke(view, datazoomValue);
+        check(datazoomMonitor.get(view) == null, "Datazoom monitor made with Disable analytics on");
+        switches.put("disable_analytics", false);
+        try {
+            setDatazoom.invoke(allocate.invoke(unsafe, viewType), datazoomValue);
+            throw new AssertionError("Kick's setDatazoom didn't run with Disable analytics off");
+        } catch (java.lang.reflect.InvocationTargetException expected) {
+            check(expected.getCause() instanceof NullPointerException, "setDatazoom off: " + expected.getCause());
+        }
+        switches.put("disable_analytics", true);
+        System.out.println("PASS: Mux and Datazoom stay unstarted in Kick's player with Disable analytics on, and run "
+            + "with it off");
     }
 
     /**
@@ -235,10 +278,10 @@ public final class BundleProbe {
     }
 
     /**
-     * Fill screen: Kick's real surface transform, on a player view made without its constructor around its
-     * SurfaceView. On a 2000x900 (20:9) view a 16:9 video is pillarboxed (scale 0.8 x 1) with the switch off and
-     * fills the width, cropped top and bottom (1 x 1.25), with it on in landscape. Portrait, a vertical video and
-     * an 800x720 view next to the chat, where FIT letterboxes, keep Kick's FIT.
+     * Fill screen: Media3's real video frame (AspectRatioFrameLayout), measured exactly at the view's size with a
+     * video's aspect ratio and Kick's FIT. In a 2000x900 (20:9) frame a 16:9 video is pillarboxed (1600x900) with the
+     * switch off and fills the width, cropped top and bottom (2000x1125), with it on in landscape. Portrait, a vertical
+     * video and an 800x720 frame next to the chat, where FIT letterboxes, keep Kick's FIT.
      */
     private static void verifyFill(Class<?> settings) throws Exception {
         Method registryJson = settings.getDeclaredMethod("registryJson");
@@ -252,42 +295,35 @@ public final class BundleProbe {
         Configuration portrait = new Configuration(landscape);
         portrait.orientation = Configuration.ORIENTATION_PORTRAIT;
 
-        String[] located = locateKey("kick.fill_screen.surface_transform",
-            "com.kick.mobile.kickivsplayerv2.KickIvsPlayerV2View", "updateSurfaceViewTransform");
+        String[] located = locateKey("kick.fill_screen.video_frame_measure", "androidx.media3.ui.AspectRatioFrameLayout",
+            "onMeasure");
         Class<?> type = Class.forName(located[0]);
-        Method transform = type.getDeclaredMethod(located[1]);
-        transform.setAccessible(true);
-        Class<?> unsafeClass = Class.forName("sun.misc.Unsafe");
-        Object unsafe = unsafeClass.getMethod("getUnsafe").invoke(null);
-        Object player = unsafeClass.getMethod("allocateInstance", Class.class).invoke(unsafe, type);
-        SurfaceView surface = new SurfaceView(system);
-        field(type, "surfaceView").set(player, surface);
-        field(type, "resizeMode").set(player, Class.forName("com.amazonaws.ivs.player.ResizeMode").getField("FIT").get(null));
-        field(View.class, "mContext").set(player, system);
+        check(located[1].equals("onMeasure"), "Fill screen hooks " + located[1]);
+        Method setAspectRatio = type.getMethod("setAspectRatio", float.class);
         Field resources = field(View.class, "mResources");
 
         Map<String, String> results = new java.util.LinkedHashMap<>();
         Object[][] cases = {
-            // name, switch, configuration, video width and height, view width and height, expected scale
-            {"off", false, landscape, 1920, 1080, 2000, 900, "0.8x1.0"},
-            {"on", true, landscape, 1920, 1080, 2000, 900, "1.0x1.25"},
-            {"on, portrait", true, portrait, 1920, 1080, 2000, 900, "0.8x1.0"},
-            {"on, vertical video", true, landscape, 1080, 1920, 2000, 900, "0.253x1.0"},
-            {"on, next to the chat", true, landscape, 1920, 1080, 800, 720, "1.0x0.625"},
+            // name, switch, configuration, video width and height, frame width and height, expected size
+            {"off", false, landscape, 1920, 1080, 2000, 900, "1600x900"},
+            {"on", true, landscape, 1920, 1080, 2000, 900, "2000x1125"},
+            {"on, portrait", true, portrait, 1920, 1080, 2000, 900, "1600x900"},
+            {"on, vertical video", true, landscape, 1080, 1920, 2000, 900, "506x900"},
+            {"on, next to the chat", true, landscape, 1920, 1080, 800, 720, "800x450"},
         };
         for (Object[] c : cases) {
             switches.put("fill_screen", (Boolean) c[1]);
-            resources.set(player, system.createConfigurationContext((Configuration) c[2]).getResources());
-            field(type, "videoWidth").setInt(player, (Integer) c[3]);
-            field(type, "videoHeight").setInt(player, (Integer) c[4]);
-            surface.layout(0, 0, (Integer) c[5], (Integer) c[6]);
-            transform.invoke(player);
-            String scale = (Math.round(surface.getScaleX() * 1000) / 1000f) + "x" + (Math.round(surface.getScaleY() * 1000) / 1000f);
-            results.put((String) c[0], scale);
-            check(scale.equals(c[7]), "Fill screen " + c[0] + ": scale " + scale + ", expected " + c[7]);
+            View frame = (View) type.getConstructor(Context.class).newInstance(system);
+            resources.set(frame, system.createConfigurationContext((Configuration) c[2]).getResources());
+            setAspectRatio.invoke(frame, (Integer) c[3] / (float) (Integer) c[4]);
+            frame.measure(View.MeasureSpec.makeMeasureSpec((Integer) c[5], View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec((Integer) c[6], View.MeasureSpec.EXACTLY));
+            String size = frame.getMeasuredWidth() + "x" + frame.getMeasuredHeight();
+            results.put((String) c[0], size);
+            check(size.equals(c[7]), "Fill screen " + c[0] + ": " + size + ", expected " + c[7]);
         }
         switches.remove("fill_screen");
-        System.out.println("PASS: Fill screen scales Kick's surface " + results);
+        System.out.println("PASS: Fill screen sizes Media3's video frame " + results);
     }
 
     private static Field field(Class<?> type, String name) throws Exception {

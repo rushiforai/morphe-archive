@@ -8,7 +8,6 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.PlusPending
 import app.morphe.util.names.origRef
 import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
@@ -43,7 +42,6 @@ import app.morphe.util.names.tgClassDefByOrNull
 import app.morphe.util.names.tgMutableClassDefBy
 
 /** The chat list's scroll listener, every other class that pauses spoilers, and the runtime. */
-@PlusPending
 class HideKeyboardOnScrollFixtureTest {
     @Test fun `one call at the start of the chat list's scroll listener and every stock path stays`() {
         for (build in Fixtures.declaredBuilds()) {
@@ -81,7 +79,9 @@ class HideKeyboardOnScrollFixtureTest {
     @Test fun `a changed listener or runtime refuses before any method changes`() {
         for (build in Fixtures.declaredBuilds()) {
             val mutations: List<Pair<String, (BytecodePatchContext, MutableMethod) -> Unit>> = listOf(
-                "no search keyboard close" to { _, l -> l.replaceInstruction(l.controlBody().indexOfFirst { it.controlRef()?.contains("->hideKeyboard(") == true }, "nop") },
+                // Plus Messenger closes it a second time there for its own hide-on-scroll setting.
+                "no search keyboard close" to { _, l -> l.controlBody().withIndex().filter { it.value.controlRef()?.contains("->hideKeyboard(") == true }
+                    .forEach { l.replaceInstruction(it.index, "nop") } },
                 "no spoiler pause" to { _, l -> l.replaceInstruction(l.controlBody().indexOfFirst { it.controlRef() == STOP_SPOILERS }, "nop") },
                 "missing build flag" to { c, _ -> c.tgMutableClassDefBy(SETTINGS_STATUS).methods.removeAll { it.origName == "hideKeyboardOnScroll" } },
                 "private scroll hook" to { c, _ -> val h = c.tgMutableClassDefBy(SCROLL_KEYBOARD).methods.single { it.origName == "chatScrolled" }

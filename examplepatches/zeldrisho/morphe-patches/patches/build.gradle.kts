@@ -47,7 +47,7 @@ fun definedDexClasses(dex: ByteArray): Set<String> {
 patches {
     about {
         name = "Zeldris Patches"
-        description = "Patches for apps I like, for use with Morphe"
+        description = "Personal patches for Morphe"
         source = "git@github.com:zeldrisho/morphe-patches.git"
         author = "Zeldris"
         contact = "https://github.com/zeldrisho"
@@ -63,8 +63,6 @@ val patchListGeneratorClasspath = configurations.create("patchListGeneratorClass
 dependencies {
     compileOnly(libs.gson)
     patchListGeneratorClasspath(libs.gson)
-    testImplementation(kotlin("test"))
-    testImplementation(libs.morphe.patcher)
 }
 
 tasks {

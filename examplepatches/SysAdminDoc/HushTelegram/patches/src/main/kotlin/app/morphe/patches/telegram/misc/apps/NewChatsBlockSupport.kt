@@ -23,6 +23,7 @@ import app.morphe.util.ControlFlow
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.call
 import app.morphe.util.namedRegisters
+import app.morphe.util.writesReaching
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
@@ -201,37 +202,23 @@ private fun Instruction.isFullPoll() = poll()?.let { it.size == 4 && it.take(3) 
 
 /**
  * The watch on a chat you're in, at [at] in [body]: the short form, or where the build inlined that
- * (13.2), the full form handed no callback.
+ * (13.2), the full form handed no callback, so every write of its callback register that can reach
+ * it is a `const/4 #0` and nothing reaches it from the method's start. Telegram's builds null that
+ * register once. Plus Messenger 13.2.2.1 nulls it on each of the two ways into a member's watch (a
+ * chat read from storage first, and one already loaded), with its own `const/4 #0` on each, so it
+ * reads as the same plain watch.
  */
 private fun List<Instruction>.isPlainPoll(flow: ControlFlow, at: Int): Boolean {
     if (this[at].poll() == listOf(TL_CHAT, "I", "Z")) return true
     if (!this[at].isFullPoll()) return false
-    val callback = flow.lastWrite(at, this[at].namedRegisters().last())?.let { this[it] }
-    return callback?.opcode == Opcode.CONST_4 && (callback as NarrowLiteralInstruction).narrowLiteral == 0
+    val writes = flow.writesReaching(at, this[at].namedRegisters().last())
+    return writes.isNotEmpty() && writes.all { write -> write >= 0 && this[write].let {
+        it.opcode == Opcode.CONST_4 && (it as NarrowLiteralInstruction).narrowLiteral == 0
+    } }
 }
 
 /** The watch Telegram keeps on a chat you aren't in, which also hears back when it changes. */
 private fun List<Instruction>.isVisitorPoll(flow: ControlFlow, at: Int) = this[at].isFullPoll() && !isPlainPoll(flow, at)
-
-/** The one write of [register] that reaches [use] on every path in, or null when none or several do. */
-private fun ControlFlow.lastWrite(use: Int, register: Int): Int? {
-    val predecessors = Array(instructions.size) { mutableListOf<Int>() }
-    for (index in instructions.indices) for (next in normal[index] + exceptional[index]) predecessors[next] += index
-    val pending = ArrayDeque(predecessors[use])
-    val visited = mutableSetOf<Int>()
-    val found = mutableSetOf<Int>()
-    while (pending.isNotEmpty()) {
-        val index = pending.removeFirst()
-        if (!visited.add(index)) continue
-        val instruction = instructions[index]
-        val destination = instruction.namedRegisters().firstOrNull()
-        if (instruction.opcode.setsRegister() &&
-            (destination == register || instruction.opcode.setsWideRegister() && destination?.plus(1) == register)) found += index
-        else if (predecessors[index].isEmpty()) return null
-        else pending.addAll(predecessors[index])
-    }
-    return found.singleOrNull()
-}
 
 private fun flowOf(method: Method, what: String): ControlFlow = try {
     ControlFlow.of(method)
@@ -282,7 +269,8 @@ private fun BytecodePatchContext.chatScreenSite(): NewChatOpenSite {
     }
     chatsFit(flow.normal.indices.none { it != entry - 1 && entry in flow.normal[it] } && flow.exceptional.none { entry in it },
         "something else jumps to where the chat screen sets up a chat you aren't in")
-    // A member's way watches the chat the plain way, so the branch is still the one it was.
+    // A member's way watches the chat the plain way, so the branch is still the one it was. Plus
+    // Messenger's straight run ends in a goto back into the tail it shares with a visitor's way.
     val straight = (member until body.size).firstOrNull { flow.normal[it] != listOf(it + 1) } ?: (body.size - 1)
     chatsFit((member..straight).any { body.isPlainPoll(flow, it) }, "a member's way through the chat screen no longer watches the chat")
     return NewChatOpenSite(method, entry, CHAT_OPEN_CHECK_SIZE) { chatOpenCheck(it.freeLocalsAt(PATCH, entry, 1, highest = 255).single()) }

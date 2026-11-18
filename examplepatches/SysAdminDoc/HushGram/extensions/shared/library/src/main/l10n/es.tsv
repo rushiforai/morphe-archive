@@ -823,6 +823,10 @@ Copy media link	Copiar enlace del contenido
 Couldn't copy the media link	No se pudo copiar el enlace del contenido
 Details	Detalles
 Details in a post's menu	Detalles en el menú de una publicación
+Block in a post's menu	Bloquear en el menú de una publicación
+Adds Block to the menu of someone else's feed post. It opens Instagram's own block sheet, so nothing happens until you confirm there.	Añade Bloquear al menú de las publicaciones del feed de otras personas. Abre la pantalla de bloqueo de Instagram, así que no pasa nada hasta que confirmes ahí.
+Speed in a post's menu	Velocidad en el menú de una publicación
+Adds Playback speed to a feed video's menu. Pick a speed from 0.5x to 3x for the video that's playing.	Añade Velocidad de reproducción al menú de los videos del feed. Elige una velocidad de 0.5x a 3x para el video que se está reproduciendo.
 Media ID %1$s	ID de contenido %1$s
 Media link	Enlace del contenido
 Media link copied. It stops working after a few days.	Enlace del contenido copiado. Deja de funcionar al cabo de unos días.
@@ -2369,7 +2373,7 @@ Keeps the message Instagram shows when you lock a reel's speed, and when the loc
 Remove hidden data from saved photos	Quitar los datos ocultos de las fotos guardadas
 Takes Meta's FBMD tracking tag out of each photo you save, along with any camera, place and time details. The picture and its colors stay the same. With Add the source on, the source still goes in afterward. JPEG photos only.	Quita la etiqueta de rastreo FBMD de Meta de cada foto que guardas, junto con cualquier dato de cámara, lugar y hora. La imagen y sus colores no cambian. Con «Añadir el origen a las fotos y vídeos guardados» activado, el origen se sigue escribiendo después. Solo fotos JPEG.
 Ask for VP9 instead of AV1	Pedir VP9 en vez de AV1
-Tells Instagram your phone has no AV1 decoder, so reels and stories come as VP9 or H.264, both to watch and to save. Takes a restart.	Le dice a Instagram que tu teléfono no tiene decodificador AV1, así que los reels y las historias llegan en VP9 o H.264, para verlos y para guardarlos. Requiere reiniciar.
+Tells Instagram your phone has no AV1 decoder. Instagram doesn't always listen, so videos can still come as AV1. If they do, Convert to keep the full size gives you H.264. Takes a restart.	Le dice a Instagram que tu teléfono no tiene decodificador AV1. Instagram no siempre hace caso, así que los vídeos aún pueden llegar en AV1. Si pasa, Convertir para mantener el tamaño completo te da H.264. Requiere reiniciar.
 # context: Summary of Show the skip arrows under Double tap to skip on feed videos in Feed settings (#562)
 Two arrows flash on the side you double tapped, with the seconds skipped under them.	Dos flechas aparecen un momento en el lado donde tocaste dos veces, con los segundos saltados debajo.
 # context: Feed settings: choice under Seek bar shape that gives the seek bar on feed videos a shape of its own (#567)

@@ -95,7 +95,7 @@ val outsideTranslatePatch = bytecodePatch(
 ) {
     category("Conversations")
     dependsOn(settingsPatch, telegramExtensionPatch)
-    compatibleWith(*AppCompatibilities.telegramOnly())
+    compatibleWith(*AppCompatibilities.telegram())
     execute {
         val site = resolveOutsideTranslate()
         // Assembled on copies first, so a refusal leaves the app untouched.
@@ -369,7 +369,7 @@ private fun BytecodePatchContext.requireTranslateHostMembers() {
     controlMembers(NOTIFICATIONS, "static getInstance(I)$NOTIFICATIONS", "postNotificationName(I[Ljava/lang/Object;)V",
         "static messageTranslated:I", "static dialogTranslate:I")
     controlMembers(ACCOUNT_CONFIG, "static selectedAccount:I", "static getInstance(I)$ACCOUNT_CONFIG", "getClientUserId()J")
-    controlMembers(LOCALES, "static getInstance()$LOCALES", "getCurrentLocale()Ljava/util/Locale;")
+    controlMembers(LOCALES, "static getInstance()$LOCALES", "currentLocale:Ljava/util/Locale;")
     controlMembers(DRAWABLES, "static msg_translate:I")
     // An empty list to start with, which the stub relies on for entities the text doesn't have.
     val text = tgClassDefByOrNull(TL_TEXT)!!
@@ -476,11 +476,11 @@ internal fun BytecodePatchContext.writeOutsideTranslateStubs(site: OutsideTransl
         return-void
     """)
     writeStub(OUTSIDE_TRANSLATE, "translateIcon", 1, "sget v0, $DRAWABLES->msg_translate:I\nreturn v0")
+    // The field getCurrentLocale() returns, read straight: Plus Messenger's R8 inlined the getter away.
     writeStub(OUTSIDE_TRANSLATE, "appLocale", 1, """
         invoke-static {}, $LOCALES->getInstance()$LOCALES
         move-result-object v0
-        invoke-virtual {v0}, $LOCALES->getCurrentLocale()Ljava/util/Locale;
-        move-result-object v0
+        iget-object v0, v0, $LOCALES->currentLocale:Ljava/util/Locale;
         return-object v0
     """)
     // The language Telegram's own translate bar shows for the message's chat: its pick there, else the last one, else the app's.

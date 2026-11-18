@@ -20,6 +20,7 @@ val disableRatingPromptsPatch = bytecodePatch(
     description = "Stops the app from asking you to rate it on Google Play.",
     default = true
 ) {
+    category("App")
     compatibleWith(COMPATIBILITY_QUORA)
 
     execute {

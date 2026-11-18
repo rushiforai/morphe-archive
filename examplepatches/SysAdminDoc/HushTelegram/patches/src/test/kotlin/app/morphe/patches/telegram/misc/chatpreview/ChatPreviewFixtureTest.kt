@@ -8,7 +8,6 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.PlusPending
 import app.morphe.hostsOf
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
@@ -37,7 +36,6 @@ import org.junit.Test
 private val CHAT_PREVIEW_HOSTS = ConcurrentHashMap<String, List<ClassDef>>()
 
 /** The screens' base class's preview with a menu, and the stubs that open and close it. */
-@PlusPending
 class ChatPreviewFixtureTest {
     private fun Instruction.shape() = listOf(opcode, namedRegisters(), origRef())
     private fun Method.code() = controlBody().filter { it.opcode != Opcode.NOP }
@@ -58,11 +56,13 @@ class ChatPreviewFixtureTest {
             val name = build.name
             val context = PatchContexts.of(hosts(build))
             val site = context.resolveChatPreview()
-            val (base, item) = if (name.contains("-73039")) "i2" to "b1" else "j2" to "b1"
+            // Plus Messenger's base hands the move to the layout, whose menu field and expand it names its own way.
+            val plus = name.startsWith("plus-")
+            val (base, item) = if (plus) "l2" to "c1" else if (name.contains("-73039")) "i2" to "b1" else "j2" to "b1"
             assertEquals("Lorg/telegram/ui/ActionBar/$base;", site.base)
             assertEquals("Lorg/telegram/ui/ActionBar/$item;", site.item)
-            assertEquals("$ACTION_BAR_LAYOUT->K:$PREVIEW_MENU", site.menuField)
-            assertEquals("$ACTION_BAR_LAYOUT->q()V", site.expand)
+            assertEquals("$ACTION_BAR_LAYOUT->${if (plus) "f0" else "K"}:$PREVIEW_MENU", site.menuField)
+            assertEquals("$ACTION_BAR_LAYOUT->${if (plus) "r" else "q"}()V", site.expand)
             val before = ImmutableMethod.of(site.present).code()
             assertEquals(emptyList<String>(), PatchLogCapture.warnings { chatPreviewButtonsPatch.execute(context) })
 

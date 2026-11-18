@@ -16,9 +16,10 @@ one line each. HushPinterest patches one app, so a bullet with no label is a cha
 needs no "Pinterest:" in front of it. A bullet that still opens with "* **Pinterest:** " is accepted as the
 same thing and the label is dropped when the section is cut, so it never reaches the CHANGELOG
 release section, the GitHub notes or the index. Morphe Manager's reader shows unlabeled lines as
-the update, skips Tooling lines, and refuses any other label. The notes carry every bullet of the
-section, the Pinterest ones under "What's new" and Tooling ones under "Behind the scenes", between the
-intro and the tail written by hand for that release. The index's bundle description is the release
+the update, skips Tooling lines, and refuses any other label. The notes carry the section's
+Pinterest bullets under "What's new", between the intro and the tail written by hand for that
+release. They're for the people patching Pinterest, so the Tooling bullets stay in the CHANGELOG
+and neither the intro nor the tail may add a Behind the scenes or Validation section. The index's bundle description is the release
 facts, then the section's Pinterest bullets under "### What's new", which Morphe Manager shows for the
 release a phone was patched with.
 """
@@ -351,25 +352,22 @@ def notes(args) -> None:
         fail("The intro and the tail are the paragraphs written for this release around its CHANGELOG "
              "bullets. Neither can be empty.")
     for name, part in (("intro", intro), ("tail", tail)):
-        if re.search(r"^## (What's new|Behind the scenes)\s*$", part, re.MULTILINE):
-            fail(f"The {name} has a What's new or Behind the scenes heading of its own. Those two come from the "
-                 "CHANGELOG, every bullet of the section.")
-    whats_new = ["- " + absolute_links(b.text) for b in bullets if b.scope == "Pinterest"]
-    behind = ["- " + absolute_links(b.text) for b in bullets if b.scope == "Tooling"]
-    parts = [intro, "## What's new\n\n" + "\n".join(whats_new)]
-    if behind:
-        parts.append("## Behind the scenes\n\n" + "\n".join(behind))
-    parts.append(tail)
-    body = "\n\n".join(parts) + "\n"
+        heading = re.search(r"^## (What's new|Behind the scenes|Validation|What was checked)\s*$", part, re.MULTILINE)
+        if heading:
+            fail(f"The {name} has a ## {heading.group(1)} heading. What's new comes from the CHANGELOG, and "
+                 "the notes leave out Behind the scenes and Validation.")
+    shown = [b for b in bullets if b.scope == "Pinterest"]
+    whats_new = ["- " + absolute_links(b.text) for b in shown]
+    body = "\n\n".join([intro, "## What's new\n\n" + "\n".join(whats_new), tail]) + "\n"
     if any(dash in body for dash in DASHES):
         fail("The notes have an em or en dash. Rewrite the intro or the tail.")
     lines = set(body.split("\n"))
-    missing = [b.text[:60] for b in bullets if "- " + absolute_links(b.text) not in lines]
+    missing = [b.text[:60] for b in shown if "- " + absolute_links(b.text) not in lines]
     if missing:
         fail("These CHANGELOG bullets didn't make it into the notes: " + "; ".join(missing))
     write(Path(args.out), body)
-    print(f"[release] notes for {args.version}: all {len(bullets)} bullets of the section, "
-          f"{len(whats_new)} under What's new and {len(behind)} under Behind the scenes")
+    print(f"[release] notes for {args.version}: {len(whats_new)} bullets under What's new, "
+          f"{len(bullets) - len(whats_new)} Tooling left in the CHANGELOG")
 
 
 def catalog_facts(root: Path, version: str) -> tuple[int, str, int]:

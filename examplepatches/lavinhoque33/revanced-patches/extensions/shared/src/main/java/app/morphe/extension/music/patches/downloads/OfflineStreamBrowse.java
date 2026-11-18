@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-17.
  * Modified by lavinhoque33, 2026-11-14
  * Modified by lavinhoque33, 2026-11-13
  * Written by lavinhoque33, 2026-11-08.
@@ -80,12 +81,14 @@ public final class OfflineStreamBrowse {
             return tracks;
         }
         var copyIds = RawAudioStore.copyIds();
+        Map<String, String> aliases = RawAudioStore.aliases();
         for (String id : OfflineCopyStore.allTrackLists().getOrDefault(sourceId, List.of())) {
-            OfflineCopyMetadata metadata = OfflineCopyStore.metadataOf(id);
+            String copyId = OfflineCopyStore.copyId(id, copyIds, aliases);
+            OfflineCopyMetadata metadata = OfflineCopyStore.metadataOf(copyId);
             tracks.add(new Track(id, metadata == null ? "" : metadata.title(),
                     metadata == null ? "" : metadata.artist(),
                     metadata == null || metadata.thumbnailUrl() == null ? "" : metadata.thumbnailUrl(),
-                    copyIds.contains(id) && metadata != null));
+                    copyIds.contains(copyId) && metadata != null));
         }
         return tracks;
     }

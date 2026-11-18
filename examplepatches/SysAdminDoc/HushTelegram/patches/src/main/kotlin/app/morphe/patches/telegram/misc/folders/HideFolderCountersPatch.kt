@@ -51,7 +51,7 @@ val hideFolderCountersPatch = bytecodePatch(
 ) {
     category("Chats")
     dependsOn(settingsPatch, telegramExtensionPatch)
-    compatibleWith(*AppCompatibilities.telegramOnly())
+    compatibleWith(*AppCompatibilities.telegram())
     execute {
         val counter = resolveHideFolderCounters()
         requireLaunchFolderRuntime()

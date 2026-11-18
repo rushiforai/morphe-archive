@@ -42,6 +42,7 @@ class ReelAnchorsFixtureTest {
         var immutableList: ClassDef? = null
         val dumpers = mutableListOf<Method>()
         val hotComments = mutableListOf<Method>()
+        val captionRows = mutableListOf<ClassDef>()
         val captionComments = mutableListOf<Method>()
         val bubbles = mutableListOf<Method>()
         var footerHelperClasses = 0
@@ -54,7 +55,7 @@ class ReelAnchorsFixtureTest {
      * picks over the plain query's, and 587's `$2` (arm64 LX/0CT7;) hands a lambda the plain or XAR
      * query beside the MFC `$1` (LX/0WKq;), with no query name of its own (#464).
      */
-    private val hotCommentRunnables = mapOf("586.0.0.52.53" to 2, "587.0.0.39.55" to 2)
+    private val hotCommentRunnables = mapOf("586.0.0.52.53" to 2, "588.0.0.42.55" to 2)
 
     /** One pass over the bundle for everything but the Follow getter's readers. */
     private fun scan(bundle: File): Found {
@@ -76,11 +77,19 @@ class ReelAnchorsFixtureTest {
                     classDef.methods.filter { holdsString(it, WATCH_FEED_DUMP) }.mapTo(found.dumpers) { ImmutableMethod.of(it) }
                 }
                 namedRunnable(classDef, HOT_COMMENT_RUNNABLE)?.let { found.hotComments += ImmutableMethod.of(it) }
-                captionCommentRunnable(classDef)?.let { found.captionComments += ImmutableMethod.of(it) }
+                if (namedRunnable(classDef, CAPTION_ROW_RUNNABLE) != null) found.captionRows += ImmutableClassDef.of(classDef)
                 if (VIDEO_ID in present) {
                     footerRunnable(classDef, SOCIAL_BUBBLES_RUNNABLE, VIDEO_ID)?.let { found.bubbles += ImmutableMethod.of(it) }
                 }
             }
+        }
+        // 588's caption runnable asks a string table for its query's name.
+        val captionTables = FixtureDex.classes(bundle, found.captionRows.flatMap { it.methods }.flatMap { method ->
+            method.implementation?.instructions?.toList().orEmpty().filter(::isStringTableCall)
+                .mapNotNull { ((it as ReferenceInstruction).reference as? MethodReference)?.definingClass }
+        }.toSet())
+        found.captionRows.mapNotNullTo(found.captionComments) { row ->
+            captionCommentRunnable(row) { call -> captionTables[call.definingClass]?.let { resolveStatic(it, call) } }
         }
         // The builder can ask a string table for a chip (582's armeabi-v7a one does), so the tables
         // the candidates call are read before the builder is picked, the way the patch reads them.
@@ -170,8 +179,9 @@ class ReelAnchorsFixtureTest {
                         "586.0.0.52.53 arm64-v8a" to "LX/0A3w;:134:A18 LX/0A3h;:198:A0Q",
                         "586.0.0.52.53 armeabi-v7a" to "LX/0A3w;:134:A18 LX/0A3h;:198:A0Q",
                         "586.0.0.52.53 arm64-v8a-minapi28-storeless" to "LX/0A5H;:52:A0A LX/0A4q;:118:invoke",
-                        "587.0.0.39.55 arm64-v8a" to "LX/0CxW;:19:A0N LX/0A59;:120:A0V",
-                        "587.0.0.39.55 armeabi-v7a" to "LX/0A4x;:67:A0G LX/0A4w;:96:A0W",
+                        // 588 puts both flags back in one lambda class, as 583 and 584 did.
+                        "588.0.0.42.55 arm64-v8a" to "LX/09w5;:56:A08 LX/09w5;:57:A0f",
+                        "588.0.0.42.55 armeabi-v7a" to "LX/09w8;:56:A08 LX/09w8;:57:A0f",
                     )["$version $abi"]
                     assertEquals(name, pinned, follow.flags.joinToString(" ") { "${it.lambda}:${it.key}:${it.reader.name}" })
                 } else {

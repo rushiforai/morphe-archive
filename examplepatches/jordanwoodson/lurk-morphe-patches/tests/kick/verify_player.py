@@ -3,9 +3,11 @@
 
 Usage: python3 tests/kick/verify_player.py
 Requires the configured JDK. Generated sources/classes live under $MORPHE_WORK (default ~/build/lurk-morphe-patches)
-and are removed on Linux. Checks the decision tables of the mobile-data quality ceiling, normal latency
+and are removed on Linux. Checks the decision tables of the mobile-data quality ceiling, normal latency,
 background audio and Fill screen; the hooks themselves are checked on a device (Fill screen's also by
-bin/test-kick on ART).
+bin/test-kick on ART). The bridges, which the patches fill with calls into Kick's player, are filled here with
+calls into small doubles: a player is the list of its tracks' heights, a video size an int[] {width, height}
+and a video source a map whose "live" entry is its live configuration.
 """
 import os
 from pathlib import Path
@@ -44,8 +46,14 @@ STUBS = {
         package android.app;
         public class Activity extends android.content.ContextWrapper {
             public boolean pip;
+            public int orientation = android.content.res.Configuration.ORIENTATION_PORTRAIT;
             public Activity() { super(null); }
             public boolean isInPictureInPictureMode() { return pip; }
+            public android.content.res.Resources getResources() {
+                android.content.res.Resources resources = new android.content.res.Resources();
+                resources.configuration.orientation = orientation;
+                return resources;
+            }
         }
     """,
     "android/os/Looper.java": """
@@ -60,11 +68,14 @@ STUBS = {
             public boolean postDelayed(Runnable r, long delay) { return true; }
         }
     """,
+    "android/view/ViewParent.java": "package android.view; public interface ViewParent { }",
     "android/view/View.java": """
         package android.view;
-        public class View {
+        public class View implements ViewParent {
             public int orientation = android.content.res.Configuration.ORIENTATION_PORTRAIT;
             public android.content.Context context = new android.content.Context();
+            public View parent;
+            public ViewParent getParent() { return parent; }
             public android.content.Context getContext() { return context; }
             public android.content.res.Resources getResources() {
                 android.content.res.Resources resources = new android.content.res.Resources();
@@ -87,8 +98,7 @@ STUBS = {
     "io/github/jordanwoodson/extension/shared/SleepTimer.java": """
         package io.github.jordanwoodson.extension.shared;
         public class SleepTimer {
-            public static final class Expiry { public void pauseLeftovers(String platform) { } }
-            public static void setExpiryAction(java.util.function.Consumer<Expiry> action) { }
+            public static void setPauseAction(Runnable action) { }
             public static void onPlay(Object player) { }
             public static void onStop(Object player) { }
             public static java.util.List<Object> started() { return new java.util.ArrayList<>(); }
@@ -109,89 +119,131 @@ PROBE = """
 import io.github.jordanwoodson.extension.shared.Network;
 import io.github.jordanwoodson.extension.shared.kick.KickPlayer;
 import io.github.jordanwoodson.extension.shared.settings.Settings;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class PlayerProbe {
-    /** Stands in for IVS ResizeMode: the hook only uses the constants' names. */
-    enum Mode { FIT, FILL, ZOOM }
+    /** A player, as the bridges see it: Kick's list of its video tracks, here their heights. */
+    static final List<Integer> STREAM = List.of(1080, 720, 480, 360, 160);
+    static final List<Integer> NO_720 = List.of(1080, 936, 480);
 
     static int checks;
     static void check(boolean value, String message) {
         if (!value) throw new AssertionError(message);
         checks++;
     }
-    static Integer ceiling(Integer height) { return KickPlayer.autoQualityCeiling(new android.view.View(), height); }
+    static int[] size(int width, int height) { return new int[]{width, height}; }
+    static String ceiling(List<Integer> player, int[] size) {
+        int[] result = (int[]) KickPlayer.maxResolution(player, size);
+        return result == null ? "none" : result[0] + "x" + result[1];
+    }
 
     public static void main(String[] args) {
         int lurk = Integer.parseInt(args[0]);
+        String max = Integer.MAX_VALUE + "x";
         // Not registered (Default video quality left out) or "Same as on Wi-Fi": every value passes through.
         Network.metered = true;
-        check(ceiling(null) == null && ceiling(720) == 720 && ceiling(1080) == 1080, "unregistered changed a ceiling");
+        check(ceiling(STREAM, null).equals("none") && ceiling(STREAM, size(1280, 720)).equals("1280x720"),
+            "unregistered changed a ceiling");
         Settings.values.put("quality_metered", "0");
-        check(ceiling(null) == null && ceiling(720) == 720, "Same as on Wi-Fi changed a ceiling");
-        // 480p cap on a metered network: starting ceilings are capped, picks pass.
+        check(ceiling(STREAM, size(1280, 720)).equals("1280x720"), "Same as on Wi-Fi changed a ceiling");
+        // 480p cap on a metered network: the starting ceiling (none, or the tallest track up to 720 or the Lurk height)
+        // is capped, keeping its shape; picks pass.
         Settings.values.put("quality_metered", "480");
-        check(ceiling(null) == 480, "no ceiling isn't capped");
-        check(ceiling(720) == 480, "Kick's 720 start isn't capped");
-        check(ceiling(1080) == (lurk == 1080 ? 480 : 1080), "1080 handled wrongly for Lurk height " + lurk);
-        check(ceiling(360) == 360 && ceiling(160) == 160, "a lower pick changed");
-        check(ceiling(936) == 936, "a higher pick changed");
+        check(ceiling(STREAM, null).equals(max + "480"), "no ceiling isn't capped");
+        check(ceiling(STREAM, size(1280, 720)).equals("854x480"), "Kick's 720 start isn't capped");
+        check(ceiling(STREAM, size(1920, 1080)).equals(lurk == 1080 ? "854x480" : "1920x1080"),
+            "1080 handled wrongly for Lurk height " + lurk);
+        check(ceiling(STREAM, size(640, 360)).equals("640x360") && ceiling(STREAM, size(284, 160)).equals("284x160"),
+            "a lower pick changed");
+        // Without a 720 track Kick starts at the tallest one below it: 480, which the cap keeps.
+        check(ceiling(NO_720, size(854, 480)).equals("854x480"), "the 480 start on a stream without 720");
+        check(ceiling(NO_720, size(1664, 936)).equals(lurk == 1080 ? "1664x936" : "1664x936"), "a 936 pick changed");
         // A cap above the start keeps the start.
         Settings.values.put("quality_metered", "720");
-        check(ceiling(720) == 720 && ceiling(null) == 720, "720 cap");
-        check(ceiling(1080) == (lurk == 1080 ? 720 : 1080), "720 cap on the Lurk height");
+        check(ceiling(STREAM, size(1280, 720)).equals("1280x720") && ceiling(STREAM, null).equals(max + "720"),
+            "720 cap");
+        check(ceiling(STREAM, size(1920, 1080)).equals(lurk == 1080 ? "1280x720" : "1920x1080"),
+            "720 cap on the Lurk height");
         // Wi-Fi: nothing changes.
         Network.metered = false;
         Settings.values.put("quality_metered", "160");
-        check(ceiling(null) == null && ceiling(720) == 720 && ceiling(1080) == 1080, "unmetered changed a ceiling");
+        check(ceiling(STREAM, null).equals("none") && ceiling(STREAM, size(1280, 720)).equals("1280x720"),
+            "unmetered changed a ceiling");
 
-        // Normal latency: off keeps Kick's request; on turns low latency off; false stays false.
-        check(KickPlayer.lowLatency(true), "low latency changed while unregistered");
+        // Normal latency: off keeps Kick's live configuration; on drops it; a source without one stays as it is.
+        Map<String, Object> live = new HashMap<>();
+        live.put("live", "configuration");
+        KickPlayer.normalLatency(live);
+        check(live.containsKey("live"), "live configuration dropped while unregistered");
         Settings.values.put("normal_latency", "false");
-        check(KickPlayer.lowLatency(true) && !KickPlayer.lowLatency(false), "normal latency off");
+        KickPlayer.normalLatency(live);
+        check(live.containsKey("live"), "live configuration dropped while off");
         Settings.values.put("normal_latency", "true");
-        check(!KickPlayer.lowLatency(true) && !KickPlayer.lowLatency(false), "normal latency on");
+        KickPlayer.normalLatency(live);
+        check(!live.containsKey("live"), "live configuration kept while on");
+        KickPlayer.normalLatency(new HashMap<String, Object>());
+        KickPlayer.normalLatency(null);
 
-        // Background audio: only after leaving Kick while playing (the bridge reads false here, so leaving
-        // doesn't arm it), and resuming clears it.
+        // Background audio: on (and unregistered) keeps Kick's staysActiveInBackground; off makes Kick pause on leaving.
+        check(KickPlayer.staysActive(true) && !KickPlayer.staysActive(false), "changed while unregistered");
         Settings.values.put("background_audio", "true");
+        check(KickPlayer.staysActive(true) && !KickPlayer.staysActive(false), "changed while on");
+        Settings.values.put("background_audio", "false");
+        check(!KickPlayer.staysActive(true) && !KickPlayer.staysActive(false), "kept playing while off");
+        // Automatic picture-in-picture: the switch only turns Kick's auto-enter off.
         Settings.values.put("no_auto_pip", "false");
-        check(!KickPlayer.onUserLeaveHint(new android.app.Activity()), "picture-in-picture skipped");
-        check(!KickPlayer.keepAudio(), "kept audio without playback");
+        check(KickPlayer.autoEnterPip(true) && !KickPlayer.autoEnterPip(false), "auto-enter changed while off");
         Settings.values.put("no_auto_pip", "true");
-        check(KickPlayer.onUserLeaveHint(new android.app.Activity()), "picture-in-picture not skipped");
+        check(!KickPlayer.autoEnterPip(true) && !KickPlayer.autoEnterPip(false), "auto-enter kept while on");
         Settings.values.remove("no_auto_pip");
-        check(!KickPlayer.onUserLeaveHint(new android.app.Activity()), "unregistered switch skipped picture-in-picture");
-        KickPlayer.onResume();
-        check(!KickPlayer.keepAudio(), "kept audio after resume");
+        check(KickPlayer.autoEnterPip(true), "unregistered switch turned auto-enter off");
 
-        // Fill screen: FILL only in landscape, outside picture-in-picture, when FIT would leave side bars around a
-        // video wider than tall. Kick's other modes, vertical videos and a view narrower than the video keep theirs.
+        // Fill screen: ZOOM only in landscape, outside picture-in-picture, when FIT would leave side bars around a
+        // video wider than tall. Kick's other modes, vertical videos and a frame narrower than the video keep theirs.
+        int fit = 0, zoom = 4, fill = 3;
         float video = 16 / 9f, screen = 20 / 9f;
-        android.view.View view = new android.view.View();
-        view.orientation = android.content.res.Configuration.ORIENTATION_LANDSCAPE;
-        check(KickPlayer.resizeMode(view, Mode.FIT, video, screen) == Mode.FIT, "filled while unregistered");
+        android.view.View frame = new android.view.View();
+        frame.orientation = android.content.res.Configuration.ORIENTATION_LANDSCAPE;
+        check(KickPlayer.resizeMode(frame, fit, video, screen) == fit, "filled while unregistered");
         Settings.values.put("fill_screen", "false");
-        check(KickPlayer.resizeMode(view, Mode.FIT, video, screen) == Mode.FIT, "filled while off");
+        check(KickPlayer.resizeMode(frame, fit, video, screen) == fit, "filled while off");
         Settings.values.put("fill_screen", "true");
-        check(KickPlayer.resizeMode(view, Mode.FIT, video, screen) == Mode.FILL, "not filled in landscape");
-        check(KickPlayer.resizeMode(view, Mode.ZOOM, video, screen) == Mode.ZOOM, "changed Kick's ZOOM");
-        check(KickPlayer.resizeMode(view, "FIT", video, screen).equals("FIT"), "changed a non-enum mode");
-        check(KickPlayer.resizeMode(null, Mode.FIT, video, screen) == Mode.FIT, "filled without a view");
-        check(KickPlayer.resizeMode(view, Mode.FIT, 9 / 16f, screen) == Mode.FIT, "filled a vertical video");
-        check(KickPlayer.resizeMode(view, Mode.FIT, video, 1066 / 720f) == Mode.FIT, "filled next to the chat");
-        check(KickPlayer.resizeMode(view, Mode.FIT, video, video) == Mode.FIT, "filled a view of the video's shape");
+        check(KickPlayer.resizeMode(frame, fit, video, screen) == zoom, "not filled in landscape");
+        check(KickPlayer.resizeMode(frame, fill, video, screen) == fill, "changed Kick's FILL");
+        check(KickPlayer.resizeMode(null, fit, video, screen) == fit, "filled without a view");
+        check(KickPlayer.resizeMode(frame, fit, 9 / 16f, screen) == fit, "filled a vertical video");
+        check(KickPlayer.resizeMode(frame, fit, video, 1066 / 720f) == fit, "filled next to the chat");
+        check(KickPlayer.resizeMode(frame, fit, video, video) == fit, "filled a view of the video's shape");
+        // The frame is made with the application context: the activity is its parent's (Kick's player view's).
         android.app.Activity activity = new android.app.Activity();
-        view.context = new android.content.ContextWrapper(activity);
-        check(KickPlayer.resizeMode(view, Mode.FIT, video, screen) == Mode.FILL, "not filled in an activity");
+        activity.orientation = android.content.res.Configuration.ORIENTATION_LANDSCAPE;
+        android.view.View playerView = new android.view.View();
+        playerView.context = new android.content.ContextWrapper(activity);
+        frame.parent = playerView;
+        check(KickPlayer.resizeMode(frame, fit, video, screen) == zoom, "not filled in an activity");
         activity.pip = true;
-        check(KickPlayer.resizeMode(view, Mode.FIT, video, screen) == Mode.FIT, "filled in picture-in-picture");
+        check(KickPlayer.resizeMode(frame, fit, video, screen) == fit, "filled in picture-in-picture");
         activity.pip = false;
-        view.orientation = android.content.res.Configuration.ORIENTATION_PORTRAIT;
-        check(KickPlayer.resizeMode(view, Mode.FIT, video, screen) == Mode.FIT, "filled in portrait");
+        activity.orientation = android.content.res.Configuration.ORIENTATION_PORTRAIT;
+        check(KickPlayer.resizeMode(frame, fit, video, screen) == fit, "filled in portrait");
         System.out.println("PASS: " + checks + " player decision-table assertions (Lurk height " + lurk + ")");
     }
 }
 """
+
+# What the patches' bridges do at patch time, here with the probe's doubles.
+BRIDGES = {
+    "private static Context playerContext(Object player) {": "return new Context();",
+    "private static List<?> videoTracks(Object player) {": "return (List<?>) player;",
+    "private static int trackHeight(Object track) {": "return (Integer) track;",
+    "private static int sizeWidth(Object size) {": "return ((int[]) size)[0];",
+    "private static int sizeHeight(Object size) {": "return ((int[]) size)[1];",
+    "private static Object videoSize(int width, int height) {": "return new int[]{width, height};",
+    "private static Object liveConfiguration(Object source) {": "return ((java.util.Map<?, ?>) source).get(\"live\");",
+    "private static void clearLiveConfiguration(Object source) {": "((java.util.Map<?, ?>) source).remove(\"live\");",
+}
 
 
 def java_tool(name):
@@ -213,6 +265,9 @@ def run(output, repo, lurk_height):
         # What the Default video quality patch's bridge does at patch time.
         text, count = re.subn(r"(private static int lurkHeight\(\) \{\s*return )0;", rf"\g<1>{lurk_height};", text)
         assert count == 1, "lurkHeight stub not found"
+    for signature, body in BRIDGES.items():
+        text, count = re.subn(re.escape(signature) + r"\s*(?:return [^;]*;\s*)?\}", signature + " " + body + " }", text)
+        assert count == 1, f"bridge stub not found: {signature}"
     copy = output / "io/github/jordanwoodson/extension/shared/kick/KickPlayer.java"
     copy.parent.mkdir(parents=True, exist_ok=True)
     copy.write_text(text, encoding="utf-8")

@@ -77,8 +77,8 @@ public final class SettingsUi {
             text(ctx, filters, XSettings.MAX_AGE, "max_age", "max_age_summary", false);
             toggle(ctx, filters, XSettings.HIDE_MEMBERS_ONLY, "members_only", "members_only_summary");
             toggle(ctx, filters, XSettings.HIDE_UPCOMING, "upcoming", "upcoming_summary");
-            toggle(ctx, filters, XSettings.HOME_MORE, "home_more", "home_more_summary");
             toggle(ctx, filters, XSettings.HIDE_HOME_PLAYLISTS, "home_playlists", "home_playlists_summary");
+            toggle(ctx, filters, XSettings.HIDE_HOME_LIVE, "home_live", "home_live_summary");
             toggle(ctx, filters, XSettings.HIDE_PAST_STREAMS, "past_streams", "past_streams_summary");
             String[] topicLabels = new String[Topics.KEYS.length];
             for (int i = 0; i < topicLabels.length; i++) topicLabels[i] = Topics.label(i);

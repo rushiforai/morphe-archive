@@ -158,7 +158,7 @@ public final class AutoLike {
             return;
         }
         if (XSettings.DEBUG.get()) {
-            Activity a = HomeMore.resumedMain();
+            Activity a = ResumedActivity.main();
             StringBuilder seen = new StringBuilder();
             if (a != null) numbered(a.getWindow().getDecorView(), seen);
             Logger.printDebug(() -> "YouTube Extras: no like button stating " + counts + "; numbered buttons: " + seen);
@@ -188,7 +188,7 @@ public final class AutoLike {
      * of the video still open; the leftmost where two match (the dislike button states the dislike count).
      */
     private static View likeButton(String videoId, java.util.Set<String> counts) {
-        Activity a = HomeMore.resumedMain();
+        Activity a = ResumedActivity.main();
         if (a == null || !videoId.equals(app.morphe.extension.youtube.patches.VideoInformation.getVideoId())) return null;
         View[] best = {null};
         find(a.getWindow().getDecorView(), counts, best);

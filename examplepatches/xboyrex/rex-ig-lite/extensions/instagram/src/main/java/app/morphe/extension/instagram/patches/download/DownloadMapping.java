@@ -4,7 +4,6 @@
  * See the included NOTICE file for GPLv3 §7(b) terms that apply to this code.
  */
 
-
 package app.morphe.extension.instagram.patches.download;
 
 import static app.morphe.extension.instagram.utils.IgStr.str;
@@ -14,66 +13,51 @@ import androidx.fragment.app.Fragment;
 import java.io.File;
 
 import android.content.Context;
-import android.app.Dialog;
-import android.content.DialogInterface;
 
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.rex.RexUtils;
-import app.morphe.extension.instagram.entity.InstagramDialogBox;
+import app.morphe.extension.instagram.settings.preference.widgets.RexDialogs;
 import app.morphe.extension.instagram.utils.InstaUtils;
-import app.morphe.extension.instagram.constants.UI;
 import app.morphe.extension.instagram.constants.Constants;
 
 public class DownloadMapping {
 
-    private static final Context context = Utils.getContext();
-    private static final String mappingsPath = context.getFilesDir() + "/mobileconfig/id_name_mapping.json";
+    private static File getMappingsFile() {
+        Context ctx = Utils.getContext();
+        File dir = new File(ctx.getFilesDir(), "mobileconfig");
+        if (!dir.exists()) dir.mkdirs();
+        return new File(dir, "id_name_mapping.json");
+    }
 
     private static void getMappingsDialogBox(Context context) {
-        InstagramDialogBox dialog = new InstagramDialogBox(context);
-
-        dialog.setNegativeButton(str("rex_cancel"),null);
-
-        dialog.setPositiveButton(str("rex_download_id_mapping"), new DialogInterface.OnClickListener() {
-            public final void onClick(DialogInterface dialogInterface, int i) {
-                DownloadMapping.downloadMapping();
-            }
-        });
-
-
-        dialog.setTitle(str("rex_missing_mapping_file"));
-        dialog.setMessage(str("rex_missing_mapping_file_desc"));
-        dialog.setCancelable(false);
-        dialog.setCanceledOnTouchOutside(false);
-
-        Dialog dlg = dialog.getDialog();
-        dlg.show();
+        RexDialogs.showConfirmDialog(
+                context,
+                str("rex_missing_mapping_file"),
+                str("rex_missing_mapping_file_desc"),
+                str("rex_download_id_mapping"),
+                false,
+                DownloadMapping::downloadMapping
+        );
     }
 
     private static boolean isMappingFileExists() {
         try {
-            File mappingFile = new File(DownloadMapping.mappingsPath);
-            if (mappingFile != null && mappingFile.exists() && mappingFile.isFile()) {
+            File mappingFile = getMappingsFile();
+            if (mappingFile.exists() && mappingFile.isFile()) {
                 long fileSizeInBytes = mappingFile.length();
                 long limitInBytes = 10 * 1024; // 10 KB
-
-                // Sometimes the app creates a dummy mappings file.
-                // So checking the file size.
                 return fileSizeInBytes > limitInBytes;
             }
         } catch (Exception e) {
             RexUtils.logger(e);
-            RexUtils.toast(e.getMessage());
         }
         return false;
-
     }
 
     public static void checkMappings(Fragment fragment) {
         try {
-            if (!DownloadMapping.isMappingFileExists()) {
-                Context context = fragment.requireContext();
-                DownloadMapping.getMappingsDialogBox(context);
+            if (!DownloadMapping.isMappingFileExists() && fragment != null && fragment.getContext() != null) {
+                DownloadMapping.getMappingsDialogBox(fragment.getContext());
             }
         } catch (Exception e) {
             RexUtils.logger(e);
@@ -81,11 +65,11 @@ public class DownloadMapping {
     }
 
     public static void downloadMapping() {
+        Context ctx = Utils.getContext();
         String host = Constants.REX_MAPPINGS_PATH;
         String appVersionName = Utils.getAppVersionName();
-        String mappings_filename = appVersionName + ".json";
-        File destinationFile = new File(DownloadMapping.mappingsPath);
-        InstaUtils.downloadFile(host, mappings_filename, destinationFile, ()->Utils.restartApp(context));
+        String mappingsFilename = appVersionName + ".json";
+        File destinationFile = getMappingsFile();
+        InstaUtils.downloadFile(host, mappingsFilename, destinationFile, () -> Utils.restartApp(ctx));
     }
-
 }

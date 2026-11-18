@@ -547,7 +547,7 @@ Avtomobil tərtibatı
     <string name="revanced_change_start_page_entry_fashion">Moda &amp; Gözəllik</string>
     <string name="revanced_change_start_page_entry_gaming">Oyun</string>
     <string name="revanced_change_start_page_entry_history">Tarixçə</string>
-    <string name="revanced_change_start_page_entry_library">Kitabxana</string>
+    <string name="revanced_change_start_page_entry_library">Siz</string>
     <string name="revanced_change_start_page_entry_liked_videos">Bəyənilən videolar</string>
     <string name="revanced_change_start_page_entry_live">Canlı</string>
     <string name="revanced_change_start_page_entry_movies">Filmlər</string>
@@ -560,7 +560,6 @@ Avtomobil tərtibatı
     <string name="revanced_change_start_page_entry_shorts">Shorts</string>
     <string name="revanced_change_start_page_entry_sports">İdman</string>
     <string name="revanced_change_start_page_entry_subscriptions">Abunəliklər</string>
-    <string name="revanced_change_start_page_entry_trending">Trendlər</string>
     <string name="revanced_change_start_page_entry_virtual_reality">Virtual Reallıq</string>
     <string name="revanced_change_start_page_entry_watch_later">Sonra izlə</string>
     <string name="revanced_change_start_page_entry_your_clips">Klipləriniz</string>

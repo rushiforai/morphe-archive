@@ -85,6 +85,7 @@ There are 101 patches.
 | `Feed filter` | Hides ads in the feed, and lets you hide other things you don't want to see, like LIVEs, Shop posts, AI videos or videos with words, creators or sounds you pick. Hiding ads is on by default. Everything else starts off in HushPine settings > Feed filter. |
 | `Fit the video to the screen` | Shows the whole video instead of cutting off its sides on folding phones, squarer screens and split screen, and fits photo slideshows whole on squarer screens. A second switch does the opposite and fills the screen. Starts off. Turn it on in HushPine settings > Playback. |
 | `Fix Google login` | Makes Sign in with Google work in the patched app, where it would otherwise fail. Works as soon as you patch it in, with no switch. |
+| `Fix search tab names` | Shows the real name on search result tabs when PineDrama is sent a placeholder like ${drama_tab_name} instead. Works as soon as you patch it in, with no switch. |
 | `Ghost mode` | Stops PineDrama telling people you viewed their story or profile, or that you're typing. What PineDrama already recorded stays. A separate switch hides your online status. Starts off. Turn it on in HushPine settings > Privacy. |
 | `Hide comment popup ads` | Stops the brand animation that pops up over the comments when someone types a word or emoji an advertiser paid for. Starts off. Turn it on in HushPine settings > Comments. |
 | `Hide comment typing suggestions` | Hides the emoji and sticker suggestions that pop up above the comment box while you type. The emoji and sticker buttons still work. Starts off. Turn it on in HushPine settings > Comments. |
@@ -185,7 +186,7 @@ A few patches change PineDrama with no switch in front of them, and Pause can't 
 
 - Settings itself, which is how you get back to the switch.
 - Hide Play Store update offer and Change app name.
-- Disable screen capture detection, Disable login requirement and Fix Google login.
+- Disable screen capture detection, Disable login requirement, Fix Google login and Fix search tab names.
 - Block P2P video relay and Remove unused language packs, which take files out of the app.
 - In Downloads, the folder and file name you picked still apply, as do the fallback to a clean video address and the save button on stickers.
 

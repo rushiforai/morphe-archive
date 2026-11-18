@@ -8,7 +8,6 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.PlusPending
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
 import app.morphe.patches.telegram.misc.extension.SETTINGS_STATUS
 import app.morphe.patches.telegram.misc.localcontrols.controlBody
@@ -31,7 +30,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /** The attach menu gallery's addToSelectedPhotos and the preview's write back of its order. */
-@PlusPending
 class CaptionOrderFixtureTest {
     @Test fun `a change of first photo reloads the comment field with that photo's caption`() {
         for (build in Fixtures.declaredBuilds()) {
@@ -44,14 +42,16 @@ class CaptionOrderFixtureTest {
             val stock = listOf(sites.add, sites.update).map { ImmutableMethod.of(it.method) }
             assertEquals(emptyList<String>(), PatchLogCapture.warnings { captionOrderPatch.execute(context) })
 
-            assertEquals("$name: the gallery's own statics", listOf("u1", "t1"),
+            // Plus Messenger's R8 run named the gallery's statics apart from Telegram's.
+            assertEquals("$name: the gallery's own statics", if (name.startsWith("plus-")) listOf("M1", "L1") else listOf("u1", "t1"),
                 listOf(sites.order, sites.selected).map { it.substringAfter("->").substringBefore(":") })
             assertTrue("$name: per-photo captions asked of the gallery", sites.captionForAll.startsWith("$CAPTION_LAYOUT->"))
-            // Registers from the dex: addToSelectedPhotos has 12 registers and 3 ins, so this is v9; the
-            // preview's method has 25 and 3, this then the gallery, so the gallery is v23.
-            for ((site, expected) in listOf(sites.add to 9, sites.update to 23)) {
-                assertEquals("$name ${site.method.name}: gallery register", expected, site.layout)
+            // Registers from the dex: addToSelectedPhotos has 3 ins, this first (12 registers in 13.2.2, so
+            // v9); the preview's method has 3, this then the gallery (25 registers, so v23).
+            for ((site, before, ins) in listOf(Triple(sites.add, stock[0], 3), Triple(sites.update, stock[1], 2))) {
+                assertEquals("$name ${site.method.name}: gallery register", before.implementation!!.registerCount - ins, site.layout)
             }
+            if (!name.startsWith("plus-")) assertEquals("$name: 13.2.2's gallery registers", listOf(9, 23), listOf(sites.add.layout, sites.update.layout))
             assertEquals("$name: returns", listOf(2, 1), listOf(sites.add, sites.update).map { it.returns.size })
 
             for ((site, before) in listOf(sites.add, sites.update).zip(stock)) {

@@ -83,10 +83,6 @@ internal fun MutableMethod.parameterRegister(descriptor: String): Int {
 internal fun MutableMethod.parameterBlock(): List<Int> =
     (p0Register until (implementation?.registerCount ?: 0)).toList()
 
-/**
- * Reserves [count] distinct registers that are dead at [index] and no higher than [maximum]
- * (15 for 4-bit operands, 255 for 8-bit ones).
- */
 internal fun MutableMethod.reserveFreeRegisters(
     index: Int,
     count: Int,
@@ -108,8 +104,6 @@ internal fun MutableMethod.reserveFreeRegisters(
     return reserved
 }
 
-// `/16` forms accept any register, so values can be staged into and out of the high registers
-// of a dense method.
 internal fun moveObject(
     destination: Int,
     source: Int,
@@ -125,7 +119,6 @@ internal fun registerRange(
     last: Int = first,
 ) = "{v$first .. v$last}"
 
-/** Extension method whose two placeholder constants are rewritten with the live-index field names. */
 private object CurrentMediaIndexFingerprint : Fingerprint(
     definingClass = DOWNLOAD_UTILS_DESCRIPTOR,
     name = "currentMediaIndex",
@@ -137,7 +130,6 @@ private object FeedRowHolderConstructorFingerprint : Fingerprint(
     parameters = listOf(VIEW_DESCRIPTOR),
     filters = listOf(
         methodCall(name = "<init>", opcode = Opcode.INVOKE_DIRECT),
-        // Root view.
         fieldAccess(
             definingClass = "this",
             type = VIEW_DESCRIPTOR,
@@ -156,7 +148,6 @@ private fun feedUfiBindFingerprint(holderType: String, stateType: String) = Fing
     )
 )
 
-/** The UFI renderer selector, which returns the static `Integer` that follows the "view" string constant. */
 private object FeedUfiRendererSelectorFingerprint : Fingerprint(
     returnType = INTEGER_DESCRIPTOR,
     strings = listOf(MAIN_FEED_MODULE, LITHO_UFI_VARIANT),
@@ -171,43 +162,32 @@ val feedDownloadButtonPatch =
         compatibleWith(COMPATIBILITY_INSTAGRAM)
         dependsOn(
             sharedExtensionPatch,
-            // The download options dialog is an `InstagramDialogBox` wrapper; without this
-            // entity its placeholder names are never resolved.
             instagramDialogBoxEntity,
             mediaDataEntity,
             videoDataEntity,
             originalSoundDataIntfEntity,
             trackDataIntfEntity,
             decoderEntity,
-            // Loads `SettingsStatus` at startup and registers the download settings screen.
             settingsPatch,
             addResourcesPatch,
         )
 
         execute {
             runCatching {
-            addAppResources("shared")
-            addAppResources("instagram")
+                addAppResources("shared")
+                addAppResources("instagram")
 
-            // Only applied through "Download media", which enables the download section itself.
-            enableSettings("feedDownloadButton")
+                enableSettings("feedDownloadButton")
 
-            val stateType = runCatching { hookFeedRowBinder() }.getOrNull()
-            runCatching { pinMainFeedToViewUfi() }
-            if (stateType != null) {
-                runCatching { injectLithoDownloadButton(stateType) }
-            }
-        
+                val stateType = runCatching { hookFeedRowBinder() }.getOrNull()
+                runCatching { pinMainFeedToViewUfi() }
+                if (stateType != null) {
+                    runCatching { injectLithoDownloadButton(stateType) }
+                }
             }
         }
     }
 
-/**
- * Finds the feed row view holder through the `row_feed_button_save` literal and hooks its binder to
- * hand the extension the row root, `Media`, `UserSession` and row state.
- *
- * @return the type of the row state the binder receives.
- */
 private fun hookFeedRowBinder(): String {
     val holder = FeedRowHolderConstructorFingerprint
     val holderClass = holder.originalClassDef
@@ -226,8 +206,6 @@ private fun hookFeedRowBinder(): String {
     val stateClass = classDefBy(stateType)
     val mediaField = requireOne("Media field of $stateType", stateClass.fields.filter { it.type == MEDIA_DESCRIPTOR })
 
-    // The state reaches the view state the carousel mutates. Its current-index field is the one
-    // the overflow-menu handler passes, so the extension reads both at click time.
     val viewStateField =
         requireOne(
             "view state field of $stateType",
@@ -246,8 +224,6 @@ private fun hookFeedRowBinder(): String {
     val stateRegister = bind.parameterRegister(stateType)
     val (rootView, media, userSession, state) = bind.reserveFreeRegisters(0, 4, maximum = 15)
 
-    // 4-bit `iget` cannot address the argument registers of a method with many locals, so every
-    // operand is moved into a low scratch register first.
     bind.addInstructions(
         0,
         """
@@ -265,8 +241,10 @@ private fun hookFeedRowBinder(): String {
 }
 
 /**
- * Only the view UFI renderer creates the holder [hookFeedRowBinder] hooks, so the main feed is
- * pinned to it; other modules keep the original selector result.
+ * Only the view UFI renderer creates the holder [hookFeedRowBinder] hooks, so ONLY the main feed
+ * ("feed_timeline") is pinned to it; Profile / Creator Insights / Contextual feeds keep the Litho
+ * UFI renderer (which has rexCreateOptionsIcon and rexCreateDownloadIcon injected via injectLithoDownloadButton),
+ * fixing 23482.png vs 23483.png where Profile post actions were hidden when all modules were forced to View UFI.
  */
 private fun pinMainFeedToViewUfi() {
     val selectors = FeedUfiRendererSelectorFingerprint.matchAllOrNull().orEmpty()
@@ -274,14 +252,21 @@ private fun pinMainFeedToViewUfi() {
         runCatching {
             val viewVariantField = match.instructionMatches.last().fieldReference
             val method = match.method
-            val (resultReg) = method.reserveFreeRegisters(0, 1, maximum = 15)
+            val moduleRegister = method.parameterRegister(STRING_DESCRIPTOR)
+            val (expected, module) = method.reserveFreeRegisters(0, 2, maximum = 15)
 
-            method.addInstructions(
+            method.addInstructionsWithLabels(
                 0,
                 """
-                    sget-object v$resultReg, $viewVariantField
-                    return-object v$resultReg
+                    const-string v$expected, "$MAIN_FEED_MODULE"
+                    ${moveObject(module, moduleRegister)}
+                    invoke-virtual {v$expected, v$module}, $STRING_DESCRIPTOR->equals($OBJECT_DESCRIPTOR)Z
+                    move-result v$expected
+                    if-eqz v$expected, :original
+                    sget-object v$expected, $viewVariantField
+                    return-object v$expected
                 """.trimIndent(),
+                ExternalLabel("original", method.getInstruction(0)),
             )
         }
     }

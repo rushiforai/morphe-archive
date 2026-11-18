@@ -76,7 +76,7 @@ public final class KickTouch {
 
     /**
      * Injection point: the start of the dispatchTouchEvent the patch adds to MainActivity, with Kick's player view
-     * class (KickIvsPlayerV2View). True consumes the event; false lets the activity dispatch it as usual.
+     * class (VideoView). True consumes the event; false lets the activity dispatch it as usual.
      */
     public static boolean dispatch(Activity activity, MotionEvent event, Class<?> playerView) {
         if (activity == null || event == null || playerView == null) return false;
@@ -235,7 +235,7 @@ public final class KickTouch {
     }
 
     /**
-     * Loads the player view's stream again from the address Kick gave it, through the view's own setStreamUrl, as
+     * Loads the player view's stream again from the source Kick gave its player, through the player's own prepare, as
      * Kick does for a new stream. A video (a stream with a duration) then seeks back to where it was. True when there
      * was a stream to load.
      */
@@ -252,22 +252,22 @@ public final class KickTouch {
         return true;
     }
 
-    /** Bridged at patch time: the view's streamUri, if any, passed to its setStreamUrl. True when there was one. */
+    /** Bridged at patch time: the view's player loads its committed source again. True when there was one. */
     private static boolean reload(View view) {
         return false;
     }
 
-    /** Bridged at patch time: the view's lastDuration (a Long, milliseconds, from the IVS player), or null. */
+    /** Bridged at patch time: the duration of the view's Media3 player (a Long, milliseconds), or null when live. */
     private static Object duration(View view) {
         return null;
     }
 
-    /** Bridged at patch time: the view's lastPositionInSeconds. */
+    /** Bridged at patch time: the position of the view's Media3 player, in whole seconds. */
     private static int position(View view) {
         return 0;
     }
 
-    /** Bridged at patch time: the view's seekTo(seconds). */
+    /** Bridged at patch time: the view's Media3 player seeks to [seconds]. */
     private static void seek(View view, double seconds) {
     }
 

@@ -18,6 +18,7 @@ import androidx.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Locale;
@@ -138,14 +139,39 @@ public final class UiHooks {
 
     /**
      * A pin page is about to wait for its related pins grid to load, showing gray placeholder tiles
-     * until it does. With Hide related pins on, the grid was never added and would never load, so
-     * true tells the page there's nothing to wait for. Off or paused, the page waits as usual.
-     * Never throws.
+     * until it does. With Hide related pins on the grid was never added, and folded it won't load
+     * until the arrow is tapped, so either way true tells the page there's nothing to wait for.
+     * Otherwise, or paused, the page waits as usual. Never throws.
      */
     public static boolean relatedPinsLoading() {
-        if (!enabled(FamilyNames.HIDE_RELATED_PINS, Settings.HIDE_RELATED_PINS)) return false;
-        HookStatus.counted(FamilyNames.HIDE_RELATED_PINS, "related pins loading skipped");
+        if (enabled(FamilyNames.HIDE_RELATED_PINS, Settings.HIDE_RELATED_PINS)) {
+            HookStatus.counted(FamilyNames.HIDE_RELATED_PINS, "related pins loading skipped");
+            return true;
+        }
+        if (!RelatedPinsFold.folded()) return false;
+        HookStatus.counted(FamilyNames.FOLD_RELATED_PINS, "related pins wait skipped");
         return true;
+    }
+
+    /**
+     * Pinterest is about to place its pulsing blue ring over a button it wants to point out. True
+     * with Hide blue highlight ring on, which leaves the ring unplaced and invisible. Never throws.
+     */
+    public static boolean hideHighlightRing() {
+        if (!enabled(FamilyNames.HIDE_HIGHLIGHT_RING, Settings.HIDE_HIGHLIGHT_RING)) return false;
+        HookStatus.counted(FamilyNames.HIDE_HIGHLIGHT_RING, "highlight ring skipped");
+        return true;
+    }
+
+    /**
+     * A pin page read the pin's visual search crops for its lens button. With Hide visual search
+     * thumbnails on it gets none, which is how a pin without crops reads, so the button stays the
+     * plain lens. Never throws.
+     */
+    public static ArrayList<?> visualSearchThumbnails(ArrayList<?> found) {
+        if (found == null || !enabled(FamilyNames.HIDE_VISUAL_SEARCH_THUMBNAILS, Settings.HIDE_VISUAL_SEARCH_THUMBNAILS)) return found;
+        HookStatus.counted(FamilyNames.HIDE_VISUAL_SEARCH_THUMBNAILS, "visual search thumbnails hidden");
+        return null;
     }
 
     /**
@@ -204,6 +230,7 @@ public final class UiHooks {
 
     /** The toast class a test stands in for the save toasts patching names. */
     static volatile Class<?> saveToastForTests;
+    static volatile Class<?> downloadToastForTests;
 
     /** The toast class a test stands in for the ones patching names as showing a text they were handed. */
     static volatile Class<?> messageToastForTests;
@@ -212,14 +239,42 @@ public final class UiHooks {
     public static boolean hideSaveToast(Object toast) {
         boolean on = enabled(FamilyNames.HIDE_SAVE_TOASTS, Settings.HIDE_SAVE_TOASTS);
         boolean hide = on && saveToast(toast);
+        // Asked in this order so a toast that isn't a download never counts as a use of its switch.
+        boolean download = !hide && downloadToast(toast) && quietDownloads();
         // With Debug logging on, every toast that reaches the container is named with what became
         // of it. A save toast that still shows then either prints as shown, which names a model
         // patching didn't know, or prints nothing, which means Pinterest showed it some other way.
         Logger.printDebug(() -> "Toast " + (toast == null ? "null" : toast.getClass().getName())
-                + (hide ? " hidden" : on ? " shown" : " shown, switch off or paused"));
+                + (hide || download ? " hidden" : on ? " shown" : " shown, switch off or paused"));
+        if (download) {
+            HookStatus.counted(FamilyNames.HIDE_SAVE_TOASTS, "download toast hidden");
+            return true;
+        }
         if (!hide) return false;
         HookStatus.counted(FamilyNames.HIDE_SAVE_TOASTS, "save toast hidden");
         return true;
+    }
+
+    /** True while Hide download toasts is on, which also quiets Hush's own download messages. */
+    public static boolean quietDownloads() {
+        return enabled(FamilyNames.HIDE_SAVE_TOASTS, Settings.HIDE_DOWNLOAD_TOASTS);
+    }
+
+    /**
+     * A toast model that only ever says a pin reached the phone, or any toast holding the words or
+     * text id of "Image downloaded!" or "Video downloaded!". Those fields are read only with the
+     * switch on, so a toast costs nothing extra otherwise.
+     */
+    private static boolean downloadToast(Object toast) {
+        Class<?> forced = downloadToastForTests;
+        if (forced != null) return forced.isInstance(toast);
+        try {
+            return isDownloadToast(toast) || Utils.settingsReady() && Settings.HIDE_DOWNLOAD_TOASTS.get()
+                    && DownloadToastTexts.holdsDownload(toast, Utils.getActivity(), Utils.getContext());
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.HIDE_SAVE_TOASTS, "download toast model", failure);
+            return false;
+        }
     }
 
     private static boolean saveToast(Object toast) {
@@ -249,6 +304,14 @@ public final class UiHooks {
      * object they hold builds, true when that object is one that builds a save confirmation.
      */
     public static boolean isSaveTextToast(Object toast) {
+        return false;
+    }
+
+    /**
+     * Answers false here. Patching writes instance checks for the toast models that say a pin was
+     * downloaded to the phone.
+     */
+    public static boolean isDownloadToast(Object toast) {
         return false;
     }
 
@@ -390,6 +453,97 @@ public final class UiHooks {
         } catch (RuntimeException failure) {
             HookStatus.threw(FamilyNames.ORIGINAL_IMAGES, "closeup image", failure);
             return large;
+        }
+    }
+
+    /**
+     * Android refuses to draw a bitmap over 100 MB, about 25 million pixels, and a page's image view
+     * gives its loader no target size to shrink to.
+     */
+    private static final double MAX_PAGE_PIXELS = 24_000_000d;
+
+    /** The width from which a size is a page's picture, not a thumbnail or a placeholder. */
+    private static final int LARGE_PAGE_WIDTH = 736;
+
+    /**
+     * An idea pin page's original address, or null to keep what Pinterest picked. A page chooses its
+     * picture by size from its own image list, so the pin image [closeupImage] replaces never reaches
+     * it (14.45.0). Only large sizes change.
+     */
+    public static String pageImage(Map<?, ?> images, String size) {
+        if (images == null || !largeSize(size) || !originalImages()) return null;
+        try {
+            Object original = images.get(ORIGINAL);
+            if (original == null) original = images.get(ORIGINALS);
+            if (original == null) return null;
+            Map<String, Field> fields = ModelFields.of(original.getClass());
+            Object width = ModelFields.read(fields, original, "width");
+            Object height = ModelFields.read(fields, original, "height");
+            Object url = ModelFields.read(fields, original, "url");
+            if (!dimension(width) || !dimension(height) || !mediaAddress(url)
+                    || ((Number) width).doubleValue() * ((Number) height).doubleValue() > MAX_PAGE_PIXELS) return null;
+            HookStatus.counted(FamilyNames.ORIGINAL_IMAGES, "idea pin original shown");
+            return (String) url;
+        } catch (RuntimeException failure) {
+            HookStatus.threw(FamilyNames.ORIGINAL_IMAGES, "page image", failure);
+            return null;
+        }
+    }
+
+    private static final String IMAGE_HOST = "i.pinimg.com", ORIGINALS_PATH = "/originals/";
+
+    /**
+     * Where to ask next after the image host refused an original, or null to let the answer stand.
+     * Pinterest's data can name a .jpg original for a picture uploaded as a .png or .webp. The host
+     * answers that address 403, and the picture stayed a grey box (14.45.0).
+     */
+    public static String originalRetry(int status, Object address) {
+        if (status != 403 && status != 404 || address == null || !originalImages()) return null;
+        try {
+            String next = nextOriginal(address.toString());
+            if (next != null) HookStatus.counted(FamilyNames.ORIGINAL_IMAGES, "refused original retried");
+            return next;
+        } catch (RuntimeException failure) {
+            HookStatus.threw(FamilyNames.ORIGINAL_IMAGES, "original retry", failure);
+            return null;
+        }
+    }
+
+    /**
+     * The next address for a refused original: .jpg, then .png, then .webp, then the 736x copy every
+     * picture has. Only an original has a next address, so the walk always ends.
+     */
+    static String nextOriginal(String address) {
+        URI uri;
+        try {
+            uri = new URI(address);
+        } catch (URISyntaxException malformed) {
+            return null;
+        }
+        String path = uri.getRawPath();
+        if (!"https".equalsIgnoreCase(uri.getScheme()) || !IMAGE_HOST.equalsIgnoreCase(uri.getHost())
+                || uri.getPort() != -1 || uri.getRawUserInfo() != null || path == null || !path.startsWith(ORIGINALS_PATH)) return null;
+        int dot = path.lastIndexOf('.');
+        if (dot <= path.lastIndexOf('/')) return null;
+        String stem = path.substring(0, dot), base = "https://" + IMAGE_HOST;
+        switch (path.substring(dot + 1).toLowerCase(Locale.ROOT)) {
+            case "jpg":
+            case "jpeg":
+                return base + stem + ".png";
+            case "png":
+                return base + stem + ".webp";
+            default:
+                return base + "/736x/" + stem.substring(ORIGINALS_PATH.length()) + ".jpg";
+        }
+    }
+
+    /** Whether a size key such as 1200x names a width of at least [LARGE_PAGE_WIDTH]. */
+    private static boolean largeSize(String size) {
+        if (size == null || !size.endsWith("x")) return false;
+        try {
+            return Integer.parseInt(size.substring(0, size.length() - 1)) >= LARGE_PAGE_WIDTH;
+        } catch (NumberFormatException notAWidth) {
+            return false;
         }
     }
 

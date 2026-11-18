@@ -33,8 +33,8 @@ import app.hushpinterest.extension.shared.settings.preference.LogBufferManager;
  *
  * <p>"More ideas for your board" is a card of its own kind: a board's id, name and header text with
  * a strip of images and their colors, and no story type. No pin and no story has that set of
- * fields. "Inspired by your interests" is a story, known by its story type. Pins, boards you
- * follow and everything else stay.
+ * fields. "Inspired by your interests" is a story, known by its story type, and so is the newer
+ * "More ideas for your board" row. Pins, boards you follow and everything else stay.
  */
 public final class HomeSuggestions {
     private HomeSuggestions() {}
@@ -48,10 +48,13 @@ public final class HomeSuggestions {
     // Story types of Home's own idea rows, as the String a story carries or the typed enum's
     // constant name. A board's own "More ideas" tab and search keep theirs. The two upsell types are
     // the board-tab Home's "More ideas for your board" row over the viewer's own boards, which no
-    // card shape catches (#30).
+    // card shape catches. The last two come from the server, so they aren't in the app's code: a
+    // report's module lines named them on the Home showing "Inspired by your interests" and
+    // "More ideas for your board" (#30).
     static final Set<String> STORIES = new HashSet<>(Arrays.asList(
             "homefeed_more_ideas_feed_story", "homefeed_more_ideas_header",
-            "boards_more_ideas_feed_upsell_list_items", "boards_more_ideas_feed_upsell_list_cards"));
+            "boards_more_ideas_feed_upsell_list_items", "boards_more_ideas_feed_upsell_list_cards",
+            "homefeed_interest_exploration_module", "blended_module_type_topics_board_recs"));
 
     /** Whether the switch is on and the settings can be read; never throws. */
     static boolean active() {

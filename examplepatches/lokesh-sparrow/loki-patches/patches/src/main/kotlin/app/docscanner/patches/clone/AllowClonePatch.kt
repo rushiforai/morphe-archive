@@ -12,18 +12,24 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
-import org.w3c.dom.Element
 
 /**
- * `hb3.k(a, b)`: case-insensitive "a contains b". The app calls it at start-up as `k("com.cv.docscanner", packageName)`
- * and exits when that is false, which a renamed copy always is. The same helper serves ordinary string checks
- * elsewhere, so only the one pairing (the original name against a name that extends it) is let through.
+ * The app's case-insensitive "a contains b" helper (`hb3.k` in 6.9.9, `jm3.l` in 6.9.14). It calls
+ * `k("com.cv.docscanner", packageName)` at start-up and exits when that is false, which a renamed copy always is.
+ * The same helper serves ordinary string checks elsewhere, so only the one pairing (the original name against a name
+ * that extends it) is let through. Found by its body - lower-case both arguments, then `contains` - because the class
+ * is renamed every release.
  */
 private val containsHelper = Fingerprint(
-    definingClass = "Lhb3;",
-    name = "k",
     returnType = "Z",
     parameters = listOf("Ljava/lang/String;", "Ljava/lang/String;"),
+    custom = { method, _ ->
+        val calls = method.implementation?.instructions
+            ?.mapNotNull { ((it as? com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction)?.reference as? com.android.tools.smali.dexlib2.iface.reference.MethodReference) }
+            ?.map { "${it.definingClass}->${it.name}" }
+            .orEmpty()
+        "Ljava/lang/String;->toLowerCase" in calls && "Ljava/lang/String;->contains" in calls
+    },
 )
 
 private val cloneFlag = resourcePatch {

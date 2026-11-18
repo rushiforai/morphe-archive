@@ -44,7 +44,6 @@ import app.morphe.extension.shared.settings.preference.SeekBarPreference;
 import app.morphe.extension.shared.settings.preference.SeekBarPreference.SeekBarConfig;
 import app.morphe.extension.shared.ui.Dim;
 import app.morphe.extension.shared.ui.SheetBottomDialog;
-import app.morphe.extension.youtube.patches.playback.speed.CustomPlaybackSpeedPatch;
 import app.morphe.extension.youtube.settings.Settings;
 import app.morphe.extension.youtube.shared.PlayerType;
 
@@ -79,6 +78,13 @@ public class YandexVotBottomSheet {
                 return Color.WHITE;
             }
         }
+    }
+
+    private static int getControlBackgroundColor(boolean emphasized) {
+        float lightThemeFactor = emphasized ? 0.9f : 0.95f;
+        float darkThemeFactor = emphasized ? 1.25f : 1.115f;
+        return Utils.adjustColorBrightness(getDialogBackgroundColor(),
+                lightThemeFactor, darkThemeFactor);
     }
 
     @SuppressLint("SetTextI18n")
@@ -353,7 +359,7 @@ public class YandexVotBottomSheet {
         button.setGravity(Gravity.CENTER);
         ShapeDrawable background = new ShapeDrawable(new RoundRectShape(
                 Dim.roundedCorners(20), null, null));
-        background.getPaint().setColor(CustomPlaybackSpeedPatch.getAdjustedBackgroundColor(false));
+        background.getPaint().setColor(getControlBackgroundColor(false));
         button.setBackground(background);
         final int size = Dim.dp36;
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(size, size);
@@ -397,8 +403,8 @@ public class YandexVotBottomSheet {
 
         Runnable updateSelection = () -> {
             boolean useLive = Settings.DUAL_VOT_YANDEX_USE_LIVE_VOICES.get();
-            int selectedColor = CustomPlaybackSpeedPatch.getAdjustedBackgroundColor(true);
-            int unselectedColor = CustomPlaybackSpeedPatch.getAdjustedBackgroundColor(false);
+            int selectedColor = getControlBackgroundColor(true);
+            int unselectedColor = getControlBackgroundColor(false);
             ShapeDrawable standardBg = (ShapeDrawable) standardButton.getBackground();
             ShapeDrawable liveBg = (ShapeDrawable) liveButton.getBackground();
             standardBg.getPaint().setColor(useLive ? unselectedColor : selectedColor);
@@ -447,7 +453,7 @@ public class YandexVotBottomSheet {
 
         ShapeDrawable background = new ShapeDrawable(new RoundRectShape(
                 Dim.roundedCorners(12), null, null));
-        background.getPaint().setColor(CustomPlaybackSpeedPatch.getAdjustedBackgroundColor(false));
+        background.getPaint().setColor(getControlBackgroundColor(false));
         button.setBackground(background);
         button.setPadding(Dim.dp12, Dim.dp8, Dim.dp12, Dim.dp8);
         return button;
@@ -470,7 +476,7 @@ public class YandexVotBottomSheet {
         android.graphics.drawable.StateListDrawable bg = new android.graphics.drawable.StateListDrawable();
         bg.addState(new int[]{android.R.attr.state_pressed},
                 new android.graphics.drawable.ColorDrawable(
-                        CustomPlaybackSpeedPatch.getAdjustedBackgroundColor(true)));
+                        getControlBackgroundColor(true)));
         bg.addState(new int[]{}, new android.graphics.drawable.ColorDrawable(Color.TRANSPARENT));
         row.setBackground(bg);
 

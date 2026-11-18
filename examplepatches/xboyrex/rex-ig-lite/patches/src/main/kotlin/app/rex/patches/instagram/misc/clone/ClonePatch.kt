@@ -39,8 +39,8 @@ val clonePatch =
         name = "Clone",
         description =
             "Changes the package name to com.xboyrex.instarex and the app label/icon to InstaRex. " +
-                "Allows installing the patched InstaRex Clone alongside the original Instagram app without authority conflicts.",
-        default = false,
+                "Allows installing the patched InstaRex Clone alongside the original Instagram app without authority or Google Play Store conflicts.",
+        default = true,
     ) {
         compatibleWith(COMPATIBILITY_INSTAGRAM)
 
@@ -140,7 +140,7 @@ val clonePatch =
                                         isLauncher = true
                                     }
                                 }
-                                if (isLauncher) {
+                                if (isLauncher || actEl.getAttribute("android:name").contains("MainTabActivity")) {
                                     actEl.setAttribute("android:label", resolvedAppName)
                                     actEl.setAttribute("android:icon", "@drawable/rex_ic_launcher_instarex")
                                     actEl.setAttribute("android:roundIcon", "@drawable/rex_ic_launcher_round")

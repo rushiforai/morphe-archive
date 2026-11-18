@@ -6,6 +6,7 @@
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
+ * Modified by lavinhoque33, 2026-11-18.
  */
 
 package app.morphe.patches.youtube.general.snackbar
@@ -17,6 +18,8 @@ import app.morphe.patcher.methodCall
 import app.morphe.patcher.opcode
 import app.morphe.patcher.util.getReference
 import app.morphe.patches.youtube.utils.resourceid.insetElementsWrapper
+import app.morphe.patches.shared.mapping.ResourceType.DIMEN
+import app.morphe.patches.shared.mapping.resourceLiteral
 import app.morphe.util.indexOfFirstInstructionReversed
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -85,6 +88,22 @@ internal object YouTubeSnackBarConstructorFingerprint : Fingerprint(
     )
 )
 
+
+internal object SnackBarOutlineFingerprint : Fingerprint(
+    name = "getOutline",
+    returnType = "V",
+    parameters = listOf("Landroid/view/View;", "Landroid/graphics/Outline;"),
+    filters = listOf(
+        resourceLiteral(DIMEN, "snackbar_corner_radius"),
+        methodCall(
+            definingClass = "Landroid/content/res/Resources;",
+            name = "getDimension",
+            parameters = listOf("I"),
+            returnType = "F",
+            location = MatchAfterImmediately()
+        ),
+    ),
+)
 
 internal object SnackbarDisplayFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),

@@ -7,7 +7,6 @@ package app.morphe.patches.telegram.misc.folders
 import app.morphe.ExtensionDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.PlusPending
 import app.morphe.patches.telegram.misc.chattypefolders.LOCAL_ALWAYS
 import app.morphe.patches.telegram.misc.chattypefolders.LOCAL_FLAGS
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
@@ -19,14 +18,15 @@ import app.morphe.util.names.tgMutableClassDefBy
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.File
 
 /** The folder tab icons: where the strip makes a tab, and where a tab takes a new title. */
-@PlusPending
 class TabIconsFixtureTest {
     @Test fun `each tab's title takes its icon and the title check reads it without`() {
         for (build in Fixtures.declaredBuilds()) {
@@ -36,7 +36,16 @@ class TabIconsFixtureTest {
             context.requireTabIconsRuntime()
             val strip = context.resolveLaunchFolder().refs!!.tabs.substringBefore("->")
             val plan = context.resolveTabIcons(strip)
-            assertNull("$name: ${plan.missing}", plan.missing)
+            assertEquals("$name: ${plan.missing}", tabIconsGap(build), plan.missing)
+            if (plan.missing != null) {
+                // Plus Messenger's tab picks a drawable of its own from the folder's emoji, so ours are left out whole.
+                assertTrue(name, plan.edits.isEmpty())
+                assertTrue(name, context.tgMutableClassDefBy(tabOf(context, strip)).methods.any {
+                    it.returnType == "Landroid/graphics/drawable/Drawable;" && it.parameterTypes.map(CharSequence::toString) == listOf("Ljava/lang/String;")
+                })
+                continue
+            }
+            assertEquals(name, tabOf(context, strip), plan.tab)
             val edited = plan.edits.map { it.method }.distinct()
             val stock = edited.associateWith { method -> method.body().map(::operands) }
             context.writeTabIconsStubs(plan)
@@ -94,7 +103,7 @@ class TabIconsFixtureTest {
             val context = PatchContexts.of((ExtensionDex.classes() + launchFolderHosts(build)).distinctBy { it.type })
             context.requireLaunchFolderRuntime()
             val strip = context.resolveLaunchFolder().refs!!.tabs.substringBefore("->")
-            val methods = (context.tgMutableClassDefBy(strip).methods + context.tgMutableClassDefBy(context.resolveTabIcons(strip).tab!!).methods)
+            val methods = (context.tgMutableClassDefBy(strip).methods + context.tgMutableClassDefBy(tabOf(context, strip)).methods)
             val before = methods.map { method -> method.body().map(::operands) }
             context.resolveTabIcons(strip)
             assertEquals(build.name, before, methods.map { method -> method.body().map(::operands) })
@@ -107,7 +116,7 @@ class TabIconsFixtureTest {
             val probe = PatchContexts.of((ExtensionDex.classes() + launchFolderHosts(build)).distinctBy { it.type })
             probe.requireLaunchFolderRuntime()
             val strip = probe.resolveLaunchFolder().refs!!.tabs.substringBefore("->")
-            val tab = probe.resolveTabIcons(strip).tab!!
+            val tab = tabOf(probe, strip)
             val hosts = (folderCounterHosts(build) + menuHosts(build) + allChatsPlaceHosts(build) + accountListHosts(build) + chatListAvatarHosts(build))
                 .distinctBy { it.type }.filterNot { it.type == tab }
             val context = PatchContexts.of((ExtensionDex.classes() + hosts).distinctBy { it.type })
@@ -119,6 +128,13 @@ class TabIconsFixtureTest {
             assertTrue(name, context.tgMutableClassDefBy(strip).methods.none { m -> m.body().any { it.ref() == TAB_TITLE } })
         }
     }
+
+    /** The one kind of tab the strip makes, read off the strip's own constructor calls. */
+    private fun tabOf(context: app.morphe.patcher.patch.BytecodePatchContext, strip: String): String =
+        context.tgMutableClassDefBy(strip).methods.flatMap { it.body() }.filter { it.opcode == Opcode.INVOKE_DIRECT }
+            .mapNotNull { (it as? ReferenceInstruction)?.reference as? MethodReference }
+            .filter { it.name == "<init>" && it.parameterTypes.map(CharSequence::toString).let { p -> p.size == 4 && p[0] == strip && p[1] == "I" && p[3] == "Z" } }
+            .map { it.definingClass }.distinct().single()
 
     private fun statusOf(context: app.morphe.patcher.patch.BytecodePatchContext, flag: String) =
         (context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == flag }.body()[0] as WideLiteralInstruction).wideLiteral
@@ -139,6 +155,21 @@ class TabIconsFixtureTest {
 }
 
 private const val TEXT_EQUALS = "Landroid/text/TextUtils;->equals(Ljava/lang/CharSequence;Ljava/lang/CharSequence;)Z"
+
+/** Why [build] gets none of the patch's folder tab icons: Plus Messenger draws its own. Null where they go in. */
+internal fun tabIconsGap(build: File): String? =
+    if (build.name.startsWith("plus-")) "the folder tab stores a title without checking the old one" else null
+
+/** What a whole run of the patch warns on [build] with nothing changed: only Plus Messenger's tab icons gap. */
+internal fun stockWarnings(build: File): List<String> =
+    listOfNotNull(tabIconsGap(build)?.let { "Hide folder tab counters: $it. The patch goes on without folder tab icons." })
+
+/** The [warnings] a run gives beyond [build]'s stock ones, each of which it must give too. */
+internal fun beyondStock(build: File, warnings: List<String>): List<String> {
+    val left = warnings.toMutableList()
+    for (stock in stockWarnings(build)) assertTrue("${build.name}: $warnings", left.remove(stock))
+    return left
+}
 
 private fun Method.body(): List<Instruction> = implementation?.instructions?.toList().orEmpty()
 private fun Instruction.ref() = origRef()

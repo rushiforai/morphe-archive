@@ -1,0 +1,8 @@
+{
+  "name": "quora-patches-page-script-tests",
+  "private": true,
+  "description": "Runs the page patch scripts on copies of Quora's markup.",
+  "devDependencies": {
+    "jsdom": "26.1.0"
+  }
+}

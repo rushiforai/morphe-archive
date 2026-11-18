@@ -27,8 +27,13 @@ Requirements:
 ```bash
 git clone https://github.com/ineednotitle/Proteus-Patches.git
 cd Proteus-Patches
+git config core.hooksPath .githooks
 ./gradlew buildAndroid
 ```
+
+The repository's `prepare-commit-msg` hook strips AI-agent `Co-authored-by`,
+`Generated-by` and `Assisted-by` trailers from new commits. Set `core.hooksPath`
+as above so the hook runs in your checkout.
 
 Useful checks before submitting a change:
 
@@ -62,6 +67,9 @@ feat(reddit): add hide-read-posts filter
 fix(mereframe): handle missing entitlement accessor
 docs: clarify universal patch defaults
 ```
+
+Do not add AI-agent `Co-authored-by`, `Generated-by` or `Assisted-by` trailers;
+the hook above removes them from new commits.
 
 Pull requests should explain the problem, the approach and the verification
 performed. Mark unverified device behavior clearly rather than presenting it as

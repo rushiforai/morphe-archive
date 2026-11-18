@@ -118,6 +118,18 @@ internal fun validateLauncherPng(bytes: ByteArray) {
     }
 }
 
+/** Updates the application fallback as well as the launcher component's explicit overrides. */
+internal fun replaceApplicationIcons(application: Element, launcherActivityName: String) {
+    val activities = application.getElementsByTagName("activity")
+    val launcher = (0 until activities.length).map { activities.item(it) as Element }.singleOrNull {
+        it.getAttributeNS(ANDROID_NS, "name") == launcherActivityName
+    } ?: error("Zalo launcher activity changed")
+    for (component in listOf(application, launcher)) {
+        component.setAttributeNS(ANDROID_NS, "android:icon", "@mipmap/zeldris_launcher")
+        component.setAttributeNS(ANDROID_NS, "android:roundIcon", "@mipmap/zeldris_launcher")
+    }
+}
+
 @Suppress("unused")
 val changeZaloAppIconPatch = resourcePatch(
     name = "Change Zalo app icon",
@@ -169,6 +181,7 @@ val changeZaloAppIconPatch = resourcePatch(
             check((0 until categories.length).any {
                 (categories.item(it) as Element).getAttributeNS(ANDROID_NS, "name") == "android.intent.category.LAUNCHER"
             }) { "Zalo launcher category changed" }
+            replaceApplicationIcons(application, original.getAttributeNS(ANDROID_NS, "targetActivity"))
             original.setAttributeNS(ANDROID_NS, "android:icon", "@mipmap/zeldris_launcher")
             original.setAttributeNS(ANDROID_NS, "android:roundIcon", "@mipmap/zeldris_launcher")
             // Keep the old alias for updates where Android persisted it as enabled and the original as disabled.

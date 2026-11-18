@@ -1,3 +1,48 @@
+## 2.1.1 (2026-11-18)
+
+### ✨ New Features
+
+* **nicoid:** Add support for moving multiple selected videos between folders in Mylist and local playlists
+* **nicoid:** Add a confirmation dialog after choosing a destination for multiple selected videos
+* **nicoid:** Add an **Open in new tab** action to folder long-press menus in Mylist and local playlists
+* **nicoid:** Allow local playlist folders to remain open in separate tabs for easier browsing
+* **nicoid:** Add distinct tab icons for Mylist, Temporary Mylist, local playlists, and NicoReport
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Fix incorrect destination and selected-video arguments when moving videos in account-based Mylists
+* **nicoid:** Fix a selection changing unexpectedly while the move confirmation dialog is open
+* **nicoid:** Fix the Back action not returning to the Mylist folder list when navigating within the current tab
+* **nicoid:** Fix folder actions potentially targeting the wrong folder after sorting or refreshing a list
+* **nicoid:** Fix folder rename results potentially being applied to the wrong list entry
+* **nicoid:** Prevent duplicate rename requests from running for the same folder
+* **nicoid:** Fix unnecessary tab state updates when the selected playlist or folder has not changed
+* **nicoid:** Fix ambient lighting flickering during scrolling and layout updates
+* **nicoid:** Fix inconsistent ambient background effects around uploader information, tags, input fields, and playback menu items
+* **nicoid:** Fix redundant popup playback control redraws when several settings changes occur together
+* **nicoid:** Fix request parameters and headers used by the initial related-video metadata fallback
+* **nicoid:** Fix connections not being properly released after failed related-video requests
+* **nicoid:** Fix connections remaining open after failed search or ranking page requests
+
+### 🔧 Improvements
+
+* **nicoid:** Improve Ambient Mode coverage across uploader details, tags, text fields, buttons, and video playback menus
+* **nicoid:** Improve ambient lighting consistency when scrolling through video information and interacting with controls
+* **nicoid:** Avoid unnecessary ambient compositing outside the visible glow and reduce temporary rendering layers
+* **nicoid:** Reuse ambient gradients when their positions and colors are unchanged, and update transparency without rebuilding gradients
+* **nicoid:** Improve ambient rendering for both transparent and non-transparent controls
+* **nicoid:** Unify the **Video/Audio Save** button rendering with other customizable playback controls
+* **nicoid:** Enable the popup-only **Normal playback** control by default and when restoring default control settings
+* **nicoid:** Preserve explicitly disabled popup controls and customized button order
+* **nicoid:** Consolidate popup control refreshes and cancel pending redraws when the control view is detached
+* **nicoid:** Keep the selected videos consistent throughout Mylist and playlist destination selection and confirmation
+* **nicoid:** Improve folder opening, renaming, and updating by using stable folder identifiers
+* **nicoid:** Avoid unnecessary tab state saves when playlist or folder selection remains unchanged
+* **nicoid:** Align initial related-video metadata requests with the existing video-viewing request format
+* **nicoid:** Add safer HTTP response handling and connection cleanup for related-video retrieval
+* **nicoid:** Improve search and ranking request handling while preserving cached results, manual refresh, and retry behavior
+* **nicoid:** Improve consistency of recently fetched video metadata shared between playback and video-list operations
+
 ## 2.1.0 (2026-11-18)
 
 ### ✨ New Features

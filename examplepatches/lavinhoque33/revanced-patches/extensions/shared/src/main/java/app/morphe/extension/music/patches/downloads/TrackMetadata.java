@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-17.
  */
 package app.morphe.extension.music.patches.downloads;
 
@@ -18,6 +19,7 @@ import java.net.URL;
 import app.morphe.extension.music.patches.misc.requests.MusicBrowseRequest;
 import app.morphe.extension.shared.innertube.PlayerResponseOuterClass.ThumbnailEntry;
 import app.morphe.extension.shared.innertube.PlayerResponseOuterClass.VideoDetails;
+import app.morphe.extension.shared.requests.Requester;
 import app.morphe.extension.shared.utils.Logger;
 import app.morphe.extension.shared.utils.Utils;
 
@@ -105,7 +107,7 @@ final class TrackMetadata {
     static byte[] artwork(String videoId, String url) {
         HttpURLConnection connection = null;
         try {
-            connection = (HttpURLConnection) new URL(url).openConnection();
+            connection = Requester.openDirectConnection(new URL(url));
             connection.setConnectTimeout(15_000);
             connection.setReadTimeout(30_000);
             if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {

@@ -72,7 +72,8 @@ plugins:
         # Only the bundle this release built. The glob form attached every .mpp in the folder, so a
         # 3.1.0 build left from the pre-bump Gradle run shipped inside the 3.1.1 release too.
         # A glob, because @semantic-release/github does not interpolate ${nextRelease.version} here: it looked for
-        # a file with that literal name, found none, and published 3.2.0 with no bundle at all. prepareCmd has
-        # already deleted every other .mpp, so this matches exactly the bundle being released.
-        - path: "patches/build/libs/patches-*.mpp"
+        # a file with that literal name, found none, and published 3.2.0 with no bundle at all. It ends in a digit
+        # because Gradle's publish step runs after prepareCmd and writes -sources.mpp and -javadoc.mpp again,
+        # which patches-*.mpp attached to 3.2.1. prepareCmd has deleted older bundles, so this is the one released.
+        - path: "patches/build/libs/patches-*[0-9].mpp"
       successComment: false

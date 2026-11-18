@@ -23,6 +23,7 @@ import app.morphe.util.ControlFlow
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.branchTarget
 import app.morphe.util.call
+import app.morphe.util.definitionReaches
 import app.morphe.util.namedRegisters
 import app.morphe.util.one
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -63,7 +64,7 @@ val quietContactsNagPatch = bytecodePatch(
 ) {
     category("Interface")
     dependsOn(settingsPatch, telegramExtensionPatch)
-    compatibleWith(*AppCompatibilities.telegramOnly())
+    compatibleWith(*AppCompatibilities.telegram())
 
     execute {
         requireStatusMethod("quietContactsNag")
@@ -78,7 +79,9 @@ val quietContactsNagPatch = bytecodePatch(
  * finds contacts permission missing, from which it only shows a dialog or asks Android, and
  * [askDone] is the return it takes when permission is there. [badge] sets the Contacts tab's
  * badge: [badgeGate] starts the "!" and [badgeClear] the clear Telegram uses when permission is
- * granted. [prefs] is Telegram's getter for the settings that hold both prompt flags.
+ * granted. [marks] is false where the badge never shows "!": Plus Messenger's sets the same null in
+ * both arms, so only its prompt is quieted. [prefs] is Telegram's getter for the settings that hold
+ * both prompt flags.
  */
 internal class ContactsNagSites(
     val ask: MutableMethod,
@@ -87,6 +90,7 @@ internal class ContactsNagSites(
     val badge: MutableMethod,
     val badgeGate: Int,
     val badgeClear: Int,
+    val marks: Boolean,
     val prefs: MethodReference,
 )
 
@@ -115,20 +119,26 @@ internal fun BytecodePatchContext.resolveContactsNagSites(): ContactsNagSites {
         badgeBody[read + 2].namedRegisters() == badgeBody[read + 1].namedRegisters(), "the badge no longer acts on the flag")
     val badgeGate = read + 3
     val badgeClear = badgeBody.branchTarget(read + 2, ::refuse)
-    // "!" and the clear: the same badge call, one with "!" and one with null, each followed by a return.
-    val mark = (badgeGate until badgeClear).filter { badgeBody[it].string() == "!" }.one("badge mark", ::refuse)
+    // The clear: the badge's text call with null, then a return.
+    val badgeFlow = ControlFlow.of(badge)
+    val clearSet = (badgeClear until badgeBody.size).firstOrNull { badgeBody[it].call() != null }
+    val setter = clearSet?.let { badgeBody[it].call() }
+    shape(clearSet != null && setter != null && badgeBody[clearSet].opcode == Opcode.INVOKE_VIRTUAL &&
+        setter.origParameterTypes == listOf("Ljava/lang/String;", "Z", "Z") && setter.origReturnType == "V" &&
+        badgeFlow.zeroAt(badgeBody, clearSet, badgeBody[clearSet].namedRegisters()[1]) &&
+        badgeBody.getOrNull(clearSet + 1)?.opcode == Opcode.RETURN_VOID &&
+        (badgeClear until clearSet).none { badgeBody[it] is OffsetInstruction }, "the badge no longer clears through its text call")
+    // The mark: "!" through the same call, then a return. Plus Messenger's passes the clear's null there.
+    val marks = (badgeGate until badgeClear).filter { badgeBody[it].string() == "!" }
+    val unmarked = "the badge no longer sets \"!\" or null and returns"
+    val mark = marks.singleOrNull() ?: (badgeGate until badgeClear).firstOrNull { badgeBody[it].call() != null }?.minus(1) ?: refuse(unmarked)
     val setMark = badgeBody.getOrNull(mark + 1)
-    val setter = setMark?.call()
-    shape(setter != null && setMark.opcode == Opcode.INVOKE_VIRTUAL && setter.origParameterTypes ==
-        listOf("Ljava/lang/String;", "Z", "Z") && setter.origReturnType == "V" &&
-        setMark.namedRegisters()[1] == badgeBody[mark].namedRegisters()[0] && badgeBody.getOrNull(mark + 2)?.opcode == Opcode.RETURN_VOID,
-        "the badge no longer sets \"!\" and returns")
+    val markText = setMark?.namedRegisters()?.getOrNull(1)
+    shape(marks.size <= 1 && setMark != null && markText != null && setMark.opcode == Opcode.INVOKE_VIRTUAL && setMark.call() == setter &&
+        (if (marks.isEmpty()) badgeFlow.zeroAt(badgeBody, mark + 1, markText) else markText == badgeBody[mark].namedRegisters()[0]) &&
+        badgeBody.getOrNull(mark + 2)?.opcode == Opcode.RETURN_VOID, unmarked)
     shape((badgeGate until mark).none { badgeBody[it] is OffsetInstruction || badgeBody[it].call() != null },
         "the badge does more than set \"!\" after reading the flag")
-    val clearSet = (badgeClear until badgeBody.size).firstOrNull { badgeBody[it].call() != null }
-    shape(clearSet != null && badgeBody[clearSet].call() == setter && badgeBody[clearSet - 1].isZero(badgeBody[clearSet].namedRegisters()[1]) &&
-        badgeBody.getOrNull(clearSet + 1)?.opcode == Opcode.RETURN_VOID &&
-        (badgeClear until clearSet).none { badgeBody[it] is OffsetInstruction }, "the badge no longer clears through the same call")
 
     // The Contacts tab: the one onBecomeFullyVisible that checks contacts permission, in the class
     // that writes both prompt flags.
@@ -151,10 +161,15 @@ internal fun BytecodePatchContext.resolveContactsNagSites(): ContactsNagSites {
         askBody[check + 2].namedRegisters() == askBody[check + 1].namedRegisters(), "the Contacts tab no longer branches on the permission")
     val askGate = check + 3
     val askDone = askBody.branchTarget(check + 2, ::refuse)
-    shape(askBody[askDone].opcode == Opcode.RETURN_VOID && askDone > askGate, "granted permission no longer leaves the Contacts tab check")
-    // From the gate, the tab only asks: Android's rationale check, a dialog, or its own request.
+    // A grant returns there on Telegram. Plus Messenger runs a tail of its own first, which the prompt
+    // also ends in, so a quiet visit still runs it.
     val flow = ControlFlow.of(ask)
-    val region = reach(flow, askGate)
+    val tail = reach(flow, askDone)
+    shape(askDone > askGate && askGate !in tail && askBody[tail.max()].opcode == Opcode.RETURN_VOID &&
+        tail.none { askBody[it].call()?.origName in setOf("shouldShowRequestPermissionRationale", "showDialog", "requestPermissions") },
+        "granted permission no longer leaves the Contacts tab check")
+    // From the gate, the tab only asks: Android's rationale check, a dialog, or its own request.
+    val region = reach(flow, askGate) - tail
     shape(region.all { it >= askGate } && region.all { flow.normal[it].isNotEmpty() || askBody[it].opcode == Opcode.RETURN_VOID },
         "the Contacts tab's prompt no longer stands alone at the end of the check")
     shape(askBody[askGate].call()?.origName == "shouldShowRequestPermissionRationale", "the prompt no longer starts with Android's rationale check")
@@ -171,7 +186,7 @@ internal fun BytecodePatchContext.resolveContactsNagSites(): ContactsNagSites {
     shape(requester.instructions().let { body -> body.any { it.string() == READ_CONTACTS } && body.any { it.call()?.origName == "requestPermissions" } },
         "the Contacts tab's own request no longer asks Android for contacts")
 
-    return ContactsNagSites(ask, askGate, askDone, badge, badgeGate, badgeClear, prefs)
+    return ContactsNagSites(ask, askGate, askDone, badge, badgeGate, badgeClear, marks.isNotEmpty(), prefs)
 }
 
 private fun ContactsNagSites.apply() {
@@ -184,6 +199,7 @@ private fun ContactsNagSites.apply() {
         if-nez v$quiet, :hush_done
     """.trimIndent(), ExternalLabel("hush_done", ask.getInstruction(askDone)))
 
+    if (!marks) return
     val hidden = badge.freeLocalsAt(PATCH, badgeGate, 1, targets = listOf(badgeClear)).single()
     badge.addInstructionsAtControlFlowLabel(badgeGate, """
         invoke-static {}, $prefs
@@ -231,6 +247,13 @@ private fun Instruction.isGetBoolean() =
     opcode == Opcode.INVOKE_INTERFACE && call()?.let { it.origDefiningClass == PREFS && it.origName == "getBoolean" } == true
 private fun Instruction.isZero(register: Int) = (opcode == Opcode.CONST_4 || opcode == Opcode.CONST_16) &&
     namedRegisters().firstOrNull() == register && (this as NarrowLiteralInstruction).narrowLiteral == 0
+
+/** Whether [register] holds a plain zero at [use]: its nearest write before it is a zero that every path passes. */
+private fun ControlFlow.zeroAt(body: List<Instruction>, use: Int, register: Int): Boolean {
+    val at = (use - 1 downTo 0).firstOrNull { body[it].opcode.setsRegister() && body[it].namedRegisters().firstOrNull() == register }
+        ?: return false
+    return body[at].isZero(register) && definitionReaches(at, use, register)
+}
 private fun Method.sameAs(other: Method) = name == other.name && returnType == other.returnType &&
     origParameterTypes == other.origParameterTypes
 private fun refuse(reason: String): Nothing =

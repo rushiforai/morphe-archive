@@ -7,7 +7,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
@@ -132,8 +132,11 @@ public final class RecallMarker {
         int excess = snapshot.size() + additions - MAX_MARKERS;
         if (excess > 0) {
           ArrayList<Map.Entry<String, ?>> oldest = new ArrayList<>(snapshot.entrySet());
-          oldest.sort(Comparator.comparingLong(entry -> entry.getValue() instanceof Long
-              ? (Long) entry.getValue() : 0L));
+          Collections.sort(oldest, (left, right) -> {
+            long a = left.getValue() instanceof Long ? (Long) left.getValue() : 0L;
+            long b = right.getValue() instanceof Long ? (Long) right.getValue() : 0L;
+            return Long.compare(a, b);
+          });
           for (Map.Entry<String, ?> entry : oldest) {
             boolean current = false;
             for (String key : keys) if (key.equals(entry.getKey())) current = true;

@@ -4124,6 +4124,33 @@
   "notes": "The patch makes PineDrama's 'Google auth available' check return false early so the app uses its web flow. It matters only at sign-in with Google; the account here is already signed in, and signing in is a credentials step the audit does not perform. Owed natural check: Sign in with Google on a fresh install completes instead of failing."
  },
  {
+  "name": "Fix search tab names",
+  "category": "Search",
+  "default": true,
+  "kind": "infrastructure",
+  "source": [
+   "patches/src/main/kotlin/app/morphe/patches/pinedrama/interaction/searchtabs/FixSearchTabNamesPatch.kt",
+   "patches/src/main/kotlin/app/morphe/patches/pinedrama/interaction/searchtabs/Fingerprints.kt",
+   "extensions/pinedrama/src/main/java/app/morphe/extension/pinedrama/search/SearchTabTitles.java"
+  ],
+  "settings": [],
+  "surface": "search",
+  "checks": [
+   {
+    "id": "registered",
+    "what": "The patch applied: it registered itself with the build details.",
+    "steps": [
+     {
+      "probe": "report",
+      "expect": "registered_switches:[^\\n]*\\bsearchTabNameFix\\b"
+     }
+    ],
+    "auto": true
+   }
+  ],
+  "notes": "The server's search_vertical_tab_config can name a tab with an unfilled template such as ${drama_tab_name}, which only some accounts receive. Owed natural check: on such an account, search results show the Drama tab under its real name."
+ },
+ {
   "name": "Ghost mode",
   "category": "Privacy",
   "default": true,

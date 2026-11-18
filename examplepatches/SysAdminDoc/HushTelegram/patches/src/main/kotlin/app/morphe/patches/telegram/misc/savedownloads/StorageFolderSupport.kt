@@ -40,6 +40,7 @@ internal const val STORAGE_CACHE_FINAL = "$LOAD_OPERATION->cacheFileFinal:Ljava/
 internal const val STORAGE_STORE_PATH = "$LOAD_OPERATION->storePath:Ljava/io/File;"
 internal const val STORAGE_STORE_NAME = "$LOAD_OPERATION->storeFileName:Ljava/lang/String;"
 internal const val STORAGE_MANAGE_PERMISSION = "android.permission.MANAGE_EXTERNAL_STORAGE"
+internal const val STORAGE_MANAGER_CHECK = "Landroid/os/Environment;->isExternalStorageManager()Z"
 
 /**
  * Asks for All files access, which Android grants only from its own settings page, so the storage
@@ -63,8 +64,11 @@ internal val storageFolderManifestPatch = resourcePatch {
     }
 }
 
-/** The one place Telegram keeps its Android 11 folder, or [missing], why this build keeps Android/data. */
-internal class StorageFolderPlan(val method: MutableMethod?, val at: Int, val missing: String?) {
+/**
+ * The one place Telegram keeps its Android 11 folder, or [missing], why this build keeps Android/data.
+ * [ownFolder] is an app that already moves that folder itself, so nothing is missing to warn about.
+ */
+internal class StorageFolderPlan(val method: MutableMethod?, val at: Int, val missing: String?, val ownFolder: Boolean = false) {
     /** The folder goes past the extension right before Telegram keeps it, on the method or on what [into] makes of it. */
     fun apply(into: (MutableMethod) -> MutableMethod = { it }) {
         val target = into(method!!)
@@ -80,6 +84,7 @@ internal class StorageFolderPlan(val method: MutableMethod?, val at: Int, val mi
 
     companion object {
         fun missing(why: String) = StorageFolderPlan(null, -1, why)
+        fun ownFolder() = StorageFolderPlan(null, -1, "the app keeps its own storage folder", ownFolder = true)
     }
 }
 
@@ -195,7 +200,8 @@ internal fun BytecodePatchContext.resolveOlderLoads(): OlderFilePlan {
  * too. The SD card fallback never starts from getExternalFilesDir, and the older Android path does
  * only in the Play build, after the Android 11 branch. So the first site in code order is the
  * Android 11 one. No site, more than two, or a jump onto any of its last three instructions keeps
- * Android/data.
+ * Android/data. Plus Messenger asks for All files access there and moves the folder to Internal storage
+ * itself, so it keeps its own.
  */
 internal fun BytecodePatchContext.resolveStorageFolder(): StorageFolderPlan {
     val owner = tgMutableClassDefByOrNull(IMAGE_LOADER) ?: return StorageFolderPlan.missing("ImageLoader is missing")
@@ -204,6 +210,7 @@ internal fun BytecodePatchContext.resolveStorageFolder(): StorageFolderPlan {
     }
     val method = methods.singleOrNull() ?: return StorageFolderPlan.missing("ImageLoader.createMediaPaths changed")
     val body = method.controlBody()
+    if (body.any { it.opcode == Opcode.INVOKE_STATIC && it.controlRef() == STORAGE_MANAGER_CHECK }) return StorageFolderPlan.ownFolder()
     val sites = (4 until body.size).filter { at ->
         val made = body[at - 1].namedRegisters()
         body[at].opcode == Opcode.IPUT_OBJECT && body[at].controlRef() == STORAGE_TELEGRAM_PATH &&

@@ -1,5 +1,5 @@
 {
-  "version": "v1.39.0",
+  "version": "v1.41.0",
   "patches": [
     {
       "name": "Add to queue",
@@ -1920,11 +1920,11 @@
     },
     {
       "name": "Hide overlay filter",
-      "description": "Removes, at compile time, the dark overlay that appears when player flyout menus are open.",
-      "use": false,
+      "description": "Adds an option to hide the dark overlay behind player flyout menus.",
+      "use": true,
       "dependencies": [
         "ResourcePatch",
-        "BytecodePatch"
+        "ResourcePatch"
       ],
       "compatiblePackages": {
         "com.google.android.apps.youtube.music": [
@@ -1985,9 +1985,12 @@
     },
     {
       "name": "Hide player overlay filter",
-      "description": "Removes, at compile time, the dark overlay that appears when single-tapping in the player.",
-      "use": false,
-      "dependencies": [],
+      "description": "Adds an option to hide the dark overlay behind the player controls.",
+      "use": true,
+      "dependencies": [
+        "ResourcePatch",
+        "ResourcePatch"
+      ],
       "compatiblePackages": {
         "com.google.android.apps.youtube.music": [
           "9.40.51",
@@ -3417,87 +3420,7 @@
           "20.05.46"
         ]
       },
-      "options": [
-        {
-          "key": "cornerRadius",
-          "title": "Corner radius",
-          "description": "Specify a corner radius for the snack bar.",
-          "required": true,
-          "type": "kotlin.String",
-          "default": "8.0dip",
-          "values": null
-        },
-        {
-          "key": "applyCornerRadiusToPlaylistBottomBar",
-          "title": "Apply corner radius to playlist bottom bar",
-          "description": "Whether to apply the same corner radius to the bottom bar of the playlist as the snack bar.",
-          "required": true,
-          "type": "kotlin.Boolean",
-          "default": false,
-          "values": null
-        },
-        {
-          "key": "darkThemeBackgroundColor",
-          "title": "Dark theme background color",
-          "description": "Specify a background color for the snack bar. You can specify hex color (#AARRGGBB) or color resource reference.",
-          "required": true,
-          "type": "kotlin.String",
-          "default": "@color/yt_black3",
-          "values": {
-            "YouTube Dark": "@color/yt_black3",
-            "Amoled Black": "@android:color/black",
-            "Material You (Neutral)": "@android:color/system_neutral1_900",
-            "Material You - Primary": "@android:color/system_accent1_800",
-            "Material You - Secondary": "@android:color/system_accent2_800",
-            "Material You - Tertiary": "@android:color/system_accent3_800",
-            "Modern YouTube": "#FF0F0F0F",
-            "Classic (Old YouTube)": "#FF212121",
-            "Catppuccin (Mocha)": "#FF181825",
-            "Dark Pink": "#FF290025",
-            "Dark Blue": "#FF001029",
-            "Dark Green": "#FF002905",
-            "Dark Yellow": "#FF282900",
-            "Dark Orange": "#FF291800",
-            "Dark Red": "#FF290000"
-          }
-        },
-        {
-          "key": "lightThemeBackgroundColor",
-          "title": "Light theme background color",
-          "description": "Specify a background color for the snack bar. You can specify hex color (#AARRGGBB) or color resource reference.",
-          "required": true,
-          "type": "kotlin.String",
-          "default": "@color/yt_white3",
-          "values": {
-            "YouTube Light": "@color/yt_white3",
-            "White": "@android:color/white",
-            "Material You (Neutral)": "@android:color/system_neutral1_100",
-            "Material You - Primary": "@android:color/system_accent1_200",
-            "Material You - Secondary": "@android:color/system_accent2_200",
-            "Material You - Tertiary": "@android:color/system_accent3_200",
-            "Catppuccin (Latte)": "#FFE6E9EF",
-            "Light Pink": "#FFFCCFF3",
-            "Light Blue": "#FFD1E0FF",
-            "Light Green": "#FFCCFFCC",
-            "Light Yellow": "#FFFDFFCC",
-            "Light Orange": "#FFFFE6CC",
-            "Light Red": "#FFFFD6D6"
-          }
-        },
-        {
-          "key": "strokeColor",
-          "title": "Stroke color",
-          "description": "Specify a stroke color for the snack bar. You can specify hex color.",
-          "required": false,
-          "type": "kotlin.String",
-          "default": "",
-          "values": {
-            "None": "",
-            "Blue": "?attr/ytThemedBlue",
-            "Chip": "?attr/ytChipBackground"
-          }
-        }
-      ]
+      "options": []
     },
     {
       "name": "SponsorBlock",

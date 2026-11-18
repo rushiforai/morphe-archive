@@ -9,6 +9,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-18.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -172,17 +173,6 @@ public class GeneralPatch {
 
     public static void hideTasteBuilder(View view) {
         view.setVisibility(View.GONE);
-    }
-
-    // endregion
-
-    // region [Hide overlay filter] patch
-
-    public static void disableDimBehind(Window window) {
-        if (window != null) {
-            // Disable AlertDialog's background dim.
-            window.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
-        }
     }
 
     // endregion

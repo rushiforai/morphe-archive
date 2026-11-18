@@ -21,6 +21,7 @@ val openLinksInBrowserPatch = bytecodePatch(
     description = "Opens links to other websites in your default browser instead of an in-app browser tab.",
     default = false
 ) {
+    category("App")
     compatibleWith(COMPATIBILITY_QUORA)
 
     extendWith("extensions/extension.mpe")

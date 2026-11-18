@@ -50,7 +50,7 @@ public final class InterfaceArtProbe {
         for (int index = 0; index < types.length; index++) {
             if (types[index] == boolean.class) arguments[index] = stockFlag;
             else if (types[index].isEnum()) arguments[index] = types[index].getEnumConstants()[0];
-            else if (types[index].getName().equals("tb9")) arguments[index] = Class.forName("sb9").getField("a").get(null);
+            else if (types[index].getName().equals("fa9")) arguments[index] = Class.forName("ea9").getField("a").get(null);
         }
         return constructor.newInstance(arguments);
     }
@@ -60,8 +60,8 @@ public final class InterfaceArtProbe {
      * ("Visible(buttons=[GiftASubButton, BitsButton], isViewerFollowing=true)" or "Hidden").
      */
     private static String chatHeader(boolean following, String subscription, boolean bits, boolean upgrade) throws Exception {
-        // The stock control has no locators, so the fallback is Twitch 31.8.0's name (ex5 in 31.7.0).
-        Class<?> stateType = Class.forName(ProbeLocators.type("twitch.match.chat_header_buttons_state", "pw5"));
+        // The stock control has no locators, so the fallback is Twitch 32.1.0's name (ax5 in 31.9.0).
+        Class<?> stateType = Class.forName(ProbeLocators.type("twitch.match.chat_header_buttons_state", "fv5"));
         Constructor<?> constructor = stateType.getConstructors()[0];
         Class<?>[] types = constructor.getParameterTypes();
         check(types.length == 5 && types[1].isEnum() && types[3] == boolean.class && types[4] == boolean.class,
@@ -77,12 +77,12 @@ public final class InterfaceArtProbe {
         check(follow != null, "No chat header follow state constructor");
         @SuppressWarnings({"unchecked", "rawtypes"})
         Object state = Enum.valueOf((Class) types[1], subscription);
-        // R8 names are Twitch 31.8.0's: rw5 is the promo discount NoDiscount, ow5(0) the buttons mapper.
-        Object noDiscount = Class.forName("rw5").getField("a").get(null);
-        check(noDiscount.toString().equals("NoDiscount") && types[2].isInstance(noDiscount), "rw5 is not NoDiscount");
+        // R8 names are Twitch 32.1.0's: hv5 is the promo discount NoDiscount, wo5(11) the buttons mapper.
+        Object noDiscount = Class.forName("hv5").getField("a").get(null);
+        check(noDiscount.toString().equals("NoDiscount") && types[2].isInstance(noDiscount), "hv5 is not NoDiscount");
         Object eligibility = constructor.newInstance(follow, state, noDiscount, bits, upgrade);
         check(eligibility.toString().startsWith("ButtonsEligibilityState(followState="), "Not the chat header buttons state");
-        Object mapper = Class.forName("ow5").getConstructor(int.class).newInstance(0);
+        Object mapper = Class.forName("wo5").getConstructor(int.class).newInstance(11);
         return String.valueOf(mapper.getClass().getMethod("invoke", Object.class).invoke(mapper, eligibility));
     }
     private static void chatHeaders(boolean stock) throws Exception {
@@ -118,8 +118,8 @@ public final class InterfaceArtProbe {
         if (args.length > 1) ProbeLocators.load(args[1]);
         if (!stock) settings();
         chatHeaders(stock);
-        // R8 names are Twitch 31.8.0's: profile tabs sov, chat toolbar state ix70, one-chat state t9s.
-        Class<?> tabType = Class.forName("sov");
+        // R8 names are Twitch 32.1.0's: profile tabs shv, chat toolbar state kr70, one-chat state l5s.
+        Class<?> tabType = Class.forName("shv");
         Object entries = tabType.getMethod("getEntries").invoke(null);
         List<String> original = Arrays.asList("HOME", "ABOUT", "CLIPS", "VIDEOS", "SCHEDULE", "CHAT");
         check(names((List<?>) entries).equals(original), "Unexpected stock profile tab list");
@@ -152,12 +152,13 @@ public final class InterfaceArtProbe {
             switches.put("hide_tipping", enabled);
             for (boolean initial : new boolean[]{false, true}) {
                 boolean expected = initial && (stock || !enabled);
-                Object toolbar = state("ix70", initial);
+                Object toolbar = state("kr70", initial);
                 check(flag(toolbar, "k") == expected && flag(toolbar, "m") == expected, "Native chat Bits button/tray flags differ");
                 check(flag(toolbar, "n") == initial && flag(toolbar, "p") == initial, "Typed cheer/shared chat state changed");
-                Object oneChat = state("t9s", initial);
+                Object oneChat = state("l5s", initial);
                 check(flag(oneChat, "e") == expected && flag(oneChat, "k") == expected, "Native OneChat Bits/one-tap flags differ");
-                check(flag(oneChat, "a") == initial && flag(oneChat, "b") == initial && flag(oneChat, "p") == initial, "Ordinary chat visibility changed");
+                // isVisible and isMessageInputVisible (31.9.0 dropped isOneChatIngressEnabled).
+                check(flag(oneChat, "a") == initial && flag(oneChat, "b") == initial, "Ordinary chat visibility changed");
             }
         }
         System.out.println(stock ? "PASS: original ART enum, chat flag and chat header negative controls" : "PASS: real ART EnumEntries ABI/order/immutability/off identity, native Bits constructors on/off without chat changes, and chat header buttons through Twitch's mapper");

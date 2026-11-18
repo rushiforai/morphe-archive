@@ -212,6 +212,123 @@ public class PinMediaTest {
                 "story_pin_data", Map.of("page_count", 3))).size);
     }
 
+    private static final Map<String, Object> COVER = Map.of("736x", Map.of("url", "https://i.pinimg.com/736x/aa/bb/cc/cover.jpg"));
+    private static final String SMALL = "https://v1.pinimg.com/videos/iht/expmp4/aa/bb/small.mp4";
+    private static final String LARGE = "https://v1.pinimg.com/videos/iht/expmp4/aa/bb/large.mp4";
+    private static final String STREAM = "https://v1.pinimg.com/videos/iht/hls/aa/bb/master.m3u8";
+
+    private static Map<String, Object> rendition(String url, int width, int height) {
+        return Map.of("url", url, "width", width, "height", height);
+    }
+
+    /** The video an idea pin's page or video block carries, under the keys 14.45.0 asks the API for. */
+    private static Map<String, Object> pageVideo() {
+        return Map.of("video_list", Map.of(
+                "V_HEVC_MP4_T1_V2", rendition(SMALL, 240, 426),
+                "V_HEVC_MP4_T5_V2", rendition(LARGE, 1080, 1920),
+                "V_HLSV3_MOBILE", rendition(STREAM, 1080, 1920)));
+    }
+
+    private static PinMedia.Resolution ideaPin(Map<String, Object> story) {
+        return PinMedia.resolve(Map.of("id", "123", "images", COVER, "story_pin_data", story));
+    }
+
+    @Test public void anIdeaPinsVideoIsFoundOnItsPages() {
+        PinMedia.Resolution onPage = ideaPin(Map.of("total_video_duration", "0:15",
+                "pages", List.of(Map.of("video", pageVideo()))));
+        assertEquals("the largest MP4 on the page", LARGE, onPage.source.url);
+        assertEquals("video/mp4", onPage.source.mime);
+        assertNull(onPage.refusal);
+        assertEquals(Integer.valueOf(1080), onPage.width);
+        assertEquals(PinMedia.Kind.VIDEO, PinMedia.kind(onPage));
+
+        assertEquals("in a video block", LARGE, ideaPin(Map.of("pages", List.of(Map.of("blocks", List.of(
+                Map.of("image", COVER), Map.of("video", pageVideo())))))).source.url);
+        assertEquals("the preview pages a grid pin carries", LARGE, ideaPin(Map.of(
+                "pages_preview", List.of(Map.of("video", pageVideo())))).source.url);
+        assertEquals("a still page before the video page", LARGE, ideaPin(Map.of("pages", List.of(
+                Map.of("image", COVER), Map.of("video", pageVideo())))).source.url);
+    }
+
+    @Test public void anIdeaPageOfferingOnlyAStreamIsJoinedAndADashManifestStaysRefused() {
+        PinMedia.Resolution stream = ideaPin(Map.of("pages", List.of(Map.of("video", Map.of("video_list", Map.of(
+                "V_HLSV3_MOBILE", rendition(STREAM, 720, 1280)))))));
+        assertEquals(STREAM, stream.source.url);
+        assertTrue(stream.source.stream);
+
+        PinMedia.Resolution dash = ideaPin(Map.of("total_video_duration", "0:15", "pages", List.of(Map.of("video", Map.of("video_list", Map.of(
+                "V_DASH_HEVC", rendition("https://v1.pinimg.com/videos/iht/dash/aa/bb/master.mpd", 720, 1280)))))));
+        assertNull("never the cover", dash.source);
+        assertEquals(PinMedia.Refusal.ADAPTIVE_VIDEO, dash.refusal);
+    }
+
+    @Test public void aPinsOwnVideoComesFirstAndStillPagesKeepTheImage() {
+        PinMedia.Resolution own = PinMedia.resolve(Map.of("id", "123", "images", COVER,
+                "videos", Map.of("video_list", Map.of("V_720P", rendition(SMALL, 720, 1280))),
+                "story_pin_data", Map.of("pages", List.of(Map.of("video", pageVideo())))));
+        assertEquals(SMALL, own.source.url);
+
+        PinMedia.Resolution still = ideaPin(Map.of("total_video_duration", "0",
+                "pages", List.of(Map.of("image", COVER), Map.of("blocks", List.of(Map.of("image", COVER))))));
+        assertEquals("https://i.pinimg.com/736x/aa/bb/cc/cover.jpg", still.source.url);
+        assertEquals(PinMedia.Kind.IMAGE, PinMedia.kind(still));
+    }
+
+    /** Pinterest's own models: a page's blocks are wrappers with no JSON names, one slot per block type. */
+    @Test public void anIdeaPinsVideoBlockIsReadThroughPinterestsBlockWrapper() {
+        Video video = new Video();
+        video.list.put("V_HEVC_MP4_T1_V2", new Image(SMALL, 240, 426));
+        video.list.put("V_HEVC_MP4_T5_V2", new Image(LARGE, 1080, 1920));
+        IdeaPage page = new IdeaPage();
+        page.blocks = List.of(new BlockSlot(new ImageBlock(), null), new BlockSlot(null, new VideoBlock(video)));
+        IdeaPin pin = new IdeaPin();
+        pin.story.pages = List.of(page);
+        assertEquals(LARGE, PinMedia.resolve(pin).source.url);
+
+        IdeaPage onPage = new IdeaPage();
+        onPage.video = video;
+        pin.story.pages = List.of(onPage);
+        assertEquals(LARGE, PinMedia.resolve(pin).source.url);
+    }
+
+    public static final class IdeaPin {
+        @Json("id") String id = "123456";
+        @Json("images") Map<String, Image> images = new HashMap<>();
+        @Json("videos") Video videos;
+        @Json("story_pin_data") IdeaData story = new IdeaData();
+    }
+
+    public static final class IdeaData {
+        @Json("pages") List<IdeaPage> pages;
+        @Json("total_video_duration") String duration = "0:15";
+    }
+
+    public static final class IdeaPage {
+        @Json("video") Video video;
+        @Json("blocks") List<BlockSlot> blocks;
+    }
+
+    public static final class BlockSlot {
+        final ImageBlock image;
+        final VideoBlock video;
+
+        BlockSlot(ImageBlock image, VideoBlock video) {
+            this.image = image; this.video = video;
+        }
+    }
+
+    public static final class ImageBlock {
+        @Json("block_type") Integer type = 2;
+    }
+
+    public static final class VideoBlock {
+        @Json("video") Video video;
+
+        VideoBlock(Video video) {
+            this.video = video;
+        }
+    }
+
     @Test public void knownPinsCarrySpecificRefusalsWithoutGuessingAMediaSource() {
         assertEquals(PinMedia.Refusal.IMAGE_MISSING, PinMedia.resolve(Map.of("id", "123", "images", Map.of())).refusal);
         assertEquals("a crop alone is no image", PinMedia.Refusal.IMAGE_MISSING, PinMedia.resolve(Map.of("id", "123", "images", Map.of(

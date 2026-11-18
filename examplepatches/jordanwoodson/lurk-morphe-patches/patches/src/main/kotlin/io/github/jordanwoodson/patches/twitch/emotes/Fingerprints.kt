@@ -56,11 +56,21 @@ internal object EmoteSpanFingerprint : Fingerprint(
     parameters = listOf("Landroid/content/Context;", "Ljava/lang/String;", TUID, "L", "Z", "Ljava/lang/Integer;", EVENT_DISPATCHER),
 )
 
-// Loads the images of a chat line's image spans (emotes, badges) with Glide, sized by each span's size class.
+// Loads the images of a chat line's image spans (emotes, badges) with Glide, sized by each span's size class:
+// one Glide target per placeholder drawable among the line's spans.
 internal object ChatImageLoaderFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.FINAL),
     returnType = "Ljava/util/List;",
     parameters = listOf("Landroid/content/Context;", "Landroid/text/Spanned;", "Landroid/widget/TextView;"),
+    filters = listOf(methodCall(definingClass = "Landroid/text/Spanned;", name = "getSpans")),
+)
+
+// That Glide target's constructor (context, placeholder, box size): it gives the placeholder the box and keeps
+// whether the size class fits the image by height.
+internal object ChatImageTargetFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.CONSTRUCTOR),
+    returnType = "V",
+    parameters = listOf("Landroid/content/Context;", "L", "I"),
     filters = listOf(methodCall(name = "isHeightConstrained", parameters = emptyList(), returnType = "Z")),
 )
 

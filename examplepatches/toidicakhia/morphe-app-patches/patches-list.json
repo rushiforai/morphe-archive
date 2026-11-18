@@ -4,7 +4,7 @@
   "patches": [
     {
       "name": "Auto claim Benefits tasks",
-      "description": "Injects a clicker into the Benefits/task-center webview that presses the page's own controls by CSS selector: the reward popup button, task card claim/watch actions, the daily check-in button and today's check-in icon. Complete, subscribe/remind and close controls are never touched, and an overlay shows whether it is clicking, waiting for an ad, and which control it pressed. Use it together with \"Auto reward ads\" so the ad closes itself once watched; if the web app renames its classes the clicker stops until it is updated.",
+      "description": "Presses the Benefits/task-center controls by CSS selector (watch-ad group, check-in, lucky bag) and shows what it clicked. Skips complete, subscribe, card-exchange and disabled controls, and drops an inert one for a minute. Closes the check-in page when done. Pair it with \"Auto reward ads\".",
       "default": false,
       "category": null,
       "compatiblePackages": [
@@ -38,7 +38,7 @@
     },
     {
       "name": "Auto reward ads",
-      "description": "Lets rewarded videos play normally and closes the ad right after the reward is earned, so ad completion stays server-valid while the end card does not need to be dismissed by hand. Only the ad activity that is on top is finished. The full-screen native ad the app shows afterwards is dismissed too, otherwise the Benefits page never receives its reward callback.",
+      "description": "Closes a rewarded video as soon as the reward is granted, plus the native ad that follows, so completion stays server-valid and the Benefits page gets its callback.",
       "default": true,
       "category": null,
       "compatiblePackages": [
@@ -129,6 +129,40 @@
               },
               "isExperimental": false,
               "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Bypass SSL pinning",
+      "description": "Skips TeraBox certificate pinning and hostname checks, trusts user-installed certificates and lets the WebView ignore certificate errors, so a proxy can read HTTPS.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.dubox.drive",
+          "name": "TeraBox",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#226DF6",
+          "signatures": [
+            "b75fd2b70084d7e0813b8f74dd74b62ab79b2aa0ce1372331a1841bd88eed993"
+          ],
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "4.27.5",
+              "versionCodes": {
+                "ARM64_V8A": 702,
+                "ARMEABI_V7A": 702,
+                "X86_64": 702,
+                "X86": 702
+              },
+              "isExperimental": false,
+              "minSdk": 23,
               "description": null
             }
           ]
@@ -468,7 +502,7 @@
     },
     {
       "name": "Spoof signature",
-      "description": "Makes the re-signed APK report the stock developer certificate and disables Play Integrity token requests, so Google login and TeraBox's anti-cheat accept the patched app. Skip it when patching with another set that already spoofs the signature.",
+      "description": "Reports the stock certificate and skips Play Integrity so Google login and TeraBox's anti-cheat accept the re-signed APK. Not for sets that already spoof it.",
       "default": false,
       "category": null,
       "compatiblePackages": [

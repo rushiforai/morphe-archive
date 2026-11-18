@@ -68,10 +68,10 @@ run python3 -I "$ROOT/tests/kick/test_chat_parity.py"
 # The emitted smali: decode the patched APK's code (no resources) and compare with the stock decode.
 note "decoding $(basename "$apk") with apktool"
 java -jar "$APKTOOL_JAR" d -f -r -p "$WORK/apktool-framework" -o "$out/apktool" "$apk" >/dev/null
-if grep -qs 'SleepTimer;->guardPauseOperation' "$out"/apktool/smali*/com/kick/mobile/kickivsplayerv2/KickIvsPlayerV2View.smali; then
-    run python3 -I "$ROOT/tests/kick/verify_sleep_queue.py" "$out/apktool"
+if grep -qs 'KickPlayer;->onPlayWhenReady' "$out"/apktool/smali*/com/kick/mobile/playerv3/player/VideoPlayer\$*.smali; then
+    run python3 -I "$ROOT/tests/kick/verify_sleep_timer.py" "$out/apktool"
 else
-    note "skipped verify_sleep_queue.py: the APK has no Sleep timer"
+    note "skipped verify_sleep_timer.py: the APK has no Sleep timer"
 fi
 # bin/decompile keeps the stock decode next to the stock bundle: kick/<version>/{hermes,apktool}.
 stock_decoded="$(dirname "$(dirname "$stock")")/apktool"

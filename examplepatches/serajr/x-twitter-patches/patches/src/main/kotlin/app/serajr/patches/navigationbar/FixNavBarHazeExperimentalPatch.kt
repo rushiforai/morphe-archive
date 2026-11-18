@@ -94,6 +94,7 @@ private const val DEBUG_MAGENTA_TINT = false
 private const val USE_PROGRESSIVE_HAZE = true
 private const val PROGRESSIVE_BLUR_RADIUS = 32.0f
 private const val USE_PROGRESSIVE_MASK = true
+private const val DISABLE_NATIVE_BLUR = true
 private const val PROGRESSIVE_MASK_FACTORY = "Lcom/google/firebase/perf/logging/b;->J(Ljava/util/List;FFI)Landroidx/compose/ui/graphics/t0;"
 private const val PROGRESSIVE_MASK_SETTER = "Ldev/chrisbanes/haze/blur/l;->c(Landroidx/compose/ui/graphics/v;)V"
 private const val MASK_BLACK = "Landroidx/compose/ui/graphics/z;->b:J"
@@ -133,10 +134,33 @@ private fun Method.refAt(index: Int): String? =
     (implementation?.instructions?.elementAtOrNull(index)
         as? ReferenceInstruction)?.reference?.toString()
 
+// Resolve the boolean override recorder without relying on obfuscated names.
+private fun Method.isNativeBlurRecorder(): Boolean {
+    if (!definingClass.startsWith("Ldev/chrisbanes/haze/")) return false
+    if (!AccessFlags.PUBLIC.isSet(accessFlags) || AccessFlags.STATIC.isSet(accessFlags)) return false
+    if (returnType != "V" || parameterTypes.map { it.toString() } != listOf("Z")) return false
+    val impl = implementation ?: return false
+    val input = impl.registerCount - 1
+    val instructions = impl.instructions.toList()
+    val boxing = instructions.filter {
+        it.opcode == Opcode.INVOKE_STATIC &&
+            (it as? ReferenceInstruction)?.reference?.toString() ==
+            "Ljava/lang/Boolean;->valueOf(Z)Ljava/lang/Boolean;"
+    }
+    if (boxing.size != 1) return false
+    val call = boxing.single() as? FiveRegisterInstruction ?: return false
+    if (call.registerCount != 1 || call.registerC != input) return false
+    return instructions.any {
+        it.opcode == Opcode.INVOKE_INTERFACE &&
+            (it as? ReferenceInstruction)?.reference?.toString() ==
+            "Ljava/util/Collection;->add(Ljava/lang/Object;)Z"
+    }
+}
+
 @Suppress("unused")
 val fixNavigationBarHazeExperimentalPatch = bytecodePatch(
     name = "Fix Navigation Bar Haze (Experimental)",
-    description = "D3-K1A.11-T10-B1-T4B-R1: native solid or progressive Navigation Bar Haze with configurable radius and optional linear mask.",
+    description = "D3-K1A.11-T10-B1-T4C: native solid or progressive Navigation Bar Haze with configurable radius, optional linear mask and global blur disable.",
     default = false
 ) {
     compatibleWith(Constants.COMPATIBILITY_X)
@@ -147,6 +171,7 @@ val fixNavigationBarHazeExperimentalPatch = bytecodePatch(
         var originalTabContent: Method? = null
         var originalTabPush: Method? = null
         var tabAnchor = -1
+        val blurRecorders = mutableListOf<Method>()
 
         val requiredMethods = setOf(
             "Landroidx/compose/foundation/layout/s;->a(Landroidx/compose/ui/Modifier;Landroidx/compose/runtime/Composer;I)V",
@@ -199,6 +224,7 @@ val fixNavigationBarHazeExperimentalPatch = bytecodePatch(
 
         classDefForEach { classDef ->
             classDef.methods.forEach { method ->
+                if (DISABLE_NATIVE_BLUR && method.isNativeBlurRecorder()) blurRecorders.add(method)
                 val descriptor = method.toString()
                 if (descriptor in requiredMethods) {
                     foundMethods.add(descriptor)
@@ -336,6 +362,19 @@ val fixNavigationBarHazeExperimentalPatch = bytecodePatch(
                 "Missing methods: ${requiredMethods - foundMethods}; " +
                 "fields: ${requiredFields - foundFields}"
         }
+
+        val blurRecorder = if (DISABLE_NATIVE_BLUR) {
+            require(blurRecorders.size == 1) {
+                "FixNavigationBarHaze T4C: expected one blur recorder, found ${blurRecorders.map { it.toString() }}"
+            }
+            val original = blurRecorders.single()
+            val mutable = mutableClassDefBy(original.definingClass).methods.single {
+                it.toString() == original.toString()
+            }
+            val input = (mutable.implementation ?: error("T4C: missing recorder body")).registerCount - 1
+            require(input in 1..255) { "T4C: invalid blur recorder input register: v$input" }
+            mutable to input
+        } else null
 
         val root = originalRoot
             ?: error("FixNavigationBarHaze: MainActivity.P not found.")
@@ -590,7 +629,7 @@ val fixNavigationBarHazeExperimentalPatch = bytecodePatch(
             mutableClass.methods.add(method)
         }
 
-        // T4B-R1: isolated, cached progressive-only callback.
+        // T4C: isolated, cached progressive-only callback.
         // Stock p0 instances retain their original invoke path.
         if (USE_PROGRESSIVE_HAZE) {
             require(PROGRESSIVE_BLUR_RADIUS.isFinite() && PROGRESSIVE_BLUR_RADIUS > 0f)
@@ -604,7 +643,7 @@ val fixNavigationBarHazeExperimentalPatch = bytecodePatch(
                 it.name == "invoke" && it.returnType == "Ljava/lang/Object;" &&
                     it.parameterTypes.map { p -> p.toString() } == listOf("Ljava/lang/Object;")
             }
-            val impl = invoke.implementation ?: error("T4B-R1: missing callback implementation")
+            val impl = invoke.implementation ?: error("T4C: missing callback implementation")
             require(impl.registerCount == 14 &&
                 impl.instructions[0].opcode == Opcode.CHECK_CAST &&
                 invoke.refAt(0) == "Ldev/chrisbanes/haze/blur/l;" &&
@@ -613,7 +652,7 @@ val fixNavigationBarHazeExperimentalPatch = bytecodePatch(
                 invoke.refAt(1) == "Lcom/x/compose/core/s0;->b:Landroidx/compose/ui/graphics/t0;" &&
                 (impl.instructions[1] as? OneRegisterInstruction)?.registerA == 0 &&
                 impl.instructions.any { (it as? ReferenceInstruction)?.reference?.toString() == PROGRESSIVE_SETTER }
-            ) { "T4B-R1: unexpected native callback layout" }
+            ) { "T4C: unexpected native callback layout" }
             require(mutableClass.fields.none { it.name == "serajrNavProgressive" })
             require(mutableClass.methods.none { it.name == "serajrGetNavProgressive" })
             callback.fields.add(ImmutableField(PROGRESSIVE_CALLBACK, "serajrProgressiveOnly", "Z",
@@ -1406,7 +1445,7 @@ val fixNavigationBarHazeExperimentalPatch = bytecodePatch(
                 sput-boolean v0, $versionLoggedField
 
                 const-string v0, "$DIAG_TAG"
-                const-string v1, "D3-K1A.11-T10-B1-T4B-R1 ACTIVE"
+                const-string v1, "D3-K1A.11-T10-B1-T4C ACTIVE"
 
                 invoke-static {v0, v1}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
 
@@ -1621,6 +1660,12 @@ val fixNavigationBarHazeExperimentalPatch = bytecodePatch(
 
         // T5: publish the active root snapshot without clobbering v9.
         rootObserver.addInstructions(64, "invoke-static {v9}, $PUBLISH_ROOT_CONTEXT")
+
+        // T4C: disable native Haze blur globally, retaining all other overrides.
+        blurRecorder?.let { (method, input) ->
+            val opcode = if (input <= 15) "const/4" else "const/16"
+            method.addInstructions(0, "$opcode v$input, 0x0")
+        }
 
         // ============================================================
         // END D3-K1A.11-T5

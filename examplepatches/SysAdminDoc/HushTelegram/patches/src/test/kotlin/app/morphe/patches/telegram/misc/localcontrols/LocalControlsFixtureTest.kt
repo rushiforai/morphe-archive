@@ -8,7 +8,6 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.PlusPending
 import app.morphe.util.names.loadsInt
 import app.morphe.util.names.origRef
 import app.morphe.util.names.addInstruction
@@ -27,6 +26,7 @@ import app.morphe.patches.telegram.misc.paste.*
 import app.morphe.util.ControlFlow
 import app.morphe.util.call
 import app.morphe.util.namedRegisters
+import app.morphe.util.writesReaching
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -56,7 +56,6 @@ import app.morphe.util.names.TelegramNames
 import app.morphe.util.names.tgClassDefByOrNull
 import app.morphe.util.names.tgMutableClassDefBy
 
-@PlusPending
 class LocalControlsFixtureTest {
     @Test fun `normal paste changes only the action operand before the complete stock editor`() {
         for (build in Fixtures.declaredBuilds()) {
@@ -198,6 +197,20 @@ class LocalControlsFixtureTest {
             // The Members page and the two lists on a group's profile. The invite link sheet looks members up in a loop and isn't one.
             assertEquals("${build.name}: member lists", 3, plan.binders.size)
             assertEquals("${build.name}: member rows", 2, plan.cells.size)
+            // Web and Play write the time they saved a member over its date; Plus Messenger keeps the member's own, unhooked.
+            assertEquals("${build.name}: the saved member list's reader is hooked", !plusMessenger(build), plan.loader != null)
+            if (plan.loader == null) {
+                val reader = savedReader(context)
+                val body = reader.controlBody()
+                assertTrue("${build.name}: nothing writes over a saved member's date", body.none { it.opcode == Opcode.IPUT && it.controlRef() == JD_CHANNEL_DATE })
+                // Every column it reads a number from is one it loads, and none is column 3, cu.date.
+                val flow = ControlFlow.of(reader)
+                val columns = body.indices.filter { body[it].controlRef() == JD_CURSOR_INT }.flatMap { at ->
+                    flow.writesReaching(at, body[at].namedRegisters()[1]).map { from ->
+                        body.getOrNull(from)?.takeIf { it.opcode == Opcode.CONST_4 }?.let { (it as WideLiteralInstruction).wideLiteral } }
+                }
+                assertTrue("${build.name}: the saved member list's columns $columns", columns.isNotEmpty() && null !in columns && 3L !in columns)
+            }
             val stock = plan.methods.associate { key(it) to ImmutableMethod.of(it) }
             val sites = plan.methods.associate { key(it) to plan.sites(it) }
             val hooked = setOf(local, special.putUser, special.updates) + plan.methods + context.resolveForwardDates().first!!.methods
@@ -252,8 +265,13 @@ class LocalControlsFixtureTest {
                         assertEquals(case, before[overwrite].namedRegisters(), after[overwrite + 1].namedRegisters())
                     }
                     method in plan.binders -> {
-                        // Before the one read of the member's user ID, and before the role call on the row it binds.
+                        // Before the last read of the member's user ID, and before the role call on the row it binds. Web and
+                        // Play read it once; Plus Messenger's profile list reads it twice, both times from the same member.
                         val (read, role) = at
+                        val reads = before.indices.filter { before[it].opcode == Opcode.IGET_WIDE && before[it].controlRef() == JD_MEMBER_USER }
+                        assertEquals(case, read, reads.last())
+                        assertTrue(case, reads.size <= if (plusMessenger(build)) 2 else 1)
+                        assertTrue(case, reads.all { before[it].namedRegisters().last() == before[read].namedRegisters().last() })
                         assertEquals(case, JD_MEMBER_HOOK, after[placed(read)].controlRef())
                         assertEquals(case, JD_MEMBER_USER, after[placed(read) + 1].controlRef())
                         assertEquals(case, listOf(before[read].namedRegisters().last()), after[placed(read)].namedRegisters())
@@ -302,15 +320,24 @@ class LocalControlsFixtureTest {
     @Test fun `profile IDs go in without member join dates when a member list or row changed`() {
         val mutations: List<Pair<String, (BytecodePatchContext, MemberJoinDatesPlan) -> Unit>> = listOf(
             "a second Members page" to { c, p -> duplicate(c, p.binders.first()) },
-            "the profile's lists read another member field" to { _, p -> p.binders.drop(1).forEach { m ->
-                val body = m.controlBody(); val at = body.indexOfFirst { it.controlRef() == JD_MEMBER_USER }; val r = body[at].namedRegisters()
-                m.replaceInstruction(at, "iget-wide v${r[0]}, v${r[1]}, $JD_CHAT_PARTICIPANT->inviter_id:J") } },
+            "the profile's lists read another member field" to { _, p -> p.binders.drop(1).forEach { m -> val body = m.controlBody()
+                body.indices.filter { body[it].controlRef() == JD_MEMBER_USER }.forEach { at -> val r = body[at].namedRegisters()
+                    m.replaceInstruction(at, "iget-wide v${r[0]}, v${r[1]}, $JD_CHAT_PARTICIPANT->inviter_id:J") } } },
             "a row's online text gone" to { _, p -> val cell = p.cells.last(); val body = cell.controlBody()
                 val at = body.indexOfFirst { it.loadsInt() && it.controlRef() == JD_ONLINE }
                 cell.replaceInstruction(at, "const v${body[at].namedRegisters().single()}, 0x0") },
-            // Then the date it reads back can't be told from the time the list was saved.
-            "the saved member list's date write gone" to { _, p -> val body = p.loader.controlBody()
-                p.loader.replaceInstruction(body.indexOfFirst { it.opcode == Opcode.IPUT && it.controlRef() == JD_CHANNEL_DATE }, "nop") },
+            // Then where the time it saved a member goes can't be told. Web and Play lose the write over the member's
+            // date; Plus Messenger, which never wrote it, reads that time for the member it just read back.
+            "the saved member list reads the time it saved a member without writing it" to { c, p -> val loader = p.loader
+                if (loader != null) {
+                    val body = loader.controlBody()
+                    loader.replaceInstruction(body.indexOfFirst { it.opcode == Opcode.IPUT && it.controlRef() == JD_CHANNEL_DATE }, "nop")
+                } else {
+                    val reader = savedReader(c); val body = reader.controlBody()
+                    val member = body.indexOfFirst { it.call()?.let { m -> m.definingClass == JD_CHANNEL_PARTICIPANT && m.name == "TLdeserialize" } == true }
+                    val read = (member until body.size).first { body[it].controlRef() == JD_CURSOR_INT }
+                    reader.addInstruction(read, "const/4 v${body[read].namedRegisters()[1]}, 0x3")
+                } },
         )
         for (build in Fixtures.declaredBuilds()) for ((name, change) in mutations) {
             val c = context(build)
@@ -640,6 +667,21 @@ class LocalControlsFixtureTest {
         return (JD_KICKED_BY in refs && JD_MEMBER_DATE in refs) || (JD_USER_STATUS in refs && JD_ONLINE in refs) ||
             body.any { it.controlString() == JD_SAVED_MEMBERS } ||
             (JD_MEMBER_USER in refs && body.any { it.call()?.parameterTypes?.map { p -> p.toString() } == JD_ROLE_PARAMETERS })
+    }
+
+    /**
+     * Plus Messenger's fixture. Its profile member list reads a member's user ID twice, and its saved
+     * member list keeps each member's own join date, so that reader has no hook.
+     */
+    private fun plusMessenger(build: File) = build.name.startsWith("plus-")
+
+    /** The saved member list's reader, found by its query the way the patch finds it. */
+    private fun savedReader(c: BytecodePatchContext): MutableMethod {
+        val found = mutableListOf<Method>()
+        c.classDefForEach { cls -> if (!cls.type.startsWith("Lapp/hushtelegram/"))
+            found += cls.methods.filter { m -> m.controlBody().any { it.controlString() == JD_SAVED_MEMBERS } } }
+        val reader = found.single()
+        return c.tgMutableClassDefBy(reader.definingClass).methods.single { it.toString() == reader.toString() }
     }
 
     private fun loadAncestors(build: File, result: MutableMap<String, ClassDef>) {

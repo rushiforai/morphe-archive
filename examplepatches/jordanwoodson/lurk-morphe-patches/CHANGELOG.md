@@ -1,3 +1,51 @@
+## [1.17.1](https://github.com/jordanwoodson/lurk-morphe-patches/compare/v1.17.0...v1.17.1) (2026-11-18)
+
+### Kick
+
+#### 🚀 Updated App Support
+
+* support Kick 40.35.4 ([8427e63](https://github.com/jordanwoodson/lurk-morphe-patches/commit/8427e637855e3759d9967180517e3edb303ae44b))
+
+### Rumble
+
+#### 🚀 Updated App Support
+
+* support Rumble 3.22.0 ([504bf4c](https://github.com/jordanwoodson/lurk-morphe-patches/commit/504bf4c0c7f291ec2e31157b761c77cb9c9db23e))
+
+#### 🐛 Bug Fixes
+
+* **Show video stats:** keep the panel on screen with Fill screen ([0468d40](https://github.com/jordanwoodson/lurk-morphe-patches/commit/0468d40dbac36084d0378e1dab74256ff1926b78))
+
+### Twitch
+
+#### 🚀 Updated App Support
+
+* support Twitch 32.1.0 ([37c35d2](https://github.com/jordanwoodson/lurk-morphe-patches/commit/37c35d268acf2d7b1cafcc9b4a280add77c05bda))
+
+## [1.17.1-dev.1](https://github.com/jordanwoodson/lurk-morphe-patches/compare/v1.17.0...v1.17.1-dev.1) (2026-11-18)
+
+### Kick
+
+#### 🚀 Updated App Support
+
+* support Kick 40.35.4 ([8427e63](https://github.com/jordanwoodson/lurk-morphe-patches/commit/8427e637855e3759d9967180517e3edb303ae44b))
+
+### Rumble
+
+#### 🚀 Updated App Support
+
+* support Rumble 3.22.0 ([504bf4c](https://github.com/jordanwoodson/lurk-morphe-patches/commit/504bf4c0c7f291ec2e31157b761c77cb9c9db23e))
+
+#### 🐛 Bug Fixes
+
+* **Show video stats:** keep the panel on screen with Fill screen ([0468d40](https://github.com/jordanwoodson/lurk-morphe-patches/commit/0468d40dbac36084d0378e1dab74256ff1926b78))
+
+### Twitch
+
+#### 🚀 Updated App Support
+
+* support Twitch 32.1.0 ([37c35d2](https://github.com/jordanwoodson/lurk-morphe-patches/commit/37c35d268acf2d7b1cafcc9b4a280add77c05bda))
+
 ## [1.17.0](https://github.com/jordanwoodson/lurk-morphe-patches/compare/v1.16.1...v1.17.0) (2026-11-15)
 
 ### Kick

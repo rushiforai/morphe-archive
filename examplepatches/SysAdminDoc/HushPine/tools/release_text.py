@@ -1,7 +1,7 @@
 """Release text for HushPine: the CHANGELOG cut, GitHub notes, the guide and the index.
 
   py -3.13 tools/release_text.py cut --version 0.70.0 [--date 2026-10-09]
-  py -3.13 tools/release_text.py github-notes --version 0.70.0 --intro FILE --checked FILE --out FILE
+  py -3.13 tools/release_text.py github-notes --version 0.70.0 --intro FILE --out FILE
   py -3.13 tools/release_text.py guide [--date 2026-10-09]
   py -3.13 tools/release_text.py index --version 0.70.0 --created 2026-10-09T17:03:42
         --readme-summary FILE --bundle-summary FILE --device-line TEXT
@@ -157,12 +157,10 @@ def github_notes(args) -> None:
         fail(f"CHANGELOG has no published {args.version}")
     items = bullets(grouped_changelog(body))
     intro = read(Path(args.intro)).strip()
-    checked = read(Path(args.checked)).strip()
     update = (f"Refresh the HushPine source in Morphe Manager {manager_floor()} or newer and patch PineDrama "
               "again. Keep the manager's existing signing key so your login and settings carry over. "
               "The .mpp is a patch bundle, not a PineDrama APK.")
-    notes = undash(intro + "\n\n## What's changed\n\n" + "\n".join(items) + "\n\n## Update\n\n" + update
-                   + "\n\n## Checked\n\n" + checked + "\n")
+    notes = undash(intro + "\n\n## What's changed\n\n" + "\n".join(items) + "\n\n## Update\n\n" + update + "\n")
     write(Path(args.out), notes)
     print(f"[release] notes for {args.version}: {len(items)} CHANGELOG bullets, {len(notes)} characters")
 
@@ -372,7 +370,7 @@ def main() -> None:
     p.add_argument("--date")
     p.set_defaults(run=cut)
     p = sub.add_parser("github-notes")
-    for name in ("--version", "--intro", "--checked", "--out"):
+    for name in ("--version", "--intro", "--out"):
         p.add_argument(name, required=True)
     p.set_defaults(run=github_notes)
     p = sub.add_parser("guide")

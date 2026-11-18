@@ -8,7 +8,7 @@
  * - anddea (https://github.com/anddea)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-17.
+ * Modified by lavinhoque33, 2026-11-18.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -1161,6 +1161,7 @@ private val rvxPreferenceKey = mapOf(
     "revanced_miniplayer_disable_horizontal_reposition" to "revanced_swipe_horizontal_zone",
     "revanced_miniplayer_double_tap_action" to "revanced_enable_seekbar_tapping",
     "revanced_miniplayer_drag_and_drop" to "revanced_swipe_press_to_engage",
+    "revanced_miniplayer_glass" to "revanced_navigation_bar_animations",
     "revanced_miniplayer_hide_overlay_buttons" to "revanced_preference_screen_player_buttons",
     "revanced_miniplayer_hide_rewind_forward" to "morphe_seek_notification_media_prev_next",
     "revanced_miniplayer_hide_subtext" to "revanced_hide_shorts_video_title",
@@ -1201,6 +1202,12 @@ private val rvxPreferenceKey = mapOf(
     "revanced_show_toolbar_settings_button_index" to "revanced_preference_screen_settings_menu",
     "revanced_show_toolbar_settings_button_type" to "revanced_preference_screen_settings_menu",
     "revanced_show_toolbar_settings_button_type_in_you_tab" to "revanced_preference_screen_settings_menu",
+    "revanced_snack_bar_corner_radius" to "morphe_feed_card_layout_corner_radius",
+    "revanced_snack_bar_dark_fill" to "morphe_dark_theme",
+    "revanced_snack_bar_light_fill" to "morphe_light_theme",
+    "revanced_snack_bar_playlist_radius" to "revanced_hide_category_bar_in_playlist",
+    "revanced_snack_bar_stroke_color" to "revanced_enable_custom_seekbar_color",
+    "revanced_snack_bar_stroke_width" to "morphe_custom_dpi",
     "revanced_speed_overlay_value" to "revanced_overlay_button_speed_dialog",
     "revanced_spoof_app_version_target" to "revanced_spoof_app_version",
     "revanced_spoof_device_dimensions" to "revanced_change_form_factor",

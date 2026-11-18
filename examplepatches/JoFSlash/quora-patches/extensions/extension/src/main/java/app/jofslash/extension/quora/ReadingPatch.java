@@ -1,5 +1,8 @@
 package app.jofslash.extension.quora;
 
+import android.annotation.SuppressLint;
+import android.content.Context;
+import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.util.Log;
 import android.webkit.WebResourceRequest;
@@ -79,6 +82,121 @@ public final class ReadingPatch {
                 + "});}"
                 + observe("run")
                 + "})();", "author filter");
+    }
+
+    /**
+     * Injection point: start of QWebViewClient.onPageFinished. Remembers the feed items you tap and
+     * dims or hides them when the feed shows them again. The list stays in the app's own storage.
+     *
+     * @param mode "dim" or "hide".
+     */
+    public static void hideSeen(WebView webView, String mode) {
+        if (!PatchSettings.active(webView, "hideSeen", "Hide seen items")) return;
+        mode = PatchSettings.choice("hideSeen", "seenMode", "Seen items", mode,
+                new String[]{"Dim", "Hide"}, new String[]{"dim", "hide"}, false);
+        boolean hide = "hide".equals(mode);
+        injectCss(webView, "jofslash-seen", "[data-jofslash-seen]{opacity:.45 !important;}");
+        evaluate(webView, "(function(){"
+                + "if(window.__jofslashSeen)return;window.__jofslashSeen=1;"
+                + "var KEY='jofslash_seen',HIDE=" + hide + ",SEL='[class*=\"dom_annotate_multifeed_bundle_\"]';"
+                + "var list;try{list=JSON.parse(localStorage.getItem(KEY)||'[]');}catch(e){list=[];}"
+                + "if(!Array.isArray(list))list=[];"
+                + "var seen={};list.forEach(function(k){seen[k]=1;});"
+                // The author or Space and the question or post title: stable while counts and dates change.
+                + "function text(e){return e?(e.textContent||'').replace(/\\s+/g,' ').trim():'';}"
+                // The first named profile link (the avatar link has no text), or the Space of a post.
+                + "function key(u){var a='',b='',i,l=u.querySelectorAll('.puppeteer_test_tribe_name,a[href*=\"/profile/\"]');"
+                + "for(i=0;i<l.length&&!a;i++)a=text(l[i]).slice(0,60);"
+                + "var q=u.querySelector('.puppeteer_test_question_title');if(q)b=text(q);"
+                // Posts have no question: take the first longer text that is not the author or Space name.
+                + "else{var t=u.querySelectorAll('.q-text');for(i=0;i<t.length&&!b;i++){if(t[i].querySelector('.q-text'))continue;"
+                + "var s=text(t[i]);if(s.length>=20&&(!a||s.indexOf(a)!==0)&&!/^Posted by/.test(s))b=s;}}"
+                + "b=b.slice(0,100);return !a||b.length<8?'':a+'|'+b;}"
+                + "function remember(k){if(!k||seen[k])return;seen[k]=1;list.push(k);"
+                + "if(list.length>2000)list=list.slice(-2000);try{localStorage.setItem(KEY,JSON.stringify(list));}catch(e){}}"
+                + "window.addEventListener('click',function(ev){var u=ev.target&&ev.target.closest&&ev.target.closest(SEL);"
+                + "if(!u)return;var k=key(u);if(!k)return;remember(k);u.setAttribute('data-jofslash-seen','');},true);"
+                + "function run(){document.querySelectorAll(SEL).forEach(function(u){"
+                + "if(u.hasAttribute('data-jofslash-seen-checked'))return;var k=key(u);if(!k)return;"
+                + "u.setAttribute('data-jofslash-seen-checked','');if(!seen[k])return;"
+                + "if(HIDE){u.setAttribute('data-jofslash-filtered','');u.style.setProperty('display','none','important');}"
+                + "else u.setAttribute('data-jofslash-seen','');});}"
+                + observe("run")
+                + "})();", "seen items");
+    }
+
+    /**
+     * Injection point: start of QWebViewClient.onPageFinished. Hides feed items and answers older than
+     * the given number of years, read from the date Quora shows ("6y", or "Mar 3, 2019").
+     *
+     * @param years Whole years, such as "3".
+     */
+    public static void hideOldAnswers(WebView webView, String years) {
+        if (!PatchSettings.active(webView, "hideOldAnswers", "Hide old answers")) return;
+        years = PatchSettings.choice("hideOldAnswers", "maxAge", "Older than", years,
+                new String[]{"1 year", "2 years", "3 years", "5 years", "10 years"},
+                new String[]{"1", "2", "3", "5", "10"}, false);
+        int limit;
+        try {
+            limit = Integer.parseInt(years == null ? "" : years.trim());
+        } catch (NumberFormatException ex) {
+            return;
+        }
+        if (limit < 1) return;
+        evaluate(webView, "(function(){"
+                + "if(window.__jofslashOld)return;window.__jofslashOld=1;"
+                + "var LIMIT=" + limit + ",now=new Date().getFullYear();"
+                + "function age(t){var m=t.match(/^(\\d+)y$/);if(m)return +m[1];"
+                + "m=t.match(/^[A-Z][a-z]{2} \\d{1,2}, (\\d{4})$/);if(m)return now-(+m[1]);return 0;}"
+                + "function run(){document.querySelectorAll('" + UNITS + "').forEach(function(u){"
+                + "if(u.hasAttribute('data-jofslash-age'))return;"
+                // The first date in the item is its own; later ones belong to comments or shares.
+                + "var links=u.querySelectorAll('a.answer_timestamp,a.puppeteer_test_link');var t='';"
+                // An edited answer shows "Updated 6y".
+                + "for(var i=0;i<links.length&&!t;i++){var s=(links[i].textContent||'').trim().replace(/^Updated /,'');"
+                + "if(/^(\\d+[smhdwy]|[A-Z][a-z]{2} \\d{1,2}(, \\d{4})?|Mon|Tue|Wed|Thu|Fri|Sat|Sun)$/.test(s))t=s;}"
+                + "if(!t)return;u.setAttribute('data-jofslash-age',t);"
+                + "if(age(t)>=LIMIT){u.setAttribute('data-jofslash-filtered','');u.style.setProperty('display','none','important');}"
+                + "});}"
+                + observe("run")
+                + "})();", "old answers");
+    }
+
+    /**
+     * Injection point: start of QWebViewClient.onPageFinished. Adds a Copy button after Share under
+     * answers and posts; it copies their text without formatting.
+     */
+    public static void copyAnswerText(WebView webView) {
+        if (!PatchSettings.active(webView, "copyAnswerText", "Copy answer text")) return;
+        evaluate(webView, "(function(){"
+                + "if(window.__jofslashCopy)return;window.__jofslashCopy=1;"
+                + "var ICON='<svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\">"
+                + "<g class=\"icon_svg-stroke\" stroke=\"#666\" stroke-width=\"1.5\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\">"
+                + "<rect x=\"8.5\" y=\"8.5\" width=\"11\" height=\"12\" rx=\"2\"></rect>"
+                + "<path d=\"M15.5 8.5V6a2 2 0 0 0-2-2h-7a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h2\"></path></g></svg>';"
+                // The answer's text: the answer content in the feed, or the block holding its paragraphs.
+                + "function text(bar){for(var a=bar.parentElement;a&&a!==document.body;a=a.parentElement){"
+                + "var c=a.querySelector('" + ANSWER_TEXT + "');if(c)return c.innerText;"
+                + "var p=a.querySelector('p.q-text');if(p){var box=p.closest('div.q-text')||p.parentElement;return box.innerText;}}"
+                + "return '';}"
+                + "function copy(t){t=(t||'').trim();if(!t)return;"
+                + "if(window.JoFSlashPatches&&window.JoFSlashPatches.copyText)window.JoFSlashPatches.copyText(t);"
+                + "else if(navigator.clipboard)navigator.clipboard.writeText(t);}"
+                + "function run(){document.querySelectorAll('.dom_annotate_answer_action_bar_share').forEach(function(s){"
+                + "if(s.hasAttribute('data-jofslash-copy'))return;s.setAttribute('data-jofslash-copy','');"
+                + "var item=s.parentElement&&s.parentElement.children.length===1?s.parentElement:s;"
+                // The copy must not count as a Share button, or it would be copied again.
+                + "var b=item.cloneNode(true);b.setAttribute('data-jofslash-copy','');"
+                + "[b].concat([].slice.call(b.querySelectorAll('*'))).forEach(function(e){"
+                + "e.classList.remove('dom_annotate_answer_action_bar_share','puppeteer_test_answer_quora_share_button','sprig_share_button');});"
+                + "var svg=b.querySelector('svg');if(!svg)return;svg.outerHTML=ICON;"
+                // The share count, if any, doesn't belong to Copy.
+                + "b.querySelectorAll('.q-text').forEach(function(e){e.remove();});"
+                + "var btn=b.querySelector('button')||b;btn.setAttribute('aria-label','Copy text');"
+                + "b.addEventListener('click',function(ev){ev.preventDefault();ev.stopPropagation();copy(text(item));},true);"
+                + "item.parentElement.insertBefore(b,item.nextSibling);});}"
+                + observe("run")
+                + "})();", "copy answer text");
     }
 
     // ---------------------------------------------------------------- reading
@@ -174,6 +292,8 @@ public final class ReadingPatch {
      */
     public static void answerFont(WebView webView, String font) {
         if (!PatchSettings.active(webView, "answerFont", "Answer font")) return;
+        font = PatchSettings.choice("answerFont", "answerFontStyle", "Font", font,
+                new String[]{"Serif", "Sans-serif"}, new String[]{"serif", "sans"}, false);
         String family = "serif".equals(font)
                 ? "Georgia,\"Noto Serif\",\"Droid Serif\",serif"
                 : "Roboto,\"Noto Sans\",\"Helvetica Neue\",Arial,sans-serif";
@@ -202,6 +322,7 @@ public final class ReadingPatch {
      */
     public static void dataSaverPage(WebView webView) {
         if (!PatchSettings.active(webView, "dataSaver", "Data saver")) return;
+        if (loadOnThisNetwork()) return;
         injectCss(webView, "jofslash-data-saver",
                 "img[data-jofslash-tap]{min-width:72px;min-height:56px;background:rgba(128,128,128,.22) !important;"
                         + "cursor:pointer;object-fit:contain;}"
@@ -251,6 +372,7 @@ public final class ReadingPatch {
     public static WebResourceResponse blockImage(WebResourceRequest request) {
         try {
             if (request == null || request.isForMainFrame() || !PatchSettings.isOn("dataSaver")) return null;
+            if (loadOnThisNetwork()) return null;
             Uri uri = request.getUrl();
             String host = uri.getHost();
             if (host == null) return null;
@@ -270,6 +392,25 @@ public final class ReadingPatch {
             return null;
         }
     }
+
+    /**
+     * With the "Load images on Wi-Fi" option, images load as usual unless the connection is metered,
+     * such as mobile data or a phone's hotspot.
+     */
+    @SuppressLint("MissingPermission") // Quora declares ACCESS_NETWORK_STATE.
+    private static boolean loadOnThisNetwork() {
+        if (!PatchSettings.isRegistered(WIFI_KEY) || !PatchSettings.isOn(WIFI_KEY)) return false;
+        try {
+            Context context = PatchSettings.context();
+            if (context == null) return false;
+            ConnectivityManager manager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+            return manager != null && manager.getActiveNetwork() != null && !manager.isActiveNetworkMetered();
+        } catch (Exception ex) {
+            return false;
+        }
+    }
+
+    private static final String WIFI_KEY = "dataSaverOnWifi";
 
     // ---------------------------------------------------------------- helpers
 

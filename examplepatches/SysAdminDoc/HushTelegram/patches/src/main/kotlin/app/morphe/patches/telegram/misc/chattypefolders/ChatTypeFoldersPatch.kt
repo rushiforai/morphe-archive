@@ -140,14 +140,37 @@ internal const val STORAGE_QUEUE = "$STORAGE->storageQueue:Lorg/telegram/messeng
  * and post one of R8's merged lambdas there, its case [key] running the internal save or delete. A stub
  * posts the same lambda with the same case. [roles] says what each constructor parameter gets:
  * "storage", "filter", "flag" (false, as the stubs save) or "key". Every reference is the build's own,
- * as read: the queue's class has no name of its own in every table.
+ * as read: the queue's class has no name of its own in every table. Plus's save lambda takes two flags,
+ * one argument more than a plain invoke-direct holds, so that post passes its arguments as a range.
  */
 internal data class PostedFolderStorage(val queue: String, val lambda: String, val init: String, val post: String,
     val key: Int, val roles: List<String>) {
-    /** The post, with the storage and folder in [storage] and [filter], false in [zero], and three free registers from [free]. */
+    /** How many registers from the post's first free one it uses. */
+    val span get() = if (roles.size < 5) 3 else roles.size + 2
+
+    /** The post, with the storage and folder in [storage] and [filter], false in [zero], and [span] free registers from [free]. */
     fun smali(storage: Int, filter: Int, zero: Int, free: Int): String {
-        val passed = roles.map { when (it) { "storage" -> storage; "filter" -> filter; "flag" -> zero; else -> free + 2 } }
         val load = if (key in Short.MIN_VALUE..Short.MAX_VALUE) "const/16" else "const"
+        if (roles.size >= 5) {
+            // The lambda and its arguments in a row after the queue, as invoke-direct/range takes them.
+            val fill = roles.mapIndexed { n, role ->
+                val at = free + 2 + n
+                when (role) {
+                    "storage" -> "move-object/from16 v$at, v$storage"
+                    "filter" -> "move-object/from16 v$at, v$filter"
+                    "flag" -> "const/4 v$at, 0x0"
+                    else -> "$load v$at, $key"
+                }
+            }
+            return """
+                iget-object v$free, v$storage, $queue
+                new-instance v${free + 1}, $lambda
+                ${fill.joinToString("\n")}
+                invoke-direct/range {v${free + 1} .. v${free + 1 + roles.size}}, $init
+                invoke-virtual {v$free, v${free + 1}}, $post
+            """
+        }
+        val passed = roles.map { when (it) { "storage" -> storage; "filter" -> filter; "flag" -> zero; else -> free + 2 } }
         return """
             iget-object v$free, v$storage, $queue
             new-instance v${free + 1}, $lambda
@@ -159,7 +182,10 @@ internal data class PostedFolderStorage(val queue: String, val lambda: String, v
 }
 
 /** How the stubs save and delete a folder: Telegram's own storage methods where [save] and [delete] are null. */
-internal class ChatTypeFoldersSite(val post: String, val save: PostedFolderStorage?, val delete: PostedFolderStorage?)
+internal class ChatTypeFoldersSite(val post: String, val save: PostedFolderStorage?, val delete: PostedFolderStorage?) {
+    /** How many registers from its first free one a save takes. */
+    val saveSpan get() = save?.span ?: 1
+}
 
 /** A read of MessagesStorage's storage queue, whatever the queue's class is called. */
 internal fun Instruction.readsStorageQueue() = opcode == Opcode.IGET_OBJECT &&
@@ -180,9 +206,9 @@ internal fun switchCaseStart(body: List<Instruction>, key: Int): Int? {
 
 /**
  * Null where MessagesStorage keeps [method]; else the one lambda Telegram posts on the storage queue in
- * its place, whose case calls the storage's internal [what] with [internal] as its parameters.
+ * its place, whose case calls the storage's internal [what] with one of [internal] as its parameters.
  */
-private fun BytecodePatchContext.postedFolderStorage(method: String, what: String, internal: List<String>): PostedFolderStorage? {
+private fun BytecodePatchContext.postedFolderStorage(method: String, what: String, internal: Set<List<String>>): PostedFolderStorage? {
     if (tgClassDefByOrNull(STORAGE)?.methods?.any { it.origString() == method } != false) return null
     val found = mutableSetOf<PostedFolderStorage>()
     forEachClassMentioning(Mention.reference(STORAGE_QUEUE) and Mention.type(LOCAL_FILTER)) { cls ->
@@ -193,7 +219,9 @@ private fun BytecodePatchContext.postedFolderStorage(method: String, what: Strin
                 val (queue, storage) = (body[i] as TwoRegisterInstruction).let { it.registerA to it.registerB }
                 val made = body.getOrNull(i + 1)?.takeIf { it.opcode == Opcode.NEW_INSTANCE } ?: continue
                 val lambda = ((made as ReferenceInstruction).reference as TypeReference).type
-                val build = (i + 2..minOf(i + 4, body.lastIndex)).firstOrNull { body[it].opcode == Opcode.INVOKE_DIRECT } ?: continue
+                // Plus fills a range of six registers first, so its constructor comes as late as six on.
+                val build = (i + 2..minOf(i + 6, body.lastIndex))
+                    .firstOrNull { body[it].opcode == Opcode.INVOKE_DIRECT || body[it].opcode == Opcode.INVOKE_DIRECT_RANGE } ?: continue
                 val init = body[build].call() ?: continue
                 val passed = body[build].namedRegisters()
                 val lambdaRegister = (made as OneRegisterInstruction).registerA
@@ -214,7 +242,7 @@ private fun BytecodePatchContext.postedFolderStorage(method: String, what: Strin
                         else -> "filter"
                     }
                 }
-                if (listOf("storage", "filter", "key").any { role -> roles.count { it == role } != 1 } || roles.count { it == "flag" } > 1 || "?" in roles) continue
+                if (listOf("storage", "filter", "key").any { role -> roles.count { it == role } != 1 } || "?" in roles) continue
                 val key = constants.getValue(passed[roles.indexOf("key") + 1])
                 // The case for that key calls the storage's internal save or delete, itself or, on Play's 13.2,
                 // through a method of the lambda's own that the case calls alone.
@@ -227,7 +255,7 @@ private fun BytecodePatchContext.postedFolderStorage(method: String, what: Strin
                         case = lambdaClass.methods.singleOrNull { it.name == own.name && it.parameterTypes.isEmpty() }?.controlBody().orEmpty().take(12)
                     }
                 if (case.none { c -> c.opcode == Opcode.INVOKE_VIRTUAL && c.call()?.let { call ->
-                        call.origDefiningClass == STORAGE && call.origParameterTypes == internal && call.returnType == "V" } == true }) continue
+                        call.origDefiningClass == STORAGE && call.origParameterTypes in internal && call.returnType == "V" } == true }) continue
                 found += PostedFolderStorage((body[i] as ReferenceInstruction).reference.toString(), lambda, init.toString(),
                     posted.call().toString(), key, roles)
             }
@@ -251,7 +279,7 @@ val chatTypeFoldersPatch = bytecodePatch(
 ) {
     category("Chats")
     dependsOn(settingsPatch, telegramExtensionPatch)
-    compatibleWith(*AppCompatibilities.telegramOnly())
+    compatibleWith(*AppCompatibilities.telegram())
     execute {
         writeChatTypeFolderStubs(resolveChatTypeFolders())
         enableStatus("chatTypeFolders")
@@ -441,7 +469,7 @@ private fun BytecodePatchContext.writeChatTypeFolderStubs(site: ChatTypeFoldersS
     """)
     // What Telegram's folder screen does with a new folder, called here once the server has it: into
     // the list at the end and the database, with its unread count to be worked out, then the tabs redrawn.
-    writeStub(CHAT_TYPE_FOLDERS, "addFolder", 10, """
+    writeStub(CHAT_TYPE_FOLDERS, "addFolder", 4 + maxOf(6, 3 + site.saveSpan), """
         new-instance v0, $LOCAL_FILTER
         invoke-direct {v0}, $LOCAL_INIT
         iput p1, v0, $LOCAL_ID
@@ -535,7 +563,7 @@ private fun BytecodePatchContext.writeChatTypeFolderStubs(site: ChatTypeFoldersS
     """)
     // What loading the server's list does to a folder's color: set, saved as Telegram's folder screen saves
     // an edit, and the tabs redrawn.
-    writeStub(CHAT_TYPE_FOLDERS, "setFolderColor", 9, """
+    writeStub(CHAT_TYPE_FOLDERS, "setFolderColor", 3 + maxOf(6, 3 + site.saveSpan), """
         invoke-static {p0}, $CONTROLLER_INSTANCE
         move-result-object v0
         iget-object v0, v0, $FILTERS_BY_ID
@@ -656,9 +684,9 @@ internal fun BytecodePatchContext.resolveChatTypeFolders(): ChatTypeFoldersSite 
         SERVER_FILTERS_LIST to false, FILTER_FLAGS to false, FILTER_COLOR to false)) {
         requireReachable(reference, static)
     }
-    val save = postedFolderStorage(SAVE_FILTER, "save", listOf(LOCAL_FILTER, "Z"))
+    val save = postedFolderStorage(SAVE_FILTER, "save", setOf(listOf(LOCAL_FILTER, "Z"), listOf(LOCAL_FILTER, "Z", "Z")))
     if (save == null) requireReachable(SAVE_FILTER, false)
-    val delete = postedFolderStorage(DELETE_FILTER, "delete", listOf(LOCAL_FILTER))
+    val delete = postedFolderStorage(DELETE_FILTER, "delete", setOf(listOf(LOCAL_FILTER)))
     if (delete == null) requireReachable(DELETE_FILTER, false)
     return ChatTypeFoldersSite(post.toString(), save, delete)
 }

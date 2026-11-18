@@ -1,0 +1,10 @@
+enabled: true
+
+# Preserve the previous workflow's reply-only behavior; do not modify issue labels.
+features:
+  classify: false
+  reply: true
+  duplicateSearch: true
+  commentReply: true
+  media: true
+  repositoryContext: true

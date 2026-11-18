@@ -8,7 +8,6 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.PlusPending
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
 import app.morphe.patches.telegram.misc.extension.SETTINGS_STATUS
 import app.morphe.patches.telegram.misc.localcontrols.controlBody
@@ -40,7 +39,6 @@ private const val SET_CHECKED = "->setChecked(Z)V"
 private fun List<Instruction>.counted() = count { it.opcode != Opcode.NOP }
 
 /** The forward preview's update, the picker's and the Share sheet's sends, the Premium gate's article number, the stubs and the runtime. */
-@PlusPending
 class ForwardHideSenderFixtureTest {
     @Test fun `the extension sees each new forward first and keeps Telegram's article gate`() {
         for (build in Fixtures.declaredBuilds()) {
@@ -49,7 +47,10 @@ class ForwardHideSenderFixtureTest {
                 val refs = m.controlBody().map { it.controlRef() }
                 m.origDefiningClass == PREVIEW_PARAMS || m.origDefiningClass == MESSAGE_OBJECT || m.origDefiningClass == USER_CONFIG ||
                     IS_PREMIUM in refs && FORWARDS in refs && NAME_HIDE in refs || FORWARD_SEND in refs || m.pickerShaped() ||
-                    refs.any { it?.endsWith(SET_CHECKED) == true } && m.controlBody().any { it.opcode == Opcode.IPUT_BOOLEAN }
+                    refs.any { it?.endsWith(SET_CHECKED) == true } && m.controlBody().any {
+                        // Plus Messenger's send menu only reads the flag.
+                        it.opcode == Opcode.IPUT_BOOLEAN || build.name.startsWith("plus-") && it.opcode == Opcode.IGET_BOOLEAN
+                    }
             }
             // The Share sheet the sends read their flag from, and the send menu's items.
             val named = found.map { it.origType }.toSet()
@@ -65,14 +66,21 @@ class ForwardHideSenderFixtureTest {
             val old = ImmutableMethod.of(site.update)
             val share = site.share
             val made = ImmutableMethod.of(share.made)
-            val popup = ImmutableMethod.of(share.popup)
-            // Four picker callbacks and the lambda one of them makes, and none of the other forwards.
-            assertEquals("$name: the picker's own forwards", 5, site.picks.size)
-            assertEquals("$name: one in each callback", 5, site.picks.map { it.method }.distinct().size)
+            val popup = share.popup?.let { ImmutableMethod.of(it.method) }
+            // Four picker callbacks and the lambda one of them makes, and none of the other forwards. Plus
+            // Messenger's picker sends all of them from that lambda.
+            val plus = name.startsWith("plus-")
+            val callbacks = if (plus) 1 else 5
+            assertEquals("$name: the picker's own forwards", callbacks, site.picks.size)
+            assertEquals("$name: one in each callback", callbacks, site.picks.map { it.method }.distinct().size)
             val picks = site.picks.map { it to ImmutableMethod.of(it.method).controlBody() }
             // The Share sheet's sends, one for each chat it was given, none of them the picker's.
             assertTrue("$name: the Share sheet's sends", share.sends.isNotEmpty())
             assertTrue("$name: apart from the picker's", share.sends.none { s -> site.picks.any { it.method === s.method } })
+            // Plus Messenger sends by the flag with its quote switch on, and by the switch itself with it off.
+            if (plus) assertEquals("$name: by the flag and by the quote switch", 2, share.sends.size)
+            assertEquals("$name: Plus's quote switch", plus, share.quote != null)
+            assertEquals("$name: Telegram's send menu sets the flag as it opens", !plus, share.popup != null)
             val shares = share.sends.map { it to ImmutableMethod.of(it.method).controlBody() }
             assertEquals(emptyList<String>(), PatchLogCapture.warnings { forwardHideSenderPatch.execute(context) })
 
@@ -85,8 +93,17 @@ class ForwardHideSenderFixtureTest {
                 assertEquals(Opcode.MOVE_RESULT, code[pick.at + 1].opcode)
                 assertEquals("$name: the flag the send takes", listOf(pick.first + 4), code[pick.at + 1].namedRegisters())
                 assertEquals(FORWARD_SEND, code[pick.at + 2].controlRef())
-                assertEquals("$name: the flag starts false", 0, (stock.subList(0, pick.at).last { it.opcode in setOf(Opcode.CONST_4, Opcode.CONST_16, Opcode.CONST) &&
-                    it.namedRegisters().first() == pick.first + 4 } as NarrowLiteralInstruction).narrowLiteral)
+                val start = stock.subList(0, pick.at).last { it.opcode.setsRegister() && it.namedRegisters().first() == pick.first + 4 }
+                if (plus) {
+                    // Plus Messenger's quote-forwards switch, turned.
+                    assertEquals("$name: the flag starts from Plus's switch", Opcode.XOR_INT_LIT8, start.opcode)
+                    assertEquals(1, (start as NarrowLiteralInstruction).narrowLiteral)
+                    val switch = start.namedRegisters()[1]
+                    assertEquals(Opcode.SGET_BOOLEAN, stock.subList(0, stock.indexOf(start)).last { it.opcode.setsRegister() && it.namedRegisters().first() == switch }.opcode)
+                } else {
+                    assertTrue("$name: the flag starts false", start.opcode in setOf(Opcode.CONST_4, Opcode.CONST_16, Opcode.CONST))
+                    assertEquals("$name: the flag starts false", 0, (start as NarrowLiteralInstruction).narrowLiteral)
+                }
             }
             for ((send, stock) in shares) {
                 val code = send.method.controlBody()
@@ -103,19 +120,23 @@ class ForwardHideSenderFixtureTest {
 
             val sheet = share.made.controlBody()
             assertEquals("$name: one call in the sheet", made.controlBody().counted() + 1, sheet.counted())
-            assertEquals(Opcode.IPUT_OBJECT, sheet[share.madeAt - 1].opcode)
-            assertEquals(share.messages, sheet[share.madeAt - 1].controlRef())
+            // Plus Messenger copies its quote switch into the flag after the messages, so the call follows that.
+            assertEquals(if (plus) Opcode.IPUT_BOOLEAN else Opcode.IPUT_OBJECT, sheet[share.madeAt - 1].opcode)
+            assertEquals(if (plus) share.flag else share.messages, sheet[share.madeAt - 1].controlRef())
             assertEquals(SHARES, sheet[share.madeAt].controlRef())
             assertEquals("$name: the sheet itself", listOf(share.self), sheet[share.madeAt].namedRegisters())
-            val menu = share.popup.controlBody()
-            assertEquals("$name: one call in the send menu", popup.controlBody().counted() + 1, menu.counted())
-            assertEquals(Opcode.IPUT_BOOLEAN, menu[share.popupAt - 2].opcode)
-            assertEquals(share.flag, menu[share.popupAt - 2].controlRef())
-            assertEquals(share.uncheck, menu[share.popupAt - 1].controlRef())
-            assertEquals(SHARE_POPUP, menu[share.popupAt].controlRef())
-            assertEquals("$name: the sheet and the ticked item", listOf(share.popupAlert, share.item), menu[share.popupAt].namedRegisters())
-            val alertFields = context.tgMutableClassDefBy(share.alert).fields.filter { it.origString() == share.flag || it.origString() == share.messages }
-            assertEquals("$name: the stubs reach the sheet's list and flag", listOf(true, true), alertFields.map { AccessFlags.PUBLIC.isSet(it.accessFlags) })
+            share.popup?.let { menuSite ->
+                val menu = menuSite.method.controlBody()
+                assertEquals("$name: one call in the send menu", popup!!.controlBody().counted() + 1, menu.counted())
+                assertEquals(Opcode.IPUT_BOOLEAN, menu[menuSite.at - 2].opcode)
+                assertEquals(share.flag, menu[menuSite.at - 2].controlRef())
+                assertEquals(menuSite.uncheck, menu[menuSite.at - 1].controlRef())
+                assertEquals(SHARE_POPUP, menu[menuSite.at].controlRef())
+                assertEquals("$name: the sheet and the ticked item", listOf(menuSite.alert, menuSite.item), menu[menuSite.at].namedRegisters())
+            }
+            val reached = listOfNotNull(share.flag, share.messages, share.quote?.field, share.quote?.view)
+            val alertFields = context.tgMutableClassDefBy(share.alert).fields.filter { it.origString() in reached }
+            assertEquals("$name: the stubs reach the sheet's fields", reached.map { true }, alertFields.map { AccessFlags.PUBLIC.isSet(it.accessFlags) })
 
             val params = site.update.implementation!!.registerCount - 4
             val before = old.controlBody()
@@ -138,7 +159,13 @@ class ForwardHideSenderFixtureTest {
             assertTrue("$name: the account's own chat", "$USER_CONFIG->getClientUserId()J" in stub("self").map { it.controlRef() })
             assertTrue("$name: the sheet's messages", stub("shareMessages").any { it.opcode == Opcode.IGET_OBJECT && it.controlRef() == share.messages })
             assertTrue("$name: the sheet's sender flag", stub("shareHide").any { it.opcode == Opcode.IPUT_BOOLEAN && it.controlRef() == share.flag })
-            assertTrue("$name: the menu item", share.uncheck in stub("shareUncheck").map { it.controlRef() })
+            share.popup?.let { assertTrue("$name: the menu item", it.uncheck in stub("shareUncheck").map { r -> r.controlRef() }) }
+            share.quote?.let { quote ->
+                val hide = stub("shareHide")
+                assertTrue("$name: Plus's quote setting goes off too", hide.any { it.opcode == Opcode.IPUT_BOOLEAN && it.controlRef() == quote.field })
+                assertTrue("$name: and its switch", hide.any { it.opcode == Opcode.IGET_OBJECT && it.controlRef() == quote.view })
+                assertEquals("$name: ticked off", quote.tick, hide.single { it.opcode == Opcode.INVOKE_VIRTUAL }.controlRef())
+            }
             val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "forwardHideSender" }.controlBody()
             assertEquals(1L, (status.first() as WideLiteralInstruction).wideLiteral)
         }

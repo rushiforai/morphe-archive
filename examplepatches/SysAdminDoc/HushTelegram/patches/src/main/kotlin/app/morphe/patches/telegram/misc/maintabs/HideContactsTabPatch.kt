@@ -36,7 +36,6 @@ import app.morphe.patches.telegram.misc.localcontrols.requireReachable
 import app.morphe.patches.telegram.misc.settings.settingsPatch
 import app.morphe.util.ControlFlow
 import app.morphe.util.addInstructionsAtControlFlowLabel
-import app.morphe.util.branchTarget
 import app.morphe.util.call
 import app.morphe.util.definitionReaches
 import app.morphe.util.namedRegisters
@@ -47,13 +46,16 @@ import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import app.morphe.util.names.origDefiningClass
 import app.morphe.util.names.origName
 import app.morphe.util.names.origReturnType
 import app.morphe.util.names.origType
+import app.morphe.util.names.replaceInstruction
 import app.morphe.util.names.tgClassDefByOrNull
 import app.morphe.util.names.tgMutableClassDefBy
+import app.morphe.util.names.tgMutableClassDefByOrNull
 
 private const val PATCH = "Hide Contacts tab"
 internal const val MAIN_TABS = "$EXTENSION_PACKAGE/misc/MainTabs;"
@@ -72,10 +74,31 @@ internal const val BLOCKS_SWIPE = "$MAIN_TABS->blocksSwipe(IZ)Z"
 /** The Contacts page and its tab, both second on the main screen. MainTabs.CONTACTS holds the same number. */
 internal const val CONTACTS = 1
 
-/** How far past Telegram's own Calls switch it turns the pager away from a page it hid. */
-private const val LEAVE_WITHIN = 12
+/**
+ * How far past Telegram's own Calls switch it turns the pager away from a page it hid. Plus checks
+ * a few switches of its own in between, so its slide comes 13 instructions after the switch.
+ */
+private const val LEAVE_WITHIN = 16
+
+/** How many page numbers [pageBuilt] tries. The main screen has five pages. */
+private const val PAGES = 8
+
+/** How many instructions [pageBuilt] follows for one page number before it gives up. */
+private const val WALK_STEPS = 4000
 
 internal val CONSTANTS = setOf(Opcode.CONST_4, Opcode.CONST_16, Opcode.CONST, Opcode.CONST_HIGH16)
+private val MOVES = setOf(Opcode.MOVE, Opcode.MOVE_FROM16, Opcode.MOVE_16)
+private val GOTOS = setOf(Opcode.GOTO, Opcode.GOTO_16, Opcode.GOTO_32)
+private val ENDS = setOf(Opcode.RETURN_VOID, Opcode.RETURN, Opcode.RETURN_WIDE, Opcode.RETURN_OBJECT, Opcode.THROW)
+private val COMPARES: Map<Opcode, (Int, Int) -> Boolean> = mapOf(
+    Opcode.IF_EQ to { a, b -> a == b }, Opcode.IF_NE to { a, b -> a != b },
+    Opcode.IF_LT to { a, b -> a < b }, Opcode.IF_GE to { a, b -> a >= b },
+    Opcode.IF_GT to { a, b -> a > b }, Opcode.IF_LE to { a, b -> a <= b },
+)
+private val ZERO_TESTS = mapOf(
+    Opcode.IF_EQZ to Opcode.IF_EQ, Opcode.IF_NEZ to Opcode.IF_NE, Opcode.IF_LTZ to Opcode.IF_LT,
+    Opcode.IF_GEZ to Opcode.IF_GE, Opcode.IF_GTZ to Opcode.IF_GT, Opcode.IF_LEZ to Opcode.IF_LE,
+)
 
 @Suppress("unused")
 val hideContactsTabPatch = bytecodePatch(
@@ -89,7 +112,7 @@ val hideContactsTabPatch = bytecodePatch(
 ) {
     category("Chats")
     dependsOn(settingsPatch, telegramExtensionPatch)
-    compatibleWith(*AppCompatibilities.telegramOnly())
+    compatibleWith(*AppCompatibilities.telegram())
     execute {
         val plan = resolveMainTabs()
         requireStatusMethod("compactTabBar")
@@ -159,6 +182,8 @@ internal class SwipeGate(val method: MutableMethod, val forward: Boolean, val po
  * @property set the pager's plain setter of the page, which the screen uses while it builds
  * @property mark the screen's marking of the selected tab
  * @property swipeStart the pager's start of a swipe, which takes the event and whether it goes forward
+ * @property hostFlag the app's own switch that drops the Contacts page (Plus has one), or null
+ * @property pins each read of [hostFlag] in the main screen and its pager, which reads off once patched
  */
 internal class MainTabsPlan(
     val screen: String,
@@ -174,11 +199,26 @@ internal class MainTabsPlan(
     val mark: String,
     val gates: List<SwipeGate>,
     val swipeStart: String,
+    val hostFlag: String? = null,
+    val pins: List<Pair<MutableMethod, Int>> = emptyList(),
 ) {
-    /** Hands each method that gets code to [change] with the edit that does it, copy or real. */
+    /**
+     * Hands each method that gets code to [change] with the edit that does it, copy or real. The
+     * pins go first: they keep every index, and the inserts after them don't.
+     */
     fun insert(change: (MutableMethod, (MutableMethod) -> Unit) -> Unit) {
+        pins.forEach { (method, at) -> change(method) { pin(it, at) } }
         change(shown) { tabsShown(it, shownReturn) }
         gates.forEach { gate -> change(gate.method) { swipeGate(it, gate, position) } }
+    }
+}
+
+/** The app's own Contacts switch, read at [at], reads off: the same register gets a zero of the same length. */
+private fun pin(target: MutableMethod, at: Int) {
+    val register = target.getInstruction(at).namedRegisters()[0]
+    target.replaceInstruction(at, "const/16 v$register, 0x0")
+    if (target.getInstruction(at).opcode != Opcode.CONST_16) {
+        throw PatchException("$PATCH: the app's own Contacts switch at ${target.origString()} [$at] didn't read off")
     }
 }
 
@@ -226,6 +266,7 @@ internal fun BytecodePatchContext.resolveMainTabs(): MainTabsPlan {
     controlHook(MAIN_TABS, "hideContacts", listOf(OBJECT, "Z"), "Z")
     controlHook(MAIN_TABS, "page", listOf(OBJECT), "I")
     controlHook(MAIN_TABS, "showChats", listOf(OBJECT, "Z"), "V")
+    controlHook(MAIN_TABS, "hostHidesContacts", listOf(), "Z")
 
     // The main screen: the one view that labels the Contacts and Calls tabs and reads the Calls choice.
     val screens = mutableListOf<String>()
@@ -272,8 +313,13 @@ internal fun BytecodePatchContext.resolveMainTabs(): MainTabsPlan {
         "the Contacts tab no longer goes into the kept tabs")
     shape(constant(body, flow, stored, index) == CONTACTS, "the Contacts tab is no longer the second tab")
 
-    // The page Telegram builds for Contacts is the second too.
-    shape(contactsPage(screen) == CONTACTS, "the Contacts page is no longer the second page")
+    // Plus has a switch of its own that drops the Contacts page, which its page builder reads. With
+    // that switch read off, the page Telegram builds for Contacts is the second too.
+    val hostFlags = pageBuilder(screen)?.controlBody().orEmpty()
+        .filter { it.opcode == Opcode.SGET_BOOLEAN }.mapNotNull { it.controlRef() }.distinct()
+    shape(hostFlags.size <= 1, "the main screen's pages follow more than one switch of the app's own (${hostFlags.size})")
+    val hostFlag = hostFlags.singleOrNull()
+    shape(contactsPage(screen, hostFlag) == CONTACTS, "the Contacts page is no longer the second page")
 
     // The method that shows Calls or Settings, called with the user's choice once the bar is built.
     val choices = body.indices.filter { body[it].opcode == Opcode.IGET_BOOLEAN && body[it].controlRef() == SHOW_CALLS_TAB }
@@ -397,12 +443,30 @@ internal fun BytecodePatchContext.resolveMainTabs(): MainTabsPlan {
     shape(sets.size == 1, "the pager's first page is no longer set while the screen builds (${sets.size})")
     val set = sets.single()
 
+    // The app's own switch reads off wherever the main screen, its superclass, its pager and what
+    // the superclass builds read it, so the pages stay Telegram's five and the extension hides
+    // Contacts for either switch. Its settings row and the rest of the app keep reading it.
+    val pins = hostFlag?.let { flag ->
+        val built = holderBody.filter { it.opcode == Opcode.NEW_INSTANCE }.mapNotNull { it.controlRef() }
+        val owners = (listOf(screenType, superType, pagerClass.type) + built).mapNotNull { tgMutableClassDefByOrNull(it) }
+        owners.distinctBy { it.type }.flatMap { cls ->
+            cls.methods.flatMap { m ->
+                val code = m.controlBody()
+                shape(code.none { it.opcode == Opcode.SPUT_BOOLEAN && it.controlRef() == flag },
+                    "the main screen sets the app's own Contacts switch")
+                code.indices.filter { code[it].opcode == Opcode.SGET_BOOLEAN && code[it].controlRef() == flag }.map { m to it }
+            }
+        }
+    }.orEmpty()
+
     // Everything the extension's stubs name has to be reachable from it.
     listOf(tabs, bar, pager, turn.position).forEach { requireReachable(it, static = false) }
     listOf(setTab, slide, set, mark).forEach { requireReachable(it, static = false) }
+    hostFlag?.let { requireReachable(it, static = true) }
     shape(tgClassDefByOrNull(tabType)?.let { AccessFlags.PUBLIC.isSet(it.accessFlags) } == true, "the tab views are inaccessible")
 
-    return MainTabsPlan(screenType, tabs, bar, setTab, shown, shownReturn, pager, turn.position, slide, set, mark, gates, turn.start)
+    return MainTabsPlan(screenType, tabs, bar, setTab, shown, shownReturn, pager, turn.position, slide, set, mark, gates, turn.start,
+        hostFlag, pins)
 }
 
 /** The stubs' bodies: hide the Contacts tab, read the page showing, and turn the screen to Chats. */
@@ -451,6 +515,12 @@ internal fun BytecodePatchContext.writeMainTabsStubs(plan: MainTabsPlan) {
         :hush_done
         return-void
     """)
+    plan.hostFlag?.let { flag ->
+        writeStub(MAIN_TABS, "hostHidesContacts", 1, """
+            sget-boolean v0, $flag
+            return v0
+        """)
+    }
 }
 
 /**
@@ -503,36 +573,86 @@ private fun swipeTurn(base: ClassDef): SwipeTurn? {
 private fun gateShape(m: Method, name: String) = m.origName == name && !AccessFlags.STATIC.isSet(m.accessFlags) &&
     m.origReturnType == "Z" && m.origParameterTypes == listOf(MOTION_EVENT) && m.controlBody().isNotEmpty()
 
-/** The number of the page the screen builds Contacts for. */
-private fun contactsPage(screen: ClassDef): Int? = pageBuilt(screen, CONTACTS_SCREEN)
+/** The number of the page the screen builds Contacts for, with the app's own switch [folded] read off. */
+private fun contactsPage(screen: ClassDef, folded: String?): Int? = pageBuilt(screen, CONTACTS_SCREEN, folded)
+
+/** The screen's page builder: its one instance method that takes a page number and makes the Contacts screen. */
+private fun pageBuilder(screen: ClassDef): Method? = screen.methods.filter { m ->
+    !AccessFlags.STATIC.isSet(m.accessFlags) && m.origParameterTypes == listOf("I") &&
+        m.origReturnType.startsWith("L") && m.controlBody().any { it.opcode == Opcode.NEW_INSTANCE && it.controlRef() == CONTACTS_SCREEN }
+}.singleOrNull()
 
 /**
- * The number of the page the screen builds a [type] screen for: the constant its page builder
- * compares the page with last before making it, or null when that isn't plain.
+ * The number of the page the screen builds a [type] screen for, or null when that isn't one page.
+ * Each page number runs through the page builder from its start, following what constants decide,
+ * with [folded], an app's own switch, read off. A test on anything else goes both ways, so a page
+ * counts when either way makes the screen.
  */
-internal fun pageBuilt(screen: ClassDef, type: String): Int? {
-    val builders = screen.methods.filter { m ->
-        !AccessFlags.STATIC.isSet(m.accessFlags) && m.origParameterTypes == listOf("I") &&
-            m.origReturnType.startsWith("L") && m.controlBody().any { it.opcode == Opcode.NEW_INSTANCE && it.controlRef() == CONTACTS_SCREEN }
-    }
-    if (builders.size != 1) return null
-    val builder = builders.single()
+internal fun pageBuilt(screen: ClassDef, type: String, folded: String? = null): Int? {
+    val builder = pageBuilder(screen) ?: return null
     val body = builder.controlBody()
-    val flow = ControlFlow.of(builder)
+    if (body.none { it.opcode == Opcode.NEW_INSTANCE && it.controlRef() == type }) return null
     val page = builder.parameterRegisterNumber(0)
-    val makes = body.indices.filter { body[it].opcode == Opcode.NEW_INSTANCE && body[it].controlRef() == type }
-    if (makes.size != 1) return null
-    val made = makes.single()
-    // The test that leads there: the page against a constant, jumping past the Contacts page when they differ.
-    val test = (made - 1 downTo 0).firstOrNull { body[it].opcode == Opcode.IF_NE && page in body[it].namedRegisters() } ?: return null
-    try {
-        builder.requireParameterIntact(PATCH, 0, listOf(test))
-    } catch (overwritten: PatchException) {
-        return null
+    val built = (0 until PAGES).map { makes(body, page, it, type, folded) ?: return null }
+    return built.indices.singleOrNull { built[it] }
+}
+
+/**
+ * Whether [body] makes a [type] screen when register [page] holds [value]: true when some way
+ * through does, false when none does, null when the walk can't tell (a switch table, a jump out of
+ * the method, or too long a walk).
+ */
+private fun makes(body: List<Instruction>, page: Int, value: Int, type: String, folded: String?): Boolean? {
+    val addresses = IntArray(body.size)
+    var address = 0
+    for (at in body.indices) {
+        addresses[at] = address
+        address += body[at].codeUnits
     }
-    if (body.branchTarget(test) { throw shapeError(it) } <= made) return null
-    val other = body[test].namedRegisters().singleOrNull { it != page } ?: return null
-    return constant(body, flow, test, other)
+    val atAddress = body.indices.associateBy { addresses[it] }
+    fun target(at: Int) = atAddress[addresses[at] + (body[at] as OffsetInstruction).codeOffset]
+    val seen = HashSet<Pair<Int, Map<Int, Int>>>()
+    val ways = ArrayDeque<Pair<Int, Map<Int, Int>>>()
+    ways += 0 to mapOf(page to value)
+    var steps = 0
+    while (ways.isNotEmpty()) {
+        val (at, known) = ways.removeLast()
+        if (at !in body.indices || !seen.add(at to known)) continue
+        if (++steps > WALK_STEPS) return null
+        val instruction = body[at]
+        val opcode = instruction.opcode
+        val registers = instruction.namedRegisters()
+        when {
+            opcode == Opcode.NEW_INSTANCE && instruction.controlRef() == type -> return true
+            opcode in ENDS || opcode.format.isPayloadFormat -> continue
+            opcode == Opcode.PACKED_SWITCH || opcode == Opcode.SPARSE_SWITCH -> return null
+            opcode in GOTOS -> ways += (target(at) ?: return null) to known
+            opcode in COMPARES || opcode in ZERO_TESTS -> {
+                val test = COMPARES.getValue(ZERO_TESTS[opcode] ?: opcode)
+                val left = known[registers[0]]
+                val right = if (opcode in ZERO_TESTS) 0 else known[registers[1]]
+                val jump = target(at) ?: return null
+                if (left == null || right == null) {
+                    ways += (at + 1) to known
+                    ways += jump to known
+                } else {
+                    ways += (if (test(left, right)) jump else at + 1) to known
+                }
+            }
+            else -> {
+                val after = when {
+                    opcode in CONSTANTS -> known + (registers[0] to (instruction as NarrowLiteralInstruction).narrowLiteral)
+                    opcode in MOVES -> known[registers[1]]?.let { known + (registers[0] to it) } ?: (known - registers[0])
+                    opcode == Opcode.SGET_BOOLEAN && folded != null && instruction.controlRef() == folded -> known + (registers[0] to 0)
+                    opcode.setsWideRegister() -> known - registers[0] - (registers[0] + 1)
+                    opcode.setsRegister() -> known - registers[0]
+                    else -> known
+                }
+                ways += (at + 1) to after
+            }
+        }
+    }
+    return false
 }
 
 /** Whether [m] is a view's build: an instance `createView` taking a context. */
