@@ -130,6 +130,8 @@ SABR 播放（模拟视频流已关闭）"</string>
     <string name="morphe_music_downloads_started">下载已开始</string>
     <string name="morphe_music_downloads_starting">正在开始下载…</string>
     <string name="morphe_music_downloads_unknown_track">无法识别要下载的曲目</string>
+    <string name="morphe_music_hide_you_may_also_like_section_title">隐藏“猜你喜欢”板块</string>
+    <string name="morphe_music_hide_your_downloads_shelf_title">隐藏“你的下载”内容</string>
     <string name="morphe_music_lyrics_about_summary">"歌词通过标题和艺术家进行匹配，不寻常的元数据可能导致找不到内容或找到错误版本。使用刷新切换版本。标记为 * 的提供程序需要令牌。并非总是按照您的顺序请求所有启用的提供程序，而是根据它们的响应速度返回结果。
 
 歌词来自第三方服务，这些服务与RVX无关，也未得到RVX赞助或认可。每个服务按原样使用：歌词、其可用性及许可权仍归这些服务及其授权方所有，使用它们可能受其服务条款约束。发送至启用服务的查询仅包含您请求的信息——标题、艺术家以及该服务所需的视频ID。可选的AI端点和QuickLRC转录仅在配置后运行，并接收歌词文本或音轨的视频URL。"</string>

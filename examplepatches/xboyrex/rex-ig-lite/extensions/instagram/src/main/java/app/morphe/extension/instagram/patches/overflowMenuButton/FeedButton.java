@@ -95,19 +95,19 @@ public class FeedButton {
     }
 
     public static MediaOption$Option downloadOverflowButton(){
-        return FeedButton.initOverflowButton("REX_DOWNLOAD", 500, UI.DRAWABLE_DOWNLOAD_ICON);
+        return FeedButton.initOverflowButton("REX_DOWNLOAD", 500, "rex_ic_download");
     }
 
     public static MediaOption$Option morePostOptionOverflowButton(){
-        return FeedButton.initOverflowButton("REX_MORE_POST_OPTION", 501, UI.DRAWABLE_BLUB_ICON);
+        return FeedButton.initOverflowButton("REX_MORE_POST_OPTION", 501, "rex_ic_sliders_horizontal");
     }
 
     public static MediaOption$Option debugOverflowButton(){
-        return FeedButton.initOverflowButton("REX_DEBUG", 502, UI.DRAWABLE_DEBUG_ICON);
+        return FeedButton.initOverflowButton("REX_DEBUG", 502, "rex_ic_bug");
     }
 
     public static MediaOption$Option externalDownloaderOverflowButton(){
-        return FeedButton.initOverflowButton("REX_EXTERNAL_DOWNLOADER", 503, UI.DRAWABLE_DOWNLOAD_ICON);
+        return FeedButton.initOverflowButton("REX_EXTERNAL_DOWNLOADER", 503, "rex_ic_external_link");
     }
 
 

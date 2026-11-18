@@ -20,6 +20,8 @@ import app.morphe.util.ControlFlow
 import app.morphe.util.branchTarget
 import app.morphe.util.call
 import app.morphe.util.namedRegisters
+import app.morphe.util.names.TelegramNames
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
@@ -215,12 +217,56 @@ class HideContactsTabFixtureTest {
                 val body = answer.controlBody()
                 assertEquals(name, listOf(Opcode.CONST_4, Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT, Opcode.RETURN), body.map { it.opcode })
                 assertEquals(name, runtime, body[1].controlRef())
-                // p0, the colors themselves, the second of two registers.
-                assertEquals(name, listOf(1), body[1].namedRegisters())
+                // p0, the colors themselves, the second of two registers, then Telegram's own answer.
+                assertEquals(name, listOf(1, 0), body[1].namedRegisters())
                 assertEquals(name, listOf(listOf(0), listOf(0)), listOf(body[2].namedRegisters(), body[3].namedRegisters()))
             }
             val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "barOutline" }.controlBody()
             assertEquals("$name: barOutline", 1L, (status.first() as WideLiteralInstruction).wideLiteral)
+        }
+    }
+
+    @Test fun `the colors' subclasses hand their own outline answers to the runtime at every return`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val name = build.name
+            val colorsType = PatchContexts.of(ExtensionDex.classes() + hosts(build)).let { it.resolveBarOutline(it.resolveMainTabs()) }.color!!.definingClass
+            val subclasses = subclassesOf(build, colorsType)
+            val context = PatchContexts.of(ExtensionDex.classes() + hosts(build) + subclasses)
+            val outline = context.resolveBarOutline(context.resolveMainTabs())
+            assertNull("$name: ${outline.missing}", outline.missing)
+            // From the stock classes: each instance method with no parameters that answers the same question.
+            val stock = subclasses.flatMap { cls ->
+                cls.methods.filter { m ->
+                    m.parameterTypes.isEmpty() && m.implementation != null && !AccessFlags.STATIC.isSet(m.accessFlags) &&
+                        !AccessFlags.PRIVATE.isSet(m.accessFlags) &&
+                        (m.name == outline.color!!.name && m.returnType == "I" || m.name == outline.width!!.name && m.returnType == "F")
+                }
+            }.associateBy { "${it.definingClass}->${it.name}()${it.returnType}" }
+            assertTrue("$name: a subclass of the bar's colors answers the outline itself", stock.isNotEmpty())
+            assertEquals(name, stock.keys.sorted(), outline.overrides.map { (m, _) -> "${m.definingClass}->${m.name}()${m.returnType}" }.sorted())
+            assertEquals(emptyList<String>(), PatchLogCapture.warnings { hideContactsTabPatch.execute(context) })
+
+            for ((answer, runtime) in outline.overrides) {
+                val what = "$name: ${answer.definingClass}->${answer.name}"
+                assertEquals(what, if (answer.returnType == "I") BAR_OUTLINE_COLOR else BAR_OUTLINE_WIDTH, runtime)
+                val before = stock.getValue("${answer.definingClass}->${answer.name}()${answer.returnType}")
+                val self = before.implementation!!.registerCount - 1
+                val beforeBody = before.controlBody()
+                val returns = beforeBody.indices.filter { beforeBody[it].opcode == Opcode.RETURN }
+                assertTrue(what, returns.isNotEmpty())
+                val after = answer.controlBody()
+                assertEquals("$what: two instructions before each return", beforeBody.size + 2 * returns.size, after.size)
+                val moved = { i: Int -> i + 2 * returns.count { it <= i } }
+                assertStock(what, beforeBody, after, moved)
+                for (r in returns) {
+                    val value = beforeBody[r].namedRegisters().single()
+                    val at = moved(r)
+                    assertEquals(what, listOf(Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT), listOf(after[at - 2].opcode, after[at - 1].opcode))
+                    assertEquals(what, runtime, after[at - 2].controlRef())
+                    assertEquals(what, listOf(self, value), after[at - 2].namedRegisters())
+                    assertEquals(what, listOf(value), after[at - 1].namedRegisters())
+                }
+            }
         }
     }
 
@@ -563,6 +609,24 @@ class HideContactsTabFixtureTest {
             wanted = named.filter { it.startsWith("L") && isAppType(it) && it !in asked && it !in loaded }.toSet()
         }
         return if (withChatList) loaded.values else FixtureDex.namedBy(build) { loaded.values.filterNot { cls -> cls.methods.any(::isChatListButton) } }
+    }
+
+    /** Every class under [type] in the build, found by the parent constructor each one calls. */
+    private fun subclassesOf(build: File, type: String): List<ClassDef> = FixtureDex.namedBy(build) {
+        val table = TelegramNames.forVersionCode(build.nameWithoutExtension.substringAfterLast('-'))
+        val found = ArrayList<ClassDef>()
+        var parents = setOf(type)
+        while (parents.isNotEmpty()) {
+            val names = parents + parents.map { table?.type(it) ?: it }
+            val children = FixtureDex.classesWhere(build, { true }) { m ->
+                m.name == "<init>" && m.controlBody().any { i ->
+                    i.opcode == Opcode.INVOKE_DIRECT && i.call()?.let { it.name == "<init>" && it.definingClass in names } == true
+                }
+            }.filter { it.superclass in parents && found.none { seen -> seen.type == it.type } }
+            found += children
+            parents = children.map { it.type }.toSet()
+        }
+        found
     }
 
     /** What the side menu reads beyond the main screen: the activity its links go to, and Telegram's account, name and words. */

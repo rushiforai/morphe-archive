@@ -1,0 +1,16 @@
+[versions]
+# Read by the app.morphe.patches plugin. 2.4.0 is what Morphe Manager 2.6.0 and Morphe desktop 2.2.0 ship.
+morphe-patcher = "2.4.0"
+# A JitPack build of Morphe's smali fork, the one morphe-patcher 2.4.0 is built with.
+smali = "5eaff5a2c9"
+ktlint = "1.8.0"
+junit = "4.13.2"
+org-json = "20260814"
+
+[libraries]
+junit = { module = "junit:junit", version.ref = "junit" }
+# Android's own org.json is a stub that throws in JVM unit tests.
+org-json = { module = "org.json:json", version.ref = "org-json" }
+
+[plugins]
+ktlint = { id = "org.jlleitschuh.gradle.ktlint", version = "14.2.0" }

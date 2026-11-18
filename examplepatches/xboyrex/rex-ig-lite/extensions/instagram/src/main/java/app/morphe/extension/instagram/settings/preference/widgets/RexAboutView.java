@@ -45,7 +45,7 @@ public final class RexAboutView {
                 return v.startsWith("v") || v.startsWith("V") ? v.substring(1) : v;
             }
         } catch (Throwable ignored) {}
-        return "3.14.0";
+        return "3.15.0";
     }
 
     public static View createAboutScreen(final Context context) {
@@ -69,7 +69,7 @@ public final class RexAboutView {
 
         ImageView brandIcon = new ImageView(context);
         brandIcon.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
-        brandIcon.setImageDrawable(RexIcon.getDrawable(context, "instagram", REX_CYAN, 28));
+        brandIcon.setImageDrawable(RexIconRegistry.getIconDrawable(context, "hexagon", InstagramPreferenceStyle.accentColor(), 28));
         LinearLayout.LayoutParams iconLp = new LinearLayout.LayoutParams(dp(context, 28), dp(context, 28));
         iconLp.setMarginEnd(dp(context, 14));
         titleRow.addView(brandIcon, iconLp);
@@ -78,7 +78,7 @@ public final class RexAboutView {
         titleCol.setOrientation(LinearLayout.VERTICAL);
 
         TextView titleText = new TextView(context);
-        titleText.setText("Rex IG Lite V" + ver);
+        titleText.setText("InstaRex • Rex IG Lite V" + ver);
         titleText.setTextColor(TEXT_WHITE);
         titleText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20.5f);
         titleText.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
@@ -128,9 +128,31 @@ public final class RexAboutView {
         addIconLinkRow(
                 context,
                 projectCard,
+                "package",
+                "Check Patch Bundle Update (.mpp)",
+                "Verify latest Morphe .mpp bundle (v" + ver + ")",
+                "chevron-right",
+                false,
+                true,
+                () -> app.morphe.extension.instagram.calm.UpdateChecker.checkPatchBundleNow(context)
+        );
+        addIconLinkRow(
+                context,
+                projectCard,
                 "refresh-cw",
+                "Check Signed APK Update (OTA)",
+                "Verify standalone Clone / UnClone APK (v" + ver + ")",
+                "chevron-right",
+                false,
+                true,
+                () -> app.morphe.extension.instagram.calm.UpdateChecker.checkNow(context)
+        );
+        addIconLinkRow(
+                context,
+                projectCard,
+                "download-cloud",
                 "Latest Releases",
-                "Check for updates (v" + ver + ")",
+                "Open GitHub release assets (v" + ver + ")",
                 "external-link",
                 false,
                 true,
@@ -269,10 +291,11 @@ public final class RexAboutView {
         int vPad = dp(context, 16);
         card.setPadding(hPad, vPad, hPad, vPad);
 
+        InstagramPreferenceStyle.ColorPalette pal = InstagramPreferenceStyle.currentPalette();
         GradientDrawable bg = new GradientDrawable();
-        bg.setColor(SURFACE_CARD);
+        bg.setColor(pal.cardSurface);
         bg.setCornerRadius(dp(context, 22));
-        bg.setStroke(Math.max(2, dp(context, 1)), BORDER_STROKE);
+        bg.setStroke(Math.max(2, dp(context, 1)), pal.borderStroke);
         card.setBackground(bg);
         return card;
     }
@@ -289,7 +312,7 @@ public final class RexAboutView {
     private static void addSectionTitle(Context context, LinearLayout card, String text) {
         TextView header = new TextView(context);
         header.setText(text);
-        header.setTextColor(REX_CYAN);
+        header.setTextColor(InstagramPreferenceStyle.accentColor());
         header.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12.5f);
         header.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
         header.setLetterSpacing(0.03f);

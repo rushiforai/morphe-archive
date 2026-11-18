@@ -69,12 +69,11 @@ object Strings {
 
     val bookmarkThreshold: String get() = pick("搜索收藏数门槛", "検索のブックマーク数", "Bookmark threshold")
     val bookmarkThresholdHint: String get() = pick(
-        "只显示收藏数达到设定值的作品，插画与小说都适用，可填任意数值。「最新作品」「由旧到新」补页不够时会并排再抓几页。",
-        "設定したブックマーク数以上の作品だけを表示します（イラスト・小説共通）。自由な数値を入力できます。「新着順」「古い順」では足りないとき次のページから補充します。",
-        "Shows only works with at least the chosen number of bookmarks, illusts and novels alike. Any count can be typed; the newest and oldest orders are topped up from the following pages."
+        "只显示收藏数达到设定值的作品，插画与小说都适用，可填任意数值。",
+        "設定したブックマーク数以上の作品だけを表示します（イラスト・小説共通）。自由な数値を入力できます。",
+        "Shows only works with at least the chosen number of bookmarks, illusts and novels alike. Any count can be typed."
     )
     val bookmarkThresholdTitle: String get() = pick("收藏数门槛", "ブックマーク数の基準", "Bookmark threshold")
-    val bookmarkThresholdOff: String get() = pick("关闭", "オフ", "Off")
     val bookmarkThresholdCustom: String get() = pick("自定义…", "カスタム…", "Custom…")
     val bookmarkThresholdCustomTitle: String get() = pick("自定义收藏数", "ブックマーク数を入力", "Custom bookmark count")
     val bookmarkThresholdScale: String get() = pick(
@@ -82,19 +81,89 @@ object Strings {
         "0 でオフ、範囲 0〜999999",
         "0 turns it off, range 0 - 999999"
     )
-    val bookmarkThresholdSave: String get() = pick("保存", "保存", "Save")
-    val bookmarkThresholdInvalid: String get() = pick(
-        "请输入 0 - 999999 之间的整数",
-        "0〜999999 の整数を入力してください",
-        "Enter a whole number from 0 to 999999"
+    val save: String get() = pick("保存", "保存", "Save")
+    val cancel: String get() = pick("取消", "キャンセル", "Cancel")
+
+    fun numberInvalid(from: Int, to: Int): String = pick(
+        "请输入 $from - $to 之间的整数",
+        "$from〜$to の整数を入力してください",
+        "Enter a whole number from $from to $to"
     )
+
     val bookmarkThresholdEmpty: String get() = pick(
         "本页没有达标的作品，换个排序或调低门槛试试",
         "このページに基準以上の作品はありません。並び順を変えるか基準を下げてみてください。",
         "No work here cleared the threshold - try another order or a lower number."
     )
 
+    val off: String get() = pick("关闭", "オフ", "Off")
+
+    val relativeThreshold: String get() = pick("相对热度门槛", "相対人気の基準", "Relative popularity threshold")
+    val relativeThresholdHint: String get() = pick(
+        "只显示收藏数排在前 N% 的作品，按当前搜索实时计算。",
+        "現在の検索からリアルタイムに計算し、ブックマーク数が上位 N% の作品だけを表示します。",
+        "Shows only works in the top N% of bookmark counts, worked out from the current search."
+    )
+    val relativeThresholdTitle: String get() = pick("相对热度门槛", "相対人気の基準", "Relative popularity threshold")
+    val relativeThresholdCustomTitle: String get() = pick("自定义分位", "上位％を入力", "Custom top share")
+    val relativeThresholdScale: String get() = pick(
+        "范围 1 - 90（%）",
+        "範囲 1〜90（%）",
+        "Range 1 - 90 (%)"
+    )
+
+    val fillBudget: String get() = pick("补页时长", "追加取得の時間", "Top-up time")
+    val fillBudgetHint: String get() = pick(
+        "过滤后不满一页时，最多花多久往下抓。关闭则只过滤当前页。",
+        "絞り込みで 1 ページに満たないとき、下のページを取りに行く上限時間です。オフなら現在のページだけを絞り込みます。",
+        "How long to keep fetching further pages when filtering leaves a page short. Off filters the current page only."
+    )
+    val fillBudgetTitle: String get() = pick("补页时长", "追加取得の時間", "Top-up time")
+    val fillBudgetCustomTitle: String get() = pick("自定义补页时长", "秒数を入力", "Custom top-up time")
+    val fillBudgetScale: String get() = pick(
+        "单位秒，0 表示关闭，范围 0 - 10",
+        "単位は秒、0 でオフ、範囲 0〜10",
+        "In seconds, 0 turns it off, range 0 - 10"
+    )
+
+    /** [ms] is stored in milliseconds; 0 is the row's own off. */
+    fun fillBudgetValue(ms: Int): String = if (ms <= 0) off else pick(
+        "${ms / 1000} 秒",
+        "${ms / 1000} 秒",
+        "${ms / 1000} s"
+    )
+
     fun bookmarkThresholdValue(count: Int): String = "$count+"
+
+    fun bookmarkThresholdPercentLabel(percent: Int): String =
+        pick("前 $percent%", "上位 $percent%", "Top $percent%")
+
+    /**
+     * The share with the count it currently resolves to. The rounded count is only ever a label: the
+     * floor itself is recomputed from the search being read, so this is a marker, not the value.
+     */
+    fun bookmarkThresholdPercentEstimate(percent: Int, floor: Int): String {
+        val label = bookmarkThresholdPercentLabel(percent)
+        val count = "%,d".format(floor)
+        // Full-width brackets are the sentence's own punctuation in the two CJK locales.
+        return if (language.startsWith("zh") || language == "ja") {
+            "$label（≈$count）"
+        } else {
+            "$label (≈$count)"
+        }
+    }
+
+    val filteredWorksTitle: String get() = pick("已过滤的作品", "除外された作品", "Filtered works")
+    val filteredWorksEmpty: String get() = pick(
+        "没有作品被过滤掉",
+        "除外された作品はありません",
+        "Nothing was filtered out"
+    )
+
+    fun filteredWorksFloor(floor: Int): String = pick("阈值 $floor", "基準 $floor", "Floor $floor")
+
+    /** [count] arrives already shaped as a number or as a capped one such as `200+`. */
+    fun filteredWorksCount(count: String): String = pick("共 $count 条", "全 $count 件", "$count works")
 
     val aiTitle: String get() = pick("AI 作品过滤设置", "AI作品フィルター設定", "AI Work Filter Settings")
     val aiDisplaySection: String get() = pick("显示偏好", "表示設定", "DISPLAY PREFERENCES")

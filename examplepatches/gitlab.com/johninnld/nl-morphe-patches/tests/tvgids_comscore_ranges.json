@@ -1,0 +1,183 @@
+{
+  "arm64-v8a": {
+    "ctor": {
+      "address": 6933428,
+      "size": 1232,
+      "sha256": "706bfe1d321951545bf5e0d7a311fb46cc73c338c29c397de3cbedf1aeac7fc7"
+    },
+    "start": {
+      "address": 6934692,
+      "size": 136,
+      "sha256": "b1f84d434925f66ff2336ef5e6190ad1c72e28675e0603ee906a49a986d25d77"
+    },
+    "init": {
+      "address": 6935352,
+      "size": 260,
+      "sha256": "864491ce0e0f40d62c86800b48c5c0df1644fdfbf91c731aab49c2f4ea1ebd2d"
+    },
+    "fpid": {
+      "address": 6938252,
+      "size": 324,
+      "sha256": "8919092f65bd05ea345c0541dc7d802eec77c665d7f735a1b40b4f852e5850eb"
+    },
+    "page": {
+      "address": 7107360,
+      "size": 424,
+      "sha256": "a7c28f08132dd4d17131caa16974bfadb65b7255be2dfe9264ce80f6098379c9"
+    },
+    "analyticsStart": {
+      "address": 6934908,
+      "size": 188,
+      "sha256": "13a56f124c490da6a9563dcf5c19d2b38317455038d1aa71ecf2cc9d562474f1"
+    },
+    "micros": {
+      "address": 4893976,
+      "size": 112,
+      "sha256": "0df1f0d924a39671b504a0d8ba9c0b64a2b5b45dba718e47cce59db205cdd631"
+    },
+    "array": {
+      "address": 10940516,
+      "size": 268,
+      "sha256": "3525ccd14726b71f8d0daee73b88a4974ae302c4435516ec17691dfd0a9b89da"
+    },
+    "emptyPool": 336,
+    "startGate": 6934732,
+    "startTail": 6934784,
+    "initGate": 6935392,
+    "initTail": 6935596,
+    "ctorCall": 6934632,
+    "ctorStack": 32,
+    "pagePools": [
+      4984,
+      7672,
+      102256,
+      102264,
+      102272,
+      102280,
+      102288,
+      102296,
+      102304,
+      102312
+    ]
+  },
+  "x86_64": {
+    "ctor": {
+      "address": 7929988,
+      "size": 1244,
+      "sha256": "6398718f6f7bfcb41124995caffaff14a3da1e744eb236444403c8a4cecf0c61"
+    },
+    "start": {
+      "address": 7931232,
+      "size": 168,
+      "sha256": "c31fb81133f1080650ce07b5f149411ee44658a73dcea53eb0576477233c716c"
+    },
+    "init": {
+      "address": 7931936,
+      "size": 288,
+      "sha256": "ffe08e41e11964565fd5d441abb1ae7d2d9c1ce3174012e8b331e916724b76f8"
+    },
+    "fpid": {
+      "address": 7933616,
+      "size": 384,
+      "sha256": "41b06d75cffc2e0244dc05d0786a67c77bedadadb29c12115093c8589afa4948"
+    },
+    "page": {
+      "address": 7386672,
+      "size": 436,
+      "sha256": "fda5ed57d56bfd595c258c5667a003707ca879634b48788709044048d33bda9a"
+    },
+    "analyticsStart": {
+      "address": 7931476,
+      "size": 208,
+      "sha256": "ec88fa88b7e004085bdfbe9df67b4fc4848e1f71185ee545e73d26dff928a9d1"
+    },
+    "micros": {
+      "address": 4837396,
+      "size": 128,
+      "sha256": "f21f74ebc9fdf465e655195264a8f0f25ac7e8b47614149e6b3bf6506a114ba0"
+    },
+    "array": {
+      "address": 11170312,
+      "size": 256,
+      "sha256": "9234cb32f21fc5bbc9d9e17815630110545dc72aa9101db7922172b1cdbb5420"
+    },
+    "emptyPool": 336,
+    "startGate": 7931274,
+    "startTail": 7931339,
+    "initGate": 7931978,
+    "initTail": 7932198,
+    "ctorCall": 7931200,
+    "ctorStack": 32,
+    "pagePools": [
+      4992,
+      7680,
+      102560,
+      102568,
+      102576,
+      102584,
+      102592,
+      102600
+    ]
+  },
+  "armeabi-v7a": {
+    "ctor": {
+      "address": 8813564,
+      "size": 1556,
+      "sha256": "0ac9d00187d6429c03b8b6bd229311223d1a33f686156673ec3b99da4745e2cd"
+    },
+    "start": {
+      "address": 8815120,
+      "size": 140,
+      "sha256": "5b61a0dc5833680fdcbd70c58813143feff90c7b7c23b0d2640921da5e3946c8"
+    },
+    "init": {
+      "address": 8815756,
+      "size": 276,
+      "sha256": "13a537282a1f147a8503da445845b7c89c8a085e75447bc9e8cc6f4fbf2515b5"
+    },
+    "fpid": {
+      "address": 8817284,
+      "size": 412,
+      "sha256": "19d6ef761c5db656f5eace9448d4496eda4a7b53ee52fba45c8ec59d8a9b3f63"
+    },
+    "page": {
+      "address": 8261936,
+      "size": 404,
+      "sha256": "84a4c158a3baaf789656a8c0c94938aaf8b9118fbe33ab95d644b43089371c45"
+    },
+    "analyticsStart": {
+      "address": 8815324,
+      "size": 184,
+      "sha256": "93cf08d54812fe7c32f302f03fa9bce6bad8805fd1eab2eb6decf8d131e4d325"
+    },
+    "micros": {
+      "address": 5624656,
+      "size": 128,
+      "sha256": "0b2fdcd1bae3565d6b4ffbb3b048ac23db6b24c775f0a9c66cb9958340646f52"
+    },
+    "array": {
+      "address": 12092744,
+      "size": 272,
+      "sha256": "d4e38c9173bd0891b63023d41931d308445c95159fcbbee44942fc5ec946509a"
+    },
+    "emptyPool": 168,
+    "startGate": 8815164,
+    "startTail": 8815224,
+    "initGate": 8815800,
+    "initTail": 8816024,
+    "ctorCall": 8815104,
+    "ctorStack": 16,
+    "pagePools": [
+      2492,
+      3840,
+      54656,
+      54660,
+      54664,
+      54668,
+      54672,
+      54676,
+      54680,
+      54684
+    ]
+  }
+}

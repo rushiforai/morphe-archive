@@ -1,0 +1,102 @@
+Morphe NOTICE
+=============
+
+bol advertising and privacy controls
+------------------------------------
+
+Derived from Wouter075's bol-patches, source snapshot
+350a044f83d0e3bf73816ed8be04aa10136f9b0d (2026.22.1), licensed under GPLv3.
+Source: https://github.com/wouter075/bol-patches
+Credit: Wouter075 (Wouter van Hezel).
+This project ports the original three controls to bol 2026.23.1 build 430517
+and adds fixes for separately loaded Home advertisements, sponsored feeds and
+shopping-assistant products, publisher promotions, consent screens and
+first-party analytics paths. See docs/privacy/bol-2026.23.1.md and the
+bol-specific patch notes for the exact additions and verification limits.
+
+SoundCloud additional controls
+-----------------------------
+
+Adapted from kondratjev/morphe-patches, source snapshot
+f07ca75539b77d760b0507ee90abea44f6069348, licensed under GPL-3.0.
+Ported analytics, consent and local Go plan controls to SoundCloud
+2026.10.28-release by this project. The upstream branding restriction below
+is retained.
+
+Monet Wuplay catalog rows
+------------------------
+
+Derived from the Monet catalog integration and runtime fixtures in
+Santodan/santodan-patches, source snapshot
+93f9a743ccd9feb25fbd6461c766a2808fb6d6d4 and Monet 1.1.1 support from
+da8228ff00fa55c27e59c0d4b0f8217e83346a37, licensed under GPL-3.0.
+Modified by this project for a dedicated Wuplay publisher boundary, branding,
+and Monet 1.1.1 integration. The Unlock Premium, Unlimited displayed cards and
+Individual Nuvio catalog rows patches are ports of Santodan's Monet 1.1.1
+patches (originally from Doom's Patches for premium). The ports were required
+for compatibility with this repository's Wuplay catalog rows patch, which hooks
+the same shared header method with a different hook encoding, and they reuse
+this repository's fingerprint algorithm and refresh architecture. The
+repository LICENSE applies.
+
+7c. Project Name Restriction
+----------------------------
+
+This license does not grant permission to use the name "Morphe", or any
+name, logo, or branding that is confusingly similar, as the name or
+primary identifying mark of any modified version, fork, or derivative work.
+
+Any redistribution or derivative work must adopt a distinct name and
+branding that clearly differentiates it from the Morphe project and does
+not cause confusion as to source or origin.
+
+References to Morphe are permitted solely for descriptive compatibility
+purposes (e.g., "compatible with Morphe" or "XYZ patches for use with Morphe"),
+provided that such references:
+
+- Are accurate, factual, and non-misleading;
+- Do not suggest authorship by the Morphe project; and
+- Appear only in a secondary or descriptive context, not as part of the product or project name.
+
+
+Projectivy Unlock Premium adaptation
+-----------------------------------
+
+Copyright (C) 2026 Saiesh Nitin Shirodkar.
+Source: saieshshirodkar/saiesh-morphe-patches, commit
+bc8d7d9fb066f6eb5e1095c148b44df9899d381d.
+Licensed under the GNU General Public License, version 3 or later.
+Modified for Projectivy 4.73 by this project.
+
+Additional terms under GPLv3 Section 7 retained from the upstream NOTICE:
+The name "Morphe" and any Morphe branding may not be used to endorse or
+promote products derived from this software without specific prior
+written permission.
+
+
+Waze patch catalog adaptation
+-----------------------------
+
+Source: bearinmindcat/morphe-patches (bearinmind patches), commit
+32e42e0f757581147307af27196e3aca517d0570.
+Licensed under the GNU General Public License, version 3.
+Adapted for Waze 5.26.90.901 and extended by this project.
+
+
+Waze driving controls
+---------------------
+
+Feature selections and configuration keys adapted from Forsigh/waze-patches,
+commit 9cf1b4b (2026-11-01), licensed under the GNU General Public License,
+version 3. Implemented for Waze 5.26.90.901 using this project's configuration
+locking, native-thread dispatch and editable Customization controls.
+
+Waze phase-two controls
+-----------------------
+
+Camera/hazard choices, speed-bump visibility, projection keep-alive, recent-list
+suppression and display-mode ceiling are adapted from Forsigh/waze-patches,
+commit 9cf1b4b (GPLv3), for Waze 5.26.90.901. This project adds separate native
+notification/sound gates and speed-bump warning suppression, isolates projection
+reconnect from phone background lifetime, preserves the stock recent fetch behind
+a runtime switch, and makes the display ceiling editable and reversible.

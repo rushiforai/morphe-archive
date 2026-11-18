@@ -996,8 +996,11 @@ Please download %2$s from the website"</string>
     <string name="revanced_hide_action_button_song_video_summary">"Hides the Song / Video button
 (This button is only available to some users)"</string>
     <string name="revanced_hide_action_button_song_video_title">Hide Song / Video button</string>
+    <string name="morphe_music_hide_your_downloads_shelf_title">Hide \'Your downloads\' shelf</string>
+    <string name="morphe_music_hide_your_downloads_shelf_summary">Hides the Your downloads shelf, not the Downloads chip in Library</string>
     <string name="revanced_hide_button_shelf_summary">Hides the button shelf in the feed</string>
     <string name="revanced_hide_button_shelf_title">Hide button shelf</string>
+    <string name="morphe_music_hide_you_may_also_like_section_title">Hide \'You may also like\' section</string>
     <string name="revanced_hide_carousel_shelf_summary">Hides the carousel shelf in the feed</string>
     <string name="revanced_hide_carousel_shelf_title">Hide carousel shelf</string>
     <string name="revanced_hide_cast_button_summary">Hides the Cast button</string>

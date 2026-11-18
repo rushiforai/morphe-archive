@@ -1,0 +1,315 @@
+{
+  "format": 1,
+  "scope": "Source-driven native road-service P0 during an actual app-created Maps route/current step. A controlled 10-second TEST_NAVIGATION_VOICE/TEST_AUDIO job occupies the existing product manager and advances real MediaPlayer playback. The real warning session/scheduler/speaker stops/releases that job before external speech, acknowledges completion, and generates a new PULL_GUIDANCE job from the current native route. No route/controller/current-step, product coordinator/speaker or owner is constructed or replaced. Controlled manager media is not a natural maneuver decision or physical/car routing proof.",
+  "serial": "emulator-5590",
+  "avd": "native_warnings_ui_api34",
+  "apps": {
+    "nl.flitsmeister": "f76a1afc4e971cd81ad1a4f8aae8bed367a6b3f2391b78f6e1a15d599e0b622c",
+    "org.ungoogled.android.apps.maps": "d8557e9562776729f67c86070d19444f1f985f0f4cc7b173116b22a8db06c0e7",
+    "app.vela": "72012bd0dd02ee3b3eb31a35df55d24de5fea79ba830906568c0d029c101aeab"
+  },
+  "helpers": {
+    "maps": "e2cb55972862a4dd9f540b4a23acaf9a0df0fd69a23b1d2b3702a11b425238f1",
+    "vela": "9166c93c7fd1454d9bb2b4ccdcecbe3af2a98e431871fc84e591d2fa136d459d",
+    "source": "1103b1e1e3f4b6e709724766c2de0369d72c49951aa58ee0c60f1644f95eb4b4"
+  },
+  "actual_route": {
+    "package": "org.ungoogled.android.apps.maps",
+    "process_uid": 10194,
+    "process_pid": 19589,
+    "last_reviewed_setup_action": "Dismiss",
+    "route_class": "anys",
+    "controller_class": "anvg",
+    "native_navigation_active": true,
+    "current_route_present": true,
+    "current_step_present": true,
+    "status": "observed",
+    "actual_route_ready": true,
+    "scope": "Actual navigation intent and original route/controller/current-step state; no route/model/step or navigation flag created or replaced."
+  },
+  "native_manager_before_warning": {
+    "name": "source_driven_route_preemption",
+    "job_identity": "bmtl@ff96dce",
+    "terminal_count": 0,
+    "terminal_result": "",
+    "terminal_type": "",
+    "starts": 1,
+    "stops": 0,
+    "releases": 0,
+    "wav_deleted": false,
+    "events": [
+      {
+        "event": "native_prepare_call",
+        "detail": "",
+        "elapsed_ns": 445423417,
+        "elapsed_realtime_ns": 6488884585968,
+        "thread": "main"
+      },
+      {
+        "event": "native_prepare_return",
+        "detail": "",
+        "elapsed_ns": 470083084,
+        "elapsed_realtime_ns": 6488909245635,
+        "thread": "main"
+      },
+      {
+        "event": "native_manager_start_callback",
+        "detail": "durationMs=10000,type=LOCAL",
+        "elapsed_ns": 481103500,
+        "elapsed_realtime_ns": 6488920266051,
+        "thread": "main"
+      },
+      {
+        "event": "media_start_enter",
+        "detail": "",
+        "elapsed_ns": 481148917,
+        "elapsed_realtime_ns": 6488920311468,
+        "thread": "main"
+      },
+      {
+        "event": "media_start_return",
+        "detail": "isPlaying=true",
+        "elapsed_ns": 481495709,
+        "elapsed_realtime_ns": 6488920658260,
+        "thread": "main"
+      }
+    ],
+    "native_player_cleared": false,
+    "native_job_cancel_flag": false,
+    "controlled_duration_ms": 10000,
+    "native_start_to_stop_ns": -1,
+    "new_current_route_pull_job": "",
+    "regeneration_observed_elapsed_ms": -1,
+    "known_jobs_before_external_warning": 1
+  },
+  "native_manager_after_warning": {
+    "name": "source_driven_route_preemption",
+    "job_identity": "bmtl@ff96dce",
+    "terminal_count": 1,
+    "terminal_result": "CANCELLED",
+    "terminal_type": "LOCAL",
+    "starts": 1,
+    "stops": 1,
+    "releases": 1,
+    "wav_deleted": false,
+    "events": [
+      {
+        "event": "native_prepare_call",
+        "detail": "",
+        "elapsed_ns": 445423417,
+        "elapsed_realtime_ns": 6488884585968,
+        "thread": "main"
+      },
+      {
+        "event": "native_prepare_return",
+        "detail": "",
+        "elapsed_ns": 470083084,
+        "elapsed_realtime_ns": 6488909245635,
+        "thread": "main"
+      },
+      {
+        "event": "native_manager_start_callback",
+        "detail": "durationMs=10000,type=LOCAL",
+        "elapsed_ns": 481103500,
+        "elapsed_realtime_ns": 6488920266051,
+        "thread": "main"
+      },
+      {
+        "event": "media_start_enter",
+        "detail": "",
+        "elapsed_ns": 481148917,
+        "elapsed_realtime_ns": 6488920311468,
+        "thread": "main"
+      },
+      {
+        "event": "media_start_return",
+        "detail": "isPlaying=true",
+        "elapsed_ns": 481495709,
+        "elapsed_realtime_ns": 6488920658260,
+        "thread": "main"
+      },
+      {
+        "event": "media_stop_enter",
+        "detail": "",
+        "elapsed_ns": 809740959,
+        "elapsed_realtime_ns": 6489248903510,
+        "thread": "Lite_2"
+      },
+      {
+        "event": "media_stop_return",
+        "detail": "",
+        "elapsed_ns": 813303334,
+        "elapsed_realtime_ns": 6489252465885,
+        "thread": "Lite_2"
+      },
+      {
+        "event": "media_release_enter",
+        "detail": "",
+        "elapsed_ns": 813317417,
+        "elapsed_realtime_ns": 6489252479968,
+        "thread": "Lite_2"
+      },
+      {
+        "event": "media_release_return",
+        "detail": "",
+        "elapsed_ns": 843750417,
+        "elapsed_realtime_ns": 6489282912968,
+        "thread": "Lite_2"
+      },
+      {
+        "event": "native_manager_terminal_callback",
+        "detail": "CANCELLED,type=LOCAL",
+        "elapsed_ns": 848484542,
+        "elapsed_realtime_ns": 6489287647093,
+        "thread": "main"
+      }
+    ],
+    "native_player_cleared": true,
+    "native_job_cancel_flag": true,
+    "controlled_duration_ms": 10000,
+    "native_start_to_stop_ns": 328245250,
+    "new_current_route_pull_job": "bmtl@b720607",
+    "regeneration_observed_elapsed_ms": 6492062,
+    "known_jobs_before_external_warning": 1
+  },
+  "source_authority": {
+    "language_tag": "en-US",
+    "native_local_mute_bypass": false,
+    "issued_elapsed_ms": 6489213,
+    "native_family": "EarlyWarningReport",
+    "priority": 0,
+    "protocol_version": 1,
+    "native_announce_observed": true,
+    "relationship": "unknown",
+    "revision": 1,
+    "category": "emergency_vehicle",
+    "phase": "notice",
+    "relevance": "moving_emergency",
+    "capture_path": "early",
+    "state_until_elapsed_ms": 6519213,
+    "native_subtype": "ROAD_SERVICE",
+    "message_origin": "native_resource",
+    "native_text_key": "0174f8d81aeb347b7c62266bf4c808542a146bacdfeed119206a70f08653fb87",
+    "message": "Caution, emergency service!",
+    "announcement_index": 1,
+    "provider_session": "b9679473-23ba-4fd6-8703-8a3cd1ee9ce2",
+    "sequence": 1,
+    "native_early_type_argument": "ROAD_SERVICE",
+    "observed_elapsed_ms": 6489213,
+    "operation": "ANNOUNCE",
+    "native_type": "INCIDENT",
+    "warning_id": "early/ROAD_SERVICE:probe-restart-a88bb2e9321148d1b673048adbe8d797-native-guidance",
+    "announce_until_elapsed_ms": 6494213
+  },
+  "actual_warning_speaker_payload": {
+    "attempt_id": "08247f91-e2f1-4da8-bb72-8142288b6855",
+    "event_key": "aacb1fd5b8728d7a880d2f0b2c33e33a7ba49ff5da75c47ab0d1fcc29ab35082",
+    "payload": {
+      "language_tag": "en-US",
+      "native_local_mute_bypass": false,
+      "issued_elapsed_ms": 6489219,
+      "native_family": "EarlyWarningReport",
+      "priority": 0,
+      "protocol_version": 1,
+      "relationship": "unknown",
+      "revision": 1,
+      "category": "emergency_vehicle",
+      "phase": "notice",
+      "relevance": "moving_emergency",
+      "capture_path": "report_state",
+      "state_until_elapsed_ms": 6519219,
+      "native_subtype": "ROAD_SERVICE",
+      "message_origin": "native_resource",
+      "native_text_key": "0174f8d81aeb347b7c62266bf4c808542a146bacdfeed119206a70f08653fb87",
+      "message": "Caution, emergency service!",
+      "announcement_index": 1,
+      "provider_session": "b9679473-23ba-4fd6-8703-8a3cd1ee9ce2",
+      "sequence": 2,
+      "observed_elapsed_ms": 6489219,
+      "operation": "UPSERT",
+      "native_type": "INCIDENT",
+      "warning_id": "early/ROAD_SERVICE:probe-restart-a88bb2e9321148d1b673048adbe8d797-native-guidance"
+    },
+    "started": true
+  },
+  "actual_warning_start": {
+    "preview": false,
+    "native_type": "INCIDENT",
+    "observed_ms": 6489213,
+    "priority": 0,
+    "issued_ms": 6489213,
+    "sequence": 1,
+    "provider_session": "b9679473-23ba-4fd6-8703-8a3cd1ee9ce2",
+    "deadline_ms": 6494213,
+    "stage": "SCHEDULER_STARTED",
+    "elapsed_ms": 6489626,
+    "category": "emergency_vehicle",
+    "event_key": "aacb1fd5b8728d7a880d2f0b2c33e33a7ba49ff5da75c47ab0d1fcc29ab35082"
+  },
+  "actual_warning_completion": {
+    "preview": false,
+    "native_type": "INCIDENT",
+    "observed_ms": 6489213,
+    "priority": 0,
+    "issued_ms": 6489213,
+    "sequence": 1,
+    "provider_session": "b9679473-23ba-4fd6-8703-8a3cd1ee9ce2",
+    "deadline_ms": 6494213,
+    "stage": "SCHEDULER_COMPLETED",
+    "elapsed_ms": 6492022,
+    "category": "emergency_vehicle",
+    "event_key": "aacb1fd5b8728d7a880d2f0b2c33e33a7ba49ff5da75c47ab0d1fcc29ab35082"
+  },
+  "native_media_release_before_warning_start": true,
+  "current_route_pull_after_warning_completion": true,
+  "source_acknowledgements": [
+    {
+      "receiver_uid": 10194,
+      "outcome": "GRANTED",
+      "started": false,
+      "mode": "VOICE"
+    },
+    {
+      "receiver_uid": 10194,
+      "outcome": "STARTED",
+      "started": true,
+      "mode": "VOICE"
+    },
+    {
+      "receiver_uid": 10194,
+      "outcome": "COMPLETED",
+      "started": true,
+      "mode": "VOICE"
+    }
+  ],
+  "provider_managed_mute": true,
+  "exact_preferences_permissions_source_network_lease_and_window_settings_restored": true,
+  "raw_result": ".analysis/native-warning-bindings/maps-source-native-guidance-01/result.json",
+  "source_result": ".analysis/native-warning-bindings/maps-source-native-guidance-01/seed-source/8e46c9dd-871a-4911-9676-73db6c36fdf6/result.json",
+  "receiver_result": ".analysis/native-warning-bindings/maps-source-native-guidance-01/seed-receiver-result.json",
+  "route_readiness_baselines": [
+    {
+      "path": ".analysis/native-warning-bindings/maps-native-route-01",
+      "status": "Rejected before app execution: original preference directory was absent."
+    },
+    {
+      "path": ".analysis/native-warning-bindings/maps-native-route-02/result.json",
+      "status": "Inconclusive: original sign-in/navigation-information dialogs had not all been handled before route timeout."
+    },
+    {
+      "path": ".analysis/native-warning-bindings/maps-native-route-03/result.json",
+      "status": "Rejected: private UI helper did not guard null accessibility text."
+    },
+    {
+      "path": ".analysis/native-warning-bindings/maps-native-route-04/result.json",
+      "status": "Observed app-created active navigation, route and current step after original setup controls; no output attempted in that diagnostic."
+    }
+  ],
+  "remaining": [
+    "Moving route/lead/passage and next-maneuver transition cases",
+    "Other modes/lifecycle/compatibility, actual car routing and final review/delivery"
+  ],
+  "controlled_native_wav_cache_file_removed": true,
+  "cache_verification": "Read-only listing after verified target stop contained no maps-manager-probe temporary WAV; other app navigation caches are retained in the disposable guest.",
+  "related_vela_source_guidance_verification": "vela-source-guidance-verification.json"
+}

@@ -1,5 +1,6 @@
 package app.hushmessenger.patches.controls
 
+import app.hushmessenger.patches.isExtension
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
@@ -163,7 +164,7 @@ internal fun BytecodePatchContext.followShortcutWrites(classes: Iterable<ClassDe
 
 /** The methods outside the extension that write launcher shortcuts, by class. HostScreens' own writes stay as they are. */
 internal fun shortcutWriters(classes: Iterable<ClassDef>): Map<String, Set<String>> = classes
-    .filterNot { it.type.startsWith("Lapp/hushmessenger/extension/") }
+    .filterNot { it.isExtension() }
     .mapNotNull { cls ->
         val writers = cls.methods.filter { it.shortcutWrites().isNotEmpty() }.map { it.hookId() }.toSet()
         if (writers.isEmpty()) null else cls.type to writers

@@ -20,7 +20,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -459,6 +461,9 @@ public final class Settings {
         owners.put(QuietMode.DAILY, QuietMode.KEY);
         owners.put(CameraActivity.ASK, CameraActivity.KEY);
         owners.put(MessageLog.SAVE_EXPIRING, MessageLog.KEY);
+        owners.put(MessageLog.KEEP_VOICE, MessageLog.KEY);
+        owners.put(MessageLog.KEEP_PHOTOS, MessageLog.KEY);
+        owners.put(MessageLog.KEEP_VIDEOS, MessageLog.KEY);
         owners.put(QuietChats.KEY, MessageLog.KEY);
         owners.put(MessageLogButton.KEY, MessageLog.KEY);
         owners.put(MessageLogButton.MENU_KEY, MessageLog.KEY);
@@ -676,6 +681,11 @@ public final class Settings {
         }
         // Record calls and Live captions share the one audio choice native makes per run.
         if (CallRecording.KEY.equals(key) || CallCaptions.KEY.equals(key)) return CallRecording.heldPlayout(key);
+        if (TabSwipe.KEY.equals(key)) {
+            // The frame asks on every touch, so only a home screen built before the switch went on waits for a restart.
+            Boolean swiping = tabSwiping;
+            return swiping == null || swiping || !wouldUse(key) ? null : false;
+        }
         Boolean held = "meta_ai".equals(key) ? metaAiTab : "emoji_drawer".equals(key) ? oldEmojiDrawer
             : SEARCH_BAR.equals(key) ? keptSearchBar : LANDSCAPE.equals(key) ? landscape : OwnFont.KEY.equals(key) ? customFont
             : FLOATING_TAB_BAR.equals(key) ? floatingBar : TAB_BAR_SCROLL_AWAY.equals(key) ? scrollAwayBar : bottomTabs.get(key);
@@ -797,6 +807,16 @@ public final class Settings {
      */
     public static boolean stopPhoneIdSync() { return enabled("phone_id_sync"); }
 
+    /** Skip passkey sign-in, which answers the credential providers' availability check with a no. */
+    static final String PASSKEY_LOGIN = "passkey_login";
+
+    /**
+     * Asked by each of the credential providers the sign-in reaches passkeys through, when something wants to know
+     * whether this phone has a credential manager to ask. True answers no, which leaves the sign-in with no passkey to
+     * offer and sends it down the route it takes for an account that has none.
+     */
+    public static boolean skipPasskeySignIn() { return enabled(PASSKEY_LOGIN); }
+
     /**
      * Asked when a story card ends on its own, from its timer, its video or a failed load, just before Messenger moves to
      * the next card. True keeps the card on screen. Taps and swipes never ask.
@@ -809,6 +829,22 @@ public final class Settings {
      * keep Meta's answer.
      */
     public static boolean chatPreview(boolean stock) { return enabled("chat_preview") || stock; }
+
+    /**
+     * Asked with Meta's answer wherever one of the chat list's four typing plugins reads its flag: the inbox loader,
+     * the store, the teardown and the thread snippet. True runs them all, so a chat in the list says typing while the
+     * other person types. Off, Pause and safe mode keep Meta's answer, which is no on the builds we patch.
+     */
+    public static boolean inboxTyping(boolean stock) { return enabled("inbox_typing") || stock; }
+
+    /**
+     * Asked by the composer's send when something is attached, with the words that were typed. True sends those words
+     * first, as their own message, and the attachment goes out under them with no caption. Nothing typed means false,
+     * so a plain photo send is untouched, and so are Off, Pause and safe mode.
+     */
+    public static boolean captionBeforeMedia(String typed) {
+        return typed != null && !typed.trim().isEmpty() && enabled("media_caption");
+    }
 
     /**
      * Asked when a call starts ringing, before Messenger decides to ring and vibrate, and again for the call's
@@ -862,6 +898,12 @@ public final class Settings {
     public static boolean blockDisappearingSwipe() { return enabled("disappearing_swipe"); }
     /** Asked each time a chat looks for a photo or video taken just before it opened; true shows no card for it. */
     public static boolean hideRecentMedia() { return enabled("recent_media"); }
+    /**
+     * The gallery in the message box asks whether to offer View once, handing in the answer Messenger's own capability
+     * vector gave. True offers it. Off, Pause and safe mode give Messenger's answer back, so the toggle shows up exactly
+     * where it always did.
+     */
+    public static boolean viewOnceOffered(boolean offered) { return offered || enabled("view_once_anywhere"); }
     static final String SHARE_STORY = "share_story";
     /** The Send to list's more-ways-to-share loader asks whether to add Your story; false leaves it out. */
     public static boolean keepShareStory(boolean shown) { return shown && !enabled(SHARE_STORY); }
@@ -957,6 +999,28 @@ public final class Settings {
         if (held) activeAt.put(TAB_BAR_SCROLL_AWAY, System.currentTimeMillis());
         return held;
     }
+
+    /** First answer this process gave on the home screen's swipe frame, or null before a home screen was built. */
+    static volatile Boolean tabSwiping;
+    private static final Object TAB_SWIPE_LOCK = new Object();
+
+    /**
+     * Whether the home screen's view goes inside the frame that watches for a sideways drag. Held for the run, so the
+     * hierarchy Messenger built with the switch off stays as it was until a restart. The frame asks the switch again on
+     * every touch, so turning the swipe off takes effect at once and only turning it on waits.
+     */
+    public static boolean tabSwipe() {
+        Boolean held = tabSwiping;
+        if (held == null) {
+            // Started before the lock, so nothing waits on HostScreens' startup lock while holding this one.
+            if (!HostScreens.started) HostScreens.initializeLate();
+            synchronized (TAB_SWIPE_LOCK) {
+                if (tabSwiping == null) tabSwiping = wouldUse(TabSwipe.KEY);
+                held = tabSwiping;
+            }
+        }
+        return held;
+    }
     static final String BLOCKED_LIST_PICTURES = "blocked_list_pictures";
     /**
      * The blocked people list hands over each blocked person's picture before it goes on their row. Null gives the row
@@ -1012,14 +1076,19 @@ public final class Settings {
     /** The same check for a chat that notifies. A restricted chat let on only for the log still counts as quiet. */
     public static void loudChat(Object thread) { QuietChats.notifies(thread); }
 
-    /** The notification manager asks this before it reads anything off a new message. */
-    public static boolean logQuietChats() { return QuietChats.wanted(); }
+    /**
+     * The notification manager asks this before it reads anything off a new message. Hide messages with your words
+     * reads the same message, to keep a hidden one's notification down, so either switch brings it through.
+     */
+    public static boolean logQuietChats() { return QuietChats.wanted() || HiddenWords.wanted(); }
 
     /**
      * A new message's notification, right before it goes up. True drops it, since its chat was let on only for the log.
      * The sender's name goes to the log now: there's no notification to read it from later.
      */
     public static boolean dropQuiet(Object thread, String id, String sender) {
+        // A message holding one of your hidden words goes nowhere, whatever its chat does about notifications.
+        if (HiddenWords.marked(id)) return true;
         if (!QuietChats.isQuiet(thread)) return false;
         MessageLog.noteSender(String.valueOf(thread), id, sender);
         return true;
@@ -1243,8 +1312,12 @@ public final class Settings {
         return enabled("original_video") ? -1 : comparison;
     }
 
-    /** The notification hook asks this before it reads a message, so nothing is read when the switch is off or paused. */
-    public static boolean logReceivedMessages() { return wouldUse("message_log"); }
+    /**
+     * The notification hook asks this before it reads a message, so nothing is read when the switch is off or paused.
+     * Hide messages with your words rides the same hook, so either switch brings the message through, and each path
+     * below checks its own switch again.
+     */
+    public static boolean logReceivedMessages() { return wouldUse(MessageLog.KEY) || HiddenWords.wanted(); }
 
     /**
      * The message's own id, which the notification hook hands over just before the text and thread (the constructor it
@@ -1260,8 +1333,39 @@ public final class Settings {
         return id;
     }
 
-    /** The notification hook hands the message here; the log stores it off this thread and swallows its own failures. */
-    public static void recordReceivedMessage(String text, String thread) { MessageLog.record(text, thread, takeIncomingMessageId()); }
+    /**
+     * The message object itself, handed over right after its id and before its text, for the photo or voice clip its
+     * attachment points at. Only the address is read here, on Messenger's own thread; the fetch happens off it.
+     */
+    private static final ThreadLocal<MessageLogAttachment.Found> INCOMING_MEDIA = new ThreadLocal<>();
+
+    public static void incomingMessageMedia(Object message) {
+        // Only the log keeps attachments. With the hook on for hidden words alone, nothing here is read.
+        if (!wouldUse(MessageLog.KEY)) {
+            INCOMING_MEDIA.remove();
+            return;
+        }
+        MessageLogAttachment.Found found = MessageLogAttachment.found(message);
+        if (found == null) INCOMING_MEDIA.remove();
+        else INCOMING_MEDIA.set(found);
+    }
+
+    static MessageLogAttachment.Found takeIncomingMessageMedia() {
+        MessageLogAttachment.Found found = INCOMING_MEDIA.get();
+        INCOMING_MEDIA.remove();
+        return found;
+    }
+
+    /**
+     * The notification hook hands the message here; the log stores it off this thread and swallows its own failures.
+     * A message holding one of your hidden words is marked first, so its notification is dropped a moment later.
+     */
+    public static void recordReceivedMessage(String text, String thread) {
+        String id = takeIncomingMessageId();
+        MessageLogAttachment.Found media = takeIncomingMessageMedia();
+        HiddenWords.received(text, id);
+        if (wouldUse(MessageLog.KEY)) MessageLog.record(text, thread, id, media);
+    }
 
     /** The same notification hook asks this for an auto reply: on, not paused, and with at least one reply written. */
     public static boolean autoReplyWanted() { return AutoReply.wanted(); }
@@ -1618,6 +1722,24 @@ public final class Settings {
         if (!enabled("hide_read_receipts")) return false;
         SharedPreferences prefs = preferences;
         return prefs != null && prefs.getBoolean(HIDE_DELIVERED, false);
+    }
+
+    /** Appear offline: the switch that answers for Messenger's own active status, never for anyone else's. */
+    static final String APPEAR_OFFLINE = "appear_offline";
+
+    /**
+     * The status Messenger reports for you. Both hooks ask before they report: a status Messenger was already holding
+     * back stays held back, and with the switch on an available one turns into unavailable. What other people report
+     * comes in the way it always did, so the active dots keep working.
+     */
+    public static boolean availableToOthers(boolean available) {
+        if (!available) return false;
+        try {
+            return !enabled(APPEAR_OFFLINE);
+        } catch (RuntimeException error) {
+            hookFailed(APPEAR_OFFLINE, "Can't hold back your active status", error);
+            return true;
+        }
     }
 
     /**
@@ -1990,7 +2112,9 @@ public final class Settings {
     }
 
     private static final String KEPT_UNSENT_KEY = "kept_unsent_ids";
-    private static final int KEPT_UNSENT_LIMIT = 4096;
+    /** The same ids, oldest first, one per line. The set has no order, so this one says which go first at the limit. */
+    private static final String KEPT_UNSENT_ORDER_KEY = "kept_unsent_order";
+    static final int KEPT_UNSENT_LIMIT = 4096;
     private static final Object KEPT_UNSENT_LOCK = new Object();
 
     public static void recordUnsent(String messageId) {
@@ -2000,14 +2124,21 @@ public final class Settings {
         synchronized (KEPT_UNSENT_LOCK) {
             Set<String> previous = prefs.getStringSet(KEPT_UNSENT_KEY, Collections.emptySet());
             if (previous.size() > KEPT_UNSENT_LIMIT || !previous.contains(messageId)) {
-                Set<String> ids = new HashSet<>();
+                String[] order = prefs.getString(KEPT_UNSENT_ORDER_KEY, "").split("\n");
+                Set<String> ordered = new HashSet<>(Arrays.asList(order));
+                // Ids kept before the order was written have no known age, so they count as the oldest.
+                LinkedHashSet<String> ids = new LinkedHashSet<>();
+                for (String id : previous) if (!ordered.contains(id)) ids.add(id);
+                for (String id : order) if (previous.contains(id)) ids.add(id);
+                ids.remove(messageId);
                 ids.add(messageId);
-                // StringSet has no age ordering. Preserve this interception and bound the remaining markers.
-                for (String id : previous) {
-                    if (ids.size() == KEPT_UNSENT_LIMIT) break;
-                    ids.add(id);
+                Iterator<String> oldest = ids.iterator();
+                for (int extra = ids.size() - KEPT_UNSENT_LIMIT; extra > 0; extra--) {
+                    oldest.next();
+                    oldest.remove();
                 }
-                prefs.edit().putStringSet(KEPT_UNSENT_KEY, ids).apply();
+                prefs.edit().putStringSet(KEPT_UNSENT_KEY, new HashSet<>(ids))
+                    .putString(KEPT_UNSENT_ORDER_KEY, String.join("\n", ids)).apply();
             }
         }
         activeAt.put("keep_unsent", System.currentTimeMillis());
@@ -2021,9 +2152,9 @@ public final class Settings {
     }
 
     public static String labelKeptUnsent(String text, String messageId) {
-        if (!wouldUse("keep_unsent") || text == null) return text;
-        if (isKeptUnsent(messageId)) return "[unsent] " + text;
-        return text;
+        if (text == null) return text;
+        if (wouldUse("keep_unsent") && isKeptUnsent(messageId)) return HiddenWords.mask("[unsent] " + text);
+        return HiddenWords.mask(text);
     }
 
     public static boolean suppressUnsent(boolean original, String messageId) {
@@ -2045,12 +2176,16 @@ public final class Settings {
         }
     });
 
-    /** Whether an encrypted chat's rows go through {@link #labelKeptUnsentRow} at all. */
+    /**
+     * Whether an encrypted chat's rows go through {@link #labelKeptUnsentRow} at all. Hide messages with your words
+     * reads the same rows, to show {@link HiddenWords#MASK} instead of a message's words, so either switch sends them
+     * through and each path inside checks its own switch again.
+     */
     public static boolean watchesUnsentRows() {
-        if (!wouldUse("keep_unsent")) return false;
+        boolean unsent = wouldUse("keep_unsent");
         // Reads the words kept by an earlier run, on its own thread, before the first row asks for them.
-        UnsentWords.warmUp();
-        return true;
+        if (unsent) UnsentWords.warmUp();
+        return unsent || HiddenWords.wanted();
     }
 
     /**
@@ -2116,7 +2251,15 @@ public final class Settings {
      */
     public static String labelKeptUnsentRow(String text, String messageId, String threadingId, long timestamp, long senderId,
                                             int contentType, int contentSubtype) {
+        return HiddenWords.mask(keptUnsentRowText(text, messageId, threadingId, timestamp, senderId, contentType, contentSubtype));
+    }
+
+    /** The same row's text, before hidden words are taken out of it. Keep unsent messages' own half. */
+    private static String keptUnsentRowText(String text, String messageId, String threadingId, long timestamp, long senderId,
+                                            int contentType, int contentSubtype) {
         try {
+            // Rows reach here for hidden words alone, and nothing below is this control's business then.
+            if (!wouldUse("keep_unsent")) return text;
             String key = threadingId != null && !threadingId.isEmpty() ? threadingId : messageId;
             if (key == null || key.isEmpty()) return text;
             boolean hasText = text != null && !text.isEmpty();

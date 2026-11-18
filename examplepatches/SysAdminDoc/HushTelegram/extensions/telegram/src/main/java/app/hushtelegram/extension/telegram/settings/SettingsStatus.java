@@ -268,6 +268,7 @@ public final class SettingsStatus {
     public static boolean quietSignUp() { return false; }
     public static boolean sessionDevice() { return false; }
     public static boolean deleteAccount() { return false; }
+    public static boolean duressWipe() { return false; }
     public static boolean suppressScreenshotNotification() { return false; }
     public static boolean unlockPremium() { return false; }
     public static boolean bypassChannelRestrictions() { return false; }
@@ -281,6 +282,7 @@ public final class SettingsStatus {
     public static boolean doNotDisturb() { return false; }
     public static boolean freeProxies() { return false; }
     public static boolean proxyOrder() { return false; }
+    public static boolean v2rayProxies() { return false; }
     public static boolean myMessages() { return false; }
     public static boolean adminTools() { return false; }
     public static boolean textDirection() { return false; }

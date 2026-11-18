@@ -5,8 +5,12 @@ import app.fakh.patches.shared.disableProviders
 import app.fakh.patches.shared.pairip.pairipLicenseCheckPatch
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.mutableClassDefBy
 import app.morphe.patcher.patch.patch
 import app.morphe.patcher.patch.document
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 
 /**
  * The Pro state lives on the Room entity `apps.ijp.coverscreenos.db.OSProperties`
@@ -75,14 +79,17 @@ private val adsInitFingerprint = Fingerprint(
 )
 
 /**
- * The two-boolean state holder (`a`, `b`) behind the timeout dialog (`b14`): its text
- * and second button depend on `a`. See the execute block note.
+ * The timeout dialog method that reads the two-boolean state holder (`a`, `b`), whose text
+ * and second button depend on `a`. R8 renames the holder every release and two other classes
+ * share its shape, so it is found through the dialog's view builder, which reads `a`.
  */
-private val timeoutStateFingerprint = Fingerprint(
-    returnType = "V",
-    parameters = listOf("Z", "Z"),
-    custom = { method, classDef ->
-        classDef.type == "Lq16;" && method.name == "<init>" && method.implementation != null
+private val timeoutDialogFingerprint = Fingerprint(
+    custom = { method, _ ->
+        val references = method.implementation?.instructions
+            ?.mapNotNull { (it as? ReferenceInstruction)?.reference }.orEmpty()
+        references.any { it.toString() == "Landroid/widget/LinearLayout;-><init>(Landroid/content/Context;)V" } &&
+            references.any { it is FieldReference && it.name == "a" && it.type == "Z" } &&
+            references.any { it.toString().startsWith("Landroid/widget/TextView;->setText") }
     },
 )
 
@@ -128,9 +135,8 @@ private val adSdksManifestPatch = patch {
 @Suppress("unused")
 val premiumUnlockPatch = patch(
     name = "Premium unlock",
-    description = "Unlocks Pro on your phone (every premium feature, no ads), keeps the trial from expiring, " +
-        "stops the Play license check from closing the app, and stops the ad SDKs from starting so they cannot " +
-        "load ads in the background.",
+    description = "Unlocks Pro and removes ads. Also keeps the trial from expiring and the license check from " +
+        "closing the app.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_COVERSCREEN)
@@ -172,11 +178,21 @@ val premiumUnlockPatch = patch(
             """,
         )
 
-        // The timeout dialog (`b14`) reads `q16.a` off a StateFlow to pick its
+        // The timeout dialog reads `a` of the state holder off a StateFlow to pick its
         // text and to show or hide its second button. Force `a` true for every
         // instance; the class is a plain data holder with exactly three
         // consumers (the dialog, one flow mapper and one flow producer).
         // The constructor has no locals, so v0 is `this`: overwrite the parameter instead.
-        timeoutStateFingerprint.method.addInstructions(0, "const/4 p1, 0x1")
+        val holders = timeoutDialogFingerprint.method.implementation!!.instructions
+            .mapNotNull { ((it as? ReferenceInstruction)?.reference as? FieldReference) }
+            .filter { it.name == "a" && it.type == "Z" }
+            .map { it.definingClass }
+            .distinct()
+            .mapNotNull { type -> runCatching { mutableClassDefBy(type) }.getOrNull() }
+            .filter { holder ->
+                holder.methods.any { it.name == "<init>" && it.parameterTypes.map(Any::toString) == listOf("Z", "Z") }
+            }
+        if (holders.size != 1) throw PatchException("Expected one timeout state holder, got ${holders.size}")
+        holders.single().methods.first { it.name == "<init>" }.addInstructions(0, "const/4 p1, 0x1")
     }
 }

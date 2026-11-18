@@ -4,10 +4,15 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
+import java.nio.channels.FileLock;
+import java.nio.channels.OverlappingFileLockException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -22,15 +27,30 @@ import java.util.concurrent.Executors;
  * message, exactly as it does in an ordinary chat. Off puts the stock column back.
  *
  * libstartup.so comes packed inside the APK, and Messenger unpacks it into its own data folder on the first start after
- * an install or update, so the change goes into that copy, in place, and only over the exact stock bytes. Messenger
- * reads the statement as it starts, so a change takes a restart. The copy's length and time name the copy a spot was
- * found in, so a start reads one short span instead of all 56 MB.
+ * an install or update, so the change goes into that copy, and only over the exact stock bytes. Messenger reads the
+ * statement as it starts, so a change takes a restart. The copy's length and time name the copy a spot was found in, so
+ * a start reads one short span instead of all 56 MB.
+ *
+ * Android 17 won't load a native file anyone can write (Safer Native DCL, for apps targeting 37 as Messenger 587 does),
+ * and every Messenger process loads this one as it starts, whenever that is. So the file at Messenger's path is never
+ * made writable: a change goes into a new copy in Messenger's data folder, which turns read-only with the old time and
+ * then moves over the old one in one step. A start finds the old copy or the new one, both read-only, and a process that
+ * already loaded the old one keeps it.
+ *
+ * Messenger's library loader (SoLoader) keeps the folder it unpacks into read-only between unpacks, and unpacks under a
+ * lock file there, so nothing new can be made inside it (the S25 on Android 17 refused the copy beside the library).
+ * The move takes that same lock, so it never lands in the middle of an unpack, and opens the folder for the one rename
+ * the way SoLoader opens it for its own writes.
  */
 final class MuteQuery {
     private MuteQuery() {}
 
     /** Where Messenger unpacks the library, under its data folder. */
     static final String LIB = "lib-compressed/libstartup.so";
+    /** The lock file SoLoader holds in that folder while it unpacks. */
+    static final String LOCK = "dso_lock";
+    /** The new copy's name in Messenger's data folder, while it's made. */
+    private static final String STAGED = "hushmessenger_mute_query.so";
     /** The spot cache's own store, kept out of the settings a backup copies. */
     static final String FILE = "hushmessenger_mute_query";
     /** The restart row's name for the column Messenger read as it started. */
@@ -83,9 +103,35 @@ final class MuteQuery {
             Boolean edited = put(new File(app.getApplicationInfo().dataDir, LIB), app.getSharedPreferences(FILE, Context.MODE_PRIVATE), wanted);
             if (edited == null && wanted) android.util.Log.w("HushMessenger", "message_log_quiet_chats: no mute check to change in this Messenger");
         } catch (IOException | RuntimeException error) {
-            Settings.hookFailedPrivately(QuietChats.KEY, "Can't change the encrypted chats' mute check", error);
+            Settings.hookFailedPrivately(QuietChats.KEY,
+                error instanceof Refused ? error.getMessage() : "Can't change the encrypted chats' mute check", error);
         }
     }
+
+    /** A change that stopped at one of its own checks, with Messenger's copy left as it was. Its message says which. */
+    static final class Refused extends IOException {
+        Refused(String message) { super(message); }
+    }
+
+    /**
+     * Moves a finished copy over Messenger's in one step, with SoLoader's lock already held. Tests swap it, since Windows
+     * won't replace a read-only file and ignores a folder's read-only flag.
+     */
+    interface Swap { void move(File from, File to) throws IOException; }
+
+    static volatile Swap swap = (from, to) -> {
+        File folder = to.getParentFile();
+        // SoLoader leaves the folder read-only between unpacks, and a rename into it needs it writable for that moment.
+        boolean opened = !folder.canWrite();
+        if (opened && !folder.setWritable(true)) throw new Refused("Can't open Messenger's library folder for the change");
+        try {
+            Files.move(from.toPath(), to.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+        } finally {
+            if (opened && !folder.setWritable(false)) {
+                android.util.Log.w("HushMessenger", "message_log_quiet_chats: Messenger's library folder didn't go back to read-only");
+            }
+        }
+    };
 
     /** One statement in the file: where its column starts and whether it's in the edited form. */
     static final class Spot {
@@ -169,22 +215,82 @@ final class MuteQuery {
             if (spot == null) return null;
         }
         if (spot.edited != edited) {
-            long time = lib.lastModified();
-            boolean locked = !lib.canWrite();
-            if (locked && !lib.setWritable(true, true)) throw new IOException("Can't open the mute check for writing");
-            try (RandomAccessFile file = new RandomAccessFile(lib, "rw")) {
-                file.seek(spot.at);
-                file.write(edited ? EDITED : STOCK);
-                file.getFD().sync();
-            } finally {
-                // Messenger's unpacker checks only its own state file, and the copy's old time keeps it that way.
-                lib.setLastModified(time);
-                if (locked) lib.setWritable(false, false);
-            }
+            replace(lib, spot.at, edited ? EDITED : STOCK);
+            if (lib.canWrite()) throw new Refused("Messenger's startup library didn't stay read-only");
         }
         cache.edit().putLong("at", spot.at).putLong("length", lib.length()).putLong("time", lib.lastModified()).apply();
         Spot now = cached(lib, cache);
         if (now == null || now.edited != edited) throw new IOException("The mute check didn't take the change");
         return now.edited;
+    }
+
+    /** Where the new copy is made: Messenger's data folder, the one holding [lib]'s folder, on the same disk. */
+    static File next(File lib) {
+        File data = lib.getAbsoluteFile().getParentFile().getParentFile();
+        return new File(data, STAGED);
+    }
+
+    /**
+     * Writes a copy of [lib] with [column] at [at], makes it read-only with [lib]'s time (Messenger's unpacker checks only
+     * its own state file, and the old time keeps it that way), then moves it over [lib] under SoLoader's lock. Any check
+     * that fails leaves [lib] as it was and takes the copy away.
+     */
+    private static void replace(File lib, long at, byte[] column) throws IOException {
+        File lock = new File(lib.getParentFile(), LOCK);
+        if (!lock.isFile()) throw new Refused("Messenger's library folder has no unpack lock to take");
+        File next = next(lib);
+        long length = lib.length(), time = lib.lastModified();
+        boolean moved = false;
+        discard(next);
+        try {
+            try (InputStream in = new FileInputStream(lib); FileOutputStream out = new FileOutputStream(next)) {
+                byte[] buffer = new byte[CHUNK];
+                long base = 0;
+                for (int read; (read = in.read(buffer)) > 0; base += read) {
+                    for (long k = Math.max(at, base), end = Math.min(at + column.length, base + read); k < end; k++) {
+                        buffer[(int) (k - base)] = column[(int) (k - at)];
+                    }
+                    out.write(buffer, 0, read);
+                }
+                out.getFD().sync();
+            }
+            byte[] span = new byte[SPAN];
+            try (RandomAccessFile file = new RandomAccessFile(next, "r")) {
+                if (file.length() != length) throw new Refused("The mute check's new copy came out the wrong size");
+                file.seek(at - HEAD.length);
+                file.readFully(span);
+            }
+            if (!Boolean.valueOf(column == EDITED).equals(form(span, 0))) {
+                throw new Refused("The mute check's new copy didn't take the change");
+            }
+            if (!next.setLastModified(time)) throw new Refused("Can't give the mute check's new copy the old time");
+            if (!next.setWritable(false, false) || next.canWrite()) {
+                throw new Refused("Can't make the mute check's new copy read-only");
+            }
+            try (RandomAccessFile handle = new RandomAccessFile(lock, "rw"); FileLock held = hold(handle)) {
+                // An update that unpacked a new copy meanwhile wins, and the next start looks at that one.
+                if (lib.length() != length || lib.lastModified() != time) throw new Refused("Messenger replaced its startup library during the change");
+                swap.move(next, lib);
+                moved = true;
+            }
+        } finally {
+            if (!moved) discard(next);
+        }
+    }
+
+    /** SoLoader's unpack lock. This process unpacking right now holds it already, and the next start tries again. */
+    private static FileLock hold(RandomAccessFile handle) throws IOException {
+        try {
+            return handle.getChannel().lock();
+        } catch (OverlappingFileLockException busy) {
+            throw new Refused("Messenger was unpacking its libraries");
+        }
+    }
+
+    /** Takes away a copy that didn't go in, if there is one. */
+    private static void discard(File next) {
+        if (!next.exists()) return;
+        next.setWritable(true, true);
+        if (!next.delete()) android.util.Log.w("HushMessenger", "message_log_quiet_chats: can't remove an unused copy of the mute check");
     }
 }

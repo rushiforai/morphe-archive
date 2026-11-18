@@ -152,7 +152,57 @@ object PatchedSettings {
                 addView(divider(context, palette))
                 addView(searchRankingRow(context, palette, onClear))
                 addView(divider(context, palette))
-                addView(bookmarkThresholdRow(context, palette, onClear))
+                addView(
+                    settingsRow(
+                        context,
+                        palette,
+                        Strings.bookmarkThreshold,
+                        Strings.bookmarkThresholdHint,
+                        label = { bookmarkThresholdLabel() },
+                        onEdited = onClear
+                    ) { picked ->
+                        showBookmarkThresholdPicker(context, palette) { floor ->
+                            BookmarkThreshold.setFloor(context, floor)
+                            picked()
+                        }
+                    }
+                )
+                addView(divider(context, palette))
+                addView(
+                    settingsRow(
+                        context,
+                        palette,
+                        Strings.relativeThreshold,
+                        Strings.relativeThresholdHint,
+                        label = { relativeThresholdLabel() },
+                        onEdited = onClear
+                    ) { picked ->
+                        showRelativeThresholdPicker(context, palette) { percent ->
+                            if (percent == null) {
+                                BookmarkThreshold.clearPercentile(context)
+                            } else {
+                                BookmarkThreshold.setPercentile(context, percent)
+                            }
+                            picked()
+                        }
+                    }
+                )
+                addView(divider(context, palette))
+                addView(
+                    settingsRow(
+                        context,
+                        palette,
+                        Strings.fillBudget,
+                        Strings.fillBudgetHint,
+                        label = { Strings.fillBudgetValue(BookmarkThreshold.fillBudgetMs) },
+                        onEdited = onClear
+                    ) { picked ->
+                        showFillBudgetPicker(context, palette) { milliseconds ->
+                            BookmarkThreshold.setFillBudget(context, milliseconds)
+                            picked()
+                        }
+                    }
+                )
             }
         )
 
@@ -498,13 +548,70 @@ object PatchedSettings {
             )
         }
 
-    private fun thresholdLabel(floor: Int): String =
-        if (floor > 0) Strings.bookmarkThresholdValue(floor) else Strings.bookmarkThresholdOff
+    private fun floorLabel(floor: Int): String =
+        if (floor > 0) Strings.bookmarkThresholdValue(floor) else Strings.off
 
-    private fun bookmarkThresholdRow(
+    private fun bookmarkThresholdLabel(): String {
+        return floorLabel(BookmarkThreshold.current)
+    }
+
+    /**
+     * What the share currently resolves to on the search the user is on. That resolved count only
+     * appears while the search it was read off is still held: a number with nothing behind it would
+     * read as a measurement.
+     */
+    private fun relativeThresholdLabel(): String {
+        if (BookmarkThreshold.mode != BookmarkThreshold.MODE_PERCENTILE) return Strings.off
+        val percent = BookmarkThreshold.percentile
+        val preview = BookmarkThreshold.resolvedFloorPreview()
+        return if (preview == null) {
+            Strings.bookmarkThresholdPercentLabel(percent)
+        } else {
+            Strings.bookmarkThresholdPercentEstimate(percent, preview)
+        }
+    }
+
+    /** The title over its hint, the left half every settings row is built from. */
+    private fun settingsLabel(
         context: Context,
         palette: Palette,
-        onChanged: () -> Unit
+        title: String,
+        hint: String
+    ): View =
+        LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+            addView(
+                TextView(context).apply {
+                    text = title
+                    textSize = 15f
+                    setTextColor(palette.primary)
+                }
+            )
+            addView(
+                TextView(context).apply {
+                    text = hint
+                    textSize = 11f
+                    setTextColor(palette.secondary)
+                    setPadding(0, dp(context, 2f), 0, 0)
+                }
+            )
+        }
+
+    /**
+     * A settings row that opens a picker and shows the current choice on the right.
+     *
+     * The label is read once more after the picker returns, and [onEdited] rebuilds the page: a
+     * choice here can turn a neighbouring row off, and that row has to say so at once.
+     */
+    private fun settingsRow(
+        context: Context,
+        palette: Palette,
+        title: String,
+        hint: String,
+        label: () -> String,
+        onEdited: () -> Unit,
+        picker: (picked: () -> Unit) -> Unit
     ): View {
         val value = TextView(context).apply {
             textSize = 14f
@@ -513,7 +620,7 @@ object PatchedSettings {
         }
 
         fun refresh() {
-            value.text = thresholdLabel(BookmarkThreshold.current)
+            value.text = label()
         }
         refresh()
 
@@ -522,130 +629,30 @@ object PatchedSettings {
             gravity = Gravity.CENTER_VERTICAL
             setPadding(dp(context, 16f), dp(context, 14f), dp(context, 16f), dp(context, 14f))
             setOnClickListener {
-                showBookmarkThresholdPicker(context, palette) { floor ->
-                    BookmarkThreshold.setFloor(context, floor)
+                picker {
                     refresh()
-                    onChanged()
+                    onEdited()
                 }
             }
-            addView(
-                LinearLayout(context).apply {
-                    orientation = LinearLayout.VERTICAL
-                    layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-                    addView(
-                        TextView(context).apply {
-                            text = Strings.bookmarkThreshold
-                            textSize = 15f
-                            setTextColor(palette.primary)
-                        }
-                    )
-                    addView(
-                        TextView(context).apply {
-                            text = Strings.bookmarkThresholdHint
-                            textSize = 11f
-                            setTextColor(palette.secondary)
-                            setPadding(0, dp(context, 2f), 0, 0)
-                        }
-                    )
-                }
-            )
+            addView(settingsLabel(context, palette, title, hint))
             addView(value)
         }
     }
 
-    private fun showBookmarkThresholdPicker(
-        context: Context,
-        palette: Palette,
-        onPicked: (Int) -> Unit
-    ) {
+    /**
+     * The card every picker on this page is drawn on: the scrim, the rounded list and the height cap.
+     * The rows are built into a column the caller owns, because the bookmark picker swaps its list
+     * for the input form without closing the card.
+     */
+    private fun showPickerCard(context: Context, palette: Palette, build: (LinearLayout) -> Unit) {
         try {
             val column = LinearLayout(context).apply {
                 orientation = LinearLayout.VERTICAL
                 setPadding(0, dp(context, 12f), 0, dp(context, 10f))
             }
+            build(column)
 
-            fun title(text: String) = TextView(context).apply {
-                this.text = text
-                textSize = 16f
-                typeface = Typeface.DEFAULT_BOLD
-                setTextColor(palette.primary)
-                setPadding(dp(context, 20f), dp(context, 4f), dp(context, 20f), dp(context, 10f))
-            }
-
-            fun actionRow(label: String, color: Int, onTap: () -> Unit) = TextView(context).apply {
-                text = label
-                textSize = 15f
-                setTextColor(color)
-                setPadding(dp(context, 20f), dp(context, 12f), dp(context, 20f), dp(context, 12f))
-                setOnClickListener { onTap() }
-            }
-
-            fun showInput() {
-                column.removeAllViews()
-                column.addView(title(Strings.bookmarkThresholdCustomTitle))
-                val input = EditText(context).apply {
-                    inputType = InputType.TYPE_CLASS_NUMBER
-                    filters = arrayOf(InputFilter.LengthFilter(6))
-                    textSize = 16f
-                    setTextColor(palette.primary)
-                    setHintTextColor(palette.secondary)
-                    setPadding(dp(context, 20f), dp(context, 6f), dp(context, 20f), dp(context, 6f))
-                    val shown = BookmarkThreshold.current
-                    setText(if (shown > 0) shown.toString() else "")
-                    setSelection(text.length)
-                }
-                column.addView(input)
-                column.addView(
-                    TextView(context).apply {
-                        text = Strings.bookmarkThresholdScale
-                        textSize = 11f
-                        setTextColor(palette.secondary)
-                        setPadding(dp(context, 20f), 0, dp(context, 20f), dp(context, 10f))
-                    }
-                )
-                column.addView(
-                    actionRow(Strings.bookmarkThresholdSave, palette.accent) {
-                        val floor = input.text.toString().toIntOrNull()
-                        if (floor == null || floor < 0 || floor > BookmarkThreshold.MAX_FLOOR) {
-                            Toast.makeText(context, Strings.bookmarkThresholdInvalid, Toast.LENGTH_SHORT).show()
-                            return@actionRow
-                        }
-                        onPicked(floor)
-                        PageHost.dismissOverlay()
-                    }
-                )
-                input.post {
-                    input.requestFocus()
-                    // The current floor is in the field already; typing should replace it, not append.
-                    input.selectAll()
-                    runCatching {
-                        val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-                        imm.showSoftInput(input, InputMethodManager.SHOW_IMPLICIT)
-                    }
-                }
-            }
-
-            fun showPresets() {
-                column.removeAllViews()
-                column.addView(title(Strings.bookmarkThresholdTitle))
-                BookmarkThreshold.PRESETS.forEach { floor ->
-                    val current = floor == BookmarkThreshold.current
-                    column.addView(
-                        actionRow(
-                            thresholdLabel(floor),
-                            if (current) palette.accent else palette.primary
-                        ) {
-                            onPicked(floor)
-                            PageHost.dismissOverlay()
-                        }
-                    )
-                }
-                column.addView(actionRow(Strings.bookmarkThresholdCustom, palette.accent) { showInput() })
-            }
-
-            showPresets()
-
-            val card = ScrollView(context).apply {
+            val card = CappedScrollView(context).apply {
                 background = GradientDrawable().apply {
                     setColor(palette.card)
                     cornerRadius = dp(context, 16f).toFloat()
@@ -665,6 +672,242 @@ object PatchedSettings {
             }
             PageHost.showOverlay(card)
         } catch (_: Throwable) {
+        }
+    }
+
+    private fun pickerTitle(context: Context, palette: Palette, text: String): TextView =
+        TextView(context).apply {
+            this.text = text
+            textSize = 16f
+            typeface = Typeface.DEFAULT_BOLD
+            setTextColor(palette.primary)
+            setPadding(dp(context, 20f), dp(context, 4f), dp(context, 20f), dp(context, 10f))
+        }
+
+    private fun pickerRow(context: Context, label: String, color: Int, onTap: () -> Unit): TextView =
+        TextView(context).apply {
+            text = label
+            textSize = 15f
+            setTextColor(color)
+            setPadding(dp(context, 20f), dp(context, 12f), dp(context, 20f), dp(context, 12f))
+            setOnClickListener { onTap() }
+        }
+
+    /**
+     * The typed-value form all three pickers fall back to: a number field, the range it takes and the
+     * save/cancel pair. The range is checked here so a value out of bounds is refused the same way
+     * wherever it was typed.
+     */
+    private fun showNumberInput(
+        context: Context,
+        palette: Palette,
+        column: LinearLayout,
+        title: String,
+        scale: String,
+        initial: String,
+        range: IntRange,
+        onCancel: () -> Unit,
+        onSave: (Int) -> Unit
+    ) {
+        column.removeAllViews()
+        column.addView(pickerTitle(context, palette, title))
+        val input = EditText(context).apply {
+            inputType = InputType.TYPE_CLASS_NUMBER
+            filters = arrayOf(InputFilter.LengthFilter(range.last.toString().length + 1))
+            textSize = 16f
+            setTextColor(palette.primary)
+            setHintTextColor(palette.secondary)
+            setPadding(dp(context, 20f), dp(context, 6f), dp(context, 20f), dp(context, 6f))
+            setText(initial)
+        }
+        column.addView(input)
+        column.addView(
+            TextView(context).apply {
+                text = scale
+                textSize = 11f
+                setTextColor(palette.secondary)
+                setPadding(dp(context, 20f), 0, dp(context, 20f), dp(context, 10f))
+            }
+        )
+        column.addView(
+            pickerRow(context, Strings.save, palette.accent) {
+                val value = input.text.toString().toIntOrNull()
+                if (value == null || value !in range) {
+                    Toast.makeText(
+                        context,
+                        Strings.numberInvalid(range.first, range.last),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    return@pickerRow
+                }
+                onSave(value)
+                PageHost.dismissOverlay()
+            }
+        )
+        column.addView(pickerRow(context, Strings.cancel, palette.secondary) { onCancel() })
+        input.post {
+            input.requestFocus()
+            // The current value is in the field already; typing should replace it, not append.
+            input.selectAll()
+            runCatching {
+                val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                imm.showSoftInput(input, InputMethodManager.SHOW_IMPLICIT)
+            }
+        }
+    }
+
+    /** [onPick] receives null for the row's off, which is not a share of anything. */
+    private fun showRelativeThresholdPicker(
+        context: Context,
+        palette: Palette,
+        onPick: (Int?) -> Unit
+    ) {
+        val shares = BookmarkThreshold.PERCENTILES
+        val chosen = if (BookmarkThreshold.mode == BookmarkThreshold.MODE_PERCENTILE) {
+            BookmarkThreshold.percentile
+        } else {
+            null
+        }
+        showPickerCard(context, palette) { column ->
+
+            // The list and the input open each other: the last row of the list is the input, and
+            // cancelling the input is a way back to the list.
+            lateinit var showPresets: () -> Unit
+
+            fun showInput() {
+                showNumberInput(
+                    context,
+                    palette,
+                    column,
+                    Strings.relativeThresholdCustomTitle,
+                    Strings.relativeThresholdScale,
+                    chosen?.toString() ?: "",
+                    BookmarkThreshold.MIN_PERCENT..BookmarkThreshold.MAX_PERCENT,
+                    onCancel = showPresets
+                ) { percent -> onPick(percent) }
+            }
+
+            showPresets = {
+                column.removeAllViews()
+                column.addView(pickerTitle(context, palette, Strings.relativeThresholdTitle))
+                column.addView(
+                    pickerRow(context, Strings.off, if (chosen == null) palette.accent else palette.primary) {
+                        onPick(null)
+                        PageHost.dismissOverlay()
+                    }
+                )
+                shares.forEach { percent ->
+                    column.addView(
+                        pickerRow(
+                            context,
+                            Strings.bookmarkThresholdPercentLabel(percent),
+                            if (percent == chosen) palette.accent else palette.primary
+                        ) {
+                            onPick(percent)
+                            PageHost.dismissOverlay()
+                        }
+                    )
+                }
+                column.addView(
+                    pickerRow(context, Strings.bookmarkThresholdCustom, palette.accent) { showInput() }
+                )
+            }
+
+            showPresets()
+        }
+    }
+
+    private fun showFillBudgetPicker(context: Context, palette: Palette, onPick: (Int) -> Unit) {
+        val budgets = BookmarkThreshold.FILL_BUDGETS
+        val chosen = BookmarkThreshold.fillBudgetMs
+        showPickerCard(context, palette) { column ->
+
+            // See [showRelativeThresholdPicker]: the list and the input open each other.
+            lateinit var showPresets: () -> Unit
+
+            fun showInput() {
+                showNumberInput(
+                    context,
+                    palette,
+                    column,
+                    Strings.fillBudgetCustomTitle,
+                    Strings.fillBudgetScale,
+                    if (chosen > 0) (chosen / 1000).toString() else "",
+                    0..BookmarkThreshold.MAX_FILL_SECONDS,
+                    onCancel = showPresets
+                ) { seconds -> onPick(seconds * 1000) }
+            }
+
+            showPresets = {
+                column.removeAllViews()
+                column.addView(pickerTitle(context, palette, Strings.fillBudgetTitle))
+                budgets.forEach { milliseconds ->
+                    column.addView(
+                        pickerRow(
+                            context,
+                            Strings.fillBudgetValue(milliseconds),
+                            if (milliseconds == chosen) palette.accent else palette.primary
+                        ) {
+                            onPick(milliseconds)
+                            PageHost.dismissOverlay()
+                        }
+                    )
+                }
+                column.addView(
+                    pickerRow(context, Strings.bookmarkThresholdCustom, palette.accent) { showInput() }
+                )
+            }
+
+            showPresets()
+        }
+    }
+
+    private fun showBookmarkThresholdPicker(
+        context: Context,
+        palette: Palette,
+        onFloor: (Int) -> Unit
+    ) {
+        showPickerCard(context, palette) { column ->
+
+            // See [showRelativeThresholdPicker]: the list and the input open each other.
+            lateinit var showPresets: () -> Unit
+
+            fun showInput() {
+                val shown = BookmarkThreshold.current
+                showNumberInput(
+                    context,
+                    palette,
+                    column,
+                    Strings.bookmarkThresholdCustomTitle,
+                    Strings.bookmarkThresholdScale,
+                    if (shown > 0) shown.toString() else "",
+                    0..BookmarkThreshold.MAX_FLOOR,
+                    onCancel = showPresets
+                ) { floor -> onFloor(floor) }
+            }
+
+            showPresets = {
+                column.removeAllViews()
+                column.addView(pickerTitle(context, palette, Strings.bookmarkThresholdTitle))
+                BookmarkThreshold.PRESETS.forEach { floor ->
+                    val chosen = floor == BookmarkThreshold.current
+                    column.addView(
+                        pickerRow(
+                            context,
+                            floorLabel(floor),
+                            if (chosen) palette.accent else palette.primary
+                        ) {
+                            onFloor(floor)
+                            PageHost.dismissOverlay()
+                        }
+                    )
+                }
+                column.addView(
+                    pickerRow(context, Strings.bookmarkThresholdCustom, palette.accent) { showInput() }
+                )
+            }
+
+            showPresets()
         }
     }
 
@@ -806,3 +1049,23 @@ object PatchedSettings {
         context.resources.displayMetrics
     ).toInt()
 }
+
+/**
+ * A list that stops growing at most of the screen. The picker holds a share group above a count
+ * group, and a card taller than the screen puts its last rows past the edge where nothing scrolls.
+ */
+private class CappedScrollView(context: Context) : ScrollView(context) {
+
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        val cap = (resources.displayMetrics.heightPixels * CARD_HEIGHT_SHARE).toInt()
+        super.onMeasure(
+            widthMeasureSpec,
+            View.MeasureSpec.makeMeasureSpec(cap, View.MeasureSpec.AT_MOST)
+        )
+    }
+
+    private companion object {
+        const val CARD_HEIGHT_SHARE = 0.82f
+    }
+}
+

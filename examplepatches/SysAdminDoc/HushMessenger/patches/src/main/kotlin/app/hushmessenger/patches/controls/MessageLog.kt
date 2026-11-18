@@ -251,7 +251,8 @@ internal fun MutableMethod.validateMessageLog() {
  * same thread. Every path to a sink passes its own handover first, so a sink can't get an earlier message's id.
  */
 internal fun MutableMethod.injectMessageLog() = injectIncomingMessage("$SETTINGS->logReceivedMessages()Z",
-    "$SETTINGS->recordReceivedMessage(Ljava/lang/String;Ljava/lang/String;)V")
+    "$SETTINGS->recordReceivedMessage(Ljava/lang/String;Ljava/lang/String;)V",
+    "$SETTINGS->incomingMessageMedia(Ljava/lang/Object;)V")
 
 /**
  * Auto reply reads the same message at the same constructor, behind its own gate, so either control works without the
@@ -260,10 +261,20 @@ internal fun MutableMethod.injectMessageLog() = injectIncomingMessage("$SETTINGS
 internal fun MutableMethod.injectAutoReply() = injectIncomingMessage("$SETTINGS->autoReplyWanted()Z",
     "$SETTINGS->autoReplyTo(Ljava/lang/String;Ljava/lang/String;)V")
 
-/** [gate] and [sink] are whole references, so the patcher DEX holds each as one string the catalog check can find. */
-private fun MutableMethod.injectIncomingMessage(gate: String, sink: String) {
+/**
+ * [gate], [sink] and [media] are whole references, so the patcher DEX holds each as one string the catalog check can find.
+ * [media] is the log's own handover of the message object itself, for the voice clip its attachment points at; auto reply
+ * has no use for it and passes null. It goes over right after the id, while the register still holds the message, and the
+ * extension reads what it needs off it by type, so no field of its own has to be recorded per build.
+ */
+private fun MutableMethod.injectIncomingMessage(gate: String, sink: String, media: String? = null) {
+    // Two controls can select one of these hooks, and each gate's block only has to go in once.
+    if (implementation?.instructions?.toList().orEmpty()
+            .any { ((it as? ReferenceInstruction)?.reference as? MethodReference)?.toString() == gate }) return
     validateMessageLog()
     val contract = messageLogContract!!
+    // Written on the id's own line, so the block keeps its shape when no handover goes with it.
+    val mediaHandover = if (media == null) "" else "\n        invoke-static {v0}, $media"
     addInstructionsWithLabels(0, """
         invoke-static {}, $gate
         move-result v0
@@ -276,7 +287,7 @@ private fun MutableMethod.injectIncomingMessage(gate: String, sink: String) {
         iget-boolean v1, v0, ${contract.hiddenField}
         if-nez v1, :stock_behavior
         iget-object v1, v0, ${contract.messageIdField}
-        invoke-static {v1}, $SETTINGS->incomingMessageId(Ljava/lang/String;)V
+        invoke-static {v1}, $SETTINGS->incomingMessageId(Ljava/lang/String;)V$mediaHandover
         iget-object v1, v0, ${contract.bodyField}
         if-eqz v1, :incoming_no_text
         iget-object v1, v1, ${contract.secretField}

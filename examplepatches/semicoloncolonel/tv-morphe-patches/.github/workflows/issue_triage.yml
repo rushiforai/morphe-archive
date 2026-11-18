@@ -1,0 +1,54 @@
+name: Triage issues
+
+# Checks issues from people outside the project for the details their form
+# requires, and labels the ones that lack them "incomplete". Bug reports and
+# version or build reports are also checked against the Android TV versions
+# the patches support, and the ones that use another version or build are
+# labeled "untargeted version".
+#
+# See .github/scripts/issue_triage.py. The forms have no "Phone or Android TV
+# build" question, so every report is read as an Android TV build.
+#
+# The issue body is untrusted. Only the script reads it, from the event file;
+# it never reaches a shell command.
+
+on:
+  issues:
+    types: [opened, edited]
+
+permissions: {}
+
+concurrency:
+  group: triage-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  triage:
+    name: Check the report
+    if: >-
+      (contains(github.event.issue.labels.*.name, 'bug') ||
+       contains(github.event.issue.labels.*.name, 'app version') ||
+       contains(github.event.issue.labels.*.name, 'enhancement') ||
+       contains(github.event.issue.labels.*.name, 'question')) &&
+      github.event.issue.state == 'open' &&
+      github.event.issue.user.type != 'Bot' &&
+      !contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.issue.author_association)
+    permissions:
+      contents: read
+      issues: write
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          # main and dev are both read for the supported versions.
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Check the report
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TRIAGE_DEFAULT_BUILD: Android TV
+        run: python3 .github/scripts/issue_triage.py

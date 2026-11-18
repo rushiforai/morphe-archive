@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-13
+ * Modified by lavinhoque33, 2026-11-17
  */
 package app.morphe.extension.youtube.patches.player;
 
@@ -59,7 +59,7 @@ public class VideoActionBarLayoutPatchTest {
 
     private static ButtonViewModel button(String id, String title) {
         return ButtonViewModel.newBuilder().setTargetId(id).setTitle(title)
-                .setAccessibilityText(title).setType(5).setButtonSize(2).build();
+                .setAccessibilityText(title).setIconName(id + "-icon").setType(5).setButtonSize(2).build();
     }
 
     private static ToggleButtonViewModelHolder toggle(String id) {
@@ -134,6 +134,130 @@ public class VideoActionBarLayoutPatchTest {
         assertEquals("", restored.getActions(2).getContent().getButton().getTitle());
         assertEquals(4, restored.getActions(4).getContent().getDownloadButton().getStyle());
         assertEquals(restored, VideoActionBarLayoutPatch.convertActionBar(minimal, CLASSIC_TWO_ROWS, ""));
+    }
+
+    private static VideoActionBarViewModel withDislikeToggle(ToggleButtonViewModel toggle) {
+        VideoActionBarViewModel original = classic();
+        VideoActionBarItem action = original.getActions(1);
+        VideoActionBarLikeDislike segmented = action.getContent().getLikeDislikeButtons();
+        VideoActionBarItemContent dislike = segmented.getDislikeButton();
+        return original.toBuilder().setActions(1, action.toBuilder().setContent(action.getContent().toBuilder()
+                .setLikeDislikeButtons(segmented.toBuilder().setDislikeButton(dislike.toBuilder()
+                        .setDislikeButton(dislike.getDislikeButton().toBuilder()
+                                .setToggleButtonViewModel(ToggleButtonViewModelHolder.newBuilder()
+                                        .setToggleButtonViewModel(toggle))))))).build();
+    }
+
+    private static ToggleButtonViewModel dislikeToggle(VideoActionBarViewModel actionBar) {
+        return actionBar.getActions(1).getContent().getLikeDislikeButtons().getDislikeButton()
+                .getDislikeButton().getToggleButtonViewModel().getToggleButtonViewModel();
+    }
+
+    private static void assertDislikeIcons(ToggleButtonViewModel toggle) {
+        assertEquals("yt_outline_experimental_thumb_down_black_24",
+                toggle.getDefaultButtonViewModel().getButtonViewModel().getIconName());
+        assertEquals("yt_fill_experimental_thumb_down_black_24",
+                toggle.getToggledButtonViewModel().getButtonViewModel().getIconName());
+    }
+
+    @Test
+    public void replacesModernClassicDislikeIconsWithoutReplacingTextCommandsOrOtherFields() throws Exception {
+        ButtonViewModel imageButton = ButtonViewModel.parseFrom(field(998, new byte[]{1}))
+                .toBuilder().mergeFrom(button("id.video.dislike.button", "Dislike").toBuilder()
+                        .setYticonImage(ByteString.copyFrom(field(1, new byte[0])))
+                        .setStyle(2).setState(1).build())
+                .setOnTap(InnertubeCommandHolder.newBuilder().setInnertubeCommand(InnertubeCommand.newBuilder()
+                        .setLikeEndpoint(LikeEndpoint.newBuilder().setStatus(2)))).build();
+        ButtonViewModelHolder holder = ButtonViewModelHolder.newBuilder().setButtonViewModel(imageButton).build();
+        VideoActionBarViewModel original = withDislikeToggle(ToggleButtonViewModel.newBuilder()
+                .setDefaultButtonViewModel(holder).setToggledButtonViewModel(holder).setIdentifier("vote").build());
+
+        for (VideoActionBarLayout layout : new VideoActionBarLayout[]{CLASSIC, CLASSIC_TWO_ROWS}) {
+            VideoActionBarViewModel restored = VideoActionBarLayoutPatch.convertActionBar(original, layout, "");
+            ToggleButtonViewModel toggle = dislikeToggle(restored);
+            assertDislikeIcons(toggle);
+            assertEquals("vote", toggle.getIdentifier());
+            assertEquals(imageButton.toBuilder().clearYticonImage().build(),
+                    toggle.getDefaultButtonViewModel().getButtonViewModel().toBuilder().clearIconName().build());
+            assertEquals(imageButton.toBuilder().clearYticonImage().build(),
+                    toggle.getToggledButtonViewModel().getButtonViewModel().toBuilder().clearIconName().build());
+            assertTrue(imageButton.hasYticonImage());
+            assertFalse(toggle.getDefaultButtonViewModel().getButtonViewModel().hasYticonImage());
+            assertFalse(toggle.getToggledButtonViewModel().getButtonViewModel().hasYticonImage());
+            assertEquals(original.getActions(1).getContent().getLikeDislikeButtons().getLikeButton(),
+                    restored.getActions(1).getContent().getLikeDislikeButtons().getLikeButton());
+            assertSame(restored, VideoActionBarLayoutPatch.convertActionBar(restored, layout, ""));
+        }
+        assertSame(original, VideoActionBarLayoutPatch.convertActionBar(original, DEFAULT, ""));
+    }
+
+    @Test
+    public void restoresMissingDislikeIconsWhenJoiningMinimalButtons() throws Exception {
+        ButtonViewModelHolder holder = ButtonViewModelHolder.newBuilder()
+                .setButtonViewModel(button("dislike", "Dislike").toBuilder().clearIconName()).build();
+        VideoActionBarViewModel original = withDislikeToggle(ToggleButtonViewModel.newBuilder()
+                .setDefaultButtonViewModel(holder).setToggledButtonViewModel(holder).build());
+        VideoActionBarViewModel minimal = VideoActionBarLayoutPatch.convertActionBar(original, MINIMAL, "More");
+
+        for (VideoActionBarLayout layout : new VideoActionBarLayout[]{CLASSIC, CLASSIC_TWO_ROWS}) {
+            assertDislikeIcons(dislikeToggle(VideoActionBarLayoutPatch.convertActionBar(minimal, layout, "")));
+        }
+        assertSame(minimal, VideoActionBarLayoutPatch.convertActionBar(minimal, MINIMAL, ""));
+        assertEquals("", minimal.getActions(1).getContent().getDislikeButton().getToggleButtonViewModel()
+                .getToggleButtonViewModel().getDefaultButtonViewModel().getButtonViewModel().getIconName());
+    }
+
+    @Test
+    public void preservesExistingIconNamesAndRepairsOnlyTheMissingVoteState() throws Exception {
+        ToggleButtonViewModel originalToggle = dislikeToggle(classic());
+        VideoActionBarViewModel original = withDislikeToggle(originalToggle.toBuilder()
+                .setToggledButtonViewModel(originalToggle.getToggledButtonViewModel().toBuilder()
+                        .setButtonViewModel(originalToggle.getToggledButtonViewModel().getButtonViewModel()
+                                .toBuilder().clearIconName())).build());
+
+        for (VideoActionBarLayout layout : new VideoActionBarLayout[]{CLASSIC, CLASSIC_TWO_ROWS}) {
+            ToggleButtonViewModel restored = dislikeToggle(VideoActionBarLayoutPatch.convertActionBar(
+                    original, layout, ""));
+            assertEquals(originalToggle.getDefaultButtonViewModel(), restored.getDefaultButtonViewModel());
+            assertEquals("yt_fill_experimental_thumb_down_black_24",
+                    restored.getToggledButtonViewModel().getButtonViewModel().getIconName());
+        }
+    }
+
+    @Test
+    public void modernizesServerLegacyDislikeIconsInBothClassicLayouts() throws Exception {
+        ButtonViewModel defaultButton = button("id.video.dislike.button", "Dislike").toBuilder()
+                .setIconName("yt_outline_thumb_down_black_24").build();
+        ButtonViewModel toggledButton = defaultButton.toBuilder().setIconName("yt_fill_thumb_down_black_24").build();
+        VideoActionBarViewModel original = withDislikeToggle(ToggleButtonViewModel.newBuilder()
+                .setDefaultButtonViewModel(ButtonViewModelHolder.newBuilder().setButtonViewModel(defaultButton))
+                .setToggledButtonViewModel(ButtonViewModelHolder.newBuilder().setButtonViewModel(toggledButton))
+                .setIdentifier("vote").build());
+        VideoActionBarViewModel minimal = VideoActionBarLayoutPatch.convertActionBar(original, MINIMAL, "More");
+
+        for (VideoActionBarLayout layout : new VideoActionBarLayout[]{CLASSIC, CLASSIC_TWO_ROWS}) {
+            for (VideoActionBarViewModel source : new VideoActionBarViewModel[]{original, minimal}) {
+                // Converting to Minimal moves text out of the button before this repair runs.
+                ButtonViewModel expectedDefault = source == original
+                        ? defaultButton : defaultButton.toBuilder().clearTitle().build();
+                ButtonViewModel expectedToggled = source == original
+                        ? toggledButton : toggledButton.toBuilder().clearTitle().build();
+                VideoActionBarViewModel restored = VideoActionBarLayoutPatch.convertActionBar(source, layout, "");
+                ToggleButtonViewModel toggle = dislikeToggle(restored);
+                assertDislikeIcons(toggle);
+                assertEquals("vote", toggle.getIdentifier());
+                assertEquals(expectedDefault.toBuilder().clearIconName().build(),
+                        toggle.getDefaultButtonViewModel().getButtonViewModel().toBuilder().clearIconName().build());
+                assertEquals(expectedToggled.toBuilder().clearIconName().build(),
+                        toggle.getToggledButtonViewModel().getButtonViewModel().toBuilder().clearIconName().build());
+                assertSame(restored, VideoActionBarLayoutPatch.convertActionBar(restored, layout, ""));
+            }
+        }
+        assertSame(original, VideoActionBarLayoutPatch.convertActionBar(original, DEFAULT, ""));
+        assertSame(minimal, VideoActionBarLayoutPatch.convertActionBar(minimal, MINIMAL, ""));
+        assertEquals("yt_outline_thumb_down_black_24", minimal.getActions(1).getContent().getDislikeButton()
+                .getToggleButtonViewModel().getToggleButtonViewModel().getDefaultButtonViewModel()
+                .getButtonViewModel().getIconName());
     }
 
     @Test

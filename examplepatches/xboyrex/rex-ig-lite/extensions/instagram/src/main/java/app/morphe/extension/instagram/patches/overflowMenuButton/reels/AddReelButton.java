@@ -54,7 +54,7 @@ public class AddReelButton {
     }
 
     private static void addDownloadButton(Context context, Object helperObject, Object mediaObject, int currentMediaIndex){
-        String icon = UI.DRAWABLE_DOWNLOAD_ICON;
+        String icon = "rex_ic_download";
         ReelButton reelButton = new DownloadButton(context, mediaObject, currentMediaIndex);
         String DOWNLOAD_BUTTON_TEXT = str("rex_download_options");
 
@@ -64,7 +64,7 @@ public class AddReelButton {
     }
 
     private static void addInfoButton(Context context, Object helperObject, Object mediaObject, int currentMediaIndex){
-        String icon = UI.DRAWABLE_BLUB_ICON;
+        String icon = "rex_ic_sliders_horizontal";
         ReelButton reelButton = new InfoButton(context, mediaObject, currentMediaIndex);
         String buttonText = str("rex_more_options");
 
@@ -74,7 +74,7 @@ public class AddReelButton {
     }
 
     private static void addDebugButton(Context context, Object helperObject, Object mediaObject, int currentMediaIndex) {
-        String icon = UI.DRAWABLE_DEBUG_ICON;
+        String icon = "rex_ic_bug";
         ReelButton reelButton = new DebugButton(context, mediaObject);
         String buttonText = str("rex_debug");
 
@@ -84,7 +84,7 @@ public class AddReelButton {
     }
 
     private static void addExternalDownloadButton(Context context, Object helperObject, Object mediaObject, int currentMediaIndex){
-        String icon = UI.DRAWABLE_DOWNLOAD_ICON;
+        String icon = "rex_ic_external_link";
         ReelButton reelButton = new ExternalDownloadButton(context, mediaObject, currentMediaIndex);
         String buttonText = str("rex_download_with_external_downloader");
 

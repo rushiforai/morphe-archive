@@ -1,0 +1,35 @@
+# Build output
+.gradle/
+**/build/
+out/
+
+# Local machine configuration
+local.properties
+
+# Signing material: only the public key is ever committed
+morphe-signing.key
+*.keystore
+*.jks
+*.p12
+
+# Android artifacts and user-supplied application files
+*.apk
+*.apkm
+*.apks
+*.xapk
+*.mpp
+*.mpe
+
+# Exception: the Gradle wrapper JAR is source
+!gradle/wrapper/gradle-wrapper.jar
+
+# IDE and OS noise
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Logs and crash dumps
+*.log
+hs_err_pid*

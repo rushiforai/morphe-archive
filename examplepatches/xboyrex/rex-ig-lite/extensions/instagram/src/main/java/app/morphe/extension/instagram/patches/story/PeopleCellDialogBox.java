@@ -43,7 +43,7 @@ public class PeopleCellDialogBox {
         if (!hasMentions) {
             try {
                 final AlertDialog emptyDialog = new AlertDialog.Builder(context).create();
-                LinearLayout sheet = RexDialogs.createDialogSheet(context, "at-sign", str("rex_vsm_title"));
+                LinearLayout sheet = RexDialogs.createDialogSheet(context, "at-sign", "Hidden Mentions (0)");
 
                 LinearLayout emptyBox = new LinearLayout(context);
                 emptyBox.setOrientation(LinearLayout.VERTICAL);
@@ -60,7 +60,7 @@ public class PeopleCellDialogBox {
                 emptyBox.addView(emptyIcon, iLp);
 
                 TextView msg = new TextView(context);
-                msg.setText(str("rex_vsm_no_mentions"));
+                msg.setText("No hidden mentions found for this story.");
                 msg.setTextColor(RexDialogs.TEXT_SECONDARY);
                 msg.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14.5f);
                 msg.setGravity(Gravity.CENTER);
@@ -78,7 +78,7 @@ public class PeopleCellDialogBox {
         }
 
         InstagramDialogBox builder = new InstagramDialogBox(context);
-        builder.setTitle(str("rex_vsm_title"));
+        builder.setTitle("Hidden Mentions (" + (hasMentions ? peopleCells.size() : 0) + ")");
         builder.setNegativeButton(str("rex_close"), (dialog, which) -> dialog.dismiss());
         builder.setCancelable(true);
         builder.setCanceledOnTouchOutside(true);

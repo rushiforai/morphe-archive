@@ -11,6 +11,11 @@ import app.morphe.extension.youtube.shared.VideoState;
 @SuppressWarnings("unused")
 public class PlayerTypeHookPatch {
     /**
+     * Shorts player views attached to a window. Accessed only on the main thread.
+     */
+    private static int attachedShortsPlayers;
+
+    /**
      * Injection point.
      */
     public static void setPlayerType(@Nullable Enum<?> youTubePlayerType) {
@@ -40,12 +45,16 @@ public class PlayerTypeHookPatch {
         view.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
             @Override
             public void onViewAttachedToWindow(@Nullable View v) {
+                attachedShortsPlayers++;
                 ShortsPlayerState.set(ShortsPlayerState.OPEN);
             }
 
             @Override
             public void onViewDetachedFromWindow(@Nullable View v) {
-                ShortsPlayerState.set(ShortsPlayerState.CLOSED);
+                // A live Short can attach another player before the first player is detached.
+                attachedShortsPlayers = Math.max(0, attachedShortsPlayers - 1);
+                ShortsPlayerState.set(attachedShortsPlayers > 0
+                        ? ShortsPlayerState.OPEN : ShortsPlayerState.CLOSED);
             }
         });
     }

@@ -6,6 +6,8 @@ package app.morphe.patches.telegram.misc.maintabs
 
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patches.telegram.misc.localcontrols.Mention
+import app.morphe.patches.telegram.misc.localcontrols.classDefsMentioning
 import app.morphe.patches.telegram.misc.localcontrols.controlBody
 import app.morphe.patches.telegram.misc.localcontrols.controlField
 import app.morphe.patches.telegram.misc.localcontrols.controlHook
@@ -25,8 +27,8 @@ import app.morphe.util.names.tgClassDefByOrNull
 import app.morphe.util.names.tgMutableClassDefBy
 
 internal const val BAR_GLASS = "$MAIN_TABS->barGlass(Ljava/lang/Object;)V"
-internal const val BAR_OUTLINE_COLOR = "$MAIN_TABS->barOutlineColor(Ljava/lang/Object;)I"
-internal const val BAR_OUTLINE_WIDTH = "$MAIN_TABS->barOutlineWidth(Ljava/lang/Object;)F"
+internal const val BAR_OUTLINE_COLOR = "$MAIN_TABS->barOutlineColor(Ljava/lang/Object;I)I"
+internal const val BAR_OUTLINE_WIDTH = "$MAIN_TABS->barOutlineWidth(Ljava/lang/Object;F)F"
 private const val DRAWABLE = "Landroid/graphics/drawable/Drawable;"
 
 /** The glass rim's constructor: top width and color, bottom width and color, outline width and color, then two more. */
@@ -35,11 +37,13 @@ private val RIM_PARAMETERS = listOf("F", "I", "F", "I", "F", "I", "F", "I")
 /**
  * The bar's outline, or [missing], why this build can't have it. [factory] is the static call in
  * [build] that makes the bar glass's colors, and [color] and [width] are those colors' own outline
- * answers, Telegram's plain zero.
+ * answers, Telegram's plain zero. [overrides] are the same two answers in the colors' subclasses,
+ * each with the runtime method it hands its own answer to.
  */
 internal class BarOutline(
     val build: MutableMethod?, val factory: String, val at: Int,
     val color: MutableMethod?, val width: MutableMethod?, val missing: String?,
+    val overrides: List<Pair<MutableMethod, String>> = emptyList(),
 ) {
     /** The same edit on copies, so a smali problem refuses before the app is touched. */
     fun rehearse() {
@@ -58,8 +62,18 @@ internal class BarOutline(
         val colors = body[made + 1].namedRegisters().single()
         target.addInstructionsAtControlFlowLabel(made + 2, "invoke-static/range {v$colors .. v$colors}, $BAR_GLASS")
         // Before each answer's return: the zero Telegram put there goes to the extension and comes back.
-        edit(color!!).addInstructionsAtControlFlowLabel(1, "invoke-static {p0}, $BAR_OUTLINE_COLOR\nmove-result v0")
-        edit(width!!).addInstructionsAtControlFlowLabel(1, "invoke-static {p0}, $BAR_OUTLINE_WIDTH\nmove-result v0")
+        edit(color!!).addInstructionsAtControlFlowLabel(1, "invoke-static {p0, v0}, $BAR_OUTLINE_COLOR\nmove-result v0")
+        edit(width!!).addInstructionsAtControlFlowLabel(1, "invoke-static {p0, v0}, $BAR_OUTLINE_WIDTH\nmove-result v0")
+        // A subclass's own answer goes the same way at each of its returns, so a hook in the colors'
+        // class never runs without one in the code that replaces it.
+        for ((answer, runtime) in overrides) {
+            val method = edit(answer)
+            val body = method.controlBody()
+            for (at in body.indices.reversed().filter { body[it].opcode == Opcode.RETURN }) {
+                val value = body[at].namedRegisters().single()
+                method.addInstructionsAtControlFlowLabel(at, "invoke-static {p0, v$value}, $runtime\nmove-result v$value")
+            }
+        }
     }
 }
 
@@ -73,8 +87,8 @@ internal class BarOutline(
  */
 internal fun BytecodePatchContext.resolveBarOutline(plan: MainTabsPlan): BarOutline {
     controlHook(MAIN_TABS, "barGlass", listOf("Ljava/lang/Object;"), "V")
-    controlHook(MAIN_TABS, "barOutlineColor", listOf("Ljava/lang/Object;"), "I")
-    controlHook(MAIN_TABS, "barOutlineWidth", listOf("Ljava/lang/Object;"), "F")
+    controlHook(MAIN_TABS, "barOutlineColor", listOf("Ljava/lang/Object;", "I"), "I")
+    controlHook(MAIN_TABS, "barOutlineWidth", listOf("Ljava/lang/Object;", "F"), "F")
     fun missing(why: String) = BarOutline(null, "", 0, null, null, why)
 
     val build = tgMutableClassDefBy(plan.screen).methods.single(::isBuild)
@@ -163,7 +177,47 @@ internal fun BytecodePatchContext.resolveBarOutline(plan: MainTabsPlan): BarOutl
     }?.takeIf(::isZero)
     val color = answer(colorAnswer.first, "I") ?: return missing("the bar's colors no longer leave the outline color at zero")
     val width = answer(widthAnswer.first, "F") ?: return missing("the bar's colors no longer leave the outline width at zero")
-    return BarOutline(build, factoryRef, factory + 2, color, width, null)
+
+    // Subclasses of the colors, such as a theme's, answer the same two questions with code of their own.
+    val overrides = ArrayList<Pair<MutableMethod, String>>()
+    val seen = hashSetOf(colorsType)
+    var parents = setOf(colorsType)
+    while (parents.isNotEmpty()) {
+        // A subclass's constructor calls its parent's, so it names the parent.
+        val children = parents.flatMap { parent ->
+            classDefsMentioning(Mention.type(parent)).filter { it.superclass == parent && seen.add(it.type) }.map { it.type }
+        }.toSet()
+        for (child in children) {
+            for (m in tgMutableClassDefBy(child).methods) {
+                if (m.parameterTypes.isNotEmpty() || AccessFlags.STATIC.isSet(m.accessFlags) || AccessFlags.PRIVATE.isSet(m.accessFlags)) continue
+                val runtime = when {
+                    m.name == color.name && m.returnType == "I" -> BAR_OUTLINE_COLOR
+                    m.name == width.name && m.returnType == "F" -> BAR_OUTLINE_WIDTH
+                    else -> continue
+                }
+                if (m.implementation == null) continue
+                if (!answersInPlace(m)) return missing("a subclass of the bar's colors answers the outline in a way the hook can't follow")
+                overrides += m to runtime
+            }
+        }
+        parents = children
+    }
+    return BarOutline(build, factoryRef, factory + 2, color, width, null, overrides)
+}
+
+/**
+ * Whether [m], an instance method with no parameters, can hand each answer to the runtime where it
+ * returns it: it returns at least once, never writes `this`, and both registers fit a plain call.
+ */
+private fun answersInPlace(m: Method): Boolean {
+    val body = m.controlBody()
+    val self = (m.implementation ?: return false).registerCount - 1
+    val returns = body.filter { it.opcode == Opcode.RETURN }
+    if (self > 15 || returns.isEmpty() || returns.any { it.namedRegisters().single() > 15 }) return false
+    return body.none { instruction ->
+        val destination = instruction.namedRegisters().firstOrNull()
+        instruction.opcode.setsRegister() && (destination == self || instruction.opcode.setsWideRegister() && destination?.plus(1) == self)
+    }
 }
 
 /** A method whose whole body is `const/4 v0, 0x0` then `return v0`, two registers, `this` the second. */

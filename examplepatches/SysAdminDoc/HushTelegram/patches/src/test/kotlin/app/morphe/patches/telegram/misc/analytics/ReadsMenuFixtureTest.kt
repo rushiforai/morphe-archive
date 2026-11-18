@@ -13,6 +13,7 @@ import app.morphe.patches.telegram.misc.extension.PatchLogCapture
 import app.morphe.patches.telegram.misc.localcontrols.controlBody
 import app.morphe.patches.telegram.misc.localcontrols.controlRef
 import app.morphe.patches.telegram.misc.mymessages.MY_MESSAGES
+import app.morphe.patches.telegram.misc.mymessages.MyMessagesFixtureTest
 import app.morphe.patches.telegram.misc.mymessages.myMessagesPatch
 import app.morphe.patches.telegram.misc.translate.OutsideTranslateFixtureTest
 import app.morphe.util.ControlFlow
@@ -50,11 +51,11 @@ class ReadsMenuFixtureTest {
     private fun Instruction.shape() = listOf(opcode, namedRegisters(), origRef())
     private fun Instruction.buildRef() = (this as? ReferenceInstruction)?.reference?.toString()
 
-    /** The chat screen's slice, plus the user and chat classes My messages reads. */
+    /** The chat screen's slice, plus the user and chat classes and Admin tools' screens My messages reads. */
     private fun hosts(build: File): List<ClassDef> =
         (readsMenuHosts(build) + FixtureDex.classes(build,
-            setOf("Lorg/telegram/tgnet/TLRPC\$User;", "Lorg/telegram/tgnet/TLRPC\$Chat;")).values.map(ImmutableClassDef::of))
-            .distinctBy { it.type }
+            setOf("Lorg/telegram/tgnet/TLRPC\$User;", "Lorg/telegram/tgnet/TLRPC\$Chat;")).values.map(ImmutableClassDef::of) +
+            MyMessagesFixtureTest().adminHosts(build)).distinctBy { it.type }
 
     @Test fun `the header updater and click delegate ask first and the stubs read the chat's own members`() {
         for (build in Fixtures.declaredBuilds()) {

@@ -1,0 +1,1952 @@
+{
+  "format": 1,
+  "artifact_sha256": "17f622c8072c9fd8bd121b872a3733a9a22aaff041d57560f6f3dd59a33ce1b7",
+  "completion_status": "producer_capture_complete_r8_end_to_end_separate",
+  "scope": "Static discovery only; unsupported means new semantic export remains unimplemented or unverified, not that native Flitsmeister lacks the feature.",
+  "enums": {
+    "Lnl/flitsmeister/earlywarning/model/EarlyWarningTypeEnum;": {
+      "ACTION_CAR": {
+        "status": "exported",
+        "capture_candidate": "s6i.b; nh7$c accepted early-warning report path and vz2.J (interceptEventAdded) path",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "ADVICE": {
+        "status": "exported",
+        "capture_candidate": "s6i.b; nh7$c accepted early-warning report path and vz2.J (interceptEventAdded) path",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "AMBULANCE": {
+        "status": "exported",
+        "capture_candidate": "s6i.b; nh7$c accepted early-warning report path and vz2.J (interceptEventAdded) path",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "BE_RAILWAY_CROSSING": {
+        "status": "exported",
+        "capture_candidate": "s6i.b; nh7$c accepted early-warning report path and vz2.J (interceptEventAdded) path",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "BE_UNSECURED_RAILWAY_CROSSING": {
+        "status": "exported",
+        "capture_candidate": "s6i.b; nh7$c accepted early-warning report path and vz2.J (interceptEventAdded) path",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "BRIDGE_CLOSED": {
+        "status": "exported",
+        "capture_candidate": "s6i.b; nh7$c accepted early-warning report path and vz2.J (interceptEventAdded) path",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "FIRE_DEPARTMENT": {
+        "status": "exported",
+        "capture_candidate": "s6i.b; nh7$c accepted early-warning report path and vz2.J (interceptEventAdded) path",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "POLICE": {
+        "status": "exported",
+        "capture_candidate": "s6i.b; nh7$c accepted early-warning report path and vz2.J (interceptEventAdded) path",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "RAILWAY_CROSSING": {
+        "status": "exported",
+        "capture_candidate": "s6i.b; nh7$c accepted early-warning report path and vz2.J (interceptEventAdded) path",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "ROAD_SERVICE": {
+        "status": "exported",
+        "capture_candidate": "s6i.b; nh7$c accepted early-warning report path and vz2.J (interceptEventAdded) path",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "ROAD_WORKER": {
+        "status": "exported",
+        "capture_candidate": "s6i.b; nh7$c accepted early-warning report path and vz2.J (interceptEventAdded) path",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "SERVICE_CAR": {
+        "status": "exported",
+        "capture_candidate": "s6i.b; nh7$c accepted early-warning report path and vz2.J (interceptEventAdded) path",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "SLOWING_DOWN_TRAFFIC": {
+        "status": "exported",
+        "capture_candidate": "s6i.b; nh7$c accepted early-warning report path and vz2.J (interceptEventAdded) path",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "TEXT_CAR": {
+        "status": "exported",
+        "capture_candidate": "s6i.b; nh7$c accepted early-warning report path and vz2.J (interceptEventAdded) path",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "TRAFFIC_CONTROLLER": {
+        "status": "exported",
+        "capture_candidate": "s6i.b; nh7$c accepted early-warning report path and vz2.J (interceptEventAdded) path",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "UNKNOWN": {
+        "status": "exported",
+        "capture_candidate": "s6i.b; nh7$c accepted early-warning report path and vz2.J (interceptEventAdded) path",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "UNSECURED_RAILWAY_CROSSING": {
+        "status": "exported",
+        "capture_candidate": "s6i.b; nh7$c accepted early-warning report path and vz2.J (interceptEventAdded) path",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      }
+    },
+    "Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;": {
+      "AVG_SPEED_CHECK": {
+        "status": "exported",
+        "capture_candidate": "fc0.J -> s6i.l start/end plus state updates",
+        "evidence": [
+          "flitsmeister-producer-coverage.json:base_warning_families/AVG_SPEED_CHECK",
+          "flitsmeister-contract.json",
+          "NativeWarningHooksTest:all15originalroots"
+        ],
+        "verified_scope": "Pinned native producer path and real model/text export; detection quality/source lead and consumer/car remain separate R8 gates."
+      },
+      "BASEREPORT": {
+        "status": "excluded",
+        "reason": "BaseReportListItem is an icon/text-empty list placeholder; the only other direct uses are rated-item DB conversion/default fallbacks. It has no native fc0.x speech dispatch arm.",
+        "scope": "Excluded from native road-warning announcement completeness, not discarded from current native display state.",
+        "evidence": [
+          "flitsmeister-nonwarning-scope.json",
+          "flitsmeister-contract.json:Lfc0;->x",
+          "NativeWarningsTest.nonWarningOrReservedModelsRemainDisplayStateAndNeverBecomeAnnouncements"
+        ]
+      },
+      "CITS_BRIDE_CLOSED": {
+        "status": "exported",
+        "capture_candidate": "fc0.x CitsBaseReport direct t50 bypass",
+        "evidence": [
+          "flitsmeister-producer-coverage.json:base_warning_families/CITS_BRIDE_CLOSED",
+          "flitsmeister-contract.json",
+          "NativeWarningHooksTest:all15originalroots"
+        ],
+        "verified_scope": "Pinned native producer path and real model/text export; detection quality/source lead and consumer/car remain separate R8 gates."
+      },
+      "CITS_LANE_CLOSED": {
+        "status": "exported",
+        "capture_candidate": "fc0.J accepted branch -> s6i.l",
+        "implemented_fields": [
+          "native_subtype",
+          "native_lane_code",
+          "lane_index",
+          "number_of_lanes_closed"
+        ],
+        "evidence": [
+          "flitsmeister-producer-coverage.json:base_warning_families/CITS_LANE_CLOSED",
+          "flitsmeister-contract.json",
+          "NativeWarningHooksTest:all15originalroots"
+        ],
+        "verified_scope": "Pinned native producer path and real model/text export; detection quality/source lead and consumer/car remain separate R8 gates."
+      },
+      "CITS_PARKING": {
+        "status": "excluded",
+        "reason": "CitsParking extends BaseReport, not CitsBaseReport; it supplies parking capacity/price/display data and a null short description. Native fc0.x has no speech arm for it.",
+        "scope": "Excluded from native road-warning announcement completeness, not discarded from current native display state.",
+        "evidence": [
+          "flitsmeister-nonwarning-scope.json",
+          "flitsmeister-contract.json:Lfc0;->x",
+          "NativeWarningsTest.nonWarningOrReservedModelsRemainDisplayStateAndNeverBecomeAnnouncements"
+        ]
+      },
+      "CITS_SPEED_ADVICE": {
+        "status": "exported",
+        "capture_candidate": "cz2.a VRISpeedAdviceBus; not proven native ANNOUNCE",
+        "evidence": [
+          "flitsmeister-producer-coverage.json:base_warning_families/CITS_SPEED_ADVICE",
+          "flitsmeister-contract.json",
+          "NativeWarningHooksTest:all15originalroots"
+        ],
+        "verified_scope": "Pinned native producer path and real model/text export; detection quality/source lead and consumer/car remain separate R8 gates."
+      },
+      "CITS_WEATHER": {
+        "status": "exported",
+        "capture_candidate": "fc0.x CitsBaseReport direct t50 bypass",
+        "evidence": [
+          "flitsmeister-producer-coverage.json:base_warning_families/CITS_WEATHER",
+          "flitsmeister-contract.json",
+          "NativeWarningHooksTest:all15originalroots"
+        ],
+        "verified_scope": "Pinned native producer path and real model/text export; detection quality/source lead and consumer/car remain separate R8 gates."
+      },
+      "ENVIRONMENTAL_ZONE": {
+        "status": "excluded",
+        "reason": "The enum field has only declaration/value-array uses in the exact original DEX inventory. No concrete native warning producer or fc0.x dispatch arm uses it.",
+        "scope": "Excluded from native road-warning announcement completeness, not discarded from current native display state.",
+        "evidence": [
+          "flitsmeister-nonwarning-scope.json",
+          "flitsmeister-contract.json:Lfc0;->x",
+          "NativeWarningsTest.nonWarningOrReservedModelsRemainDisplayStateAndNeverBecomeAnnouncements"
+        ]
+      },
+      "FM_OFFICE": {
+        "status": "excluded",
+        "reason": "FMOfficeReport is the office marker, with a null short description and no native fc0.x speech dispatch arm.",
+        "scope": "Excluded from native road-warning announcement completeness, not discarded from current native display state.",
+        "evidence": [
+          "flitsmeister-nonwarning-scope.json",
+          "flitsmeister-contract.json:Lfc0;->x",
+          "NativeWarningsTest.nonWarningOrReservedModelsRemainDisplayStateAndNeverBecomeAnnouncements"
+        ]
+      },
+      "INCIDENT": {
+        "status": "exported",
+        "capture_candidate": "Concrete Incident versus EarlyWarningReport versus CitsRoadWorks adapters",
+        "model_family_note": "CitsRoadWorks reports raw INCIDENT but has no ordinary Incident subtype; preserve its concrete family and classify roadworks without calling getIncidentType.",
+        "evidence": [
+          "flitsmeister-producer-coverage.json:base_warning_families/INCIDENT",
+          "flitsmeister-contract.json",
+          "NativeWarningHooksTest:all15originalroots"
+        ],
+        "verified_scope": "Pinned native producer path and real model/text export; detection quality/source lead and consumer/car remain separate R8 gates."
+      },
+      "LBA": {
+        "status": "excluded",
+        "reason": "The enum field has only its declaration/value-array uses. Actual LBA is a separate Parcelable with END_OF_TRIP/NONE notification types and its own location-based-content bus, outside native road-warning capture.",
+        "scope": "Excluded from native road-warning announcement completeness, not discarded from current native display state.",
+        "evidence": [
+          "flitsmeister-nonwarning-scope.json",
+          "flitsmeister-contract.json:Lfc0;->x",
+          "NativeWarningsTest.nonWarningOrReservedModelsRemainDisplayStateAndNeverBecomeAnnouncements"
+        ]
+      },
+      "PARKED_LOCATION": {
+        "status": "excluded",
+        "reason": "The enum field has only declaration/value-array uses in the exact original DEX inventory. No concrete native warning producer or fc0.x dispatch arm uses it.",
+        "scope": "Excluded from native road-warning announcement completeness, not discarded from current native display state.",
+        "evidence": [
+          "flitsmeister-nonwarning-scope.json",
+          "flitsmeister-contract.json:Lfc0;->x",
+          "NativeWarningsTest.nonWarningOrReservedModelsRemainDisplayStateAndNeverBecomeAnnouncements"
+        ]
+      },
+      "POLICEHOTSPOT": {
+        "status": "exported",
+        "capture_candidate": "fc0.J accepted -> fc0.x -> s6i.l",
+        "evidence": [
+          "flitsmeister-producer-coverage.json:base_warning_families/POLICEHOTSPOT",
+          "flitsmeister-contract.json",
+          "NativeWarningHooksTest:all15originalroots"
+        ],
+        "verified_scope": "Pinned native producer path and real model/text export; detection quality/source lead and consumer/car remain separate R8 gates."
+      },
+      "SERVICE_VEHICLE": {
+        "status": "exported",
+        "capture_candidate": "fc0.x -> s6i.l; m71/dz2 feature eligibility",
+        "evidence": [
+          "flitsmeister-producer-coverage.json:base_warning_families/SERVICE_VEHICLE",
+          "flitsmeister-contract.json",
+          "NativeWarningHooksTest:all15originalroots"
+        ],
+        "verified_scope": "Pinned native producer path and real model/text export; detection quality/source lead and consumer/car remain separate R8 gates."
+      },
+      "SLOW_MOVING_VEHICLE": {
+        "status": "exported",
+        "capture_candidate": "fc0.x -> s6i.l; m71/ez2 feature eligibility",
+        "evidence": [
+          "flitsmeister-producer-coverage.json:base_warning_families/SLOW_MOVING_VEHICLE",
+          "flitsmeister-contract.json",
+          "NativeWarningHooksTest:all15originalroots"
+        ],
+        "verified_scope": "Pinned native producer path and real model/text export; detection quality/source lead and consumer/car remain separate R8 gates."
+      },
+      "SPEED_CAM": {
+        "status": "exported",
+        "capture_candidate": "fc0.J accepted -> fc0.x -> s6i.l",
+        "evidence": [
+          "flitsmeister-producer-coverage.json:base_warning_families/SPEED_CAM",
+          "flitsmeister-contract.json",
+          "NativeWarningHooksTest:all15originalroots"
+        ],
+        "verified_scope": "Pinned native producer path and real model/text export; detection quality/source lead and consumer/car remain separate R8 gates."
+      },
+      "SPEED_TRAP": {
+        "status": "exported",
+        "capture_candidate": "fc0.x -> s6i.l",
+        "evidence": [
+          "flitsmeister-producer-coverage.json:base_warning_families/SPEED_TRAP",
+          "flitsmeister-contract.json",
+          "NativeWarningHooksTest:all15originalroots"
+        ],
+        "verified_scope": "Pinned native producer path and real model/text export; detection quality/source lead and consumer/car remain separate R8 gates."
+      },
+      "TOLLING": {
+        "status": "excluded",
+        "reason": "TollReport is a map/route toll marker with common_toll_gate title and empty description. It is outside every native fc0.x announcement dispatch arm; accepted bus state remains available.",
+        "scope": "Excluded from native road-warning announcement completeness, not discarded from current native display state.",
+        "evidence": [
+          "flitsmeister-nonwarning-scope.json",
+          "flitsmeister-contract.json:Lfc0;->x",
+          "NativeWarningsTest.nonWarningOrReservedModelsRemainDisplayStateAndNeverBecomeAnnouncements"
+        ]
+      },
+      "TRAFFIC_JAM": {
+        "status": "exported",
+        "capture_candidate": "fc0.J -> s6i.l start/end",
+        "evidence": [
+          "flitsmeister-producer-coverage.json:base_warning_families/TRAFFIC_JAM",
+          "flitsmeister-contract.json",
+          "NativeWarningHooksTest:all15originalroots"
+        ],
+        "verified_scope": "Pinned native producer path and real model/text export; detection quality/source lead and consumer/car remain separate R8 gates."
+      }
+    },
+    "Lnl/flitsmeister/fmcore/data/model/reports/IncidentType;": {
+      "ACCIDENT": {
+        "status": "exported",
+        "capture_candidate": "fc0.y -> s6i.l with native formatted text; preserve raw incident subtype",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "ACTION_CAR": {
+        "status": "exported",
+        "capture_candidate": "fc0.y -> s6i.l with native formatted text; preserve raw incident subtype",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "ANIMAL_ON_ROAD": {
+        "status": "exported",
+        "capture_candidate": "fc0.y -> s6i.l with native formatted text; preserve raw incident subtype",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "BRIDGE_OPEN": {
+        "status": "exported",
+        "capture_candidate": "fc0.y -> s6i.l with native formatted text; preserve raw incident subtype",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "BUMPY_ROAD": {
+        "status": "exported",
+        "capture_candidate": "fc0.y -> s6i.l with native formatted text; preserve raw incident subtype",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "CLOSURE_WITH_REROUTE": {
+        "status": "exported",
+        "capture_candidate": "fc0.y -> s6i.l with native formatted text; preserve raw incident subtype",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "CONTROL": {
+        "status": "exported",
+        "capture_candidate": "fc0.y -> s6i.l with native formatted text; preserve raw incident subtype",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "DANGEROUS_SITUATION_FM": {
+        "status": "exported",
+        "capture_candidate": "fc0.y -> s6i.l with native formatted text; preserve raw incident subtype",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "DANGEROUS_SITUATION_TM": {
+        "status": "exported",
+        "capture_candidate": "fc0.y -> s6i.l with native formatted text; preserve raw incident subtype",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "ELKS_ON_THE_ROAD": {
+        "status": "exported",
+        "capture_candidate": "fc0.y -> s6i.l with native formatted text; preserve raw incident subtype",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "HEAVY_TRAFFIC": {
+        "status": "exported",
+        "capture_candidate": "fc0.y -> s6i.l with native formatted text; preserve raw incident subtype",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "HEAVY_WIND": {
+        "status": "exported",
+        "capture_candidate": "fc0.y -> s6i.l with native formatted text; preserve raw incident subtype",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "ICE_ON_THE_ROAD": {
+        "status": "exported",
+        "capture_candidate": "fc0.y -> s6i.l with native formatted text; preserve raw incident subtype",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "INFORMATIVE": {
+        "status": "exported",
+        "capture_candidate": "fc0.y -> s6i.l with native formatted text; preserve raw incident subtype",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "MAJOR_EVENT": {
+        "status": "exported",
+        "capture_candidate": "fc0.y -> s6i.l with native formatted text; preserve raw incident subtype",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "OBSTACLE": {
+        "status": "exported",
+        "capture_candidate": "fc0.y -> s6i.l with native formatted text; preserve raw incident subtype",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "OTHER": {
+        "status": "exported",
+        "capture_candidate": "fc0.y -> s6i.l with native formatted text; preserve raw incident subtype",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "PERSON_ON_ROAD": {
+        "status": "exported",
+        "capture_candidate": "fc0.y -> s6i.l with native formatted text; preserve raw incident subtype",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "POOR_VISIBILITY": {
+        "status": "exported",
+        "capture_candidate": "fc0.y -> s6i.l with native formatted text; preserve raw incident subtype",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "REINDEER_NEAR_THE_ROAD": {
+        "status": "exported",
+        "capture_candidate": "fc0.y -> s6i.l with native formatted text; preserve raw incident subtype",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "REINDEER_ON_THE_ROAD": {
+        "status": "exported",
+        "capture_candidate": "fc0.y -> s6i.l with native formatted text; preserve raw incident subtype",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "ROADWORKS": {
+        "status": "exported",
+        "capture_candidate": "fc0.y -> s6i.l with native formatted text; preserve raw incident subtype",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "ROAD_CLOSURE": {
+        "status": "exported",
+        "capture_candidate": "fc0.y -> s6i.l with native formatted text; preserve raw incident subtype",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "ROAD_SERVICE": {
+        "status": "exported",
+        "capture_candidate": "fc0.y -> s6i.l with native formatted text; preserve raw incident subtype",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "ROAD_WORKER": {
+        "status": "exported",
+        "capture_candidate": "fc0.y -> s6i.l with native formatted text; preserve raw incident subtype",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "SLIPPERY_ROAD": {
+        "status": "exported",
+        "capture_candidate": "fc0.y -> s6i.l with native formatted text; preserve raw incident subtype",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "SNOW_ON_THE_ROAD": {
+        "status": "exported",
+        "capture_candidate": "fc0.y -> s6i.l with native formatted text; preserve raw incident subtype",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "STATIONARY_VEHICLE": {
+        "status": "exported",
+        "capture_candidate": "fc0.y -> s6i.l with native formatted text; preserve raw incident subtype",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "TEXT_CAR": {
+        "status": "exported",
+        "capture_candidate": "fc0.y -> s6i.l with native formatted text; preserve raw incident subtype",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "TRAFFIC": {
+        "status": "exported",
+        "capture_candidate": "fc0.y -> s6i.l with native formatted text; preserve raw incident subtype",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "TRAFFIC_CONTROLLER": {
+        "status": "exported",
+        "capture_candidate": "fc0.y -> s6i.l with native formatted text; preserve raw incident subtype",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "UNKNOWN": {
+        "status": "exported",
+        "capture_candidate": "fc0.y -> s6i.l with native formatted text; preserve raw incident subtype",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "VOICE_ONLY": {
+        "status": "exported",
+        "capture_candidate": "xl$c.invokeSuspend VOICE_ONLY branch before s6i.g local spoken-warning gate",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "WILD_ANIMALS_ON_THE_ROAD": {
+        "status": "exported",
+        "capture_candidate": "fc0.y -> s6i.l with native formatted text; preserve raw incident subtype",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "WRONG_WAY_DRIVER": {
+        "status": "exported",
+        "capture_candidate": "fc0.y -> s6i.l with native formatted text; preserve raw incident subtype",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      }
+    },
+    "Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;": {
+      "BUSLANE_CONTROL": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "CHECKPOINT": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "CROSSWALK_CONTROL": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "DISTANCE_CONTROL": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "DRIVEWAY_CONTROL": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "DUMMY": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "DUMMY_30": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "DUMMY_50": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "DUMMY_70": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "DUMMY_80": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "ENTRANCE_CONTROL": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "HEIGHT_CONTROL": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "OTHER": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "PASSING_CONTROL": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "RED_LIGHT": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "RED_LIGHT_20": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "RED_LIGHT_30": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "RED_LIGHT_40": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "RED_LIGHT_50": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "RED_LIGHT_60": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "RED_LIGHT_70": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "RED_LIGHT_80": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "RED_LIGHT_90": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "RED_LIGHT_SPEED": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "SECTION_END": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "SECTION_END_100": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "SECTION_END_110": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "SECTION_END_120": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "SECTION_END_130": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "SECTION_END_20": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "SECTION_END_30": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "SECTION_END_40": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "SECTION_END_50": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "SECTION_END_60": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "SECTION_END_70": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "SECTION_END_80": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "SECTION_END_90": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "SECTION_END_VARIABLE": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "SECTION_START": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "SECTION_START_100": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "SECTION_START_110": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "SECTION_START_120": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "SECTION_START_130": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "SECTION_START_20": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "SECTION_START_30": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "SECTION_START_40": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "SECTION_START_50": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "SECTION_START_60": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "SECTION_START_70": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "SECTION_START_80": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "SECTION_START_90": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "SECTION_START_VARIABLE": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "SPEED_10": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "SPEED_100": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "SPEED_110": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "SPEED_120": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "SPEED_130": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "SPEED_140": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "SPEED_20": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "SPEED_30": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "SPEED_40": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "SPEED_50": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "SPEED_60": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "SPEED_70": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "SPEED_80": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "SPEED_90": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "SPEED_VARIABLE": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "TOLL_CONTROL": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "TRAFFIC_CAMERA": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "TUNNEL": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "TUNNEL_100": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "TUNNEL_110": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "TUNNEL_130": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "TUNNEL_30": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "TUNNEL_40": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "TUNNEL_50": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "TUNNEL_60": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "TUNNEL_70": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "TUNNEL_80": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "TUNNEL_90": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "TUNNEL_VARIABLE": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "WEIGHT_CONTROL": {
+        "status": "exported",
+        "capture_candidate": "s6i.l; native SpeedCamType.getLocalizedTTS; preserve raw camera subtype and muted-category decision",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      }
+    },
+    "Lnl/flitsmeister/fmcore/data/model/reports/ServiceVehicle$Type;": {
+      "COMMON_SERVICE": {
+        "status": "exported",
+        "capture_candidate": "fc0.x -> s6i.l; m71.a -> dz2.invokeSuspend -> kpg master + subtype feature key",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "GRITTER_SERVICE": {
+        "status": "exported",
+        "capture_candidate": "fc0.x -> s6i.l; m71.a -> dz2.invokeSuspend -> kpg master + subtype feature key",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "IMPACT_ATTENUATOR": {
+        "status": "exported",
+        "capture_candidate": "fc0.x -> s6i.l; m71.a -> dz2.invokeSuspend -> kpg master + subtype feature key",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "ROADSIDE_ASSISTANCE": {
+        "status": "exported",
+        "capture_candidate": "fc0.x -> s6i.l; m71.a -> dz2.invokeSuspend -> kpg master + subtype feature key",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "ROAD_INSPECTOR": {
+        "status": "exported",
+        "capture_candidate": "fc0.x -> s6i.l; m71.a -> dz2.invokeSuspend -> kpg master + subtype feature key",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      },
+      "TOW_SERVICE": {
+        "status": "exported",
+        "capture_candidate": "fc0.x -> s6i.l; m71.a -> dz2.invokeSuspend -> kpg master + subtype feature key",
+        "evidence": [
+          "flitsmeister-contract.json",
+          "flitsmeister-model-verification.json:en/nl",
+          "NativeWarningHooksTest.all15OriginalRootsTransformWithoutLosingNativeCallsAndRoundTripThroughDexAssembly",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ],
+        "verified_scope": "Native model/text adapter and guarded original-artifact binding; upstream native callback/runtime category acceptance remains pending."
+      }
+    }
+  },
+  "entry_points": [
+    {
+      "method": "Ls6i;->l(Lnl/flitsmeister/fmcore/data/model/reports/BaseReport;ZZLjava/lang/String;Lz39;)V",
+      "status": "exported",
+      "evidence": [
+        "flitsmeister-producer-coverage.json:callback_roots/Ls6i;->l(Lnl/flitsmeister/fmcore/data/model/reports/BaseReport;ZZLjava/lang/String;Lz39;)V",
+        "flitsmeister-contract.json"
+      ]
+    },
+    {
+      "method": "Ls6i;->b(Lnl/flitsmeister/earlywarning/model/EarlyWarningTypeEnum;Lnl/flitsmeister/fmcore/models/data/reports/EarlyWarningReport;Lnl/flitsmeister/earlywarning/model/EarlyWarningNotification;Ljava/lang/String;ZLz39;)V",
+      "status": "exported",
+      "evidence": [
+        "flitsmeister-producer-coverage.json:callback_roots/Ls6i;->b(Lnl/flitsmeister/earlywarning/model/EarlyWarningTypeEnum;Lnl/flitsmeister/fmcore/models/data/reports/EarlyWarningReport;Lnl/flitsmeister/earlywarning/model/EarlyWarningNotification;Ljava/lang/String;ZLz39;)V",
+        "flitsmeister-contract.json"
+      ]
+    },
+    {
+      "method": "Lxl$c;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+      "status": "exported",
+      "evidence": [
+        "flitsmeister-producer-coverage.json:callback_roots/Lxl$c;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+        "flitsmeister-contract.json"
+      ]
+    },
+    {
+      "method": "Lfc0;->x(Lnl/flitsmeister/fmcore/data/model/reports/BaseReport;)V",
+      "status": "exported",
+      "evidence": [
+        "flitsmeister-producer-coverage.json:callback_roots/Lfc0;->x(Lnl/flitsmeister/fmcore/data/model/reports/BaseReport;)V",
+        "flitsmeister-contract.json"
+      ]
+    },
+    {
+      "method": "Lxl;->k(Landroid/content/Context;Lnl/flitsmeister/fmcore/models/data/earlywarnings/EarlyWarning;Z)V",
+      "status": "exported",
+      "evidence": [
+        "flitsmeister-producer-coverage.json:callback_roots/Lxl;->k(Landroid/content/Context;Lnl/flitsmeister/fmcore/models/data/earlywarnings/EarlyWarning;Z)V",
+        "flitsmeister-contract.json"
+      ]
+    },
+    {
+      "method": "Lfc0;->J(Lnl/flitsmeister/fmcore/data/model/reports/BaseReport;Z)V",
+      "status": "exported",
+      "evidence": [
+        "flitsmeister-producer-coverage.json:callback_roots/Lfc0;->J(Lnl/flitsmeister/fmcore/data/model/reports/BaseReport;Z)V",
+        "flitsmeister-contract.json"
+      ]
+    },
+    {
+      "method": "Lfc0;->O(Lnl/flitsmeister/fmcore/data/model/reports/BaseReport;)V",
+      "status": "exported",
+      "evidence": [
+        "flitsmeister-producer-coverage.json:callback_roots/Lfc0;->O(Lnl/flitsmeister/fmcore/data/model/reports/BaseReport;)V",
+        "flitsmeister-contract.json"
+      ]
+    },
+    {
+      "method": "Lnh7$c;->onEarlyWarningNotificationUpdate(Landroid/location/Location;Lnl/flitsmeister/earlywarning/model/EarlyWarningNotification;)V",
+      "status": "exported",
+      "evidence": [
+        "flitsmeister-producer-coverage.json:callback_roots/Lnh7$c;->onEarlyWarningNotificationUpdate(Landroid/location/Location;Lnl/flitsmeister/earlywarning/model/EarlyWarningNotification;)V",
+        "flitsmeister-contract.json"
+      ]
+    },
+    {
+      "method": "Lcz2;->a(Lbemobile/cits/sdk/core/model/response/generalObjects/BaseEvent;)V",
+      "status": "exported",
+      "evidence": [
+        "flitsmeister-producer-coverage.json:callback_roots/Lcz2;->a(Lbemobile/cits/sdk/core/model/response/generalObjects/BaseEvent;)V",
+        "flitsmeister-contract.json"
+      ]
+    },
+    {
+      "method": "Lvz2;->J(Lbemobile/cits/sdk/core/model/response/generalObjects/BaseEvent;)Z",
+      "status": "exported",
+      "evidence": [
+        "flitsmeister-producer-coverage.json:callback_roots/Lvz2;->J(Lbemobile/cits/sdk/core/model/response/generalObjects/BaseEvent;)Z",
+        "flitsmeister-contract.json"
+      ]
+    },
+    {
+      "method": "Lvz2;->K(Lbemobile/cits/sdk/core/model/response/generalObjects/BaseEvent;)Z",
+      "status": "exported",
+      "evidence": [
+        "flitsmeister-producer-coverage.json:callback_roots/Lvz2;->K(Lbemobile/cits/sdk/core/model/response/generalObjects/BaseEvent;)Z",
+        "flitsmeister-contract.json"
+      ]
+    },
+    {
+      "method": "Lvz2;->L(Lbemobile/cits/sdk/core/model/response/generalObjects/BaseEvent;)Z",
+      "status": "exported",
+      "evidence": [
+        "flitsmeister-producer-coverage.json:callback_roots/Lvz2;->L(Lbemobile/cits/sdk/core/model/response/generalObjects/BaseEvent;)Z",
+        "flitsmeister-contract.json"
+      ]
+    },
+    {
+      "method": "Lcz2;->b(Lbemobile/cits/sdk/core/model/response/generalObjects/BaseEvent;)V",
+      "status": "exported",
+      "capture_candidate": "Guarded native accepted state/update/removal hook in NativeWarningHooks.kt",
+      "evidence": [
+        "flitsmeister-producer-coverage.json:callback_roots/Lcz2;->b(Lbemobile/cits/sdk/core/model/response/generalObjects/BaseEvent;)V",
+        "flitsmeister-contract.json"
+      ]
+    },
+    {
+      "method": "Lcz2;->e(Lbemobile/cits/sdk/core/model/response/generalObjects/BaseEvent;)V",
+      "status": "exported",
+      "capture_candidate": "Guarded native accepted state/update/removal hook in NativeWarningHooks.kt",
+      "evidence": [
+        "flitsmeister-producer-coverage.json:callback_roots/Lcz2;->e(Lbemobile/cits/sdk/core/model/response/generalObjects/BaseEvent;)V",
+        "flitsmeister-contract.json"
+      ]
+    },
+    {
+      "method": "Lvz2$c;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+      "status": "exported",
+      "capture_candidate": "Guarded native accepted state/update/removal hook in NativeWarningHooks.kt",
+      "evidence": [
+        "flitsmeister-producer-coverage.json:callback_roots/Lvz2$c;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+        "flitsmeister-contract.json"
+      ]
+    }
+  ],
+  "implementation_scope": "Raw accepted text/subtype adapters cover all159 frozen enum members; native text formatters and CITS/early state hooks are implemented. Per-family runtime acceptance remains independent.",
+  "family_adapters": {
+    "Lnl/flitsmeister/earlywarning/model/EarlyWarningTypeEnum;": {
+      "adapter_test": "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText",
+      "native_text_api": "Original s6i.b argument; EarlyWarningReport native short description/title or native free text; unknown free-text language stays und."
+    },
+    "Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;": {
+      "adapter_test": "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText",
+      "native_text_api": "Native accepted s6i.l/b arguments, family-specific native resource fallback and explicit unsupported text diagnostics."
+    },
+    "Lnl/flitsmeister/fmcore/data/model/reports/IncidentType;": {
+      "adapter_test": "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText",
+      "native_text_api": "Original fc0.y formatted text; IncidentType.getTTSString(Context,Incident) fallback; VOICE_ONLY accepted resumed arm."
+    },
+    "Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;": {
+      "adapter_test": "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText",
+      "native_text_api": "SpeedCamType.getLocalizedTTS(Context); original <clinit> freezes all82 resource pairs."
+    },
+    "Lnl/flitsmeister/fmcore/data/model/reports/ServiceVehicle$Type;": {
+      "adapter_test": "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText",
+      "native_text_api": "ServiceVehicle.reportTitleText(Context), including all6 subtype arms."
+    }
+  },
+  "eligibility_policy": "Observe the original accepted native path; do not rerun or bypass feature/category predicates.",
+  "audio_policy": "Provider-local speech/tone/BLE preferences do not veto captured native intent.",
+  "additional_native_subtypes": {
+    "Lnl/flitsmeister/fmcore/models/enums/LaneClosedType;": {
+      "members": [
+        "LEFT_LANE",
+        "ANY_MIDDLE_LANE",
+        "RIGHT_LANE"
+      ],
+      "capture_fields": [
+        "native_subtype",
+        "native_lane_code",
+        "lane_index",
+        "number_of_lanes_closed"
+      ],
+      "status": "exported",
+      "test": "NativeWarningsTest.laneClosurePreservesNativeSubtypeLaneIndexAndClosedCount",
+      "evidence": [
+        "flitsmeister-model-verification.json:lane_closed en/nl",
+        "NativeWarningsTest.laneClosurePreservesNativeSubtypeLaneIndexAndClosedCount"
+      ],
+      "verified_scope": "All3 actual native enum/model/title/scalar variants; upstream detection timing remains pending."
+    },
+    "Lnl/flitsmeister/fmcore/models/data/cits/CitsWeather$CitsWeatherType;": {
+      "members": [
+        "FOG",
+        "ICE_ON_THE_ROAD"
+      ],
+      "status": "exported",
+      "evidence": [
+        "flitsmeister-producer-coverage.json",
+        "real en/nl CitsWeather models/title/subtitle/private enum"
+      ],
+      "capture_fields": [
+        "native_subtype",
+        "category",
+        "message"
+      ]
+    }
+  },
+  "model_adapter_acceptance": {
+    "exported_original_enum_rows": 152,
+    "excluded_nonwarning_base_rows": 7,
+    "base_warning_rows_pending_upstream_acceptance": 0,
+    "native_callback_roots_pending": 0,
+    "source_complete": true,
+    "evidence": "flitsmeister-producer-coverage.json"
+  },
+  "completion_evidence": "flitsmeister-producer-coverage.json"
+}

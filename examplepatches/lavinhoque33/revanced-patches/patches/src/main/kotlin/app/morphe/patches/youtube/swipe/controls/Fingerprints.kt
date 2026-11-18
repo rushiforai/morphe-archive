@@ -157,3 +157,12 @@ internal object VideoZoomScaleBeginFingerprint : Fingerprint(
                 classDef.fields.any { it.type == "Landroid/view/GestureDetector;" }
     }
 )
+
+/**
+ * Touch events of the player, in the class of [VideoZoomScaleBeginFingerprint].
+ */
+internal object VideoZoomTouchFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "Z",
+    parameters = listOf("Landroid/view/View;", "Landroid/view/MotionEvent;")
+)

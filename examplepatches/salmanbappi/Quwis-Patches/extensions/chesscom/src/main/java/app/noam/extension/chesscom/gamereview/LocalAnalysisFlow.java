@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.concurrent.CancellationException;
 
 import app.noam.extension.chesscom.Utils;
+import app.noam.extension.chesscom.stockfish.ApiEngine;
 import app.noam.extension.chesscom.stockfish.Engine;
 import app.noam.extension.chesscom.stockfish.FishnetSearch;
 
@@ -308,20 +309,21 @@ final class LocalAnalysisFlow {
             if (data != null) {
                 Log.i(TAG, "Opening the saved review");
             } else {
-                if (lichess) {
+                if (lichess && GameReview.LICHESS_SERVERS.equals(GameReview.lichessMethod())) {
                     try {
                         data = LichessServerReview.review(pgn, fens, totalMoves, fraction -> {
                             emitter.ensureActive();
                             emitter.emit(ipConstructor.newInstance(fraction, progressDepth, sourceEnum));
                         });
-                    } catch (IOException e) {
-                        Utils.toast(e.getMessage());
-                        throw e;
+                    } catch (Throwable e) {
+                        Log.w(TAG, "Lichess server review failed, falling back to engine review: " + e.getMessage());
+                        data = null;
                     }
-                } else {
+                }
+                if (data == null) {
                     try {
                         data = engineReview(startingFen, fens, playedLans, boards, historyUsable ? engineMoves : null,
-                            searchNodes, remote, lichess, progress -> {
+                            searchNodes, remote, lichess, reviewer, progress -> {
                                 emitter.ensureActive();
                                 emitter.emit(ipConstructor.newInstance(progress, progressDepth, sourceEnum));
                             });
@@ -442,10 +444,36 @@ final class LocalAnalysisFlow {
                 startBestMove = bmConstructor.newInstance(data.startBest);
             }
 
-            positions.add(apConstructor.newInstance(
-                colorWhite, null, startSuggestedMove, startBestMove, null,
-                scConstructor.newInstance(false, false)
-            ));
+            Object startPosition = null;
+            try {
+                startPosition = apConstructor.newInstance(
+                    colorWhite, null, startSuggestedMove, startBestMove, null,
+                    scConstructor.newInstance(false, false)
+                );
+            } catch (Throwable ignored) {}
+            if (startPosition == null) {
+                List<String> startPv = (data.startBest != null && !data.startLine.isEmpty())
+                    ? data.startLine
+                    : Collections.singletonList(data.startBest != null ? data.startBest : "e2e4");
+                Object[] startPmArgs = new Object[pmTypes.length];
+                for (int k = 0; k < startPmArgs.length; k++) startPmArgs[k] = AppTypes.defaultFor(pmTypes[k]);
+                startPmArgs[0] = "10";
+                startPmArgs[1] = data.startScore;
+                startPmArgs[2] = null;
+                startPmArgs[3] = data.startBest != null ? data.startBest : "e2e4";
+                startPmArgs[4] = evalValue(evalConstructor, evalIntFirst, startPv, pvCutoff(startPv));
+                startPmArgs[5] = new ArrayList<>();
+                startPmArgs[6] = null;
+                for (int k = 0; k < startPmArgs.length && k < pmTypes.length; k++) {
+                    startPmArgs[k] = coerce(pmTypes[k], startPmArgs[k]);
+                }
+                Object startPlayedMove = pmConstructor.newInstance(startPmArgs);
+                startPosition = apConstructor.newInstance(
+                    colorWhite, startPlayedMove, startSuggestedMove, startBestMove, "BOOK",
+                    scConstructor.newInstance(false, false)
+                );
+            }
+            positions.add(startPosition);
 
             for (int i = 0; i < totalMoves; i++) {
                 ReviewData.Ply ply = data.plies[i];
@@ -546,15 +574,32 @@ final class LocalAnalysisFlow {
             Class<?> glyphsClass = types.agd("$ReportCard$Report$Glyphs");
 
             Constructor<?> rcConstructor = rcClass.getConstructor(repClass, repClass, String.class);
-            Constructor<?> repConstructor = repClass.getConstructor(Integer.class, glyphsClass, List.class);
+            Constructor<?> repConstructor = null;
+            for (Constructor<?> candidate : repClass.getConstructors()) {
+                Class<?>[] p = candidate.getParameterTypes();
+                if (p.length == 4 && p[0] == Integer.class && p[1] == Integer.class && p[2] == glyphsClass && p[3] == List.class) {
+                    repConstructor = candidate;
+                    break;
+                }
+                if (p.length == 3 && p[0] == Integer.class && p[1] == glyphsClass && p[2] == List.class) {
+                    repConstructor = candidate;
+                    break;
+                }
+            }
+            if (repConstructor == null) repConstructor = AppTypes.primaryCtor(repClass);
             Constructor<?> glyphsConstructor = glyphsClass.getConstructor(String.class, String.class, String.class);
 
-            Object whiteReport = repConstructor.newInstance(0, glyphsConstructor.newInstance(
-                phaseGlyph(data.whitePhases[0]), phaseGlyph(data.whitePhases[1]), phaseGlyph(data.whitePhases[2])),
-                new ArrayList<>());
-            Object blackReport = repConstructor.newInstance(0, glyphsConstructor.newInstance(
-                phaseGlyph(data.blackPhases[0]), phaseGlyph(data.blackPhases[1]), phaseGlyph(data.blackPhases[2])),
-                new ArrayList<>());
+            Object whiteGlyphs = glyphsConstructor.newInstance(
+                phaseGlyph(data.whitePhases[0]), phaseGlyph(data.whitePhases[1]), phaseGlyph(data.whitePhases[2]));
+            Object blackGlyphs = glyphsConstructor.newInstance(
+                phaseGlyph(data.blackPhases[0]), phaseGlyph(data.blackPhases[1]), phaseGlyph(data.blackPhases[2]));
+
+            Object whiteReport = repConstructor.getParameterCount() == 4
+                ? repConstructor.newInstance(0, null, whiteGlyphs, new ArrayList<>())
+                : repConstructor.newInstance(0, whiteGlyphs, new ArrayList<>());
+            Object blackReport = repConstructor.getParameterCount() == 4
+                ? repConstructor.newInstance(0, null, blackGlyphs, new ArrayList<>())
+                : repConstructor.newInstance(0, blackGlyphs, new ArrayList<>());
 
             String summary = LichessMath.summary(opening != null ? opening.name : null,
                 data.whiteAccuracy, data.whiteAcpl, data.whiteMarks[0], data.whiteMarks[1], data.whiteMarks[2],
@@ -656,12 +701,17 @@ final class LocalAnalysisFlow {
 
             // Permissions: construct directly with all-true to avoid obfuscated companion field
             // names (the permissions object itself still comes from the real class).
-            Class<?> permissionsClass = Class.forName("com.chess.entities.GameAnalysisPermissions");
-            Class<?> quotaTypeClass = Class.forName("com.chess.entities.GameAnalysisPermissions$QuotaType");
-            Constructor<?> permConstructor = permissionsClass.getConstructor(
-                boolean.class, boolean.class, boolean.class, boolean.class, quotaTypeClass
-            );
-            Object fullPermissions = permConstructor.newInstance(true, true, true, true, null);
+            Object fullPermissions = GameReviewExtension.getFullGameAnalysisPermissions();
+            if (fullPermissions == null) {
+                try {
+                    Class<?> permissionsClass = Class.forName("com.chess.entities.GameAnalysisPermissions");
+                    Class<?> quotaTypeClass = Class.forName("com.chess.entities.GameAnalysisPermissions$QuotaType");
+                    Constructor<?> permConstructor = permissionsClass.getConstructor(
+                        boolean.class, boolean.class, boolean.class, boolean.class, quotaTypeClass
+                    );
+                    fullPermissions = permConstructor.newInstance(true, true, true, true, null);
+                } catch (Throwable ignored) {}
+            }
 
             // Emit RemoteAnalysisCompleted to trigger the review UI.
             Constructor<?> compConstructor = types.completedCtor;
@@ -675,6 +725,7 @@ final class LocalAnalysisFlow {
             Throwable cause = t instanceof java.lang.reflect.InvocationTargetException && t.getCause() != null ? t.getCause() : t;
             if (cause instanceof CancellationException) throw cause;
             Log.e(TAG, "Local stockfish analysis failed", cause);
+            Utils.toast("Flow Error: " + cause.getClass().getSimpleName() + ": " + cause.getMessage());
             // Report through the app's own Failure state so the screen shows its error UI.
             emitter.emit(types.failureCtor.newInstance(cause));
         }
@@ -689,7 +740,7 @@ final class LocalAnalysisFlow {
      */
     private static ReviewData engineReview(String startingFen, String[] fens, String[] playedLans, char[][] boards,
                                            List<String> engineMoves, long nodesPerMove, boolean remote,
-                                           boolean lichess, LichessServerReview.Waiting step) throws Throwable {
+                                           boolean lichess, GameReview.Mode reviewer, LichessServerReview.Waiting step) throws Throwable {
         Context context = Utils.context();
         if (context == null) throw new IOException("Stockfish could not start for the review");
         int total = playedLans.length;
@@ -697,8 +748,18 @@ final class LocalAnalysisFlow {
         // Two lines when Great moves are marked: the second-best line is how we know the move was
         // the only one that kept the position good.
         int lines = GameReview.greatMoves() ? 2 : 1;
+        ApiEngine.Strategy strategy = ApiEngine.Strategy.COMBO_SMART;
+        if (reviewer == GameReview.Mode.STOCKFISH) {
+            strategy = ApiEngine.Strategy.PURE_STOCKFISH;
+        } else if (reviewer == GameReview.Mode.COMBO_SMART) {
+            strategy = ApiEngine.Strategy.COMBO_SMART;
+        } else if (reviewer == GameReview.Mode.COMBO_DEEP) {
+            strategy = ApiEngine.Strategy.COMBO_DEEP;
+        } else if (reviewer == GameReview.Mode.LICHESS) {
+            strategy = ApiEngine.Strategy.LICHESS;
+        }
         Engine.Result[] results = FishnetSearch.search(context, startingFen, engineMoves, fens, nodesPerMove,
-            lines, engines, remote, step::progress);
+            lines, engines, remote, strategy, step::progress);
 
         ReviewData data = new ReviewData();
         int[] depths = new int[total + 1];

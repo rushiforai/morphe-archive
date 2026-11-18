@@ -27,7 +27,11 @@ public final class ReviewChooser {
     private static GameReview.Mode[] modes() {
         List<GameReview.Mode> modes = new ArrayList<>();
         modes.add(GameReview.Mode.CHESSCOM);
-        if (Features.stockfishPatched()) modes.add(GameReview.Mode.STOCKFISH);
+        if (Features.stockfishPatched()) {
+            modes.add(GameReview.Mode.STOCKFISH);
+            modes.add(GameReview.Mode.COMBO_SMART);
+            modes.add(GameReview.Mode.COMBO_DEEP);
+        }
         if (GameReview.computerReview()) modes.add(GameReview.Mode.LAPTOP);
         modes.add(GameReview.Mode.LICHESS);
         return modes.toArray(new GameReview.Mode[0]);
@@ -36,7 +40,9 @@ public final class ReviewChooser {
     private static String title(GameReview.Mode mode) {
         switch (mode) {
             case CHESSCOM: return "Review on chess.com";
-            case STOCKFISH: return "Stockfish AI (Cloud API)";
+            case STOCKFISH: return "Stockfish Cloud (Pure Engine)";
+            case COMBO_SMART: return "Combo: Smart Book & Endgame (Fastest)";
+            case COMBO_DEEP: return "Combo: Deep Cache (Every Move)";
             case LAPTOP: return "Stockfish on your computer";
             default: return "Analyze with Lichess";
         }
@@ -106,18 +112,9 @@ public final class ReviewChooser {
             .show();
     }
 
-    /** Lichess's servers review it in chess.com's screen, or it opens on Lichess's analysis board. */
+    /** Lichess API or servers review it directly in chess.com's screen without a WebView. */
     private static void lichess(Activity activity, Method method, Object first, Object second, Object third) {
-        if (GameReview.LICHESS_SERVERS.equals(GameReview.lichessMethod())) {
-            review(GameReview.Mode.LICHESS, method, first, second, third);
-            return;
-        }
-        String pgn = pgn(isReview(second) ? second : third);
-        if (pgn == null) {
-            Utils.toast("Couldn't read this game");
-            return;
-        }
-        LichessActivity.open(activity, pgn);
+        review(GameReview.Mode.LICHESS, method, first, second, third);
     }
 
     /** The game's PGN from the review direction, with clock times when chess.com has them. */

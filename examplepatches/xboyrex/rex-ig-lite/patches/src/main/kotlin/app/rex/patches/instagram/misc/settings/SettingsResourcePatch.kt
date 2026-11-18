@@ -9,7 +9,6 @@ package app.rex.patches.instagram.misc.settings
 import app.morphe.patcher.patch.document
 import app.morphe.patcher.patch.packageMetadata
 import app.morphe.patcher.patch.patch
-import app.morphe.patcher.patch.patch
 import app.morphe.util.ResourceGroup
 import app.morphe.util.copyResources
 import org.w3c.dom.Element
@@ -75,9 +74,9 @@ val settingsResourcePatch =
                 ResourceGroup(
                     "raw",
                     "rex_tabler_icons_license.txt",
+                    "instarex_pro_config_v6.json",
                 ),
             )
-        
             }
         }
     }

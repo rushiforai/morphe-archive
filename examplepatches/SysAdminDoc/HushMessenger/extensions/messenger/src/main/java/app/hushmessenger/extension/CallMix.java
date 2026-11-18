@@ -6,8 +6,8 @@ import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
 
 /**
- * Mixes both sides of a call into one mono WAV (#105). Each side hands over its sound on Messenger's audio threads, at
- * whatever rate and channel count the call uses. Sound is placed by when it arrived and the file is written against the
+ * Puts both sides of a call into one file (#105), mixed together or one side to a channel (#193). Each side hands
+ * over its sound on Messenger's audio threads, at whatever rate and channel count the call uses. Sound is placed by when it arrived and the file is written against the
  * clock, so a side that goes quiet becomes silence and never shifts the other side. The header goes back in every few
  * seconds, so a crash still leaves a file that plays.
  */
@@ -22,27 +22,70 @@ final class CallMix {
     static final long MOST_SAMPLES = (0xFFFFFFFFL - 36) / 2;
     private static final int CHUNK = RATE / 5;
 
-    private final FileChannel file;
-    private final ByteBuffer samples = ByteBuffer.allocate(CHUNK * 2).order(ByteOrder.LITTLE_ENDIAN);
+    /**
+     * Where the mixed sound goes. A WAV file is one of these and so is an Opus stream, which is how the format of the
+     * file is a choice under the switch (#193). The mixing above it is the same either way.
+     */
+    interface Sink {
+        /**
+         * Writes 16 bit samples for the frames that begin [at] frames into the recording. A frame is one sample with
+         * both sides mixed, or one from each side, by how many channels the sink was made with.
+         */
+        void write(long at, ByteBuffer samples) throws IOException;
+
+        /** Everything due so far has been handed over. The next lot may be a few hundred milliseconds off. */
+        default void pumped() throws IOException {
+        }
+
+        /** Everything has been handed over, so whatever is left to write goes in. */
+        void finish() throws IOException;
+
+        /** The most frames this can hold. */
+        default long most() {
+            return Long.MAX_VALUE;
+        }
+
+        /** Lets go of anything held, whether the recording finished or not. */
+        default void release() {
+        }
+    }
+
+    private final Sink sink;
+    private final int channels;
+    private final ByteBuffer samples;
     private final short[] mineChunk = new short[CHUNK];
     private final short[] theirsChunk = new short[CHUNK];
     private long written;
-    private long headerAt;
 
     final Side mine = new Side();
     final Side theirs = new Side();
 
     CallMix(FileChannel file) throws IOException {
-        this.file = file;
-        writeHeader();
+        this(new Wav(file), 1);
+    }
+
+    CallMix(Sink sink) {
+        this(sink, 1);
+    }
+
+    /** One channel puts both sides together, two gives each its own: you on the left, them on the right (#193). */
+    CallMix(Sink sink, int channels) {
+        this.sink = sink;
+        this.channels = channels == 2 ? 2 : 1;
+        this.samples = ByteBuffer.allocate(CHUNK * 2 * this.channels).order(ByteOrder.LITTLE_ENDIAN);
     }
 
     long written() {
         return written;
     }
 
+    /** Lets go of whatever the file needed, for a recording that ended badly. */
+    void release() {
+        sink.release();
+    }
+
     boolean full() {
-        return written >= MOST_SAMPLES;
+        return written >= sink.most();
     }
 
     /** Whether either side has handed over any real sound. Time passing and muted frames only write silence. */
@@ -55,40 +98,80 @@ final class CallMix {
         writeUpTo((elapsedMillis - LAG_MILLIS) * RATE / 1000);
     }
 
-    /** Writes what's left and the final header. */
+    /** Writes what's left and whatever closes the file off. */
     void finish(long elapsedMillis) throws IOException {
         writeUpTo(elapsedMillis * RATE / 1000);
-        writeHeader();
+        sink.finish();
     }
 
     private void writeUpTo(long due) throws IOException {
-        due = Math.min(due, MOST_SAMPLES);
+        due = Math.min(due, sink.most());
         while (written < due) {
             int count = (int) Math.min(due - written, CHUNK);
             mine.read(written, count, mineChunk);
             theirs.read(written, count, theirsChunk);
             samples.clear();
             for (int i = 0; i < count; i++) {
-                samples.putShort((short) Math.max(Short.MIN_VALUE, Math.min(Short.MAX_VALUE, mineChunk[i] + theirsChunk[i])));
+                if (channels == 2) {
+                    samples.putShort(mineChunk[i]).putShort(theirsChunk[i]);
+                } else {
+                    samples.putShort((short) Math.max(Short.MIN_VALUE, Math.min(Short.MAX_VALUE, mineChunk[i] + theirsChunk[i])));
+                }
             }
             samples.flip();
-            long at = HEADER_BYTES + written * 2;
-            while (samples.hasRemaining()) at += file.write(samples, at);
+            sink.write(written, samples);
             written += count;
         }
-        if (written - headerAt >= HEADER_EVERY) writeHeader();
+        sink.pumped();
     }
 
-    private void writeHeader() throws IOException {
-        long bytes = written * 2;
-        ByteBuffer header = ByteBuffer.allocate(HEADER_BYTES).order(ByteOrder.LITTLE_ENDIAN);
-        header.put(new byte[] {'R', 'I', 'F', 'F'}).putInt((int) (36 + bytes)).put(new byte[] {'W', 'A', 'V', 'E', 'f', 'm', 't', ' '});
-        header.putInt(16).putShort((short) 1).putShort((short) 1).putInt(RATE).putInt(RATE * 2).putShort((short) 2).putShort((short) 16);
-        header.put(new byte[] {'d', 'a', 't', 'a'}).putInt((int) bytes);
-        header.flip();
-        long at = 0;
-        while (header.hasRemaining()) at += file.write(header, at);
-        headerAt = written;
+    /** A plain WAV file, header and all. The header goes back in every few seconds, so a crash leaves one that plays. */
+    static final class Wav implements Sink {
+        private final FileChannel file;
+        private final int channels;
+        private long written;
+        private long headerAt;
+
+        Wav(FileChannel file) throws IOException {
+            this(file, 1);
+        }
+
+        Wav(FileChannel file, int channels) throws IOException {
+            this.file = file;
+            this.channels = channels == 2 ? 2 : 1;
+            writeHeader();
+        }
+
+        @Override public long most() {
+            return MOST_SAMPLES / channels;
+        }
+
+        @Override public void write(long at, ByteBuffer samples) throws IOException {
+            long into = HEADER_BYTES + at * 2 * channels;
+            written = at + samples.remaining() / (2 * channels);
+            while (samples.hasRemaining()) into += file.write(samples, into);
+        }
+
+        @Override public void pumped() throws IOException {
+            if (written - headerAt >= HEADER_EVERY) writeHeader();
+        }
+
+        @Override public void finish() throws IOException {
+            writeHeader();
+        }
+
+        private void writeHeader() throws IOException {
+            long bytes = written * 2 * channels;
+            ByteBuffer header = ByteBuffer.allocate(HEADER_BYTES).order(ByteOrder.LITTLE_ENDIAN);
+            header.put(new byte[] {'R', 'I', 'F', 'F'}).putInt((int) (36 + bytes)).put(new byte[] {'W', 'A', 'V', 'E', 'f', 'm', 't', ' '});
+            header.putInt(16).putShort((short) 1).putShort((short) channels).putInt(RATE).putInt(RATE * 2 * channels)
+                .putShort((short) (2 * channels)).putShort((short) 16);
+            header.put(new byte[] {'d', 'a', 't', 'a'}).putInt((int) bytes);
+            header.flip();
+            long at = 0;
+            while (header.hasRemaining()) at += file.write(header, at);
+            headerAt = written;
+        }
     }
 
     /** One side of the call: mono at {@link #RATE} in a ring, by position in the file. */

@@ -160,8 +160,16 @@ val shortTimeControlsPatch = bytecodePatch(
         }
 
         // 4.10.23's custom time row: the shared stepper (i) and the minutes row (b) in gamesetup.
+        // 4.10.27 renamed the composable file g -> i, so the stepper's shape picks the class.
         if (CustomTimeSelectorFingerprint.matchOrNull() == null) {
-            val gamesetup = mutableClassDefBy("Lcom/chess/features/gamesetup/compose/g;")
+            val gamesetup = listOf(
+                "Lcom/chess/features/gamesetup/compose/g;",
+                "Lcom/chess/features/gamesetup/compose/i;",
+            ).firstNotNullOfOrNull { type ->
+                mutableClassDefByOrNull(type)?.takeIf { classDef ->
+                    classDef.methods.any { it.name == "i" && it.returnType == "V" && it.parameterTypes.size == 7 }
+                }
+            } ?: throw PatchException("The custom time row was not found")
             // 1) The slider range: 0..max -> sliderMin()..max for the minutes stepper (max 120).
             val stepper = gamesetup.methods.single {
                 it.name == "i" && it.returnType == "V" && it.parameterTypes.size == 7
@@ -171,8 +179,11 @@ val shortTimeControlsPatch = bytecodePatch(
                 val rangeIndex = code.indexOfFirst { instruction ->
                     instruction.opcode == Opcode.INVOKE_DIRECT &&
                         (instruction as? ReferenceInstruction)?.reference.let { reference ->
-                            reference is MethodReference && reference.definingClass == "Lcom/google/android/vk0;" &&
-                                reference.name == "<init>" && reference.parameterTypes.size == 2
+                            // The floating-point range type is obfuscated and moved in 4.10.27
+                            // (vk0 -> cl0); its <init>(float, float) is the stable shape, and this
+                            // method has exactly one.
+                            reference is MethodReference && reference.name == "<init>" &&
+                                reference.parameterTypes.map(CharSequence::toString) == listOf("F", "F")
                         }
                 }
                 if (rangeIndex < 0) throw PatchException("The time slider range was not found")

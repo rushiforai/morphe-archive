@@ -9,6 +9,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
@@ -54,6 +56,8 @@ final class MessageLogSheet {
 
     private final SettingsActivity page;
     private Dialog messageLogDialog;
+    /** The video playing over the log, in its own dialog, or null when none is. */
+    private Dialog messageLogVideoDialog;
     private LinearLayout messageLogList;
     private ScrollView messageLogScroll;
     /** Builds the log's next page of cards, while one is left. */
@@ -129,6 +133,7 @@ final class MessageLogSheet {
     }
 
     void destroy() {
+        if (messageLogVideoDialog != null) messageLogVideoDialog.dismiss();
         if (messageLogDialog != null) messageLogDialog.dismiss();
         if (messageLogClearJob != null && messageLogClearJob.owner.get() == this) messageLogClearJob.owner.clear();
     }
@@ -212,6 +217,8 @@ final class MessageLogSheet {
         hideFromRecents(dialog);
         dialog.setOnDismissListener(dismissed -> {
             showInRecents();
+            if (messageLogVideoDialog != null) messageLogVideoDialog.dismiss();
+            MessageLogClip.stop();
             if (messageLogDialog == dismissed) {
                 messageLogDialog = null;
                 messageLogList = null;
@@ -603,7 +610,11 @@ final class MessageLogSheet {
         body.setTextDirection(View.TEXT_DIRECTION_FIRST_STRONG);
         body.setTextIsSelectable(true);
         ui.add(card, body, 8);
-        if (!entry.media.isEmpty()) {
+        if (MessageLogAttachment.AUDIO.equals(entry.mediaType)) {
+            if (!entry.media.isEmpty()) messageLogClipRow(card, entry.media);
+        } else if (MessageLogAttachment.VIDEO.equals(entry.mediaType)) {
+            if (!entry.media.isEmpty()) messageLogVideoRow(card, entry.media);
+        } else if (!entry.media.isEmpty()) {
             ImageView picture = new ImageView(page);
             picture.setTag("message_log_photo");
             picture.setContentDescription(text.get("message_log_photo"));
@@ -642,6 +653,124 @@ final class MessageLogSheet {
         String chat = !picked.isEmpty() ? picked : !entry.chat.isEmpty() ? entry.chat : index == null ? "" : index.groupName(entry.thread);
         if (entry.sender.isEmpty()) return chat.isEmpty() ? text.get("message_log_unknown_thread") : chat;
         return chat.isEmpty() ? entry.sender : text.get("message_log_in_group", entry.sender, chat);
+    }
+
+    /**
+     * The Play button on a voice message's card. It opens and plays the clip off the main thread, turns into Stop while
+     * the clip runs, and says so in its place when the clip can't be played.
+     */
+    private void messageLogClipRow(LinearLayout card, String name) {
+        SettingsUi ui = page.ui;
+        SettingsText text = page.text;
+        Button play = ui.button(text.get(MessageLogClip.playing(name) ? "message_log_clip_stop" : "message_log_clip_play"));
+        play.setTag("message_log_clip");
+        ui.add(card, play, 8);
+        TextView missing = ui.text(text.get("message_log_clip_missing"), 13, ui.muted, false);
+        missing.setTag("message_log_clip_missing");
+        missing.setVisibility(View.GONE);
+        ui.add(card, missing, 8);
+        Context context = page.getApplicationContext();
+        LinearLayout results = messageLogResults;
+        play.setOnClickListener(clicked -> {
+            if (MessageLogClip.playing(name)) {
+                MessageLogClip.stop();
+                return;
+            }
+            play.setEnabled(false);
+            MESSAGE_LOG_PICTURES.execute(() -> {
+                boolean started = MessageLogClip.play(context, name, () -> page.runOnUiThread(() -> {
+                    if (messageLogResults != results || page.isFinishing() || page.isDestroyed()) return;
+                    play.setText(text.get("message_log_clip_play"));
+                }));
+                page.runOnUiThread(() -> {
+                    if (messageLogResults != results || page.isFinishing() || page.isDestroyed()) return;
+                    play.setEnabled(true);
+                    play.setText(text.get(started ? "message_log_clip_stop" : "message_log_clip_play"));
+                    if (!started) missing.setVisibility(View.VISIBLE);
+                });
+            });
+        });
+    }
+
+    /** The Play button on a video message's card. The video plays over the log, in a window of its own. */
+    private void messageLogVideoRow(LinearLayout card, String name) {
+        SettingsUi ui = page.ui;
+        Button play = ui.button(page.text.get("message_log_video_play"));
+        play.setTag("message_log_video");
+        ui.add(card, play, 8);
+        play.setOnClickListener(clicked -> showMessageLogVideo(name));
+    }
+
+    /**
+     * Plays the video kept under [name] in its own window over the log, from the log's sealed copy, with nothing written
+     * out in the clear. The window takes the shape of the video once its size is known, and closing it stops playback,
+     * as does closing the log.
+     */
+    private void showMessageLogVideo(String name) {
+        if (page.isFinishing() || page.isDestroyed() || messageLogVideoDialog != null) return;
+        SettingsUi ui = page.ui;
+        SettingsText text = page.text;
+        SettingsDialog sheet = new SettingsDialog(page, ui, text, text.get("message_log_video_title"),
+            text.get("message_log_video_hint"));
+        Dialog dialog = sheet.dialog;
+        messageLogVideoDialog = dialog;
+        // The log's own window is kept out of screenshots before Android 13, so the video's is too.
+        if (Build.VERSION.SDK_INT < 33 && dialog.getWindow() != null) {
+            dialog.getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);
+        }
+        SurfaceView screen = new SurfaceView(page);
+        screen.setTag("message_log_video_screen");
+        sheet.body.addView(screen, new LinearLayout.LayoutParams(-1, ui.dp(220)));
+        TextView missing = ui.text(text.get("message_log_video_missing"), 13, ui.muted, false);
+        missing.setTag("message_log_video_missing");
+        missing.setVisibility(View.GONE);
+        ui.add(sheet.body, missing, 8);
+        dialog.setOnDismissListener(dismissed -> {
+            MessageLogClip.stop();
+            if (messageLogVideoDialog == dismissed) messageLogVideoDialog = null;
+        });
+        Button close = ui.primaryButton(text.get("message_log_close"));
+        close.setTag("message_log_video_close");
+        close.setOnClickListener(clicked -> dialog.dismiss());
+        sheet.action(close);
+        screen.getHolder().addCallback(new SurfaceHolder.Callback() {
+            @Override public void surfaceCreated(SurfaceHolder holder) {
+                playMessageLogVideo(name, holder.getSurface(), screen, missing, dialog);
+            }
+            @Override public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {}
+            @Override public void surfaceDestroyed(SurfaceHolder holder) {
+                MessageLogClip.stop();
+            }
+        });
+        sheet.show();
+    }
+
+    /** Opens the video off the main thread and plays it onto [surface]. One that can't be played says so in its place. */
+    private void playMessageLogVideo(String name, android.view.Surface surface, SurfaceView screen, TextView missing, Dialog dialog) {
+        Context context = page.getApplicationContext();
+        MESSAGE_LOG_PICTURES.execute(() -> {
+            boolean started = MessageLogClip.play(context, name, surface,
+                (width, height) -> page.runOnUiThread(() -> fitMessageLogVideo(screen, dialog, width, height)),
+                () -> page.runOnUiThread(() -> {
+                    if (messageLogVideoDialog == dialog) dialog.dismiss();
+                }));
+            if (started) return;
+            page.runOnUiThread(() -> {
+                if (page.isFinishing() || page.isDestroyed() || messageLogVideoDialog != dialog) return;
+                screen.setVisibility(View.GONE);
+                missing.setVisibility(View.VISIBLE);
+            });
+        });
+    }
+
+    /** Gives the video's window the shape of the video, so a portrait clip isn't stretched across a landscape box. */
+    private void fitMessageLogVideo(SurfaceView screen, Dialog dialog, int width, int height) {
+        if (messageLogVideoDialog != dialog || width <= 0 || height <= 0) return;
+        int across = screen.getWidth();
+        if (across <= 0) return;
+        android.view.ViewGroup.LayoutParams params = screen.getLayoutParams();
+        params.height = Math.max(1, (int) ((long) across * height / width));
+        screen.setLayoutParams(params);
     }
 
     /** Opens the picture off the main thread and shows it once it's ready. One that can't be opened says so in its place. */

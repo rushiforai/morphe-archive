@@ -48,7 +48,7 @@ public final class HiddenMessages {
     /** How many hidden messages each account keeps; the oldest goes past it. */
     static final int LIMIT = 2000;
 
-    private static final String PREFS = "hushtelegram_hidden_messages";
+    static final String PREFS = "hushtelegram_hidden_messages";
 
     static Function<Context, SharedPreferences> store = context -> context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
 
@@ -201,8 +201,13 @@ public final class HiddenMessages {
         return dialog + ":" + id;
     }
 
-    static synchronized void forgetForTests() {
+    /** Forgets what was read, so the next look reads the disk again. */
+    static synchronized void forget() {
         hidden = null;
+    }
+
+    static synchronized void forgetForTests() {
+        forget();
     }
 
     /** Whether the message is scheduled or a quick reply, both of which number their messages apart from the chat. Replaced when patching. */

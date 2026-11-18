@@ -248,7 +248,7 @@ private fun scalePins(data: ByteArray, factor: Float): Int {
     return scaled
 }
 
-private val biggerPinsResourcePatch: Patch<*> = resourcePatch {
+private val biggerPinsResourcePatch: Patch = resourcePatch {
     execute {
         val chosen = (biggerAlertPinsPatch.options["size"]!!.value as String).trim()
         if (chosen.equals("stock", ignoreCase = true)) {
@@ -269,7 +269,7 @@ private val biggerPinsResourcePatch: Patch<*> = resourcePatch {
 }
 
 @Suppress("unused")
-val biggerAlertPinsPatch: Patch<*> = bytecodePatch(
+val biggerAlertPinsPatch: Patch = bytecodePatch(
     name = "Bigger alert pins",
     description = "Grows the alert pins on the map, phone and car screen alike.",
     default = false,

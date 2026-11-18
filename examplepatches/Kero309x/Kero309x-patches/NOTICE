@@ -1,0 +1,61 @@
+Kero309x Patches — NOTICE
+=========================
+
+1. Independence
+---------------
+
+Kero309x Patches is an independent patch collection. It is not a fork, mirror or
+rebranding of another patch project, and it contains no source code taken from
+one. The behaviour it implements was specified from the observable behaviour of
+the stock applications and derived from those stock builds.
+
+2. Framework dependency
+-----------------------
+
+The bundle is built with, and runs inside, the Morphe patching framework:
+
+  - Morphe patcher — https://github.com/MorpheApp/morphe-patcher — GPL-3.0
+  - Morphe Patches Gradle plugin — https://github.com/MorpheApp/morphe-patches-gradle-plugin
+
+Those components are used through their published contracts. Their own licences
+and notices apply to them, and nothing in this notice changes those terms.
+
+3. Project name restriction
+---------------------------
+
+The following notice from the framework project is reproduced because this
+bundle is a derivative work in the sense of depending on and being distributed
+for that framework.
+
+  7c. Project Name Restriction
+  ----------------------------
+
+  This license does not grant permission to use the name "Morphe", or any
+  name, logo, or branding that is confusingly similar, as the name or
+  primary identifying mark of any modified version, fork, or derivative work.
+
+  Any redistribution or derivative work must adopt a distinct name and
+  branding that clearly differentiates it from the Morphe project and does
+  not cause confusion as to source or origin.
+
+  References to Morphe are permitted solely for descriptive compatibility
+  purposes (e.g., "compatible with Morphe" or "XYZ patches for use with Morphe"),
+  provided that such references:
+
+  - Are accurate, factual, and non-misleading;
+  - Do not suggest authorship by the Morphe project; and
+  - Appear only in a secondary or descriptive context, not as part of the product or project name.
+
+4. Application trademarks
+-------------------------
+
+Application names, package names and icons referenced by this project belong to
+their respective owners. They are used only to describe which stock application a
+patch targets. This project is not affiliated with, endorsed by, or sponsored by
+any of those owners.
+
+5. No warranty
+--------------
+
+The software is provided under GPL-3.0-only, without warranty of any kind. See
+LICENSE.

@@ -73,6 +73,13 @@
     <string name="morphe_captions_screen_summary">ניהול כתוביות אוטומטיות ועוגיות כתוביות</string>
     <string name="morphe_captions_screen_title">כותבים</string>
     <string name="morphe_custom_branding_icon_title">אייקון האפליקציה</string>
+    <string name="morphe_custom_seekbar_thumb_file_invalid">הקובץ שנבחר אינו תמונה נתמכת</string>
+    <string name="morphe_custom_seekbar_thumb_file_not_found">תמונת סמן סרגל דילוג מותאמת אישית לא נמצאה</string>
+    <string name="morphe_custom_seekbar_thumb_file_title">תמונת סמן</string>
+    <string name="morphe_custom_seekbar_thumb_scale_type_entry_fit_seekbar">התאם לסרגל דילוג</string>
+    <string name="morphe_custom_seekbar_thumb_scale_type_entry_original">גודל מקורי</string>
+    <string name="morphe_custom_seekbar_thumb_scale_type_title">גודל סמן</string>
+    <string name="morphe_custom_seekbar_thumb_title">הפעל סמן סרגל דילוג מותאם אישית</string>
     <string name="morphe_dearrow_about_summary">"DeArrow מחליף כותרות ומיניאטורות קליקבייט בכאלה שמגיעות מהקהל, שהן מדויקות יותר ופחות סנסציוניות. הכותרות נכתבות ומוצבעות על ידי הקהילה, והמיניאטורות הן פריימים שנלקחו מהסרטון
 
 הסרטונים מתבקשים באמצעות קידומת קצרה של מזהה הווידאו המגובב, כך שהשרת לא יכול לדעת בדיוק איזה סרטון אתה מסתכל. אם לסרטון אין מיניאטורה של DeArrow, מוצגת התמונה המקורית או תמונת סטילס"</string>
@@ -101,6 +108,12 @@
     <string name="morphe_disable_toolbar_navigation_tabs_summary">מציג את \"מנויים\" בסרגל הניווט, אם YouTube מעביר זאת ללשונית בחלק העליון של דף הבית</string>
     <string name="morphe_disable_toolbar_navigation_tabs_title">בטל לשוניות ניווט בסרגל הכלים</string>
     <string name="morphe_dual_captions_enabled_title">כתוביות דו-לשוניות</string>
+    <string name="morphe_enhanced_ambient_mode_dim_duration_title">משך ההחשכה</string>
+    <string name="morphe_enhanced_ambient_mode_dim_while_scrolling_summary">מחשיך את התאורה כאשר הדף נגלל או ננגע</string>
+    <string name="morphe_enhanced_ambient_mode_dim_while_scrolling_title">החשכה בזמן גלילה</string>
+    <string name="morphe_enhanced_ambient_mode_readable_text_summary">מעמעם את התאורה בסרטונים בהירים כדי שהטקסט בדף יישאר קריא</string>
+    <string name="morphe_enhanced_ambient_mode_readable_text_title">שמירה על קריאות הטקסט</string>
+    <string name="morphe_enhanced_ambient_mode_title">מצב תאורת אווירה משופר</string>
     <string name="morphe_expand_livestream_dvr_duration_not_available">"'הרחבת משך ה-DVR לשידורים חיים' אולי לא תהיה זמינה
 
 כדי לתקן זאת, הפעל את 'זיוף הזרמות וידאו' ושנה את 'הלקוח המוגדר כברירת מחדל' ל-'TV Simply' או 'visionOS'"</string>
@@ -266,6 +279,12 @@
     <string name="morphe_playback_in_feeds_title">השמעה בפידים</string>
     <string name="morphe_player_control_buttons_background_opacity_summary">כוונן את אטימות הרקע מאחורי כפתורי בקרת הנגן ופס הזמן (0 בלתי נראה, 100 אטום)</string>
     <string name="morphe_player_control_buttons_background_opacity_title">אטימות הרקע של כפתורי השליטה</string>
+    <string name="morphe_playlist_hide_removal_snackbar_summary">האישור לא יוצג לאחר הסרת סרטון מרשימת השמעה</string>
+    <string name="morphe_playlist_hide_removal_snackbar_title">הסתרת הודעת ה-snackbar על הסרת רשימת השמעה</string>
+    <string name="morphe_playlist_long_press_drag_summary">גע והחזק סרטון בפלייליסט שלך כדי לגרור אותו למיקום חדש</string>
+    <string name="morphe_playlist_long_press_drag_title">לחץ לחיצה ארוכה כדי לשנות את סדר הסרטונים בפלייליסט</string>
+    <string name="morphe_playlist_wide_drag_handles_summary">ידיות הגרירה של רשימת ההשמעה קלות יותר לתפיסה</string>
+    <string name="morphe_playlist_wide_drag_handles_title">הרחבת ידיות הגרירה של רשימת ההשמעה</string>
     <string name="morphe_post_buttons_layout_entry_1">שרת</string>
     <string name="morphe_post_buttons_layout_entry_2">כפייה</string>
     <string name="morphe_post_buttons_layout_title">פריסת כפתורי פוסט</string>
@@ -658,20 +677,7 @@
     <string name="revanced_disable_hdr_video_summary_off">סרטון HDR מופעל</string>
     <string name="revanced_disable_hdr_video_summary_on">סרטון HDR מושבת</string>
     <string name="revanced_disable_hdr_video_title">השבת סרטון HDR</string>
-    <string name="revanced_disable_layout_updates_summary_off">השליטה תעדכן את השayout על ידי השרת</string>
-    <string name="revanced_disable_layout_updates_summary_on">השליטה לא תעדכן את השayout על ידי השרת</string>
     <string name="revanced_disable_layout_updates_title">השבתה של עדכונים שלayout</string>
-    <string name="revanced_disable_layout_updates_user_dialog_message">"פריסת האפליקציה חוזרת לפריסה שהיא הייתה בעת ההתקנה הראשונה
-
-חלק מפריסות בצד השרת לא יוחזרו
-
-שינויים כוללים:
-• רכיבים בתפריט קפיצה של הנגן (או הגדרות רלוונטיות) לא יכולים לעבוד
-• מספרים מתגלגלים לא מונפשים
-• כרטיסיית ספרייה מוצגת
-• אזור המוזיקה של תיאור וידאו לא יכול לעבוד
-• פריטים בתפריט קפיצה של הנגן לא יכולים להיות מוסתרים
-• כפתור החלפת חשבון לא מופיע בכרטיסיית הספרייה"</string>
     <string name="revanced_disable_playlist_autoplay_title">השבת הפעלה אוטומטית של רשימת השמעה</string>
     <string name="revanced_disable_resuming_shorts_player_summary_off">נגן Shorts יתחדש בעת הפעלת היישום</string>
     <string name="revanced_disable_resuming_shorts_player_summary_on">נגן Shorts לא יתחדש בעת הפעלת היישום</string>
@@ -754,10 +760,6 @@
     <string name="revanced_hide_comments_carousel_filter_strings_summary">הזן את שמות קרוסלת התגובות לסנן לפי, המופרדים בשורות חדשות</string>
     <string name="revanced_hide_comments_carousel_filter_strings_title">סינון סרגל תגובות</string>
     <string name="revanced_hide_comments_carousel_title">הפעלת מסנן קרוסלת תגובות</string>
-    <string name="revanced_hide_comments_carousel_user_dialog_message">"שימו לב:
-• הקפידו להזין את השם המדויק של הפריט בסבוב הקרוסלה (לדוגמה, שאל, הצבע על סרטון זה, האזן ב-YouTube Music וכו')
-• הסתרת פריטים בסבוב הקרוסלה עלולה לגרום לתופעות לוואי בלתי צפויות
-• אם כל הפריטים בסבוב הקרוסלה מוסתרים, גם כל סעיף התגובות יוסתר"</string>
     <string name="revanced_hide_comments_create_a_short_button_summary_off">לחצן יצירת Short מוצג</string>
     <string name="revanced_hide_comments_create_a_short_button_summary_on">לחצן יצירת Short מוסתר</string>
     <string name="revanced_hide_comments_create_a_short_button_title">הסתר לחצן \'יצירת Short\'</string>

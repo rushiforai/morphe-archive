@@ -111,7 +111,7 @@ class FreeProxiesFixtureTest {
             assertEquals(name, listOf("$SHARED_CONFIG->deleteProxy($PROXY_INFO)V"), stubs.getValue("delete"))
             assertEquals(name, listOf("$SHARED_CONFIG->proxyRotationEnabled:Z", "$SHARED_CONFIG->saveConfig()V"), stubs.getValue("rotate"))
 
-            for (flag in listOf("freeProxies", "proxyOrder")) {
+            for (flag in listOf("freeProxies", "proxyOrder", "v2rayProxies")) {
                 val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == flag }.controlBody()
                 assertEquals("$name: $flag", 1L, (status.first() as WideLiteralInstruction).wideLiteral)
             }

@@ -218,6 +218,12 @@ public final class ReelDeclutter {
     static final String DATE_WORDED = "date worded";
     /** Counted under the date's name each time the date goes in front of a reel's song line (#357). */
     static final String DATE_ON_SONG = "date on song line";
+    /** Counted under the date's name each time a footer keeps its date beside a recommendation reason (#496). */
+    static final String DATE_BESIDE_REASON = "date beside reason";
+    /** Counted under the date's name each time the date goes in front of a silent reel's sound label (#496). */
+    static final String DATE_ON_SOUND = "date on sound label";
+    /** The type of the attribution a reel's sound is labeled from, "Reel has no sound" on a silent one. */
+    static final String SOUNDTRACK = "XFBFBShortsSoundtrackTitle";
     /** What goes between the date and the song, the dot Facebook joins the artist and title with. */
     static final String DOT = " " + (char) 0xB7 + " ";
     /** How far ahead of the phone's clock a post time can be and still read as just posted. */
@@ -847,6 +853,26 @@ public final class ReelDeclutter {
     }
 
     /**
+     * Injection point, in the reel footer's builder, handed the server flag that swaps the line under
+     * a reel's author for its recommendation reason alone, the date and every other label dropped
+     * (#496). So a reel with a reason showed no date and the next one without did. No while the
+     * switch is on, so the date stays on the line. Never throws: anything going wrong answers what it
+     * was handed.
+     */
+    public static boolean reasonAlone(boolean alone) {
+        try {
+            HookStatus.invoked(FamilyNames.REEL_DECLUTTER);
+            if (!alone || !Utils.settingsReady() || !Settings.SHOW_REEL_POST_DATE.get()) return alone;
+            FeedFilterCounters.removed(DATE_ROUTE, 1, DATE_BESIDE_REASON);
+            logOnce(DATE_BESIDE_REASON, () -> "Reel post date: kept beside a recommendation reason");
+            return false;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.REEL_DECLUTTER, DATE_BESIDE_REASON, failure);
+            return alone;
+        }
+    }
+
+    /**
      * Injection point, in the same helper, handed Facebook's words for the post date and the time the
      * reel was posted, in seconds, right before a null draws nothing (#357). Facebook words a date
      * older than a few days only behind more server switches, so a reel past them showed no date even
@@ -893,6 +919,72 @@ public final class ReelDeclutter {
             HookStatus.threw(FamilyNames.REEL_DECLUTTER, DATE_ON_SONG, failure);
             return line;
         }
+    }
+
+    /** The story the soundtrack's own ticker label was asked for with, kept for {@link #soundTickerText}. */
+    private static final ThreadLocal<WeakReference<Object>> SOUND_STORY = new ThreadLocal<>();
+
+    /**
+     * Injection point, in the reel footer's builder, handed one attribution's label right before it
+     * becomes a ticker label under the author, the attribution and the reel's story (#496). A reel
+     * without sound has no song line, so its soundtrack attribution's label, "Reel has no sound",
+     * takes that spot and no date showed. With the switch on the date goes in front of that label the
+     * way it does a song's. Never throws: anything going wrong answers what it was handed.
+     */
+    @Nullable
+    public static String soundLabelText(@Nullable String label, @Nullable Object attribution, @Nullable Object story) {
+        try {
+            HookStatus.invoked(FamilyNames.REEL_DECLUTTER);
+            if (label == null || !Utils.settingsReady() || !Settings.SHOW_REEL_POST_DATE.get()) return label;
+            String type = FeedFilter.typeName(attribution);
+            if (!SOUNDTRACK.equals(type)) return label;
+            Date posted = PostDetails.postedOf(story);
+            if (posted == null) return label;
+            String dated = soundLabel(label, type, posted.getTime() / 1000, System.currentTimeMillis(),
+                    Settings.REEL_POST_DATE_STYLE.get(), L10n.locale(), TimeZone.getDefault());
+            if (dated.equals(label)) return label;
+            FeedFilterCounters.removed(DATE_ROUTE, 1, DATE_ON_SOUND);
+            logOnce(DATE_ON_SOUND, () -> "Reel post date: put in front of the sound label");
+            return dated;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.REEL_DECLUTTER, DATE_ON_SOUND, failure);
+            return label;
+        }
+    }
+
+    /**
+     * Injection point, at the start of the helper that builds the soundtrack's ticker label on its own
+     * when the footer's come up empty, handed the reel's story (#496). The helper clears the register
+     * holding it before the label is built, so it's kept here for {@link #soundTickerText}.
+     */
+    public static void soundStory(@Nullable Object story) {
+        try {
+            HookStatus.invoked(FamilyNames.REEL_DECLUTTER);
+            SOUND_STORY.set(story == null ? null : new WeakReference<>(story));
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.REEL_DECLUTTER, DATE_ON_SOUND, failure);
+        }
+    }
+
+    /**
+     * Injection point, in that helper, handed the soundtrack's label and attribution right before its
+     * ticker label is built (#496): {@link #soundLabelText} with the story {@link #soundStory} kept.
+     */
+    @Nullable
+    public static String soundTickerText(@Nullable String label, @Nullable Object attribution) {
+        WeakReference<Object> kept = SOUND_STORY.get();
+        SOUND_STORY.remove();
+        return soundLabelText(label, attribution, kept == null ? null : kept.get());
+    }
+
+    /**
+     * An attribution's [label] under a reel's author with the day the reel was posted, at [seconds],
+     * in front when the attribution's [type] is the soundtrack's: "3 weeks ago · Reel has no sound".
+     * Any other attribution's label stays as it was.
+     */
+    static String soundLabel(String label, @Nullable String type, long seconds, long nowMillis, ReelDateStyle style,
+                             Locale locale, TimeZone zone) {
+        return SOUNDTRACK.equals(type) ? audioLine(label, seconds, nowMillis, style, locale, zone) : label;
     }
 
     /**

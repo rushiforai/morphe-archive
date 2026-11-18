@@ -1,0 +1,7 @@
+.gradle/
+build/
+patches/build/
+local.properties
+*.mpp
+__pycache__/
+.tmp/

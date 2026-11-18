@@ -1,7 +1,7 @@
 #!/bin/bash
 # Patch a Samsung Notes APK with these patches + Morphe's "Clone app" (side-by-side package).
 # Usage: tools/patch.sh <notes.apk> [extra morphe-cli options...]
-#   e.g. tools/patch.sh notes.apk -e "Folder sync" -e "Hide camera" -d "Pen button actions"
+#   e.g. tools/patch.sh notes.apk -e "Hide camera" -d "Folder sync" -d "Pen button actions"
 #        -O upperKey=24 (options go right after the patch they belong to, see `list-patches -o`)
 # PKG=<package> changes the cloned package name (default com.jibon.samsungnotes.patched).
 # Signs with tools/test.keystore (created on first run; keep it, updates need the same key).
@@ -17,8 +17,8 @@ mkdir -p out
 # --exclusive keeps Morphe's own bundle to "Clone app", so this bundle's default-on patches are listed here.
 DEFAULTS=()
 for p in "Samsung framework compatibility" "Manifest compatibility" "Crash fixes" "Treat as pen device" \
-    "Finger drawing" "Pen button actions" "Backup to folder" "Hide Samsung account features" \
-    "Turn off Samsung cloud components" "Branding"; do DEFAULTS+=(-e "$p"); done
+    "Finger drawing" "Pen button actions" "Backup to folder" "Folder sync" "Samsung account sign-in" \
+    "Turn off telemetry" "Branding"; do DEFAULTS+=(-e "$p"); done
 $JAVA21 -Xmx6g -jar tools/morphe-cli.jar patch --exclusive \
     -p build/notes-patches.mpp "${DEFAULTS[@]}" "$@" \
     -p tools/morphe-patches.mpp -e "Clone app" -O packageName=$PKG \

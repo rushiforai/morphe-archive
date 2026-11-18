@@ -1,0 +1,180 @@
+{
+  "format": 1,
+  "runs": [
+    {
+      "receiver": "maps",
+      "folder": ".analysis/native-warning-bindings/maps-delayed-passage-02",
+      "installed_sha256": {
+        "nl.flitsmeister": "f76a1afc4e971cd81ad1a4f8aae8bed367a6b3f2391b78f6e1a15d599e0b622c",
+        "org.ungoogled.android.apps.maps": "a85076dbe6b94cab28f5148a81faa1b90ea2fb152e97f60f6ce8f54659b52efb",
+        "app.vela": "db277bae28b17584c34c31caa0eea313a76b45ed118084e5e9a856d9044e1670"
+      },
+      "helper_sha256": {
+        "maps": "653d419670ff91fc4edc6ecef86a38b8916720043982b059169f828586abd24d",
+        "vela": "123978a1f39f107988eff77ede68ad9daba1fc0beab44b7aeec072af1555cac9",
+        "source": "3edb2a779a25272cce398c310e0420d7b07750a47f5a9d09b27a0f513c3753bc"
+      },
+      "source_uid": 10192,
+      "receiver_uid": 10194,
+      "raw_sha256": {
+        ".analysis/native-warning-bindings/maps-delayed-passage-02/result.json": "014b342df815e3353641cfb2bb58b9d72996f82e5ed49bf7d754d0e87b103f8e",
+        ".analysis/native-warning-bindings/maps-delayed-passage-02/seed-source/77907e39-6e40-436b-9925-92d49ad41586/result.json": "47cdc7846cce4c7cbd03563f88294cefdb2707ad21cfc0c29004c3db23e62aca",
+        ".analysis/native-warning-bindings/maps-delayed-passage-02/seed-receiver-result.json": "16b48feeb368496307f88ee147ecd79c32624bdf87136a6d5242db700a0f971d"
+      },
+      "cases": [
+        {
+          "scenario": "passed_fresh",
+          "event_key": "4414864056b70c0fc7e7bd2de1d048a809c8ea9ed029abafc04bcfb383c7f769",
+          "warning_id": "SpeedCam:probe-restart-c4a7ec590ef3418c893dc868535db16b-passed_fresh",
+          "outcome": "REJECTED",
+          "original_announce_until_elapsed_ms": 10630137,
+          "actual_receiver_view_sequences": [
+            2
+          ],
+          "rejected_age_ms": 424,
+          "persisted_nonplayback_attempt": "b46efedf-471d-45d4-9cba-1c37c9e5d290",
+          "same_attempt_after_rebind": true
+        },
+        {
+          "scenario": "ahead_fresh",
+          "event_key": "a17dbb515bd68237a876f4329dad818f5f3a56c7829c206225b688f0069987d2",
+          "warning_id": "SpeedCam:probe-restart-c4a7ec590ef3418c893dc868535db16b-ahead_fresh",
+          "outcome": "COMPLETED",
+          "original_announce_until_elapsed_ms": 10631952,
+          "actual_receiver_view_sequences": [
+            5
+          ],
+          "issued_to_start_ms": 252,
+          "attempt_id": "01f7e5f6-829b-4c08-85af-47aefdc4b815",
+          "message": "Speed cam 50"
+        },
+        {
+          "scenario": "expired_ahead",
+          "event_key": "44a55e95dfe5e66c7b97791d54b19d7df86f6ee78a43e5feea4a967d7e0e9c59",
+          "warning_id": "SpeedCam:probe-restart-c4a7ec590ef3418c893dc868535db16b-expired_ahead",
+          "outcome": "STATE_ONLY_NO_AUTHORITY",
+          "original_announce_until_elapsed_ms": 10633907,
+          "actual_receiver_view_sequences": [
+            8
+          ],
+          "snapshot_age_ms": 10258,
+          "state_still_displayable": true,
+          "announcements_in_snapshot": 0,
+          "actual_scheduler_events": 0
+        }
+      ],
+      "actual_starts": 1,
+      "actual_completions": 1,
+      "exact_cleanup_verified": true,
+      "scope": "Original accepted native camera input, genuine journal snapshots and receiver registration/source reselect with native GPS. No synthetic transport packets, cursor/clock edits or fabricated playback dispositions. Straight passage only; route bends/parallel roads and other failure boundaries remain separate."
+    },
+    {
+      "receiver": "vela",
+      "folder": ".analysis/native-warning-bindings/vela-delayed-passage-01",
+      "installed_sha256": {
+        "nl.flitsmeister": "f76a1afc4e971cd81ad1a4f8aae8bed367a6b3f2391b78f6e1a15d599e0b622c",
+        "org.ungoogled.android.apps.maps": "a85076dbe6b94cab28f5148a81faa1b90ea2fb152e97f60f6ce8f54659b52efb",
+        "app.vela": "db277bae28b17584c34c31caa0eea313a76b45ed118084e5e9a856d9044e1670"
+      },
+      "helper_sha256": {
+        "maps": "653d419670ff91fc4edc6ecef86a38b8916720043982b059169f828586abd24d",
+        "vela": "123978a1f39f107988eff77ede68ad9daba1fc0beab44b7aeec072af1555cac9",
+        "source": "3edb2a779a25272cce398c310e0420d7b07750a47f5a9d09b27a0f513c3753bc"
+      },
+      "source_uid": 10192,
+      "receiver_uid": 10193,
+      "raw_sha256": {
+        ".analysis/native-warning-bindings/vela-delayed-passage-01/result.json": "92b0076c05d544f721715e5b647067a5031b1dc2fbdf5430b9e04270abae3223",
+        ".analysis/native-warning-bindings/vela-delayed-passage-01/seed-source/ffb7ed9d-89c2-4d3d-9fee-9965c412c19e/result.json": "6d79e12bfaa43998624d9bf2bef007ed46011e7a6d7a75c6e8895dc056dfaba4",
+        ".analysis/native-warning-bindings/vela-delayed-passage-01/seed-receiver-result.json": "77538fd8ccee3dfe6eabfc863b3c93a93059bbb809b3df8841d50bd7c24bfe7c"
+      },
+      "cases": [
+        {
+          "scenario": "passed_fresh",
+          "event_key": "f421c760482f0e39af95f8a9b60c647a7f5c8308a3121546b59c6aafe63fc472",
+          "warning_id": "SpeedCam:probe-restart-224084e8b0d04ce993ce723542710d17-passed_fresh",
+          "outcome": "REJECTED",
+          "original_announce_until_elapsed_ms": 10684620,
+          "actual_receiver_view_sequences": [
+            2
+          ],
+          "rejected_age_ms": 288,
+          "persisted_nonplayback_attempt": "44ec416a-6ab9-4294-895b-87bb3929fde8",
+          "same_attempt_after_rebind": true
+        },
+        {
+          "scenario": "ahead_fresh",
+          "event_key": "2e0be7d3df8d364a3a70097772feb927b43148e116f5db1c44c1e14d08923328",
+          "warning_id": "SpeedCam:probe-restart-224084e8b0d04ce993ce723542710d17-ahead_fresh",
+          "outcome": "COMPLETED",
+          "original_announce_until_elapsed_ms": 10686398,
+          "actual_receiver_view_sequences": [
+            5
+          ],
+          "issued_to_start_ms": 979,
+          "attempt_id": "fa2695e7-c15f-4b27-a813-7bdc4dfa1e49",
+          "message": "Speed cam 50"
+        },
+        {
+          "scenario": "expired_ahead",
+          "event_key": "6cebcfda3eb67f753c694a56da8eb980f40ec63fefc88d582e700165d9f67539",
+          "warning_id": "SpeedCam:probe-restart-224084e8b0d04ce993ce723542710d17-expired_ahead",
+          "outcome": "STATE_ONLY_NO_AUTHORITY",
+          "original_announce_until_elapsed_ms": 10689102,
+          "actual_receiver_view_sequences": [
+            8
+          ],
+          "snapshot_age_ms": 10255,
+          "state_still_displayable": true,
+          "announcements_in_snapshot": 0,
+          "actual_scheduler_events": 0
+        }
+      ],
+      "actual_starts": 1,
+      "actual_completions": 1,
+      "exact_cleanup_verified": true,
+      "scope": "Original accepted native camera input, genuine journal snapshots and receiver registration/source reselect with native GPS. No synthetic transport packets, cursor/clock edits or fabricated playback dispositions. Straight passage only; route bends/parallel roads and other failure boundaries remain separate."
+    }
+  ],
+  "negative_controls": [
+    {
+      "control": "passed_warning_started",
+      "rejected": true
+    },
+    {
+      "control": "expired_state_not_delivered",
+      "rejected": true
+    },
+    {
+      "control": "missing_valid_delayed_playback",
+      "rejected": true
+    }
+  ],
+  "failed_baselines": [
+    {
+      "path": ".analysis/native-warning-bindings/maps-delayed-passage-01/result.json",
+      "reason": "Maps GPS subscription begins only after external source selection. The first helper incorrectly waited for a native fix before selecting a source and never connected. No output occurred; exact cleanup passed. The accepted run uses a witnessed empty-journal GPS warmup and releases the receiver before issuing each tested warning."
+    }
+  ],
+  "acceptance_boundaries": [
+    "Original accepted native camera announcement entry, not a natural detection test",
+    "Genuine source registration/reselect and same living consumer rebind; not every arbitrary IPC interruption",
+    "Native receiving GPS and straight passed-point rejection; route bend and parallel-road cases remain separate",
+    "System voice; other modes/lifecycle/compatibility, actual car routing, documentation and review/delivery remain open"
+  ],
+  "final_owned_guest_state": {
+    "serial": "emulator-5590",
+    "avd": "native_warnings_ui_api34",
+    "test_targets_stopped": [
+      "nl.flitsmeister",
+      "org.ungoogled.android.apps.maps",
+      "app.vela"
+    ],
+    "controlled_gps_returned_to_fixture_start": {
+      "latitude": 52.37,
+      "longitude": 4.9,
+      "speed_knots": 0
+    },
+    "original_physical_location_restoration_claimed": false
+  }
+}

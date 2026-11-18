@@ -1,0 +1,230 @@
+[
+  {
+    "selection": "ads",
+    "owner": "Lnl/npo/player/library/sterads/presentation/ads/ImaAdManager;",
+    "signature": "getAdsLoader(Landroid/content/Context;Z)Lnl/npo/player/library/bx/f;",
+    "registers": 12,
+    "count": 22,
+    "prefix": [
+      "const/4 v0, 0x0",
+      "return-object v0"
+    ]
+  },
+  {
+    "selection": "ads",
+    "owner": "Lnl/npo/player/library/sw/a;",
+    "signature": "getPreRollAdUrl()Ljava/lang/String;",
+    "registers": 1,
+    "count": 2,
+    "prefix": [
+      "const/4 p0, 0x0",
+      "return-object p0"
+    ]
+  },
+  {
+    "selection": "ads",
+    "owner": "Lnl/npo/player/library/domain/streamLink/model/StreamLinkAssets;",
+    "signature": "getPreRollAdUrl()Ljava/lang/String;",
+    "registers": 1,
+    "count": 2,
+    "prefix": [
+      "const/4 p0, 0x0",
+      "return-object p0"
+    ]
+  },
+  {
+    "selection": "ads",
+    "owner": "Lnl/npo/player/library/data/offline/model/OnDiskSourceConfig;",
+    "signature": "getPreRollAdUrl()Ljava/lang/String;",
+    "registers": 1,
+    "count": 2,
+    "prefix": [
+      "const/4 p0, 0x0",
+      "return-object p0"
+    ]
+  },
+  {
+    "selection": "ads",
+    "owner": "Lnl/npo/player/library/data/extensions/NPOSourceConfigKt$copyInternal$newSourceConfig$1;",
+    "signature": "getPreRollAdUrl()Ljava/lang/String;",
+    "registers": 1,
+    "count": 2,
+    "prefix": [
+      "const/4 p0, 0x0",
+      "return-object p0"
+    ]
+  },
+  {
+    "selection": "ads",
+    "owner": "Lnl/npo/player/library/tv/a;",
+    "signature": "getPreRollAdUrl()Ljava/lang/String;",
+    "registers": 1,
+    "count": 2,
+    "prefix": [
+      "const/4 p0, 0x0",
+      "return-object p0"
+    ]
+  },
+  {
+    "selection": "tracking",
+    "owner": "Lnl/npo/player/library/v10/d;",
+    "signature": "<init>(Lnl/npo/tag/sdk/internal/domain/model/TagContext;Lnl/npo/player/library/fx/b;Lnl/npo/player/library/v10/e;Lio/sentry/v3;Lnl/npo/player/library/w10/h;Lnl/npo/player/library/w10/c;Lnl/npo/player/library/u10/a;Lnl/npo/player/library/t10/c;Ljava/util/Set;Lnl/npo/player/library/eu/d;Lnl/npo/player/library/i10/b;Lio/sentry/android/core/s0;Lnl/npo/player/library/sp/j0;)V",
+    "registers": 14,
+    "count": 39,
+    "prefix": [
+      "invoke-static {}, Ljava/util/Collections;->emptySet()Ljava/util/Set;",
+      "move-result-object p9"
+    ]
+  },
+  {
+    "selection": "tracking",
+    "owner": "Lnl/npo/player/library/v10/d;",
+    "signature": "a(Lnl/npo/tag/sdk/model/EventType;Lnl/npo/tag/sdk/model/PageEvent;)V",
+    "registers": 9,
+    "count": 12,
+    "prefix": [
+      "return-void"
+    ]
+  },
+  {
+    "selection": "tracking",
+    "owner": "Lnl/npo/player/library/q10/c;",
+    "signature": "a(Lnl/npo/tag/sdk/model/TagEvent;ILnl/npo/player/library/oq/c;)Ljava/lang/Object;",
+    "registers": 18,
+    "count": 157,
+    "prefix": [
+      "sget-object v0, Lnl/npo/player/library/hq/d0;->a:Lnl/npo/player/library/hq/d0;",
+      "return-object v0"
+    ]
+  },
+  {
+    "selection": "tracking",
+    "owner": "Lnl/npo/player/library/t10/c;",
+    "signature": "b(Lnl/npo/player/library/oq/c;)Ljava/lang/Object;",
+    "registers": 17,
+    "count": 104,
+    "prefix": [
+      "sget-object v0, Lnl/npo/player/library/hq/d0;->a:Lnl/npo/player/library/hq/d0;",
+      "return-object v0"
+    ]
+  },
+  {
+    "selection": "tracking",
+    "owner": "Lnl/npo/player/library/npotag/model/PlayerPageTrackerImpl;",
+    "signature": "getSessionData(Lnl/npo/player/library/mq/c;)Ljava/lang/Object;",
+    "registers": 3,
+    "count": 12,
+    "prefix": [
+      "const-string v0, \"\"",
+      "return-object v0"
+    ]
+  },
+  {
+    "selection": "tracking",
+    "owner": "Lnl/npo/player/library/data/streamLink/model/StreamInfoRequest;",
+    "signature": "getSter()Lnl/npo/player/library/domain/streamLink/model/StreamInfoSterData;",
+    "registers": 1,
+    "count": 2,
+    "prefix": [
+      "const/4 p0, 0x0",
+      "return-object p0"
+    ]
+  },
+  {
+    "selection": "tracking",
+    "owner": "Lio/sentry/s6;",
+    "signature": "isEnabled()Z",
+    "registers": 1,
+    "count": 2,
+    "prefix": [
+      "const/4 p0, 0x0",
+      "return p0"
+    ]
+  },
+  {
+    "selection": "tracking",
+    "owner": "Lcom/bitmovin/player/analytics/internal/AnalyticsConfiguratorKt;",
+    "signature": "configureAnalytics(Lcom/bitmovin/player/api/Player;Landroid/content/Context;Lcom/bitmovin/player/api/analytics/AnalyticsPlayerConfig;)Lcom/bitmovin/player/api/Player;",
+    "registers": 12,
+    "count": 45,
+    "prefix": [
+      "return-object p0"
+    ]
+  },
+  {
+    "selection": "tracking",
+    "owner": "Lcom/bitmovin/player/analytics/internal/AnalyticsConfiguratorKt;",
+    "signature": "configureAnalytics(Lcom/bitmovin/player/api/source/Source;Lcom/bitmovin/player/api/analytics/AnalyticsSourceConfig;)Lcom/bitmovin/player/api/source/Source;",
+    "registers": 3,
+    "count": 12,
+    "prefix": [
+      "return-object p0"
+    ]
+  },
+  {
+    "selection": "tracking",
+    "owner": "Lnl/npo/player/library/sterads/presentation/ads/ImaAdManager;",
+    "signature": "supplyOptionalConfiguration()Lnl/npo/player/library/aw/l;",
+    "registers": 1,
+    "count": 2,
+    "prefix": [
+      "const/4 p0, 0x0",
+      "return-object p0"
+    ]
+  },
+  {
+    "selection": "tracking",
+    "owner": "Lnl/npo/player/library/jm/p2;",
+    "signature": "a(Lnl/npo/player/library/jm/n3;I)V",
+    "registers": 5,
+    "count": 6,
+    "prefix": [
+      "return-void"
+    ]
+  },
+  {
+    "selection": "tracking",
+    "owner": "Lnl/npo/player/library/ak/a;",
+    "signature": "M(Lnl/npo/player/library/qk/a;)V",
+    "registers": 11,
+    "count": 62,
+    "prefix": [
+      "return-void"
+    ]
+  },
+  {
+    "selection": "tracking",
+    "owner": "Lcom/google/android/datatransport/runtime/scheduling/jobscheduling/AlarmManagerSchedulerBroadcastReceiver;",
+    "signature": "onReceive(Landroid/content/Context;Landroid/content/Intent;)V",
+    "registers": 8,
+    "count": 12,
+    "prefix": [
+      "return-void"
+    ]
+  },
+  {
+    "selection": "tracking",
+    "owner": "Lnl/npo/player/library/el/a;",
+    "signature": "d(Lnl/npo/player/library/ea/x;JLjava/lang/Throwable;)V",
+    "registers": 8,
+    "count": 43,
+    "prefix": [
+      "return-void"
+    ]
+  },
+  {
+    "selection": "tracking",
+    "owner": "Lnl/npo/player/library/p7/x0;",
+    "signature": "c(Lnl/npo/player/library/ks/c;)Lnl/npo/player/library/nm/k;",
+    "registers": 20,
+    "count": 212,
+    "prefix": [
+      "new-instance v0, Lnl/npo/player/library/nm/k;",
+      "const/16 v1, 0x193",
+      "const/4 v2, 0x0",
+      "const-wide/16 v3, 0x0",
+      "invoke-direct {v0, v1, v2, v3, v4}, Lnl/npo/player/library/nm/k;-><init>(ILjava/net/URL;J)V",
+      "return-object v0"
+    ]
+  }
+]

@@ -225,7 +225,9 @@ logged-out launch on the API 36 emulator (sign-in screen, no fatal log). Its pat
 same ten call sites as 2026.45.0, and each hooked class has the same constructor signatures and
 size as its 2026.45.0 counterpart (two post callbacks, two comment callbacks and the
 accessibility comment callback; the post-detail hooks stay in the same named composable).
-2026.45.0 stays supported as the official Morphe patches' newest target.
+2026.45.0 stayed supported as the official Morphe patches' newest target until the official
+patches 2.3.0 moved that target to 2026.46.0; 2026.45.0 is no longer supported (its anchors stay
+in the patch).
 
 Reddit fingerprints use stable translation state/event descriptors. Obfuscated
 callback classes, model classes, field names, and synthetic-lambda selector

@@ -316,6 +316,7 @@ public final class RexIcon {
         KEY_MAP.put("comment_save_media_button", "photo-down");
         KEY_MAP.put("copy_caption_without_hashtags", "hash");
         KEY_MAP.put("custom_chat_wallpaper", "image");
+        KEY_MAP.put("custom_home_wordmark", "sparkles");
         KEY_MAP.put("custom_sharing_domain", "world-www");
         KEY_MAP.put("customise_story_ring_size", "circle-dotted");
         KEY_MAP.put("customise_story_timestamp", "clock-edit");
@@ -452,6 +453,8 @@ public final class RexIcon {
         KEY_MAP.put("rex_quick_access_sheet", "hexagon");
         KEY_MAP.put("rex_rec_flags", "list-details");
         KEY_MAP.put("rex_rec_flags_refresh_file", "refresh-cw");
+        KEY_MAP.put("rex_rec_flags_enable_all", "sparkles");
+        KEY_MAP.put("rex_rec_flags_reset_all", "rotate-ccw");
         KEY_MAP.put("rex_reset_download_path", "rotate-cw");
         KEY_MAP.put("rex_reset_pref", "trash-2");
         KEY_MAP.put("rex_saved_bios_btn", "file-text");
@@ -552,6 +555,18 @@ public final class RexIcon {
         KEY_MAP.put("split_video_duration", "scissors");
         KEY_MAP.put("story_download_button", "circle-dashed");
         KEY_MAP.put("translator_language", "language");
+        KEY_MAP.put("rex_color_mode", "palette");
+        KEY_MAP.put("rex_color_mode_btn", "palette");
+        KEY_MAP.put("story_options_button", "settings");
+        KEY_MAP.put("reel_options_button", "settings-2");
+        KEY_MAP.put("disable_feed_download_icon", "download");
+        KEY_MAP.put("disable_feed_options_icon", "hexagon");
+        KEY_MAP.put("long_press_search_open_profile", "user-round-search");
+        KEY_MAP.put("view_blocked_profiles_secretly", "user-check");
+        KEY_MAP.put("mark_as_seen_on_reaction", "heart-spark");
+        KEY_MAP.put("auto_apply_pro_config_v6", "bolt");
+        KEY_MAP.put("rex_apply_pro_config_v6", "database-import");
+        KEY_MAP.put("rex_export_pro_config_v6", "file-export");
     }
 
     private RexIcon() {}
@@ -1197,4 +1212,9 @@ public final class RexIcon {
             ep1y = ep2y;
         }
     }
+
+    public static Map<String, String> getPreferenceKeyMappings() {
+        return java.util.Collections.unmodifiableMap(KEY_MAP);
+    }
+
 }

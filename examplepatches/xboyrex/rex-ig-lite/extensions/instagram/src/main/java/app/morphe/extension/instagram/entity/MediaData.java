@@ -33,15 +33,33 @@ public class MediaData extends Entity {
     private static final Pattern FRAME_RATE = Pattern.compile("frameRate=\"(\\d+)(?:/(\\d+))?\"");
     private final UserSession userSession;
 
+    private static Object unwrapMediaCandidate(Object candidate) {
+        Object unwrapped = Entity.unwrapEntityObject(candidate);
+        if (unwrapped != null && unwrapped.getClass().getName().equals("com.instagram.model.reels.ReelItem")) {
+            for (Class<?> c = unwrapped.getClass(); c != null && c != Object.class; c = c.getSuperclass()) {
+                for (Field f : c.getDeclaredFields()) {
+                    if (f.getType().getName().equals("com.instagram.feed.media.Media")) {
+                        try {
+                            f.setAccessible(true);
+                            Object media = f.get(unwrapped);
+                            if (media != null) return media;
+                        } catch (Throwable ignored) {}
+                    }
+                }
+            }
+        }
+        return unwrapped;
+    }
+
     public MediaData(Object obj) {
-        super(obj);
-        this.obj = obj;
+        super(unwrapMediaCandidate(obj));
+        this.obj = super.getObject();
         this.userSession = null;
     }
 
     public MediaData(Object obj, UserSession userSession) {
-        super(obj);
-        this.obj = obj;
+        super(unwrapMediaCandidate(obj));
+        this.obj = super.getObject();
         this.userSession = userSession;
     }
 
@@ -339,15 +357,143 @@ public class MediaData extends Entity {
     }
 
     public HashSet<UserData> getMentionSet() throws Exception {
-        Object result = super.getMethod(this.getExtendedData(), "methodName");
-        if (result != null) {
-            List userInteractionList = (List) result;
-            HashSet<UserData> userDataHashSet = new HashSet<>();
-            for (Object data : userInteractionList) {
-                Object userData = super.getMethod(data, "methodName2");
-                userDataHashSet.add(new UserData(userData));
+        Object result = null;
+        List<Object> receivers = new ArrayList<>();
+        try {
+            Object ext = this.getExtendedData();
+            if (ext != null) receivers.add(ext);
+        } catch (Throwable ignored) {}
+        if (this.obj != null && !receivers.contains(this.obj)) {
+            receivers.add(this.obj);
+        }
+        if (this.obj != null) {
+            for (Class<?> c = this.obj.getClass(); c != null && c != Object.class; c = c.getSuperclass()) {
+                for (Field f : c.getDeclaredFields()) {
+                    String fType = f.getType().getName();
+                    if (fType.contains("LiveTreeMediaDict") || fType.startsWith("X.") || fType.contains("MediaDict")) {
+                        try {
+                            f.setAccessible(true);
+                            Object sub = f.get(this.obj);
+                            if (sub != null && !receivers.contains(sub)) receivers.add(sub);
+                        } catch (Throwable ignored) {}
+                    }
+                }
             }
-            return userDataHashSet;
+        }
+
+        for (Object recv : receivers) {
+            if (recv == null) continue;
+            try {
+                result = super.getMethod(recv, "methodName");
+                if (result != null) break;
+            } catch (Throwable ignored) {}
+        }
+
+        // Fallback: scan receivers for any 0-arg method returning List/array of mention wrappers containing User
+        if (result == null) {
+            outer:
+            for (Object recv : receivers) {
+                if (recv == null) continue;
+                for (Class<?> c = recv.getClass(); c != null && c != Object.class; c = c.getSuperclass()) {
+                    for (Method m : c.getDeclaredMethods()) {
+                        if (m.getParameterTypes().length != 0) continue;
+                        Class<?> rt = m.getReturnType();
+                        if (List.class.isAssignableFrom(rt) || rt.isArray()) {
+                            try {
+                                m.setAccessible(true);
+                                Object cand = m.invoke(recv);
+                                if (cand instanceof List<?> && !((List<?>) cand).isEmpty()) {
+                                    Object first = ((List<?>) cand).get(0);
+                                    if (first != null && !first.getClass().getName().equals("com.instagram.feed.media.Media")
+                                            && extractUserObjectFallback(first) != null) {
+                                        result = cand;
+                                        break outer;
+                                    }
+                                } else if (cand != null && cand.getClass().isArray() && java.lang.reflect.Array.getLength(cand) > 0) {
+                                    Object first = java.lang.reflect.Array.get(cand, 0);
+                                    if (first != null && !first.getClass().getName().equals("com.instagram.feed.media.Media")
+                                            && extractUserObjectFallback(first) != null) {
+                                        result = cand;
+                                        break outer;
+                                    }
+                                }
+                            } catch (Throwable ignored) {}
+                        }
+                    }
+                }
+            }
+        }
+
+        if (result == null) {
+            return new HashSet<>();
+        }
+        List<Object> items = new ArrayList<>();
+        if (result instanceof Iterable<?>) {
+            for (Object o : (Iterable<?>) result) {
+                if (o != null) items.add(o);
+            }
+        } else if (result.getClass().isArray()) {
+            int len = java.lang.reflect.Array.getLength(result);
+            for (int i = 0; i < len; i++) {
+                Object o = java.lang.reflect.Array.get(result, i);
+                if (o != null) items.add(o);
+            }
+        } else {
+            items.add(result);
+        }
+
+        HashSet<UserData> userDataHashSet = new HashSet<>();
+        HashSet<String> seenUserKeys = new HashSet<>();
+        for (Object data : items) {
+            if (data == null) continue;
+            Object userObj = null;
+            try {
+                userObj = super.getMethod(data, "methodName2");
+            } catch (Throwable ignored) {}
+            if (userObj == null) {
+                userObj = extractUserObjectFallback(data);
+            }
+            if (userObj != null) {
+                UserData ud = new UserData(userObj);
+                String dedupKey = null;
+                try {
+                    dedupKey = ud.getUsername();
+                } catch (Throwable ignored) {}
+                if (dedupKey == null || dedupKey.isEmpty()) {
+                    try {
+                        dedupKey = ud.getUserId();
+                    } catch (Throwable ignored) {}
+                }
+                if (dedupKey == null || dedupKey.isEmpty() || seenUserKeys.add(dedupKey)) {
+                    userDataHashSet.add(ud);
+                }
+            }
+        }
+        return userDataHashSet;
+    }
+
+    private static Object extractUserObjectFallback(Object interactionObj) {
+        if (interactionObj == null) return null;
+        String clsName = interactionObj.getClass().getName();
+        if (clsName.contains("user.model.User")) return interactionObj;
+        for (Method m : interactionObj.getClass().getMethods()) {
+            if (m.getParameterCount() == 0 && m.getReturnType().getName().endsWith(".User")) {
+                try {
+                    Object v = m.invoke(interactionObj);
+                    if (v != null) return v;
+                } catch (Throwable ignored) {}
+            }
+        }
+        for (Class<?> c = interactionObj.getClass(); c != null && c != Object.class; c = c.getSuperclass()) {
+            for (Field f : c.getDeclaredFields()) {
+                if (f.getType().getName().endsWith(".User")) {
+                    try {
+                        f.setAccessible(true);
+                        Object v = f.get(interactionObj);
+                        if (v != null) return v;
+                    } catch (Throwable ignored) {}
+                }
+            }
         }
         return null;
     }
@@ -821,14 +967,43 @@ public class MediaData extends Entity {
         }
     }
 
-    /** Whether the video has a sound track, by the app's has_audio flag; true when the flag is missing. */
-    public boolean hasAudioTrack() throws Exception {
+    public enum AudioState {
+        YES,
+        NO,
+        UNKNOWN
+    }
+
+    public AudioState getAudioTrackState() {
         try {
             Boolean hasAudio = (Boolean) super.getMethod(this.getExtendedData(), "methodName");
-            return hasAudio == null || hasAudio;
-        } catch (Exception ignored) {
-            return true;
+            if (hasAudio != null) {
+                return hasAudio ? AudioState.YES : AudioState.NO;
+            }
+        } catch (Throwable ignored) {
         }
+        try {
+            if (this.getAudioMedia() != null) {
+                return AudioState.YES;
+            }
+        } catch (Throwable ignored) {
+        }
+        return AudioState.UNKNOWN;
+    }
+
+    /** Whether the video has a sound track; returns false on unknown/exception rather than assuming audio exists. */
+    public boolean hasAudioTrack() throws Exception {
+        AudioState state = getAudioTrackState();
+        if (state == AudioState.YES) return true;
+        if (state == AudioState.NO) return false;
+        try {
+            for (DashVideoData dash : DashVideoData.parse(this.getVideoDashManifest())) {
+                if (dash != null && dash.getAudioUrl() != null && !dash.getAudioUrl().trim().isEmpty()) {
+                    return true;
+                }
+            }
+        } catch (Throwable ignored) {
+        }
+        return false;
     }
 
     /**

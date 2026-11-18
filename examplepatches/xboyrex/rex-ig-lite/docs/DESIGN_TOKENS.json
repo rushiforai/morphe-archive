@@ -1,0 +1,77 @@
+{
+  "brand": {
+    "product": "InstaRex (Rex IG Lite)",
+    "short_name": "InstaRex",
+    "compat_name": "Rex IG Lite",
+    "developer": "by xboyrex",
+    "logo": "Rex-owned hexagon monogram/wordmark (rex_ic_tabler_hexagon); never use Instagram logo as Rex identity"
+  },
+  "colors": {
+    "amoled_black": "#000000",
+    "background": "#05070A",
+    "surface": "#11161D",
+    "surface_card": "#15181D",
+    "surface_elevated": "#1A222B",
+    "surface_modal": "#20252C",
+    "border": "#293441",
+    "border_card": "#303741",
+    "text_primary": "#F4F7FA",
+    "text_primary_bright": "#F5F7FA",
+    "text_secondary": "#9AA7B5",
+    "text_secondary_card": "#A4ACB8",
+    "text_muted": "#737D8A",
+    "brand_cyan": "#16B8D4",
+    "rex_electric_cyan": "#23C6D8",
+    "active_teal": "#39C9B5",
+    "active_switch": "#35CDBB",
+    "action_blue": "#398BE8",
+    "primary_action": "#3998E8",
+    "destructive": "#EF6675",
+    "destructive_action": "#F06470",
+    "success": "#43B985",
+    "success_badge": "#35B779",
+    "warning": "#E4B65D",
+    "warning_badge": "#E6B450"
+  },
+  "dimensions_dp": {
+    "spacing_scale": [
+      4,
+      8,
+      12,
+      16,
+      20,
+      24,
+      32
+    ],
+    "card_radius": 22,
+    "dialog_radius": 26,
+    "divider": 1,
+    "standard_icon": 24,
+    "compact_icon": 20,
+    "trailing_icon": 18,
+    "min_touch_target": 48
+  },
+  "motion_ms": {
+    "dialog_open": 200,
+    "dialog_close": 160,
+    "toggle": 180,
+    "icon_crossfade": 160,
+    "row_press": 100
+  },
+  "motion": {
+    "reduce_motion_respected": true,
+    "avoid_infinite_decorative_animation": true
+  },
+  "icons": {
+    "primary_family": "Tabler Outline",
+    "source": "user-provided outline.zip (https://github.com/tabler/tabler-icons)",
+    "filled_variant": "user-provided filled.zip; used only for meaningful selected/active states",
+    "viewBox": "0 0 24 24",
+    "outline_stroke_width": 2,
+    "linecap": "round",
+    "linejoin": "round",
+    "transparent_background": true,
+    "central_registry_required": true,
+    "registry_class": "app.morphe.extension.instagram.settings.preference.widgets.RexIconRegistry"
+  }
+}

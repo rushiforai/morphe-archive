@@ -121,13 +121,6 @@ object AiFilterConfig {
         }
     }
 
-    fun getBlockedUserIds(context: Context): Set<String> {
-        initIfNeeded(context)
-        synchronized(lock) {
-            return HashSet(cachedBlockedUserIds)
-        }
-    }
-
     fun getBlockedUserCount(context: Context): Int {
         initIfNeeded(context)
         synchronized(lock) {
@@ -147,17 +140,6 @@ object AiFilterConfig {
         initIfNeeded(context)
         synchronized(lock) {
             if (cachedBlockedUserIds.add(userId)) {
-                getPrefs(context).edit()
-                    .putStringSet(KEY_BLOCKED_USER_IDS, HashSet(cachedBlockedUserIds))
-                    .apply()
-            }
-        }
-    }
-
-    fun removeBlockedUserId(context: Context, userId: String) {
-        initIfNeeded(context)
-        synchronized(lock) {
-            if (cachedBlockedUserIds.remove(userId)) {
                 getPrefs(context).edit()
                     .putStringSet(KEY_BLOCKED_USER_IDS, HashSet(cachedBlockedUserIds))
                     .apply()

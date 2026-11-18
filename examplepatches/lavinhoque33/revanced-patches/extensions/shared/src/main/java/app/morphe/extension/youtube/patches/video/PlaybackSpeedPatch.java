@@ -9,7 +9,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-10-13.
+ * Modified by lavinhoque33, 2026-11-17.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -146,13 +146,11 @@ public class PlaybackSpeedPatch {
             defaultPlaybackSpeed = 1.0f;
         }
 
-        if (defaultPlaybackSpeed > 0 && defaultPlaybackSpeed != 1.0f) {
+        if (defaultPlaybackSpeed > 0) {
             final float speedToApply = defaultPlaybackSpeed;
             Logger.printDebug(() -> "applyDefaultPlaybackSpeed: applying default speed: " + speedToApply);
             VideoInformation.setPlaybackSpeed(speedToApply);
             VideoInformation.overridePlaybackSpeed(speedToApply);
-        } else if (defaultPlaybackSpeed == 1.0f) {
-            VideoInformation.setPlaybackSpeed(1.0f);
         }
     }
 
@@ -174,6 +172,12 @@ public class PlaybackSpeedPatch {
      * Re-arms speed initialization for a player reopening the same video.
      */
     public static void newPlayerStarted() {
+        // Auto can reuse a manual speed within this video, but not in the next player
+        // when remembering speed changes is disabled.
+        if (!Settings.REMEMBER_PLAYBACK_SPEED_LAST_SELECTED.get()) {
+            lastSelectedPlaybackSpeed = 1.0f;
+        }
+
         userChangedSpeedForCurrentVideo = false;
         newAudioStarted = true;
         newVideoStarted = true;
@@ -193,9 +197,7 @@ public class PlaybackSpeedPatch {
             return;
         }
         videoId = newlyLoadedVideoId;
-        userChangedSpeedForCurrentVideo = false;
-        newAudioStarted = true;
-        newVideoStarted = true;
+        newPlayerStarted();
 
         boolean isMusic = isMusic(newlyLoadedVideoId);
         boolean isWhitelisted = !newlyLoadedChannelId.isEmpty() && Whitelist.isChannelWhitelistedPlaybackSpeed(newlyLoadedChannelId);

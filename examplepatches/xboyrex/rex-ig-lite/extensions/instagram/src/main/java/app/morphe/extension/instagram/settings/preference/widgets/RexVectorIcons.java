@@ -34,31 +34,31 @@ public final class RexVectorIcons {
     }
 
     public static Drawable create(Context context, String iconName, int color, int sizeDp) {
-        return RexIcon.getDrawable(context, iconName, color, sizeDp, false);
+        return RexIconRegistry.getIconDrawable(context, iconName, color, sizeDp, false);
     }
 
     public static Drawable create(Context context, String iconName, int color, int sizeDp, boolean preferFilled) {
-        return RexIcon.getDrawable(context, iconName, color, sizeDp, preferFilled);
+        return RexIconRegistry.getIconDrawable(context, iconName, color, sizeDp, preferFilled);
     }
 
     public static Drawable createMenuIcon(final Context context, final String type, final int sizeDp, final int color) {
-        return RexIcon.getDrawable(context, type, color, sizeDp, false);
+        return RexIconRegistry.getIconDrawable(context, type, color, sizeDp, false);
     }
 
     public static Drawable createMenuIcon(final Context context, final String type, final int sizeDp, final int color, final boolean preferFilled) {
-        return RexIcon.getDrawable(context, type, color, sizeDp, preferFilled);
+        return RexIconRegistry.getIconDrawable(context, type, color, sizeDp, preferFilled);
     }
 
     public static Drawable createHexagonIcon(Context context, int sizeDp, int color) {
-        return RexIcon.getDrawable(context, "hexagon", color, sizeDp, false);
+        return RexIconRegistry.getIconDrawable(context, "hexagon", color, sizeDp, false);
     }
 
     public static Drawable createDownloadIcon(Context context, int sizeDp, int color) {
-        return RexIcon.getDrawable(context, "download", color, sizeDp, false);
+        return RexIconRegistry.getIconDrawable(context, "download", color, sizeDp, false);
     }
 
     public static Drawable createTranslateIcon(Context context, int sizeDp, int color) {
-        return RexIcon.getDrawable(context, "language", color, sizeDp, false);
+        return RexIconRegistry.getIconDrawable(context, "language", color, sizeDp, false);
     }
 
     public static Path buildScallopedPath(float cx, float cy, float baseRadius, float waveAmp, int lobes) {

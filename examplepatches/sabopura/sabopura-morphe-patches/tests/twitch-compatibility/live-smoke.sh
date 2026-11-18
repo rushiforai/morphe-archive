@@ -53,7 +53,7 @@ value=true; [ "$MODE" = off ] && value=false
 CHAT=""
 for key in hide_chat_header hide_vod_header hide_leaderboards hide_hype_train hide_bits hide_cast hide_clips \
     hide_share hide_unfollow hide_create hide_input hide_landscape_input hide_pinned hide_stories hide_discover \
-    hide_one_chat_popup; do CHAT="$CHAT $key=$value"; done
+    hide_one_chat_popup hide_recaps; do CHAT="$CHAT $key=$value"; done
 [ "$MODE" = full ] && CHAT="$CHAT brightness_gesture=true volume_gesture=true"
 put sabopura_chat.xml $CHAT
 [ "$MODE" = full ] && put sabopura_twitch_danmaku.xml enabled=true

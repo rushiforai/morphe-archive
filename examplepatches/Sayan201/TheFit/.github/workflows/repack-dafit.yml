@@ -1,0 +1,93 @@
+name: Repack Da Fit APK (Ad-Free)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'input/**'
+      - 'scripts/**'
+      - '.github/workflows/repack-dafit.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  repack:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Node.js 20 & rea-agents
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Apktool & REA CLI
+        run: |
+          sudo curl -fsSL https://raw.githubusercontent.com/iBotPeaches/Apktool/master/scripts/linux/apktool -o /usr/local/bin/apktool
+          sudo curl -fsSL https://github.com/iBotPeaches/Apktool/releases/download/v2.10.0/apktool_2.10.0.jar -o /usr/local/bin/apktool.jar
+          sudo chmod +x /usr/local/bin/apktool
+          apktool --version
+          npm install -g rea-agents || true
+          rea doctor || true
+
+      - name: Decompile, Patch Ads, and Rebuild APK
+        run: |
+          mkdir -p build
+          echo "[*] Attempting full decompile (smali + resources + manifest)..."
+          apktool d -f input/dafit-v2.8.4.apk -o build/dafit_decompiled
+          python3 scripts/patch_dafit.py build/dafit_decompiled
+          if ! apktool b --use-aapt2 build/dafit_decompiled -o build/dafit-unsigned.apk; then
+            echo "[!] Full resource rebuild encountered vendor resource conflicts; falling back to raw-resource smali decompile (-r)..."
+            rm -rf build/dafit_decompiled
+            apktool d -f -r input/dafit-v2.8.4.apk -o build/dafit_decompiled
+            python3 scripts/patch_dafit.py build/dafit_decompiled
+            apktool b build/dafit_decompiled -o build/dafit-unsigned.apk
+          fi
+          ls -lh build/dafit-unsigned.apk
+
+      - name: Zipalign and Sign Patched APK
+        run: |
+          BUILD_TOOLS_DIR=$(ls -d "$ANDROID_HOME/build-tools/"* | sort -V | tail -n 1)
+          echo "Using Android build-tools: $BUILD_TOOLS_DIR"
+
+          "$BUILD_TOOLS_DIR/zipalign" -p -f -v 4 build/dafit-unsigned.apk build/dafit-aligned.apk > /dev/null
+
+          keytool -genkeypair -v \
+            -keystore build/release.keystore \
+            -alias dafit_key \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -storepass android123 \
+            -keypass android123 \
+            -dname "CN=PersonalUse, OU=Mobile, O=Personal, L=Local, S=Local, C=US"
+
+          "$BUILD_TOOLS_DIR/apksigner" sign \
+            --ks build/release.keystore \
+            --ks-key-alias dafit_key \
+            --ks-pass pass:android123 \
+            --key-pass pass:android123 \
+            --v1-signing-enabled true \
+            --v2-signing-enabled true \
+            --v3-signing-enabled true \
+            --out build/DaFit-v2.8.4-NoAds-arm64-v8a-signed.apk \
+            build/dafit-aligned.apk
+
+          "$BUILD_TOOLS_DIR/apksigner" verify --verbose build/DaFit-v2.8.4-NoAds-arm64-v8a-signed.apk
+          ls -lh build/DaFit-v2.8.4-NoAds-arm64-v8a-signed.apk
+
+      - name: Upload Ad-Free Signed APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: DaFit-v2.8.4-NoAds-APK
+          path: build/DaFit-v2.8.4-NoAds-arm64-v8a-signed.apk
+          if-no-files-found: error

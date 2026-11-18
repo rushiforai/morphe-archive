@@ -1,0 +1,31 @@
+Validation completed 2026-10-29
+
+Input: Wongnai-12.11.0-arm64.xapk
+Package: com.wongnai.android
+Version: 12.11.0
+Input SHA-256: 28c0845710fbaa1144861083af751a2c2eec9840c36022e470f42141d005c86d
+
+Toolchain: JDK 21.0.13, Morphe Desktop 1.19.1, R8 9.5.28.
+
+Morphe applied the custom patch to the original XAPK and rebuilt the APK.
+No patching/rebuild failures were reported.
+
+Independent verification of the resulting APK:
+- All five intended Google ad loaders begin with RETURN_VOID.
+- All original instructions following those returns remain semantically
+  unchanged when method/field/string references are normalized.
+- The photo ad entry begins with CONST_4 v0=0, then INVOKE_VIRTUAL with
+  registers v8,v9,v0 to Lpf/e;->l(UiPhotoAds,Z)V, then RETURN_VOID.
+- The photo entry has 10 registers: p0=v8, p1=v9.
+- The existing photo fallback method remains unchanged across all of its
+  212 normalized instructions and its 12-register layout.
+- The original three arm64 native libraries are byte-for-byte unchanged:
+  libjnidispatch.so, librealm-jni.so and libsodium.so.
+- The MPP contains the same three patch classes as JVM bytecode and Android
+  DEX, with the required public static patch getter in each format.
+- Embedded Android DEX checksums are valid, and embedded source matches
+  the source used to compile the patch.
+
+Limits: static/build validation only. No phone execution or Android Manager
+import test was performed. Empty banner slots may remain. Wongnai's own
+sponsored restaurant content is outside this patch's scope.

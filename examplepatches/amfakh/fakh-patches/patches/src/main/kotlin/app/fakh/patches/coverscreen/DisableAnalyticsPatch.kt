@@ -44,9 +44,7 @@ private val adPermissionsPatch = patch {
 @Suppress("unused")
 val disableAnalyticsPatch = patch(
     name = "Disable analytics",
-    description = "Turns off Firebase Analytics, Crashlytics, Performance and Sessions, and stops the GIF " +
-        "keyboard from sending your advertising ID, device model, carrier and screen size with its ad requests. " +
-        "Also removes the ad ID and ad services permissions.",
+    description = "Turns off analytics and tracking.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_COVERSCREEN)

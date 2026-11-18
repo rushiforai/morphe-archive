@@ -14,6 +14,7 @@
 package app.hushmessenger.patches.controls
 
 import app.hushmessenger.patches.MessengerTarget
+import app.hushmessenger.patches.isExtension
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
@@ -146,7 +147,7 @@ val materialYouPatch = bytecodePatch(
         val fdsShapes = mutableListOf<ClassDef>()
         val colorCalls = MemberTable(materialYouColorCalls)
         classDefForEach { cls ->
-            if (cls.type.startsWith("Lapp/hushmessenger/extension/")) return@classDefForEach
+            if (cls.isExtension()) return@classDefForEach
             if (isFdsColorsShape(cls)) fdsShapes += cls
             for (method in cls.methods) {
                 val implementation = method.implementation ?: continue

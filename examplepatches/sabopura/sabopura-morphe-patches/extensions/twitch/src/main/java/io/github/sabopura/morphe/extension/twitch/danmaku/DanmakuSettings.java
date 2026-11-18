@@ -3,11 +3,15 @@ package io.github.sabopura.morphe.extension.twitch.danmaku;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-/** Persistent danmaku settings. Defaults come from the patch options. */
+import io.github.sabopura.morphe.extension.twitch.SafePreferences;
+
+/** Persistent danmaku settings. */
 public final class DanmakuSettings {
     public static final String PREFERENCES = "sabopura_twitch_danmaku";
 
     public static final String KEY_ENABLED = "enabled";
+    public static final String KEY_VOD = "vod_enabled";
+    public static final String KEY_MATCH_DELAY = "match_stream_delay";
     public static final String KEY_FONT_SIZE = "font_size_sp";
     public static final String KEY_OPACITY = "opacity_percent";
     public static final String KEY_DURATION = "duration_seconds";
@@ -34,6 +38,10 @@ public final class DanmakuSettings {
     private static volatile DanmakuSettings current;
 
     public final boolean enabled;
+    /** Also flow the chat replay of VODs. */
+    public final boolean vod;
+    /** Hold live comments back by how far the video is behind. */
+    public final boolean matchDelay;
     public final int fontSizeSp;
     public final int opacityPercent;
     public final int durationSeconds;
@@ -44,11 +52,12 @@ public final class DanmakuSettings {
     public final boolean chatColors;
     public final boolean showNames;
     public final boolean bold;
-    public final String ngWords;
     final CommentFilter filter;
 
     private DanmakuSettings(SharedPreferences preferences) {
         enabled = preferences.getBoolean(KEY_ENABLED, true);
+        vod = preferences.getBoolean(KEY_VOD, true);
+        matchDelay = preferences.getBoolean(KEY_MATCH_DELAY, true);
         fontSizeSp = clamp(preferences.getInt(KEY_FONT_SIZE, TwitchDanmaku.configFontSizeSp()),
                 MIN_FONT_SIZE, MAX_FONT_SIZE);
         opacityPercent = clamp(preferences.getInt(KEY_OPACITY,
@@ -65,8 +74,7 @@ public final class DanmakuSettings {
         chatColors = preferences.getBoolean(KEY_CHAT_COLORS, false);
         showNames = preferences.getBoolean(KEY_SHOW_NAMES, false);
         bold = preferences.getBoolean(KEY_BOLD, true);
-        ngWords = preferences.getString(KEY_NG_WORDS, "");
-        filter = CommentFilter.parse(ngWords);
+        filter = CommentFilter.parse(preferences.getString(KEY_NG_WORDS, ""));
     }
 
     private static volatile boolean adopted;
@@ -74,7 +82,7 @@ public final class DanmakuSettings {
     public static SharedPreferences preferences(Context context) {
         Context application = context.getApplicationContext();
         SharedPreferences preferences =
-                application.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE);
+                SafePreferences.of(application.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE));
         if (!adopted) {
             synchronized (DanmakuSettings.class) {
                 if (!adopted) {
@@ -111,9 +119,9 @@ public final class DanmakuSettings {
         reload(context);
     }
 
-    public static void reset(Context context) {
-        preferences(context).edit().clear().apply();
-        reload(context);
+    /** The blocked-word expressions in {@code rules} that are not applied, for the settings to say so. */
+    public static java.util.List<String> refusedRules(String rules) {
+        return CommentFilter.refused(rules);
     }
 
     public static int clamp(int value, int min, int max) {

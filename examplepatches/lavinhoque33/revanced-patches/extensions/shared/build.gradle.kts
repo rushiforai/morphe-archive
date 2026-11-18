@@ -37,6 +37,8 @@ android {
 dependencies {
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.robolectric:robolectric:4.16.1")
+    // UI regression tests execute the same Litho host checks as the extension.
+    testImplementation(project(":extensions:shared:stub"))
     // The Android SDK has only stubs of org.json, which the caption translator tests need to run.
     testImplementation("org.json:json:20240303")
     compileOnly(libs.annotation)

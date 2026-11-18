@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Body of one of the Japanese 12-key keyboards. A copy of layout 0x7f0e023b that includes the
+     columns of that keyboard, so that each keyboard can have its own left column. -->
+<com.google.android.libraries.inputmethod.widgets.SoftKeyboardView style="{{0x7f1501dc}}"
+  xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <com.google.android.apps.inputmethod.libs.japanese.keyboard.widget.MotionLayoutWorkaround android:id="{{0x7f0b0425}}" app:{{name:0x7f040717}}="{{0x7f170ec1}}" style="{{0x7f1501f2}}">
+        <include layout="{{0x7f0e024e}}" />
+        <include layout="@layout/ios_flick_columns_%MODE%" />
+    </com.google.android.apps.inputmethod.libs.japanese.keyboard.widget.MotionLayoutWorkaround>
+</com.google.android.libraries.inputmethod.widgets.SoftKeyboardView>

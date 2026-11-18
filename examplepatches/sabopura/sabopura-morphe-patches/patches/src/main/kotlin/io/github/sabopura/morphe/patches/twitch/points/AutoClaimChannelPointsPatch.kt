@@ -15,10 +15,11 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import io.github.sabopura.morphe.patches.twitch.Constants.TWITCH_SUPPORTED
-import io.github.sabopura.morphe.patches.twitch.chat.dataClassFields
+import io.github.sabopura.morphe.patches.twitch.chat.describedFields
 import io.github.sabopura.morphe.patches.twitch.support.uniqueContract
 import io.github.sabopura.morphe.patches.twitch.support.classesWithStrings
 import io.github.sabopura.morphe.patches.twitch.support.classesMatching
+import io.github.sabopura.morphe.patches.twitch.support.enableTwitchFeature
 import java.util.logging.Logger
 
 internal fun isPointsRenderer(method: Method, state: String, enabled: ClassDef): Boolean =
@@ -36,16 +37,10 @@ val autoClaimChannelPointsPatch = bytecodePatch(
     default = true,
 ) {
     compatibleWith(TWITCH_SUPPORTED)
+    dependsOn(io.github.sabopura.morphe.patches.twitch.ui.nativeTheatrePatch)
     extendWith("extensions/twitch.mpe")
     val bridgeBodies = linkedMapOf<String, Pair<Int, String>>()
     execute {
-        fun modelFields(type: ClassDef) = dataClassFields(type.methods.filter {
-            it.name == "toString" && it.parameterTypes.isEmpty()
-        }.uniqueContract("${type.type} model description")) { ref ->
-            classDefBy(ref.definingClass).methods.filter {
-                it.name == ref.name && it.parameterTypes == ref.parameterTypes && it.returnType == ref.returnType
-            }.uniqueContract("model description helper")
-        }
         fun readable(field: FieldReference): FieldReference {
             val owner = classDefBy(field.definingClass)
             val member = owner.fields.filter { it.name == field.name && it.type == field.type }.uniqueContract("points field")
@@ -54,10 +49,10 @@ val autoClaimChannelPointsPatch = bytecodePatch(
             return field
         }
         val claimType = classDefByStrings("ActiveClaimModel(id=").uniqueContract("active claim model")
-        val id = modelFields(claimType)["ActiveClaimModel(id="]?.takeIf { it.type == "Ljava/lang/String;" }
+        val id = describedFields(claimType)["ActiveClaimModel(id="]?.takeIf { it.type == "Ljava/lang/String;" }
             ?.let(::readable) ?: throw PatchException("Twitch points: claim ID semantic field missing")
         val enabled = classesWithStrings("Enabled(balance=", ", claimStatus=").uniqueContract("enabled points view state")
-        val fields = modelFields(enabled)
+        val fields = describedFields(enabled)
         val claim = fields[", claim="]?.takeIf { it.type == claimType.type }?.let(::readable)
             ?: throw PatchException("Twitch points: active claim field missing")
         val status = fields[", claimStatus="]?.let(::readable)
@@ -71,7 +66,7 @@ val autoClaimChannelPointsPatch = bytecodePatch(
         }.uniqueContract("points state renderer")
         val providers = presenter.instanceFields.mapNotNull { field ->
             if (!field.type.startsWith("L")) return@mapNotNull null
-            val type = classDefBy(field.type)
+            val type = classDefByOrNull(field.type) ?: return@mapNotNull null
             if (!AccessFlags.INTERFACE.isSet(type.accessFlags)) return@mapNotNull null
             val methods = type.methods.filter {
                 it.returnType == "V" && it.parameterTypes.map { p -> p.toString() } ==
@@ -118,5 +113,6 @@ val autoClaimChannelPointsPatch = bytecodePatch(
             bridge.methods.remove(old)
             bridge.methods.add(method)
         }
+        enableTwitchFeature("AUTO_POINTS")
     }
 }

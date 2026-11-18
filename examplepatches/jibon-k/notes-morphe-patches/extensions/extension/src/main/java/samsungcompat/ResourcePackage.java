@@ -12,6 +12,21 @@ public final class ResourcePackage {
 
     private ResourcePackage() {}
 
+    /**
+     * Authority of the app's share FileProvider. The code has Samsung's written in, but a renamed app's
+     * manifest declares it under its own package name, so build it from the running package.
+     */
+    public static String authority(String written) {
+        try {
+            Application app = (Application) Class.forName("android.app.ActivityThread")
+                    .getMethod("currentApplication").invoke(null);
+            if (app == null || written == null || !written.startsWith(ORIGINAL + ".")) return written;
+            return app.getPackageName() + written.substring(ORIGINAL.length());
+        } catch (Throwable t) {
+            return written;
+        }
+    }
+
     /** Called with the package name a lookup was about to use; returns the one that resolves. */
     public static String get(String reported) {
         if (name != null) return name;

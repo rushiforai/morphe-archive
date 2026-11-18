@@ -13,19 +13,23 @@ final class ClaimDispatcher {
         String status(Object state);
         String id(Object claim);
         void submit(Object presenter, String id);
+        /** A submitted claim succeeded; called once per claim, however many attempts it took. */
+        void claimed();
     }
     private static final class Pending {
         Object latest;
         boolean queued;
+        /** The claim submitted last, until Twitch reports it succeeded. Only posted work touches it. */
+        String submitted;
     }
     private final WeakHashMap<Object, Pending> states = new WeakHashMap<>();
     private final ClaimGate gate = new ClaimGate();
     private final Access access;
     private final Consumer<Runnable> post;
     private final LongSupplier clock;
-    private final Runnable onError;
+    private final Consumer<Throwable> onError;
 
-    ClaimDispatcher(Access access, Consumer<Runnable> post, LongSupplier clock, Runnable onError) {
+    ClaimDispatcher(Access access, Consumer<Runnable> post, LongSupplier clock, Consumer<Throwable> onError) {
         this.access = access;
         this.post = post;
         this.clock = clock;
@@ -51,21 +55,31 @@ final class ClaimDispatcher {
     private void claimLatest(WeakReference<Object> owner) {
         Object presenter = owner.get();
         if (presenter == null) return;
+        Pending state;
         Object viewState;
         synchronized (states) {
-            Pending state = states.get(presenter);
+            state = states.get(presenter);
             if (state == null) return;
             state.queued = false;
             viewState = state.latest;
         }
         try {
             if (!access.enabled(viewState)) return;
+            String status = access.status(viewState);
+            if ("SUCCESS".equals(status)) {
+                if (state.submitted == null) return;
+                state.submitted = null;
+                access.claimed();
+                return;
+            }
             Object claim = access.claim(viewState);
             if (claim == null) return;
             String id = access.id(claim);
-            if (gate.acquire(id, access.status(viewState), clock.getAsLong())) access.submit(presenter, id);
-        } catch (RuntimeException | LinkageError ignored) {
-            onError.run();
+            if (!gate.acquire(id, status, clock.getAsLong())) return;
+            access.submit(presenter, id);
+            state.submitted = id;
+        } catch (RuntimeException | LinkageError failure) {
+            onError.accept(failure);
         }
     }
 }

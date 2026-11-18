@@ -1,35 +1,18 @@
-# REX IG LITE v3.14.0 — FINAL VERIFICATION & RELEASE AUDIT (`FINAL_AUDIT.md`)
+# InstaRex v3.15.0 — Final Engineering & UI/UX Audit Report
 
-## 1. Release Summary (`v3.14.0`)
-- **Repository**: [`https://github.com/xboyrex/rex-ig-lite`](https://github.com/xboyrex/rex-ig-lite)
-- **Version**: `3.14.0` (`gradle.properties`)
-- **Morphe Bundle Endpoint**: `https://raw.githubusercontent.com/xboyrex/rex-ig-lite/main/patches-bundle.json`
-- **Quick-Add Deep Link**: `morphe://add-source?url=https://raw.githubusercontent.com/xboyrex/rex-ig-lite/main/patches-bundle.json&name=Rex%20IG%20Lite`
+**Project**: InstaRex (`Rex IG Lite v3.15.0 • by xboyrex`)
+**Repository**: [https://github.com/xboyrex/rex-ig-lite](https://github.com/xboyrex/rex-ig-lite)
 
----
+## 1. Screenshot-by-Screenshot Implementation Matrix (`22870` – `23086`)
 
-## 2. Master Prompt Requirement Verification Matrix
-
-| Section | Requirement | Status | Evidence / Implementation File |
-| :--- | :--- | :--- | :--- |
-| **Section 2.1** | Fix `ImageInfoImpl.A31[]` (`BUG-DL-001`) | **PASS** | `Fingerprint.kt` (`ResolveImageInfoObjectExtensionFingerprint`), `MediaDataEntity.kt` (`GetImageVariantsExtensionFingerprint.changeFirstString(candidatesMethodName)`), `ImageData.java`, `MediaData.java` |
-| **Section 2.2** | Fix `ImmutablePandoImageInfo.A31[]` (`BUG-DL-002`) | **PASS** | `Entity.java` (hierarchy/interface reflection + compatible param invocation), `ImageData.java` (`extractCandidatesFromImageInfo`) |
-| **Section 2.3** | Fix Carousel Detection & `(0)` Count (`BUG-CAROUSEL-001`) | **PASS** | `Fingerprint.kt` (`CarouselMediaGetterFingerprint`), `MediaDataEntity.kt`, `MediaData.java` (`getCarouselMedia()`), `MediaContextResolver.java`, `MediaActionRegistry.java` |
-| **Section 2.4 / 4** | Unified Context-Aware Media Action System (`BUG-MENU-001`, `BUG-UI-001`) | **PASS** | `MediaContextResolver.java`, `MediaActionRegistry.java`, `DownloadUtils.java`, `RexDialogs.java`, `DownloadSelectionSheet.java` |
-| **Section 2.5** | User-Safe Error Handling (`BUG-ERROR-001`) | **PASS** | `DownloadUtils.userSafeErrorMessage()`, `RexDialogs.java` (zero raw exception messages in user toasts) |
-| **Section 2.6** | App Language & Translator Dual-Row Picker (`BUG-UI-002`) | **PASS** | `RexDialogs.showAppLanguagePicker()` (`Instagram App Language` + `Translator Target Language`) |
-| **Section 5** | Settings Menu Redesign & Unique Category/Row Icons | **PASS** | `RexIcon.java` (`241` mapped keys, `23` `rex_frag_*` routes), `SettingsActivity.java`, `NavigationBarPreference.java`, `NavigationStartupPreference.java`, `FocusLockDurationPreference.java` |
-| **Section 6** | AMOLED Color Tokens (`#000000`, `#15181D`, `#20252C`, `#23C6D8`) & Blur Fallback | **PASS** | `InstagramPreferenceStyle.java`, `RexDialogs.java`, `RexAboutView.java`, `InstagramSearchStyle.java` |
-| **Section 7** | Complete Tabler Icon System (`186` icons, Reduced Motion support) | **PASS** | `RexIcon.java` (`isReducedMotionEnabled`), `assets/icons/icon-manifest.json`, `docs/icon-manifest.md` |
-| **Section 8** | Upstream Piko IG Lite & Piko Main Parity Audit | **PASS** | `161` patches verified (`86` Instagram-only, `74` X-only, `1` shared); zero missing features |
-| **Section 9** | Legal & Open-Source Licences Subscreen | **PASS** | `RexDialogs.showLegalLicensesDialog()` wired to `RexAboutView.java` (`Legal & Open-Source Licences` row) |
-| **CI / Morphe** | Morphe Manager Remote Bundle Fix (`v3.14.0`) | **PASS** | `.github/workflows/build.yml`, `.github/workflows/release.yml`, `push_to_github.sh` |
-
----
-
-## 3. Automated Verification Results
-Executed `python3 scripts/verify_rex_ig_lite.py`:
-- **Patch Manifest Count**: `161` named patches (`86` Instagram-only, `74` X-only, `1` shared) — **PASS**
-- **Java Reflection Call-Graph Integrity**: All `findDeclaredMethod` / `changeFirstString` targets verified between Kotlin patch fingerprints and Java extension classes — **PASS**
-- **Tabler Icon Asset & Manifest Integrity**: `186` semantic icons, `241` preference/route mappings, `354` Android VectorDrawables, `376` SVG master files, `0` missing drawables — **PASS**
-- **UI Palette & Error Toast Regression Checks**: All Section 6.2 hex tokens present; zero raw `e.getMessage()` leaks in user toasts; single-modal-owner popup guard verified — **PASS**
+| Screenshot | Target Screen / Component | Implemented Solution |
+|---|---|---|
+| **`23083.png`** | Root `InstaRex Settings` Screen | Visible top-left back arrow (`<-`), `InstaRex Settings` title, top-right language picker button, `38sp` two-tone **`InstaRex`** hero title, `Made with ♥ by xboyrex` subtitle, `View Blocked Profiles Secretly` row, and `Info` category header above `About InstaRex`. |
+| **`22919.png`** | Home Top Action Bar Logo | Calligraphic two-tone **`InstaRex`** script wordmark rendered via `ActionBarPatch.createInstaRexWordmarkDrawable` in `hookLogoView`, with tap -> `Quick Access` and long-press -> `InstaRex Settings` + haptics. |
+| **`22916.png`** | Home Feed UFI Bar Placement | Hexagon (`⬡`) button placed on the **left cluster right after Share (`row_feed_button_share`)**, and Download (`↓`) button placed on the **right cluster right before Save (`row_feed_button_save`)**, with haptics on tap and long-press. |
+| **`22914.png`** | Profile Header Bar | Hexagon (`⬡`) button injected in `ActionBarPatch.userProfileActionBarButton` alongside follow/bell/more to open `@username` Profile Options & Bio Studio. |
+| **`22915.png`** | Reels Right Action Column | Hexagon (`⬡`) + Download (`↓`) buttons rendered in `ReelDownload.java` with haptic feedback and inline Reels Quick Settings. |
+| **`22878.png`** | `Feed and Stories` Subpage & Direct Toggles | All 27 Feed, Story, Mention, and 60fps Upload switches in `ScreenBuilder.buildFeedAndStoriesSection()` + inline `DIRECT ENABLE / DISABLE TOGGLES` cards inside Post, Reel, Carousel, and Story bottom sheets. |
+| **`23076.png`** | DM `Chat Toolkit` Popup | `RexDialogs.showChatToolkitPopup` wired to DM Chat top-bar Hexagon button (`Mark as Read`, `Deleted Messages`, `Send Audio`, `Video to Audio`, `Hide this chat`, and `Always Mark as Read` live switch). |
+| **`22870.png`** | `Select Language` & 4-Tier Translator | Radio language selector with `Cancel` and `Translators` buttons + 4-tier translation fallback (`translate.googleapis.com`, `clients5.google.com`, `api.mymemory.translated.net`, `lingva.ml`). |
+| **`23086.png`** | `Recommended flags` Screen | `RecommendedFlags.java` pre-populated with curated default Story and Plus flags when `rec_flags.json` has not been downloaded yet. |

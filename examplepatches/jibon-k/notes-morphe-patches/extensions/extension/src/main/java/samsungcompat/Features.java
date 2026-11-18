@@ -9,7 +9,7 @@ import android.view.KeyEvent;
 public final class Features {
     private Features() {}
 
-    /** "Folder sync" patch: show the sync entries in the Backup and sync dialog. */
+    /** "Folder sync" patch: show the sync entries in the Local backup and sync dialog. */
     public static boolean syncEnabled() {
         return false;
     }

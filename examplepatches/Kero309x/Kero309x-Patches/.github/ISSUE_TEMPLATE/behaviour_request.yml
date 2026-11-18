@@ -1,0 +1,37 @@
+name: Behaviour request
+description: Ask for a new behaviour, or a change to an existing one.
+title: "[Behaviour] "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A behaviour request is the start of a spec, not of a patch. Please
+        describe what should be different, not how to implement it.
+  - type: input
+    id: app
+    attributes:
+      label: Application and version
+      placeholder: Anghami 8.0.28
+    validations:
+      required: true
+  - type: textarea
+    id: behaviour
+    attributes:
+      label: What should be different
+      description: Describe the visible behaviour before and after.
+    validations:
+      required: true
+  - type: textarea
+    id: out-of-scope
+    attributes:
+      label: What should not change
+      description: Anything that must keep working, so the spec can state it.
+  - type: checkboxes
+    id: confirmation
+    attributes:
+      label: Confirmation
+      options:
+        - label: I have not copied this request from another patch collection's source.
+          required: true

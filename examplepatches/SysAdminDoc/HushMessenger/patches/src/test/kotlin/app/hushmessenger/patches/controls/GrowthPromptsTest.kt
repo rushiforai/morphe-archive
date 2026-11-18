@@ -19,6 +19,15 @@ private const val LAUNCHER = "Lcom/facebook/presence/note/ui/nux/controller/Note
 private const val CARD_CHECK = "$VIEWER->A0x($VIEWER)Z"
 private const val DATE_KEY = "LX/JVI;->A0E:LX/1BL;"
 private val STATIC = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value
+private const val ACTIVE_STATUS_GATE = "LX/5gu;->A00(${FB_USER_SESSION}LX/54I;)Z"
+
+/** The chat header's upsell check, cut down to the dismiss-count key discovery reads. */
+private fun activeStatusGate(key: String = ACTIVE_STATUS_UPSELL_KEY, id: String = ACTIVE_STATUS_GATE, flags: Int = STATIC) =
+    fixtureMethod(id, """
+        const-string v0, "$key"
+        const/4 v0, 0x1
+        return v0
+    """.trimIndent(), registers = 10, flags = flags)
 
 /** The daily cap: shown fewer than three times today, or not yet today. */
 private fun cardCheck(key: String = DATE_KEY, id: String = CARD_CHECK, flags: Int = STATIC) = fixtureMethod(id, """
@@ -60,6 +69,33 @@ class GrowthPromptsTest {
         val method = cardCheck()
         val before = method.implementation!!.instructions.toList()
         injectControl("growth", mapOf("growth_story_card" to listOf(method)))
+        val code = method.implementation!!.instructions.toList()
+        assertEquals("growth", reference(code[0]))
+        assertEquals("$SETTINGS->enabled(Ljava/lang/String;)Z", reference(code[1]))
+        assertEquals(Opcode.IF_EQZ, code[3].opcode)
+        assertEquals(6, code.branchTarget(3))
+        assertEquals(0L, (code[4] as WideLiteralInstruction).wideLiteral)
+        assertEquals(Opcode.RETURN, code[5].opcode)
+        assertEquals(before, code.drop(6))
+    }
+
+    @Test fun theActiveStatusLineCheckIsFoundThroughItsDismissKey() {
+        val gate = activeStatusGate()
+        assertEquals(listOf(ACTIVE_STATUS_GATE), found(fixtureClass(gate.definingClass, listOf(gate))).getValue("growth_active_status").map { it.hookId() })
+        // Another key, an instance method, a session that isn't first, one parameter or a non-boolean answer doesn't count.
+        for (method in listOf(
+            activeStatusGate(key = "an_upsell_inbox_tray_dismiss_count"),
+            activeStatusGate(flags = AccessFlags.PUBLIC.value),
+            activeStatusGate(id = "LX/5gu;->A00(LX/54I;$FB_USER_SESSION)Z"),
+            activeStatusGate(id = "LX/5gu;->A00($FB_USER_SESSION)Z"),
+            activeStatusGate(id = ACTIVE_STATUS_GATE.replace(")Z", ")I")),
+        )) assertTrue(found(fixtureClass(method.definingClass, listOf(method))).getValue("growth_active_status").isEmpty(), method.hookId())
+    }
+
+    @Test fun theActiveStatusLineCheckAnswersNoWhileTheSwitchIsOn() {
+        val method = activeStatusGate()
+        val before = method.implementation!!.instructions.toList()
+        injectControl("growth", mapOf("growth_active_status" to listOf(method)))
         val code = method.implementation!!.instructions.toList()
         assertEquals("growth", reference(code[0]))
         assertEquals("$SETTINGS->enabled(Ljava/lang/String;)Z", reference(code[1]))

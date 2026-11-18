@@ -1,12 +1,9 @@
 package app.morphe.extension.pixiv.adblock
 
-import android.app.Activity
 import android.view.View
 import android.view.ViewGroup
 
 object AdblockHelper {
-
-    private const val AD_CONTAINER_RES_ID = 0x7f0a004f
 
     @JvmStatic
     fun hideBanner(view: View?) {
@@ -39,72 +36,6 @@ object AdblockHelper {
                     lp.setMargins(0, 0, 0, 0)
                 }
                 frame.layoutParams = lp
-            }
-        } catch (_: Throwable) {
-        }
-    }
-
-    @JvmStatic
-    fun collapseMainActivityBanner(activity: Activity?) {
-        if (activity == null) return
-        try {
-            var container = activity.findViewById<View>(AD_CONTAINER_RES_ID)
-            if (container == null) {
-                val resId = activity.resources.getIdentifier("ad_container", "id", activity.packageName)
-                if (resId != 0) {
-                    container = activity.findViewById(resId)
-                }
-            }
-            if (container != null) {
-                hideAdContainer(container)
-            }
-
-            // Ensure BottomNavigationView in MainActivity receives WindowInsets bottom padding
-            // so it stays safely above the gesture navigation pill and clears rounded corners
-            applyMainActivityNavInsets(activity)
-        } catch (_: Throwable) {
-        }
-    }
-
-    @JvmStatic
-    fun applyMainActivityNavInsets(activity: Activity?) {
-        if (activity == null) return
-        try {
-            var navView = activity.findViewById<View>(0x7f0a00c0)
-            if (navView == null) {
-                val navId = activity.resources.getIdentifier("bottom_navigation", "id", activity.packageName)
-                if (navId != 0) navView = activity.findViewById(navId)
-            }
-            if (navView != null) {
-                navView.setOnApplyWindowInsetsListener { v, insets ->
-                    val bottomInset = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
-                        insets.getInsets(
-                            android.view.WindowInsets.Type.navigationBars() or android.view.WindowInsets.Type.displayCutout()
-                        ).bottom
-                    } else {
-                        @Suppress("DEPRECATION")
-                        insets.systemWindowInsetBottom
-                    }
-                    v.setPadding(v.paddingLeft, v.paddingTop, v.paddingRight, bottomInset)
-                    insets
-                }
-                navView.requestApplyInsets()
-            }
-        } catch (_: Throwable) {
-        }
-    }
-
-    @JvmStatic
-    fun hideAdContainer(adContainer: View?) {
-        if (adContainer == null) return
-        try {
-            adContainer.visibility = View.GONE
-            adContainer.layoutParams?.let { lp ->
-                lp.height = 0
-                adContainer.layoutParams = lp
-            }
-            if (adContainer is ViewGroup) {
-                adContainer.removeAllViews()
             }
         } catch (_: Throwable) {
         }

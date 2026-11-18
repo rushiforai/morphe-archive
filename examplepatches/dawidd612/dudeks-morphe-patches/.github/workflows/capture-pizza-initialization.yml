@@ -1,0 +1,83 @@
+name: Capture Pizza 5.59.0 initialization
+on:
+  push:
+    branches: [codex/pizza-5.59.0-support]
+    paths:
+      - '.github/workflows/capture-pizza-initialization.yml'
+      - 'scripts/capture_pizza_initialization.py'
+      - 'scripts/InspectPizzaUpdate.java'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: pizza-initialization-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v5.7.0
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Enable available KVM
+        run: |
+          test -c /dev/kvm
+          sudo chmod 666 /dev/kvm
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools emulator system-images;android-35;google_apis;x86_64 build-tools;36.0.0'
+          log-accepted-android-sdk-licenses: false
+      - name: Prepare pinned input and diagnostic tools
+        run: |
+          mkdir -p "$RUNNER_TEMP/pizza-input" "$RUNNER_TEMP/pizza-capture"
+          curl -fL --retry 2 --max-time 240 'https://d.apkpure.net/b/XAPK/com.tapblaze.pizzabusiness?versionCode=2322' -o "$RUNNER_TEMP/pizza-input/game.xapk"
+          echo "085a7462ec672c22bebbefc0d79a0480ae1d68b72cb3ad7f6b5ecc501b39b99d  $RUNNER_TEMP/pizza-input/game.xapk" | sha256sum -c -
+          python3 scripts/verify_apkm.py "$RUNNER_TEMP/pizza-input/game.xapk" > "$RUNNER_TEMP/pizza-capture/archive-audit.json"
+          unzip -q "$RUNNER_TEMP/pizza-input/game.xapk" '*.apk' -d "$RUNNER_TEMP/pizza-input/splits"
+          for apk in "$RUNNER_TEMP/pizza-input/splits/"*.apk; do
+            "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --print-certs "$apk" > "$RUNNER_TEMP/pizza-input/signer.txt"
+            grep -Fq '0eb1a98d45c137dc00fb01d89cf6d08cc228d56907a2b00700f7d55cda62d6f7' "$RUNNER_TEMP/pizza-input/signer.txt"
+          done
+          curl -fL --retry 2 https://github.com/MorpheApp/morphe-desktop/releases/download/v1.17.0/morphe-desktop-1.17.0-all.jar -o "$RUNNER_TEMP/pizza-input/morphe.jar"
+          echo "8cf6a9eab4ee9dab146bddc24681897851564f53116baec11f36ba2fa2f589be  $RUNNER_TEMP/pizza-input/morphe.jar" | sha256sum -c -
+          curl -fL --retry 2 https://github.com/frida/frida/releases/download/16.7.19/frida-server-16.7.19-android-x86_64.xz -o "$RUNNER_TEMP/pizza-input/frida.xz"
+          echo "4bc938db27cbe1fec859e28f6bd34d269995a719de2f10e97e28c1bdcd9416c7  $RUNNER_TEMP/pizza-input/frida.xz" | sha256sum -c -
+          xz -dc "$RUNNER_TEMP/pizza-input/frida.xz" > "$RUNNER_TEMP/pizza-input/frida-server"
+          python3 -m pip install 'frida==16.7.19' 'pyelftools==0.33'
+      - name: Start disposable accelerated emulator
+        env:
+          ANDROID_AVD_HOME: ${{ runner.temp }}/pizza-avd
+        run: |
+          mkdir -p "$ANDROID_AVD_HOME"
+          echo no | avdmanager create avd -n Pizza5590Capture -k 'system-images;android-35;google_apis;x86_64' --device pixel_2 --force
+          "$ANDROID_HOME/emulator/emulator" -avd Pizza5590Capture -no-window -no-audio -no-boot-anim -no-snapshot -accel on -gpu swiftshader_indirect -cores 2 -memory 2048 -show-kernel > "$RUNNER_TEMP/pizza-input/emulator.log" 2>&1 &
+          timeout 180 adb -s emulator-5554 wait-for-device
+          deadline=$((SECONDS + 240))
+          while [ "$SECONDS" -lt "$deadline" ]; do
+            if [ "$(timeout 8 adb -s emulator-5554 shell getprop sys.boot_completed | tr -d '\r')" = '1' ]; then exit 0; fi
+            sleep 2
+          done
+          tail -80 "$RUNNER_TEMP/pizza-input/emulator.log"
+          exit 1
+      - name: Install original app and capture two independent starts
+        run: |
+          adb -s emulator-5554 root
+          adb -s emulator-5554 wait-for-device
+          adb -s emulator-5554 install-multiple --no-streaming -i com.android.vending "$RUNNER_TEMP/pizza-input/splits/"*.apk
+          adb -s emulator-5554 push "$RUNNER_TEMP/pizza-input/frida-server" /data/local/tmp/pizza-frida-server
+          adb -s emulator-5554 shell chmod 755 /data/local/tmp/pizza-frida-server
+          adb -s emulator-5554 shell 'nohup /data/local/tmp/pizza-frida-server >/data/local/tmp/pizza-frida.log 2>&1 </dev/null &'
+          sleep 3
+          python3 scripts/capture_pizza_initialization.py "$RUNNER_TEMP/pizza-input/game.xapk" --morphe-cli "$RUNNER_TEMP/pizza-input/morphe.jar" --serial emulator-5554 --output "$RUNNER_TEMP/pizza-capture"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pizza-5590-initialization-evidence
+          path: |
+            ${{ runner.temp }}/pizza-capture/
+            ${{ runner.temp }}/pizza-input/emulator.log
+          retention-days: 5
+          if-no-files-found: warn

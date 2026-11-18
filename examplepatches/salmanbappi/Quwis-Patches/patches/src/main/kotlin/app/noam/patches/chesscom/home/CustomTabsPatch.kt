@@ -17,6 +17,8 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private const val HOME_TABS = "${Constants.EXTENSION_PACKAGE}/home/HomeTabs;"
+private const val NAV_TAB = "Lcom/chess/navigationinterface/NavigationFragmentHomeTab;"
+private const val TRAIN_TAB = "Lcom/chess/navigationinterface/NavigationFragmentHomeTab\$Train;"
 
 /** toString() of the bottom bar's state. */
 internal object NavigationBarStateToStringFingerprint : Fingerprint(
@@ -94,14 +96,21 @@ val customTabsPatch = bytecodePatch(
                         it.returnType == builder.returnType
                 }.apply {
                     val snapshot = instructions.toList()
+                    // The app's copy of Kotlin's toCollection (com/google/android/vl0.q0) became a
+                    // plain kotlin.collections.CollectionsKt.r0 call in 4.10.27; match the shape.
                     val inserts = snapshot.indices.filter { index ->
                         val reference = (snapshot[index] as? ReferenceInstruction)?.reference as? MethodReference
-                        reference?.definingClass == "Lcom/google/android/vl0;" && reference.name == "q0" &&
+                        snapshot[index].opcode == Opcode.INVOKE_STATIC && reference != null &&
+                            reference.parameterTypes.map(CharSequence::toString) ==
+                            listOf("Ljava/lang/Iterable;", "Ljava/util/Collection;") &&
                             snapshot.getOrNull(index + 1)?.opcode == Opcode.MOVE_RESULT_OBJECT
                     }
                     inserts.sortedDescending().forEach { index ->
                         val reference = (snapshot[index] as? ReferenceInstruction)?.reference as? MethodReference
-                        if (reference?.returnType !in setOf("Ljava/util/ArrayList;", "Ljava/util/List;")) {
+                        if (reference?.returnType !in setOf(
+                                "Ljava/util/ArrayList;", "Ljava/util/List;", "Ljava/util/Collection;",
+                            )
+                        ) {
                             throw PatchException("The bottom bar list builder does not return a list")
                         }
                         val register = (snapshot[index + 1] as OneRegisterInstruction).registerA
@@ -117,6 +126,44 @@ val customTabsPatch = bytecodePatch(
                 }
             }
             if (tabListHooks == 0) throw PatchException("The bottom bar tab list was not found")
+
+            // 4.10.23 sends the Train tab to Watch for accounts outside chess.com's experiment.
+            // The patch puts Train in the bar itself, so a tap must keep the route it was given.
+            val normalizers = mutableListOf<Pair<String, Method>>()
+            classDefForEach { classDef ->
+                classDef.methods.forEach { method ->
+                    val returnsTab = method.returnType == NAV_TAB &&
+                        method.parameterTypes.map(CharSequence::toString) == listOf(NAV_TAB)
+                    val touchesTrain = method.implementation?.instructions?.any { instruction ->
+                        ((instruction as? ReferenceInstruction)?.reference as? FieldReference)
+                            ?.definingClass == TRAIN_TAB
+                    } == true
+                    if (returnsTab && touchesTrain) normalizers += classDef.type to method
+                }
+            }
+            if (normalizers.size != 1) {
+                throw PatchException("Found ${normalizers.size} bottom bar tab normalizers")
+            }
+            val (normalizerType, normalizer) = normalizers.single()
+            mutableClassDefBy(normalizerType).methods.first {
+                it.name == normalizer.name && it.parameterTypes == normalizer.parameterTypes &&
+                    it.returnType == normalizer.returnType
+            }.apply {
+                if (implementation!!.registerCount - parameterTypes.size < 1) {
+                    throw PatchException("Too few registers in the bottom bar tab normalizer")
+                }
+                addInstructions(
+                    0,
+                    """
+                        invoke-static { p1 }, $HOME_TABS->keepsRoute(Ljava/lang/Object;)Z
+                        move-result v0
+                        if-eqz v0, :morphe_keep_route
+                        return-object p1
+                        :morphe_keep_route
+                        nop
+                    """,
+                )
+            }
         }
     }
 }

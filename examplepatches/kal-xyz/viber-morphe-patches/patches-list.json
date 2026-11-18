@@ -1,0 +1,62 @@
+[
+  {
+    "name": "Hide ads",
+    "description": "Removes in-chat banner ads, explore ads, and call-end promotional cards.",
+    "version": "1.0.0",
+    "compatiblePackages": [
+      {
+        "name": "com.viber.voip",
+        "versions": []
+      }
+    ],
+    "use": true
+  },
+  {
+    "name": "Ghost mode",
+    "description": "Prevents sending read receipts (seen status) and typing indicators.",
+    "version": "1.0.0",
+    "compatiblePackages": [
+      {
+        "name": "com.viber.voip",
+        "versions": []
+      }
+    ],
+    "use": true
+  },
+  {
+    "name": "Anti-delete messages",
+    "description": "Retains messages even when deleted or retracted by the sender.",
+    "version": "1.0.0",
+    "compatiblePackages": [
+      {
+        "name": "com.viber.voip",
+        "versions": []
+      }
+    ],
+    "use": true
+  },
+  {
+    "name": "Clean UI",
+    "description": "Removes the Explore tab and promotional badges from bottom navigation.",
+    "version": "1.0.0",
+    "compatiblePackages": [
+      {
+        "name": "com.viber.voip",
+        "versions": []
+      }
+    ],
+    "use": true
+  },
+  {
+    "name": "Secondary device mode",
+    "description": "Enables using Viber on 2 mobile phones simultaneously via QR companion linking without deactivating the primary phone.",
+    "version": "1.0.0",
+    "compatiblePackages": [
+      {
+        "name": "com.viber.voip",
+        "versions": []
+      }
+    ],
+    "use": true
+  }
+]

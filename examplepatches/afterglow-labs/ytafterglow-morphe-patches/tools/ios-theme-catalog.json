@@ -1,0 +1,1666 @@
+{
+  "source": "Utils/YTAGThemeCatalog.m",
+  "sha256": "d06b9da8f17c7e97c9981842b3355027532e644ee7ec9504ecfaf5dfaacb0a7e",
+  "presets": [
+    {
+      "identifier": "afterglow-classic",
+      "name": "Afterglow Classic",
+      "summary": "Warm charcoal with amber chrome and the signature Afterglow bloom.",
+      "lightFoundation": false,
+      "glowEnabled": true,
+      "colors": {
+        "OVERLAY_CONTROL": [
+          1.0,
+          0.9,
+          0.78
+        ],
+        "TAB_ICON": [
+          0.99,
+          0.63,
+          0.32
+        ],
+        "SEEK_PLAYED": [
+          0.97,
+          0.49,
+          0.21
+        ],
+        "BACKGROUND": [
+          0.07,
+          0.07,
+          0.09
+        ],
+        "PRIMARY_TEXT": [
+          0.98,
+          0.95,
+          0.9
+        ],
+        "SECONDARY_TEXT": [
+          0.7,
+          0.62,
+          0.54
+        ],
+        "NAVIGATION_SURFACE": [
+          0.12,
+          0.11,
+          0.12
+        ],
+        "ACCENT": [
+          0.94,
+          0.44,
+          0.18
+        ],
+        "GRADIENT_START": [
+          0.16,
+          0.15,
+          0.17
+        ],
+        "GRADIENT_END": [
+          0.34,
+          0.19,
+          0.11
+        ]
+      }
+    },
+    {
+      "identifier": "oled-dark",
+      "name": "OLED Dark",
+      "summary": "Pure black with sharp red accents.",
+      "lightFoundation": false,
+      "glowEnabled": false,
+      "colors": {
+        "OVERLAY_CONTROL": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "TAB_ICON": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "SEEK_PLAYED": [
+          1.0,
+          0.0,
+          0.0
+        ],
+        "BACKGROUND": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "PRIMARY_TEXT": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "SECONDARY_TEXT": [
+          0.65,
+          0.65,
+          0.65
+        ],
+        "NAVIGATION_SURFACE": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "ACCENT": [
+          1.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    {
+      "identifier": "midnight-blue",
+      "name": "Midnight Blue",
+      "summary": "Cool navy with bright blue controls.",
+      "lightFoundation": false,
+      "glowEnabled": false,
+      "colors": {
+        "OVERLAY_CONTROL": [
+          0.6,
+          0.8,
+          1.0
+        ],
+        "TAB_ICON": [
+          0.4,
+          0.7,
+          1.0
+        ],
+        "SEEK_PLAYED": [
+          0.2,
+          0.5,
+          1.0
+        ],
+        "BACKGROUND": [
+          0.05,
+          0.05,
+          0.15
+        ],
+        "PRIMARY_TEXT": [
+          0.85,
+          0.9,
+          1.0
+        ],
+        "SECONDARY_TEXT": [
+          0.5,
+          0.6,
+          0.75
+        ],
+        "NAVIGATION_SURFACE": [
+          0.08,
+          0.08,
+          0.2
+        ],
+        "ACCENT": [
+          0.2,
+          0.5,
+          1.0
+        ]
+      }
+    },
+    {
+      "identifier": "solarized-dark",
+      "name": "Solarized Dark",
+      "summary": "Muted solarized tones with teal and gold.",
+      "lightFoundation": false,
+      "glowEnabled": false,
+      "colors": {
+        "OVERLAY_CONTROL": [
+          0.51,
+          0.58,
+          0.59
+        ],
+        "TAB_ICON": [
+          0.51,
+          0.58,
+          0.59
+        ],
+        "SEEK_PLAYED": [
+          0.52,
+          0.6,
+          0.0
+        ],
+        "BACKGROUND": [
+          0.0,
+          0.17,
+          0.21
+        ],
+        "PRIMARY_TEXT": [
+          0.93,
+          0.91,
+          0.84
+        ],
+        "SECONDARY_TEXT": [
+          0.51,
+          0.58,
+          0.59
+        ],
+        "NAVIGATION_SURFACE": [
+          0.03,
+          0.21,
+          0.26
+        ],
+        "ACCENT": [
+          0.15,
+          0.55,
+          0.82
+        ]
+      }
+    },
+    {
+      "identifier": "monokai",
+      "name": "Monokai",
+      "summary": "High-contrast editor greens and pinks.",
+      "lightFoundation": false,
+      "glowEnabled": false,
+      "colors": {
+        "OVERLAY_CONTROL": [
+          0.97,
+          0.97,
+          0.95
+        ],
+        "TAB_ICON": [
+          0.65,
+          0.89,
+          0.18
+        ],
+        "SEEK_PLAYED": [
+          0.98,
+          0.15,
+          0.45
+        ],
+        "BACKGROUND": [
+          0.15,
+          0.16,
+          0.13
+        ],
+        "PRIMARY_TEXT": [
+          0.97,
+          0.97,
+          0.95
+        ],
+        "SECONDARY_TEXT": [
+          0.46,
+          0.44,
+          0.37
+        ],
+        "NAVIGATION_SURFACE": [
+          0.2,
+          0.2,
+          0.17
+        ],
+        "ACCENT": [
+          0.4,
+          0.85,
+          0.94
+        ]
+      }
+    },
+    {
+      "identifier": "forest",
+      "name": "Forest",
+      "summary": "Deep green with a calm natural feel.",
+      "lightFoundation": false,
+      "glowEnabled": false,
+      "colors": {
+        "OVERLAY_CONTROL": [
+          0.8,
+          0.93,
+          0.8
+        ],
+        "TAB_ICON": [
+          0.4,
+          0.75,
+          0.4
+        ],
+        "SEEK_PLAYED": [
+          0.3,
+          0.7,
+          0.3
+        ],
+        "BACKGROUND": [
+          0.06,
+          0.1,
+          0.06
+        ],
+        "PRIMARY_TEXT": [
+          0.85,
+          0.95,
+          0.85
+        ],
+        "SECONDARY_TEXT": [
+          0.5,
+          0.65,
+          0.5
+        ],
+        "NAVIGATION_SURFACE": [
+          0.08,
+          0.14,
+          0.08
+        ],
+        "ACCENT": [
+          0.3,
+          0.7,
+          0.3
+        ]
+      }
+    },
+    {
+      "identifier": "afterglow-gray-dark",
+      "name": "Afterglow Gray Dark",
+      "summary": "Lite-inspired charcoal monochrome with soft white controls.",
+      "lightFoundation": false,
+      "glowEnabled": true,
+      "colors": {
+        "OVERLAY_CONTROL": [
+          0.98,
+          0.98,
+          0.98
+        ],
+        "TAB_ICON": [
+          0.96,
+          0.96,
+          0.96
+        ],
+        "SEEK_PLAYED": [
+          0.92,
+          0.92,
+          0.92
+        ],
+        "BACKGROUND": [
+          0.18,
+          0.18,
+          0.18
+        ],
+        "PRIMARY_TEXT": [
+          0.96,
+          0.96,
+          0.96
+        ],
+        "SECONDARY_TEXT": [
+          0.78,
+          0.78,
+          0.78
+        ],
+        "NAVIGATION_SURFACE": [
+          0.24,
+          0.24,
+          0.24
+        ],
+        "ACCENT": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      }
+    },
+    {
+      "identifier": "afterglow-1",
+      "name": "Afterglow 1",
+      "summary": "Hot magenta and mint-green vaporwave with loud neon bloom.",
+      "lightFoundation": false,
+      "glowEnabled": true,
+      "colors": {
+        "OVERLAY_CONTROL": [
+          1.0,
+          0.72,
+          0.9
+        ],
+        "TAB_ICON": [
+          0.25,
+          0.95,
+          0.5
+        ],
+        "SEEK_PLAYED": [
+          1.0,
+          0.27,
+          0.75
+        ],
+        "BACKGROUND": [
+          0.09,
+          0.03,
+          0.16
+        ],
+        "PRIMARY_TEXT": [
+          0.98,
+          0.9,
+          0.99
+        ],
+        "SECONDARY_TEXT": [
+          0.72,
+          0.61,
+          0.82
+        ],
+        "NAVIGATION_SURFACE": [
+          0.13,
+          0.05,
+          0.2
+        ],
+        "ACCENT": [
+          0.32,
+          0.88,
+          0.52
+        ],
+        "GRADIENT_START": [
+          0.18,
+          0.03,
+          0.29
+        ],
+        "GRADIENT_END": [
+          0.94,
+          0.27,
+          0.58
+        ]
+      }
+    },
+    {
+      "identifier": "afterglow-2",
+      "name": "Afterglow 2",
+      "summary": "Sunset vapor tones with orange fire over deep purple.",
+      "lightFoundation": false,
+      "glowEnabled": true,
+      "colors": {
+        "OVERLAY_CONTROL": [
+          1.0,
+          0.82,
+          0.71
+        ],
+        "TAB_ICON": [
+          1.0,
+          0.48,
+          0.12
+        ],
+        "SEEK_PLAYED": [
+          1.0,
+          0.48,
+          0.12
+        ],
+        "BACKGROUND": [
+          0.11,
+          0.05,
+          0.13
+        ],
+        "PRIMARY_TEXT": [
+          1.0,
+          0.94,
+          0.9
+        ],
+        "SECONDARY_TEXT": [
+          0.82,
+          0.8,
+          0.78
+        ],
+        "NAVIGATION_SURFACE": [
+          0.17,
+          0.08,
+          0.19
+        ],
+        "ACCENT": [
+          1.0,
+          0.48,
+          0.12
+        ],
+        "GRADIENT_START": [
+          0.24,
+          0.06,
+          0.24
+        ],
+        "GRADIENT_END": [
+          1.0,
+          0.46,
+          0.28
+        ]
+      }
+    },
+    {
+      "identifier": "afterglow-3",
+      "name": "Afterglow 3",
+      "summary": "Midnight navy with mint-green chrome, warm orange sparks, and soft ivory text.",
+      "lightFoundation": false,
+      "glowEnabled": true,
+      "colors": {
+        "OVERLAY_CONTROL": [
+          0.96,
+          0.95,
+          0.9
+        ],
+        "TAB_ICON": [
+          0.25,
+          0.95,
+          0.5
+        ],
+        "SEEK_PLAYED": [
+          1.0,
+          0.48,
+          0.12
+        ],
+        "BACKGROUND": [
+          0.03,
+          0.05,
+          0.1
+        ],
+        "PRIMARY_TEXT": [
+          0.96,
+          0.95,
+          0.9
+        ],
+        "SECONDARY_TEXT": [
+          0.62,
+          0.68,
+          0.64
+        ],
+        "NAVIGATION_SURFACE": [
+          0.05,
+          0.08,
+          0.12
+        ],
+        "ACCENT": [
+          1.0,
+          0.48,
+          0.12
+        ],
+        "GRADIENT_START": [
+          0.02,
+          0.04,
+          0.09
+        ],
+        "GRADIENT_END": [
+          0.42,
+          0.18,
+          0.06
+        ]
+      }
+    },
+    {
+      "identifier": "afterglow-4",
+      "name": "Afterglow 4",
+      "summary": "Jet-black cybergrid with neon green bloom, hot magenta sparks, and electric violet chrome.",
+      "lightFoundation": false,
+      "glowEnabled": true,
+      "colors": {
+        "OVERLAY_CONTROL": [
+          0.98,
+          0.86,
+          0.95
+        ],
+        "TAB_ICON": [
+          0.2,
+          1.0,
+          0.47
+        ],
+        "SEEK_PLAYED": [
+          1.0,
+          0.2,
+          0.7
+        ],
+        "BACKGROUND": [
+          0.02,
+          0.02,
+          0.05
+        ],
+        "PRIMARY_TEXT": [
+          0.96,
+          0.96,
+          1.0
+        ],
+        "SECONDARY_TEXT": [
+          0.67,
+          0.64,
+          0.83
+        ],
+        "NAVIGATION_SURFACE": [
+          0.05,
+          0.05,
+          0.09
+        ],
+        "ACCENT": [
+          0.55,
+          0.27,
+          1.0
+        ],
+        "GRADIENT_START": [
+          0.0,
+          0.95,
+          0.4
+        ],
+        "GRADIENT_END": [
+          0.46,
+          0.1,
+          0.96
+        ]
+      }
+    },
+    {
+      "identifier": "afterglow-mint-night",
+      "name": "Afterglow Mint Night",
+      "summary": "Black forest glass with luminous mint chrome, amber fire, and soft ivory text.",
+      "lightFoundation": false,
+      "glowEnabled": true,
+      "colors": {
+        "OVERLAY_CONTROL": [
+          0.956863,
+          1.0,
+          0.972549
+        ],
+        "TAB_ICON": [
+          0.364706,
+          0.94902,
+          0.639216
+        ],
+        "SEEK_PLAYED": [
+          1.0,
+          0.603922,
+          0.239216
+        ],
+        "BACKGROUND": [
+          0.027451,
+          0.082353,
+          0.058824
+        ],
+        "PRIMARY_TEXT": [
+          0.956863,
+          1.0,
+          0.972549
+        ],
+        "SECONDARY_TEXT": [
+          0.654902,
+          0.803922,
+          0.721569
+        ],
+        "NAVIGATION_SURFACE": [
+          0.062745,
+          0.152941,
+          0.113725
+        ],
+        "ACCENT": [
+          1.0,
+          0.690196,
+          0.290196
+        ],
+        "GRADIENT_START": [
+          0.023529,
+          0.070588,
+          0.05098
+        ],
+        "GRADIENT_END": [
+          0.141176,
+          0.360784,
+          0.25098
+        ]
+      }
+    },
+    {
+      "identifier": "holiday-halloween-ember",
+      "name": "Halloween Ember",
+      "summary": "Ink-plum shadows, candlelit amber, and a quiet ember horizon.",
+      "lightFoundation": false,
+      "glowEnabled": false,
+      "colors": {
+        "OVERLAY_CONTROL": [
+          1.0,
+          0.956863,
+          0.909804
+        ],
+        "TAB_ICON": [
+          0.976471,
+          0.721569,
+          0.372549
+        ],
+        "SEEK_PLAYED": [
+          0.94902,
+          0.478431,
+          0.203922
+        ],
+        "BACKGROUND": [
+          0.062745,
+          0.054902,
+          0.086275
+        ],
+        "PRIMARY_TEXT": [
+          1.0,
+          0.956863,
+          0.909804
+        ],
+        "SECONDARY_TEXT": [
+          0.788235,
+          0.721569,
+          0.666667
+        ],
+        "NAVIGATION_SURFACE": [
+          0.129412,
+          0.098039,
+          0.152941
+        ],
+        "ACCENT": [
+          0.94902,
+          0.607843,
+          0.258824
+        ],
+        "GRADIENT_START": [
+          0.101961,
+          0.062745,
+          0.137255
+        ],
+        "GRADIENT_END": [
+          0.329412,
+          0.156863,
+          0.078431
+        ]
+      }
+    },
+    {
+      "identifier": "holiday-christmas-evergreen",
+      "name": "Christmas Evergreen",
+      "summary": "Deep spruce, antique gold, and a restrained cranberry glow.",
+      "lightFoundation": false,
+      "glowEnabled": false,
+      "colors": {
+        "OVERLAY_CONTROL": [
+          0.960784,
+          0.952941,
+          0.913725
+        ],
+        "TAB_ICON": [
+          0.847059,
+          0.756863,
+          0.517647
+        ],
+        "SEEK_PLAYED": [
+          0.839216,
+          0.345098,
+          0.345098
+        ],
+        "BACKGROUND": [
+          0.035294,
+          0.098039,
+          0.078431
+        ],
+        "PRIMARY_TEXT": [
+          0.960784,
+          0.952941,
+          0.913725
+        ],
+        "SECONDARY_TEXT": [
+          0.721569,
+          0.788235,
+          0.741176
+        ],
+        "NAVIGATION_SURFACE": [
+          0.070588,
+          0.156863,
+          0.129412
+        ],
+        "ACCENT": [
+          0.905882,
+          0.780392,
+          0.470588
+        ],
+        "GRADIENT_START": [
+          0.047059,
+          0.12549,
+          0.105882
+        ],
+        "GRADIENT_END": [
+          0.235294,
+          0.105882,
+          0.141176
+        ]
+      }
+    },
+    {
+      "identifier": "holiday-new-years-eve",
+      "name": "New Year's Eve",
+      "summary": "Midnight indigo and soft champagne, like city lights after dark.",
+      "lightFoundation": false,
+      "glowEnabled": false,
+      "colors": {
+        "OVERLAY_CONTROL": [
+          0.968627,
+          0.94902,
+          0.909804
+        ],
+        "TAB_ICON": [
+          0.913725,
+          0.823529,
+          0.580392
+        ],
+        "SEEK_PLAYED": [
+          0.839216,
+          0.72549,
+          0.427451
+        ],
+        "BACKGROUND": [
+          0.039216,
+          0.05098,
+          0.109804
+        ],
+        "PRIMARY_TEXT": [
+          0.968627,
+          0.94902,
+          0.909804
+        ],
+        "SECONDARY_TEXT": [
+          0.721569,
+          0.756863,
+          0.831373
+        ],
+        "NAVIGATION_SURFACE": [
+          0.082353,
+          0.105882,
+          0.203922
+        ],
+        "ACCENT": [
+          0.909804,
+          0.788235,
+          0.47451
+        ],
+        "GRADIENT_START": [
+          0.05098,
+          0.082353,
+          0.188235
+        ],
+        "GRADIENT_END": [
+          0.227451,
+          0.160784,
+          0.321569
+        ]
+      }
+    },
+    {
+      "identifier": "holiday-valentine-velvet",
+      "name": "Valentine Velvet",
+      "summary": "Black cherry velvet, dusty rose chrome, and soft ivory type.",
+      "lightFoundation": false,
+      "glowEnabled": false,
+      "colors": {
+        "OVERLAY_CONTROL": [
+          1.0,
+          0.945098,
+          0.94902
+        ],
+        "TAB_ICON": [
+          0.941176,
+          0.635294,
+          0.709804
+        ],
+        "SEEK_PLAYED": [
+          0.905882,
+          0.415686,
+          0.552941
+        ],
+        "BACKGROUND": [
+          0.098039,
+          0.054902,
+          0.094118
+        ],
+        "PRIMARY_TEXT": [
+          1.0,
+          0.945098,
+          0.94902
+        ],
+        "SECONDARY_TEXT": [
+          0.843137,
+          0.717647,
+          0.760784
+        ],
+        "NAVIGATION_SURFACE": [
+          0.168627,
+          0.090196,
+          0.14902
+        ],
+        "ACCENT": [
+          0.941176,
+          0.596078,
+          0.694118
+        ],
+        "GRADIENT_START": [
+          0.152941,
+          0.058824,
+          0.137255
+        ],
+        "GRADIENT_END": [
+          0.356863,
+          0.141176,
+          0.254902
+        ]
+      }
+    },
+    {
+      "identifier": "holiday-lunar-new-year",
+      "name": "Lunar New Year",
+      "summary": "Lacquer red, warm gilt, and parchment over a deep crimson fade.",
+      "lightFoundation": false,
+      "glowEnabled": false,
+      "colors": {
+        "OVERLAY_CONTROL": [
+          1.0,
+          0.94902,
+          0.862745
+        ],
+        "TAB_ICON": [
+          0.960784,
+          0.776471,
+          0.458824
+        ],
+        "SEEK_PLAYED": [
+          0.882353,
+          0.352941,
+          0.290196
+        ],
+        "BACKGROUND": [
+          0.101961,
+          0.05098,
+          0.05098
+        ],
+        "PRIMARY_TEXT": [
+          1.0,
+          0.94902,
+          0.862745
+        ],
+        "SECONDARY_TEXT": [
+          0.847059,
+          0.768627,
+          0.670588
+        ],
+        "NAVIGATION_SURFACE": [
+          0.188235,
+          0.090196,
+          0.098039
+        ],
+        "ACCENT": [
+          0.913725,
+          0.72549,
+          0.368627
+        ],
+        "GRADIENT_START": [
+          0.141176,
+          0.054902,
+          0.070588
+        ],
+        "GRADIENT_END": [
+          0.419608,
+          0.117647,
+          0.141176
+        ]
+      }
+    },
+    {
+      "identifier": "holiday-st-patricks-day",
+      "name": "St. Patrick's Day",
+      "summary": "Rain-washed emerald, pale clover, and antique gold over deep green.",
+      "lightFoundation": false,
+      "glowEnabled": false,
+      "colors": {
+        "OVERLAY_CONTROL": [
+          0.972549,
+          0.960784,
+          0.913725
+        ],
+        "TAB_ICON": [
+          0.835294,
+          0.788235,
+          0.533333
+        ],
+        "SEEK_PLAYED": [
+          0.560784,
+          0.839216,
+          0.635294
+        ],
+        "BACKGROUND": [
+          0.039216,
+          0.12549,
+          0.105882
+        ],
+        "PRIMARY_TEXT": [
+          0.964706,
+          0.94902,
+          0.87451
+        ],
+        "SECONDARY_TEXT": [
+          0.741176,
+          0.823529,
+          0.741176
+        ],
+        "NAVIGATION_SURFACE": [
+          0.090196,
+          0.239216,
+          0.203922
+        ],
+        "ACCENT": [
+          0.886275,
+          0.756863,
+          0.431373
+        ],
+        "GRADIENT_START": [
+          0.039216,
+          0.12549,
+          0.105882
+        ],
+        "GRADIENT_END": [
+          0.137255,
+          0.317647,
+          0.243137
+        ]
+      }
+    },
+    {
+      "identifier": "holiday-fourth-of-july",
+      "name": "Fourth of July",
+      "summary": "Twilight navy, parchment white, and muted firework red fading into burgundy.",
+      "lightFoundation": false,
+      "glowEnabled": false,
+      "colors": {
+        "OVERLAY_CONTROL": [
+          0.976471,
+          0.960784,
+          0.921569
+        ],
+        "TAB_ICON": [
+          0.890196,
+          0.937255,
+          0.968627
+        ],
+        "SEEK_PLAYED": [
+          0.941176,
+          0.517647,
+          0.478431
+        ],
+        "BACKGROUND": [
+          0.05098,
+          0.105882,
+          0.203922
+        ],
+        "PRIMARY_TEXT": [
+          0.976471,
+          0.960784,
+          0.921569
+        ],
+        "SECONDARY_TEXT": [
+          0.72549,
+          0.784314,
+          0.847059
+        ],
+        "NAVIGATION_SURFACE": [
+          0.094118,
+          0.168627,
+          0.286275
+        ],
+        "ACCENT": [
+          0.890196,
+          0.392157,
+          0.411765
+        ],
+        "GRADIENT_START": [
+          0.035294,
+          0.101961,
+          0.207843
+        ],
+        "GRADIENT_END": [
+          0.294118,
+          0.14902,
+          0.227451
+        ]
+      }
+    },
+    {
+      "identifier": "holiday-easter-morning",
+      "name": "Easter Morning",
+      "summary": "Warm eggshell, soft sage, and lilac glass with plum ink.",
+      "lightFoundation": true,
+      "glowEnabled": false,
+      "colors": {
+        "OVERLAY_CONTROL": [
+          0.972549,
+          0.960784,
+          1.0
+        ],
+        "TAB_ICON": [
+          0.290196,
+          0.215686,
+          0.364706
+        ],
+        "SEEK_PLAYED": [
+          0.466667,
+          0.32549,
+          0.639216
+        ],
+        "BACKGROUND": [
+          0.976471,
+          0.964706,
+          0.937255
+        ],
+        "PRIMARY_TEXT": [
+          0.188235,
+          0.14902,
+          0.231373
+        ],
+        "SECONDARY_TEXT": [
+          0.364706,
+          0.329412,
+          0.415686
+        ],
+        "NAVIGATION_SURFACE": [
+          0.905882,
+          0.945098,
+          0.909804
+        ],
+        "ACCENT": [
+          0.45098,
+          0.313725,
+          0.607843
+        ],
+        "GRADIENT_START": [
+          1.0,
+          0.976471,
+          0.913725
+        ],
+        "GRADIENT_END": [
+          0.901961,
+          0.862745,
+          0.937255
+        ]
+      }
+    },
+    {
+      "identifier": "clean-white",
+      "name": "Clean White",
+      "summary": "Minimal white surfaces with blue accents.",
+      "lightFoundation": true,
+      "glowEnabled": false,
+      "colors": {
+        "OVERLAY_CONTROL": [
+          0.2,
+          0.2,
+          0.2
+        ],
+        "TAB_ICON": [
+          0.15,
+          0.15,
+          0.15
+        ],
+        "SEEK_PLAYED": [
+          1.0,
+          0.2,
+          0.2
+        ],
+        "BACKGROUND": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "PRIMARY_TEXT": [
+          0.1,
+          0.1,
+          0.1
+        ],
+        "SECONDARY_TEXT": [
+          0.45,
+          0.45,
+          0.45
+        ],
+        "NAVIGATION_SURFACE": [
+          0.97,
+          0.97,
+          0.97
+        ],
+        "ACCENT": [
+          0.0,
+          0.48,
+          1.0
+        ]
+      }
+    },
+    {
+      "identifier": "warm-sand",
+      "name": "Warm Sand",
+      "summary": "Cream tones with soft amber highlights.",
+      "lightFoundation": true,
+      "glowEnabled": false,
+      "colors": {
+        "OVERLAY_CONTROL": [
+          0.45,
+          0.35,
+          0.25
+        ],
+        "TAB_ICON": [
+          0.5,
+          0.38,
+          0.25
+        ],
+        "SEEK_PLAYED": [
+          0.85,
+          0.55,
+          0.2
+        ],
+        "BACKGROUND": [
+          0.98,
+          0.96,
+          0.91
+        ],
+        "PRIMARY_TEXT": [
+          0.2,
+          0.15,
+          0.1
+        ],
+        "SECONDARY_TEXT": [
+          0.5,
+          0.42,
+          0.35
+        ],
+        "NAVIGATION_SURFACE": [
+          0.95,
+          0.92,
+          0.85
+        ],
+        "ACCENT": [
+          0.85,
+          0.55,
+          0.2
+        ]
+      }
+    },
+    {
+      "identifier": "ocean-breeze",
+      "name": "Ocean Breeze",
+      "summary": "Light blue surfaces with teal energy.",
+      "lightFoundation": true,
+      "glowEnabled": false,
+      "colors": {
+        "OVERLAY_CONTROL": [
+          0.15,
+          0.4,
+          0.55
+        ],
+        "TAB_ICON": [
+          0.1,
+          0.45,
+          0.6
+        ],
+        "SEEK_PLAYED": [
+          0.0,
+          0.6,
+          0.7
+        ],
+        "BACKGROUND": [
+          0.94,
+          0.97,
+          1.0
+        ],
+        "PRIMARY_TEXT": [
+          0.1,
+          0.15,
+          0.2
+        ],
+        "SECONDARY_TEXT": [
+          0.35,
+          0.45,
+          0.55
+        ],
+        "NAVIGATION_SURFACE": [
+          0.9,
+          0.94,
+          0.98
+        ],
+        "ACCENT": [
+          0.0,
+          0.55,
+          0.65
+        ]
+      }
+    },
+    {
+      "identifier": "rose-gold",
+      "name": "Rose Gold",
+      "summary": "Soft blush tones with warm chrome.",
+      "lightFoundation": true,
+      "glowEnabled": false,
+      "colors": {
+        "OVERLAY_CONTROL": [
+          0.6,
+          0.35,
+          0.35
+        ],
+        "TAB_ICON": [
+          0.7,
+          0.4,
+          0.4
+        ],
+        "SEEK_PLAYED": [
+          0.85,
+          0.45,
+          0.5
+        ],
+        "BACKGROUND": [
+          1.0,
+          0.95,
+          0.93
+        ],
+        "PRIMARY_TEXT": [
+          0.25,
+          0.15,
+          0.15
+        ],
+        "SECONDARY_TEXT": [
+          0.55,
+          0.4,
+          0.4
+        ],
+        "NAVIGATION_SURFACE": [
+          0.95,
+          0.88,
+          0.86
+        ],
+        "ACCENT": [
+          0.85,
+          0.45,
+          0.5
+        ]
+      }
+    },
+    {
+      "identifier": "afterglow-gray-light",
+      "name": "Afterglow Gray Light",
+      "summary": "Lite-inspired pale monochrome with crisp dark controls.",
+      "lightFoundation": true,
+      "glowEnabled": true,
+      "colors": {
+        "OVERLAY_CONTROL": [
+          0.12,
+          0.12,
+          0.12
+        ],
+        "TAB_ICON": [
+          0.16,
+          0.16,
+          0.16
+        ],
+        "SEEK_PLAYED": [
+          0.28,
+          0.28,
+          0.28
+        ],
+        "BACKGROUND": [
+          0.9,
+          0.9,
+          0.9
+        ],
+        "PRIMARY_TEXT": [
+          0.1,
+          0.1,
+          0.1
+        ],
+        "SECONDARY_TEXT": [
+          0.4,
+          0.4,
+          0.4
+        ],
+        "NAVIGATION_SURFACE": [
+          0.96,
+          0.96,
+          0.96
+        ],
+        "ACCENT": [
+          0.2,
+          0.2,
+          0.2
+        ]
+      }
+    },
+    {
+      "identifier": "afterglow-light-1",
+      "name": "Afterglow Light 1",
+      "summary": "Candyglass daylight with a real lilac body color and mint-green chrome.",
+      "lightFoundation": true,
+      "glowEnabled": true,
+      "colors": {
+        "OVERLAY_CONTROL": [
+          0.55,
+          0.19,
+          0.54
+        ],
+        "TAB_ICON": [
+          0.25,
+          0.85,
+          0.47
+        ],
+        "SEEK_PLAYED": [
+          0.98,
+          0.33,
+          0.69
+        ],
+        "BACKGROUND": [
+          0.97,
+          0.84,
+          1.0
+        ],
+        "PRIMARY_TEXT": [
+          0.24,
+          0.08,
+          0.33
+        ],
+        "SECONDARY_TEXT": [
+          0.46,
+          0.27,
+          0.58
+        ],
+        "NAVIGATION_SURFACE": [
+          0.93,
+          0.76,
+          1.0
+        ],
+        "ACCENT": [
+          0.18,
+          0.72,
+          0.4
+        ],
+        "GRADIENT_START": [
+          1.0,
+          0.84,
+          0.93
+        ],
+        "GRADIENT_END": [
+          0.78,
+          1.0,
+          0.86
+        ]
+      }
+    },
+    {
+      "identifier": "afterglow-light-2",
+      "name": "Afterglow Light 2",
+      "summary": "Apricot sunset with coral punch, hot pink sparks, and blue contrast.",
+      "lightFoundation": true,
+      "glowEnabled": true,
+      "colors": {
+        "OVERLAY_CONTROL": [
+          0.6,
+          0.24,
+          0.14
+        ],
+        "TAB_ICON": [
+          0.97,
+          0.44,
+          0.12
+        ],
+        "SEEK_PLAYED": [
+          1.0,
+          0.31,
+          0.44
+        ],
+        "BACKGROUND": [
+          1.0,
+          0.86,
+          0.72
+        ],
+        "PRIMARY_TEXT": [
+          0.3,
+          0.12,
+          0.09
+        ],
+        "SECONDARY_TEXT": [
+          0.58,
+          0.3,
+          0.28
+        ],
+        "NAVIGATION_SURFACE": [
+          1.0,
+          0.79,
+          0.64
+        ],
+        "ACCENT": [
+          0.28,
+          0.67,
+          1.0
+        ],
+        "GRADIENT_START": [
+          1.0,
+          0.9,
+          0.69
+        ],
+        "GRADIENT_END": [
+          1.0,
+          0.68,
+          0.73
+        ]
+      }
+    },
+    {
+      "identifier": "afterglow-light-3",
+      "name": "Afterglow Light 3",
+      "summary": "Mint arcade glass with deeper forest chrome, berry pink, and violet energy.",
+      "lightFoundation": true,
+      "glowEnabled": true,
+      "colors": {
+        "OVERLAY_CONTROL": [
+          0.12,
+          0.32,
+          0.22
+        ],
+        "TAB_ICON": [
+          0.1,
+          0.72,
+          0.38
+        ],
+        "SEEK_PLAYED": [
+          0.98,
+          0.37,
+          0.58
+        ],
+        "BACKGROUND": [
+          0.8,
+          1.0,
+          0.91
+        ],
+        "PRIMARY_TEXT": [
+          0.12,
+          0.24,
+          0.16
+        ],
+        "SECONDARY_TEXT": [
+          0.28,
+          0.46,
+          0.34
+        ],
+        "NAVIGATION_SURFACE": [
+          0.72,
+          0.98,
+          0.89
+        ],
+        "ACCENT": [
+          0.41,
+          0.3,
+          0.95
+        ],
+        "GRADIENT_START": [
+          0.82,
+          1.0,
+          0.94
+        ],
+        "GRADIENT_END": [
+          0.93,
+          0.84,
+          1.0
+        ]
+      }
+    },
+    {
+      "identifier": "afterglow-light-4",
+      "name": "Afterglow Light 4",
+      "summary": "Sky chrome with icy blue glass, coral sparks, and violet-pop contrast.",
+      "lightFoundation": true,
+      "glowEnabled": true,
+      "colors": {
+        "OVERLAY_CONTROL": [
+          0.21,
+          0.31,
+          0.66
+        ],
+        "TAB_ICON": [
+          0.17,
+          0.5,
+          1.0
+        ],
+        "SEEK_PLAYED": [
+          1.0,
+          0.4,
+          0.47
+        ],
+        "BACKGROUND": [
+          0.82,
+          0.91,
+          1.0
+        ],
+        "PRIMARY_TEXT": [
+          0.11,
+          0.18,
+          0.39
+        ],
+        "SECONDARY_TEXT": [
+          0.29,
+          0.39,
+          0.63
+        ],
+        "NAVIGATION_SURFACE": [
+          0.74,
+          0.84,
+          1.0
+        ],
+        "ACCENT": [
+          0.84,
+          0.31,
+          0.68
+        ],
+        "GRADIENT_START": [
+          0.82,
+          0.93,
+          1.0
+        ],
+        "GRADIENT_END": [
+          0.92,
+          0.84,
+          1.0
+        ]
+      }
+    },
+    {
+      "identifier": "afterglow-mint-dawn",
+      "name": "Afterglow Mint Dawn",
+      "summary": "Milky mint glass with forest ink, terra-cotta motion, and a warm apricot horizon.",
+      "lightFoundation": true,
+      "glowEnabled": true,
+      "colors": {
+        "OVERLAY_CONTROL": [
+          0.090196,
+          0.25098,
+          0.176471
+        ],
+        "TAB_ICON": [
+          0.086275,
+          0.596078,
+          0.360784
+        ],
+        "SEEK_PLAYED": [
+          0.913725,
+          0.407843,
+          0.227451
+        ],
+        "BACKGROUND": [
+          0.917647,
+          0.972549,
+          0.937255
+        ],
+        "PRIMARY_TEXT": [
+          0.070588,
+          0.2,
+          0.137255
+        ],
+        "SECONDARY_TEXT": [
+          0.305882,
+          0.423529,
+          0.352941
+        ],
+        "NAVIGATION_SURFACE": [
+          0.968627,
+          1.0,
+          0.976471
+        ],
+        "ACCENT": [
+          0.843137,
+          0.356863,
+          0.215686
+        ],
+        "GRADIENT_START": [
+          0.94902,
+          1.0,
+          0.964706
+        ],
+        "GRADIENT_END": [
+          1.0,
+          0.85098,
+          0.721569
+        ]
+      }
+    }
+  ]
+}

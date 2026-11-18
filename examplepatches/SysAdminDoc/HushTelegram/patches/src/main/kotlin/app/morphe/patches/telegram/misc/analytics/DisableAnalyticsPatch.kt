@@ -134,8 +134,8 @@ val disableAnalyticsPatch = bytecodePatch(
     description = "Stops Telegram from reporting how you use the app, like how long you read channel posts and what you" +
         " tap on Premium screens, and keeps the camera from reporting your phone's maker and model. " +
         "Messages, calls and notifications work as before. On by default. Turn it off in " +
-        "HushTelegram settings > Privacy, where Receive only mode, Power off accounts, Instant lock and Don't notify " +
-        "contacts also live, all off by default.",
+        "HushTelegram settings > Privacy, where Receive only mode, Power off accounts, Instant lock, Don't notify " +
+        "contacts and Duress passcode also live, all off by default.",
     default = true,
 ) {
     category("Privacy")
@@ -162,6 +162,9 @@ val disableAnalyticsPatch = bytecodePatch(
         controlHook(DELETE_ACCOUNT, "requestDelegate", emptyList(), "Ljava/lang/Class;")
         controlHook(DELETE_ACCOUNT, "sendRequest", listOf("I", "Ljava/lang/Object;", "Ljava/lang/Object;"), "Z")
         controlHook(DELETE_ACCOUNT, "errorText", listOf("Ljava/lang/Object;"), "Ljava/lang/String;")
+        requireStatusMethod("duressWipe")
+        controlHook(DURESS_WIPE, "enter", listOf("Ljava/lang/String;"), "V")
+        controlHook(DURESS_WIPE, "afterCheck", listOf("I"), "Z")
 
         val metrics = SendReadMetricsFingerprint.methodOrNull
         val metricsMissing = metrics?.skipReadMetricsWhen("$ANALYTICS->skipReadMetrics(Ljava/util/List;)Z", dryRun = true)
@@ -258,6 +261,18 @@ val disableAnalyticsPatch = bytecodePatch(
 
         // And Delete account, which needs only the request and the send.
         if (writeDeleteAccount()) enableCapability("deleteAccount")
+
+        // Duress passcode only wraps Telegram's passcode check, so a build where that moved keeps the rest.
+        val duress = try {
+            resolveDuressWipe()
+        } catch (unfit: PatchException) {
+            patchLog.warning("$PATCH: ${unfit.message}. The patch goes on without Duress passcode.")
+            null
+        }
+        if (duress != null) {
+            applyDuressWipe(duress)
+            enableCapability("duressWipe")
+        }
 
         enableStatus("disableAnalytics")
     }

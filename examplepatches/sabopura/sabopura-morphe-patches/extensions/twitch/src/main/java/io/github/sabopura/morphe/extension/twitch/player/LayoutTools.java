@@ -5,56 +5,79 @@ import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.util.Log;
 import android.util.Size;
 import android.view.View;
 
+import io.github.sabopura.morphe.extension.twitch.Diagnostics;
 import io.github.sabopura.morphe.extension.twitch.chat.ChatSettings;
+import io.github.sabopura.morphe.extension.twitch.ui.Feature;
+import io.github.sabopura.morphe.extension.twitch.ui.Features;
+import io.github.sabopura.morphe.extension.twitch.ui.TwitchRes;
+import io.github.sabopura.morphe.extension.twitch.ui.Ui;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.WeakHashMap;
 
 /** Size hooks run at the native layout calculation, before drag boundaries are calculated. */
 public final class LayoutTools {
+    public static final int DEFAULT_CHAT_WIDTH = 30, DEFAULT_SPLIT_WIDTH = 50, DEFAULT_CHAT_OPACITY = 30,
+            DEFAULT_MINI_SCALE = 100;
     private static final Map<View, Sized> MINI = new WeakHashMap<>();
     private static final Map<View, Background> BACKGROUNDS = new WeakHashMap<>();
     private static final Map<View, Navigation> NAVIGATION = new WeakHashMap<>();
+    private static final Map<View, Integer> RAILS = new WeakHashMap<>();
+    private static Class<?> nativeSize;
+    private static Method nativeWidth, nativeHeight;
+    private static Constructor<?> nativeNew;
 
     private LayoutTools() {}
 
     public static int chatWidth(View view, int original) {
-        if (!hasId(view, "landscape_chat_container")) return original;
-        SharedPreferences p = ChatSettings.preferences(view.getContext());
-        if (!p.getBoolean("landscape_width_enabled", false)) return original;
-        // Native 50% is the side-by-side video/chat layout; phone/tablet defaults are 30/20%.
-        return clamp(
-                p.getInt(
-                        original == 50 ? "landscape_split_width" : "landscape_width",
-                        original == 50 ? 50 : 30),
-                10,
-                70);
+        try {
+            if (!Features.has(Feature.LANDSCAPE_CHAT) || !hasId(view, "landscape_chat_container")) return original;
+            SharedPreferences p = ChatSettings.preferences(view.getContext());
+            if (!p.getBoolean("landscape_width_enabled", false)) return original;
+            // Native 50% is the side-by-side video/chat layout; phone/tablet defaults are 30/20%.
+            return clamp(
+                    p.getInt(
+                            original == 50 ? "landscape_split_width" : "landscape_width",
+                            original == 50 ? DEFAULT_SPLIT_WIDTH : DEFAULT_CHAT_WIDTH),
+                    10,
+                    70);
+        } catch (RuntimeException | LinkageError e) {
+            Diagnostics.note("player.landscape-chat-width", e);
+            return original;
+        }
     }
 
-    private static int guideline = -1;
+    private static boolean guideWarned;
 
     /**
      * Twitch's live theatre places the landscape chat with a guideline that ConstraintSet sets to
-     * a share of the width for the video: 0.7 (0.8 on tablets) beside the chat, 0.5 for the
-     * split layout, 1.0 without chat. Called with every guideline percent Twitch sets.
+     * a share of the width for the video: around 0.7-0.8 beside the chat, around 0.5 for the split
+     * layout, 1.0 without chat. Called with every guideline percent Twitch sets.
      */
     public static float guidePercent(float percent, int id) {
         try {
             android.content.Context c = PlayerTools.app();
-            if (c == null) return percent;
-            if (guideline == -1)
-                guideline = c.getResources().getIdentifier("chat_guideline", "id", c.getPackageName());
+            if (c == null || !Features.has(Feature.LANDSCAPE_CHAT)) return percent;
+            int guideline = TwitchRes.id(c, "chat_guideline", "id");
             if (guideline == 0 || id != guideline) return percent;
             SharedPreferences p = ChatSettings.preferences(c);
-            if (!p.getBoolean("landscape_width_enabled", false)) return percent;
-            if (Math.abs(percent - .5f) < .01f)
-                return 1 - clamp(p.getInt("landscape_split_width", 50), 10, 70) / 100f;
-            if (Math.abs(percent - .7f) < .01f || Math.abs(percent - .8f) < .01f)
-                return 1 - clamp(p.getInt("landscape_width", 30), 10, 70) / 100f;
-        } catch (RuntimeException ignored) {
+            if (!p.getBoolean("landscape_width_enabled", false) || percent >= .95f) return percent;
+            if (percent >= .4f && percent < .6f)
+                return 1 - clamp(p.getInt("landscape_split_width", DEFAULT_SPLIT_WIDTH), 10, 70) / 100f;
+            if (percent >= .6f)
+                return 1 - clamp(p.getInt("landscape_width", DEFAULT_CHAT_WIDTH), 10, 70) / 100f;
+            if (!guideWarned) {
+                guideWarned = true;
+                Log.w("SabopuraTwitch", "Unknown chat guideline percent: " + percent);
+            }
+        } catch (RuntimeException | LinkageError e) {
+            Diagnostics.note("player.chat-guideline", e);
         }
         return percent;
     }
@@ -68,7 +91,7 @@ public final class LayoutTools {
         SharedPreferences p = ChatSettings.preferences(view.getContext());
         Sized previous = MINI.get(view);
         Size base = previous != null && original.equals(previous.scaled) ? previous.base : original;
-        int percent = clamp(p.getInt("mini_player_scale", 100), 50, 200);
+        int percent = clamp(p.getInt("mini_player_scale", DEFAULT_MINI_SCALE), 50, 200);
         if (!p.getBoolean("mini_player_scale_enabled", false) || percent == 100) {
             MINI.remove(view);
             return base;
@@ -85,9 +108,9 @@ public final class LayoutTools {
                 Math.min(
                         percent / 100f,
                         Math.min(
-                                Math.max(1, availableWidth - 32)
+                                Math.max(1, availableWidth - Ui.dp(view.getContext(), 32))
                                         / (float) Math.max(1, base.getWidth()),
-                                Math.max(1, availableHeight - 64)
+                                Math.max(1, availableHeight - Ui.dp(view.getContext(), 64))
                                         / (float) Math.max(1, base.getHeight())));
         Size scaled =
                 new Size(
@@ -97,46 +120,65 @@ public final class LayoutTools {
         return scaled;
     }
 
+    /** Injection point: Twitch's own size type for the mini player, at every layout of it. Main thread. */
     public static Object miniNativeSize(View view, Object original) {
-        if (original == null) return null;
+        if (original == null || !Features.has(Feature.MINI_PLAYER)) return original;
         try {
             Class<?> type = original.getClass();
-            int width = ((Number) type.getMethod("getWidth").invoke(original)).intValue(),
-                    height = ((Number) type.getMethod("getHeight").invoke(original)).intValue();
+            if (type != nativeSize) {
+                nativeWidth = type.getMethod("getWidth");
+                nativeHeight = type.getMethod("getHeight");
+                nativeNew = type.getConstructor(int.class, int.class);
+                nativeSize = type;
+            }
+            int width = ((Number) nativeWidth.invoke(original)).intValue(),
+                    height = ((Number) nativeHeight.invoke(original)).intValue();
             Size size = miniSize(view, new Size(width, height));
             return size.getWidth() == width && size.getHeight() == height
                     ? original
-                    : type.getConstructor(int.class, int.class)
-                            .newInstance(size.getWidth(), size.getHeight());
-        } catch (Exception ignored) {
+                    : nativeNew.newInstance(size.getWidth(), size.getHeight());
+        } catch (Exception | LinkageError e) {
+            Diagnostics.note("player.mini-size", e);
             return original;
         }
     }
 
+    /** Runs on every layout pass of every screen; a failure in one feature leaves the other working. */
     public static void applyBackgrounds(View root) {
-        applyNavigation(root);
-        SharedPreferences p = ChatSettings.preferences(root.getContext());
-        boolean enabled =
-                p.getBoolean("landscape_opacity_enabled", false)
-                        && root.getResources().getConfiguration().orientation
-                                == Configuration.ORIENTATION_LANDSCAPE;
-        if (!enabled && BACKGROUNDS.isEmpty()) return;
-        int alpha = Math.round(clamp(p.getInt("landscape_opacity", 30), 0, 100) * 2.55f);
-        // The chat column: landscape_chat_container in the VOD/clip theatre, chat_wrapper in the
-        // live one. It alone gets the colour; the chat inside is made clear so the two do not
-        // stack into a darker shade than the one chosen.
-        for (String name : new String[] {"landscape_chat_container", "chat_wrapper"}) {
-            View column = find(root, name);
-            if (column == null) continue;
-            // Keep Twitch's own shade (dark or light theme) and change only how see-through it is.
-            Background saved = BACKGROUNDS.get(column);
-            Drawable original = saved != null ? saved.original : column.getBackground();
-            int base = original instanceof ColorDrawable ? ((ColorDrawable) original).getColor() : Color.BLACK;
-            paint(column, enabled, (alpha << 24) | (base & 0xFFFFFF));
-            for (String inner : new String[] {"chat_view_delegate_root", "main_chomments_container"}) {
-                View view = find(column, inner);
-                if (view != null) paint(view, enabled, Color.TRANSPARENT);
+        if (Features.has(Feature.NAV_POSITION)) {
+            try {
+                applyNavigation(root);
+            } catch (RuntimeException | LinkageError e) {
+                Diagnostics.note("player.nav-position", e);
             }
+        }
+        if (!Features.has(Feature.LANDSCAPE_CHAT)) return;
+        try {
+            SharedPreferences p = ChatSettings.preferences(root.getContext());
+            boolean enabled =
+                    p.getBoolean("landscape_opacity_enabled", false)
+                            && root.getResources().getConfiguration().orientation
+                                    == Configuration.ORIENTATION_LANDSCAPE;
+            if (!enabled && BACKGROUNDS.isEmpty()) return;
+            int alpha = Math.round(clamp(p.getInt("landscape_opacity", DEFAULT_CHAT_OPACITY), 0, 100) * 2.55f);
+            // The chat column: landscape_chat_container in the VOD/clip theatre, chat_wrapper in the
+            // live one. It alone gets the colour; the chat inside is made clear so the two do not
+            // stack into a darker shade than the one chosen.
+            for (String name : new String[] {"landscape_chat_container", "chat_wrapper"}) {
+                View column = find(root, name);
+                if (column == null) continue;
+                // Keep Twitch's own shade (dark or light theme) and change only how see-through it is.
+                Background saved = BACKGROUNDS.get(column);
+                Drawable original = saved != null ? saved.original : column.getBackground();
+                int base = original instanceof ColorDrawable ? ((ColorDrawable) original).getColor() : Color.BLACK;
+                paint(column, enabled, (alpha << 24) | (base & 0xFFFFFF));
+                for (String inner : new String[] {"chat_view_delegate_root", "main_chomments_container"}) {
+                    View view = find(column, inner);
+                    if (view != null) paint(view, enabled, Color.TRANSPARENT);
+                }
+            }
+        } catch (RuntimeException | LinkageError e) {
+            Diagnostics.note("player.landscape-chat-opacity", e);
         }
     }
 
@@ -144,7 +186,8 @@ public final class LayoutTools {
         String mode =
                 ChatSettings.preferences(root.getContext())
                         .getString("navigation_position", "default");
-        if ("default".equals(mode) && NAVIGATION.isEmpty()) return;
+        if ("default".equals(mode) && NAVIGATION.isEmpty() && RAILS.isEmpty()) return;
+        applyRail(root, mode);
         View nav = find(root, "viewer_landing_bottom_navigation_group");
         if (nav == null || !(nav.getParent() instanceof View)) return;
         View parent = (View) nav.getParent(),
@@ -164,8 +207,10 @@ public final class LayoutTools {
             NAVIGATION.put(nav, saved);
         }
         if ("hidden".equals(mode)) {
-            if (nav.getVisibility() != View.GONE) saved.visibility = nav.getVisibility();
-            if (nav.getVisibility() != View.GONE) nav.setVisibility(View.GONE);
+            if (nav.getVisibility() != View.GONE) {
+                saved.visibility = nav.getVisibility();
+                nav.setVisibility(View.GONE);
+            }
             nav.setTranslationY(saved.navY);
             body.setTranslationY(saved.bodyY);
             if (rating != null) rating.setTranslationY(saved.ratingY);
@@ -184,6 +229,20 @@ public final class LayoutTools {
         }
     }
 
+    /** Wide windows show a side rail instead of the bottom bar; "top" cannot apply to it, "hidden" can. */
+    private static void applyRail(View root, String mode) {
+        View rail = find(root, "viewer_landing_navigation_rail");
+        if (rail == null) return;
+        if ("hidden".equals(mode)) {
+            if (rail.getVisibility() != View.GONE) {
+                RAILS.put(rail, rail.getVisibility());
+                rail.setVisibility(View.GONE);
+            }
+        } else if (RAILS.containsKey(rail)) {
+            rail.setVisibility(RAILS.remove(rail));
+        }
+    }
+
     private static void paint(View view, boolean enabled, int color) {
         if (enabled) {
             if (!BACKGROUNDS.containsKey(view)) BACKGROUNDS.put(view, new Background(view.getBackground()));
@@ -197,12 +256,12 @@ public final class LayoutTools {
     }
 
     private static View find(View root, String name) {
-        int id = root.getResources().getIdentifier(name, "id", root.getContext().getPackageName());
+        int id = TwitchRes.id(root.getContext(), name, "id");
         return id == 0 ? null : root.findViewById(id);
     }
 
     private static boolean hasId(View view, String name) {
-        int id = view.getResources().getIdentifier(name, "id", view.getContext().getPackageName());
+        int id = TwitchRes.id(view.getContext(), name, "id");
         return id != 0 && view.getId() == id;
     }
 

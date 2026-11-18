@@ -1,0 +1,74 @@
+{
+  "target": {
+    "package": "app.vela",
+    "version": "0.5.2621",
+    "version_code": 46210,
+    "input_sha256": "f168bc730568b98ee8132131658d9220ef5be3557af41fd373bdaf104c31b20f",
+    "source_tag_commit": "94a83b86de37c9c8cd704167b927888da155b6d9"
+  },
+  "morphe": {
+    "patch": "External speed controls",
+    "default": true,
+    "original_compatibility_checked": true,
+    "force_used": false,
+    "original_method_contracts": 28,
+    "original_resource_ids_preserved": 1651,
+    "added_string_ids": 14,
+    "original_native_libraries_preserved": 18
+  },
+  "tests": [
+    {
+      "suite": "extensions/vela/build/test-results/testDebugUnitTest",
+      "tests": 34,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "extensions/waze/build/test-results/testDebugUnitTest",
+      "tests": 30,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "extensions/flitsmeister/build/test-results/testDebugUnitTest",
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "patches/build/test-results/test",
+      "tests": 21,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "runtime": {
+    "platform": "owned Android 16 API36 ARM64 emulator",
+    "car_host": "Gearslip 0.3.31-alpha",
+    "consumer_samples": 599,
+    "fresh_car_zone_samples": 50,
+    "phone_provider_selection": "native Vela settings callbacks",
+    "car_provider_selection": "native Car App Library screen and toggle callbacks",
+    "provider_activities_backgrounded": true,
+    "provider_overlay_permission": "denied",
+    "flitsmeister": "sustained native location/road/average-task/notification-bus callbacks, approach and active zone, observed average, clear and stop",
+    "waze": "immediate native speedometer, insights and alert-repository callbacks; approach, first WITHIN with pending average, and clear verified",
+    "preentry_speech": "actual native VelaSpeak: Average speed check at approximately 290 ft before entry",
+    "music": "real MediaBrowserService/MediaSession rendered by Gearslip, active media controls alongside native map surface",
+    "flock": "fresh provider masks runtime flags without changing saved preferences; restoration after both feeds expire; two expiry transitions settled at next one-second sample",
+    "sender_authentication": "API34+ authentic package/UID accepted, structurally valid shell-UID impersonation session rejected",
+    "car_only_route_regression": "Active native car-session route and advance speech work without a phone Activity, phone navigation service or measured bearing (adapter regression)."
+  },
+  "boundaries": [
+    "No physical driving or physical head-unit test.",
+    "Google Android Auto host was not exercised; Gearslip exercised the same native Car App Library templates and Vela surface callbacks.",
+    "A synthetic Waze insight is correctly cleared by later real engine empty updates. Immediate callback verification does not prove sustained JNI-route observations or a sustained Waze zone average.",
+    "Native Alerts-only sonification uses the exact guarded native Runnable; physical audio output was not measured.",
+    "An already-started once-per-launch native Flock refresh is not cancelled.",
+    "Broadcast sender identity is unavailable before Android14."
+  ]
+}

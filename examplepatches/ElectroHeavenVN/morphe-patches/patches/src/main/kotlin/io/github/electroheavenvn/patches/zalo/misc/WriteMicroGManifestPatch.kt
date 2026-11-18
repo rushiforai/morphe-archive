@@ -1,6 +1,7 @@
 package io.github.electroheavenvn.patches.zalo.misc
 
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.document
+import app.morphe.patcher.patch.patch
 import io.github.electroheavenvn.patches.zalo.shared.Constants.COMPATIBILITY_ZALO
 import io.github.electroheavenvn.patches.zalo.shared.Constants.ZINGTALK_CERT
 import org.w3c.dom.Element
@@ -11,7 +12,7 @@ private val MICROG_PACKAGES = listOf(
     "com.mgoogle.android.gms",
 )
 
-val writeMicroGManifestPatch = resourcePatch {
+val writeMicroGManifestPatch = patch {
     compatibleWith(COMPATIBILITY_ZALO)
 
     execute {

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The three columns of one of the Japanese 12-key keyboards. A copy of layout 0x7f0e023c that
+     includes the left column of that keyboard. -->
+<FrameLayout style="{{0x7f150347}}"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <LinearLayout style="{{0x7f1501ed}}">
+        <include layout="@layout/ios_flick_left_column_%MODE%" />
+        <include layout="{{0x7f0e0243}}" />
+        <include layout="{{0x7f0e0244}}" />
+    </LinearLayout>
+</FrameLayout>

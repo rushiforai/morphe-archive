@@ -5,6 +5,9 @@ on:
     branches:
       - dev
   workflow_dispatch:
+  # Pushes don't start workflows in this repository, so also check once a day.
+  schedule:
+    - cron: "0 6 * * *"
 
 permissions:
   pull-requests: write
@@ -21,7 +24,7 @@ jobs:
       - name: Open pull request
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SOURCE_BRANCH: ${{ github.ref_name }}
+          SOURCE_BRANCH: dev
           TARGET_BRANCH: main
         run: |
           # Check if PR already exists (base=main, head=dev)

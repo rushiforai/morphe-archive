@@ -1,0 +1,2786 @@
+{
+  "schema_version": 1,
+  "app": "com.waze",
+  "version": "5.26.90.901",
+  "base_apk_sha256": "5ab9853c76a3f83a493e1872f232bbbde96ec61245cbca117aa39e176cdfe9c4",
+  "code_baseline": "3e2038ff8c36e71fe1edf747bc31c206af5758c3",
+  "scope": "Structural API/enum inventory. Presence does not prove live coverage, route-less emission, audio intent or native availability. Enum namespaces are distinct.",
+  "fresh_single_class_extractions": [
+    {
+      "class": "com.waze.jni.protos.alerters.AlertValidationResult",
+      "jadx_exit": 0,
+      "source_sha256": "8d5aa58f5a4157ab08321b0b5cb0dec788e6f363c2982cec9910970454017466",
+      "public_getters": [
+        "getDefaultInstance",
+        "getDistanceMeters",
+        "getIsValid",
+        "getTimeToAlertSec",
+        "hasDistanceMeters",
+        "hasTimeToAlertSec"
+      ],
+      "enum_declarations": []
+    },
+    {
+      "class": "com.waze.jni.protos.alerters.AlerterInfo",
+      "jadx_exit": 0,
+      "source_sha256": "ea6b4238d6433fadcdd68ba2f722e1135fb472323699492a2252b0b0837be534",
+      "public_getters": [
+        "getAlertId",
+        "getCloseDistanceSameAlertsCappingEnabled",
+        "getDefaultInstance",
+        "getDescription",
+        "getDescriptionBytes",
+        "getDistanceString",
+        "getDistanceStringBytes",
+        "getHideActionsWhenInvalid",
+        "getIconName",
+        "getIconNameBytes",
+        "getIsApproachingWithValidation",
+        "getIsCancellable",
+        "getIsCloseOnly",
+        "getIsEtaClickable",
+        "getNumThumbsUp",
+        "getPosition",
+        "getPrimaryButtonText",
+        "getPrimaryButtonTextBytes",
+        "getReportId",
+        "getRequireDistanceInRange",
+        "getSecondaryButtonText",
+        "getSecondaryButtonTextBytes",
+        "getShouldShowStillThere",
+        "getShowDistance",
+        "getShowThumbsUp",
+        "getShowWithEta",
+        "getSilentActivation",
+        "getSilentActivationValue",
+        "getSubType",
+        "getSubtypeTrait",
+        "getTimeoutSeconds",
+        "getTimerType",
+        "getTimerTypeValue",
+        "getTitle",
+        "getTitleBytes",
+        "getTitleWithDistance",
+        "getTitleWithDistanceBytes",
+        "getType",
+        "getTypeValue",
+        "getValidationResult",
+        "hasAlertId",
+        "hasCloseDistanceSameAlertsCappingEnabled",
+        "hasDescription",
+        "hasDistanceString",
+        "hasHideActionsWhenInvalid",
+        "hasIconName",
+        "hasIsApproachingWithValidation",
+        "hasIsCancellable",
+        "hasIsCloseOnly",
+        "hasIsEtaClickable",
+        "hasNumThumbsUp",
+        "hasPosition",
+        "hasPrimaryButtonText",
+        "hasReportId",
+        "hasRequireDistanceInRange",
+        "hasSecondaryButtonText",
+        "hasShouldShowStillThere",
+        "hasShowDistance",
+        "hasShowThumbsUp",
+        "hasShowWithEta",
+        "hasSilentActivation",
+        "hasSubType",
+        "hasSubtypeTrait",
+        "hasTimeoutSeconds",
+        "hasTimerType",
+        "hasTitle",
+        "hasTitleWithDistance",
+        "hasType",
+        "hasValidationResult"
+      ],
+      "enum_declarations": []
+    },
+    {
+      "class": "com.waze.jni.protos.alerters.NativeAlertDescriptor",
+      "jadx_exit": 0,
+      "source_sha256": "9d5f02eadd613a93bd34276876dfdd69e025868c9aeb3cdf0cc9387335161b83",
+      "public_getters": [
+        "getAbortImmediatelyOnRemoval",
+        "getAlertId",
+        "getDefaultInstance",
+        "getInfo",
+        "getInsightPriority",
+        "getTriggerDistanceMeters",
+        "getZoneAlertData",
+        "hasAlertId",
+        "hasInfo",
+        "hasInsightPriority",
+        "hasZoneAlertData"
+      ],
+      "enum_declarations": []
+    },
+    {
+      "class": "com.waze.jni.protos.insights_infra.SegmentInsightInfo",
+      "jadx_exit": 0,
+      "source_sha256": "c21f70dcdebff1efeea3734047096466ef824039de73d7b91c80b0f1fb11a88d",
+      "public_getters": [
+        "getAlerterType",
+        "getAlerterTypeValue",
+        "getDefaultInstance",
+        "getFamiliar",
+        "getId",
+        "getNumber",
+        "getPositionRelativeToSegment",
+        "getPositionRelativeToSegmentValue",
+        "getPriority",
+        "getRemainingDistanceMeters",
+        "getRemainingDurationSeconds",
+        "getSegmentId",
+        "getSegmentIdBytes",
+        "getSegmentType",
+        "getSegmentTypeValue",
+        "getSourceAlertInfos",
+        "getSourceAlertInfosCount",
+        "getSourceAlertInfosList",
+        "getSourceAlertInfosOrBuilder",
+        "getSourceAlertInfosOrBuilderList",
+        "getSubtype",
+        "getUuid",
+        "getUuidBytes",
+        "hasId",
+        "hasPriority",
+        "hasRemainingDurationSeconds"
+      ],
+      "enum_declarations": [
+        "APPROACHING(0),",
+        "WITHIN(1),",
+        "UNRECOGNIZED(-1);",
+        "TRAFFIC(0),",
+        "SPEED_BUMP(1),",
+        "DANGEROUS_CURVE(2),",
+        "HOV_LANE(3),",
+        "CARPOOL_LANE(4),",
+        "BUS_LANE(5),",
+        "ENFORCEMENT_ZONE(6),",
+        "AVERAGE_SPEED_CAMERA(7),",
+        "SCHOOL_ZONE(8),",
+        "UNRECOGNIZED(-1);"
+      ]
+    },
+    {
+      "class": "com.waze.AlerterController$Alerter$Subtype",
+      "jadx_exit": 0,
+      "source_sha256": "cccdaddbbe7070813d5a22e93c499b7b4233120b6bdb3a6463676da47ca6daae",
+      "public_getters": [
+        "getValueInAlerter"
+      ],
+      "enum_declarations": [
+        "UNSPECIFIED(AlerterController$Alerter$Type.UNSPECIFIED, -1),",
+        "HAZARD_TYPE_ON_ROAD(AlerterController$Alerter$Type.HAZARD, 0),",
+        "HAZARD_TYPE_ON_SHOULDER(AlerterController$Alerter$Type.HAZARD, 1),",
+        "HAZARD_TYPE_WEATHER(AlerterController$Alerter$Type.HAZARD, 2),",
+        "HAZARD_TYPE_ON_ROAD_OBJECT(AlerterController$Alerter$Type.HAZARD, 3),",
+        "HAZARD_TYPE_ON_ROAD_POT_HOLE(AlerterController$Alerter$Type.HAZARD, 4),",
+        "HAZARD_TYPE_ON_ROAD_ROAD_KILL(AlerterController$Alerter$Type.HAZARD, 5),",
+        "HAZARD_TYPE_ON_SHOULDER_CAR_STOPPED(AlerterController$Alerter$Type.HAZARD, 6),",
+        "HAZARD_TYPE_ON_SHOULDER_ANIMALS(AlerterController$Alerter$Type.HAZARD, 7),",
+        "HAZARD_TYPE_ON_SHOULDER_MISSING_SIGN(AlerterController$Alerter$Type.HAZARD, 8),",
+        "HAZARD_TYPE_WEATHER_FREEZING_RAIN(AlerterController$Alerter$Type.HAZARD, 18),",
+        "HAZARD_TYPE_ON_ROAD_LANE_CLOSED(AlerterController$Alerter$Type.HAZARD, 19),",
+        "HAZARD_TYPE_ON_ROAD_OIL(AlerterController$Alerter$Type.HAZARD, 20),",
+        "HAZARD_TYPE_ON_ROAD_CONSTRUCTION(AlerterController$Alerter$Type.HAZARD, 22),",
+        "HAZARD_TYPE_ON_ROAD_CAR_STOPPED(AlerterController$Alerter$Type.HAZARD, 23),",
+        "HAZARD_TYPE_ON_ROAD_BROKEN_TRAFFIC_LIGHT(AlerterController$Alerter$Type.HAZARD, 24),",
+        "HAZARD_TYPE_DEFAULT(AlerterController$Alerter$Type.HAZARD, 25),",
+        "HAZARD_TYPE_EMERGENCY_VEHICLE(AlerterController$Alerter$Type.HAZARD, 28),",
+        "BAD_WEATHER_TYPE_FOG(AlerterController$Alerter$Type.BAD_WEATHER, 9),",
+        "BAD_WEATHER_TYPE_HAIL(AlerterController$Alerter$Type.BAD_WEATHER, 10),",
+        "BAD_WEATHER_TYPE_HEAVY_RAIN(AlerterController$Alerter$Type.BAD_WEATHER, 11),",
+        "BAD_WEATHER_TYPE_HEAVY_SNOW(AlerterController$Alerter$Type.BAD_WEATHER, 12),",
+        "BAD_WEATHER_TYPE_FLOOD(AlerterController$Alerter$Type.BAD_WEATHER, 13),",
+        "BAD_WEATHER_TYPE_MONSOON(AlerterController$Alerter$Type.BAD_WEATHER, 14),",
+        "BAD_WEATHER_TYPE_TORNADO(AlerterController$Alerter$Type.BAD_WEATHER, 15),",
+        "BAD_WEATHER_TYPE_HEAT_WAVE(AlerterController$Alerter$Type.BAD_WEATHER, 16),",
+        "BAD_WEATHER_TYPE_HURRICANE(AlerterController$Alerter$Type.BAD_WEATHER, 17),",
+        "BAD_WEATHER_TYPE_ON_ROAD_ICE(AlerterController$Alerter$Type.BAD_WEATHER, 21),",
+        "BAD_WEATHER_TYPE_DEFAULT(AlerterController$Alerter$Type.BAD_WEATHER, 26),",
+        "BAD_WEATHER_TYPE_SLIPPERY_ROAD(AlerterController$Alerter$Type.BAD_WEATHER, 27),",
+        "BLOCKED_LANE_TYPE_DEFAULT(AlerterController$Alerter$Type.BLOCKED_LANE, 0),",
+        "BLOCKED_LANE_TYPE_LEFT(AlerterController$Alerter$Type.BLOCKED_LANE, 1),",
+        "BLOCKED_LANE_TYPE_CENTER(AlerterController$Alerter$Type.BLOCKED_LANE, 2),",
+        "BLOCKED_LANE_TYPE_RIGHT(AlerterController$Alerter$Type.BLOCKED_LANE, 3),",
+        "PERMANENT_HAZARD_TYPE_SPEED_BUMP(AlerterController$Alerter$Type.PERMANENT_HAZARD, 0),",
+        "PERMANENT_HAZARD_TYPE_TOPES(AlerterController$Alerter$Type.PERMANENT_HAZARD, 1),",
+        "PERMANENT_HAZARD_TYPE_TOLL_BOOTH(AlerterController$Alerter$Type.PERMANENT_HAZARD, 2),",
+        "PERMANENT_HAZARD_TYPE_DANGEROUS_CURVE(AlerterController$Alerter$Type.PERMANENT_HAZARD, 3),",
+        "PERMANENT_HAZARD_TYPE_FORK(AlerterController$Alerter$Type.PERMANENT_HAZARD, 4),",
+        "PERMANENT_HAZARD_TYPE_LANES_MERGING(AlerterController$Alerter$Type.PERMANENT_HAZARD, 5),",
+        "PERMANENT_HAZARD_TYPE_INTERSECTION(AlerterController$Alerter$Type.PERMANENT_HAZARD, 6),",
+        "PERMANENT_HAZARD_TYPE_SCHOOL_ZONE(AlerterController$Alerter$Type.PERMANENT_HAZARD, 7),",
+        "PERMANENT_HAZARD_TYPE_LEFT_LANE_ENDING(AlerterController$Alerter$Type.PERMANENT_HAZARD, 8),",
+        "PERMANENT_HAZARD_TYPE_RIGHT_LANE_ENDING(AlerterController$Alerter$Type.PERMANENT_HAZARD, 9),",
+        "PERMANENT_HAZARD_TYPE_RAISED_CROSSWALK(AlerterController$Alerter$Type.PERMANENT_HAZARD, 10),",
+        "PERMANENT_HAZARD_TYPE_HIGHWAY_CROSSWALK(AlerterController$Alerter$Type.PERMANENT_HAZARD, 11),",
+        "PERMANENT_HAZARD_TYPE_LEFT_SHOULDER_ENDING(AlerterController$Alerter$Type.PERMANENT_HAZARD, 12),",
+        "PERMANENT_HAZARD_TYPE_RIGHT_SHOULDER_ENDING(AlerterController$Alerter$Type.PERMANENT_HAZARD, 13),",
+        "PERMANENT_HAZARD_TYPE_BOTH_SHOULDER_ENDING(AlerterController$Alerter$Type.PERMANENT_HAZARD, 14),",
+        "PERMANENT_HAZARD_TYPE_NARROW_BRIDGE(AlerterController$Alerter$Type.PERMANENT_HAZARD, 15),",
+        "SPEED_LIMIT_DECREASE_TYPE_DEFAULT(AlerterController$Alerter$Type.SPEED_LIMIT_DECREASE, 1),",
+        "PERSONAL_SAFETY_TYPE_DEFAULT(AlerterController$Alerter$Type.PERSONAL_SAFETY, 1),",
+        "CLOSURE_TYPE_HAZARD(AlerterController$Alerter$Type.CLOSURE, 0),",
+        "CLOSURE_TYPE_CONSTRUCTION(AlerterController$Alerter$Type.CLOSURE, 1),",
+        "CLOSURE_TYPE_EVENT(AlerterController$Alerter$Type.CLOSURE, 2),",
+        "CLOSURE_TYPE_DEFAULT(AlerterController$Alerter$Type.CLOSURE, 3),",
+        "SOS_TYPE_GENERAL_ASSISTANCE(AlerterController$Alerter$Type.SOS, 4),",
+        "SOS_TYPE_EMPTY_TANK(AlerterController$Alerter$Type.SOS, 1),",
+        "SOS_TYPE_FLAT_TIRE(AlerterController$Alerter$Type.SOS, 0),",
+        "SOS_TYPE_BATTERY_ISSUE(AlerterController$Alerter$Type.SOS, 5),",
+        "SOS_TYPE_MEDICAL_ISSUE(AlerterController$Alerter$Type.SOS, 2),",
+        "GUARDIAN_SHORT(AlerterController$Alerter$Type.GUARDIAN, 0),",
+        "GUARDIAN_LONG(AlerterController$Alerter$Type.GUARDIAN, 1),",
+        "JAM_TYPE_MODERATE_TRAFFIC(AlerterController$Alerter$Type.TRAFFIC_JAM, 0),",
+        "JAM_TYPE_HEAVY_TRAFFIC(AlerterController$Alerter$Type.TRAFFIC_JAM, 1),",
+        "JAM_TYPE_STAND_STILL_TRAFFIC(AlerterController$Alerter$Type.TRAFFIC_JAM, 2),",
+        "JAM_TYPE_LIGHT_TRAFFIC(AlerterController$Alerter$Type.TRAFFIC_JAM, 3),",
+        "JAM_TYPE_CLOSED_ROAD(AlerterController$Alerter$Type.TRAFFIC_JAM, 5),",
+        "JAM_TYPE_DEFAULT(AlerterController$Alerter$Type.TRAFFIC_JAM, 6),",
+        "CAMERA_TYPE_UNKNOWN(AlerterController$Alerter$Type.CAMERA, -1),",
+        "CAMERA_TYPE_SPEED(AlerterController$Alerter$Type.CAMERA, 0),",
+        "CAMERA_TYPE_REDLIGHT(AlerterController$Alerter$Type.CAMERA, 1),",
+        "CAMERA_TYPE_DUMMY(AlerterController$Alerter$Type.CAMERA, 2),",
+        "CAMERA_TYPE_RAILROAD(AlerterController$Alerter$Type.CAMERA, 3),",
+        "CAMERA_TYPE_HOV_LANE(AlerterController$Alerter$Type.CAMERA, 4),",
+        "CAMERA_TYPE_HOV_LANE_BUS(AlerterController$Alerter$Type.CAMERA, 5),",
+        "CAMERA_TYPE_HOV_LANE_CARPOOL(AlerterController$Alerter$Type.CAMERA, 6),",
+        "CAMERA_TYPE_RED_LIGHT_AND_SPEED(AlerterController$Alerter$Type.CAMERA, 7),",
+        "CAMERA_TYPE_ROAD_SAFETY_PHONE(AlerterController$Alerter$Type.CAMERA, 8),",
+        "CAMERA_TYPE_ROAD_SAFETY_SEAT_BELT(AlerterController$Alerter$Type.CAMERA, 9),",
+        "CAMERA_TYPE_ROAD_SAFETY_DISTANCE_BETWEEN_VEHICLES(AlerterController$Alerter$Type.CAMERA, 10),",
+        "CAMERA_TYPE_ROAD_SAFETY_STOP_SIGN(AlerterController$Alerter$Type.CAMERA, 11),",
+        "CAMERA_TYPE_ROAD_SAFETY_NOISE(AlerterController$Alerter$Type.CAMERA, 12),",
+        "ACCIDENT_TYPE_MINOR(AlerterController$Alerter$Type.ACCIDENT, 0),",
+        "ACCIDENT_TYPE_MAJOR(AlerterController$Alerter$Type.ACCIDENT, 1),",
+        "ACCIDENT_TYPE_DEFAULT(AlerterController$Alerter$Type.ACCIDENT, 2),",
+        "ACCIDENT_TYPE_PILE_UP(AlerterController$Alerter$Type.ACCIDENT, 3),",
+        "POLICE_TYPE_VISIBLE(AlerterController$Alerter$Type.POLICE, 0),",
+        "POLICE_TYPE_HIDDEN(AlerterController$Alerter$Type.POLICE, 1),",
+        "POLICE_TYPE_MOBILE_CAMERA(AlerterController$Alerter$Type.POLICE, 2),",
+        "MID_DRIVE_TOAST_TYPE_GENERAL(AlerterController$Alerter$Type.MID_DRIVE_TOAST, 0),",
+        "MID_DRIVE_TOAST_TYPE_THANK_YOU(AlerterController$Alerter$Type.MID_DRIVE_TOAST, 1),",
+        "MISC_HEADLIGHTS_REMINDER(AlerterController$Alerter$Type.OTHER, 0),",
+        "ECO_TYPE_DEFAULT(AlerterController$Alerter$Type.ECO, 0),",
+        "DANGER_ZONE_TYPE_NORMAL(AlerterController$Alerter$Type.DANGER_ZONE, 0),",
+        "DANGER_ZONE_TYPE_ISRAEL(AlerterController$Alerter$Type.DANGER_ZONE, 1);"
+      ]
+    },
+    {
+      "class": "com.waze.jni.protos.InsightPriority",
+      "jadx_exit": 0,
+      "source_sha256": "4e33bd811166c565a6baaf372581ce810fbe7b8443ec5e2da0d69ab1c27e43ff",
+      "public_getters": [
+        "getDefaultInstance",
+        "getPreemptive",
+        "getValue"
+      ],
+      "enum_declarations": []
+    }
+  ],
+  "inventory": [
+    {
+      "source_class": "com.waze.jni.protos.alerters.AlerterType",
+      "source_sha256": "be8cfdce554c9cc563ebe051385ed2ab87084a5577495a1da2063dd7e949bfb5",
+      "enum_declarations": [
+        {
+          "line": 11,
+          "declaration": "CHITCHAT(0)"
+        },
+        {
+          "line": 12,
+          "declaration": "POLICE(1)"
+        },
+        {
+          "line": 13,
+          "declaration": "ACCIDENT(2)"
+        },
+        {
+          "line": 14,
+          "declaration": "TRAFFIC_JAM(3)"
+        },
+        {
+          "line": 15,
+          "declaration": "TRAFFIC_INFO(4)"
+        },
+        {
+          "line": 16,
+          "declaration": "HAZARD(5)"
+        },
+        {
+          "line": 17,
+          "declaration": "OTHER(6)"
+        },
+        {
+          "line": 18,
+          "declaration": "CONSTRUCTION(7)"
+        },
+        {
+          "line": 19,
+          "declaration": "PARKING(8)"
+        },
+        {
+          "line": 20,
+          "declaration": "DYNAMIC(9)"
+        },
+        {
+          "line": 21,
+          "declaration": "CAMERA(10)"
+        },
+        {
+          "line": 22,
+          "declaration": "PARKED(11)"
+        },
+        {
+          "line": 23,
+          "declaration": "CLOSURE(12)"
+        },
+        {
+          "line": 24,
+          "declaration": "SOS(15)"
+        },
+        {
+          "line": 25,
+          "declaration": "REROUTE(16)"
+        },
+        {
+          "line": 26,
+          "declaration": "GUARDIAN(17)"
+        },
+        {
+          "line": 27,
+          "declaration": "ECO(18)"
+        },
+        {
+          "line": 28,
+          "declaration": "BLOCKED_LANE(19)"
+        },
+        {
+          "line": 29,
+          "declaration": "BAD_WEATHER(20)"
+        },
+        {
+          "line": 30,
+          "declaration": "PERMANENT_HAZARD(21)"
+        },
+        {
+          "line": 31,
+          "declaration": "SPEED_LIMIT_DECREASE(23)"
+        },
+        {
+          "line": 32,
+          "declaration": "PERSONAL_SAFETY(24)"
+        },
+        {
+          "line": 33,
+          "declaration": "DANGER_ZONE(25)"
+        },
+        {
+          "line": 34,
+          "declaration": "ANIMAL(26)"
+        },
+        {
+          "line": 35,
+          "declaration": "SUDDEN_SLOWDOWN(32)"
+        },
+        {
+          "line": 36,
+          "declaration": "UNRECOGNIZED(-1)"
+        }
+      ],
+      "getters": []
+    },
+    {
+      "source_class": "com.waze.AlerterController$Alerter$Subtype",
+      "source_sha256": "cccdaddbbe7070813d5a22e93c499b7b4233120b6bdb3a6463676da47ca6daae",
+      "enum_declarations": [
+        {
+          "line": 6,
+          "declaration": "UNSPECIFIED(AlerterController$Alerter$Type.UNSPECIFIED, -1)"
+        },
+        {
+          "line": 7,
+          "declaration": "HAZARD_TYPE_ON_ROAD(AlerterController$Alerter$Type.HAZARD, 0)"
+        },
+        {
+          "line": 8,
+          "declaration": "HAZARD_TYPE_ON_SHOULDER(AlerterController$Alerter$Type.HAZARD, 1)"
+        },
+        {
+          "line": 9,
+          "declaration": "HAZARD_TYPE_WEATHER(AlerterController$Alerter$Type.HAZARD, 2)"
+        },
+        {
+          "line": 10,
+          "declaration": "HAZARD_TYPE_ON_ROAD_OBJECT(AlerterController$Alerter$Type.HAZARD, 3)"
+        },
+        {
+          "line": 11,
+          "declaration": "HAZARD_TYPE_ON_ROAD_POT_HOLE(AlerterController$Alerter$Type.HAZARD, 4)"
+        },
+        {
+          "line": 12,
+          "declaration": "HAZARD_TYPE_ON_ROAD_ROAD_KILL(AlerterController$Alerter$Type.HAZARD, 5)"
+        },
+        {
+          "line": 13,
+          "declaration": "HAZARD_TYPE_ON_SHOULDER_CAR_STOPPED(AlerterController$Alerter$Type.HAZARD, 6)"
+        },
+        {
+          "line": 14,
+          "declaration": "HAZARD_TYPE_ON_SHOULDER_ANIMALS(AlerterController$Alerter$Type.HAZARD, 7)"
+        },
+        {
+          "line": 15,
+          "declaration": "HAZARD_TYPE_ON_SHOULDER_MISSING_SIGN(AlerterController$Alerter$Type.HAZARD, 8)"
+        },
+        {
+          "line": 16,
+          "declaration": "HAZARD_TYPE_WEATHER_FREEZING_RAIN(AlerterController$Alerter$Type.HAZARD, 18)"
+        },
+        {
+          "line": 17,
+          "declaration": "HAZARD_TYPE_ON_ROAD_LANE_CLOSED(AlerterController$Alerter$Type.HAZARD, 19)"
+        },
+        {
+          "line": 18,
+          "declaration": "HAZARD_TYPE_ON_ROAD_OIL(AlerterController$Alerter$Type.HAZARD, 20)"
+        },
+        {
+          "line": 19,
+          "declaration": "HAZARD_TYPE_ON_ROAD_CONSTRUCTION(AlerterController$Alerter$Type.HAZARD, 22)"
+        },
+        {
+          "line": 20,
+          "declaration": "HAZARD_TYPE_ON_ROAD_CAR_STOPPED(AlerterController$Alerter$Type.HAZARD, 23)"
+        },
+        {
+          "line": 21,
+          "declaration": "HAZARD_TYPE_ON_ROAD_BROKEN_TRAFFIC_LIGHT(AlerterController$Alerter$Type.HAZARD, 24)"
+        },
+        {
+          "line": 22,
+          "declaration": "HAZARD_TYPE_DEFAULT(AlerterController$Alerter$Type.HAZARD, 25)"
+        },
+        {
+          "line": 23,
+          "declaration": "HAZARD_TYPE_EMERGENCY_VEHICLE(AlerterController$Alerter$Type.HAZARD, 28)"
+        },
+        {
+          "line": 24,
+          "declaration": "BAD_WEATHER_TYPE_FOG(AlerterController$Alerter$Type.BAD_WEATHER, 9)"
+        },
+        {
+          "line": 25,
+          "declaration": "BAD_WEATHER_TYPE_HAIL(AlerterController$Alerter$Type.BAD_WEATHER, 10)"
+        },
+        {
+          "line": 26,
+          "declaration": "BAD_WEATHER_TYPE_HEAVY_RAIN(AlerterController$Alerter$Type.BAD_WEATHER, 11)"
+        },
+        {
+          "line": 27,
+          "declaration": "BAD_WEATHER_TYPE_HEAVY_SNOW(AlerterController$Alerter$Type.BAD_WEATHER, 12)"
+        },
+        {
+          "line": 28,
+          "declaration": "BAD_WEATHER_TYPE_FLOOD(AlerterController$Alerter$Type.BAD_WEATHER, 13)"
+        },
+        {
+          "line": 29,
+          "declaration": "BAD_WEATHER_TYPE_MONSOON(AlerterController$Alerter$Type.BAD_WEATHER, 14)"
+        },
+        {
+          "line": 30,
+          "declaration": "BAD_WEATHER_TYPE_TORNADO(AlerterController$Alerter$Type.BAD_WEATHER, 15)"
+        },
+        {
+          "line": 31,
+          "declaration": "BAD_WEATHER_TYPE_HEAT_WAVE(AlerterController$Alerter$Type.BAD_WEATHER, 16)"
+        },
+        {
+          "line": 32,
+          "declaration": "BAD_WEATHER_TYPE_HURRICANE(AlerterController$Alerter$Type.BAD_WEATHER, 17)"
+        },
+        {
+          "line": 33,
+          "declaration": "BAD_WEATHER_TYPE_ON_ROAD_ICE(AlerterController$Alerter$Type.BAD_WEATHER, 21)"
+        },
+        {
+          "line": 34,
+          "declaration": "BAD_WEATHER_TYPE_DEFAULT(AlerterController$Alerter$Type.BAD_WEATHER, 26)"
+        },
+        {
+          "line": 35,
+          "declaration": "BAD_WEATHER_TYPE_SLIPPERY_ROAD(AlerterController$Alerter$Type.BAD_WEATHER, 27)"
+        },
+        {
+          "line": 36,
+          "declaration": "BLOCKED_LANE_TYPE_DEFAULT(AlerterController$Alerter$Type.BLOCKED_LANE, 0)"
+        },
+        {
+          "line": 37,
+          "declaration": "BLOCKED_LANE_TYPE_LEFT(AlerterController$Alerter$Type.BLOCKED_LANE, 1)"
+        },
+        {
+          "line": 38,
+          "declaration": "BLOCKED_LANE_TYPE_CENTER(AlerterController$Alerter$Type.BLOCKED_LANE, 2)"
+        },
+        {
+          "line": 39,
+          "declaration": "BLOCKED_LANE_TYPE_RIGHT(AlerterController$Alerter$Type.BLOCKED_LANE, 3)"
+        },
+        {
+          "line": 40,
+          "declaration": "PERMANENT_HAZARD_TYPE_SPEED_BUMP(AlerterController$Alerter$Type.PERMANENT_HAZARD, 0)"
+        },
+        {
+          "line": 41,
+          "declaration": "PERMANENT_HAZARD_TYPE_TOPES(AlerterController$Alerter$Type.PERMANENT_HAZARD, 1)"
+        },
+        {
+          "line": 42,
+          "declaration": "PERMANENT_HAZARD_TYPE_TOLL_BOOTH(AlerterController$Alerter$Type.PERMANENT_HAZARD, 2)"
+        },
+        {
+          "line": 43,
+          "declaration": "PERMANENT_HAZARD_TYPE_DANGEROUS_CURVE(AlerterController$Alerter$Type.PERMANENT_HAZARD, 3)"
+        },
+        {
+          "line": 44,
+          "declaration": "PERMANENT_HAZARD_TYPE_FORK(AlerterController$Alerter$Type.PERMANENT_HAZARD, 4)"
+        },
+        {
+          "line": 45,
+          "declaration": "PERMANENT_HAZARD_TYPE_LANES_MERGING(AlerterController$Alerter$Type.PERMANENT_HAZARD, 5)"
+        },
+        {
+          "line": 46,
+          "declaration": "PERMANENT_HAZARD_TYPE_INTERSECTION(AlerterController$Alerter$Type.PERMANENT_HAZARD, 6)"
+        },
+        {
+          "line": 47,
+          "declaration": "PERMANENT_HAZARD_TYPE_SCHOOL_ZONE(AlerterController$Alerter$Type.PERMANENT_HAZARD, 7)"
+        },
+        {
+          "line": 48,
+          "declaration": "PERMANENT_HAZARD_TYPE_LEFT_LANE_ENDING(AlerterController$Alerter$Type.PERMANENT_HAZARD, 8)"
+        },
+        {
+          "line": 49,
+          "declaration": "PERMANENT_HAZARD_TYPE_RIGHT_LANE_ENDING(AlerterController$Alerter$Type.PERMANENT_HAZARD, 9)"
+        },
+        {
+          "line": 50,
+          "declaration": "PERMANENT_HAZARD_TYPE_RAISED_CROSSWALK(AlerterController$Alerter$Type.PERMANENT_HAZARD, 10)"
+        },
+        {
+          "line": 51,
+          "declaration": "PERMANENT_HAZARD_TYPE_HIGHWAY_CROSSWALK(AlerterController$Alerter$Type.PERMANENT_HAZARD, 11)"
+        },
+        {
+          "line": 52,
+          "declaration": "PERMANENT_HAZARD_TYPE_LEFT_SHOULDER_ENDING(AlerterController$Alerter$Type.PERMANENT_HAZARD, 12)"
+        },
+        {
+          "line": 53,
+          "declaration": "PERMANENT_HAZARD_TYPE_RIGHT_SHOULDER_ENDING(AlerterController$Alerter$Type.PERMANENT_HAZARD, 13)"
+        },
+        {
+          "line": 54,
+          "declaration": "PERMANENT_HAZARD_TYPE_BOTH_SHOULDER_ENDING(AlerterController$Alerter$Type.PERMANENT_HAZARD, 14)"
+        },
+        {
+          "line": 55,
+          "declaration": "PERMANENT_HAZARD_TYPE_NARROW_BRIDGE(AlerterController$Alerter$Type.PERMANENT_HAZARD, 15)"
+        },
+        {
+          "line": 56,
+          "declaration": "SPEED_LIMIT_DECREASE_TYPE_DEFAULT(AlerterController$Alerter$Type.SPEED_LIMIT_DECREASE, 1)"
+        },
+        {
+          "line": 57,
+          "declaration": "PERSONAL_SAFETY_TYPE_DEFAULT(AlerterController$Alerter$Type.PERSONAL_SAFETY, 1)"
+        },
+        {
+          "line": 58,
+          "declaration": "CLOSURE_TYPE_HAZARD(AlerterController$Alerter$Type.CLOSURE, 0)"
+        },
+        {
+          "line": 59,
+          "declaration": "CLOSURE_TYPE_CONSTRUCTION(AlerterController$Alerter$Type.CLOSURE, 1)"
+        },
+        {
+          "line": 60,
+          "declaration": "CLOSURE_TYPE_EVENT(AlerterController$Alerter$Type.CLOSURE, 2)"
+        },
+        {
+          "line": 61,
+          "declaration": "CLOSURE_TYPE_DEFAULT(AlerterController$Alerter$Type.CLOSURE, 3)"
+        },
+        {
+          "line": 62,
+          "declaration": "SOS_TYPE_GENERAL_ASSISTANCE(AlerterController$Alerter$Type.SOS, 4)"
+        },
+        {
+          "line": 63,
+          "declaration": "SOS_TYPE_EMPTY_TANK(AlerterController$Alerter$Type.SOS, 1)"
+        },
+        {
+          "line": 64,
+          "declaration": "SOS_TYPE_FLAT_TIRE(AlerterController$Alerter$Type.SOS, 0)"
+        },
+        {
+          "line": 65,
+          "declaration": "SOS_TYPE_BATTERY_ISSUE(AlerterController$Alerter$Type.SOS, 5)"
+        },
+        {
+          "line": 66,
+          "declaration": "SOS_TYPE_MEDICAL_ISSUE(AlerterController$Alerter$Type.SOS, 2)"
+        },
+        {
+          "line": 67,
+          "declaration": "GUARDIAN_SHORT(AlerterController$Alerter$Type.GUARDIAN, 0)"
+        },
+        {
+          "line": 68,
+          "declaration": "GUARDIAN_LONG(AlerterController$Alerter$Type.GUARDIAN, 1)"
+        },
+        {
+          "line": 69,
+          "declaration": "JAM_TYPE_MODERATE_TRAFFIC(AlerterController$Alerter$Type.TRAFFIC_JAM, 0)"
+        },
+        {
+          "line": 70,
+          "declaration": "JAM_TYPE_HEAVY_TRAFFIC(AlerterController$Alerter$Type.TRAFFIC_JAM, 1)"
+        },
+        {
+          "line": 71,
+          "declaration": "JAM_TYPE_STAND_STILL_TRAFFIC(AlerterController$Alerter$Type.TRAFFIC_JAM, 2)"
+        },
+        {
+          "line": 72,
+          "declaration": "JAM_TYPE_LIGHT_TRAFFIC(AlerterController$Alerter$Type.TRAFFIC_JAM, 3)"
+        },
+        {
+          "line": 73,
+          "declaration": "JAM_TYPE_CLOSED_ROAD(AlerterController$Alerter$Type.TRAFFIC_JAM, 5)"
+        },
+        {
+          "line": 74,
+          "declaration": "JAM_TYPE_DEFAULT(AlerterController$Alerter$Type.TRAFFIC_JAM, 6)"
+        },
+        {
+          "line": 75,
+          "declaration": "CAMERA_TYPE_UNKNOWN(AlerterController$Alerter$Type.CAMERA, -1)"
+        },
+        {
+          "line": 76,
+          "declaration": "CAMERA_TYPE_SPEED(AlerterController$Alerter$Type.CAMERA, 0)"
+        },
+        {
+          "line": 77,
+          "declaration": "CAMERA_TYPE_REDLIGHT(AlerterController$Alerter$Type.CAMERA, 1)"
+        },
+        {
+          "line": 78,
+          "declaration": "CAMERA_TYPE_DUMMY(AlerterController$Alerter$Type.CAMERA, 2)"
+        },
+        {
+          "line": 79,
+          "declaration": "CAMERA_TYPE_RAILROAD(AlerterController$Alerter$Type.CAMERA, 3)"
+        },
+        {
+          "line": 80,
+          "declaration": "CAMERA_TYPE_HOV_LANE(AlerterController$Alerter$Type.CAMERA, 4)"
+        },
+        {
+          "line": 81,
+          "declaration": "CAMERA_TYPE_HOV_LANE_BUS(AlerterController$Alerter$Type.CAMERA, 5)"
+        },
+        {
+          "line": 82,
+          "declaration": "CAMERA_TYPE_HOV_LANE_CARPOOL(AlerterController$Alerter$Type.CAMERA, 6)"
+        },
+        {
+          "line": 83,
+          "declaration": "CAMERA_TYPE_RED_LIGHT_AND_SPEED(AlerterController$Alerter$Type.CAMERA, 7)"
+        },
+        {
+          "line": 84,
+          "declaration": "CAMERA_TYPE_ROAD_SAFETY_PHONE(AlerterController$Alerter$Type.CAMERA, 8)"
+        },
+        {
+          "line": 85,
+          "declaration": "CAMERA_TYPE_ROAD_SAFETY_SEAT_BELT(AlerterController$Alerter$Type.CAMERA, 9)"
+        },
+        {
+          "line": 86,
+          "declaration": "CAMERA_TYPE_ROAD_SAFETY_DISTANCE_BETWEEN_VEHICLES(AlerterController$Alerter$Type.CAMERA, 10)"
+        },
+        {
+          "line": 87,
+          "declaration": "CAMERA_TYPE_ROAD_SAFETY_STOP_SIGN(AlerterController$Alerter$Type.CAMERA, 11)"
+        },
+        {
+          "line": 88,
+          "declaration": "CAMERA_TYPE_ROAD_SAFETY_NOISE(AlerterController$Alerter$Type.CAMERA, 12)"
+        },
+        {
+          "line": 89,
+          "declaration": "ACCIDENT_TYPE_MINOR(AlerterController$Alerter$Type.ACCIDENT, 0)"
+        },
+        {
+          "line": 90,
+          "declaration": "ACCIDENT_TYPE_MAJOR(AlerterController$Alerter$Type.ACCIDENT, 1)"
+        },
+        {
+          "line": 91,
+          "declaration": "ACCIDENT_TYPE_DEFAULT(AlerterController$Alerter$Type.ACCIDENT, 2)"
+        },
+        {
+          "line": 92,
+          "declaration": "ACCIDENT_TYPE_PILE_UP(AlerterController$Alerter$Type.ACCIDENT, 3)"
+        },
+        {
+          "line": 93,
+          "declaration": "POLICE_TYPE_VISIBLE(AlerterController$Alerter$Type.POLICE, 0)"
+        },
+        {
+          "line": 94,
+          "declaration": "POLICE_TYPE_HIDDEN(AlerterController$Alerter$Type.POLICE, 1)"
+        },
+        {
+          "line": 95,
+          "declaration": "POLICE_TYPE_MOBILE_CAMERA(AlerterController$Alerter$Type.POLICE, 2)"
+        },
+        {
+          "line": 96,
+          "declaration": "MID_DRIVE_TOAST_TYPE_GENERAL(AlerterController$Alerter$Type.MID_DRIVE_TOAST, 0)"
+        },
+        {
+          "line": 97,
+          "declaration": "MID_DRIVE_TOAST_TYPE_THANK_YOU(AlerterController$Alerter$Type.MID_DRIVE_TOAST, 1)"
+        },
+        {
+          "line": 98,
+          "declaration": "MISC_HEADLIGHTS_REMINDER(AlerterController$Alerter$Type.OTHER, 0)"
+        },
+        {
+          "line": 99,
+          "declaration": "ECO_TYPE_DEFAULT(AlerterController$Alerter$Type.ECO, 0)"
+        },
+        {
+          "line": 100,
+          "declaration": "DANGER_ZONE_TYPE_NORMAL(AlerterController$Alerter$Type.DANGER_ZONE, 0)"
+        },
+        {
+          "line": 101,
+          "declaration": "DANGER_ZONE_TYPE_ISRAEL(AlerterController$Alerter$Type.DANGER_ZONE, 1)"
+        }
+      ],
+      "getters": []
+    },
+    {
+      "source_class": "com.waze.AlerterController$Alerter$SubtypeTrait",
+      "source_sha256": "51e4e23bddbdf70705df7e10778756c9c3585d39b4c5c035b81cef2a4b3ae4b9",
+      "enum_declarations": [
+        {
+          "line": 6,
+          "declaration": "UNKNOWN(0)"
+        },
+        {
+          "line": 7,
+          "declaration": "CAR_ON_SHOULDER_PEOPLE_AROUND(1)"
+        },
+        {
+          "line": 8,
+          "declaration": "CAR_ON_SHOULDER_NEAR_LANE(2)"
+        },
+        {
+          "line": 9,
+          "declaration": "CAR_ON_SHOULDER_NOT_CLEARLY_MARKED(3)"
+        }
+      ],
+      "getters": []
+    },
+    {
+      "source_class": "com.waze.jni.protos.alerters.AlerterSubType",
+      "source_sha256": "230916a868030fc0cea662e4c3f47c4e151f2b9b957de911a076adec40dfedc1",
+      "enum_declarations": [
+        {
+          "line": 55,
+          "declaration": "BLOCKED_LANE_SUB_TYPE_UNSPECIFIED(0)"
+        },
+        {
+          "line": 56,
+          "declaration": "BLOCKED_LANE_SUB_TYPE_DEFAULT(1)"
+        },
+        {
+          "line": 57,
+          "declaration": "BLOCKED_LANE_SUB_TYPE_CENTER(2)"
+        },
+        {
+          "line": 58,
+          "declaration": "BLOCKED_LANE_SUB_TYPE_RIGHT(3)"
+        },
+        {
+          "line": 59,
+          "declaration": "BLOCKED_LANE_SUB_TYPE_LEFT(4)"
+        },
+        {
+          "line": 60,
+          "declaration": "UNRECOGNIZED(-1)"
+        },
+        {
+          "line": 135,
+          "declaration": "HAZARD_SUB_TYPE_UNSPECIFIED(0)"
+        },
+        {
+          "line": 136,
+          "declaration": "HAZARD_SUB_TYPE_DEFAULT(1)"
+        },
+        {
+          "line": 137,
+          "declaration": "HAZARD_SUB_TYPE_ON_ROAD_CONSTRUCTION(2)"
+        },
+        {
+          "line": 138,
+          "declaration": "HAZARD_SUB_TYPE_ON_ROAD_CAR_STOPPED(3)"
+        },
+        {
+          "line": 139,
+          "declaration": "HAZARD_SUB_TYPE_ON_ROAD_OBJECT(4)"
+        },
+        {
+          "line": 140,
+          "declaration": "HAZARD_SUB_TYPE_ON_ROAD_POT_HOLE(5)"
+        },
+        {
+          "line": 141,
+          "declaration": "HAZARD_SUB_TYPE_ON_ROAD_BROKEN_TRAFFIC_LIGHT(6)"
+        },
+        {
+          "line": 142,
+          "declaration": "HAZARD_SUB_TYPE_ON_ROAD_OIL(7)"
+        },
+        {
+          "line": 143,
+          "declaration": "HAZARD_SUB_TYPE_ON_SHOULDER_ANIMALS(8)"
+        },
+        {
+          "line": 144,
+          "declaration": "HAZARD_SUB_TYPE_ON_SHOULDER_MISSING_SIGN(9)"
+        },
+        {
+          "line": 145,
+          "declaration": "HAZARD_SUB_TYPE_ON_ROAD_ROAD_KILL(10)"
+        },
+        {
+          "line": 146,
+          "declaration": "HAZARD_SUB_TYPE_ON_SHOULDER(11)"
+        },
+        {
+          "line": 147,
+          "declaration": "HAZARD_SUB_TYPE_ON_SHOULDER_CAR_STOPPED(12)"
+        },
+        {
+          "line": 148,
+          "declaration": "HAZARD_SUB_TYPE_EMERGENCY_VEHICLE(13)"
+        },
+        {
+          "line": 149,
+          "declaration": "UNRECOGNIZED(-1)"
+        }
+      ],
+      "getters": []
+    },
+    {
+      "source_class": "com.waze.jni.protos.alerters.AlerterInfoOrBuilder",
+      "source_sha256": "9bffdccf841d9f941c361cc7be2f281993a18ea3a9cb3a7f0a1471a333c72b33",
+      "enum_declarations": [],
+      "getters": [
+        {
+          "line": 10,
+          "signature": "AlerterId getAlertId()"
+        },
+        {
+          "line": 12,
+          "signature": "boolean getCloseDistanceSameAlertsCappingEnabled()"
+        },
+        {
+          "line": 14,
+          "signature": "String getDescription()"
+        },
+        {
+          "line": 16,
+          "signature": "v getDescriptionBytes()"
+        },
+        {
+          "line": 18,
+          "signature": "String getDistanceString()"
+        },
+        {
+          "line": 20,
+          "signature": "v getDistanceStringBytes()"
+        },
+        {
+          "line": 22,
+          "signature": "boolean getHideActionsWhenInvalid()"
+        },
+        {
+          "line": 24,
+          "signature": "String getIconName()"
+        },
+        {
+          "line": 26,
+          "signature": "v getIconNameBytes()"
+        },
+        {
+          "line": 28,
+          "signature": "boolean getIsApproachingWithValidation()"
+        },
+        {
+          "line": 30,
+          "signature": "boolean getIsCancellable()"
+        },
+        {
+          "line": 32,
+          "signature": "boolean getIsCloseOnly()"
+        },
+        {
+          "line": 34,
+          "signature": "boolean getIsEtaClickable()"
+        },
+        {
+          "line": 36,
+          "signature": "int getNumThumbsUp()"
+        },
+        {
+          "line": 38,
+          "signature": "Position.IntPosition getPosition()"
+        },
+        {
+          "line": 40,
+          "signature": "String getPrimaryButtonText()"
+        },
+        {
+          "line": 42,
+          "signature": "v getPrimaryButtonTextBytes()"
+        },
+        {
+          "line": 44,
+          "signature": "int getReportId()"
+        },
+        {
+          "line": 46,
+          "signature": "boolean getRequireDistanceInRange()"
+        },
+        {
+          "line": 48,
+          "signature": "String getSecondaryButtonText()"
+        },
+        {
+          "line": 50,
+          "signature": "v getSecondaryButtonTextBytes()"
+        },
+        {
+          "line": 52,
+          "signature": "boolean getShouldShowStillThere()"
+        },
+        {
+          "line": 54,
+          "signature": "boolean getShowDistance()"
+        },
+        {
+          "line": 56,
+          "signature": "boolean getShowThumbsUp()"
+        },
+        {
+          "line": 58,
+          "signature": "boolean getShowWithEta()"
+        },
+        {
+          "line": 60,
+          "signature": "SilentActivation getSilentActivation()"
+        },
+        {
+          "line": 62,
+          "signature": "int getSilentActivationValue()"
+        },
+        {
+          "line": 64,
+          "signature": "int getSubType()"
+        },
+        {
+          "line": 66,
+          "signature": "long getSubtypeTrait()"
+        },
+        {
+          "line": 68,
+          "signature": "int getTimeoutSeconds()"
+        },
+        {
+          "line": 70,
+          "signature": "AlerterTimerType getTimerType()"
+        },
+        {
+          "line": 72,
+          "signature": "int getTimerTypeValue()"
+        },
+        {
+          "line": 74,
+          "signature": "String getTitle()"
+        },
+        {
+          "line": 76,
+          "signature": "v getTitleBytes()"
+        },
+        {
+          "line": 78,
+          "signature": "String getTitleWithDistance()"
+        },
+        {
+          "line": 80,
+          "signature": "v getTitleWithDistanceBytes()"
+        },
+        {
+          "line": 82,
+          "signature": "AlerterType getType()"
+        },
+        {
+          "line": 84,
+          "signature": "int getTypeValue()"
+        },
+        {
+          "line": 86,
+          "signature": "AlertValidationResult getValidationResult()"
+        },
+        {
+          "line": 88,
+          "signature": "boolean hasAlertId()"
+        },
+        {
+          "line": 90,
+          "signature": "boolean hasCloseDistanceSameAlertsCappingEnabled()"
+        },
+        {
+          "line": 92,
+          "signature": "boolean hasDescription()"
+        },
+        {
+          "line": 94,
+          "signature": "boolean hasDistanceString()"
+        },
+        {
+          "line": 96,
+          "signature": "boolean hasHideActionsWhenInvalid()"
+        },
+        {
+          "line": 98,
+          "signature": "boolean hasIconName()"
+        },
+        {
+          "line": 100,
+          "signature": "boolean hasIsApproachingWithValidation()"
+        },
+        {
+          "line": 102,
+          "signature": "boolean hasIsCancellable()"
+        },
+        {
+          "line": 104,
+          "signature": "boolean hasIsCloseOnly()"
+        },
+        {
+          "line": 106,
+          "signature": "boolean hasIsEtaClickable()"
+        },
+        {
+          "line": 108,
+          "signature": "boolean hasNumThumbsUp()"
+        },
+        {
+          "line": 110,
+          "signature": "boolean hasPosition()"
+        },
+        {
+          "line": 112,
+          "signature": "boolean hasPrimaryButtonText()"
+        },
+        {
+          "line": 114,
+          "signature": "boolean hasReportId()"
+        },
+        {
+          "line": 116,
+          "signature": "boolean hasRequireDistanceInRange()"
+        },
+        {
+          "line": 118,
+          "signature": "boolean hasSecondaryButtonText()"
+        },
+        {
+          "line": 120,
+          "signature": "boolean hasShouldShowStillThere()"
+        },
+        {
+          "line": 122,
+          "signature": "boolean hasShowDistance()"
+        },
+        {
+          "line": 124,
+          "signature": "boolean hasShowThumbsUp()"
+        },
+        {
+          "line": 126,
+          "signature": "boolean hasShowWithEta()"
+        },
+        {
+          "line": 128,
+          "signature": "boolean hasSilentActivation()"
+        },
+        {
+          "line": 130,
+          "signature": "boolean hasSubType()"
+        },
+        {
+          "line": 132,
+          "signature": "boolean hasSubtypeTrait()"
+        },
+        {
+          "line": 134,
+          "signature": "boolean hasTimeoutSeconds()"
+        },
+        {
+          "line": 136,
+          "signature": "boolean hasTimerType()"
+        },
+        {
+          "line": 138,
+          "signature": "boolean hasTitle()"
+        },
+        {
+          "line": 140,
+          "signature": "boolean hasTitleWithDistance()"
+        },
+        {
+          "line": 142,
+          "signature": "boolean hasType()"
+        },
+        {
+          "line": 144,
+          "signature": "boolean hasValidationResult()"
+        }
+      ]
+    },
+    {
+      "source_class": "com.waze.jni.protos.alerters.AlertValidationResultOrBuilder",
+      "source_sha256": "855feebf3fbf437b9b903190175f4c4f6efafb51994683078b5b5cfdb1e84ed2",
+      "enum_declarations": [],
+      "getters": [
+        {
+          "line": 8,
+          "signature": "int getDistanceMeters()"
+        },
+        {
+          "line": 10,
+          "signature": "boolean getIsValid()"
+        },
+        {
+          "line": 12,
+          "signature": "int getTimeToAlertSec()"
+        },
+        {
+          "line": 14,
+          "signature": "boolean hasDistanceMeters()"
+        },
+        {
+          "line": 16,
+          "signature": "boolean hasTimeToAlertSec()"
+        }
+      ]
+    },
+    {
+      "source_class": "com.waze.jni.protos.alerters.NativeAlertDescriptorOrBuilder",
+      "source_sha256": "3ad6efda91c8105884cb5ef668533a79c6dea52722fd7e69c89a78f7676c8080",
+      "enum_declarations": [],
+      "getters": [
+        {
+          "line": 9,
+          "signature": "boolean getAbortImmediatelyOnRemoval()"
+        },
+        {
+          "line": 11,
+          "signature": "AlerterId getAlertId()"
+        },
+        {
+          "line": 13,
+          "signature": "AlerterInfo getInfo()"
+        },
+        {
+          "line": 15,
+          "signature": "InsightPriority getInsightPriority()"
+        },
+        {
+          "line": 17,
+          "signature": "int getTriggerDistanceMeters()"
+        },
+        {
+          "line": 19,
+          "signature": "ZoneAlertData getZoneAlertData()"
+        },
+        {
+          "line": 21,
+          "signature": "boolean hasAlertId()"
+        },
+        {
+          "line": 23,
+          "signature": "boolean hasInfo()"
+        },
+        {
+          "line": 25,
+          "signature": "boolean hasInsightPriority()"
+        },
+        {
+          "line": 27,
+          "signature": "boolean hasZoneAlertData()"
+        }
+      ]
+    },
+    {
+      "source_class": "com.waze.jni.protos.alerters.AlerterIdOrBuilder",
+      "source_sha256": "1bf5527544073166564a36f97232a2f9a5f840c1b12eb3096d8c551b00139c44",
+      "enum_declarations": [],
+      "getters": [
+        {
+          "line": 9,
+          "signature": "String getProviderId()"
+        },
+        {
+          "line": 11,
+          "signature": "v getProviderIdBytes()"
+        },
+        {
+          "line": 13,
+          "signature": "String getUniqueId()"
+        },
+        {
+          "line": 15,
+          "signature": "v getUniqueIdBytes()"
+        },
+        {
+          "line": 17,
+          "signature": "String getUuid()"
+        },
+        {
+          "line": 19,
+          "signature": "v getUuidBytes()"
+        }
+      ]
+    },
+    {
+      "source_class": "com.waze.jni.protos.InsightPriorityOrBuilder",
+      "source_sha256": "12a50946c3ce6b294ab5b3f956380ee7be95d02315ff16f69a71c144eaa100c8",
+      "enum_declarations": [],
+      "getters": [
+        {
+          "line": 8,
+          "signature": "boolean getPreemptive()"
+        },
+        {
+          "line": 10,
+          "signature": "int getValue()"
+        }
+      ]
+    },
+    {
+      "source_class": "com.waze.jni.protos.alerters.SilentActivation",
+      "source_sha256": "0fcc1f9f526a5e81a56864f36069e631b276236b37a943b15056894aeab2c848",
+      "enum_declarations": [
+        {
+          "line": 11,
+          "declaration": "Experiment(0)"
+        },
+        {
+          "line": 12,
+          "declaration": "Familiar(1)"
+        },
+        {
+          "line": 13,
+          "declaration": "Grouped(2)"
+        },
+        {
+          "line": 14,
+          "declaration": "UNRECOGNIZED(-1)"
+        }
+      ],
+      "getters": []
+    },
+    {
+      "source_class": "com.waze.jni.protos.alerters.ZoneAlertData",
+      "source_sha256": "fd8b42eb03fb7698e5912d5ef5d33262e67f75176b39c7869b1d3491875c5dbe",
+      "enum_declarations": [
+        {
+          "line": 111,
+          "declaration": "BeforeZone(0)"
+        },
+        {
+          "line": 112,
+          "declaration": "InZone(1)"
+        },
+        {
+          "line": 114,
+          "declaration": "UNRECOGNIZED(-1)"
+        }
+      ],
+      "getters": []
+    },
+    {
+      "source_class": "com.waze.jni.protos.insights_infra.SegmentInsightInfo",
+      "source_sha256": "c21f70dcdebff1efeea3734047096466ef824039de73d7b91c80b0f1fb11a88d",
+      "enum_declarations": [
+        {
+          "line": 104,
+          "declaration": "APPROACHING(0)"
+        },
+        {
+          "line": 105,
+          "declaration": "WITHIN(1)"
+        },
+        {
+          "line": 106,
+          "declaration": "UNRECOGNIZED(-1)"
+        },
+        {
+          "line": 161,
+          "declaration": "TRAFFIC(0)"
+        },
+        {
+          "line": 162,
+          "declaration": "SPEED_BUMP(1)"
+        },
+        {
+          "line": 163,
+          "declaration": "DANGEROUS_CURVE(2)"
+        },
+        {
+          "line": 164,
+          "declaration": "HOV_LANE(3)"
+        },
+        {
+          "line": 165,
+          "declaration": "CARPOOL_LANE(4)"
+        },
+        {
+          "line": 166,
+          "declaration": "BUS_LANE(5)"
+        },
+        {
+          "line": 167,
+          "declaration": "ENFORCEMENT_ZONE(6)"
+        },
+        {
+          "line": 168,
+          "declaration": "AVERAGE_SPEED_CAMERA(7)"
+        },
+        {
+          "line": 169,
+          "declaration": "SCHOOL_ZONE(8)"
+        },
+        {
+          "line": 170,
+          "declaration": "UNRECOGNIZED(-1)"
+        }
+      ],
+      "getters": []
+    },
+    {
+      "source_class": "com.waze.jni.protos.insights_infra.SegmentInsightInfoOrBuilder",
+      "source_sha256": "c6f31e30d7925526a398d3fa590489735d9bd8e3bb639c3d1835d970f63459e6",
+      "enum_declarations": [],
+      "getters": [
+        {
+          "line": 10,
+          "signature": "SegmentInsightInfo.Id getId()"
+        },
+        {
+          "line": 12,
+          "signature": "SegmentInsightInfo.PositionRelativeToSegment getPositionRelativeToSegment()"
+        },
+        {
+          "line": 14,
+          "signature": "int getPositionRelativeToSegmentValue()"
+        },
+        {
+          "line": 16,
+          "signature": "InsightPriority getPriority()"
+        },
+        {
+          "line": 18,
+          "signature": "int getRemainingDistanceMeters()"
+        },
+        {
+          "line": 20,
+          "signature": "int getRemainingDurationSeconds()"
+        },
+        {
+          "line": 22,
+          "signature": "SegmentInsightInfo.AlertInfo getSourceAlertInfos(int i2)"
+        },
+        {
+          "line": 24,
+          "signature": "int getSourceAlertInfosCount()"
+        },
+        {
+          "line": 26,
+          "signature": "List<SegmentInsightInfo.AlertInfo> getSourceAlertInfosList()"
+        },
+        {
+          "line": 28,
+          "signature": "boolean hasId()"
+        },
+        {
+          "line": 30,
+          "signature": "boolean hasPriority()"
+        },
+        {
+          "line": 32,
+          "signature": "boolean hasRemainingDurationSeconds()"
+        }
+      ]
+    },
+    {
+      "source_class": "com.waze.jni.protos.insights_infra.NotificationOrBuilder",
+      "source_sha256": "543d295837ffbe5412a1823eed606f0e30f01d6f3220cb993060040508ebebce",
+      "enum_declarations": [],
+      "getters": [
+        {
+          "line": 10,
+          "signature": "String getBody()"
+        },
+        {
+          "line": 12,
+          "signature": "v getBodyBytes()"
+        },
+        {
+          "line": 14,
+          "signature": "String getIconName()"
+        },
+        {
+          "line": 16,
+          "signature": "v getIconNameBytes()"
+        },
+        {
+          "line": 18,
+          "signature": "NotificationId getId()"
+        },
+        {
+          "line": 20,
+          "signature": "String getInCarBodyVariants(int i2)"
+        },
+        {
+          "line": 22,
+          "signature": "v getInCarBodyVariantsBytes(int i2)"
+        },
+        {
+          "line": 24,
+          "signature": "int getInCarBodyVariantsCount()"
+        },
+        {
+          "line": 26,
+          "signature": "List<String> getInCarBodyVariantsList()"
+        },
+        {
+          "line": 28,
+          "signature": "String getInCarTitleVariants(int i2)"
+        },
+        {
+          "line": 30,
+          "signature": "v getInCarTitleVariantsBytes(int i2)"
+        },
+        {
+          "line": 32,
+          "signature": "int getInCarTitleVariantsCount()"
+        },
+        {
+          "line": 34,
+          "signature": "List<String> getInCarTitleVariantsList()"
+        },
+        {
+          "line": 36,
+          "signature": "int getPriority()"
+        },
+        {
+          "line": 38,
+          "signature": "long getTimeoutMs()"
+        },
+        {
+          "line": 40,
+          "signature": "String getTitle()"
+        },
+        {
+          "line": 42,
+          "signature": "v getTitleBytes()"
+        },
+        {
+          "line": 44,
+          "signature": "boolean hasId()"
+        },
+        {
+          "line": 46,
+          "signature": "boolean hasPriority()"
+        },
+        {
+          "line": 48,
+          "signature": "boolean hasTimeoutMs()"
+        }
+      ]
+    },
+    {
+      "source_class": "com.waze.jni.protos.insights_infra.Notification",
+      "source_sha256": "c34bdb5a514eb5c38b5301c0641485ff429d25df3fbfb6b55d5f3a9108e41478",
+      "enum_declarations": [
+        {
+          "line": 77,
+          "declaration": "EVENT_UNSPECIFIED(0)"
+        },
+        {
+          "line": 78,
+          "declaration": "EVENT_SHOWN(1)"
+        },
+        {
+          "line": 79,
+          "declaration": "EVENT_TIMEOUT(2)"
+        },
+        {
+          "line": 80,
+          "declaration": "EVENT_MAP_TAPPED(3)"
+        },
+        {
+          "line": 81,
+          "declaration": "EVENT_BACKGROUND_TAPPED(4)"
+        },
+        {
+          "line": 82,
+          "declaration": "EVENT_CLOSE_CLICKED(5)"
+        },
+        {
+          "line": 83,
+          "declaration": "EVENT_TRAILING_BUTTON_CLICKED(6)"
+        },
+        {
+          "line": 84,
+          "declaration": "EVENT_LEADING_BUTTON_CLICKED(7)"
+        },
+        {
+          "line": 85,
+          "declaration": "EVENT_IN_CAR_CLOSED(8)"
+        },
+        {
+          "line": 86,
+          "declaration": "EVENT_APP_CLOSED(9)"
+        },
+        {
+          "line": 87,
+          "declaration": "EVENT_SILENTLY_DISMISSED(10)"
+        },
+        {
+          "line": 88,
+          "declaration": "EVENT_DISMISSED(11)"
+        },
+        {
+          "line": 89,
+          "declaration": "UNRECOGNIZED(-1)"
+        }
+      ],
+      "getters": []
+    },
+    {
+      "source_class": "com.waze.jni.protos.insights_infra.Feature",
+      "source_sha256": "38f225bf6e63d3c0fa6ccb183eeb6af6a8cd61f5470e356d1efdce852d7c3442",
+      "enum_declarations": [
+        {
+          "line": 11,
+          "declaration": "FEATURE_UNSPECIFIED(0)"
+        },
+        {
+          "line": 12,
+          "declaration": "FEATURE_CYCLISTS(1)"
+        },
+        {
+          "line": 13,
+          "declaration": "UNRECOGNIZED(-1)"
+        }
+      ],
+      "getters": []
+    },
+    {
+      "source_class": "com.waze.jni.protos.rtalerts.RtAlertItemOrBuilder",
+      "source_sha256": "7763d5a1fe4a8dba168fb6e4731e5bd028c72e4862d3f3aa1bec235c53b75ffd",
+      "enum_declarations": [],
+      "getters": [
+        {
+          "line": 9,
+          "signature": "int getBackgroundColor()"
+        },
+        {
+          "line": 11,
+          "signature": "String getDescription()"
+        },
+        {
+          "line": 13,
+          "signature": "v getDescriptionBytes()"
+        },
+        {
+          "line": 15,
+          "signature": "int getDistance()"
+        },
+        {
+          "line": 17,
+          "signature": "String getDistanceStr()"
+        },
+        {
+          "line": 19,
+          "signature": "v getDistanceStrBytes()"
+        },
+        {
+          "line": 21,
+          "signature": "String getIcon()"
+        },
+        {
+          "line": 23,
+          "signature": "v getIconBytes()"
+        },
+        {
+          "line": 25,
+          "signature": "int getId()"
+        },
+        {
+          "line": 27,
+          "signature": "String getImageId()"
+        },
+        {
+          "line": 29,
+          "signature": "v getImageIdBytes()"
+        },
+        {
+          "line": 31,
+          "signature": "String getImageUrl()"
+        },
+        {
+          "line": 33,
+          "signature": "v getImageUrlBytes()"
+        },
+        {
+          "line": 35,
+          "signature": "boolean getIsAlertByMe()"
+        },
+        {
+          "line": 37,
+          "signature": "boolean getIsAlertOnRoute()"
+        },
+        {
+          "line": 39,
+          "signature": "boolean getIsAutoJam()"
+        },
+        {
+          "line": 41,
+          "signature": "boolean getIsCommentingAllowed()"
+        },
+        {
+          "line": 43,
+          "signature": "boolean getIsLikingAllowed()"
+        },
+        {
+          "line": 45,
+          "signature": "boolean getIsThumbsUpByMe()"
+        },
+        {
+          "line": 47,
+          "signature": "int getLatitude()"
+        },
+        {
+          "line": 49,
+          "signature": "String getLocationStr()"
+        },
+        {
+          "line": 51,
+          "signature": "v getLocationStrBytes()"
+        },
+        {
+          "line": 53,
+          "signature": "int getLongitude()"
+        },
+        {
+          "line": 55,
+          "signature": "String getMoodName()"
+        },
+        {
+          "line": 57,
+          "signature": "v getMoodNameBytes()"
+        },
+        {
+          "line": 59,
+          "signature": "int getNumComments()"
+        },
+        {
+          "line": 61,
+          "signature": "int getNumThumbsUp()"
+        },
+        {
+          "line": 63,
+          "signature": "String getReportedBy()"
+        },
+        {
+          "line": 65,
+          "signature": "v getReportedByBytes()"
+        },
+        {
+          "line": 67,
+          "signature": "int getScreenX()"
+        },
+        {
+          "line": 69,
+          "signature": "int getScreenY()"
+        },
+        {
+          "line": 71,
+          "signature": "String getTimeOnRoute()"
+        },
+        {
+          "line": 73,
+          "signature": "v getTimeOnRouteBytes()"
+        },
+        {
+          "line": 75,
+          "signature": "String getTimeRelative()"
+        },
+        {
+          "line": 77,
+          "signature": "v getTimeRelativeBytes()"
+        },
+        {
+          "line": 79,
+          "signature": "int getTimeStampSec()"
+        },
+        {
+          "line": 81,
+          "signature": "String getTitle()"
+        },
+        {
+          "line": 83,
+          "signature": "v getTitleBytes()"
+        },
+        {
+          "line": 85,
+          "signature": "RtAlertItem.Type getType()"
+        },
+        {
+          "line": 87,
+          "signature": "int getTypeValue()"
+        },
+        {
+          "line": 89,
+          "signature": "String getUnit()"
+        },
+        {
+          "line": 91,
+          "signature": "v getUnitBytes()"
+        },
+        {
+          "line": 93,
+          "signature": "boolean hasImageId()"
+        },
+        {
+          "line": 95,
+          "signature": "boolean hasImageUrl()"
+        },
+        {
+          "line": 97,
+          "signature": "boolean hasIsCommentingAllowed()"
+        },
+        {
+          "line": 99,
+          "signature": "boolean hasIsLikingAllowed()"
+        },
+        {
+          "line": 101,
+          "signature": "boolean hasLatitude()"
+        },
+        {
+          "line": 103,
+          "signature": "boolean hasLongitude()"
+        },
+        {
+          "line": 105,
+          "signature": "boolean hasReportedBy()"
+        },
+        {
+          "line": 107,
+          "signature": "boolean hasTimeRelative()"
+        },
+        {
+          "line": 109,
+          "signature": "boolean hasTimeStampSec()"
+        }
+      ]
+    },
+    {
+      "source_class": "com.waze.jni.protos.rtalerts.RtAlertItem",
+      "source_sha256": "2d8e766175d2f8ec088336e56258de116262f7a0fe079c089c0860c41a237aa2",
+      "enum_declarations": [
+        {
+          "line": 803,
+          "declaration": "CHIT_CHAT(0)"
+        },
+        {
+          "line": 804,
+          "declaration": "INVALID(-1)"
+        },
+        {
+          "line": 805,
+          "declaration": "POLICE(1)"
+        },
+        {
+          "line": 806,
+          "declaration": "ACCIDENT(2)"
+        },
+        {
+          "line": 807,
+          "declaration": "TRAFFIC_JAM(3)"
+        },
+        {
+          "line": 808,
+          "declaration": "TRAFFIC_INFO(4)"
+        },
+        {
+          "line": 809,
+          "declaration": "HAZARD(5)"
+        },
+        {
+          "line": 810,
+          "declaration": "OTHER(6)"
+        },
+        {
+          "line": 811,
+          "declaration": "CONSTRUCTION(7)"
+        },
+        {
+          "line": 812,
+          "declaration": "PARKING(8)"
+        },
+        {
+          "line": 813,
+          "declaration": "DYNAMIC(9)"
+        },
+        {
+          "line": 814,
+          "declaration": "CAMERA(10)"
+        },
+        {
+          "line": 815,
+          "declaration": "PARKED(11)"
+        },
+        {
+          "line": 816,
+          "declaration": "CLOSURE(12)"
+        },
+        {
+          "line": 817,
+          "declaration": "SOS(15)"
+        },
+        {
+          "line": 818,
+          "declaration": "REROUTE(16)"
+        },
+        {
+          "line": 819,
+          "declaration": "GUARDIAN(17)"
+        },
+        {
+          "line": 820,
+          "declaration": "ECO(18)"
+        },
+        {
+          "line": 821,
+          "declaration": "BLOCKED_LANE(19)"
+        },
+        {
+          "line": 822,
+          "declaration": "BAD_WEATHER(20)"
+        },
+        {
+          "line": 823,
+          "declaration": "PERMANENT_HAZARD(21)"
+        },
+        {
+          "line": 824,
+          "declaration": "SPEED_LIMIT_DECREASE(22)"
+        },
+        {
+          "line": 825,
+          "declaration": "TURN_CLOSURE(23)"
+        },
+        {
+          "line": 826,
+          "declaration": "PERSONAL_SAFETY(24)"
+        },
+        {
+          "line": 827,
+          "declaration": "DANGER_ZONE(25)"
+        },
+        {
+          "line": 828,
+          "declaration": "ANIMAL(26)"
+        },
+        {
+          "line": 829,
+          "declaration": "SUDDEN_SLOWDOWN(32)"
+        },
+        {
+          "line": 830,
+          "declaration": "TILE_INSIGHT(1000)"
+        },
+        {
+          "line": 831,
+          "declaration": "UNRECOGNIZED(-1)"
+        }
+      ],
+      "getters": []
+    },
+    {
+      "source_class": "com.waze.jni.protos.navigate.NavigationRouteOrBuilder",
+      "source_sha256": "b8b4811227b67d24fd24a3ab991bbe22105421fe466bac683183fd86976105d3",
+      "enum_declarations": [],
+      "getters": [
+        {
+          "line": 12,
+          "signature": "long getAltId()"
+        },
+        {
+          "line": 14,
+          "signature": "RouteAttribute getAttributes(int i2)"
+        },
+        {
+          "line": 16,
+          "signature": "int getAttributesCount()"
+        },
+        {
+          "line": 18,
+          "signature": "List<RouteAttribute> getAttributesList()"
+        },
+        {
+          "line": 20,
+          "signature": "int getCarbonEmissionsGrams()"
+        },
+        {
+          "line": 22,
+          "signature": "is getCompaninioRoute()"
+        },
+        {
+          "line": 24,
+          "signature": "long getDestId()"
+        },
+        {
+          "line": 26,
+          "signature": "EventOnRoute getEvents(int i2)"
+        },
+        {
+          "line": 28,
+          "signature": "int getEventsCount()"
+        },
+        {
+          "line": 30,
+          "signature": "List<EventOnRoute> getEventsList()"
+        },
+        {
+          "line": 32,
+          "signature": "PolylineGeometry getGeometry()"
+        },
+        {
+          "line": 34,
+          "signature": "RoutingPopup getPopup()"
+        },
+        {
+          "line": 36,
+          "signature": "String getRequiredPermits(int i2)"
+        },
+        {
+          "line": 38,
+          "signature": "v getRequiredPermitsBytes(int i2)"
+        },
+        {
+          "line": 40,
+          "signature": "int getRequiredPermitsCount()"
+        },
+        {
+          "line": 42,
+          "signature": "List<String> getRequiredPermitsList()"
+        },
+        {
+          "line": 44,
+          "signature": "String getRouteUUID()"
+        },
+        {
+          "line": 46,
+          "signature": "v getRouteUUIDBytes()"
+        },
+        {
+          "line": 48,
+          "signature": "RouteSegment getSegments(int i2)"
+        },
+        {
+          "line": 50,
+          "signature": "int getSegmentsCount()"
+        },
+        {
+          "line": 52,
+          "signature": "List<RouteSegment> getSegmentsList()"
+        },
+        {
+          "line": 54,
+          "signature": "long getTotalLengthMeters()"
+        },
+        {
+          "line": 56,
+          "signature": "long getTotalTimeSeconds()"
+        },
+        {
+          "line": 58,
+          "signature": "String getVia()"
+        },
+        {
+          "line": 60,
+          "signature": "v getViaBytes()"
+        },
+        {
+          "line": 62,
+          "signature": "RouteWaypoint getWaypoints(int i2)"
+        },
+        {
+          "line": 64,
+          "signature": "int getWaypointsCount()"
+        },
+        {
+          "line": 66,
+          "signature": "List<RouteWaypoint> getWaypointsList()"
+        },
+        {
+          "line": 68,
+          "signature": "boolean hasCompaninioRoute()"
+        },
+        {
+          "line": 70,
+          "signature": "boolean hasGeometry()"
+        },
+        {
+          "line": 72,
+          "signature": "boolean hasPopup()"
+        }
+      ]
+    },
+    {
+      "source_class": "com.waze.jni.protos.navigate.EventOnRoute",
+      "source_sha256": "134be4bfcd25d60651e8a750c8add3ac5b4e278e0de8d75b057c1fd6e72c0c5c",
+      "enum_declarations": [
+        {
+          "line": 87,
+          "declaration": "NO_SUBTYPE(0)"
+        },
+        {
+          "line": 88,
+          "declaration": "POLICE_VISIBLE(1)"
+        },
+        {
+          "line": 89,
+          "declaration": "POLICE_HIDING(2)"
+        },
+        {
+          "line": 90,
+          "declaration": "ACCIDENT_MINOR(3)"
+        },
+        {
+          "line": 91,
+          "declaration": "ACCIDENT_MAJOR(4)"
+        },
+        {
+          "line": 92,
+          "declaration": "JAM_MODERATE_TRAFFIC(5)"
+        },
+        {
+          "line": 93,
+          "declaration": "JAM_HEAVY_TRAFFIC(6)"
+        },
+        {
+          "line": 94,
+          "declaration": "JAM_STAND_STILL_TRAFFIC(7)"
+        },
+        {
+          "line": 95,
+          "declaration": "JAM_LIGHT_TRAFFIC(8)"
+        },
+        {
+          "line": 96,
+          "declaration": "HAZARD_ON_ROAD(9)"
+        },
+        {
+          "line": 97,
+          "declaration": "HAZARD_ON_SHOULDER(10)"
+        },
+        {
+          "line": 98,
+          "declaration": "HAZARD_WEATHER(11)"
+        },
+        {
+          "line": 99,
+          "declaration": "HAZARD_ON_ROAD_OBJECT(12)"
+        },
+        {
+          "line": 100,
+          "declaration": "HAZARD_ON_ROAD_POT_HOLE(13)"
+        },
+        {
+          "line": 101,
+          "declaration": "HAZARD_ON_ROAD_ROAD_KILL(14)"
+        },
+        {
+          "line": 102,
+          "declaration": "HAZARD_ON_SHOULDER_CAR_STOPPED(15)"
+        },
+        {
+          "line": 103,
+          "declaration": "HAZARD_ON_SHOULDER_ANIMALS(16)"
+        },
+        {
+          "line": 104,
+          "declaration": "HAZARD_ON_SHOULDER_MISSING_SIGN(17)"
+        },
+        {
+          "line": 105,
+          "declaration": "HAZARD_WEATHER_FOG(18)"
+        },
+        {
+          "line": 106,
+          "declaration": "HAZARD_WEATHER_HAIL(19)"
+        },
+        {
+          "line": 107,
+          "declaration": "HAZARD_WEATHER_HEAVY_RAIN(20)"
+        },
+        {
+          "line": 108,
+          "declaration": "HAZARD_WEATHER_HEAVY_SNOW(21)"
+        },
+        {
+          "line": 109,
+          "declaration": "HAZARD_WEATHER_FLOOD(22)"
+        },
+        {
+          "line": 110,
+          "declaration": "HAZARD_WEATHER_MONSOON(23)"
+        },
+        {
+          "line": 111,
+          "declaration": "HAZARD_WEATHER_TORNADO(24)"
+        },
+        {
+          "line": 112,
+          "declaration": "HAZARD_WEATHER_HEAT_WAVE(25)"
+        },
+        {
+          "line": 113,
+          "declaration": "HAZARD_WEATHER_HURRICANE(26)"
+        },
+        {
+          "line": 114,
+          "declaration": "HAZARD_WEATHER_FREEZING_RAIN(27)"
+        },
+        {
+          "line": 115,
+          "declaration": "HAZARD_ON_ROAD_LANE_CLOSED(28)"
+        },
+        {
+          "line": 116,
+          "declaration": "HAZARD_ON_ROAD_OIL(29)"
+        },
+        {
+          "line": 117,
+          "declaration": "HAZARD_ON_ROAD_ICE(30)"
+        },
+        {
+          "line": 118,
+          "declaration": "HAZARD_ON_ROAD_CONSTRUCTION(31)"
+        },
+        {
+          "line": 119,
+          "declaration": "HAZARD_ON_ROAD_CAR_STOPPED(32)"
+        },
+        {
+          "line": 120,
+          "declaration": "HAZARD_ON_ROAD_TRAFFIC_LIGHT_FAULT(33)"
+        },
+        {
+          "line": 121,
+          "declaration": "ROAD_CLOSED_HAZARD(34)"
+        },
+        {
+          "line": 122,
+          "declaration": "ROAD_CLOSED_CONSTRUCTION(35)"
+        },
+        {
+          "line": 123,
+          "declaration": "ROAD_CLOSED_EVENT(36)"
+        },
+        {
+          "line": 124,
+          "declaration": "PARKED_ON(37)"
+        },
+        {
+          "line": 125,
+          "declaration": "PARKED_OFF(38)"
+        },
+        {
+          "line": 126,
+          "declaration": "SOS_FLAT_TIRE(1601)"
+        },
+        {
+          "line": 127,
+          "declaration": "SOS_NO_FUEL(1602)"
+        },
+        {
+          "line": 128,
+          "declaration": "SOS_MEDICAL_HELP(1603)"
+        },
+        {
+          "line": 129,
+          "declaration": "SOS_MECHANICAL_PROBLEM(1604)"
+        },
+        {
+          "line": 130,
+          "declaration": "SOS_OTHER(1605)"
+        },
+        {
+          "line": 131,
+          "declaration": "SOS_BATTERY_ISSUE(1606)"
+        },
+        {
+          "line": 132,
+          "declaration": "UNRECOGNIZED(-1)"
+        },
+        {
+          "line": 320,
+          "declaration": "CHIT_CHAT(0)"
+        },
+        {
+          "line": 321,
+          "declaration": "POLICE(1)"
+        },
+        {
+          "line": 322,
+          "declaration": "ACCIDENT(2)"
+        },
+        {
+          "line": 323,
+          "declaration": "JAM(3)"
+        },
+        {
+          "line": 324,
+          "declaration": "TRAFFIC_INFO(4)"
+        },
+        {
+          "line": 325,
+          "declaration": "HAZARD(5)"
+        },
+        {
+          "line": 326,
+          "declaration": "MISC(6)"
+        },
+        {
+          "line": 327,
+          "declaration": "CONSTRUCTION(7)"
+        },
+        {
+          "line": 328,
+          "declaration": "PARKING(8)"
+        },
+        {
+          "line": 329,
+          "declaration": "DYNAMIC(9)"
+        },
+        {
+          "line": 330,
+          "declaration": "CAMERA(10)"
+        },
+        {
+          "line": 331,
+          "declaration": "PARKED(11)"
+        },
+        {
+          "line": 332,
+          "declaration": "ROAD_CLOSED(12)"
+        },
+        {
+          "line": 333,
+          "declaration": "UNKNOWN(13)"
+        },
+        {
+          "line": 334,
+          "declaration": "SYSTEM_ROAD_CLOSED(14)"
+        },
+        {
+          "line": 335,
+          "declaration": "SOS(15)"
+        },
+        {
+          "line": 336,
+          "declaration": "UNRECOGNIZED(-1)"
+        }
+      ],
+      "getters": []
+    },
+    {
+      "source_class": "com.waze.jni.protos.navigate.EventOnRouteOrBuilder",
+      "source_sha256": "f6891fa540cfba3cd26a7519afb4cec7d7c759893b83e3c089ace2ef327c37ca",
+      "enum_declarations": [],
+      "getters": [
+        {
+          "line": 9,
+          "signature": "long getAlertId()"
+        },
+        {
+          "line": 11,
+          "signature": "EventOnRoute.AlertSubType getAlertSubType()"
+        },
+        {
+          "line": 13,
+          "signature": "int getAlertSubTypeValue()"
+        },
+        {
+          "line": 15,
+          "signature": "EventOnRoute.AlertType getAlertType()"
+        },
+        {
+          "line": 17,
+          "signature": "int getAlertTypeValue()"
+        },
+        {
+          "line": 19,
+          "signature": "int getDuration()"
+        },
+        {
+          "line": 21,
+          "signature": "PolylineGeometry getGeometry()"
+        },
+        {
+          "line": 23,
+          "signature": "boolean getIsMajorEvent()"
+        },
+        {
+          "line": 25,
+          "signature": "boolean getIsPartialLaneClosure()"
+        },
+        {
+          "line": 27,
+          "signature": "long getJamId()"
+        },
+        {
+          "line": 29,
+          "signature": "Position.IntPosition getLocation()"
+        },
+        {
+          "line": 32,
+          "signature": "Position.IntPosition getPosEnd()"
+        },
+        {
+          "line": 35,
+          "signature": "Position.IntPosition getPosStart()"
+        },
+        {
+          "line": 37,
+          "signature": "double getRatioOnRoadEnd()"
+        },
+        {
+          "line": 39,
+          "signature": "double getRatioOnRoadStart()"
+        },
+        {
+          "line": 41,
+          "signature": "int getRoadInfoSeverity()"
+        },
+        {
+          "line": 43,
+          "signature": "boolean hasAlertId()"
+        },
+        {
+          "line": 45,
+          "signature": "boolean hasDuration()"
+        },
+        {
+          "line": 47,
+          "signature": "boolean hasGeometry()"
+        },
+        {
+          "line": 49,
+          "signature": "boolean hasIsMajorEvent()"
+        },
+        {
+          "line": 51,
+          "signature": "boolean hasIsPartialLaneClosure()"
+        },
+        {
+          "line": 53,
+          "signature": "boolean hasJamId()"
+        },
+        {
+          "line": 55,
+          "signature": "boolean hasLocation()"
+        },
+        {
+          "line": 58,
+          "signature": "boolean hasPosEnd()"
+        },
+        {
+          "line": 61,
+          "signature": "boolean hasPosStart()"
+        },
+        {
+          "line": 63,
+          "signature": "boolean hasRatioOnRoadEnd()"
+        },
+        {
+          "line": 65,
+          "signature": "boolean hasRatioOnRoadStart()"
+        },
+        {
+          "line": 67,
+          "signature": "boolean hasRoadInfoSeverity()"
+        }
+      ]
+    },
+    {
+      "source_class": "com.waze.jni.protos.navigate.EventOnRouteDataProtoOrBuilder",
+      "source_sha256": "b604ac6ba6e8c54ff7dfc45d4fc8c787c461751babf18211fe96764eb18c86af",
+      "enum_declarations": [],
+      "getters": [
+        {
+          "line": 8,
+          "signature": "int getAlertId()"
+        },
+        {
+          "line": 10,
+          "signature": "int getAlertRouteId()"
+        },
+        {
+          "line": 12,
+          "signature": "int getAlertType()"
+        },
+        {
+          "line": 14,
+          "signature": "int getDurationSeconds()"
+        },
+        {
+          "line": 16,
+          "signature": "int getEnd()"
+        },
+        {
+          "line": 18,
+          "signature": "int getPercentage()"
+        },
+        {
+          "line": 20,
+          "signature": "int getSeverity()"
+        },
+        {
+          "line": 22,
+          "signature": "int getStart()"
+        }
+      ]
+    },
+    {
+      "source_class": "com.waze.jni.protos.navigate.TrafficZoneUpdateOrBuilder",
+      "source_sha256": "9e26b869ced1188a575f3a684294c23bc8e4f75198de031d72706d8e9f5d365a",
+      "enum_declarations": [],
+      "getters": [
+        {
+          "line": 9,
+          "signature": "TrafficJamSection getJams(int i2)"
+        },
+        {
+          "line": 11,
+          "signature": "int getJamsCount()"
+        },
+        {
+          "line": 13,
+          "signature": "List<TrafficJamSection> getJamsList()"
+        },
+        {
+          "line": 15,
+          "signature": "int getPercentInTraffic()"
+        },
+        {
+          "line": 17,
+          "signature": "int getTotalTimeSec()"
+        },
+        {
+          "line": 19,
+          "signature": "boolean hasPercentInTraffic()"
+        },
+        {
+          "line": 21,
+          "signature": "boolean hasTotalTimeSec()"
+        }
+      ]
+    },
+    {
+      "source_class": "com.waze.jni.protos.navigate.TrafficJamSectionOrBuilder",
+      "source_sha256": "ce8e6e8b8ebe50abd02d2f5f64137c33a35778cab1aa69e2ce1aec58892db856",
+      "enum_declarations": [],
+      "getters": [
+        {
+          "line": 9,
+          "signature": "int getAlertSubType()"
+        },
+        {
+          "line": 11,
+          "signature": "AlerterType getAlertType()"
+        },
+        {
+          "line": 13,
+          "signature": "int getAlertTypeValue()"
+        },
+        {
+          "line": 15,
+          "signature": "int getLengthMeters()"
+        },
+        {
+          "line": 17,
+          "signature": "TrafficJamSection.Severity getLevel()"
+        },
+        {
+          "line": 19,
+          "signature": "int getLevelValue()"
+        },
+        {
+          "line": 21,
+          "signature": "boolean hasAlertSubType()"
+        },
+        {
+          "line": 23,
+          "signature": "boolean hasAlertType()"
+        },
+        {
+          "line": 25,
+          "signature": "boolean hasLengthMeters()"
+        },
+        {
+          "line": 27,
+          "signature": "boolean hasLevel()"
+        }
+      ]
+    },
+    {
+      "source_class": "com.waze.jni.protos.NavigationSegmentOrBuilder",
+      "source_sha256": "e16eef12a47513644ba52cd39df7e6640cfa2ad6d87b906e0c3e548965652c70",
+      "enum_declarations": [],
+      "getters": [
+        {
+          "line": 8,
+          "signature": "boolean getIsReversed()"
+        },
+        {
+          "line": 10,
+          "signature": "Position.IntPosition getLineEndCoordinate()"
+        },
+        {
+          "line": 12,
+          "signature": "int getLineEndNodeId()"
+        },
+        {
+          "line": 14,
+          "signature": "int getLineId()"
+        },
+        {
+          "line": 16,
+          "signature": "Position.IntPosition getLineStartCoordinate()"
+        },
+        {
+          "line": 18,
+          "signature": "int getLineStartNodeId()"
+        },
+        {
+          "line": 20,
+          "signature": "int getTileId()"
+        },
+        {
+          "line": 22,
+          "signature": "boolean hasIsReversed()"
+        },
+        {
+          "line": 24,
+          "signature": "boolean hasLineEndCoordinate()"
+        },
+        {
+          "line": 26,
+          "signature": "boolean hasLineEndNodeId()"
+        },
+        {
+          "line": 28,
+          "signature": "boolean hasLineId()"
+        },
+        {
+          "line": 30,
+          "signature": "boolean hasLineStartCoordinate()"
+        },
+        {
+          "line": 32,
+          "signature": "boolean hasLineStartNodeId()"
+        },
+        {
+          "line": 34,
+          "signature": "boolean hasTileId()"
+        }
+      ]
+    },
+    {
+      "source_class": "com.waze.jni.protos.navigate.TollPriceInformationOrBuilder",
+      "source_sha256": "631e061941d45a4f41b7c520322ff8ca63db0f9269ea5540df21293420da5a7b",
+      "enum_declarations": [],
+      "getters": [
+        {
+          "line": 9,
+          "signature": "String getActionUrl()"
+        },
+        {
+          "line": 11,
+          "signature": "v getActionUrlBytes()"
+        },
+        {
+          "line": 13,
+          "signature": "String getPassBasedMissingPassName()"
+        },
+        {
+          "line": 15,
+          "signature": "v getPassBasedMissingPassNameBytes()"
+        },
+        {
+          "line": 17,
+          "signature": "double getPassBasedPriceChangeToPrice()"
+        },
+        {
+          "line": 19,
+          "signature": "String getPassBasedUserPassName()"
+        },
+        {
+          "line": 21,
+          "signature": "v getPassBasedUserPassNameBytes()"
+        },
+        {
+          "line": 23,
+          "signature": "int getPopupId()"
+        },
+        {
+          "line": 25,
+          "signature": "double getTimeBasedPriceChangeAtSeconds()"
+        },
+        {
+          "line": 27,
+          "signature": "double getTimeBasedPriceChangeToPrice()"
+        },
+        {
+          "line": 29,
+          "signature": "String getTollCurrencyCode()"
+        },
+        {
+          "line": 31,
+          "signature": "v getTollCurrencyCodeBytes()"
+        },
+        {
+          "line": 33,
+          "signature": "double getTollPrice()"
+        },
+        {
+          "line": 35,
+          "signature": "String getTollRoadName()"
+        },
+        {
+          "line": 37,
+          "signature": "v getTollRoadNameBytes()"
+        },
+        {
+          "line": 39,
+          "signature": "boolean hasActionUrl()"
+        },
+        {
+          "line": 41,
+          "signature": "boolean hasPassBasedMissingPassName()"
+        },
+        {
+          "line": 43,
+          "signature": "boolean hasPassBasedPriceChangeToPrice()"
+        },
+        {
+          "line": 45,
+          "signature": "boolean hasPassBasedUserPassName()"
+        },
+        {
+          "line": 47,
+          "signature": "boolean hasPopupId()"
+        },
+        {
+          "line": 49,
+          "signature": "boolean hasTimeBasedPriceChangeAtSeconds()"
+        },
+        {
+          "line": 51,
+          "signature": "boolean hasTimeBasedPriceChangeToPrice()"
+        },
+        {
+          "line": 53,
+          "signature": "boolean hasTollCurrencyCode()"
+        },
+        {
+          "line": 55,
+          "signature": "boolean hasTollPrice()"
+        },
+        {
+          "line": 57,
+          "signature": "boolean hasTollRoadName()"
+        }
+      ]
+    },
+    {
+      "source_class": "com.waze.jni.protos.navigate.NavigationLaneOrBuilder",
+      "source_sha256": "0112384555f813223e2673bf4758234a02ecec5e0adb3adc4a39cc3551889f58",
+      "enum_declarations": [],
+      "getters": [
+        {
+          "line": 9,
+          "signature": "NavigationLaneAngle getAngle(int i2)"
+        },
+        {
+          "line": 11,
+          "signature": "int getAngleCount()"
+        },
+        {
+          "line": 13,
+          "signature": "List<NavigationLaneAngle> getAngleList()"
+        },
+        {
+          "line": 15,
+          "signature": "int getIndex()"
+        }
+      ]
+    }
+  ],
+  "artifact_verification": {
+    "base_apk_sha256": "5ab9853c76a3f83a493e1872f232bbbde96ec61245cbca117aa39e176cdfe9c4",
+    "signature_verified": true,
+    "signing_certificate_sha256": "03637f6c5d8f604e6fdb79a6ffbfa578de4e318f8da22fc6106665247f8807d7",
+    "package_badging": "package: name='com.waze' versionCode='1030746' versionName='5.26.90.901' platformBuildVersionName='DEV' platformBuildVersionCode='37' compileSdkVersion='37' compileSdkVersionCodename='DEV'"
+  }
+}

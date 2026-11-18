@@ -1,0 +1,974 @@
+{
+  "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
+  "version": "1.40.2",
+  "patches": [
+    {
+      "name": "Coffee startup support",
+      "description": "Restores version-specific Unity startup after re-signing.",
+      "default": false,
+      "dependencies": [
+        "RawResourcePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.tapblaze.coffeebusiness",
+          "name": "Good Coffee, Great Coffee",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#98704C",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "1.24.0",
+              "versionCodes": {
+                "ARM64_V8A": 1397
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": "Requires complete ARM64 APKM/XAPK initialization resources."
+            },
+            {
+              "version": "1.25.1",
+              "versionCodes": {
+                "ARM64_V8A": 1454
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": "Requires complete ARM64 APKM/XAPK initialization resources."
+            },
+            {
+              "version": "1.26.0",
+              "versionCodes": {
+                "ARM64_V8A": 1504
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": "Requires complete ARM64 APKM/XAPK initialization resources."
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Faster action feedback",
+      "description": "Shortens the action button's local progress feedback from 0.3 to 0.125 seconds.",
+      "default": false,
+      "dependencies": [
+        "RawResourcePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.tinyco.potter",
+          "name": "Harry Potter: Hogwarts Mystery",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#709CA0",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "7.3.4",
+              "versionCodes": {
+                "ARM64_V8A": 7030400,
+                "X86_64": 7030400
+              },
+              "isExperimental": true,
+              "minSdk": null,
+              "description": "Requires the original 7.3.4 APKM and an ARM64 or x86_64 device."
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Faster dialogue text",
+      "description": "Reveals dialogue text at 100 characters per second. Dialogue choices and manual advancement remain available.",
+      "default": false,
+      "dependencies": [
+        "RawResourcePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.tinyco.potter",
+          "name": "Harry Potter: Hogwarts Mystery",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#709CA0",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "7.3.4",
+              "versionCodes": {
+                "ARM64_V8A": 7030400,
+                "X86_64": 7030400
+              },
+              "isExperimental": true,
+              "minSdk": null,
+              "description": "Requires the original 7.3.4 APKM and an ARM64 or x86_64 device."
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Faster interaction fades",
+      "description": "Speeds up the brief pause and fade in the action-button completion animation.",
+      "default": false,
+      "dependencies": [
+        "RawResourcePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.tinyco.potter",
+          "name": "Harry Potter: Hogwarts Mystery",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#709CA0",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "7.3.4",
+              "versionCodes": {
+                "ARM64_V8A": 7030400,
+                "X86_64": 7030400
+              },
+              "isExperimental": true,
+              "minSdk": null,
+              "description": "Requires the original 7.3.4 APKM and an ARM64 or x86_64 device."
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "speed",
+          "title": "Interaction fade speed",
+          "description": "Each stage takes 0.5 seconds on Normal, 0.25 on Fast, or 0.125 on Very Fast.",
+          "required": true,
+          "type": "kotlin.String",
+          "default": "fast",
+          "values": {
+            "Normal": "normal",
+            "Fast": "fast",
+            "Very Fast": "very-fast"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Faster lesson feedback",
+      "description": "Shortens the pauses after focus minigames and lesson banners while keeping earned grades and lesson progress.",
+      "default": false,
+      "dependencies": [
+        "RawResourcePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.tinyco.potter",
+          "name": "Harry Potter: Hogwarts Mystery",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#709CA0",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "7.3.4",
+              "versionCodes": {
+                "ARM64_V8A": 7030400,
+                "X86_64": 7030400
+              },
+              "isExperimental": true,
+              "minSdk": null,
+              "description": "Requires the original 7.3.4 APKM and an ARM64 or x86_64 device."
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Google Calendar authentication via MicroG-RE",
+      "description": "Routes Calendar token requests and invalidation through MicroG-RE 7.1.1+. Requires Google Play services and the same account in Android and MicroG-RE.",
+      "default": false,
+      "dependencies": [
+        "BytecodePatch",
+        "ResourcePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.google.android.calendar",
+          "name": "Google Calendar",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#4285F4",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "2026.37.0-984865732-release",
+              "versionCodes": {
+                "ARM64_V8A": 2018314914,
+                "ARMEABI_V7A": 2018314914,
+                "X86_64": 2018314914,
+                "X86": 2018314914
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Google Play Games via MicroG-RE",
+      "description": "Routes Google Play Games sign-in and player/server authorization through MicroG-RE 7.1.0+. Requires app.revanced.android.gms.",
+      "default": true,
+      "dependencies": [
+        "BytecodePatch",
+        "ResourcePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.tapblaze.coffeebusiness",
+          "name": "Good Coffee, Great Coffee",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#98704C",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "1.24.0",
+              "versionCodes": {
+                "ARM64_V8A": 1397
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": "Requires complete ARM64 APKM/XAPK initialization resources."
+            },
+            {
+              "version": "1.25.1",
+              "versionCodes": {
+                "ARM64_V8A": 1454
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": "Requires complete ARM64 APKM/XAPK initialization resources."
+            },
+            {
+              "version": "1.26.0",
+              "versionCodes": {
+                "ARM64_V8A": 1504
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": "Requires complete ARM64 APKM/XAPK initialization resources."
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Google Play Games via MicroG-RE",
+      "description": "Routes Google Play Games sign-in and player/server authorization through MicroG-RE 7.1.0+ and suppresses obsolete stock Play services update prompts. Requires app.revanced.android.gms.",
+      "default": true,
+      "dependencies": [
+        "BytecodePatch",
+        "ResourcePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.tapblaze.pizzabusiness",
+          "name": "Good Pizza, Great Pizza",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#B47454",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "5.57.3",
+              "versionCodes": {
+                "ARM64_V8A": 2277
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": "Requires complete ARM64 APKM/XAPK initialization resources."
+            },
+            {
+              "version": "5.58.0",
+              "versionCodes": {
+                "ARM64_V8A": 2301
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": "Requires complete ARM64 APKM/XAPK initialization resources."
+            },
+            {
+              "version": "5.59.0",
+              "versionCodes": {
+                "ARM64_V8A": 2322
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": "Requires complete ARM64 APKM/XAPK initialization resources."
+            },
+            {
+              "version": "5.59.2",
+              "versionCodes": {
+                "ARM64_V8A": 2337
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": "Requires the complete verified ARM64 APK/APKM/XAPK, including game assets."
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Hide Premium prompts",
+      "description": "Hides Premium offers and the menu entry. Removes the trial notification on launch.",
+      "default": false,
+      "dependencies": [
+        "BytecodePatch",
+        "ResourcePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "pl.mapa_turystyczna.app",
+          "name": "Mapa Turystyczna",
+          "description": "Hiking routes, trail maps and GPS navigation.",
+          "apkFileType": "XAPK",
+          "appIconColor": "#62A744",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "1.16.6",
+              "versionCodes": {
+                "ARM64_V8A": 153,
+                "ARMEABI_V7A": 153,
+                "X86_64": 153,
+                "X86": 153
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Hide automatic paid greeting",
+      "description": "Hides the paid greeting and two verified automatic starter offers. The shop and manually opened offers remain available.",
+      "default": false,
+      "dependencies": [
+        "RawResourcePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.tinyco.potter",
+          "name": "Harry Potter: Hogwarts Mystery",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#709CA0",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "7.3.4",
+              "versionCodes": {
+                "ARM64_V8A": 7030400,
+                "X86_64": 7030400
+              },
+              "isExperimental": true,
+              "minSdk": null,
+              "description": "Requires the original 7.3.4 APKM and an ARM64 or x86_64 device."
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Hide paid offers",
+      "description": "Hides real-money storefront sections and cancels Google Play checkout. Keeps in-game currency exchanges and existing purchase processing. Requires a supported ARM64 Pizza build.",
+      "default": true,
+      "dependencies": [
+        "BytecodePatch",
+        "RawResourcePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.tapblaze.pizzabusiness",
+          "name": "Good Pizza, Great Pizza",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#B47454",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "5.57.3",
+              "versionCodes": {
+                "ARM64_V8A": 2277
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": "Requires complete ARM64 APKM/XAPK initialization resources."
+            },
+            {
+              "version": "5.58.0",
+              "versionCodes": {
+                "ARM64_V8A": 2301
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": "Requires complete ARM64 APKM/XAPK initialization resources."
+            },
+            {
+              "version": "5.59.0",
+              "versionCodes": {
+                "ARM64_V8A": 2322
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": "Requires complete ARM64 APKM/XAPK initialization resources."
+            },
+            {
+              "version": "5.59.2",
+              "versionCodes": {
+                "ARM64_V8A": 2337
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": "Requires the complete verified ARM64 APK/APKM/XAPK, including game assets."
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Keep DM scroll position",
+      "description": "Prevents Instagram Direct from jumping to the newest message after replying to an older message. Requires Piko Add settings in the same patching run.",
+      "default": true,
+      "dependencies": [
+        "ResourcePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.instagram.android",
+          "name": "Instagram",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#FC483C",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "447.0.0.55.81",
+              "versionCodes": {
+                "ARM64_V8A": 385311895
+              },
+              "isExperimental": true,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "439.0.0.37.89",
+              "versionCodes": {
+                "ARM64_V8A": 384510827
+              },
+              "isExperimental": true,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Keep TikTok DM scroll position",
+      "description": "Keeps your position while reading older messages, including after sending messages and replies. Compatible with kveld9 patches.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.zhiliaoapp.musically",
+          "name": "TikTok",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FE2C55",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "47.0.3",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Local Premium",
+      "description": "Enables local Premium checks for navigation, offline map controls and ads. Does not activate a subscription on your account. Experimental; device testing needed.",
+      "default": false,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "pl.mapa_turystyczna.app",
+          "name": "Mapa Turystyczna",
+          "description": "Hiking routes, trail maps and GPS navigation.",
+          "apkFileType": "XAPK",
+          "appIconColor": "#62A744",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "1.16.6",
+              "versionCodes": {
+                "ARM64_V8A": 153,
+                "ARMEABI_V7A": 153,
+                "X86_64": 153,
+                "X86": 153
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "No energy consumption",
+      "description": "Keeps action costs without debiting energy. By default, each tap advances one point, even at an empty balance.",
+      "default": false,
+      "dependencies": [
+        "RawResourcePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.tinyco.potter",
+          "name": "Harry Potter: Hogwarts Mystery",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#709CA0",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "7.3.4",
+              "versionCodes": {
+                "ARM64_V8A": 7030400,
+                "X86_64": 7030400
+              },
+              "isExperimental": true,
+              "minSdk": null,
+              "description": "Requires the original 7.3.4 APKM and an ARM64 or x86_64 device."
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "tapMode",
+          "title": "Interaction taps",
+          "description": "Advance one point per tap and show progress out of the original cost, or follow the game's tap setting.",
+          "required": true,
+          "type": "kotlin.String",
+          "default": "manual",
+          "values": {
+            "One point per tap": "manual",
+            "Game default": "game"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Non-blocking update notice",
+      "description": "Replaces Coffee's blocking update/install notice with one short toast and continues loading the game.",
+      "default": true,
+      "dependencies": [
+        "BytecodePatch",
+        "RawResourcePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.tapblaze.coffeebusiness",
+          "name": "Good Coffee, Great Coffee",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#98704C",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "1.26.0",
+              "versionCodes": {
+                "ARM64_V8A": 1504
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": "Requires complete ARM64 APKM/XAPK initialization resources."
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Non-blocking update notice",
+      "description": "Replaces Pizza's blocking game-update notice with one short toast and continues loading.",
+      "default": true,
+      "dependencies": [
+        "BytecodePatch",
+        "RawResourcePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.tapblaze.pizzabusiness",
+          "name": "Good Pizza, Great Pizza",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#B47454",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "5.59.2",
+              "versionCodes": {
+                "ARM64_V8A": 2337
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": "Requires the complete verified ARM64 APK/APKM/XAPK, including game assets."
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Play Store Fix",
+      "description": "Removes the Google Play installation check that blocks patched APKs at startup.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "pro.vitalii.andropods",
+          "name": "AndroPods",
+          "description": "AirPods battery status and controls on Android.",
+          "apkFileType": "XAPK",
+          "appIconColor": "#1DA1F2",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "1.5.30",
+              "versionCodes": {
+                "ARM64_V8A": 86,
+                "ARMEABI_V7A": 86,
+                "X86_64": 86,
+                "X86": 86
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Premium",
+      "description": "Enables Pro features, including after a purchase status refresh.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "pro.vitalii.andropods",
+          "name": "AndroPods",
+          "description": "AirPods battery status and controls on Android.",
+          "apkFileType": "XAPK",
+          "appIconColor": "#1DA1F2",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "1.5.30",
+              "versionCodes": {
+                "ARM64_V8A": 86,
+                "ARMEABI_V7A": 86,
+                "X86_64": 86,
+                "X86": 86
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Quicker outfit previews",
+      "description": "Shortens avatar preview camera transitions when changing clothing categories or slots.",
+      "default": false,
+      "dependencies": [
+        "RawResourcePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.tinyco.potter",
+          "name": "Harry Potter: Hogwarts Mystery",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#709CA0",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "7.3.4",
+              "versionCodes": {
+                "ARM64_V8A": 7030400,
+                "X86_64": 7030400
+              },
+              "isExperimental": true,
+              "minSdk": null,
+              "description": "Requires the original 7.3.4 APKM and an ARM64 or x86_64 device."
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Quicker reward reveals",
+      "description": "Shortens three pauses in the reward reveal screen while keeping the original reward and collection flow.",
+      "default": false,
+      "dependencies": [
+        "RawResourcePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.tinyco.potter",
+          "name": "Harry Potter: Hogwarts Mystery",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#709CA0",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "7.3.4",
+              "versionCodes": {
+                "ARM64_V8A": 7030400,
+                "X86_64": 7030400
+              },
+              "isExperimental": true,
+              "minSdk": null,
+              "description": "Requires the original 7.3.4 APKM and an ARM64 or x86_64 device."
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Repair negative stars once",
+      "description": "Repairs a negative saved star balance to 2 when the garden reads it, once per installation, and skips the local unofficial-install dialog. No level completion needed. Gardenscapes 9.9.0 ARM64 only. Experimental.",
+      "default": true,
+      "dependencies": [
+        "BytecodePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.playrix.gardenscapes",
+          "name": "Gardenscapes",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#58A433",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "9.9.0",
+              "versionCodes": null,
+              "isExperimental": true,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Skip local quest waits",
+      "description": "Experimental. Finishes the local countdown for an already eligible quest through its normal expiry path. Objective cooldowns and event schedules still apply.",
+      "default": false,
+      "dependencies": [
+        "RawResourcePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.tinyco.potter",
+          "name": "Harry Potter: Hogwarts Mystery",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#709CA0",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "7.3.4",
+              "versionCodes": {
+                "ARM64_V8A": 7030400,
+                "X86_64": 7030400
+              },
+              "isExperimental": true,
+              "minSdk": null,
+              "description": "Requires the original 7.3.4 APKM and an ARM64 or x86_64 device."
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Skip rewarded ads",
+      "description": "Completes the requested rewarded-video flow locally using the game's callbacks.",
+      "default": true,
+      "dependencies": [
+        "BytecodePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.tapblaze.coffeebusiness",
+          "name": "Good Coffee, Great Coffee",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#98704C",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "1.24.0",
+              "versionCodes": {
+                "ARM64_V8A": 1397
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": "Requires complete ARM64 APKM/XAPK initialization resources."
+            },
+            {
+              "version": "1.25.1",
+              "versionCodes": {
+                "ARM64_V8A": 1454
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": "Requires complete ARM64 APKM/XAPK initialization resources."
+            },
+            {
+              "version": "1.26.0",
+              "versionCodes": {
+                "ARM64_V8A": 1504
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": "Requires complete ARM64 APKM/XAPK initialization resources."
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Skip rewarded ads",
+      "description": "Completes the game's rewarded-video flow without playing an ad, keeping the requested placement and normal reward. Includes re-signed startup support.",
+      "default": true,
+      "dependencies": [
+        "BytecodePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.tapblaze.pizzabusiness",
+          "name": "Good Pizza, Great Pizza",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#B47454",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "5.57.3",
+              "versionCodes": {
+                "ARM64_V8A": 2277
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": "Requires complete ARM64 APKM/XAPK initialization resources."
+            },
+            {
+              "version": "5.58.0",
+              "versionCodes": {
+                "ARM64_V8A": 2301
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": "Requires complete ARM64 APKM/XAPK initialization resources."
+            },
+            {
+              "version": "5.59.0",
+              "versionCodes": {
+                "ARM64_V8A": 2322
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": "Requires complete ARM64 APKM/XAPK initialization resources."
+            },
+            {
+              "version": "5.59.2",
+              "versionCodes": {
+                "ARM64_V8A": 2337
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": "Requires the complete verified ARM64 APK/APKM/XAPK, including game assets."
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Stabilize schedule widget",
+      "description": "Rebuilds schedule widget row contents on Android 16+ to work around missing tiles, deformed tile backgrounds and recycled layout corruption. Intended for Realme UI 7. Does not reset the widget.",
+      "default": true,
+      "dependencies": [
+        "ResourcePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.google.android.calendar",
+          "name": "Google Calendar",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#4285F4",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "2026.37.0-984865732-release",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    }
+  ]
+}

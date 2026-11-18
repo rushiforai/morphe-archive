@@ -460,6 +460,8 @@ Going to that date	Gehe zu diesem Datum
 Sort reels on profiles	Reels auf Profilen sortieren
 Puts the arrow next to Reels on every profile, so you can sort them by Latest or Most viewed where Instagram took the choice away.	Zeigt auf jedem Profil den Pfeil neben Reels, damit du sie nach Neueste oder Meistgesehen sortieren kannst, auch wo Instagram die Auswahl entfernt hat.
 The cards of people and creators to follow that Instagram puts between reels. Every reel still plays.	Die Karten mit Personen und Creators zum Folgen, die Instagram zwischen Reels einfügt. Jedes Reel wird weiter abgespielt.
+Hide stories in Reels	Stories in Reels ausblenden
+The Catch up with friends pages of stories that Instagram puts between reels. Stories stay at the top of Home.	Die Seiten mit Stories von Freunden, die Instagram zwischen Reels einfügt. Stories bleiben oben auf der Startseite.
 Leaves out reels with a Paid partnership label, and reels Instagram marks as boosted. Ads have their own switch.	Lässt Reels mit dem Hinweis „Bezahlte Partnerschaft“ weg, und Reels, die Instagram als beworben markiert. Werbung hat einen eigenen Schalter.
 Turn on Start Home on Following to use this choice.	Aktiviere „Startseite mit ‚Gefolgt‘ öffnen“, um diese Auswahl zu nutzen.
 # context: Settings page: the summary of a greyed-out slider in place of its value; %1$s is the title of the switch it waits on, like Glass tab bar
@@ -560,7 +562,7 @@ Gives reels the seek bar of a video in a chat, a thin gray line that turns white
 Seek bar on photos with music	Zeitleiste bei Fotos mit Musik
 Reels that are a photo with a song get the same seek bar and time as a video reel, following the song. Drag it to seek.	Reels, die aus einem Foto mit einem Song bestehen, bekommen dieselbe Zeitleiste und Zeit wie ein Video-Reel, passend zum Song. Zum Spulen ziehen.
 Hide the seek bar on reels	Zeitleiste bei Reels ausblenden
-Takes the seek bar off the bottom of every reel, long ones too. Hold a reel to bring it back and seek. Keep a seek bar and the seek bar looks above win over it.	Nimmt die Zeitleiste vom unteren Rand jedes Reels, auch bei langen. Halte ein Reel gedrückt, um sie zurückzuholen und zu spulen. Zeitleiste immer zeigen und die Zeitleisten-Stile darüber haben Vorrang.
+Takes the seek bar off the bottom of every reel, long ones too. Drag sideways along the bottom edge of a reel to bring it back and seek. Keep a seek bar and the seek bar looks above win over it. Restart Instagram to see the change.	Nimmt die Zeitleiste vom unteren Rand jedes Reels, auch bei langen. Zieh am unteren Rand eines Reels seitlich, um sie zurückzuholen und zu spulen. Zeitleiste immer zeigen und die Zeitleisten-Stile darüber haben Vorrang. Starte Instagram neu, um die Änderung zu sehen.
 Blur the bars around a reel	Balken um ein Reel weichzeichnen
 A reel that doesn't fill the screen shows a blurred copy of itself above and below it instead of black bars, and the strip under the tab bar and the band behind the clock show the reel blurred too. The copy shows only where a reel leaves room, as with Show the whole reel on. Open Reels again after a change.	Ein Reel, das den Bildschirm nicht ausfüllt, zeigt über und unter sich eine unscharfe Kopie von sich selbst statt schwarzer Balken, und auch der Streifen unter der Tab-Leiste und der Bereich hinter der Uhr zeigen das Reel unscharf. Die Kopie erscheint nur, wo ein Reel Platz lässt, etwa mit Ganzes Reel zeigen. Öffne Reels nach einer Änderung erneut.
 # Chosen navigation long-press settings entry. Account tab availability varies.
@@ -653,6 +655,8 @@ Stop after the chat's reels	Nach den Reels des Chats aufhören
 Reels you opened from a chat end after the last one shared in that chat, with no suggested reels after it. Works with Swipe through a chat's reels on.	Reels, die du aus einem Chat geöffnet hast, enden nach dem letzten in diesem Chat geteilten, ohne vorgeschlagene Reels danach. Funktioniert, wenn Durch die Reels eines Chats wischen an ist.
 Adds Download cover under Download. It saves the still picture a reel shows before it plays, at its largest size.	Fügt unter Herunterladen den Eintrag Cover herunterladen hinzu. Er speichert das Standbild, das ein Reel vor dem Abspielen zeigt, in der größten Auflösung.
 Adds Download audio under Download. It saves the sound of the reel as an audio file.	Fügt unter Herunterladen den Eintrag Audio herunterladen hinzu. Er speichert den Ton des Reels als Audiodatei.
+Download full song	Ganzen Song herunterladen
+Adds Download full song under Download on reels that use a song from Instagram's music. It saves the whole song as an audio file, not only the part the reel plays.	Fügt bei Reels mit einem Song aus der Instagram-Musik unter Herunterladen den Eintrag Ganzen Song herunterladen hinzu. Er speichert den ganzen Song als Audiodatei, nicht nur den Teil, den das Reel spielt.
 After the reels you pick below, swiping in Reels stops until Instagram has been in the background for the time you pick. A reel you open from a message or a post still plays.	Nach der unten gewählten Zahl Reels hört das Wischen in Reels auf, bis Instagram so lange im Hintergrund war, wie du wählst. Ein Reel, das du aus einer Nachricht oder einem Beitrag öffnest, läuft trotzdem.
 Find the reel you came from	Das Reel finden, von dem du kamst
 Open a creator's profile from a reel, then their Reels tab, and it scrolls to that reel and outlines it for a moment. A photo reel is found in their posts. Stop looking ends the search where it is.	Öffne aus einem Reel das Profil des Creators und dann seinen Reels-Tab, und der Tab scrollt zu diesem Reel und rahmt es kurz ein. Ein Foto-Reel wird in seinen Beiträgen gefunden. „Suche beenden“ beendet die Suche dort, wo sie gerade ist.
@@ -1200,6 +1204,8 @@ Open settings with a long press on your profile's menu	Einstellungen durch lange
 A long press on the menu button, the three lines at the top right of your own profile, opens HushGram. A tap still opens Instagram's menu, and other profiles stay the same.	Langes Drücken auf die Menütaste, die drei Striche oben rechts in deinem eigenen Profil, öffnet HushGram. Ein Tippen öffnet weiter Instagrams Menü, und andere Profile bleiben, wie sie sind.
 Hide the top bar on the Reels tab	Obere Leiste im Reels-Tab ausblenden
 Takes away the row at the top of the Reels tab, with the Reels title, the camera button and anything else Instagram puts there. Reels you open from a profile, a post or a chat keep theirs. The camera still opens from Home.	Entfernt die Zeile oben im Reels-Tab mit dem Reels-Titel, der Kamera-Schaltfläche und allem anderen, was Instagram dort zeigt. Reels, die du über ein Profil, einen Beitrag oder einen Chat öffnest, behalten sie. Die Kamera öffnet sich weiterhin über die Startseite.
+Hide the top bar on other reels	Obere Leiste bei anderen Reels ausblenden
+Takes the back arrow and the title off the top of reels you open from Explore, a profile, a post, Saved or a chat. Your phone's back button or gesture still goes back.	Entfernt den Zurück-Pfeil und den Titel oben bei Reels, die du über Entdecken, ein Profil, einen Beitrag, Gespeichert oder einen Chat öffnest. Die Zurück-Taste oder -Geste deines Handys führt weiterhin zurück.
 Hide the Create button on reels	Erstellen-Button bei Reels ausblenden
 Takes the plus button that opens the camera off the top of reels, on the Reels tab and everywhere else, and closes up the gap. The rest of the bar stays.	Entfernt den Plus-Button, der die Kamera öffnet, oben bei Reels, im Reels-Tab und überall sonst, und schließt die Lücke. Der Rest der Leiste bleibt.
 Hide Your algorithm on reels	Dein Algorithmus bei Reels ausblenden
@@ -2250,13 +2256,9 @@ Save profile	Profil speichern
 Saved @%s	@%s gespeichert
 # context: toast after Remove from saved takes an account off the Saved profiles list; %s is its username (#629)
 Removed @%s from saved	@%s aus Gespeichertem entfernt
-# context: row in the long press menu on an account on the Saved profiles page, and title of the folder list it opens (#629)
-Move to folder	In Ordner verschieben
-# context: title of the folder list Save profile opens on a profile's menu once the user has made a folder (#629)
+# context: title of the folder checklist Save profile opens on a profile's menu once the user has made a folder; the account can go in several (#629, #687)
 Save to folder	In Ordner speichern
-# context: first choice in that folder list; the saved account sits in no folder (#629)
-No folder	Kein Ordner
-# context: last choice in that folder list, and title of the dialog asking the new folder's name (#629)
+# context: button under a folder checklist, and title of the dialog asking the new folder's name (#629, #687)
 New folder	Neuer Ordner
 # context: row in the long press menu on a folder's chip on the Saved profiles page, and title of the dialog for its new name (#629)
 Rename folder	Ordner umbenennen
@@ -2264,14 +2266,20 @@ Rename folder	Ordner umbenennen
 Remove folder	Ordner entfernen
 # context: toast after Save profile puts an account in a folder; %1$s is its username, %2$s the folder's name (#629)
 Saved @%1$s to %2$s	@%1$s in %2$s gespeichert
-# context: toast after Move to folder; %1$s is the account's username, %2$s the folder's name (#629)
-Moved @%1$s to %2$s	@%1$s nach %2$s verschoben
-# context: toast after Move to folder > No folder; %s is the account's username, which stays saved (#629)
-Moved @%s out of its folder	@%s aus dem Ordner genommen
 # context: toast after Remove folder; %s is the folder's name, and its accounts stay saved (#629)
 Removed the folder %s	Ordner %s entfernt
 # context: toast after Rename folder; %s is the folder's new name (#629)
 Renamed the folder to %s	Ordner in %s umbenannt
+# context: row in the long press menu on an account on the Saved profiles page, and title of the folder checklist it opens; an account can be in several folders (#687)
+Choose folders	Ordner auswählen
+# context: toast after Choose folders with every folder unticked; %s is the account's username, which stays saved (#687)
+@%s is in no folder now	@%s ist jetzt in keinem Ordner
+# context: toast after Choose folders leaves the account in one folder; %1$s is its username, %2$s the folder's name (#687)
+@%1$s is in %2$s now	@%1$s ist jetzt in %2$s
+# context: toast after Choose folders leaves the account in two or more folders; %1$s is its username, %2$d how many (#687)
+@%1$s is in %2$d folders now	@%1$s ist jetzt in %2$d Ordnern
+# context: toast after Save profile puts an account in two or more folders; %1$s is its username, %2$d how many (#687)
+Saved @%1$s to %2$d folders	@%1$s in %2$d Ordnern gespeichert
 # context: toast when the Saved profiles list already holds 2,000 accounts (#629)
 Saved profiles is full.	Die Liste gespeicherter Profile ist voll.
 # context: Profiles > title of the switch that adds Save profile to the menu on profiles, and title of the page listing the saved accounts (#629)
@@ -2502,3 +2510,20 @@ No one has viewed half of this period's stories yet.	Noch niemand hat die Hälft
 # context: Feed: switch under Hide the home feed that keeps Instagram from learning which posts in Home you looked at and for how long (#664)
 Don't send feed view history	Feed-Ansichtsverlauf nicht senden
 Stops telling Instagram which posts in Home you looked at and for how long. Instagram uses that to pick what Home shows. Posts you've seen may come back.	Instagram erfährt nicht mehr, welche Beiträge auf der Startseite du dir angesehen hast und wie lange. Instagram nutzt das, um auszuwählen, was die Startseite zeigt. Gesehene Beiträge können wiederkommen.
+# context: Tab bar: switch under Hide the Messages tab that takes the unread count off the Messages button on the bottom tab bar (#734)
+Hide the Messages badge	Nachrichten-Badge ausblenden
+Takes the unread count off the Messages button on the tab bar. Chats still show as unread in your inbox, and notifications still come. Restart Instagram to see the change.	Entfernt die Zahl ungelesener Nachrichten von der Nachrichten-Taste in der Tab-Leiste. Chats bleiben in deinem Posteingang als ungelesen markiert, und Benachrichtigungen kommen weiter. Starte Instagram neu, um die Änderung zu sehen.
+# context: Ads and privacy settings: switch that adds a search box above Instagram's Blocked accounts list (Settings > Blocked), filtering it by username or full name; the same title is the box's hint text (#731)
+Search blocked accounts	Blockierte Konten durchsuchen
+Adds a search box above your blocked accounts in Instagram's settings. It finds them by username or name, and loads the rest of your list as you type.	Fügt über deinen blockierten Konten in den Instagram-Einstellungen ein Suchfeld hinzu. Es findet sie nach Benutzername oder Name und lädt beim Tippen den Rest deiner Liste.
+# context: the line under that search box. %1$d is how many blocked accounts match, %2$d how many have loaded. First while more pages are loading, then when Instagram stopped sending pages, then when the whole list is in (#731)
+Matches: %1$d of %2$d account loaded so far. Loading the rest of your list.	Treffer: %1$d von %2$d bisher geladenen Konto. Der Rest deiner Liste wird geladen.
+Matches: %1$d of %2$d accounts loaded so far. Loading the rest of your list.	Treffer: %1$d von %2$d bisher geladenen Konten. Der Rest deiner Liste wird geladen.
+Matches: %1$d of the %2$d account that loaded. Instagram didn't send the rest.	Treffer: %1$d von %2$d geladenen Konto. Instagram hat den Rest nicht geschickt.
+Matches: %1$d of the %2$d accounts that loaded. Instagram didn't send the rest.	Treffer: %1$d von %2$d geladenen Konten. Instagram hat den Rest nicht geschickt.
+Matches: %1$d of %2$d blocked account	Treffer: %1$d von %2$d blockierten Konto
+Matches: %1$d of %2$d blocked accounts	Treffer: %1$d von %2$d blockierten Konten
+# context: Profiles settings: switch that makes a long press on the picture at the top of a profile open HushGram's full size viewer with a Save button, in place of Instagram's own enlarged picture (#737)
+Long press a profile picture to view it	Profilbild durch langes Drücken ansehen
+# context: that switch summary (#737)
+Long press the picture at the top of a profile to open the whole square picture at full size, with Save under it, instead of Instagram's own preview. A tap works as before.	Drücke lange auf das Bild oben in einem Profil, um das ganze quadratische Bild in voller Größe mit „Speichern“ darunter zu öffnen, statt Instagrams eigener Vorschau. Ein Tippen funktioniert wie bisher.

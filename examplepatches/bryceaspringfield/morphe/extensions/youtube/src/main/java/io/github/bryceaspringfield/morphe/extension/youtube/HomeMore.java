@@ -120,7 +120,7 @@ final class HomeMore {
             // A tab the bar cannot name (null) passes when the last feed item read was a Home item.
             // 2026-11-16: a null tab no longer passes: a programmatic Home tap while another page was shown left the bar's
             // Home selected over the Subscriptions page (and the reverse).
-            if (tab != NavigationBar.NavigationButton.HOME) {
+            if (tab != NavigationBar.NavigationButton.HOME || !onHomePage()) {
                 atEndSince = 0;
                 return;
             }
@@ -172,6 +172,21 @@ final class HomeMore {
         } catch (Throwable t) {
             Logger.printDebug(() -> "YouTube Extras: Home batch check failed: " + t);
         }
+    }
+
+    /**
+     * Whether Home itself is shown: the bottom bar keeps naming Home while a video, a channel page, or the profile is open
+     * over it (2026-11-17: the check then took the video's comment list or a channel's list for the feed and pulled it down
+     * without a touch). The player must be minimized or closed, and the browse page must be Home's or unknown.
+     */
+    static boolean onHomePage() {
+        try {
+            if (app.morphe.extension.youtube.shared.PlayerType.getCurrent().isMaximizedOrFullscreen()) return false;
+        } catch (Throwable t) {
+            return false;
+        }
+        String id = BrowsePage.id();
+        return id.isEmpty() || id.equals("FEwhat_to_watch");
     }
 
     /** Scrolls a list to its top in screen-sized steps (a RecyclerView lays out the rows it passes). */

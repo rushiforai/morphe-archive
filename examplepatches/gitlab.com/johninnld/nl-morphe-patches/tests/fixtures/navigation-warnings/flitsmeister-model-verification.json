@@ -1,0 +1,94 @@
+{
+  "format": 1,
+  "original_base_sha256": "17f622c8072c9fd8bd121b872a3733a9a22aaff041d57560f6f3dd59a33ce1b7",
+  "original_apkm_sha256": "9fe7805e69e89b809d182a511a7b344b9e9a2c260bec0a240a6a217d62064f71",
+  "mpp_sha256": "fad24b9cc8f4c32c50dffe0e8c3350146c2b04b62f34ca7dbf16ccda9a032e26",
+  "candidate_and_installed_sha256": "07da10106ad703e3b898f743c6b1e3500ffa78f86eb51144d4fa63cee46232a9",
+  "probe_sha256": "5516f20721a79ca38b9b457c759f8ea7e14364607cadff1818559b814e60fdb3",
+  "raw_result_sha256": "9dc7f21eb263748b4ec02543fd76cebc1deeca8f6270f0818ce8c6f5f1d34826",
+  "runtime": {
+    "android_sdk": 34,
+    "owned_avd": "native_warnings_api34",
+    "native_configuration_bootstrap": "Original z80 singleton via t25.i; actual native Hilt feature preferences; no fake DI"
+  },
+  "original_transform_tests": {
+    "tests": 3,
+    "skipped": 0,
+    "failures": 0,
+    "roots": 15,
+    "dex_encoding_roundtrip": true,
+    "known_unlock_pro_variant": true
+  },
+  "patch_combinations": {
+    "default": {
+      "success": true,
+      "applied_patches": [
+        "Disable partner services",
+        "Disable tracking",
+        "Fix PairIP startup",
+        "Guest mode",
+        "Hide Pro notices",
+        "Support Gearslip and DriveDeck",
+        "Hide ads",
+        "Broadcast navigation data"
+      ],
+      "output_sha256": "07da10106ad703e3b898f743c6b1e3500ffa78f86eb51144d4fa63cee46232a9"
+    },
+    "with-pro": {
+      "success": true,
+      "applied_patches": [
+        "Disable partner services",
+        "Disable tracking",
+        "Fix PairIP startup",
+        "Guest mode",
+        "Hide Pro notices",
+        "Support Gearslip and DriveDeck",
+        "Unlock Pro",
+        "Hide ads",
+        "Broadcast navigation data"
+      ],
+      "output_sha256": "a1df551abdda5c4149c2ff40987cb4c22823b187a98b509cad6caa2f543e9b32"
+    }
+  },
+  "languages": {
+    "en": {
+      "process_uid": 10204,
+      "process_pid": 20872,
+      "adapter_calls": 161,
+      "original_inventory_members": 159,
+      "extra_lane_members": 3,
+      "families": {
+        "cameras": 82,
+        "incidents": 35,
+        "early": 17,
+        "services": 6,
+        "base_types": 19,
+        "lane_closed": 3
+      },
+      "all35_incident_fallbacks_match_native": true,
+      "roadworks_family_preserved": true,
+      "roadworks_native_resource_match": true
+    },
+    "nl": {
+      "process_uid": 10204,
+      "process_pid": 21003,
+      "adapter_calls": 161,
+      "original_inventory_members": 159,
+      "extra_lane_members": 3,
+      "families": {
+        "cameras": 82,
+        "incidents": 35,
+        "early": 17,
+        "services": 6,
+        "base_types": 19,
+        "lane_closed": 3
+      },
+      "all35_incident_fallbacks_match_native": true,
+      "roadworks_family_preserved": true,
+      "roadworks_native_resource_match": true
+    }
+  },
+  "acceptance_scope": "Actual native model/resources and installed adapter synthetic accepted-call acceptance. Does not prove native detector/category runtime, upstream callbacks, transport timing, audio or car behavior.",
+  "tested_manifest_metadata_digest": "6d585bf27903f35564241e73af5ebf6dba16f3351eb390eaf49c9cbc15985000",
+  "source_capability_complete": false
+}

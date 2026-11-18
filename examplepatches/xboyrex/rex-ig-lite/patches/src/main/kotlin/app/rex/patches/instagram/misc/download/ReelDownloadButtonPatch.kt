@@ -67,7 +67,11 @@ private const val ON_LONG_CLICK_PROPERTY = "ON_LONG_CLICK"
 private const val REEL_SAVE_BUTTON_ID = "save_button"
 
 private const val IS_ENABLED = "$REEL_DOWNLOAD_DESCRIPTOR->isEnabled()Z"
+private const val IS_OPTIONS_ENABLED = "$REEL_DOWNLOAD_DESCRIPTOR->isOptionsEnabled()Z"
 private const val REGISTER = "$REEL_DOWNLOAD_DESCRIPTOR->register($OBJECT_DESCRIPTOR)V"
+private const val REGISTER_OPTIONS = "$REEL_DOWNLOAD_DESCRIPTOR->registerOptions($OBJECT_DESCRIPTOR)V"
+private const val ADD_DOWNLOAD_AT_TOP = "$REEL_DOWNLOAD_DESCRIPTOR->addDownloadAtTop($OBJECT_DESCRIPTOR$OBJECT_DESCRIPTOR)V"
+private const val ADD_OPTIONS_ABOVE_HEART = "$REEL_DOWNLOAD_DESCRIPTOR->addOptionsAboveHeart($OBJECT_DESCRIPTOR$OBJECT_DESCRIPTOR)V"
 private const val BEGIN = "$REEL_DOWNLOAD_DESCRIPTOR->begin($OBJECT_DESCRIPTOR$OBJECT_DESCRIPTOR)V"
 private const val ICON = "$REEL_DOWNLOAD_DESCRIPTOR->icon($DRAWABLE_DESCRIPTOR)$DRAWABLE_DESCRIPTOR"
 private const val SELECTED = "$REEL_DOWNLOAD_DESCRIPTOR->selected(Z)Z"
@@ -80,20 +84,10 @@ private const val LONG_CLICK = "$REEL_DOWNLOAD_DESCRIPTOR->longClick($FUNCTION1_
 private val STATIC_INVOKE_OPCODES = setOf(Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE)
 
 /**
- * Reels download button. The reels action column is a Litho UFI: like, comment, repost, share and save
- * are separate components, and views added by hand are rejected. The save button component (the
- * `ClipsSaveButtonComponent`) is therefore built a second time, right before the real one, and
- * registered with the extension. The hooks in its render method change only registered copies: the
- * icon, the tap and long press handlers, the selected state and the view id. The other handlers the
- * render method sets (impression logging) are left alone: the impression one fires whenever a reel is
- * shown.
- *
- * Every obfuscated member is resolved by behavior:
- *  - the component is the one render method that sets the `save_button` id and tag,
- *  - the builder is the one method that returns that component by constructing it,
- *  - the `Media` is reached through the one field path from the component to a `Media`
- *    (component state, then the item model), and the context through the one field path from the
- *    render composer to a `Context`.
+ * Reels download and options buttons. The reels action column is a Litho UFI: like, comment, repost,
+ * share and save are separate components, and views added by hand are rejected. The save button
+ * component (`ClipsSaveButtonComponent`) is therefore built before the real one for Direct Download
+ * (`register`) and for InstaRex Reel Options (`registerOptions`), and registered with the extension.
  */
 val reelDownloadButtonPatch = patch {
     compatibleWith(COMPATIBILITY_INSTAGRAM)
@@ -267,8 +261,9 @@ private fun reelBuilderCallSites(
 }
 
 /**
- * Builds a second save component before every real one and registers it. The call is re-issued with the
- * registers it already uses, and the copy goes into the same list right before the real component.
+ * Builds registered save component copies before every real one:
+ * 1) Direct Download button copy (`REGISTER`) when `IS_ENABLED` is true.
+ * 2) Reels Settings / Options button copy (`REGISTER_OPTIONS`) when `IS_OPTIONS_ENABLED` is true.
  */
 private fun hookBuilderCallSites(
     builder: Method,
@@ -338,13 +333,23 @@ private fun hookBuilderCallSites(
             """
                 invoke-static {}, $IS_ENABLED
                 move-result v$copy
+                if-eqz v$copy, :check_options_copy
+                ${invokeOriginal(call, builder)}
+                move-result-object v$copy
+                if-eqz v$copy, :check_options_copy
+                invoke-static {v$copy}, $REGISTER
+                move-object/from16 v$list, v$collector
+                invoke-static {v$list, v$copy}, $ADD_DOWNLOAD_AT_TOP
+                :check_options_copy
+                invoke-static {}, $IS_OPTIONS_ENABLED
+                move-result v$copy
                 if-eqz v$copy, :original_save
                 ${invokeOriginal(call, builder)}
                 move-result-object v$copy
                 if-eqz v$copy, :original_save
-                invoke-static {v$copy}, $REGISTER
+                invoke-static {v$copy}, $REGISTER_OPTIONS
                 move-object/from16 v$list, v$collector
-                invoke-virtual {v$list, v$copy}, $addReference
+                invoke-static {v$list, v$copy}, $ADD_OPTIONS_ABOVE_HEART
             """.trimIndent(),
             ExternalLabel("original_save", mutableCaller.getInstruction(site.index)),
         )

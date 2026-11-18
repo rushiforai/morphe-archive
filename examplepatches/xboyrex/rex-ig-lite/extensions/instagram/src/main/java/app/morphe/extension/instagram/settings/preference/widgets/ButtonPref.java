@@ -95,11 +95,15 @@ public class ButtonPref extends Preference {
             "rex_story_mention_settings_btn",
             "rex_app_language_btn",
             "rex_rec_flags_refresh_file",
+            "rex_rec_flags_enable_all",
+            "rex_rec_flags_reset_all",
             "rex_enable_all_ghost",
             "rex_disable_all_ghost",
             "rex_enable_all_distractions",
             "rex_disable_all_distractions",
             "rex_quick_access_sheet",
+            "rex_apply_pro_config_v6",
+            "rex_color_mode_btn",
             "rex_clear_cache_btn",
             "rex_creative_fonts_btn",
             "rex_private_screen_opacity_btn",
@@ -110,6 +114,9 @@ public class ButtonPref extends Preference {
             "rex_emoji_type_btn",
             "rex_font_type_btn",
             "rex_legal_licenses_btn",
+            "rex_color_mode_btn",
+            "rex_apply_pro_config_v6",
+            "rex_export_pro_config_v6",
             Constants.REX_APP_VERSION_PREFERENCE,
             Constants.REX_PATCH_VERSION_PREFERENCE
     )));
@@ -120,7 +127,9 @@ public class ButtonPref extends Preference {
             "rex_export_pref",
             "rex_import_pref",
             "rex_rec_flags_refresh_file",
-            "rex_quick_access_sheet"
+            "rex_quick_access_sheet",
+            "rex_apply_pro_config_v6",
+            "rex_color_mode_btn"
     )));
 
     public static final Set<String> DESTRUCTIVE_ACTION_KEYS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
@@ -129,7 +138,8 @@ public class ButtonPref extends Preference {
             "rex_reset_download_path",
             "rex_disable_all_ghost",
             "rex_disable_all_distractions",
-            "rex_clear_cache_btn"
+            "rex_clear_cache_btn",
+            "rex_rec_flags_reset_all"
     )));
 
     private final Context context;
@@ -322,6 +332,15 @@ public class ButtonPref extends Preference {
                 } else if (key.equals("rex_font_type_btn")) {
                     RexRuntimeFeatures.showFontTypePicker(context, recreateActivityOnComplete(context));
 
+                } else if (key.equals("rex_color_mode_btn")) {
+                    RexRuntimeFeatures.showColorModePicker(context, recreateActivityOnComplete(context));
+
+                } else if (key.equals("rex_apply_pro_config_v6")) {
+                    RexRuntimeFeatures.applyBuiltInProConfigV6(context);
+
+                } else if (key.equals("rex_export_pro_config_v6")) {
+                    RexRuntimeFeatures.exportBuiltInProConfigV6(context);
+
                 } else if (key.equals("rex_enable_all_ghost")) {
                     setGhostGroupState(true);
                     Utils.showToastShort("Enabled all Ghost Mode switches");
@@ -363,6 +382,33 @@ public class ButtonPref extends Preference {
                 } else if (key.equals("rex_rec_flags_refresh_file")) {
                     RecommendedFlags.downloadRecommendedFlagsFile(recreateActivityOnComplete(context));
 
+                } else if (key.equals("rex_rec_flags_enable_all")) {
+                    java.util.List<app.morphe.extension.instagram.patches.devFlags.Flag> flags = RecommendedFlags.getFlags(false);
+                    int count = 0;
+                    for (app.morphe.extension.instagram.patches.devFlags.Flag f : flags) {
+                        if (f != null && !f.isLongType() && f.getCode() != null) {
+                            app.morphe.extension.instagram.patches.devFlags.FlagsSharedPref.setStringPref(
+                                    f.getCode().key,
+                                    app.morphe.extension.instagram.patches.devFlags.FlagState.ENABLE.toString()
+                            );
+                            count++;
+                        }
+                    }
+                    app.morphe.extension.instagram.patches.devFlags.FlagsSharedPref.flush();
+                    app.morphe.extension.instagram.patches.devFlags.HookFlags.load();
+                    app.morphe.extension.instagram.settings.SettingsRestart.markChanged("rex_rec_flags_enable_all", "Default", "Enable");
+                    Utils.showToastShort("Enabled " + count + " recommended flags");
+                    Runnable r = recreateActivityOnComplete(context);
+                    if (r != null) r.run();
+
+                } else if (key.equals("rex_rec_flags_reset_all")) {
+                    app.morphe.extension.instagram.patches.devFlags.FlagsSharedPref.clearAll();
+                    app.morphe.extension.instagram.patches.devFlags.HookFlags.load();
+                    app.morphe.extension.instagram.settings.SettingsRestart.markChanged("rex_rec_flags_reset_all", "Custom", "Default");
+                    Utils.showToastShort("Reset all recommended flags to Default");
+                    Runnable r = recreateActivityOnComplete(context);
+                    if (r != null) r.run();
+
                 } else if (SettingsStatus.FLAGS.containsKey(key)) {
                     Boolean active = SettingsStatus.FLAGS.get(key);
                     Utils.showToastShort(key + ": " + (Boolean.TRUE.equals(active) ? "Active" : "Inactive"));
@@ -379,6 +425,8 @@ public class ButtonPref extends Preference {
         SharedPref.setBooleanPref(Settings.TURN_ON_ALL_GHOST_MODES.key, enabled);
         SharedPref.setBooleanPref(Settings.VIEW_DM_ANONYMOUSLY.key, enabled);
         SharedPref.setBooleanPref(Settings.MARK_AS_READ_AFTER_REPLY.key, enabled);
+        SharedPref.setBooleanPref(Settings.MARK_AS_SEEN_ON_REACTION.key, enabled);
+        SharedPref.setBooleanPref(Settings.VIEW_BLOCKED_PROFILES_SECRETLY.key, enabled);
         SharedPref.setBooleanPref(Settings.DISABLE_TYPING_STATUS.key, enabled);
         SharedPref.setBooleanPref(Settings.DISABLE_SCREENSHOT_DETECTION.key, enabled);
         SharedPref.setBooleanPref(Settings.HIDE_VIEW_ONCE_SEEN.key, enabled);

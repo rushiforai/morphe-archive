@@ -1,0 +1,109 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+name: Bug in a patched app
+description: The app patched fine, but a patch doesn't work or breaks something.
+labels: [bug]
+body:
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before you report
+      options:
+        - label: I searched the open and closed issues for this problem.
+          required: true
+        - label: I patched the app version its page in [Supported apps](https://github.com/edbfi/apk-patches#supported-apps) lists as tested, with the latest release.
+          required: true
+        - label: I patched with only this bundle. In ReVanced Manager, that means unticking ReVanced Patches, as [Install](https://github.com/edbfi/apk-patches#revanced-manager) says.
+          required: true
+  - type: dropdown
+    id: ecosystem
+    attributes:
+      label: Bundle
+      description: The bundle you patched with.
+      options:
+        - ReVanced (patches-X.Y.Z.rvp)
+        - Morphe (patches-X.Y.Z.mpp)
+    validations:
+      required: true
+  - type: input
+    id: app
+    attributes:
+      label: App and version
+      placeholder: Sync for Reddit v23.06.30-13:39
+    validations:
+      required: true
+  - type: input
+    id: bundle
+    attributes:
+      label: Patches version
+      description: The release you patched with.
+      placeholder: "0.3.0"
+    validations:
+      required: true
+  - type: input
+    id: tool
+    attributes:
+      label: Patching tool and version
+      description: ReVanced Manager, the ReVanced CLI, Morphe Manager or the Morphe CLI.
+      placeholder: ReVanced Manager 2.6.0
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Device and Android version
+      placeholder: Pixel 8, Android 15
+    validations:
+      required: true
+  - type: textarea
+    id: patches
+    attributes:
+      label: Patches and options
+      description: Write "defaults" if you changed none; otherwise list what you changed.
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened
+      description: What you saw, what you expected instead, and which patch you think is at fault.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open …
+        2. Tap …
+        3. …
+    validations:
+      required: true
+  - type: textarea
+    id: app-log
+    attributes:
+      label: App log
+      description: |
+        Capture it right after the problem happens:
+        - **With a computer:** turn on USB debugging, run `adb logcat -c`, reproduce the problem, then run `adb logcat -d > log.txt`.
+        - **On the phone alone:** use a logcat reader app (it needs root, Shizuku or a one-time `adb` grant), or the app's own log or crash report if it has one.
+
+        Remove tokens, account names and other personal data. Paste the log, or for a long one a link to a paste site such as [PrivateBin](https://privatebin.net) or [0bin](https://0bin.ch), kept for at least a month and without burn after reading.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: patcher-log
+    attributes:
+      label: Patcher log
+      description: |
+        Optional, but it shows what was applied.
+        - **ReVanced Manager:** once patching stops, tap the second icon in the bottom bar of the patching screen (**Save logs**; long-press an icon to see its name). If Manager itself crashes, use Settings → Advanced → **Export debug logs**.
+        - **ReVanced CLI:** the whole terminal output of the `patch` command.
+        - **Morphe Manager:** with Settings → **Expert mode** on, the patching screen shows the log; tap **Copy** in its bottom bar (after a successful patch, tap **Logs** first). Without Expert mode, a failed run's **Error details** has a **Copy** button. If Manager itself crashes, use Settings → **Help & info** → **Export debug logs**.
+        - **Morphe CLI:** the whole terminal output of the `patch` command.
+      render: text
+  - type: textarea
+    id: media
+    attributes:
+      label: Screenshots or recording
+      description: Optional. Drag files here.

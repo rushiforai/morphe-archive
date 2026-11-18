@@ -1,0 +1,491 @@
+{
+  "arm64-v8a": {
+    "config": {
+      "address": 10964292,
+      "size": 196,
+      "sha256": "c3326dd81f604b40636bdf1fdc9c621a44566d7a5f5066822f2c0de4f43c50bc",
+      "entries": [
+        10964292,
+        10964292,
+        10964292
+      ]
+    },
+    "core": {
+      "address": 10959752,
+      "size": 492,
+      "sha256": "5c152fb502cdfeaaeaa8e339c0a093d3cbeabc6336dd7fff3bd20eb9c7f23dfc",
+      "entries": [
+        10959752,
+        10959752,
+        10959752
+      ]
+    },
+    "close": {
+      "address": 10964488,
+      "size": 160,
+      "sha256": "d20fe57d3775458d4165dfeed47a1d96264708d4fd4feebff0aa9e6b7f5b048a",
+      "entries": [
+        10964488,
+        10964488,
+        10964488
+      ]
+    },
+    "integrations": {
+      "address": 10960244,
+      "size": 468,
+      "sha256": "ea98185fc64e0ba37ced9d45025406d7ae133fd4b97ce98f248ee838cb51d018",
+      "entries": [
+        10960244,
+        10960244,
+        10960244
+      ]
+    },
+    "supports": {
+      "address": 10974752,
+      "size": 52,
+      "sha256": "a476f9687d95b6e3549109fdd707198363a8acaf06dcfe362821f30c2486030a",
+      "entries": [
+        10974752,
+        10974752,
+        10974752
+      ]
+    },
+    "hubEnabled": {
+      "address": 10877748,
+      "size": 100,
+      "sha256": "7e84fccfb6974eef1daca40e22c2efec35d531829dc723b5f705c89aa1c4a5ae",
+      "entries": [
+        10877748,
+        10877748,
+        10877748
+      ]
+    },
+    "noopClose": {
+      "address": 10880820,
+      "size": 56,
+      "sha256": "020ae7529da792daec3bb0df7e3ebc3601803cbd3ee62ff929a921280aa37262",
+      "entries": [
+        10880820,
+        10880820,
+        10880820
+      ]
+    },
+    "futureValue": {
+      "address": 4767640,
+      "size": 224,
+      "sha256": "db224188afa6e8facff4e1eaca762777b84df14c5753b92f8e693652ba773ff6",
+      "entries": [
+        4767640,
+        4767640,
+        4767640
+      ]
+    },
+    "parseDsn": {
+      "address": 10489308,
+      "size": 104,
+      "sha256": "a4e1df4038400b10aae52d1b3096e0ef3d5f92db5a8734185358f1657d15ea63",
+      "entries": [
+        10489308,
+        10489308,
+        10489308
+      ]
+    },
+    "flutterInit": {
+      "address": 10958340,
+      "size": 700,
+      "sha256": "bdd02484ed2ad0d5f7f6b59f2c72c7f8066735ea4b4dc23f65580fc889fdaea6",
+      "entries": [
+        10958340,
+        10958340,
+        10958340
+      ]
+    },
+    "profiler": {
+      "address": 10959244,
+      "size": 192,
+      "sha256": "873b0e1934963dcac2295114e99d36b36e4763d140395e86a9d09b8a57965914",
+      "entries": [
+        10959244,
+        10959244,
+        10959244
+      ]
+    },
+    "createBinding": {
+      "address": 10973104,
+      "size": 76,
+      "sha256": "efbc8c101ff91ba0980d2041bae38a6db9223136d80ee11467f7f03f391c0281",
+      "entries": [
+        10973104,
+        10973104,
+        10973104
+      ]
+    },
+    "iterator": {
+      "address": 6888956,
+      "size": 68,
+      "sha256": "dd2a4c100d575303d51d2fb4eb47aeb6068d2d409f94d178d149fd97138ebc57",
+      "entries": [
+        6888956,
+        6888956,
+        6888956
+      ]
+    },
+    "getIntegrations": {
+      "address": 10880316,
+      "size": 88,
+      "sha256": "e570948090e0032845146203eded50614f6646382e182f032c0e964ca2c2ced9",
+      "entries": [
+        10880316,
+        10880316,
+        10880316
+      ]
+    },
+    "configAfterInit": 10964332,
+    "integrationsAfterInit": 10960292,
+    "coreAfterInit": 10959832,
+    "flutterInitAfterInit": 10958408,
+    "integrationsTail": 10960688,
+    "configRead": 10964336,
+    "configReadSize": 8,
+    "await": {
+      "address": 4542864,
+      "size": 396,
+      "sha256": "bad33a5b2ce4c988fca811d7c22fddb480b898cdfd8a3b31c959e8ea592d56a0"
+    },
+    "simpleFalse": {
+      "address": 10929672,
+      "size": 8,
+      "sha256": "8f660cb029c75eaff890907eeddc1ca312f20d89f1add17720b2154bf660fac2"
+    },
+    "nativeCall": 10958472,
+    "afterBinding": 10958500,
+    "flutterStack": 80,
+    "emptyPool": 336
+  },
+  "x86_64": {
+    "config": {
+      "address": 11195360,
+      "size": 244,
+      "sha256": "eb96b896c77dee6674e9afccfc112be11c30509cc55408a0bb5113c92141ec54",
+      "entries": [
+        11195360,
+        11195360,
+        11195360
+      ]
+    },
+    "core": {
+      "address": 11190780,
+      "size": 540,
+      "sha256": "43cfcf66dec4cb9b59a16ea171ed251273090240da28f839320c921b20abe591",
+      "entries": [
+        11190780,
+        11190780,
+        11190780
+      ]
+    },
+    "close": {
+      "address": 11195604,
+      "size": 192,
+      "sha256": "743dbaf2cd73eada12fe11fa071888530a0dcadb82877f44cb981caf0a139fb0",
+      "entries": [
+        11195604,
+        11195604,
+        11195604
+      ]
+    },
+    "integrations": {
+      "address": 11191320,
+      "size": 484,
+      "sha256": "788be0641438a50d5fba33225d5f0c5724bd8cb70deded22973267b07e53b490",
+      "entries": [
+        11191320,
+        11191320,
+        11191320
+      ]
+    },
+    "supports": {
+      "address": 11205900,
+      "size": 40,
+      "sha256": "8fe44696e5d430dc3220a3dd7d7f01e854793522a26d4566147f08f30e46b932",
+      "entries": [
+        11205900,
+        11205900,
+        11205900
+      ]
+    },
+    "hubEnabled": {
+      "address": 10804636,
+      "size": 84,
+      "sha256": "06bf56e978b21fb9746135592a52cb04281bf43f044e2f6ba11d213fdf621235",
+      "entries": [
+        10804636,
+        10804636,
+        10804636
+      ]
+    },
+    "noopClose": {
+      "address": 11117064,
+      "size": 64,
+      "sha256": "f82cd54e309396712140e9b93d970f3c782d828f6090b6e304b2523a76c65e10",
+      "entries": [
+        11117064,
+        11117064,
+        11117064
+      ]
+    },
+    "futureValue": {
+      "address": 4714296,
+      "size": 240,
+      "sha256": "09e012fd80a0aece1124399098a024fe6f71ee734b6a898b34ca8ef11b2e953d",
+      "entries": [
+        4714296,
+        4714296,
+        4714296
+      ]
+    },
+    "parseDsn": {
+      "address": 9835976,
+      "size": 100,
+      "sha256": "464aba3983ca79632d29692023b57511d94febcd1dd7b625aaa93aa44851e464",
+      "entries": [
+        9835976,
+        9835976,
+        9835976
+      ]
+    },
+    "flutterInit": {
+      "address": 11189204,
+      "size": 784,
+      "sha256": "08f31b94e6b10b8131890b88ade2f4bd4a47e3063783c53dae189dc0f15f5655",
+      "entries": [
+        11189204,
+        11189204,
+        11189204
+      ]
+    },
+    "profiler": {
+      "address": 11190180,
+      "size": 184,
+      "sha256": "e29a4045b10ab40f88839af7917294e91e5fe9d152c2512ffcd7ac7269a1ad6a",
+      "entries": [
+        11190180,
+        11190180,
+        11190180
+      ]
+    },
+    "createBinding": {
+      "address": 11204272,
+      "size": 64,
+      "sha256": "135126b7cdc3f9013c9df044fff7e39cd08abf80bb1da0577b3d0885285e0375",
+      "entries": [
+        11204272,
+        11204272,
+        11204272
+      ]
+    },
+    "iterator": {
+      "address": 9546844,
+      "size": 56,
+      "sha256": "449c3af5487ec252771144f5f49bcf50896b6e7ab8fa1dcf70b9fb186b5796e3",
+      "entries": [
+        9546844,
+        9546844,
+        9546844
+      ]
+    },
+    "getIntegrations": {
+      "address": 11115896,
+      "size": 100,
+      "sha256": "79c07491fb56d3a3856e6e36f93a7ed9a60e7730c45ab7ecb87f6785df381da0",
+      "entries": [
+        11115896,
+        11115896,
+        11115896
+      ]
+    },
+    "configAfterInit": 11195405,
+    "integrationsAfterInit": 11191369,
+    "coreAfterInit": 11190862,
+    "flutterInitAfterInit": 11189275,
+    "integrationsTail": 11191766,
+    "configRead": 11195409,
+    "configReadSize": 7,
+    "await": {
+      "address": 4478664,
+      "size": 356,
+      "sha256": "a676a4493c3687b0b37fe530dfec941b582890fb881b93a6327a7376e14493b0"
+    },
+    "simpleFalse": {
+      "address": 11102132,
+      "size": 8,
+      "sha256": "76e06eef6ad88c2f5121147a8a7386035ce2c5e52b95e191dab09208f9cccc40"
+    },
+    "nativeCall": 11189354,
+    "afterBinding": 11189390,
+    "flutterStack": 80,
+    "emptyPool": 336
+  },
+  "armeabi-v7a": {
+    "config": {
+      "address": 12115184,
+      "size": 200,
+      "sha256": "e34d1a196adc1ce62145d3353160c9c5a6d84d74eb87228d6f655660db77c9fb",
+      "entries": [
+        12115184,
+        12115184,
+        12115184
+      ]
+    },
+    "core": {
+      "address": 12110592,
+      "size": 488,
+      "sha256": "81bd841a91a742f0eda86c00c3e85b41f69b11609f8ddcb32f100af507dc79e8",
+      "entries": [
+        12110592,
+        12110592,
+        12110592
+      ]
+    },
+    "close": {
+      "address": 12115384,
+      "size": 176,
+      "sha256": "e10310311da5b6e02bab2b584eec98847ba58fd368e4aeac391553d1c652833c",
+      "entries": [
+        12115384,
+        12115384,
+        12115384
+      ]
+    },
+    "integrations": {
+      "address": 12111080,
+      "size": 492,
+      "sha256": "eb4b4379a473f57eb2c083bf3f6ed3f7403f54b231d49e952711df78711a5bb5",
+      "entries": [
+        12111080,
+        12111080,
+        12111080
+      ]
+    },
+    "supports": {
+      "address": 12126076,
+      "size": 40,
+      "sha256": "046ca843055552a6ac51dff66831b897ec333251740aed47e47374ccdda5a9ac",
+      "entries": [
+        12126076,
+        12126076,
+        12126076
+      ]
+    },
+    "hubEnabled": {
+      "address": 11963728,
+      "size": 96,
+      "sha256": "858db86ab411cb9b81fb67a1e4c83f6db80fda459bf7a8710493a5ddcc4eff57",
+      "entries": [
+        11963728,
+        11963728,
+        11963728
+      ]
+    },
+    "noopClose": {
+      "address": 12026176,
+      "size": 52,
+      "sha256": "f07d504baa41d9d6589ad8791c1b7b3a9a2e9836306b1028200239a215c49159",
+      "entries": [
+        12026176,
+        12026176,
+        12026176
+      ]
+    },
+    "futureValue": {
+      "address": 5479528,
+      "size": 228,
+      "sha256": "577551aab08f005e5a03c183e7d7f18826831f697264a6df35d675654ae0a3ce",
+      "entries": [
+        5479528,
+        5479528,
+        5479528
+      ]
+    },
+    "parseDsn": {
+      "address": 10709872,
+      "size": 96,
+      "sha256": "a019a035c59c06554f6e1140bc5b99eefc718b453d9643c38f669eb63f027ed4",
+      "entries": [
+        10709872,
+        10709872,
+        10709872
+      ]
+    },
+    "flutterInit": {
+      "address": 12109104,
+      "size": 752,
+      "sha256": "2c2a4f3ebf69ee0d08c80ace3da5b419339ee7a91779263075c1c8080d4bc44b",
+      "entries": [
+        12109104,
+        12109104,
+        12109104
+      ]
+    },
+    "profiler": {
+      "address": 12110036,
+      "size": 216,
+      "sha256": "a93225f340e3ab35d4a7fb4edf49becfbc48ee0b56563e92b354bf53ead65aa1",
+      "entries": [
+        12110036,
+        12110036,
+        12110036
+      ]
+    },
+    "createBinding": {
+      "address": 12124536,
+      "size": 64,
+      "sha256": "4c00943b582674b3dbce883ea0cd96defb84b9747d5c7892df018c7c0e94bb50",
+      "entries": [
+        12124536,
+        12124536,
+        12124536
+      ]
+    },
+    "iterator": {
+      "address": 8151360,
+      "size": 76,
+      "sha256": "71ec5acc3fdad781d7435a02dfbd320a4220d2a50f0f89570af7d6afb8195b4e",
+      "entries": [
+        8151360,
+        8151360,
+        8151360
+      ]
+    },
+    "getIntegrations": {
+      "address": 12025916,
+      "size": 84,
+      "sha256": "e703bb2406712d2f3b62ed6202356051211c33ec075a8e3eb234d1928046a214",
+      "entries": [
+        12025916,
+        12025916,
+        12025916
+      ]
+    },
+    "configAfterInit": 12115228,
+    "integrationsAfterInit": 12111132,
+    "coreAfterInit": 12110676,
+    "flutterInitAfterInit": 12109176,
+    "integrationsTail": 12111564,
+    "configRead": 12115232,
+    "configReadSize": 4,
+    "await": {
+      "address": 5256700,
+      "size": 428,
+      "sha256": "ab1d1c4c88a892fecef0d908b39473400addd275212856cc07c4ba4454b4328f"
+    },
+    "simpleFalse": {
+      "address": 12082172,
+      "size": 8,
+      "sha256": "5122dcbf8f411e2a77728815d1bafba1e8adceabf5ad4d6df6b09254f134b0b6"
+    },
+    "nativeCall": 12109248,
+    "afterBinding": 12109284,
+    "flutterStack": 48,
+    "emptyPool": 168
+  }
+}

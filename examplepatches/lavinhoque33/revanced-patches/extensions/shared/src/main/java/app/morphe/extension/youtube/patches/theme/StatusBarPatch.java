@@ -7,28 +7,22 @@
  * https://github.com/anddea/revanced-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
- * Modified by lavinhoque33, 2026-11-10.
+ * Modified by lavinhoque33, 2026-11-17.
  */
 
 package app.morphe.extension.youtube.patches.theme;
 
 import android.app.Activity;
-import android.app.Application;
 import android.content.res.Configuration;
-import android.os.Bundle;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.view.View;
 import android.view.WindowInsets;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
-import java.util.Collections;
-import java.util.Set;
-import java.util.WeakHashMap;
-
+import app.morphe.extension.youtube.patches.HideStatusBarPatch;
 import app.morphe.extension.youtube.patches.general.NavigationButtonsPatch;
 import app.morphe.extension.shared.utils.BaseThemeUtils;
 import app.morphe.extension.shared.utils.Logger;
@@ -78,7 +72,7 @@ public final class StatusBarPatch {
      * so when the status bar is hidden it covers the search bar and channel page top bar.
      */
     public static void hideStatusBarBackground(View view) {
-        if (!isStatusBarVisible(view.getRootView())) {
+        if (HideStatusBarPatch.isEnabled() || !isStatusBarVisible(view.getRootView())) {
             view.setVisibility(View.INVISIBLE);
         } else {
             // Keep the selected translucency when the system status bar is visible.
@@ -101,76 +95,41 @@ public final class StatusBarPatch {
     /** Window position from the previous app start, kept stable throughout this session. */
     private static final boolean WINDOW_ABOVE_NAVIGATION_BAR = Settings.WINDOW_ABOVE_NAVIGATION_BAR.get();
 
-    /** The account's edge-to-edge flag is observed without changing this fork's layout. */
+    /** Keep all readers on one value for the entire session, including before the first flag read. */
+    private static final boolean EDGE_TO_EDGE_TOP_BAR_TURNED_OFF =
+            HideStatusBarPatch.isEnabled() || Settings.WINDOW_BELOW_STATUS_BAR.get();
     @Nullable
     private static volatile Boolean edgeToEdgeTopBarUsed;
 
     public static Boolean isEdgeToEdgeTopBar() {
-        return edgeToEdgeTopBarUsed;
+        return EDGE_TO_EDGE_TOP_BAR_TURNED_OFF ? Boolean.FALSE : edgeToEdgeTopBarUsed;
     }
 
     public static boolean isWindowAboveNavigationBar() {
         return WINDOW_ABOVE_NAVIGATION_BAR;
     }
 
-    /** Injection point. Observes the flag for the layout fixes without overriding its value. */
+    /** Injection point. Top-bar layout and its consumers must use the same edge-to-edge state. */
     public static boolean useEdgeToEdgeTopBar(boolean original) {
-        if (edgeToEdgeTopBarUsed == null) {
-            edgeToEdgeTopBarUsed = original;
-        }
-        return original;
-    }
-
-    /**
-     * Main activities whose window position is watched once they are started.
-     */
-    private static final Set<Activity> windowPositionActivities = Collections.newSetFromMap(new WeakHashMap<>());
-
-    /**
-     * Callback when an activity is started. The window of the main activity is not created
-     * when it is initialized, so its position is watched once it is started.
-     */
-    private static final Application.ActivityLifecycleCallbacks WINDOW_POSITION_LIFECYCLE_CALLBACKS
-            = new Application.ActivityLifecycleCallbacks() {
-
-        public void onActivityStarted(@NonNull Activity activity) {
-            try {
-                if (windowPositionActivities.remove(activity)
-                        && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                    watchWindowPosition(activity);
+        Boolean value = edgeToEdgeTopBarUsed;
+        if (value == null) {
+            synchronized (StatusBarPatch.class) {
+                value = edgeToEdgeTopBarUsed;
+                if (value == null) {
+                    value = original && !EDGE_TO_EDGE_TOP_BAR_TURNED_OFF;
+                    edgeToEdgeTopBarUsed = value;
                 }
-            } catch (Exception ex) {
-                Logger.printException(() -> "onActivityStarted window position failure", ex);
             }
         }
-
-        public void onActivityCreated(@NonNull Activity a, @Nullable Bundle b) {}
-        public void onActivityResumed(@NonNull Activity a) {}
-        public void onActivityPaused(@NonNull Activity a) {}
-        public void onActivityStopped(@NonNull Activity a) {}
-        public void onActivitySaveInstanceState(@NonNull Activity a, @NonNull Bundle b) {}
-        public void onActivityDestroyed(@NonNull Activity a) {}
-    };
-
-    private static boolean windowPositionLifecycleCallbacksRegistered;
-
-    /** Injection point. Starts watching the main window when its activity starts. */
-    public static void initialize(Activity activity) {
-        // The window position is watched once the activity is started, see watchWindowPosition().
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            try {
-                if (!windowPositionLifecycleCallbacksRegistered) {
-                    windowPositionLifecycleCallbacksRegistered = true;
-                    activity.getApplication().registerActivityLifecycleCallbacks(WINDOW_POSITION_LIFECYCLE_CALLBACKS);
-                }
-                windowPositionActivities.add(activity);
-            } catch (Exception ex) {
-                Logger.printException(() -> "initialize window position failure", ex);
-            }
-        }
+        return value;
     }
 
-    // This fork copies only the navigation-bar measurement; its status-bar layout stays unchanged.
+    /** Scrolling color needs the edge-to-edge overlay, otherwise the first scroll can crash. */
+    public static boolean useStatusBarScrollColor(boolean original) {
+        Boolean edgeToEdge = edgeToEdgeTopBarUsed;
+        return original && (edgeToEdge == null ? !EDGE_TO_EDGE_TOP_BAR_TURNED_OFF : edgeToEdge);
+    }
+
     /**
      * Some devices keep the window out of the status bar area, for example Samsung devices with
      * the app not allowed to use the camera cutout area. The edge to edge top bar still makes room
@@ -188,7 +147,7 @@ public final class StatusBarPatch {
      * saved, and the flags of the translucent navigation bar are turned off from the next app start.
      */
     @RequiresApi(api = Build.VERSION_CODES.R)
-    private static void watchWindowPosition(Activity activity) {
+    public static void watchWindowPosition(Activity activity) {
         View decorView = activity.getWindow().getDecorView();
         // Width, height and status bar visibility of the window last checked,
         // so the position is only read when they change.
@@ -235,6 +194,14 @@ public final class StatusBarPatch {
                 // tells that the device keeps it there. Otherwise the flags would stay off for good
                 // after one app start without them.
                 final boolean edgeToEdge = Boolean.TRUE.equals(edgeToEdgeTopBarUsed);
+
+                if (statusBarVisible) {
+                    final boolean belowStatusBar = windowTop > 0;
+                    if ((!belowStatusBar || edgeToEdge)
+                            && belowStatusBar != Settings.WINDOW_BELOW_STATUS_BAR.get()) {
+                        Settings.WINDOW_BELOW_STATUS_BAR.save(belowStatusBar);
+                    }
+                }
 
                 // Only with the system navigation buttons at the bottom of the screen. The navigation bar
                 // covering them can change how the window is laid out, so only a window laid out with it

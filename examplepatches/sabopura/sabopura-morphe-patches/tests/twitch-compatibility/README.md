@@ -9,8 +9,8 @@ and Morphe Desktop's all-in-one JAR (the local validation used 1.14.0 / patcher 
 ```
 
 Both APKs must be built from the official input and the same final Android MPP.
-Use `--exclusive --bytecode-mode=FULL` and explicitly select the seven Twitch
-patches; additionally select `Fix login` for the second build. Do not use
+Use `--exclusive --bytecode-mode=FULL` and explicitly select every Twitch patch except
+`Fix login` and `Install: Separate app`; additionally select `Fix login` for the second build. Do not use
 `--force` or `--continue-on-error` for release validation. Check the CLI result
 JSON has zero failed patches and all steps succeeded; process exit code alone
 does not establish patch success.

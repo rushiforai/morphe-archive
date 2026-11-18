@@ -42,7 +42,7 @@ public final class GameReview {
     private GameReview() {}
 
     /** Who reviews the next game, picked in the review chooser. */
-    enum Mode { CHESSCOM, STOCKFISH, LAPTOP, LICHESS }
+    public enum Mode { CHESSCOM, STOCKFISH, COMBO_SMART, COMBO_DEEP, LAPTOP, LICHESS }
 
     private static final String REVIEW_SCREEN = "com.chess.gamereview.v2.GameReviewActivity";
 
@@ -74,7 +74,7 @@ public final class GameReview {
 
     /** Local Stockfish needs the engine, which comes with Stockfish analysis; without it chess.com reviews. */
     private static Mode usable(Mode chosen) {
-        if (chosen == Mode.STOCKFISH && !Features.stockfishPatched()) return Mode.CHESSCOM;
+        if ((chosen == Mode.STOCKFISH || chosen == Mode.COMBO_SMART || chosen == Mode.COMBO_DEEP) && !Features.stockfishPatched()) return Mode.CHESSCOM;
         // Stockfish on the computer needs its own patch, not the phone's engine: the search runs there.
         if (chosen == Mode.LAPTOP && !computerReview()) return Mode.CHESSCOM;
         return chosen;
@@ -196,19 +196,20 @@ public final class GameReview {
     }
 
     // How "Analyze with Lichess" works, picked on the welcome screens: Lichess's servers analyse
-    // the game for the user's Lichess account, or the game opens on Lichess's analysis board without one.
+    // the game for the user's Lichess account, or the game is reviewed directly in-app using Lichess Cloud API.
 
     public static final String LICHESS_SERVERS = "servers";
     public static final String LICHESS_BOARD = "board";
+    public static final String LICHESS_API = "api";
     private static final String LICHESS_METHOD = "lichess_review_method";
     private static final String[] METHOD_TITLES = {
-        "Lichess's servers (log in once)", "Lichess analysis board (no login)",
+        "Lichess Cloud API (no login)", "Lichess's servers (log in once)",
     };
 
     /** The method picked, or null when it has not been picked yet. */
     public static String lichessMethod() {
         SharedPreferences preferences = Features.preferences();
-        return preferences == null ? null : preferences.getString(LICHESS_METHOD, null);
+        return preferences == null ? LICHESS_API : preferences.getString(LICHESS_METHOD, LICHESS_API);
     }
 
     public static void setLichessMethod(String method) {
@@ -221,7 +222,7 @@ public final class GameReview {
         new AlertDialog.Builder(activity, android.R.style.Theme_Material_Dialog_Alert)
             .setTitle("Analyze with Lichess")
             .setItems(METHOD_TITLES, (shown, which) -> {
-                setLichessMethod(which == 0 ? LICHESS_SERVERS : LICHESS_BOARD);
+                setLichessMethod(which == 1 ? LICHESS_SERVERS : LICHESS_API);
                 if (next != null) next.run();
             })
             .show();
@@ -381,6 +382,27 @@ public final class GameReview {
     /** The review runs on the phone, not on chess.com's servers. */
     public static boolean local() {
         return enabled() && mode() != Mode.CHESSCOM;
+    }
+
+    /**
+     * A reviewer on this phone or on the user's computer is available. Neither needs a chess.com
+     * account, so a signed-out user can open Game Review with one; chess.com's own review does need
+     * an account, and without a local reviewer the app's sign-up screen stays.
+     */
+    public static boolean localReview() {
+        return enabled() && (Features.stockfishPatched() || computerReview());
+    }
+
+    /** Whether the last review navigation found a signed-out session; null until one runs. */
+    private static volatile Boolean guestSession;
+
+    static void noteSignedIn(boolean signedIn) {
+        guestSession = !signedIn;
+    }
+
+    /** Full review permissions: a local review now, or a guest who can still pick one. */
+    public static boolean localPermissions() {
+        return local() || (Boolean.TRUE.equals(guestSession) && localReview());
     }
 
     /** Fair-play gate: true if a game against a human (or a live game being watched) is on screen. */

@@ -23,28 +23,32 @@ import app.morphe.extension.rex.ObjectBrowser;
 import app.morphe.extension.shared.Logger;
 
 public class StoryButton {
-    private static final boolean VIEW_STORY_MENTIONS;
-    private static final boolean ENABLE_DOWNLOAD;
-    private static final boolean DEBUG;
 
-    static {
-        VIEW_STORY_MENTIONS = Pref.viewStoryMentions() && SettingsStatus.viewStoryMentions;
-        ENABLE_DOWNLOAD = Pref.enableDownload() && SettingsStatus.downloadMedia;
-        DEBUG = Pref.rexDebug();
+    private static boolean isViewStoryMentionsEnabled() {
+        return Pref.viewStoryMentions() && SettingsStatus.viewStoryMentions;
+    }
+
+    private static boolean isDownloadEnabled() {
+        return Pref.enableDownload() && SettingsStatus.downloadMedia;
+    }
+
+    private static boolean isDebugEnabled() {
+        return Pref.rexDebug();
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     public static ArrayList addButtons(ArrayList buttonList) {
-        if (DEBUG) {
+        if (isDebugEnabled()) {
             buttonList.add(str("rex_debug"));
         }
         buttonList.add("xboyrex Options");
+        buttonList.add("Story Quick Settings");
         buttonList.add("Story Likes History");
         buttonList.add("Mention Pill Settings");
-        if (VIEW_STORY_MENTIONS) {
+        if (isViewStoryMentionsEnabled()) {
             buttonList.add(str("rex_view_story_mentions"));
         }
-        if (ENABLE_DOWNLOAD) {
+        if (isDownloadEnabled()) {
             buttonList.add(str("rex_download_options"));
         }
         if (Pref.downloadWithExternalDownloader()) {
@@ -63,8 +67,12 @@ public class StoryButton {
     ) {
         try {
             String label = buttonText.toString();
-            if (label.equals("xboyrex Options")) {
-                RexDialogs.showPostOptionsSheet(context, userSession, mediaObject, 0);
+            if (label.equals("xboyrex Options") || label.equals("InstaRex Story Options")) {
+                RexDialogs.showStoryOptionsSheet(context, userSession, mediaObject, reelObject);
+                if (onDismiss != null) onDismiss.onDismiss(null);
+                return true;
+            } else if (label.equals("Story Quick Settings")) {
+                RexDialogs.showSurfaceQuickSettingsDialog(context, "STORY");
                 if (onDismiss != null) onDismiss.onDismiss(null);
                 return true;
             } else if (label.equals("Story Likes History")) {

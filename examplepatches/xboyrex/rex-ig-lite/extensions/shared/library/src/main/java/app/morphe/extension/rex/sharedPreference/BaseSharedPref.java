@@ -100,7 +100,7 @@ public abstract class BaseSharedPref {
     }
 
     public String getString(StringSetting setting) {
-        return SharedPref.getStringPref(setting.key, setting.defaultValue);
+        return getString(setting.key, setting.defaultValue);
     }
 
     public Set<String> getSet(StringSetting stringSetting) {

@@ -31,7 +31,9 @@ private val PROVED_ONLY_BY_THE_PATCH: Map<String, String> =
     (listOf("bubble_mode", "browser", "subtabs", "people_jewel") + pluginGates.keys)
         .associateWith { "CompatReport proves the body through a profile field, and FIELD_CONTROLS fails the control when it changes" } +
     listOf(HIDE_READ_RECEIPTS, REPLY_READ).associateWith { "the patch proves the account's identity dataflow, CompatReport only the seen handler's and dispatcher's outline" } +
-    mapOf(DELIVERY_RECEIPT to "the patch proves the batch has left its holder under the lock, CompatReport only the sender's outline")
+    mapOf(DELIVERY_RECEIPT to "the patch proves the batch has left its holder under the lock, CompatReport only the sender's outline",
+        APPEAR_OFFLINE to "the patch proves the status is handed over in a four-bit register nothing jumps onto, CompatReport only the report's outline",
+        AVAILABILITY_SETTING to "the patch proves the flag goes straight from Messenger's own setting into the JSON, CompatReport only the listener's outline")
 
 /**
  * findControls, checked against CompatReport's findControls on the same classes. CompatReport must never resolve a
@@ -75,6 +77,7 @@ private fun mirrored(classes: Iterable<ClassDef>, skip: Set<String>, find: (List
             val savedPicture = autoReplyPictureRecipe
             val savedGallery = galleryRoute
             val savedGalleryChat = galleryChatRoute
+            val savedViewOnce = viewOnceGate
             val savedPaste = pasteRoute
             val savedCircle = vitoCircleField
             val savedTile = tileShapeSetter
@@ -105,6 +108,7 @@ private fun mirrored(classes: Iterable<ClassDef>, skip: Set<String>, find: (List
                 autoReplyPictureRecipe = savedPicture
                 galleryRoute = savedGallery
                 galleryChatRoute = savedGalleryChat
+                viewOnceGate = savedViewOnce
                 pasteRoute = savedPaste
                 vitoCircleField = savedCircle
                 tileShapeSetter = savedTile

@@ -24,11 +24,6 @@ object Constants {
         packageName = "fork.risin42.nagramx",
         apkFileType = ApkFileType.APK,
         appIconColor = 0xFF5C4D,
-        targets = listOf(
-            AppTarget(
-                version = "12.10.1-30dcd6c",
-                versionCodes = mapOf(SupportedAbi.ARM64_V8A to 1251),
-            ),
-        ),
+        targets = listOf(AppTarget(version = null)),
     )
 }

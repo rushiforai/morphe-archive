@@ -1,0 +1,80 @@
+name: Publish experimental FairEmail OAuth MPP
+on:
+  push:
+    branches:
+      - feat/oauth-local-gate-12338
+    paths:
+      - .github/workflows/publish-oauth-preview.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fairemail-oauth-preview-release
+  cancel-in-progress: false
+
+jobs:
+  experimental-preview:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      PREVIEW_TAG: v0.2.0-oauth-preview.1
+    steps:
+      - name: Checkout experimental branch
+        uses: actions/checkout@v4
+      - name: Checkout pinned Morphe Gradle plugin
+        uses: actions/checkout@v4
+        with:
+          repository: MorpheApp/morphe-patches-gradle-plugin
+          ref: 0a2c1971e2913a6ea5e8fd192d359765169a6a06
+          path: build-logic/morphe-patches-gradle-plugin
+          persist-credentials: false
+      - name: Checkout pinned Morphe patcher
+        uses: actions/checkout@v4
+        with:
+          repository: MorpheApp/morphe-patcher
+          ref: 812e96eaac173cd058ba49e242325371959befae
+          path: build-logic/morphe-patcher
+          persist-credentials: false
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Verify original release metadata and tests before generating new index
+        run: |
+          python3 -m unittest discover -s tests -v
+          python3 scripts/validate_morphe_metadata.py
+      - name: Build Android Morphe patch bundle
+        run: bash ./gradlew :patches:generatePatchesList --no-daemon
+      - name: Verify experimental patch and copy preview asset
+        run: |
+          python3 scripts/validate_morphe_bundle.py
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          index=json.loads(Path("patches-list.json").read_text())
+          assert index["version"] == "0.2.0"
+          names={p["name"] for p in index["patches"]}
+          assert len(names) == 4 and len(index["patches"]) == 4
+          assert "Enable OAuth setup in re-signed FairEmail (experimental)" in names
+          oauth=next(p for p in index["patches"] if p["name"].startswith("Enable OAuth setup"))
+          assert oauth["default"] is False
+          compat, = oauth["compatiblePackages"]
+          assert compat["packageName"] == "eu.faircode.email"
+          assert [x["version"] for x in compat["targets"]] == ["1.2338"]
+          assert all(set(x["versionCodes"].values()) == {2338} for x in compat["targets"])
+          print("Experimental OAuth patch and version pin: PASS")
+          PY
+          test -s patches/build/libs/patches-0.2.0.mpp
+          cp patches/build/libs/patches-0.2.0.mpp fairemail-oauth-preview-1.2338.mpp
+          sha256sum fairemail-oauth-preview-1.2338.mpp
+      - name: Publish separate clearly labeled pre-release (never overwrite)
+        shell: bash
+        run: |
+          if gh release view "$PREVIEW_TAG" >/dev/null 2>&1; then
+            echo "Refusing to replace existing preview release: $PREVIEW_TAG"
+            exit 1
+          fi
+          gh release create "$PREVIEW_TAG"             "fairemail-oauth-preview-1.2338.mpp"             --target "$GITHUB_SHA"             --title "FairEmail Morphe — OAuth experiment (NOT TESTED ON DEVICE)"             --prerelease             --notes "Experimental opt-in Morphe patch for FairEmail 1.2338 (supplied v1.2338a GitHub APK). GitHub Actions build, static checks and Android .mpp integrity passed. Gmail OAuth authorization, refresh and mail send/receive have NOT been verified on a device. This is a patch bundle, not a modified APK. The existing v0.2.0 stable release is unchanged. Review draft PR #1 for source and test status."

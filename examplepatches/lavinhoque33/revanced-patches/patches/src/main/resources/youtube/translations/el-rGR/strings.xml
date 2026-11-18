@@ -73,6 +73,13 @@
     <string name="morphe_captions_screen_summary">Απόκρυψη τμήματος «Βασικές έννοιες»</string>
     <string name="morphe_captions_screen_title">Υπότιτλοι</string>
     <string name="morphe_custom_branding_icon_title">Εικονίδιο εφαρμογής</string>
+    <string name="morphe_custom_seekbar_thumb_file_invalid">Το επιλεγμένο αρχείο δεν είναι υποστηριζόμενη εικόνα</string>
+    <string name="morphe_custom_seekbar_thumb_file_not_found">Η προσαρμοσμένη εικόνα του δείκτη της γραμμής προόδου δεν βρέθηκε</string>
+    <string name="morphe_custom_seekbar_thumb_file_title">Εικόνα δείκτη</string>
+    <string name="morphe_custom_seekbar_thumb_scale_type_entry_fit_seekbar">Προσαρμογή στη γραμμή προόδου</string>
+    <string name="morphe_custom_seekbar_thumb_scale_type_entry_original">Πρωτότυπο μέγεθος</string>
+    <string name="morphe_custom_seekbar_thumb_scale_type_title">Μέγεθος δείκτη</string>
+    <string name="morphe_custom_seekbar_thumb_title">Ενεργοποίηση προσαρμοσμένου δείκτη γραμμής προόδου</string>
     <string name="morphe_dearrow_about_summary">"Το DeArrow αντικαθιστά τους παραπλανητικούς τίτλους και τις μικρογραφίες clickbait με αυτές που παρέχονται από το κοινό, οι οποίες είναι πιο ακριβείς και λιγότερο εντυπωσιακές. Οι τίτλοι γράφονται και ψηφίζονται από την κοινότητα, και οι μικρογραφίες είναι καρέ που λαμβάνονται από το βίντεο
 
 Τα βίντεο ζητούνται με ένα σύντομο πρόθεμα του κατακερματισμένου αναγνωριστικού βίντεο, έτσι ο διακομιστής δεν μπορεί να γνωρίζει ακριβώς ποιο βίντεο βλέπετε. Εάν ένα βίντεο δεν έχει μικρογραφία DeArrow, εμφανίζεται το πρωτότυπο ή ένα στατικό στιγμιότυπο"</string>
@@ -101,6 +108,12 @@
     <string name="morphe_disable_toolbar_navigation_tabs_summary">Εμφανίζει τις Συνδρομές στη γραμμή πλοήγησης, εάν το YouTube τις μεταφέρει σε μια καρτέλα στο πάνω μέρος της Αρχικής</string>
     <string name="morphe_disable_toolbar_navigation_tabs_title">Απενεργοποίηση καρτελών πλοήγησης στη γραμμή εργαλείων</string>
     <string name="morphe_dual_captions_enabled_title">Δίγλωσσοι υπότιτλοι</string>
+    <string name="morphe_enhanced_ambient_mode_dim_duration_title">Διάρκεια σκ затемnienia</string>
+    <string name="morphe_enhanced_ambient_mode_dim_while_scrolling_summary">Σκότνει το φως ενώ η σελίδα κυλίζεται ή αγγίζεται</string>
+    <string name="morphe_enhanced_ambient_mode_dim_while_scrolling_title">Σκότωση κατά τη διάρκεια κύλισης</string>
+    <string name="morphe_enhanced_ambient_mode_readable_text_summary">Μειώνει τη φωτεινότητα σε φωτεινά βίντεο ώστε το κείμενο στη σελίδα να παραμένει αναγνώσιμο</string>
+    <string name="morphe_enhanced_ambient_mode_readable_text_title">Διατήρηση αναγνώσιμου κειμένου</string>
+    <string name="morphe_enhanced_ambient_mode_title">Βελτιωμένη λειτουργία περιβάλλοντος</string>
     <string name="morphe_expand_livestream_dvr_duration_not_available">"'Επέκταση διάρκειας DVR ζωντανής μετάδοσης' μπορεί να μην είναι διαθέσιμη
 
 Για να το διορθώσετε, ενεργοποιήστε το 'Πλαστογράφηση του βίντεο' και αλλάξτε το 'Προεπιλεγμένο πρόγραμμα-πελάτη' σε 'TV Simply' ή 'visionOS'"</string>
@@ -266,6 +279,12 @@
     <string name="morphe_playback_in_feeds_title">Αναπαραγωγή στις ροές</string>
     <string name="morphe_player_control_buttons_background_opacity_summary">Προσαρμόστε την αδιαφάνεια του φόντου πίσω από τα κουμπιά ελέγχου του προγράμματος αναπαραγωγής και τη γραμμή χρόνου (0 είναι αόρατο, 100 είναι αδιαφανές)</string>
     <string name="morphe_player_control_buttons_background_opacity_title">Αδιαφάνεια φόντου κουμπιών ελέγχου</string>
+    <string name="morphe_playlist_hide_removal_snackbar_summary">Η επιβεβαίωση δεν εμφανίζεται αφού αφαιρεθεί ένα βίντεο από μια λίστα αναπαραγωγής</string>
+    <string name="morphe_playlist_hide_removal_snackbar_title">Απόκρυψη της ειδοποίησης αφαίρεσης λίστας αναπαραγωγής</string>
+    <string name="morphe_playlist_long_press_drag_summary">Αγγίξτε και κρατήστε ένα βίντεο της λίστας αναπαραγωγής σας για να το μετακινήσετε σε μια νέα θέση</string>
+    <string name="morphe_playlist_long_press_drag_title">Πατήστε και κρατήστε για να αλλάξετε τη σειρά των βίντεο της λίστας αναπαραγωγής</string>
+    <string name="morphe_playlist_wide_drag_handles_summary">Οι λαβές σύρσης της λίστας αναπαραγωγής είναι πιο εύκολο να συρταστούν</string>
+    <string name="morphe_playlist_wide_drag_handles_title">Διεύρυνση των λαβών σύρσης της λίστας αναπαραγωγής</string>
     <string name="morphe_post_buttons_layout_entry_1">Διακομιστής</string>
     <string name="morphe_post_buttons_layout_entry_2">Επιβεβλημένη</string>
     <string name="morphe_post_buttons_layout_title">Διάταξη κουμπιών ανάρτησης</string>
@@ -711,20 +730,7 @@
     <string name="revanced_disable_landscape_mode_summary_off">Η οριζόντια λειτουργία σε λειτουργία πλήρους οθόνης είναι ενεργοποιημένη</string>
     <string name="revanced_disable_landscape_mode_summary_on">Η οριζόντια λειτουργία σε λειτουργία πλήρους οθόνης είναι απενεργοποιημένη</string>
     <string name="revanced_disable_landscape_mode_title">Απενεργοποίηση οριζόντιας λειτουργίας</string>
-    <string name="revanced_disable_layout_updates_summary_off">Η διάταξη θα ενημερώνεται από τον διακομιστή</string>
-    <string name="revanced_disable_layout_updates_summary_on">Η διάταξη δε θα ενημερώνεται από τον διακομιστή</string>
     <string name="revanced_disable_layout_updates_title">Απενεργοποίηση ενημερώσεων διάταξης</string>
-    <string name="revanced_disable_layout_updates_user_dialog_message">"Η διάταξη της εφαρμογής επαναφέρεται στη διάταξη που χρησιμοποιούνταν κατά την πρώτη εγκατάσταση
-
-Μερικές διατάξεις του server ενδέχεται να μην επανέλθουν
-
-Οι αλλαγές περιλαμβάνουν:
-• Τα στοιχεία στο μενού player flyout (ή οι σχετικές ρυθμίσεις) ενδέχεται να μην λειτουργούν
-• Οι κύλιωμοι αριθμοί δεν animation
-• Η καρτέλα Βιβλιοθήκης εμφανίζεται
-• Η ενότητα Μουσικής της περιγραφής βίντεο ενδέχεται να μην λειτουργεί
-• Τα στοιχεία του μενού player flyout δεν μπορούν να αποκρυφούν
-• Το κουμπί αλλαγής λογαριασμού ενδέχεται να μην εμφανίζεται στην καρτέλα Βιβλιοθήκη"</string>
     <string name="revanced_disable_like_dislike_glow_summary_off">Τα κουμπιά «Μου αρέσει» και «Δεν μου αρέσει» θα λάμπουν όταν αναφέρονται</string>
     <string name="revanced_disable_like_dislike_glow_summary_on">Τα κουμπιά «Μου αρέσει» και «Δεν μου αρέσει» δεν θα λάμπουν όταν αναφέρονται</string>
     <string name="revanced_disable_like_dislike_glow_title">Απενεργοποίηση λάμψης κουμπιών «Μου αρέσει» και «Δεν μου αρέσει»</string>
@@ -1077,10 +1083,6 @@ Playlists
     <string name="revanced_hide_comments_carousel_filter_strings_summary">Εισαγάγετε τα ονόματα της καρουσέλας σχολίων για να φιλτράρετε, χωρισμένα με νέες γραμμές</string>
     <string name="revanced_hide_comments_carousel_filter_strings_title">Φίλτρο περιστροφικού καρουζέλ σχολίων</string>
     <string name="revanced_hide_comments_carousel_title">Ενεργοποίηση φίλτρου περιφοράς σχολίων</string>
-    <string name="revanced_hide_comments_carousel_user_dialog_message">"Σημείωση:
-• Βεβαιωθείτε ότι καταχωρείτε το ακριβές όνομα του στοιχείου του καρουζέλ (π.χ. Ρώτα, Δημιούργησε δημοσίευση, Άκουσε στο YouTube Music, κ.λπ.)
-• Η απόκρυψη στοιχείων του καρουζέλ ενδέχεται να έχει ακούσιες συνέπειες
-• Εάν όλα τα στοιχεία του καρουζέλ είναι κρυμμένα, θα κρυφτεί και ολόκληρο το τμήμα των σχολίων"</string>
     <string name="revanced_hide_comments_create_a_short_button_summary_off">Εμφανίζεται</string>
     <string name="revanced_hide_comments_create_a_short_button_summary_on">Κρυμμένο</string>
     <string name="revanced_hide_comments_create_a_short_button_title">Κουμπί «Δημιουργία Short»</string>

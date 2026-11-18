@@ -465,6 +465,8 @@ Going to that date	正在前往該日期
 Sort reels on profiles	排序個人檔案的 Reels
 Puts the arrow next to Reels on every profile, so you can sort them by Latest or Most viewed where Instagram took the choice away.	在每個個人檔案的 Reels 旁顯示箭頭，即使 Instagram 拿掉了這個選項，也能依「最新」或「最多觀看次數」排序。
 The cards of people and creators to follow that Instagram puts between reels. Every reel still plays.	隱藏 Instagram 在 Reels 之間插入的推薦用戶與創作者卡片。每則 Reel 仍會播放。
+Hide stories in Reels	隱藏 Reels 中的限時動態
+The Catch up with friends pages of stories that Instagram puts between reels. Stories stay at the top of Home.	隱藏 Instagram 在 Reels 之間插入的朋友限時動態頁面。首頁上方的限時動態仍會保留。
 Leaves out reels with a Paid partnership label, and reels Instagram marks as boosted. Ads have their own switch.	隱藏標示「付費合作夥伴」或 Instagram 標記為加強推廣的 Reels。廣告另有獨立開關。
 Turn on Start Home on Following to use this choice.	請啟用「首頁預設顯示追蹤中」以使用此選項。
 # context: Settings page: the summary of a greyed-out slider in place of its value; %1$s is the title of the switch it waits on, like Glass tab bar
@@ -565,7 +567,7 @@ Gives reels the seek bar of a video in a chat, a thin gray line that turns white
 Seek bar on photos with music	在含音樂的相片上顯示進度列
 Reels that are a photo with a song get the same seek bar and time as a video reel, following the song. Drag it to seek.	相片搭配歌曲的 Reels 會顯示與影片 Reels 相同的進度列和時間，並跟著歌曲前進。拖曳即可跳轉。
 Hide the seek bar on reels	隱藏 Reels 的進度列
-Takes the seek bar off the bottom of every reel, long ones too. Hold a reel to bring it back and seek. Keep a seek bar and the seek bar looks above win over it.	移除每支 Reels 底部的進度列，長的也一樣。按住 Reels 即可叫回進度列並跳轉。保持顯示進度列和上方的進度列樣式優先。
+Takes the seek bar off the bottom of every reel, long ones too. Drag sideways along the bottom edge of a reel to bring it back and seek. Keep a seek bar and the seek bar looks above win over it. Restart Instagram to see the change.	移除每支 Reels 底部的進度列，長的也一樣。沿著 Reels 底部邊緣左右拖曳即可叫回進度列並跳轉。保持顯示進度列和上方的進度列樣式優先。重新啟動 Instagram 即可看到變更。
 Blur the bars around a reel	模糊 Reel 周圍的留白
 A reel that doesn't fill the screen shows a blurred copy of itself above and below it instead of black bars, and the strip under the tab bar and the band behind the clock show the reel blurred too. The copy shows only where a reel leaves room, as with Show the whole reel on. Open Reels again after a change.	未填滿螢幕的 Reel 會在上下顯示自身的模糊影像，取代黑邊；分頁列下方與時鐘後方也會顯示模糊的 Reel。模糊影像只會出現在 Reel 留有空間的地方，例如開啟「顯示完整的 Reels」時。變更後請重新開啟 Reels。
 # Chosen navigation long-press settings entry. Account tab availability varies.
@@ -658,6 +660,8 @@ Stop after the chat's reels	看完聊天室的 Reels 就停止
 Reels you opened from a chat end after the last one shared in that chat, with no suggested reels after it. Works with Swipe through a chat's reels on.	從聊天室開啟的 Reels 會在該聊天室分享的最後一則結束，之後不會出現推薦的 Reels。需開啟「在聊天室的 Reels 之間滑動」。
 Adds Download cover under Download. It saves the still picture a reel shows before it plays, at its largest size.	在「下載」下方新增「下載封面」，以最大尺寸儲存 Reel 播放前顯示的靜態圖片。
 Adds Download audio under Download. It saves the sound of the reel as an audio file.	在「下載」下方新增「下載音訊」，將 Reel 的聲音儲存為音訊檔案。
+Download full song	下載完整歌曲
+Adds Download full song under Download on reels that use a song from Instagram's music. It saves the whole song as an audio file, not only the part the reel plays.	在使用 Instagram 音樂歌曲的 Reel 上，於「下載」下方新增「下載完整歌曲」，將整首歌儲存為音訊檔案，而不只是 Reel 播放的片段。
 After the reels you pick below, swiping in Reels stops until Instagram has been in the background for the time you pick. A reel you open from a message or a post still plays.	觀看下方選擇的 Reels 數量後會停用 Reels 滑動，直到 Instagram 在背景停留你選擇的時間。從訊息或貼文開啟的 Reel 仍會播放。
 Find the reel you came from	尋找剛才的 Reel
 Open a creator's profile from a reel, then their Reels tab, and it scrolls to that reel and outlines it for a moment. A photo reel is found in their posts. Stop looking ends the search where it is.	從 Reel 開啟創作者個人檔案，再開啟其 Reels 分頁時，會捲動至該 Reel 並短暫加框標示。照片 Reel 會在貼文中尋找。「停止尋找」會在目前位置結束搜尋。
@@ -1186,6 +1190,8 @@ Open settings with a long press on your profile's menu	長按個人檔案選單�
 A long press on the menu button, the three lines at the top right of your own profile, opens HushGram. A tap still opens Instagram's menu, and other profiles stay the same.	長按自己個人檔案右上角的三條線選單按鈕，即可開啟 HushGram。點擊仍會開啟 Instagram 選單，其他人的個人檔案不受影響。
 Hide the top bar on the Reels tab	隱藏 Reels 分頁頂端列
 Takes away the row at the top of the Reels tab, with the Reels title, the camera button and anything else Instagram puts there. Reels you open from a profile, a post or a chat keep theirs. The camera still opens from Home.	移除 Reels 分頁頂端的整列內容，包括 Reels 標題、相機按鈕與 Instagram 放在該處的其他項目。從個人檔案、貼文或聊天開啟的 Reels 仍會保留頂端列。相機仍可從首頁開啟。
+Hide the top bar on other reels	隱藏其他 Reels 的頂端列
+Takes the back arrow and the title off the top of reels you open from Explore, a profile, a post, Saved or a chat. Your phone's back button or gesture still goes back.	移除從探索、個人檔案、貼文、已儲存或聊天開啟的 Reels 頂端的返回箭頭與標題。手機的返回鍵或返回手勢仍可返回。
 Hide the Create button on reels	隱藏 Reels 上的建立按鈕
 Takes the plus button that opens the camera off the top of reels, on the Reels tab and everywhere else, and closes up the gap. The rest of the bar stays.	移除 Reels 頂端用來開啟相機的加號按鈕並收起空白，Reels 分頁與其他位置皆適用。頂端列的其他內容仍會保留。
 Hide Your algorithm on reels	隱藏 Reels 上的「你的演算法」
@@ -2253,13 +2259,9 @@ Save profile	儲存個人檔案
 Saved @%s	已儲存 @%s
 # context: toast after Remove from saved takes an account off the Saved profiles list; %s is its username (#629)
 Removed @%s from saved	已將 @%s 從已儲存移除
-# context: row in the long press menu on an account on the Saved profiles page, and title of the folder list it opens (#629)
-Move to folder	移至資料夾
-# context: title of the folder list Save profile opens on a profile's menu once the user has made a folder (#629)
+# context: title of the folder checklist Save profile opens on a profile's menu once the user has made a folder; the account can go in several (#629, #687)
 Save to folder	儲存至資料夾
-# context: first choice in that folder list; the saved account sits in no folder (#629)
-No folder	不放入資料夾
-# context: last choice in that folder list, and title of the dialog asking the new folder's name (#629)
+# context: button under a folder checklist, and title of the dialog asking the new folder's name (#629, #687)
 New folder	新增資料夾
 # context: row in the long press menu on a folder's chip on the Saved profiles page, and title of the dialog for its new name (#629)
 Rename folder	重新命名資料夾
@@ -2267,14 +2269,20 @@ Rename folder	重新命名資料夾
 Remove folder	移除資料夾
 # context: toast after Save profile puts an account in a folder; %1$s is its username, %2$s the folder's name (#629)
 Saved @%1$s to %2$s	已將 @%1$s 儲存至 %2$s
-# context: toast after Move to folder; %1$s is the account's username, %2$s the folder's name (#629)
-Moved @%1$s to %2$s	已將 @%1$s 移至 %2$s
-# context: toast after Move to folder > No folder; %s is the account's username, which stays saved (#629)
-Moved @%s out of its folder	已將 @%s 移出資料夾
 # context: toast after Remove folder; %s is the folder's name, and its accounts stay saved (#629)
 Removed the folder %s	已移除資料夾 %s
 # context: toast after Rename folder; %s is the folder's new name (#629)
 Renamed the folder to %s	已將資料夾重新命名為 %s
+# context: row in the long press menu on an account on the Saved profiles page, and title of the folder checklist it opens; an account can be in several folders (#687)
+Choose folders	選擇資料夾
+# context: toast after Choose folders with every folder unticked; %s is the account's username, which stays saved (#687)
+@%s is in no folder now	@%s 現在不在任何資料夾中
+# context: toast after Choose folders leaves the account in one folder; %1$s is its username, %2$s the folder's name (#687)
+@%1$s is in %2$s now	@%1$s 現在在 %2$s 中
+# context: toast after Choose folders leaves the account in two or more folders; %1$s is its username, %2$d how many (#687)
+@%1$s is in %2$d folders now	@%1$s 現在在 %2$d 個資料夾中
+# context: toast after Save profile puts an account in two or more folders; %1$s is its username, %2$d how many (#687)
+Saved @%1$s to %2$d folders	已將 @%1$s 儲存至 %2$d 個資料夾
 # context: toast when the Saved profiles list already holds 2,000 accounts (#629)
 Saved profiles is full.	已儲存的個人檔案已達上限。
 # context: Profiles > title of the switch that adds Save profile to the menu on profiles, and title of the page listing the saved accounts (#629)
@@ -2505,3 +2513,20 @@ No one has viewed half of this period's stories yet.	還沒有人看過這段期
 # context: Feed: switch under Hide the home feed that keeps Instagram from learning which posts in Home you looked at and for how long (#664)
 Don't send feed view history	不傳送動態首頁瀏覽記錄
 Stops telling Instagram which posts in Home you looked at and for how long. Instagram uses that to pick what Home shows. Posts you've seen may come back.	不再向 Instagram 回報你在首頁看過哪些貼文以及看了多久。Instagram 會用這些資料挑選首頁要顯示的內容，因此已看過的貼文可能再次出現.
+# context: Tab bar: switch under Hide the Messages tab that takes the unread count off the Messages button on the bottom tab bar (#734)
+Hide the Messages badge	隱藏私訊徽章
+Takes the unread count off the Messages button on the tab bar. Chats still show as unread in your inbox, and notifications still come. Restart Instagram to see the change.	移除分頁列私訊按鈕上的未讀數。收件匣中的聊天仍顯示為未讀，通知也照常送達。請重新啟動 Instagram 以套用變更.
+# context: Ads and privacy settings: switch that adds a search box above Instagram's Blocked accounts list (Settings > Blocked), filtering it by username or full name; the same title is the box's hint text (#731)
+Search blocked accounts	搜尋已封鎖的帳號
+Adds a search box above your blocked accounts in Instagram's settings. It finds them by username or name, and loads the rest of your list as you type.	在 Instagram 設定中已封鎖的帳號上方加入搜尋框。可依使用者名稱或名稱尋找，並在你輸入時載入清單的其餘部分.
+# context: the line under that search box. %1$d is how many blocked accounts match, %2$d how many have loaded. First while more pages are loading, then when Instagram stopped sending pages, then when the whole list is in (#731)
+Matches: %1$d of %2$d account loaded so far. Loading the rest of your list.	相符 %1$d 個，目前已載入 %2$d 個帳號。正在載入清單的其餘部分.
+Matches: %1$d of %2$d accounts loaded so far. Loading the rest of your list.	相符 %1$d 個，目前已載入 %2$d 個帳號。正在載入清單的其餘部分.
+Matches: %1$d of the %2$d account that loaded. Instagram didn't send the rest.	相符 %1$d 個，共載入 %2$d 個帳號。Instagram 未傳送其餘部分.
+Matches: %1$d of the %2$d accounts that loaded. Instagram didn't send the rest.	相符 %1$d 個，共載入 %2$d 個帳號。Instagram 未傳送其餘部分.
+Matches: %1$d of %2$d blocked account	相符 %1$d 個，共 %2$d 個已封鎖的帳號
+Matches: %1$d of %2$d blocked accounts	相符 %1$d 個，共 %2$d 個已封鎖的帳號
+# context: Profiles settings: switch that makes a long press on the picture at the top of a profile open HushGram's full size viewer with a Save button, in place of Instagram's own enlarged picture (#737)
+Long press a profile picture to view it	長按個人檔案相片即可檢視
+# context: that switch summary (#737)
+Long press the picture at the top of a profile to open the whole square picture at full size, with Save under it, instead of Instagram's own preview. A tap works as before.	長按個人檔案頂端的相片，即可開啟完整的正方形相片原尺寸檢視，下方附有「儲存」，取代 Instagram 本身的預覽。點一下的操作不變.

@@ -1,0 +1,74 @@
+Morphe NOTICE
+=============
+
+7c. Project Name Restriction
+----------------------------
+
+This license does not grant permission to use the name "Morphe", or any
+name, logo, or branding that is confusingly similar, as the name or
+primary identifying mark of any modified version, fork, or derivative work.
+
+Any redistribution or derivative work must adopt a distinct name and
+branding that clearly differentiates it from the Morphe project and does
+not cause confusion as to source or origin.
+
+References to Morphe are permitted solely for descriptive compatibility
+purposes (e.g., "compatible with Morphe" or "XYZ patches for use with Morphe"),
+provided that such references:
+
+- Are accurate, factual, and non-misleading;
+- Do not suggest authorship by the Morphe project; and
+- Appear only in a secondary or descriptive context, not as part of the product or project name.
+
+
+Additional notice for source adapted from Morphe commit
+44031c561ea048c8f196877f30a49c13bfd6afb6
+======================================================
+
+Morphe NOTICE
+
+https://github.com/MorpheApp/morphe-patches
+
+=============
+
+GPLv3 Section 7b: Preservation of User Notices
+
+All derivative works (source code and binaries) must include this
+NOTICE text and provide it to the software user.
+
+Portions of this software are provided "AS IS" by the Morphe software project.
+Any express or implied warranties, including the implied warranties of
+merchantability and fitness for a particular purpose, are disclaimed.
+
+
+GPLv3 Section 7c: Prohibiting Misrepresentation of Origin
+
+You are prohibited from misrepresenting the origin of the Program,
+and modified versions of the Program must be identified and marked in
+reasonable ways as different from the original version so as not to cause
+confusion regarding their origin.
+
+
+GPLv3 Section 7e: Declining Grant of Trademark Rights
+
+This License does not grant any rights or permission under trademark law
+to use the name "Morphe" or any of the Program's trade names, trademarks,
+service marks, or logos.
+
+
+Afterglow modifications
+=======================
+
+This is an independent Afterglow adaptation, not an official Morphe release.
+Native hooks, settings ownership, and supported behavior have been adapted for
+Afterglow and YouTube 21.43.523. Source origins and changes are recorded in the
+relevant source headers and docs/long-press-tools.md and docs/morphe-fallbacks.md.
+
+The bundled feature catalog also incorporates Morphe patches 2.0.0, commit
+6cb8e6b6ee425eda8a854e026507286359f38a32, and patches-library 2.1.0-dev.2,
+commit 42edb9710c2b63416e8eddd8096bb6a0adff75dd. Original feature implementations
+are retained. Afterglow changes their public selection wrappers and connects
+their settings to the Afterglow settings screen. Original source and notices,
+the import recipe, and a complete feature mapping are supplied in vendor/morphe,
+tools/import_morphe.py, tools/morphe-catalog.json and docs/morphe-catalog.md.
+This remains an independent Afterglow distribution, not an official Morphe build.

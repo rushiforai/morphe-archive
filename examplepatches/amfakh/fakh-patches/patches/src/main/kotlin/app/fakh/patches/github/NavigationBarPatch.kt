@@ -160,7 +160,8 @@ val navigationBarPatch = patch(
 @Suppress("unused")
 val glassNavigationBarPatch = patch(
     name = "Glass navigation bar",
-    description = "Draws the navigation bar as a floating, translucent capsule with a sliding selection pill. Slide a finger along it to switch tabs. Liquid Glass blurs what's behind it. The switch is in Fakh Patches.",
+    description = "A floating, translucent navigation bar. Slide a finger along it to switch tabs. The switch is " +
+        "in Fakh Patches.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_GITHUB)

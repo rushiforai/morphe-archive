@@ -478,13 +478,13 @@ try {
     }
 
     # The files outside the source trees that the runtime tests read. ReadmePatchNamesTest holds the
-    # README's patch rows to the catalog, ProvenanceTest holds NOTICE and every source's header to
+    # patch rows in docs/patches.md to the catalog, ProvenanceTest holds NOTICE and every source's header to
     # provenance.json, PatchFamilyTest and LicenseNoticeTest read the catalog and NOTICE, and
     # ShortcutCallsTest holds the settings patch's shortcut rewrite to the no-call rules in the
     # mutation contracts. The Gradle files declare them as test inputs, so the tests rerun when one
     # moves, but a push of one alone never started them: a README patch row went out with
     # ReadmePatchNamesTest never run on it.
-    $runtimeTestInputs = @('README.md', 'NOTICE', 'provenance.json', 'patches-list.json',
+    $runtimeTestInputs = @('README.md', 'docs/patches.md', 'NOTICE', 'provenance.json', 'patches-list.json',
         'scripts/injected-mutation-contracts.txt')
     $toolingClasspathInputs = @(
         'build.gradle.kts', 'settings.gradle.kts', 'patches/build.gradle.kts',
@@ -634,6 +634,8 @@ try {
         # A released version's heading is the only record a reader has that it shipped, and one
         # was renamed away by a post-release commit that no gate read.
         $_ -eq 'CHANGELOG.md' -or
+        # Versions 0.1.0 to 0.19.0 moved there, and the same check holds both files together.
+        $_ -eq 'docs/changelog-archive.md' -or
         # Its version placeholders are held to the target and the published index.
         $_ -eq '.github/ISSUE_TEMPLATE/bug_report.yml' -or
         # It names the pinned patcher and the Manager floor, which the release check holds it to.

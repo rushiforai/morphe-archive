@@ -78,6 +78,13 @@
     <string name="revanced_copy_select_text_summary">長按影片描述或貼文，即可選取並複製其中任何部分</string>
     <string name="revanced_copy_select_text_title">選取描述和貼文的文字</string>
     <string name="morphe_custom_branding_icon_title">應用程式圖示</string>
+    <string name="morphe_custom_seekbar_thumb_file_invalid">選取的檔案不是支援的圖片</string>
+    <string name="morphe_custom_seekbar_thumb_file_not_found">找不到自訂跳轉列滑桿圖片</string>
+    <string name="morphe_custom_seekbar_thumb_file_title">滑桿圖片</string>
+    <string name="morphe_custom_seekbar_thumb_scale_type_entry_fit_seekbar">適配跳轉列</string>
+    <string name="morphe_custom_seekbar_thumb_scale_type_entry_original">原始大小</string>
+    <string name="morphe_custom_seekbar_thumb_scale_type_title">滑桿大小</string>
+    <string name="morphe_custom_seekbar_thumb_title">啟用自訂跳轉列滑桿</string>
     <string name="morphe_dearrow_about_summary">"DeArrow 以更準確且不那麼誇大的社群提交內容取代點擊誘餌標題和縮圖。標題由社群撰寫和投票，縮圖則取自影片的畫面
 
 影片是透過雜湊影片 ID 的短前綴來請求，因此伺服器無法確切知道您正在查看哪部影片。如果影片沒有 DeArrow 縮圖，則會顯示原始影片或靜態擷取畫面"</string>
@@ -106,6 +113,12 @@
     <string name="morphe_disable_toolbar_navigation_tabs_summary">如果 YouTube 將「訂閱」移至首頁頂端的分頁，則在導覽列中顯示訂閱</string>
     <string name="morphe_disable_toolbar_navigation_tabs_title">停用工具列導覽分頁</string>
     <string name="morphe_dual_captions_enabled_title">雙語字幕</string>
+    <string name="morphe_enhanced_ambient_mode_dim_duration_title">調暗持續時間</string>
+    <string name="morphe_enhanced_ambient_mode_dim_while_scrolling_summary">在捲動或觸碰頁面時調暗燈光</string>
+    <string name="morphe_enhanced_ambient_mode_dim_while_scrolling_title">捲動時調暗</string>
+    <string name="morphe_enhanced_ambient_mode_readable_text_summary">調低明亮影片的亮度，使頁面上的文字保持可讀</string>
+    <string name="morphe_enhanced_ambient_mode_readable_text_title">保持文字可讀性</string>
+    <string name="morphe_enhanced_ambient_mode_title">增強型微光效果</string>
     <string name="morphe_expand_livestream_dvr_duration_not_available">"「延長直播 DVR 時長」可能無法使用
 
 要修正此問題，請開啟「偽造影片串流」，並將「預設用戶端」變更為「TV Simply」或「visionOS」"</string>
@@ -271,6 +284,12 @@
     <string name="morphe_playback_in_feeds_title">feeds 中的播放</string>
     <string name="morphe_player_control_buttons_background_opacity_summary">調整播放器控制按鈕和時間列後方背景的不透明度（0 為隱形，100 為不透明）</string>
     <string name="morphe_player_control_buttons_background_opacity_title">控制按鈕背景不透明度</string>
+    <string name="morphe_playlist_hide_removal_snackbar_summary">從播放清單移除影片後不再顯示確認提示</string>
+    <string name="morphe_playlist_hide_removal_snackbar_title">隱藏播放清單移除提示欄</string>
+    <string name="morphe_playlist_long_press_drag_summary">觸碰並按住播放清單中的影片，將其拖曳至新位置</string>
+    <string name="morphe_playlist_long_press_drag_title">長按以重新排列播放清單中的影片</string>
+    <string name="morphe_playlist_wide_drag_handles_summary">播放清單拖曳控制項更容易抓取</string>
+    <string name="morphe_playlist_wide_drag_handles_title">加寬播放清單拖曳控制項</string>
     <string name="morphe_post_buttons_layout_entry_1">伺服器</string>
     <string name="morphe_post_buttons_layout_entry_2">強制執行</string>
     <string name="morphe_post_buttons_layout_title">貼文按鈕佈局</string>
@@ -720,20 +739,7 @@ AV1 視訊播放可能會卡頓或丟格"</string>
     <string name="revanced_disable_landscape_mode_summary_off">進入全螢幕時橫向模式已啟用。</string>
     <string name="revanced_disable_landscape_mode_summary_on">進入全螢幕時橫向模式已停用。</string>
     <string name="revanced_disable_landscape_mode_title">停用橫向模式</string>
-    <string name="revanced_disable_layout_updates_summary_off">伺服器會更新版面配置</string>
-    <string name="revanced_disable_layout_updates_summary_on">伺服器不會更新版面配置</string>
     <string name="revanced_disable_layout_updates_title">停用版面配置更新</string>
-    <string name="revanced_disable_layout_updates_user_dialog_message">"應用程式版面回復至首次安裝時的版面配置。
-
-部份伺服器端的版面可能不會回復。
-
-變更內容包括：
-• 播放器彈出式選單中的元件（或相關設定）可能無法運作。
-• 滾動數字動畫消失（未顯示動畫效果）。
-• 顯示「媒體庫」分頁。
-• 影片說明的「音樂」區塊可能無法運作。
-• 播放器彈出式選單中的選項無法隱藏。
-• 「媒體庫」分頁中可能不會出現帳戶切換按鈕。"</string>
     <string name="revanced_disable_like_dislike_glow_summary_off">讚和不喜歡按鈕在提及時會高亮顯示。</string>
     <string name="revanced_disable_like_dislike_glow_summary_on">讚和不喜歡按鈕在提及時不會高亮顯示。</string>
     <string name="revanced_disable_like_dislike_glow_title">停用讚和不喜歡按鈕高亮顯示</string>
@@ -1087,10 +1093,6 @@ AV1 視訊播放可能會卡頓或丟格"</string>
     <string name="revanced_hide_comments_carousel_filter_strings_summary">輸入要篩選的評論輪播名稱，每行一個</string>
     <string name="revanced_hide_comments_carousel_filter_strings_title">啟用評論輪播過濾器</string>
     <string name="revanced_hide_comments_carousel_title">啟用評論輪播過濾器</string>
-    <string name="revanced_hide_comments_carousel_user_dialog_message">"注意：
-• 請務必輸入輪播項目確切的名稱（例如：詢問、熱門影片、在 YouTube Music 中聆聽等）。
-• 隱藏輪播項目可能會產生意想不到的副作用。
-• 如果所有輪播項目都被隱藏，整個評論區也會被隱藏。"</string>
     <string name="revanced_hide_comments_create_a_short_button_summary_off">已顯示「建立 Short」按鈕</string>
     <string name="revanced_hide_comments_create_a_short_button_summary_on">已隱藏「建立 Short」按鈕</string>
     <string name="revanced_hide_comments_create_a_short_button_title">隱藏「建立 Short」按鈕</string>

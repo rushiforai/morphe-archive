@@ -129,6 +129,8 @@ Lecture SABR (Falsifier les flux vidéo désactivés)"</string>
     <string name="morphe_music_downloads_started">Téléchargement démarré</string>
     <string name="morphe_music_downloads_starting">Démarrage du téléchargement…</string>
     <string name="morphe_music_downloads_unknown_track">Impossible d\'identifier le morceau à télécharger</string>
+    <string name="morphe_music_hide_you_may_also_like_section_title">Masquer la section \'Vous aimerez aussi\'</string>
+    <string name="morphe_music_hide_your_downloads_shelf_title">Masquer l\'étagère \'Vos téléchargements\'</string>
     <string name="morphe_music_lyrics_about_summary">"Les paroles sont associées par titre et artiste ; des métadonnées inhabituelles peuvent ne rien donner ou renvoyer une mauvaise version. Utilisez l'actualisation pour changer de version. Les fournisseurs marqués d'un * nécessitent un jeton. Tous les fournisseurs activés ne sont pas toujours sollicités dans l'ordre indiqué, mais répondent selon leur rapidité
 
 Les paroles proviennent de services tiers qui ne sont ni affiliés, ni sponsorisés, ni approuvés par RVX. Chacun est utilisé tel quel : les paroles, leur disponibilité et leur licence restent la propriété de ces services et de leurs concédants, et leur utilisation peut être soumise à leurs conditions d'utilisation. Seule la recherche demandée est transmise à un service activé : le titre, l'artiste et, si le service en a besoin, l'identifiant de la vidéo. Le point de terminaison de l'IA facultatif et la transcription QuickLRC ne s'exécutent qu'après leur configuration et reçoivent le texte des paroles ou l'URL vidéo du morceau"</string>

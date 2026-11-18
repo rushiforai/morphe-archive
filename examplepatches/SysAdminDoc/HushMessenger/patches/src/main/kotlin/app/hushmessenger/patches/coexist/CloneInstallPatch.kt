@@ -6,6 +6,8 @@
 package app.hushmessenger.patches.coexist
 
 import app.hushmessenger.patches.MessengerTarget
+import app.hushmessenger.patches.isExtension
+import app.hushmessenger.patches.messengerClasses
 import app.hushmessenger.patches.controls.BASE_PROFILE
 import app.hushmessenger.patches.controls.DEFAULT_STRINGS
 import app.hushmessenger.patches.controls.MANIFEST_STRINGS
@@ -396,8 +398,14 @@ private fun Instruction.dedupString(): String? {
     return string.takeIf { it == DEDUP_AUTHORITY || it in DEDUP_URIS }
 }
 
-/** Every load of the push dedup provider's authority or URIs, by method and index. */
-internal fun findDedupSites(classes: Iterable<ClassDef>): Set<String> = classes.flatMap { it.methods }.flatMap { method ->
+/**
+ * Every load of the push dedup provider's authority or URIs in Messenger's own code, by method and index. The extension
+ * builds the running copy's names from the same strings, and reading those fields back while it sets them leaves every
+ * name null, so its classes are never sites.
+ */
+internal fun findDedupSites(classes: Iterable<ClassDef>): Set<String> = classes
+    .filterNot { it.isExtension() }
+    .flatMap { it.methods }.flatMap { method ->
     val code = method.implementation?.instructions?.toList() ?: return@flatMap emptyList()
     code.indices.filter { code[it].dedupString() != null }.map { "${method.hookId()}@$it" }
 }.toSet()
@@ -631,7 +639,7 @@ val cloneInstallPatch = bytecodePatch(
         val label = appLabel?.takeIf(::isCloneLabel) ?: fail("\"$appLabel\" can't be used as an app name")
         val expected = expectedCloneSitesFor(packageMetadata.versionCode)
         // The story link button gets Messenger's name from a string pool in some builds, so every class is read.
-        val classes = mutableListOf<ClassDef>().apply { classDefForEach { add(it) } }
+        val classes = messengerClasses()
         val pools = ownNamePoolKeys(classes)
         if (findCloneSites(classes, pools) != expected) {
             fail("the backup lookup, attachment check or Messenger's intents to itself differ from the tested build")

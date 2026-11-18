@@ -164,10 +164,12 @@ public class CompatReport {
             "people_inbox_refresh"));
         PATCHES.put("Hide friend request cards", List.of("friend_requests"));
         PATCHES.put("Hide joined community chats", List.of("community_inbox"));
-        PATCHES.put("Hide growth prompts", List.of("growth", "growth_notes", "growth_story_card"));
+        PATCHES.put("Hide growth prompts", List.of("growth", "growth_active_status", "growth_notes", "growth_story_card"));
         PATCHES.put("Hide inbox promotions", List.of("inbox_promotions"));
         PATCHES.put("Hide stories and notes", List.of("stories", "story_ring"));
         PATCHES.put("Hide inbox tabs", List.of("subtabs"));
+        PATCHES.put("Typing in your chat list", List.of("inbox_typing"));
+        PATCHES.put("Put your words above the photo", List.of("media_caption"));
         PATCHES.put("Keep the search bar", List.of("inbox_search_bar"));
         PATCHES.put("Preview chats on long press", List.of("chat_preview"));
         PATCHES.put("Bigger chat preview", List.of("chat_preview_size"));
@@ -189,6 +191,7 @@ public class CompatReport {
         PATCHES.put("Hide tab badges", List.of("tab_badges", "facebook_badge"));
         PATCHES.put("Hide the tab bar while scrolling", List.of("tab_bar_scroll_away", "tab_bar_overlay"));
         PATCHES.put("Floating tab bar", List.of("floating_tab_bar"));
+        PATCHES.put("Swipe between tabs", List.of("tab_swipe"));
         PATCHES.put("Hold stories at the end", List.of("story_hold"));
         PATCHES.put("Hide AI sticker tools", List.of("ai_stickers", "ai_sticker_cell", "ai_sticker_grid"));
         PATCHES.put("Hide avatar stickers", List.of("avatar_stickers", "avatar_tabs"));
@@ -220,6 +223,7 @@ public class CompatReport {
         PATCHES.put("Put gallery picks in the chat", List.of("gallery_to_chat"));
         PATCHES.put("Paste a photo into the chat", List.of("paste_photo"));
         PATCHES.put("Send Instants from your gallery", List.of("instant_gallery"));
+        PATCHES.put("Offer View once in every chat", List.of("view_once_anywhere"));
         PATCHES.put("Special contacts", List.of("special_contacts", "hidden_chat_list", "hidden_chat_row", "hidden_chat_tap"));
         PATCHES.put("Play video links in the chat", List.of("link_player"));
         PATCHES.put("Stop analytics uploads", List.of("analytics_uploads"));
@@ -229,6 +233,7 @@ public class CompatReport {
         PATCHES.put("Stop live connection logging", List.of("mqtt_telemetry"));
         PATCHES.put("Stop nearby scans", List.of("nearby_scans", "wifi_identity"));
         PATCHES.put("Stop app list and device ID sharing", List.of("phone_id_sync"));
+        PATCHES.put("Skip passkey sign-in", List.of("passkey_login"));
         PATCHES.put("Keep a message log", List.of("message_log", "unsent_recall", "unsent_clear", "message_log_button", "message_log_click",
             "quiet_log_check", "quiet_log_drop", "hidden_chat_list", "hidden_chat_row", "hidden_chat_tap"));
         PATCHES.put("Auto reply", List.of("auto_reply"));
@@ -245,6 +250,8 @@ public class CompatReport {
         PATCHES.put("Allow screenshots", List.of("allow_screenshot", "screenshot_viewers"));
         PATCHES.put("Block screenshots in chats", List.of("secure_chat"));
         PATCHES.put("Invisible buttons", List.of("invisible_buttons"));
+        PATCHES.put("Translucent chat bars", List.of("ios_bars"));
+        PATCHES.put("Appear offline", List.of("appear_offline", "availability_setting"));
         PATCHES.put("Hide read receipts", List.of("hide_read_receipts", "reply_read", "delivery_receipt"));
         PATCHES.put("Mark chats read on this phone", List.of("local_read"));
         PATCHES.put("Mark as read button", List.of("mark_read_bar", "mark_read_click"));
@@ -868,6 +875,93 @@ public class CompatReport {
         return 0;
     }
 
+    static final String CONTROL_PROFILES = "controls/ControlProfiles.kt";
+
+    /**
+     * --record-control: a control's hooks in every recorded build, read from the stock APKs in [apkDir] (matched by
+     * their recorded SHA-256) and written into each record and each profile in ControlProfiles.kt. --save holds a build
+     * to the recorded hook counts, so a control none of the records has yet gets its ids here instead of by hand. The
+     * builds one profile serves must resolve to the same methods, or nothing is written.
+     */
+    static int recordControl(String key, Path apkDir) throws Exception {
+        if (!CONTROL_KEYS.contains(key)) {
+            System.err.println(key + " isn't a control. Add it to PATCHES and its finder to Controls.findControls first.");
+            return 2;
+        }
+        var records = new TreeMap<String, Path>();
+        var builds = new TreeMap<String, Profile>();
+        try (var files = Files.list(PROFILES)) {
+            for (var file : files.filter(f -> f.toString().endsWith(".txt")).sorted().toList()) {
+                var build = Profile.read(file);
+                records.put(build.code, file);
+                builds.put(build.code, build);
+            }
+        }
+        var apks = new HashMap<String, File>();
+        try (var files = Files.list(apkDir)) {
+            for (var file : files.filter(f -> f.toString().endsWith(".apk")).sorted().toList()) apks.put(sha256(file.toFile()), file.toFile());
+        }
+        var missing = builds.values().stream().filter(b -> !apks.containsKey(b.sha256)).map(b -> b.code).toList();
+        if (!missing.isEmpty()) {
+            System.err.println("No APK in " + apkDir + " has the recorded SHA-256 of build " + String.join(", ", missing));
+            return 2;
+        }
+        var source = scriptDir().getParent().resolve(PATCH_SOURCES + CONTROL_PROFILES);
+        var original = Files.readString(source);
+        boolean crlf = original.contains("\r\n");
+        var kotlin = original.replace("\r\n", "\n");
+        var families = new TreeMap<String, String>();
+        var mapped = Pattern.compile("(?m)^\\s*(\\d+) to PROFILE_(\\d+),$").matcher(kotlin);
+        while (mapped.find()) families.put(mapped.group(1), mapped.group(2));
+        if (!families.keySet().equals(builds.keySet())) {
+            System.err.println(CONTROL_PROFILES + " maps builds " + families.keySet() + ", but scripts/profiles records " + builds.keySet());
+            return 2;
+        }
+
+        var found = new TreeMap<String, Set<String>>();
+        for (var build : builds.values()) {
+            var ids = findControls(loadDex(apks.get(build.sha256))).get(key).stream().map(CompatReport::hookId)
+                .collect(Collectors.toCollection(TreeSet::new));
+            System.out.println(build.code + ": " + (ids.isEmpty() ? "nothing found" : String.join(", ", ids)));
+            found.put(build.code, ids);
+        }
+        var problems = new ArrayList<String>();
+        found.forEach((code, ids) -> { if (ids.isEmpty()) problems.add(code + " has no " + key + " hook"); });
+        var profiles = new TreeSet<>(families.values());
+        for (var profile : profiles) {
+            var served = families.entrySet().stream().filter(e -> e.getValue().equals(profile)).map(Map.Entry::getKey).toList();
+            var shapes = served.stream().map(found::get).distinct().toList();
+            if (shapes.size() > 1) {
+                problems.add("PROFILE_" + profile + " serves " + String.join(", ", served) + ", which don't resolve to the same methods");
+            }
+        }
+        if (!problems.isEmpty()) {
+            System.out.println();
+            System.out.println("Nothing written:");
+            for (var problem : problems) System.out.println("       " + problem);
+            return 1;
+        }
+
+        for (var build : builds.values()) {
+            build.hooks.put(key, found.get(build.code));
+            Files.writeString(records.get(build.code), String.join("\n", build.lines()) + "\n");
+        }
+        for (var profile : profiles) {
+            var head = "internal val PROFILE_" + profile + " = ControlProfile(\n";
+            int start = kotlin.indexOf(head);
+            int end = start < 0 ? -1 : kotlin.indexOf("\n)\n", start);
+            if (end < 0) {
+                System.err.println(CONTROL_PROFILES + " has no PROFILE_" + profile + " declaration to replace");
+                return 2;
+            }
+            kotlin = kotlin.substring(0, start) + kotlinProfile(builds.get(profile)) + kotlin.substring(end + 3);
+        }
+        Files.writeString(source, crlf ? kotlin.replace("\n", "\r\n") : kotlin);
+        System.out.println();
+        System.out.println("Wrote " + key + " into " + builds.size() + " records and " + profiles.size() + " profiles in " + CONTROL_PROFILES + ".");
+        return 0;
+    }
+
     static String sha256(File apk) throws Exception {
         var digest = MessageDigest.getInstance("SHA-256");
         try (var in = new FileInputStream(apk); var out = new DigestOutputStream(OutputStream.nullOutputStream(), digest)) {
@@ -959,8 +1053,8 @@ public class CompatReport {
      */
     static final Set<String> NEEDS_A_LOCAL = Set.of("ad_events", "ai_commands", "ai_fab", "ai_mention_rows", "ai_menu", "ai_search",
         "ai_search_chip", "ai_summary", "allow_screenshot", "analytics_uploads", "app_icons", "app_themes", "attribution_uploads", "bubbles", "call_recording", "delta_unsent",
-        "disappearing_swipe", "external_gallery", "facebook", "facebook_profile", "font_by_name", "font_repository", "growth_notes", "growth_story_card", "instant_gallery", "instants_button", "keep_unsent", "link_player",
-        "mqtt_telemetry", "nearby_scans", "original_photo", "people_story", "phone_id_sync", "people_tab", "recent_media", "stories", "system_camera",
+        "disappearing_swipe", "external_gallery", "facebook", "facebook_profile", "font_by_name", "font_repository", "growth_active_status", "growth_notes", "growth_story_card", "instant_gallery", "instants_button", "keep_unsent", "link_player",
+        "mqtt_telemetry", "nearby_scans", "original_photo", "passkey_login", "people_story", "phone_id_sync", "people_tab", "recent_media", "stories", "system_camera",
         "tab_badges", "typing", "unsent_indicator", "unsent_recall");
 
     /** More registers than the parameters take, as ControlHooks.kt's validateScratch asks. */
@@ -1459,9 +1553,13 @@ public class CompatReport {
         if (args.length == 2 && "--kotlin".equals(args[0])) {
             System.exit(printKotlin(Path.of(args[1])));
         }
+        if (args.length == 3 && "--record-control".equals(args[0])) {
+            System.exit(recordControl(args[1], Path.of(args[2])));
+        }
         if (args.length < 1 || (args.length > 3 && args.length != 5) || (args.length > 1 && !"--save".equals(args[1]))) {
             System.err.println("Usage: CompatReport <apk> [--save <profiles dir> <desktop.jar> <bundle.mpp>]");
             System.err.println("       CompatReport --kotlin <recorded build .txt>");
+            System.err.println("       CompatReport --record-control <control> <stock APK dir>");
             System.exit(2);
         }
         File apk = new File(args[0]);

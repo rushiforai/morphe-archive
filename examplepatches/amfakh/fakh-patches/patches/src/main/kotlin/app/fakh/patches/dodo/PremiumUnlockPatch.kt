@@ -58,8 +58,7 @@ private val adSdksManifestPatch = patch {
 @Suppress("unused")
 val premiumUnlockPatch = patch(
     name = "Premium unlock",
-    description = "Unlocks premium on your phone (no ads, every premium feature), stops the Play license check " +
-        "from closing the app, and keeps the ad SDK from starting so it cannot load ads or track in the background.",
+    description = "Unlocks premium and removes ads. Also keeps the license check from closing the app.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_DODO)

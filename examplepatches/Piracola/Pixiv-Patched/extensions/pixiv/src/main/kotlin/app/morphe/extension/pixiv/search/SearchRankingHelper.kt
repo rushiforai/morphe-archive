@@ -28,7 +28,7 @@ object SearchRankingHelper {
         Target("/v1/search/novel", "/v1/search/popular-preview/novel", "novels")
     )
 
-    /** The preview endpoints accept only these query parameters. */
+    /** The parameters carried over from the search request to the preview request. */
     private val PREVIEW_PARAMS = listOf(
         "word",
         "search_target",

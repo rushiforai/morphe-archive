@@ -170,16 +170,55 @@ public class ChoiceBackupTest {
         String backup = ChoiceCodec.encode(Settings.preferences, new HashSet<>(Set.of("stories")));
         assertEquals(ChoiceCodec.HEADER + "\npaused=true\nstories=true\n", backup);
         assertEquals(Map.of("paused", true, "stories", true), ChoiceCodec.parse(backup));
+        assertEquals(ChoiceCodec.parse(backup), ChoiceCodec.parse(backup.replace(ChoiceCodec.HEADER, ChoiceCodec.V1_HEADER)));
         assertEquals(ChoiceCodec.parse(backup), ChoiceCodec.parse(backup.replace(ChoiceCodec.HEADER, ChoiceCodec.LEGACY_HEADER)));
         assertEquals(ChoiceCodec.parse(backup), ChoiceCodec.parse(backup.replace("\n", "\r\n")));
     }
 
+    /** Text keeps its percent signs, equals signs and line breaks, and only a v2 backup can hold typed lines. */
+    @Test public void typedLinesEscapeTheirTextAndNeedTheV2Header() {
+        Settings.preferences.edit().putString(HiddenWords.WORDS, "50%, a=b\nnext\r\nline %0A")
+            .putString(ChatHiding.SAVED + "a=b", "one").putInt(QuietMode.FROM, 1320).putBoolean(QuietCalls.CHAT_PREFIX + "1001", true)
+            .putInt(HiddenWords.WORDS + "_other", 3).putString(QuietMode.TO, "wrong type").commit();
+        String backup = ChoiceCodec.encode(Settings.preferences, Set.of(HiddenWords.KEY, ChatHiding.KEY, QuietMode.KEY, QuietCalls.KEY));
+        assertTrue(backup, backup.startsWith(ChoiceCodec.HEADER + "\n"));
+        assertEquals("s:hidden_chat_keys_a%3Db=one\ns:hidden_words_text=50%25, a=b%0Anext%0D%0Aline %250A\n" +
+            "b:quiet_call_chat_1001=true\ni:quiet_mode_from=1320", typedLines(backup));
+        Map<String, Object> parsed = ChoiceCodec.parse(backup);
+        assertEquals("50%, a=b\nnext\r\nline %0A", parsed.get(HiddenWords.WORDS));
+        assertEquals("one", parsed.get(ChatHiding.SAVED + "a=b"));
+        assertEquals(1320, parsed.get(QuietMode.FROM));
+        assertEquals(true, parsed.get(QuietCalls.CHAT_PREFIX + "1001"));
+        assertThrows(IllegalArgumentException.class, () -> ChoiceCodec.parse(backup.replace(ChoiceCodec.HEADER, ChoiceCodec.V1_HEADER)));
+        assertThrows(IllegalArgumentException.class, () -> ChoiceCodec.parse(backup.replace(ChoiceCodec.HEADER, ChoiceCodec.LEGACY_HEADER)));
+        // A patch that isn't installed keeps its typed lines out too.
+        assertFalse(ChoiceCodec.encode(Settings.preferences, Set.of(QuietMode.KEY)).contains(HiddenWords.WORDS));
+        // A key that were both a switch and a typed line would come out twice, and the backup would never restore.
+        for (String[] spec : SettingsActivity.CONTROLS) assertNull(spec[0], ChoiceCodec.value(spec[0]));
+        for (String sub : Settings.SUB_SWITCHES.keySet()) assertNull(sub, ChoiceCodec.value(sub));
+        assertNull(ChoiceCodec.value("paused"));
+    }
+
+    private static String typedLines(String backup) {
+        return java.util.Arrays.stream(backup.split("\n")).filter(line -> line.matches("[sib]:.*"))
+            .collect(java.util.stream.Collectors.joining("\n"));
+    }
+
     @Test public void everyMalformedBackupLeavesAllPreferencesUntouched() {
-        String[] invalid = {"", "hushmessenger:choices-extra\nstories=true", "hushmessenger:choices:v2\nstories=true",
+        String[] invalid = {"", "hushmessenger:choices-extra\nstories=true", "hushmessenger:choices:v3\nstories=true",
             "hushmessenger:choices\nstories=true\nstories=false", "hushmessenger:choices\nstories=true\npeople=maybe",
             "hushmessenger:choices\nstories=true\nbroken", "hushmessenger:choices\nstories=TRUE",
             "hushmessenger:choices\nstories=true\n\npeople=false", "hushmessenger:choices\nstories=true\nunknown=bad",
-            "hushmessenger:choices\nstories=true\n" + "x".repeat(ChoiceCodec.MAX_BYTES)};
+            "hushmessenger:choices:v1\nstories=true\ns:hidden_words_text=a",
+            "hushmessenger:choices:v2\nstories=true\ns:hidden_words_text=50%",
+            "hushmessenger:choices:v2\nstories=true\ns:hidden_words_text=50%zz",
+            "hushmessenger:choices:v2\nstories=true\ni:quiet_mode_from=noon",
+            "hushmessenger:choices:v2\nstories=true\ni:quiet_mode_from=99999999999",
+            "hushmessenger:choices:v2\nstories=true\nb:quiet_call_chat_1=yes",
+            "hushmessenger:choices:v2\nstories=true\ns:Hidden_words_text=a",
+            "hushmessenger:choices:v2\nstories=true\ns:=a",
+            "hushmessenger:choices:v2\nstories=true\nb:stories=false",
+            "hushmessenger:choices:v2\nstories=true\nx:hidden_words_text=a"};
         try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
             Settings.preferences.edit().putBoolean("stories", false).putBoolean("people", true).commit();
             Map<String, ?> before = Settings.preferences.getAll();
@@ -187,8 +226,141 @@ public class ChoiceBackupTest {
                 clipboard(raw);
                 screen.get().getWindow().getDecorView().findViewWithTag("import_choices").performClick();
                 assertEquals(raw.substring(0, Math.min(60, raw.length())), before, Settings.preferences.getAll());
-                assertTrue(ShadowToast.getTextOfLatestToast().startsWith("Not a choices backup"));
+                assertTrue(raw, ShadowToast.getTextOfLatestToast().startsWith("Not a choices backup"));
             }
+            // Too big is its own message, so nobody hunts for a damaged line in a backup that was only too long.
+            clipboard("hushmessenger:choices\nstories=true\n" + "x".repeat(ChoiceCodec.MAX_BYTES));
+            screen.get().getWindow().getDecorView().findViewWithTag("import_choices").performClick();
+            assertEquals(before, Settings.preferences.getAll());
+            assertEquals("That backup is bigger than 128 KB, so nothing changed.", ShadowToast.getTextOfLatestToast());
+        }
+    }
+
+    /**
+     * #152: the lists, words and numbers behind the switches come back on a fresh install, so a restored phone answers,
+     * hides and keeps what the old one did. A v1 backup still restores its switches.
+     */
+    @Test public void aV2BackupRestoresRepliesChatsRetentionAndHeaderOnAFreshInstall() {
+        Set<String> installed = new HashSet<>(Set.of(AutoReply.KEY, ChatHiding.KEY, LocalPins.KEY, MessageLog.KEY,
+            HomeHeader.KEY, HiddenWords.KEY, QuietMode.KEY, MessageActions.KEY, MaterialYouTheme.KEY, "stories"));
+        AutoReply.save(Settings.preferences, java.util.List.of(new AutoReply.Rule("eta, where", "On my way"),
+            new AutoReply.Rule("", "Driving, back soon")), true);
+        String rules = Settings.preferences.getString(AutoReply.RULES, null);
+        Settings.preferences.edit().putBoolean(AutoReply.KEY, true).putBoolean("stories", true)
+            .putString(ChatHiding.SAVED + "100", "thread_1\nthread_2").putString(LocalPins.SAVED + "100", "pin_1\npin_2")
+            .putString(HomeHeader.TEXT, "Good morning").putString(HiddenWords.WORDS, "spoiler, 100% off")
+            .putInt(QuietMode.FROM, 1380).putInt(QuietMode.TO, 420).putString(MessageActions.ORDER + "mine", "reply,react")
+            .putString(MaterialYouTheme.STYLE_KEY, "vibrant").commit();
+        MessageLog.keepFor(90, System.currentTimeMillis());
+        String backup = ChoiceCodec.encode(Settings.preferences, installed);
+
+        Settings.preferences.edit().clear().commit();
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            Settings.installed = installed;
+            clipboard(backup + "s:future_choice=later\n");
+            screen.get().getWindow().getDecorView().findViewWithTag("import_choices").performClick();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertTrue(Settings.preferences.getBoolean(AutoReply.KEY, false));
+            assertEquals(rules, Settings.preferences.getString(AutoReply.RULES, null));
+            assertEquals(2, AutoReply.rules(Settings.preferences).size());
+            assertTrue(Settings.preferences.getBoolean(AutoReply.GROUPS, false));
+            assertTrue(Settings.preferences.getBoolean("stories", false));
+            assertEquals("thread_1\nthread_2", Settings.preferences.getString(ChatHiding.SAVED + "100", null));
+            assertEquals("pin_1\npin_2", Settings.preferences.getString(LocalPins.SAVED + "100", null));
+            assertEquals("Good morning", Settings.preferences.getString(HomeHeader.TEXT, null));
+            assertEquals("spoiler, 100% off", Settings.preferences.getString(HiddenWords.WORDS, null));
+            assertEquals(1380, Settings.preferences.getInt(QuietMode.FROM, -1));
+            assertEquals(420, Settings.preferences.getInt(QuietMode.TO, -1));
+            assertEquals("reply,react", Settings.preferences.getString(MessageActions.ORDER + "mine", null));
+            assertEquals("vibrant", Settings.preferences.getString(MaterialYouTheme.STYLE_KEY, null));
+            assertEquals(90, MessageLog.keepDays());
+            // The restored page opened again with the lists drawn from them, and the skipped line is still on the card.
+            TextView result = screen.get().getWindow().getDecorView().findViewWithTag("choices_restore_status");
+            assertEquals(View.VISIBLE, result.getVisibility());
+            assertTrue(result.getText().toString(), result.getText().toString().endsWith(" Skipped 1 choice this version doesn't know."));
+            // Restoring it again changes nothing, and says so.
+            clipboard(backup);
+            screen.get().getWindow().getDecorView().findViewWithTag("import_choices").performClick();
+            assertEquals("Your choices already match that backup.", ShadowToast.getTextOfLatestToast());
+
+            // A v1 backup carries only switches, and they still restore.
+            clipboard(ChoiceCodec.V1_HEADER + "\nstories=false\n");
+            screen.get().getWindow().getDecorView().findViewWithTag("import_choices").performClick();
+            assertFalse(Settings.preferences.getBoolean("stories", true));
+            assertEquals("Restored 1 choice.", ShadowToast.getTextOfLatestToast());
+            assertEquals("pin_1\npin_2", Settings.preferences.getString(LocalPins.SAVED + "100", null));
+        }
+    }
+
+    /** A typed line of the wrong type, out of range or past what its row allows is skipped, never saved as it is. */
+    @Test public void damagedTypedChoicesAreSkippedAndValuesAreCutLikeTheirRows() {
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            Settings.installed = new HashSet<>(Set.of(HomeHeader.KEY, QuietMode.KEY, MaterialYouTheme.KEY, AutoReply.KEY, HiddenWords.KEY));
+            Map<String, ?> before = Settings.preferences.getAll();
+            clipboard(ChoiceCodec.HEADER + "\ni:home_header_text=5\ns:quiet_mode_from=noon\ni:quiet_mode_to=" + QuietMode.DAY +
+                "\ns:material_you_style=neon\ns:auto_reply_rules=not json\ns:material_you_theme=not a theme\n");
+            screen.get().getWindow().getDecorView().findViewWithTag("import_choices").performClick();
+            assertEquals(before, Settings.preferences.getAll());
+            TextView result = screen.get().getWindow().getDecorView().findViewWithTag("choices_restore_status");
+            assertEquals("Nothing to restore. None of those match your patches. Skipped 6 choices this version doesn't know.",
+                result.getText().toString());
+
+            clipboard(ChoiceCodec.HEADER + "\ns:hidden_words_text=" + "w".repeat(HiddenWords.MAX_LENGTH + 50) +
+                "\ns:home_header_text=" + "h".repeat(HomeHeader.MAX_LENGTH + 10) + "\n");
+            screen.get().getWindow().getDecorView().findViewWithTag("import_choices").performClick();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertEquals(HiddenWords.MAX_LENGTH, Settings.preferences.getString(HiddenWords.WORDS, "").length());
+            assertEquals(HomeHeader.clean("h".repeat(HomeHeader.MAX_LENGTH + 10)), Settings.preferences.getString(HomeHeader.TEXT, null));
+        }
+    }
+
+    /** A backup with replies in it can turn Auto reply on, since it brings the replies it answers with. */
+    @Test public void aBackupWithRepliesTurnsAutoReplyOn() {
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            Settings.installed = new HashSet<>(Set.of(AutoReply.KEY));
+            clipboard(ChoiceCodec.HEADER + "\nauto_reply=true\ns:auto_reply_rules=[]\n");
+            screen.get().getWindow().getDecorView().findViewWithTag("import_choices").performClick();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertFalse(Settings.preferences.getBoolean(AutoReply.KEY, false));
+            assertEquals(new SettingsText(screen.get()).get("import_auto_reply_off"),
+                ((TextView) screen.get().getWindow().getDecorView().findViewWithTag("choices_restore_status")).getText().toString()
+                    .replaceFirst("^[^.]*\\. ", ""));
+
+            clipboard(ChoiceCodec.HEADER + "\nauto_reply=true\ns:auto_reply_rules=[{\"when\":\"\",\"reply\":\"  Back soon  \"}]\n");
+            screen.get().getWindow().getDecorView().findViewWithTag("import_choices").performClick();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertTrue(Settings.preferences.getBoolean(AutoReply.KEY, false));
+            assertEquals("Back soon", AutoReply.rules(Settings.preferences).get(0).reply);
+            assertEquals("Restored 2 choices.", ShadowToast.getTextOfLatestToast());
+        }
+    }
+
+    /** A backup too big to read back is never made, and the message names whose settings filled it. */
+    @Test public void anOversizedBackupIsNeitherCopiedNorSavedAndNamesItsBiggestPart() {
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            Settings.installed = new HashSet<>(Set.of(LocalPins.KEY, HiddenWords.KEY));
+            Settings.preferences.edit().putString(LocalPins.SAVED + "100", "pin\n".repeat(ChoiceCodec.MAX_BYTES / 4))
+                .putString(HiddenWords.WORDS, "spoiler").commit();
+            clipboard("earlier");
+            SettingsActivity activity = screen.get();
+            String title = new SettingsText(activity).control(java.util.Arrays.stream(SettingsActivity.CONTROLS)
+                .filter(control -> control[0].equals(LocalPins.KEY)).findFirst().orElseThrow(), 1);
+            String headline = "Your choices are too big for one backup.";
+            String card = headline + " Most of it is from " + title + ". Nothing was copied or saved.";
+            TextView result = activity.getWindow().getDecorView().findViewWithTag("choices_restore_status");
+            activity.getWindow().getDecorView().findViewWithTag("export_choices").performClick();
+            assertEquals(headline, ShadowToast.getTextOfLatestToast());
+            assertEquals(View.VISIBLE, result.getVisibility());
+            assertEquals(card, result.getText().toString());
+            assertEquals("earlier", RuntimeEnvironment.getApplication().getSystemService(ClipboardManager.class)
+                .getPrimaryClip().getItemAt(0).getText().toString());
+            ShadowToast.reset();
+            result.setVisibility(View.GONE);
+            activity.getWindow().getDecorView().findViewWithTag("save_choices_file").performClick();
+            assertEquals(headline, ShadowToast.getTextOfLatestToast());
+            assertEquals(card, result.getText().toString());
+            assertEquals(View.VISIBLE, result.getVisibility());
+            assertNull(Shadows.shadowOf(activity).getNextStartedActivityForResult());
         }
     }
 
@@ -285,8 +457,8 @@ public class ChoiceBackupTest {
     }
 
     /**
-     * A backup carries Auto reply's switch but not its replies, so restoring it on would start this phone's own replies.
-     * The switch stays off, this phone's replies and group choice are kept, and the toast says why. Off still applies.
+     * A backup with Auto reply's switch but none of its replies would start this phone's own replies if restored on. The
+     * switch stays off, this phone's replies and group choice are kept, and the toast says why. Off still applies.
      */
     @Test public void aRestoredBackupNeverTurnsOnThisPhonesAutoReplies() {
         try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
@@ -410,7 +582,8 @@ public class ChoiceBackupTest {
                 ShadowToast.reset();
                 activity.onActivityResult(SettingsActivity.READ_CHOICES, Activity.RESULT_OK, new Intent().setData(uri));
                 // A document that can't be read gets different advice from one that isn't a backup.
-                awaitToast("unreadable".equals(data) ? "Couldn't read that file" : "Not a choices backup");
+                awaitToast("unreadable".equals(data) ? "Couldn't read that file"
+                    : "oversized".equals(data) ? "That backup is bigger than 128 KB" : "Not a choices backup");
                 assertEquals(before, Settings.preferences.getAll());
             }
         }

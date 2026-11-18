@@ -1,0 +1,50 @@
+{
+  "arm64-v8a": {
+    "background": {
+      "address": 7271368,
+      "size": 2024,
+      "sha256": "4c12695de0e4ba3d0c755d4a0def96bb178c488488c89450398137a9a8c13803"
+    },
+    "getDeviceId": {
+      "address": 7277804,
+      "size": 144,
+      "sha256": "a79229a328359dc20e679edb0d6925a77ab6e7b85267371bfdca43b8d4fc9362"
+    },
+    "gate": 7272188,
+    "returnTail": 7272076,
+    "afterInit": 7271420,
+    "before": "7c050094"
+  },
+  "x86_64": {
+    "background": {
+      "address": 7413088,
+      "size": 2600,
+      "sha256": "a36969a2d5ff8405fb3f8c649990e08eddfec704b728bdb9c4c01442b074ba56"
+    },
+    "getDeviceId": {
+      "address": 7420912,
+      "size": 176,
+      "sha256": "ac61445e47083583610fa218c06e596cfa20dffe833277c01d5ebc344469f6fa"
+    },
+    "gate": 7414091,
+    "returnTail": 7413931,
+    "afterInit": 7413146,
+    "before": "e8a01a0000"
+  },
+  "armeabi-v7a": {
+    "background": {
+      "address": 8286656,
+      "size": 2244,
+      "sha256": "00309bf87e50c9a539b696c2f8bdc3070aaecc0e1c34dbb0934dce97d5acb71c"
+    },
+    "getDeviceId": {
+      "address": 8293864,
+      "size": 160,
+      "sha256": "00de2be49ac2d0f93d6eda53cbbdd9ea8f75903a40946d3cfdc4859d86b06e04"
+    },
+    "gate": 8287572,
+    "returnTail": 8286924,
+    "afterInit": 8286712,
+    "before": "230600eb"
+  }
+}

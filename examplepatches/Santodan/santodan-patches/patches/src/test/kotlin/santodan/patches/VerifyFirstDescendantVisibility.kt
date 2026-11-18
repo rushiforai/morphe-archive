@@ -56,12 +56,12 @@ fun main(args: Array<String>) = runBlocking {
     check(removed.size == 2)
     removed.forEach { it.parentNode.removeChild(it) }
     val fixture = parse(originalText)
-    restrictFirstDescendantVisibility(fixture)
+    restrictFirstDescendantVisibility(fixture, experimental = args.getOrNull(4) == "experimental")
     check(signature(fixture.documentElement) == signature(expected.documentElement))
     fun reject(document: Document) {
         val before = signature(document.documentElement)
         var rejected = false
-        try { restrictFirstDescendantVisibility(document) } catch (_: IllegalStateException) { rejected = true }
+        try { restrictFirstDescendantVisibility(document, experimental = args.getOrNull(4) == "experimental") } catch (_: IllegalStateException) { rejected = true }
         check(rejected)
         check(signature(document.documentElement) == before) { "Invalid input was partially mutated" }
     }
@@ -76,15 +76,22 @@ fun main(args: Array<String>) = runBlocking {
     queries.appendChild(main.cloneNode(true))
     reject(ambiguous)
     val changedVersion = parse(originalText)
-    changedVersion.documentElement.setAttributeNS("http://schemas.android.com/apk/res/android", "android:versionName", "1.1.4")
-    reject(changedVersion)
+    changedVersion.documentElement.setAttributeNS("http://schemas.android.com/apk/res/android", "android:versionName", "99.0.0")
+    if (args.getOrNull(4) == "experimental") restrictFirstDescendantVisibility(changedVersion, true)
+    else reject(changedVersion)
     val bypass = parse(originalText)
     val permission = bypass.createElement("uses-permission")
     permission.setAttributeNS("http://schemas.android.com/apk/res/android", "android:name", "android.permission.QUERY_ALL_PACKAGES")
     bypass.documentElement.appendChild(permission)
     reject(bypass)
-    val selected = loadPatchesFromJar(setOf(File(args[1]))).filter { it.name == TFD_VISIBILITY_NAME }.toSet()
+    val selected = loadPatchesFromJar(setOf(File(args[1]))).filter { it.name == if (args.getOrNull(4) == "experimental") TFD_VISIBILITY_EXPERIMENTAL_NAME else TFD_VISIBILITY_NAME }.toSet()
     check(selected.size == 1)
+    val experimental = args.getOrNull(4) == "experimental"
+    val compatibility = selected.single().compatibility!!.single()
+    check(compatibility.packageName == FirstDescendantCompatibility.PACKAGE)
+    if (experimental) check(compatibility.targets.single().version == null)
+    else check(compatibility.targets.map { it.version }.toSet() == setOf("1.1.5", "1.1.6"))
+    check(compatibility.targets.all { it.isExperimental == experimental })
     Patcher(PatcherConfig(apkFile = base, temporaryFilesPath = File(output, "work-${System.nanoTime()}"))).use { patcher ->
         patcher += selected
         patcher().collect { it.exception?.let { error -> throw error } }
@@ -103,5 +110,5 @@ fun main(args: Array<String>) = runBlocking {
         check(compiled.documentElement.getAttribute("package") == FirstDescendantCompatibility.PACKAGE)
         check(result.resources!!.deleteResources.isEmpty())
     }
-    println("PASS: original 1.1.5 manifest; exactly two broad queries removed; package/integrations retained; invalid inputs rejected; packaged manifest compiled/reloaded; no DEX edits")
+    println("PASS: original ${parse(originalText).documentElement.getAttributeNS("http://schemas.android.com/apk/res/android", "versionName")} manifest; exactly two broad queries removed; package/integrations retained; invalid inputs rejected; packaged manifest compiled/reloaded; no DEX edits")
 }

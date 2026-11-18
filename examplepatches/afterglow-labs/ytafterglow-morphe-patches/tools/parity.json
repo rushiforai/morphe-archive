@@ -1,0 +1,992 @@
+{
+  "liteModeEnabled": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/settings/LiteMode.java; extensions/extension/src/main/java/app/afterglow/extension/navigation/NativeTabs.java; extensions/extension/src/main/java/app/afterglow/extension/navigation/NativeTabPolicy.java",
+    "note": "Functional Android Lite Mode preserves stored preferences and applies the native Home/Subscriptions/You/Afterglow profile with Home startup. Build124 verifies native Posts/Home routing and row-height preservation. Build126 verifies Lite Mode cold Home startup, external video links, and restoration of the saved Afterglow startup destination when Lite Mode is disabled. Physical-device coverage remains unverified."
+  },
+  "noAds": {
+    "status": "done",
+    "where": "litho AdsFilter + playback videoAdsHookPatch",
+    "note": "patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "noPromotionCards": {
+    "status": "done",
+    "where": "playback/PaidPromotionPatch.kt + playback/PlayerOverlay.java + litho/AdsFilter.java",
+    "note": "Build 54: Two native paid-promotion TextView binders and the existing paid-content Litho filter use the independent Remove ads setting. Strict standalone/GmsCore/streaming 28/29/30 and isolated overlay/ads 1/1 pass; 328 settings checks. Emulator verifies settings, reset, preserved native controls and decoded playback. Target controls were absent in baseline fixtures, so visual hide/restore remains source verified only; physical-device behavior untested."
+  },
+  "noSearchHistory": {
+    "status": "done",
+    "where": "patches/.../tweaks/navigation/ + extension/navigation/",
+    "note": "patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "noLinkTracking": {
+    "status": "done",
+    "where": "patches/.../tweaks/navigation/ + extension/navigation/",
+    "note": "patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "noShareChunk": {
+    "status": "done",
+    "where": "patches/.../tweaks/navigation/ + extension/navigation/",
+    "note": "patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "noCast": {
+    "status": "done",
+    "where": "patches/.../tweaks/navigation/ + extension/navigation/",
+    "note": "patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "noNotifsButton": {
+    "status": "done",
+    "where": "patches/.../tweaks/navigation/ + extension/navigation/",
+    "note": "patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "noSearchButton": {
+    "status": "done",
+    "where": "patches/.../tweaks/navigation/ + extension/navigation/",
+    "note": "patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "noVoiceSearchButton": {
+    "status": "done",
+    "where": "patches/.../tweaks/navigation/ + extension/navigation/",
+    "note": "patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "stickyNavbar": {
+    "status": "done",
+    "where": "patches/.../tweaks/navigation/ + extension/navigation/",
+    "note": "patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "noSubbar": {
+    "status": "done",
+    "where": "tweaks/navigation/SubbarPatch.kt + navigation/Subbar.java + litho/filters/SubbarFilter.java",
+    "note": "Build 70: Native Home/search/related chip rows use reversible spacing and offscreen placement, preserving native animation heights and visibility. Existing Litho subscription/channel/history filters remain. Strict standalone/GmsCore/streaming/navigation-only 28/29/30/1 pass; 59 spacing/animation and 355 settings checks. Android 16 completes 17 observations, including live hide/restore, three cold Home controllers and cold search, preserved comments sort chips, actual page reset and decoded playback. No native chip-controller errors or target-app crashes; one shell UiAutomation helper crash is separately classified. Related/Litho targets are source verified, not all visually triggered; Lite Mode policy only; physical devices untested."
+  },
+  "noYTLogo": {
+    "status": "done",
+    "where": "patches/.../tweaks/navigation/ + extension/navigation/",
+    "note": "patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "premiumYTLogo": {
+    "status": "done",
+    "where": "patches/.../tweaks/navigation/ + extension/navigation/",
+    "note": "patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "frostedPivot": {
+    "status": "done",
+    "where": "patches/.../tweaks/navigation/ + extension/navigation/",
+    "note": "patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "disableFloatingTabBar": {
+    "status": "n/a",
+    "why": "Android YouTube 21.43 has no floating bottom tab bar (only Home chip-row resources)."
+  },
+  "removeLabels": {
+    "status": "done",
+    "where": "patches/.../tweaks/navigation/ + extension/navigation/",
+    "note": "patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "removeIndicators": {
+    "status": "done",
+    "where": "patches/.../tweaks/navigation/ + extension/navigation/",
+    "note": "patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "twoRowTabBar": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/navigation/NativeTabPolicy.java; extensions/extension/src/main/java/app/afterglow/extension/navigation/NativeTabRow.java; extensions/extension/src/main/java/app/afterglow/extension/navigation/NativeTabs.java; patches/src/main/kotlin/app/afterglow/patches/tweaks/navigation/NativeTabsPatch.kt",
+    "note": "Native model-backed rows and RTL-aware anchors are implemented; 1,898 layout/protocol checks pass. Build124 verifies the Posts icon and populated Posts destination, Home return, History/Watch Later native states, and both 252px row containers surviving mini-player close. Full anchor/rotation and physical-device coverage remains QA."
+  },
+  "centeredAnchorTabBar": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/navigation/NativeTabPolicy.java; extensions/extension/src/main/java/app/afterglow/extension/navigation/NativeTabRow.java; extensions/extension/src/main/java/app/afterglow/extension/navigation/NativeTabs.java; patches/src/main/kotlin/app/afterglow/patches/tweaks/navigation/NativeTabsPatch.kt",
+    "note": "Native model-backed rows and RTL-aware anchors are implemented; 1,898 layout/protocol checks pass. Build124 verifies the Posts icon and populated Posts destination, Home return, History/Watch Later native states, and both 252px row containers surviving mini-player close. Full anchor/rotation and physical-device coverage remains QA."
+  },
+  "anchorLeftTab": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/navigation/NativeTabPolicy.java; extensions/extension/src/main/java/app/afterglow/extension/navigation/NativeTabRow.java; extensions/extension/src/main/java/app/afterglow/extension/navigation/NativeTabs.java; patches/src/main/kotlin/app/afterglow/patches/tweaks/navigation/NativeTabsPatch.kt",
+    "note": "Native model-backed rows and RTL-aware anchors are implemented; 1,898 layout/protocol checks pass. Build124 verifies the Posts icon and populated Posts destination, Home return, History/Watch Later native states, and both 252px row containers surviving mini-player close. Full anchor/rotation and physical-device coverage remains QA."
+  },
+  "anchorRightTab": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/navigation/NativeTabPolicy.java; extensions/extension/src/main/java/app/afterglow/extension/navigation/NativeTabRow.java; extensions/extension/src/main/java/app/afterglow/extension/navigation/NativeTabs.java; patches/src/main/kotlin/app/afterglow/patches/tweaks/navigation/NativeTabsPatch.kt",
+    "note": "Native model-backed rows and RTL-aware anchors are implemented; 1,898 layout/protocol checks pass. Build124 verifies the Posts icon and populated Posts destination, Home return, History/Watch Later native states, and both 252px row containers surviving mini-player close. Full anchor/rotation and physical-device coverage remains QA."
+  },
+  "startupAnimation": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/navigation/StartupHooks.java; patches/src/main/kotlin/app/afterglow/patches/tweaks/navigation/StartupHooksPatch.kt; docs/startup-animation.md",
+    "note": "Android show/skip uses verified native startup eligibility and startup-type gates while retaining native animation assets and OFF behavior. Focused policy and native-boundary checks pass; distinct cold-launch rendering across startup reasons remains runtime QA, not missing implementation."
+  },
+  "oldYTUI": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/interfaceui/LegacyInterface.java; patches/src/main/kotlin/app/afterglow/patches/interfaceui/LegacyInterfacePatch.kt; vendor/morphe/patches/src/main/kotlin/app/morphe/patches/youtube/misc/spoof/appversion/SpoofAppVersionPatch.kt",
+    "note": "Functional Android adaptation enables the original Morphe supported-version policy, preserving its target, existing upstream enablement and Shorts safeguards. Changes require restart. Native layout/server variation and physical-device coverage remain QA; reproducing iPad-only layouts is outside the Android adaptation."
+  },
+  "floatingKeyboard": {
+    "status": "n/a",
+    "why": "iPad floating keyboard; Android has no equivalent system keyboard mode."
+  },
+  "disableRTL": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/interfaceui/TextDirectionPolicy.java; patches/src/main/kotlin/app/afterglow/patches/interfaceui/TextDirectionPatch.kt",
+    "note": "Native paragraph heuristics and TextView direction force LTR only when enabled while preserving locale and navigation direction. Focused policy and native adapter checks pass. Arabic/Hebrew mixed-direction content, all text surfaces and physical-device checks remain runtime QA."
+  },
+  "persistentProgressBar": {
+    "status": "done",
+    "where": "playback/PersistentProgressPatch.kt + playback/PlayerBehavior.java",
+    "note": "Build 72: Independent Seek bar setting, default OFF, preserves three native track render fractions without changing animator, duration guards or input state. Android 16 confirms fullscreen ON keeps the red segmented track and OFF restores hiding; portrait already has a native collapsed indicator in both states. Pause, cold start, actual page reset and decoded playback pass. Nine full-install and five isolated-install observations; strict 28/29/30/1/1/3 and 382 settings checks pass. All 232 production inputs match. Extra alpha hook and diagnostic source removed. No Afterglow errors or crashes. Physical devices, live/DVR, Shorts and casting untested."
+  },
+  "hideHeatwaves": {
+    "status": "done",
+    "where": "playback/HeatwavesPatch.kt + playback/PlayerBehavior.java",
+    "note": "Build 71: Independent Seek bar preference gates native HeatMarkerView drawing only, preserving graph models, previews and touch/visibility callbacks. Default OFF. Strict standalone/GmsCore/streaming 28/29/30, Seek bar only/Glow only 1/1 and Seek bar streaming 3 pass. 365 settings checks. Android 16 verifies portrait/fullscreen hide and restoration, cold ON, actual Seek Bar reset, decoded playback, plus isolated settings routing and OFF/ON/OFF with native seeking. No Afterglow errors or target-app crashes. Crash buffers are empty. Physical devices, live/DVR, Shorts and casting untested; full port unfinished."
+  },
+  "theme_glowEnabled": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/settings/GlowStyle.java; extensions/extension/src/main/java/app/afterglow/extension/theme/GlowRenderer.java; extensions/extension/src/main/java/app/afterglow/extension/theme/NativeViews.java; extensions/extension/src/main/java/app/afterglow/extension/theme/SeekBarTheme.java; extensions/extension/src/main/java/app/afterglow/extension/ui/GlowLabScreen.java",
+    "note": "Functional Android glow controls and Glow Lab apply strength, opacity, radius and layers to native tab/player icons and scrubber/track drawing. Android16 tabs, previews and portrait/fullscreen playback are verified. Shorts/live/promo coverage remains QA; exact Apple blur rasterization is an intentional platform difference."
+  },
+  "theme_glowPivot": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/settings/GlowStyle.java; extensions/extension/src/main/java/app/afterglow/extension/theme/GlowRenderer.java; extensions/extension/src/main/java/app/afterglow/extension/theme/NativeViews.java; extensions/extension/src/main/java/app/afterglow/extension/theme/SeekBarTheme.java; extensions/extension/src/main/java/app/afterglow/extension/ui/GlowLabScreen.java",
+    "note": "Functional Android glow controls and Glow Lab apply strength, opacity, radius and layers to native tab/player icons and scrubber/track drawing. Android16 tabs, previews and portrait/fullscreen playback are verified. Shorts/live/promo coverage remains QA; exact Apple blur rasterization is an intentional platform difference."
+  },
+  "theme_glowOverlay": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/settings/GlowStyle.java; extensions/extension/src/main/java/app/afterglow/extension/theme/GlowRenderer.java; extensions/extension/src/main/java/app/afterglow/extension/theme/NativeViews.java; extensions/extension/src/main/java/app/afterglow/extension/theme/SeekBarTheme.java; extensions/extension/src/main/java/app/afterglow/extension/ui/GlowLabScreen.java",
+    "note": "Functional Android glow controls and Glow Lab apply strength, opacity, radius and layers to native tab/player icons and scrubber/track drawing. Android16 tabs, previews and portrait/fullscreen playback are verified. Shorts/live/promo coverage remains QA; exact Apple blur rasterization is an intentional platform difference."
+  },
+  "theme_glowScrubber": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/settings/GlowStyle.java; extensions/extension/src/main/java/app/afterglow/extension/theme/GlowRenderer.java; extensions/extension/src/main/java/app/afterglow/extension/theme/NativeViews.java; extensions/extension/src/main/java/app/afterglow/extension/theme/SeekBarTheme.java; extensions/extension/src/main/java/app/afterglow/extension/ui/GlowLabScreen.java",
+    "note": "Functional Android glow controls and Glow Lab apply strength, opacity, radius and layers to native tab/player icons and scrubber/track drawing. Android16 tabs, previews and portrait/fullscreen playback are verified. Shorts/live/promo coverage remains QA; exact Apple blur rasterization is an intentional platform difference."
+  },
+  "theme_glowSeekBar": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/settings/GlowStyle.java; extensions/extension/src/main/java/app/afterglow/extension/theme/GlowRenderer.java; extensions/extension/src/main/java/app/afterglow/extension/theme/NativeViews.java; extensions/extension/src/main/java/app/afterglow/extension/theme/SeekBarTheme.java; extensions/extension/src/main/java/app/afterglow/extension/ui/GlowLabScreen.java",
+    "note": "Functional Android glow controls and Glow Lab apply strength, opacity, radius and layers to native tab/player icons and scrubber/track drawing. Android16 tabs, previews and portrait/fullscreen playback are verified. Shorts/live/promo coverage remains QA; exact Apple blur rasterization is an intentional platform difference."
+  },
+  "seekBarAnimated": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/theme/SeekBarTheme.java; extensions/extension/src/main/java/app/afterglow/extension/theme/SeekBarColorPolicy.java; patches/src/main/kotlin/app/afterglow/patches/theme/SeekBarThemePatch.kt; extensions/extension/src/main/java/app/afterglow/extension/settings/ThemeStore.java",
+    "note": "Functional native seekbar controls cover animation, gradient/red-track policy and scrubber sizing without changing unconfigured colors. Android16 portrait/fullscreen playback, seeking and picker/reset controls are verified. The exact buffered-resource and current-video-guarded live adapters are implemented; live/Shorts/promo rendering remains QA. Build125 renders green buffering/cyan ordinary scrubber, magenta on an ongoing live stream, and cyan again after returning to VOD in the same process; see docs/seekbar-theme-completion.md."
+  },
+  "disableAmbientMode": {
+    "status": "done",
+    "where": "playback/PlayerBehaviorPatch.kt + playback/PlayerBehavior.java",
+    "note": "Strict 21.43.523 application passes standalone and with GmsCore. Android 16 portrait playback: Afterglow suppresses cinematic lighting while YouTube ambient preference stays on. Default passes the native renderer through. Physical-device testing remains unverified."
+  },
+  "seekBarGradient": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/theme/SeekBarTheme.java; extensions/extension/src/main/java/app/afterglow/extension/theme/SeekBarColorPolicy.java; patches/src/main/kotlin/app/afterglow/patches/theme/SeekBarThemePatch.kt; extensions/extension/src/main/java/app/afterglow/extension/settings/ThemeStore.java",
+    "note": "Functional native seekbar controls cover animation, gradient/red-track policy and scrubber sizing without changing unconfigured colors. Android16 portrait/fullscreen playback, seeking and picker/reset controls are verified. The exact buffered-resource and current-video-guarded live adapters are implemented; live/Shorts/promo rendering remains QA. Build125 renders green buffering/cyan ordinary scrubber, magenta on an ongoing live stream, and cyan again after returning to VOD in the same process; see docs/seekbar-theme-completion.md."
+  },
+  "sponsorBlockEnabled": {
+    "status": "done",
+    "note": "87 JVM policy and 151 settings checks; strict 21.43.523 standalone/GmsCore/streaming combinations pass. Android 16 verifies watch/fullscreen and Shorts markers, native skip/undo, independent marker/category switches and reset. Shorts playback required official Spoof video streams alongside GmsCore. Physical device and casting remain unverified.",
+    "where": "tweaks/SponsorBlockTweak.kt + sponsorblock/*.java + shared VideoState/SeekBarTheme adapters"
+  },
+  "sponsorBlockShortsEnabled": {
+    "status": "done",
+    "note": "87 JVM policy and 151 settings checks; strict 21.43.523 standalone/GmsCore/streaming combinations pass. Android 16 verifies watch/fullscreen and Shorts markers, native skip/undo, independent marker/category switches and reset. Shorts playback required official Spoof video streams alongside GmsCore. Physical device and casting remain unverified.",
+    "where": "tweaks/SponsorBlockTweak.kt + sponsorblock/*.java + shared VideoState/SeekBarTheme adapters"
+  },
+  "sponsorBlockMarkersEnabled": {
+    "status": "done",
+    "note": "87 JVM policy and 151 settings checks; strict 21.43.523 standalone/GmsCore/streaming combinations pass. Android 16 verifies watch/fullscreen and Shorts markers, native skip/undo, independent marker/category switches and reset. Shorts playback required official Spoof video streams alongside GmsCore. Physical device and casting remain unverified.",
+    "where": "tweaks/SponsorBlockTweak.kt + sponsorblock/*.java + shared VideoState/SeekBarTheme adapters"
+  },
+  "sponsorBlockMarkerSponsor": {
+    "status": "done",
+    "note": "87 JVM policy and 151 settings checks; strict 21.43.523 standalone/GmsCore/streaming combinations pass. Android 16 verifies watch/fullscreen and Shorts markers, native skip/undo, independent marker/category switches and reset. Shorts playback required official Spoof video streams alongside GmsCore. Physical device and casting remain unverified.",
+    "where": "tweaks/SponsorBlockTweak.kt + sponsorblock/*.java + shared VideoState/SeekBarTheme adapters"
+  },
+  "sponsorBlockMarkerInteraction": {
+    "status": "done",
+    "note": "87 JVM policy and 151 settings checks; strict 21.43.523 standalone/GmsCore/streaming combinations pass. Android 16 verifies watch/fullscreen and Shorts markers, native skip/undo, independent marker/category switches and reset. Shorts playback required official Spoof video streams alongside GmsCore. Physical device and casting remain unverified.",
+    "where": "tweaks/SponsorBlockTweak.kt + sponsorblock/*.java + shared VideoState/SeekBarTheme adapters"
+  },
+  "sponsorBlockMarkerSelfPromo": {
+    "status": "done",
+    "note": "87 JVM policy and 151 settings checks; strict 21.43.523 standalone/GmsCore/streaming combinations pass. Android 16 verifies watch/fullscreen and Shorts markers, native skip/undo, independent marker/category switches and reset. Shorts playback required official Spoof video streams alongside GmsCore. Physical device and casting remain unverified.",
+    "where": "tweaks/SponsorBlockTweak.kt + sponsorblock/*.java + shared VideoState/SeekBarTheme adapters"
+  },
+  "sponsorBlockMarkerIntro": {
+    "status": "done",
+    "note": "87 JVM policy and 151 settings checks; strict 21.43.523 standalone/GmsCore/streaming combinations pass. Android 16 verifies watch/fullscreen and Shorts markers, native skip/undo, independent marker/category switches and reset. Shorts playback required official Spoof video streams alongside GmsCore. Physical device and casting remain unverified.",
+    "where": "tweaks/SponsorBlockTweak.kt + sponsorblock/*.java + shared VideoState/SeekBarTheme adapters"
+  },
+  "sponsorBlockMarkerOutro": {
+    "status": "done",
+    "note": "87 JVM policy and 151 settings checks; strict 21.43.523 standalone/GmsCore/streaming combinations pass. Android 16 verifies watch/fullscreen and Shorts markers, native skip/undo, independent marker/category switches and reset. Shorts playback required official Spoof video streams alongside GmsCore. Physical device and casting remain unverified.",
+    "where": "tweaks/SponsorBlockTweak.kt + sponsorblock/*.java + shared VideoState/SeekBarTheme adapters"
+  },
+  "sponsorBlockMarkerPreview": {
+    "status": "done",
+    "note": "87 JVM policy and 151 settings checks; strict 21.43.523 standalone/GmsCore/streaming combinations pass. Android 16 verifies watch/fullscreen and Shorts markers, native skip/undo, independent marker/category switches and reset. Shorts playback required official Spoof video streams alongside GmsCore. Physical device and casting remain unverified.",
+    "where": "tweaks/SponsorBlockTweak.kt + sponsorblock/*.java + shared VideoState/SeekBarTheme adapters"
+  },
+  "sponsorBlockMarkerHook": {
+    "status": "done",
+    "note": "87 JVM policy and 151 settings checks; strict 21.43.523 standalone/GmsCore/streaming combinations pass. Android 16 verifies watch/fullscreen and Shorts markers, native skip/undo, independent marker/category switches and reset. Shorts playback required official Spoof video streams alongside GmsCore. Physical device and casting remain unverified.",
+    "where": "tweaks/SponsorBlockTweak.kt + sponsorblock/*.java + shared VideoState/SeekBarTheme adapters"
+  },
+  "sponsorBlockMarkerFiller": {
+    "status": "done",
+    "note": "87 JVM policy and 151 settings checks; strict 21.43.523 standalone/GmsCore/streaming combinations pass. Android 16 verifies watch/fullscreen and Shorts markers, native skip/undo, independent marker/category switches and reset. Shorts playback required official Spoof video streams alongside GmsCore. Physical device and casting remain unverified.",
+    "where": "tweaks/SponsorBlockTweak.kt + sponsorblock/*.java + shared VideoState/SeekBarTheme adapters"
+  },
+  "sponsorBlockMarkerMusicOfftopic": {
+    "status": "done",
+    "note": "87 JVM policy and 151 settings checks; strict 21.43.523 standalone/GmsCore/streaming combinations pass. Android 16 verifies watch/fullscreen and Shorts markers, native skip/undo, independent marker/category switches and reset. Shorts playback required official Spoof video streams alongside GmsCore. Physical device and casting remain unverified.",
+    "where": "tweaks/SponsorBlockTweak.kt + sponsorblock/*.java + shared VideoState/SeekBarTheme adapters"
+  },
+  "sponsorBlockCategorySponsor": {
+    "status": "done",
+    "note": "87 JVM policy and 151 settings checks; strict 21.43.523 standalone/GmsCore/streaming combinations pass. Android 16 verifies watch/fullscreen and Shorts markers, native skip/undo, independent marker/category switches and reset. Shorts playback required official Spoof video streams alongside GmsCore. Physical device and casting remain unverified.",
+    "where": "tweaks/SponsorBlockTweak.kt + sponsorblock/*.java + shared VideoState/SeekBarTheme adapters"
+  },
+  "sponsorBlockCategoryInteraction": {
+    "status": "done",
+    "note": "87 JVM policy and 151 settings checks; strict 21.43.523 standalone/GmsCore/streaming combinations pass. Android 16 verifies watch/fullscreen and Shorts markers, native skip/undo, independent marker/category switches and reset. Shorts playback required official Spoof video streams alongside GmsCore. Physical device and casting remain unverified.",
+    "where": "tweaks/SponsorBlockTweak.kt + sponsorblock/*.java + shared VideoState/SeekBarTheme adapters"
+  },
+  "sponsorBlockCategorySelfPromo": {
+    "status": "done",
+    "note": "87 JVM policy and 151 settings checks; strict 21.43.523 standalone/GmsCore/streaming combinations pass. Android 16 verifies watch/fullscreen and Shorts markers, native skip/undo, independent marker/category switches and reset. Shorts playback required official Spoof video streams alongside GmsCore. Physical device and casting remain unverified.",
+    "where": "tweaks/SponsorBlockTweak.kt + sponsorblock/*.java + shared VideoState/SeekBarTheme adapters"
+  },
+  "sponsorBlockCategoryIntro": {
+    "status": "done",
+    "note": "87 JVM policy and 151 settings checks; strict 21.43.523 standalone/GmsCore/streaming combinations pass. Android 16 verifies watch/fullscreen and Shorts markers, native skip/undo, independent marker/category switches and reset. Shorts playback required official Spoof video streams alongside GmsCore. Physical device and casting remain unverified.",
+    "where": "tweaks/SponsorBlockTweak.kt + sponsorblock/*.java + shared VideoState/SeekBarTheme adapters"
+  },
+  "sponsorBlockCategoryOutro": {
+    "status": "done",
+    "note": "87 JVM policy and 151 settings checks; strict 21.43.523 standalone/GmsCore/streaming combinations pass. Android 16 verifies watch/fullscreen and Shorts markers, native skip/undo, independent marker/category switches and reset. Shorts playback required official Spoof video streams alongside GmsCore. Physical device and casting remain unverified.",
+    "where": "tweaks/SponsorBlockTweak.kt + sponsorblock/*.java + shared VideoState/SeekBarTheme adapters"
+  },
+  "sponsorBlockCategoryPreview": {
+    "status": "done",
+    "note": "87 JVM policy and 151 settings checks; strict 21.43.523 standalone/GmsCore/streaming combinations pass. Android 16 verifies watch/fullscreen and Shorts markers, native skip/undo, independent marker/category switches and reset. Shorts playback required official Spoof video streams alongside GmsCore. Physical device and casting remain unverified.",
+    "where": "tweaks/SponsorBlockTweak.kt + sponsorblock/*.java + shared VideoState/SeekBarTheme adapters"
+  },
+  "sponsorBlockCategoryHook": {
+    "status": "done",
+    "note": "87 JVM policy and 151 settings checks; strict 21.43.523 standalone/GmsCore/streaming combinations pass. Android 16 verifies watch/fullscreen and Shorts markers, native skip/undo, independent marker/category switches and reset. Shorts playback required official Spoof video streams alongside GmsCore. Physical device and casting remain unverified.",
+    "where": "tweaks/SponsorBlockTweak.kt + sponsorblock/*.java + shared VideoState/SeekBarTheme adapters"
+  },
+  "sponsorBlockCategoryFiller": {
+    "status": "done",
+    "note": "87 JVM policy and 151 settings checks; strict 21.43.523 standalone/GmsCore/streaming combinations pass. Android 16 verifies watch/fullscreen and Shorts markers, native skip/undo, independent marker/category switches and reset. Shorts playback required official Spoof video streams alongside GmsCore. Physical device and casting remain unverified.",
+    "where": "tweaks/SponsorBlockTweak.kt + sponsorblock/*.java + shared VideoState/SeekBarTheme adapters"
+  },
+  "sponsorBlockCategoryMusicOfftopic": {
+    "status": "done",
+    "note": "87 JVM policy and 151 settings checks; strict 21.43.523 standalone/GmsCore/streaming combinations pass. Android 16 verifies watch/fullscreen and Shorts markers, native skip/undo, independent marker/category switches and reset. Shorts playback required official Spoof video streams alongside GmsCore. Physical device and casting remain unverified.",
+    "where": "tweaks/SponsorBlockTweak.kt + sponsorblock/*.java + shared VideoState/SeekBarTheme adapters"
+  },
+  "backgroundPlayback": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/playback/ + patches/.../playback/",
+    "note": "patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "disableAutoCaptions": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/playback/ + patches/.../playback/",
+    "note": "Build 52 replaces the timing gate with native ON/ON_RECOMMENDED server-hint suppression and the muted-caption flag. 316 policy/settings checks and strict 27/28/29/1 pass; Android 16 verifies manual choices remain usable independently and with remembering ON. Forced server-hint/muted runtime cases remain unverified."
+  },
+  "rememberCaptionState": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/playback/Captions.java + patches/.../playback/CaptionsPatch.kt",
+    "note": "Build 52: native manual enabled/language writes recorded atomically; native initial selection and unavailable-language fallback preserved. Strict 27/28/29 plus Captions-only 1 pass. Android 16 verifies ON/OFF cold starts, Arabic persistence, English fallback without overwriting Arabic, fullscreen, native Next Video and page reset. Physical device, Shorts, live/DVR and casting untested."
+  },
+  "rememberLoop": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/playback/RememberLoop.java + patches/.../playback/RememberLoopPatch.kt",
+    "note": "Build 53: explicit native loop choices restore after the iOS three-second delay, with stale-session and startup-recording guards. Strict 28/29/30 plus loop-only 1 pass; 26 race and 323 settings checks. Android 16 verifies ON/OFF cold starts, fullscreen, disabled-recording preservation, warm navigation, actual 19-second repeat, Autoplay Off/manual Play and page reset. Physical-device, Shorts, live/DVR, ads, casting and playlist mode 1 untested."
+  },
+  "classicQuality": {
+    "status": "done",
+    "where": "playback/ClassicQualityMenu.java + QualitySheetIdentity.java + playback/VideoQualityPatch.kt",
+    "note": "Build 64: legacy native selector and per-sheet modern Advanced action preserve native selection. Modern sheets wait for actual resolution entries, with attachment/identity/setting guards. Strict 28/29/30 and isolated quality 1/3 pass; 3707 parser and 336 settings checks. Android 16 verifies populated watch lists, manual 360p/720p/480p, fullscreen, live OFF, unrelated speed menu and page reset. Shorts ON/OFF menu shapes pass; its selection remains Auto/1080p in both native OFF and Classic ON comparisons, so Shorts selection persistence is not proven. Physical-device/live/DVR/casting/ads behavior untested."
+  },
+  "noContentWarning": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/playback/ + patches/.../playback/",
+    "note": "patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "noContinueWatching": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/litho/filters/FeedFilter.java",
+    "note": "patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "noRelatedWatchNexts": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/playback/WatchNextSections.java + patches/src/main/kotlin/app/afterglow/patches/playback/WatchNextSectionsPatch.kt",
+    "note": "Default-OFF native watch-list information/comments boundary, copied display model and live restoration under independent Watch page. 459 settings checks, strict 29/30/31/1/3 selections and 269 production hashes pass. 36 full and 34 independent observations reviewed (5 limited). Hide/restore, cold start, description/comments/Share, scrolling, fullscreen, native-ad independence and resets pass; full Home/playlist/Shorts and children's-video information preserved. Emulator host crashes and QA corrections retained with successful continuations; see docs/watch-next.md. Physical/elevated-metapanel runtime untested; unknown boundaries fail open."
+  },
+  "hideEndScreenCards": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/playback/ + patches/.../playback/",
+    "note": "patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "noRelatedVids": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/playback/ + patches/.../playback/",
+    "note": "patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "noContinueWatchingPrompt": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/playback/ + patches/.../playback/",
+    "note": "patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "miniplayer": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/playback/MiniPlayerPlayback.java; patches/src/main/kotlin/app/afterglow/patches/playback/MiniPlayerPlaybackPatch.kt; docs/release-build110.md",
+    "note": "Native restricted-video pause-only enforcement and resume eligibility are adapted with OFF preserving native behavior. Build109/110 strict and Android16 OFF/ON playback checks pass. Original Morphe Miniplayer layout/gesture options remain separate; account/server variants and physical devices remain QA."
+  },
+  "playlistOldMinibar": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/playback/PlaylistMinibar.java; patches/src/main/kotlin/app/afterglow/patches/playback/PlaylistMinibarPatch.kt",
+    "note": "All 18 verified native reads use one guarded process latch, bootstrapped before Activity startup; changes request restart and errors preserve native layout for that process. Strict patching, restart and playlist playback pass. The observed OFF baseline already used the old layout, so a floating-to-old visual transition is not claimed."
+  },
+  "portraitFullscreen": {
+    "status": "done",
+    "where": "playback/PortraitFullscreenPatch.kt + playback/Fullscreen.java",
+    "note": "Strict 26/27/28-patch combinations pass. Android 16 sensor rotation: off leaves fullscreen for portrait; on retains fullscreen with native controls and correctly letterboxed decoded video; off again restores native rotation. The native maintainWatchState guard is filtered without forcing entry or changing Android rotation preferences. Physical/foldable/tablet runtime unverified."
+  },
+  "autoFullscreen": {
+    "status": "done",
+    "where": "playback/FullscreenPatch.kt + playback/Fullscreen.java + playback/FullscreenSession.java",
+    "note": "Strict 26/27/28-patch combinations pass. Android 16 verifies off/on automatic entry and no reentry after manual exit. The 750ms callback requires the same active local player/video, foreground maximized watch layout and current enabled preference; 15 session-race checks pass. Physical device, casting and live/DVR unverified."
+  },
+  "exitFullscreen": {
+    "status": "done",
+    "where": "playback/FullscreenPatch.kt + playback/Fullscreen.java",
+    "note": "Strict 26/27/28-patch combinations pass. Android 16: with auto entry off, the same 19-second clip stays fullscreen when exit is off and returns to portrait at completion when on, including immediate native autoplay. Delayed work is cancelled after a player/video change. Physical device, casting and live/DVR unverified."
+  },
+  "tapToSeek": {
+    "status": "done",
+    "where": "playback/PlayerBehaviorPatch.kt + playback/PlayerBehavior.java",
+    "note": "Strict 21.43.523 application passes standalone and with GmsCore. Android 16: the same 75 percent tap leaves 0:01 unchanged when off and seeks to about 0:15 when on; delegates to native S/T handlers. Physical-device and live/DVR testing remain unverified."
+  },
+  "noDoubleTapToSeek": {
+    "status": "done",
+    "where": "playback/DoubleTapGesturePatch.kt + playback/PlayerBehavior.java",
+    "note": "Strict standalone/GmsCore/streaming validation and Android 16 paused-video tests pass: each gesture is independently allowed/blocked, both-on blocks both, reset restores both. Native server chapter availability is preserved; no forced chapter enablement. No physical-device test."
+  },
+  "noTwoFingerSnapToChapter": {
+    "status": "done",
+    "where": "playback/DoubleTapGesturePatch.kt + playback/PlayerBehavior.java",
+    "note": "Strict standalone/GmsCore/streaming validation and Android 16 paused-video tests pass: each gesture is independently allowed/blocked, both-on blocks both, reset restores both. Native server chapter availability is preserved; no forced chapter enablement. No physical-device test."
+  },
+  "dontSnapToChapter": {
+    "status": "done",
+    "where": "playback/ChapterSnapPatch.kt + playback/PlayerBehavior.java",
+    "note": "Native scrub release keeps the original finger position before seek/feedback, without altering chapter metadata. Strict standalone/GmsCore/streaming/isolated-gestures validation passes. Android 16 verifies live off/on/off, independent two-finger switch, portrait/fullscreen unsnapped stops and actual page reset restoring chapter boundaries. Physical devices, live/DVR and Shorts are not runtime verified."
+  },
+  "noFreeZoom": {
+    "status": "done",
+    "where": "playback/FreeZoomPatch.kt + playback/FreeZoom.java + playback/PlayerBehavior.java",
+    "note": "Strict 21.43.523 standalone/GmsCore/streaming validation passes. Android 16: enabled preserves native Zoomed to fill and Original pinch states; disabling restores continuous 1.8x zoom. The native quick-scale flag is saved/restored; one-finger zoom was unavailable in the native baseline, so that restoration is source-verified only. No physical-device test."
+  },
+  "noPlayerDownloadButton": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/litho/filters/PlayerActionButtonsFilter.java",
+    "note": "patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "noPlayerShareButton": {
+    "status": "done",
+    "where": "litho/filters/PlayerActionButtonsFilter.java + playback/WatchActions.java + playback/WatchActionsPatch.kt",
+    "note": "Native accessibility IDs preserve neighboring and overflow actions. Reactive component refresh verifies independent Share/Save hides, both hidden and live restoration in the same under-video and landscape fullscreen playback, including row scrolling and return. Portrait fullscreen does not offer Share in the default layout at the tested width; its available Save button hides and restores. Native disposal clears retained inputs. Android 16 emulator only; no physical-device claim."
+  },
+  "noPlayerSaveButton": {
+    "status": "done",
+    "where": "litho/filters/PlayerActionButtonsFilter.java + playback/WatchActions.java + playback/WatchActionsPatch.kt",
+    "note": "Native accessibility IDs preserve neighboring and overflow actions. Reactive component refresh verifies independent Share/Save hides, both hidden and live restoration in the same under-video and landscape fullscreen playback, including row scrolling and return. Portrait fullscreen does not offer Share in the default layout at the tested width; its available Save button hides and restores. Native disposal clears retained inputs. Android 16 emulator only; no physical-device claim."
+  },
+  "noPlayerRemixButton": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/litho/filters/PlayerActionButtonsFilter.java",
+    "note": "patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "noPlayerClipButton": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/litho/filters/PlayerActionButtonsFilter.java",
+    "note": "patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "removeDownloadMenu": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/litho/ (MenuRows) + patches menu-row hook",
+    "note": "menu rows dropped by icon type; patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "removeShareMenu": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/litho/ (MenuRows) + patches menu-row hook",
+    "note": "menu rows dropped by icon type; patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "muteButton": {
+    "status": "done",
+    "where": "playback/OverlayButtons.java + playback/OverlayButtonsPatch.kt",
+    "note": "Default-ON advanced switch owned by independent Overlay buttons. Native watch facade drives actual mute/unmute; native lock entity and bounded fullscreen request drive lock/unlock. 21 request, 441 settings and 17 deterministic WatchActions threading checks pass. Strict selections 29/30/31/1/3 and 260 production hashes pass. 31 full and 21 independent observations reviewed (1 limited); application mixer gain, both unlock paths, cold OFF, live/page/full reset and owner visibility verified on Android16 emulator. Build99 ANR was traced to the existing WatchActions lock inversion and corrected in100. Physical devices, casting and audible hardware output untested."
+  },
+  "lockButton": {
+    "status": "done",
+    "where": "playback/OverlayButtons.java + playback/OverlayButtonsPatch.kt",
+    "note": "Default-ON advanced switch owned by independent Overlay buttons. Native watch facade drives actual mute/unmute; native lock entity and bounded fullscreen request drive lock/unlock. 21 request, 441 settings and 17 deterministic WatchActions threading checks pass. Strict selections 29/30/31/1/3 and 260 production hashes pass. 31 full and 21 independent observations reviewed (1 limited); application mixer gain, both unlock paths, cold OFF, live/page/full reset and owner visibility verified on Android16 emulator. Build99 ANR was traced to the existing WatchActions lock inversion and corrected in100. Physical devices, casting and audible hardware output untested."
+  },
+  "downloadButton": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/playback/OverlayButtons.java; extensions/extension/src/main/java/app/afterglow/extension/ui/DownloadsUi.java; extensions/extension/src/main/java/app/afterglow/extension/ui/DownloadSheet.java; patches/src/main/kotlin/app/afterglow/patches/downloads/DownloadsPatch.kt",
+    "note": "The Afterglow overlay opens its owned format/audio/caption/thumbnail sheet and durable queue. Android runtime verifies actual video/audio downloads and exports, captions, thumbnails and large-transfer progress/pause/completion. Physical devices and additional codecs/account variants remain QA; Morphe Downloads is not the selected interface."
+  },
+  "controlsSheetButton": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/playback/PremiumControls.java; extensions/extension/src/main/java/app/afterglow/extension/ui/PremiumControlsSheet.java; patches/src/main/kotlin/app/afterglow/patches/playback/PremiumControlsPatch.kt; docs/premium-controls.md",
+    "note": "Afterglow sheet transport, persistent native speed, seek, restart, Next, mute and lock ownership pass emulator checks. Build126 verifies Stable volume OFF/ON agreement with the native menu. Build127 fixes cold transport initialization and verifies first-open Pause/Stable volume ON before any native controls interaction, followed by owned Pause and the native paused control. Session/native DEX checks pass; physical-device and unsupported-stream variants remain unverified."
+  },
+  "overlayDeclutterButton": {
+    "status": "done",
+    "where": "playback/OverlayModes.java + OverlayModeSession.java + native watch/Shorts presentation hooks",
+    "note": "Default-ON advanced Clean overlay button in independent Overlay buttons. Four process-wide modes share native watch and Shorts, with a three-second timeout and native-show reveal. 55 session and 445 settings checks, strict 29/30/31/1/3 selections and 264 production hashes pass. 46 full and 34 independent emulator observations reviewed (3 limited). Native controls restore, mode survives surface changes and fullscreen lock, mute/unmute works while pinned/locked, preference OFF/cold/reset and Pause on overlay/Shorts layer composition pass. Fresh process resets mode; page reset preserves it. Physical devices and audible hardware output untested. Control Center Reset Player Overlay action remains pending."
+  },
+  "hideOverlayTitle": {
+    "status": "done",
+    "where": "playback/PlayerOverlayPatch.kt + playback/PlayerOverlay.java + litho/filters/PlayerOverlayFilter.java",
+    "note": "Strict 21.43.523 validation and Android 16 runtime pass. Title, controls shading and fullscreen actions hide/restore independently; modern watermark disappears during playback and returns when disabled. Combined portrait/fullscreen controls, fading and reset verified. Legacy watermark is source/patch-validated; physical devices and inline feeds unverified."
+  },
+  "hidePlayerFullscreenButton": {
+    "status": "done",
+    "where": "playback/PlayerOverlayPatch.kt + playback/PlayerOverlay.java",
+    "note": "Strict 21.43.523 standalone/GmsCore validation passes. Android 16 portrait/fullscreen: actual switches hide and restore existing controls without restart; fades and native enabled states survive reset. Inline-feed and physical-device runtime remain unverified."
+  },
+  "hidePlayerOverflowButton": {
+    "status": "done",
+    "where": "playback/PlayerOverlayPatch.kt + playback/PlayerOverlay.java",
+    "note": "Strict 21.43.523 standalone/GmsCore validation passes. Android 16 portrait/fullscreen: actual switches hide and restore existing controls without restart; fades and native enabled states survive reset. Inline-feed and physical-device runtime remain unverified."
+  },
+  "hidePlayerYouTubeMusicButton": {
+    "status": "done",
+    "where": "playback/PlayerOverlayPatch.kt + playback/PlayerOverlay.java",
+    "note": "Build 54: Two native inflated Music button binders use the live visibility policy without replacing ViewStub listeners. Strict standalone/GmsCore/streaming 28/29/30 and isolated overlay/ads 1/1 pass; 328 settings checks. Emulator verifies settings, reset, preserved native controls and decoded playback. Target controls were absent in baseline fixtures, so visual hide/restore remains source verified only; physical-device behavior untested."
+  },
+  "hidePlayerCollapseButton": {
+    "status": "done",
+    "where": "playback/PlayerOverlayPatch.kt + playback/PlayerOverlay.java",
+    "note": "Strict 21.43.523 standalone/GmsCore validation passes. Android 16 portrait/fullscreen: actual switches hide and restore existing controls without restart; fades and native enabled states survive reset. Inline-feed and physical-device runtime remain unverified."
+  },
+  "hideSubs": {
+    "status": "done",
+    "where": "playback/PlayerOverlayPatch.kt + playback/PlayerOverlay.java",
+    "note": "Strict 21.43.523 standalone/GmsCore validation passes. Android 16 portrait/fullscreen: actual switches hide and restore existing controls without restart; fades and native enabled states survive reset. Inline-feed and physical-device runtime remain unverified."
+  },
+  "noHUDMsgs": {
+    "status": "done",
+    "where": "playback/HudMessagesPatch.kt + playback/PlayerBehavior.java + playback/PlayerOverlay.java",
+    "note": "Strict 21.43.523 standalone/GmsCore/streaming/overlay-only validation passes. Android 16 Copy link confirmation hides/restores live in portrait/fullscreen, survives cold start and restores after actual Overlay reset. Android clipboard preview remains visible. All native constructor paths are source/strict verified; Lite Mode override is policy tested only. Physical-device runtime remains unverified."
+  },
+  "hidePrevNext": {
+    "status": "done",
+    "where": "playback/PlayerOverlayPatch.kt + playback/PlayerOverlay.java",
+    "note": "Strict 21.43.523 standalone/GmsCore validation passes. Android 16 portrait/fullscreen: actual switches hide and restore existing controls without restart; fades and native enabled states survive reset. Inline-feed and physical-device runtime remain unverified."
+  },
+  "replacePrevNext": {
+    "status": "done",
+    "where": "playback/PlayerPaddlesPatch.kt + playback/PlayerPaddles.java + playback/PaddlePolicy.java",
+    "note": "Default-OFF advanced native rewind/fast-forward replacement for singleton VODs in independent Player overlay. Native interval, seek handlers and original model retained; playlists/live keep native controls. 60 policy and 447 settings checks, strict 29/30/31/1/3 selections and 267 production hashes pass. 41 full and 24 independent emulator observations reviewed (4 limited). Native 10-second seeks, fullscreen, hide/show, live OFF, cold persistence, eye composition, Shorts playback, independent ownership and resets pass. Readiness-gated playlist round trip passes; initial loading failures remain recorded. Physical devices, other seek intervals and alternate player architecture runtime untested."
+  },
+  "noDarkBg": {
+    "status": "done",
+    "where": "playback/PlayerOverlayPatch.kt + playback/PlayerOverlay.java + litho/filters/PlayerOverlayFilter.java",
+    "note": "Strict 21.43.523 validation and Android 16 runtime pass. Title, controls shading and fullscreen actions hide/restore independently; modern watermark disappears during playback and returns when disabled. Combined portrait/fullscreen controls, fading and reset verified. Legacy watermark is source/patch-validated; physical devices and inline feeds unverified."
+  },
+  "noFullscreenActions": {
+    "status": "done",
+    "where": "playback/PlayerOverlayPatch.kt + playback/PlayerOverlay.java + litho/filters/PlayerOverlayFilter.java",
+    "note": "Strict 21.43.523 validation and Android 16 runtime pass. Title, controls shading and fullscreen actions hide/restore independently; modern watermark disappears during playback and returns when disabled. Combined portrait/fullscreen controls, fading and reset verified. Legacy watermark is source/patch-validated; physical devices and inline feeds unverified."
+  },
+  "stockVolumeHUD": {
+    "status": "n/a",
+    "why": "Android YouTube already shows the system volume panel; there is no custom HUD to swap."
+  },
+  "noWatermarks": {
+    "status": "done",
+    "where": "playback/PlayerOverlayPatch.kt + playback/PlayerOverlay.java + litho/filters/PlayerOverlayFilter.java",
+    "note": "Strict 21.43.523 validation and Android 16 runtime pass. Title, controls shading and fullscreen actions hide/restore independently; modern watermark disappears during playback and returns when disabled. Combined portrait/fullscreen controls, fading and reset verified. Legacy watermark is source/patch-validated; physical devices and inline feeds unverified."
+  },
+  "videoEndTime": {
+    "status": "done",
+    "where": "playback/EndTimeFormat.java + playback/PlayerEndTime.java + playback/EndTimePatch.kt",
+    "note": "Independent install and default-off settings; iOS rounded remaining-time/rate calculation and US 12/24-hour formats. Strict standalone/GmsCore/streaming/isolation and Android 16 portrait/fullscreen, paused 2x/0.25x, new video, Shorts exclusion and live reset pass. Deferred native text handling preserves the native minimum width on reset. Physical-device, live/DVR and casting behavior unverified."
+  },
+  "24hrFormat": {
+    "status": "done",
+    "where": "playback/EndTimeFormat.java + playback/PlayerEndTime.java + playback/EndTimePatch.kt",
+    "note": "Independent install and default-off settings; iOS rounded remaining-time/rate calculation and US 12/24-hour formats. Strict standalone/GmsCore/streaming/isolation and Android 16 portrait/fullscreen, paused 2x/0.25x, new video, Shorts exclusion and live reset pass. Deferred native text handling preserves the native minimum width on reset. Physical-device, live/DVR and casting behavior unverified."
+  },
+  "pauseOnOverlay": {
+    "status": "done",
+    "where": "playback/PauseOnOverlay.java + playback/OverlayPauseSession.java + playback/PauseOnOverlayPatch.kt",
+    "note": "Default-OFF advanced switch owned by Player overlay. Final native standard-controls visibility drives the owning native pause/play commands with readiness/foreground and weak per-owner feedback guards. 29 policy checks, 433 settings checks, strict 28/29/30/1/3 and 256 source hashes pass. 35 full and 23 independent observations reviewed (9 explicitly limited); corrected observations verify show/pause, hide/resume, manual controls, fullscreen, cold persistence, background pause, Shorts motion, live OFF and resets. Original test assumptions and interrupted wrappers are retained. Physical devices, casting and live/DVR untested."
+  },
+  "shortsOnlyMode": {
+    "status": "done",
+    "note": "Independent default-OFF Shorts mode: native live/cold routing, hidden tabs, two-finger 500ms escape, localized toast, one-second restoration and native Back panel handling. Strict 28/29/30/1/3 and 427 settings checks pass. Full and independent Android 16 runs verify routing, negative holds, pinch independence, preference preservation, live OFF, reset and decoded motion. Confirmed feed changes retain hidden tabs and pinch Clear Screen. Short injected swipes were inconsistent; sustained drags pass without a production gesture change. Diagnostic code removed; physical devices and alternate layouts untested.",
+    "where": "navigation/ShortsOnlyMode.java + navigation/ShortsFullscreen.java + tweaks/navigation/ShortsFullscreenPatch.kt + navigation/StartupHooks.java"
+  },
+  "autoSkipShorts": {
+    "status": "done",
+    "where": "patches/.../tweaks/navigation/ + extension/navigation/",
+    "note": "patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "hideShorts": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/litho/filters/ShortsFeedFilter.java",
+    "note": "patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "shortsProgress": {
+    "status": "done",
+    "where": "tweaks/navigation/ShortsProgressPatch.kt + navigation/ShortsProgressPolicy.java + navigation/ShortsProgress.java",
+    "note": "Build 80: Independent Shorts setting, default OFF. Two model reads map known disabled/pause-only policies to the native always-visible mode; OFF and unknown/unspecified values remain native. The immutable model and native lifecycle, panel, pause, seek and interactivity guards are preserved. Live refresh uses the attached Shorts content controller and native paused-state policy. 416 settings checks, strict 28/29/30/1/3 and 10 full plus 6 isolated emulator observations pass, including seeking, decoded playback, pause, both Shorts routes, Home and reset. Diagnostic79 confirms tested native models already use always-visible mode, so runtime verifies preservation; disabled/pause-only conversion is source/policy verified. Temporary logging removed. Physical-device, absent-model and alternate server-policy behavior remain unverified."
+  },
+  "pinchToFullscreenShorts": {
+    "status": "done",
+    "where": "tweaks/navigation/ShortsFullscreenPatch.kt + navigation/ShortsFullscreen.java + navigation/ShortsFullscreenPolicy.java",
+    "note": "Build85: native pinch capability, Clear Screen, independent tab/content layout and guarded three-second idle overlay. Native reel reset preserves tab/overlay state. Strict 28/29/30/1/3 and 427 settings checks pass; 8 focused, 19 full and 13 isolated observations visually reviewed with motion frames. Native comments/options guards, play/pause, exit, live OFF, Home and reset pass. Original isolated hold expectation and interrupted wrappers retained; bounded completion uses the same APK. Native capability already ON in baseline, so forcing OFF capability is policy/source verified. Native aspect-ratio fitting preserved; physical devices/alternate server layouts untested."
+  },
+  "shortsToRegular": {
+    "status": "done",
+    "where": "patches/.../tweaks/navigation/ + extension/navigation/",
+    "note": "patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "resumeShorts": {
+    "status": "done",
+    "where": "patches/.../tweaks/navigation/ + extension/navigation/",
+    "note": "patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "hideShortsLogo": {
+    "status": "n/a",
+    "why": "Android YouTube 21.43's Shorts player has no logo view (the icon exists only in the icon table)."
+  },
+  "hideShortsSearch": {
+    "status": "done",
+    "where": "tweaks/navigation/ShortsButtonsPatch.kt + navigation/ShortsButtons.java + navigation/ShortsHeaderBindings.java + litho/ShortsHeaderPolicy.java",
+    "note": "Build 78: Independent Shorts layout settings, default OFF. Native header icons match all corresponding iOS Search/Camera roles present in the Android enum; Lens binds its dedicated paused container. Modern Search/More use exact renderer identities carried through native view tags, with live visibility and restoration before recycling. Strict 28/29/30/1/3; 57 header identity and 394 settings checks pass. Eleven full observations on 77, six isolated and four final full observations on 78 are visually verified; 77-to-78 changes only broaden native icon classification. Native menu/Search command, Mute, Home Search, tab reuse, actual reset and decoded playback are preserved. Camera and Lens were absent in baseline fixtures: their hooks are source/patch verified, with visual behavior unverified. Physical devices untested."
+  },
+  "hideShortsCamera": {
+    "status": "done",
+    "where": "tweaks/navigation/ShortsButtonsPatch.kt + navigation/ShortsButtons.java + navigation/ShortsHeaderBindings.java + litho/ShortsHeaderPolicy.java",
+    "note": "Build 78: Independent Shorts layout settings, default OFF. Native header icons match all corresponding iOS Search/Camera roles present in the Android enum; Lens binds its dedicated paused container. Modern Search/More use exact renderer identities carried through native view tags, with live visibility and restoration before recycling. Strict 28/29/30/1/3; 57 header identity and 394 settings checks pass. Eleven full observations on 77, six isolated and four final full observations on 78 are visually verified; 77-to-78 changes only broaden native icon classification. Native menu/Search command, Mute, Home Search, tab reuse, actual reset and decoded playback are preserved. Camera and Lens were absent in baseline fixtures: their hooks are source/patch verified, with visual behavior unverified. Physical devices untested."
+  },
+  "hideShortsMore": {
+    "status": "done",
+    "where": "tweaks/navigation/ShortsButtonsPatch.kt + navigation/ShortsButtons.java + navigation/ShortsHeaderBindings.java + litho/ShortsHeaderPolicy.java",
+    "note": "Build 78: Independent Shorts layout settings, default OFF. Native header icons match all corresponding iOS Search/Camera roles present in the Android enum; Lens binds its dedicated paused container. Modern Search/More use exact renderer identities carried through native view tags, with live visibility and restoration before recycling. Strict 28/29/30/1/3; 57 header identity and 394 settings checks pass. Eleven full observations on 77, six isolated and four final full observations on 78 are visually verified; 77-to-78 changes only broaden native icon classification. Native menu/Search command, Mute, Home Search, tab reuse, actual reset and decoded playback are preserved. Camera and Lens were absent in baseline fixtures: their hooks are source/patch verified, with visual behavior unverified. Physical devices untested."
+  },
+  "hideShortsLens": {
+    "status": "done",
+    "where": "tweaks/navigation/ShortsButtonsPatch.kt + navigation/ShortsButtons.java + navigation/ShortsHeaderBindings.java + litho/ShortsHeaderPolicy.java",
+    "note": "Build 78: Independent Shorts layout settings, default OFF. Native header icons match all corresponding iOS Search/Camera roles present in the Android enum; Lens binds its dedicated paused container. Modern Search/More use exact renderer identities carried through native view tags, with live visibility and restoration before recycling. Strict 28/29/30/1/3; 57 header identity and 394 settings checks pass. Eleven full observations on 77, six isolated and four final full observations on 78 are visually verified; 77-to-78 changes only broaden native icon classification. Native menu/Search command, Mute, Home Search, tab reuse, actual reset and decoded playback are preserved. Camera and Lens were absent in baseline fixtures: their hooks are source/patch verified, with visual behavior unverified. Physical devices untested."
+  },
+  "hideShortsSubscriptions": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/interfaceui/ShortsSubscriptionsBindings.java; extensions/extension/src/main/java/app/afterglow/extension/interfaceui/ShortsSubscriptionsCommand.java; patches/src/main/kotlin/app/afterglow/patches/interfaceui/ShortsSubscriptionsPatch.kt",
+    "note": "Exact paused-player source32 command ownership, native mounted component binding and live restoration are implemented; 2063 parser,21 binding and226 native DEX/catch-table checks pass. Build127 strict default104/all127 application and APK assembly pass. The signed-out paused fixture supplies no subscription carousel, so actual carousel visibility requires an eligible account/session. No generic paused host is hidden."
+  },
+  "hideShortsLike": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/litho/filters/ShortsActionBarFilter.java",
+    "note": "patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "hideShortsDislike": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/litho/filters/ShortsActionBarFilter.java",
+    "note": "patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "hideShortsComments": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/litho/filters/ShortsActionBarFilter.java",
+    "note": "patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "hideShortsRemix": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/litho/filters/ShortsActionBarFilter.java",
+    "note": "patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "hideShortsShare": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/litho/filters/ShortsActionBarFilter.java",
+    "note": "patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "hideShortsAvatars": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/litho/filters/ShortsOverlayFilter.java",
+    "note": "patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "hideShortsThanks": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/litho/filters/ShortsOverlayFilter.java",
+    "note": "patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "hideShortsSource": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/litho/filters/ShortsOverlayFilter.java",
+    "note": "patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "hideShortsChannelName": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/litho/filters/ShortsOverlayFilter.java",
+    "note": "patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "hideShortsDescription": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/litho/filters/ShortsOverlayFilter.java",
+    "note": "patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "hideShortsAudioTrack": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/litho/filters/ShortsOverlayFilter.java",
+    "note": "patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "hideShortsPromoCards": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/litho/filters/ShortsOverlayFilter.java",
+    "note": "patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "hideShortsInfoPanel": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/litho/filters/ShortsOverlayFilter.java",
+    "note": "patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "hideShortsMetapanel": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/litho/filters/ShortsOverlayFilter.java",
+    "note": "patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "hideShortsPlayerLayer": {
+    "status": "done",
+    "where": "navigation/ShortsPlayerLayer.java + tweaks/navigation/ShortsPlayerLayerPatch.kt",
+    "note": "Independent default-OFF advanced Shorts layout setting masks the native overlay-container visibility request, preserving native state, decoded video and parent input. Live changes re-evaluate attached native controllers. Build89 passes strict 28/29/30/1/3 and 427 settings checks; 16 full and 10 independent Android 16 observations verify hide/restore, pause/resume, cold ON, actual reset and decoded motion. Full install also verifies Shorts-only escape and native pinch with the layer hidden. Separate header, navigation and progress remain native. Physical devices and alternate layouts untested."
+  },
+  "downloadRefreshMetadata": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/downloads/DownloadLibrary.java; extensions/extension/src/main/java/app/afterglow/extension/downloads/AfterglowDownloadResolver.java; extensions/extension/src/main/java/app/afterglow/extension/ui/VaultActivity.java",
+    "note": "Vault exposes explicit refresh and honors refresh-on-open, filling only missing metadata while preserving user-renamed titles. Ordinary zero-change refresh no longer reports false recovery. Queue/library state and runtime file operations are verified; broader missing-metadata/network-failure cases remain QA."
+  },
+  "downloadPreferStableAudio": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/downloads/AfterglowDownloadResolver.java; extensions/extension/src/main/java/app/afterglow/extension/downloads/DownloadFormatPolicy.java; extensions/extension/src/main/java/app/afterglow/extension/ui/DownloadSheet.java",
+    "note": "Automatic audio selection honors stable AAC preference and compatible muxable codec/container combinations while preserving explicit track choices. Actual H264/AAC download, assembly, export and full decode pass. Additional automatic preference combinations, codecs and accounts remain QA."
+  },
+  "downloadIncludeAutoCaptions": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/downloads/AfterglowDownloadResolver.java; extensions/extension/src/main/java/app/afterglow/extension/ui/DownloadSheet.java",
+    "note": "The resolver/picker includes or filters automatic caption tracks according to this setting. Actual WebVTT saving, Vault import/view/share and renamed caption persistence are exercised in builds121/124. Automatic/manual-language edge cases and physical devices remain QA."
+  },
+  "downloadOfferTranslatedCaptions": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/downloads/AfterglowDownloadResolver.java; extensions/extension/src/main/java/app/afterglow/extension/ui/DownloadSheet.java",
+    "note": "The resolver offers translated WebVTT tracks when enabled and preserves the selected language identity. Actual caption saving and Vault document operations pass. The full translation-language/account/network matrix remains runtime QA; translated-caption offering is implemented."
+  },
+  "removePlayNext": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/litho/ (MenuRows) + patches menu-row hook",
+    "note": "menu rows dropped by icon type; patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "removeWatchLaterMenu": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/litho/ (MenuRows) + patches menu-row hook",
+    "note": "menu rows dropped by icon type; patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "removeSaveToPlaylistMenu": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/litho/ (MenuRows) + patches menu-row hook",
+    "note": "menu rows dropped by icon type; patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "removeNotInterestedMenu": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/litho/ (MenuRows) + patches menu-row hook",
+    "note": "menu rows dropped by icon type; patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "removeDontRecommendMenu": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/litho/ (MenuRows) + patches menu-row hook",
+    "note": "menu rows dropped by icon type; patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "removeReportMenu": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/litho/ (MenuRows) + patches menu-row hook",
+    "note": "menu rows dropped by icon type; patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "copyVideoInfo": {
+    "status": "done",
+    "where": "patches/src/main/kotlin/app/afterglow/patches/menus/DescriptionHeaderPatch.kt; patches/src/main/kotlin/app/afterglow/patches/menus/DescriptionContentPatch.kt; extensions/extension/src/main/java/app/afterglow/extension/menus/DescriptionHeaderActions.java; extensions/extension/src/main/java/app/afterglow/extension/menus/DescriptionHeaderContent.java; extensions/extension/src/main/java/app/afterglow/extension/menus/DescriptionHeaderSource.java",
+    "note": "The exact native Description content header provides separate Copy title and Copy full description actions, preserving original Morphe Copy text. Build131 verifies the complete native title and 2211-character, 61-line raw description in a separate clipboard-reader app; raw links remain complete where native display shortens them. OFF removes Copy, ON restores exactly one control, scrolling hides it, and native Close works in both states.373 source/native/resource/density checks pass. Windows software rendering terminated the emulator host on button press; the unchanged APK passes with host GLES rendering. Physical-device and in-flight cancellation coverage remain unverified."
+  },
+  "saveProfilePhoto": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/menus/AvatarPhotoActions.java; extensions/extension/src/main/java/app/afterglow/extension/menus/AvatarPhotoPolicy.java; extensions/extension/src/main/java/app/afterglow/extension/menus/AvatarPhotoSource.java; patches/src/main/kotlin/app/afterglow/patches/menus/AvatarPhotoPatch.kt",
+    "note": "Exact native image target/source/ready/unmount ownership supports the active renderer with its optional context root absent, while supplied tokens remain strict. Build129 verifies the hold sheet, saving the correct 1024x1024 PNG, and cross-app clipboard URI access to the identical PNG; an ordinary avatar tap still opens its native channel. The initial empty text clipboard was the emulator host bridge, proven by its label; isolating that bridge passes without production clipboard changes.156 focused checks pass. Physical-device and alternate avatar surface coverage remain unverified."
+  },
+  "postManager": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/menus/LongPressCaptureTools.java; extensions/extension/src/main/java/app/afterglow/extension/menus/LongPressOffscreenCapture.java; extensions/extension/src/main/java/app/afterglow/extension/menus/LongPressPostImageActions.java; patches/src/main/kotlin/app/afterglow/patches/menus/LongPressMountedTextPatch.kt; patches/src/main/kotlin/app/afterglow/patches/menus/LongPressPostImagePatch.kt",
+    "note": "Native post body ownership supplies the Afterglow text/image sheet. Build132 verifies exact Unicode text copying, a visually checked 1080x1428 rendered post PNG, identical saved/cross-app clipboard bytes, and current-image clipboard copies that follow two carousel selections through the original Morphe resolver. Original Morphe post-image downloading is retained and runtime verified separately. Shared capture checks and 38 current-image lifecycle checks pass. Unknown/ambiguous image identities fail closed; unmounted content cannot be reconstructed. Physical devices and other post layouts remain unverified."
+  },
+  "commentManager": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/menus/LongPressCaptureTools.java; extensions/extension/src/main/java/app/afterglow/extension/menus/LongPressOffscreenCapture.java; extensions/extension/src/main/java/app/afterglow/extension/menus/LongPressWindowCapture.java; extensions/extension/src/main/java/app/afterglow/extension/menus/LongPressImageProvider.java; patches/src/main/kotlin/app/afterglow/patches/menus/LongPressMountedTextPatch.kt",
+    "note": "Exact native mounted-item ownership provides the comment action sheet while preserving original Morphe Copy text. 234 focused and 40 native composition checks pass. Build132 opens the sheet, copies the exact native comment text, saves a visually checked 1080x503 PNG of the full row, and supplies identical PNG bytes to a separate clipboard-reader app. Hardware rendering completes in 20 ms on the tested host GPU; its bounded fallback preserves valid text actions when no complete image is available. Physical-device and alternate comment layouts remain unverified."
+  },
+  "nativeShare": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/navigation/MorpheFallbackNativeShare.java; extensions/extension/src/main/java/app/afterglow/extension/navigation/MorpheFallbackShareEntity.java; patches/src/main/kotlin/app/afterglow/patches/tweaks/navigation/MorpheFallbackNativeSharePatch.kt; docs/release-build110.md",
+    "note": "Adapted original ShareEntity/ShareEndpoint hooks open Android sharing for supported iOS entity links and preserve native sharing on unknown input or launch failure. Build109/110 verifies exact watch URL, chooser dismissal, native-panel restoration and reopening; 104 fallback checks pass. Other entity and physical-device scenarios remain QA."
+  },
+  "fixAlbums": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/navigation/MorpheFallbackAlbumCovers.java; patches/src/main/kotlin/app/afterglow/patches/tweaks/navigation/MorpheFallbackAlbumCoversPatch.kt",
+    "note": "The original image-URL boundary rewrites only the two supported yt3 hosts to yt4 before native storage/cache-key generation. OFF preserves URLs; fallback policy checks and Android image-render smoke pass. A genuinely region-blocked network fixture remains untested; the host-rewrite implementation is complete."
+  },
+  "copyWithTimestamp": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/menus/LongPressTools.java; patches/src/main/kotlin/app/afterglow/patches/menus/LongPressToolsPatch.kt; docs/release-build110.md",
+    "note": "The ready native Pause-button callback copies the current watch URL and timestamp after actual user Pause. Build109/110 clipboard checks pass, including native Pause behavior. Automatic pauses and Play remain outside this action; original Morphe Copy video link buttons retain their separate interaction."
+  },
+  "advancedMode": {
+    "status": "done",
+    "where": "ui/AfterglowActivity.java + ui/AppRestart.java + settings/AfterglowPrefs.java",
+    "note": "Default-OFF switch reveals advanced pages live; explicit Android16 OFF/ON and reset checks pass on delivered build89. Existing 427 settings checks cover visibility/search ownership."
+  },
+  "debugLogEnabled": {
+    "status": "done",
+    "note": "Opt-in 200-entry ring and one-MiB rotating file, pre-queue redaction and real native player/preference events. Serial persistence and share fallback are policy/storage tested. Build92 passes 91 log checks, 427 settings checks, strict 28/29/30/1/3 and 251 source hashes. 26 full and 15 independent observations are reviewed, with read-only file receipts, clearing and reset; build91 additionally verifies category filtering, Firehose bypass and cold playback. Unported feature event coverage remains tracked under its category keys.",
+    "where": "extension/diagnostics + AfterglowActivity + AfterglowSettingsPatch"
+  },
+  "debugLogFirehose": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/diagnostics/LogPolicy.java; extensions/extension/src/main/java/app/afterglow/extension/diagnostics/DebugLog.java; extensions/extension/src/main/java/app/afterglow/extension/video/VideoState.java",
+    "note": "Firehose bypasses category filters for available Afterglow diagnostics and enables player-response/clock events. Policy checks and build91 runtime category override pass. This Android implementation does not claim a complete native network packet log; broader event producers remain ordinary diagnostic coverage."
+  },
+  "debugLogDownloads": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/diagnostics/LogPolicy.java; extensions/extension/src/main/java/app/afterglow/extension/downloads/DownloadManager.java; extensions/extension/src/main/java/app/afterglow/extension/downloads/AfterglowDownloadResolver.java",
+    "note": "Download/extractor phases, queue state and bounded counters are connected to this category. The verified current download/extractor prefixes now respect category OFF; 101 routing/redaction checks pass. Download runtime paths are exercised; failure/format/account event completeness remains QA."
+  },
+  "debugLogPlayerUI": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/diagnostics/LogPolicy.java; extensions/extension/src/main/java/app/afterglow/extension/video/VideoState.java; patches/src/main/kotlin/app/afterglow/patches/video/VideoStatePatch.kt",
+    "note": "Native player creation/status/playback/type and Shorts open/close events are connected. Build91 verifies category OFF suppresses entries and Firehose overrides it; policy tests pass. Additional overlay-specific event producers and physical devices remain coverage, not an absent category implementation."
+  },
+  "debugLogPremiumControls": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/diagnostics/LogPolicy.java; extensions/extension/src/main/java/app/afterglow/extension/playback/PremiumControls.java",
+    "note": "Premium-controls diagnostic/error events use the current premium-controls prefix, now routed to this preference while preserving the legacy prefix. 101 routing/redaction checks pass. This does not mark the separate build125 Stable-volume behavior failure resolved; richer control-event coverage remains QA."
+  },
+  "debugLogPiP": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/diagnostics/LogPolicy.java; extensions/extension/src/main/java/app/afterglow/extension/video/VideoState.java",
+    "note": "The PiP category filters connected native PiP player-type events, with policy/redaction checks passing. Actual system PiP activation and physical-device lifecycle coverage remain runtime QA; the category and native event source are implemented."
+  },
+  "debugLogProbes": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/diagnostics/LogPolicy.java; extensions/extension/src/main/java/app/afterglow/extension/Afterglow.java",
+    "note": "Startup probe logging and offline/constructor-prefix routing are implemented with bounded redaction and category controls. Policy checks pass. Detailed native offline/compatibility event coverage beyond connected Android producers remains QA; this preference does not assert a complete native trace."
+  },
+  "debugHUDEnabled": {
+    "status": "done",
+    "note": "App-local translucent HUD shows the latest 25 entries, attaches to the foreground activity, restores after cold start, follows exact raw drag deltas and clamps on rotation. Double tap clears; a stationary 600-ms hold hides and disables it. Master OFF removes it; HUD ON enables logging. Final build92 corrects the development half-distance drag finding and verifies gestures, native playback, rotation and independent base lifecycle.",
+    "where": "extension/diagnostics + AfterglowActivity + AfterglowSettingsPatch"
+  },
+  "redProgressBar": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/theme/SeekBarTheme.java; extensions/extension/src/main/java/app/afterglow/extension/theme/SeekBarColorPolicy.java; patches/src/main/kotlin/app/afterglow/patches/theme/SeekBarThemePatch.kt; extensions/extension/src/main/java/app/afterglow/extension/settings/ThemeStore.java",
+    "note": "Functional native seekbar controls cover animation, gradient/red-track policy and scrubber sizing without changing unconfigured colors. Android16 portrait/fullscreen playback, seeking and picker/reset controls are verified. The exact buffered-resource and current-video-guarded live adapters are implemented; live/Shorts/promo rendering remains QA. Build125 renders green buffering/cyan ordinary scrubber, magenta on an ongoing live stream, and cyan again after returning to VOD in the same process; see docs/seekbar-theme-completion.md."
+  },
+  "nativeDownloadRouting": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/downloads/DownloadHooks.java; extensions/extension/src/main/java/app/afterglow/extension/ui/DownloadsUi.java; patches/src/main/kotlin/app/afterglow/patches/downloads/DownloadsPatch.kt",
+    "note": "Verified native download commands open the Afterglow sheet with the current video instead of the external Morphe download interface. Build124 captures the native Download menu action opening the owned sheet. Additional command/layout/account variants and physical devices remain QA."
+  },
+  "speedIndex": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/playback/ + patches/.../playback/",
+    "note": "patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "autoSpeedIndex": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/playback/ + patches/.../playback/",
+    "note": "patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "wiFiQualityIndex": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/playback/ + patches/.../playback/",
+    "note": "patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "cellQualityIndex": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/playback/ + patches/.../playback/",
+    "note": "patch applies on 21.43.523; not yet confirmed on a device"
+  },
+  "autoplayMode": {
+    "status": "done",
+    "where": "extensions/.../playback/Autoplay.java, PlayerOverlay.java; patches/.../playback/AutoplayPatch.kt",
+    "note": "Initial load readiness uses native configuration flags, preserving manual Play and next-video autonav. Off + hidden binds the native overlay switch for live visibility without changing its saved state. Build 45 strict 27/28/29 and Autoplay-only 1 pass; Android 16 verifies both Off modes, manual Play, fullscreen, actual reset and native Next Video. Default Shorts decoded playback is verified. Native overlay switch is absent in the baseline, so its hide/restore remains source-verified; Off-mode Shorts, live/DVR, casting, ads and physical-device behavior untested."
+  },
+  "commentsHeaderMode": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/interfaceui/CommentsHeaderPolicy.java; extensions/extension/src/main/java/app/afterglow/extension/litho/filters/CommentsHeaderFilter.java; patches/src/main/kotlin/app/afterglow/patches/interfaceui/CommentsHeaderPatch.kt",
+    "note": "Default/Hidden and Pinned Android modes are implemented. Pinned adapts only two native scroll-collapse calls for the current comments-panel owner and preserves explicit lifecycle transitions. 41 policy and23 native DEX checks pass. Build125 verifies Top/Topics/Newest remain visible while the actual comments body scrolls; default122 collapsed those chips. Physical-device coverage remains untested."
+  },
+  "downloadPostActionMode": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/downloads/DownloadRequest.java; extensions/extension/src/main/java/app/afterglow/extension/downloads/DownloadManager.java; extensions/extension/src/main/java/app/afterglow/extension/downloads/DownloadLibrary.java; extensions/extension/src/main/java/app/afterglow/extension/ui/DownloadsUi.java",
+    "note": "Completed downloads persist in Vault and support Ask, Keep, Android media/document export and Share. Builds119/121 verify exported video/audio/thumbnail/caption files; build124 verifies caption document sharing/import. All preference permutations and post-completion lifecycle variants remain QA."
+  },
+  "downloadAudioTrackMode": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/downloads/AfterglowDownloadResolver.java; extensions/extension/src/main/java/app/afterglow/extension/downloads/DownloadRequest.java; extensions/extension/src/main/java/app/afterglow/extension/ui/DownloadSheet.java",
+    "note": "The picker and durable request preserve explicit audio language/dubbed-track identity and automatic preference ordering. Actual adaptive audio/video output is verified. Multilingual/dubbed-account fixtures and every preference combination remain runtime QA."
+  },
+  "downloadAudioQualityMode": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/downloads/AfterglowDownloadResolver.java; extensions/extension/src/main/java/app/afterglow/extension/downloads/DownloadFormatPolicy.java; extensions/extension/src/main/java/app/afterglow/extension/ui/DownloadSheet.java",
+    "note": "Standard/higher bitrate audio preference orders compatible resolver choices, with explicit selection retained in durable jobs. Actual assembled and exported audio/video files decode successfully. The full bitrate/codec/quality matrix remains QA."
+  },
+  "downloadPickerFontScaleMode": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/ui/DownloadSheet.java; extensions/extension/src/main/java/app/afterglow/extension/ui/DownloadProgressSheet.java; extensions/extension/src/main/java/app/afterglow/extension/ui/VaultViews.java; extensions/extension/src/main/java/app/afterglow/extension/ui/DownloadUiPolicy.java",
+    "note": "The owned download picker applies the configured font face and scale through shared Vault view policy. The actual sheet/progress/Vault interfaces are exercised on Android16; every font/scale combination and physical-device layout remains QA. Android font substitution is a platform adaptation."
+  },
+  "downloadPickerFontFaceMode": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/ui/DownloadSheet.java; extensions/extension/src/main/java/app/afterglow/extension/ui/DownloadProgressSheet.java; extensions/extension/src/main/java/app/afterglow/extension/ui/VaultViews.java; extensions/extension/src/main/java/app/afterglow/extension/ui/DownloadUiPolicy.java",
+    "note": "The owned download picker applies the configured font face and scale through shared Vault view policy. The actual sheet/progress/Vault interfaces are exercised on Android16; every font/scale combination and physical-device layout remains QA. Android font substitution is a platform adaptation."
+  },
+  "seekBarScrubberSize": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/theme/SeekBarTheme.java; extensions/extension/src/main/java/app/afterglow/extension/theme/SeekBarColorPolicy.java; patches/src/main/kotlin/app/afterglow/patches/theme/SeekBarThemePatch.kt; extensions/extension/src/main/java/app/afterglow/extension/settings/ThemeStore.java",
+    "note": "Functional native seekbar controls cover animation, gradient/red-track policy and scrubber sizing without changing unconfigured colors. Android16 portrait/fullscreen playback, seeking and picker/reset controls are verified. The exact buffered-resource and current-video-guarded live adapters are implemented; live/Shorts/promo rendering remains QA. Build125 renders green buffering/cyan ordinary scrubber, magenta on an ongoing live stream, and cyan again after returning to VOD in the same process; see docs/seekbar-theme-completion.md."
+  },
+  "theme_glowStrength": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/settings/GlowStyle.java; extensions/extension/src/main/java/app/afterglow/extension/theme/GlowRenderer.java; extensions/extension/src/main/java/app/afterglow/extension/theme/NativeViews.java; extensions/extension/src/main/java/app/afterglow/extension/theme/SeekBarTheme.java; extensions/extension/src/main/java/app/afterglow/extension/ui/GlowLabScreen.java",
+    "note": "Functional Android glow controls and Glow Lab apply strength, opacity, radius and layers to native tab/player icons and scrubber/track drawing. Android16 tabs, previews and portrait/fullscreen playback are verified. Shorts/live/promo coverage remains QA; exact Apple blur rasterization is an intentional platform difference."
+  },
+  "theme_glowStrengthMode": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/settings/GlowStyle.java; extensions/extension/src/main/java/app/afterglow/extension/theme/GlowRenderer.java; extensions/extension/src/main/java/app/afterglow/extension/theme/NativeViews.java; extensions/extension/src/main/java/app/afterglow/extension/theme/SeekBarTheme.java; extensions/extension/src/main/java/app/afterglow/extension/ui/GlowLabScreen.java",
+    "note": "Functional Android glow controls and Glow Lab apply strength, opacity, radius and layers to native tab/player icons and scrubber/track drawing. Android16 tabs, previews and portrait/fullscreen playback are verified. Shorts/live/promo coverage remains QA; exact Apple blur rasterization is an intentional platform difference."
+  },
+  "theme_glowStrengthCustom": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/settings/GlowStyle.java; extensions/extension/src/main/java/app/afterglow/extension/theme/GlowRenderer.java; extensions/extension/src/main/java/app/afterglow/extension/theme/NativeViews.java; extensions/extension/src/main/java/app/afterglow/extension/theme/SeekBarTheme.java; extensions/extension/src/main/java/app/afterglow/extension/ui/GlowLabScreen.java",
+    "note": "Functional Android glow controls and Glow Lab apply strength, opacity, radius and layers to native tab/player icons and scrubber/track drawing. Android16 tabs, previews and portrait/fullscreen playback are verified. Shorts/live/promo coverage remains QA; exact Apple blur rasterization is an intentional platform difference."
+  },
+  "theme_glowOpacity": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/settings/GlowStyle.java; extensions/extension/src/main/java/app/afterglow/extension/theme/GlowRenderer.java; extensions/extension/src/main/java/app/afterglow/extension/theme/NativeViews.java; extensions/extension/src/main/java/app/afterglow/extension/theme/SeekBarTheme.java; extensions/extension/src/main/java/app/afterglow/extension/ui/GlowLabScreen.java",
+    "note": "Functional Android glow controls and Glow Lab apply strength, opacity, radius and layers to native tab/player icons and scrubber/track drawing. Android16 tabs, previews and portrait/fullscreen playback are verified. Shorts/live/promo coverage remains QA; exact Apple blur rasterization is an intentional platform difference."
+  },
+  "theme_glowRadius": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/settings/GlowStyle.java; extensions/extension/src/main/java/app/afterglow/extension/theme/GlowRenderer.java; extensions/extension/src/main/java/app/afterglow/extension/theme/NativeViews.java; extensions/extension/src/main/java/app/afterglow/extension/theme/SeekBarTheme.java; extensions/extension/src/main/java/app/afterglow/extension/ui/GlowLabScreen.java",
+    "note": "Functional Android glow controls and Glow Lab apply strength, opacity, radius and layers to native tab/player icons and scrubber/track drawing. Android16 tabs, previews and portrait/fullscreen playback are verified. Shorts/live/promo coverage remains QA; exact Apple blur rasterization is an intentional platform difference."
+  },
+  "theme_glowLayers": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/settings/GlowStyle.java; extensions/extension/src/main/java/app/afterglow/extension/theme/GlowRenderer.java; extensions/extension/src/main/java/app/afterglow/extension/theme/NativeViews.java; extensions/extension/src/main/java/app/afterglow/extension/theme/SeekBarTheme.java; extensions/extension/src/main/java/app/afterglow/extension/ui/GlowLabScreen.java",
+    "note": "Functional Android glow controls and Glow Lab apply strength, opacity, radius and layers to native tab/player icons and scrubber/track drawing. Android16 tabs, previews and portrait/fullscreen playback are verified. Shorts/live/promo coverage remains QA; exact Apple blur rasterization is an intentional platform difference."
+  },
+  "theme_fontMode": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/theme/Typography.java; extensions/extension/src/main/java/app/afterglow/extension/theme/NativeViews.java; patches/src/main/kotlin/app/afterglow/patches/theme/NativeViewsPatch.kt; extensions/extension/src/main/java/app/afterglow/extension/settings/ThemeStore.java",
+    "note": "Functional Android typography uses native TextView/layout/span/font-registry adapters and 43 pinned font assets, with relative size/weight/style and non-compounding Paint policy. Android16 settings, tabs, player, feed and comment text are verified. Apple system faces use Android equivalents; broader surface and physical-device coverage remains QA."
+  },
+  "theme_fontSizeMode": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/theme/Typography.java; extensions/extension/src/main/java/app/afterglow/extension/theme/NativeViews.java; patches/src/main/kotlin/app/afterglow/patches/theme/NativeViewsPatch.kt; extensions/extension/src/main/java/app/afterglow/extension/settings/ThemeStore.java",
+    "note": "Functional Android typography uses native TextView/layout/span/font-registry adapters and 43 pinned font assets, with relative size/weight/style and non-compounding Paint policy. Android16 settings, tabs, player, feed and comment text are verified. Apple system faces use Android equivalents; broader surface and physical-device coverage remains QA."
+  },
+  "theme_fontWeightMode": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/theme/Typography.java; extensions/extension/src/main/java/app/afterglow/extension/theme/NativeViews.java; patches/src/main/kotlin/app/afterglow/patches/theme/NativeViewsPatch.kt; extensions/extension/src/main/java/app/afterglow/extension/settings/ThemeStore.java",
+    "note": "Functional Android typography uses native TextView/layout/span/font-registry adapters and 43 pinned font assets, with relative size/weight/style and non-compounding Paint policy. Android16 settings, tabs, player, feed and comment text are verified. Apple system faces use Android equivalents; broader surface and physical-device coverage remains QA."
+  },
+  "theme_fontStyleMode": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/theme/Typography.java; extensions/extension/src/main/java/app/afterglow/extension/theme/NativeViews.java; patches/src/main/kotlin/app/afterglow/patches/theme/NativeViewsPatch.kt; extensions/extension/src/main/java/app/afterglow/extension/settings/ThemeStore.java",
+    "note": "Functional Android typography uses native TextView/layout/span/font-registry adapters and 43 pinned font assets, with relative size/weight/style and non-compounding Paint policy. Android16 settings, tabs, player, feed and comment text are verified. Apple system faces use Android equivalents; broader surface and physical-device coverage remains QA."
+  },
+  "theme_tabLabelSizeMode": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/theme/Typography.java; extensions/extension/src/main/java/app/afterglow/extension/theme/NativeViews.java; patches/src/main/kotlin/app/afterglow/patches/theme/NativeViewsPatch.kt; extensions/extension/src/main/java/app/afterglow/extension/settings/ThemeStore.java",
+    "note": "Functional Android typography uses native TextView/layout/span/font-registry adapters and 43 pinned font assets, with relative size/weight/style and non-compounding Paint policy. Android16 settings, tabs, player, feed and comment text are verified. Apple system faces use Android equivalents; broader surface and physical-device coverage remains QA."
+  },
+  "startupTab": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/navigation/StartupHooks.java; extensions/extension/src/main/java/app/afterglow/extension/navigation/NativeTabs.java; patches/src/main/kotlin/app/afterglow/patches/tweaks/navigation/StartupHooksPatch.kt",
+    "note": "Build126 verifies a fresh launcher start into the saved Afterglow Control Center, preserves external watch links, temporarily uses Home under Lite Mode, and restores the saved destination when Lite Mode is disabled. Build124 also verifies native Home and Posts routing. Physical-device coverage remains unverified."
+  },
+  "action.resetOverlayMode": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/ui/ControlCenterScreen.java; extensions/extension/src/main/java/app/afterglow/extension/playback/PlayerOverlay.java; extensions/extension/src/main/java/app/afterglow/extension/ui/SettingsBehavior.java",
+    "note": "Control Center Reset Player Overlay calls the existing session-reset API and restores normal native controls without erasing saved settings. Source/UI integration is complete; broader overlay combinations and a dedicated reset-after-overlay runtime matrix remain QA."
+  },
+  "action.resetThemeColors": {
+    "status": "done",
+    "where": "ThemeStudioScreen, AfterglowActivity RESET_ALL_COLORS and ThemeStore.resetToSystem; restart removes native resource overlay"
+  },
+  "action.exportPreferences": {
+    "status": "done",
+    "where": "extension/settings/PrefsTransfer + PropertyList + LegacyColor + AfterglowActivity",
+    "note": "XML/binary property-list transfer through native document pickers, UIKit color archives, saved-theme/semantic JSON bridges and exact retained originals. Native edits supersede originals; malformed imports are atomic and reset clears all private records. Final95 corrects invalid-tab retention and real Android newline persistence. 103 transfer checks, 427 settings checks, 438 theme checks, strict 28/29/30/1/3 and 253 source hashes pass. 15 full and 9 independent observations reviewed, including exact cold exports and reset; development93 verifies XML and Android theme rename. Physical interoperability untested."
+  },
+  "action.importPreferences": {
+    "status": "done",
+    "where": "extension/settings/PrefsTransfer + PropertyList + LegacyColor + AfterglowActivity",
+    "note": "XML/binary property-list transfer through native document pickers, UIKit color archives, saved-theme/semantic JSON bridges and exact retained originals. Native edits supersede originals; malformed imports are atomic and reset clears all private records. Final95 corrects invalid-tab retention and real Android newline persistence. 103 transfer checks, 427 settings checks, 438 theme checks, strict 28/29/30/1/3 and 253 source hashes pass. 15 full and 9 independent observations reviewed, including exact cold exports and reset; development93 verifies XML and Android theme rename. Physical interoperability untested."
+  },
+  "action.resetSettings": {
+    "status": "done",
+    "where": "ui/AfterglowActivity.java + ui/AppRestart.java + settings/AfterglowPrefs.java",
+    "note": "Actual warning No preserves settings and PID; Yes clears the Afterglow domain, flushes it, and relaunches YouTube in a new process. Advanced and changed Shorts layer return to defaults. Normal settings action verifies values after native restart; failed explicit test navigation retained. Delivered build89, Android16."
+  },
+  "action.clearCache": {
+    "status": "done",
+    "where": "ui/AfterglowActivity.java + ui/AppRestart.java + settings/AfterglowPrefs.java",
+    "note": "Actual About action reduces app cache from 155.4 MB to zero asynchronously, preserving Advanced and the changed Shorts preference. Done behavior matches iOS. Reviewed on delivered build89."
+  },
+  "action.clearDebugLog": {
+    "status": "done",
+    "note": "Serial clear removes the ring, current file and backup. The About action and HUD double tap clear immediately visible text; the next ordered share follows the translated empty-log path. Real-file tests and reviewed full/independent emulator observations pass.",
+    "where": "extension/diagnostics + AfterglowActivity + AfterglowSettingsPatch"
+  },
+  "destination.controlCenter": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/ui/ControlCenterScreen.java; extensions/extension/src/main/java/app/afterglow/extension/ui/ControlCenterQueueUpdates.java; extensions/extension/src/main/java/app/afterglow/extension/ui/ControlCenterQueueState.java; extensions/extension/src/main/java/app/afterglow/extension/ui/AfterglowDestinations.java",
+    "note": "The real Control Center destination exposes quick controls, live queue actions/progress, recent Vault items, themes and recovery/reset tools. Build122 opens the destination; queue state/listener checks and actual download progress/pause/completion pass. The full quick-control/recovery matrix and physical devices remain QA."
+  },
+  "destination.vault": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/ui/VaultActivity.java; extensions/extension/src/main/java/app/afterglow/extension/ui/VaultPlayerActivity.java; extensions/extension/src/main/java/app/afterglow/extension/downloads/DownloadManager.java; extensions/extension/src/main/java/app/afterglow/extension/downloads/DownloadLibrary.java; extensions/extension/src/main/java/app/afterglow/extension/downloads/DownloadTransfer.java; extensions/extension/src/main/java/app/afterglow/extension/downloads/DownloadAssembler.java",
+    "note": "Owned Vault provides durable queue/recovery, pause/resume/retry/cancel, media assembly, imports, search/filter/grouping, favorites/collections and file operations. Builds119/121/123/124 verify video/audio/caption/image outputs, restart/resume, large-transfer completion and caption import/view/share/rename. Additional formats, failure/recovery combinations and physical devices remain QA."
+  },
+  "destination.experimentLab": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/ui/ExperimentLabScreen.java; extensions/extension/src/main/java/app/afterglow/extension/destinations/ExperimentRuntime.java; extensions/extension/src/main/java/app/afterglow/extension/destinations/ExperimentStore.java; patches/src/main/kotlin/app/afterglow/patches/experiments/ExperimentLabPatch.kt",
+    "note": "AB Lab implements typed native flag getters, explicit overrides, profiles, persistence, verification and recovery controls. Native hook application passes strict builds121/122 and store checks pass. Every flag/type/profile lifecycle and physical-device combination remains QA; no unsupported flag is silently fabricated. Build123 verifies interrupted-trial bypass and clearing overrides; build125 verifies cold direct-settings foreground completion and profile export."
+  },
+  "destination.aiHome": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/ui/AiHomeScreen.java; extensions/extension/src/main/java/app/afterglow/extension/destinations/AiHomeLibrary.java; extensions/extension/src/main/java/app/afterglow/extension/destinations/AiHomeRouter.java; extensions/extension/src/main/java/app/afterglow/extension/destinations/AiHomeCommand.java; patches/src/main/kotlin/app/afterglow/patches/navigation/AiHomePatch.kt",
+    "note": "AI Home implements prompt storage, favorites/history and a verified current-Home style26 custom-feed command adapter; strict build122 and router/malformed-input checks pass. Native opening/prompt running is available only when the current server-provided command supports it. Missing server capability is reported; live-capability and physical-device scenarios remain QA. Build125 verifies named prompt save/favorite/export/delete/import and cold-restart persistence; the signed-out account exposes no native custom-feed control."
+  },
+  "destination.themeStudio": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/ui/ThemeStudioScreen.java; extensions/extension/src/main/java/app/afterglow/extension/settings/ThemeStore.java; extensions/extension/src/main/java/app/afterglow/extension/theme/NativeTheme.java; patches/src/main/kotlin/app/afterglow/patches/theme/NativeThemePatch.kt; patches/src/main/kotlin/app/afterglow/patches/theme/SeekBarThemePatch.kt",
+    "note": "Theme Studio implements 30 presets, private drafts, persistent custom themes, JSON/XML transfer, contrast helpers and native gradients. Android16 save/restart, export/import and gradients are verified. Buffered-progress and guarded live-scrubber adapters are implemented; their rendered coverage and additional native surfaces remain QA, not absent editor functionality. Build125 renders green buffering/cyan ordinary scrubber, magenta on an ongoing live stream, and cyan again after returning to VOD in the same process; see docs/seekbar-theme-completion.md."
+  },
+  "destination.glowLab": {
+    "status": "done",
+    "where": "extensions/extension/src/main/java/app/afterglow/extension/settings/GlowStyle.java; extensions/extension/src/main/java/app/afterglow/extension/theme/GlowRenderer.java; extensions/extension/src/main/java/app/afterglow/extension/theme/NativeViews.java; extensions/extension/src/main/java/app/afterglow/extension/theme/SeekBarTheme.java; extensions/extension/src/main/java/app/afterglow/extension/ui/GlowLabScreen.java",
+    "note": "Functional Android glow controls and Glow Lab apply strength, opacity, radius and layers to native tab/player icons and scrubber/track drawing. Android16 tabs, previews and portrait/fullscreen playback are verified. Shorts/live/promo coverage remains QA; exact Apple blur rasterization is an intentional platform difference."
+  }
+}

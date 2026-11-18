@@ -76,6 +76,7 @@ public class ReelsTopBarTest {
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();
         Settings.HIDE_REELS_TOP_BAR.resetToDefault();
+        Settings.HIDE_OTHER_REELS_TOP_BAR.resetToDefault();
         Settings.HIDE_REELS_CREATE_BUTTON.resetToDefault();
         Settings.HIDE_SAVED_REELS_CREATE_BUTTON.resetToDefault();
         Settings.HIDE_REELS_YOUR_ALGORITHM.resetToDefault();
@@ -107,6 +108,7 @@ public class ReelsTopBarTest {
         ReelsTopBar.forget(activity);
         controller.pause().stop().destroy();
         Settings.HIDE_REELS_TOP_BAR.resetToDefault();
+        Settings.HIDE_OTHER_REELS_TOP_BAR.resetToDefault();
         Settings.HIDE_REELS_CREATE_BUTTON.resetToDefault();
         Settings.HIDE_SAVED_REELS_CREATE_BUTTON.resetToDefault();
         Settings.HIDE_REELS_YOUR_ALGORITHM.resetToDefault();
@@ -276,6 +278,64 @@ public class ReelsTopBarTest {
         assertEquals(View.INVISIBLE, tab.getVisibility());
         assertFalse(tab.findViewById(CAMERA_ID).isShown());
         assertEquals(1, session.hiddenCount());
+    }
+
+    /** #680: the other switch takes the bar, back arrow and title, off every viewer but the Reels tab's. */
+    @Test public void theOtherSwitchHidesEveryOtherViewersBarAndLeavesTheReelsTab() {
+        assertFalse("starts off", Settings.HIDE_OTHER_REELS_TOP_BAR.get());
+        Settings.HIDE_OTHER_REELS_TOP_BAR.save(true);
+        ClipsViewerSource[] elsewhere = {ClipsViewerSource.PROFILE_CLIPS, ClipsViewerSource.FEED_TIMELINE,
+                ClipsViewerSource.DIRECT_THREAD, ClipsViewerSource.CLIPS_FRIEND_LANE, ClipsViewerSource.CLIPS_SAVED_TAB};
+        List<ClipsViewerActionBar> others = new ArrayList<>();
+        for (ClipsViewerSource source : elsewhere) others.add(show(source));
+        ClipsViewerActionBar tab = show(ClipsViewerSource.CLIPS_TAB);
+        ClipsViewerActionBar homecoming = show(ClipsViewerSource.CLIPS_TAB_HOMECOMING);
+        ReelsTopBar.Session session = track();
+        for (int i = 0; i < others.size(); i++) {
+            ClipsViewerActionBar bar = others.get(i);
+            assertEquals("bar " + i + " is hidden, not gone", View.INVISIBLE, bar.getVisibility());
+            assertFalse("bar " + i + "'s buttons aren't shown", bar.findViewById(CAMERA_ID).isShown());
+        }
+        assertEquals("the Reels tab keeps its bar", View.VISIBLE, tab.getVisibility());
+        assertEquals(View.VISIBLE, homecoming.getVisibility());
+        assertTrue(tab.findViewById(CAMERA_ID).isShown());
+        assertEquals(others.size(), session.hiddenCount());
+        assertTrue(session.isWatching());
+        assertTrue(HookStatus.report().toString(), counted(ReelsTopBar.COUNT_OTHER_HID, others.size()));
+        assertFalse(HookStatus.report().toString(), HookStatus.report().toString().contains(ReelsTopBar.COUNT_HID + " "));
+    }
+
+    @Test public void bothSwitchesHideEveryBar() {
+        Settings.HIDE_REELS_TOP_BAR.save(true);
+        Settings.HIDE_OTHER_REELS_TOP_BAR.save(true);
+        ClipsViewerActionBar profile = show(ClipsViewerSource.PROFILE_CLIPS);
+        ClipsViewerActionBar tab = show(ClipsViewerSource.CLIPS_TAB);
+        track();
+        assertEquals(View.INVISIBLE, profile.getVisibility());
+        assertEquals(View.INVISIBLE, tab.getVisibility());
+        assertTrue(HookStatus.report().toString(), counted(ReelsTopBar.COUNT_HID, 1));
+        assertTrue(HookStatus.report().toString(), counted(ReelsTopBar.COUNT_OTHER_HID, 1));
+    }
+
+    @Test public void turningTheOtherSwitchOffPutsTheirBarsBackAndKeepsTheReelsTabsHidden() {
+        Settings.HIDE_REELS_TOP_BAR.save(true);
+        Settings.HIDE_OTHER_REELS_TOP_BAR.save(true);
+        ClipsViewerActionBar profile = show(ClipsViewerSource.PROFILE_CLIPS);
+        ClipsViewerActionBar tab = show(ClipsViewerSource.CLIPS_TAB);
+        ReelsTopBar.Session session = track();
+        assertEquals(2, session.hiddenCount());
+        profile.setVisibility(View.VISIBLE);
+        frame();
+        assertEquals("Instagram showing it again doesn't win", View.INVISIBLE, profile.getVisibility());
+
+        Settings.HIDE_OTHER_REELS_TOP_BAR.save(false);
+        focusBack();
+        frame();
+        assertEquals("off, the profile reel's bar is back", View.VISIBLE, profile.getVisibility());
+        assertTrue(profile.findViewById(CAMERA_ID).isShown());
+        assertEquals("the Reels tab's switch is still on", View.INVISIBLE, tab.getVisibility());
+        assertEquals(1, session.hiddenCount());
+        assertTrue(session.isWatching());
     }
 
     @Test public void pausedIsStockWithNoListener() {
@@ -948,5 +1008,157 @@ public class ReelsTopBarTest {
         assertEquals("the bar is back", View.VISIBLE, tab.bar.getVisibility());
         assertEquals("without Friends", View.GONE, tabs.friends.getVisibility());
         assertTrue(tabs.reels.isShown());
+    }
+
+    /** The reasons Instagram's clear mode handler gives, named as Instagram 450 names them. */
+    private enum ClearReason { EXIT_BUTTON, OVERFLOW_MENU, REELS_VIEWER_SWIPE_OR_EXIT }
+
+    /** Instagram's clear mode handler as far as {@link ReelClearMode} needs one here: each reel is its own id. */
+    private static final class ClearModeViewer implements ReelClearMode.Viewer {
+        @Override public void enter(Object handler, Object source) { }
+        @Override public String id(Object item) { return (String) item; }
+        @Override public void post(Runnable work) { }
+        /** The first try for the next reel waits, so clear mode stays wanted while the test looks. */
+        @Override public void afterFadeMoved(Runnable work) { }
+        @Override public void later(Runnable work, long delay) { }
+        @Override public void showButtons(Object page) { }
+        @Override public long now() { return 0; }
+        @Override public boolean showing(Object pager) { return true; }
+        @Override public Object reason(Object handler) { return ClearReason.OVERFLOW_MENU; }
+        @Override public Object action(Object handler) { return null; }
+        @Override public void setAction(Object handler, Object action) { }
+    }
+
+    /** Runs [check] with Keep clear mode as [keep] and Instagram's handler stood in for, then forgets it all. */
+    private static void withClearMode(boolean keep, Runnable check) {
+        ReelClearMode.forget();
+        ReelClearMode.access = new ClearModeViewer();
+        Settings.KEEP_REEL_CLEAR_MODE.save(keep);
+        try {
+            check.run();
+        } finally {
+            Settings.KEEP_REEL_CLEAR_MODE.resetToDefault();
+            ReelClearMode.forget();
+        }
+    }
+
+    /** Your own turn-on of clear mode on [reel] through [handler], as the patched handler reports it. */
+    private static void turnOnClearMode(Object handler, String reel) {
+        ReelClearMode.current(reel);
+        ReelClearMode.entered(handler, ClearReason.OVERFLOW_MENU);
+    }
+
+    /**
+     * A reel in clear mode leaving it by a swipe, with Keep clear mode on, hides the viewer's bar before
+     * Instagram's turn-off fades it in, keeps it hidden while clear mode is wanted, and gives it back as
+     * soon as you leave clear mode yourself (#740).
+     */
+    @Test public void aSwipeInClearModeKeepsTheBarHiddenUntilYouLeaveIt() {
+        ClipsViewerActionBar bar = show(ClipsViewerSource.PROFILE_CLIPS);
+        Object handler = new Object();
+        withClearMode(true, () -> {
+            ReelsTopBar.Session session = track();
+            assertFalse("no switch on, nothing watched", session.isWatching());
+            turnOnClearMode(handler, "reel 1");
+            assertTrue(ReelClearMode.wanted());
+            assertEquals("Instagram's own fade takes the bar out as clear mode goes on", View.VISIBLE, bar.getVisibility());
+
+            ReelClearMode.left(handler, "reel 1", ClearReason.REELS_VIEWER_SWIPE_OR_EXIT);
+            assertEquals("hidden before the turn-off's fade draws a frame", View.INVISIBLE, bar.getVisibility());
+            assertTrue(session.isWatching());
+            assertWatching("held for clear mode", true);
+            assertTrue(HookStatus.report().toString(), counted(ReelsTopBar.COUNT_CLEAR_MODE_HID, 1));
+
+            bar.setVisibility(View.VISIBLE);
+            frame();
+            assertEquals("Instagram showing it mid-swipe is undone before the frame", View.INVISIBLE, bar.getVisibility());
+            laidOut();
+            frame();
+            idle(ReelsTopBar.LOOK_MS * 2);
+            assertEquals("with no switch on the screen isn't searched", 0, session.looks);
+
+            ReelClearMode.left(handler, "reel 2", ClearReason.EXIT_BUTTON);
+            assertFalse(ReelClearMode.wanted());
+            assertEquals("back at once for Instagram's fade in", View.VISIBLE, bar.getVisibility());
+            assertFalse(session.isWatching());
+            assertWatching("clear mode over", false);
+        });
+    }
+
+    /**
+     * A drag fades the bar in from its first move, before the swipe's turn-off is heard, so the bar is
+     * held from just after clear mode goes on, once Instagram's own fade has taken it out (#740).
+     */
+    @Test public void clearModeHoldsTheBarBeforeTheFirstSwipe() {
+        ClipsViewerActionBar bar = show(ClipsViewerSource.PROFILE_CLIPS);
+        Object handler = new Object();
+        withClearMode(true, () -> {
+            ReelsTopBar.Session session = track();
+            turnOnClearMode(handler, "reel 1");
+            idle(ReelsTopBar.HOLD_AFTER_TURN_ON_MS - 1);
+            assertEquals("Instagram's own fade out still runs", View.VISIBLE, bar.getVisibility());
+            idle(1);
+            assertEquals("held once that fade is done", View.INVISIBLE, bar.getVisibility());
+            assertTrue(session.isWatching());
+            assertTrue(HookStatus.report().toString(), counted(ReelsTopBar.COUNT_CLEAR_MODE_HID, 1));
+
+            bar.setVisibility(View.VISIBLE);
+            frame();
+            assertEquals("the first drag's fade in is undone before its frame", View.INVISIBLE, bar.getVisibility());
+
+            ReelClearMode.left(handler, "reel 1", ClearReason.REELS_VIEWER_SWIPE_OR_EXIT);
+            frame();
+            assertEquals("the swipe keeps it held", View.INVISIBLE, bar.getVisibility());
+            assertEquals(1, session.hiddenCount());
+
+            ReelClearMode.left(handler, "reel 2", ClearReason.EXIT_BUTTON);
+            assertEquals("back when you leave clear mode", View.VISIBLE, bar.getVisibility());
+            assertFalse(session.isWatching());
+
+            turnOnClearMode(handler, "reel 3");
+            ReelClearMode.left(handler, "reel 3", ClearReason.EXIT_BUTTON);
+            idle(ReelsTopBar.HOLD_AFTER_TURN_ON_MS);
+            assertEquals("clear mode left before the hold's time leaves the bar alone", View.VISIBLE, bar.getVisibility());
+            assertFalse(session.isWatching());
+        });
+    }
+
+    /** A bar held for clear mode whose own switch went on meanwhile stays hidden once clear mode ends (#740). */
+    @Test public void aBarHeldForClearModeKeepsItsSwitchsHold() {
+        ClipsViewerActionBar bar = show(ClipsViewerSource.PROFILE_CLIPS);
+        Object handler = new Object();
+        withClearMode(true, () -> {
+            ReelsTopBar.Session session = track();
+            turnOnClearMode(handler, "reel 1");
+            ReelClearMode.left(handler, "reel 1", ClearReason.REELS_VIEWER_SWIPE_OR_EXIT);
+            assertEquals(View.INVISIBLE, bar.getVisibility());
+
+            Settings.HIDE_OTHER_REELS_TOP_BAR.save(true);
+            focusBack();
+            ReelClearMode.left(handler, "reel 2", ClearReason.EXIT_BUTTON);
+            frame();
+            assertEquals("Hide the top bar on other reels still hides it", View.INVISIBLE, bar.getVisibility());
+            assertTrue(session.isWatching());
+            assertEquals(1, session.hiddenCount());
+
+            Settings.HIDE_OTHER_REELS_TOP_BAR.save(false);
+            frame();
+            assertEquals("and gives it back when it goes off", View.VISIBLE, bar.getVisibility());
+        });
+    }
+
+    /** Without Keep clear mode on, a swipe out of clear mode leaves the bar to Instagram (#740). */
+    @Test public void withoutKeepClearModeASwipeLeavesTheBarAlone() {
+        ClipsViewerActionBar bar = show(ClipsViewerSource.PROFILE_CLIPS);
+        Object handler = new Object();
+        withClearMode(false, () -> {
+            ReelsTopBar.Session session = track();
+            turnOnClearMode(handler, "reel 1");
+            ReelClearMode.left(handler, "reel 1", ClearReason.REELS_VIEWER_SWIPE_OR_EXIT);
+            frame();
+            assertEquals(View.VISIBLE, bar.getVisibility());
+            assertFalse(session.isWatching());
+            assertFalse(HookStatus.report().toString(), counted(ReelsTopBar.COUNT_CLEAR_MODE_HID, 1));
+        });
     }
 }

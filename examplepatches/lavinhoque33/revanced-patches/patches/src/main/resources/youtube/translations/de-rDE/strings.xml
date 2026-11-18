@@ -73,6 +73,13 @@ Meldungen sind öffentlich und werden überprüft, bevor ein Kanal zu einer List
     <string name="morphe_captions_screen_summary">Cookie aktivieren für Untertitel</string>
     <string name="morphe_captions_screen_title">Untertitel</string>
     <string name="morphe_custom_branding_icon_title">App-Icon</string>
+    <string name="morphe_custom_seekbar_thumb_file_invalid">Die ausgewählte Datei ist kein unterstütztes Bild</string>
+    <string name="morphe_custom_seekbar_thumb_file_not_found">Benutzerdefiniertes Seekbar-Regler-Bild nicht gefunden</string>
+    <string name="morphe_custom_seekbar_thumb_file_title">Regler-Bild</string>
+    <string name="morphe_custom_seekbar_thumb_scale_type_entry_fit_seekbar">An Seekbar anpassen</string>
+    <string name="morphe_custom_seekbar_thumb_scale_type_entry_original">Originalgröße</string>
+    <string name="morphe_custom_seekbar_thumb_scale_type_title">Regler-Größe</string>
+    <string name="morphe_custom_seekbar_thumb_title">Benutzerdefinierten Seekbar-Regler aktivieren</string>
     <string name="morphe_dearrow_about_summary">"DeArrow ersetzt Clickbait-Titel und -Thumbnails durch von der Community erstellte, die genauer und weniger sensationell sind. Titel werden von der Community geschrieben und abgestimmt, und Thumbnails sind Einzelbilder aus dem Video
 
 Videos werden über ein kurzes Präfix der gehashten Video-ID angefordert, sodass der Server nicht genau wissen kann, welches Video du gerade ansiehst. Wenn ein Video kein DeArrow-Thumbnail hat, wird das Original oder ein Standbild angezeigt"</string>
@@ -101,6 +108,12 @@ Videos werden über ein kurzes Präfix der gehashten Video-ID angefordert, sodas
     <string name="morphe_disable_toolbar_navigation_tabs_summary">Zeigt Abonnements in der Navigationsleiste an, falls YouTube diese in einen Tab oben auf der Startseite verschiebt</string>
     <string name="morphe_disable_toolbar_navigation_tabs_title">Navigations-Tabs in der Symbolleiste deaktivieren</string>
     <string name="morphe_dual_captions_enabled_title">Zweisprachige Untertitel</string>
+    <string name="morphe_enhanced_ambient_mode_dim_duration_title">Dimm-Dauer</string>
+    <string name="morphe_enhanced_ambient_mode_dim_while_scrolling_summary">Dimmt das Licht, während die Seite gescrollt oder berührt wird</string>
+    <string name="morphe_enhanced_ambient_mode_dim_while_scrolling_title">Beim Scrollen dimmen</string>
+    <string name="morphe_enhanced_ambient_mode_readable_text_summary">Dimmt das Licht bei hellen Videos, damit der Text auf der Seite lesbar bleibt</string>
+    <string name="morphe_enhanced_ambient_mode_readable_text_title">Text lesbar halten</string>
+    <string name="morphe_enhanced_ambient_mode_title">Erweiterter Ambient-Modus</string>
     <string name="morphe_expand_livestream_dvr_duration_not_available">"'Livestream-DVR-Dauer erweitern' ist möglicherweise nicht verfügbar
 
 Um das zu beheben, aktiviere 'Video-Streams vortäuschen' und stelle den 'Standard-Client' auf 'TV Simply' oder 'visionOS' um"</string>
@@ -266,6 +279,12 @@ Um das zu beheben, aktiviere 'Video-Streams vortäuschen' und stelle den 'Standa
     <string name="morphe_playback_in_feeds_title">Wiedergabe in Feeds</string>
     <string name="morphe_player_control_buttons_background_opacity_summary">Deckkraft des Hintergrunds hinter den Player-Steuertasten und der Zeitleiste anpassen (0 = unsichtbar, 100 = deckend)</string>
     <string name="morphe_player_control_buttons_background_opacity_title">Hintergrundtransparenz der Steuertasten</string>
+    <string name="morphe_playlist_hide_removal_snackbar_summary">Die Bestätigung wird nicht angezeigt, nachdem ein Video aus einer Playlist entfernt wurde</string>
+    <string name="morphe_playlist_hide_removal_snackbar_title">Snackbar zum Entfernen der Playlist ausblenden</string>
+    <string name="morphe_playlist_long_press_drag_summary">Tippen Sie lange auf ein Video Ihrer Playlist, um es an eine neue Position zu ziehen</string>
+    <string name="morphe_playlist_long_press_drag_title">Zum Neuordnen der Playlist-Videos lange drücken</string>
+    <string name="morphe_playlist_wide_drag_handles_summary">Playlist-Drag-Handles sind einfacher zu greifen</string>
+    <string name="morphe_playlist_wide_drag_handles_title">Playlist-Drag-Griffe verbreitern</string>
     <string name="morphe_post_buttons_layout_entry_1">Server</string>
     <string name="morphe_post_buttons_layout_entry_2">Erzwungen</string>
     <string name="morphe_post_buttons_layout_title">Layout der Beitrags-Schaltflächen</string>
@@ -726,20 +745,7 @@ Einstellungen → Autoplay / Wiedergabe → Nächstes Video Autoplay"</string>
     <string name="revanced_disable_landscape_mode_summary_off">Querformat im Vollbild Modus aktiviert</string>
     <string name="revanced_disable_landscape_mode_summary_on">Querformat im Vollbild Modus deaktiviert</string>
     <string name="revanced_disable_landscape_mode_title">Querformat deaktivieren</string>
-    <string name="revanced_disable_layout_updates_summary_off">Der Server aktualisiert das Layout</string>
-    <string name="revanced_disable_layout_updates_summary_on">Der Server aktualisiert das Layout nicht</string>
     <string name="revanced_disable_layout_updates_title">Layoutaktualisierungen deaktivieren</string>
-    <string name="revanced_disable_layout_updates_user_dialog_message">"Das App-Layout kehrt zum Layout zurück, das bei der Erstinstallation verwendet wurde
-
-Einige serverseitige Layouts werden möglicherweise nicht zurückgesetzt
-
-Folgende Änderungen sind enthalten:
-• Komponenten im Flyout-Menü des Players (oder verwandte Einstellungen) funktionieren eventuell nicht
-• Laufende Zahlen sind nicht animiert
-• Tab „Mediathek“ wird angezeigt
-• Der Musikabschnitt der Videobeschreibung funktioniert eventuell nicht
-• Elemente im Flyout-Menü des Players können nicht ausgeblendet werden
-• Die Schaltfläche zum Kontowechsel wird eventuell nicht im Tab „Mediathek“ angezeigt"</string>
     <string name="revanced_disable_like_dislike_glow_summary_off">Die \'Gefällt mir\' und \'Gefällt mir nicht\' Schaltflächen leuchtet, wenn sie erwähnt werden</string>
     <string name="revanced_disable_like_dislike_glow_summary_on">Die \'Gefällt mir\' und \'Gefällt mir nicht\' Schaltflächen leuchten nicht, wenn sie erwähnt werden</string>
     <string name="revanced_disable_like_dislike_glow_title">Leuchten der \'Gefällt mir\' und \'Gefällt mir nicht\' Schaltflächen deaktivieren</string>
@@ -1087,10 +1093,6 @@ Store"</string>
     <string name="revanced_hide_comments_carousel_filter_strings_summary">Gib die Namen der Kommentar-Karussell-Elemente, nach denen gefiltert werden soll durch neue Zeilen getrennt ein</string>
     <string name="revanced_hide_comments_carousel_filter_strings_title">Kommentar-Karussell-Filter</string>
     <string name="revanced_hide_comments_carousel_title">Filter für Kommentar-Karussell aktivieren</string>
-    <string name="revanced_hide_comments_carousel_user_dialog_message">"Hinweis:
-• Achten Sie darauf, den genauen Namen des Karussellartikels einzugeben (z. B. Fragen, Dieses Video bewerben, Auf YouTube Music hören usw.)
-• Das Ausblenden von Karussellartikeln kann unbeabsichtigte Nebenwirkungen haben
-• Wenn alle Karussellartikel ausgeblendet sind, wird auch der gesamte Kommentarbereich ausgeblendet"</string>
     <string name="revanced_hide_comments_create_a_short_button_summary_off">Schaltfläche \" Short erstellen\" wird angezeigt</string>
     <string name="revanced_hide_comments_create_a_short_button_summary_on">Schaltfläche \" Short erstellen\" ist ausgeblendet</string>
     <string name="revanced_hide_comments_create_a_short_button_title">Schaltfläche „Als Short erstellen“ ausblenden</string>

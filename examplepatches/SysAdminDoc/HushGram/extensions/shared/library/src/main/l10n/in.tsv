@@ -460,6 +460,8 @@ Going to that date	Menuju tanggal itu
 Sort reels on profiles	Urutkan reel di profil
 Puts the arrow next to Reels on every profile, so you can sort them by Latest or Most viewed where Instagram took the choice away.	Menampilkan panah di samping Reels di setiap profil, jadi kamu bisa mengurutkannya menurut Terbaru atau Paling banyak dilihat di profil yang pilihannya dihapus Instagram.
 The cards of people and creators to follow that Instagram puts between reels. Every reel still plays.	Kartu orang dan kreator untuk diikuti yang diselipkan Instagram di antara reel. Semua reel tetap diputar.
+Hide stories in Reels	Sembunyikan cerita di Reels
+The Catch up with friends pages of stories that Instagram puts between reels. Stories stay at the top of Home.	Halaman cerita teman yang diselipkan Instagram di antara reel. Cerita tetap ada di bagian atas Beranda.
 Leaves out reels with a Paid partnership label, and reels Instagram marks as boosted. Ads have their own switch.	Melewati reel berlabel Kemitraan berbayar, dan reel yang ditandai Instagram sebagai dipromosikan. Iklan punya tombolnya sendiri.
 Turn on Start Home on Following to use this choice.	Aktifkan Buka Beranda di Mengikuti untuk menggunakan pilihan ini.
 # context: Settings page: the summary of a greyed-out slider in place of its value; %1$s is the title of the switch it waits on, like Glass tab bar
@@ -560,7 +562,7 @@ Gives reels the seek bar of a video in a chat, a thin gray line that turns white
 Seek bar on photos with music	Bilah geser di foto dengan musik
 Reels that are a photo with a song get the same seek bar and time as a video reel, following the song. Drag it to seek.	Reel berupa foto dengan lagu mendapat bilah geser dan waktu yang sama seperti reel video, mengikuti lagunya. Seret untuk mencari posisi.
 Hide the seek bar on reels	Sembunyikan bilah putar di reel
-Takes the seek bar off the bottom of every reel, long ones too. Hold a reel to bring it back and seek. Keep a seek bar and the seek bar looks above win over it.	Menghapus bilah putar dari bagian bawah setiap reel, termasuk yang panjang. Tahan reel untuk memunculkannya lagi dan mencari posisi. Tetap tampilkan bilah putar dan gaya bilah di atas lebih diutamakan.
+Takes the seek bar off the bottom of every reel, long ones too. Drag sideways along the bottom edge of a reel to bring it back and seek. Keep a seek bar and the seek bar looks above win over it. Restart Instagram to see the change.	Menghapus bilah putar dari bagian bawah setiap reel, termasuk yang panjang. Seret ke samping di sepanjang tepi bawah reel untuk memunculkannya lagi dan mencari posisi. Tetap tampilkan bilah putar dan gaya bilah di atas lebih diutamakan. Mulai ulang Instagram untuk melihat perubahannya.
 Blur the bars around a reel	Buramkan bilah di sekitar reel
 A reel that doesn't fill the screen shows a blurred copy of itself above and below it instead of black bars, and the strip under the tab bar and the band behind the clock show the reel blurred too. The copy shows only where a reel leaves room, as with Show the whole reel on. Open Reels again after a change.	Reel yang tidak memenuhi layar menampilkan salinan buramnya di atas dan di bawahnya, bukan bilah hitam, dan strip di bawah bilah tab serta area di belakang jam juga menampilkan reel itu secara buram. Salinan itu hanya muncul di tempat reel menyisakan ruang, seperti saat Tampilkan reel utuh aktif. Buka Reel lagi setelah ada perubahan.
 # Chosen navigation long-press settings entry. Account tab availability varies.
@@ -653,6 +655,8 @@ Stop after the chat's reels	Berhenti setelah reel chat
 Reels you opened from a chat end after the last one shared in that chat, with no suggested reels after it. Works with Swipe through a chat's reels on.	Reel yang kamu buka dari chat berakhir setelah reel terakhir yang dibagikan di chat itu, tanpa reel yang disarankan setelahnya. Berfungsi saat Geser melalui reel di chat aktif.
 Adds Download cover under Download. It saves the still picture a reel shows before it plays, at its largest size.	Menambahkan Unduh sampul di bawah Unduh. Ini menyimpan gambar diam yang ditampilkan reel sebelum diputar, dalam ukuran terbesarnya.
 Adds Download audio under Download. It saves the sound of the reel as an audio file.	Menambahkan Unduh audio di bawah Unduh. Ini menyimpan suara reel sebagai file audio.
+Download full song	Unduh lagu lengkap
+Adds Download full song under Download on reels that use a song from Instagram's music. It saves the whole song as an audio file, not only the part the reel plays.	Menambahkan Unduh lagu lengkap di bawah Unduh pada reel yang memakai lagu dari musik Instagram. Ini menyimpan seluruh lagu sebagai file audio, bukan hanya bagian yang diputar reel.
 After the reels you pick below, swiping in Reels stops until Instagram has been in the background for the time you pick. A reel you open from a message or a post still plays.	Setelah jumlah reel yang Anda pilih di bawah, menggeser di Reels berhenti sampai Instagram berada di latar belakang selama waktu yang Anda pilih. Reel yang Anda buka dari pesan atau postingan tetap diputar.
 Find the reel you came from	Temukan reel asal Anda
 Open a creator's profile from a reel, then their Reels tab, and it scrolls to that reel and outlines it for a moment. A photo reel is found in their posts. Stop looking ends the search where it is.	Buka profil kreator dari sebuah reel, lalu tab Reels-nya, dan tab itu bergulir ke reel tersebut dan menandainya sebentar. Reel foto ditemukan di postingannya. Berhenti mencari menghentikan pencarian di posisinya saat itu.
@@ -1200,6 +1204,8 @@ Open settings with a long press on your profile's menu	Buka pengaturan dengan me
 A long press on the menu button, the three lines at the top right of your own profile, opens HushGram. A tap still opens Instagram's menu, and other profiles stay the same.	Menekan lama tombol menu, tiga garis di kanan atas profilmu sendiri, membuka HushGram. Mengetuknya tetap membuka menu Instagram, dan profil lain tetap sama.
 Hide the top bar on the Reels tab	Sembunyikan bilah atas di tab Reels
 Takes away the row at the top of the Reels tab, with the Reels title, the camera button and anything else Instagram puts there. Reels you open from a profile, a post or a chat keep theirs. The camera still opens from Home.	Menghapus baris di bagian atas tab Reels, berisi judul Reels, tombol kamera, dan apa pun yang ditaruh Instagram di sana. Reels yang kamu buka dari profil, postingan, atau chat tetap memilikinya. Kamera tetap bisa dibuka dari Beranda.
+Hide the top bar on other reels	Sembunyikan bilah atas di reels lain
+Takes the back arrow and the title off the top of reels you open from Explore, a profile, a post, Saved or a chat. Your phone's back button or gesture still goes back.	Menghapus panah kembali dan judul di bagian atas reels yang kamu buka dari Jelajahi, profil, postingan, Tersimpan, atau chat. Tombol atau gestur kembali di ponselmu tetap berfungsi.
 Hide the Create button on reels	Sembunyikan tombol Buat di reel
 Takes the plus button that opens the camera off the top of reels, on the Reels tab and everywhere else, and closes up the gap. The rest of the bar stays.	Menghapus tombol plus yang membuka kamera dari bagian atas reel, di tab Reels dan di mana pun, lalu menutup celahnya. Bagian bilah lainnya tetap ada.
 Hide Your algorithm on reels	Sembunyikan Algoritma Anda di reel
@@ -2250,13 +2256,9 @@ Save profile	Simpan profil
 Saved @%s	@%s disimpan
 # context: toast after Remove from saved takes an account off the Saved profiles list; %s is its username (#629)
 Removed @%s from saved	@%s dihapus dari tersimpan
-# context: row in the long press menu on an account on the Saved profiles page, and title of the folder list it opens (#629)
-Move to folder	Pindahkan ke folder
-# context: title of the folder list Save profile opens on a profile's menu once the user has made a folder (#629)
+# context: title of the folder checklist Save profile opens on a profile's menu once the user has made a folder; the account can go in several (#629, #687)
 Save to folder	Simpan ke folder
-# context: first choice in that folder list; the saved account sits in no folder (#629)
-No folder	Tanpa folder
-# context: last choice in that folder list, and title of the dialog asking the new folder's name (#629)
+# context: button under a folder checklist, and title of the dialog asking the new folder's name (#629, #687)
 New folder	Folder baru
 # context: row in the long press menu on a folder's chip on the Saved profiles page, and title of the dialog for its new name (#629)
 Rename folder	Ganti nama folder
@@ -2264,14 +2266,20 @@ Rename folder	Ganti nama folder
 Remove folder	Hapus folder
 # context: toast after Save profile puts an account in a folder; %1$s is its username, %2$s the folder's name (#629)
 Saved @%1$s to %2$s	@%1$s disimpan ke %2$s
-# context: toast after Move to folder; %1$s is the account's username, %2$s the folder's name (#629)
-Moved @%1$s to %2$s	@%1$s dipindahkan ke %2$s
-# context: toast after Move to folder > No folder; %s is the account's username, which stays saved (#629)
-Moved @%s out of its folder	@%s dikeluarkan dari folder
 # context: toast after Remove folder; %s is the folder's name, and its accounts stay saved (#629)
 Removed the folder %s	Folder %s dihapus
 # context: toast after Rename folder; %s is the folder's new name (#629)
 Renamed the folder to %s	Folder diganti nama menjadi %s
+# context: row in the long press menu on an account on the Saved profiles page, and title of the folder checklist it opens; an account can be in several folders (#687)
+Choose folders	Pilih folder
+# context: toast after Choose folders with every folder unticked; %s is the account's username, which stays saved (#687)
+@%s is in no folder now	@%s kini tidak ada di folder mana pun
+# context: toast after Choose folders leaves the account in one folder; %1$s is its username, %2$s the folder's name (#687)
+@%1$s is in %2$s now	@%1$s kini ada di %2$s
+# context: toast after Choose folders leaves the account in two or more folders; %1$s is its username, %2$d how many (#687)
+@%1$s is in %2$d folders now	@%1$s kini ada di %2$d folder
+# context: toast after Save profile puts an account in two or more folders; %1$s is its username, %2$d how many (#687)
+Saved @%1$s to %2$d folders	@%1$s disimpan ke %2$d folder
 # context: toast when the Saved profiles list already holds 2,000 accounts (#629)
 Saved profiles is full.	Daftar profil tersimpan sudah penuh.
 # context: Profiles > title of the switch that adds Save profile to the menu on profiles, and title of the page listing the saved accounts (#629)
@@ -2502,3 +2510,20 @@ No one has viewed half of this period's stories yet.	Belum ada yang melihat sete
 # context: Feed: switch under Hide the home feed that keeps Instagram from learning which posts in Home you looked at and for how long (#664)
 Don't send feed view history	Jangan kirim riwayat tampilan feed
 Stops telling Instagram which posts in Home you looked at and for how long. Instagram uses that to pick what Home shows. Posts you've seen may come back.	Instagram tidak lagi diberi tahu postingan mana di Beranda yang kamu lihat dan berapa lama. Instagram memakainya untuk memilih apa yang ditampilkan Beranda. Postingan yang sudah kamu lihat bisa muncul lagi.
+# context: Tab bar: switch under Hide the Messages tab that takes the unread count off the Messages button on the bottom tab bar (#734)
+Hide the Messages badge	Sembunyikan lencana Pesan
+Takes the unread count off the Messages button on the tab bar. Chats still show as unread in your inbox, and notifications still come. Restart Instagram to see the change.	Menghapus jumlah pesan belum dibaca dari tombol Pesan di bilah tab. Chat tetap tampil belum dibaca di kotak masuk, dan notifikasi tetap datang. Mulai ulang Instagram untuk melihat perubahannya.
+# context: Ads and privacy settings: switch that adds a search box above Instagram's Blocked accounts list (Settings > Blocked), filtering it by username or full name; the same title is the box's hint text (#731)
+Search blocked accounts	Cari akun yang diblokir
+Adds a search box above your blocked accounts in Instagram's settings. It finds them by username or name, and loads the rest of your list as you type.	Menambahkan kotak pencarian di atas akun yang kamu blokir di pengaturan Instagram. Kotak ini menemukannya lewat nama pengguna atau nama, dan memuat sisa daftarmu saat kamu mengetik.
+# context: the line under that search box. %1$d is how many blocked accounts match, %2$d how many have loaded. First while more pages are loading, then when Instagram stopped sending pages, then when the whole list is in (#731)
+Matches: %1$d of %2$d account loaded so far. Loading the rest of your list.	Cocok: %1$d dari %2$d akun yang dimuat sejauh ini. Memuat sisa daftarmu.
+Matches: %1$d of %2$d accounts loaded so far. Loading the rest of your list.	Cocok: %1$d dari %2$d akun yang dimuat sejauh ini. Memuat sisa daftarmu.
+Matches: %1$d of the %2$d account that loaded. Instagram didn't send the rest.	Cocok: %1$d dari %2$d akun yang dimuat. Instagram tidak mengirim sisanya.
+Matches: %1$d of the %2$d accounts that loaded. Instagram didn't send the rest.	Cocok: %1$d dari %2$d akun yang dimuat. Instagram tidak mengirim sisanya.
+Matches: %1$d of %2$d blocked account	Cocok: %1$d dari %2$d akun yang diblokir
+Matches: %1$d of %2$d blocked accounts	Cocok: %1$d dari %2$d akun yang diblokir
+# context: Profiles settings: switch that makes a long press on the picture at the top of a profile open HushGram's full size viewer with a Save button, in place of Instagram's own enlarged picture (#737)
+Long press a profile picture to view it	Tekan lama foto profil untuk melihatnya
+# context: that switch summary (#737)
+Long press the picture at the top of a profile to open the whole square picture at full size, with Save under it, instead of Instagram's own preview. A tap works as before.	Tekan lama foto di bagian atas profil untuk membuka seluruh foto persegi dalam ukuran penuh, dengan Simpan di bawahnya, menggantikan pratinjau Instagram sendiri. Ketukan tetap berfungsi seperti biasa.

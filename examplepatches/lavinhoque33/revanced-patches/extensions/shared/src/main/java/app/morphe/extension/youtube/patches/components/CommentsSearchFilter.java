@@ -3,7 +3,7 @@
  * https://github.com/MorpheApp/morphe-patches/pull/3942
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
- * Modified by lavinhoque33, 2026-11-05: replaced with the anddea version, which supports older app versions too.
+ * Modified by lavinhoque33, 2026-11-17: support older versions and reset the button on every panel header bind.
  */
 
 package app.morphe.extension.youtube.patches.components;
@@ -45,7 +45,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import app.morphe.extension.shared.utils.Logger;
-import app.morphe.extension.shared.utils.ResourceType;
 import app.morphe.extension.shared.utils.ResourceUtils;
 import app.morphe.extension.shared.utils.Utils;
 import app.morphe.extension.shared.patches.components.Filter;
@@ -96,9 +95,6 @@ public final class CommentsSearchFilter extends Filter {
             "post-comments-",
             "shorts-comments-panel"
     };
-
-    private static final int ID_CLOSE_BUTTON =
-            ResourceUtils.getIdentifier(ResourceType.ID, "close_button");
 
     /**
      * Words and phrases of the search, all of which a comment must contain, or empty if not searching.
@@ -486,31 +482,43 @@ public final class CommentsSearchFilter extends Filter {
 
     /**
      * Injection point.
-     * Called on the main thread when the header of an engagement panel is shown.
+     * Called on the main thread for every engagement-panel header, including panels without a subheader.
      */
-    public static void onPanelSubheaderShown(View subheader) {
-        if (subheader == null || !Settings.SEARCH_COMMENTS.get() || ID_CLOSE_BUTTON == 0) {
+    public static void onPanelHeaderBound(@Nullable View closeButton) {
+        if (closeButton == null || !(closeButton.getParent() instanceof ViewGroup header)) {
             return;
         }
 
-        // The panel is opened after its header is set up.
-        subheader.post(() -> {
+        // A recycled header must not keep the old panel's button while its new identity is being set.
+        View searchButton = header.findViewWithTag(SEARCH_BUTTON_TAG);
+        if (searchButton != null) {
+            searchButton.setVisibility(View.GONE);
+        }
+
+        if (!Settings.SEARCH_COMMENTS.get()) {
+            return;
+        }
+
+        // The panel is opened after its header is set up. Read the current ID when this runs,
+        // not the old ID at bind time, including when another panel replaces it before dispatch.
+        header.post(() -> {
             try {
-                updateSearchButton(subheader);
+                updateSearchButton(header, closeButton);
             } catch (Exception ex) {
                 Logger.printException(() -> "updateSearchButton failure", ex);
             }
         });
     }
 
-    private static void updateSearchButton(View subheader) {
-        View closeButton = findCloseButton(subheader);
-        if (closeButton == null || !(closeButton.getParent() instanceof ViewGroup header)) {
-            Logger.printDebug(() -> "Panel close button not found");
+    private static void updateSearchButton(ViewGroup header, View closeButton) {
+        View searchButton = header.findViewWithTag(SEARCH_BUTTON_TAG);
+        if (!Settings.SEARCH_COMMENTS.get() || !isCommentsPanel(EngagementPanel.getLastOpenedPanelId())) {
+            if (searchButton != null) {
+                searchButton.setVisibility(View.GONE);
+            }
             return;
         }
 
-        View searchButton = header.findViewWithTag(SEARCH_BUTTON_TAG);
         if (searchButton == null) {
             searchButton = createSearchButton(header, closeButton);
             if (searchButton == null) {
@@ -518,27 +526,15 @@ public final class CommentsSearchFilter extends Filter {
             }
         }
 
-        final boolean isCommentsPanel = StringUtils.startsWithAny(EngagementPanel.getLastOpenedPanelId(), COMMENTS_PANEL_ID_PREFIXES);
-        searchButton.setVisibility(isCommentsPanel ? View.VISIBLE : View.GONE);
-        if (isCommentsPanel) {
-            updateSearchButtonIcon(searchButton);
-        }
+        searchButton.setVisibility(View.VISIBLE);
+        updateSearchButtonIcon(searchButton);
     }
 
     /**
-     * The header of the panel holds the close button, and the subheader is below it.
+     * Replies intentionally retain their native header: only top-level comments can be searched.
      */
-    @Nullable
-    private static View findCloseButton(View subheader) {
-        ViewParent parent = subheader.getParent();
-        while (parent instanceof ViewGroup group) {
-            View closeButton = group.findViewById(ID_CLOSE_BUTTON);
-            if (closeButton != null) {
-                return closeButton;
-            }
-            parent = group.getParent();
-        }
-        return null;
+    static boolean isCommentsPanel(@Nullable String panelId) {
+        return StringUtils.startsWithAny(panelId, COMMENTS_PANEL_ID_PREFIXES);
     }
 
     @Nullable

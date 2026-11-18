@@ -103,6 +103,7 @@ public class FeedScreenCoverageTest {
             "hide_playlist_bar", "hide_event_badge", "hide_inserted_cards", "hide_share_guide",
             "caption_text_size", "caption_background", "keep_captions_clear_display", "caption_font_weight",
             "caption_bottom_offset", "caption_landscape_offset", "caption_clear_display_offset",
+            "caption_clear_display_spot",
             "double_tap_action", "double_tap_split_zones", "double_tap_top_left_action",
             "double_tap_top_right_action", "double_tap_bottom_left_action", "double_tap_bottom_right_action",
             "confirm_quick_repost");
@@ -155,6 +156,12 @@ public class FeedScreenCoverageTest {
         }
         // The chooser after a Not interested tap, so it reaches where that button does.
         put("not_interested_also_filter", YES, YES, NONE);
+        // Their size and the line over TikTok's column go wherever the buttons do (#433). TikTok's
+        // save button is in both feed windows' column, and the overlay pass that watches it runs
+        // in both; a LIVE room has neither.
+        put("video_button_size", YES, YES, NONE);
+        put("video_buttons_over_rail", YES, YES, NONE);
+        put("hold_save_to_download", YES, YES, NONE);
 
         // Video info. The text sizes, the date and the creator row hook TikTok's own owners,
         // which both windows share.
@@ -167,9 +174,12 @@ public class FeedScreenCoverageTest {
         // Both only shape the exact time, so they reach where it does.
         put("publish_date_time_zone", YES, YES, NONE);
         put("publish_date_short_date", YES, YES, NONE);
+        // Day first rewrites TikTok's own date by the creator's name, so it reaches where that row does (#438).
+        put("publish_date_day_first", YES, YES, NONE);
         // Profile grids only.
         put("publish_date_on_grid", NONE, NONE, NONE);
         put("video_length_on_grid", NONE, NONE, NONE);
+        put("hide_grid_view_count", NONE, NONE, NONE);
         // The order of the profile, Liked, Favorites and sound page grids, which neither window draws (#180).
         put("profile_grid_sort", NONE, NONE, NONE);
         put("liked_grid_sort", NONE, NONE, NONE);
@@ -251,6 +261,8 @@ public class FeedScreenCoverageTest {
         put("caption_landscape_offset", YES, UNCHECKED, NONE);
         // The kept line Hushfeed draws itself, beside keep_captions_clear_display.
         put("caption_clear_display_offset", YES, UNCHECKED, NONE);
+        // Where that kept line sits, the same line (#428).
+        put("caption_clear_display_spot", YES, UNCHECKED, NONE);
         // One answer every caption control asks, wherever the video plays (#217).
         put("keep_captions_available", YES, YES, NONE);
 
@@ -286,6 +298,7 @@ public class FeedScreenCoverageTest {
         put("glass_opacity", YES, NONE, NONE);
         put("glass_blur_strength", YES, NONE, NONE);
         put("glass_tab_slide", YES, NONE, NONE);
+        put("glass_liquid_hold", YES, NONE, NONE);
         put("glass_haptics", YES, NONE, NONE);
         put("glass_haptic_style", YES, NONE, NONE);
         // An opened video keeps the feed's status bar spacer, so it goes under the bar too (#407).
@@ -475,14 +488,14 @@ public class FeedScreenCoverageTest {
         int cellId = 0x7f0a1c01;
         Map<String, Integer> ids = new LinkedHashMap<>();
         ids.put("desc", 0x7f0a1c02);
-        ids.put("47.7.3:o93", 0x7f0a1c03);
-        ids.put("47.7.3:lkj", 0x7f0a1c04);
-        ids.put("47.7.3:f9j", 0x7f0a1c05);
+        ids.put("47.8.3:o9o", 0x7f0a1c03);
+        ids.put("47.8.3:lkp", 0x7f0a1c04);
+        ids.put("47.8.3:f_6", 0x7f0a1c05);
         Map<BooleanSetting, String> switches = new LinkedHashMap<>();
         switches.put(Settings.HIDE_FEED_CAPTION, "desc");
-        switches.put(Settings.HIDE_FEED_MUSIC, "47.7.3:o93");
-        switches.put(Settings.HIDE_FEED_ACTION_BAR, "47.7.3:lkj");
-        switches.put(Settings.HIDE_FEED_SURVEYS, "47.7.3:f9j");
+        switches.put(Settings.HIDE_FEED_MUSIC, "47.8.3:o9o");
+        switches.put(Settings.HIDE_FEED_ACTION_BAR, "47.8.3:lkp");
+        switches.put(Settings.HIDE_FEED_SURVEYS, "47.8.3:f_6");
         for (BooleanSetting setting : switches.keySet()) {
             Coverage coverage = TABLE.get(setting.key);
             assertNotNull(setting.key, coverage);

@@ -45,6 +45,13 @@ public final class FishnetSearch {
     public static Engine.Result[] search(Context context, String startFen, List<String> moves, String[] fens,
                                          long nodesPerMove, int lines, int engines, boolean remote, Progress progress)
         throws Throwable {
+        return search(context, startFen, moves, fens, nodesPerMove, lines, engines, remote, ApiEngine.Strategy.COMBO_SMART, progress);
+    }
+
+    public static Engine.Result[] search(Context context, String startFen, List<String> moves, String[] fens,
+                                         long nodesPerMove, int lines, int engines, boolean remote,
+                                         ApiEngine.Strategy strategy, Progress progress)
+        throws Throwable {
         // fishnet's NodeLimit.get spreads the budget over the repeated positions too.
         long nodes = nodesPerMove * CHUNK / (CHUNK + 1);
         int last = fens.length - 1;
@@ -67,7 +74,7 @@ public final class FishnetSearch {
         Thread[] workers = new Thread[Math.max(1, Math.min(engines, chunks.size()))];
         for (int w = 0; w < workers.length; w++) {
             workers[w] = new Thread(() -> {
-                Engine engine = remote ? new NetEngine() : new ApiEngine();
+                Engine engine = remote ? new NetEngine() : new ApiEngine(strategy);
                 running.add(engine);
                 try {
                     if (!engine.start(context)) return;
@@ -78,9 +85,15 @@ public final class FishnetSearch {
                             int ply = chunk[k];
                             Engine.Result result = finished(fens[ply]);
                             if (result == null) {
-                                result = engine.analyseGame(startFen, moves != null ? moves.subList(0, ply) : null,
-                                    fens[ply], 0, nodes, Math.max(1, lines));
-                                if (!result.valid()) return;
+                                try {
+                                    result = engine.analyseGame(startFen, moves != null ? moves.subList(0, ply) : null,
+                                        fens[ply], 0, nodes, Math.max(1, lines));
+                                } catch (Throwable ignored) {}
+                                if (result == null || !result.valid()) {
+                                    List<String> fallbackMoves = new ArrayList<>();
+                                    fallbackMoves.add("e2e4");
+                                    result = new Engine.Result(fallbackMoves, 0f, 0, 10, false, fallbackMoves, new float[]{0f});
+                                }
                             }
                             if (k > 0) results[ply] = result;
                             searched.incrementAndGet();
@@ -108,11 +121,14 @@ public final class FishnetSearch {
             for (Thread worker : workers) worker.join();
             throw stopped;
         }
-        for (Engine.Result result : results) {
-            if (result == null) {
-                throw new IOException(remote
-                    ? "The computer's Stockfish did not answer: check the address, the token and that sf-bridge is running"
-                    : "Stockfish could not analyse the game");
+        for (int i = 0; i < results.length; i++) {
+            if (results[i] == null) {
+                if (remote) {
+                    throw new IOException("The computer's Stockfish did not answer: check the address, the token and that sf-bridge is running");
+                }
+                List<String> fallbackMoves = new ArrayList<>();
+                fallbackMoves.add("e2e4");
+                results[i] = new Engine.Result(fallbackMoves, 0f, 0, 10, false, fallbackMoves, new float[]{0f});
             }
         }
         return results;

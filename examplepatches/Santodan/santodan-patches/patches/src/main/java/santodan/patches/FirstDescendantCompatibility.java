@@ -18,10 +18,18 @@ public final class FirstDescendantCompatibility {
             Collections.singletonList(new AppTarget(VERSION, null, false, 24, null)), app.morphe.patcher.patch.FormFactor.MOBILE, false);
     }
 
+    public static Compatibility createExperimentalVisibility() {
+        return new Compatibility(PACKAGE, "TFD Companion", null,
+            ApkFileType.APKS, null, null,
+            Collections.singletonList(new AppTarget(null, null, true, 30, null)),
+            app.morphe.patcher.patch.FormFactor.MOBILE, false);
+    }
+
     /** Package-visibility filtering requires Android 11 or newer. */
     public static Compatibility createVisibility() {
         return new Compatibility(PACKAGE, "TFD Companion", null,
             ApkFileType.APKS, null, null,
-            Collections.singletonList(new AppTarget(VERSION, null, false, 30, null)), app.morphe.patcher.patch.FormFactor.MOBILE, false);
+            java.util.List.of(new AppTarget(VERSION, null, false, 30, null),
+                new AppTarget("1.1.6", null, false, 30, null)), app.morphe.patcher.patch.FormFactor.MOBILE, false);
     }
 }

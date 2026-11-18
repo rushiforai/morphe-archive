@@ -1,0 +1,117 @@
+spec:
+  inputs:
+    run_local_pages:
+      type: string
+      default: "false"
+      options: ["false", "true"]
+      description: Run only the protected local Mac Pages job through the API.
+    expected_pages_sha:
+      type: string
+      default: ""
+      regex: '^([a-f0-9]{40})?$'
+      description: Exact main source SHA required by the local Pages job.
+    run_cloud_ci:
+      type: string
+      default: "false"
+      options: ["false", "true"]
+      description: Explicit web-only opt-in for the hosted fallback.
+---
+image: eclipse-temurin:21-jdk-noble
+stages: [verify, release, deploy]
+workflow:
+  rules:
+    - if: '$CI_SERVER_HOST == "gitlab.com" && $CI_PIPELINE_SOURCE == "api" && $RUN_LOCAL_PAGES == "true" && $CI_COMMIT_BRANCH == "main" && $CI_COMMIT_REF_PROTECTED == "true"'
+    - if: '$CI_SERVER_HOST == "gitlab.com" && $CI_PIPELINE_SOURCE == "web" && $RUN_CLOUD_CI == "true"'
+    - when: never
+variables:
+  RUN_LOCAL_PAGES: "$[[ inputs.run_local_pages ]]"
+  EXPECTED_PAGES_SHA: "$[[ inputs.expected_pages_sha ]]"
+  RUN_CLOUD_CI: "$[[ inputs.run_cloud_ci ]]"
+  GIT_DEPTH: "0"
+  GIT_AUTHOR_NAME: johninnl
+  GIT_AUTHOR_EMAIL: 349981574+johninnl@users.noreply.github.com
+  GIT_COMMITTER_NAME: johninnl
+  GIT_COMMITTER_EMAIL: 349981574+johninnl@users.noreply.github.com
+before_script:
+  - source .gitlab/scripts/bootstrap.sh
+verify:
+  stage: verify
+  rules:
+    - if: '$CI_SERVER_HOST == "gitlab.com" && $CI_PIPELINE_SOURCE == "web" && $RUN_CLOUD_CI == "true"'
+  variables:
+    SHARED_MAPS_API_KEY: AIzaSyDOCSGATEPLACEHOLDER00000000000000
+  script:
+    - node scripts/local-release/verify.cjs
+  artifacts:
+    when: always
+    paths: [build/docs-site/]
+    expire_in: 7 days
+release:
+  stage: release
+  needs: [verify]
+  resource_group: signed-release-mirror
+  rules:
+    - if: '$CI_SERVER_HOST == "gitlab.com" && $CI_PIPELINE_SOURCE == "web" && $RUN_CLOUD_CI == "true" && $CI_COMMIT_REF_PROTECTED == "true" && $CI_COMMIT_BRANCH == "main"'
+  script:
+    - |
+      if [ "$CI_SERVER_HOST" = "gitlab.com" ]; then
+        export GITLAB_TOKEN="$JOHNINNL_GITLAB_TOKEN"
+      else
+        export GITLAB_TOKEN="$JOHNINNL_GITGUD_TOKEN"
+      fi
+    - node .gitlab/scripts/identity.cjs
+    - git checkout -B "$CI_COMMIT_BRANCH" "$CI_COMMIT_SHA"
+    - |
+      if [ "$CI_SERVER_HOST" = "gitlab.com" ]; then
+        node .gitlab/scripts/check_secrets.cjs
+        node scripts/local-release/mirrors.cjs --preflight
+        node .gitlab/scripts/publish_release.cjs
+        node .gitlab/scripts/discovery.cjs
+        node scripts/local-release/mirrors.cjs
+      else
+        node .gitlab/scripts/release.cjs
+      fi
+pages:
+  stage: deploy
+  image: eclipse-temurin:21-jdk-noble
+  before_script: []
+  needs:
+    - job: release
+      artifacts: false
+  rules:
+    - if: '$CI_SERVER_HOST == "gitlab.com" && $CI_PIPELINE_SOURCE == "web" && $RUN_CLOUD_CI == "true" && $CI_COMMIT_REF_PROTECTED == "true" && $CI_COMMIT_BRANCH == "main"'
+  script:
+    - test -n "$CI_PAGES_URL"
+    - apt-get update -qq
+    - apt-get install -y --no-install-recommends git python3 python3-venv
+    - git fetch origin "+refs/heads/main:refs/remotes/origin/pages-main"
+    - git checkout --detach refs/remotes/origin/pages-main
+    - python3 -m venv .venv
+    - .venv/bin/pip install -r docs/site-requirements.txt
+    - GITLAB_REPOSITORY="$CI_PROJECT_PATH" SITE_URL="${CI_PAGES_URL%/}/" .venv/bin/python scripts/generate_docs_catalog.py
+    - GITLAB_REPOSITORY="$CI_PROJECT_PATH" SITE_URL="${CI_PAGES_URL%/}/" REPOSITORY_URL="https://gitlab.com/$CI_PROJECT_PATH" REPOSITORY_NAME="$CI_PROJECT_PATH" REPOSITORY_ICON=simple/gitlab SOCIAL_IMAGE_URL="${CI_PAGES_URL%/}/assets/brand/social-card.png" .venv/bin/python -m mkdocs build --strict --site-dir public
+    - test -s public/index.html
+  pages:
+    publish: public
+  environment:
+    name: production
+    url: $CI_PAGES_URL
+pages_local:
+  stage: deploy
+  before_script: []
+  tags: [nl-morphe-pages-macos]
+  resource_group: production-pages-local
+  variables:
+    GIT_STRATEGY: clone
+    GIT_DEPTH: "1"
+    GIT_CLONE_PATH: "$CI_BUILDS_DIR/$CI_JOB_ID"
+    FF_ENABLE_JOB_CLEANUP: "true"
+  rules:
+    - if: '$CI_SERVER_HOST == "gitlab.com" && $CI_PIPELINE_SOURCE == "api" && $RUN_LOCAL_PAGES == "true" && $CI_COMMIT_BRANCH == "main" && $CI_COMMIT_REF_PROTECTED == "true"'
+  script:
+    - node scripts/local-release/pages-job.cjs
+  pages:
+    publish: public
+  environment:
+    name: production
+    url: $CI_PAGES_URL

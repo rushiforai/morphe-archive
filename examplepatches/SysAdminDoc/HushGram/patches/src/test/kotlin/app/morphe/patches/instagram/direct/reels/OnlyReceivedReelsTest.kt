@@ -17,8 +17,6 @@ import app.morphe.patches.instagram.direct.seen.NativeVisualSeenTest.Companion.f
 import app.morphe.patches.instagram.direct.seen.NativeVisualSeenTest.Companion.otherBuilds
 import app.morphe.patches.instagram.direct.seen.visualCode
 import app.morphe.patches.instagram.direct.seen.visualReference
-import app.morphe.patches.instagram.misc.extension.PURGE_MARKER
-import app.morphe.patches.instagram.misc.extension.markers
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -79,6 +77,7 @@ class OnlyReceivedReelsTest {
         val found = context.findReelCollector(context.findChatReels(), fields)
         assertEquals("$wrapper->reel()$reel", "${found.reel}")
         assertEquals("$reel->media:$MEDIA", "${found.media}")
+        assertEquals("$wrapper->session:$session", "${found.session}")
         val before = found.collect.implementation!!.instructions.count()
         context.skipSentReels(found)
         assertHooked("stand-in", found.collect, before)
@@ -87,6 +86,7 @@ class OnlyReceivedReelsTest {
         assertTrue(bridges.getValue("sentByViewer").visualCode().any { it.opcode == Opcode.IGET_BOOLEAN })
         assertTrue(bridges.getValue("itemId").visualCode().any { it.opcode == Opcode.IGET_OBJECT })
         assertEquals(1, bridges.getValue("itemId").visualCode().count { it.opcode == Opcode.CHECK_CAST })
+        assertEquals("$base->sender:Ljava/lang/String;", bridges.getValue("senderId").visualCode()[1].text())
         assertBridges("stand-in", context.mutableClassDefBy(CHAT_REELS).methods, found)
     }
 
@@ -105,6 +105,10 @@ class OnlyReceivedReelsTest {
             context(media = 0) to "$where asks $wrapper for 0 reel items holding a $MEDIA, not one",
             context(media = 2) to "$where asks $wrapper for 0 reel items holding a $MEDIA, not one",
             context(mediaId = false) to "$MEDIA has no getId() for the extension to key a sent reel by",
+            context(sessions = 0) to "$wrapper holds 0 accounts, not one",
+            context(sessions = 2) to "$wrapper holds 2 accounts, not one",
+            context(publicSession = false) to "$wrapper's account session isn't public",
+            context(userId = false) to "$session has no userId",
         )
         for ((context, expected) in cases) {
             PatchContexts.use(context)
@@ -168,6 +172,18 @@ class OnlyReceivedReelsTest {
         assertEquals("$what: no media", listOf(Opcode.IF_NEZ, Opcode.CONST_4, Opcode.RETURN_OBJECT), idCode.subList(2, 5).map { it.opcode })
         assertEquals("$what: the id", "$MEDIA->getId()Ljava/lang/String;", idCode[5].text())
         assertEquals("$what: the id's answer", Opcode.RETURN_OBJECT, idCode[7].opcode)
+
+        // A message you sent names the account the wrapper was made for as its sender (#738).
+        val senderCode = bridges.getValue("senderId").visualCode()
+        assertEquals("$what: the sender bridge's cast", found.fields.owner, senderCode[0].text())
+        assertEquals("$what: the sender read", "${found.fields.sender}", senderCode[1].text())
+        assertEquals("$what: the sender's answer", Opcode.RETURN_OBJECT, senderCode[2].opcode)
+        val viewerCode = bridges.getValue("viewerId").visualCode()
+        assertEquals("$what: the viewer bridge's cast", found.session.definingClass, viewerCode[0].text())
+        assertEquals("$what: the account read", "${found.session}", viewerCode[1].text())
+        assertEquals("$what: no account", listOf(Opcode.IF_NEZ, Opcode.CONST_4, Opcode.RETURN_OBJECT), viewerCode.subList(2, 5).map { it.opcode })
+        assertEquals("$what: the account's id", USER_ID, viewerCode[5].text())
+        assertEquals("$what: the id's answer", Opcode.RETURN_OBJECT, viewerCode[6].opcode)
     }
 
     private fun Instruction.text(): String? = (this as? ReferenceInstruction)?.reference?.toString()
@@ -176,7 +192,7 @@ class OnlyReceivedReelsTest {
      * Shaped like 453's 02YM: its constructor, handed the session, asks the chat reels test and keeps the
      * answer in a flag, and its one method handed the message wrapper reads that flag, then asks the
      * wrapper for its reel item, which holds a Media. The wrapper holds the message, a subclass of the
-     * message class the parser fills.
+     * message class the parser fills, and the account it was made for, like 456's 05NJ.
      */
     private fun context(
         collectors: Int = 1,
@@ -186,11 +202,26 @@ class OnlyReceivedReelsTest {
         reels: Int = 1,
         media: Int = 1,
         mediaId: Boolean = true,
+        sessions: Int = 1,
+        publicSession: Boolean = true,
+        userId: Boolean = true,
     ) = PatchContexts.of(
-        classes(collectors, locals, entered, held, reels, media, mediaId) + ImmutableClassDef.of(ExtensionDex.classDef(CHAT_REELS)),
+        classes(collectors, locals, entered, held, reels, media, mediaId, sessions, publicSession, userId) +
+            ImmutableClassDef.of(ExtensionDex.classDef(CHAT_REELS)),
     )
 
-    private fun classes(collectors: Int, locals: Int, entered: Boolean, held: Int, reels: Int, media: Int, mediaId: Boolean): List<ClassDef> {
+    private fun classes(
+        collectors: Int,
+        locals: Int,
+        entered: Boolean,
+        held: Int,
+        reels: Int,
+        media: Int,
+        mediaId: Boolean,
+        sessions: Int,
+        publicSession: Boolean,
+        userId: Boolean,
+    ): List<ClassDef> {
         val test = method(
             gates, "chain", listOf(session), "Z", 3, final,
             """
@@ -219,7 +250,10 @@ class OnlyReceivedReelsTest {
             val collect = method(owner, "collect", listOf(wrapper), "V", locals, final, body)
             classDef(owner, listOf(ctor, collect), fields = listOf(ImmutableField(owner, "on", "Z", AccessFlags.PRIVATE.value, null, null, null)))
         }
-        val wrapperFields = List(held) { ImmutableField(wrapper, "m$it", message, AccessFlags.PUBLIC.value, null, null, null) }
+        val sessionFlags = if (publicSession) final else AccessFlags.PRIVATE.value or AccessFlags.FINAL.value
+        val wrapperFields = List(held) { ImmutableField(wrapper, "m$it", message, AccessFlags.PUBLIC.value, null, null, null) } +
+            List(sessions) { ImmutableField(wrapper, if (it == 0) "session" else "session$it", session, sessionFlags, null, null, null) }
+        val accountFields = if (userId) listOf(ImmutableField(session, "userId", "Ljava/lang/String;", final, null, null, null)) else emptyList()
         val getters = List(maxOf(reels, 1)) {
             method(wrapper, if (it == 0) "reel" else "reel$it", emptyList(), reel, 1, final, "const/4 v0, 0x0\nreturn-object v0")
         }
@@ -231,6 +265,7 @@ class OnlyReceivedReelsTest {
             classDef(wrapper, getters, fields = wrapperFields) +
             classDef(reel, emptyList(), fields = reelFields) +
             classDef(MEDIA, ids) +
+            classDef(session, emptyList(), fields = accountFields) +
             ImmutableClassDef(message, final, base, emptyList(), null, null, emptyList(), emptyList()) +
             classDef(base, emptyList())
     }
@@ -322,15 +357,9 @@ class OnlyReceivedReelsTest {
 
         // The reply bar under a reel opened from a chat, and the reply info class it answers (#488), with
         // its page select (#489) and the classes they extend, where Redex hoists the select on some builds.
-        val replyMarkers = setOf(REPLY_HINT, REPLY_CURRENT_INFO, REPLY_CURRENT_ITEM, REPLY_PAGE)
-        val replyClasses = mutableListOf<ClassDef>()
-        FixtureDex.forEach(bundle) { dex ->
-            val holds = dex.stringSection.any { it.startsWith("android_purge_") && PURGE_MARKER.find(it)?.groupValues?.get(1) in replyMarkers }
-            if (!holds) return@forEach
-            for (classDef in dex.classes) {
-                if (classDef.methods.any { m -> m.markers().any { it in replyMarkers } }) replyClasses += ImmutableClassDef.of(classDef)
-            }
-        }
+        // The controller is the class whose reply info reports a missing one; the adapter is read through
+        // its fields' types, so those come along too.
+        val replyClasses = FixtureDex.withStringPools(bundle, FixtureDex.classesLoading(bundle, REPLY_INFO_MISSING))
         for (classDef in replyClasses) classes[classDef.type] = classDef
         var supers = replyClasses.mapNotNull { it.superclass }.toSet() - classes.keys
         while (supers.isNotEmpty()) {
@@ -338,8 +367,13 @@ class OnlyReceivedReelsTest {
             classes += got
             supers = got.values.mapNotNull { it.superclass }.toSet() - classes.keys
         }
-        val infos = replyClasses.flatMap { c -> c.methods.filter { REPLY_CURRENT_INFO in it.markers() }.map { it.returnType } }
-        classes += FixtureDex.classes(bundle, infos.toSet() - classes.keys)
+        val infos = replyClasses.flatMap { c ->
+            c.methods.filter { AccessFlags.STATIC.isSet(it.accessFlags) && it.parameterTypes.map(CharSequence::toString) == listOf(c.type) }
+                .map { it.returnType }
+        }
+        classes += FixtureDex.classes(bundle, infos.filter { it.startsWith("L") }.toSet() - classes.keys)
+        val held = replyClasses.flatMap { c -> c.fields.filter { !AccessFlags.STATIC.isSet(it.accessFlags) }.map { it.type } }
+        classes += FixtureDex.classes(bundle, held.filter { it.startsWith("L") }.toSet() - classes.keys)
         classes[CHAT_REELS_NOTICE] = ImmutableClassDef.of(ExtensionDex.classDef(CHAT_REELS_NOTICE))
 
         val context = PatchContexts.of(classes.values)

@@ -11,7 +11,7 @@
  *
  * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to Morphe contributions.
  *
- * Modified by lavinhoque33, 2026-11-16.
+ * Modified by lavinhoque33, 2026-11-17.
  */
 
 package app.morphe.extension.youtube.shared;
@@ -366,6 +366,18 @@ public final class NavigationBar {
         }
 
         enumMap.putIfAbsent(tabActivityCairo, fillBellCairoBlack);
+    }
+
+    /** Newer clients publish ordinary maps; copy before adding a missing icon. */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static Map withCairoNotificationFilledIcon(Map icons, Enum tabActivityCairo) {
+        if (icons.get(tabActivityCairo) != null) {
+            return icons;
+        }
+
+        Map copy = new java.util.HashMap(icons);
+        copy.putIfAbsent(tabActivityCairo, fillBellCairoBlack);
+        return copy;
     }
 
     public enum NavigationButton {

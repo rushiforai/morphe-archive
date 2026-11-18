@@ -32,8 +32,7 @@ private val attachBaseContextFingerprint = Fingerprint(
 @Suppress("unused")
 val signatureSpoofPatch = patch(
     name = "Fix song playback",
-    description = "Lets songs play on the patched app. A patched app is signed with a different key, which the " +
-        "server rejects when it hands out the encrypted song, so without this every song would hang on \"loading\".",
+    description = "Lets songs play in the patched app, instead of hanging on \"loading\".",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_DODO)

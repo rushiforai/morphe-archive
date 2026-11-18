@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-17.
  * Written by lavinhoque33, 2026-11-06.
  */
 
@@ -24,5 +25,10 @@ public final class HideStatusBarPolicy {
     public static boolean shouldRehideOnFocus(boolean windowHasFocus, boolean pictureInPicture,
                                               boolean multiWindow, boolean finishing) {
         return windowHasFocus && !pictureInPicture && !multiWindow && !finishing;
+    }
+
+    /** Stable top-bar room becomes cutout-only, except while the portrait player is expanded. */
+    public static int topInset(boolean watchingVideo, int cutoutInsetTop) {
+        return watchingVideo ? 0 : cutoutInsetTop;
     }
 }

@@ -10,7 +10,7 @@ private val REPO = "https://github.com/lokesh-sparrow/loki-patches"
 patches {
     about {
         name = "Loki Patches"
-        description = "LinkedIn, Splitwise, Truecaller and Doc Scanner patches, plus patches that work on any app, for use with Morphe"
+        description = "LinkedIn, Splitwise, Truecaller, Doc Scanner and MX Player Pro patches, plus patches that work on any app, for use with Morphe"
         source = REPO
         author = "Lokesh Sparrow"
         contact = "na"
@@ -33,6 +33,9 @@ tasks {
         description = "Build patch with patch list"
 
         dependsOn(build)
+        // Which bundle the list is generated from, instead of whichever .mpp happens to be newest in build/libs:
+        // the 3.2.0 release published a list from the previous version that way, with the new app missing.
+        systemProperty("bundleVersion", (project.findProperty("bundleVersion") as String?) ?: "")
 
         classpath = sourceSets["main"].runtimeClasspath + patchListGeneratorClasspath
         mainClass.set("util.PatchListGeneratorKt")

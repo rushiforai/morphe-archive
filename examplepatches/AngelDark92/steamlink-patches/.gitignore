@@ -252,3 +252,8 @@ diagnostics/4xvr-galaxyxr/*
 !diagnostics/steamlink-alpha0-retirement/
 diagnostics/steamlink-alpha0-retirement/*
 !diagnostics/steamlink-alpha0-retirement/*.md
+
+# Microphone recovery source/host validation and user-reported runtime result.
+!diagnostics/steamlink-microphone-recovery/
+diagnostics/steamlink-microphone-recovery/*
+!diagnostics/steamlink-microphone-recovery/*.md

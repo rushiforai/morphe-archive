@@ -1,0 +1,523 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# Release automation, after game-mods' release.yml. Publish a GitHub release from main tagged
+# vX.Y.Z. One release carries both bundles. Then:
+#   verify          (unprivileged) the tag is vX.Y.Z, points at the released commit, and that is on main;
+#   ci              (unprivileged) waits until CI has passed on that commit;
+#   revanced-build  (unprivileged) builds patches-X.Y.Z.rvp from the commit, without the Gradle cache;
+#   morphe-build    (unprivileged) builds patches-X.Y.Z.mpp, unsigned, the same way;
+#   morphe-sign     (privileged: MORPHE_SIGNING_KEY; shell only) signs the unsigned .mpp's SHA-256, never
+#                   the file itself, and checks the signature against morphe/morphe-signing.pub;
+#   morphe-assemble (unprivileged) writes that signature into the .mpp and checks it with Morphe's own
+#                   verifier, from the pinned morphe-desktop jar;
+#   attest          (no secret)    signs build provenance for both bundles; the ReVanced CLI checks it
+#                   with -a <rvp>.sigstore.json;
+#   publish         (privileged: GPG keys, VT_API_KEY, contents: write; shell only) takes both bundles and
+#                   their attestations in, signs them with GPG, submits them to VirusTotal, attaches the
+#                   assets, and attaches patches-bundle.json last: ReVanced Manager reads
+#                   releases/latest/download/patches-bundle.json;
+#   morphe-feed     (privileged: MORPHE_FEED_DEPLOY_KEY; shell only) then pushes Morphe's feed,
+#                   patches-bundle.json at the root of main, which Morphe Manager and the Morphe CLI read.
+# A failed job is retried with "Re-run failed jobs": later jobs reuse the earlier jobs' artifacts,
+# publish replaces the assets and the report block, and morphe-feed pushes only a change.
+name: Release
+on:
+  release:
+    types: [published]
+permissions: {}
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: { contents: read }
+    outputs:
+      version: ${{ steps.tag.outputs.version }}
+    steps:
+      - id: tag
+        name: Require a vX.Y.Z tag whose commit is on main
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          re='^v((0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*))$'
+          [[ "$TAG" =~ $re ]] || { echo "::error::Release tags look like v1.2.3"; exit 1; }
+          version="${BASH_REMATCH[1]}"
+          # The tag must still point at the event's commit.
+          tagged="$(gh api "repos/$GH_REPO/commits/refs/tags/$TAG" --jq .sha)"
+          if [[ "$tagged" != "$GITHUB_SHA" ]]; then
+            echo "::error::Tag $TAG points at '$tagged', not the released commit $GITHUB_SHA"
+            exit 1
+          fi
+          # compare/<commit>...main is "ahead" or "identical" only when main contains the commit.
+          status="$(gh api "repos/$GH_REPO/compare/$GITHUB_SHA...main" --jq .status)"
+          if [[ "$status" != ahead && "$status" != identical ]]; then
+            echo "::error::$GITHUB_SHA is not reachable from main (compare status: $status)"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "$TAG ($GITHUB_SHA) is on main"
+
+  ci:
+    needs: verify
+    runs-on: ubuntu-latest
+    # Room for a just-merged commit's CI run to finish.
+    timeout-minutes: 65
+    permissions: { actions: read }
+    steps:
+      - name: Require successful CI on main
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          # Any non-PR CI run of this commit on main counts. A just-merged commit's run may still be going.
+          deadline=$((SECONDS + 60 * 60))
+          while :; do
+            runs="$(gh run list --workflow ci.yml --branch main --commit "$GITHUB_SHA" --limit 100 \
+              --json event,status,conclusion \
+              --jq '[.[] | select(.event == "push" or .event == "schedule" or .event == "workflow_dispatch")]')"
+            if jq -e 'any(.[]; .status == "completed" and .conclusion == "success")' <<<"$runs" >/dev/null; then
+              echo "CI passed on $GITHUB_SHA"; break
+            fi
+            if jq -e 'length > 0 and all(.[]; .status == "completed")' <<<"$runs" >/dev/null; then
+              echo "::error::CI failed on $GITHUB_SHA; re-run it, then re-run failed jobs"; exit 1
+            fi
+            if ((SECONDS >= deadline)); then
+              echo "::error::No finished CI run on main for $GITHUB_SHA after an hour; re-run failed jobs once it passes"; exit 1
+            fi
+            sleep 30
+          done
+
+  revanced-build:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions: { contents: read, packages: read }
+    # Artifact names carry the attempt that made them; "Re-run failed jobs" keeps earlier jobs' outputs.
+    outputs:
+      artifact: ${{ steps.check.outputs.artifact }}
+      sha256: ${{ steps.check.outputs.sha256 }}
+    env:
+      VERSION: ${{ needs.verify.outputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with: { distribution: temurin, java-version: "25" }
+      # No build cache in a release (zizmor cache-poisoning).
+      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+        with: { cache-disabled: true }
+      - run: ./gradlew --no-build-cache "-Pversion=$VERSION" check :patches:buildAndroid
+        working-directory: revanced
+        env:
+          ORG_GRADLE_PROJECT_githubPackagesUsername: ${{ github.actor }}
+          ORG_GRADLE_PROJECT_githubPackagesPassword: ${{ github.token }}
+      - id: check
+        name: Check the bundle
+        run: |
+          set -euo pipefail
+          rvp="revanced/patches/build/libs/patches-$VERSION.rvp"
+          # ReVanced Manager rejects a bundle without dex code.
+          unzip -l "$rvp" | grep -q ' classes.dex$' || { echo "::error::$rvp holds no classes.dex"; exit 1; }
+          mkdir candidate && cp "$rvp" candidate/
+          { echo "artifact=rvp-$GITHUB_RUN_ATTEMPT"; echo "sha256=$(sha256sum "$rvp" | cut -d' ' -f1)"; } >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ steps.check.outputs.artifact }}
+          path: candidate/
+          retention-days: 7
+          if-no-files-found: error
+
+  morphe-build:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions: { contents: read, packages: read }
+    outputs:
+      artifact: ${{ steps.check.outputs.artifact }}
+      sha256: ${{ steps.check.outputs.sha256 }}
+    env:
+      VERSION: ${{ needs.verify.outputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with: { distribution: temurin, java-version: "25" }
+      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+        with: { cache-disabled: true }
+      # No signing key here, so the Gradle plugin leaves the bundle unsigned; morphe-sign signs it.
+      - run: ./gradlew --no-build-cache "-Pversion=$VERSION" check :patches:buildAndroid
+        working-directory: morphe
+        env:
+          ORG_GRADLE_PROJECT_githubPackagesUsername: ${{ github.actor }}
+          ORG_GRADLE_PROJECT_githubPackagesPassword: ${{ github.token }}
+      - id: check
+        name: Check the bundle
+        run: |
+          set -euo pipefail
+          mpp="morphe/patches/build/libs/patches-$VERSION.mpp"
+          unzip -l "$mpp" | grep -q ' classes.dex$' || { echo "::error::$mpp holds no classes.dex"; exit 1; }
+          # Unsigned: the zip ends with its end of central directory record and an empty comment.
+          [[ "$(tail -c 22 "$mpp" | od -An -tx1 | tr -d ' \n')" =~ ^504b0506[0-9a-f]{32}0000$ ]] ||
+            { echo "::error::$mpp is already signed or not a zip"; exit 1; }
+          mkdir candidate && cp "$mpp" candidate/
+          { echo "artifact=mpp-unsigned-$GITHUB_RUN_ATTEMPT"; echo "sha256=$(sha256sum "$mpp" | cut -d' ' -f1)"; } >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ steps.check.outputs.artifact }}
+          path: candidate/
+          retention-days: 7
+          if-no-files-found: error
+
+  # The key signs only the bundle's SHA-256, so this job takes no file in. Morphe's signature covers
+  # `MorpheSig1` and the SHA-256 of the unsigned bundle, which is all it needs.
+  morphe-sign:
+    # After CI, so the key never signs a commit that failed it.
+    needs: [verify, ci, morphe-build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: { contents: read }
+    outputs:
+      signature: ${{ steps.sign.outputs.signature }}
+    steps:
+      # The script and the public key come from the released commit, which verify found on main.
+      - name: Fetch the signing script and the public key
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          for file in scripts/morphe-sign.sh morphe/morphe-signing.pub; do
+            gh api -H 'Accept: application/vnd.github.raw' \
+              "repos/$GH_REPO/contents/$file?ref=$GITHUB_SHA" > "$RUNNER_TEMP/$(basename "$file")"
+          done
+      - id: sign
+        name: Sign the bundle's SHA-256
+        env:
+          SHA256: ${{ needs.morphe-build.outputs.sha256 }}
+          MORPHE_SIGNING_KEY: ${{ secrets.MORPHE_SIGNING_KEY }}
+        run: |
+          set -euo pipefail
+          [[ "$SHA256" =~ ^[0-9a-f]{64}$ ]] || { echo "::error::Malformed SHA-256"; exit 1; }
+          signature="$(bash "$RUNNER_TEMP/morphe-sign.sh" signature "$SHA256" "$RUNNER_TEMP/morphe-signing.pub")"
+          echo "signature=$signature" >> "$GITHUB_OUTPUT"
+
+  morphe-assemble:
+    needs: [verify, morphe-build, morphe-sign]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions: { contents: read }
+    outputs:
+      artifact: ${{ steps.attach.outputs.artifact }}
+      sha256: ${{ steps.attach.outputs.sha256 }}
+    env:
+      VERSION: ${{ needs.verify.outputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with: { distribution: temurin, java-version: "25" }
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: ${{ needs.morphe-build.outputs.artifact }}
+          path: ${{ runner.temp }}/mpp
+      - id: attach
+        name: Sign the bundle and check it with Morphe's verifier
+        env:
+          EXPECTED_SHA256: ${{ needs.morphe-build.outputs.sha256 }}
+          SIGNATURE: ${{ needs.morphe-sign.outputs.signature }}
+        run: |
+          set -euo pipefail
+          mpp="$RUNNER_TEMP/mpp/patches-$VERSION.mpp"
+          actual="$(sha256sum "$mpp" | cut -d' ' -f1)"
+          [[ "$actual" == "$EXPECTED_SHA256" ]] || { echo "::error::sha256 $actual, build reported $EXPECTED_SHA256"; exit 1; }
+          bash scripts/morphe-sign.sh attach "$mpp" "$SIGNATURE"
+          # The morphe-desktop jar the justfile pins bundles Morphe's verifier.
+          cli_version="$(sed -n 's/^morphe_cli_version := "\(.*\)"$/\1/p' justfile)"
+          cli_sha256="$(sed -n 's/^morphe_cli_sha256 := "\(.*\)"$/\1/p' justfile)"
+          jar="$RUNNER_TEMP/morphe-desktop-$cli_version-all.jar"
+          curl -fsSL --retry 3 -o "$jar" \
+            "https://github.com/MorpheApp/morphe-desktop/releases/download/v$cli_version/morphe-desktop-$cli_version-all.jar"
+          echo "$cli_sha256  $jar" | sha256sum -c --quiet -
+          java -cp "$jar" scripts/morphe-verify.java "$mpp" morphe/morphe-signing.pub
+          mkdir candidate && cp "$mpp" candidate/
+          { echo "artifact=mpp-$GITHUB_RUN_ATTEMPT"; echo "sha256=$(sha256sum "$mpp" | cut -d' ' -f1)"; } >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ steps.attach.outputs.artifact }}
+          path: candidate/
+          retention-days: 7
+          if-no-files-found: error
+
+  attest:
+    needs: [verify, revanced-build, morphe-assemble]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions: { contents: read, id-token: write, attestations: write }
+    outputs:
+      rvp: ${{ steps.name.outputs.rvp }}
+      mpp: ${{ steps.name.outputs.mpp }}
+    env:
+      VERSION: ${{ needs.verify.outputs.version }}
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: ${{ needs.revanced-build.outputs.artifact }}
+          path: ${{ runner.temp }}/bundles
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: ${{ needs.morphe-assemble.outputs.artifact }}
+          path: ${{ runner.temp }}/bundles
+      - name: Check the bundles
+        env:
+          RVP_SHA256: ${{ needs.revanced-build.outputs.sha256 }}
+          MPP_SHA256: ${{ needs.morphe-assemble.outputs.sha256 }}
+        run: |
+          set -euo pipefail
+          printf '%s  %s\n' "$RVP_SHA256" "$RUNNER_TEMP/bundles/patches-$VERSION.rvp" \
+            "$MPP_SHA256" "$RUNNER_TEMP/bundles/patches-$VERSION.mpp" | sha256sum -c --quiet -
+      # One attestation per bundle, so each has its own .sigstore.json.
+      - id: rvp
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: ${{ runner.temp }}/bundles/patches-${{ needs.verify.outputs.version }}.rvp
+      - id: mpp
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: ${{ runner.temp }}/bundles/patches-${{ needs.verify.outputs.version }}.mpp
+      - id: name
+        env:
+          RVP_BUNDLE: ${{ steps.rvp.outputs.bundle-path }}
+          MPP_BUNDLE: ${{ steps.mpp.outputs.bundle-path }}
+        run: |
+          set -euo pipefail
+          mkdir -p attestation/rvp attestation/mpp
+          cp "$RVP_BUNDLE" "attestation/rvp/patches-$VERSION.rvp.sigstore.json"
+          cp "$MPP_BUNDLE" "attestation/mpp/patches-$VERSION.mpp.sigstore.json"
+          { echo "rvp=attestation-rvp-$GITHUB_RUN_ATTEMPT"; echo "mpp=attestation-mpp-$GITHUB_RUN_ATTEMPT"; } >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ steps.name.outputs.rvp }}
+          path: attestation/rvp/
+          retention-days: 7
+          if-no-files-found: error
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ steps.name.outputs.mpp }}
+          path: attestation/mpp/
+          retention-days: 7
+          if-no-files-found: error
+
+  publish:
+    needs: [verify, ci, revanced-build, morphe-assemble, attest]
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions: { contents: write, actions: read }
+    outputs:
+      morphe-feed: ${{ steps.feeds.outputs.morphe-feed }}
+    env:
+      GH_REPO: ${{ github.repository }}
+      TAG: ${{ github.event.release.tag_name }}
+      VERSION: ${{ needs.verify.outputs.version }}
+    steps:
+      - name: Take the bundles and their attestations in
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RVP_SHA256: ${{ needs.revanced-build.outputs.sha256 }}
+          MPP_SHA256: ${{ needs.morphe-assemble.outputs.sha256 }}
+          RVP_ARTIFACT: ${{ needs.revanced-build.outputs.artifact }}
+          MPP_ARTIFACT: ${{ needs.morphe-assemble.outputs.artifact }}
+          RVP_ATTESTATION: ${{ needs.attest.outputs.rvp }}
+          MPP_ATTESTATION: ${{ needs.attest.outputs.mpp }}
+        run: |
+          set -euo pipefail
+          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ && "$RVP_SHA256" =~ ^[0-9a-f]{64}$ && "$MPP_SHA256" =~ ^[0-9a-f]{64}$ &&
+            "$RVP_ARTIFACT" =~ ^rvp-[0-9]+$ && "$MPP_ARTIFACT" =~ ^mpp-[0-9]+$ &&
+            "$RVP_ATTESTATION" =~ ^attestation-rvp-[0-9]+$ && "$MPP_ATTESTATION" =~ ^attestation-mpp-[0-9]+$ ]] ||
+            { echo "::error::Malformed job outputs"; exit 1; }
+          # The tag must not have moved since verify.
+          tagged="$(gh api "repos/$GH_REPO/commits/refs/tags/$TAG" --jq .sha)"
+          [[ "$tagged" == "$GITHUB_SHA" ]] || { echo "::error::Tag $TAG moved to '$tagged'"; exit 1; }
+          # Artifact intake (edbfi-ci's privileged_jobs.py): a fresh directory, exactly one regular file.
+          intake() {
+            local artifact="$1" name="$2" dir entries
+            dir="$(mktemp -d)"
+            gh run download "$GITHUB_RUN_ID" -n "$artifact" -D "$dir"
+            mapfile -d '' entries < <(find "$dir" -mindepth 1 -print0)
+            if [[ ${#entries[@]} -ne 1 || "${entries[0]}" != "$dir/$name" || -L "$dir/$name" || ! -f "$dir/$name" ]]; then
+              echo "::error::Artifact $artifact must hold exactly one regular file, $name" >&2
+              exit 1
+            fi
+            echo "$dir/$name"
+          }
+          rvp="$(intake "$RVP_ARTIFACT" "patches-$VERSION.rvp")"
+          mpp="$(intake "$MPP_ARTIFACT" "patches-$VERSION.mpp")"
+          rvp_sigstore="$(intake "$RVP_ATTESTATION" "patches-$VERSION.rvp.sigstore.json")"
+          mpp_sigstore="$(intake "$MPP_ATTESTATION" "patches-$VERSION.mpp.sigstore.json")"
+          for bundle in "$rvp" "$mpp"; do
+            [[ "$(head -c 2 "$bundle")" == PK ]] || { echo "::error::$(basename "$bundle") is not a zip"; exit 1; }
+          done
+          printf '%s  %s\n' "$RVP_SHA256" "$rvp" "$MPP_SHA256" "$mpp" | sha256sum -c --quiet -
+          # Each attestation must name its bundle and this repository, as the ReVanced CLI checks it.
+          gh attestation verify "$rvp" --repo "$GH_REPO" --bundle "$rvp_sigstore"
+          gh attestation verify "$mpp" --repo "$GH_REPO" --bundle "$mpp_sigstore"
+          # The keys and the VirusTotal script come from the released commit, which verify found on main.
+          for file in keys/release-signing.asc morphe/morphe-signing.pub scripts/release-virustotal.sh; do
+            gh api -H 'Accept: application/vnd.github.raw' \
+              "repos/$GH_REPO/contents/$file?ref=$GITHUB_SHA" > "$RUNNER_TEMP/$(basename "$file")"
+          done
+          { echo "RVP=$rvp"; echo "MPP=$mpp"; echo "RVP_SIGSTORE=$rvp_sigstore"; echo "MPP_SIGSTORE=$mpp_sigstore"; } >> "$GITHUB_ENV"
+      - name: Sign the bundles with GPG
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+          GPG_FINGERPRINT: ${{ vars.GPG_FINGERPRINT }}
+        run: |
+          set -euo pipefail
+          export GNUPGHOME="$RUNNER_TEMP/gnupg"
+          mkdir -m 700 "$GNUPGHOME"
+          gpg --batch --import <<<"$GPG_PRIVATE_KEY"
+          for bundle in "$RVP" "$MPP"; do
+            gpg --batch --pinentry-mode loopback --passphrase-fd 0 --local-user "$GPG_FINGERPRINT!" \
+              --armor --detach-sign --output "$bundle.asc" "$bundle" <<<"$GPG_PASSPHRASE"
+          done
+          # The signatures must check against the public key users get from the repo.
+          export GNUPGHOME="$RUNNER_TEMP/gnupg-public"
+          mkdir -m 700 "$GNUPGHOME"
+          gpg --batch --import "$RUNNER_TEMP/release-signing.asc"
+          gpg --batch --verify "$RVP.asc" "$RVP"
+          gpg --batch --verify "$MPP.asc" "$MPP"
+      - name: Submit to VirusTotal
+        env:
+          VT_API_KEY: ${{ secrets.VT_API_KEY }}
+        run: |
+          set -euo pipefail
+          bash "$RUNNER_TEMP/release-virustotal.sh" scan "$RVP" "$RUNNER_TEMP/virustotal-rvp.md"
+          # Each run spaces only its own requests; the public API allows 4 a minute.
+          sleep 15
+          bash "$RUNNER_TEMP/release-virustotal.sh" scan "$MPP" "$RUNNER_TEMP/virustotal-mpp.md"
+          # One block, one table: the .mpp's row goes after the .rvp's.
+          row="$(grep -E '^\| `patches-' "$RUNNER_TEMP/virustotal-mpp.md" || true)"
+          [[ "$(grep -cE '^\| `patches-' "$RUNNER_TEMP/virustotal-rvp.md" || true)" == 1 && -n "$row" && "$(wc -l <<<"$row")" == 1 ]] ||
+            { echo "::error::Unexpected VirusTotal block"; exit 1; }
+          ROW="$row" awk '{ print } /^\| `patches-/ { print ENVIRON["ROW"] }' "$RUNNER_TEMP/virustotal-rvp.md" > "$RUNNER_TEMP/virustotal.md"
+          cat "$RUNNER_TEMP/virustotal.md" >> "$GITHUB_STEP_SUMMARY"
+      - name: Attach the assets and the report links
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release upload "$TAG" "$RVP" "$RVP.asc" "$RVP_SIGSTORE" "$MPP" "$MPP.asc" "$MPP_SIGSTORE" --clobber
+          gh release view "$TAG" --json body > "$RUNNER_TEMP/release.json"
+          bash "$RUNNER_TEMP/release-virustotal.sh" notes "$RUNNER_TEMP/release.json" "$RUNNER_TEMP/virustotal.md" "$RUNNER_TEMP/notes.md"
+          gh release edit "$TAG" --notes-file "$RUNNER_TEMP/notes.md"
+      # Last, so the feeds never name assets that aren't attached. Until this step, latest/download/
+      # patches-bundle.json is a 404: GitHub marks the release latest when it is published.
+      - id: feeds
+        name: Attach patches-bundle.json for ReVanced Manager, and write Morphe's
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          release="$(gh release view "$TAG" --json publishedAt,body)"
+          base="https://github.com/$GH_REPO/releases/download/$TAG"
+          # Both managers parse created_at as a LocalDateTime, which takes no zone suffix.
+          jq -n --argjson release "$release" --arg base "$base" --arg tag "$TAG" --arg version "$VERSION" '{
+            created_at: ($release.publishedAt | rtrimstr("Z")),
+            description: $release.body,
+            download_url: "\($base)/patches-\($version).rvp",
+            signature_download_url: "\($base)/patches-\($version).rvp.asc",
+            version: $tag
+          }' > "$RUNNER_TEMP/patches-bundle.json"
+          gh release upload "$TAG" "$RUNNER_TEMP/patches-bundle.json" --clobber
+          # Morphe Manager pins public_key, the key the .mpp is signed with, the first time it adds the source.
+          public_key="$(tr -d '[:space:]' < "$RUNNER_TEMP/morphe-signing.pub")"
+          feed="$(jq -nc --argjson release "$release" --arg base "$base" --arg version "$VERSION" --arg key "$public_key" '{
+            created_at: ($release.publishedAt | rtrimstr("Z")),
+            description: $release.body,
+            download_url: "\($base)/patches-\($version).mpp",
+            public_key: $key,
+            version: $version
+          }')"
+          echo "morphe-feed=$feed" >> "$GITHUB_OUTPUT"
+
+  # Morphe Manager reads its feed from a branch, never from a release, so it goes to main. A deploy key
+  # pushes it: it bypasses main's ruleset, which GITHUB_TOKEN can't.
+  morphe-feed:
+    needs: [verify, publish]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions: {}
+    steps:
+      - name: Push patches-bundle.json to main with the deploy key
+        env:
+          DEPLOY_KEY: ${{ secrets.MORPHE_FEED_DEPLOY_KEY }}
+          FEED: ${{ needs.publish.outputs.morphe-feed }}
+          VERSION: ${{ needs.verify.outputs.version }}
+          REMOTE: git@github.com:${{ github.repository }}.git
+          BASE: https://github.com/${{ github.repository }}/releases/download/
+        run: |
+          set -euo pipefail
+          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::Malformed version"; exit 1; }
+          feed="$(jq -e --arg version "$VERSION" --arg url "${BASE}v$VERSION/patches-$VERSION.mpp" '
+            if keys == ["created_at", "description", "download_url", "public_key", "version"]
+              and .version == $version and .download_url == $url
+              and (.created_at | test("^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}$"))
+              and (.public_key | test("^[A-Za-z0-9+/]{43}=$")) and (.description | type == "string")
+            then . else error("unexpected feed") end' <<<"$FEED")"
+          [[ -n "$DEPLOY_KEY" ]] || { echo "::error::MORPHE_FEED_DEPLOY_KEY is not set"; exit 1; }
+          umask 077
+          ssh_dir="$(mktemp -d)"
+          trap 'rm -rf "$ssh_dir"' EXIT
+          printf '%s\n' "$DEPLOY_KEY" > "$ssh_dir/key"
+          unset DEPLOY_KEY
+          # known_hosts from GitHub's published host keys; never trust on first use.
+          curl -fsS --proto '=https' https://api.github.com/meta | jq -r '.ssh_keys[] | "github.com " + .' > "$ssh_dir/known_hosts"
+          if [[ ! -s "$ssh_dir/known_hosts" ]] ||
+            grep -Ev '^github\.com (ssh-ed25519|ecdsa-sha2-nistp256|ssh-rsa) [A-Za-z0-9+/=]+$' "$ssh_dir/known_hosts"
+          then
+            echo "::error::Unexpected GitHub SSH host keys"
+            exit 1
+          fi
+          export GIT_SSH_COMMAND="ssh -F /dev/null -i $ssh_dir/key -o IdentitiesOnly=yes -o IdentityAgent=none -o UserKnownHostsFile=$ssh_dir/known_hosts -o StrictHostKeyChecking=yes -o BatchMode=yes"
+          for try in 1 2 3; do
+            src="$(mktemp -d)"
+            git -c core.hooksPath=/dev/null clone -q --depth 1 --branch main "$REMOTE" "$src"
+            # A re-run of an older release must not take the feed back to it.
+            if [[ -f "$src/patches-bundle.json" ]]; then
+              current="$(jq -r '.version | strings' "$src/patches-bundle.json")"
+              if [[ "$current" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ && "$current" != "$VERSION" &&
+                "$(printf '%s\n' "$current" "$VERSION" | sort -V | tail -n 1)" == "$current" ]]; then
+                echo "::notice::main's feed names $current, newer than $VERSION; leaving it"
+                exit 0
+              fi
+            fi
+            jq . <<<"$feed" > "$src/patches-bundle.json"
+            git -C "$src" -c core.hooksPath=/dev/null add patches-bundle.json
+            if git -C "$src" -c core.hooksPath=/dev/null diff --cached --quiet; then
+              echo "main's feed already names $VERSION."
+              exit 0
+            fi
+            git -C "$src" -c core.hooksPath=/dev/null \
+              -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+              commit -q --signoff -m "chore(morphe): point the feed at $VERSION"
+            if err="$(git -C "$src" -c core.hooksPath=/dev/null push -q origin HEAD:refs/heads/main 2>&1)"; then
+              echo "Pushed Morphe's feed for $VERSION."
+              exit 0
+            fi
+            echo "$err"
+            grep -Eq 'non-fast-forward|fetch first|\[rejected\]' <<<"$err" || { echo "::error::The push failed"; exit 1; }
+            echo "main moved (try $try); retrying from a fresh clone."
+          done
+          echo "::error::main kept moving"
+          exit 1

@@ -71,23 +71,67 @@ class UiContractsTest {
             widthHook(method("renamed", listOf("I", "Ljava/lang/Object;"), "V", emptyList(), 9))
         }
     }
-    private fun constructor(idType: String, overwrittenReceiver: Boolean = false): Method = ImmutableMethod(
-        "Lfixture/ChannelKey;", "<init>",
-        listOf(idType, "Ljava/lang/String;").map { ImmutableMethodParameter(it, emptySet(), null) },
-        "V", AccessFlags.PUBLIC.value or AccessFlags.CONSTRUCTOR.value, emptySet(), emptySet(),
-        ImmutableMethodImplementation(3, buildList {
-            if (overwrittenReceiver) add(ImmutableInstruction11n(Opcode.CONST_4, 0, 0))
-            add(ImmutableInstruction10x(Opcode.RETURN_VOID))
-        }, emptyList(), emptyList()))
+    /** A join whose parameters are [types]; Twitch's first null check is on [checked] (a parameter index). */
+    private fun join(types: List<String>, checked: Int, registers: Int = 17, flags: Int = AccessFlags.PUBLIC.value): Method =
+        ImmutableMethod("Lfixture/ChatClient;", "renamed", types.map { ImmutableMethodParameter(it, emptySet(), null) },
+            "V", flags, emptySet(), emptySet(), ImmutableMethodImplementation(registers, listOf(
+                ImmutableInstruction11n(Opcode.CONST_4, 0, 0),
+                ImmutableInstruction21t(Opcode.IF_EQZ, registers - types.size + checked, 2),
+                ImmutableInstruction10x(Opcode.RETURN_VOID)), emptyList(), emptyList()))
+    private val target = "Lfixture/Extension;->onChannelJoin(Ljava/lang/Object;Ljava/lang/String;)V"
+    private val string = "Ljava/lang/String;"
+    private val tuid = "Ltv/twitch/android/models/Tuid;"
 
-    @Test fun channelKeySupportsStringAndTuidButRejectsUnknownIds() {
-        assertFalse(channelConstructorHook(constructor("Ljava/lang/String;")).contains("Tuid;->toString"))
-        assertTrue(channelConstructorHook(constructor("Ltv/twitch/android/models/Tuid;")).contains("Tuid;->toString"))
-        assertThrows(PatchException::class.java) { channelConstructorHook(constructor("Ljava/lang/Long;")) }
+    @Test fun channelJoinPassesTheCheckedNameAndTheTuid() {
+        val hook = channelJoinHook(join(listOf(string, string, tuid), 0), target)
+        assertTrue(hook.contains("move-object/from16 v0, p1"))
+        assertTrue(hook.contains("move-object/from16 v1, p3"))
+        assertTrue(hook.contains("invoke-static {v1, v0}, $target"))
     }
 
-    @Test fun channelKeyRejectsOverwrittenReceiverBeforeGeneratingUnsafeReads() {
-        assertThrows(PatchException::class.java) { channelConstructorHook(constructor("Ljava/lang/String;", true)) }
+    @Test fun channelJoinConvertsTheIntIdOf3072() {
+        val hook = channelJoinHook(join(listOf("I", string, string), 1, 16), target)
+        assertTrue(hook.contains("move-object/from16 v0, p2"))
+        assertTrue(hook.contains("move/from16 v1, p1"))
+        assertTrue(hook.contains("Ljava/lang/String;->valueOf(I)Ljava/lang/String;"))
+    }
+
+    @Test fun channelJoinRejectsShapesItCannotReadSafely() {
+        for (method in listOf(join(listOf(string, string, tuid), 1), join(listOf(string, "I", tuid), 0),
+                join(listOf(string, tuid), 0), join(listOf(string, string, tuid), 0, 4),
+                join(listOf(string, string, tuid), 0, flags = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value)))
+            assertThrows(PatchException::class.java) { channelJoinHook(method, target) }
+    }
+
+    private val holder = "Lfixture/Holder;"
+    /** Nine registers: p0 (the row) is v7 and p1 (the holder) is v8, as in Twitch's VOD binders. */
+    private fun vodBinder(code: List<Instruction>): Method = ImmutableMethod(
+        "Lfixture/Row;", "renamed", listOf(ImmutableMethodParameter("Lfixture/AnyHolder;", emptySet(), null)), "V",
+        AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, emptySet(), emptySet(),
+        ImmutableMethodImplementation(9, code, emptyList(), emptyList()))
+    private val setVodText = ImmutableInstruction35c(Opcode.INVOKE_VIRTUAL, 2, 2, 3, 0, 0, 0,
+        ImmutableMethodReference("Landroid/widget/TextView;", "setText", listOf("Ljava/lang/CharSequence;"), "V"))
+    private val narrowHolder = listOf(
+        ImmutableInstruction22c(Opcode.INSTANCE_OF, 0, 8, ImmutableTypeReference(holder)),
+        ImmutableInstruction21c(Opcode.CHECK_CAST, 8, ImmutableTypeReference(holder)),
+        ImmutableInstruction11n(Opcode.CONST_4, 8, 0),
+        ImmutableInstruction22c(Opcode.IGET_OBJECT, 2, 8, ImmutableFieldReference(holder, "y", "Landroid/widget/TextView;")))
+    private val reuseRow = listOf(
+        ImmutableInstruction22c(Opcode.IGET_BOOLEAN, 7, 7, ImmutableFieldReference("Lfixture/Row;", "e", "Z")),
+        ImmutableInstruction21c(Opcode.NEW_INSTANCE, 7, ImmutableTypeReference("Lfixture/TouchListener;")))
+    private val returnVoid = ImmutableInstruction10x(Opcode.RETURN_VOID)
+
+    @Test fun vodHookRunsAfterTheTextBeforeTheBinderReusesTheRowRegister() {
+        assertEquals(narrowHolder.size + 1, vodHookIndex(vodBinder(narrowHolder + setVodText + reuseRow + returnVoid)))
+    }
+
+    @Test fun vodHookRejectsBindersThatOverwriteTheRowOrHolderBeforeTheText() {
+        for (early in listOf(reuseRow, listOf(ImmutableInstruction12x(Opcode.MOVE_OBJECT, 8, 0)),
+                listOf(ImmutableInstruction21s(Opcode.CONST_WIDE_16, 6, 0))))
+            assertThrows(PatchException::class.java) { vodHookIndex(vodBinder(narrowHolder + early + setVodText + returnVoid)) }
+        assertThrows(PatchException::class.java) {
+            vodHookIndex(vodBinder(narrowHolder + setVodText + setVodText + returnVoid))
+        }
     }
 
     @Test fun inlinedFollowingLoopRequiresHeaderAndIndexMapSemantics() {

@@ -6,6 +6,7 @@
 package app.hushmessenger.patches.coexist
 
 import app.hushmessenger.patches.MessengerTarget
+import app.hushmessenger.patches.isExtension
 import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
@@ -279,7 +280,7 @@ private fun MutableMethod.renameSharedNames(): Int {
 
 private fun BytecodePatchContext.checkedPermissionMethods(): List<MutableMethod> {
     val classes = dexNames.flatMap { classDefByStrings(it, StringComparisonType.EQUALS) }
-        .map { it.type }.distinct()
+        .filterNot { it.isExtension() }.map { it.type }.distinct()
     val methods = classes.flatMap { type ->
         mutableClassDefBy(type).methods.filter { it.hasSharedName() }
     }

@@ -16,7 +16,7 @@ make everyday apps work the way you want.
 [![Latest release](https://img.shields.io/github/v/release/lokesh-sparrow/loki-patches?sort=semver&style=for-the-badge&label=release&labelColor=0d1117&color=22d3ee)](https://github.com/lokesh-sparrow/loki-patches/releases/latest)
 [![Downloads](https://img.shields.io/github/downloads/lokesh-sparrow/loki-patches/total?style=for-the-badge&labelColor=0d1117&color=0ea5e9)](https://github.com/lokesh-sparrow/loki-patches/releases)
 <!-- BADGES_START -->
-[![apps](https://img.shields.io/badge/apps-4-2563eb?style=for-the-badge&labelColor=0d1117)](#apps) [![patches](https://img.shields.io/badge/patches-36-14b8a6?style=for-the-badge&labelColor=0d1117)](#apps)
+[![apps](https://img.shields.io/badge/apps-5-2563eb?style=for-the-badge&labelColor=0d1117)](#apps) [![patches](https://img.shields.io/badge/patches-38-14b8a6?style=for-the-badge&labelColor=0d1117)](#apps)
 <!-- BADGES_END -->
 [![Morphe](https://img.shields.io/badge/patches%20for-Morphe-06b6d4?style=for-the-badge&labelColor=0d1117)](https://morphe.software)
 [![License](https://img.shields.io/github/license/lokesh-sparrow/loki-patches?style=for-the-badge&labelColor=0d1117&color=6e7681)](LICENSE)
@@ -45,7 +45,7 @@ Every app with its highlights, the version it is built for, and which file to do
 for its features, patches and FAQ.
 
 <!-- APPS_START -->
-> **[v3.1.1](https://github.com/lokesh-sparrow/loki-patches/releases/tag/v3.1.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;**4** apps&nbsp;&nbsp;•&nbsp;&nbsp;**36** patches
+> **[v3.2.1](https://github.com/lokesh-sparrow/loki-patches/releases/tag/v3.2.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;**5** apps&nbsp;&nbsp;•&nbsp;&nbsp;**38** patches
 
 ### Featured
 
@@ -55,17 +55,19 @@ for its features, patches and FAQ.
 <td align="center" width="170"><a href="docs/apps/splitwise.md"><img src="assets/icons/com.Splitwise.SplitwiseMobile.png" width="44" height="44" alt=""><br><b>Splitwise</b></a><br><sub>5 patches</sub><br><sub>Pro features, no upsells, AMOLED black</sub></td>
 <td align="center" width="170"><a href="docs/apps/truecaller.md"><img src="assets/icons/com.truecaller.png" width="44" height="44" alt=""><br><b>Truecaller</b></a><br><sub>2 patches</sub><br><sub>Premium features, no after-call screen</sub></td>
 <td align="center" width="170"><a href="docs/apps/doc-scanner.md"><img src="assets/icons/com.cv.docscanner.png" width="44" height="44" alt=""><br><b>Doc Scanner</b></a><br><sub>4 patches</sub><br><sub>Full version, no clutter, clone</sub></td>
+<td align="center" width="170"><a href="docs/apps/mx-player-pro.md"><img src="assets/icons/com.mxtech.videoplayer.pro.png" width="44" height="44" alt=""><br><b>MX Player Pro</b></a><br><sub>2 patches</sub><br><sub>Pro unlocked, every audio codec built in</sub></td>
 </tr>
 </table>
 
 ### All apps
 
-<sub>💎&nbsp;premium&nbsp;&nbsp;🚫&nbsp;ads&nbsp;&nbsp;🛡️&nbsp;tracking&nbsp;&nbsp;🎨&nbsp;look&nbsp;&nbsp;⬇️&nbsp;downloads&nbsp;&nbsp;🧹&nbsp;clutter&nbsp;&nbsp;📵&nbsp;call screens&nbsp;&nbsp;👯&nbsp;clone&nbsp;&nbsp;🔑&nbsp;Google sign-in</sub>
+<sub>💎&nbsp;premium&nbsp;&nbsp;🚫&nbsp;ads&nbsp;&nbsp;🛡️&nbsp;tracking&nbsp;&nbsp;🎨&nbsp;look&nbsp;&nbsp;⬇️&nbsp;downloads&nbsp;&nbsp;🧹&nbsp;clutter&nbsp;&nbsp;📵&nbsp;call screens&nbsp;&nbsp;👯&nbsp;clone&nbsp;&nbsp;🔑&nbsp;Google sign-in&nbsp;&nbsp;🎞️&nbsp;codecs</sub>
 
 | App | Highlights | Patches | Version | File | Loki Patches menu |
 |---|---|:---:|---|---|---|
 | <img src="assets/icons/com.cv.docscanner.png" width="20" height="20" align="top" alt=""> [**Doc Scanner**](docs/apps/doc-scanner.md) | 💎 🧹 👯 🔑 | 4 | `6.9.9` | **APKM** | Side menu |
 | <img src="assets/icons/com.linkedin.android.svg" width="20" height="20" align="top" alt=""> [**LinkedIn**](docs/apps/linkedin.md) | 🚫 🛡️ 🎨 ⬇️ 🔑 | 23 | `4.1.1270` | **APK (Android 10+)** | Me panel |
+| <img src="assets/icons/com.mxtech.videoplayer.pro.png" width="20" height="20" align="top" alt=""> [**MX Player Pro**](docs/apps/mx-player-pro.md) | 💎 🎞️ | 2 | `1.93.4` | **APK** | Settings |
 | <img src="assets/icons/com.Splitwise.SplitwiseMobile.png" width="20" height="20" align="top" alt=""> [**Splitwise**](docs/apps/splitwise.md) | 💎 🚫 🛡️ 🎨 🔑 | 5 | `26.11.1` | **APK** | Account tab |
 | <img src="assets/icons/com.truecaller.png" width="20" height="20" align="top" alt=""> [**Truecaller**](docs/apps/truecaller.md) | 💎 📵 🔑 | 2 | `26.43.5` | **APKM** | Profile menu · Settings |
 

@@ -4,55 +4,35 @@ package io.github.sabopura.morphe.extension.twitch.chat.emotes;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
-import android.graphics.drawable.Animatable;
 import android.graphics.drawable.Drawable;
 import android.text.style.DynamicDrawableSpan;
 import android.widget.TextView;
 
-import java.lang.ref.WeakReference;
-
+/**
+ * Draws an image centred on the text line. The drawable may be shared between rows, so its own
+ * bounds stay at its natural size and each span scales it to the size this row needs.
+ */
 final class CenteredImageSpan extends DynamicDrawableSpan {
     private final Drawable drawable;
+    private final int width, height;
     private final Paint.FontMetricsInt paintMetrics = new Paint.FontMetricsInt();
 
-    CenteredImageSpan(TextView textView, Drawable drawable) {
+    CenteredImageSpan(TextView textView, Drawable drawable, float scale) {
         super(ALIGN_BOTTOM);
         this.drawable = drawable;
-
-        int height = Math.max(1, Math.round(textView.getTextSize() * 1.25f));
+        height = Math.max(1, Math.round(textView.getTextSize() * 1.25f * scale));
         int intrinsicHeight = drawable.getIntrinsicHeight();
         int intrinsicWidth = drawable.getIntrinsicWidth();
-        int width =
-                intrinsicHeight > 0 && intrinsicWidth > 0
-                        ? Math.max(1, Math.round((float) intrinsicWidth * height / intrinsicHeight))
-                        : height;
-        drawable.setBounds(0, 0, width, height);
-        // A normal TextView does not verify arbitrary inline drawables, and a strong callback
-        // would keep recycled chat rows alive. Schedule frames through a weak UI callback.
-        WeakReference<TextView> owner = new WeakReference<>(textView);
-        drawable.setCallback(
-                new Drawable.Callback() {
-                    public void invalidateDrawable(Drawable who) {
-                        TextView view = owner.get();
-                        if (view != null && view.isAttachedToWindow()) view.invalidate();
-                    }
-
-                    public void scheduleDrawable(Drawable who, Runnable what, long when) {
-                        TextView view = owner.get();
-                        if (view != null && view.isAttachedToWindow())
-                            view.postDelayed(
-                                    what,
-                                    Math.max(0, when - android.os.SystemClock.uptimeMillis()));
-                    }
-
-                    public void unscheduleDrawable(Drawable who, Runnable what) {
-                        TextView view = owner.get();
-                        if (view != null) view.removeCallbacks(what);
-                    }
-                });
-        if (drawable instanceof Animatable) {
-            ((Animatable) drawable).start();
+        width = intrinsicHeight > 0 && intrinsicWidth > 0
+                ? Math.max(1, Math.round((float) intrinsicWidth * height / intrinsicHeight))
+                : height;
+        if (drawable.getBounds().isEmpty()) {
+            drawable.setBounds(0, 0, Math.max(1, intrinsicWidth), Math.max(1, intrinsicHeight));
         }
+    }
+
+    int width() {
+        return width;
     }
 
     @Override
@@ -63,17 +43,16 @@ final class CenteredImageSpan extends DynamicDrawableSpan {
     @Override
     public int getSize(
             Paint paint, CharSequence text, int start, int end, Paint.FontMetricsInt metrics) {
-        Rect bounds = drawable.getBounds();
         if (metrics != null) {
             paint.getFontMetricsInt(paintMetrics);
             int center = (paintMetrics.ascent + paintMetrics.descent) / 2;
-            int halfHeight = bounds.height() / 2;
+            int halfHeight = height / 2;
             metrics.ascent = center - halfHeight;
             metrics.top = metrics.ascent;
             metrics.descent = center + halfHeight;
             metrics.bottom = metrics.descent;
         }
-        return bounds.width();
+        return width;
     }
 
     @Override
@@ -89,17 +68,11 @@ final class CenteredImageSpan extends DynamicDrawableSpan {
             Paint paint) {
         paint.getFontMetricsInt(paintMetrics);
         int textCenter = baseline + (paintMetrics.ascent + paintMetrics.descent) / 2;
-        int drawableTop = textCenter - drawable.getBounds().height() / 2;
+        Rect natural = drawable.getBounds();
         canvas.save();
-        canvas.translate(x, drawableTop);
+        canvas.translate(x, textCenter - height / 2f);
+        canvas.scale((float) width / natural.width(), (float) height / natural.height());
         drawable.draw(canvas);
         canvas.restore();
-    }
-
-    void stop() {
-        if (drawable instanceof Animatable) {
-            ((Animatable) drawable).stop();
-        }
-        drawable.setCallback(null);
     }
 }

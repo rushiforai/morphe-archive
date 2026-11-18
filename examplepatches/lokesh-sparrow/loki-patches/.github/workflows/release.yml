@@ -37,6 +37,11 @@ jobs:
       - name: Install release tooling
         run: npm install
 
+      # Holds for every app at once: a menu flag with no status row, a log line written on a success path,
+      # an app in apps.json with no page or icon. tools/audit.py exits non-zero, so the release stops here.
+      - name: Audit every app in the bundle
+        run: python3 tools/audit.py
+
       # The release command itself comes from gradle-semantic-release-plugin, and the Gradle
       # build runs through the wrapper. Only main releases, as configured in .releaserc.
       - name: Publish release

@@ -461,6 +461,8 @@ Going to that date	해당 날짜로 이동 중
 Sort reels on profiles	프로필의 릴스 정렬
 Puts the arrow next to Reels on every profile, so you can sort them by Latest or Most viewed where Instagram took the choice away.	모든 프로필의 릴스 옆에 화살표를 표시해, Instagram이 선택을 없앤 곳에서도 최신순 또는 조회수 많은 순으로 정렬할 수 있습니다.
 The cards of people and creators to follow that Instagram puts between reels. Every reel still plays.	릴스 사이에 표시되는 팔로우할 사람 및 크리에이터 추천 카드를 숨깁니다. 릴스 자체는 모두 정상적으로 재생됩니다
+Hide stories in Reels	릴스에서 스토리 숨기기
+The Catch up with friends pages of stories that Instagram puts between reels. Stories stay at the top of Home.	Instagram이 릴스 사이에 넣는 친구 스토리 페이지를 숨깁니다. 홈 상단의 스토리는 그대로 남습니다.
 Leaves out reels with a Paid partnership label, and reels Instagram marks as boosted. Ads have their own switch.	유료 광고 파트너십 라벨이 있는 릴스와 Instagram이 홍보됨으로 표시한 릴스를 제외합니다. 광고는 별도의 스위치가 있습니다.
 Turn on Start Home on Following to use this choice.	이 옵션을 사용하려면 ‘팔로잉에서 홈 시작’을 활성화하세요
 # context: Settings page: the summary of a greyed-out slider in place of its value; %1$s is the title of the switch it waits on, like Glass tab bar
@@ -575,7 +577,7 @@ Gives reels the seek bar of a video in a chat, a thin gray line that turns white
 Seek bar on photos with music	음악이 있는 사진에 탐색 바 표시
 Reels that are a photo with a song get the same seek bar and time as a video reel, following the song. Drag it to seek.	사진과 노래로 된 릴스에 동영상 릴스와 같은 탐색 바와 시간이 표시되며 노래를 따라 움직입니다. 드래그하여 탐색하세요.
 Hide the seek bar on reels	릴스 탐색 바 숨기기
-Takes the seek bar off the bottom of every reel, long ones too. Hold a reel to bring it back and seek. Keep a seek bar and the seek bar looks above win over it.	긴 릴스를 포함해 모든 릴스 하단의 탐색 바를 없앱니다. 릴스를 길게 누르면 다시 나타나 탐색할 수 있습니다. 재생바 유지와 위의 탐색 바 스타일이 우선합니다.
+Takes the seek bar off the bottom of every reel, long ones too. Drag sideways along the bottom edge of a reel to bring it back and seek. Keep a seek bar and the seek bar looks above win over it. Restart Instagram to see the change.	긴 릴스를 포함해 모든 릴스 하단의 탐색 바를 없앱니다. 릴스 하단 가장자리를 따라 옆으로 드래그하면 다시 나타나 탐색할 수 있습니다. 재생바 유지와 위의 탐색 바 스타일이 우선합니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.
 Blur the bars around a reel	릴스 주변 막대 흐리게 처리
 A reel that doesn't fill the screen shows a blurred copy of itself above and below it instead of black bars, and the strip under the tab bar and the band behind the clock show the reel blurred too. The copy shows only where a reel leaves room, as with Show the whole reel on. Open Reels again after a change.	화면을 가득 채우지 않는 릴스는 검은 막대 대신 위아래에 자신의 흐릿한 복사본을 보여주고, 탭 바 아래의 띠와 시계 뒤의 영역에도 릴스가 흐릿하게 보입니다. 복사본은 릴스 전체 보기를 켰을 때처럼 릴스 주위에 빈 공간이 있을 때만 보입니다. 변경 후에는 릴스를 다시 여세요.
 A sideways swipe no longer moves you between Home, Reels and the other main tabs. Tap the tab bar instead. Stop swipe to create covers the camera.	옆으로 스와이프해도 더 이상 홈, 릴스, 다른 기본 탭 사이를 이동하지 않습니다. 대신 탭 바를 누르세요. 카메라는 스와이프하여 만들기 정지가 막아 줍니다.
@@ -652,6 +654,8 @@ Stop after the chat's reels	채팅의 릴스까지만 보기
 Reels you opened from a chat end after the last one shared in that chat, with no suggested reels after it. Works with Swipe through a chat's reels on.	채팅에서 연 릴스는 그 채팅에 공유된 마지막 릴스에서 끝나고, 그 뒤에 추천 릴스가 나오지 않습니다. 채팅의 릴스 넘겨보기가 켜져 있을 때 작동합니다.
 Adds Download cover under Download. It saves the still picture a reel shows before it plays, at its largest size.	다운로드 아래에 커버 다운로드를 추가합니다. 릴스가 재생되기 전에 보여 주는 정지 이미지를 가장 큰 크기로 저장합니다.
 Adds Download audio under Download. It saves the sound of the reel as an audio file.	다운로드 아래에 오디오 다운로드를 추가합니다. 릴스의 소리를 오디오 파일로 저장합니다.
+Download full song	전체 노래 다운로드
+Adds Download full song under Download on reels that use a song from Instagram's music. It saves the whole song as an audio file, not only the part the reel plays.	Instagram 음악의 노래를 쓰는 릴스에서 다운로드 아래에 전체 노래 다운로드를 추가합니다. 릴스에서 재생되는 부분만이 아니라 노래 전체를 오디오 파일로 저장합니다.
 After the reels you pick below, swiping in Reels stops until Instagram has been in the background for the time you pick. A reel you open from a message or a post still plays.	아래에서 고른 개수만큼 릴스를 보면 Instagram이 고른 시간 동안 백그라운드에 있을 때까지 릴스 스와이프가 멈춥니다. 메시지나 게시물에서 연 릴스는 계속 재생됩니다.
 Find the reel you came from	보던 릴스 찾기
 Open a creator's profile from a reel, then their Reels tab, and it scrolls to that reel and outlines it for a moment. A photo reel is found in their posts. Stop looking ends the search where it is.	릴스에서 크리에이터의 프로필을 연 다음 릴스 탭을 열면 그 릴스로 스크롤하고 잠깐 테두리를 표시합니다. 사진 릴스는 게시물에서 찾습니다. 찾기 중지를 누르면 그 자리에서 찾기를 멈춥니다.
@@ -1199,6 +1203,8 @@ Open settings with a long press on your profile's menu	프로필 메뉴를 길�
 A long press on the menu button, the three lines at the top right of your own profile, opens HushGram. A tap still opens Instagram's menu, and other profiles stay the same.	내 프로필 오른쪽 위에 있는 세 줄 메뉴 버튼을 길게 탭하면 HushGram이 열립니다. 탭하면 여전히 Instagram 메뉴가 열리고, 다른 프로필은 그대로입니다.
 Hide the top bar on the Reels tab	릴스 탭의 상단 바 숨기기
 Takes away the row at the top of the Reels tab, with the Reels title, the camera button and anything else Instagram puts there. Reels you open from a profile, a post or a chat keep theirs. The camera still opens from Home.	릴스 탭 맨 위에 있는 줄을 숨깁니다. 릴스 제목, 카메라 버튼, 그 밖에 Instagram이 그곳에 두는 모든 항목이 포함됩니다. 프로필, 게시물, 채팅에서 연 릴스에는 그대로 남습니다. 카메라는 홈에서 계속 열 수 있습니다.
+Hide the top bar on other reels	다른 릴스의 상단 바 숨기기
+Takes the back arrow and the title off the top of reels you open from Explore, a profile, a post, Saved or a chat. Your phone's back button or gesture still goes back.	탐색, 프로필, 게시물, 저장됨, 채팅에서 연 릴스 위쪽의 뒤로 화살표와 제목을 숨깁니다. 휴대폰의 뒤로 버튼이나 제스처로 계속 돌아갈 수 있습니다.
 Hide the Create button on reels	릴스의 만들기 버튼 숨기기
 Takes the plus button that opens the camera off the top of reels, on the Reels tab and everywhere else, and closes up the gap. The rest of the bar stays.	릴스 맨 위에서 카메라를 여는 더하기 버튼을 숨기고 빈자리를 없앱니다. 릴스 탭과 다른 모든 곳에 적용됩니다. 나머지 바는 그대로입니다.
 Hide Your algorithm on reels	릴스의 내 알고리즘 숨기기
@@ -2249,13 +2255,9 @@ Save profile	프로필 저장
 Saved @%s	@%s 님을 저장했습니다
 # context: toast after Remove from saved takes an account off the Saved profiles list; %s is its username (#629)
 Removed @%s from saved	@%s 님을 저장됨에서 삭제했습니다
-# context: row in the long press menu on an account on the Saved profiles page, and title of the folder list it opens (#629)
-Move to folder	폴더로 이동
-# context: title of the folder list Save profile opens on a profile's menu once the user has made a folder (#629)
+# context: title of the folder checklist Save profile opens on a profile's menu once the user has made a folder; the account can go in several (#629, #687)
 Save to folder	폴더에 저장
-# context: first choice in that folder list; the saved account sits in no folder (#629)
-No folder	폴더 없음
-# context: last choice in that folder list, and title of the dialog asking the new folder's name (#629)
+# context: button under a folder checklist, and title of the dialog asking the new folder's name (#629, #687)
 New folder	새 폴더
 # context: row in the long press menu on a folder's chip on the Saved profiles page, and title of the dialog for its new name (#629)
 Rename folder	폴더 이름 변경
@@ -2263,14 +2265,20 @@ Rename folder	폴더 이름 변경
 Remove folder	폴더 삭제
 # context: toast after Save profile puts an account in a folder; %1$s is its username, %2$s the folder's name (#629)
 Saved @%1$s to %2$s	@%1$s 님을 %2$s에 저장했습니다
-# context: toast after Move to folder; %1$s is the account's username, %2$s the folder's name (#629)
-Moved @%1$s to %2$s	@%1$s 님을 %2$s(으)로 이동했습니다
-# context: toast after Move to folder > No folder; %s is the account's username, which stays saved (#629)
-Moved @%s out of its folder	@%s 님을 폴더에서 뺐습니다
 # context: toast after Remove folder; %s is the folder's name, and its accounts stay saved (#629)
 Removed the folder %s	%s 폴더를 삭제했습니다
 # context: toast after Rename folder; %s is the folder's new name (#629)
 Renamed the folder to %s	폴더 이름을 %s(으)로 변경했습니다
+# context: row in the long press menu on an account on the Saved profiles page, and title of the folder checklist it opens; an account can be in several folders (#687)
+Choose folders	폴더 선택
+# context: toast after Choose folders with every folder unticked; %s is the account's username, which stays saved (#687)
+@%s is in no folder now	이제 @%s 님은 어느 폴더에도 없습니다
+# context: toast after Choose folders leaves the account in one folder; %1$s is its username, %2$s the folder's name (#687)
+@%1$s is in %2$s now	이제 @%1$s 님은 %2$s에 있습니다
+# context: toast after Choose folders leaves the account in two or more folders; %1$s is its username, %2$d how many (#687)
+@%1$s is in %2$d folders now	이제 @%1$s 님은 폴더 %2$d개에 있습니다
+# context: toast after Save profile puts an account in two or more folders; %1$s is its username, %2$d how many (#687)
+Saved @%1$s to %2$d folders	@%1$s 님을 폴더 %2$d개에 저장했습니다
 # context: toast when the Saved profiles list already holds 2,000 accounts (#629)
 Saved profiles is full.	저장한 프로필 목록이 가득 찼습니다.
 # context: Profiles > title of the switch that adds Save profile to the menu on profiles, and title of the page listing the saved accounts (#629)
@@ -2501,3 +2509,20 @@ No one has viewed half of this period's stories yet.	아직 이 기간 스토리
 # context: Feed: switch under Hide the home feed that keeps Instagram from learning which posts in Home you looked at and for how long (#664)
 Don't send feed view history	피드 조회 기록 전송하지 않기
 Stops telling Instagram which posts in Home you looked at and for how long. Instagram uses that to pick what Home shows. Posts you've seen may come back.	홈에서 어떤 게시물을 얼마나 오래 봤는지 Instagram에 알리지 않습니다. Instagram은 이 정보로 홈에 보여 줄 내용을 고릅니다. 이미 본 게시물이 다시 나올 수 있습니다.
+# context: Tab bar: switch under Hide the Messages tab that takes the unread count off the Messages button on the bottom tab bar (#734)
+Hide the Messages badge	메시지 배지 숨기기
+Takes the unread count off the Messages button on the tab bar. Chats still show as unread in your inbox, and notifications still come. Restart Instagram to see the change.	하단바의 메시지 버튼에서 읽지 않은 메시지 수를 없앱니다. 받은 메시지함의 채팅은 계속 읽지 않음으로 표시되고 알림도 그대로 옵니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.
+# context: Ads and privacy settings: switch that adds a search box above Instagram's Blocked accounts list (Settings > Blocked), filtering it by username or full name; the same title is the box's hint text (#731)
+Search blocked accounts	차단된 계정 검색
+Adds a search box above your blocked accounts in Instagram's settings. It finds them by username or name, and loads the rest of your list as you type.	Instagram 설정의 차단된 계정 위에 검색창을 추가합니다. 사용자 이름이나 이름으로 찾고, 입력하는 동안 나머지 목록을 불러옵니다.
+# context: the line under that search box. %1$d is how many blocked accounts match, %2$d how many have loaded. First while more pages are loading, then when Instagram stopped sending pages, then when the whole list is in (#731)
+Matches: %1$d of %2$d account loaded so far. Loading the rest of your list.	일치: 지금까지 불러온 계정 %2$d개 중 %1$d개. 나머지 목록을 불러오는 중입니다.
+Matches: %1$d of %2$d accounts loaded so far. Loading the rest of your list.	일치: 지금까지 불러온 계정 %2$d개 중 %1$d개. 나머지 목록을 불러오는 중입니다.
+Matches: %1$d of the %2$d account that loaded. Instagram didn't send the rest.	일치: 불러온 계정 %2$d개 중 %1$d개. Instagram이 나머지를 보내지 않았습니다.
+Matches: %1$d of the %2$d accounts that loaded. Instagram didn't send the rest.	일치: 불러온 계정 %2$d개 중 %1$d개. Instagram이 나머지를 보내지 않았습니다.
+Matches: %1$d of %2$d blocked account	일치: 차단된 계정 %2$d개 중 %1$d개
+Matches: %1$d of %2$d blocked accounts	일치: 차단된 계정 %2$d개 중 %1$d개
+# context: Profiles settings: switch that makes a long press on the picture at the top of a profile open HushGram's full size viewer with a Save button, in place of Instagram's own enlarged picture (#737)
+Long press a profile picture to view it	프로필 사진을 길게 눌러 보기
+# context: that switch summary (#737)
+Long press the picture at the top of a profile to open the whole square picture at full size, with Save under it, instead of Instagram's own preview. A tap works as before.	프로필 상단의 사진을 길게 누르면 Instagram 자체 미리보기 대신 정사각형 사진 전체가 원본 크기로 열리고 아래에 저장 버튼이 표시됩니다. 탭은 이전과 같이 작동합니다.

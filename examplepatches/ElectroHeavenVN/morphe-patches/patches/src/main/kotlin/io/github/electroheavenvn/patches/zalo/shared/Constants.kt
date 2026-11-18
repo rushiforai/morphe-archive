@@ -9,9 +9,6 @@ object Constants {
         name = "Zalo",
         packageName = "com.zing.zalo",
         appIconColor = 0x0068FF,
-        // NPatch does not support 32 bit architectures
-        // and Zalo does not support x86/x86_64 ABI
-        // TODO: migrate to / add LSPatch JingMatrix support
         targets = listOf(
             AppTarget(
                 version = "26.09.01",

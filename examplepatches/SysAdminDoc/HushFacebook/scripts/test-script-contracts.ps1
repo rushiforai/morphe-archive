@@ -3836,12 +3836,13 @@ try {
     Remove-Item -LiteralPath (Join-Path $hookRoot 'patches') -Recurse -Force
 
     # The files outside the source trees that the runtime tests read. ReadmePatchNamesTest holds the
-    # README's patch rows to the catalog, ProvenanceTest holds NOTICE and every source's header to
-    # provenance.json, PatchFamilyTest reads the catalog, and ShortcutCallsTest reads the mutation
-    # contracts. The Gradle files declare them as test inputs, and a push of one alone still never
-    # started the tests. Files no test reads still don't start them.
+    # patch rows in docs/patches.md to the catalog, ProvenanceTest holds NOTICE and every source's
+    # header to provenance.json, PatchFamilyTest reads the catalog, and ShortcutCallsTest reads the
+    # mutation contracts. The Gradle files declare them as test inputs, and a push of one alone still
+    # never started the tests. Files no test reads still don't start them.
     foreach ($route in @(
-            @{ Path = 'README.md'; Build = $true }, @{ Path = 'NOTICE'; Build = $true },
+            @{ Path = 'README.md'; Build = $true }, @{ Path = 'docs/patches.md'; Build = $true },
+            @{ Path = 'docs/help.md'; Build = $false }, @{ Path = 'NOTICE'; Build = $true },
             @{ Path = 'provenance.json'; Build = $true }, @{ Path = 'patches-list.json'; Build = $true },
             @{ Path = 'scripts/injected-mutation-contracts.txt'; Build = $true },
             @{ Path = 'scripts/injected-register-removal-allowlist.txt'; Build = $false },
@@ -4854,9 +4855,19 @@ Assert-True (Test-ChangelogVersions -Current $goodChangelog -ExpectedVersion '0.
 # The control. The real file, held to the real version, must pass: every case above is this
 # same shape with one heading moved.
 $realVersion = Get-BundleVersion -Root $Root
+# The record is CHANGELOG.md plus docs/changelog-archive.md, at the tag as now, the way the
+# release facts check reads it.
 $realChangelog = Get-Content -LiteralPath (Join-Path $Root 'CHANGELOG.md') -Raw
+$realArchivePath = Join-Path $Root 'docs/changelog-archive.md'
+if (Test-Path -LiteralPath $realArchivePath -PathType Leaf) {
+    $realChangelog += "`n" + (Get-Content -LiteralPath $realArchivePath -Raw)
+}
 $realTag = "$(& git -C $Root describe --tags --abbrev=0 HEAD 2>$null | Select-Object -First 1)".Trim()
 $realPrevious = if ($realTag) { (& git -C $Root show "${realTag}:CHANGELOG.md" 2>$null) -join "`n" } else { '' }
+if ($realTag -and -not [string]::IsNullOrWhiteSpace($realPrevious)) {
+    $realArchived = (& git -C $Root show "${realTag}:docs/changelog-archive.md" 2>$null) -join "`n"
+    if (-not [string]::IsNullOrWhiteSpace($realArchived)) { $realPrevious += "`n" + $realArchived }
+}
 $realCheck = if ([string]::IsNullOrWhiteSpace($realPrevious)) {
     Test-ChangelogVersions -Current $realChangelog -ExpectedVersion $realVersion
 } else {

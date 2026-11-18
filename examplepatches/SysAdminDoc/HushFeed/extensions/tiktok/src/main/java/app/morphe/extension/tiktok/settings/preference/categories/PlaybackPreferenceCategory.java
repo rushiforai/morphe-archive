@@ -40,6 +40,7 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
                 || SettingsStatus.storyControlsEnabled
                 || SettingsStatus.liveControlsEnabled
                 || SettingsStatus.feedMuteEnabled || SettingsStatus.keepPulledSoundsEnabled
+                || SettingsStatus.originalAudioEnabled
                 || SettingsStatus.backgroundPlayEnabled || SettingsStatus.pictureInPictureEnabled
                 || SettingsStatus.showSeekbarEnabled || SettingsStatus.seekbarThumbnailEnabled
                 || SettingsStatus.stopVideoLoopingEnabled || SettingsStatus.resumeVideoAfterScrollEnabled
@@ -189,6 +190,10 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
             addPreference(new ChoicePreference(context, "Auto tap speed", Settings.LIVE_AUTO_TAP_RATE,
                     app.morphe.extension.tiktok.live.LiveAutoTap.RATE_LABELS,
                     app.morphe.extension.tiktok.live.LiveAutoTap.RATE_VALUES));
+            // #359: Record, Auto tap, Block and the eye can cover the room's own buttons on small screens.
+            addPreference(new ChoicePreference(context, "Size of the LIVE buttons", Settings.LIVE_BUTTON_SIZE,
+                    new String[]{"Smallest", "Small", "Normal"},
+                    new String[]{"32", "40", "48"}));
             addPreference(new TogglePreference(context, "LIVE name alerts",
                     "Tells you when your name comes up in a LIVE, in the chat or said out loud in a room "
                             + "with captions on. You get a notification when TikTok's notifications are on, "
@@ -240,7 +245,8 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
         // leave. The bar rows were on App and the frame rows under Quality, which they aren't.
         if (SettingsStatus.showSeekbarEnabled || SettingsStatus.seekbarThumbnailEnabled
                 || SettingsStatus.videoFitEnabled || SettingsStatus.feedMuteEnabled
-                || SettingsStatus.keepPulledSoundsEnabled || SettingsStatus.backgroundPlayEnabled
+                || SettingsStatus.keepPulledSoundsEnabled || SettingsStatus.originalAudioEnabled
+                || SettingsStatus.backgroundPlayEnabled
                 || SettingsStatus.pictureInPictureEnabled) {
             addPreference(new SectionHeadingPreference(context, "Player"));
         }
@@ -363,6 +369,12 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
                 });
             }
             addPreference(fit);
+            // #345: Fit for a folding phone's opened screen, Fill for its tall front one.
+            addPreference(new TogglePreference(context, "Fill a tall screen instead",
+                    "With the switch above on, the video is cropped to fill a tall screen like a "
+                            + "folding phone's front screen. A squarer one, like the big screen "
+                            + "opened up, still shows the whole video.",
+                    Settings.FIT_FILLS_TALL_SCREEN));
             addPreference(fill);
             addPreference(stretch);
             addPreference(blend);
@@ -385,6 +397,12 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
                             + "copyright or in your region. TikTok may still say the sound isn't "
                             + "available.",
                     Settings.KEEP_PULLED_SOUNDS));
+        }
+        if (SettingsStatus.originalAudioEnabled) {
+            addPreference(new TogglePreference(context, "Play original audio",
+                    "Play videos and mini dramas in their own language instead of TikTok's AI dub "
+                            + "in your app language. Captions and translations stay as they are.",
+                    Settings.ORIGINAL_AUDIO));
         }
         if (SettingsStatus.backgroundPlayEnabled) {
             addPreference(new TogglePreference(context, "Keep playing in the background",

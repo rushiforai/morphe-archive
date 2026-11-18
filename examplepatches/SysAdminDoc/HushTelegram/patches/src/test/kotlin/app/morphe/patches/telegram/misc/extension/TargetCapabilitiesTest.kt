@@ -76,8 +76,8 @@ class TargetCapabilitiesTest {
             }
             // These synthetic builds have no ConnectionsManager, no passcode checks, no sign-up request and no
             // delete request, so Ghost mode, the account guard, Instant lock, Don't notify contacts, the device
-            // in Active sessions and Delete account each stay out and say so.
-            val ghost = if (family == "disableAnalytics" && present.isNotEmpty()) 6 else 0
+            // in Active sessions, Delete account and Duress passcode each stay out and say so.
+            val ghost = if (family == "disableAnalytics" && present.isNotEmpty()) 7 else 0
             assertEquals("$family subset $present warnings", if (present.isEmpty()) 0 else targetCount - present.size + ghost, warnings.size)
             for (premium in premiumTargets) {
                 assertFlag(context, premium.capability, false)
@@ -91,11 +91,13 @@ class TargetCapabilitiesTest {
                 assertFlag(context, "quietSignUp", false)
                 assertFlag(context, "sessionDevice", false)
                 assertFlag(context, "deleteAccount", false)
+                assertFlag(context, "duressWipe", false)
                 if (present.isNotEmpty()) assertTrue(warnings.toString(), warnings.any { "without Ghost mode" in it })
                 if (present.isNotEmpty()) assertTrue(warnings.toString(), warnings.any { "without Instant lock" in it })
                 if (present.isNotEmpty()) assertTrue(warnings.toString(), warnings.any { "without Don't notify contacts" in it })
                 if (present.isNotEmpty()) assertTrue(warnings.toString(), warnings.any { "without the device in Active sessions" in it })
                 if (present.isNotEmpty()) assertTrue(warnings.toString(), warnings.any { "without Delete account" in it })
+                if (present.isNotEmpty()) assertTrue(warnings.toString(), warnings.any { "without Duress passcode" in it })
             }
             assertFlag(context, family, present.isNotEmpty())
             for (target in Target.entries) assertFlag(context, target.status, target in present)

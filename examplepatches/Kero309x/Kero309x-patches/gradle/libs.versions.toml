@@ -1,0 +1,28 @@
+# Version catalogue.
+#
+# The framework Gradle plugin resolves two dependencies from this catalogue by
+# alias, so the names below are a contract, not a style choice:
+#   - `morphe-patcher` -> app.morphe:morphe-patcher
+#   - `smali`          -> the smali library the patcher edits bytecode with
+#
+# The plugin adds both to a `patcherProvided` configuration at runtime, so they
+# are supplied by the host and are never bundled into the patch file. The library
+# entry is declared only so dependency tooling can track the version.
+#
+# Anything else added here must be approved before it is used in a build.
+
+[versions]
+morphe-patcher = "2.2.0"
+smali = "4220ae75f7"
+# Must stay equal to the version morphe-patcher itself depends on. The patcher
+# declares coroutines as a runtime-only dependency, so without an explicit entry
+# its `Flow` type is visible at run time but not at compile time.
+kotlinx-coroutines = "1.10.2"
+# The Kotlin test library that ships with the compiler in use. It is test-only
+# and is never part of the bundle.
+kotlin = "2.2.20"
+
+[libraries]
+morphe-patcher = { module = "app.morphe:morphe-patcher", version.ref = "morphe-patcher" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
+kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }

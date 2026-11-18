@@ -21,7 +21,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class ChatMenuItems {
     static final String KEY = "chat_menu_items";
-    private static final String HIDDEN = "chat_menu_items_hidden", SEEN = "chat_menu_items_seen", LABEL = "chat_menu_items_label_";
+    static final String HIDDEN = "chat_menu_items_hidden";
+    private static final String SEEN = "chat_menu_items_seen", LABEL = "chat_menu_items_label_";
     /** Rows HushMessenger adds itself, like Hide from chat list, which have switches of their own. */
     private static final String OWN = "hush_";
     private static final String PROBE_TITLE = "hush_probe_title", PROBE_DESCRIPTION = "hush_probe_description", PROBE_NAME = "hush_probe_name";

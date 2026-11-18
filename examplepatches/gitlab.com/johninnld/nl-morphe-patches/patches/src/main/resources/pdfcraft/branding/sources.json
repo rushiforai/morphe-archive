@@ -1,0 +1,10 @@
+{
+  "acrobat": {
+    "source": "Adobe_Acrobat_Reader_icon_(2020).svg.webp",
+    "sha256": "abdd721800b2dedb1802947a62d1a108fad047bfeb3536166b42c4a0b49f6a1c"
+  },
+  "acrobat_classic": {
+    "source": "icon-adobe-acrobat-reader-400x400.jpg.img_.jpg",
+    "sha256": "26c62dbdf527b8dcbf378ea62f129cbbba3b244730687909ba21ecd729c9d2e6"
+  }
+}

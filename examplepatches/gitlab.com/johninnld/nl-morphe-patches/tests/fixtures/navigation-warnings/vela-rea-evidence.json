@@ -1,0 +1,637 @@
+{
+  "format": 1,
+  "path_note": "Metadata excerpt only. Local path prefixes are redacted; full REA records are identified by their evidence IDs.",
+  "records": [
+    {
+      "evidence_id": "ev_430a3b9a796de1d94b1dd66e311e00ab698a1fbc1ba7c20fd54152cbf58be3f4",
+      "operation": "inspect_android_package",
+      "parameters": {
+        "path": "<user-supplied>/vela-maps-v0.5.2621.apk"
+      },
+      "subject": {
+        "name": "vela-maps-v0.5.2621.apk",
+        "digest": {
+          "sha256": "f168bc730568b98ee8132131658d9220ef5be3557af41fd373bdaf104c31b20f"
+        },
+        "format": "apk",
+        "architecture": null,
+        "local_path": "<user-supplied>/vela-maps-v0.5.2621.apk"
+      },
+      "limitations": [
+        "Static decompiler observations do not establish runtime behavior; the APK is never executed.",
+        "Method signatures use provider display types; exact DEX descriptors and instruction offsets are unavailable. Overload indices are local to this engine and artifact.",
+        "Class inventories use parsed metadata before code generation, including synthetic members that may be omitted from decompiled source. Source positions remain unknown.",
+        "Manifest summary fields are extracted by the upstream engine; decoded XML is retained for verification. APK signatures, split APKs, native libraries and Android runtime capture are not verified by this provider."
+      ]
+    },
+    {
+      "evidence_id": "ev_09215ea3160a6b065e8e18805ee146839ed950668f38705c967c8d021682e6dd",
+      "operation": "inspect_android_class",
+      "parameters": {
+        "path": "<user-supplied>/vela-maps-v0.5.2621.apk",
+        "class_name": "defpackage.wy4"
+      },
+      "subject": {
+        "name": "vela-maps-v0.5.2621.apk",
+        "digest": {
+          "sha256": "f168bc730568b98ee8132131658d9220ef5be3557af41fd373bdaf104c31b20f"
+        },
+        "format": "apk",
+        "architecture": null,
+        "local_path": "<user-supplied>/vela-maps-v0.5.2621.apk"
+      },
+      "limitations": [
+        "Static decompiler observations do not establish runtime behavior; the APK is never executed.",
+        "Method signatures use provider display types; exact DEX descriptors and instruction offsets are unavailable. Overload indices are local to this engine and artifact.",
+        "Class inventories use parsed metadata before code generation, including synthetic members that may be omitted from decompiled source. Source positions remain unknown.",
+        "Manifest summary fields are extracted by the upstream engine; decoded XML is retained for verification. APK signatures, split APKs, native libraries and Android runtime capture are not verified by this provider."
+      ]
+    },
+    {
+      "evidence_id": "ev_293237581525d0e0299db73081130087dedf96562d2969d15e3bb6da9f48d8ae",
+      "operation": "inspect_android_class",
+      "parameters": {
+        "path": "<user-supplied>/vela-maps-v0.5.2621.apk",
+        "class_name": "defpackage.vy4"
+      },
+      "subject": {
+        "name": "vela-maps-v0.5.2621.apk",
+        "digest": {
+          "sha256": "f168bc730568b98ee8132131658d9220ef5be3557af41fd373bdaf104c31b20f"
+        },
+        "format": "apk",
+        "architecture": null,
+        "local_path": "<user-supplied>/vela-maps-v0.5.2621.apk"
+      },
+      "limitations": [
+        "Static decompiler observations do not establish runtime behavior; the APK is never executed.",
+        "Method signatures use provider display types; exact DEX descriptors and instruction offsets are unavailable. Overload indices are local to this engine and artifact.",
+        "Class inventories use parsed metadata before code generation, including synthetic members that may be omitted from decompiled source. Source positions remain unknown.",
+        "Manifest summary fields are extracted by the upstream engine; decoded XML is retained for verification. APK signatures, split APKs, native libraries and Android runtime capture are not verified by this provider."
+      ]
+    },
+    {
+      "evidence_id": "ev_3e13d11347aa0d56bf8415b6546a68daee67da5c696e6e096e5116f3f7327b57",
+      "operation": "inspect_android_class",
+      "parameters": {
+        "path": "<user-supplied>/vela-maps-v0.5.2621.apk",
+        "class_name": "defpackage.y43"
+      },
+      "subject": {
+        "name": "vela-maps-v0.5.2621.apk",
+        "digest": {
+          "sha256": "f168bc730568b98ee8132131658d9220ef5be3557af41fd373bdaf104c31b20f"
+        },
+        "format": "apk",
+        "architecture": null,
+        "local_path": "<user-supplied>/vela-maps-v0.5.2621.apk"
+      },
+      "limitations": [
+        "Static decompiler observations do not establish runtime behavior; the APK is never executed.",
+        "Method signatures use provider display types; exact DEX descriptors and instruction offsets are unavailable. Overload indices are local to this engine and artifact.",
+        "Class inventories use parsed metadata before code generation, including synthetic members that may be omitted from decompiled source. Source positions remain unknown.",
+        "Manifest summary fields are extracted by the upstream engine; decoded XML is retained for verification. APK signatures, split APKs, native libraries and Android runtime capture are not verified by this provider."
+      ]
+    },
+    {
+      "evidence_id": "ev_ff5f7eff99c03e61dce4216c76772944f9a1795a3d6bf4f066bc7f32149c6176",
+      "operation": "inspect_android_class",
+      "parameters": {
+        "path": "<user-supplied>/vela-maps-v0.5.2621.apk",
+        "class_name": "defpackage.dn2"
+      },
+      "subject": {
+        "name": "vela-maps-v0.5.2621.apk",
+        "digest": {
+          "sha256": "f168bc730568b98ee8132131658d9220ef5be3557af41fd373bdaf104c31b20f"
+        },
+        "format": "apk",
+        "architecture": null,
+        "local_path": "<user-supplied>/vela-maps-v0.5.2621.apk"
+      },
+      "limitations": [
+        "Static decompiler observations do not establish runtime behavior; the APK is never executed.",
+        "Method signatures use provider display types; exact DEX descriptors and instruction offsets are unavailable. Overload indices are local to this engine and artifact.",
+        "Class inventories use parsed metadata before code generation, including synthetic members that may be omitted from decompiled source. Source positions remain unknown.",
+        "Manifest summary fields are extracted by the upstream engine; decoded XML is retained for verification. APK signatures, split APKs, native libraries and Android runtime capture are not verified by this provider."
+      ]
+    },
+    {
+      "evidence_id": "ev_d539fed227f8bb24effb3bc6d70f1dd06c7017018535d0b59b19a2240b06c0c9",
+      "operation": "inspect_android_class",
+      "parameters": {
+        "path": "<user-supplied>/vela-maps-v0.5.2621.apk",
+        "class_name": "defpackage.pn1"
+      },
+      "subject": {
+        "name": "vela-maps-v0.5.2621.apk",
+        "digest": {
+          "sha256": "f168bc730568b98ee8132131658d9220ef5be3557af41fd373bdaf104c31b20f"
+        },
+        "format": "apk",
+        "architecture": null,
+        "local_path": "<user-supplied>/vela-maps-v0.5.2621.apk"
+      },
+      "limitations": [
+        "Static decompiler observations do not establish runtime behavior; the APK is never executed.",
+        "Method signatures use provider display types; exact DEX descriptors and instruction offsets are unavailable. Overload indices are local to this engine and artifact.",
+        "Class inventories use parsed metadata before code generation, including synthetic members that may be omitted from decompiled source. Source positions remain unknown.",
+        "Manifest summary fields are extracted by the upstream engine; decoded XML is retained for verification. APK signatures, split APKs, native libraries and Android runtime capture are not verified by this provider."
+      ]
+    },
+    {
+      "evidence_id": "ev_ead23aaa8897d8c9f5a41f9095ddd99528bc52d5cc3cb157314656f1867029e2",
+      "operation": "inspect_android_method",
+      "parameters": {
+        "path": "<user-supplied>/vela-maps-v0.5.2621.apk",
+        "class_name": "defpackage.wy4",
+        "method_name": "j"
+      },
+      "subject": {
+        "name": "vela-maps-v0.5.2621.apk",
+        "digest": {
+          "sha256": "f168bc730568b98ee8132131658d9220ef5be3557af41fd373bdaf104c31b20f"
+        },
+        "format": "apk",
+        "architecture": null,
+        "local_path": "<user-supplied>/vela-maps-v0.5.2621.apk"
+      },
+      "limitations": [
+        "Static decompiler observations do not establish runtime behavior; the APK is never executed.",
+        "Method signatures use provider display types; exact DEX descriptors and instruction offsets are unavailable. Overload indices are local to this engine and artifact.",
+        "Class inventories use parsed metadata before code generation, including synthetic members that may be omitted from decompiled source. Source positions remain unknown.",
+        "Manifest summary fields are extracted by the upstream engine; decoded XML is retained for verification. APK signatures, split APKs, native libraries and Android runtime capture are not verified by this provider."
+      ],
+      "representation": "java",
+      "body_status": "available"
+    },
+    {
+      "evidence_id": "ev_c53cd979c90bc810bd1c57dd3043ee5df4f9e21271d6d4cbe01030a839b2cc97",
+      "operation": "inspect_android_method",
+      "parameters": {
+        "path": "<user-supplied>/vela-maps-v0.5.2621.apk",
+        "class_name": "defpackage.wy4",
+        "method_name": "l"
+      },
+      "subject": {
+        "name": "vela-maps-v0.5.2621.apk",
+        "digest": {
+          "sha256": "f168bc730568b98ee8132131658d9220ef5be3557af41fd373bdaf104c31b20f"
+        },
+        "format": "apk",
+        "architecture": null,
+        "local_path": "<user-supplied>/vela-maps-v0.5.2621.apk"
+      },
+      "limitations": [
+        "Static decompiler observations do not establish runtime behavior; the APK is never executed.",
+        "Method signatures use provider display types; exact DEX descriptors and instruction offsets are unavailable. Overload indices are local to this engine and artifact.",
+        "Class inventories use parsed metadata before code generation, including synthetic members that may be omitted from decompiled source. Source positions remain unknown.",
+        "Manifest summary fields are extracted by the upstream engine; decoded XML is retained for verification. APK signatures, split APKs, native libraries and Android runtime capture are not verified by this provider."
+      ],
+      "representation": "java",
+      "body_status": "available"
+    },
+    {
+      "evidence_id": "ev_ee66f5d8813636d03d5ea94596fc60a9ac36c627b94a9b17e8321d4c417d34ae",
+      "operation": "inspect_android_method",
+      "parameters": {
+        "path": "<user-supplied>/vela-maps-v0.5.2621.apk",
+        "class_name": "defpackage.wy4",
+        "method_name": "n"
+      },
+      "subject": {
+        "name": "vela-maps-v0.5.2621.apk",
+        "digest": {
+          "sha256": "f168bc730568b98ee8132131658d9220ef5be3557af41fd373bdaf104c31b20f"
+        },
+        "format": "apk",
+        "architecture": null,
+        "local_path": "<user-supplied>/vela-maps-v0.5.2621.apk"
+      },
+      "limitations": [
+        "Static decompiler observations do not establish runtime behavior; the APK is never executed.",
+        "Method signatures use provider display types; exact DEX descriptors and instruction offsets are unavailable. Overload indices are local to this engine and artifact.",
+        "Class inventories use parsed metadata before code generation, including synthetic members that may be omitted from decompiled source. Source positions remain unknown.",
+        "Manifest summary fields are extracted by the upstream engine; decoded XML is retained for verification. APK signatures, split APKs, native libraries and Android runtime capture are not verified by this provider."
+      ],
+      "representation": "java",
+      "body_status": "available"
+    },
+    {
+      "evidence_id": "ev_fd28051b63929a9b13c85afe9a0ae4aeb32f9724e64aebef8adf53d12081c212",
+      "operation": "inspect_android_method",
+      "parameters": {
+        "path": "<user-supplied>/vela-maps-v0.5.2621.apk",
+        "class_name": "defpackage.wy4",
+        "method_name": "g"
+      },
+      "subject": {
+        "name": "vela-maps-v0.5.2621.apk",
+        "digest": {
+          "sha256": "f168bc730568b98ee8132131658d9220ef5be3557af41fd373bdaf104c31b20f"
+        },
+        "format": "apk",
+        "architecture": null,
+        "local_path": "<user-supplied>/vela-maps-v0.5.2621.apk"
+      },
+      "limitations": [
+        "Static decompiler observations do not establish runtime behavior; the APK is never executed.",
+        "Method signatures use provider display types; exact DEX descriptors and instruction offsets are unavailable. Overload indices are local to this engine and artifact.",
+        "Class inventories use parsed metadata before code generation, including synthetic members that may be omitted from decompiled source. Source positions remain unknown.",
+        "Manifest summary fields are extracted by the upstream engine; decoded XML is retained for verification. APK signatures, split APKs, native libraries and Android runtime capture are not verified by this provider."
+      ],
+      "representation": "java",
+      "body_status": "available"
+    },
+    {
+      "evidence_id": "ev_ec25d1060b971a4dddd62b734721cdb805e906e74e9bdad5f0ff962991d004e2",
+      "operation": "inspect_android_method",
+      "parameters": {
+        "path": "<user-supplied>/vela-maps-v0.5.2621.apk",
+        "class_name": "defpackage.wy4",
+        "method_name": "d"
+      },
+      "subject": {
+        "name": "vela-maps-v0.5.2621.apk",
+        "digest": {
+          "sha256": "f168bc730568b98ee8132131658d9220ef5be3557af41fd373bdaf104c31b20f"
+        },
+        "format": "apk",
+        "architecture": null,
+        "local_path": "<user-supplied>/vela-maps-v0.5.2621.apk"
+      },
+      "limitations": [
+        "Static decompiler observations do not establish runtime behavior; the APK is never executed.",
+        "Method signatures use provider display types; exact DEX descriptors and instruction offsets are unavailable. Overload indices are local to this engine and artifact.",
+        "Class inventories use parsed metadata before code generation, including synthetic members that may be omitted from decompiled source. Source positions remain unknown.",
+        "Manifest summary fields are extracted by the upstream engine; decoded XML is retained for verification. APK signatures, split APKs, native libraries and Android runtime capture are not verified by this provider."
+      ],
+      "representation": "java",
+      "body_status": "available"
+    },
+    {
+      "evidence_id": "ev_d30091a9b0bd06a82e2ab280fc102955c23ae5f55ac50832b340f7e46064fc98",
+      "operation": "inspect_android_method",
+      "parameters": {
+        "path": "<user-supplied>/vela-maps-v0.5.2621.apk",
+        "class_name": "defpackage.wy4",
+        "method_name": "b"
+      },
+      "subject": {
+        "name": "vela-maps-v0.5.2621.apk",
+        "digest": {
+          "sha256": "f168bc730568b98ee8132131658d9220ef5be3557af41fd373bdaf104c31b20f"
+        },
+        "format": "apk",
+        "architecture": null,
+        "local_path": "<user-supplied>/vela-maps-v0.5.2621.apk"
+      },
+      "limitations": [
+        "Static decompiler observations do not establish runtime behavior; the APK is never executed.",
+        "Method signatures use provider display types; exact DEX descriptors and instruction offsets are unavailable. Overload indices are local to this engine and artifact.",
+        "Class inventories use parsed metadata before code generation, including synthetic members that may be omitted from decompiled source. Source positions remain unknown.",
+        "Manifest summary fields are extracted by the upstream engine; decoded XML is retained for verification. APK signatures, split APKs, native libraries and Android runtime capture are not verified by this provider."
+      ],
+      "representation": "java",
+      "body_status": "available"
+    },
+    {
+      "evidence_id": "ev_8b64877aafcf185b55bc268455834da8a20f69baab665a19c1b531c6b21bc992",
+      "operation": "inspect_android_method",
+      "parameters": {
+        "path": "<user-supplied>/vela-maps-v0.5.2621.apk",
+        "class_name": "defpackage.wy4",
+        "method_name": "onInit"
+      },
+      "subject": {
+        "name": "vela-maps-v0.5.2621.apk",
+        "digest": {
+          "sha256": "f168bc730568b98ee8132131658d9220ef5be3557af41fd373bdaf104c31b20f"
+        },
+        "format": "apk",
+        "architecture": null,
+        "local_path": "<user-supplied>/vela-maps-v0.5.2621.apk"
+      },
+      "limitations": [
+        "Static decompiler observations do not establish runtime behavior; the APK is never executed.",
+        "Method signatures use provider display types; exact DEX descriptors and instruction offsets are unavailable. Overload indices are local to this engine and artifact.",
+        "Class inventories use parsed metadata before code generation, including synthetic members that may be omitted from decompiled source. Source positions remain unknown.",
+        "Manifest summary fields are extracted by the upstream engine; decoded XML is retained for verification. APK signatures, split APKs, native libraries and Android runtime capture are not verified by this provider."
+      ],
+      "representation": "java",
+      "body_status": "available"
+    },
+    {
+      "evidence_id": "ev_407bfd24e38becba9905350605cc9b6f963e26edfab8be570de6d097cee55297",
+      "operation": "inspect_android_method",
+      "parameters": {
+        "path": "<user-supplied>/vela-maps-v0.5.2621.apk",
+        "class_name": "defpackage.vy4",
+        "method_name": "onStart"
+      },
+      "subject": {
+        "name": "vela-maps-v0.5.2621.apk",
+        "digest": {
+          "sha256": "f168bc730568b98ee8132131658d9220ef5be3557af41fd373bdaf104c31b20f"
+        },
+        "format": "apk",
+        "architecture": null,
+        "local_path": "<user-supplied>/vela-maps-v0.5.2621.apk"
+      },
+      "limitations": [
+        "Static decompiler observations do not establish runtime behavior; the APK is never executed.",
+        "Method signatures use provider display types; exact DEX descriptors and instruction offsets are unavailable. Overload indices are local to this engine and artifact.",
+        "Class inventories use parsed metadata before code generation, including synthetic members that may be omitted from decompiled source. Source positions remain unknown.",
+        "Manifest summary fields are extracted by the upstream engine; decoded XML is retained for verification. APK signatures, split APKs, native libraries and Android runtime capture are not verified by this provider."
+      ],
+      "representation": "java",
+      "body_status": "available"
+    },
+    {
+      "evidence_id": "ev_fc50f65ab4d5cbba2b190b17d54a428d3670e9172da250f4ae27aacbc427daa5",
+      "operation": "inspect_android_method",
+      "parameters": {
+        "path": "<user-supplied>/vela-maps-v0.5.2621.apk",
+        "class_name": "defpackage.vy4",
+        "method_name": "onDone"
+      },
+      "subject": {
+        "name": "vela-maps-v0.5.2621.apk",
+        "digest": {
+          "sha256": "f168bc730568b98ee8132131658d9220ef5be3557af41fd373bdaf104c31b20f"
+        },
+        "format": "apk",
+        "architecture": null,
+        "local_path": "<user-supplied>/vela-maps-v0.5.2621.apk"
+      },
+      "limitations": [
+        "Static decompiler observations do not establish runtime behavior; the APK is never executed.",
+        "Method signatures use provider display types; exact DEX descriptors and instruction offsets are unavailable. Overload indices are local to this engine and artifact.",
+        "Class inventories use parsed metadata before code generation, including synthetic members that may be omitted from decompiled source. Source positions remain unknown.",
+        "Manifest summary fields are extracted by the upstream engine; decoded XML is retained for verification. APK signatures, split APKs, native libraries and Android runtime capture are not verified by this provider."
+      ],
+      "representation": "java",
+      "body_status": "available"
+    },
+    {
+      "evidence_id": "ev_b8a1898c23cf63814c3c647c47bcc64d36bfd0bb3a431487b31e25d7c1325bf7",
+      "operation": "inspect_android_method",
+      "parameters": {
+        "path": "<user-supplied>/vela-maps-v0.5.2621.apk",
+        "class_name": "defpackage.vy4",
+        "method_name": "onError"
+      },
+      "subject": {
+        "name": "vela-maps-v0.5.2621.apk",
+        "digest": {
+          "sha256": "f168bc730568b98ee8132131658d9220ef5be3557af41fd373bdaf104c31b20f"
+        },
+        "format": "apk",
+        "architecture": null,
+        "local_path": "<user-supplied>/vela-maps-v0.5.2621.apk"
+      },
+      "limitations": [
+        "Static decompiler observations do not establish runtime behavior; the APK is never executed.",
+        "Method signatures use provider display types; exact DEX descriptors and instruction offsets are unavailable. Overload indices are local to this engine and artifact.",
+        "Class inventories use parsed metadata before code generation, including synthetic members that may be omitted from decompiled source. Source positions remain unknown.",
+        "Manifest summary fields are extracted by the upstream engine; decoded XML is retained for verification. APK signatures, split APKs, native libraries and Android runtime capture are not verified by this provider."
+      ],
+      "representation": "java",
+      "body_status": "available"
+    },
+    {
+      "evidence_id": "ev_ecccc8f0ff7965bda302170bb72588b69128a009b84e7f1ad281648bebd3f77b",
+      "operation": "inspect_android_method",
+      "parameters": {
+        "path": "<user-supplied>/vela-maps-v0.5.2621.apk",
+        "class_name": "defpackage.vy4",
+        "method_name": "onStop"
+      },
+      "subject": {
+        "name": "vela-maps-v0.5.2621.apk",
+        "digest": {
+          "sha256": "f168bc730568b98ee8132131658d9220ef5be3557af41fd373bdaf104c31b20f"
+        },
+        "format": "apk",
+        "architecture": null,
+        "local_path": "<user-supplied>/vela-maps-v0.5.2621.apk"
+      },
+      "limitations": [
+        "Static decompiler observations do not establish runtime behavior; the APK is never executed.",
+        "Method signatures use provider display types; exact DEX descriptors and instruction offsets are unavailable. Overload indices are local to this engine and artifact.",
+        "Class inventories use parsed metadata before code generation, including synthetic members that may be omitted from decompiled source. Source positions remain unknown.",
+        "Manifest summary fields are extracted by the upstream engine; decoded XML is retained for verification. APK signatures, split APKs, native libraries and Android runtime capture are not verified by this provider."
+      ],
+      "representation": "java",
+      "body_status": "available"
+    },
+    {
+      "evidence_id": "ev_cd4fe0258dcd9ee8a1ab3339a753ecdb537c49c0e8ae8657627ea069588914c5",
+      "operation": "inspect_android_method",
+      "parameters": {
+        "path": "<user-supplied>/vela-maps-v0.5.2621.apk",
+        "class_name": "defpackage.pn1",
+        "method_name": "invoke"
+      },
+      "subject": {
+        "name": "vela-maps-v0.5.2621.apk",
+        "digest": {
+          "sha256": "f168bc730568b98ee8132131658d9220ef5be3557af41fd373bdaf104c31b20f"
+        },
+        "format": "apk",
+        "architecture": null,
+        "local_path": "<user-supplied>/vela-maps-v0.5.2621.apk"
+      },
+      "limitations": [
+        "Static decompiler observations do not establish runtime behavior; the APK is never executed.",
+        "Method signatures use provider display types; exact DEX descriptors and instruction offsets are unavailable. Overload indices are local to this engine and artifact.",
+        "Class inventories use parsed metadata before code generation, including synthetic members that may be omitted from decompiled source. Source positions remain unknown.",
+        "Manifest summary fields are extracted by the upstream engine; decoded XML is retained for verification. APK signatures, split APKs, native libraries and Android runtime capture are not verified by this provider."
+      ],
+      "representation": "java",
+      "body_status": "available"
+    },
+    {
+      "evidence_id": "ev_27d8e86dc0615c2eb49d23a4c58595619decfe91eb9eb5696c19b05303e81fa6",
+      "operation": "inspect_android_method",
+      "parameters": {
+        "path": "<user-supplied>/vela-maps-v0.5.2621.apk",
+        "class_name": "defpackage.dn2",
+        "method_name": "invoke"
+      },
+      "subject": {
+        "name": "vela-maps-v0.5.2621.apk",
+        "digest": {
+          "sha256": "f168bc730568b98ee8132131658d9220ef5be3557af41fd373bdaf104c31b20f"
+        },
+        "format": "apk",
+        "architecture": null,
+        "local_path": "<user-supplied>/vela-maps-v0.5.2621.apk"
+      },
+      "limitations": [
+        "Static decompiler observations do not establish runtime behavior; the APK is never executed.",
+        "Method signatures use provider display types; exact DEX descriptors and instruction offsets are unavailable. Overload indices are local to this engine and artifact.",
+        "Class inventories use parsed metadata before code generation, including synthetic members that may be omitted from decompiled source. Source positions remain unknown.",
+        "Manifest summary fields are extracted by the upstream engine; decoded XML is retained for verification. APK signatures, split APKs, native libraries and Android runtime capture are not verified by this provider."
+      ],
+      "representation": "java",
+      "body_status": "available"
+    },
+    {
+      "evidence_id": "ev_f0eb41d9961bebff00aa19a1b18384cd10b147c0ff11c29c826e8f3a67618705",
+      "operation": "inspect_android_method",
+      "parameters": {
+        "path": "<user-supplied>/vela-maps-v0.5.2621.apk",
+        "class_name": "defpackage.x43",
+        "method_name": "run"
+      },
+      "subject": {
+        "name": "vela-maps-v0.5.2621.apk",
+        "digest": {
+          "sha256": "f168bc730568b98ee8132131658d9220ef5be3557af41fd373bdaf104c31b20f"
+        },
+        "format": "apk",
+        "architecture": null,
+        "local_path": "<user-supplied>/vela-maps-v0.5.2621.apk"
+      },
+      "limitations": [
+        "Static decompiler observations do not establish runtime behavior; the APK is never executed.",
+        "Method signatures use provider display types; exact DEX descriptors and instruction offsets are unavailable. Overload indices are local to this engine and artifact.",
+        "Class inventories use parsed metadata before code generation, including synthetic members that may be omitted from decompiled source. Source positions remain unknown.",
+        "Manifest summary fields are extracted by the upstream engine; decoded XML is retained for verification. APK signatures, split APKs, native libraries and Android runtime capture are not verified by this provider."
+      ],
+      "representation": "java",
+      "body_status": "not_available"
+    },
+    {
+      "evidence_id": "ev_1feef9bbd79038ef6a464fef385c4ec4c3ec31c0e4641308991d92fba92f255f",
+      "operation": "inspect_android_method",
+      "parameters": {
+        "path": "<user-supplied>/vela-maps-v0.5.2621.apk",
+        "class_name": "defpackage.v43",
+        "method_name": "call"
+      },
+      "subject": {
+        "name": "vela-maps-v0.5.2621.apk",
+        "digest": {
+          "sha256": "f168bc730568b98ee8132131658d9220ef5be3557af41fd373bdaf104c31b20f"
+        },
+        "format": "apk",
+        "architecture": null,
+        "local_path": "<user-supplied>/vela-maps-v0.5.2621.apk"
+      },
+      "limitations": [
+        "Static decompiler observations do not establish runtime behavior; the APK is never executed.",
+        "Method signatures use provider display types; exact DEX descriptors and instruction offsets are unavailable. Overload indices are local to this engine and artifact.",
+        "Class inventories use parsed metadata before code generation, including synthetic members that may be omitted from decompiled source. Source positions remain unknown.",
+        "Manifest summary fields are extracted by the upstream engine; decoded XML is retained for verification. APK signatures, split APKs, native libraries and Android runtime capture are not verified by this provider."
+      ],
+      "representation": "java",
+      "body_status": "not_available"
+    },
+    {
+      "evidence_id": "ev_2d0adaac95ada4858ff806681fc3267b60ca4833f3565147c4205fbda140a3f6",
+      "operation": "inspect_android_method",
+      "parameters": {
+        "path": "<user-supplied>/vela-maps-v0.5.2621.apk",
+        "class_name": "defpackage.u43",
+        "method_name": "invoke"
+      },
+      "subject": {
+        "name": "vela-maps-v0.5.2621.apk",
+        "digest": {
+          "sha256": "f168bc730568b98ee8132131658d9220ef5be3557af41fd373bdaf104c31b20f"
+        },
+        "format": "apk",
+        "architecture": null,
+        "local_path": "<user-supplied>/vela-maps-v0.5.2621.apk"
+      },
+      "limitations": [
+        "Static decompiler observations do not establish runtime behavior; the APK is never executed.",
+        "Method signatures use provider display types; exact DEX descriptors and instruction offsets are unavailable. Overload indices are local to this engine and artifact.",
+        "Class inventories use parsed metadata before code generation, including synthetic members that may be omitted from decompiled source. Source positions remain unknown.",
+        "Manifest summary fields are extracted by the upstream engine; decoded XML is retained for verification. APK signatures, split APKs, native libraries and Android runtime capture are not verified by this provider."
+      ],
+      "representation": "java",
+      "body_status": "available"
+    },
+    {
+      "evidence_id": "ev_7d785ba94fe3d7567b0f0faa972d2d8fb4d2a306b8dfc2354163b57af69d2049",
+      "operation": "inspect_android_method",
+      "parameters": {
+        "path": "<user-supplied>/vela-maps-v0.5.2621.apk",
+        "class_name": "defpackage.y43",
+        "method_name": "h"
+      },
+      "subject": {
+        "name": "vela-maps-v0.5.2621.apk",
+        "digest": {
+          "sha256": "f168bc730568b98ee8132131658d9220ef5be3557af41fd373bdaf104c31b20f"
+        },
+        "format": "apk",
+        "architecture": null,
+        "local_path": "<user-supplied>/vela-maps-v0.5.2621.apk"
+      },
+      "limitations": [
+        "Static decompiler observations do not establish runtime behavior; the APK is never executed.",
+        "Method signatures use provider display types; exact DEX descriptors and instruction offsets are unavailable. Overload indices are local to this engine and artifact.",
+        "Class inventories use parsed metadata before code generation, including synthetic members that may be omitted from decompiled source. Source positions remain unknown.",
+        "Manifest summary fields are extracted by the upstream engine; decoded XML is retained for verification. APK signatures, split APKs, native libraries and Android runtime capture are not verified by this provider."
+      ],
+      "representation": "java",
+      "body_status": "available"
+    },
+    {
+      "evidence_id": "ev_bdcecbe1118035a2774ca1f15d1fa26c22c8dfaf1e1b1a0706f125f6ffc16294",
+      "operation": "inspect_android_method",
+      "parameters": {
+        "path": "<user-supplied>/vela-maps-v0.5.2621.apk",
+        "class_name": "defpackage.a9",
+        "method_name": "run"
+      },
+      "subject": {
+        "name": "vela-maps-v0.5.2621.apk",
+        "digest": {
+          "sha256": "f168bc730568b98ee8132131658d9220ef5be3557af41fd373bdaf104c31b20f"
+        },
+        "format": "apk",
+        "architecture": null,
+        "local_path": "<user-supplied>/vela-maps-v0.5.2621.apk"
+      },
+      "limitations": [
+        "Static decompiler observations do not establish runtime behavior; the APK is never executed.",
+        "Method signatures use provider display types; exact DEX descriptors and instruction offsets are unavailable. Overload indices are local to this engine and artifact.",
+        "Class inventories use parsed metadata before code generation, including synthetic members that may be omitted from decompiled source. Source positions remain unknown.",
+        "Manifest summary fields are extracted by the upstream engine; decoded XML is retained for verification. APK signatures, split APKs, native libraries and Android runtime capture are not verified by this provider."
+      ],
+      "representation": "java",
+      "body_status": "available"
+    },
+    {
+      "evidence_id": "ev_bd7b3b375d90585fa09c815f17ae92edb6620f98da54d31d0a8954214bbc1b3c",
+      "operation": "inspect_android_method",
+      "parameters": {
+        "path": "<user-supplied>/vela-maps-v0.5.2621.apk",
+        "class_name": "defpackage.v4",
+        "method_name": "invoke"
+      },
+      "subject": {
+        "name": "vela-maps-v0.5.2621.apk",
+        "digest": {
+          "sha256": "f168bc730568b98ee8132131658d9220ef5be3557af41fd373bdaf104c31b20f"
+        },
+        "format": "apk",
+        "architecture": null,
+        "local_path": "<user-supplied>/vela-maps-v0.5.2621.apk"
+      },
+      "limitations": [
+        "Static decompiler observations do not establish runtime behavior; the APK is never executed.",
+        "Method signatures use provider display types; exact DEX descriptors and instruction offsets are unavailable. Overload indices are local to this engine and artifact.",
+        "Class inventories use parsed metadata before code generation, including synthetic members that may be omitted from decompiled source. Source positions remain unknown.",
+        "Manifest summary fields are extracted by the upstream engine; decoded XML is retained for verification. APK signatures, split APKs, native libraries and Android runtime capture are not verified by this provider."
+      ],
+      "representation": "java",
+      "body_status": "available"
+    }
+  ]
+}

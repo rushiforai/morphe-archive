@@ -1,12 +1,15 @@
 /*
  * Copyright 2026 Morphe.
  * https://github.com/MorpheApp/morphe-patches
+ * Modified by lavinhoque33, 2026-11-17.
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  */
 
 package app.morphe.extension.youtube.patches;
 
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.util.Base64;
@@ -142,7 +145,8 @@ public final class OpenSystemShareSheetPatch {
         if (videoId != null && playlistId == null) {
             return videoURLPrefix + videoId;
         }
-        if (playlistId != null && videoId == null) {
+        // Mixes have no playlist page without a video. Let the in-app share sheet resolve them.
+        if (playlistId != null && videoId == null && !playlistId.startsWith("RD")) {
             return longURLPrefix + "/playlist?list=" + playlistId;
         }
         return null;
@@ -225,10 +229,17 @@ public final class OpenSystemShareSheetPatch {
         shareIntent.setType("text/plain");
         shareIntent.putExtra(Intent.EXTRA_TEXT, intentUrl);
         final Intent chooserIntent = Intent.createChooser(shareIntent, "");
-        chooserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_USER_ACTION);
+        // Keep the chooser in the current task so sharing does not send playback into PiP.
+        chooserIntent.addFlags(Intent.FLAG_ACTIVITY_NO_USER_ACTION);
+        Activity activity = Utils.getActivity();
+        Context context = activity;
+        if (activity == null || activity.isFinishing()) {
+            context = Utils.getContext();
+            chooserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        }
 
         try {
-            Utils.getContext().startActivity(chooserIntent);
+            context.startActivity(chooserIntent);
         } catch (Exception ex) {
             Logger.printException(() -> "Can not open System Share panel: " + intentUrl, ex);
         }

@@ -85,7 +85,9 @@ val freeProxiesPatch = bytecodePatch(
         "proxy list, refreshed every 6 hours. Telegram connects through them unless you use a proxy of your own. " +
         "The phone number screen also always has the proxy button, so you can add one before you sign in, " +
         "and Proxy order puts Telegram's proxy list in an order of your own, with pinned proxies on top. " +
-        "Finding proxies starts off. Turn it on in HushTelegram settings > Chat list.",
+        "V2Ray-style servers routes Telegram through your own VMess, VLESS, Trojan and Shadowsocks servers by way " +
+        "of a proxy that runs inside Telegram. Finding proxies and V2Ray-style servers start off. Turn them on in " +
+        "HushTelegram settings > Chat list.",
     default = true,
 ) {
     category("Chats")
@@ -118,6 +120,13 @@ val freeProxiesPatch = bytecodePatch(
             order.apply()
             enableCapability("proxyOrder")
         }
+        // V2Ray-style servers adds its local proxy as a tg://socks link with a login, so it needs a reader that keeps one.
+        if (calls.readsLogin) {
+            enableCapability("v2rayProxies")
+        } else {
+            patchLog.warning("$PATCH: Telegram's proxy link reader no longer reads a SOCKS5 login. " +
+                "The patch goes on without V2Ray-style servers.")
+        }
         enableStatus("freeProxies")
     }
 }
@@ -134,10 +143,13 @@ internal class ProxyCalls(
     val field: String,
     val parse: String,
     val write: String,
+    /** Whether [parse] reads a tg://socks link's user and pass, which V2Ray-style servers' local proxy needs. */
+    val readsLogin: Boolean,
 )
 
 internal fun BytecodePatchContext.resolveProxyCalls(): ProxyCalls {
     requireStatusMethod("freeProxies")
+    requireStatusMethod("v2rayProxies")
     controlHook(FREE_PROXIES, "signInButton", listOf("I"), "Z")
     val apply = tgClassDefBy(CONNECTIONS_MANAGER).methods.filter {
         it.name == "setProxySettings" && AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == "V" &&
@@ -174,6 +186,9 @@ internal fun BytecodePatchContext.resolveProxyCalls(): ProxyCalls {
         field = "${info.type}->${field.name}:$data",
         parse = "$data->${parse.name}($URI)$data",
         write = "$data->${write.name}($EDITOR)V",
+        readsLogin = parse.controlBody().let { body ->
+            listOf("user", "pass").all { key -> body.any { it.controlString() == key } }
+        },
     )
 }
 

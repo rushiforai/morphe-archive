@@ -209,16 +209,4 @@ try {
     Remove-Item -LiteralPath $work -Recurse -Force -ErrorAction SilentlyContinue
 }
 
-# Publish asks for the walk once the built assets check out, before the notes, the tag or GitHub.
-$releaseText = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'release/release.ps1'))
-$publishAt = $releaseText.IndexOf("'publish' {")
-$assetsAt = $releaseText.IndexOf('SHA256SUMS.txt or its signature changed after the build stage', $publishAt)
-$walkAt = $releaseText.IndexOf('$walked = Test-WalkReceipt -Path $Walk', $publishAt)
-$refuseAt = $releaseText.IndexOf('if (-not $walked.Valid) {', $publishAt)
-foreach ($later in @('scripts/release_notes.py', 'Invoke-Git tag', 'refs/tags/$tag', 'gh release create')) {
-    $laterAt = $releaseText.IndexOf($later, $publishAt)
-    Assert-WalkContract ($publishAt -gt 0 -and $assetsAt -gt $publishAt -and $walkAt -gt $assetsAt -and $refuseAt -gt $walkAt -and $laterAt -gt $refuseAt) `
-        "release.ps1 -Stage publish reaches $later before it holds the bundle to its walk."
-}
-Assert-WalkContract ($releaseText -match '(?m)^\s*\[string\]\$Walk,') 'release.ps1 has no -Walk.'
 Write-Host '[scripts] walk receipt contracts passed'

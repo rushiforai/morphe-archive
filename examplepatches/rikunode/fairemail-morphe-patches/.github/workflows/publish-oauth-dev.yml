@@ -1,0 +1,141 @@
+name: Publish FairEmail OAuth dev source
+on:
+  push:
+    branches: [dev]
+    paths:
+      - '.github/workflows/publish-oauth-dev.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fairemail-dev-publish
+  cancel-in-progress: false
+
+jobs:
+  release-dev:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      VERSION: 0.2.1-dev.3
+    steps:
+      - name: Checkout dev branch
+        uses: actions/checkout@v4
+        with:
+          ref: dev
+          persist-credentials: true
+      - name: Checkout pinned Morphe Gradle plugin
+        uses: actions/checkout@v4
+        with:
+          repository: MorpheApp/morphe-patches-gradle-plugin
+          ref: 0a2c1971e2913a6ea5e8fd192d359765169a6a06
+          path: build-logic/morphe-patches-gradle-plugin
+          persist-credentials: false
+      - name: Checkout pinned Morphe patcher
+        uses: actions/checkout@v4
+        with:
+          repository: MorpheApp/morphe-patcher
+          ref: 812e96eaac173cd058ba49e242325371959befae
+          path: build-logic/morphe-patcher
+          persist-credentials: false
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Verify stable source metadata and run all static tests
+        run: |
+          python3 -m unittest discover -s tests -v
+          python3 scripts/validate_morphe_metadata.py
+          python3 - <<'PY'
+          from pathlib import Path
+          version = next(line.split('=', 1)[1].strip() for line in Path('gradle.properties').read_text().splitlines() if line.strip().startswith('version ='))
+          assert version == "0.2.1-dev.3", version
+          print("Dev version bump: PASS")
+          PY
+      - name: Build Android loadable experimental patch bundle and metadata index
+        run: bash ./gradlew :patches:generatePatchesList --no-daemon
+      - name: Verify generated OAuth + changelog + cloned FairEmail six-patch MPP
+        run: |
+          python3 - <<'PY'
+          import json, hashlib, zipfile
+          from pathlib import Path
+          from scripts.validate_morphe_bundle import validate_morphe_bundle
+          version = "0.2.1-dev.3"
+          path = Path(f"patches/build/libs/patches-{version}.mpp")
+          assert path.is_file() and path.stat().st_size > 1000
+          validate_morphe_bundle(path)
+          index = json.loads(Path("patches-list.json").read_text(encoding="utf-8"))
+          assert index["version"] == version
+          patches = index["patches"]
+          assert len(patches) == 6, len(patches)
+          names = {p["name"] for p in patches}
+          assert names == {
+              "Permanently hide donation banner",
+              "Enable local settings export (experimental)",
+              "Enable local Pro features (experimental)",
+              "Enable OAuth setup in re-signed FairEmail (experimental)",
+              "Suppress automatic changelog popup",
+              "Clone FairEmail alongside official app",
+          }, names
+          for patch in patches:
+              assert patch["default"] is (patch["name"] in {"Permanently hide donation banner", "Suppress automatic changelog popup", "Clone FairEmail alongside official app"})
+              package, = patch["compatiblePackages"]
+              assert package["packageName"] == "eu.faircode.email"
+              versions = [t["version"] for t in package["targets"]]
+              if patch["name"].startswith("Enable OAuth setup") or patch["name"] in {"Suppress automatic changelog popup", "Clone FairEmail alongside official app"}:
+                  assert versions == ["1.2338"], versions
+              else:
+                  assert versions == ["1.2337", "1.2338"], versions
+          clone, = (p for p in patches if p["name"] == "Clone FairEmail alongside official app")
+          defaults = {o["key"]: o["default"] for o in clone["options"]}
+          assert defaults == {"packageName": "Default", "updatePermissions": True, "updateProviders": True}, defaults
+          from scripts.verify_release_candidate import verify_index, verify_bundle, verify_tracked_assets
+          verify_index(index, version)
+          verify_bundle(path)
+          verify_tracked_assets()
+          print("Validated dev MPP:", path, "sha256=", hashlib.sha256(path.read_bytes()).hexdigest())
+          PY
+      - name: Publish distinct GitHub prerelease without modifying stable v0.2.0
+        shell: bash
+        run: |
+          TAG="v$VERSION"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Refusing to overwrite an existing GitHub release: $TAG"
+            exit 1
+          fi
+          gh release create "$TAG" "patches/build/libs/patches-$VERSION.mpp"             --target "$GITHUB_SHA"             --title "FairEmail Morphe $VERSION — OAuth setup experiment"             --prerelease             --notes "Development-channel bundle with six FairEmail patches, including built-in Clone FairEmail ON by default (same eu.faircode.email.morphe suffix as Morphe Clone app). Do not enable the separate Morphe Clone app simultaneously. OAuth setup patch remains OFF by default. User demonstrated Gmail OAuth, incoming mail and reports account import on a second device; SMTP send, token refresh, safe in-place clone upgrade and native clone port test are still pending. Stable v0.2.0 is unchanged."
+      - name: Publish the matching dev-branch JSON only after release exists
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from datetime import datetime, timezone
+          from pathlib import Path
+          from scripts.validate_morphe_metadata import validate_asset
+          version = "0.2.1-dev.3"
+          manifest_file = Path("patches-bundle.json")
+          manifest = json.loads(manifest_file.read_text(encoding="utf-8"))
+          manifest["created_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S")
+          manifest["description"] = "Unofficial FairEmail Morphe development preview: six patches including opt-in OAuth setup, automatic changelog suppression and built-in Clone FairEmail for 1.2338. Do not combine this clone with official Morphe Clone app. Gmail account addition and incoming mail observed; cross-device account import user-confirmed, SMTP and refresh unverified."
+          manifest["version"] = version
+          manifest["download_url"] = f"https://github.com/rikunode/fairemail-morphe-patches/releases/download/v{version}/patches-{version}.mpp"
+          manifest["signature_download_url"] = ""
+          manifest_file.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+          index = json.loads(Path("patches-list.json").read_text(encoding="utf-8"))
+          assert index["version"] == manifest["version"]
+          # The validator derives VERSION from the manifest at module import;
+          # reload it now that the new metadata has been written.
+          import importlib, scripts.validate_morphe_metadata as validator
+          importlib.reload(validator)
+          validator.validate_asset(manifest, index)
+          print("Dev channel JSON pair: PASS", manifest["version"], manifest["download_url"])
+          PY
+          python3 -m unittest discover -s tests -v
+          python3 scripts/validate_morphe_metadata.py
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add patches-bundle.json patches-list.json
+          git commit -m "chore(dev): publish 0.2.1-dev.3 OAuth bundle metadata"
+          git push origin HEAD:dev

@@ -30,7 +30,7 @@ final class MenuIconIds {
     private static final int SMALL = 0;
     private static final int MEDIUM = 1;
 
-    /** Bookmark icon id -> its size, in both icon families (DSSystemIcons and DSSystemIconsV2). */
+    /** Icon id of the row an item is copied from (a bookmark, or Send) -> its size, in both icon families (DSSystemIcons and DSSystemIconsV2). */
     private static final Map<Integer, Integer> BOOKMARK_SIZE = new HashMap<>();
     /** Bookmark ids of the V2 family, whose copy and document icons are the outlined ones. */
     private static final Map<Integer, Boolean> BOOKMARK_V2 = new HashMap<>();
@@ -40,6 +40,8 @@ final class MenuIconIds {
         bookmark(MEDIUM, false, 148, 149, 865, 866, 1829, 1830, 1861, 1862);
         bookmark(SMALL, true, 1124, 1127);
         bookmark(MEDIUM, true, 1122, 1123, 1125, 1126, 1834, 1835, 1872, 1873);
+        // The Send icon, which a comment's menu copies since it has no Save row.
+        bookmark(MEDIUM, false, 426);
     }
 
     private MenuIconIds() {
@@ -65,9 +67,6 @@ final class MenuIconIds {
             case "download":
                 // Download (the V2 family has none; ids are global, so the V1 one is used).
                 return small ? 561 : 136;
-            case "pdf":
-                // Document / File outline.
-                return v2 ? (small ? 1300 : 1299) : (small ? 454 : 455);
             default:
                 return 0;
         }

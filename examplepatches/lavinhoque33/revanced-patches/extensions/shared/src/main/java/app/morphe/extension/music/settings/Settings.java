@@ -183,6 +183,10 @@ public class Settings extends SharedYouTubeSettings {
     // Settings menu filter
     public static final StringSetting SETTINGS_MENU_FILTER_STRINGS = new StringSetting("morphe_settings_menu_filter_strings", "", true);
     public static final StringSetting SETTINGS_MENU_FILTER_DISCOVERED = new StringSetting("morphe_settings_menu_filter_discovered", "", true, false);
+    public static final BooleanSetting HIDE_YOUR_DOWNLOADS_SHELF = new BooleanSetting(
+            "morphe_music_hide_your_downloads_shelf", FALSE, true);
+    public static final BooleanSetting HIDE_YOU_MAY_ALSO_LIKE_SECTION = new BooleanSetting(
+            "morphe_music_hide_you_may_also_like_section", FALSE, true);
     public static final BooleanSetting HIDE_BUTTON_SHELF = new BooleanSetting("revanced_hide_button_shelf", FALSE, true);
     public static final BooleanSetting HIDE_CAROUSEL_SHELF = new BooleanSetting("revanced_hide_carousel_shelf", FALSE, true);
     public static final BooleanSetting HIDE_CAST_BUTTON = new BooleanSetting("revanced_hide_cast_button", TRUE);

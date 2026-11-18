@@ -7,5 +7,5 @@ internal val iconPackStudio = Compatibility(
     name = "Icon Pack Studio",
     packageName = "ginlemon.iconpackstudio",
     appIconColor = 0xF4287D,
-    targets = listOf(AppTarget("2.5 build 003"))
+    targets = listOf(AppTarget("2.5 build 005"))
 )

@@ -1,14 +1,29 @@
 package app.hushmessenger.extension;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.Bitmap;
+import android.graphics.BitmapShader;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.ColorFilter;
+import android.graphics.Matrix;
+import android.graphics.Outline;
+import android.graphics.Paint;
+import android.graphics.PixelFormat;
+import android.graphics.RectF;
+import android.graphics.Shader;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.InsetDrawable;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.DisplayMetrics;
+import android.view.PixelCopy;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -17,10 +32,12 @@ import android.widget.Button;
 /**
  * The look of the questions Hush asks over a chat (#179). The platform's alert sheet is a flat grey rectangle with
  * shouting buttons, which sits badly on top of Messenger, so every Hush question goes up as a rounded card in the
- * palette's own colour with a filled accent button for the action and a plain one for Cancel. On Android 12 and later,
- * where the system will blur behind a window, the chat behind the card is blurred and the card itself is slightly
- * see-through, which is the glass look the request asked for. Where blur isn't on, the card stays solid and the usual
- * dim stands in, so nothing is left washed out. Messenger's own dialogs are untouched.
+ * palette's own colour with a filled accent button for the action and a plain one for Cancel. The card is frosted
+ * glass, which is the look the request asked for: on Android 12 and later, where the system will blur behind a window,
+ * the chat behind is blurred and the card is a see-through tint over it with a light edge. Where the system won't blur,
+ * a small copy of the chat is taken as the card goes up, blurred here and drawn inside the card under the same tint, so
+ * the card is frosted all the same. Until that copy arrives, and where there's no chat window to copy (a chat head),
+ * the card is solid, so nothing is left washed out. Messenger's own dialogs are untouched.
  */
 final class ChatDialogs {
     private ChatDialogs() {}
@@ -32,8 +49,10 @@ final class ChatDialogs {
     static final int BLUR_DP = 32;
     static final int BUTTON_CORNER_DP = 20;
     static final int BUTTON_PADDING_DP = 18;
-    /** The card's alpha while the chat behind it is blurred. Solid without the blur. */
-    static final int GLASS_ALPHA = 0xE8;
+    /** The card's alpha over the blurred chat, low enough that the chat shows through as glass. Solid without it. */
+    static final int GLASS_ALPHA = 0xA6;
+    /** How far the copy of the chat is shrunk before it's blurred, which keeps the blur to a blink. */
+    static final int FROST_SCALE = 8;
     /** The dim behind the card, lighter while the blur carries the separation. */
     static final float DIM = 0.45f;
     static final float DIM_WITH_BLUR = 0.2f;
@@ -45,6 +64,13 @@ final class ChatDialogs {
 
     static volatile Blur blur = ChatDialogs::defaultBlur;
 
+    /** Copies what a window shows into a bitmap, which PixelCopy does on a phone. Tests swap it. */
+    interface Copier {
+        void copy(Window window, Bitmap into, PixelCopy.OnPixelCopyFinishedListener done, Handler on);
+    }
+
+    static volatile Copier copier = PixelCopy::request;
+
     /** The window's side of the look, set before the dialog goes up. Never throws. */
     static void dress(Dialog dialog) {
         try {
@@ -53,21 +79,147 @@ final class ChatDialogs {
             Context context = dialog.getContext();
             float density = density(context);
             boolean light = MaterialYouTheme.chatIsLight();
-            boolean blurred = blur.enabled(context);
+            boolean blurred = Build.VERSION.SDK_INT >= 31 && blur.enabled(context);
             GradientDrawable card = new GradientDrawable();
             card.setCornerRadius(CORNER_DP * density);
             card.setColor(blurred ? glass(surface(light)) : surface(light));
+            if (blurred) card.setStroke(hairline(density), edge(light));
             int inset = (int) (INSET_DP * density);
             window.setBackgroundDrawable(new InsetDrawable(card, inset, inset, inset, inset));
             window.setDimAmount(blurred ? DIM_WITH_BLUR : DIM);
-            if (blurred && Build.VERSION.SDK_INT >= 31) {
+            if (blurred) {
                 window.addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND);
                 window.getAttributes().setBlurBehindRadius((int) (BLUR_DP * density));
+            } else {
+                frost(dialog, window, light, density, inset);
             }
         } catch (Throwable error) {
             // A question that looks like the platform's own is still a question.
             Settings.hookFailedPrivately("chat_dialog", "Can't dress a question over a chat", error);
         }
+    }
+
+    /**
+     * Frosts the card on a phone that won't blur behind a window: the chat's window is copied small just before the card
+     * goes up, and once the copy is in, it's blurred and becomes the card's glass. Without a chat window that has been
+     * drawn, which is the case over a chat head, the card stays solid.
+     */
+    private static void frost(Dialog dialog, Window window, boolean light, float density, int inset) {
+        Activity under = ChatJump.activity(dialog.getContext());
+        Window chat = under == null ? null : under.getWindow();
+        View behind = chat == null ? null : chat.peekDecorView();
+        if (behind == null || !behind.isAttachedToWindow() || behind.getWidth() <= 0 || behind.getHeight() <= 0) return;
+        int[] copiedAt = new int[2];
+        behind.getLocationOnScreen(copiedAt);
+        Bitmap copy = Bitmap.createBitmap(Math.max(1, behind.getWidth() / FROST_SCALE),
+            Math.max(1, behind.getHeight() / FROST_SCALE), Bitmap.Config.ARGB_8888);
+        copier.copy(chat, copy, result -> {
+            try {
+                if (result != PixelCopy.SUCCESS || !dialog.isShowing()) return;
+                blur(copy, Math.max(1, Math.round(BLUR_DP * density / FROST_SCALE)));
+                Frost glass = new Frost(copy, copiedAt, window.getDecorView(), CORNER_DP * density,
+                    glass(surface(light)), edge(light), hairline(density));
+                window.setBackgroundDrawable(new InsetDrawable(glass, inset, inset, inset, inset));
+            } catch (Throwable error) {
+                Settings.hookFailedPrivately("chat_dialog", "Can't frost a question over a chat", error);
+            }
+        }, new Handler(Looper.getMainLooper()));
+    }
+
+    /** A box blur run three times each way, which comes out close to a Gaussian one. Changes [bitmap] in place. */
+    static void blur(Bitmap bitmap, int radius) {
+        int width = bitmap.getWidth(), height = bitmap.getHeight();
+        int[] pixels = new int[width * height], spare = new int[pixels.length];
+        bitmap.getPixels(pixels, 0, width, 0, 0, width, height);
+        for (int pass = 0; pass < 3; pass++) {
+            boxBlur(pixels, spare, width, height, radius, 1, width);
+            boxBlur(spare, pixels, height, width, radius, width, 1);
+        }
+        bitmap.setPixels(pixels, 0, width, 0, 0, width, height);
+    }
+
+    /**
+     * One pass of a running-sum box blur along [lines] lines of [length] pixels each, where [step] moves along a line and
+     * [next] moves to the next line, with the edge pixel repeated past either end.
+     */
+    private static void boxBlur(int[] from, int[] to, int length, int lines, int radius, int step, int next) {
+        int span = radius * 2 + 1;
+        for (int line = 0; line < lines; line++) {
+            int start = line * next;
+            int a = 0, r = 0, g = 0, b = 0;
+            for (int i = -radius; i <= radius; i++) {
+                int pixel = from[start + Math.min(length - 1, Math.max(0, i)) * step];
+                a += pixel >>> 24; r += (pixel >> 16) & 0xFF; g += (pixel >> 8) & 0xFF; b += pixel & 0xFF;
+            }
+            for (int i = 0; i < length; i++) {
+                to[start + i * step] = ((a / span) << 24) | ((r / span) << 16) | ((g / span) << 8) | (b / span);
+                int out = from[start + Math.max(0, i - radius) * step];
+                int in = from[start + Math.min(length - 1, i + radius + 1) * step];
+                a += (in >>> 24) - (out >>> 24);
+                r += ((in >> 16) & 0xFF) - ((out >> 16) & 0xFF);
+                g += ((in >> 8) & 0xFF) - ((out >> 8) & 0xFF);
+                b += (in & 0xFF) - (out & 0xFF);
+            }
+        }
+    }
+
+    /**
+     * The frosted card: the blurred copy of the chat, lined up with the chat it was copied from wherever the card sits,
+     * darkened by the same dim as the rest of the screen, under the card's tint and a light edge.
+     */
+    static final class Frost extends Drawable {
+        final Bitmap copy;
+        private final int[] copiedAt, hostAt = new int[2];
+        private final View host;
+        private final float corner, edgeWidth;
+        private final int tint, edge;
+        private final Paint picture = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
+        private final Paint fill = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final BitmapShader shader;
+        private final Matrix place = new Matrix();
+        private final RectF card = new RectF();
+
+        Frost(Bitmap copy, int[] copiedAt, View host, float corner, int tint, int edge, float edgeWidth) {
+            this.copy = copy;
+            this.copiedAt = copiedAt;
+            this.host = host;
+            this.corner = corner;
+            this.tint = tint;
+            this.edge = edge;
+            this.edgeWidth = edgeWidth;
+            shader = new BitmapShader(copy, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP);
+            picture.setShader(shader);
+        }
+
+        @Override public void draw(Canvas canvas) {
+            card.set(getBounds());
+            host.getLocationOnScreen(hostAt);
+            place.setScale(FROST_SCALE, FROST_SCALE);
+            place.postTranslate(copiedAt[0] - hostAt[0], copiedAt[1] - hostAt[1]);
+            shader.setLocalMatrix(place);
+            canvas.drawRoundRect(card, corner, corner, picture);
+            fill.setStyle(Paint.Style.FILL);
+            fill.setColor(((int) (DIM * 255) << 24));
+            canvas.drawRoundRect(card, corner, corner, fill);
+            fill.setColor(tint);
+            canvas.drawRoundRect(card, corner, corner, fill);
+            fill.setStyle(Paint.Style.STROKE);
+            fill.setStrokeWidth(edgeWidth);
+            fill.setColor(edge);
+            card.inset(edgeWidth / 2, edgeWidth / 2);
+            canvas.drawRoundRect(card, corner, corner, fill);
+        }
+
+        @Override public void getOutline(Outline outline) {
+            outline.setRoundRect(getBounds(), corner);
+            outline.setAlpha(Color.alpha(tint) / 255f);
+        }
+
+        @Override public void setAlpha(int alpha) { }
+
+        @Override public void setColorFilter(ColorFilter filter) { }
+
+        @Override public int getOpacity() { return PixelFormat.TRANSLUCENT; }
     }
 
     /** The buttons' side, set once they exist, which is after the dialog goes up. Never throws. */
@@ -130,6 +282,15 @@ final class ChatDialogs {
 
     static int glass(int solid) {
         return (GLASS_ALPHA << 24) | (solid & 0x00FFFFFF);
+    }
+
+    /** The glass card's edge: a light line, brighter on the light theme, where white glass needs it more. */
+    static int edge(boolean light) {
+        return light ? 0x80FFFFFF : 0x26FFFFFF;
+    }
+
+    private static int hairline(float density) {
+        return Math.max(1, Math.round(density));
     }
 
     private static float density(Context context) {

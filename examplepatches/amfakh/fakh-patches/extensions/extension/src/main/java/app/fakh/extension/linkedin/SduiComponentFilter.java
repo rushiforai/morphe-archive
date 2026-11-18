@@ -1,6 +1,7 @@
 package app.fakh.extension.linkedin;
 
 
+import android.os.SystemClock;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -17,7 +18,6 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @SuppressWarnings("unused")
 public final class SduiComponentFilter {
-    private static final String MEDIA_SCREEN_PREFIX = "com.linkedin.sdui.impl.mediaproduct.screens.";
     private static final String PROFILE_MEDIA_PREFIX = "com.linkedin.sdui.impl.profile.destinations.";
 
     /** Social count buttons of 4.1.1264: the count is a format string in the button, filled in from state. */
@@ -33,6 +33,10 @@ public final class SduiComponentFilter {
     private static final int MAX_HIDDEN_COMMENT_SHEETS = 500;
     /** Comment sheet keys of hidden posts, to hide their highlighted comments, which 4.1.1267 renders apart. */
     private static final Set<String> hiddenCommentSheets = ConcurrentHashMap.newKeySet();
+
+    private static final long COMMENT_MENU_WINDOW_MS = 10_000;
+    /** Until when (uptimeMillis) unnamed components may be a comment menu's rows. */
+    private static volatile long commentMenuUntil;
 
     /**
      * Called with every SDUI component before it is transformed; returns it or an edited copy. Focus mode blanks the
@@ -56,6 +60,13 @@ public final class SduiComponentFilter {
             }
             // Only the feed's control (⋯) menu page and its rows carry the template Post menu items copies.
             if (postMenu && viewName.startsWith(PostMenu.CONTROL_MENU)) {
+                return PostMenu.inject(component, payload(component));
+            }
+            // A comment's menu page loads its rows as an unnamed component a moment after the page opens, so only
+            // unnamed components in that moment are looked at.
+            if (postMenu && viewName.equals("comment-control-menu-page")) {
+                commentMenuUntil = SystemClock.uptimeMillis() + COMMENT_MENU_WINDOW_MS;
+            } else if (postMenu && viewName.isEmpty() && SystemClock.uptimeMillis() < commentMenuUntil) {
                 return PostMenu.inject(component, payload(component));
             }
             boolean counts = focusMode && COUNT_BUTTONS.contains(viewName);
@@ -107,6 +118,14 @@ public final class SduiComponentFilter {
                     if (post != null) PostMenu.remember(post);
                     return hideFeedUpdate(component, viewTracking, post);
                 }
+                case "feed-update-screen-container":
+                    // A post of the Video tab: remembered for Post menu items and its download button.
+                    if (Settings.postMenu()) PostMenu.remember(payload(component));
+                    return false;
+                case "comment-container":
+                    // A comment: remembered for Copy text in its \u22ef menu.
+                    if (Settings.copyText()) PostMenu.rememberComment(payload(component));
+                    return false;
                 case "job-card":
                     return hidePromotedJob(component);
                 case "multiphoto-viewer":
@@ -151,7 +170,7 @@ public final class SduiComponentFilter {
                 return hide(true, "premium upsell: " + viewName);
             }
 
-            if (screenName.startsWith(MEDIA_SCREEN_PREFIX) || screenName.startsWith(PROFILE_MEDIA_PREFIX)) {
+            if (screenName.startsWith(PROFILE_MEDIA_PREFIX)) {
                 collectMedia(component, screenName);
             }
             return false;

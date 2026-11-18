@@ -198,15 +198,69 @@ public final class UpdateChecker implements Runnable {
      * auto-update toggle or whether a check already ran this process. Always
      * tells the user the result.
      */
+    private static final String BUNDLE_JSON_URL =
+            "https://raw.githubusercontent.com/xboyrex/rex-ig-lite/main/patches-bundle.json";
+    private static final String CURRENT_PATCH_BUNDLE_VERSION = "3.15.0";
+
     public static void checkNow(Context context) {
         if (context == null) return;
         if (!isOfficialBuild(context)) {
-            Toast.makeText(context, "Check GitHub releases for the latest Rex IG Lite update.",
-                    Toast.LENGTH_LONG).show();
+            checkPatchBundleNow(context);
             return;
         }
-        Toast.makeText(context, "Checking for updates…", Toast.LENGTH_SHORT).show();
+        Toast.makeText(context, "Checking for signed APK updates…", Toast.LENGTH_SHORT).show();
         new Thread(new UpdateChecker(context, true)).start();
+    }
+
+    /**
+     * Checks GitHub for a newer Morphe Patch Bundle (.mpp) release on any install
+     * (including user-patched Morphe Manager builds where isOfficialBuild is false).
+     */
+    public static void checkPatchBundleNow(final Context context) {
+        if (context == null) return;
+        Toast.makeText(context, "Checking for InstaRex Patch Bundle (.mpp) updates…", Toast.LENGTH_SHORT).show();
+        final Handler ui = new Handler(Looper.getMainLooper());
+        new Thread(() -> {
+            try {
+                String bundleBody = fetch(BUNDLE_JSON_URL);
+                String remoteVer = stringField(bundleBody, "\"version\"", 0);
+                String mppUrl = stringField(bundleBody, "\"download_url\"", 0);
+                String notes = null;
+                try {
+                    String relBody = fetch(LATEST_API);
+                    notes = extractReleaseBody(relBody);
+                    if (remoteVer == null || remoteVer.isEmpty()) {
+                        String tag = extractTagName(relBody);
+                        if (tag != null) remoteVer = normalize(tag);
+                    }
+                } catch (Throwable ignored) {}
+                if (remoteVer == null || remoteVer.isEmpty()) {
+                    remoteVer = CURRENT_PATCH_BUNDLE_VERSION;
+                }
+                final String finalRemote = normalize(remoteVer);
+                final String finalUrl = (mppUrl != null && !mppUrl.isEmpty())
+                        ? mppUrl
+                        : ("https://github.com/" + REPO + "/releases/download/v" + finalRemote + "/patches-" + finalRemote + ".mpp");
+                final String finalNotes = (notes != null && !notes.isEmpty())
+                        ? notes
+                        : ("InstaRex • Rex IG Lite v" + finalRemote + " Morphe Patch Bundle (.mpp) is available on GitHub Releases.");
+                final boolean newer = isNewer(finalRemote, CURRENT_PATCH_BUNDLE_VERSION);
+                ui.post(() -> app.morphe.extension.instagram.settings.preference.widgets.RexDialogs.showPatchBundleUpdateDialog(
+                        context,
+                        CURRENT_PATCH_BUNDLE_VERSION,
+                        finalRemote,
+                        finalUrl,
+                        finalNotes,
+                        newer
+                ));
+            } catch (Throwable t) {
+                ui.post(() -> Toast.makeText(
+                        context,
+                        "Couldn't check Patch Bundle (.mpp) right now — opening GitHub Releases.",
+                        Toast.LENGTH_SHORT
+                ).show());
+            }
+        }, "xboyrex-mpp-update-check").start();
     }
 
     @Override
@@ -282,8 +336,15 @@ public final class UpdateChecker implements Runnable {
     }
 
     static boolean isCloneBuild(Context context) {
-        String pkg = context.getPackageName();
-        return pkg != null && (pkg.endsWith(".xboyrex") || pkg.endsWith(".xboyrex"));
+        String pkg = context == null ? null : context.getPackageName();
+        if (pkg == null) return false;
+        return !"com.instagram.android".equals(pkg)
+                && (pkg.equals("com.instarex.android")
+                || pkg.equals("com.instagram.androie")
+                || pkg.equals("com.instagram.android.clone")
+                || pkg.endsWith(".xboyrex")
+                || pkg.endsWith(".instarex")
+                || pkg.endsWith(".clone"));
     }
 
     /** Everything the prompt and the download need about the release on offer. */

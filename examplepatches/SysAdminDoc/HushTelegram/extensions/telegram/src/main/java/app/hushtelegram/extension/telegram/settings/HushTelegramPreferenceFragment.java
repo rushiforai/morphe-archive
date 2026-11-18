@@ -97,6 +97,7 @@ import app.hushtelegram.extension.telegram.misc.ChatTypeFolders;
 import app.hushtelegram.extension.telegram.misc.CustomFont;
 import app.hushtelegram.extension.telegram.misc.DataSaverDownloads;
 import app.hushtelegram.extension.telegram.misc.DeleteAccount;
+import app.hushtelegram.extension.telegram.misc.DuressWipe;
 import app.hushtelegram.extension.telegram.misc.DoNotDisturb;
 import app.hushtelegram.extension.telegram.misc.FirebasePush;
 import app.hushtelegram.extension.telegram.misc.FolderIcons;
@@ -122,6 +123,7 @@ import app.hushtelegram.extension.telegram.misc.StickerSize;
 import app.hushtelegram.extension.telegram.misc.StorageFolder;
 import app.hushtelegram.extension.telegram.misc.TabFit;
 import app.hushtelegram.extension.telegram.misc.UnifiedPush;
+import app.hushtelegram.extension.telegram.misc.V2RayProxies;
 
 /**
  * The preference list, built in code rather than from an XML resource so the bundle adds no
@@ -134,7 +136,7 @@ import app.hushtelegram.extension.telegram.misc.UnifiedPush;
  */
 @SuppressWarnings("deprecation")
 public final class HushTelegramPreferenceFragment extends AbstractPreferenceFragment
-        implements ReleaseCheck.Listener, FreeProxies.Listener {
+        implements ReleaseCheck.Listener, FreeProxies.Listener, V2RayProxies.Listener {
     /** The repository as a link, and as a person reads it. ExtensionHostsTest reads the link. */
     static final String SOURCE_URL = "https://github.com/SysAdminDoc/HushTelegram";
     static final String SOURCE_ADDRESS = SOURCE_URL.substring(SOURCE_URL.indexOf("://") + 3);
@@ -199,6 +201,10 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
     static final String HIDDEN_ACCOUNTS_ROW = "action_hidden_accounts";
     /** The Delete account row's key. Nothing is saved: a tap asks, then sends the deletion. */
     static final String DELETE_ACCOUNT_ROW = "action_delete_account";
+    /** The Set duress passcode row's key. The code itself is kept only as a salted hash, by {@link DuressWipe}. */
+    static final String DURESS_PASSCODE_ROW = "action_duress_passcode";
+    /** The What the duress passcode does row's key. The choice itself is saved under {@link Settings#DURESS_ACTION}. */
+    static final String DURESS_ACTION_ROW = "action_duress_action";
     /** The Forwarding rules row's key. The rules themselves are saved under {@link Settings#AUTO_FORWARDING_RULES}. */
     static final String FORWARDING_RULES_ROW = "action_forwarding_rules";
     /** The Tracked people row's key. The people themselves are kept by {@link SpecialContacts}, one list for each account. */
@@ -218,6 +224,10 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
     /** The row that looks for free proxies now, and says what the last try found. */
     @Nullable
     private Preference findProxiesRow;
+
+    /** The row that picks the V2Ray-style server, and says what the last test found. */
+    @Nullable
+    private Preference v2rayServerRow;
 
     @Nullable
     private Preference localNotificationStatus;
@@ -322,6 +332,7 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
         shownDialogs.clear();
         ReleaseCheck.unwatch(this);
         FreeProxies.unwatch(this);
+        V2RayProxies.unwatch(this);
         if (navigation != null) navigation.close();
         navigation = null;
         super.onDestroyView();
@@ -341,6 +352,13 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
     public void freeProxiesFinished() {
         if (getContext() == null) return;
         if (findProxiesRow != null) findProxiesRow.setSummary(FreeProxies.summary());
+    }
+
+    /** A V2Ray-style server test ended, or the local proxy started or stopped: the V2Ray server row says so. */
+    @Override
+    public void v2rayProxiesChanged() {
+        if (getContext() == null) return;
+        if (v2rayServerRow != null) v2rayServerRow.setSummary(V2RayProxies.serverSummary());
     }
 
     /**
@@ -848,6 +866,22 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
             proxies.addPreference(findProxiesRow(context));
             proxies.addPreference(proxyListsRow(context));
             if (PatchFamily.Capability.PROXY_ORDER.installed()) proxies.addPreference(proxyOrderRow(context));
+            if (PatchFamily.Capability.V2RAY_PROXIES.installed()) {
+                SwitchPreference v2ray = toggle(context, Settings.V2RAY_PROXIES, L10n.t("V2Ray-style servers"),
+                        PatchFamily.FREE_PROXIES.coverageSummary(L10n.t("Telegram connects through your own VMess, VLESS, "
+                                + "Trojan and Shadowsocks servers by way of a proxy that runs inside Telegram, with one entry "
+                                + "for it in Telegram's proxy list. It's used unless you use a proxy of your own. Calls don't "
+                                + "go through it.")));
+                v2ray.setOnPreferenceChangeListener((row, value) -> {
+                    // Once the switch is saved, so the proxy reads what it says.
+                    Utils.runOnMainThreadDelayed(V2RayProxies::switched, 0);
+                    return true;
+                });
+                proxies.addPreference(v2ray);
+                proxies.addPreference(v2rayLinksRow(context));
+                proxies.addPreference(v2rayServerRow(context));
+                V2RayProxies.watch(this);
+            }
             proxies.addPreference(toggle(context, Settings.SIGN_IN_PROXY, L10n.t("Proxy button when signing in"),
                     PatchFamily.FREE_PROXIES.coverageSummary(L10n.t("The phone number screen always has the proxy "
                             + "button, so you can add a proxy before you sign in."))));
@@ -1762,6 +1796,32 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                             L10n.t("With a Telegram passcode set, Telegram locks a second or two after you leave it instead "
                                     + "of waiting for Auto-lock. Turning this off brings your Auto-lock time back.")));
                 }
+                if (PatchFamily.Capability.DURESS_WIPE.installed()) {
+                    SwitchPreference duress = toggle(context, Settings.DURESS_WIPE, L10n.t("Duress passcode"),
+                            L10n.t("Typing the duress passcode on Telegram's lock screen logs out or deletes accounts, as "
+                                    + "picked below, and clears what HushTelegram kept, like deleted messages, edit history "
+                                    + "and call recordings. It needs a Telegram passcode and starts off."));
+                    duress.setOnPreferenceChangeListener((row, value) -> {
+                        if (!Boolean.TRUE.equals(value)) return true;
+                        if (!AppPasscode.isSet()) {
+                            Utils.showToastLong(L10n.t("Set a Telegram passcode first."));
+                            return false;
+                        }
+                        if (DuressWipe.isSet()) {
+                            warnIfDuressDeletes();
+                            return true;
+                        }
+                        // Nothing to type yet: the switch goes on once a code is saved.
+                        askDuressPasscode(() -> {
+                            ((SwitchPreference) row).setChecked(true);
+                            warnIfDuressDeletes();
+                        });
+                        return false;
+                    });
+                    privacy.addPreference(duress);
+                    privacy.addPreference(duressPasscodeRow(context));
+                    privacy.addPreference(duressActionRow(context));
+                }
                 if (PatchFamily.Capability.QUIET_SIGN_UP.installed()) {
                     privacy.addPreference(toggle(context, Settings.QUIET_SIGN_UP, L10n.t("Don't notify contacts"),
                             L10n.t("When you sign up a phone number that's new to Telegram, people who have it saved aren't "
@@ -2019,9 +2079,15 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
         if (build.contains(PatchFamily.CHAT_TYPE_FOLDERS) && PatchFamily.Capability.ADMIN_FOLDER.installed()) {
             leftOut.add(L10n.t("Admin folder"));
         }
+        if (build.contains(PatchFamily.DISABLE_ANALYTICS) && PatchFamily.Capability.DURESS_WIPE.installed()) {
+            leftOut.add(L10n.t("Duress passcode"));
+        }
         if (build.contains(PatchFamily.FREE_PROXIES)) leftOut.add(L10n.t("Free proxies"));
         if (build.contains(PatchFamily.FREE_PROXIES) && PatchFamily.Capability.PROXY_ORDER.installed()) {
             leftOut.add(L10n.t("Proxy order"));
+        }
+        if (build.contains(PatchFamily.FREE_PROXIES) && PatchFamily.Capability.V2RAY_PROXIES.installed()) {
+            leftOut.add(L10n.t("V2Ray-style servers"));
         }
         if (build.contains(PatchFamily.OUTSIDE_TRANSLATE)) {
             leftOut.add(L10n.t("the translation service, its key and the chats you turned translation on for"));
@@ -2414,6 +2480,43 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
             }
             return true;
         });
+        return row;
+    }
+
+    /** The links V2Ray-style servers goes through: the row says how many are saved, and a tap opens the box. */
+    private Preference v2rayLinksRow(Context context) {
+        Row row = new Row(context);
+        row.setKey(V2RayEditor.LINKS_KEY);
+        row.setTitle(L10n.t("Your V2Ray links"));
+        row.setPersistent(false);
+        row.setSummary(V2RayProxies.linksSummary());
+        row.setOnPreferenceClickListener(p -> {
+            Activity activity = getActivity();
+            if (SettingsLock.refuses()) return true;
+            if (activity != null && !activity.isFinishing() && !activity.isDestroyed()) {
+                own(V2RayEditor.openLinks(activity, p));
+            }
+            return true;
+        });
+        return row;
+    }
+
+    /** Which V2Ray-style server Telegram goes through: the row says what the last test found, and a tap opens the picker. */
+    private Preference v2rayServerRow(Context context) {
+        Row row = new Row(context);
+        row.setKey(V2RayEditor.SERVER_KEY);
+        row.setTitle(L10n.t("V2Ray server"));
+        row.setPersistent(false);
+        row.setSummary(V2RayProxies.serverSummary());
+        row.setOnPreferenceClickListener(p -> {
+            Activity activity = getActivity();
+            if (SettingsLock.refuses()) return true;
+            if (activity != null && !activity.isFinishing() && !activity.isDestroyed()) {
+                own(V2RayEditor.openServers(activity, p));
+            }
+            return true;
+        });
+        v2rayServerRow = row;
         return row;
     }
 
@@ -3591,6 +3694,103 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
     static String recordCallsSummary() {
         return L10n.f("Saves both sides of each call to %1$s on this phone. The other person isn't told.",
                 L10n.isolate(CallRecorder.folder()));
+    }
+
+    /** What the duress passcode does (#79): the row names the choice, and a tap lists them. */
+    private Preference duressActionRow(Context context) {
+        Row row = new Row(context);
+        row.setKey(DURESS_ACTION_ROW);
+        row.setTitle(L10n.t("What the duress passcode does"));
+        row.setPersistent(false);
+        row.setSummary(duressActionSummary(DuressWipe.action()));
+        row.setOnPreferenceClickListener(p -> {
+            showDuressAction(context, p);
+            return true;
+        });
+        return row;
+    }
+
+    /** The choices with the saved one checked, saved the way Calls to record is, with the warning for a deletion. */
+    void showDuressAction(Context context, Preference row) {
+        if (SettingsLock.refuses()) return;
+        List<String> choices = DuressWipe.ACTIONS;
+        CharSequence[] labels = new CharSequence[choices.size()];
+        for (int i = 0; i < labels.length; i++) labels[i] = duressActionLabel(choices.get(i));
+        show(new AlertDialog.Builder(context)
+                .setTitle(L10n.t("What the duress passcode does"))
+                .setSingleChoiceItems(labels, choices.indexOf(DuressWipe.action()), (dialog, which) -> {
+                    boolean started = save((AlertDialog) dialog,
+                            () -> Settings.DURESS_ACTION.saveCommitted(choices.get(which)), landed -> {
+                                if (landed) {
+                                    row.setSummary(duressActionSummary(DuressWipe.action()));
+                                    dialog.dismiss();
+                                    warnIfDuressDeletes();
+                                } else {
+                                    checkSaved((AlertDialog) dialog, choices.indexOf(DuressWipe.action()));
+                                    Utils.showToastLong(L10n.t("Couldn't save the choice. Try again in a moment."));
+                                }
+                            });
+                    if (!started) checkSaved((AlertDialog) dialog, choices.indexOf(DuressWipe.action()));
+                })
+                .setNegativeButton(L10n.t("Cancel"), null));
+    }
+
+    static String duressActionLabel(String action) {
+        if (DuressWipe.LOG_OUT_OPEN.equals(action)) return L10n.t("Log out the open account");
+        if (DuressWipe.DELETE_ALL.equals(action)) return L10n.t("Delete every account");
+        if (DuressWipe.DELETE_OPEN.equals(action)) return L10n.t("Delete the open account");
+        return L10n.t("Log out every account");
+    }
+
+    /** The row's summary: the choice, and for a deletion the warning, which stays in sight under it. */
+    static String duressActionSummary(String action) {
+        if (!DuressWipe.deletes(action)) return duressActionLabel(action);
+        return duressActionLabel(action) + "\n" + L10n.t("Typed once, the duress passcode looks wrong. Typed again, it "
+                + "deletes for good. If an account has a cloud password, Telegram waits a week first.");
+    }
+
+    /** The short warning a deletion gets each time it's picked or the switch goes on with it. */
+    static void warnIfDuressDeletes() {
+        if (!DuressWipe.deletes(DuressWipe.action())) return;
+        Utils.showToastLong(L10n.t("Typed twice, the duress passcode deletes for good."));
+    }
+
+    /** Set duress passcode (#79): a tap asks for the code twice and keeps only its salted hash. */
+    private Preference duressPasscodeRow(Context context) {
+        Row row = new Row(context);
+        row.setKey(DURESS_PASSCODE_ROW);
+        row.setTitle(L10n.t("Set duress passcode"));
+        row.setPersistent(false);
+        row.setSummary(duressPasscodeSummary());
+        row.setOnPreferenceClickListener(p -> {
+            askDuressPasscode(null);
+            return true;
+        });
+        return row;
+    }
+
+    /** What the Set duress passcode row says: whether a code is saved, or that Telegram's passcode comes first. */
+    static String duressPasscodeSummary() {
+        if (!AppPasscode.isSet()) return L10n.t("Set a Telegram passcode first.");
+        return DuressWipe.isSet() ? L10n.t("A duress passcode is set. Tap to change it.")
+                : L10n.t("No duress passcode yet. Tap to pick one.");
+    }
+
+    /** Opens the duress passcode dialog. [saved] runs once a code is saved, after the row's summary is redrawn. */
+    void askDuressPasscode(@Nullable Runnable saved) {
+        if (SettingsLock.refuses()) return;
+        Activity activity = getActivity();
+        if (getView() == null || activity == null || activity.isFinishing() || activity.isDestroyed()) return;
+        if (!AppPasscode.isSet()) {
+            Utils.showToastLong(L10n.t("Set a Telegram passcode first."));
+            return;
+        }
+        Dialog prompt = PasscodePrompt.chooseDuress(activity, () -> {
+            Preference row = findPreference(DURESS_PASSCODE_ROW);
+            if (row != null) row.setSummary(duressPasscodeSummary());
+            if (saved != null) saved.run();
+        });
+        own(prompt);
     }
 
     /** Delete account (#71): a tap asks about the account in use, then deletes it. */

@@ -1,0 +1,7 @@
+*.apk export-ignore
+*.apkm export-ignore
+*.apks export-ignore
+*.xapk export-ignore
+dist/ export-ignore
+signing/ export-ignore
+tools/ export-ignore

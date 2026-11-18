@@ -1,0 +1,106 @@
+{
+  "target": "com.waze 5.26.90.901",
+  "apkm_sha256": "dd69b987ede38579bff7d0f3bc5ca6128730667f8f073c795e7f1c21db9dabe1",
+  "mpp_sha256": "98f979ad8d6d1c5badf5ffb17d0224a3cadefd042dc2a39117466d4be7a47d24",
+  "patches": [
+    "Alert distances",
+    "All moods",
+    "Auto zoom",
+    "Average speed zone bar",
+    "Bigger alert pins",
+    "Bigger speedometer",
+    "Broadcast navigation data",
+    "Car alerts as notifications",
+    "Car traffic meter",
+    "Change app name",
+    "Extra map info",
+    "Flock cameras",
+    "Full black",
+    "Hide ads",
+    "Lane guidance",
+    "Map skin",
+    "Navigation distances",
+    "No AI reporting",
+    "No Google Assistant",
+    "Open without device location",
+    "Remove permissions",
+    "Remove sign-in prompts",
+    "Remove telemetry",
+    "Report speed limit",
+    "Share alerts with Maps",
+    "Skip consent screens",
+    "SoundCloud in Waze",
+    "Speed camera alerts",
+    "Speed camera sound at any speed",
+    "Speed cameras everywhere",
+    "Speed limit controls",
+    "Speed limit sign",
+    "Stay awake in the background",
+    "Support Gearslip",
+    "YT Music Morphe in Waze"
+  ],
+  "runs": 36,
+  "runtime_verified": false,
+  "date": "2026-11-01",
+  "candidate_bundle_version": "1.19.2 (local build, not a new release)",
+  "option_cases": [
+    {
+      "case": "nondefault",
+      "expected_success": true,
+      "passed": true
+    },
+    {
+      "case": "display-only",
+      "expected_success": true,
+      "passed": true
+    },
+    {
+      "case": "distance-zero",
+      "expected_success": true,
+      "passed": true
+    },
+    {
+      "case": "distance-max",
+      "expected_success": true,
+      "passed": true
+    },
+    {
+      "case": "bad-mode",
+      "expected_success": false,
+      "passed": true
+    },
+    {
+      "case": "negative-distance",
+      "expected_success": false,
+      "passed": true
+    },
+    {
+      "case": "too-far",
+      "expected_success": false,
+      "passed": true
+    },
+    {
+      "case": "empty-map-info",
+      "expected_success": false,
+      "passed": true
+    },
+    {
+      "case": "empty-limit-controls",
+      "expected_success": false,
+      "passed": true
+    }
+  ],
+  "new_configuration_writes_verified": 11,
+  "compass_visibility_hook_verified": true,
+  "stock_lane_preference_preserved": true,
+  "shared_on_tap_preference_preserved": true,
+  "tests": {
+    "waze_robolectric": 23,
+    "python": {
+      "total": 413,
+      "skipped": 45
+    },
+    "release_node": 39
+  },
+  "independent_review": "No remaining actionable findings after compass visibility correction."
+}

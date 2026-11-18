@@ -1,0 +1,27 @@
+name: Login or patching problem
+description: Report a problem with the Moodle Browser Login patch.
+title: "bug: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Read the known issues and verification limits in the README first. Never include passwords, access tokens, passport values, or complete callback URLs. Crop private account and course details from screenshots.
+  - type: input
+    id: versions
+    attributes:
+      label: App and patch versions
+      description: Include Moodle, Morphe, Android, and patch bundle versions.
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Steps and result
+      description: Was this first login or reconnect? Did login finish in the browser, return to the app, or both? Include the exact error text without private URL parameters.
+    validations:
+      required: true
+  - type: input
+    id: site
+    attributes:
+      label: Moodle site (optional)
+      description: A public site hostname or authentication-provider name, if you are comfortable sharing it.

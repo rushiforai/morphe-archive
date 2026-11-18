@@ -19,23 +19,26 @@ Click the button below, or manually add this repo URL to Morphe Manager: https:/
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.4.0](https://github.com/Ikuradachi/Kageroll/releases/tag/v1.4.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;7 patches total
+> **[v1.5.0](https://github.com/Ikuradachi/Kageroll/releases/tag/v1.5.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;10 patches total
 <details open>
-<summary>📦 Crunchyroll&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
+<summary>📦 Crunchyroll&nbsp;&nbsp;•&nbsp;&nbsp;10 patches</summary>
 <br>
 
 **Package name:** `com.crunchyroll.crunchyroid`
 
 **🎯 Supported versions:**
 
-| 3.127.0 | 3.128.0 | 3.129.1 |
-| :---: | :---: | :---: |
+| 3.129.1 |
+| :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
+| [1080p download quality](#1080p-download-quality) | Upgrades the High offline download quality tier to 1080p and selects the single best matching video track. |  |
 | [Allow screenshots](#allow-screenshots) | Removes FLAG_SECURE from membership card and Compose dialogs to permit screenshots and disables Android 14+ screen capture detection in the Arc reader. |  |
-| [Disable background services](#disable-background-services) | Disables background broadcast receivers, schedulers, widget polling, Firebase session service binding, and DataTransport JobScheduler tasks to eliminate background wakeups and idle battery drain. |  |
-| [Disable telemetry](#disable-telemetry) | Blocks Segment and Mux events, disables periodic telemetry loops and flush timers (Mux 1000ms playback poll, Segment 30s flush, Braze push flush alarms, Datadog upload thread), disables Firebase Analytics after consent updates, denies automatic Crashlytics uploads and selects disabled Datadog setup. |  |
+| [Auto-skip segments](#auto-skip-segments) | Automatically skips intros, recaps, credits, previews, or promos in the video player. | • Auto-skip intros<br>• Auto-skip recaps<br>• Auto-skip credits<br>• Auto-skip next-episode previews<br>• Auto-skip promos |
+| [Disable background services](#disable-background-services) | Disables background broadcast receivers, schedulers, widget polling, Firebase sessions initialization and service binding, and DataTransport JobScheduler tasks to eliminate background wakeups and idle battery drain. |  |
+| [Disable telemetry](#disable-telemetry) | Blocks Segment initialization, Mux events, advertising ID lookup, Firebase Analytics pre-init, Crashlytics NDK native loading, Braze session and push flush alarms, and Datadog uploads; disables Firebase Analytics after consent updates, denies automatic Crashlytics uploads, and selects disabled Datadog setup. |  |
+| [Manual video quality](#manual-video-quality) | Replaces the preset quality tiers with manual per-resolution selection and Auto. |  |
 | [Picture-in-Picture](#picture-in-picture) | Enables native Picture-in-Picture playback support. |  |
 | [Playback speed](#playback-speed) | Unhides the player's speed menu and fills it out to 0.5x-2.0x. |  |
 | [Proxy token requests](#proxy-token-requests) | Routes token acquisition and refresh through your SOCKS proxy, with optional proxy authentication. | • SOCKS proxy host<br>• SOCKS proxy port<br>• SOCKS proxy username<br>• SOCKS proxy password<br>• Local token diagnostics |

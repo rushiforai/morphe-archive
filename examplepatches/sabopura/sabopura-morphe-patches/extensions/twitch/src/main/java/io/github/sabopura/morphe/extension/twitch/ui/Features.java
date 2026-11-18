@@ -1,36 +1,67 @@
 package io.github.sabopura.morphe.extension.twitch.ui;
 
-/**
- * Which Twitch patches were applied. Each patch replaces the constant of its flag method, so
- * the shared player button and settings screen only show the features that exist.
- */
+import java.util.EnumSet;
+
+/** Which Twitch patches were applied, so the shared UI only offers what exists. */
 @SuppressWarnings("unused")
 public final class Features {
     private static volatile boolean preview;
+    private static volatile boolean paused;
+    private static volatile EnumSet<Feature> applied;
 
     private Features() {
     }
 
-    // Patch-time flags; 0 means the patch was not selected.
-    public static int danmakuPatch() { return 0; }
-    public static int chatPatch() { return 0; }
-    public static int playerPatch() { return 0; }
-    public static int adsPatch() { return 0; }
-
-    public static boolean danmaku() {
-        return preview || danmakuPatch() != 0;
+    /** Replaced at patch time with the comma-separated names of the applied {@link Feature}s. */
+    public static String appliedNames() {
+        return "";
     }
 
-    public static boolean chat() {
-        return preview || chatPatch() != 0;
+    /** Replaced at patch time with the version of the patch bundle; empty in an unpatched build. */
+    public static String patchVersion() {
+        return "";
     }
 
-    public static boolean player() {
-        return preview || playerPatch() != 0;
+    private static EnumSet<Feature> applied() {
+        EnumSet<Feature> result = applied;
+        if (result != null) return result;
+        result = EnumSet.noneOf(Feature.class);
+        for (String name : appliedNames().split(","))
+            if (!name.isEmpty()) result.add(Feature.valueOf(name));
+        return applied = result;
+    }
+
+    public static boolean has(Feature feature) {
+        return preview || !paused && applied().contains(feature);
+    }
+
+    /** Turns every feature off for this run, after repeated crashes at startup. */
+    public static void pause() {
+        paused = true;
+    }
+
+    public static boolean any(Feature... features) {
+        for (Feature feature : features) if (has(feature)) return true;
+        return false;
     }
 
     public static boolean ads() {
-        return preview || adsPatch() != 0;
+        return any(Feature.ADS_CLIENT, Feature.ADS_SERVER, Feature.ADS_REPLACE, Feature.ADS_COVER, Feature.ADS_PBYP);
+    }
+
+    public static boolean danmaku() {
+        return has(Feature.DANMAKU);
+    }
+
+    /** A patch that decorates chat rows is applied. */
+    public static boolean chat() {
+        return any(Feature.CHAT_EMOTES, Feature.CHAT_BADGES, Feature.CHAT_FILTERS, Feature.CHAT_APPEARANCE,
+                Feature.CHAT_HISTORY);
+    }
+
+    public static boolean player() {
+        return any(Feature.PLAY_SPEED, Feature.PLAY_SEEK, Feature.PLAY_SLEEP, Feature.PLAY_TOOLS,
+                Feature.VOD_CHAPTERS, Feature.VOD_OFFSET);
     }
 
     /** Shows every feature; used by the on-device verification harness only. */

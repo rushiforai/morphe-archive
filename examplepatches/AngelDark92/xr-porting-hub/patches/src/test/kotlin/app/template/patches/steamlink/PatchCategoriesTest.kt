@@ -23,7 +23,7 @@ class PatchCategoriesTest {
         ),
         "Tracking & audio" to listOf(
             hmdOnlyPatch, gxrFacebridgePatch,
-            xrInputRoutingConfigPatch, microphoneInputPresetPatch,
+            xrInputRoutingConfigPatch, microphoneInputPresetPatch, microphoneInputRecoveryPatch,
         ),
         "Startup & permissions" to listOf(
             xrStartupPermissionsPatch, xrLauncherBootstrapPatch,
@@ -54,8 +54,8 @@ class PatchCategoriesTest {
 
     @Test
     fun `every public patch carries its agreed category and default`() {
-        assertEquals(30, publicPatches.size)
-        assertEquals(listOf(5, 4, 3, 4, 7, 3, 2, 2), groups.values.map { it.size })
+        assertEquals(31, publicPatches.size)
+        assertEquals(listOf(5, 5, 3, 4, 7, 3, 2, 2), groups.values.map { it.size })
         // All five controller patches are public: velocity frame recommended, the rest optional.
         assertEquals(
             setOf(controllerPoseExtrapolationPatch, controllerVelocityFramePatch, controllerPoseTimePatch,
@@ -69,6 +69,7 @@ class PatchCategoriesTest {
             }.toSet(),
         )
         assertEquals(false, networkOptimizationsPatch.default)
+        assertEquals(false, microphoneInputRecoveryPatch.default)
         assertEquals(false, stockQuadCompositionPatch.default)
         assertEquals(true, alpha0HighResolutionTriggerPatch.default)
         groups.forEach { (category, patches) ->
@@ -118,7 +119,7 @@ class PatchCategoriesTest {
             val name = channel.name
             assertEquals(channel.name.lowercase(), generated.get("channel").asString)
             val entries = generated.getAsJsonArray("patches").map { it.asJsonObject }
-            assertEquals(if (channel == ReleaseChannel.STABLE) 22 else 30, entries.size, name)
+            assertEquals(if (channel == ReleaseChannel.STABLE) 23 else 31, entries.size, name)
             val names = entries.map { it.get("name").asString }
             assertEquals(names.sorted(), names, name)
             assertEquals(names.size, names.toSet().size, name)

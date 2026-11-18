@@ -29,6 +29,7 @@ import app.template.patches.steamlink.binary.forceLobbyPermissionStateGatePatch
 import app.template.patches.steamlink.binary.forceStreamXrGatesPatch
 import app.template.patches.steamlink.binary.hmdOnlyPatch
 import app.template.patches.steamlink.binary.microphoneInputPresetPatch
+import app.template.patches.steamlink.binary.microphoneInputRecoveryPatch
 import app.template.patches.steamlink.binary.networkOptimizationsPatch
 import app.template.patches.steamlink.binary.oledCalibrationPatch
 import app.template.patches.steamlink.identity.changePackageNamePatch
@@ -40,6 +41,20 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class PatchCompatibilityMatrixTest {
+    @Test
+    fun `microphone recovery remains optional and exact 5001712 only`() {
+        assertEquals("Microphone input recovery", microphoneInputRecoveryPatch.name)
+        assertFalse(microphoneInputRecoveryPatch.default)
+        assertTrue(microphoneInputRecoveryPatch.supports("2.0.20", 5001712))
+        listOf(
+            "2.0.20" to 5001812, "2.0.21" to 5001968, "2.0.22" to 5002244,
+            "2.0.23" to 5002363, "2.0.24" to 5002395, "2.0.24" to 5002527,
+        ).forEach { (version, code) ->
+            assertFalse(microphoneInputRecoveryPatch.supports(version, code), "$version/$code")
+        }
+        assertFalse(microphoneInputRecoveryPatch in recommendedFor("2.0.20", 5001712))
+    }
+
     @Test
     fun `every pre-2363 build recommends its own set`() {
         // Network Optimizations is supported on every verified base but is no longer recommended;

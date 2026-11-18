@@ -1,0 +1,54 @@
+name: Verify DM add-ons
+
+on:
+  push:
+    branches: [feature/instagram-dm-keep-scroll-position, fix/instagram-dm-scroll-offset]
+  pull_request:
+    paths:
+      - 'extensions/**'
+      - 'patches/**'
+      - '*gradle*'
+      - 'scripts/test_instagram_dm_hook.py'
+      - 'scripts/VerifyInstagramDmFingerprints.java'
+      - 'scripts/test_tiktok_dm_hook.py'
+      - 'scripts/VerifyTikTokDmDex.java'
+      - '.github/workflows/verify-instagram.yml'
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v5.7.0
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools platforms;android-36 build-tools;36.0.0'
+          log-accepted-android-sdk-licenses: false
+      - name: Test reply guard behavior
+        run: python3 scripts/test_instagram_dm_hook.py
+      - name: Test TikTok viewport and queue behavior
+        run: python3 scripts/test_tiktok_dm_hook.py
+      - name: Compile patches and extensions
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew :patches:buildAndroid :patches:generatePatchesList --no-daemon
+      - name: Test sender-linked Instagram callback fingerprint
+        run: |
+          curl -fL --retry 2 https://github.com/MorpheApp/morphe-desktop/releases/download/v1.17.0/morphe-desktop-1.17.0-all.jar -o "$RUNNER_TEMP/morphe-cli.jar"
+          echo "8cf6a9eab4ee9dab146bddc24681897851564f53116baec11f36ba2fa2f589be  $RUNNER_TEMP/morphe-cli.jar" | sha256sum -c -
+          javac -cp "patches/build/classes/kotlin/main:$RUNNER_TEMP/morphe-cli.jar" -d "$RUNNER_TEMP/instagram-verifiers" scripts/VerifyInstagramDmFingerprints.java
+          java -cp "$RUNNER_TEMP/instagram-verifiers:patches/build/classes/kotlin/main:$RUNNER_TEMP/morphe-cli.jar" VerifyInstagramDmFingerprints
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dudeks-patches-instagram
+          path: |
+            patches/build/libs/*.mpp
+            patches-list.json
+          if-no-files-found: error

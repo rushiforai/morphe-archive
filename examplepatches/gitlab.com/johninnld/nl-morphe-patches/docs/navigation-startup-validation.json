@@ -1,0 +1,164 @@
+{
+  "targets": {
+    "waze": {
+      "file": "com.waze_5.26.90.901-1030746_2arch_6dpi_25lang_9d17ecac27ca22248665eeb64a133c29_apkmirror.com.apkm",
+      "sha256": "dd69b987ede38579bff7d0f3bc5ca6128730667f8f073c795e7f1c21db9dabe1"
+    },
+    "flitsmeister": {
+      "file": "flitsmeister-14.17 (1).apkm",
+      "sha256": "c0eab0dcc4242605364b015db6ce8cab4464a309c0b886cb5ea06b87b390720f"
+    },
+    "maps": {
+      "file": "com.google.android.apps.maps_26.43.05.1002020710-1068844719_minAPI29(arm64-v8a,armeabi-v7a,x86,x86_64)(nodpi)_apkmirror.com.apk",
+      "sha256": "81506a2c54fc9a8faca34c18af7619d9c9d26cbfbe799b66884a59ac17791004"
+    },
+    "vela": {
+      "file": "vela-maps-v0.5.2621.apk",
+      "sha256": "f168bc730568b98ee8132131658d9220ef5be3557af41fd373bdaf104c31b20f"
+    }
+  },
+  "runtime_platform": "Android 16 / API 36 emulator",
+  "physical_devices_used": false,
+  "cold_start_matrix": [
+    {
+      "consumer": "org.ungoogled.android.apps.maps",
+      "provider": "com.waze",
+      "native_ready": true,
+      "provider_audio_muted": true,
+      "receiver_binding": true,
+      "provider_activities_absent": true,
+      "seconds": 3.72
+    },
+    {
+      "consumer": "org.ungoogled.android.apps.maps",
+      "provider": "nl.flitsmeister",
+      "native_ready": true,
+      "provider_audio_muted": true,
+      "receiver_binding": true,
+      "provider_activities_absent": true,
+      "seconds": 5.14
+    },
+    {
+      "consumer": "app.vela",
+      "provider": "com.waze",
+      "native_ready": true,
+      "provider_audio_muted": true,
+      "receiver_binding": true,
+      "provider_activities_absent": true,
+      "seconds": 3.1
+    },
+    {
+      "consumer": "app.vela",
+      "provider": "nl.flitsmeister",
+      "native_ready": true,
+      "provider_audio_muted": true,
+      "receiver_binding": true,
+      "provider_activities_absent": true,
+      "seconds": 2.78
+    }
+  ],
+  "screen_off_recovery": [
+    {
+      "provider": "com.waze",
+      "screen_off": true,
+      "old_pid": "14797",
+      "new_pid": "15622",
+      "native_ready": true,
+      "provider_audio_muted": true,
+      "provider_activities_absent": true,
+      "seconds": 2.56
+    },
+    {
+      "provider": "nl.flitsmeister",
+      "screen_off": true,
+      "old_pid": "15074",
+      "new_pid": "15856",
+      "native_ready": true,
+      "provider_audio_muted": true,
+      "provider_activities_absent": true,
+      "seconds": 2.43
+    }
+  ],
+  "negative_cases": [
+    {
+      "provider": "com.waze",
+      "missing_location": "permission_required",
+      "restored_permissions": "running"
+    },
+    {
+      "provider": "nl.flitsmeister",
+      "missing_location": "permission_required",
+      "restored_permissions": "running"
+    },
+    {
+      "provider": "com.waze",
+      "sharing_off": "disabled",
+      "sharing_on": "running"
+    }
+  ],
+  "native_audio": {
+    "waze": {
+      "forced_native_file_and_url_suppressed": true,
+      "provider": "com.waze",
+      "native_callbacks": 2,
+      "managed_player_muted": true,
+      "standalone_player_restored": true,
+      "device_stream_unchanged": true,
+      "pass": true,
+      "apk_sha256": "31dad39640f3963613451cd0bc9c1e6140d0c1a4b9c3d59f672de7f39d4de4f0",
+      "test_signed_apk_sha256": "a8900484a6d00c382a5b516011e7202f7fdbf68ea5039366fd935fb226a3c708"
+    },
+    "flitsmeister": {
+      "forced_native_request_suppressed": true,
+      "provider": "nl.flitsmeister",
+      "native_callbacks": 1,
+      "managed_player_muted": true,
+      "standalone_player_restored": true,
+      "device_stream_unchanged": true,
+      "pass": true,
+      "apk_sha256": "ea32550cd4976d4f731bc577b337ced4c8ca9c9a96e00bdb2d4f598f8ecac1dc",
+      "test_signed_apk_sha256": "6a464326af4d97624a0ca8443fdac9adfad7f3e2a1420f262289c1f0f47393b5"
+    }
+  },
+  "car_only": {
+    "host": "Gearslip 0.3.31-alpha test fixture",
+    "consumer": "Vela Maps 0.5.2621",
+    "phone_activity_present": false,
+    "providers": [
+      "Waze",
+      "Flitsmeister"
+    ],
+    "foreground_service_started_before_passive_probe": true,
+    "evidence": [
+      "headless-vela-fm-engine.txt",
+      "headless-vela-fm-activities.txt",
+      "headless-vela-waze-engine.txt",
+      "headless-vela-waze-activities.txt"
+    ]
+  },
+  "checks": {
+    "python": "422 passed, 45 skipped",
+    "node": "46 passed; one slow preview subprocess timed out, targeted retry passed",
+    "gradle": "release workflow modules and patch tests passed; original-artifact checks supplied locally",
+    "patch_application": "all four originals applied/rebuilt; all 40 Waze controls together and Flitsmeister defaults also passed"
+  },
+  "limitations": [
+    "No live-road/GPS accuracy acceptance",
+    "No physical speaker/Bluetooth/Android Auto audio acceptance",
+    "No physical OEM battery-policy or long-duration acceptance",
+    "Runtime platform coverage is API 36; older supported Android versions not separately exercised"
+  ],
+  "source_bundle_sha256": "c80a4e1aa8541107a556382896faaef1e9f295b06d9c77a665f424d67872fc41",
+  "unchanged_since_four_app_runtime": {
+    "candidate6_sha256": "68e1f713aa0da7c1e5f2f68b87d99ef3c07c54380cd3c5f5a73988f6950b0c76",
+    "candidate7_sha256": "c80a4e1aa8541107a556382896faaef1e9f295b06d9c77a665f424d67872fc41",
+    "changed_entries": [
+      "META-INF/MANIFEST.MF",
+      "classes.dex",
+      "extensions/vela.mpe",
+      "patches/vela/FlockAlertMask.class",
+      "patches/vela/VelaTelemetryPatchKt$validateVelaContracts$lambda$0$1$$inlined$groupingBy$1.class",
+      "patches/vela/VelaTelemetryPatchKt.class"
+    ]
+  }
+}

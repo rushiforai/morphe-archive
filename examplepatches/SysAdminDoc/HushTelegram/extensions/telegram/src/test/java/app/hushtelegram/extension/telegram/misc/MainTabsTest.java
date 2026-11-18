@@ -320,8 +320,8 @@ public class MainTabsTest {
         Object bar = new Object();
         MainTabs.barGlass(bar);
         assertFalse(Settings.BAR_OUTLINE.get());
-        assertEquals(0, MainTabs.barOutlineColor(bar));
-        assertEquals(0f, MainTabs.barOutlineWidth(bar), 0f);
+        assertEquals(0, MainTabs.barOutlineColor(bar, 0));
+        assertEquals(0f, MainTabs.barOutlineWidth(bar, 0f), 0f);
         assertFalse(report().contains("bar outline drawn"));
     }
 
@@ -330,22 +330,36 @@ public class MainTabsTest {
         Object bar = new Object();
         Object topPanel = new Object();
         MainTabs.barGlass(bar);
-        assertEquals(0xFF2AABEE, MainTabs.barOutlineColor(bar));
+        assertEquals(0xFF2AABEE, MainTabs.barOutlineColor(bar, 0));
         float density = RuntimeEnvironment.getApplication().getResources().getDisplayMetrics().density;
-        assertEquals(density, MainTabs.barOutlineWidth(bar), 0.001f);
+        assertEquals(density, MainTabs.barOutlineWidth(bar, 0f), 0.001f);
         assertTrue(report().contains("bar outline drawn"));
         // Telegram's other glass asks the same kind of colors and keeps its own zero.
-        assertEquals(0, MainTabs.barOutlineColor(topPanel));
-        assertEquals(0f, MainTabs.barOutlineWidth(topPanel), 0f);
-        assertEquals(0, MainTabs.barOutlineColor(null));
+        assertEquals(0, MainTabs.barOutlineColor(topPanel, 0));
+        assertEquals(0f, MainTabs.barOutlineWidth(topPanel, 0f), 0f);
+        assertEquals(0, MainTabs.barOutlineColor(null, 0));
         MainTabs.barGlass(null);
         // A main screen built again outlines its new bar as well.
         Object rebuilt = new Object();
         MainTabs.barGlass(rebuilt);
-        assertEquals(0xFF2AABEE, MainTabs.barOutlineColor(rebuilt));
+        assertEquals(0xFF2AABEE, MainTabs.barOutlineColor(rebuilt, 0));
         Settings.BAR_OUTLINE.save(false);
-        assertEquals(0, MainTabs.barOutlineColor(bar));
-        assertEquals(0f, MainTabs.barOutlineWidth(rebuilt), 0f);
+        assertEquals(0, MainTabs.barOutlineColor(bar, 0));
+        assertEquals(0f, MainTabs.barOutlineWidth(rebuilt, 0f), 0f);
+    }
+
+    @Test public void colorsThatDrawTheirOwnOutlineKeepIt() {
+        Settings.BAR_OUTLINE.save(true);
+        MainTabs.barGlass(new Object());
+        // A theme's colors of the same kind answer with an outline of their own, and it comes back as they gave it.
+        Object themed = new Object();
+        assertEquals(0x33FFFFFF, MainTabs.barOutlineColor(themed, 0x33FFFFFF));
+        assertEquals(1.5f, MainTabs.barOutlineWidth(themed, 1.5f), 0f);
+        Settings.BAR_OUTLINE.save(false);
+        Object bar = new Object();
+        MainTabs.barGlass(bar);
+        assertEquals(0x33FFFFFF, MainTabs.barOutlineColor(bar, 0x33FFFFFF));
+        assertEquals(1.5f, MainTabs.barOutlineWidth(bar, 1.5f), 0f);
     }
 
     @Test public void pausingAnEarlyStartOrAnUnreadableSwitchLeavesTheBarPlain() {
@@ -355,14 +369,14 @@ public class MainTabsTest {
         for (HushTelegramPause.Reason reason : HushTelegramPause.Reason.values()) {
             if (reason == HushTelegramPause.Reason.NONE) continue;
             PauseForTests.pause(reason);
-            assertEquals(reason.name(), 0, MainTabs.barOutlineColor(bar));
-            assertEquals(reason.name(), 0f, MainTabs.barOutlineWidth(bar), 0f);
+            assertEquals(reason.name(), 0, MainTabs.barOutlineColor(bar, 0));
+            assertEquals(reason.name(), 0f, MainTabs.barOutlineWidth(bar, 0f), 0f);
             PauseForTests.resume();
         }
-        SettingsContextRule.withoutContext(() -> assertEquals(0, MainTabs.barOutlineColor(bar)));
+        SettingsContextRule.withoutContext(() -> assertEquals(0, MainTabs.barOutlineColor(bar, 0)));
         SettingReadsForTests.breakReads(Settings.BAR_OUTLINE);
-        assertEquals(0, MainTabs.barOutlineColor(bar));
-        assertEquals(0f, MainTabs.barOutlineWidth(bar), 0f);
+        assertEquals(0, MainTabs.barOutlineColor(bar, 0));
+        assertEquals(0f, MainTabs.barOutlineWidth(bar, 0f), 0f);
         assertFalse(HookStatus.missing(FamilyNames.HIDE_CONTACTS_TAB).isEmpty());
     }
 }

@@ -22,7 +22,7 @@ private object StateManagerConstructorFingerprint : Fingerprint(
 
 @Suppress("unused")
 val viewerTapToHidePatch = patch(
-    name = "Tap to hide in viewers",
+    name = "Tap to hide controls in viewers",
     description = "Tap a video or document in full screen to hide its caption and buttons, like photos. " +
         "Adds a switch in Fakh Patches.",
     default = true

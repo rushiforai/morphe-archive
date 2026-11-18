@@ -1,0 +1,107 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - dev
+
+jobs:
+  release:
+    name: Release
+    permissions:
+      contents: write
+      # Lets semantic-release open an issue when a release fails.
+      issues: write
+      packages: write
+      id-token: write
+      attestations: write
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Cache Gradle
+        uses: burrunan/gradle-cache-action@v3
+        with:
+          job-id: morphe-build-v1
+
+      - name: Prefetch Gradle
+        # Fetches the wrapper's Gradle through GitHub's API when it is not cached,
+        # because direct GitHub release links can fail while the API works.
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash .github/scripts/prefetch_gradle.sh
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 'lts/*'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Semantic release runs its own Gradle build, which signs the bundle with
+      # MORPHE_SIGNING_KEY. A separate build before it would leave a second .mpp
+      # with the old version number in patches/build/libs.
+      - name: Release
+        uses: cycjimmy/semantic-release-action@v8
+        id: release
+        # The action installs semantic-release itself instead of using the
+        # lockfile's copy, so the major version is pinned here.
+        with:
+          semantic_version: 25
+        env:
+          # Gradle reads GITHUB_TOKEN for the Morphe plugin on GitHub Packages.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # semantic-release pushes, tags, and releases with GH_TOKEN, which it
+          # prefers over GITHUB_TOKEN. RELEASE_TOKEN is a personal token with the
+          # repo scope, used when GitHub refuses the built-in token's push.
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
+          MORPHE_SIGNING_KEY: ${{ secrets.MORPHE_SIGNING_KEY }}
+
+      - name: Attest
+        if: steps.release.outputs.new_release_published == 'true'
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-name: 'TV Morphe Patches ${{ steps.release.outputs.new_release_git_tag }}'
+          subject-path: patches/build/libs/patches-*.mpp
+
+      # patches-list.json describes the released bundle for third-party tools.
+      # It is written after the release, from the same source, and committed
+      # with [skip ci] so it does not start another release.
+      - name: Update the patch list
+        if: steps.release.outputs.new_release_published == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.release.outputs.new_release_version }}
+        run: |
+          ./gradlew :patches:generatePatchesList "-PpatchesList=$PWD/patches-list.json"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git pull --ff-only origin "${{ github.ref_name }}"
+          git add patches-list.json
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: Update the patch list for v$VERSION [skip ci]"
+            git push "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" "HEAD:${{ github.ref_name }}"
+          fi
+
+      - name: Verify project compiles
+        if: steps.release.outputs.new_release_published != 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ./gradlew clean :patches:buildAndroid

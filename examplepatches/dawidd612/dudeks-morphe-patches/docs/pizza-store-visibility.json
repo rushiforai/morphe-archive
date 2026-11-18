@@ -1,0 +1,19 @@
+{
+  "version": "5.57.3 (2277), ARM64",
+  "input_sha256": "18007200015b853ef0ca954ec588ee4cb778690e6c6bd5be9d6ef7a2df017af0",
+  "output_sha256": "67c8e6fb9576048ff4c65bd184bdb2d4689e7ee1cfa4a09baee0f3894121248c",
+  "edits": [
+    {
+      "offset": "0x182f25c",
+      "before": "f903022a",
+      "after": "19088052",
+      "purpose": "StoreLayer view filter: select existing FUNDS (0x40) view, preserving gem-to-cash exchanges."
+    },
+    {
+      "offset": "0x1651858",
+      "before": "ff4301d1fd7b02a9",
+      "after": "00008052c0035fd6",
+      "purpose": "starter_bundle_available predicate returns false: hide starter icon/popup without altering ownership."
+    }
+  ]
+}

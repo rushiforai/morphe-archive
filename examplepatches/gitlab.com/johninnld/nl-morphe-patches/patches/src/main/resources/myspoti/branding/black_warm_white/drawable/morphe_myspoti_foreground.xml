@@ -1,0 +1,1 @@
+<inset xmlns:android="http://schemas.android.com/apk/res/android" android:inset="18dp"><bitmap android:src="@drawable/morphe_myspoti_artwork" android:gravity="fill" android:filter="true" /></inset>

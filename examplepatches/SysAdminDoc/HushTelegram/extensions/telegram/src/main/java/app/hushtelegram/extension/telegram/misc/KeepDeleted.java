@@ -66,6 +66,9 @@ public final class KeepDeleted {
     /** Newest messages remembered per account. Past it, the oldest go to Telegram's own deletion. */
     static final int LIMIT = 5000;
 
+    /** The kept messages' file of private preferences. */
+    static final String PREFS = "hushtelegram_kept_deleted";
+
     /** Bubbles measured lately, which a chat on screen can be asked to draw again. */
     static final int SHOWN_LIMIT = 300;
 
@@ -960,7 +963,8 @@ public final class KeepDeleted {
         return newer;
     }
 
-    static synchronized void forgetAllForTests() {
+    /** What a duress passcode forgets in memory once it has cleared [PREFS] (#79). */
+    static synchronized void forgetAll() {
         KEPT.clear();
         HANDING.clear();
         KEPT_AT.clear();
@@ -970,6 +974,10 @@ public final class KeepDeleted {
         synchronized (SHOWN) {
             SHOWN.clear();
         }
+    }
+
+    static synchronized void forgetAllForTests() {
+        forgetAll();
     }
 
     private static LinkedHashSet<String> load(long owner) {
@@ -1035,7 +1043,7 @@ public final class KeepDeleted {
     /** The kept messages, in the app's own private preferences. */
     private static final class Prefs implements Persist {
         private SharedPreferences prefs() {
-            return Utils.getContext().getSharedPreferences("hushtelegram_kept_deleted", Context.MODE_PRIVATE);
+            return Utils.getContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         }
 
         @Override public String read(String key) { return prefs().getString(key, ""); }

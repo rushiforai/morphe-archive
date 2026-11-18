@@ -79,6 +79,13 @@ Raporlar herkese açıktır ve bir kanal listeye eklenmeden önce incelenir. Kal
     <string name="morphe_custom_branding_splash_animation_size_title">Splash animasyon boyutu</string>
     <string name="morphe_custom_branding_use_as_system_splash_summary">Seçilen animasyonu Android'in sistem açılış ekranı olarak kullanır</string>
     <string name="morphe_custom_branding_use_as_system_splash_title">Sistem sıçraması olarak kullan</string>
+    <string name="morphe_custom_seekbar_thumb_file_invalid">Seçilen dosya desteklenen bir resim değil</string>
+    <string name="morphe_custom_seekbar_thumb_file_not_found">Özel zaman çubuğu tutamacı resmi bulunamadı</string>
+    <string name="morphe_custom_seekbar_thumb_file_title">Tutamacın resmi</string>
+    <string name="morphe_custom_seekbar_thumb_scale_type_entry_fit_seekbar">Zaman çubuğuna sığdır</string>
+    <string name="morphe_custom_seekbar_thumb_scale_type_entry_original">Orijinal boyut</string>
+    <string name="morphe_custom_seekbar_thumb_scale_type_title">Tutamaç boyutu</string>
+    <string name="morphe_custom_seekbar_thumb_title">Özel zaman çubuğu tutamacını etkinleştir</string>
     <string name="morphe_dark_theme_custom_color_summary">Özel seçildiğinde kullanılır</string>
     <string name="morphe_dark_theme_custom_color_title">Özel koyu tema rengi</string>
     <string name="morphe_dark_theme_title">Koyu tema</string>
@@ -113,6 +120,12 @@ Videolar, karma video kimliğinin kısa bir önekiyle istenir; bu nedenle sunucu
     <string name="morphe_disable_toolbar_navigation_tabs_summary">YouTube, Abonelikler\'i Ana Sayfa\'nın üstündeki bir sekmeye taşırsa, onu gezinti çubuğunda gösterir</string>
     <string name="morphe_disable_toolbar_navigation_tabs_title">Araç çubuğu gezinti sekmelerini devre dışı bırak</string>
     <string name="morphe_dual_captions_enabled_title">İki dilli altyazılar</string>
+    <string name="morphe_enhanced_ambient_mode_dim_duration_title">Karartma süresi</string>
+    <string name="morphe_enhanced_ambient_mode_dim_while_scrolling_summary">Sayfa kaydırıldığında veya dokunulduğunda ışığı karartır</string>
+    <string name="morphe_enhanced_ambient_mode_dim_while_scrolling_title">Kaydırırken karart</string>
+    <string name="morphe_enhanced_ambient_mode_readable_text_summary">Parlak videolarda sayfadaki metnin okunabilir kalması için ışığı kısar</string>
+    <string name="morphe_enhanced_ambient_mode_readable_text_title">Metni okunabilir tut</string>
+    <string name="morphe_enhanced_ambient_mode_title">Geliştirilmiş Ambiyans modu</string>
     <string name="morphe_expand_livestream_dvr_duration_not_available">"'Canlı yayın DVR süresini genişlet' seçeneği kullanılamayabilir
 
 Bunu düzeltmek için 'Video akışlarını taklit et' seçeneğini aç ve 'Varsayılan istemci'yi 'TV Simply' veya 'visionOS' olarak değiştir"</string>
@@ -282,6 +295,12 @@ Bunu düzeltmek için 'Video akışlarını taklit et' seçeneğini aç ve 'Vars
     <string name="morphe_playback_in_feeds_title">Akışlarda oynatma</string>
     <string name="morphe_player_control_buttons_background_opacity_summary">Oynatıcı kontrol düğmelerinin ve zaman çubuğunun arkasındaki arka planın opaklığını ayarlayın (0 görünmez, 100 opaktır)</string>
     <string name="morphe_player_control_buttons_background_opacity_title">Düğme arka plan opaklığı</string>
+    <string name="morphe_playlist_hide_removal_snackbar_summary">Oynatma listesinden bir video kaldırıldığında onay gösterilmez</string>
+    <string name="morphe_playlist_hide_removal_snackbar_title">Oynatma listesi kaldırma bildirimini gizle</string>
+    <string name="morphe_playlist_long_press_drag_summary">Oynatma listenizin bir videosunu yeni bir yere sürüklemek için dokunun ve basılı tutun</string>
+    <string name="morphe_playlist_long_press_drag_title">Oynatma listesi videolarını sıralamak için basılı tut</string>
+    <string name="morphe_playlist_wide_drag_handles_summary">Oynatma listesi sürükleme tutamaçları daha kolay tutulabilir</string>
+    <string name="morphe_playlist_wide_drag_handles_title">Oynatma listesi sürükleme tutamaçlarını genişlet</string>
     <string name="morphe_post_buttons_layout_entry_1">Sunucu</string>
     <string name="morphe_post_buttons_layout_entry_2">Zorunlu</string>
     <string name="morphe_post_buttons_layout_title">Gönderi düğmeleri düzeni</string>
@@ -752,21 +771,7 @@ Ayarlar → Otomatik Oynatma / Oynatma → Sonraki videoyu otomatik oynat"</stri
     <string name="revanced_disable_landscape_mode_summary_off">Videoyu tam ekrana alırken otomatik olarak yatay moda geçme etkin</string>
     <string name="revanced_disable_landscape_mode_summary_on">Videoyu tam ekrana alırken otomatik olarak yatay moda geçme devre dışı</string>
     <string name="revanced_disable_landscape_mode_title">Videoyu otomatik yatay moda geçirmeyi kapat</string>
-    <string name="revanced_disable_layout_updates_summary_off">Arayüz sunucu tarafından güncellenecek</string>
-    <string name="revanced_disable_layout_updates_summary_on">Arayüz sunucu tarafından güncellenmeyecek</string>
     <string name="revanced_disable_layout_updates_title">Düzen güncellemelerini devre dışı bırak</string>
-    <string name="revanced_disable_layout_updates_user_dialog_message">"Uygulama düzeni, ilk yüklendiğinde kullanılan düzene geri döner
-
-Sunucu taraflı bazı düzenler eski hâline dönmeyebilir
-
-Değişiklikler şunları içerir:
-
-• Oynatıcının açılır menüsündeki bileşenler (veya ilgili ayarlar) çalışmayabilir
-• Kayan sayılar animasyonlu gösterilmez
-• Kitaplık sekmesi gösterilir
-• Video açıklamasındaki müzik bölümü çalışmayabilir
-• Oynatıcının açılır menüsündeki öğeler gizlenemez
-• Hesap değiştirme düğmesi Kitaplık sekmesinde görünmeyebilir"</string>
     <string name="revanced_disable_like_dislike_glow_summary_off">Beğen Ve beğenme butonları bahsedildiğinde parıldayacak</string>
     <string name="revanced_disable_like_dislike_glow_summary_on">Beğen Ve beğenme butonları bahsedildiğinde parıldamayacak</string>
     <string name="revanced_disable_like_dislike_glow_title">Beğen ve Beğenme düğmesinin parlamasını devre dışı bırak</string>
@@ -1105,10 +1110,6 @@ Mağaza"</string>
     <string name="revanced_hide_comments_carousel_filter_strings_summary">Filtrelemek istediğiniz yorum döngüsü adlarını yeni satırlarla ayırarak girin</string>
     <string name="revanced_hide_comments_carousel_filter_strings_title">Yorumlar döngüsü filtresi</string>
     <string name="revanced_hide_comments_carousel_title">Yorumlar döngüsü filtresini etkinleştir</string>
-    <string name="revanced_hide_comments_carousel_user_dialog_message">"Not:
-• Kaydırmalı öğenin tam adını girdiğinizden emin olun (Örn: Soru, Bu videoyu hype edin, YouTube Music'te dinleyin vb.)
-• Kaydırmalı öğeleri gizlemek beklenmedik yan etkilere neden olabilir
-• Tüm kaydırmalı öğeler gizlenirse yorumlar bölümünün tamamı da gizlenecektir"</string>
     <string name="revanced_hide_comments_create_a_short_button_summary_off">Short oluştur düğmesi görünür</string>
     <string name="revanced_hide_comments_create_a_short_button_summary_on">Short oluştur düğmesi gizli</string>
     <string name="revanced_hide_comments_create_a_short_button_title">\'Short oluştur\' düğmesini gizle</string>

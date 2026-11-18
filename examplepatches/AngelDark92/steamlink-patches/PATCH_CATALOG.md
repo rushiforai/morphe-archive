@@ -13,7 +13,7 @@ The retired entries below are historical records and are not selectable.
 | Category | Count | Current patches |
 |---|---:|---|
 | Image quality | 5 | [OLED color calibration](#oled-color-calibration-oledcalibrationpatch); [Blue-noise dithering](#blue-noise-dithering-bluenoisepatch); [Alpha-0 high-resolution trigger](#alpha-0-high-resolution-trigger-alpha0highresolutiontriggerpatch) (six builds; recommended); [Stock quad composition](#stock-quad-composition-stockquadcompositionpatch) (six builds; experimental, off by default); [Native quad far plane](#native-quad-far-plane-experimental-nativequadfarplanepatch) (2.0.20/5001712 only; experimental, off by default) |
-| Tracking & audio | 4 | [Visual Delay Fix](#visual-delay-fix-hmdonlypatch); [GXR face and tongue bridge](#gxr-face-and-tongue-bridge-gxrfacebridgepatch); [XR Input Routing Config](#xr-input-routing-config-xrinputroutingconfigpatch); [Microphone input preset](#microphone-input-preset-microphoneinputpresetpatch) |
+| Tracking & audio | 5 | [Visual Delay Fix](#visual-delay-fix-hmdonlypatch); [GXR face and tongue bridge](#gxr-face-and-tongue-bridge-gxrfacebridgepatch); [XR Input Routing Config](#xr-input-routing-config-xrinputroutingconfigpatch); [Microphone input preset](#microphone-input-preset-microphoneinputpresetpatch); [Microphone input recovery](#microphone-input-recovery-microphoneinputrecoverypatch) |
 | Startup & permissions | 3 | [Startup permission requests (before 5002322)](#startup-permission-requests-before-5002322-xrstartuppermissionspatch); [Startup splash and XR launch mode (before 5002322)](#startup-splash-and-xr-launch-mode-before-5002322-xrlauncherbootstrappatch); [Unrestricted battery usage](#unrestricted-battery-usage-unrestrictedbatteryusagepatch) |
 | App & device identity | 4 | [Change package name](#change-package-name-changepackagenamepatch); [Device identity](#device-identity-deviceidentitypatch); Galaxy XR vendor driver; [OpenXR CPU and GPU BOOST](#openxr-cpu-and-gpu-boost-performanceboostpatch) |
 | Advanced XR compatibility | 7 | [XR Core Runtime](#xr-core-runtime-xrcoreruntimepatch); [XR Device Config Baseline](#xr-device-config-baseline-xrdeviceconfigbaselinepatch); [XR Manifest Capability Pack](#xr-manifest-capability-pack-xrmanifestcapabilitypackpatch); [Android XR native permission names; Force HMD initialization gates; Force lobby permission-state gate; Force stream XR gates](#native-xr-compatibility-gates) |
@@ -510,6 +510,26 @@ The mode preserved all 3 projections and replaced only the 6 source swapchain ha
 ---
 
 ## binary group
+
+### Microphone input recovery (`microphoneInputRecoveryPatch`)
+
+Optional, default off, exact Steam Link 2.0.20/5001712 only. Not recommended
+or auto-selected.
+
+Registers the existing AAudio error callback on the microphone input builder.
+The normal Tick path then rebuilds both audio streams after a disconnect.
+A failed rebuild clears the retry flag rather than entering a tight loop.
+
+- Preserves the selected microphone preset, including Voice Recognition.
+- Changes 66 bytes across three guarded regions of the 2,221,072-byte scene
+  library; validates callback/linkage and neighboring instructions before writing.
+- Reapplication is idempotent; partial edits and unknown layouts are rejected.
+- Rebuilding both streams may briefly interrupt playback. One attempt per
+  disconnect; no timed retry if it fails.
+- Does not bypass Android microphone silencing, privacy controls, or mute.
+  This alone does not let the PC hear speech while Gemini is capturing.
+- Owner reported successful solo testing of the test1 bundle on 5001712.
+  This is a user report, not a newly instrumented runtime verification.
 
 ### Microphone Input Preset (`microphoneInputPresetPatch`)
 **Default: enabled individually; part of the recommended set on all six supported builds**

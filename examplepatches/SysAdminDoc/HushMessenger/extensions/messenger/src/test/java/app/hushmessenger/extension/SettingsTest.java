@@ -322,6 +322,29 @@ public class SettingsTest {
         }
     }
 
+    @Test @Config(sdk = {28, 36}) public void unsentIdsPastTheLimitDropTheOldestFirst() {
+        Settings.preferences.edit().putBoolean("keep_unsent", true).commit();
+        Settings.keepUnsent();
+        // Kept by a version that didn't write the order down: no known age, so they're the first to go.
+        var legacy = new java.util.HashSet<String>();
+        for (int i = 0; i < 10; i++) legacy.add("legacy-" + i);
+        Settings.preferences.edit().putStringSet("kept_unsent_ids", legacy).commit();
+        int over = 25;
+        for (int i = 0; i < Settings.KEPT_UNSENT_LIMIT + over; i++) Settings.recordUnsent("id-" + i);
+        var kept = Settings.preferences.getStringSet("kept_unsent_ids", java.util.Set.of());
+        assertEquals(Settings.KEPT_UNSENT_LIMIT, kept.size());
+        for (String id : legacy) assertFalse(id, kept.contains(id));
+        for (int i = 0; i < over; i++) assertFalse("id-" + i, kept.contains("id-" + i));
+        for (int i = over; i < Settings.KEPT_UNSENT_LIMIT + over; i++) assertTrue("id-" + i, kept.contains("id-" + i));
+        // Seeing an unsend again doesn't make it any younger, so it still goes in its turn.
+        Settings.recordUnsent("id-" + over);
+        Settings.recordUnsent("fresh");
+        kept = Settings.preferences.getStringSet("kept_unsent_ids", java.util.Set.of());
+        assertFalse(kept.contains("id-" + over));
+        assertTrue(kept.contains("id-" + (over + 1)));
+        assertTrue(kept.contains("fresh"));
+    }
+
     @Test @Config(sdk = {28, 36}) public void retainedUnsendChoiceSurvivesRestartWithoutClaimingChatCoverage() {
         Settings.preferences.edit().putBoolean("keep_unsent", true).commit();
         Settings.recordUnsent("retained-message");

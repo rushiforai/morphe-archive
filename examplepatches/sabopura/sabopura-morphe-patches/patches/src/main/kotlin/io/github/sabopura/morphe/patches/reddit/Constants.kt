@@ -23,16 +23,10 @@ internal object Constants {
                 description = "Official Morphe patches' stable target; patched and launched logged out on the dedicated Android API 36 emulator (the sign-in screen blocks public feeds). Its post callbacks build the translation event in a separate method; the output DEX has six post, two comment, one accessibility comment and two post detail translation hooks.",
             ),
             AppTarget(
-                version = "2026.45.0",
-                versionCode = 2645001,
-                minSdk = 32,
-                description = "Official Morphe patches' newest target; applied without changes and launched logged out on the dedicated Android API 36 emulator (the sign-in screen blocks public feeds), with the same ten translation call sites as the earlier 2026.44.0 in the output DEX (four post, two comment, one accessibility comment, two post detail and the extension's own queue).",
-            ),
-            AppTarget(
                 version = "2026.46.0",
                 versionCode = 2646001,
                 minSdk = 32,
-                description = "Newest store version; applied without changes and launched logged out on the dedicated Android API 36 emulator (the sign-in screen blocks public feeds), with the same ten translation call sites as 2026.45.0 in the output DEX (four post, two comment, one accessibility comment, two post detail and the extension's own queue), each hooked class having the same constructor shape as its 2026.45.0 counterpart.",
+                description = "Official Morphe patches' newest target and the newest store version; applied without changes and launched logged out on the dedicated Android API 36 emulator (the sign-in screen blocks public feeds), with the same ten translation call sites as the earlier 2026.45.0 in the output DEX (four post, two comment, one accessibility comment, two post detail and the extension's own queue), each hooked class having the same constructor shape as its 2026.45.0 counterpart.",
             ),
         ),
     )

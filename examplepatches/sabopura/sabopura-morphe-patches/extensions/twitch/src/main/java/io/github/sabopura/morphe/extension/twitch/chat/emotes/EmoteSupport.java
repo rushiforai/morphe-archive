@@ -1,6 +1,10 @@
 // Adapted from Hooman's patches, GPL-3.0; see NOTICE for source and revision.
 package io.github.sabopura.morphe.extension.twitch.chat.emotes;
 
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
@@ -8,6 +12,15 @@ import android.text.SpannedString;
 import android.text.style.ReplacementSpan;
 import android.view.View;
 import android.widget.TextView;
+
+import io.github.sabopura.morphe.extension.twitch.Diagnostics;
+import io.github.sabopura.morphe.extension.twitch.chat.ChatMetadata;
+import io.github.sabopura.morphe.extension.twitch.chat.ChatSettings;
+import io.github.sabopura.morphe.extension.twitch.chat.NamePaintSpan;
+import io.github.sabopura.morphe.extension.twitch.chat.PublicApi;
+import io.github.sabopura.morphe.extension.twitch.ui.Feature;
+import io.github.sabopura.morphe.extension.twitch.ui.Features;
+import io.github.sabopura.morphe.extension.twitch.ui.Text;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,379 +30,395 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
+/** Replaces emote names in chat text with images. Everything but the two refresh callbacks runs on the main thread. */
 @SuppressWarnings("unused")
 public final class EmoteSupport {
-    private static final Object LOCK = new Object();
-    private static final WeakHashMap<TextView, BoundMessage> BOUND_MESSAGES = new WeakHashMap<>();
+    /** View tag key; the 0x7e package id belongs to no resource table, so it cannot collide. */
+    private static final int STATE_TAG = 0x7efffe01;
+    /** Rows with a message, to refresh them. The state lives on the view, so nothing here retains a row. */
+    private static final Map<TextView, Boolean> ROWS = new WeakHashMap<>();
     private static final EmoteCatalog CATALOG = new EmoteCatalog(EmoteSupport::refreshCatalog);
     private static final EmoteImageLoader IMAGES = new EmoteImageLoader(EmoteSupport::refreshImage);
-    private static final Set<String> BADGE_URLS =
-            java.util.concurrent.ConcurrentHashMap.newKeySet();
+    private static final Set<String> BADGE_URLS = ConcurrentHashMap.newKeySet();
+    private static volatile Runnable catalogListener;
+    /** The info sheet's image, while that sheet is open. */
+    private static EmotePreview openPreview;
+    /** Views outside chat that show emote images, told when one has loaded. Main thread only. */
+    private static final Set<java.util.function.Consumer<String>> IMAGE_LISTENERS = new HashSet<>();
+
     private static final View.OnAttachStateChangeListener VIEW_LIFECYCLE =
             new View.OnAttachStateChangeListener() {
                 @Override
                 public void onViewAttachedToWindow(View view) {
-                    // Runs on the chat RecyclerView's views; a throw here would be uncaught on the
-                    // UI
-                    // thread and crash Twitch, so keep it contained.
-                    try {
-                        TextView textView = (TextView) view;
-                        BoundMessage message;
-                        synchronized (LOCK) {
-                            message = BOUND_MESSAGES.get(textView);
-                        }
-                        if (message != null) {
-                            scheduleRender(textView, message);
-                        }
-                    } catch (Throwable ignored) {
-                    }
+                    BoundMessage message = stateOf(view);
+                    if (message != null) message.attach(view);
                 }
 
                 @Override
                 public void onViewDetachedFromWindow(View view) {
-                    try {
-                        stopAnimations(((TextView) view).getText());
-                    } catch (Throwable ignored) {
-                    }
+                    BoundMessage message = stateOf(view);
+                    if (message != null) message.detach(view);
                 }
             };
 
-    private static volatile String lastRoomId;
-
     private EmoteSupport() {}
 
-    public static java.util.List<String> names(android.content.Context context, String channelId) {
+    private static BoundMessage stateOf(View view) {
+        Object tag = view.getTag(STATE_TAG);
+        return tag instanceof BoundMessage ? (BoundMessage) tag : null;
+    }
+
+    public static List<String> names(Context context, String channelId) {
         return CATALOG.names(context, channelId);
     }
 
+    /**
+     * Whether chat draws this word as a 7TV, BetterTTV or FrankerFaceZ image in this channel. Only the
+     * lists chat has loaded are known, so nothing is downloaded for the question. Any thread.
+     */
+    public static boolean draws(Context context, String channelId, String word) {
+        return Features.has(Feature.CHAT_EMOTES) && CATALOG.find(context, normalizeChannelId(channelId), word) != null;
+    }
+
+    static Emote find(Context context, String channelId, String name) {
+        return CATALOG.find(context, channelId, name);
+    }
+
+    static EmoteCatalog catalog() {
+        return CATALOG;
+    }
+
+    static EmoteImageLoader images() {
+        return IMAGES;
+    }
+
+    static void addImageListener(java.util.function.Consumer<String> listener) {
+        IMAGE_LISTENERS.add(listener);
+    }
+
+    static void removeImageListener(java.util.function.Consumer<String> listener) {
+        IMAGE_LISTENERS.remove(listener);
+    }
+
+    /** Called while a picker is open; replaced or cleared by the next call. */
+    public static void onCatalogChanged(Runnable listener) {
+        catalogListener = listener;
+    }
+
     public static void prependBadge(
-            TextView view, SpannableStringBuilder text, String title, String url) {
+            TextView view, SpannableStringBuilder text, String title, String url, String source) {
+        if (!EmoteUrls.allowed(url)) return;
+        Emote emote = new Emote(url, url.endsWith(".gif"));
+        if (BADGE_URLS.size() < 512) BADGE_URLS.add(url);
+        EmoteImageLoader.Image image = IMAGES.image(view.getResources(), emote);
+        // A badge appears with its image: the rows are redone when it arrives, and one that fails stays out.
+        if (image == null) {
+            IMAGES.request(view.getContext(), emote, Math.max(1, Math.round(view.getTextSize())));
+            return;
+        }
         String label = "[" + title + "] ";
         text.insert(0, label);
-        if (!EmoteUrls.allowed(url)) return;
-        Emote emote = new Emote(title, url, url.endsWith(".gif"));
+        ChatSettings settings = ChatSettings.get(view.getContext());
+        float scale = Features.has(Feature.CHAT_APPEARANCE) ? settings.badgePercent / 100f : 1;
+        text.setSpan(
+                new CenteredImageSpan(view, image.drawable, scale),
+                0,
+                label.length() - 1,
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        if (Features.has(Feature.EMOTE_PREVIEW) && settings.emotePreview) {
+            text.setSpan(new EmoteInfoSpan(title, Text.label(source + "のバッジ", source + " badge"), url, emote.animated),
+                    0, label.length() - 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+    }
+
+    /**
+     * The still image of a 7TV name paint, or null while it is fetched; the rows are redone when it arrives,
+     * as for a badge.
+     */
+    public static Bitmap paintImage(Context context, String url) {
+        if (!EmoteUrls.allowed(url)) return null;
+        Emote emote = new Emote(url, false);
+        EmoteImageLoader.Image image = IMAGES.image(context.getResources(), emote);
+        if (image != null)
+            return image.drawable instanceof BitmapDrawable ? ((BitmapDrawable) image.drawable).getBitmap() : null;
         if (BADGE_URLS.size() < 512) BADGE_URLS.add(url);
-        android.graphics.drawable.Drawable d = IMAGES.createDrawable(view.getResources(), emote);
-        if (d != null)
-            text.setSpan(
-                    new CenteredImageSpan(view, d),
-                    0,
-                    label.length() - 1,
-                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-        else IMAGES.request(view.getContext(), emote, Math.max(1, Math.round(view.getTextSize())));
+        IMAGES.request(context, emote, 128);
+        return null;
     }
 
-    // Patched into Twitch's ChannelChatConnectionKey constructor. That constructor has no handler
-    // of
-    // its own, so a throw here would abort chat-connection setup; never let anything escape. (#196)
-    public static void onChannelChanged(String channelId, String channelName) {
-        try {
-            String normalized = normalizeChannelId(channelId);
-            if (normalized != null) {
-                lastRoomId = normalized;
+    private static String sourceOf(Emote emote) {
+        if ("twitch".equals(emote.provider)) return "Twitch";
+        String provider = "7tv".equals(emote.provider) ? "7TV" : "bttv".equals(emote.provider) ? "BetterTTV" : "FrankerFaceZ";
+        return provider + Text.label(emote.global ? "・グローバル" : "・チャンネル", emote.global ? " · global" : " · channel");
+    }
+
+    /** The sheet's image: the row's copy at once, the provider's larger copy when it has loaded. */
+    public static View preview(Context context, EmoteInfoSpan info) {
+        Emote small = new Emote(info.url, info.animated), large = new Emote(EmoteUrls.large(info.url), info.animated);
+        EmotePreview view = new EmotePreview(context, large.url);
+        EmoteImageLoader.Image shown = IMAGES.image(context.getResources(), small);
+        if (shown != null) view.show(shown);
+        openPreview = view;
+        view.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
+            @Override
+            public void onViewAttachedToWindow(View v) {}
+
+            @Override
+            public void onViewDetachedFromWindow(View v) {
+                if (openPreview == view) openPreview = null;
             }
-        } catch (Throwable ignored) {
-        }
+        });
+        EmoteImageLoader.Image big = IMAGES.image(context.getResources(), large);
+        if (big != null) view.show(big);
+        else if (!large.url.equals(small.url)) IMAGES.request(context, large, 256);
+        return view;
     }
 
-    // Patched in right after Twitch's own setText in the chat-row binder (udc.D). That binder runs
-    // inside RecyclerView.onBindViewHolder and has no try/catch, so anything thrown here unwinds
-    // through the adapter and takes out the whole chat list and message input. This hook must never
-    // throw. (#196)
-    public static void bind(TextView textView, String sourceChannelId) {
-        if (textView == null) {
-            return;
-        }
+    /** Puts images into a row whose text the caller has just set. */
+    public static void bind(TextView textView, String channelId) {
+        bind(textView, channelId, true, TwitchEmotes.NONE, false);
+    }
+
+    /**
+     * For a row Twitch does not draw itself: also puts in the Twitch emotes {@code own} names, in
+     * their copy for a dark or a light background. Without {@code thirdParty} only those are drawn
+     * and no emote service is asked.
+     */
+    public static void bind(TextView textView, String channelId, boolean thirdParty, TwitchEmotes own, boolean dark) {
+        if (textView == null) return;
         try {
-            bindInternal(textView, sourceChannelId);
-        } catch (Throwable ignored) {
-            forget(textView);
+            CharSequence current = textView.getText();
+            CharSequence composed = compose(textView, current, channelId, thirdParty, own, dark);
+            if (composed != current) textView.setText(composed, TextView.BufferType.SPANNABLE);
+        } catch (RuntimeException | LinkageError failure) {
+            Diagnostics.note("emotes.row", failure);
+            clear(textView);
         }
     }
 
-    private static void forget(TextView textView) {
-        try {
-            synchronized (LOCK) {
-                BoundMessage previous = BOUND_MESSAGES.remove(textView);
-                if (previous != null) stopAnimations(previous.rendered);
-            }
-            textView.removeOnAttachStateChangeListener(VIEW_LIFECYCLE);
-        } catch (Throwable ignored) {
-        }
+    /**
+     * The text with emote images, or {@code text} itself when no emote was recognised, so the
+     * caller can skip the layout. The row is refreshed as images and channel emotes arrive.
+     */
+    public static CharSequence compose(TextView view, CharSequence text, String channelId) {
+        return compose(view, text, channelId, true, TwitchEmotes.NONE, false);
     }
 
-    public static void clear(TextView textView) {
-        forget(textView);
-        stopAnimations(textView.getText());
+    private static CharSequence compose(TextView view, CharSequence text, String channelId, boolean thirdParty,
+                                        TwitchEmotes own, boolean dark) {
+        clear(view);
+        if (text == null || text.length() == 0) return text;
+        BoundMessage message = new BoundMessage(SpannedString.valueOf(text), normalizeChannelId(channelId),
+                thirdParty, own, dark);
+        view.setTag(STATE_TAG, message);
+        ROWS.put(view, Boolean.TRUE);
+        view.addOnAttachStateChangeListener(VIEW_LIFECYCLE);
+        if (thirdParty) CATALOG.ensureLoaded(view.getContext(), message.channelId);
+        CharSequence built = render(view, message);
+        if (view.isAttachedToWindow()) message.attach(view);
+        return built == null ? text : built;
     }
 
-    private static void bindInternal(TextView textView, String sourceChannelId) {
-        CharSequence current = textView.getText();
-        synchronized (LOCK) {
-            BoundMessage previous = BOUND_MESSAGES.remove(textView);
-            if (previous != null) stopAnimations(previous.rendered);
-        }
-        stopAnimations(current);
-        textView.removeOnAttachStateChangeListener(VIEW_LIFECYCLE);
-
-        if (current == null || current.length() == 0) {
-            return;
-        }
-        String channelId = normalizeChannelId(sourceChannelId);
-        if (channelId == null) {
-            // Normal non-shared-chat rows can omit sourceChannelId. Twitch 29.9.1 presents one
-            // active
-            // live-chat room, so use the latest connection key only for that missing-field case.
-            channelId = lastRoomId;
-        }
-
-        BoundMessage message = new BoundMessage(SpannedString.valueOf(current), channelId);
-        synchronized (LOCK) {
-            BOUND_MESSAGES.put(textView, message);
-        }
-        textView.addOnAttachStateChangeListener(VIEW_LIFECYCLE);
-        CATALOG.ensureLoaded(textView.getContext(), channelId);
-        render(textView, message);
+    /** Stops the row's animations and forgets its message. */
+    public static void clear(TextView view) {
+        BoundMessage message = stateOf(view);
+        if (message == null) return;
+        message.detach(view);
+        view.setTag(STATE_TAG, null);
+        ROWS.remove(view);
+        view.removeOnAttachStateChangeListener(VIEW_LIFECYCLE);
     }
 
-    private static void render(TextView textView, BoundMessage message) {
-        // Reached on the UI thread from bind and from posted refreshes; contain any failure so a
-        // bad
-        // emote/image can never crash Twitch or blank the row.
-        try {
-            renderInternal(textView, message);
-        } catch (Throwable ignored) {
-        }
-    }
-
-    private static void renderInternal(TextView textView, BoundMessage message) {
-        synchronized (LOCK) {
-            if (BOUND_MESSAGES.get(textView) != message) {
-                return;
-            }
-        }
-        if (!textView.isAttachedToWindow()) {
-            return;
-        }
-        stopAnimations(textView.getText());
-
+    /** Builds the row's text, or null when nothing in it is an emote with a known image. */
+    private static CharSequence render(TextView textView, BoundMessage message) {
         SpannedString original = message.original;
-        ReplacementSpan[] existingSpans =
-                original.getSpans(0, original.length(), ReplacementSpan.class);
+        String plain = original.toString();
+        int length = plain.length();
+        ReplacementSpan[] natives = original.getSpans(0, length, ReplacementSpan.class);
+        int[] nativeStarts = new int[natives.length], nativeEnds = new int[natives.length];
+        for (int i = 0; i < natives.length; i++) {
+            nativeStarts[i] = original.getSpanStart(natives[i]);
+            nativeEnds[i] = original.getSpanEnd(natives[i]);
+        }
+        Context context = textView.getContext();
+        ChatSettings settings = ChatSettings.get(context);
+        boolean info = Features.has(Feature.EMOTE_PREVIEW) && settings.emotePreview;
+        float scale = Features.has(Feature.CHAT_APPEARANCE) ? settings.emotePercent / 100f : 1;
+        EmoteInfoSpan marker = null;
+        int markerStart = -1;
         SpannableStringBuilder builder = null;
-        Set<String> pendingImages = null;
-        Map<String, Emote> missingImages = null;
-        int length = original.length();
-        int index = 0;
+        Map<String, Emote> missing = new LinkedHashMap<>();
+        Set<SharedAnimation> animations = new HashSet<>();
+        StringBuilder drawn = new StringBuilder();
         LayeredEmoteSpan group = null;
         int groupStart = 0;
-        while (index < length) {
-            while (index < length && isSeparator(original.charAt(index))) {
-                if (original.charAt(index) == '\n' || original.charAt(index) == '\r') group = null;
+        for (int index = 0; index < length; ) {
+            while (index < length && isSeparator(plain.charAt(index))) {
+                if (plain.charAt(index) == '\n' || plain.charAt(index) == '\r') group = null;
                 index++;
             }
             int start = index;
-            while (index < length && !isSeparator(original.charAt(index))) {
-                index++;
-            }
+            while (index < length && !isSeparator(plain.charAt(index))) index++;
             int end = index;
             if (start == end) {
                 group = null;
                 continue;
             }
-            if (hasReplacementSpan(original, existingSpans, start, end)) {
+            int nativeAt = nativeSpanAt(nativeStarts, nativeEnds, start, end);
+            if (nativeAt >= 0) {
                 group = null;
-                for (ReplacementSpan nativeSpan : existingSpans)
-                    if (original.getSpanStart(nativeSpan) == start
-                            && original.getSpanEnd(nativeSpan) == end) {
-                        group = new LayeredEmoteSpan(nativeSpan, original, start, end);
-                        groupStart = start;
-                        break;
-                    }
+                // A painted name is no emote for a zero-width emote to sit on.
+                if (nativeStarts[nativeAt] == start && nativeEnds[nativeAt] == end
+                        && !(natives[nativeAt] instanceof NamePaintSpan)) {
+                    group = new LayeredEmoteSpan(natives[nativeAt], original, start, end);
+                    groupStart = start;
+                }
                 continue;
             }
-
-            String token = original.subSequence(start, end).toString();
-            Emote emote = CATALOG.find(textView.getContext(), message.channelId, token);
+            String word = plain.substring(start, end);
+            Emote emote = message.own.find(word, message.dark);
+            if (emote == null && message.thirdParty) emote = CATALOG.find(context, message.channelId, word);
             if (emote == null) {
                 group = null;
                 continue;
             }
-            android.graphics.drawable.Drawable drawable =
-                    IMAGES.createDrawable(textView.getResources(), emote);
-            if (drawable == null) {
-                if (pendingImages == null) {
-                    pendingImages = new HashSet<>();
-                    missingImages = new LinkedHashMap<>();
-                }
-                pendingImages.add(emote.url);
-                missingImages.put(emote.url, emote);
+            EmoteImageLoader.Image image = IMAGES.image(textView.getResources(), emote);
+            if (image == null) {
+                missing.put(emote.url, emote);
                 group = null;
                 continue;
             }
-
-            if (builder == null) {
-                builder = new SpannableStringBuilder(original);
-            }
+            if (image.animation != null) animations.add(image.animation);
+            drawn.append(emote.url).append(' ');
+            if (builder == null) builder = new SpannableStringBuilder(original);
             if (emote.zeroWidth && group != null) {
                 builder.removeSpan(group);
-                for (ReplacementSpan nativeSpan : existingSpans)
-                    if (original.getSpanStart(nativeSpan) == groupStart)
-                        builder.removeSpan(nativeSpan);
-                group.add(textView, drawable);
+                for (int i = 0; i < natives.length; i++)
+                    if (nativeStarts[i] == groupStart) builder.removeSpan(natives[i]);
+                group.add(textView, image.drawable, scale);
             } else {
-                group = new LayeredEmoteSpan(textView, drawable);
+                group = new LayeredEmoteSpan(textView, image.drawable, scale);
                 groupStart = start;
             }
             builder.setSpan(group, groupStart, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        }
-
-        message.pendingImages =
-                pendingImages == null
-                        ? Collections.emptySet()
-                        : Collections.unmodifiableSet(pendingImages);
-
-        // Publish pendingImages before enqueueing work. A disk-cache decode can complete
-        // immediately on
-        // a worker, and its callback must already be able to find this row as a waiter.
-        if (missingImages != null) {
-            for (Emote emote : missingImages.values()) {
-                IMAGES.request(
-                        textView.getContext(),
-                        emote,
-                        Math.max(1, Math.round(textView.getTextSize() * 1.25f)));
+            if (info) {
+                if (markerStart != groupStart) {
+                    marker = new EmoteInfoSpan(emote.name, sourceOf(emote), emote.url, emote.animated);
+                    markerStart = groupStart;
+                }
+                builder.setSpan(marker, groupStart, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             }
         }
-
-        if (builder != null) {
-            textView.setText(new SpannedString(builder), TextView.BufferType.SPANNABLE);
-        } else if (textView.getText() != message.original) {
-            textView.setText(message.original, TextView.BufferType.SPANNABLE);
-        }
-        message.rendered = textView.getText();
+        message.pendingImages = missing.keySet();
+        for (Emote emote : missing.values())
+            IMAGES.request(context, emote, Math.max(1, Math.round(textView.getTextSize() * 1.25f * scale)));
+        message.setDrawn(textView, animations, drawn.toString());
+        return builder == null ? null : new SpannedString(builder);
     }
 
-    private static boolean hasReplacementSpan(
-            Spanned text, ReplacementSpan[] spans, int start, int end) {
-        for (ReplacementSpan span : spans) {
-            if (text.getSpanStart(span) < end && text.getSpanEnd(span) > start) {
-                return true;
-            }
-        }
-        return false;
+    private static int nativeSpanAt(int[] starts, int[] ends, int start, int end) {
+        for (int i = 0; i < starts.length; i++) if (starts[i] < end && ends[i] > start) return i;
+        return -1;
     }
 
-    private static boolean isSeparator(char value) {
+    static boolean isSeparator(char value) {
         return Character.isWhitespace(value) || (value >= '⁦' && value <= '⁩');
     }
 
     private static String normalizeChannelId(String value) {
-        if (value == null) {
-            return null;
-        }
+        if (value == null) return null;
         String trimmed = value.trim();
-        if (trimmed.isEmpty() || trimmed.length() > 20) {
-            return null;
-        }
+        if (trimmed.isEmpty() || trimmed.length() > 20) return null;
         for (int index = 0; index < trimmed.length(); index++) {
-            if (!Character.isDigit(trimmed.charAt(index))) {
-                return null;
-            }
+            if (!Character.isDigit(trimmed.charAt(index))) return null;
         }
         return trimmed;
     }
 
-    // Invoked from the catalog/image executor threads. An uncaught throw here would be fatal to the
-    // whole app, so keep it contained.
+    /** Called on a loader thread when an image is ready. */
     private static void refreshImage(String url) {
-        try {
-            if (BADGE_URLS.contains(url))
-                io.github.sabopura.morphe.extension.twitch.chat.PublicApi.UI.post(
-                        io.github.sabopura.morphe.extension.twitch.chat.ChatEnhancements::refresh);
-            List<Map.Entry<TextView, BoundMessage>> snapshot = boundMessages();
-            for (Map.Entry<TextView, BoundMessage> entry : snapshot) {
-                TextView textView = entry.getKey();
-                BoundMessage message = entry.getValue();
-                if (textView != null && message != null && message.pendingImages.contains(url)) {
-                    scheduleRender(textView, message);
+        PublicApi.UI.post(() -> {
+            try {
+                if (BADGE_URLS.contains(url)) ChatMetadata.scheduleRefresh();
+                EmotePreview preview = openPreview;
+                if (preview != null && preview.waitsFor(url)) {
+                    EmoteImageLoader.Image image = IMAGES.image(preview.getResources(), new Emote(url, true));
+                    if (image != null) preview.show(image);
                 }
+                for (java.util.function.Consumer<String> listener : new ArrayList<>(IMAGE_LISTENERS)) listener.accept(url);
+                for (TextView row : new ArrayList<>(ROWS.keySet())) {
+                    BoundMessage message = stateOf(row);
+                    if (message != null && message.pendingImages.contains(url)) rerender(row, message);
+                }
+            } catch (RuntimeException | LinkageError e) {
+                Diagnostics.note("emotes.image-refresh", e);
             }
-        } catch (Throwable ignored) {
-        }
+        });
     }
 
+    /** Called on a loader thread when a channel's emote list arrived; null means the global lists. */
     private static void refreshCatalog(String channelId) {
-        try {
-            List<Map.Entry<TextView, BoundMessage>> snapshot = boundMessages();
-            for (Map.Entry<TextView, BoundMessage> entry : snapshot) {
-                TextView textView = entry.getKey();
-                BoundMessage message = entry.getValue();
-                if (textView == null || message == null) {
-                    continue;
+        PublicApi.UI.post(() -> {
+            try {
+                Runnable listener = catalogListener;
+                if (listener != null) listener.run();
+                for (TextView row : new ArrayList<>(ROWS.keySet())) {
+                    BoundMessage message = stateOf(row);
+                    if (message != null && (channelId == null || channelId.equals(message.channelId))) {
+                        rerender(row, message);
+                    }
                 }
-                if (channelId == null || channelId.equals(message.channelId)) {
-                    scheduleRender(textView, message);
-                }
+            } catch (RuntimeException | LinkageError e) {
+                Diagnostics.note("emotes.catalog-refresh", e);
             }
-        } catch (Throwable ignored) {
-        }
+        });
     }
 
-    private static List<Map.Entry<TextView, BoundMessage>> boundMessages() {
-        synchronized (LOCK) {
-            return new ArrayList<>(BOUND_MESSAGES.entrySet());
-        }
+    /** Applies newly available images; the row is only laid out again when something changed. */
+    private static void rerender(TextView row, BoundMessage message) {
+        String before = message.drawn;
+        CharSequence built = render(row, message);
+        if (before.equals(message.drawn)) return;
+        row.setText(built == null ? message.original : built, TextView.BufferType.SPANNABLE);
+        if (row.isAttachedToWindow()) message.attach(row);
     }
 
-    private static void scheduleRender(TextView textView, BoundMessage message) {
-        synchronized (LOCK) {
-            if (BOUND_MESSAGES.get(textView) != message || message.refreshPosted) {
-                return;
-            }
-            message.refreshPosted = true;
-        }
-        boolean posted =
-                textView.post(
-                        () -> {
-                            synchronized (LOCK) {
-                                message.refreshPosted = false;
-                                if (BOUND_MESSAGES.get(textView) != message) {
-                                    return;
-                                }
-                            }
-                            render(textView, message);
-                        });
-        if (!posted) {
-            synchronized (LOCK) {
-                message.refreshPosted = false;
-            }
-        }
-    }
-
-    private static void stopAnimations(CharSequence text) {
-        if (!(text instanceof Spanned)) {
-            return;
-        }
-        Spanned spanned = (Spanned) text;
-        for (CenteredImageSpan span :
-                spanned.getSpans(0, spanned.length(), CenteredImageSpan.class)) {
-            span.stop();
-        }
-        for (LayeredEmoteSpan span : spanned.getSpans(0, spanned.length(), LayeredEmoteSpan.class))
-            span.stop();
-    }
-
+    /** One row's text before emotes, and what is drawn in it now. */
     private static final class BoundMessage {
         final SpannedString original;
         final String channelId;
-        volatile Set<String> pendingImages = Collections.emptySet();
-        boolean refreshPosted;
-        CharSequence rendered;
+        /** Whether the emote services' catalog is looked up; the message's own Twitch emotes always are. */
+        final boolean thirdParty;
+        final TwitchEmotes own;
+        final boolean dark;
+        Set<String> pendingImages = Collections.emptySet();
+        Set<SharedAnimation> animations = Collections.emptySet();
+        String drawn = "";
 
-        BoundMessage(SpannedString original, String channelId) {
+        BoundMessage(SpannedString original, String channelId, boolean thirdParty, TwitchEmotes own, boolean dark) {
             this.original = original;
             this.channelId = channelId;
+            this.thirdParty = thirdParty;
+            this.own = own;
+            this.dark = dark;
+        }
+
+        void setDrawn(View view, Set<SharedAnimation> nowDrawn, String urls) {
+            for (SharedAnimation animation : animations) {
+                if (!nowDrawn.contains(animation)) animation.detach(view);
+            }
+            animations = nowDrawn;
+            drawn = urls;
+        }
+
+        void attach(View view) {
+            for (SharedAnimation animation : animations) animation.attach(view);
+        }
+
+        void detach(View view) {
+            for (SharedAnimation animation : animations) animation.detach(view);
         }
     }
 }

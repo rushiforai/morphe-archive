@@ -9,6 +9,7 @@ import java.io.File
 
 private const val ANDROID_NAMESPACE = "http://schemas.android.com/apk/res/android"
 private const val ADAPTIVE_ICON_NAME = "morphe_adaptive_icon_custom"
+private const val MORPHE_PACKAGE_SUFFIX = ".morphe"
 private val iconDensities = listOf("mdpi", "hdpi", "xhdpi", "xxhdpi", "xxxhdpi")
 
 private data class BuiltInIcon(val icon: String, val roundIcon: String)
@@ -63,6 +64,13 @@ val customBrandingPatch = resourcePatch(
         description = "The display name shown under the launcher icon.",
         required = false,
     )
+    val installAlongsideOriginal by stringOption(
+        key = "installAlongsideOriginal",
+        title = "Install alongside original",
+        description = "Adds .morphe to the package name, so this APK installs separately from Nagram XF.",
+        required = false,
+        values = mapOf("Add .morphe suffix" to "true"),
+    )
     val builtInIcon by stringOption(
         key = "builtInIcon",
         title = "Built-in icon",
@@ -81,6 +89,24 @@ val customBrandingPatch = resourcePatch(
         val manifestFile = document("AndroidManifest.xml")
         manifestFile.use { manifest ->
             val application = manifest.getElementsByTagName("application").item(0) as Element
+
+            if (installAlongsideOriginal == "true") {
+                val manifestRoot = manifest.documentElement
+                val originalPackage = manifestRoot.getAttribute("package")
+                val morphePackage = originalPackage + MORPHE_PACKAGE_SUFFIX
+                val elements = manifest.getElementsByTagName("*")
+                for (index in 0 until elements.length) {
+                    val element = elements.item(index) as Element
+                    val attributes = element.attributes
+                    for (attributeIndex in 0 until attributes.length) {
+                        val attribute = attributes.item(attributeIndex)
+                        if (attribute.nodeValue.contains(originalPackage)) {
+                            attribute.nodeValue = attribute.nodeValue.replace(originalPackage, morphePackage)
+                        }
+                    }
+                }
+                manifestRoot.setAttribute("package", morphePackage)
+            }
 
             appName?.trim()?.takeIf(String::isNotEmpty)?.let { name ->
                 application.setAttribute("android:label", name)

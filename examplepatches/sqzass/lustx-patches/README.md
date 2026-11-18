@@ -30,7 +30,7 @@ _Note: All app files placed in `apks/` are processed and automatically deleted o
 ## 🩹 Patches list
 
 <!-- PATCHES_START -->
-> **[v1.22.1](https://github.com/sqzass/lustx-patches/releases/tag/v1.22.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;30 patches total
+> **[v1.22.2](https://github.com/sqzass/lustx-patches/releases/tag/v1.22.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;30 patches total
 <details>
 <summary>📦 PortDroid - Network Analysis&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -74,7 +74,7 @@ _Note: All app files placed in `apks/` are processed and automatically deleted o
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Remove clip bumper](#remove-clip-bumper) | Removes the ~5s Postparty logo bumper from exported clips. The bumper is concatenated client-side by FFmpegKit; this nulls the bumper path parameter in the export command builder so the trim/scale/concat block is never emitted, regardless of whether a bumper file is already cached. |  |
+| [Remove clip bumper](#remove-clip-bumper) | Removes the ~5s Postparty logo bumper from all exports. Forces client-side transcoding so unedited clips re-encode instead of direct-saving the server-baked file, then nulls the bumper path in both ffmpeg command builders so the re-encode never appends it. |  |
 
 </details>
 

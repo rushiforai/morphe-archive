@@ -460,6 +460,8 @@ Going to that date	O tarihe gidiliyor
 Sort reels on profiles	Profillerde reels'leri sırala
 Puts the arrow next to Reels on every profile, so you can sort them by Latest or Most viewed where Instagram took the choice away.	Her profilde Reels'in yanına oku koyar, böylece Instagram'ın seçeneği kaldırdığı yerlerde de En yeni veya En çok izlenen sırasıyla sıralayabilirsin.
 The cards of people and creators to follow that Instagram puts between reels. Every reel still plays.	Instagram'ın reel'ler arasına koyduğu, takip edilecek kişi ve içerik üreticisi kartları. Her reel oynatılmaya devam eder.
+Hide stories in Reels	Reels'te hikayeleri gizle
+The Catch up with friends pages of stories that Instagram puts between reels. Stories stay at the top of Home.	Instagram'ın reel'ler arasına koyduğu arkadaş hikayesi sayfaları. Hikayeler Ana Sayfa'nın üstünde kalır.
 Leaves out reels with a Paid partnership label, and reels Instagram marks as boosted. Ads have their own switch.	Ücretli ortaklık etiketi taşıyan reel'leri ve Instagram'ın öne çıkarılmış olarak işaretlediği reel'leri dışarıda bırakır. Reklamların kendi anahtarı var.
 Turn on Start Home on Following to use this choice.	Bu seçimi kullanmak için Ana Sayfa'yı Takip Edilenler ile aç seçeneğini açın.
 # context: Settings page: the summary of a greyed-out slider in place of its value; %1$s is the title of the switch it waits on, like Glass tab bar
@@ -560,7 +562,7 @@ Gives reels the seek bar of a video in a chat, a thin gray line that turns white
 Seek bar on photos with music	Müzikli fotoğraflarda ilerleme çubuğu
 Reels that are a photo with a song get the same seek bar and time as a video reel, following the song. Drag it to seek.	Şarkılı bir fotoğraftan oluşan Reel'ler, video Reel'leriyle aynı ilerleme çubuğunu ve süreyi şarkıya göre gösterir. Sarmak için sürükleyin.
 Hide the seek bar on reels	Reel'lerde ilerleme çubuğunu gizle
-Takes the seek bar off the bottom of every reel, long ones too. Hold a reel to bring it back and seek. Keep a seek bar and the seek bar looks above win over it.	Uzun olanlar dahil her Reel'in altındaki ilerleme çubuğunu kaldırır. Geri getirip sarmak için Reel'e basılı tutun. İlerleme çubuğu hep görünsün ve yukarıdaki çubuk görünümleri önceliklidir.
+Takes the seek bar off the bottom of every reel, long ones too. Drag sideways along the bottom edge of a reel to bring it back and seek. Keep a seek bar and the seek bar looks above win over it. Restart Instagram to see the change.	Uzun olanlar dahil her Reel'in altındaki ilerleme çubuğunu kaldırır. Geri getirip sarmak için Reel'in alt kenarı boyunca yana sürükleyin. İlerleme çubuğu hep görünsün ve yukarıdaki çubuk görünümleri önceliklidir. Değişikliği görmek için Instagram'ı yeniden başlatın.
 Blur the bars around a reel	Reel çevresindeki çubukları bulanıklaştır
 A reel that doesn't fill the screen shows a blurred copy of itself above and below it instead of black bars, and the strip under the tab bar and the band behind the clock show the reel blurred too. The copy shows only where a reel leaves room, as with Show the whole reel on. Open Reels again after a change.	Ekranı doldurmayan bir Reel, siyah çubuklar yerine üstünde ve altında kendisinin bulanık bir kopyasını gösterir, sekme çubuğunun altındaki şerit ve saatin arkasındaki alan da Reel'i bulanık gösterir. Kopya yalnızca Reel'in boşluk bıraktığı yerde görünür, örneğin Reels videosunun tamamını göster açıkken. Değişiklikten sonra Reels'i yeniden aç.
 # Chosen navigation long-press settings entry. Account tab availability varies.
@@ -653,6 +655,8 @@ Stop after the chat's reels	Sohbetin reels videolarından sonra dur
 Reels you opened from a chat end after the last one shared in that chat, with no suggested reels after it. Works with Swipe through a chat's reels on.	Bir sohbetten açtığın reels videoları o sohbette paylaşılan sonuncusunda biter, ardından önerilen video gelmez. Bir sohbetin reels videolarında kaydır açıkken çalışır.
 Adds Download cover under Download. It saves the still picture a reel shows before it plays, at its largest size.	İndir'in altına Kapağı indir ekler. Bir reel'in oynatılmadan önce gösterdiği hareketsiz görüntüyü en büyük boyutunda kaydeder.
 Adds Download audio under Download. It saves the sound of the reel as an audio file.	İndir'in altına Sesi indir ekler. Reel'in sesini bir ses dosyası olarak kaydeder.
+Download full song	Şarkının tamamını indir
+Adds Download full song under Download on reels that use a song from Instagram's music. It saves the whole song as an audio file, not only the part the reel plays.	Instagram müziğinden bir şarkı kullanan reel'lerde İndir'in altına Şarkının tamamını indir ekler. Yalnızca reel'in çaldığı kısmı değil, şarkının tamamını bir ses dosyası olarak kaydeder.
 After the reels you pick below, swiping in Reels stops until Instagram has been in the background for the time you pick. A reel you open from a message or a post still plays.	Aşağıda seçtiğin sayıda reel'den sonra Instagram seçtiğin süre boyunca arka planda kalana kadar Reels'te kaydırma durur. Bir mesajdan veya gönderiden açtığın reel yine oynar.
 Find the reel you came from	Geldiğin reel'i bul
 Open a creator's profile from a reel, then their Reels tab, and it scrolls to that reel and outlines it for a moment. A photo reel is found in their posts. Stop looking ends the search where it is.	Bir reel'den içerik üreticinin profilini, ardından Reels sekmesini aç, sekme o reel'e kayar ve onu kısa bir süre çerçeveler. Fotoğraflı bir reel gönderilerinde bulunur. Aramayı durdur düğmesi aramayı olduğu yerde bitirir.
@@ -1200,6 +1204,8 @@ Open settings with a long press on your profile's menu	Profilinin menüsüne uzu
 A long press on the menu button, the three lines at the top right of your own profile, opens HushGram. A tap still opens Instagram's menu, and other profiles stay the same.	Kendi profilinin sağ üstündeki üç çizgili menü düğmesine uzun basmak HushGram'ı açar. Dokunmak yine Instagram'ın menüsünü açar ve diğer profiller aynı kalır.
 Hide the top bar on the Reels tab	Reels sekmesindeki üst çubuğu gizle
 Takes away the row at the top of the Reels tab, with the Reels title, the camera button and anything else Instagram puts there. Reels you open from a profile, a post or a chat keep theirs. The camera still opens from Home.	Reels sekmesinin en üstündeki satırı, Reels başlığı, kamera düğmesi ve Instagram'ın oraya koyduğu diğer her şeyle birlikte kaldırır. Bir profilden, gönderiden veya sohbetten açtığın reels'ler bu satırı korur. Kamera Ana sayfadan açılmaya devam eder.
+Hide the top bar on other reels	Diğer reels'lerde üst çubuğu gizle
+Takes the back arrow and the title off the top of reels you open from Explore, a profile, a post, Saved or a chat. Your phone's back button or gesture still goes back.	Keşfet'ten, bir profilden, gönderiden, Kaydedilenler'den veya sohbetten açtığın reels'lerin üstündeki geri okunu ve başlığı kaldırır. Telefonunun geri tuşu veya hareketi yine geri götürür.
 Hide the Create button on reels	Reels'te Oluştur düğmesini gizle
 Takes the plus button that opens the camera off the top of reels, on the Reels tab and everywhere else, and closes up the gap. The rest of the bar stays.	Kamerayı açan artı düğmesini Reels sekmesinde ve diğer her yerde reels'in üstünden kaldırır ve boşluğu kapatır. Çubuğun geri kalanı kalır.
 Hide Your algorithm on reels	Reels'te Algoritman düğmesini gizle
@@ -2250,13 +2256,9 @@ Save profile	Profili kaydet
 Saved @%s	@%s kaydedildi
 # context: toast after Remove from saved takes an account off the Saved profiles list; %s is its username (#629)
 Removed @%s from saved	@%s kaydedilenlerden kaldırıldı
-# context: row in the long press menu on an account on the Saved profiles page, and title of the folder list it opens (#629)
-Move to folder	Klasöre taşı
-# context: title of the folder list Save profile opens on a profile's menu once the user has made a folder (#629)
+# context: title of the folder checklist Save profile opens on a profile's menu once the user has made a folder; the account can go in several (#629, #687)
 Save to folder	Klasöre kaydet
-# context: first choice in that folder list; the saved account sits in no folder (#629)
-No folder	Klasör yok
-# context: last choice in that folder list, and title of the dialog asking the new folder's name (#629)
+# context: button under a folder checklist, and title of the dialog asking the new folder's name (#629, #687)
 New folder	Yeni klasör
 # context: row in the long press menu on a folder's chip on the Saved profiles page, and title of the dialog for its new name (#629)
 Rename folder	Klasörü yeniden adlandır
@@ -2264,14 +2266,20 @@ Rename folder	Klasörü yeniden adlandır
 Remove folder	Klasörü kaldır
 # context: toast after Save profile puts an account in a folder; %1$s is its username, %2$s the folder's name (#629)
 Saved @%1$s to %2$s	@%1$s, %2$s klasörüne kaydedildi
-# context: toast after Move to folder; %1$s is the account's username, %2$s the folder's name (#629)
-Moved @%1$s to %2$s	@%1$s, %2$s klasörüne taşındı
-# context: toast after Move to folder > No folder; %s is the account's username, which stays saved (#629)
-Moved @%s out of its folder	@%s klasörden çıkarıldı
 # context: toast after Remove folder; %s is the folder's name, and its accounts stay saved (#629)
 Removed the folder %s	%s klasörü kaldırıldı
 # context: toast after Rename folder; %s is the folder's new name (#629)
 Renamed the folder to %s	Klasörün adı %s olarak değiştirildi
+# context: row in the long press menu on an account on the Saved profiles page, and title of the folder checklist it opens; an account can be in several folders (#687)
+Choose folders	Klasörleri seç
+# context: toast after Choose folders with every folder unticked; %s is the account's username, which stays saved (#687)
+@%s is in no folder now	@%s artık hiçbir klasörde değil
+# context: toast after Choose folders leaves the account in one folder; %1$s is its username, %2$s the folder's name (#687)
+@%1$s is in %2$s now	@%1$s artık %2$s klasöründe
+# context: toast after Choose folders leaves the account in two or more folders; %1$s is its username, %2$d how many (#687)
+@%1$s is in %2$d folders now	@%1$s artık %2$d klasörde
+# context: toast after Save profile puts an account in two or more folders; %1$s is its username, %2$d how many (#687)
+Saved @%1$s to %2$d folders	@%1$s, %2$d klasöre kaydedildi
 # context: toast when the Saved profiles list already holds 2,000 accounts (#629)
 Saved profiles is full.	Kaydedilen profiller listesi dolu.
 # context: Profiles > title of the switch that adds Save profile to the menu on profiles, and title of the page listing the saved accounts (#629)
@@ -2502,3 +2510,20 @@ No one has viewed half of this period's stories yet.	Henüz kimse bu dönemin hi
 # context: Feed: switch under Hide the home feed that keeps Instagram from learning which posts in Home you looked at and for how long (#664)
 Don't send feed view history	Akış görüntüleme geçmişini gönderme
 Stops telling Instagram which posts in Home you looked at and for how long. Instagram uses that to pick what Home shows. Posts you've seen may come back.	Instagram'a Ana Sayfa'da hangi gönderilere ve ne kadar süre baktığını söylemez. Instagram bunu Ana Sayfa'da ne göstereceğini seçmek için kullanır. Gördüğün gönderiler geri gelebilir.
+# context: Tab bar: switch under Hide the Messages tab that takes the unread count off the Messages button on the bottom tab bar (#734)
+Hide the Messages badge	Mesajlar rozetini gizle
+Takes the unread count off the Messages button on the tab bar. Chats still show as unread in your inbox, and notifications still come. Restart Instagram to see the change.	Sekme çubuğundaki Mesajlar düğmesinden okunmamış sayısını kaldırır. Sohbetler gelen kutunda okunmamış görünmeye devam eder, bildirimler de gelir. Değişikliği görmek için Instagram'ı yeniden başlat.
+# context: Ads and privacy settings: switch that adds a search box above Instagram's Blocked accounts list (Settings > Blocked), filtering it by username or full name; the same title is the box's hint text (#731)
+Search blocked accounts	Engellenen hesaplarda ara
+Adds a search box above your blocked accounts in Instagram's settings. It finds them by username or name, and loads the rest of your list as you type.	Instagram ayarlarındaki engellenen hesaplarının üstüne bir arama kutusu ekler. Hesapları kullanıcı adına veya ada göre bulur ve sen yazarken listenin geri kalanını yükler.
+# context: the line under that search box. %1$d is how many blocked accounts match, %2$d how many have loaded. First while more pages are loading, then when Instagram stopped sending pages, then when the whole list is in (#731)
+Matches: %1$d of %2$d account loaded so far. Loading the rest of your list.	Eşleşen: şimdiye kadar yüklenen %2$d hesaptan %1$d. Listenin geri kalanı yükleniyor.
+Matches: %1$d of %2$d accounts loaded so far. Loading the rest of your list.	Eşleşen: şimdiye kadar yüklenen %2$d hesaptan %1$d. Listenin geri kalanı yükleniyor.
+Matches: %1$d of the %2$d account that loaded. Instagram didn't send the rest.	Eşleşen: yüklenen %2$d hesaptan %1$d. Instagram geri kalanını göndermedi.
+Matches: %1$d of the %2$d accounts that loaded. Instagram didn't send the rest.	Eşleşen: yüklenen %2$d hesaptan %1$d. Instagram geri kalanını göndermedi.
+Matches: %1$d of %2$d blocked account	Eşleşen: %2$d engellenen hesaptan %1$d
+Matches: %1$d of %2$d blocked accounts	Eşleşen: %2$d engellenen hesaptan %1$d
+# context: Profiles settings: switch that makes a long press on the picture at the top of a profile open HushGram's full size viewer with a Save button, in place of Instagram's own enlarged picture (#737)
+Long press a profile picture to view it	Görmek için profil fotoğrafına uzun bas
+# context: that switch summary (#737)
+Long press the picture at the top of a profile to open the whole square picture at full size, with Save under it, instead of Instagram's own preview. A tap works as before.	Bir profilin üstündeki fotoğrafa uzun basarak, Instagram'ın kendi önizlemesi yerine kare fotoğrafın tamamını tam boyutta, altında Kaydet ile aç. Dokunma eskisi gibi çalışır.

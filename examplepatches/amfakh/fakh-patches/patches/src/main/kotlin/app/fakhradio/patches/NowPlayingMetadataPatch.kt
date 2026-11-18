@@ -27,7 +27,7 @@ private val setSessionStateFingerprint = Fingerprint(
 @Suppress("unused")
 val nowPlayingMetadataPatch = patch(
     name = "Song info in media notification",
-    description = "Shows the song title and its album art in the media notification and the system media player, instead of the station name with no picture.",
+    description = "Shows the song title and album art in the media notification, instead of the station name.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_RADIO_ID)

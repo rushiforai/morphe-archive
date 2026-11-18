@@ -110,8 +110,6 @@ var fullScreenEngagementPanel = -1L
     private set
 var horizontalCardList = -1L
     private set
-var icOfflineNoContentUpsideDown = -1L
-    private set
 var imageOnlyTab = -1L
     private set
 var inlineTimeBarColorizedBarPlayedColorDark = -1L
@@ -333,7 +331,6 @@ internal val sharedResourceIdPatch = resourcePatch(
         fullScreenEngagementAdContainer = getResourceId(ID, "fullscreen_engagement_ad_container")
         fullScreenEngagementPanel = getResourceId(ID, "fullscreen_engagement_panel_holder")
         horizontalCardList = getResourceId(LAYOUT, "horizontal_card_list")
-        icOfflineNoContentUpsideDown = getResourceId(DRAWABLE, "ic_offline_no_content_upside_down")
         imageOnlyTab = getResourceId(LAYOUT, "image_only_tab")
         inlineTimeBarColorizedBarPlayedColorDark =
             getResourceId(COLOR, "inline_time_bar_colorized_bar_played_color_dark")

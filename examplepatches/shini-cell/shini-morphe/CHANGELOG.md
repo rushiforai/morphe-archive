@@ -1,3 +1,21 @@
+## [1.3.2](https://github.com/shini-cell/shini-morphe/compare/v1.3.1...v1.3.2) (2026-11-17)
+
+### 🐛 Bug Fixes
+
+* rewrite package-derived manifest identifiers ([fc92b24](https://github.com/shini-cell/shini-morphe/commit/fc92b243920a976d41be68444b96f4daea91dd36))
+
+## [1.3.1](https://github.com/shini-cell/shini-morphe/compare/v1.3.0...v1.3.1) (2026-11-17)
+
+### 🐛 Bug Fixes
+
+* rename permissions for morphe package ([d4af652](https://github.com/shini-cell/shini-morphe/commit/d4af65239aaa0270105f2b14811954fa43bad78e))
+
+## [1.3.0](https://github.com/shini-cell/shini-morphe/compare/v1.2.2...v1.3.0) (2026-11-17)
+
+### ✨ New Features
+
+* support all Nagram XF versions ([e4d6aca](https://github.com/shini-cell/shini-morphe/commit/e4d6aca54e4c87d9ada6534f0bf2396af702ca51))
+
 ## [1.2.2](https://github.com/shini-cell/shini-morphe/compare/v1.2.1...v1.2.2) (2026-10-12)
 
 ### 🐛 Bug Fixes

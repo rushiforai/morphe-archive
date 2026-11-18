@@ -18,6 +18,7 @@ val suppressBloatWorkersPatch = bytecodePatch(
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_CRUNCHYROLL)
+    category("Performance")
 
     execute {
         // Target 10: Datadog WorkManager upload worker execution

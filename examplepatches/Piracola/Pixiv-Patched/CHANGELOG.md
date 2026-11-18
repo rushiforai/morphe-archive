@@ -1,3 +1,9 @@
+## [1.8.0](https://github.com/Piracola/Pixiv-Patched/compare/v1.7.2...v1.8.0) (2026-11-17)
+
+### ✨ New Features
+
+* **search:** cache result pages, add a relative floor and a filtered list ([673092e](https://github.com/Piracola/Pixiv-Patched/commit/673092ea26590310978244227fcf5422b0a261a7))
+
 ## [1.7.2](https://github.com/Piracola/Pixiv-Patched/compare/v1.7.1...v1.7.2) (2026-11-12)
 
 ### 🐛 Bug Fixes

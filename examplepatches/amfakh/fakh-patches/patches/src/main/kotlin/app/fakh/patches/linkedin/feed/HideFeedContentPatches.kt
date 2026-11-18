@@ -54,8 +54,8 @@ val expandPostsPatch = patch(
 @Suppress("unused")
 val feedFiltersPatch = patch(
     name = "Feed filters",
-    description = "Adds optional filters in Fakh Patches (off by default): engagement counts, " +
-        "celebrations, job cards, network activity (likes, comments, reposts), video posts, \"Recommended for you\", puzzle games, the \"New posts\" pill and \"Show translation\".",
+    description = "Adds feed filters to Fakh Patches, such as celebrations, job posts and video posts. All off by " +
+        "default.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)

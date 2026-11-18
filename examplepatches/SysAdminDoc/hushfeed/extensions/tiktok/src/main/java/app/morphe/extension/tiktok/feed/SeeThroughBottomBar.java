@@ -29,6 +29,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.Window;
+import android.widget.TextView;
 
 import app.morphe.extension.tiktok.settings.Settings;
 
@@ -63,6 +64,11 @@ final class SeeThroughBottomBar {
     static final int PILL_COLOR = 0x99000000;
     /** The pill's hairline, light enough to find the pill's edge over a dark video. */
     static final int PILL_EDGE_COLOR = 0x40FFFFFF;
+    /**
+     * The pill where TikTok draws its tabs for a light bar, dark ink as on Home's Community grid
+     * (#436): pale, so the dark tabs read, with a dark hairline to find its edge on white.
+     */
+    static final int PILL_COLOR_ON_LIGHT = 0xD9FFFFFF, PILL_EDGE_ON_LIGHT = 0x1F000000;
     /**
      * The floating pill's proportions, HushGram's glass tab bar's: 5% of the bar's width clear on
      * each side, at least 16dp, and never wider than 420dp on a wide screen.
@@ -315,6 +321,8 @@ final class SeeThroughBottomBar {
         final Rect pillRect = new Rect();
         /** The Pill height and Pill corners the pill was last laid out with. */
         private String height, corners;
+        /** True while the pill is painted for TikTok's light bar ({@link #tabsOnLight}, #436). */
+        boolean onLight;
         private final FrameWatch watch = new FrameWatch(this::beforeFrame);
 
         FloatingBackground(float density) {
@@ -363,9 +371,29 @@ final class SeeThroughBottomBar {
                 watch.on(bar);
                 // Also here, so the first frame already has them in place.
                 placeTabs(bar, pillRect, density);
+                followTabs(bar);
             }
             drawBehindPill(canvas);
             super.draw(canvas);
+        }
+
+        /**
+         * Paints the pill light or dark to go with the ink TikTok gave {@code bar}'s tabs (#436),
+         * true when that changed.
+         */
+        private boolean followTabs(ViewGroup bar) {
+            boolean light = tabsOnLight(bar);
+            if (light == onLight) return false;
+            onLight = light;
+            Drawable inner = getDrawable();
+            if (inner instanceof GlassPill) {
+                ((GlassPill) inner).setOnLight(light);
+            } else if (inner instanceof GradientDrawable) {
+                ((GradientDrawable) inner).setColor(light ? PILL_COLOR_ON_LIGHT : PILL_COLOR);
+                ((GradientDrawable) inner).setStroke(Math.max(1, Math.round(density)),
+                        light ? PILL_EDGE_ON_LIGHT : PILL_EDGE_COLOR);
+            }
+            return true;
         }
 
         /** What goes under the pill: nothing for the plain one. */
@@ -384,6 +412,8 @@ final class SeeThroughBottomBar {
                 return true;
             }
             placeTabs(bar, pillRect, density);
+            // A tab's new ink redraws the tab alone, never the bar's background under it.
+            if (followTabs(bar)) invalidateSelf();
             return true;
         }
 
@@ -409,6 +439,13 @@ final class SeeThroughBottomBar {
     static final int GLASS_SHEEN = 0x40FFFFFF;
     /** The rim: bright along the top edge where the light catches it, faint on the sides, a little back at the bottom. */
     static final int GLASS_RIM_TOP = 0x99FFFFFF, GLASS_RIM_SIDE = 0x26FFFFFF, GLASS_RIM_BOTTOM = 0x4DFFFFFF;
+    /**
+     * The glass over TikTok's light bar (#436): a white tint for its dark tabs, and a dark rim,
+     * faint along the top and a little deeper at the bottom, since a white one vanishes on white.
+     */
+    static final int GLASS_TINT_ON_LIGHT = 0x99FFFFFF;
+    static final int GLASS_RIM_TOP_ON_LIGHT = 0x14000000, GLASS_RIM_SIDE_ON_LIGHT = 0x1F000000,
+            GLASS_RIM_BOTTOM_ON_LIGHT = 0x33000000;
 
     /**
      * Liquid glass look (#218): the floating pill drawn as glass, in the same place. A view can
@@ -454,9 +491,22 @@ final class SeeThroughBottomBar {
         private final Paint edge = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final RectF box = new RectF();
         private int alpha = 255;
+        /** True for the white glass over TikTok's light bar (#436). */
+        private boolean onLight;
 
         GlassPill(float density) {
             this(density, true);
+        }
+
+        void setOnLight(boolean light) {
+            if (onLight == light) return;
+            onLight = light;
+            onBoundsChange(getBounds());
+            invalidateSelf();
+        }
+
+        boolean onLight() {
+            return onLight;
         }
 
         /** One not {@code forBar} has round ends and the standard tint, the Stories pill's glass (#409). */
@@ -476,8 +526,9 @@ final class SeeThroughBottomBar {
             sheen.setShader(new LinearGradient(0, top, 0, (top + bottom) / 2f,
                     GLASS_SHEEN, GLASS_SHEEN & 0x00FFFFFF, Shader.TileMode.CLAMP));
             edge.setShader(new LinearGradient(0, top, 0, bottom,
-                    new int[]{GLASS_RIM_TOP, GLASS_RIM_SIDE, GLASS_RIM_BOTTOM}, new float[]{0f, 0.5f, 1f},
-                    Shader.TileMode.CLAMP));
+                    onLight ? new int[]{GLASS_RIM_TOP_ON_LIGHT, GLASS_RIM_SIDE_ON_LIGHT, GLASS_RIM_BOTTOM_ON_LIGHT}
+                            : new int[]{GLASS_RIM_TOP, GLASS_RIM_SIDE, GLASS_RIM_BOTTOM},
+                    new float[]{0f, 0.5f, 1f}, Shader.TileMode.CLAMP));
         }
 
         @Override
@@ -490,7 +541,8 @@ final class SeeThroughBottomBar {
             // Glass opacity scales the tint and, up to its full strength, the frost; a shader's
             // colors are scaled by its paint's alpha, the tint's own alpha is scaled here.
             float scale = forBar ? opacityScale(Settings.GLASS_OPACITY.get()) : 1f;
-            tint.setColor(withAlpha(GLASS_TINT, Color.alpha(GLASS_TINT) * alpha / 255f * scale));
+            int glass = onLight ? GLASS_TINT_ON_LIGHT : GLASS_TINT;
+            tint.setColor(withAlpha(glass, Color.alpha(glass) * alpha / 255f * scale));
             frost.setAlpha(Math.round(alpha * Math.min(1f, scale)));
             canvas.drawRoundRect(box, radius, radius, tint);
             canvas.drawRoundRect(box, radius, radius, frost);
@@ -542,6 +594,10 @@ final class SeeThroughBottomBar {
     static final int LENS_INSET_DP = 3, LENS_GROW_DP = 4;
     /** How much larger the bubble is midway through a slide and under a finger. */
     static final float BUBBLE_SWELL = 0.08f;
+    /** With Liquid glass when held, how much larger a fully held bubble is (#440). */
+    static final float LIQUID_SWELL = 0.2f;
+    /** How long a held lens takes to swell all the way, and to wobble back to rest once let go. */
+    static final long LIQUID_PRESS_MS = 160, LIQUID_RELEASE_MS = 560;
     /** How long the lens takes to slide to a newly picked tab. */
     static final long LENS_SLIDE_MS = 280;
     /** How long a bar remembers where its last lens was, for the lens that replaces it. */
@@ -578,6 +634,33 @@ final class SeeThroughBottomBar {
         float swell = 1f + BUBBLE_SWELL * (float) Math.sin(Math.PI * t);
         float carried = 1f + Math.max(0f, from - 1f) * (1f - t);
         return Math.max(swell, carried);
+    }
+
+    /**
+     * How pressed a held lens is {@code elapsed} ms after a finger went down on it ({@code held})
+     * or let go, starting from {@code from}: 0 at rest, 1 fully held. Going down it eases out to 1
+     * over {@link #LIQUID_PRESS_MS}. Let go, it springs back over {@link #LIQUID_RELEASE_MS},
+     * past rest once (a fifth of where it started, so the bubble dips below its size) and a
+     * little back, and lands on 0, like a drop of liquid settling.
+     */
+    static float liquidPress(long elapsed, boolean held, float from) {
+        if (held) {
+            if (elapsed >= LIQUID_PRESS_MS) return 1f;
+            float rest = 1f - Math.max(0f, elapsed) / (float) LIQUID_PRESS_MS;
+            return from + (1f - from) * (1f - rest * rest);
+        }
+        if (elapsed >= LIQUID_RELEASE_MS) return 0f;
+        double t = Math.max(0f, elapsed) / (double) LIQUID_RELEASE_MS;
+        return (float) (from * Math.exp(-4.0 * t) * Math.cos(2.5 * Math.PI * t));
+    }
+
+    /**
+     * The bubble's size with a held lens's press on top of {@code bubble}, the size its slide
+     * gives it: the larger of the two while pressed, and smaller than that while it wobbles back.
+     */
+    static float heldBubble(float bubble, float press) {
+        float liquid = 1f + LIQUID_SWELL * press;
+        return press >= 0f ? Math.max(bubble, liquid) : bubble * liquid;
     }
 
     /**
@@ -620,7 +703,8 @@ final class SeeThroughBottomBar {
      * drawn and a new one slides on from there when that was moments ago (S22, 2026-10-21: the
      * lens jumped between tabs with animations on). With Slide across the tabs the lens follows a
      * finger ({@link GlassTabSlide}), and with Glass haptics it ticks each time its middle passes a
-     * tab ({@link GlassBarHaptics}).
+     * tab ({@link GlassBarHaptics}). With Liquid glass when held a finger on the pill swells it,
+     * the magnifier bends harder under it, and it wobbles back once let go ({@link #liquidPress}).
      */
     static final class TabLens {
         /** Where each bar's lens was last drawn, kept only as long as the bar is. */
@@ -653,6 +737,13 @@ final class SeeThroughBottomBar {
         private long lastDraw;
         /** The bubble's size now, and at the start of the slide it is in. */
         private float bubbleNow = 1f, bubbleFrom = 1f;
+        /** Whether a finger holds the lens (Liquid glass when held). */
+        boolean held;
+        /** When {@link #held} last changed, 0 before it ever did, and how pressed the lens was then. */
+        private long heldChange;
+        private float pressFrom;
+        /** How pressed this draw found the lens, and the bubble's size with that press on it. */
+        private float pressNow, bubbleShown = 1f;
         /** Where a finger sliding across the tabs holds the lens's middle, NaN without one. */
         float dragX = Float.NaN;
         /** The tab the lens's middle was over at the last draw, null before the first. */
@@ -732,6 +823,8 @@ final class SeeThroughBottomBar {
             if (Float.isNaN(dragX)) {
                 bubbleNow = animatorsEnabled() ? bubbleScale(now - slideStart, bubbleFrom) : 1f;
             }
+            pressNow = press(now);
+            bubbleShown = heldBubble(bubbleNow, pressNow);
             shown.set(lerp(fromLeft, toLeft, done), target.top, lerp(fromRight, toRight, done), target.bottom);
             LensSpot spot = LAST_SPOT.get(bar);
             if (spot == null) LAST_SPOT.put(bar, spot = new LensSpot());
@@ -741,35 +834,60 @@ final class SeeThroughBottomBar {
             spot.at = now;
             tick(bar, shown.centerX());
             paintBubble(canvas, bar, area, alpha, onLight);
-            if (done < 1f || bubbleNow != 1f) owner.invalidateSelf();
+            if (done < 1f || bubbleNow != 1f || pressMoving(now)) owner.invalidateSelf();
+        }
+
+        /** A finger went down on the lens ({@code now} true) or let go of it. */
+        void hold(boolean now) {
+            if (now == held) return;
+            long at = SystemClock.uptimeMillis();
+            pressFrom = press(at);
+            held = now;
+            heldChange = at;
+        }
+
+        /** How pressed the lens is at {@code now}: 0 with Liquid glass when held off. */
+        float press(long now) {
+            if (!Settings.GLASS_LIQUID_HOLD.get() || heldChange == 0) return 0f;
+            if (!animatorsEnabled()) return held ? 1f : 0f;
+            return liquidPress(now - heldChange, held, pressFrom);
+        }
+
+        /** Whether the press is still swelling or wobbling, so the next frame has to draw. */
+        private boolean pressMoving(long now) {
+            if (!Settings.GLASS_LIQUID_HOLD.get() || heldChange == 0 || !animatorsEnabled()) return false;
+            return now - heldChange < (held ? LIQUID_PRESS_MS : LIQUID_RELEASE_MS);
         }
 
         /**
-         * The bubble at {@link #shown}, swollen by {@link #bubbleNow}: the magnified video where
-         * the glass blurs it, the fill, then the sheen and the rim, all at {@code alpha}.
+         * The bubble at {@link #shown}, swollen to {@link #bubbleShown}: the magnified video where
+         * the glass blurs it, the fill, then the sheen and the rim, all at {@code alpha}. A held
+         * lens bends harder and its tint and fill clear a little, so the bend shows through.
          */
         private void paintBubble(Canvas canvas, ViewGroup bar, Rect area, int alpha, boolean onLight) {
             float corner = cornerPx(Settings.GLASS_CORNERS.get(), true, shown.height(), density);
             capsule.set(shown);
-            if (bubbleNow != 1f) {
-                float swell = (bubbleNow - 1f) / 2f;
+            if (bubbleShown != 1f) {
+                float swell = (bubbleShown - 1f) / 2f;
                 capsule.inset(-capsule.width() * swell, -capsule.height() * swell);
-                corner *= bubbleNow;
+                corner *= bubbleShown;
             }
+            float clear = 1f - 0.4f * Math.max(0f, pressNow);
             RenderNode backdrop = blur == null ? null : blur.drawnBackdrop();
             // Only at full strength: a faded bar would show the magnified video solid.
             if (backdrop != null && alpha == 255 && GlassLens.supported()) {
                 if (magnifier == null) magnifier = new GlassLens();
                 if (magnifier.paint(canvas, backdrop, area.left, area.top, bar.getWidth(), bar.getHeight(),
-                        capsule, corner)) {
+                        capsule, corner, pressNow)) {
                     // The pill's tint goes back over it so the bubble reads as part of the pill.
-                    magnifiedTint.setColor(withAlpha(GLASS_TINT,
-                            Color.alpha(GLASS_TINT) * opacityScale(Settings.GLASS_OPACITY.get())));
+                    int glass = onLight ? GLASS_TINT_ON_LIGHT : GLASS_TINT;
+                    magnifiedTint.setColor(withAlpha(glass,
+                            Color.alpha(glass) * opacityScale(Settings.GLASS_OPACITY.get()) * clear));
                     canvas.drawRoundRect(capsule, corner, corner, magnifiedTint);
                 }
             }
             int fill = onLight ? LENS_FILL_ON_LIGHT : LENS_FILL;
-            lensFill.setColor(withAlpha(fill, Color.alpha(fill) * alpha / 255f));
+            lensFill.setColor(withAlpha(fill, Color.alpha(fill) * alpha / 255f * clear));
             canvas.drawRoundRect(capsule, corner, corner, lensFill);
             Paint rim = onLight ? bubbleRimOnLight : bubbleRim;
             shade.setScale(1f, Math.max(1f, capsule.height()));
@@ -809,14 +927,15 @@ final class SeeThroughBottomBar {
          * this bar. One slide serves every lens the bar wears ({@link LensHost}).
          */
         private static void keepSlide(ViewGroup bar) {
-            if (!Settings.GLASS_TAB_SLIDE.get()) return;
+            if (!Settings.GLASS_TAB_SLIDE.get() && !Settings.GLASS_LIQUID_HOLD.get()) return;
             Activity activity = activityOf(bar.getContext());
             Window window = activity == null ? null : activity.getWindow();
             if (window == null) return;
             GlassTabSlide installed = GlassTabSlide.installedIn(window);
             if (installed != null && installed.bar() == bar) return;
             GlassTabSlide.install(window, new GlassTabSlide(bar, new LensHost(bar),
-                    () -> Settings.GLASS_TAB_SLIDE.get() && bar.getBackground() instanceof LensCarrier));
+                    () -> Settings.GLASS_TAB_SLIDE.get() && bar.getBackground() instanceof LensCarrier,
+                    () -> Settings.GLASS_LIQUID_HOLD.get() && bar.getBackground() instanceof LensCarrier));
         }
 
         /** Where the last draw put the lens; empty when that draw found no tab to put it behind. */
@@ -905,7 +1024,7 @@ final class SeeThroughBottomBar {
         public void draw(Canvas canvas) {
             super.draw(canvas);
             ViewGroup bar = bar();
-            if (bar != null) lens.draw(canvas, bar, pillRect, getDrawable().getAlpha(), false);
+            if (bar != null) lens.draw(canvas, bar, pillRect, getDrawable().getAlpha(), onLight);
         }
 
         @Override
@@ -940,7 +1059,7 @@ final class SeeThroughBottomBar {
         public void draw(Canvas canvas) {
             super.draw(canvas);
             ViewGroup bar = bar();
-            if (bar != null) lens.draw(canvas, bar, pillRect, getDrawable().getAlpha(), false);
+            if (bar != null) lens.draw(canvas, bar, pillRect, getDrawable().getAlpha(), onLight);
         }
 
         @Override
@@ -968,6 +1087,38 @@ final class SeeThroughBottomBar {
     static boolean isLight(int color) {
         if (Color.alpha(color) < 0x80) return false;
         return 0.299f * Color.red(color) + 0.587f * Color.green(color) + 0.114f * Color.blue(color) > 0.6f * 255f;
+    }
+
+    /**
+     * True when TikTok draws {@code bar}'s tabs for a light bar, in dark ink, as over Home's
+     * Community grid (#436), so a pill under them goes light. Read from the tabs' shown labels,
+     * most of them deciding so a badge's white number can't; with none, from TikTok's own
+     * background this class holds.
+     */
+    static boolean tabsOnLight(ViewGroup bar) {
+        int[] inks = new int[2];
+        countInks(bar, 0, inks);
+        if (inks[0] + inks[1] > 0) return inks[0] > inks[1];
+        return isLight(BACKGROUNDS.get(bar));
+    }
+
+    /** Counts {@code group}'s shown labels a few levels down: dark ink in [0], the rest in [1]. */
+    private static void countInks(ViewGroup group, int depth, int[] inks) {
+        for (int i = 0; i < group.getChildCount(); i++) {
+            View child = group.getChildAt(i);
+            if (child.getVisibility() != View.VISIBLE) continue;
+            if (child instanceof TextView) {
+                if (((TextView) child).length() > 0) inks[isDarkInk(((TextView) child).getCurrentTextColor()) ? 0 : 1]++;
+            } else if (child instanceof ViewGroup && depth < 4) {
+                countInks((ViewGroup) child, depth + 1, inks);
+            }
+        }
+    }
+
+    /** True for dark ink at any strength: TikTok dims its unpicked tabs' labels, black or white. */
+    static boolean isDarkInk(int color) {
+        if (Color.alpha(color) == 0) return false;
+        return 0.299f * Color.red(color) + 0.587f * Color.green(color) + 0.114f * Color.blue(color) < 0.4f * 255f;
     }
 
     /** Whether {@code background} is light, as far as its color can be read. */
@@ -1105,6 +1256,14 @@ final class SeeThroughBottomBar {
             Drawable background = bar.getBackground();
             if (!(background instanceof LensCarrier)) return;
             ((LensCarrier) background).lens().dragX = x;
+            background.invalidateSelf();
+        }
+
+        @Override
+        public void hold(boolean held) {
+            Drawable background = bar.getBackground();
+            if (!(background instanceof LensCarrier)) return;
+            ((LensCarrier) background).lens().hold(held);
             background.invalidateSelf();
         }
     }

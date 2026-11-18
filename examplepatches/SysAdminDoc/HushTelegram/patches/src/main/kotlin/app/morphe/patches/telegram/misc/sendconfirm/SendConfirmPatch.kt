@@ -41,6 +41,7 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
@@ -50,6 +51,7 @@ import app.morphe.util.names.origName
 import app.morphe.util.names.origReturnType
 import app.morphe.util.names.origType
 import app.morphe.util.names.tgMutableClassDefBy
+import app.morphe.util.names.tgClassDefByOrNull
 
 internal const val SEND_CONFIRM = "$EXTENSION_PACKAGE/misc/SendConfirm;"
 private const val NAME = "Ask before sending a sticker"
@@ -57,6 +59,7 @@ private const val OBJECT = "Ljava/lang/Object;"
 private const val STRING = "Ljava/lang/String;"
 private const val ACTIVITY = "Landroid/app/Activity;"
 private const val VIEW = "Landroid/view/View;"
+private const val MOTION_EVENT = "Landroid/view/MotionEvent;"
 private const val DOCUMENT = "Lorg/telegram/tgnet/TLRPC\$Document;"
 private const val USER = "Lorg/telegram/tgnet/TLRPC\$User;"
 private const val USER_FULL = "Lorg/telegram/tgnet/TLRPC\$UserFull;"
@@ -71,6 +74,7 @@ internal const val SEND_HELPER = "Lorg/telegram/messenger/SendMessagesHelper;"
 internal const val CALLBACK = "Lorg/telegram/messenger/Utilities\$Callback;"
 private const val TL_DOCUMENT = "Lorg/telegram/tgnet/TLRPC\$TL_document;"
 private const val VIDEO_INFO = "Lorg/telegram/messenger/VideoEditedInfo;"
+private const val VIDEO_LENGTH = "estimatedDuration"
 private const val LONG = "Ljava/lang/Long;"
 private const val SET_FIELD_TEXT = "$ENTER_VIEW->setFieldText(Ljava/lang/CharSequence;)V"
 private const val CHAR_SEQUENCE = "Ljava/lang/CharSequence;"
@@ -154,8 +158,11 @@ internal class SendConfirmSite(
     val startCall: String, val launchField: String, val strips: List<StripSite>,
     val barSend: String, val voiceClip: String, val videoClip: String,
     val barSendMethod: MutableMethod, val voicePreview: PreviewSite, val videoPreview: PreviewSite,
-    val text: PreviewSite, val join: MutableMethod,
+    val text: PreviewSite, val join: MutableMethod, val videoTouch: MutableMethod, val videoTaps: List<TapSite>,
 ) {
+    /** The extension's round video question, which takes the recorder's entry's own arguments after the chat. */
+    val videoHook get() = "$SEND_CONFIRM->${shape.hook}(${listOf(OBJECT).plus(shape.target).joinToString("")})Z"
+
     /** Hands each place that gets code to [change] with the edit that does it, copy or real. */
     fun insert(change: (MutableMethod, (MutableMethod) -> Unit) -> Unit) {
         change(sticker) { gate(it, "$SEND_CONFIRM->sticker(${STICKER_HOOK.joinToString("")})Z") }
@@ -164,7 +171,9 @@ internal class SendConfirmSite(
             val hook = "$SEND_CONFIRM->voice(${VOICE_HOOK.joinToString("")})Z"
             if (voice.origParameterTypes == VOICE_TARGET_R8) reorderedVoiceGate(it, hook) else gate(it, hook)
         }
-        change(video) { gate(it, "$SEND_CONFIRM->${shape.hook}(${listOf(OBJECT).plus(shape.target).joinToString("")})Z") }
+        change(video) { gate(it, videoHook) }
+        // The later one first, so the earlier one's index still holds.
+        change(videoTouch) { method -> videoTaps.sortedByDescending { it.at }.forEach { tapGate(method, it, videoHook) } }
         change(header) { replaceCall(it, headerCall) }
         change(profile) { replaceCall(it, profileCall) }
         strips.forEach { strip -> change(strip.method) { stripGate(it, strip) } }
@@ -202,6 +211,33 @@ private fun previewGate(target: MutableMethod, preview: PreviewSite) {
             return v${preview.answer}
         """,
         ExternalLabel("hush_send", target.getInstruction(preview.at)),
+    )
+}
+
+/**
+ * One of the record button's sends of a round video: the call at [at] that hands the recorder
+ * state 1 through its entry in the chat, with [answer], a local nothing reads from there on.
+ */
+internal class TapSite(val at: Int, val answer: Int)
+
+/**
+ * Asks in front of the record button's send of a round video, with the call's own registers, the
+ * chat and the entry's arguments in the entry's order. On true the call goes on; on false the
+ * extension has paused the recorder and asked, and the touch handler returns true, as Telegram's
+ * own paid-message question does there, so the chat bar keeps the paused clip in its preview.
+ */
+private fun tapGate(target: MutableMethod, tap: TapSite, hook: String) {
+    val call = target.getInstruction(tap.at) as RegisterRangeInstruction
+    target.addInstructionsWithLabels(
+        tap.at,
+        """
+            invoke-static/range {v${call.startRegister} .. v${call.startRegister + call.registerCount - 1}}, $hook
+            move-result v${tap.answer}
+            if-nez v${tap.answer}, :hush_record
+            const/16 v${tap.answer}, 0x1
+            return v${tap.answer}
+        """,
+        ExternalLabel("hush_record", target.getInstruction(tap.at)),
     )
 }
 
@@ -335,6 +371,7 @@ internal fun BytecodePatchContext.resolveSendConfirm(): SendConfirmSite {
     controlHook(SEND_CONFIRM, "chatBar", listOf(OBJECT), "Z")
     controlHook(SEND_CONFIRM, "voiceClip", listOf(OBJECT), OBJECT)
     controlHook(SEND_CONFIRM, "videoClip", listOf(OBJECT), OBJECT)
+    controlHook(SEND_CONFIRM, "videoLength", listOf(OBJECT), "J")
     controlHook(SEND_CONFIRM, "sendFromBar", listOf(OBJECT), "V")
     controlHook(SEND_CONFIRM, "previewVoice", PREVIEW_HOOK, "Z")
     controlHook(SEND_CONFIRM, "previewVideo", PREVIEW_HOOK, "Z")
@@ -466,6 +503,32 @@ internal fun BytecodePatchContext.resolveSendConfirm(): SendConfirmSite {
     val videoPaused = recorderCalls.filter { it.origReturnType == "Z" }.map(::signature).distinct().controlSingle("the round video recorder's paused check")
     val pauseVideo = recorderCalls.filter { it.origReturnType == "V" }.map(::signature).distinct().controlSingle("the round video recorder's pause")
 
+    // The record button's two sends of a round video: its locked send button and its release. Each
+    // hands the recorder state 1 through the entry the chat implements, after which the chat bar
+    // lets go of the recording, so a question in the chat alone leaves nothing to send from. The
+    // question goes in front of those calls, where Telegram's own paid-message question stands.
+    val entryParams = video.parameterTypes.map { it.toString() }
+    val entry = videoClass.interfaces.flatMap { iface ->
+        tgClassDefByOrNull(iface)?.methods?.filter { m ->
+            m.name == video.name && m.returnType == "V" && m.parameterTypes.map { it.toString() } == entryParams
+        } ?: emptyList()
+    }.controlSingle("the round video recorder's entry the chat bar calls")
+    val entryRef = signature(entry)
+    val touches = mutableListOf<Triple<String, String, List<Int>>>()
+    forEachClassMentioning(Mention.reference(entryRef)) { cls ->
+        if (cls.origType.startsWith("Lapp/hushtelegram/")) return@forEachClassMentioning
+        cls.methods.forEach { m ->
+            if (m.implementation == null || AccessFlags.STATIC.isSet(m.accessFlags)) return@forEach
+            if (m.origName != "onTouchEvent" || m.origReturnType != "Z" || m.origParameterTypes != listOf(MOTION_EVENT)) return@forEach
+            val taps = videoTapSites(m, entryRef)
+            if (taps.isNotEmpty()) touches += Triple(cls.type, signature(m), taps)
+        }
+    }
+    val (touchType, touchWanted, tapIndices) = touches.controlSingle("the record button's touch handler")
+    controlShape(tapIndices.size == 2, "the record button no longer sends a round video from both its locked send button and a release")
+    val videoTouch = tgMutableClassDefBy(touchType).methods.single { signature(it) == touchWanted }
+    val videoTaps = tapIndices.map { TapSite(it, videoTouch.freeLocalsAt(NAME, it, 1, highest = 255).single()) }
+
     // That method is also the chat bar's send, the one its send button runs: it sends the voice clip
     // or the round video waiting in its preview, each in a field of its own, and closes the preview.
     // Send from a question in front of a paused recording goes through it. The stubs that read the
@@ -481,6 +544,12 @@ internal fun BytecodePatchContext.resolveSendConfirm(): SendConfirmSite {
             "the chat bar's send no longer sends its paused $what")
         ref
     }
+    // How long the paused round video is: the newer recorder writes its recorded length there, and
+    // its send drops a clip shorter than it keeps, so that clip's question would send nothing.
+    val videoInfo = tgMutableClassDefBy(VIDEO_INFO)
+    controlShape(AccessFlags.PUBLIC.isSet(videoInfo.accessFlags) && videoInfo.fields.any {
+        it.origName == VIDEO_LENGTH && it.origType == "J" && AccessFlags.PUBLIC.isSet(it.accessFlags) && !AccessFlags.STATIC.isSet(it.accessFlags)
+    }, "a round video clip no longer says how long it is")
 
     // Where that send starts sending each clip: right after it tests the field it just read for
     // null. Its own send button runs it there too, which never reaches the end of a recording.
@@ -573,7 +642,29 @@ internal fun BytecodePatchContext.resolveSendConfirm(): SendConfirmSite {
 
     return SendConfirmSite(sticker, gif, voice, video, shape, recorder, videoPaused, pauseVideo,
         header, headerCall, profile, profileCall, startRef, own, stripSites, signature(paidPause), voiceClip, videoClip,
-        paidPause, voicePreview, videoPreview, text, join)
+        paidPause, voicePreview, videoPreview, text, join, videoTouch, videoTaps)
+}
+
+/**
+ * Where [method], a record button's touch handler, sends a round video: each call of the
+ * recorder's [entry] with state 1 that only the instruction before it reaches, the state set to
+ * the literal 1 a few instructions earlier and still holding there. Neither a start (state 0) nor
+ * a cancel (state 2) is one.
+ */
+internal fun videoTapSites(method: Method, entry: String): List<Int> {
+    val body = method.controlBody()
+    val flow = ControlFlow.of(method)
+    val into = Array(body.size) { mutableListOf<Int>() }
+    body.indices.forEach { from -> (flow.normal[from] + flow.exceptional[from]).forEach { into[it] += from } }
+    return body.indices.filter { at ->
+        val call = body[at] as? RegisterRangeInstruction
+        if (call == null || body[at].opcode != Opcode.INVOKE_INTERFACE_RANGE || body[at].controlRef() != entry) return@filter false
+        val state = call.startRegister + 1
+        val set = (at - 1 downTo 0).firstOrNull { writes(body[it], state) } ?: return@filter false
+        val literal = body[set] as? NarrowLiteralInstruction
+        into[at] == listOf(at - 1) && literal != null && literal.narrowLiteral == 1 &&
+            body[set].opcode in setOf(Opcode.CONST_4, Opcode.CONST_16, Opcode.CONST) && flow.definitionReaches(set, at, state)
+    }
 }
 
 /** Telegram's join of a voice chat: the chat, its invite hash, whether it starts one, a join-as flag, the window, the screen and the account. */
@@ -747,6 +838,11 @@ internal fun BytecodePatchContext.writeSendConfirmStubs(site: SendConfirmSite) {
             return-object v0
         """)
     }
+    writeStub(SEND_CONFIRM, "videoLength", 3, """
+        check-cast p0, $VIDEO_INFO
+        iget-wide v0, p0, $VIDEO_INFO->$VIDEO_LENGTH:J
+        return-wide v0
+    """)
     // Now, with sound, and with Telegram's own paid-message question free to ask, as the send button sends.
     // 13.2 takes the same five as sound, date, flag, stars and the question.
     val words = if (site.barSendMethod.origParameterTypes == BAR_SEND_R8) """

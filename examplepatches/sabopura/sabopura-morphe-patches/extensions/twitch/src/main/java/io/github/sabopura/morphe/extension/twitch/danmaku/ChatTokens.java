@@ -43,11 +43,6 @@ final class ChatTokens {
         boolean isEmote() {
             return emoteId != null;
         }
-
-        @Override
-        public String toString() {
-            return isEmote() ? "[" + emoteId + ":" + text + "]" : text;
-        }
     }
 
     /** True when a token list element looks like one of Twitch's chat tokens. */
@@ -131,6 +126,13 @@ final class ChatTokens {
     static String plainText(List<Segment> segments) {
         StringBuilder text = new StringBuilder();
         for (Segment segment : segments) text.append(segment.text);
+        return text.toString().trim();
+    }
+
+    /** What was typed as words: an emote's name stands for a picture. */
+    static String withoutEmotes(List<Segment> segments) {
+        StringBuilder text = new StringBuilder();
+        for (Segment segment : segments) text.append(segment.isEmote() ? " " : segment.text);
         return text.toString().trim();
     }
 

@@ -1,0 +1,1 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="nl.johninnl.wazenavprobe"><uses-sdk android:minSdkVersion="32" android:targetSdkVersion="32"/><application android:label="Navigation probe"/><instrumentation android:name="nl.johninnl.wazenavprobe.Probe" android:targetPackage="com.waze"/></manifest>

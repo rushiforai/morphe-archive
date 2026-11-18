@@ -86,11 +86,15 @@ public final class FontStorage {
      * Switches the system-font fallback on or off. The font is only read at start up, so
      * {@link SettingsRestart#markChanged} queues the actual restart.
      */
+    private static final java.util.concurrent.ConcurrentHashMap<String, Typeface> BUNDLED_TYPEFACE_CACHE =
+            new java.util.concurrent.ConcurrentHashMap<>();
+
     public static void setUseSystemFont(boolean enabled) {
         boolean previous = useSystemFont();
         if (SharedPref.setBooleanPref(Settings.USE_SYSTEM_FONT.key, enabled)) {
             SettingsRestart.markChanged(Settings.USE_SYSTEM_FONT.key, previous, enabled);
         }
+        CustomFont.reload();
     }
 
     // The file.
@@ -132,6 +136,7 @@ public final class FontStorage {
                 return DeleteResult.FAILED;
             }
             SettingsRestart.markChanged(FILE_NAME, RestartPolicy.REQUIRED, previous, null);
+            CustomFont.reload();
             return DeleteResult.DELETED;
         } catch (Exception e) {
             Logger.printException(() -> "Failed to delete the custom font", e);
@@ -187,6 +192,7 @@ public final class FontStorage {
                 throw new IOException("Could not move the imported font into place");
             }
             SettingsRestart.markChanged(FILE_NAME, RestartPolicy.REQUIRED, previous, next);
+            CustomFont.reload();
             return ImportResult.ADDED;
         } catch (Exception e) {
             Logger.printException(() -> "Failed to add a custom font", e);
@@ -242,6 +248,114 @@ public final class FontStorage {
      * to the default typeface instead; {@link Typeface.Builder} without a fallback family returns
      * null when the font can't be parsed or has no usable character map.
      */
+    public static boolean applyBundledFont(Context context, String fontDisplayName) {
+        if (context == null || fontDisplayName == null) return false;
+        String rawResName = rawResourceForFontName(fontDisplayName);
+        if (rawResName == null) return false;
+        int rawId = context.getResources().getIdentifier(rawResName, "raw", context.getPackageName());
+        if (rawId == 0) return false;
+
+        File destination = file();
+        File temp = new File(destination.getParentFile(), FILE_NAME + ".tmp");
+        try (InputStream in = context.getResources().openRawResource(rawId);
+             OutputStream out = new FileOutputStream(temp)) {
+            byte[] buffer = new byte[8192];
+            int read;
+            while ((read = in.read(buffer)) != -1) {
+                out.write(buffer, 0, read);
+            }
+        } catch (Exception e) {
+            if (temp.exists()) temp.delete();
+            return false;
+        }
+
+        if (parse(temp) == null) {
+            temp.delete();
+            return false;
+        }
+        try {
+            String previous = fingerprint(destination);
+            String next = fingerprint(temp);
+            if (!temp.renameTo(destination)) {
+                if (destination.exists()) destination.delete();
+                if (!temp.renameTo(destination)) return false;
+            }
+            setUseSystemFont(false);
+            SettingsRestart.markChanged(FILE_NAME, RestartPolicy.REQUIRED, previous, next);
+            CustomFont.reload();
+            return true;
+        } catch (Exception e) {
+            if (temp.exists()) temp.delete();
+            return false;
+        }
+    }
+
+    public static String rawResourceForFontName(String name) {
+        if (name == null) return null;
+        switch (name) {
+            case "iOS Story Classic": return "rex_font_ios_classic";
+            case "iOS Story Modern": return "rex_font_ios_modern";
+            case "iOS Story Neon": return "rex_font_ios_neon";
+            case "iOS Story Typewriter": return "rex_font_ios_typewriter";
+            case "iOS Story Strong": return "rex_font_ios_strong";
+            case "iOS Story Elegant": return "rex_font_ios_elegant";
+            case "iOS Story Literature": return "rex_font_ios_literature";
+            case "iOS Story Beach": return "rex_font_ios_beach";
+            case "iOS Story Directional": return "rex_font_ios_directional";
+            case "iOS Story Papyrus": return "rex_font_ios_papyrus";
+            case "iOS Story Hindi": return "rex_font_ios_hindi";
+            case "iOS Story Hindi/Gujarati/Marathi": return "rex_font_ios_indic";
+            case "iOS ExtraBold CT 2026": return "rex_font_ios_extrabold_ct";
+            case "iOS Semibold Lite CT 2026": return "rex_font_ios_semibold_lite_ct";
+            default: return null;
+        }
+    }
+
+
+    public static Typeface loadBundledTypefaceByRawName(String rawResName) {
+        if (rawResName == null || rawResName.isEmpty()) return null;
+        Typeface cached = BUNDLED_TYPEFACE_CACHE.get(rawResName);
+        if (cached != null) return cached;
+        Context ctx = Utils.getContext();
+        if (ctx == null || ctx.getResources() == null) return null;
+        int rawId = ctx.getResources().getIdentifier(rawResName, "raw", ctx.getPackageName());
+        if (rawId == 0) return null;
+        File cacheFile = new File(ctx.getCacheDir(), rawResName + ".ttf");
+        if (!cacheFile.isFile() || cacheFile.length() == 0) {
+            try (InputStream in = ctx.getResources().openRawResource(rawId);
+                 OutputStream out = new FileOutputStream(cacheFile)) {
+                byte[] buf = new byte[8192];
+                int n;
+                while ((n = in.read(buf)) != -1) out.write(buf, 0, n);
+            } catch (Exception e) {
+                return null;
+            }
+        }
+        Typeface tf = parse(cacheFile);
+        if (tf != null) {
+            BUNDLED_TYPEFACE_CACHE.put(rawResName, tf);
+        }
+        return tf;
+    }
+
+    public static Typeface resolveStoryDescriptorTypeface(String descriptorStr) {
+        if (descriptorStr == null) return null;
+        String upper = descriptorStr.toUpperCase(java.util.Locale.ROOT);
+        if (upper.contains("CLASSIC")) return loadBundledTypefaceByRawName("rex_font_ios_classic");
+        if (upper.contains("MODERN")) return loadBundledTypefaceByRawName("rex_font_ios_modern");
+        if (upper.contains("NEON") || upper.contains("CURSIVE")) return loadBundledTypefaceByRawName("rex_font_ios_neon");
+        if (upper.contains("TYPEWRITER") || upper.contains("MONO")) return loadBundledTypefaceByRawName("rex_font_ios_typewriter");
+        if (upper.contains("STRONG") || upper.contains("HEAVY")) return loadBundledTypefaceByRawName("rex_font_ios_strong");
+        if (upper.contains("ELEGANT") || upper.contains("SERIF")) return loadBundledTypefaceByRawName("rex_font_ios_elegant");
+        if (upper.contains("LITERATURE") || upper.contains("EDITORIAL")) return loadBundledTypefaceByRawName("rex_font_ios_literature");
+        if (upper.contains("BEACH") || upper.contains("MEME") || upper.contains("COMIC")) return loadBundledTypefaceByRawName("rex_font_ios_beach");
+        if (upper.contains("DIRECTIONAL") || upper.contains("DECO")) return loadBundledTypefaceByRawName("rex_font_ios_directional");
+        if (upper.contains("PAPYRUS")) return loadBundledTypefaceByRawName("rex_font_ios_papyrus");
+        if (upper.contains("HINDI") || upper.contains("DEVANAGARI")) return loadBundledTypefaceByRawName("rex_font_ios_hindi");
+        if (upper.contains("INDIC") || upper.contains("GUJARATI") || upper.contains("MARATHI")) return loadBundledTypefaceByRawName("rex_font_ios_indic");
+        return null;
+    }
+
     private static Typeface parse(File file) {
         try {
             return new Typeface.Builder(file).build();

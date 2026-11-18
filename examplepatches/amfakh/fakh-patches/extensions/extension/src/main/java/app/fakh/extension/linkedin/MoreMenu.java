@@ -237,7 +237,7 @@ public final class MoreMenu {
         root.setLayoutParams(params);
     }
 
-    private static String icon(String id) {
+    static String icon(String id) {
         switch (id) {
             case "games":
                 return IconDrawable.PUZZLE;

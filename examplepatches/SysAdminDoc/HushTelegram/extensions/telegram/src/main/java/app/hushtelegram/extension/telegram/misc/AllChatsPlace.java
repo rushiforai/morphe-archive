@@ -31,7 +31,7 @@ import app.hushtelegram.extension.telegram.settings.Settings;
  * the switch back on restores it. A Premium account's order is its own and is never touched.
  */
 public final class AllChatsPlace {
-    private static final String PREFS = "hushtelegram_all_chats_place";
+    static final String PREFS = "hushtelegram_all_chats_place";
     /** Telegram's id for All Chats, in folder lists and in the order it sends. */
     private static final int ALL_CHATS = 0;
     private static final int NO_PLACE = -1;

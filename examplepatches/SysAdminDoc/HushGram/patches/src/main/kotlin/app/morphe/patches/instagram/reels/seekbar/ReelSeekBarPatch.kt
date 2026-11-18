@@ -13,7 +13,6 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.instagram.misc.extension.EXTENSION_PACKAGE
-import app.morphe.patches.instagram.misc.extension.PURGE_MARKER
 import app.morphe.patches.instagram.misc.extension.classesCalling
 import app.morphe.patches.instagram.misc.extension.classesLoadingString
 import app.morphe.patches.instagram.misc.extension.enableStatus
@@ -22,12 +21,10 @@ import app.morphe.patches.instagram.misc.extension.instagramExtensionPatch
 import app.morphe.patches.instagram.misc.extension.jumpTargets
 import app.morphe.patches.instagram.misc.extension.loadsString
 import app.morphe.patches.instagram.misc.extension.localRegisterCount
-import app.morphe.patches.instagram.misc.extension.markers
 import app.morphe.patches.instagram.misc.extension.parameterRegisterNumber
 import app.morphe.patches.instagram.misc.extension.requireParameterIntact
 import app.morphe.patches.instagram.misc.extension.requireStatusMethod
 import app.morphe.patches.instagram.misc.extension.stringLoadedAt
-import app.morphe.patches.instagram.misc.extension.typesMarked
 import app.morphe.patches.instagram.misc.flags.FlagLoad
 import app.morphe.patches.instagram.misc.flags.answerFlagLoads
 import app.morphe.patches.instagram.misc.flags.findFlagLoads
@@ -43,10 +40,10 @@ import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ThreeRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
-import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
 private const val PATCH = "Keep a seek bar on Reels"
 internal const val REEL_SEEK_BAR = "$EXTENSION_PACKAGE/reels/ReelSeekBar;"
@@ -82,16 +79,43 @@ internal const val ORGANIC_MIN_SECONDS_READS = 3
 internal const val ORGANIC_LAZY = 0x8108b9001031f3L
 internal const val ORGANIC_LAZY_READS = 1
 
-/** The markers, after Instagram's release prefix, of the methods that prove the reads are the seek bar's. */
-internal const val SHOULD_SHOW_ATTACHED = "ClipsExperimentUtil_shouldShowAttachedScrubber"
-internal const val CALCULATE_SHOULD_SHOW = "ClipsItemUseCase_calculateShouldShowAttachedScrubber"
-internal const val SCRUBBER_ROW_STATE = "ClipsScrubberRowUseCase_getUiState"
+internal const val PASS_THROUGH = "$REEL_SEEK_BAR->passThrough(I)Z"
 
 /**
- * The marker of the Reels progress controller's method that makes the invisible strip a drag above
- * the seek bar still seeks from, and sets the strip's touch listener (on 453.0.0.57.79 LX/04FC->A0L).
+ * Whether a sideways drag across a reel scrubs it, for a reel shorter than the minimum (the one whose bar is
+ * the hidden kind, which nothing else brings back) and for a longer one: the Reels scrubber config's
+ * enableUniversalScrubberPassThroughGesture and enableScrubberPassThroughGesture. 456 reads each once, in the
+ * builder of that config (on 456's 386214574 LX/0JBj->A01), which also reads [ORGANIC_MIN_SECONDS].
  */
-internal const val TOUCH_STRIP = "ClipsProgressController_prepareExpandedTouchView"
+internal const val UNIVERSAL_PASS_THROUGH = 0x8108b9001431f6L
+internal const val ATTACHED_PASS_THROUGH = 0x8108b9001131f4L
+
+/**
+ * What the check of whether a reel gets the attached bar takes: the session, the reel's length and two
+ * booleans. 456 dropped the markers that named it; it's the one method this shape reading the minimum
+ * (on 456's 386214574 LX/04mo->A0P).
+ */
+internal const val USER_SESSION = "Lcom/instagram/common/session/UserSession;"
+private val ATTACHED_PARAMETERS = listOf(USER_SESSION, "J", "Z", "Z")
+
+/**
+ * The Reels viewer's settings, which the seek bar row's state (on 456's 386214574 LX/08DZ->A00) and the
+ * check of whether a reel gets the bar (LX/08LX->A00) take first, ahead of the reel item.
+ */
+internal const val VIEWER_CONFIG = "Lcom/instagram/clips/intf/ClipsViewerConfig;"
+
+/**
+ * What the Reels progress controller reports when it can't make the strip you drag from (on 456's
+ * 386214574 LX/098b->A0D). No other class loads it, so it names the controller.
+ */
+internal const val PROGRESS_CONTROLLER_ERROR = "ClipsScrubberExpandedTouchViewError"
+
+/**
+ * The event the Reels player's position callback (on 456's 386214574 LX/07Ft->A1U) logs at a preview's end.
+ * Other methods load it too, but none of them takes a reel item, the position and the length.
+ */
+internal const val PREVIEW_END = "preview_end"
+
 private const val SET_ON_TOUCH = "Landroid/view/View;->setOnTouchListener(Landroid/view/View\$OnTouchListener;)V"
 
 /** Instagram's reel seek bar, a kept class, and the listener method the label hook goes in. */
@@ -114,25 +138,30 @@ internal const val PHOTO_PROGRESS = "$REEL_SEEK_BAR->photoProgress(Ljava/lang/St
 internal const val SEEK_PREVIEW_ON = "$EXTENSION_PACKAGE/feed/SeekPreview;->on()Z"
 internal const val REMEMBER_REEL = "$REEL_SEEK_BAR->rememberReel(Ljava/lang/Object;Ljava/lang/String;)V"
 
-/** The marker of the Reels player's position callback (on 454 LX/04Kf->A1M), which every reel's player goes through. */
-internal const val PLAYER_PROGRESS = "ClipsVideoPlayerController_onProgressUpdate"
-
 /**
- * The marker of the Reels progress controller's check of whether a reel's bar shows only while you touch
- * the reel (on 454 LX/06OS->A0R). It says yes to a reel shorter than the minimum, and a photo's length is 0,
- * so the controller hid a photo's bar each time the reel came on screen (#10).
+ * The Reels progress controller's check of whether a reel's bar shows only while you touch the reel (on
+ * 456's 386214574 LX/098b->A0O, its one static check of itself). It says yes to a reel shorter than the
+ * minimum, and a photo's length is 0, so the controller hid a photo's bar each time the reel came on screen (#10).
  */
-internal const val TOUCH_ONLY = "ClipsProgressController_shouldShowScrubberOnInteraction"
 internal const val PHOTO_TOUCH_ONLY = "$REEL_SEEK_BAR->photoTouchOnly(ILjava/lang/Object;Ljava/lang/String;)Z"
 
 /**
- * The marker of the Reels progress controller's check of whether a reel gets the strip you drag from (on 454
- * LX/06OS->A1C). Letting go of a hold on a reel asks it before showing the bar again, and it goes by the reel's
- * length, where it loads [ATTACHED_BY_LENGTH]. A photo's length is 0, so a hold hid a photo's bar for good (#10).
+ * The Reels progress controller's check of whether a reel gets the strip you drag from (on 456's 386214574
+ * LX/098b->A1B, its one instance check of a reel item). Letting go of a hold on a reel asks it before showing
+ * the bar again, and it goes by the reel's length, which it asks the controller for. A photo's length is 0, so
+ * a hold hid a photo's bar for good (#10).
  */
-internal const val EXPANDED_TOUCH = "ClipsProgressController_shouldActivateExpandedTouchView"
-internal const val ATTACHED_BY_LENGTH = "ClipsProgressUseCase_shouldShowAttachedScrubber"
 internal const val PHOTO_STRIP = "$REEL_SEEK_BAR->photoStrip(Ljava/lang/Object;Ljava/lang/String;)Z"
+
+/**
+ * Hide the seek bar on reels (#680) in the same two checks of the progress controller. Each asks [BARS_HIDDEN] first, ahead
+ * of the photo's hook. Yes, the strip check answers yes for every ordinary reel, since it goes by a length no reel reaches
+ * while the bars are hidden, and a reel with no strip had nothing for the drag along its bottom edge to land on. The
+ * touch-only check hands [HIDDEN_TOUCH_ONLY] its answer and whether the reel is an ad, so a short reel that keeps its strip
+ * still keeps its bar hidden until touched.
+ */
+internal const val BARS_HIDDEN = "$REEL_SEEK_BAR->barsHidden()Z"
+internal const val HIDDEN_TOUCH_ONLY = "$REEL_SEEK_BAR->hiddenTouchOnly(II)Z"
 
 /** What Instagram reports from the method that works out a post's kind of reel (on 454 LX/087h->A00), photo with music among them. */
 internal const val KIND_OF_REPORT = "MixedMediaTypeExt.toMixedMediaType unsupported carousel type"
@@ -167,8 +196,12 @@ private const val STRING = "Ljava/lang/String;"
  * of a hold on the reel shows the bar again only when the controller's check of the strip you drag from says
  * so, which goes by the length too, so that check asks the extension before it does.
  *
- * Every read is found by its server id and counted, each is checked against Instagram's own markers
- * for the seek bar, and the bar's class and method, the binder and the strip's listener call are
+ * Hide the seek bar on reels (#680) gives every ordinary reel the hidden kind, which only a sideways drag across
+ * the reel brings back, and that drag is off on many accounts. The scrubber config's two reads of whether it's
+ * on go to the extension too, which answers yes while that switch hides the bars.
+ *
+ * Every read is found by its server id and counted, each is checked against the seek bar's methods it
+ * sits in, and the bar's class and method, the binder and the strip's listener call are
  * checked, all before anything changes. A build that differs stops the patch naming what it couldn't find, and nothing is half
  * done.
  */
@@ -191,10 +224,14 @@ val reelSeekBarPatch = bytecodePatch(
 
 private fun refuse(detail: String): Nothing = throw PatchException("$PATCH: $detail")
 
-/** The three reads of the minimum, the read of the hidden kind, the seek bar's listener method, the binder and the strip. */
+/**
+ * The three reads of the minimum, the read of the hidden kind, the two reads of whether a sideways drag scrubs,
+ * the seek bar's listener method, the binder and the strip.
+ */
 internal class ReelSeekBarSites(
     val lengths: List<FlagLoad>,
     val lazy: FlagLoad,
+    val passThroughs: List<FlagLoad>,
     val progress: Method,
     val bind: BindSite,
     val touch: TouchSite,
@@ -225,8 +262,8 @@ internal class PhotoSites(
 )
 
 /**
- * Where the [EXPANDED_TOUCH] check goes by the reel's length: [at] is its load of the [ATTACHED_BY_LENGTH]
- * marker, which nothing jumps to, [item] the register holding the reel it's asked about, and [scratch] two
+ * Where the check of the strip you drag from goes by the reel's length: [at] is its first comparison of the
+ * length, which nothing jumps to, [item] the register holding the reel it's asked about, and [scratch] two
  * registers free there.
  */
 internal class StripSite(
@@ -237,9 +274,9 @@ internal class StripSite(
 )
 
 /**
- * Where the [TOUCH_ONLY] check answers: [at] is its return of [answer], which a call put there, [current]
- * the static getter of the reel on screen it asks with the controller in [controller], and [scratch] three
- * registers free at that return.
+ * Where the check of whether the bar shows only while touched answers: [at] is its return of [answer], which a call put there, [current]
+ * the static getter of the reel on screen it asks with the controller in [controller], [ad] the reel's field it reads
+ * as whether the reel is an ad, and [scratch] three registers free at that return.
  */
 internal class TouchOnlySite(
     val method: Method,
@@ -248,6 +285,7 @@ internal class TouchOnlySite(
     val current: String,
     val controller: Int,
     val scratch: List<Int>,
+    val ad: String,
 )
 
 /** Where [method] calls [SET_ON_TOUCH] on the strip: instruction [at], with the strip in [view] and the listener in [listener]. */
@@ -272,11 +310,14 @@ internal class BindSite(
 
 /**
  * Finds every read of [ORGANIC_MIN_SECONDS] and [ORGANIC_LAZY] and checks there are exactly
- * [ORGANIC_MIN_SECONDS_READS] and [ORGANIC_LAZY_READS], then that they're the seek bar's: the
- * method marked [SHOULD_SHOW_ATTACHED] reads the minimum and the one marked
- * [CALCULATE_SHOULD_SHOW] calls it, and the one marked [SCRUBBER_ROW_STATE] reads the hidden kind
- * and calls a method that reads the minimum. Then finds [SEEK_BAR]'s one [PROGRESS_CHANGED]. Fails
- * before anything changes when any of it isn't so.
+ * [ORGANIC_MIN_SECONDS_READS] and [ORGANIC_LAZY_READS], then that they're the seek bar's: one read
+ * of the minimum is in the static check of whether a reel gets the attached bar ([ATTACHED_PARAMETERS]),
+ * the read of the hidden kind is in the seek bar row's state, which takes a [VIEWER_CONFIG] first
+ * and calls a method that reads the minimum, and one static check taking a [VIEWER_CONFIG] and the
+ * row's reel item calls the attached check. The progress controller is the one class reporting
+ * [PROGRESS_CONTROLLER_ERROR], and the player's callback the one instance method taking the reel item,
+ * the position and the length that loads [PREVIEW_END]. Then finds [SEEK_BAR]'s one [PROGRESS_CHANGED].
+ * Fails before anything changes when any of it isn't so.
  */
 internal fun BytecodePatchContext.findReelSeekBarSites(): ReelSeekBarSites {
     val lengths = findFlagLoads(PATCH, ORGANIC_MIN_SECONDS, "J")
@@ -291,32 +332,77 @@ internal fun BytecodePatchContext.findReelSeekBarSites(): ReelSeekBarSites {
         refuse("expected $ORGANIC_LAZY_READS read of the hidden seek bar flag (${ORGANIC_LAZY.toString(16)}), found ${lazies.size}")
     }
     val lazy = lazies.single()
+    // Both reads of whether a sideways drag scrubs sit in the scrubber config's builder, a method reading the minimum.
+    val passThroughs = listOf(UNIVERSAL_PASS_THROUGH, ATTACHED_PASS_THROUGH).map { flag ->
+        val loads = findFlagLoads(PATCH, flag, "Z")
+        val load = loads.singleOrNull()
+            ?: refuse("expected one read of whether a sideways drag scrubs a reel (${flag.toString(16)}), found ${loads.size}")
+        if (lengths.none { it.signature() == load.signature() }) {
+            refuse("${load.signature()} reads whether a sideways drag scrubs a reel but not the shortest reel with a seek bar")
+        }
+        load
+    }
 
-    val marked = markedMethods(
-        listOf(SHOULD_SHOW_ATTACHED, CALCULATE_SHOULD_SHOW, SCRUBBER_ROW_STATE, TOUCH_STRIP, PLAYER_PROGRESS, TOUCH_ONLY, EXPANDED_TOUCH),
+    val attacheds = lengths.filter { it.parameters == ATTACHED_PARAMETERS && it.returnType == "Z" }.map { methodOf(it) }
+        .filter { AccessFlags.STATIC.isSet(it.accessFlags) }.distinctBy { it.signature() }
+    val attached = attacheds.singleOrNull() ?: refuse(
+        "expected one static (${ATTACHED_PARAMETERS.joinToString("")})Z check reading the shortest reel with a seek bar, " +
+            "found ${attacheds.size}",
     )
-    val attached = marked.getValue(SHOULD_SHOW_ATTACHED)
-    if (lengths.none { it.signature() == attached.signature() }) {
-        refuse("${attached.signature()} ($SHOULD_SHOW_ATTACHED) doesn't read the shortest reel with a seek bar")
-    }
-    val calculate = marked.getValue(CALCULATE_SHOULD_SHOW)
-    if (attached.signature() !in calculate.calledSignatures()) {
-        refuse("${calculate.signature()} ($CALCULATE_SHOULD_SHOW) doesn't ask ${attached.signature()}")
-    }
-    val row = marked.getValue(SCRUBBER_ROW_STATE)
-    if (lazy.signature() != row.signature()) {
-        refuse("the hidden seek bar flag is read in ${lazy.signature()}, not in ${row.signature()} ($SCRUBBER_ROW_STATE)")
+    val row = methodOf(lazy)
+    if (row.parameterTypes.firstOrNull()?.toString() != VIEWER_CONFIG) {
+        refuse("the hidden seek bar flag is read in ${row.signature()}, which doesn't take a $VIEWER_CONFIG first")
     }
     if (lengths.none { it.signature() in row.calledSignatures() }) {
-        refuse("${row.signature()} ($SCRUBBER_ROW_STATE) asks no method reading the shortest reel with a seek bar")
+        refuse("${row.signature()} asks no method reading the shortest reel with a seek bar")
     }
+    val itemType = row.parameterTypes.getOrNull(1)?.toString() ?: refuse("${row.signature()} takes no reel item")
+    val calculates = classesCalling(attached.definingClass, attached.name, ATTACHED_PARAMETERS, "Z").flatMap { it.methods }.filter { method ->
+        AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "Z" &&
+            method.parameterTypes.map(CharSequence::toString).take(2) == listOf(VIEWER_CONFIG, itemType) &&
+            attached.signature() in method.calledSignatures()
+    }
+    val calculate = calculates.singleOrNull() ?: refuse(
+        "expected one static check taking a $VIEWER_CONFIG and a $itemType to ask ${attached.signature()}, found ${calculates.size}",
+    )
+
+    val controllers = classesLoadingString(PROGRESS_CONTROLLER_ERROR).filter { classDef ->
+        !classDef.type.startsWith(EXTENSION_ROOT) && classDef.methods.any { loadsString(it, PROGRESS_CONTROLLER_ERROR) }
+    }
+    val controller = controllers.singleOrNull()
+        ?: refuse("expected one class reporting \"$PROGRESS_CONTROLLER_ERROR\", the Reels progress controller, found ${controllers.size}")
+    fun controllerMethod(what: String, test: (Method) -> Boolean): Method {
+        val found = controller.methods.filter(test)
+        return found.singleOrNull() ?: refuse("expected the Reels progress controller ${controller.type} to have one $what, found ${found.size}")
+    }
+    val touchStrip = controllerMethod("method setting a touch listener") { SET_ON_TOUCH in it.calledSignatures() }
+    val touchOnly = controllerMethod("static check of itself") { method ->
+        AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "Z" &&
+            method.parameterTypes.map(CharSequence::toString) == listOf(controller.type)
+    }
+    val expanded = controllerMethod("instance check of a $itemType") { method ->
+        !AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "Z" &&
+            method.parameterTypes.map(CharSequence::toString) == listOf(itemType)
+    }
+    val players = classesLoadingString(PREVIEW_END).filter { !it.type.startsWith(EXTENSION_ROOT) }.flatMap { it.methods }.filter { method ->
+        !AccessFlags.STATIC.isSet(method.accessFlags) && method.parameterTypes.map(CharSequence::toString).take(3) == listOf(itemType, "I", "I") &&
+            loadsString(method, PREVIEW_END)
+    }
+    val player = players.singleOrNull()
+        ?: refuse("expected one instance method taking a $itemType, the position and the length to load \"$PREVIEW_END\", found ${players.size}")
+
     classDefByOrNull(REEL_ITEM_READER)?.methods?.singleOrNull { it.signature() == REEL_ITEM_ID && AccessFlags.STATIC.isSet(it.accessFlags) }
         ?: refuse("the extension has no static $REEL_ITEM_ID")
     return ReelSeekBarSites(
-        lengths, lazy, findProgressChanged(), findBindSite(row, lazy), findTouchSite(marked.getValue(TOUCH_STRIP)),
-        findPhotoSites(calculate, attached, row, marked.getValue(PLAYER_PROGRESS), marked.getValue(TOUCH_ONLY), marked.getValue(EXPANDED_TOUCH)),
+        lengths, lazy, passThroughs, findProgressChanged(), findBindSite(row, lazy), findTouchSite(touchStrip),
+        findPhotoSites(calculate, attached, row, player, touchOnly, expanded),
     )
 }
+
+/** The method [load] is in. */
+private fun BytecodePatchContext.methodOf(load: FlagLoad): Method =
+    classDefByOrNull(load.type)?.methods?.singleOrNull { it.signature() == load.signature() }
+        ?: refuse("this Instagram build has no ${load.signature()}")
 
 /**
  * The places a photo with a song gets its bar (#10). The reel item is [row]'s second parameter; it has
@@ -376,7 +462,7 @@ private fun BytecodePatchContext.findPhotoSites(
     if (AccessFlags.STATIC.isSet(player.accessFlags) || playerParameters.take(3) != listOf(itemType, "I", "I") ||
         player.localRegisterCount() < 3 || 0 in player.jumpTargets()
     ) {
-        refuse("${player.signature()} ($PLAYER_PROGRESS) isn't an instance method taking $itemType, the position and the length, with room for a hook")
+        refuse("${player.signature()} isn't an instance method taking $itemType, the position and the length, with room for a hook")
     }
     return PhotoSites(
         media = "$itemType->${media.name}:$MEDIA",
@@ -395,25 +481,41 @@ private fun BytecodePatchContext.findPhotoSites(
 }
 
 /**
- * The [EXPANDED_TOUCH] check, [method]: an instance method taking an [itemType] and answering a boolean, which
- * loads the [ATTACHED_BY_LENGTH] marker once, as a string of its own, where nothing jumps. The reel is still in
- * its own register there, v15 or below, and two registers are free there.
+ * The check of the strip you drag from, [method]: an instance method of the progress controller taking an
+ * [itemType] and answering a boolean. It asks the controller's static getter of the reel's length once, and
+ * compares that length in one straight run after, with nothing jumping in or out and nothing writing over it on
+ * the way. The hook goes at that comparison, where 455 loaded the length check's marker just before. The reel is
+ * still in its own register there, v15 or below, and two registers are free there.
  */
 private fun findStripSite(method: Method, itemType: String): StripSite {
     val where = method.signature()
+    val controller = method.definingClass
     if (AccessFlags.STATIC.isSet(method.accessFlags) || method.parameterTypes.map(CharSequence::toString) != listOf(itemType) ||
         method.returnType != "Z"
     ) {
-        refuse("$where ($EXPANDED_TOUCH) isn't an instance check of a $itemType")
+        refuse("$where isn't an instance check of a $itemType")
     }
     val code = method.implementation?.instructions?.toList() ?: refuse("$where has no body")
-    val loads = code.indices.filter { at ->
-        val load = code[at]
-        (load.opcode == Opcode.CONST_STRING || load.opcode == Opcode.CONST_STRING_JUMBO) &&
-            PURGE_MARKER.find(((load as ReferenceInstruction).reference as StringReference).string)?.groupValues?.get(1) == ATTACHED_BY_LENGTH
+    val reads = code.indices.filter { at ->
+        val called = (code[at] as? ReferenceInstruction)?.reference as? MethodReference
+        code[at].opcode == Opcode.INVOKE_STATIC && called != null && called.definingClass == controller && called.returnType == "J" &&
+            called.parameterTypes.map(CharSequence::toString) == listOf(controller)
     }
-    val at = loads.singleOrNull() ?: refuse("expected $where to load the $ATTACHED_BY_LENGTH marker once, found ${loads.size}")
-    if (at in method.jumpTargets()) refuse("$where jumps to its $ATTACHED_BY_LENGTH marker, where the hook goes")
+    val read = reads.singleOrNull() ?: refuse("expected $where to ask its controller for the reel's length once, found ${reads.size}")
+    val moved = code.getOrNull(read + 1)
+    if (moved?.opcode != Opcode.MOVE_RESULT_WIDE) refuse("$where doesn't keep the reel's length from ${code[read].methodSignature()}")
+    val length = (moved as OneRegisterInstruction).registerA
+    val flow = ControlFlow.of(method)
+    val targets = method.jumpTargets()
+    var at = read + 1
+    while (true) {
+        if (flow.normal[at] != listOf(at + 1)) refuse("$where branches before it compares the reel's length")
+        at++
+        if (at in targets) refuse("$where jumps in between asking for the reel's length and comparing it, where the hook goes")
+        val next = code[at]
+        if (next.opcode == Opcode.CMP_LONG && length in (next as ThreeRegisterInstruction).let { listOf(it.registerB, it.registerC) }) break
+        if (next.writes(length) || next.writes(length + 1)) refuse("$where writes over the reel's length before comparing it")
+    }
     val item = method.parameterRegisterNumber(0)
     if (item > 15) refuse("$where keeps the reel in a register past v15")
     method.requireParameterIntact("$PATCH: $where", 0, listOf(at))
@@ -422,7 +524,7 @@ private fun findStripSite(method: Method, itemType: String): StripSite {
 }
 
 /**
- * The [TOUCH_ONLY] check, [method]: static, taking its controller and answering a boolean, it asks one
+ * The check of whether the bar shows only while touched, [method]: static, taking its controller and answering a boolean, it asks one
  * static getter of the controller for the reel on screen, an [itemType], and returns one call's answer as
  * it is, at a return nothing jumps to. The controller stays in its register, and three registers are free
  * there, so the hook can ask for the reel again.
@@ -433,7 +535,7 @@ private fun findTouchOnlySite(method: Method, itemType: String): TouchOnlySite {
     if (!AccessFlags.STATIC.isSet(method.accessFlags) || method.parameterTypes.map(CharSequence::toString) != listOf(controller) ||
         method.returnType != "Z"
     ) {
-        refuse("$where ($TOUCH_ONLY) isn't a static check of its controller")
+        refuse("$where isn't a static check of its controller")
     }
     val code = method.implementation?.instructions?.toList() ?: refuse("$where has no body")
     val getters = code.filter { it.opcode == Opcode.INVOKE_STATIC }.mapNotNull { (it as ReferenceInstruction).reference as? MethodReference }
@@ -454,19 +556,24 @@ private fun findTouchOnlySite(method: Method, itemType: String): TouchOnlySite {
     if (code.any { it.writes(self) }) refuse("$where writes over its controller")
     val free = (0 until minOf(method.localRegisterCount(), 16)).filter { it != answer }
     if (free.size < 3) refuse("$where has no three registers free at its return")
-    return TouchOnlySite(method, at, answer, current, self, free.take(3))
+    // The length check takes whether the reel is an ad, the one boolean of the reel this check reads (on 456's 386214574 LX/04Dh->A19).
+    val ads = code.filter { it.opcode == Opcode.IGET_BOOLEAN }.mapNotNull { it.fieldReference() }
+        .filter { it.definingClass == itemType }.map { it.text() }.distinct()
+    val ad = ads.singleOrNull() ?: refuse("expected $where to read one boolean of the $itemType, whether it's an ad, found ${ads.size}")
+    return TouchOnlySite(method, at, answer, current, self, free.take(3), ad)
 }
 
 /**
- * The one call in [method], the method marked [TOUCH_STRIP], that sets a view's touch listener: on
- * 453 the strip's, set to a lambda of the controller's that scrubs. It names the strip and the
- * listener in two registers a static call can take, so it can be swapped for one in place.
+ * The one call in [method], the progress controller's one method setting a touch listener (on 456's
+ * 386214574 LX/098b->A0I), that sets a view's touch listener: the strip's, set to a lambda of the
+ * controller's that scrubs. It names the strip and the listener in two registers a static call can
+ * take, so it can be swapped for one in place.
  */
 internal fun findTouchSite(method: Method): TouchSite {
     val where = method.signature()
-    val code = method.implementation?.instructions?.toList() ?: refuse("$where ($TOUCH_STRIP) has no body")
+    val code = method.implementation?.instructions?.toList() ?: refuse("$where has no body")
     val calls = code.indices.filter { code[it].methodSignature() == SET_ON_TOUCH }
-    val at = calls.singleOrNull() ?: refuse("expected $where ($TOUCH_STRIP) to set one touch listener, found ${calls.size}")
+    val at = calls.singleOrNull() ?: refuse("expected $where to set one touch listener, found ${calls.size}")
     val call = code[at]
     val registers = call.arguments()
     if (call.opcode != Opcode.INVOKE_VIRTUAL || registers.size != 2 || registers.any { it > 15 }) {
@@ -658,8 +765,9 @@ internal fun BytecodePatchContext.findProgressChanged(): Method {
 }
 
 /**
- * Answers each read of the minimum through [MIN_SECONDS] and the read of the hidden kind through
- * [LAZY], then puts the call to [PROGRESS] first in the seek bar's [PROGRESS_CHANGED], handing it
+ * Answers each read of the minimum through [MIN_SECONDS], the read of the hidden kind through [LAZY]
+ * and both reads of whether a sideways drag scrubs through [PASS_THROUGH], then puts the call to
+ * [PROGRESS] first in the seek bar's [PROGRESS_CHANGED], handing it
  * the bar (`this`) and the position, and the call to [BIND] right after the binder's read of
  * whether its reel is an ad, handing it the container and that answer, with [BIND_REEL] just before
  * the read, handing it the container and the reel item [REEL_ITEM_ID] asks the id of. Last, the strip's
@@ -667,7 +775,7 @@ internal fun BytecodePatchContext.findProgressChanged(): Method {
  * listener itself behind its gate.
  */
 internal fun BytecodePatchContext.applyReelSeekBar(sites: ReelSeekBarSites) {
-    answerFlagLoads(sites.lengths.map { it to MIN_SECONDS } + (sites.lazy to LAZY))
+    answerFlagLoads(sites.lengths.map { it to MIN_SECONDS } + (sites.lazy to LAZY) + sites.passThroughs.map { it to PASS_THROUGH })
     val progress = sites.progress
     mutableClassDefBy(progress.definingClass).methods.single {
         it.name == progress.name && it.parameterTypes.map(CharSequence::toString) == PROGRESS_CHANGED_PARAMETERS
@@ -697,6 +805,52 @@ internal fun BytecodePatchContext.applyReelSeekBar(sites: ReelSeekBarSites) {
             it.parameterTypes.map(CharSequence::toString) == touch.method.parameterTypes.map(CharSequence::toString)
     }.replaceInstruction(touch.at, "invoke-static { v${touch.view}, v${touch.listener} }, $LISTEN")
     applyPhotoHooks(sites.photo)
+    applyHiddenBarHooks(sites.photo)
+}
+
+/**
+ * Puts [BARS_HIDDEN]'s blocks in the progress controller's touch-only and strip checks, at the same places as the photo's
+ * hooks and ahead of them, so they run first and a photo with a song still gets its own answer after. Off, each lands on
+ * the photo's switch, the instruction that was there.
+ */
+private fun BytecodePatchContext.applyHiddenBarHooks(sites: PhotoSites) {
+    fun mutable(method: Method) = mutableClassDefBy(method.definingClass).methods.single {
+        it.name == method.name && it.returnType == method.returnType &&
+            it.parameterTypes.map(CharSequence::toString) == method.parameterTypes.map(CharSequence::toString)
+    }
+
+    val onTouch = sites.touchOnly
+    val touchOnly = mutable(onTouch.method)
+    val (flag, onScreen) = onTouch.scratch
+    touchOnly.addInstructionsWithLabels(
+        onTouch.at,
+        """
+            invoke-static {}, $BARS_HIDDEN
+            move-result v$flag
+            if-eqz v$flag, :photo_touch
+            invoke-static { v${onTouch.controller} }, ${onTouch.current}
+            move-result-object v$onScreen
+            if-eqz v$onScreen, :photo_touch
+            iget-boolean v$flag, v$onScreen, ${onTouch.ad}
+            invoke-static { v${onTouch.answer}, v$flag }, $HIDDEN_TOUCH_ONLY
+            move-result v${onTouch.answer}
+        """,
+        ExternalLabel("photo_touch", touchOnly.getInstruction(onTouch.at)),
+    )
+
+    val onStrip = sites.strip
+    val strip = mutable(onStrip.method)
+    val yes = onStrip.scratch.first
+    strip.addInstructionsWithLabels(
+        onStrip.at,
+        """
+            invoke-static {}, $BARS_HIDDEN
+            move-result v$yes
+            if-eqz v$yes, :photo_strip
+            return v$yes
+        """,
+        ExternalLabel("photo_strip", strip.getInstruction(onStrip.at)),
+    )
 }
 
 /**
@@ -823,21 +977,6 @@ private fun BytecodePatchContext.applyPhotoHooks(sites: PhotoSites) {
         """,
         ExternalLabel("instagram", player.getInstruction(0)),
     )
-}
-
-/** The one method outside the extension holding each marker; fails when a marker isn't held by exactly one. */
-private fun BytecodePatchContext.markedMethods(wanted: List<String>): Map<String, Method> {
-    val found = wanted.associateWith { mutableListOf<Method>() }
-    val marked = typesMarked(*wanted.toTypedArray())
-    classDefForEach { classDef ->
-        if (classDef.type !in marked) return@classDefForEach
-        classDef.methods.forEach { method ->
-            method.markers().toSet().forEach { marker -> found[marker]?.add(method) }
-        }
-    }
-    return found.mapValues { (marker, methods) ->
-        methods.singleOrNull() ?: refuse("expected one method marked $marker, found ${methods.size}")
-    }
 }
 
 private fun FlagLoad.signature() = "$type->$name(${parameters.joinToString("")})$returnType"

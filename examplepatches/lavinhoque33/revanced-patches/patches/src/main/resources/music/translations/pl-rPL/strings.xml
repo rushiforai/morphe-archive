@@ -138,6 +138,8 @@ Kroki:
     <string name="morphe_music_downloads_starting">Rozpoczynanie pobierania…</string>
     <string name="morphe_music_downloads_storage_permission">Zezwól na dostęp do pamięci masowej, a następnie ponownie dotknij opcji Pobierz</string>
     <string name="morphe_music_downloads_unknown_track">Nie udało się zidentyfikować utworu do pobrania</string>
+    <string name="morphe_music_hide_you_may_also_like_section_title">Ukryj sekcję \"To też może Ci się spodobać\"</string>
+    <string name="morphe_music_hide_your_downloads_shelf_title">Ukryj sekcję \"Pobrane utwory\"</string>
     <string name="morphe_music_lyrics_about_summary">"Teksty są dopasowywane według tytułu i wykonawcy, nietypowe metadane mogą skutkować brakiem wyników lub pobraniem niewłaściwej wersji. Użyj przycisku odświeżania, aby przełączać wersje. Dostawcy oznaczeni gwiazdką (*) wymagają tokenu. Włączeni dostawcy nie zawsze są odpytywani w ustalonej przez Ciebie kolejności, lecz odpowiadają zależnie od swojej szybkości
 
 Teksty pochodzą z zewnętrznych usług, które nie są powiązane z RVX, przez niego sponsorowane ani wspierane. Każda z nich jest używana w obecnym kształcie: same teksty, ich dostępność oraz licencje pozostają w gestii tych usług i ich licencjodawców, a korzystanie z nich może podlegać ich warunkom korzystania z usługi. Do włączonej usługi trafia wyłącznie zlecone przez Ciebie zapytanie: tytuł, wykonawca oraz, jeśli dana usługa tego wymaga, identyfikator filmu. Opcjonalny adres AI oraz transkrypcja QuickLRC działają tylko po ich skonfigurowaniu i otrzymują tekst piosenki lub adres filmu z utworem"</string>

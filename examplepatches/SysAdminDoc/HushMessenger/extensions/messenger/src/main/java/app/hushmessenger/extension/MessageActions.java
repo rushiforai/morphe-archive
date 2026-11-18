@@ -30,7 +30,8 @@ public final class MessageActions {
     static final String KEY = "message_actions";
     static final String SENT = "sent", GOT = "got";
     static final List<String> SIDES = List.of(SENT, GOT);
-    private static final String ORDER = "message_actions_order_", HIDDEN = "message_actions_hidden_", SEEN = "message_actions_seen_";
+    static final String ORDER = "message_actions_order_", HIDDEN = "message_actions_hidden_";
+    private static final String SEEN = "message_actions_seen_";
     private static final String LABEL = "message_actions_label_";
     /** Messenger's own More, which it adds after the split. It never reaches this list, but a later build could change that. */
     static final String MORE = "MORE";

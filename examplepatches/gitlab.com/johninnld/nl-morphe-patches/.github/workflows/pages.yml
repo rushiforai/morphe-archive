@@ -1,0 +1,76 @@
+name: Documentation
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  workflow_run:
+    workflows: [Release]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+  packages: read
+
+concurrency:
+  group: docs-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_branch || github.ref }}
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: docs/site-requirements.txt
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+      - uses: actions/setup-java@v6
+        if: github.event_name == 'pull_request' || github.event_name == 'push'
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+      - name: Generate candidate patch metadata
+        if: github.event_name == 'pull_request' || github.event_name == 'push'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SHARED_MAPS_API_KEY: AIzaSyDOCSGATEPLACEHOLDER00000000000000
+          BRIGHT_ARTICLE_SIGNING_KEY: ${{ secrets.BRIGHT_ARTICLE_SIGNING_KEY }}
+        run: ./gradlew :patches:generatePatchesList --no-daemon
+      - run: python -m pip install -r docs/site-requirements.txt
+      - run: npm ci --ignore-scripts
+      - run: python -m unittest discover -s tests -p 'test_docs_catalogue.py'
+      - run: python scripts/generate_docs_catalog.py
+      - run: python scripts/check_docs_app_pages.py
+      - run: python scripts/check_markdown_links.py
+      - run: python -m mkdocs build --strict
+      - run: python scripts/check_docs_site.py
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: build/docs-site
+
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/configure-pages@v6
+      - id: deployment
+        uses: actions/deploy-pages@v5

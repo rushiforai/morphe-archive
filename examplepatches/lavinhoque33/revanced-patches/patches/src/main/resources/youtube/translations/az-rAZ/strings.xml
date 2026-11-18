@@ -70,6 +70,13 @@ Davam et düyməsinə toxun və optimallaşdırma dəyişikliklərinə razı ol"
     <string name="morphe_captions_screen_summary">Avtomatik titrləri və titr bazaların idarə et</string>
     <string name="morphe_captions_screen_title">Titrlər</string>
     <string name="morphe_custom_branding_icon_title">Tətbiq simvolu</string>
+    <string name="morphe_custom_seekbar_thumb_file_invalid">Seçilmiş fayl dəstəklənən şəkil deyil</string>
+    <string name="morphe_custom_seekbar_thumb_file_not_found">Fərdi çəkmə cizgisinin baş barmağı şəkli tapılmadı</string>
+    <string name="morphe_custom_seekbar_thumb_file_title">Baş barmaq şəkli</string>
+    <string name="morphe_custom_seekbar_thumb_scale_type_entry_fit_seekbar">Çəkmə zolağına uyğunlaşdır</string>
+    <string name="morphe_custom_seekbar_thumb_scale_type_entry_original">Orijinal ölçü</string>
+    <string name="morphe_custom_seekbar_thumb_scale_type_title">Baş barmaq ölçüsü</string>
+    <string name="morphe_custom_seekbar_thumb_title">Fərdi çevirmə cizgisi baş barmağını aktivləşdir</string>
     <string name="morphe_dearrow_about_summary">"DeArrow diqqətçəkən başlıqları və miniatürləri daha dəqiq və daha az sensasiyalı olan kütləvi variantlarla əvəzləyir. Başlıqlar icma tərəfindən yazılır və səsverməyə qoyulur, miniatürlər isə videodan götürülmüş kadrlar olur
 
 ​Videolar parçalanmış video ID-sinin qısa prefiksi vasitəsilə sorğulanır, beləliklə server tam olaraq hansı videoya baxdığınızı bilə bilmir. Əgər videonun DeArrow miniatürü yoxdursa, orijinal və ya kadr çəkilişi göstərilir"</string>
@@ -98,6 +105,12 @@ Davam et düyməsinə toxun və optimallaşdırma dəyişikliklərinə razı ol"
     <string name="morphe_disable_toolbar_navigation_tabs_summary">YouTube onu Əsas Səhifənin yuxarısındakı vərəqə köçürərsə, fəaliyyət cərgəsində Abunəlikləri göstərir</string>
     <string name="morphe_disable_toolbar_navigation_tabs_title">Alət cərgəsi fəaliyyət səhifələrini qapat</string>
     <string name="morphe_dual_captions_enabled_title">İkidilli titrlər</string>
+    <string name="morphe_enhanced_ambient_mode_dim_duration_title">Zəifləmə müddəti</string>
+    <string name="morphe_enhanced_ambient_mode_dim_while_scrolling_summary">Səhifə sürüşdürülərkən və ya toxunularkən işığı zəiflədir</string>
+    <string name="morphe_enhanced_ambient_mode_dim_while_scrolling_title">Sürüşdürərkən solğunlaşdır</string>
+    <string name="morphe_enhanced_ambient_mode_readable_text_summary">Səhifədəki mətnin oxunaqlı qalması üçün parlaq videolarda işığı azaldır</string>
+    <string name="morphe_enhanced_ambient_mode_readable_text_title">Mətni oxunaqlı saxla</string>
+    <string name="morphe_enhanced_ambient_mode_title">Təkmilləşdirilmiş Ambient rejimi</string>
     <string name="morphe_expand_livestream_dvr_duration_not_available">"'Canlı yayım DVR müddətini genişləndir' əlçatan olmaya bilər
 
 Bunu düzəltmək üçün 'Video yayımlarını saxtalaşdır'-ı aktivləşdir və 'İlkin qəbuledicini' 'TV Simply' və ya 'visionOS' olaraq dəyişdir"</string>
@@ -263,6 +276,12 @@ Bunu düzəltmək üçün 'Video yayımlarını saxtalaşdır'-ı aktivləşdir 
     <string name="morphe_playback_in_feeds_title">Axınlarda oynatma</string>
     <string name="morphe_player_control_buttons_background_opacity_summary">Oynadıcının idarəetmə düymələrinin və vaxt cizgisinin arxasındakı fonun çevrəsinin şəffaflığını tənzimlə (0 görünməzdir, 100 şəffaf olmayandır)</string>
     <string name="morphe_player_control_buttons_background_opacity_title">İdarəetmə düymələrinin fon şəffaflığı</string>
+    <string name="morphe_playlist_hide_removal_snackbar_summary">Video pleylistdən silindikdən sonra təsdiqləmə göstərilmir</string>
+    <string name="morphe_playlist_hide_removal_snackbar_title">Pleylist silinmə bildirişini gizlət</string>
+    <string name="morphe_playlist_long_press_drag_summary">Pleylistinizin videosunu yeni mövqeyə sürükləmək üçün toxunub saxla</string>
+    <string name="morphe_playlist_long_press_drag_title">Pleylist videolarını yenidən sıralamaq üçün uzun bas</string>
+    <string name="morphe_playlist_wide_drag_handles_summary">Pleylist sürükləmə tutacaqlarını tutmaq daha asandır</string>
+    <string name="morphe_playlist_wide_drag_handles_title">Pleylist sürükləmə tutacaqlarını genişlət</string>
     <string name="morphe_post_buttons_layout_entry_1">Server</string>
     <string name="morphe_post_buttons_layout_entry_2">Məcburi</string>
     <string name="morphe_post_buttons_layout_title">Post düymələri tərtibatı</string>
@@ -598,20 +617,7 @@ Avtomobil tərtibatı
     <string name="revanced_disable_hdr_video_summary_off">HDR video aktivdir</string>
     <string name="revanced_disable_hdr_video_summary_on">HDR video qapalıdır</string>
     <string name="revanced_disable_hdr_video_title">HDR videonu qapat</string>
-    <string name="revanced_disable_layout_updates_summary_off">Tərtibat server tərəfindən yenilənəcək</string>
-    <string name="revanced_disable_layout_updates_summary_on">Tərtibat server tərəfindən yenilənməyəcək</string>
     <string name="revanced_disable_layout_updates_title">Tərtibat yenilənmələrini qapat</string>
-    <string name="revanced_disable_layout_updates_user_dialog_message">"Tətbiq tərtibatı ilk quraşdırılanda istifadə olunan tərtibata qayıdır
-
-Bəzi server əsaslı tərtibatlar qayıtmaya bilər
-
-Dəyişikliklər ehtiva edir:
-• Oynadıcı açılan menyusundakı elementlər (və ya əlaqəli tənzimləmələr) işləməyə bilər
-• Diyirlənən nömrələr animasiya olunmur
-• Kitabxana tabeli görünür
-• Video təsvirinin Musiqi bölməsi işləməyə bilər
-• Oynadıcı açılan menyu elementləri gizlədilə bilməz
-• Hesab keçirmə düyməsi Kitabxana tabelində görünməyə bilər"</string>
     <string name="revanced_disable_playlist_autoplay_title">Pleylist avtomatik oynatmasını qapat</string>
     <string name="revanced_disable_resuming_shorts_player_summary_off">Tətbiq açılanda Shorts oynadıcı davam edəcək</string>
     <string name="revanced_disable_resuming_shorts_player_summary_on">Tətbiq açılanda Shorts oynadıcı davam etməyəcək</string>
@@ -692,10 +698,6 @@ Məhdudiyyətlər:
     <string name="revanced_hide_comments_carousel_filter_strings_summary">Yeni cərgələrlə ayrılan, çeşidləmək üçün şərhləri sürüşdürmə adlarını qeyd et</string>
     <string name="revanced_hide_comments_carousel_filter_strings_title">Şərhləri sürüşdürmə filtri</string>
     <string name="revanced_hide_comments_carousel_title">Şərhləri sürüşdürmə filtrini aktivləşdir</string>
-    <string name="revanced_hide_comments_carousel_user_dialog_message">"Qeyd:
-• Sürüşdürmə elementinin dəqiq adını qeyd etdiyinə əmin ol (məsələn, Soruş, Bu videonu hayp et, YouTube Music-də dinlə və s.)
-• Sürüşdürmə elementlərin gizlətmə gözlənilməz yan təsirlərə malik olmalıdır
-• Bütün sürüşdürmə elementləri gizlədilibsə, bütün şərhlər bölməsi də gizlədiləcək"</string>
     <string name="revanced_hide_comments_create_a_short_button_summary_off">Short yarat düyməsi görünür</string>
     <string name="revanced_hide_comments_create_a_short_button_summary_on">Short yarat düyməsi gizlidir</string>
     <string name="revanced_hide_comments_create_a_short_button_title">\"Shorts Yarat\" düyməsini gizlət</string>

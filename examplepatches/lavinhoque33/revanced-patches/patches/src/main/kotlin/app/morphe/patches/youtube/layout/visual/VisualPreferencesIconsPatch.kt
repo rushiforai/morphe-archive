@@ -8,7 +8,7 @@
  * - anddea (https://github.com/anddea)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-16.
+ * Modified by lavinhoque33, 2026-11-17.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -400,6 +400,10 @@ private val rvxPreferenceKey = mapOf(
     "morphe_disable_auto_hide_navigation_bar" to "M 200 800 L 200 769.23 L 760 769.23 L 760 800 L 200 800 Z M 480 670.77 L 310.62 501.38 L 332.85 479.15 L 464.62 610.92 L 464.62 160 L 495.38 160 L 495.38 610.92 L 625.46 480.85 L 647.69 503.08 L 480 670.77 Z",
     "morphe_disable_notification_media_seekbar" to "M 686.15 652.31 Q 619.08 652.31 571.77 609.54 T 513.54 495.38 L 269.08 495.38 Q 263.69 523.62 241.42 544.12 Q 219.15 564.62 185.92 564.62 Q 151.08 564.62 126.19 539.73 Q 101.31 514.85 101.31 480 Q 101.31 445.15 126.19 420.27 Q 151.08 395.38 185.92 395.38 Q 219.15 395.38 241.42 415.88 Q 263.69 436.38 269.08 464.62 L 513.54 464.62 Q 524.46 393.23 571.77 350.46 Q 619.08 307.69 686.15 307.69 Q 757.62 307.69 808.04 358.88 Q 858.46 410.08 858.46 481.54 Q 858.46 551.46 808.04 601.88 Q 757.62 652.31 686.15 652.31 Z M 686.15 621.54 Q 745.15 621.54 786.42 580.27 Q 827.69 539 827.69 480 Q 827.69 421 786.42 379.73 Q 745.15 338.46 686.15 338.46 Q 627.15 338.46 585.88 379.73 Q 544.62 421 544.62 480 Q 544.62 539 585.88 580.27 Q 627.15 621.54 686.15 621.54 Z",
     "morphe_disable_scrolling_speed_limit" to "M 480 687.54 L 659.31 507.46 Q 663.69 503.08 669.92 502.69 Q 676.15 502.31 681.31 507.46 Q 686.46 512.62 686.46 518.46 Q 686.46 524.31 681.31 529.46 L 499.46 711.31 Q 495.23 715.54 490.62 717.54 Q 486 719.54 480 719.54 Q 474 719.54 469.38 717.54 Q 464.77 715.54 460.54 711.31 L 278.69 529.46 Q 274.31 525.08 273.92 518.85 Q 273.54 512.62 278.69 507.46 Q 283.85 502.31 289.69 502.31 Q 295.54 502.31 300.69 507.46 L 480 687.54 Z M 480 443 L 659.31 262.92 Q 663.69 258.54 669.92 258.54 Q 676.15 258.54 681.31 262.92 Q 686.46 268.08 686.46 273.92 Q 686.46 279.77 681.31 284.92 L 499.46 466.77 Q 495.23 471 490.62 473.38 Q 486 475.77 480 475.77 Q 474 475.77 469.38 473.38 Q 464.77 471 460.54 466.77 L 278.69 284.92 Q 274.31 280.54 273.92 274.31 Q 273.54 268.08 278.69 262.92 Q 283.85 257.77 289.69 257.77 Q 295.54 257.77 300.69 262.92 L 480 443 Z",
+    "morphe_enhanced_ambient_mode" to "revanced_preference_screen_ambient_mode",
+    "morphe_enhanced_ambient_mode_dim_duration" to "revanced_swipe_overlay_timeout",
+    "morphe_enhanced_ambient_mode_dim_while_scrolling" to "revanced_swipe_overlay_progress_brightness_color",
+    "morphe_enhanced_ambient_mode_readable_text" to "revanced_gemini_transcribe_subtitles_font_size",
     "morphe_expand_livestream_dvr_duration" to "M 306.46 809.23 L 653.54 809.23 L 653.54 686.08 Q 653.54 613.31 603.15 561.88 Q 552.77 510.46 480 510.46 Q 407.23 510.46 356.85 561.88 Q 306.46 613.31 306.46 686.08 L 306.46 809.23 Z M 200 840 L 200 809.23 L 275.69 809.23 L 275.69 686.08 Q 275.69 606.62 326.46 547.46 Q 377.23 488.31 455.54 480 Q 377.23 470.69 326.46 411.15 Q 275.69 351.62 275.69 273.69 L 275.69 150.77 L 200 150.77 L 200 120 L 760 120 L 760 150.77 L 684.31 150.77 L 684.31 273.69 Q 684.31 351.62 633.54 411.15 Q 582.77 470.69 504.46 480 Q 582.77 488.31 633.54 547.46 Q 684.31 606.62 684.31 686.08 L 684.31 809.23 L 760 809.23 L 760 840 L 200 840 Z",
     "morphe_external_downloader_quick_menu" to "M 480 626.23 L 341.62 487.85 L 363.85 466.38 L 464.62 566.38 L 464.62 200 L 495.38 200 L 495.38 566.38 L 596.15 466.38 L 618.38 487.85 L 480 626.23 Z M 255.38 760 Q 232.33 760 216.16 743.84 Q 200 727.67 200 704.62 L 200 597 L 230.77 597 L 230.77 704.62 Q 230.77 713.85 238.46 721.54 Q 246.15 729.23 255.38 729.23 L 704.62 729.23 Q 713.85 729.23 721.54 721.54 Q 729.23 713.85 729.23 704.62 L 729.23 597 L 760 597 L 760 704.62 Q 760 727.67 743.84 743.84 Q 727.67 760 704.62 760 L 255.38 760 Z",
     "morphe_feed_card_layout" to "revanced_preference_screen_feed",
@@ -1037,6 +1041,9 @@ private val rvxPreferenceKey = mapOf(
     "morphe_custom_branding_apply_to_rvx_settings" to "morphe_custom_branding_icon",
     "morphe_custom_branding_splash_animation_size" to "morphe_custom_dpi",
     "morphe_custom_branding_use_as_system_splash" to "morphe_custom_branding_icon",
+    "morphe_custom_seekbar_thumb" to "morphe_seekbar_thumbnail_preview",
+    "morphe_custom_seekbar_thumb_file" to "morphe_seekbar_thumbnail_preview",
+    "morphe_custom_seekbar_thumb_scale_type" to "morphe_fullscreen_large_seekbar",
     "morphe_dark_theme_custom_color" to "morphe_dark_theme",
     "morphe_dearrow_casual_mode" to "morphe_restore_original_titles",
     "morphe_dearrow_casual_mode_min_votes" to "sb_voting_button",
@@ -1080,8 +1087,9 @@ private val rvxPreferenceKey = mapOf(
     "morphe_proxy_host" to "sb_api_url",
     "morphe_replace_links_with_shortener" to "revanced_bypass_url_redirects",
     "morphe_save_to_watch_later_shorts_flyout_button" to "morphe_save_to_watch_later_button",
-    "morphe_watch_later_wide_drag_handles" to "morphe_save_to_watch_later_button",
-    "morphe_watch_later_hide_removal_snackbar" to "morphe_save_to_watch_later_button",
+    "morphe_playlist_wide_drag_handles" to "morphe_save_to_watch_later_button",
+    "morphe_playlist_hide_removal_snackbar" to "morphe_save_to_watch_later_button",
+    "morphe_playlist_long_press_drag" to "morphe_save_to_watch_later_button",
     "morphe_secondary_caption_language" to "captions_key",
     "morphe_settings_name" to "morphe_custom_branding_name",
     "morphe_skip_silence_minimum_pause" to "morphe_skip_silence",
@@ -1128,12 +1136,15 @@ private val rvxPreferenceKey = mapOf(
     "revanced_external_downloader_package_name_video_long_press" to "revanced_overlay_button_external_downloader",
     "revanced_feed_card_layout_dynamic_colors" to "revanced_enable_gradient_loading_screen",
     "revanced_force_hdr_video" to "video_quality_settings_key",
+    "revanced_gemini_google_search" to "revanced_preference_screen_gemini",
+    "revanced_gemini_models" to "revanced_preference_screen_gemini",
     "revanced_gms_show_dialog" to "gms_core_settings",
     "revanced_hide_account_menu_filter_strings" to "revanced_custom_filter_strings",
     "revanced_hide_account_menu_filter_type" to "revanced_hide_account_menu",
     "revanced_hide_carousel_shelf_about" to "about_key",
     "revanced_hide_channel_tab_filter_strings" to "revanced_custom_filter_strings",
     "revanced_hide_comments_carousel_filter_strings" to "revanced_custom_filter_strings",
+    "revanced_hide_comments_carousel_filter_type" to "revanced_hide_comments_carousel",
     "revanced_hide_feed_flyout_menu_filter_strings" to "revanced_custom_filter_strings",
     "revanced_hide_feed_flyout_menu_filter_type" to "revanced_hide_feed_flyout_menu",
     "revanced_hide_keyword_content_phrases" to "revanced_custom_filter_strings",

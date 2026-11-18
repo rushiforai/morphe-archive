@@ -9,6 +9,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-17.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -41,7 +42,6 @@
 
 package app.morphe.extension.youtube.patches.utils.requests
 
-import androidx.annotation.GuardedBy
 import app.morphe.extension.shared.innertube.client.YouTubeClient
 import app.morphe.extension.shared.innertube.requests.InnerTubeRequestBody.getPlaylistResponseConnectionFromRoute
 import app.morphe.extension.shared.innertube.requests.InnerTubeRequestBody.savePlaylistRequestBody
@@ -53,7 +53,6 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
 import java.net.SocketTimeoutException
-import java.util.Collections
 import java.util.Objects
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Future
@@ -101,45 +100,12 @@ class SavePlaylistRequest private constructor(
     companion object {
         private const val MAX_MILLISECONDS_TO_WAIT_FOR_FETCH = 20 * 1000
 
-        @GuardedBy("itself")
-        val cache: MutableMap<String, SavePlaylistRequest> = Collections.synchronizedMap(
-            object : LinkedHashMap<String, SavePlaylistRequest>(100) {
-                private val CACHE_LIMIT = 50
-
-                override fun removeEldestEntry(eldest: Map.Entry<String, SavePlaylistRequest>): Boolean {
-                    return size > CACHE_LIMIT // Evict the oldest entry if over the cache limit.
-                }
-            })
-
         @JvmStatic
-        fun clear() {
-            synchronized(cache) {
-                cache.clear()
-            }
-        }
-
-        @JvmStatic
-        fun fetchRequestIfNeeded(
+        fun create(
             playlistId: String,
             libraryId: String,
             requestHeader: Map<String, String>,
-        ) {
-            Objects.requireNonNull(playlistId)
-            synchronized(cache) {
-                cache[libraryId] = SavePlaylistRequest(
-                    playlistId,
-                    libraryId,
-                    requestHeader,
-                )
-            }
-        }
-
-        @JvmStatic
-        fun getRequestForLibraryId(libraryId: String): SavePlaylistRequest? {
-            synchronized(cache) {
-                return cache[libraryId]
-            }
-        }
+        ): SavePlaylistRequest = SavePlaylistRequest(playlistId, libraryId, requestHeader)
 
         private fun handleConnectionError(toastMessage: String, ex: Exception?) {
             Logger.printInfo({ toastMessage }, ex)

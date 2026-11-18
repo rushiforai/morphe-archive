@@ -19,11 +19,6 @@ import android.widget.*
 object AiFilterSettingsView {
 
     @JvmStatic
-    fun setup(activity: Activity) {
-        activity.setContentView(build(activity) { activity.finish() })
-    }
-
-    @JvmStatic
     fun build(activity: Activity, onBack: () -> Unit): View? {
         try {
             val isDark = (activity.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
@@ -35,10 +30,6 @@ object AiFilterSettingsView {
             val dividerColor = if (isDark) 0xFF2D2D2D.toInt() else 0xFFE5E7EB.toInt()
             val accentColor = 0xFF0096FA.toInt()
             val redColor = 0xFFDC2626.toInt()
-
-            activity.window?.setSoftInputMode(
-                android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
-            )
 
             val root = LinearLayout(activity).apply {
                 orientation = LinearLayout.VERTICAL
@@ -593,10 +584,6 @@ object AiFilterSettingsView {
 
         override fun generateLayoutParams(p: LayoutParams?): LayoutParams {
             return MarginLayoutParams(p)
-        }
-
-        override fun generateLayoutParams(attrs: android.util.AttributeSet?): LayoutParams {
-            return MarginLayoutParams(context, attrs)
         }
     }
 }

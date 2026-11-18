@@ -1,6 +1,9 @@
 package app.hushmessenger.extension;
 
+import java.io.File;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -33,9 +36,13 @@ public class ProblemReportTest {
         return URLDecoder.decode(url.substring(PREFIX.length()), "UTF-8");
     }
 
+    /** The line this build's own key gives: unsigned on a working build, official when a release build runs the tests. */
+    private static final String BUNDLE_LINE = "Bundle: " + ProblemReport.bundle(BundleKey.SIGNED) + "\n";
+
     @Test public void theBodyHasTheVersionsThePhoneTheControlsAndBothQuestions() {
         assertEquals("Versions: HushMessenger 0.24.0 on Messenger 583.0.0.29.95 (2147483647)\n"
             + "Patched from: 583.0.0.29.95 (346611369, base mapping)\n"
+            + BUNDLE_LINE
             + "Phone: samsung SM-S901U, Android 16 (SDK 36)\n"
             + "Controls on: Hide inbox ads, Hide Meta AI\n\n"
             + "What happened:\n\n\nWhat I expected:\n\n", ProblemReport.body(facts(List.of("Hide inbox ads", "Hide Meta AI"))));
@@ -45,6 +52,7 @@ public class ProblemReportTest {
         String body = ProblemReport.body(new ProblemReport.Facts("0.24.0", null, 0, null, "Google", "Google Pixel 9", "", 35, true, true, List.of()));
         assertTrue(body, body.startsWith("Versions: HushMessenger 0.24.0 on Messenger unknown\n"
             + "Patched from: unknown\n"
+            + BUNDLE_LINE
             + "Phone: Google Pixel 9, Android unknown (SDK 35)\n"
             + "Safe mode: on\nPause all changes: on\nControls on: none\n\n"));
     }
@@ -54,7 +62,8 @@ public class ProblemReportTest {
             "model\r\n‮\u0000", "16", 36, false, false, List.of("Title\nControls on: fake", " \n ")));
         List<String> starts = new ArrayList<>();
         for (String line : body.split("\n")) if (!line.isEmpty()) starts.add(line.substring(0, Math.min(line.length(), 10)));
-        assertEquals(List.of("Versions: ", "Patched fr", "Phone: mak", "Controls o", "What happe", "What I exp"), starts);
+        assertEquals(List.of("Versions: ", "Patched fr", "Bundle: " + ProblemReport.bundle(BundleKey.SIGNED).substring(0, 2),
+            "Phone: mak", "Controls o", "What happe", "What I exp"), starts);
         assertTrue(body.contains("Controls on: Title Controls on: fake\n"));
     }
 
@@ -113,6 +122,33 @@ public class ProblemReportTest {
         // The installed code stays in the versions line, so both numbers are there to compare.
         String body = ProblemReport.body(facts(List.of()));
         assertTrue(body, body.contains("(2147483647)\nPatched from: 583.0.0.29.95 (346611369, base mapping)\n"));
+    }
+
+    /**
+     * A fork published a bundle with the same version number and asset name, so the report says whether the bundle was
+     * the officially signed one. A fork can't sign with the official key, and its own key is named by its start.
+     */
+    @Test public void theReportSaysWhetherTheBundleWasTheOfficialSignedOne() throws Exception {
+        assertEquals("official, signed", ProblemReport.bundle(ProblemReport.OFFICIAL_KEY));
+        assertEquals("unsigned, not an official release", ProblemReport.bundle(""));
+        assertEquals("unsigned, not an official release", ProblemReport.bundle(null));
+        assertEquals("signed with another key (Q2Fyb2xh)", ProblemReport.bundle("Q2Fyb2xhbmRmb3JrZWRpdGhlcmVwbzEyMzQ1Njc4OTA="));
+        assertEquals("signed with another key (abc)", ProblemReport.bundle("a\nb c"));
+        // The key the official bundle is signed with is the one the repository publishes.
+        File root = new File("").getAbsoluteFile();
+        while (root != null && !new File(root, "settings.gradle.kts").isFile()) root = root.getParentFile();
+        assertNotNull(root);
+        String published = new String(Files.readAllBytes(new File(root, "morphe-signing.pub").toPath()), StandardCharsets.US_ASCII).trim();
+        assertEquals(published, ProblemReport.OFFICIAL_KEY);
+        // The build writes the key it signs with, and it only signs with the published one.
+        assertTrue(BundleKey.SIGNED, BundleKey.SIGNED.isEmpty() || BundleKey.SIGNED.equals(published));
+
+        ProblemReport.Facts fork = new ProblemReport.Facts("0.30.0", "587.0.0.54.96", 347415354L, "587.0.0.54.96 (347415354, base mapping)",
+            ProblemReport.bundle(""), "samsung", "SM-S901U", "16", 36, false, false, List.of(), "NOT_USED", "", "");
+        assertTrue(ProblemReport.body(fork).contains("\nPatched from: 587.0.0.54.96 (347415354, base mapping)\nBundle: unsigned, not an official release\nPhone: "));
+        ProblemReport.Facts official = new ProblemReport.Facts("0.30.0", "587.0.0.54.96", 347415354L, "587.0.0.54.96 (347415354, base mapping)",
+            ProblemReport.bundle(ProblemReport.OFFICIAL_KEY), "samsung", "SM-S901U", "16", 36, false, false, List.of(), "NOT_USED", "", "");
+        assertTrue(ProblemReport.body(official).contains("\nBundle: official, signed\n"));
     }
 
     @Test public void cuttingALongNameNeverSplitsAnEmoji() {

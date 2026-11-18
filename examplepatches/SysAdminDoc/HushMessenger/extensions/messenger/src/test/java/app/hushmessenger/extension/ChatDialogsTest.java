@@ -3,11 +3,18 @@ package app.hushmessenger.extension;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Outline;
+import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.InsetDrawable;
 import android.os.Build;
+import android.os.Looper;
+import android.view.PixelCopy;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -20,7 +27,9 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
+import org.robolectric.annotation.GraphicsMode;
 import static org.junit.Assert.*;
+import static org.robolectric.Shadows.shadowOf;
 
 /**
  * #179: the questions Hush asks over a chat used to go up as the platform's flat grey sheet with shouting buttons.
@@ -38,6 +47,8 @@ public class ChatDialogsTest {
         Settings.preferences.edit().clear().commit();
         Settings.hookErrors.clear();
         ChatDialogs.blur = context -> false;
+        // A copy of the chat that never comes back, so the card stays the solid one unless a test hands a copy over.
+        ChatDialogs.copier = (window, into, done, on) -> { };
         MaterialYouTheme.darkModeAnswer(true);
         controller = Robolectric.buildActivity(Activity.class).setup();
         activity = controller.get();
@@ -45,6 +56,7 @@ public class ChatDialogsTest {
 
     @After public void close() {
         ChatDialogs.blur = ChatDialogs::defaultBlur;
+        ChatDialogs.copier = PixelCopy::request;
         // Messenger's dark mode answer is one static for the whole app, so it goes back to unanswered for the next test.
         MaterialYouTheme.forgetDarkModeAnswer();
         controller.close();
@@ -103,9 +115,9 @@ public class ChatDialogsTest {
         ChatDialogs.blur = context -> true;
         AlertDialog glass = shown();
         Window blurred = glass.getWindow();
-        assertEquals(ChatDialogs.GLASS_ALPHA, Color.alpha(colorOf(card(glass))));
-        assertEquals(ChatDialogs.DIM_WITH_BLUR, blurred.getAttributes().dimAmount, 0.001f);
         if (Build.VERSION.SDK_INT >= 31) {
+            assertEquals(ChatDialogs.GLASS_ALPHA, Color.alpha(colorOf(card(glass))));
+            assertEquals(ChatDialogs.DIM_WITH_BLUR, blurred.getAttributes().dimAmount, 0.001f);
             assertEquals(WindowManager.LayoutParams.FLAG_BLUR_BEHIND,
                 blurred.getAttributes().flags & WindowManager.LayoutParams.FLAG_BLUR_BEHIND);
             assertEquals((int) (ChatDialogs.BLUR_DP * activity.getResources().getDisplayMetrics().density),
@@ -113,7 +125,78 @@ public class ChatDialogsTest {
         } else {
             // Android 11 and earlier have no blur to ask for, so the card keeps the dim it always had.
             assertEquals(0, blurred.getAttributes().flags & WindowManager.LayoutParams.FLAG_BLUR_BEHIND);
+            assertEquals(ChatDialogs.DIM, blurred.getAttributes().dimAmount, 0.001f);
         }
+    }
+
+    /**
+     * On a phone that won't blur behind a window, the card is frosted from a copy of the chat: a red chat behind it shows
+     * through the card as a dimmed red, where the solid card was the same grey whatever sat behind it.
+     */
+    @Test @Config(sdk = 36) @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void onAPhoneThatWontBlurTheCardIsFrostedFromTheChatBehindIt() {
+        // The chat behind is red. On a phone PixelCopy reads it off the screen; here the copy is handed over red.
+        Window[] copied = {null};
+        ChatDialogs.copier = (window, into, done, on) -> {
+            copied[0] = window;
+            into.eraseColor(Color.RED);
+            on.post(() -> done.onPixelCopyFinished(PixelCopy.SUCCESS));
+        };
+        AlertDialog dialog = shown();
+        assertSame("the chat's own window is the one copied", activity.getWindow(), copied[0]);
+        assertTrue("solid until the copy is in", ((InsetDrawable) dialog.getWindow().getDecorView().getBackground()).getDrawable() instanceof GradientDrawable);
+        shadowOf(Looper.getMainLooper()).idle();
+
+        Drawable background = dialog.getWindow().getDecorView().getBackground();
+        assertTrue(background instanceof InsetDrawable);
+        Drawable inside = ((InsetDrawable) background).getDrawable();
+        assertTrue("frosted once the copy is in", inside instanceof ChatDialogs.Frost);
+        View behind = activity.getWindow().getDecorView();
+        assertEquals(behind.getWidth() / ChatDialogs.FROST_SCALE, ((ChatDialogs.Frost) inside).copy.getWidth());
+
+        Rect bounds = inside.getBounds();
+        Bitmap drawn = Bitmap.createBitmap(Math.max(1, background.getBounds().width()), Math.max(1, background.getBounds().height()), Bitmap.Config.ARGB_8888);
+        background.draw(new Canvas(drawn));
+        int middle = drawn.getPixel(bounds.centerX(), bounds.centerY());
+        assertTrue("the red chat shows through: " + Integer.toHexString(middle), Color.red(middle) > Color.green(middle) + 20);
+        assertEquals("the card is still the card", ChatDialogs.CORNER_DP * activity.getResources().getDisplayMetrics().density,
+            outlineRadius(inside), 0.01f);
+        assertTrue(Settings.hookErrors.isEmpty());
+    }
+
+    /** A copy that fails, or one that lands after the question was answered, leaves the solid card as it was. */
+    @Test public void aCopyThatFailsOrComesLateLeavesTheSolidCard() {
+        ChatDialogs.copier = (window, into, done, on) -> on.post(() -> done.onPixelCopyFinished(PixelCopy.ERROR_SOURCE_NO_DATA));
+        AlertDialog failed = shown();
+        shadowOf(Looper.getMainLooper()).idle();
+        assertEquals(0xFF252728, colorOf(card(failed)));
+        failed.dismiss();
+
+        ChatDialogs.copier = (window, into, done, on) -> on.post(() -> done.onPixelCopyFinished(PixelCopy.SUCCESS));
+        AlertDialog answered = shown();
+        answered.dismiss();
+        shadowOf(Looper.getMainLooper()).idle();
+        assertTrue(((InsetDrawable) answered.getWindow().getDecorView().getBackground()).getDrawable() instanceof GradientDrawable);
+        assertTrue(Settings.hookErrors.isEmpty());
+    }
+
+    private static float outlineRadius(Drawable drawable) {
+        Outline outline = new Outline();
+        drawable.getOutline(outline);
+        return outline.getRadius();
+    }
+
+    /** The blur spreads a lone bright line across its neighbours and keeps the picture's overall brightness. */
+    @Test @Config(sdk = 36) @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void theBlurSpreadsALineAcrossItsNeighbours() {
+        Bitmap picture = Bitmap.createBitmap(20, 20, Bitmap.Config.ARGB_8888);
+        picture.eraseColor(Color.BLACK);
+        for (int x = 0; x < 20; x++) picture.setPixel(x, 10, Color.WHITE);
+        ChatDialogs.blur(picture, 2);
+        assertTrue(Color.red(picture.getPixel(10, 10)) < 255);
+        assertTrue(Color.red(picture.getPixel(10, 12)) > 0);
+        assertEquals(0, Color.red(picture.getPixel(10, 0)));
+        assertEquals(255, Color.alpha(picture.getPixel(10, 12)));
     }
 
     @Test public void theActionIsAFilledPillAndCancelIsPlain() {

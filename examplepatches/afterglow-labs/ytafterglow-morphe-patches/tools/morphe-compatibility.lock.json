@@ -1,0 +1,212 @@
+{
+  "official_bundle": {
+    "version": "2.0.0",
+    "sha256": "f0f5cfd857950ed61a26a7b2eeeecf37d4d66bece2e8f94802280e189b69ed00"
+  },
+  "sources": [
+    {
+      "repository": "https://github.com/MorpheApp/morphe-patches",
+      "revision": "6cb8e6b6ee425eda8a854e026507286359f38a32",
+      "archive": "https://codeload.github.com/MorpheApp/morphe-patches/tar.gz/6cb8e6b6ee425eda8a854e026507286359f38a32",
+      "sha256": "ef67488ca5a9c4b1461c7297ca085e0c0ebac849c1a19118951ec37850f11027"
+    },
+    {
+      "repository": "https://github.com/MorpheApp/morphe-patches-library",
+      "revision": "42edb9710c2b63416e8eddd8096bb6a0adff75dd",
+      "archive": "https://codeload.github.com/MorpheApp/morphe-patches-library/tar.gz/42edb9710c2b63416e8eddd8096bb6a0adff75dd",
+      "sha256": "de187bb7ff03f8c4e7a30f5fa0e44ae7c3ce11cc63a4e823a16e4cbd036bb1de"
+    }
+  ],
+  "extension_order": [
+    "extensions/shared.mpe",
+    "extensions/youtube.mpe",
+    "extensions/shared-youtube.mpe"
+  ],
+  "files": [
+    {
+      "path": "patches/src/main/resources/compat/morphe/extensions/shared.mpe",
+      "upstream_entry": "extensions/shared.mpe",
+      "size": 342916,
+      "sha256": "9ff38298ffbeb0d519f6eb6441463625a62707e0f32f0287cca9dc3ec7a41230"
+    },
+    {
+      "path": "patches/src/main/resources/compat/morphe/extensions/youtube.mpe",
+      "upstream_entry": "extensions/youtube.mpe",
+      "size": 4719348,
+      "sha256": "da984795ed16e2f930649b3f60979476d1f725a5de5286008a29f4cfd8bf62f1"
+    },
+    {
+      "path": "patches/src/main/resources/compat/morphe/extensions/shared-youtube.mpe",
+      "upstream_entry": "extensions/shared-youtube.mpe",
+      "size": 4334420,
+      "sha256": "b7182fc18bdb1a33c2c224387ca7b973fc8434189cf22fed143d0ef0e85979b6"
+    },
+    {
+      "path": "patches/src/main/resources/compat/morphe/spoof/raw/yt.solver.wrapper.js",
+      "sha256": "d22cda835b4a4d65c46488b5d4bfbe772ff284b915720cf4b305817dac628f58",
+      "source": "patches/src/main/resources/spoof/raw/yt.solver.wrapper.js"
+    },
+    {
+      "path": "patches/src/main/resources/compat/morphe/spoof/raw/polyfill.js",
+      "sha256": "a7536499ae067a5f895f06931ad29affc348c5a7de5615e23400216b20d9a359",
+      "source": "patches/src/main/resources/spoof/raw/polyfill.js"
+    },
+    {
+      "path": "patches/src/main/resources/compat/morphe/spoof/raw/astring-1.9.0.min.js",
+      "sha256": "3ea8e630d050d570c8f712f30957383268c449b2a2a10bf189d5e6f8a14fd464",
+      "source": "patches/src/main/resources/spoof/raw/astring-1.9.0.min.js"
+    },
+    {
+      "path": "patches/src/main/resources/compat/morphe/spoof/raw/po_token.html",
+      "sha256": "3cb525ea80ecb7d6643b7a54513e156c94fff1f0ec8247a444996d4cefb011a8",
+      "source": "patches/src/main/resources/spoof/raw/po_token.html"
+    },
+    {
+      "path": "patches/src/main/resources/compat/morphe/spoof/raw/yt.solver.core.js",
+      "sha256": "ca259e4e3cdd37d92fc266d9af08d4fd66da8479e240f4d984f29da402c22ead",
+      "source": "patches/src/main/resources/spoof/raw/yt.solver.core.js"
+    },
+    {
+      "path": "patches/src/main/resources/compat/morphe/spoof/raw/meriyah-6.1.4.min.js",
+      "sha256": "0509f5307fbb6edb7ce04bc9aa3be019146a5f294b3b995dcdd73c6b629c2ec8",
+      "source": "patches/src/main/resources/spoof/raw/meriyah-6.1.4.min.js"
+    },
+    {
+      "path": "patches/src/main/resources/compat/morphe/values/compatibility.xml",
+      "sha256": "ab67737484bf7f6aa27af19830eddf2ada5e6f6bcade50ac3865396144f8b72d"
+    },
+    {
+      "path": "patches/src/main/resources/compat/morphe/license/ASTRING_LICENSE.TXT",
+      "sha256": "e4de07aa6192da4c30ab8d898dacc0ca39020a8be10d708b50404f85f42b705f",
+      "source": "https://github.com/davidbonnet/astring/blob/v1.9.0/LICENSE"
+    },
+    {
+      "path": "patches/src/main/resources/compat/morphe/license/MERIYAH_LICENSE.TXT",
+      "sha256": "de46ba0d080f62d6fdb8545e98dab773a3513e0e585047c6545ba3c38598395b",
+      "source": "https://github.com/meriyah/meriyah/blob/v6.1.4/LICENSE.md"
+    },
+    {
+      "path": "patches/src/main/resources/compat/morphe/license/YT_DLP_EJS_LICENSE.TXT",
+      "sha256": "ab9830599ff97267d64dfda4025c72b12f376bf1bb1b731a4825916aceb08cd4",
+      "source": "https://github.com/yt-dlp/ejs/blob/0.8.0/LICENSE"
+    },
+    {
+      "path": "patches/src/main/resources/compat/morphe/license/MORPHE_LICENSE.TXT",
+      "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+      "source": "https://github.com/MorpheApp/morphe-patches/blob/6cb8e6b6ee425eda8a854e026507286359f38a32/LICENSE"
+    },
+    {
+      "path": "patches/src/main/resources/compat/morphe/license/MORPHE_LICENSE_NOTICE.TXT",
+      "sha256": "640950d68b69f45e1f05b58d796a0b11e818ee1cca69d56b103d6503d2c7047d",
+      "source": "https://github.com/MorpheApp/morphe-patches/blob/6cb8e6b6ee425eda8a854e026507286359f38a32/NOTICE"
+    }
+  ],
+  "adapted_sources": [
+    {
+      "source": "morphe-patches/patches/src/main/kotlin/app/morphe/patches/shared/misc/spoof/SpoofVideoStreamsPatch.kt",
+      "target": "patches/src/main/kotlin/app/afterglow/patches/compat/morphe/shared/misc/spoof/SpoofVideoStreamsPatch.kt",
+      "upstream_sha256": "0ec0fbe6b056ab54c2535bbefec3b0cff48c527f03bbab31faf23e7c0b698d1d"
+    },
+    {
+      "source": "morphe-patches/patches/src/main/kotlin/app/morphe/patches/shared/misc/spoof/UserAgentClientSpoofPatch.kt",
+      "target": "patches/src/main/kotlin/app/afterglow/patches/compat/morphe/shared/misc/spoof/UserAgentClientSpoofPatch.kt",
+      "upstream_sha256": "42393d9f0e0ffab709fbafdbb0967a6accf77a96b029927177aa2d44982b8170"
+    },
+    {
+      "source": "morphe-patches/patches/src/main/kotlin/app/morphe/patches/shared/misc/spoof/Fingerprints.kt",
+      "target": "patches/src/main/kotlin/app/afterglow/patches/compat/morphe/shared/misc/spoof/Fingerprints.kt",
+      "upstream_sha256": "9f8392f5858dc263e8fd5200db08ac95d6c806ad5bb3e8f6c4200e751b64579b"
+    },
+    {
+      "source": "morphe-patches/patches/src/main/kotlin/app/morphe/patches/shared/misc/fix/proto/FixProtoLibraryPatch.kt",
+      "target": "patches/src/main/kotlin/app/afterglow/patches/compat/morphe/shared/misc/fix/proto/FixProtoLibraryPatch.kt",
+      "upstream_sha256": "4e4a07bcec7a6b205c42626a7bc74134650e9df8746ec3fe2a8394e4cd487610"
+    },
+    {
+      "source": "morphe-patches/patches/src/main/kotlin/app/morphe/patches/shared/misc/fix/proto/Fingerprints.kt",
+      "target": "patches/src/main/kotlin/app/afterglow/patches/compat/morphe/shared/misc/fix/proto/Fingerprints.kt",
+      "upstream_sha256": "6a142f10ce2b62f8ac0e04663c84ae8927d6f5cb935d215264c2f759bb334f1c"
+    },
+    {
+      "source": "morphe-patches/patches/src/main/kotlin/app/morphe/patches/shared/misc/request/BuildRequestPatch.kt",
+      "target": "patches/src/main/kotlin/app/afterglow/patches/compat/morphe/shared/misc/request/BuildRequestPatch.kt",
+      "upstream_sha256": "3893a7e0a0ae10b4a654cec099616c637f04ead484341f1247efa2d6bb5aa228"
+    },
+    {
+      "source": "morphe-patches/patches/src/main/kotlin/app/morphe/patches/shared/misc/request/Fingerprints.kt",
+      "target": "patches/src/main/kotlin/app/afterglow/patches/compat/morphe/shared/misc/request/Fingerprints.kt",
+      "upstream_sha256": "88a8a05c9f9ebd979dc942e4e60bc9c42fdd777e09a53e939d6b7d8003cb4316"
+    },
+    {
+      "source": "morphe-patches/patches/src/main/kotlin/app/morphe/patches/youtube/misc/gms/Fingerprints.kt",
+      "target": "patches/src/main/kotlin/app/afterglow/patches/compat/morphe/youtube/misc/gms/Fingerprints.kt",
+      "upstream_sha256": "45d49d139d9697ce6c097c1122bd9590f5971df5453394fad6cb3fc4f1845768"
+    },
+    {
+      "source": "morphe-patches/patches/src/main/kotlin/app/morphe/patches/youtube/misc/gms/DeviceComplianceCheckPatch.kt",
+      "target": "patches/src/main/kotlin/app/afterglow/patches/compat/morphe/youtube/misc/gms/DeviceComplianceCheckPatch.kt",
+      "upstream_sha256": "a103ed6984dfb6ad9d9e84f859cfa5d03bfc3e7a2814fa62b466ab8cca380875"
+    },
+    {
+      "source": "morphe-patches/patches/src/main/kotlin/app/morphe/patches/youtube/misc/gms/AccountCredentialsInvalidTextPatch.kt",
+      "target": "patches/src/main/kotlin/app/afterglow/patches/compat/morphe/youtube/misc/gms/AccountCredentialsInvalidTextPatch.kt",
+      "upstream_sha256": "6e426d60c8398dd342b0625263eb0e0bb9bc1b85d6de9149bf3de76575f200df"
+    },
+    {
+      "source": "morphe-patches/patches/src/main/kotlin/app/morphe/patches/shared/misc/gms/Fingerprints.kt",
+      "target": "patches/src/main/kotlin/app/afterglow/patches/compat/morphe/shared/misc/gms/Fingerprints.kt",
+      "upstream_sha256": "3cbb6f6a94195c5bf464644f72ad6e947d625e3ed724d1f88222d5f3f0efe4a0"
+    },
+    {
+      "source": "morphe-patches/patches/src/main/kotlin/app/morphe/patches/shared/misc/gms/GmsCoreSupportPatch.kt",
+      "target": "patches/src/main/kotlin/app/afterglow/patches/compat/morphe/shared/misc/gms/GmsCoreSupportPatch.kt",
+      "upstream_sha256": "5c1b9614ab9dc19ba468bed077752654dd2f5a3b57b44510c3ee7f30c42d1aeb"
+    },
+    {
+      "source": "morphe-patches/patches/src/main/kotlin/app/morphe/patches/shared/Fingerprints.kt",
+      "target": "patches/src/main/kotlin/app/afterglow/patches/compat/morphe/shared/Fingerprints.kt",
+      "upstream_sha256": "9db94166e679544d66ee7c783317ec3b42bae2273406b2c881bd6e8947500107"
+    },
+    {
+      "source": "morphe-patches-library/patch-library/src/main/kotlin/app/morphe/util/BytecodeUtils.kt",
+      "target": "patches/src/main/kotlin/app/afterglow/patches/compat/morphe/util/BytecodeUtils.kt",
+      "upstream_sha256": "ca82d71eb73af4ac2370a8800b0dcf67869eec77e6be0864421e8d3ff2fb082e"
+    },
+    {
+      "source": "morphe-patches-library/patch-library/src/main/kotlin/app/morphe/util/ResourceUtils.kt",
+      "target": "patches/src/main/kotlin/app/afterglow/patches/compat/morphe/util/ResourceUtils.kt",
+      "upstream_sha256": "5aced0ba0b2284dc20ef1bd7b7ca41206cb1163f8e51f7bcfdaabb0b993f9159"
+    },
+    {
+      "source": "morphe-patches/patches/src/main/kotlin/app/morphe/patches/youtube/layout/buttons/overlay/Fingerprints.kt",
+      "target": "patches/src/main/kotlin/app/afterglow/patches/compat/morphe/youtube/layout/buttons/overlay/Fingerprints.kt",
+      "upstream_sha256": "ef453e5b51d7bb78312d16f0a473c553b97a5efcf20a671abfe6039760c28462"
+    }
+  ],
+  "resource_inputs": [
+    {
+      "source": "patches/src/main/resources/addresources/values/shared/strings.xml",
+      "sha256": "7e7508f9c8546c76c0193290ae7b1df19440e7f3cf996c6bcd2ce4484f5bdcc1"
+    },
+    {
+      "source": "patches/src/main/resources/addresources/values/shared/arrays.xml",
+      "sha256": "cd3e85b7268c7e216b986fb55f938ce84bdac8737625b945d7473107ec2f1417"
+    },
+    {
+      "source": "patches/src/main/resources/addresources/values/shared-youtube/strings.xml",
+      "sha256": "5aae9d64e69368fa759f542568cd5dfa6b48876d54725f5f9984bf68094898bd"
+    },
+    {
+      "source": "patches/src/main/resources/addresources/values/shared-youtube/arrays.xml",
+      "sha256": "98e039dabc4ed3da2990b3777e32a489d8873ece0ebf41ac5694ca9790aa4ea5"
+    },
+    {
+      "source": "patches/src/main/resources/addresources/values/youtube/strings.xml",
+      "sha256": "fe764bba65854a491588cd676dadff54c77cc8506da0d07242d88c319d78f8a3"
+    },
+    {
+      "source": "patches/src/main/resources/addresources/values/youtube/arrays.xml",
+      "sha256": "83db3e39a69d26010d66a92e721e3d9366b51c8185ac32372717e5eded057e28"
+    }
+  ]
+}

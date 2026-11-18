@@ -89,6 +89,16 @@ import app.hushgram.extension.shared.settings.HushgramPause;
  * next frame and shows each bar HushGram hid, if nothing else changed it since. An activity that
  * pauses takes its listeners off, and one that goes away takes its bars with it. Anything thrown
  * leaves the bar as Instagram has it.
+ *
+ * <p>Keep clear mode on hides a bar too, for a moment, whichever switch is on (#740). A reel in clear
+ * mode leaves it when a swipe takes it off the screen, and Instagram's turn-off starts fading the
+ * viewer's bar in, which the next reel's turn-on fades out again once the swipe lands: the back arrow
+ * and title came and went on every swipe. {@link ReelClearMode} calls {@link #holdForClearMode} right
+ * after that turn-off, and every bar showing in a resumed window goes invisible before the fade's first
+ * frame. Each stays hidden, by the same pre-draw listener, while clear mode is wanted for the next
+ * reels, and {@link #clearModeEnded} puts it back as soon as it isn't, unless a top bar switch hides it.
+ * A drag fades the bar in from its first move, before that turn-off, so {@link #clearModeStarted}
+ * holds it the same way {@link #HOLD_AFTER_TURN_ON_MS} after clear mode goes on.
  */
 public final class ReelsTopBar {
     /** The id Instagram gives the bar, the same on all seven 450 builds. */
@@ -119,6 +129,7 @@ public final class ReelsTopBar {
     static final int UNKNOWN_TRIES = 20;
 
     static final String COUNT_HID = "Reels tab top bar hidden";
+    static final String COUNT_OTHER_HID = "Other reels' top bar hidden";
     static final String COUNT_HID_AGAIN = "Reels tab top bar hidden again after Instagram showed it";
     static final String COUNT_PUT_BACK = "Reels tab top bar put back";
     static final String COUNT_CREATE_HID = "Reels top bar Create button hidden";
@@ -129,6 +140,12 @@ public final class ReelsTopBar {
     static final String COUNT_FRIENDS_SEEN = "Reels Friends tab built";
     static final String COUNT_FRIENDS_HID = "Reels Friends tab hidden";
     static final String COUNT_FRIENDS_AGAIN = "Reels Friends tab opened again";
+    static final String COUNT_CLEAR_MODE_HID = "Reels top bar kept hidden through a swipe in clear mode";
+    /**
+     * How long after clear mode goes on its bars are held hidden, in ms: past Instagram's own fade out,
+     * and before the first swipe's drag fades them back in (#740).
+     */
+    static final long HOLD_AFTER_TURN_ON_MS = 600;
     /** The most views looked at inside one bar for its buttons. */
     static final int MAX_BAR_VIEWS = 200;
 
@@ -150,6 +167,9 @@ public final class ReelsTopBar {
 
     /** Whether {@link #friendsTabAnyway} has given a viewer its tabs this run. */
     private static volatile boolean gaveTabs;
+
+    /** Whether a window may hold a bar hidden for clear mode, so its end has something to put back (#740). */
+    private static volatile boolean clearModeHeld;
 
     private ReelsTopBar() {
     }
@@ -265,10 +285,70 @@ public final class ReelsTopBar {
         }
     }
 
+    /**
+     * Called by {@link ReelClearMode} as a reel you put in clear mode leaves it by a swipe, with Keep
+     * clear mode on, right after Instagram's turn-off set the viewer's top bar fading in (#740). Hides
+     * every bar showing in a resumed window and keeps it hidden while clear mode is wanted.
+     */
+    static void holdForClearMode() {
+        try {
+            if (!Utils.settingsReady() || HushgramPause.isPaused()) return;
+            for (Session session : new ArrayList<>(sessions.values())) {
+                if (session.holdForClearMode()) clearModeHeld = true;
+            }
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.REEL_DECLUTTER, "top bar in clear mode", failure);
+        }
+    }
+
+    /**
+     * Called by {@link ReelClearMode} as clear mode becomes wanted, with Keep clear mode on. A drag fades
+     * the viewer's top bar in from its first move, before any turn-off is heard, so the first swipe out
+     * of clear mode showed the bar for a moment (#740). {@link #HOLD_AFTER_TURN_ON_MS} later, once
+     * Instagram's own fade has taken the bar out, it's held hidden the same way a swipe holds it.
+     */
+    static void clearModeStarted() {
+        try {
+            if (!Utils.settingsReady() || HushgramPause.isPaused() || sessions.isEmpty()) return;
+            Utils.runOnMainThreadDelayed(() -> {
+                if (ReelClearMode.holdsBars()) holdForClearMode();
+            }, HOLD_AFTER_TURN_ON_MS);
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.REEL_DECLUTTER, "top bar as clear mode starts", failure);
+        }
+    }
+
+    /**
+     * Called by {@link ReelClearMode} once clear mode isn't wanted for the next reels: each bar held
+     * hidden for it goes back now, before Instagram's fade in, unless a top bar switch hides it (#740).
+     */
+    static void clearModeEnded() {
+        if (!clearModeHeld) return;
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            new Handler(Looper.getMainLooper()).post(ReelsTopBar::clearModeEnded);
+            return;
+        }
+        clearModeHeld = false;
+        try {
+            for (Session session : new ArrayList<>(sessions.values())) session.refresh();
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.REEL_DECLUTTER, "top bar after clear mode", failure);
+        }
+    }
+
+    /** The switch that hides [bar] by where its viewer was opened from, on or off, or null while that isn't known. */
+    @Nullable
+    static BooleanSetting barSwitch(View bar) {
+        Viewer viewer = viewerOf(bar);
+        if (viewer == Viewer.REELS_TAB) return Settings.HIDE_REELS_TOP_BAR;
+        if (viewer == Viewer.ELSEWHERE || viewer == Viewer.SAVED) return Settings.HIDE_OTHER_REELS_TOP_BAR;
+        return null;
+    }
+
     /** Whether anything in a top bar is hidden now: one of the switches on, HushGram not paused, the settings read. */
     static boolean wanted() {
         return Utils.settingsReady() && !HushgramPause.isPaused() && (Settings.HIDE_REELS_TOP_BAR.get()
-                || Settings.HIDE_REELS_CREATE_BUTTON.get() || Settings.HIDE_SAVED_REELS_CREATE_BUTTON.get()
+                || Settings.HIDE_OTHER_REELS_TOP_BAR.get() || Settings.HIDE_REELS_CREATE_BUTTON.get() || Settings.HIDE_SAVED_REELS_CREATE_BUTTON.get()
                 || Settings.HIDE_REELS_YOUR_ALGORITHM.get() || Settings.HIDE_REELS_FRIENDS_TAB.get());
     }
 
@@ -328,7 +408,7 @@ public final class ReelsTopBar {
             String name = ((Enum<?>) value).name();
             if (LOGGED.add(name)) {
                 boolean tab = REELS_TAB.contains(name);
-                Logger.printDebug(() -> "Reels top bar: " + (tab ? "hides" : "keeps") + " the bar of a " + name + " viewer");
+                Logger.printDebug(() -> "Reels top bar: a " + name + " viewer, " + (tab ? "the Reels tab" : "not the Reels tab"));
             }
             if (SAVED.contains(name)) return Viewer.SAVED;
             if (!REELS_TAB.contains(name)) elsewhere = true;
@@ -455,26 +535,36 @@ public final class ReelsTopBar {
     private static final class Held {
         /** Held weakly so a closed viewer's can go. */
         final WeakReference<View> view;
+        /** The switch that hid it, or null for a bar of a viewer not known yet held for clear mode. */
+        @Nullable
         final BooleanSetting setting;
         /** A second switch that also keeps it hidden, or null: Create on a saved reel's bar answers to both. */
         final BooleanSetting also;
         /** Invisible for the bar, which keeps its place, and gone for a button, whose row closes up. */
         final int as;
+        /** Whether clear mode wanted for the next reels keeps it hidden as well (#740). */
+        final boolean clearMode;
 
         Held(View view, BooleanSetting setting, BooleanSetting also, int as) {
+            this(view, setting, also, as, false);
+        }
+
+        Held(View view, @Nullable BooleanSetting setting, BooleanSetting also, int as, boolean clearMode) {
             this.view = new WeakReference<>(view);
             this.setting = setting;
             this.also = also;
             this.as = as;
+            this.clearMode = clearMode;
         }
 
         boolean bar() {
             return as == View.INVISIBLE;
         }
 
-        /** Whether a switch that hid it is still on. */
+        /** Whether a switch that hid it is still on, or clear mode still holds it. */
         boolean wanted() {
-            return setting.get() || (also != null && also.get());
+            return (setting != null && setting.get()) || (also != null && also.get())
+                    || (clearMode && ReelClearMode.holdsBars());
         }
 
         /** Shows [shown] again, if it's still the way HushGram left it. */
@@ -554,7 +644,10 @@ public final class ReelsTopBar {
             putBack();
         }
 
-        /** Watches the window while a switch is on, or puts everything back and watches nothing while all are off. */
+        /**
+         * Watches the window while a switch is on, or while clear mode holds a bar here, and otherwise
+         * puts everything back and watches nothing.
+         */
         void refresh() {
             if (!started) return;
             if (wanted()) {
@@ -562,10 +655,59 @@ public final class ReelsTopBar {
                 keepHidden();
                 dirty = true;
                 lookNow();
+            } else if (holdsForClearMode()) {
+                watch();
+                keepHidden();
             } else {
                 unwatch();
                 putBack();
             }
+        }
+
+        /** Whether a bar here is held hidden for clear mode and still should be (#740). */
+        private boolean holdsForClearMode() {
+            for (Held held : hidden) {
+                if (held.clearMode && held.view.get() != null && held.wanted()) return true;
+            }
+            return false;
+        }
+
+        /**
+         * Hides each bar showing in this resumed window for clear mode, and watches the window while
+         * that holds (#740). A bar a switch already hid isn't showing and keeps that hold. True when a
+         * bar was hidden.
+         */
+        boolean holdForClearMode() {
+            if (!started) return false;
+            Activity found = activity.get();
+            if (found == null || found.getWindow() == null) return false;
+            View root = found.getWindow().getDecorView();
+            int barId = id(root.getContext(), BAR_ID);
+            boolean any = false;
+            ArrayDeque<View> pending = new ArrayDeque<>();
+            pending.add(root);
+            int seen = 0;
+            while (!pending.isEmpty() && seen++ < MAX_VIEWS) {
+                View view = pending.poll();
+                // Nothing under a view that isn't showing shows either.
+                if (view.getVisibility() != View.VISIBLE) continue;
+                if (isBarClass(view) || (barId != 0 && view.getId() == barId)) {
+                    for (int i = hidden.size() - 1; i >= 0; i--) {
+                        if (hidden.get(i).view.get() == view) hidden.remove(i);
+                    }
+                    view.setVisibility(View.INVISIBLE);
+                    hidden.add(new Held(view, barSwitch(view), null, View.INVISIBLE, true));
+                    HookStatus.counted(FamilyNames.REEL_DECLUTTER, COUNT_CLEAR_MODE_HID);
+                    any = true;
+                    continue;
+                }
+                if (view instanceof ViewGroup) {
+                    ViewGroup group = (ViewGroup) view;
+                    for (int i = 0; i < group.getChildCount(); i++) pending.add(group.getChildAt(i));
+                }
+            }
+            if (any) watch();
+            return any;
         }
 
         private void watch() {
@@ -608,6 +750,10 @@ public final class ReelsTopBar {
             try {
                 if (!watching) return true;
                 if (!wanted()) {
+                    if (holdsForClearMode()) {
+                        keepHidden();
+                        return true;
+                    }
                     unwatch();
                     putBack();
                     return true;
@@ -674,14 +820,15 @@ public final class ReelsTopBar {
         }
 
         /**
-         * Walks [root], past what's gone, for bars. Hides each one of the Reels tab's that shows while
-         * its switch is on, and otherwise the buttons in it whose switches are on. A hidden bar's
-         * buttons go too, since Instagram can show it again with no layout to search after. A Friends
-         * tab outside any bar Instagram keeps the names of goes as well.
+         * Walks [root], past what's gone, for bars. Hides each one that shows while its switch is on,
+         * the Reels tab's or any other viewer's (#680), and otherwise the buttons in it whose switches
+         * are on. A hidden bar's buttons go too, since Instagram can show it again with no layout to
+         * search after. A Friends tab outside any bar Instagram keeps the names of goes as well.
          */
         private void search(View root) {
             int barId = id(root.getContext(), BAR_ID);
             boolean wholeBar = Settings.HIDE_REELS_TOP_BAR.get();
+            boolean otherBars = Settings.HIDE_OTHER_REELS_TOP_BAR.get();
             boolean friends = Settings.HIDE_REELS_FRIENDS_TAB.get();
             boolean savedCreate = Settings.HIDE_SAVED_REELS_CREATE_BUTTON.get();
             ArrayDeque<View> pending = new ArrayDeque<>();
@@ -699,14 +846,17 @@ public final class ReelsTopBar {
                 boolean byClass = isBarClass(view);
                 if (byClass || (barId != 0 && view.getId() == barId)) {
                     Viewer viewer = viewerOf(view);
-                    if (viewer == Viewer.REELS_TAB && wholeBar) {
+                    boolean tabBar = viewer == Viewer.REELS_TAB && wholeBar;
+                    boolean otherBar = otherBars && (viewer == Viewer.ELSEWHERE || viewer == Viewer.SAVED);
+                    if (tabBar || otherBar) {
                         if (view.getVisibility() == View.VISIBLE) {
-                            hide(view, Settings.HIDE_REELS_TOP_BAR, View.INVISIBLE, COUNT_HID);
+                            if (tabBar) hide(view, Settings.HIDE_REELS_TOP_BAR, View.INVISIBLE, COUNT_HID);
+                            else hide(view, Settings.HIDE_OTHER_REELS_TOP_BAR, View.INVISIBLE, COUNT_OTHER_HID);
                         }
                         continue;
                     }
                     if (byClass || viewer != Viewer.UNKNOWN) hideButtons(view, viewer);
-                    if (viewer == Viewer.UNKNOWN && byClass && (wholeBar || savedCreate)) waitFor(view);
+                    if (viewer == Viewer.UNKNOWN && byClass && (wholeBar || otherBars || savedCreate)) waitFor(view);
                     // The bar's own buttons hold no other bar; something else wearing its id might.
                     if (byClass || viewer != Viewer.UNKNOWN) continue;
                 }

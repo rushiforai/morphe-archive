@@ -1,0 +1,46 @@
+name: Build patches
+
+# Builds the patch bundle (.mpp) so it can be downloaded from the run's artifacts
+# and applied with Morphe Manager / Morphe CLI.
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  build:
+    name: Build patches
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Cache Gradle
+        uses: burrunan/gradle-cache-action@v3
+
+      - name: Build
+        env:
+          # Needed to read app.morphe:morphe-patches-library from GitHub Packages.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew buildAndroid --no-daemon
+
+      - name: Upload patch bundle
+        uses: actions/upload-artifact@v7
+        with:
+          name: piko-patches-view-history
+          path: |
+            patches/build/libs/*.mpp
+            patches-list.json
+          if-no-files-found: error
+          retention-days: 30

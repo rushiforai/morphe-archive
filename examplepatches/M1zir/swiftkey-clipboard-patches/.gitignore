@@ -1,0 +1,15 @@
+.gradle/
+**/build/
+inputs/
+artifacts/
+analysis/
+upstream/
+tools/
+local.properties
+*.apk
+*.apkm
+*.keystore
+*.jks
+*.key
+.DS_Store
+__pycache__/

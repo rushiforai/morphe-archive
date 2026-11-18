@@ -1,3 +1,11 @@
+## [1.22.2](https://github.com/sqzass/lustx-patches/compare/v1.22.1...v1.22.2) (2026-11-17)
+
+### 🐛 Bug Fixes
+
+* **build.gradle.kts:** add back `implementation` build ([dbd0729](https://github.com/sqzass/lustx-patches/commit/dbd07292517e38f6d1b1314cacf3f95e38a08409))
+* **Postparty:** *all* clip types will have the 5s postparty bumper removed... hopefully. if not, edited clips DO WORK - add a sticker or even trim by half a second, bumper will be removed. ([6516835](https://github.com/sqzass/lustx-patches/commit/6516835b80917982ea90311e1934bc3105fc4b45))
+* **Postparty:** fix fingerprinting again. ([775dddd](https://github.com/sqzass/lustx-patches/commit/775dddd3690f695dadf1472c6734fe3abfdbb553))
+
 ## [1.22.1](https://github.com/sqzass/lustx-patches/compare/v1.22.0...v1.22.1) (2026-11-16)
 
 ### 🐛 Bug Fixes

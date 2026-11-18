@@ -457,6 +457,8 @@ Going to that date	กำลังไปยังวันที่ดังก�
 Sort reels on profiles	จัดเรียงรีลในโปรไฟล์
 Puts the arrow next to Reels on every profile, so you can sort them by Latest or Most viewed where Instagram took the choice away.	แสดงลูกศรข้าง Reels ในทุกโปรไฟล์ เพื่อให้คุณจัดเรียงตามล่าสุดหรือมีผู้ดูมากที่สุดได้ แม้ในโปรไฟล์ที่ Instagram นำตัวเลือกนี้ออกไปแล้ว
 The cards of people and creators to follow that Instagram puts between reels. Every reel still plays.	การ์ดแนะนำบุคคลและครีเอเตอร์ให้ติดตามที่ Instagram แทรกไว้ระหว่างรีลส์ ทั้งนี้ทุกรีลส์จะยังคงเล่นได้ตามปกติ
+Hide stories in Reels	ซ่อนสตอรี่ในรีลส์
+The Catch up with friends pages of stories that Instagram puts between reels. Stories stay at the top of Home.	หน้าสตอรี่ของเพื่อนที่ Instagram แทรกไว้ระหว่างรีลส์ ส่วนสตอรี่ด้านบนของหน้าหลักยังอยู่เหมือนเดิม
 Leaves out reels with a Paid partnership label, and reels Instagram marks as boosted. Ads have their own switch.	เว้นรีลส์ที่มีป้ายกำกับ "ความร่วมมือที่ได้รับค่าตอบแทน" และรีลส์ที่ Instagram ระบุว่าได้รับการโปรโมต ทั้งนี้โฆษณาจะมีสวิตช์แยกต่างหาก
 Turn on Start Home on Following to use this choice.	เปิดใช้งาน "เปิดหน้าหลักที่กำลังติดตาม" เพื่อใช้ตัวเลือกนี้
 # context: Settings page: the summary of a greyed-out slider in place of its value; %1$s is the title of the switch it waits on, like Glass tab bar
@@ -557,7 +559,7 @@ Gives reels the seek bar of a video in a chat, a thin gray line that turns white
 Seek bar on photos with music	แถบเลื่อนเวลาบนรูปภาพพร้อมเพลง
 Reels that are a photo with a song get the same seek bar and time as a video reel, following the song. Drag it to seek.	รีลส์ที่เป็นรูปภาพพร้อมเพลงจะได้รับแถบเลื่อนเวลาและเวลาเหมือนกับวิดีโอรีลส์ โดยเป็นไปตามเพลง ลากเพื่อเลื่อนตำแหน่ง
 Hide the seek bar on reels	ซ่อนแถบเลื่อนเวลาบนรีลส์
-Takes the seek bar off the bottom of every reel, long ones too. Hold a reel to bring it back and seek. Keep a seek bar and the seek bar looks above win over it.	นำแถบเลื่อนเวลาออกจากด้านล่างของทุกรีลส์ รวมถึงรีลส์ที่ยาว กดค้างที่รีลส์เพื่อให้แถบกลับมาและเลื่อนเวลา แสดงแถบเลื่อนเวลาเสมอและรูปแบบแถบด้านบนจะมีผลก่อน
+Takes the seek bar off the bottom of every reel, long ones too. Drag sideways along the bottom edge of a reel to bring it back and seek. Keep a seek bar and the seek bar looks above win over it. Restart Instagram to see the change.	นำแถบเลื่อนเวลาออกจากด้านล่างของทุกรีลส์ รวมถึงรีลส์ที่ยาว ลากไปด้านข้างตามขอบล่างของรีลส์เพื่อให้แถบกลับมาและเลื่อนเวลา แสดงแถบเลื่อนเวลาเสมอและรูปแบบแถบด้านบนจะมีผลก่อน รีสตาร์ท Instagram เพื่อดูการเปลี่ยนแปลง
 Blur the bars around a reel	เบลอแถบรอบรีลส์
 A reel that doesn't fill the screen shows a blurred copy of itself above and below it instead of black bars, and the strip under the tab bar and the band behind the clock show the reel blurred too. The copy shows only where a reel leaves room, as with Show the whole reel on. Open Reels again after a change.	รีลส์ที่ไม่เต็มหน้าจอจะแสดงภาพรีลส์แบบเบลอที่ด้านบนและด้านล่างแทนแถบสีดำ รวมถึงแถบใต้แถบแท็บและแถบด้านหลังนาฬิกาจะแสดงภาพรีลส์แบบเบลอด้วย ภาพสำเนาจะแสดงเฉพาะบริเวณที่รีลส์เหลือพื้นที่ไว้ เช่น เมื่อเปิด "แสดงรีลส์ทั้งคลิป" เปิดรีลส์อีกครั้งหลังจากเปลี่ยนแปลง
 # Chosen navigation long-press settings entry. Account tab availability varies.
@@ -650,6 +652,8 @@ Stop after the chat's reels	หยุดหลังจากดูรีลส�
 Reels you opened from a chat end after the last one shared in that chat, with no suggested reels after it. Works with Swipe through a chat's reels on.	รีลส์ที่คุณเปิดจากแชทจะสิ้นสุดลงหลังจากรีลส์สุดท้ายที่แชร์ในแชทนั้น โดยไม่มีรีลส์แนะนำต่อท้าย ทำงานเมื่อเปิดใช้งาน "ปัดดูรีลส์ของแชท"
 Adds Download cover under Download. It saves the still picture a reel shows before it plays, at its largest size.	เพิ่ม "ดาวน์โหลดภาพหน้าปก" ใต้ "ดาวน์โหลด" จะบันทึกภาพนิ่งที่รีลส์แสดงก่อนเล่นด้วยขนาดที่ใหญ่ที่สุด
 Adds Download audio under Download. It saves the sound of the reel as an audio file.	เพิ่ม "ดาวน์โหลดเสียง" ใต้ "ดาวน์โหลด" จะบันทึกเสียงของรีลส์เป็นไฟล์เสียง
+Download full song	ดาวน์โหลดเพลงเต็ม
+Adds Download full song under Download on reels that use a song from Instagram's music. It saves the whole song as an audio file, not only the part the reel plays.	เพิ่ม "ดาวน์โหลดเพลงเต็ม" ใต้ "ดาวน์โหลด" ในรีลส์ที่ใช้เพลงจากคลังเพลงของ Instagram จะบันทึกทั้งเพลงเป็นไฟล์เสียง ไม่ใช่แค่ส่วนที่รีลส์เล่น
 After the reels you pick below, swiping in Reels stops until Instagram has been in the background for the time you pick. A reel you open from a message or a post still plays.	หลังจากดูรีลส์ตามจำนวนที่คุณเลือกด้านล่าง การปัดในรีลส์จะหยุดลงจนกว่า Instagram จะทำงานในเบื้องหลังตามระยะเวลาที่คุณเลือก ทั้งนี้รีลส์ที่คุณเปิดจากข้อความหรือโพสต์จะยังคงเล่นได้ตามปกติ
 Find the reel you came from	ค้นหารีลส์ที่คุณเปิดมา
 Open a creator's profile from a reel, then their Reels tab, and it scrolls to that reel and outlines it for a moment. A photo reel is found in their posts. Stop looking ends the search where it is.	เปิดโปรไฟล์ของครีเอเตอร์จากรีลส์ จากนั้นไปที่แท็บรีลส์ของพวกเขา แล้วระบบจะเลื่อนไปยังรีลส์นั้นพร้อมทั้งเน้นเส้นขอบไว้ครู่หนึ่ง รีลส์ที่เป็นรูปภาพจะพบได้ในโพสต์ของพวกเขา การแตะ "หยุดค้นหา" จะสิ้นสุดการค้นหา ณ ตำแหน่งนั้น
@@ -1191,6 +1195,8 @@ Open settings with a long press on your profile's menu	เปิดการต�
 A long press on the menu button, the three lines at the top right of your own profile, opens HushGram. A tap still opens Instagram's menu, and other profiles stay the same.	การกดค้างที่ปุ่มเมนู (ขีดสามขีดที่มุมขวาบนของโปรไฟล์คุณเอง) จะเปิด HushGram ส่วนการแตะจะยังคงเปิดเมนูของ Instagram ตามเดิม และโปรไฟล์ของผู้อื่นจะยังคงเหมือนเดิม
 Hide the top bar on the Reels tab	ซ่อนแถบด้านบนในแท็บรีลส์
 Takes away the row at the top of the Reels tab, with the Reels title, the camera button and anything else Instagram puts there. Reels you open from a profile, a post or a chat keep theirs. The camera still opens from Home.	นำแถวที่ด้านบนสุดของแท็บรีลส์ออก ซึ่งรวมถึงชื่อรีลส์ ปุ่มกล้อง และสิ่งอื่นๆ ที่ Instagram ใส่ไว้ตรงนั้น ส่วนรีลส์ที่คุณเปิดจากโปรไฟล์ โพสต์ หรือแชทจะยังคงมีแถบดังกล่าว ทั้งนี้กล้องยังคงเปิดได้จากหน้าหลักตามเดิม
+Hide the top bar on other reels	ซ่อนแถบด้านบนในรีลส์อื่นๆ
+Takes the back arrow and the title off the top of reels you open from Explore, a profile, a post, Saved or a chat. Your phone's back button or gesture still goes back.	นำลูกศรย้อนกลับและชื่อออกจากด้านบนของรีลส์ที่คุณเปิดจากสำรวจ โปรไฟล์ โพสต์ บันทึกแล้ว หรือแชท ปุ่มหรือท่าทางย้อนกลับของโทรศัพท์ยังคงใช้ย้อนกลับได้ตามเดิม
 Hide the Create button on reels	ซ่อนปุ่มสร้างในรีลส์
 Takes the plus button that opens the camera off the top of reels, on the Reels tab and everywhere else, and closes up the gap. The rest of the bar stays.	นำปุ่มเครื่องหมายบวกสำหรับเปิดกล้องออกจากด้านบนของรีลส์ ทั้งในแท็บรีลส์และที่อื่นๆ พร้อมทั้งปิดช่องว่าง ส่วนแถบที่เหลือจะยังคงอยู่
 Hide Your algorithm on reels	ซ่อน "อัลกอริทึมของคุณ" ในรีลส์
@@ -2247,13 +2253,9 @@ Save profile	บันทึกโปรไฟล์
 Saved @%s	บันทึก @%s แล้ว
 # context: toast after Remove from saved takes an account off the Saved profiles list; %s is its username (#629)
 Removed @%s from saved	ลบ @%s ออกจากรายการที่บันทึกไว้แล้ว
-# context: row in the long press menu on an account on the Saved profiles page, and title of the folder list it opens (#629)
-Move to folder	ย้ายไปยังโฟลเดอร์
-# context: title of the folder list Save profile opens on a profile's menu once the user has made a folder (#629)
+# context: title of the folder checklist Save profile opens on a profile's menu once the user has made a folder; the account can go in several (#629, #687)
 Save to folder	บันทึกลงโฟลเดอร์
-# context: first choice in that folder list; the saved account sits in no folder (#629)
-No folder	ไม่มีโฟลเดอร์
-# context: last choice in that folder list, and title of the dialog asking the new folder's name (#629)
+# context: button under a folder checklist, and title of the dialog asking the new folder's name (#629, #687)
 New folder	โฟลเดอร์ใหม่
 # context: row in the long press menu on a folder's chip on the Saved profiles page, and title of the dialog for its new name (#629)
 Rename folder	เปลี่ยนชื่อโฟลเดอร์
@@ -2261,14 +2263,20 @@ Rename folder	เปลี่ยนชื่อโฟลเดอร์
 Remove folder	ลบโฟลเดอร์
 # context: toast after Save profile puts an account in a folder; %1$s is its username, %2$s the folder's name (#629)
 Saved @%1$s to %2$s	บันทึก @%1$s ลงใน %2$s แล้ว
-# context: toast after Move to folder; %1$s is the account's username, %2$s the folder's name (#629)
-Moved @%1$s to %2$s	ย้าย @%1$s ไปยัง %2$s แล้ว
-# context: toast after Move to folder > No folder; %s is the account's username, which stays saved (#629)
-Moved @%s out of its folder	นำ @%s ออกจากโฟลเดอร์แล้ว
 # context: toast after Remove folder; %s is the folder's name, and its accounts stay saved (#629)
 Removed the folder %s	ลบโฟลเดอร์ %s แล้ว
 # context: toast after Rename folder; %s is the folder's new name (#629)
 Renamed the folder to %s	เปลี่ยนชื่อโฟลเดอร์เป็น %s แล้ว
+# context: row in the long press menu on an account on the Saved profiles page, and title of the folder checklist it opens; an account can be in several folders (#687)
+Choose folders	เลือกโฟลเดอร์
+# context: toast after Choose folders with every folder unticked; %s is the account's username, which stays saved (#687)
+@%s is in no folder now	ตอนนี้ @%s ไม่อยู่ในโฟลเดอร์ใดเลย
+# context: toast after Choose folders leaves the account in one folder; %1$s is its username, %2$s the folder's name (#687)
+@%1$s is in %2$s now	ตอนนี้ @%1$s อยู่ใน %2$s
+# context: toast after Choose folders leaves the account in two or more folders; %1$s is its username, %2$d how many (#687)
+@%1$s is in %2$d folders now	ตอนนี้ @%1$s อยู่ใน %2$d โฟลเดอร์
+# context: toast after Save profile puts an account in two or more folders; %1$s is its username, %2$d how many (#687)
+Saved @%1$s to %2$d folders	บันทึก @%1$s ลงใน %2$d โฟลเดอร์แล้ว
 # context: toast when the Saved profiles list already holds 2,000 accounts (#629)
 Saved profiles is full.	รายการโปรไฟล์ที่บันทึกไว้เต็มแล้ว
 # context: Profiles > title of the switch that adds Save profile to the menu on profiles, and title of the page listing the saved accounts (#629)
@@ -2499,3 +2507,20 @@ No one has viewed half of this period's stories yet.	ยังไม่มีใ
 # context: Feed: switch under Hide the home feed that keeps Instagram from learning which posts in Home you looked at and for how long (#664)
 Don't send feed view history	ไม่ส่งประวัติการดูฟีด
 Stops telling Instagram which posts in Home you looked at and for how long. Instagram uses that to pick what Home shows. Posts you've seen may come back.	หยุดส่งข้อมูลให้ Instagram ว่าคุณดูโพสต์ใดในหน้าหลักและดูนานเท่าใด Instagram ใช้ข้อมูลนี้เพื่อเลือกสิ่งที่จะแสดงในหน้าหลัก โพสต์ที่คุณเห็นแล้วอาจวนกลับมาแสดงอีก
+# context: Tab bar: switch under Hide the Messages tab that takes the unread count off the Messages button on the bottom tab bar (#734)
+Hide the Messages badge	ซ่อนป้ายตัวเลขบนปุ่มข้อความ
+Takes the unread count off the Messages button on the tab bar. Chats still show as unread in your inbox, and notifications still come. Restart Instagram to see the change.	นำตัวเลขข้อความที่ยังไม่ได้อ่านออกจากปุ่มข้อความบนแถบแท็บ แชทในกล่องข้อความยังแสดงว่ายังไม่ได้อ่าน และการแจ้งเตือนยังเข้ามาตามปกติ โปรดรีสตาร์ท Instagram เพื่อดูการเปลี่ยนแปลง
+# context: Ads and privacy settings: switch that adds a search box above Instagram's Blocked accounts list (Settings > Blocked), filtering it by username or full name; the same title is the box's hint text (#731)
+Search blocked accounts	ค้นหาบัญชีที่ถูกบล็อก
+Adds a search box above your blocked accounts in Instagram's settings. It finds them by username or name, and loads the rest of your list as you type.	เพิ่มช่องค้นหาไว้เหนือบัญชีที่คุณบล็อกในการตั้งค่าของ Instagram ค้นหาได้จากชื่อผู้ใช้หรือชื่อ และโหลดรายชื่อที่เหลือขณะที่คุณพิมพ์
+# context: the line under that search box. %1$d is how many blocked accounts match, %2$d how many have loaded. First while more pages are loading, then when Instagram stopped sending pages, then when the whole list is in (#731)
+Matches: %1$d of %2$d account loaded so far. Loading the rest of your list.	ตรงกัน %1$d จาก %2$d บัญชีที่โหลดแล้ว กำลังโหลดรายชื่อที่เหลือ
+Matches: %1$d of %2$d accounts loaded so far. Loading the rest of your list.	ตรงกัน %1$d จาก %2$d บัญชีที่โหลดแล้ว กำลังโหลดรายชื่อที่เหลือ
+Matches: %1$d of the %2$d account that loaded. Instagram didn't send the rest.	ตรงกัน %1$d จาก %2$d บัญชีที่โหลดมา Instagram ไม่ได้ส่งส่วนที่เหลือมา
+Matches: %1$d of the %2$d accounts that loaded. Instagram didn't send the rest.	ตรงกัน %1$d จาก %2$d บัญชีที่โหลดมา Instagram ไม่ได้ส่งส่วนที่เหลือมา
+Matches: %1$d of %2$d blocked account	ตรงกัน %1$d จาก %2$d บัญชีที่ถูกบล็อก
+Matches: %1$d of %2$d blocked accounts	ตรงกัน %1$d จาก %2$d บัญชีที่ถูกบล็อก
+# context: Profiles settings: switch that makes a long press on the picture at the top of a profile open HushGram's full size viewer with a Save button, in place of Instagram's own enlarged picture (#737)
+Long press a profile picture to view it	กดค้างที่รูปโปรไฟล์เพื่อดู
+# context: that switch summary (#737)
+Long press the picture at the top of a profile to open the whole square picture at full size, with Save under it, instead of Instagram's own preview. A tap works as before.	กดค้างที่รูปด้านบนของโปรไฟล์เพื่อเปิดรูปสี่เหลี่ยมจัตุรัสทั้งรูปในขนาดเต็ม พร้อมปุ่มบันทึกด้านล่าง แทนตัวอย่างของ Instagram เอง การแตะยังทำงานเหมือนเดิม

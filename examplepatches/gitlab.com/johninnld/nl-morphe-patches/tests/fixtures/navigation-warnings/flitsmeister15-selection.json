@@ -1,0 +1,162 @@
+{
+  "methods": {
+    "Lfc0;": [
+      "x",
+      "y",
+      "J",
+      "O",
+      "P"
+    ],
+    "Lxl$c;": [
+      "invokeSuspend"
+    ],
+    "Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;": [
+      "isSpeedCamTypeMutedFromCategory",
+      "<clinit>",
+      "getLocalizedTTS",
+      "getLocalizedName",
+      "shouldPrefixTTSWithSpeedcam"
+    ],
+    "Lnl/flitsmeister/fmcore/data/model/reports/IncidentType;": [
+      "getTTSString",
+      "getLocalizedName"
+    ],
+    "Lnl/flitsmeister/fmcore/data/model/reports/ServiceVehicle;": [
+      "getShortDescription",
+      "reportTitleText",
+      "getType"
+    ],
+    "Lnl/flitsmeister/fmcore/models/data/reports/EarlyWarningReport;": [
+      "<init>",
+      "getShortDescription",
+      "getTitle",
+      "reportTitleText",
+      "getFreeText",
+      "getNotification"
+    ],
+    "Lnl/flitsmeister/earlywarning/model/EarlyWarningNotification;": [
+      "getNotificationTitle",
+      "getLocation",
+      "getFreetext"
+    ],
+    "Lnl/flitsmeister/fmcore/models/eventbuses/cits/CitsSpeedAdviceWrapper;": [
+      "getSpeedAdvice",
+      "getAdded"
+    ],
+    "Lnl/flitsmeister/fmcore/models/data/cits/CitsSpeedAdvice;": [
+      "getAdviceKph",
+      "getShortDescription",
+      "getTitle",
+      "getSubtitle"
+    ],
+    "Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;": [
+      "getTypeString"
+    ],
+    "Lnl/flitsmeister/fmcore/models/data/cits/CitsLaneClosed;": [
+      "getLaneClosedType",
+      "getLaneIndex",
+      "getNumberOfLanesClosed",
+      "getLaneClosedTitle"
+    ],
+    "Lnl/flitsmeister/fmcore/models/data/cits/CitsRoadWorks;": [
+      "getReportType",
+      "getShortDescription"
+    ],
+    "Lnl/flitsmeister/fmcore/models/enums/LaneClosedType;": [
+      "<clinit>"
+    ],
+    "Lnl/flitsmeister/fmcore/models/data/cits/CitsWeather;": [
+      "<init>",
+      "getTitle",
+      "getSubtitle",
+      "getShortDescription"
+    ],
+    "Lnl/flitsmeister/fmcore/models/data/cits/CitsWeather$CitsWeatherType;": [
+      "<clinit>"
+    ],
+    "Lnl/flitsmeister/fmcore/models/data/cits/CitsBridgeClosed;": [
+      "getShortDescription"
+    ],
+    "Lnl/flitsmeister/fmcore/data/model/reports/TrafficJam;": [
+      "getShortDescription",
+      "reportTitleText"
+    ],
+    "Lfci;": [
+      "l",
+      "b",
+      "c",
+      "g"
+    ],
+    "Lxl;": [
+      "i",
+      "j",
+      "k"
+    ],
+    "Lpz2;": [
+      "J",
+      "K",
+      "L",
+      "U"
+    ],
+    "Lpz2$c;": [
+      "invokeSuspend"
+    ],
+    "Lyy2;": [
+      "a",
+      "b",
+      "e"
+    ],
+    "Llh7$c;": [
+      "onEarlyWarningNotificationUpdate"
+    ],
+    "Lq71;": [
+      "c"
+    ],
+    "Lsz2;": [
+      "a",
+      "b"
+    ],
+    "Lgci;": [
+      "invokeSuspend"
+    ],
+    "Lhci;": [
+      "invokeSuspend"
+    ],
+    "Lcci;": [
+      "invoke"
+    ],
+    "Ldci;": [
+      "invoke"
+    ],
+    "Lnh7;": [
+      "a"
+    ],
+    "Las7;": [
+      "a"
+    ]
+  },
+  "enums": [
+    "Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;",
+    "Lnl/flitsmeister/fmcore/data/model/reports/IncidentType;",
+    "Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+    "Lnl/flitsmeister/earlywarning/model/EarlyWarningTypeEnum;",
+    "Lnl/flitsmeister/fmcore/data/model/reports/ServiceVehicle$Type;"
+  ],
+  "warning_entry_points": [
+    "Lyy2;->a(Lbemobile/cits/sdk/core/model/response/generalObjects/BaseEvent;)V",
+    "Lfc0;->J(Lnl/flitsmeister/fmcore/data/model/reports/BaseReport;Z)V",
+    "Lfc0;->P(Lnl/flitsmeister/fmcore/data/model/reports/BaseReport;)V",
+    "Lfc0;->x(Lnl/flitsmeister/fmcore/data/model/reports/BaseReport;)V",
+    "Llh7$c;->onEarlyWarningNotificationUpdate(Landroid/location/Location;Lnl/flitsmeister/earlywarning/model/EarlyWarningNotification;)V",
+    "Lfci;->b(Lnl/flitsmeister/earlywarning/model/EarlyWarningTypeEnum;Lnl/flitsmeister/fmcore/models/data/reports/EarlyWarningReport;Lnl/flitsmeister/earlywarning/model/EarlyWarningNotification;Ljava/lang/String;ZLs39;)V",
+    "Lfci;->l(Lnl/flitsmeister/fmcore/data/model/reports/BaseReport;ZZLjava/lang/String;Ls39;)V",
+    "Lpz2;->J(Lbemobile/cits/sdk/core/model/response/generalObjects/BaseEvent;)Z",
+    "Lpz2;->K(Lbemobile/cits/sdk/core/model/response/generalObjects/BaseEvent;)Z",
+    "Lpz2;->L(Lbemobile/cits/sdk/core/model/response/generalObjects/BaseEvent;)Z",
+    "Lxl$c;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+    "Lxl;->i(Landroid/content/Context;Lnl/flitsmeister/fmcore/models/data/earlywarnings/EarlyWarning;Z)V",
+    "Lyy2;->b(Lbemobile/cits/sdk/core/model/response/generalObjects/BaseEvent;)V",
+    "Lyy2;->e(Lbemobile/cits/sdk/core/model/response/generalObjects/BaseEvent;)V",
+    "Lpz2$c;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;"
+  ]
+}

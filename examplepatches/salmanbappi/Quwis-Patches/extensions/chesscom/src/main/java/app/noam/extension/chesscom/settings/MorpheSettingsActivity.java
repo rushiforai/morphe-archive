@@ -52,6 +52,7 @@ import app.noam.extension.chesscom.home.HomeLayout;
 import app.noam.extension.chesscom.home.HomeTabs;
 import app.noam.extension.chesscom.lichesspuzzle.LichessPuzzles;
 import app.noam.extension.chesscom.stockfish.Analysis;
+import app.noam.extension.chesscom.stockfish.ApiEngine;
 import app.noam.extension.chesscom.stockfish.BridgeBenchmark;
 import app.noam.extension.chesscom.stockfish.BridgeDiscovery;
 import app.noam.extension.chesscom.stockfish.BridgeSettings;
@@ -489,11 +490,31 @@ public final class MorpheSettingsActivity extends Activity {
         for (int i = 0; i < depths.length; i++) depths[i] = Analysis.DEPTH_NAMES[i] + " (" + Analysis.DEPTHS[i] + ")";
         list.addView(segments(depths, Analysis.depthIndex(), Analysis::setDepthIndex), cardParams());
 
+        list.addView(header("API"));
+        int providerIndex = ApiEngine.getProviderIndex();
+        list.addView(segments(ApiEngine.PROVIDER_NAMES, providerIndex, index -> {
+            ApiEngine.setProviderIndex(index);
+            render();
+        }), cardParams());
+
+        LinearLayout apiCard = card();
+        list.addView(apiCard, cardParams());
+        apiCard.addView(actionRow("Run Ping Test", ApiEngine.getActiveProviderDescription(), () -> {
+            Toast.makeText(this, "Testing API speeds...", Toast.LENGTH_SHORT).show();
+            ApiEngine.runPingRaceAsync(summary -> {
+                runOnUiThread(() -> {
+                    Toast.makeText(this, summary, Toast.LENGTH_SHORT).show();
+                    render();
+                });
+            });
+        }));
+
         list.addView(caption("Stockfish draws its arrows on finished games, the analysis boards, the game "
             + "explorer and Game Review; in a review by Lichess, on the moves Lichess didn't mark. Its eval "
             + "bar only shows where chess.com has none, so Game Review and the analysis board keep chess.com's "
             + "own. It never shows while a game is being played or in puzzles. Deeper searches take longer and "
-            + "use more battery."));
+            + "use more battery. Auto pings on the first request and continues using the fastest responder until "
+            + "you run a ping test again, falling back to secondary APIs if a request fails."));
     }
 
     private void renderGameReview() {
@@ -585,16 +606,16 @@ public final class MorpheSettingsActivity extends Activity {
 
     private void lichessMethodChoice() {
         list.addView(header("Analyze with Lichess"));
-        boolean board = GameReview.LICHESS_BOARD.equals(GameReview.lichessMethod());
-        list.addView(segments(new String[]{"Lichess's servers", "Analysis board"}, board ? 1 : 0,
-            index -> GameReview.setLichessMethod(index == 1 ? GameReview.LICHESS_BOARD : GameReview.LICHESS_SERVERS)),
+        boolean servers = GameReview.LICHESS_SERVERS.equals(GameReview.lichessMethod());
+        list.addView(segments(new String[]{"Lichess Cloud API", "Lichess's servers"}, servers ? 1 : 0,
+            index -> GameReview.setLichessMethod(index == 1 ? GameReview.LICHESS_SERVERS : GameReview.LICHESS_API)),
             cardParams());
-        list.addView(caption(board
-            ? "Your game is imported to Lichess (no account needed) and opens on Lichess's own analysis "
-                + "board inside the app, where Lichess's engine looks at it in your phone's browser."
-            : "Lichess's servers analyse your game for your Lichess account and the review shows in "
+        list.addView(caption(servers
+            ? "Lichess's servers analyse your game for your Lichess account and the review shows in "
                 + "chess.com's own screen, with Lichess's marks. You log in to Lichess once. Lichess "
-                + "allows 40 analyses a day."));
+                + "allows 40 analyses a day."
+            : "Your game is reviewed in-app using Lichess Cloud API and tablebase (no account needed), "
+                + "directly in chess.com's review screen with zero phone lag."));
     }
 
     /** How hard Stockfish API looks: each depth is a budget Lichess's own servers use. */

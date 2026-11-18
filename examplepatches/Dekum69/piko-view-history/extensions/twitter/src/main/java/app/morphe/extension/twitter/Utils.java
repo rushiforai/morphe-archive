@@ -1,0 +1,368 @@
+/*
+ * Copyright (C) 2026 piko <https://github.com/crimera/piko>
+ *
+ * See the included NOTICE file for GPLv3 §7(b) terms that apply to this code.
+ */
+
+package app.morphe.extension.twitter;
+
+import android.annotation.SuppressLint;
+import android.app.AlertDialog;
+import android.app.DownloadManager;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.res.Configuration;
+import android.database.Cursor;
+import android.net.Uri;
+import android.os.Build;
+import android.os.Environment;
+import android.text.TextUtils;
+import android.widget.LinearLayout;
+import android.util.TypedValue;
+
+import com.google.android.material.tabs.TabLayout$g;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.File;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.regex.Pattern;
+
+import static app.morphe.extension.shared.StringRef.str;
+
+
+import app.morphe.extension.crimera.settings.BooleanSetting;
+import app.morphe.extension.crimera.settings.StringSetting;
+import app.morphe.extension.twitter.settings.Settings;
+import app.morphe.extension.shared.ResourceUtils;
+import app.morphe.extension.shared.settings.preference.PikoSharedPrefCategory;
+
+@SuppressWarnings("unused")
+public class Utils {
+    @SuppressLint("StaticFieldLeak")
+    private static final Context ctx = app.morphe.extension.shared.Utils.getContext();
+    private static final PikoSharedPrefCategory sp = new PikoSharedPrefCategory(Settings.SHARED_PREF_NAME);
+    private static final PikoSharedPrefCategory defsp = new PikoSharedPrefCategory(ctx.getPackageName() + "_preferences");
+    private static final Pattern INVALID_FILENAME_CHARACTER = Pattern.compile("[\\\\/:*?\"<>|\\p{Cntrl}]");
+    private static final Pattern TRAILING_DOT_OR_SPACE = Pattern.compile("[. ]+$");
+
+    private static void startActivity(Class cls) {
+        Intent intent = new Intent(ctx, cls);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        ctx.startActivity(intent);
+    }
+
+    public static void startActivityFromClassName(String className) {
+        try {
+            Class<?> clazz = Class.forName(className);
+            startActivity(clazz);
+        } catch (Exception ex) {
+            toast(ex.toString());
+        }
+    }
+
+    public static void startUndoPostActivity() {
+        String className = "com.twitter.feature.subscriptions.settings.undotweet.UndoTweetSettingsActivity";
+        startActivityFromClassName(className);
+    }
+
+    public static void startAppIconNNavIconActivity() {
+        String className = "com.twitter.feature.subscriptions.settings.extras.ExtrasSettingsActivity";
+        startActivityFromClassName(className);
+    }
+
+    private static void startBookmarkActivity() {
+        String className = "com.twitter.app.bookmarks.legacy.BookmarkActivity";
+        startActivityFromClassName(className);
+    }
+
+    public static void startXSettings() {
+        String className = "com.twitter.app.settings.SettingsRootCompatActivity";
+        startActivityFromClassName(className);
+    }
+
+    // thanks to @Ouxyl
+    public static boolean redirect(TabLayout$g g) {
+        try {
+            CharSequence tabName = g.c;
+            if (TextUtils.equals(tabName, str("bookmarks_title"))) {
+                startBookmarkActivity();
+                return true;
+            }
+
+        } catch (Exception e) {
+            app.morphe.extension.crimera.PikoUtils.logger(e.toString());
+        }
+        return false;
+    }
+
+    public static Boolean setBooleanPref(String key, Boolean val) {
+        try {
+            sp.saveBoolean(key, val);
+            return true;
+        } catch (Exception ex) {
+            toast(ex.toString());
+        }
+        return false;
+    }
+
+    public static Boolean setStringPref(String key, String val) {
+        try {
+            sp.saveString(key, val);
+            return true;
+        } catch (Exception ex) {
+            toast(ex.toString());
+        }
+        return false;
+    }
+
+    public static String getStringPref(StringSetting setting) {
+        String value = sp.getString(setting.key, setting.defaultValue);
+        if (value.isBlank()) {
+            return setting.defaultValue;
+        }
+        return value;
+    }
+
+    public static void showRestartAppDialog(Context context) {
+        AlertDialog.Builder dialog = new AlertDialog.Builder(context);
+
+        LinearLayout ln = new LinearLayout(context);
+        ln.setOrientation(LinearLayout.VERTICAL);
+
+        dialog.setTitle(str("settings_restart"));
+        dialog.setPositiveButton(str("ok"), (dialogInterface, i) -> {
+            app.morphe.extension.shared.Utils.restartApp(context);
+        });
+        dialog.setNegativeButton(str("cancel"), null);
+        dialog.show();
+    }
+
+    public static void deleteSharedPrefAB(Context context, boolean flag) {
+        AlertDialog.Builder dialog = new AlertDialog.Builder(context);
+
+        LinearLayout ln = new LinearLayout(context);
+        ln.setOrientation(LinearLayout.VERTICAL);
+
+        String content = flag ? "piko_title_feature_flags" : "notification_settings_preferences_category";
+
+        dialog.setTitle(str("piko_dialog_delete_title"));
+
+        dialog.setMessage(str("piko_dialog_delete_message", str(content)));
+        dialog.setPositiveButton(str("ok"), (dialogInterface, i) -> {
+            boolean success = false;
+            if (flag) {
+                sp.removeKey(Settings.MISC_FEATURE_FLAGS.key);
+                success = true;
+            } else {
+                success = sp.clearAll();
+            }
+            if (success) {
+                app.morphe.extension.shared.Utils.restartApp(context);
+            }
+        });
+        dialog.setNegativeButton(str("cancel"), null);
+        dialog.show();
+    }
+
+    public static Boolean getBooleanPref(BooleanSetting setting) {
+        return sp.getBoolean(setting.key, setting.defaultValue);
+    }
+
+    public static String getAll(boolean no_flags) {
+        JSONObject prefs = sp.getAll();
+        prefs.remove(Settings.LAST_CHANGELOG.key);
+        if (no_flags) {
+            prefs.remove(Settings.MISC_FEATURE_FLAGS.key);
+            prefs.remove(Settings.MISC_FEATURE_FLAGS_SEARCH.key);
+        }
+        return prefs.toString();
+    }
+
+    public static Set<String> getSetPref(String key, Set<String> defaultValue) {
+        return sp.getSet(key, defaultValue);
+    }
+
+    public static Boolean setSetPref(String key, Set<String> defaultValue) {
+        try {
+            sp.saveSet(key, defaultValue);
+            return true;
+        } catch (Exception ex) {
+            toast(ex.toString());
+        }
+        return false;
+    }
+
+    public static boolean setAll(String jsonString) {
+        boolean sts = false;
+        try {
+            JSONObject jsonObject = new JSONObject(jsonString);
+            Iterator<String> keys = jsonObject.keys();
+            while (keys.hasNext()) {
+                String key = keys.next();
+                Object value = jsonObject.get(key);
+                if (value instanceof Boolean) {
+                    setBooleanPref(key, (Boolean) value);
+                } else if (value instanceof String) {
+                    setStringPref(key, (String) value);
+                } else if (value instanceof JSONArray) {
+                    JSONArray jsonArray = (JSONArray) value;
+                    if(jsonArray.length()<1) continue;
+
+                    Set<String> strings = new HashSet<>();
+
+                    for (int i = 0; i < jsonArray.length(); i++) {
+                        strings.add(jsonArray.getString(i));
+                    }
+
+                    setSetPref(key, strings);
+                }
+            }
+            sts = true;
+        } catch (Exception ex) {
+            toast(ex.toString());
+        }
+        return sts;
+    }
+
+    public static String[] addPref(String[] prefs) {
+        String[] bigger = Arrays.copyOf(prefs, prefs.length + 1);
+        bigger[prefs.length] = "pref_mod";
+        return bigger;
+    }
+
+    private static String getPath(String publicFolder, String subFolder, String filename) {
+        return publicFolder + "/" + subFolder + "/" + filename;
+    }
+
+    private static String sanitizeFilename(String filename) {
+        return TRAILING_DOT_OR_SPACE.matcher(
+                INVALID_FILENAME_CHARACTER.matcher(filename).replaceAll("_")
+        ).replaceAll("");
+    }
+
+    private static void postDownload(String filename, File tempFile, File file, Intent intent, long downloadId,
+            BroadcastReceiver broadcastReceiver, String url, String mediaName, String ext) {
+        long id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1);
+        if (id == downloadId) {
+            ctx.unregisterReceiver(broadcastReceiver);
+            boolean success = false;
+            DownloadManager manager = (DownloadManager) ctx.getSystemService(Context.DOWNLOAD_SERVICE);
+            DownloadManager.Query query = new DownloadManager.Query();
+            query.setFilterById(downloadId);
+            try (Cursor cursor = manager.query(query)) {
+                if (cursor != null && cursor.moveToFirst()) {
+                    int statusIndex = cursor.getColumnIndex(DownloadManager.COLUMN_STATUS);
+                    if (statusIndex != -1 && cursor.getInt(statusIndex) == DownloadManager.STATUS_SUCCESSFUL) {
+                        success = true;
+                    }
+                }
+            } catch (Exception e) {
+                app.morphe.extension.crimera.PikoUtils.logger(e);
+            }
+
+            if (success) {
+                boolean result = tempFile.renameTo(file);
+                if (!result) {
+                    toast("Failed to rename temp file");
+                } else {
+                    toast(str("exo_download_completed") + ": " + filename);
+                }
+            } else if (url != null && url.contains("name=orig")) {
+                String fallbackUrl = url.replace("name=orig", "name=4096x4096");
+                downloadFile(fallbackUrl, mediaName, ext);
+            } else {
+                toast("Download failed: " + filename);
+            }
+        }
+    }
+
+    @SuppressLint("UnspecifiedRegisterReceiverFlag")
+    public static void downloadFile(String url, String mediaName, String ext) {
+        String filename = sanitizeFilename(mediaName + "." + ext);
+        boolean isPhoto = ext.equals("jpg");
+
+        DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
+        request.setDescription("Downloading " + filename);
+        request.setTitle(filename);
+        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+
+        String publicFolder = "Pictures";
+        String subFolder = "Twitter";
+
+        if (!isPhoto) {
+            publicFolder = Pref.getPublicFolder();
+            subFolder = Utils.getStringPref(Settings.VID_SUBFOLDER);
+        }
+        request.setDestinationInExternalPublicDir(publicFolder, subFolder + "/" + "temp_" + filename);
+
+        File file = new File(Environment.getExternalStorageDirectory(), getPath(publicFolder, subFolder, filename));
+        if (file.exists()) {
+            toast(str("exo_download_completed") + ": " + filename);
+            return;
+        }
+
+        File tempFile = new File(
+                Environment.getExternalStorageDirectory(),
+                getPath(publicFolder, subFolder, "temp_" + filename));
+        if (tempFile.exists()) {
+            tempFile.delete();
+        }
+
+        DownloadManager manager = (DownloadManager) ctx.getSystemService(Context.DOWNLOAD_SERVICE);
+        long downloadId = manager.enqueue(request);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ctx.registerReceiver(new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    postDownload(filename, tempFile, file, intent, downloadId, this, url, mediaName, ext);
+                }
+            }, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE), Context.RECEIVER_EXPORTED);
+        } else {
+            ctx.registerReceiver(new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    postDownload(filename, tempFile, file, intent, downloadId, this, url, mediaName, ext);
+                }
+            }, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+        }
+    }
+
+    public static String getTheme() {
+        String nightMode = defsp.getString("three_state_night_mode", "2");
+        String darkModeAppearance = defsp.getString("dark_mode_appearance", "lights_out");
+        int uiMode = ctx.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
+        return resolveTheme(nightMode, darkModeAppearance, uiMode == Configuration.UI_MODE_NIGHT_YES);
+    }
+
+    private static String resolveTheme(String nightMode, String darkModeAppearance, boolean systemDark) {
+        boolean darkTheme = "1".equals(nightMode) || ("2".equals(nightMode) && systemDark);
+        if (!darkTheme) return "light";
+        if ("lights_out".equals(darkModeAppearance)) return "dark";
+        if ("dim".equals(darkModeAppearance)) return "dim";
+        return "light";
+    }
+
+    public static int resolveColor(Context context, String attrName) {
+        TypedValue tv = new TypedValue();
+        int attrId = ResourceUtils.getAttrIdentifier(attrName);
+        context.getTheme().resolveAttribute(attrId, tv, true);
+        return tv.data;
+    }
+
+    public static int resolveColor(String attrName) {
+        return resolveColor(ctx, attrName);
+    }
+
+    private static void toast(String msg){
+        app.morphe.extension.crimera.PikoUtils.toast(msg);
+    }
+
+}

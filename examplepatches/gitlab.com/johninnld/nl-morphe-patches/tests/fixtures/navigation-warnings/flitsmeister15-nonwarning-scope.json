@@ -1,0 +1,542 @@
+{
+  "format": 1,
+  "artifact": {
+    "sha256": "09d01a21ae058c9c9a75dcd0714f39ddbd37b63b68259692675f19b1a39a66ea",
+    "sdk32_base_sha256": "7668b9d93a309520184a01194aa47dde40a05b0e74e96a2237c428ed7a613bf0",
+    "dex_entries": [
+      {
+        "name": "classes.dex",
+        "sha256": "92ed92ed5269c677a235f8f52462af3b0f332470ab9be3127407f822fe7a01c7",
+        "class_defs": 19451,
+        "same_in_sdk32": true
+      },
+      {
+        "name": "classes2.dex",
+        "sha256": "ab487d199e9cf2a183cfeeddb1e21393449f3c9c43daf41af3cf3ecb633fe176",
+        "class_defs": 367,
+        "same_in_sdk32": true
+      },
+      {
+        "name": "classes3.dex",
+        "sha256": "6c2ca77232934e4d2ef37bdedca8900202f839c5574ee4928ef3a1db2341c682",
+        "class_defs": 7942,
+        "same_in_sdk32": true
+      },
+      {
+        "name": "classes4.dex",
+        "sha256": "4d3ae561c29f2256172dfd8cded4bb2910dd42588f7b75502e7b439b9a104962",
+        "class_defs": 8535,
+        "same_in_sdk32": true
+      },
+      {
+        "name": "classes5.dex",
+        "sha256": "19b230fa8a864f1ba9a4fc6c471af8116c612b331acdc3736ae0addcf5190e20",
+        "class_defs": 11164,
+        "same_in_sdk32": true
+      },
+      {
+        "name": "classes6.dex",
+        "sha256": "4eca97f8142842fb1229896ec7be234bc630f84ccc51450c300eed8b510a7840",
+        "class_defs": 14601,
+        "same_in_sdk32": true
+      },
+      {
+        "name": "classes7.dex",
+        "sha256": "7c2226ba9e080b8fc696e236b653da0af9b2b7eeadba8caecd5b7bedb047c54b",
+        "class_defs": 11949,
+        "same_in_sdk32": true
+      }
+    ]
+  },
+  "verdict": "No original15 static counterexample to these seven announcement exclusions was identified in the declared search scope. No source/protocol/version gate was edited.",
+  "blockers": [],
+  "scope": {
+    "dex_class_definitions": 74009,
+    "unique_class_descriptors": 74009,
+    "methods_defined": 340512,
+    "methods_with_code": 323065,
+    "instructions_examined": 6938096,
+    "exact_method_contracts": 47,
+    "reference_census": "Every ReferenceInstruction and DualReferenceInstruction in every method implementation in all original APK DEX entries. Exact seven BaseReportType fields; exact seven string literals. External selected-type list counts containing methods, retaining only their first matching instruction. Excludes reflection, string concatenation, assets, native code and backend data; no APK execution.",
+    "evidence_priority": "Raw original DEX instructions, field references and hierarchy are primary. Matching cached JADX/REA source is semantic aid only.",
+    "hash_contract": "InspectBindings.java canonical instruction operands, branch offsets, payloads and typed catches; access flags/register counts stored separately."
+  },
+  "dispatch": {
+    "descriptor": "Lfc0;->x(Lnl/flitsmeister/fmcore/data/model/reports/BaseReport;)V",
+    "dex": "classes2.dex",
+    "body_sha256": "7862483bbda85c97ccb412280987c3fbce1fbdd3344ec92e02a04921a433fac2",
+    "instruction_count": 615,
+    "register_count": 27,
+    "code_units": 1291,
+    "instanceof_branches": [
+      {
+        "type": "Lnl/flitsmeister/fmcore/data/model/reports/SpeedTrap;",
+        "instruction_index": 2,
+        "code_unit_offset": 4,
+        "next_opcode": "SGET_OBJECT",
+        "false_target_code_unit": null,
+        "false_target_opcode": null
+      },
+      {
+        "type": "Lnl/flitsmeister/fmcore/data/model/reports/SpeedCam;",
+        "instruction_index": 110,
+        "code_unit_offset": 224,
+        "next_opcode": "CONST_STRING",
+        "false_target_code_unit": null,
+        "false_target_opcode": null
+      },
+      {
+        "type": "Lnl/flitsmeister/fmcore/data/model/reports/PoliceHotspot;",
+        "instruction_index": 324,
+        "code_unit_offset": 696,
+        "next_opcode": "IF_EQZ",
+        "false_target_code_unit": 931,
+        "false_target_opcode": "INSTANCE_OF"
+      },
+      {
+        "type": "Lnl/flitsmeister/fmcore/data/model/reports/Incident;",
+        "instruction_index": 433,
+        "code_unit_offset": 931,
+        "next_opcode": "IF_EQZ",
+        "false_target_code_unit": 941,
+        "false_target_opcode": "INSTANCE_OF"
+      },
+      {
+        "type": "Lnl/flitsmeister/fmcore/data/model/reports/ServiceVehicle;",
+        "instruction_index": 438,
+        "code_unit_offset": 941,
+        "next_opcode": "CONST",
+        "false_target_code_unit": null,
+        "false_target_opcode": null
+      },
+      {
+        "type": "Lnl/flitsmeister/fmcore/data/model/reports/SlowMovingVehicle;",
+        "instruction_index": 483,
+        "code_unit_offset": 1033,
+        "next_opcode": "IF_EQZ",
+        "false_target_code_unit": 1136,
+        "false_target_opcode": "INSTANCE_OF"
+      },
+      {
+        "type": "Lnl/flitsmeister/fmcore/models/data/cits/CitsBaseReport;",
+        "instruction_index": 534,
+        "code_unit_offset": 1136,
+        "next_opcode": "IF_EQZ",
+        "false_target_code_unit": 1290,
+        "false_target_opcode": "RETURN_VOID"
+      },
+      {
+        "type": "Lnl/flitsmeister/fmcore/models/data/cits/CitsRoadWorks;",
+        "instruction_index": 538,
+        "code_unit_offset": 1145,
+        "next_opcode": "IF_EQZ",
+        "false_target_code_unit": 1153,
+        "false_target_opcode": "INSTANCE_OF"
+      },
+      {
+        "type": "Lnl/flitsmeister/fmcore/models/data/cits/CitsBridgeClosed;",
+        "instruction_index": 543,
+        "code_unit_offset": 1153,
+        "next_opcode": "IF_EQZ",
+        "false_target_code_unit": 1243,
+        "false_target_opcode": "SGET_OBJECT"
+      }
+    ],
+    "unmatched_base_report_path": "CitsBaseReport false branch targets the final RETURN_VOID; no generic BaseReport speech fallback.",
+    "direct_audio_or_dispatch_reference_counts": {
+      "Lfci;->l(Lnl/flitsmeister/fmcore/data/model/reports/BaseReport;ZZLjava/lang/String;Ls39;)V": 5
+    },
+    "rea_evidence_id": "ev_b3863a373722df2faef6ad82bcb3651afbc85b91771635f6f55d61c510a998c7"
+  },
+  "members": {
+    "BASEREPORT": {
+      "status": "excluded",
+      "conclusion_scope": "Native road-warning ANNOUNCE completeness; not an instruction to discard current native display/state data.",
+      "reason": "Original15 BaseReportListItem returns BASEREPORT with -1 icon/pin/color getters and empty short/share text. The two non-enum direct field reads are rated SpeedCam persistence null fallback (t4f$d) and invalid stored enum conversion fallback (q2), not announcement producers.",
+      "direct_field_reference_count": 5,
+      "enum_declaration_only": false,
+      "direct_field_references": [
+        {
+          "dex": "classes6.dex",
+          "method": "Lnl/flitsmeister/fmcore/data/model/reports/BaseReportListItem;->getReportType()Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;",
+          "instruction_index": 0,
+          "code_unit_offset": 0,
+          "opcode": "SGET_OBJECT"
+        },
+        {
+          "dex": "classes6.dex",
+          "method": "Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;->$values()[Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;",
+          "instruction_index": 6,
+          "code_unit_offset": 12,
+          "opcode": "SGET_OBJECT"
+        },
+        {
+          "dex": "classes6.dex",
+          "method": "Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;-><clinit>()V",
+          "instruction_index": 40,
+          "code_unit_offset": 84,
+          "opcode": "SPUT_OBJECT"
+        },
+        {
+          "dex": "classes6.dex",
+          "method": "Lt4f$d;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+          "instruction_index": 28,
+          "code_unit_offset": 56,
+          "opcode": "SGET_OBJECT"
+        },
+        {
+          "dex": "classes7.dex",
+          "method": "Lq2;->invoke(Ljava/lang/Object;)Ljava/lang/Object;",
+          "instruction_index": 102,
+          "code_unit_offset": 211,
+          "opcode": "SGET_OBJECT"
+        }
+      ],
+      "exact_member_name_string_reference_count": 1,
+      "methods": [
+        {
+          "descriptor": "Lnl/flitsmeister/fmcore/data/model/reports/BaseReportListItem;->getReportType()Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;",
+          "dex": "classes6.dex",
+          "body_sha256": "9e3a74a84abe0b54bb46289a3baeb695917121d3558aabb9dd901b30819ec784",
+          "instruction_count": 2,
+          "register_count": 1
+        },
+        {
+          "descriptor": "Lnl/flitsmeister/fmcore/data/model/reports/BaseReportListItem;->getShortDescription(Landroid/content/Context;)Ljava/lang/String;",
+          "dex": "classes6.dex",
+          "body_sha256": "36490e58c07daca0e0a70da56a07fb697df9344715c87a1d4b8bc481aefdc2dd",
+          "instruction_count": 2,
+          "register_count": 2
+        },
+        {
+          "descriptor": "Lt4f$d;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+          "dex": "classes6.dex",
+          "body_sha256": "987715f811a43958f84991ad6bb7be67109c0a0acf5831525f1252c8311a73dd",
+          "instruction_count": 45,
+          "register_count": 7
+        },
+        {
+          "descriptor": "Lq2;->invoke(Ljava/lang/Object;)Ljava/lang/Object;",
+          "dex": "classes7.dex",
+          "body_sha256": "b5badeabb8887ebfa185d00c67e17f77db17327f457b7739d922ff215c4c3911",
+          "instruction_count": 227,
+          "register_count": 9
+        }
+      ]
+    },
+    "CITS_PARKING": {
+      "status": "excluded",
+      "conclusion_scope": "Native road-warning ANNOUNCE completeness; not an instruction to discard current native display/state data.",
+      "reason": "Original15 CitsParking directly extends BaseReport, not CitsBaseReport; its getters expose parking name/capacity/pricing/opening hours and return null short/share text. It therefore does not enter the generic CitsBaseReport sound branch in original fc0.x.",
+      "direct_field_reference_count": 3,
+      "enum_declaration_only": false,
+      "direct_field_references": [
+        {
+          "dex": "classes6.dex",
+          "method": "Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;->$values()[Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;",
+          "instruction_index": 12,
+          "code_unit_offset": 24,
+          "opcode": "SGET_OBJECT"
+        },
+        {
+          "dex": "classes6.dex",
+          "method": "Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;-><clinit>()V",
+          "instruction_index": 75,
+          "code_unit_offset": 164,
+          "opcode": "SPUT_OBJECT"
+        },
+        {
+          "dex": "classes6.dex",
+          "method": "Lnl/flitsmeister/fmcore/models/data/cits/CitsParking;->getReportType()Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;",
+          "instruction_index": 0,
+          "code_unit_offset": 0,
+          "opcode": "SGET_OBJECT"
+        }
+      ],
+      "exact_member_name_string_reference_count": 2,
+      "methods": [
+        {
+          "descriptor": "Lnl/flitsmeister/fmcore/models/data/cits/CitsParking;->getReportType()Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;",
+          "dex": "classes6.dex",
+          "body_sha256": "74624864ad82103522929cdc9e67467c5ea18f402fabbaa8df2b045c173f07c1",
+          "instruction_count": 2,
+          "register_count": 1
+        },
+        {
+          "descriptor": "Lnl/flitsmeister/fmcore/models/data/cits/CitsParking;->getShortDescription(Landroid/content/Context;)Ljava/lang/String;",
+          "dex": "classes6.dex",
+          "body_sha256": "46439bc24e21699eb6d3329749f2922c2a38b88d92a36509e0117c7d5cccaccf",
+          "instruction_count": 2,
+          "register_count": 2
+        },
+        {
+          "descriptor": "Lnl/flitsmeister/fmcore/models/data/cits/CitsParking;->getCapacity()I",
+          "dex": "classes6.dex",
+          "body_sha256": "49c822bb2eae87a5c3dac38e20bccb7adc99c1963d48ae286b4666b1321f49a5",
+          "instruction_count": 2,
+          "register_count": 1
+        },
+        {
+          "descriptor": "Lnl/flitsmeister/fmcore/models/data/cits/CitsParking;->getPricingDescription(Landroid/content/Context;)Ljava/lang/String;",
+          "dex": "classes6.dex",
+          "body_sha256": "6e96b8aa15e0c5414af1d7d377f78c45d0e31fb74ee2e2c075e8d6996d6e0f4f",
+          "instruction_count": 89,
+          "register_count": 10
+        }
+      ]
+    },
+    "ENVIRONMENTAL_ZONE": {
+      "status": "excluded",
+      "conclusion_scope": "Native road-warning ANNOUNCE completeness; not an instruction to discard current native display/state data.",
+      "reason": "In all seven original15 DEX instruction-reference inventories, this exact enum field occurs only in BaseReportType declaration/value-array initialization. No explicit concrete producer is established by this bounded search; original fc0.x has no corresponding typed arm or generic BaseReport fallback.",
+      "direct_field_reference_count": 2,
+      "enum_declaration_only": true,
+      "direct_field_references": [
+        {
+          "dex": "classes6.dex",
+          "method": "Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;->$values()[Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;",
+          "instruction_index": 16,
+          "code_unit_offset": 32,
+          "opcode": "SGET_OBJECT"
+        },
+        {
+          "dex": "classes6.dex",
+          "method": "Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;-><clinit>()V",
+          "instruction_index": 95,
+          "code_unit_offset": 208,
+          "opcode": "SPUT_OBJECT"
+        }
+      ],
+      "exact_member_name_string_reference_count": 1,
+      "methods": []
+    },
+    "FM_OFFICE": {
+      "status": "excluded",
+      "conclusion_scope": "Native road-warning ANNOUNCE completeness; not an instruction to discard current native display/state data.",
+      "reason": "Original15 FMOfficeReport constructors set the FM_OFFICE enum, office pin and point coordinates. Its short/share text getters return null. The concrete class is a direct BaseReport and has no matching original fc0.x dispatch arm.",
+      "direct_field_reference_count": 4,
+      "enum_declaration_only": false,
+      "direct_field_references": [
+        {
+          "dex": "classes6.dex",
+          "method": "Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;->$values()[Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;",
+          "instruction_index": 13,
+          "code_unit_offset": 26,
+          "opcode": "SGET_OBJECT"
+        },
+        {
+          "dex": "classes6.dex",
+          "method": "Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;-><clinit>()V",
+          "instruction_index": 80,
+          "code_unit_offset": 175,
+          "opcode": "SPUT_OBJECT"
+        },
+        {
+          "dex": "classes6.dex",
+          "method": "Lnl/flitsmeister/models/data/reports/FMOfficeReport;-><init>(DD)V",
+          "instruction_index": 8,
+          "code_unit_offset": 18,
+          "opcode": "SGET_OBJECT"
+        },
+        {
+          "dex": "classes6.dex",
+          "method": "Lnl/flitsmeister/models/data/reports/FMOfficeReport;-><init>(Landroid/os/Parcel;)V",
+          "instruction_index": 9,
+          "code_unit_offset": 21,
+          "opcode": "SGET_OBJECT"
+        }
+      ],
+      "exact_member_name_string_reference_count": 1,
+      "methods": [
+        {
+          "descriptor": "Lnl/flitsmeister/models/data/reports/FMOfficeReport;-><init>(DD)V",
+          "dex": "classes6.dex",
+          "body_sha256": "acd6fd5ebf0dc9b46d466ed533a58d9db8507d25f80c62f597b6653220eb3ced",
+          "instruction_count": 23,
+          "register_count": 7
+        },
+        {
+          "descriptor": "Lnl/flitsmeister/models/data/reports/FMOfficeReport;-><init>(Landroid/os/Parcel;)V",
+          "dex": "classes6.dex",
+          "body_sha256": "e881593fbf0f0e5228c662f6ce275deca43942ff4b7efb1d0ec1d5a5a1dc3d3e",
+          "instruction_count": 18,
+          "register_count": 3
+        },
+        {
+          "descriptor": "Lnl/flitsmeister/models/data/reports/FMOfficeReport;->getShortDescription(Landroid/content/Context;)Ljava/lang/String;",
+          "dex": "classes6.dex",
+          "body_sha256": "40b2511b49bc90403dc12eef8347f18b625b9b340b046e3d489ca1b5cdb5d7f2",
+          "instruction_count": 3,
+          "register_count": 2
+        }
+      ]
+    },
+    "LBA": {
+      "status": "excluded",
+      "conclusion_scope": "Native road-warning ANNOUNCE completeness; not an instruction to discard current native display/state data.",
+      "reason": "The exact original15 BaseReportType.LBA field has only enum declaration/value-array uses. Actual LBA content is a distinct Object/Parcelable DTO, with LBANotificationType END_OF_TRIP/NONE and a separate BusLBAUpdated. This does not classify arbitrary informative/backend LBA text as a road warning.",
+      "direct_field_reference_count": 2,
+      "enum_declaration_only": true,
+      "direct_field_references": [
+        {
+          "dex": "classes6.dex",
+          "method": "Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;->$values()[Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;",
+          "instruction_index": 5,
+          "code_unit_offset": 10,
+          "opcode": "SGET_OBJECT"
+        },
+        {
+          "dex": "classes6.dex",
+          "method": "Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;-><clinit>()V",
+          "instruction_index": 35,
+          "code_unit_offset": 74,
+          "opcode": "SPUT_OBJECT"
+        }
+      ],
+      "exact_member_name_string_reference_count": 1,
+      "methods": [
+        {
+          "descriptor": "Lnl/flitsmeister/lba/model/LBA;->getNotificationType()Lnl/flitsmeister/lba/model/LBANotificationType;",
+          "dex": "classes6.dex",
+          "body_sha256": "c530e95b3d3e85106dec1453f49023d23b508e89c1fd62f48fb0ee5c9bb40252",
+          "instruction_count": 2,
+          "register_count": 1
+        },
+        {
+          "descriptor": "Lnl/flitsmeister/lba/model/LBANotificationType;-><clinit>()V",
+          "dex": "classes6.dex",
+          "body_sha256": "8a5c8b4de3cc95b04dcf502e4b366d05c44fce6fdb913e12c0da21e6c222c48b",
+          "instruction_count": 17,
+          "register_count": 3
+        },
+        {
+          "descriptor": "Lnl/flitsmeister/lba/bus/LBABus;->getBusLBAUpdated()Las7;",
+          "dex": "classes6.dex",
+          "body_sha256": "12788e945d4b33cde1d916d97725297291067c101afb6a4aa98f5ca0f9a19cb8",
+          "instruction_count": 5,
+          "register_count": 1
+        },
+        {
+          "descriptor": "Lnl/flitsmeister/lba/bus/LBABus;->busLBAUpdated_delegate$lambda$0()Las7;",
+          "dex": "classes6.dex",
+          "body_sha256": "363e970cf0d5488019e8fae36902366231d4f626adfc7273da370e6082217852",
+          "instruction_count": 5,
+          "register_count": 3
+        }
+      ]
+    },
+    "PARKED_LOCATION": {
+      "status": "excluded",
+      "conclusion_scope": "Native road-warning ANNOUNCE completeness; not an instruction to discard current native display/state data.",
+      "reason": "In all seven original15 DEX instruction-reference inventories, this exact enum field occurs only in BaseReportType declaration/value-array initialization. No explicit concrete producer is established by this bounded search; original fc0.x has no corresponding typed arm or generic BaseReport fallback.",
+      "direct_field_reference_count": 2,
+      "enum_declaration_only": true,
+      "direct_field_references": [
+        {
+          "dex": "classes6.dex",
+          "method": "Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;->$values()[Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;",
+          "instruction_index": 14,
+          "code_unit_offset": 28,
+          "opcode": "SGET_OBJECT"
+        },
+        {
+          "dex": "classes6.dex",
+          "method": "Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;-><clinit>()V",
+          "instruction_index": 85,
+          "code_unit_offset": 186,
+          "opcode": "SPUT_OBJECT"
+        }
+      ],
+      "exact_member_name_string_reference_count": 1,
+      "methods": []
+    },
+    "TOLLING": {
+      "status": "excluded",
+      "conclusion_scope": "Native road-warning ANNOUNCE completeness; not an instruction to discard current native display/state data.",
+      "reason": "Original15 TollReport remains a toll-marker BaseReport with common_toll_gate title, toll pin/color and empty short/share text. Positive15 geometry, feature-filter and lookahead uses are present (ka1, wd6$a$a); these are retained in evidence. The concrete type still matches no original fc0.x audible dispatch arm.",
+      "direct_field_reference_count": 3,
+      "enum_declaration_only": false,
+      "direct_field_references": [
+        {
+          "dex": "classes6.dex",
+          "method": "Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;->$values()[Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;",
+          "instruction_index": 15,
+          "code_unit_offset": 30,
+          "opcode": "SGET_OBJECT"
+        },
+        {
+          "dex": "classes6.dex",
+          "method": "Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;-><clinit>()V",
+          "instruction_index": 90,
+          "code_unit_offset": 197,
+          "opcode": "SPUT_OBJECT"
+        },
+        {
+          "dex": "classes6.dex",
+          "method": "Lnl/flitsmeister/fmcore/data/model/reports/TollReport;->getReportType()Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;",
+          "instruction_index": 0,
+          "code_unit_offset": 0,
+          "opcode": "SGET_OBJECT"
+        }
+      ],
+      "exact_member_name_string_reference_count": 1,
+      "methods": [
+        {
+          "descriptor": "Lnl/flitsmeister/fmcore/data/model/reports/TollReport;->getReportType()Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;",
+          "dex": "classes6.dex",
+          "body_sha256": "014254b86147f58060c8365f484cb315e6ddd4ae6eb48de2b649b337fbeca059",
+          "instruction_count": 2,
+          "register_count": 1
+        },
+        {
+          "descriptor": "Lnl/flitsmeister/fmcore/data/model/reports/TollReport;->getShortDescription(Landroid/content/Context;)Ljava/lang/String;",
+          "dex": "classes6.dex",
+          "body_sha256": "db9e5d1edbd037f32f234846678f5c5df18ff4a822a50bdcbbb6874d8dc67325",
+          "instruction_count": 3,
+          "register_count": 2
+        },
+        {
+          "descriptor": "Lnl/flitsmeister/fmcore/data/model/reports/TollReport;->reportTitleText(Landroid/content/Context;)Ljava/lang/String;",
+          "dex": "classes6.dex",
+          "body_sha256": "61818efe286c53bfc2fcbcad906dd39eab4db35b71c25925972e00748f02287b",
+          "instruction_count": 10,
+          "register_count": 2
+        },
+        {
+          "descriptor": "Lka1;->k(Ljava/util/Collection;Landroid/content/Context;)Ljava/util/ArrayList;",
+          "dex": "classes6.dex",
+          "body_sha256": "1002e8a3fc2f8ea356ffe5e8f9a61bd95c36bd148e905deff45c87b3d5b058fc",
+          "instruction_count": 182,
+          "register_count": 19
+        },
+        {
+          "descriptor": "Lwd6$a$a;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+          "dex": "classes7.dex",
+          "body_sha256": "12de5d1e384cea769c97bbba1b3e563e303e3eef2b05eab426c1804da0943c12",
+          "instruction_count": 247,
+          "register_count": 28
+        }
+      ]
+    }
+  },
+  "extra_positive_observations": [
+    "CITS_PARKING has a second exact string literal in tvf.<clinit>, belonging to tvf enum initialization; it is not another BaseReportType field reference.",
+    "TollReport appears in original15 lookahead geometry/filtering and route/report conversion; no assertion that it is unused or absent from road-context UI is made.",
+    "Reserved enum declaration-only conclusions are about exact static field operands, not a claim that their names cannot arrive through serialization/reflection/backend data."
+  ],
+  "remaining_unknowns": [
+    "No runtime/native-code/backend/reflective or dynamically loaded dispatch was executed or exhaustively ruled out.",
+    "Static field-reference and selected-type inventories do not establish every transitive generic or reflective caller.",
+    "LBA may carry informative content; arbitrary backend LBA semantics and non-road end-of-trip notifications are outside this seven-row BaseReportType audit.",
+    "Navigation guidance involving parking/toll destinations is distinct from the audited native road-warning dispatch; no route-guidance completeness claim is made.",
+    "This report revalidates seven excluded rows only, not all exported warning members or full runtime delivery."
+  ],
+  "evidence_files_sha256": {
+    "selection.json": "282d789083ef9c15888056fe67d8836a939ee16c07f91e247fd8d0acb6791e28",
+    "method-contract.json": "6f0beaa81905588e2dd763e06dbf36f9161dfe75401431af80a9f932567bec62",
+    "field-reference-audit.json": "218ff52d414708228ef8d05c7335d526857b0e538d0ca75acd6b396ac15a167f",
+    "inspector-provenance.json": "fb92d618fc589c65b2bff7bd63ba7dbc1ec91e1724e0771a4b49b7d088ab7e29",
+    "NonWarning15Audit.java": "2a60cd0403ca18c11d0393abfd258257bfeb09d977886566a49fb7408122e7dd",
+    "rea-fc0-x.json": "95dc32a030a73fc305ba20065971f2828975305bc3aedb724e0b902f62b63124"
+  }
+}

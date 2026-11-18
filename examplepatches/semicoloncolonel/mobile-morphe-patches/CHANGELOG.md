@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/semicoloncolonel/mobile-morphe-patches/compare/v1.1.0...v1.1.1) (2026-11-18)
+
+### Bug fixes
+
+- **MLB**: Skip ads no longer breaks a playlist that starts with an ad. Removing that ad also removed the lines that begin the playlist, so the video could not play. An encryption or map change right before an ad break is now kept as well.
+
+
 # [1.1.0](https://github.com/semicoloncolonel/mobile-morphe-patches/compare/v1.0.21...v1.1.0) (2026-11-17)
 
 ### Android TV

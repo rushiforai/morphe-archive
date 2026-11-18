@@ -88,7 +88,7 @@ private val adSdksManifestPatch = patch {
 @Suppress("unused")
 val premiumUnlockPatch = patch(
     name = "Premium unlock",
-    description = "Unlocks the lifetime premium client-side (no visual ads, music equalizer) and keeps the ad networks and AppHarbr from starting at all, so they cannot track in the background.",
+    description = "Unlocks premium (no ads, music equalizer) and keeps the ad networks from starting.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_RADIO_ID)

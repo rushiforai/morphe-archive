@@ -262,29 +262,31 @@ class MessageLogTest {
         assertEquals(MESSAGE_ID_FIELD, reference(10, code))
         assertEquals(1, (code[10] as com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction).registerA)
         assertEquals("$SETTINGS->incomingMessageId(Ljava/lang/String;)V", reference(11, code))
-        assertEquals(BODY_FIELD, reference(12, code))
+        // The message itself goes over next, while the register still holds it, for the clip its attachment points at.
+        assertEquals("$SETTINGS->incomingMessageMedia(Ljava/lang/Object;)V", reference(12, code))
+        assertEquals(BODY_FIELD, reference(13, code))
         // A message with no body, a photo say, still goes over, as a null string the log keeps as an attachment. The
         // explicit null keeps the register String-typed where both paths meet.
-        assertEquals(Opcode.IF_EQZ, code[13].opcode)
-        assertEquals(16, code.branchTarget(13))
-        assertEquals(SECRET_FIELD, reference(14, code))
-        assertEquals(Opcode.GOTO, code[15].opcode)
-        assertEquals(17, code.branchTarget(15))
-        assertEquals(Opcode.CONST_4, code[16].opcode)
-        assertEquals(1, (code[16] as OneRegisterInstruction).registerA)
-        assertEquals(THREAD_KEY_FIELD, reference(17, code))
-        assertEquals(Opcode.IF_EQZ, code[18].opcode)
+        assertEquals(Opcode.IF_EQZ, code[14].opcode)
+        assertEquals(17, code.branchTarget(14))
+        assertEquals(SECRET_FIELD, reference(15, code))
+        assertEquals(Opcode.GOTO, code[16].opcode)
+        assertEquals(18, code.branchTarget(16))
+        assertEquals(Opcode.CONST_4, code[17].opcode)
+        assertEquals(1, (code[17] as OneRegisterInstruction).registerA)
+        assertEquals(THREAD_KEY_FIELD, reference(18, code))
+        assertEquals(Opcode.IF_EQZ, code[19].opcode)
         // Null thread skips toString and passes a null string, so the register stays String-typed on both paths.
-        assertEquals(22, code.branchTarget(18))
-        assertEquals("$THREAD_KEY_TYPE->toString()Ljava/lang/String;", reference(19, code))
-        assertEquals(Opcode.GOTO, code[21].opcode)
-        assertEquals(23, code.branchTarget(21))
-        assertEquals(Opcode.CONST_4, code[22].opcode)
-        assertEquals("$SETTINGS->recordReceivedMessage(Ljava/lang/String;Ljava/lang/String;)V", reference(23, code))
-        assertEquals(24, stock)
+        assertEquals(23, code.branchTarget(19))
+        assertEquals("$THREAD_KEY_TYPE->toString()Ljava/lang/String;", reference(20, code))
+        assertEquals(Opcode.GOTO, code[22].opcode)
+        assertEquals(24, code.branchTarget(22))
+        assertEquals(Opcode.CONST_4, code[23].opcode)
+        assertEquals("$SETTINGS->recordReceivedMessage(Ljava/lang/String;Ljava/lang/String;)V", reference(24, code))
+        assertEquals(25, stock)
         // Nothing leaves between the handover and the sink, and each sink has its own handover right before it, so a
         // leftover id is replaced before any sink could take it.
-        assertEquals(emptyList<Int>(), (11..23).filter { code.branchTarget(it) == stock })
+        assertEquals(emptyList<Int>(), (11..24).filter { code.branchTarget(it) == stock })
         assertEquals(before, code.drop(stock))
     }
 
@@ -301,7 +303,9 @@ class MessageLogTest {
         injectControl(AUTO_REPLY, mapOf(AUTO_REPLY to listOf(ctor)))
         val code = ctor.code()
         val block = code.size - logged.size
-        assertEquals(logged.size - before.size, block)
+        // The same block twice over, bar the one line that hands the message itself to the log for its voice clip. Auto
+        // reply has no use for that, so its block is a line shorter.
+        assertEquals(logged.size - before.size, block + 1)
         assertEquals("$SETTINGS->autoReplyWanted()Z", reference(0, code))
         assertEquals(UNSENT_CHECK, reference(5, code))
         assertEquals(HIDDEN_FIELD, reference(8, code))
@@ -315,8 +319,35 @@ class MessageLogTest {
         for (skip in listOf(2, 4, 7, 9)) assertEquals(block, code.branchTarget(skip))
         assertEquals(16, code.branchTarget(13))
         assertEquals("$SETTINGS->incomingMessageId(Ljava/lang/String;)V", reference(block + 11, code))
+        assertEquals("$SETTINGS->incomingMessageMedia(Ljava/lang/Object;)V", reference(block + 12, code))
         assertEquals("$SETTINGS->logReceivedMessages()Z", reference(block, code))
-        assertEquals(before, code.drop(2 * block))
+        assertEquals(before, code.drop(code.size - before.size))
+    }
+
+    /**
+     * #196: Hide messages with your words claims the same constructor, so a message holding one of the words can be
+     * marked before its notification goes up. One block serves both controls: the gate brings the message through for
+     * either switch, and whichever control gets there first, the other finds its work done and leaves the method alone.
+     */
+    @Test fun hidingMessagesSharesTheLogsNotificationHook() {
+        val classes = messageLogFixture()
+        val found = mirroredControls(classes)
+        validateControls(found, setOf(MESSAGE_LOG))
+        val ctor = ctorOf(classes)
+        val before = ctor.code()
+        injectControl(HIDDEN_WORDS, mapOf(MESSAGE_LOG to listOf(ctor)))
+        val hidden = ctor.code()
+        assertEquals("$SETTINGS->logReceivedMessages()Z", reference(0, hidden))
+        assertEquals("$SETTINGS->recordReceivedMessage(Ljava/lang/String;Ljava/lang/String;)V", reference(24, hidden))
+        assertEquals(before, hidden.drop(hidden.size - before.size))
+        // The log on as well adds nothing: both gates are read inside the one extension call.
+        injectControl(MESSAGE_LOG, mapOf(MESSAGE_LOG to listOf(ctor)))
+        assertEquals(hidden, ctor.code())
+        // Auto reply reads its own gate, so its block still goes in next to theirs.
+        injectControl(AUTO_REPLY, mapOf(AUTO_REPLY to listOf(ctor)))
+        val both = ctor.code()
+        assertEquals("$SETTINGS->autoReplyWanted()Z", reference(0, both))
+        assertEquals(hidden, both.drop(both.size - hidden.size))
     }
 
     @Test fun aMissingTextGetterRefusesTheSwitchBeforeAnyEdit() {
@@ -424,6 +455,7 @@ class MessageLogTest {
             assertEquals(HIDDEN_FIELD, reference(8, after), code)
             assertEquals(MESSAGE_ID_FIELD, reference(10, after), code)
             assertEquals("$SETTINGS->incomingMessageId(Ljava/lang/String;)V", reference(11, after), code)
+            assertEquals("$SETTINGS->incomingMessageMedia(Ljava/lang/Object;)V", reference(12, after), code)
             assertEquals(before.map { it.opcode }, after.drop(after.size - before.size).map { it.opcode }, code)
         }
     }

@@ -345,9 +345,33 @@ public final class SettingsActivity {
 
             int iconSize = InstagramPreferenceStyle.dp(activity, 44);
 
+            ImageView toolbarBackBtn = new ImageView(activity);
+            toolbarBackBtn.setImageDrawable(RexVectorIcons.create(activity, "rex_vec_arrow-left", InstagramPreferenceStyle.primaryTextColor(), 24));
+            toolbarBackBtn.setScaleType(ImageView.ScaleType.CENTER);
+            int backPad = InstagramPreferenceStyle.dp(activity, 8);
+            toolbarBackBtn.setPadding(backPad, backPad, backPad, backPad);
+            toolbarBackBtn.setContentDescription("Back");
+            toolbarBackBtn.setOnClickListener(v -> {
+                RexHaptics.tap(v);
+                if (exitSearchIfActive()) {
+                    return;
+                }
+                if (isRootSettings && SettingsRestart.promptRestartIfPending(activity)) {
+                    return;
+                }
+                activity.finish();
+            });
+            LinearLayout.LayoutParams tbBackLp = new LinearLayout.LayoutParams(
+                    InstagramPreferenceStyle.dp(activity, 44),
+                    InstagramPreferenceStyle.dp(activity, 44)
+            );
+            tbBackLp.gravity = android.view.Gravity.CENTER_VERTICAL;
+            tbBackLp.setMarginEnd(InstagramPreferenceStyle.dp(activity, 6));
+            toolbar.addView(toolbarBackBtn, tbBackLp);
+
             titleTextView = new TextView(activity);
-            titleTextView.setText(isRootSettings ? "" : displayTitle);
-            int titleTextSize = isRootSettings ? 25 : 24;
+            titleTextView.setText(isRootSettings ? "InstaRex Settings" : displayTitle);
+            int titleTextSize = isRootSettings ? 22 : 22;
             titleTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, titleTextSize);
             titleTextView.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
             titleTextView.setIncludeFontPadding(false);
@@ -408,13 +432,18 @@ public final class SettingsActivity {
                 );
 
                 TextView brandTitle = new TextView(activity);
-                SpannableStringBuilder ssb = new SpannableStringBuilder("Rex IG Lite");
-                ssb.setSpan(new ForegroundColorSpan(0xFFFFFFFF), 0, 4, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                ssb.setSpan(new ForegroundColorSpan(0xFF23C6D8), 4, 11, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                SpannableStringBuilder ssb = new SpannableStringBuilder("InstaRex");
+                ssb.setSpan(new ForegroundColorSpan(0xFFF5F7FA), 0, 5, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                ssb.setSpan(new ForegroundColorSpan(InstagramPreferenceStyle.accentColor()), 5, 8, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                 brandTitle.setText(ssb);
-                brandTitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 30);
+                brandTitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 38);
                 brandTitle.setTypeface(Typeface.create("sans-serif-black", Typeface.BOLD));
+                brandTitle.setLetterSpacing(-0.02f);
                 brandTitle.setGravity(android.view.Gravity.CENTER);
+                brandTitle.setOnClickListener(v -> {
+                    RexHaptics.tap(v);
+                    RexDialogs.showHomeQuickMenu(activity);
+                });
                 brandTitle.setOnLongClickListener(v -> {
                     RexHaptics.longPress(v);
                     RexDialogs.showHomeQuickMenu(activity);
@@ -423,8 +452,8 @@ public final class SettingsActivity {
                 heroBox.addView(brandTitle);
 
                 TextView brandSub = new TextView(activity);
-                brandSub.setText("by xboyrex");
-                brandSub.setTextColor(0xFF23C6D8);
+                brandSub.setText("Made with \u2665 " + "by xboyrex");
+                brandSub.setTextColor(0xFFA4ACB8);
                 brandSub.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f);
                 brandSub.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
                 brandSub.setGravity(android.view.Gravity.CENTER);
@@ -437,7 +466,7 @@ public final class SettingsActivity {
 
                 TextView versionBadge = new TextView(activity);
                 String rawVer = app.morphe.extension.shared.Utils.getPatchesReleaseVersion();
-                String verStr = (rawVer == null || rawVer.isEmpty() ? "v3.14.0" : (rawVer.startsWith("v") ? rawVer : "v" + rawVer)) + " • AMOLED Suite";
+                String verStr = "Rex IG Lite • " + (rawVer == null || rawVer.isEmpty() ? "v3.15.0" : (rawVer.startsWith("v") ? rawVer : "v" + rawVer)) + " • AMOLED Suite";
                 versionBadge.setText(verStr);
                 versionBadge.setTextColor(0xFF9AA3AE);
                 versionBadge.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11.5f);
@@ -824,7 +853,7 @@ public final class SettingsActivity {
                         0,
                         listView.getPaddingTop(),
                         0,
-                        bottomInset + InstagramPreferenceStyle.dp(context, 28)
+                        bottomInset + InstagramPreferenceStyle.dp(context, 76)
                 );
             }
         }
@@ -958,7 +987,7 @@ public final class SettingsActivity {
                     0,
                     InstagramPreferenceStyle.dp(context, 8),
                     0,
-                    lastBottomInset + InstagramPreferenceStyle.dp(context, 18)
+                    lastBottomInset + InstagramPreferenceStyle.dp(context, 76)
             );
             listView.setClipToPadding(false);
             listView.setDivider(null);
@@ -1021,7 +1050,7 @@ public final class SettingsActivity {
                         0,
                         InstagramPreferenceStyle.dp(context, state.searchMode ? 10 : 2),
                         0,
-                        lastBottomInset + InstagramPreferenceStyle.dp(context, 18)
+                        lastBottomInset + InstagramPreferenceStyle.dp(context, 76)
                 );
             }
         }

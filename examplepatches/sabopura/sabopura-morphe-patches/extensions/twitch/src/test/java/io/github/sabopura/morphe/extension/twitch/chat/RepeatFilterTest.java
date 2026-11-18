@@ -6,10 +6,10 @@ import static org.junit.Assert.*;
 public class RepeatFilterTest {
     @Test public void rebindingDoesNotChangeTheFirstMessageDecision() {
         RepeatFilter f = new RepeatFilter();
-        assertFalse(f.isRepeat("1", "alice", "a", "Hello", 1000));
-        assertTrue(f.isRepeat("1", "alice", "b", "HELLO", 2000));
-        assertFalse(f.isRepeat("1", "alice", "a", "Hello", 1000));
-        assertTrue(f.isRepeat("1", "alice", "b", "HELLO", 2000));
+        assertFalse(f.isRepeat("1", "alice", "a", "hello", 1000));
+        assertTrue(f.isRepeat("1", "alice", "b", "hello", 2000));
+        assertFalse(f.isRepeat("1", "alice", "a", "hello", 1000));
+        assertTrue(f.isRepeat("1", "alice", "b", "hello", 2000));
     }
     @Test public void roomsSendersAndTimeWindowsAreIndependent() {
         RepeatFilter f = new RepeatFilter();

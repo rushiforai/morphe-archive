@@ -1,11 +1,12 @@
 package dev.jibon.notes.patches.misc
 
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.resourcePatch
 import dev.jibon.notes.patches.compat.elements
 import dev.jibon.notes.patches.shared.Constants.COMPATIBILITY_NOTES
 
-// Samsung account / cloud sync / push / co-editing parts: they need a Samsung-signed app and only run in the
-// background. Providers, ImportService and activities stay enabled (the app uses them).
+// Samsung account / cloud sync / push / co-editing parts. Providers, ImportService and activities stay enabled
+// (the app uses them). Samsung Cloud sync no longer works with these off.
 private val DISABLED_COMPONENTS = setOf(
     "com.samsung.android.support.senl.nt.app.sync.receivers.SamsungAccountReceiver",
     "com.samsung.android.support.senl.nt.app.sync.receivers.SyncTimeReceiver",
@@ -26,20 +27,23 @@ private val DISABLED_COMPONENTS = setOf(
 @Suppress("unused")
 val disableCloudComponentsPatch = resourcePatch(
     name = "Turn off Samsung cloud components",
-    description = "Turns off the Samsung account, cloud sync, push and co-editing services and receivers. " +
-        "They can't work in a patched app and would only run in the background.",
-    default = true,
+    description = "Turns off the Samsung account, cloud sync, push and co-editing services. " +
+        "Samsung Cloud sync stops working.",
+    default = false,
 ) {
     compatibleWith(COMPATIBILITY_NOTES)
 
     execute {
         document("AndroidManifest.xml").use { document ->
             val manifest = document.documentElement
-            (manifest.elements("service") + manifest.elements("receiver")).forEach { component ->
-                if (component.getAttribute("android:name") in DISABLED_COMPONENTS) {
-                    component.setAttribute("android:enabled", "false")
+            var disabled = 0
+            (manifest.elements("service") + manifest.elements("receiver")).forEach {
+                if (it.getAttribute("android:name") in DISABLED_COMPONENTS) {
+                    it.setAttribute("android:enabled", "false")
+                    disabled++
                 }
             }
+            if (disabled == 0) throw PatchException("No Samsung cloud components found in the manifest")
         }
     }
 }

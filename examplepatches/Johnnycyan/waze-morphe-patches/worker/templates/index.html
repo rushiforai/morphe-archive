@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Patches worker</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>Patches worker</h1>
+      <p class="sub">Upload the Waze and Google Maps builds the next release needs. Each is checked against the app's signing certificate, and the bundle is test-patched onto both before CI releases.</p>
+    </div>
+    {% if auth %}
+    <form method="post" action="{{ url_for('logout') }}"><button class="btn small" type="submit">Sign out</button></form>
+    {% endif %}
+  </header>
+
+  <section class="card" aria-labelledby="needed-h">
+    <h2 id="needed-h">Needed now</h2>
+    {% if s.candidate %}
+      <p class="meta">
+        Bundle {{ s.candidate.version }} · nl {{ s.candidate.nl_tag }} · inputs {{ s.candidate.key }}
+      </p>
+      <div class="row">
+        <span class="pill" id="phase" data-phase="{{ s.phase }}" role="status"></span>
+      </div>
+      <ul class="apps">
+        {% for app in s.apps %}
+        <li class="app">
+          <div>
+            <p class="version">{{ app.name }} {{ app.version }}</p>
+            <p class="meta">{{ "Stored" if app.have else "Needs upload" }}</p>
+          </div>
+          {% if not app.have %}
+          <div class="row">
+            <a class="btn primary" href="{{ app.links.release }}" target="_blank" rel="noopener noreferrer">Open on APKMirror</a>
+            <a class="btn" href="{{ app.links.search }}" target="_blank" rel="noopener noreferrer">Search</a>
+          </div>
+          {% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="version">Nothing pending</p>
+      <p class="meta">No candidate bundle is waiting for verification.</p>
+    {% endif %}
+    {% if s.error %}<p class="meta" style="color: var(--bad)">GitHub check failed: {{ s.error }}</p>{% endif %}
+    <p class="meta">Last checked {{ s.checked_at or "never" }}</p>
+  </section>
+
+  <section class="card" aria-labelledby="upload-h">
+    <h2 id="upload-h">Upload</h2>
+    <form id="upload-form">
+      <label class="drop" id="drop" for="apk">
+        <strong>Drop a Waze or Google Maps APK here, or click to choose</strong>
+        <span>.apkm, .apk, .xapk or .apks</span>
+        <input type="file" id="apk" name="apk" accept=".apkm,.apk,.xapk,.apks" required>
+      </label>
+      <progress id="progress" max="100" value="0" aria-label="Upload progress" hidden></progress>
+      <p id="upload-msg" class="status" role="status" aria-live="polite"></p>
+    </form>
+  </section>
+
+  {% if s.job %}
+  <section class="card" aria-labelledby="job-h">
+    <h2 id="job-h">Last verification</h2>
+    <p class="meta">State: {{ s.job.state }}{% if s.job.finished %} · finished {{ s.job.finished }}{% endif %}</p>
+    <div class="row">
+      {% if s.job.issue %}<a class="btn" href="{{ s.job.issue }}" target="_blank" rel="noopener noreferrer">Open issue</a>{% endif %}
+      {% if s.diagnostics %}<a class="btn" href="/diagnostics.zip">Download decompiled sources</a>{% endif %}
+      {% if s.job.state in ("failed", "error") %}<button class="btn" type="button" id="retry">Retry</button>{% endif %}
+    </div>
+    {% if s.job.log %}<pre>{{ s.job.log }}</pre>{% endif %}
+  </section>
+  {% endif %}
+
+  <section class="card" aria-labelledby="files-h">
+    <h2 id="files-h">Stored APKs</h2>
+    {% if s.apks %}
+      <ul class="files">{% for name, mb in s.apks %}<li>{{ name }} <span>{{ mb }} MB</span></li>{% endfor %}</ul>
+    {% else %}
+      <p class="meta">None yet.</p>
+    {% endif %}
+  </section>
+</main>
+
+<script>
+  const LABELS = {
+    idle: "Idle",
+    needs_apk: "Waiting for upload",
+    queued: "APK stored, starting",
+    running: "Verifying…",
+    verified: "Verified, CI is releasing",
+    failed: "Patch failed, see issue",
+    error: "Worker error",
+  };
+  const phase = document.getElementById("phase");
+  if (phase) phase.textContent = LABELS[phase.dataset.phase] ?? phase.dataset.phase;
+
+  let uploading = false;
+
+  // Reload when the phase changes so the job card and links stay current.
+  const lastPhase = phase?.dataset.phase;
+  setInterval(async () => {
+    if (uploading) return;
+    try {
+      const res = await fetch("/api/status");
+      if (res.status === 401) return location.reload();
+      if ((await res.json()).phase !== lastPhase) location.reload();
+    } catch {}
+  }, 10000);
+
+  const input = document.getElementById("apk");
+  const drop = document.getElementById("drop");
+  const bar = document.getElementById("progress");
+  const msg = document.getElementById("upload-msg");
+  const say = (text, kind = "") => { msg.textContent = text; msg.className = `status ${kind}`; };
+  const mb = (n) => (n / 1048576).toFixed(0);
+
+  async function json(res) {
+    try { return await res.json(); } catch { return {}; }
+  }
+
+  // One chunk as its own request; XHR so the bar moves within a chunk too.
+  function putChunk(id, offset, blob, total) {
+    return new Promise((resolve) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open("PUT", `/upload/${id}?offset=${offset}`);
+      xhr.setRequestHeader("Content-Type", "application/octet-stream");
+      xhr.upload.onprogress = (e) => { bar.value = ((offset + e.loaded) / total) * 100; };
+      xhr.onload = () => {
+        let body = {};
+        try { body = JSON.parse(xhr.responseText); } catch {}
+        resolve({ status: xhr.status, body });
+      };
+      xhr.onerror = () => resolve({ status: 0, body: {} });
+      xhr.send(blob);
+    });
+  }
+
+  async function send(file) {
+    if (!file || uploading) return;
+    uploading = true;
+    bar.hidden = false;
+    bar.removeAttribute("value");
+    say(`Starting upload of ${file.name}…`);
+    try {
+      let res = await fetch("/upload/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: file.name, size: file.size }),
+      });
+      let body = await json(res);
+      if (!res.ok) throw new Error(body.error ?? `Upload refused (${res.status}).`);
+      const { id, chunk_bytes: size } = body;
+
+      let offset = 0, failures = 0;
+      while (offset < file.size) {
+        say(`Uploading ${file.name}: ${mb(offset)} of ${mb(file.size)} MB`);
+        const r = await putChunk(id, offset, file.slice(offset, offset + size), file.size);
+        if (r.status === 200) { offset = r.body.offset; failures = 0; continue; }
+        if (r.status === 409 && Number.isInteger(r.body.offset)) { offset = r.body.offset; continue; }
+        if (r.status === 401) throw new Error("Signed out. Reload the page and sign in.");
+        if (r.status && r.status < 500 && r.status !== 429) throw new Error(r.body.error ?? `Upload failed (${r.status}).`);
+        if (++failures > 5) throw new Error("Upload failed after several retries. Check the connection and try again.");
+        say(`Connection hiccup, retrying (${failures}/5)…`);
+        await new Promise((ok) => setTimeout(ok, 1000 * 2 ** failures));
+      }
+
+      bar.value = 100;
+      say("Checking package and signature…");
+      res = await fetch(`/upload/${id}/finish`, { method: "POST" });
+      body = await json(res);
+      if (!res.ok) throw new Error(body.error ?? `Upload failed (${res.status}).`);
+      say(body.message ?? "Uploaded.", "ok");
+      setTimeout(() => location.reload(), 1500);
+    } catch (e) {
+      bar.hidden = true;
+      say(e.message, "bad");
+    } finally {
+      uploading = false;
+      input.value = "";
+    }
+  }
+
+  input.addEventListener("change", () => send(input.files[0]));
+  document.getElementById("upload-form").addEventListener("submit", (e) => { e.preventDefault(); send(input.files[0]); });
+  for (const t of ["dragenter", "dragover"]) drop.addEventListener(t, (e) => { e.preventDefault(); drop.classList.add("over"); });
+  for (const t of ["dragleave", "drop"]) drop.addEventListener(t, (e) => { e.preventDefault(); drop.classList.remove("over"); });
+  drop.addEventListener("drop", (e) => send(e.dataTransfer.files[0]));
+
+  document.getElementById("retry")?.addEventListener("click", async (e) => {
+    e.target.disabled = true;
+    await fetch("/retry", { method: "POST" });
+    location.reload();
+  });
+</script>
+</body>
+</html>

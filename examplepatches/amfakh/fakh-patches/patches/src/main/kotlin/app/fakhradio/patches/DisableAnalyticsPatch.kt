@@ -61,7 +61,7 @@ private val analyticsManifestPatch = patch {
 @Suppress("unused")
 val disableAnalyticsPatch = patch(
     name = "Disable analytics",
-    description = "Turns off Firebase Analytics, Crashlytics, Performance and Sessions, and the Facebook SDK with its app events.",
+    description = "Turns off analytics and tracking.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_RADIO_ID)

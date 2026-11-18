@@ -20,13 +20,42 @@ public final class ChatMetadata {
                     return size() > 1500;
                 }
             };
-    private static final long TTL = 6 * 60 * 60 * 1000L, RETRY = 5 * 60 * 1000L;
+    private static final long TTL = 6 * 60 * 60 * 1000L, RETRY = 5 * 60 * 1000L, REFRESH_DELAY = 500;
+    private static final Map<String, String> SOURCE_NAMES = new HashMap<>();
+
+    static {
+        SOURCE_NAMES.put("ffz", "FrankerFaceZ");
+        SOURCE_NAMES.put("chatterino", "Chatterino");
+        SOURCE_NAMES.put("bttv", "BetterTTV");
+        SOURCE_NAMES.put("dankchat", "DankChat");
+        SOURCE_NAMES.put("chatsen", "Chatsen");
+    }
+    private static final java.util.regex.Pattern LOGIN = java.util.regex.Pattern.compile("[A-Za-z0-9_]{1,25}");
+    private static final Runnable REFRESH = () -> {
+        refreshPending = false;
+        ChatEnhancements.refresh();
+    };
+    private static boolean refreshPending;
+
+    /** New metadata arrives in bursts; every row is redone at most twice a second. */
+    public static void scheduleRefresh() {
+        PublicApi.UI.post(() -> {
+            if (refreshPending) return;
+            refreshPending = true;
+            PublicApi.UI.postDelayed(REFRESH, REFRESH_DELAY);
+        });
+    }
 
     private interface Fetch {
         Object get() throws Exception;
     }
 
-    private static Object cached(String key, Fetch work) {
+    /** Whether a new result can change any row; equal pronoun arrays do not. */
+    static boolean changes(Object before, Object after) {
+        return !Objects.deepEquals(before, after);
+    }
+
+    private static Object cached(String key, boolean pronouns, Fetch work) {
         final Entry entry;
         synchronized (CACHE) {
             Entry e = CACHE.get(key);
@@ -38,15 +67,17 @@ public final class ChatMetadata {
             if (e.loading || System.currentTimeMillis() < e.next) return e.value;
             e.loading = true;
         }
-        if (!PublicApi.submit(
+        Runnable task =
                 () -> {
+                    boolean changed = false;
                     try {
                         Object v = work.get();
                         synchronized (CACHE) {
+                            changed = changes(entry.value, v);
                             entry.value = v;
                             entry.next = System.currentTimeMillis() + TTL;
                         }
-                    } catch (Exception ignored) {
+                    } catch (Throwable ignored) {
                         synchronized (CACHE) {
                             entry.next = System.currentTimeMillis() + RETRY;
                         }
@@ -54,9 +85,10 @@ public final class ChatMetadata {
                         synchronized (CACHE) {
                             entry.loading = false;
                         }
-                        PublicApi.UI.post(ChatEnhancements::refresh);
+                        if (changed) scheduleRefresh();
                     }
-                }))
+                };
+        if (!(pronouns ? PublicApi.submitPronouns(task) : PublicApi.submit(task)))
             synchronized (CACHE) {
                 entry.loading = false;
                 entry.next = System.currentTimeMillis() + RETRY;
@@ -65,33 +97,13 @@ public final class ChatMetadata {
     }
 
     public static void decorate(
-            TextView view, SpannableStringBuilder text, String login, String id) {
-        android.content.SharedPreferences p = ChatSettings.preferences(view.getContext());
-        if (p.getBoolean("badges", false) && id != null) {
-            if (p.getBoolean("badge_7tv", true) && id.matches("[0-9]{1,20}")) {
-                Badge badge =
-                        (Badge)
-                                cached(
-                                        "7tv-badge:" + id,
-                                        () ->
-                                                parseSevenTvBadge(
-                                                        new JSONObject(
-                                                                PublicApi.sevenTvMetadata(
-                                                                        new JSONObject()
-                                                                                .put(
-                                                                                        "query",
-                                                                                        "query($id:String!){users{userByConnection(platform:TWITCH,platformId:$id){style{activeBadge{name"
-                                                                                            + " images{url"
-                                                                                            + " width"
-                                                                                            + " mime}}}}}}")
-                                                                                .put(
-                                                                                        "variables",
-                                                                                        new JSONObject()
-                                                                                                .put(
-                                                                                                        "id",
-                                                                                                        id))
-                                                                                .toString()))));
-                if (badge != null) EmoteSupport.prependBadge(view, text, badge.title, badge.url);
+            TextView view, SpannableStringBuilder text, String login, String id, String room, boolean compact) {
+        ChatSettings settings = ChatSettings.get(view.getContext());
+        if (settings.badges && id != null && !compact) {
+            if (settings.badgeEnabled("7tv")) {
+                SevenTvBadges.ensure(room);
+                Badge badge = SevenTvBadges.badgeOf(id);
+                if (badge != null) EmoteSupport.prependBadge(view, text, badge.title, badge.url, "7TV");
             }
             badges(view, text, id, "ffz", "https://api.frankerfacez.com/v1/badges/ids");
             badges(view, text, id, "chatterino", "https://api.chatterino.com/badges");
@@ -104,14 +116,12 @@ public final class ChatMetadata {
                     "chatsen",
                     "https://raw.githubusercontent.com/chatsen/resources/master/assets/data.json");
         }
-        if (p.getBoolean("pronouns", false)
-                && login != null
-                && login.matches("[A-Za-z0-9_]{1,25}")) {
+        if (settings.pronouns && login != null && LOGIN.matcher(login).matches()) {
             @SuppressWarnings("unchecked")
             Map<String, Pronoun> kinds =
-                    (Map<String, Pronoun>) cached("pronoun-types", ChatMetadata::pronounKinds);
+                    (Map<String, Pronoun>) cached("pronoun-types", true, ChatMetadata::pronounKinds);
             String user = login.toLowerCase(Locale.ROOT);
-            String[] chosen = (String[]) cached("pronoun:" + user, () -> pronounsOf(user));
+            String[] chosen = (String[]) cached("pronoun:" + user, true, () -> pronounsOf(user));
             String label = kinds == null || chosen == null ? null : pronounLabel(kinds, chosen[0], chosen[1]);
             if (label != null && !label.isEmpty()) prefix(text, "[" + label + "] ");
         }
@@ -119,20 +129,20 @@ public final class ChatMetadata {
 
     private static void badges(
             TextView view, SpannableStringBuilder text, String id, String provider, String url) {
-        if (!ChatSettings.preferences(view.getContext()).getBoolean("badge_" + provider, true))
-            return;
+        if (!ChatSettings.get(view.getContext()).badgeEnabled(provider)) return;
         @SuppressWarnings("unchecked")
         Map<String, List<Badge>> all =
                 (Map<String, List<Badge>>)
                         cached(
                                 provider,
+                                false,
                                 () ->
                                         parseBadges(
                                                 provider,
                                                 new JSONTokener(PublicApi.get(url)).nextValue()));
         List<Badge> found = all == null ? null : all.get(id);
         if (found != null)
-            for (Badge b : found) EmoteSupport.prependBadge(view, text, b.title, b.url);
+            for (Badge b : found) EmoteSupport.prependBadge(view, text, b.title, b.url, SOURCE_NAMES.get(provider));
     }
 
     private static void prefix(SpannableStringBuilder t, String value) {
@@ -145,11 +155,17 @@ public final class ChatMetadata {
                 Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
     }
 
-    /** Alejo's current API, or the older one it replaced if that is all that answers. */
+    /** Whether Alejo's current API says the address is gone, the one case its older API is asked instead. */
+    private static boolean retired(java.io.IOException failure) {
+        return "HTTP 404".equals(failure.getMessage()) || "HTTP 410".equals(failure.getMessage());
+    }
+
+    /** Alejo's current API, or the older one it replaced once that is gone. */
     private static Map<String, Pronoun> pronounKinds() throws Exception {
         try {
             return parsePronounKinds(new JSONObject(PublicApi.get("https://api.pronouns.alejo.io/v1/pronouns")));
-        } catch (Exception current) {
+        } catch (java.io.IOException current) {
+            if (!retired(current)) throw current;
             Map<String, Pronoun> kinds = new HashMap<>();
             for (Map.Entry<String, String> e : parsePronouns(new JSONArray(
                     PublicApi.get("https://pronouns.alejo.io/api/pronouns"))).entrySet())
@@ -158,17 +174,21 @@ public final class ChatMetadata {
         }
     }
 
-    /** {main, alternative}; empty strings when the user has none. */
+    /** {main, alternative, empty when unset}, or null when the user has chosen none, which shows nothing. */
     private static String[] pronounsOf(String login) throws Exception {
+        String[] chosen;
         try {
             JSONObject o = new JSONObject(PublicApi.get("https://api.pronouns.alejo.io/v1/users/" + login));
-            return new String[] {o.optString("pronoun_id", ""),
+            chosen = new String[] {o.optString("pronoun_id", ""),
                     o.isNull("alt_pronoun_id") ? "" : o.optString("alt_pronoun_id", "")};
         } catch (java.io.IOException e) {
-            if ("HTTP 404".equals(e.getMessage())) return new String[] {"", ""};
+            // A user without pronouns is a 404 here, so only a 410 means the address is gone.
+            if ("HTTP 404".equals(e.getMessage())) return null;
+            if (!"HTTP 410".equals(e.getMessage())) throw e;
             JSONArray a = new JSONArray(PublicApi.get("https://pronouns.alejo.io/api/users/" + login));
-            return new String[] {a.length() == 0 ? "" : a.getJSONObject(0).optString("pronoun_id", ""), ""};
+            chosen = new String[] {a.length() == 0 ? "" : a.getJSONObject(0).optString("pronoun_id", ""), ""};
         }
+        return chosen[0].isEmpty() ? null : chosen;
     }
 
     public static Map<String, Pronoun> parsePronounKinds(JSONObject all) {
@@ -213,32 +233,6 @@ public final class ChatMetadata {
             }
         }
         return m;
-    }
-
-    public static Badge parseSevenTvBadge(JSONObject response) throws JSONException {
-        if (response.has("errors")) throw new JSONException("Badge API rejected query");
-        JSONObject data = response.optJSONObject("data"),
-                users = data == null ? null : data.optJSONObject("users"),
-                user = users == null ? null : users.optJSONObject("userByConnection"),
-                style = user == null ? null : user.optJSONObject("style"),
-                badge = style == null ? null : style.optJSONObject("activeBadge");
-        if (badge == null) return null;
-        JSONArray images = badge.optJSONArray("images");
-        String image = "";
-        int distance = Integer.MAX_VALUE;
-        if (images != null)
-            for (int i = 0; i < images.length(); i++) {
-                JSONObject v = images.optJSONObject(i);
-                if (v == null) continue;
-                String mime = v.optString("mime");
-                if (!mime.equals("image/webp") && !mime.equals("image/png")) continue;
-                int diff = Math.abs(v.optInt("width", 0) - 36);
-                if (diff < distance) {
-                    distance = diff;
-                    image = v.optString("url");
-                }
-            }
-        return new Badge(badge.optString("name", "7TV"), image);
     }
 
     public static Map<String, List<Badge>> parseBadges(String provider, Object payload) {

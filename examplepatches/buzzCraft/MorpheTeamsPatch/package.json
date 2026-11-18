@@ -1,0 +1,13 @@
+{
+  "name": "morphe-teams-patch",
+  "private": true,
+  "devDependencies": {
+    "semantic-release": "^24.0.0",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^10.0.3",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/exec": "^7.1.0",
+    "conventional-changelog-conventionalcommits": "^8.0.0",
+    "gradle-semantic-release-plugin": "^1.10.3"
+  }
+}

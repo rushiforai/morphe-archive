@@ -53,41 +53,6 @@ object Constants {
         )
     )
 
-    // Remote Desktop Manager 2026.3.1.5 (version code 500987), distributed as an XAPK.
-    // Xamarin/.NET app: the business logic lives in AOT-compiled assemblies,
-    // only the Java/Xamarin glue in the dex files can be patched.
-    val RDM_COMPATIBILITY = Compatibility(
-        name = "Remote Desktop Manager",
-        packageName = "com.devolutions.remotedesktopmanager",
-        apkFileType = ApkFileType.XAPK,
-        appIconColor = 0xE8523F,
-        targets = listOf(
-            AppTarget(
-                version = "2026.3.1.5",
-                versionCode = 500987,
-                minSdk = 24
-            )
-        )
-    )
-
-    // TeraBox 4.27.5 (version code 702), distributed as an XAPK.
-    val TERABOX_COMPATIBILITY = Compatibility(
-        name = "TeraBox",
-        packageName = "com.dubox.drive",
-        apkFileType = ApkFileType.XAPK,
-        appIconColor = 0x226DF6,
-        signatures = setOf(
-            "b75fd2b70084d7e0813b8f74dd74b62ab79b2aa0ce1372331a1841bd88eed993"
-        ),
-        targets = listOf(
-            AppTarget(
-                version = "4.27.5",
-                versionCode = 702,
-                minSdk = 23
-            )
-        )
-    )
-
     // Universal Copy 7.2.0 (version code 106), distributed as an XAPK.
     val UNIVERSAL_COPY_COMPATIBILITY = Compatibility(
         name = "Universal Copy",
@@ -143,6 +108,49 @@ object Constants {
             )
         )
     )
+
+    // WeDJ 1.1.4.5 (version code 1145), distributed as an APKM with arm64-v8a and
+    // armeabi-v7a splits (Android 13+).
+    val WEDJ_COMPATIBILITY = Compatibility(
+        name = "WeDJ",
+        packageName = "com.pioneerdj.WeDJ",
+        apkFileType = ApkFileType.APKM,
+        appIconColor = 0x007CFC,
+        signatures = setOf(
+            "f17221c501b8a3b13a6903419fe9afd62653c5898f6c80be698f9e10ade998c1"
+        ),
+        targets = listOf(
+            AppTarget(
+                version = "1.1.4.5",
+                versionCode = 1145,
+                minSdk = 33,
+                description = "Latest release; requires Android 13+."
+            )
+        )
+    )
+
+    // WeDJ 1.1.1.3 (version code 1113), the last release that runs on older
+    // Android versions (Android 5.0+). Use this build on Android 9-12: the
+    // 1.1.4.5 build requires Android 13 and its native engine needs Android 11+
+    // libc unwind symbols.
+    val WEDJ_LEGACY_COMPATIBILITY = Compatibility(
+        name = "WeDJ",
+        packageName = "com.pioneerdj.WeDJ",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x007CFC,
+        signatures = setOf(
+            "f17221c501b8a3b13a6903419fe9afd62653c5898f6c80be698f9e10ade998c1"
+        ),
+        targets = listOf(
+            AppTarget(
+                version = "1.1.1.3",
+                versionCode = 1113,
+                minSdk = 28,
+                description = "Use on Android 9-12."
+            )
+        )
+    )
+
     // 1.1.1.1 6.38.11 (version code 5703), distributed as an APKM.
     val WARP_COMPATIBILITY = Compatibility(
         name = "1.1.1.1",

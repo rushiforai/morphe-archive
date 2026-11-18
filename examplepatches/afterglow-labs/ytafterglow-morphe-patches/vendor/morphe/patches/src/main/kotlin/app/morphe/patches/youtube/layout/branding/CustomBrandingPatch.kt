@@ -1,0 +1,63 @@
+/*
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches/pull/4114
+ *
+ * Original hard forked code:
+ * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
+ *
+ * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
+ */
+
+package app.morphe.patches.youtube.layout.branding
+
+import app.morphe.patches.shared.layout.branding.baseCustomBrandingPatch
+import app.morphe.patches.youtube.layout.theme.splashAnimationPatch
+import app.morphe.patches.youtube.misc.extension.sharedExtensionPatch
+import app.morphe.patches.youtube.misc.gms.Constants.YOUTUBE_MAIN_ACTIVITY_NAME
+import app.morphe.patches.youtube.misc.gms.Constants.YOUTUBE_PACKAGE_NAME
+import app.morphe.patches.youtube.misc.playservice.is_21_41_or_greater
+import app.morphe.patches.youtube.misc.playservice.versionCheckPatch
+import app.morphe.patches.youtube.misc.settings.PreferenceScreen
+import app.morphe.patches.youtube.shared.Constants.COMPATIBILITY_YOUTUBE
+import app.morphe.patches.youtube.shared.YouTubeActivityOnCreateFingerprint
+
+@Suppress("unused")
+val customBrandingPatch = baseCustomBrandingPatch(
+    // The launcher icon the app declares in its manifest. The unused 'ic_launcher'
+    // is the pre-2024 icon and does not match what an unpatched install shows.
+    originalLauncherIconName = "ringo2_ic_launcher",
+    originalNotificationIconName = "ic_stat_yt_notification_logo",
+    originalAppName = "@string/application_name",
+    originalAppPackageName = YOUTUBE_PACKAGE_NAME,
+    isYouTubeMusic = false,
+    numberOfPresetAppNames = 5,
+    mainActivityOnCreateFingerprint = YouTubeActivityOnCreateFingerprint,
+    mainActivityName = YOUTUBE_MAIN_ACTIVITY_NAME,
+    activityAliasNameWithIntents = $$"com.google.android.youtube.app.honeycomb.Shell$HomeActivity",
+    preferenceScreen = PreferenceScreen.GENERAL,
+    // Alternative launcher icons that YouTube has but does not show in its settings.
+    // The aliases are numbered like the icons, so an alias can be reused if YouTube
+    // replaces an icon.
+    appLauncherIconNames = {
+        if (is_21_41_or_greater) {
+            mapOf(
+                "youtube_icon1" to "ic_launcher_icon1",
+                "youtube_icon2" to "ic_launcher_icon2",
+                "youtube_icon3" to "ic_launcher_icon3"
+            )
+        } else {
+            emptyMap()
+        }
+    },
+
+    block = {
+        dependsOn(
+            sharedExtensionPatch,
+            // Owns the hook that loads the startup animation.
+            splashAnimationPatch,
+            versionCheckPatch
+        )
+
+        compatibleWith(COMPATIBILITY_YOUTUBE)
+    }
+)

@@ -43,7 +43,7 @@ public final class StoryLikeHistoryRecorder {
 
             String storyId = text(readField(reelItem, "A1F"));
             if (storyId.isEmpty()) {
-                Log.w(TAG, "no story id (A1F)");
+                recordFromStoryHeartTap(app, reelItem, reelItem, null);
                 return;
             }
 
@@ -352,4 +352,109 @@ public final class StoryLikeHistoryRecorder {
             return null;
         }
     }
+
+    public static void recordFromStoryHeartTap(
+            Context context,
+            Object mediaObj,
+            Object reelObj,
+            com.instagram.common.session.UserSession userSession
+    ) {
+        try {
+            Application app = application();
+            Context appCtx = app != null ? app : (context != null ? context.getApplicationContext() : null);
+            if (appCtx == null) return;
+
+            Object targetMedia = mediaObj != null ? mediaObj : reelObj;
+            if (targetMedia == null) return;
+
+            app.morphe.extension.instagram.entity.MediaData md =
+                    new app.morphe.extension.instagram.entity.MediaData(targetMedia, userSession);
+            String storyId = "";
+            try {
+                storyId = md.getMediaPkId();
+            } catch (Throwable ignored) {}
+            if (storyId == null || storyId.isEmpty()) {
+                try {
+                    storyId = md.getPostID();
+                } catch (Throwable ignored) {}
+            }
+            if ((storyId == null || storyId.isEmpty() || "0".equals(storyId)) && reelObj != null) {
+                storyId = text(readField(reelObj, "A1F"));
+            }
+            if (storyId == null || storyId.isEmpty() || "0".equals(storyId)) {
+                storyId = "story_" + Math.abs(targetMedia.hashCode());
+            }
+
+            String username = "";
+            String displayName = "";
+            String authorId = "";
+            try {
+                app.morphe.extension.instagram.entity.UserData ud = md.getUserData();
+                if (ud != null) {
+                    username = ud.getUsername();
+                    displayName = ud.getFullName();
+                    authorId = ud.getUserId();
+                }
+            } catch (Throwable ignored) {}
+            if ((username == null || username.isEmpty()) && reelObj != null) {
+                Object user = readField(reelObj, "A1D");
+                username = readUsername(user);
+                displayName = callString(user, "A7a");
+            }
+            if (username == null) username = "";
+            if (displayName == null || displayName.isEmpty()) displayName = username;
+            if (authorId == null) authorId = "";
+
+            long postedAt = 0L;
+            try {
+                Long takenSec = md.getTakenAtSeconds();
+                if (takenSec != null && takenSec > 0L) {
+                    postedAt = takenSec > 10_000_000_000L ? takenSec : takenSec * 1000L;
+                }
+            } catch (Throwable ignored) {}
+            if (postedAt <= 0L && reelObj != null) {
+                long rawPosted = callLong(reelObj, "A06");
+                if (rawPosted > 0L && rawPosted != Long.MAX_VALUE) {
+                    postedAt = rawPosted > 10_000_000_000L ? rawPosted : rawPosted * 1000L;
+                }
+            }
+            if (postedAt <= 0L) {
+                postedAt = System.currentTimeMillis();
+            }
+
+            String thumbnail = "";
+            try {
+                app.morphe.extension.instagram.entity.MediaInterface bestImg = md.getBestImage();
+                if (bestImg != null && bestImg.getUrl() != null) {
+                    thumbnail = bestImg.getUrl();
+                }
+            } catch (Throwable ignored) {}
+            if ((thumbnail == null || thumbnail.isEmpty()) && reelObj != null) {
+                thumbnail = imageUrl(reelObj, appCtx);
+            }
+
+            boolean video = false;
+            try {
+                video = md.isVideo();
+            } catch (Throwable ignored) {
+                if (reelObj != null) video = isVideo(reelObj);
+            }
+
+            StoryLikeHistory.add(appCtx, new StoryLikeHistoryEntry(
+                    storyId,
+                    authorId,
+                    username,
+                    displayName,
+                    postedAt,
+                    System.currentTimeMillis(),
+                    null));
+
+            if (thumbnail != null && !thumbnail.isEmpty()) {
+                StoryLikeHistory.saveThumbnail(appCtx, storyId, thumbnail, video);
+            }
+        } catch (Throwable t) {
+            Log.e(TAG, "recordFromStoryHeartTap failed", t);
+        }
+    }
+
 }

@@ -1,0 +1,60 @@
+name: Build FireBolt Sync APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, fix/android-build-errors, fix/ble-discovery-buildfix]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Java 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Extract Android project
+        run: unzip -q FireBoltSync-Android-Project.zip -d project
+      - name: Apply Android source fixes
+        working-directory: project
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("app/src/main/java/com/fireboltsync/app/MainActivity.kt")
+          s = p.read_text()
+          # Insert Compose setContent import robustly, independent of other imports.
+          if "import androidx.activity.compose.setContent" not in s:
+              lines = s.splitlines(keepends=True)
+              package_idx = next((i for i, line in enumerate(lines) if line.startswith("package ")), None)
+              if package_idx is None:
+                  raise SystemExit("Kotlin package declaration not found")
+              lines.insert(package_idx + 1, "\nimport androidx.activity.compose.setContent\n")
+              s = "".join(lines)
+          # Use valid Android BLE callback constants.
+          s = s.replace("ScanCallback.CALLBACK_TYPE_ALL_MATCHES", "ScanSettings.CALLBACK_TYPE_ALL_MATCHES")
+          # Use Android's main looper explicitly.
+          s = s.replace("android.os.Handler(activity.mainLooper)", "android.os.Handler(android.os.Looper.getMainLooper())")
+          s = s.replace("android.os.Handler(mainLooper)", "android.os.Handler(android.os.Looper.getMainLooper())")
+          # Avoid depending on a locally scoped scanner variable in delayed cleanup.
+          s = s.replace("scanner.stopScan(scanCallback)", "adapter.bluetoothLeScanner?.stopScan(scanCallback)")
+          p.write_text(s)
+          PY
+      - name: Build APK
+        working-directory: project
+        run: gradle --no-daemon assembleDebug
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: FireBoltSync-debug-apk
+          path: project/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error

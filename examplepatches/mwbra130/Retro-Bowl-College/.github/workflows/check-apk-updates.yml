@@ -1,0 +1,32 @@
+name: Check for App APK Updates
+
+on:
+  schedule:
+    - cron: '0 14 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check-versions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Public Repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Play Store Scraper
+        run: pip install google-play-scraper
+
+      - name: Check Play Store Versions & Open Private Issues
+        env:
+          PUBLIC_REPO: ${{ github.repository }}
+          PRIVATE_REPO: mwbra130/Morphe_Patch_Tests
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PRIVATE_TOKEN: ${{ secrets.PRIVATE_REPO_TOKEN }}
+        run: python3 .github/scripts/check_updates.py

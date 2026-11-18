@@ -28,6 +28,8 @@ from pathlib import Path
 from urllib.parse import quote
 
 CATEGORY_THRESHOLD = 30
+# The Featured row is one line of cards on a phone; a sixth starts to squeeze it.
+FEATURED_MAX = 5
 SEP = "&nbsp;&nbsp;•&nbsp;&nbsp;"
 BADGE = "https://img.shields.io/badge/{label}-{value}-{color}?style=for-the-badge&labelColor=0d1117"
 
@@ -126,7 +128,7 @@ def main(argv):
 
     # README index
     head = f"> **[v{version}]({release})**{SEP}`{branch}`{SEP}**{len(apps)}** {plural(len(apps), 'app')}{SEP}**{total}** patches"
-    featured = sorted((p for p in order if info[p].get("featured")), key=lambda p: info[p]["featured"])
+    featured = sorted((p for p in order if info[p].get("featured")), key=lambda p: info[p]["featured"])[:FEATURED_MAX]
     cards = "\n".join(
         f'<td align="center" width="170"><a href="docs/apps/{info[p]["slug"]}.md"><img src="{icon(p, root)}" width="44" '
         f'height="44" alt=""><br><b>{info[p]["name"]}</b></a><br><sub>{len(apps[p]["patches"])} '

@@ -1,48 +1,62 @@
 name: 🐞 Bug report
-description: Report a bug or an issue.
+description: A patch doesn't work, hides the wrong thing, or the app crashes.
 title: "bug: "
-labels: ["Bug report"]
+labels: ["bug"]
 body:
   - type: markdown
     attributes:
       value: |
-        # Patches template bug report
-
-        Before creating a new bug report, please keep the following in mind:
-
-        - **Do not submit a duplicate bug report**: Search for existing bug reports [here](https://github.com/JoFSlash/quora-patches/issues?q=label%3A%22Bug+report%22).
-        - **Review the contribution guidelines**: Make sure your bug report adheres to it. You can find the guidelines [here](https://github.com/JoFSlash/quora-patches/blob/main/CONTRIBUTING.md).
-  - type: textarea
+        Thanks for reporting. Please [search the existing issues](https://github.com/JoFSlash/quora-patches/issues?q=label%3Abug) first; the [contributing guide](https://github.com/JoFSlash/quora-patches/blob/main/CONTRIBUTING.md) explains what helps most.
+  - type: input
+    id: patch
     attributes:
-      label: Bug description
-      description: |
-        - Describe your bug in detail
-        - Add steps to reproduce the bug if possible (Step 1. ... Step 2. ...)
-        - Add images and videos if possible
+      label: Patch
+      description: The patch that misbehaves, by its name in Morphe Manager. Write "app crashes" if you don't know which one.
+      placeholder: Hide Quora+ answers
     validations:
       required: true
   - type: textarea
+    id: description
     attributes:
-      label: Error logs
-      description: Exceptions can be captured by running `logcat | grep AndroidRuntime` in a shell.
+      label: What happens
+      description: What you expected, what happened instead, and how to get there (which page or tab). Screenshots help a lot.
+    validations:
+      required: true
+  - type: dropdown
+    id: quora-version
+    attributes:
+      label: Quora version
+      options:
+        - "3.2.42"
+        - "3.2.30"
+        - Other (write it below)
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Patches and Morphe Manager versions
+      description: Shown in Morphe Manager. Add the Quora version here if you picked "Other".
+      placeholder: "patches 1.2.0, Morphe Manager 1.20.0"
+    validations:
+      required: true
+  - type: textarea
+    id: patches
+    attributes:
+      label: Other patches you applied
+      description: Optional. Some patches change the same pages, so the full list helps.
+  - type: textarea
+    id: logs
+    attributes:
+      label: Crash log
+      description: Optional. For crashes, the output of `adb logcat | grep -E "AndroidRuntime|JoFSlashPatches"`.
       render: shell
-  - type: textarea
-    attributes:
-      label: Solution
-      description: If applicable, add a possible solution to the bug.
-  - type: textarea
-    attributes:
-      label: Additional context
-      description: Add additional context here.
   - type: checkboxes
     id: acknowledgements
     attributes:
-      label: Acknowledgements
-      description: Your bug report will be closed if you don't follow the checklist below.
+      label: Before you send
       options:
-        - label: I have checked all open and closed bug reports and this is not a duplicate.
+        - label: I searched the open and closed issues and this is not a duplicate.
           required: true
-        - label: I have chosen an appropriate title.
-          required: true
-        - label: All requested information has been provided properly.
+        - label: The problem is still there with the latest release of the patches.
           required: true

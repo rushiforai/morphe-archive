@@ -27,7 +27,25 @@
 ## <img src="https://cdn.simpleicons.org/android" height="20" /> Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.3.0](https://github.com/vippium/brokenn-patches/releases/tag/v1.3.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;17 patches total
+> **[v1.4.0](https://github.com/vippium/brokenn-patches/releases/tag/v1.4.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;21 patches total
+<details open>
+<summary>📦 Office Reader&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**Package name:** `net.sjava.officereader`
+
+**🎯 Supported versions:**
+
+| 5.0.4 |
+| :---: |
+
+| Patch | Description |
+|:----------|:----------------:|
+| [AMOLED theme](#amoled-theme) | Makes dark mode pure black for AMOLED screens. Light mode stays normal. | • AMOLED color<br>• Blacken Status Bar<br>• Blacken Navigation Bar<br>• Blacken Surfaces |
+| [Unlock premium](#unlock-premium) | Unlocks premium and removes Family-apps promos from the About screens. |  |
+
+</details>
+
 <details open>
 <summary>📦 OctoGram&nbsp;&nbsp;•&nbsp;&nbsp;6 patches</summary>
 <br>
@@ -40,7 +58,7 @@
 | :---: |
 
 | Patch | Description |
-|----------|:----------------:|
+|:----------|:----------------:|
 | [Anti-delete messages](#anti-delete-messages) | Prevents server-deleted messages from being removed locally. |  |
 | [Anti-disappearing media](#anti-disappearing-media) | Keeps view-once and self-destructing media viewable forever. |  |
 | [Bypass content restrictions](#bypass-content-restrictions) | Bypasses restricted-content gates and channel no-forward checks. |  |
@@ -51,7 +69,7 @@
 </details>
 
 <details open>
-<summary>📦 JioHotstar&nbsp;&nbsp;•&nbsp;&nbsp;10 patches</summary>
+<summary>📦 JioHotstar&nbsp;&nbsp;•&nbsp;&nbsp;12 patches</summary>
 <br>
 
 **Package name:** `in.startv.hotstar`
@@ -62,12 +80,14 @@
 | :---: |
 
 | Patch | Description |
-|----------|:----------------:|
+|:----------|:----------------:|
 | [Bypass signature check](#bypass-signature-check) | Bypasses app signature verification to allow API access. |  |
 | [Enable all codecs](#enable-all-codecs) | Unlocks H.265, VP9, AV1 and 4K playback on capable devices. |  |
 | [Enable screen mirroring](#enable-screen-mirroring) | Allows playback while screen mirroring or HDMI is connected. |  |
-| [Enable screenshots](#enable-screenshots) | Allows screenshots and screen recording. |  |
+| [Enable screenshots](#enable-screenshots) | Allows screenshots and screen recording, including during playback. Will not work on DRM-protected content (Widevine L1). |  |
 | [Force HDR10](#force-hdr10) | Enables HDR10 and HDR10+ playback on compatible devices. |  |
+| [Hide player buttons](#hide-player-buttons) | Hides selected buttons from the fullscreen player's bottom bar. | • Hide Watch Next<br>• Hide Episodes<br>• Hide Shop<br>• Hide Speed<br>• Hide Rate<br>• Hide Next Episode |
+| [Hide watch page elements](#hide-watch-page-elements) | Hides watch page tabs (except Episodes) and the floating sponsored pill. | • Hide For You tab<br>• Hide Jeeto tab<br>• Hide Memes tab<br>• Hide Live Chat tab<br>• Hide brand tabs<br>• Hide sponsored pills |
 | [Monochrome icon support](#monochrome-icon-support) | Adds a themed-icon version of the launcher icon for Android 13+. |  |
 | [Premium unlock](#premium-unlock) | Unlocks premium UI features, removes subscription nudges, and enables downloads. |  |
 | [Remove ChatGPT Voice Assistant](#remove-chatgpt-voice-assistant) | Strips out the integrated ChatGPT voice assistant module entirely. |  |
@@ -81,8 +101,8 @@
 <br>
 
 | Patch | Description |
-|----------|:----------------:|
-| [Disable Play Store updates](#disable-play-store-updates) | Disables Play Store updates by setting the version code to the maximum allowed. This patch may cause unexpected issues with apps installed by root mounting. |  |
+|:----------|:----------------:|
+| [Disable Play Store updates](#disable-play-store-updates) | Disables Play Store updates by setting the version code to the maximum allowed. This patch may cause unexpected issues with some apps and does not work if the app is installed by root mounting |  |
 
 </details>
 

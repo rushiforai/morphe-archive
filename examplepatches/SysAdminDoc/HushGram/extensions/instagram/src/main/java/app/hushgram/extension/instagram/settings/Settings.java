@@ -794,6 +794,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_keep_photo_locations", FALSE);
 
     /**
+     * A search box above the blocked accounts in Instagram's settings, which finds them by user name
+     * or name and loads the rest of the list while there are words in it (#731,
+     * {@link app.hushgram.extension.instagram.misc.BlockedSearch}). Read each time. Off to start.
+     */
+    public static final BooleanSetting BLOCKED_SEARCH =
+            new BooleanSetting("hushgram_blocked_search", FALSE);
+
+    /**
      * The seen receipt a chat sends when you open it, the one that puts Seen under the other
      * person's message ({@link app.hushgram.extension.instagram.direct.ThreadSeen}). Read each time
      * Instagram goes to send one, so a change applies to the next receipt. Off to start.
@@ -2771,6 +2779,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_hide_reels_suggestions", FALSE);
 
     /**
+     * The pages of friends' stories Instagram puts between reels, titled "Catch up with friends"
+     * ({@link app.hushgram.extension.instagram.reels.ReelsSuggestions}, #730). Read as each page of
+     * reels arrives, so a change shows from the next page. Off to start.
+     */
+    public static final BooleanSetting HIDE_REELS_STORIES =
+            new BooleanSetting("hushgram_hide_reels_stories", FALSE);
+
+    /**
      * Reels whose post Instagram marks as a paid partnership, or as boosted
      * ({@link app.hushgram.extension.instagram.reels.PaidPartnershipReels}). Read as each page of
      * reels arrives, so a change shows from the next page. Off to start.
@@ -2952,6 +2968,15 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting ABOUT_ACCOUNT_BUTTON =
             new BooleanSetting("hushgram_about_account_button", FALSE);
+
+    /**
+     * A long press on the picture at the top of a profile opens the whole square picture full size,
+     * with Save, in place of Instagram's own preview (#737,
+     * {@link app.hushgram.extension.instagram.download.ProfilePictureHold}). A tap stays Instagram's.
+     * Off until enabled.
+     */
+    public static final BooleanSetting PROFILE_PICTURE_LONG_PRESS =
+            new BooleanSetting("hushgram_profile_picture_long_press", FALSE);
 
     /**
      * A voice message's menu in a chat gets Save
@@ -3195,6 +3220,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_hide_reels_top_bar", FALSE);
 
     /**
+     * The top bar of every other reel viewer, with its back arrow and its title: Explore's, a
+     * profile's, a post's, Saved's and a chat's (#680). The Reels tab's answers to
+     * {@link #HIDE_REELS_TOP_BAR} ({@link app.hushgram.extension.instagram.reels.ReelsTopBar}). Off to start.
+     */
+    public static final BooleanSetting HIDE_OTHER_REELS_TOP_BAR =
+            new BooleanSetting("hushgram_hide_other_reels_top_bar", FALSE);
+
+    /**
      * The Create (+) button in the top bar of every reel viewer, the Reels tab's and the others,
      * which opens the camera (#177). The rest of the bar stays
      * ({@link app.hushgram.extension.instagram.reels.ReelsTopBar}). Off to start.
@@ -3246,6 +3279,13 @@ public class Settings extends BaseSettings {
      */
     public static final StringSetting FRIENDS_TAB_PICKS =
             new StringSetting("hushgram_friends_tab_picks", "", parent(PICK_FRIENDS_TAB));
+
+    /**
+     * The friends the Friends tab has named, one per line, kept so the list the hold opens has them
+     * right after a restart, before a page of reels has loaded (#503). Never shown or backed up.
+     */
+    public static final StringSetting FRIENDS_TAB_SEEN =
+            new StringSetting("hushgram_friends_tab_seen", "", parent(PICK_FRIENDS_TAB));
 
     /**
      * The Save (bookmark) button in the right-hand column of a reel, and the save count under it
@@ -3393,6 +3433,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_download_reel_audio", FALSE, parent(DOWNLOAD_REELS));
 
     /**
+     * A reel playing a song from Instagram's music gets Download full song under Download in its
+     * menu, saving the whole song from the song's own file, not only the part the reel plays
+     * (#735). Starts off, so the menu stays as it was.
+     */
+    public static final BooleanSetting DOWNLOAD_REEL_SONG =
+            new BooleanSetting("hushgram_download_reel_song", FALSE, parent(DOWNLOAD_REELS));
+
+    /**
      * A double tap on a post in the feed or on a reel doesn't like it, where the two switches under
      * it say so. Off to start. The posts and reels switches under it start on, so turning this one on
      * covers both until you pick.
@@ -3473,6 +3521,15 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting HIDE_MESSAGES_TAB =
             new BooleanSetting("hushgram_hide_messages_tab", FALSE);
+
+    /**
+     * The unread count stays off the Messages button of the tab bar (#734). Instagram's tab badge
+     * controller is handed 0 in place of the count and takes the badge away as it does with nothing
+     * unread. Chats still show as unread in the inbox, and notifications still come. Instagram reads
+     * the count again as it starts and as messages come in, so a change takes a restart. Off to start.
+     */
+    public static final BooleanSetting HIDE_MESSAGES_BADGE =
+            new BooleanSetting("hushgram_hide_messages_badge", FALSE, true);
 
     /**
      * Activity (Instagram's notifications screen, the one the heart on Home's header opens) is put on
@@ -3738,13 +3795,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_photo_reel_seek_bar", FALSE);
 
     /**
-     * Instagram's seek bar stays hidden on every ordinary reel until you hold it (#680): no reel counts as long
-     * enough for the bar that always shows, and each gets the kind a hold brings up
-     * ({@link app.hushgram.extension.instagram.reels.ReelSeekBar#hidden}). A switch above that keeps the bar wins.
-     * Decided as each reel shows, so no restart. Off to start.
+     * Instagram's seek bar stays hidden on every ordinary reel until you drag sideways across it (#680): no reel
+     * counts as long enough for the bar that always shows, each gets the kind that drag brings up
+     * ({@link app.hushgram.extension.instagram.reels.ReelSeekBar#hidden}), and the drag is on for every reel
+     * ({@link app.hushgram.extension.instagram.reels.ReelSeekBar#passThrough}). A switch above that keeps the bar
+     * wins. Instagram reads whether the drag is on once a session, so a change takes a restart. Off to start.
      */
     public static final BooleanSetting HIDE_REEL_SEEK_BAR =
-            new BooleanSetting("hushgram_hide_reel_seek_bar", FALSE);
+            new BooleanSetting("hushgram_hide_reel_seek_bar", FALSE, true);
 
     /**
      * The shape of the seek bars on feed videos, stories and reels (#586, #592), one choice for all

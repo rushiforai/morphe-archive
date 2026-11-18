@@ -1,0 +1,3 @@
+-dontobfuscate
+-dontoptimize
+-keep class nl.johninnl.parool.** { *; }

@@ -561,6 +561,15 @@ Entry %1$d has a field with the wrong data type.	الإدخال %1$d يحتوي 
 Entry %1$d isn't an object.	العنصر %1$d ليس كائن.
 Errors	الأخطاء
 Expand activity list	توسيع قائمة النشاط
+Group likes per comment	تجميع الإعجابات حسب التعليق
+Show one row for each comment or video people liked, with everyone who liked it counted, instead of a new row for every few likes. Applies the next time the Likes list loads.	يعرض صفًا واحدًا لكل تعليق أو فيديو أعجب الناس، مع احتساب كل من أعجبه، بدلًا من صف جديد كل بضع إعجابات. يُطبَّق في المرة التالية التي تُحمَّل فيها قائمة الإعجابات.
+Swap lists	تبديل القائمتين
+Split the Activity page	تقسيم صفحة النشاط
+Show your newest comments at the top of the Activity page and likes below, each scrolling on its own. The bar between them swaps the two lists or hides the lower one until you bring it back. Picking another list from Activity still shows just that list. Applies the next time the page opens.	يعرض أحدث تعليقاتك في أعلى صفحة النشاط والإعجابات تحتها، ولكل منهما تمريره الخاص. يبدّل الشريط الذي بينهما القائمتين أو يخفي السفلية حتى تعيد إظهارها. إذا اخترت قائمة أخرى من النشاط فستظهر تلك القائمة وحدها. يُطبَّق عند فتح الصفحة في المرة التالية.
+Hide likes	إخفاء الإعجابات
+Show likes	إظهار الإعجابات
+Hide comments	إخفاء التعليقات
+Show comments	إظهار التعليقات
 Explore or Community	استكشف أو المجتمع
 Export diagnostic report	تصدير التقرير التشخيصي
 Export loaded values	تصدير القيم المحملة
@@ -594,6 +603,8 @@ Filters, translation and copy options	فلاتر، ترجمة وخيارات ا�
 First caller	المستدعي الأول
 First rejection:	أول رفض:
 Fit the video to the screen	ملاءمة الفيديو للشاشة
+Fill a tall screen instead	املأ الشاشة الطويلة بدلًا من ذلك
+With the switch above on, the video is cropped to fill a tall screen like a folding phone's front screen. A squarer one, like the big screen opened up, still shows the whole video.	عند تشغيل المفتاح أعلاه، يُقص الفيديو ليملأ الشاشة الطويلة مثل الشاشة الأمامية للهاتف القابل للطي. أما الشاشة الأقرب إلى المربع، مثل الشاشة الكبيرة عند فتح الهاتف، فتعرض الفيديو كاملًا.
 Fill the screen with the video	املأ الشاشة بالفيديو
 Crop the video until it covers the whole window. On a tall phone the black strip TikTok leaves under a video goes and so does a little of each side.	يقص الفيديو حتى يغطي النافذة بأكملها. على الهاتف الطويل يختفي الشريط الأسود الذي يتركه TikTok أسفل الفيديو ويختفي معه القليل من كل جانب.
 Focus	التركيز
@@ -1596,6 +1607,27 @@ TikTok closed three times within a minute of starting, so Hushfeed paused itself
 A file named hushfeed-safe-mode in TikTok's folder under Android/data paused Hushfeed. Your settings stay as they are.	ملف باسم hushfeed-safe-mode في مجلد TikTok داخل Android/data أوقف Hushfeed مؤقتًا. تبقى إعداداتك كما هي.
 Turn Hushfeed back on	أعد تشغيل Hushfeed
 Pause Hushfeed	إيقاف Hushfeed مؤقتا
+Settings theme	سمة الإعدادات
+Hushfeed language	لغة Hushfeed
+For Hushfeed's settings and messages. TikTok keeps its own language.	لإعدادات Hushfeed ورسائله. يبقى TikTok بلغته الخاصة.
+# context: the rows below are each language's own name in the Hushfeed language list, kept as they are in every table
+English	English
+العربية	العربية
+Azərbaycan dili	Azərbaycan dili
+Deutsch	Deutsch
+Español	Español
+Bahasa Indonesia	Bahasa Indonesia
+Italiano	Italiano
+Português (Brasil)	Português (Brasil)
+Русский	Русский
+ไทย	ไทย
+Türkçe	Türkçe
+Tiếng Việt	Tiếng Việt
+简体中文	简体中文
+Match TikTok	مطابقة TikTok
+Always dark	داكن دائمًا
+Always light	فاتح دائمًا
+Colors these settings and Hushfeed's own pop-ups.	يلوّن هذه الإعدادات والنوافذ المنبثقة الخاصة بـ Hushfeed.
 Pause Hushfeed's switches after TikTok restarts. Your settings stay saved. Changes made when you patched, like the app's name or icon, stay.	أوقف مفاتيح «إيقاف Hushfeed مؤقتا» بعد إعادة تشغيل TikTok. تبقى إعداداتك محفوظة. التغييرات التي أجريتها عند التعديل، مثل اسم التطبيق أو الرمز، تبقى.
 Hushfeed turns back on when TikTok restarts.	يعود Hushfeed للعمل عند إعادة تشغيل TikTok.
 The file hushfeed-safe-mode couldn't be removed. Delete it from TikTok's folder under Android/data to turn Hushfeed back on.	تعذرت إزالة الملف hushfeed-safe-mode. احذفه من مجلد TikTok الموجود ضمن Android/data لإعادة تشغيل Hushfeed.
@@ -2009,6 +2041,8 @@ Hide the Service+ row under LIVE previews	أخفِ صف Service+ أسفل معا
 A LIVE in the feed can show a Service+ line under the creator's name, such as Ask me anything. This keeps it hidden.	يمكن أن يعرض LIVE في الخلاصة سطر Service+ تحت اسم منشئ المحتوى، مثل «اسألني أي شيء». هذا يبقيه مخفيا.
 Play sounds TikTok pulled	تشغيل الأصوات التي أزالتها TikTok
 Play the audio on videos TikTok silenced because their sound was pulled for copyright or in your region. TikTok may still say the sound isn't available.	تشغيل صوت الفيديوهات التي كتمها TikTok لأن صوتها أزيل بسبب حقوق النشر أو في منطقتك. قد يستمر TikTok في القول بأن الصوت غير متاح.
+Play original audio	تشغيل الصوت الأصلي
+Play videos and mini dramas in their own language instead of TikTok's AI dub in your app language. Captions and translations stay as they are.	شغّل الفيديوهات والمسلسلات القصيرة بلغتها الأصلية بدلا من دبلجة TikTok بالذكاء الاصطناعي إلى لغة التطبيق. تبقى التسميات التوضيحية والترجمات كما هي.
 Match region fields in requests	مطابقة حقول المنطقة في الطلبات
 Keep the For You feed on your real SIM	إبقاء خلاصة «لك» على شريحتك الحقيقية
 With the SIM changed, TikTok can keep showing videos you've already watched. Turn this on to stop that. Sticker search and the rest of TikTok still see the SIM above, while For You asks for videos with your phone's own SIM country and carrier. Your IP address and account history still count.	مع تغيير شريحة SIM، قد يستمر TikTok في عرض فيديوهات سبق أن شاهدتها. فعّل هذا لإيقاف ذلك. يظل بحث الملصقات وبقية TikTok يرون الشريحة أعلاه، بينما تطلب «لك» فيديوهات ببلد شريحة هاتفك ومشغلها. لا يزال عنوان IP وسجل الحساب محسوبين.
@@ -2491,6 +2525,8 @@ Show the time zone	إظهار المنطقة الزمنية
 Puts your time zone after the time to the second, like EDT.	يضع منطقتك الزمنية بعد الوقت بالثانية، مثل EDT.
 Short date	تاريخ قصير
 Writes the date before the time to the second the short way your language does, like 10/7/25.	يكتب التاريخ قبل الوقت بالثواني بالطريقة القصيرة التي تستخدمها لغتك، مثل 10/7/25.
+Day before month	اليوم قبل الشهر
+Writes TikTok's date by the creator's name day first, like 29.09, with the year after it for an older video. Ages like 2d ago stay as they are.	يكتب تاريخ TikTok بجانب اسم صانع المحتوى باليوم أولًا، مثل 29.09، مع السنة بعده للفيديو الأقدم. تبقى الأعمار مثل منذ يومين كما هي.
 Color commenter names	تلوين أسماء المعلقين
 Give each commenter's name a color of its own, the same one every time you see that account, so a long thread is easier to follow.	امنح اسم كل معلق لونًا خاصًا به، نفس اللون في كل مرة ترى فيها ذلك الحساب، لتسهيل متابعة سلسلة طويلة من الردود.
 Show the country as a flag	إظهار الدولة كعلم
@@ -2540,6 +2576,8 @@ How much of the video shows through the glass pill on the main feed. Most see-th
 On the main feed, a raised bubble of glass sits behind the tab you're on and slides to the next tab you pick. Works on any bottom bar, with or without Liquid glass look.	في الخلاصة الرئيسية، توجد فقاعة زجاجية بارزة خلف التبويب الذي أنت فيه وتنزلق إلى التبويب التالي الذي تختاره. يعمل مع أي شريط سفلي، مع مظهر الزجاج السائل أو بدونه.
 Slide across the tabs	التمرير عبر التبويبات
 On the main feed, slide a finger along the tabs and the lens follows it. Let go and that tab opens. Taps and long presses work as before. Needs Glass lens on the current tab.	في الخلاصة الرئيسية، مرر إصبعك على التبويبات وستتبعه العدسة. اترك إصبعك وسيفتح هذا التبويب. النقرات والضغط المطول يعملان كما في السابق. يتطلب عدسة زجاجية على التبويب الحالي.
+Liquid glass when held	زجاج سائل عند الإمساك
+On the main feed, hold a finger on the tabs and the glass lens swells, then wobbles back when you let go. With Blur the video behind the bar on Android 13 and up, the video under it bends harder and splits into color at its edge. Needs Glass lens on the current tab.	في الخلاصة الرئيسية، أبقِ إصبعك على التبويبات فتنتفخ العدسة الزجاجية، ثم تعود متمايلة عندما ترفع إصبعك. مع ضبابية الفيديو خلف الشريط على Android 13 وأحدث، ينحني الفيديو تحتها أكثر وينقسم إلى ألوان عند حافتها. يتطلب عدسة زجاجية على التبويب الحالي.
 Haptics on the tabs	الاهتزاز على التبويبات
 On the main feed, a light tick each time the glass lens passes a tab, as it slides after a tap or under your finger. Needs Glass lens on the current tab.	في الخلاصة الرئيسية، صوت نقرة خفيفة في كل مرة تمر فيها العدسة الزجاجية فوق تبويب، أثناء انزلاقها بعد النقر أو تحت إصبعك. يتطلب «عدسة زجاجية على التبويب الحالي».
 Haptic style	نمط الاهتزاز
@@ -2763,6 +2801,16 @@ Proxy %1$s needs a user name and password	الوكيل %1$s يحتاج إلى ا
 Proxy %1$s refused your user name or password	رفض الوكيل %1$s اسم المستخدم أو كلمة المرور
 Save this video	احفظ هذا الفيديو
 Show the save button on videos	إظهار زر الحفظ على الفيديوهات
+Hold TikTok's save button to download	اضغط مطولًا على زر الحفظ في TikTok للتنزيل
+Press and hold the save button in the right column to save the video with your download settings. A tap still adds it to Favorites. It wins over Hold speed on Favorites.	اضغط مطولًا على زر الحفظ في العمود الأيمن لحفظ الفيديو بإعدادات التنزيل لديك. النقرة العادية تضيفه إلى المفضلة كما هي. لها الأولوية على سرعة التثبيت على المفضلات.
+Size of the buttons on videos	حجم الأزرار على الفيديوهات
+Size of the LIVE buttons	حجم أزرار LIVE
+Smallest	الأصغر
+Small	صغير
+Large	كبير
+Line them up over the right column	صفّها فوق العمود الأيمن
+Stack the buttons above TikTok's own on the right, starting over the avatar. They follow the column instead of staying where you dragged them.	ضع الأزرار فوق أزرار TikTok على اليمين، بدءًا من فوق الصورة الرمزية. تتبع العمود بدلًا من البقاء حيث سحبتها.
+Turn off Line them up over the right column to move it	أوقف خيار صفّها فوق العمود الأيمن لتحريكه
 Add a button beside the block control that saves the video on screen in one tap. Drag it wherever you like.	أضف زراً بجانب عنصر الحظر يحفظ الفيديو على الشاشة بنقرة واحدة. اسحبه أينما شئت.
 Couldn't save this one. Try again.	تعذر حفظ هذا. حاول مرة أخرى.
 Opening TikTok or your messages no longer pauses music from another app. TikTok takes the sound while a video plays and gives it back when you leave the video.	فتح TikTok أو رسائلك لم يعد يوقف الموسيقى من تطبيق آخر. يأخذ TikTok الصوت أثناء تشغيل الفيديو ويعيده عند مغادرة الفيديو.
@@ -2860,6 +2908,18 @@ Clearing Favorites in %1$d	مسح المفضلات خلال %1$d
 Reposts removed: %1$d	تمت إزالة إعادة النشر: %1$d
 Likes removed: %1$d	الإعجابات المحذوفة: %1$d
 Favorites removed: %1$d	أزيل من المفضلات: %1$d
+Remove all comments	إزالة كل التعليقات
+Deletes every comment you've posted one after another.	يحذف كل تعليق نشرته واحدا تلو الآخر.
+Remove selected comments	إزالة التعليقات المحددة
+Pick comments from your comment history to delete.	اختر من سجل تعليقاتك ما تريد حذفه.
+Removing all comments in %1$d	إزالة جميع التعليقات خلال %1$d
+Removing the picked comments in %1$d	إزالة التعليقات المختارة خلال %1$d
+Comments removed: %1$d	التعليقات المحذوفة: %1$d
+TikTok refused to list your comments	رفض TikTok عرض تعليقاتك
+Couldn't load your comments. Try again.	تعذر تحميل تعليقاتك. حاول مرة أخرى.
+Loading your comments	جار تحميل تعليقاتك
+No comments to show	لا توجد تعليقات لعرضها
+No text	بلا نص
 Nothing to remove	لا شيء للإزالة
 Done. %1$d removed.	تم. تمت إزالة %1$d.
 Stopped. %1$d removed.	تم الإيقاف. تمت إزالة %1$d.
@@ -2869,6 +2929,14 @@ Not available on this TikTok version	غير متاح في إصدار TikTok هذ
 Sign in to TikTok first	سجل الدخول إلى TikTok أولا
 A removal is already running	عملية الإزالة قيد التشغيل بالفعل
 Cancelled	ملغى
+# context: A switch under Clean up your account on the Privacy page
+Tap a video to remove it	اضغط على فيديو لإزالته
+In your own Liked videos, Favorites and Reposts, a tap takes the video off that list instead of opening it.	في الفيديوهات التي أعجبتك والمفضلات وعمليات إعادة النشر الخاصة بك، يزيل الضغط الفيديو من تلك القائمة بدلاً من فتحه.
+# context: Toasts after one tap on your own Liked, Favorites or Reposts grid removes a video, or fails to
+Couldn't remove that video. Try again.	تعذرت إزالة هذا الفيديو. حاول مرة أخرى.
+Removed from Liked videos	تمت الإزالة من الفيديوهات التي أعجبتك
+Removed from Favorites	تمت الإزالة من المفضلات
+Removed from Reposts	تمت الإزالة من عمليات إعادة النشر
 Show inbox filters	إظهار عوامل تصفية صندوق الوارد
 Adds the Main, Requests, Unread and Starred tabs above your chats, the ones TikTok gives creator accounts.	يضيف علامات التبويب «الرئيسية» و«الطلبات» و«غير المقروءة» و«المميزة» فوق محادثاتك، وهي التي يمنحها TikTok لحسابات صناع المحتوى.
 Rebuild message search	إعادة بناء بحث الرسائل
@@ -3161,3 +3229,33 @@ Keep the middle unstretched	أبقِ وسط الفيديو دون مدّ
 Cover the whole window and keep the middle of the video at its own shape. A little comes off the sides, and only the top and bottom are stretched. A video far from the screen's shape keeps TikTok's size.	يغطي النافذة بأكملها ويُبقي وسط الفيديو على شكله الأصلي. يُقصّ قليل من الجانبين، ولا يُمدّ إلا الجزآن العلوي والسفلي. الفيديو الذي يختلف شكله كثيرًا عن شكل الشاشة يحتفظ بحجم TikTok.
 # context: A Feature Gate Lab preset title: when a video is paused, TikTok shows a search tag on things in the frame, which opens its visual search
 Visual search on paused videos	البحث المرئي في الفيديوهات المتوقفة مؤقتًا
+App icon	أيقونة التطبيق
+Some home screens drop the icon when it changes. If yours does, add TikTok back from the app list.	بعض الشاشات الرئيسية تزيل الأيقونة عند تغييرها. إذا فعلت شاشتك ذلك، فأضف TikTok مجددًا من قائمة التطبيقات.
+Icon changed	تم تغيير الأيقونة
+Couldn't change the icon. Try again.	تعذّر تغيير الأيقونة. حاول مرة أخرى.
+TikTok colors	ألوان TikTok
+Black background	خلفية سوداء
+White on black	أبيض على أسود
+Black on white	أسود على أبيض
+Material You	Material You
+Your icon	أيقونتك
+Save episodes	حفظ الحلقات
+Pick episodes to save	اختر الحلقات المراد حفظها
+Episode %1$s	الحلقة %1$s
+Preview only	معاينة فقط
+Loading episodes	جار تحميل الحلقات
+Couldn't load the episodes. Try again.	تعذر تحميل الحلقات. حاول مرة أخرى.
+Pick at least one episode	اختر حلقة واحدة على الأقل
+Saving %1$s. Tap Save again for the rest.	جار حفظ %1$s. اضغط حفظ مجددًا للباقي.
+Save episodes button in the share sheet	زر حفظ الحلقات في ورقة المشاركة
+Adds Save episodes when you share an episode of a mini drama. It lists the drama's episodes so you can pick several and save them in one go. An episode you haven't unlocked saves only its preview.	يضيف حفظ الحلقات عند مشاركة حلقة من دراما قصيرة. يعرض حلقات الدراما لتختار عدة حلقات وتحفظها دفعة واحدة. الحلقة التي لم تفتحها تُحفظ معاينتها فقط.
+Save to a collection	حفظ في مجموعة
+Collections aren't available for this video	المجموعات غير متاحة لهذا الفيديو
+# context: Inbox settings, two switches under Hide On this day. The first hides LIVE circles in the stories tray from accounts the user doesn't follow. The second hides the Widget circle TikTok puts at the end of the tray, which offers its home screen widget.
+Hide LIVEs from accounts you don't follow	إخفاء LIVE من حسابات لا تتابعها
+LIVEs from accounts you don't follow leave the stories tray. LIVEs from accounts you follow stay.	تختفي مقاطع LIVE من الحسابات التي لا تتابعها من شريط القصص. تبقى مقاطع LIVE من الحسابات التي تتابعها.
+Hide the Widget circle	إخفاء دائرة الأداة (Widget)
+The Widget circle at the end of the stories tray goes. TikTok's home screen widget still works.	تختفي دائرة الأداة (Widget) في نهاية شريط القصص. تبقى أداة TikTok على الشاشة الرئيسية تعمل.
+# context: Feed screen settings, a switch under Show video length on profile grids. It removes the view count and the play icon from each video tile on profile grids. If the date, video length or engagement rate are switched on, they take the first line instead.
+Hide view counts on profile grids	إخفاء عدد المشاهدات في شبكات الملف الشخصي
+Takes the view count and its play icon off each video on profile grids. Dates, lengths and the engagement rate you turned on move up in its place.	يزيل عدد المشاهدات وأيقونة التشغيل بجانبه من كل فيديو في شبكات الملف الشخصي. التواريخ والمدد ونسبة التفاعل التي فعّلتها تنتقل إلى مكانه.

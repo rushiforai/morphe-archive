@@ -1,0 +1,11 @@
+build/
+local.properties
+.gradle/
+.kotlin/
+# Waze inputs for porting; never commit APKs.
+/apk/
+*.apk
+*.apkm
+*.apks
+*.xapk
+/out/

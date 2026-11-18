@@ -1,3 +1,9 @@
+## [1.7.3](https://github.com/RikoDEV/morphed-pl/compare/v1.7.2...v1.7.3) (2026-11-17)
+
+### 🐛 Bug Fixes
+
+* Meteo ICM patches, fixes [#23](https://github.com/RikoDEV/morphed-pl/issues/23) ([765926c](https://github.com/RikoDEV/morphed-pl/commit/765926c1778675defb59da2caa7debb3133874af))
+
 ## [1.7.2](https://github.com/RikoDEV/morphed-pl/compare/v1.7.1...v1.7.2) (2026-11-14)
 
 ### 🐛 Bug Fixes

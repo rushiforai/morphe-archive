@@ -138,6 +138,8 @@ Pasos:
     <string name="morphe_music_downloads_starting">Iniciando descarga…</string>
     <string name="morphe_music_downloads_storage_permission">Permite el acceso al almacenamiento y luego pulsa de nuevo Descargar</string>
     <string name="morphe_music_downloads_unknown_track">No se pudo identificar la pista que descargar</string>
+    <string name="morphe_music_hide_you_may_also_like_section_title">Ocultar sección \'Quizás también te guste\'</string>
+    <string name="morphe_music_hide_your_downloads_shelf_title">Ocultar estantería \"Tus descargas\"</string>
     <string name="morphe_music_lyrics_about_summary">"Las letras se emparejan por título e intérprete; metadatos inusuales pueden no encontrar nada o la versión incorrecta. Usa actualizar para cambiar de versiones. Los proveedores marcados con * requieren un token. No siempre se solicitan todos los proveedores habilitados en tu orden, pero responden según su velocidad
 
 Las letras provienen de servicios de terceros que no están afiliados, patrocinados ni respaldados por RVX. Cada uno se utiliza tal cual: las letras, su disponibilidad y su licenciamiento permanecen en esos servicios y sus licenciantes, y su uso puede estar sujeto a sus términos de servicio. Lo que llega a un servicio habilitado es solo la búsqueda que solicitaste: el título, el artista y, donde ese servicio lo necesite, el ID de video. El punto final opcional de IA y la transcripción QuickLRC solo se ejecutan después de configurarlos, y reciben el texto de las letras o la URL de video de la pista"</string>

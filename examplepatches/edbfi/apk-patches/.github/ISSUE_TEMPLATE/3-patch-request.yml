@@ -1,0 +1,67 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+name: Patch request
+description: Ask for a new patch, for a supported app or a new one.
+labels: [patch request]
+body:
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before you request
+      options:
+        - label: I searched the open and closed issues, and the patches already in [Supported apps](https://github.com/edbfi/apk-patches#supported-apps), for this request.
+          required: true
+  - type: input
+    id: app
+    attributes:
+      label: App name
+      description: As the app's store page shows it.
+      placeholder: Sync for Reddit
+    validations:
+      required: true
+  - type: input
+    id: package
+    attributes:
+      label: Package name
+      description: The `id=` part of its Google Play address, or the package on its APKMirror or APKPure page.
+      placeholder: com.laurencedawson.reddit_sync
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: App version
+      description: The exact version to patch.
+      placeholder: v23.06.30-13:39
+    validations:
+      required: true
+  - type: input
+    id: link
+    attributes:
+      label: Download link
+      description: The APKMirror or APKPure page of that exact version, and on APKMirror the variant you would install.
+      placeholder: https://www.apkmirror.com/apk/…
+    validations:
+      required: true
+  - type: dropdown
+    id: ecosystem
+    attributes:
+      label: Bundles
+      description: Which bundles the patch should be in.
+      multiple: true
+      options:
+        - ReVanced
+        - Morphe
+    validations:
+      required: true
+  - type: textarea
+    id: request
+    attributes:
+      label: What the patch should do
+      description: What the app does now, and what it should do instead.
+    validations:
+      required: true
+  - type: textarea
+    id: media
+    attributes:
+      label: Screenshots
+      description: Optional. Drag files here.

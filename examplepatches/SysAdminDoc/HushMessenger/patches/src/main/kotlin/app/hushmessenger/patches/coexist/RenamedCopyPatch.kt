@@ -1,6 +1,7 @@
 package app.hushmessenger.patches.coexist
 
 import app.hushmessenger.patches.MessengerTarget
+import app.hushmessenger.patches.messengerClasses
 import app.hushmessenger.patches.controls.hookId
 import app.hushmessenger.patches.controls.settingsExtension
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
@@ -9,7 +10,6 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
@@ -120,7 +120,7 @@ val renamedCopyPatch = bytecodePatch(
     dependsOn(settingsExtension)
     // In finalize, so every site Clone install or another patch has already changed is left as it is.
     finalize {
-        val classes = mutableListOf<ClassDef>().apply { classDefForEach { add(it) } }
+        val classes = messengerClasses()
         val pools = ownNamePoolKeys(classes)
         val checks = expectedCloneSitesFor(packageMetadata.versionCode).filterNot { '@' in it }
         fun method(id: String) = mutableClassDefBy(id.substringBefore("->")).methods.single { it.hookId() == id }

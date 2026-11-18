@@ -73,6 +73,13 @@ A jelentések nyilvánosak, és felülvizsgálják őket, mielőtt egy csatorna 
     <string name="morphe_captions_screen_summary">A feliratok automatikus fordításának és a feliratok cookie-jainak kezelése</string>
     <string name="morphe_captions_screen_title">Feliratok</string>
     <string name="morphe_custom_branding_icon_title">Alkalmazás ikonja</string>
+    <string name="morphe_custom_seekbar_thumb_file_invalid">A kiválasztott fájl nem egy támogatott kép</string>
+    <string name="morphe_custom_seekbar_thumb_file_not_found">Egyéni keresősáv jelző kép nem található</string>
+    <string name="morphe_custom_seekbar_thumb_file_title">Jelző kép</string>
+    <string name="morphe_custom_seekbar_thumb_scale_type_entry_fit_seekbar">Keresősávhoz igazítva</string>
+    <string name="morphe_custom_seekbar_thumb_scale_type_entry_original">Eredeti méret</string>
+    <string name="morphe_custom_seekbar_thumb_scale_type_title">Jelző mérete</string>
+    <string name="morphe_custom_seekbar_thumb_title">Egyéni keresősáv jelző engedélyezése</string>
     <string name="morphe_dearrow_about_summary">"A DeArrow a kattintásvadász címeket és miniatűröket közösségi forrásból származó, pontosabb és kevésbé szenzációhajhász tartalmakra cseréli. A címeket a közösség írja és szavazza meg, a miniatűrök pedig a videóból készült képkockák
 
 A videókat a hash-elt videóazonosító rövid előtagjával kérik le, így a szerver nem tudja pontosan, hogy melyik videót nézed. Ha egy videóhoz nincs DeArrow miniatűr, akkor az eredeti vagy egy állókép jelenik meg"</string>
@@ -101,6 +108,12 @@ A videókat a hash-elt videóazonosító rövid előtagjával kérik le, így a 
     <string name="morphe_disable_toolbar_navigation_tabs_summary">Megjeleníti az Előfizetéseket a navigációs sávban, ha a YouTube lapra przenti őket a Kezdőlap tetejére</string>
     <string name="morphe_disable_toolbar_navigation_tabs_title">Toolbar navigációs lapok kikapcsolása</string>
     <string name="morphe_dual_captions_enabled_title">Kétnyelvű feliratok</string>
+    <string name="morphe_enhanced_ambient_mode_dim_duration_title">Sötkitési időtartam</string>
+    <string name="morphe_enhanced_ambient_mode_dim_while_scrolling_summary">Sötkíti a fényt, amíg az oldal görgetve vagy érintve van</string>
+    <string name="morphe_enhanced_ambient_mode_dim_while_scrolling_title">Sötkítse görgetés közben</string>
+    <string name="morphe_enhanced_ambient_mode_readable_text_summary">Csökkenti a fényt a világos videóknál, hogy az oldalon lévő szöveg olvasható maradjon</string>
+    <string name="morphe_enhanced_ambient_mode_readable_text_title">A szöveg olvashatósága megőrzése</string>
+    <string name="morphe_enhanced_ambient_mode_title">Fejlesztett Mozifilmes világítás</string>
     <string name="morphe_expand_livestream_dvr_duration_not_available">"Előfordulhat, hogy az 'Élő közvetítés DVR-időtartamának bővítése' nem érhető el
 
 A javításhoz kapcsold be a 'Videóstreamek meghamisítása' opciót, és módosítsd az 'Alapértelmezett kliens' értékét a következőre: 'TV Simply' vagy 'visionOS'"</string>
@@ -266,6 +279,12 @@ A javításhoz kapcsold be a 'Videóstreamek meghamisítása' opciót, és módo
     <string name="morphe_playback_in_feeds_title">Lejátszás a hírekben</string>
     <string name="morphe_player_control_buttons_background_opacity_summary">A lejátszó vezérlőgombjai és az idővonal mögötti háttér átlátszatlanságának beállítása (0 láthatatlan, 100 átlátszatlan)</string>
     <string name="morphe_player_control_buttons_background_opacity_title">Vezérlőgombok hátterének átlátszatlansága</string>
+    <string name="morphe_playlist_hide_removal_snackbar_summary">A videó lejátszási listából való törlése után nem jelenik meg a visszaigazolás</string>
+    <string name="morphe_playlist_hide_removal_snackbar_title">Lejátszási lista törlésére vonatkozó snackbar elrejtése</string>
+    <string name="morphe_playlist_long_press_drag_summary">Érintse hosszan és tartsa nyomva a lejátszalistájának egy videóját, hogy új pozícióba húzza</string>
+    <string name="morphe_playlist_long_press_drag_title">Hosszú nyomás a lejátszalistai videók sorrendjének módosításához</string>
+    <string name="morphe_playlist_wide_drag_handles_summary">A lejátszási lista behúzási fogantyúinak könnyebb a megragadása</string>
+    <string name="morphe_playlist_wide_drag_handles_title">Szélesebb lejátszási lista húzófogasok</string>
     <string name="morphe_post_buttons_layout_entry_1">Szerver</string>
     <string name="morphe_post_buttons_layout_entry_2">Kényszerített</string>
     <string name="morphe_post_buttons_layout_title">Bejegyzés gombjai elrendezése</string>
@@ -711,20 +730,7 @@ Beállítások → Automatikus lejátszás → Következő videó automatikus le
     <string name="revanced_disable_landscape_mode_summary_off">A videó tájolása követi a készülék beállításait teljes képernyő esetén</string>
     <string name="revanced_disable_landscape_mode_summary_on">A videó tájolása álló mód teljes képernyő esetén</string>
     <string name="revanced_disable_landscape_mode_title">Fekvő mód letiltása</string>
-    <string name="revanced_disable_layout_updates_summary_off">A szerver frissíti a minta</string>
-    <string name="revanced_disable_layout_updates_summary_on">A szerver nem frissíti a minta</string>
     <string name="revanced_disable_layout_updates_title">Megjelenés frissítések letiltása</string>
-    <string name="revanced_disable_layout_updates_user_dialog_message">"Alkalmazás-elrendezés visszatér ahhoz az elrendezéshez, amely a telepítés első pillanatában volt
-
-Néhány szerveroldali elrendezés esetében előfordulhat, hogy a visszaállítás nem történik meg
-
-A változások a következőket tartalmazzák:
-• A lejátszó felugró menüjének elemei (vagy a kapcsolódó beállítások) nem működhetnek
-• A pörgő számok animációja megszűnik
-• Megjelenik a Könyvtár lap
-• A videóleírások zenei szekciója nem működhet
-• A lejátszó felugró menüjének elemeit nem lehet elrejteni
-• A fiókváltó gomb nem jelenhet meg a Könyvtár lapon"</string>
     <string name="revanced_disable_like_dislike_glow_summary_off">A tetszik és nem tetszik gombok ragyognak megnyomáskor</string>
     <string name="revanced_disable_like_dislike_glow_summary_on">A tetszik és nem tetszik gombok nem ragyognak megnyomáskor</string>
     <string name="revanced_disable_like_dislike_glow_title">Tetszik és nem tetszik gombok ragyogásának letiltása</string>
@@ -1078,10 +1084,6 @@ Lejátszási listák
     <string name="revanced_hide_comments_carousel_filter_strings_summary">Add meg a szűrni kívánt gördíthető hozzászólásszűrők nevét, új sorokkal elválasztva</string>
     <string name="revanced_hide_comments_carousel_filter_strings_title">Kiemelt megjegyzések szűrője</string>
     <string name="revanced_hide_comments_carousel_title">Kiemelt megjegyzések szűrője</string>
-    <string name="revanced_hide_comments_carousel_user_dialog_message">"Megjegyzés:
-Ügyelj arra, hogy a gördíthető sáv elemeinek pontos nevét add meg (pl. Kérdések, Videó hájpolása, Hallgatás a YouTube Music alkalmazásban stb.)
-A sáv elemeinek elrejtése nem várt mellékhatásokkal járhat
-Ha a sáv összes elemét elrejted, a teljes megjegyzések szakasz is rejtve marad"</string>
     <string name="revanced_hide_comments_create_a_short_button_summary_off">A Rövidfilm létrehozása gomb látható</string>
     <string name="revanced_hide_comments_create_a_short_button_summary_on">A Rövidfilm létrehozása gomb rejtett</string>
     <string name="revanced_hide_comments_create_a_short_button_title">Shorts létrehozása gomb elrejtése</string>

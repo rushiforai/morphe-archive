@@ -7,18 +7,24 @@ package app.hushgram.extension.instagram.misc;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.content.res.TypedArray;
+import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
+import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.util.TypedValue;
 
 import androidx.annotation.Nullable;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.WeakHashMap;
 
 import app.hushgram.extension.instagram.settings.FamilyNames;
 import app.hushgram.extension.instagram.settings.Settings;
@@ -63,7 +69,9 @@ import app.hushgram.extension.shared.diagnostics.HookStatus;
  * post buttons), {@code glyphColorSecondaryActive} (the selected profile tab) and
  * {@code feedSaveActiveColor} (the saved bookmark). Text keeps its own color, the unselected tabs stay
  * gray and the liked heart keeps the badge color. The wordmark is tinted with the primary text color, so it stays
- * too.
+ * too. Litho trees, the feed's post buttons among them, read their icon colors from the theme of the
+ * context they're built on, which isn't always one the overrides or the theme util reached, so the
+ * icon style also goes onto each such theme as Litho takes it up ({@link #lithoIcons}, #724).
  *
  * <p>With {@link Settings#ACCENT_RINGS} on, the picked color's ring style goes on (#187). It points the
  * {@code igds_color_gradient_*} attributes Instagram's story rings read at the picked shades. Other
@@ -126,6 +134,39 @@ public final class AccentTheme {
 
     /** What's counted each time a tab's icon is told a color and takes the picked one instead (#663). */
     static final String TAB_ICONS = "Tab icons given the accent color";
+
+    /** What's counted each time a theme a Litho tree reads its colors from takes the icon style (#724). */
+    static final String LITHO_ICONS = "Litho themes given accent icons";
+
+    /** What's counted each time a repost button's animation takes the picked icon color (#724). */
+    static final String REPOST_ICONS = "Repost buttons given the accent color";
+
+    /**
+     * The raw animations the repost button under a post plays, whichever way it's turning. Instagram's
+     * black, or white in dark mode, is in the file, so no theme color or tint reaches them (#724).
+     */
+    static final String[] REPOST_ANIMATIONS = {"repost_light", "repost_dark", "unrepost_light", "unrepost_dark"};
+
+    /** The color the animation loading on this thread takes, from {@link #repostAnimation(Context, int)}. */
+    private static final ThreadLocal<Integer> REPOST_PENDING = new ThreadLocal<>();
+
+    /** The paint each repost animation given the accent color is drawn through, by the drawable. */
+    private static final Map<Drawable, Paint> REPOST_PAINTS = new WeakHashMap<>();
+
+    /** The layer {@link #repostDraw} opened on this thread, which {@link #repostDrawn} closes. */
+    private static final ThreadLocal<RepostLayer> REPOST_LAYER = new ThreadLocal<>();
+
+    /** The glyph attribute the feed's post buttons read through Litho, the first of the patch's GLYPH_ATTRIBUTES. */
+    static final String GLYPH_ATTRIBUTE = "glyphColorPrimary";
+
+    /**
+     * The themes {@link #lithoIcons} looked at last, as weak references, told apart by identity since a
+     * theme's equals compares the styles laid on it. Litho takes the same few themes up over and over.
+     */
+    private static final Object[] SETTLED = new Object[16];
+
+    /** The slot of {@link #SETTLED} the next theme goes in. */
+    private static int settledNext;
 
     /** Instagram's link on a dark screen and on a light one, which {@link AccentColor#swap} turns into the picked color's. */
     private static final int LINK_ON_DARK = 0xff85a1ff;
@@ -699,6 +740,190 @@ public final class AccentTheme {
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.ACCENT_COLOR, "tab icons", failure);
             return color;
+        }
+    }
+
+    /**
+     * Injected at the end of the constructor of Litho's resource resolver, which keeps [context]'s theme
+     * for every color its tree reads from a theme attribute (#724). The feed's post buttons read
+     * {@link #GLYPH_ATTRIBUTE} there, and the context a tree is built on isn't always one the overrides
+     * or the theme util reached, so with Icons in the accent color on they stayed black. Lays the picked
+     * color's icon style for a dark or a light theme onto that theme when the glyph color it holds isn't
+     * the style's yet. A viewer's or a see-through theme keeps its own, since its icons sit over media
+     * (see {@link #paintsItsOwnBackground}). Each theme is looked at once. Leaves it alone with either
+     * switch off, HushGram paused, the styles missing or anything thrown.
+     */
+    public static void lithoIcons(Context context) {
+        try {
+            if (context == null) return;
+            AccentHue hue = AccentColor.picked();
+            if (hue == null || !Settings.ACCENT_ICONS.get()) return;
+            Resources.Theme theme = context.getTheme();
+            if (theme == null || !firstLook(theme)) return;
+            Resources resources = context.getResources();
+            String app = Utils.resourcePackage(context);
+            int icon = id(resources, ICON_ATTRIBUTE, "attr", app);
+            int glyph = id(resources, GLYPH_ATTRIBUTE, "attr", app);
+            int style = icon == 0 || glyph == 0 ? 0 : id(resources, iconStyle(hue, dark(context, theme, icon)), "style", app);
+            if (style == 0) {
+                HookStatus.counted(FamilyNames.ACCENT_COLOR, ICONS_MISSING);
+                return;
+            }
+            int background = id(resources, BACKGROUND_ATTRIBUTE, "attr", app);
+            if (background != 0 && overMedia(theme, background)) return;
+            if (themeColor(theme, glyph) == styleColor(theme, style, glyph)) return;
+            theme.applyStyle(style, true);
+            HookStatus.counted(FamilyNames.ACCENT_COLOR, LITHO_ICONS);
+            Logger.printDebug(() -> "Accent color: icons on the Litho theme of " + context.getClass().getName());
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.ACCENT_COLOR, "Litho icons", failure);
+        }
+    }
+
+    /** Whether {@link #lithoIcons} hasn't looked at [theme] lately, remembering it when it hasn't. */
+    private static boolean firstLook(Resources.Theme theme) {
+        synchronized (SETTLED) {
+            for (Object slot : SETTLED) {
+                if (slot != null && ((WeakReference<?>) slot).get() == theme) return false;
+            }
+            SETTLED[settledNext] = new WeakReference<>(theme);
+            settledNext = (settledNext + 1) % SETTLED.length;
+            return true;
+        }
+    }
+
+    /** Whether [theme] holds a background [attribute] that isn't a solid color of its own, as a viewer's does. */
+    private static boolean overMedia(Resources.Theme theme, int attribute) {
+        TypedValue value = new TypedValue();
+        return theme.resolveAttribute(attribute, value, false) && !paintsItsOwnBackground(theme, attribute);
+    }
+
+    /** The color [theme] holds for [attribute], 0 for none. */
+    private static int themeColor(Resources.Theme theme, int attribute) {
+        TypedArray values = theme.obtainStyledAttributes(new int[] {attribute});
+        try {
+            return values.getColor(0, 0);
+        } finally {
+            values.recycle();
+        }
+    }
+
+    /** The color [style] gives [attribute], resolved in [theme], 0 for none. */
+    private static int styleColor(Resources.Theme theme, int style, int attribute) {
+        TypedArray values = theme.obtainStyledAttributes(style, new int[] {attribute});
+        try {
+            return values.getColor(0, 0);
+        } finally {
+            values.recycle();
+        }
+    }
+
+    /**
+     * Called as Instagram's Keyframes loader starts on the raw animation [resource]: notes the color
+     * the animation takes when it's one of the repost button's, for {@link #repostAnimation(Drawable)}.
+     * That's the picked icon color, and only where [context]'s theme already holds it for its icons,
+     * so the button matches comment, share and save next to it, and Reels and other screens over
+     * media keep Instagram's white.
+     */
+    public static void repostAnimation(Context context, int resource) {
+        REPOST_PENDING.remove();
+        try {
+            if (context == null || resource == 0) return;
+            AccentHue hue = AccentColor.picked();
+            if (hue == null || !Settings.ACCENT_ICONS.get()) return;
+            Resources resources = context.getResources();
+            String app = Utils.resourcePackage(context);
+            if (!repostRaw(resources, resource, app)) return;
+            Resources.Theme theme = context.getTheme();
+            int icon = id(resources, ICON_ATTRIBUTE, "attr", app);
+            if (theme == null || icon == 0) return;
+            int background = id(resources, BACKGROUND_ATTRIBUTE, "attr", app);
+            if (background != 0 && overMedia(theme, background)) return;
+            int style = id(resources, iconStyle(hue, dark(context, theme, icon)), "style", app);
+            if (style == 0) return;
+            int color = styleColor(theme, style, icon);
+            if (color == 0 || themeColor(theme, icon) != color) return;
+            REPOST_PENDING.set(color);
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.ACCENT_COLOR, "Repost animation", failure);
+        }
+    }
+
+    /** Whether [resource] is one of the {@link #REPOST_ANIMATIONS}. */
+    private static boolean repostRaw(Resources resources, int resource, String app) {
+        for (String name : REPOST_ANIMATIONS) {
+            if (id(resources, name, "raw", app) == resource) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Called with the [animation] Instagram's Keyframes loader hands back, null when the file didn't
+     * load: gives it the color {@link #repostAnimation(Context, int)} noted for it, if any.
+     */
+    public static void repostAnimation(Drawable animation) {
+        try {
+            Integer color = REPOST_PENDING.get();
+            REPOST_PENDING.remove();
+            if (color == null || animation == null) return;
+            Paint paint = new Paint();
+            paint.setColorFilter(new PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN));
+            synchronized (REPOST_PAINTS) {
+                REPOST_PAINTS.put(animation, paint);
+            }
+            HookStatus.counted(FamilyNames.ACCENT_COLOR, REPOST_ICONS);
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.ACCENT_COLOR, "Repost animation", failure);
+        }
+    }
+
+    /**
+     * Called as a Keyframes [animation] starts drawing on [canvas]: one given a color draws into a
+     * layer that lays that color over everything it draws, keeping its shape and its motion. The
+     * layer reaches a quarter of the icon past its bounds, for an animation that steps outside them.
+     */
+    public static void repostDraw(Drawable animation, Canvas canvas) {
+        try {
+            if (animation == null || canvas == null) return;
+            Paint paint;
+            synchronized (REPOST_PAINTS) {
+                if (REPOST_PAINTS.isEmpty()) return;
+                paint = REPOST_PAINTS.get(animation);
+            }
+            if (paint == null) return;
+            Rect bounds = animation.getBounds();
+            if (bounds.isEmpty()) return;
+            float x = bounds.width() / 4f;
+            float y = bounds.height() / 4f;
+            int count = canvas.saveLayer(bounds.left - x, bounds.top - y, bounds.right + x, bounds.bottom + y, paint);
+            REPOST_LAYER.set(new RepostLayer(animation, canvas, count));
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.ACCENT_COLOR, "Repost animation", failure);
+        }
+    }
+
+    /** Called as a Keyframes [animation] is done drawing on [canvas]: closes the layer {@link #repostDraw} opened. */
+    public static void repostDrawn(Drawable animation, Canvas canvas) {
+        try {
+            RepostLayer layer = REPOST_LAYER.get();
+            if (layer == null || layer.animation != animation || layer.canvas != canvas) return;
+            REPOST_LAYER.remove();
+            canvas.restoreToCount(layer.count);
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.ACCENT_COLOR, "Repost animation", failure);
+        }
+    }
+
+    /** A layer {@link #repostDraw} opened: the animation drawing, its canvas and the save count to go back to. */
+    private static final class RepostLayer {
+        final Drawable animation;
+        final Canvas canvas;
+        final int count;
+
+        RepostLayer(Drawable animation, Canvas canvas, int count) {
+            this.animation = animation;
+            this.canvas = canvas;
+            this.count = count;
         }
     }
 

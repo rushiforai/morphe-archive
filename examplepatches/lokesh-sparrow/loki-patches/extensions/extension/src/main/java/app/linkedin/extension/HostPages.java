@@ -28,10 +28,14 @@ final class HostPages {
         boolean splitwise = pkg.startsWith("com.Splitwise.SplitwiseMobile");
         boolean truecaller = pkg.startsWith("com.truecaller");
         boolean docScanner = pkg.startsWith("com.cv.docscanner");
+        boolean mx = pkg.startsWith("com.mxtech.videoplayer");
 
         if (on(context, "app.loki.menu.premium")) pages.add(premium(splitwise, truecaller, docScanner));
         if (splitwise && on(context, "app.loki.menu.amoled")) pages.add(appearance(context));
         if (truecaller && on(context, "app.loki.menu.aftercall")) pages.add(calls(context));
+        if (mx && (on(context, "app.loki.menu.license") || on(context, "app.loki.menu.codec"))) {
+            pages.add(player(context));
+        }
         if (on(context, "app.loki.menu.ads") || on(context, "app.loki.menu.analytics")
                 || on(context, "app.loki.menu.adid") || on(context, "app.loki.menu.proads")) {
             pages.add(privacy(context));
@@ -91,6 +95,19 @@ final class HostPages {
             }
         });
         page.info("Caller ID", () -> "Unchanged - the popup still shows who is calling");
+        return page;
+    }
+
+    private static SettingsActivity.Page player(Context context) {
+        SettingsActivity.Page page = new SettingsActivity.Page("Player", IconDrawable.STAR);
+        if (on(context, "app.loki.menu.license")) {
+            page.info("MX Player Pro", () -> "Licensed - the Google Play check is skipped");
+        }
+        if (on(context, "app.loki.menu.codec")) {
+            page.info("All codecs", () -> "Built in - MX Player's own decoder is replaced by the 1.87.0 codec pack, "
+                    + "so AC3, E-AC3, DTS, DTS-HD, TrueHD and MLP audio play");
+            page.info("Check", () -> "MX Player \u203a Settings \u203a Decoder \u203a Custom codec reads 1.87.0");
+        }
         return page;
     }
 

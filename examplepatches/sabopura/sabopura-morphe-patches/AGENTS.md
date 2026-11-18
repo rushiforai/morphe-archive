@@ -40,6 +40,10 @@ generated `patches-list.json` by hand.
   be checked (for example screens behind a sign-in) in `docs/apps.md`.
 - Twitch has extra requirements; see `docs/twitch-maintenance.md` and
   `tests/twitch-compatibility/README.md`.
+- Twitch patches are one feature each, declared with `twitchFeaturePatch`, on small hidden base
+  patches. Add a value to the extension's `Feature` enum and gate settings with `.needs(...)`.
+  A hook that only adds convenience uses `softHook`: the patch still applies, and
+  `OPTIONAL HOOK FAILED` in the patcher log must fail release validation.
 
 ## Settings storage
 

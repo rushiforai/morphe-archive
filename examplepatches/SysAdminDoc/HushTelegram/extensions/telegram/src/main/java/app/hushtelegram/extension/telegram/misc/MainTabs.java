@@ -182,25 +182,28 @@ public final class MainTabs {
     }
 
     /**
-     * The outline color a glass asks its colors for. Telegram's answer is 0, no outline.
+     * The outline color a glass asks its colors for. The bar's colors answer 0, no outline, and
+     * other colors of the same kind may answer their own.
      *
      * @param colors the colors being asked
-     * @return Telegram blue for the bar's glass with the switch on, otherwise 0
+     * @param telegram the color Telegram's code answered
+     * @return Telegram blue for the bar's glass with the switch on, otherwise Telegram's answer
      */
-    public static int barOutlineColor(Object colors) {
-        if (!outlined(colors, "color")) return 0;
+    public static int barOutlineColor(Object colors, int telegram) {
+        if (!outlined(colors, "color")) return telegram;
         HookStatus.counted(FamilyNames.HIDE_CONTACTS_TAB, "bar outline drawn");
         return OUTLINE_COLOR;
     }
 
     /**
-     * The outline width a glass asks its colors for, in pixels. Telegram's answer is 0.
+     * The outline width a glass asks its colors for, in pixels. The bar's colors answer 0.
      *
      * @param colors the colors being asked
-     * @return 1 dp for the bar's glass with the switch on, otherwise 0
+     * @param telegram the width Telegram's code answered
+     * @return 1 dp for the bar's glass with the switch on, otherwise Telegram's answer
      */
-    public static float barOutlineWidth(Object colors) {
-        return outlined(colors, "width") ? OUTLINE_WIDTH * Resources.getSystem().getDisplayMetrics().density : 0f;
+    public static float barOutlineWidth(Object colors, float telegram) {
+        return outlined(colors, "width") ? OUTLINE_WIDTH * Resources.getSystem().getDisplayMetrics().density : telegram;
     }
 
     /** Whether the colors are the bar's, its outline switch is on and HushTelegram isn't paused. */

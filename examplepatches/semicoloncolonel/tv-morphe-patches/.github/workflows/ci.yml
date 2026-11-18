@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches-ignore:
+      - main
+
+jobs:
+  build:
+    name: Build
+    permissions:
+      contents: read
+      packages: read
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Cache Gradle
+        uses: burrunan/gradle-cache-action@v3
+        with:
+          job-id: morphe-build-v1
+
+      - name: Prefetch Gradle
+        # Fetches the wrapper's Gradle through GitHub's API when it is not cached,
+        # because direct GitHub release links can fail while the API works.
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash .github/scripts/prefetch_gradle.sh
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      # The Morphe plugin resolves from GitHub Packages, which needs a token
+      # even for public packages.
+      - name: Build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew clean :patches:buildAndroid
+
+  scripts:
+    name: Scripts and issue forms
+    permissions:
+      contents: read
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+
+      - name: Test the update checker's version ordering
+        run: python -m unittest discover -s .github/scripts -p 'test_*.py' -v
+
+      - name: Check the issue forms list every app
+        run: python .github/scripts/check_issue_forms.py
+

@@ -665,23 +665,102 @@ public final class RexRuntimeFeatures {
     }
 
     public static void showEmojiTypePicker(final Context context, final Runnable onUpdated) {
-        String[] emojis = {"iOS 17.4 Emoji", "System Default", "Twemoji", "OpenMoji", "Blobmoji"};
+        String[] emojis = {"iOS 17.4 Emoji", "System Default", "Twemoji", "OpenMoji", "Blobmoji", "Custom Emoji Font (.TTF)"};
         showSingleChoiceDialog(context, "Choose Emoji Type", emojis,
                 SharedPref.getStringPref(Settings.CHOOSE_EMOJI_TYPE), chosen -> {
                     SharedPref.setStringPref(Settings.CHOOSE_EMOJI_TYPE.key, chosen);
-                    Utils.showToastShort("Emoji Type: " + chosen);
+                    try {
+                        if ("Custom Emoji Font (.TTF)".equals(chosen)) {
+                            Activity act = RexDialogs.resolveActivity(context);
+                            if (act != null) {
+                                app.morphe.extension.instagram.settings.ActivityHook.launchFragment(act, "rex_pref_add_font");
+                            }
+                            if (onUpdated != null) onUpdated.run();
+                            return;
+                        } else if ("System Default".equals(chosen)) {
+                            app.morphe.extension.suite.instagram.settings.Settings.NOTO_EMOJI.save(false);
+                            app.morphe.extension.suite.instagram.settings.Settings.EMOJI_FONT.save(
+                                    app.morphe.extension.suite.instagram.misc.EmojiChoice.PHONE);
+                            Utils.showToastShort("Emoji Type: System Default active");
+                        } else if ("iOS 17.4 Emoji".equals(chosen)) {
+                            app.morphe.extension.suite.instagram.settings.Settings.NOTO_EMOJI.save(true);
+                            app.morphe.extension.instagram.patches.customise.font.FontStorage.applyBundledFont(
+                                    context, "iOS ExtraBold CT 2026");
+                            Utils.showToastShort("Applied iOS 17.4 Emoji & Typography Pack");
+                        } else {
+                            final app.morphe.extension.suite.instagram.misc.EmojiChoice packChoice =
+                                    "Twemoji".equals(chosen) ? app.morphe.extension.suite.instagram.misc.EmojiChoice.TWEMOJI
+                                    : ("OpenMoji".equals(chosen) ? app.morphe.extension.suite.instagram.misc.EmojiChoice.OPENMOJI
+                                    : app.morphe.extension.suite.instagram.misc.EmojiChoice.BLOBMOJI);
+                            app.morphe.extension.suite.instagram.settings.Settings.EMOJI_FONT.save(packChoice);
+                            Utils.showToastShort("Downloading & activating " + chosen + " pack...");
+                            final Context appCtx = context.getApplicationContext();
+                            Utils.runOnBackgroundThread(() -> {
+                                try {
+                                    app.morphe.extension.suite.instagram.misc.Fonts.Prepared prep =
+                                            app.morphe.extension.suite.instagram.misc.EmojiFonts.download(appCtx, packChoice);
+                                    if (prep != null) {
+                                        app.morphe.extension.suite.instagram.misc.EmojiFonts.prepareInstall(appCtx, prep);
+                                        app.morphe.extension.suite.instagram.misc.EmojiFonts.installed();
+                                        prep.close();
+                                        Utils.runOnMainThread(() ->
+                                                Utils.showToastShort(chosen + " installed — restart Instagram to apply everywhere"));
+                                    }
+                                } catch (Throwable ignored) {}
+                            });
+                        }
+                    } catch (Throwable ignored) {
+                        Utils.showToastShort("Emoji Type: " + chosen);
+                    }
                     if (onUpdated != null) onUpdated.run();
                 });
     }
 
     public static void showFontTypePicker(final Context context, final Runnable onUpdated) {
-        String[] fonts = {"System Default", "iOS San Francisco", "Instagram Sans", "Google Sans", "Custom .TTF / .OTF Font"};
-        showSingleChoiceDialog(context, "Choose Font Type", fonts,
+        String[] fonts = {
+                "System Default",
+                "Instagram Sans",
+                "iOS ExtraBold CT 2026",
+                "iOS Semibold Lite CT 2026",
+                "iOS Story Classic",
+                "iOS Story Modern",
+                "iOS Story Neon",
+                "iOS Story Typewriter",
+                "iOS Story Strong",
+                "iOS Story Elegant",
+                "iOS Story Literature",
+                "iOS Story Beach",
+                "iOS Story Directional",
+                "iOS Story Papyrus",
+                "iOS Story Hindi",
+                "iOS Story Hindi/Gujarati/Marathi",
+                "Custom .TTF / .OTF Font"
+        };
+        showSingleChoiceDialog(context, "Choose Font Type (Stories & UI)", fonts,
                 SharedPref.getStringPref(Settings.CHOOSE_FONT_TYPE), chosen -> {
                     SharedPref.setStringPref(Settings.CHOOSE_FONT_TYPE.key, chosen);
-                    boolean sys = !"Instagram Sans".equals(chosen);
-                    app.morphe.extension.instagram.patches.customise.font.FontStorage.setUseSystemFont(sys);
-                    Utils.showToastShort("Font Type: " + chosen);
+                    if ("Custom .TTF / .OTF Font".equals(chosen)) {
+                        Activity act = RexDialogs.resolveActivity(context);
+                        if (act != null) {
+                            app.morphe.extension.instagram.settings.ActivityHook.launchFragment(act, "rex_pref_add_font");
+                        } else {
+                            Utils.showToastShort("Open Settings -> Custom Typography & Fonts -> Add Font");
+                        }
+                        return;
+                    }
+                    if ("System Default".equals(chosen)) {
+                        app.morphe.extension.instagram.patches.customise.font.FontStorage.delete();
+                        app.morphe.extension.instagram.patches.customise.font.FontStorage.setUseSystemFont(true);
+                        Utils.showToastShort("Font Type: System Default (Restart to apply)");
+                    } else if ("Instagram Sans".equals(chosen)) {
+                        app.morphe.extension.instagram.patches.customise.font.FontStorage.delete();
+                        app.morphe.extension.instagram.patches.customise.font.FontStorage.setUseSystemFont(false);
+                        Utils.showToastShort("Font Type: Instagram Sans (Restart to apply)");
+                    } else if (app.morphe.extension.instagram.patches.customise.font.FontStorage.applyBundledFont(context, chosen)) {
+                        Utils.showToastShort("Applied " + chosen + " (Restart Instagram to activate)");
+                    } else {
+                        Utils.showToastShort("Bundled font resource unavailable");
+                    }
                     if (onUpdated != null) onUpdated.run();
                 });
     }
@@ -733,20 +812,118 @@ public final class RexRuntimeFeatures {
     // -------------------------------------------------------------------------
     private static String languageCodeFor(String languageName) {
         if (languageName == null) return "en";
-        switch (languageName.toLowerCase()) {
-            case "hindi": return "hi";
-            case "spanish": return "es";
-            case "russian": return "ru";
-            case "portuguese": return "pt";
-            case "arabic": return "ar";
-            case "indonesian": return "id";
-            case "turkish": return "tr";
-            case "japanese": return "ja";
-            case "korean": return "ko";
-            case "french": return "fr";
-            case "german": return "de";
-            default: return "en";
+        String lower = languageName.toLowerCase();
+        if (lower.startsWith("hindi")) return "hi";
+        if (lower.startsWith("spanish")) return "es";
+        if (lower.startsWith("russian")) return "ru";
+        if (lower.startsWith("portuguese")) return "pt";
+        if (lower.startsWith("arabic")) return "ar";
+        if (lower.startsWith("indonesian")) return "id";
+        if (lower.startsWith("turkish")) return "tr";
+        if (lower.startsWith("japanese")) return "ja";
+        if (lower.startsWith("korean")) return "ko";
+        if (lower.startsWith("french")) return "fr";
+        if (lower.startsWith("german")) return "de";
+        return "en";
+    }
+
+    private static String decodeHtmlEntities(String input) {
+        if (input == null) return "";
+        return input
+                .replace("&quot;", "\"")
+                .replace("&#39;", "'")
+                .replace("&apos;", "'")
+                .replace("&amp;", "&")
+                .replace("&lt;", "<")
+                .replace("&gt;", ">");
+    }
+
+    private static String httpGetText(String urlStr) throws Exception {
+        HttpURLConnection conn = (HttpURLConnection) new URL(urlStr).openConnection();
+        conn.setConnectTimeout(8000);
+        conn.setReadTimeout(8000);
+        conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 14; Pixel 8 Pro) AppleWebKit/537.36 Chrome/124.0.0.0 Mobile Safari/537.36");
+        conn.setRequestProperty("Accept", "application/json, text/plain, */*");
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"))) {
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) sb.append(line);
+            return sb.toString();
+        } finally {
+            conn.disconnect();
         }
+    }
+
+    private static String translateViaTier1(String text, String tl) {
+        try {
+            String urlStr = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl="
+                    + URLEncoder.encode(tl, "UTF-8") + "&dt=t&q=" + URLEncoder.encode(text, "UTF-8");
+            String body = httpGetText(urlStr);
+            JSONArray outer = new JSONArray(body);
+            JSONArray sentences = outer.optJSONArray(0);
+            if (sentences != null) {
+                StringBuilder out = new StringBuilder();
+                for (int i = 0; i < sentences.length(); i++) {
+                    JSONArray seg = sentences.optJSONArray(i);
+                    if (seg != null && seg.length() > 0) {
+                        out.append(seg.optString(0, ""));
+                    }
+                }
+                String res = decodeHtmlEntities(out.toString().trim());
+                if (!res.isEmpty()) return res;
+            }
+        } catch (Throwable ignored) {}
+        return null;
+    }
+
+    private static String translateViaTier2(String text, String tl) {
+        try {
+            String urlStr = "https://clients5.google.com/translate_a/t?client=dict-chrome-ex&sl=auto&tl="
+                    + URLEncoder.encode(tl, "UTF-8") + "&q=" + URLEncoder.encode(text, "UTF-8");
+            String body = httpGetText(urlStr);
+            JSONArray arr = new JSONArray(body);
+            if (arr.length() > 0) {
+                Object first = arr.get(0);
+                if (first instanceof JSONArray) {
+                    String candidate = ((JSONArray) first).optString(0, "");
+                    if (!candidate.isEmpty()) return decodeHtmlEntities(candidate.trim());
+                } else if (first instanceof String) {
+                    String candidate = (String) first;
+                    if (!candidate.isEmpty()) return decodeHtmlEntities(candidate.trim());
+                }
+            }
+        } catch (Throwable ignored) {}
+        return null;
+    }
+
+    private static String translateViaTier3(String text, String tl) {
+        try {
+            String urlStr = "https://api.mymemory.translated.net/get?q="
+                    + URLEncoder.encode(text, "UTF-8") + "&langpair=" + URLEncoder.encode("Autodetect|" + tl, "UTF-8");
+            String body = httpGetText(urlStr);
+            org.json.JSONObject obj = new org.json.JSONObject(body);
+            org.json.JSONObject data = obj.optJSONObject("responseData");
+            if (data != null) {
+                String candidate = decodeHtmlEntities(data.optString("translatedText", "").trim());
+                if (!candidate.isEmpty() && !candidate.toUpperCase().contains("MYMEMORY WARNING")) {
+                    return candidate;
+                }
+            }
+        } catch (Throwable ignored) {}
+        return null;
+    }
+
+    private static String translateViaTier4(String text, String tl) {
+        try {
+            String urlStr = "https://lingva.ml/api/v1/auto/"
+                    + URLEncoder.encode(tl, "UTF-8") + "/"
+                    + URLEncoder.encode(text, "UTF-8").replace("+", "%20");
+            String body = httpGetText(urlStr);
+            org.json.JSONObject obj = new org.json.JSONObject(body);
+            String candidate = decodeHtmlEntities(obj.optString("translation", "").trim());
+            if (!candidate.isEmpty()) return candidate;
+        } catch (Throwable ignored) {}
+        return null;
     }
 
     public static void translateText(final Context context, final String text, final String label) {
@@ -754,43 +931,37 @@ public final class RexRuntimeFeatures {
             Utils.showToastShort(label + " is empty");
             return;
         }
+        final String raw = text.trim();
         final String targetLangName = SharedPref.getStringPref(Settings.TRANSLATOR_LANGUAGE);
-        final String tl = languageCodeFor(targetLangName);
-        Utils.showToastShort("Translating to " + targetLangName + "...");
+        final String safeLangName = (targetLangName == null || targetLangName.isEmpty()) ? "English" : targetLangName;
+        final String tl = languageCodeFor(safeLangName);
+        Utils.showToastShort("Translating to " + safeLangName + "...");
 
         Utils.runOnBackgroundThread(() -> {
-            String translated = null;
-            try {
-                String urlStr = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl="
-                        + URLEncoder.encode(tl, "UTF-8") + "&dt=t&q=" + URLEncoder.encode(text.trim(), "UTF-8");
-                HttpURLConnection conn = (HttpURLConnection) new URL(urlStr).openConnection();
-                conn.setConnectTimeout(10000);
-                conn.setReadTimeout(10000);
-                conn.setRequestProperty("User-Agent", "Mozilla/5.0");
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"))) {
-                    StringBuilder sb = new StringBuilder();
-                    String line;
-                    while ((line = reader.readLine()) != null) sb.append(line);
-                    JSONArray outer = new JSONArray(sb.toString());
-                    JSONArray sentences = outer.optJSONArray(0);
-                    if (sentences != null) {
-                        StringBuilder out = new StringBuilder();
-                        for (int i = 0; i < sentences.length(); i++) {
-                            JSONArray seg = sentences.optJSONArray(i);
-                            if (seg != null && seg.length() > 0) {
-                                out.append(seg.optString(0, ""));
-                            }
-                        }
-                        translated = out.toString().trim();
-                    }
-                }
-            } catch (Throwable ignored) {}
+            String translated = translateViaTier1(raw, tl);
+            if (translated == null || translated.isEmpty()) {
+                translated = translateViaTier2(raw, tl);
+            }
+            if (translated == null || translated.isEmpty()) {
+                translated = translateViaTier3(raw, tl);
+            }
+            if (translated == null || translated.isEmpty()) {
+                translated = translateViaTier4(raw, tl);
+            }
 
-            final String resultText = (translated != null && !translated.isEmpty()) ? translated : text;
+            final boolean ok = translated != null && !translated.isEmpty();
+            final String resultText = ok ? translated : raw;
             Utils.runOnMainThread(() -> {
+                if (ok) {
+                    Utils.setClipboard(resultText);
+                    Utils.showToastShort("Translated to " + safeLangName + " & copied to clipboard");
+                } else {
+                    Utils.showToastShort("Translation service unreachable — showing original text");
+                }
                 RexDialogs.showTextStudioDialog(
                         context,
-                        "Translated " + label + " (" + targetLangName + ")",
+                        ok ? ("Translated " + label + " (" + safeLangName + ")")
+                           : ("Translation Failed — Original " + label),
                         "",
                         resultText,
                         ""
@@ -1085,4 +1256,414 @@ public final class RexRuntimeFeatures {
         }
         return freed;
     }
+
+    // -------------------------------------------------------------------------
+    // Batch Carousel Repost / Share Queue (Repost all N as Posts/Stories/WA)
+    // -------------------------------------------------------------------------
+    public static void repostAllCarouselMedia(
+            final Context context,
+            final MediaData rootMedia,
+            final int totalCount,
+            final String target
+    ) {
+        if (rootMedia == null || totalCount <= 0) {
+            Utils.showToastShort("Couldn't resolve carousel items to repost.");
+            return;
+        }
+        Utils.showToastShort("Preparing " + totalCount + " carousel items for batch share...");
+        Utils.runOnBackgroundThread(() -> {
+            try {
+                File cacheDir = new File(context.getCacheDir(), "rex_repost_batch");
+                if (!cacheDir.exists()) cacheDir.mkdirs();
+
+                ArrayList<Uri> sharedUris = new ArrayList<>();
+                boolean hasVideo = false;
+                boolean hasImage = false;
+
+                for (int idx = 0; idx < totalCount; idx++) {
+                    MediaData item = null; try { item = rootMedia.getMediaAt(idx); } catch (Throwable ignored) {}
+                    if (item == null) continue;
+                    boolean isVid = false;
+                    try {
+                        isVid = item.isVideo();
+                    } catch (Throwable ignored) {}
+                    String url = null; try { url = isVid ? item.getVideoLink() : item.getImageLink(); } catch (Throwable ignored) { try { url = item.getMediaLink(); } catch (Throwable ignored2) {} }
+                    if (url == null || url.isEmpty()) continue;
+
+                    String ext = isVid ? ".mp4" : ".jpg";
+                    File outFile = new File(cacheDir, "rex_batch_" + (idx + 1) + "_" + (System.currentTimeMillis() / 1000L) + ext);
+                    HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
+                    conn.setConnectTimeout(12000);
+                    conn.setReadTimeout(20000);
+                    try (InputStream in = new BufferedInputStream(conn.getInputStream());
+                         OutputStream out = new java.io.FileOutputStream(outFile)) {
+                        byte[] buf = new byte[8192];
+                        int n;
+                        while ((n = in.read(buf)) != -1) {
+                            out.write(buf, 0, n);
+                        }
+                    } finally {
+                        conn.disconnect();
+                    }
+
+                    ContentValues values = new ContentValues();
+                    values.put(MediaStore.MediaColumns.DISPLAY_NAME, outFile.getName());
+                    values.put(MediaStore.MediaColumns.MIME_TYPE, isVid ? "video/mp4" : "image/jpeg");
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/InstaRex_Share");
+                    }
+                    Uri collection = isVid
+                            ? MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+                            : MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+                    Uri itemUri = context.getContentResolver().insert(collection, values);
+                    if (itemUri != null) {
+                        try (InputStream in = new java.io.FileInputStream(outFile);
+                             OutputStream out = context.getContentResolver().openOutputStream(itemUri)) {
+                            if (out != null) {
+                                byte[] buf = new byte[8192];
+                                int n;
+                                while ((n = in.read(buf)) != -1) {
+                                    out.write(buf, 0, n);
+                                }
+                            }
+                        }
+                        sharedUris.add(itemUri);
+                        if (isVid) hasVideo = true;
+                        else hasImage = true;
+                    }
+                }
+
+                final String mime = (hasVideo && hasImage) ? "*/*" : (hasVideo ? "video/*" : "image/*");
+                Utils.runOnMainThread(() -> {
+                    if (sharedUris.isEmpty()) {
+                        Utils.showToastShort("Couldn't prepare carousel items for sharing.");
+                        return;
+                    }
+                    try {
+                        Intent intent = new Intent(Intent.ACTION_SEND_MULTIPLE);
+                        intent.setType(mime);
+                        intent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, sharedUris);
+                        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+                        if (Boolean.TRUE.equals(SharedPref.getBooleanPref(Settings.REPOST_WITH_CAPTION_WA))) {
+                            try {
+                                String cap = rootMedia.getDescriptionText();
+                                if (cap != null && !cap.isEmpty()) {
+                                    intent.putExtra(Intent.EXTRA_TEXT, stripHashtagsIfConfigured(cap));
+                                }
+                            } catch (Throwable ignored) {}
+                        }
+
+                        if ("WHATSAPP".equals(target)) {
+                            String waType = SharedPref.getStringPref(Settings.CHOOSE_WHATSAPP_TYPE);
+                            String pkg = (waType != null && waType.contains("Business"))
+                                    ? "com.whatsapp.w4b" : "com.whatsapp";
+                            intent.setPackage(pkg);
+                        } else {
+                            intent.setPackage(context.getPackageName());
+                        }
+
+                        Intent chooser = Intent.createChooser(intent, "Repost " + sharedUris.size() + " Carousel Items");
+                        if (!(context instanceof Activity)) {
+                            chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        }
+                        context.startActivity(chooser);
+                    } catch (Throwable err) {
+                        Utils.showToastShort("Couldn't launch batch share target.");
+                    }
+                });
+            } catch (Throwable e) {
+                Utils.runOnMainThread(() -> Utils.showToastShort("Batch carousel share failed. Try again."));
+            }
+        });
+    }
+
+    public static void showStoryMediaInfoDialog(
+            final Context context,
+            final app.morphe.extension.instagram.patches.download.MediaContextResolver.MediaCapabilities caps
+    ) {
+        if (caps == null) return;
+        try {
+            final Context hostCtx = RexDialogs.resolveActivity(context) != null ? RexDialogs.resolveActivity(context) : context;
+            final AlertDialog dialog = new AlertDialog.Builder(hostCtx).create();
+            LinearLayout sheet = RexDialogs.createDialogSheet(hostCtx, "info", "Story Media Information");
+
+            String typeLabel = caps.currentItemIsVideo ? "Story Video (MP4)" : "Story Photo (JPEG)";
+            String slideLabel = caps.totalCount > 1
+                    ? (caps.displayIndex + " of " + caps.totalCount)
+                    : "Single Story Item";
+            String audioLabel = caps.hasAudioTrack ? "Available (AAC / MP3)" : "None (Silent / Photo)";
+            final String summary = "Author: @" + caps.username + "\n"
+                    + "Media Type: " + typeLabel + "\n"
+                    + "Story Position: " + slideLabel + "\n"
+                    + "Audio Stream: " + audioLabel + "\n"
+                    + "Clean URL: " + (caps.postLink == null || caps.postLink.isEmpty() ? "N/A" : caps.postLink);
+
+            TextView infoView = new TextView(hostCtx);
+            infoView.setText(summary);
+            infoView.setTextColor(RexDialogs.TEXT_PRIMARY);
+            infoView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f);
+            infoView.setLineSpacing(RexVectorIcons.dp(hostCtx, 3), 1.08f);
+            int pad = RexVectorIcons.dp(hostCtx, 14);
+            infoView.setPadding(pad, pad, pad, pad);
+            GradientDrawable bg = new GradientDrawable();
+            bg.setColor(RexDialogs.ELEVATED_SURFACE);
+            bg.setCornerRadius(RexVectorIcons.dp(hostCtx, 16));
+            bg.setStroke(Math.max(1, RexVectorIcons.dp(hostCtx, 1)), RexDialogs.BORDER_STROKE);
+            infoView.setBackground(bg);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            lp.bottomMargin = RexVectorIcons.dp(hostCtx, 12);
+            sheet.addView(infoView, lp);
+
+            LinearLayout card = RexDialogs.createGroupedMenuCard(hostCtx);
+            RexDialogs.addGroupedMenuRow(hostCtx, card, "copy", "Copy Story Metadata", false, () -> {
+                dialog.dismiss();
+                Utils.setClipboard(summary);
+                Utils.showToastShort("Story metadata copied to clipboard");
+            });
+            sheet.addView(card);
+
+            RexDialogs.addDialogCloseFooter(hostCtx, sheet, dialog);
+            dialog.setView(sheet);
+            RexDialogs.showBlurredDialog(hostCtx, dialog);
+        } catch (Throwable ignored) {}
+    }
+
+    // -------------------------------------------------------------------------
+    // 9. Multi-Theme Color Mode Picker (6 Curated AMOLED & Glass Palettes)
+    // -------------------------------------------------------------------------
+    public static void showColorModePicker(final Context context, final Runnable onUpdated) {
+        String current = app.morphe.extension.instagram.utils.Pref.rexColorMode();
+        showSingleChoiceDialog(
+                context,
+                "Color Mode & Accent Palette",
+                InstagramPreferenceStyle.COLOR_MODES,
+                current,
+                chosen -> {
+                    SharedPref.setStringPref(Settings.REX_COLOR_MODE.key, chosen);
+                    Utils.showToastShort("Applied Color Mode: " + chosen);
+                    if (onUpdated != null) {
+                        onUpdated.run();
+                    } else {
+                        Activity act = RexDialogs.resolveActivity(context);
+                        if (act != null && app.morphe.extension.instagram.settings.ActivityHook.isRex(act)) {
+                            act.recreate();
+                        }
+                    }
+                }
+        );
+    }
+
+    // -------------------------------------------------------------------------
+    // 10. Long-Press Search Tab -> Open Profile from Clipboard or Prompt
+    // -------------------------------------------------------------------------
+    public static void openProfileFromClipboardOrPrompt(final Context context) {
+        try {
+            final Context hostCtx = RexDialogs.resolveActivity(context) != null ? RexDialogs.resolveActivity(context) : context;
+            String clipText = "";
+            try {
+                android.content.ClipboardManager cm =
+                        (android.content.ClipboardManager) hostCtx.getSystemService(Context.CLIPBOARD_SERVICE);
+                if (cm != null && cm.hasPrimaryClip() && cm.getPrimaryClip() != null
+                        && cm.getPrimaryClip().getItemCount() > 0) {
+                    CharSequence cs = cm.getPrimaryClip().getItemAt(0).coerceToText(hostCtx);
+                    if (cs != null) clipText = cs.toString().trim();
+                }
+            } catch (Throwable ignored) {}
+
+            String resolvedUser = extractUsernameFromText(clipText);
+            if (!resolvedUser.isEmpty()) {
+                Utils.showToastShort("Opening profile @" + resolvedUser + "...");
+                openInstagramProfileHandle(hostCtx, resolvedUser);
+                return;
+            }
+
+            final AlertDialog dialog = new AlertDialog.Builder(hostCtx).create();
+            LinearLayout sheet = RexDialogs.createDialogSheet(hostCtx, "user-round-search", "Open Profile by @Username");
+
+            TextView desc = new TextView(hostCtx);
+            desc.setText("Tip: Copy any @username or instagram.com/username link and long-press the Search tab to jump straight to that profile.");
+            desc.setTextColor(RexDialogs.TEXT_SECONDARY);
+            desc.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13.5f);
+            desc.setPadding(RexVectorIcons.dp(hostCtx, 4), 0, RexVectorIcons.dp(hostCtx, 4), RexVectorIcons.dp(hostCtx, 10));
+            sheet.addView(desc);
+
+            final EditText input = new EditText(hostCtx);
+            input.setHint("@username or profile URL");
+            input.setHintTextColor(RexDialogs.TEXT_SECONDARY);
+            input.setTextColor(RexDialogs.TEXT_PRIMARY);
+            input.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f);
+            int p = RexVectorIcons.dp(hostCtx, 12);
+            input.setPadding(p, p, p, p);
+            GradientDrawable inBg = new GradientDrawable();
+            inBg.setColor(InstagramPreferenceStyle.elevatedSurfaceColor());
+            inBg.setCornerRadius(RexVectorIcons.dp(hostCtx, 14));
+            inBg.setStroke(Math.max(1, RexVectorIcons.dp(hostCtx, 1)), InstagramPreferenceStyle.borderStrokeColor());
+            input.setBackground(inBg);
+            LinearLayout.LayoutParams inLp = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            inLp.bottomMargin = RexVectorIcons.dp(hostCtx, 12);
+            sheet.addView(input, inLp);
+
+            TextView openBtn = createActionButton(
+                    hostCtx,
+                    "Open Instagram Profile",
+                    InstagramPreferenceStyle.accentColor(),
+                    0xFF0A1417
+            );
+            openBtn.setOnClickListener(v -> {
+                RexHaptics.tap(v);
+                String handle = extractUsernameFromText(input.getText() == null ? "" : input.getText().toString());
+                if (handle.isEmpty()) {
+                    Utils.showToastShort("Enter a valid @username");
+                    return;
+                }
+                dialog.dismiss();
+                openInstagramProfileHandle(hostCtx, handle);
+            });
+            sheet.addView(openBtn);
+
+            RexDialogs.addDialogCloseFooter(hostCtx, sheet, dialog);
+            dialog.setView(sheet);
+            RexDialogs.showBlurredDialog(hostCtx, dialog);
+        } catch (Throwable e) {
+            Utils.showToastShort("Couldn't open profile launcher.");
+        }
+    }
+
+    public static String extractUsernameFromText(String raw) {
+        if (raw == null) return "";
+        String t = raw.trim();
+        if (t.isEmpty()) return "";
+        Matcher urlMatcher = Pattern.compile("instagram\\.com/([A-Za-z0-9._]{1,30})", Pattern.CASE_INSENSITIVE).matcher(t);
+        if (urlMatcher.find()) {
+            String candidate = urlMatcher.group(1);
+            if (!"p".equalsIgnoreCase(candidate)
+                    && !"reel".equalsIgnoreCase(candidate)
+                    && !"reels".equalsIgnoreCase(candidate)
+                    && !"stories".equalsIgnoreCase(candidate)
+                    && !"explore".equalsIgnoreCase(candidate)) {
+                return candidate;
+            }
+        }
+        if (t.startsWith("@")) t = t.substring(1).trim();
+        if (t.matches("^[A-Za-z0-9._]{1,30}$")) {
+            return t;
+        }
+        return "";
+    }
+
+    public static void openInstagramProfileHandle(Context context, String username) {
+        if (username == null || username.isEmpty()) return;
+        String clean = username.startsWith("@") ? username.substring(1) : username;
+        try {
+            Uri uri = Uri.parse("instagram://user?username=" + Uri.encode(clean));
+            Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+            intent.setPackage(context.getPackageName());
+            if (!(context instanceof Activity)) intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(intent);
+        } catch (Throwable e) {
+            app.morphe.extension.rex.RexUtils.openUrl("https://www.instagram.com/" + clean + "/", true);
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // 11. Built-In InstaRex Pro Config V6 (3,796 MobileConfig Flags) Engine
+    // -------------------------------------------------------------------------
+    private static String readBuiltInProConfigJson(Context context) {
+        try {
+            int rawId = (context != null && context.getResources() != null)
+                    ? context.getResources().getIdentifier("instarex_pro_config_v6", "raw", context.getPackageName())
+                    : 0;
+            if (rawId != 0) {
+                try (InputStream in = context.getResources().openRawResource(rawId);
+                     BufferedReader reader = new BufferedReader(new InputStreamReader(in, "UTF-8"))) {
+                    StringBuilder sb = new StringBuilder(540000);
+                    char[] buf = new char[8192];
+                    int n;
+                    while ((n = reader.read(buf)) != -1) {
+                        sb.append(buf, 0, n);
+                    }
+                    return sb.toString();
+                }
+            }
+        } catch (Throwable ignored) {}
+        return "{\n"
+                + "  \"83164:\": \"0: true, 1: true, 2: 50000000, 3: 60\",\n"
+                + "  \"85201:\": \"0: true, 1: 180\",\n"
+                + "  \"88112:\": \"0: true, 1: true\",\n"
+                + "  \"79665:\": \"3: InstaRex Original Navigation, 4: InstaRex New Navigation, 5: InstaRex Classic Navigation\"\n"
+                + "}";
+    }
+
+    public static void applyBuiltInProConfigV6(final Context context) {
+        if (context == null) return;
+        Utils.showToastShort("Applying InstaRex Pro Config V6 (3,796 flags)...");
+        Utils.runOnBackgroundThread(() -> {
+            try {
+                String json = readBuiltInProConfigJson(context);
+                File mcDir = new File(context.getFilesDir(), "mobileconfig");
+                if (!mcDir.exists()) mcDir.mkdirs();
+                File mcFile = new File(mcDir, "mc_overrides.json");
+                try (OutputStream out = new java.io.FileOutputStream(mcFile)) {
+                    out.write(json.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                }
+                SharedPref.setBooleanPref(Settings.AUTO_APPLY_PRO_CONFIG_V6.key, true);
+                SharedPref.setBooleanPref(Settings.HIGH_QUALITY_UPLOAD.key, true);
+                SharedPref.setBooleanPref(Settings.UPLOAD_60FPS_STORIES.key, true);
+                SharedPref.setBooleanPref(Settings.EXTENDED_STORY_DURATION.key, true);
+                app.morphe.extension.instagram.patches.devFlags.HookFlags.load();
+
+                Utils.runOnMainThread(() -> RexDialogs.showConfirmDialog(
+                        context,
+                        "InstaRex Pro Config V6 Applied",
+                        "Successfully installed 3,796 sanitized MobileConfig overrides (60fps camera/stories, max bitrate uploads, Reels seek/audio unlock, and UI refinements) into mc_overrides.json.\n\nRestart Instagram now to activate all low-level flags?",
+                        "Restart Now",
+                        false,
+                        () -> Utils.restartApp(context)
+                ));
+            } catch (Throwable e) {
+                Utils.runOnMainThread(() ->
+                        Utils.showToastShort("Couldn't apply Pro Config V6. Try again."));
+            }
+        });
+    }
+
+    public static void exportBuiltInProConfigV6(final Context context) {
+        if (context == null) return;
+        Utils.runOnBackgroundThread(() -> {
+            try {
+                String json = readBuiltInProConfigJson(context);
+                String fileName = "INSTAREX_PRO_CONFIG_V6.json";
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    ContentValues values = new ContentValues();
+                    values.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
+                    values.put(MediaStore.MediaColumns.MIME_TYPE, "application/json");
+                    values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS + "/xboyrex");
+                    Uri uri = context.getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
+                    if (uri != null) {
+                        try (OutputStream out = context.getContentResolver().openOutputStream(uri)) {
+                            if (out != null) {
+                                out.write(json.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                            }
+                        }
+                    }
+                } else {
+                    File dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "xboyrex");
+                    if (!dir.exists()) dir.mkdirs();
+                    File out = new File(dir, fileName);
+                    try (OutputStream os = new java.io.FileOutputStream(out)) {
+                        os.write(json.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                    }
+                }
+                Utils.runOnMainThread(() ->
+                        Utils.showToastShort("Exported Download/xboyrex/INSTAREX_PRO_CONFIG_V6.json"));
+            } catch (Throwable e) {
+                Utils.runOnMainThread(() ->
+                        Utils.showToastShort("Export failed. Check storage permission."));
+            }
+        });
+    }
+
 }

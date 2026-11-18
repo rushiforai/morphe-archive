@@ -129,7 +129,11 @@ public final class StoryMentionPopup {
     }
 
     public static void show(Activity activity, List<Mention> mentions) {
-        if (mentions.isEmpty()) return;
+        if (activity == null || activity.isFinishing()) return;
+        if (mentions == null || mentions.isEmpty()) {
+            PeopleCellDialogBox.showPeopleDialog(activity, new java.util.ArrayList<>(), null);
+            return;
+        }
         int style = StoryMentionSettings.popupStyle(activity);
         Palette p = palette(activity, style);
         boolean pt = pt();
@@ -174,7 +178,7 @@ public final class StoryMentionPopup {
             headerRow.addView(headerIcon, hiLp);
 
             TextView title = new TextView(activity);
-            title.setText(pt ? "Menções" : "Mentions");
+            title.setText((pt ? "Menções Ocultas (" : "Hidden Mentions (") + mentions.size() + ")");
             title.setTextColor(p.primary);
             title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20.5f);
             title.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));

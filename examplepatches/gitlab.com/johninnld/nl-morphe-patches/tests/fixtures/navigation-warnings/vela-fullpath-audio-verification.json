@@ -1,0 +1,144 @@
+{
+  "format": 1,
+  "target_package": "app.vela",
+  "target_version": "0.5.2621",
+  "mpp_sha256": "0a07e5dc4d0581b26135cc883654fb242a07018a5d5360700a08bed294dacc58",
+  "installed_sha256": {
+    "nl.flitsmeister": "3e3c2e987bb6e9b28bc5692e52828ee03d317cf925f719ed4aece29f11614ac8",
+    "app.vela": "8254e43848c3244753ebc89b657143cb2e8ef26232a0cfd220b9158661e1043f",
+    "nl.johninnl.warningprobe.integration.vela": "d45c61c6d935dd754b88372a5540b3e4f965af9e7b9fc3d17ae3186dca27ab65"
+  },
+  "source_probe_sha256": "a9e5cfb255d72230b969f7f859faeae604a7e2dcb2b87f9c42457349f3c37ea1",
+  "signer_sha256": "2ce9d34e9493f2bb91c9c7863ba2a4e839f5ef27864e404e8a5624ebc0be0597",
+  "device": {
+    "serial": "emulator-5582",
+    "avd": "native_warnings_vela_api34",
+    "android_sdk": 34,
+    "receiver_uid": 10192,
+    "source_uid": 10194
+  },
+  "raw_reports": {
+    ".analysis/native-warning-bindings/vela-fullpath-pcm-final/result.json": "6ab2d81449ff717fb6162958f16f8de451171bc4b404f357bcb40a2480d4a806",
+    ".analysis/native-warning-bindings/vela-fullpath-pcm-final/receiver-result.json": "c4201ab9a6620c0aa321da6780f1d3865ab0ebbf000ca6cbe26727dd2e46bc8b",
+    ".analysis/native-warning-bindings/vela-fullpath-pcm-final/source/4d7017bb-d337-4574-ad1c-0080f0a8f422/result.json": "aa779502b387086194f55d6417c5441a43da73aa7824d6d4e6607bc80f9543e6"
+  },
+  "scope": "One controlled native SpeedCam callback through the actual FM production Endpoint and actual Vela Activity/ViewModel/session/connection/scheduler/native selected system engine/attached widget. Original same-object vy4 callbacks were forwarded by a private diagnostic listener wrapper.",
+  "native_authority": {
+    "language_tag": "en-US",
+    "native_local_mute_bypass": false,
+    "issued_elapsed_ms": 8099756,
+    "latitude": 52.001,
+    "native_family": "SpeedCam",
+    "priority": 1,
+    "protocol_version": 1,
+    "native_announce_observed": true,
+    "position_observed_elapsed_ms": 8099756,
+    "relationship": "unknown",
+    "revision": 1,
+    "category": "speed_control",
+    "phase": "enter",
+    "relevance": "point_ahead",
+    "longitude": 5,
+    "position_estimated": false,
+    "capture_path": "regular",
+    "state_until_elapsed_ms": 8129756,
+    "native_subtype": "SPEED_50",
+    "message_origin": "native_text",
+    "native_text_key": "374708fff7719dd5979ec875d56cd2286f6d3cf7ec317a3b25632aab28ec37bb",
+    "message": "Speed cam 50",
+    "announcement_index": 1,
+    "native_point_target": true,
+    "provider_session": "8c27dca5-e5d8-47d8-b7c1-46fde093bbbc",
+    "sequence": 1,
+    "observed_elapsed_ms": 8099756,
+    "operation": "ANNOUNCE",
+    "native_type": "SPEED_CAM",
+    "position_clock_origin": "native_decision",
+    "warning_id": "SpeedCam:probe-vela-final-pcm",
+    "announce_until_elapsed_ms": 8109756
+  },
+  "source_dispositions": [
+    {
+      "receiver_uid": 10192,
+      "outcome": "GRANTED",
+      "started": false,
+      "mode": "VOICE"
+    },
+    {
+      "receiver_uid": 10192,
+      "outcome": "STARTED",
+      "started": true,
+      "mode": "VOICE"
+    },
+    {
+      "receiver_uid": 10192,
+      "outcome": "COMPLETED",
+      "started": true,
+      "mode": "VOICE"
+    }
+  ],
+  "pcm_signals": [
+    {
+      "utterance_id": "vela-warning-4b5dc7a3-7f93-4aa0-8aac-cbcd8e882d3e",
+      "warning_id": "SpeedCam:probe-vela-final-pcm",
+      "provider_session": "8c27dca5-e5d8-47d8-b7c1-46fde093bbbc",
+      "grant_attempt_id": "0fed4e8e-5c1a-4f02-9c1f-bbb41af54f42",
+      "sample_rate": 24000,
+      "audio_format": 2,
+      "channels": 1,
+      "captured_bytes": 74160,
+      "total_bytes": 74160,
+      "truncated": false,
+      "samples": 37080,
+      "nonzero_samples": 32705,
+      "peak": 0.46795654296875,
+      "rms": 0.08759574153080799,
+      "duration_seconds": 1.545,
+      "started": true,
+      "done": true,
+      "stopped": false,
+      "failed": false,
+      "pcm_file": "/storage/emulated/0/Android/data/app.vela/files/native-warning-integrated/vela-warning-4b5dc7a3-7f93-4aa0-8aac-cbcd8e882d3e.pcm",
+      "pcm_sha256": "e8a14dfc9ab441fb40f834171e436ac185a61e2f0f42392d42d7f881ae9dff34"
+    }
+  ],
+  "host_pcm_sha256": "e8a14dfc9ab441fb40f834171e436ac185a61e2f0f42392d42d7f881ae9dff34",
+  "screenshot_sha256": "4a2df54d3e4ee556812763a10f64b901955b1b86384f54764d7c25264ac186ae",
+  "ui": {
+    "widget_attached": true,
+    "widget_description": "Current speed unknown, speed limit unknown, Flitsmeister\nSpeed cam 50",
+    "foreground_activity": "app.vela.MainActivity",
+    "activity_has_window_focus": true,
+    "compact_text": "Flitsmeister\nSpeed cam 50",
+    "widget_shown": true,
+    "widget_x": 47,
+    "widget_y": 1860,
+    "widget_width": 660,
+    "widget_height": 372,
+    "captured_message": "Speed cam 50",
+    "screenshot": "/storage/emulated/0/Android/data/app.vela/files/native-warning-integrated/integrated-warning.png"
+  },
+  "cleanup": {
+    "source_network_and_lease_restored": true,
+    "source_cleanup_errors": [],
+    "receiver_output_quiescent": true,
+    "original_tts_listener_restored": true,
+    "preferences_restored_exactly": true,
+    "preferences_before_sha256": "4ef49c5738c5310c67677a74f042539c5ef35b16c0362291edd876d7cb68ad35",
+    "preferences_after_sha256": "4ef49c5738c5310c67677a74f042539c5ef35b16c0362291edd876d7cb68ad35",
+    "permissions_restored_exactly": true,
+    "hidden_api_policy_before": "null",
+    "hidden_api_policy_after": "null"
+  },
+  "probe_completed": true,
+  "process_exit_codes": {
+    "source": 0,
+    "receiver": 0
+  },
+  "not_proven": [
+    "Acoustic output, human hearing or physical head-unit routing",
+    "Natural detector accuracy",
+    "Warm latency quantiles; this was a cold single observation with concurrent host work",
+    "Selected neural/Tone runtime on this exact current APK; their earlier standalone evidence is separately artifact-bound"
+  ]
+}

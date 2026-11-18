@@ -3,14 +3,32 @@ package app.fakh.patches.jira
 import app.fakh.patches.jira.shared.Constants.COMPATIBILITY_JIRA
 import app.fakhradio.patches.shared.writeColors
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.patch
 import app.morphe.patcher.patch.classDefForEach
 import app.morphe.patcher.patch.mutableClassDefBy
 import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
+import app.morphe.patcher.Fingerprint
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private const val EXTENSION = "Lapp/fakh/extension/jira/MaterialYou;"
+
+/** The class of the floating Rovo button, found by its name since R8 keeps it. */
+private val rovoFabFingerprint = Fingerprint(
+    returnType = "V",
+    custom = { method, classDef ->
+        classDef.type.endsWith("/rovochat/RovoChatFloatingActionButtonKt;") && method.parameterTypes.size == 7
+    },
+)
 
 /** The Theme choices are built by a lambda that casts the screen's current theme, of this type. */
 
@@ -165,8 +183,7 @@ private fun appCompatActivity(): MutableClass {
 @Suppress("unused")
 val materialYouPatch = patch(
     name = "Material You",
-    description = "Uses your wallpaper's colors (Android 12+): the accent color instead of Jira blue and tinted " +
-        "surfaces, in light and dark mode.",
+    description = "Uses your wallpaper's colors (Android 12+) in light and dark mode.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_JIRA)
@@ -202,6 +219,113 @@ val materialYouPatch = patch(
                 .reversed()
                 .forEach { (index, _) -> initializer.addInstructions(index, smali) }
         }
+
+        // The floating Rovo button: its container and icon take accent tones. Both are arguments (the 4th and 5th) of the
+        // button's Material component, which the button's composable calls once per code path.
+        val rovoButton = mutableClassDefBy(rovoFabFingerprint.classDef.type).methods.first {
+            it.returnType == "V" && it.parameterTypes.size == 9
+        }
+        val elevation = ((rovoButton.implementation!!.instructions.first {
+            it.opcode == Opcode.INVOKE_STATIC_RANGE &&
+                ((it as ReferenceInstruction).reference as MethodReference).parameterTypes.size == 10 &&
+                it.reference.let { r -> (r as MethodReference).parameterTypes[3].toString() == "J" }
+        } as ReferenceInstruction).reference as MethodReference).parameterTypes[5].toString()
+        // The button's own shadow stays behind a see-through container as a ring, so its elevation is zero there.
+        mutableClassDefBy(rovoFabFingerprint.classDef.type).methods.add(
+            ImmutableMethod(
+                rovoFabFingerprint.classDef.type,
+                "fakhFlat",
+                emptyList(),
+                elevation,
+                AccessFlags.PUBLIC.value or AccessFlags.STATIC.value,
+                null,
+                null,
+                MutableMethodImplementation(3),
+            ).toMutable().apply {
+                addInstructionsWithLabels(
+                    0,
+                    """
+                        invoke-static { }, $EXTENSION->rovoFlat()Z
+                        move-result v0
+                        if-eqz v0, :keep
+                        new-instance v0, $elevation
+                        const/4 v1, 0x0
+                        invoke-direct { v0, v1, v1, v1, v1 }, $elevation-><init>(FFFF)V
+                        return-object v0
+                        :keep
+                        const/4 v0, 0x0
+                        return-object v0
+                    """,
+                )
+            },
+        )
+        // The glass of the button: drawn on the canvas the button's draw node gets, before its icon. The draw node is the
+        // method that takes the Compose draw scope last, after a boolean and a long.
+        val rovoDraw = mutableClassDefBy(rovoFabFingerprint.classDef.type).methods.single {
+            it.returnType == "V" && it.parameterTypes.size == 5 && it.parameterTypes[0].toString() == "Z" && it.parameterTypes[1].toString() == "J"
+        }
+        mutableClassDefBy(rovoFabFingerprint.classDef.type).methods.add(
+            ImmutableMethod(
+                rovoFabFingerprint.classDef.type,
+                "fakhDrawGlass",
+                listOf(ImmutableMethodParameter("Lzu6;", null, null)),
+                "V",
+                AccessFlags.PUBLIC.value or AccessFlags.STATIC.value,
+                null,
+                null,
+                MutableMethodImplementation(5),
+            ).toMutable().apply {
+                addInstructions(
+                    0,
+                    """
+                        invoke-interface { p0 }, Lzu6;->e()J
+                        move-result-wide v0
+                        invoke-interface { p0 }, Lzu6;->U()Lie3;
+                        move-result-object v2
+                        invoke-virtual { v2 }, Lie3;->a()Lge3;
+                        move-result-object v2
+                        invoke-static { v2 }, Lyo0;->b(Lge3;)Landroid/graphics/Canvas;
+                        move-result-object v2
+                        invoke-static { v2, v0, v1 }, Lapp/fakh/extension/jira/GlassNavigationBar;->drawRovo(Landroid/graphics/Canvas;J)V
+                        return-void
+                    """,
+                )
+            },
+        )
+        rovoDraw.addInstructions(
+            0,
+            """
+                invoke-static/range { p5 .. p5 }, ${rovoFabFingerprint.classDef.type}->fakhDrawGlass(Lzu6;)V
+            """,
+        )
+        rovoButton.implementation!!.instructions.withIndex()
+            .filter { (_, instruction) ->
+                instruction.opcode == Opcode.INVOKE_STATIC_RANGE &&
+                    ((instruction as ReferenceInstruction).reference as MethodReference).parameterTypes.map(CharSequence::toString)
+                        .let { it.size == 10 && it[3] == "J" && it[4] == "J" }
+            }
+            .reversed()
+            .forEach { (index, instruction) ->
+                val start = (instruction as RegisterRangeInstruction).startRegister
+                rovoButton.addInstructionsWithLabels(
+                    index,
+                    """
+                        invoke-static/range { v${start + 3} .. v${start + 4} }, $EXTENSION->rovoContainer(J)J
+                        move-result-wide v${start + 3}
+                        invoke-static/range { v${start + 5} .. v${start + 6} }, $EXTENSION->rovoContent(J)J
+                        move-result-wide v${start + 5}
+                        invoke-static { }, ${rovoFabFingerprint.classDef.type}->fakhFlat()$elevation
+                        move-result-object v${start + 7}
+                        if-eqz v${start + 7}, :keep
+                        and-int/lit8 v${start + 11}, v${start + 11}, -33
+                        :keep
+                        nop
+                    """,
+                )
+            }
+        if (rovoButton.implementation!!.instructions.none {
+                it.opcode == Opcode.INVOKE_STATIC_RANGE && (it as ReferenceInstruction).reference.toString().contains("rovoContainer")
+            }) throw PatchException("The Rovo button's colors not found")
 
         // Views: every activity picks the Material You and pitch black colors through its base context.
         appCompatActivity().methods.first { it.name == "attachBaseContext" }.addInstructions(

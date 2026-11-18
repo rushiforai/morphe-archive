@@ -132,6 +132,8 @@ Schritte:
     <string name="morphe_music_downloads_starting">Download wird gestartet…</string>
     <string name="morphe_music_downloads_storage_permission">Erlaube der App Speicherzugriff, dann tippe Download erneut</string>
     <string name="morphe_music_downloads_unknown_track">Der Titel zum Herunterladen konnte nicht identifiziert werden</string>
+    <string name="morphe_music_hide_you_may_also_like_section_title">Bereich „Das könnte dir auch gefallen“ ausblenden</string>
+    <string name="morphe_music_hide_your_downloads_shelf_title">Abschnitt \'Deine Downloads\' ausblenden</string>
     <string name="morphe_music_lyrics_about_summary">"Liedtexte werden nach Titel und Künstler abgeglichen, ungewöhnliche Metadaten finden möglicherweise nichts oder die falsche Version. Verwenden Sie Aktualisieren, um zwischen Versionen zu wechseln. Anbieter mit * benötigen ein Token. Nicht alle aktivierten Anbieter werden immer in Ihrer Reihenfolge angefordert, sondern antworten basierend auf ihrer Geschwindigkeit
 
 Liedtexte stammen von Drittanbieterdiensten, die keine Verbindung zu RVX haben, nicht von RVX gesponsert oder von RVX unterstützt werden. Jeder wird so verwendet, wie er ist: Die Liedtexte, ihre Verfügbarkeit und ihre Lizenzierung verbleiben bei diesen Diensten und ihren Lizenzgebern, und deren Nutzung kann ihren Nutzungsbedingungen unterliegen. Was einen aktivierten Dienst erreicht, ist nur die Abfrage, die Sie angefordert haben - der Titel, der Künstler und, wo der Dienst es benötigt, die Video-ID. Der optionale KI-Endpunkt und die QuickLRC-Transkription laufen erst nach Ihrer Konfiguration und erhalten den Liedtext oder die Video-URL des Tracks"</string>

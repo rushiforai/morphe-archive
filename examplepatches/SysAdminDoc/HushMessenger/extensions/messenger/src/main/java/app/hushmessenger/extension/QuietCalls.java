@@ -121,10 +121,13 @@ public final class QuietCalls {
         }
     }
 
-    /** Puts a chat at the top of the recent list while the switch is on. Nothing is kept with it off. */
+    /**
+     * Puts a chat at the top of the recent list while a control that lists callers is on. Nothing is kept with both
+     * off. Record calls shares the list, so the chats to record are the chats that have called (#193).
+     */
     static synchronized void remember(String chat, String name) {
         SharedPreferences prefs = Settings.preferences;
-        if (prefs == null || !Settings.wouldUse(KEY)) return;
+        if (prefs == null || (!Settings.wouldUse(KEY) && !Settings.wouldUse(CallRecording.KEY))) return;
         String clean = name.replace('\t', ' ').replace('\n', ' ').replace('\r', ' ');
         List<String[]> chats = recent();
         if (!chats.isEmpty() && chats.get(0)[0].equals(chat) && chats.get(0)[1].equals(clean)) return;

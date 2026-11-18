@@ -1,0 +1,15 @@
+{
+  "version": "5.59.2",
+  "hook": "0x17548d4",
+  "hook_expected": "d40a40f9",
+  "original_resume": "0x17548d8",
+  "cleanup": "0x1754b58",
+  "missing_callback": "0x1754b94",
+  "jni_method_info": "0x19f61b0",
+  "entry": "0x2154400",
+  "segment": "0x2154000",
+  "inputs": {
+    "update-notice.delta.gz": "26754db303989954d3f4a9364359943ebfa20ac14c2c2d4fc7c9c35bfe4480ef",
+    "update-notice-hidden.delta.gz": "e944101a3274c3c8ae5d0aaac3846dbe819ae6b3559d6090003458ae7c61ed5d"
+  }
+}

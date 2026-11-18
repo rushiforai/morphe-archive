@@ -1,3 +1,53 @@
+## [0.30.61](https://github.com/Forsigh/waze-patches/releases/tag/v0.30.61) (2026-11-16)
+
+### Fixed
+* Unlock driver moods works on Waze 5.27.90.900: the catalogue refresh moved to MoodManagerBase and its native calls now return protobuf bytes, so the row reads the flag register off the call instead of assuming v1.
+* Morphe YouTube Music as a Waze audio partner works on Waze 5.27.90.900: Waze replaced the partner class with a runtime object (aw) and turned au into a four-field DTO, so the row now injects the right type and pins availability where the check actually lives.
+
+## [0.30.60](https://github.com/Forsigh/waze-patches/releases/tag/v0.30.60) (2026-11-15)
+
+### Changed
+* Built with Morphe patcher 2.4.0 and the 2.1.1 Gradle plugin, so the bundle matches current Morphe. Same rows, same behaviour on every supported build.
+
+## [0.30.59](https://github.com/Forsigh/waze-patches/releases/tag/v0.30.59) (2026-11-15)
+
+### Added
+* Waze 5.27.90.900 support.
+
+### Fixed
+* Hide recent destinations follows the history read to its new home in the start screen.
+
+### Changed
+* Unlock driver moods and the audio partner row are not offered on 5.27.90.900: Waze rebuilt both areas (JNI mood callbacks, a 4-argument partner holder) and they need reworking before they work there.
+
+## [0.30.58](https://github.com/Forsigh/waze-patches/releases/tag/v0.30.58) (2026-11-09)
+
+### Added
+* Resume drive prompt: hides the "resume the last trip" card on the phone and in the car.
+
+## [0.30.57](https://github.com/Forsigh/waze-patches/releases/tag/v0.30.57) (2026-11-09)
+
+### Changed
+* Morphe YouTube Music as a Waze audio partner: the "For root users" switch is gone. Both package ids are registered every time, so stock YouTube Music works with no option to set.
+
+## [0.30.56](https://github.com/Forsigh/waze-patches/releases/tag/v0.30.56) (2026-11-09)
+
+### Fixed
+* Waze crashed on launch when the audio-partner row was applied: the forced config values are now emitted one short block per key, which newer patchers assemble into valid bytecode.
+
+## [0.30.55](https://github.com/Forsigh/waze-patches/releases/tag/v0.30.55) (2026-11-09)
+
+### Removed
+* Hide launch logo, a switch that did nothing on current Waze builds.
+
+### Fixed
+* The audio-partner row now uses the stock YouTube Music icon instead of an empty tile.
+
+## [0.30.54](https://github.com/Forsigh/waze-patches/releases/tag/v0.30.54) (2026-11-08)
+
+### Fixed
+* YouTube Music shows up as an audio partner on phones where Morphe's root build keeps the stock package name.
+
 ## [0.30.53](https://github.com/Forsigh/waze-patches/releases/tag/v0.30.53) (2026-11-08)
 
 ### Added

@@ -35,7 +35,7 @@ public final class HiddenAccounts {
     /** What the diagnostic report counts each account an account list left out as. */
     static final String LEFT_OUT = "account left out of an account list";
 
-    private static final String PREFS = "hushtelegram_hidden_accounts";
+    static final String PREFS = "hushtelegram_hidden_accounts";
     private static final String KEY = "users";
 
     static Function<Context, SharedPreferences> store = context -> context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);

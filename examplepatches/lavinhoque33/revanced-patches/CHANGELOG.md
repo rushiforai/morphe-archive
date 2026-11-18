@@ -1,5 +1,86 @@
 ## Unreleased
 
+## [1.38.0](https://github.com/lavinhoque33/revanced-patches/compare/v1.37.3...v1.38.0) (2026-11-18)
+
+### Features
+
+* **YouTube - Hide comments components:** Choose exact-title or substring matching for carousel filters.
+  Substring matching stays the default; existing saved lists and case-sensitive matching are unchanged.
+* **Music - Hide layout components:** Optionally hide the Your downloads shelf without hiding the
+  Library Downloads chip. Off by default.
+* **YouTube - Seekbar components:** Choose an image or animated GIF as the seekbar thumb, with fitted or
+  original sizing and a reset action. Animated images require Android 9 or newer.
+* **YouTube - Gemini:** Edit the model fallback order and optionally ground summaries and chat with
+  Google Search, including source links and Search attribution. Search is off by default and does not
+  affect transcription or JSON requests. Existing Gemini settings and the default model order are preserved.
+  Model and Search controls use the existing Gemini settings icon.
+* **YouTube - Ambient mode control:** Add opt-in Enhanced Ambient mode on Android 10 and newer, with
+  readable-text dimming, dimming while scrolling, and an adjustable dim duration. Keep the existing
+  Ambient mode toggle, battery-saver controls, themes and glass navigation.
+* **YouTube Music - Hide layout components:** Optionally hide the "You may also like" search shelves
+  before typing on Music 9.00 and newer, without changing typed-query suggestions.
+* **YouTube - Playlist improvements:** Widen drag handles and hide removal confirmations on all playlists.
+  Add optional long-press reordering on YouTube 21.05 and later, keeping existing Watch later preferences.
+
+### Bug Fixes
+
+* **YouTube - System share sheet:** Keep sharing in the current activity task to avoid accidental PiP,
+  and leave playlist-only Mix links to the in-app share sheet instead of creating invalid links.
+* **YouTube / Music - Translation:** Recognize Hebrew and Yiddish aliases for DeepL and Kurdish `kmr`
+  for Google Translate.
+* **YouTube - Disable layout updates:** Explain the blocked hot/cold configuration headers and clarify
+  that the server-delivered navigation bar does not restore the old Library tab.
+* **Notices:** Correct Reseam's project name and source URL while retaining the other notices.
+* **Music - Player components:** Preserve older clients' public resource names while assigning their IDs
+  to the added previous and next controls, including forced Music 6.20.
+* **YouTube - Navigation bar:** Repair missing notification icons in newer pair-built icon maps without
+  replacing the existing navigation state or modifying immutable app maps.
+* **YouTube - GmsCore support:** Match both account network-error text hooks without relying on obsolete
+  controller parameters or artwork. Keep the existing experimental 21.45 fixes.
+* **YouTube - SponsorBlock:** Supply the skip-next icon instead of relying on a stock drawable.
+* **YouTube - Seekbar components:** Correct storyboard frame cropping and match fullscreen seek previews
+  to the zoomed video size.
+* **YouTube - Hide status bar:** Remove empty top-bar space without covering camera cutouts, keep settings
+  activities and submenus consistent, and preserve glass focus restoration and picture-in-picture behavior.
+* **YouTube Music - GmsCore support:** Restore Device files song, album and artist search using
+  Android's media library, including on Music 6.20. Private stream-cache downloads remain separate.
+* **YouTube - Video playback:** Use the configured hold speed and matching indicator for Shorts on 21.11+.
+  Reset non-remembered playback speeds for the next player, including an explicit return to normal speed.
+* **YouTube - Player components:** Respect the chapter-skip preference even when account configuration disables
+  the gesture on 21.11+. Keep fullscreen More videos working when the related-videos panel is not peeking.
+* **YouTube - Seekbar components:** Complete tap-to-seek gestures when the time bar is disabled on 21.04+.
+* **YouTube - Swipe controls:** Keep two-finger taps from starting pinch-to-zoom prematurely, and count consumed
+  swipe and volume-key events as user activity so autoplay does not mistake the user for being idle.
+
+* **YouTube - Shorts components:** Keep navigation when preview comments are hidden, collapse their empty
+  bottom bar on 20.51+, and keep Shorts player state open until the last attached player closes.
+* **YouTube - Hide layout components:** Collapse empty fullscreen metadata boxes after their content is hidden.
+* **YouTube - Hide feed flyout menu:** Remove filtered popup and toolbar overflow entries without blank rows.
+* **YouTube - Theme:** Restore the selected runtime palette after rotation without changing Stock colors.
+* **YouTube - Change form factor:** Keep the selected phone layout in newer responsive feed containers on 21.30+.
+* **YouTube - Return YouTube Dislike:** Load counts for Shorts opened in the regular player without prefetching
+  Shorts shelves or enabling counts in the Shorts feed.
+* **YouTube - Queue manager:** Use a fresh request for each playlist create, edit or save operation,
+  so repeated actions do not reuse stale results. Keep the fork's queue behavior and precedence.
+
+## [1.37.3](https://github.com/lavinhoque33/revanced-patches/compare/v1.37.2...v1.37.3) (2026-11-17)
+
+### Bug Fixes
+
+* **YouTube - Video action bar layout:** Match the modern action-bar icon weight for the outlined and filled
+  dislike button in both Classic layouts, including when YouTube supplies an older icon name.
+
+## [1.37.2](https://github.com/lavinhoque33/revanced-patches/compare/v1.37.1...v1.37.2) (2026-11-17)
+
+### Bug Fixes
+
+* **YouTube - Search comments:** Hide the search button when a comments header is reused for Description
+  or any other non-comment panel, including panels without a subheader. Keep search available in comments.
+* **YouTube - Video action bar layout:** Restore the dislike icon in Classic One-Row and Classic Two-Rows
+  when YouTube sends modern image icons, with or without Return YouTube Dislike.
+* **YouTube - Shorts custom actions:** Show Download and other enabled custom actions in the anchored
+  three-dot popup on newer layouts, including experimental 21.45.90. Keep the bottom-sheet menu unchanged.
+
 ## [1.37.1](https://github.com/lavinhoque33/revanced-patches/compare/v1.37.0...v1.37.1) (2026-11-17)
 
 ### Bug Fixes

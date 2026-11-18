@@ -10,7 +10,15 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.patch
 import app.morphe.patcher.patch.document
 import app.morphe.patcher.patch.mutableClassDefBy
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 
 /** The bar's constructor that takes a style attribute; the shorter ones chain into it. */
 private val bottomNavFingerprint = Fingerprint(
@@ -29,6 +37,17 @@ private val homeInsetsFingerprint = Fingerprint(
     custom = { method, classDef ->
         classDef.type.endsWith("MainActivity\$onCreate\$homeInsets\$1;") && method.parameterTypes.isEmpty() &&
             method.returnType.endsWith("/Insets;")
+    },
+)
+
+/**
+ * The Rovo button a page puts in its own scaffold (Home, ...): it hands the button's body a fresh modifier, which is
+ * where the button is lifted above the capsule. R8 renames it, so it is found by the class and the parameter count.
+ */
+private val pageRovoFabFingerprint = Fingerprint(
+    returnType = "V",
+    custom = { method, classDef ->
+        classDef.type.endsWith("/rovochat/RovoChatFloatingActionButtonKt;") && method.parameterTypes.size == 8
     },
 )
 
@@ -99,5 +118,67 @@ val glassNavigationBarPatch = patch(
         returns.reversed().forEach {
             constructor.addInstructions(it, "invoke-static { p0 }, Lapp/fakh/extension/jira/GlassNavigationBar;->install(Landroid/view/View;)V")
         }
+
+        // With no room for the bar, a page's scaffold puts the Rovo button 16dp above the window's bottom, behind the
+        // capsule. Its body takes the modifier of its outer box (the button's click target is a child), so padding
+        // that modifier vertically by the capsule's height lifts the button without widening what it catches.
+        val fab = pageRovoFabFingerprint.method
+        val body = fab.implementation!!.instructions
+        val callAt = body.indexOfFirst {
+            it.opcode == Opcode.INVOKE_STATIC_RANGE &&
+                ((it as ReferenceInstruction).reference as MethodReference).let { callee ->
+                    callee.definingClass == fab.definingClass && callee.parameterTypes.size == 9
+                }
+        }
+        if (callAt < 0) throw PatchException("The Rovo button's body call not found")
+        val modifierType = ((body[callAt] as ReferenceInstruction).reference as MethodReference).parameterTypes[5].toString()
+        val modifier = (body[callAt] as RegisterRangeInstruction).startRegister + 5
+        val padding = mutableClassDefBy(fab.definingClass).methods.asSequence()
+            .flatMap { it.implementation?.instructions.orEmpty() }
+            .filter { it.opcode == Opcode.INVOKE_STATIC || it.opcode == Opcode.INVOKE_STATIC_RANGE }
+            .map { (it as ReferenceInstruction).reference as MethodReference }
+            .firstOrNull {
+                it.returnType == modifierType &&
+                    it.parameterTypes.map(CharSequence::toString) == listOf(modifierType, "F", "F", "F", "F", "I")
+            } ?: throw PatchException("Compose's padding(start, top, end, bottom) not found")
+
+        mutableClassDefBy(fab.definingClass).methods.add(
+            ImmutableMethod(
+                fab.definingClass,
+                "fakhLiftAboveGlass",
+                listOf(ImmutableMethodParameter(modifierType, null, null)),
+                modifierType,
+                AccessFlags.PUBLIC.value or AccessFlags.STATIC.value,
+                null,
+                null,
+                MutableMethodImplementation(7),
+            ).toMutable().apply {
+                addInstructionsWithLabels(
+                    0,
+                    """
+                        invoke-static { }, Lapp/fakh/extension/jira/GlassNavigationBar;->rovoLift()F
+                        move-result v4
+                        const/4 v1, 0x0
+                        cmpl-float v2, v4, v1
+                        if-eqz v2, :keep
+                        move-object v0, p0
+                        const/4 v2, 0x0
+                        const/4 v3, 0x0
+                        const/4 v5, 0x7
+                        invoke-static/range { v0 .. v5 }, $padding
+                        move-result-object p0
+                        :keep
+                        return-object p0
+                    """,
+                )
+            },
+        )
+        fab.addInstructions(
+            callAt,
+            """
+                invoke-static/range { v$modifier .. v$modifier }, ${fab.definingClass}->fakhLiftAboveGlass($modifierType)$modifierType
+                move-result-object v$modifier
+            """,
+        )
     }
 }

@@ -1,0 +1,28 @@
+{
+  "ok": true,
+  "key": "68539e69a558da24",
+  "version": "2.1.0-waze.5.27.0.1.maps.1068856906",
+  "nl_tag": "v1.91.0",
+  "commit": "c86c05b5ebe86a8a321515a0cb6b914ba039c60c",
+  "morphe": "2.0.0",
+  "verified_at": "2026-11-16T21:00:55Z",
+  "waze_version": "5.27.0.1",
+  "maps_version": "26.44.06.1006895251",
+  "apps": {
+    "waze": {
+      "version": "5.27.0.1",
+      "apk_sha256": "8d0a352bf542d4025ae033ceb6e68a364cb6da60c311967600727cc1d00edf6b",
+      "signing_certs_sha256": [
+        "03637f6c5d8f604e6fdb79a6ffbfa578de4e318f8da22fc6106665247f8807d7"
+      ]
+    },
+    "maps": {
+      "version": "26.44.06.1006895251",
+      "apk_sha256": "9beffe7bc0581ad677477b164c6b11a9c5d9434b56620954776eddbb89b83e57",
+      "signing_certs_sha256": [
+        "7ce83c1b71f3d572fed04c8d40c5cb10ff75e6d87d9df6fbd53f0468c2905053",
+        "f0fd6c5b410f25cb25c3b53346c8972fae30f8ee7411df910480ad6b2d60db83"
+      ]
+    }
+  }
+}

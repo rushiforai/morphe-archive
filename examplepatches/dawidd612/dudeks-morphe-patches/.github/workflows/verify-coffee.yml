@@ -1,0 +1,40 @@
+name: Verify Coffee profiles and update workflow
+on:
+  push:
+    branches: [main]
+    paths: ['patches/src/**/coffeebusiness/**', 'extensions/coffeebusiness/**', 'native/coffeebusiness/**', 'scripts/*coffee*', 'scripts/*Coffee*', '.github/workflows/verify-coffee.yml']
+  pull_request:
+    paths: ['patches/src/**/coffeebusiness/**', 'extensions/coffeebusiness/**', 'native/coffeebusiness/**', 'scripts/*coffee*', 'scripts/*Coffee*', '.github/workflows/verify-coffee.yml']
+permissions:
+  contents: read
+  packages: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v5.7.0
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools platforms;android-36 build-tools;36.0.0'
+          log-accepted-android-sdk-licenses: false
+      - name: Build bundle
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew :patches:buildAndroid --no-daemon
+      - name: Verify profiles and compile update tools
+        run: |
+          curl -fL --retry 2 https://github.com/MorpheApp/morphe-desktop/releases/download/v1.17.0/morphe-desktop-1.17.0-all.jar -o "$RUNNER_TEMP/morphe-cli.jar"
+          echo "8cf6a9eab4ee9dab146bddc24681897851564f53116baec11f36ba2fa2f589be  $RUNNER_TEMP/morphe-cli.jar" | sha256sum -c -
+          javac -cp "patches/build/classes/kotlin/main:$RUNNER_TEMP/morphe-cli.jar" -d "$RUNNER_TEMP/coffee-tools" scripts/VerifyCoffeeProfiles.java
+          java -cp "$RUNNER_TEMP/coffee-tools:patches/build/classes/kotlin/main:patches/build/resources/main:$RUNNER_TEMP/morphe-cli.jar" VerifyCoffeeProfiles
+          javac -cp "$RUNNER_TEMP/morphe-cli.jar" -d "$RUNNER_TEMP/coffee-tools" scripts/InspectCoffeeUpdate.java scripts/RecoverCoffeeResources.java
+      - name: Verify preparation, recovery and preservation checks
+        run: |
+          python3 scripts/test_prepare_coffee_update.py
+          python3 scripts/test_build_coffee_profile.py
+          python3 scripts/test_verify_apkm.py
+          python3 scripts/test_pizza_assets.py

@@ -12,10 +12,14 @@ internal object Constants {
     // Checked against the same fingerprints, with its own branches where 4.10.23 differs.
     const val CHESSCOM_VERSION_41023 = "4.10.23-googleplay"
 
+    // Checked against the same fingerprints, with its own branches where 4.10.27 moved a class.
+    const val CHESSCOM_VERSION_41027 = "4.10.27-googleplay"
+
     val COMPATIBILITY = Compatibility(
         packageName = CHESSCOM_PACKAGE,
         name = "Chess.com",
         targets = listOf(
+            AppTarget(version = CHESSCOM_VERSION_41027),
             AppTarget(version = CHESSCOM_VERSION_41023),
             AppTarget(version = CHESSCOM_VERSION),
         ),

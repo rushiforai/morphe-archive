@@ -1,0 +1,44 @@
+name: Refresh upstream app versions
+on:
+  push:
+    branches: [dev]
+    paths: [scripts/updates/refresh.py]
+  schedule:
+    - cron: '23 */6 * * *'
+  workflow_dispatch:
+  workflow_run:
+    workflows: [Release]
+    types: [completed]
+    branches: [dev]
+permissions:
+  contents: write
+concurrency:
+  group: release-refs/heads/dev
+  cancel-in-progress: false
+jobs:
+  refresh:
+    if: github.repository == 'Mlkem/Morphe' && (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: dev
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Check public version metadata
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 -m unittest discover -s tests/updates -p 'test_*.py'
+          python3 scripts/updates/refresh.py
+      - name: Save metadata without releasing a new patch bundle
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add updates/app-feed.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'chore: Refresh upstream app versions [skip ci]'
+            git push origin HEAD:dev
+          fi

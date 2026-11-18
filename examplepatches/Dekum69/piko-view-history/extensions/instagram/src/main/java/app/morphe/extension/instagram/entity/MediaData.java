@@ -1,0 +1,500 @@
+/*
+ * Copyright (C) 2026 piko <https://github.com/crimera/piko>
+ *
+ * See the included NOTICE file for GPLv3 §7(b) terms that apply to this code.
+ */
+
+
+package app.morphe.extension.instagram.entity;
+
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import android.content.Context;
+import android.net.Uri;
+
+import app.morphe.extension.shared.Logger;
+import app.morphe.extension.shared.Utils;
+import app.morphe.extension.crimera.downloader.MediaType;
+import app.morphe.extension.instagram.constants.PostType;
+
+import com.instagram.api.schemas.MusicInfo;
+import com.instagram.common.session.UserSession;
+
+public class MediaData extends Entity {
+    private final Object obj;
+    /** Picture sizes within this fraction of each other differ only by rounding. */
+    public static final double ROUNDING_TOLERANCE = 0.02;
+    private static final Pattern FRAME_RATE = Pattern.compile("frameRate=\"(\\d+)(?:/(\\d+))?\"");
+    private final UserSession userSession;
+
+    public MediaData(Object obj) {
+        super(obj);
+        this.obj = obj;
+        this.userSession = null;
+    }
+
+    public MediaData(Object obj, UserSession userSession) {
+        super(obj);
+        this.obj = obj;
+        this.userSession = userSession;
+    }
+
+    private Class<?> getHelperClass() throws Exception {
+        return Class.forName("className");
+    }
+
+    // MediaData instances can outlive a single call (e.g. captured in a download dialog's click
+    // listener), so only whether the wrapper field exists is cached, not its value - the value is
+    // still re-read fresh every call. On current app versions the field is gone (see below), so
+    // this only saves the repeated NoSuchFieldException on every uncached call.
+    private Boolean extendedDataFieldExists;
+
+    private Object getExtendedData() throws Exception {
+        if (Boolean.FALSE.equals(extendedDataFieldExists)) return this.obj;
+
+        try {
+            Object result = super.getField("fieldName");
+            extendedDataFieldExists = true;
+            return result != null ? result : this.obj;
+        } catch (Exception ignored) {
+            // v441 folded the mutable media dict into Media itself, so there is no wrapper field to
+            // hop through and the getters sit directly on the media object.
+            extendedDataFieldExists = false;
+            return this.obj;
+        }
+    }
+
+    public String getShortcode() {
+        long instaId = Long.valueOf(this.getPostID());
+
+        String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+
+        // Handle the edge case where the ID is 0
+        if (instaId == 0) {
+            return String.valueOf(alphabet.charAt(0));
+        }
+
+        StringBuilder shortCode = new StringBuilder();
+
+        while (instaId > 0) {
+            int remainder = (int) (instaId % 64);
+            shortCode.append(alphabet.charAt(remainder));
+            instaId = instaId / 64;
+        }
+
+        return shortCode.reverse().toString();
+    }
+
+    public String getPostID() {
+        try {
+            String postId_ts = (String) super.getMethod(this.getExtendedData(), "getId");
+            return postId_ts.split("_")[0];
+        } catch (Exception e) {
+        }
+        return "0";
+    }
+
+    public PostType getPostType() {
+        try{
+            String postType = this.getPostTypeKey().toLowerCase();
+            if(postType.equals("clips")){
+                return PostType.REEL;
+            }
+            if(postType.equals("story")){
+                return PostType.STORY;
+            }
+            if(postType.contains("carousel")){
+                return PostType.CAROUSEL;
+            }
+        } catch (Exception e) {
+
+        }
+        return PostType.POST;
+    }
+
+    private String getPostTypeKey() throws Exception {
+        return (String) super.getField(this.getMoreExtendedData(), "fieldName");
+    }
+
+    private List<MediaData> getCarouselMediaData() throws Exception {
+        List<MediaData> carouselMediaData = new ArrayList<>();
+        List<Object> mediaList = this.getMediaList();
+        if (mediaList.isEmpty()){
+            carouselMediaData.add(new MediaData(this.obj, this.userSession));
+        } else {
+            mediaList.forEach(item->{
+                carouselMediaData.add(new MediaData(item, this.userSession));
+            });
+        }
+        return carouselMediaData;
+    }
+
+    public String getMediaPkId() throws Exception {
+        return (String) super.getMethod("methodName");
+    }
+
+    public Long getTakenAtSeconds() throws Exception {
+        return (Long) super.getMethod(this.getExtendedData(), "taken_at");
+    }
+
+    public boolean isVideo() throws Exception {
+        return (boolean) super.getMethod(this.obj, "methodName");
+    }
+
+    public boolean hasAudio() throws Exception {
+        return this.getAudioMedia() != null;
+    }
+
+    private String getMediaExtension(MediaType mediaType) throws Exception {
+        String imageExtension = ".jpg";
+        String videoExtension = ".mp4";
+        String audioExtension = ".mp3";
+
+        if (mediaType.equals(MediaType.ANY)) {
+            if (this.isVideo()) {
+                return videoExtension;
+            }
+            return imageExtension;
+        }
+
+        if (mediaType.equals(MediaType.IMAGE)) return imageExtension;
+        if (mediaType.equals(MediaType.VIDEO)) return videoExtension;
+        if (mediaType.equals(MediaType.AUDIO)) return audioExtension;
+
+        // Default fallback just in case.
+        return imageExtension;
+    }
+
+    public String getDownloadFilename(MediaType mediaType) throws Exception {
+        String mediaPkId = this.getMediaPkId();
+        String extension = this.getMediaExtension(mediaType);
+        return mediaPkId + extension;
+    }
+
+    public String getVariantFileName(MediaInterface mediaIntfData) throws Exception {
+        String mediaPkId = this.getMediaPkId();
+        String variantTag = mediaIntfData.getVariantTag();
+        String extension = this.getMediaExtension(mediaIntfData.getMediaType());
+        return mediaPkId + "_" +variantTag + extension;
+    }
+
+    public UserData getUserDataWithoutUserSession() throws Exception {
+        Object userData = super.getMethod(this.getExtendedData(), "methodName");
+        return new UserData(userData);
+    }
+
+    public UserData getUserDataWithUserSession() throws Exception {
+        Class<?> helperClass = this.getHelperClass();
+        Object result = super.getMethod(helperClass, "methodname", this.userSession, this.obj);
+        return result != null ? new UserData(result) : null;
+    }
+
+    public UserData getUserData() throws Exception {
+        UserSession userSession = this.userSession;
+        if(userSession!=null){
+            return this.getUserDataWithUserSession();
+        }
+        return this.getUserDataWithoutUserSession();
+    }
+
+    public HashSet<UserData> getMentionSet() throws Exception {
+        Object result =  super.getMethod(this.getExtendedData(), "methodName");
+        if (result != null) {
+            List userInteractionList = (List) result;
+            HashSet<UserData> userDataHashSet = new HashSet<>();
+            for(Object data:userInteractionList){
+                Object userData = super.getMethod(data, "methodName2");
+                userDataHashSet.add(new UserData(userData));
+            }
+            return userDataHashSet;
+        }
+        return null;
+    }
+
+    public List<Object> getMediaList() throws Exception {
+        List mediaList = (List) super.getMethod(this.getExtendedData(), "methodName");
+        if (mediaList != null) {
+            return mediaList;
+        }
+        return Arrays.asList(this.obj);
+    }
+
+    public int getCarouselSize() throws Exception {
+        return this.getMediaList().size();
+    }
+
+    public MediaData getMediaAt(int position) throws Exception {
+        List<MediaData> mediaList = this.getCarouselMediaData();
+
+        int safePosition = Math.max(0, Math.min(position, mediaList.size() - 1));
+        return mediaList.get(safePosition);
+    }
+
+    private Object getMoreExtendedData() throws Exception {
+        // This field always exists (unlike getExtendedData()'s), so there's no exception overhead
+        // to save here - always read fresh since the instance can outlive a single call.
+        return super.getField(this.getExtendedData(), "fieldName");
+    }
+
+    private List getVideoVariantsV1() throws Exception {
+        Object variantObject = super.getMethod(this.getExtendedData(), "methodName");
+        if (variantObject != null){
+            List variantList = (List) variantObject;
+
+            List<VideoData> videoList = new ArrayList<>();
+            variantList.forEach(item -> videoList.add(new VideoData(item)));
+            return videoList;
+
+        }
+        return null;
+    }
+
+    private List getVideoVariantsV2() throws Exception {
+        List variantList = (List) super.getField(this.getMoreExtendedData(), "fieldName");
+
+        List<VideoData> videoList = new ArrayList<>();
+        variantList.forEach(item -> videoList.add(new VideoData(item)));
+        return videoList;
+    }
+
+    public List<VideoData> getVideoVariants() throws Exception {
+        try {
+            return this.getVideoVariantsV2();
+        } catch (Exception e) {
+            return this.getVideoVariantsV1();
+        }
+    }
+
+    public List<ImageData> getImageVariants() throws Exception {
+        Object imageInfoObject = (Object) super.getField(this.getMoreExtendedData(), "fieldName");
+        List variantList = (List) super.getMethod(imageInfoObject, "methodName");
+
+        List<ImageData> imageList = new ArrayList<>();
+        variantList.forEach(item -> imageList.add(new ImageData(item)));
+        return imageList;
+    }
+
+    private Object[] getAdditionalImageCandidates() throws Exception {
+        Object imageInfo = super.getField(this.getMoreExtendedData(), "fieldName");
+        if (imageInfo == null) return new Object[0];
+        Class<?> imageInfoType = Class.forName("com.instagram.model.mediasize.ImageInfo");
+        Object additional = imageInfoType.getMethod("additionalMethod").invoke(imageInfo);
+        if (additional == null) return new Object[0];
+        Class<?> additionalType = Class.forName("com.instagram.model.mediasize.AdditionalCandidates");
+        return new Object[]{additionalType.getMethod("firstFrameMethod").invoke(additional),
+                additionalType.getMethod("igtvFrameMethod").invoke(additional),
+                additionalType.getMethod("smartFrameMethod").invoke(additional)};
+    }
+
+    public boolean isFirstFrameCover() {
+        try {
+            if (this.isStillVideo()) return true;
+            ImageData cover = this.getBestImage();
+            if (cover == null) return false;
+            Object[] candidates = this.getAdditionalImageCandidates();
+            for (int i = 0; i < Math.min(2, candidates.length); i++) {
+                if (candidates[i] != null && sameCover(cover, new ImageData(candidates[i]))) return true;
+            }
+        } catch (Exception | LinkageError ignored) {
+        }
+        return false;
+    }
+
+    private static boolean sameCover(ImageData cover, ImageData candidate) throws Exception {
+        String asset = imageAsset(cover.getUrl());
+        int width = cover.getWidth();
+        int height = cover.getHeight();
+        int cw = candidate.getWidth();
+        int ch = candidate.getHeight();
+        // Additional frames may show a different image or aspect ratio.
+        return asset != null && width > 0 && height > 0 && cw > 0 && ch > 0
+                && asset.equals(imageAsset(candidate.getUrl()))
+                && Math.abs((double) cw * height - (double) ch * width) <= (double) ch * width * ROUNDING_TOLERANCE;
+    }
+
+    private static String imageAsset(String url) {
+        if (url == null) return null;
+        String file = Uri.parse(url).getLastPathSegment();
+        if (file == null) return null;
+        int dot = file.lastIndexOf('.');
+        return dot > 0 ? file.substring(0, dot) : null;
+    }
+
+    /**
+     * Whether the video shows one picture throughout, as a photo with music does: every DASH
+     * rendition plays at one frame a second or slower, written as 16384/16384.
+     */
+    private boolean isStillVideo() throws Exception {
+        String manifest = getVideoDashManifest();
+        if (manifest == null) return false;
+        Matcher rate = FRAME_RATE.matcher(manifest);
+        boolean found = false;
+        while (rate.find()) {
+            long frames = Long.parseLong(rate.group(1));
+            long seconds = rate.group(2) == null ? 1 : Long.parseLong(rate.group(2));
+            if (frames > seconds) return false;
+            found = true;
+        }
+        return found;
+    }
+
+    // Through the app's getter, not the dict field it caches into: that field can stay null until
+    // the getter has run once.
+    private String getVideoDashManifest() throws Exception {
+        return (String) super.getMethod(this.getExtendedData(), "methodName");
+    }
+
+    /** Whether the video has a sound track, by the app's has_audio flag; true when the flag is missing. */
+    public boolean hasAudioTrack() throws Exception {
+        Boolean hasAudio = (Boolean) super.getMethod(this.getExtendedData(), "methodName");
+        return hasAudio == null || hasAudio;
+    }
+
+    /**
+     * The media's DASH video renditions (see {@link DashVideoData}) that keep its sound: empty
+     * when the manifest lists no audio for a video that has some, since that would save it
+     * silent, and without a manifest or on any failure.
+     */
+    public List<DashVideoData> getDashVideos() {
+        try {
+            List<DashVideoData> videos = DashVideoData.parse(this.getVideoDashManifest());
+            boolean silent = !videos.isEmpty() && videos.get(0).getAudioUrl() == null && this.hasAudioTrack();
+            return silent ? new ArrayList<>() : videos;
+        } catch (Exception e) {
+            Logger.printException(() -> "Could not read the DASH manifest", e);
+            return new ArrayList<>();
+        }
+    }
+
+    /** The sharpest DASH rendition when it beats the progressive file the media downloads as by default; null otherwise. */
+    public DashVideoData getSharperDashVideo() throws Exception {
+        List<DashVideoData> videos = this.getDashVideos();
+        if (videos.isEmpty()) return null;
+        VideoData progressive = this.getBestVideo();
+        int progressiveShortSide = progressive == null ? 0 : progressive.shortSide();
+        return videos.get(0).shortSide() > progressiveShortSide ? videos.get(0) : null;
+    }
+
+    private static <T extends MediaInterface> T highestResolution(List<T> variants) throws Exception {
+        T best = null;
+        long bestResolution = -1;
+        long bestPixels = -1;
+        if (variants == null) return null;
+        for (T variant : variants) {
+            if (variant == null) continue;
+            String url = variant.getUrl();
+            if (url == null || url.trim().isEmpty()) continue;
+            Integer width = variant.getWidth();
+            Integer height = variant.getHeight();
+            boolean known = width != null && height != null && width > 0 && height > 0;
+            long pixels = known ? (long) width * height : 0;
+            long resolution = variant.getMediaType() == MediaType.VIDEO
+                    ? known ? Math.min(width, height) : 0
+                    : pixels;
+            if (resolution > bestResolution || (resolution == bestResolution && pixels > bestPixels)) {
+                best = variant;
+                bestResolution = resolution;
+                bestPixels = pixels;
+            }
+        }
+        return best;
+    }
+
+    public VideoData getBestVideo() throws Exception {
+        return highestResolution(this.getVideoVariants());
+    }
+
+    public ImageData getBestOriginalImage() throws Exception {
+        return highestResolution(this.getImageVariants());
+    }
+
+    public ImageData getBestImage() throws Exception {
+        ImageData original = this.getBestOriginalImage();
+        ImageData best = original;
+        if (original == null) return null;
+        try {
+            if (!this.isVideo()) return original;
+            long bestPixels = (long) original.getWidth() * original.getHeight();
+            for (Object value : this.getAdditionalImageCandidates()) {
+                if (value == null) continue;
+                ImageData candidate = new ImageData(value);
+                long pixels = (long) candidate.getWidth() * candidate.getHeight();
+                if (pixels > bestPixels && sameCover(original, candidate)) {
+                    best = candidate;
+                    bestPixels = pixels;
+                }
+            }
+        } catch (Exception | LinkageError ignored) {
+        }
+        return best;
+    }
+
+    public String getVideoLink() throws Exception {
+        VideoData video = this.getBestVideo();
+        return video == null ? null : video.getUrl();
+    }
+
+    public String getImageLink() throws Exception {
+        ImageData image = this.getBestImage();
+        return image == null ? null : image.getUrl();
+    }
+
+    public String getMediaLink() throws Exception {
+        return this.isVideo() ? this.getVideoLink() : this.getImageLink();
+    }
+
+    private OriginalSoundDataIntf getOriginalSoundDataIntf() throws Exception {
+        Class<?> helperClass = this.getHelperClass();
+        Object result = super.getMethod(helperClass, "A06", this.obj);
+        if (result != null) {
+            return new OriginalSoundDataIntf(result);
+        }
+        return null;
+    }
+
+    private TrackDataIntf getTrackDataIntf() throws Exception {
+        Object metadata = super.getMethod(this.obj, "clipsMetadata");
+        Object result;
+        if (metadata != null) {
+            result = super.getMethod(metadata, "clipsMusicInfo");
+        } else {
+            metadata = super.getMethod(this.obj, "musicMetadata");
+            if (metadata == null) return null;
+            result = super.getMethod(metadata, "musicInfo");
+        }
+        if (result != null) {
+            return new TrackDataIntf((MusicInfo) result);
+        }
+        return null;
+    }
+
+    public AudioMediaInterface getAudioMedia() throws Exception {
+        AudioMediaInterface originalSoundDataIntf = this.getOriginalSoundDataIntf();
+        if (originalSoundDataIntf != null) {
+            return originalSoundDataIntf;
+        }
+
+        AudioMediaInterface TrackDataIntf = this.getTrackDataIntf();
+        if (TrackDataIntf != null) {
+            return TrackDataIntf;
+        }
+        return null;
+    }
+
+    public String getDescriptionText() throws Exception {
+        Class<?> helperClass = this.getHelperClass();
+        Object result = super.getMethod(helperClass, "A0J", this.obj);
+        return result != null ? (String) super.getField(result, "A0Z") : null;
+    }
+
+    public String getMessageAudioUrl() throws Exception {
+        Object audioIntfObject = super.getMethod(this.getExtendedData(), "methodName");
+        return audioIntfObject != null ? (String) super.getMethod(audioIntfObject, "BAj") : null;
+    }
+
+}

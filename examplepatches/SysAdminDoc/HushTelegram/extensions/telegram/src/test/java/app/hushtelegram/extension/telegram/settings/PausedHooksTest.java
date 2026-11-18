@@ -524,8 +524,10 @@ public class PausedHooksTest {
                 () -> app.hushtelegram.extension.telegram.misc.ProxyMenu.show(1),
                 app.hushtelegram.extension.telegram.misc.DoNotDisturb::quiet,
                 () -> !app.hushtelegram.extension.telegram.misc.DoNotDisturb.chatSound(1)));
-        probes.put(PatchFamily.FREE_PROXIES, Collections.singletonList(
-                () -> app.hushtelegram.extension.telegram.misc.FreeProxies.signInButton(1)));
+        // The sign-in button shows, and V2Ray-style servers keeps its local proxy and its entry.
+        probes.put(PatchFamily.FREE_PROXIES, Arrays.asList(
+                () -> app.hushtelegram.extension.telegram.misc.FreeProxies.signInButton(1),
+                app.hushtelegram.extension.telegram.misc.V2RayProxies::wanted));
         probes.put(PatchFamily.MY_MESSAGES, Collections.singletonList(
                 () -> app.hushtelegram.extension.telegram.misc.MyMessagesForTests.active()));
         probes.put(PatchFamily.TEXT_DIRECTION, Collections.singletonList(

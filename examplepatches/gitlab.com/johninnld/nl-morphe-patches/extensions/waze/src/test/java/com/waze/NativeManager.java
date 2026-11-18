@@ -1,0 +1,1 @@
+package com.waze; public class NativeManager { public static boolean started; public static final NativeManager INSTANCE=new NativeManager(); public static boolean isAppStarted(){return started;} public static NativeManager getInstance(){return INSTANCE;} public boolean getInitializedStatus(){return started;} }

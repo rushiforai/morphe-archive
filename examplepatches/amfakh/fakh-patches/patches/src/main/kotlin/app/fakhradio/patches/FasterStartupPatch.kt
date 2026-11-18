@@ -25,7 +25,7 @@ private val maxSplashTimeFingerprint = Fingerprint(
 @Suppress("unused")
 val fasterStartupPatch = patch(
     name = "Faster startup",
-    description = "Stops the splash screen from waiting up to 5 seconds on the Firebase Remote Config fetch. The fetch still finishes in the background.",
+    description = "Skips the splash screen's wait of up to 5 seconds.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_RADIO_ID)

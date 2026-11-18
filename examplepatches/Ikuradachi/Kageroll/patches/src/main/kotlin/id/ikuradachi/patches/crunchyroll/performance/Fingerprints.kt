@@ -7,6 +7,7 @@ import app.morphe.patcher.methodCall
 import app.morphe.patcher.newInstance
 import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
 
 // ============================================================================
 // Category 1: Background Services & Receivers
@@ -79,6 +80,29 @@ object ContinueWatchingPeriodicSchedulerFingerprint : Fingerprint(
         string("repeatIntervalTimeUnit"),
         literal(30L),
         fieldAccess(definingClass = "Lcom/crunchyroll/appwidgets/continuewatching/ContinueWatchingWorker;"),
+    ),
+)
+
+/**
+ * Matches FirebaseSessions.<init>(...), which registers SessionsActivityLifecycleCallbacks and launches a background coroutine.
+ */
+object FirebaseSessionsInitFingerprint : Fingerprint(
+    definingClass = "Lcom/google/firebase/sessions/FirebaseSessions;",
+    name = "<init>",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.CONSTRUCTOR),
+    parameters = listOf(
+        "Lcom/google/firebase/FirebaseApp;",
+        "Lcom/google/firebase/sessions/settings/SessionsSettings;",
+        "L",
+        "Lcom/google/firebase/sessions/SessionLifecycleServiceBinder;",
+    ),
+    returnType = "V",
+    filters = listOf(
+        fieldAccess(
+            opcode = Opcode.IPUT_OBJECT,
+            definingClass = "Lcom/google/firebase/sessions/FirebaseSessions;",
+            name = "settings",
+        ),
     ),
 )
 

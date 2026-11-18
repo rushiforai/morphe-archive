@@ -20,6 +20,7 @@ final class SetupSummary {
             .append("\nHost version: ").append(host.versionName == null ? "unknown" : host.versionName)
             .append("\nHost version code: ").append(host.getLongVersionCode())
             .append("\nPatched from: ").append(ProblemReport.patchedFrom(HostScreens.originalBuild(), Settings.preview))
+            .append("\nBundle: ").append(ProblemReport.bundle(BundleKey.SIGNED))
             .append("\nAndroid API: ").append(Build.VERSION.SDK_INT)
             .append("\nPaused: ").append(paused)
             .append("\nSafe mode: ").append(safeMode).append('\n');

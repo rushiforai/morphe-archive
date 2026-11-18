@@ -819,7 +819,13 @@ public class DownloadUtils {
 
     public static boolean isFeedDownloadButtonEnabled() {
         return Boolean.TRUE.equals(SharedPref.getBooleanPref(Settings.ENABLE_DOWNLOAD))
-                && Boolean.TRUE.equals(SharedPref.getBooleanPref(Settings.FEED_DOWNLOAD_BUTTON));
+                && Boolean.TRUE.equals(SharedPref.getBooleanPref(Settings.FEED_DOWNLOAD_BUTTON))
+                && !Boolean.TRUE.equals(SharedPref.getBooleanPref(Settings.DISABLE_FEED_DOWNLOAD_ICON));
+    }
+
+    public static boolean isFeedOptionsButtonEnabled() {
+        return Boolean.TRUE.equals(SharedPref.getBooleanPref(Settings.ENABLE_MORE_OPTIONS_ON_POST))
+                && !Boolean.TRUE.equals(SharedPref.getBooleanPref(Settings.DISABLE_FEED_OPTIONS_ICON));
     }
 
     public static String feedDownloadButtonDescription() {
@@ -833,7 +839,9 @@ public class DownloadUtils {
             View rootView, Object media, UserSession userSession, Object mediaState) {
         try {
             if (rootView == null || media == null) return;
-            if (!isFeedDownloadButtonEnabled()) {
+            boolean showDownload = isFeedDownloadButtonEnabled();
+            boolean showOptions = isFeedOptionsButtonEnabled();
+            if (!showDownload && !showOptions) {
                 removeFeedDownloadButton(rootView);
                 return;
             }
@@ -846,21 +854,40 @@ public class DownloadUtils {
             ViewGroup buttonGroup = (ViewGroup) saveButton.getParent();
             if (buttonGroup.getClass().getName().startsWith("com.facebook.litho.")) return;
 
-            ImageView hexBtn = buttonGroup.findViewWithTag(FEED_HEXAGON_BUTTON_TAG);
-            if (hexBtn == null) {
-                hexBtn = createFeedHexagonButton(context, saveButton, buttonGroup);
+            ImageView hexBtn = rootView.findViewWithTag(FEED_HEXAGON_BUTTON_TAG);
+            if (showOptions) {
+                if (hexBtn == null) {
+                    hexBtn = createFeedHexagonButton(context, rootView, saveButton, buttonGroup);
+                }
+                hexBtn.setOnClickListener(v -> {
+                    app.morphe.extension.instagram.settings.preference.widgets.RexHaptics.tap(v);
+                    RexDialogs.showPostOptionsSheet(context, userSession, media, currentMediaIndex(mediaState));
+                });
+                hexBtn.setOnLongClickListener(v -> {
+                    app.morphe.extension.instagram.settings.preference.widgets.RexHaptics.longPress(v);
+                    RexDialogs.showSurfaceQuickSettingsDialog(context, "FEED");
+                    return true;
+                });
+            } else if (hexBtn != null && hexBtn.getParent() instanceof ViewGroup) {
+                ((ViewGroup) hexBtn.getParent()).removeView(hexBtn);
             }
-            hexBtn.setOnClickListener(
-                    v -> RexDialogs.showPostOptionsSheet(context, userSession, media, currentMediaIndex(mediaState)));
 
             ImageView button = buttonGroup.findViewWithTag(FEED_DOWNLOAD_BUTTON_TAG);
-            if (button == null) {
-                button = createFeedDownloadButton(context, saveButton, buttonGroup);
+            if (showDownload) {
+                if (button == null) {
+                    button = createFeedDownloadButton(context, saveButton, buttonGroup);
+                }
+                button.setOnClickListener(v -> {
+                    app.morphe.extension.instagram.settings.preference.widgets.RexHaptics.tap(v);
+                    downloadPost(context, userSession, media, currentMediaIndex(mediaState));
+                });
+                button.setOnLongClickListener(v -> {
+                    app.morphe.extension.instagram.settings.preference.widgets.RexHaptics.longPress(v);
+                    return onPostDownloadLongClick(context, userSession, media, currentMediaIndex(mediaState));
+                });
+            } else if (button != null) {
+                buttonGroup.removeView(button);
             }
-            button.setOnClickListener(
-                    v -> downloadPost(context, userSession, media, currentMediaIndex(mediaState)));
-            button.setOnLongClickListener(
-                    v -> onPostDownloadLongClick(context, userSession, media, currentMediaIndex(mediaState)));
 
             if (Boolean.TRUE.equals(SharedPref.getBooleanPref(Settings.LONG_PRESS_POST_OPTIONS))) {
                 rootView.setOnLongClickListener(v -> {
@@ -912,13 +939,51 @@ public class DownloadUtils {
         }
     }
 
-    private static ImageView createFeedHexagonButton(Context context, View saveButton, ViewGroup buttonGroup) {
+    private static ImageView createFeedHexagonButton(Context context, View rootView, View saveButton, ViewGroup buttonGroup) {
         ImageView button = new ImageView(context);
         button.setTag(FEED_HEXAGON_BUTTON_TAG);
-        button.setContentDescription("xboyrex Options");
+        button.setContentDescription("InstaRex Post Options");
         button.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
         int iconColor = UI.getThemedColour("igds_color_primary_icon");
-        button.setImageDrawable(RexVectorIcons.create(context, "rex_vec_hexagon", iconColor, 24));
+        button.setImageDrawable(RexVectorIcons.create(context, "rex_vec_hexagon", iconColor, 22));
+
+        // Screenshot 22916.png & 23120.png fix:
+        // row_feed_button_share is inside a cell ViewGroup (FrameLayout/MotionLayout) that holds both the
+        // paper-plane icon and the share count ("18.5K"). Never add into that cell wrapper or it stacks on
+        // top of the Share icon! Instead, walk up to the horizontal LinearLayout row that holds the cells,
+        // or place cleanly in buttonGroup (before Download/Save) when the left cluster has multiple counts.
+        int shareId = ResourceUtils.getIdentifier(context, ResourceType.ID, "row_feed_button_share");
+        View shareButton = (shareId != 0 && rootView != null) ? rootView.findViewById(shareId) : null;
+        if (shareButton != null) {
+            View cellChild = shareButton;
+            ViewGroup parentGroup = (shareButton.getParent() instanceof ViewGroup)
+                    ? (ViewGroup) shareButton.getParent() : null;
+            while (parentGroup != null
+                    && !(parentGroup instanceof LinearLayout
+                    && ((LinearLayout) parentGroup).getOrientation() == LinearLayout.HORIZONTAL
+                    && parentGroup.getChildCount() >= 3)) {
+                cellChild = parentGroup;
+                ViewParent next = parentGroup.getParent();
+                parentGroup = (next instanceof ViewGroup) ? (ViewGroup) next : null;
+            }
+            if (parentGroup instanceof LinearLayout
+                    && !parentGroup.getClass().getName().startsWith("com.facebook.litho.")
+                    && countVisibleFeedCounters(parentGroup) <= 2) {
+                int padH = RexVectorIcons.dp(context, 8);
+                int padV = saveButton.getPaddingTop();
+                button.setPadding(padH, padV, padH, saveButton.getPaddingBottom());
+                int shareCellIdx = parentGroup.indexOfChild(cellChild);
+                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        saveButton.getLayoutParams() != null && saveButton.getLayoutParams().height > 0
+                                ? saveButton.getLayoutParams().height
+                                : ViewGroup.LayoutParams.MATCH_PARENT);
+                lp.gravity = android.view.Gravity.CENTER_VERTICAL;
+                parentGroup.addView(button, Math.min(parentGroup.getChildCount(), shareCellIdx + 1), lp);
+                return button;
+            }
+        }
+
         button.setPadding(
                 saveButton.getPaddingLeft(),
                 saveButton.getPaddingTop(),
@@ -926,6 +991,30 @@ public class DownloadUtils {
                 saveButton.getPaddingBottom());
         buttonGroup.addView(button, buttonGroup.indexOfChild(saveButton), cloneLayoutParams(saveButton));
         return button;
+    }
+
+    private static int countVisibleFeedCounters(ViewGroup row) {
+        int count = 0;
+        for (int i = 0; i < row.getChildCount(); i++) {
+            View child = row.getChildAt(i);
+            if (hasVisibleCounterText(child)) count++;
+        }
+        return count;
+    }
+
+    private static boolean hasVisibleCounterText(View v) {
+        if (v == null || v.getVisibility() != View.VISIBLE) return false;
+        if (v instanceof android.widget.TextView) {
+            CharSequence cs = ((android.widget.TextView) v).getText();
+            return cs != null && cs.toString().trim().length() > 0;
+        }
+        if (v instanceof ViewGroup) {
+            ViewGroup vg = (ViewGroup) v;
+            for (int i = 0; i < vg.getChildCount(); i++) {
+                if (hasVisibleCounterText(vg.getChildAt(i))) return true;
+            }
+        }
+        return false;
     }
 
     private static ImageView createFeedDownloadButton(Context context, View saveButton, ViewGroup buttonGroup) {
@@ -973,51 +1062,268 @@ public class DownloadUtils {
     }
 
     private static final Object STORY_DOWNLOAD_BUTTON_TAG = new Object();
+    private static final Object STORY_MENTIONS_BUTTON_TAG = new Object();
+    private static final Object STORY_OPTIONS_BUTTON_TAG = new Object();
+    private static final Object STORY_TOP_CLUSTER_TAG = "rex_story_top_action_cluster";
 
     public static void addStoryDownloadButton(View buttonsContainer, Object media, UserSession userSession, Object reel) {
         try {
             if (!(buttonsContainer instanceof ViewGroup)) return;
             ViewGroup row = (ViewGroup) buttonsContainer;
-            ImageView button = row.findViewWithTag(STORY_DOWNLOAD_BUTTON_TAG);
-            if (media == null || !SettingsStatus.storyDownloadButton || !Pref.enableDownload()
-                    || !SharedPref.getBooleanPref(Settings.STORY_DOWNLOAD_BUTTON)) {
-                if (button != null) row.removeView(button);
-                return;
+            Context context = row.getContext();
+
+            // Remove any legacy buttons that were previously injected into the bottom toolbar row
+            // so the native bottom controls (Activity, Boost, Highlight, Send, Mention) never overlap (23122.png).
+            View oldBottomDl = row.findViewWithTag(STORY_DOWNLOAD_BUTTON_TAG);
+            if (oldBottomDl != null) row.removeView(oldBottomDl);
+            View oldBottomMen = row.findViewWithTag(STORY_MENTIONS_BUTTON_TAG);
+            if (oldBottomMen != null) row.removeView(oldBottomMen);
+            View oldBottomOpt = row.findViewWithTag(STORY_OPTIONS_BUTTON_TAG);
+            if (oldBottomOpt != null) row.removeView(oldBottomOpt);
+
+            // Hook the native Story Like heart container so liking any Story records it in StoryLikeHistory across all IG versions
+            attachStoryLikeRecorderHook(row, context, media, reel, userSession);
+
+            // Mount the Top-Right Story Safe-Area Action Cluster (Download + Settings + @Mentions count badge)
+            // in the Story header area marked in screenshot 23122.png.
+            ViewGroup storyRoot = resolveStoryItemRootContainer(row);
+            if (storyRoot == null) return;
+
+            LinearLayout topCluster = storyRoot.findViewWithTag(STORY_TOP_CLUSTER_TAG);
+            if (topCluster == null) {
+                topCluster = new LinearLayout(context);
+                topCluster.setTag(STORY_TOP_CLUSTER_TAG);
+                topCluster.setOrientation(LinearLayout.HORIZONTAL);
+                topCluster.setGravity(android.view.Gravity.CENTER_VERTICAL);
+                android.widget.FrameLayout.LayoutParams clusterLp = new android.widget.FrameLayout.LayoutParams(
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        android.view.Gravity.TOP | android.view.Gravity.END
+                );
+                clusterLp.topMargin = RexVectorIcons.dp(context, 22);
+                clusterLp.rightMargin = RexVectorIcons.dp(context, 48);
+                clusterLp.setMarginEnd(RexVectorIcons.dp(context, 48));
+                storyRoot.addView(topCluster, clusterLp);
+                alignStoryTopClusterWithHeader(storyRoot, topCluster);
             }
 
-            if (button == null) {
-                button = createStoryDownloadButton(row);
-                if (button == null) return;
+            // 1. Story Hidden Mentions (@N) Pill/Button in Top Header Cluster
+            android.widget.TextView mentionsBtn = topCluster.findViewWithTag(STORY_MENTIONS_BUTTON_TAG);
+            boolean showMentions = media != null && Pref.viewStoryMentions()
+                    && app.morphe.extension.instagram.patches.story.StoryMentionSettings.isEnabled(context);
+            if (!showMentions) {
+                if (mentionsBtn != null) topCluster.removeView(mentionsBtn);
+            } else {
+                if (mentionsBtn == null) {
+                    mentionsBtn = createStoryTopMentionsChip(context);
+                    topCluster.addView(mentionsBtn, 0);
+                }
+                int mentionCount = resolveVerifiedMentionCount(media);
+                bindStoryTopMentionsChip(context, mentionsBtn, mentionCount);
+                mentionsBtn.setOnClickListener(v -> {
+                    app.morphe.extension.instagram.settings.preference.widgets.RexHaptics.tap(v);
+                    app.morphe.extension.instagram.patches.story.ViewStoryMentionsPatch.viewMentions(
+                            context, media, null);
+                });
+                mentionsBtn.setOnLongClickListener(v -> {
+                    app.morphe.extension.instagram.settings.preference.widgets.RexHaptics.longPress(v);
+                    app.morphe.extension.instagram.patches.story.StoryMentionSettings.showSettings(context);
+                    return true;
+                });
             }
-            button.getDrawable().setTint(Color.WHITE);
-            button.setOnClickListener(v -> downloadStory(v, userSession, media, reel, false));
-            button.setOnLongClickListener(v -> {
-                downloadStory(v, userSession, media, reel, true);
-                return true;
-            });
+
+            // 2. Story Direct Download Button in Top Header Cluster
+            ImageView button = topCluster.findViewWithTag(STORY_DOWNLOAD_BUTTON_TAG);
+            boolean showDownload = media != null && SettingsStatus.storyDownloadButton && Pref.enableDownload()
+                    && Boolean.TRUE.equals(SharedPref.getBooleanPref(Settings.STORY_DOWNLOAD_BUTTON));
+            if (!showDownload) {
+                if (button != null) topCluster.removeView(button);
+            } else {
+                if (button == null) {
+                    button = createStoryTopIconButton(context, STORY_DOWNLOAD_BUTTON_TAG, "download", str("rex_download_current_media"));
+                    topCluster.addView(button);
+                }
+                button.setOnClickListener(v -> {
+                    app.morphe.extension.instagram.settings.preference.widgets.RexHaptics.tap(v);
+                    downloadStory(v, userSession, media, reel, false);
+                });
+                button.setOnLongClickListener(v -> {
+                    app.morphe.extension.instagram.settings.preference.widgets.RexHaptics.longPress(v);
+                    downloadStory(v, userSession, media, reel, true);
+                    return true;
+                });
+            }
+
+            // 3. Story Settings / Quick Options Button in Top Header Cluster
+            ImageView optionsBtn = topCluster.findViewWithTag(STORY_OPTIONS_BUTTON_TAG);
+            boolean showOptions = media != null && Pref.storyOptionsButton();
+            if (!showOptions) {
+                if (optionsBtn != null) topCluster.removeView(optionsBtn);
+            } else {
+                if (optionsBtn == null) {
+                    optionsBtn = createStoryTopIconButton(context, STORY_OPTIONS_BUTTON_TAG, "sliders-horizontal", "InstaRex Story Options");
+                    topCluster.addView(optionsBtn);
+                }
+                optionsBtn.setOnClickListener(v -> {
+                    app.morphe.extension.instagram.settings.preference.widgets.RexHaptics.tap(v);
+                    RexDialogs.showStoryOptionsSheet(context, userSession, media, reel);
+                });
+                optionsBtn.setOnLongClickListener(v -> {
+                    app.morphe.extension.instagram.settings.preference.widgets.RexHaptics.longPress(v);
+                    RexDialogs.showSurfaceQuickSettingsDialog(context, "STORY");
+                    return true;
+                });
+            }
         } catch (Exception e) {
             Logger.printException(() -> "addStoryDownloadButton failure", e);
         }
     }
 
-    private static ImageView createStoryDownloadButton(ViewGroup row) {
-        Context context = row.getContext();
-        int likeId = ResourceUtils.getIdentifier(context, ResourceType.ID, "toolbar_like_container");
-        View model = likeId == 0 ? null : row.findViewById(likeId);
-        if (model == null || model.getParent() != row) {
-            model = row.getChildCount() == 0 ? null : row.getChildAt(0);
-        }
-        if (model == null) return null;
-        int drawableId = ResourceUtils.getIdentifier(context, ResourceType.DRAWABLE, UI.DRAWABLE_DOWNLOAD_ICON);
-        if (drawableId == 0) return null;
+    private static void attachStoryLikeRecorderHook(
+            ViewGroup row,
+            final Context context,
+            final Object media,
+            final Object reel,
+            final UserSession userSession
+    ) {
+        try {
+            int likeId = ResourceUtils.getIdentifier(context, ResourceType.ID, "toolbar_like_container");
+            View likeContainer = likeId == 0 ? null : row.findViewById(likeId);
+            if (likeContainer == null) return;
+            bindNonIntrusiveTouchRecorder(likeContainer, context, media, reel, userSession);
+            if (likeContainer instanceof ViewGroup) {
+                ViewGroup lg = (ViewGroup) likeContainer;
+                for (int i = 0; i < lg.getChildCount(); i++) {
+                    View child = lg.getChildAt(i);
+                    if (child != null) bindNonIntrusiveTouchRecorder(child, context, media, reel, userSession);
+                }
+            }
+        } catch (Throwable ignored) {}
+    }
 
+    private static void bindNonIntrusiveTouchRecorder(
+            View target,
+            final Context context,
+            final Object media,
+            final Object reel,
+            final UserSession userSession
+    ) {
+        target.setOnTouchListener((v, event) -> {
+            if (event != null && event.getAction() == android.view.MotionEvent.ACTION_UP) {
+                v.postDelayed(() ->
+                        app.morphe.extension.instagram.patches.story.StoryLikeHistoryRecorder.recordFromStoryHeartTap(
+                                context, media, reel, userSession), 120L);
+            }
+            return false;
+        });
+    }
+
+    private static ViewGroup resolveStoryItemRootContainer(ViewGroup bottomRow) {
+        ViewGroup candidate = null;
+        ViewParent p = bottomRow.getParent();
+        int depth = 0;
+        while (p instanceof ViewGroup && depth++ < 8) {
+            ViewGroup vg = (ViewGroup) p;
+            String cls = vg.getClass().getName();
+            if (cls.contains("ReelViewGroup")) {
+                return vg;
+            }
+            if (vg instanceof android.widget.FrameLayout) {
+                candidate = vg;
+            }
+            p = vg.getParent();
+        }
+        return candidate;
+    }
+
+    private static void alignStoryTopClusterWithHeader(final ViewGroup storyRoot, final View topCluster) {
+        storyRoot.addOnLayoutChangeListener((v, l, t, r, b, oldL, oldT, oldR, oldB) -> {
+            try {
+                Context ctx = storyRoot.getContext();
+                int titleId = ResourceUtils.getIdentifier(ctx, ResourceType.ID, "reel_viewer_title");
+                View titleView = titleId == 0 ? null : storyRoot.findViewById(titleId);
+                if (titleView != null && titleView.isShown()) {
+                    int[] rootLoc = new int[2];
+                    int[] titleLoc = new int[2];
+                    storyRoot.getLocationOnScreen(rootLoc);
+                    titleView.getLocationOnScreen(titleLoc);
+                    int relTop = titleLoc[1] - rootLoc[1] + (titleView.getHeight() - topCluster.getHeight()) / 2;
+                    if (relTop > RexVectorIcons.dp(ctx, 8) && relTop < RexVectorIcons.dp(ctx, 96)) {
+                        ViewGroup.LayoutParams lp = topCluster.getLayoutParams();
+                        if (lp instanceof ViewGroup.MarginLayoutParams) {
+                            ViewGroup.MarginLayoutParams mlp = (ViewGroup.MarginLayoutParams) lp;
+                            if (Math.abs(mlp.topMargin - relTop) > RexVectorIcons.dp(ctx, 2)) {
+                                mlp.topMargin = relTop;
+                                topCluster.post(topCluster::requestLayout);
+                            }
+                        }
+                    }
+                }
+            } catch (Throwable ignored) {}
+        });
+    }
+
+    private static int resolveVerifiedMentionCount(Object media) {
+        if (media == null) return 0;
+        try {
+            HashSet<app.morphe.extension.instagram.entity.UserData> set = new MediaData(media).getMentionSet();
+            return set == null ? 0 : set.size();
+        } catch (Throwable ignored) {
+            return 0;
+        }
+    }
+
+    private static android.widget.TextView createStoryTopMentionsChip(Context context) {
+        android.widget.TextView chip = new android.widget.TextView(context);
+        chip.setTag(STORY_MENTIONS_BUTTON_TAG);
+        chip.setSingleLine(true);
+        chip.setGravity(android.view.Gravity.CENTER);
+        chip.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12.5f);
+        chip.setTypeface( android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.BOLD));
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, RexVectorIcons.dp(context, 32));
+        lp.setMarginEnd(RexVectorIcons.dp(context, 6));
+        chip.setLayoutParams(lp);
+        return chip;
+    }
+
+    private static void bindStoryTopMentionsChip(Context context, android.widget.TextView chip, int count) {
+        chip.setText(count > 0 ? ("@" + count) : "@");
+        chip.setContentDescription("Hidden Mentions (" + count + ")");
+        int padH = RexVectorIcons.dp(context, count > 0 ? 10 : 9);
+        chip.setPadding(padH, 0, padH, 0);
+        android.graphics.drawable.GradientDrawable bg = new android.graphics.drawable.GradientDrawable();
+        bg.setCornerRadius(RexVectorIcons.dp(context, 16));
+        if (count > 0) {
+            bg.setColor(0xCC15181D);
+            bg.setStroke(Math.max(1, RexVectorIcons.dp(context, 1)), 0xFF23C6D8);
+            chip.setTextColor(0xFF23C6D8);
+        } else {
+            bg.setColor(0x8815181D);
+            bg.setStroke(Math.max(1, RexVectorIcons.dp(context, 1)), 0x55FFFFFF);
+            chip.setTextColor(Color.WHITE);
+        }
+        chip.setBackground(bg);
+    }
+
+    private static ImageView createStoryTopIconButton(Context context, Object tag, String iconId, String contentDesc) {
         ImageView button = new ImageView(context);
-        button.setTag(STORY_DOWNLOAD_BUTTON_TAG);
+        button.setTag(tag);
         button.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-        button.setImageDrawable(context.getDrawable(drawableId).mutate());
-        button.setContentDescription(str("rex_download_current_media"));
-        button.setPadding(model.getPaddingLeft(), model.getPaddingTop(), model.getPaddingRight(), model.getPaddingBottom());
-        row.addView(button, row.indexOfChild(model), cloneLayoutParams(model));
+        button.setImageDrawable(app.morphe.extension.instagram.settings.preference.widgets.RexIcon.getDrawable(
+                context, iconId, Color.WHITE, 19));
+        button.setContentDescription(contentDesc);
+        int pad = RexVectorIcons.dp(context, 7);
+        button.setPadding(pad, pad, pad, pad);
+        android.graphics.drawable.GradientDrawable bg = new android.graphics.drawable.GradientDrawable();
+        bg.setShape(android.graphics.drawable.GradientDrawable.OVAL);
+        bg.setColor(0x8815181D);
+        bg.setStroke(Math.max(1, RexVectorIcons.dp(context, 1)), 0x55FFFFFF);
+        button.setBackground(bg);
+        int size = RexVectorIcons.dp(context, 32);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(size, size);
+        lp.setMarginEnd(RexVectorIcons.dp(context, 6));
+        button.setLayoutParams(lp);
         return button;
     }
 

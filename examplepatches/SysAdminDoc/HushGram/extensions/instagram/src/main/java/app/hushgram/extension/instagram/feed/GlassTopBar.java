@@ -32,6 +32,7 @@ import android.view.ViewTreeObserver;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
+import java.lang.ref.WeakReference;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -87,6 +88,11 @@ public final class GlassTopBar {
     private static final int CLEAR_DEPTH = 3;
     /** How far the strip behind the status bar fades out below it, with no edge or hairline, in dp (#450). */
     static final float STRIP_FADE = 24;
+    /**
+     * How much of a header slid up behind the status bar may still show below it and count as slid away, in dp,
+     * at least a pixel: Instagram 456 stops the slide with the header's one pixel divider still below the clock (#450).
+     */
+    static final float SLID_SLACK = 1;
     /** How many parents up from the header the one drawing the feed before it is looked for. */
     static final int HOST_DEPTH = 6;
     /** How many parents up from a message box the view drawing what's under it is looked for. */
@@ -160,9 +166,21 @@ public final class GlassTopBar {
     /** {@link #glazeBox(View, int, boolean, BooleanSupplier, String)} with the tint under [tintSlider] too (#688). */
     public static void glazeBox(@Nullable View box, int source, boolean dark, BooleanSupplier on, String family,
                                 @Nullable IntegerSetting tintSlider) {
+        glazeBox(box, source, dark, on, family, tintSlider, 0);
+    }
+
+    /**
+     * {@link #glazeBox(View, int, boolean, BooleanSupplier, String, IntegerSetting)}, with the pill's ends rounding
+     * about the view with the id [corner] beside the box, its first button, when that sits nearer the end than half
+     * the box's height (#729). 0 keeps the ends fully round.
+     */
+    public static void glazeBox(@Nullable View box, int source, boolean dark, BooleanSupplier on, String family,
+                                @Nullable IntegerSetting tintSlider, int corner) {
         try {
             if (box == null || source == 0 || !on.getAsBoolean() || under(box, source) == null || !GLAZED.add(box)) return;
-            listen(new Glass(box, on, family, source, dark, tintSlider));
+            Glass glass = new Glass(box, on, family, source, dark, tintSlider);
+            glass.cornerId = corner;
+            listen(glass);
             HookStatus.counted(family, COUNT_BOXES);
         } catch (Throwable failure) {
             HookStatus.threw(family, HOOK, failure);
@@ -239,7 +257,10 @@ public final class GlassTopBar {
         return new int[] {glass.above, glass.below};
     }
 
-    /** Whether [header] has nothing showing in it, so its glass is only the strip behind the status bar. */
+    /**
+     * Whether [header]'s glass is only the strip behind the status bar: nothing shows in it, or it slid up
+     * behind the status bar whole.
+     */
     static boolean hollow(View header) {
         Drawable background = header.getBackground();
         return background instanceof Frost && ((Frost) background).glass.hollow;
@@ -280,6 +301,12 @@ public final class GlassTopBar {
                     .append(' ').append(child.getHeight()).append(", ");
         }
         return found.toString();
+    }
+
+    /** How round the ends of [box]'s pill are, drawn over the whole box, 0 with no glass on it (#729). */
+    static float pillRadius(View box) {
+        Drawable frost = box.getForeground() instanceof Frost ? box.getForeground() : box.getBackground();
+        return frost instanceof Frost ? ((Frost) frost).glass.pillRadius(new Rect(0, 0, box.getWidth(), box.getHeight())) : 0f;
     }
 
     /** Whether [header]'s glass has its backdrop recorded. */
@@ -396,6 +423,10 @@ public final class GlassTopBar {
         final boolean lined;
         /** For a message box, the id of the view drawing what's under it (#391). 0 for a header. */
         final int sourceId;
+        /** For a message box, the id of its first button, which the pill's ends round about (#729). 0 for none. */
+        int cornerId;
+        @Nullable private WeakReference<View> corner;
+        private final int[] cornerAt = new int[2];
         /** Whether a message box's glass stays dark whatever the theme. */
         private final boolean dark;
         /** Whether a message box takes the glass over itself, as a foreground, and not as its background. */
@@ -409,7 +440,8 @@ public final class GlassTopBar {
         int above;
         int below;
         /**
-         * Whether Home's header has nothing showing, where the status bar is measured from its top edge, and how far
+         * Whether Home's header shows nothing or sits behind the status bar whole, where the status bar is measured
+         * from its top edge, and how far
          * the strip behind it fades out below it (#450).
          */
         boolean hollow;
@@ -583,15 +615,19 @@ public final class GlassTopBar {
             above = Math.max(0, top);
             below = Math.max(0, gap - top - header.getHeight());
             // An empty frosted band across the feed helps nobody: only the strip behind the clock stays (#513).
-            hollow = showsNothing(header);
+            // Instagram 456 slides the header itself up behind the status bar, not its views out of it, so a
+            // header with no more than its divider still below the status bar leaves only that strip too (#450).
+            float density = header.getResources().getDisplayMetrics().density;
+            int slack = Math.max(1, Math.round(SLID_SLACK * density));
+            hollow = showsNothing(header) || top + header.getHeight() - gap <= slack;
             stripTop = -top;
             stripBottom = gap - top;
-            fade = Math.round(STRIP_FADE * header.getResources().getDisplayMetrics().density);
+            fade = Math.round(STRIP_FADE * density);
             // The backdrop is recorded down to where the strip's fade ends, past a header slid away above it.
             if (hollow) below = Math.max(below, stripBottom + fade - header.getHeight());
             if (hollow && !describedHollow) {
                 describedHollow = true;
-                Logger.printDebug(() -> "Top bar glass: the header shows nothing, at " + top + ", holding " + children(header));
+                Logger.printDebug(() -> "Top bar glass: only the strip behind the status bar, header at " + top + ", holding " + children(header));
             }
         }
 
@@ -875,10 +911,39 @@ public final class GlassTopBar {
                 int height = bounds.height();
                 rimBox.set(0, 0, bounds.width(), height);
                 return lens().paint(canvas, node, -nodePad - bounds.left, -nodePad - nodeAbove - bounds.top, DOWNSAMPLE,
-                        bounds.width(), height, rimBox, height / 2f, height);
+                        bounds.width(), height, rimBox, pillRadius(bounds), height);
             } finally {
                 canvas.restoreToCount(saved);
             }
+        }
+
+        /**
+         * How round a message box's pill over [bounds] is at its ends: fully, unless its first button sits nearer
+         * the end than half the box's height. Bigger text makes the box taller while Instagram keeps its buttons
+         * the same size, the same distance from its edges (#729), so the ends then round about the button and it
+         * stays in the middle of the curve, not out in the corner.
+         */
+        float pillRadius(Rect bounds) {
+            float full = bounds.height() / 2f;
+            View button = corner();
+            if (button == null || !button.isShown() || button.getWidth() == 0) return full;
+            header.getLocationInWindow(cornerAt);
+            int boxLeft = cornerAt[0] + bounds.left;
+            button.getLocationInWindow(cornerAt);
+            float round = cornerAt[0] - boxLeft + button.getWidth() / 2f;
+            return round > 0 && round < full ? round : full;
+        }
+
+        /** The box's first button, found beside it by its id, or null. */
+        @Nullable
+        private View corner() {
+            if (cornerId == 0) return null;
+            View known = corner == null ? null : corner.get();
+            if (known != null && known.isAttachedToWindow()) return known;
+            ViewParent up = header.getParent();
+            View found = up instanceof View ? ((View) up).findViewById(cornerId) : null;
+            corner = found == null ? null : new WeakReference<>(found);
+            return found;
         }
 
         private GlassLens lens() {
@@ -985,7 +1050,7 @@ public final class GlassTopBar {
          * it, so an outline Instagram draws on it stays.
          */
         private void drawPill(Canvas canvas, Rect bounds) {
-            float radius = bounds.height() / 2f;
+            float radius = glass.pillRadius(bounds);
             pillBox.set(bounds);
             pill.rewind();
             pill.addRoundRect(pillBox, radius, radius, Path.Direction.CW);

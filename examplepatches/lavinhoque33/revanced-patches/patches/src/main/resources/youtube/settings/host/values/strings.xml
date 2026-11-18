@@ -115,8 +115,8 @@ Restart the app, check if the behavior is present, then answer below"</string>
         2.0.&lt;/p&gt;
         &lt;p&gt;=============&lt;/p&gt;
         &lt;p&gt;Reseam NOTICE&lt;/p&gt;
-        &lt;p&gt;Portions of this software incorporate or are derived from code provided by the Reseam software
-        project:&lt;br&gt;https://reseam.app.&lt;/p&gt;
+        &lt;p&gt;Portions of this software incorporate or are derived from code provided by the Reseam
+        project:&lt;br&gt;https://git.reseam.app/reseam/patches.&lt;/p&gt;
         &lt;p&gt;=============&lt;/p&gt;
         &lt;p&gt;Morphe NOTICE&lt;/p&gt;
         &lt;p&gt;Portions of this software incorporate or are derived from code provided by the Morphe software
@@ -603,6 +603,17 @@ Not used while Unlock queue or Premium-style queue is on"</string>
     <string name="morphe_seekbar_thumbnail_heatmap_peak_point">Most replayed</string>
     <string name="morphe_seekbar_thumbnail_preview_summary">Shows a video thumbnail while dragging the seekbar</string>
     <string name="morphe_seekbar_thumbnail_preview_title">Enable seekbar thumbnails</string>
+    <!-- Custom seekbar thumb. Modified by lavinhoque33, 2026-11-17. -->
+    <string name="morphe_custom_seekbar_thumb_title">Enable custom seekbar thumb</string>
+    <string name="morphe_custom_seekbar_thumb_summary">Replace the seekbar thumb with an image or animated GIF. Animated images require Android 9 or newer</string>
+    <string name="morphe_custom_seekbar_thumb_file_title">Thumb image</string>
+    <string name="morphe_custom_seekbar_thumb_file_select">Select image</string>
+    <string name="morphe_custom_seekbar_thumb_file_summary">Select an image or animated GIF from device storage, or reset to the default thumb</string>
+    <string name="morphe_custom_seekbar_thumb_file_invalid">The selected file is not a supported image</string>
+    <string name="morphe_custom_seekbar_thumb_file_not_found">Custom seekbar thumb image not found</string>
+    <string name="morphe_custom_seekbar_thumb_scale_type_title">Thumb size</string>
+    <string name="morphe_custom_seekbar_thumb_scale_type_entry_fit_seekbar">Fit seekbar</string>
+    <string name="morphe_custom_seekbar_thumb_scale_type_entry_original">Original size</string>
     <string name="morphe_settings_menu_copy_path">Copied: %s</string>
     <string name="morphe_settings_menu_filter_picker_empty">Open the standard app settings screen once to populate the list</string>
     <string name="morphe_settings_menu_filter_screen_summary">Hide items on the standard app settings screen by their visible name</string>
@@ -817,10 +828,16 @@ Tap here to open OpenRouter.ai"</string>
     <string name="morphe_vot_voice_gender_female_multilingual">Multilingual female</string>
     <string name="morphe_vot_voice_gender_male">Male</string>
     <string name="morphe_vot_voice_gender_male_multilingual">Multilingual male</string>
-    <string name="morphe_watch_later_hide_removal_snackbar_summary">The confirmation is not shown after a video is removed from Watch later</string>
-    <string name="morphe_watch_later_hide_removal_snackbar_title">Hide Watch later removal snackbar</string>
-    <string name="morphe_watch_later_wide_drag_handles_summary">The drag handles of the Watch later videos are easier to grab</string>
-    <string name="morphe_watch_later_wide_drag_handles_title">Widen Watch later drag handles</string>
+    <string name="morphe_playlist_wide_drag_handles_title">Widen playlist drag handles</string>
+    <string name="morphe_playlist_wide_drag_handles_summary">Playlist drag handles are easier to grab</string>
+    <string name="morphe_playlist_hide_removal_snackbar_title">Hide playlist removal snackbar</string>
+    <string name="morphe_playlist_hide_removal_snackbar_summary">
+        The confirmation is not shown after a video is removed from a playlist
+    </string>
+    <string name="morphe_playlist_long_press_drag_title">Long press to reorder playlist videos</string>
+    <string name="morphe_playlist_long_press_drag_summary">
+        Touch and hold a video of your playlist to drag it to a new position
+    </string>
     <string name="revanced_advanced_video_quality_menu_summary_off">Advanced video quality menu is not shown</string>
     <string name="revanced_advanced_video_quality_menu_summary_on">Advanced video quality menu is shown</string>
     <string name="revanced_advanced_video_quality_menu_title">Show advanced video quality menu</string>
@@ -871,6 +888,14 @@ Tap and hold to toggle the appended information type"</string>
     <string name="revanced_bypass_ambient_mode_restrictions_summary_off">Ambient mode is disabled in battery saver mode</string>
     <string name="revanced_bypass_ambient_mode_restrictions_summary_on">Ambient mode is enabled in battery saver mode</string>
     <string name="revanced_bypass_ambient_mode_restrictions_title">Bypass Ambient mode restrictions</string>
+    <string name="morphe_enhanced_ambient_mode_title">Enhanced Ambient mode</string>
+    <string name="morphe_enhanced_ambient_mode_summary">Lights the whole watch page and black bars with the video, in place of Ambient mode. Requires Android 10 or newer</string>
+    <string name="morphe_enhanced_ambient_mode_readable_text_title">Keep text readable</string>
+    <string name="morphe_enhanced_ambient_mode_readable_text_summary">Dims the light on bright videos so the text on the page stays readable</string>
+    <string name="morphe_enhanced_ambient_mode_dim_while_scrolling_title">Dim while scrolling</string>
+    <string name="morphe_enhanced_ambient_mode_dim_while_scrolling_summary">Dims the light while the page is scrolled or touched</string>
+    <string name="morphe_enhanced_ambient_mode_dim_duration_title">Dim duration</string>
+    <string name="morphe_enhanced_ambient_mode_dim_duration_summary">How long the light stays dim after scrolling stops. With 0, the light starts returning as soon as scrolling stops</string>
     <string name="revanced_bypass_image_region_restrictions_domain_summary">The domain to fetch images from\nNote: Only enter the domain name, i.e., without the \"https\:\/\/\" prefix</string>
     <string name="revanced_bypass_image_region_restrictions_domain_title">Alternative domain</string>
     <string name="revanced_bypass_image_region_restrictions_summary_off">Using original image host\n\nEnabling this can fix missing images that are blocked in some regions</string>
@@ -1074,19 +1099,18 @@ Settings → Autoplay / Playback → Autoplay next video"</string>
     <string name="revanced_disable_landscape_mode_summary_off">Video orientation follows device settings in fullscreen</string>
     <string name="revanced_disable_landscape_mode_summary_on">Video orientation is portrait mode in fullscreen</string>
     <string name="revanced_disable_landscape_mode_title">Disable landscape mode</string>
-    <string name="revanced_disable_layout_updates_summary_off">Layout will be updated by the server</string>
-    <string name="revanced_disable_layout_updates_summary_on">Layout will not be updated by the server</string>
+    <string name="revanced_disable_layout_updates_summary_off">YouTube can receive hot/cold configuration updates</string>
+    <string name="revanced_disable_layout_updates_summary_on">YouTube\'s hot/cold configuration headers are blocked</string>
     <string name="revanced_disable_layout_updates_title">Disable layout updates</string>
-    <string name="revanced_disable_layout_updates_user_dialog_message">"App layout reverts to the layout it was using when it was first installed
+    <string name="revanced_disable_layout_updates_user_dialog_message">"Blocks YouTube's hot/cold configuration headers to prevent some layout updates
 
-Some server-side layouts may not revert
+The server still delivers the navigation bar. This setting does not restore or keep the old Library tab
 
-Changes include:
-• Components in player flyout menu (or related settings) may not work
-• Rolling numbers are not animated
-• The Library tab is used
-• The Music section of video description may not work
-• Account switch button may not appear on the Library tab. Use the 'Enable wide search bar in You tab' setting"</string>
+Possible effects include:
+• Components in the player flyout menu (or related settings) may not work
+• Rolling numbers may not animate
+• The Music section of video descriptions may not work
+• The account switch button may not appear in the You tab. Use the 'Enable wide search bar in You tab' setting"</string>
     <string name="revanced_disable_like_dislike_glow_summary_off">Like and Dislike buttons will glow when mentioned</string>
     <string name="revanced_disable_like_dislike_glow_summary_on">Like and Dislike buttons will not glow when mentioned</string>
     <string name="revanced_disable_like_dislike_glow_title">Disable Like and Dislike buttons glow</string>
@@ -1314,6 +1338,10 @@ Limitations:
     <string name="revanced_gemini_error_transcription_parse">Failed to parse transcription data</string>
     <string name="revanced_gemini_error_translation_failed">Gemini translation failed</string>
     <string name="revanced_gemini_error_translation_parse_failed">Gemini translation parsing failed</string>
+    <string name="revanced_gemini_models_title">Model cascade</string>
+    <string name="revanced_gemini_models_summary">Enter one model ID per line, in fallback order. All API keys are tried for each model before moving to the next. Leave empty to use the default cascade, or use Reset to restore it.</string>
+    <string name="revanced_gemini_google_search_title">Ground with Google Search</string>
+    <string name="revanced_gemini_google_search_summary">Let Gemini search the web for summaries and chat answers, with source links and Google Search attribution. Paid Gemini API access and available quota may be required, depending on the model. Google AI subscription plans do not include paid API access; API billing is separate. Additional API charges may apply.</string>
     <string name="revanced_gemini_highlight_words_summary">Highlight each spoken word in video subtitles</string>
     <string name="revanced_gemini_highlight_words_title">Highlight spoken words</string>
     <string name="revanced_gemini_loading_default">Loading...</string>
@@ -1456,9 +1484,12 @@ Store"</string>
     <string name="revanced_hide_comments_by_members_title">Hide Comments by members banner</string>
     <string name="revanced_hide_comments_carousel_filter_strings_summary">Enter the comments carousel names to filter by, separated by new lines</string>
     <string name="revanced_hide_comments_carousel_filter_strings_title">Comments carousel filter</string>
+    <string name="revanced_hide_comments_carousel_filter_type_summary_off">Filter if matches.&lt;br&gt;&lt;br&gt;Enter the full carousel title to hide it. Matching is case-sensitive</string>
+    <string name="revanced_hide_comments_carousel_filter_type_summary_on">Filter if contains.&lt;br&gt;&lt;br&gt;Enter &lt;b&gt;community&lt;/b&gt; to hide every carousel whose title contains that text. Matching is case-sensitive. Wildcards are not needed</string>
+    <string name="revanced_hide_comments_carousel_filter_type_title">Comments carousel filter type</string>
     <string name="revanced_hide_comments_carousel_title">Enable comments carousel filter</string>
     <string name="revanced_hide_comments_carousel_user_dialog_message">"Note:
-• Make sure to enter the exact name of the carousel item (e.g. Ask, Hype this video, Listen on YouTube Music, etc.)
+• Enter a full carousel title for exact matching, or part of a title for substring matching. Matching is case-sensitive
 • Hiding carousel items may have unintended side effects
 • If all carousel items are hidden, the entire comments section will also be hidden"</string>
     <string name="revanced_hide_comments_create_a_short_button_summary_off">Create a Short button is shown</string>

@@ -9,6 +9,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-17.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -41,7 +42,6 @@
 
 package app.morphe.extension.youtube.patches.utils.requests
 
-import androidx.annotation.GuardedBy
 import app.morphe.extension.shared.innertube.client.YouTubeClient
 import app.morphe.extension.shared.innertube.requests.InnerTubeRequestBody.createPlaylistRequestBody
 import app.morphe.extension.shared.innertube.requests.InnerTubeRequestBody.getPlaylistResponseConnectionFromRoute
@@ -55,7 +55,6 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
 import java.net.SocketTimeoutException
-import java.util.Collections
 import java.util.Objects
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Future
@@ -95,78 +94,17 @@ class CreatePlaylistRequest private constructor(
     companion object {
         private const val MAX_MILLISECONDS_TO_WAIT_FOR_FETCH = 20 * 1000
 
-        @GuardedBy("itself")
-        val cache: MutableMap<String, CreatePlaylistRequest> = Collections.synchronizedMap(
-            object : LinkedHashMap<String, CreatePlaylistRequest>(100) {
-                private val CACHE_LIMIT = 50
-
-                override fun removeEldestEntry(eldest: Map.Entry<String, CreatePlaylistRequest>): Boolean {
-                    return size > CACHE_LIMIT // Evict the oldest entry if over the cache limit.
-                }
-            })
-
         @JvmStatic
-        fun clear() {
-            synchronized(cache) {
-                cache.clear()
-            }
-        }
-
-        @JvmStatic
-        fun fetchRequestIfNeeded(
+        fun create(
             videoId: String,
             requestHeader: Map<String, String>,
-        ) {
-            Objects.requireNonNull(videoId)
-            Logger.printDebug { "fetchRequestIfNeeded called for videoId: $videoId" }
-            synchronized(cache) {
-                if (!cache.containsKey(videoId)) {
-                    Logger.printDebug { "fetchRequestIfNeeded: creating new CreatePlaylistRequest for videoId: $videoId" }
-                    cache[videoId] = CreatePlaylistRequest(
-                        listOf(videoId),
-                        requestHeader,
-                    )
-                } else {
-                    Logger.printDebug { "fetchRequestIfNeeded: cache already contains CreatePlaylistRequest for videoId: $videoId" }
-                }
-            }
-        }
+        ): CreatePlaylistRequest = create(listOf(videoId), requestHeader)
 
         @JvmStatic
-        fun fetchRequestIfNeeded(
+        fun create(
             videoIds: List<String>,
             requestHeader: Map<String, String>,
-        ) {
-            val requestKey = getRequestKey(videoIds)
-            synchronized(cache) {
-                if (!cache.containsKey(requestKey)) {
-                    Logger.printDebug { "fetchRequestIfNeeded: creating new CreatePlaylistRequest for ${videoIds.size} videos" }
-                    cache[requestKey] = CreatePlaylistRequest(
-                        videoIds,
-                        requestHeader,
-                    )
-                }
-            }
-        }
-
-        @JvmStatic
-        fun getRequestForVideoId(videoId: String): CreatePlaylistRequest? {
-            synchronized(cache) {
-                val req = cache[videoId]
-                Logger.printDebug { "getRequestForVideoId videoId: $videoId, returned: $req" }
-                return req
-            }
-        }
-
-        @JvmStatic
-        fun getRequestForVideoIds(videoIds: List<String>): CreatePlaylistRequest? {
-            synchronized(cache) {
-                return cache[getRequestKey(videoIds)]
-            }
-        }
-
-        private fun getRequestKey(videoIds: List<String>): String =
-            "batch:" + videoIds.joinToString(",")
+        ): CreatePlaylistRequest = CreatePlaylistRequest(videoIds, requestHeader)
 
         private fun handleConnectionError(toastMessage: String, ex: Exception?) {
             Logger.printInfo({ toastMessage }, ex)

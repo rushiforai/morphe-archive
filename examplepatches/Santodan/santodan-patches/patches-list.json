@@ -1222,7 +1222,7 @@
     },
     {
       "name": "TFD Companion - Remove illegal apps detection",
-      "description": "Removes broad MAIN/VIEW package queries while preserving specific app integrations. For Android 11+. Leaves NGSM and authentication unchanged; other detections may still occur.",
+      "description": "Removes broad MAIN/VIEW package queries while preserving specific app integrations. For Android 11+. Select only one TFD visibility patch. Leaves NGSM and authentication unchanged; other detections may still occur.",
       "default": true,
       "dependencies": [],
       "compatiblePackages": [
@@ -1239,6 +1239,40 @@
               "version": "1.1.5",
               "versionCodes": null,
               "isExperimental": false,
+              "minSdk": 30,
+              "description": null
+            },
+            {
+              "version": "1.1.6",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 30,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "TFD Companion - Remove illegal apps detection (Experimental)",
+      "description": "Experimental alternative without a version restriction. Select instead of the regular patch. Requires the original MAIN/VIEW query layout and Android 11+. Future compatibility is not guaranteed.",
+      "default": false,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.nexon.tfdc",
+          "name": "TFD Companion",
+          "description": null,
+          "apkFileType": "APKS",
+          "formFactor": "MOBILE",
+          "appIconColor": null,
+          "signatures": null,
+          "targets": [
+            {
+              "version": null,
+              "versionCodes": null,
+              "isExperimental": true,
               "minSdk": 30,
               "description": null
             }

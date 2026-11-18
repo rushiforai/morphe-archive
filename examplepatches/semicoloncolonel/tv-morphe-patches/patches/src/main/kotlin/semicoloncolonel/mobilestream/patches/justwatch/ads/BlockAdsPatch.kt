@@ -1,0 +1,151 @@
+package semicoloncolonel.mobilestream.patches.justwatch.ads
+
+import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.bytecodePatch
+import semicoloncolonel.mobilestream.patches.justwatch.shared.Constants
+import semicoloncolonel.mobilestream.patches.shared.misc.returnEarly
+
+// JustWatch is a React Native app. On the phone build (26.44.2), every
+// display ad goes through the react-native-google-mobile-ads module (Google
+// Ad Manager, with AppLovin, ironSource, Chartboost, Unity, and Meta as
+// mediation partners):
+//   initialize: never answers, so no ad network is started. The app's
+//   banner slots wait for this answer before they reserve space, so the
+//   slots and their "Remove Ads" links stay collapsed.
+//   native ads: every request is refused, as when no ad is available.
+//   banners: never requested, and the banner view is hidden.
+//   interstitial, rewarded, and app-open ads: never requested.
+// The Android TV build (26.43.8) does not ship that module, so those hooks
+// are applied only where it exists.
+//
+// On both builds, video ads before and during free streams are scheduled
+// through the Bitmovin player's advertising config, whose schedule is now
+// always empty. That hook is required.
+//
+// The Android TV build also schedules its pre-roll pod at runtime: the app's
+// JavaScript calls scheduleAd on Bitmovin's React Native player module after
+// the title loads. That call now answers the JavaScript at once without
+// scheduling anything, so no ad is pending and autoplay starts the title.
+
+private const val ADS = "Lio/invertase/googlemobileads/"
+private const val PROMISE = "Lcom/facebook/react/bridge/Promise;"
+
+internal object AdsInitializeFingerprint : Fingerprint(
+    definingClass = "${ADS}ReactNativeGoogleMobileAdsModule;",
+    name = "initialize",
+    parameters = listOf(PROMISE),
+    returnType = "V",
+)
+
+internal object NativeAdLoadFingerprint : Fingerprint(
+    definingClass = "${ADS}ReactNativeGoogleMobileAdsNativeModule;",
+    name = "load",
+    returnType = "V",
+)
+
+internal object BannerRequestFingerprint : Fingerprint(
+    definingClass = "${ADS}ReactNativeGoogleMobileAdsBannerAdViewManager;",
+    name = "requestAd",
+    returnType = "V",
+)
+
+internal object FullScreenAdLoadFingerprint : Fingerprint(
+    definingClass = "${ADS}ReactNativeGoogleMobileAdsFullScreenAdModule;",
+    name = "load",
+    parameters = listOf("I", "Ljava/lang/String;", "Lcom/facebook/react/bridge/ReadableMap;"),
+    returnType = "V",
+)
+
+// PlayerModule.scheduleAd(nativeId, adItemJson, promise), called from JavaScript.
+internal object RnScheduleAdFingerprint : Fingerprint(
+    definingClass = "Lcom/bitmovin/player/reactnative/PlayerModule;",
+    name = "scheduleAd",
+    parameters = listOf("Ljava/lang/String;", "Lcom/facebook/react/bridge/ReadableMap;", PROMISE),
+    returnType = "V",
+)
+
+internal object AdScheduleFingerprint : Fingerprint(
+    definingClass = "Lcom/bitmovin/player/api/advertising/AdvertisingConfig;",
+    name = "getSchedule",
+    parameters = listOf(),
+    returnType = "Ljava/util/List;",
+)
+
+// Bitmovin's own Player.scheduleAd(AdItem), its IMA ad scheduler. The 26.45.1
+// phone build schedules the free-streaming pre-rolls through here at runtime,
+// and its React Native wrapper moved to Expo modules, so RnScheduleAdFingerprint
+// no longer matches. This hook is on the SDK method itself, found by the log it
+// prints when the IMA SDK is absent, so it does not depend on the wrapper.
+internal object BitmovinScheduleAdFingerprint : Fingerprint(
+    name = "scheduleAd",
+    parameters = listOf("Lcom/bitmovin/player/api/advertising/AdItem;"),
+    returnType = "V",
+    strings = listOf("Scheduling an ad is not supported as the interactive media ads SDK dependency is not available."),
+)
+
+@Suppress("unused")
+val blockAdsPatch = bytecodePatch(
+    name = "Block ads",
+    description = "Removes the banner, native, full-screen, and video ads.",
+) {
+    category("Ads")
+    compatibleWith(Constants.COMPATIBILITY)
+
+    execute {
+        // Display ads (phone build only). Where the module exists, every hook
+        // must match, so a renamed one fails the patch instead of leaving ads.
+        val phone = AdsInitializeFingerprint.methodOrNull != null
+        // The promise is left pending on purpose: only the banner component
+        // waits on it, and it renders nothing until it resolves.
+        if (phone) AdsInitializeFingerprint.method.returnEarly("return-void")
+
+        // load(adUnitId, requestOptions, promise)
+        if (phone) NativeAdLoadFingerprint.method.returnEarly(
+            """
+                const-string v0, "no-fill"
+                invoke-interface { p3, v0, v0 }, $PROMISE->reject(Ljava/lang/String;Ljava/lang/String;)V
+                return-void
+            """.trimIndent(),
+        )
+
+        if (phone) BannerRequestFingerprint.method.returnEarly(
+            """
+                const/16 v0, 0x8
+                invoke-virtual { p1, v0 }, Landroid/view/View;->setVisibility(I)V
+                return-void
+            """.trimIndent(),
+        )
+
+        if (phone) FullScreenAdLoadFingerprint.method.returnEarly("return-void")
+
+        // Video ads (both builds).
+        AdScheduleFingerprint.method.returnEarly(
+            """
+                invoke-static {}, Ljava/util/Collections;->emptyList()Ljava/util/List;
+                move-result-object v0
+                return-object v0
+            """.trimIndent(),
+        )
+
+        // Runtime pre-roll scheduling. The React Native wrapper (Android TV
+        // build and the older phone build) resolves its promise so autoplay
+        // starts; the Expo phone build (26.45.1) is caught at the SDK method.
+        // At least one must match, so a renamed path fails instead of leaving ads.
+        val rnScheduled = RnScheduleAdFingerprint.methodOrNull?.also {
+            it.returnEarly(
+                """
+                    const/4 v0, 0x0
+                    invoke-interface { p3, v0 }, $PROMISE->resolve(Ljava/lang/Object;)V
+                    return-void
+                """.trimIndent(),
+            )
+        }
+        val sdkScheduled = BitmovinScheduleAdFingerprint.methodOrNull?.also {
+            it.returnEarly("return-void")
+        }
+        if (rnScheduled == null && sdkScheduled == null) {
+            throw PatchException("JustWatch runtime ad scheduler not found (PlayerModule.scheduleAd or Player.scheduleAd)")
+        }
+    }
+}

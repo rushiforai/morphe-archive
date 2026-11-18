@@ -1,0 +1,495 @@
+{
+  "format": 1,
+  "scope": "Partial work-package-1 native lifecycle feasibility; complete warning acceptance is pending",
+  "emulator": {
+    "serial": "emulator-5580",
+    "avd": "native_warnings_api34",
+    "sdk": 34
+  },
+  "runs": {
+    "maps-runtime-original": {
+      "run_id": "4a7ffc74033a4cdda973ad5ac0715423",
+      "original_sha256": "81506a2c54fc9a8faca34c18af7619d9c9d26cbfbe799b66884a59ac17791004",
+      "test_signed_sha256": "5ca9048695ba1c4895766058f30c02a17a8398c98279789506c6457b613cb458",
+      "probe_sha256": "1cb1dfd0da082ab2a76299a6f5deca08f01746d1a287a5467ef7a1f163ea3f00",
+      "process_uid": 10194,
+      "target_uid": 10194,
+      "installed_apk_sha256": {
+        "com.google.android.apps.maps": "5ca9048695ba1c4895766058f30c02a17a8398c98279789506c6457b613cb458",
+        "nl.johninnl.warningprobe.maps": "1cb1dfd0da082ab2a76299a6f5deca08f01746d1a287a5467ef7a1f163ea3f00"
+      },
+      "original_entries_unchanged": true,
+      "private_native_edits_verified": 0,
+      "result_sha256": "792bff4f916fe9cd51b1a80455868ddee1f53b4620dce35ffc696744bf4545e9",
+      "instrumentation_sha256": "d13d2f267f92f4163b6602a6e999f173c5b25b17714dd0c3ec01e64617ebfded",
+      "raw_report": ".analysis/native-warning-bindings/maps-runtime-original/result.json",
+      "cases": [
+        {
+          "case": "natural_completion",
+          "status": "observed",
+          "start_calls": 1,
+          "stop_calls": 1,
+          "release_calls": 1,
+          "native_player_cleared": true,
+          "callback_order_observed": true
+        },
+        {
+          "case": "cancel_active",
+          "status": "observed",
+          "start_calls": 1,
+          "stop_calls": 1,
+          "release_calls": 1,
+          "native_player_cleared": true,
+          "callback_order_observed": true
+        },
+        {
+          "case": "cancel_before_play",
+          "status": "observed",
+          "start_calls": 0,
+          "stop_calls": 1,
+          "release_calls": 1,
+          "native_player_cleared": true,
+          "callback_order_observed": true
+        }
+      ]
+    },
+    "maps-manager-runtime-original": {
+      "run_id": "fcfc34d14003430284e510dc465d6862",
+      "original_sha256": "81506a2c54fc9a8faca34c18af7619d9c9d26cbfbe799b66884a59ac17791004",
+      "test_signed_sha256": "5ca9048695ba1c4895766058f30c02a17a8398c98279789506c6457b613cb458",
+      "probe_sha256": "1cb1dfd0da082ab2a76299a6f5deca08f01746d1a287a5467ef7a1f163ea3f00",
+      "process_uid": 10194,
+      "target_uid": 10194,
+      "installed_apk_sha256": {
+        "com.google.android.apps.maps": "5ca9048695ba1c4895766058f30c02a17a8398c98279789506c6457b613cb458",
+        "nl.johninnl.warningprobe.maps": "1cb1dfd0da082ab2a76299a6f5deca08f01746d1a287a5467ef7a1f163ea3f00"
+      },
+      "original_entries_unchanged": true,
+      "private_native_edits_verified": 0,
+      "result_sha256": "2d507c29ee41057e457e4c0f74abc9df9962aeb7a9c816975b5487c731ebbf02",
+      "instrumentation_sha256": "885656143fd1e84eb89e299bb70570c91c4d1f8ee812509d6ce24f796eebfa9a",
+      "raw_report": ".analysis/native-warning-bindings/maps-manager-runtime-original/result.json",
+      "status": "observed",
+      "jobs": [
+        {
+          "name": "active",
+          "terminal_count": 1,
+          "terminal_result": "CANCELLED",
+          "terminal_type": "LOCAL",
+          "starts": 1,
+          "stops": 1,
+          "releases": 1,
+          "native_player_cleared": true,
+          "native_job_cancel_flag": true,
+          "wav_deleted": true
+        },
+        {
+          "name": "pending",
+          "terminal_count": 1,
+          "terminal_result": "CANCELLED_NEVER_PLAYED",
+          "terminal_type": "NON_AUDIO",
+          "starts": 0,
+          "stops": 0,
+          "releases": 1,
+          "native_player_cleared": false,
+          "native_job_cancel_flag": false,
+          "wav_deleted": true
+        }
+      ],
+      "manager_idle_to_active_release_ms": 27.775584
+    },
+    "vela-runtime-original": {
+      "run_id": "a79a9c3fabf34c6eae5926e588446bf4",
+      "original_sha256": "f168bc730568b98ee8132131658d9220ef5be3557af41fd373bdaf104c31b20f",
+      "test_signed_sha256": "2221baf807b02eb7acdf75c6deaa37e270df576af52d21fa5647a7ccccc7181e",
+      "probe_sha256": "2fc146bacd5eed21045de52197c3e7b32fe42e57a5c5da322c9fe62888f486e5",
+      "process_uid": 10192,
+      "target_uid": 10192,
+      "installed_apk_sha256": {
+        "app.vela": "2221baf807b02eb7acdf75c6deaa37e270df576af52d21fa5647a7ccccc7181e",
+        "nl.johninnl.warningprobe.vela": "2fc146bacd5eed21045de52197c3e7b32fe42e57a5c5da322c9fe62888f486e5"
+      },
+      "original_entries_unchanged": true,
+      "private_native_edits_verified": 0,
+      "result_sha256": "7ff5f772447e5a1bec97319ceb5a8ecb069efac0ebdef04b931fc45650dae0d4",
+      "instrumentation_sha256": "315762f978c54e1fc2f57d3b053cb4350555090f4729a19422fce042849778e6",
+      "raw_report": ".analysis/native-warning-bindings/vela-runtime-original/result.json",
+      "probe_status": "observations_collected",
+      "cases": [
+        {
+          "name": "warmup",
+          "speech_start_callback_observed": true,
+          "speech_done_after_start_observed": true,
+          "start_delay_ms": 673.109917,
+          "done_delay_ms": 4885.263377,
+          "native_callback_forward_failures": 0
+        },
+        {
+          "name": "warm_baseline",
+          "speech_start_callback_observed": true,
+          "speech_done_after_start_observed": true,
+          "start_delay_ms": 654.602708,
+          "done_delay_ms": 4257.282835,
+          "native_callback_forward_failures": 0
+        },
+        {
+          "name": "stop_during_lead",
+          "speech_start_callback_observed": true,
+          "speech_done_after_start_observed": true,
+          "start_delay_ms": 653.98825,
+          "done_delay_ms": 4881.812085,
+          "cancel_delay_ms": 9.793458,
+          "stale_delayed_dispatch_reproduced": true,
+          "native_callback_forward_failures": 0
+        },
+        {
+          "name": "mute_during_lead",
+          "speech_start_callback_observed": true,
+          "speech_done_after_start_observed": true,
+          "start_delay_ms": 661.119,
+          "done_delay_ms": 4892.61221,
+          "cancel_delay_ms": 8.459416,
+          "stale_delayed_dispatch_reproduced": true,
+          "native_callback_forward_failures": 0
+        }
+      ]
+    },
+    "vela-runtime-fenced": {
+      "run_id": "9ee6eb9fc38b4867babc4a64571cef27",
+      "original_sha256": "f168bc730568b98ee8132131658d9220ef5be3557af41fd373bdaf104c31b20f",
+      "test_signed_sha256": "7d76d68fa6c0b5dd69a645a0e3063660e5cbd2720d8a9d2436151eeae3c501fd",
+      "probe_sha256": "2fc146bacd5eed21045de52197c3e7b32fe42e57a5c5da322c9fe62888f486e5",
+      "process_uid": 10192,
+      "target_uid": 10192,
+      "installed_apk_sha256": {
+        "app.vela": "7d76d68fa6c0b5dd69a645a0e3063660e5cbd2720d8a9d2436151eeae3c501fd",
+        "nl.johninnl.warningprobe.vela": "2fc146bacd5eed21045de52197c3e7b32fe42e57a5c5da322c9fe62888f486e5"
+      },
+      "original_entries_unchanged": false,
+      "private_native_edits_verified": 3,
+      "result_sha256": "10d41a7c1e8612239e4e371ba5b961ffea551597a63e93cfc9be2689e02d2b8d",
+      "instrumentation_sha256": "d802da3ee3c8b5cf1cf1dbacd631b5668cab3d931465fd96ced88617562d0cce",
+      "raw_report": ".analysis/native-warning-bindings/vela-runtime-fenced/result.json",
+      "probe_status": "observations_collected",
+      "cases": [
+        {
+          "name": "warmup",
+          "speech_start_callback_observed": true,
+          "speech_done_after_start_observed": true,
+          "start_delay_ms": 669.300792,
+          "done_delay_ms": 4882.921419,
+          "fence_capture_delta": 1,
+          "fence_rejection_observed": false,
+          "fence_focus_release_delta": 0,
+          "fence_native_stop_invalidation_delta": 0,
+          "pending_outcome": "ENGINE_CALLBACK_START_AND_DONE",
+          "native_callback_forward_failures": 0
+        },
+        {
+          "name": "warm_baseline",
+          "speech_start_callback_observed": true,
+          "speech_done_after_start_observed": true,
+          "start_delay_ms": 656.053458,
+          "done_delay_ms": 4250.815627,
+          "fence_capture_delta": 1,
+          "fence_rejection_observed": false,
+          "fence_focus_release_delta": 0,
+          "fence_native_stop_invalidation_delta": 0,
+          "pending_outcome": "ENGINE_CALLBACK_START_AND_DONE",
+          "native_callback_forward_failures": 0
+        },
+        {
+          "name": "stop_during_lead",
+          "speech_start_callback_observed": false,
+          "speech_done_after_start_observed": false,
+          "cancel_delay_ms": 8.815583,
+          "stale_delayed_dispatch_reproduced": false,
+          "fence_capture_delta": 1,
+          "fence_rejection_observed": true,
+          "fence_focus_release_delta": 0,
+          "fence_native_stop_invalidation_delta": 1,
+          "pending_outcome": "NOT_STARTED",
+          "native_callback_forward_failures": 0
+        },
+        {
+          "name": "mute_during_lead",
+          "speech_start_callback_observed": false,
+          "speech_done_after_start_observed": false,
+          "cancel_delay_ms": 10.861708,
+          "stale_delayed_dispatch_reproduced": false,
+          "fence_capture_delta": 1,
+          "fence_rejection_observed": true,
+          "fence_focus_release_delta": 0,
+          "fence_native_stop_invalidation_delta": 1,
+          "pending_outcome": "NOT_STARTED",
+          "native_callback_forward_failures": 0
+        },
+        {
+          "name": "source_cancel_during_lead",
+          "speech_start_callback_observed": false,
+          "speech_done_after_start_observed": false,
+          "cancel_delay_ms": 8.994625,
+          "stale_delayed_dispatch_reproduced": false,
+          "fence_capture_delta": 1,
+          "fence_rejection_observed": true,
+          "fence_focus_release_delta": 1,
+          "fence_native_stop_invalidation_delta": 0,
+          "pending_outcome": "NOT_STARTED",
+          "native_callback_forward_failures": 0
+        },
+        {
+          "name": "selective_source_cancel",
+          "speech_start_callback_observed": false,
+          "speech_done_after_start_observed": false,
+          "cancel_delay_ms": 8.421958,
+          "stale_delayed_dispatch_reproduced": false,
+          "fence_capture_delta": 1,
+          "fence_rejection_observed": true,
+          "fence_focus_release_delta": 1,
+          "fence_native_stop_invalidation_delta": 0,
+          "pending_outcome": "NOT_STARTED",
+          "native_callback_forward_failures": 0
+        }
+      ],
+      "fenced_suite_expectations_met": true,
+      "fence_totals": {
+        "captured": 6,
+        "allowed": 2,
+        "rejected": 4,
+        "untagged_allows": 1,
+        "focus_release_successes": 2
+      },
+      "retained_untagged_prompt": {
+        "speech_start_callback_observed": true,
+        "speech_done_after_start_observed": true,
+        "native_callback_forward_failures": 0
+      }
+    },
+    "maps-production-runtime": {
+      "run_id": "c5a133222f0b4397bdd1c9377b2bd5da",
+      "original_sha256": "81506a2c54fc9a8faca34c18af7619d9c9d26cbfbe799b66884a59ac17791004",
+      "candidate_sha256": "a0ada4f3201ab919f076d9922fcd626e8357452b0b438322ee4f233b7d99bbce",
+      "test_signed_sha256": "fa837b4970572dfd0d324ae96aa5fa2f6c555021145425d5befca6a59bd4a01a",
+      "probe_sha256": "50b9674096f8769df97b12bcfb735166432b59ffb056669361b16ecc1ed0c89c",
+      "process_uid": 10194,
+      "target_uid": 10194,
+      "installed_apk_sha256": {
+        "com.google.android.apps.maps": "fa837b4970572dfd0d324ae96aa5fa2f6c555021145425d5befca6a59bd4a01a",
+        "nl.johninnl.warningprobe.maps": "50b9674096f8769df97b12bcfb735166432b59ffb056669361b16ecc1ed0c89c"
+      },
+      "original_entries_unchanged": false,
+      "candidate_signing_entries_unchanged": true,
+      "status": "observed",
+      "result_sha256": "6c01945d7d809ee8ad87027d91460316a3dbd66309552d5f27865a067484ac9d",
+      "instrumentation_sha256": "4c020fa29bec7bd287124c7c3b180a53bdd92f971b9adeb6d77284f35c94b7c3",
+      "raw_report": ".analysis/native-warning-bindings/maps-production-runtime/result.json",
+      "scope": "Production coordinator + original manager and synthetic TEST_AUDIO; no fabricated route",
+      "limitations": [
+        "Uses the actual patched production coordinator/final-dispatch hook and original application manager; synthetic TEST_AUDIO jobs are not route guidance.",
+        "No current native route is fabricated. P0 preemption is expected to refuse without a current bmia route/step.",
+        "No current-route regeneration, chained players, warning TTS audio, phone/car routing, full/minimal mute, or focus-denial acceptance is established by this scenario."
+      ],
+      "cases": [
+        {
+          "terminal_count": 1,
+          "terminal_result": "FINISHED_AUDIO",
+          "starts": 1,
+          "stops": 1,
+          "releases": 1,
+          "case": "production_unheld_original_lifecycle",
+          "status": "observed"
+        },
+        {
+          "case": "production_idle_hold",
+          "quiet": true,
+          "reason": "QUIESCENT",
+          "status": "observed"
+        },
+        {
+          "terminal_count": 1,
+          "terminal_result": "NEVER_PLAYED",
+          "starts": 0,
+          "stops": 1,
+          "releases": 1,
+          "case": "production_final_dispatch_fence",
+          "status": "observed"
+        },
+        {
+          "case": "production_composite_final_dispatch_fence",
+          "first_starts": 0,
+          "second_starts": 0,
+          "first_releases": 1,
+          "second_releases": 1,
+          "native_terminal": "NEVER_PLAYED",
+          "terminal_count": 1,
+          "first_leaf_cleared": true,
+          "second_leaf_cleared": true,
+          "status": "observed"
+        },
+        {
+          "case": "production_p0_without_current_route",
+          "quiet": false,
+          "reason": "GUIDANCE_BUSY",
+          "status": "observed",
+          "active_job_retained": true
+        }
+      ]
+    },
+    "maps-production-speech": {
+      "run_id": "4833c4e4ef1844cbb8a852a87b7e6325",
+      "original_sha256": "81506a2c54fc9a8faca34c18af7619d9c9d26cbfbe799b66884a59ac17791004",
+      "candidate_sha256": "a0ada4f3201ab919f076d9922fcd626e8357452b0b438322ee4f233b7d99bbce",
+      "test_signed_sha256": "fa837b4970572dfd0d324ae96aa5fa2f6c555021145425d5befca6a59bd4a01a",
+      "probe_sha256": "a26bf1ea0683d6729aa0f9d274ba5aa27e3959e9e8e88586768277f16718ff0d",
+      "process_uid": 10194,
+      "target_uid": 10194,
+      "installed_apk_sha256": {
+        "com.google.android.apps.maps": "fa837b4970572dfd0d324ae96aa5fa2f6c555021145425d5befca6a59bd4a01a",
+        "nl.johninnl.warningprobe.maps": "a26bf1ea0683d6729aa0f9d274ba5aa27e3959e9e8e88586768277f16718ff0d"
+      },
+      "original_entries_unchanged": false,
+      "candidate_signing_entries_unchanged": true,
+      "status": "observed",
+      "result_sha256": "da2cd153f41025387ed70a8d0147ea9940b26cee29839cf45b0fe335ce88e6ba",
+      "instrumentation_sha256": "46c9d0149796f422a0ad89323c6d5a69583a4df125c23c94ceab8f0511b833b8",
+      "raw_report": ".analysis/native-warning-bindings/maps-production-speech/result.json",
+      "scope": "Actual patched Maps speaker, real offline TTS PCM/callbacks and production durable owner with a private synthetic warning",
+      "limitations": [
+        "The source grant/event is a private synthetic fixture, not FM detection and not a cross-UID provider-to-receiver acceptance test.",
+        "A probe observer forwards the production speaker's original progress listener and captures only this receiver-owned test TTS PCM; no microphone or other application audio is recorded.",
+        "Engine PCM plus onStart/onDone prove a nonzero generated speech signal and lifecycle, not acoustic playback, semantic transcription, car routing or interruption of actual route guidance.",
+        "No full/minimal-mute, focus-denial, current-route regeneration or physical phone/car acceptance is established."
+      ],
+      "voice": "en-in-x-cxx-local",
+      "voice_language": "en-IN",
+      "voice_requires_network": false,
+      "grant_persisted_before_speak": true,
+      "source_started_ack": "OK",
+      "source_terminal_ack": "OK",
+      "speaker_terminal": "COMPLETED",
+      "speaker_terminal_quiescent": true,
+      "ledger_cleared": true,
+      "pcm_bytes": 149044,
+      "pcm_nonzero_bytes": 126106,
+      "pcm_rate_hz": 24000,
+      "pcm_encoding": 2,
+      "pcm_channels": 1,
+      "pcm_overflow_chunks": 0,
+      "native_callback_forward_failures": 0,
+      "single_ready_idle_announce_to_start_ms": 279,
+      "synthetic_audio": {
+        "channels": 1,
+        "sample_width": 2,
+        "rate": 24000,
+        "frames": 74522,
+        "duration_seconds": 3.1050833333333334,
+        "wav_sha256": "66cc35f4e71f12ca3e49e3b31c11def2d1da95e01d0172181222d135b7314ebc",
+        "wav_bytes": 149088,
+        "result_sha256": "da2cd153f41025387ed70a8d0147ea9940b26cee29839cf45b0fe335ce88e6ba",
+        "scope": "Synthetic test utterance engine PCM from the production Maps speaker; no microphone or acoustic proof",
+        "raw_wav": ".analysis/native-warning-bindings/maps-production-speech/synthetic-warning.wav"
+      }
+    },
+    "maps-supported-tone": {
+      "run_id": "56c6723825e24adc9ab9e8fb6fc5f1f2",
+      "original_sha256": "81506a2c54fc9a8faca34c18af7619d9c9d26cbfbe799b66884a59ac17791004",
+      "candidate_sha256": "c4ba6b5b9230939abce392f8e866536b70ef4a92a0f0da6fe70f86d590fc1045",
+      "test_signed_sha256": "1e4ad12ec40d5a5349a871473dcaf9d6ba0aa3a1b7c098e1b78b3015a80e5277",
+      "probe_sha256": "baf7fdb773bbcd237d0dbfadc4f76816dcf3deb665bbb49740fc493a83549894",
+      "process_uid": 10194,
+      "target_uid": 10194,
+      "installed_apk_sha256": {
+        "com.google.android.apps.maps": "1e4ad12ec40d5a5349a871473dcaf9d6ba0aa3a1b7c098e1b78b3015a80e5277",
+        "nl.johninnl.warningprobe.maps": "baf7fdb773bbcd237d0dbfadc4f76816dcf3deb665bbb49740fc493a83549894"
+      },
+      "original_entries_unchanged": false,
+      "candidate_signing_entries_unchanged": true,
+      "status": "observed",
+      "scope": "Actual patched Maps tone, native AudioTrack head/drain/release and production durable owner with a private synthetic warning",
+      "limitations": [
+        "The source grant/event is a private synthetic fixture, not FM detection and not a cross-UID provider-to-receiver acceptance test.",
+        "A probe observer forwards the production speaker's original progress listener and captures only this receiver-owned test TTS PCM; no microphone or other application audio is recorded.",
+        "Engine PCM plus onStart/onDone prove a nonzero generated speech signal and lifecycle, not acoustic playback, semantic transcription, car routing or interruption of actual route guidance.",
+        "No full/minimal-mute, focus-denial, current-route regeneration or physical phone/car acceptance is established."
+      ],
+      "grant_persisted_before_speak": true,
+      "source_started_ack": "OK",
+      "source_terminal_ack": "OK",
+      "speaker_terminal": "COMPLETED",
+      "speaker_terminal_quiescent": true,
+      "ledger_cleared": true,
+      "verified_native_full_mute_mode": "SILENT",
+      "verified_native_full_mute_not_ready": true,
+      "injected_di_fault_preserves_intent": "TONE",
+      "injected_di_fault_ready": false,
+      "tts_initialized": false,
+      "tts_instance_created": false,
+      "tone_started_head": 1999,
+      "tone_frames": 22491,
+      "tone_terminal_head": 22491,
+      "tone_released_state": 0,
+      "tone_tts_initialized_after": false,
+      "tone_tts_instance_after": false,
+      "result_sha256": "3aed0248f9a11785dc9a619c177a34f8548ae4759071c7d341cecb90781a31fc",
+      "instrumentation_sha256": "a7c8a1179543834cc030a688a41f4761ab9cbae731368e6e20c87abb827ad72b",
+      "raw_report": ".analysis/native-warning-bindings/maps-supported-tone/result.json",
+      "single_ready_idle_announce_to_start_ms": 61,
+      "production_probe_has_no_app_class_definitions": true
+    },
+    "maps-supported-voice": {
+      "run_id": "7885002d8eab41779ffbc10f7ca32c88",
+      "original_sha256": "81506a2c54fc9a8faca34c18af7619d9c9d26cbfbe799b66884a59ac17791004",
+      "candidate_sha256": "c4ba6b5b9230939abce392f8e866536b70ef4a92a0f0da6fe70f86d590fc1045",
+      "test_signed_sha256": "1e4ad12ec40d5a5349a871473dcaf9d6ba0aa3a1b7c098e1b78b3015a80e5277",
+      "probe_sha256": "baf7fdb773bbcd237d0dbfadc4f76816dcf3deb665bbb49740fc493a83549894",
+      "process_uid": 10194,
+      "target_uid": 10194,
+      "installed_apk_sha256": {
+        "com.google.android.apps.maps": "1e4ad12ec40d5a5349a871473dcaf9d6ba0aa3a1b7c098e1b78b3015a80e5277",
+        "nl.johninnl.warningprobe.maps": "baf7fdb773bbcd237d0dbfadc4f76816dcf3deb665bbb49740fc493a83549894"
+      },
+      "original_entries_unchanged": false,
+      "candidate_signing_entries_unchanged": true,
+      "status": "observed",
+      "scope": "Actual patched Maps speaker, real offline TTS PCM/callbacks and production durable owner with a private synthetic warning",
+      "limitations": [
+        "The source grant/event is a private synthetic fixture, not FM detection and not a cross-UID provider-to-receiver acceptance test.",
+        "A probe observer forwards the production speaker's original progress listener and captures only this receiver-owned test TTS PCM; no microphone or other application audio is recorded.",
+        "Engine PCM plus onStart/onDone prove a nonzero generated speech signal and lifecycle, not acoustic playback, semantic transcription, car routing or interruption of actual route guidance.",
+        "No full/minimal-mute, focus-denial, current-route regeneration or physical phone/car acceptance is established."
+      ],
+      "grant_persisted_before_speak": true,
+      "source_started_ack": "OK",
+      "source_terminal_ack": "OK",
+      "speaker_terminal": "COMPLETED",
+      "speaker_terminal_quiescent": true,
+      "ledger_cleared": true,
+      "verified_native_full_mute_mode": "SILENT",
+      "verified_native_full_mute_not_ready": true,
+      "injected_di_fault_preserves_intent": "VOICE",
+      "injected_di_fault_ready": false,
+      "voice": "en-us-x-sfg-local",
+      "voice_language": "en-US",
+      "voice_requires_network": false,
+      "pcm_bytes": 138720,
+      "pcm_nonzero_bytes": 105768,
+      "pcm_rate_hz": 24000,
+      "pcm_encoding": 2,
+      "pcm_channels": 1,
+      "pcm_overflow_chunks": 0,
+      "native_callback_forward_failures": 0,
+      "result_sha256": "fc7020ac764dd2e037e125e9d2eb5b5fa7da67656b8af99d2a3fcb03edbfc3ea",
+      "instrumentation_sha256": "44cd6ec75e2d0df726be437c6644fd7f5fa3c6a9b6fe3af2622c7353413f944e",
+      "raw_report": ".analysis/native-warning-bindings/maps-supported-voice/result.json",
+      "single_ready_idle_announce_to_start_ms": 262,
+      "production_probe_has_no_app_class_definitions": true
+    }
+  },
+  "remaining_gates": [
+    "FM native semantic capture and complete coverage",
+    "Maps dispatch/chained-player fencing and current-route regeneration",
+    "Vela active/system/neural/tone outcome adapters and explicit focus grants",
+    "Authenticated transport, ownership, replay and uncertainty ledger",
+    "Complete source-to-output timing, phone/car routing and physical-device acceptance"
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "arm64-v8a": [
+    {
+      "name": "checkConsentClosure",
+      "address": 8147584,
+      "size": 1052,
+      "sha256": "0cd3e68329f0e5e06097be5732a1120806213f838d08bbacb1d8b20729c9ca3a",
+      "at": 8147688,
+      "before": "a00357f8",
+      "after": "7b000014"
+    },
+    {
+      "name": "checkConsentClosure",
+      "address": 8147584,
+      "size": 1052,
+      "sha256": "0cd3e68329f0e5e06097be5732a1120806213f838d08bbacb1d8b20729c9ca3a",
+      "at": 8148180,
+      "before": "a48355f865f040b8a5801c8ba50315f8",
+      "after": "a00357f8017041b8810d203783ffff17"
+    }
+  ],
+  "x86_64": [
+    {
+      "name": "checkConsentClosure",
+      "address": 7376908,
+      "size": 1336,
+      "sha256": "caa658b4fa54966ed4605b5be5948ef00d64747da09a1ec491c42f49c636a5bf",
+      "at": 7377032,
+      "before": "488b8570ffffff",
+      "after": "e9790200009090"
+    },
+    {
+      "name": "checkConsentClosure",
+      "address": 7376908,
+      "size": 1336,
+      "sha256": "caa658b4fa54966ed4605b5be5948ef00d64747da09a1ec491c42f49c636a5bf",
+      "at": 7377670,
+      "before": "488b9558ffffff8b580f49035e5848899d50ffffff8b4aff",
+      "after": "488b8570fffffff64017100f8515020000e973fdffff9090"
+    }
+  ],
+  "armeabi-v7a": [
+    {
+      "name": "checkConsentClosure",
+      "address": 8253184,
+      "size": 1024,
+      "sha256": "bae7bfb0a7270ca7fe5e116da0ef0760bd94d72bf31574c0d0a4e960dcb245eb",
+      "at": 8253288,
+      "before": "48001be5",
+      "after": "7a0000ea"
+    },
+    {
+      "name": "checkConsentClosure",
+      "address": 8253184,
+      "size": 1024,
+      "sha256": "bae7bfb0a7270ca7fe5e116da0ef0760bd94d72bf31574c0d0a4e960dcb245eb",
+      "at": 8253784,
+      "before": "54601be50b8094e558800be5010016e55006f3e70610a0e1",
+      "after": "48001be5131090e548c09ae50c0051e16200001a7effffea"
+    }
+  ]
+}

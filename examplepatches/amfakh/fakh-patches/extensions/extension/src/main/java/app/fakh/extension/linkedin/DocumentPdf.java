@@ -6,6 +6,11 @@
 package app.fakh.extension.linkedin;
 
 import android.app.Activity;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Intent;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
@@ -103,7 +108,7 @@ public final class DocumentPdf {
     public static void onDocument(Object documentAsset, Object source, int navigablePages, boolean fullScreen) {
         try {
             if (source == null) return;
-            if (!Settings.postMenu()) return;
+            if (!Settings.downloadMedia()) return;
             Doc doc = read(source, navigablePages);
             if (doc == null) return;
             byId.put(doc.id, doc);
@@ -141,17 +146,18 @@ public final class DocumentPdf {
     /** Saves the document in the background, with toasts for progress and the result. */
     static void save(Activity activity, Doc doc) {
         Context context = activity.getApplicationContext();
-        Downloads.toast(activity, "Saving the document…");
+        Downloads.toast(activity, I18n.f("Downloading to %1$s", location()));
         WORKER.execute(() -> {
             String name = "linkedin_document_" + doc.id + ".pdf";
             try {
+                Uri saved;
                 if (doc.downloadSuffix != null) {
                     // The original PDF, offered because the author allows downloads.
                     byte[] pdf = fetch(doc.rootUrl + doc.downloadSuffix);
-                    writeToDownloads(context, name, out -> out.write(pdf));
+                    saved = writeToDownloads(context, name, out -> out.write(pdf));
                 } else if (doc.slices.size() == 1) {
                     byte[] pdf = fetch(resolve(doc.rootUrl, doc.slices.get(0).suffix));
-                    writeToDownloads(context, name, out -> out.write(pdf));
+                    saved = writeToDownloads(context, name, out -> out.write(pdf));
                 } else {
                     List<File> files = new ArrayList<>();
                     try {
@@ -162,16 +168,16 @@ public final class DocumentPdf {
                                 out.write(fetch(resolve(doc.rootUrl, slice.suffix)));
                             }
                         }
-                        writeToDownloads(context, name, out -> combine(files, out));
+                        saved = writeToDownloads(context, name, out -> combine(files, out));
                     } finally {
                         for (File file : files) //noinspection ResultOfMethodCallIgnored
                             file.delete();
                     }
                 }
-                MAIN.post(() -> Downloads.toast(context, I18n.f("Document saved to %1$s", location())));
+                notifySaved(context, name, saved);
             } catch (Throwable t) {
                 Diagnostics.error("document save failed", t);
-                MAIN.post(() -> Downloads.toast(context, "Couldn't save the document"));
+                MAIN.post(() -> Downloads.toast(context, I18n.f("Download failed: %1$s", t.getMessage())));
             }
         });
     }
@@ -213,7 +219,7 @@ public final class DocumentPdf {
     }
 
     /** Writes a PDF into Download/{folder}, where documents always go. */
-    private static void writeToDownloads(Context context, String name, Writer writer) throws Exception {
+    private static Uri writeToDownloads(Context context, String name, Writer writer) throws Exception {
         String folder = Settings.downloadFolder();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             ContentValues values = new ContentValues();
@@ -235,6 +241,7 @@ public final class DocumentPdf {
             values.clear();
             values.put(MediaStore.MediaColumns.IS_PENDING, 0);
             resolver.update(uri, values, null, null);
+            return uri;
         } else {
             File dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), folder);
             //noinspection ResultOfMethodCallIgnored
@@ -242,7 +249,26 @@ public final class DocumentPdf {
             try (OutputStream out = new FileOutputStream(new File(dir, name))) {
                 writer.write(out);
             }
+            return null;
         }
+    }
+
+    /** Tells the user the PDF is saved, like the download manager does for photos and videos; a tap opens it. */
+    private static void notifySaved(Context context, String name, Uri uri) {
+        NotificationManager manager = context.getSystemService(NotificationManager.class);
+        manager.createNotificationChannel(new NotificationChannel("fakh_downloads", I18n.tr("Downloads"),
+                NotificationManager.IMPORTANCE_LOW));
+        Notification.Builder builder = new Notification.Builder(context, "fakh_downloads")
+                .setSmallIcon(android.R.drawable.stat_sys_download_done)
+                .setContentTitle(name)
+                .setContentText(I18n.tr("Download complete"))
+                .setAutoCancel(true);
+        if (uri != null) {
+            Intent view = new Intent(Intent.ACTION_VIEW).setDataAndType(uri, "application/pdf")
+                    .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
+            builder.setContentIntent(PendingIntent.getActivity(context, 0, view, PendingIntent.FLAG_IMMUTABLE));
+        }
+        manager.notify((int) (System.nanoTime() & 0x7fffffff), builder.build());
     }
 
     static String location() {

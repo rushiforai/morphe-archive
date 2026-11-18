@@ -1,0 +1,5 @@
+[
+  {"expect":["Diagon Alley","Ollivanders"],"point":[1590,390],"size":[2400,1080]},
+  {"expect":["Rowan"],"point":[1268,949],"size":[2400,1080]},
+  {"expect":["You"]}
+]

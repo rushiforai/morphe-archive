@@ -61,7 +61,7 @@ public final class HiddenChats {
     /** What the report counts each hidden chat an unread count skipped as. */
     static final String UNCOUNTED = "unread count skipped a hidden chat";
 
-    private static final String PREFS = "hushtelegram_hidden_chats";
+    static final String PREFS = "hushtelegram_hidden_chats";
 
     static Function<Context, SharedPreferences> store = context -> context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
 

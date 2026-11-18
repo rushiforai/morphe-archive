@@ -66,6 +66,11 @@ object WazeConstants {
             // Ninth target (versionCode 1030749, beta pulled 2026-11-08). Checked the same way as the
             // others: every row applies with zero failures and the anchors that moved were re-bound.
             AppTarget(version = "5.27.4.900"),
+            // Tenth target (versionCode 1030751, beta handed over 2026-11-15). Verified with the
+            // 0.30.59 bundle: every offered row applies with zero failures on the merged
+            // arm64-v8a / 120-480 dpi build. Two rows are deliberately not offered here (moods and
+            // the audio partner) because their anchors moved; the recents row was re-anchored.
+            AppTarget(version = "5.27.90.900"),
             // No catch-all target on purpose. A version-less AppTarget makes the Manager treat the
             // patches as fitting ANY build ("Any version" in its list and no filter in
             // AppVersionCatalog.patchableAt), so users on builds we never tested are offered rows

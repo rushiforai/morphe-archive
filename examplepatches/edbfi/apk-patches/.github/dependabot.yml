@@ -1,0 +1,48 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# From edbfi-ci templates/dependabot.special.yml, plus Gradle. rea (.rea/) is bumped by hand with
+# its vendored skill, so it has no entry here.
+version: 2
+registries:
+  # ReVanced's plugin and patcher. GitHub Packages' Maven registry takes only classic PATs.
+  revanced:
+    type: maven-repository
+    url: https://maven.pkg.github.com/revanced/registry
+    username: edbfi
+    password: ${{ secrets.GH_PACKAGES_READ_TOKEN }}
+  # Morphe's plugin and patcher.
+  morphe:
+    type: maven-repository
+    url: https://maven.pkg.github.com/MorpheApp/registry
+    username: edbfi
+    password: ${{ secrets.GH_PACKAGES_READ_TOKEN }}
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: weekly, day: monday, time: "05:00", timezone: Europe/Copenhagen }
+    cooldown: { exclude: ["*"] } # zizmor: ignore[dependabot-cooldown] -- updates merge on green without delay
+    commit-message: { prefix: chore, include: scope }
+    groups:
+      patch-minor: { patterns: ["*"], update-types: [minor, patch] }
+  - package-ecosystem: pre-commit
+    directory: /
+    schedule: { interval: weekly, day: monday, time: "05:00", timezone: Europe/Copenhagen }
+    cooldown: { exclude: ["*"] } # zizmor: ignore[dependabot-cooldown] -- updates merge on green without delay
+    commit-message: { prefix: chore, include: scope }
+    groups:
+      patch-minor: { patterns: ["*"], update-types: [minor, patch] }
+  - package-ecosystem: gradle
+    directory: /revanced
+    registries: [revanced]
+    schedule: { interval: weekly, day: monday, time: "05:00", timezone: Europe/Copenhagen }
+    cooldown: { exclude: ["*"] } # zizmor: ignore[dependabot-cooldown] -- updates merge on green without delay
+    commit-message: { prefix: chore, include: scope }
+    groups:
+      patch-minor: { patterns: ["*"], update-types: [minor, patch] }
+  - package-ecosystem: gradle
+    directory: /morphe
+    registries: [morphe]
+    schedule: { interval: weekly, day: monday, time: "05:00", timezone: Europe/Copenhagen }
+    cooldown: { exclude: ["*"] } # zizmor: ignore[dependabot-cooldown] -- updates merge on green without delay
+    commit-message: { prefix: chore, include: scope }
+    groups:
+      patch-minor: { patterns: ["*"], update-types: [minor, patch] }

@@ -1,0 +1,63 @@
+# Image maintainer documents this exact tag, JDK 21 and Android SDK 36:
+# https://github.com/MobileDevOps/android-sdk-image/blob/36.1.0/README.md
+# https://github.com/MobileDevOps/android-sdk-image/blob/36.1.0/Dockerfile
+# Configure protected GitHub Packages read credentials (GITHUB_ACTOR, masked GITHUB_TOKEN).
+# Keep MR protected-resource access disabled; never run fork MR code with secrets.
+# Releases are published from a maintainer's machine with scripts/publish_release.py.
+# https://docs.gitlab.com/ci/variables/#protect-a-cicd-variable
+
+stages:
+  - check
+  - build
+
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH && ($CI_PIPELINE_SOURCE == "push" || $CI_PIPELINE_SOURCE == "web")'
+    - when: never
+
+default:
+  image: mobiledevops/android-sdk-image:36.1.0
+
+variables:
+  GRADLE_USER_HOME: "$CI_PROJECT_DIR/.gradle-ci"
+  GRADLE_OPTS: "-Xmx256m -XX:ActiveProcessorCount=2 -Dorg.gradle.daemon=false"
+
+checks:
+  stage: check
+  timeout: 10m
+  script:
+    - python3 scripts/check_readme_generator.py
+    - python3 scripts/check_release.py
+
+.gradle_build:
+  stage: build
+  timeout: 1h
+  # All heavy jobs share one project-wide lock, including across pipelines.
+  # https://docs.gitlab.com/ci/resource_groups/
+  resource_group: solo-patches-heavy
+  cache:
+    key: gradle-protected
+    paths:
+      - .gradle-ci/caches/modules-2/
+      - .gradle-ci/wrapper/
+  before_script:
+    - test -n "${GITHUB_ACTOR:-}" && test -n "${GITHUB_TOKEN:-}"
+    - java -version
+    # SDK image accepts Android licenses; install AGP 9.1's documented stable build tools.
+    # Its relocated cmdline-tools cannot infer the SDK root, so pass the image's ANDROID_SDK_ROOT.
+    # https://developer.android.com/tools/sdkmanager#install-packages
+    - sdkmanager --sdk_root="$ANDROID_SDK_ROOT" "platforms;android-36" "build-tools;36.0.0"
+
+build:
+  extends: .gradle_build
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_COMMIT_REF_PROTECTED == "true" && $CI_PIPELINE_SOURCE != "merge_request_event"'
+    - when: never
+  script:
+    - >-
+      ./gradlew --no-daemon --no-parallel --max-workers=2
+      '-Dorg.gradle.jvmargs=-Xmx2g -XX:ActiveProcessorCount=2 -Dfile.encoding=UTF-8'
+      -Dorg.gradle.workers.max=2 -Dorg.gradle.parallel=false
+      -Pkotlin.compiler.execution.strategy=in-process
+      :patches:clean :patches:buildAndroid :patches:generatePatchesList :patches:checkPatchListGenerator

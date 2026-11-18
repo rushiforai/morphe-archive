@@ -2370,3 +2370,105 @@ Edit a copy	Editar una copia
 Add Edit a copy to the message menu	Añadir Editar una copia al menú del mensaje
 # context: Summary under the Edit a copy switch in HushTelegram settings
 Opens a photo from a chat in Telegram's photo editor, where you can draw, add text or blur parts. Sending it sends the edited copy to the chat. The photo in the chat stays as it was.	Abre una foto de un chat en el editor de fotos de Telegram, donde puedes dibujar, añadir texto o difuminar partes. Al enviarla, se envía la copia editada al chat. La foto del chat queda como estaba.
+# context: Title of the Duress passcode switch (#79) on HushTelegram's Privacy page, also the first field's hint in its dialog. A duress passcode is a second passcode someone types when forced to unlock; typing it logs every account out
+Duress passcode	Código de coacción
+# context: Summary of the Duress passcode switch. It must say plainly that typing the code logs out or deletes accounts, as picked in the row below it, that HushTelegram's kept data is cleared, and that the switch starts off
+Typing the duress passcode on Telegram's lock screen logs out or deletes accounts, as picked below, and clears what HushTelegram kept, like deleted messages, edit history and call recordings. It needs a Telegram passcode and starts off.	Escribir el código de coacción en la pantalla de bloqueo de Telegram cierra la sesión de las cuentas o las elimina, según lo elegido abajo, y borra lo que guardó HushTelegram, como mensajes eliminados, historial de ediciones y grabaciones de llamadas. Necesita un código de Telegram y empieza desactivado.
+# context: Title of the row under the Duress passcode switch that opens a dialog to pick the code, also that dialog's title
+Set duress passcode	Configurar código de coacción
+# context: Summary of the Set duress passcode row while no duress passcode is saved
+No duress passcode yet. Tap to pick one.	Aún no hay código de coacción. Toca para elegir uno.
+# context: Summary of the Set duress passcode row once a duress passcode is saved. The code itself is never shown
+A duress passcode is set. Tap to change it.	Hay un código de coacción configurado. Toca para cambiarlo.
+# context: Message at the top of the Set duress passcode dialog, above its two fields
+Typing this on Telegram's lock screen logs out every account on this phone. Pick one that's different from your Telegram passcode.	Escribirlo en la pantalla de bloqueo de Telegram cierra la sesión de todas las cuentas de este teléfono. Elige uno distinto de tu código de Telegram.
+# context: Message at the top of the Set duress passcode dialog when Log out the open account is picked
+Typing this on Telegram's lock screen logs out the open account. Pick one that's different from your Telegram passcode.	Escribirlo en la pantalla de bloqueo de Telegram cierra la sesión de la cuenta abierta. Elige uno distinto de tu código de Telegram.
+# context: Message at the top of the Set duress passcode dialog when Delete every account is picked
+Typing this twice on Telegram's lock screen deletes every account on this phone for good. Pick one that's different from your Telegram passcode.	Escribirlo dos veces en la pantalla de bloqueo de Telegram elimina para siempre todas las cuentas de este teléfono. Elige uno distinto de tu código de Telegram.
+# context: Message at the top of the Set duress passcode dialog when Delete the open account is picked
+Typing this twice on Telegram's lock screen deletes the open account for good. Pick one that's different from your Telegram passcode.	Escribirlo dos veces en la pantalla de bloqueo de Telegram elimina para siempre la cuenta abierta. Elige uno distinto de tu código de Telegram.
+# context: Hint of the second field in the Set duress passcode dialog, where the code is typed again to confirm it
+Type it again	Escríbelo otra vez
+# context: Refusal in the Set duress passcode dialog when the two fields differ
+The two passcodes don't match.	Los dos códigos no coinciden.
+# context: Toast once a duress passcode is saved
+Duress passcode saved.	Código de coacción guardado.
+# context: Refusal in the Set duress passcode dialog when the first field is empty
+Type a duress passcode.	Escribe un código de coacción.
+# context: Refusal in the Set duress passcode dialog when Telegram's passcode is a 4-digit PIN and the code isn't 4 digits. Telegram's lock screen takes exactly 4 digits
+Use 4 digits, the same length as your Telegram passcode.	Usa 4 dígitos, la misma longitud que tu código de Telegram.
+# context: Refusal in the Set duress passcode dialog when the code typed is the user's real Telegram passcode
+That's your Telegram passcode. Pick a different one.	Ese es tu código de Telegram. Elige otro.
+# context: Title of the row under Set duress passcode (#79) that opens a single-choice dialog of what typing the duress passcode does, also that dialog's title
+What the duress passcode does	Qué hace el código de coacción
+# context: Choice in the What the duress passcode does dialog, also the row's summary: logs out every account on the phone. The default
+Log out every account	Cerrar sesión en todas las cuentas
+# context: Choice in the What the duress passcode does dialog, also the row's summary: logs out only the account open in Telegram right now, the other accounts stay signed in
+Log out the open account	Cerrar sesión en la cuenta abierta
+# context: Choice in the What the duress passcode does dialog, also the row's summary: permanently deletes every Telegram account on the phone
+Delete every account	Eliminar todas las cuentas
+# context: Choice in the What the duress passcode does dialog, also the row's summary: permanently deletes only the account open in Telegram right now
+Delete the open account	Eliminar la cuenta abierta
+# context: Second line of the summary of the What the duress passcode does row (#79), shown while a deleting choice is picked. The first time the code is typed the lock screen acts as if it was wrong, the second time the accounts are deleted for good. Telegram waits a week before deleting an account that has a cloud password (two-step verification)
+Typed once, the duress passcode looks wrong. Typed again, it deletes for good. If an account has a cloud password, Telegram waits a week first.	Escrito una vez, el código de coacción parece incorrecto. Escrito otra vez, elimina para siempre. Si una cuenta tiene contraseña en la nube, Telegram espera una semana antes.
+# context: Short warning toast (#79) when a deleting choice is picked, or the Duress passcode switch turns on with one picked: typing the duress passcode twice deletes the accounts for good. Must fit two toast lines of 28 characters
+Typed twice, the duress passcode deletes for good.	Escrito dos veces, elimina para siempre.
+# context: Lowercase noun phrase naming the Duress passcode switch (#79) in the patch status list
+duress passcode	código de coacción
+# context: Title of a switch under Free proxies on the Chat list page, and the feature's name in Export settings and the patch status list. V2Ray is a proxy tool; VMess, VLESS, Trojan and Shadowsocks are its kinds of servers
+V2Ray-style servers	Servidores tipo V2Ray
+# context: Summary under the V2Ray-style servers switch. The proxy runs inside the app on the phone; Telegram's proxy list is Telegram's own Proxy Settings list
+Telegram connects through your own VMess, VLESS, Trojan and Shadowsocks servers by way of a proxy that runs inside Telegram, with one entry for it in Telegram's proxy list. It's used unless you use a proxy of your own. Calls don't go through it.	Telegram se conecta a través de tus propios servidores VMess, VLESS, Trojan y Shadowsocks mediante un proxy que funciona dentro de Telegram, con una entrada para él en la lista de proxies de Telegram. Se usa salvo que uses un proxy propio. Las llamadas no pasan por él.
+# context: Title of a row under V2Ray-style servers and of its dialog, where the person pastes links to their own servers
+Your V2Ray links	Tus enlaces V2Ray
+# context: Summary of the Your V2Ray links row when nothing is pasted yet. Your proxy lists is another row on the same page, use its translated title
+Paste vmess://, vless://, trojan:// and ss:// links here. Links in Your proxy lists are read too.	Pega aquí enlaces vmess://, vless://, trojan:// y ss://. También se leen los enlaces de Tus listas de proxies.
+# context: Summary of the Your V2Ray links row: how many links are saved. Your proxy lists is another row on the same page
+Links saved: %1$s. Links in Your proxy lists are read too.	Enlaces guardados: %1$s. También se leen los enlaces de Tus listas de proxies.
+# context: Hint in the empty box of the Your V2Ray links dialog
+One link a line	Un enlace por línea
+# context: Note under the box in the Your V2Ray links dialog. TCP, WebSocket and TLS are network protocol names
+VMess, VLESS, Trojan and Shadowsocks links work, over TCP or WebSocket, with or without TLS. They stay on this phone and out of settings files.	Funcionan los enlaces VMess, VLESS, Trojan y Shadowsocks, por TCP o WebSocket, con o sin TLS. Se quedan en este teléfono y fuera de los archivos de ajustes.
+# context: Short toast and note in the Your V2Ray links dialog when a line isn't a link it reads; the number is the line's number
+Line %1$s isn't a link this can use	La línea %1$s no es un enlace que se pueda usar
+# context: Short toast and note in the Your V2Ray links dialog when too many links are pasted
+Up to %1$s links	Hasta %1$s enlaces
+# context: Short toast when the pasted V2Ray links couldn't be saved, at most two short lines
+Couldn't save the links. Try again in a moment.	No se guardaron los enlaces. Inténtalo en un momento.
+# context: Title of a row under V2Ray-style servers and of its picker, which picks the server Telegram goes through
+V2Ray server	Servidor V2Ray
+# context: First choice in the V2Ray server picker: no fixed server, the fastest one that answered the last test
+The fastest that answers	El más rápido que responda
+# context: A server in the V2Ray server picker: its name, then how many milliseconds it took to answer
+%1$s, %2$s ms	%1$s, %2$s ms
+# context: A server in the V2Ray server picker that didn't answer the last test: its name, then that
+%1$s, no answer	%1$s, sin respuesta
+# context: Name in the V2Ray server picker for a server whose link has no name, with its place in the list
+Server %1$s	Servidor %1$s
+# context: Button in the V2Ray server picker that times every server again
+Test again	Probar de nuevo
+# context: Summary of the V2Ray server row when the proxy inside Telegram couldn't start. The switch is V2Ray-style servers, just above
+The local proxy couldn't start. Turn the switch off and on again.	El proxy local no pudo iniciarse. Desactiva el interruptor y vuelve a activarlo.
+# context: Summary of the V2Ray server row while every server is being timed
+Testing your V2Ray-style servers now.	Probando ahora tus servidores tipo V2Ray.
+# context: Summary of the V2Ray server row before the first test
+Not tested yet. Tap to pick a server or test them now.	Aún sin probar. Toca para elegir un servidor o probarlos ahora.
+# context: Summary of the V2Ray server row when the last test found no link it can use in the pasted links or the person's own proxy lists
+No V2Ray-style links found in your links or proxy lists.	No se encontraron enlaces tipo V2Ray en tus enlaces ni en tus listas de proxies.
+# context: Summary of the V2Ray server row when no server answered the last test
+None of your servers answered last time.	La última vez no respondió ninguno de tus servidores.
+# context: Summary of the V2Ray server row: how many servers answered the last test, of how many it timed
+Servers that answered last time: %1$s of %2$s.	Servidores que respondieron la última vez: %1$s de %2$s.
+# context: Added to the V2Ray server row's summary: the kinds of links that were left out, as a list of names such as REALITY or gRPC
+Skipped, not supported yet: %1$s.	Omitidos, aún no compatibles: %1$s.
+# context: Added to the V2Ray server row's summary: the server the person picked, by its name
+Using %1$s.	Usando %1$s.
+# context: Item in the list of skipped link kinds on the V2Ray server row: links that send fake HTTP headers over TCP
+TCP with HTTP headers	TCP con cabeceras HTTP
+# context: Item in the list of skipped link kinds on the V2Ray server row: Shadowsocks links that need a plugin
+Shadowsocks plugins	plugins de Shadowsocks
+# context: Item in the list of skipped link kinds on the V2Ray server row: Shadowsocks links with a cipher it can't use
+other Shadowsocks ciphers	otros cifrados de Shadowsocks
+# context: Item in the list of skipped link kinds on the V2Ray server row: VLESS links that ask for VLESS's own encryption
+VLESS encryption	cifrado de VLESS

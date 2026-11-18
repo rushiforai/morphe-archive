@@ -151,12 +151,18 @@ final class AppTypes {
     }
 
     static Object defaultFor(Class<?> t) {
-        if (t == boolean.class) return false;
-        if (t == float.class) return 0f;
-        if (t == double.class) return 0d;
-        if (t == long.class) return 0L;
+        if (t == null) return null;
+        if (t == boolean.class || t == Boolean.class) return false;
+        if (t == float.class || t == Float.class) return 0f;
+        if (t == double.class || t == Double.class) return 0d;
+        if (t == long.class || t == Long.class) return 0L;
+        if (t == int.class || t == Integer.class || t == short.class || t == Short.class || t == byte.class || t == Byte.class) return 0;
+        if (t == char.class || t == Character.class) return ' ';
         if (t.isPrimitive()) return 0;
-        if (t == List.class) return new java.util.ArrayList<>();
+        if (t == String.class || t == CharSequence.class) return "";
+        if (t == List.class || t == java.util.Collection.class || t == Iterable.class) return new java.util.ArrayList<>();
+        if (t == java.util.Map.class) return new java.util.HashMap<>();
+        if (t == java.util.Set.class) return new java.util.HashSet<>();
         if (t.isEnum()) {
             Object[] c = t.getEnumConstants();
             if (c != null && c.length > 0) return c[0];
@@ -166,6 +172,26 @@ final class AppTypes {
             ctor.setAccessible(true);
             return ctor.newInstance();
         } catch (Throwable ignored) {}
+        if (t.isInterface()) {
+            try {
+                return java.lang.reflect.Proxy.newProxyInstance(t.getClassLoader(), new Class<?>[]{t}, (proxy, method, mArgs) -> {
+                    Class<?> ret = method.getReturnType();
+                    if (ret == void.class) return null;
+                    return defaultFor(ret);
+                });
+            } catch (Throwable ignored) {}
+        }
+        for (Constructor<?> c : t.getDeclaredConstructors()) {
+            try {
+                c.setAccessible(true);
+                Class<?>[] pt = c.getParameterTypes();
+                Object[] args = new Object[pt.length];
+                for (int i = 0; i < pt.length; i++) {
+                    args[i] = pt[i] == t ? null : defaultFor(pt[i]);
+                }
+                return c.newInstance(args);
+            } catch (Throwable ignored) {}
+        }
         return null;
     }
 

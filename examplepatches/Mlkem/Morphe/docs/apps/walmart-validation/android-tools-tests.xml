@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.canada.walmart.ToolsRegressionTest" tests="23" skipped="0" failures="0" errors="0" timestamp="2026-11-01T00:51:40.329Z" hostname="0766bf668d47" time="8.19">
+  <properties/>
+  <testcase name="historyDialogOpensAndTargetEditorDoesNotEraseHistory" classname="app.canada.walmart.ToolsRegressionTest" time="5.766"/>
+  <testcase name="controlsSwitchesActuallyPersistAndApply" classname="app.canada.walmart.ToolsRegressionTest" time="0.282"/>
+  <testcase name="backupRoundTripPreservesObservationsAndWatchSettings" classname="app.canada.walmart.ToolsRegressionTest" time="0.11"/>
+  <testcase name="floatingShortcutStopsNativeClick" classname="app.canada.walmart.ToolsRegressionTest" time="0.185"/>
+  <testcase name="recordingMasterAndSourceSwitchesAreIndependent" classname="app.canada.walmart.ToolsRegressionTest" time="0.088"/>
+  <testcase name="fractionalCentsAreRejectedWithoutChangingStoredPrices" classname="app.canada.walmart.ToolsRegressionTest" time="0.077"/>
+  <testcase name="scannerUsesNativeActivityAndPermissionFlow" classname="app.canada.walmart.ToolsRegressionTest" time="0.073"/>
+  <testcase name="sparkyNudgeDoesNotReturnWhenAdsAreEnabled" classname="app.canada.walmart.ToolsRegressionTest" time="0.076"/>
+  <testcase name="liveAdSwitchRestoresAndRehidesExistingContainer" classname="app.canada.walmart.ToolsRegressionTest" time="0.079"/>
+  <testcase name="sparkyEntryOpensToolsAndAllMainSectionsAreReachable" classname="app.canada.walmart.ToolsRegressionTest" time="0.134"/>
+  <testcase name="csvEscapesQuotesAndSpreadsheetFormulas" classname="app.canada.walmart.ToolsRegressionTest" time="0.09"/>
+  <testcase name="checklistExportKeepsUnlinkedItemsAndDeduplicatesIds" classname="app.canada.walmart.ToolsRegressionTest" time="0.066"/>
+  <testcase name="repeatedImportDoesNotDuplicateOrReplaceExistingPoint" classname="app.canada.walmart.ToolsRegressionTest" time="0.07"/>
+  <testcase name="priceDropFilterAndSummaryUsePreviousDifferentObservation" classname="app.canada.walmart.ToolsRegressionTest" time="0.071"/>
+  <testcase name="diagnosticsNeverIncludesSavedProductNames" classname="app.canada.walmart.ToolsRegressionTest" time="0.089"/>
+  <testcase name="historySearchMatchesStoreAndFavorites" classname="app.canada.walmart.ToolsRegressionTest" time="0.075"/>
+  <testcase name="uninstalledControlsAreNotPresentedAsWorking" classname="app.canada.walmart.ToolsRegressionTest" time="0.118"/>
+  <testcase name="targetsUseOnlyLatestSavedPrice" classname="app.canada.walmart.ToolsRegressionTest" time="0.072"/>
+  <testcase name="malformedImportWritesNothingEvenWhenFirstItemIsValid" classname="app.canada.walmart.ToolsRegressionTest" time="0.066"/>
+  <testcase name="constructorHiddenAdCapturesLayoutAssignedLater" classname="app.canada.walmart.ToolsRegressionTest" time="0.061"/>
+  <testcase name="calculatorCanBeUsedThroughItsUi" classname="app.canada.walmart.ToolsRegressionTest" time="0.152"/>
+  <testcase name="deletingHistoryRemovesTargetsAndFavorites" classname="app.canada.walmart.ToolsRegressionTest" time="0.072"/>
+  <testcase name="unitComparisonAndTaxCalculationAreExact" classname="app.canada.walmart.ToolsRegressionTest" time="0.052"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,17 +1,18 @@
 package io.github.sabopura.morphe.extension.twitch.danmaku;
 
-import java.text.Normalizer;
+import io.github.sabopura.morphe.extension.twitch.chat.ChatRules;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 
-/** Immutable NG-word filter and duplicate key builder. Pure Java so it can be unit tested. */
+/** Immutable NG-word filter. Pure Java so it can be unit tested. */
 final class CommentFilter {
     static final CommentFilter EMPTY = new CommentFilter(Collections.emptyList(),
             Collections.emptyList());
+    /** Expressions run on text no longer than the longest comment danmaku shows, which bounds their time. */
+    private static final int MAX_MATCHED_CHARS = 2 * DanmakuSettings.MAX_MAX_LENGTH;
 
     private final List<String> words;
     private final List<Pattern> patterns;
@@ -31,19 +32,14 @@ final class CommentFilter {
         List<Pattern> patterns = new ArrayList<>();
         for (String line : rules.split("[\\r\\n]+")) {
             String trimmedLine = line.trim();
-            if (trimmedLine.length() > 2 && trimmedLine.startsWith("/")
-                    && trimmedLine.endsWith("/")) {
-                try {
-                    patterns.add(Pattern.compile(
-                            trimmedLine.substring(1, trimmedLine.length() - 1),
-                            Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE));
-                } catch (PatternSyntaxException ignored) {
-                    // An invalid expression must never disable the other rules.
-                }
+            String expression = expression(trimmedLine);
+            if (expression != null) {
+                Pattern pattern = compile(expression);
+                if (pattern != null) patterns.add(pattern);
                 continue;
             }
             for (String rule : trimmedLine.split("[,、，]")) {
-                String normalized = normalize(rule);
+                String normalized = ChatRules.normalize(rule);
                 if (!normalized.isEmpty()) words.add(normalized);
             }
         }
@@ -52,53 +48,52 @@ final class CommentFilter {
                 Collections.unmodifiableList(patterns));
     }
 
+    /** The {@code /expression/} rules that are not applied, as written: invalid, or able to run too long. */
+    static List<String> refused(String rules) {
+        List<String> refused = new ArrayList<>();
+        if (rules == null) return refused;
+        for (String line : rules.split("[\\r\\n]+")) {
+            String trimmedLine = line.trim();
+            String expression = expression(trimmedLine);
+            if (expression != null && compile(expression) == null) refused.add(trimmedLine);
+        }
+        return refused;
+    }
+
+    /** The inside of a {@code /expression/} rule, or null for a plain rule. */
+    private static String expression(String trimmedLine) {
+        return trimmedLine.length() > 2 && trimmedLine.startsWith("/") && trimmedLine.endsWith("/")
+                ? trimmedLine.substring(1, trimmedLine.length() - 1) : null;
+    }
+
+    /** Null for an invalid or runaway expression, which must never disable the other rules. */
+    private static Pattern compile(String expression) {
+        try {
+            Pattern pattern = Pattern.compile(expression, Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
+            return RegexShape.backtracksExponentially(expression) ? null : pattern;
+        } catch (RuntimeException | StackOverflowError e) {
+            return null;
+        }
+    }
+
     boolean isEmpty() {
         return words.isEmpty() && patterns.isEmpty();
     }
 
     boolean blocks(String text) {
         if (isEmpty() || text == null) return false;
-        String normalized = normalize(text);
+        String normalized = ChatRules.normalize(text);
         for (String word : words) {
             if (normalized.contains(word)) return true;
         }
+        if (text.length() > MAX_MATCHED_CHARS) return false;
         for (Pattern pattern : patterns) {
-            if (pattern.matcher(text).find()) return true;
+            try {
+                if (pattern.matcher(text).find()) return true;
+            } catch (RuntimeException | StackOverflowError ignored) {
+                // ICU's backtracking stack ran out; the other rules still apply.
+            }
         }
         return false;
-    }
-
-    /** Folds width, case, katakana/hiragana, whitespace, and long repetitions. */
-    static String normalize(String text) {
-        if (text == null) return "";
-        String folded = Normalizer.normalize(text, Normalizer.Form.NFKC)
-                .toLowerCase(Locale.ROOT);
-        StringBuilder result = new StringBuilder(folded.length());
-        for (int index = 0; index < folded.length(); index++) {
-            char value = folded.charAt(index);
-            if (Character.isWhitespace(value) || value == '⁠') continue;
-            if (value >= 'ァ' && value <= 'ヶ') value = (char) (value - 0x60);
-            result.append(value);
-        }
-        return result.toString();
-    }
-
-    /**
-     * Key used to merge spam such as "www", "wwwww" and "ｗｗｗ" or repeated emoji.
-     * Runs of the same character longer than three collapse to three.
-     */
-    static String duplicateKey(String text) {
-        String normalized = normalize(text);
-        StringBuilder result = new StringBuilder(normalized.length());
-        int run = 0;
-        int previous = -1;
-        for (int offset = 0; offset < normalized.length(); ) {
-            int codePoint = normalized.codePointAt(offset);
-            offset += Character.charCount(codePoint);
-            run = codePoint == previous ? run + 1 : 1;
-            previous = codePoint;
-            if (run <= 3) result.appendCodePoint(codePoint);
-        }
-        return result.toString();
     }
 }

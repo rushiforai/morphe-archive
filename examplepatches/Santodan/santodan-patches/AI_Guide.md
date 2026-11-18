@@ -54,8 +54,10 @@ is still a separate check. Release-owned versions and metadata are updated by CI
 
 ## TFD Companion
 
-For `com.nexon.tfdc` 1.1.5, use the default-enabled **TFD Companion - Remove illegal
-apps detection** resource patch (Android 11+). It removes the two broad
+For `com.nexon.tfdc` 1.1.6 / 33 (retaining 1.1.5), use the default-enabled **TFD Companion - Remove illegal
+apps detection** resource patch (Android 11+). A separate optional experimental
+alternative has unrestricted version metadata and the same manifest checks; select
+only one. Optional diagnostics remains 1.1.5-only. It removes the two broad
 MAIN/VIEW package queries while preserving NGSM and authentication. The user
 reported successful tests with Shizuku and an autoclicker installed. Optional
 **NGSM validation diagnostics - Troubleshooting purpose** stays disabled by default. The failed native

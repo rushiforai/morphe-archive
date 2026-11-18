@@ -68,6 +68,8 @@ internal const val STORY_SAVE_HELPER = "hushmessengerAddStorySave"
 /** Every notes tip sheet, Make my notes public and Add lyrics included, opens under this fragment tag. */
 internal const val NOTES_TIP_SHEET = "NotesMigNuxBottomSheet"
 internal const val NOTES_TIP_TYPE_ARG = "arg_nux_type"
+/** The chat header's Turn on active status line counts its dismissals under this preference key. */
+internal const val ACTIVE_STATUS_UPSELL_KEY = "an_upsell_thread_header_dismiss_count"
 /** The story viewer caps its Share your own story card per day under this preference key. */
 internal const val STORY_CARD_DATE_KEY = "last_date_creation_card_shown"
 internal const val ANDROIDX_FRAGMENT = "Landroidx/fragment/app/Fragment;"
@@ -233,9 +235,12 @@ private fun findControlsIn(classes: Iterable<ClassDef>, community: CommunityInbo
     found.getValue(NEARBY_SCANS).addAll(patchStage("Find nearby scans") { findNearbyScans(classes) })
     found.getValue(WIFI_IDENTITY).addAll(patchStage("Find Wi-Fi identity reads") { findWifiIdentityReads(classes) })
     found.getValue(PHONE_ID_SYNC).addAll(findPhoneIdSync(classes))
+    found.getValue(PASSKEY_LOGIN).addAll(findPasskeyLogin(classes))
     found.getValue(STORY_HOLD).addAll(findStoryHold(classes))
     found.getValue(CHAT_PREVIEW).addAll(findChatPreview(classes))
     found.getValue(CHAT_PREVIEW_SIZE).addAll(findChatPreviewSize(classes))
+    found.getValue(INBOX_TYPING).addAll(findInboxTyping(classes))
+    found.getValue(MEDIA_CAPTION).addAll(findMediaCaption(classes))
     found.getValue(LANDSCAPE_LOCK).addAll(findPortraitLock(classes))
     found.getValue(LANDSCAPE_MEDIA).addAll(findMediaOrientation(classes))
     found.getValue(BLOCKED_LIST_PICTURES).addAll(findBlockedListPictures(classes))
@@ -245,6 +250,7 @@ private fun findControlsIn(classes: Iterable<ClassDef>, community: CommunityInbo
     found.getValue(FLOATING_TAB_BAR).addAll(findFloatingTabBar(classes))
     found.getValue(TAB_BAR_OVERLAY).addAll(findTabBarOverlay(classes))
     found.getValue(TAB_BAR_SCROLL_AWAY).addAll(findTabBarScrollAway(classes))
+    found.getValue(TAB_SWIPE).addAll(findTabSwipe(classes))
     found.getValue(AVATAR_SHAPE).addAll(findAvatarShape(classes))
     found.getValue(STORY_RING).addAll(findStoryRing(classes))
     found.getValue(QUIET_CALL_RING).addAll(findQuietCallRing(classes))
@@ -284,6 +290,7 @@ private fun findControlsIn(classes: Iterable<ClassDef>, community: CommunityInbo
     found.getValue(SYSTEM_CAMERA).addAll(findSystemCamera(classes))
     found.getValue(EXTERNAL_GALLERY).addAll(findExternalGallery(classes))
     found.getValue(INSTANT_GALLERY).addAll(findInstantGallery(classes))
+    found.getValue(VIEW_ONCE_ANYWHERE).addAll(findViewOnceAnywhere(classes))
     found.getValue(SPECIAL_CONTACTS).addAll(findSpecialContacts(classes))
     found.getValue(MENU_BLUR).addAll(findMenuBlur(classes))
     found.getValue(GALLERY_TEMP_FILE).addAll(findGalleryTempFile(classes))
@@ -440,6 +447,8 @@ private class ControlScan(
     val peopleSearch = StringMatch(PEOPLE_SEARCH_SOURCE)
     val drawerRefresh = StringMatch(DRAWER_REFRESH)
     val notesTip = StringMatch(NOTES_TIP_SHEET)
+    val reportUserStatus = StringMatch(REPORT_USER_STATUS)
+    val foregroundAvailability = StringMatch(FOREGROUND_AVAILABILITY)
 
     fun visit(cls: ClassDef, original: String?, method: Method) {
         if ((cls.type == EPHEMERAL_VIEWER && (method.name in EPHEMERAL_DIALOGS || method.name == "onResume")) ||
@@ -530,6 +539,12 @@ private class ControlScan(
             !AccessFlags.STATIC.isSet(method.accessFlags) &&
             instructions.any { (it as? NarrowLiteralInstruction)?.narrowLiteral == FLAG_SECURE } &&
             refs.any { it.toString() == "Landroid/view/Window;->addFlags(I)V" }) add("allow_screenshot")
+        // Our own active status, reported in two places: the msys self-report and each MQTT client-settings publisher.
+        if (cls.type == PRESENCE_MANAGER && ret == "V" && params == listOf("Z") &&
+            !AccessFlags.STATIC.isSet(method.accessFlags) && refs.any { reportUserStatus.matches(it) }) add(APPEAR_OFFLINE)
+        if (ret == "V" && params.size == 2 && params[0] == FB_SHARED_PREFERENCES &&
+            !AccessFlags.STATIC.isSet(method.accessFlags) && refs.any { foregroundAvailability.matches(it) } &&
+            CLIENT_SETTINGS_TOPIC in strings) add(AVAILABILITY_SETTING)
         if (cls.type == MEDIA_TRANSCODER && method.hookId() in ORIGINAL_PHOTO_HOOKS) add("original_photo")
         if (cls.type == MEDIA_TRANSCODER && method.isVideoTranscode(strings)) {
             add(ORIGINAL_VIDEO)
@@ -592,6 +607,9 @@ private class ControlScan(
         // The story viewer adds its Share your own story card only while this daily cap check passes.
         if (AccessFlags.STATIC.isSet(method.accessFlags) && ret == "Z" && params == listOf(cls.type) &&
             refs.any { it.toString() in storyCardKeys }) add("growth_story_card")
+        // The chat header shows its Turn on active status line only while this upsell check passes.
+        if (AccessFlags.STATIC.isSet(method.accessFlags) && ret == "Z" && params.size == 2 &&
+            params[0].toString() == FB_USER_SESSION && ACTIVE_STATUS_UPSELL_KEY in strings) add("growth_active_status")
         if (cls.type == ANDROIDX_FRAGMENT && method.hookId() == FRAGMENT_ANIMATION) add("chat_animation")
         // The chat and the inbox under it inherit that answer. androidx needs each fragment's no-argument
         // constructor, so it names the class the animation hook tells apart.
@@ -599,11 +617,13 @@ private class ControlScan(
             if (original == CHAT_FRAGMENT_NAME) add("chat_fragment")
             if (original == "M4TabNavigationFragment") add("chat_inbox")
         }
-        // Three controls open at the chat's own view handover: the jump menu, the screenshot block and the dimmer.
+        // Four controls open at the chat's own view handover: the jump menu, the screenshot block, the dimmer and the
+        // translucent bars.
         if (original == CHAT_FRAGMENT_NAME && method.isChatJumpView()) {
             add(CHAT_JUMP)
             add(SECURE_CHAT)
             add(INVISIBLE_BUTTONS)
+            add(IOS_BARS)
         }
         // Chats on Messenger's older route open in this fragment, which loads its own animation.
         if (original == "ThreadViewFragment" && method.name == "onCreateAnimation" &&
@@ -1547,10 +1567,25 @@ private fun MutableMethod.readsOneCqlColumn(getter: String, moveResult: Opcode, 
         implementation!!.registerCount == 4 && !AccessFlags.STATIC.isSet(accessFlags)
 }
 
+/**
+ * Which route the text hook already carries, for a getter two controls selected: true for an encrypted chat's row,
+ * which calls the class's own helper, false for the list wrapper's row, which calls the extension straight. Null while
+ * the getter is still stock. Both controls share one block, so the second one through leaves it alone.
+ */
+internal fun MutableMethod.unsentIndicatorRouted(): Boolean? {
+    val calls = implementation?.instructions?.toList().orEmpty()
+        .mapNotNull { ((it as? ReferenceInstruction)?.reference as? DexMethodReference) }
+    if (calls.any { it.name == UNSENT_ROW_HELPER }) return true
+    if (calls.any { it.definingClass == SETTINGS && it.name == "labelKeptUnsent" }) return false
+    return null
+}
+
 /** Whether the text hook sits in an encrypted chat's CQL row class (true) or the list wrapper other chats use (false). */
 internal fun MutableMethod.validateUnsentIndicator(): Boolean {
     if (returnType != "Ljava/lang/String;") throw PatchException("Messenger controls: unsent_indicator hook must return String")
     if (parameterTypes != listOf("I")) throw PatchException("Messenger controls: unsent_indicator hook must take one int param")
+    // Already routed by the other control that selected this getter: the stock-body checks below no longer apply.
+    unsentIndicatorRouted()?.let { return it }
     if (readsOneCqlColumn("getString(II)Ljava/lang/String;", Opcode.MOVE_RESULT_OBJECT, Opcode.RETURN_OBJECT)) {
         if (messageOtidGetterName.isEmpty()) throw PatchException("Messenger controls: unsent_indicator hook needs the row's threading id getter")
         if (messageTimestampGetterName.isEmpty() || messageSenderGetterName.isEmpty() || messageContentTypeGetterName.isEmpty() ||
@@ -1570,6 +1605,8 @@ internal fun MutableMethod.validateUnsentIndicator(): Boolean {
 }
 
 internal fun MutableMethod.injectUnsentIndicator() {
+    // The block is in already, put there by the other control sharing this getter, and it serves both.
+    if (unsentIndicatorRouted() != null) return
     val cql = validateUnsentIndicator()
     val code = implementation!!.instructions.toList()
     val returnIndex = code.indexOfLast { it.opcode == Opcode.RETURN_OBJECT }

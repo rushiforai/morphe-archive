@@ -139,6 +139,58 @@ public final class ReelSeekBar {
     }
 
     /**
+     * Injected after Instagram's reads of whether a sideways drag along a reel's bottom edge scrubs it, one for
+     * reels with the hidden kind of bar and one for the rest, with Instagram's answer as an int (non-zero is yes).
+     * That drag is the only thing that brings the hidden kind back, so while Hide the seek bar on reels
+     * hides every bar (#680) it answers yes, and Instagram's answer otherwise. Instagram reads both once a
+     * session.
+     */
+    public static boolean passThrough(int enabled) {
+        return passThrough(enabled, ReelSeekBar::everyReel, ReelSeekBar::hidden);
+    }
+
+    static boolean passThrough(int enabled, BooleanSupplier on, BooleanSupplier hidden) {
+        try {
+            HookStatus.invoked(FamilyNames.REEL_SEEK_BAR);
+            return enabled != 0 || (!on.getAsBoolean() && hidden.getAsBoolean());
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.REEL_SEEK_BAR, "seek drag", failure);
+            return enabled != 0;
+        }
+    }
+
+    /**
+     * Asked first by the two hooks in the Reels progress controller below, so with Hide the seek bar on reels off
+     * they run this one check and nothing more. Whether that switch hides every ordinary reel's bar (#680), with no
+     * switch that keeps the bar winning. It's also the controller's answer to whether an ordinary reel gets the strip
+     * along the bottom that the drag lands on: Instagram goes by the reel's length there, no reel is long enough while
+     * the bars are hidden, and a reel without the strip had nothing to drag.
+     */
+    public static boolean barsHidden() {
+        return barsHidden(ReelSeekBar::everyReel, ReelSeekBar::hidden);
+    }
+
+    static boolean barsHidden(BooleanSupplier on, BooleanSupplier hidden) {
+        try {
+            HookStatus.invoked(FamilyNames.REEL_SEEK_BAR);
+            return !on.getAsBoolean() && hidden.getAsBoolean();
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.REEL_SEEK_BAR, "hidden seek bar strip", failure);
+            return false;
+        }
+    }
+
+    /**
+     * Injected where the Reels progress controller answers whether a reel's bar shows only while you touch the reel,
+     * once {@link #barsHidden} said yes, with that answer and whether the reel is an ad, each as an int (non-zero is
+     * yes). Instagram goes by the reel's length there too, and says no to a short reel, which with the strip kept
+     * would put the bar back for good. Answers yes for an ordinary reel and Instagram's answer for an ad.
+     */
+    public static boolean hiddenTouchOnly(int touchOnly, int ad) {
+        return touchOnly != 0 || ad == 0;
+    }
+
+    /**
      * Injected first thing in the reel seek bar's onProgressChanged, with the bar and its
      * position in milliseconds. Shows or updates the bar's time label, or hides it.
      */
@@ -186,7 +238,8 @@ public final class ReelSeekBar {
     }
 
     /**
-     * Whether Hide the seek bar on reels has every ordinary reel's bar stay hidden until the reel's held (#680).
+     * Whether Hide the seek bar on reels has every ordinary reel's bar stay hidden until a sideways drag along the
+     * reel's bottom edge (#680).
      * A switch that keeps the bar ({@link #everyReel}) wins.
      */
     static boolean hidden() {

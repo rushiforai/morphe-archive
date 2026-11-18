@@ -13,6 +13,7 @@ internal const val NOTESNOOK_PACKAGE_NAME = "com.streetwriters.notesnook"
 internal val NOTESNOOK_VERSIONS = listOf(
     "3.4.14",
     "3.4.15",
+    "3.4.16",
 )
 
 internal val NOTESNOOK_COMPATIBILITY = Compatibility(

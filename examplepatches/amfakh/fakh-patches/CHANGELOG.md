@@ -1,19 +1,67 @@
+## [2.2.4](https://github.com/amfakh/fakh-patches/compare/v2.2.3...v2.2.4) (2026-11-17)
+
+### Updated App Support
+
+* **CoverScreen OS:** add support for `CSOS_9.0.3_BETA`, replacing `CSOS_9.0.2_BETA` ([91fd2ce](https://github.com/amfakh/fakh-patches/commit/91fd2cec93d655e5fceee638b63abc04cfc07316))
+
+## [2.2.3](https://github.com/amfakh/fakh-patches/compare/v2.2.2...v2.2.3) (2026-11-17)
+
+### Bug Fixes
+
+* **LinkedIn:** show LinkedIn's own icons in the Navigation bar tabs sheet ([a0ea0df](https://github.com/amfakh/fakh-patches/commit/a0ea0dfd75b67e252d9ab9c61b565522e6cfbd66))
+* **LinkedIn:** show LinkedIn's own icons in the Top bar and More tab sheets ([a0ea0df](https://github.com/amfakh/fakh-patches/commit/a0ea0dfd75b67e252d9ab9c61b565522e6cfbd66))
+
+## [2.2.2](https://github.com/amfakh/fakh-patches/compare/v2.2.1...v2.2.2) (2026-11-17)
+
+### New Features
+
+* **LinkedIn:** show LinkedIn's own tab icons in the tabs sheet ([01c093c](https://github.com/amfakh/fakh-patches/commit/01c093c7f6897ff65897d3af225f8121d736a0e9))
+* **LinkedIn:** add icons to the Top bar and More tab sheets ([01c093c](https://github.com/amfakh/fakh-patches/commit/01c093c7f6897ff65897d3af225f8121d736a0e9))
+
+## [2.2.1](https://github.com/amfakh/fakh-patches/compare/v2.2.0...v2.2.1) (2026-11-17)
+
+### Bug Fixes
+
+* **LinkedIn:** fix the crash when sorting the Navigation bar tabs ([7154ec3](https://github.com/amfakh/fakh-patches/commit/7154ec325aa6d6d801bea2a738060ab8acb1ff42))
+
+## [2.2.0](https://github.com/amfakh/fakh-patches/compare/v2.1.0...v2.2.0) (2026-11-17)
+
+### New Features
+
+* **LinkedIn:** add Disable screenshot share sheet ([164d675](https://github.com/amfakh/fakh-patches/commit/164d675c8423a7f4ba28d1ead9a5de76882d33e8))
+* **LinkedIn:** add Hide top bar buttons ([164d675](https://github.com/amfakh/fakh-patches/commit/164d675c8423a7f4ba28d1ead9a5de76882d33e8))
+* **LinkedIn:** add Video tab with video time and auto scroll ([96d4d2b](https://github.com/amfakh/fakh-patches/commit/96d4d2b1ef3884986f3095f486bbb97dd40135c3))
+* **LinkedIn:** add tab sorting to Navigation bar ([96d4d2b](https://github.com/amfakh/fakh-patches/commit/96d4d2b1ef3884986f3095f486bbb97dd40135c3))
+* **LinkedIn:** add Messaging to the Navigation bar tabs ([5457395](https://github.com/amfakh/fakh-patches/commit/545739542a2b7d2e1a609349a16a51d26c4e0332))
+* **LinkedIn:** Material icons shows LinkedIn's own Messaging icon when off ([5457395](https://github.com/amfakh/fakh-patches/commit/545739542a2b7d2e1a609349a16a51d26c4e0332))
+* **LinkedIn:** add Copy text as its own patch for posts and comments ([56916a7](https://github.com/amfakh/fakh-patches/commit/56916a78afc9b561628068f0541b7dcf9c416f3e))
+* **LinkedIn:** save document PDFs with a notification ([606284e](https://github.com/amfakh/fakh-patches/commit/606284e8b40b921c82a7fbc20c9bbe3223201cab))
+* **LinkedIn:** export and import settings as a file ([1e65013](https://github.com/amfakh/fakh-patches/commit/1e6501304b55e621deaba1618b3575f59e1fdbf0))
+
+### Bug Fixes
+
+* **LinkedIn:** stop swiping tabs while the profile menu is open ([5457395](https://github.com/amfakh/fakh-patches/commit/545739542a2b7d2e1a609349a16a51d26c4e0332))
+* **LinkedIn:** Download media only on profile photos and banners ([d6ddb7e](https://github.com/amfakh/fakh-patches/commit/d6ddb7e7fd441e7ba39192d089ebcc6999ec1e89))
+* **LinkedIn:** shorten setting descriptions and follow the device language ([1e65013](https://github.com/amfakh/fakh-patches/commit/1e6501304b55e621deaba1618b3575f59e1fdbf0))
+* **LinkedIn:** split Post menu items into Copy text and Download media, select again ([56916a7](https://github.com/amfakh/fakh-patches/commit/56916a78afc9b561628068f0541b7dcf9c416f3e))
+* **LinkedIn:** rename Tap to hide in viewers to Tap to hide controls in viewers, select it again ([56916a7](https://github.com/amfakh/fakh-patches/commit/56916a78afc9b561628068f0541b7dcf9c416f3e))
+
 ## [2.1.0](https://github.com/amfakh/fakh-patches/compare/v2.0.0...v2.1.0) (2026-11-17)
 
 ### New Features
 
-* **LinkedIn:** add Keep feed on reopen to stay where you left the feed ([17b5103](https://github.com/amfakh/fakh-patches/commit/17b510358e000c40b8b1abc74268bd880c30f2a7))
-* **LinkedIn:** add Post menu items: Copy text, Download photos and videos, Save document as PDF ([17b5103](https://github.com/amfakh/fakh-patches/commit/17b510358e000c40b8b1abc74268bd880c30f2a7))
-* **LinkedIn:** add Tap to hide in viewers for videos and documents ([17b5103](https://github.com/amfakh/fakh-patches/commit/17b510358e000c40b8b1abc74268bd880c30f2a7))
-* **LinkedIn:** add Material icons in the navigation bar, off by default ([17b5103](https://github.com/amfakh/fakh-patches/commit/17b510358e000c40b8b1abc74268bd880c30f2a7))
-* **LinkedIn:** add Dark app icon, off by default ([17b5103](https://github.com/amfakh/fakh-patches/commit/17b510358e000c40b8b1abc74268bd880c30f2a7))
-* **LinkedIn:** Navigation bar can hide the Post, Video and News tabs ([17b5103](https://github.com/amfakh/fakh-patches/commit/17b510358e000c40b8b1abc74268bd880c30f2a7))
-* **LinkedIn:** Swipe between tabs switches between Grow and Catch up first ([17b5103](https://github.com/amfakh/fakh-patches/commit/17b510358e000c40b8b1abc74268bd880c30f2a7))
-* Smart Life, Tuya Smart and BARDI Smart Home get Swipe between tabs ([17b5103](https://github.com/amfakh/fakh-patches/commit/17b510358e000c40b8b1abc74268bd880c30f2a7))
+* **LinkedIn:** add Keep feed on reopen to stay where you left the feed ([9898ca5](https://github.com/amfakh/fakh-patches/commit/9898ca591c12bf9559a50018d8208425fc18f098))
+* **LinkedIn:** add Post menu items: Copy text, Download photos and videos, Save document as PDF ([9898ca5](https://github.com/amfakh/fakh-patches/commit/9898ca591c12bf9559a50018d8208425fc18f098))
+* **LinkedIn:** add Tap to hide in viewers for videos and documents ([9898ca5](https://github.com/amfakh/fakh-patches/commit/9898ca591c12bf9559a50018d8208425fc18f098))
+* **LinkedIn:** add Material icons in the navigation bar, off by default ([9898ca5](https://github.com/amfakh/fakh-patches/commit/9898ca591c12bf9559a50018d8208425fc18f098))
+* **LinkedIn:** add Dark app icon, off by default ([9898ca5](https://github.com/amfakh/fakh-patches/commit/9898ca591c12bf9559a50018d8208425fc18f098))
+* **LinkedIn:** Navigation bar can hide the Post, Video and News tabs ([9898ca5](https://github.com/amfakh/fakh-patches/commit/9898ca591c12bf9559a50018d8208425fc18f098))
+* **LinkedIn:** Swipe between tabs switches between Grow and Catch up first ([9898ca5](https://github.com/amfakh/fakh-patches/commit/9898ca591c12bf9559a50018d8208425fc18f098))
+* Smart Life, Tuya Smart and BARDI Smart Home get Swipe between tabs ([9898ca5](https://github.com/amfakh/fakh-patches/commit/9898ca591c12bf9559a50018d8208425fc18f098))
 
 ### Bug Fixes
 
-* **LinkedIn:** downloaded GIFs are saved as .gif and show in the gallery ([23fcd54](https://github.com/amfakh/fakh-patches/commit/23fcd542db6a4109f391650695fe0b7112bf59a8))
+* **LinkedIn:** downloaded GIFs are saved as .gif and show in the gallery ([a750fa9](https://github.com/amfakh/fakh-patches/commit/a750fa9523678b9cbb74634d77ad7d528aa316a0))
 
 ## [2.0.0](https://github.com/amfakh/fakh-patches/compare/v1.22.5...v2.0.0) (2026-11-17)
 

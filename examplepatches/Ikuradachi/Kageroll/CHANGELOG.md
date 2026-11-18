@@ -1,3 +1,56 @@
+## [1.5.0](https://github.com/Ikuradachi/Kageroll/compare/v1.4.0...v1.5.0) (2026-11-17)
+
+### ⚠ BREAKING CHANGES
+
+* drop supported version 3.127.0 and 3.128.0
+
+### ✨ New Features
+
+* add Crunchyroll 1080p download quality patch ([462a94a](https://github.com/Ikuradachi/Kageroll/commit/462a94a15f960fd7c3f29f94070f8ec124881ab7))
+* add Crunchyroll auto-skip segments patch ([f939ba0](https://github.com/Ikuradachi/Kageroll/commit/f939ba0835b0acc3e5e414137ebb85c6fc5864b9))
+* add Crunchyroll manual video quality patch ([4eb26c5](https://github.com/Ikuradachi/Kageroll/commit/4eb26c531379a5530c3a6dafce6afd460b2acfd7))
+* drop supported version 3.127.0 and 3.128.0 ([51ff491](https://github.com/Ikuradachi/Kageroll/commit/51ff49197dbf3c27958e9fd2390bb1a9d7542d8f))
+
+### 🐛 Bug Fixes
+
+* group patches by category ([b0d6f85](https://github.com/Ikuradachi/Kageroll/commit/b0d6f857f98d5cad65c5db2ded636990c2918d4b))
+* harden background services and telemetry patches ([615b0b4](https://github.com/Ikuradachi/Kageroll/commit/615b0b4303e24357e9f4cae54f04bb770319616f))
+
+## [1.5.0-dev.5](https://github.com/Ikuradachi/Kageroll/compare/v1.5.0-dev.4...v1.5.0-dev.5) (2026-11-17)
+
+### 🐛 Bug Fixes
+
+* harden background services and telemetry patches ([615b0b4](https://github.com/Ikuradachi/Kageroll/commit/615b0b4303e24357e9f4cae54f04bb770319616f))
+
+## [1.5.0-dev.4](https://github.com/Ikuradachi/Kageroll/compare/v1.5.0-dev.3...v1.5.0-dev.4) (2026-11-17)
+
+### 🐛 Bug Fixes
+
+* group patches by category ([b0d6f85](https://github.com/Ikuradachi/Kageroll/commit/b0d6f857f98d5cad65c5db2ded636990c2918d4b))
+
+## [1.5.0-dev.3](https://github.com/Ikuradachi/Kageroll/compare/v1.5.0-dev.2...v1.5.0-dev.3) (2026-11-17)
+
+### ✨ New Features
+
+* add Crunchyroll 1080p download quality patch ([462a94a](https://github.com/Ikuradachi/Kageroll/commit/462a94a15f960fd7c3f29f94070f8ec124881ab7))
+
+## [1.5.0-dev.2](https://github.com/Ikuradachi/Kageroll/compare/v1.5.0-dev.1...v1.5.0-dev.2) (2026-11-17)
+
+### ✨ New Features
+
+* add Crunchyroll manual video quality patch ([4eb26c5](https://github.com/Ikuradachi/Kageroll/commit/4eb26c531379a5530c3a6dafce6afd460b2acfd7))
+
+## [1.5.0-dev.1](https://github.com/Ikuradachi/Kageroll/compare/v1.4.0...v1.5.0-dev.1) (2026-11-17)
+
+### ⚠ BREAKING CHANGES
+
+* drop supported version 3.127.0 and 3.128.0
+
+### ✨ New Features
+
+* add Crunchyroll auto-skip segments patch ([f939ba0](https://github.com/Ikuradachi/Kageroll/commit/f939ba0835b0acc3e5e414137ebb85c6fc5864b9))
+* drop supported version 3.127.0 and 3.128.0 ([51ff491](https://github.com/Ikuradachi/Kageroll/commit/51ff49197dbf3c27958e9fd2390bb1a9d7542d8f))
+
 ## [1.4.0](https://github.com/Ikuradachi/Kageroll/compare/v1.3.0...v1.4.0) (2026-11-13)
 
 ### ✨ New Features

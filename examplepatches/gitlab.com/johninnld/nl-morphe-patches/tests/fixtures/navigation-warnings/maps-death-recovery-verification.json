@@ -1,0 +1,308 @@
+{
+  "format": 1,
+  "scope": "Actual Maps system-voice receiver process killed after real native STARTED, live-owner reset refusal, durable source started-record readback, uncertainty after lease expiry, positive receiver/TTS process and active-player stop checks, actual private parked recovery, and exactly one fresh native warning after a new real Maps process connects. This does not prove provider-process restart, other adapters or car routing.",
+  "serial": "emulator-5584",
+  "avd": "native_warnings_car_api34",
+  "apps": {
+    "nl.flitsmeister": "3e3c2e987bb6e9b28bc5692e52828ee03d317cf925f719ed4aece29f11614ac8",
+    "com.google.android.apps.maps": "979dba530da9c9c09c0d7867288206a1aa357a27e3701c63f8123bbe72ba9815",
+    "app.vela": "72012bd0dd02ee3b3eb31a35df55d24de5fea79ba830906568c0d029c101aeab"
+  },
+  "helpers": {
+    "maps": "f4d0e8858ea23996904a275cd8bcdb43b10cb85faba64c8cc1ead3356d46294d",
+    "vela": "4c4dba375167a55aeb8b6943186268af1007bee7034008f54a154213ea968fcc",
+    "source": "898d2fb12419138953b23f3e290a8ba155cdb8602b14bf59a74a92adb43990d4"
+  },
+  "live_owner_recovery_refused": {
+    "before": {
+      "code": "OK",
+      "owner_present": true,
+      "pending_present": false,
+      "provider_session": "118787a4-9dac-4dce-82cb-3f1d59b36543",
+      "owner_uid": 10195,
+      "owner_package": "com.google.android.apps.maps",
+      "owner_epoch": 1,
+      "owner_ready": true
+    },
+    "after": {
+      "code": "OK",
+      "owner_present": true,
+      "pending_present": false,
+      "provider_session": "118787a4-9dac-4dce-82cb-3f1d59b36543",
+      "owner_uid": 10195,
+      "owner_package": "com.google.android.apps.maps",
+      "owner_epoch": 1,
+      "owner_ready": true
+    },
+    "both_confirmations_required": true,
+    "activity_finished": false,
+    "actual_window_screenshot": "/storage/emulated/0/Android/data/nl.flitsmeister/files/probe-handover-df5ba6b0f5a34e8ab51ba6ad0a8c3c4b-refused.png",
+    "confirmations_screenshot": "/storage/emulated/0/Android/data/nl.flitsmeister/files/probe-handover-df5ba6b0f5a34e8ab51ba6ad0a8c3c4b-live-confirmations.png"
+  },
+  "death_recovery": {
+    "owner_package": "com.google.android.apps.maps",
+    "authority": {
+      "language_tag": "en-US",
+      "native_local_mute_bypass": false,
+      "issued_elapsed_ms": 5396598,
+      "latitude": 52.001,
+      "native_family": "SpeedCam",
+      "priority": 1,
+      "protocol_version": 1,
+      "native_announce_observed": true,
+      "position_observed_elapsed_ms": 5396598,
+      "relationship": "unknown",
+      "revision": 1,
+      "category": "speed_control",
+      "phase": "enter",
+      "relevance": "point_ahead",
+      "longitude": 5,
+      "position_estimated": false,
+      "capture_path": "regular",
+      "state_until_elapsed_ms": 5426598,
+      "native_subtype": "SPEED_50",
+      "message_origin": "native_text",
+      "native_text_key": "374708fff7719dd5979ec875d56cd2286f6d3cf7ec317a3b25632aab28ec37bb",
+      "message": "Speed cam 50",
+      "announcement_index": 1,
+      "native_point_target": true,
+      "provider_session": "118787a4-9dac-4dce-82cb-3f1d59b36543",
+      "sequence": 7,
+      "observed_elapsed_ms": 5396598,
+      "operation": "ANNOUNCE",
+      "native_type": "SPEED_CAM",
+      "position_clock_origin": "native_decision",
+      "warning_id": "SpeedCam:probe-handover-df5ba6b0f5a34e8ab51ba6ad0a8c3c4b-death",
+      "announce_until_elapsed_ms": 5406598
+    },
+    "source_dispositions_before_death": [
+      {
+        "receiver_uid": 10195,
+        "outcome": "GRANTED",
+        "started": false,
+        "mode": "VOICE"
+      },
+      {
+        "receiver_uid": 10195,
+        "outcome": "STARTED",
+        "started": true,
+        "mode": "VOICE"
+      }
+    ],
+    "before_death": {
+      "code": "OK",
+      "owner_present": true,
+      "pending_present": true,
+      "provider_session": "118787a4-9dac-4dce-82cb-3f1d59b36543",
+      "owner_uid": 10195,
+      "owner_package": "com.google.android.apps.maps",
+      "owner_epoch": 3,
+      "owner_ready": true,
+      "pending_attempt": "55088578-9ef7-408a-9677-ca9deef98dce",
+      "pending_started": true,
+      "pending_outcome": "STARTED",
+      "pending_event_key": "a2287ee6d0c0ac8cc6c570bf1957043213c2fa94e3b481eda1633e48ea7c9045",
+      "stored_attempt": "55088578-9ef7-408a-9677-ca9deef98dce",
+      "stored_started": true,
+      "stored_outcome": "STARTED"
+    },
+    "after_death": {
+      "code": "AUDIO_UNCERTAIN",
+      "owner_present": true,
+      "pending_present": true,
+      "provider_session": "118787a4-9dac-4dce-82cb-3f1d59b36543",
+      "owner_uid": 10195,
+      "owner_package": "com.google.android.apps.maps",
+      "owner_epoch": 3,
+      "owner_ready": false,
+      "pending_attempt": "55088578-9ef7-408a-9677-ca9deef98dce",
+      "pending_started": true,
+      "pending_outcome": "UNCERTAIN",
+      "pending_event_key": "a2287ee6d0c0ac8cc6c570bf1957043213c2fa94e3b481eda1633e48ea7c9045",
+      "stored_attempt": "55088578-9ef7-408a-9677-ca9deef98dce",
+      "stored_started": true,
+      "stored_outcome": "STARTED"
+    },
+    "after_lease_expiry": {
+      "code": "AUDIO_UNCERTAIN",
+      "owner_present": false,
+      "pending_present": true,
+      "provider_session": "118787a4-9dac-4dce-82cb-3f1d59b36543",
+      "pending_attempt": "55088578-9ef7-408a-9677-ca9deef98dce",
+      "pending_started": true,
+      "pending_outcome": "UNCERTAIN",
+      "pending_event_key": "a2287ee6d0c0ac8cc6c570bf1957043213c2fa94e3b481eda1633e48ea7c9045",
+      "stored_attempt": "55088578-9ef7-408a-9677-ca9deef98dce",
+      "stored_started": true,
+      "stored_outcome": "STARTED"
+    },
+    "after_recovery": {
+      "code": "UNOWNED",
+      "owner_present": false,
+      "pending_present": false,
+      "provider_session": "118787a4-9dac-4dce-82cb-3f1d59b36543"
+    },
+    "future_authority": {
+      "language_tag": "en-US",
+      "native_local_mute_bypass": false,
+      "issued_elapsed_ms": 5408029,
+      "latitude": 52.001,
+      "native_family": "SpeedCam",
+      "priority": 1,
+      "protocol_version": 1,
+      "native_announce_observed": true,
+      "position_observed_elapsed_ms": 5408029,
+      "relationship": "unknown",
+      "revision": 1,
+      "category": "speed_control",
+      "phase": "enter",
+      "relevance": "point_ahead",
+      "longitude": 5,
+      "position_estimated": false,
+      "capture_path": "regular",
+      "state_until_elapsed_ms": 5438029,
+      "native_subtype": "SPEED_50",
+      "message_origin": "native_text",
+      "native_text_key": "374708fff7719dd5979ec875d56cd2286f6d3cf7ec317a3b25632aab28ec37bb",
+      "message": "Speed cam 50",
+      "announcement_index": 1,
+      "native_point_target": true,
+      "provider_session": "118787a4-9dac-4dce-82cb-3f1d59b36543",
+      "sequence": 10,
+      "observed_elapsed_ms": 5408029,
+      "operation": "ANNOUNCE",
+      "native_type": "SPEED_CAM",
+      "position_clock_origin": "native_decision",
+      "warning_id": "SpeedCam:probe-handover-df5ba6b0f5a34e8ab51ba6ad0a8c3c4b-future",
+      "announce_until_elapsed_ms": 5418029
+    },
+    "future_source_dispositions": [
+      {
+        "receiver_uid": 10195,
+        "outcome": "GRANTED",
+        "started": false,
+        "mode": "VOICE"
+      },
+      {
+        "receiver_uid": 10195,
+        "outcome": "STARTED",
+        "started": true,
+        "mode": "VOICE"
+      },
+      {
+        "receiver_uid": 10195,
+        "outcome": "COMPLETED",
+        "started": true,
+        "mode": "VOICE"
+      }
+    ]
+  },
+  "uncertain_output_recovery": {
+    "before": {
+      "code": "AUDIO_UNCERTAIN",
+      "owner_present": false,
+      "pending_present": true,
+      "provider_session": "118787a4-9dac-4dce-82cb-3f1d59b36543",
+      "pending_attempt": "55088578-9ef7-408a-9677-ca9deef98dce",
+      "pending_started": true,
+      "pending_outcome": "UNCERTAIN",
+      "pending_event_key": "a2287ee6d0c0ac8cc6c570bf1957043213c2fa94e3b481eda1633e48ea7c9045",
+      "stored_attempt": "55088578-9ef7-408a-9677-ca9deef98dce",
+      "stored_started": true,
+      "stored_outcome": "STARTED"
+    },
+    "after": {
+      "code": "UNOWNED",
+      "owner_present": false,
+      "pending_present": false,
+      "provider_session": "118787a4-9dac-4dce-82cb-3f1d59b36543"
+    },
+    "both_confirmations_required": true,
+    "activity_finished": true,
+    "actual_window_screenshot": "/storage/emulated/0/Android/data/nl.flitsmeister/files/probe-handover-df5ba6b0f5a34e8ab51ba6ad0a8c3c4b-recovered.png",
+    "confirmations_screenshot": "/storage/emulated/0/Android/data/nl.flitsmeister/files/probe-handover-df5ba6b0f5a34e8ab51ba6ad0a8c3c4b-uncertain-confirmations.png"
+  },
+  "outputs_verified_stopped": {
+    "packages": [
+      "com.google.android.apps.maps",
+      "app.vela",
+      "com.google.android.tts"
+    ],
+    "relevant_uids": [
+      10148,
+      10193,
+      10194,
+      10195
+    ],
+    "active_relevant_players": 0
+  },
+  "reconnected_receiver_actual_starts": [
+    {
+      "preview": false,
+      "native_type": "SPEED_CAM",
+      "observed_ms": 5408029,
+      "priority": 1,
+      "issued_ms": 5408029,
+      "sequence": 10,
+      "provider_session": "118787a4-9dac-4dce-82cb-3f1d59b36543",
+      "deadline_ms": 5418029,
+      "stage": "SCHEDULER_STARTED",
+      "elapsed_ms": 5408706,
+      "category": "speed_control",
+      "event_key": "256cd11b0aaa1c4f4dcbea3dbdd33b4ba836c628ce9937b8ab1942fe8c36d70c"
+    }
+  ],
+  "reconnected_receiver_actual_completions": [
+    {
+      "preview": false,
+      "native_type": "SPEED_CAM",
+      "observed_ms": 5408029,
+      "priority": 1,
+      "issued_ms": 5408029,
+      "sequence": 10,
+      "provider_session": "118787a4-9dac-4dce-82cb-3f1d59b36543",
+      "deadline_ms": 5418029,
+      "stage": "SCHEDULER_COMPLETED",
+      "elapsed_ms": 5409984,
+      "category": "speed_control",
+      "event_key": "256cd11b0aaa1c4f4dcbea3dbdd33b4ba836c628ce9937b8ab1942fe8c36d70c"
+    }
+  ],
+  "only_fresh_authority_started_after_recovery": true,
+  "source_result": ".analysis/native-warning-bindings/maps-death-recovery-actual-02/source/3108dd4a-b29f-4980-9ce9-4f1bb0a241d0/result.json",
+  "raw_result": ".analysis/native-warning-bindings/maps-death-recovery-actual-02/result.json",
+  "reconnected_receiver_result": ".analysis/native-warning-bindings/maps-death-recovery-actual-02/maps-recovered-result.json",
+  "source_network_and_lease_restored": true,
+  "source_location_permissions_restored_exactly": true,
+  "all_three_app_preferences_restored_exactly": true,
+  "temporary_window_settings_restored_exactly": true,
+  "images": {
+    "live_owner_recovery_refused-confirmations.png": {
+      "path": ".analysis/native-warning-bindings/maps-death-recovery-actual-02/live_owner_recovery_refused-confirmations.png",
+      "sha256": "85956ec23ee93b483659ee21ed730350b182dfef20fe3c65a6678fd7d5902783"
+    },
+    "uncertain_output_recovery.png": {
+      "path": ".analysis/native-warning-bindings/maps-death-recovery-actual-02/uncertain_output_recovery.png",
+      "sha256": "3fff4ca5c575fe8419c396c23d53906983b912795486d031d52bbc1cdb0c0817"
+    },
+    "live_owner_recovery_refused.png": {
+      "path": ".analysis/native-warning-bindings/maps-death-recovery-actual-02/live_owner_recovery_refused.png",
+      "sha256": "50e796cdf256d5d39c8469f78b849e952006af13cd334034bdcad9da7dbfe723"
+    },
+    "uncertain_output_recovery-confirmations.png": {
+      "path": ".analysis/native-warning-bindings/maps-death-recovery-actual-02/uncertain_output_recovery-confirmations.png",
+      "sha256": "b5ebc2a55bd9df344b0338872174e295f39d729e2a0572137da28c4b16769f0c"
+    }
+  },
+  "rejected_baselines": [
+    {
+      "path": ".analysis/native-warning-bindings/maps-death-recovery-actual-01/result.json",
+      "reason": "Death/fence/reset/future warning completed, but the recovered Maps stop sentinel was routed to the Vela directory. Correct private cleanup was requested on the same live run; rejected result and exact restoration evidence retained."
+    }
+  ],
+  "remaining": [
+    "Other adapters, background navigation and actual car routing"
+  ],
+  "visual_inspection": "The actual uncertain-output recovery layout is legible; both controls have their blue checked fill and Reset is enabled. The two required View-state confirmations and successful real click are independently asserted. This is one light English freeform layout.",
+  "related_provider_restart_verification": "tests/fixtures/navigation-warnings/provider-restart-verification.json"
+}

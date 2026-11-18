@@ -214,4 +214,102 @@ public class CallMixTest {
         assertEquals(80, samples().length);
         assertEquals(1000, samples()[79]);
     }
+
+    /** The format of the file is a sink's business, so the mixing hands the same sound to any of them (#193). */
+    @Test public void aSinkOfItsOwnGetsTheSameSoundInOrder() throws IOException {
+        Counted sink = new Counted();
+        CallMix other = new CallMix(sink);
+        other.mine.offer(filled(CallMix.RATE, 500), CallMix.RATE * 2, 1, CallMix.RATE, 1000);
+        other.finish(1000);
+        assertEquals(CallMix.RATE, other.written());
+        assertEquals("Every sample reached the sink", CallMix.RATE, sink.samples);
+        assertEquals("In one run from the start", 0L, sink.firstAt);
+        assertTrue("More than one write", sink.writes > 1);
+        assertTrue("Closed off once", sink.finished);
+        assertEquals(500, sink.first);
+    }
+
+    /** A sink that can hold less than the clock asks for stops the recording there. */
+    @Test public void aSinkWithLessRoomFillsUp() throws IOException {
+        Counted sink = new Counted();
+        sink.most = CallMix.RATE / 2;
+        CallMix other = new CallMix(sink);
+        assertFalse(other.full());
+        other.finish(1000);
+        assertEquals(CallMix.RATE / 2, other.written());
+        assertTrue(other.full());
+    }
+
+    /** With a side on each channel the two voices stay apart: you on the left, them on the right (#193). */
+    @Test public void aSideOnEachChannelKeepsTheVoicesApart() throws IOException {
+        File two = File.createTempFile("sides", ".wav");
+        try (FileChannel channel = FileChannel.open(two.toPath(), StandardOpenOption.READ, StandardOpenOption.WRITE)) {
+            CallMix sides = new CallMix(new CallMix.Wav(channel, 2), 2);
+            sides.mine.offer(filled(160, 1000), 160, 1, 16000, 10);
+            sides.theirs.offer(filled(160, -400), 160, 1, 16000, 10);
+            sides.finish(10);
+            ByteBuffer all = ByteBuffer.wrap(Files.readAllBytes(two.toPath())).order(ByteOrder.LITTLE_ENDIAN);
+            assertEquals(2, all.getShort(22));
+            assertEquals(CallMix.RATE * 4, all.getInt(28));
+            assertEquals(4, all.getShort(32));
+            assertEquals(160 * 4, all.getInt(40));
+            assertEquals(CallMix.HEADER_BYTES + 160 * 4, all.capacity());
+            assertEquals(1000, all.getShort(CallMix.HEADER_BYTES));
+            assertEquals(-400, all.getShort(CallMix.HEADER_BYTES + 2));
+            assertEquals(1000, all.getShort(CallMix.HEADER_BYTES + 4));
+            assertEquals(-400, all.getShort(CallMix.HEADER_BYTES + 6));
+        } finally {
+            two.delete();
+        }
+    }
+
+    /** Two channels take twice the bytes, so a WAV's own count runs out after half as long. */
+    @Test public void aSideOnEachChannelFillsTheFileTwiceAsFast() throws IOException {
+        File two = File.createTempFile("sides", ".wav");
+        try (FileChannel channel = FileChannel.open(two.toPath(), StandardOpenOption.READ, StandardOpenOption.WRITE)) {
+            assertEquals(CallMix.MOST_SAMPLES / 2, new CallMix.Wav(channel, 2).most());
+            assertEquals(CallMix.MOST_SAMPLES, new CallMix.Wav(channel, 1).most());
+        } finally {
+            two.delete();
+        }
+    }
+
+    @Test public void releasingTheMixLetsTheSinkGo() {
+        Counted sink = new Counted();
+        new CallMix(sink).release();
+        assertTrue(sink.released);
+    }
+
+    /** A sink that only counts what it's given. */
+    private static final class Counted implements CallMix.Sink {
+        long most = Long.MAX_VALUE;
+        long samples;
+        long firstAt = -1;
+        int writes;
+        short first;
+        boolean finished, released;
+
+        @Override public long most() {
+            return most;
+        }
+
+        @Override public void write(long at, ByteBuffer written) {
+            if (firstAt < 0) {
+                firstAt = at;
+                first = written.duplicate().order(ByteOrder.LITTLE_ENDIAN).getShort();
+            }
+            assertEquals("Writes follow one another", samples, at);
+            samples += written.remaining() / 2;
+            written.position(written.limit());
+            writes++;
+        }
+
+        @Override public void finish() {
+            finished = true;
+        }
+
+        @Override public void release() {
+            released = true;
+        }
+    }
 }

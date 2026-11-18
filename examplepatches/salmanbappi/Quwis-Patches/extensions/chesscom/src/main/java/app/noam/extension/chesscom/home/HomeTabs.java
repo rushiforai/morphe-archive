@@ -23,6 +23,7 @@ public final class HomeTabs {
 
     private static final String ORDER = "tabs_order";
     private static final String SHOWN = "tabs_shown";
+    private static final String[] DEFAULT_SHOWN = {"Puzzles", "Learn", "Watch"};
 
     private HomeTabs() {}
 
@@ -124,33 +125,49 @@ public final class HomeTabs {
         }
     }
 
-    /** Middle tabs in display order: the saved choice, or the app's defaults. */
-    public static List<String> shownTabs() {
-        SharedPreferences preferences = Features.preferences();
-        String saved = preferences == null ? null : preferences.getString(SHOWN, null);
-        List<String> shown = new ArrayList<>();
-        if (saved == null) {
-            shown.addAll(Arrays.asList("Puzzles", "Learn", "Watch"));
-            return shown;
-        }
-        for (String name : saved.split(",")) {
-            if (Arrays.asList(TABS).contains(name) && !shown.contains(name)) shown.add(name);
-        }
-        return shown;
-    }
-
-    /** Every middle tab in the order shown on the settings screen (shown ones first). */
+    /**
+     * Middle tabs in display order: the saved choice, or the app's defaults. This runs before
+     * [shownTabs], so a tab moved before it is turned on keeps its place.
+     */
     public static List<String> order() {
-        List<String> order = new ArrayList<>(shownTabs());
         SharedPreferences preferences = Features.preferences();
         String saved = preferences == null ? null : preferences.getString(ORDER, null);
-        if (saved != null) {
+        List<String> order = new ArrayList<>();
+        if (saved == null) {
+            order.addAll(Arrays.asList(DEFAULT_SHOWN));
+        } else {
             for (String name : saved.split(",")) {
                 if (Arrays.asList(TABS).contains(name) && !order.contains(name)) order.add(name);
             }
         }
         for (String name : TABS) if (!order.contains(name)) order.add(name);
         return order;
+    }
+
+    /** Middle tabs in display order: the saved order, filtered to the tabs that are on. */
+    public static List<String> shownTabs() {
+        SharedPreferences preferences = Features.preferences();
+        String saved = preferences == null ? null : preferences.getString(SHOWN, null);
+        List<String> shown = new ArrayList<>();
+        if (saved == null) {
+            shown.addAll(Arrays.asList(DEFAULT_SHOWN));
+            return shown;
+        }
+        for (String name : saved.split(",")) {
+            if (Arrays.asList(TABS).contains(name) && !shown.contains(name)) shown.add(name);
+        }
+        List<String> ordered = new ArrayList<>();
+        for (String name : order()) if (shown.contains(name)) ordered.add(name);
+        return ordered;
+    }
+
+    /**
+     * chess.com sends the Train tab to Watch for accounts outside its experiment. The patch puts
+     * Train in the bar itself, so a tap must keep the route it was given.
+     */
+    public static boolean keepsRoute(Object tab) {
+        if (tab == null || !enabled()) return false;
+        return tab.getClass().getName().endsWith("$Train") && shownTabs().contains("Train");
     }
 
     public static void save(List<String> order, List<String> shown) {

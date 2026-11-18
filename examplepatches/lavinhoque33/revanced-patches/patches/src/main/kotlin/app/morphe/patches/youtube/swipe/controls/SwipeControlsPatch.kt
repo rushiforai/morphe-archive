@@ -1,5 +1,6 @@
 package app.morphe.patches.youtube.swipe.controls
 
+import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
@@ -272,11 +273,14 @@ val swipeControlsPatch = bytecodePatch(
         // endregion
 
         // region patch for disable pinch-to-zoom gesture
+        val zoomBeginHook = "$EXTENSION_SWIPE_CONTROLS_PATCH_CLASS_DESCRIPTOR->" +
+                "disableZoomGestureBegin(Landroid/view/ScaleGestureDetector;)Z"
+
 
         VideoZoomScaleBeginFingerprint.method.addInstructionsWithLabels(
             0,
             """
-                invoke-static {}, $EXTENSION_SWIPE_CONTROLS_PATCH_CLASS_DESCRIPTOR->disableZoomGesture()Z
+                invoke-static { p1 }, $zoomBeginHook
                 move-result v0
                 if-eqz v0, :allow_zoom
                 const/4 v0, 0x0
@@ -284,6 +288,12 @@ val swipeControlsPatch = bytecodePatch(
                 :allow_zoom
                 nop
             """
+        )
+
+        VideoZoomTouchFingerprint.match(VideoZoomScaleBeginFingerprint.classDef).method.addInstruction(
+            0,
+            "invoke-static { p1, p2 }, $EXTENSION_SWIPE_CONTROLS_PATCH_CLASS_DESCRIPTOR->" +
+                    "onZoomTouchEvent(Landroid/view/View;Landroid/view/MotionEvent;)V"
         )
 
         // endregion

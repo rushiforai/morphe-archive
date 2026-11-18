@@ -1,3 +1,21 @@
+## 3.2.1 (2026-11-17)
+
+### Fixes
+- The bundle icon is the Loki L again.
+
+**38 patches for 5 apps.** Full list in the [README](https://github.com/lokesh-sparrow/loki-patches#apps).
+
+## 3.2.0 (2026-11-17)
+
+### New Apps
+- **MX Player Pro:** MX Player Pro 1.93.4 joins the bundle. Every audio codec (AC-3, E-AC-3, DTS, TrueHD) is built into the patched app and the Pro licence check is skipped.
+
+### Fixes
+- **LinkedIn, Splitwise, Truecaller, Doc Scanner:** Patch status lists every patch an app can carry, including the advertising-ID and analytics removal.
+- **LinkedIn, Splitwise, Truecaller, Doc Scanner, MX Player Pro:** the Loki Patches menu follows the app's own dark or light setting and keeps its pure black.
+
+**38 patches for 5 apps.** Full list in the [README](https://github.com/lokesh-sparrow/loki-patches#apps).
+
 ## 3.1.1 (2026-11-16)
 
 ### Fixes

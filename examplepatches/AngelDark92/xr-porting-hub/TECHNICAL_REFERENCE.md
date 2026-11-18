@@ -72,7 +72,7 @@ No desktop IP, pairing token, APK hash, or native telemetry enrollment is requir
 This section is generated from the patch catalog during releases.
 
 <!-- PATCHES_START EXPANDED -->
-> **[v2.9.0](https://github.com/AngelDark92/xr-porting-hub/releases/tag/v2.9.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;46 patches total
+> **[v2.10.0](https://github.com/AngelDark92/xr-porting-hub/releases/tag/v2.10.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;47 patches total
 <details open>
 <summary>📦 4XVR&nbsp;&nbsp;•&nbsp;&nbsp;16 patches</summary>
 <br>
@@ -132,7 +132,7 @@ This section is generated from the patch catalog during releases.
 </details>
 
 <details open>
-<summary>📦 Steam Link&nbsp;&nbsp;•&nbsp;&nbsp;22 patches</summary>
+<summary>📦 Steam Link&nbsp;&nbsp;•&nbsp;&nbsp;23 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -155,6 +155,7 @@ This section is generated from the patch catalog during releases.
 |----------|----------------|----------------|-----------|
 | [GXR face and tongue bridge](#gxr-face-and-tongue-bridge) | Installs the VRCFT face bridge on legacy builds; native Android XR builds get tongue transport only. Builds: 5001712, 5001812, 5001968, 5002244, 5002363, 5002395, 5002527. Valve's own expressions and tongue-out keep working. | 5001712, 5001812, 5001968, 5002244, 5002363, 5002395, 5002527 |  |
 | [Microphone input preset](#microphone-input-preset) | Switches microphone capture mode; Voice Recognition tested best. Builds: 5001712, 5001812, 5001968, 5002244, 5002363, 5002395, 5002527. | 5001712, 5001812, 5001968, 5002244, 5002363, 5002395, 5002527 | • Microphone mode |
+| [Microphone input recovery](#microphone-input-recovery) | Restores microphone capture after Android disconnects it; concurrent capture still needs platform support. Build: 2.0.20/5001712. | 5001712 |  |
 | [Visual Delay Fix](#visual-delay-fix) | Makes head movement appear sooner without touching controller motion. Builds: 5001712, 5001812, 5001968, 5002244, 5002363, 5002395, 5002527. | 5001712, 5001812, 5001968, 5002244, 5002363, 5002395, 5002527 | • Head motion offset (ms) |
 | [XR Input Routing Config](#xr-input-routing-config) | Routes pointer and button input to the launcher UI. Builds: 2.0.20 (5001712, 5001812), 2.0.21/5001968, 2.0.22/5002244. | 5001712, 5001812, 5001968, 5002244 |  |
 

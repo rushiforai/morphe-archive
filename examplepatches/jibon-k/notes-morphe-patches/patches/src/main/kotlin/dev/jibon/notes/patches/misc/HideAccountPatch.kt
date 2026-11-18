@@ -15,9 +15,8 @@ private object IsSupportedAccountFingerprint : Fingerprint(
 @Suppress("unused")
 val hideAccountPatch = bytecodePatch(
     name = "Hide Samsung account features",
-    description = "Hides Samsung Cloud sync, sign-in prompts, sharing, Galaxy AI and note locking. " +
-        "They need a Samsung-signed app; this matters mostly on Samsung phones, where the account exists.",
-    default = true,
+    description = "Hides Samsung Cloud sync, sign-in, sharing, Galaxy AI and note locking.",
+    default = false,
 ) {
     compatibleWith(COMPATIBILITY_NOTES)
 

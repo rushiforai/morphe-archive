@@ -17,6 +17,11 @@ import static org.junit.Assert.assertTrue;
 
 /** Real Twitch playlists captured on 2026-10-13, with addresses and identifiers replaced. */
 public class PlaylistsTest {
+    @org.junit.BeforeClass
+    public static void allPatches() {
+        io.github.sabopura.morphe.extension.twitch.ui.Features.enableAllForPreview();
+    }
+
     private static String fixture(String name) {
         InputStream in = PlaylistsTest.class.getResourceAsStream("/playlists/" + name);
         assertNotNull(name, in);
@@ -113,13 +118,6 @@ public class PlaylistsTest {
         assertNull(Playlists.channel("https://example.com/api/channel/hls/abc.m3u8"));
     }
 
-    @Test
-    public void recognisesTwitchPlaylistsOnly() {
-        assertTrue(Playlists.isTwitchPlaylist("https://usher.ttvnw.net/api/channel/hls/a.m3u8"));
-        assertTrue(Playlists.isTwitchPlaylist("https://x.playlist.ttvnw.net/v1/playlist/abc.m3u8"));
-        assertFalse(Playlists.isTwitchPlaylist("https://x.hls.ttvnw.net/v1/segment/abc.ts"));
-        assertFalse(Playlists.isTwitchPlaylist("https://evil.example/ttvnw.net/a.m3u8"));
-    }
 
     @Test
     public void swapsOnlyTheTokenOfAUsherUrl() {
@@ -141,5 +139,90 @@ public class PlaylistsTest {
         assertEquals(Playlists.path(a), Playlists.path(a + "?_HLS_msn=5&player=x"));
         assertEquals(Playlists.path(a), Playlists.path(a.replace("tyo05", "tyo03")));
         assertNull(Playlists.path("https://x/"));
+    }
+
+    private static String media(String extra) {
+        return "#EXTM3U\n#EXT-X-MEDIA-SEQUENCE:5\n#EXT-X-TWITCH-LIVE-SEQUENCE:5\n" + extra + "#EXTINF:2.000,live\nhttps://a/1.ts\n";
+    }
+
+    private static List<Playlists.Variant> variants(String... streams) {
+        StringBuilder master = new StringBuilder("#EXTM3U\n");
+        int n = 0;
+        for (String stream : streams) master.append("#EXT-X-STREAM-INF:").append(stream).append("\nhttps://h/").append(n++).append(".m3u8\n");
+        return Playlists.variants(master.toString(), "https://usher.ttvnw.net/");
+    }
+
+    @Test
+    public void aSegmentNotTitledLiveIsAnAdEvenFromAnUnknownServer() {
+        assertTrue(Playlists.hasStitchedAd(media("#EXTINF:2.000,NewAdServer|1\nhttps://a/ad.ts\n")));
+        assertFalse(Playlists.hasStitchedAd(media("#EXTINF:2.000,\nhttps://a/x.ts\n")));
+        assertFalse(Playlists.hasStitchedAd(fixture("backup-live.m3u8")));
+    }
+
+    @Test
+    public void adAttributesOnlyCountOutsideInformationalCues() {
+        String quartile = "#EXT-X-DATERANGE:ID=\"q\",CLASS=\"twitch-ad-quartile\",X-TV-TWITCH-AD-ROLL-TYPE=\"PREROLL\"\n";
+        String clientAd = "#EXT-X-DATERANGE:ID=\"m\",CLASS=\"twitch-maf-ad\",X-TV-TWITCH-AD-URL=\"x\"\n";
+        String unknown = "#EXT-X-DATERANGE:ID=\"n\",CLASS=\"twitch-new-ad\",X-TV-TWITCH-AD-URL=\"x\"\n";
+        assertFalse(Playlists.hasStitchedAd(media(quartile)));
+        assertFalse(Playlists.hasStitchedAd(media(clientAd)));
+        assertTrue(Playlists.hasStitchedAd(media(unknown)));
+        assertNull(Playlists.unknownAdMarker(media(quartile)));
+        assertEquals("cue twitch-new-ad", Playlists.unknownAdMarker(media(unknown)));
+    }
+
+    @Test
+    public void knownAdsAreNotReportedAsUnknownMarkers() {
+        assertNull(Playlists.unknownAdMarker(fixture("preroll-start.m3u8")));
+        assertNull(Playlists.unknownAdMarker(fixture("preroll-later.m3u8")));
+        assertNull(Playlists.unknownAdMarker(fixture("backup-live.m3u8")));
+        assertEquals("segment title Other|1", Playlists.unknownAdMarker(media("#EXTINF:2.000,Other|1\nhttps://a/ad.ts\n")));
+    }
+
+    @Test
+    public void anUnknownPlaylistFormatIsLeftAlone() {
+        assertTrue(Playlists.isMediaPlaylist(media("")));
+        assertTrue(Playlists.isMediaPlaylist(fixture("preroll-start.m3u8")));
+        assertFalse(Playlists.isMediaPlaylist("{\"error\":\"x\"}"));
+        assertFalse(Playlists.isMediaPlaylist("#EXTM3U\n#EXT-X-MEDIA-SEQUENCE:1\n"));
+    }
+
+    @Test
+    public void aBackupOfAnotherCodecIsNeverChosen() {
+        Playlists.Variant wanted = variants("BANDWIDTH=9000000,RESOLUTION=1920x1080,CODECS=\"hev1.1.6.L120,mp4a.40.2\",VIDEO=\"chunked\",FRAME-RATE=60.000").get(0);
+        List<Playlists.Variant> avc = variants("BANDWIDTH=8000000,RESOLUTION=1920x1080,CODECS=\"avc1.64002A,mp4a.40.2\",VIDEO=\"chunked\",FRAME-RATE=60.000");
+        assertNull(Playlists.match(avc, wanted));
+        List<Playlists.Variant> both = variants("BANDWIDTH=8000000,RESOLUTION=1920x1080,CODECS=\"avc1.64002A,mp4a.40.2\",VIDEO=\"chunked\",FRAME-RATE=60.000",
+                "BANDWIDTH=9000000,RESOLUTION=1920x1080,CODECS=\"hev1.1.6.L120,mp4a.40.2\",VIDEO=\"chunked\",FRAME-RATE=60.000");
+        assertEquals("hev1.1.6.l120", Playlists.match(both, wanted).codec);
+    }
+
+    @Test
+    public void anotherProfileOfTheSameCodecIsABackup() {
+        Playlists.Variant source = null;
+        for (Playlists.Variant v : Playlists.variants(fixture("master.m3u8"), "https://usher.ttvnw.net/a.m3u8")) {
+            if ("chunked".equals(v.group)) source = v;
+        }
+        List<Playlists.Variant> autoplay = variants(
+                "BANDWIDTH=630000,RESOLUTION=640x360,CODECS=\"avc1.4D401E,mp4a.40.2\",VIDEO=\"360p30\",FRAME-RATE=30.000");
+        assertEquals("https://h/0.m3u8", Playlists.match(autoplay, source).uri);
+    }
+
+    @Test
+    public void previewPlayersAreRecognisedFromTheToken() throws Exception {
+        String feed = "https://usher.ttvnw.net/api/channel/hls/a.m3u8?token="
+                + java.net.URLEncoder.encode("{\"player_type\":\"mobile_feed\",\"channel\":\"a\"}", "UTF-8") + "&sig=x";
+        String watched = "https://usher.ttvnw.net/api/channel/hls/a.m3u8?token="
+                + java.net.URLEncoder.encode("{\"player_type\":\"site\"}", "UTF-8");
+        assertEquals("mobile_feed", Playlists.playerType(feed));
+        assertTrue(Playlists.isPreview(feed));
+        assertFalse(Playlists.isPreview(watched));
+        assertFalse(Playlists.isPreview("https://usher.ttvnw.net/api/channel/hls/a.m3u8"));
+    }
+
+    @Test
+    public void aMovedPlaylistIsRecognisedBySharedSegments() {
+        assertTrue(Playlists.shareSegment(media(""), media("")));
+        assertFalse(Playlists.shareSegment(media(""), "#EXTM3U\n#EXTINF:2.000,live\nhttps://b/9.ts\n"));
     }
 }

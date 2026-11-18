@@ -69,20 +69,20 @@ import java.util.WeakHashMap;
  * </pre>
  */
 public final class InboxFilter {
-    private static final String[] LIST_IDS = {"47.7.3:l8h"};
-    private static final String[] SYSTEM_ROW_IDS = {"47.7.3:v3k"};
-    private static final String[] CHAT_ROW_IDS = {"47.7.3:w79"};
+    private static final String[] LIST_IDS = {"47.8.3:l8n"};
+    private static final String[] SYSTEM_ROW_IDS = {"47.8.3:v4m"};
+    private static final String[] CHAT_ROW_IDS = {"47.8.3:w8_"};
     private static final String[] MESSAGE_REQUESTS_IDS = {"tv_request_unread_count"};
-    private static final String[] SAY_HI_ROW_IDS = {"47.7.3:ook"};
-    private static final String[] SYSTEM_ROW_TITLE_IDS = {"47.7.3:bss"};
+    private static final String[] SAY_HI_ROW_IDS = {"47.8.3:opi"};
+    private static final String[] SYSTEM_ROW_TITLE_IDS = {"47.8.3:btc"};
     private static final String[] USER_ROW_TITLE_IDS = {"user_name"};
-    private static final String[] STORIES_TITLE_IDS = {"47.7.3:wxb"};
-    private static final String[] SUGGESTED_HEADER_IDS = {"47.7.3:q6c"};
-    private static final String[] SUGGESTED_TITLE_IDS = {"47.7.3:u7j"};
-    private static final String[] SUGGESTED_REMOVE_IDS = {"47.7.3:fzw"};
-    private static final String[] HEADER_ADD_PEOPLE_IDS = {"47.7.3:fi4"};
-    private static final String[] HEADER_SEARCH_IDS = {"47.7.3:kqd"};
-    private static final String[] HEADER_ACTIVITY_STATUS_IDS = {"47.7.3:l8j"};
+    private static final String[] STORIES_TITLE_IDS = {"47.8.3:wym"};
+    private static final String[] SUGGESTED_HEADER_IDS = {"47.8.3:q79"};
+    private static final String[] SUGGESTED_TITLE_IDS = {"47.8.3:u8o"};
+    private static final String[] SUGGESTED_REMOVE_IDS = {"47.8.3:g0j"};
+    private static final String[] HEADER_ADD_PEOPLE_IDS = {"47.8.3:fiq"};
+    private static final String[] HEADER_SEARCH_IDS = {"47.8.3:kqk"};
+    private static final String[] HEADER_ACTIVITY_STATUS_IDS = {"47.8.3:l8p"};
 
     /** One dismissal at a time, so bulk clearing does not hammer TikTok's API. */
     private static final long DISMISS_INTERVAL_MS = 300L;
@@ -177,10 +177,75 @@ public final class InboxFilter {
     }
 
     private static void applyOnThisDay() {
-        if (ON_THIS_DAY_CELLS.isEmpty()) return;
-        boolean hide = Settings.HIDE_INBOX_ON_THIS_DAY.get();
-        for (View cell : ON_THIS_DAY_CELLS.keySet()) {
-            if (cell != null) setCellHidden(cell, hide);
+        if (!ON_THIS_DAY_CELLS.isEmpty()) {
+            boolean hide = Settings.HIDE_INBOX_ON_THIS_DAY.get();
+            for (View cell : ON_THIS_DAY_CELLS.keySet()) {
+                if (cell != null) setCellHidden(cell, hide);
+            }
+        }
+        if (!LIVE_CELLS.isEmpty()) {
+            boolean hide = Settings.HIDE_INBOX_SUGGESTED_LIVES.get();
+            for (Map.Entry<View, Boolean> cell : LIVE_CELLS.entrySet()) {
+                if (cell.getKey() != null) setCellHidden(cell.getKey(), hide && Boolean.TRUE.equals(cell.getValue()));
+            }
+        }
+        if (!WIDGET_GUIDE_CELLS.isEmpty()) {
+            boolean hide = Settings.HIDE_INBOX_WIDGET_GUIDE.get();
+            for (View cell : WIDGET_GUIDE_CELLS.keySet()) {
+                if (cell != null) setCellHidden(cell, hide);
+            }
+        }
+    }
+
+    /**
+     * LIVE cells TikTok has bound into the stories tray, each with whether its account is one the
+     * viewer doesn't follow (#449). Two LIVEs share a cell class, so a recycled cell can go from a
+     * suggested account to a followed one; each bind writes the answer for the item it shows.
+     */
+    private static final WeakHashMap<View, Boolean> LIVE_CELLS = new WeakHashMap<>();
+    /** The Widget circle at the end of the tray (#449). */
+    private static final WeakHashMap<View, Boolean> WIDGET_GUIDE_CELLS = new WeakHashMap<>();
+
+    /**
+     * Called at the top of TikTok's bind of a LIVE circle in the stories tray, with the item it's
+     * about to show. Only LIVEs from accounts the viewer doesn't follow go; a followed account's
+     * LIVE stays where TikTok put it.
+     */
+    public static void onLiveCellBound(Object cell, Object item) {
+        try {
+            Object found = app.morphe.extension.tiktok.blockauthor.Reflect.readField(cell, "itemView");
+            if (!(found instanceof View)) return;
+            View view = (View) found;
+            boolean suggested = isSuggestedLive(item);
+            LIVE_CELLS.put(view, suggested);
+            boolean hide = suggested && Settings.HIDE_INBOX_SUGGESTED_LIVES.get();
+            HookStatus.bound("suggested LIVEs", hide ? "cell hidden" : suggested ? "suggested, left" : "followed, left");
+            setCellHidden(view, hide);
+        } catch (Throwable ex) {
+            Logger.printException(() -> "LIVE cell bind failed", ex);
+        }
+    }
+
+    /**
+     * TikTok's own answer for a tray LIVE: its item's {@code isUnfollow()}, true when the item has
+     * no account or the viewer doesn't follow it. An item without that answer is left showing.
+     */
+    static boolean isSuggestedLive(Object item) {
+        return Boolean.TRUE.equals(app.morphe.extension.tiktok.blockauthor.Reflect.invoke(item, "isUnfollow"));
+    }
+
+    /** Called at the top of TikTok's bind of the Widget circle at the end of the stories tray. */
+    public static void onWidgetGuideBound(Object cell) {
+        try {
+            Object found = app.morphe.extension.tiktok.blockauthor.Reflect.readField(cell, "itemView");
+            if (!(found instanceof View)) return;
+            View view = (View) found;
+            WIDGET_GUIDE_CELLS.put(view, Boolean.TRUE);
+            boolean hide = Settings.HIDE_INBOX_WIDGET_GUIDE.get();
+            HookStatus.bound("widget circle", hide ? "cell hidden" : "cell left");
+            setCellHidden(view, hide);
+        } catch (Throwable ex) {
+            Logger.printException(() -> "Widget circle bind failed", ex);
         }
     }
 

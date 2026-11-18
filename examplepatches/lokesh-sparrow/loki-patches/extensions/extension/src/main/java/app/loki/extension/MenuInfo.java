@@ -10,6 +10,9 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /** What the menu screen is allowed to know: brand, and which patches wrote a flag into the manifest. */
 public final class MenuInfo {
     public static final String BRAND = "Loki Patches";
@@ -47,33 +50,32 @@ public final class MenuInfo {
     public static String[][] patches(Context context) {
         Bundle flags = flags(context);
         String pkg = context.getPackageName();
+        List<String[]> rows = new ArrayList<>();
         if (pkg.startsWith("com.Splitwise.SplitwiseMobile")) {
-            return new String[][]{
-                    {"Enable premium features (Splitwise)", flag(flags, "app.loki.menu.premium")},
-                    {"Hide Pro ads and upsells", flag(flags, "app.loki.menu.proads")},
-                    {"AMOLED black (Splitwise)", flag(flags, "app.loki.menu.amoled")},
-                    {"Remove analytics and crash reporting", flag(flags, "app.loki.menu.analytics")},
-                    {"GmsCore support (Splitwise)", flag(flags, "app.loki.menu.gmscore")},
-                    {"Change package name", flag(flags, "app.loki.menu.clone")},
-                    {"Remove ads and trackers", flag(flags, "app.loki.menu.ads")},
-            };
+            rows.add(new String[]{"Enable premium features (Splitwise)", flag(flags, "app.loki.menu.premium")});
+            rows.add(new String[]{"Hide Pro ads and upsells", flag(flags, "app.loki.menu.proads")});
+            rows.add(new String[]{"AMOLED black (Splitwise)", flag(flags, "app.loki.menu.amoled")});
+            rows.add(new String[]{"GmsCore support (Splitwise)", flag(flags, "app.loki.menu.gmscore")});
+        } else if (pkg.startsWith("com.truecaller")) {
+            rows.add(new String[]{"Enable premium features (Truecaller)", flag(flags, "app.loki.menu.premium")});
+            rows.add(new String[]{"Hide after-call screen", flag(flags, "app.loki.menu.aftercall")});
+            rows.add(new String[]{"GmsCore support (Truecaller)", flag(flags, "app.loki.menu.gmscore")});
+        } else if (pkg.startsWith("com.mxtech.videoplayer")) {
+            rows.add(new String[]{"All codecs", flag(flags, "app.loki.menu.codec")});
+            rows.add(new String[]{"Skip license check", flag(flags, "app.loki.menu.license")});
+        } else {
+            rows.add(new String[]{"Enable premium features", flag(flags, "app.loki.menu.premium")});
+            rows.add(new String[]{"Declutter", flag(flags, "app.loki.menu.declutter")});
+            rows.add(new String[]{"GmsCore support (Doc Scanner)", flag(flags, "app.loki.menu.gmscore")});
+            rows.add(new String[]{"Allow clone", flag(flags, "app.loki.menu.allowclone")});
         }
-        if (pkg.startsWith("com.truecaller")) {
-            return new String[][]{
-                    {"Enable premium features (Truecaller)", flag(flags, "app.loki.menu.premium")},
-                    {"GmsCore support (Truecaller)", flag(flags, "app.loki.menu.gmscore")},
-                    {"Change package name", flag(flags, "app.loki.menu.clone")},
-                    {"Remove ads and trackers", flag(flags, "app.loki.menu.ads")},
-            };
-        }
-        return new String[][]{
-                {"Enable premium features", flag(flags, "app.loki.menu.premium")},
-                {"Remove ads and trackers", flag(flags, "app.loki.menu.ads")},
-                {"Declutter", flag(flags, "app.loki.menu.declutter")},
-                {"GmsCore support (Doc Scanner)", flag(flags, "app.loki.menu.gmscore")},
-                {"Change package name", flag(flags, "app.loki.menu.clone")},
-                {"Allow clone", flag(flags, "app.loki.menu.allowclone")},
-        };
+        // The universal patches run on every app, so their rows are appended here instead of being retyped per
+        // app - one copy means an app cannot quietly lose a row the others have.
+        rows.add(new String[]{"Remove ads and trackers", flag(flags, "app.loki.menu.ads")});
+        rows.add(new String[]{"Block advertising ID", flag(flags, "app.loki.menu.adid")});
+        rows.add(new String[]{"Remove analytics and crash reporting", flag(flags, "app.loki.menu.analytics")});
+        rows.add(new String[]{"Change package name", flag(flags, "app.loki.menu.clone")});
+        return rows.toArray(new String[0][]);
     }
 
     private static String flag(Bundle flags, String key) {

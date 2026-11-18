@@ -69,7 +69,19 @@ public final class MlbManifestRewriter {
         return false;
     }
 
-    /** Drops each ad segment line and the tags queued for it. */
+    /**
+     * Tags that describe only the segment after them, so they go with an ad
+     * segment when it is dropped. Every other tag queued before a segment is
+     * kept: the playlist header (#EXTM3U, #EXT-X-TARGETDURATION,
+     * #EXT-X-MEDIA-SEQUENCE) comes before the first segment, and #EXT-X-KEY
+     * or #EXT-X-MAP before an ad also applies to the content after it.
+     */
+    private static final String[] SEGMENT_TAGS = {
+        "#EXTINF", "#EXT-X-BYTERANGE", "#EXT-X-PROGRAM-DATE-TIME", "#EXT-X-CUE",
+        "#EXT-X-DATERANGE", "#EXT-X-GAP", "#EXT-X-BITRATE",
+    };
+
+    /** Drops each ad segment line and the tags that describe only it. */
     private static String stripAdSegments(String playlist) {
         String[] lines = playlist.split("\n", -1);
         List<String> out = new ArrayList<>(lines.length);
@@ -79,6 +91,9 @@ public final class MlbManifestRewriter {
             if (t.isEmpty() || t.startsWith("#")) {
                 pending.add(line);
             } else if (isAdSegment(t)) {
+                for (String queued : pending) {
+                    if (!isSegmentTag(queued.trim())) out.add(queued);
+                }
                 pending.clear();
             } else {
                 out.addAll(pending);
@@ -90,6 +105,13 @@ public final class MlbManifestRewriter {
         return String.join("\n", collapseDiscontinuities(out));
     }
 
+    private static boolean isSegmentTag(String line) {
+        for (String tag : SEGMENT_TAGS) {
+            if (line.startsWith(tag)) return true;
+        }
+        return false;
+    }
+
     private static boolean isAdSegment(String line) {
         for (String m : SEGMENT_AD_MARKERS) {
             if (line.contains(m)) return true;
@@ -97,15 +119,23 @@ public final class MlbManifestRewriter {
         return false;
     }
 
-    /** Removes a discontinuity whose previous non-blank line is also one. */
+    /**
+     * Removes a discontinuity when no segment came after the previous one,
+     * such as the pair left around a dropped break, even with a kept tag
+     * (#EXT-X-KEY, #EXT-X-MAP) between them.
+     */
     private static List<String> collapseDiscontinuities(List<String> lines) {
         List<String> result = new ArrayList<>(lines.size());
-        boolean lastWasDiscontinuity = false;
+        boolean openDiscontinuity = false;
         for (String line : lines) {
             String t = line.trim();
-            if (t.equals(TAG_DISCONTINUITY) && lastWasDiscontinuity) continue;
+            if (t.equals(TAG_DISCONTINUITY)) {
+                if (openDiscontinuity) continue;
+                openDiscontinuity = true;
+            } else if (!t.isEmpty() && !t.startsWith("#")) {
+                openDiscontinuity = false;
+            }
             result.add(line);
-            if (!t.isEmpty()) lastWasDiscontinuity = t.equals(TAG_DISCONTINUITY);
         }
         return result;
     }

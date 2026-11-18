@@ -1186,6 +1186,21 @@ public final class OutsideTranslate {
         }
     }
 
+    /**
+     * Duress passcode (#79): forgets the chats turned on and every translation held, on disk too.
+     * The translation service and its settings stay.
+     */
+    static void forgetAll() {
+        forgetChats();
+        synchronized (LOCK) {
+            CACHE.clear();
+            FAILED.clear();
+            if (!prefs().edit().remove(CHATS).remove(UNSCOPED_CHATS).commit()) {
+                throw new IllegalStateException("Couldn't clear the translated chats");
+            }
+        }
+    }
+
     /** Clears what's remembered, for tests. */
     static void resetForTests() {
         synchronized (LOCK) {

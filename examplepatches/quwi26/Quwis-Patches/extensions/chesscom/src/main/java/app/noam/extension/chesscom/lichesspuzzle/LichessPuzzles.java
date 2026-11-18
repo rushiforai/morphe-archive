@@ -107,6 +107,10 @@ public final class LichessPuzzles {
     private static String puzzleDbField() { return ""; }
     private static String puzzleDbClear() { return ""; }
     private static String guestRepositoryClass() { return ""; }
+    /** The rating summary model the extension constructs (obfuscated), set by the patch. */
+    private static String ratingStatsClass() { return ""; }
+    /** The rating graph's point model the extension constructs (obfuscated), set by the patch. */
+    private static String ratingPointClass() { return ""; }
     /** The navigation interface the Puzzles tab's click calls, set by the patch. */
     private static String routerClass() { return ""; }
     /** The path stats' userRating field, set by the patch. */
@@ -834,7 +838,7 @@ public final class LichessPuzzles {
     public static Object ratingStats(Object original) {
         if (original != null || !session()) return original;
         try {
-            return Class.forName("com.chess.features.puzzles.db.model.o").getConstructor().newInstance();
+            return Class.forName(ratingStatsClass()).getConstructor().newInstance();
         } catch (Throwable throwable) {
             Utils.logError("Lichess rating summary", throwable);
             return original;
@@ -870,7 +874,7 @@ public final class LichessPuzzles {
         int[] values = ratingHistoryValues();
         java.util.List<Object> points = new java.util.ArrayList<>();
         try {
-            Constructor<?> constructor = Class.forName("com.chess.features.puzzles.rated.ui.m")
+            Constructor<?> constructor = Class.forName(ratingPointClass())
                 .getConstructor(int.class, Boolean.class);
             for (int i = 1; i < values.length; i++) {
                 points.add(constructor.newInstance(values[i], null));

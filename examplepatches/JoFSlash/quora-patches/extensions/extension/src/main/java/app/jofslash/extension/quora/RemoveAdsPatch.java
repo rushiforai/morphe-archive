@@ -71,6 +71,7 @@ public final class RemoveAdsPatch {
      */
     public static void onPageFinished(WebView webView) {
         if (webView == null) return;
+        if (!PatchSettings.active(webView, "removeAds", "Remove ads")) return;
         try {
             webView.evaluateJavascript(INJECT_SCRIPT, null);
         } catch (Exception ex) {
@@ -85,7 +86,7 @@ public final class RemoveAdsPatch {
      */
     public static WebResourceResponse blockAdRequest(WebResourceRequest request) {
         try {
-            if (request == null || request.isForMainFrame()) return null;
+            if (request == null || request.isForMainFrame() || !PatchSettings.isOn("removeAds")) return null;
             if (!isAdUrl(request.getUrl())) return null;
             return new WebResourceResponse("text/plain", "utf-8", new ByteArrayInputStream(new byte[0]));
         } catch (Exception ex) {

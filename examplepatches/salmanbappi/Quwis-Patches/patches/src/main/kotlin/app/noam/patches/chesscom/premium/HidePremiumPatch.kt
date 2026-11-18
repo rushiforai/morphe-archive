@@ -77,8 +77,11 @@ val hidePremiumPatch = bytecodePatch(
     execute {
         markFeaturePatched("hidePremiumPatched")
 
-        val offerType = SaleOfferToStringFingerprint.originalClassDef.superclass
-            ?: throw PatchException("The premium offer type was not found")
+        // 4.10.27 dropped the sale-offer model this fingerprint found; the old offer type stays as
+        // the shape the older Home adapters are hooked by, and the banner below is matched by its
+        // own type instead.
+        val offerType = SaleOfferToStringFingerprint.matchOrNull()?.originalClassDef?.superclass
+            ?: "Lcom/chess/features/paywall/Offer;"
 
         // Settings: the Upgrade row leaves the list the only row-building method returns.
         val rowType = SettingsRowToStringFingerprint.originalClassDef.type
@@ -278,9 +281,13 @@ val hidePremiumPatch = bytecodePatch(
         }
         mutableClassDefBy(HomeContentToStringFingerprint.originalClassDef).methods
             .filter { it.name == "<init>" }.maxByOrNull { it.parameterTypes.size }!!.apply {
-                val offer = parameterTypes.indexOfFirst { it.toString() == "Lcom/chess/features/paywall/Offer;" }
-                if (offer < 0) throw PatchException("The Home sale banner was not found")
-                nullOffer(0, "p${offer + 1}", "Lcom/chess/features/paywall/Offer;")
+                // 4.10.27 replaced the paywall Offer parameter with the banner state model
+                // (internal/paywall/a$b); older builds keep the paywall Offer.
+                val banner = parameterTypes.indexOfFirst { it.toString() == "Lcom/chess/internal/paywall/a\$b;" }
+                    .takeIf { it >= 0 }
+                    ?: parameterTypes.indexOfFirst { it.toString() == "Lcom/chess/features/paywall/Offer;" }
+                if (banner < 0) throw PatchException("The Home sale banner was not found")
+                nullOffer(0, "p${banner + 1}", parameterTypes[banner].toString())
             }
 
         // More: no Membership row.

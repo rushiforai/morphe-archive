@@ -138,6 +138,8 @@ Passaggi:
     <string name="morphe_music_downloads_starting">Avvio scaricamento…</string>
     <string name="morphe_music_downloads_storage_permission">Consenti l'accesso all\'archivio, quindi tocca nuovamente Scarica</string>
     <string name="morphe_music_downloads_unknown_track">Impossibile identificare la traccia da scaricare</string>
+    <string name="morphe_music_hide_you_may_also_like_section_title">Nascondi la sezione \'Potrebbe piacerti\'</string>
+    <string name="morphe_music_hide_your_downloads_shelf_title">Nascondi sezione \"I tuoi download\"</string>
     <string name="morphe_music_lyrics_about_summary">"I testi delle canzoni vengono abbinati per titolo e artista; metadati insoliti potrebbero non trovare nulla o una versione errata. Usa Aggiorna per cambiare versione. I fornitori contrassegnati da * richiedono un token. Non tutti i fornitori abilitati vengono sempre richiesti nell'ordine specificato, ma rispondono in base alla loro velocità
 
 I testi provengono da servizi di terze parti che non sono affiliati, sponsorizzati o approvati da RVX. Ciascuno viene utilizzato così com'è: i testi, la loro disponibilità e la relativa licenza rimangono di proprietà di tali servizi e dei loro concessori di licenza, e il loro utilizzo può essere soggetto ai loro termini di servizio. Ciò che viene inviato a un servizio abilitato è solo la ricerca richiesta - il titolo, l'artista e, dove necessario per quel servizio, l'ID del video. L'endpoint opzionale AI e la trascrizione QuickLRC vengono eseguiti solo dopo la loro configurazione e ricevono il testo della canzone o l'URL del video della traccia"</string>

@@ -270,6 +270,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean locationPrompts() {
+        return false;
+    }
+
     public static boolean typingIndicator() {
         return false;
     }
@@ -423,6 +427,10 @@ public final class SettingsStatus {
     }
 
     public static boolean fullPostText() {
+        return false;
+    }
+
+    public static boolean foldLongText() {
         return false;
     }
 

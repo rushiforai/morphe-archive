@@ -1,4 +1,11 @@
-# [1.9.27](https://github.com/quwi26/Quwis-Patches/compare/v1.9.26...v1.9.27) (2026-11-12)
+# [1.9.28](https://github.com/quwi26/Quwis-Patches/compare/v1.9.27...v1.9.28) (2026-11-17)
+
+### New Features
+
+* **Chess.com:** chess.com 4.10.27 is supported next to 4.10.23 and 4.10.18, with every patch in this bundle working on all three versions
+* **Chess.com:** Customize bottom bar, Hide Premium-only content, Time controls under a minute and Lichess Puzzles follow the classes 4.10.27 renamed, and they still find the older builds' shapes. In Lichess Puzzles the rating summary and the graph's points are built from the model names of the installed build, so the Lichess rating box and graph work on 4.10.27 as well
+
+
 
 ### Bug Fixes
 

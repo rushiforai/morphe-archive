@@ -1,0 +1,166 @@
+name: Publish FairEmail Patches v0.3.1 stable
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-v031-stable.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_ACTOR: ${{ github.actor }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout patch source
+        uses: actions/checkout@v4
+      - name: Checkout pinned Morphe Gradle plugin
+        uses: actions/checkout@v4
+        with:
+          repository: MorpheApp/morphe-patches-gradle-plugin
+          ref: 0a2c1971e2913a6ea5e8fd192d359765169a6a06
+          path: build-logic/morphe-patches-gradle-plugin
+          persist-credentials: false
+      - name: Checkout pinned Morphe patcher
+        uses: actions/checkout@v4
+        with:
+          repository: MorpheApp/morphe-patcher
+          ref: 812e96eaac173cd058ba49e242325371959befae
+          path: build-logic/morphe-patcher
+          persist-credentials: false
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Pin release build version
+        shell: bash
+        run: |
+          VERSION=$(sed -n 's/^version = //p' gradle.properties)
+          case "$VERSION" in
+            0.3.1-rc.1|0.3.1) ;;
+            *) echo "Unexpected release version: $VERSION"; exit 1 ;;
+          esac
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+      - name: Validate Android Morphe Manager source metadata
+        run: |
+          python3 -m unittest discover -s tests -v
+          python3 scripts/validate_morphe_metadata.py
+      - name: Build Morphe patch and index
+        run: bash ./gradlew :patches:generatePatchesList --no-daemon
+      - name: Verify six-patch Android MPP, clone options and safe metadata
+        run: |
+          python3 - <<'PY'
+          import json
+          import hashlib
+          from pathlib import Path
+          from scripts.verify_release_candidate import verify_index, verify_bundle, verify_tracked_assets
+          import os
+          version = os.environ["VERSION"]
+          bundle = Path(f"patches/build/libs/patches-{version}.mpp")
+          index = json.loads(Path("patches-list.json").read_text(encoding="utf-8"))
+          verify_index(index, version)
+          verify_bundle(bundle)
+          verify_tracked_assets()
+          import zipfile
+          with zipfile.ZipFile(bundle) as patch_archive:
+              manifest = patch_archive.read("META-INF/MANIFEST.MF").decode("utf-8")
+          assert "Name: FairEmail Patches" in manifest, "Morphe manifest source name is not FairEmail Patches"
+          assert "FairEmail Morphe customizations" not in manifest
+          print("FAIREMAIL_PATCHES_SOURCE_NAME_PASS")
+
+          clone, = (p for p in index["patches"] if p["name"] == "Clone FairEmail alongside official app")
+          assert clone["default"] is True
+          option_defaults = {option["key"]: option["default"] for option in clone["options"]}
+          assert option_defaults == {"packageName": "Default", "updatePermissions": True, "updateProviders": True}, option_defaults
+          print("FAIREMAIL_SIX_PATCH_CLONE_ANDROID_BUNDLE_PASS", hashlib.sha256(bundle.read_bytes()).hexdigest())
+          PY
+      - name: Smoke-apply all six patches to pristine upstream FairEmail APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          TEST_DIR="$RUNNER_TEMP/fairemail-patch-smoke"
+          mkdir -p "$TEST_DIR"
+          curl -fL --retry 3 --retry-delay 3 \
+            -o "$TEST_DIR/original.apk" \
+            "https://github.com/M66B/FairEmail/releases/download/1.2338/FairEmail-v1.2338a-github-release.apk"
+          echo "666b9f4ada53f69199355f1ccc2bed73e01fa23786fc0189cf81cc51932dc5a9  $TEST_DIR/original.apk" | sha256sum --check -
+          curl -fL --retry 3 --retry-delay 3 \
+            -o "$TEST_DIR/morphe-desktop.jar" \
+            "https://github.com/MorpheApp/morphe-desktop/releases/download/v1.19.1/morphe-desktop-1.19.1-all.jar"
+          export MORPHE_DATA_DIR="$TEST_DIR/data"
+          mkdir -p "$MORPHE_DATA_DIR"
+          env -u GITHUB_TOKEN -u GITHUB_ACTOR java -jar "$TEST_DIR/morphe-desktop.jar" patch \
+            -p "patches/build/libs/patches-$VERSION.mpp" \
+            --exclusive --unsigned \
+            -e "Permanently hide donation banner" \
+            -e "Enable local settings export (experimental)" \
+            -e "Enable local Pro features (experimental)" \
+            -e "Enable OAuth setup in re-signed FairEmail (experimental)" \
+            -e "Suppress automatic changelog popup" \
+            -e "Clone FairEmail alongside official app" \
+            -o "$TEST_DIR/clone-unsigned.apk" "$TEST_DIR/original.apk"
+          test -s "$TEST_DIR/clone-unsigned.apk"
+          python3 - "$TEST_DIR/clone-unsigned.apk" <<'PY'
+          import pathlib,sys,zipfile
+          path = pathlib.Path(sys.argv[1])
+          with zipfile.ZipFile(path) as zipf:
+              assert zipf.testzip() is None
+              assert "AndroidManifest.xml" in zipf.namelist()
+              assert "classes.dex" in zipf.namelist()
+          print("FAIREMAIL_SIX_PATCH_APK_ZIP_PASS",path.stat().st_size)
+          PY
+          AAPT=$(find "$ANDROID_HOME/build-tools" -maxdepth 2 -type f -name aapt -print | sort -V | tail -1)
+          test -x "$AAPT"
+          "$AAPT" dump badging "$TEST_DIR/clone-unsigned.apk" > "$TEST_DIR/badging.txt"
+          grep -q "package: name='eu.faircode.email.morphe'" "$TEST_DIR/badging.txt"
+          grep -q "versionName='1.2338'" "$TEST_DIR/badging.txt"
+          echo "FAIREMAIL_CLONE_APK_PACKAGE_PASS: eu.faircode.email.morphe"
+          # Regression parity against the same original APK transformed by the
+          # pinned official Morphe "Clone app" patch (GPLv3 upstream).
+          curl -fL --retry 3 --retry-delay 3 \
+            -o "$TEST_DIR/morphe-official-clone.mpp" \
+            "https://github.com/MorpheApp/morphe-patches/releases/download/v1.48.0/patches-1.48.0.mpp"
+          echo "82bc696c94c26dbf75242b59980251315145457575b663200b981ca351e1c0f7  $TEST_DIR/morphe-official-clone.mpp" | sha256sum --check -
+          env -u GITHUB_TOKEN -u GITHUB_ACTOR java -jar "$TEST_DIR/morphe-desktop.jar" patch \
+            -p "$TEST_DIR/morphe-official-clone.mpp" \
+            --exclusive --unsigned \
+            -e "Clone app" \
+            -o "$TEST_DIR/official-clone-unsigned.apk" "$TEST_DIR/original.apk"
+          test -s "$TEST_DIR/official-clone-unsigned.apk"
+          "$AAPT" dump badging "$TEST_DIR/official-clone-unsigned.apk" > "$TEST_DIR/official-badging.txt"
+          grep -q "package: name='eu.faircode.email.morphe'" "$TEST_DIR/official-badging.txt"
+          "$AAPT" dump xmltree "$TEST_DIR/clone-unsigned.apk" AndroidManifest.xml > "$TEST_DIR/our-manifest.txt"
+          "$AAPT" dump xmltree "$TEST_DIR/official-clone-unsigned.apk" AndroidManifest.xml > "$TEST_DIR/upstream-manifest.txt"
+          python3 scripts/check_clone_manifest_parity.py "$TEST_DIR/our-manifest.txt" "$TEST_DIR/upstream-manifest.txt"
+          # Smoke outputs are unsigned, ephemeral and NOT published as release artifacts.
+      - name: Release stable six-patch MPP after full APK/clone parity validation
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          test "$VERSION" = "0.3.1"
+          test "$GITHUB_REF" = "refs/heads/main"
+          TAG="v$VERSION"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Existing release $TAG: refusing to overwrite"
+            exit 1
+          fi
+          test -s "patches/build/libs/patches-$VERSION.mpp"
+          sha256sum "patches/build/libs/patches-$VERSION.mpp" | tee "$RUNNER_TEMP/STABLE_SHA256.txt"
+          gh release create "$TAG" "patches/build/libs/patches-$VERSION.mpp" \
+            --target "$GITHUB_SHA" \
+            --title "FairEmail Patches $TAG — Unofficial Stable Patch Bundle" \
+            --notes-file docs/RELEASE_NOTES_0.3.1.md \
+            --latest
+          gh release view "$TAG" --json tagName,isPrerelease,assets | python3 -c \
+            'import json,sys; d=json.load(sys.stdin); assert d["tagName"]=="v0.3.1" and not d["isPrerelease"]; assert len(d["assets"])==1 and d["assets"][0]["name"]=="patches-0.3.1.mpp"; print("FAIREMAIL_STABLE_RELEASE_ASSET_PASS")'
+      - name: Upload patch bundle as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fairemail-patches-0.3.1
+          path: patches/build/libs/patches-0.3.1.mpp

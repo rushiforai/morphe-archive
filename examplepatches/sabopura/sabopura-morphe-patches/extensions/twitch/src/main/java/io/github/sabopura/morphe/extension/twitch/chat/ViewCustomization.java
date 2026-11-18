@@ -5,6 +5,11 @@ import android.content.*;
 import android.os.Bundle;
 import android.view.*;
 
+import io.github.sabopura.morphe.extension.twitch.Diagnostics;
+import io.github.sabopura.morphe.extension.twitch.ui.Feature;
+import io.github.sabopura.morphe.extension.twitch.ui.Features;
+import io.github.sabopura.morphe.extension.twitch.ui.TwitchRes;
+
 import java.lang.ref.WeakReference;
 import java.util.*;
 
@@ -29,7 +34,8 @@ public final class ViewCustomization {
         {"hide_hype_train", "ハイプトレイン", "Hype Train", "one_chat_hype_train_landscape_container"},
         // bit_picker in the chat's message box, bits_button in the landscape chat bar.
         {"hide_bits", "Bitsボタン", "Bits buttons", "bit_picker", "bits_button"},
-        {"hide_cast", "キャストボタン", "Cast button", "cast_button"},
+        // cast_button in the live player, media_route_button in the VOD and clip player.
+        {"hide_cast", "キャストボタン", "Cast button", "cast_button", "media_route_button"},
         {
             "hide_clips",
             "クリップ作成ボタン",
@@ -82,8 +88,36 @@ public final class ViewCustomization {
             "stories_button_xml"
         },
         // A tab of the bottom bar: see TABS.
-        {"hide_discover", "探索タブ", "Explore tab"},
-        {"hide_one_chat_popup", "チャットの案内", "Chat callouts", "one_chat_callout", "one_chat_tooltip"}
+        {"hide_discover", "ブラウズタブ", "Browse tab"},
+        {"hide_one_chat_popup", "チャットの案内", "Chat callouts", "one_chat_callout", "one_chat_tooltip"},
+        {
+            "hide_stream_extensions",
+            "配信の拡張機能",
+            "Stream extensions",
+            "extension_button_container",
+            "extensions_container",
+            "extension_icons_container",
+            "extension_overlay_container"
+        },
+        {
+            "hide_subscribe",
+            "サブスクボタン",
+            "Subscribe buttons",
+            "sub_button_container",
+            "extended_subscribe_button_container",
+            "subscribe_button_container",
+            "theatre_overlay_subscribe_button_container"
+        },
+        {"hide_gift_sub", "ギフトサブボタン", "Gift a Sub buttons", "gift_a_sub_button"},
+        {
+            "hide_go_ad_free",
+            "広告なしプランの案内",
+            "Go Ad-Free prompts",
+            "following_tab_turbo_button",
+            "own_profile_turbo_button",
+            "turbo_upsell_container",
+            "promo_banner_container"
+        }
     };
     /**
      * Tabs of the bottom bar (and the side rail on tablets) hidden through the bar's menu: hiding
@@ -102,6 +136,10 @@ public final class ViewCustomization {
     private static boolean registered;
     /** Resource IDs per option, looked up once; this runs on every layout pass of the screen. */
     private static int[][] resolved;
+    /** The bottom bar's menu by bar view, found by reflection once. */
+    private static final Map<View, Menu> MENUS = new WeakHashMap<>();
+    /** Layout passes come in bursts; hiding is applied at most this often. */
+    private static final long MIN_INTERVAL_MS = 100;
 
     private static int[][] ids(View view) {
         int[][] result = resolved;
@@ -110,8 +148,7 @@ public final class ViewCustomization {
         for (int o = 0; o < OPTIONS.length; o++) {
             result[o] = new int[OPTIONS[o].length - 3];
             for (int i = 3; i < OPTIONS[o].length; i++)
-                result[o][i - 3] = view.getResources()
-                        .getIdentifier(OPTIONS[o][i], "id", view.getContext().getPackageName());
+                result[o][i - 3] = TwitchRes.id(view.getContext(), OPTIONS[o][i], "id");
         }
         return resolved = result;
     }
@@ -125,7 +162,11 @@ public final class ViewCustomization {
                 .registerActivityLifecycleCallbacks(
                         new Application.ActivityLifecycleCallbacks() {
                             public void onActivityResumed(Activity a) {
-                                observe(a.getWindow().getDecorView());
+                                try {
+                                    observe(a.getWindow().getDecorView());
+                                } catch (RuntimeException | LinkageError e) {
+                                    Diagnostics.note("chat.declutter-observe", e);
+                                }
                             }
 
                             public void onActivityDestroyed(Activity a) {
@@ -158,10 +199,19 @@ public final class ViewCustomization {
     }
 
     private static int id(View view, String name) {
-        return view.getResources().getIdentifier(name, "id", view.getContext().getPackageName());
+        return TwitchRes.id(view.getContext(), name, "id");
     }
 
     private static Menu menuOf(View bar) {
+        Menu known = MENUS.get(bar);
+        if (known == null) {
+            known = findMenu(bar);
+            if (known != null) MENUS.put(bar, known);
+        }
+        return known;
+    }
+
+    private static Menu findMenu(View bar) {
         for (Class<?> c = bar.getClass(); c != null && c != View.class; c = c.getSuperclass()) {
             for (java.lang.reflect.Method m : c.getDeclaredMethods()) {
                 if (m.getParameterTypes().length != 0 || !Menu.class.isAssignableFrom(m.getReturnType())
@@ -200,17 +250,41 @@ public final class ViewCustomization {
     }
 
     /**
-     * Called with the list of buttons under the player before Twitch shows it. With the unfollow
-     * button hidden, a followed channel shows no heart: one tap there unfollows. The follow
-     * button of a channel not followed stays.
+     * Called with the list of buttons under the player before Twitch keeps it; Twitch keeps what
+     * this returns. With the unfollow button hidden, a followed channel shows no heart: one tap
+     * there unfollows. The follow button of a channel not followed stays.
+     *
+     * <p>An ArrayList is changed in place and returned as it is (the patch relies on that where
+     * Twitch declares one). Any other list may be read-only, so the buttons kept go into a new one.
      */
-    public static void metadataButtons(List<?> buttons) {
+    public static List<?> metadataButtons(List<?> buttons) {
         try {
-            if (buttons == null || !hideUnfollow()) return;
-            for (Iterator<?> it = buttons.iterator(); it.hasNext(); )
-                if ("UnfollowIconButton".equals(String.valueOf(it.next()))) it.remove();
-        } catch (RuntimeException ignored) {
+            return buttons == null || !hideUnfollow() ? buttons : withoutUnfollow(buttons);
+        } catch (RuntimeException e) {
+            Diagnostics.note("chat.hide-unfollow", e);
+            return buttons;
         }
+    }
+
+    static List<?> withoutUnfollow(List<?> buttons) {
+        if (buttons instanceof ArrayList) {
+            for (Iterator<?> it = buttons.iterator(); it.hasNext(); ) if (isUnfollow(it.next())) it.remove();
+            return buttons;
+        }
+        List<Object> kept = null;
+        for (int i = 0; i < buttons.size(); i++) {
+            Object button = buttons.get(i);
+            if (isUnfollow(button)) {
+                if (kept == null) kept = new ArrayList<>(buttons.subList(0, i));
+            } else if (kept != null) {
+                kept.add(button);
+            }
+        }
+        return kept == null ? buttons : kept;
+    }
+
+    private static boolean isUnfollow(Object button) {
+        return "UnfollowIconButton".equals(String.valueOf(button));
     }
 
     private static boolean hideUnfollow() {
@@ -228,13 +302,21 @@ public final class ViewCustomization {
             SharedPreferences prefs = ChatSettings.preferences();
             if (event == null || prefs == null) return true;
             boolean hype = prefs.getBoolean("hide_hype_train", false), pinned = prefs.getBoolean("hide_pinned", false);
-            if (!hype && !pinned) return true;
+            ChatSettings settings = ChatSettings.current();
+            boolean gifts = settings != null && settings.hideGiftBanners && Features.has(Feature.CHAT_HIDE_HIGHLIGHTS);
+            if (!hype && !pinned && !gifts) return true;
             String type = highlightType(event, 0);
             if (type == null) return true;
-            return !(hype && type.startsWith("hype_train") || pinned && type.equals("creator_pinned_message"));
+            return !(hype && type.startsWith("hype_train") || pinned && type.equals("creator_pinned_message")
+                    || gifts && isGiftBanner(type));
         } catch (RuntimeException | LinkageError e) {
+            Diagnostics.note("chat.highlight-filter", e);
             return true;
         }
+    }
+
+    private static boolean isGiftBanner(String type) {
+        return type.equals("gift_sub") || type.equals("gift_promotion") || type.equals("subtember");
     }
 
     /**
@@ -288,7 +370,9 @@ public final class ViewCustomization {
     private static final class Observer implements ViewTreeObserver.OnGlobalLayoutListener {
         final WeakReference<View> root;
         final Map<View, Integer> hidden = HIDDEN;
-        boolean applying;
+        final Runnable delayed = this::applyNow;
+        boolean applying, scheduled;
+        long lastApplied;
 
         Observer(View v) {
             root = new WeakReference<>(v);
@@ -302,10 +386,25 @@ public final class ViewCustomization {
 
         public void onGlobalLayout() {
             View view = root.get();
+            if (view == null || applying || scheduled) return;
+            long wait = lastApplied + MIN_INTERVAL_MS - android.os.SystemClock.uptimeMillis();
+            if (wait <= 0) {
+                applyNow();
+            } else {
+                scheduled = true;
+                view.postDelayed(delayed, wait);
+            }
+        }
+
+        private void applyNow() {
+            scheduled = false;
+            View view = root.get();
             if (view == null || applying) return;
+            lastApplied = android.os.SystemClock.uptimeMillis();
             applying = true;
             try {
                 io.github.sabopura.morphe.extension.twitch.player.LayoutTools.applyBackgrounds(view);
+                if (!Features.has(Feature.DECLUTTER)) return;
                 SharedPreferences prefs = ChatSettings.preferences(view.getContext());
                 Map<Integer, Boolean> ids = new HashMap<>();
                 boolean any = false;
@@ -342,6 +441,8 @@ public final class ViewCustomization {
                             pending.addLast(group.getChildAt(i));
                     }
                 }
+            } catch (RuntimeException | LinkageError e) {
+                Diagnostics.note("chat.declutter", e);
             } finally {
                 applying = false;
             }

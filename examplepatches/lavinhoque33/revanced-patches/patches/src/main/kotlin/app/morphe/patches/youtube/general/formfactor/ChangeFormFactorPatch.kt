@@ -7,12 +7,14 @@
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
- * Modified by lavinhoque33, 2026-11-06.
+ * Modified by lavinhoque33, 2026-11-17.
  */
 
 package app.morphe.patches.youtube.general.formfactor
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patches.youtube.utils.playservice.is_21_30_or_greater
+import app.morphe.util.Utils.printWarn
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.bytecodePatch
@@ -113,6 +115,19 @@ val changeFormFactorPatch = bytecodePatch(
                         """
                 )
             }
+        }
+
+        if (is_21_30_or_greater) {
+            val widthHook = "$EXTENSION_CLASS_DESCRIPTOR->getResponsiveContainerWidth(I)I"
+            getResponsiveContainerPropertiesFingerprint().method.addInstructions(
+                0,
+                """
+                    invoke-static/range { p1 .. p1 }, $widthHook
+                    move-result p1
+                """
+            )
+        } else {
+            printWarn("Responsive container layout requires YouTube 21.30 or newer; keeping the legacy layout hook.")
         }
 
         // region add settings

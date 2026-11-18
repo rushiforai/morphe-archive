@@ -35,8 +35,7 @@ private object ArticlePageFingerprint : Fingerprint(
 @Suppress("unused")
 val disableAnalyticsPatch = patch(
     name = "Disable analytics",
-    description = "Stops Detik Analytics from recording screens and events, keeps the Android ID out of article pages, " +
-        "and turns off Firebase Analytics, Crashlytics, Performance and Sessions.",
+    description = "Turns off analytics and tracking.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_DETIK)

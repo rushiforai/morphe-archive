@@ -16,6 +16,7 @@ import app.morphe.extension.tiktok.settings.SettingsStatus;
 import app.morphe.extension.tiktok.settings.L10n;
 import app.morphe.extension.tiktok.settings.preference.AccountCleanupPreference;
 import app.morphe.extension.tiktok.settings.preference.ChoicePreference;
+import app.morphe.extension.tiktok.settings.preference.CommentPickerPreference;
 import app.morphe.extension.tiktok.settings.preference.DeviceIdentityPreference;
 import app.morphe.extension.tiktok.settings.preference.GhostModePreference;
 import app.morphe.extension.tiktok.settings.preference.HookStatusPreference;
@@ -316,6 +317,18 @@ public final class PrivacyPreferenceCategory extends ConditionalPreferenceCatego
             addPreference(new AccountCleanupPreference(context, Kind.REPOSTS));
             addPreference(new AccountCleanupPreference(context, Kind.LIKES));
             addPreference(new AccountCleanupPreference(context, Kind.FAVORITES));
+            if (SettingsStatus.quickRemoveEnabled) {
+                addPreference(new TogglePreference(
+                        context,
+                        "Tap a video to remove it",
+                        "In your own Liked videos, Favorites and Reposts, a tap takes the video off "
+                                + "that list instead of opening it.",
+                        Settings.TAP_TO_REMOVE
+                ));
+            }
+            // Your comments, all of them or the ones picked from your history (#442).
+            addPreference(new AccountCleanupPreference(context, Kind.COMMENTS));
+            addPreference(new CommentPickerPreference(context));
         }
     }
 }

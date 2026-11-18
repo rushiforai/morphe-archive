@@ -15,7 +15,9 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.Call
 import okhttp3.Interceptor
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
+import okhttp3.Protocol
 import okhttp3.Request
 import okhttp3.Response
 import okhttp3.ResponseBody.Companion.toResponseBody
@@ -27,6 +29,9 @@ import java.util.concurrent.Executors
 import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.math.ceil
+import kotlin.math.floor
+import kotlin.math.max
 
 /**
  * Puts a bookmark-count floor on search results.
@@ -45,6 +50,9 @@ import java.util.concurrent.atomic.AtomicBoolean
  * A page holds thirty works and the search endpoint ignores `size`, so a strict floor on a quiet tag
  * leaves the page nearly empty. When that happens the following pages are pulled in and merged, so
  * the page still looks like a page.
+ *
+ * A fixed count means something different for every keyword - 500 is most of a popular tag and none
+ * of a quiet one - so the floor can also be a share of the counts the search has shown so far.
  */
 object BookmarkThreshold {
 
@@ -57,6 +65,44 @@ object BookmarkThreshold {
 
     const val MAX_FLOOR = 999_999
 
+    const val MODE_ABSOLUTE = 0
+    const val MODE_PERCENTILE = 1
+
+    /** The shares of a search's own counts the picker offers, tightest first. */
+    val PERCENTILES = listOf(5, 10, 25, 50)
+
+    private const val DEFAULT_PERCENT = 10
+
+    /** The ends of the share the picker accepts when it is typed rather than tapped. */
+    const val MIN_PERCENT = 1
+    const val MAX_PERCENT = 90
+
+    /** The fill budgets the picker offers, in milliseconds; 0 filters each page as it arrives. */
+    val FILL_BUDGETS = listOf(0, 1000, 2000, 3000, 5000)
+
+    private const val DEFAULT_FILL_BUDGET_MS = 2000
+
+    /** A top-up is typed in whole seconds, between off and this. */
+    const val MAX_FILL_SECONDS = 10
+
+    private const val MAX_FILL_BUDGET_MS = MAX_FILL_SECONDS * 1000
+
+    /**
+     * Where a share of a search is allowed to settle. The bottom of a list is mostly works without
+     * any bookmarks at all, so a share read that far down would keep them.
+     */
+    private const val LOWER_BOUND = 100
+
+    /**
+     * How many counts a share is read off before it is trusted. A page holds thirty, so this is two
+     * pages: below it the sample describes the top of the list rather than the list, and the floor
+     * would move with every page that lands.
+     */
+    private const val MIN_SAMPLES = 60
+
+    /** [FilteredWorks] keeps its own cap; stopping here first keeps a wide page off the heap. */
+    private const val MAX_RECORDED_DROPS = 200
+
     /** The endpoints whose items carry a bookmark count, and where those items sit in the payload. */
     private val ITEMS_KEYS = mapOf(
         "/v1/search/illust" to "illusts",
@@ -65,11 +111,14 @@ object BookmarkThreshold {
 
     private const val PREFS_NAME = "pixiv_search_ranking_prefs"
     private const val KEY_FLOOR = "bookmark_floor"
+    private const val KEY_MODE = "bookmark_floor_mode"
+    private const val KEY_PERCENT = "bookmark_floor_percent"
+    private const val KEY_FILL_BUDGET = "bookmark_fill_budget_ms"
 
     private const val API_ORIGIN = "https://app-api.pixiv.net/"
 
-    /** How long all borrowing may take, counted from the moment the first page arrives. */
-    private const val FILL_BUDGET_MS = 1000L
+    /** What both search endpoints answer with, and what a page rebuilt from the cache presents. */
+    private val JSON_CONTENT_TYPE = "application/json".toMediaType()
 
     private const val MAX_PARALLEL_PAGES = 4
 
@@ -105,9 +154,35 @@ object BookmarkThreshold {
 
     private val warm = AtomicBoolean(false)
 
+    /**
+     * The fixed floor, in works; 0 is off. The count and the share answer the same question, so at
+     * most one of them is set: choosing a share clears this one, and choosing a count above 0 clears
+     * the share.
+     */
     @Volatile
     var current: Int = 0
         private set
+
+    /** Whether the share is on. [MODE_ABSOLUTE] means no share, whatever [current] holds. */
+    @Volatile
+    var mode: Int = MODE_ABSOLUTE
+        private set
+
+    @Volatile
+    var percentile: Int = DEFAULT_PERCENT
+        private set
+
+    /** How long all borrowing may take, counted from the first page; 0 filters pages as they arrive. */
+    @Volatile
+    var fillBudgetMs: Int = DEFAULT_FILL_BUDGET_MS
+        private set
+
+    /**
+     * The signature of the search the floor was last resolved for. Only the settings row reads it:
+     * the floor itself is resolved from the signature of the request at hand, never from this.
+     */
+    @Volatile
+    private var lastSignature: String? = null
 
     @Volatile
     private var loaded = false
@@ -136,29 +211,33 @@ object BookmarkThreshold {
      *
      * The borrowed pages come from a client of their own, and the first request on a fresh client
      * pays for the DNS lookup and the TLS handshake - measured at about a second and a half here,
-     * which is most of [FILL_BUDGET_MS] gone before a single page is even asked for. This asks the
+     * which is most of the default budget gone before a single page is even asked for. This asks the
      * host for its root, which is a few hundred bytes, and keeps the connection: the answer itself
      * is thrown away.
      */
     private fun warmUp() {
         if (!warm.compareAndSet(false, true)) return
-        runCatching {
-            pool.execute {
-                topUpCall.set(true)
-                try {
-                    fillClient.newCall(Request.Builder().url(API_ORIGIN.toHttpUrl()).build())
-                        .execute()
-                        .use { response ->
-                            // Read to the end: a body dropped half-read takes the connection with it,
-                            // and the connection is the whole point here.
-                            response.body?.string()
-                        }
-                } catch (_: Throwable) {
-                } finally {
-                    topUpCall.remove()
-                }
+        // A thread of its own rather than one from [pool]: a top-up asks the pool for all
+        // [MAX_PARALLEL_PAGES] pages at once, so warming the connection on one of them left the last
+        // borrowed page waiting behind the handshake until the whole fill ran out of budget.
+        Thread {
+            topUpCall.set(true)
+            try {
+                fillClient.newCall(Request.Builder().url(API_ORIGIN.toHttpUrl()).build())
+                    .execute()
+                    .use { response ->
+                        // Read to the end: a body dropped half-read takes the connection with it,
+                        // and the connection is the whole point here.
+                        response.body?.string()
+                    }
+            } catch (_: Throwable) {
+            } finally {
+                topUpCall.remove()
             }
-        }
+        }.apply {
+            name = "pixiv-bookmark-warm"
+            isDaemon = true
+        }.start()
     }
 
     fun ensureLoaded() {
@@ -166,19 +245,99 @@ object BookmarkThreshold {
         val context = AiDetectionHelper.getContext() ?: return
         synchronized(BookmarkThreshold) {
             if (loaded) return
-            val prefs = prefs(context)
-            current = prefs.getInt(KEY_FLOOR, 0).coerceIn(0, MAX_FLOOR)
+            val store = prefs(context)
+            current = store.getInt(KEY_FLOOR, 0).coerceIn(0, MAX_FLOOR)
+            // An install that predates the share mode has no mode stored, and absolute is what such
+            // an install already does: the default is what keeps an upgrade from changing anything.
+            mode = if (store.getInt(KEY_MODE, MODE_ABSOLUTE) == MODE_PERCENTILE) {
+                MODE_PERCENTILE
+            } else {
+                MODE_ABSOLUTE
+            }
+            percentile = store.getInt(KEY_PERCENT, DEFAULT_PERCENT)
+                .takeIf { it in MIN_PERCENT..MAX_PERCENT } ?: DEFAULT_PERCENT
+            fillBudgetMs = store.getInt(KEY_FILL_BUDGET, DEFAULT_FILL_BUDGET_MS)
+                .takeIf { it in 0..MAX_FILL_BUDGET_MS } ?: DEFAULT_FILL_BUDGET_MS
+            // The count and the share used to share one store, so an install from before the split
+            // can hold both. The share was the one in use, and dropping the count keeps the two rows
+            // from claiming a value at the same time.
+            if (mode == MODE_PERCENTILE) current = 0
             loaded = true
         }
     }
 
+    /**
+     * Picks a fixed count. Choosing a count turns the share off, because the two describe the same
+     * shelf. Picking 0 only clears this row: it is not a request to start filtering by the share.
+     */
     fun setFloor(context: Context?, floor: Int) {
         current = floor.coerceIn(0, MAX_FLOOR)
+        if (current > 0) mode = MODE_ABSOLUTE
         loaded = true
         val target = context ?: AiDetectionHelper.getContext() ?: return
         runCatching {
-            prefs(target).edit().putInt(KEY_FLOOR, current).apply()
+            prefs(target).edit().putInt(KEY_FLOOR, current).putInt(KEY_MODE, mode).apply()
         }
+    }
+
+    /** Picks a share. The count is cleared with it, so the two rows never both show a value. */
+    fun setPercentile(context: Context?, percent: Int) {
+        percentile = if (percent in MIN_PERCENT..MAX_PERCENT) percent else DEFAULT_PERCENT
+        mode = MODE_PERCENTILE
+        current = 0
+        loaded = true
+        val target = context ?: AiDetectionHelper.getContext() ?: return
+        runCatching {
+            prefs(target).edit()
+                .putInt(KEY_PERCENT, percentile)
+                .putInt(KEY_MODE, mode)
+                .putInt(KEY_FLOOR, current)
+                .apply()
+        }
+    }
+
+    /** Turns the share off. The count is left as it is, so the other row keeps what it showed. */
+    fun clearPercentile(context: Context?) {
+        mode = MODE_ABSOLUTE
+        loaded = true
+        val target = context ?: AiDetectionHelper.getContext() ?: return
+        runCatching {
+            // The count is written back too, and it is 0 whenever the share was on: an install from
+            // before the split can still hold the count it had under the share, and leaving it in
+            // the prefs would let that count reappear after the next start.
+            prefs(target).edit().putInt(KEY_MODE, mode).putInt(KEY_FLOOR, current).apply()
+        }
+    }
+
+    /** How long a top-up may take; 0 leaves the page as far as the filter left it. */
+    fun setFillBudget(context: Context?, milliseconds: Int) {
+        fillBudgetMs = if (milliseconds in 0..MAX_FILL_BUDGET_MS) {
+            milliseconds
+        } else {
+            DEFAULT_FILL_BUDGET_MS
+        }
+        val target = context ?: AiDetectionHelper.getContext() ?: return
+        runCatching {
+            prefs(target).edit().putInt(KEY_FILL_BUDGET, fillBudgetMs).apply()
+        }
+    }
+
+    /**
+     * The floor the share mode would apply to the search read last, for the settings row.
+     *
+     * Answered from the cache, so opening the settings page asks Pixiv for nothing. Null when the
+     * mode is absolute, when no filtered search has run in this process, or when none of that
+     * search is still held: the row then shows the share alone rather than a number that describes
+     * nothing.
+     */
+    fun resolvedFloorPreview(): Int? {
+        if (mode != MODE_PERCENTILE) return null
+        val signature = lastSignature ?: return null
+        val samples = PageCache.samples(signature)
+        // Below the sample floor the share is not being computed at all, and showing the fallback
+        // would dress a constant up as a measurement.
+        if (samples.size < MIN_SAMPLES) return null
+        return floorOf(samples, percentile)
     }
 
     @JvmStatic
@@ -194,10 +353,13 @@ object BookmarkThreshold {
         }
     }
 
-    private class Page(val items: List<JSONObject>, val next: String?)
-
     /** One borrowed page in flight, with the call that can be dropped when nobody wants it. */
-    private class Fill(val call: Call, val future: Future<Page?>, val offset: Int?, val search: String)
+    private class Fill(
+        val call: Call,
+        val future: Future<PageCache.Page?>,
+        val offset: Int?,
+        val search: String
+    )
 
     private class BookmarkThresholdInterceptor : Interceptor {
 
@@ -205,22 +367,80 @@ object BookmarkThreshold {
             val request = chain.request()
             if (topUpCall.get() == true) return chain.proceed(request)
             ensureLoaded()
-            val floor = current
-            val path = request.url.encodedPath
-            if (ITEMS_KEYS.containsKey(path)) {
-                android.util.Log.i(
-                    "PixivDbg",
-                    "BT req path=$path sort=${request.url.queryParameter("sort")} " +
-                        "word=${request.url.queryParameter("word")} " +
-                        "offset=${request.url.queryParameter("offset")} floor=$floor"
-                )
-            }
-            if (floor <= 0) return chain.proceed(request)
             val itemsKey = ITEMS_KEYS[request.url.encodedPath] ?: return chain.proceed(request)
+            val floor = floorFor(request.url) ?: return chain.proceed(request)
             warmUp()
-            prefetchNextPage(request, itemsKey)
 
-            return chain.proceed(request).filterByBookmarks(request, itemsKey, floor)
+            // A page read a few minutes ago is still the same page, and answering from it saves the
+            // round trip the fill would otherwise spend before it can borrow anything. The first page
+            // is the exception: it is what a pull to refresh asks for again, and handing back a copy
+            // of the list the screen already shows is indistinguishable from a refresh that failed.
+            if (!isFirstPage(request.url)) {
+                val remembered = PageCache.load(request.url)
+                if (remembered != null) {
+                    val cached = runCatching { cachedResponse(request, remembered) }.getOrNull()
+                    if (cached != null) {
+                        return cached.filterByBookmarks(request, itemsKey, floor, fromNetwork = false)
+                    }
+                }
+            }
+
+            prefetchNextPage(request, itemsKey)
+            return chain.proceed(request).filterByBookmarks(request, itemsKey, floor, fromNetwork = true)
+        }
+
+        /**
+         * The floor this request is filtered by, or null when it goes through untouched.
+         *
+         * Resolved per request instead of held: a share is read off the pages read so far, so the
+         * deeper the user is in the search, the more of it the floor describes. Pages already sent
+         * keep the floor they were filtered with.
+         */
+        private fun floorFor(url: okhttp3.HttpUrl): Int? {
+            val absolute = current
+            val share = mode == MODE_PERCENTILE
+            if (!share && absolute <= 0) return null
+            val signature = PageCache.signature(url)
+            // The settings row reads this back to show what the share resolves to on the search the
+            // user is on; a search that was not filtered at all has no such number to show.
+            lastSignature = signature
+            return if (share) floorOf(PageCache.samples(signature), percentile) else absolute
+        }
+
+        /** The page a pull to refresh asks for again; see [intercept]. */
+        private fun isFirstPage(url: okhttp3.HttpUrl): Boolean =
+            (url.queryParameter("offset")?.toIntOrNull() ?: 0) <= 0
+
+        /**
+         * Which run of dropped works a page belongs to.
+         *
+         * A share cannot serve as that marker itself: it is re-read from the pages seen so far and
+         * drifts a little with every page, so two pages of one search would look like two searches
+         * and the list behind the button would be emptied as the user paged on.
+         */
+        private fun batchKey(floor: Int): String =
+            if (mode == MODE_PERCENTILE) "pct:$percentile" else "abs:$floor"
+
+        /**
+         * A page that came out of the cache instead of off the wire.
+         *
+         * The app parses the body and the content type that says how; the connection bookkeeping
+         * OkHttp fills in for a real exchange has no counterpart here, so the timestamps are the
+         * moment the page was handed over.
+         */
+        private fun cachedResponse(request: Request, page: PageCache.Page): Response {
+            val now = System.currentTimeMillis()
+            return Response.Builder()
+                .request(request)
+                .protocol(Protocol.HTTP_1_1)
+                .code(200)
+                .message("OK")
+                // The body's media type alone is not a header, and the app reads the header.
+                .header("Content-Type", "application/json")
+                .sentRequestAtMillis(now)
+                .receivedResponseAtMillis(now)
+                .body(page.payload().toResponseBody(JSON_CONTENT_TYPE))
+                .build()
         }
 
         /**
@@ -229,17 +449,23 @@ object BookmarkThreshold {
          * Pixiv answers the two search endpoints with thirty works per page and ignores their `size`
          * parameter, so a strict floor can leave a page with one work or none. Once the kept works
          * fall below half the page, the following pages are fetched and merged in until the page is
-         * half full again, the list ends, or [FILL_BUDGET_MS] runs out. The page's `next_url` then
+         * half full again, the list ends, or the fill budget runs out. The page's `next_url` then
          * points past everything merged in, so scrolling continues where the rewritten page ends.
+         * A budget of 0 is the settings row's off: only the page that arrived is filtered.
          *
          * A work without a bookmark count is kept: only the two search endpoints reach this, both
          * always send `total_bookmarks`, so a missing one means an unexpected payload rather than a
          * work worth hiding.
+         *
+         * [fromNetwork] marks a page that just arrived from Pixiv rather than one rebuilt from the
+         * cache: only a fresh page is worth keeping, because storing a cached one again would keep
+         * refreshing the age of a list that is only getting older.
          */
         private fun Response.filterByBookmarks(
             request: Request,
             itemsKey: String,
-            floor: Int
+            floor: Int,
+            fromNetwork: Boolean
         ): Response {
             val contentType = body?.contentType()
             val text = body?.string() ?: return this
@@ -247,29 +473,51 @@ object BookmarkThreshold {
             val root = runCatching { JSONObject(text) }.getOrNull() ?: return withBody(text, contentType)
             val container = root.optJSONObject("body") ?: root
             val items = container.optJSONArray(itemsKey) ?: return withBody(text, contentType)
+            val raw = ArrayList<JSONObject>(items.length())
+            items.forEachObject { raw.add(it) }
 
-            val kept = ArrayList<JSONObject>(items.length())
-            items.forEachObject { item ->
-                val bookmarks = item.opt("total_bookmarks")
-                if (bookmarks !is Number || bookmarks.toInt() >= floor) kept.add(item)
+            // Kept before the floor is applied: what is stored is what Pixiv sent, so a floor chosen
+            // later re-filters this page instead of buying it again.
+            if (fromNetwork) {
+                PageCache.store(request.url, root, itemsKey, raw, container.opt("next_url") as? String)
             }
-            android.util.Log.i(
-                "PixivDbg",
-                "BT filtered itemsKey=$itemsKey in=${items.length()} kept=${kept.size} " +
-                    "next=${container.opt("next_url")}"
-            )
-            if (kept.size == items.length()) {
+
+            val dropped = ArrayList<JSONObject>()
+            val kept = raw.filterTo(ArrayList(raw.size)) { item ->
+                val bookmarks = item.opt("total_bookmarks")
+                if (bookmarks !is Number || bookmarks.toInt() >= floor) {
+                    true
+                } else {
+                    if (dropped.size < MAX_RECORDED_DROPS) dropped.add(item)
+                    false
+                }
+            }
+            if (kept.size == raw.size) {
                 dropPrefetched()
                 return withBody(text, contentType)
             }
-
-            if (kept.size * 2 < items.length()) {
-                val filled = topUp(request, itemsKey, floor, container, kept, items.length() / 2, items.length())
+            if (kept.size * 2 < raw.size) {
+                val filled = topUp(request, itemsKey, floor, container, kept, raw.size / 2, raw.size, dropped)
                 if (filled != null) container.put("next_url", filled)
             } else {
                 dropPrefetched()
             }
             if (kept.isEmpty()) notifyEmptyPage(request.url.queryParameter("word"))
+            // What this page turned away is the only way the user can tell a quiet search from a
+            // strict floor; the response itself is unchanged.
+            if (dropped.isNotEmpty()) {
+                FilteredWorks.record(
+                    word = request.url.queryParameter("word"),
+                    floor = floor,
+                    novel = itemsKey == "novels",
+                    groupKey = batchKey(floor),
+                    dropped = dropped,
+                    // A page from the cache is the same page the list already holds: it may add to
+                    // the list, but it is not news, and re-timing the button on it kept that button
+                    // on screen for as long as the user kept scrolling back over pages already read.
+                    show = fromNetwork
+                )
+            }
 
             container.put(itemsKey, JSONArray(kept))
             return withBody(root.toString(), contentType)
@@ -287,6 +535,10 @@ object BookmarkThreshold {
          * a refused request, a malformed payload - ends the fill and keeps whatever the earlier
          * pages already contributed: a short page is still better than an exception thrown at the
          * caller.
+         *
+         * Whatever a borrowed page loses to the floor joins [dropped]: a page borrowed because the
+         * asked-for one came back nearly empty is exactly the page whose works the user wants to
+         * know about.
          */
         private fun topUp(
             request: Request,
@@ -295,11 +547,15 @@ object BookmarkThreshold {
             container: JSONObject,
             kept: MutableList<JSONObject>,
             target: Int,
-            pageSize: Int
+            pageSize: Int,
+            dropped: MutableList<JSONObject>
         ): Any? {
+            // Read once: the budget can change on the settings page while a fill is in flight.
+            val budget = fillBudgetMs
+            if (budget <= 0) return null
             val firstNext = container.opt("next_url") as? String ?: return null
             val seen = kept.mapNotNullTo(HashSet()) { it.opt("id")?.toString() }
-            val deadline = System.currentTimeMillis() + FILL_BUDGET_MS
+            val deadline = System.currentTimeMillis() + budget
             val pageStride = pageSize.coerceAtLeast(1)
             var offset = firstNext.toHttpUrlOrNull()?.queryParameter("offset")?.toIntOrNull()
             var chained = firstNext
@@ -335,7 +591,7 @@ object BookmarkThreshold {
                     if (fill == null) break
                     fills.add(fill)
                 }
-                val arrived = arrayOfNulls<Page>(fills.size)
+                val arrived = arrayOfNulls<PageCache.Page>(fills.size)
                 val settled = BooleanArray(fills.size)
                 var pending = fills.size
 
@@ -363,7 +619,10 @@ object BookmarkThreshold {
                     }
                     page.items.forEach { item ->
                         val bookmarks = item.opt("total_bookmarks")
-                        if (bookmarks is Number && bookmarks.toInt() < floor) return@forEach
+                        if (bookmarks is Number && bookmarks.toInt() < floor) {
+                            if (dropped.size < MAX_RECORDED_DROPS) dropped.add(item)
+                            return@forEach
+                        }
                         val id = item.opt("id")?.toString()
                         if (id == null || seen.add(id)) kept.add(item)
                     }
@@ -399,10 +658,13 @@ object BookmarkThreshold {
          * be full enough, the prefetched page is simply cancelled.
          */
         private fun prefetchNextPage(request: Request, itemsKey: String) {
+            dropPrefetched()
+            // With the fill off nothing ever borrows this page, so asking for it would be a request
+            // the user pays for and never sees.
+            if (fillBudgetMs <= 0) return
             val url = request.url
             if (url.queryParameter("offset") != null) return
             val next = url.newBuilder().setQueryParameter("offset", PAGE_STRIDE.toString()).build()
-            dropPrefetched()
             prefetched = startFill(request, next.toString(), itemsKey, searchKey(url))
         }
 
@@ -428,7 +690,11 @@ object BookmarkThreshold {
             return Fill(call, future, target.queryParameter("offset")?.toIntOrNull(), search)
         }
 
-        private fun readPage(call: Call, itemsKey: String): Page? {
+        private fun readPage(call: Call, itemsKey: String): PageCache.Page? {
+            val url = call.request().url
+            // A page borrowed before - by the prefetch of this one, by an earlier fill of the same
+            // search - is already here, and a borrowed page is only wanted quickly.
+            PageCache.load(url)?.let { return it }
             topUpCall.set(true)
             try {
                 call.execute().use { response ->
@@ -439,7 +705,7 @@ object BookmarkThreshold {
                     val items = body.optJSONArray(itemsKey) ?: return null
                     val list = ArrayList<JSONObject>(items.length())
                     items.forEachObject { list.add(it) }
-                    return Page(list, body.opt("next_url") as? String)
+                    return PageCache.store(url, root, itemsKey, list, body.opt("next_url") as? String)
                 }
             } catch (_: Throwable) {
                 return null
@@ -501,6 +767,28 @@ object BookmarkThreshold {
                 .removeHeader("Content-Encoding")
                 .body(text.toResponseBody(contentType))
                 .build()
+    }
+
+    /**
+     * The floor a share of the search resolves to.
+     *
+     * Pixiv sends no "top 10% of this search" and refuses to filter by one, so the cut has to be
+     * read off the counts of the works already read. Below [MIN_SAMPLES] there is not enough of a
+     * distribution to read, and the floor stays at [LOWER_BOUND] - not off, because a share the user
+     * asked for should still be doing something.
+     *
+     * Interpolated between the neighbouring counts and rounded down, so that one more work at the
+     * boundary moves the floor by less than a whole work.
+     */
+    private fun floorOf(samples: List<Int>, percent: Int): Int {
+        if (samples.size < MIN_SAMPLES) return LOWER_BOUND
+        val sorted = samples.sorted()
+        val position = (sorted.size - 1) * (100 - percent) / 100.0
+        val lower = floor(position).toInt().coerceIn(0, sorted.lastIndex)
+        val upper = ceil(position).toInt().coerceIn(0, sorted.lastIndex)
+        val low = sorted[lower]
+        val value = low + (sorted[upper] - low) * (position - lower)
+        return max(LOWER_BOUND, floor(value).toInt())
     }
 
     private fun prefs(context: Context) =

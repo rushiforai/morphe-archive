@@ -1,0 +1,11 @@
+name: Feature request
+description: Suggest an improvement to the Moodle Browser Login patch.
+title: "feat: "
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem and proposed behavior
+      description: Explain the login problem and how the app should behave. Do not include credentials or authentication URLs.
+    validations:
+      required: true

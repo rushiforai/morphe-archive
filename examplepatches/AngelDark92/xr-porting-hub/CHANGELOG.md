@@ -1,3 +1,15 @@
+## [2.10.0](https://github.com/AngelDark92/xr-porting-hub/compare/v2.9.0...v2.10.0) (2026-11-17)
+
+### ✨ New Features
+
+* add microphone input recovery patch for 5001712 Gemini mic disconnect ([1907e60](https://github.com/AngelDark92/xr-porting-hub/commit/1907e601ad93210772032e84d9f260e0d5da47b4))
+
+## [2.10.0-dev.1](https://github.com/AngelDark92/xr-porting-hub/compare/v2.9.0...v2.10.0-dev.1) (2026-11-15)
+
+### ✨ New Features
+
+* add microphone input recovery patch for 5001712 Gemini mic disconnect ([1907e60](https://github.com/AngelDark92/xr-porting-hub/commit/1907e601ad93210772032e84d9f260e0d5da47b4))
+
 ## [2.9.0](https://github.com/AngelDark92/xr-porting-hub/compare/v2.8.0...v2.9.0) (2026-11-14)
 
 ### ✨ New Features

@@ -78,6 +78,7 @@ public class PatchFamilyTest {
         Settings.POWER_OFF_ACCOUNTS.resetToDefault();
         Settings.INSTANT_LOCK.resetToDefault();
         Settings.QUIET_SIGN_UP.resetToDefault();
+        Settings.DURESS_WIPE.resetToDefault();
         Settings.GHOST_ONLINE.resetToDefault();
         Settings.GHOST_BUTTON.resetToDefault();
         Settings.DISABLE_UPDATE_CHECKS.resetToDefault();
@@ -303,8 +304,8 @@ public class PatchFamilyTest {
         assertEquals(Arrays.asList(Settings.DISABLE_ANALYTICS, Settings.GHOST_MODE, Settings.GHOST_READS,
                 Settings.GHOST_STORIES, Settings.GHOST_TYPING, Settings.GHOST_ONLINE, Settings.GHOST_BUTTON,
                 Settings.GHOST_READ_AFTER_SEND, Settings.GHOST_READS_BUTTON, Settings.GHOST_CHATS, Settings.FAKE_TYPING,
-                Settings.RECEIVE_ONLY, Settings.POWER_OFF_ACCOUNTS, Settings.INSTANT_LOCK, Settings.QUIET_SIGN_UP),
-                family.switches);
+                Settings.RECEIVE_ONLY, Settings.POWER_OFF_ACCOUNTS, Settings.INSTANT_LOCK, Settings.QUIET_SIGN_UP,
+                Settings.DURESS_WIPE), family.switches);
         assertFalse(Settings.GHOST_MODE.defaultValue);
         // Each part does nothing until Ghost mode is on, so turning that on alone covers both.
         assertTrue(Settings.GHOST_READS.defaultValue);
@@ -643,15 +644,21 @@ public class PatchFamilyTest {
         PatchFamily family = PatchFamily.FREE_PROXIES;
         assertEquals("Free proxies", family.patchName);
         assertEquals("freeProxies", family.statusMethod);
-        assertEquals(Arrays.asList(Settings.FREE_PROXIES, Settings.SIGN_IN_PROXY), family.switches);
+        assertEquals(Arrays.asList(Settings.FREE_PROXIES, Settings.SIGN_IN_PROXY, Settings.V2RAY_PROXIES), family.switches);
         // Going online through strangers' proxies is the person's choice; the button only offers it.
         assertFalse(Settings.FREE_PROXIES.defaultValue);
         assertTrue(Settings.SIGN_IN_PROXY.defaultValue);
+        // Running a proxy inside Telegram and going through servers from links is the person's choice too.
+        assertFalse(Settings.V2RAY_PROXIES.defaultValue);
         assertFalse(Settings.FREE_PROXIES.rebootApp);
         assertFalse(Settings.SIGN_IN_PROXY.rebootApp);
+        assertFalse(Settings.V2RAY_PROXIES.rebootApp);
+        assertFalse("the switch stays on this phone", Settings.V2RAY_PROXIES.includeWithImportExport);
         // The proxy order has no switch of its own: the order saved is the setting.
-        assertEquals(EnumSet.of(PatchFamily.Capability.PROXY_ORDER), family.expectedCapabilities());
+        assertEquals(EnumSet.of(PatchFamily.Capability.PROXY_ORDER, PatchFamily.Capability.V2RAY_PROXIES),
+                family.expectedCapabilities());
         assertEquals("proxyOrder", PatchFamily.Capability.PROXY_ORDER.statusMethod);
+        assertEquals("v2rayProxies", PatchFamily.Capability.V2RAY_PROXIES.statusMethod);
         assertEquals(PatchFamily.Page.CHAT_LIST, PatchFamily.Page.of(family));
         assertOnItsPage(family);
     }
@@ -1189,7 +1196,8 @@ public class PatchFamilyTest {
                         PatchFamily.Capability.PREMIUM_PROMO_ACCEPT, PatchFamily.Capability.PREMIUM_PROMO_FAIL, PatchFamily.Capability.DUAL_CAMERA_REPORTS,
                         PatchFamily.Capability.GHOST_MODE, PatchFamily.Capability.RECEIVE_ONLY, PatchFamily.Capability.POWER_OFF_ACCOUNTS,
                         PatchFamily.Capability.INSTANT_LOCK, PatchFamily.Capability.QUIET_SIGN_UP,
-                        PatchFamily.Capability.SESSION_DEVICE, PatchFamily.Capability.DELETE_ACCOUNT),
+                        PatchFamily.Capability.SESSION_DEVICE, PatchFamily.Capability.DELETE_ACCOUNT,
+                        PatchFamily.Capability.DURESS_WIPE),
                 PatchFamily.DISABLE_ANALYTICS.expectedCapabilities());
         assertEquals(EnumSet.of(PatchFamily.Capability.READ_METRICS),
                 PatchFamily.DISABLE_ANALYTICS.installedCapabilities());
@@ -1414,12 +1422,12 @@ public class PatchFamilyTest {
         assertEquals(Arrays.asList(
                 "Hide ads: on (hushtelegram_hide_ads=on)",
                 "Disable analytics: on (hushtelegram_disable_analytics=off, hushtelegram_ghost_mode=off, "
-                        + "hushtelegram_ghost_read_receipts=on, hushtelegram_ghost_stories=on, hushtelegram_ghost_typing=off, hushtelegram_ghost_online=off, hushtelegram_ghost_button=off, hushtelegram_ghost_read_after_send=off, hushtelegram_ghost_reads_button=off, hushtelegram_ghost_chats=off, hushtelegram_fake_typing=off, hushtelegram_receive_only=off, hushtelegram_power_off_accounts=off, hushtelegram_instant_lock=off, hushtelegram_quiet_sign_up=off)",
+                        + "hushtelegram_ghost_read_receipts=on, hushtelegram_ghost_stories=on, hushtelegram_ghost_typing=off, hushtelegram_ghost_online=off, hushtelegram_ghost_button=off, hushtelegram_ghost_read_after_send=off, hushtelegram_ghost_reads_button=off, hushtelegram_ghost_chats=off, hushtelegram_fake_typing=off, hushtelegram_receive_only=off, hushtelegram_power_off_accounts=off, hushtelegram_instant_lock=off, hushtelegram_quiet_sign_up=off, hushtelegram_duress_wipe=off)",
                 "not in this build: Hide Stories, Hide recommendations, Hide Premium, gifts and Stars, Hide promotional banners, Hide sponsored proxy channel, Hide popular apps, Hide contacts on Telegram, Hide greeting stickers, Disable chat swipe actions, Disable pull to next channel, Use normal paste, Show user and chat IDs, Disable double-tap reactions, Quiet contacts nag, Holiday look all year, Use system font, AMOLED black, Hide translate bar, Exact numbers, Reveal spoilers, Hide keyboard on scroll, Keep videos muted on volume keys, Swipe back on profiles, Hide phone number, Message times with seconds, Allow chat blur on slower phones, Play voice messages one at a time, Turn off haptic feedback, Turn off reaction effects, Hide folder tab counters, Hide sender names when forwarding, Voice messages in the music player, Silence people outside your contacts, Disable pull to archive, Start the camera on the rear lens, Hide gallery camera tile, Hide time on stickers, Change sticker size, Ignore mentions in muted chats, Hide blocked users in groups, Hide messages by keyword, Hide Telegram Features and Invite Friends, Add Repeat to the message menu, Keep deleted messages, Ask before sending a sticker, Translate with an outside service, Hide channel bar buttons, Hide Send as button, Hide Contacts tab, Faster downloads, Save downloaded files, Folders by chat type, Disable call debug upload, Disable draft link previews, Gallery camera on tap, Open links externally, Strip link tracking, Disable update checks, Repair Firebase push registration, UnifiedPush notifications, Test server sign-in, Bot token sign-in, "
                         + "Suppress screenshot notification, Unlock Premium features, Bypass channel restrictions, "
                         + "Bypass integrity check, Auto-forwarding rules, Never send an uncropped photo, Keep captions with their photos, Proxy in the chat list menu, Free proxies, My messages, Text direction, Lyrics and song dates, Chat preview buttons",
                 "Hide ads coverage: channel ads, video ads, search ads",
-                "Disable analytics coverage: channel read metrics, Premium promo views, Premium promo taps, Premium promo accepts, Premium promo failures, dual camera reports, read receipts and story views, receive only mode, powering off accounts, instant lock, quiet sign-up, the device in Active sessions, account deletion"),
+                "Disable analytics coverage: channel read metrics, Premium promo views, Premium promo taps, Premium promo accepts, Premium promo failures, dual camera reports, read receipts and story views, receive only mode, powering off accounts, instant lock, quiet sign-up, the device in Active sessions, account deletion, duress passcode"),
                 running);
 
         // Every family in this build has a switch, but the line still has room, after the switch's
@@ -1435,7 +1443,7 @@ public class PatchFamilyTest {
         assertEquals("Hide ads: disabled while paused (saved hushtelegram_hide_ads=on); stays in while paused: "
                 + "the sponsored message cache cleared when you patched", paused.get(0));
         assertEquals("Disable analytics: disabled while paused (saved hushtelegram_disable_analytics=off, "
-                        + "hushtelegram_ghost_mode=off, hushtelegram_ghost_read_receipts=on, hushtelegram_ghost_stories=on, hushtelegram_ghost_typing=off, hushtelegram_ghost_online=off, hushtelegram_ghost_button=off, hushtelegram_ghost_read_after_send=off, hushtelegram_ghost_reads_button=off, hushtelegram_ghost_chats=off, hushtelegram_fake_typing=off, hushtelegram_receive_only=off, hushtelegram_power_off_accounts=off, hushtelegram_instant_lock=off, hushtelegram_quiet_sign_up=off)",
+                        + "hushtelegram_ghost_mode=off, hushtelegram_ghost_read_receipts=on, hushtelegram_ghost_stories=on, hushtelegram_ghost_typing=off, hushtelegram_ghost_online=off, hushtelegram_ghost_button=off, hushtelegram_ghost_read_after_send=off, hushtelegram_ghost_reads_button=off, hushtelegram_ghost_chats=off, hushtelegram_fake_typing=off, hushtelegram_receive_only=off, hushtelegram_power_off_accounts=off, hushtelegram_instant_lock=off, hushtelegram_quiet_sign_up=off, hushtelegram_duress_wipe=off)",
                 paused.get(1));
         assertEquals(running.get(2), paused.get(2));
         assertEquals("Pause must keep patch-time coverage facts", running.subList(3, 5), paused.subList(3, 5));
@@ -1449,7 +1457,7 @@ public class PatchFamilyTest {
                 PatchFamily.Capability.READ_METRICS);
         List<String> running = PatchFamily.reportLines(build, false);
         assertTrue(running.toString(), running.contains("Hide ads coverage: channel ads; missing: video ads, search ads"));
-        assertTrue(running.toString(), running.contains("Disable analytics coverage: channel read metrics; missing: Premium promo views, Premium promo taps, Premium promo accepts, Premium promo failures, dual camera reports, read receipts and story views, receive only mode, powering off accounts, instant lock, quiet sign-up, the device in Active sessions, account deletion"));
+        assertTrue(running.toString(), running.contains("Disable analytics coverage: channel read metrics; missing: Premium promo views, Premium promo taps, Premium promo accepts, Premium promo failures, dual camera reports, read receipts and story views, receive only mode, powering off accounts, instant lock, quiet sign-up, the device in Active sessions, account deletion, duress passcode"));
         Settings.HIDE_ADS.save(false);
         Settings.DISABLE_ANALYTICS.save(false);
         List<String> disabled = PatchFamily.reportLines(build, false);
@@ -1459,7 +1467,7 @@ public class PatchFamilyTest {
         PatchFamily.capabilitiesForTests = EnumSet.noneOf(PatchFamily.Capability.class);
         List<String> none = PatchFamily.reportLines(build, false);
         assertTrue(none.toString(), none.contains("Hide ads coverage: none; missing: channel ads, video ads, search ads"));
-        assertTrue(none.toString(), none.contains("Disable analytics coverage: none; missing: channel read metrics, Premium promo views, Premium promo taps, Premium promo accepts, Premium promo failures, dual camera reports, read receipts and story views, receive only mode, powering off accounts, instant lock, quiet sign-up, the device in Active sessions, account deletion"));
+        assertTrue(none.toString(), none.contains("Disable analytics coverage: none; missing: channel read metrics, Premium promo views, Premium promo taps, Premium promo accepts, Premium promo failures, dual camera reports, read receipts and story views, receive only mode, powering off accounts, instant lock, quiet sign-up, the device in Active sessions, account deletion, duress passcode"));
     }
 
     /** A target that only adds its own row leaves the switch working, so its description and report say so. */

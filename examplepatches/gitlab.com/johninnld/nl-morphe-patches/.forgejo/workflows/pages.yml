@@ -1,0 +1,28 @@
+name: Documentation
+on:
+  workflow_dispatch:
+concurrency:
+  group: docs-main
+  cancel-in-progress: false
+jobs:
+  documentation:
+    runs-on: codeberg-small
+    timeout-minutes: 4
+    steps:
+      - uses: https://code.forgejo.org/actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Build and check both languages
+        run: |
+          python3 -m venv .venv
+          .venv/bin/pip install -r docs/site-requirements.txt
+          .venv/bin/python scripts/generate_docs_catalog.py
+          .venv/bin/python scripts/check_docs_app_pages.py
+          .venv/bin/python scripts/check_markdown_links.py
+          .venv/bin/python -m mkdocs build --strict
+          .venv/bin/python scripts/check_docs_site.py
+      - uses: https://codeberg.org/git-pages/action@v2
+        with:
+          site: https://johninnl.codeberg.page/nl-morphe-patches/
+          token: ${{ github.token }}
+          source: build/docs-site/

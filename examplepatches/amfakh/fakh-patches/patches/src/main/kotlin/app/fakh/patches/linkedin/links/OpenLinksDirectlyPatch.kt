@@ -31,7 +31,7 @@ private object MessagingLinkShimFingerprint : Fingerprint(
 @Suppress("unused")
 val openLinksDirectlyPatch = patch(
     name = "Open links directly",
-    description = "Opens external links without LinkedIn's safety/go warning page.",
+    description = "Opens outside links without LinkedIn's warning page.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)

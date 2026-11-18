@@ -1828,13 +1828,14 @@ public class SettingsNavigationTest {
 
             // Every chooser: sticker and avatar size, the chat list banner, the font file, both filter lists, the title
             // emoji and title text, the translation service and language, the push app, Open a chat by ID, the proxy
-            // lists, the device in Active sessions and the link preview rules. The background picture row takes
-            // Android 13, so HushTelegramPreferenceFragmentTest tries it locked there.
+            // lists, the V2Ray links and server, the device in Active sessions and the link preview rules. The background
+            // picture row takes Android 13, so HushTelegramPreferenceFragmentTest tries it locked there.
             for (String key : Arrays.asList(HushTelegramPreferenceFragment.STICKER_SIZE_ROW, HushTelegramPreferenceFragment.AVATAR_SIZE_ROW,
                     HushTelegramPreferenceFragment.CHAT_LIST_BANNER_ROW,
                     HushTelegramPreferenceFragment.FONT_FILE_ROW, FilterEditor.GROUPS,
                     FilterEditor.CHANNELS, TitleEmojiEditor.KEY, TitleEmojiEditor.TITLE_KEY, StorageFolderEditor.KEY, TranslateServiceEditor.KEY, TranslateTargetPicker.KEY,
-                    UnifiedPushPicker.KEY, OpenByIdEditor.KEY, ProxyListsEditor.KEY, SessionDeviceEditor.KEY, LinkPreviewRulesEditor.KEY)) {
+                    UnifiedPushPicker.KEY, OpenByIdEditor.KEY, ProxyListsEditor.KEY, V2RayEditor.LINKS_KEY, V2RayEditor.SERVER_KEY,
+                    SessionDeviceEditor.KEY, LinkPreviewRulesEditor.KEY)) {
                 Preference row = page.findPreference(key);
                 assertNotNull(key, row);
                 shown = org.robolectric.shadows.ShadowDialog.getLatestDialog();

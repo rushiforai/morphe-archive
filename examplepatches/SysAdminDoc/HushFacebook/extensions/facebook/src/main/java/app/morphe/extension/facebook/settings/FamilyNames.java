@@ -34,6 +34,7 @@ public final class FamilyNames {
     public static final String META_AI_QUESTIONS = "Hide Meta AI questions under posts";
     public static final String POST_DATES = "Keep post dates";
     public static final String FULL_POST_TEXT = "Show full post text";
+    public static final String FOLD_LONG_TEXT = "Fold long text";
     public static final String TRANSLATE_POSTS = "Translate posts";
     public static final String WHO_SHARED = "See who shared";
     public static final String PHOTO_CAROUSEL = "Photo carousel";
@@ -130,6 +131,7 @@ public final class FamilyNames {
     public static final String ANALYTICS_UPLOADS = "Hold back analytics uploads";
     public static final String SCREENSHOTS = "Allow screenshots";
     public static final String SCREENSHOT_DETECTION = "Block screenshot detection";
+    public static final String LOCATION_PROMPTS = "Skip location prompts";
     public static final String TYPING_INDICATOR = "Hide typing indicator";
     public static final String READ_RECEIPTS = "Hide read receipts";
     public static final String ORIGINAL_CHAT_MEDIA = "Send chat photos and videos at original quality";

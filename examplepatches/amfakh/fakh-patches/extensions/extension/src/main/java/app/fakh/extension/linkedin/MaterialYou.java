@@ -39,6 +39,8 @@ public final class MaterialYou {
     private static final int DARK_BORDER =
             ROLES ? android.R.color.system_surface_container_highest_dark : android.R.color.system_neutral2_700;
 
+    /** Faint border colors given by {@link #border} to the LinkedIn color each replaced. */
+    private static final Map<Long, Long> STOCK_BORDERS = new HashMap<>();
     /** LinkedIn blue (0xRRGGBB) to the system palette color that replaces it. */
     private static final Map<Integer, Integer> ACCENTS = new HashMap<>();
     /** LinkedIn background color (0xRRGGBB) to the system palette color that replaces it. */
@@ -143,7 +145,15 @@ public final class MaterialYou {
     /** The system color [color] as a packed Compose Color, in place of the translucent gray border. */
     private static long border(long packed, int color) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || !Settings.materialYou()) return packed;
-        return (resources().getColor(color, null) & 0xFFFFFFFFL) << 32;
+        long mapped = (resources().getColor(color, null) & 0xFFFFFFFFL) << 32;
+        STOCK_BORDERS.put(mapped, packed);
+        return mapped;
+    }
+
+    /** Injected after the video seek bar reads the faint border: LinkedIn's own translucent gray comes back. */
+    public static long stockBorder(long packed) {
+        Long stock = STOCK_BORDERS.get(packed);
+        return stock == null ? packed : stock;
     }
 
     /**

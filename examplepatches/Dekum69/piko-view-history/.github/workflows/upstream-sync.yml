@@ -1,0 +1,64 @@
+name: Sync upstream
+
+# Checks crimera/piko once a day. If it has new commits, merges them into a
+# branch and opens a pull request, so updating is one click instead of a
+# manual rebase. Merging the PR runs the Build patches workflow.
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    name: Check for new piko commits
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Fetch upstream
+        run: |
+          git remote add upstream https://github.com/crimera/piko.git
+          git fetch upstream main
+
+      - name: Compare
+        id: compare
+        run: |
+          if git merge-base --is-ancestor upstream/main HEAD; then
+            echo "New piko commits: none"
+            echo "up_to_date=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "New piko commits:"
+            git log --oneline HEAD..upstream/main
+            echo "up_to_date=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open sync pull request
+        if: steps.compare.outputs.up_to_date == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          branch="upstream-sync/$(date -u +%Y-%m-%d)"
+          git switch -c "$branch"
+          if ! git merge --no-edit upstream/main; then
+            git merge --abort
+            echo "::error::Upstream changes conflict with the view-history commits. Resolve locally: see MAINTENANCE.md, Scenario 1."
+            exit 1
+          fi
+          git push origin "$branch"
+          gh pr create --base main --head "$branch" \
+            --title "chore: merge upstream piko ($(date -u +%Y-%m-%d))" \
+            --body "Automatic merge of the newest \`crimera/piko@main\` commits.
+
+          Check that the **Build patches** run on this PR is green, then merge. After merging, download the new \`.mpp\` from the run on \`main\`.
+
+          If this workflow failed with a conflict instead of opening a PR, follow **MAINTENANCE.md → Scenario 1 → If the rebase stops with a conflict**." \
+            || echo "A pull request for this branch already exists."

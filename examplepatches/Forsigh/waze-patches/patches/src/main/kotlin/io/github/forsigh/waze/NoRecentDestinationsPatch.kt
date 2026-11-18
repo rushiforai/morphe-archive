@@ -8,6 +8,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import app.morphe.patcher.patch.AppTarget
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.patch.Compatibility
 
 /**
@@ -38,6 +39,16 @@ private val RecentsReadV2Fingerprint = Fingerprint(
     returnType = "Ljava/lang/Object;",
 )
 
+/**
+ * 5.27.90.900: the read moved again, into the start-screen view model's lambda
+ * `com.waze.main_screen.u.w.invoke()`. Same JNI call, same single-result shape.
+ */
+private val RecentsReadV3Fingerprint = Fingerprint(
+    definingClass = "Lcom/waze/main_screen/u/w;",
+    name = "invoke",
+    returnType = "Ljava/lang/Object;",
+)
+
 private const val FETCH_CALL = "Lcom/waze/places/PlacesNativeManager;->fetchRecentsNTV()[B"
 
 @Suppress("unused")
@@ -57,14 +68,35 @@ val noRecentDestinationsPatch = bytecodePatch(
                 AppTarget(version = "5.26.90.901"),
                 AppTarget(version = "5.27.0.1"),
                 AppTarget(version = "5.27.4.900"),
+                AppTarget(version = "5.27.90.900"),
             ),
         ),
     )
     category("Privacy & Updates")
 
     execute {
-        val method = resolveAnchor(
-            "recent history read", RecentsReadFingerprint, RecentsReadV2Fingerprint,
+        // Pick by CONTENT, not by "first fingerprint that binds": on 5.27.90.900 the old dispatcher
+        // class still exists without this call, so a bind-order pick would stop at a dead namesake.
+        var bound: MutableMethod? = null
+        for (candidate in listOf(
+            RecentsReadFingerprint, RecentsReadV2Fingerprint, RecentsReadV3Fingerprint,
+        )) {
+            val methodNow = try {
+                candidate.method
+            } catch (_: PatchException) {
+                continue
+            }
+            val holdsRead = methodNow.implementation?.instructions?.any { instruction ->
+                (instruction as? ReferenceInstruction)?.reference?.toString() == FETCH_CALL
+            } == true
+            if (holdsRead) {
+                bound = methodNow
+                break
+            }
+        }
+        val method = bound ?: throw PatchException(
+            "noRecentDestinations: fetchRecentsNTV is no longer read from the known dispatchers - " +
+                "Waze moved the history read; refusing to patch blind",
         )
         val implementation = method.implementation
             ?: throw PatchException("noRecentDestinations: the recents bridge has no implementation")

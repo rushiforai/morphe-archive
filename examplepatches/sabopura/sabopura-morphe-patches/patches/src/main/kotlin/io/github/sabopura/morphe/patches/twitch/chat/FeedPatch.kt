@@ -3,18 +3,19 @@ package io.github.sabopura.morphe.patches.twitch.chat
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
-import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import io.github.sabopura.morphe.patches.twitch.support.classesMatching
+import io.github.sabopura.morphe.patches.twitch.support.fieldBridge
+import io.github.sabopura.morphe.patches.twitch.support.replaceBridge
+import io.github.sabopura.morphe.patches.twitch.support.requirePublicField
 import io.github.sabopura.morphe.patches.twitch.support.uniqueContract
 
 private object FollowingHeader : Fingerprint(strings=listOf("FollowingPageHeaderItem(title="))
-internal val feedPatch=bytecodePatch {
+internal val feedHook=bytecodePatch {
     extendWith("extensions/twitch.mpe")
     var section:FieldReference?=null
     execute {
@@ -25,11 +26,8 @@ internal val feedPatch=bytecodePatch {
                 ((it as? ReferenceInstruction)?.reference as? FieldReference)?.definingClass==header.type
             }
         })
-        section=dataClassFields(header.methods.single { it.name=="toString" }) { ref->
-            classDefBy(ref.definingClass).methods.single { it.name==ref.name&&it.parameterTypes==ref.parameterTypes&&it.returnType==ref.returnType }
-        }[", section="]?:throw PatchException("Following: section field missing")
-        if(!AccessFlags.PUBLIC.isSet(header.fields.single { it.name==section!!.name }.accessFlags))
-            throw PatchException("Following: section field is inaccessible")
+        section=describedFields(header)[", section="]?:throw PatchException("Following: section field missing")
+        requirePublicField(section!!,"Following")
         val legacySubmit = submit.matchOrNull()?.method
         if (legacySubmit != null) {
             legacySubmit.addInstructions(0,"""
@@ -60,10 +58,8 @@ internal val feedPatch=bytecodePatch {
     }
     finalize {
         val field=section?:throw PatchException("Following: access bridge unresolved")
-        val bridge=mutableClassDefBy("Lio/github/sabopura/morphe/extension/twitch/chat/FeedAccess;")
-        for((name,body) in mapOf("isHeader" to "instance-of p0, p0, ${field.definingClass}\nreturn p0",
-                "section" to "check-cast p0, ${field.definingClass}\niget-object p0, p0, $field\nreturn-object p0")) {
-            val method=bridge.methods.single { it.name==name };method.removeInstructions(0,method.instructions.count());method.addInstructions(0,body)
-        }
+        val feed="Lio/github/sabopura/morphe/extension/twitch/chat/FeedAccess;"
+        replaceBridge(feed,"isHeader","instance-of p0, p0, ${field.definingClass}\nreturn p0")
+        replaceBridge(feed,"section",fieldBridge(field))
     }
 }

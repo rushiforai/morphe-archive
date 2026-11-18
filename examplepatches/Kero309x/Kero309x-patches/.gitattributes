@@ -1,0 +1,10 @@
+* text=auto eol=lf
+
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.jar binary
+*.png binary
+*.pub text eol=lf
+
+# Keep generated JSON reviewable as text, but never treated as sources.
+*.json text eol=lf

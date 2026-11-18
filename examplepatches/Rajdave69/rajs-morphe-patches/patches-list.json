@@ -1,0 +1,78 @@
+{
+  "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
+  "version": "1.0.0",
+  "patches": [
+    {
+      "name": "Choose Canon ID sign-in browser",
+      "description": "Use the selected Custom Tabs browser for both service binding and browser launch.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "jp.co.canon.ic.cameraconnect",
+          "name": "Canon Camera Connect",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#C8340C",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "3.6.11.7",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "canonCustomTabsBrowserPackage",
+          "title": "Custom Tabs browser package",
+          "description": null,
+          "required": false,
+          "type": "kotlin.String",
+          "default": "org.mozilla.firefox",
+          "values": {
+            "Firefox": "org.mozilla.firefox",
+            "Firefox Beta": "org.mozilla.firefox_beta",
+            "Brave": "com.brave.browser",
+            "Microsoft Edge": "com.microsoft.emmx",
+            "Vivaldi": "com.vivaldi.browser",
+            "Samsung Internet": "com.sec.android.app.sbrowser",
+            "Chrome": "com.android.chrome"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Optional Canon ID Login",
+      "description": "Add Continue without login, remember an explicit offline choice, and preserve genuine Canon ID login.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "jp.co.canon.ic.cameraconnect",
+          "name": "Canon Camera Connect",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#C8340C",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "3.6.11.7",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    }
+  ]
+}

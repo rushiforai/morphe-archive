@@ -45,18 +45,28 @@ class ExtensionHostsTest {
     }
 
     @Test
-    fun `only the release check, the two translators, the free proxy finder and lyrics open a connection themselves`() {
+    fun `only the release check, the two translators, the proxy features and lyrics open a connection themselves`() {
         val openers = sources().filter { (_, source) -> NETWORK.containsMatchIn(split(source).second) }
             .map { it.first }.filter { it != FIREBASE_HEADER }.toSortedSet()
         assertEquals(
             "The README says the extension goes online itself only to ask GitHub for the newest " +
                 "release, to send text the person turned on to Google's translate or the AI service they set " +
-                "up, for Free proxies to download a proxy list and time a connect to each proxy, and for Lyrics " +
-                "to look a song up on lrclib.net. These files " +
-                "open connections",
-            TRANSPORTS.toSortedSet(),
+                "up, for Free proxies to download a proxy list and time a connect to each proxy, for V2Ray-style " +
+                "servers to reach the person's own servers, and for Lyrics to look a song up on lrclib.net. " +
+                "These files open connections",
+            (TRANSPORTS + TUNNELS).toSortedSet(),
             openers,
         )
+    }
+
+    @Test
+    fun `the V2Ray-style local proxy listens on the phone itself and nowhere else`() {
+        val code = split(sources().single { it.first == V2RAY_SERVER }.second).second
+        assertEquals("the local proxy binds once", 1, Regex("""\.bind\s*\(""").findAll(code).count())
+        assertTrue("the local proxy binds 127.0.0.1",
+            Regex("""\.bind\s*\(\s*new InetSocketAddress\s*\(\s*InetAddress\.getByAddress\s*\(\s*new byte\s*\[\s*]\s*\{\s*127\s*,\s*0\s*,\s*0\s*,\s*1\s*}\s*\)""")
+                .containsMatchIn(code))
+        assertTrue("a ServerSocket made with a port binds at once, to every address", !Regex("""new ServerSocket\s*\(\s*[^)\s]""").containsMatchIn(code))
     }
 
     @Test
@@ -195,6 +205,17 @@ class ExtensionHostsTest {
             "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/FreeProxyTransport.java",
             LYRICS,
         )
+        /**
+         * V2Ray-style servers: the dialer reaches the servers in the person's own links, and the
+         * local proxy Telegram connects to listens on 127.0.0.1. Neither speaks HTTP, so neither is a
+         * transport that could follow a redirect.
+         */
+        val TUNNELS = listOf(
+            "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/V2RayDialer.java",
+            V2RAY_SERVER,
+        )
+        const val V2RAY_SERVER =
+            "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/V2RayServer.java"
         const val TRANSLATOR =
             "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/GoogleTranslate.java"
         const val AI_TRANSLATOR =

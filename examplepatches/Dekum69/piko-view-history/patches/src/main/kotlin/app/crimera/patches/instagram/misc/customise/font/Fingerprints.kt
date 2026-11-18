@@ -1,0 +1,126 @@
+/*
+ * Copyright (C) 2026 piko <https://github.com/crimera/piko>
+ *
+ * See the included NOTICE file for GPLv3 §7(b) terms that apply to this code.
+ */
+
+package app.crimera.patches.instagram.misc.customise.font
+
+import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.InstructionLocation.MatchAfterImmediately
+import app.morphe.patcher.InstructionLocation.MatchAfterWithin
+import app.morphe.patcher.anyInstruction
+import app.morphe.patcher.methodCall
+import app.morphe.patcher.newInstance
+import app.morphe.patcher.opcode
+import app.morphe.patcher.string
+import com.android.tools.smali.dexlib2.Opcode
+
+/**
+ * The typeface repository method every classic text component goes through to resolve
+ * a font, matched on the systrace section name it opens.
+ */
+internal object TypefaceRepositoryLoadFingerprint : Fingerprint(
+    returnType = "Landroid/graphics/Typeface;",
+    strings = listOf("TypefaceRepository:load_typeface"),
+)
+
+/**
+ * Compose resolves fonts on its own, so nothing drawn by Compose - the settings screens,
+ * the direct inbox - reaches the typeface repository. This is the platform adapter that
+ * produces the typeface for every font family, resource backed or not, and wraps it in a
+ * resolution result rather than returning it.
+ */
+internal object ComposePlatformTypefacesFingerprint : Fingerprint(
+    strings = listOf("null cannot be cast to non-null type androidx.compose.ui.text.platform.AndroidTypeface"),
+)
+
+/**
+ * The story text styles of the older story editor, which resolve their typeface from an enum
+ * of style names rather than from a font descriptor.
+ */
+internal object LegacyStoryFontFingerprint : Fingerprint(
+    strings = listOf("SIGNATURE", "TYPEWRITER", "LITERATURE"),
+)
+
+/** React Native's registration of the "Optimistic VF App Lite" variable font. */
+internal object ReactNativeFontRegistrationFingerprint : Fingerprint(
+    parameters = emptyList(),
+    returnType = "L",
+    filters = listOf(
+        // Resolved font getter.
+        methodCall(opcode = Opcode.INVOKE_INTERFACE, parameters = emptyList(), returnType = TYPEFACE_CLASS),
+        opcode(Opcode.MOVE_RESULT_OBJECT, MatchAfterImmediately()),
+        string("Optimistic VF App Lite ", MatchAfterWithin(3)),
+    )
+)
+
+internal fun paintTypefaceFingerprint(contentFontClasses: Set<String>) = Fingerprint(
+    filters = listOf(
+        anyInstruction(
+            methodCall(
+                definingClass = "Landroid/graphics/Paint;",
+                name = "setTypeface",
+                parameters = listOf(TYPEFACE_CLASS),
+            ),
+            methodCall(
+                definingClass = "Landroid/text/TextPaint;",
+                name = "setTypeface",
+                parameters = listOf(TYPEFACE_CLASS),
+            )
+        )
+    ),
+    custom = { _, classDef ->
+        !classDef.type.startsWith(FONT_EXTENSION_PACKAGE)
+        && classDef.type !in contentFontClasses
+    }
+)
+
+internal object PlatformSpanFingerprint : Fingerprint(
+    filters = listOf(
+        anyInstruction(
+            newInstance("Landroid/text/style/TypefaceSpan;"),
+            newInstance("Landroid/text/style/TextAppearanceSpan;"),
+        )
+    )
+)
+
+internal const val EXTENSION_PACKAGE = "Lapp/morphe/extension/"
+
+internal fun contentFontResolverFingerprint(typefaceRepository: String) = Fingerprint(
+    returnType = TYPEFACE_CLASS,
+    filters = listOf(
+        methodCall(definingClass = typefaceRepository)
+    ),
+    custom = { method, classDef ->
+        !classDef.type.startsWith(FONT_EXTENSION_PACKAGE) &&
+            method.parameterTypes.firstOrNull() == typefaceRepository
+    },
+)
+
+internal object PlatformTextWidgetFingerprint : Fingerprint(
+    filters = listOf(
+        anyInstruction(
+            *PLATFORM_TEXT_WIDGETS.map { methodCall(definingClass = it) }.toTypedArray()
+        ),
+    ),
+    custom = { _, classDef ->
+        !classDef.type.startsWith(FONT_EXTENSION_PACKAGE) &&
+            classDef.superclass in PLATFORM_TEXT_WIDGETS
+    },
+)
+
+internal object PikoWidgetCreatorFingerprint : Fingerprint(
+    filters = listOf(
+        anyInstruction(
+            newInstance("Landroid/widget/TextView;"),
+            newInstance("Landroid/widget/Button;"),
+            newInstance("Landroid/widget/CheckBox;"),
+            newInstance("Landroid/widget/EditText;"),
+        ),
+    ),
+    custom = { _, classDef ->
+        classDef.type.startsWith(EXTENSION_PACKAGE) &&
+            !classDef.type.startsWith(FONT_EXTENSION_PACKAGE)
+    },
+)

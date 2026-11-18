@@ -31,7 +31,8 @@ public final class MediaContextResolver {
         REEL,
         STORY_IMAGE,
         STORY_VIDEO,
-        PROFILE_MEDIA
+        PROFILE_MEDIA,
+        UNKNOWN
     }
 
     public static final class MediaCapabilities {
@@ -47,6 +48,7 @@ public final class MediaContextResolver {
         public final boolean currentItemIsVideo;
         public final boolean currentItemIsImage;
         public final boolean hasAudioTrack;
+        public final MediaData.AudioState audioState;
         public final boolean hasCoverImage;
         public final boolean hasImageVariants;
         public final boolean hasVideoVariants;
@@ -71,6 +73,7 @@ public final class MediaContextResolver {
                 boolean currentItemIsVideo,
                 boolean currentItemIsImage,
                 boolean hasAudioTrack,
+                MediaData.AudioState audioState,
                 boolean hasCoverImage,
                 boolean hasImageVariants,
                 boolean hasVideoVariants,
@@ -94,6 +97,7 @@ public final class MediaContextResolver {
             this.currentItemIsVideo = currentItemIsVideo;
             this.currentItemIsImage = currentItemIsImage;
             this.hasAudioTrack = hasAudioTrack;
+            this.audioState = audioState;
             this.hasCoverImage = hasCoverImage;
             this.hasImageVariants = hasImageVariants;
             this.hasVideoVariants = hasVideoVariants;
@@ -119,6 +123,17 @@ public final class MediaContextResolver {
                 ? (MediaData) mediaObject
                 : new MediaData(mediaObject, userSession);
         return resolve(root, DownloadMediaGroup.carousel(root), requestedIndex, false);
+    }
+
+    public static MediaCapabilities resolveForStory(
+            Object mediaObject,
+            Object reelObject,
+            UserSession userSession
+    ) {
+        MediaData root = mediaObject instanceof MediaData
+                ? (MediaData) mediaObject
+                : new MediaData(mediaObject, userSession);
+        return resolve(root, DownloadMediaGroup.stories(root, reelObject, userSession), 0, true);
     }
 
     public static MediaCapabilities resolve(
@@ -183,14 +198,23 @@ public final class MediaContextResolver {
         boolean hasCover = isVideo && hasImageVars;
 
         // Still images without attached music never expose MP3 audio download
+        MediaData.AudioState resolvedAudioState = MediaData.AudioState.NO;
         boolean hasAudio = false;
         try {
             if (isVideo) {
-                hasAudio = currentMedia.hasAudio() || rootMedia.hasAudio();
+                resolvedAudioState = currentMedia.getAudioTrackState();
+                hasAudio = (resolvedAudioState == MediaData.AudioState.YES)
+                        || currentMedia.hasAudio()
+                        || rootMedia.hasAudio();
+                if (hasAudio && resolvedAudioState == MediaData.AudioState.UNKNOWN) {
+                    resolvedAudioState = MediaData.AudioState.YES;
+                }
             } else {
                 hasAudio = currentMedia.getAudioMedia() != null || rootMedia.getAudioMedia() != null;
+                resolvedAudioState = hasAudio ? MediaData.AudioState.YES : MediaData.AudioState.NO;
             }
         } catch (Throwable ignored) {
+            resolvedAudioState = MediaData.AudioState.UNKNOWN;
         }
 
         String username = "instagram";
@@ -251,14 +275,20 @@ public final class MediaContextResolver {
         }
 
         SurfaceType surfaceType;
-        if (isStory || postType == PostType.STORY) {
+        if (rootMedia == null || rootMedia.getObject() == null) {
+            surfaceType = SurfaceType.UNKNOWN;
+        } else if (isStory || postType == PostType.STORY) {
             surfaceType = isVideo ? SurfaceType.STORY_VIDEO : SurfaceType.STORY_IMAGE;
         } else if (isCarousel || postType == PostType.CAROUSEL) {
             surfaceType = SurfaceType.CAROUSEL_POST;
         } else if (postType == PostType.REEL) {
             surfaceType = SurfaceType.REEL;
+        } else if (isVideo) {
+            surfaceType = SurfaceType.SINGLE_VIDEO_POST;
+        } else if (hasImageVars || isImage) {
+            surfaceType = SurfaceType.SINGLE_IMAGE_POST;
         } else {
-            surfaceType = isVideo ? SurfaceType.SINGLE_VIDEO_POST : SurfaceType.SINGLE_IMAGE_POST;
+            surfaceType = SurfaceType.UNKNOWN;
         }
 
         return new MediaCapabilities(
@@ -274,6 +304,7 @@ public final class MediaContextResolver {
                 isVideo,
                 isImage,
                 hasAudio,
+                resolvedAudioState,
                 hasCover,
                 hasImageVars,
                 hasVideoVars,

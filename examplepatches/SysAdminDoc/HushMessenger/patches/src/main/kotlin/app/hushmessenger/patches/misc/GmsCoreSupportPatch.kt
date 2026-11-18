@@ -6,6 +6,8 @@
 package app.hushmessenger.patches.misc
 
 import app.hushmessenger.patches.MessengerTarget
+import app.hushmessenger.patches.isExtension
+import app.hushmessenger.patches.messengerClasses
 import app.hushmessenger.patches.coexist.validateVersionCode
 import app.hushmessenger.patches.controls.hookId
 import app.hushmessenger.patches.controls.settingsExtension
@@ -63,7 +65,6 @@ internal const val MESSENGER_CERTIFICATE_SHA1 = "8a3c4b262d721acd49a4bf97d521319
 
 private const val CONTEXT = "Landroid/content/Context;"
 private const val CREDENTIAL_MANAGER = "Landroid/credentials/CredentialManager;"
-private const val EXTENSION_ROOT = "Lapp/hushmessenger/"
 
 /** The extension's answer to the availability check: success while microG-RE is installed, missing without it. */
 internal const val GMS_CORE_AVAILABILITY = "Lapp/hushmessenger/extension/GmsCore;->availability(${CONTEXT})I"
@@ -399,7 +400,7 @@ internal fun planGmsCore(classes: Iterable<ClassDef>): GmsCorePlan {
     val texts = mutableListOf<GmsCoreText>()
     val fields = mutableListOf<GmsCoreField>()
     for (owner in classes) {
-        if (owner.type.startsWith(EXTENSION_ROOT)) continue
+        if (owner.isExtension()) continue
         for (field in owner.staticFields) {
             val text = (field.initialValue as? StringEncodedValue)?.value ?: continue
             gmsCoreText(text)?.let { fields += GmsCoreField(owner.type, field.name, it) }
@@ -431,7 +432,7 @@ internal fun planGmsCore(classes: Iterable<ClassDef>): GmsCorePlan {
     return GmsCorePlan(availability.single(), providers.single(), texts, fields)
 }
 
-private fun BytecodePatchContext.planGmsCore() = planGmsCore(mutableListOf<ClassDef>().apply { classDefForEach { add(it) } })
+private fun BytecodePatchContext.planGmsCore() = planGmsCore(messengerClasses())
 
 /** Rewrites every planned text and field, then answers the two checks. Texts go first: they keep every index. */
 internal fun BytecodePatchContext.applyGmsCore(plan: GmsCorePlan) {

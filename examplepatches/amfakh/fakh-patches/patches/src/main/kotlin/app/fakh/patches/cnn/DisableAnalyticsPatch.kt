@@ -14,8 +14,7 @@ private val DETIK_TRACKER_CALLS = setOf("sendEvent", "sendView", "forcePushDataT
 @Suppress("unused")
 val disableAnalyticsPatch = patch(
     name = "Disable analytics",
-    description = "Stops Detik Analytics and Google Analytics from recording screens and events, and turns off " +
-        "Firebase Analytics, Crashlytics, Performance and Sessions.",
+    description = "Turns off analytics and tracking.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_CNN)

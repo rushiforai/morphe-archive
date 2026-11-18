@@ -28,11 +28,24 @@ public class FlagsSharedPref extends BaseSharedPref {
 
     // Static Wrapper Delegates
     public static String getStringPref(StringSetting setting) {
-        return INSTANCE.getString(setting);
+        if (setting == null) return FlagState.DEFAULT.toString();
+        return INSTANCE.getString(setting.key, setting.defaultValue);
+    }
+
+    public static String getStringPref(String key, String defaultValue) {
+        return INSTANCE.getString(key, defaultValue);
     }
 
     public static Boolean setStringPref(String key, String val) {
-        return INSTANCE.setString(key, val);
+        Boolean ok = INSTANCE.setString(key, val);
+        INSTANCE.flushPreferences();
+        return ok;
+    }
+
+    public static boolean clearAll() {
+        boolean ok = INSTANCE.clear();
+        INSTANCE.flushPreferences();
+        return ok;
     }
 
     public static boolean flush() {
@@ -64,7 +77,9 @@ public class FlagsSharedPref extends BaseSharedPref {
                 if (!state.equals(FlagState.DEFAULT.toString())
                         && !state.equals(FlagState.ENABLE.toString())
                         && !state.equals(FlagState.DISABLE.toString())) continue;
-                for (String code : key.split(",")) {
+                for (String rawCode : key.split(",")) {
+                    String code = rawCode == null ? "" : rawCode.trim();
+                    if (code.isEmpty()) continue;
                     if (state.equals(FlagState.DEFAULT.toString())) {
                         outFlags.remove(code);
                     } else {

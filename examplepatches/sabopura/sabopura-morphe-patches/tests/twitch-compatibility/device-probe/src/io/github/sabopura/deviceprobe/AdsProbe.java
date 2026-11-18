@@ -112,7 +112,8 @@ public class AdsProbe extends Instrumentation {
         runOnMainSync(() -> {
             try {
                 android.view.View v = new android.view.View(getTargetContext());
-                legacy[0] = entry.getMethod("wrapIfMain", Object.class, android.view.View.class).invoke(null, new Object(), v) == v;
+                entry.getMethod("creating", Object.class).invoke(null, new Object());
+                legacy[0] = entry.getMethod("wrapIfMain", android.view.View.class).invoke(null, v) == v;
             } catch (Exception e) {
                 legacy[0] = e;
             }

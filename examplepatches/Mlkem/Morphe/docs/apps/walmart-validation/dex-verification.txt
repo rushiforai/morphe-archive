@@ -1,0 +1,5 @@
+Sparky tab label, tools icon and exclusive tools click verified; old toolbar hook removed.
+Common list-row binding, browse history, ad containers/cards and patch status hooks verified.
+Runtime field/method targets present; no duplicate target classes.
+26.31 getter field semantics and both checklist adapter contracts verified.
+Injected calls: {afterBind=4, beforeBind=2, bindBrowse=2, dedicated=1, defaultTab=4, expiry=1, fab=1, filterNav=1, hidePromotionBanner=2, hidePromotionHolder=1, history=1, install=1, installScanner=1, installTotal=1, onSetActionButton=7, onTileBind=1, selectLists=1, selected=1, sortAisles=2, sponsored=2, status_ads=1, status_aisles=1, status_expiry=1, status_find=1, status_history=1, status_lists=1, status_open=1, status_promo=1, status_scanner=1, status_shop=1, status_shopping=1, status_stock=1, status_total=1, status_unit=1, stock=1, suppress=2, unitPrice=1}

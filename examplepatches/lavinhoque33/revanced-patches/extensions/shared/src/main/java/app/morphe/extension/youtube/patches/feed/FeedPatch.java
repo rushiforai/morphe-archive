@@ -5,6 +5,7 @@ import static app.morphe.extension.shared.utils.Utils.hideViewUnderCondition;
 import static app.morphe.extension.youtube.utils.ExtendedUtils.IS_20_10_OR_GREATER;
 
 import android.view.View;
+import android.view.Menu;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.TextView;
@@ -328,6 +329,46 @@ public class FeedPatch {
         for (String filter : blockList) {
             if (menuTitleString.equals(filter) && !filter.isEmpty())
                 Utils.hideViewByLayoutParams(parentView);
+        }
+    }
+
+    /**
+     * Implemented by stock resolved popup items through the bytecode patch.
+     */
+    public interface FlyoutMenuItem {
+        @Nullable
+        CharSequence patch_getFlyoutMenuItemTitle();
+    }
+
+    /**
+     * Injection point. Remove resolved items rather than leaving blank popup rows.
+     */
+    public static Iterable<?> hideFlyoutMenuItems(Iterable<?> menuItems) {
+        if (!Settings.HIDE_FEED_FLYOUT_MENU.get() || Settings.HIDE_FEED_FLYOUT_MENU_FILTER_STRINGS.get().isEmpty()) {
+            return menuItems;
+        }
+
+        List<Object> shownMenuItems = new ArrayList<>();
+        for (Object menuItem : menuItems) {
+            if (menuItem instanceof FlyoutMenuItem flyoutMenuItem) {
+                CharSequence title = flyoutMenuItem.patch_getFlyoutMenuItemTitle();
+                if (title != null && hideFlyoutMenu(title) == null) {
+                    continue;
+                }
+            }
+            shownMenuItems.add(menuItem);
+        }
+        return shownMenuItems;
+    }
+
+    /**
+     * Injection point. Remove a filtered toolbar overflow item immediately after it is added.
+     */
+    public static void hideFlyoutMenu(Menu menu, int menuItemId, @Nullable CharSequence title) {
+        if (title != null && Settings.HIDE_FEED_FLYOUT_MENU.get()
+                && !Settings.HIDE_FEED_FLYOUT_MENU_FILTER_STRINGS.get().isEmpty()
+                && hideFlyoutMenu(title) == null) {
+            menu.removeItem(menuItemId);
         }
     }
 

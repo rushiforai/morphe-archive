@@ -59,6 +59,11 @@ public final class HostScreens {
             Log.e("HushMessenger", "Can't watch for calls", error);
         }
         try {
+            if (app != null && Settings.bundled(bundledControls()).contains(InvisibleButtons.KEY)) InvisibleButtons.register(app);
+        } catch (RuntimeException | LinkageError error) {
+            Log.e("HushMessenger", "Can't watch Messenger's screens for buttons", error);
+        }
+        try {
             if (app != null) SettingsReopen.watch(app);
         } catch (RuntimeException | LinkageError error) {
             Log.e("HushMessenger", "Can't watch for the first screen after a restart", error);
@@ -152,6 +157,11 @@ public final class HostScreens {
 
     /** Rewritten with Messenger's own Log out, "Lowner;->name(Landroid/content/Context;)V", once the patch proves it (#88). */
     static String logoutRoute() {
+        return "";
+    }
+
+    /** Rewritten with the home screen's open tab, its tab list and its tab switch once the patch proves all three. */
+    static String tabSwipeRoute() {
         return "";
     }
 

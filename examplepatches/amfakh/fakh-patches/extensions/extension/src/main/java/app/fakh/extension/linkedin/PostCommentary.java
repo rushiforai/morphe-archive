@@ -26,6 +26,7 @@ import java.util.regex.Pattern;
  */
 final class PostCommentary {
     static final String NAME = "feed-commentary";
+    private static final String EXPANDABLE = "feed-commentary-expand";
     private static final int VIEW_TRACKING = 26;
     private static final int TRIGGERS = 25;
     private static final int VIEW_NAME = 1;
@@ -39,17 +40,37 @@ final class PostCommentary {
 
     /** The post's text, or null when none could be found. */
     static String text(byte[] payload) {
-        byte[] component = component(payload, 0);
+        // The Video tab has no feed-commentary component: its text is in the expandable one.
+        byte[] component = component(payload, NAME, 0);
+        if (component == null) component = component(payload, EXPANDABLE, 0);
+        return textOf(component);
+    }
+
+    /** The text of a comment (the component named comment-commentary), or null when none could be found. */
+    static String commentText(byte[] payload) {
+        return textOf(component(payload, "comment-commentary", 0));
+    }
+
+    private static String textOf(byte[] component) {
         if (component == null) return null;
         List<ProtoEdit.Field> fields = ProtoEdit.parse(component);
         if (fields == null) return null;
         String[] best = {null};
-        // The content of a component is its compactData (field 35, a CompactAny holding the TextBlock). The rest is
-        // the component's own machinery: key, view tracking, triggers, reuse ids, debug ids.
+        // The content of a component is its compactData (field 35, a CompactAny holding the TextBlock), or the
+        // TextBlock itself (field 29). The rest is the component's own machinery: key, view tracking, triggers, reuse
+        // ids, debug ids.
         for (ProtoEdit.Field field : fields) {
-            if (field.wireType != 2 || field.number != COMPACT_DATA) continue;
-            // CompactAny.payload (2) is the TextBlock: TextBlock.text (1) is a TextModel, TextModel.text (1) the post.
-            String exact = asText(path(path(path(field.data, 2), 1), 1));
+            if (field.wireType != 2) continue;
+            String exact;
+            if (field.number == COMPACT_DATA) {
+                // CompactAny.payload (2) is the TextBlock: TextBlock.text (1) is a TextModel, TextModel.text (1) the post.
+                exact = asText(path(path(path(field.data, 2), 1), 1));
+            } else if (field.number == TEXT_BLOCK) {
+                // The Video tab sends the TextBlock itself instead of a CompactAny.
+                exact = asText(path(path(field.data, 1), 1));
+            } else {
+                continue;
+            }
             if (exact != null && !exact.trim().isEmpty()) return exact;
             collect(field.data, best, 0);
         }
@@ -67,6 +88,8 @@ final class PostCommentary {
     }
 
     private static final int COMPACT_DATA = 35;
+    /** Component.textBlock, the content of the commentary in the Video tab. */
+    private static final int TEXT_BLOCK = 29;
 
     /** A message, also when LinkedIn prefixes it with a single 0x00 byte, as it does for some embedded payloads. */
     private static List<ProtoEdit.Field> parse(byte[] data) {
@@ -83,17 +106,17 @@ final class PostCommentary {
         return text != null && TRACKING_ID.matcher(text).matches();
     }
 
-    /** The first component, in order, whose view tracking is named feed-commentary. */
-    private static byte[] component(byte[] data, int depth) {
-        if (data == null || depth > MAX_DEPTH || !ProtoEdit.contains(data, NAME)) return null;
+    /** The first component, in order, whose view tracking is named [name]. */
+    private static byte[] component(byte[] data, String name, int depth) {
+        if (data == null || depth > MAX_DEPTH || !ProtoEdit.contains(data, name)) return null;
         List<ProtoEdit.Field> fields = ProtoEdit.parse(data);
         if (fields == null) return null;
         for (ProtoEdit.Field field : fields) {
-            if (field.number == VIEW_TRACKING && field.wireType == 2 && NAME.equals(viewName(field.data))) return data;
+            if (field.number == VIEW_TRACKING && field.wireType == 2 && name.equals(viewName(field.data))) return data;
         }
         for (ProtoEdit.Field field : fields) {
-            if (field.wireType != 2 || !ProtoEdit.contains(field.data, NAME)) continue;
-            byte[] found = component(field.data, depth + 1);
+            if (field.wireType != 2 || !ProtoEdit.contains(field.data, name)) continue;
+            byte[] found = component(field.data, name, depth + 1);
             if (found != null) return found;
         }
         return null;

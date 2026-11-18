@@ -658,4 +658,78 @@ public class CallRecordingTest {
         assertTrue(store.kept);
         assertNull(pill());
     }
+
+    private void scope(String scope) {
+        Settings.preferences.edit().putString(CallRecordings.SCOPE, scope).commit();
+    }
+
+    @Test public void nothingRecordsItselfUntilTheScopeSaysSo() throws Exception {
+        on();
+        open();
+        callStarts();
+        assertEquals(CallRecordings.TAP, CallRecordings.scope());
+        assertFalse(CallRecording.listening());
+        assertEquals("Record", pill().getText().toString());
+    }
+
+    @Test public void everyCallRecordsItselfWithoutATap() throws Exception {
+        on();
+        scope(CallRecordings.ALL);
+        open();
+        callStarts();
+        waitFor(CallRecording::listening);
+        CallRecording.heard(speaker, frame((short) 500), 320);
+        callEnds();
+        finished();
+        assertTrue(store.kept);
+    }
+
+    /** Stopping one by hand has to stick: the next screen change mustn't start the call over again. */
+    @Test public void aRecordingStoppedByHandStaysStopped() throws Exception {
+        on();
+        scope(CallRecordings.ALL);
+        open();
+        callStarts();
+        waitFor(CallRecording::listening);
+        pill().performClick();
+        finished();
+        screen.pause();
+        screen.resume();
+        idle();
+        assertFalse(CallRecording.listening());
+        assertEquals("Record", pill().getText().toString());
+    }
+
+    @Test public void onlyAChosenChatRecordsItself() throws Exception {
+        on();
+        scope(CallRecordings.CHOSEN);
+        QuietCalls.resetForTests();
+        QuietCalls.incoming("t_17", 0);
+        open();
+        callStarts();
+        idle();
+        assertFalse("Nobody has switched that chat on", CallRecording.listening());
+        callEnds();
+        idle();
+
+        Settings.preferences.edit().putBoolean(CallRecordings.CHAT_PREFIX + "t_17", true).commit();
+        QuietCalls.incoming("t_17", 0);
+        callStarts();
+        waitFor(CallRecording::listening);
+        CallRecording.heard(speaker, frame((short) 500), 320);
+        callEnds();
+        finished();
+        assertTrue(store.kept);
+    }
+
+    @Test public void aChatThatCalledIsRememberedForTheListEvenWithQuietCallsOff() {
+        on();
+        QuietCalls.resetForTests();
+        QuietCalls.incoming("t_42", 0);
+        QuietCalls.remember("t_42", "Alex Kim");
+        List<String[]> recent = QuietCalls.recent();
+        assertEquals(1, recent.size());
+        assertEquals("t_42", recent.get(0)[0]);
+        assertEquals("Alex Kim", recent.get(0)[1]);
+    }
 }

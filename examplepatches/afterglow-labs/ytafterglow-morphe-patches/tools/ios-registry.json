@@ -1,0 +1,3342 @@
+{
+  "source": "/home/corey/projects/xuninc/YTAfterglow/.worktrees/yt-21.43-hook-repair",
+  "counts": {
+    "action": 7,
+    "boolean": 160,
+    "destination": 6,
+    "integer": 23,
+    "string": 3
+  },
+  "categories": [
+    {
+      "id": "PRIVACY_SAFETY",
+      "title": "Privacy & Safety"
+    },
+    {
+      "id": "APPEARANCE",
+      "title": "Appearance"
+    },
+    {
+      "id": "PLAYBACK",
+      "title": "Playback"
+    },
+    {
+      "id": "PLAYER_OVERLAY",
+      "title": "Player & Overlay"
+    },
+    {
+      "id": "SHORTS",
+      "title": "Shorts"
+    },
+    {
+      "id": "FEED",
+      "title": "Feed"
+    },
+    {
+      "id": "DOWNLOADS_VAULT",
+      "title": "Downloads & Vault"
+    },
+    {
+      "id": "EXPERIMENTS",
+      "title": "Experiments"
+    },
+    {
+      "id": "ADVANCED",
+      "title": "Advanced"
+    }
+  ],
+  "entries": [
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "liteModeEnabled",
+      "titleKey": "LiteMode",
+      "title": "Lite Mode",
+      "description": "Strips YouTube down to a calmer, subscription-first, bare-bones experience.",
+      "category": "PRIVACY_SAFETY",
+      "flags": [
+        "restartRequired"
+      ],
+      "capability": null,
+      "symbol": "rectangle.compress.vertical",
+      "aliases": [
+        "minimal",
+        "distraction free",
+        "bare bones",
+        "monochrome"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": true,
+      "destination": null,
+      "key": "noAds",
+      "titleKey": "RemoveAds",
+      "title": "Remove ads",
+      "description": "Removes in-app ads.",
+      "category": "PRIVACY_SAFETY",
+      "flags": [],
+      "capability": null,
+      "symbol": "nosign",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "noPromotionCards",
+      "titleKey": "NoPromotionCards",
+      "title": "Hide Paid Promotion cards",
+      "description": "Hides \"Includes Paid Promotions\" card in promotions included videos.",
+      "category": "PRIVACY_SAFETY",
+      "flags": [],
+      "capability": null,
+      "symbol": "hand.raised",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "noSearchHistory",
+      "titleKey": "NoSearchHistory",
+      "title": "Hide search history",
+      "description": "Visually hides search history and suggestions. Note: Your search history will still be accessible in your other YouTube clients.",
+      "category": "PRIVACY_SAFETY",
+      "flags": [],
+      "capability": null,
+      "symbol": "hand.raised",
+      "aliases": [
+        "search suggestions",
+        "recent searches"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "noLinkTracking",
+      "titleKey": "NoLinkTracking",
+      "title": "Disable link tracking",
+      "description": "Prevents tracking information from being sent when tapping links. Opens links directly instead of going through Google redirects.",
+      "category": "PRIVACY_SAFETY",
+      "flags": [],
+      "capability": null,
+      "symbol": "hand.raised",
+      "aliases": [
+        "tracking links",
+        "redirects"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "noShareChunk",
+      "titleKey": "NoShareChunk",
+      "title": "Clean shared links",
+      "description": "Removes YouTube's extra share identifier from shared links.",
+      "category": "PRIVACY_SAFETY",
+      "flags": [],
+      "capability": null,
+      "symbol": "hand.raised",
+      "aliases": [
+        "clean links",
+        "shared links"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "noCast",
+      "titleKey": "RemoveCast",
+      "title": "Hide Cast button",
+      "description": "Hides Cast button from the Navigation bar.",
+      "category": "APPEARANCE",
+      "flags": [],
+      "capability": null,
+      "symbol": "airplayvideo",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "noNotifsButton",
+      "titleKey": "RemoveNotifications",
+      "title": "Hide Notifications button",
+      "description": "Hides Notifications button from the Navigation bar.",
+      "category": "APPEARANCE",
+      "flags": [],
+      "capability": null,
+      "symbol": "bell.slash.fill",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "noSearchButton",
+      "titleKey": "RemoveSearch",
+      "title": "Hide Search button",
+      "description": "Hides Search button from the Navigation bar.",
+      "category": "APPEARANCE",
+      "flags": [],
+      "capability": null,
+      "symbol": "magnifyingglass.circle",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "noVoiceSearchButton",
+      "titleKey": "RemoveVoiceSearch",
+      "title": "Hide Voice search button",
+      "description": "Hides Voice search button from the Navigation bar.",
+      "category": "APPEARANCE",
+      "flags": [],
+      "capability": null,
+      "symbol": "mic.slash.fill",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "stickyNavbar",
+      "titleKey": "StickyNavbar",
+      "title": "Sticky Navigation bar",
+      "description": "Pins the Navigation bar so that it remains visible when scrolling down.",
+      "category": "APPEARANCE",
+      "flags": [
+        "advanced"
+      ],
+      "capability": null,
+      "symbol": "paintpalette",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "noSubbar",
+      "titleKey": "NoSubbar",
+      "title": "Hide Subbar",
+      "description": "Hides Subbar (All, New to you, Live etc.) under the Navigation bar.",
+      "category": "APPEARANCE",
+      "flags": [
+        "advanced"
+      ],
+      "capability": null,
+      "symbol": "rectangle.split.3x1",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "noYTLogo",
+      "titleKey": "NoYTLogo",
+      "title": "Hide YouTube logo",
+      "description": "Hides the YouTube logo from the Navigation bar.",
+      "category": "APPEARANCE",
+      "flags": [
+        "advanced"
+      ],
+      "capability": null,
+      "symbol": "play.rectangle",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "premiumYTLogo",
+      "titleKey": "PremiumYTLogo",
+      "title": "Premium YouTube logo",
+      "description": "Replaces the YouTube logo with the Premium logo.",
+      "category": "APPEARANCE",
+      "flags": [
+        "advanced"
+      ],
+      "capability": null,
+      "symbol": "play.rectangle.fill",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": true,
+      "destination": null,
+      "key": "frostedPivot",
+      "titleKey": "OpaqueBar",
+      "title": "Opaque tab bar",
+      "description": "Makes the tab bar solid with no transparency.",
+      "category": "APPEARANCE",
+      "flags": [],
+      "capability": null,
+      "symbol": "paintpalette",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "disableFloatingTabBar",
+      "titleKey": "DisableFloatingTabBar",
+      "title": "Disable floating tab bar",
+      "description": "Uses the full-width tab bar instead of YouTube's floating capsule. Restart YouTube to switch layouts.",
+      "category": "APPEARANCE",
+      "flags": [
+        "restartRequired"
+      ],
+      "capability": null,
+      "symbol": "rectangle.bottomthird.inset.filled",
+      "aliases": [
+        "floating bar",
+        "floating tabs",
+        "classic tab bar"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "removeLabels",
+      "titleKey": "RemoveLabels",
+      "title": "Remove tab labels",
+      "description": "Removes text labels from the Tab bar buttons.",
+      "category": "APPEARANCE",
+      "flags": [],
+      "capability": null,
+      "symbol": "paintpalette",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "removeIndicators",
+      "titleKey": "RemoveIndicators",
+      "title": "Remove tab indicators",
+      "description": "Removes notification indicators from the Tab bar.",
+      "category": "APPEARANCE",
+      "flags": [],
+      "capability": null,
+      "symbol": "paintpalette",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": true,
+      "destination": null,
+      "key": "twoRowTabBar",
+      "titleKey": "TwoRowTabBar",
+      "title": "Bonus tab row",
+      "description": "Shows extra active tabs in a compact second row beneath the main bar.",
+      "category": "APPEARANCE",
+      "flags": [],
+      "capability": null,
+      "symbol": "square.grid.2x2.fill",
+      "aliases": [
+        "bonus row",
+        "two row",
+        "second row",
+        "all tabs",
+        "pivot overflow"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "centeredAnchorTabBar",
+      "titleKey": "CenteredAnchorTabBar",
+      "title": "Centered side anchors",
+      "description": "Moves two selected native tabs to larger side positions, with the bonus row below the remaining native tabs. Defaults to Afterglow Control Center and Library. Requires Bonus tab row.",
+      "category": "APPEARANCE",
+      "flags": [],
+      "capability": null,
+      "symbol": "rectangle.split.3x1.fill",
+      "aliases": [
+        "centered tabs",
+        "side anchors",
+        "large edge tabs",
+        "tab layout"
+      ]
+    },
+    {
+      "type": "string",
+      "default": "YTAGControlCenter",
+      "destination": null,
+      "key": "anchorLeftTab",
+      "titleKey": "AnchorLeftTab",
+      "title": "Left side button",
+      "description": "Choose a native top-row tab for the larger left position.",
+      "category": "APPEARANCE",
+      "flags": [],
+      "capability": null,
+      "symbol": "square.leadingthird.inset.filled",
+      "aliases": [
+        "left anchor",
+        "left tab",
+        "control center shortcut"
+      ]
+    },
+    {
+      "type": "string",
+      "default": "FElibrary",
+      "destination": null,
+      "key": "anchorRightTab",
+      "titleKey": "AnchorRightTab",
+      "title": "Right side button",
+      "description": "Choose a native top-row tab for the larger right position.",
+      "category": "APPEARANCE",
+      "flags": [],
+      "capability": null,
+      "symbol": "square.trailingthird.inset.filled",
+      "aliases": [
+        "right anchor",
+        "right tab",
+        "profile shortcut"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "startupAnimation",
+      "titleKey": "StartupAnimation",
+      "title": "Startup animation",
+      "description": "Displays YouTube startup loading animation.",
+      "category": "APPEARANCE",
+      "flags": [],
+      "capability": "StartupAnimation",
+      "symbol": "paintpalette",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "oldYTUI",
+      "titleKey": "OldYTUI",
+      "title": "Legacy/iPad-style UI",
+      "description": "Uses the older YouTube interface mode that Floating Keyboard depends on.",
+      "category": "APPEARANCE",
+      "flags": [
+        "advanced",
+        "restartRequired"
+      ],
+      "capability": null,
+      "symbol": "paintpalette",
+      "aliases": [
+        "legacy ui",
+        "ipad style",
+        "tablet style"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "floatingKeyboard",
+      "titleKey": "FloatingKeyboard",
+      "title": "Floating keyboard",
+      "description": "Force-enables the floating keyboard. Requires Legacy/iPad-style UI on iPhone.",
+      "category": "APPEARANCE",
+      "flags": [],
+      "capability": null,
+      "symbol": "paintpalette",
+      "aliases": [
+        "ipad keyboard"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "disableRTL",
+      "titleKey": "DisableRTL",
+      "title": "Disable RTL formatting",
+      "description": "Forcefully displays text in left-to-right (LTR) format for languages that are initially displayed in right-to-left (RTL).",
+      "category": "APPEARANCE",
+      "flags": [
+        "advanced",
+        "restartRequired"
+      ],
+      "capability": null,
+      "symbol": "paintpalette",
+      "aliases": [
+        "right to left",
+        "ltr"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "persistentProgressBar",
+      "titleKey": "PersistentProgressBar",
+      "title": "Persistent progress bar",
+      "description": "Always shows progress bar in the player.",
+      "category": "APPEARANCE",
+      "flags": [],
+      "capability": null,
+      "symbol": "paintpalette",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "hideHeatwaves",
+      "titleKey": "HideHeatwaves",
+      "title": "Hide most replayed graph",
+      "description": "Removes the heatwave graph from the player seek bar.",
+      "category": "APPEARANCE",
+      "flags": [],
+      "capability": null,
+      "symbol": "paintpalette",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "theme_glowEnabled",
+      "titleKey": "EnableGlow",
+      "title": "Enable glow",
+      "description": "Enables branded glow effects across selected UI surfaces.",
+      "category": "APPEARANCE",
+      "flags": [],
+      "capability": null,
+      "symbol": "paintpalette",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": true,
+      "destination": null,
+      "key": "theme_glowPivot",
+      "titleKey": "GlowPivot",
+      "title": "Glow pivot bar",
+      "description": "Applies glow styling to the pivot/tab bar.",
+      "category": "APPEARANCE",
+      "flags": [],
+      "capability": null,
+      "symbol": "paintpalette",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": true,
+      "destination": null,
+      "key": "theme_glowOverlay",
+      "titleKey": "GlowOverlay",
+      "title": "Glow overlay buttons",
+      "description": "Applies glow styling to overlay controls.",
+      "category": "APPEARANCE",
+      "flags": [],
+      "capability": null,
+      "symbol": "paintpalette",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": true,
+      "destination": null,
+      "key": "theme_glowScrubber",
+      "titleKey": "GlowScrubber",
+      "title": "Glow scrubber",
+      "description": "Applies glow styling to the seek scrubber thumb.",
+      "category": "APPEARANCE",
+      "flags": [],
+      "capability": null,
+      "symbol": "paintpalette",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "theme_glowSeekBar",
+      "titleKey": "GlowSeekBar",
+      "title": "Glow seek bar",
+      "description": "Applies glow styling to the seek bar track.",
+      "category": "APPEARANCE",
+      "flags": [],
+      "capability": null,
+      "symbol": "paintpalette",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "seekBarAnimated",
+      "titleKey": "AnimateSeek",
+      "title": "Animate seek",
+      "description": "Adds subtle animation when the seek bar updates.",
+      "category": "APPEARANCE",
+      "flags": [],
+      "capability": null,
+      "symbol": "paintpalette",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "disableAmbientMode",
+      "titleKey": "DisableAmbientMode",
+      "title": "Disable ambient mode",
+      "description": "Disables ambient mode both in the player and in the area underneath it.",
+      "category": "APPEARANCE",
+      "flags": [],
+      "capability": null,
+      "symbol": "paintpalette",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "seekBarGradient",
+      "titleKey": "SeekBarGradient",
+      "title": "Seek bar gradient",
+      "description": "Enables gradient rendering for the seek bar.",
+      "category": "APPEARANCE",
+      "flags": [],
+      "capability": null,
+      "symbol": "paintpalette",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": true,
+      "destination": null,
+      "key": "sponsorBlockEnabled",
+      "titleKey": "EnableSponsorBlock",
+      "title": "Enable",
+      "description": "Activates YTAfterglow's built-in SponsorBlock client.",
+      "category": "PLAYBACK",
+      "flags": [],
+      "capability": null,
+      "symbol": "play.circle",
+      "aliases": [
+        "segment skipping",
+        "sponsor skip"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": true,
+      "destination": null,
+      "key": "sponsorBlockShortsEnabled",
+      "titleKey": "SponsorBlockShorts",
+      "title": "Enable for Shorts",
+      "description": "Automatically skips enabled SponsorBlock categories in Shorts.",
+      "category": "PLAYBACK",
+      "flags": [],
+      "capability": null,
+      "symbol": "play.circle",
+      "aliases": [
+        "shorts sponsorblock",
+        "reels"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": true,
+      "destination": null,
+      "key": "sponsorBlockMarkersEnabled",
+      "titleKey": "ShowSponsorBlockMarkers",
+      "title": "Show seekbar markers",
+      "description": "Draw SponsorBlock segment markers on the seek bar.",
+      "category": "PLAYBACK",
+      "flags": [],
+      "capability": null,
+      "symbol": "play.circle",
+      "aliases": [
+        "seekbar markers",
+        "segment colors",
+        "progress bar markers"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": true,
+      "destination": null,
+      "key": "sponsorBlockMarkerSponsor",
+      "titleKey": "SponsorMarker",
+      "title": "Sponsor markers",
+      "description": "Show sponsor segments as markers on the seek bar.",
+      "category": "PLAYBACK",
+      "flags": [],
+      "capability": null,
+      "symbol": "play.circle",
+      "aliases": [
+        "sponsor segment marker"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": true,
+      "destination": null,
+      "key": "sponsorBlockMarkerInteraction",
+      "titleKey": "InteractionMarker",
+      "title": "Interaction reminder markers",
+      "description": "Show interaction reminder segments on the seek bar.",
+      "category": "PLAYBACK",
+      "flags": [],
+      "capability": null,
+      "symbol": "play.circle",
+      "aliases": [
+        "interaction reminder marker"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": true,
+      "destination": null,
+      "key": "sponsorBlockMarkerSelfPromo",
+      "titleKey": "SelfPromoMarker",
+      "title": "Self-promotion markers",
+      "description": "Show self-promotion segments on the seek bar.",
+      "category": "PLAYBACK",
+      "flags": [],
+      "capability": null,
+      "symbol": "play.circle",
+      "aliases": [
+        "self promotion marker"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": true,
+      "destination": null,
+      "key": "sponsorBlockMarkerIntro",
+      "titleKey": "IntroMarker",
+      "title": "Intro markers",
+      "description": "Show intro segments on the seek bar.",
+      "category": "PLAYBACK",
+      "flags": [],
+      "capability": null,
+      "symbol": "play.circle",
+      "aliases": [
+        "intro marker"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": true,
+      "destination": null,
+      "key": "sponsorBlockMarkerOutro",
+      "titleKey": "EndcardsMarker",
+      "title": "Outro markers",
+      "description": "Show outro and credit segments on the seek bar.",
+      "category": "PLAYBACK",
+      "flags": [],
+      "capability": null,
+      "symbol": "play.circle",
+      "aliases": [
+        "outro marker",
+        "credits marker"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": true,
+      "destination": null,
+      "key": "sponsorBlockMarkerPreview",
+      "titleKey": "PreviewMarker",
+      "title": "Preview markers",
+      "description": "Show preview and recap segments on the seek bar.",
+      "category": "PLAYBACK",
+      "flags": [],
+      "capability": null,
+      "symbol": "play.circle",
+      "aliases": [
+        "preview marker"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": true,
+      "destination": null,
+      "key": "sponsorBlockMarkerHook",
+      "titleKey": "HookMarker",
+      "title": "Hook markers",
+      "description": "Show opening hook segments on the seek bar.",
+      "category": "PLAYBACK",
+      "flags": [],
+      "capability": null,
+      "symbol": "play.circle",
+      "aliases": [
+        "opening hook marker"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": true,
+      "destination": null,
+      "key": "sponsorBlockMarkerFiller",
+      "titleKey": "FillerMarker",
+      "title": "Filler markers",
+      "description": "Show filler and tangent segments on the seek bar.",
+      "category": "PLAYBACK",
+      "flags": [],
+      "capability": null,
+      "symbol": "play.circle",
+      "aliases": [
+        "filler marker",
+        "tangent marker"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": true,
+      "destination": null,
+      "key": "sponsorBlockMarkerMusicOfftopic",
+      "titleKey": "MusicOfftopicMarker",
+      "title": "Non-music section markers",
+      "description": "Show non-music sections of music videos on the seek bar.",
+      "category": "PLAYBACK",
+      "flags": [],
+      "capability": null,
+      "symbol": "play.circle",
+      "aliases": [
+        "non music marker",
+        "music video marker"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": true,
+      "destination": null,
+      "key": "sponsorBlockCategorySponsor",
+      "titleKey": "Sponsor",
+      "title": "Sponsor",
+      "description": "Part of a video promoting a product or service not directly related to the creator. The creator will receive payment or compensation in the form of money or free products",
+      "category": "PLAYBACK",
+      "flags": [],
+      "capability": null,
+      "symbol": "play.circle",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": true,
+      "destination": null,
+      "key": "sponsorBlockCategoryInteraction",
+      "titleKey": "Interaction",
+      "title": "Interaction reminders",
+      "description": "Explicit reminders to like, subscribe or interact with them on any paid or free platform(s) (e.g. click on a video)",
+      "category": "PLAYBACK",
+      "flags": [],
+      "capability": null,
+      "symbol": "play.circle",
+      "aliases": [
+        "subscribe reminder",
+        "like reminder"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "sponsorBlockCategorySelfPromo",
+      "titleKey": "SelfPromo",
+      "title": "Unpaid/Self promotion",
+      "description": "Self-promo: Promoting a product or service that is directly related to the creator themselves.\nUnpaid:The creator will not receive any payment in exchange for this promotion",
+      "category": "PLAYBACK",
+      "flags": [],
+      "capability": null,
+      "symbol": "play.circle",
+      "aliases": [
+        "self promotion",
+        "unpaid promotion"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "sponsorBlockCategoryIntro",
+      "titleKey": "Intro",
+      "title": "Intermission/Intro animation",
+      "description": "Segments typically found at the start of a video that include an animation, still frame or clip which are also seen in other videos by the same creator.",
+      "category": "PLAYBACK",
+      "flags": [],
+      "capability": null,
+      "symbol": "play.circle",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "sponsorBlockCategoryOutro",
+      "titleKey": "Endcards",
+      "title": "Endcards/Credits",
+      "description": "Typically near or at the end of the video when the credits pop up and/or endcards are shown.",
+      "category": "PLAYBACK",
+      "flags": [],
+      "capability": null,
+      "symbol": "play.circle",
+      "aliases": [
+        "outro",
+        "credits"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "sponsorBlockCategoryPreview",
+      "titleKey": "Preview",
+      "title": "Preview",
+      "description": "Collection of clips that show what is coming up in in this video or other videos in a series where all information is repeated later in the video.",
+      "category": "PLAYBACK",
+      "flags": [],
+      "capability": null,
+      "symbol": "play.circle",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "sponsorBlockCategoryHook",
+      "titleKey": "Hook",
+      "title": "Hook",
+      "description": "A brief opening section designed to keep viewers watching before the main content begins.",
+      "category": "PLAYBACK",
+      "flags": [],
+      "capability": null,
+      "symbol": "play.circle",
+      "aliases": [
+        "opening hook"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "sponsorBlockCategoryFiller",
+      "titleKey": "Jokes",
+      "title": "Filler Tangent/Jokes",
+      "description": "Filler Tangent/Jokes is only for tangential scenes added only for filler or humor that are not required to understand the main content of the video.",
+      "category": "PLAYBACK",
+      "flags": [],
+      "capability": null,
+      "symbol": "play.circle",
+      "aliases": [
+        "filler",
+        "tangent"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "sponsorBlockCategoryMusicOfftopic",
+      "titleKey": "MusicOfftopic",
+      "title": "Music: Non-music section",
+      "description": "Only to be used on videos which feature music as the primary content.",
+      "category": "PLAYBACK",
+      "flags": [],
+      "capability": null,
+      "symbol": "play.circle",
+      "aliases": [
+        "non music",
+        "music video"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": true,
+      "destination": null,
+      "key": "backgroundPlayback",
+      "titleKey": "BackgroundPlayback",
+      "title": "Background playback",
+      "description": "Enables background playback.",
+      "category": "PLAYBACK",
+      "flags": [],
+      "capability": null,
+      "symbol": "play.circle.fill",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "disableAutoCaptions",
+      "titleKey": "DisableAutoCaptions",
+      "title": "Disable auto captions",
+      "description": "Prevents automatic activation of captions.",
+      "category": "PLAYBACK",
+      "flags": [],
+      "capability": null,
+      "symbol": "play.circle",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "rememberCaptionState",
+      "titleKey": "RememberCaptionState",
+      "title": "Remember caption state",
+      "description": "Keeps your last subtitle preference instead of letting YouTube reset it.",
+      "category": "PLAYBACK",
+      "flags": [],
+      "capability": null,
+      "symbol": "captions.bubble.fill",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "rememberLoop",
+      "titleKey": "RememberLoopMode",
+      "title": "Remember loop mode",
+      "description": "Remembers the last selected loop mode in the player menu.",
+      "category": "PLAYBACK",
+      "flags": [],
+      "capability": null,
+      "symbol": "repeat",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "classicQuality",
+      "titleKey": "ClassicQuality",
+      "title": "Classic video quality",
+      "description": "Brings back classic video quality selection menu.",
+      "category": "PLAYBACK",
+      "flags": [],
+      "capability": null,
+      "symbol": "list.bullet.rectangle",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "noContentWarning",
+      "titleKey": "NoContentWarning",
+      "title": "Skip content warning",
+      "description": "Skips sensitive content warning message.",
+      "category": "PLAYBACK",
+      "flags": [],
+      "capability": null,
+      "symbol": "play.circle",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "noContinueWatching",
+      "titleKey": "NoContinueWatching",
+      "title": "Hide Continue Watching feed card",
+      "description": "Hides YouTube's \"Continue watching\" surface.",
+      "category": "PLAYBACK",
+      "flags": [],
+      "capability": null,
+      "symbol": "clock.badge.xmark",
+      "aliases": [
+        "continue watching"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "noRelatedWatchNexts",
+      "titleKey": "NoRelatedWatchNexts",
+      "title": "Hide up-next panel",
+      "description": "Hides the up-next panel that appears below the player.",
+      "category": "PLAYBACK",
+      "flags": [],
+      "capability": null,
+      "symbol": "play.circle",
+      "aliases": [
+        "watch next",
+        "videos under player"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "hideEndScreenCards",
+      "titleKey": "NoEndScreenCards",
+      "title": "Hide end-screen cards",
+      "description": "Hides End screens (thumbnails) at the end of videos.",
+      "category": "PLAYBACK",
+      "flags": [
+        "advanced"
+      ],
+      "capability": null,
+      "symbol": "rectangle.badge.xmark",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "noRelatedVids",
+      "titleKey": "NoRelatedVids",
+      "title": "Hide end-screen related videos",
+      "description": "When a video ends in fullscreen, YouTube shows related video thumbnails on the player — this hides them.",
+      "category": "PLAYBACK",
+      "flags": [
+        "advanced"
+      ],
+      "capability": null,
+      "symbol": "rectangle.stack.badge.minus",
+      "aliases": [
+        "related videos"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "noContinueWatchingPrompt",
+      "titleKey": "NoContinueWatchingPrompt",
+      "title": "Hide resume-video prompt",
+      "description": "Disables the 'Are you still watching?' alert that pauses long sessions.",
+      "category": "PLAYBACK",
+      "flags": [
+        "advanced"
+      ],
+      "capability": null,
+      "symbol": "play.circle",
+      "aliases": [
+        "are you still watching"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "miniplayer",
+      "titleKey": "Miniplayer",
+      "title": "Enable mini player",
+      "description": "Enables the mini player for videos that were not originally designed for it, such as videos targeted for children.",
+      "category": "PLAYBACK",
+      "flags": [],
+      "capability": null,
+      "symbol": "pip.fill",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "playlistOldMinibar",
+      "titleKey": "PlaylistOldMinibar",
+      "title": "Old playlist minibar",
+      "description": "Replaces the new floating playlist panel with the old one.",
+      "category": "PLAYBACK",
+      "flags": [
+        "advanced"
+      ],
+      "capability": null,
+      "symbol": "play.circle",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "portraitFullscreen",
+      "titleKey": "PortraitFullscreen",
+      "title": "Portrait fullscreen mode",
+      "description": "Enables portrait fullscreen mode support.",
+      "category": "PLAYER_OVERLAY",
+      "flags": [],
+      "capability": null,
+      "symbol": "iphone",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "autoFullscreen",
+      "titleKey": "AutoFullscreen",
+      "title": "Play videos in fullscreen",
+      "description": "Automatically plays videos in fullscreen mode.",
+      "category": "PLAYER_OVERLAY",
+      "flags": [],
+      "capability": null,
+      "symbol": "arrow.up.left.and.arrow.down.right",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "exitFullscreen",
+      "titleKey": "ExitFullscreen",
+      "title": "Exit fullscreen mode on finish",
+      "description": "Exits fullscreen mode at the end of video playback.",
+      "category": "PLAYER_OVERLAY",
+      "flags": [],
+      "capability": null,
+      "symbol": "arrow.down.right.and.arrow.up.left",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "tapToSeek",
+      "titleKey": "TapToSeek",
+      "title": "Tap to seek",
+      "description": "Quickly jump to any point by tapping the progress bar.",
+      "category": "PLAYER_OVERLAY",
+      "flags": [],
+      "capability": null,
+      "symbol": "hand.tap.fill",
+      "aliases": [
+        "tap seek"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "noDoubleTapToSeek",
+      "titleKey": "NoDoubleTap2Seek",
+      "title": "Disable double tap to seek",
+      "description": "Disables double tap to seek gesture.",
+      "category": "PLAYER_OVERLAY",
+      "flags": [],
+      "capability": null,
+      "symbol": "rectangle.on.rectangle",
+      "aliases": [
+        "double tap seek"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "noTwoFingerSnapToChapter",
+      "titleKey": "NoTwoFingerSnapToChapter",
+      "title": "Disable two finger double tap",
+      "description": "Disables two finger double tap snap to chapter gesture.",
+      "category": "PLAYER_OVERLAY",
+      "flags": [],
+      "capability": null,
+      "symbol": "rectangle.on.rectangle",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "dontSnapToChapter",
+      "titleKey": "DontSnap2Chapter",
+      "title": "Disable snap to chapter",
+      "description": "Disables skipping to the next episode by double-tap gesture.",
+      "category": "PLAYER_OVERLAY",
+      "flags": [],
+      "capability": null,
+      "symbol": "rectangle.on.rectangle",
+      "aliases": [
+        "chapter snap"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "noFreeZoom",
+      "titleKey": "NoFreeZoom",
+      "title": "Disable free zoom gesture",
+      "description": "Disables new free zoom gestures.",
+      "category": "PLAYER_OVERLAY",
+      "flags": [],
+      "capability": null,
+      "symbol": "rectangle.on.rectangle",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "noPlayerDownloadButton",
+      "titleKey": "NoPlayerDownloadButton",
+      "title": "Hide Download button",
+      "description": "Hides the Download button from the player.",
+      "category": "PLAYER_OVERLAY",
+      "flags": [],
+      "capability": null,
+      "symbol": "arrow.down.app",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "noPlayerShareButton",
+      "titleKey": "PlayerNoShare",
+      "title": "Remove \"Share\" button",
+      "description": "Removes \"Share\" button under player.",
+      "category": "PLAYER_OVERLAY",
+      "flags": [],
+      "capability": null,
+      "symbol": "square.and.arrow.up",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "noPlayerSaveButton",
+      "titleKey": "PlayerNoSave",
+      "title": "Remove \"Save\" button",
+      "description": "Removes \"Save\" button under player.",
+      "category": "PLAYER_OVERLAY",
+      "flags": [],
+      "capability": null,
+      "symbol": "bookmark.slash",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "noPlayerRemixButton",
+      "titleKey": "NoPlayerRemixButton",
+      "title": "Hide Remix button",
+      "description": "Hides the Remix button from the player.",
+      "category": "PLAYER_OVERLAY",
+      "flags": [],
+      "capability": null,
+      "symbol": "music.note.list",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "noPlayerClipButton",
+      "titleKey": "NoPlayerClipButton",
+      "title": "Hide Clip button",
+      "description": "Hides the Clip button from the player.",
+      "category": "PLAYER_OVERLAY",
+      "flags": [],
+      "capability": null,
+      "symbol": "scissors",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "removeDownloadMenu",
+      "titleKey": "RemoveDownloadMenu",
+      "title": "Remove \"Download\"",
+      "description": "Removes \"Download\" option from menu.",
+      "category": "PLAYER_OVERLAY",
+      "flags": [],
+      "capability": null,
+      "symbol": "arrow.down.doc",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "removeShareMenu",
+      "titleKey": "RemoveShareMenu",
+      "title": "Remove \"Share\"",
+      "description": "Removes \"Share\" option from menu.",
+      "category": "PLAYER_OVERLAY",
+      "flags": [],
+      "capability": null,
+      "symbol": "square.and.arrow.up.on.square",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": true,
+      "destination": null,
+      "key": "muteButton",
+      "titleKey": "MuteButton",
+      "title": "Mute button",
+      "description": "Displays a button to mute or unmute the volume on the overlay.",
+      "category": "PLAYER_OVERLAY",
+      "flags": [
+        "advanced"
+      ],
+      "capability": null,
+      "symbol": "speaker.slash.fill",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": true,
+      "destination": null,
+      "key": "lockButton",
+      "titleKey": "LockButton",
+      "title": "Lock button",
+      "description": "Displays a button to quickly lock the overlay screen and switch to fullscreen mode.",
+      "category": "PLAYER_OVERLAY",
+      "flags": [
+        "advanced"
+      ],
+      "capability": null,
+      "symbol": "lock.fill",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": true,
+      "destination": null,
+      "key": "downloadButton",
+      "titleKey": "DownloadButton",
+      "title": "Download button",
+      "description": "Displays a button on the overlay to download the current video, audio, captions, or thumbnail.",
+      "category": "PLAYER_OVERLAY",
+      "flags": [
+        "advanced"
+      ],
+      "capability": "NativeOfflineOrchestration",
+      "symbol": "arrow.down.circle.fill",
+      "aliases": [
+        "overlay download",
+        "download overlay"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": true,
+      "destination": null,
+      "key": "controlsSheetButton",
+      "titleKey": "ControlsSheetButton",
+      "title": "Premium controls button",
+      "description": "Displays a button on the overlay that opens Afterglow's rebuild of YouTube Premium's controls sheet with playback, speed, stable volume, and save tiles.",
+      "category": "PLAYER_OVERLAY",
+      "flags": [
+        "advanced"
+      ],
+      "capability": null,
+      "symbol": "slider.horizontal.3",
+      "aliases": [
+        "premium controls",
+        "speed tile",
+        "stable volume",
+        "playback sheet"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": true,
+      "destination": null,
+      "key": "overlayDeclutterButton",
+      "titleKey": "OverlayDeclutterButton",
+      "title": "Clean overlay button",
+      "description": "Adds the eye button to the player overlay. Each press cycles four modes: YouTube controls, Afterglow-only controls, timed controls with a faded eye, and fully timed; the fourth press returns to YouTube's controls. The mode resets on a fresh launch.",
+      "category": "PLAYER_OVERLAY",
+      "flags": [
+        "advanced"
+      ],
+      "capability": null,
+      "symbol": "wand.and.stars",
+      "aliases": [
+        "hide overlay buttons",
+        "clean overlay",
+        "declutter overlay"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "hideOverlayTitle",
+      "titleKey": "HideOverlayTitle",
+      "title": "Hide video title",
+      "description": "Hides the video title in fullscreen overlay.",
+      "category": "PLAYER_OVERLAY",
+      "flags": [
+        "advanced"
+      ],
+      "capability": "StandardPlayerControls",
+      "symbol": "rectangle.on.rectangle",
+      "aliases": [
+        "video title",
+        "fullscreen title"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "hidePlayerFullscreenButton",
+      "titleKey": "HidePlayerFullscreenButton",
+      "title": "Hide Fullscreen button",
+      "description": "Hides the standard player's fullscreen button while preserving YouTube's native availability state.",
+      "category": "PLAYER_OVERLAY",
+      "flags": [
+        "advanced"
+      ],
+      "capability": "StandardPlayerControls",
+      "symbol": "rectangle.on.rectangle",
+      "aliases": [
+        "fullscreen icon",
+        "expand player"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "hidePlayerOverflowButton",
+      "titleKey": "HidePlayerOverflowButton",
+      "title": "Hide More button",
+      "description": "Hides the three-dot More button from the standard player overlay.",
+      "category": "PLAYER_OVERLAY",
+      "flags": [
+        "advanced"
+      ],
+      "capability": "StandardPlayerControls",
+      "symbol": "rectangle.on.rectangle",
+      "aliases": [
+        "player more",
+        "three dots"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "hidePlayerYouTubeMusicButton",
+      "titleKey": "HidePlayerYouTubeMusicButton",
+      "title": "Hide YouTube Music button",
+      "description": "Hides the YouTube Music shortcut when YouTube provides it in the player overlay.",
+      "category": "PLAYER_OVERLAY",
+      "flags": [
+        "advanced"
+      ],
+      "capability": "StandardPlayerControls",
+      "symbol": "rectangle.on.rectangle",
+      "aliases": [
+        "music button"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "hidePlayerCollapseButton",
+      "titleKey": "HidePlayerCollapseButton",
+      "title": "Hide Collapse button",
+      "description": "Hides the player collapse control when YouTube makes it available.",
+      "category": "PLAYER_OVERLAY",
+      "flags": [
+        "advanced"
+      ],
+      "capability": "StandardPlayerControls",
+      "symbol": "rectangle.on.rectangle",
+      "aliases": [
+        "collapse player",
+        "minimize player"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "hideSubs",
+      "titleKey": "HideSubs",
+      "title": "Hide Subtitles button",
+      "description": "Hides Subtitles button from the overlay.",
+      "category": "PLAYER_OVERLAY",
+      "flags": [
+        "advanced"
+      ],
+      "capability": "StandardPlayerControls",
+      "symbol": "captions.bubble",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "noHUDMsgs",
+      "titleKey": "NoHUDMsgs",
+      "title": "Hide HUD messages",
+      "description": "Hides HUD overlay messages in the player.",
+      "category": "PLAYER_OVERLAY",
+      "flags": [
+        "advanced"
+      ],
+      "capability": null,
+      "symbol": "message.badge",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "hidePrevNext",
+      "titleKey": "HidePrevNext",
+      "title": "Hide Previous and Next buttons",
+      "description": "Hides Previous and Next video buttons from overlay.",
+      "category": "PLAYER_OVERLAY",
+      "flags": [
+        "advanced"
+      ],
+      "capability": "StandardPlayerControls",
+      "symbol": "backward.end.alt.fill",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "replacePrevNext",
+      "titleKey": "ReplacePrevNext",
+      "title": "Fast forward and Rewind buttons",
+      "description": "Replaces Previous and Next video buttons to Fast forward and Rewind buttons in overlay.",
+      "category": "PLAYER_OVERLAY",
+      "flags": [
+        "advanced"
+      ],
+      "capability": "StandardPlayerControls",
+      "symbol": "arrow.left.arrow.right",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "noDarkBg",
+      "titleKey": "NoDarkBg",
+      "title": "Remove dark background",
+      "description": "Removes overlay dark background.",
+      "category": "PLAYER_OVERLAY",
+      "flags": [
+        "advanced"
+      ],
+      "capability": null,
+      "symbol": "circle.lefthalf.filled",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "noFullscreenActions",
+      "titleKey": "NoFullscreenActions",
+      "title": "Disable fullscreen actions",
+      "description": "Disables actions panel in fullscreen mode.",
+      "category": "PLAYER_OVERLAY",
+      "flags": [
+        "advanced"
+      ],
+      "capability": null,
+      "symbol": "rectangle.on.rectangle.slash",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "stockVolumeHUD",
+      "titleKey": "StockVolumeHUD",
+      "title": "Stock volume HUD",
+      "description": "Displays system volume HUD in fullscreen.",
+      "category": "PLAYER_OVERLAY",
+      "flags": [
+        "advanced"
+      ],
+      "capability": null,
+      "symbol": "speaker.wave.2.fill",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "noWatermarks",
+      "titleKey": "NoWatermarks",
+      "title": "Hide Watermarks",
+      "description": "Hides channel watermarks from the player.",
+      "category": "PLAYER_OVERLAY",
+      "flags": [
+        "advanced"
+      ],
+      "capability": "StandardPlayerControls",
+      "symbol": "drop.triangle.fill",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "videoEndTime",
+      "titleKey": "VideoEndTime",
+      "title": "Show playback end time",
+      "description": "Adds video playback end time to the player bar.",
+      "category": "PLAYER_OVERLAY",
+      "flags": [
+        "advanced"
+      ],
+      "capability": null,
+      "symbol": "clock.fill",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "24hrFormat",
+      "titleKey": "24hrFormat",
+      "title": "24-hour format",
+      "description": "Shows end time in 24-hour format.",
+      "category": "PLAYER_OVERLAY",
+      "flags": [
+        "advanced"
+      ],
+      "capability": null,
+      "symbol": "clock.arrow.circlepath",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "pauseOnOverlay",
+      "titleKey": "PauseOnOverlay",
+      "title": "Pause on overlay",
+      "description": "Pauses when overlay appears and resumes when it hides.",
+      "category": "PLAYER_OVERLAY",
+      "flags": [
+        "advanced"
+      ],
+      "capability": null,
+      "symbol": "pause.circle.fill",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "shortsOnlyMode",
+      "titleKey": "ShortsOnlyMode",
+      "title": "Shorts only mode",
+      "description": "Limits YouTube functionality to viewing Shorts only.",
+      "category": "SHORTS",
+      "flags": [],
+      "capability": null,
+      "symbol": "rectangle.portrait.on.rectangle.portrait",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "autoSkipShorts",
+      "titleKey": "AutoSkipShorts",
+      "title": "Auto-skip Shorts",
+      "description": "Automatically skips to the next Short.",
+      "category": "SHORTS",
+      "flags": [],
+      "capability": null,
+      "symbol": "forward.end.fill",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "hideShorts",
+      "titleKey": "HideShorts",
+      "title": "Hide Shorts videos",
+      "description": "Hides Shorts videos from Homepage, Recommended etc.",
+      "category": "SHORTS",
+      "flags": [],
+      "capability": null,
+      "symbol": "play.square.stack",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "shortsProgress",
+      "titleKey": "ShortsProgress",
+      "title": "Enable progress bar",
+      "description": "Displays progress bar in the Shorts overlay.",
+      "category": "SHORTS",
+      "flags": [],
+      "capability": null,
+      "symbol": "timeline.selection",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "pinchToFullscreenShorts",
+      "titleKey": "PinchToFullscreenShorts",
+      "title": "Pinch to Fullscreen",
+      "description": "Manages visibility of the overlay with pinch in and pinch out gestures, displaying Shorts in fullscreen mode.",
+      "category": "SHORTS",
+      "flags": [],
+      "capability": null,
+      "symbol": "hand.draw.fill",
+      "aliases": [
+        "pinch fullscreen"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "shortsToRegular",
+      "titleKey": "ShortsToRegular",
+      "title": "Shorts to regular videos",
+      "description": "Opens Shorts videos as regular videos.",
+      "category": "SHORTS",
+      "flags": [],
+      "capability": null,
+      "symbol": "arrow.triangle.2.circlepath",
+      "aliases": [
+        "convert shorts"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "resumeShorts",
+      "titleKey": "ResumeShorts",
+      "title": "Disable resume Shorts",
+      "description": "Prevents YouTube from resuming to Shorts on startup.",
+      "category": "SHORTS",
+      "flags": [],
+      "capability": null,
+      "symbol": "arrow.uturn.backward.circle",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "hideShortsLogo",
+      "titleKey": "HideShortsLogo",
+      "title": "Hide Shorts logo",
+      "description": "Hides Shorts logo in the top left corner.",
+      "category": "SHORTS",
+      "flags": [
+        "advanced"
+      ],
+      "capability": "ShortsOverlayElements",
+      "symbol": "play.slash",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "hideShortsSearch",
+      "titleKey": "HideShortsSearch",
+      "title": "Hide Search button",
+      "description": "Hides Search button from the Shorts overlay.",
+      "category": "SHORTS",
+      "flags": [
+        "advanced"
+      ],
+      "capability": "ShortsOverlayElements",
+      "symbol": "magnifyingglass",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "hideShortsCamera",
+      "titleKey": "HideShortsCamera",
+      "title": "Hide Camera button",
+      "description": "Hides Camera button from the Shorts overlay.",
+      "category": "SHORTS",
+      "flags": [
+        "advanced"
+      ],
+      "capability": "ShortsOverlayElements",
+      "symbol": "camera.fill",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "hideShortsMore",
+      "titleKey": "HideShortsMore",
+      "title": "Hide More (⋮) button",
+      "description": "Hides More (⋮) button from the Shorts overlay. It's also accessible by long-pressing the screen.",
+      "category": "SHORTS",
+      "flags": [
+        "advanced"
+      ],
+      "capability": "ShortsOverlayElements",
+      "symbol": "ellipsis.circle",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "hideShortsLens",
+      "titleKey": "HideShortsLens",
+      "title": "Hide Lens button",
+      "description": "Hides the Lens button in the Shorts overlay when YouTube 21.37 exposes it.",
+      "category": "SHORTS",
+      "flags": [
+        "advanced"
+      ],
+      "capability": "ShortsOverlayElements",
+      "symbol": "play.square",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "hideShortsSubscriptions",
+      "titleKey": "HideShortsSubscriptions",
+      "title": "Hide Subscriptions carousel",
+      "description": "Hides the Subscriptions carousel in Shorts.",
+      "category": "SHORTS",
+      "flags": [
+        "advanced"
+      ],
+      "capability": "ShortsOverlayElements",
+      "symbol": "person.2.slash",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "hideShortsLike",
+      "titleKey": "HideShortsLike",
+      "title": "No Like button",
+      "description": "Removes the Like button from the action bar.",
+      "category": "SHORTS",
+      "flags": [
+        "advanced"
+      ],
+      "capability": "ShortsOverlayElements",
+      "symbol": "hand.thumbsup.slash",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "hideShortsDislike",
+      "titleKey": "HideShortsDislike",
+      "title": "No Dislike button",
+      "description": "Removes the Dislike button from the action bar.",
+      "category": "SHORTS",
+      "flags": [
+        "advanced"
+      ],
+      "capability": "ShortsOverlayElements",
+      "symbol": "hand.thumbsdown",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "hideShortsComments",
+      "titleKey": "HideShortsComments",
+      "title": "No Comments button",
+      "description": "Removes the Comments button from the action bar.",
+      "category": "SHORTS",
+      "flags": [
+        "advanced"
+      ],
+      "capability": "ShortsOverlayElements",
+      "symbol": "text.bubble",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "hideShortsRemix",
+      "titleKey": "HideShortsRemix",
+      "title": "No Remix button",
+      "description": "Removes the Remix button from the action bar.",
+      "category": "SHORTS",
+      "flags": [
+        "advanced"
+      ],
+      "capability": "ShortsOverlayElements",
+      "symbol": "music.note",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "hideShortsShare",
+      "titleKey": "HideShortsShare",
+      "title": "No Share button",
+      "description": "Removes the Share button from the action bar.",
+      "category": "SHORTS",
+      "flags": [
+        "advanced"
+      ],
+      "capability": "ShortsOverlayElements",
+      "symbol": "square.and.arrow.up",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "hideShortsAvatars",
+      "titleKey": "HideShortsAvatars",
+      "title": "Hide avatars",
+      "description": "Hides channel avatars from the Shorts overlay.",
+      "category": "SHORTS",
+      "flags": [
+        "advanced"
+      ],
+      "capability": "ShortsOverlayElements",
+      "symbol": "person.crop.circle.badge.xmark",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "hideShortsThanks",
+      "titleKey": "HideShortsThanks",
+      "title": "Hide Thanks badge",
+      "description": "Hides the Thanks badge from Shorts.",
+      "category": "SHORTS",
+      "flags": [
+        "advanced"
+      ],
+      "capability": "ShortsOverlayElements",
+      "symbol": "gift",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "hideShortsSource",
+      "titleKey": "HideShortsSource",
+      "title": "No source link button",
+      "description": "Removes the button that navigates to the full video or another Short video.",
+      "category": "SHORTS",
+      "flags": [
+        "advanced"
+      ],
+      "capability": "ShortsOverlayElements",
+      "symbol": "link.circle",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "hideShortsChannelName",
+      "titleKey": "HideShortsChannelName",
+      "title": "Hide channel name",
+      "description": "Hides the channel name from Shorts.",
+      "category": "SHORTS",
+      "flags": [
+        "advanced"
+      ],
+      "capability": "ShortsOverlayElements",
+      "symbol": "person.text.rectangle",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "hideShortsDescription",
+      "titleKey": "HideShortsDescription",
+      "title": "No description",
+      "description": "Removes the Shorts description.",
+      "category": "SHORTS",
+      "flags": [
+        "advanced"
+      ],
+      "capability": "ShortsOverlayElements",
+      "symbol": "doc.text",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "hideShortsAudioTrack",
+      "titleKey": "HideShortsAudioTrack",
+      "title": "Hide audio track",
+      "description": "Hides the audio track info from Shorts.",
+      "category": "SHORTS",
+      "flags": [
+        "advanced"
+      ],
+      "capability": "ShortsOverlayElements",
+      "symbol": "music.quarternote.3",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "hideShortsPromoCards",
+      "titleKey": "HideShortsPromoCards",
+      "title": "Hide Shorts promo cards",
+      "description": "Hides promotional cards inside the Shorts viewer.",
+      "category": "SHORTS",
+      "flags": [
+        "advanced"
+      ],
+      "capability": "ShortsOverlayElements",
+      "symbol": "rectangle.stack.badge.minus",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "hideShortsInfoPanel",
+      "titleKey": "HideShortsInfoPanel",
+      "title": "Hide info panel",
+      "description": "Hides the entire renderer-backed Shorts info panel, including its channel and description content.",
+      "category": "SHORTS",
+      "flags": [
+        "advanced"
+      ],
+      "capability": "ShortsOverlayElements",
+      "symbol": "play.square",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "hideShortsMetapanel",
+      "titleKey": "HideShortsMetapanel",
+      "title": "Hide metapanel",
+      "description": "Hides the entire renderer-backed Shorts metapanel when YouTube supplies one.",
+      "category": "SHORTS",
+      "flags": [
+        "advanced"
+      ],
+      "capability": "ShortsOverlayElements",
+      "symbol": "play.square",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "hideShortsPlayerLayer",
+      "titleKey": "HideShortsPlayerLayer",
+      "title": "Hide built-in player layer",
+      "description": "Hides YouTube's renderer-backed Shorts player layer while leaving Afterglow's overlay controls available.",
+      "category": "SHORTS",
+      "flags": [
+        "advanced"
+      ],
+      "capability": "ShortsOverlayElements",
+      "symbol": "play.square",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": true,
+      "destination": null,
+      "key": "downloadRefreshMetadata",
+      "titleKey": "DownloadRefreshMetadata",
+      "title": "Refresh missing metadata",
+      "description": "If the live player data has no captions or extras, Afterglow checks YouTube again before showing the download sheet.",
+      "category": "DOWNLOADS_VAULT",
+      "flags": [],
+      "capability": null,
+      "symbol": "arrow.down.circle",
+      "aliases": [
+        "captions fallback",
+        "metadata"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": true,
+      "destination": null,
+      "key": "downloadPreferStableAudio",
+      "titleKey": "DownloadPreferStableAudio",
+      "title": "Prefer stable volume",
+      "description": "Prefer YouTube's dynamic-range-compressed audio stream when both stable and original variants are available.",
+      "category": "DOWNLOADS_VAULT",
+      "flags": [],
+      "capability": null,
+      "symbol": "arrow.down.circle",
+      "aliases": [
+        "drc",
+        "stable volume"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": true,
+      "destination": null,
+      "key": "downloadIncludeAutoCaptions",
+      "titleKey": "DownloadIncludeAutoCaptions",
+      "title": "Include auto captions",
+      "description": "Show auto-generated caption tracks in the captions picker.",
+      "category": "DOWNLOADS_VAULT",
+      "flags": [],
+      "capability": null,
+      "symbol": "arrow.down.circle",
+      "aliases": [
+        "auto captions",
+        "generated captions"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": true,
+      "destination": null,
+      "key": "downloadOfferTranslatedCaptions",
+      "titleKey": "DownloadOfferTranslatedCaptions",
+      "title": "Offer translated captions",
+      "description": "Show YouTube-translated caption tracks when the video exposes translation languages.",
+      "category": "DOWNLOADS_VAULT",
+      "flags": [],
+      "capability": null,
+      "symbol": "arrow.down.circle",
+      "aliases": [
+        "translated subtitles",
+        "caption translation"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "removePlayNext",
+      "titleKey": "RemovePlayNext",
+      "title": "Remove \"Play next in queue\"",
+      "description": "Removes \"Play next in queue\" option from menu.",
+      "category": "FEED",
+      "flags": [],
+      "capability": null,
+      "symbol": "text.badge.minus",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "removeWatchLaterMenu",
+      "titleKey": "RemoveWatchLaterMenu",
+      "title": "Remove \"Save to Watch Later\"",
+      "description": "Removes \"Save to Watch Later\" option from menu.",
+      "category": "FEED",
+      "flags": [],
+      "capability": null,
+      "symbol": "clock.badge.xmark",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "removeSaveToPlaylistMenu",
+      "titleKey": "RemoveSaveToPlaylistMenu",
+      "title": "Remove \"Save to playlist\"",
+      "description": "Removes \"Save to playlist\" option from menu.",
+      "category": "FEED",
+      "flags": [],
+      "capability": null,
+      "symbol": "text.badge.minus",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "removeNotInterestedMenu",
+      "titleKey": "RemoveNotInterestedMenu",
+      "title": "Remove \"Not interested\"",
+      "description": "Removes \"Not interested\" option from menu.",
+      "category": "FEED",
+      "flags": [],
+      "capability": null,
+      "symbol": "hand.raised.slash",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "removeDontRecommendMenu",
+      "titleKey": "RemoveDontRecommendMenu",
+      "title": "Remove \"Don't recommend channel\"",
+      "description": "Removes \"Don't recommend channel\" option from menu.",
+      "category": "FEED",
+      "flags": [],
+      "capability": null,
+      "symbol": "person.crop.circle.badge.minus",
+      "aliases": [
+        "don't recommend channel"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "removeReportMenu",
+      "titleKey": "RemoveReportMenu",
+      "title": "Remove \"Report\"",
+      "description": "Removes \"Report\" option from menu.",
+      "category": "FEED",
+      "flags": [],
+      "capability": null,
+      "symbol": "exclamationmark.bubble",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "copyVideoInfo",
+      "titleKey": "CopyVideoInfo",
+      "title": "Copy video details",
+      "description": "Long press the video details panel to copy video details.",
+      "category": "FEED",
+      "flags": [],
+      "capability": null,
+      "symbol": "square.grid.2x2",
+      "aliases": [
+        "copy info",
+        "video details"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "saveProfilePhoto",
+      "titleKey": "SaveProfilePhoto",
+      "title": "Profile photo actions",
+      "description": "Long press profile pictures to save or copy them.",
+      "category": "FEED",
+      "flags": [],
+      "capability": null,
+      "symbol": "square.grid.2x2",
+      "aliases": [
+        "avatar"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "postManager",
+      "titleKey": "PostManager",
+      "title": "Post actions",
+      "description": "Long press posts to copy text, save images, or copy the post as an image.",
+      "category": "FEED",
+      "flags": [],
+      "capability": null,
+      "symbol": "square.grid.2x2",
+      "aliases": [
+        "community posts"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "commentManager",
+      "titleKey": "CommentManager",
+      "title": "Comment actions",
+      "description": "Long press comments to copy text or save them as an image.",
+      "category": "FEED",
+      "flags": [],
+      "capability": null,
+      "symbol": "square.grid.2x2",
+      "aliases": [
+        "long press comments"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "nativeShare",
+      "titleKey": "NativeShare",
+      "title": "Use native share sheet",
+      "description": "Uses the iOS share sheet when sharing media.",
+      "category": "FEED",
+      "flags": [],
+      "capability": null,
+      "symbol": "square.grid.2x2",
+      "aliases": [
+        "share sheet"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "fixAlbums",
+      "titleKey": "FixAlbums",
+      "title": "Fix album covers",
+      "description": "Fixes the display of covers for users from Russia.",
+      "category": "FEED",
+      "flags": [],
+      "capability": null,
+      "symbol": "square.grid.2x2",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "copyWithTimestamp",
+      "titleKey": "CopyWithTimestamp",
+      "title": "Copy timestamped links",
+      "description": "Allows to copy timestamped link to the clipboard by pressing pause button.",
+      "category": "FEED",
+      "flags": [],
+      "capability": null,
+      "symbol": "square.grid.2x2",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "advancedMode",
+      "titleKey": "Advanced",
+      "title": "Advanced mode",
+      "description": "Shows extra power-user settings and advanced UI controls.",
+      "category": "ADVANCED",
+      "flags": [
+        "advanced"
+      ],
+      "capability": null,
+      "symbol": "gearshape.2",
+      "aliases": [
+        "advanced mode"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "debugLogEnabled",
+      "titleKey": "DebugLogging",
+      "title": "Debug logging",
+      "description": "Master switch for in-memory and on-disk diagnostic logs. Turning it off also turns off Firehose logging and the debug HUD.",
+      "category": "ADVANCED",
+      "flags": [
+        "advanced"
+      ],
+      "capability": null,
+      "symbol": "gearshape.2",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "debugLogFirehose",
+      "titleKey": "DebugLogFirehose",
+      "title": "Firehose logging",
+      "description": "Turns on Debug logging and captures every Afterglow log category, including noisy internals and future categories.",
+      "category": "ADVANCED",
+      "flags": [
+        "advanced"
+      ],
+      "capability": null,
+      "symbol": "gearshape.2",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": true,
+      "destination": null,
+      "key": "debugLogDownloads",
+      "titleKey": "DebugLogDownloads",
+      "title": "Downloads",
+      "description": "Capture download buttons, format extraction, stream downloads, FFmpeg, caption, thumbnail, and save-to-Photos logs.",
+      "category": "ADVANCED",
+      "flags": [
+        "advanced"
+      ],
+      "capability": null,
+      "symbol": "gearshape.2",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": true,
+      "destination": null,
+      "key": "debugLogPlayerUI",
+      "titleKey": "DebugLogPlayerUI",
+      "title": "Player UI",
+      "description": "Capture player overlay, mute/lock buttons, Shorts overlay, fullscreen, and view-controller resolution logs.",
+      "category": "ADVANCED",
+      "flags": [
+        "advanced"
+      ],
+      "capability": null,
+      "symbol": "gearshape.2",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": true,
+      "destination": null,
+      "key": "debugLogPremiumControls",
+      "titleKey": "DebugLogPremiumControls",
+      "title": "Premium controls",
+      "description": "Capture the pseudo-Premium controls sheet, action taps, speed controls, and related presentation logs.",
+      "category": "ADVANCED",
+      "flags": [
+        "advanced"
+      ],
+      "capability": null,
+      "symbol": "gearshape.2",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "debugLogPiP",
+      "titleKey": "DebugLogPiP",
+      "title": "Picture in Picture",
+      "description": "Capture PiP compatibility and activation logs. Usually noisy, so it is off by default.",
+      "category": "ADVANCED",
+      "flags": [
+        "advanced"
+      ],
+      "capability": null,
+      "symbol": "gearshape.2",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "debugLogProbes",
+      "titleKey": "DebugLogProbes",
+      "title": "Diagnostics",
+      "description": "Capture startup diagnostics, offline-download routing logs, initialization logs, and detailed compatibility events. Noisy and off by default.",
+      "category": "ADVANCED",
+      "flags": [
+        "advanced"
+      ],
+      "capability": null,
+      "symbol": "gearshape.2",
+      "aliases": []
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "debugHUDEnabled",
+      "titleKey": "ShowDebugHUD",
+      "title": "Show Debug HUD",
+      "description": "Floating on-screen overlay showing the latest log lines. Turning it on also enables Debug logging.",
+      "category": "ADVANCED",
+      "flags": [
+        "advanced"
+      ],
+      "capability": null,
+      "symbol": "waveform.path.ecg",
+      "aliases": [
+        "debug hud",
+        "diagnostics overlay"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": false,
+      "destination": null,
+      "key": "redProgressBar",
+      "titleKey": "RedProgressBar",
+      "title": "Red Progress Bar",
+      "description": "Legacy option that paints the seek bar red when no theme color is set.",
+      "category": "APPEARANCE",
+      "flags": [
+        "advanced"
+      ],
+      "capability": null,
+      "symbol": "minus",
+      "aliases": [
+        "red seek bar"
+      ]
+    },
+    {
+      "type": "boolean",
+      "default": true,
+      "destination": null,
+      "key": "nativeDownloadRouting",
+      "titleKey": "NativeDownloadRouting",
+      "title": "Route Native Downloads",
+      "description": "Sends YouTube's own download button through Afterglow's downloader when native offline orchestration is available.",
+      "category": "DOWNLOADS_VAULT",
+      "flags": [
+        "advanced"
+      ],
+      "capability": "NativeOfflineOrchestration",
+      "symbol": "arrow.down.to.line",
+      "aliases": [
+        "native download",
+        "offline button"
+      ]
+    },
+    {
+      "type": "integer",
+      "default": 1,
+      "destination": null,
+      "key": "speedIndex",
+      "titleKey": "HoldToSpeed",
+      "title": "Hold to speed",
+      "description": "Sets the playback speed triggered by a long press on the player.\n\nStandard: 0.25×–5× with fixed steps\nExtended: 0.25×–10× with 0.05× steps",
+      "category": "PLAYBACK",
+      "flags": [],
+      "capability": null,
+      "symbol": "hare",
+      "aliases": [
+        "long press speed",
+        "2x"
+      ]
+    },
+    {
+      "type": "integer",
+      "default": 3,
+      "destination": null,
+      "key": "autoSpeedIndex",
+      "titleKey": "DefaultPlaybackRate",
+      "title": "Default playback rate",
+      "description": "Overrides the default playback speed",
+      "category": "PLAYBACK",
+      "flags": [],
+      "capability": null,
+      "symbol": "speedometer",
+      "aliases": [
+        "playback speed",
+        "default speed"
+      ]
+    },
+    {
+      "type": "integer",
+      "default": 0,
+      "destination": null,
+      "key": "wiFiQualityIndex",
+      "titleKey": "PlaybackQualityOnWiFi",
+      "title": "Playback quality on WiFi",
+      "description": "Automatically applies the selected quality when streaming over Wi-Fi",
+      "category": "PLAYBACK",
+      "flags": [],
+      "capability": null,
+      "symbol": "wifi",
+      "aliases": [
+        "wifi quality"
+      ]
+    },
+    {
+      "type": "integer",
+      "default": 0,
+      "destination": null,
+      "key": "cellQualityIndex",
+      "titleKey": "PlaybackQualityOnCellular",
+      "title": "Playback quality on Cellular",
+      "description": "Automatically applies the selected quality when streaming over mobile data",
+      "category": "PLAYBACK",
+      "flags": [],
+      "capability": null,
+      "symbol": "antenna.radiowaves.left.and.right",
+      "aliases": [
+        "cellular quality"
+      ]
+    },
+    {
+      "type": "integer",
+      "default": 0,
+      "destination": null,
+      "key": "autoplayMode",
+      "titleKey": "Autoplay",
+      "title": "Autoplay",
+      "description": "Choose whether autoplay stays default, turns off, or turns off and hides the switch.",
+      "category": "PLAYBACK",
+      "flags": [],
+      "capability": null,
+      "symbol": "play.rectangle.on.rectangle",
+      "aliases": [
+        "autoplay next"
+      ]
+    },
+    {
+      "type": "integer",
+      "default": 0,
+      "destination": null,
+      "key": "commentsHeaderMode",
+      "titleKey": "CommentsHeader",
+      "title": "Comments header",
+      "description": "Choose default behavior for the comments sort header.",
+      "category": "FEED",
+      "flags": [],
+      "capability": null,
+      "symbol": "text.bubble",
+      "aliases": [
+        "comments sort",
+        "comments header"
+      ]
+    },
+    {
+      "type": "integer",
+      "default": 0,
+      "destination": null,
+      "key": "downloadPostActionMode",
+      "titleKey": "DownloadPostAction",
+      "title": "After download",
+      "description": "Choose whether completed videos save to Photos, open the share sheet, or ask every time.",
+      "category": "DOWNLOADS_VAULT",
+      "flags": [],
+      "capability": null,
+      "symbol": "square.and.arrow.down",
+      "aliases": [
+        "save to photos",
+        "share sheet",
+        "camera roll"
+      ]
+    },
+    {
+      "type": "integer",
+      "default": 1,
+      "destination": null,
+      "key": "downloadAudioTrackMode",
+      "titleKey": "DownloadAudioTrack",
+      "title": "Audio track",
+      "description": "Choose the default audio track automatically, or ask when multiple language/dubbed tracks are available.",
+      "category": "DOWNLOADS_VAULT",
+      "flags": [],
+      "capability": null,
+      "symbol": "waveform",
+      "aliases": [
+        "audio language",
+        "dubbed audio",
+        "language tracks"
+      ]
+    },
+    {
+      "type": "integer",
+      "default": 0,
+      "destination": null,
+      "key": "downloadAudioQualityMode",
+      "titleKey": "DownloadAudioQuality",
+      "title": "Audio quality",
+      "description": "Use standard audio, or prefer higher-bitrate Premium audio when YouTube exposes it.",
+      "category": "DOWNLOADS_VAULT",
+      "flags": [],
+      "capability": null,
+      "symbol": "music.note",
+      "aliases": [
+        "high audio",
+        "premium audio"
+      ]
+    },
+    {
+      "type": "integer",
+      "default": 0,
+      "destination": null,
+      "key": "downloadPickerFontScaleMode",
+      "titleKey": "DownloadPickerTextSize",
+      "title": "Picker text size",
+      "description": "Controls the text size used by the video quality and audio track lists.",
+      "category": "DOWNLOADS_VAULT",
+      "flags": [],
+      "capability": null,
+      "symbol": "textformat.size",
+      "aliases": [
+        "download font size",
+        "quality picker text"
+      ]
+    },
+    {
+      "type": "integer",
+      "default": 1,
+      "destination": null,
+      "key": "downloadPickerFontFaceMode",
+      "titleKey": "DownloadPickerFont",
+      "title": "Picker font",
+      "description": "Controls the font face used by the video quality and audio track lists.",
+      "category": "DOWNLOADS_VAULT",
+      "flags": [],
+      "capability": null,
+      "symbol": "textformat",
+      "aliases": [
+        "download font face",
+        "quality picker font"
+      ]
+    },
+    {
+      "type": "integer",
+      "default": 0,
+      "destination": null,
+      "key": "seekBarScrubberSize",
+      "titleKey": "ScrubberSize",
+      "title": "Scrubber Size",
+      "description": "Makes the seek bar scrubber ball bigger or smaller.",
+      "category": "APPEARANCE",
+      "flags": [],
+      "capability": null,
+      "symbol": "circle.fill",
+      "aliases": [
+        "scrubber size",
+        "seek bar knob size"
+      ]
+    },
+    {
+      "type": "integer",
+      "default": 1,
+      "destination": null,
+      "key": "theme_glowStrength",
+      "titleKey": "GlowStrength",
+      "title": "Glow strength",
+      "description": "Controls glow intensity for enabled glow surfaces.",
+      "category": "APPEARANCE",
+      "flags": [],
+      "capability": null,
+      "symbol": "sun.max",
+      "aliases": []
+    },
+    {
+      "type": "integer",
+      "default": 1,
+      "destination": null,
+      "key": "theme_glowStrengthMode",
+      "titleKey": "GlowStrengthMode",
+      "title": "Glow Strength Mode",
+      "description": "Chooses the subtle, normal, strong, or custom glow strength.",
+      "category": "APPEARANCE",
+      "flags": [
+        "advanced"
+      ],
+      "capability": null,
+      "symbol": "sun.max",
+      "aliases": [
+        "glow strength mode"
+      ]
+    },
+    {
+      "type": "integer",
+      "default": 50,
+      "destination": null,
+      "key": "theme_glowStrengthCustom",
+      "titleKey": "CustomGlowStrength",
+      "title": "Custom Glow Strength",
+      "description": "Exact glow strength from 0 to 100 used by the custom mode.",
+      "category": "APPEARANCE",
+      "flags": [
+        "advanced"
+      ],
+      "capability": null,
+      "symbol": "sun.max",
+      "aliases": [
+        "custom glow strength"
+      ]
+    },
+    {
+      "type": "integer",
+      "default": 100,
+      "destination": null,
+      "key": "theme_glowOpacity",
+      "titleKey": "GlowOpacity",
+      "title": "Glow Opacity",
+      "description": "Maximum shadow opacity as a percentage.",
+      "category": "APPEARANCE",
+      "flags": [
+        "advanced"
+      ],
+      "capability": null,
+      "symbol": "circle.lefthalf.filled",
+      "aliases": [
+        "glow opacity"
+      ]
+    },
+    {
+      "type": "integer",
+      "default": 50,
+      "destination": null,
+      "key": "theme_glowRadius",
+      "titleKey": "GlowRadius",
+      "title": "Glow Radius",
+      "description": "Radius multiplier where 50 is normal and 100 is double.",
+      "category": "APPEARANCE",
+      "flags": [
+        "advanced"
+      ],
+      "capability": null,
+      "symbol": "circle.dashed",
+      "aliases": [
+        "glow radius"
+      ]
+    },
+    {
+      "type": "integer",
+      "default": 1,
+      "destination": null,
+      "key": "theme_glowLayers",
+      "titleKey": "GlowLayers",
+      "title": "Glow Layers",
+      "description": "Number of stacked glow passes. Higher values are louder and heavier.",
+      "category": "APPEARANCE",
+      "flags": [
+        "advanced"
+      ],
+      "capability": null,
+      "symbol": "square.stack.3d.up",
+      "aliases": [
+        "glow layers"
+      ]
+    },
+    {
+      "type": "integer",
+      "default": 0,
+      "destination": null,
+      "key": "theme_fontMode",
+      "titleKey": "AppFont",
+      "title": "App font",
+      "description": "Applies the selected font across YouTube text. Auto keeps stock fonts unless Lite Mode is on. If font changes look off at first, restart the app.",
+      "category": "APPEARANCE",
+      "flags": [],
+      "capability": null,
+      "symbol": "textformat",
+      "aliases": [
+        "font",
+        "courier",
+        "typography"
+      ]
+    },
+    {
+      "type": "integer",
+      "default": 0,
+      "destination": null,
+      "key": "theme_fontSizeMode",
+      "titleKey": "AppFontSize",
+      "title": "App font size",
+      "description": "Scales every original text size by the selected percentage so titles and supporting text keep their hierarchy.",
+      "category": "APPEARANCE",
+      "flags": [],
+      "capability": null,
+      "symbol": "textformat.size",
+      "aliases": [
+        "text size",
+        "font scale",
+        "larger text",
+        "smaller text"
+      ]
+    },
+    {
+      "type": "integer",
+      "default": 0,
+      "destination": null,
+      "key": "theme_fontWeightMode",
+      "titleKey": "AppFontWeight",
+      "title": "App font weight",
+      "description": "Adjusts each original weight relatively, preserving the difference between titles and supporting text.",
+      "category": "APPEARANCE",
+      "flags": [],
+      "capability": null,
+      "symbol": "bold",
+      "aliases": [
+        "bold",
+        "semibold",
+        "medium",
+        "light",
+        "black"
+      ]
+    },
+    {
+      "type": "integer",
+      "default": 0,
+      "destination": null,
+      "key": "theme_fontStyleMode",
+      "titleKey": "AppFontStyle",
+      "title": "App font style",
+      "description": "Keep each original style, force upright text, or apply italics app-wide.",
+      "category": "APPEARANCE",
+      "flags": [],
+      "capability": null,
+      "symbol": "italic",
+      "aliases": [
+        "italic",
+        "upright",
+        "slant"
+      ]
+    },
+    {
+      "type": "integer",
+      "default": 0,
+      "destination": null,
+      "key": "theme_tabLabelSizeMode",
+      "titleKey": "TabLabelSize",
+      "title": "Tab label size",
+      "description": "Shrinks tab labels when wider fonts would wrap names like Subscriptions.",
+      "category": "APPEARANCE",
+      "flags": [],
+      "capability": null,
+      "symbol": "textformat.abc",
+      "aliases": [
+        "tab font size",
+        "tab label",
+        "subscriptions wrapping"
+      ]
+    },
+    {
+      "type": "string",
+      "default": "FEwhat_to_watch",
+      "destination": null,
+      "key": "startupTab",
+      "titleKey": "Startup",
+      "title": "Startup Tab",
+      "description": "Choose which active tab opens first.",
+      "category": "APPEARANCE",
+      "flags": [],
+      "capability": null,
+      "symbol": "house",
+      "aliases": [
+        "startup tab",
+        "launch tab"
+      ]
+    },
+    {
+      "type": "action",
+      "default": null,
+      "destination": null,
+      "key": "action.resetOverlayMode",
+      "titleKey": "ResetPlayerOverlay",
+      "title": "Reset Player Overlay",
+      "description": "Returns the player overlay eye to YouTube's controls for this session without changing any saved preference.",
+      "category": "PLAYER_OVERLAY",
+      "flags": [],
+      "capability": null,
+      "symbol": "eye",
+      "aliases": [
+        "reset overlay",
+        "eye button"
+      ]
+    },
+    {
+      "type": "action",
+      "default": null,
+      "destination": null,
+      "key": "action.resetThemeColors",
+      "titleKey": "ResetAllColors",
+      "title": "Reset All Colors",
+      "description": "Clear every theme override and go back to stock colors.",
+      "category": "APPEARANCE",
+      "flags": [],
+      "capability": null,
+      "symbol": "arrow.counterclockwise",
+      "aliases": [
+        "reset theme",
+        "default theme"
+      ]
+    },
+    {
+      "type": "action",
+      "default": null,
+      "destination": null,
+      "key": "action.exportPreferences",
+      "titleKey": "ExportPreferences",
+      "title": "Export Preferences",
+      "description": "Share a YTAfterglow preferences file you can import later.",
+      "category": "ADVANCED",
+      "flags": [],
+      "capability": null,
+      "symbol": "square.and.arrow.up",
+      "aliases": [
+        "backup settings"
+      ]
+    },
+    {
+      "type": "action",
+      "default": null,
+      "destination": null,
+      "key": "action.importPreferences",
+      "titleKey": "ImportPreferences",
+      "title": "Import Preferences",
+      "description": "Replace the current setup with a saved YTAfterglow preferences file.",
+      "category": "ADVANCED",
+      "flags": [],
+      "capability": null,
+      "symbol": "square.and.arrow.down",
+      "aliases": [
+        "restore settings"
+      ]
+    },
+    {
+      "type": "action",
+      "default": null,
+      "destination": null,
+      "key": "action.resetSettings",
+      "titleKey": "ResetSettings",
+      "title": "Restore default settings",
+      "description": "Restores every Afterglow preference to its default.",
+      "category": "ADVANCED",
+      "flags": [],
+      "capability": null,
+      "symbol": "arrow.counterclockwise.circle",
+      "aliases": [
+        "reset tweak",
+        "reset all",
+        "factory settings"
+      ]
+    },
+    {
+      "type": "action",
+      "default": null,
+      "destination": null,
+      "key": "action.clearCache",
+      "titleKey": "ClearCache",
+      "title": "Clear cache",
+      "description": "Deletes cached data that YouTube and Afterglow can rebuild.",
+      "category": "ADVANCED",
+      "flags": [],
+      "capability": null,
+      "symbol": "trash",
+      "aliases": [
+        "cache",
+        "clear storage"
+      ]
+    },
+    {
+      "type": "action",
+      "default": null,
+      "destination": null,
+      "key": "action.clearDebugLog",
+      "titleKey": "ClearDebugLog",
+      "title": "Clear Debug Log",
+      "description": "Empties the local diagnostic log.",
+      "category": "ADVANCED",
+      "flags": [],
+      "capability": null,
+      "symbol": "doc.text.magnifyingglass",
+      "aliases": [
+        "clear log"
+      ]
+    },
+    {
+      "type": "destination",
+      "default": null,
+      "destination": "controlCenter",
+      "key": "destination.controlCenter",
+      "titleKey": "AfterglowControlCenter",
+      "title": "Afterglow Control Center",
+      "description": "The Afterglow hub: Vault, player state, experiments, AI Home, themes, health, and recovery.",
+      "category": "ADVANCED",
+      "flags": [],
+      "capability": null,
+      "symbol": "sparkles",
+      "aliases": [
+        "control center",
+        "afterglow hub"
+      ]
+    },
+    {
+      "type": "destination",
+      "default": null,
+      "destination": "vault",
+      "key": "destination.vault",
+      "titleKey": "AfterglowVault",
+      "title": "Afterglow Vault",
+      "description": "Downloads, imports, thumbnails, collections, and the download queue.",
+      "category": "DOWNLOADS_VAULT",
+      "flags": [],
+      "capability": null,
+      "symbol": "archivebox.fill",
+      "aliases": [
+        "downloads",
+        "vault",
+        "media library"
+      ]
+    },
+    {
+      "type": "destination",
+      "default": null,
+      "destination": "experimentLab",
+      "key": "destination.experimentLab",
+      "titleKey": "ABLab",
+      "title": "AB Lab",
+      "description": "Browse Cold, Hot, Global and Phenotype experiment flags with profiles and recovery.",
+      "category": "EXPERIMENTS",
+      "flags": [],
+      "capability": null,
+      "symbol": "flask.fill",
+      "aliases": [
+        "ab lab",
+        "experiments",
+        "flags"
+      ]
+    },
+    {
+      "type": "destination",
+      "default": null,
+      "destination": "aiHome",
+      "key": "destination.aiHome",
+      "titleKey": "AIHomeStudio",
+      "title": "AI Home Studio",
+      "description": "Prompt-driven AI Home with saved prompts, quick ideas, and a way back to the normal Home feed.",
+      "category": "FEED",
+      "flags": [],
+      "capability": "AIHomeRouting",
+      "symbol": "sparkle.magnifyingglass",
+      "aliases": [
+        "ai home",
+        "prompts",
+        "ai feed"
+      ]
+    },
+    {
+      "type": "destination",
+      "default": null,
+      "destination": "themeStudio",
+      "key": "destination.themeStudio",
+      "titleKey": "ThemeStudio",
+      "title": "Theme Studio",
+      "description": "Presets, saved themes, every semantic color, gradient, glow, typography, import, export, and contrast checks.",
+      "category": "APPEARANCE",
+      "flags": [],
+      "capability": null,
+      "symbol": "paintpalette.fill",
+      "aliases": [
+        "theme studio",
+        "themes",
+        "colors",
+        "presets"
+      ]
+    },
+    {
+      "type": "destination",
+      "default": null,
+      "destination": "glowLab",
+      "key": "destination.glowLab",
+      "titleKey": "GlowLab",
+      "title": "Glow Lab",
+      "description": "Live glow tuning and previews.",
+      "category": "APPEARANCE",
+      "flags": [],
+      "capability": null,
+      "symbol": "sparkles",
+      "aliases": [
+        "glow lab",
+        "glow"
+      ]
+    }
+  ],
+  "internalKeys": [
+    "theme_background",
+    "theme_navBar",
+    "theme_textPrimary",
+    "theme_textSecondary",
+    "theme_accent",
+    "theme_tabBarIcons",
+    "theme_overlayButtons",
+    "theme_seekBar",
+    "theme_seekBarLive",
+    "theme_seekBarScrubber",
+    "theme_seekBarScrubberLive",
+    "theme_gradientStart",
+    "theme_gradientEnd",
+    "theme_glowColor",
+    "theme_semanticTheme",
+    "theme_savedThemes",
+    "seekBarScrubberImage",
+    "activeTabs",
+    "messagesTabAvailable",
+    "controlCenterHiddenQuickControls",
+    "liteModeDefaultThemeApplied",
+    "liteModeDefaultThemeVersion",
+    "liteModeThemeBackupValues",
+    "liteModeThemeBackupMissingKeys",
+    "themePresetMigrationVersion",
+    "settingsMigrationVersion",
+    "advancedModePromptChoiceMade",
+    "advancedModeReminder",
+    "afterglowVaultGroupingMode",
+    "afterglowVaultQueryGrouping",
+    "afterglowVaultQuerySort",
+    "loopMode",
+    "YouMuteKeepMuted",
+    "endScreenCards",
+    "disableAutoplay",
+    "hideAutoplay",
+    "hideSortComments",
+    "stickSortComments",
+    "playerNoSave",
+    "playerNoShare",
+    "playerSaveButtonMode",
+    "playerShareButtonMode",
+    "showPlayerSaveButton",
+    "showPlayerShareButton"
+  ],
+  "languages": {
+    "en": 887,
+    "ar": 662,
+    "es": 659,
+    "fr": 657,
+    "it": 659,
+    "ja": 657,
+    "ko": 659,
+    "pl": 659,
+    "ru": 645,
+    "tr": 659,
+    "vi": 645,
+    "zh-Hans": 659,
+    "zh-Hant": 659
+  },
+  "titleKeysMissingFromEnglish": [
+    "ABLab",
+    "AIHomeStudio",
+    "AfterglowControlCenter",
+    "AfterglowVault",
+    "CustomGlowStrength",
+    "GlowLab",
+    "GlowLayers",
+    "GlowOpacity",
+    "GlowRadius",
+    "GlowStrengthMode",
+    "NativeDownloadRouting",
+    "ResetPlayerOverlay",
+    "ScrubberSize",
+    "ThemeStudio"
+  ]
+}

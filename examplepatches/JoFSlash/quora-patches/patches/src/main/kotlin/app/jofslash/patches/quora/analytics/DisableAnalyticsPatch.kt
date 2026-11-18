@@ -23,7 +23,7 @@ private val METADATA = mapOf(
 val disableAnalyticsPatch = resourcePatch(
     name = "Disable analytics",
     description = "Turns off Firebase Analytics, Crashlytics, Firebase Performance and Facebook app events, " +
-            "and stops the advertising ID from being collected.",
+            "and their advertising ID collection.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_QUORA)

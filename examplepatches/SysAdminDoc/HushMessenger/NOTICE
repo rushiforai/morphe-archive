@@ -1,5 +1,14 @@
-Morphe NOTICE
-=============
+HushMessenger NOTICE
+====================
+
+This file carries the Section 7 notices of the GNU General Public License v3
+as they apply to HushMessenger and to the projects it's built from. They don't
+change the terms of the GPLv3. The full license is in the LICENSE file and at
+https://www.gnu.org/licenses/gpl-3.0.html
+
+Morphe asks that its notice reach the person using the software, so this whole
+file is in the app too. Open HushMessenger settings, then App, then Source and
+licenses. It needs no connection.
 
 HushMessenger includes Messenger hook definitions adapted from
 RookieEnough/De-Vanced (0d01e3dd5ec82b6796b28b82c33fc6af4944b2e6),
@@ -23,8 +32,49 @@ icons) is ported from HushGram (https://github.com/SysAdminDoc/HushGram),
 the Instagram member of the Hush family, under GPL-3.0. Its icons came to
 HushGram from Hushfacebook (https://github.com/SysAdminDoc/Hushfacebook).
 
-7c. Project Name Restriction
-----------------------------
+  HushMessenger               https://github.com/SysAdminDoc/HushMessenger
+  morphe-patches              https://github.com/MorpheApp/morphe-patches
+  morphe-patches-template     https://github.com/MorpheApp/morphe-patches-template
+  De-Vanced                   https://github.com/RookieEnough/De-Vanced
+  morphe-patches (Doom's)     https://github.com/rushiranpise/morphe-patches
+  ReVanced                    https://gitlab.com/ReVanced/revanced-patches
+  ChatHeadEnabler             https://github.com/NeonOrbit/ChatHeadEnabler
+  HushPinterest               https://github.com/SysAdminDoc/HushPinterest
+
+
+Morphe NOTICE
+
+https://github.com/MorpheApp/morphe-patches
+
+=============
+
+GPLv3 Section 7b: Preservation of User Notices
+
+All derivative works (source code and binaries) must include this
+NOTICE text and provide it to the software user.
+
+Portions of this software are provided "AS IS" by the Morphe software project.
+Any express or implied warranties, including the implied warranties of
+merchantability and fitness for a particular purpose, are disclaimed.
+
+GPLv3 Section 7c: Prohibiting Misrepresentation of Origin
+
+You are prohibited from misrepresenting the origin of the Program,
+and modified versions of the Program must be identified and marked in
+reasonable ways as different from the original version so as not to cause
+confusion regarding their origin.
+
+GPLv3 Section 7e: Declining Grant of Trademark Rights
+
+This License does not grant any rights or permission under trademark law
+to use the name "Morphe" or any of the Program's trade names, trademarks,
+service marks, or logos.
+
+
+Morphe: Project Name Restriction
+--------------------------------
+
+Carried from the Morphe patches template HushMessenger started from.
 
 This license does not grant permission to use the name "Morphe", or any
 name, logo, or branding that is confusingly similar, as the name or
@@ -102,9 +152,8 @@ SOFTWARE.
 Material Design icons
 ---------------------
 
-Copyright Google LLC.
-https://github.com/google/material-design-icons
-Original outlined icons, embedded as PNG images.
+Copyright Google LLC. The original outlined icons from
+https://github.com/google/material-design-icons are embedded as PNG images.
 
 
                                  Apache License

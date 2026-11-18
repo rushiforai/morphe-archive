@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Sign in · Patches worker</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<main class="login">
+  <form class="card" method="post" action="{{ url_for('login') }}">
+    <div>
+      <h1>Patches worker</h1>
+      <p class="sub">Sign in to upload Waze and Google Maps builds.</p>
+    </div>
+    <input type="hidden" name="next" value="{{ next }}">
+    {# Lets password managers file the password under a name. #}
+    <input type="text" name="username" value="waze-worker" autocomplete="username" hidden>
+    <label>Password
+      <input type="password" name="password" autocomplete="current-password" required autofocus
+             {% if error %}aria-invalid="true" aria-describedby="login-error"{% endif %}>
+    </label>
+    {% if error %}<p class="status bad" id="login-error" role="alert">{{ error }}</p>{% endif %}
+    <button class="btn primary" type="submit">Sign in</button>
+  </form>
+</main>
+</body>
+</html>

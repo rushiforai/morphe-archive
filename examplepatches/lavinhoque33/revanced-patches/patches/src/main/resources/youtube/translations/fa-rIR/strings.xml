@@ -77,6 +77,13 @@
     <string name="morphe_custom_branding_splash_animation_size_title">اندازه انیمیشن صفحه شروع (اسپلش)</string>
     <string name="morphe_custom_branding_use_as_system_splash_summary">از انیمیشن انتخاب‌شده به‌عنوان اسپلش (صفحه آغازین) سیستم اندروید استفاده می‌کند</string>
     <string name="morphe_custom_branding_use_as_system_splash_title">اندازه انیمیشن صفحه شروع (اسپلش)</string>
+    <string name="morphe_custom_seekbar_thumb_file_invalid">فایل انتخاب‌شده یک تصویر پشتیبانی‌شده نیست</string>
+    <string name="morphe_custom_seekbar_thumb_file_not_found">تصویر شست سفارشی نوار جست‌وجو پیدا نشد</string>
+    <string name="morphe_custom_seekbar_thumb_file_title">تصویر شست</string>
+    <string name="morphe_custom_seekbar_thumb_scale_type_entry_fit_seekbar">مناسب با نوار جست‌وجو</string>
+    <string name="morphe_custom_seekbar_thumb_scale_type_entry_original">اندازهٔ اصلی</string>
+    <string name="morphe_custom_seekbar_thumb_scale_type_title">اندازهٔ شست</string>
+    <string name="morphe_custom_seekbar_thumb_title">فعال‌کردن شست سفارشی نوار جست‌وجو</string>
     <string name="morphe_dark_theme_custom_color_summary">زمانی استفاده می‌شود که گزینه «سفارشی» (Custom) انتخاب شده باشد</string>
     <string name="morphe_dark_theme_custom_color_title">رنگ سفارشی برای تم تیره</string>
     <string name="morphe_dark_theme_title">تم تاریک</string>
@@ -111,6 +118,12 @@
     <string name="morphe_disable_toolbar_navigation_tabs_summary">اگر YouTube بخش اشتراکات را به تبی در بالای صفحه اصلی منتقل کرد، این گزینه آن را در نوار پیمایش نمایش می‌دهد</string>
     <string name="morphe_disable_toolbar_navigation_tabs_title">غیرفعال‌کردن تب‌های پیمایش نوار ابزار</string>
     <string name="morphe_dual_captions_enabled_title">زیرنویس‌های دو زبانه</string>
+    <string name="morphe_enhanced_ambient_mode_dim_duration_title">مدت زمان کم‌نوری</string>
+    <string name="morphe_enhanced_ambient_mode_dim_while_scrolling_summary">هنگام پیمایش یا لمس صفحه، نور را کم می‌کند</string>
+    <string name="morphe_enhanced_ambient_mode_dim_while_scrolling_title">کم‌نور شدن هنگام پیمایش</string>
+    <string name="morphe_enhanced_ambient_mode_readable_text_summary">شدت نور در ویدیوهای روشن را کاهش می‌دهد تا متن‌های صفحه خوانا باقی بمانند</string>
+    <string name="morphe_enhanced_ambient_mode_readable_text_title">خوانا نگه داشتن متن</string>
+    <string name="morphe_enhanced_ambient_mode_title">حالت محیطی پیشرفته</string>
     <string name="morphe_expand_livestream_dvr_duration_not_available">ممکن است گزینه «افزایش مدت‌زمان DVR پخش زنده» (Expand livestream DVR duration) در دسترس نباشد
 
 برای رفع این مشکل، گزینه «جعل جریان‌های ویدیویی» (Spoof video streams) را فعال کنید و «کلاینت پیش‌فرض» (Default client) را روی «TV Simply» یا «visionOS» قرار دهید</string>
@@ -280,6 +293,12 @@
     <string name="morphe_playback_in_feeds_title">پخش در خوراک‌ها</string>
     <string name="morphe_player_control_buttons_background_opacity_summary">شفافیت پس‌زمینهٔ پشت دکمه‌های کنترل پخش‌کننده و نوار زمان را تنظیم کنید (۰ نامرئی و ۱۰۰ یک‌دست است)</string>
     <string name="morphe_player_control_buttons_background_opacity_title">شفافیت پس‌زمینهٔ دکمه‌های کنترل</string>
+    <string name="morphe_playlist_hide_removal_snackbar_summary">پس از حذف یک ویدیو از لیست پخش، تاییدیه نمایش داده نمی‌شود</string>
+    <string name="morphe_playlist_hide_removal_snackbar_title">مخفی کردن اسنک‌بار حذف از لیست پخش</string>
+    <string name="morphe_playlist_long_press_drag_summary">یک ویدیو از لیست پخش خود را لمس کرده و نگه دارید تا آن را به موقعیت جدیدی بکشید</string>
+    <string name="morphe_playlist_long_press_drag_title">برای تغییر ترتیب ویدیوهای لیست پخش، فشار طولانی دهید</string>
+    <string name="morphe_playlist_wide_drag_handles_summary">گرفتن دستگیره‌های جابه‌جایی لیست پخش آسان‌تر می‌شود</string>
+    <string name="morphe_playlist_wide_drag_handles_title">عریض‌تر کردن دستگیره‌های جابه‌جایی لیست پخش</string>
     <string name="morphe_post_buttons_layout_entry_1">سرور</string>
     <string name="morphe_post_buttons_layout_entry_2">اجباری</string>
     <string name="morphe_post_buttons_layout_title">چیدمان دکمه‌های پست</string>
@@ -566,17 +585,6 @@
     <string name="revanced_disable_haptic_feedback_zoom_title">غیرفعال‌کردن بازخورد لمسی بزرگ‌نمایی</string>
     <string name="revanced_disable_hdr_video_title">غیرفعال‌کردن ویدئوی HDR</string>
     <string name="revanced_disable_layout_updates_title">غیرفعال‌کردن به‌روزرسانی‌های طرح‌بندی</string>
-    <string name="revanced_disable_layout_updates_user_dialog_message">"طرح‌بندی برنامه به طرحی که هنگام نصب اولیه استفاده شده بود برمی‌گردد
-
-برخی طرح‌بندی‌های سمت سرور ممکن است برنگردند
-
-تغییرات شامل:
-• مؤلفه‌های منوی بازشوی پخش‌کننده (یا تنظیمات مرتبط) ممکن است کار نکنند
-• اعداد متحرک انیمیشن ندارند
-• برگهٔ کتابخانه نمایش داده می‌شود
-• بخش موسیقی توضیحات ویدئو ممکن است کار نکند
-• موارد منوی بازشوی پخش‌کننده را نمی‌توان پنهان کرد
-• دکمهٔ تعویض حساب ممکن است در برگهٔ کتابخانه ظاهر نشود"</string>
     <string name="revanced_disable_playlist_autoplay_title">غیرفعال‌کردن پخش خودکار فهرست پخش</string>
     <string name="revanced_disable_rolling_number_animations_title">غیرفعال‌کردن انیمیشن اعداد چرخان</string>
     <string name="revanced_dismiss_player_not_available_toast">شناسهٔ ویدئو در دسترس نیست. لطفاً ویدئو را دستی دوباره بارگذاری کنید</string>

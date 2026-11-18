@@ -1,0 +1,67 @@
+name: Build Morphe Patch (.mpp)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'patches/**'
+      - 'gradle/**'
+      - 'build.gradle.kts'
+      - 'settings.gradle.kts'
+      - 'gradle.properties'
+      - '.github/workflows/build-morphe-patch.yml'
+
+permissions:
+  contents: write
+  packages: read
+
+jobs:
+  build-mpp:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Build Morphe Patch Bundle (.mpp) and Patch List
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          chmod +x ./gradlew
+          ./gradlew :patches:buildAndroid :patches:generatePatchesList --no-daemon
+          ls -lh patches/build/libs/
+          cat patches-list.json
+
+      - name: Upload Morphe Patch (.mpp) Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: DaFit-Morphe-Patch-MPP
+          path: |
+            patches/build/libs/patches-*.mpp
+            !patches/build/libs/*sources*.mpp
+            !patches/build/libs/*javadoc*.mpp
+            patches-list.json
+          if-no-files-found: error
+
+      - name: Publish Release with Morphe Patch (.mpp)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          MPP_FILE=$(ls patches/build/libs/patches-*.mpp | grep -vE 'sources|javadoc' | head -n 1)
+          VERSION=$(grep '^version' gradle.properties | cut -d'=' -f2 | tr -d '[:space:]')
+          TAG="v${VERSION}"
+          echo "Publishing $MPP_FILE to release $TAG..."
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$MPP_FILE" patches-list.json --clobber
+          else
+            gh release create "$TAG" "$MPP_FILE" patches-list.json \
+              --title "TheFit Morphe Patches $TAG" \
+              --notes "Morphe patch bundle (\`.mpp\`) to remove in-app ads from Da Fit (\`com.crrepa.band.dafit\`)."
+          fi

@@ -23,15 +23,15 @@ KingInstaller as a fallback).
 ## 🩹 Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v0.30.53](https://github.com/Forsigh/waze-patches/releases/tag/v0.30.53)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;34 patches total
+> **[v0.30.61](https://github.com/Forsigh/waze-patches/releases/tag/v0.30.61)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;35 patches total
 <details open>
-<summary>📦 Waze&nbsp;&nbsp;•&nbsp;&nbsp;34 patches</summary>
+<summary>📦 Waze&nbsp;&nbsp;•&nbsp;&nbsp;35 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 5.24.90.901 | 5.25.0.1 | 5.25.4.900 | 5.25.90.900 | 5.26.0.0 | 5.26.5.0 | 5.26.90.901 | 5.27.0.1 | 5.27.4.900 |
-| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| 5.24.90.901 | 5.25.0.1 | 5.25.4.900 | 5.25.90.900 | 5.26.0.0 | 5.26.5.0 | 5.26.90.901 | 5.27.0.1 | 5.27.4.900 | 5.27.90.900 |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -45,7 +45,7 @@ KingInstaller as a fallback).
 | **Car alerts as notifications** | Shows car alerts as notifications. |  |
 | **Car map zoom** | Zooms the map on the car screen. | • Car map zoom |
 | **Car trip screen text** | Adds arrival time and time left to the car trip bar. |  |
-| **Change Waze icon** | Reaper artwork, the stock ghost in any colour, or your own image (square PNG/JPG/WebP, 432x432 recommended, 192x192 minimum). | • Icon<br>• Ghost background<br>• Hide launch logo<br>• Custom image |
+| **Change Waze icon** | Reaper artwork, the stock ghost in any colour, or your own image (square PNG/JPG/WebP, 432x432 recommended, 192x192 minimum). | • Icon<br>• Ghost background<br>• Custom image |
 | **Disable Play Store updates** | Stops the Play Store updating Waze. |  |
 | **Enable police & enforcement alerts** | Turns police and enforcement alerts on. |  |
 | **Extra map info** | Compass always shown and toll price on routes. | • Always show compass<br>• Toll price on route |
@@ -61,6 +61,7 @@ KingInstaller as a fallback).
 | **Picture-in-picture** | Floats Waze in a 9:16 window every time you leave it. Known issues: touch does not work on the floating window, and the UI does not scale down. |  |
 | **Remove ads** | Removes ads. | • Block beacon popups |
 | **Rename app** | Stock name by default. Type your own to replace what the launcher shows. The package stays com.waze. | • App name |
+| **Resume drive prompt** | Stops Waze asking to resume the last trip. | • When Waze offers to resume the last trip |
 | **Show FPS counter** | Shows the frame-rate counter. |  |
 | **Skip sign-in** | Starts as a guest, straight to the map. |  |
 | **Smoother Android Auto map** | Smooths map movement on Android Auto. |  |

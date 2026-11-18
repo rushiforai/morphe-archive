@@ -59,12 +59,48 @@ hyzor's patch is.
 
 The patches for other apps (Block Blast, Gboard, Geocaching) are **not** in this bundle.
 
-Everything else is Noam's work, unchanged: chess.com 4.10.18 and 4.10.23 with arrows in games and in
+Everything else is Noam's work, unchanged: chess.com 4.10.27, 4.10.23 and 4.10.18 with arrows in games and in
 reviews, board and accent colours,
 AMOLED black, the website's Arcade animations, custom Home and bottom bar, time controls under a minute,
 offline Stockfish analysis on the phone, Lichess reviews and offline Lichess puzzles, every bot unlocked,
 no daily Play Coach limit, Premium content, no ads or rating prompts — all switched on and off under
 **More → Quwi's Patches**.
+
+## Fair play
+
+This bundle is for analysing games that are already over: Game Review, the analysis boards, the game explorer and
+finished games. It adds no engine help during a live game. The Stockfish features are gated to those screens, and a
+fair-play gate stops the analysis flow while a game against a person is on screen. The engine itself stays on your
+phone or on your computer - no position is sent to a third-party analysis service.
+
+The GPL-3.0 licence lets anyone fork this code. That does not mean I support what a fork does with it. I do not
+support, endorse or help with forks and derivatives that add in-game engine hints, best-move arrows during live
+games, or any other form of engine assistance, whether on chess.com or anywhere else. A fork like that is its
+author's work, not this project, and I will not merge such changes here.
+
+A reminder for anyone tempted: chess.com's fair-play detection is well trained against cheaters. It does not look
+for a patched APK - it looks at the moves, the timing and the history of an account, and it has years of data on
+engine-assisted play. Accounts get closed, ratings and titles get removed, and a patched app does not hide that.
+Engine help in a rated or live game is cheating, and it is against chess.com's rules.
+
+## Signing in after patching
+
+**Sign in with Google** does not work in a patched app, and neither do Log In With Facebook or Sign in with
+Apple. A patched app is signed with a different certificate, and Google uses the package name and the SHA-1 of
+that certificate to check that the sign-in comes from chess.com's own app. The check runs on Google's side,
+against chess.com's project, so nothing on the phone can fix it: a different Google account, Google Play services
+and MicroG all end at the same refusal (a normally installed MicroG cannot serve Sign in with Google at all -
+only a system install gets that far - and even then the certificate would not match). **Clone Chess.com** adds
+one more mismatch, because it changes the package name as well.
+
+To get in, add a password to the account once and then use it in the app:
+
+1. open [chess.com](https://www.chess.com) in a browser and sign in the way you always do
+   (Google, Facebook or Apple);
+2. go to **Settings → All Settings → Account** and add an email and a password for future sign-ins;
+3. in the patched app, log in with that email (or username) and password.
+
+If the account already has a password, the usual **Forgot password?** email works as well.
 
 ## Stockfish on your computer
 
@@ -110,7 +146,7 @@ phone talks to your computer on that network only.
 All patches are [Noam's](https://github.com/ImNoammm/Noams-Morphe-Patches) (GPL-3.0), which itself builds on
 PrathxmOp's work; the computer reviewer was added in this fork. Without Noam's Morphe Patches this project
 would not exist: the whole patch tree and extension are his work, and this fork only adds the Game Review
-features on top. The chess.com 4.10.23 support follows
+features on top. The chess.com 4.10.23 and 4.10.27 support follows
 [hyzor's port](https://github.com/hyzor/hyzor-morphe-patches) (GPL-3.0) of the same patches. The crash screen
 is [PrathxmOp's crash handler](https://github.com/PrathxmOp/Prathxm-Patches) (GPL-3.0), renamed so Morphe sees
 it as the same patch when both bundles are added. If you want the patches for other apps too, use Noam's own

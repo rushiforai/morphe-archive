@@ -8,7 +8,7 @@
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  *
- * Modified by lavinhoque33, 2026-10-08.
+ * Modified by lavinhoque33, 2026-11-17.
  */
 
 package app.morphe.patches.youtube.general.components
@@ -178,12 +178,22 @@ internal object ShowFloatingMicrophoneButtonLegacyFingerprint : Fingerprint(
     )
 ) {}
 
-// modified by lavinhoque33, 2026-10-16: Ported from Morphe, hide 'Help & feedback' in app bar menus.
 /**
  * A row of an app bar menu.
  */
 internal object ListMenuItemViewOnMeasureFingerprint : Fingerprint(
     definingClass = "Landroid/support/v7/view/menu/ListMenuItemView;",
+    name = "onMeasure",
+    returnType = "V",
+    parameters = listOf("I", "I")
+)
+
+/**
+ * Rounded metadata box in the fullscreen engagement panel.
+ */
+internal object MetadataHighlightsColumnMeasureFingerprint : Fingerprint(
+    definingClass = "Lcom/google/android/apps/youtube/app/player/overlay/fullscreenengagement/layout/" +
+            "MetadataHighlightsColumnLinearLayout;",
     name = "onMeasure",
     returnType = "V",
     parameters = listOf("I", "I")

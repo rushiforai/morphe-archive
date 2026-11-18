@@ -1,0 +1,34 @@
+{
+  "game_version": "5.57.3",
+  "version_code": 2277,
+  "tested_architecture": "arm64-v8a (translated on API 35 x86_64 emulator)",
+  "native_input_sha256": "8566506cbfe3d2e420c9b68a0a1752d9c3023ce3bde86db26ae4d9bab52d9521",
+  "native_output_sha256": "18007200015b853ef0ca954ec588ee4cb778690e6c6bd5be9d6ef7a2df017af0",
+  "native_reconstruction": {
+    "restored_executable_bytes": 50864,
+    "data_relative_relocations": 0,
+    "constant_qwords": 3794,
+    "restored_imports": 200,
+    "removed_constructor": "DT_INIT=0x2278000",
+    "method": "original-runtime snapshots; two-run constant/ASLR verification"
+  },
+  "resources": {
+    "arm64-init.delta.gz": "428a98b5c6a37402882e417c3978da60a71135cf4d65ac406725bbe2f1af1198",
+    "sdk-receivers.dex": "f8b13b35d678c7a7d8ce442cbdf583fa43283ac2b15dc06ee5fd4262a3b9b68a",
+    "strings.tsv.gz": "47a7a167eecbfb645c11c41bc286bd8520f829c960542e5c5195151d73480aaf"
+  },
+  "sdk_inputs": [
+    {
+      "url": "https://repo.maven.apache.org/maven2/com/fyber/marketplace-sdk/8.4.6/marketplace-sdk-8.4.6.aar",
+      "sha256": "446a2fedf4c3e88db6bf762e6da7ef997214646210a24d227639fa710c7d7d95"
+    },
+    {
+      "url": "https://repo.maven.apache.org/maven2/com/unity3d/ads-mediation/adquality-sdk/9.9.0/adquality-sdk-9.9.0.aar",
+      "sha256": "3804cade726f2f28b3671e1b933b15b22e162185810c9cf26d38abb751516728"
+    }
+  ],
+  "string_snapshot_sha256": [
+    "8c4da5526afb1a677c48269cb59cd2e326b0a890108687c1eeee13edd520852c",
+    "8c4da5526afb1a677c48269cb59cd2e326b0a890108687c1eeee13edd520852c"
+  ]
+}

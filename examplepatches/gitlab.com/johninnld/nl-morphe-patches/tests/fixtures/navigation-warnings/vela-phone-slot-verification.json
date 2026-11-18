@@ -1,0 +1,162 @@
+{
+  "format": 1,
+  "scope": "Real no-location/no-speed source-to-Vela native warning, actual app lifecycle/session/scheduler/speech and actual attached window. No direct owner, event, graph, route or view construction.",
+  "candidate_provenance": {
+    "original_sha256": "f168bc730568b98ee8132131658d9220ef5be3557af41fd373bdaf104c31b20f",
+    "mpp_sha256": "85ce598e34005b38792dab5ce33e993a9723bb2f0e083d754ee2700dee394e50",
+    "unsigned_candidate_sha256": "7d7d9c5e6af11ef6bf835e0888c38859662e6174936eb0a164f2b6f36fbb17c0",
+    "candidate_sha256": "72012bd0dd02ee3b3eb31a35df55d24de5fea79ba830906568c0d029c101aeab",
+    "signer_sha256": "2ce9d34e9493f2bb91c9c7863ba2a4e839f5ef27864e404e8a5624ebc0be0597",
+    "selections": [
+      "External speed controls"
+    ],
+    "signing_only_payload_verification": true,
+    "validated_patch_apply": true,
+    "only_changed_mpp_payloads_vs_0a07": [
+      "META-INF/MANIFEST.MF",
+      "extensions/vela.mpe"
+    ],
+    "changed_normalized_extension_classes": [
+      "Lnl/johninnl/vela/TelemetryRuntime$6;",
+      "Lnl/johninnl/vela/TelemetryRuntime;"
+    ],
+    "unchanged_speaker_class_count": 17,
+    "vela_unit_tests": 82,
+    "pinned_vela_guards": 13
+  },
+  "host_tests": {
+    "red_gate_tests": 2,
+    "red_log_sha256": "12882ea8213f1954749130e2753344019b2629f796d9332a3a0d0c11afe7ebcf",
+    "vela_green_tests": 82,
+    "pinned_vela_green_guards": 13,
+    "green_log_sha256": "7a89e28a44c29072236e478b74ba09809ad147785b74a5e7162d73c918565d96"
+  },
+  "raw_reports": {
+    ".analysis/native-warning-bindings/vela-semantic-only-location-off-verified/result.json": "f13ca1c63b58e3db0a0d20d799ba5e65891b76b1764188ea0d31fe641bedbdf4",
+    ".analysis/native-warning-bindings/vela-semantic-only-location-off-verified/receiver-result.json": "9b88fb40fe6a59bb72d11578ca852316567728501a249dab829df1db185a4db0",
+    ".analysis/native-warning-bindings/vela-semantic-only-location-off-verified/source/6ca31bf3-0022-4163-a857-8129db3acdbd/result.json": "38196cb0d4f3cf4397c94a2ebc74f6272fe2374ab3ba9189d213dbedbed60739"
+  },
+  "source_probe_sha256": "cb2ac7e8e4b02ef166f5d10a282f297d4a308e58d44c89bf9b1969dd5a5bb2bb",
+  "receiver_probe_sha256": "a6e4540ee6d456357bb177cadb7f312ad16e59b04d9c7e2dfe61752bad350bec",
+  "source_native_no_gps_wait": {
+    "started_elapsed_ms": 10437010,
+    "ended_elapsed_ms": 10445016,
+    "requested_delay_ms": 8000,
+    "native_gps_present": false,
+    "native_speed": 0
+  },
+  "measured_authorities": [
+    {
+      "index": 1,
+      "family": "p0",
+      "pattern": "single",
+      "receiver_owner_ready_before_native": true,
+      "authority": {
+        "language_tag": "en-US",
+        "native_local_mute_bypass": false,
+        "issued_elapsed_ms": 10445029,
+        "native_family": "EarlyWarningReport",
+        "priority": 0,
+        "protocol_version": 1,
+        "native_announce_observed": true,
+        "relationship": "unknown",
+        "revision": 1,
+        "category": "emergency_vehicle",
+        "phase": "notice",
+        "relevance": "moving_emergency",
+        "capture_path": "early",
+        "state_until_elapsed_ms": 10475029,
+        "native_subtype": "AMBULANCE",
+        "message_origin": "native_resource",
+        "native_text_key": "b2ad09a4016e21b58c9d33d045241e66ceefa64bd41c5a97a49740991493d35d",
+        "message": "Caution, ambulance!",
+        "announcement_index": 1,
+        "provider_session": "fc9ec7c5-9584-4e39-a20c-35809d0a24c6",
+        "sequence": 4,
+        "native_early_type_argument": "AMBULANCE",
+        "observed_elapsed_ms": 10445029,
+        "operation": "ANNOUNCE",
+        "native_type": "INCIDENT",
+        "warning_id": "early/AMBULANCE:probe-vela-semantic-location-off-final",
+        "announce_until_elapsed_ms": 10450029
+      },
+      "source_dispositions": [
+        {
+          "receiver_uid": 10192,
+          "outcome": "GRANTED",
+          "started": false,
+          "mode": "VOICE"
+        },
+        {
+          "receiver_uid": 10192,
+          "outcome": "STARTED",
+          "started": true,
+          "mode": "VOICE"
+        },
+        {
+          "receiver_uid": 10192,
+          "outcome": "COMPLETED",
+          "started": true,
+          "mode": "VOICE"
+        }
+      ],
+      "source_terminal": "COMPLETED"
+    }
+  ],
+  "ui": {
+    "legacy_external": true,
+    "legacy_measured_speed_present": false,
+    "native_fix_present": false,
+    "native_fresh_measured_speed": false,
+    "phone_speed_present": false,
+    "native_speed_display_on": true,
+    "show_speed_gate_without_native": true,
+    "native_warning_text": "Flitsmeister\nCaution, ambulance!",
+    "compact_warning_text": "Flitsmeister\nCaution, ambulance!",
+    "original_activity_destroyed": false,
+    "original_activity_finishing": false,
+    "original_activity_identity": 72352000,
+    "original_root_attached": true,
+    "original_has_window_focus": true,
+    "original_root_widget_found": true,
+    "foreground_activity": "app.vela.MainActivity",
+    "foreground_activity_identity": 72352000,
+    "foreground_same_as_launched": true,
+    "foreground_root_widget_found": true,
+    "widget_attached": true,
+    "widget_description": "Current speed unknown, speed limit unknown, Flitsmeister\nCaution, ambulance!",
+    "activity_has_window_focus": true,
+    "compact_text": "Flitsmeister\nCaution, ambulance!",
+    "widget_shown": true,
+    "widget_x": 47,
+    "widget_y": 1860,
+    "widget_width": 660,
+    "widget_height": 372,
+    "captured_message": "Caution, ambulance!",
+    "screenshot": "/storage/emulated/0/Android/data/app.vela/files/native-warning-integrated/integrated-warning.png"
+  },
+  "screenshot_sha256": "9dc2e6a3eeaa156ad695ebf3eefce4c9141d9a731cf0547842a66e2a8dc9d37a",
+  "native_speeds_absent": true,
+  "legacy_external_note": "A true legacy_external flag means the source connection/packet exists. It does not mean a current speed exists; nullable currentKmh was separately observed absent.",
+  "cleanup": {
+    "location_mode_before": "3",
+    "location_enabled_during": "false",
+    "location_mode_after": "3",
+    "location_mode_restored_exactly": true,
+    "preferences_restored_exactly": true,
+    "permissions_restored_exactly": true,
+    "output_quiescent": true,
+    "source_network_and_lease_restored": true,
+    "source_cleanup_errors": []
+  },
+  "probe_completed": true,
+  "process_exit_codes": {
+    "source": 0,
+    "receiver": 0
+  },
+  "not_proven": [
+    "Acoustic hearing or physical head-unit routing",
+    "Natural detector accuracy",
+    "This single observation is not a latency percentile; exact final720 100-event P0/ordinary results are recorded separately in vela-final-timing-verification.json"
+  ]
+}

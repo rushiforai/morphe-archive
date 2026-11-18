@@ -149,6 +149,26 @@ class StorySeenHookTest {
         assertRefused(standIns(sendHandsBatchOut = true), "hands its batch to $ELSEWHERE->keep(Ljava/lang/Object;)V")
     }
 
+    /** 386214574 writes the batch's emptiness check out in the send: its fields read and asked isEmpty() is still only reading. */
+    @Test
+    fun aSendAskingItsBatchsFieldsIsHooked() {
+        val context = PatchContexts.of(standIns(sendInlinesCheck = SendCheck.ASKED))
+
+        context.holdBackStoryViews()
+
+        val send = context.mutableClassDefBy(STORE).methods.single { it.name == "A0O" }
+        assertSendHooked("the send", send, BATCH)
+        val check = send.code().drop(5).first { it.opcode != Opcode.NOP }
+        assertEquals("the send's own check", BATCH + "->stories:Ljava/util/HashMap;", check.referenceText())
+    }
+
+    /** A collection read off the batch and changed, or handed on, changes what goes out. */
+    @Test
+    fun aSendChangingItsBatchsFieldFails() {
+        assertRefused(standIns(sendInlinesCheck = SendCheck.CLEARED), "reads $BATCH->stories:Ljava/util/HashMap; off its batch at instruction 3")
+        assertRefused(standIns(sendInlinesCheck = SendCheck.KEPT), "does more with it than ask isEmpty() or size()")
+    }
+
     /** move-result-object, if-nez and check-cast name a register in a byte. */
     @Test
     fun aBatchPastV255Fails() = assertRefused(standIns(sendRegisters = 258), "keeps its batch in v257, past v255")
@@ -384,15 +404,28 @@ class StorySeenHookTest {
         }
         found += FixtureDex.classes(bundle, builderCallers.map { it.definingClass }.filter { it !in found }.toSet())
         val reader = found.values.flatMap { it.methods }.single { method -> method.code().any { it.string() == "PendingReelSeenStateStore.deserializeFromDisk" } }
-        val claim = found.values.flatMap { it.methods }.single { method -> method.code().any {
+        // 456's store base has two claims holding the tag (00F8.A0H and A0I on 386214574); the run calls one.
+        val claims = found.values.flatMap { it.methods }.filter { method -> method.code().any {
             it.string() == "null cannot be cast to non-null type T of com.instagram.store.PendingActionStore" } }
+        assertTrue("no claim holds the store's cast tag", claims.isNotEmpty())
         val helpers = (reader.code().filter { it.opcode == Opcode.INVOKE_VIRTUAL || it.opcode == Opcode.INVOKE_STATIC }
             .mapNotNull { (it as? ReferenceInstruction)?.reference as? MethodReference }.filter {
                 it.parameterTypes.map(Any::toString) == listOf(STRING) && it.returnType == "V" ||
                     it.parameterTypes.map(Any::toString) == listOf(STRING, STRING) && it.returnType == STRING
-            } + claim.code().filter { it.opcode == Opcode.INVOKE_STATIC }
+            } + claims.flatMap { claim -> claim.code().filter { it.opcode == Opcode.INVOKE_STATIC } }
             .mapNotNull { (it as? ReferenceInstruction)?.reference as? MethodReference }).map { it.definingClass }.toSet()
         found += FixtureDex.classes(bundle, helpers.filter { it !in found }.toSet())
+        // 456's loop hands each item to a step holding the claim (00F8.A0Q(String, Object)V on 386214574),
+        // which the saved posts store overrides and calls with invoke-super (02qD.A0V). The patch reads
+        // every caller of that step.
+        val claimKeys = claims.map { it.toString() }.toSet()
+        val stepKeys = found.values.flatMap { it.methods }.filter { method ->
+            method.parameterTypes.isNotEmpty() && method.returnType == "V" && method.code().any { it.referenceText() in claimKeys }
+        }.map { it.toString() }.toSet()
+        val stepCallers = FixtureDex.methodsWhere(bundle, { dex -> dex.methodSection.any { it.toString() in stepKeys } }) { method ->
+            method.code().any { it.referenceText() in stepKeys }
+        }
+        found += FixtureDex.classes(bundle, stepCallers.map { it.definingClass }.filter { it !in found }.toSet())
         val extra = mutableSetOf<String>()
         for (owner in helpers.mapNotNull { found[it] }) {
             owner.methods.filter { it.parameterTypes.map(Any::toString) == listOf(STRING) && it.returnType == "V" && it.code().size == 7 }
@@ -534,6 +567,7 @@ class StorySeenHookTest {
         sendOverwrites: Boolean = false,
         sendChangesBatch: Boolean = false,
         sendHandsBatchOut: Boolean = false,
+        sendInlinesCheck: SendCheck = SendCheck.CALLED,
         sendRegisters: Int = 3,
         reelsTwice: Boolean = false,
         storiesFromStatic: Boolean = false,
@@ -568,6 +602,8 @@ class StorySeenHookTest {
         storyId: Boolean = true,
         reelItemInterface: Boolean = false,
         itemViewPublic: Boolean = true,
+        splitQueue: Boolean = false,
+        siblingHandBack: String = "invoke-super",
     ): List<ClassDef> {
         val stories = if (storiesFromStatic) "sget-object v0, $BATCH->shared:Ljava/util/HashMap;" else "iget-object v0, p0, $BATCH->stories:Ljava/util/HashMap;"
         val builder = """
@@ -705,8 +741,7 @@ class StorySeenHookTest {
                 ${if (sendOverwrites) "const/4 p1, 0x0" else "nop"}
                 ${if (sendChangesBatch) "invoke-virtual { p1 }, $BATCH->A0B()V" else "nop"}
                 ${if (sendHandsBatchOut) "invoke-static { p1 }, $ELSEWHERE->keep(Ljava/lang/Object;)V" else "nop"}
-                invoke-virtual { p1 }, $BATCH->A0A()Z
-                move-result v0
+                ${sendCheck(sendInlinesCheck)}
                 if-nez v0, :done
                 invoke-virtual { p0 }, $STORE_BASE->A0H()$USER_SESSION
                 move-result-object v0
@@ -756,7 +791,7 @@ class StorySeenHookTest {
             ) + (0 until sends).map { copy -> method(STORE, if (copy == 0) "A0O" else "A0R", listOf(BATCH), "V", sendRegisters, sendBody, static = false) },
             superclass = STORE_BASE,
         )
-        val storeBase = storyQueueBase(STORE_BASE, REQUEST, storeSession)
+        val storeBase = storyQueueBase(STORE_BASE, REQUEST, storeSession, splitQueue)
         val resetNux = classOf(
             RESET_NUX,
             emptyList(),
@@ -857,6 +892,7 @@ class StorySeenHookTest {
             classOf(VIEWER, emptyList(), emptyList()),
             ImmutableClassDef.of(ExtensionDex.classDef(STORY_SEEN)),
             ImmutableClassDef.of(ExtensionDex.classDef(STORY_SEEN_BUTTON)),
+            if (splitQueue) storySiblingStore(STORE_BASE, SIBLING_STORE, siblingHandBack) else null,
         ) + storyQueueDiskHelpers()
     }
 
@@ -913,6 +949,32 @@ class StorySeenHookTest {
 
     private fun Instruction.string(): String? = ((this as? ReferenceInstruction)?.reference as? StringReference)?.string
 
+    /** How the stand-in send asks whether its batch is empty before the request. */
+    internal enum class SendCheck {
+        /** Through the batch's own A0A(), as most builds do. */
+        CALLED,
+
+        /** Written out, as 386214574 does: the stories map read off the batch and asked isEmpty(). */
+        ASKED,
+
+        /** The stories map read off the batch and cleared. */
+        CLEARED,
+
+        /** The stories map read off the batch and handed to another class. */
+        KEPT,
+    }
+
+    /** The send's check, leaving whether the batch is empty in v0. */
+    private fun sendCheck(check: SendCheck): String {
+        val read = "iget-object v0, p1, $BATCH->stories:Ljava/util/HashMap;"
+        return when (check) {
+            SendCheck.CALLED -> "invoke-virtual { p1 }, $BATCH->A0A()Z\nmove-result v0"
+            SendCheck.ASKED -> "$read\ninvoke-virtual { v0 }, Ljava/util/HashMap;->isEmpty()Z\nmove-result v0"
+            SendCheck.CLEARED -> "$read\ninvoke-virtual { v0 }, Ljava/util/HashMap;->clear()V\nconst/4 v0, 0x0"
+            SendCheck.KEPT -> "$read\ninvoke-static { v0 }, $ELSEWHERE->keep(Ljava/lang/Object;)V\nconst/4 v0, 0x0"
+        }
+    }
+
     private companion object {
         val kept = FixtureCache<List<ClassDef>>()
         const val BATCH = "Lfixture/PendingReelSeenState;"
@@ -920,6 +982,7 @@ class StorySeenHookTest {
         const val SEEN_STATE = "Lfixture/SeenState;"
         const val STORE = "Lfixture/PendingReelSeenStateStore;"
         const val STORE_BASE = "Lfixture/SessionStore;"
+        const val SIBLING_STORE = "Lfixture/PendingSavesStore;"
         const val RESET_NUX = "Lfixture/ResetNux;"
         const val REQUEST = "Lfixture/Request;"
         const val FACTORY = "Lfixture/RequestFactory;"

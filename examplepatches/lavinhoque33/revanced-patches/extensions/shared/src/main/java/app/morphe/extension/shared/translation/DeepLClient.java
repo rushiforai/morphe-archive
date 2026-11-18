@@ -2,6 +2,7 @@
  * Copyright 2026 Morphe.
  * https://github.com/MorpheApp/morphe-patches/pull/3877
  * https://github.com/MorpheApp/morphe-patches/pull/4313
+ * Modified by lavinhoque33, 2026-11-17.
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  */
@@ -101,6 +102,12 @@ public final class DeepLClient {
         }
         if (clean.equals("IN") || clean.equals("ID")) {
             return "ID";
+        }
+        if (clean.equals("IW") || clean.equals("HE")) {
+            return "HE";
+        }
+        if (clean.equals("JI") || clean.equals("YI")) {
+            return "YI";
         }
         if (clean.equals("NO")) {
             return "NB";

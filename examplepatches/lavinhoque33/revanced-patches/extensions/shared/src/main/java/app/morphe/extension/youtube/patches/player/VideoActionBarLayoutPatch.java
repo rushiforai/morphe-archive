@@ -3,7 +3,7 @@
  * Copyright 2026 Morphe.
  * https://github.com/MorpheApp/morphe-patches
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-13
+ * Modified by lavinhoque33, 2026-11-17
  *
  * Ported from Morphe. See NOTICE for GPLv3 Section 7 terms that apply to Morphe contributions.
  */
@@ -157,6 +157,9 @@ public final class VideoActionBarLayoutPatch {
                                                     VideoActionBarLayout layout, String moreActionsText)
             throws com.google.protobuf.InvalidProtocolBufferException {
         boolean minimal = layout == VideoActionBarLayout.MINIMAL;
+        if (layout.isClassic() && actionBar.getLayoutStyle() == LAYOUT_STYLE_CLASSIC) {
+            return restoreClassicDislikeIcons(actionBar);
+        }
         if (layout == VideoActionBarLayout.DEFAULT
                 || actionBar.getLayoutStyle() != (minimal ? LAYOUT_STYLE_CLASSIC : LAYOUT_STYLE_MINIMAL)) {
             return actionBar;
@@ -164,9 +167,58 @@ public final class VideoActionBarLayoutPatch {
 
         VideoActionBarViewModel.Builder builder = minimal
                 ? toMinimal(actionBar, moreActionsText) : toClassic(actionBar);
-        return builder.setLayoutStyle(minimal ? LAYOUT_STYLE_MINIMAL : LAYOUT_STYLE_CLASSIC)
+        VideoActionBarViewModel converted = builder
+                .setLayoutStyle(minimal ? LAYOUT_STYLE_MINIMAL : LAYOUT_STYLE_CLASSIC)
                 .setLayoutConfig(actionBar.getLayoutConfig().toBuilder().setIconButtons(minimal))
                 .build();
+        return minimal ? converted : restoreClassicDislikeIcons(converted);
+    }
+
+    private static VideoActionBarViewModel restoreClassicDislikeIcons(VideoActionBarViewModel actionBar) {
+        VideoActionBarViewModel.Builder builder = null;
+        for (int index = 0; index < actionBar.getActionsCount(); index++) {
+            VideoActionBarItem action = actionBar.getActions(index);
+            VideoActionBarItemContent content = action.getContent();
+            if (!content.hasLikeDislikeButtons()) continue;
+
+            VideoActionBarLikeDislike segmented = content.getLikeDislikeButtons();
+            if (!segmented.getDislikeButton().hasDislikeButton()) continue;
+
+            DislikeButtonViewModel dislike = segmented.getDislikeButton().getDislikeButton();
+            ToggleButtonViewModelHolder holder = dislike.getToggleButtonViewModel();
+            ToggleButtonViewModel toggle = holder.getToggleButtonViewModel();
+            ButtonViewModelHolder defaultButton = classicDislikeIcon(toggle.getDefaultButtonViewModel(),
+                    "yt_outline_thumb_down_black_24", "yt_outline_experimental_thumb_down_black_24");
+            ButtonViewModelHolder toggledButton = classicDislikeIcon(toggle.getToggledButtonViewModel(),
+                    "yt_fill_thumb_down_black_24", "yt_fill_experimental_thumb_down_black_24");
+            if (defaultButton == toggle.getDefaultButtonViewModel()
+                    && toggledButton == toggle.getToggledButtonViewModel()) {
+                continue;
+            }
+
+            ToggleButtonViewModelHolder restored = holder.toBuilder().setToggleButtonViewModel(toggle.toBuilder()
+                    .setDefaultButtonViewModel(defaultButton)
+                    .setToggledButtonViewModel(toggledButton)).build();
+            VideoActionBarItemContent restoredDislike = segmented.getDislikeButton().toBuilder()
+                    .setDislikeButton(dislike.toBuilder().setToggleButtonViewModel(restored)).build();
+
+            if (builder == null) builder = actionBar.toBuilder();
+            builder.setActions(index, action.toBuilder().setContent(content.toBuilder()
+                    .setLikeDislikeButtons(segmented.toBuilder().setDislikeButton(restoredDislike))));
+        }
+
+        return builder == null ? actionBar : builder.build();
+    }
+
+    private static ButtonViewModelHolder classicDislikeIcon(
+            ButtonViewModelHolder holder, String legacyIconName, String modernIconName) {
+        ButtonViewModel button = holder.getButtonViewModel();
+        String iconName = button.getIconName();
+        if (!iconName.isEmpty() && !iconName.equals(legacyIconName)) return holder;
+
+        // Classic templates only read iconName. Use the native modern thumb glyph, not its thin predecessor,
+        // both for modern image-only responses and for server-supplied legacy names.
+        return holder.toBuilder().setButtonViewModel(button.toBuilder().setIconName(modernIconName)).build();
     }
 
     private static VideoActionBarViewModel.Builder toMinimal(

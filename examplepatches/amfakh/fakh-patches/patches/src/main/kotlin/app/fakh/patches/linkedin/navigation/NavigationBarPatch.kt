@@ -34,6 +34,14 @@ private object TabsSizedFingerprint : Fingerprint(
     parameters = emptyList(),
 )
 
+/** SlimBottomBar.onClick(View): a tap on one of the tabs of the bottom bar. */
+private object TabClickFingerprint : Fingerprint(
+    definingClass = "Lcom/linkedin/android/home/bottomnav/SlimBottomBar;",
+    name = "onClick",
+    returnType = "V",
+    parameters = listOf("Landroid/view/View;"),
+)
+
 /**
  * The only two hooks into the bottom bar, shared by every patch that changes it: the filter that decides which tabs
  * it has (the More tab is one of them) and the point where its tabs have been sized.
@@ -62,6 +70,19 @@ internal val navigationHooksPatch = patch {
             }
         }
 
+        // The Messaging tab is a screen of its own in LinkedIn, not a fragment of the home pager: a tap on it opens
+        // that screen the way the button of the top bar does, and the selection stays where it was.
+        TabClickFingerprint.method.addInstructionsWithLabels(
+            0,
+            """
+                invoke-static { p0, p1 }, $EXTENSION_CLASS->interceptTabClick(Landroid/view/View;Landroid/view/View;)Z
+                move-result v0
+                if-eqz v0, :click
+                return-void
+            """,
+            ExternalLabel("click", TabClickFingerprint.method.getInstruction(0)),
+        )
+
         // The method reuses the register of the bar before it returns, so the bar is taken at the start.
         TabsSizedFingerprint.method.apply {
             returnIndices(Opcode.RETURN_VOID).forEach { index ->
@@ -76,8 +97,8 @@ internal val navigationHooksPatch = patch {
 @Suppress("unused")
 val navigationBarPatch = patch(
     name = "Navigation bar",
-    description = "Adds options in Fakh Patches to hide the More, Jobs, Network and Notifications tabs " +
-        "of the navigation bar (and Post, Video and News where LinkedIn shows them), its count badges and its labels.",
+    description = "Lets you choose the navigation bar tabs, including Post, Video, News and Messaging, and hide its " +
+        "count badges and labels. In Fakh Patches.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
@@ -89,8 +110,7 @@ val navigationBarPatch = patch(
 @Suppress("unused")
 val swipeTabsPatch = patch(
     name = "Swipe between tabs",
-    description = "Swipe sideways to go to the next or previous tab of the navigation bar. On My Network it " +
-        "first switches between Grow and Catch up.",
+    description = "Swipe sideways to switch tabs of the navigation bar.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
@@ -102,7 +122,7 @@ val swipeTabsPatch = patch(
 @Suppress("unused")
 val glassNavigationBarPatch = patch(
     name = "Glass navigation bar",
-    description = "Draws the navigation bar as a floating, translucent capsule with a sliding selection pill. Slide a finger along it to switch tabs. Liquid Glass blurs what's behind it.",
+    description = "Draws the navigation bar as a floating, translucent capsule with a sliding selection pill. Slide a finger along it to switch tabs. Adds a Background blur switch in Fakh Patches.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)

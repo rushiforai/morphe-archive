@@ -1,0 +1,77 @@
+{
+  "target": "com.waze 5.26.90.901",
+  "apkm_sha256": "dd69b987ede38579bff7d0f3bc5ca6128730667f8f073c795e7f1c21db9dabe1",
+  "mpp_sha256": "1b5ebbc92aa6bb380534e3a1beacea3cfecd4eff3d1759e71b90dba2096d7e17",
+  "patches": [
+    "Alert distances",
+    "All moods",
+    "Average speed zone bar",
+    "Bigger alert pins",
+    "Bigger speedometer",
+    "Change app name",
+    "Flock cameras",
+    "Full black",
+    "Hide ads",
+    "Map skin",
+    "Navigation distances",
+    "No AI reporting",
+    "No Google Assistant",
+    "Open without device location",
+    "Remove permissions",
+    "Remove sign-in prompts",
+    "Remove telemetry",
+    "Report speed limit",
+    "Share alerts with Maps",
+    "SoundCloud in Waze",
+    "Speed camera alerts",
+    "Speed camera sound at any speed",
+    "Speed cameras everywhere",
+    "Speed limit sign",
+    "Stay awake in the background",
+    "YT Music Morphe in Waze"
+  ],
+  "runs": 27,
+  "runtime_verified": false,
+  "runtime_checks": {
+    "device": "dedicated API 36 arm64 phone emulator",
+    "startup": true,
+    "configuration_overrides_native_thread": true,
+    "speedometer_binding": true,
+    "customization_panel": true,
+    "map_skin_files_rewritten": 10,
+    "godot_pin_keys_rewritten": 40,
+    "asset_second_start_unchanged": true,
+    "synthetic_native_zone_colors": [
+      "blue",
+      "green",
+      "orange",
+      "red"
+    ],
+    "synthetic_alert_update_through_native_manager": true,
+    "synthetic_speed_camera_detected_at_meters": 300,
+    "synthetic_flock_camera_detected_at_meters": 300
+  },
+  "resource_checks": {
+    "original_numeric_ids_preserved": 15077,
+    "patcher_normalized_case_collision_names": 42,
+    "removed_permissions": 6,
+    "location_and_microphone_retained": true,
+    "custom_label_with_ampersand": true,
+    "custom_speed_and_unit_sizes_dp": [
+      40,
+      16
+    ]
+  },
+  "tests": {
+    "bridge_robolectric": {
+      "tests": 3,
+      "failures": 0
+    },
+    "python": {
+      "tests": 393,
+      "skipped": 39,
+      "failures": 0
+    }
+  },
+  "scope": "Application matrix and listed runtime smoke/synthetic checks only; live road and media-provider behavior not established."
+}

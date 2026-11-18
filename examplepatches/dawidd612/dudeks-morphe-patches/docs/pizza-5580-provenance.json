@@ -1,0 +1,79 @@
+{
+  "game_version": "5.58.0",
+  "version_code": 2301,
+  "archive_sha256": "6f4c6f9faa13265d0533aa61c8b294938cbfbf439e971ba162fb5e51d3b8dc6b",
+  "native_reconstruction": {
+    "restored_executable_bytes": 50924,
+    "constant_qwords": 3794,
+    "relative_relocations": 0,
+    "imports": 200,
+    "removed_init": "0x224c000",
+    "input_sha256": "5041c7175663e8173e9ab30378de99b29b2c7fbad2be5eab329ca2c926f867a1",
+    "output_sha256": "937378e4e01db235a19944746ae9c311f73df0de1f1ee7eae5e6cc5745e9fdd3"
+  },
+  "resources": {
+    "arm64-init.delta.gz": "cd939766d2c4a774b3bc20f2bea51c65fe9b6187eac06394e07ebce25a47ddd1",
+    "funds-store.delta.gz": "b74692a8a3033db7a169466c411db4bd7a056fb0e06f44ff6654331707101936",
+    "profile.properties": "41cf645e6085396b2b303406a16b5c89c6c2f1c0b57589faa18e83519b03b721",
+    "sdk-receivers.dex": "3c2c627a8d3e3b8d1ff8ab0e2ee587745551c4d923a7ed19b9141b52307f8ab3",
+    "strings.tsv.gz": "4234d14578a160bab5d0e550c0e8832ec87072e82fa8c617fa0fdd77b7e250f4"
+  },
+  "sdk_inputs": [
+    {
+      "url": "https://repo.maven.apache.org/maven2/com/fyber/marketplace-sdk/8.4.6/marketplace-sdk-8.4.6.aar",
+      "sha256": "446a2fedf4c3e88db6bf762e6da7ef997214646210a24d227639fa710c7d7d95"
+    },
+    {
+      "url": "https://repo.maven.apache.org/maven2/com/unity3d/ads-mediation/adquality-sdk/9.10.0/adquality-sdk-9.10.0.aar",
+      "sha256": "d659c0ad812d878be722833ad120d19150d6568247257bcecf5cd3a6b6e541e6"
+    },
+    {
+      "url": "https://sdk.tapjoy.com/com/tapjoy/tapjoy-android-sdk/14.6.0/tapjoy-android-sdk-14.6.0.aar",
+      "sha256": "e29e270499a00b2b3eda2f0e832d91f9ff6442fdc631fe55e4cf39651e759d17"
+    },
+    {
+      "url": "https://dl.google.com/dl/android/maven2/com/google/android/gms/play-services-basement/18.10.0/play-services-basement-18.10.0.aar",
+      "sha256": "859963500c141053043e6b02ff3065609184078d8c72799f4d162058be52fff8"
+    }
+  ],
+  "strings": 1449,
+  "string_snapshot_sha256": [
+    "0574464f6149e2cfe4233d45197940e1421945083ccdb51c9623147ed7bf5a53",
+    "0574464f6149e2cfe4233d45197940e1421945083ccdb51c9623147ed7bf5a53"
+  ],
+  "store_visibility": {
+    "version": "5.58.0",
+    "input_sha256": "937378e4e01db235a19944746ae9c311f73df0de1f1ee7eae5e6cc5745e9fdd3",
+    "output_sha256": "e201dee34e1869316c1e6b3ddf0e2713743688d5cf2587d759a997363a563e60",
+    "edits": [
+      {
+        "offset": "0x1802164",
+        "before": "f903022a",
+        "after": "19088052"
+      },
+      {
+        "offset": "0x16244e0",
+        "before": "ff4301d1fd7b02a9",
+        "after": "00008052c0035fd6"
+      }
+    ]
+  },
+  "capture_environment": "Disposable Morphe_Pizza_Debug_API35, x86_64 API35 ARM64 translation, original publisher-signed 67-split XAPK; two ASLR-independent starts",
+  "ifunc_resolution": "libc.so SHA256 2ff4bf0e733a1103333d0742890d66e88d7aabe05c0f977f3b2d1ae470269b4c; memmove resolver at 0xaccbc returns target 0x443c0 via ADR/CSEL. Reconstructed relocation uses symbol memmove, never a process address.",
+  "sdk_receivers": 5,
+  "runtime_failure_before_fifth_receiver": "Four SDK methods crash in plain offline Activity recreation. Fifth exact Tapjoy receiver fixes that isolated case, but SDK5 second user reboot still crashes. Sixth exact Google ProviderInstaller task fixes the observed reboot case; all earlier failure evidence remains local.",
+  "elf_driven_reconstruction": "scripts/reconstruct_pizza_capture.py reproduces the exact native output from runs 2 and 3; unreviewed IFUNC rejects at slot 0x21d5990.",
+  "recovered_sdk_methods": 6,
+  "provider_reconstruction": {
+    "source_task": "com.google.android.gms.security.zza.doInBackground(Object[])",
+    "bindings": "pizza-5580-provider-remap.properties",
+    "source_d8_min_api": 24,
+    "transformation": "Reference remap to original R8 classes/fields and existing real installer; inlined repairable exception getter reads its original error-code field. Installation and original onPostExecute callbacks preserved.",
+    "runtime_outcomes": {
+      "real_provider_installation": 0,
+      "injected_unavailable": 17,
+      "injected_repairable": 2
+    },
+    "sdk6_status": "Two user force-stop starts, Home/resume and three full device reboots pass genuine Google sign-in with80s observation and unchanged progress. User confirmed linked TapBlaze. Fresh cloud restoration and physical ARM64 devices are untested."
+  }
+}

@@ -13,7 +13,7 @@
  *
  * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to Morphe contributions.
  *
- * Modified by lavinhoque33, 2026-11-14.
+ * Modified by lavinhoque33, 2026-11-17.
  */
 
 package app.morphe.patches.youtube.general.navigation
@@ -231,7 +231,7 @@ val navigationBarComponentsPatch = bytecodePatch(
 
         if (is_19_25_or_greater) {
             // Follow every use of a flag literal, including reads reused across layout branches.
-            injectOnCreateMethodCall("$PATCHES_PATH/theme/StatusBarPatch;", "initialize")
+            injectOnCreateMethodCall("$PATCHES_PATH/HideStatusBarPatch;", "initialize")
             EdgeToEdgeTopBarFeatureFlagFingerprint.matchAll().forEach { match ->
                 match.method.apply {
                     overrideNavigationFeatureFlag(
@@ -240,6 +240,29 @@ val navigationBarComponentsPatch = bytecodePatch(
                     )
                 }
             }
+
+            StatusBarScrollColorFeatureFlagFingerprint.matchAllOrNull()?.forEach { match ->
+                match.method.overrideNavigationFeatureFlag(
+                    45830993L,
+                    "$PATCHES_PATH/theme/StatusBarPatch;->useStatusBarScrollColor(Z)Z"
+                )
+            }
+
+            SystemWindowInsetsChangedFingerprint.matchOrNull()?.let { match ->
+                match.method.apply {
+                    val insetsRegister = match.instructionMatches.first()
+                        .getInstruction<FiveRegisterInstruction>().registerC
+                    val viewIndex = match.instructionMatches.last().index
+                    val viewRegister = getInstruction<TwoRegisterInstruction>(viewIndex).registerA
+
+                    addInstruction(
+                        viewIndex + 1,
+                        "invoke-static { v$insetsRegister, v$viewRegister }, " +
+                            "$PATCHES_PATH/HideStatusBarPatch;" +
+                            "->setSystemWindowInsetTop(Landroid/graphics/Rect;Landroid/view/View;)V"
+                    )
+                }
+            } ?: printWarn("Hidden status bar stable-inset correction is not supported in this version.")
 
             TranslucentNavigationBarFeatureFlagsFingerprint.matchAll().forEach { match ->
                 match.method.apply {

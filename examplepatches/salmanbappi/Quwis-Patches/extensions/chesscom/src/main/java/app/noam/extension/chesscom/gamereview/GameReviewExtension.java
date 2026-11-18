@@ -13,6 +13,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
+import app.noam.extension.chesscom.Utils;
+
 /** Entry points the Game Review patch's bytecode hooks call into. */
 public final class GameReviewExtension {
     private static final String TAG = "GameReviewExtension";
@@ -76,7 +78,16 @@ public final class GameReviewExtension {
     }
 
     public static boolean getAnalysisPermission(boolean defaultValue, String permissionName) {
-        return GameReview.local() || defaultValue;
+        return GameReview.localPermissions() || defaultValue;
+    }
+
+    /**
+     * The navigation view model's "is signed in" check: a signed-out user may still open Game
+     * Review when a reviewer on this phone or on the user's computer is available.
+     */
+    public static boolean allowGuestReview(boolean signedIn) {
+        GameReview.noteSignedIn(signedIn);
+        return signedIn || GameReview.localReview();
     }
 
     /**
@@ -108,6 +119,7 @@ public final class GameReviewExtension {
             }
         } catch (Throwable t) {
             Log.e(TAG, "shouldUseDummyMove failed, falling back to the dummy move", t);
+            Utils.toast("shouldUseDummy Error: " + t.getClass().getSimpleName() + ": " + t.getMessage());
             return true;
         }
         return false;
@@ -129,18 +141,17 @@ public final class GameReviewExtension {
             Constructor<?> infoCtor = AppTypes.primaryCtor(moveInfoClass);
             if (infoCtor == null) return null;
 
-            Class<?> historyClass = null;
-            try {
-                historyClass = Class.forName("com.chess.chessboard.history.i");
-            } catch (ClassNotFoundException ignored) {
-                if (positionAndMove != null) historyClass = positionAndMove.getClass();
-            }
+            Class<?> historyClass = AppTypes.load("com.chess.chessboard.history.i");
             if (historyClass == null && positionAndMove != null) {
                 historyClass = positionAndMove.getClass();
             }
-            Class<?> classificationClass = Class.forName("com.chess.compengine.AnalysisMoveClassification");
-            Class<?> scoreClass = Class.forName("com.chess.entities.Score");
-            Class<?> colorClass = Class.forName("com.chess.entities.Color");
+            if (historyClass == null) {
+                historyClass = AppTypes.load("com.chess.chessboard.history.f");
+            }
+
+            Class<?> classificationClass = AppTypes.load("com.chess.compengine.AnalysisMoveClassification");
+            Class<?> scoreClass = AppTypes.load("com.chess.entities.Score");
+            Class<?> colorClass = AppTypes.load("com.chess.entities.Color");
 
             Object position = null;
             if (positionAndMove != null) {
@@ -156,7 +167,7 @@ public final class GameReviewExtension {
                     side = position.getClass().getMethod("getSideToMove").invoke(position);
                 } catch (Throwable ignored) {}
             }
-            if (side == null) {
+            if (side == null && colorClass != null) {
                 try {
                     side = colorClass.getField("WHITE").get(null);
                 } catch (Throwable ignored) {
@@ -164,28 +175,52 @@ public final class GameReviewExtension {
                     if (constants != null && constants.length > 0) side = constants[0];
                 }
             }
-            Object companion = scoreClass.getField("Companion").get(null);
-            Method fromMethod = null;
-            for (Method m : companion.getClass().getMethods()) {
-                if ("from".equals(m.getName()) && m.getParameterCount() == 3) {
-                    fromMethod = m;
-                    break;
+
+            Object score = null;
+            if (scoreClass != null) {
+                try {
+                    Field compField = scoreClass.getField("Companion");
+                    Object companion = compField.get(null);
+                    if (companion != null) {
+                        for (Method m : companion.getClass().getMethods()) {
+                            if ("from".equals(m.getName()) && m.getParameterCount() == 3) {
+                                score = m.invoke(companion, 0f, null, side);
+                                break;
+                            }
+                        }
+                    }
+                } catch (Throwable ignored) {}
+                if (score == null) {
+                    for (Constructor<?> c : scoreClass.getConstructors()) {
+                        try {
+                            Class<?>[] pt = c.getParameterTypes();
+                            Object[] sArgs = new Object[pt.length];
+                            for (int k = 0; k < pt.length; k++) sArgs[k] = AppTypes.defaultFor(pt[k]);
+                            score = c.newInstance(sArgs);
+                            break;
+                        } catch (Throwable ignored) {}
+                    }
+                }
+                if (score == null) {
+                    score = AppTypes.defaultFor(scoreClass);
                 }
             }
-            Object score = fromMethod != null
-                ? fromMethod.invoke(companion, 0f, null, side)
-                : null;
+
             Object book = null;
-            for (Object c : classificationClass.getEnumConstants()) {
-                if ("BOOK".equals(((Enum<?>) c).name())) { book = c; break; }
-            }
-            if (book == null) {
-                try {
-                    Field fb = classificationClass.getField("b");
-                    book = fb.get(null);
-                } catch (Throwable ignored) {
-                    Object[] constants = classificationClass.getEnumConstants();
-                    if (constants != null && constants.length > 0) book = constants[0];
+            if (classificationClass != null) {
+                Object[] constants = classificationClass.getEnumConstants();
+                if (constants != null) {
+                    for (Object c : constants) {
+                        if ("BOOK".equals(((Enum<?>) c).name())) { book = c; break; }
+                    }
+                    if (book == null) {
+                        try {
+                            Field fb = classificationClass.getField("b");
+                            book = fb.get(null);
+                        } catch (Throwable ignored) {
+                            if (constants.length > 0) book = constants[0];
+                        }
+                    }
                 }
             }
 
@@ -194,18 +229,26 @@ public final class GameReviewExtension {
             for (int i = 0; i < p.length; i++) {
                 if (positionAndMove != null && (p[i].isInstance(positionAndMove) || (historyClass != null && p[i].isAssignableFrom(historyClass)))) {
                     args[i] = positionAndMove;
-                } else if (p[i] == classificationClass) args[i] = book;
-                else if (p[i] == scoreClass) args[i] = score;
-                else args[i] = AppTypes.defaultFor(p[i]);
+                } else if (classificationClass != null && p[i] == classificationClass) {
+                    args[i] = book;
+                } else if (scoreClass != null && p[i] == scoreClass) {
+                    args[i] = score;
+                } else {
+                    args[i] = AppTypes.defaultFor(p[i]);
+                }
             }
             Object info = infoCtor.newInstance(args);
 
-            Object[] pairArgs = new Object[pairCtor.getParameterTypes().length];
+            Class<?>[] pairParamTypes = pairCtor.getParameterTypes();
+            Object[] pairArgs = new Object[pairParamTypes.length];
             pairArgs[0] = info;
-            for (int i = 1; i < pairArgs.length; i++) pairArgs[i] = AppTypes.defaultFor(pairCtor.getParameterTypes()[i]);
+            for (int i = 1; i < pairArgs.length; i++) {
+                pairArgs[i] = AppTypes.defaultFor(pairParamTypes[i]);
+            }
             return pairCtor.newInstance(pairArgs);
         } catch (Throwable t) {
             Log.e(TAG, "buildDummyMoveResult failed", t);
+            Utils.toast("DummyMove Error: " + t.getClass().getSimpleName() + ": " + t.getMessage());
             return null;
         }
     }

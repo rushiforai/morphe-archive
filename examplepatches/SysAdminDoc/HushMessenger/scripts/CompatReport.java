@@ -21,6 +21,12 @@
  *                                     and rebuilds every patch, then prints Kotlin.
  *   CompatReport --kotlin <record.txt>  prints the Kotlin for a recorded build again.
  *
+ * Adding a control:
+ *   CompatReport --record-control <control> <stock APK dir>
+ *                                     finds the control's hooks in every recorded
+ *                                     build's APK and writes them into the records
+ *                                     and the profiles in ControlProfiles.kt.
+ *
  * Run the source file directly:
  *   java -cp <dexlib2.jar>;<guava.jar> scripts/CompatReport.java <apk>
  * or compile once:

@@ -35,6 +35,7 @@
   4. 本家に新しい表示文字列が増えたら翻訳して追加します（設定 UI の文字列は英語版 `values/newx/strings.xml` のキーと比較。パッチ説明は宣言を確認）。未訳のキーはビルドログに表示され、実行時は英語にフォールバックします。
   5. 本家がパッチを追加・削除・改名したら、`scripts/verify_bundle.py` の `EXPECTED_PATCHES`（アプリごとの本家英語名の一覧と、X の公開順 `EXPECTED_X_ORDER`）も合わせて更新します。新しいパッチは、名前は本家の英語名のまま、説明にのみ日本語訳を付けます（名前は絶対に翻訳しない）。
   6. `sources/piko/UPSTREAM_BASE.md` のベースコミットを更新します。コミットは規約型 `i18n` を使います。
+- 例外（常時有効の拡張）: 本家パッチ「NewX: Inline download button」には、v1.6.0 で Ayufa 側の拡張として「カードで参照された動画のダウンロード対応」を常時組み込んでいます（本人の指示。新規パッチや設定項目にはしない）。ポスト本体のメディア一覧にはカード（unified card）内の動画が含まれず、本家のままではダウンロードボタンが出ません。実装は、CanonicalPost の `legacyCard` → LegacyCard の `bindings` → `unified_card` バインディングの UnifiedCardValue が保持する生 JSON（rawJson）をたどり、その中の media_entities（video_info の mp4 バリアント）からダウンロード項目を組み立てるものです。モデル解決は `sources/piko/patches/.../newx/models/PostModels.kt` の `ResolvedNewXCardModels`（フィールドは各モデルの toString ラベルから解決）、ブリッジ注入は `InlineDownloadButtonPatch.kt` の `getPostCard` / `getCardBindings` / `getBindingKey` / `getBindingValue` / `getUnifiedCardRawJson`、JSON の解析と項目化は拡張 `InlineDownloadButton.java` の `cardDownloadItems` です。パッチ説明文の「カードで参照された動画もダウンロードできます。」の一文もこの拡張に伴う Ayufa 側の追記です。本家の取り込みでこの拡張を削除したり設定項目化したりしないでください。対象ファイル（PostModels.kt / InlineDownloadButtonPatch.kt / InlineDownloadButton.java）で競合が出たら、翻訳行の競合として自動解消せず、中止して報告してください。本家が同等機能を実装したら、その時点で本人に報告して扱いを決めます。検証テストは `sources/piko/extensions/newx/src/test/.../InlineDownloadButtonTest.java` の card 系テストです。
 
 ## Twitch 側: sources/twitch/
 

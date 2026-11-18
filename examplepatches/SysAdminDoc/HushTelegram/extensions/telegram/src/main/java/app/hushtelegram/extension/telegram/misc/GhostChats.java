@@ -39,7 +39,7 @@ import app.hushtelegram.extension.telegram.settings.SettingsLock;
 public final class GhostChats {
     private GhostChats() {}
 
-    private static final String PREFS = "hushtelegram_ghost_exceptions";
+    static final String PREFS = "hushtelegram_ghost_exceptions";
     private static final String KEY = "chats";
 
     static Function<Context, SharedPreferences> store = context -> context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);

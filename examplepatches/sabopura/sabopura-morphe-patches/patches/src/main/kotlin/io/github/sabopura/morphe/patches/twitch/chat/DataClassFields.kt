@@ -1,12 +1,22 @@
 package io.github.sabopura.morphe.patches.twitch.chat
 
+import app.morphe.patcher.patch.BytecodePatchContext
 import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.*
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
+
+/** The fields behind the labels of a data class's toString, with R8's shared helpers resolved. */
+internal fun BytecodePatchContext.describedFields(type: ClassDef): Map<String, FieldReference> =
+    dataClassFields(type.methods.single { it.name == "toString" && it.parameterTypes.isEmpty() }) { reference ->
+        classDefBy(reference.definingClass).methods.single {
+            it.name == reference.name && it.parameterTypes == reference.parameterTypes && it.returnType == reference.returnType
+        }
+    }
 
 /** Follow actual StringBuilder appends, including R8's shared append helpers. */
 internal fun dataClassFields(method: Method, resolve: (MethodReference) -> Method): Map<String, FieldReference> {

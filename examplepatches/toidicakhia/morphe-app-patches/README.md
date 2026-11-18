@@ -14,7 +14,6 @@ This bundle currently supports:
 |-----|---------|---------|
 | EZVIZ | 7.6.1.0824 | Remove ads, bypass SSL pinning, bypass signature check |
 | 1.1.1.1 | 6.38.11 | Disable analytics, disable SSL pinning, spoof WARP+ unlimited UI |
-| TeraBox | 4.27.5 | Hide ads while keeping rewarded ads on the Benefits page |
 | Universal Copy | 7.2.0 | Unlock Plus, remove ads/upgrade prompts and the Internet permission |
 | NetMonster | 4.0.5 | Unlock premium |
 | HTTP Sniffer | 2.5.2-ad_mob, 2.4.9-ad_mob | Unlock VIP |
@@ -26,7 +25,7 @@ updated fingerprints before a patch can be applied.
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.7.1](https://github.com/toidicakhia/morphe-app-patches/releases/tag/v1.7.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;23 patches total
+> **[v1.7.2](https://github.com/toidicakhia/morphe-app-patches/releases/tag/v1.7.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;19 patches total
 <details open>
 <summary><img src=".github/assets/apps/vn.vtv.vtvgo.png" alt="" height="20"> VTVGo&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
 <br>
@@ -83,36 +82,19 @@ updated fingerprints before a patch can be applied.
 </details>
 
 <details open>
-<summary><img src=".github/assets/apps/com.devolutions.remotedesktopmanager.png" alt="" height="20"> Remote Desktop Manager&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
+<summary><img src=".github/assets/apps/com.pioneerdj.WeDJ.png" alt="" height="20"> WeDJ&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 2026.3.1.5 |
-| :---: |
+| 1.1.4.5 | 1.1.1.3 |
+| :---: | :---: |
+| Latest release; requires Android 13+. | Use on Android 9-12. |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Disable Analytics / Telemetry](#disable-analytics-telemetry) | Disables Firebase Analytics, Crashlytics and Performance, including advertising-ID and app-set-ID collection. The Devolutions product telemetry is sent by the .NET code inside the AOT assemblies, use the app's "Disable sending analytics" option to turn it off. |  |
-| [Disable SSL Pinning](#disable-ssl-pinning) | Bypasses the certificate validation of the .NET/Mono TLS stack so a debugging proxy can read the app's HTTPS traffic. Certificate pinning implemented in managed code lives in the ahead-of-time compiled .NET assemblies and is not affected. Not selected by default. |  |
-| [Faster Startup](#faster-startup) | Skips the Firebase Analytics connector, Crashlytics session tracking and the emoji-compat initializer that run on every launch. Crash reporting, push notifications and background jobs keep working; analytics and app-quality session data are not collected. |  |
-| [Remove Ad ID Permissions](#remove-ad-id-permissions) | Removes the advertising ID, Privacy Sandbox ad-services and Play install-referrer permissions. |  |
-| [Skip Age Verification](#skip-age-verification) | Answers the Google Play age-signals request locally instead of waiting for the Play Store. The managed startup code blocks on that answer for up to two minutes, and the call never completes on sideloaded builds or devices without Play Services. Also skips the follow-up age-range query. Not selected by default: it disables the regional age gate. |  |
-
-</details>
-
-<details open>
-<summary><img src=".github/assets/apps/com.dubox.drive.png" alt="" height="20"> TeraBox&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 4.27.5 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Hide ads](#hide-ads) | Blocks feed, banner, interstitial, app-open and video player ads on every page except Benefits, where rewarded ads stay available. |  |
+| [Disable Analytics / Telemetry](#disable-analytics-telemetry) | Stops WeDJ's Mobylog tracking client from uploading playback, device-connection and startup app-check events. |  |
+| [Unlock Unlimited Playback](#unlock-unlimited-playback) | Makes WeDJ treat the "Unlock Unlimited Playback" in-app purchase as owned. The free-version limit that stops playback after loading a few tracks is removed and the purchase entry disappears from the track browser. Use WeDJ 1.1.1.3 on Android 9-12 and 1.1.4.5 on Android 13+. Client-side only: the Play Store transaction itself is not simulated. |  |
 
 </details>
 

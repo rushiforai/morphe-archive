@@ -72,6 +72,13 @@
     <string name="morphe_captions_screen_summary">จัดการคำบรรยายอัตโนมัติและคุกกี้คำบรรยาย</string>
     <string name="morphe_captions_screen_title">คำบรรยาย</string>
     <string name="morphe_custom_branding_icon_title">ไอคอนแอป</string>
+    <string name="morphe_custom_seekbar_thumb_file_invalid">ไฟล์ที่เลือกไม่ใช่รูปภาพที่รองรับ</string>
+    <string name="morphe_custom_seekbar_thumb_file_not_found">ไม่พบรูปภาพปุ่มเลื่อน seekbar แบบกำหนดเอง</string>
+    <string name="morphe_custom_seekbar_thumb_file_title">รูปภาพปุ่มเลื่อน</string>
+    <string name="morphe_custom_seekbar_thumb_scale_type_entry_fit_seekbar">ปรับให้พอดีกับ seekbar</string>
+    <string name="morphe_custom_seekbar_thumb_scale_type_entry_original">ขนาดต้นฉบับ</string>
+    <string name="morphe_custom_seekbar_thumb_scale_type_title">ขนาดปุ่มเลื่อน</string>
+    <string name="morphe_custom_seekbar_thumb_title">เปิดใช้งานปุ่มเลื่อน seekbar แบบกำหนดเอง</string>
     <string name="morphe_dark_theme_custom_color_title">ปรับแต่งโหมดมืด</string>
     <string name="morphe_dearrow_about_summary">"DeArrow จะแทนที่ชื่อและภาพขนาดย่อที่คลิกเบตด้วยที่มาจาก crowdsource ซึ่งแม่นยำกว่าและไม่เร้าอารมณ์มากเกินไป ชื่อเขียนและโหวตโดยชุมชน และภาพขนาดย่อคือเฟรมจากวิดีโอ
 
@@ -101,6 +108,12 @@
     <string name="morphe_disable_toolbar_navigation_tabs_summary">แสดงการติดตามในแถบนำทาง หาก YouTube ย้ายไปไว้ในแท็บที่ด้านบนของหน้าหลัก</string>
     <string name="morphe_disable_toolbar_navigation_tabs_title">ปิดใช้งานแท็บการนำทางบนแถบเครื่องมือ</string>
     <string name="morphe_dual_captions_enabled_title">คำบรรยายสองภาษา</string>
+    <string name="morphe_enhanced_ambient_mode_dim_duration_title">ระยะเวลาการหรี่ไฟ</string>
+    <string name="morphe_enhanced_ambient_mode_dim_while_scrolling_summary">หรี่แสงไฟในขณะที่เลื่อนหน้าหรือสัมผัสหน้าจอ</string>
+    <string name="morphe_enhanced_ambient_mode_dim_while_scrolling_title">หรี่ไฟขณะเลื่อน</string>
+    <string name="morphe_enhanced_ambient_mode_readable_text_summary">ลดแสงสว่างในวิดีโอที่สว่างเกินไปเพื่อให้ข้อความบนหน้ายังคงอ่านออก</string>
+    <string name="morphe_enhanced_ambient_mode_readable_text_title">รักษาข้อความให้อ่านออก</string>
+    <string name="morphe_enhanced_ambient_mode_title">โหมดแอมเบียนท์แบบปรับปรุง</string>
     <string name="morphe_expand_livestream_dvr_duration_not_available">"'ขยายระยะเวลา DVR ไลฟ์สตรีม' อาจไม่สามารถใช้งานได้
 
 หากต้องการแก้ไข โปรดเปิด 'ปลอมแปลงสตรีมวิดีโอ' และเปลี่ยน 'ไคลเอ็นต์เริ่มต้น' เป็น 'TV Simply' หรือ 'visionOS'"</string>
@@ -267,6 +280,12 @@
     <string name="morphe_playback_in_feeds_title">การเล่นในฟีด</string>
     <string name="morphe_player_control_buttons_background_opacity_summary">ปรับความทึบแสงของพื้นหลังด้านหลังปุ่มควบคุมเครื่องเล่นและแถบเวลา (0 คือโปร่งใส, 100 คือทึบแสง)</string>
     <string name="morphe_player_control_buttons_background_opacity_title">ความทึบแสงของพื้นหลังปุ่มควบคุม</string>
+    <string name="morphe_playlist_hide_removal_snackbar_summary">จะไม่มีการแสดงการยืนยันหลังจากนำวิดีโอออกจากเพลย์ลิสต์</string>
+    <string name="morphe_playlist_hide_removal_snackbar_title">ซ่อนแถบแจ้งเตือนชั่วคราวการนำออกจากเพลย์ลิสต์</string>
+    <string name="morphe_playlist_long_press_drag_summary">แตะและกดวิดีโอในเพลย์ลิสต์ของคุณค้างไว้เพื่อลากไปยังตำแหน่งใหม่</string>
+    <string name="morphe_playlist_long_press_drag_title">กดค้างไว้เพื่อจัดลำดับวิดีโอในเพลย์ลิสต์ใหม่</string>
+    <string name="morphe_playlist_wide_drag_handles_summary">มือจับสำหรับลากเพลย์ลิสต์สามารถจับได้ง่ายขึ้น</string>
+    <string name="morphe_playlist_wide_drag_handles_title">ขยายมือจับสำหรับลากเพลย์ลิสต์</string>
     <string name="morphe_post_buttons_layout_entry_1">เซิร์ฟเวอร์</string>
     <string name="morphe_post_buttons_layout_entry_2">บังคับใช้</string>
     <string name="morphe_post_buttons_layout_title">เลย์เอาต์ปุ่มโพสต์</string>
@@ -606,20 +625,7 @@
     <string name="revanced_disable_hdr_video_summary_off">เปิดใช้งานวิดีโอ HDR</string>
     <string name="revanced_disable_hdr_video_summary_on">ปิดใช้งานวิดีโอ HDR</string>
     <string name="revanced_disable_hdr_video_title">ปิดใช้งานวิดีโอ HDR</string>
-    <string name="revanced_disable_layout_updates_summary_off">รูปแบบจะได้รับการอัปเดตจากเซิร์ฟเวอร์</string>
-    <string name="revanced_disable_layout_updates_summary_on">รูปแบบจะไม่ได้รับการอัปเดตจากเซิร์ฟเวอร์</string>
     <string name="revanced_disable_layout_updates_title">ปิดการอัปเดตรูปแบบ</string>
-    <string name="revanced_disable_layout_updates_user_dialog_message">"เลย์เอาต์ของแอปกลับไปใช้เลย์เอาต์ที่ใช้เมื่อติดตั้งครั้งแรก
-
-เลย์เอาต์ด้านเซิร์ฟเวอร์บางส่วนอาจไม่กลับคืน
-
-การเปลี่ยนแปลง ได้แก่:
-• ส่วนประกอบในเมนูแบบเลื่อนออกของเครื่องเล่น (หรือการตั้งค่าที่เกี่ยวข้อง) อาจไม่ทำงาน
-• ตัวเลขหมุนไม่มีการเคลื่อนไหว
-• แท็บคลังจะแสดง
-• ส่วนเพลงของคำอธิบายวิดีโออาจไม่ทำงาน
-• รายการเมนูแบบเลื่อนออกของเครื่องเล่นไม่สามารถซ่อนได้
-• ปุ่มสลับบัญชีอาจไม่ปรากฏบนแท็บคลัง"</string>
     <string name="revanced_disable_playlist_autoplay_title">ปิดการเล่นอัตโนมัติของเพลย์ลิสต์</string>
     <string name="revanced_disable_resuming_shorts_player_summary_off">เครื่องเล่น Shorts จะกลับมาทำงานต่อเมื่อเริ่มต้นแอป</string>
     <string name="revanced_disable_resuming_shorts_player_summary_on">เครื่องเล่น Shorts จะไม่กลับมาทำงานต่อเมื่อเริ่มต้นแอป</string>
@@ -700,11 +706,6 @@
     <string name="revanced_hide_comments_carousel_filter_strings_summary">ป้อนชื่อแคโรเซลความคิดเห็นเพื่อกรอง โดยคั่นด้วยบรรทัดใหม่</string>
     <string name="revanced_hide_comments_carousel_filter_strings_title">ตัวกรองแคโรเซลความคิดเห็น</string>
     <string name="revanced_hide_comments_carousel_title">เปิดใช้งานตัวกรองแคโรเซลความคิดเห็น</string>
-    <string name="revanced_hide_comments_carousel_user_dialog_message">"หมายเหตุ:
-
-• ตรวจสอบให้แน่ใจว่าคุณป้อนชื่อรายการแคโรเซิลที่ถูกต้อง (เช่น ถาม เพิ่มความนิยมให้กับวิดีโอนี้ ฟังบน YouTube Music เป็นต้น)
-• การซ่อนรายการแคโรเซิลอาจมีผลข้างเคียงที่ไม่คาดคิด
-• หากซ่อนรายการแคโรเซิลทั้งหมด ส่วนแสดงความคิดเห็นทั้งหมดจะถูกซ่อนไปด้วย"</string>
     <string name="revanced_hide_comments_create_a_short_button_summary_off">ปุ่มสร้าง Short แสดงอยู่</string>
     <string name="revanced_hide_comments_create_a_short_button_summary_on">ปุ่มสร้าง Short ถูกซ่อน</string>
     <string name="revanced_hide_comments_create_a_short_button_title">ซ่อนปุ่ม \'สร้าง Shorts\'</string>

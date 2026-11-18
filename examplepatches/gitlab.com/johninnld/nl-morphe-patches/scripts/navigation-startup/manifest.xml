@@ -1,0 +1,5 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="org.ungoogled.android.apps.maps.microg">
+<uses-sdk android:minSdkVersion="29" android:targetSdkVersion="36"/>
+<queries><package android:name="com.waze"/><package android:name="nl.flitsmeister"/></queries>
+<application android:label="Navigation startup probe" android:theme="@android:style/Theme.Material.Light.NoActionBar">
+<activity android:name="nl.johninnl.startup.probe.Probe" android:exported="true"/><receiver android:name="nl.johninnl.startup.probe.Probe$Health" android:exported="true"/></application></manifest>

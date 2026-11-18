@@ -456,7 +456,9 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
                 || setting == Settings.BLOCK_SOUND_BUTTON
                 || setting == Settings.NOT_INTERESTED_BUTTON
                 || setting == Settings.FEED_MUTE_BUTTON
-                || setting == Settings.DOWNLOAD_BUTTON)) {
+                || setting == Settings.DOWNLOAD_BUTTON
+                || setting == Settings.VIDEO_BUTTON_SIZE
+                || setting == Settings.VIDEO_BUTTONS_OVER_RAIL)) {
             BlockAuthorOverlay.refresh();
         }
         if (!applySettingToPreference && setting == Settings.FEED_MUTED) {
@@ -1773,6 +1775,8 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         status.setTurnBackOnAction(this::turnHushfeedBackOn);
         screen.addPreference(status);
         screen.addPreference(pauseRow(context));
+        screen.addPreference(themeRow(context));
+        screen.addPreference(languageRow(context));
         if (Section.DIAGNOSTICS.isAvailable()) addMenu(screen, Section.DIAGNOSTICS);
         addAbout(screen);
         addReportProblem(screen);
@@ -2057,6 +2061,44 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
             return true;
         });
         return pause;
+    }
+
+    /**
+     * Settings theme (#434): these pages and Hushfeed's own pop-ups in TikTok's mode, or always
+     * dark or light. Every surface reads the palette as it paints, so the page is built again to
+     * repaint, and a recreated page comes back on the same rows.
+     */
+    private ChoicePreference themeRow(Context context) {
+        ChoicePreference theme = new ChoicePreference(context, "Settings theme", Settings.SETTINGS_THEME,
+                new String[]{"Match TikTok", "Always dark", "Always light"},
+                new String[]{"tiktok", "dark", "light"})
+                .withNote("Colors these settings and Hushfeed's own pop-ups.");
+        mark(theme, SettingsIcons.MOON);
+        theme.setOnPreferenceChangeListener((preference, value) -> {
+            Settings.SETTINGS_THEME.save(String.valueOf(value));
+            Activity activity = getActivity();
+            if (activity != null) activity.getWindow().getDecorView().post(activity::recreate);
+            return true;
+        });
+        return theme;
+    }
+
+    /**
+     * Hushfeed language (#431): these pages and Hushfeed's messages in TikTok's language, or in
+     * one picked here whatever TikTok shows. The page is built again so every row reads the pick.
+     */
+    private ChoicePreference languageRow(Context context) {
+        ChoicePreference language = new ChoicePreference(context, "Hushfeed language", Settings.HUSHFEED_LANGUAGE,
+                L10n.PICK_LABELS, L10n.PICK_VALUES)
+                .withNote("For Hushfeed's settings and messages. TikTok keeps its own language.");
+        language.setIcon(SettingsMenuPreference.lineIconDrawable(context, SettingsMenuPreference.Icon.REGION));
+        language.setOnPreferenceChangeListener((preference, value) -> {
+            Settings.HUSHFEED_LANGUAGE.save(String.valueOf(value));
+            Activity activity = getActivity();
+            if (activity != null) activity.getWindow().getDecorView().post(activity::recreate);
+            return true;
+        });
+        return language;
     }
 
     /** The paused status card's action: safe mode, the switch and the marker file all go. */

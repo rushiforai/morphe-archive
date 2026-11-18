@@ -1,0 +1,33 @@
+[
+  {"name": "bug", "color": "D73A4A", "description": "A patch fails, or a patched app does not work as described"},
+  {"name": "app version", "color": "E99695", "description": "Morphe Manager does not accept an app version or build"},
+  {"name": "enhancement", "color": "A2EEEF", "description": "A request to improve a working patch, or for a new app or patch"},
+  {"name": "question", "color": "D876E3", "description": "A question or an idea"},
+  {"name": "documentation", "color": "0075CA", "description": "The README, the docs, or the issue forms"},
+  {"name": "app update", "color": "FEF2C0", "description": "The update check found a newer app version"},
+
+  {"name": "incomplete", "color": "FBCA04", "description": "Missing required details; closes after 7 days without an update"},
+  {"name": "untargeted version", "color": "F9D0C4", "description": "The app version or build is not supported; closes after 7 days without an update"},
+  {"name": "dev pre-release", "color": "D4C5F9", "description": "Reported on a dev pre-release of the patches"},
+  {"name": "needs review", "color": "D93F0B", "description": "The new app version needs a manual check or a patch change"},
+  {"name": "ready to bump", "color": "C2E0C6", "description": "Every patch applies to the new app version"},
+
+  {"name": "confirmed", "color": "B60205", "description": "Reproduced, and the patches cause it"},
+  {"name": "planned", "color": "C5DEF5", "description": "Accepted, and planned for a future release"},
+  {"name": "in development", "color": "0052CC", "description": "Being worked on now"},
+  {"name": "testing on dev", "color": "1D76DB", "description": "In a dev pre-release; comment with how it works on your device"},
+  {"name": "released", "color": "0E8A16", "description": "Fixed or added in a main release"},
+  {"name": "waiting for reporter", "color": "E4E669", "description": "Waiting for an answer from the person who opened the issue"},
+  {"name": "may reopen", "color": "F9E2AF", "description": "Closed for now; reopened if new details come in within 7 days"},
+
+  {"name": "upstream", "color": "EDEDED", "description": "Caused by the app, Morphe Manager, or another tool, not by the patches"},
+  {"name": "not patchable", "color": "6E7781", "description": "The app blocks patched copies, for example with Play Integrity or App Check"},
+  {"name": "out of scope", "color": "BFBFBF", "description": "Outside what the project does, such as paywalls, paid content, or posts not about these patches"},
+  {"name": "duplicate", "color": "CFD3D7", "description": "Another issue already covers this"},
+  {"name": "wontfix", "color": "FFFFFF", "description": "This will not be changed"},
+
+  {"name": "dependencies", "color": "0366D6", "description": "Pull requests that update a dependency file"},
+  {"name": "github_actions", "color": "000000", "description": "Pull requests that update GitHub Actions code"},
+  {"name": "javascript", "color": "168700", "description": "Pull requests that update javascript code"},
+  {"name": "java", "color": "FFA221", "description": "Pull requests that update java code"}
+]

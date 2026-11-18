@@ -14,7 +14,7 @@ Each app has its own README with the full patch list.
 |---|---|---|---|---|
 | BARDI Smart Home | `com.bardi.smart.home` | `1.5.3` | XAPK from APKPure | [apps/smartlife](apps/smartlife/README.md) |
 | CNN Indonesia | `com.cnn.indonesia` | `2.50.7` | APK from APKMirror | [apps/cnn](apps/cnn/README.md) |
-| CoverScreen OS | `apps.ijp.coverscreenos` | `CSOS_9.0.2_BETA` | APKM from APKMirror | [apps/coverscreen](apps/coverscreen/README.md) |
+| CoverScreen OS | `apps.ijp.coverscreenos` | `CSOS_9.0.3_BETA` | APKM from APKMirror | [apps/coverscreen](apps/coverscreen/README.md) |
 | detikcom | `org.detikcom.rss` | `7.14.1` | APK from APKMirror | [apps/detik](apps/detik/README.md) |
 | DoDo Music | `com.dundunstudio.autoplay` | `2.0.14`, `2.0.17` | XAPK from APKPure | [apps/dodo](apps/dodo/README.md) |
 | FlipSide | `com.dinoster.flipside` | `1.6` | APKS from APKCube | [apps/flipside](apps/flipside/README.md) |

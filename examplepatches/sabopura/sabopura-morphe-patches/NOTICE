@@ -46,6 +46,34 @@ techniques published by:
 - TwitchAdSolutions and TwitchAdBlock (MIT), through the above: fetching playlists of other
   player types while an ad is stitched into the stream.
 
+Other Twitch patches adopt work from these GPLv3 projects:
+- jordanwoodson/lurk-morphe-patches (https://github.com/jordanwoodson/lurk-morphe-patches),
+  revision 9b212856e82d39a74245ac073df4da3a26837be8, Copyright (C) 2026 Jordan Woodson:
+  code adapted in TwitchOrientation, TwitchLinks and the 7TV event client (chat/SevenTvBadges,
+  chat/SevenTvEvents); techniques for the Retry reload, latency badge, AMOLED black, drops,
+  signed-out mode, start screen, default quality, startup tab, background audio, normal latency,
+  analytics, share links, permissions, upsells, compact chat, first-time chatters and clear chat.
+- ryykitty/twitch-patched (https://github.com/ryykitty/twitch-patched), revision
+  96813381fae1149b867aa7e94e64b1fcb561fcc6: per-source backup state, codec matching, cancellation
+  polling, X-TV-TWITCH-AD detection, unknown playlist passthrough, favorite emote keys, completion
+  ranking and :name: handling, upsell anchors.
+- Overhypedcat/overhypedcat-twitch-patches: preview exclusion by player type, unknown ad markers,
+  following a moved playlist.
+- bakwudo/uyu (https://github.com/bakwudo/uyu), revision a35ca594e26570607fe0c17c67651a44519e9ae2:
+  separate app install, the player state hook for pausing danmaku.
+- K8R8TO/kizu-morphe-patches, revision ee06cf12: resource names of promotion views.
+- aeongdesu/morphe-patches, revision 63baf878d6f8212a952ee0c8b52b9e8a1cd522f3: the statistics flag.
+- Canic/twitch-morphe-patch, revision d06e2b9b56f3c816233755dc5d7165fda4d48a87: latency thresholds.
+Reseam (AGPL) inspired some ideas; none of its code is used.
+
+7TV name paints (chat/NamePaint, chat/NamePaintSpan) follow the drawing rules read from the 7TV
+browser extension (https://github.com/SevenTV/Extension) and Chatterino7
+(https://github.com/SevenTV/chatterino7, MIT); none of their code is used.
+
+The player menu and settings use interactions ported from Bencho (https://bencho.dev). The free
+blocks liq-toggle, rolling-counter, seek and toast-stack are MIT licensed,
+Copyright (c) 2026 Lorenzo Cabra; the notice is kept in the files ported from them.
+
 SVG badge rendering uses the unmodified AndroidSVG 1.4 library,
 com.caverock:androidsvg-aar:1.4, by Paul LeBeau and contributors:
 https://github.com/BigBadaboom/androidsvg

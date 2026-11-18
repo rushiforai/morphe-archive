@@ -55,9 +55,10 @@ class MyMessagesFixtureTest {
 
     /**
      * The member lists, every screen they open with their base classes, and the chat details Admin
-     * tools reads. A whole-APK search, so once per build.
+     * tools reads. A whole-APK search, so once per build. Every test that runs My messages needs
+     * these, or the patch goes on without Admin tools and logs it.
      */
-    private fun adminHosts(build: File): List<ClassDef> = adminCache.getOrPut(build.path) {
+    internal fun adminHosts(build: File): List<ClassDef> = adminCache.getOrPut(build.path) {
         FixtureDex.namedBy(build) {
             val lists = FixtureDex.classesWhere(build, { dex -> dex.stringSection.any { it == "selectType" } }) { m ->
                 m.name == "<init>" && m.parameterTypes.map(CharSequence::toString) == listOf("Landroid/os/Bundle;") &&

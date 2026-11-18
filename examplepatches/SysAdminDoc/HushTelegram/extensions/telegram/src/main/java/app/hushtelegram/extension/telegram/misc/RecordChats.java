@@ -42,7 +42,7 @@ public final class RecordChats {
     public static final String CHOSEN = "chosen";
     public static final List<String> SCOPES = Arrays.asList(ALL, PRIVATE, GROUPS, CHOSEN);
 
-    private static final String PREFS = "hushtelegram_record_chats";
+    static final String PREFS = "hushtelegram_record_chats";
     private static final String KEY = "chats";
 
     static Function<Context, SharedPreferences> store = context -> context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);

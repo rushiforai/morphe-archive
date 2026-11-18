@@ -26,6 +26,13 @@ private fun builtBundle(): File {
         file.name.endsWith(".mpp") && !file.name.contains("javadoc") && !file.name.contains("sources")
     }!!
     require(bundles.isNotEmpty()) { "No .mpp in build/libs" }
+    // A release names the version it is publishing; anything else is a local build, where newest is the best guess.
+    val wanted = System.getProperty("bundleVersion").orEmpty()
+    if (wanted.isNotEmpty()) {
+        val exact = bundles.firstOrNull { it.name == "patches-$wanted.mpp" }
+        require(exact != null) { "No patches-$wanted.mpp in build/libs: " + bundles.joinToString { it.name } }
+        return exact
+    }
     // Local builds accumulate old bundles next to the new one, so take the newest rather than
     // whichever the directory happens to list first: otherwise the list is generated from a
     // previous release and silently drops the patches added since.

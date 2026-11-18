@@ -61,7 +61,7 @@ public final class LaunchFolder {
     static final int ARCHIVE = 1;
     static final String ARCHIVE_FALLBACK = "Archived Chats";
 
-    private static final String PREFS = "hushtelegram_launch_folders";
+    static final String PREFS = "hushtelegram_launch_folders";
     /** Added to a user id for the picked folder's name, beside its id under the user id itself. */
     private static final String NAME = ".name";
 

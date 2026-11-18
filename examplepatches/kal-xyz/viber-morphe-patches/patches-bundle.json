@@ -1,0 +1,7 @@
+{
+  "name": "viber-morphe-patches",
+  "description": "Custom Morphe patch bundle for Viber (com.viber.voip)",
+  "version": "1.0.0",
+  "repository": "https://github.com/kal/viber-morphe-patches",
+  "patches": "patches-list.json"
+}

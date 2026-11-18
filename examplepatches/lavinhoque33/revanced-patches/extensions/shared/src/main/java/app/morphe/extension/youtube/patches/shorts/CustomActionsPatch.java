@@ -10,7 +10,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-10-31
+ * Modified by lavinhoque33, 2026-11-17
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -76,6 +76,7 @@ import app.morphe.extension.shared.utils.ResourceType;
 import app.morphe.extension.shared.utils.ResourceUtils;
 import app.morphe.extension.shared.utils.Utils;
 import app.morphe.extension.youtube.patches.components.ShortsCustomActionsFilter;
+import app.morphe.extension.youtube.patches.utils.FlyoutUtils;
 import app.morphe.extension.youtube.patches.utils.PatchStatus;
 import app.morphe.extension.youtube.patches.voiceovertranslation.VoiceOverTranslationPatch;
 import app.morphe.extension.youtube.settings.Settings;
@@ -194,6 +195,45 @@ public final class CustomActionsPatch {
                 addFlyoutMenu(bottomSheetMenuClass, bottomSheetMenuList, customAction);
             }
         }
+    }
+
+    /**
+     * The anchored popup bypasses the bottom-sheet model builder. Its rows are added after
+     * attachment through the shared flyout container instead of cloning bottom-sheet items.
+     */
+    public static int addPopupMenuActions(Object flyoutPanel, int index) {
+        if (!SHORTS_CUSTOM_ACTIONS_FLYOUT_MENU_ENABLED || !isShortsActive()) {
+            return index;
+        }
+
+        contextRef = new WeakReference<>(Utils.getActivity());
+        for (CustomAction customAction : CustomAction.values()) {
+            if (!customAction.isAvailable()) {
+                continue;
+            }
+
+            View.OnLongClickListener longClickListener = customAction.onLongClickAction == null ? null : view -> {
+                FlyoutUtils.dismissFlyout();
+                customAction.onLongClickAction.run();
+                return true;
+            };
+            int nextIndex = FlyoutUtils.addFlyoutButton(
+                    flyoutPanel,
+                    customAction.getDrawable(),
+                    customAction.getLabel(),
+                    view -> {
+                        FlyoutUtils.dismissFlyout();
+                        customAction.getOnClickAction().run();
+                    },
+                    longClickListener,
+                    index
+            );
+            if (nextIndex >= 0) {
+                index = nextIndex;
+            }
+        }
+
+        return index;
     }
 
     /**

@@ -137,6 +137,8 @@ Adımlar:
     <string name="morphe_music_downloads_started">İndirme başladı</string>
     <string name="morphe_music_downloads_starting">İndirme başlatılıyor…</string>
     <string name="morphe_music_downloads_unknown_track">İndirilecek parça tanımlanamadı</string>
+    <string name="morphe_music_hide_you_may_also_like_section_title">\'Bunlar da hoşunuza gidebilir\' bölümünü gizle</string>
+    <string name="morphe_music_hide_your_downloads_shelf_title">\'İndirilenleriniz\' rafını gizle</string>
     <string name="morphe_music_lyrics_about_summary">"Şarkı sözleri başlık ve sanatçıyla eşleştirilir, olağandışı meta veriler hiçbir şey veya yanlış versiyon bulabilir. Versiyonları değiştirmek için yenile'yi kullanın. * ile işaretlenen sağlayıcılar bir anahtar gerektirir. Etkinleştirilmiş tüm sağlayıcılardan her zaman talepte bulunulmaz; bunun yerine, sağlayıcılar kendi hızlarına bağlı olarak yanıt verirler
 
 Şarkı sözleri RVX ile bağlantısı, sponsorluğu veya RVX'nin onaylamadığı üçüncü taraf hizmetlerden gelir. Her biri olduğu gibi kullanılır; şarkı sözleri, kullanılabilirlikleri ve lisanslama hakları bu hizmetlerde ve lisans verenlerde kalır, kullanım hizmet şartlarına tabi olabilir. Etkinleştirilen bir hizmete ulaşan yalnızca istediğiniz arama sorgusudur - başlık, sanatçı ve hizmetin ihtiyaç duyduğu durumlarda video kimliği. İsteğe bağlı AI uç noktası ve QuickLRC transkripsiyonu yalnızca siz yapılandırdıktan sonra çalışır ve yalnızca şarkı sözü metnini veya parçanın video URL'sini alır"</string>

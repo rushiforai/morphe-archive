@@ -15,9 +15,10 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
- * The pictures the message log keeps with photo messages: the preview Messenger put on the message's notification line,
- * copied while the notification is still up, sealed with the log's own key, one file per message. A picture goes when
- * its message leaves the log, and the oldest go first once they pass MAX_TOTAL_BYTES. The callers hold the log's lock.
+ * The files the message log keeps with media messages: the preview Messenger put on the message's notification line,
+ * copied while the notification is still up, or whatever {@link MessageLogAttachment} fetched for the message. Each one
+ * is sealed with the log's own key, one file per message. A file goes when its message leaves the log, and the oldest go
+ * first once they pass MAX_TOTAL_BYTES. The callers hold the log's lock.
  */
 final class MessageLogMedia {
     private MessageLogMedia() {}
@@ -25,8 +26,10 @@ final class MessageLogMedia {
     static final String DIR = "hush_message_log_media";
     /** A preview bigger than this isn't kept. Messenger's previews are made for a notification, so they're far smaller. */
     static final int MAX_BYTES = 1024 * 1024;
-    /** All the pictures together. Undo after Clear holds them in memory, so this stays small. */
-    static final long MAX_TOTAL_BYTES = 16L * 1024 * 1024;
+    /** The largest of anything kept here, which is a video. A read past it is a file this log can't have written. */
+    static final int MAX_ANY_BYTES = MessageLogAttachment.MAX_VIDEO_BYTES;
+    /** All the pictures and clips together. Undo after Clear holds them in memory, so this stays within reach. */
+    static final long MAX_TOTAL_BYTES = 32L * 1024 * 1024;
     /** A name is the digest of the message's chat and id, so nothing in it can point outside the folder. */
     private static final Pattern NAME = Pattern.compile("[0-9a-f]{64}");
     /** The sealed copy is the picture plus the nonce and the tag. */
@@ -62,10 +65,10 @@ final class MessageLogMedia {
         }
     }
 
-    /** The picture kept under [name], or null when it's gone. */
+    /** The picture or clip kept under [name], or null when it's gone. */
     static byte[] open(Context context, String name) throws Exception {
         File file = file(context, name);
-        return file == null ? null : MessageLog.open(file, MAX_BYTES + SEAL_BYTES);
+        return file == null ? null : MessageLog.open(file, MAX_ANY_BYTES + SEAL_BYTES);
     }
 
     /** The picture kept under [name], decoded no wider than about twice [width] pixels. Null when it's gone or isn't one. */

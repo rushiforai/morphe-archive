@@ -1,0 +1,38 @@
+{
+  "source_head": "748d1551ab65ecb21ce900cb52e16b08c9a5f261",
+  "scope": "Offline production privacy/resource source review and existing signed development bundle packaging; not runtime/car acceptance",
+  "mpp_sha256": "66abe63b4e27e2bc06b9719f5be65efa96d0fd181b124e6cad53990e1f4b46d1",
+  "mpp_entries": 1001,
+  "private_capture_paths_absent": true,
+  "extension_probe_descriptor_checks": {
+    "extensions/flitsmeister.mpe": {
+      "format": "dex",
+      "dex_files": 1,
+      "private_probe_descriptor_absent": true
+    },
+    "extensions/maps.mpe": {
+      "format": "dex",
+      "dex_files": 1,
+      "private_probe_descriptor_absent": true
+    },
+    "extensions/maps-gearslip.mpe": {
+      "format": "dex",
+      "dex_files": 1,
+      "private_probe_descriptor_absent": true
+    },
+    "extensions/vela.mpe": {
+      "format": "dex",
+      "dex_files": 1,
+      "private_probe_descriptor_absent": true
+    }
+  },
+  "source_sha256": {
+    "support/navigation-alerts/src/main/java/nl/johninnl/navigation/alerts/AtomicPlaybackStore.java": "bd9b4d3aa904071b6d027470af075761834f46ba774225310c307ee06aea9a67",
+    "support/navigation-alerts/src/main/java/nl/johninnl/navigation/alerts/WarningDiagnostics.java": "23ee48eb7f1cd8662d82717d7768ff39611b644c3944af97f819410f4ea839d3",
+    "support/navigation-alerts/src/main/java/nl/johninnl/navigation/alerts/WarningEndpoint.java": "9a57ca3477e66ee5c6d224662314e55917cdad4c4fd1521a08f8a0a63b30a7d1",
+    "support/navigation-alerts/src/main/java/nl/johninnl/navigation/alerts/WarningCodec.java": "82c474a49d02495b55145874184e1843d7b377e4fbc3129894fe6d02331d4f18",
+    "support/navigation-alerts/src/main/java/nl/johninnl/navigation/alerts/WarningScheduler.java": "9f9c6a5fb7beb443a466f6a12822de679e306f6581f727ac3958f88368a550eb",
+    "support/navigation-alerts/src/main/java/nl/johninnl/navigation/alerts/WarningConnection.java": "7afcea94712469279113ce8443e0aba855289e20f1873f44cb10944a40836c9e",
+    "support/navigation-alerts/src/main/java/nl/johninnl/navigation/alerts/WarningJournal.java": "8d75ff0dac5846fb2e57db58b47263ba72487d4eeccca2064bb5ed7c238d565d"
+  }
+}

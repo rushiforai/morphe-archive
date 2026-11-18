@@ -564,6 +564,35 @@ public class ReelDeclutterTest {
         assertTrue(ReelDeclutter.showsPostDate(true));
     }
 
+    /**
+     * A reel's recommendation reason took the whole line under the author when Facebook's flag said so,
+     * date included, so one reel showed its date and the next didn't (#496). With the switch on the
+     * flag reads no and the date stays; off, paused, before the settings are ready and when the switch
+     * can't be read, Facebook's flag stands. A no stays no throughout.
+     */
+    @Test
+    public void aRecommendationReasonKeepsTheDateOnlyWithTheSwitchOn() {
+        assertTrue("the reason took the line with the switch off", ReelDeclutter.reasonAlone(true));
+        assertFalse(ReelDeclutter.reasonAlone(false));
+        Settings.SHOW_REEL_POST_DATE.save(true);
+        assertFalse("the reason still took the date's line", ReelDeclutter.reasonAlone(true));
+        assertFalse(ReelDeclutter.reasonAlone(false));
+        PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
+        assertTrue("the reason lost its line while paused", ReelDeclutter.reasonAlone(true));
+        PauseForTests.resume();
+        SettingsContextRule.withoutContext(() ->
+                assertTrue("the reason lost its line before the settings were ready", ReelDeclutter.reasonAlone(true)));
+        SettingReadsForTests.breakReads(Settings.SHOW_REEL_POST_DATE);
+        try {
+            assertTrue("a switch that can't be read kept the date", ReelDeclutter.reasonAlone(true));
+            assertFalse(ReelDeclutter.reasonAlone(false));
+        } finally {
+            SettingReadsForTests.mend(Settings.SHOW_REEL_POST_DATE);
+        }
+        Settings.SHOW_REEL_POST_DATE.save(false);
+        assertTrue("turning the switch off didn't give the reason its line back", ReelDeclutter.reasonAlone(true));
+    }
+
     private static final long NOW = 1793620800_000L; // 2026-11-02 12:00 UTC
     private static final TimeZone UTC = TimeZone.getTimeZone("UTC");
 
@@ -671,6 +700,52 @@ public class ReelDeclutterTest {
         PauseForTests.resume();
         SettingsContextRule.withoutContext(() ->
                 assertSame("dated before the settings were ready", song, ReelDeclutter.audioLineText(song, story)));
+    }
+
+    /**
+     * A reel without sound has no song line, and its soundtrack's "Reel has no sound" label takes that
+     * spot (#496), so the date goes in front of that label, and of no other attribution's. The story
+     * the soundtrack's own helper was handed on the way in dates its label once, and a story that
+     * holds no time, no attribution, the switch off and a pause all keep the label as it was.
+     */
+    @Test
+    public void theDateGoesInFrontOfASilentReelsSoundLabel() {
+        String silent = "Reel has no sound";
+        long threeWeeks = NOW / 1000 - 21L * 24 * 60 * 60;
+        assertEquals("3 weeks ago" + ReelDeclutter.DOT + silent,
+                ReelDeclutter.soundLabel(silent, SONG, threeWeeks, NOW, ReelDateStyle.AGO, Locale.US, UTC));
+        assertEquals("Oct 12" + ReelDeclutter.DOT + silent,
+                ReelDeclutter.soundLabel(silent, SONG, 1791817200L, NOW, ReelDateStyle.DATE, Locale.US, UTC));
+        assertSame("another attribution's label", "Spokane, Washington",
+                ReelDeclutter.soundLabel("Spokane, Washington", LOCATION, threeWeeks, NOW, ReelDateStyle.AGO, Locale.US, UTC));
+        assertSame("an attribution whose type can't be read", silent,
+                ReelDeclutter.soundLabel(silent, null, threeWeeks, NOW, ReelDateStyle.AGO, Locale.US, UTC));
+
+        long posted = System.currentTimeMillis() / 1000 - 21L * 24 * 60 * 60;
+        TreeJNI story = new TreeJNI().with("creation_time", posted);
+        TypedFeedUnit sound = chip(SONG);
+        assertSame("off by default, the label stays", silent, ReelDeclutter.soundLabelText(silent, sound, story));
+        assertNull(line(ReelDeclutter.DATE_ROUTE));
+        Settings.SHOW_REEL_POST_DATE.save(true);
+        assertEquals("3 weeks ago" + ReelDeclutter.DOT + silent, ReelDeclutter.soundLabelText(silent, sound, story));
+        assertTrue(line(ReelDeclutter.DATE_ROUTE), line(ReelDeclutter.DATE_ROUTE).contains(ReelDeclutter.DATE_ON_SOUND));
+        assertSame("a location's label", "Spokane", ReelDeclutter.soundLabelText("Spokane", chip(LOCATION), story));
+        assertSame("no attribution", silent, ReelDeclutter.soundLabelText(silent, null, story));
+        assertSame("a story with no time", silent, ReelDeclutter.soundLabelText(silent, sound, new TreeJNI()));
+        assertSame("no story", silent, ReelDeclutter.soundLabelText(silent, sound, null));
+        assertNull("no label stays no label", ReelDeclutter.soundLabelText(null, sound, story));
+
+        ReelDeclutter.soundStory(story);
+        assertEquals("the kept story", "3 weeks ago" + ReelDeclutter.DOT + silent, ReelDeclutter.soundTickerText(silent, sound));
+        assertSame("kept for one label only", silent, ReelDeclutter.soundTickerText(silent, sound));
+        ReelDeclutter.soundStory(null);
+        assertSame("nothing kept", silent, ReelDeclutter.soundTickerText(silent, sound));
+
+        PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
+        assertSame("dated while paused", silent, ReelDeclutter.soundLabelText(silent, sound, story));
+        PauseForTests.resume();
+        SettingsContextRule.withoutContext(() ->
+                assertSame("dated before the settings were ready", silent, ReelDeclutter.soundLabelText(silent, sound, story)));
     }
 
     /**

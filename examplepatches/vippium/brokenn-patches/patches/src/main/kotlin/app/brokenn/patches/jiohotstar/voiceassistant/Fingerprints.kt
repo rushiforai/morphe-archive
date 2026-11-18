@@ -2,6 +2,9 @@ package app.brokenn.patches.jiohotstar.voiceassistant
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.string
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 // Search-bar mic gate; false hides the primary mic branch.
 object VoiceSearchEnabledFingerprint : Fingerprint(
@@ -67,5 +70,14 @@ object CvdSubNavParserFingerprint : Fingerprint(
     filters = listOf(
         string("getSubMenuItemsList(...)"),
         string("getIllustrationPill(...)")
+    )
+)
+
+// The home suggestion tray converter: StaggeredTrayWidget -> its BFF model.
+object HomeSuggestionTrayFingerprint : Fingerprint(
+    parameters = listOf("Lcom/hotstar/ui/model/widget/StaggeredTrayWidget;"),
+    filters = listOf(
+        string("getTrayHeader(...)"),
+        string("getItemsList(...)")
     )
 )

@@ -1,3 +1,92 @@
+## 2.1.0 (2026-11-18)
+
+### ✨ New Features
+
+* **nicoid:** Migrate video playback from the legacy ExoPlayer implementation to AndroidX Media3, unifying playback across normal, fullscreen, popup, mini-player, and background modes
+* **nicoid:** Add a movable, resizable in-app mini-player that keeps the current video visible while browsing other screens
+* **nicoid:** Add mini-player actions for returning to the player, play/pause, popup playback, background playback, and closing the player
+* **nicoid:** Support double-tap expansion, dragging, and pinch-to-resize gestures for the in-app mini-player
+* **nicoid:** Add a **Background playback display** setting with **Mini player** and **Bottom panel** options, with Mini player selected by default
+* **nicoid:** Add **Spread across the entire screen** to Ambient Mode settings, allowing the glow to extend beyond the immediate video margins while retaining the existing display when disabled (default: off)
+* **nicoid:** Add **Prevent comments from overlapping** to comment display settings, allowing scrolling comments to wait for available space while retaining the existing dense-comment behavior by default (default: off)
+* **nicoid:** Redesign the Shorts browsing screen with a search field, a two-column video grid, clearer navigation, and a simpler action layout
+* **nicoid:** Add vertical swipe navigation to move between short videos while watching
+* **nicoid:** Add a dedicated **Loaded Shorts** list for reviewing videos retrieved from the Shorts feed
+* **nicoid:** Add sorting for loaded Shorts by feed order, most viewed, newest, most liked, random order, and saved order
+* **nicoid:** Add manual rearrangement and saving of the order of loaded Shorts
+* **nicoid:** Add video actions to Shorts through thumbnail long-press and the video menu
+* **nicoid:** Expand Shorts retrieval beyond the previous fixed initial set, with an option to load more videos
+* **nicoid:** Add playback counts, like counts, and publication dates to the redesigned Shorts list
+* **nicoid:** Display publication timestamps with calendar dates and times instead of relative-day labels in the loaded Shorts list
+* **nicoid:** Add the ability to customize video titles in playlists, mylists, the temporary mylist, and the cache list
+* **nicoid:** Add a **Rename video title** action to applicable video menus
+* **nicoid:** Add an option for placing videos in the temporary mylist from the customizable video menu
+* **nicoid:** Mark customized video titles with an edit indicator and restore the original title when an empty title is saved
+* **nicoid:** Add a dedicated Niconico Live settings category, connected to the settings available from the live playback screen
+* **nicoid:** Add **Resume catch-up playback in Niconico Live**, returning to the previous position when reopening the same available program
+* **nicoid:** Add Niconico Live settings for the refresh button, exit confirmation, initial tab, time display, tap action, and app bar placement
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Fix a crash caused by class-access restrictions when opening a video with the Media3-based player
+* **nicoid:** Fix a class-access issue when advancing to the next video during continuous background playback
+* **nicoid:** Fix a crash when changing videos during mini-player playback
+* **nicoid:** Fix playback unexpectedly switching back to normal mode when moving to the next video in background playback ([#122](https://github.com/chikuwadon/nicoid-re-patches/issues/122))
+* **nicoid:** Fix media controls being unnecessarily recreated when switching apps during mini-player playback
+* **nicoid:** Fix the mini-player appearing behind the tab bar or bottom playback controls
+* **nicoid:** Fix mini-player playback controls appearing misaligned or off-center
+* **nicoid:** Fix delayed or unresponsive mini-player dragging after tapping to show controls
+* **nicoid:** Fix touch conflicts between mini-player gestures and horizontal navigation gestures
+* **nicoid:** Fix background playback returning to a completed video and automatically restarting it from the beginning
+* **nicoid:** Fix missing controls or an unresponsive playback screen after returning to a video that finished in the background
+* **nicoid:** Fix explicit play/restart and seeking after a retained video reaches its end position
+* **nicoid:** Fix automatic playback requests overriding the stopped state of a completed background video
+* **nicoid:** Fix unsuccessful popup-to-normal playback restoration leaving the playback service active
+* **nicoid:** Fix loss of playback intent or position when returning from popup playback
+* **nicoid:** Fix unexpected Shorts navigation from sideways drags, multiple fingers, or stale touch states
+* **nicoid:** Fix short, quick swipes on Shorts being ignored or causing an incorrect transition
+* **nicoid:** Fix returning from fullscreen Shorts playback to normal playback
+* **nicoid:** Fix scrolling comments already on screen appearing too small after switching from normal to fullscreen playback ([#162](https://github.com/chikuwadon/nicoid-re-patches/issues/162))
+* **nicoid:** Fix scrolling comments using only a narrow central area when playing portrait Shorts
+* **nicoid:** Fix missing playback controls when casting portrait videos
+* **nicoid:** Fix ambient lighting missing or appearing weaker along the right side of portrait videos
+* **nicoid:** Fix gaps and uneven brightness when **Spread across the entire screen** is enabled
+* **nicoid:** Fix expanded ambient lighting appearing over video titles, information, or playback controls
+* **nicoid:** Fix portrait-video ambient effects being calculated from an incorrect picture area
+* **nicoid:** Fix missing like counts for cached videos shown in local viewing history
+* **nicoid:** Fix Shorts titles overlapping playback counts and other metadata
+* **nicoid:** Fix sorting and popup menu controls being positioned incorrectly in the Loaded Shorts list
+* **nicoid:** Fix untranslated labels and inconsistent descriptions in video menus and Niconico Live settings
+
+### 🔧 Improvements
+
+* **nicoid:** Improve continuity of playback state, playback position, seeking, and comment timing across Media3 playback mode transitions
+* **nicoid:** Reduce unnecessary player recreation when transitioning between normal, fullscreen, popup, mini-player, and background playback
+* **nicoid:** Improve video and audio handoff when moving into and out of background playback
+* **nicoid:** Improve restoration of the active playback session when returning to the app
+* **nicoid:** Keep a finished background video paused on its final frame and at its end position until the user explicitly plays or seeks
+* **nicoid:** Improve mini-player placement, resizing, and control visibility for both landscape and portrait videos
+* **nicoid:** Improve mini-player touch feedback and distinguish dragging from taps and navigation swipes
+* **nicoid:** Improve transitions from Shorts playback to the mini-player and back to the full player
+* **nicoid:** Keep mini-player video and controls above navigation bars and other app content where appropriate
+* **nicoid:** Improve Shorts initial loading, additional-result requests, and handling of duplicate or unavailable recommendations
+* **nicoid:** Improve Shorts search, ranking access, and navigation between the Shorts home screen and loaded-video list
+* **nicoid:** Improve vertical Shorts swipe thresholds, preview movement, and transitions to the preceding or following video
+* **nicoid:** Improve the Shorts video grid with clearer typography and presentation of views, likes, dates, and video duration
+* **nicoid:** Improve the presentation and persistence of the selected sort order and manually arranged Shorts
+* **nicoid:** Improve normal portrait-video playback to use available screen space more effectively, reducing unnecessary side margins
+* **nicoid:** Improve the size and display region of scrolling comments in portrait-video playback
+* **nicoid:** Extend ambient-light coverage into unused screen areas while preserving video-image boundaries and readable controls
+* **nicoid:** Improve Ambient Mode behavior in both full-screen spread and conventional modes, including portrait and 4:3 video layouts
+* **nicoid:** Refine Ambient Mode brightness, glow boundaries, and coverage along the right, upper, and lower edges
+* **nicoid:** Improve scrolling-comment collision handling without relocating or accelerating comments already on screen
+* **nicoid:** Retain the option to prioritize dense, immersive comment displays when overlap prevention is disabled
+* **nicoid:** Improve Niconico Live recovery and reuse the same setting values between the live player and app settings
+* **nicoid:** Refine Niconico Live refresh and catch-up playback options with checkbox-style settings
+* **nicoid:** Improve custom-title editing dialogs and distinguish user-edited titles from original titles
+* **nicoid:** Clarify the names, descriptions, and availability of customizable video menu actions
+* **nicoid:** Refine Japanese, English, and Traditional Chinese text for newly added playback, Shorts, menu, and Niconico Live options
+
 ## 2.0.6 (2026-11-16)
 
 ### ✨ New Features

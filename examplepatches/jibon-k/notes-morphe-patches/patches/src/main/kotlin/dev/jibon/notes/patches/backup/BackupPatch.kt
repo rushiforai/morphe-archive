@@ -48,7 +48,7 @@ private val folderPickerManifestPatch = resourcePatch {
 @Suppress("unused")
 val backupPatch = bytecodePatch(
     name = "Backup to folder",
-    description = "Adds a Backup row to the bottom of the side menu: backs up changed notes as .sdocx files " +
+    description = "Adds a Local backup row to the bottom of the side menu: backs up changed notes as .sdocx files " +
         "to a folder you choose (any folder, including SD card or a synced folder).",
     default = true,
 ) {

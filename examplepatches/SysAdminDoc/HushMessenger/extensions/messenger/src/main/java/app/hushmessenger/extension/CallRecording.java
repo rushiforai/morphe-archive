@@ -33,6 +33,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.ParcelFileDescriptor;
 import android.os.SystemClock;
+import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.view.Gravity;
 import android.view.View;
@@ -86,9 +87,14 @@ public final class CallRecording {
         default Uri uri() {
             return null;
         }
+
+        /** The file itself, which a format written through Android's own muxer needs. Null when there's no such thing. */
+        default java.io.FileDescriptor descriptor() {
+            return null;
+        }
     }
 
-    static volatile Store store = new SharedAudio();
+    static volatile Store store = new Saving();
 
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
     private static volatile boolean callActive;
@@ -106,6 +112,10 @@ public final class CallRecording {
     private static TextView pausePill;
     private static Session session;
     private static BroadcastReceiver stopReceiver;
+    /** Messenger itself, for a call that records itself with no screen of its own in front. */
+    private static Context application;
+    /** Whether the call in progress has already had its one look at the chosen scope. */
+    private static boolean startedThisCall;
     /** Keeps the time on the button going while a recording runs. */
     private static final Runnable TICKING = CallRecording::refreshPill;
 
@@ -123,8 +133,10 @@ public final class CallRecording {
         pausePill = null;
         session = null;
         stopReceiver = null;
+        application = null;
+        startedThisCall = false;
         MAIN.removeCallbacks(TICKING);
-        store = new SharedAudio();
+        store = new Saving();
         CallCaptions.resetForTests();
     }
 
@@ -281,7 +293,10 @@ public final class CallRecording {
         try {
             callActive = running;
             MAIN.post(() -> {
-                if (!callActive && session != null) session.finishUp();
+                if (!callActive) {
+                    if (session != null) session.finishUp();
+                    startedThisCall = false;
+                }
                 CallCaptions.call(callActive);
                 refresh();
             });
@@ -291,8 +306,9 @@ public final class CallRecording {
     }
 
     /** Watches for which of Messenger's screens is showing. It does nothing else until a call starts. */
-    static void register(Application application) {
-        application.registerActivityLifecycleCallbacks(new Screens());
+    static void register(Application messenger) {
+        application = messenger;
+        messenger.registerActivityLifecycleCallbacks(new Screens());
     }
 
     static final class Screens implements Application.ActivityLifecycleCallbacks {
@@ -319,8 +335,32 @@ public final class CallRecording {
     }
 
     private static void refresh() {
+        autoStart();
         refreshPill();
         CallCaptions.screen(top);
+    }
+
+    /**
+     * Starts a recording on its own when Calls to record asks for it (#193). It runs again on every screen change
+     * while the call is up, since an outgoing call is only named once its screen is in front, and it gives up on the
+     * call once it has started one.
+     */
+    private static void autoStart() {
+        try {
+            if (!callActive || session != null || startedThisCall) return;
+            if (!Settings.wouldUse(KEY) || !Settings.available(KEY)) return;
+            Context context = top != null ? top.getApplicationContext() : application;
+            if (context == null) return;
+            String name = CallName.of(top == null ? null : top.findViewById(android.R.id.content));
+            if (!CallRecordings.wants(name)) return;
+            startedThisCall = true;
+            session = new Session(context, name);
+            session.start();
+            showNotification(context);
+        } catch (RuntimeException error) {
+            Settings.hookFailedPrivately(KEY, "Couldn't start the recording on its own", error);
+            session = null;
+        }
     }
 
     private static void refreshPill() {
@@ -455,6 +495,8 @@ public final class CallRecording {
 
     private static void tapped(Context screen) {
         try {
+            // A tap settles this call either way, so a scope that records on its own doesn't start it up again.
+            startedThisCall = true;
             if (session != null) {
                 session.finishUp();
                 return;
@@ -547,7 +589,7 @@ public final class CallRecording {
     static String name(Date when, String with) {
         String who = fileSafe(with);
         return "Call " + (who.isEmpty() ? "" : "with " + who + " ")
-            + new SimpleDateFormat("yyyy-MM-dd HH.mm.ss", Locale.ROOT).format(when) + "." + VoiceMessages.Format.WAV.extension;
+            + new SimpleDateFormat("yyyy-MM-dd HH.mm.ss", Locale.ROOT).format(when) + "." + CallRecordings.format().extension;
     }
 
     /** Longest a name can run in a file's name, leaving room for the date and the folder it goes in. */
@@ -573,6 +615,21 @@ public final class CallRecording {
             one = one.substring(0, one.offsetByCodePoints(0, LONGEST_NAME)).trim();
         }
         return one;
+    }
+
+    /**
+     * How the file is written: Opus when that's what the name says, since the format is settled before the file is
+     * made, and the plain WAV otherwise. An encoder that won't start takes the WAV rather than the call (#193).
+     */
+    private static CallMix.Sink sink(Target target, String name, int channels) throws IOException {
+        if (name.endsWith("." + VoiceMessages.Format.OGG.extension) && target.descriptor() != null) {
+            try {
+                return new CallOpus(target.descriptor(), channels);
+            } catch (IOException | RuntimeException unusable) {
+                Settings.hookFailedPrivately(KEY, "Couldn't record this call as Opus", unusable);
+            }
+        }
+        return new CallMix.Wav(target.channel(), channels);
     }
 
     /** One recording, on a thread of its own, since writing the file shouldn't hold up the call or Messenger's screens. */
@@ -635,8 +692,9 @@ public final class CallRecording {
             Target target = null;
             String saved = name(new Date(), with);
             try {
+                int channels = CallRecordings.channels();
                 target = store.open(context, saved);
-                mix = new CallMix(target.channel());
+                mix = new CallMix(sink(target, saved, channels), channels);
                 listening = this;
                 try {
                     while (!mix.full() && !stopped()) mix.pump(elapsed());
@@ -652,6 +710,7 @@ public final class CallRecording {
                 Settings.hookFailedPrivately(KEY, "Couldn't record a call", error);
             } finally {
                 try {
+                    if (mix != null) mix.release();
                     if (target != null) target.close(kept);
                 } catch (IOException | RuntimeException error) {
                     Settings.hookFailedPrivately(KEY, "Couldn't finish a call recording", error);
@@ -668,6 +727,81 @@ public final class CallRecording {
         }
     }
 
+    /**
+     * Where a recording goes: the folder picked under the switch when there is one, and the phone's own Recordings
+     * folder otherwise. A picked folder that has been moved, renamed or taken away since falls back rather than
+     * losing the call (#193).
+     */
+    @TargetApi(29)
+    static final class Saving implements Store {
+        @Override public Target open(Context context, String name) throws IOException {
+            Uri picked = CallRecordings.folder();
+            if (picked != null) {
+                try {
+                    return new PickedFolder(picked).open(context, name);
+                } catch (IOException | RuntimeException unusable) {
+                    Settings.hookFailedPrivately(KEY, "Couldn't write to the folder picked", unusable);
+                }
+            }
+            return new SharedAudio().open(context, name);
+        }
+    }
+
+    /** A recording written into a folder the person picked, through the document it makes there. */
+    static final class PickedFolder implements Store {
+        private final Uri tree;
+
+        PickedFolder(Uri tree) {
+            this.tree = tree;
+        }
+
+        @Override public Target open(Context context, String name) throws IOException {
+            ContentResolver resolver = context.getContentResolver();
+            Uri parent = DocumentsContract.buildDocumentUriUsingTree(tree, DocumentsContract.getTreeDocumentId(tree));
+            Uri item = DocumentsContract.createDocument(resolver, parent, CallRecordings.format().mime, name);
+            if (item == null) throw new IOException("The folder picked made no file");
+            ParcelFileDescriptor descriptor;
+            try {
+                descriptor = resolver.openFileDescriptor(item, "rw");
+                if (descriptor == null) throw new IOException("The folder picked gave no file");
+            } catch (IOException | RuntimeException error) {
+                remove(resolver, item);
+                throw error;
+            }
+            FileOutputStream stream = new FileOutputStream(descriptor.getFileDescriptor());
+            return new Target() {
+                @Override public FileChannel channel() {
+                    return stream.getChannel();
+                }
+
+                @Override public void close(boolean keep) throws IOException {
+                    try {
+                        stream.close();
+                        descriptor.close();
+                    } finally {
+                        if (!keep) remove(resolver, item);
+                    }
+                }
+
+                @Override public Uri uri() {
+                    return item;
+                }
+
+                @Override public java.io.FileDescriptor descriptor() {
+                    return descriptor.getFileDescriptor();
+                }
+            };
+        }
+
+        private static void remove(ContentResolver resolver, Uri item) {
+            try {
+                DocumentsContract.deleteDocument(resolver, item);
+            } catch (IOException | RuntimeException gone) {
+                // Nothing left to take away, which is where this was headed anyway.
+            }
+        }
+    }
+
     /** The phone's shared audio, in a folder of its own. Android 9 lets no app write there without the storage permission. */
     @TargetApi(29)
     static final class SharedAudio implements Store {
@@ -679,7 +813,7 @@ public final class CallRecording {
             ContentResolver resolver = context.getContentResolver();
             ContentValues values = new ContentValues();
             values.put(MediaStore.MediaColumns.DISPLAY_NAME, name);
-            values.put(MediaStore.MediaColumns.MIME_TYPE, VoiceMessages.Format.WAV.mime);
+            values.put(MediaStore.MediaColumns.MIME_TYPE, CallRecordings.format().mime);
             values.put(MediaStore.MediaColumns.RELATIVE_PATH, folder());
             // Never pending: a crash has to leave a file people can find, and Android removes pending ones after a week.
             Uri item = resolver.insert(VoiceMessages.SharedAudio.collection(), values);
@@ -709,6 +843,10 @@ public final class CallRecording {
 
                 @Override public Uri uri() {
                     return item;
+                }
+
+                @Override public java.io.FileDescriptor descriptor() {
+                    return descriptor.getFileDescriptor();
                 }
             };
         }

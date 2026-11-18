@@ -1,0 +1,26 @@
+{
+  "classic_green": {
+    "source": "Classic Spotify Green Icon.png",
+    "sha256": "3952e1a982f45926051941f9ebc0ccd89b15b4c2ff27cd8a26ddae93b5e3a5ff"
+  },
+  "elegant_dark": {
+    "source": "Elegant dark Spotify icon-1.png",
+    "sha256": "04a1d24938d99ee3a742ed98b75af33e98d2ca71195bcb83b757f6abb0cfe602"
+  },
+  "emerald_black": {
+    "source": "Emerald Spotify mark on pitch black-2.png",
+    "sha256": "887c3c06e257eaae0e64e3b159635c521bfebb9c93f6ba8fde1afdaf99419eaa"
+  },
+  "emerald_glass": {
+    "source": "Dark emerald Spotify glass icon-3.png",
+    "sha256": "95d819eb4177de33391f6c56f99dab42539e3af9e60302264e83c2986f248cad"
+  },
+  "platinum_charcoal": {
+    "source": "Platinum Spotify icon on charcoal-4.png",
+    "sha256": "acd9c279cbfed4179e2bf466f9e34afb52b35b919e1a9522eb44704e01e5b42f"
+  },
+  "black_warm_white": {
+    "source": "Black Spotify symbol on warm white.png",
+    "sha256": "c5fd7147889eacf12ffc9a368f51e50139808d1413110243731ccbd78dbbca74"
+  }
+}

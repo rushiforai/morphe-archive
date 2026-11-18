@@ -1,0 +1,40 @@
+plugins { id 'java' }
+repositories { mavenCentral(); google() }
+sourceSets {
+    main.java.srcDirs = ['../../../extensions/canada/src/main/java']
+    test.java.srcDirs = ['src/test/java', '../fixtures']
+}
+dependencies {
+    def sdk = System.getenv('ANDROID_HOME') ?: System.getenv('ANDROID_SDK_ROOT')
+    def androidJar = System.getenv('ANDROID_JAR') ?: (sdk ? sdk + '/platforms/android-36/android.jar' : '')
+    if (!androidJar || !file(androidJar).isFile()) throw new GradleException('Set ANDROID_JAR to an Android SDK android.jar')
+    compileOnly files(androidJar)
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.robolectric:robolectric:4.16.1'
+    testImplementation 'org.robolectric:android-all:15-robolectric-12650502'
+}
+// Plain Java projects need classes.jar from Android test AAR dependencies.
+tasks.register('unpackAars') {
+    doLast {
+        configurations.testRuntimeClasspath.files.findAll { it.name.endsWith('.aar') }.each { f ->
+            if (!new File(layout.buildDirectory.get().asFile, 'aar-jars/' + f.name + '/classes.jar').isFile())
+                copy { from zipTree(f); include 'classes.jar'; into layout.buildDirectory.dir('aar-jars/' + f.name) }
+        }
+    }
+}
+test {
+    dependsOn 'unpackAars'
+    classpath += fileTree(layout.buildDirectory.dir('aar-jars')) { include '**/*.jar' }
+    maxHeapSize = '2g'
+    systemProperty 'robolectric.dependency.repo.url', 'https://repo.maven.apache.org/maven2'
+    if (System.getProperty('javax.net.ssl.trustStore')) systemProperty 'javax.net.ssl.trustStore', System.getProperty('javax.net.ssl.trustStore')
+    def proxy = System.getenv('HTTPS_PROXY')
+    if (proxy) {
+        def uri = new URI(proxy)
+        systemProperty 'https.proxyHost', uri.host
+        systemProperty 'https.proxyPort', uri.port.toString()
+        systemProperty 'http.proxyHost', uri.host
+        systemProperty 'http.proxyPort', uri.port.toString()
+    }
+    testLogging { events 'passed', 'failed'; exceptionFormat 'full' }
+}

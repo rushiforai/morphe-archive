@@ -131,6 +131,14 @@ public class SettingsBackupTest {
         out.put("hushtelegram_free_proxies",
                 "It downloads proxy lists and connects Telegram through strangers' proxies, so like the "
                         + "release check it's turned on from the phone's own screen, never by a file someone shared.");
+        out.put("hushtelegram_duress_wipe",
+                "On, a second passcode logs out every account on the phone. A file someone shared could turn "
+                        + "it on unseen, and a file that carries it says a duress passcode is set, so it's only "
+                        + "switched on from the phone's own screen.");
+        out.put("hushtelegram_v2ray_proxies",
+                "On, it starts a proxy inside Telegram and connects through the servers in the links pasted on "
+                        + "this phone, and the links themselves never go in a file. A file someone shared could "
+                        + "otherwise turn it on with no servers, or send Telegram through servers the file named.");
         return Collections.unmodifiableMap(out);
     }
 
@@ -221,7 +229,9 @@ public class SettingsBackupTest {
                     // Bookmarks travel as a list of their own, added to the phone's rather than in place of them.
                     && setting != Settings.BOOKMARKS
                     // The font file stays on this phone, so its name doesn't travel either.
-                    && setting != Settings.CUSTOM_FONT)
+                    && setting != Settings.CUSTOM_FONT
+                    // A file can't make the duress passcode delete accounts on a phone where nobody picked that.
+                    && setting != Settings.DURESS_ACTION)
                 notSwitches.add(setting.key);
         }
         assertEquals("a setting in Settings isn't a switch, and a settings file has no format for it",
@@ -1418,7 +1428,7 @@ public class SettingsBackupTest {
             HushTelegramPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(activity));
             deliver(activity, tap(activity, page, IMPORT_ROW), file);
             AlertDialog preview = shownPreview();
-            assertEquals("Link preview rules: 6 rules to 1 rule", String.valueOf(shadowOf(preview).getMessage()));
+            assertEquals("Link preview rules: 14 rules to 1 rule", String.valueOf(shadowOf(preview).getMessage()));
             preview.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
             settle();
             assertEquals("Settings imported.", ShadowToast.getTextOfLatestToast());

@@ -1,0 +1,7 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+[mcp_servers.rea]
+command = "sh"
+args = ["-c", 'exec sh "$(git rev-parse --show-toplevel)/scripts/rea.sh"']
+startup_timeout_sec = 30
+# Ghidra's cold start alone may take 330 s.
+tool_timeout_sec = 450

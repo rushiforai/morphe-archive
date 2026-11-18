@@ -751,6 +751,16 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushtelegram_free_proxies", FALSE);
 
     /**
+     * Telegram connects through your own VMess, VLESS, Trojan and Shadowsocks servers, from links
+     * you paste and your own proxy lists, by way of a SOCKS5 proxy that runs inside Telegram on
+     * 127.0.0.1 and one entry for it in Telegram's proxy list (#71). Off by default, and it stays
+     * out of settings files: the links don't go in one, so an import would turn on a proxy with no
+     * servers behind it.
+     */
+    public static final BooleanSetting V2RAY_PROXIES =
+            new BooleanSetting("hushtelegram_v2ray_proxies", FALSE, false, false);
+
+    /**
      * A group's menu at the top has My messages, which searches the group for the messages you
      * sent the way Telegram's search does once you pick yourself as the sender. Off by default.
      */
@@ -1206,6 +1216,22 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting INSTANT_LOCK =
             new BooleanSetting("hushtelegram_instant_lock", FALSE);
+
+    /**
+     * Duress passcode: a second passcode, typed where Telegram asks for its own, logs out or deletes
+     * the accounts on the phone and clears what HushTelegram kept (#79). Only a salted hash of it is
+     * kept, by {@link app.hushtelegram.extension.telegram.misc.DuressWipe}, outside settings files.
+     */
+    public static final BooleanSetting DURESS_WIPE =
+            new BooleanSetting("hushtelegram_duress_wipe", FALSE);
+
+    /**
+     * What the duress passcode does (#79): empty to log out every account, or one of
+     * {@link app.hushtelegram.extension.telegram.misc.DuressWipe#ACTIONS}. Settings files leave it
+     * out, so a file can't make the code delete accounts on a phone where nobody picked that.
+     */
+    public static final StringSetting DURESS_ACTION =
+            new StringSetting("hushtelegram_duress_action", "");
 
     /**
      * Don't notify contacts: a sign-up for a phone number new to Telegram asks the server not to tell

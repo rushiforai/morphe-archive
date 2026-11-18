@@ -1,0 +1,12 @@
+{
+  "ok": true,
+  "key": "cf77c2d6bfbea2e8",
+  "version": "2.0.0-waze.5.27.0.1",
+  "waze_version": "5.27.0.1",
+  "nl_tag": "v1.56.1",
+  "commit": "da81f96ca8502cea5af681c98a03a02a4737672d",
+  "apk_sha256": "8d0a352bf542d4025ae033ceb6e68a364cb6da60c311967600727cc1d00edf6b",
+  "signing_cert_sha256": "03637f6c5d8f604e6fdb79a6ffbfa578de4e318f8da22fc6106665247f8807d7",
+  "morphe": "2.0.0",
+  "verified_at": "2026-11-09T15:07:24Z"
+}

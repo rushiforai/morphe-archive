@@ -1,3 +1,29 @@
+## [1.4.0](https://github.com/MrCool-888/mrcool-patches/compare/v1.3.4...v1.4.0) (2026-11-18)
+
+### ✨ New Features
+
+* **IconPackStudio:** hide the community Get Pro upsell ([b110650](https://github.com/MrCool-888/mrcool-patches/commit/b110650dae71eab4cc8ddb82d00f16417bdaa9ec))
+* **IconPackStudio:** support 2.5 build 005 ([19d433e](https://github.com/MrCool-888/mrcool-patches/commit/19d433e12ee574cf33d16b82ab5f0134ce7663c1))
+* **IconPackStudio:** unlock Pro community packs ([b30f4f6](https://github.com/MrCool-888/mrcool-patches/commit/b30f4f638def09dd8092943ab612cd1ca0c204b9))
+
+## [1.4.0-dev.3](https://github.com/MrCool-888/mrcool-patches/compare/v1.4.0-dev.2...v1.4.0-dev.3) (2026-11-18)
+
+### ✨ New Features
+
+* **IconPackStudio:** unlock Pro community packs ([b30f4f6](https://github.com/MrCool-888/mrcool-patches/commit/b30f4f638def09dd8092943ab612cd1ca0c204b9))
+
+## [1.4.0-dev.2](https://github.com/MrCool-888/mrcool-patches/compare/v1.4.0-dev.1...v1.4.0-dev.2) (2026-11-18)
+
+### ✨ New Features
+
+* **IconPackStudio:** hide the community Get Pro upsell ([b110650](https://github.com/MrCool-888/mrcool-patches/commit/b110650dae71eab4cc8ddb82d00f16417bdaa9ec))
+
+## [1.4.0-dev.1](https://github.com/MrCool-888/mrcool-patches/compare/v1.3.4...v1.4.0-dev.1) (2026-11-17)
+
+### ✨ New Features
+
+* **IconPackStudio:** support 2.5 build 005 ([19d433e](https://github.com/MrCool-888/mrcool-patches/commit/19d433e12ee574cf33d16b82ab5f0134ce7663c1))
+
 ## [1.3.4](https://github.com/MrCool-888/mrcool-patches/compare/v1.3.3...v1.3.4) (2026-11-15)
 
 ### 🐛 Bug Fixes

@@ -49,6 +49,7 @@ import app.morphe.extension.youtube.patches.LiveChatTranslatePatch.DeepLAvailabi
 import app.morphe.extension.youtube.patches.LiveChatTranslatePatch.TranslationProvider;
 import app.morphe.extension.youtube.patches.LiveChatTranslatePatch.TranslationStyle;
 import app.morphe.extension.shared.settings.EnumSetting;
+import app.morphe.extension.youtube.patches.CustomSeekbarThumbPatch.ThumbScaleType;
 import app.morphe.extension.youtube.patches.general.NavigationButtonsPatch.NavigationBarStyle;
 import app.morphe.extension.youtube.patches.general.GlassNavigationBar;
 import app.morphe.extension.youtube.patches.PlaybackBufferPatch.PlaybackBufferSize;
@@ -442,6 +443,8 @@ public class Settings extends SharedYouTubeSettings {
     public static final BooleanSetting HIDE_STATUS_BAR = new BooleanSetting("revanced_hide_status_bar", FALSE, true);
     /** Device layout observation, not a user preference or an exported setting. */
     public static final BooleanSetting WINDOW_ABOVE_NAVIGATION_BAR = new BooleanSetting("morphe_window_above_navigation_bar", FALSE, false, false);
+    public static final BooleanSetting WINDOW_BELOW_STATUS_BAR =
+            new BooleanSetting("revanced_window_below_status_bar", FALSE, false, false);
     public static final EnumSetting<StatusBarTranslucency> STATUS_BAR_TRANSLUCENCY = new EnumSetting<>("revanced_status_bar_translucency", StatusBarTranslucency.DEFAULT, true);
     public static final BooleanSetting FIX_HYPE_BUTTON_ICON = new BooleanSetting("revanced_fix_hype_button_icon", TRUE, true, "revanced_fix_hype_button_icon_user_dialog_message");
     public static final BooleanSetting RESTORE_OLD_SETTINGS_MENUS = new BooleanSetting("revanced_restore_old_settings_menus", FALSE, true);
@@ -705,9 +708,24 @@ public class Settings extends SharedYouTubeSettings {
 
 
     // PreferenceScreen: Player - Ambient mode
-    public static final BooleanSetting DISABLE_AMBIENT_MODE = new BooleanSetting("revanced_disable_ambient_mode", FALSE, true);
-    public static final BooleanSetting BYPASS_AMBIENT_MODE_RESTRICTIONS = new BooleanSetting("revanced_bypass_ambient_mode_restrictions", FALSE, parentInverted(DISABLE_AMBIENT_MODE));
-    public static final BooleanSetting DISABLE_AMBIENT_MODE_IN_FULLSCREEN = new BooleanSetting("revanced_disable_ambient_mode_in_fullscreen", FALSE, true, parentInverted(DISABLE_AMBIENT_MODE));
+    public static final BooleanSetting ENHANCED_AMBIENT_MODE = new BooleanSetting(
+            "morphe_enhanced_ambient_mode", FALSE, true,
+            () -> Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q);
+    public static final BooleanSetting ENHANCED_AMBIENT_MODE_READABLE_TEXT = new BooleanSetting(
+            "morphe_enhanced_ambient_mode_readable_text", FALSE, parent(ENHANCED_AMBIENT_MODE));
+    public static final BooleanSetting ENHANCED_AMBIENT_MODE_DIM_WHILE_SCROLLING = new BooleanSetting(
+            "morphe_enhanced_ambient_mode_dim_while_scrolling", TRUE, parent(ENHANCED_AMBIENT_MODE));
+    public static final IntegerSetting ENHANCED_AMBIENT_MODE_DIM_DURATION = new IntegerSetting(
+            "morphe_enhanced_ambient_mode_dim_duration", 3, new SliderConfig(0, 10, 1, "s"),
+            parentsAll(ENHANCED_AMBIENT_MODE, ENHANCED_AMBIENT_MODE_DIM_WHILE_SCROLLING));
+    public static final BooleanSetting DISABLE_AMBIENT_MODE = new BooleanSetting(
+            "revanced_disable_ambient_mode", FALSE, true, parentInverted(ENHANCED_AMBIENT_MODE));
+    public static final BooleanSetting BYPASS_AMBIENT_MODE_RESTRICTIONS = new BooleanSetting(
+            "revanced_bypass_ambient_mode_restrictions", FALSE,
+            parentsAny(parent(ENHANCED_AMBIENT_MODE), parentInverted(DISABLE_AMBIENT_MODE)));
+    public static final BooleanSetting DISABLE_AMBIENT_MODE_IN_FULLSCREEN = new BooleanSetting(
+            "revanced_disable_ambient_mode_in_fullscreen", FALSE, true,
+            parentsAll(parentInverted(ENHANCED_AMBIENT_MODE), parentInverted(DISABLE_AMBIENT_MODE)));
 
     // PreferenceScreen: Player - Channel bar
     public static final BooleanSetting HIDE_JOIN_BUTTON = new BooleanSetting("revanced_hide_join_button", TRUE);
@@ -716,6 +734,8 @@ public class Settings extends SharedYouTubeSettings {
     // PreferenceScreen: Player - Comments
     public static final BooleanSetting HIDE_COMMENTS_CAROUSEL = new BooleanSetting("revanced_hide_comments_carousel", FALSE, "revanced_hide_comments_carousel_user_dialog_message");
     public static final StringSetting HIDE_COMMENTS_CAROUSEL_FILTER_STRINGS = new StringSetting("revanced_hide_comments_carousel_filter_strings", "", true, parent(HIDE_COMMENTS_CAROUSEL));
+    public static final BooleanSetting HIDE_COMMENTS_CAROUSEL_FILTER_TYPE = new BooleanSetting(
+            "revanced_hide_comments_carousel_filter_type", TRUE, true, parent(HIDE_COMMENTS_CAROUSEL));
     public static final BooleanSetting HIDE_AI_CHAT_SUMMARY = new BooleanSetting("revanced_hide_ai_chat_summary", FALSE);
     public static final BooleanSetting HIDE_AI_COMMENTS_SUMMARY = new BooleanSetting("revanced_hide_ai_comments_summary", FALSE);
     public static final BooleanSetting HIDE_CHANNEL_GUIDELINES = new BooleanSetting("revanced_hide_channel_guidelines", TRUE);
@@ -896,11 +916,25 @@ public class Settings extends SharedYouTubeSettings {
     public static final BooleanSetting GEMINI_SETTINGS_SEARCH = new BooleanSetting("revanced_settings_search_gemini", TRUE);
     public static final StringSetting GEMINI_API_KEY = new StringSetting("revanced_overlay_button_gemini_summarize_api_key", "", true,
             parentsAny(OVERLAY_BUTTON_GEMINI, SHORTS_CUSTOM_ACTIONS_GEMINI, GEMINI_SETTINGS_SEARCH));
+    public static final StringSetting GEMINI_MODELS = new StringSetting("revanced_gemini_models", String.join("\n",
+            "gemini-3.8-flash",
+            "gemini-3.6-flash",
+            "gemini-3.5-flash",
+            "gemini-3.5-flash-lite",
+            "gemini-3.1-flash-lite",
+            "gemini-3-flash-preview",
+            "gemini-3.1-pro-preview",
+            "gemini-2.5-flash",
+            "gemini-2.5-flash-lite",
+            "gemini-2.5-pro"
+    ), parentsAny(OVERLAY_BUTTON_GEMINI, SHORTS_CUSTOM_ACTIONS_GEMINI, GEMINI_SETTINGS_SEARCH));
     public static final IntegerSetting GEMINI_TRANSCRIBE_SUBTITLES_FONT_SIZE = new IntegerSetting("revanced_gemini_transcribe_subtitles_font_size", 16,
             true, new SliderConfig(8, 48, 1, "sp"), parentsAny(OVERLAY_BUTTON_GEMINI, SHORTS_CUSTOM_ACTIONS_GEMINI));
     public static final BooleanSetting YANDEX_TRANSCRIBE_SUBTITLES = new BooleanSetting("revanced_yandex_transcribe_subtitles", TRUE,
             parentsAny(OVERLAY_BUTTON_GEMINI, SHORTS_CUSTOM_ACTIONS_GEMINI));
     public static final StringSetting YANDEX_TRANSCRIBE_SUBTITLES_LANGUAGE = new StringSetting("revanced_yandex_transcribe_subtitles_language", "app", true,
+            parentsAny(OVERLAY_BUTTON_GEMINI, SHORTS_CUSTOM_ACTIONS_GEMINI));
+    public static final BooleanSetting GEMINI_GOOGLE_SEARCH = new BooleanSetting("revanced_gemini_google_search", FALSE,
             parentsAny(OVERLAY_BUTTON_GEMINI, SHORTS_CUSTOM_ACTIONS_GEMINI));
     public static final BooleanSetting GEMINI_HIGHLIGHT_WORDS = new BooleanSetting("revanced_gemini_highlight_words", TRUE,
             parentsAny(OVERLAY_BUTTON_GEMINI, SHORTS_CUSTOM_ACTIONS_GEMINI));
@@ -920,6 +954,13 @@ public class Settings extends SharedYouTubeSettings {
     public static final BooleanSetting ENABLE_SEEKBAR_TAPPING = new BooleanSetting("revanced_enable_seekbar_tapping", TRUE);
     public static final BooleanSetting HIDE_SEEKBAR_CHAPTER_LABEL = new BooleanSetting("revanced_hide_seekbar_chapter_label", FALSE, true);
     public static final BooleanSetting HIDE_SEEKBAR = new BooleanSetting("revanced_hide_seekbar", FALSE, true);
+    public static final BooleanSetting CUSTOM_SEEKBAR_THUMB =
+            new BooleanSetting("morphe_custom_seekbar_thumb", FALSE);
+    public static final StringSetting CUSTOM_SEEKBAR_THUMB_FILE =
+            new StringSetting("morphe_custom_seekbar_thumb_file", "", parent(CUSTOM_SEEKBAR_THUMB));
+    public static final EnumSetting<ThumbScaleType> CUSTOM_SEEKBAR_THUMB_SCALE_TYPE =
+            new EnumSetting<>("morphe_custom_seekbar_thumb_scale_type", ThumbScaleType.FIT_SEEKBAR,
+                    parent(CUSTOM_SEEKBAR_THUMB));
     public static final BooleanSetting HIDE_SEEKBAR_THUMBNAIL = new BooleanSetting("revanced_hide_seekbar_thumbnail", FALSE, true);
     public static final BooleanSetting FULLSCREEN_LARGE_SEEKBAR = new BooleanSetting("morphe_fullscreen_large_seekbar", FALSE);
     public static final BooleanSetting HIDE_TIME_STAMP = new BooleanSetting("revanced_hide_time_stamp", FALSE, true);
@@ -1032,9 +1073,13 @@ public class Settings extends SharedYouTubeSettings {
     public static final BooleanSetting VIDEO_DELAY_OVERLAY_BUTTON = new BooleanSetting("morphe_video_delay_button_overlay", FALSE);
     public static final BooleanSetting VIDEO_DELAY_FLYOUT_BUTTON = new BooleanSetting("morphe_video_delay_button_flyout", FALSE);
 
-    // Watch later
-    public static final BooleanSetting WATCH_LATER_WIDE_DRAG_HANDLES = new BooleanSetting("morphe_watch_later_wide_drag_handles", TRUE);
-    public static final BooleanSetting WATCH_LATER_HIDE_REMOVAL_SNACKBAR = new BooleanSetting("morphe_watch_later_hide_removal_snackbar", FALSE);
+    // Playlists
+    public static final BooleanSetting PLAYLIST_WIDE_DRAG_HANDLES =
+            new BooleanSetting("morphe_playlist_wide_drag_handles", TRUE);
+    public static final BooleanSetting PLAYLIST_HIDE_REMOVAL_SNACKBAR =
+            new BooleanSetting("morphe_playlist_hide_removal_snackbar", FALSE);
+    public static final BooleanSetting PLAYLIST_LONG_PRESS_DRAG =
+            new BooleanSetting("morphe_playlist_long_press_drag", FALSE);
 
     public static final BooleanSetting SAVE_TO_WATCH_LATER_BUTTON = new BooleanSetting("morphe_save_to_watch_later_button", FALSE);
     public static final BooleanSetting SWAP_SAVE_AND_QUEUE_ACTIONS = new BooleanSetting("morphe_swap_save_and_queue_actions", TRUE, true, parent(SAVE_TO_WATCH_LATER_BUTTON));
@@ -1326,6 +1371,10 @@ public class Settings extends SharedYouTubeSettings {
     public static final BooleanSetting SB_SEEN_GUIDELINES = new BooleanSetting("sb_seen_guidelines", FALSE, false, false);
 
     // Deprecated migrations
+    private static final BooleanSetting DEPRECATED_WATCH_LATER_WIDE_DRAG_HANDLES =
+            new BooleanSetting("morphe_watch_later_wide_drag_handles", TRUE, false, false);
+    private static final BooleanSetting DEPRECATED_WATCH_LATER_HIDE_REMOVAL_SNACKBAR =
+            new BooleanSetting("morphe_watch_later_hide_removal_snackbar", FALSE, false, false);
     private static final BooleanSetting DEPRECATED_MORPHE_OVERRIDE_YOUTUBE_MUSIC_BUTTON = new BooleanSetting("morphe_override_youtube_music_button", FALSE, true);
     private static final BooleanSetting DEPRECATED_REVANCED_OVERRIDE_YOUTUBE_MUSIC_BUTTON = new BooleanSetting("revanced_override_youtube_music_button", FALSE, true);
     private static final StringSetting DEPRECATED_REVANCED_THIRD_PARTY_YOUTUBE_MUSIC_PACKAGE_NAME = new StringSetting("revanced_third_party_youtube_music_package_name", PackageNameYouTubeMusic(), true);
@@ -1381,6 +1430,20 @@ public class Settings extends SharedYouTubeSettings {
         }
     }
 
+    private static void migratePlaylistImport(JSONObject json, String suffix) throws JSONException {
+        String oldKey = "watch_later_" + suffix;
+        String newKey = "playlist_" + suffix;
+        if (!json.has(newKey) && !json.has("morphe_" + newKey)) {
+            if (json.has(oldKey)) {
+                json.put(newKey, json.get(oldKey));
+            } else if (json.has("morphe_" + oldKey)) {
+                json.put(newKey, json.get("morphe_" + oldKey));
+            }
+        }
+        json.remove(oldKey);
+        json.remove("morphe_" + oldKey);
+    }
+
     /**
      * Converts legacy-only imports without overriding the new setting when both keys are present.
      */
@@ -1388,6 +1451,9 @@ public class Settings extends SharedYouTubeSettings {
             new Setting.ImportExportCallback() {
                 @Override
                 public void settingsImporting(JSONObject json) throws JSONException {
+                    migratePlaylistImport(json, "wide_drag_handles");
+                    migratePlaylistImport(json, "hide_removal_snackbar");
+
                     // Normalize both supported key forms before import comparisons and persistence.
                     for (String key : new String[]{"miniplayer_type", MINIPLAYER_TYPE.key}) {
                         if ("phone".equalsIgnoreCase(json.optString(key))) {
@@ -1415,6 +1481,9 @@ public class Settings extends SharedYouTubeSettings {
                 20, LIVE_CHAT_TRANSLATE_MAX_LENGTH_NO_LIMIT, 20, "", 1,
                 StringRef.sfc("morphe_live_chat_translate_max_length_no_limit")));
         // region Migration initialized
+
+        migrateOldSettingToNew(DEPRECATED_WATCH_LATER_WIDE_DRAG_HANDLES, PLAYLIST_WIDE_DRAG_HANDLES);
+        migrateOldSettingToNew(DEPRECATED_WATCH_LATER_HIDE_REMOVAL_SNACKBAR, PLAYLIST_HIDE_REMOVAL_SNACKBAR);
 
         if (DEPRECATED_DISABLE_TRANSLUCENT_NAVIGATION_BAR.get()) {
             NAVIGATION_BAR_STYLE.save(NavigationBarStyle.OPAQUE);

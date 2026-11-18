@@ -1,0 +1,16 @@
+# APK binaries (too large for GitHub's 100MB limit; kept local only)
+*.apk
+patched/
+
+# Gradle
+.gradle/
+build/
+patch-source/.gradle/
+patch-source/build/
+
+# Node
+node_modules/
+
+# IDE
+.idea/
+*.iml

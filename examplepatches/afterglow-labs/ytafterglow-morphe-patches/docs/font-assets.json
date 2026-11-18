@@ -1,0 +1,180 @@
+{
+  "sourceRepository": "afterglow-labs/YTAfterglow",
+  "sourceCommit": "7f0295bed37a85ed7e1909895b18a18d178ec9e9",
+  "sourceDirectory": "layout/Library/Application Support/YTAfterglow.bundle/Fonts",
+  "note": "Unmodified assets already bundled with the iOS project. Apple system-only families are not copied; Android counterparts are used. This records provenance, not a new font license.",
+  "files": {
+    "Michroma-Regular.ttf": {
+      "bytes": 62968,
+      "sha256": "aeb90da44b9f39fd7df446507f4109a39e0b8ffcad76ad428a0f737e9860e3ec"
+    },
+    "SairaExtraCondensed-Black.ttf": {
+      "bytes": 88804,
+      "sha256": "306e59454e4b1a6bebce96f185920b41085394a7944300145b889425251be29e"
+    },
+    "SairaExtraCondensed-Bold.ttf": {
+      "bytes": 88292,
+      "sha256": "eeea4c0058396f532373f5114940c1ea7a488d5e36af7da272b04e87b20a0a66"
+    },
+    "SairaExtraCondensed-ExtraBold.ttf": {
+      "bytes": 89100,
+      "sha256": "c66b8962b9073cd8e834ef468078092941aedc1c3c82f0a462eebcdb5822bcee"
+    },
+    "SairaExtraCondensed-Regular.ttf": {
+      "bytes": 87556,
+      "sha256": "428ccde36edac21652a1d0884c1b166b171f17cff16efcdb3a8dd23cf3fb4f56"
+    },
+    "SairaExtraCondensed-SemiBold.ttf": {
+      "bytes": 88204,
+      "sha256": "8ad96347491309972f60dcfaee7d66cdad05f0575040313361b6a9ce936b1a65"
+    },
+    "ScienceGothic-ExtraBold.ttf": {
+      "bytes": 204036,
+      "sha256": "92267774e2a367b40ede4c40e8083f0503f79ea39f669e1ff0ac8e74b478b7be"
+    },
+    "ScienceGothic-Light.ttf": {
+      "bytes": 207540,
+      "sha256": "9edf7da9775e423d4c0822e023bfe0a7a7e4462b606b6e90860c1bd291f923fb"
+    },
+    "ScienceGothic-VariableFont_CTRS,slnt,wdth,wght.ttf": {
+      "bytes": 2695236,
+      "sha256": "23b876cdc40c0ace771f9abb8782fce9eeeb9dea8885e37de924ad591986deb9"
+    },
+    "ScienceGothic_SemiCondensed-Black.ttf": {
+      "bytes": 203724,
+      "sha256": "cd7662f72a2bf025ed60ab61ca01625188a0ce0c955c8832362973b55a58a5f4"
+    },
+    "ScienceGothic_SemiCondensed-ExtraBold.ttf": {
+      "bytes": 204224,
+      "sha256": "a13bee2d80922fa4e785385a4068e24a3875febe8038902f9bc6cfec848a39bb"
+    },
+    "ScienceGothic_SemiCondensed-Medium.ttf": {
+      "bytes": 202248,
+      "sha256": "399c19e116b9c6ccccc57d32c3fcf1c645eabadc64348d13023cf8d03d41d91b"
+    },
+    "ScienceGothic_SemiCondensed-Regular.ttf": {
+      "bytes": 200708,
+      "sha256": "e6afe955a0285a8d351aa2e8808b559c26246c9fa3cb7d76c66018cb2772139b"
+    },
+    "ScienceGothic_SemiCondensed-Thin.ttf": {
+      "bytes": 207176,
+      "sha256": "b8b1b33d082ce94bc8213676eb9bf989b4bc3cc25070939cfb647adb40c164e0"
+    },
+    "ScienceGothic_SemiExpanded-Black.ttf": {
+      "bytes": 204788,
+      "sha256": "12221aca77f3882ceea86898d456fa756b62fb17ff88e4b574617563198c27a7"
+    },
+    "ScienceGothic_SemiExpanded-ExtraLight.ttf": {
+      "bytes": 208428,
+      "sha256": "680e497831bbe81404f3302a4f271ded9762ddb2d670ef8ad3c13c6e2e9b9dcf"
+    },
+    "ScienceGothic_SemiExpanded-Light.ttf": {
+      "bytes": 207876,
+      "sha256": "79c569e2957396bc3c36745c576bf5b87944a5ac7ac679d6be8caf3ce90189f4"
+    },
+    "ShareTechMono-Regular.ttf": {
+      "bytes": 42756,
+      "sha256": "911a85f56c44e8a712458513e6972a3e296ee9a84e70754462d03de3f3609c2b"
+    },
+    "SofiaSansExtraCondensed-BlackItalic.ttf": {
+      "bytes": 143560,
+      "sha256": "ba890afa4f7cce967a5beab01c6ff30a296dd798e26c318733df045b7e405f36"
+    },
+    "SofiaSansExtraCondensed-BoldItalic.ttf": {
+      "bytes": 143372,
+      "sha256": "1413b51d833b342225302654f8cfad411918d1ff9863c464f02680073c725948"
+    },
+    "SofiaSansExtraCondensed-ExtraLight.ttf": {
+      "bytes": 158540,
+      "sha256": "2d8c80bf10a6cb06d96cd576128d2ce3eeeeddb46e103b0d26caaabcc67e70fd"
+    },
+    "SofiaSansExtraCondensed-Italic-VariableFont_wght.ttf": {
+      "bytes": 305284,
+      "sha256": "4af7a63a54504e436913c269089dcd5cff64828929372bfe14d6ef68a81ef874"
+    },
+    "SofiaSansExtraCondensed-Italic.ttf": {
+      "bytes": 143092,
+      "sha256": "b9348c598ddcc3789cac40c6988b54b6f7e53ca77c02125ce0b579b081b17496"
+    },
+    "SofiaSansExtraCondensed-LightItalic.ttf": {
+      "bytes": 143284,
+      "sha256": "5a94e95f48e2f378577dd79387a7197ff2370a1bda14b570de14f0e9b944ba2f"
+    },
+    "SofiaSansExtraCondensed-Medium.ttf": {
+      "bytes": 158636,
+      "sha256": "fc00085696ec8a6a7f6e230f4608fddb2a484c961d5a9a500e9b6c4cab40e16b"
+    },
+    "SofiaSansExtraCondensed-MediumItalic.ttf": {
+      "bytes": 143344,
+      "sha256": "45fc569c8924b0f099cd7c84785b9de7c01366b9413d3b35107551550c20ed2f"
+    },
+    "SofiaSansExtraCondensed-Regular.ttf": {
+      "bytes": 158576,
+      "sha256": "ebe81b70e7ffffdeb2223104aa2e70ace1d193b836c51f203d36f1a63c355c25"
+    },
+    "SofiaSansExtraCondensed-SemiBold.ttf": {
+      "bytes": 158772,
+      "sha256": "ad8a0f18134c8c16f749e3a822dbc8e6e73c03d924339c7ae3e765511180e5bf"
+    },
+    "SofiaSansExtraCondensed-SemiBoldItalic.ttf": {
+      "bytes": 143472,
+      "sha256": "047a4c2a295abdd73efa77bb81cd346b1591aa3c3e6aef05fcaab955fee4a64f"
+    },
+    "SofiaSansExtraCondensed-Thin.ttf": {
+      "bytes": 158372,
+      "sha256": "06d25a18cb877bd0c272901613dc7eacc4c833d67b5b9e1b35836d72542c8739"
+    },
+    "SofiaSansExtraCondensed-ThinItalic.ttf": {
+      "bytes": 143232,
+      "sha256": "f3b289b0682ba27d1fcdf811bda7969989e64269c9db7c7c751abc3048558044"
+    },
+    "SofiaSansExtraCondensed-VariableFont_wght.ttf": {
+      "bytes": 341652,
+      "sha256": "b8343414712b5f1cd3f5e2c84ba3b3df697c0545cbe1e5fe8787681b58472c79"
+    },
+    "TextMeOne-Regular.ttf": {
+      "bytes": 35960,
+      "sha256": "90dc88d543b4fa5f9b00ac6cf244c72c4f10a8d8b2f2d4c21607d18c2b455e6d"
+    },
+    "VoxRoundWide-LightIt.ttf": {
+      "bytes": 272656,
+      "sha256": "d9e3a3d650c19c26edf775edb50b983b02adc799238b5f110125744ed46560f6"
+    },
+    "VoxRoundWide-Semibold.ttf": {
+      "bytes": 182048,
+      "sha256": "69d2b34aef82714eab1aa83204c89a9686f14123ebc9cfba16bb0806ff955ae2"
+    },
+    "VoxRoundWide.ttf": {
+      "bytes": 255372,
+      "sha256": "4460eff594ac3265ab6ddbdb8a1592b8e50f828f4ee9ae17a7992d0e1ecff0ee"
+    },
+    "calibri.ttf": {
+      "bytes": 1650632,
+      "sha256": "57e93ff143572bcc092c1f56202d43ddc07bb119aa104c6d7af163470fb551f6"
+    },
+    "calibrib.ttf": {
+      "bytes": 1615616,
+      "sha256": "0a8296747536ead27d5f48f67e911cc3b207742b3f704e66995251d12fd422e5"
+    },
+    "calibrii.ttf": {
+      "bytes": 1202512,
+      "sha256": "7f150e9eabe5db3e1b0f9469dca5c96176bc2fbb306dc9d48b7029dc69c52763"
+    },
+    "calibril.ttf": {
+      "bytes": 1441448,
+      "sha256": "2db491080305b349588b9851fb6fe960eee04cd7c1097784a987287d782f0a54"
+    },
+    "calibrili.ttf": {
+      "bytes": 1065868,
+      "sha256": "64ca9b15ca79927c3c4c69094bb41f78e5f0d79e9501d9d381a8794b220eead1"
+    },
+    "calibriz.ttf": {
+      "bytes": 1163904,
+      "sha256": "760539bfedbe24e7853ca8a621d9cb1f3de52036c116e81aae36b33c4ab60a7c"
+    },
+    "prestige.ttf": {
+      "bytes": 27972,
+      "sha256": "53963671881726f4419fe7dba60e6e5c622441d3befc42df4d0534a74055f615"
+    }
+  }
+}

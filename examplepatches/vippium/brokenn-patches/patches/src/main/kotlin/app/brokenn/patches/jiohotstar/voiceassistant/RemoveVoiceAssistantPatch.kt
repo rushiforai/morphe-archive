@@ -8,10 +8,14 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patcher.util.findFreeRegister
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import app.brokenn.patches.jiohotstar.shared.Constants.COMPATIBILITY_JIOHOTSTAR
+
 
 @Suppress("unused")
 val removeVoiceAssistantPatch = bytecodePatch(
@@ -27,7 +31,7 @@ val removeVoiceAssistantPatch = bytecodePatch(
             return v0
         """)
 
-        // CVD orb in page protos: false makes mappers drop it (watch Ask pill, search-bar mic state).
+        // CVD orb in page protos: false makes mappers drop it.
         for (fingerprint in listOf(
             WatchPageCvdOrbFingerprint,
             ExplorePageCvdOrbFingerprint,
@@ -125,5 +129,37 @@ val removeVoiceAssistantPatch = bytecodePatch(
                 ExternalLabel("skip_ask", instrs[skipIdx])
             )
         }
+
+        // Home ChatGPT suggestion tray: null the staggered-tray converter result when the
+        // tray's first item is a TopicsPill chip. The parser null-guards the result, so the tray is dropped.
+        val tray = HomeSuggestionTrayFingerprint.method
+        val trayImpl = tray.implementation!!.instructions
+        val listIdx = trayImpl.indexOfFirst { ins ->
+            ins.opcode == Opcode.INVOKE_VIRTUAL &&
+                (ins as? ReferenceInstruction)?.reference.toString()
+                    .contains("StaggeredTrayWidget${'$'}Data;->getItemsList")
+        }
+        require(listIdx > 0) { "SuggestionTray: getItemsList not found" }
+        val keepInsn = trayImpl[listIdx + 2]
+
+        tray.addInstructionsWithLabels(
+            listIdx + 2,
+            """
+            invoke-interface {v2}, Ljava/util/List;->isEmpty()Z
+            move-result v3
+            if-nez v3, :keep_tray
+            const/4 v3, 0x0
+            invoke-interface {v2, v3}, Ljava/util/List;->get(I)Ljava/lang/Object;
+            move-result-object v3
+            check-cast v3, Lcom/hotstar/ui/model/widget/StaggeredTrayWidget${'$'}Item;
+            invoke-virtual {v3}, Lcom/hotstar/ui/model/widget/StaggeredTrayWidget${'$'}Item;->hasTopicsPill()Z
+            move-result v3
+            if-eqz v3, :keep_tray
+            const/4 v0, 0x0
+            return-object v0
+            """.trimIndent(),
+            ExternalLabel("keep_tray", keepInsn)
+        )
+
     }
 }

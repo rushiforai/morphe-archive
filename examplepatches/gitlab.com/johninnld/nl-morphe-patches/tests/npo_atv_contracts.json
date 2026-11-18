@@ -1,0 +1,262 @@
+[
+  {
+    "role": "optionalImaLoader",
+    "owner": "Lnl/npo/player/library/sterads/presentation/ads/ImaAdManager;",
+    "signature": "getAdsLoader(Landroid/content/Context;Z)Lnl/npo/player/library/kw/e;",
+    "registers": 12,
+    "instructions": 22,
+    "selection": "ads",
+    "prefix": [
+      "const/4 v0, 0x0",
+      "return-object v0"
+    ]
+  },
+  {
+    "role": "fetched",
+    "owner": "Lnl/npo/player/library/bw/a;",
+    "signature": "getPreRollAdUrl()Ljava/lang/String;",
+    "registers": 1,
+    "instructions": 2,
+    "selection": "ads",
+    "prefix": [
+      "const/4 p0, 0x0",
+      "return-object p0"
+    ]
+  },
+  {
+    "role": "assets",
+    "owner": "Lnl/npo/player/library/domain/streamLink/model/StreamLinkAssets;",
+    "signature": "getPreRollAdUrl()Ljava/lang/String;",
+    "registers": 1,
+    "instructions": 2,
+    "selection": "ads",
+    "prefix": [
+      "const/4 p0, 0x0",
+      "return-object p0"
+    ]
+  },
+  {
+    "role": "cached",
+    "owner": "Lnl/npo/player/library/data/offline/model/OnDiskSourceConfig;",
+    "signature": "getPreRollAdUrl()Ljava/lang/String;",
+    "registers": 1,
+    "instructions": 2,
+    "selection": "ads",
+    "prefix": [
+      "const/4 p0, 0x0",
+      "return-object p0"
+    ]
+  },
+  {
+    "role": "copied",
+    "owner": "Lnl/npo/player/library/data/extensions/NPOSourceConfigKt$copyInternal$newSourceConfig$1;",
+    "signature": "getPreRollAdUrl()Ljava/lang/String;",
+    "registers": 1,
+    "instructions": 2,
+    "selection": "ads",
+    "prefix": [
+      "const/4 p0, 0x0",
+      "return-object p0"
+    ]
+  },
+  {
+    "role": "wrapper",
+    "owner": "Lnl/npo/player/library/cv/a;",
+    "signature": "getPreRollAdUrl()Ljava/lang/String;",
+    "registers": 1,
+    "instructions": 2,
+    "selection": "ads",
+    "prefix": [
+      "const/4 p0, 0x0",
+      "return-object p0"
+    ]
+  },
+  {
+    "role": "tagConstructor",
+    "owner": "Lnl/npo/player/library/z00/d;",
+    "signature": "<init>(Lnl/npo/tag/sdk/internal/domain/model/TagContext;Lnl/npo/player/library/ow/b;Lnl/npo/player/library/z00/e;Lio/sentry/x3;Lnl/npo/player/library/a10/h;Lnl/npo/player/library/a10/c;Lnl/npo/player/library/y00/a;Lnl/npo/player/library/x00/c;Ljava/util/Set;Lnl/npo/player/library/l00/a;Lnl/npo/player/library/m00/b;Lio/sentry/android/core/q0;Lnl/npo/player/library/cp/l0;)V",
+    "registers": 14,
+    "instructions": 39,
+    "selection": "tracking",
+    "prefix": [
+      "invoke-static {}, Ljava/util/Collections;->emptySet()Ljava/util/Set;",
+      "move-result-object p9"
+    ]
+  },
+  {
+    "role": "tagIngress",
+    "owner": "Lnl/npo/player/library/z00/d;",
+    "signature": "a(Lnl/npo/tag/sdk/model/EventType;Lnl/npo/tag/sdk/model/PageEvent;)V",
+    "registers": 9,
+    "instructions": 12,
+    "selection": "tracking",
+    "prefix": [
+      "return-void"
+    ]
+  },
+  {
+    "role": "topspin",
+    "owner": "Lnl/npo/player/library/u00/c;",
+    "signature": "a(Lnl/npo/tag/sdk/model/TagEvent;ILnl/npo/player/library/wp/c;)Ljava/lang/Object;",
+    "registers": 18,
+    "instructions": 157,
+    "selection": "tracking",
+    "prefix": [
+      "sget-object v0, Lnl/npo/player/library/qp/c0;->a:Lnl/npo/player/library/qp/c0;",
+      "return-object v0"
+    ]
+  },
+  {
+    "role": "dam",
+    "owner": "Lnl/npo/player/library/x00/c;",
+    "signature": "b(Lnl/npo/player/library/wp/c;)Ljava/lang/Object;",
+    "registers": 17,
+    "instructions": 104,
+    "selection": "tracking",
+    "prefix": [
+      "sget-object v0, Lnl/npo/player/library/qp/c0;->a:Lnl/npo/player/library/qp/c0;",
+      "return-object v0"
+    ]
+  },
+  {
+    "role": "session",
+    "owner": "Lnl/npo/player/library/npotag/model/PlayerPageTrackerImpl;",
+    "signature": "getSessionData(Lnl/npo/player/library/up/c;)Ljava/lang/Object;",
+    "registers": 3,
+    "instructions": 12,
+    "selection": "tracking",
+    "prefix": [
+      "const-string v0, \"\"",
+      "return-object v0"
+    ]
+  },
+  {
+    "role": "ster",
+    "owner": "Lnl/npo/player/library/data/streamLink/model/StreamInfoRequest;",
+    "signature": "getSter()Lnl/npo/player/library/domain/streamLink/model/StreamInfoSterData;",
+    "registers": 1,
+    "instructions": 2,
+    "selection": "tracking",
+    "prefix": [
+      "const/4 p0, 0x0",
+      "return-object p0"
+    ]
+  },
+  {
+    "role": "sentry",
+    "owner": "Lio/sentry/u6;",
+    "signature": "isEnabled()Z",
+    "registers": 1,
+    "instructions": 2,
+    "selection": "tracking",
+    "prefix": [
+      "const/4 p0, 0x0",
+      "return p0"
+    ]
+  },
+  {
+    "role": "analytics",
+    "owner": "Lcom/bitmovin/player/analytics/internal/AnalyticsConfiguratorKt;",
+    "signature": "configureAnalytics(Lcom/bitmovin/player/api/Player;Landroid/content/Context;Lcom/bitmovin/player/api/analytics/AnalyticsPlayerConfig;)Lcom/bitmovin/player/api/Player;",
+    "registers": 12,
+    "instructions": 45,
+    "selection": "tracking",
+    "prefix": [
+      "return-object p0"
+    ]
+  },
+  {
+    "role": "analytics",
+    "owner": "Lcom/bitmovin/player/analytics/internal/AnalyticsConfiguratorKt;",
+    "signature": "configureAnalytics(Lcom/bitmovin/player/api/source/Source;Lcom/bitmovin/player/api/analytics/AnalyticsSourceConfig;)Lcom/bitmovin/player/api/source/Source;",
+    "registers": 3,
+    "instructions": 12,
+    "selection": "tracking",
+    "prefix": [
+      "return-object p0"
+    ]
+  },
+  {
+    "role": "sterConfiguration",
+    "owner": "Lnl/npo/player/library/sterads/presentation/ads/ImaAdManager;",
+    "signature": "supplyOptionalConfiguration()Lnl/npo/player/library/jv/l;",
+    "registers": 1,
+    "instructions": 2,
+    "selection": "tracking",
+    "prefix": [
+      "const/4 p0, 0x0",
+      "return-object p0"
+    ]
+  },
+  {
+    "role": "castTelemetry",
+    "owner": "Lnl/npo/player/library/im/i2;",
+    "signature": "a(Lnl/npo/player/library/im/g3;I)V",
+    "registers": 5,
+    "instructions": 6,
+    "selection": "tracking",
+    "prefix": [
+      "return-void"
+    ]
+  },
+  {
+    "role": "tvAdsTelemetry",
+    "owner": "Lnl/npo/player/library/gm/d1;",
+    "signature": "c(Lnl/npo/player/library/gm/a;)V",
+    "registers": 5,
+    "instructions": 16,
+    "selection": "tracking",
+    "prefix": [
+      "return-void"
+    ]
+  },
+  {
+    "role": "googleTelemetryIngress",
+    "owner": "Lnl/npo/player/library/a9/t;",
+    "signature": "O(Lnl/npo/player/library/qk/a;)V",
+    "registers": 11,
+    "instructions": 62,
+    "selection": "tracking",
+    "prefix": [
+      "return-void"
+    ]
+  },
+  {
+    "role": "googleQueuedEgress",
+    "owner": "Lnl/npo/player/library/nw/a;",
+    "signature": "f(Lnl/npo/player/library/qn/j;)Lnl/npo/player/library/f7/c1;",
+    "registers": 20,
+    "instructions": 210,
+    "selection": "tracking",
+    "prefix": [
+      "new-instance v0, Lnl/npo/player/library/f7/c1;",
+      "const/16 v1, 0x193",
+      "const/4 v2, 0x0",
+      "const-wide/16 v3, 0x0",
+      "invoke-direct {v0, v1, v2, v3, v4}, Lnl/npo/player/library/f7/c1;-><init>(ILjava/net/URL;J)V",
+      "return-object v0"
+    ]
+  },
+  {
+    "role": "googleTelemetryAlarm",
+    "owner": "Lcom/google/android/datatransport/runtime/scheduling/jobscheduling/AlarmManagerSchedulerBroadcastReceiver;",
+    "signature": "onReceive(Landroid/content/Context;Landroid/content/Intent;)V",
+    "registers": 8,
+    "instructions": 12,
+    "selection": "tracking",
+    "prefix": [
+      "return-void"
+    ]
+  },
+  {
+    "role": "advertisingIdDiagnostics",
+    "owner": "Lnl/npo/player/library/el/b;",
+    "signature": "d(Lnl/npo/player/library/el/a;JLjava/lang/Throwable;)V",
+    "registers": 8,
+    "instructions": 44,
+    "selection": "tracking",
+    "prefix": [
+      "return-void"
+    ]
+  }
+]

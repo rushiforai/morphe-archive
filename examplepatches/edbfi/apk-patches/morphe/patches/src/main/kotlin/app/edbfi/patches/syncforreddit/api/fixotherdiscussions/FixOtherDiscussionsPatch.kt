@@ -1,0 +1,41 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+package app.edbfi.patches.syncforreddit.api.fixotherdiscussions
+
+import app.edbfi.patches.syncforreddit.SYNC_FOR_REDDIT
+import app.edbfi.patches.syncforreddit.misc.extension.EXTENSION
+import app.edbfi.patches.syncforreddit.misc.extension.extensionPatch
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.instructions
+import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.util.matchSingle
+
+@Suppress("unused")
+val fixOtherDiscussionsPatch =
+    patch(
+        name = "Fix Other discussions",
+        description = "Fixes \"Other discussions\" failing to load, by searching Reddit for the link instead.",
+        default = true,
+    ) {
+        compatibleWith(SYNC_FOR_REDDIT)
+        dependsOn(extensionPatch)
+
+        execute {
+            // Reddit blocks the endpoints that list a link's posts (submit.json?url=, api/info?url=), but its search
+            // still finds them with url:<link>. Turning the key into a search key lets the app's own search code build
+            // the request: on oauth.reddit.com with the token, its sort, paging and NSFW setting, and a listing the
+            // parser reads as it is. The listing keeps its "Other discussions" key and title.
+            val method = PostsUrlFingerprint.matchSingle().method
+            if (method.instructions.first().location.labels.isNotEmpty()) throw PatchException("${method.name} starts at a label")
+            // The keys are p1 and p2, which may be above v15: only the range form reaches those.
+            method.addInstructions(
+                0,
+                """
+                    invoke-static/range { p1 .. p1 }, $EXTENSION/OtherDiscussions;->asSearch(Ljava/lang/String;)Ljava/lang/String;
+                    move-result-object p1
+                    invoke-static/range { p2 .. p2 }, $EXTENSION/OtherDiscussions;->asSearch(Ljava/lang/String;)Ljava/lang/String;
+                    move-result-object p2
+                """,
+            )
+        }
+    }

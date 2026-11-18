@@ -14,24 +14,36 @@ import java.util.concurrent.*;
 /** Separate, anonymous public-data client. Never reuses Twitch cookies, interceptors or tokens. */
 public final class PublicApi {
     public static final Handler UI = new Handler(Looper.getMainLooper());
-    private static final ThreadPoolExecutor WORK =
-            new ThreadPoolExecutor(
-                    2,
-                    2,
-                    30,
-                    TimeUnit.SECONDS,
-                    new ArrayBlockingQueue<>(64),
-                    r -> {
-                        Thread t = new Thread(r, "ChatPublicData");
-                        t.setDaemon(true);
-                        return t;
-                    });
+    private static final int MAX_RESPONSE_BYTES = 4 * 1024 * 1024;
+    /** Shared by every chat and danmaku download; idle threads exit. */
+    private static final ThreadPoolExecutor WORK = pool(4, 128, "ChatPublicData");
+    /** Alejo's pronoun service can take tens of seconds to answer; on its own thread it never holds up emotes or badges. */
+    private static final ThreadPoolExecutor PRONOUNS = pool(1, 64, "ChatPronouns");
 
     private PublicApi() {}
 
+    private static ThreadPoolExecutor pool(int threads, int queue, String name) {
+        ThreadPoolExecutor pool = new ThreadPoolExecutor(threads, threads, 30, TimeUnit.SECONDS,
+                new ArrayBlockingQueue<>(queue), r -> {
+                    Thread t = new Thread(r, name);
+                    t.setDaemon(true);
+                    return t;
+                });
+        pool.allowCoreThreadTimeOut(true);
+        return pool;
+    }
+
     public static boolean submit(Runnable work) {
+        return submit(WORK, work);
+    }
+
+    static boolean submitPronouns(Runnable work) {
+        return submit(PRONOUNS, work);
+    }
+
+    private static boolean submit(ThreadPoolExecutor pool, Runnable work) {
         try {
-            WORK.execute(work);
+            pool.execute(work);
             return true;
         } catch (RejectedExecutionException e) {
             return false;
@@ -39,19 +51,24 @@ public final class PublicApi {
     }
 
     public static String get(String address) throws IOException {
-        return request(address, null);
+        return new String(request(address, null, "application/json", MAX_RESPONSE_BYTES), StandardCharsets.UTF_8);
+    }
+
+    /** Anonymous GET of an https URL; redirects are refused and the body is capped. */
+    public static byte[] fetch(String address, String accept, int limit) throws IOException {
+        return request(address, null, accept, limit);
     }
 
     /** Public Twitch metadata only. Client-ID identifies the app and is not a login credential. */
     public static String twitchMetadata(String body) throws IOException {
-        return request("https://gql.twitch.tv/gql", body);
+        return post("https://gql.twitch.tv/gql", body);
     }
 
-    public static String sevenTvMetadata(String body) throws IOException {
-        return request("https://7tv.io/v4/gql", body);
+    private static String post(String address, String body) throws IOException {
+        return new String(request(address, body, "application/json", MAX_RESPONSE_BYTES), StandardCharsets.UTF_8);
     }
 
-    private static String request(String address, String body) throws IOException {
+    private static byte[] request(String address, String body, String accept, int limit) throws IOException {
         URL url = new URL(address);
         if (!"https".equals(url.getProtocol()) || url.getUserInfo() != null)
             throw new IOException("Invalid public URL");
@@ -60,7 +77,7 @@ public final class PublicApi {
         c.setReadTimeout(10000);
         c.setInstanceFollowRedirects(false);
         c.setRequestProperty("User-Agent", "SabopuraChat/1.0");
-        c.setRequestProperty("Accept", "application/json");
+        c.setRequestProperty("Accept", accept);
         try {
             if (body != null) {
                 c.setRequestMethod("POST");
@@ -74,20 +91,24 @@ public final class PublicApi {
                     out.write(bytes);
                 }
             }
-            if (c.getResponseCode() != 200) throw new IOException("HTTP " + c.getResponseCode());
-            try (InputStream in = c.getInputStream();
-                    ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-                byte[] b = new byte[8192];
-                int n;
-                while ((n = in.read(b)) != -1) {
-                    if (out.size() + n > 4 * 1024 * 1024)
-                        throw new IOException("Response too large");
-                    out.write(b, 0, n);
-                }
-                return out.toString(StandardCharsets.UTF_8.name());
+            int status = c.getResponseCode();
+            if (status < 200 || status >= 300) throw new IOException("HTTP " + status);
+            try (InputStream in = c.getInputStream()) {
+                return readLimited(in, limit);
             }
         } finally {
             c.disconnect();
         }
+    }
+
+    public static byte[] readLimited(InputStream in, int limit) throws IOException {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        byte[] b = new byte[8192];
+        int n;
+        while ((n = in.read(b)) != -1) {
+            if (out.size() + n > limit) throw new IOException("Response exceeds " + limit + " bytes");
+            out.write(b, 0, n);
+        }
+        return out.toByteArray();
     }
 }

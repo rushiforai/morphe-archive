@@ -3,6 +3,8 @@
  *
  * This file is part of the revanced-patches project:
  * https://github.com/anddea/revanced-patches
+ *
+ * Modified by lavinhoque33, 2026-11-17.
  */
 
 package app.morphe.patches.youtube.utils.sponsorblock
@@ -313,7 +315,8 @@ val sponsorBlockPatch = resourcePatch(
                 "drawable",
                 "revanced_sb_drag_handle.xml",
                 "revanced_sb_new_segment_background.xml",
-                "revanced_sb_skip_sponsor_button_background.xml"
+                "revanced_sb_skip_sponsor_button_background.xml",
+                "revanced_sb_skip_next.xml"
             )
         ).forEach { resourceGroup ->
             copyResources("youtube/sponsorblock/shared", resourceGroup)

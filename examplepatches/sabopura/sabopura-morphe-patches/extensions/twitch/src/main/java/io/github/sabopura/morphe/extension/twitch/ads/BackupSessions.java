@@ -32,22 +32,24 @@ final class BackupSessions {
      */
     static final String PROXY = "proxy";
     static final String[] SOURCES = {"mobile_feed", PROXY, "autoplay"};
+    private static final long MAX_TOKEN_MS = 3000;
 
     static String sourceName(int index) {
         if (index < 0 || index >= SOURCES.length) return "?";
         return PROXY.equals(SOURCES[index]) ? "the stream proxy" : SOURCES[index];
     }
 
-    /** A token, or null. Runs on a worker thread; bounded by the timeout. */
-    static String[] token(String login, String playerType, int timeoutMs) {
+    /** A token, or null. Runs on a worker thread; connecting and reading share one time budget. */
+    static String[] token(String login, String playerType, long deadline) {
+        long limit = Math.min(deadline, System.currentTimeMillis() + MAX_TOKEN_MS);
+        if (limit <= System.currentTimeMillis()) return null;
         HttpURLConnection c = null;
         try {
             JSONObject variables = new JSONObject().put("login", login).put("playerType", playerType);
             byte[] body = new JSONObject().put("query", QUERY).put("variables", variables)
                     .toString().getBytes(StandardCharsets.UTF_8);
             c = (HttpURLConnection) new URL(GQL).openConnection();
-            c.setConnectTimeout(timeoutMs);
-            c.setReadTimeout(timeoutMs);
+            c.setConnectTimeout(remaining(limit));
             c.setRequestMethod("POST");
             c.setDoOutput(true);
             c.setRequestProperty("Client-ID", CLIENT_ID);
@@ -55,6 +57,7 @@ final class BackupSessions {
             try (OutputStream out = c.getOutputStream()) {
                 out.write(body);
             }
+            c.setReadTimeout(remaining(limit));
             if (c.getResponseCode() != 200) return null;
             JSONObject json = new JSONObject(read(c.getInputStream()));
             JSONObject data = json.optJSONObject("data");
@@ -69,6 +72,11 @@ final class BackupSessions {
         } finally {
             if (c != null) c.disconnect();
         }
+    }
+
+    /** At least one millisecond: zero would mean no timeout at all. */
+    private static int remaining(long limit) {
+        return (int) Math.max(1, limit - System.currentTimeMillis());
     }
 
     private static String read(InputStream in) throws java.io.IOException {

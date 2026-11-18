@@ -1,40 +1,52 @@
 package io.github.sabopura.morphe.extension.twitch.chat;
 
-import io.github.sabopura.morphe.extension.twitch.ui.Text;
-import android.app.AlertDialog;
 import android.content.Context;
-import android.text.*;
-import android.view.*;
-import android.widget.*;
 
-import io.github.sabopura.morphe.extension.twitch.chat.emotes.EmoteSupport;
+import io.github.sabopura.morphe.extension.twitch.chat.emotes.TwitchEmotes;
+import io.github.sabopura.morphe.extension.twitch.ui.HistoryRows;
+import io.github.sabopura.morphe.extension.twitch.ui.HistorySheet;
 
 import org.json.*;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.function.Consumer;
 
 public final class ChatHistory {
     private static final LinkedHashMap<String, HistoryMessage> MESSAGES = new LinkedHashMap<>();
     private static boolean loaded, savePending;
     private static long generation;
-    private static final java.util.concurrent.ExecutorService IO =
-            java.util.concurrent.Executors.newSingleThreadExecutor(
+    /** One thread, so saves, loads and deletes happen in the order they were asked for. */
+    private static final java.util.concurrent.ThreadPoolExecutor IO =
+            new java.util.concurrent.ThreadPoolExecutor(
+                    1,
+                    1,
+                    30,
+                    java.util.concurrent.TimeUnit.SECONDS,
+                    new java.util.concurrent.LinkedBlockingQueue<>(),
                     r -> {
                         Thread t = new Thread(r, "ChatHistoryStorage");
                         t.setDaemon(true);
                         return t;
                     });
 
+    static {
+        IO.allowCoreThreadTimeOut(true);
+    }
+
+    private static final int LIMIT = 1000;
+    private static final java.util.regex.Pattern COLOR = java.util.regex.Pattern.compile("color=#([0-9A-Fa-f]{6})");
+    /** Saving rewrites the whole file, so it happens rarely. */
+    private static final long SAVE_INTERVAL_MS = 30_000;
+
     public static synchronized void record(Context context, HistoryMessage m) {
         if (m.id == null || m.text == null || m.text.length() > 16000) return;
-        if (ChatSettings.preferences(context).getBoolean("save_history", false) && !loaded)
-            load(context.getApplicationContext(), () -> {});
+        boolean persist = ChatSettings.get(context).saveHistory;
+        if (persist && !loaded) load(context.getApplicationContext(), () -> {});
         MESSAGES.put(m.room + ":" + m.id, m);
-        while (MESSAGES.size() > 1000) MESSAGES.remove(MESSAGES.keySet().iterator().next());
-        if (ChatSettings.preferences(context).getBoolean("save_history", false) && !savePending) {
+        trim();
+        if (persist && !savePending) {
             savePending = true;
             Context app = context.getApplicationContext();
             long expected = generation;
@@ -44,8 +56,12 @@ public final class ChatHistory {
                         List<HistoryMessage> snapshot = snapshot(null);
                         IO.execute(() -> save(app, snapshot, expected));
                     },
-                    2000);
+                    SAVE_INTERVAL_MS);
         }
+    }
+
+    private static void trim() {
+        while (MESSAGES.size() > LIMIT) MESSAGES.remove(MESSAGES.keySet().iterator().next());
     }
 
     private static synchronized List<HistoryMessage> snapshot(String room) {
@@ -55,9 +71,12 @@ public final class ChatHistory {
         return list;
     }
 
-    private static synchronized void save(Context c, List<HistoryMessage> messages, long expected) {
-        if (expected != generation
-                || !ChatSettings.preferences(c).getBoolean("save_history", false)) return;
+    /** Runs on the storage thread and holds no lock across the file sync: chat rows would wait on it. */
+    private static void save(Context c, List<HistoryMessage> messages, long expected) {
+        synchronized (ChatHistory.class) {
+            if (expected != generation) return;
+        }
+        if (!ChatSettings.get(c).saveHistory) return;
         android.util.AtomicFile file =
                 new android.util.AtomicFile(new File(c.getFilesDir(), "chat-history.json"));
         FileOutputStream out = null;
@@ -69,15 +88,17 @@ public final class ChatHistory {
                                 .put("id", m.id)
                                 .put("room", m.room)
                                 .put("user", m.user)
+                                .put("login", m.login)
                                 .put("userId", m.userId)
                                 .put("text", m.text)
-                                .put("time", m.time));
+                                .put("time", m.time)
+                                .put("emotes", m.emotes.isEmpty() ? null : m.emotes));
             byte[] bytes = a.toString().getBytes(StandardCharsets.UTF_8);
             if (bytes.length > 2 * 1024 * 1024) return;
             out = file.startWrite();
             out.write(bytes);
             file.finishWrite(out);
-        } catch (Exception ignored) {
+        } catch (Throwable ignored) {
             if (out != null) file.failWrite(out);
         }
     }
@@ -108,22 +129,30 @@ public final class ChatHistory {
                         JSONArray a = new JSONArray(value);
                         synchronized (ChatHistory.class) {
                             if (expected != generation) return;
-                            for (int i = 0; i < a.length() && i < 1000; i++) {
+                            for (int i = 0; i < a.length() && i < LIMIT; i++) {
                                 JSONObject o = a.getJSONObject(i);
+                                // Older saves kept the whole rendered row, sender included.
+                                String text = o.getString("text");
                                 HistoryMessage m =
                                         new HistoryMessage(
                                                 o.getString("id"),
                                                 o.getString("room"),
                                                 o.getString("user"),
-                                                o.getString("text"),
+                                                o.optString("login", o.getString("user")),
+                                                o.has("login") ? text : ChatRules.body(text),
                                                 o.getLong("time"),
-                                                o.optString("userId", ""));
+                                                o.optString("userId", ""),
+                                                o.optString("emotes", ""));
                                 MESSAGES.putIfAbsent(m.room + ":" + m.id, m);
                             }
-                            while (MESSAGES.size() > 1000)
-                                MESSAGES.remove(MESSAGES.keySet().iterator().next());
+                            // Saved messages arrive after newer live ones, so restore time order first.
+                            List<HistoryMessage> ordered = new ArrayList<>(MESSAGES.values());
+                            ordered.sort(Comparator.comparingLong(m -> m.time));
+                            MESSAGES.clear();
+                            for (HistoryMessage m : ordered) MESSAGES.put(m.room + ":" + m.id, m);
+                            trim();
                         }
-                    } catch (Exception ignored) {
+                    } catch (Throwable ignored) {
                     } finally {
                         PublicApi.UI.post(done);
                     }
@@ -131,170 +160,89 @@ public final class ChatHistory {
     }
 
     public static void show(Context context, boolean recent) {
-        String channel = ChatEnhancements.channelName(), room = ChatEnhancements.channelId();
-        LinearLayout box = new LinearLayout(context);
-        box.setOrientation(1);
-        TextView status = new TextView(context);
-        box.addView(status);
-        EditText search = new EditText(context);
-        search.setHint(Text.label("本文・ユーザーを検索", "Search messages and users"));
-        box.addView(search);
-        ListView list = new ListView(context);
-        box.addView(
-                list,
-                new LinearLayout.LayoutParams(
-                        -1, Math.round(360 * context.getResources().getDisplayMetrics().density)));
-        List<HistoryMessage> source = new ArrayList<>(), visible = new ArrayList<>();
-        BaseAdapter adapter =
-                new BaseAdapter() {
-                    public int getCount() {
-                        return visible.size();
-                    }
+        HistorySheet.show(context, recent);
+    }
 
-                    public Object getItem(int p) {
-                        return visible.get(p);
-                    }
+    /**
+     * The messages this device showed in {@code room} (in every room for null), oldest first and without
+     * blocked ones, delivered on the main thread; null when they could not be read.
+     */
+    public static void loadSaved(Context context, String room, Consumer<List<HistoryRows.Row>> done) {
+        ChatSettings settings = ChatSettings.get(context);
+        load(context, () -> IO.execute(() -> {
+            List<HistoryRows.Row> rows = null;
+            try {
+                List<HistoryRows.Row> all = new ArrayList<>();
+                for (HistoryMessage m : snapshot(room))
+                    all.add(new HistoryRows.Row(m, 0, TwitchEmotes.parse(m.emotes, m.text)));
+                rows = visible(settings, all);
+            } catch (Throwable ignored) {
+            }
+            List<HistoryRows.Row> result = rows;
+            PublicApi.UI.post(() -> done.accept(result));
+        }));
+    }
 
-                    public long getItemId(int p) {
-                        return p;
+    /**
+     * robotty.de's public log of {@code channel}, oldest first and without blocked messages, delivered on
+     * the main thread; null when it could not be read. False when too many requests already wait.
+     */
+    public static boolean fetchRecent(Context context, String channel, Consumer<List<HistoryRows.Row>> done) {
+        ChatSettings settings = ChatSettings.get(context);
+        return PublicApi.submit(() -> {
+            List<HistoryRows.Row> rows = null;
+            try {
+                if (!channel.matches("[A-Za-z0-9_]{1,25}")) throw new IllegalArgumentException();
+                JSONObject json = new JSONObject(PublicApi.get(
+                        "https://recent-messages.robotty.de/api/v2/recent-messages/"
+                                + channel.toLowerCase(Locale.ROOT)
+                                + "?limit=500&hideModeratedMessages=true"));
+                JSONArray a = json.optJSONArray("messages");
+                Map<String, HistoryRows.Row> unique = new LinkedHashMap<>();
+                if (a != null)
+                    for (int i = 0; i < a.length(); i++) {
+                        String line = a.optString(i);
+                        HistoryMessage m = HistoryMessage.parseIrc(line);
+                        if (m != null)
+                            unique.put(m.id, new HistoryRows.Row(m, nameColor(line), TwitchEmotes.ofIrc(line)));
                     }
+                rows = visible(settings, unique.values());
+            } catch (Throwable ignored) {
+            }
+            List<HistoryRows.Row> result = rows;
+            PublicApi.UI.post(() -> done.accept(result));
+        });
+    }
 
-                    public View getView(int p, View old, ViewGroup parent) {
-                        TextView t =
-                                old instanceof TextView ? (TextView) old : new TextView(context);
-                        HistoryMessage m = visible.get(p);
-                        t.setPadding(16, 12, 16, 12);
-                        t.setTextSize(14);
-                        t.setText(
-                                (m.time > 0
-                                                ? new SimpleDateFormat(
-                                                                        "HH:mm:ss",
-                                                                        Locale.getDefault())
-                                                                .format(new Date(m.time))
-                                                        + " "
-                                                : "")
-                                        + (recent ? m.user + ": " : "")
-                                        + m.text);
-                        EmoteSupport.bind(t, room);
-                        return t;
-                    }
-                };
-        list.setAdapter(adapter);
-        Runnable filter =
-                () -> {
-                    String q = search.getText().toString().toLowerCase(Locale.ROOT);
-                    ChatSettings settings = ChatSettings.get(context);
-                    visible.clear();
-                    for (HistoryMessage m : source)
-                        if ((m.user + " " + m.text).toLowerCase(Locale.ROOT).contains(q)
-                                && (!settings.enabled
-                                        || !settings.rules.blocks(m.text, m.user, m.userId)))
-                            visible.add(m);
-                    adapter.notifyDataSetChanged();
-                };
-        search.addTextChangedListener(
-                new TextWatcher() {
-                    public void beforeTextChanged(CharSequence s, int a, int b, int c) {}
-
-                    public void onTextChanged(CharSequence s, int a, int b, int c) {
-                        filter.run();
-                    }
-
-                    public void afterTextChanged(Editable e) {}
-                });
-        AlertDialog.Builder builder =
-                new AlertDialog.Builder(context)
-                        .setTitle(
-                                recent
-                                        ? Text.label("過去チャット", "Recent chat")
-                                        : Text.label(
-                                                "表示したメッセージの履歴", "Viewed message history"))
-                        .setView(box)
-                        .setPositiveButton(android.R.string.ok, null);
-        // A neutral button closes the dialog unless it gets its own listener, so only the
-        // history has one; the source of recent chat is named in the status line instead.
-        if (!recent) builder.setNeutralButton(Text.label("履歴を削除", "Clear history"), null);
-        AlertDialog dialog = builder.create();
-        dialog.show();
-        if (!recent) {
-            dialog.getButton(AlertDialog.BUTTON_NEUTRAL)
-                    .setOnClickListener(
-                            v -> {
-                                synchronized (ChatHistory.class) {
-                                    generation++;
-                                    savePending = false;
-                                    MESSAGES.clear();
-                                    new android.util.AtomicFile(
-                                                    new File(
-                                                            context.getFilesDir(),
-                                                            "chat-history.json"))
-                                            .delete();
-                                }
-                                source.clear();
-                                filter.run();
-                            });
-            load(
-                    context,
-                    () -> {
-                        if (!dialog.isShowing()) return;
-                        source.addAll(snapshot(room));
-                        source.sort(Comparator.comparingLong(m -> m.time));
-                        filter.run();
-                        status.setText(
-                                Text.label(
-                                        "この端末で表示した最大1,000件",
-                                        "Up to 1,000 messages viewed on this device"));
-                    });
-            return;
+    private static List<HistoryRows.Row> visible(ChatSettings settings, Collection<HistoryRows.Row> rows) {
+        List<HistoryRows.Row> list = new ArrayList<>();
+        for (HistoryRows.Row row : rows) {
+            HistoryMessage m = row.message;
+            if (!settings.enabled || !settings.rules.blocks(m.text, m.login, m.userId)) list.add(row);
         }
-        if (channel == null || !channel.matches("[A-Za-z0-9_]{1,25}")) {
-            status.setText(Text.label("配信を開いてからお使いください", "Open a channel first"));
-            return;
+        list.sort(Comparator.comparingLong(row -> row.message.time));
+        return list;
+    }
+
+    /** The sender's chat colour from an IRC line's tags, or 0 when the line has none. */
+    static int nameColor(String line) {
+        int end = line == null || !line.startsWith("@") ? -1 : line.indexOf(' ');
+        if (end < 0) return 0;
+        for (String tag : line.substring(1, end).split(";")) {
+            java.util.regex.Matcher color = COLOR.matcher(tag);
+            if (color.matches()) return 0xFF000000 | Integer.parseInt(color.group(1), 16);
         }
-        status.setText(Text.label("取得中…", "Loading…"));
-        if (!PublicApi.submit(
-                () -> {
-                    try {
-                        JSONObject json =
-                                new JSONObject(
-                                        PublicApi.get(
-                                                "https://recent-messages.robotty.de/api/v2/recent-messages/"
-                                                        + channel.toLowerCase(Locale.ROOT)
-                                                        + "?limit=500&hideModeratedMessages=true"));
-                        JSONArray a = json.optJSONArray("messages");
-                        Map<String, HistoryMessage> unique = new LinkedHashMap<>();
-                        if (a != null)
-                            for (int i = 0; i < a.length(); i++) {
-                                HistoryMessage m = HistoryMessage.parseIrc(a.optString(i));
-                                if (m != null) unique.put(m.id, m);
-                            }
-                        List<HistoryMessage> messages = new ArrayList<>(unique.values());
-                        messages.sort(Comparator.comparingLong(m -> m.time));
-                        PublicApi.UI.post(
-                                () -> {
-                                    if (!dialog.isShowing()) return;
-                                    source.addAll(messages);
-                                    filter.run();
-                                    status.setText(
-                                            Text.label(
-                                                    "公開履歴 " + messages.size() + " 件（robotty.de）",
-                                                    "Public history: " + messages.size() + " (robotty.de)"));
-                                });
-                    } catch (Exception e) {
-                        PublicApi.UI.post(
-                                () -> {
-                                    if (dialog.isShowing())
-                                        status.setText(
-                                                Text.label(
-                                                        "履歴を取得できません（未収集・拒否・サービス停止）",
-                                                        "History unavailable: uncollected, opted"
-                                                                + " out, or service offline"));
-                                });
-                    }
-                }))
-            status.setText(
-                    Text.label(
-                            "取得待ちが多いため再度お試しください",
-                            "Please try again after pending requests complete"));
+        return 0;
+    }
+
+    /** Forgets the viewed messages of every room, in memory and in the saved file. */
+    public static void clear(Context context) {
+        synchronized (ChatHistory.class) {
+            generation++;
+            savePending = false;
+            MESSAGES.clear();
+        }
+        File file = new File(context.getFilesDir(), "chat-history.json");
+        IO.execute(() -> new android.util.AtomicFile(file).delete());
     }
 }

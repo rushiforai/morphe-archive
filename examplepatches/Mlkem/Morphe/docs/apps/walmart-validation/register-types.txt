@@ -1,0 +1,2 @@
+Checked 55 injected calls / 59 arguments across 26 methods; failures=0
+Checked 57 hook/return path requirements (including incoming branches).

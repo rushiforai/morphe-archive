@@ -1,0 +1,87 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# From edbfi-ci templates/ci-special.yml, plus a job per Gradle build. Every added PR job belongs in ci-ok.
+# No paths: filter: a skipped workflow leaves the required checks pending.
+name: CI
+on:
+  pull_request:
+  push: { branches: [main] }
+  workflow_dispatch:
+  schedule: [{ cron: "44 4 * * 0" }]   # weekly main revalidation; minute unique per repo
+permissions: {}
+# The head SHA keeps a re-run from cancelling a newer head; main runs never cancel each other.
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('ci-pr-{0}-{1}', github.event.pull_request.number, github.event.pull_request.head.sha) || format('ci-{0}', github.sha) }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions: { contents: read }
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { persist-credentials: false }
+      - name: Read Python version
+        id: python
+        run: |
+          version="$(cat .python-version)"
+          test -n "$version"
+          printf 'version=%s\n' "$version" >> "$GITHUB_OUTPUT"
+      # prek is the only uv user here, so there's no uv cache to save (the post-step would fail).
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with: { python-version: "${{ steps.python.outputs.version }}", enable-cache: false }
+      - uses: j178/prek-action@7b101f8338a08d2bd6fdb3625e4e7692428763a3 # v3.1.1
+        with: { extra-args: "--all-files --hook-stage manual" }
+  # The ReVanced bundle's own Gradle build, in revanced/.
+  revanced:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # packages: read lets GITHUB_TOKEN resolve ReVanced's plugin and patcher from GitHub Packages.
+    permissions: { contents: read, packages: read }
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { persist-credentials: false }
+      # The JDK in revanced/gradle/gradle-daemon-jvm.properties.
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with: { distribution: temurin, java-version: "25" }
+      # Also validates the wrapper jar.
+      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+      - run: ./gradlew check :patches:buildAndroid
+        working-directory: revanced
+        env:
+          ORG_GRADLE_PROJECT_githubPackagesUsername: ${{ github.actor }}
+          ORG_GRADLE_PROJECT_githubPackagesPassword: ${{ github.token }}
+  # The Morphe bundle's own Gradle build, in morphe/.
+  morphe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # packages: read lets GITHUB_TOKEN resolve Morphe's plugin and patcher from GitHub Packages.
+    permissions: { contents: read, packages: read }
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { persist-credentials: false }
+      # The JDK in morphe/gradle/gradle-daemon-jvm.properties.
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with: { distribution: temurin, java-version: "25" }
+      # Also validates the wrapper jar.
+      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+      - run: ./gradlew check :patches:buildAndroid
+        working-directory: morphe
+        env:
+          ORG_GRADLE_PROJECT_githubPackagesUsername: ${{ github.actor }}
+          ORG_GRADLE_PROJECT_githubPackagesPassword: ${{ github.token }}
+  ci-ok:
+    if: always()
+    needs: [checks, revanced, morphe]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
+    steps:
+      - env:
+          NEEDS: ${{ toJSON(needs) }}
+          ALLOWED_SKIPS: ""
+        run: |
+          jq -e --arg skips "$ALLOWED_SKIPS" '
+            ($skips | split(",") | map(select(. != ""))) as $allowed
+            | length > 0 and all(to_entries[]; .value.result == "success"
+                or (.value.result == "skipped" and (.key | IN($allowed[]))))
+          ' <<<"$NEEDS" >/dev/null || { echo "::error::ci-ok failed: $(jq -c 'map_values(.result)' <<<"$NEEDS")"; exit 1; }

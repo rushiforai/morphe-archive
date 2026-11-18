@@ -49,14 +49,22 @@ import javax.crypto.spec.GCMParameterSpec;
  * Download/Messenger right before it's removed. That file isn't encrypted, so the switch starts off.
  *
  * A photo or other attachment has no text of its own, so it's logged with what its notification line said, and with the
- * picture Messenger put on that line when there is one ({@link MessageLogMedia}). Names picked for chats in the log's
- * screen sit in a file of their own, sealed with the same key, so a clear takes them along.
+ * picture Messenger put on that line when there is one ({@link MessageLogMedia}). A photo at the size it was sent, a
+ * video and a voice message's clip are fetched as the message is logged, with {@link #KEEP_PHOTOS},
+ * {@link #KEEP_VIDEOS} or {@link #KEEP_VOICE} on ({@link MessageLogAttachment}). Names picked for chats in the log's screen sit in a file of their own, sealed with the
+ * same key, so a clear takes them along.
  */
 public final class MessageLog {
     private MessageLog() {}
 
     static final String KEY = "message_log";
     static final String SAVE_EXPIRING = "message_log_save_expiring";
+    /** Fetch a voice message's clip as it's logged, so an unsend before the first play can't take it. */
+    static final String KEEP_VOICE = "message_log_keep_voice";
+    /** Fetch a photo at the size it was sent as it's logged, rather than keeping the notification's preview of it. */
+    static final String KEEP_PHOTOS = "message_log_keep_photos";
+    /** Fetch a video as it's logged, so an unsend before it's opened can't take it. */
+    static final String KEEP_VIDEOS = "message_log_keep_videos";
     static final String FILE = "hush_message_log.bin";
     static final String DAMAGED = FILE + ".damaged";
     static final String KEY_ALIAS = "hushmessenger_message_log";
@@ -139,8 +147,13 @@ public final class MessageLog {
         public final boolean unsent;
         /** A photo, sticker or other attachment. Its text is what the notification said about it, empty when none did. */
         public final boolean attachment;
-        /** The kept picture's name in {@link MessageLogMedia}, empty when the notification showed none. */
+        /** The kept picture's or clip's name in {@link MessageLogMedia}, empty when nothing was kept. */
         final String media;
+        /**
+         * What that file is: empty for a picture, {@link MessageLogAttachment#AUDIO} for a voice clip,
+         * {@link MessageLogAttachment#VIDEO} for a video.
+         */
+        public final String mediaType;
         Entry(long time, String thread, String text) {
             this(time, thread, text, "", "");
         }
@@ -154,6 +167,10 @@ public final class MessageLog {
             this(time, thread, text, sender, chat, id, unsent, false, "");
         }
         Entry(long time, String thread, String text, String sender, String chat, String id, boolean unsent, boolean attachment, String media) {
+            this(time, thread, text, sender, chat, id, unsent, attachment, media, "");
+        }
+        Entry(long time, String thread, String text, String sender, String chat, String id, boolean unsent, boolean attachment,
+            String media, String mediaType) {
             this.time = time;
             this.thread = thread;
             this.text = text;
@@ -163,10 +180,16 @@ public final class MessageLog {
             this.unsent = unsent;
             this.attachment = attachment;
             this.media = media == null ? "" : media;
+            this.mediaType = mediaType == null ? "" : mediaType;
         }
 
         Entry markedUnsent() {
-            return new Entry(time, thread, text, sender, chat, id, true, attachment, media);
+            return new Entry(time, thread, text, sender, chat, id, true, attachment, media, mediaType);
+        }
+
+        /** The same message pointed at the file [name], which holds a [kind]. */
+        Entry withMedia(String name, String kind) {
+            return new Entry(time, thread, text, sender, chat, id, unsent, attachment, name, kind);
         }
     }
 
@@ -201,6 +224,17 @@ public final class MessageLog {
     static void record(String text, String thread, String id) {
         // The write waits a moment so Messenger has posted the notification the sender's name is read from.
         if (queue(text, thread, id)) WRITER.schedule(MessageLog::drain, NAME_DELAY_MS, TimeUnit.MILLISECONDS);
+    }
+
+    /**
+     * {@link #record} for a message that came with media at [found]. The message is queued first, so the fetch that
+     * follows finds its entry to point at the file.
+     */
+    static void record(String text, String thread, String id, MessageLogAttachment.Found found) {
+        record(text, thread, id);
+        if (found != null && id != null && !id.isEmpty()) {
+            MessageLogAttachment.keep(clip(thread == null ? "" : thread, MAX_THREAD_CHARS), clip(id, MAX_ID_CHARS), found);
+        }
     }
 
     /** Queues and writes on the calling thread. Tests use it to skip the background thread. */
@@ -416,6 +450,52 @@ public final class MessageLog {
         return true;
     }
 
+    /**
+     * Points message [id] in [thread] at the file [name], which holds a [kind]. Called from the thread that fetched the
+     * file and takes the log's own lock, so it can't cross a write, and it takes the message whether it's still waiting
+     * to be written or already stored. Returns whether it found a message with nothing kept for it yet.
+     */
+    static boolean attachNow(String thread, String id, String name, String kind) {
+        if (thread == null || id == null || id.isEmpty() || name == null || name.isEmpty()) return false;
+        synchronized (LOCK) {
+            synchronized (PENDING) {
+                List<Entry> queued = new ArrayList<>(PENDING);
+                if (attachIn(queued, thread, id, name, kind)) {
+                    PENDING.clear();
+                    PENDING.addAll(queued);
+                    return true;
+                }
+            }
+            Context context = Settings.appContext;
+            if (context == null) return false;
+            try {
+                List<Entry> entries = load(context);
+                if (!attachIn(entries, thread, id, name, kind)) return false;
+                save(context, entries);
+                Settings.activeAt.put(KEY, System.currentTimeMillis());
+                return true;
+            } catch (Throwable failure) {
+                Settings.hookFailedPrivately(KEY, "Can't keep a voice message with its entry", failure);
+                return false;
+            }
+        }
+    }
+
+    /**
+     * Points the newest entry for [id] in [thread] at the file, if it's an attachment with nothing kept for it yet. One
+     * that already has a picture from its notification keeps it, and the file just sealed goes with the next write.
+     */
+    private static boolean attachIn(List<Entry> entries, String thread, String id, String name, String kind) {
+        for (int i = entries.size() - 1; i >= 0; i--) {
+            Entry entry = entries.get(i);
+            if (!id.equals(entry.id) || !thread.equals(entry.thread)) continue;
+            if (!entry.attachment || !entry.media.isEmpty()) return false;
+            entries.set(i, entry.withMedia(name, kind));
+            return true;
+        }
+        return false;
+    }
+
     static void drain() {
         // Taking the queue under the file lock means a Clear either runs before this (and empties the queue) or after
         // it (and deletes what this wrote). A message that arrived before Clear can't land after it.
@@ -519,7 +599,8 @@ public final class MessageLog {
             }
             if (sender == null && chat == null && text.equals(entry.text) && media.equals(entry.media)) return entry;
             return new Entry(entry.time, entry.thread, text, clip(sender == null ? "" : sender, MAX_NAME_CHARS),
-                clip(chat == null || chat.equals(sender) ? "" : chat, MAX_NAME_CHARS), entry.id, entry.unsent, entry.attachment, media);
+                clip(chat == null || chat.equals(sender) ? "" : chat, MAX_NAME_CHARS), entry.id, entry.unsent, entry.attachment, media,
+                media.equals(entry.media) ? entry.mediaType : "");
         } catch (RuntimeException unreadable) {
             return entry;
         }
@@ -961,8 +1042,8 @@ public final class MessageLog {
         long latest = System.currentTimeMillis() + FUTURE_SLACK_MS;
         for (String line : plain.split("\n", -1)) {
             if (line.isEmpty()) continue;
-            // Logs written before names were kept have three columns, before unsends were marked five, and before
-            // attachments were kept seven.
+            // Logs written before names were kept have three columns, before unsends were marked five, before
+            // attachments were kept seven, and before voice clips were kept eight.
             String[] parts = line.split("\t", -1);
             if (parts.length < 3) continue;
             long time;
@@ -981,13 +1062,19 @@ public final class MessageLog {
                 parts.length > 5 ? clip(unescape(parts[5]), MAX_ID_CHARS) : "",
                 parts.length > 6 && "1".equals(parts[6]),
                 parts.length > 7 && !parts[7].isEmpty(),
-                parts.length > 7 && !NO_PICTURE.equals(parts[7]) ? clip(unescape(parts[7]), MAX_ID_CHARS) : ""));
+                parts.length > 7 && !NO_PICTURE.equals(parts[7]) ? clip(unescape(parts[7]), MAX_ID_CHARS) : "",
+                parts.length > 8 ? kind(parts[8]) : ""));
         }
         return entries;
     }
 
     /** The eighth column of an attachment the notification showed no picture for. */
     private static final String NO_PICTURE = "-";
+
+    /** A kind this log knows how to show, else the empty kind, which is the picture every entry before kinds was. */
+    private static String kind(String written) {
+        return MessageLogAttachment.AUDIO.equals(written) || MessageLogAttachment.VIDEO.equals(written) ? written : "";
+    }
 
     /** Writes the whole log, or deletes the file when nothing is left, then drops the pictures no entry keeps. */
     private static void save(Context context, List<Entry> entries) throws Exception {
@@ -1035,8 +1122,10 @@ public final class MessageLog {
     private static String line(Entry entry) {
         String start = entry.time + "\t" + escape(entry.thread) + "\t" + escape(entry.text);
         if (entry.attachment) {
+            // The kind is written only for what isn't a picture, so a log of pictures reads and writes as it always did.
             return start + "\t" + escape(entry.sender) + "\t" + escape(entry.chat) + "\t" + escape(entry.id) + "\t" + (entry.unsent ? "1" : "") +
-                "\t" + (entry.media.isEmpty() ? NO_PICTURE : escape(entry.media)) + "\n";
+                "\t" + (entry.media.isEmpty() ? NO_PICTURE : escape(entry.media)) +
+                (entry.mediaType.isEmpty() ? "" : "\t" + escape(entry.mediaType)) + "\n";
         }
         if (!entry.id.isEmpty() || entry.unsent) {
             return start + "\t" + escape(entry.sender) + "\t" + escape(entry.chat) + "\t" + escape(entry.id) + "\t" + (entry.unsent ? "1" : "") + "\n";

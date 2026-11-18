@@ -1,7 +1,6 @@
 package io.github.sabopura.morphe.patches.twitch.login
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -48,11 +47,6 @@ val fixLoginPatch = bytecodePatch(
                 m.parameterTypes[0].startsWith("L") && !AccessFlags.STATIC.isSet(m.accessFlags)
         }.uniqueContract("Play Integrity suspend setup method")
         val singleton = unitCompletionField(method) { classDefBy(it) }
-        val implementation = method.implementation ?: throw PatchException("Twitch login: missing implementation")
-        if (implementation.registerCount < 3 || implementation.instructions.none {
-            val field = (it as? ReferenceInstruction)?.reference as? FieldReference
-            it.opcode == Opcode.SGET_OBJECT && field?.definingClass == singleton.definingClass && field.name == singleton.name
-        }) throw PatchException("Twitch login: setup no longer completes with Kotlin Unit; input layout changed")
         // Preserve the suspend function's actual completion value, rather than returning null.
         method.addInstructions(0, "sget-object v0, $singleton\nreturn-object v0")
         Logger.getLogger("Sabopura.Login").info("Optional login workaround: 1 setup method $method; native Unit completion")

@@ -495,6 +495,12 @@ private val COMPOSE_DIVIDERS = mapOf(
     ("Lcom/linkedin/android/infra/sdui/components/LazyColumnItemsKt;" to "ListDivider") to "getBorderFaint-0d7_KjU",
 )
 
+/**
+ * The seek bar of videos, which draws the unplayed part with the faint border token. That token is opaque with
+ * Material You, so the unplayed part would look almost like the played part.
+ */
+private const val MEDIA_SLIDER = "Lcom/linkedin/android/infra/sdui/components/media/MediaSliderKt;"
+
 /** LinkedIn's Application. */
 private const val APPLICATION = "Lcom/linkedin/android/app/FlagshipApplication;"
 
@@ -782,6 +788,14 @@ private val colorHooksPatch = patch {
         if (backgrounds == 0) throw PatchException("No Compose theme background colors found")
         if (surfaced == 0) throw PatchException("No Compose surface tokens found")
 
+        val sliders = afterCallResults(MEDIA_SLIDER, null, "getBorderFaint-0d7_KjU") { register ->
+            """
+                invoke-static/range { v$register .. v${register + 1} }, $EXTENSION_PACKAGE/MaterialYou;->stockBorder(J)J
+                move-result-wide v$register
+            """
+        }
+        if (sliders == 0) throw PatchException("No border color in the video seek bar")
+
         // The status bar and navigation bar colors that ThemeManager sets: white, or the dark container.
         var bars = 0
         mutableClass(THEME_MANAGER).methods.forEach { method ->
@@ -857,9 +871,7 @@ private val colorHooksPatch = patch {
 @Suppress("unused")
 val materialYouPatch = patch(
     name = "Material You",
-    description = "Uses your wallpaper's colors (Android 12+): the accent color instead of LinkedIn blue and the " +
-        "green of selected filters, and Material 3 surface colors for backgrounds, cards, bars and borders. " +
-        "Some screens drawn by LinkedIn's servers may keep their own colors.",
+    description = "Uses your wallpaper's colors across the app (Android 12+).",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
@@ -914,8 +926,7 @@ private val amoledResourcePatch = patch {
 @Suppress("unused")
 val amoledBlackPatch = patch(
     name = "Pitch black",
-    description = "Replaces the gray backgrounds of dark mode with black, and cards with a slightly lighter " +
-        "black. Takes effect when the system is in dark mode. Works with or without Material You.",
+    description = "Black backgrounds in dark mode.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)

@@ -1,7 +1,6 @@
 /*
- * Story like history screen (Morphe): a native grid of the stories the user liked in the
- * last 24h. Built with plain android.widget views, no XML and no extra dependencies.
- * The entries come from StoryLikeHistory (local JSON), loaded off the UI thread.
+ * Copyright (C) 2026 xboyrex <https://github.com/xboyrex/rex-ig-lite>
+ * GNU General Public License v3.0
  */
 
 package app.morphe.extension.instagram.patches.story;
@@ -12,6 +11,7 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Build;
@@ -23,10 +23,10 @@ import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowInsets;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.GridView;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.ProgressBar;
@@ -42,6 +42,9 @@ import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import app.morphe.extension.instagram.settings.preference.widgets.RexHaptics;
+import app.morphe.extension.instagram.settings.preference.widgets.RexIcon;
+
 @SuppressWarnings({"unused", "deprecation"})
 public final class StoryLikeHistoryActivity extends Activity implements StoryLikeHistoryAdapter.Listener {
     private static final String TAG = "StoryLikeHistory";
@@ -49,12 +52,16 @@ public final class StoryLikeHistoryActivity extends Activity implements StoryLik
     private static final int TAB_RECENT = 0;
     private static final int TAB_EXPIRED = 1;
 
-    private static final int BG = 0xFF0B0B0C;
-    private static final int BAR_BG = 0xFF141416;
-    private static final int CARD_BG = 0xFF1B1C1F;
-    private static final int TEXT_PRIMARY = Color.WHITE;
+    private static final int BG = 0xFF000000;
+    private static final int BAR_BG = 0xFF0D0F14;
+    private static final int CARD_BG = 0xFF15181D;
+    private static final int ELEVATED_BG = 0xFF1E222A;
+    private static final int BORDER_STROKE = 0xFF303741;
+    private static final int TEXT_PRIMARY = 0xFFF5F7FA;
     private static final int TEXT_SECONDARY = 0xFF9AA3AE;
-    private static final int ACCENT = 0xFF88C2CE;
+    private static final int ACCENT = 0xFF23C6D8;
+    private static final int ACTIVE_TEAL = 0xFF35CDBB;
+    private static final int CORAL_PINK = 0xFFF06470;
 
     private static final ExecutorService LOADER = Executors.newSingleThreadExecutor(runnable -> {
         Thread thread = new Thread(runnable, "xboyrex-story-likes-ui");
@@ -72,11 +79,15 @@ public final class StoryLikeHistoryActivity extends Activity implements StoryLik
     private TextView errorView;
     private EditText searchInput;
     private View searchBox;
+    private TextView statTotalValue;
+    private TextView statActiveValue;
+    private TextView statExpiredValue;
+    private View chartActiveSegment;
+    private View chartExpiredSegment;
     private final TextView[] tabs = new TextView[2];
     private int tab = TAB_RECENT;
     private String query = "";
 
-    /** Opens the history screen from anywhere inside Instagram. */
     public static void open(Context context) {
         try {
             Intent intent = new Intent(context, StoryLikeHistoryActivity.class);
@@ -108,9 +119,6 @@ public final class StoryLikeHistoryActivity extends Activity implements StoryLik
         load();
     }
 
-    // ---- loading -------------------------------------------------------------------------
-
-    /** Reads the history off the UI thread; the screen never blocks on the file. */
     private void load() {
         loading.setVisibility(View.VISIBLE);
         errorView.setVisibility(View.GONE);
@@ -124,7 +132,6 @@ public final class StoryLikeHistoryActivity extends Activity implements StoryLik
                 return;
             }
             List<StoryLikeHistoryEntry> copy = new ArrayList<>(entries);
-            Log.i(TAG, "loaded " + copy.size() + " entries");
             runOnUiThread(() -> {
                 if (isFinishing()) return;
                 all.clear();
@@ -143,22 +150,20 @@ public final class StoryLikeHistoryActivity extends Activity implements StoryLik
         errorView.setVisibility(View.VISIBLE);
     }
 
-    // ---- layout --------------------------------------------------------------------------
-
     private View buildRoot() {
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setBackgroundColor(BG);
 
         root.addView(buildTopBar(), new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, dp(56)));
+                ViewGroup.LayoutParams.MATCH_PARENT, dp(58)));
 
         searchBox = buildSearchBox();
         searchBox.setVisibility(View.GONE);
         root.addView(searchBox);
 
-        root.addView(buildTabs(), new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, dp(44)));
+        root.addView(buildAnalyticsOverviewCard());
+        root.addView(buildTabs());
 
         FrameLayout content = new FrameLayout(this);
 
@@ -167,7 +172,7 @@ public final class StoryLikeHistoryActivity extends Activity implements StoryLik
         grid.setVerticalSpacing(dp(12));
         grid.setHorizontalSpacing(dp(12));
         grid.setStretchMode(GridView.STRETCH_COLUMN_WIDTH);
-        grid.setPadding(dp(12), dp(12), dp(12), dp(12));
+        grid.setPadding(dp(14), dp(10), dp(14), dp(24));
         grid.setClipToPadding(false);
         grid.setVerticalScrollBarEnabled(false);
         adapter = new StoryLikeHistoryAdapter(this, new ArrayList<StoryLikeHistoryEntry>(), this);
@@ -180,12 +185,13 @@ public final class StoryLikeHistoryActivity extends Activity implements StoryLik
         loading.setVisibility(View.GONE);
 
         emptyState = buildEmptyState();
-        content.addView(emptyState, centeredWrap());
+        content.addView(emptyState, new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.CENTER));
         emptyState.setVisibility(View.GONE);
 
         errorView = new TextView(this);
         errorView.setTextColor(TEXT_SECONDARY);
-        errorView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
+        errorView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13.5f);
         errorView.setGravity(Gravity.CENTER);
         content.addView(errorView, centeredWrap());
         errorView.setVisibility(View.GONE);
@@ -193,7 +199,6 @@ public final class StoryLikeHistoryActivity extends Activity implements StoryLik
         root.addView(content, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
 
-        // Android 15+ draws edge to edge; keep our own bars out of the system bars.
         root.setOnApplyWindowInsetsListener((v, insets) -> {
             v.setPadding(0, insets.getSystemWindowInsetTop(), 0, insets.getSystemWindowInsetBottom());
             return insets;
@@ -205,115 +210,280 @@ public final class StoryLikeHistoryActivity extends Activity implements StoryLik
         FrameLayout bar = new FrameLayout(this);
         bar.setBackgroundColor(BAR_BG);
 
-        TextView back = new TextView(this);
-        back.setText("\u2190");
-        back.setTextColor(TEXT_PRIMARY);
-        back.setTextSize(TypedValue.COMPLEX_UNIT_SP, 22);
-        back.setGravity(Gravity.CENTER);
-        back.setContentDescription(pt() ? "Voltar" : "Back");
-        back.setOnClickListener(v -> finish());
-        bar.addView(back, new FrameLayout.LayoutParams(dp(56), dp(56), Gravity.START | Gravity.CENTER_VERTICAL));
+        FrameLayout backBtn = new FrameLayout(this);
+        ImageView backIcon = new ImageView(this);
+        backIcon.setImageDrawable(RexIcon.getDrawable(this, "arrow-left", TEXT_PRIMARY, 22));
+        backBtn.addView(backIcon, new FrameLayout.LayoutParams(dp(22), dp(22), Gravity.CENTER));
+        backBtn.setContentDescription(pt() ? "Voltar" : "Back");
+        backBtn.setOnClickListener(v -> {
+            RexHaptics.tap(v);
+            finish();
+        });
+        bar.addView(backBtn, new FrameLayout.LayoutParams(dp(52), dp(52), Gravity.START | Gravity.CENTER_VERTICAL));
+
+        LinearLayout titleRow = new LinearLayout(this);
+        titleRow.setOrientation(LinearLayout.HORIZONTAL);
+        titleRow.setGravity(Gravity.CENTER);
+        ImageView titleHeart = new ImageView(this);
+        titleHeart.setImageDrawable(RexIcon.getDrawable(this, "heart", CORAL_PINK, 19, true));
+        LinearLayout.LayoutParams thLp = new LinearLayout.LayoutParams(dp(19), dp(19));
+        thLp.setMarginEnd(dp(8));
+        titleRow.addView(titleHeart, thLp);
 
         TextView title = new TextView(this);
-        title.setText(pt() ? "Curtidas em Stories" : "Story likes");
+        title.setText(pt() ? "Curtidas em Stories" : "Story Likes & Activity");
         title.setTextColor(TEXT_PRIMARY);
-        title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 17);
-        title.setTypeface(null, android.graphics.Typeface.BOLD);
-        title.setGravity(Gravity.CENTER);
+        title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 17f);
+        title.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
         title.setSingleLine(true);
+        titleRow.addView(title);
+
         FrameLayout.LayoutParams titleLp = new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT,
                 Gravity.CENTER);
         titleLp.leftMargin = dp(56);
-        titleLp.rightMargin = dp(56);
-        bar.addView(title, titleLp);
+        titleLp.rightMargin = dp(96);
+        bar.addView(titleRow, titleLp);
 
-        TextView searchButton = new TextView(this);
-        searchButton.setText("\uD83D\uDD0D");
-        searchButton.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
-        searchButton.setGravity(Gravity.CENTER);
+        LinearLayout rightActions = new LinearLayout(this);
+        rightActions.setOrientation(LinearLayout.HORIZONTAL);
+        rightActions.setGravity(Gravity.CENTER_VERTICAL);
+
+        FrameLayout searchButton = new FrameLayout(this);
+        ImageView searchIcon = new ImageView(this);
+        searchIcon.setImageDrawable(RexIcon.getDrawable(this, "search", TEXT_PRIMARY, 20));
+        searchButton.addView(searchIcon, new FrameLayout.LayoutParams(dp(20), dp(20), Gravity.CENTER));
         searchButton.setContentDescription(pt() ? "Buscar" : "Search");
-        searchButton.setOnClickListener(v -> toggleSearch());
-        bar.addView(searchButton, new FrameLayout.LayoutParams(dp(56), dp(56), Gravity.END | Gravity.CENTER_VERTICAL));
+        searchButton.setOnClickListener(v -> {
+            RexHaptics.tap(v);
+            toggleSearch();
+        });
+        rightActions.addView(searchButton, new LinearLayout.LayoutParams(dp(44), dp(48)));
+
+        FrameLayout refreshButton = new FrameLayout(this);
+        ImageView refreshIcon = new ImageView(this);
+        refreshIcon.setImageDrawable(RexIcon.getDrawable(this, "refresh-cw", ACCENT, 19));
+        refreshButton.addView(refreshIcon, new FrameLayout.LayoutParams(dp(19), dp(19), Gravity.CENTER));
+        refreshButton.setContentDescription("Refresh");
+        refreshButton.setOnClickListener(v -> {
+            RexHaptics.tap(v);
+            load();
+        });
+        rightActions.addView(refreshButton, new LinearLayout.LayoutParams(dp(44), dp(48)));
+
+        FrameLayout.LayoutParams raLp = new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT,
+                Gravity.END | Gravity.CENTER_VERTICAL);
+        raLp.rightMargin = dp(4);
+        bar.addView(rightActions, raLp);
         return bar;
     }
 
+    private View buildAnalyticsOverviewCard() {
+        LinearLayout card = new LinearLayout(this);
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setPadding(dp(16), dp(12), dp(16), dp(12));
+        GradientDrawable bg = new GradientDrawable();
+        bg.setColor(CARD_BG);
+        bg.setCornerRadius(dp(18));
+        bg.setStroke(Math.max(1, dp(1)), BORDER_STROKE);
+        card.setBackground(bg);
+
+        LinearLayout statsRow = new LinearLayout(this);
+        statsRow.setOrientation(LinearLayout.HORIZONTAL);
+        statsRow.setGravity(Gravity.CENTER_VERTICAL);
+
+        statTotalValue = new TextView(this);
+        statActiveValue = new TextView(this);
+        statExpiredValue = new TextView(this);
+
+        statsRow.addView(createMetricColumn("24h Liked", statTotalValue, ACCENT, "heart"),
+                new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        statsRow.addView(createMetricColumn("Active", statActiveValue, ACTIVE_TEAL, "clock"),
+                new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        statsRow.addView(createMetricColumn("Expired", statExpiredValue, CORAL_PINK, "history"),
+                new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        card.addView(statsRow);
+
+        // Visual distribution chart bar
+        LinearLayout chartBar = new LinearLayout(this);
+        chartBar.setOrientation(LinearLayout.HORIZONTAL);
+        GradientDrawable trackBg = new GradientDrawable();
+        trackBg.setColor(ELEVATED_BG);
+        trackBg.setCornerRadius(dp(4));
+        chartBar.setBackground(trackBg);
+        chartBar.setPadding(dp(1), dp(1), dp(1), dp(1));
+
+        chartActiveSegment = new View(this);
+        GradientDrawable actBg = new GradientDrawable();
+        actBg.setColor(ACTIVE_TEAL);
+        actBg.setCornerRadius(dp(4));
+        chartActiveSegment.setBackground(actBg);
+
+        chartExpiredSegment = new View(this);
+        GradientDrawable expBg = new GradientDrawable();
+        expBg.setColor(CORAL_PINK);
+        expBg.setCornerRadius(dp(4));
+        chartExpiredSegment.setBackground(expBg);
+
+        chartBar.addView(chartActiveSegment, new LinearLayout.LayoutParams(0, dp(6), 1f));
+        chartBar.addView(chartExpiredSegment, new LinearLayout.LayoutParams(0, dp(6), 0f));
+
+        LinearLayout.LayoutParams barLp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, dp(8));
+        barLp.topMargin = dp(10);
+        card.addView(chartBar, barLp);
+
+        LinearLayout.LayoutParams cardLp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        cardLp.setMargins(dp(14), dp(10), dp(14), dp(6));
+        card.setLayoutParams(cardLp);
+        return card;
+    }
+
+    private LinearLayout createMetricColumn(String label, TextView valueView, int accentColor, String iconId) {
+        LinearLayout col = new LinearLayout(this);
+        col.setOrientation(LinearLayout.VERTICAL);
+        col.setGravity(Gravity.CENTER_HORIZONTAL);
+
+        LinearLayout top = new LinearLayout(this);
+        top.setOrientation(LinearLayout.HORIZONTAL);
+        top.setGravity(Gravity.CENTER_VERTICAL);
+        ImageView ic = new ImageView(this);
+        ic.setImageDrawable(RexIcon.getDrawable(this, iconId, accentColor, 14));
+        LinearLayout.LayoutParams icLp = new LinearLayout.LayoutParams(dp(14), dp(14));
+        icLp.setMarginEnd(dp(5));
+        top.addView(ic, icLp);
+
+        valueView.setText("0");
+        valueView.setTextColor(TEXT_PRIMARY);
+        valueView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 17f);
+        valueView.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
+        top.addView(valueView);
+        col.addView(top);
+
+        TextView lbl = new TextView(this);
+        lbl.setText(label);
+        lbl.setTextColor(TEXT_SECONDARY);
+        lbl.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11.5f);
+        lbl.setPadding(0, dp(2), 0, 0);
+        col.addView(lbl);
+        return col;
+    }
+
     private View buildSearchBox() {
+        LinearLayout box = new LinearLayout(this);
+        box.setOrientation(LinearLayout.HORIZONTAL);
+        box.setGravity(Gravity.CENTER_VERTICAL);
+        box.setPadding(dp(12), dp(6), dp(12), dp(6));
+        GradientDrawable bg = rounded(CARD_BG, 14);
+        bg.setStroke(Math.max(1, dp(1)), BORDER_STROKE);
+        box.setBackground(bg);
+
+        ImageView searchIcon = new ImageView(this);
+        searchIcon.setImageDrawable(RexIcon.getDrawable(this, "search", TEXT_SECONDARY, 18));
+        LinearLayout.LayoutParams sLp = new LinearLayout.LayoutParams(dp(18), dp(18));
+        sLp.setMarginEnd(dp(8));
+        box.addView(searchIcon, sLp);
+
         EditText input = new EditText(this);
         input.setSingleLine(true);
         input.setHint(pt() ? "Buscar por nome ou @usuário" : "Search name or @username");
         input.setHintTextColor(TEXT_SECONDARY);
         input.setTextColor(TEXT_PRIMARY);
         input.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
-        input.setPadding(dp(14), dp(8), dp(14), dp(8));
-        input.setBackground(rounded(CARD_BG, 10));
+        input.setBackground(null);
+        input.setPadding(0, dp(6), 0, dp(6));
         input.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
-
             @Override public void onTextChanged(CharSequence s, int start, int before, int count) { }
-
             @Override public void afterTextChanged(Editable s) {
                 query = s == null ? "" : s.toString();
                 render();
             }
         });
         searchInput = input;
+        box.addView(input, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
 
         FrameLayout wrapper = new FrameLayout(this);
-        wrapper.setPadding(dp(12), 0, dp(12), dp(8));
-        wrapper.addView(input, new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, dp(40)));
+        wrapper.setPadding(dp(14), dp(8), dp(14), dp(2));
+        wrapper.addView(box, new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         return wrapper;
     }
 
     private View buildTabs() {
         LinearLayout bar = new LinearLayout(this);
         bar.setOrientation(LinearLayout.HORIZONTAL);
-        bar.setBackgroundColor(BG);
+        bar.setPadding(dp(14), dp(4), dp(14), dp(4));
 
         String[] labels = {pt() ? "Recentes" : "Recent", pt() ? "Expirados" : "Expired"};
         for (int i = 0; i < labels.length; i++) {
             final int index = i;
             TextView tabView = new TextView(this);
             tabView.setText(labels[i]);
-            tabView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+            tabView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13.5f);
             tabView.setGravity(Gravity.CENTER);
+            tabView.setPadding(dp(14), dp(8), dp(14), dp(8));
             tabView.setOnClickListener(v -> {
+                RexHaptics.tap(v);
                 tab = index;
                 render();
             });
             tabs[i] = tabView;
-            bar.addView(tabView, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f));
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, dp(38), 1f);
+            if (i == 0) lp.setMarginEnd(dp(6));
+            else lp.setMarginStart(dp(6));
+            bar.addView(tabView, lp);
         }
         return bar;
     }
 
     private LinearLayout buildEmptyState() {
-        LinearLayout box = new LinearLayout(this);
-        box.setOrientation(LinearLayout.VERTICAL);
-        box.setGravity(Gravity.CENTER);
-        box.setPadding(dp(32), dp(32), dp(32), dp(32));
+        LinearLayout outer = new LinearLayout(this);
+        outer.setOrientation(LinearLayout.VERTICAL);
+        outer.setGravity(Gravity.CENTER);
+        outer.setPadding(dp(24), dp(16), dp(24), dp(24));
 
-        TextView heart = new TextView(this);
-        heart.setText("\u2661");
-        heart.setTextColor(ACCENT);
-        heart.setTextSize(TypedValue.COMPLEX_UNIT_SP, 56);
-        heart.setGravity(Gravity.CENTER);
-        box.addView(heart);
+        LinearLayout card = new LinearLayout(this);
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setGravity(Gravity.CENTER_HORIZONTAL);
+        card.setPadding(dp(24), dp(26), dp(24), dp(26));
+        GradientDrawable cardBg = new GradientDrawable();
+        cardBg.setColor(CARD_BG);
+        cardBg.setCornerRadius(dp(22));
+        cardBg.setStroke(Math.max(1, dp(1)), BORDER_STROKE);
+        card.setBackground(cardBg);
+
+        FrameLayout iconHalo = new FrameLayout(this);
+        GradientDrawable haloBg = new GradientDrawable();
+        haloBg.setShape(GradientDrawable.OVAL);
+        haloBg.setColor(0x2223C6D8);
+        haloBg.setStroke(Math.max(1, dp(1)), 0x5523C6D8);
+        iconHalo.setBackground(haloBg);
+
+        ImageView heartSvg = new ImageView(this);
+        heartSvg.setImageDrawable(RexIcon.getDrawable(this, "heart-spark", ACCENT, 34));
+        iconHalo.addView(heartSvg, new FrameLayout.LayoutParams(dp(34), dp(34), Gravity.CENTER));
+        card.addView(iconHalo, new LinearLayout.LayoutParams(dp(68), dp(68)));
 
         emptyTitle = new TextView(this);
         emptyTitle.setTextColor(TEXT_PRIMARY);
-        emptyTitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+        emptyTitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 17f);
+        emptyTitle.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
         emptyTitle.setGravity(Gravity.CENTER);
-        emptyTitle.setPadding(0, dp(12), 0, dp(6));
-        box.addView(emptyTitle);
+        emptyTitle.setPadding(0, dp(14), 0, dp(6));
+        card.addView(emptyTitle);
 
         emptySubtitle = new TextView(this);
         emptySubtitle.setTextColor(TEXT_SECONDARY);
-        emptySubtitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
+        emptySubtitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13.2f);
         emptySubtitle.setGravity(Gravity.CENTER);
-        box.addView(emptySubtitle);
-        return box;
+        card.addView(emptySubtitle);
+
+        outer.addView(card, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        return outer;
     }
 
     private FrameLayout.LayoutParams centeredWrap() {
@@ -322,14 +492,30 @@ public final class StoryLikeHistoryActivity extends Activity implements StoryLik
                 Gravity.CENTER);
     }
 
-    // ---- filtering / rendering -----------------------------------------------------------
-
     private void render() {
         long now = System.currentTimeMillis();
 
-        // Opportunistic cleanup: entries past likedAt + 24h leave the panel for good.
+        int activeCount = 0;
+        int expiredCount = 0;
         for (Iterator<StoryLikeHistoryEntry> it = all.iterator(); it.hasNext(); ) {
-            if (it.next().shouldRemove(now)) it.remove();
+            StoryLikeHistoryEntry e = it.next();
+            if (e.shouldRemove(now)) {
+                it.remove();
+            } else if (e.isExpired(now)) {
+                expiredCount++;
+            } else {
+                activeCount++;
+            }
+        }
+        int totalCount = activeCount + expiredCount;
+        if (statTotalValue != null) statTotalValue.setText(String.valueOf(totalCount));
+        if (statActiveValue != null) statActiveValue.setText(String.valueOf(activeCount));
+        if (statExpiredValue != null) statExpiredValue.setText(String.valueOf(expiredCount));
+        if (chartActiveSegment != null && chartExpiredSegment != null) {
+            float actW = totalCount == 0 ? 1f : Math.max(0.05f, (float) activeCount / totalCount);
+            float expW = totalCount == 0 ? 0f : (float) expiredCount / totalCount;
+            chartActiveSegment.setLayoutParams(new LinearLayout.LayoutParams(0, dp(6), actW));
+            chartExpiredSegment.setLayoutParams(new LinearLayout.LayoutParams(0, dp(6), expW));
         }
 
         String needle = query.trim().toLowerCase(Locale.ROOT);
@@ -355,24 +541,41 @@ public final class StoryLikeHistoryActivity extends Activity implements StoryLik
         emptyState.setVisibility(empty ? View.VISIBLE : View.GONE);
         if (empty) updateEmptyText(needle);
 
+        String recentLabel = (pt() ? "Recentes (" : "Recent (") + totalCount + ")";
+        String expiredLabel = (pt() ? "Expirados (" : "Expired (") + expiredCount + ")";
+        if (tabs[0] != null) tabs[0].setText(recentLabel);
+        if (tabs[1] != null) tabs[1].setText(expiredLabel);
+
         for (int i = 0; i < tabs.length; i++) {
             boolean selected = i == tab;
-            tabs[i].setTextColor(selected ? ACCENT : TEXT_SECONDARY);
-            tabs[i].setTypeface(null, selected ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
-            tabs[i].setBackground(selected ? underline() : null);
+            tabs[i].setTextColor(selected ? Color.BLACK : TEXT_SECONDARY);
+            tabs[i].setTypeface(Typeface.create("sans-serif-medium", selected ? Typeface.BOLD : Typeface.NORMAL));
+            GradientDrawable pill = new GradientDrawable();
+            pill.setCornerRadius(dp(12));
+            if (selected) {
+                pill.setColor(ACCENT);
+            } else {
+                pill.setColor(CARD_BG);
+                pill.setStroke(Math.max(1, dp(1)), BORDER_STROKE);
+            }
+            tabs[i].setBackground(pill);
         }
     }
 
     private void updateEmptyText(String needle) {
         if (!needle.isEmpty()) {
-            emptyTitle.setText(pt() ? "Nenhum resultado" : "No results");
-            emptySubtitle.setText(pt() ? "Tente outro nome ou @usuário." : "Try another name or @username.");
+            emptyTitle.setText(pt() ? "Nenhum resultado" : "No Matching Stories");
+            emptySubtitle.setText(pt() ? "Tente outro nome ou @usuário." : "Try searching for another display name or @username.");
         } else if (tab == TAB_EXPIRED) {
-            emptyTitle.setText(pt() ? "Nenhum Story expirado" : "No expired stories");
-            emptySubtitle.setText(pt() ? "Os Stories que saírem do ar aparecem aqui." : "Stories that go offline show up here.");
+            emptyTitle.setText(pt() ? "Nenhum Story expirado" : "No Expired Story Likes");
+            emptySubtitle.setText(pt()
+                    ? "Os Stories curtidos que saírem do ar nas últimas 24h aparecem aqui."
+                    : "Stories you liked that pass their 24-hour window will be archived here.");
         } else {
-            emptyTitle.setText(pt() ? "Nenhuma curtida em Stories ainda" : "No story likes yet");
-            emptySubtitle.setText(pt() ? "Os Stories que você curtir aparecerão aqui." : "Stories you like will show up here.");
+            emptyTitle.setText(pt() ? "Nenhuma curtida em Stories ainda" : "No Story Likes Recorded Yet");
+            emptySubtitle.setText(pt()
+                    ? "Os Stories que você curtir nas últimas 24 horas aparecerão aqui com miniatura e horário."
+                    : "Tap the Heart icon on any Story and it will appear here with its thumbnail, @creator handle, and timestamp.");
         }
     }
 
@@ -397,23 +600,22 @@ public final class StoryLikeHistoryActivity extends Activity implements StoryLik
         }
     }
 
-    // ---- cell callbacks ------------------------------------------------------------------
-
     @Override
     public void onThumbnail(StoryLikeHistoryEntry entry) {
-        Toast.makeText(this, pt() ? "Story não está mais disponível" : "Story is no longer available",
-                Toast.LENGTH_SHORT).show();
+        onProfile(entry);
     }
 
     @Override
     public void onProfile(StoryLikeHistoryEntry entry) {
         if (entry.username == null || entry.username.isEmpty()) {
-            onThumbnail(entry);
+            Toast.makeText(this, pt() ? "Story não está mais disponível" : "Story is no longer available",
+                    Toast.LENGTH_SHORT).show();
             return;
         }
         try {
             Intent intent = new Intent(Intent.ACTION_VIEW,
                     Uri.parse("instagram://user?username=" + Uri.encode(entry.username)));
+            intent.setPackage(getPackageName());
             startActivity(intent);
         } catch (Throwable t) {
             Log.e(TAG, "openProfile failed", t);
@@ -425,7 +627,7 @@ public final class StoryLikeHistoryActivity extends Activity implements StoryLik
     @Override
     public void onMenu(final StoryLikeHistoryEntry entry, View anchor) {
         PopupMenu popup = new PopupMenu(this, anchor);
-        popup.getMenu().add(0, 1, 0, pt() ? "Copiar username" : "Copy username");
+        popup.getMenu().add(0, 1, 0, pt() ? "Copiar username" : "Copy @username");
         popup.getMenu().add(0, 2, 1, pt() ? "Remover registro" : "Remove entry");
         popup.setOnMenuItemClickListener(item -> {
             if (item.getItemId() == 1) {
@@ -445,44 +647,23 @@ public final class StoryLikeHistoryActivity extends Activity implements StoryLik
             ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
             if (clipboard == null || entry.username == null) return;
             clipboard.setPrimaryClip(ClipData.newPlainText("username", entry.username));
-            Toast.makeText(this, pt() ? "Username copiado" : "Username copied", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, pt() ? "Username copiado" : "Copied @" + entry.username, Toast.LENGTH_SHORT).show();
         } catch (Throwable t) {
             Log.e(TAG, "copyUsername failed", t);
         }
     }
 
-    // ---- "..." menu hooks (called from the patched story options dialog) -----------------
-
-    /** Label of the entry appended to the story "..." menu. */
     private static String menuLabel() {
         return pt() ? "Curtidas em Stories" : "Story likes";
     }
 
-    /** Appends our entry to the labels of the story "..." menu and returns the new array. */
     public static CharSequence[] addButtons(CharSequence[] items) {
-        try {
-            Log.i(TAG, "addButtons items=" + (items == null ? "null" : items.length));
-            if (items == null) {
-                Log.e(TAG, "addButtons items was null");
-                return null;
-            }
-            CharSequence[] out = new CharSequence[items.length + 1];
-            System.arraycopy(items, 0, out, 0, items.length);
-            out[items.length] = menuLabel();
-            Log.i(TAG, "addButtons appended -> len=" + out.length + " label=" + menuLabel());
-            return out;
-        } catch (Throwable t) {
-            Log.e(TAG, "addButtons failed", t);
-            return items;
-        }
+        return items;
     }
 
-    /** Handles a tap on a story "..." menu entry; true when the entry was ours. */
     public static boolean buttonAction(CharSequence text, Context context) {
         try {
-            Log.i(TAG, "menu action text=" + text);
             if (text == null || !menuLabel().contentEquals(text)) return false;
-            Log.i(TAG, "opening story like history");
             open(context);
             return true;
         } catch (Throwable t) {
@@ -490,8 +671,6 @@ public final class StoryLikeHistoryActivity extends Activity implements StoryLik
             return false;
         }
     }
-
-    // ---- helpers -------------------------------------------------------------------------
 
     private static boolean pt() {
         return "pt".equals(Locale.getDefault().getLanguage());
@@ -506,14 +685,6 @@ public final class StoryLikeHistoryActivity extends Activity implements StoryLik
         GradientDrawable drawable = new GradientDrawable();
         drawable.setColor(color);
         drawable.setCornerRadius(dp(radiusDp));
-        return drawable;
-    }
-
-    private GradientDrawable underline() {
-        GradientDrawable drawable = new GradientDrawable();
-        drawable.setColor(Color.TRANSPARENT);
-        drawable.setStroke(dp(2), ACCENT);
-        drawable.setCornerRadii(new float[]{0, 0, 0, 0, dp(6), dp(6), dp(6), dp(6)});
         return drawable;
     }
 }

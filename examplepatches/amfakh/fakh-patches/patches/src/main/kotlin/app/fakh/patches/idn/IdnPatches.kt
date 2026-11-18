@@ -545,7 +545,7 @@ private object FirebaseInitFingerprint : Fingerprint(
 @Suppress("unused")
 val disableAnalyticsPatch = patch(
     name = "Disable analytics",
-    description = "Stops the analytics and crash reporting SDKs (AppsFlyer, Firebase Analytics, Crashlytics, Google Tag Manager, comScore and Facebook events) from collecting data. CleverTap stays for push and popups, without the advertising ID.",
+    description = "Turns off analytics and tracking.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_IDN)
@@ -613,7 +613,7 @@ private object TokenAuthenticatorFingerprint : Fingerprint(
 @Suppress("unused")
 val fixExpiredLoginPatch = patch(
     name = "Fix server error after idle",
-    description = "Retries a request with a fresh login when the old one has expired, instead of showing \"kesalahan server\" on the first open after a long break.",
+    description = "Logs in again when the session has expired, instead of showing \"kesalahan server\".",
 ) {
     compatibleWith(COMPATIBILITY_IDN)
     category("Fix")

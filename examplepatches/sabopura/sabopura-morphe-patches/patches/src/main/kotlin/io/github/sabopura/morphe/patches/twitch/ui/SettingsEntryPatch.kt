@@ -1,10 +1,8 @@
 package io.github.sabopura.morphe.patches.twitch.ui
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
-import app.morphe.patcher.extensions.InstructionExtensions.removeInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
@@ -12,30 +10,36 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import io.github.sabopura.morphe.patches.twitch.Constants.TWITCH_SUPPORTED
+import io.github.sabopura.morphe.patches.twitch.support.insertBeforeKeepingLabels
+import io.github.sabopura.morphe.patches.twitch.support.softHook
 
 private const val ENTRY = "Lio/github/sabopura/morphe/extension/twitch/ui/SettingsEntry;"
 
-/**
- * Inserts code before the instruction at [index] so that branches into that instruction run
- * the new code too: the instruction is copied after the new code and the original removed,
- * which moves its labels onto the first inserted instruction. (Same technique as bakwudo/uyu.)
- */
-private fun MutableMethod.insertBeforeKeepingLabels(index: Int, smali: String) {
-    addInstruction(index + 1, getInstruction(index))
-    addInstructions(index + 1, smali)
-    removeInstruction(index)
+private fun BytecodePatchContext.onCreateView(type: String) = mutableClassDefBy(type).methods.singleOrNull {
+    it.name == "onCreateView" && it.returnType == "Landroid/view/View;"
+} ?: throw PatchException("Settings entry: $type has no onCreateView")
+
+private fun MutableMethod.filterReturnedView(call: String) {
+    val returns = instructions.withIndex().filter { it.value.opcode == Opcode.RETURN_OBJECT }.map { it.index }
+    if (returns.isEmpty()) throw PatchException("Settings entry: $definingClass.onCreateView has no return")
+    returns.asReversed().forEach { index ->
+        val register = (getInstruction(index) as OneRegisterInstruction).registerA
+        insertBeforeKeepingLabels(index, call.replace("REG", "v$register"))
+    }
 }
 
-private fun BytecodePatchContext.filterReturnedView(type: String, call: String) {
-    val method = mutableClassDefBy(type).methods.singleOrNull {
-        it.name == "onCreateView" && it.returnType == "Landroid/view/View;"
-    } ?: throw PatchException("Settings entry: $type has no onCreateView")
-    val returns = method.instructions.withIndex().filter { it.value.opcode == Opcode.RETURN_OBJECT }.map { it.index }
-    if (returns.isEmpty()) throw PatchException("Settings entry: $type.onCreateView has no return")
-    returns.asReversed().forEach { index ->
-        val register = (method.getInstruction(index) as OneRegisterInstruction).registerA
-        method.insertBeforeKeepingLabels(index, call.replace("REG", "v$register"))
-    }
+/**
+ * The older screen shares onCreateView with every list-style settings page, and from 31.9.0 the
+ * method reuses p0 for the view it returns, so the fragment is noted on entry.
+ */
+internal fun MutableMethod.wrapLegacySettingsView() {
+    addInstruction(0, "invoke-static/range {p0 .. p0}, $ENTRY->creating(Ljava/lang/Object;)V")
+    filterReturnedView(
+        """
+            invoke-static/range {REG .. REG}, $ENTRY->wrapIfMain(Landroid/view/View;)Landroid/view/View;
+            move-result-object REG
+        """,
+    )
 }
 
 /**
@@ -49,21 +53,16 @@ internal val settingsEntryPatch = bytecodePatch(
     extendWith("extensions/twitch.mpe")
 
     execute {
-        filterReturnedView(
-            "Ltv/twitch/android/settings/main/MainSettingsFragmentV2;",
-            """
-                invoke-static/range {REG .. REG}, $ENTRY->wrap(Landroid/view/View;)Landroid/view/View;
-                move-result-object REG
-            """,
-        )
-        // The older screen shares onCreateView with every list-style settings page; the
-        // extension only wraps the main one. p0 is the fragment, REG its view.
-        filterReturnedView(
-            "Ltv/twitch/android/shared/settings/BaseSettingsFragment;",
-            """
-                invoke-static {p0, REG}, $ENTRY->wrapIfMain(Ljava/lang/Object;Landroid/view/View;)Landroid/view/View;
-                move-result-object REG
-            """,
-        )
+        softHook("settings entry (current screen)") {
+            onCreateView("Ltv/twitch/android/settings/main/MainSettingsFragmentV2;").filterReturnedView(
+                """
+                    invoke-static/range {REG .. REG}, $ENTRY->wrap(Landroid/view/View;)Landroid/view/View;
+                    move-result-object REG
+                """,
+            )
+        }
+        softHook("settings entry (older screen)") {
+            onCreateView("Ltv/twitch/android/shared/settings/BaseSettingsFragment;").wrapLegacySettingsView()
+        }
     }
 }

@@ -90,7 +90,14 @@ public final class XFilter extends Filter {
         if (matchedGroup == comments) {
             return isTopLevel(path.subSequence(contentIndex, path.length())) && filterComment(buffer, path);
         }
-        if (contentIndex != 0 || !isTopLevel(path)) return false;
+        if (contentIndex != 0 || !(isTopLevel(path) || isAttachmentLockup(path))) {
+            // 2026-11-17: Home cards of the signed-in feed's templates (video_lockup_with_attachment.eml) read as empty items
+            // (video=null, no title), so no keyword, playlist, or watched rule reached them; the title sits in a child component.
+            if (XSettings.DEBUG.get() && matchedGroup == feedItems) {
+                Logger.printDebug(() -> "YouTube Extras: child " + path + " idx " + contentIndex + " :: " + VideoItem.runs(buffer, 400));
+            }
+            return false;
+        }
 
         Place place = place(contextInterface);
         homeSelected = NavigationBar.NavigationButton.getSelectedNavigationButton(contextInterface)
@@ -225,6 +232,20 @@ public final class XFilter extends Filter {
             }
         }
         return false;
+    }
+
+    /**
+     * The "video_lockup.eml" child of a "video_lockup_with_attachment.eml" Home card (2026-11-17): the card's own buffer
+     * holds no title or ID, and this child's holds the title, the video ID, and the playlist ID, so it is judged as the item.
+     */
+    private static boolean isAttachmentLockup(CharSequence path) {
+        String p = path.toString();
+        if (!p.startsWith("video_lockup_with_attachment.e")) return false;
+        String[] parts = p.split("\\|");
+        int components = 0;
+        String last = "";
+        for (String s : parts) if (s.contains(".e")) { components++; last = s; }
+        return components == 2 && last.startsWith("video_lockup.e");
     }
 
     /** A video card of any feed template: not a Shorts shelf cell, a playlist, or a radio. */

@@ -210,9 +210,15 @@ public class ScreenBuilder {
                 "MetaConfig Overrides, Recommended Flags, Experiment Mappings & Signature Spoof",
                 Constants.REX_FRAGMENT_DEV_OPTIONS
         ));
-        addPreference(helper.categoryPreference(
-                "About Rex IG Lite",
-                "by xboyrex • About, Developer Links, Changelogs & Backup/Restore",
+        addPreference(helper.switchPreference(
+                "View Blocked Profiles Secretly",
+                "Inspect profiles and bios of blocked or restricted accounts without unblocking",
+                Settings.VIEW_BLOCKED_PROFILES_SECRETLY
+        ));
+        PreferenceCategory infoCat = addCategory("Info");
+        addPreference(infoCat, helper.categoryPreference(
+                "About InstaRex",
+                "by xboyrex • About, Updates (.mpp / OTA), Changelogs & Backup/Restore",
                 Constants.REX_FRAGMENT_ABOUT
         ));
     }
@@ -262,6 +268,20 @@ public class ScreenBuilder {
                 ),
                 () -> SharedPref.getBooleanPref(Settings.VIEW_DM_ANONYMOUSLY)
                         || SharedPref.getBooleanPref(Settings.TURN_ON_ALL_GHOST_MODES)
+        ));
+        addPreference(catChat, helper.availableWhen(
+                helper.switchPreference(
+                        "Mark As Seen (On Reaction)",
+                        "Send read receipt when you react to a message while Ghost DM is enabled",
+                        Settings.MARK_AS_SEEN_ON_REACTION
+                ),
+                () -> SharedPref.getBooleanPref(Settings.VIEW_DM_ANONYMOUSLY)
+                        || SharedPref.getBooleanPref(Settings.TURN_ON_ALL_GHOST_MODES)
+        ));
+        addPreference(catChat, helper.switchPreference(
+                "View Blocked Profiles Secretly",
+                "Inspect profiles and bios of blocked or restricted accounts without unblocking",
+                Settings.VIEW_BLOCKED_PROFILES_SECRETLY
         ));
         addPreference(catChat, helper.switchPreference(
                 "Ghost Instants (Quicksnap)",
@@ -448,8 +468,13 @@ public class ScreenBuilder {
         ));
         addPreference(catSwipe, helper.switchPreference(
                 "Long-Press Post for xboyrex Options",
-                "Hold anywhere on a feed post or header to open the 12-item xboyrex Options sheet",
+                "Hold anywhere on a feed post or header to open the capability-aware InstaRex Options sheet",
                 Settings.LONG_PRESS_POST_OPTIONS
+        ));
+        addPreference(catSwipe, helper.switchPreference(
+                "Long-Press Search Tab to Open Profile",
+                "Copy any @username or profile URL and hold the Search tab to open that profile directly",
+                Settings.LONG_PRESS_SEARCH_OPEN_PROFILE
         ));
         addPreference(catSwipe, helper.switchPreference(
                 "Triple-Tap or Hold Photo to Zoom",
@@ -464,9 +489,64 @@ public class ScreenBuilder {
     }
 
     public void buildFeedAndStoriesSection() {
-        PreferenceCategory catFeed = addCategory("Feed & Reels Playback");
+        PreferenceCategory catFeed = addCategory("Feed");
+        addPreference(catFeed, helper.multiSelectListPref(
+                "Filter Story Types",
+                "Hide specific story categories from your story tray",
+                Settings.FILTER_STORY_BY_TYPE
+        ));
+        addPreference(catFeed, helper.listPreference(
+                "Change Like Animation Style",
+                "Customize the floating heart animation when liking posts",
+                Settings.CHANGE_LIKE_ANIMATION
+        ));
         addPreference(catFeed, helper.switchPreference(
-                "Disable Video Autoplay",
+                "Disable 'InstaRex Options' Icon",
+                "Hide the hexagon InstaRex Options icon on Home feed posts",
+                Settings.DISABLE_FEED_OPTIONS_ICON
+        ));
+        addPreference(catFeed, helper.switchPreference(
+                "Disable 'Download' Icon",
+                "Hide the direct Download icon on Home feed posts",
+                Settings.DISABLE_FEED_DOWNLOAD_ICON
+        ));
+        addPreference(catFeed, helper.switchPreference(
+                "Long Press for InstaRex Options",
+                "Hold anywhere on a feed post to open the capability-aware InstaRex Options sheet",
+                Settings.LONG_PRESS_POST_OPTIONS
+        ));
+        addPreference(catFeed, helper.switchPreference(
+                "Filter Feed by Following",
+                "Show posts only from accounts you follow in the Home feed",
+                Settings.LIMIT_FOLLOWING_FEED
+        ));
+        addPreference(catFeed, helper.switchPreference(
+                "Remove Bottom Space",
+                "Reclaim empty bottom gesture bar padding under the navigation bar",
+                Settings.REMOVE_EMPTY_BOTTOM_SPACE
+        ));
+        addPreference(catFeed, helper.switchPreference(
+                "Disable Suggested Reels",
+                "Remove suggested reels and account carousels from Feed",
+                Settings.HIDE_SUGGESTED_CONTENT
+        ));
+        addPreference(catFeed, helper.switchPreference(
+                "Copy Caption Without Hashtags",
+                "Automatically strip #hashtags when copying post or reel captions",
+                Settings.COPY_CAPTION_WITHOUT_HASHTAGS
+        ));
+        addPreference(catFeed, helper.switchPreference(
+                "Repost With Caption in WhatsApp",
+                "Attach post caption automatically when reposting media to WhatsApp",
+                Settings.REPOST_WITH_CAPTION_WA
+        ));
+        addPreference(catFeed, helper.switchPreference(
+                "Disable Comments Options",
+                "Hide comment action buttons under posts and reels",
+                Settings.DISABLE_COMMENTS
+        ));
+        addPreference(catFeed, helper.switchPreference(
+                "Disable Auto Play Video",
                 "Require manual tap before playing videos in the Home feed",
                 Settings.DISABLE_VIDEO_AUTOPLAY
         ));
@@ -485,62 +565,82 @@ public class ScreenBuilder {
                 "Pause Reel at the end instead of replaying infinitely",
                 Settings.DISABLE_REELS_LOOPING
         ));
+        addPreference(catFeed, helper.switchPreference(
+                "Show Reels Settings Button on Action Bar",
+                "Display the InstaRex Reels Options & Quick Settings button in the Reels vertical action bar",
+                Settings.REEL_OPTIONS_BUTTON
+        ));
+        addPreference(catFeed, helper.switchPreference(
+                "Enhance Photo Quality",
+                "Force full-resolution image rendering and pinch-to-zoom across feed & profile photos",
+                Settings.IMPROVE_IMAGE_VIEWING
+        ));
 
-        PreferenceCategory catStory = addCategory("Stories & Mentions");
+        PreferenceCategory catStory = addCategory("Story");
         addPreference(catStory, helper.switchPreference(
-                "Disable Story Auto-Flipping",
-                "Prevent stories from advancing to the next user automatically",
-                Settings.DISABLE_STORY_FLIPPING
+                "Hide 'Mark as Seen' Icon",
+                "View stories anonymously without sending seen receipts",
+                Settings.VIEW_STORIES_ANONYMOUSLY
         ));
         addPreference(catStory, helper.switchPreference(
-                "Loop Current Story",
-                "Keep looping the active story slide until you tap next",
-                Settings.LOOP_STORY
+                "Show Story Settings Button on Toolbar",
+                "Display the InstaRex Story Options & Quick Settings button on the Story bottom toolbar",
+                Settings.STORY_OPTIONS_BUTTON
         ));
-        addPreference(catStory, helper.switchPreference(
-                "Play Story Sound Automatically",
-                "Start stories with sound enabled even before pressing volume keys",
-                Settings.PLAY_STORY_SOUND_AUTOMATICALLY
+        addPreference(catStory, helper.editTextNumPreference(
+                "Set Story Ring Size",
+                "Customize the size of the story tray rings on the Home feed",
+                Settings.CUSTOMISE_STORY_RING_SIZE
         ));
-        addPreference(catStory, helper.switchPreference(
-                "View Hidden Story Mentions",
-                "Inspect all mentioned accounts in a story via the Story menu",
-                Settings.VIEW_STORY_MENTIONS
+        addPreference(catStory, helper.listPreference(
+                "Set Story Upload Time Format",
+                "Show exact upload time or full date on stories instead of '3h'",
+                Settings.CUSTOMISE_STORY_TIMESTAMP
+        ));
+        addPreference(catStory, helper.buttonPreference(
+                "Change Mention Indicator Style",
+                "Customize @ mention pill position, color, and tap behavior",
+                "rex_story_mention_settings_btn"
         ));
         addPreference(catStory, helper.switchPreference(
                 "Show Story Mention Indicator Pill",
                 "Display an @ badge on stories that contain hidden or visible user mentions",
                 Settings.STORY_MENTION_ICON
         ));
-        addPreference(catStory, helper.buttonPreference(
-                "Configure Story Mention Pill Style",
-                "Customize pill position, color, and tap behavior",
-                "rex_story_mention_settings_btn"
+        addPreference(catStory, helper.switchPreference(
+                "View Hidden Story Mentions (@ Button)",
+                "Show the @ Hidden Mentions button on the Story bottom toolbar and inspect mentioned accounts",
+                Settings.VIEW_STORY_MENTIONS
+        ));
+        addPreference(catStory, helper.switchPreference(
+                "Disable Follow Indicator in Mentions",
+                "Remove the inline Follow button from story headers and mentions",
+                Settings.HIDE_STORY_FOLLOW_BUTTON
+        ));
+        addPreference(catStory, helper.switchPreference(
+                "Disable Auto Play Next Story",
+                "Prevent stories from advancing to the next user automatically",
+                Settings.DISABLE_STORY_FLIPPING
+        ));
+        addPreference(catStory, helper.switchPreference(
+                "Enable Replay Story",
+                "Keep looping the active story slide until you tap next",
+                Settings.LOOP_STORY
+        ));
+        addPreference(catStory, helper.switchPreference(
+                "Force to Play Sound in Stories",
+                "Start stories with sound enabled even before pressing volume keys",
+                Settings.PLAY_STORY_SOUND_AUTOMATICALLY
         ));
         addPreference(catStory, helper.buttonPreference(
                 "Story Likes History Vault",
                 "Browse all stories you have liked with user avatars and timestamps",
                 "rex_story_like_history_btn"
         ));
-        addPreference(catStory, helper.switchPreference(
-                "Hide Story Follow Button",
-                "Remove the inline Follow button from story headers",
-                Settings.HIDE_STORY_FOLLOW_BUTTON
-        ));
-        addPreference(catStory, helper.listPreference(
-                "Custom Story Timestamp Format",
-                "Show exact upload time or full date on stories instead of '3h'",
-                Settings.CUSTOMISE_STORY_TIMESTAMP
-        ));
-        addPreference(catStory, helper.editTextNumPreference(
-                "Story Ring Size Scale",
-                "Customize the size of the story tray rings on the Home feed",
-                Settings.CUSTOMISE_STORY_RING_SIZE
-        ));
 
         PreferenceCategory catQuality = addCategory("Media Upload Quality (Max 60FPS)");
         addPreference(catQuality, helper.switchPreference(
-                "Upload Media in Highest Quality",
+                "Enhance Story Upload Quality",
                 "Force maximum bitrate and resolution for Photos, Stories, Reels & Voice Notes",
                 Settings.HIGH_QUALITY_UPLOAD
         ));
@@ -576,6 +676,11 @@ public class ScreenBuilder {
             ));
         }
         addPreference(catTheme, helper.buttonPreference(
+                "Color Mode & Accent Palette",
+                "Active Theme: " + Pref.rexColorMode() + " (6 Curated AMOLED & Glass Modes)",
+                "rex_color_mode_btn"
+        ));
+        addPreference(catTheme, helper.buttonPreference(
                 "App Language & Translator",
                 "Change Instagram UI language and in-app translation target language",
                 "rex_app_language_btn"
@@ -604,6 +709,11 @@ public class ScreenBuilder {
         ));
 
         PreferenceCategory catBars = addCategory("Top Action Bar, Bottom Nav & Floating Toolbar");
+        addPreference(catBars, helper.switchPreference(
+                "Custom InstaRex Home Wordmark",
+                "Display calligraphic two-tone InstaRex script logo in the Home top action bar (tap for Quick Access)",
+                Settings.CUSTOM_HOME_WORDMARK
+        ));
         addPreference(catBars, helper.buttonPreference(
                 "Quick Access Sheet",
                 "Open the Rex IG Lite Quick Access sheet (also accessible by holding the Home button)",
@@ -808,9 +918,19 @@ public class ScreenBuilder {
 
         PreferenceCategory catPost = addCategory("Post, Comment & DM Enhancements");
         addPreference(catPost, helper.switchPreference(
-                "Enable xboyrex Options on Posts",
-                "Add xboyrex Options to post menus and UFI bar beside Save",
+                "Enable InstaRex Options on Posts",
+                "Add InstaRex Options to post menus and UFI bar beside Save",
                 Settings.ENABLE_MORE_OPTIONS_ON_POST
+        ));
+        addPreference(catPost, helper.switchPreference(
+                "Disable Feed 'Download' Icon",
+                "Hide the direct Download icon on Home feed posts while keeping InstaRex Options active",
+                Settings.DISABLE_FEED_DOWNLOAD_ICON
+        ));
+        addPreference(catPost, helper.switchPreference(
+                "Disable Feed 'InstaRex Options' Icon",
+                "Hide the hexagon Options icon on Home feed posts while keeping the Download icon active",
+                Settings.DISABLE_FEED_OPTIONS_ICON
         ));
         addPreference(catPost, helper.switchPreference(
                 "Copy Comment Button",
@@ -1034,19 +1154,34 @@ public class ScreenBuilder {
                     ),
                     () -> SharedPref.getBooleanPref(Settings.DEVELOPER_OPTIONS)
             ));
+            addPreference(helper.switchPreference(
+                    "Auto-Apply InstaRex Pro Config V6",
+                    "Automatically enforce core 60fps, high-bitrate, and 180s story MobileConfig flags",
+                    Settings.AUTO_APPLY_PRO_CONFIG_V6
+            ));
+            addPreference(helper.buttonPreference(
+                    "Apply InstaRex Pro Config V6 (Built-In Preset)",
+                    "Install all 3,796 sanitized MobileConfig overrides into mc_overrides.json in 1 tap",
+                    "rex_apply_pro_config_v6"
+            ));
+            addPreference(helper.buttonPreference(
+                    "Export InstaRex Pro Config V6 (.json)",
+                    "Save the clean 3,796-flag INSTAREX_PRO_CONFIG_V6.json preset to Download/xboyrex",
+                    "rex_export_pro_config_v6"
+            ));
             addPreference(helper.buttonPreference(
                     str("rex_export_dev_overrides"),
                     "Export active MetaConfig overrides to JSON",
                     "rex_export_dev_overrides"
             ));
             addPreference(helper.buttonPreference(
-                    str("rex_import_dev_overrides"),
-                    "Import MetaConfig overrides from JSON",
+                    "Import MetaConfig Overrides (.json / .zip)",
+                    "Import overrides or backup packages from .json or .zip files",
                     "rex_import_dev_overrides"
             ));
             addPreference(helper.buttonPreference(
-                    str("rex_import_id_mapping"),
-                    "Import mobileconfig ID_Mapping.json from storage",
+                    "Import ID Mapping (.json / .zip)",
+                    "Import mobileconfig ID_Mapping from .json or .zip files",
                     "rex_import_id_mapping"
             ));
             addPreference(helper.buttonPreference(
@@ -1194,21 +1329,40 @@ public class ScreenBuilder {
             String formattedDate = new SimpleDateFormat(pattern, locale).format(new Date(lastModified));
             lastModifiedAtString = String.format(str("rex_rec_flags_last_modified_at"), formattedDate);
         }
-        addPreference(helper.buttonPreference(
+        PreferenceCategory controlsCat = addCategory("FLAG CONTROLS & PRESETS");
+        addPreference(controlsCat, helper.buttonPreference(
                 str("rex_rec_flags_refresh_file"),
                 lastModifiedAtString,
                 "rex_rec_flags_refresh_file"
         ));
+        addPreference(controlsCat, helper.buttonPreference(
+                "Enable All Recommended Flags",
+                "Turn on all curated Boolean experiment flags in one tap",
+                "rex_rec_flags_enable_all"
+        ));
+        addPreference(controlsCat, helper.buttonPreference(
+                "Reset All Flags to Default",
+                "Clear all Boolean and Numeric flag overrides back to Default",
+                "rex_rec_flags_reset_all"
+        ));
+
         List<Flag> recFlags = RecommendedFlags.getFlags(notifyErrors);
+        PreferenceCategory boolCat = addCategory("BOOLEAN EXPERIMENT FLAGS");
         for (Flag flag : recFlags) {
-            if (flag.isLongType()) {
-                addPreference(helper.editTextNumPreference(
+            if (!flag.isLongType()) {
+                addPreference(boolCat, new app.morphe.extension.instagram.settings.preference.widgets.RecommendedFlagPreference(
+                        context,
                         flag.getName(),
                         flag.getDesc(),
                         flag.getCode()
                 ));
-            } else {
-                addPreference(helper.listPreference(
+            }
+        }
+
+        PreferenceCategory longCat = addCategory("NUMERIC & QUALITY OVERRIDES");
+        for (Flag flag : recFlags) {
+            if (flag.isLongType()) {
+                addPreference(longCat, helper.editTextNumPreference(
                         flag.getName(),
                         flag.getDesc(),
                         flag.getCode()

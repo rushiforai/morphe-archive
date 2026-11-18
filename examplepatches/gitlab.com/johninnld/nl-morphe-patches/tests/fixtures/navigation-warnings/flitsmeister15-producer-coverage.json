@@ -1,0 +1,258 @@
+{
+  "format": 1,
+  "source_version": "15.0/1289",
+  "original_base_sha256": "09d01a21ae058c9c9a75dcd0714f39ddbd37b63b68259692675f19b1a39a66ea",
+  "alternate_original_base_sha256": "7668b9d93a309520184a01194aa47dde40a05b0e74e96a2237c428ed7a613bf0",
+  "producer_capture_complete": true,
+  "completion_note": "Pinned original-DEX guards, two-language real native model/resource checks, all 15 native roots and the separate seven-type original15 nonwarning audit passed; R8 remains separate.",
+  "native_detection_quality_claimed": false,
+  "phone_or_car_acceptance_claimed": false,
+  "model_candidate_sha256": "84ede6e411d8291e2674e735d0608e1549a8cb3c1e71417009856792e5453348",
+  "model_probe_sha256": "3b8a7c58f637cf1c02153bd62a211e0cd82450f261bad7a8245db34fd064acd0",
+  "model_result_sha256": "4882b9fffb0319cd623be4168e5dc78f96c6b513e4457c73481cd6fa5abeca54",
+  "actual_capture_candidate_sha256": "84ede6e411d8291e2674e735d0608e1549a8cb3c1e71417009856792e5453348",
+  "actual_capture_probe_sha256": "8f7fb189caae0b024b24ccf0a752b6faabe3ff27ef6126cc8b9908c3186d98e1",
+  "actual_capture_result_sha256": "c8929f623755ed6fddf3065a7f543d2483036637af80eba2f0f5ce5a2bd99c71",
+  "model_languages": {
+    "en": {
+      "adapter_calls": 170,
+      "inventory_members": 159,
+      "base_warning_families": [
+        "AVG_SPEED_CHECK",
+        "CITS_BRIDE_CLOSED",
+        "CITS_LANE_CLOSED",
+        "CITS_SPEED_ADVICE",
+        "CITS_WEATHER",
+        "INCIDENT",
+        "POLICEHOTSPOT",
+        "SERVICE_VEHICLE",
+        "SLOW_MOVING_VEHICLE",
+        "SPEED_CAM",
+        "SPEED_TRAP",
+        "TRAFFIC_JAM"
+      ],
+      "native_binding_profile": "15.0/1289"
+    },
+    "nl": {
+      "adapter_calls": 170,
+      "inventory_members": 159,
+      "base_warning_families": [
+        "AVG_SPEED_CHECK",
+        "CITS_BRIDE_CLOSED",
+        "CITS_LANE_CLOSED",
+        "CITS_SPEED_ADVICE",
+        "CITS_WEATHER",
+        "INCIDENT",
+        "POLICEHOTSPOT",
+        "SERVICE_VEHICLE",
+        "SLOW_MOVING_VEHICLE",
+        "SPEED_CAM",
+        "SPEED_TRAP",
+        "TRAFFIC_JAM"
+      ],
+      "native_binding_profile": "15.0/1289"
+    }
+  },
+  "callback_roots": {
+    "Lfc0;->J(Lnl/flitsmeister/fmcore/data/model/reports/BaseReport;Z)V": {
+      "status": "passed",
+      "native_root": "Lfc0;->J",
+      "scenarios": [
+        "point"
+      ]
+    },
+    "Lfc0;->P(Lnl/flitsmeister/fmcore/data/model/reports/BaseReport;)V": {
+      "status": "passed",
+      "native_root": "Lfc0;->P",
+      "scenarios": [
+        "point"
+      ]
+    },
+    "Lfc0;->x(Lnl/flitsmeister/fmcore/data/model/reports/BaseReport;)V": {
+      "status": "passed",
+      "native_root": "Lfc0;->x",
+      "scenarios": [
+        "cits_direct"
+      ]
+    },
+    "Lfci;->b(Lnl/flitsmeister/earlywarning/model/EarlyWarningTypeEnum;Lnl/flitsmeister/fmcore/models/data/reports/EarlyWarningReport;Lnl/flitsmeister/earlywarning/model/EarlyWarningNotification;Ljava/lang/String;ZLs39;)V": {
+      "status": "passed",
+      "native_root": "Lfci;->b",
+      "scenarios": [
+        "sound"
+      ]
+    },
+    "Lfci;->l(Lnl/flitsmeister/fmcore/data/model/reports/BaseReport;ZZLjava/lang/String;Ls39;)V": {
+      "status": "passed",
+      "native_root": "Lfci;->l",
+      "scenarios": [
+        "sound"
+      ]
+    },
+    "Llh7$c;->onEarlyWarningNotificationUpdate(Landroid/location/Location;Lnl/flitsmeister/earlywarning/model/EarlyWarningNotification;)V": {
+      "status": "passed",
+      "native_root": "Llh7$c;->onEarlyWarningNotificationUpdate",
+      "scenarios": [
+        "early_bus"
+      ]
+    },
+    "Lpz2$c;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;": {
+      "status": "passed",
+      "native_root": "Lpz2$c;->invokeSuspend",
+      "scenarios": [
+        "cits"
+      ]
+    },
+    "Lpz2;->J(Lbemobile/cits/sdk/core/model/response/generalObjects/BaseEvent;)Z": {
+      "status": "passed",
+      "native_root": "Lpz2;->J",
+      "scenarios": [
+        "cits"
+      ]
+    },
+    "Lpz2;->K(Lbemobile/cits/sdk/core/model/response/generalObjects/BaseEvent;)Z": {
+      "status": "passed",
+      "native_root": "Lpz2;->K",
+      "scenarios": [
+        "cits"
+      ]
+    },
+    "Lpz2;->L(Lbemobile/cits/sdk/core/model/response/generalObjects/BaseEvent;)Z": {
+      "status": "passed",
+      "native_root": "Lpz2;->L",
+      "scenarios": [
+        "cits"
+      ]
+    },
+    "Lxl$c;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;": {
+      "status": "passed",
+      "native_root": "Lxl$c;->invokeSuspend",
+      "scenarios": [
+        "voice"
+      ]
+    },
+    "Lxl;->i(Landroid/content/Context;Lnl/flitsmeister/fmcore/models/data/earlywarnings/EarlyWarning;Z)V": {
+      "status": "passed",
+      "native_root": "Lxl;->i",
+      "scenarios": [
+        "impact"
+      ]
+    },
+    "Lyy2;->a(Lbemobile/cits/sdk/core/model/response/generalObjects/BaseEvent;)V": {
+      "status": "passed",
+      "native_root": "Lyy2;->a",
+      "scenarios": [
+        "impact",
+        "vri"
+      ]
+    },
+    "Lyy2;->b(Lbemobile/cits/sdk/core/model/response/generalObjects/BaseEvent;)V": {
+      "status": "passed",
+      "native_root": "Lyy2;->b",
+      "scenarios": [
+        "impact",
+        "vri"
+      ]
+    },
+    "Lyy2;->e(Lbemobile/cits/sdk/core/model/response/generalObjects/BaseEvent;)V": {
+      "status": "passed",
+      "native_root": "Lyy2;->e",
+      "scenarios": [
+        "impact",
+        "vri"
+      ]
+    }
+  },
+  "scenarios": {
+    "sound": {
+      "probe_completed": true,
+      "actual_native_roots": [
+        "Lfci;->l",
+        "Lfci;->b"
+      ],
+      "managed_mute_verified": true,
+      "max_active_playbacks": 0,
+      "process_uid_matches_target": true
+    },
+    "point": {
+      "probe_completed": true,
+      "actual_native_roots": [
+        "Lfc0;->J",
+        "Lfc0;->P"
+      ],
+      "managed_mute_verified": true,
+      "max_active_playbacks": 0,
+      "process_uid_matches_target": true
+    },
+    "voice": {
+      "probe_completed": true,
+      "actual_native_roots": [
+        "Lxl$c;->invokeSuspend"
+      ],
+      "managed_mute_verified": true,
+      "max_active_playbacks": 0,
+      "process_uid_matches_target": true
+    },
+    "cits_direct": {
+      "probe_completed": true,
+      "actual_native_roots": [
+        "Lfc0;->x"
+      ],
+      "managed_mute_verified": true,
+      "max_active_playbacks": 0,
+      "process_uid_matches_target": true
+    },
+    "early_bus": {
+      "probe_completed": true,
+      "actual_native_roots": [
+        "Llh7$c;->onEarlyWarningNotificationUpdate"
+      ],
+      "managed_mute_verified": true,
+      "max_active_playbacks": 0,
+      "process_uid_matches_target": true
+    },
+    "impact": {
+      "probe_completed": true,
+      "actual_native_roots": [
+        "Lyy2;->a",
+        "Lxl;->i",
+        "Lyy2;->e",
+        "Lyy2;->b"
+      ],
+      "managed_mute_verified": true,
+      "max_active_playbacks": 0,
+      "process_uid_matches_target": true
+    },
+    "vri": {
+      "probe_completed": true,
+      "actual_native_roots": [
+        "Lyy2;->a",
+        "Lyy2;->e",
+        "Lyy2;->b"
+      ],
+      "managed_mute_verified": true,
+      "max_active_playbacks": 0,
+      "process_uid_matches_target": true
+    },
+    "cits": {
+      "probe_completed": true,
+      "actual_native_roots": [
+        "Lpz2;->J",
+        "Lpz2;->L",
+        "Lpz2;->K",
+        "Lpz2$c;->invokeSuspend"
+      ],
+      "managed_mute_verified": true,
+      "max_active_playbacks": 0,
+      "process_uid_matches_target": true
+    }
+  },
+  "r8_separate_gates": [
+    "Actual FM15-to-Maps/Vela announcement/ownership and speech checks on final intended artifacts",
+    "FM15 native moving pipeline, bends/parallel roads, lifecycle/modes and compatibility",
+    "Phone/car routing and separately approved stable promotion"
+  ],
+  "limits": "Controlled original native entrypoints and real model/resources; no natural repository detection or physical audibility claim.",
+  "nonwarning_scope": "flitsmeister15-nonwarning-scope.json",
+  "nonwarning_scope_sha256": "8ea037acded60135641df6f7845ab1fe2b8aa87b50f498cdc2dde48b36eb48ac"
+}

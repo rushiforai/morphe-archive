@@ -68,7 +68,7 @@ public final class AlwaysShowPublishDatePatch {
 
     private static String exactOrOriginal(String original, Object item) {
         if (!Settings.PUBLISH_DATE_EXACT_TIME.get()) {
-            return original;
+            return Settings.PUBLISH_DATE_DAY_FIRST.get() ? dayFirst(original, item) : original;
         }
         try {
             long now = System.currentTimeMillis();
@@ -83,11 +83,55 @@ public final class AlwaysShowPublishDatePatch {
                     ? android.text.format.DateFormat.is24HourFormat(context)
                     : ((SimpleDateFormat) DateFormat.getTimeInstance(DateFormat.LONG)).toPattern().indexOf('H') >= 0;
             return exactTime(seconds, Locale.getDefault(), TimeZone.getDefault(), hour24,
-                    Settings.PUBLISH_DATE_TIME_ZONE.get(), Settings.PUBLISH_DATE_SHORT_DATE.get());
+                    Settings.PUBLISH_DATE_TIME_ZONE.get(), Settings.PUBLISH_DATE_SHORT_DATE.get(),
+                    Settings.PUBLISH_DATE_DAY_FIRST.get());
         } catch (Throwable ex) {
             Logger.printException(() -> "Could not write the exact posting time", ex);
             return original;
         }
+    }
+
+    /**
+     * TikTok's date written day first with dots (#438): "09-29" becomes "29.09", and "2024-09-29"
+     * from another year becomes "29.09.24". The day and month come from the video's own time,
+     * and the year only where TikTok wrote one. Anything that isn't all numbers, like "2d ago" or
+     * a date in words, is TikTok's to keep.
+     */
+    static String dayFirst(String original, Object item) {
+        try {
+            int groups = numberGroups(original);
+            if (groups < 2 || groups > 3) return original;
+            long seconds = postedAt(item, System.currentTimeMillis());
+            if (seconds <= 0) return original;
+            Calendar posted = Calendar.getInstance();
+            posted.setTimeInMillis(seconds * 1000L);
+            String day = String.format(Locale.ROOT, "%02d.%02d",
+                    posted.get(Calendar.DAY_OF_MONTH), posted.get(Calendar.MONTH) + 1);
+            return groups == 2 ? day : day + String.format(Locale.ROOT, ".%02d", posted.get(Calendar.YEAR) % 100);
+        } catch (Throwable ex) {
+            Logger.printException(() -> "Could not write the date day first", ex);
+            return original;
+        }
+    }
+
+    /** How many runs of digits a date like "09-29" holds, or 0 when anything but digits and - . / is in it. */
+    private static int numberGroups(String text) {
+        if (text == null) return 0;
+        int groups = 0;
+        boolean inDigits = false;
+        String trimmed = text.trim();
+        for (int i = 0; i < trimmed.length(); i++) {
+            char c = trimmed.charAt(i);
+            if (Character.isDigit(c)) {
+                if (!inDigits) groups++;
+                inDigits = true;
+            } else if (c == '-' || c == '.' || c == '/') {
+                inDigits = false;
+            } else {
+                return 0;
+            }
+        }
+        return groups;
     }
 
     /**
@@ -175,6 +219,31 @@ public final class AlwaysShowPublishDatePatch {
      */
     static String exactTime(long seconds, Locale locale, TimeZone zone, boolean hour24, boolean showZone,
             boolean shortDate) {
+        return exactTime(seconds, locale, zone, hour24, showZone, shortDate, false);
+    }
+
+    /**
+     * The same, with Day before month (#438) writing the date day first in front of the
+     * language's own time: "07.10.25" with the short date, "7 Oct 2025" without. The switch sits
+     * under Short date, so a row showing the time to the second has to follow it too.
+     */
+    static String exactTime(long seconds, Locale locale, TimeZone zone, boolean hour24, boolean showZone,
+            boolean shortDate, boolean dayFirst) {
+        if (dayFirst) {
+            Date when = new Date(seconds * 1000L);
+            SimpleDateFormat date = new SimpleDateFormat(shortDate ? "dd.MM.yy" : "d MMM y", locale);
+            date.setTimeZone(zone);
+            DateFormat time = DateFormat.getTimeInstance(showZone ? DateFormat.LONG : DateFormat.MEDIUM, locale);
+            if (time instanceof SimpleDateFormat) {
+                SimpleDateFormat simple = (SimpleDateFormat) time;
+                String pattern = simple.toPattern();
+                String clock = hourStyle(pattern, hour24);
+                if (!clock.equals(pattern)) simple.applyPattern(clock);
+            }
+            time.setTimeZone(zone);
+            String text = date.format(when) + " " + time.format(when);
+            return showZone ? compactOffset(text) : text;
+        }
         // A new instance per call: DateFormat isn't thread safe.
         DateFormat format = DateFormat.getDateTimeInstance(shortDate ? DateFormat.SHORT : DateFormat.MEDIUM,
                 showZone ? DateFormat.LONG : DateFormat.MEDIUM, locale);

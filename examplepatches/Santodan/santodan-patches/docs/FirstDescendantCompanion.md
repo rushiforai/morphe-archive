@@ -1,12 +1,51 @@
 # The First Descendant Companion
 
-Target: **com.nexon.tfdc 1.1.5 (ARM64)**, the latest available original in this
+Target: **com.nexon.tfdc 1.1.6 / 33 (ARM64)**, the latest available original in this
 workspace. This is the single reference for its patches and investigation.
+
+## 1.1.6 update and experimental alternative
+
+Original: `OriginalApps/TFD_Companion-1.1.6.apks.zip`, SHA-256
+`876dc2b78f2e54318b3b934fa2c8269cc2052a231c336d378d018f7cd26a7ce7`.
+The compiled base manifest confirms package `com.nexon.tfdc`, version `1.1.6`,
+code `33`, min SDK 24 and target SDK 36. It retains exactly one action-only MAIN
+query and one action-only VIEW query, with no QUERY_ALL_PACKAGES permission.
+The same two-node structured XML mutation applies; no DEX/native update is needed.
+The existing 1.1.5 implementation and compatibility remain supported.
+
+**TFD Companion - Remove illegal apps detection (Experimental)** is a separate,
+disabled-by-default alternative with unrestricted version metadata. Choose only
+one visibility patch. Both alternatives share the same package/query checks;
+experimental skips only the version check and fails before mutation for missing,
+ambiguous, already-patched queries or QUERY_ALL_PACKAGES. Future app layouts are
+not guaranteed. Selecting both fails on the second application.
+
+Keep all three original 1.1.6 splits: `base.apk`, `split_config.arm64_v8a.apk`,
+and `split_config.xxhdpi.apk`. Extracted originals, decoded manifest and split hashes
+are retained in `Skills/inspection-evidence/.inspect-first-descendant-1.1.6`.
+Historical 1.1.5 evidence remains below. Optional NGSM diagnostics retains its
+existing 1.1.5-only contract; this update does not port that separate patch.
+
+Verification commands (from the repository, Java 21):
+
+```powershell
+.\build-local.ps1 :patches:buildAndroid :patches:verifyFirstDescendantVisibility :patches:verifyFirstDescendant115Experimental :patches:verifyFirstDescendant116Visibility :patches:verifyFirstDescendant116Experimental :patches:generatePatchesList :patches:verifyAndroidBundle
+.\build-local.ps1 :patches:verifyMorpheDesktopImport "-PmorpheDesktopJar=../../morphe-desktop-2.2.0-all.jar"
+```
+
+All four visibility verification tasks, Android bundle validation and Desktop 2.2.0
+import passed. Built bundle: `patches/build/libs/patches-0.19.0.mpp`.
+
+The visibility verifiers apply the packaged resource patch to each original base,
+compile/reload the manifest, compare preserved query/application structure, check
+no DEX edits and reject invalid inputs without partial mutation. This is host-side
+verification; 1.1.6 device behavior still needs confirmation. No APK is signed,
+installed or device-tested by this update.
 
 ## Current status
 
 **Working fix: TFD Companion - Remove illegal apps detection.** This resource
-patch is enabled by default for com.nexon.tfdc 1.1.5 on Android 11/API 30+.
+patch is enabled by default for com.nexon.tfdc 1.1.5 and 1.1.6 on Android 11/API 30+.
 It removes only the two unconstrained MAIN and VIEW intent queries from the
 manifest. NGSM, its native libraries, warning callbacks, authentication and token
 validation remain intact. Specific app, browser, billing and sharing queries and

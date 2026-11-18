@@ -65,7 +65,7 @@ private val geoTruthFlagFingerprint = Fingerprint(
 @Suppress("unused")
 val disableDataSdksPatch = patch(
     name = "Disable data collection SDKs",
-    description = "Stops the location, Wi-Fi and network data SDKs (Weplan, Wavebrook and its partners, Speedchecker, LowLagLabs, GeoTruth) through the app's own off switches.",
+    description = "Turns off the location, Wi-Fi and network data SDKs.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_RADIO_ID)

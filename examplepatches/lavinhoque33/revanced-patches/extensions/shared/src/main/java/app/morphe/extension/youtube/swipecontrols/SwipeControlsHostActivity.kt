@@ -114,6 +114,11 @@ class SwipeControlsHostActivity : Activity() {
         }
 
         return if (gesture.submitTouchEvent(ev)) {
+            // Consumed events bypass Activity's user-interaction report, leaving autoplay idle.
+            if (ev.actionMasked == MotionEvent.ACTION_DOWN) {
+                onUserInteraction()
+            }
+
             true
         } else {
             super.dispatchTouchEvent(ev)
@@ -123,6 +128,9 @@ class SwipeControlsHostActivity : Activity() {
     override fun dispatchKeyEvent(ev: KeyEvent?): Boolean {
         ensureInitialized()
         return if ((ev != null) && keys.onKeyEvent(ev)) {
+            // Activity reports user interaction for every key event.
+            onUserInteraction()
+
             true
         } else {
             super.dispatchKeyEvent(ev)

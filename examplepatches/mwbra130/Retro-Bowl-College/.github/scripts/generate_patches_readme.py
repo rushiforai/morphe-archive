@@ -313,22 +313,11 @@ readme = re.sub(
 # Membership is decided here, in code; the grids themselves are
 # rebuilt from patches-list.json on every release, so moving an app
 # between grids is a one-line change to this set.
-TESTING_PACKAGES = {
-    "com.google.android.apps.messaging",  # Google Messages: patched build crashes on launch
-    # Imported from the quarantine repo 2026-11-09 (commit 3b778c876);
-    # they ship in the bundle but stay in the Testing stage.
-    "com.shrey_businessx.android",  # BusinessX
-    "com.diskwalaapp",              # DiskWala
-    "com.lucky_apps.RainViewer",    # RainViewer
-    "com.strava",                   # Strava
-    "com.optimageeks.vehico_app",   # Vehico
-    "com.instantbits.cast.webvideo",  # Web Video Caster
-    "com.lonelycatgames.Xplore",    # X-plore
-    "com.yinyang.launcher",         # Yin Yang Launcher
-    "com.pika.dynamicisland",       # Pika Spot: walled on-device (server rejects re-signed builds)
-    "org.skvalex.cr",               # Call Recorder: very unstable — 3.6.9 set not yet confirmed on-device (Matsen 2026-11-16)
-    "com.astech.forscanlite",       # FORScan Lite: native core verifies the signer cert at init — re-signed builds cannot initialize (Matsen 2026-11-16)
-}
+# Testing-stage apps now live in mwbra130/Morphe_Patch_Tests and are only
+# promoted here after on-device confirmation (repo split, Matsen 2026-11-17),
+# so this bundle has no Testing residents. The set stays defined because
+# the grid builder keys off it; an empty set renders an empty Testing grid.
+TESTING_PACKAGES = set()
 
 # README-display experimental overrides (owner decision 2026-11-09):
 # these apps get the experimental line in the grid even though their

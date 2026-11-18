@@ -86,6 +86,19 @@ public class HookFlags {
     }
 
     private static void addRecommendedFlags() {
+        if (Pref.viewBlockedProfilesSecretly()) {
+            BOOL_FLAGS.put("89230::1", true);
+        }
+        if (Pref.autoApplyProConfigV6()) {
+            BOOL_FLAGS.put("83164::0", true);
+            BOOL_FLAGS.put("83164::1", true);
+            LONG_FLAGS.put("83164::2", 50_000_000L);
+            LONG_FLAGS.put("83164::3", 60L);
+            BOOL_FLAGS.put("85201::0", true);
+            LONG_FLAGS.put("85201::1", 180L);
+            BOOL_FLAGS.put("88112::0", true);
+            BOOL_FLAGS.put("88112::1", true);
+        }
         if (SettingsStatus.recommendedFlags) {
             Map<String, Boolean> recFlags = FlagsSharedPref.getAll();
             BOOL_FLAGS.putAll(recFlags);
@@ -104,7 +117,46 @@ public class HookFlags {
         try { profileActionBarFlags(); } catch (Throwable ignored) {}
         try { mainFeedActionBarFlags(); } catch (Throwable ignored) {}
         try { addRecommendedFlags(); } catch (Throwable ignored) {}
+        try { loadMobileConfigOverridesFile(); } catch (Throwable ignored) {}
     }
+    private static void loadMobileConfigOverridesFile() {
+        try {
+            android.content.Context ctx = app.morphe.extension.shared.Utils.getContext();
+            if (ctx == null) return;
+            java.io.File mcFile = new java.io.File(new java.io.File(ctx.getFilesDir(), "mobileconfig"), "mc_overrides.json");
+            if (!mcFile.isFile() || mcFile.length() == 0) return;
+            String raw = RexUtils.readFile(mcFile);
+            if (raw == null || raw.trim().isEmpty()) return;
+            org.json.JSONObject obj = new org.json.JSONObject(raw);
+            java.util.Iterator<String> keys = obj.keys();
+            while (keys.hasNext()) {
+                String k = keys.next();
+                if (k == null || k.isEmpty()) continue;
+                String configId = k.split(":", 2)[0].trim();
+                if (configId.isEmpty()) continue;
+                Object entryVal = obj.opt(k);
+                if (entryVal instanceof org.json.JSONArray) {
+                    org.json.JSONArray arr = (org.json.JSONArray) entryVal;
+                    for (int i = 0; i < arr.length(); i++) {
+                        String line = arr.optString(i, "").trim();
+                        if (line.isEmpty() || !line.contains(":")) continue;
+                        String paramId = line.split(":", 2)[0].trim();
+                        String valueStr = line.substring(line.lastIndexOf(':') + 1).trim();
+                        if (paramId.isEmpty() || valueStr.isEmpty()) continue;
+                        String universalKey = configId + "::" + paramId;
+                        if ("true".equalsIgnoreCase(valueStr) || "false".equalsIgnoreCase(valueStr)) {
+                            BOOL_FLAGS.putIfAbsent(universalKey, Boolean.parseBoolean(valueStr));
+                        } else {
+                            try {
+                                LONG_FLAGS.putIfAbsent(universalKey, Long.parseLong(valueStr));
+                            } catch (NumberFormatException ignored) {}
+                        }
+                    }
+                }
+            }
+        } catch (Throwable ignored) {}
+    }
+
 
     public static Boolean handleBoolFlags(long mobileConfigSpecifier) {
         try {

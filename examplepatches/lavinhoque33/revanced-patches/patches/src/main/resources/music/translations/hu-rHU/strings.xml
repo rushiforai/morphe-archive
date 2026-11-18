@@ -130,6 +130,8 @@ Lépések:
     <string name="morphe_music_downloads_started">Letöltés elindítva</string>
     <string name="morphe_music_downloads_starting">Letöltés indítása…</string>
     <string name="morphe_music_downloads_unknown_track">Nem sikerült azonosítani a letöltendő számot</string>
+    <string name="morphe_music_hide_you_may_also_like_section_title">„Ezek is érdekelhetnek” szakasz elrejtése</string>
+    <string name="morphe_music_hide_your_downloads_shelf_title">\"Letöltéseim\" polc elrejtése</string>
     <string name="morphe_music_lyrics_about_summary">"A szövegeket címen és előadó alapján párosítjuk, a szokatlan metaadatok miatt semmi vagy a rossz verzió jelenhet meg. Használja a frissítést a verziók váltásához. A * jellel jelölt szolgáltatók tokenhez vannak kötve. Az engedélyezett szolgáltatók mindegyike nem mindig kerül sorrendben kérésre, hanem sebességük alapján válaszolnak
 
 A szövegek harmadik fél szolgáltatásaiból származnak, amelyekkel a RVX-nak nincs kapcsolata, azokot nem finanszírozza és nem tartja fenn. Minden egyes szolgáltatót úgy használunk, ahogy van: a szöveg, az elérhetőség és a licenszelés továbbra is a szolgáltatásoknál és a licenciált partnereiknél marad, használatuk pedig feltételeihez kötött. Az engedélyezett szolgáltatásokhoz csak a keresést küldjük el – a címet, az előadót és ahol szükséges, a videó ID-t. A opcionális AI végpont és QuickLRC transzkripció csak akkor fut, ha beállította őket, és csak a szövegkönyv vagy a zenei felvétel video URL-címét kapják meg"</string>

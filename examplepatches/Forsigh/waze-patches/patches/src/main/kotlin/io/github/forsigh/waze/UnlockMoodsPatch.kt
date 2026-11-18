@@ -4,6 +4,8 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.AppTarget
+import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
@@ -151,14 +153,36 @@ internal val MoodCatalogueByCustomListFingerprint = Fingerprint(
     ),
 )
 
+/**
+ * 5.27.90.900: the catalogue refresh moved out of MoodManager into its JNI base class
+ * (`MoodManagerBase.refreshMoodsListJNI()`), and the native calls now return protobuf bytes
+ * (`getDefaultMoodListProtosNTV(ZZ)[B`, `getCustomMoodListProtosNTV(ZZ)[B`). Pinned by the native
+ * call it makes, so the move and the rename are both covered.
+ */
+internal val MoodCatalogueProtosFingerprint = Fingerprint(
+    definingClass = "Lcom/waze/MoodManagerBase;",
+    parameters = listOf(),
+    returnType = "V",
+    filters = listOf(
+        methodCall(
+            definingClass = MOOD_MANAGER,
+            name = "getDefaultMoodListProtosNTV",
+            returnType = "[B",
+        ),
+    ),
+)
+
 @Suppress("unused")
 val unlockMoodsPatch = bytecodePatch(
     name = "Unlock driver moods",
     description = "Unlocks all moods on the device.",
     default = true,
 ) {
+    // 5.27.90.900 kept every lever in a new home: eligibility is t(Context,String)Z, the baby flag is read
+    // by q() and handed to fp as a constructor argument, and the catalogue refresh moved to
+    // MoodManagerBase.refreshMoodsListJNI() calling the *ProtosNTV natives. All three are anchored below.
     compatibleWith(COMPATIBILITY_WAZE)
-    category("Driving & Voice")
+
     dependsOn(skinRefreshPatch)
     execute {
         val canSet = resolveAnchor(
@@ -197,17 +221,24 @@ val unlockMoodsPatch = bytecodePatch(
         }
 
         val refresh = resolveAnchor(
-            "mood catalogue", MoodCatalogueByListCallFingerprint, MoodCatalogueByCustomListFingerprint,
-            MoodCatalogueFingerprint, MoodCatalogueV2Fingerprint,
+            "mood catalogue", MoodCatalogueProtosFingerprint, MoodCatalogueByListCallFingerprint,
+            MoodCatalogueByCustomListFingerprint, MoodCatalogueFingerprint, MoodCatalogueV2Fingerprint,
         )
         val instructions = refresh.implementation?.instructions?.toList()
             ?: throw PatchException("unlockMoodsPatch: refreshMoodsList() has no implementation")
+        val catalogueCalls = setOf(
+            "getDefaultMoodListNTV", "getCustomMoodListNTV",
+            "getDefaultMoodListProtosNTV", "getCustomMoodListProtosNTV",
+        )
+        // 5.27.90.900 calls the natives through the MoodManager instance (invoke-virtual) from the
+        // JNI base class; older builds call them on `this` (invoke-direct). Accept both.
+        val callOps = setOf(Opcode.INVOKE_DIRECT, Opcode.INVOKE_VIRTUAL)
         val sites = instructions.withIndex().filter { (_, instruction) ->
-            instruction.opcode == Opcode.INVOKE_DIRECT &&
+            instruction.opcode in callOps &&
                 instruction is ReferenceInstruction &&
                 (instruction.reference as? MethodReference)?.let { ref ->
                     ref.definingClass == MOOD_MANAGER &&
-                        ref.name in setOf("getDefaultMoodListNTV", "getCustomMoodListNTV") &&
+                        ref.name in catalogueCalls &&
                         ref.parameterTypes.map(CharSequence::toString) == listOf("Z", "Z")
                 } == true
         }.map { it.index }
@@ -217,9 +248,18 @@ val unlockMoodsPatch = bytecodePatch(
                     "refusing to report the picker as unlocked"
             )
         }
+        // The unlock lever is the FIRST argument of each native call, whatever register this build put
+        // it in: 5.27.4.900 passed it in v1, 5.27.90.900 passes it in v0. Read the register off the
+        // call instead of hardcoding one, or the second shape patches a register the callee ignores.
         // Descending: inserting at a later site first keeps the earlier indexes valid.
         for (site in sites.sortedDescending()) {
-            refresh.addInstructions(site, "const/4 v1, 0x1\n")
+            val register = firstParameterRegister(instructions[site])
+                ?: throw PatchException(
+                    "unlockMoodsPatch: catalogue call at instruction $site has no readable parameter " +
+                        "register - refusing to guess"
+                )
+            val hint = if (register > 15) "const/16 v$register, 0x1" else "const/4 v$register, 0x1"
+            refresh.addInstructions(site, hint + "\n")
         }
         println("unlockMoodsPatch: mood eligibility, baby gate and ${sites.size} catalogue filters opened")
     }

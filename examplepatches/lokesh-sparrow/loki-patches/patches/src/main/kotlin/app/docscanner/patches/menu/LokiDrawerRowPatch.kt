@@ -5,7 +5,6 @@
 
 package app.docscanner.patches.menu
 
-import app.loki.patches.universal.addMenuFlag
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
@@ -56,7 +55,7 @@ private val addStringResource = resourcePatch {
 private val drawerFlag = resourcePatch {
     execute {
         if (!isOurApp()) return@execute
-        document("AndroidManifest.xml").use { it.addMenuFlag("app.loki.menu.drawer") }
+        // No menu flag: this row is the way into the menu, not a patch the Patch status page can report on.
     }
 }
 

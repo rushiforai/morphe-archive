@@ -4,6 +4,22 @@ import static app.morphe.extension.youtube.utils.ExtendedUtils.IS_20_22_OR_GREAT
 
 import org.apache.commons.lang3.StringUtils;
 
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import com.facebook.litho.ComponentHost;
+import com.facebook.litho.TextContent;
+import com.google.protobuf.MessageLite;
+
+import java.util.List;
+
+import app.morphe.extension.shared.utils.Logger;
+import app.morphe.extension.youtube.patches.utils.ProtoNode;
+
 import app.morphe.extension.shared.patches.components.ByteArrayFilterGroup;
 import app.morphe.extension.shared.patches.components.ByteArrayFilterGroupList;
 import app.morphe.extension.shared.patches.components.Filter;
@@ -13,6 +29,93 @@ import app.morphe.extension.youtube.settings.Settings;
 
 @SuppressWarnings({"deprecation", "unused"})
 public final class ShortsButtonFilter extends Filter {
+    private static volatile boolean shortShowsBottomActionBar;
+
+    /**
+     * Injection point, immediately before reading the Shorts page's navigation mode.
+     */
+    public static void setReelWatchConfig(@Nullable MessageLite config) {
+        boolean showsBottomActionBar = false;
+        if (Settings.HIDE_SHORTS_PREVIEW_COMMENT.get() && config != null) {
+            try {
+                List<ProtoNode> fields = ProtoNode.parse(config.toByteArray());
+                if (fields != null) {
+                    // Field 8 holds the bottom bar; its field 1 enables it.
+                    ProtoNode enabled = ProtoNode.field(ProtoNode.message(fields, 8), 1);
+                    showsBottomActionBar = enabled != null && Long.valueOf(1).equals(enabled.getVarint());
+                }
+            } catch (Exception ex) {
+                Logger.printException(() -> "setReelWatchConfig failure", ex);
+            }
+        }
+        shortShowsBottomActionBar = showsBottomActionBar;
+    }
+
+    /**
+     * Keeps navigation below channel Shorts when their replacement comment bar is hidden.
+     * Modes: 1 shows navigation, 2 hides it, 3 hides it when the Short fits without it.
+     */
+    public static int getNavigationBarMode(int original) {
+        return shortShowsBottomActionBar && (original == 2 || original == 3) ? 1 : original;
+    }
+
+    private static boolean hasVisibleBottomAction(View view) {
+        if (view.getVisibility() != View.VISIBLE) {
+            return false;
+        }
+        if (view instanceof ComponentHost host) {
+            TextContent text = host.getTextContent();
+            if (text != null && !text.getTextItems().isEmpty()) {
+                return true;
+            }
+        } else if (!(view instanceof ViewGroup)) {
+            return true;
+        }
+        if (view instanceof ViewGroup group) {
+            for (int i = 0, count = group.getChildCount(); i < count; i++) {
+                if (hasVisibleBottomAction(group.getChildAt(i))) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Injection point. A filtered bottom bar leaves an empty Litho host with its original height.
+     */
+    public static void hideEmptyBottomActionBar(View container) {
+        if (!Settings.HIDE_SHORTS_PREVIEW_COMMENT.get() || container == null) {
+            return;
+        }
+
+        ViewTreeObserver.OnPreDrawListener listener = () -> {
+            try {
+                if (container.getVisibility() == View.VISIBLE && !hasVisibleBottomAction(container)) {
+                    container.setVisibility(View.GONE);
+                    return false;
+                }
+            } catch (Exception ex) {
+                Logger.printException(() -> "Bottom action bar check failure", ex);
+            }
+            return true;
+        };
+        container.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
+            @Override
+            public void onViewAttachedToWindow(@NonNull View view) {
+                view.getViewTreeObserver().addOnPreDrawListener(listener);
+            }
+
+            @Override
+            public void onViewDetachedFromWindow(@NonNull View view) {
+                view.getViewTreeObserver().removeOnPreDrawListener(listener);
+            }
+        });
+        if (container.isAttachedToWindow()) {
+            container.getViewTreeObserver().addOnPreDrawListener(listener);
+        }
+    }
+
     private static final String REEL_CHANNEL_BAR_PATH = "reel_channel_bar.";
     private static final String REEL_LIVE_HEADER_PATH = "immersive_live_header.";
     /**

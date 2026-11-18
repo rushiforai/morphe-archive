@@ -1,0 +1,419 @@
+[
+  {
+    "owner": "Lcom/nakko/android/radio10gold/view/videoplayer/a0;",
+    "signature": "g0(Lcom/jwplayer/pub/api/JWPlayer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;D)Lcom/jwplayer/pub/api/configuration/ads/AdvertisingConfig;",
+    "prefix": "const/4 v0, 0x0\nreturn-object v0",
+    "selection": "ads",
+    "registers": 7,
+    "count": 56
+  },
+  {
+    "owner": "Lcom/nakko/android/radio10gold/tracking/e;",
+    "signature": "Q(Ljava/lang/String;[Lkotlin/U;)V",
+    "prefix": "return-void",
+    "selection": "tracking",
+    "registers": 31,
+    "count": 154
+  },
+  {
+    "owner": "Lcom/nakko/android/radio10gold/tracking/e;",
+    "signature": "x()V",
+    "prefix": "return-void",
+    "selection": "tracking",
+    "registers": 5,
+    "count": 21
+  },
+  {
+    "owner": "Lcom/nakko/android/radio10gold/tracking/comscore/a;",
+    "signature": "b()V",
+    "prefix": "return-void",
+    "selection": "tracking",
+    "registers": 3,
+    "count": 24
+  },
+  {
+    "owner": "Lcom/nakko/android/radio10gold/tracking/comscore/a;",
+    "signature": "c(Lcom/nakko/android/radio10gold/tracking/j;Ljava/lang/Integer;)V",
+    "prefix": "return-void",
+    "selection": "tracking",
+    "registers": 10,
+    "count": 36
+  },
+  {
+    "owner": "Lcom/nakko/android/radio10gold/tracking/comscore/a;",
+    "signature": "d(Z)V",
+    "prefix": "return-void",
+    "selection": "tracking",
+    "registers": 4,
+    "count": 10
+  },
+  {
+    "owner": "Lcom/nakko/android/radio10gold/tracking/comscore/a;",
+    "signature": "e(Z)V",
+    "prefix": "return-void",
+    "selection": "tracking",
+    "registers": 4,
+    "count": 10
+  },
+  {
+    "owner": "Lcom/tealium/library/Tealium;",
+    "signature": "track(Ljava/util/Map;)V",
+    "prefix": "return-void",
+    "selection": "tracking",
+    "registers": 8,
+    "count": 25
+  },
+  {
+    "owner": "Lcom/tealium/internal/dispatcher/CollectDispatcher;",
+    "signature": "onDispatchSend(Lcom/tealium/internal/data/Dispatch;)V",
+    "prefix": "return-void",
+    "selection": "tracking",
+    "registers": 6,
+    "count": 73
+  },
+  {
+    "owner": "Lcom/tealium/internal/dispatcher/CollectDispatcher;",
+    "signature": "onBulkDispatchSend(Ljava/util/List;)V",
+    "prefix": "return-void",
+    "selection": "tracking",
+    "registers": 8,
+    "count": 107
+  },
+  {
+    "owner": "Lcom/tealium/internal/dispatcher/WebViewDispatcher;",
+    "signature": "onDispatchSend(Lcom/tealium/internal/data/Dispatch;)V",
+    "prefix": "return-void",
+    "selection": "tracking",
+    "registers": 5,
+    "count": 43
+  },
+  {
+    "owner": "Lcom/tealium/internal/dispatcher/WebViewDispatcher;",
+    "signature": "onBulkDispatchSend(Ljava/util/List;)V",
+    "prefix": "return-void",
+    "selection": "tracking",
+    "registers": 3,
+    "count": 11
+  },
+  {
+    "owner": "Lcom/tealium/internal/dispatcher/WebViewDispatcher;",
+    "signature": "attemptLoadPublishAfterDelay()V",
+    "prefix": "return-void",
+    "selection": "tracking",
+    "registers": 5,
+    "count": 10
+  },
+  {
+    "owner": "Lcom/tealium/internal/dispatcher/WebViewDispatcher;",
+    "signature": "attemptCheckForUpdatedPublish()V",
+    "prefix": "return-void",
+    "selection": "tracking",
+    "registers": 6,
+    "count": 39
+  },
+  {
+    "owner": "Lcom/google/android/datatransport/runtime/scheduling/jobscheduling/AlarmManagerSchedulerBroadcastReceiver;",
+    "signature": "onReceive(Landroid/content/Context;Landroid/content/Intent;)V",
+    "prefix": "return-void",
+    "selection": "tracking",
+    "registers": 7,
+    "count": 48
+  },
+  {
+    "owner": "Lcom/tealium/internal/dispatcher/WebViewDispatcher;",
+    "signature": "attemptLoadPublishURL()Z",
+    "prefix": "const/4 v0, 0x0\nreturn v0",
+    "selection": "tracking",
+    "registers": 9,
+    "count": 80
+  },
+  {
+    "owner": "Lcom/google/android/datatransport/runtime/scheduling/jobscheduling/JobInfoSchedulerService;",
+    "signature": "onStartJob(Landroid/app/job/JobParameters;)Z",
+    "prefix": "const/4 v0, 0x0\nreturn v0",
+    "selection": "tracking",
+    "registers": 7,
+    "count": 47
+  },
+  {
+    "owner": "Lcom/google/android/datatransport/cct/d;",
+    "signature": "b(Lcom/google/android/datatransport/runtime/backends/g;)Lcom/google/android/datatransport/runtime/backends/h;",
+    "prefix": "const-wide/16 v0, 0x0\ninvoke-static {v0, v1}, Lcom/google/android/datatransport/runtime/backends/h;->e(J)Lcom/google/android/datatransport/runtime/backends/h;\nmove-result-object v0\nreturn-object v0",
+    "selection": "tracking",
+    "registers": 6,
+    "count": 68
+  },
+  {
+    "owner": "Lcom/google/firebase/analytics/FirebaseAnalytics;",
+    "signature": "e(Z)V",
+    "prefix": "const/4 p1, 0x0",
+    "selection": "tracking",
+    "registers": 3,
+    "count": 5
+  },
+  {
+    "owner": "Lcom/google/firebase/perf/e;",
+    "signature": "j(Z)V",
+    "prefix": "const/4 p1, 0x0",
+    "selection": "tracking",
+    "registers": 2,
+    "count": 4
+  },
+  {
+    "owner": "Lcom/google/firebase/crashlytics/i;",
+    "signature": "k(Z)V",
+    "prefix": "const/4 p1, 0x0",
+    "selection": "tracking",
+    "registers": 3,
+    "count": 5
+  },
+  {
+    "owner": "Lcom/google/android/gms/ads/identifier/AdvertisingIdClient$Info;",
+    "signature": "getId()Ljava/lang/String;",
+    "prefix": "const-string p0, \"\"\nreturn-object p0",
+    "selection": "tracking",
+    "registers": 2,
+    "count": 2
+  },
+  {
+    "owner": "Lcom/google/android/gms/ads/identifier/AdvertisingIdClient$Info;",
+    "signature": "isLimitAdTrackingEnabled()Z",
+    "prefix": "const/4 p0, 0x1\nreturn p0",
+    "selection": "tracking",
+    "registers": 2,
+    "count": 2
+  },
+  {
+    "owner": "Lcom/google/android/gms/measurement/internal/x2;",
+    "signature": "run()V",
+    "prefix": "iget-object v0, p0, Lcom/google/android/gms/measurement/internal/x2;->i:Lcom/google/android/gms/measurement/internal/t2;\ninvoke-virtual {v0}, Lcom/google/android/gms/measurement/internal/E3;->zzl()Lcom/google/android/gms/measurement/internal/U2;\nmove-result-object v0\nnew-instance v5, Lcom/google/android/gms/measurement/internal/v2;\niget-object v6, p0, Lcom/google/android/gms/measurement/internal/x2;->g:Ljava/lang/String;\niget-object v7, p0, Lcom/google/android/gms/measurement/internal/x2;->f:Lcom/google/android/gms/measurement/internal/s2;\nconst/16 v8, 0xcc\nconst/4 v9, 0x0\nconst/4 v10, 0x0\nconst/4 v11, 0x0\nconst/4 v12, 0x0\ninvoke-direct/range {v5 .. v12}, Lcom/google/android/gms/measurement/internal/v2;-><init>(Ljava/lang/String;Lcom/google/android/gms/measurement/internal/s2;ILjava/lang/Throwable;[BLjava/util/Map;Lcom/google/android/gms/measurement/internal/u2;)V\ninvoke-virtual {v0, v5}, Lcom/google/android/gms/measurement/internal/U2;->y(Ljava/lang/Runnable;)V\nreturn-void",
+    "selection": "tracking",
+    "registers": 16,
+    "count": 197
+  },
+  {
+    "owner": "Lcom/conviva/platforms/android/HTTPTask;",
+    "signature": "run()V",
+    "prefix": "const/4 v0, 0x1\nconst-string v1, \"{}\"\ninvoke-direct {p0, v0, v1}, Lcom/conviva/platforms/android/HTTPTask;->callbackIfPresent(ZLjava/lang/String;)V\nreturn-void",
+    "selection": "tracking",
+    "registers": 3,
+    "count": 6
+  },
+  {
+    "owner": "Lcom/nakko/android/radio10gold/view/inline/Y;",
+    "signature": "j()Ljava/lang/String;",
+    "prefix": "const/4 v0, 0x0\nreturn-object v0",
+    "selection": "ads",
+    "registers": 2,
+    "count": 2
+  },
+  {
+    "owner": "Lcom/tealium/library/g;",
+    "signature": "c()V",
+    "prefix": "return-void",
+    "selection": "tracking",
+    "registers": 7,
+    "count": 39
+  },
+  {
+    "owner": "Lcom/tealium/library/g;",
+    "signature": "i(Z)V",
+    "prefix": "return-void",
+    "selection": "tracking",
+    "registers": 4,
+    "count": 41
+  },
+  {
+    "owner": "Lcom/nakko/android/radio10gold/tracking/h;",
+    "signature": "d(Ljava/lang/String;Lcom/nakko/android/radio10gold/tracking/event/b;Ljava/util/Map;Ljava/util/Map;Lcom/nakko/android/radio10gold/tracking/j;)V",
+    "prefix": "return-void",
+    "selection": "tracking",
+    "registers": 14,
+    "count": 73
+  },
+  {
+    "owner": "Lcom/tealium/library/Tealium;",
+    "signature": "e(Lcom/tealium/internal/data/Dispatch;)V",
+    "prefix": "return-void",
+    "selection": "tracking",
+    "registers": 4,
+    "count": 28
+  },
+  {
+    "owner": "Lcom/nakko/android/radio10gold/businesslogic/manager/e;",
+    "signature": "d()V",
+    "prefix": "return-void",
+    "selection": "tracking",
+    "registers": 6,
+    "count": 31
+  },
+  {
+    "owner": "Lcom/nakko/android/radio10gold/businesslogic/manager/e;",
+    "signature": "g(Z)V",
+    "prefix": "return-void",
+    "selection": "tracking",
+    "registers": 2,
+    "count": 5
+  },
+  {
+    "owner": "Lcom/nakko/android/radio10gold/businesslogic/manager/e;",
+    "signature": "h(Ljava/lang/String;)V",
+    "prefix": "return-void",
+    "selection": "tracking",
+    "registers": 3,
+    "count": 8
+  },
+  {
+    "owner": "Lcom/adjust/sdk/Adjust;",
+    "signature": "trackEvent(Lcom/adjust/sdk/AdjustEvent;)V",
+    "prefix": "return-void",
+    "selection": "tracking",
+    "registers": 2,
+    "count": 4
+  },
+  {
+    "owner": "Lcom/adjust/sdk/PackageHandler;",
+    "signature": "addPackage(Lcom/adjust/sdk/ActivityPackage;)V",
+    "prefix": "return-void",
+    "selection": "tracking",
+    "registers": 4,
+    "count": 5
+  },
+  {
+    "owner": "Lcom/adjust/sdk/PackageHandler;",
+    "signature": "sendFirstI()V",
+    "prefix": "return-void",
+    "selection": "tracking",
+    "registers": 6,
+    "count": 54
+  },
+  {
+    "owner": "Lcom/adjust/sdk/SdkClickHandler;",
+    "signature": "sendSdkClick(Lcom/adjust/sdk/ActivityPackage;)V",
+    "prefix": "return-void",
+    "selection": "tracking",
+    "registers": 4,
+    "count": 5
+  },
+  {
+    "owner": "Lcom/adjust/sdk/SdkClickHandler;",
+    "signature": "sendNextSdkClickI()V",
+    "prefix": "return-void",
+    "selection": "tracking",
+    "registers": 6,
+    "count": 40
+  },
+  {
+    "owner": "Lcom/salesforce/marketingcloud/MarketingCloudConfig$Builder;",
+    "signature": "setAnalyticsEnabled(Z)Lcom/salesforce/marketingcloud/MarketingCloudConfig$Builder;",
+    "prefix": "const/4 p1, 0x0",
+    "selection": "tracking",
+    "registers": 2,
+    "count": 2
+  },
+  {
+    "owner": "Lcom/salesforce/marketingcloud/MarketingCloudConfig$Builder;",
+    "signature": "setPiAnalyticsEnabled(Z)Lcom/salesforce/marketingcloud/MarketingCloudConfig$Builder;",
+    "prefix": "const/4 p1, 0x0",
+    "selection": "tracking",
+    "registers": 2,
+    "count": 2
+  },
+  {
+    "owner": "Lcom/salesforce/marketingcloud/analytics/h;",
+    "signature": "init(Lcom/salesforce/marketingcloud/InitializationStatus$a;I)V",
+    "prefix": "return-void",
+    "selection": "tracking",
+    "registers": 11,
+    "count": 46
+  },
+  {
+    "owner": "Lcom/salesforce/marketingcloud/analytics/h;",
+    "signature": "controlChannelInit(I)V",
+    "prefix": "return-void",
+    "selection": "tracking",
+    "registers": 19,
+    "count": 129
+  },
+  {
+    "owner": "Lcom/salesforce/marketingcloud/analytics/h;",
+    "signature": "enableAnalytics()V",
+    "prefix": "return-void",
+    "selection": "tracking",
+    "registers": 5,
+    "count": 38
+  },
+  {
+    "owner": "Lcom/salesforce/marketingcloud/analytics/h;",
+    "signature": "enablePiAnalytics()V",
+    "prefix": "return-void",
+    "selection": "tracking",
+    "registers": 7,
+    "count": 54
+  },
+  {
+    "owner": "Lcom/salesforce/marketingcloud/analytics/h;",
+    "signature": "onBehavior(Lcom/salesforce/marketingcloud/behaviors/a;Landroid/os/Bundle;)V",
+    "prefix": "return-void",
+    "selection": "tracking",
+    "registers": 4,
+    "count": 19
+  },
+  {
+    "owner": "Lcom/salesforce/marketingcloud/analytics/h;",
+    "signature": "b(ILcom/salesforce/marketingcloud/toggles/a;)V",
+    "prefix": "return-void",
+    "selection": "tracking",
+    "registers": 6,
+    "count": 24
+  },
+  {
+    "owner": "Lcom/salesforce/marketingcloud/analytics/h;",
+    "signature": "setPiIdentifier(Ljava/lang/String;)V",
+    "prefix": "return-void",
+    "selection": "tracking",
+    "registers": 4,
+    "count": 14
+  },
+  {
+    "owner": "Lcom/salesforce/marketingcloud/analytics/h;",
+    "signature": "areAnalyticsEnabled()Z",
+    "prefix": "const/4 v0, 0x0\nreturn v0",
+    "selection": "tracking",
+    "registers": 4,
+    "count": 31
+  },
+  {
+    "owner": "Lcom/salesforce/marketingcloud/analytics/h;",
+    "signature": "arePiAnalyticsEnabled()Z",
+    "prefix": "const/4 v0, 0x0\nreturn v0",
+    "selection": "tracking",
+    "registers": 4,
+    "count": 31
+  },
+  {
+    "owner": "Lcom/salesforce/marketingcloud/analytics/h;",
+    "signature": "a(ILcom/salesforce/marketingcloud/toggles/a;)Z",
+    "prefix": "const/4 v0, 0x0\nreturn v0",
+    "selection": "tracking",
+    "registers": 5,
+    "count": 23
+  },
+  {
+    "owner": "Lcom/nakko/android/radio10gold/businesslogic/manager/D;",
+    "signature": "k(Lcom/salesforce/marketingcloud/sfmcsdk/SFMCSdk;)V",
+    "selection": "tracking",
+    "registers": 11,
+    "count": 34,
+    "replacements": [
+      {
+        "instruction": "invoke-static/range {v3 .. v8}, Lcom/salesforce/marketingcloud/sfmcsdk/components/identity/Identity;->setProfileAttribute$default(Lcom/salesforce/marketingcloud/sfmcsdk/components/identity/Identity;Ljava/lang/String;Ljava/lang/String;[Lcom/salesforce/marketingcloud/sfmcsdk/modules/ModuleIdentifier;ILjava/lang/Object;)V",
+        "with": "nop"
+      },
+      {
+        "instruction": "invoke-virtual {v1, v2, v3}, Lcom/nakko/android/radio10gold/tracking/n;->b(Landroid/content/Context;Lkotlin/jvm/functions/l;)V",
+        "with": "nop"
+      }
+    ]
+  }
+]

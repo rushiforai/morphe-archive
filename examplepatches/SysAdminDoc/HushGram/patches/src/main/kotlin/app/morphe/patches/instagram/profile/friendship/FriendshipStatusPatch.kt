@@ -34,6 +34,7 @@ import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
@@ -200,13 +201,28 @@ internal fun BytecodePatchContext.findProfileUser(refuse: (String) -> Nothing): 
             setValue?.parameterTypes?.map(CharSequence::toString) == listOf(OBJECT) && setValue.returnType == "Z"
         }
     }.singleOrNull() ?: refuse("$VIEW_MODEL's user setter doesn't keep the user in live data")
-    val holderField = setterCode.mapNotNull { instruction ->
+    // [receiver] limits the reads to fields of that register, the getter's own holder.
+    fun holderReads(code: List<Instruction>, receiver: Int?) = code.mapNotNull { instruction ->
         instruction.fieldReference()?.takeIf { field ->
             instruction.opcode == Opcode.IGET_OBJECT && field.definingClass != VIEW_MODEL &&
+                (receiver == null || (instruction as TwoRegisterInstruction).registerB == receiver) &&
                 classDefByOrNull(field.definingClass)?.let { holder ->
                     holder.fields.any { it.type == USER || it.type.startsWith("L") && classDefByOrNull(it.type) != null && USER != it.type }
                 } == true
         }
+    }
+    // 456's armv7 build (386214562) reads the holder's field in a getter the setter calls on the holder
+    // it just made (047L.A0B()String, reading 07Nl.A01) instead of in the setter itself.
+    val made = setterCode.filter { it.opcode == Opcode.NEW_INSTANCE }.map { (it as ReferenceInstruction).reference.toString() }.toSet()
+    val getters = setterCode.mapNotNull { instruction ->
+        instruction.methodReference()?.takeIf { instruction.opcode == Opcode.INVOKE_VIRTUAL && it.definingClass in made && it.parameterTypes.isEmpty() }
+    }.mapNotNull { called ->
+        classDefByOrNull(called.definingClass)?.methods?.singleOrNull {
+            it.name == called.name && it.parameterTypes.isEmpty() && it.returnType == called.returnType && it.implementation != null
+        }
+    }
+    val holderField = holderReads(setterCode, null).ifEmpty {
+        getters.flatMap { getter -> holderReads(getter.implementation!!.instructions.toList(), getter.localRegisterCount()) }
     }.singleOrNull() ?: refuse("$VIEW_MODEL's user setter doesn't read the user's holder")
     val getValue = findLiveValue(live.type) ?: refuse("${live.type} has no getValue()Object")
     return ProfileUser(null, live, getValue, holderField.definingClass, holderField)
@@ -435,27 +451,30 @@ private fun shownSlotAt(code: List<Instruction>, at: Int): Pair<Int, FieldRefere
     if (read.opcode != Opcode.IGET_OBJECT) return null
     val field = read.fieldReference() ?: return null
     val slot = (read as OneRegisterInstruction).registerA
-    val asked = code.getOrNull(at + 1)?.methodReference() ?: return null
-    if (code[at + 1].opcode != Opcode.INVOKE_INTERFACE || asked.definingClass != field.type || asked.name != "getView" ||
-        asked.parameterTypes.isNotEmpty() || asked.returnType != VIEW || code[at + 1].namedRegisters() != listOf(slot)
+    // 456 reads the slot before it checks there's a text to give it, so one branch on another register can come between.
+    val check = code.getOrNull(at + 1)
+    val ask = if (check != null && check.opcode in setOf(Opcode.IF_EQZ, Opcode.IF_NEZ) && (check as OneRegisterInstruction).registerA != slot) at + 2 else at + 1
+    val asked = code.getOrNull(ask)?.methodReference() ?: return null
+    if (code[ask].opcode != Opcode.INVOKE_INTERFACE || asked.definingClass != field.type || asked.name != "getView" ||
+        asked.parameterTypes.isNotEmpty() || asked.returnType != VIEW || code[ask].namedRegisters() != listOf(slot)
     ) {
         return null
     }
-    val view = (code.getOrNull(at + 2) as? OneRegisterInstruction)?.takeIf { code[at + 2].opcode == Opcode.MOVE_RESULT_OBJECT }?.registerA
+    val view = (code.getOrNull(ask + 1) as? OneRegisterInstruction)?.takeIf { code[ask + 1].opcode == Opcode.MOVE_RESULT_OBJECT }?.registerA
         ?: return null
-    val cast = code.getOrNull(at + 3) ?: return null
+    val cast = code.getOrNull(ask + 2) ?: return null
     if (cast.opcode != Opcode.CHECK_CAST || (cast as OneRegisterInstruction).registerA != view ||
         (cast as ReferenceInstruction).reference.toString() != TEXT_VIEW
     ) {
         return null
     }
-    val text = code.getOrNull(at + 4)?.methodReference() ?: return null
+    val text = code.getOrNull(ask + 3)?.methodReference() ?: return null
     if (text.name != "setText" || text.parameterTypes.map(CharSequence::toString) != listOf("Ljava/lang/CharSequence;") ||
-        code[at + 4].namedRegisters().firstOrNull() != view
+        code[ask + 3].namedRegisters().firstOrNull() != view
     ) {
         return null
     }
-    return if (code.getOrNull(at + 5)?.isSetVisibility(field.type, slot) == true) (at + 5) to field else null
+    return if (code.getOrNull(ask + 4)?.isSetVisibility(field.type, slot) == true) (ask + 4) to field else null
 }
 
 private fun Instruction.isSetVisibility(slot: String, register: Int): Boolean {

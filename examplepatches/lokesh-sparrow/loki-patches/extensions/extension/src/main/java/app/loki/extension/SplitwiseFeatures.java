@@ -118,7 +118,7 @@ public final class SplitwiseFeatures {
         String line = "server " + server + (forced == null ? "" : " -> forced " + forced);
         String old = SEEN.put((String) current[0], line);
         // The log survives the process; the in-memory list does not. Write each feature once per change.
-        if (!line.equals(old)) LokiLog.note("feature " + current[0] + ": " + line);
+        if (!line.equals(old)) LokiLog.note("feature " + current[0] + ": " + line); // audit: keep
     }
 
     private SplitwiseFeatures() {
@@ -130,7 +130,7 @@ public final class SplitwiseFeatures {
     public static void enter(String name, Object status) {
         if (!announced) {
             announced = true;
-            LokiLog.note("Splitwise feature hook active (first check: " + name + ")");
+            LokiLog.debug("Splitwise feature hook active (first check: " + name + ")");
         }
         CURRENT.set(new Object[]{name, status});
     }

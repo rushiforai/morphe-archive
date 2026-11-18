@@ -1,10 +1,16 @@
 package io.github.sabopura.morphe.extension.twitch.ads;
 
+import io.github.sabopura.morphe.extension.twitch.Diagnostics;
+import io.github.sabopura.morphe.extension.twitch.SafePreferences;
+import io.github.sabopura.morphe.extension.twitch.original.Stats;
+import io.github.sabopura.morphe.extension.twitch.ui.Feature;
+import io.github.sabopura.morphe.extension.twitch.ui.Features;
 import io.github.sabopura.morphe.extension.twitch.ui.Text;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
@@ -38,8 +44,6 @@ public final class AdBlock {
     private static volatile Context appContext;
     private static volatile Method resultError;
 
-    /** Set by the player event hook just before calling {@link #onPlayerAdEvent}. */
-    public static volatile int eventKind;
     public static final int EVENT_STITCHED_STARTED = 1;
     public static final int EVENT_LIVE_AGAIN = 2;
     public static final int EVENT_QUARTILE = 3;
@@ -55,7 +59,8 @@ public final class AdBlock {
         Text.use(context);
         if (appContext == null && context != null) appContext = context.getApplicationContext();
         if (prefs == null && context != null) {
-            prefs = context.getApplicationContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+            prefs = SafePreferences.of(
+                    context.getApplicationContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE));
         }
     }
 
@@ -73,7 +78,8 @@ public final class AdBlock {
     static String proxyBase() {
         Context c = appContext;
         if (c == null) return "";
-        return c.getSharedPreferences("sabopura_chat", Context.MODE_PRIVATE).getString("live_proxy", "");
+        return SafePreferences.of(c.getSharedPreferences("sabopura_chat", Context.MODE_PRIVATE))
+                .getString("live_proxy", "");
     }
 
     static boolean coverUnreplacedAds() {
@@ -81,8 +87,14 @@ public final class AdBlock {
         return p == null || !FALLBACK_SHOW.equals(p.getString(KEY_FALLBACK, FALLBACK_COVER));
     }
 
+    /** Never throws: it runs in the middle of blocking, which a stored statistic of another type must not stop. */
     static void count(int kind) {
         counts.incrementAndGet(kind);
+        try {
+            Stats.ad(kind);
+        } catch (RuntimeException | LinkageError e) {
+            Diagnostics.note("ads.stats", e);
+        }
     }
 
     public static int count(int kind, boolean unused) {
@@ -94,11 +106,24 @@ public final class AdBlock {
     }
 
     private static volatile String lastIssue = "";
+    private static volatile boolean noticedUnknownMarker;
 
     /** Something that kept an ad from being replaced; shown in the settings. */
     static void issue(String message) {
         if (!message.equals(lastIssue)) Log.w(TAG, message);
         lastIssue = message;
+    }
+
+    /** Once per run: Twitch marks ads in a way this version does not know, so it may need an update. */
+    static void noticeUnknownMarker(String marker) {
+        if (noticedUnknownMarker) return;
+        noticedUnknownMarker = true;
+        issue("Unknown ad marker: " + marker);
+        Context context = appContext;
+        if (context == null) return;
+        new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> Toast.makeText(context,
+                Text.label("Twitch の広告の形式が変わった可能性があります", "Twitch may have changed how it marks ads"),
+                Toast.LENGTH_LONG).show());
     }
 
     public static String lastIssue() {
@@ -143,9 +168,10 @@ public final class AdBlock {
                         default: return "SabopuraTwitch " + api.getSimpleName();
                     }
                 }
-                if (enabled() && method.getReturnType().getName().startsWith("io.reactivex.")) {
+                Object blocked = blocked(method);
+                if (blocked != null) {
                     count(REQUESTS);
-                    return single(blockedResult(method.getName()));
+                    return blocked;
                 }
                 try {
                     return method.invoke(service, args);
@@ -155,13 +181,24 @@ public final class AdBlock {
             };
             log("Ad server API wrapped");
             return Proxy.newProxyInstance(api.getClassLoader(), new Class<?>[]{api}, handler);
-        } catch (RuntimeException e) {
-            log("Ad server API left as is: " + e);
+        } catch (RuntimeException | LinkageError e) {
+            Diagnostics.note("ads.edge-api", e);
             return service;
         }
     }
 
-    private static Object blockedResult(String endpoint) throws Exception {
+    /** The finished failed request to answer {@code method} with, or null to let the ad server API run. */
+    private static Object blocked(Method method) {
+        try {
+            if (!enabled() || !method.getReturnType().getName().startsWith("io.reactivex.")) return null;
+            return single(blockedResult(method.getName()));
+        } catch (ReflectiveOperationException | RuntimeException | LinkageError e) {
+            Diagnostics.note("ads.edge-api-block", e);
+            return null;
+        }
+    }
+
+    private static Object blockedResult(String endpoint) throws ReflectiveOperationException {
         Method error = resultError;
         if (error == null) {
             Class<?> result = Class.forName("retrofit2.adapter.rxjava2.Result");
@@ -174,6 +211,14 @@ public final class AdBlock {
     /** Replaced by the patch with RxJava's Single.just(value). */
     public static Object single(Object value) {
         throw new IllegalStateException("Single bridge was not installed");
+    }
+
+    /**
+     * Injection point: the name each PubSub message type registers under. A renamed type never
+     * matches, so Twitch drops those ad notices as unknown messages. Registered once at start.
+     */
+    public static String pubSubType(String name) {
+        return enabled() ? "sabopura_off_" + name : name;
     }
 
     // ---- ③ ad server requests of the React Native screens ----
@@ -221,50 +266,60 @@ public final class AdBlock {
             count(REQUESTS);
             return true;
         } catch (Exception e) {
-            log("React Native ad request left as is: " + e);
+            Diagnostics.note("ads.react-request", e);
             return false;
         }
     }
 
     /** Injection point: AdMetadataCueRouter.route. Drops cues of client-requested ads. */
     public static boolean dropReactCue(String text) {
-        return text != null && enabled() && (text.contains("twitch-maf-ad") || text.contains("pbyp-preflight"));
+        if (text == null || !enabled()) return false;
+        return Features.has(Feature.ADS_CLIENT) && text.contains("twitch-maf-ad")
+                || Features.has(Feature.ADS_PBYP) && text.contains("pbyp-preflight");
     }
 
     // ---- ⑥ player events ----
 
+    /** Replaced by the patch: which EVENT_ kind this player event is, 0 for any other event. */
+    public static int kind(Object event) {
+        throw new IllegalStateException("Event bridge was not installed");
+    }
+
     /**
-     * Injection point: start of the event dispatch of both native players, for ad events only.
-     * The patch stores the kind in {@link #eventKind} first.
+     * Injection point: start of the event dispatch of both native players.
      *
      * @return true to drop the event.
      */
-    public static boolean onPlayerAdEvent(Object player, Object event) {
-        int kind = eventKind;
+    public static boolean onPlayerEvent(Object player, Object event) {
+        int kind = kind(event);
+        if (kind == 0) return false;
         try {
             if (kind == EVENT_LIVE_AGAIN) {
-                AdShield.end(player);
+                if (Features.has(Feature.ADS_COVER)) AdShield.end(player);
                 return false;
             }
             if (!enabled()) return false;
             switch (kind) {
                 case EVENT_STITCHED_STARTED:
                     // Reaching here means no backup session could replace the ad.
-                    if (!coverUnreplacedAds()) return false;
-                    count(COVERED);
+                    if (!Features.has(Feature.ADS_COVER) || !coverUnreplacedAds()) return false;
                     AdShield.start(player, event);
                     return true;
                 case EVENT_QUARTILE:
-                    return coverUnreplacedAds();
+                    return Features.has(Feature.ADS_COVER) && coverUnreplacedAds();
                 case EVENT_CLIENT_AD:
+                    if (!Features.has(Feature.ADS_CLIENT)) return false;
+                    count(REQUESTS);
+                    return true;
                 case EVENT_PBYP:
+                    if (!Features.has(Feature.ADS_PBYP)) return false;
                     count(REQUESTS);
                     return true;
                 default:
                     return false;
             }
-        } catch (RuntimeException e) {
-            log("Player ad event left as is: " + e);
+        } catch (RuntimeException | LinkageError e) {
+            Diagnostics.note("ads.player-event", e);
             return false;
         }
     }

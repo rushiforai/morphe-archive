@@ -4,54 +4,74 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
+import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.smali.ExternalLabel
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.builder.BuilderOffsetInstruction
 import com.android.tools.smali.dexlib2.iface.Method
-import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.ThreeRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import io.github.sabopura.morphe.patches.twitch.support.classesMatching
+import io.github.sabopura.morphe.patches.twitch.support.registerDeadAt
 import io.github.sabopura.morphe.patches.twitch.support.uniqueContract
 import java.util.logging.Logger
 
 private object AddHighlightRequested : Fingerprint(strings = listOf("AddHighlightRequested(highlightId="))
 private object AddCommunityHighlight : Fingerprint(strings = listOf("AddCommunityHighlight(model="))
 private object AddCommunityPill : Fingerprint(strings = listOf("AddCommunityPill(eventType="))
+private object LeaderboardSettings : Fingerprint(strings = listOf("ChannelLeaderboardSettings(defaultLeaderboard=", ", isCheerEnabled="))
+private object PrivateCalloutModel : Fingerprint(strings = listOf("PrivateCalloutsCommonModel(id=", ", type="))
+private object PrivateCalloutReceived : Fingerprint(strings = listOf("PrivateCalloutReceived(privateCalloutsCommonModel="))
 
 private fun Instruction.type() = ((this as? ReferenceInstruction)?.reference as? TypeReference)?.type
 private fun Instruction.call() = ((this as? ReferenceInstruction)?.reference as? MethodReference)?.toString()
 
-private fun Instruction.registers(): List<Int> = when (this) {
-    is FiveRegisterInstruction -> listOf(registerC, registerD, registerE, registerF, registerG).take(registerCount)
-    is RegisterRangeInstruction -> (startRegister until startRegister + registerCount).toList()
-    is ThreeRegisterInstruction -> listOf(registerA, registerB, registerC)
-    is TwoRegisterInstruction -> listOf(registerA, registerB)
-    is OneRegisterInstruction -> listOf(registerA)
-    else -> emptyList()
+/** Clears the Bits and gift leaderboard flags where the settings object is built. Clips stay. */
+private fun BytecodePatchContext.hideBitsLeaderboards() {
+    val settings = LeaderboardSettings.originalClassDef
+    val described = describedFields(settings)
+    for (label in listOf(", isCheerEnabled=", ", isGiftSubEnabled=")) {
+        val field = described[label] ?: throw PatchException("Highlights: leaderboard field $label moved")
+        filterConstructorFlag(settings, field, "$LINE_HOOKS->leaderboardEnabled(Z)Z", this)
+    }
 }
 
-/** The register is overwritten before anything reads it, on the straight path from [from]. */
-private fun deadAt(code: List<Instruction>, from: Int, register: Int): Boolean {
-    for (instruction in code.drop(from)) {
-        val used = instruction.registers()
-        if (register in used) {
-            return instruction is OneRegisterInstruction && instruction.registerA == register &&
-                instruction.opcode.setsRegister() && used.count { it == register } == 1 &&
-                (instruction !is TwoRegisterInstruction || instruction.registerB != register)
-        }
-        if (instruction.opcode.name.startsWith("IF_") || instruction.opcode.name.startsWith("GOTO") ||
-            instruction.opcode.name.contains("SWITCH") || instruction.opcode.name.startsWith("RETURN")) return false
-    }
-    return false
+/** Private pop-ups (watch streak reached, ...) all enter their presenter through one lambda case. */
+private fun BytecodePatchContext.hideWatchStreaks() {
+    val model = PrivateCalloutModel.originalClassDef
+    val received = PrivateCalloutReceived.originalClassDef.type
+    val typeField = model.fields.filter { field ->
+        !AccessFlags.STATIC.isSet(field.accessFlags) && classDefByOrNull(field.type)?.fields?.any { it.name == "WATCH_STREAK_REACHED" } == true
+    }.uniqueContract("private callout type field")
+    fun isDispatch(m: Method) = m.name == "invoke" && m.returnType == "Ljava/lang/Object;" &&
+        m.implementation?.instructions?.any { it.opcode == Opcode.NEW_INSTANCE && it.type() == received } == true
+    val owner = classesMatching { c -> c.methods.any(::isDispatch) }.uniqueContract("private callout dispatch")
+    val method = mutableClassDefBy(owner).methods.filter(::isDispatch).uniqueContract("private callout dispatch method")
+    val code = method.instructions.toList()
+    val create = code.indexOfFirst { it.opcode == Opcode.NEW_INSTANCE && it.type() == received }
+    val cast = (create - 1 downTo 0).first { code[it].opcode == Opcode.CHECK_CAST }
+    if (code[cast].type() != model.type) throw PatchException("Highlights: private callout model no longer cast first")
+    val modelRegister = (code[cast] as OneRegisterInstruction).registerA
+    val scratch = (code[create] as OneRegisterInstruction).registerA
+    if (modelRegister > 15 || scratch > 15 || scratch == modelRegister || !registerDeadAt(method, cast + 1, scratch))
+        throw PatchException("Highlights: no free register in the private callout dispatch")
+    val unit = code.filter { it.opcode == Opcode.SGET_OBJECT }
+        .map { (it as ReferenceInstruction).reference as FieldReference }
+        .filter { it.type == it.definingClass }.distinct().uniqueContract("Unit in the private callout dispatch")
+    method.addInstructionsWithLabels(cast + 1, """
+        iget-object v$scratch, v$modelRegister, ${model.type}->${typeField.name}:${typeField.type}
+        invoke-static {v$scratch}, $LINE_HOOKS->hideCallout(Ljava/lang/Enum;)Z
+        move-result v$scratch
+        if-eqz v$scratch, :keep
+        sget-object v$scratch, $unit
+        return-object v$scratch
+    """, ExternalLabel("keep", method.getInstruction(cast + 1)))
 }
 
 /**
@@ -62,7 +82,7 @@ private fun deadAt(code: List<Instruction>, from: Int, register: Int): Boolean {
  * hype train pill) are asked about; removals and everything else go straight on, so nothing
  * stays stuck on screen.
  */
-internal val highlightFilterPatch = bytecodePatch {
+internal val highlightFilterHook = bytecodePatch {
     extendWith("extensions/twitch.mpe")
     execute {
         val request = AddHighlightRequested.originalClassDef.type
@@ -89,7 +109,7 @@ internal val highlightFilterPatch = bytecodePatch {
         val selector = code.filter { it.opcode == Opcode.PACKED_SWITCH || it.opcode == Opcode.SPARSE_SWITCH }
             .uniqueContract("community highlight lambda switch") as OneRegisterInstruction
         val scratch = selector.registerA
-        if (scratch > 15 || event1 > 15 || !deadAt(code, start + 1, scratch))
+        if (scratch > 15 || event1 > 15 || !registerDeadAt(method, start + 1, scratch))
             throw PatchException("Highlights: no free register at the filter (selector v$scratch, event v$event1)")
         // After the cast, so the case still starts with it. "keep" is Twitch's own next
         // instruction: the label must name an instruction that occurs once in the method.
@@ -106,13 +126,8 @@ internal val highlightFilterPatch = bytecodePatch {
             sget-object v$scratch, Ljava/lang/Boolean;->FALSE:Ljava/lang/Boolean;
             return-object v$scratch
         """, ExternalLabel("keep", next))
-        // Every way out of the hook must land on Twitch's next instruction, never back in it.
-        val hook = method.instructions.toList()
-        val ask = hook.indexOfFirst { it.call()?.contains("->keepHighlight(") == true }
-        val resume = hook.indexOfFirst { it === next }
-        fun target(i: Int) = (hook.getOrNull(i) as? BuilderOffsetInstruction)?.target?.location?.index
-        if (ask < 4 || resume != ask + 5 || target(ask - 3) != ask || target(ask - 1) != resume || target(ask + 2) != resume)
-            throw PatchException("Highlights: the hook does not continue with Twitch's code (at $ask, resume $resume)")
         Logger.getLogger("Sabopura.Chat").info("Highlights: filter hook in $owner after $start (event v$event1, scratch v$scratch)")
+        hideBitsLeaderboards()
+        hideWatchStreaks()
     }
 }

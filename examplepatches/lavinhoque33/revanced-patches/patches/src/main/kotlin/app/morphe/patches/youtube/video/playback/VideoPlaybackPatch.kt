@@ -8,7 +8,7 @@
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  *
- * Modified by lavinhoque33, 2026-11-14.
+ * Modified by lavinhoque33, 2026-11-17.
  */
 
 package app.morphe.patches.youtube.video.playback
@@ -35,6 +35,8 @@ import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.shared.customspeed.customPlaybackSpeedPatch
+import app.morphe.patches.shared.mapping.ResourceType
+import app.morphe.patches.shared.mapping.getResourceId
 import app.morphe.patches.shared.drc.drcAudioPatch
 import app.morphe.patches.shared.litho.addLithoFilter
 import app.morphe.patches.shared.litho.lithoFilterPatch
@@ -55,6 +57,8 @@ import app.morphe.patches.youtube.utils.playservice.is_20_14_or_greater
 import app.morphe.patches.youtube.utils.playservice.is_20_21_or_greater
 import app.morphe.patches.youtube.utils.playservice.is_21_17_or_greater
 import app.morphe.patches.youtube.utils.playservice.is_21_04_or_greater
+import app.morphe.patches.youtube.utils.extension.Constants.PLAYER_CLASS_DESCRIPTOR
+import app.morphe.patches.youtube.utils.playservice.is_21_11_or_greater
 import app.morphe.patches.youtube.utils.playservice.versionCheckPatch
 import app.morphe.patches.youtube.utils.recyclerview.recyclerViewTreeObserverHook
 import app.morphe.patches.youtube.utils.recyclerview.recyclerViewTreeObserverPatch
@@ -80,6 +84,8 @@ import app.morphe.util.copyResources
 import app.morphe.util.findInstructionIndicesReversedOrThrow
 import app.morphe.util.findMethodOrThrow
 import app.morphe.util.indexOfFirstInstructionOrThrow
+import app.morphe.util.indexOfFirstLiteralInstruction
+import app.morphe.util.Utils.printWarn
 import app.morphe.util.insertLiteralOverride
 import app.morphe.util.updatePatchStatus
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -198,6 +204,45 @@ val videoPlaybackPatch = bytecodePatch(
                             "$EXTENSION_PLAYBACK_SPEED_CLASS_DESCRIPTOR->userSelectedPlaybackSpeed(F)V"
                 )
             }
+        }
+
+        // A held Short uses the same configured hold speed as the regular player.
+        if (is_21_11_or_greater) {
+            SpeedmasterStartFingerprint.let {
+                it.method.apply {
+                    // Insert the later text hook first, preserving the matched speed index.
+                    val textIndex = indexOfFirstLiteralInstruction(
+                        getResourceId(ResourceType.STRING, "reel_speedmaster_indicator_text")
+                    )
+                    if (textIndex >= 0) {
+                        val textResultIndex = indexOfFirstInstructionOrThrow(textIndex, Opcode.MOVE_RESULT_OBJECT)
+                        val textRegister = getInstruction<OneRegisterInstruction>(textResultIndex).registerA
+                        val textHook = "$PLAYER_CLASS_DESCRIPTOR->" +
+                                "getShortsTapAndHoldText(Ljava/lang/String;)Ljava/lang/String;"
+
+                        addInstructions(
+                            textResultIndex + 1,
+                            """
+                                invoke-static { v$textRegister }, $textHook
+                                move-result-object v$textRegister
+                            """
+                        )
+                    }
+
+                    val speedIndex = it.instructionMatches[1].index
+                    val speedRegister = getInstruction<OneRegisterInstruction>(speedIndex).registerA
+
+                    addInstructions(
+                        speedIndex + 1,
+                        """
+                            invoke-static { v$speedRegister }, $PLAYER_CLASS_DESCRIPTOR->speedOverlayValue(F)F
+                            move-result v$speedRegister
+                        """
+                    )
+                }
+            }
+        } else {
+            printWarn("Configured Shorts hold speed requires YouTube 21.11+; keeping the legacy speed path.")
         }
 
         if (is_21_04_or_greater) {

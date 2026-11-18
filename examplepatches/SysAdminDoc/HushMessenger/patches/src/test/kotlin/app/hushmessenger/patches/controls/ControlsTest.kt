@@ -248,6 +248,32 @@ class ControlsTest {
         assertEquals(10, code.size)
     }
 
+    /**
+     * #196: Hide messages with your words reads a chat row's text through the same getter Keep unsent messages uses, so
+     * it can show [hidden] in the row's place. The block runs both controls' gates, so the second control through finds
+     * the route already there, validates against that rather than a stock body, and changes nothing.
+     */
+    @Test fun aSecondControlOnTheRowTextGetterLeavesTheBlockAsItIs() = withCqlRowNames {
+        val secret = cqlRowFixture().methods.single { it.name == "BWo" }
+        assertNull(secret.unsentIndicatorRouted())
+        secret.injectUnsentIndicator()
+        val routed = secret.implementation!!.instructions.toList()
+        assertEquals(true, secret.unsentIndicatorRouted(), "an encrypted chat's row goes through the class's helper")
+        assertTrue(secret.validateUnsentIndicator())
+        secret.injectUnsentIndicator()
+        assertEquals(routed, secret.implementation!!.instructions.toList())
+
+        // An ordinary chat's row takes the other route, straight to the extension, and that one is just as final.
+        val wrapper = messageWrapperFixture().methods.single { it.name == "BWo" }
+        assertNull(wrapper.unsentIndicatorRouted())
+        wrapper.injectUnsentIndicator()
+        val plain = wrapper.implementation!!.instructions.toList()
+        assertEquals(false, wrapper.unsentIndicatorRouted())
+        assertFalse(wrapper.validateUnsentIndicator())
+        wrapper.injectUnsentIndicator()
+        assertEquals(plain, wrapper.implementation!!.instructions.toList())
+    }
+
     /** #172 on 587: the helper reads the row's ids, time, sender, type and subtype and hands them to the extension in order. */
     @Test fun theUnsentRowHelperReadsEveryColumnTheExtensionNeeds() = withCqlRowNames {
         val row = cqlRowFixture()

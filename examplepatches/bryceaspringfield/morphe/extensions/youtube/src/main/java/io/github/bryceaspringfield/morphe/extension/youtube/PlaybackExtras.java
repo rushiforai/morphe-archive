@@ -39,6 +39,8 @@ public final class PlaybackExtras {
     /** Uptime at which the app left the screen (home, another app), or 0 while it shows. */
     private static long leftAt;
     private static boolean pipArmed;
+    private static int pipTicks;
+    private static long pipLastTime = -1;
     private static boolean playingAtScreenOff;
     private static int resumes;
     private static VideoQualityInterface qualityBefore;
@@ -113,9 +115,19 @@ public final class PlaybackExtras {
         try {
             Activity a = HomeMore.resumedMain();
             if (a != null && android.os.Build.VERSION.SDK_INT >= 31) {
-                boolean want = XSettings.AUTO_PIP.get() && VideoState.getCurrent() == VideoState.PLAYING
+                // The state is null in Morphe Patches 2.3.0 until it changes (seen 2026-11-17, a live stream playing), so a
+                // video whose time moved since the last tick counts as playing too.
+                long time = VideoInformation.getVideoTime();
+                boolean moved = time != pipLastTime;
+                pipLastTime = time;
+                VideoState vs = VideoState.getCurrent();
+                boolean want = XSettings.AUTO_PIP.get() && (vs == VideoState.PLAYING || (vs == null && moved))
                         && app.morphe.extension.youtube.shared.PlayerType.getCurrent().isMaximizedOrFullscreen()
                         && !a.isInPictureInPictureMode();
+                if (XSettings.DEBUG.get() && XSettings.AUTO_PIP.get() && ++pipTicks % 5 == 0) {
+                    Logger.printDebug(() -> "YouTube Extras: auto picture in picture check: state " + VideoState.getCurrent()
+                            + ", player " + app.morphe.extension.youtube.shared.PlayerType.getCurrent() + ", in pip " + a.isInPictureInPictureMode() + ", armed " + pipArmed);
+                }
                 if (want != pipArmed) {
                     pipArmed = want;
                     a.setPictureInPictureParams(new PictureInPictureParams.Builder()

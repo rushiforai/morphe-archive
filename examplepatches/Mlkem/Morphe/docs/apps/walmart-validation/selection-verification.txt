@@ -1,0 +1,1 @@
+Independent ads/history selection includes the Sparky replacement dependency and all nine required hook targets.

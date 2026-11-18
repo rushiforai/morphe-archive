@@ -500,6 +500,15 @@ Entry %1$d has a field with the wrong data type.	%1$d nömrəli girişdə səhv 
 Entry %1$d isn't an object.	%1$d nömrəli giriş obyekt deyil.
 Errors	Xətalar
 Expand activity list	Fəaliyyət siyahısını genişləndirin
+Group likes per comment	Bəyənmələri şərhə görə qruplaşdır
+Show one row for each comment or video people liked, with everyone who liked it counted, instead of a new row for every few likes. Applies the next time the Likes list loads.	Bəyənilən hər şərh və ya video üçün bir sətir göstərir və bəyənən hər kəsi sayır, bir neçə bəyənmədən bir yeni sətir açılmır. Bəyənmələr siyahısı növbəti dəfə yüklənəndə tətbiq olunur.
+Swap lists	Siyahıların yerini dəyiş
+Split the Activity page	Fəaliyyət səhifəsini böl
+Show your newest comments at the top of the Activity page and likes below, each scrolling on its own. The bar between them swaps the two lists or hides the lower one until you bring it back. Picking another list from Activity still shows just that list. Applies the next time the page opens.	Fəaliyyət səhifəsinin yuxarısında ən yeni şərhlərini, altında isə bəyənmələri göstərir, hər biri ayrıca sürüşdürülür. Aradakı zolaq iki siyahının yerini dəyişir və ya sən geri qaytarana qədər aşağıdakını gizlədir. Fəaliyyət bölməsindən başqa siyahı seçsən, yalnız o siyahı göstərilir. Səhifə növbəti dəfə açılanda tətbiq olunur.
+Hide likes	Bəyənmələri gizlət
+Show likes	Bəyənmələri göstər
+Hide comments	Şərhləri gizlət
+Show comments	Şərhləri göstər
 Explore or Community	Kəşf et və ya İcma
 Export diagnostic report	Diaqnostik hesabatı ixrac edin
 Export loaded values	Yüklənmiş dəyərləri ixrac edin
@@ -532,6 +541,8 @@ Filters, translation and copy options	Filtrlər, tərcümə və kopyalama seçim
 First caller	İlk çağıran
 First rejection:	İlk rədd:
 Fit the video to the screen	Videonu ekrana sığdırın
+Fill a tall screen instead	Hündür ekranı bunun əvəzinə doldur
+With the switch above on, the video is cropped to fill a tall screen like a folding phone's front screen. A squarer one, like the big screen opened up, still shows the whole video.	Yuxarıdakı açar açıq olanda qatlanan telefonun ön ekranı kimi hündür ekranda video kəsilib ekranı doldurur. Açılmış böyük ekran kimi daha kvadrat ekran isə videonu tam göstərir.
 Fill the screen with the video	Ekranı videoyla doldurun
 Crop the video until it covers the whole window. On a tall phone the black strip TikTok leaves under a video goes and so does a little of each side.	Videonu bütün pəncərəni örtənə qədər kəsin. Hündür telefonda TikTok-un videonun altında buraxdığı qara zolaq yox olur, hər iki tərəfdən də bir az kəsilir.
 Focus	Fokus
@@ -1433,6 +1444,27 @@ TikTok closed three times within a minute of starting, so Hushfeed paused itself
 A file named hushfeed-safe-mode in TikTok's folder under Android/data paused Hushfeed. Your settings stay as they are.	Android/data altında TikTok-un qovluğundakı hushfeed-safe-mode adlı fayl Hushfeed-i durdurdu. Ayarlarınız olduğu kimi qalır.
 Turn Hushfeed back on	Hushfeed-i yenidən yandırın
 Pause Hushfeed	Hushfeed-i durdurun
+Settings theme	Ayarlar mövzusu
+Hushfeed language	Hushfeed dili
+For Hushfeed's settings and messages. TikTok keeps its own language.	Hushfeed ayarları və mesajları üçün. TikTok öz dilində qalır.
+# context: the rows below are each language's own name in the Hushfeed language list, kept as they are in every table
+English	English
+العربية	العربية
+Azərbaycan dili	Azərbaycan dili
+Deutsch	Deutsch
+Español	Español
+Bahasa Indonesia	Bahasa Indonesia
+Italiano	Italiano
+Português (Brasil)	Português (Brasil)
+Русский	Русский
+ไทย	ไทย
+Türkçe	Türkçe
+Tiếng Việt	Tiếng Việt
+简体中文	简体中文
+Match TikTok	TikTok ilə eyni
+Always dark	Həmişə tünd
+Always light	Həmişə açıq
+Colors these settings and Hushfeed's own pop-ups.	Bu ayarları və Hushfeed-in öz pəncərələrini rəngləyir.
 Pause Hushfeed's switches after TikTok restarts. Your settings stay saved. Changes made when you patched, like the app's name or icon, stay.	TikTok yenidən başladıqdan sonra Hushfeed-in açarlarını dayandırın. Ayarlarınız saxlanılır. Yamaqlayanda edilən dəyişikliklər, məsələn tətbiqin adı və ya ikonu, qalır.
 Hushfeed turns back on when TikTok restarts.	TikTok yenidən başlayanda Hushfeed yenidən yanır.
 The file hushfeed-safe-mode couldn't be removed. Delete it from TikTok's folder under Android/data to turn Hushfeed back on.	hushfeed-safe-mode faylı silinə bilmədi. Hushfeed-i yenidən yandırmaq üçün onu Android/data altında TikTok-un qovluğundan silin.
@@ -1818,6 +1850,8 @@ Hide the Service+ row under LIVE previews	LIVE önizləmələrinin altındakı S
 A LIVE in the feed can show a Service+ line under the creator's name, such as Ask me anything. This keeps it hidden.	Lentdəki LIVE yaradıcının adının altında Service+ sətri göstərə bilər, məsələn Mənə istənilən sualı ver. Bu onu gizli saxlayır.
 Play sounds TikTok pulled	TikTok-un çıxardığı səsləri oynat
 Play the audio on videos TikTok silenced because their sound was pulled for copyright or in your region. TikTok may still say the sound isn't available.	Səsi müəllif hüququna görə və ya bölgənizdə çıxarıldığı üçün TikTok-un səssizləşdirdiyi videolarda səsi oynadır. TikTok yenə də səsin əlçatan olmadığını göstərə bilər.
+Play original audio	Orijinal səsi oxut
+Play videos and mini dramas in their own language instead of TikTok's AI dub in your app language. Captions and translations stay as they are.	Videoları və mini serialları TikTok-un tətbiq dilindəki süni intellekt dublyajı əvəzinə öz dillərində oxudur. Altyazılar və tərcümələr olduğu kimi qalır.
 Match region fields in requests	Sorğulardakı region sahələrini uyğunlaşdır
 Keep the For You feed on your real SIM	Sənin üçün lentini əsl SIM-də saxla
 With the SIM changed, TikTok can keep showing videos you've already watched. Turn this on to stop that. Sticker search and the rest of TikTok still see the SIM above, while For You asks for videos with your phone's own SIM country and carrier. Your IP address and account history still count.	SIM dəyişdirildikdə TikTok artıq izlədiyiniz videoları təkrar-təkrar göstərə bilər. Bunu dayandırmaq üçün açın. Stiker axtarışı və TikTok-un qalanı yuxarıdakı SIM-i görməyə davam edir, Sənin üçün isə telefonunuzun öz SIM ölkəsi və operatoru ilə video istəyir. IP ünvanınız və hesab tarixçəniz yenə də nəzərə alınır.
@@ -2248,6 +2282,8 @@ Show the time zone	Saat qurşağını göstərin
 Puts your time zone after the time to the second, like EDT.	Saniyəsinə qədər göstərilən vaxtın ardından saat qurşağınızı yazır, məsələn EDT.
 Short date	Qısa tarix
 Writes the date before the time to the second the short way your language does, like 10/7/25.	Saniyəsinə qədər göstərilən vaxtdan əvvəlki tarixi dilinizin qısa yazılışı ilə yazır, məsələn 07.10.25.
+Day before month	Gün aydan əvvəl
+Writes TikTok's date by the creator's name day first, like 29.09, with the year after it for an older video. Ages like 2d ago stay as they are.	TikTok-un yaradıcının adı yanındakı tarixini gün əvvəl yazır, məsələn 29.09, köhnə video üçün ardınca il ilə. 2 gün əvvəl kimi yaşlar olduğu kimi qalır.
 Color commenter names	Şərh yazanların adlarını rənglə
 Give each commenter's name a color of its own, the same one every time you see that account, so a long thread is easier to follow.	Hər şərh yazanın adına öz rəngini verin. O hesabı hər dəfə gördükdə eyni rəng olur, beləcə uzun müzakirəni izləmək asanlaşır.
 Show the country as a flag	Ölkəni bayraqla göstərin
@@ -2297,6 +2333,8 @@ How much of the video shows through the glass pill on the main feed. Most see-th
 On the main feed, a raised bubble of glass sits behind the tab you're on and slides to the next tab you pick. Works on any bottom bar, with or without Liquid glass look.	Əsas lentdə olduğunuz tabın arxasında qabarıq şüşə qabarcığı durur və seçdiyiniz növbəti taba sürüşür. Maye şüşə görünüşü ilə və ya onsuz, istənilən alt paneldə işləyir.
 Slide across the tabs	Tablar boyunca sürüşdür
 On the main feed, slide a finger along the tabs and the lens follows it. Let go and that tab opens. Taps and long presses work as before. Needs Glass lens on the current tab.	Əsas lentdə barmağınızı tablar boyunca sürüşdürün və linza onu izləyir. Buraxın və həmin tab açılır. Toxunuşlar və uzun basmalar əvvəlki kimi işləyir. Cari tabda şüşə linza açıq olmalıdır.
+Liquid glass when held	Basılı saxlayanda maye şüşə
+On the main feed, hold a finger on the tabs and the glass lens swells, then wobbles back when you let go. With Blur the video behind the bar on Android 13 and up, the video under it bends harder and splits into color at its edge. Needs Glass lens on the current tab.	Əsas lentdə barmağınızı tablar üzərində saxlayın, şüşə linza şişir və buraxanda yırğalanaraq geri qayıdır. Android 13 və yuxarıda Panelin arxasındakı videonu bulanıqlaşdırın açıq olanda, altındakı video daha çox əyilir və kənarında rənglərə ayrılır. Cari tabda şüşə linza açıq olmalıdır.
 Haptics on the tabs	Tablarda vibrasiya
 On the main feed, a light tick each time the glass lens passes a tab, as it slides after a tap or under your finger. Needs Glass lens on the current tab.	Əsas lentdə şüşə linza hər dəfə bir tabın üstündən keçəndə, toxunuşdan sonra və ya barmağınızın altında sürüşəndə yüngül tıqqıltı. Cari tabda şüşə linza açıq olmalıdır.
 Haptic style	Vibrasiya üslubu
@@ -2520,6 +2558,16 @@ Proxy %1$s needs a user name and password	%1$s proksisinə ad və parol lazımd�
 Proxy %1$s refused your user name or password	%1$s proksisi ad və ya parolu rədd etdi
 Save this video	Bu videonu saxlayın
 Show the save button on videos	Videolarda saxlama düyməsini göstərin
+Hold TikTok's save button to download	Yükləmək üçün TikTok-un saxlama düyməsini basıb saxlayın
+Press and hold the save button in the right column to save the video with your download settings. A tap still adds it to Favorites. It wins over Hold speed on Favorites.	Videonu yükləmə ayarlarınızla saxlamaq üçün sağ sütundakı saxlama düyməsini basıb saxlayın. Bir toxunuş onu yenə Sevimlilərə əlavə edir. Favoritlərdə basıb saxlama sürəti seçimindən üstündür.
+Size of the buttons on videos	Videolardakı düymələrin ölçüsü
+Size of the LIVE buttons	LIVE düymələrinin ölçüsü
+Smallest	Ən kiçik
+Small	Kiçik
+Large	Böyük
+Line them up over the right column	Onları sağ sütunun üstündə düzün
+Stack the buttons above TikTok's own on the right, starting over the avatar. They follow the column instead of staying where you dragged them.	Düymələri sağdakı TikTok düymələrinin üstünə, avatardan başlayaraq yığın. Onlar sürüklədiyiniz yerdə qalmır, sütunu izləyir.
+Turn off Line them up over the right column to move it	Əvvəlcə Onları sağ sütunun üstündə düzün söndürün
 Add a button beside the block control that saves the video on screen in one tap. Drag it wherever you like.	Bloklama idarəetməsinin yanına ekrandakı videonu bir toxunuşla saxlayan düymə əlavə edin. Onu istədiyiniz yerə sürükləyin.
 Couldn't save this one. Try again.	Saxlamaq alınmadı. Yenidən cəhd edin.
 Opening TikTok or your messages no longer pauses music from another app. TikTok takes the sound while a video plays and gives it back when you leave the video.	TikTok-u və ya mesajlarınızı açmaq artıq başqa tətbiqdəki musiqini dayandırmır. TikTok səsi video oxunarkən alır və videodan çıxanda geri qaytarır.
@@ -2617,6 +2665,18 @@ Clearing Favorites in %1$d	Favoritlər təmizlənir: %1$d
 Reposts removed: %1$d	Silinən yenidən paylaşmalar: %1$d
 Likes removed: %1$d	Silinən bəyənmələr: %1$d
 Favorites removed: %1$d	Favoritlərdən silinən: %1$d
+Remove all comments	Bütün şərhləri silin
+Deletes every comment you've posted one after another.	Yazdığınız bütün şərhləri bir-bir silir.
+Remove selected comments	Seçilmiş şərhləri silin
+Pick comments from your comment history to delete.	Şərh tarixçənizdən silinəcək şərhləri seçin.
+Removing all comments in %1$d	Şərhlər silinir: %1$d
+Removing the picked comments in %1$d	Seçilmiş şərhlər silinir: %1$d
+Comments removed: %1$d	Silinən şərhlər: %1$d
+TikTok refused to list your comments	TikTok şərhlərinizi göstərməkdən imtina etdi
+Couldn't load your comments. Try again.	Şərhləriniz yüklənmədi. Yenidən cəhd edin.
+Loading your comments	Şərhləriniz yüklənir
+No comments to show	Göstəriləcək şərh yoxdur
+No text	Mətn yoxdur
 Nothing to remove	Silinəcək heç nə yoxdur
 Done. %1$d removed.	Hazırdır. Silindi: %1$d.
 Stopped. %1$d removed.	Dayandırıldı. Silindi: %1$d.
@@ -2626,6 +2686,14 @@ Not available on this TikTok version	Bu TikTok versiyasında mövcud deyil
 Sign in to TikTok first	Əvvəlcə TikTok-a daxil olun
 A removal is already running	Silmə artıq gedir
 Cancelled	Ləğv edildi
+# context: A switch under Clean up your account on the Privacy page
+Tap a video to remove it	Silmək üçün videoya toxunun
+In your own Liked videos, Favorites and Reposts, a tap takes the video off that list instead of opening it.	Öz Bəyənilən videolarınızda, Favoritlərinizdə və yenidən paylaşmalarınızda toxunuş videonu açmaq əvəzinə o siyahıdan çıxarır.
+# context: Toasts after one tap on your own Liked, Favorites or Reposts grid removes a video, or fails to
+Couldn't remove that video. Try again.	Bu videonu silmək alınmadı. Yenidən cəhd edin.
+Removed from Liked videos	Bəyənilən videolardan silindi
+Removed from Favorites	Favoritlərdən silindi
+Removed from Reposts	Yenidən paylaşmalardan silindi
 Show inbox filters	Gələnlər qutusu filtrlərini göstər
 Adds the Main, Requests, Unread and Starred tabs above your chats, the ones TikTok gives creator accounts.	Söhbətlərinizin üstünə TikTok-un yaradıcı hesablarına verdiyi Əsas, Sorğular, Oxunmamış və Ulduzlu tablarını əlavə edir.
 Rebuild message search	Mesaj axtarışını yenidən qur
@@ -2914,3 +2982,33 @@ Keep the middle unstretched	Ortanı uzatmadan saxla
 Cover the whole window and keep the middle of the video at its own shape. A little comes off the sides, and only the top and bottom are stretched. A video far from the screen's shape keeps TikTok's size.	Bütün pəncərəni örtür və videonun ortasını öz formasında saxlayır. Kənarlardan bir az kəsilir, yalnız yuxarı və aşağı hissə uzadılır. Forması ekrandan çox fərqli olan video TikTok-un ölçüsünü saxlayır.
 # context: A Feature Gate Lab preset title: when a video is paused, TikTok shows a search tag on things in the frame, which opens its visual search
 Visual search on paused videos	Dayandırılmış videolarda vizual axtarış
+App icon	Tətbiq ikonu
+Some home screens drop the icon when it changes. If yours does, add TikTok back from the app list.	Bəzi əsas ekranlar ikon dəyişəndə onu silir. Səninki belə edirsə, TikTok-u tətbiq siyahısından yenidən əlavə et.
+Icon changed	İkon dəyişdi
+Couldn't change the icon. Try again.	İkonu dəyişmək alınmadı. Yenidən cəhd et.
+TikTok colors	TikTok rəngləri
+Black background	Qara fon
+White on black	Qara üzərində ağ
+Black on white	Ağ üzərində qara
+Material You	Material You
+Your icon	Sənin ikonun
+Save episodes	Epizodları saxla
+Pick episodes to save	Saxlanacaq epizodları seç
+Episode %1$s	Epizod %1$s
+Preview only	Yalnız önizləmə
+Loading episodes	Epizodlar yüklənir
+Couldn't load the episodes. Try again.	Epizodlar yüklənmədi. Yenidən cəhd edin.
+Pick at least one episode	Ən azı bir epizod seç
+Saving %1$s. Tap Save again for the rest.	%1$s saxlanılır. Qalanı üçün yenə Saxla-ya toxun.
+Save episodes button in the share sheet	Paylaşma vərəqində Epizodları saxla düyməsi
+Adds Save episodes when you share an episode of a mini drama. It lists the drama's episodes so you can pick several and save them in one go. An episode you haven't unlocked saves only its preview.	Mini dram epizodunu paylaşanda Epizodları saxla əlavə edir. Dramın epizodlarını göstərir ki, bir neçəsini seçib birdəfəyə saxlayasınız. Açmadığınız epizodun yalnız önizləməsi saxlanılır.
+Save to a collection	Kolleksiyaya saxla
+Collections aren't available for this video	Bu video üçün kolleksiyalar əlçatan deyil
+# context: Inbox settings, two switches under Hide On this day. The first hides LIVE circles in the stories tray from accounts the user doesn't follow. The second hides the Widget circle TikTok puts at the end of the tray, which offers its home screen widget.
+Hide LIVEs from accounts you don't follow	İzləmədiyiniz hesabların LIVE-larını gizlədin
+LIVEs from accounts you don't follow leave the stories tray. LIVEs from accounts you follow stay.	İzləmədiyiniz hesabların LIVE-ları hekayə panelindən çıxır. İzlədiyiniz hesabların LIVE-ları qalır.
+Hide the Widget circle	Vidjet dairəsini gizlədin
+The Widget circle at the end of the stories tray goes. TikTok's home screen widget still works.	Hekayə panelinin sonundakı vidjet dairəsi yox olur. TikTok-un ana ekran vidjeti işləməyə davam edir.
+# context: Feed screen settings, a switch under Show video length on profile grids. It removes the view count and the play icon from each video tile on profile grids. If the date, video length or engagement rate are switched on, they take the first line instead.
+Hide view counts on profile grids	Profil şəbəkəsində baxış saylarını gizlədin
+Takes the view count and its play icon off each video on profile grids. Dates, lengths and the engagement rate you turned on move up in its place.	Profil şəbəkəsində hər videodan baxış sayını və onun oynatma ikonunu götürür. Açdığınız tarixlər, uzunluqlar və qarşılıqlı əlaqə nisbəti onun yerinə yuxarı qalxır.

@@ -20,8 +20,18 @@ public class Entity {
     private static final ConcurrentHashMap<Class<?>, ConcurrentHashMap<String, Method>> METHOD_CACHE = new ConcurrentHashMap<>();
     private static final Class<?>[] NO_PARAM_TYPES = new Class<?>[0];
 
+    protected static Object unwrapEntityObject(Object candidate) {
+        int guard = 0;
+        while (candidate instanceof Entity && guard++ < 8) {
+            Object inner = ((Entity) candidate).getObject();
+            if (inner == null || inner == candidate) break;
+            candidate = inner;
+        }
+        return candidate;
+    }
+
     public Entity(Object obj) {
-        this.obj = obj;
+        this.obj = unwrapEntityObject(obj);
     }
 
     public Entity() {

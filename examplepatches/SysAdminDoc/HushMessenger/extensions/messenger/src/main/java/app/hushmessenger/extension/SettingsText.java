@@ -6,6 +6,7 @@ import android.os.Build;
 import android.os.LocaleList;
 import android.text.TextUtils;
 import android.view.View;
+import java.text.NumberFormat;
 import java.util.IllegalFormatException;
 import java.util.LinkedHashMap;
 import java.util.Locale;
@@ -72,6 +73,9 @@ final class SettingsText {
     String count(String id, int count) { return get(id + (count == 1 ? "_one" : "_many"), count); }
 
     String number(int count) { return String.format(locale, "%d", count); }
+
+    /** [percent] the way this language writes a percentage ("25%", "25 %", "%25"), for placing inside other text. */
+    String percent(int percent) { return NumberFormat.getPercentInstance(locale).format(percent / 100.0); }
 
     String display(String english) {
         if (english.isEmpty()) return english;
@@ -217,16 +221,42 @@ final class SettingsText {
         ENGLISH.put("call_recording_channel", "Call recording");
         ENGLISH.put("call_recording_saved", "Call saved to %1$s");
         ENGLISH.put("call_recording_failed", "Couldn't record this call");
+        ENGLISH.put("call_recording_scope", "Calls to record");
+        ENGLISH.put("call_recording_scope_tap", "Only when I tap Record");
+        ENGLISH.put("call_recording_scope_all", "Every call");
+        ENGLISH.put("call_recording_scope_chosen", "Only chosen chats");
+        ENGLISH.put("call_recording_scope_help", "A call starts recording itself as soon as it begins. Only chosen chats records the people you switch on below, and an outgoing call is matched by the name on the call screen.");
+        ENGLISH.put("call_recording_scope_picked", "Calls to record: %1$s");
+        ENGLISH.put("call_recording_recent_empty", "Chats show up here once they call you, newest first.");
+        ENGLISH.put("call_recording_folder", "Recordings folder");
+        ENGLISH.put("call_recording_folder_help", "Recordings go to the phone's own Recordings folder unless you pick another one. Pick a folder on an SD card or in a cloud app's folder and they're written straight there.");
+        ENGLISH.put("call_recording_folder_default", "The phone's Recordings folder");
+        ENGLISH.put("call_recording_folder_choose", "Pick a folder");
+        ENGLISH.put("call_recording_folder_reset", "Use the default");
+        ENGLISH.put("call_recording_folder_picked", "Recordings folder: %1$s");
+        ENGLISH.put("call_recording_folder_refused", "Couldn't use that folder. Pick one you can write to.");
+        ENGLISH.put("call_recording_format", "Save calls as");
+        ENGLISH.put("call_recording_format_wav", "WAV, the best quality");
+        ENGLISH.put("call_recording_format_ogg", "OGG Opus, about a tenth the size");
+        ENGLISH.put("call_recording_format_help", "An hour of call is around 115 MB as a WAV and nearer 10 MB as Opus, and the voices sound much the same. WAV plays in anything, where a few older players don't know Opus.");
+        ENGLISH.put("call_recording_format_picked", "Save calls as: %1$s");
+        ENGLISH.put("call_recording_format_unavailable", "This phone has no Opus encoder, so calls are saved as WAV whichever you pick.");
+        ENGLISH.put("call_recording_tracks", "The two sides");
+        ENGLISH.put("call_recording_tracks_mixed", "Together in one track");
+        ENGLISH.put("call_recording_tracks_sides", "One each, you on the left");
+        ENGLISH.put("call_recording_tracks_help", "One track is the usual recording, and both voices share it. One each puts you on the left and the other person on the right, so you can listen to either side on its own. It makes the file twice the size.");
+        ENGLISH.put("call_recording_tracks_picked", "The two sides: %1$s");
         ENGLISH.put("call_recording_keep", "Keep recordings");
         ENGLISH.put("call_recording_keep_all", "Keep them all");
         ENGLISH.put("call_recording_keep_days", "For %1$s days");
         ENGLISH.put("call_recording_keep_help", "Checked after a call is saved. Only the recordings this made are counted, and anything you've moved or renamed stays where it is.");
         ENGLISH.put("call_recording_keep_picked", "Keep recordings: %1$s");
         ENGLISH.put("call_recording_notify", "Notify when a call is saved");
-        ENGLISH.put("call_recording_notify_help", "A notification once the recording is written, with the name of the file. Tap it to play the recording, or Share to send it somewhere.");
+        ENGLISH.put("call_recording_notify_help", "A notification once the recording is written, with the name of the file. Tap it to play the recording, Send in a chat to put it in a chat of your own, or Share to send it anywhere else.");
         ENGLISH.put("call_recording_saved_channel", "Saved call recordings");
         ENGLISH.put("call_recording_saved_title", "Call recording saved");
         ENGLISH.put("call_recording_share", "Share");
+        ENGLISH.put("call_recording_send", "Send in a chat");
         ENGLISH.put("call_captions_unsupported", "This needs Android 13 or newer. Your choice is saved.");
         ENGLISH.put("call_captions_speak", "Read captions aloud");
         ENGLISH.put("call_captions_speak_help", "Reads each caption out loud in the phone's voice once it's finished. Use earphones so the other people don't hear it too.");
@@ -290,7 +320,11 @@ final class SettingsText {
         ENGLISH.put("message_actions_empty_sent", "Press and hold a message you sent, and its actions show up here.");
         ENGLISH.put("message_actions_empty_got", "Press and hold a message you got, and its actions show up here.");
         ENGLISH.put("chat_menu_items_empty", "Press and hold a chat in your chat list, and its menu's items show up here.");
-        ENGLISH.put("invisible_buttons_empty", "Open a chat once, and every button it shows you turns up here.");
+        ENGLISH.put("invisible_buttons_empty", "Use Messenger for a bit, and every button it shows you turns up here.");
+        ENGLISH.put("invisible_buttons_level_choice", "%1$s for %2$s");
+        ENGLISH.put("invisible_buttons_invisible", "Invisible now");
+        ENGLISH.put("invisible_buttons_visible", "Back to normal");
+        ENGLISH.put("invisible_buttons_level", "Now %1$s visible");
         ENGLISH.put("message_actions_hidden_label", "%1$s (hidden)");
         ENGLISH.put("message_actions_move_up", "Move %1$s up");
         ENGLISH.put("message_actions_move_down", "Move %1$s down");
@@ -323,6 +357,9 @@ final class SettingsText {
         ENGLISH.put("facebook_keep_profile_help", "Leaves the Profile button on a chat's details page and the View profile button at the top of a new chat, so you can still open the person's Facebook profile. The other Facebook shortcuts stay hidden.");
         ENGLISH.put("avatar_shape_rounded", "Round the corners");
         ENGLISH.put("avatar_shape_rounded_help", "Gives the squares rounded corners instead of sharp ones.");
+        ENGLISH.put("hidden_words_words", "Words to hide");
+        ENGLISH.put("hidden_words_hint", "Up to %1$d characters, separated by commas");
+        ENGLISH.put("hidden_words_help", "A whole word has to match, so \"ok\" doesn't hide \"okay\". Capital letters don't matter.");
         ENGLISH.put("home_header_words", "Words");
         ENGLISH.put("home_header_words_hint", "Up to %1$d characters");
         ENGLISH.put("home_header_none", "No words or picture yet, so Messenger's wordmark stays.");
@@ -453,6 +490,8 @@ final class SettingsText {
         ENGLISH.put("log_out_unavailable", "Messenger's Log out wasn't found in this build, so use the one in Messenger's menu.");
         ENGLISH.put("log_out_failed", "Messenger's Log out didn't open. The one in Messenger's menu still works.");
         ENGLISH.put("source", "Source and licenses");
+        ENGLISH.put("licenses_hint", "What HushMessenger carries from the projects it's built on. The notices stay in English, like the licenses they come from.");
+        ENGLISH.put("licenses_source", "Source code");
         ENGLISH.put("no_browser", "No web browser found on this phone");
         ENGLISH.put("page_blocked", "Your phone didn't allow opening that page");
         ENGLISH.put("support", "Support HushMessenger");
@@ -483,7 +522,7 @@ final class SettingsText {
         ENGLISH.put("quick_undone_many", "Put back %d controls");
         ENGLISH.put("undo", "Undo");
         ENGLISH.put("undo_action", "Undo %s");
-        ENGLISH.put("credits", "GPL-3.0. Includes work from De-Vanced, ReVanced, Doom and Messenger Cleaner.");
+        ENGLISH.put("credits", "GPL-3.0. Includes work from Morphe, De-Vanced, ReVanced, Doom and Messenger Cleaner.");
         ENGLISH.put("independent", "Independent of Meta and Morphe.");
         ENGLISH.put("clipboard", "HushMessenger setup");
         ENGLISH.put("copied", "Setup copied");
@@ -502,9 +541,12 @@ final class SettingsText {
         ENGLISH.put("import_same", "Your choices already match that backup.");
         // Nothing changed, but the backup had more in it than this phone took, so it doesn't match.
         ENGLISH.put("import_none_changed", "None of your choices changed.");
-        ENGLISH.put("import_auto_reply_off", "Auto reply stays off. Backups don't carry replies.");
+        ENGLISH.put("import_auto_reply_off", "Auto reply stays off. That backup has no replies.");
         ENGLISH.put("import_empty", "Nothing to paste. Copy your choices first.");
         ENGLISH.put("import_invalid", "Not a choices backup. Nothing changed.");
+        ENGLISH.put("import_too_large", "That backup is bigger than 128 KB, so nothing changed.");
+        ENGLISH.put("export_too_large", "Your choices are too big for one backup.");
+        ENGLISH.put("export_too_large_detail", "Most of it is from %s. Nothing was copied or saved.");
         ENGLISH.put("restore_failed", "Couldn't read that file. Try again, or pick another file.");
         ENGLISH.put("choices_file_no_picker", "Couldn't open a file picker on this phone.");
         ENGLISH.put("import_unknown_one", "Skipped %d choice this version doesn't know.");
@@ -514,7 +556,7 @@ final class SettingsText {
         ENGLISH.put("import_no_choices", "Nothing to restore. None of those match your patches.");
         ENGLISH.put("save_choices_file", "Save choices to a file");
         ENGLISH.put("read_choices_file", "Restore choices from a file");
-        ENGLISH.put("choices_file_help", "Saves only your choices, up to 16 KB. No chats or accounts are included. Choices missing from the file stay as they are. If settings close while you pick a file, pick it again.");
+        ENGLISH.put("choices_file_help", "Saves your choices, up to 128 KB, auto replies and hidden or pinned chats included. Messages and pictures stay out of it, and so does your account. Choices missing from the file stay as they are. If settings close while you pick a file, pick it again.");
         ENGLISH.put("choices_file_saved", "Choices file saved");
         ENGLISH.put("choices_file_saving", "Saving choices file...");
         ENGLISH.put("choices_file_reading", "Reading choices file...");
@@ -657,6 +699,19 @@ final class SettingsText {
         ENGLISH.put("message_log_attachment", "Photo or attachment");
         ENGLISH.put("message_log_photo", "Photo");
         ENGLISH.put("message_log_photo_missing", "This photo couldn't be shown.");
+        ENGLISH.put("message_log_keep_photos", "Keep photos at full size");
+        ENGLISH.put("message_log_keep_photos_help", "Downloads a photo as it's logged, at the size it was sent, so you can still see it after the sender unsends it. Without this the log keeps the small preview from the notification, and only in chats that aren't end-to-end encrypted. Photos use much more space than the rest of the log, and they go when their message does.");
+        ENGLISH.put("message_log_keep_videos", "Keep videos");
+        ENGLISH.put("message_log_keep_videos_help", "Downloads a video as it's logged, so you can still watch it after the sender unsends it. Messenger only downloads one when you open it, which is why an unsend before that takes it away. Videos use the most space of anything in the log, up to 16 MB each, and they go when their message does.");
+        ENGLISH.put("message_log_video_title", "Video");
+        ENGLISH.put("message_log_video_hint", "Plays from the log's own copy, which stays encrypted on this phone.");
+        ENGLISH.put("message_log_video_play", "Play video");
+        ENGLISH.put("message_log_video_missing", "This video couldn't be played.");
+        ENGLISH.put("message_log_keep_voice", "Keep voice messages");
+        ENGLISH.put("message_log_keep_voice_help", "Downloads a voice message as it's logged, so you can still play it after the sender unsends it. Messenger only downloads one when you play it, which is why an unsend before that takes it away. Clips use more space than the rest of the log, and they go when their message does.");
+        ENGLISH.put("message_log_clip_play", "Play voice message");
+        ENGLISH.put("message_log_clip_stop", "Stop");
+        ENGLISH.put("message_log_clip_missing", "This voice message couldn't be played.");
         ENGLISH.put("message_log_button", "Button at the top of Chats");
         ENGLISH.put("message_log_button_help", "Puts a clock next to the new message button. Tap it to open the log.");
         ENGLISH.put("message_log_menu_row", "Row in the Menu tab");

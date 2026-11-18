@@ -65,8 +65,8 @@ re-sign the app.
 | Music apps, when you want the full app while parked | Defaults | The full app; its Android Auto audio player is gone |
 | Games and portrait-only apps | Defaults (**Fill the car screen** on) | Screens fill the wide car display; turn it off if a screen breaks |
 
-Combine it with the app's usual Morphe patches. Results for specific apps are in CarBridge's
-[compatibility list](https://github.com/jmwerk/CarBridge/blob/master/COMPATIBILITY.md).
+Combine it with the app's usual Morphe patches. The patch is as is: there's no list of supported
+apps, and requests to make a particular app work aren't accepted.
 
 ## Patches list
 

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="app.canada.walmart.UiRegressionTest" tests="13" skipped="0" failures="0" errors="0" timestamp="2026-11-01T00:51:48.530Z" hostname="0766bf668d47" time="1.377">
+  <properties/>
+  <testcase name="recycledMissingPriceClearsOldButtonActionAndPrice" classname="app.canada.walmart.UiRegressionTest" time="0.119"/>
+  <testcase name="hidesWholeSponsoredCardAndRestoresOrganicRecycle" classname="app.canada.walmart.UiRegressionTest" time="0.064"/>
+  <testcase name="hiddenNativePriceStillGetsHistoryAndClickableFooter" classname="app.canada.walmart.UiRegressionTest" time="0.129"/>
+  <testcase name="pausedListRecordingKeepsHistoryAccessibleWithoutSaving" classname="app.canada.walmart.UiRegressionTest" time="0.089"/>
+  <testcase name="hiddenSponsoredBrowseCardDoesNotCreatePriceHistory" classname="app.canada.walmart.UiRegressionTest" time="0.06"/>
+  <testcase name="repeatedBindAddsOnlyOneFooterAndSameDayObservation" classname="app.canada.walmart.UiRegressionTest" time="0.057"/>
+  <testcase name="dedicatedContainerStaysHiddenAfterNativeVisibilityReset" classname="app.canada.walmart.UiRegressionTest" time="0.062"/>
+  <testcase name="oldHistorySurvivesAndCollectionIsBounded" classname="app.canada.walmart.UiRegressionTest" time="0.445"/>
+  <testcase name="recycledBeforePostedBindRecordsOnlyCurrentProduct" classname="app.canada.walmart.UiRegressionTest" time="0.075"/>
+  <testcase name="visibleBrowseCardRecordsPriceAndUsesSeparateContext" classname="app.canada.walmart.UiRegressionTest" time="0.053"/>
+  <testcase name="priceChangeCreatesSecondObservation" classname="app.canada.walmart.UiRegressionTest" time="0.061"/>
+  <testcase name="browseRecordingSwitchPreventsNewObservations" classname="app.canada.walmart.UiRegressionTest" time="0.061"/>
+  <testcase name="patchToolsShowsInstalledSeparatelyFromRuntimeActivity" classname="app.canada.walmart.UiRegressionTest" time="0.095"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

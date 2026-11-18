@@ -35,8 +35,7 @@ private object EnableAnalyticsCollectionFingerprint : Fingerprint(
 @Suppress("unused")
 val disableAnalyticsPatch = patch(
     name = "Disable analytics",
-    description = "Stops AppsFlyer from tracking installs and in-app events, and turns off Firebase Analytics, " +
-        "Crashlytics, Performance and Sessions. Tuya's own usage statistics are left on.",
+    description = "Turns off analytics and tracking.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_SMARTLIFE, COMPATIBILITY_TUYA_SMART)

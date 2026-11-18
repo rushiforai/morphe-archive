@@ -1,0 +1,78 @@
+{
+  "format": 1,
+  "status": "offline_fixture_repair_runtime_unproved",
+  "runtime_started": false,
+  "original_apk_sha256": "09d01a21ae058c9c9a75dcd0714f39ddbd37b63b68259692675f19b1a39a66ea",
+  "finding": {
+    "original_flow": "pef.g is generated candidate output",
+    "replacement_path": "mef.invoke original heading delta >45 -> pef.g() geohash change -> pef.f() refreshReports coroutine pef$a -> pef.e(geohashes) -> g.setValue(new set)",
+    "fixture_mismatch": "repeat11 owns one final pef.g value while its rectangle return path triggers the original upstream refresh; retained fixture never entered upstream producer",
+    "recorded_replacement_contents": "unknown: final-acceptance-03 zone traces did not serialize IdentityState; no empty/foreign/evolved claim",
+    "retained_seam": "Existing cached ig0.singletonInstance -> y81.d List<BaseReport>; original pef.e appends it to every regenerated HashSet; original TestManager multiReportTest writes this list",
+    "native_policy_changed": false
+  },
+  "implemented": {
+    "api": "Fm15PrivateZoneInput.beginRetainedRepeat",
+    "upstream_owner": "existing cached y81 only; never initialize or swap singleton",
+    "guard": "private UUID and ID collision checks; application/service/job/config/policy identity; exact list identity and ordered reference membership; atomic reference CAS for field admission/restoration; abort before writing if private Unsafe CAS unavailable; permit same-instance Unsafe aliases, refuse distinct capability instances",
+    "ordinary_begin_body_unchanged": true,
+    "failure_capture": "Direct runOnMainSync cached-reference inspection, independent of mute/trace/admission checks; retain inspection errors without replacing primary exception",
+    "dispatcher": "Connected private frozen adapter selects native-zone-retained-repeat; existing tracked and private ordinary native-zone use old begin()",
+    "retained_field_ABI": "Exact declaring y81, exact java.util.List type, nonstatic, nonfinal before admission/restoration CAS; generic private CAS also rejects primitive/static/final/owner/value type misuse before Unsafe access"
+  },
+  "checks": {
+    "python": {
+      "run": 563,
+      "skipped": 45,
+      "failed": 0
+    },
+    "actual_java_guard_cases": 13,
+    "capture_probe": "compiled signed verified with existing test certificate",
+    "diff_check": "passed",
+    "previous_native_zone09_model_SDK_scheduler_evidence": "retained; no changed production code requiring a repeated Android product build",
+    "post_review_affected_guard": "Passed13actual Java guard/CAS cases including primitive/static/final no-write refusals after final ABI review",
+    "adapter_capture_probe": "Final ABI-reviewed adapter compiled, signed and verified",
+    "compile_findings": [
+      "First connected adapter compile rejected absent PendingFix type; exact already-existing repeat11 contract merged into private adapter, no weakened freshness",
+      "Parent review corrected read-only failure observation barrier dependence and same-instance Unsafe aliases before final affected compile"
+    ],
+    "final_coordinator_review": "Python compile passed after excluding inherited prelaunch GPS from retained mode; no Java source changed after successful final adapter APK build",
+    "source_terminal_contract": "Latest successful-source terminal marker and host timestamp block verified unchanged; private source runner Python compile passed"
+  },
+  "source_sha256": {
+    "scripts/navigation-alerts/probe/Fm15PrivateZoneInput.java": "f171a565f12c381ce92366ca6aae0f3f2a8ca097012f3f291a99d3dbe3889c8d",
+    "scripts/navigation-alerts/probe/NativeFmCaptureProbe.java": "82701cf5bfa4e991794d2630a34cf3989c46110484f5ea57404db50e6cb42837",
+    "tests/test_fm_retained_input.py": "3ff28c5182afc93ea6bcda382b2faf2abd7015d2a9d7c1ed8fe567251e35dc44"
+  },
+  "native_policy_changed": false,
+  "android_cas_availability_proved": false,
+  "repeat_runtime_proved": false,
+  "saved07_root_cause_proved": false,
+  "remaining_acceptance": [
+    "Parent review of connected selected private adapter and exact pinned hashes; no runtime authorization granted by this offline unit",
+    "Use genuine controlled GNSS heading/geohash input to trigger original refresh after retained admission; do not invoke pef.f/g or TestManager directly",
+    "Require original-generated candidate fixture ID/model presence before first warning, retain read-only producer/source identities throughout",
+    "Require Android private CAS availability/visibility before any input write; no hidden-API exemption or policy alteration to force it",
+    "Attach source and receiver Frida hooks before stimuli, including Vela-specific hooks if Vela is exercised; current observer supports Maps only",
+    "One quiet bounded session only, exact pinned source/receiver artifacts, guest media0 with genuine native callbacks; preserve original native spam/history/eligibility/readiness/GPS and source outcomes",
+    "Observe same-ID native repeat after original state expiry, unique announcement index, original entry/exit/CLEAR, receiver completion; no direct sound invocation or history clear",
+    "Restore only still-owned retained list with CAS; preserve any foreign writer, record identity facts, restore VM/audio/network/apps and stop owned5590, remove tracing/snapshot/raw scratch after compact archive",
+    "Before paired Maps/Vela run, add Vela native speaker/guidance call-through hooks and receiver-specific watcher readiness/cancellation selection; existing watcher hardcodes Maps"
+  ],
+  "cleanup": {
+    "compile_scratch_removed": true,
+    "primary_source_unmodified": true,
+    "cleanup_required": false,
+    "raw_evidence_compacted": true,
+    "runtime5590_stopped": true,
+    "superseded_api_only_build_outputs_removed": true,
+    "active_adapter_and_signed_probe_retained_as_goal_inputs": true
+  },
+  "evidence_archive": {
+    "sha256": "e30170a555135d8174987c4f212608bda827c3378ed3a5b3935d3bd06070dc1d",
+    "bytes": 93832,
+    "members": 14,
+    "includes_original_REA_and_smali_and_frozen_sources": true
+  },
+  "adapter_probe_sha256": "606d8043dcd1dff2fd50f4072dd4ee906bc8b9b4ed925bbdf0ae60c68d3f7192"
+}

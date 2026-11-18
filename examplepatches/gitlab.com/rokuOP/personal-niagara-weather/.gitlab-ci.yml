@@ -1,0 +1,83 @@
+# GitLab port of Morphe's template release.yml. Versioning, changelog, generated
+# metadata commits and release publication remain owned by .releaserc.
+image: ghcr.io/cirruslabs/android-sdk:36@sha256:f9b3ea9ed2b5fc9522adae82c7b4622ab7aa54207ef532c8e615a347dca08f31
+
+workflow:
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "dev" || $CI_COMMIT_BRANCH == "main"'
+    - when: never
+
+variables:
+  GIT_DEPTH: "0"
+  PYTHONUTF8: "1"
+  GRADLE_USER_HOME: "$CI_PROJECT_DIR/.gradle-ci"
+  GIT_AUTHOR_NAME: "Personal Weather CI"
+  GIT_AUTHOR_EMAIL: "rokuOP@users.noreply.gitlab.com"
+  GIT_COMMITTER_NAME: "Personal Weather CI"
+  GIT_COMMITTER_EMAIL: "rokuOP@users.noreply.gitlab.com"
+
+cache:
+  key: release-toolchains-v1
+  when: always
+  paths:
+    - .gradle-ci/caches/
+    - .gradle-ci/wrapper/
+    - .npm/
+
+release:
+  stage: deploy
+  resource_group: semantic-release
+  before_script:
+    - apt-get update -qq && apt-get install -y --no-install-recommends python3 xz-utils
+    - |
+      curl --fail --silent --show-error --location https://nodejs.org/dist/v24.19.0/node-v24.19.0-linux-x64.tar.xz -o /tmp/personal-weather-node.tar.xz
+      echo '14b342e71204f811bde6153be8e04b62aef63c236fef92b55f9c83154b409647  /tmp/personal-weather-node.tar.xz' | sha256sum --check
+      tar -xJf /tmp/personal-weather-node.tar.xz -C /usr/local --strip-components=1
+    - sdkmanager 'platforms;android-35' 'build-tools;36.0.0'
+    - |
+      mkdir -p .build-tools
+      git clone --quiet --depth 1 --branch v2.0.0 https://github.com/MorpheApp/morphe-patches-gradle-plugin.git .build-tools/morphe-gradle-plugin
+      test "$(git -C .build-tools/morphe-gradle-plugin rev-parse HEAD)" = c158697065aa77ee87996991281220949e603728
+      git clone --quiet --depth 1 --branch v1.15.1 https://github.com/MorpheApp/morphe-patcher.git .build-tools/morphe-patcher
+      test "$(git -C .build-tools/morphe-patcher rev-parse HEAD)" = 812e96eaac173cd058ba49e242325371959befae
+      python3 - <<'PY'
+      from pathlib import Path
+      path = Path('.build-tools/morphe-gradle-plugin/src/main/kotlin/app/morphe/patches/gradle/SettingsPlugin.kt')
+      text = path.read_text()
+      # Match the pinned source independent of indentation, leaving public repositories intact.
+      import re
+      pattern = r'            maven \{ repository ->\s*// A repository must be specified\..*?\n            \}'
+      replacement = '''            val githubUser = providers.gradleProperty("gpr.user").orNull ?: System.getenv("GITHUB_ACTOR")
+                  val githubKey = providers.gradleProperty("gpr.key").orNull ?: System.getenv("GITHUB_TOKEN")
+                  if (githubUser != null && githubKey != null) maven { repository ->
+                      repository.url = URI("https://maven.pkg.github.com/MorpheApp/registry")
+                      repository.credentials {
+                          it.username = githubUser
+                          it.password = githubKey
+                      }
+                  }'''
+      patched, count = re.subn(pattern, replacement, text, flags=re.S)
+      if count != 1:
+          raise SystemExit('Pinned Gradle plugin repository block changed')
+      path.write_text(patched)
+      PY
+      export ORG_GRADLE_PROJECT_morphePluginSource="$CI_PROJECT_DIR/.build-tools/morphe-gradle-plugin"
+      export ORG_GRADLE_PROJECT_morphePatcherSource="$CI_PROJECT_DIR/.build-tools/morphe-patcher"
+    - chmod +x gradlew
+    - npm ci --ignore-scripts --cache .npm --prefer-offline
+  script:
+    - npm test
+    # The template also verifies compilation when no release is due.
+    - ./gradlew --no-daemon :patches:buildAndroid
+    - |
+      git remote set-url origin "https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git"
+      npx --no-install semantic-release --repository-url "https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git"
+  artifacts:
+    when: always
+    expire_in: 7 days
+    paths:
+      - patches/build/libs/*.mpp
+      - patches-bundle.json
+      - patches-list.json
+      - SHA256SUMS.txt
+

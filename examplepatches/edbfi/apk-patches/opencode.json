@@ -1,0 +1,11 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "rea": {
+      "type": "local",
+      "command": ["sh", "-c", "exec sh \"$(git rev-parse --show-toplevel)/scripts/rea.sh\""],
+      "enabled": true,
+      "timeout": 450000
+    }
+  }
+}

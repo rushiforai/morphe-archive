@@ -68,6 +68,7 @@ import app.hushtelegram.extension.telegram.misc.HiddenAccountsForTests;
 import app.hushtelegram.extension.telegram.misc.DataSaverDownloads;
 import app.hushtelegram.extension.telegram.misc.DataSaverDownloadsForTests;
 import app.hushtelegram.extension.telegram.misc.DeleteAccountForTests;
+import app.hushtelegram.extension.telegram.misc.DuressWipe;
 import app.hushtelegram.extension.telegram.misc.GhostChats;
 import app.hushtelegram.extension.telegram.misc.HiddenChats;
 import app.hushtelegram.extension.telegram.misc.HiddenChatsForTests;
@@ -2925,6 +2926,220 @@ public class HushTelegramPreferenceFragmentTest {
         } finally {
             DeleteAccountForTests.restore();
         }
+    }
+
+    /**
+     * Duress passcode (#79) is on the Privacy page of a build with it and starts off. Without a
+     * Telegram passcode both rows only say so. With one, the switch asks for a code before it goes
+     * on, and the dialog takes the code twice, on the number pad for a PIN, refusing Telegram's own
+     * passcode and a mismatch. Only a salted hash is saved.
+     */
+    @Test
+    public void duressPasscodeAsksTwiceAndRefusesTelegramsOwnPasscode() {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.DISABLE_ANALYTICS);
+        PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.READ_METRICS);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushTelegramPreferenceFragment page = pageOf(controller);
+            assertNull("a build without it has no switch", page.findPreference(Settings.DURESS_WIPE.key));
+            assertNull(page.findPreference(HushTelegramPreferenceFragment.DURESS_PASSCODE_ROW));
+        }
+        PatchFamily.capabilitiesForTests = null;
+        AppPasscodeForTests.use(null);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushTelegramPreferenceFragment page = pageOf(controller);
+            SwitchPreference duress = (SwitchPreference) page.findPreference(Settings.DURESS_WIPE.key);
+            assertEquals("Duress passcode", String.valueOf(duress.getTitle()));
+            assertEquals("Typing the duress passcode on Telegram's lock screen logs out or deletes accounts, as picked "
+                    + "below, and clears what HushTelegram kept, like deleted messages, edit history and call recordings. "
+                    + "It needs a Telegram passcode and starts off.", String.valueOf(duress.getSummary()));
+            assertFalse("starts off", duress.isChecked());
+            Preference row = page.findPreference(HushTelegramPreferenceFragment.DURESS_PASSCODE_ROW);
+            assertEquals("Set duress passcode", String.valueOf(row.getTitle()));
+            assertFalse(row.isPersistent());
+            assertEquals("Set a Telegram passcode first.", String.valueOf(row.getSummary()));
+
+            ShadowToast.reset();
+            assertFalse(duress.getOnPreferenceChangeListener().onPreferenceChange(duress, true));
+            assertEquals("Set a Telegram passcode first.", ShadowToast.getTextOfLatestToast());
+            AlertDialog before = ShadowAlertDialog.getLatestAlertDialog();
+            assertTrue(row.getOnPreferenceClickListener().onPreferenceClick(row));
+            ShadowLooper.idleMainLooper();
+            assertSame("no dialog without Telegram's passcode", before, ShadowAlertDialog.getLatestAlertDialog());
+        } finally {
+            AppPasscodeForTests.restore();
+        }
+
+        AppPasscodeForTests.use("2468");
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushTelegramPreferenceFragment page = pageOf(controller);
+            SwitchPreference duress = (SwitchPreference) page.findPreference(Settings.DURESS_WIPE.key);
+            Preference row = page.findPreference(HushTelegramPreferenceFragment.DURESS_PASSCODE_ROW);
+            assertEquals("No duress passcode yet. Tap to pick one.", String.valueOf(row.getSummary()));
+
+            assertFalse("with no code yet the switch asks for one", duress.getOnPreferenceChangeListener().onPreferenceChange(duress, true));
+            ShadowLooper.idleMainLooper();
+            AlertDialog ask = ShadowAlertDialog.getLatestAlertDialog();
+            assertTrue(ask.isShowing());
+            assertEquals("Set duress passcode", String.valueOf(shadowOf(ask).getTitle()));
+            android.widget.EditText code = ask.findViewById(android.R.id.edit);
+            android.widget.EditText again = ask.findViewById(android.R.id.text2);
+            assertEquals("a PIN gets the number pad", android.text.InputType.TYPE_CLASS_NUMBER
+                    | android.text.InputType.TYPE_NUMBER_VARIATION_PASSWORD, code.getInputType());
+            code.setText("135799");
+            assertEquals("a PIN's length", "1357", code.getText().toString());
+
+            code.setText("2468");
+            again.setText("2468");
+            ask.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            ShadowLooper.idleMainLooper();
+            assertTrue("Telegram's own passcode is refused", ask.isShowing());
+            assertEquals("That's your Telegram passcode. Pick a different one.", ShadowToast.getTextOfLatestToast());
+
+            code.setText("1357");
+            again.setText("1358");
+            ask.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            ShadowLooper.idleMainLooper();
+            assertTrue("a mismatch keeps the dialog", ask.isShowing());
+            assertEquals("The two passcodes don't match.", ShadowToast.getTextOfLatestToast());
+            assertFalse(DuressWipe.isSet());
+            assertFalse(duress.isChecked());
+
+            again.setText("1357");
+            ask.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            ShadowLooper.idleMainLooper();
+            assertFalse(ask.isShowing());
+            assertEquals("Duress passcode saved.", ShadowToast.getTextOfLatestToast());
+            assertTrue(DuressWipe.isSet());
+            assertTrue("a saved code turns the switch on", duress.isChecked());
+            assertEquals("A duress passcode is set. Tap to change it.", String.valueOf(row.getSummary()));
+            assertFalse("the code itself isn't kept", controller.get().getSharedPreferences("hushtelegram_duress",
+                    android.content.Context.MODE_PRIVATE).getAll().toString().contains("1357"));
+            assertTrue("with a code saved the switch just turns on",
+                    duress.getOnPreferenceChangeListener().onPreferenceChange(duress, true));
+        } finally {
+            AppPasscodeForTests.restore();
+            Settings.DURESS_WIPE.resetToDefault();
+        }
+    }
+
+    /**
+     * What the duress passcode does (#79) sits under Set duress passcode and starts on logging out
+     * every account. Picking a deletion saves it and warns that the code looks wrong once and
+     * deletes the second time, and turning the switch on with a deletion picked warns again.
+     */
+    @Test
+    public void theDuressActionRowPicksLogOutOrDeleteAndWarnsAboutDeleting() throws Exception {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.DISABLE_ANALYTICS);
+        AppPasscodeForTests.use("2468");
+        String note = "Typed once, the duress passcode looks wrong. Typed again, it deletes for good. "
+                + "If an account has a cloud password, Telegram waits a week first.";
+        String warning = "Typed twice, the duress passcode deletes for good.";
+        assertFitsATwoLineToast("en", warning);
+        for (String language : new String[]{"bg", "de", "es", "in", "pt-rbr", "tr", "zh-hans"}) {
+            String row = app.hushtelegram.extension.shared.L10nTablesForTests.of(language).get(warning);
+            assertNotNull(language, row);
+            assertFitsATwoLineToast(language, row);
+        }
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushTelegramPreferenceFragment page = pageOf(controller);
+            List<Preference> rows = new ArrayList<>();
+            collect(page.getPreferenceScreen(), rows);
+            Preference row = rows.get(indexOfKey(rows, HushTelegramPreferenceFragment.DURESS_PASSCODE_ROW) + 1);
+            assertEquals(HushTelegramPreferenceFragment.DURESS_ACTION_ROW, row.getKey());
+            assertEquals("What the duress passcode does", String.valueOf(row.getTitle()));
+            assertFalse(row.isPersistent());
+            assertEquals("Log out every account", String.valueOf(row.getSummary()));
+
+            AlertDialog list = dialogOf(row);
+            assertEquals("What the duress passcode does", String.valueOf(shadowOf(list).getTitle()));
+            List<String> labels = new ArrayList<>();
+            for (int i = 0; i < list.getListView().getCount(); i++) {
+                labels.add(String.valueOf(list.getListView().getAdapter().getItem(i)));
+            }
+            assertEquals(Arrays.asList("Log out every account", "Log out the open account", "Delete every account",
+                    "Delete the open account"), labels);
+            assertEquals(0, list.getListView().getCheckedItemPosition());
+
+            ShadowToast.reset();
+            shadowOf(list).clickOnItem(1);
+            settle();
+            assertFalse(list.isShowing());
+            assertEquals(DuressWipe.LOG_OUT_OPEN, Settings.DURESS_ACTION.get());
+            assertEquals("Log out the open account", String.valueOf(row.getSummary()));
+            assertNull("a log-out gets no warning", ShadowToast.getTextOfLatestToast());
+
+            list = dialogOf(row);
+            assertEquals(1, list.getListView().getCheckedItemPosition());
+            shadowOf(list).clickOnItem(3);
+            settle();
+            assertEquals(DuressWipe.DELETE_OPEN, Settings.DURESS_ACTION.get());
+            assertEquals("the warning stays in sight under a deletion", "Delete the open account\n" + note,
+                    String.valueOf(row.getSummary()));
+            assertEquals(warning, ShadowToast.getTextOfLatestToast());
+
+            // The Set duress passcode dialog says what the code does with the choice made.
+            AlertDialog ask = dialogOf(page.findPreference(HushTelegramPreferenceFragment.DURESS_PASSCODE_ROW));
+            assertEquals("Set duress passcode", String.valueOf(shadowOf(ask).getTitle()));
+            assertTrue(showsText(ask.getWindow().getDecorView(), "Typing this twice on Telegram's lock screen deletes "
+                    + "the open account for good. Pick one that's different from your Telegram passcode."));
+            assertFalse(showsText(ask.getWindow().getDecorView(), "Typing this on Telegram's lock screen logs out every "
+                    + "account on this phone. Pick one that's different from your Telegram passcode."));
+            ask.dismiss();
+            String[] messages = {
+                "Typing this on Telegram's lock screen logs out every account on this phone. "
+                        + "Pick one that's different from your Telegram passcode.",
+                "Typing this on Telegram's lock screen logs out the open account. "
+                        + "Pick one that's different from your Telegram passcode.",
+                "Typing this twice on Telegram's lock screen deletes every account on this phone for good. "
+                        + "Pick one that's different from your Telegram passcode.",
+                "Typing this twice on Telegram's lock screen deletes the open account for good. "
+                        + "Pick one that's different from your Telegram passcode."};
+            for (int i = 0; i < messages.length; i++) {
+                assertEquals(messages[i], PasscodePrompt.duressMessage(DuressWipe.ACTIONS.get(i)));
+                for (String language : new String[]{"bg", "de", "es", "in", "pt-rbr", "tr", "zh-hans"}) {
+                    assertNotNull(language + ": " + messages[i],
+                            app.hushtelegram.extension.shared.L10nTablesForTests.of(language).get(messages[i]));
+                }
+            }
+
+            // The switch going on with a deletion picked warns again.
+            assertTrue(DuressWipe.save("1357"));
+            ShadowToast.reset();
+            SwitchPreference duress = (SwitchPreference) page.findPreference(Settings.DURESS_WIPE.key);
+            assertTrue(duress.getOnPreferenceChangeListener().onPreferenceChange(duress, true));
+            assertEquals(warning, ShadowToast.getTextOfLatestToast());
+        } finally {
+            AppPasscodeForTests.restore();
+            Settings.DURESS_WIPE.resetToDefault();
+            Settings.DURESS_ACTION.resetToDefault();
+        }
+    }
+
+    /** Whether a TextView under [view] shows exactly [text]. */
+    private static boolean showsText(android.view.View view, String text) {
+        if (view instanceof TextView && text.equals(String.valueOf(((TextView) view).getText()))) return true;
+        if (view instanceof android.view.ViewGroup) {
+            android.view.ViewGroup group = (android.view.ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) if (showsText(group.getChildAt(i), text)) return true;
+        }
+        return false;
+    }
+
+    /** A toast line holds about 34 characters on a small phone; 28 leaves room for wider letters. */
+    private static void assertFitsATwoLineToast(String language, String text) {
+        List<String> lines = new ArrayList<>();
+        StringBuilder line = new StringBuilder();
+        for (String word : text.split(" ")) {
+            if (line.length() > 0 && line.length() + 1 + word.length() > 28) {
+                lines.add(line.toString());
+                line.setLength(0);
+            }
+            if (line.length() > 0) line.append(' ');
+            line.append(word);
+        }
+        if (line.length() > 0) lines.add(line.toString());
+        assertTrue(language + ": " + text, lines.size() <= 2);
+        for (String each : lines) assertTrue(language + ": " + each, each.length() <= 28);
     }
 
     /**

@@ -1,0 +1,13 @@
+{
+  "ok": true,
+  "key": "2699507082cbc79b",
+  "version": "1.47.1-tts.1.2.0",
+  "waze_version": "5.26.90.901",
+  "nl_tag": "v1.47.1",
+  "tts_tag": "v1.2.0",
+  "commit": "9105eb2a20877e071a4a9e13e5681a8c6be02ce3",
+  "apk_sha256": "dd69b987ede38579bff7d0f3bc5ca6128730667f8f073c795e7f1c21db9dabe1",
+  "signing_cert_sha256": "03637f6c5d8f604e6fdb79a6ffbfa578de4e318f8da22fc6106665247f8807d7",
+  "morphe": "2.0.0",
+  "verified_at": "2026-11-06T21:17:08Z"
+}

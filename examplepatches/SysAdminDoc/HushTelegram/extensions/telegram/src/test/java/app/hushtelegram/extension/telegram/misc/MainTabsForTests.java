@@ -21,6 +21,6 @@ public final class MainTabsForTests {
     public static boolean outlinesBar() {
         Object colors = new Object();
         MainTabs.barGlass(colors);
-        return MainTabs.barOutlineColor(colors) != 0 && MainTabs.barOutlineWidth(colors) > 0f;
+        return MainTabs.barOutlineColor(colors, 0) != 0 && MainTabs.barOutlineWidth(colors, 0f) > 0f;
     }
 }

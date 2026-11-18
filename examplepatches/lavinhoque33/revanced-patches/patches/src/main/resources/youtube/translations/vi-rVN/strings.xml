@@ -69,6 +69,13 @@ Báo cáo được công khai và được xem xét trước khi một kênh đ�
     <string name="morphe_custom_branding_splash_animation_size_title">Kích thước hoạt ảnh khởi động</string>
     <string name="morphe_custom_branding_use_as_system_splash_summary">Sử dụng hoạt ảnh đã chọn làm màn hình khởi động (splash screen) của hệ thống Android</string>
     <string name="morphe_custom_branding_use_as_system_splash_title">Sử dụng làm màn hình khởi động hệ thống</string>
+    <string name="morphe_custom_seekbar_thumb_file_invalid">Tệp đã chọn không phải là hình ảnh được hỗ trợ</string>
+    <string name="morphe_custom_seekbar_thumb_file_not_found">Không tìm thấy hình ảnh nút kéo thanh tiến trình tùy chỉnh</string>
+    <string name="morphe_custom_seekbar_thumb_file_title">Hình ảnh nút kéo</string>
+    <string name="morphe_custom_seekbar_thumb_scale_type_entry_fit_seekbar">Vừa với thanh tiến trình</string>
+    <string name="morphe_custom_seekbar_thumb_scale_type_entry_original">Kích thước gốc</string>
+    <string name="morphe_custom_seekbar_thumb_scale_type_title">Kích thước nút kéo</string>
+    <string name="morphe_custom_seekbar_thumb_title">Bật tùy chỉnh nút kéo thanh tiến trình</string>
     <string name="morphe_dark_theme_custom_color_summary">Màu sắc chủ đề tối tùy chỉnh</string>
     <string name="morphe_dark_theme_custom_color_title">Màu sắc chủ đề tối tùy chỉnh</string>
     <string name="morphe_dark_theme_title">Giao diện tối</string>
@@ -103,6 +110,12 @@ Video được yêu cầu bằng một tiền tố ngắn của ID video đã b�
     <string name="morphe_disable_toolbar_navigation_tabs_summary">Hiển thị Mục đăng ký trong thanh điều hướng, nếu YouTube chuyển nó thành một tab ở đầu Trang chủ</string>
     <string name="morphe_disable_toolbar_navigation_tabs_title">Vô hiệu hóa các tab điều hướng trên thanh công cụ</string>
     <string name="morphe_dual_captions_enabled_title">Phụ đề song ngữ</string>
+    <string name="morphe_enhanced_ambient_mode_dim_duration_title">Thời gian làm mờ</string>
+    <string name="morphe_enhanced_ambient_mode_dim_while_scrolling_summary">Làm mờ đèn khi trang được cuộn hoặc chạm vào</string>
+    <string name="morphe_enhanced_ambient_mode_dim_while_scrolling_title">Làm mờ khi cuộn</string>
+    <string name="morphe_enhanced_ambient_mode_readable_text_summary">Giảm độ sáng của các video sáng để văn bản trên trang vẫn dễ đọc</string>
+    <string name="morphe_enhanced_ambient_mode_readable_text_title">Giữ cho văn bản dễ đọc</string>
+    <string name="morphe_enhanced_ambient_mode_title">Chế độ môi trường xung quanh nâng cao</string>
     <string name="morphe_expand_livestream_dvr_duration_not_available">"'Mở rộng thời lượng DVR phát trực tiếp' có thể không khả dụng
 
 Để khắc phục, hãy bật 'Giả mạo luồng video' và thay đổi 'Máy khách mặc định' thành 'TV Simply' hoặc 'visionOS'"</string>
@@ -271,6 +284,12 @@ Danh sách được tải xuống từ GitHub và video được lọc trên thi
     <string name="morphe_playback_in_feeds_title">Phát trong trang video</string>
     <string name="morphe_player_control_buttons_background_opacity_summary">Điều chỉnh độ mờ của nền phía sau các nút điều khiển trình phát và thanh thời gian (0 là vô hình, 100 là đặc)</string>
     <string name="morphe_player_control_buttons_background_opacity_title">Độ mờ nền của các nút điều khiển</string>
+    <string name="morphe_playlist_hide_removal_snackbar_summary">Thông báo xác nhận sẽ không hiển thị sau khi một video bị xóa khỏi danh sách phát</string>
+    <string name="morphe_playlist_hide_removal_snackbar_title">Ẩn snackbar thông báo xóa danh sách phát</string>
+    <string name="morphe_playlist_long_press_drag_summary">Chạm và giữ một video trong danh sách phát của bạn để kéo đến vị trí mới</string>
+    <string name="morphe_playlist_long_press_drag_title">Nhấn giữ để sắp xếp lại các video trong danh sách phát</string>
+    <string name="morphe_playlist_wide_drag_handles_summary">Tay nắm kéo danh sách phát dễ nắm hơn</string>
+    <string name="morphe_playlist_wide_drag_handles_title">Mở rộng tay nắm kéo danh sách phát</string>
     <string name="morphe_post_buttons_layout_entry_1">Máy chủ</string>
     <string name="morphe_post_buttons_layout_entry_2">Bắt buộc</string>
     <string name="morphe_post_buttons_layout_title">Bố cục nút bài đăng</string>
@@ -746,20 +765,7 @@ Cài đặt → Tự động phát/Phát → Tự động phát video tiếp the
     <string name="revanced_disable_landscape_mode_summary_off">Phát video ở chế độ toàn màn hình mặc định</string>
     <string name="revanced_disable_landscape_mode_summary_on">Phát video ở chế độ toàn màn hình dọc được áp dụng</string>
     <string name="revanced_disable_landscape_mode_title">Xem ở chế độ toàn màn hình dọc</string>
-    <string name="revanced_disable_layout_updates_summary_off">Giao diện sẽ được máy chủ cập nhật</string>
-    <string name="revanced_disable_layout_updates_summary_on">Giao diện sẽ không còn được máy chủ cập nhật</string>
     <string name="revanced_disable_layout_updates_title">Tắt cập nhật giao diện</string>
-    <string name="revanced_disable_layout_updates_user_dialog_message">"Bố cục ứng dụng sẽ quay lại bố cục được sử dụng khi lần đầu tiên cài đặt
-
-Một số bố cục phía máy chủ có thể không được quay lại
-
-Các thay đổi bao gồm:
-• Các thành phần trong menu bay ra của trình phát (hoặc cài đặt liên quan) có thể không hoạt động
-• Số cuộn không được hoạt hình hóa
-• Thẻ Thư viện được hiển thị
-• Phần âm nhạc trong mô tả video có thể không hoạt động
-• Các mục trong menu bay ra của trình phát không thể bị ẩn
-• Nút chuyển đổi tài khoản có thể không xuất hiện trên thẻ Thư viện"</string>
     <string name="revanced_disable_like_dislike_glow_summary_off">Các nút Thích và Không thích sẽ sáng lên khi nhấn vào</string>
     <string name="revanced_disable_like_dislike_glow_summary_on">Các nút Thích và Không thích sẽ không sáng lên khi nhấn vào</string>
     <string name="revanced_disable_like_dislike_glow_title">Tắt hoạt ảnh các nút Thích và Không thích</string>
@@ -1125,10 +1131,6 @@ Cửa hàng"</string>
     <string name="revanced_hide_comments_carousel_filter_strings_summary">Nhập tên mục bình luận mà bạn muốn lọc, mỗi dòng một mục</string>
     <string name="revanced_hide_comments_carousel_filter_strings_title">Cài đặt bộ lọc</string>
     <string name="revanced_hide_comments_carousel_title">Bật bộ lọc bình luận</string>
-    <string name="revanced_hide_comments_carousel_user_dialog_message">"Lưu ý:
-• Hãy nhập chính xác tên mục (ví dụ như: Đặt câu hỏi, Khuấy động video này, Nghe trên Youtube Music, v.v...)
-• Ẩn các mục cũng có thể khiến giao diện bị lỗi
-• Nếu ẩn hết các mục, thì toàn bộ bình luận cũng ẩn theo"</string>
     <string name="revanced_hide_comments_create_a_short_button_summary_off">Nút Tạo video ngắn được hiển thị</string>
     <string name="revanced_hide_comments_create_a_short_button_summary_on">Nút Tạo video ngắn đã bị ẩn</string>
     <string name="revanced_hide_comments_create_a_short_button_title">Ẩn nút \"Tạo video ngắn\"</string>

@@ -1,15 +1,18 @@
 package io.github.sabopura.morphe.patches.twitch.ui
 
-import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import io.github.sabopura.morphe.patches.twitch.Constants.TWITCH_SUPPORTED
-import io.github.sabopura.morphe.patches.twitch.support.replaceExtensionConstant
+import io.github.sabopura.morphe.patches.twitch.support.TWITCH_EXTENSION
+import io.github.sabopura.morphe.patches.twitch.support.softHook
+import org.w3c.dom.Document
 import org.w3c.dom.Element
 
 private const val BUTTON = "io.github.sabopura.morphe.extension.twitch.ui.PlayerMenuButton"
 private const val BUTTON_ID = "sabopura_player_menu"
-private const val FEATURES = "Lio/github/sabopura/morphe/extension/twitch/ui/Features;"
+private const val RUNTIME = "Lio/github/sabopura/morphe/extension/twitch/TwitchRuntime;"
 
 private fun Element.descendants(): List<Element> {
     val nodes = getElementsByTagName("*")
@@ -18,39 +21,65 @@ private fun Element.descendants(): List<Element> {
 
 private fun Element.androidId() = getAttribute("android:id").substringAfter('/')
 
+/** Starts the extension with the app, whichever patches were selected. */
+internal val twitchRuntimePatch = bytecodePatch {
+    extendWith(TWITCH_EXTENSION)
+    execute {
+        mutableClassDefBy("Ltv/twitch/android/app/consumer/TwitchApplication;")
+            .methods.single { it.name == "onCreate" && it.parameterTypes.isEmpty() }
+            .addInstructions(0, "invoke-static/range {p0 .. p0}, $RUNTIME->initialize(Landroid/content/Context;)V")
+    }
+}
+
+/** Twitch's two sets of player controls: the live player's, and the one VODs and clips use. */
+internal val PLAYER_CONTROL_LAYOUTS = listOf("player_control_overlay", "player_control_overlay_widget")
+
+private const val END_TO_START = "app:layout_constraintEnd_toStartOf"
+private const val START_TO_END = "app:layout_constraintStart_toEndOf"
+
 /**
- * Adds the single player menu button directly left of the share button. Every feature patch
- * depends on it, so it is added once. The cast button, which appears and disappears with cast
- * devices, now sits left of ours, so ours never moves.
+ * Puts the menu button directly left of the share button of a player control layout, sized and
+ * padded like it. What sat there (the cast button, which comes and goes with cast devices) now sits
+ * left of ours, so ours never moves. Where the buttons form a chain, ours joins it in both
+ * directions; a one-way link would break the chain and unpack the row.
+ */
+internal fun addPlayerMenuButton(document: Document, layout: String) {
+    val root = document.documentElement
+    val views = root.descendants()
+    if (views.any { it.androidId() == BUTTON_ID }) return
+    val share = views.singleOrNull { it.androidId() == "share_button" }
+        ?: throw PatchException("Twitch player controls ($layout) lost share_button")
+    views.filter { it.getAttribute(END_TO_START).substringAfter('/') == "share_button" }
+        .forEach { it.setAttribute(END_TO_START, "@+id/$BUTTON_ID") }
+    val button = document.createElement(BUTTON)
+    button.setAttribute("android:id", "@+id/$BUTTON_ID")
+    for (copied in listOf("android:layout_width", "android:layout_height", "android:padding", "app:layout_constraintTop_toTopOf")) {
+        val value = share.getAttribute(copied)
+        if (value.isEmpty()) throw PatchException("Twitch player controls ($layout): share_button has no $copied")
+        button.setAttribute(copied, value)
+    }
+    button.setAttribute(END_TO_START, "@id/share_button")
+    val leftOfShare = share.getAttribute(START_TO_END)
+    if (leftOfShare.isNotEmpty()) {
+        button.setAttribute(START_TO_END, leftOfShare)
+        share.setAttribute(START_TO_END, "@id/$BUTTON_ID")
+    }
+    share.parentNode.insertBefore(button, share)
+}
+
+/**
+ * Adds the single player menu button to the player controls. Every feature patch depends on it,
+ * so it is added once.
  */
 internal val playerMenuResourcePatch = resourcePatch(
     description = "Adds the shared player menu button to Twitch's player controls.",
 ) {
     compatibleWith(TWITCH_SUPPORTED)
-    dependsOn(settingsEntryPatch, nativeTheatrePatch)
+    dependsOn(twitchRuntimePatch, settingsEntryPatch, nativeTheatrePatch)
 
     execute {
-        document("res/layout/player_control_overlay.xml").use { document ->
-            val root = document.documentElement
-            val views = root.descendants()
-            if (views.any { it.androidId() == BUTTON_ID }) return@use
-            val share = views.singleOrNull { it.androidId() == "share_button" }
-                ?: throw PatchException("Twitch player controls lost share_button")
-            // Everything that sat directly left of the share button (the cast button) now sits left of ours.
-            views.filter { it.getAttribute("app:layout_constraintEnd_toStartOf").substringAfter('/') == "share_button" }
-                .forEach { it.setAttribute("app:layout_constraintEnd_toStartOf", "@+id/$BUTTON_ID") }
-            val button = document.createElement(BUTTON)
-            button.setAttribute("android:id", "@+id/$BUTTON_ID")
-            button.setAttribute("android:layout_width", "@dimen/player_overlay_button_size")
-            button.setAttribute("android:layout_height", "@dimen/player_overlay_button_size")
-            button.setAttribute("android:padding", "@dimen/default_margin_large")
-            button.setAttribute("app:layout_constraintEnd_toStartOf", "@+id/share_button")
-            button.setAttribute("app:layout_constraintTop_toTopOf", "parent")
-            root.insertBefore(button, share)
+        for (layout in PLAYER_CONTROL_LAYOUTS) softHook("player menu button in $layout") {
+            document("res/layout/$layout.xml").use { addPlayerMenuButton(it, layout) }
         }
     }
 }
-
-/** Tells the shared menu and settings screen that a feature patch was applied. */
-internal fun BytecodePatchContext.enableTwitchFeature(flagMethod: String) =
-    replaceExtensionConstant(FEATURES, flagMethod, 1)

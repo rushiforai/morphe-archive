@@ -31,8 +31,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * Download button on the SDUI media viewer screens (photo: MediaUpdateDetail, video: VideoViewer,
- * profile photo and banner), driven by SduiFragment lifecycle hooks.
+ * Download button on the SDUI profile photo and banner viewer screens, driven by SduiFragment lifecycle hooks.
  *
  * Viewer payloads are transformed off the main thread shortly after the viewer fragment resumes,
  * so media is attached to the media screen that is in front (or the next one to resume).
@@ -40,8 +39,6 @@ import java.util.concurrent.Executors;
 @SuppressWarnings("unused")
 public final class SduiMediaDownload {
     private static final String DOWNLOAD_TAG = "morphe_sdui_download";
-    /** Photo (MediaUpdateDetail) and video (VideoViewer) viewers. */
-    private static final String MEDIA_SCREEN_PREFIX = "com.linkedin.sdui.flagshipnav.media.";
     /** ProfilePictureNonSelf, ProfilePictureEdit (own photo). */
     private static final String PROFILE_PHOTO_SCREEN_PREFIX = "com.linkedin.sdui.flagshipnav.profile.ProfilePicture";
     /** Own banner. */
@@ -74,13 +71,13 @@ public final class SduiMediaDownload {
             Settings.debugLog("SduiFragment resumed screen=" + screen);
             resumedFragment = fragment;
             resumedScreen = screen;
-            resumedIsMedia = screen.startsWith(MEDIA_SCREEN_PREFIX)
-                    || screen.startsWith(PROFILE_PHOTO_SCREEN_PREFIX) || screen.equals(PROFILE_COVER_SCREEN)
+            resumedIsMedia = screen.startsWith(PROFILE_PHOTO_SCREEN_PREFIX) || screen.equals(PROFILE_COVER_SCREEN)
                     || screen.equals(PROFILE_BACKGROUND_SCREEN);
 
             Activity activity = activity(fragment);
             if (activity == null) return;
             HomeTabShortcut.attach(activity);
+            VideoTab.onScreen(activity, screen, fragment);
             removeView(activity, DOWNLOAD_TAG);
             if (!resumedIsMedia || !Settings.downloadMedia()) return;
 
@@ -101,6 +98,7 @@ public final class SduiMediaDownload {
             resumedIsMedia = false;
             Activity activity = activity(fragment);
             if (activity == null) return;
+            VideoTab.hide(activity);
             removeView(activity, DOWNLOAD_TAG);
         } catch (Throwable t) {
             Diagnostics.error("onFragmentPaused failed", t);
@@ -302,6 +300,11 @@ public final class SduiMediaDownload {
             allVideos &= item.video;
         }
         if (started > 0) Downloads.toastStarted(activity, started, allVideos);
+    }
+
+    /** LinkedIn's activity of the SDUI screen in front, or null. */
+    static Activity frontActivity() {
+        return resumedFragment == null ? null : activity(resumedFragment);
     }
 
     private static Activity activity(Object fragment) {

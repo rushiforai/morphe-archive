@@ -409,8 +409,7 @@ private const val NEUTRAL_90_ID = 2131100650
 @Suppress("unused")
 val materialYouPatch = patch(
     name = "Material You",
-    description = "Uses your wallpaper's colors (Android 12+) for the accent and the surfaces, in light and dark mode. " +
-        "Rounder corners and wider spacing between items.",
+    description = "Uses your wallpaper's colors (Android 12+), with rounder corners and more spacing.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_RADIO_ID)

@@ -3,7 +3,7 @@ group = "app.pixivpatched"
 patches {
     about {
         name = "PixivPatched"
-        description = "Morphe patches for Pixiv Android (AI artwork flagger, adblocking, artwork downloader, premium features, OLED theme, enhanced viewer)"
+        description = "Morphe patches for Pixiv Android (AI artwork flagger, adblocking, artwork downloader, browsing history, novel text copy, premium features, popular search, bookmark threshold, OLED theme, enhanced viewer)"
         source = "https://github.com/Piracola/Pixiv-Patched"
         author = "Piracola"
         contact = "na"

@@ -15,6 +15,7 @@ import app.morphe.patches.telegram.misc.localcontrols.controlBody
 import app.morphe.patches.telegram.misc.localcontrols.controlField
 import app.morphe.patches.telegram.misc.localcontrols.controlRef
 import app.morphe.patches.telegram.misc.mymessages.MY_MESSAGES
+import app.morphe.patches.telegram.misc.mymessages.MyMessagesFixtureTest
 import app.morphe.patches.telegram.misc.mymessages.myMessagesPatch
 import app.morphe.patches.telegram.misc.translate.OUTSIDE_TRANSLATE
 import app.morphe.patches.telegram.misc.translate.OutsideTranslateFixtureTest
@@ -227,8 +228,8 @@ class ChatRevealFixtureTest {
                 .firstOrNull { it.returnType == "V" && it.parameterTypes.map { p -> p.toString() } == listOf(m.definingClass, "Z") }?.definingClass
         }.toSet()
         val types = setOf(MESSAGE_OBJECT, TEXT_BLOCKS, TEXT_BLOCK, "Lorg/telegram/tgnet/TLRPC\$User;", "Lorg/telegram/tgnet/TLRPC\$Chat;") + delegates
-        return (OutsideTranslateFixtureTest().hosts(build) + (rows + FixtureDex.classes(build, types).values).map(ImmutableClassDef::of))
-            .distinctBy { it.type }
+        return (OutsideTranslateFixtureTest().hosts(build) + (rows + FixtureDex.classes(build, types).values).map(ImmutableClassDef::of) +
+            MyMessagesFixtureTest().adminHosts(build)).distinctBy { it.type }
     }
 
     companion object {

@@ -1,6 +1,7 @@
 package app.morphe.patches.youtube.general.formfactor
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.InstructionLocation.MatchAfterImmediately
 import app.morphe.patcher.OpcodesFilter
 import app.morphe.patcher.anyInstruction
@@ -102,3 +103,14 @@ internal object RepeatedItemSectionRendererFingerprint : Fingerprint(
         ),
     ),
 )
+
+private object ResponsiveContainerPropertiesToStringFingerprint : Fingerprint(
+    name = "toString",
+    strings = listOf("ResponsiveContainerProperties{usingResponsiveContainerConfiguration=")
+)
+
+context(patchContext: BytecodePatchContext)
+internal fun getResponsiveContainerPropertiesFingerprint() = object : Fingerprint(
+    returnType = ResponsiveContainerPropertiesToStringFingerprint.originalClassDef.type,
+    parameters = listOf("I", "I")
+) {}

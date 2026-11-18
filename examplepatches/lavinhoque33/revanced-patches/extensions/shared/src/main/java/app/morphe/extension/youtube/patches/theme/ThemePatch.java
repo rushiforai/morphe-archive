@@ -8,7 +8,7 @@
  * - anddea (https://github.com/anddea)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-16
+ * Modified by lavinhoque33, 2026-11-17
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -181,6 +181,22 @@ public final class ThemePatch {
             RuntimeResourceOverlay.install(context, darkColors, lightColor, lightOpacity70Color);
         } catch (Exception ex) {
             Logger.printException(() -> "Failed to install runtime YouTube theme", ex);
+        }
+    }
+
+    /**
+     * Restore resource qualifiers after Android replaces the Activity configuration.
+     * Reuse the existing runtime overlay instead of rebuilding its resource table.
+     */
+    public static void onConfigurationChanged(Context context) {
+        try {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+                PrecompiledResourcePalette.install(context);
+            } else {
+                RuntimeResourceOverlay.select(context);
+            }
+        } catch (Exception ex) {
+            Logger.printException(() -> "Failed to restore YouTube theme after configuration change", ex);
         }
     }
 

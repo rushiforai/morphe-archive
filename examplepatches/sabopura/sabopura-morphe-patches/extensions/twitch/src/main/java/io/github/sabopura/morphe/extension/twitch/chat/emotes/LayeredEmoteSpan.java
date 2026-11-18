@@ -16,8 +16,8 @@ final class LayeredEmoteSpan extends ReplacementSpan {
     private CharSequence original;
     private int nativeStart, nativeEnd;
 
-    LayeredEmoteSpan(TextView view, Drawable base) {
-        add(view, base);
+    LayeredEmoteSpan(TextView view, Drawable base, float scale) {
+        add(view, base, scale);
     }
 
     LayeredEmoteSpan(ReplacementSpan base, CharSequence text, int start, int end) {
@@ -27,8 +27,8 @@ final class LayeredEmoteSpan extends ReplacementSpan {
         nativeEnd = end;
     }
 
-    void add(TextView view, Drawable drawable) {
-        layers.add(new CenteredImageSpan(view, drawable));
+    void add(TextView view, Drawable drawable, float scale) {
+        layers.add(new CenteredImageSpan(view, drawable, scale));
     }
 
     public int getSize(Paint p, CharSequence t, int s, int e, Paint.FontMetricsInt fm) {
@@ -51,19 +51,6 @@ final class LayeredEmoteSpan extends ReplacementSpan {
         if (nativeBase != null)
             nativeBase.draw(c, original, nativeStart, nativeEnd, x, top, baseline, bottom, p);
         for (CenteredImageSpan span : layers)
-            span.draw(
-                    c,
-                    t,
-                    s,
-                    e,
-                    x + (w - span.getDrawable().getBounds().width()) / 2f,
-                    top,
-                    baseline,
-                    bottom,
-                    p);
-    }
-
-    void stop() {
-        for (CenteredImageSpan span : layers) span.stop();
+            span.draw(c, t, s, e, x + (w - span.width()) / 2f, top, baseline, bottom, p);
     }
 }

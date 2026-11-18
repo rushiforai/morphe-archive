@@ -1,0 +1,74 @@
+name: Verify Good Pizza rewarded ads patch
+on:
+  pull_request:
+    paths:
+      - 'extensions/pizzabusiness/**'
+      - 'patches/src/main/kotlin/app/template/patches/pizzabusiness/**'
+      - 'patches/src/main/resources/pizzabusiness/**'
+      - 'scripts/VerifyPizzaRewardDex.java'
+      - 'scripts/VerifyPizzaDexParity.java'
+      - 'scripts/VerifyPizzaIntegrationDex.java'
+      - 'scripts/VerifyPizzaPlayServicesDex.java'
+      - 'scripts/verify_pizza_assets.py'
+      - 'scripts/verify_apkm.py'
+      - 'scripts/test_verify_apkm.py'
+      - 'scripts/apkmirror_download.py'
+      - 'scripts/test_apkmirror_download.py'
+      - 'native/pizzabusiness/**'
+      - 'scripts/*pizza*arm64.py'
+      - 'scripts/build_pizza_*'
+      - 'scripts/test_pizza_assets.py'
+      - 'scripts/VerifyPizzaBootstrap.java'
+      - 'scripts/VerifyPizzaProfiles.java'
+      - 'scripts/InspectPizzaUpdate.java'
+      - 'scripts/ExtractPizzaSdkReceivers.java'
+      - 'scripts/RecoverPizzaProviderSdk.java'
+      - 'scripts/inspect_pizza_update.py'
+      - 'scripts/reconstruct_pizza_capture.py'
+      - 'scripts/build_pizza_native_delta.py'
+      - 'patches/src/main/kotlin/util/PatchListGenerator.kt'
+      - 'patches/build.gradle.kts'
+      - '.github/workflows/verify-pizzabusiness.yml'
+permissions:
+  contents: read
+  packages: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v5.7.0
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools platforms;android-36 build-tools;36.0.0'
+          log-accepted-android-sdk-licenses: false
+      - name: Compile patch bundle and metadata
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew :patches:buildAndroid :patches:generatePatchesList --no-daemon
+      - name: Compile emitted-APK verification tools
+        run: |
+          curl -fL --retry 2 https://github.com/MorpheApp/morphe-desktop/releases/download/v1.17.0/morphe-desktop-1.17.0-all.jar -o "$RUNNER_TEMP/morphe-cli.jar"
+          echo "8cf6a9eab4ee9dab146bddc24681897851564f53116baec11f36ba2fa2f589be  $RUNNER_TEMP/morphe-cli.jar" | sha256sum -c -
+          javac -cp "$RUNNER_TEMP/morphe-cli.jar" -d "$RUNNER_TEMP/pizza-verifiers" scripts/VerifyPizzaRewardDex.java scripts/VerifyPizzaDexParity.java scripts/VerifyPizzaIntegrationDex.java scripts/VerifyPizzaPlayServicesDex.java
+          java -cp "$RUNNER_TEMP/pizza-verifiers:$RUNNER_TEMP/morphe-cli.jar" VerifyPizzaDexParity
+          javac -cp "patches/build/classes/kotlin/main:$RUNNER_TEMP/morphe-cli.jar" -d "$RUNNER_TEMP/pizza-verifiers" scripts/VerifyPizzaBootstrap.java scripts/VerifyPizzaProfiles.java
+          java -cp "$RUNNER_TEMP/pizza-verifiers:patches/build/classes/kotlin/main:patches/build/resources/main:$RUNNER_TEMP/morphe-cli.jar" VerifyPizzaBootstrap
+          java -cp "$RUNNER_TEMP/pizza-verifiers:patches/build/classes/kotlin/main:patches/build/resources/main:$RUNNER_TEMP/morphe-cli.jar" VerifyPizzaProfiles
+          javac -cp "$RUNNER_TEMP/morphe-cli.jar" -d "$RUNNER_TEMP/pizza-verifiers" scripts/InspectPizzaUpdate.java scripts/ExtractPizzaSdkReceivers.java
+          javac -cp "$RUNNER_TEMP/morphe-cli.jar:$RUNNER_TEMP/pizza-verifiers" -d "$RUNNER_TEMP/pizza-verifiers" scripts/RecoverPizzaProviderSdk.java
+      - name: Check split asset preservation verifier
+        run: |
+          python3 scripts/test_pizza_assets.py
+          python3 scripts/test_verify_apkm.py
+          python3 scripts/test_apkmirror_download.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dudeks-pizzabusiness-candidate
+          path: |
+            patches/build/libs/*.mpp
+            patches-list.json
+          if-no-files-found: error

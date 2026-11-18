@@ -12,6 +12,7 @@ public class Settings {
     public static final BooleanSetting REX_DEBUG = new BooleanSetting("rex_debug", false, REQUIRED);
     public static final BooleanSetting MATERIAL_YOU_THEME = new BooleanSetting("material_you_theme", false, NOT_REQUIRED);
     public static final BooleanSetting AMOLED_THEME = new BooleanSetting("amoled_theme", false, NOT_REQUIRED);
+    public static final StringSetting REX_COLOR_MODE = new StringSetting("rex_color_mode", "Rex Cyan AMOLED", NOT_REQUIRED);
     public static final StringSetting INSTAGRAM_THEME_MODE =
             new StringSetting("instagram_theme_mode", "-1", NOT_REQUIRED);
     public static final BooleanSetting INSTAGRAM_THEME_MODE_SYNCHRONIZED =
@@ -25,6 +26,7 @@ public class Settings {
     public static final BooleanSetting HIDE_SUGGESTED_CONTENT = new BooleanSetting("hide_suggested_content", true, REQUIRED);
     public static final BooleanSetting DEVELOPER_OPTIONS = new BooleanSetting("enable_developer_options", true, NOT_REQUIRED);
     public static final BooleanSetting DIRECTLY_OPEN_METACONFIG = new BooleanSetting("directly_open_metaconfig", true, NOT_REQUIRED);
+    public static final BooleanSetting AUTO_APPLY_PRO_CONFIG_V6 = new BooleanSetting("auto_apply_pro_config_v6", true, NOT_REQUIRED);
     public static final BooleanSetting DISABLE_DISCOVER_PEOPLE = new BooleanSetting("disable_discover_people", true, REQUIRED);
     public static final BooleanSetting LIMIT_FOLLOWING_FEED = new BooleanSetting("limit_following_feed", false, REQUIRED);
     public static final BooleanSetting HIDE_FEED_POSTS = new BooleanSetting("hide_feed_posts", false, REQUIRED);
@@ -34,8 +36,10 @@ public class Settings {
     public static final BooleanSetting DISABLE_SCREENSHOT_DETECTION = new BooleanSetting("disable_screenshot_detection", false, NOT_REQUIRED);
     public static final BooleanSetting VIEW_DM_ANONYMOUSLY = new BooleanSetting("view_dm_anonymously", false, NOT_REQUIRED);
     public static final BooleanSetting MARK_AS_READ_AFTER_REPLY = new BooleanSetting("mark_as_read_after_reply", false, NOT_REQUIRED);
+    public static final BooleanSetting MARK_AS_SEEN_ON_REACTION = new BooleanSetting("mark_as_seen_on_reaction", false, NOT_REQUIRED);
     public static final BooleanSetting LISTEN_VOICE_NOTE_SECRETLY = new BooleanSetting("listen_voice_note_secretly", false, NOT_REQUIRED);
     public static final BooleanSetting GHOST_INSTANTS = new BooleanSetting("ghost_instants", false, NOT_REQUIRED);
+    public static final BooleanSetting VIEW_BLOCKED_PROFILES_SECRETLY = new BooleanSetting("view_blocked_profiles_secretly", true, NOT_REQUIRED);
     public static final StringSetting LAST_ACTIVE_FORMAT = new StringSetting("last_active_format", "Full Date & Time (dd MMM, hh:mm a)", NOT_REQUIRED);
 
     public static final BooleanSetting INSTANTS_DOWNLOAD = new BooleanSetting("instants_download", false, NOT_REQUIRED);
@@ -49,7 +53,8 @@ public class Settings {
     public static final BooleanSetting FOLLOW_BACK_INDICATOR = new BooleanSetting("follow_back_indicator", true, NOT_REQUIRED);
     public static final BooleanSetting FOLLOW_BACK_COLOR_INDICATOR = new BooleanSetting("follow_back_color_indicator", true, NOT_REQUIRED);
     public static final BooleanSetting FOLLOW_LIST_NON_FOLLOWER_BADGE = new BooleanSetting("follow_list_non_follower_badge", true, NOT_REQUIRED);
-    public static final BooleanSetting VIEW_STORY_MENTIONS = new BooleanSetting("view_story_mentions", true, REQUIRED);
+    public static final BooleanSetting VIEW_STORY_MENTIONS = new BooleanSetting("view_story_mentions", true, NOT_REQUIRED);
+    public static final BooleanSetting STORY_OPTIONS_BUTTON = new BooleanSetting("story_options_button", true, NOT_REQUIRED);
     public static final BooleanSetting DISABLE_STORY_FLIPPING = new BooleanSetting("disable_story_flipping", false, NOT_REQUIRED);
     public static final BooleanSetting LOOP_STORY = new BooleanSetting("loop_story", false, NOT_REQUIRED);
     public static final BooleanSetting HIDE_STORY_FOLLOW_BUTTON = new BooleanSetting("hide_story_follow_button", false, NOT_REQUIRED);
@@ -86,6 +91,8 @@ public class Settings {
     public static final StringSetting CHANGE_LIKE_ANIMATION = new StringSetting("change_like_animation", "ARES_LIKE_ACTIVATION", REQUIRED);
     public static final StringSetting CUSTOMISE_STORY_RING_SIZE = new StringSetting("customise_story_ring_size", "100", REQUIRED);
     public static final BooleanSetting ENABLE_MORE_OPTIONS_ON_POST = new BooleanSetting("enable_more_option_on_post", true, NOT_REQUIRED);
+    public static final BooleanSetting DISABLE_FEED_DOWNLOAD_ICON = new BooleanSetting("disable_feed_download_icon", false, NOT_REQUIRED);
+    public static final BooleanSetting DISABLE_FEED_OPTIONS_ICON = new BooleanSetting("disable_feed_options_icon", false, NOT_REQUIRED);
     public static final BooleanSetting USE_SYSTEM_FONT = new BooleanSetting("use_system_font", false, REQUIRED);
 
     public static final BooleanSetting DISABLE_DOUBLE_TAP_LIKE_POST = new BooleanSetting("disable_double_tap_like_post", false, NOT_REQUIRED);
@@ -96,6 +103,7 @@ public class Settings {
     public static final BooleanSetting ENABLE_DOWNLOAD = new BooleanSetting("enable_download", true, REQUIRED);
     public static final BooleanSetting FEED_DOWNLOAD_BUTTON = new BooleanSetting("feed_download_button", true, NOT_REQUIRED);
     public static final BooleanSetting REEL_DOWNLOAD_BUTTON = new BooleanSetting("reel_download_button", true, NOT_REQUIRED);
+    public static final BooleanSetting REEL_OPTIONS_BUTTON = new BooleanSetting("reel_options_button", true, NOT_REQUIRED);
     public static final BooleanSetting STORY_DOWNLOAD_BUTTON = new BooleanSetting("story_download_button", true, NOT_REQUIRED);
     public static final BooleanSetting ENABLE_DIRECT_DOWNLOAD = new BooleanSetting("enable_direct_download", false, REQUIRED);
     public static final BooleanSetting DOWNLOAD_USERNAME_FOLDER = new BooleanSetting("download_username_folder", false, NOT_REQUIRED);
@@ -143,6 +151,7 @@ public class Settings {
     public static final StringSetting DM_CREATIVE_FONT_STYLE = new StringSetting("dm_creative_font_style", "Normal", NOT_REQUIRED);
 
     public static final BooleanSetting LONG_PRESS_POST_OPTIONS = new BooleanSetting("long_press_post_options", true, NOT_REQUIRED);
+    public static final BooleanSetting LONG_PRESS_SEARCH_OPEN_PROFILE = new BooleanSetting("long_press_search_open_profile", true, NOT_REQUIRED);
     public static final BooleanSetting COPY_CAPTION_WITHOUT_HASHTAGS = new BooleanSetting("copy_caption_without_hashtags", false, NOT_REQUIRED);
     public static final BooleanSetting REPOST_WITH_CAPTION_WA = new BooleanSetting("repost_with_caption_wa", true, NOT_REQUIRED);
 
@@ -172,4 +181,5 @@ public class Settings {
     public static final BooleanSetting CUSTOM_CHAT_WALLPAPER = CHAT_CUSTOM_BG_ENABLED;
     public static final BooleanSetting REELS_FLOATING_TOOLBAR = new BooleanSetting("reels_floating_toolbar", true, NOT_REQUIRED);
     public static final BooleanSetting STORY_FILTERS_MASTER = new BooleanSetting("story_filters_master", true, NOT_REQUIRED);
+    public static final BooleanSetting CUSTOM_HOME_WORDMARK = new BooleanSetting("custom_home_wordmark", true, NOT_REQUIRED);
 }

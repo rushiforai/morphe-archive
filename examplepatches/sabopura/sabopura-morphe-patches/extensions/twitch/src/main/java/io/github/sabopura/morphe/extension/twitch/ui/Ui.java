@@ -1,17 +1,23 @@
 package io.github.sabopura.morphe.extension.twitch.ui;
 
+import android.animation.ObjectAnimator;
+import android.animation.PropertyValuesHolder;
+import android.animation.StateListAnimator;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.res.ColorStateList;
+import android.content.res.Configuration;
 import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.InsetDrawable;
 import android.graphics.drawable.RippleDrawable;
+import android.graphics.drawable.StateListDrawable;
 import android.os.Build;
 import android.text.InputFilter;
 import android.text.InputType;
@@ -24,14 +30,19 @@ import android.view.Window;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
 import android.view.WindowManager;
+import android.view.accessibility.AccessibilityNodeInfo;
+import android.view.animation.PathInterpolator;
 import android.widget.EditText;
 import android.widget.FrameLayout;
-import android.widget.HorizontalScrollView;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
-import android.widget.SeekBar;
-import android.widget.Switch;
 import android.widget.TextView;
+
+import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
+import java.util.function.IntConsumer;
+import java.util.function.IntFunction;
 
 /**
  * Palette and building blocks shared by the player menu and the settings screen. Everything
@@ -101,18 +112,11 @@ public final class Ui {
     public static Activity activity(Context context) {
         while (context instanceof ContextWrapper) {
             if (context instanceof Activity) return (Activity) context;
-            context = ((ContextWrapper) context).getBaseContext();
+            Context next = ((ContextWrapper) context).getBaseContext();
+            if (next == context) break;
+            context = next;
         }
         return null;
-    }
-
-    public static boolean wide(Context context) {
-        return context.getResources().getConfiguration().screenWidthDp >= 720;
-    }
-
-    public static boolean landscape(Context context) {
-        android.content.res.Configuration c = context.getResources().getConfiguration();
-        return c.screenWidthDp > c.screenHeightDp;
     }
 
     // ---- drawables ----
@@ -140,6 +144,23 @@ public final class Ui {
                 rounded(context, Color.WHITE, radiusDp));
     }
 
+    /** The tile and button press, .97 in 90 ms. Never delays the click. */
+    static void pressScale(View view) {
+        StateListAnimator states = new StateListAnimator();
+        states.addState(new int[]{android.R.attr.state_pressed, android.R.attr.state_enabled}, scaleTo(view, .97f));
+        states.addState(new int[]{}, scaleTo(view, 1f));
+        view.setStateListAnimator(states);
+    }
+
+    private static ObjectAnimator scaleTo(View view, float scale) {
+        ObjectAnimator animator = ObjectAnimator.ofPropertyValuesHolder(view,
+                PropertyValuesHolder.ofFloat(View.SCALE_X, scale),
+                PropertyValuesHolder.ofFloat(View.SCALE_Y, scale));
+        animator.setDuration(90);
+        animator.setInterpolator(new PathInterpolator(Ease.OUT[0], Ease.OUT[1], Ease.OUT[2], Ease.OUT[3]));
+        return animator;
+    }
+
     // ---- text ----
 
     public TextView text(Context context, CharSequence value, float sp, int color,
@@ -160,29 +181,21 @@ public final class Ui {
 
     // ---- containers ----
 
-    /** A rounded group of rows separated by hairlines. */
     public LinearLayout card(Context context) {
-        LinearLayout card = new LinearLayout(context) {
-            @Override
-            public void addView(View child, int index, ViewGroup.LayoutParams params) {
-                if (getChildCount() > 0) {
-                    View divider = new View(getContext());
-                    divider.setBackgroundColor(line);
-                    LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                            ViewGroup.LayoutParams.MATCH_PARENT, Math.max(1, dp(getContext(), 0.7f)));
-                    lp.leftMargin = dp(getContext(), 16);
-                    super.addView(divider, -1, lp);
-                }
-                super.addView(child, index, params);
-            }
-        };
-        card.setOrientation(LinearLayout.VERTICAL);
-        card.setBackground(rounded(context, card(), 16));
-        card.setClipToOutline(true);
-        return card;
+        return card(context, 16);
     }
 
-    private int card() {
+    /** A rounded group of rows separated by hairlines; a hidden row takes its hairline with it. */
+    public LinearLayout card(Context context, float dividerInsetDp) {
+        LinearLayout card = new LinearLayout(context);
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setBackground(rounded(context, this.card, 16));
+        card.setClipToOutline(true);
+        GradientDrawable hairline = new GradientDrawable();
+        hairline.setColor(line);
+        hairline.setSize(0, Math.max(1, dp(context, 0.7f)));
+        card.setDividerDrawable(new InsetDrawable(hairline, dp(context, dividerInsetDp), 0, 0, 0));
+        card.setShowDividers(LinearLayout.SHOW_DIVIDER_MIDDLE);
         return card;
     }
 
@@ -192,6 +205,28 @@ public final class Ui {
     }
 
     // ---- rows ----
+
+    /** The parts of a row that its owner keeps updating in place. */
+    static final class Row {
+        final View view;
+        final TextView title;
+        final TextView summary;
+        final TextView value;
+        final LiquidSwitch toggle;
+
+        Row(View view, TextView title, TextView summary, TextView value, LiquidSwitch toggle) {
+            this.view = view;
+            this.title = title;
+            this.summary = summary;
+            this.value = value;
+            this.toggle = toggle;
+        }
+
+        void setSummary(String text) {
+            summary.setText(text);
+            summary.setVisibility(TextUtils.isEmpty(text) ? View.GONE : View.VISIBLE);
+        }
+    }
 
     private LinearLayout rowBase(Context context) {
         LinearLayout row = new LinearLayout(context);
@@ -212,208 +247,363 @@ public final class Ui {
         s.setVisibility(TextUtils.isEmpty(summary) ? View.GONE : View.VISIBLE);
         s.setPadding(0, dp(context, 2), 0, 0);
         column.addView(s);
-        if (out != null) {
-            out[0] = t;
-            out[1] = s;
-        }
+        out[0] = t;
+        out[1] = s;
         return column;
     }
 
-    public interface Toggle {
-        void changed(boolean checked);
-    }
-
-    public Switch tint(Switch view) {
-        int[][] states = {{android.R.attr.state_checked}, {}};
-        view.setThumbTintList(new ColorStateList(states,
-                new int[]{accent, dark ? 0xFFBDBDC6 : 0xFFF4F4F6}));
-        view.setTrackTintList(new ColorStateList(states,
-                new int[]{(accent & 0x00FFFFFF) | 0x88000000, dark ? 0x55FFFFFF : 0x33000000}));
-        return view;
-    }
-
-    public SeekBar tint(SeekBar view) {
-        view.setProgressTintList(ColorStateList.valueOf(accent));
-        view.setThumbTintList(ColorStateList.valueOf(accent));
-        view.setProgressBackgroundTintList(ColorStateList.valueOf(dark ? 0x55FFFFFF : 0x33000000));
-        return view;
-    }
-
-    public View switchRow(Context context, String title, String summary, boolean checked,
-                          Toggle listener) {
+    Row switchRowParts(Context context, String title, String summary, boolean checked,
+                       Consumer<Boolean> listener) {
         LinearLayout row = rowBase(context);
-        row.addView(texts(context, title, summary, null),
+        TextView[] parts = new TextView[2];
+        row.addView(texts(context, title, summary, parts),
                 new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-        Switch toggle = tint(new Switch(context));
-        toggle.setChecked(checked);
-        toggle.setContentDescription(title);
-        toggle.setOnCheckedChangeListener((button, value) -> listener.changed(value));
+        LiquidSwitch toggle = new LiquidSwitch(context, this);
+        toggle.setChecked(checked, false);
+        toggle.setListener(listener);
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         lp.leftMargin = dp(context, 12);
         row.addView(toggle, lp);
         row.setOnClickListener(v -> toggle.toggle());
-        row.setTag(toggle);
-        return row;
+        toggle.speakThrough(row);
+        return new Row(row, parts[0], parts[1], null, toggle);
     }
 
-    public interface Format {
-        String label(int value);
-    }
-
-    public interface Commit {
-        void value(int value);
+    public View switchRow(Context context, String title, String summary, boolean checked,
+                          Consumer<Boolean> listener) {
+        return switchRowParts(context, title, summary, checked, listener).view;
     }
 
     public View sliderRow(Context context, String title, String summary, int min, int max,
-                          int value, Format format, Commit commit) {
+                          int value, IntFunction<String> format, IntConsumer commit) {
+        return sliderRow(context, title, summary, min, max, value, value, format, v -> {
+        }, commit);
+    }
+
+    /** {@code mark} is the default value's position; {@code preview} follows a drag before it is committed. */
+    public View sliderRow(Context context, String title, String summary, int min, int max, int value,
+                          int mark, IntFunction<String> format, IntConsumer preview, IntConsumer commit) {
         LinearLayout column = new LinearLayout(context);
         column.setOrientation(LinearLayout.VERTICAL);
+        column.setClipChildren(false);
         column.setPadding(dp(context, 16), dp(context, 12), dp(context, 16), dp(context, 6));
         LinearLayout head = new LinearLayout(context);
         head.setGravity(Gravity.CENTER_VERTICAL);
-        head.addView(texts(context, title, summary, null),
+        TextView[] parts = new TextView[2];
+        head.addView(texts(context, title, summary, parts),
                 new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-        TextView current = text(context, format.label(value), 15, accent, true);
+        TextView current = text(context, format.apply(value), 15, accent, true);
         current.setPadding(dp(context, 12), 0, 0, 0);
         head.addView(current);
         column.addView(head);
-        SeekBar bar = tint(new SeekBar(context));
-        bar.setMax(max - min);
-        bar.setProgress(Math.max(0, Math.min(max - min, value - min)));
-        bar.setContentDescription(title);
-        bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                current.setText(format.label(min + progress));
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-                commit.value(min + seekBar.getProgress());
-            }
-        });
+        ElasticSlider slider = new ElasticSlider(context, this, min, max, value, mark, format, v -> {
+            current.setText(format.apply(v));
+            preview.accept(v);
+        }, commit);
+        slider.setContentDescription(title);
+        LinearLayout track = new LinearLayout(context);
+        track.setGravity(Gravity.CENTER_VERTICAL);
+        track.setClipChildren(false);
+        track.addView(stepButton(context, Icons.Kind.MINUS, stepLabel(title, false), () -> slider.nudge(-1)));
+        track.addView(slider, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        track.addView(stepButton(context, Icons.Kind.PLUS, stepLabel(title, true), () -> slider.nudge(1)));
         LinearLayout.LayoutParams lp = matchWidth();
         lp.topMargin = dp(context, 4);
-        column.addView(bar, lp);
+        column.addView(track, lp);
         return column;
     }
 
-    /** Title, current value and a chevron; tapping opens the editor. */
-    public View linkRow(Context context, String title, String summary, String value,
-                        Runnable onClick) {
+    /** Names the value it changes, since TalkBack reaches the button on its own. */
+    static String stepLabel(String title, boolean up) {
+        return Text.label(title + (up ? "を1上げる" : "を1下げる"),
+                (up ? "Increase " : "Decrease ") + PortMath.lowerFirst(title));
+    }
+
+    private ImageView stepButton(Context context, Icons.Kind kind, String description, Runnable onClick) {
+        ImageView button = iconView(context, kind, text, 20);
+        button.setContentDescription(description);
+        button.setBackground(pressable(context, 0, 24));
+        button.setOnClickListener(v -> onClick.run());
+        button.setLayoutParams(new LinearLayout.LayoutParams(dp(context, 48), dp(context, 48)));
+        return button;
+    }
+
+    ImageView iconView(Context context, Icons.Kind kind, int color, float sizeDp) {
+        ImageView icon = new ImageView(context);
+        icon.setImageDrawable(Icons.drawable(context, kind, color, sizeDp));
+        icon.setScaleType(ImageView.ScaleType.CENTER);
+        return icon;
+    }
+
+    Row linkRowParts(Context context, String title, String summary, String value, Runnable onClick) {
+        return linkRowParts(context, title, summary, value, false, onClick);
+    }
+
+    /** {@code stacked} puts the value under the title in the accent colour instead of at the row's end. */
+    Row linkRowParts(Context context, String title, String summary, String value, boolean stacked, Runnable onClick) {
         LinearLayout row = rowBase(context);
         TextView[] parts = new TextView[2];
-        row.addView(texts(context, title, summary, parts),
-                new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-        if (value != null) {
-            TextView v = text(context, value, 14, secondary, false);
+        LinearLayout column = texts(context, title, summary, parts);
+        row.addView(column, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        TextView v = text(context, value == null ? "" : value, 14, stacked ? accent : secondary, stacked);
+        v.setVisibility(value == null ? View.GONE : View.VISIBLE);
+        if (stacked) {
+            v.setPadding(0, dp(context, 2), 0, 0);
+            column.addView(v, 1);
+        } else {
             v.setMaxWidth(dp(context, 160));
             v.setSingleLine(true);
             v.setEllipsize(TextUtils.TruncateAt.END);
             v.setPadding(dp(context, 12), 0, dp(context, 4), 0);
             row.addView(v);
         }
-        TextView chevron = text(context, "›", 22, secondary, false);
-        chevron.setPadding(dp(context, 6), 0, 0, dp(context, 2));
-        row.addView(chevron);
-        row.setOnClickListener(v -> onClick.run());
+        ImageView chevron = iconView(context, Icons.Kind.CHEVRON, secondary, 20);
+        LinearLayout.LayoutParams chevronLp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        chevronLp.leftMargin = stacked ? dp(context, 12) : 0;
+        row.addView(chevron, chevronLp);
+        row.setOnClickListener(x -> onClick.run());
+        return new Row(row, parts[0], parts[1], v, null);
+    }
+
+    /** Facts to read, with nothing to tap. */
+    View infoRow(Context context, String title, String summary) {
+        LinearLayout row = rowBase(context);
+        row.setBackground(null);
+        TextView[] parts = new TextView[2];
+        row.addView(texts(context, title, summary, parts),
+                new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        parts[0].setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
         return row;
     }
 
+    /** An icon on a rounded tile of the section's own colour. */
+    View iconTile(Context context, Icons.Kind icon, int tint, float sizeDp) {
+        ImageView tile = iconView(context, icon, Color.WHITE, sizeDp * .55f);
+        tile.setBackground(rounded(context, tint, sizeDp * .3f));
+        tile.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        return tile;
+    }
+
+    /** A section on the first screen: its icon, its name, what is inside, and its state at the end. */
+    View sectionRow(Context context, Icons.Kind icon, int tint, String title, String summary, String status,
+                    boolean statusOn, Runnable onClick) {
+        LinearLayout row = rowBase(context);
+        row.setMinimumHeight(dp(context, 68));
+        LinearLayout.LayoutParams tileLp = new LinearLayout.LayoutParams(dp(context, 40), dp(context, 40));
+        tileLp.rightMargin = dp(context, 14);
+        row.addView(iconTile(context, icon, tint, 40), tileLp);
+        TextView[] parts = new TextView[2];
+        row.addView(texts(context, title, summary, parts),
+                new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        parts[0].setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+        parts[1].setMaxLines(2);
+        parts[1].setEllipsize(TextUtils.TruncateAt.END);
+        if (status != null) {
+            TextView state = text(context, status, 13, statusOn ? accent : secondary, statusOn);
+            state.setPadding(dp(context, 12), 0, dp(context, 2), 0);
+            row.addView(state);
+        }
+        row.addView(iconView(context, Icons.Kind.CHEVRON, secondary, 20));
+        row.setOnClickListener(x -> onClick.run());
+        return row;
+    }
+
+    /** Title and summary above Bencho's inline confirm pill. */
+    View confirmRow(Context context, String title, String summary, String idle, String done,
+                    ConfirmPill.Pending pending, Runnable commit, Runnable undo, Runnable expire) {
+        LinearLayout column = new LinearLayout(context);
+        column.setOrientation(LinearLayout.VERTICAL);
+        ConfirmPill pill = new ConfirmPill(context, this, idle, done, pending, commit, undo, expire);
+        // The pill's touch target reaches past its face; the face keeps its place.
+        int reach = pill.targetMargin();
+        column.setPadding(dp(context, 16), dp(context, 12), dp(context, 16), dp(context, 12) - reach);
+        TextView[] parts = new TextView[2];
+        column.addView(texts(context, title, summary, parts));
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lp.topMargin = dp(context, 10) - reach;
+        column.addView(pill, lp);
+        return column;
+    }
+
+    /** Title, current value and a chevron; tapping opens the editor. */
+    public View linkRow(Context context, String title, String summary, String value,
+                        Runnable onClick) {
+        return linkRowParts(context, title, summary, value, onClick).view;
+    }
+
+    /** A link row for one of several choices: the chosen one reads as the row's second line. */
+    public View choiceRow(Context context, String title, String summary, String value, Runnable onClick) {
+        return linkRowParts(context, title, summary, value, true, onClick).view;
+    }
+
+    /** A row of colour circles; the name stays available to TalkBack. */
+    View swatchRow(Context context, String title, String summary, String[] labels, int[] colors,
+                   int selected, IntConsumer pick) {
+        LinearLayout column = new LinearLayout(context);
+        column.setOrientation(LinearLayout.VERTICAL);
+        column.setPadding(dp(context, 16), dp(context, 12), dp(context, 16), dp(context, 12));
+        TextView[] parts = new TextView[2];
+        column.addView(texts(context, title, summary, parts));
+        LinearLayout row = new LinearLayout(context);
+        row.setPadding(0, dp(context, 8), 0, 0);
+        for (int i = 0; i < colors.length; i++) {
+            final int index = i;
+            View swatch = new View(context);
+            swatch.setContentDescription(labels[i]);
+            swatch.setSelected(i == selected);
+            GradientDrawable circle = new GradientDrawable();
+            circle.setShape(GradientDrawable.OVAL);
+            circle.setColor(colors[i] | 0xFF000000);
+            if (i == selected) circle.setStroke(dp(context, 3), text);
+            swatch.setBackground(new InsetDrawable(circle, dp(context, 8)));
+            swatch.setOnClickListener(v -> pick.accept(index));
+            row.addView(swatch, new LinearLayout.LayoutParams(dp(context, 48), dp(context, 48)));
+        }
+        column.addView(row);
+        return column;
+    }
+
+    /** A chip whose face is 36 dp high inside a 48 dp touch target; selected shows as filled. */
     public TextView chip(Context context, String label, boolean selected, Runnable onClick) {
-        TextView chip = text(context, label, 14, selected ? onAccent : text, true);
+        TextView chip = text(context, label, 14, 0, true);
         chip.setGravity(Gravity.CENTER);
-        chip.setMinWidth(dp(context, 52));
-        chip.setMinHeight(dp(context, 36));
+        chip.setMinWidth(dp(context, 44));
+        chip.setMinHeight(dp(context, 48));
+        chip.setTextColor(new ColorStateList(
+                new int[][]{{android.R.attr.state_selected}, {}}, new int[]{onAccent, text}));
+        int ripple = dark ? 0x33FFFFFF : 0x22000000;
+        StateListDrawable faces = new StateListDrawable();
+        faces.addState(new int[]{android.R.attr.state_selected}, rounded(context, accent, 18));
+        faces.addState(new int[]{}, rounded(context, dark ? 0x22FFFFFF : 0x0F000000, 18));
+        int inset = dp(context, 6);
+        chip.setBackground(new RippleDrawable(ColorStateList.valueOf(ripple),
+                new InsetDrawable(faces, 0, inset, 0, inset),
+                new InsetDrawable(rounded(context, Color.WHITE, 18), 0, inset, 0, inset)));
+        // After the background: its insets would otherwise replace this padding.
         chip.setPadding(dp(context, 14), 0, dp(context, 14), 0);
-        chip.setBackground(pressable(context, selected ? accent : (dark ? 0x22FFFFFF : 0x0F000000), 18));
         chip.setSelected(selected);
         chip.setOnClickListener(v -> onClick.run());
         return chip;
     }
 
-    public HorizontalScrollView chipStrip(Context context, View... chips) {
-        LinearLayout strip = new LinearLayout(context);
-        strip.setOrientation(LinearLayout.HORIZONTAL);
-        for (View chip : chips) {
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            lp.rightMargin = dp(context, 8);
-            strip.addView(chip, lp);
-        }
-        HorizontalScrollView scroll = new HorizontalScrollView(context);
-        scroll.setHorizontalScrollBarEnabled(false);
-        scroll.addView(strip);
-        return scroll;
-    }
-
-    /** Large tonal button used in the player menu grid. */
-    public TextView tile(Context context, String label, Runnable onClick) {
-        TextView tile = text(context, label, 14, text, true);
+    /** Large tonal button used in the player menu grid: an icon over its label. */
+    public View tile(Context context, Icons.Kind icon, String label, Runnable onClick) {
+        LinearLayout tile = new LinearLayout(context);
+        tile.setOrientation(LinearLayout.VERTICAL);
         tile.setGravity(Gravity.CENTER);
-        tile.setMinHeight(dp(context, 48));
-        tile.setMaxLines(2);
-        tile.setPadding(dp(context, 8), dp(context, 6), dp(context, 8), dp(context, 6));
+        tile.setMinimumHeight(dp(context, 64));
+        tile.setPadding(dp(context, 6), dp(context, 10), dp(context, 6), dp(context, 8));
         tile.setBackground(pressable(context, dark ? 0x1AFFFFFF : 0x0D000000, 14));
+        ImageView image = iconView(context, icon, text, 22);
+        tile.addView(image, new LinearLayout.LayoutParams(dp(context, 24), dp(context, 24)));
+        TextView name = text(context, label, 13, text, true);
+        name.setGravity(Gravity.CENTER);
+        name.setMaxLines(2);
+        name.setPadding(0, dp(context, 4), 0, 0);
+        tile.addView(name);
+        tile.setContentDescription(label);
+        pressScale(tile);
         tile.setOnClickListener(v -> onClick.run());
         return tile;
     }
 
-    /** Rows of equally wide tiles. */
-    public LinearLayout grid(Context context, int columns, View... tiles) {
-        LinearLayout grid = new LinearLayout(context);
-        grid.setOrientation(LinearLayout.VERTICAL);
-        LinearLayout row = null;
-        for (int i = 0; i < tiles.length; i++) {
-            if (i % columns == 0) {
-                row = new LinearLayout(context);
-                LinearLayout.LayoutParams rp = matchWidth();
-                if (i > 0) rp.topMargin = dp(context, 8);
-                grid.addView(row, rp);
+    /** Changes the icon and the name of a {@link #tile} that shows a state. */
+    public void retile(View tile, Icons.Kind icon, String label) {
+        ViewGroup parts = (ViewGroup) tile;
+        ((ImageView) parts.getChildAt(0)).setImageDrawable(Icons.drawable(tile.getContext(), icon, text, 22));
+        ((TextView) parts.getChildAt(1)).setText(label);
+        tile.setContentDescription(label);
+    }
+
+    /** Equally wide tiles whose column count follows the grid's own width, so it survives rotation. */
+    public ViewGroup grid(Context context, View... tiles) {
+        ViewGroup grid = new ViewGroup(context) {
+            @Override
+            protected void onMeasure(int widthSpec, int heightSpec) {
+                int width = MeasureSpec.getSize(widthSpec);
+                int gap = dp(getContext(), 8);
+                int columns = Layouts.menuColumns(Math.round(width / getResources().getDisplayMetrics().density), getChildCount());
+                int cell = (width - gap * (columns - 1)) / Math.max(1, columns);
+                int spec = MeasureSpec.makeMeasureSpec(cell, MeasureSpec.EXACTLY);
+                int rows = 0, rowHeight = 0, height = 0;
+                for (int i = 0; i < getChildCount(); i++) {
+                    View child = getChildAt(i);
+                    child.measure(spec, MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
+                    rowHeight = Math.max(rowHeight, child.getMeasuredHeight());
+                    if (i % columns == columns - 1 || i == getChildCount() - 1) {
+                        height += rowHeight + (rows > 0 ? gap : 0);
+                        rows++;
+                        rowHeight = 0;
+                    }
+                }
+                setMeasuredDimension(width, height);
             }
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0,
-                    ViewGroup.LayoutParams.WRAP_CONTENT, 1);
-            if (i % columns != 0) lp.leftMargin = dp(context, 8);
-            row.addView(tiles[i], lp);
-        }
-        if (row != null) {
-            for (int i = tiles.length % columns; i != 0 && i < columns; i++) {
-                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, 0, 1);
-                lp.leftMargin = dp(context, 8);
-                row.addView(new View(context), lp);
+
+            @Override
+            protected void onLayout(boolean changed, int l, int t, int r, int b) {
+                int gap = dp(getContext(), 8);
+                int columns = Layouts.menuColumns(Math.round(getWidth() / getResources().getDisplayMetrics().density), getChildCount());
+                int cell = (getWidth() - gap * (columns - 1)) / Math.max(1, columns);
+                int top = 0;
+                for (int i = 0; i < getChildCount(); i += columns) {
+                    int rowHeight = 0;
+                    for (int j = i; j < Math.min(getChildCount(), i + columns); j++)
+                        rowHeight = Math.max(rowHeight, getChildAt(j).getMeasuredHeight());
+                    for (int j = i; j < Math.min(getChildCount(), i + columns); j++) {
+                        int x = (j - i) * (cell + gap);
+                        getChildAt(j).layout(x, top, x + cell, top + rowHeight);
+                    }
+                    top += rowHeight + gap;
+                }
             }
-        }
+        };
+        for (View tile : tiles) grid.addView(tile);
         return grid;
     }
 
+    /** A 44 dp face inside a 48 dp touch target. */
     public TextView button(Context context, String label, boolean filled, Runnable onClick) {
         TextView button = text(context, label, 15, filled ? onAccent : accent, true);
         button.setGravity(Gravity.CENTER);
-        button.setMinHeight(dp(context, 44));
-        button.setPadding(dp(context, 18), 0, dp(context, 18), 0);
+        button.setMinHeight(dp(context, 48));
+        Drawable face;
         if (filled) {
-            button.setBackground(pressable(context, accent, 22));
+            face = pressable(context, accent, 22);
         } else {
             GradientDrawable outline = rounded(context, 0, 22);
             outline.setStroke(Math.max(1, dp(context, 1)), (accent & 0x00FFFFFF) | 0x99000000);
-            button.setBackground(new RippleDrawable(ColorStateList.valueOf(accentSoft), outline,
-                    rounded(context, Color.WHITE, 22)));
+            face = new RippleDrawable(ColorStateList.valueOf(accentSoft), outline, rounded(context, Color.WHITE, 22));
         }
+        button.setBackground(new InsetDrawable(face, 0, dp(context, 2), 0, dp(context, 2)));
+        // After the background: its insets would otherwise replace this padding.
+        button.setPadding(dp(context, 18), 0, dp(context, 18), 0);
+        pressScale(button);
         button.setOnClickListener(v -> onClick.run());
         return button;
     }
 
-    // ---- modal dialogs ----
-
-    /** Positive action that may keep the dialog open, for example on invalid input. */
-    public interface Validate {
-        boolean accept();
+    /** Bencho's drag stepper, for callers outside this package. */
+    public View stepper(Context context, String description, int min, int max, int value, int mark,
+                        IntFunction<String> format, IntConsumer onChange) {
+        StepperView view = new StepperView(context, this, min, max, value, mark, format, onChange);
+        view.setContentDescription(description);
+        return view;
     }
+
+    /** The input background shared by the editors. */
+    public Drawable field(Context context) {
+        return rounded(context, dark ? 0x14FFFFFF : 0x0A000000, 12);
+    }
+
+    /** Red for errors and for actions that destroy data, readable on {@link #surface} in either theme. */
+    public int danger() {
+        return dark ? 0xFFFF6B6B : 0xFFC62828;
+    }
+
+    // ---- modal dialogs ----
 
     /** A centred card dialog with an optional content view and up to two buttons. */
     public Dialog modal(Context context, String title, String message, View content,
@@ -425,12 +615,26 @@ public final class Ui {
     }
 
     public Dialog modal(Context context, String title, String message, View content,
-                        String positive, Validate onPositive, String negative) {
+                        String positive, BooleanSupplier onPositive, String negative) {
+        return modal(context, title, message, content, positive, accent, onPositive, negative);
+    }
+
+    /** Asks before an action that destroys data: the confirming button is drawn in {@link #danger}. */
+    public Dialog confirmDanger(Context context, String title, String message,
+                                String positive, Runnable onPositive, String negative) {
+        return modal(context, title, message, null, positive, danger(), () -> {
+            onPositive.run();
+            return true;
+        }, negative);
+    }
+
+    private Dialog modal(Context context, String title, String message, View content,
+                         String positive, int positiveColor, BooleanSupplier onPositive, String negative) {
         Dialog dialog = new Dialog(context);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         LinearLayout box = new LinearLayout(context);
         box.setOrientation(LinearLayout.VERTICAL);
-        box.setPadding(dp(context, 24), dp(context, 22), dp(context, 24), dp(context, 14));
+        box.setPadding(dp(context, 24), dp(context, 22), dp(context, 24), dp(context, 10));
         box.setBackground(rounded(context, surface, 24));
         if (title != null) {
             TextView t = text(context, title, 20, text, true);
@@ -449,59 +653,96 @@ public final class Ui {
         }
         LinearLayout buttons = new LinearLayout(context);
         buttons.setGravity(Gravity.END);
-        buttons.setPadding(0, dp(context, 16), 0, 0);
+        buttons.setPadding(0, dp(context, 12), 0, 0);
         if (negative != null) {
-            TextView n = text(context, negative, 15, accent, true);
-            n.setPadding(dp(context, 16), dp(context, 10), dp(context, 16), dp(context, 10));
-            n.setBackground(pressable(context, 0, 20));
+            TextView n = dialogButton(context, negative, accent);
             n.setOnClickListener(v -> dialog.dismiss());
             buttons.addView(n);
         }
         if (positive != null) {
-            TextView p = text(context, positive, 15, accent, true);
-            p.setPadding(dp(context, 16), dp(context, 10), dp(context, 16), dp(context, 10));
-            p.setBackground(pressable(context, 0, 20));
+            TextView p = dialogButton(context, positive, positiveColor);
             p.setOnClickListener(v -> {
-                if (onPositive == null || onPositive.accept()) dialog.dismiss();
+                if (onPositive == null || onPositive.getAsBoolean()) dialog.dismiss();
             });
             buttons.addView(p);
         }
         box.addView(buttons, matchWidth());
-        ScrollView scroll = new ScrollView(context);
+        ScrollView scroll = new ScrollView(context) {
+            @Override
+            protected void onConfigurationChanged(Configuration config) {
+                super.onConfigurationChanged(config);
+                applyModalWidth(dialog, context);
+            }
+        };
         scroll.addView(box);
         dialog.setContentView(scroll);
         Window window = dialog.getWindow();
         if (window != null) {
             window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-            int width = Math.min(context.getResources().getDisplayMetrics().widthPixels
-                    - dp(context, 32), dp(context, 480));
-            window.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT);
+            applyModalWidth(dialog, context);
         }
         return dialog;
     }
 
-    public interface Pick {
-        void picked(int index);
+    /** A text button whose 40 dp press face sits inside a 48 dp touch target. */
+    private TextView dialogButton(Context context, String label, int color) {
+        TextView button = text(context, label, 15, color, true);
+        button.setGravity(Gravity.CENTER);
+        button.setMinHeight(dp(context, 48));
+        button.setBackground(new InsetDrawable(pressable(context, 0, 20), 0, dp(context, 4), 0, dp(context, 4)));
+        button.setPadding(dp(context, 16), 0, dp(context, 16), 0);
+        return button;
     }
 
-    /** Single-choice list; the current choice is marked. */
-    public void choose(Context context, String title, String[] labels, int selected, Pick pick) {
+    private static void applyModalWidth(Dialog dialog, Context context) {
+        Window window = dialog.getWindow();
+        if (window == null) return;
+        int width = Math.min(context.getResources().getDisplayMetrics().widthPixels
+                - dp(context, 32), dp(context, 480));
+        window.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT);
+    }
+
+    /** Single-choice list; the current choice is marked, and TalkBack hears each row as a radio button. */
+    public void choose(Context context, String title, String[] labels, int selected, IntConsumer pick) {
         LinearLayout list = new LinearLayout(context);
         list.setOrientation(LinearLayout.VERTICAL);
+        list.setAccessibilityDelegate(new View.AccessibilityDelegate() {
+            @Override
+            public void onInitializeAccessibilityNodeInfo(View host, AccessibilityNodeInfo info) {
+                super.onInitializeAccessibilityNodeInfo(host, info);
+                info.setCollectionInfo(AccessibilityNodeInfo.CollectionInfo.obtain(labels.length, 1, false,
+                        AccessibilityNodeInfo.CollectionInfo.SELECTION_MODE_SINGLE));
+            }
+        });
         Dialog[] holder = new Dialog[1];
         for (int i = 0; i < labels.length; i++) {
             final int index = i;
+            final boolean chosen = i == selected;
             LinearLayout row = rowBase(context);
             row.setMinimumHeight(dp(context, 48));
             row.setPadding(dp(context, 4), 0, dp(context, 4), 0);
             row.setBackground(pressable(context, 0, 12));
-            TextView mark = text(context, i == selected ? "●" : "○", 16,
-                    i == selected ? accent : secondary, false);
-            mark.setPadding(0, 0, dp(context, 14), 0);
-            row.addView(mark);
-            row.addView(text(context, labels[i], 16, text, i == selected));
+            ImageView mark = iconView(context, chosen ? Icons.Kind.RADIO_ON : Icons.Kind.RADIO_OFF,
+                    chosen ? accent : secondary, 20);
+            mark.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+            LinearLayout.LayoutParams iconLp = new LinearLayout.LayoutParams(dp(context, 20), dp(context, 20));
+            iconLp.rightMargin = dp(context, 14);
+            row.addView(mark, iconLp);
+            row.addView(text(context, labels[i], 16, text, chosen));
+            row.setAccessibilityDelegate(new View.AccessibilityDelegate() {
+                @Override
+                public void onInitializeAccessibilityNodeInfo(View host, AccessibilityNodeInfo info) {
+                    super.onInitializeAccessibilityNodeInfo(host, info);
+                    info.setClassName("android.widget.RadioButton");
+                    info.setCheckable(true);
+                    info.setChecked(chosen);
+                    info.setCollectionItemInfo(AccessibilityNodeInfo.CollectionItemInfo.obtain(index, 1, 0, 1, false, chosen));
+                }
+            });
+            // A keyboard or D-pad starts on the current choice.
+            row.setFocusedByDefault(chosen);
             row.setOnClickListener(v -> {
-                pick.picked(index);
+                pick.accept(index);
                 if (holder[0] != null) holder[0].dismiss();
             });
             list.addView(row, matchWidth());
@@ -511,12 +752,8 @@ public final class Ui {
         show(holder[0], context);
     }
 
-    public interface Save {
-        void text(String value);
-    }
-
     /** Multi-line editor for word and user lists. */
-    public void editLines(Context context, String title, String help, String value, Save save) {
+    public void editLines(Context context, String title, String help, String value, Consumer<String> save) {
         EditText input = new EditText(context);
         input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE
                 | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
@@ -529,10 +766,48 @@ public final class Ui {
         input.setText(value);
         input.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
         input.setPadding(dp(context, 14), dp(context, 12), dp(context, 14), dp(context, 12));
-        input.setBackground(rounded(context, dark ? 0x14FFFFFF : 0x0A000000, 12));
+        input.setBackground(field(context));
         Dialog dialog = modal(context, title, help, input, Text.label("保存", "Save"),
-                () -> save.text(input.getText().toString()), Text.label("キャンセル", "Cancel"));
+                () -> save.accept(input.getText().toString()), Text.label("キャンセル", "Cancel"));
         show(dialog, context);
+    }
+
+    // ---- speech ----
+
+    /**
+     * What a control now holds, unit included, as TalkBack should say it. Android 11+ keeps it as the
+     * control's state and reads each change to the focused control; before that, {@code announce} says it.
+     */
+    static void setSpokenState(View view, CharSequence state, boolean announce) {
+        if (Build.VERSION.SDK_INT >= 30) view.setStateDescription(state);
+        else if (announce) view.announceForAccessibility(state);
+    }
+
+    static void setSpokenState(View view, CharSequence state) {
+        setSpokenState(view, state, false);
+    }
+
+    /** A stock SeekBar's node: its range, the standard actions that move it, and its value with the unit. */
+    static void describeSlider(View view, AccessibilityNodeInfo info, int rangeType, float min, float max,
+                               float value, CharSequence spoken) {
+        info.setRangeInfo(AccessibilityNodeInfo.RangeInfo.obtain(rangeType, min, max, value));
+        if (view.isEnabled()) {
+            if (value > min) info.addAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_BACKWARD);
+            if (value < max) info.addAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_FORWARD);
+            info.addAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_SET_PROGRESS);
+        }
+        // Before Android 11 there is no state line, so the value joins the name.
+        if (Build.VERSION.SDK_INT < 30) {
+            CharSequence name = view.getContentDescription();
+            info.setContentDescription(TextUtils.isEmpty(name) ? spoken : name + ", " + spoken);
+        }
+    }
+
+    /** The value TalkBack's "set progress" asks for, or NaN when the action is another one. */
+    static float progressArgument(int action, android.os.Bundle arguments) {
+        if (action != android.R.id.accessibilityActionSetProgress || arguments == null
+                || !arguments.containsKey(AccessibilityNodeInfo.ACTION_ARGUMENT_PROGRESS_VALUE)) return Float.NaN;
+        return arguments.getFloat(AccessibilityNodeInfo.ACTION_ARGUMENT_PROGRESS_VALUE);
     }
 
     // ---- windows ----
@@ -553,6 +828,15 @@ public final class Ui {
             hideBars(window);
             window.clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE);
         }
+    }
+
+    /** Closes a dialog left over a window that went away or shrank to picture-in-picture. */
+    static boolean closeIfGone(Dialog dialog, Context context) {
+        Activity activity = activity(context);
+        if (activity == null) return false;
+        if (!activity.isDestroyed() && !activity.isFinishing() && !activity.isInPictureInPictureMode()) return false;
+        if (dialog.isShowing()) dialog.dismiss();
+        return true;
     }
 
     @SuppressWarnings("deprecation")

@@ -1,0 +1,214 @@
+{
+  "artifact_sha256": "81506a2c54fc9a8faca34c18af7619d9c9d26cbfbe799b66884a59ac17791004",
+  "enums": {},
+  "format": 1,
+  "methods": {
+    "Lbmia;-><init>(Lbmhh;Lbmhm;Landroid/content/Context;Lbndw;Lcqmo;Lcqmo;Ljava/util/concurrent/Executor;Lazjr;Lawrs;Lbmdy;)V": {
+      "access_flags": 65537,
+      "body_sha256": "9bbf3aad06577a0b0ad8391871e5759ca2a38d6af9cd71d79b2abb30cc27a882",
+      "code_units": 82,
+      "dex": "classes7.dex",
+      "instruction_count": 41,
+      "references": [
+        "Lawrs;->c(Lciqt;)Lciqt;",
+        "Lbkbv;",
+        "Lbkbv;-><init>(I)V",
+        "Lblot;->b:Lyap;",
+        "Lbmdy;->a:Ljava/lang/Object;",
+        "Lbmdy;->c(Lciqt;)V",
+        "Lbmhb;",
+        "Lbmhb;-><init>(Ljava/lang/Object;I[B)V",
+        "Lbmia;->a:Lcqmo;",
+        "Lbmia;->b:Lcqmo;",
+        "Lbmia;->c:Lbmhh;",
+        "Lbmia;->d:Landroid/content/Context;",
+        "Lbmia;->e:Lblot;",
+        "Lbmia;->f:Ljava/util/List;",
+        "Lbmia;->h:Lawrs;",
+        "Lbmia;->i:Lbmhm;",
+        "Lbmia;->j:Lbmdy;",
+        "Lbmia;->k:Lcvgq;",
+        "Lbmia;->l:Ljava/util/concurrent/Executor;",
+        "Lbmia;->q:Ljava/util/List;",
+        "Lbmia;->s:Ljava/lang/Runnable;",
+        "Lbmia;->t:Lazjr;",
+        "Lbmia;->u:Lbncz;",
+        "Lbmia;->v:Lbndw;",
+        "Lbvbe;",
+        "Lbvbe;->C(Ljava/lang/Object;Ljava/util/concurrent/Executor;)V",
+        "Lbzdx;->a:Lbzdx;",
+        "Lcom/google/common/collect/ImmutableList;->of()Lcom/google/common/collect/ImmutableList;",
+        "Lcvgq;",
+        "Lcvgq;-><init>(Ljava/lang/Object;[B)V",
+        "Ljava/lang/Object;-><init>()V",
+        "Lyap;->N:Lciqt;"
+      ],
+      "register_count": 14
+    },
+    "Lbmia;->u(Lybc;)V": {
+      "access_flags": 17,
+      "body_sha256": "e733227fd76bb0ac846d9b21280489289de2a8fae14af4e3d9b4b4acab07107f",
+      "code_units": 90,
+      "dex": "classes7.dex",
+      "instruction_count": 44,
+      "references": [
+        "Lanqw;->c:Lbmga;",
+        "Lbmdy;->b:Ljava/lang/Object;",
+        "Lbmfx;->d:Lbmfx;",
+        "Lbmfz;",
+        "Lbmfz;-><init>(Lbmga;)V",
+        "Lbmfz;->b()Lbmga;",
+        "Lbmfz;->e:Lbmfx;",
+        "Lbmfz;->i:Lbmgs;",
+        "Lbmhm;->c:Lanqw;",
+        "Lbmhm;->t()Z",
+        "Lbmhv;",
+        "Lbmhv;->e(Lbmga;)V",
+        "Lbmhv;->r:Lybc;",
+        "Lbmia;->a:Lcqmo;",
+        "Lbmia;->b:Lcqmo;",
+        "Lbmia;->d:Landroid/content/Context;",
+        "Lbmia;->e:Lblot;",
+        "Lbmia;->i:Lbmhm;",
+        "Lbmia;->j:Lbmdy;",
+        "Lbmia;->o:Lybc;",
+        "Lbmuh;",
+        "Lbmuh;->j(Lbmvk;Lbmuk;Lbmug;)Lcom/google/common/util/concurrent/ListenableFuture;",
+        "Lbmuk;->c:Lbmuk;",
+        "Lbmvg;",
+        "Lbmvg;->d(Lblot;Lybf;)Lbmvk;",
+        "Lbunx;->O(Landroid/content/Context;)Z",
+        "Lcqmo;->a()Ljava/lang/Object;",
+        "Lj$/util/Optional;->of(Ljava/lang/Object;)Lj$/util/Optional;",
+        "Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;",
+        "Lybc;->h:I"
+      ],
+      "register_count": 6
+    },
+    "Lbmia;->v()V": {
+      "access_flags": 17,
+      "body_sha256": "92fd5bf434f2da2c64116a2040c5a301270d182768209dfc3b5c4833e0592cb9",
+      "code_units": 18,
+      "dex": "classes7.dex",
+      "instruction_count": 10,
+      "references": [
+        "Lbmia;->f:Ljava/util/List;",
+        "Lbmia;->g:Lbmhz;",
+        "Lbmia;->o:Lybc;",
+        "Lbmia;->q:Ljava/util/List;",
+        "Lcom/google/common/collect/ImmutableList;->of()Lcom/google/common/collect/ImmutableList;"
+      ],
+      "register_count": 2
+    },
+    "Lbmrc;->q(Lbmug;Lbmub;)V": {
+      "access_flags": 8,
+      "body_sha256": "ad2ab4bd67b399136a4576e64a4e9c9745cc8cc2a078dd1d95fc0e252e5bcbb0",
+      "code_units": 11,
+      "dex": "classes2.dex",
+      "instruction_count": 5,
+      "references": [
+        "Lbmuf;->a:Lbmuf;",
+        "Lbmug;->a(Lbmuf;Lbmub;)V",
+        "Lbzyn;->az()V"
+      ],
+      "register_count": 3
+    },
+    "Lbmrq;->g(Lbmuk;I)Z": {
+      "access_flags": 17,
+      "body_sha256": "b398d5071ccefea508c0cc6b32b93b01a22e86f70cea02e4666783726567ba02",
+      "code_units": 127,
+      "dex": "classes2.dex",
+      "instruction_count": 66,
+      "references": [
+        "Landroid/media/AudioAttributes$Builder;",
+        "Landroid/media/AudioAttributes$Builder;-><init>()V",
+        "Landroid/media/AudioAttributes$Builder;->build()Landroid/media/AudioAttributes;",
+        "Landroid/media/AudioAttributes$Builder;->setContentType(I)Landroid/media/AudioAttributes$Builder;",
+        "Landroid/media/AudioAttributes$Builder;->setUsage(I)Landroid/media/AudioAttributes$Builder;",
+        "Landroid/media/AudioFocusRequest$Builder;",
+        "Landroid/media/AudioFocusRequest$Builder;-><init>(I)V",
+        "Laq$$ExternalSyntheticApiModelOutline0;->m$1(Landroid/media/AudioManager;Landroid/media/AudioFocusRequest;)I",
+        "Laq$$ExternalSyntheticApiModelOutline0;->m(Landroid/media/AudioFocusRequest$Builder;)Landroid/media/AudioFocusRequest;",
+        "Laq$$ExternalSyntheticApiModelOutline0;->m(Landroid/media/AudioFocusRequest$Builder;Landroid/media/AudioAttributes;)Landroid/media/AudioFocusRequest$Builder;",
+        "Laq$$ExternalSyntheticApiModelOutline0;->m(Landroid/media/AudioFocusRequest$Builder;Landroid/media/AudioManager$OnAudioFocusChangeListener;)Landroid/media/AudioFocusRequest$Builder;",
+        "Lbmrq;->d:Landroid/media/AudioManager;",
+        "Lbmrq;->y:Landroid/media/AudioFocusRequest;",
+        "Lbmuj;->j:I",
+        "Lbmuk;->q:Lbmuj;"
+      ],
+      "register_count": 7
+    },
+    "Lbmsh;->d(Lbmua;)V": {
+      "access_flags": 17,
+      "body_sha256": "2bb8c1eea71d44dbac55f41b79c136efaf25fe1e6ba583f410ee6dc4f1d7bf88",
+      "code_units": 33,
+      "dex": "classes7.dex",
+      "instruction_count": 17,
+      "references": [
+        "Lbmsf;",
+        "Lbmsf;->b(Lbmua;)V",
+        "Lbmsg;",
+        "Lbmsg;-><init>(Lbmsh;Lbmua;)V",
+        "Lbmsg;->c()Z",
+        "Lbmsh;->a:[Lbmuc;",
+        "Lbmsh;->c:Z"
+      ],
+      "register_count": 6
+    },
+    "Lbmsh;->l()V": {
+      "access_flags": 17,
+      "body_sha256": "c910363b1beaec254e1aedda2d066f14c933d559b9483892cceae09927c4c918",
+      "code_units": 15,
+      "dex": "classes7.dex",
+      "instruction_count": 9,
+      "references": [
+        "Lbmsh;->a:[Lbmuc;",
+        "Lbmuc;->l()V"
+      ],
+      "register_count": 4
+    },
+    "Lbmtl;->e(Lbmuc;)V": {
+      "access_flags": 17,
+      "body_sha256": "e1f9b5a8933e5f0fdd9f66bc20b3772d9f77e10c25f87dec0fa917453303ef42",
+      "code_units": 11,
+      "dex": "classes7.dex",
+      "instruction_count": 5,
+      "references": [
+        "Lbmsx;",
+        "Lbmsx;-><init>(Lbmtl;Lbmuc;)V",
+        "Lbmtl;->b:Ljava/util/concurrent/Executor;",
+        "Ljava/util/concurrent/Executor;->execute(Ljava/lang/Runnable;)V"
+      ],
+      "register_count": 3
+    },
+    "Lbmtu;->d(Lbmua;)V": {
+      "access_flags": 17,
+      "body_sha256": "5ae9870bccd5540e8d72cfa24c77f2f4a1c5fb8246d3f7a01d2ae55583123e5a",
+      "code_units": 25,
+      "dex": "classes7.dex",
+      "instruction_count": 12,
+      "references": [
+        "Lbmtt;",
+        "Lbmtt;-><init>(Lbmtu;Lbmua;)V",
+        "Lbmtu;->a:Lbmuc;",
+        "Lbmtu;->e:I",
+        "Lbmua;->a(Lbmuc;)V",
+        "Lbmuc;->d(Lbmua;)V"
+      ],
+      "register_count": 4
+    },
+    "Lbmtu;->l()V": {
+      "access_flags": 17,
+      "body_sha256": "f0b9288e486fe4edf5eb4e14276364f5896b4102bf5f4b590c370a2400d8bf82",
+      "code_units": 12,
+      "dex": "classes7.dex",
+      "instruction_count": 6,
+      "references": [
+        "Lbmsk;",
+        "Lbmsk;->g()V",
+        "Lbmtu;->a:Lbmuc;"
+      ],
+      "register_count": 2
+    }
+  }
+}

@@ -1,5 +1,7 @@
 package app.hushmessenger.patches.misc
 
+import app.hushmessenger.patches.isExtension
+import app.hushmessenger.patches.messengerClasses
 import app.hushmessenger.patches.controls.ControlProfile
 import app.hushmessenger.patches.controls.PROFILE_347415262
 import app.hushmessenger.patches.controls.activeProfile
@@ -57,7 +59,7 @@ private fun Instruction.isVersionRead() = reference().let { it == VERSION_FIELD 
  * reads the installed code on purpose.
  */
 internal fun findSelfVersionReads(methods: Iterable<Method>): Map<Method, Int> = methods
-    .filterNot { it.definingClass.startsWith("Lapp/hushmessenger/") }
+    .filterNot { it.isExtension() }
     .mapNotNull { method -> method.code().count { it.isVersionRead() }.takeIf { it > 0 }?.let { method to it } }
     .toMap()
 
@@ -110,7 +112,7 @@ internal val spoofSelfReadsPatch = bytecodePatch(description = "Answer Messenger
     dependsOn(settingsExtension)
     execute {
         val methods = mutableListOf<Method>()
-        classDefForEach { methods.addAll(it.methods) }
+        messengerClasses().forEach { methods.addAll(it.methods) }
         // settingsExtension picked the build's profile before this runs.
         val targets = planSelfVersionReads(methods, selfVersionReadsFor(activeProfile)).map { id ->
             mutableClassDefBy(id.substringBefore("->")).methods.single { it.hookId() == id }

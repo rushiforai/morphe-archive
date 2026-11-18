@@ -1,0 +1,35 @@
+name: Verify v2.1.0 Media3 source provenance
+
+on:
+  push:
+    branches: [dev, main]
+    paths:
+      - 'porting/revisions/v2.1.0-release/**'
+      - '.github/workflows/verify-v2.1.0-source.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Verify reviewed dev.28 Smali and stable-only version delta
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          distribution: temurin
+          java-version: '25'
+      - name: Validate approved source and MPP hashes
+        run: python3 porting/revisions/v2.1.0-release/verify_dev28.py
+      - name: Download SHA-256 pinned Smali toolchain
+        run: python3 porting/revisions/v2.1.0-release/prepare_smali_tools.py
+      - name: Reassemble and compare source, reviewed DEX, and official version change
+        run: |
+          python3 porting/revisions/v2.1.0-release/stage_verified.py \
+            --source-only \
+            --tools porting/revisions/v2.0.0-dev.1/tools

@@ -1,0 +1,12 @@
+INVALID Lcom/walmart/glass/integration/root/RootActivity;->E @35 defaultTab arg0 v1=(Unknown) expected Ljava/lang/Object;
+BYPASSED Lcom/walmart/glass/integration/root/RootActivity;->E return@3b can skip Lapp/canada/walmart/CanadaHooks;->defaultTab(Ljava/lang/Object;)Ljava/lang/Object;
+INVALID Lcom/walmart/glass/integration/root/RootActivity;->onCreateOptionsMenu @1a menu arg1 v4=(Boolean) expected Landroid/view/Menu;
+BYPASSED Lcom/walmart/glass/lists/view/lists/a;->onBindViewHolder return@130 can skip Lapp/canada/walmart/ShoppingMode;->afterBind(Ljava/lang/Object;)V
+BYPASSED Lcom/walmart/glass/lists/view/lists/c;->onViewCreated return@182 can skip Lapp/canada/walmart/ChecklistTools;->installScanner(Landroid/view/View;)V
+BYPASSED Lcom/walmart/glass/lists/view/lists/c;->onViewCreated return@182 can skip Lapp/canada/walmart/ShoppingMode;->install(Landroid/view/View;)V
+BYPASSED Lcom/walmart/glass/lists/view/lists/c;->onViewCreated return@182 can skip Lapp/canada/walmart/ChecklistTools;->installTotal(Landroid/view/View;)V
+BYPASSED Le40/e0;->onBindViewHolder return@ed can skip Lapp/canada/walmart/ShoppingMode;->afterBind(Ljava/lang/Object;)V
+Checked 52 injected calls / 57 arguments across 23 methods; failures=8
+Checked 54 hook/return path requirements (including incoming branches).
+Exception in thread "main" java.lang.AssertionError: Injected register-type verification failed
+	at VerifyHookTypes.main(VerifyHookTypes.java:103)

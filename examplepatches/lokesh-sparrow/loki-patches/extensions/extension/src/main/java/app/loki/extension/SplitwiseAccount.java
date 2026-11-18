@@ -99,7 +99,7 @@ public final class SplitwiseAccount {
                 }
             }
             list.add(row);
-            if (!quiet) LokiLog.note("Account tab: Loki Patches row added");
+            if (!quiet) LokiLog.debug("Account tab: Loki Patches row added");
         } catch (Throwable error) {
             LokiLog.note("Account tab: row could not be added: " + error);
         }
@@ -116,7 +116,7 @@ public final class SplitwiseAccount {
             if (context == null) return false;
             context.startActivity(new Intent(context, MenuActivity.class)
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
-            LokiLog.note("Account tab: Loki Patches row tapped");
+            LokiLog.debug("Account tab: Loki Patches row tapped");
             return true;
         } catch (Throwable error) {
             android.util.Log.e("Loki", "account row: could not open the menu", error);

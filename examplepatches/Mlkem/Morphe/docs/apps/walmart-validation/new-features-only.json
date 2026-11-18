@@ -1,0 +1,1 @@
+{"success":true,"outputPath":"/workspace/scratch/08be9654f066/walmart-canada-port/build/ads-history-only-1.5.apk","packageName":"ca.walmart.ecommerceapp","packageVersion":"26.31","appliedPatches":["Hide Ads and Sponsored Content — Canada","Personal Price History — Canada"],"failedPatches":[],"stepResults":[{"step":"PATCHING","success":true},{"step":"REBUILDING","success":true}]}

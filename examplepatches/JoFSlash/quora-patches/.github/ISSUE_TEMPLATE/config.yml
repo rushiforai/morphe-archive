@@ -1,1 +1,5 @@
 blank_issues_enabled: false
+contact_links:
+  - name: 💬 Questions and ideas
+    url: https://github.com/JoFSlash/quora-patches/discussions
+    about: Ask how something works or talk about an idea before opening an issue.

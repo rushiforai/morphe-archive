@@ -92,6 +92,17 @@ object Constants {
         ),
     )
 
+    const val METEO_ICM_4_2_8 = "4.2.8"
+
+    /** Flutter app, split bundle (base + arm64 + language + density). The ad glue classes keep R8 names, see the patches. */
+    val COMPATIBILITY_METEO_ICM = Compatibility(
+        name = "Meteo ICM",
+        packageName = "pl.janpogocki.icm.pogoda",
+        apkFileType = ApkFileType.APKS,
+        appIconColor = 0x145097,
+        targets = listOf(AppTarget(version = METEO_ICM_4_2_8, versionCode = 160)),
+    )
+
     const val VULCAN_26_08_00 = "26.08.00 (G)"
 
     val COMPATIBILITY_VULCAN = Compatibility(

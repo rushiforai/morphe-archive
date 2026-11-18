@@ -7,19 +7,14 @@ import android.graphics.Path
 import android.graphics.PixelFormat
 import android.graphics.Rect
 import android.graphics.drawable.Drawable
-import kotlin.math.abs
-import kotlin.math.atan2
-import kotlin.math.cos
-import kotlin.math.sin
-import kotlin.math.sqrt
 
 /**
- * The icons the extension draws for itself.
+ * The icon the extension draws for itself.
  *
  * The extension carries no resources - it is a separate dex merged into Pixiv's - so an icon that
- * has to sit next to the app's own 24dp glyphs cannot come from a drawable resource. Both icons
- * below are plain SVG path data replayed into a `Path`, which keeps them sharp at any size and
- * lets the drawer's tint pass reach them through the usual colour filter.
+ * has to sit next to the app's own 24dp glyphs cannot come from a drawable resource. The icon below
+ * is plain SVG path data replayed into a `Path`, which keeps it sharp at any size and lets the
+ * drawer's tint pass reach it through the usual colour filter.
  */
 internal object Icons {
 
@@ -27,33 +22,25 @@ internal object Icons {
         pathData = "M20.5 11H19V7c0-1.1-.9-2-2-2h-4V3.5C13 2.12 11.88 1 10.5 1S8 2.12 8 3.5V5H4" +
             "c-1.1 0-1.99.9-1.99 2v3.8H3.5c1.49 0 2.7 1.21 2.7 2.7s-1.21 2.7-2.7 2.7H2V20" +
             "c0 1.1.9 2 2 2h3.8v-1.5c0-1.49 1.21-2.7 2.7-2.7 1.49 0 2.7 1.21 2.7 2.7V22H17" +
-            "c1.1 0 2-.9 2-2v-3.8h1.5c1.49 0 2.7-1.21 2.7-2.7s-1.21-2.7-2.7-2.7z",
-        filled = true
+            "c1.1 0 2-.9 2-2v-3.8h1.5c1.49 0 2.7-1.21 2.7-2.7s-1.21-2.7-2.7-2.7z"
     )
 }
 
 /**
  * Draws one SVG path scaled from its 24x24 view box onto the drawable bounds.
  *
- * Only the commands the icons above use are implemented - move, line, horizontal and vertical line,
- * cubic curves (including the smooth variant that mirrors the previous control point), elliptical
- * arcs and close. Arcs are converted the way the SVG specification describes.
+ * Only the commands the icon above uses are implemented - move, line, horizontal and vertical line,
+ * cubic curves (including the smooth variant that mirrors the previous control point) and close.
  */
 private class SvgPathDrawable(
-    private val pathData: String,
-    private val filled: Boolean
+    private val pathData: String
 ) : Drawable() {
 
     private val path = Path()
 
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        if (filled) {
-            style = Paint.Style.FILL_AND_STROKE
-            strokeWidth = FILL_OUTLINE
-        } else {
-            style = Paint.Style.STROKE
-            strokeWidth = STROKE_WIDTH
-        }
+        style = Paint.Style.FILL_AND_STROKE
+        strokeWidth = FILL_OUTLINE
         strokeCap = Paint.Cap.ROUND
         strokeJoin = Paint.Join.ROUND
         color = 0xFFFFFFFF.toInt()
@@ -102,7 +89,6 @@ private class SvgPathDrawable(
         var command = ' '
 
         fun number(): Float = tokens[index++].toFloat()
-        fun flag(): Boolean = tokens[index++].toFloat() != 0f
 
         while (index < tokens.size) {
             val token = tokens[index]
@@ -171,19 +157,6 @@ private class SvgPathDrawable(
                     lastControlY = y2
                     lastWasCubic = true
                 }
-                'A' -> {
-                    val rx = number()
-                    val ry = number()
-                    val rotation = number()
-                    val largeArc = flag()
-                    val sweep = flag()
-                    val x = number() + if (relative) currentX else 0f
-                    val y = number() + if (relative) currentY else 0f
-                    arcTo(currentX, currentY, rx, ry, rotation, largeArc, sweep, x, y)
-                    currentX = x
-                    currentY = y
-                    lastWasCubic = false
-                }
                 'Z' -> {
                     path.close()
                     currentX = startX
@@ -194,82 +167,6 @@ private class SvgPathDrawable(
             }
         }
     }
-
-    /** SVG 1.1 F.6.5: endpoint parameterisation to centre parameterisation, then `Path.arcTo`. */
-    private fun arcTo(
-        x1: Float,
-        y1: Float,
-        rx: Float,
-        ry: Float,
-        rotationDegrees: Float,
-        largeArc: Boolean,
-        sweep: Boolean,
-        x2: Float,
-        y2: Float
-    ) {
-        if (x1 == x2 && y1 == y2) return
-        var radiusX = abs(rx)
-        var radiusY = abs(ry)
-        if (radiusX == 0f || radiusY == 0f) {
-            path.lineTo(x2, y2)
-            return
-        }
-        val rotation = Math.toRadians(rotationDegrees.toDouble())
-        val cosRotation = cos(rotation)
-        val sinRotation = sin(rotation)
-        val dx = (x1 - x2) / 2.0
-        val dy = (y1 - y2) / 2.0
-        val x1Prime = cosRotation * dx + sinRotation * dy
-        val y1Prime = -sinRotation * dx + cosRotation * dy
-
-        val lambda = (x1Prime * x1Prime) / (radiusX * radiusX.toDouble()) +
-            (y1Prime * y1Prime) / (radiusY * radiusY.toDouble())
-        if (lambda > 1) {
-            val scale = sqrt(lambda)
-            radiusX = (radiusX * scale).toFloat()
-            radiusY = (radiusY * scale).toFloat()
-        }
-
-        val rxSquared = radiusX * radiusX.toDouble()
-        val rySquared = radiusY * radiusY.toDouble()
-        val numerator = rxSquared * rySquared - rxSquared * y1Prime * y1Prime - rySquared * x1Prime * x1Prime
-        val denominator = rxSquared * y1Prime * y1Prime + rySquared * x1Prime * x1Prime
-        val factor = if (denominator == 0.0) 0.0 else sqrt((numerator / denominator).coerceAtLeast(0.0))
-        val sign = if (largeArc == sweep) -1.0 else 1.0
-        val cxPrime = sign * factor * radiusX * y1Prime / radiusY
-        val cyPrime = -sign * factor * radiusY * x1Prime / radiusX
-
-        val centreX = cosRotation * cxPrime - sinRotation * cyPrime + (x1 + x2) / 2.0
-        val centreY = sinRotation * cxPrime + cosRotation * cyPrime + (y1 + y2) / 2.0
-
-        val startVectorX = (x1Prime - cxPrime) / radiusX
-        val startVectorY = (y1Prime - cyPrime) / radiusY
-        val endVectorX = (-x1Prime - cxPrime) / radiusX
-        val endVectorY = (-y1Prime - cyPrime) / radiusY
-
-        val startAngle = atan2(startVectorY, startVectorX)
-        var sweepAngle = atan2(
-            endVectorX * startVectorY - endVectorY * startVectorX,
-            endVectorX * startVectorX + endVectorY * startVectorY
-        )
-        if (!sweep && sweepAngle > 0) sweepAngle -= 2 * Math.PI
-        if (sweep && sweepAngle < 0) sweepAngle += 2 * Math.PI
-
-        measurementOval.set(
-            (centreX - radiusX).toFloat(),
-            (centreY - radiusY).toFloat(),
-            (centreX + radiusX).toFloat(),
-            (centreY + radiusY).toFloat()
-        )
-        path.arcTo(
-            measurementOval,
-            Math.toDegrees(startAngle).toFloat(),
-            Math.toDegrees(sweepAngle).toFloat(),
-            false
-        )
-    }
-
-    private val measurementOval = android.graphics.RectF()
 
     private fun tokenize(data: String): List<String> {
         val tokens = ArrayList<String>(64)
@@ -317,7 +214,6 @@ private class SvgPathDrawable(
 
     private companion object {
         const val VIEW_BOX = 24f
-        const val STROKE_WIDTH = 2f
         const val FILL_OUTLINE = 0.6f
     }
 }

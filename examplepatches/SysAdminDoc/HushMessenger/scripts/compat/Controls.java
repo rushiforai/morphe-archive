@@ -105,7 +105,10 @@ final class Controls {
         found.get("nearby_scans").addAll(nearbyScans(classes));
         found.get("wifi_identity").addAll(wifiIdentityReads(classes));
         found.get("phone_id_sync").addAll(phoneIdSync(classes));
+        found.get("passkey_login").addAll(passkeyLogin(classes));
         found.get("story_hold").addAll(storyHold(classes));
+        found.get("inbox_typing").addAll(inboxTyping(classes));
+        found.get("media_caption").addAll(mediaCaption(classes));
         found.get("chat_preview").addAll(chatPreview(classes));
         found.get("chat_preview_size").addAll(chatPreviewSize(classes));
         found.get("landscape_lock").addAll(portraitLock(classes));
@@ -117,6 +120,7 @@ final class Controls {
         found.get("floating_tab_bar").addAll(tabBarBuilders(classes, true));
         found.get("tab_bar_overlay").addAll(tabBarBuilders(classes, false));
         found.get("tab_bar_scroll_away").addAll(tabBarScrollAway(classes));
+        found.get("tab_swipe").addAll(tabSwipe(classes));
         found.get("avatar_shape").addAll(avatarShape(classes));
         found.get("story_ring").addAll(storyRing(classes));
         found.get("quiet_call_ring").addAll(quietCallRing(classes));
@@ -157,6 +161,7 @@ final class Controls {
         found.get("gallery_to_chat").addAll(galleryToChatHooks(classes));
         found.get("paste_photo").addAll(pastePhotoHooks(classes));
         found.get("instant_gallery").addAll(instantGallery(classes));
+        found.get("view_once_anywhere").addAll(viewOnceAnywhere(classes));
         found.get("special_contacts").addAll(specialContacts(classes));
         found.get("menu_blur").addAll(menuBlur(classes));
         found.get("chat_head_video").addAll(chatHeadVideo(classes));
@@ -538,6 +543,21 @@ final class Controls {
                     found.get("ai_search").add(method);
                 }
 
+                // appear_offline: the msys self-report, the one method on the presence manager that takes a boolean and
+                // writes the mailbox trace while reporting it
+                if ("Lcom/facebook/presence/DefaultPresenceManager;".equals(cls.getType()) && "V".equals(method.getReturnType()) &&
+                    !isStatic && paramTypes.equals(List.of("Z")) && strings.contains("UnifiedPresenceMailboxImpl.reportUserStatus")) {
+                    found.get("appear_offline").add(method);
+                }
+
+                // availability_setting: each legacy MQTT publisher that puts the foreground availability flag in the
+                // client settings it sends
+                if ("V".equals(method.getReturnType()) && !isStatic && paramTypes.size() == 2 &&
+                    "Lcom/facebook/prefs/shared/FbSharedPreferences;".equals(paramTypes.get(0)) &&
+                    strings.contains("make_user_available_when_in_foreground") && strings.contains("/set_client_settings")) {
+                    found.get("availability_setting").add(method);
+                }
+
                 // original_photo: the encrypted-chat photo transcoder's entry points, its config and its Java decode, named the same in every build
                 if ("Lcom/facebook/msys/mci/transcoder/DefaultMediaTranscoder;".equals(cls.getType()) &&
                     !isStatic && ORIGINAL_PHOTO_HOOKS.contains(hookId(method))) {
@@ -595,14 +615,16 @@ final class Controls {
                     if ("M4TabNavigationFragment".equals(original)) found.get("chat_inbox").add(method);
                 }
 
-                // chat_jump, secure_chat and invisible_buttons: the chat fragment's own onViewCreated, where the chat
-                // first has a view. Mirrors ChatJump.kt, SecureChat.kt and InvisibleButtons.kt, which all inject there.
+                // chat_jump, secure_chat, invisible_buttons and ios_bars: the chat fragment's own onViewCreated, where
+                // the chat first has a view. Mirrors ChatJump.kt, SecureChat.kt, InvisibleButtons.kt and IosBars.kt,
+                // which all inject there.
                 if ("MsysThreadViewFragment".equals(original) && !isStatic && "onViewCreated".equals(method.getName()) &&
                     "V".equals(method.getReturnType()) && paramTypes.equals(List.of("Landroid/view/View;", "Landroid/os/Bundle;")) &&
                     method.getImplementation() != null) {
                     found.get("chat_jump").add(method);
                     found.get("secure_chat").add(method);
                     found.get("invisible_buttons").add(method);
+                    found.get("ios_bars").add(method);
                 }
 
                 // chat_legacy: the chat fragment on Messenger's older route, which loads its own animation
@@ -621,6 +643,13 @@ final class Controls {
                 if (isStatic && "Z".equals(method.getReturnType()) && paramTypes.equals(List.of(cls.getType())) &&
                     refs.stream().anyMatch(r -> storyCardKeys.contains(r.toString()))) {
                     found.get("growth_story_card").add(method);
+                }
+
+                // growth_active_status: the upsell check the chat header's Turn on active status line waits on
+                if (isStatic && "Z".equals(method.getReturnType()) && paramTypes.size() == 2 &&
+                    "Lcom/facebook/auth/usersession/FbUserSession;".equals(paramTypes.get(0)) &&
+                    strings.contains("an_upsell_thread_header_dismiss_count")) {
+                    found.get("growth_active_status").add(method);
                 }
 
                 // people_tab: the People tab suggestion handler handing its list and filter map to the tab

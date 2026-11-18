@@ -119,13 +119,17 @@ public class Pref {
         return SharedPref.getBooleanPref(Settings.MARK_AS_READ_AFTER_REPLY) && SettingsStatus.markAsReadAfterReply;
     }
 
+    public static boolean markAsSeenOnReaction() {
+        return SharedPref.getBooleanPref(Settings.MARK_AS_SEEN_ON_REACTION);
+    }
+
     // Return false = call the message seen api.
     // Return true = blocks the message seen api.
     public static boolean viewDmAnonymously() {
         return shouldBlockDmSeen(
                 SharedPref.getBooleanPref(Settings.VIEW_DM_ANONYMOUSLY),
                 Pref.getTurnOnAllGhostModes(),
-                enableMarkChatAsReadOption() || markAsReadAfterReply()
+                enableMarkChatAsReadOption() || markAsReadAfterReply() || markAsSeenOnReaction()
         );
     }
 
@@ -313,9 +317,9 @@ public class Pref {
         return original && !hideSaveButtons();
     }
 
-    // Reels need the native save state to build the download component even when save is hidden.
+    // Reels need the native save state to build the download and options components even when save is hidden.
     public static boolean showReelSaveButton(boolean original) {
-        return original && (!hideSaveButtonReels() || ReelDownload.isEnabled());
+        return original && (!hideSaveButtonReels() || ReelDownload.isEnabled() || ReelDownload.isOptionsEnabled());
     }
 
     public static boolean showReelSaveIcon(boolean original) {
@@ -370,6 +374,10 @@ public class Pref {
 
     public static boolean viewStoryMentions() {
         return SharedPref.getBooleanPref(Settings.VIEW_STORY_MENTIONS);
+    }
+
+    public static boolean storyOptionsButton() {
+        return SharedPref.getBooleanPref(Settings.STORY_OPTIONS_BUTTON);
     }
 
     public static String customiseStoryTimestamp() {
@@ -500,6 +508,15 @@ public class Pref {
     }
     public static boolean moreOptionsOnPost() {
         return SharedPref.getBooleanPref(Settings.ENABLE_MORE_OPTIONS_ON_POST) && SettingsStatus.moreOptionsOnPost;
+    }
+    public static boolean disableFeedDownloadIcon() {
+        return SharedPref.getBooleanPref(Settings.DISABLE_FEED_DOWNLOAD_ICON);
+    }
+    public static boolean disableFeedOptionsIcon() {
+        return SharedPref.getBooleanPref(Settings.DISABLE_FEED_OPTIONS_ICON);
+    }
+    public static boolean reelOptionsButton() {
+        return SharedPref.getBooleanPref(Settings.REEL_OPTIONS_BUTTON);
     }
     public static boolean downloadWithExternalDownloader() {
         return SharedPref.getBooleanPref(Settings.DOWNLOAD_WITH_EXTERNAL_DOWNLOADER) && SettingsStatus.downloadWithExternalDownloader;
@@ -705,5 +722,26 @@ public class Pref {
 
     public static boolean longPressPostOptions() {
         return SharedPref.getBooleanPref(Settings.LONG_PRESS_POST_OPTIONS);
+    }
+
+    public static boolean longPressSearchOpenProfile() {
+        return SharedPref.getBooleanPref(Settings.LONG_PRESS_SEARCH_OPEN_PROFILE);
+    }
+
+    public static boolean viewBlockedProfilesSecretly() {
+        return SharedPref.getBooleanPref(Settings.VIEW_BLOCKED_PROFILES_SECRETLY);
+    }
+
+    public static boolean autoApplyProConfigV6() {
+        return SharedPref.getBooleanPref(Settings.AUTO_APPLY_PRO_CONFIG_V6);
+    }
+
+    public static String rexColorMode() {
+        String mode = SharedPref.getStringPref(Settings.REX_COLOR_MODE);
+        return (mode == null || mode.trim().isEmpty()) ? "Rex Cyan AMOLED" : mode.trim();
+    }
+
+    public static boolean customHomeWordmark() {
+        return SharedPref.getBooleanPref(Settings.CUSTOM_HOME_WORDMARK);
     }
 }

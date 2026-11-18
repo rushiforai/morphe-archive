@@ -66,6 +66,8 @@ jobs:
             python3 porting/revisions/v2.0.5-release/test_release.py
           elif grep -Eq '^version[[:space:]]*=[[:space:]]*2\.0\.6[[:space:]]*$' gradle.properties; then
             python3 porting/revisions/v2.0.6-release/test_release.py
+          elif grep -Eq '^version[[:space:]]*=[[:space:]]*2\.1\.0[[:space:]]*$' gradle.properties; then
+            python3 porting/revisions/v2.1.0-release/test_release.py
           else
             echo "Unsupported official release version" >&2
             exit 1
@@ -220,6 +222,8 @@ jobs:
             NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.0.5-mpp.sh
           elif grep -Fq "version = 2.0.6" gradle.properties; then
             NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.0.6-mpp.sh
+          elif grep -Fq "version = 2.1.0" gradle.properties; then
+            NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.1.0-mpp.sh
           else
             python3 porting/revisions/v1.11.1/verify-mpp.py 1.11.1
           fi

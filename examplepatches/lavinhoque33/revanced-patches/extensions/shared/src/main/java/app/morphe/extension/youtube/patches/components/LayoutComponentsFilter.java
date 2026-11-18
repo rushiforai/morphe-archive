@@ -7,6 +7,7 @@
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
+ * Modified by lavinhoque33, 2026-11-17.
  */
 
 package app.morphe.extension.youtube.patches.components;
@@ -20,10 +21,10 @@ import app.morphe.extension.shared.utils.Logger;
 import app.morphe.extension.youtube.patches.utils.ProtoNode;
 import android.net.Uri;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
 import app.morphe.extension.shared.patches.components.Filter;
 import app.morphe.extension.shared.patches.components.StringFilterGroup;
-import app.morphe.extension.shared.utils.Logger;
 import app.morphe.extension.shared.utils.ResourceType;
 import app.morphe.extension.shared.utils.ResourceUtils;
 import app.morphe.extension.shared.utils.Utils;
@@ -86,6 +87,24 @@ public final class LayoutComponentsFilter extends Filter {
                     && NavigationButton.getSelectedNavigationButton() == NavigationButton.LIBRARY;
         }
         return contentType != FilterContentType.PATH || (contentIndex == 0 && path.contains(HANDLE_PATH));
+    }
+
+    /**
+     * Injection point. Collapse the rounded fullscreen box only when all its children were filtered.
+     */
+    public static boolean isEngagementPanelBoxEmpty(ViewGroup box) {
+        final int count = box.getChildCount();
+        if (count == 0) {
+            return false;
+        }
+
+        for (int i = 0; i < count; i++) {
+            View child = box.getChildAt(i);
+            if (child.getVisibility() != View.GONE && child.getMeasuredHeight() > 0) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**

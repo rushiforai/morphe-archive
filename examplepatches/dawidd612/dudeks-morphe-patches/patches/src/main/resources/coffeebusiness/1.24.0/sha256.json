@@ -1,0 +1,9 @@
+{
+  "asset-packs.tsv.gz": "e737fe5d0e7b23fe6d1b787166cfa71fa3a4edd5cb270e0fb9536c3814f711cb",
+  "firebase-app.dex": "144d61a3999831869d666765eba0c9c70665cfb2bd66a60c0c756bdd4642db39",
+  "libil2cpp.so.delta.gz": "2cb1aa40d950943878945c5678bc0b3271903d442c5a49cb5e88b02ae57cc0c7",
+  "libunity.so.delta.gz": "04d4d435fc4fcd9c0828a4c6da8b4400b4a1a3680f907850bc7880087bb8082f",
+  "sdk-receivers.dex": "12d4c7c7027fff605ec52ee441dbb8e96cd396fe8ed305bedb6305815f237525",
+  "startup-methods.dex": "db7b663f0fc4e8b87678d834ba9f8e68590eb457de360da823a16f3287be560f",
+  "strings.tsv.gz": "cc29cd1642b7955b4cfa8433293588c31001d39a636a4a66f6a5cb522715c7f0"
+}

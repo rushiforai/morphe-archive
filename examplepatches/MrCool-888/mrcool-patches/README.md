@@ -11,7 +11,7 @@ Get the Morphe patch bundle from the [latest stable release](https://github.com/
 Add `https://github.com/MrCool-888/mrcool-patches` as a patch source in Morphe Manager, then select the patches you want for your app.
 
 <!-- PATCHES_START -->
-> **[v1.3.4](https://github.com/MrCool-888/mrcool-patches/releases/tag/v1.3.4)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;6 patches total
+> **[v1.4.0](https://github.com/MrCool-888/mrcool-patches/releases/tag/v1.4.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;6 patches total
 <details open>
 <summary>📦 OpenBubbles&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
@@ -57,12 +57,12 @@ Add `https://github.com/MrCool-888/mrcool-patches` as a patch source in Morphe M
 
 **🎯 Supported versions:**
 
-| 2.5 build 003 |
+| 2.5 build 005 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Unlock Pro](#unlock-pro) | Unlocks Pro features that normally require a purchase. |  |
+| [Unlock Pro](#unlock-pro) | Unlocks Pro features and Pro community packs, and removes the Get Pro upsell. |  |
 
 </details>
 
@@ -88,10 +88,12 @@ The supplied single phone APK updates our existing patched universal installatio
 
 The Wear companion bridge sends watch notifications while the phone is locked and synchronizes dismissal of matching phone and watch notifications. To check the connection, select the Wear companion bridge in Morphe and tap **Send test notification** at the bottom of OpenBubbles Settings → Morphe patches. The test does not send a real message.
 
-The Icon Pack Studio patch unlocks Pro on **2.5 build 003** (version code 250030). It forces the
-app's paid-state check without touching stored purchase data or Play Billing, so a real
-subscription is neither required nor simulated. Apply it to the base APK from the official
-XAPK (or a merged APK) and sign the result with a consistent key.
+The Icon Pack Studio patch unlocks Pro on **2.5 build 005** (version code 250050). It forces the
+app's paid-state check and hides the community `Get Pro` upsell without touching stored
+purchase data or Play Billing, so a real subscription is neither required nor simulated. Apply it to the base APK from the official
+XAPK (or a merged APK) and sign the result with a consistent key. The APKPure XAPK ships
+only an `armeabi-v7a` ABI split, so 64-bit-only devices need a matching `arm64_v8a`
+split; see [build 005 validation](docs/VALIDATION-IPS-2.5.0.md).
 
 
 ## Build

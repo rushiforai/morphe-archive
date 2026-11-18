@@ -1,0 +1,55 @@
+name: Checks
+on:
+  workflow_dispatch:
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify:
+    runs-on: codeberg-medium
+    timeout-minutes: 9
+    env:
+      SHARED_MAPS_API_KEY: AIzaSyDOCSGATEPLACEHOLDER00000000000000
+      GRADLE_OPTS: -Dorg.gradle.jvmargs=-Xmx2g
+    steps:
+      - uses: https://code.forgejo.org/actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: https://github.com/actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: https://github.com/actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: https://github.com/android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+      - name: Install native assembly test compiler
+        run: |
+          apt-get update -qq
+          apt-get install -y --no-install-recommends clang llvm
+      - run: npm ci --ignore-scripts
+      - name: Prepare documentation tools
+        run: |
+          python3 -m venv .venv
+          .venv/bin/pip install -r docs/site-requirements.txt
+      - name: Audit exact candidate history
+        run: node .forgejo/scripts/identity.cjs --history
+      - name: Test release guards and Codeberg integration
+        run: node --test tests/test_release_branding.cjs tests/test_preview_release.cjs tests/test_identity.cjs tests/test_release_discovery.cjs tests/test_codeberg.cjs tests/test_gitgud.cjs tests/test_gitlab.cjs
+      - name: Python regression tests
+        run: .venv/bin/python -m unittest discover -s tests
+      - name: Build candidate metadata and patch bundle
+        run: ./gradlew :patches:buildAndroid :patches:test :patches:generatePatchesList --no-daemon -Dorg.gradle.jvmargs=-Xmx2g
+      - name: Verify source release notes
+        run: node .github/scripts/preview_release_notes.cjs
+      - name: Check generated catalogue and documentation
+        run: |
+          .venv/bin/python scripts/generate_docs_catalog.py
+          .venv/bin/python scripts/check_docs_app_pages.py
+          .venv/bin/python scripts/check_markdown_links.py
+          .venv/bin/python -m mkdocs build --strict
+          .venv/bin/python scripts/check_docs_site.py

@@ -3,7 +3,7 @@
 
 ![version](https://img.shields.io/badge/version-6.9.9-2563eb?style=for-the-badge&labelColor=0d1117) ![patches](https://img.shields.io/badge/patches-4-14b8a6?style=for-the-badge&labelColor=0d1117) ![file](https://img.shields.io/badge/file-APKM-0ea5e9?style=for-the-badge&labelColor=0d1117) ![menu](https://img.shields.io/badge/menu-Side%20menu-6e7681?style=for-the-badge&labelColor=0d1117)
 
-[← All apps](../../README.md#apps)&nbsp;&nbsp;•&nbsp;&nbsp;`com.cv.docscanner`&nbsp;&nbsp;•&nbsp;&nbsp;[v3.1.1](https://github.com/lokesh-sparrow/loki-patches/releases/tag/v3.1.1)
+[← All apps](../../README.md#apps)&nbsp;&nbsp;•&nbsp;&nbsp;`com.cv.docscanner`&nbsp;&nbsp;•&nbsp;&nbsp;[v3.2.1](https://github.com/lokesh-sparrow/loki-patches/releases/tag/v3.2.1)
 
 **🎯 Supported versions:** `6.9.9`
 <!-- HEADER_END -->

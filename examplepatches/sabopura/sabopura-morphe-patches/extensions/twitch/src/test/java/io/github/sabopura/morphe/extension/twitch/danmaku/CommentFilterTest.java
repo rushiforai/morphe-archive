@@ -9,6 +9,14 @@ import org.junit.Test;
 
 public final class CommentFilterTest {
     @Test
+    public void refusedExpressionsAreNamedAsWritten() {
+        assertEquals(java.util.Arrays.asList("/[unclosed/", "/(a+)+$/"),
+                CommentFilter.refused("spam\n/[unclosed/\n/^w+$/\n /(a+)+$/ \n/x/"));
+        assertTrue(CommentFilter.refused("plain, words").isEmpty());
+        assertTrue(CommentFilter.refused(null).isEmpty());
+    }
+
+    @Test
     public void emptyRulesBlockNothing() {
         assertTrue(CommentFilter.parse("").isEmpty());
         assertTrue(CommentFilter.parse(" \n , ").isEmpty());
@@ -39,12 +47,47 @@ public final class CommentFilterTest {
         assertFalse(filter.blocks("[unclosed"));
     }
 
+    /**
+     * Android matches in ICU on a copy of the text, so a match cannot be stopped once it runs:
+     * an expression that can backtrack exponentially is refused when the rules are read.
+     */
+    @Test(timeout = 5000)
+    public void anExpressionThatCanBacktrackExponentiallyIsRefusedAndTheOthersStillApply() {
+        CommentFilter filter = CommentFilter.parse("/(a+)+$/\nspam");
+        assertFalse(filter.blocks("aaa"));
+        assertTrue(filter.blocks("spam here"));
+        assertTrue(CommentFilter.parse("/(a+)+$/").isEmpty());
+    }
+
     @Test
-    public void duplicateKeyFoldsRepetitionAndWidth() {
-        assertEquals(CommentFilter.duplicateKey("www"), CommentFilter.duplicateKey("wwwwwwww"));
-        assertEquals(CommentFilter.duplicateKey("ｗｗｗ"), CommentFilter.duplicateKey("www"));
-        assertEquals(CommentFilter.duplicateKey("草 草"), CommentFilter.duplicateKey("草草"));
-        assertNotEquals(CommentFilter.duplicateKey("ww"), CommentFilter.duplicateKey("www"));
-        assertNotEquals(CommentFilter.duplicateKey("hello"), CommentFilter.duplicateKey("help"));
+    public void expressionsWithOneWayToMatchEachRepetitionAreKept() {
+        CommentFilter filter = CommentFilter.parse("/^(草|w)+$/\n/(.)\\1{5,}/");
+        assertTrue(filter.blocks("草ww草"));
+        assertTrue(filter.blocks("!!!!!!"));
+        assertFalse(filter.blocks("草 w"));
+    }
+
+    @Test
+    public void expressionsDoNotRunOnTextLongerThanAnyDanmakuComment() {
+        CommentFilter filter = CommentFilter.parse("/b$/");
+        StringBuilder text = new StringBuilder();
+        for (int i = 0; i < 2 * DanmakuSettings.MAX_MAX_LENGTH; i++) text.append('a');
+        assertFalse(filter.blocks(text + "b"));
+        assertTrue(filter.blocks(text.substring(1) + "b"));
+    }
+
+    @Test
+    public void exponentialShapesAreFound() {
+        for (String regex : new String[] {"(a+)+", "(a*)*b", "(\\w+\\s?)+$", "(a|a)+", "(a|ab)*c", "((a|a)b)+",
+                "(a?){30}a{30}", "(.*a){20}", "(W|w)+", "(?:x+y?)+", "((ab)+c)+", "(?<n>a+)+", "(|a)+", "([ab]|a)+", "(a+){1234567890}"})
+            assertTrue(regex, RegexShape.backtracksExponentially(regex));
+    }
+
+    @Test
+    public void ordinaryShapesAreKept() {
+        for (String regex : new String[] {"^w+$", "[0-9]{3}-[0-9]{4}", "(草|w)+", "(ry|ｒｙ)+", "(.)\\1{5,}", "https?://",
+                "[(+*]+", "\\(a+\\)+", "(?i)(ab)+", "(ab){2}", "(a+)?b", "\\Q(a+)+\\E", "[a(]+(b)", "a{2,}(b|c)",
+                "(?=a)b", "\\p{L}+", "(\\.|,)+", ".*死.*ね"})
+            assertFalse(regex, RegexShape.backtracksExponentially(regex));
     }
 }

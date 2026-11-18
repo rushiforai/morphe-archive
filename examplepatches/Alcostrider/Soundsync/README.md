@@ -1,6 +1,6 @@
 # Soundsync
 
-Keeps video in sync with the sound from the car when you watch on your phone over **wireless Android Auto**.
+Keeps video in sync with the sound from the car when you watch on your phone over **wireless Android Auto**, or even when using the patched apps inside of Android Auto.
 
 Wireless Android Auto plays sound noticeably later than the phone expects, and video players don't
 know about the extra delay, so lipsync is off and sounds are not in sync with video. Soundsync is a

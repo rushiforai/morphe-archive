@@ -16,6 +16,8 @@ object RexPatchManifestTest {
         verifyBrandingSubpageHeaderAndRegisteredButtonRoutes()
         verifyTablerIconPackManifestAndRedesign()
         verifyP0MediaDownloadAndCarouselFixes()
+        verifyAntigravityRegistriesAndMediaMatrix()
+        verifyScreenSpecificShortcutsColorModesAndProConfigV6()
     }
 
     fun verifyAllSixteenPreviouslyUnwiredSwitchesHaveRealRuntimeConsumers() {
@@ -117,4 +119,37 @@ object RexPatchManifestTest {
         check(resolver.exists()) { "MediaContextResolver.java must exist" }
         check(registry.exists()) { "MediaActionRegistry.java must exist" }
     }
+
+    fun verifyAntigravityRegistriesAndMediaMatrix() {
+        val root = repoRoot()
+        val iconRegistry = File(root, "extensions/instagram/src/main/java/app/morphe/extension/instagram/settings/preference/widgets/RexIconRegistry.java")
+        val featureRegistry = File(root, "extensions/instagram/src/main/java/app/morphe/extension/instagram/settings/RexFeatureRegistry.java")
+        val mediaActionRegistry = File(root, "extensions/instagram/src/main/java/app/morphe/extension/instagram/patches/download/MediaActionRegistry.java")
+        check(iconRegistry.exists()) { "RexIconRegistry.java must exist" }
+        check(featureRegistry.exists()) { "RexFeatureRegistry.java must exist" }
+        val marContent = mediaActionRegistry.readText()
+        check(marContent.contains("REPOST_ALL_IG_POST")) { "MediaActionRegistry must support batch carousel reposting" }
+        check(marContent.contains("Image to Text (OCR)")) { "MediaActionRegistry must support context-aware OCR labels" }
+    }
+
+    fun verifyScreenSpecificShortcutsColorModesAndProConfigV6() {
+        val root = repoRoot()
+        val duContent = File(root, "extensions/instagram/src/main/java/app/morphe/extension/instagram/patches/download/DownloadUtils.java").readText()
+        check(duContent.contains("STORY_MENTIONS_BUTTON_TAG")) { "DownloadUtils must inject Story Hidden Mentions (@) toolbar button" }
+        check(duContent.contains("STORY_OPTIONS_BUTTON_TAG")) { "DownloadUtils must inject Story Settings/Options toolbar button" }
+        check(duContent.contains("isFeedOptionsButtonEnabled()")) { "DownloadUtils must decouple Feed Download and Feed Options icons" }
+
+        val rdContent = File(root, "extensions/instagram/src/main/java/app/morphe/extension/instagram/patches/download/ReelDownload.java").readText()
+        check(rdContent.contains("registerOptions(")) { "ReelDownload must support Reels Settings/Options UFI button" }
+
+        val styleContent = File(root, "extensions/instagram/src/main/java/app/morphe/extension/instagram/settings/preference/widgets/InstagramPreferenceStyle.java").readText()
+        check(styleContent.contains("COLOR_MODES")) { "InstagramPreferenceStyle must define 6 curated Color Modes" }
+
+        val configAsset = File(root, "assets/configs/INSTAREX_PRO_CONFIG_V6.json")
+        val configRaw = File(root, "patches/src/main/resources/instagram/settings/raw/instarex_pro_config_v6.json")
+        check(configAsset.exists() && configRaw.exists()) { "Bundled INSTAREX_PRO_CONFIG_V6.json must exist in assets and raw resources" }
+        val rawJson = configRaw.readText()
+        check(!rawJson.contains("32604:") && !rawJson.contains("23482:")) { "Bundled config must not contain any secret or token strings" }
+    }
+
 }

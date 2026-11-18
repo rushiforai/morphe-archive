@@ -62,6 +62,8 @@ public class ActionBarPatch {
             Collections.newSetFromMap(new WeakHashMap<>());
     private static final Set<View> ARMED_HOME_TABS =
             Collections.newSetFromMap(new WeakHashMap<>());
+    private static final Set<View> ARMED_SEARCH_TABS =
+            Collections.newSetFromMap(new WeakHashMap<>());
     private static final SharedPreferences.OnSharedPreferenceChangeListener GHOST_MODE_LISTENER =
             (sharedPreferences, key) -> {
                 if (!Settings.TURN_ON_ALL_GHOST_MODES.key.equals(key)) {
@@ -94,6 +96,7 @@ public class ActionBarPatch {
             synchronized (WATCHED_ACTIVITIES) {
                 if (WATCHED_ACTIVITIES.contains(activity)) {
                     bindHomeTabIfPresent(activity);
+                    bindSearchTabIfPresent(activity);
                     return;
                 }
                 WATCHED_ACTIVITIES.add(activity);
@@ -102,6 +105,7 @@ public class ActionBarPatch {
             final View decor = activity.getWindow().getDecorView();
             if (decor == null) return;
             bindHomeTabIfPresent(activity);
+                    bindSearchTabIfPresent(activity);
             decor.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
                 @Override
                 public void onGlobalLayout() {
@@ -114,6 +118,7 @@ public class ActionBarPatch {
                         return;
                     }
                     bindHomeTabIfPresent(activity);
+                    bindSearchTabIfPresent(activity);
                 }
             });
         } catch (Throwable e) {
@@ -190,6 +195,44 @@ public class ActionBarPatch {
                     }
                     return false;
                 }
+            });
+        } catch (Throwable ignored) {}
+    }
+
+    private static void bindSearchTabIfPresent(final Activity activity) {
+        try {
+            if (activity == null || activity.getWindow() == null) return;
+            View decor = activity.getWindow().getDecorView();
+            if (decor == null) return;
+            int searchTabId = ResourceUtils.getIdentifier(activity, ResourceType.ID, "search_tab");
+            if (searchTabId == 0) {
+                searchTabId = activity.getResources().getIdentifier("search_tab", "id", activity.getPackageName());
+            }
+            View searchTab = searchTabId != 0 ? decor.findViewById(searchTabId) : null;
+            if (searchTab == null) {
+                int tabBarId = ResourceUtils.getIdentifier(activity, ResourceType.ID, "tab_bar");
+                if (tabBarId == 0) {
+                    tabBarId = activity.getResources().getIdentifier("tab_bar", "id", activity.getPackageName());
+                }
+                View tabBar = tabBarId != 0 ? decor.findViewById(tabBarId) : null;
+                if (tabBar instanceof ViewGroup && ((ViewGroup) tabBar).getChildCount() > 1) {
+                    searchTab = ((ViewGroup) tabBar).getChildAt(1);
+                }
+            }
+            if (searchTab == null) return;
+
+            synchronized (ARMED_SEARCH_TABS) {
+                if (ARMED_SEARCH_TABS.contains(searchTab)) return;
+                ARMED_SEARCH_TABS.add(searchTab);
+            }
+
+            final View targetTab = searchTab;
+            targetTab.setLongClickable(true);
+            targetTab.setOnLongClickListener(v -> {
+                if (!Pref.longPressSearchOpenProfile()) return false;
+                RexHaptics.longPress(v);
+                RexRuntimeFeatures.openProfileFromClipboardOrPrompt(activity);
+                return true;
             });
         } catch (Throwable ignored) {}
     }
@@ -370,15 +413,106 @@ public class ActionBarPatch {
         }
     }
 
+    public static android.graphics.drawable.Drawable createInstaRexWordmarkDrawable(final Context context) {
+        final float density = context.getResources().getDisplayMetrics().density;
+        final int widthPx = Math.round(136f * density);
+        final int heightPx = Math.round(36f * density);
+        return new android.graphics.drawable.Drawable() {
+            private final android.graphics.Paint textPaint = new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
+            private final android.graphics.Paint accentPaint = new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
+
+            {
+                android.graphics.Typeface scriptTf = android.graphics.Typeface.create(
+                        android.graphics.Typeface.SERIF,
+                        android.graphics.Typeface.BOLD_ITALIC
+                );
+                textPaint.setTypeface(scriptTf);
+                textPaint.setTextSize(25.5f * density);
+                textPaint.setColor(0xFFF5F7FA);
+                textPaint.setFakeBoldText(true);
+                textPaint.setTextSkewX(-0.14f);
+
+                accentPaint.setTypeface(scriptTf);
+                accentPaint.setTextSize(25.5f * density);
+                accentPaint.setColor(InstagramPreferenceStyle.accentColor());
+                accentPaint.setFakeBoldText(true);
+                accentPaint.setTextSkewX(-0.14f);
+            }
+
+            @Override
+            public void draw(android.graphics.Canvas canvas) {
+                android.graphics.Rect b = getBounds();
+                int primaryColor = 0xFFF5F7FA;
+                try {
+                    int themed = UI.getThemedColour("igds_color_primary_icon");
+                    if (themed != 0) primaryColor = themed;
+                } catch (Throwable ignored) {}
+                textPaint.setColor(primaryColor);
+                accentPaint.setColor(InstagramPreferenceStyle.accentColor());
+
+                String leftPart = "Insta";
+                String rightPart = "Rex";
+                float leftW = textPaint.measureText(leftPart);
+                android.graphics.Paint.FontMetrics fm = textPaint.getFontMetrics();
+                float baseline = b.top + (b.height() - (fm.bottom - fm.top)) / 2f - fm.top;
+                float startX = b.left + Math.max(2f * density, (b.width() - (leftW + accentPaint.measureText(rightPart))) / 2f);
+                canvas.drawText(leftPart, startX, baseline, textPaint);
+                canvas.drawText(rightPart, startX + leftW, baseline, accentPaint);
+            }
+
+            @Override
+            public void setAlpha(int alpha) {
+                textPaint.setAlpha(alpha);
+                accentPaint.setAlpha(alpha);
+            }
+
+            @Override
+            public void setColorFilter(android.graphics.ColorFilter colorFilter) {
+                // Preserve two-tone calligraphic InstaRex wordmark colors
+            }
+
+            @Override
+            public int getOpacity() {
+                return android.graphics.PixelFormat.TRANSLUCENT;
+            }
+
+            @Override
+            public int getIntrinsicWidth() {
+                return widthPx;
+            }
+
+            @Override
+            public int getIntrinsicHeight() {
+                return heightPx;
+            }
+        };
+    }
+
     public static void hookLogoView(View view) {
         try {
             if (view == null) return;
-            attachHomeTabLongPress(RexDialogs.resolveActivity(view.getContext()));
+            Context ctx = view.getContext();
+            attachHomeTabLongPress(RexDialogs.resolveActivity(ctx));
+            if (Pref.customHomeWordmark() && view instanceof ImageView) {
+                ImageView logoIv = (ImageView) view;
+                logoIv.setImageDrawable(createInstaRexWordmarkDrawable(ctx));
+                logoIv.setScaleType(ImageView.ScaleType.FIT_START);
+                logoIv.setContentDescription("InstaRex");
+            }
+            view.setClickable(true);
             view.setLongClickable(true);
+            view.setOnClickListener(v -> {
+                try {
+                    RexHaptics.tap(v);
+                    RexDialogs.showHomeQuickMenu(v.getContext());
+                } catch (Exception e) {
+                    Logger.printException(() -> "hookLogoView tap failed", e);
+                }
+            });
             view.setOnLongClickListener(v -> {
                 try {
                     RexHaptics.longPress(v);
-                    RexDialogs.showHomeQuickMenu(v.getContext());
+                    FragmentHook.startSettings();
                 } catch (Exception e) {
                     Logger.printException(() -> "hookLogoView long press failed", e);
                 }
@@ -432,7 +566,7 @@ public class ActionBarPatch {
                 } catch (Throwable ignored) {}
             }
 
-            if (pref.contains(Constants.AB_PROFILE_INFO_ICON) || pref.contains(Constants.AB_SETTINGS_ICON)) {
+            if (pref.isEmpty() || pref.contains(Constants.AB_PROFILE_INFO_ICON) || pref.contains(Constants.AB_SETTINGS_ICON)) {
                 addHexagonButton(
                         viewGroup,
                         () -> {
@@ -460,12 +594,12 @@ public class ActionBarPatch {
             if (viewGroup == null) return;
             Set<String> pref = Pref.chatActionBarButtons();
 
-            if (pref.contains(Constants.AB_SETTINGS_ICON)) {
+            if (pref.isEmpty() || pref.contains(Constants.AB_SETTINGS_ICON)) {
                 Context context = viewGroup.getContext();
                 addHexagonButton(
                         viewGroup,
-                        () -> RexDialogs.showHomeQuickMenu(context),
-                        FragmentHook::startSettings
+                        () -> RexDialogs.showChatToolkitPopup(context, viewGroup),
+                        () -> RexDialogs.showHomeQuickMenu(context)
                 );
             }
 

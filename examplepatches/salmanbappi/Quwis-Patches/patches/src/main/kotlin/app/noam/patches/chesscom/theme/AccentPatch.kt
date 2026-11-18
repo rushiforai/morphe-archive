@@ -2,6 +2,7 @@ package app.noam.patches.chesscom.theme
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.noam.patches.chesscom.misc.settings.settingsPatch
@@ -22,6 +23,13 @@ private val GREENS = listOf(
     0xFFF6FFE3L, 0xFFF3FFCFL, 0xFFEBFFBDL, 0xFFD8FA9DL, 0xFFB2E068L, 0xFF81B64CL,
     0xFF5D9948L, 0xFF45753CL, 0xFF305730L, 0xFF204227L, 0xFF1C3724L, 0xFF162921L,
 )
+
+/**
+ * The Puzzles path paints its diagonal checkerboard from green700 plus this hardcoded 10%-darker
+ * copy. The copy is not a palette colour, so only the palette half would follow the accent and
+ * leave the two grid colours mismatched.
+ */
+private const val PATH_DARK = 0xFF2B4E2BL
 
 @Suppress("unused")
 val accentPatch = bytecodePatch(
@@ -62,6 +70,50 @@ val accentPatch = bytecodePatch(
         }
         if (shades.size < GREENS.size - 2 || shades.values.none { it == 5 }) {
             throw PatchException("Found ${shades.size} of ${GREENS.size} greens")
+        }
+
+        // The Puzzles path background is green700 plus a hardcoded darker copy, so only half of
+        // the checkerboard would follow the accent. That one surface is an illustration rather
+        // than an accent: keep the pair on chess.com's green.
+        val green700 = shades.entries.singleOrNull { it.value == 8 }?.key
+        if (green700 != null) {
+            var path: ClassDef? = null
+            classDefForEach { classDef ->
+                if (path != null || !classDef.type.startsWith("Lcom/chess/features/path/ui/")) return@classDefForEach
+                if (classDef.methods.any { method ->
+                        method.implementation?.instructions
+                            ?.any { (it as? WideLiteralInstruction)?.wideLiteral == PATH_DARK } == true
+                    }
+                ) {
+                    path = classDef
+                }
+            }
+            path?.let { found ->
+                val pathTheme = mutableClassDefBy(found)
+                val background = pathTheme.methods.singleOrNull { method ->
+                    method.implementation?.instructions?.any {
+                        it.opcode == Opcode.SGET_WIDE && (it as ReferenceInstruction).reference.let { reference ->
+                            reference is FieldReference &&
+                                reference.definingClass == paletteClass.type && reference.name == green700
+                        }
+                    } == true
+                }
+                if (background != null) {
+                    val instructions = background.implementation!!.instructions.toList()
+                    val read = instructions.indexOfFirst {
+                        it.opcode == Opcode.SGET_WIDE && (it as ReferenceInstruction).reference.let { reference ->
+                            reference is FieldReference &&
+                                reference.definingClass == paletteClass.type && reference.name == green700
+                        }
+                    }
+                    if (read >= 0 &&
+                        (instructions.getOrNull(read + 1) as? WideLiteralInstruction)?.wideLiteral == PATH_DARK
+                    ) {
+                        val register = (instructions[read] as OneRegisterInstruction).registerA
+                        background.replaceInstruction(read, "sget-wide v$register, $ACCENT->PATH_GREEN:J")
+                    }
+                }
+            }
         }
 
         // 4.10.23 packs every palette colour through one (J)J helper in <clinit>.

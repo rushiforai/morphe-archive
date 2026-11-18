@@ -1,0 +1,63 @@
+name: Verify Calendar widget patch
+on:
+  pull_request:
+    paths:
+      - 'extensions/calendar/**'
+      - 'patches/src/main/kotlin/app/template/patches/calendar/**'
+      - 'scripts/test_calendar_widget_rows.py'
+      - 'scripts/test_calendar_widget_tile_shapes.py'
+      - 'scripts/test_calendar_install_manifest.py'
+      - 'scripts/test_calendar_account_access.py'
+      - 'scripts/test_calendar_account_manifest.py'
+      - 'scripts/test_calendar_microg_manifest.py'
+      - 'scripts/test_calendar_microg_access.py'
+      - 'scripts/VerifyCalendarMicroGDex.java'
+      - 'scripts/VerifyCalendarWidgetDex.java'
+      - '.github/workflows/verify-calendar.yml'
+permissions:
+  contents: read
+  packages: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v5.7.0
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools platforms;android-36 build-tools;36.0.0'
+          log-accepted-android-sdk-licenses: false
+      - name: Check row replacement contract and guards
+        run: python3 scripts/test_calendar_widget_rows.py
+      - name: Check account chooser lifecycle
+        run: python3 scripts/test_calendar_account_access.py
+      - name: Check genuine MicroG consent lifecycle and recovery
+        run: python3 scripts/test_calendar_microg_access.py
+      - name: Set up Kotlin for resource contract tests
+        run: |
+          curl --fail --location --retry 2 https://github.com/JetBrains/kotlin/releases/download/v2.2.20/kotlin-compiler-2.2.20.zip -o "$RUNNER_TEMP/calendar-kotlin.zip"
+          unzip -q "$RUNNER_TEMP/calendar-kotlin.zip" -d "$RUNNER_TEMP/calendar-kotlin"
+          echo "KOTLINC=$RUNNER_TEMP/calendar-kotlin/kotlinc/bin/kotlinc" >> "$GITHUB_ENV"
+          python3 -m pip install Pillow==11.3.0
+      - name: Check tile shape resource transformation
+        run: python3 scripts/test_calendar_widget_tile_shapes.py
+      - name: Check fresh-install manifest compatibility
+        run: python3 scripts/test_calendar_install_manifest.py
+      - name: Check account entry manifest
+        run: python3 scripts/test_calendar_account_manifest.py
+      - name: Check MicroG manifest identity and preservation
+        run: python3 scripts/test_calendar_microg_manifest.py
+      - name: Compile patch bundle and metadata
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew :patches:buildAndroid :patches:generatePatchesList --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dudeks-calendar-widget-candidate
+          path: |
+            patches/build/libs/*.mpp
+            patches-list.json
+          if-no-files-found: error

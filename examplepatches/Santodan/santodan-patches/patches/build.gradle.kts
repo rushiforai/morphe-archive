@@ -358,6 +358,29 @@ tasks {
             file("${layout.buildDirectory.get()}/verification/first-descendant-visibility").absolutePath,
             rootProject.file("..").absolutePath)
     }
+    register<JavaExec>("verifyFirstDescendant115Experimental") {
+        dependsOn("testClasses", "buildAndroid")
+        classpath = sourceSets["test"].runtimeClasspath
+        mainClass.set("santodan.patches.VerifyFirstDescendantVisibilityKt")
+        maxHeapSize = "2g"
+        args(file("../../OriginalApps/The-First-Descendant-Companion_1.1.5.apks").absolutePath,
+            file("${layout.buildDirectory.get()}/libs/patches-${project.version}.mpp").absolutePath,
+            file("${layout.buildDirectory.get()}/verification/first-descendant-115-experimental").absolutePath,
+            rootProject.file("..").absolutePath, "experimental")
+    }
+    for (experimental in listOf(false, true)) {
+        register<JavaExec>(if (experimental) "verifyFirstDescendant116Experimental" else "verifyFirstDescendant116Visibility") {
+            dependsOn("testClasses", "buildAndroid")
+            classpath = sourceSets["test"].runtimeClasspath
+            mainClass.set("santodan.patches.VerifyFirstDescendantVisibilityKt")
+            maxHeapSize = "2g"
+            args(file("../../OriginalApps/TFD_Companion-1.1.6.apks.zip").absolutePath,
+                file("${layout.buildDirectory.get()}/libs/patches-${project.version}.mpp").absolutePath,
+                file("${layout.buildDirectory.get()}/verification/first-descendant-116-$experimental").absolutePath,
+                rootProject.file("..").absolutePath,
+                if (experimental) "experimental" else "regular")
+        }
+    }
     register<JavaExec>("verifyFirstDescendantDiagnostics") {
         dependsOn("testClasses", "buildAndroid")
         classpath = sourceSets["test"].runtimeClasspath

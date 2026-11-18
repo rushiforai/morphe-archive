@@ -486,7 +486,7 @@ public class SettingsActivity extends Activity {
     private LinearLayout content;
     private ScrollView scroll;
 
-    // Where each screen was left scrolled. Acrobat, LinkedIn and the rest share this screen, and every visit
+    // Where each screen was left scrolled. Every app in the bundle shares this screen, and every visit
     // used to start at the top: going back from a page (or About) threw away the position the user had
     // scrolled to. Keyed by screen (see screenKey), so a page also reopens where it was left.
     private final Map<String, Integer> scrollOffsets = new HashMap<>();
@@ -613,8 +613,9 @@ public class SettingsActivity extends Activity {
         ActionBar bar = getActionBar();
         if (bar != null) bar.hide();
 
-        boolean nightMode = (getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK)
-                == Configuration.UI_MODE_NIGHT_YES;
+        // An app with its own theme setting (MX Player) decides dark or light from it, not from the system. Only
+        // that choice is taken: the colours stay Loki's own, pure black in the dark, the same in every app.
+        boolean nightMode = HostPalette.dark(this);
         dark = nightMode;
         background = nightMode ? 0xFF000000 : 0xFFFFFFFF;
         surface = nightMode ? 0xFF161616 : 0xFFF2F4F5;
@@ -634,11 +635,10 @@ public class SettingsActivity extends Activity {
             background = 0xFF000000;
             surface = 0xFF161616;
         }
-
         Window window = getWindow();
         window.setStatusBarColor(background);
         window.setNavigationBarColor(background);
-        if (!nightMode) {
+        if (!dark) {
             window.getDecorView().setSystemUiVisibility(
                     View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR | View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
         }

@@ -35,7 +35,7 @@ public final class LocalEmojiStatus {
     /** What the report counts each status kept on this phone instead of sent as. */
     static final String KEPT = "emoji status kept on this phone";
 
-    private static final String PREFS = "hushtelegram_local_emoji_status";
+    static final String PREFS = "hushtelegram_local_emoji_status";
     private static final String UNTIL = ".until";
 
     static Function<Context, SharedPreferences> store = context -> context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);

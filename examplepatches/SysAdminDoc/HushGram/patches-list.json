@@ -1218,7 +1218,7 @@
     },
     {
       "name": "Download any reel",
-      "description": "Adds Download to the menu of every reel and saves it without Instagram's watermark. You choose the quality, and best is the default. A separate Download cover switch also saves the reel's cover picture, the largest one the post carries, and Download audio saves just its sound. Download as video on a carousel with music saves every page, in order. A separate switch under Downloads puts a download icon under Save beside each reel, and others add a Lens icon for copying a reel's text, a speed icon, a Full screen icon and a speaker icon, or put Playback speed in a reel's menu. On by default. Turn it off in HushGram settings > Reels.",
+      "description": "Adds Download to the menu of every reel and saves it without Instagram's watermark. You choose the quality, and best is the default. A separate Download cover switch also saves the reel's cover picture, the largest one the post carries, and Download audio saves just its sound. Download full song grabs the whole track when a reel uses a song from Instagram's music. Download as video on a carousel with music saves every page, in order. A separate switch under Downloads puts a download icon under Save beside each reel, and others add a Lens icon for copying a reel's text, a speed icon, a Full screen icon and a speaker icon, or put Playback speed in a reel's menu. On by default. Turn it off in HushGram settings > Reels.",
       "category": "Downloads",
       "use": true,
       "dependencies": [
@@ -2663,7 +2663,7 @@
     },
     {
       "name": "Hide suggested accounts in Reels",
-      "description": "Leaves out the cards of accounts to follow that Instagram puts between reels. Every reel still plays. Starts off. Turn it on in HushGram settings > Reels.",
+      "description": "Leaves out the cards of accounts to follow that Instagram puts between reels, and on a second switch its Catch up with friends pages of stories. Every reel still plays. Starts off. Turn them on in HushGram settings > Reels.",
       "category": "Profiles",
       "use": true,
       "dependencies": [
@@ -2975,7 +2975,7 @@
     },
     {
       "name": "Hide the Reels tab",
-      "description": "Takes the Reels tab off the tab bar. Reels in your feed and reels people send you still open. A second switch, Show the Reels tab, puts it back after Home when Instagram built your bar without one, and Hide wins if both are on. Restart Instagram to see the change. Starts off. Turn it on in HushGram settings > Reels. Under Tab bar, switches do the same for Home, Search, Create, Messages and Profile, two put Messages or Activity on the bar when Instagram left them off, switches take the Create and notifications buttons off Home's header, others add a Search, Messages, Ghost mode or menu button to it or put Instagram's logo in its middle, two center the name at the top of profiles and the title on other screens, a list puts the tabs in your order, and another picks the tab Instagram opens on.",
+      "description": "Takes the Reels tab off the tab bar. Reels in your feed and reels people send you still open. A second switch, Show the Reels tab, puts it back after Home when Instagram built your bar without one, and Hide wins if both are on. Restart Instagram to see the change. Starts off. Turn it on in HushGram settings > Reels. Under Tab bar, switches do the same for Home, Search, Create, Messages and Profile, one takes the unread count off the Messages button, two put Messages or Activity on the bar when Instagram left them off, switches take the Create and notifications buttons off Home's header, others add a Search, Messages, Ghost mode or menu button to it or put Instagram's logo in its middle, two center the name at the top of profiles and the title on other screens, a list puts the tabs in your order, and another picks the tab Instagram opens on.",
       "category": "Interface",
       "use": true,
       "dependencies": [
@@ -4643,7 +4643,7 @@
     },
     {
       "name": "Preview chats",
-      "description": "Long press a chat in your messages and tap Preview to read its newest messages without opening it, so nobody sees Seen. You can reply from there too. Starts off. Turn it on in HushGram settings > Messages.",
+      "description": "Long press a chat in your messages and tap Preview to read its newest messages without opening it, so nobody sees Seen. You can reply from there too. Starts off. Turn it on in HushGram settings > Messages. Either way, a chat's menu opens above the chat when it wouldn't fit between the chat and the tab bar.",
       "category": "Messages",
       "use": true,
       "dependencies": [
@@ -5193,6 +5193,45 @@
       "name": "Saved on your profile",
       "description": "Adds a bookmark to the tabs on your own profile, beside posts, reels and tagged, that opens Saved, and a handle to drag through Saved and your collections. Both start off. Turn them on in HushGram settings > Profiles. The bookmark needs an Instagram restart.",
       "category": "Profiles",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "HushGram settings"
+      ],
+      "compatiblePackages": {
+        "com.instagram.android": [
+          "456.0.0.53.78"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Instagram",
+          "packageName": "com.instagram.android",
+          "description": null,
+          "appIconColor": 14757996,
+          "signatures": [
+            "3a10c50c18ba937506c2875e9047be74f8fd8b86fae2ff9feaa50a81fcb4c014",
+            "5f3e50f435583c9ae626302a71f7340044087a7e2c60adacfc254205a993e305"
+          ],
+          "targets": [
+            {
+              "version": "456.0.0.53.78",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 386214574,
+                "ARMEABI_V7A": 386214562,
+                "X86": 386214575
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Search blocked accounts",
+      "description": "Adds a search box above your blocked accounts that finds them by username or name. While you type, the rest of your list loads page by page, and a line under the box says how many matched out of how many loaded. Starts off. Turn it on in HushGram settings > Ads and privacy.",
+      "category": "Privacy",
       "use": true,
       "dependencies": [
         "BytecodePatch",

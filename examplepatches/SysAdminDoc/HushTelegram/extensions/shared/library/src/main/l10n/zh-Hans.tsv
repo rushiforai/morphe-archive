@@ -2370,3 +2370,105 @@ Edit a copy	编辑副本
 Add Edit a copy to the message menu	在消息菜单中添加“编辑副本”
 # context: Summary under the Edit a copy switch in HushTelegram settings
 Opens a photo from a chat in Telegram's photo editor, where you can draw, add text or blur parts. Sending it sends the edited copy to the chat. The photo in the chat stays as it was.	在 Telegram 的照片编辑器中打开聊天里的照片，你可以在上面画画、添加文字或模糊部分区域。发送时会把编辑后的副本发到聊天中。聊天里的原照片保持不变.
+# context: Title of the Duress passcode switch (#79) on HushTelegram's Privacy page, also the first field's hint in its dialog. A duress passcode is a second passcode someone types when forced to unlock; typing it logs every account out
+Duress passcode	胁迫锁定码
+# context: Summary of the Duress passcode switch. It must say plainly that typing the code logs out or deletes accounts, as picked in the row below it, that HushTelegram's kept data is cleared, and that the switch starts off
+Typing the duress passcode on Telegram's lock screen logs out or deletes accounts, as picked below, and clears what HushTelegram kept, like deleted messages, edit history and call recordings. It needs a Telegram passcode and starts off.	在 Telegram 锁屏上输入胁迫锁定码会按下方的选择退出或删除账号，并清除 HushTelegram 保留的内容，例如已删除的消息、编辑记录和通话录音。需要先设置 Telegram 锁定码，默认关闭.
+# context: Title of the row under the Duress passcode switch that opens a dialog to pick the code, also that dialog's title
+Set duress passcode	设置胁迫锁定码
+# context: Summary of the Set duress passcode row while no duress passcode is saved
+No duress passcode yet. Tap to pick one.	尚未设置胁迫锁定码。点按以设置.
+# context: Summary of the Set duress passcode row once a duress passcode is saved. The code itself is never shown
+A duress passcode is set. Tap to change it.	已设置胁迫锁定码。点按以更改.
+# context: Message at the top of the Set duress passcode dialog, above its two fields
+Typing this on Telegram's lock screen logs out every account on this phone. Pick one that's different from your Telegram passcode.	在 Telegram 锁屏上输入它会退出此手机上的所有账号。请选择一个与 Telegram 锁定码不同的锁定码.
+# context: Message at the top of the Set duress passcode dialog when Log out the open account is picked
+Typing this on Telegram's lock screen logs out the open account. Pick one that's different from your Telegram passcode.	在 Telegram 锁屏上输入它会退出当前账号。请选择一个与 Telegram 锁定码不同的锁定码.
+# context: Message at the top of the Set duress passcode dialog when Delete every account is picked
+Typing this twice on Telegram's lock screen deletes every account on this phone for good. Pick one that's different from your Telegram passcode.	在 Telegram 锁屏上输入它两次会永久删除此手机上的所有账号。请选择一个与 Telegram 锁定码不同的锁定码.
+# context: Message at the top of the Set duress passcode dialog when Delete the open account is picked
+Typing this twice on Telegram's lock screen deletes the open account for good. Pick one that's different from your Telegram passcode.	在 Telegram 锁屏上输入它两次会永久删除当前账号。请选择一个与 Telegram 锁定码不同的锁定码.
+# context: Hint of the second field in the Set duress passcode dialog, where the code is typed again to confirm it
+Type it again	再次输入
+# context: Refusal in the Set duress passcode dialog when the two fields differ
+The two passcodes don't match.	两次输入的锁定码不一致.
+# context: Toast once a duress passcode is saved
+Duress passcode saved.	胁迫锁定码已保存.
+# context: Refusal in the Set duress passcode dialog when the first field is empty
+Type a duress passcode.	请输入胁迫锁定码.
+# context: Refusal in the Set duress passcode dialog when Telegram's passcode is a 4-digit PIN and the code isn't 4 digits. Telegram's lock screen takes exactly 4 digits
+Use 4 digits, the same length as your Telegram passcode.	请使用 4 位数字，与 Telegram 锁定码的长度相同.
+# context: Refusal in the Set duress passcode dialog when the code typed is the user's real Telegram passcode
+That's your Telegram passcode. Pick a different one.	这是你的 Telegram 锁定码。请换一个.
+# context: Title of the row under Set duress passcode (#79) that opens a single-choice dialog of what typing the duress passcode does, also that dialog's title
+What the duress passcode does	胁迫锁定码的作用
+# context: Choice in the What the duress passcode does dialog, also the row's summary: logs out every account on the phone. The default
+Log out every account	退出所有账号
+# context: Choice in the What the duress passcode does dialog, also the row's summary: logs out only the account open in Telegram right now, the other accounts stay signed in
+Log out the open account	退出当前账号
+# context: Choice in the What the duress passcode does dialog, also the row's summary: permanently deletes every Telegram account on the phone
+Delete every account	删除所有账号
+# context: Choice in the What the duress passcode does dialog, also the row's summary: permanently deletes only the account open in Telegram right now
+Delete the open account	删除当前账号
+# context: Second line of the summary of the What the duress passcode does row (#79), shown while a deleting choice is picked. The first time the code is typed the lock screen acts as if it was wrong, the second time the accounts are deleted for good. Telegram waits a week before deleting an account that has a cloud password (two-step verification)
+Typed once, the duress passcode looks wrong. Typed again, it deletes for good. If an account has a cloud password, Telegram waits a week first.	第一次输入时，胁迫锁定码看起来是错的。再次输入会永久删除。如果账号设置了云端密码，Telegram 会先等待一周.
+# context: Short warning toast (#79) when a deleting choice is picked, or the Duress passcode switch turns on with one picked: typing the duress passcode twice deletes the accounts for good. Must fit two toast lines of 28 characters
+Typed twice, the duress passcode deletes for good.	胁迫锁定码输入两次会永久删除.
+# context: Lowercase noun phrase naming the Duress passcode switch (#79) in the patch status list
+duress passcode	胁迫锁定码
+# context: Title of a switch under Free proxies on the Chat list page, and the feature's name in Export settings and the patch status list. V2Ray is a proxy tool; VMess, VLESS, Trojan and Shadowsocks are its kinds of servers
+V2Ray-style servers	V2Ray 类服务器
+# context: Summary under the V2Ray-style servers switch. The proxy runs inside the app on the phone; Telegram's proxy list is Telegram's own Proxy Settings list
+Telegram connects through your own VMess, VLESS, Trojan and Shadowsocks servers by way of a proxy that runs inside Telegram, with one entry for it in Telegram's proxy list. It's used unless you use a proxy of your own. Calls don't go through it.	Telegram 通过一个在 Telegram 内部运行的代理，经由你自己的 VMess、VLESS、Trojan 和 Shadowsocks 服务器连接，并在 Telegram 的代理列表中为它添加一个条目。除非你使用自己的代理，否则会使用它。通话不经过它.
+# context: Title of a row under V2Ray-style servers and of its dialog, where the person pastes links to their own servers
+Your V2Ray links	你的 V2Ray 链接
+# context: Summary of the Your V2Ray links row when nothing is pasted yet. Your proxy lists is another row on the same page, use its translated title
+Paste vmess://, vless://, trojan:// and ss:// links here. Links in Your proxy lists are read too.	在这里粘贴 vmess://、vless://、trojan:// 和 ss:// 链接。“你的代理列表”中的链接也会被读取.
+# context: Summary of the Your V2Ray links row: how many links are saved. Your proxy lists is another row on the same page
+Links saved: %1$s. Links in Your proxy lists are read too.	已保存的链接：%1$s。“你的代理列表”中的链接也会被读取.
+# context: Hint in the empty box of the Your V2Ray links dialog
+One link a line	每行一个链接
+# context: Note under the box in the Your V2Ray links dialog. TCP, WebSocket and TLS are network protocol names
+VMess, VLESS, Trojan and Shadowsocks links work, over TCP or WebSocket, with or without TLS. They stay on this phone and out of settings files.	支持 VMess、VLESS、Trojan 和 Shadowsocks 链接，可走 TCP 或 WebSocket，带或不带 TLS。它们只保存在这部手机上，不会写入设置文件.
+# context: Short toast and note in the Your V2Ray links dialog when a line isn't a link it reads; the number is the line's number
+Line %1$s isn't a link this can use	第 %1$s 行不是可用的链接
+# context: Short toast and note in the Your V2Ray links dialog when too many links are pasted
+Up to %1$s links	最多 %1$s 个链接
+# context: Short toast when the pasted V2Ray links couldn't be saved, at most two short lines
+Couldn't save the links. Try again in a moment.	无法保存链接。请稍后再试.
+# context: Title of a row under V2Ray-style servers and of its picker, which picks the server Telegram goes through
+V2Ray server	V2Ray 服务器
+# context: First choice in the V2Ray server picker: no fixed server, the fastest one that answered the last test
+The fastest that answers	响应最快的服务器
+# context: A server in the V2Ray server picker: its name, then how many milliseconds it took to answer
+%1$s, %2$s ms	%1$s，%2$s 毫秒
+# context: A server in the V2Ray server picker that didn't answer the last test: its name, then that
+%1$s, no answer	%1$s，无响应
+# context: Name in the V2Ray server picker for a server whose link has no name, with its place in the list
+Server %1$s	服务器 %1$s
+# context: Button in the V2Ray server picker that times every server again
+Test again	重新测试
+# context: Summary of the V2Ray server row when the proxy inside Telegram couldn't start. The switch is V2Ray-style servers, just above
+The local proxy couldn't start. Turn the switch off and on again.	本地代理无法启动。请关闭开关后再重新打开.
+# context: Summary of the V2Ray server row while every server is being timed
+Testing your V2Ray-style servers now.	正在测试你的 V2Ray 类服务器.
+# context: Summary of the V2Ray server row before the first test
+Not tested yet. Tap to pick a server or test them now.	尚未测试。点按即可选择服务器或立即测试.
+# context: Summary of the V2Ray server row when the last test found no link it can use in the pasted links or the person's own proxy lists
+No V2Ray-style links found in your links or proxy lists.	在你的链接或代理列表中没有找到 V2Ray 类链接.
+# context: Summary of the V2Ray server row when no server answered the last test
+None of your servers answered last time.	上次你的服务器都没有响应.
+# context: Summary of the V2Ray server row: how many servers answered the last test, of how many it timed
+Servers that answered last time: %1$s of %2$s.	上次响应的服务器：%2$s 个中的 %1$s 个.
+# context: Added to the V2Ray server row's summary: the kinds of links that were left out, as a list of names such as REALITY or gRPC
+Skipped, not supported yet: %1$s.	已跳过，暂不支持：%1$s.
+# context: Added to the V2Ray server row's summary: the server the person picked, by its name
+Using %1$s.	正在使用 %1$s.
+# context: Item in the list of skipped link kinds on the V2Ray server row: links that send fake HTTP headers over TCP
+TCP with HTTP headers	带 HTTP 头的 TCP
+# context: Item in the list of skipped link kinds on the V2Ray server row: Shadowsocks links that need a plugin
+Shadowsocks plugins	Shadowsocks 插件
+# context: Item in the list of skipped link kinds on the V2Ray server row: Shadowsocks links with a cipher it can't use
+other Shadowsocks ciphers	其他 Shadowsocks 加密方式
+# context: Item in the list of skipped link kinds on the V2Ray server row: VLESS links that ask for VLESS's own encryption
+VLESS encryption	VLESS 加密

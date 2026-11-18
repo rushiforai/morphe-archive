@@ -49,7 +49,9 @@ plugins:
   # Everything generated from the patch bundle, regenerated before the release commit.
   - - "@semantic-release/exec"
     - prepareCmd: >-
-        ./gradlew generatePatchesList
+        rm -f patches/build/libs/*.mpp
+        && ./gradlew generatePatchesList -Pversion=${nextRelease.version} -PbundleVersion=${nextRelease.version}
+        && rm -f patches/build/libs/*-sources.mpp patches/build/libs/*-javadoc.mpp
         && jq '.version="${nextRelease.version}"' patches-list.json > patches-list.json.tmp && mv patches-list.json.tmp patches-list.json
         && python3 .github/scripts/generate_patches_readme.py $GITHUB_REPOSITORY $GITHUB_REF_NAME patches-list.json README.md
 
@@ -69,5 +71,8 @@ plugins:
     - assets:
         # Only the bundle this release built. The glob form attached every .mpp in the folder, so a
         # 3.1.0 build left from the pre-bump Gradle run shipped inside the 3.1.1 release too.
-        - path: "patches/build/libs/patches-${nextRelease.version}.mpp"
+        # A glob, because @semantic-release/github does not interpolate ${nextRelease.version} here: it looked for
+        # a file with that literal name, found none, and published 3.2.0 with no bundle at all. prepareCmd has
+        # already deleted every other .mpp, so this matches exactly the bundle being released.
+        - path: "patches/build/libs/patches-*.mpp"
       successComment: false

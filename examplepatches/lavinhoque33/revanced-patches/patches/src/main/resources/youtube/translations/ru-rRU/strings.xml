@@ -79,6 +79,13 @@
     <string name="morphe_custom_branding_splash_animation_size_title">Размер анимации загрузки</string>
     <string name="morphe_custom_branding_use_as_system_splash_summary">Использует выбранную анимацию в качестве системного сплеш Android</string>
     <string name="morphe_custom_branding_use_as_system_splash_title">Использовать системный сплеш</string>
+    <string name="morphe_custom_seekbar_thumb_file_invalid">Выбранный файл не является поддерживаемым изображением</string>
+    <string name="morphe_custom_seekbar_thumb_file_not_found">Изображение кастомного ползунка полосы прогресса не найдено</string>
+    <string name="morphe_custom_seekbar_thumb_file_title">Изображение ползунка</string>
+    <string name="morphe_custom_seekbar_thumb_scale_type_entry_fit_seekbar">По размеру полосы прогресса</string>
+    <string name="morphe_custom_seekbar_thumb_scale_type_entry_original">Оригинальный размер</string>
+    <string name="morphe_custom_seekbar_thumb_scale_type_title">Размер ползунка</string>
+    <string name="morphe_custom_seekbar_thumb_title">Включить кастомный ползунок полосы прогресса</string>
     <string name="morphe_dark_theme_custom_color_summary">Используется, когда выбран параметр «Пользовательский»</string>
     <string name="morphe_dark_theme_custom_color_title">Пользовательский темный цвет темы</string>
     <string name="morphe_dark_theme_title">Темная тема</string>
@@ -113,6 +120,12 @@
     <string name="morphe_disable_toolbar_navigation_tabs_summary">Показывать «Подписки» в панели навигации, если YouTube перенесет их во вкладку в верхней части Главной</string>
     <string name="morphe_disable_toolbar_navigation_tabs_title">Отключить вкладки навигации на панели инструментов</string>
     <string name="morphe_dual_captions_enabled_title">Двуязычные субтитры</string>
+    <string name="morphe_enhanced_ambient_mode_dim_duration_title">Длительность приглушения</string>
+    <string name="morphe_enhanced_ambient_mode_dim_while_scrolling_summary">Приглушает свет при прокрутке или касании страницы</string>
+    <string name="morphe_enhanced_ambient_mode_dim_while_scrolling_title">Приглушать при прокрутке</string>
+    <string name="morphe_enhanced_ambient_mode_readable_text_summary">Приглушает свет на ярких видео, чтобы текст на странице оставался читаемым</string>
+    <string name="morphe_enhanced_ambient_mode_readable_text_title">Сохранять читаемость текста</string>
+    <string name="morphe_enhanced_ambient_mode_title">Улучшенный режим фоновой подсветки</string>
     <string name="morphe_expand_livestream_dvr_duration_not_available">"«Расширить длительность DVR прямых трансляций» может быть недоступно
 
 Чтобы исправить это, включите «Подмена видеопотоков» и измените «Клиент по умолчанию» на «TV Simply» или «visionOS»"</string>
@@ -282,6 +295,12 @@
     <string name="morphe_playback_in_feeds_title">Воспроизведение в ленте</string>
     <string name="morphe_player_control_buttons_background_opacity_summary">Регулирует непрозрачность фона за кнопками управления плеером и временной шкалой (0 — невидимый, 100 — непрозрачный)</string>
     <string name="morphe_player_control_buttons_background_opacity_title">Прозрачность фона кнопок управления</string>
+    <string name="morphe_playlist_hide_removal_snackbar_summary">Подтверждение не будет отображаться после удаления видео из плейлиста</string>
+    <string name="morphe_playlist_hide_removal_snackbar_title">Скрыть уведомление об удалении из плейлиста</string>
+    <string name="morphe_playlist_long_press_drag_summary">Нажмите и удерживайте видео в вашем плейлисте, чтобы переместить его на новую позицию</string>
+    <string name="morphe_playlist_long_press_drag_title">Удерживайте, чтобы изменить порядок видео в плейлисте</string>
+    <string name="morphe_playlist_wide_drag_handles_summary">Маркеры перемещения плейлиста стало удобнее захватывать</string>
+    <string name="morphe_playlist_wide_drag_handles_title">Расширить маркеры перетаскивания плейлиста</string>
     <string name="morphe_post_buttons_layout_entry_1">Сервер</string>
     <string name="morphe_post_buttons_layout_entry_2">Принудительно</string>
     <string name="morphe_post_buttons_layout_title">Расположение кнопок поста</string>
@@ -781,20 +800,7 @@
     <string name="revanced_disable_landscape_mode_summary_off">Ориентация в полноэкранном режиме по настройкам устройства</string>
     <string name="revanced_disable_landscape_mode_summary_on">Портретная ориентация в полноэкранном режиме включена</string>
     <string name="revanced_disable_landscape_mode_title">Альбомный режим</string>
-    <string name="revanced_disable_layout_updates_summary_off">Макет будет обновляться сервером</string>
-    <string name="revanced_disable_layout_updates_summary_on">Макет не будет обновляться сервером</string>
     <string name="revanced_disable_layout_updates_title">Отключить обновление макета</string>
-    <string name="revanced_disable_layout_updates_user_dialog_message">"Макет приложения возвращается к макету, используемому при первой установке
-
-Некоторые серверные макеты могут не вернуться к исходному состоянию
-
-Изменения включают:
-• Компоненты во всплывающем меню проигрывателя (или связанные с ними настройки) могут не работать
-• Бегущие числа не анимируются
-• Отображается вкладка «Библиотека»
-• Раздел Музыки в описании видео может не работать
-• Элементы всплывающего меню проигрывателя нельзя скрыть
-• Кнопка переключения аккаунтов может не появиться на вкладке «Библиотека»"</string>
     <string name="revanced_disable_like_dislike_glow_summary_off">Кнопки \"Лайк\" и \"Дизлайк\" при упоминании подсвечиваются</string>
     <string name="revanced_disable_like_dislike_glow_summary_on">Кнопки \"Лайк\" и \"Дизлайк\" при упоминании не подсвечиваются</string>
     <string name="revanced_disable_like_dislike_glow_title">Отключить свечение кнопки \"Лайк\" и \"Дизлайк\"</string>
@@ -1141,11 +1147,6 @@ Shorts
     <string name="revanced_hide_comments_carousel_filter_strings_summary">Введите имена карусели комментариев для фильтрации, разделенные новыми строками</string>
     <string name="revanced_hide_comments_carousel_filter_strings_title">Фильтр карусели комментариев</string>
     <string name="revanced_hide_comments_carousel_title">Включить фильтр карусели комментариев</string>
-    <string name="revanced_hide_comments_carousel_user_dialog_message">"Примечание:
-
-• Убедитесь, что вы вводите точное название элемента карусели (например, Спросить, Продвигать это видео, Слушать на YouTube Music и т.д.)
-• Скрытие элементов карусели может иметь непредвиденные побочные эффекты
-• Если все элементы карусели скрыты, весь раздел комментариев также будет скрыт"</string>
     <string name="revanced_hide_comments_create_a_short_button_summary_off">Кнопка \"Создать Short\" при ответе на комментарий показана</string>
     <string name="revanced_hide_comments_create_a_short_button_summary_on">Кнопка \"Создать Short\" при ответе на комментарий скрыта</string>
     <string name="revanced_hide_comments_create_a_short_button_title">Скрыть кнопку \"Создать Short\"</string>

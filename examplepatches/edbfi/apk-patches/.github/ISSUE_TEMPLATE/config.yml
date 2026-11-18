@@ -1,0 +1,9 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+blank_issues_enabled: false
+contact_links:
+  - name: ReVanced Manager, the ReVanced CLI or ReVanced's own patches
+    url: https://github.com/ReVanced
+    about: Report problems with those to ReVanced. This repo covers only the edbfi patches.
+  - name: Morphe Manager, the Morphe CLI or Morphe's own patches
+    url: https://github.com/MorpheApp
+    about: Report problems with those to Morphe. This repo covers only the edbfi patches.

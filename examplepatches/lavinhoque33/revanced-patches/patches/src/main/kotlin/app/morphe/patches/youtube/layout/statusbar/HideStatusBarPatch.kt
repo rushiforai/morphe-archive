@@ -4,11 +4,13 @@
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  * Ported to RVX by lavinhoque33, 2026-10-16.
+ * Modified by lavinhoque33, 2026-11-17.
  */
 
 package app.morphe.patches.youtube.layout.statusbar
 
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patches.youtube.general.navigation.navigationBarComponentsPatch
 import app.morphe.patches.shared.mainactivity.injectOnCreateMethodCall
 import app.morphe.patches.youtube.utils.compatibility.Constants.COMPATIBILITY_YOUTUBE
 import app.morphe.patches.youtube.utils.extension.sharedExtensionPatch
@@ -16,6 +18,7 @@ import app.morphe.patches.youtube.utils.mainactivity.mainActivityResolvePatch
 import app.morphe.patches.youtube.utils.patch.PatchList.HIDE_STATUS_BAR
 import app.morphe.patches.youtube.utils.settings.ResourceUtils.addPreference
 import app.morphe.patches.youtube.utils.settings.settingsPatch
+import app.morphe.util.setExtensionIsPatchIncluded
 
 private const val EXTENSION_CLASS = "Lapp/morphe/extension/youtube/patches/HideStatusBarPatch;"
 
@@ -28,11 +31,14 @@ val hideStatusBarPatch = bytecodePatch(
         sharedExtensionPatch,
         settingsPatch,
         mainActivityResolvePatch,
+        navigationBarComponentsPatch,
     )
 
     compatibleWith(COMPATIBILITY_YOUTUBE)
 
     execute {
+        setExtensionIsPatchIncluded(EXTENSION_CLASS)
+
         addPreference(
             arrayOf(
                 "PREFERENCE_SCREEN: GENERAL",

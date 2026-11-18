@@ -44,7 +44,7 @@
 ## 补丁列表
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.7.2](https://github.com/Piracola/Pixiv-Patched/releases/tag/v1.7.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;13 patches total
+> **[v1.8.0](https://github.com/Piracola/Pixiv-Patched/releases/tag/v1.8.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;13 patches total
 <details open>
 <summary>📦 Pixiv&nbsp;&nbsp;•&nbsp;&nbsp;13 patches</summary>
 <br>

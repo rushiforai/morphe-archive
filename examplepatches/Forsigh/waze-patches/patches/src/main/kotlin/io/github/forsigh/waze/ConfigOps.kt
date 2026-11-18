@@ -17,19 +17,20 @@ package io.github.forsigh.waze
 internal fun forceBoolean(prefix: String, entries: Map<String, Boolean>): String {
     val keys = entries.keys.toList()
     return buildString {
-        keys.forEachIndexed { i, key ->
-            append("sget-object v0, Lcom/waze/config/ConfigValues;->$key:Lcom/waze/config/b;\n")
-            append("if-eq p0, v0, :${prefix}_b$i\n")
-        }
-        append("goto :${prefix}_be\n")
+        // One self-contained stanza per key: a short forward branch over its own return, no shared
+        // handler table and no trailing goto. The patcher resolves a block's labels when it is
+        // added; a long jump to a table at the far end of a big block is what a host rebuilt on
+        // patcher 2.3.0 resolved into the middle of an instruction (VerifyError: pc not at an
+        // instruction start). Keeping every target 4 instructions ahead removes that reach.
         keys.forEachIndexed { i, key ->
             val boxed = if (entries.getValue(key)) "Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;"
                         else "Ljava/lang/Boolean;->FALSE:Ljava/lang/Boolean;"
-            append(":${prefix}_b$i\n")
+            append("sget-object v0, Lcom/waze/config/ConfigValues;->$key:Lcom/waze/config/b;\n")
+            append("if-ne p0, v0, :${prefix}_b$i\n")
             append("sget-object v0, $boxed\n")
             append("return-object v0\n")
+            append(":${prefix}_b$i\n")
         }
-        append(":${prefix}_be\n")
     }
 }
 
@@ -37,11 +38,6 @@ internal fun forceBoolean(prefix: String, entries: Map<String, Boolean>): String
 internal fun forceLong(prefix: String, entries: Map<String, Long>): String {
     val keys = entries.keys.toList()
     return buildString {
-        keys.forEachIndexed { i, key ->
-            append("sget-object v0, Lcom/waze/config/ConfigValues;->$key:Lcom/waze/config/c;\n")
-            append("if-eq p0, v0, :${prefix}_l$i\n")
-        }
-        append("goto :${prefix}_le\n")
         keys.forEachIndexed { i, key ->
             val value = entries.getValue(key)
             // const-wide/16 carries a signed 16-bit literal, /32 a signed 32-bit one; anything
@@ -52,13 +48,14 @@ internal fun forceLong(prefix: String, entries: Map<String, Long>): String {
                 value in Int.MIN_VALUE.toLong()..Int.MAX_VALUE.toLong() -> "const-wide/32 v0, $value"
                 else -> "const-wide v0, ${value}L"
             }
-            append(":${prefix}_l$i\n")
+            append("sget-object v0, Lcom/waze/config/ConfigValues;->$key:Lcom/waze/config/c;\n")
+            append("if-ne p0, v0, :${prefix}_l$i\n")
             append("$load\n")
             append("invoke-static {v0, v1}, Ljava/lang/Long;->valueOf(J)Ljava/lang/Long;\n")
             append("move-result-object v0\n")
             append("return-object v0\n")
+            append(":${prefix}_l$i\n")
         }
-        append(":${prefix}_le\n")
     }
 }
 
@@ -68,15 +65,11 @@ internal fun forceString(prefix: String, entries: Map<String, String>): String {
     return buildString {
         keys.forEachIndexed { i, key ->
             append("sget-object v0, Lcom/waze/config/ConfigValues;->$key:Lcom/waze/config/d;\n")
-            append("if-eq p0, v0, :${prefix}_s$i\n")
-        }
-        append("goto :${prefix}_se\n")
-        keys.forEachIndexed { i, key ->
-            append(":${prefix}_s$i\n")
+            append("if-ne p0, v0, :${prefix}_s$i\n")
             append("const-string v0, \"${entries.getValue(key)}\"\n")
             append("return-object v0\n")
+            append(":${prefix}_s$i\n")
         }
-        append(":${prefix}_se\n")
     }
 }
 

@@ -20,12 +20,13 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
-import io.github.sabopura.morphe.patches.twitch.Constants.TWITCH_ADS
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
+import io.github.sabopura.morphe.patches.twitch.support.TWITCH_EXTENSION
 import io.github.sabopura.morphe.patches.twitch.support.classesMatching
 import io.github.sabopura.morphe.patches.twitch.support.classesWithStrings
+import io.github.sabopura.morphe.patches.twitch.support.insertBeforeKeepingLabels
+import io.github.sabopura.morphe.patches.twitch.support.softHook
 import io.github.sabopura.morphe.patches.twitch.support.uniqueContract
-import io.github.sabopura.morphe.patches.twitch.ui.enableTwitchFeature
-import io.github.sabopura.morphe.patches.twitch.ui.playerMenuResourcePatch
 import org.w3c.dom.Element
 import java.util.logging.Logger
 
@@ -33,9 +34,18 @@ private const val AD_BLOCK = "Lio/github/sabopura/morphe/extension/twitch/ads/Ad
 private const val AD_FREE_CLIENT = "Lio/github/sabopura/morphe/extension/twitch/ads/AdFreeHttpClient;"
 private const val SHIELD = "io.github.sabopura.morphe.extension.twitch.ads.AdShield"
 private const val IVS_NET = "Lcom/amazonaws/ivs/net/"
+private const val EXTENSION_PACKAGE = "Lio/github/sabopura/morphe/extension/"
 private const val NETWORKING = "Lcom/facebook/react/modules/network/NetworkingModule;"
 private const val CUE_ROUTER = "Lcom/twitchrn/player/AdMetadataCueRouter;"
+private const val AD_EDGE_API = "Ltv/twitch/android/shared/ad/edge/api/AdEdgeApi;"
 private val log: Logger = Logger.getLogger("SabopuraTwitch.Ads")
+
+/**
+ * `AdMetadataCueRouter.route(String)`; 32.0.0 added a trailing boolean that Twitch only passes on
+ * to TwitchAdStateModule. The hook reads the cue text alone, so both shapes are accepted.
+ */
+internal fun isAdCueRoute(method: Method) = method.name == "route" && method.returnType == "V" &&
+    method.parameterTypes.map { it.toString() } in listOf(listOf("Ljava/lang/String;"), listOf("Ljava/lang/String;", "Z"))
 
 /** Covers the video above the picture and below Twitch's controls; used only as a last resort. */
 internal val blockAdsResourcePatch = resourcePatch(
@@ -57,33 +67,35 @@ internal val blockAdsResourcePatch = resourcePatch(
     }
 }
 
-@Suppress("unused")
-val blockAdsPatch = bytecodePatch(
-    name = "Block ads",
-    description = "Blocks pre-roll, mid-roll and VOD ads, ads stitched into live streams, audio ads, " +
-        "picture-by-picture ads and banner or feed ads, without a third-party server. Can be " +
-        "switched off in the settings.",
-) {
-    compatibleWith(TWITCH_ADS)
-    dependsOn(playerMenuResourcePatch, blockAdsResourcePatch)
-    extendWith("extensions/twitch.mpe")
+/** Hooks of the patches that react to ad events of the native players. */
+internal val adEventsHook = bytecodePatch {
+    extendWith(TWITCH_EXTENSION)
+    execute { handlePlayerAdEvents() }
+}
 
+internal val clientAdsHook = bytecodePatch {
+    extendWith(TWITCH_EXTENSION)
+    execute { blockClientAds() }
+}
+
+internal val serverAdsHook = bytecodePatch {
+    extendWith(TWITCH_EXTENSION)
     execute {
-        val classes = classesMatching { true }
-        initializeSettings()
-        blockClientAds()
-        blockAdServerApi(classes)
+        blockAdServerApi()
         blockDisplayAdParser()
         blockReactNativeAds()
-        replaceStitchedAds()
-        disablePictureByPicture()
-        handlePlayerAdEvents(classes)
-        log.info("Block ads: all layers installed")
+        softHook("PubSub ad notices") { dropPubSubAdNotices() }
     }
+}
 
-    finalize {
-        enableTwitchFeature("adsPatch")
-    }
+internal val stitchedAdsHook = bytecodePatch {
+    extendWith(TWITCH_EXTENSION)
+    execute { replaceStitchedAds() }
+}
+
+internal val pictureByPictureHook = bytecodePatch {
+    extendWith(TWITCH_EXTENSION)
+    execute { disablePictureByPicture() }
 }
 
 // ---- helpers ----
@@ -122,14 +134,6 @@ private fun MutableMethod.filterResultAt(moveResultIndex: Int, call: String) {
     """)
 }
 
-// ---- settings ----
-
-private fun BytecodePatchContext.initializeSettings() {
-    val application = mutableClassDefBy("Ltv/twitch/android/app/consumer/TwitchApplication;")
-    application.methods.single { it.name == "onCreate" && it.parameterTypes.isEmpty() }
-        .addInstructions(0, "invoke-static/range {p0 .. p0}, $AD_BLOCK->initialize(Landroid/content/Context;)V")
-}
-
 // ---- ① the presenter that requests every ad the app plays itself ----
 
 private fun BytecodePatchContext.blockClientAds() {
@@ -151,7 +155,7 @@ private fun BytecodePatchContext.blockClientAds() {
 
 // ---- ② the ad server API of the native screens ----
 
-private fun BytecodePatchContext.blockAdServerApi(classes: List<ClassDef>) {
+private fun BytecodePatchContext.blockAdServerApi() {
     // Retrofit's create(Class): wrap the AdEdgeApi service it returns.
     val retrofit = classesWithStrings("API declarations must be interfaces.").uniqueContract("Block ads: Retrofit")
     val create = retrofit.methods.filter {
@@ -168,7 +172,10 @@ private fun BytecodePatchContext.blockAdServerApi(classes: List<ClassDef>) {
     mutable(create).filterResultAt(proxyCall + 1, "$AD_BLOCK->service(Ljava/lang/Object;)Ljava/lang/Object;")
 
     // RxJava's Single.just, for the immediate "blocked" answers of the wrapped API.
-    val just = classDefBy("Lio/reactivex/u;").methods.filter {
+    val adEdge = classDefByOrNull(AD_EDGE_API) ?: throw PatchException("Block ads: AdEdgeApi is missing")
+    val single = adEdge.methods.filter { AccessFlags.ABSTRACT.isSet(it.accessFlags) }.map { it.returnType }.distinct()
+        .uniqueContract("Block ads: AdEdgeApi return type")
+    val just = classDefBy(single).methods.filter {
         AccessFlags.STATIC.isSet(it.accessFlags) && it.parameterTypes.map { p -> p.toString() } == listOf("Ljava/lang/Object;") &&
             it.hasString("item is null")
     }.uniqueContract("Block ads: Single.just")
@@ -179,8 +186,6 @@ private fun BytecodePatchContext.blockAdServerApi(classes: List<ClassDef>) {
         move-result-object p0
         return-object p0
     """)
-    if (classes.none { it.type == "Ltv/twitch/android/shared/ad/edge/api/AdEdgeApi;" })
-        throw PatchException("Block ads: AdEdgeApi is missing")
 }
 
 /** The parser of /ads responses (display ads and VAST): answer "no ad", as Twitch does on 204. */
@@ -191,7 +196,7 @@ private fun BytecodePatchContext.blockDisplayAdParser() {
     }.uniqueContract("Block ads: ad response parser")
     val noAd = parser.code().mapNotNull {
         if (it.opcode == Opcode.SGET_OBJECT) (it as ReferenceInstruction).reference as FieldReference else null
-    }.distinct().filter { classDefBy(it.type).superclass == parser.returnType }
+    }.distinct().filter { classDefByOrNull(it.type)?.superclass == parser.returnType }
         .uniqueContract("Block ads: no-ad response")
     parser.requireScratch("ad response parser")
     val method = mutable(parser)
@@ -206,13 +211,6 @@ private fun BytecodePatchContext.blockDisplayAdParser() {
 
 // ---- ③ ad server requests of the React Native screens ----
 
-/**
- * `AdMetadataCueRouter.route(String)`; 32.0.0 added a trailing boolean that Twitch only passes on
- * to TwitchAdStateModule. The hook reads the cue text alone, so both shapes are accepted.
- */
-internal fun isAdCueRoute(method: Method) = method.name == "route" && method.returnType == "V" &&
-    method.parameterTypes.map { it.toString() } in listOf(listOf("Ljava/lang/String;"), listOf("Ljava/lang/String;", "Z"))
-
 private fun BytecodePatchContext.blockReactNativeAds() {
     val send = mutableClassDefBy(NETWORKING).methods.filter {
         it.name == "sendRequestInternalReal" && it.parameterTypes.size >= 3 &&
@@ -225,16 +223,30 @@ private fun BytecodePatchContext.blockReactNativeAds() {
         if-eqz v0, :original
         return-void
     """, ExternalLabel("original", send.getInstruction(0)))
+}
 
-    val route = mutableClassDefBy(CUE_ROUTER).methods.filter(::isAdCueRoute)
-        .uniqueContract("Block ads: AdMetadataCueRouter.route")
-    route.requireScratch("AdMetadataCueRouter.route")
-    route.addInstructionsWithLabels(0, """
-        invoke-static/range {p1 .. p1}, $AD_BLOCK->dropReactCue(Ljava/lang/String;)Z
-        move-result v0
-        if-eqz v0, :original
-        return-void
-    """, ExternalLabel("original", route.getInstruction(0)))
+/** Ad notices pushed over PubSub. Twitch drops a message whose type has no registered subtype. */
+private val PUBSUB_AD_TYPES = setOf("midroll_request", "pixel_tracking_update", "commercial")
+
+private fun BytecodePatchContext.dropPubSubAdNotices() {
+    val owner = classesWithStrings("midroll_request", "pixel_tracking_update").uniqueContract("PubSub type registry")
+    val method = mutableClassDefBy(owner).methods.filter { it.hasString("midroll_request") && it.hasString("pixel_tracking_update") }
+        .uniqueContract("PubSub type registry method")
+    val code = method.instructions.toList()
+    val sites = code.indices.filter { index ->
+        val name = ((code[index] as? ReferenceInstruction)?.reference as? StringReference)?.string
+        val next = (code.getOrNull(index + 1) as? ReferenceInstruction)?.reference as? MethodReference
+        name in PUBSUB_AD_TYPES && next?.returnType == "V" &&
+            next.parameterTypes.map { it.toString() } == listOf("Ljava/lang/Class;", "Ljava/lang/String;")
+    }
+    if (sites.size != PUBSUB_AD_TYPES.size) throw PatchException("Block ads: expected 3 PubSub ad registrations, found ${sites.size}")
+    sites.asReversed().forEach { index ->
+        val register = (code[index] as OneRegisterInstruction).registerA
+        method.addInstructions(index + 1, """
+            invoke-static/range {v$register .. v$register}, $AD_BLOCK->pubSubType(Ljava/lang/String;)Ljava/lang/String;
+            move-result-object v$register
+        """)
+    }
 }
 
 // ---- ④ stitched ads: the HTTP client of the Amazon IVS player ----
@@ -245,6 +257,8 @@ private fun BytecodePatchContext.replaceStitchedAds() {
         if (!AccessFlags.INTERFACE.isSet(type.accessFlags)) throw PatchException("Block ads: IVS $it is not an interface")
         type.accessFlags = type.accessFlags or AccessFlags.PUBLIC.value
     }
+    val missing = ivsLinkFailures(classesMatching { it.type.startsWith(EXTENSION_PACKAGE) }) { classDefByOrNull(it) }
+    if (missing.isNotEmpty()) throw PatchException("Block ads: Amazon IVS in this Twitch lacks what the extension calls: ${missing.joinToString("; ")}")
     val factory = mutableClassDefBy("${IVS_NET}HttpClientFactory;").methods.filter {
         it.name == "create" && it.parameterTypes.isEmpty() && it.returnType == "${IVS_NET}HttpClient;" &&
             AccessFlags.STATIC.isSet(it.accessFlags)
@@ -254,6 +268,73 @@ private fun BytecodePatchContext.replaceStitchedAds() {
         throw PatchException("Block ads: IVS HttpClientFactory.create changed shape")
     factory.filterResultAt(returns[0] - 1, "$AD_FREE_CLIENT->wrap(${IVS_NET}HttpClient;)${IVS_NET}HttpClient;")
 }
+
+/**
+ * What [extension] uses of IVS's network package that is missing or not public in [lookup]'s classes, each as
+ * the phone would meet it: a NoSuchMethodError, NoSuchFieldError or IllegalAccessError in IVS's network code,
+ * or an AbstractMethodError when IVS calls a method one of the extension's implementations lacks. The
+ * extension compiles against copies of these classes, so the bytecode is what tells what it links to.
+ */
+internal fun ivsLinkFailures(extension: List<ClassDef>, lookup: (String) -> ClassDef?): List<String> {
+    val ours = extension.associateBy { it.type }
+    val failures = sortedSetOf<String>()
+    var uses = 0
+    fun inIvs(type: String?, found: (ClassDef) -> Boolean): Boolean {
+        val owner = type?.let(lookup) ?: return false
+        return found(owner) || inIvs(owner.superclass, found) || owner.interfaces.any { inIvs(it, found) }
+    }
+    fun abstractMethods(type: String): List<Method> {
+        val owner = lookup(type) ?: return emptyList()
+        return owner.methods.filter { AccessFlags.ABSTRACT.isSet(it.accessFlags) } + owner.interfaces.flatMap(::abstractMethods)
+    }
+    for (owner in extension) {
+        for (type in owner.interfaces.filter { it.startsWith(IVS_NET) }) {
+            uses++
+            if (lookup(type) == null) failures += type
+            abstractMethods(type).filterNot { wanted ->
+                generateSequence(owner) { ours[it.superclass] }.any { c ->
+                    c.methods.any { it.implementation != null && it.sameSignature(wanted.name, wanted.parameterTypes, wanted.returnType) }
+                }
+            }.forEach {
+                failures += "${it.definingClass}->${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}, " +
+                    "which ${owner.type} does not implement"
+            }
+        }
+        for (instruction in owner.methods.flatMap { it.code() }) {
+            when (val reference = (instruction as? ReferenceInstruction)?.reference) {
+                is MethodReference -> if (reference.definingClass.startsWith(IVS_NET)) {
+                    uses++
+                    val found = inIvs(reference.definingClass) { c ->
+                        c.methods.any {
+                            AccessFlags.PUBLIC.isSet(it.accessFlags) &&
+                                it.sameSignature(reference.name, reference.parameterTypes, reference.returnType)
+                        }
+                    }
+                    if (!found) failures += reference.toString()
+                }
+                is FieldReference -> if (reference.definingClass.startsWith(IVS_NET)) {
+                    uses++
+                    val found = inIvs(reference.definingClass) { c ->
+                        c.fields.any { AccessFlags.PUBLIC.isSet(it.accessFlags) && it.name == reference.name && it.type == reference.type }
+                    }
+                    if (!found) failures += reference.toString()
+                }
+                is TypeReference -> {
+                    val type = reference.type.trimStart('[')
+                    if (type.startsWith(IVS_NET)) {
+                        uses++
+                        if (lookup(type) == null) failures += type
+                    }
+                }
+            }
+        }
+    }
+    if (uses == 0) throw PatchException("Block ads: the extension uses no Amazon IVS class, so the IVS check proves nothing")
+    return failures.toList()
+}
+
+private fun Method.sameSignature(name: String, parameters: List<CharSequence>, returns: String) =
+    this.name == name && returnType == returns && parameterTypes.map { it.toString() } == parameters.map { it.toString() }
 
 // ---- ⑤ picture-by-picture ----
 
@@ -267,7 +348,7 @@ private fun BytecodePatchContext.disablePictureByPicture() {
     val method = mutable(check)
     method.instructions.withIndex().filter { it.value.opcode == Opcode.RETURN }.map { it.index }.reversed().forEach { index ->
         val register = (method.getInstruction(index) as OneRegisterInstruction).registerA
-        method.addInstructions(index, """
+        method.insertBeforeKeepingLabels(index, """
             invoke-static/range {v$register .. v$register}, $AD_BLOCK->allowPictureByPicture(Z)Z
             move-result v$register
         """)
@@ -276,27 +357,48 @@ private fun BytecodePatchContext.disablePictureByPicture() {
 
 // ---- ⑥ ad events of the native players ----
 
-private fun BytecodePatchContext.handlePlayerAdEvents(classes: List<ClassDef>) {
-    fun eventByToString(prefix: String) = classes.filter { c ->
-        c.methods.any { m -> m.name == "toString" && m.code().any {
-            ((it as? ReferenceInstruction)?.reference as? StringReference)?.string?.startsWith(prefix) == true
-        } }
-    }.uniqueContract("Block ads: player event $prefix")
+private fun BytecodePatchContext.handlePlayerAdEvents() {
+    val classes = classesMatching { true }
 
-    val stitched = eventByToString("OnSurestreamAdStarted(")
-    val quartile = eventByToString("OnSurestreamAdQuartile(")
-    val clientAd = eventByToString("OnMultiformatAdRequested(")
-    val pbyp = eventByToString("OnPbypPreflightMessage(")
+    fun eventByToString(prefix: String, required: Boolean = true): ClassDef? {
+        val found = classes.filter { c ->
+            c.methods.any { m -> m.name == "toString" && m.code().any {
+                ((it as? ReferenceInstruction)?.reference as? StringReference)?.string?.startsWith(prefix) == true
+            } }
+        }
+        return if (required) found.uniqueContract("Block ads: player event $prefix") else found.singleOrNull()
+    }
+
+    val stitched = eventByToString("OnSurestreamAdStarted(")!!
+    val quartile = eventByToString("OnSurestreamAdQuartile(")!!
+    val clientAd = eventByToString("OnMultiformatAdRequested(")!!
+    val pbyp = eventByToString("OnPbypPreflightMessage(", required = false)
     val family = stitched.superclass ?: throw PatchException("Block ads: stitched ad event has no base")
-    listOf(quartile, clientAd, pbyp).forEach {
+    listOfNotNull(quartile, clientAd, pbyp).forEach {
         if (it.superclass != family) throw PatchException("Block ads: player ad events no longer share a base")
     }
     // The "live again" event is a singleton of the same family, sent for twitch-stream-source=live.
-    val liveAgain = classes.flatMap { it.methods }.filter { it.hasString("twitch-stream-source") && it.hasString("X-TV-TWITCH-STREAM-SOURCE") }
+    val known = listOfNotNull(stitched, quartile, clientAd, pbyp).map { it.type }.toSet()
+    val liveAgain = classesWithStrings("twitch-stream-source", "X-TV-TWITCH-STREAM-SOURCE").flatMap { it.methods }
+        .filter { it.hasString("twitch-stream-source") && it.hasString("X-TV-TWITCH-STREAM-SOURCE") }
         .flatMap { m -> m.code().mapNotNull { (it as? ReferenceInstruction)?.reference as? FieldReference } }
         .map { it.type }.distinct()
-        .filter { type -> classDefByOrNull(type)?.superclass == family && type !in setOf(stitched.type, quartile.type, clientAd.type, pbyp.type) }
+        .filter { type -> classDefByOrNull(type)?.superclass == family && type !in known }
         .uniqueContract("Block ads: live-again event")
+
+    val kinds = listOfNotNull(stitched.type to 1, liveAgain to 2, quartile.type to 3, clientAd.type to 4, pbyp?.let { it.type to 5 })
+    val bridge = mutableClassDefBy(AD_BLOCK).methods.single { it.name == "kind" }
+    bridge.removeInstructions(0, bridge.instructions.size)
+    bridge.addInstructionsWithLabels(0, kinds.joinToString("\n") { (type, kind) -> """
+        instance-of v0, p0, $type
+        if-eqz v0, :not_$kind
+        const/4 v0, $kind
+        return v0
+        :not_$kind
+    """ } + """
+        const/4 v0, 0x0
+        return v0
+    """)
 
     // The root of the event hierarchy is the only parameter of each player's dispatch method.
     var root = classDefBy(family)
@@ -305,29 +407,26 @@ private fun BytecodePatchContext.handlePlayerAdEvents(classes: List<ClassDef>) {
         !AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == "V" &&
             it.parameterTypes.map { p -> p.toString() } == listOf(root.type) && it.implementation != null
     }
-    if (dispatchers.size != 2) throw PatchException("Block ads: expected 2 player event dispatchers, found ${dispatchers.size}")
-
-    val kinds = listOf(stitched.type to 1, liveAgain to 2, quartile.type to 3, clientAd.type to 4, pbyp.type to 5)
+    if (dispatchers.isEmpty()) throw PatchException("Block ads: no player event dispatcher")
+    log.info("Block ads: ${dispatchers.size} player event dispatcher(s)")
     dispatchers.forEach { dispatcher ->
-        dispatcher.requireScratch("player event dispatcher", 2)
+        dispatcher.requireScratch("player event dispatcher")
         val method = mutable(dispatcher)
-        val checks = kinds.joinToString("\n") { (type, kind) -> """
-            instance-of v0, v1, $type
-            if-eqz v0, :not_$kind
-            const/4 v0, $kind
-            goto :ad_event
-            :not_$kind
-        """ }
         method.addInstructionsWithLabels(0, """
-            move-object/from16 v1, p1
-            $checks
-            goto :original
-            :ad_event
-            sput v0, $AD_BLOCK->eventKind:I
-            invoke-static/range {p0 .. p1}, $AD_BLOCK->onPlayerAdEvent(Ljava/lang/Object;Ljava/lang/Object;)Z
+            invoke-static/range {p0 .. p1}, $AD_BLOCK->onPlayerEvent(Ljava/lang/Object;Ljava/lang/Object;)Z
             move-result v0
             if-eqz v0, :original
             return-void
         """, ExternalLabel("original", method.getInstruction(0)))
     }
+
+    val route = mutableClassDefBy(CUE_ROUTER).methods.filter(::isAdCueRoute)
+        .uniqueContract("Block ads: AdMetadataCueRouter.route")
+    route.requireScratch("AdMetadataCueRouter.route")
+    route.addInstructionsWithLabels(0, """
+        invoke-static/range {p1 .. p1}, $AD_BLOCK->dropReactCue(Ljava/lang/String;)Z
+        move-result v0
+        if-eqz v0, :original
+        return-void
+    """, ExternalLabel("original", route.getInstruction(0)))
 }

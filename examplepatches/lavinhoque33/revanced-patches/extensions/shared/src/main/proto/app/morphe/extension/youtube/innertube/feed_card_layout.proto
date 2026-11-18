@@ -1,6 +1,6 @@
 // Copyright (C) 2026 lavinhoque33. Action-bar messages ported from Morphe, Copyright 2026 Morphe.
 // Licensed under the GNU General Public License v3.0.
-// Modified by lavinhoque33, 2026-11-06. See NOTICE for Morphe's GPLv3 Section 7 terms.
+// Modified by lavinhoque33, 2026-11-17. See NOTICE for Morphe's GPLv3 Section 7 terms.
 syntax = "proto3";
 
 package app.morphe.extension.youtube.innertube.feedcards;
@@ -548,7 +548,12 @@ message ButtonViewModelHolder {
 }
 
 message ButtonViewModel {
-    string iconName = 2;
+    // Native buttons use one icon source. Setting the legacy name must remove the modern image,
+    // otherwise the native parser reads the later image field and clears iconName again.
+    oneof iconSource {
+        string iconName = 2;
+        bytes yticonImage = 51;
+    }
     string title = 3;
     InnertubeCommandHolder onTap = 4;
     string accessibilityText = 5;

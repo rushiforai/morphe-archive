@@ -1,0 +1,50 @@
+# Gradle and Kotlin build state
+.gradle/
+build/
+.kotlin/
+local.properties
+
+# APKs, bundles and signing material never go in the repo
+*.apk
+*.apks
+*.xapk
+*.apkm
+*.rvp
+*.rve
+*.mpp
+*.mpe
+# The Morphe bundle signing key (morphe/morphe-signing.pub is public and committed)
+morphe-signing.key
+*.keystore
+*.jks
+
+# rea install (just setup-rea) and local tools (just revanced-patch, just device)
+/.rea/install/
+/.tools/
+
+# Scratch space: reference checkouts, sample APKs, patched output
+/tmp/
+
+# Credentials and machine-local overrides
+.env
+.env.*
+
+# Logs, editor and OS state
+*.log
+hs_err_pid*
+replay_pid*
+*.swp
+*~
+.DS_Store
+/.idea/
+/.vscode/
+
+# Shared agent config, tracked even where a global gitignore drops these folders.
+# Personal settings (.claude/settings.local.json) stay ignored.
+!/.claude/
+/.claude/*
+!/.claude/settings.json
+!/.claude/skills/
+!/.codex/
+/.codex/*
+!/.codex/config.toml

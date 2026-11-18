@@ -79,6 +79,13 @@ Zgłoszenia są publiczne i podlegają weryfikacji przed dodaniem kanału do lis
     <string name="morphe_custom_branding_splash_animation_size_title">Rozmiar animacji powitalnej</string>
     <string name="morphe_custom_branding_use_as_system_splash_summary">Użyj wybranej animacji jako powitalnego ekranu systemu Android</string>
     <string name="morphe_custom_branding_use_as_system_splash_title">Użyj jako systemu rozpryskowego</string>
+    <string name="morphe_custom_seekbar_thumb_file_invalid">Wybrany plik nie jest obsługiwanym obrazem</string>
+    <string name="morphe_custom_seekbar_thumb_file_not_found">Nie znaleziono własnego obrazu uchwytu paska postępu</string>
+    <string name="morphe_custom_seekbar_thumb_file_title">Obraz uchwytu</string>
+    <string name="morphe_custom_seekbar_thumb_scale_type_entry_fit_seekbar">Dopasuj do paska postępu</string>
+    <string name="morphe_custom_seekbar_thumb_scale_type_entry_original">Oryginalny rozmiar</string>
+    <string name="morphe_custom_seekbar_thumb_scale_type_title">Rozmiar uchwytu</string>
+    <string name="morphe_custom_seekbar_thumb_title">Włącz własny uchwyt paska postępu</string>
     <string name="morphe_dark_theme_custom_color_summary">Używane, gdy wybrano opcję Niestandardowe</string>
     <string name="morphe_dark_theme_custom_color_title">Niestandardowy ciemny kolor motywu</string>
     <string name="morphe_dark_theme_title">Ciemny motyw</string>
@@ -113,6 +120,12 @@ Zgłoszenia są publiczne i podlegają weryfikacji przed dodaniem kanału do lis
     <string name="morphe_disable_toolbar_navigation_tabs_summary">Wyświetla Subskrypcje na pasku nawigacji, jeśli YouTube przeniesie je do zakładki na górze strony głównej</string>
     <string name="morphe_disable_toolbar_navigation_tabs_title">Wyłącz zakładki nawigacji na pasku narzędzi</string>
     <string name="morphe_dual_captions_enabled_title">Napisy dwujęzyczne</string>
+    <string name="morphe_enhanced_ambient_mode_dim_duration_title">Czas przyciemnienia</string>
+    <string name="morphe_enhanced_ambient_mode_dim_while_scrolling_summary">Przyciemnia podświetlenie podczas przewijania lub dotykania strony</string>
+    <string name="morphe_enhanced_ambient_mode_dim_while_scrolling_title">Przyciemniaj podczas przewijania</string>
+    <string name="morphe_enhanced_ambient_mode_readable_text_summary">Przyciemnia podświetlenie przy jasnych filmach, aby tekst na stronie pozostał czytelny</string>
+    <string name="morphe_enhanced_ambient_mode_readable_text_title">Zachowaj czytelność tekstu</string>
+    <string name="morphe_enhanced_ambient_mode_title">Ulepszony tryb oświetlenia kinowego</string>
     <string name="morphe_expand_livestream_dvr_duration_not_available">"Opcja \"Wydłuż czas przewijania transmisji na żywo\" może być niedostępna
 
 ​Aby to naprawić, włącz \"Fałszowanie strumieni filmów\" i zmień \"Domyślny klient\" na \"TV Simply\" lub \"visionOS\""</string>
@@ -282,6 +295,12 @@ Lista jest pobierana z GitHuba, a filmy są filtrowane na Twoim urządzeniu"</st
     <string name="morphe_playback_in_feeds_title">Odtwarzanie w kanałach</string>
     <string name="morphe_player_control_buttons_background_opacity_summary">Dostosuj krycie tła za przyciskami sterowania odtwarzacza i paskiem czasu (0 to brak krycia, 100 to pełne krycie)</string>
     <string name="morphe_player_control_buttons_background_opacity_title">Krycie tła przycisków sterowania</string>
+    <string name="morphe_playlist_hide_removal_snackbar_summary">Potwierdzenie nie jest wyświetlane po usunięciu filmu z playlisty</string>
+    <string name="morphe_playlist_hide_removal_snackbar_title">Ukryj pasek powiadomienia o usunięciu z playlisty</string>
+    <string name="morphe_playlist_long_press_drag_summary">Przytrzymaj film na swojej playliście, aby przeciągnąć go na nową pozycję</string>
+    <string name="morphe_playlist_long_press_drag_title">Przytrzymaj, aby zmienić kolejność filmów na playliście</string>
+    <string name="morphe_playlist_wide_drag_handles_summary">Uchwyty do przeciągania na playliście są łatwiejsze do złapania</string>
+    <string name="morphe_playlist_wide_drag_handles_title">Poszerz uchwyty przeciągania na playliście</string>
     <string name="morphe_post_buttons_layout_entry_1">Serwerowy</string>
     <string name="morphe_post_buttons_layout_entry_2">Wymuszony</string>
     <string name="morphe_post_buttons_layout_title">Układ przycisków postów</string>
@@ -786,20 +805,7 @@ Ustawienia → Autoodtwarzanie / Odtwarzanie → Autoodtwarzanie następnego fil
     <string name="revanced_disable_landscape_mode_summary_off">Orientacja filmu jest zgodna z ustawieniami urządzenia w trybie pełnoekranowym</string>
     <string name="revanced_disable_landscape_mode_summary_on">Orientacja filmu jest w trybie pionowym w trybie pełnoekranowym</string>
     <string name="revanced_disable_landscape_mode_title">Tryb poziomy</string>
-    <string name="revanced_disable_layout_updates_summary_off">Włączone</string>
-    <string name="revanced_disable_layout_updates_summary_on">Wyłączone</string>
     <string name="revanced_disable_layout_updates_title">Wyłącz aktualizacje układu</string>
-    <string name="revanced_disable_layout_updates_user_dialog_message">"Układ aplikacji powróci do wersji z momentu pierwszej instalacji
-
-Niektóre zmiany układu wprowadzone po stronie serwera mogą nie zostać przywrócone
-
-Zmiany obejmują:
-• Elementy menu wysuwanego odtwarzacza (lub powiązanych ustawień) mogą nie działać
-• Liczby nie są animowane
-• Zakładka Biblioteka jest widoczna
-• Sekcja muzyki w opisie filmu może nie działać
-• Elementy menu wysuwanego odtwarzacza nie mogą zostać ukryte
-• Przycisk przełączania konta może nie pojawiać się w zakładce Biblioteka"</string>
     <string name="revanced_disable_like_dislike_glow_summary_off">Widoczna</string>
     <string name="revanced_disable_like_dislike_glow_summary_on">Ukryta</string>
     <string name="revanced_disable_like_dislike_glow_title">Poświata przycisków od łapkowania w górę i dół</string>
@@ -1163,10 +1169,6 @@ Sklep"</string>
     <string name="revanced_hide_comments_carousel_filter_strings_summary">Wprowadź nazwy elementów karuzeli do filtrowania, każda w nowej linii</string>
     <string name="revanced_hide_comments_carousel_filter_strings_title">Karuzele do ukrycia</string>
     <string name="revanced_hide_comments_carousel_title">Włącz filtr karuzeli komentarzy</string>
-    <string name="revanced_hide_comments_carousel_user_dialog_message">"Uwaga:
-• Upewnij się, że wprowadzasz dokładną nazwę elementu karuzeli (np. Pytania, Podbij ten film, Słuchaj w YouTube Music itp.)
-• Ukrywanie elementów karuzeli może mieć nieoczekiwane skutki uboczne
-• Jeśli wszystkie elementy karuzeli zostaną ukryte, cała sekcja komentarzy również zostanie ukryta"</string>
     <string name="revanced_hide_comments_create_a_short_button_summary_off">Przycisk Utwórz Short jest widoczny</string>
     <string name="revanced_hide_comments_create_a_short_button_summary_on">Przycisk Utwórz Short jest ukryty</string>
     <string name="revanced_hide_comments_create_a_short_button_title">Ukryj przycisk \"Utwórz Shorts\"</string>

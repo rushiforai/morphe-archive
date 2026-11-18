@@ -57,7 +57,7 @@ public final class InstagramPreferenceStyle {
     private static final String IGDS_SWITCH_CLASS_NAME =
             "com.instagram.igds.components.switchbutton.IgdsSwitch";
 
-    // Master Prompt Section 6.2 — Refined AMOLED Design Tokens
+    // Master Prompt Section 6.2 — Refined AMOLED Design Tokens + 6 Curated Color Modes
     public static final int AMOLED_BLACK = 0xFF000000;
     public static final int CARD_SURFACE = 0xFF15181D;
     public static final int ELEVATED_SURFACE = 0xFF20252C;
@@ -74,6 +74,81 @@ public final class InstagramPreferenceStyle {
     public static final int WARNING_GOLD = 0xFFE6B450;
     public static final int DESTRUCTIVE_RED = 0xFFF06470;
     public static final int REX_CYAN_ACCENT = 0xFF23C6D8;
+
+    public static final String[] COLOR_MODES = {
+            "Rex Cyan AMOLED",
+            "Prime Crimson Rose",
+            "Royal Violet Glass",
+            "Emerald Matrix Pro",
+            "Sunset Amber Gold",
+            "Monochrome Titanium"
+    };
+
+    public static final class ColorPalette {
+        public final String name;
+        public final int background;
+        public final int cardSurface;
+        public final int elevatedSurface;
+        public final int borderStroke;
+        public final int accentPrimary;
+        public final int activeSwitch;
+
+        public ColorPalette(String name, int background, int cardSurface, int elevatedSurface,
+                            int borderStroke, int accentPrimary, int activeSwitch) {
+            this.name = name;
+            this.background = background;
+            this.cardSurface = cardSurface;
+            this.elevatedSurface = elevatedSurface;
+            this.borderStroke = borderStroke;
+            this.accentPrimary = accentPrimary;
+            this.activeSwitch = activeSwitch;
+        }
+    }
+
+    public static ColorPalette currentPalette() {
+        String mode = "Rex Cyan AMOLED";
+        try {
+            mode = app.morphe.extension.instagram.utils.Pref.rexColorMode();
+        } catch (Throwable ignored) {}
+        if (mode == null) mode = "Rex Cyan AMOLED";
+        String lower = mode.toLowerCase();
+        if (lower.contains("crimson") || lower.contains("rose") || lower.contains("prime")) {
+            return new ColorPalette("Prime Crimson Rose", 0xFF000000, 0xFF171215, 0xFF221A1F, 0xFF382830, 0xFFFF4D6D, 0xFFFF758F);
+        }
+        if (lower.contains("violet") || lower.contains("royal") || lower.contains("purple")) {
+            return new ColorPalette("Royal Violet Glass", 0xFF000000, 0xFF14131D, 0xFF1E1C2B, 0xFF312E45, 0xFF9D4EDD, 0xFFB565F2);
+        }
+        if (lower.contains("emerald") || lower.contains("matrix") || lower.contains("green")) {
+            return new ColorPalette("Emerald Matrix Pro", 0xFF000000, 0xFF111815, 0xFF18231E, 0xFF283B33, 0xFF10B981, 0xFF34D399);
+        }
+        if (lower.contains("amber") || lower.contains("sunset") || lower.contains("gold")) {
+            return new ColorPalette("Sunset Amber Gold", 0xFF000000, 0xFF181511, 0xFF231E18, 0xFF3A3227, 0xFFF59E0B, 0xFFFBBF24);
+        }
+        if (lower.contains("monochrome") || lower.contains("titanium") || lower.contains("silver")) {
+            return new ColorPalette("Monochrome Titanium", 0xFF000000, 0xFF161618, 0xFF202024, 0xFF323238, 0xFFE2E8F0, 0xFF94A3B8);
+        }
+        return new ColorPalette("Rex Cyan AMOLED", 0xFF000000, 0xFF15181D, 0xFF20252C, 0xFF303741, 0xFF23C6D8, 0xFF35CDBB);
+    }
+
+    public static int cardSurfaceColor() {
+        return currentPalette().cardSurface;
+    }
+
+    public static int elevatedSurfaceColor() {
+        return currentPalette().elevatedSurface;
+    }
+
+    public static int borderStrokeColor() {
+        return currentPalette().borderStroke;
+    }
+
+    public static int accentColor() {
+        return currentPalette().accentPrimary;
+    }
+
+    public static int activeSwitchColor() {
+        return currentPalette().activeSwitch;
+    }
 
     public static final int TRAILING_NONE = 0;
     public static final int TRAILING_SWITCH = 1;
@@ -139,11 +214,11 @@ public final class InstagramPreferenceStyle {
     }
 
     public static int pressedBackgroundColor() {
-        return CARD_PRESSED_SURFACE;
+        return elevatedSurfaceColor();
     }
 
     public static int searchBackgroundColor() {
-        return CARD_SURFACE;
+        return cardSurfaceColor();
     }
 
     public static int primaryTextColor() {
@@ -269,12 +344,14 @@ public final class InstagramPreferenceStyle {
                     new int[]{android.R.attr.state_checked},
                     new int[]{-android.R.attr.state_checked}
             };
+            int activeColor = activeSwitchColor();
+            int activeTrack = (activeColor & 0x00FFFFFF) | 0x80000000;
             ColorStateList thumbTint = new ColorStateList(states, new int[]{
-                    ACTIVE_SWITCH_TEAL,
+                    activeColor,
                     INACTIVE_SWITCH_THUMB
             });
             ColorStateList trackTint = new ColorStateList(states, new int[]{
-                    0x8035CDBB,
+                    activeTrack,
                     INACTIVE_SWITCH_TRACK
             });
             if (switchView instanceof Switch) {
@@ -353,7 +430,7 @@ public final class InstagramPreferenceStyle {
             TextView category = new TextView(context);
             category.setTag(TAG_RESULT_CATEGORY);
             category.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
-            category.setTextColor(REX_CYAN_ACCENT);
+            category.setTextColor(accentColor());
             category.setIncludeFontPadding(true);
             category.setLineSpacing(dp(context, 1), 1.0f);
             alignTextToLocaleStart(category);
@@ -458,14 +535,14 @@ public final class InstagramPreferenceStyle {
         if (categoryIcon != null) {
             categoryIcon.setVisibility(hasCategoryIcon ? View.VISIBLE : View.GONE);
             if (hasCategoryIcon) {
-                categoryIcon.setImageDrawable(RexIcon.getDrawable(context, categoryIconResourceName, REX_CYAN_ACCENT, 16));
+                categoryIcon.setImageDrawable(RexIcon.getDrawable(context, categoryIconResourceName, accentColor(), 16));
             }
         }
 
         if (category != null) {
             category.setText(hasCategory ? categoryText : "");
             category.setTextColor(preference.isEnabled()
-                    ? REX_CYAN_ACCENT
+                    ? accentColor()
                     : disabledTextColor());
             category.setEnabled(preference.isEnabled());
         }
@@ -530,7 +607,7 @@ public final class InstagramPreferenceStyle {
         checkBox.setGravity(Gravity.CENTER);
         checkBox.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         checkBox.setChecked(checked);
-        checkBox.setButtonTintList(ColorStateList.valueOf(ACTIVE_SWITCH_TEAL));
+        checkBox.setButtonTintList(ColorStateList.valueOf(activeSwitchColor()));
         row.addView(checkBox, new LinearLayout.LayoutParams(dp(context, 32), dp(context, 48)));
 
         ImageView iconView = new ImageView(context);
@@ -538,7 +615,7 @@ public final class InstagramPreferenceStyle {
         iconView.setImageDrawable(RexIcon.getDrawable(
                 context,
                 tablerTabIcon,
-                checked ? ACTIVE_SWITCH_TEAL : primaryTextColor(),
+                checked ? activeSwitchColor() : primaryTextColor(),
                 22,
                 checked
         ));
@@ -770,7 +847,7 @@ public final class InstagramPreferenceStyle {
                     iconResName,
                     active,
                     primaryTextColor(),
-                    ACTIVE_SWITCH_TEAL,
+                    activeSwitchColor(),
                     24,
                     animate
             );
@@ -817,7 +894,7 @@ public final class InstagramPreferenceStyle {
 
         void setDragState(boolean dragging, boolean animateState) {
             drawDragHighlight = dragging;
-            dragOverlayColor = CARD_PRESSED_SURFACE;
+            dragOverlayColor = elevatedSurfaceColor();
             invalidate();
 
             animate().cancel();
@@ -922,21 +999,22 @@ public final class InstagramPreferenceStyle {
             cardPath.reset();
             cardPath.addRoundRect(cardRect, r, r, Path.Direction.CW);
 
+            ColorPalette pal = currentPalette();
             cardPaint.setStyle(Paint.Style.FILL);
             cardPaint.setColor(
                     drawDragHighlight ? dragOverlayColor
-                            : (drawPressedHighlight ? CARD_PRESSED_SURFACE : CARD_SURFACE)
+                            : (drawPressedHighlight ? pal.elevatedSurface : pal.cardSurface)
             );
             canvas.drawPath(cardPath, cardPaint);
 
             borderPaint.setStyle(Paint.Style.STROKE);
             borderPaint.setStrokeWidth(strokeW);
-            borderPaint.setColor(CARD_DIVIDER);
+            borderPaint.setColor(pal.borderStroke);
             canvas.drawPath(cardPath, borderPaint);
 
             if (!last) {
                 dividerPaint.setStyle(Paint.Style.FILL);
-                dividerPaint.setColor(CARD_DIVIDER);
+                dividerPaint.setColor(pal.borderStroke);
                 canvas.drawRect(left, getHeight() - strokeW, right, getHeight(), dividerPaint);
             }
 

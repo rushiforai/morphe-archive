@@ -427,7 +427,7 @@ public final class NotesBackup {
     }
 
     private static String title() {
-        return Features.syncEnabled() ? "Backup and sync" : "Backup";
+        return Features.syncEnabled() ? "Local backup and sync" : "Local backup";
     }
 
     public static void showBackupOptions(Context context) {

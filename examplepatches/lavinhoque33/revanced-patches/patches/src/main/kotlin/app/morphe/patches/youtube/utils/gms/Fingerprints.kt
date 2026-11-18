@@ -5,7 +5,7 @@
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  *
- * Modified by lavinhoque33, 2026-10-21.
+ * Modified by lavinhoque33, 2026-11-17.
  */
 
 package app.morphe.patches.youtube.utils.gms
@@ -16,7 +16,6 @@ import app.morphe.patcher.literal
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.opcode
 import app.morphe.patcher.string
-import app.morphe.patches.youtube.utils.resourceid.icOfflineNoContentUpsideDown
 import app.morphe.patches.youtube.utils.resourceid.offlineNoContentBodyTextNotOfflineEligible
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -24,31 +23,11 @@ import com.android.tools.smali.dexlib2.Opcode
 internal object SpecificNetworkErrorViewControllerFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "V",
-    parameters = emptyList(),
     filters = listOf(
-        literal(icOfflineNoContentUpsideDown),
         literal(offlineNoContentBodyTextNotOfflineEligible),
         methodCall(name = "getString", returnType = "Ljava/lang/String;"),
         opcode(Opcode.MOVE_RESULT_OBJECT, location = MatchAfterImmediately())
     )
-)
-
-// It's not clear if this second class is ever used and it may be dead code,
-// but it the layout image / text is identical to the network error fingerprint above.
-internal object LoadingFrameLayoutControllerFingerprint : Fingerprint(
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
-    returnType = "V",
-    // YouTube 21.39 changed the single parameter from an object to a boolean (`qzf.a(Z)V`).
-    filters = listOf(
-        literal(icOfflineNoContentUpsideDown),
-        literal(offlineNoContentBodyTextNotOfflineEligible),
-        methodCall(name = "getString", returnType = "Ljava/lang/String;"),
-        opcode(Opcode.MOVE_RESULT_OBJECT, location = MatchAfterImmediately())
-    ),
-    custom = { method, _ ->
-        method.parameterTypes.size == 1 &&
-                method.parameterTypes.first().toString().let { it.startsWith("L") || it == "Z" }
-    }
 )
 
 internal object GmsDeviceComplianceCheckFingerprint : Fingerprint(

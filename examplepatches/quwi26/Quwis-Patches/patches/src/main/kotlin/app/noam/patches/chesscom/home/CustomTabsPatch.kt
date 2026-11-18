@@ -96,14 +96,21 @@ val customTabsPatch = bytecodePatch(
                         it.returnType == builder.returnType
                 }.apply {
                     val snapshot = instructions.toList()
+                    // The app's copy of Kotlin's toCollection (com/google/android/vl0.q0) became a
+                    // plain kotlin.collections.CollectionsKt.r0 call in 4.10.27; match the shape.
                     val inserts = snapshot.indices.filter { index ->
                         val reference = (snapshot[index] as? ReferenceInstruction)?.reference as? MethodReference
-                        reference?.definingClass == "Lcom/google/android/vl0;" && reference.name == "q0" &&
+                        snapshot[index].opcode == Opcode.INVOKE_STATIC && reference != null &&
+                            reference.parameterTypes.map(CharSequence::toString) ==
+                            listOf("Ljava/lang/Iterable;", "Ljava/util/Collection;") &&
                             snapshot.getOrNull(index + 1)?.opcode == Opcode.MOVE_RESULT_OBJECT
                     }
                     inserts.sortedDescending().forEach { index ->
                         val reference = (snapshot[index] as? ReferenceInstruction)?.reference as? MethodReference
-                        if (reference?.returnType !in setOf("Ljava/util/ArrayList;", "Ljava/util/List;")) {
+                        if (reference?.returnType !in setOf(
+                                "Ljava/util/ArrayList;", "Ljava/util/List;", "Ljava/util/Collection;",
+                            )
+                        ) {
                             throw PatchException("The bottom bar list builder does not return a list")
                         }
                         val register = (snapshot[index + 1] as OneRegisterInstruction).registerA

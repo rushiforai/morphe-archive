@@ -138,6 +138,8 @@ Langkah-langkah:
     <string name="morphe_music_downloads_starting">Memulai pengunduhan…</string>
     <string name="morphe_music_downloads_storage_permission">Izinkan akses penyimpanan, lalu ketuk Download lagi</string>
     <string name="morphe_music_downloads_unknown_track">Tidak dapat mengidentifikasi lagu untuk diunduh</string>
+    <string name="morphe_music_hide_you_may_also_like_section_title">Sembunyikan bagian \'Anda mungkin juga suka\'</string>
+    <string name="morphe_music_hide_your_downloads_shelf_title">Sembunyikan rak \'Unduhan Anda\'</string>
     <string name="morphe_music_lyrics_about_summary">"Lirik dicocokkan berdasarkan judul dan artis, metadata yang tidak biasa mungkin tidak menemukan apa-apa atau versi yang salah. Gunakan refresh untuk beralih versi. Penyedia yang ditandai * memerlukan token. Tidak semua penyedia yang diaktifkan selalu diminta sesuai urutan Anda, tetapi merespons berdasarkan kecepatan mereka
 
 Lirik berasal dari layanan pihak ketiga yang tidak berafiliasi, disponsori, atau didukung oleh RVX. Masing-masing digunakan apa adanya: lirik, ketersediaan, dan lisensinya tetap berada di layanan tersebut dan pemberi lisensi, serta menggunakannya dapat tunduk pada syarat layanan mereka. Yang dikirim ke layanan yang diaktifkan hanyalah lookup yang Anda minta - yaitu judul, artis, dan, dimana layanan itu memerlukannya, ID video. Titik akhir AI opsional dan transkripsi QuickLRC hanya berjalan setelah Anda mengkonfigurasinya, dan menerima teks lirik atau URL video trek"</string>

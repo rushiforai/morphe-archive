@@ -301,6 +301,9 @@ public class QuickSetupsTest {
             // The section is its header and then the card, whose first line is the help.
             android.view.ViewGroup card = (android.view.ViewGroup) ((android.view.ViewGroup) root.findViewWithTag("quick_setups")).getChildAt(1);
             assertTrue(((TextView) card.getChildAt(0)).getText().toString().endsWith("Press and hold to hide this section."));
+            // The help line hands its press to the card rather than becoming a long-clickable target of its own.
+            assertFalse(card.getChildAt(0).isLongClickable());
+            assertTrue(card.isLongClickable());
             // Holding the header hides it too.
             assertTrue(root.findViewWithTag("section_quick_setups").performLongClick());
             assertFalse(root.findViewWithTag("quick_setups").isShown());

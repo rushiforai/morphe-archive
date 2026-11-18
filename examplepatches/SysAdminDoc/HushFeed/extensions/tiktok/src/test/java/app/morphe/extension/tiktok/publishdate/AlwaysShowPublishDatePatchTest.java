@@ -152,6 +152,7 @@ public class AlwaysShowPublishDatePatchTest {
         Settings.PUBLISH_DATE_EXACT_TIME.resetToDefault();
         Settings.PUBLISH_DATE_TIME_ZONE.resetToDefault();
         Settings.PUBLISH_DATE_SHORT_DATE.resetToDefault();
+        Settings.PUBLISH_DATE_DAY_FIRST.resetToDefault();
         Settings.PUBLISH_DATE_ON_GRID.resetToDefault();
         Settings.SHOW_ENGAGEMENT_RATE.resetToDefault();
     }
@@ -193,6 +194,65 @@ public class AlwaysShowPublishDatePatchTest {
         assertEquals("2d ago", AlwaysShowPublishDatePatch.postTime("2d ago", post));
         assertNull(AlwaysShowPublishDatePatch.gridDate(post));
         assertEquals("12.3K", ProfileGridCount.text("12.3K", post));
+    }
+
+    /**
+     * Issue #438: with the switch on, TikTok's month-first date by the creator's name ("09-29",
+     * or "2024-09-29" from another year) reads day first with dots, keeping the year only where
+     * TikTok wrote one. Ages like "2d ago" and dates in words stay TikTok's.
+     */
+    @Test
+    public void theRowDateReadsDayFirstOnlyWithTheSwitchOn() {
+        assertEquals(Boolean.FALSE, Settings.PUBLISH_DATE_DAY_FIRST.defaultValue);
+        Post thisYear = new Post(utcSeconds(2026, 9, 29, 14, 5), POSTED_ID);
+        Post older = new Post(utcSeconds(2024, 3, 7, 23, 30), POSTED_ID);
+        assertEquals("09-29", AlwaysShowPublishDatePatch.postTime("09-29", thisYear));
+
+        Settings.PUBLISH_DATE_DAY_FIRST.save(true);
+        assertEquals("29.09", AlwaysShowPublishDatePatch.postTime("09-29", thisYear));
+        assertEquals("29.09", AlwaysShowPublishDatePatch.postTime("9-29", thisYear));
+        assertEquals("07.03.24", AlwaysShowPublishDatePatch.postTime("2024-03-07", older));
+        assertEquals("07.03.24", AlwaysShowPublishDatePatch.postTime("2024-3-7", older));
+        assertEquals("2d ago", AlwaysShowPublishDatePatch.postTime("2d ago", thisYear));
+        assertEquals("Sep 29", AlwaysShowPublishDatePatch.postTime("Sep 29", thisYear));
+        assertEquals("9月29日", AlwaysShowPublishDatePatch.postTime("9月29日", thisYear));
+        assertEquals("2026", AlwaysShowPublishDatePatch.postTime("2026", thisYear));
+        assertEquals("09-29", AlwaysShowPublishDatePatch.postTime("09-29", new Post(0L, null)));
+
+        // The time to the second puts the day first too: the switch sits under Short date, and on
+        // the S22 (47.8.3) the short date still read 11/15/26 with it on.
+        Settings.PUBLISH_DATE_EXACT_TIME.save(true);
+        String exact = AlwaysShowPublishDatePatch.postTime("09-29", thisYear);
+        assertTrue(exact, exact.startsWith("29 Sep 2026 "));
+        assertTrue(exact, Pattern.compile("\\b2:05:00\\b").matcher(exact).find());
+        Settings.PUBLISH_DATE_SHORT_DATE.save(true);
+        String exactShort = AlwaysShowPublishDatePatch.postTime("09-29", thisYear);
+        assertTrue(exactShort, exactShort.startsWith("29.09.26 "));
+        assertFalse(exactShort, exactShort.contains("9/29"));
+        Settings.PUBLISH_DATE_DAY_FIRST.save(false);
+        assertTrue(AlwaysShowPublishDatePatch.postTime("09-29", thisYear).startsWith("9/29/26"));
+    }
+
+    @Test
+    public void dayFirstKeepsTheLanguagesClockAndZone() {
+        TimeZone utc = TimeZone.getTimeZone("UTC");
+        String full = AlwaysShowPublishDatePatch.exactTime(POSTED, Locale.US, utc, false, true, false, true);
+        assertTrue(full, full.startsWith("7 Oct 2025 "));
+        assertTrue(full, Pattern.compile("\\b3:04:05\\b").matcher(full).find());
+        assertTrue(full, full.contains("PM") && full.contains("UTC"));
+
+        String short24 = AlwaysShowPublishDatePatch.exactTime(POSTED, Locale.US, utc, true, false, true, true);
+        assertTrue(short24, short24.startsWith("07.10.25 15:04:05"));
+        assertFalse(short24, short24.contains("PM") || short24.contains("UTC"));
+
+        String padded = AlwaysShowPublishDatePatch.exactTime(POSTED, Locale.ITALY, TimeZone.getTimeZone("GMT-04:00"),
+                true, true, true, true);
+        assertTrue(padded, padded.startsWith("07.10.25 11:04:05"));
+        assertTrue(padded, padded.endsWith("GMT-4"));
+
+        // Off, it's the language's own date, as before.
+        assertEquals(AlwaysShowPublishDatePatch.exactTime(POSTED, Locale.US, utc, false, true, true),
+                AlwaysShowPublishDatePatch.exactTime(POSTED, Locale.US, utc, false, true, true, false));
     }
 
     @Test

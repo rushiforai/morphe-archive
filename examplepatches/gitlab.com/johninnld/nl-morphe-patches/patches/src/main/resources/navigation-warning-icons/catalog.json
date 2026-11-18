@@ -1,0 +1,101 @@
+{
+  "artwork": "Owner-supplied 256px icon pack (8 November 2026), copied byte-for-byte; emergency siren copied from the supplied mockup pack repair. No generated/repainted artwork in this change.",
+  "icons": [
+    {
+      "key": "speed_limit_130",
+      "source_filename": "speed-limit-130.png",
+      "sha256": "1cc62d1921872c26fb5b05dafde567daa37fca1350946d8ec23e6622590a723f"
+    },
+    {
+      "key": "average_speed",
+      "source_filename": "average-speed-checks.png",
+      "sha256": "ea2a72625b5a38a7f7a4f64a5a7d5e0b0f6161176998223708f88a9ed741363e"
+    },
+    {
+      "key": "speed_trap",
+      "source_filename": "speed-traps.png",
+      "sha256": "f79403e2e11898afca72cf63d8431e99d55d94dfa07049fad479f42ebf4284fc"
+    },
+    {
+      "key": "bridge",
+      "source_filename": "bridge-openings.png",
+      "sha256": "cd52c35b32c048e0157db4eadb26f1eebfbdb0cbf1d0866db4138b4f45c0e6d0"
+    },
+    {
+      "key": "roadworks",
+      "source_filename": "road-works.png",
+      "sha256": "bce301a09bf79e33a55130ecefecdf023dcaa34dff1400667699fe5dc234ee09"
+    },
+    {
+      "key": "matrix",
+      "source_filename": "matrix-signs.png",
+      "sha256": "6ed4e87e3e75b23b35323ab441952826be721a550f656c587b1a9b490c8824f9"
+    },
+    {
+      "key": "emergency",
+      "source_filename": "emergency-vehicles.png",
+      "sha256": "d022fb7a15558ec231fa84c6b5093001c413331eda043babb55d740501f8dd43",
+      "source_note": "Supplied mockup pack repair; separate icon folder entry is zero bytes."
+    },
+    {
+      "key": "incident",
+      "source_filename": "incidents.png",
+      "sha256": "c10a6924487bc49010b0593e81dd0116ab19851655339818433793a5afe439bc"
+    },
+    {
+      "key": "poor_road",
+      "source_filename": "poor-road-conditions.png",
+      "sha256": "ef2225bce43214467fafea480ec5ffc8ae71fead817013fcb316c66da652729f"
+    },
+    {
+      "key": "border_nl",
+      "source_filename": "border-crossing.png",
+      "sha256": "8cb3b320d27d37cb51388557501a94fa035cf3c166a8d46460ba59b36b390cb0"
+    },
+    {
+      "key": "speed_camera",
+      "source_filename": "speed-cams.png",
+      "sha256": "29bfd8428120883ec56e23d16867d6d8188b8342c88bd670f6d4440c9f0217f8"
+    },
+    {
+      "key": "maximum_speed_unknown",
+      "source_filename": "maximum-speed.png",
+      "sha256": "2285f13a87977e80543d7874d5161d301235635bc153438ab35ddd85d80b6106"
+    },
+    {
+      "key": "speed_trap_hotspot",
+      "source_filename": "speed-trap-hotspots.png",
+      "sha256": "55ff9ab1ca36f50536c9aac64c4c6f86f458d2d4ce195f54477441067c0f97aa"
+    },
+    {
+      "key": "traffic_jam",
+      "source_filename": "traffic-jams.png",
+      "sha256": "3bc6fc54cc38197977d459c7ce196ffc499161f3c08bedc4da1302b21155d53d"
+    },
+    {
+      "key": "traffic_camera",
+      "source_filename": "traffic-cameras.png",
+      "sha256": "1535e0804f1ae9ef0d0818632fc20f94069547e20c6b3bd6a025f61a7477f5a1"
+    },
+    {
+      "key": "level_crossing",
+      "source_filename": "level-crossings.png",
+      "sha256": "04db71aa4a6c46fd61214beca6a9e55529ce9973ae75e3dd58674618fdd4cb7a"
+    },
+    {
+      "key": "traffic_light",
+      "source_filename": "traffic-lights.png",
+      "sha256": "4a53b2bdabdc34f9b9ae5cb70f63f3eeaf51f43f54eaed495b7e9db93de5c1a9"
+    },
+    {
+      "key": "animals",
+      "source_filename": "animals.png",
+      "sha256": "de510f85024b8ff1b4c572986e69af7fdc8f767ee1a137f3f3cac18ff4f3c4f8"
+    },
+    {
+      "key": "wrong_way",
+      "source_filename": "wrong-way-driver.png",
+      "sha256": "849115a1fe6b28a3bff9480f123e3ed86250dd0d4c2fec8c1ab674cadf829500"
+    }
+  ]
+}

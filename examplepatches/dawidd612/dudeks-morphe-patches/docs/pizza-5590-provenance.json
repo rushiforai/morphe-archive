@@ -1,0 +1,515 @@
+{
+  "status": "published_verified",
+  "game_version": "5.59.0",
+  "version_code": 2322,
+  "package": "com.tapblaze.pizzabusiness",
+  "source_url": "https://apkpure.net/good-pizza-great-pizza-game/com.tapblaze.pizzabusiness/download/5.59.0",
+  "download_url": "https://d.apkpure.net/b/XAPK/com.tapblaze.pizzabusiness?versionCode=2322",
+  "archive": {
+    "file": "pizza-5.59.0.xapk",
+    "bytes": 455226166,
+    "sha256": "085a7462ec672c22bebbefc0d79a0480ae1d68b72cb3ad7f6b5ecc501b39b99d",
+    "splits": [
+      {
+        "name": "com.tapblaze.pizzabusiness.apk",
+        "bytes": 76276007,
+        "entries": 1701
+      },
+      {
+        "name": "config.en.apk",
+        "bytes": 78233,
+        "entries": 6
+      },
+      {
+        "name": "config.hdpi.apk",
+        "bytes": 121056,
+        "entries": 110
+      },
+      {
+        "name": "assetpack1.apk",
+        "bytes": 336697491,
+        "entries": 6453
+      },
+      {
+        "name": "config.arm64_v8a.apk",
+        "bytes": 42051247,
+        "entries": 22
+      }
+    ],
+    "status": "PASS"
+  },
+  "publisher_signature_verification": {
+    "tool": "com.android.apksig.ApkVerifier from verified Morphe Desktop 1.17.0",
+    "all_splits_verified": true,
+    "certificate_sha256": "0eb1a98d45c137dc00fb01d89cf6d08cc228d56907a2b00700f7d55cda62d6f7"
+  },
+  "input": {
+    "package": "com.tapblaze.pizzabusiness",
+    "version": "5.59.0",
+    "version_code": 2322,
+    "native_sha256": "c97e83fd73d3c871d26d2f2587c1f9c99279505a5a70f6787220572c958afe26",
+    "classes": 35083,
+    "string_holders": 32,
+    "uninitialized_strings": 1477,
+    "protected_methods": 22,
+    "protected_method_signatures": [
+      "Lae/b;->doInBackground([Ljava/lang/Object;)Ljava/lang/Object;",
+      "Landroidx/work/impl/diagnostics/DiagnosticsReceiver;->onReceive(Landroid/content/Context;Landroid/content/Intent;)V",
+      "Lb/t0;->doInBackground([Ljava/lang/Object;)Ljava/lang/Object;",
+      "Lb/xd;->doInBackground([Ljava/lang/Object;)Ljava/lang/Object;",
+      "Lcom/apm/insight/runtime/a/d$a;->onReceive(Landroid/content/Context;Landroid/content/Intent;)V",
+      "Lcom/applovin/impl/sdk/j;->onReceive(Landroid/content/Context;Landroid/content/Intent;)V",
+      "Lcom/bytedance/sdk/component/utils/jsj$sf;->onReceive(Landroid/content/Context;Landroid/content/Intent;)V",
+      "Lcom/fyber/inneractive/sdk/flow/storepromo/ui/b;->onReceive(Landroid/content/Context;Landroid/content/Intent;)V",
+      "Lcom/fyber/inneractive/sdk/mraid/IAMraidKit;->onReceive(Landroid/content/Context;Landroid/content/Intent;)V",
+      "Lcom/fyber/inneractive/sdk/util/y;->onReceive(Landroid/content/Context;Landroid/content/Intent;)V",
+      "Lcom/ironsource/adqualitysdk/sdk/i/\u00e1\u02dd\u00b6;->onReceive(Landroid/content/Context;Landroid/content/Intent;)V",
+      "Lcom/ironsource/sdk/service/Connectivity/BroadcastReceiverStrategy$1;->onReceive(Landroid/content/Context;Landroid/content/Intent;)V",
+      "Lcom/mbridge/msdk/click/retry/a$a;->onReceive(Landroid/content/Context;Landroid/content/Intent;)V",
+      "Lcom/mbridge/msdk/config/component/status/c$b;->onReceive(Landroid/content/Context;Landroid/content/Intent;)V",
+      "Lcom/mbridge/msdk/config/component/status/e$b;->onReceive(Landroid/content/Context;Landroid/content/Intent;)V",
+      "Lcom/mbridge/msdk/out/LoadingActivity$1;->onReceive(Landroid/content/Context;Landroid/content/Intent;)V",
+      "Lcom/mbridge/msdk/playercommon/exoplayer2/audio/AudioCapabilitiesReceiver$HdmiAudioPlugBroadcastReceiver;->onReceive(Landroid/content/Context;Landroid/content/Intent;)V",
+      "Lcom/mbridge/msdk/playercommon/exoplayer2/scheduler/RequirementsWatcher$DeviceStatusChangeReceiver;->onReceive(Landroid/content/Context;Landroid/content/Intent;)V",
+      "Lcom/pairip/StartupLauncher;->launch()V",
+      "Lcom/pairip/VMRunner$1;->run()V",
+      "Lcom/tapjoy/internal/l2;->onReceive(Landroid/content/Context;Landroid/content/Intent;)V",
+      "Lx6/d;->onReceive(Landroid/content/Context;Landroid/content/Intent;)V"
+    ],
+    "roles": {
+      "com.google.android.gms.games.internal.appshortcuts.service.START": "Lnd/f;",
+      "com.google.android.gms.games.internal.connect.service.START": "Lcom/google/android/gms/internal/games_v2/zzp;",
+      "com.google.android.gms.games.internal.recall.service.START": "Lcom/google/android/gms/internal/games_v2/zzfx;",
+      "com.google.android.gms.games.service.START": "Lld/d;",
+      "connectivityWorker": "Lcom/tapjoy/internal/m2;",
+      "providerInstallerTask": "Lae/b;",
+      "startupProgram": "mPA7ILFy9YkYKqpQ"
+    },
+    "sdk_versions": {
+      "Landroidx/constraintlayout/widget/ConstraintLayout;->VERSION": "ConstraintLayout-2.0.1",
+      "Lcn/thinkingdata/analytics/BuildConfig;->VERSION_NAME": "3.0.0",
+      "Lcn/thinkingdata/analytics/TDConfig;->VERSION": "3.0.0",
+      "Lcn/thinkingdata/core/BuildConfig;->SDK_VERSION_NAME": "1.0.0",
+      "Lcn/thinkingdata/core/BuildConfig;->VERSION_NAME": "1.0.0",
+      "Lcn/thinkingdata/thirdparty/BuildConfig;->VERSION_NAME": "2.0.2",
+      "Lcom/applovin/shadow/okhttp3/OkHttp;->VERSION": "4.12.0",
+      "Lcom/bytedance/sdk/openadsdk/BuildConfig;->VERSION_NAME": "8.1.0.5",
+      "Lcom/ironsource/adapters/admob/AdMobAdapter;->VERSION": "5.12.0",
+      "Lcom/ironsource/adapters/admob/BuildConfig;->VERSION_NAME": "5.12.0",
+      "Lcom/ironsource/adapters/applovin/AppLovinConstants;->ADAPTER_VERSION": "5.8.0",
+      "Lcom/ironsource/adapters/applovin/BuildConfig;->VERSION_NAME": "5.8.0",
+      "Lcom/ironsource/adapters/chartboost/BuildConfig;->VERSION_NAME": "5.8.0",
+      "Lcom/ironsource/adapters/chartboost/ChartboostConstants;->ADAPTER_VERSION": "5.8.0",
+      "Lcom/ironsource/adapters/fyber/BuildConfig;->VERSION_NAME": "5.9.0",
+      "Lcom/ironsource/adapters/fyber/FyberConstants;->ADAPTER_VERSION": "5.9.0",
+      "Lcom/ironsource/adapters/ironsource/IronSourceAdapter;->VERSION": "9.5.0",
+      "Lcom/ironsource/adapters/mintegral/BuildConfig;->VERSION_NAME": "5.18.0",
+      "Lcom/ironsource/adapters/mintegral/MintegralConstants;->ADAPTER_VERSION": "5.18.0",
+      "Lcom/ironsource/adapters/moloco/BuildConfig;->VERSION_NAME": "5.14.0",
+      "Lcom/ironsource/adapters/moloco/MolocoConstants;->ADAPTER_VERSION": "5.14.0",
+      "Lcom/ironsource/adapters/pangle/BuildConfig;->VERSION_NAME": "5.21.0",
+      "Lcom/ironsource/adapters/pangle/PangleConstants;->ADAPTER_VERSION": "5.21.0",
+      "Lcom/ironsource/adapters/pangle/PangleConstants;->ADAPTER_VERSION_KEY": "adapter_version",
+      "Lcom/ironsource/adapters/unityads/BuildConfig;->VERSION_NAME": "5.11.0",
+      "Lcom/ironsource/adapters/unityads/UnityAdsConstants;->ADAPTER_VERSION": "5.11.0",
+      "Lcom/ironsource/adapters/vungle/BuildConfig;->VERSION_NAME": "5.12.0",
+      "Lcom/ironsource/adapters/vungle/VungleConstants;->ADAPTER_VERSION": "5.12.0",
+      "Lcom/ironsource/adapters/vungle/VungleConstants;->META_DATA_VUNGLE_CONSENT_MESSAGE_VERSION": "1.0.0",
+      "Lcom/ironsource/adapters/vungle/VungleConstants;->SDK_VERSION_KEY": "sdkVersion",
+      "Lcom/ironsource/adqualitysdk/sdk/BuildConfig;->VERSION_NAME": "9.10.0",
+      "Lcom/ironsource/adqualitysdk/sdk/IronSourceAdQuality;->VERSION": "9.10.0",
+      "Lcom/ironsource/mediationsdk/config/VersionInfo;->VERSION": "9.5.0",
+      "Lcom/ironsource/mediationsdk/utils/IronSourceConstants;->EVENTS_PROVIDER_ADAPTER_VERSION": "providerAdapterVersion",
+      "Lcom/ironsource/mediationsdk/utils/IronSourceConstants;->EVENTS_PROVIDER_SDK_VERSION": "providerSDKVersion",
+      "Lcom/mbridge/msdk/MBridgeConstans;->NATIVE_VIDEO_VERSION": "2.0",
+      "Lcom/mbridge/msdk/out/MBConfiguration;->SDK_VERSION": "MAL_17.1.61",
+      "Lcom/mbridge/msdk/playercommon/exoplayer2/ExoPlayerLibraryInfo;->VERSION": "2.8.4",
+      "Lcom/mbridge/msdk/playercommon/exoplayer2/ExoPlayerLibraryInfo;->VERSION_SLASHY": "ExoPlayerLib/2.8.4",
+      "Lcom/moloco/sdk/BuildConfig;->SDK_VERSION_NAME": "4.10.1",
+      "Lcom/tapblaze/pizzabusiness/BuildConfig;->VERSION_NAME": "5.59.0",
+      "Lcom/tapjoy/TapjoyConstants;->TJC_BRIDGE_VERSION_NUMBER": "1.2.6",
+      "Lcom/tapjoy/TapjoyConstants;->TJC_LIBRARY_VERSION_NUMBER": "14.6.0",
+      "Lcom/tapjoy/TapjoyConstants;->TJC_VERSION": "14.6.0",
+      "Lcom/unity3d/ads/BuildConfig;->VERSION_NAME": "4.19.0",
+      "Lcom/unity3d/ads/core/data/datasource/AndroidDynamicDeviceInfoDataSource;->SETTING_ACCESSIBILITY_DISPLAY_INVERSION_ENABLED": "accessibility_display_inversion_enabled",
+      "Lcom/unity3d/ads/core/data/datasource/AndroidMediationDataSource;->MEDIATION_VERSION": "version",
+      "Lcom/unity3d/ads/core/data/datasource/AndroidMediationDataSource;->MEDIATION_VERSION_KEY": "mediation.version.value",
+      "Lcom/unity3d/ads/core/data/datasource/AndroidStaticDeviceInfoDataSource;->APP_VERSION_FAKE": "FakeVersionName",
+      "Lcom/unity3d/ads/core/domain/CommonGetHeaderBiddingToken;->HB_TOKEN_VERSION": "2",
+      "Lcom/unity3d/ads/core/domain/HandleInvocationsFromAdViewer;->KEY_OM_PARTNER_VERSION": "partnerVersion",
+      "Lcom/unity3d/ads/core/domain/HandleInvocationsFromAdViewer;->KEY_OM_VERSION": "version",
+      "Lcom/unity3d/ads/core/domain/HandleInvocationsFromAdViewer;->KEY_PRIVACY_UPDATE_VERSION": "version",
+      "Lcom/unity3d/ads/core/domain/SendDiagnosticEvent$Companion;->KOTLIN_VERSION": "kotlin_version",
+      "Lcom/unity3d/ads/core/domain/SendDiagnosticEvent;->KOTLIN_VERSION": "kotlin_version",
+      "Lcom/unity3d/ads/core/domain/adquality/AndroidUpdateAdQualitySessionTokenKt;->MIN_SUPPORTED_VERSION": "9.5.1",
+      "Lcom/unity3d/ads/metadata/MediationMetaData;->KEY_VERSION": "version",
+      "Lcom/unity3d/services/UnityAdsConstants$ClientInfo;->SDK_VERSION_NAME": "4.19.0",
+      "Lcom/unity3d/services/UnityAdsConstants$OpenMeasurement;->OM_PARTNER_VERSION": "1",
+      "Lcom/unity3d/services/core/properties/SdkProperties;->CONFIG_VERSION_METADATA_KEY": "com.unity3d.ads.configversion",
+      "Lcom/unity3d/services/core/properties/SdkProperties;->DEFAULT_CONFIG_VERSION": "configv2",
+      "Lcom/vungle/ads/BuildConfig;->VERSION_NAME": "7.7.7",
+      "Lorg/chromium/net/ApiVersion;->CRONET_VERSION": "143.0.7445.0",
+      "ads-mobile-sdk.properties": "1.3.0",
+      "billing.properties": "8.3.0",
+      "core-common.properties": "2.0.4",
+      "firebase-analytics.properties": "23.0.0",
+      "firebase-encoders-proto.properties": "16.0.0",
+      "firebase-encoders.properties": "17.0.0",
+      "firebase-measurement-connector.properties": "20.0.1",
+      "hsdp.properties": "2.0.1",
+      "play-services-ads-identifier.properties": "18.2.0",
+      "play-services-appset.properties": "16.1.0",
+      "play-services-base.properties": "18.10.0",
+      "play-services-basement.properties": "18.10.0",
+      "play-services-cronet.properties": "18.0.1",
+      "play-services-games-v2.properties": "22.1.0",
+      "play-services-location.properties": "19.0.0",
+      "play-services-measurement-api.properties": "23.0.0",
+      "play-services-measurement-base.properties": "23.0.0",
+      "play-services-measurement-impl.properties": "23.0.0",
+      "play-services-measurement-sdk-api.properties": "23.0.0",
+      "play-services-measurement-sdk.properties": "23.0.0",
+      "play-services-measurement.properties": "23.0.0",
+      "play-services-places-placereport.properties": "17.0.0",
+      "play-services-stats.properties": "17.0.2",
+      "play-services-tasks.properties": "18.4.1",
+      "review.properties": "2.0.2",
+      "user-messaging-platform.properties": "4.0.0"
+    }
+  },
+  "profile_comparison": [
+    {
+      "profile": "5.57.3",
+      "version_matches": false,
+      "native_matches": false,
+      "startup_matches": false
+    },
+    {
+      "profile": "5.58.0",
+      "version_matches": false,
+      "native_matches": false,
+      "startup_matches": false
+    }
+  ],
+  "tooling": {
+    "morphe_desktop_version": "1.17.0",
+    "morphe_desktop_sha256": "8cf6a9eab4ee9dab146bddc24681897851564f53116baec11f36ba2fa2f589be",
+    "source_revision": "2298baac1c1bba6ed074de40cb7eaa328aa9356f"
+  },
+  "verification": {
+    "archive_crc": "PASS: every outer entry and every entry in all five embedded APKs",
+    "publisher_signatures": "PASS: five APKs verified by ApkVerifier",
+    "asset_verifier_regressions": "13/13 PASS",
+    "archive_audit_regressions": "6/6 PASS",
+    "emitted_apk_verifiers": "PASS: 3418 auth/SDK methods, 2165 billing methods, 87 native bridges, 6 exact SDK restorations, 5 reward scenarios",
+    "play_services_guards": "PASS: codes2/18 suppressed, nullable cancellation once;23 other methods unchanged",
+    "all_split_assets": {
+      "status": "PASS",
+      "input_apks": 5,
+      "verified_native_libraries": 17,
+      "verified_assets": 6772
+    },
+    "debug_runtime_matrix": [
+      {
+        "test": "debug-force-1",
+        "pids": [
+          "5251"
+        ],
+        "game_foreground": true,
+        "errors": []
+      },
+      {
+        "test": "debug-force-2",
+        "pids": [
+          "5763"
+        ],
+        "game_foreground": true,
+        "errors": []
+      },
+      {
+        "test": "debug-background-resume",
+        "pids": [
+          "5763"
+        ],
+        "game_foreground": true,
+        "errors": []
+      },
+      {
+        "test": "debug-reboot",
+        "pids": [
+          "3111"
+        ],
+        "game_foreground": true,
+        "errors": []
+      }
+    ],
+    "debug_save_parity": {
+      "debug-force-2": {
+        "funds": true,
+        "gems": true,
+        "progress": [
+          "Chapter 1",
+          "Day 2"
+        ]
+      },
+      "debug-background-resume": {
+        "funds": true,
+        "gems": true,
+        "progress": [
+          "Chapter 1",
+          "Day 2"
+        ]
+      },
+      "debug-reboot": {
+        "funds": true,
+        "gems": true,
+        "progress": [
+          "Chapter 1",
+          "Day 2"
+        ]
+      }
+    },
+    "offline_activity_recreation": {
+      "pid": "3758",
+      "pid_after": "3758",
+      "creations": 3,
+      "errors": [],
+      "status": "PASS"
+    },
+    "clean_install": "PASS: new age setup, new Day1/funds40 game and force-stop relaunch; no fatal/receiver markers",
+    "account_runtime_matrix": [
+      {
+        "test": "account-force-1",
+        "pids": [
+          "7457"
+        ],
+        "game_foreground": true,
+        "google_sign_in": true,
+        "error_markers": 0
+      },
+      {
+        "test": "account-force-2",
+        "pids": [
+          "8155"
+        ],
+        "game_foreground": true,
+        "google_sign_in": true,
+        "error_markers": 0
+      },
+      {
+        "test": "account-background-resume",
+        "pids": [
+          "8155"
+        ],
+        "game_foreground": true,
+        "google_sign_in": true,
+        "error_markers": 0
+      },
+      {
+        "test": "account-reboot-1",
+        "pids": [
+          "3400"
+        ],
+        "game_foreground": true,
+        "google_sign_in": true,
+        "error_markers": 0
+      },
+      {
+        "test": "account-reboot-2",
+        "pids": [
+          "3441"
+        ],
+        "game_foreground": true,
+        "google_sign_in": true,
+        "error_markers": 0
+      }
+    ],
+    "account_server_authorization": {
+      "account-5590-first": {
+        "google_sign_in": true,
+        "server_auth_presence_flag_true": true,
+        "granted_scopes_reported": true,
+        "raw_auth_code_logged": false
+      },
+      "account-force-1": {
+        "google_sign_in": true,
+        "server_auth_presence_flag_true": true,
+        "granted_scopes_reported": true,
+        "raw_auth_code_logged": false
+      },
+      "account-force-2": {
+        "google_sign_in": true,
+        "server_auth_presence_flag_true": true,
+        "granted_scopes_reported": true,
+        "raw_auth_code_logged": false
+      },
+      "account-reboot-1": {
+        "google_sign_in": true,
+        "server_auth_presence_flag_true": true,
+        "granted_scopes_reported": true,
+        "raw_auth_code_logged": false
+      },
+      "account-reboot-2": {
+        "google_sign_in": true,
+        "server_auth_presence_flag_true": true,
+        "granted_scopes_reported": true,
+        "raw_auth_code_logged": false
+      }
+    },
+    "tapblaze_linked_session": {
+      "tapblaze_account_control_opened": true,
+      "logout_control_present": true,
+      "login_control_present": false,
+      "account_identity_visible": false
+    }
+  },
+  "required_work": [],
+  "runtime_status": "PASS: repeated starts, Home/resume, two full user-environment reboots, genuine Google Play Games sign-in and ServerAuthCode result auth=true with granted scopes. TapBlaze linked-session UI has Log Out and no login control. Chapter3/Day56/funds496.98/gems181 stable; user confirmed expected save on2026-10-20. Guest reward, checkout cancellation, reboot, offline Activity recreation and disposable clean Day1 setup/relaunch pass.",
+  "sdk_inputs": [
+    {
+      "url": "https://repo.maven.apache.org/maven2/com/fyber/marketplace-sdk/8.4.6/marketplace-sdk-8.4.6.aar",
+      "sha256": "446a2fedf4c3e88db6bf762e6da7ef997214646210a24d227639fa710c7d7d95"
+    },
+    {
+      "url": "https://repo.maven.apache.org/maven2/com/unity3d/ads-mediation/adquality-sdk/9.10.0/adquality-sdk-9.10.0.aar",
+      "sha256": "d659c0ad812d878be722833ad120d19150d6568247257bcecf5cd3a6b6e541e6"
+    },
+    {
+      "url": "https://sdk.tapjoy.com/com/tapjoy/tapjoy-android-sdk/14.6.0/tapjoy-android-sdk-14.6.0.aar",
+      "sha256": "e29e270499a00b2b3eda2f0e832d91f9ff6442fdc631fe55e4cf39651e759d17"
+    },
+    {
+      "url": "https://dl.google.com/dl/android/maven2/com/google/android/gms/play-services-basement/18.10.0/play-services-basement-18.10.0.aar",
+      "sha256": "859963500c141053043e6b02ff3065609184078d8c72799f4d162058be52fff8"
+    }
+  ],
+  "store_visibility_candidates": {
+    "status": "Original instruction candidates matched uniquely in reconstructed output and applied at +0x1000; exact published delta is recorded under store_visibility.",
+    "original_file_offsets": [
+      "0x185aa08",
+      "0x167364c"
+    ],
+    "before": [
+      "f903022a",
+      "ff4301d1fd7b02a9"
+    ],
+    "after": [
+      "19088052",
+      "00008052c0035fd6"
+    ]
+  },
+  "native_reconstruction": {
+    "restored_executable_bytes": 50923,
+    "constant_qwords": 3798,
+    "relative_relocations": 0,
+    "imports": 200,
+    "removed_init": "0x22b0000",
+    "input_sha256": "c97e83fd73d3c871d26d2f2587c1f9c99279505a5a70f6787220572c958afe26",
+    "output_sha256": "b54a7104f95b6ca89f5fb59ac5250a2ffde40922446b505c61f14f211ed36135",
+    "first_run": "first",
+    "second_run": "second"
+  },
+  "store_visibility": {
+    "input_sha256": "b54a7104f95b6ca89f5fb59ac5250a2ffde40922446b505c61f14f211ed36135",
+    "output_sha256": "94bcdf5583791deb65d921d017c2303ba2cb74f5e85988ed6e3737dbf7ffff19",
+    "edits": [
+      {
+        "offset": "0x185ba08",
+        "original_offset": "0x185aa08",
+        "before": "f903022a",
+        "after": "19088052"
+      },
+      {
+        "offset": "0x167464c",
+        "original_offset": "0x167364c",
+        "before": "ff4301d1fd7b02a9",
+        "after": "00008052c0035fd6"
+      }
+    ]
+  },
+  "resources": {
+    "arm64-init.delta.gz": "4a2f04eeaf713e64fc67c48418816d718ea4c6869d79ccc3d4e6a8b9cfd3c2ac",
+    "funds-store.delta.gz": "d6e6100b9fc0693430a643a6d4ba91b7b4fb05d94faba72ea644d935535cfc96",
+    "profile.properties": "3fccf922caf5da286d8c0ba44d5afa1f3da74e408e496873b919d789df5e1658",
+    "sdk-receivers.dex": "b2ad34377b0e3ac886e1a3d68508c6f4ecff1379292f3a110ba7f15008ca5691",
+    "strings.tsv.gz": "c7d8c8540b22579e3bebf678d33651d85dbe0c9dfc4f519001d69e4e489927c0"
+  },
+  "initialization_capture": {
+    "workflow_run": 39280529797,
+    "revision": "820ab6c5eac51de7d1bd48b3bbe0454662b30833",
+    "independent_original_signed_starts": 2,
+    "identical_strings": 1477,
+    "ifunc": "Exact same reviewed libc.so SHA256 2ff4bf0e733a1103333d0742890d66e88d7aabe05c0f977f3b2d1ae470269b4c, memmove resolver0xaccbc -> target0x443c0; no process pointer embedded"
+  },
+  "user_save_confirmation": {
+    "date": "2026-10-20",
+    "expected_save_confirmed": true,
+    "chapter": 3,
+    "day": 56,
+    "funds": "496.98",
+    "gems": 181
+  },
+  "limitations": [
+    "ARM64 only; tested on API35 emulator with ARM64 translation, not a physical device.",
+    "Existing linked TapBlaze session verified; fresh credential entry and wiped-device cloud restoration not claimed.",
+    "Paid checkout cancels under replacement signing; some cosmetic promotions remain visible. Existing verified purchase processing and ordinary exchanges/rewards are preserved.",
+    "Complete fresh Day1 playthrough not claimed."
+  ],
+  "old_control": {
+    "installed_bundle": "v1.34.0",
+    "game_version": "5.58.0",
+    "result": "PairIP native crash and Play Store remediation; separate old installed control, not a failure of5.59 or the current5.58 profile.",
+    "diagnostic_apks": "Manifest-only debuggable copies used solely for private backup reads, not runtime success claims or publication."
+  },
+  "official_output_parity": {
+    "non_signature_entries": 8162,
+    "different_entries": [],
+    "candidate_sha256": "efeebf17214fd1b70962dd0c16dae9212cf24f6225d2431bbb3140e0f4b6cfd2",
+    "official_sha256": "c86d5ac30af155b1d9583cb5dfa95ae6b3c4bb9e3904e956b8a1e09e7fb03d13"
+  },
+  "official_output_preservation": {
+    "status": "PASS",
+    "input_apks": 5,
+    "verified_native_libraries": 17,
+    "verified_assets": 6772
+  },
+  "official_output_runtime": {
+    "google_sign_in": true,
+    "server_auth_presence_flag_true": true,
+    "granted_scopes_reported": true,
+    "game_foreground": true,
+    "fatal_markers": 0
+  },
+  "previous_release_probe": {
+    "version": "1.35.4",
+    "result": "all three Pizza patches skipped for incompatible 5.59.0; CLI exit 0 means no patch was applied",
+    "is_supported": false
+  },
+  "publication": {
+    "release": "v1.36.0",
+    "mpp_sha256": "b8a42988cfefef13505e6a28eed782bb8bc74f4dcb91a40facff990be534c247",
+    "checksum": "PASS",
+    "zip_integrity": "PASS",
+    "matching_pizza_entries": 30,
+    "android_classes_dex_identical": true,
+    "pizza_extension_identical": true,
+    "non_experimental_5590_targets": 3,
+    "url": "https://github.com/dawidd612/dudeks-morphe-patches/releases/tag/v1.36.0",
+    "pull_request": 37,
+    "merge_revision": "90efcb9c8772eb6a25fe0e05f408ac980b10ed0f",
+    "release_revision": "ee6b8eb",
+    "release_workflow_run": 39480495633,
+    "release_workflow_result": "success",
+    "github_attestation_verification": "PASS",
+    "pr_code_checks_revision": "ffc81da56860ca7822a7500db4ddb7cbbd6d138d",
+    "following_doc_only_revision": "90ced26318fea9d749917abbac271a83ffd8438f"
+  },
+  "official_final_save_parity": {
+    "funds_pixels_match": true,
+    "gems_pixels_match": true,
+    "progress": [
+      "Chapter 3",
+      "Day 56"
+    ]
+  }
+}

@@ -260,9 +260,8 @@ private fun Instruction.isColorLiteral() =
 @Suppress("unused")
 val materialYouPatch = patch(
     name = "Material You",
-    description = "Uses your wallpaper's colors (Android 12+): the accent color instead of GitHub blue and tinted " +
-        "surfaces in light and dark mode. Adds a Fakh Patches section to Settings with a Material You switch and an " +
-        "AMOLED black switch for a pure black dark mode.",
+    description = "Uses your wallpaper's colors (Android 12+), with an AMOLED black option. The switches are in " +
+        "Fakh Patches.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_GITHUB)

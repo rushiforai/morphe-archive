@@ -1,5 +1,8 @@
 package io.github.sabopura.morphe.extension.twitch.chat;
 
+import io.github.sabopura.morphe.extension.twitch.Diagnostics;
+import io.github.sabopura.morphe.extension.twitch.ui.Feature;
+import io.github.sabopura.morphe.extension.twitch.ui.Features;
 import android.content.SharedPreferences;
 
 import io.github.sabopura.morphe.extension.twitch.player.PlayerTools;
@@ -19,6 +22,7 @@ public final class FeedFilters {
     private FeedFilters() {}
 
     public static List<?> filter(List<?> rows) {
+        if (!Features.has(Feature.FOLLOWING_FEED)) return rows;
         SharedPreferences p = PlayerTools.preferences();
         if (p == null || rows == null) return rows;
         return filterSections(
@@ -33,28 +37,42 @@ public final class FeedFilters {
                 });
     }
 
-    /** Runs before the adapter computes its diff and header-index map. */
+    /**
+     * Runs before the adapter computes its diff and header-index map. A failure gives back {@code rows} itself:
+     * from 31.5.2 the patch casts the result to the ArrayList Twitch passed in.
+     */
     public static <T> List<T> filterSections(
             List<T> rows, SharedPreferences p, Function<T, String> sectionOf) {
-        boolean any = false;
-        for (String[] option : OPTIONS) any |= p.getBoolean(option[0], false);
-        if (!any) return rows;
-        ArrayList<T> output = new ArrayList<>();
-        boolean hidden = false;
-        for (T row : rows) {
-            String section = sectionOf.apply(row);
-            if (section != null) {
-                hidden = false;
-                for (String[] option : OPTIONS)
-                    if (option[3].equals(section)) hidden = p.getBoolean(option[0], false);
+        try {
+            boolean any = false;
+            for (String[] option : OPTIONS) any |= p.getBoolean(option[0], false);
+            if (!any) return rows;
+            ArrayList<T> output = new ArrayList<>();
+            boolean hidden = false;
+            for (T row : rows) {
+                String section = sectionOf.apply(row);
+                if (section != null) {
+                    hidden = false;
+                    for (String[] option : OPTIONS)
+                        if (option[3].equals(section)) hidden = p.getBoolean(option[0], false);
+                }
+                if (!hidden) output.add(row);
             }
-            if (!hidden) output.add(row);
+            return output;
+        } catch (RuntimeException | LinkageError e) {
+            Diagnostics.note("app.feed-filter", e);
+            return rows;
         }
-        return output;
     }
 
     public static boolean fullCards(boolean original) {
-        SharedPreferences p = PlayerTools.preferences();
-        return original || p != null && p.getBoolean("full_channel_cards", false);
+        if (!Features.has(Feature.FOLLOWING_FEED)) return original;
+        try {
+            SharedPreferences p = PlayerTools.preferences();
+            return original || p != null && p.getBoolean("full_channel_cards", false);
+        } catch (RuntimeException | LinkageError e) {
+            Diagnostics.note("app.feed-full-cards", e);
+            return original;
+        }
     }
 }

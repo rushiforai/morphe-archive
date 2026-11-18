@@ -14,9 +14,9 @@ public class ClaimDispatcherTest {
         final List<String> submissions = new ArrayList<>();
         final Object presenter = new Object();
         long now;
-        int errors;
+        int errors, claims;
         boolean fail, reenter;
-        final ClaimDispatcher dispatcher = new ClaimDispatcher(this, queue::add, () -> now, () -> errors++);
+        final ClaimDispatcher dispatcher = new ClaimDispatcher(this, queue::add, () -> now, failure -> errors++);
         public boolean enabled(Object value) { return value instanceof State; }
         public Object claim(Object value) { return ((State) value).id; }
         public String status(Object value) { return ((State) value).status; }
@@ -26,6 +26,7 @@ public class ClaimDispatcherTest {
             submissions.add(id);
             if (reenter) dispatcher.update(new State(id, null), provider);
         }
+        public void claimed() { claims++; }
         void run() { queue.remove(0).run(); }
     }
     @Test public void latestStateWinsWithoutSynchronousReentry() {
@@ -56,6 +57,29 @@ public class ClaimDispatcherTest {
             f.run();
         }
         assertEquals(3, f.errors);
+    }
+    @Test public void aClaimCountsOnceWhenItSucceedsHoweverManyAttemptsItTook() {
+        Fixture f = new Fixture();
+        for (int i = 0; i < 3; i++) {
+            f.now = i * 30000L;
+            f.dispatcher.update(new State("a", "UNKNOWN"), f.presenter); f.run();
+        }
+        assertEquals(3, f.submissions.size());
+        assertEquals(0, f.claims);
+        f.dispatcher.update(new State("a", "SUCCESS"), f.presenter); f.run();
+        f.dispatcher.update(new State(null, "SUCCESS"), f.presenter); f.run();
+        assertEquals(1, f.claims);
+        f.dispatcher.update(new State("b", "UNKNOWN"), f.presenter); f.run();
+        f.dispatcher.update(new State(null, "SUCCESS"), f.presenter); f.run();
+        assertEquals(2, f.claims);
+    }
+    @Test public void failedClaimsAndOthersSuccessesAreNotCounted() {
+        Fixture f = new Fixture();
+        f.dispatcher.update(new State("a", "SUCCESS"), f.presenter); f.run();
+        f.fail = true;
+        f.dispatcher.update(new State("b", null), f.presenter); f.run();
+        f.dispatcher.update(new State("b", "SUCCESS"), f.presenter); f.run();
+        assertEquals(0, f.claims);
     }
     @Test public void ignoresAbsentAndCompletedClaimsAcrossPresenters() {
         Fixture f = new Fixture();

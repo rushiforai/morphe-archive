@@ -73,6 +73,13 @@
     <string name="morphe_captions_screen_summary">显示搜索按钮</string>
     <string name="morphe_captions_screen_title">字幕</string>
     <string name="morphe_custom_branding_icon_title">应用图标</string>
+    <string name="morphe_custom_seekbar_thumb_file_invalid">所选文件不是支持的图像</string>
+    <string name="morphe_custom_seekbar_thumb_file_not_found">未找到自定义进度条滑块图像</string>
+    <string name="morphe_custom_seekbar_thumb_file_title">滑块图像</string>
+    <string name="morphe_custom_seekbar_thumb_scale_type_entry_fit_seekbar">适应进度条</string>
+    <string name="morphe_custom_seekbar_thumb_scale_type_entry_original">原始大小</string>
+    <string name="morphe_custom_seekbar_thumb_scale_type_title">滑块大小</string>
+    <string name="morphe_custom_seekbar_thumb_title">启用自定义进度条滑块</string>
     <string name="morphe_dearrow_about_summary">"DeArrow 会用更准确、更不耸人听闻的众包标题和缩略图来替换点击诱饵标题和缩略图。标题由社区撰写并投票决定，缩略图则是从视频中截取的帧
 
 视频通过视频 ID 哈希值的一小段前缀来请求，因此服务器无法确切知道您正在观看的是哪个视频。如果某个视频没有 DeArrow 缩略图，则会显示原始缩略图或静态帧"</string>
@@ -101,6 +108,12 @@
     <string name="morphe_disable_toolbar_navigation_tabs_summary">如果 YouTube 将“订阅”移至主页顶部的标签页，则在导航栏中显示“订阅”</string>
     <string name="morphe_disable_toolbar_navigation_tabs_title">禁用工具栏导航标签</string>
     <string name="morphe_dual_captions_enabled_title">双语字幕</string>
+    <string name="morphe_enhanced_ambient_mode_dim_duration_title">调暗时长</string>
+    <string name="morphe_enhanced_ambient_mode_dim_while_scrolling_summary">在滚动或触摸页面时调暗灯光</string>
+    <string name="morphe_enhanced_ambient_mode_dim_while_scrolling_title">滚动时调暗</string>
+    <string name="morphe_enhanced_ambient_mode_readable_text_summary">调暗亮色视频的光照，使页面上的文本保持可读</string>
+    <string name="morphe_enhanced_ambient_mode_readable_text_title">保持文本可读</string>
+    <string name="morphe_enhanced_ambient_mode_title">增强型氛围模式</string>
     <string name="morphe_expand_livestream_dvr_duration_not_available">"“扩展直播 DVR 时长”可能不可用
 
 要解决此问题，请开启“伪装视频流”，并将“默认客户端”更改为“TV Simply”或“visionOS”"</string>
@@ -266,6 +279,12 @@
     <string name="morphe_playback_in_feeds_title">在信息流中播放</string>
     <string name="morphe_player_control_buttons_background_opacity_summary">调整播放器控制按钮和时间栏后面背景的不透明度（0为不可见，100为完全不透明）</string>
     <string name="morphe_player_control_buttons_background_opacity_title">控制按钮背景不透明度</string>
+    <string name="morphe_playlist_hide_removal_snackbar_summary">从播放列表中移除视频后不再显示确认提示</string>
+    <string name="morphe_playlist_hide_removal_snackbar_title">隐藏播放列表移除提示栏</string>
+    <string name="morphe_playlist_long_press_drag_summary">触摸并按住播放列表中的视频，将其拖动到新位置</string>
+    <string name="morphe_playlist_long_press_drag_title">长按以重新排列播放列表视频</string>
+    <string name="morphe_playlist_wide_drag_handles_summary">播放列表拖动手柄更容易抓取</string>
+    <string name="morphe_playlist_wide_drag_handles_title">加宽播放列表拖动手柄</string>
     <string name="morphe_post_buttons_layout_entry_1">服务器</string>
     <string name="morphe_post_buttons_layout_entry_2">强制</string>
     <string name="morphe_post_buttons_layout_title">帖子按钮布局</string>
@@ -709,20 +728,7 @@
     <string name="revanced_disable_landscape_mode_summary_off">全屏时的横屏模式已启用</string>
     <string name="revanced_disable_landscape_mode_summary_on">全屏时的横屏模式已禁用</string>
     <string name="revanced_disable_landscape_mode_title">横屏模式</string>
-    <string name="revanced_disable_layout_updates_summary_off">服务器会更新布局</string>
-    <string name="revanced_disable_layout_updates_summary_on">服务器不会更新布局</string>
     <string name="revanced_disable_layout_updates_title">禁用布局更新</string>
-    <string name="revanced_disable_layout_updates_user_dialog_message">"应用布局恢复为首次安装时使用的布局。
-
-某些服务器端布局可能不会恢复。
-
-更改包括：
-• 播放器弹出菜单（或相关设置）中的组件可能无法正常工作
-• 滚动数字不显示动画
-• 显示库标签页
-• 视频描述的音乐部分可能无法正常工作
-• 播放器弹出菜单项无法隐藏
-• 账户切换按钮可能不会出现在库标签页上"</string>
     <string name="revanced_disable_like_dislike_glow_summary_off">点赞和点踩按钮点击时有动效</string>
     <string name="revanced_disable_like_dislike_glow_summary_on">点赞和点踩按钮点击时无动效</string>
     <string name="revanced_disable_like_dislike_glow_title">禁用点赞和点踩按钮动效</string>
@@ -1070,11 +1076,6 @@
     <string name="revanced_hide_comments_carousel_filter_strings_summary">输入要过滤的评论轮播图名称，以换行符分隔，每行一个</string>
     <string name="revanced_hide_comments_carousel_filter_strings_title">评论轮播过滤器</string>
     <string name="revanced_hide_comments_carousel_title">启用评论轮播过滤</string>
-    <string name="revanced_hide_comments_carousel_user_dialog_message">"注意：
-
-• 确保输入轮播项的确切名称（例如，提问、热播此视频、在 YouTube Music 上收听等）。
-• 隐藏轮播项可能会产生意想不到的副作用。
-• 如果隐藏了所有轮播项，则整个评论区也会被隐藏。"</string>
     <string name="revanced_hide_comments_create_a_short_button_summary_off">“创建Shorts”按钮已显示</string>
     <string name="revanced_hide_comments_create_a_short_button_summary_on">“创建Shorts”按钮已隐藏</string>
     <string name="revanced_hide_comments_create_a_short_button_title">隐藏“创作短视频”按钮</string>

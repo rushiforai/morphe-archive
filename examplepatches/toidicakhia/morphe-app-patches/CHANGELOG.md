@@ -1,3 +1,20 @@
+## [1.7.2](https://github.com/toidicakhia/morphe-app-patches/compare/v1.7.1...v1.7.2) (2026-11-17)
+
+### 🐛 Bug Fixes
+
+* remove Remote Desktop Manager and TeraBox patches ([ca27fff](https://github.com/toidicakhia/morphe-app-patches/commit/ca27fff))
+
+### ✨ New Features
+
+* **vtvgo:** sync the settings button with the exact control bar state ([5c63afd](https://github.com/toidicakhia/morphe-app-patches/commit/5c63afd))
+* **vtvgo:** track player layout changes for the settings button ([fe13840](https://github.com/toidicakhia/morphe-app-patches/commit/fe13840))
+* **vtvgo:** sync quality menu with player state ([757a3e3](https://github.com/toidicakhia/morphe-app-patches/commit/757a3e3))
+* **vtvgo:** add video quality settings button ([bc16a72](https://github.com/toidicakhia/morphe-app-patches/commit/bc16a72))
+* **devolutions:** add Skip Age Verification patch ([7de5f63](https://github.com/toidicakhia/morphe-app-patches/commit/7de5f63))
+* **locket:** add Unlock Locket Gold patch ([72fc89e](https://github.com/toidicakhia/morphe-app-patches/commit/72fc89e))
+* **vtvgo:** add Unlock Video Quality patch ([abaf1c1](https://github.com/toidicakhia/morphe-app-patches/commit/abaf1c1))
+* **devolutions:** add Faster Startup patch for Remote Desktop Manager ([cc4dec4](https://github.com/toidicakhia/morphe-app-patches/commit/cc4dec4))
+
 ## [1.7.1](https://github.com/toidicakhia/morphe-app-patches/compare/v1.7.0...v1.7.1) (2026-11-15)
 
 ### 🚀 Updated App Support

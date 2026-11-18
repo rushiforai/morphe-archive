@@ -1,3 +1,9 @@
+## [2.0.1](https://github.com/variablenine/morphe-patches/compare/v2.0.0...v2.0.1) (2026-11-17)
+
+### 🐛 Bug Fixes
+
+* Support official Morphe patches v2.3.0 in YouTube and Reddit ([b1a9fd6](https://github.com/variablenine/morphe-patches/commit/b1a9fd6fb0549898acd063146a2001d20f46d849))
+
 ## [2.0.0](https://github.com/variablenine/morphe-patches/compare/v1.4.12...v2.0.0) (2026-11-12)
 
 ### ⚠ BREAKING CHANGES

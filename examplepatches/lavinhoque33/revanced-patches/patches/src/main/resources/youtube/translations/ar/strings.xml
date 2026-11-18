@@ -79,6 +79,13 @@
     <string name="morphe_custom_branding_splash_animation_size_title">حجم رسوميات شاشة البداية</string>
     <string name="morphe_custom_branding_use_as_system_splash_summary">يستخدم الرسوم المتحركة المحددة كشاشة ترحيب لنظام Android</string>
     <string name="morphe_custom_branding_use_as_system_splash_title">استخدم كشاشة ترحيب للنظام</string>
+    <string name="morphe_custom_seekbar_thumb_file_invalid">الملف المحدد ليس صورة مدعومة</string>
+    <string name="morphe_custom_seekbar_thumb_file_not_found">صورة مقبض شريط التقدم المخصصة غير موجودة</string>
+    <string name="morphe_custom_seekbar_thumb_file_title">صورة المقبض</string>
+    <string name="morphe_custom_seekbar_thumb_scale_type_entry_fit_seekbar">ملاءمة شريط التمرير</string>
+    <string name="morphe_custom_seekbar_thumb_scale_type_entry_original">الحجم الأصلي</string>
+    <string name="morphe_custom_seekbar_thumb_scale_type_title">حجم المقبض</string>
+    <string name="morphe_custom_seekbar_thumb_title">تمكين مقبض شريط التقدم المخصص</string>
     <string name="morphe_dark_theme_custom_color_summary">يُستخدم عند اختيار "مُخصَّص"</string>
     <string name="morphe_dark_theme_custom_color_title">لون مخصص للسمة الداكنة</string>
     <string name="morphe_dark_theme_title">مظهر مظلم</string>
@@ -113,6 +120,12 @@
     <string name="morphe_disable_toolbar_navigation_tabs_summary">يعرض الاشتراكات في شريط التنقل، إذا قام YouTube بنقلها إلى علامة تبويب في أعلى الصفحة الرئيسية</string>
     <string name="morphe_disable_toolbar_navigation_tabs_title">تعطيل علامات تبويب التنقل في شريط الأدوات</string>
     <string name="morphe_dual_captions_enabled_title">ترجمات ثنائية اللغة</string>
+    <string name="morphe_enhanced_ambient_mode_dim_duration_title">مدة التعتيم</string>
+    <string name="morphe_enhanced_ambient_mode_dim_while_scrolling_summary">يُخفّض الإضاءة أثناء تمرير الصفحة أو لمسها</string>
+    <string name="morphe_enhanced_ambient_mode_dim_while_scrolling_title">تعتيم أثناء التمرير</string>
+    <string name="morphe_enhanced_ambient_mode_readable_text_summary">يخفف الإضاءة في الفيديوهات الساطعة بحيث يظل النص الموجود على الصفحة واضحًا للقراءة</string>
+    <string name="morphe_enhanced_ambient_mode_readable_text_title">الحفاظ على وضوح النص</string>
+    <string name="morphe_enhanced_ambient_mode_title">وضع الإضاءة السينمائية المُحسّن</string>
     <string name="morphe_expand_livestream_dvr_duration_not_available">"قد لا يكون 'زيادة مدة رجوع البث المباشر' متاحًا
 
 لإصلاح ذلك، قم بتشغيل 'Spoof Video Streams' وغيّر 'العميل الافتراضي' إلى 'TV Simply' أو 'visionOS'"</string>
@@ -282,6 +295,12 @@
     <string name="morphe_playback_in_feeds_title">التشغيل في الخلاصات</string>
     <string name="morphe_player_control_buttons_background_opacity_summary">ضبط شفافية الخلفية خلف أزرار تحكم المشغل وشريط الوقت (0 غير مرئية، 100 معتمة)</string>
     <string name="morphe_player_control_buttons_background_opacity_title">شفافية خلفية أزرار التحكم</string>
+    <string name="morphe_playlist_hide_removal_snackbar_summary">لا يظهر التأكيد بعد إزالة فيديو من قائمة التشغيل</string>
+    <string name="morphe_playlist_hide_removal_snackbar_title">إخفاء شريط تنبيه إزالة قائمة التشغيل</string>
+    <string name="morphe_playlist_long_press_drag_summary">المس واستمر في الضغط على فيديو من قائمة التشغيل الخاصة بك لسحبه إلى موضع جديد</string>
+    <string name="morphe_playlist_long_press_drag_title">الضغط مطولًا لإعادة ترتيب الفيديوهات في قائمة التشغيل</string>
+    <string name="morphe_playlist_wide_drag_handles_summary">أصبحت مقابض سحب قائمة التشغيل أسهل في الإمساك</string>
+    <string name="morphe_playlist_wide_drag_handles_title">توسيع مقابض سحب قائمة التشغيل</string>
     <string name="morphe_post_buttons_layout_entry_1">الخادم</string>
     <string name="morphe_post_buttons_layout_entry_2">المفروض</string>
     <string name="morphe_post_buttons_layout_title">تخطيط أزرار المنشور</string>
@@ -785,20 +804,7 @@ Mistral Nemo هو الخيار الأرخص، بينما توفر Gemma 4 أعل
     <string name="revanced_disable_landscape_mode_summary_off">اتجاه الفيديو يتبع إعدادات ملء الشاشة في الجهاز</string>
     <string name="revanced_disable_landscape_mode_summary_on">اتجاه الفيديو هو وضع عمودي في ملء الشاشة</string>
     <string name="revanced_disable_landscape_mode_title">تعطيل الوضع الأفقي</string>
-    <string name="revanced_disable_layout_updates_summary_off">سيتم تحديث المظهر بواسطة الخادم</string>
-    <string name="revanced_disable_layout_updates_summary_on">لن يتم تحديث المظهر بواسطة الخادم</string>
     <string name="revanced_disable_layout_updates_title">تعطيل تحديثات المظهر</string>
-    <string name="revanced_disable_layout_updates_user_dialog_message">"يعود تصميم التطبيق إلى التصميم المستخدم عند التثبيت الأَوّلي
-
-قد لا تعود بعض التصميمات من جانب الخادم إلى وضعها السابق
-
-تشمل التغييرات ما يلي:
-• قد لا تعمل عناصر قائمة المشغل المنبثقة (أو الإعدادات ذات الصلة)
-• الأرقام لا تُحدَّث لحظيًا
-• يتم عرض علامة تبويب المكتبة
-• قد لا يعمل قسم الموسيقى في وصف الفيديو
-• لا يمكن إخفاء عناصر قائمة المشغل المنبثقة
-• قد لا يظهر زر تبديل الحساب في علامة تبويب المكتبة"</string>
     <string name="revanced_disable_like_dislike_glow_summary_off">ستتوهج أزرار أعجبني و لم يعجبني عند ذكرها</string>
     <string name="revanced_disable_like_dislike_glow_summary_on">لن تتوهج أزرار أعجبني و لم يعجبني عند ذكرها</string>
     <string name="revanced_disable_like_dislike_glow_title">تعطيل توهج أزرار أعجبني ولم يعجبني</string>
@@ -1163,10 +1169,6 @@ Mistral Nemo هو الخيار الأرخص، بينما توفر Gemma 4 أعل
     <string name="revanced_hide_comments_carousel_filter_strings_summary">أدخل أسماء عناصر شريط التعليقات المراد تصفيتها، بحيث يكون كل اسم في سطر منفصل</string>
     <string name="revanced_hide_comments_carousel_filter_strings_title">شريط تصفية التعليقات</string>
     <string name="revanced_hide_comments_carousel_title">تمكين شريط تصفية التعليقات</string>
-    <string name="revanced_hide_comments_carousel_user_dialog_message">"ملاحظة:
-• تأكد من إدخال الاسم الدقيق لعنصر الشريط (مثل: طرح سؤال، تشجيع هذا الفيديو، الاستماع إلى موسيقى YouTube، الخ.)
-• قد يؤدي إخفاء عناصر الشريط إلى نتائج غير متوقعة
-• إذا تم إخفاء جميع عناصر الشريط، فسيتم إخفاء قسم التعليقات بالكامل أيضًا"</string>
     <string name="revanced_hide_comments_create_a_short_button_summary_off">يتم عرض زر إنشاء Short</string>
     <string name="revanced_hide_comments_create_a_short_button_summary_on">تم إخفاء زر إنشاء Short</string>
     <string name="revanced_hide_comments_create_a_short_button_title">إخفاء زر \'إنشاء Short\'</string>

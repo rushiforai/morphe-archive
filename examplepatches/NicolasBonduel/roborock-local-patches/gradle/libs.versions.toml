@@ -1,0 +1,12 @@
+[versions]
+morphe-patcher = "2.3.0"
+#noinspection GradleDependency
+smali = "4220ae75f7"
+gson = "2.15.0"
+
+[libraries]
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+# The Gradle plugin adds this dependency during build; this declaration
+# exists only for dependabot to provide updates.
+#noinspection UnusedVersionCatalogEntry
+morphe-patcher = { module = "app.morphe:morphe-patcher", version.ref = "morphe-patcher" }

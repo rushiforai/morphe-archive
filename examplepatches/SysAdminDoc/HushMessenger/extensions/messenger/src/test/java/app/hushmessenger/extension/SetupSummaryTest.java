@@ -66,7 +66,7 @@ public class SetupSummaryTest {
             assertTrue(text.contains("\nHost version: 582.0.0.61.92\n"));
             assertTrue(text.contains("\nHost version code: " + ((7L << 32) | 346415686L) + "\n"));
             // The extension alone was patched from nothing, and says so rather than reading Android's version code.
-            assertTrue(text.contains("\nPatched from: unknown\n"));
+            assertTrue(text.contains("\nPatched from: unknown\nBundle: " + ProblemReport.bundle(BundleKey.SIGNED) + "\n"));
             assertTrue(text.contains("\nAndroid API: " + Build.VERSION.SDK_INT + "\nPaused: false\nSafe mode: false\n"));
             assertTrue(text.contains("people: installed=true, selected=true, active=true,"));
             assertTrue(text.contains("stories: installed=false, selected=true, active=false,"));

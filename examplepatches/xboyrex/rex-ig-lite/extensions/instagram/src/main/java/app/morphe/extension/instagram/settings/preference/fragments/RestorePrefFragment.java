@@ -28,6 +28,8 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -165,6 +167,24 @@ public class RestorePrefFragment extends Fragment {
                 }
             }
 
+            if (isZipArchive(tempFile)) {
+                boolean zipImported = handleZipPackageImport(ctx, tempFile);
+                tempFile.delete();
+                if (zipImported) {
+                    app.morphe.extension.instagram.patches.devFlags.HookFlags.load();
+                    toast("Imported package successfully — restarting...");
+                    Utils.restartApp(ctx);
+                }
+                return;
+            }
+
+            // Auto-route JSON override/mapping files even when selected from the general Import Settings button
+            if (destinationFile.getName().endsWith(".xml") && isJsonFile(tempFile)) {
+                File mcDir = new File(ctx.getFilesDir(), "mobileconfig");
+                if (!mcDir.exists()) mcDir.mkdirs();
+                destinationFile = new File(mcDir, "mc_overrides.json");
+            }
+
             // Don't touch the current file unless the whole picked file is what we restore.
             if (!isValidRestoreFile(tempFile)) {
                 tempFile.delete();
@@ -172,9 +192,15 @@ public class RestorePrefFragment extends Fragment {
                 return;
             }
             if (!tempFile.renameTo(destinationFile)) {
-                throw new IOException("Could not replace " + destinationFile);
+                if (destinationFile.exists()) destinationFile.delete();
+                if (!tempFile.renameTo(destinationFile)) {
+                    throw new IOException("Could not replace " + destinationFile);
+                }
             }
 
+            if (destinationFile.getName().equals("mc_overrides.json")) {
+                app.morphe.extension.instagram.patches.devFlags.HookFlags.load();
+            }
             toast(str("rex_import_success"));
             Utils.restartApp(ctx);
 
@@ -182,6 +208,144 @@ public class RestorePrefFragment extends Fragment {
             tempFile.delete();
             toast(str("rex_import_fail"));
             Logger.printException(() -> "import failure", e);
+        }
+    }
+
+    private static boolean isJsonFile(File file) {
+        if (file == null || !file.isFile() || file.length() == 0 || file.length() > MAX_RESTORE_BYTES) {
+            return false;
+        }
+        try (InputStream in = new FileInputStream(file)) {
+            byte[] head = new byte[(int) Math.min(file.length(), 512)];
+            int n = in.read(head);
+            if (n <= 0) return false;
+            String s = new String(head, 0, n, StandardCharsets.UTF_8).trim();
+            return s.startsWith("{") || s.startsWith("[");
+        } catch (Exception ignored) {
+            return false;
+        }
+    }
+
+    private static boolean isZipArchive(File file) {
+        if (file == null || file.length() < 4) return false;
+        try (InputStream in = new FileInputStream(file)) {
+            byte[] magic = new byte[4];
+            if (in.read(magic) < 4) return false;
+            return magic[0] == 0x50 && magic[1] == 0x4B && (magic[2] == 0x03 || magic[2] == 0x05 || magic[2] == 0x07);
+        } catch (Exception ignored) {
+            return false;
+        }
+    }
+
+    private boolean handleZipPackageImport(Context ctx, File zipFile) {
+        int importedCount = 0;
+        boolean sawEncryptedContainer = false;
+        File mcDir = new File(ctx.getFilesDir(), "mobileconfig");
+        if (!mcDir.exists()) mcDir.mkdirs();
+
+        try (ZipInputStream zis = new ZipInputStream(new FileInputStream(zipFile))) {
+            ZipEntry entry;
+            while ((entry = zis.getNextEntry()) != null) {
+                if (entry.isDirectory()) continue;
+                String name = entry.getName();
+                if (name == null) continue;
+                String base = new File(name).getName().toLowerCase();
+                if (base.isEmpty() || name.contains("..")) continue;
+
+                byte[] data = readZipEntryBytes(zis, MAX_RESTORE_BYTES);
+                if (data == null || data.length == 0) continue;
+
+                if (base.endsWith(".json")) {
+                    String jsonStr = new String(data, StandardCharsets.UTF_8);
+                    try {
+                        JSONTokener tok = new JSONTokener(jsonStr);
+                        Object parsed = tok.nextValue();
+                        if (base.contains("mapping") || (parsed instanceof JSONArray && !base.contains("override"))) {
+                            if (parsed instanceof JSONArray && ((JSONArray) parsed).length() > 0) {
+                                File dest = new File(mcDir, "id_name_mapping.json");
+                                writeAtomic(dest, data);
+                                importedCount++;
+                            }
+                        } else if (parsed instanceof JSONObject) {
+                            File dest = new File(mcDir, "mc_overrides.json");
+                            writeAtomic(dest, data);
+                            importedCount++;
+                        }
+                    } catch (Throwable ignored) {}
+                } else if (base.endsWith(".xml") && !FocusLock.isActive()) {
+                    try (InputStream xmlIn = new java.io.ByteArrayInputStream(data)) {
+                        if (isValidPreferences(xmlIn)) {
+                            File prefsDest = new File(ctx.getApplicationInfo().dataDir + "/shared_prefs", Constants.REX_SETTINGS + ".xml");
+                            writeAtomic(prefsDest, data);
+                            importedCount++;
+                        }
+                    } catch (Throwable ignored) {}
+                } else if (base.contains("mc_overrides") || base.contains("id_name_mapping")) {
+                    sawEncryptedContainer = true;
+                }
+            }
+        } catch (Exception e) {
+            Logger.printException(() -> "ZIP package import failure", e);
+        }
+
+        if (sawEncryptedContainer && importedCount == 0) {
+            try {
+                int rawId = ctx.getResources().getIdentifier("instarex_pro_config_v6", "raw", ctx.getPackageName());
+                if (rawId != 0) {
+                    byte[] fallbackBytes = readStreamBytes(ctx.getResources().openRawResource(rawId), MAX_RESTORE_BYTES);
+                    if (fallbackBytes != null && fallbackBytes.length > 0) {
+                        writeAtomic(new File(mcDir, "mc_overrides.json"), fallbackBytes);
+                        importedCount++;
+                    }
+                }
+            } catch (Throwable ignored) {}
+        }
+
+        if (importedCount > 0) {
+            return true;
+        }
+        toast(str("rex_import_fail"));
+        return false;
+    }
+
+    private static byte[] readStreamBytes(InputStream in, long maxBytes) throws IOException {
+        try (InputStream autoClose = in) {
+            java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+            byte[] buf = new byte[8192];
+            long total = 0;
+            int n;
+            while ((n = autoClose.read(buf)) != -1) {
+                total += n;
+                if (total > maxBytes) throw new IOException("Stream exceeds size limit");
+                baos.write(buf, 0, n);
+            }
+            return baos.toByteArray();
+        }
+    }
+
+    private static byte[] readZipEntryBytes(ZipInputStream zis, long maxBytes) throws IOException {
+        java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+        byte[] buf = new byte[8192];
+        long total = 0;
+        int n;
+        while ((n = zis.read(buf)) != -1) {
+            total += n;
+            if (total > maxBytes) throw new IOException("ZIP entry exceeds size limit");
+            baos.write(buf, 0, n);
+        }
+        return baos.toByteArray();
+    }
+
+    private static void writeAtomic(File dest, byte[] data) throws IOException {
+        File parent = dest.getParentFile();
+        if (parent != null && !parent.exists()) parent.mkdirs();
+        File tmp = new File(dest.getPath() + ".tmp");
+        try (FileOutputStream fos = new FileOutputStream(tmp)) {
+            fos.write(data);
+        }
+        if (!tmp.renameTo(dest)) {
+            if (dest.exists()) dest.delete();
+            if (!tmp.renameTo(dest)) throw new IOException("Failed atomic replace: " + dest);
         }
     }
 

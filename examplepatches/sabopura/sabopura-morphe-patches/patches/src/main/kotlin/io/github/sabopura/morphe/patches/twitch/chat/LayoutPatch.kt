@@ -13,7 +13,7 @@ import io.github.sabopura.morphe.patches.twitch.support.classesWithStrings
 import io.github.sabopura.morphe.patches.twitch.support.uniqueContract
 
 private object LandscapeConfig : Fingerprint(strings = listOf("LandscapeChatConfiguration(chatOverlayingPlayerOff=false)"))
-internal val layoutPatch = bytecodePatch {
+internal val landscapeChatHook = bytecodePatch {
     extendWith("extensions/twitch.mpe")
     execute {
         val config=LandscapeConfig.originalClassDef.type
@@ -45,6 +45,12 @@ internal val layoutPatch = bytecodePatch {
             invoke-static/range {p1 .. p2}, Lio/github/sabopura/morphe/extension/twitch/player/LayoutTools;->guidePercent(${if(floatFirst) "FI" else "IF"})F
             move-result ${if(floatFirst) "p1" else "p2"}
         """)
+    }
+}
+
+internal val miniPlayerHook = bytecodePatch {
+    extendWith("extensions/twitch.mpe")
+    execute {
         val mini=mutableClassDefBy("Ltv/twitch/android/shared/ui/elements/draggable/ConstraintTheatreContainerView;")
             .methods.singleOrNull { it.parameterTypes.size==2 && it.parameterTypes.first()=="Ltv/twitch/android/util/Size;" && it.returnType=="V" }
             ?:throw PatchException("Layout: mini-player size entry point missing")

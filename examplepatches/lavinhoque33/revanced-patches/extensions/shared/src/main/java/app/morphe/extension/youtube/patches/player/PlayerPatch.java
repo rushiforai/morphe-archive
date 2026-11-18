@@ -1,5 +1,7 @@
 package app.morphe.extension.youtube.patches.player;
 
+import app.morphe.extension.youtube.ambientlight.AmbientLightController;
+
 import static app.morphe.extension.shared.utils.Utils.hideViewBy0dpUnderCondition;
 import static app.morphe.extension.shared.utils.Utils.hideViewByRemovingFromParentUnderCondition;
 import static app.morphe.extension.shared.utils.Utils.hideViewUnderCondition;
@@ -15,6 +17,7 @@ import android.graphics.drawable.LayerDrawable;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.support.v7.widget.RecyclerView;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
@@ -125,7 +128,7 @@ public class PlayerPatch {
      * Disable Ambient mode.
      */
     public static boolean disableAmbientMode(boolean original) {
-        return !Settings.DISABLE_AMBIENT_MODE.get() && original;
+        return !Settings.DISABLE_AMBIENT_MODE.get() && !AmbientLightController.replacesAmbientMode() && original;
     }
 
     public static boolean disableAmbientModeInFullscreen() {
@@ -133,7 +136,7 @@ public class PlayerPatch {
     }
 
     public static int getFullScreenBackgroundColor(int originalColor) {
-        if (Settings.DISABLE_AMBIENT_MODE_IN_FULLSCREEN.get()) {
+        if (Settings.DISABLE_AMBIENT_MODE_IN_FULLSCREEN.get() || AmbientLightController.replacesAmbientMode()) {
             return DIVIDER_ATTRIBUTES_COLOR_SYSTEM_DEFAULT;
         }
 
@@ -864,6 +867,20 @@ public class PlayerPatch {
         return !Settings.DISABLE_CHAPTER_SKIP_DOUBLE_TAP.get() && original;
     }
 
+    /**
+     * Injection point. Some accounts disable two-finger chapter skipping in the player config.
+     */
+    public static boolean enableDoubleTapChaptersConfig(boolean original) {
+        return original || !Settings.DISABLE_CHAPTER_SKIP_DOUBLE_TAP.get();
+    }
+
+    /**
+     * Injection point. Override the account experiment that disables two-finger chapter skipping.
+     */
+    public static boolean disableDoubleTapChaptersFeatureFlag(boolean original) {
+        return Settings.DISABLE_CHAPTER_SKIP_DOUBLE_TAP.get();
+    }
+
     public static boolean disableSpeedOverlay() {
         return disableSpeedOverlay(true);
     }
@@ -890,6 +907,17 @@ public class PlayerPatch {
             Logger.printException(() -> "onCharSequenceLoaded failed", ex);
         }
         return charSequence;
+    }
+
+    /**
+     * Injection point. The speed indicator above a held Short.
+     */
+    public static String getShortsTapAndHoldText(String original) {
+        if (SPEED_OVERLAY_VALUE == Settings.SPEED_OVERLAY_VALUE.defaultValue) {
+            return original;
+        }
+
+        return VideoUtils.formatSpeedStringX(SPEED_OVERLAY_VALUE, 0);
     }
 
     public static double speedOverlayValue() {
@@ -1370,6 +1398,18 @@ public class PlayerPatch {
                         VideoUtils.showCustomModernPlaybackSpeedDialog(context);
             }
         }
+    }
+
+    /**
+     * Injection point. Complete a tap-opened scrub when the disabled time bar ignores its end.
+     */
+    public static boolean shouldCompleteScrub(View timeBar, MotionEvent event) {
+        if (!Settings.ENABLE_SEEKBAR_TAPPING.get() || timeBar.isEnabled()) {
+            return false;
+        }
+
+        final int action = event.getActionMasked();
+        return action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL;
     }
 
     public static boolean enableSeekbarTapping() {

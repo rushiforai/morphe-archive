@@ -2,14 +2,14 @@
 set -euo pipefail
 
 # ==============================================================================
-# Rex IG Lite v3.14.0 — Termux / Linux One-Command GitHub Push & Trigger Script
+# Rex IG Lite v3.15.0 — Termux / Linux One-Command GitHub Push & Trigger Script
 # Repository: https://github.com/xboyrex/rex-ig-lite
 # Author: xboyrex (Roushan Kumar Gupta)
 # ==============================================================================
 
 REPO_URL="https://github.com/xboyrex/rex-ig-lite.git"
 BRANCH="main"
-VERSION="3.14.0"
+VERSION="3.15.0"
 TAG="v${VERSION}"
 ZIP_FILE="${1:-rex-ig-lite.zip}"
 WORK_DIR="${HOME}/rex-ig-lite-sync"

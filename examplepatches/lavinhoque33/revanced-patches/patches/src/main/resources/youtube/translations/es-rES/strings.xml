@@ -79,6 +79,13 @@ Los reportes son públicos y se revisan antes de añadir un canal a una lista. L
     <string name="morphe_custom_branding_splash_animation_size_title">Tamaño de la animación de splash</string>
     <string name="morphe_custom_branding_use_as_system_splash_summary">Utiliza la animación seleccionada como splash del sistema de Android</string>
     <string name="morphe_custom_branding_use_as_system_splash_title">Uso como animación del sistema</string>
+    <string name="morphe_custom_seekbar_thumb_file_invalid">El archivo seleccionado no es una imagen compatible</string>
+    <string name="morphe_custom_seekbar_thumb_file_not_found">No se encontró la imagen del indicador personalizado de la barra de progreso</string>
+    <string name="morphe_custom_seekbar_thumb_file_title">Imagen del indicador</string>
+    <string name="morphe_custom_seekbar_thumb_scale_type_entry_fit_seekbar">Ajustar a la barra de progreso</string>
+    <string name="morphe_custom_seekbar_thumb_scale_type_entry_original">Tamaño original</string>
+    <string name="morphe_custom_seekbar_thumb_scale_type_title">Tamaño del indicador</string>
+    <string name="morphe_custom_seekbar_thumb_title">Activar indicador personalizado de la barra de progreso</string>
     <string name="morphe_dark_theme_custom_color_summary">Usado cuando se selecciona Personalizado</string>
     <string name="morphe_dark_theme_custom_color_title">Color personalizado del tema oscuro</string>
     <string name="morphe_dark_theme_title">Tema Oscuro</string>
@@ -113,6 +120,12 @@ Los videos se solicitan mediante un prefijo corto del ID de video con hash, por 
     <string name="morphe_disable_toolbar_navigation_tabs_summary">Muestra las Suscripciones en la barra de navegación, si YouTube las mueve a una pestaña en la parte superior de Inicio</string>
     <string name="morphe_disable_toolbar_navigation_tabs_title">Desactivar pestañas de navegación de la barra de herramientas</string>
     <string name="morphe_dual_captions_enabled_title">Subtítulos bilingües</string>
+    <string name="morphe_enhanced_ambient_mode_dim_duration_title">Duración de la atenuación</string>
+    <string name="morphe_enhanced_ambient_mode_dim_while_scrolling_summary">Atenúa la luz mientras se desplaza o se toca la página</string>
+    <string name="morphe_enhanced_ambient_mode_dim_while_scrolling_title">Atenuar al desplazar</string>
+    <string name="morphe_enhanced_ambient_mode_readable_text_summary">Atenúa la luz en vídeos brillantes para que el texto de la página siga siendo legible</string>
+    <string name="morphe_enhanced_ambient_mode_readable_text_title">Mantener el texto legible</string>
+    <string name="morphe_enhanced_ambient_mode_title">Modo Ambiente mejorado</string>
     <string name="morphe_expand_livestream_dvr_duration_not_available">"Es posible que \'Ampliar la duración del DVR de la transmisión en directo\' no esté disponible
 
 Para solucionar esto, activa \'Suplantar transmisiones de video\' y cambia \'Cliente predeterminado\' a \'TV\' o \'visionOS\'"</string>
@@ -282,6 +295,12 @@ Para solucionarlo, activa 'Falsificar transmisiones de vídeo' y cambia 'Cliente
     <string name="morphe_playback_in_feeds_title">Reproducción en feeds</string>
     <string name="morphe_player_control_buttons_background_opacity_summary">Ajusta la opacidad del fondo detrás de los botones de control del reproductor y la barra de tiempo (0 es invisible, 100 es opaco)</string>
     <string name="morphe_player_control_buttons_background_opacity_title">Opacidad del fondo de los botones de control</string>
+    <string name="morphe_playlist_hide_removal_snackbar_summary">La confirmación no se muestra después de que un vídeo se elimina de una lista de reproducción</string>
+    <string name="morphe_playlist_hide_removal_snackbar_title">Ocultar mensaje emergente de eliminación de la lista de reproducción</string>
+    <string name="morphe_playlist_long_press_drag_summary">Mantén pulsado un vídeo de tu lista de reproducción para arrastrarlo a una nueva posición</string>
+    <string name="morphe_playlist_long_press_drag_title">Mantener pulsado para reordenar los vídeos de la lista de reproducción</string>
+    <string name="morphe_playlist_wide_drag_handles_summary">Los controles de arrastre de la lista de reproducción son más fáciles de agarrar</string>
+    <string name="morphe_playlist_wide_drag_handles_title">Ampliar controles de arrastre de la lista de reproducción</string>
     <string name="morphe_post_buttons_layout_entry_1">Servidor</string>
     <string name="morphe_post_buttons_layout_entry_2">Forzado</string>
     <string name="morphe_post_buttons_layout_title">Diseño de botones de publicación</string>
@@ -782,20 +801,7 @@ Configuración → Reproducción automática → Reproducción automática del s
     <string name="revanced_disable_landscape_mode_summary_off">La orientación del vídeo sigue la configuración del dispositivo en pantalla completa</string>
     <string name="revanced_disable_landscape_mode_summary_on">La orientación del vídeo es vertical en pantalla completa</string>
     <string name="revanced_disable_landscape_mode_title">Desactivar modo horizontal</string>
-    <string name="revanced_disable_layout_updates_summary_off">El diseño se actualizará desde el servidor</string>
-    <string name="revanced_disable_layout_updates_summary_on">El diseño no se actualizará desde el servidor</string>
     <string name="revanced_disable_layout_updates_title">Desactivar actualizaciones de diseño</string>
-    <string name="revanced_disable_layout_updates_user_dialog_message">"El diseño de la aplicación vuelve al diseño utilizado cuando se instaló por primera vez
-
-Es posible que algunos diseños del lado del servidor no se restablezcan
-
-Los cambios incluyen:
-• Es posible que los componentes del menú desplegable del reproductor (o ajustes relacionados) no funcionen
-• Los números rotativos (contadores) no están animados
-• Se muestra la pestaña de la Biblioteca
-• Es posible que la sección de música en la descripción del video no funcione
-• No se pueden ocultar los elementos del menú desplegable del reproductor
-• Es posible que el botón de cambio de cuenta no aparezca en la pestaña de la Biblioteca. Usa la configuración "Activar barra de búsqueda ancha en la pestaña Tú""</string>
     <string name="revanced_disable_like_dislike_glow_summary_off">Los botones “me gusta” y “no me gusta” se iluminarán cuando se los mencione</string>
     <string name="revanced_disable_like_dislike_glow_summary_on">Los botones “me gusta” y “no me gusta” no se iluminarán cuando se los mencione</string>
     <string name="revanced_disable_like_dislike_glow_title">Desactivar brillo de botones de me gusta y no me gusta</string>
@@ -1156,10 +1162,6 @@ Tienda"</string>
     <string name="revanced_hide_comments_carousel_filter_strings_summary">Introduce los nombres de los carruseles de comentarios por los que filtrar, separados por saltos de línea</string>
     <string name="revanced_hide_comments_carousel_filter_strings_title">Filtro de carrusel de comentarios</string>
     <string name="revanced_hide_comments_carousel_title">Activar filtro de carrusel de comentarios</string>
-    <string name="revanced_hide_comments_carousel_user_dialog_message">"Nota:
-• Asegúrate de introducir el nombre exacto del elemento del carrusel (p. ej., Preguntar, Promocionar este vídeo, Escuchar en YouTube Music, etc.)
-• Ocultar elementos del carrusel puede tener efectos secundarios no deseados
-• Si se ocultan todos los elementos del carrusel, también se ocultará toda la sección de comentarios"</string>
     <string name="revanced_hide_comments_create_a_short_button_summary_off">Se muestra el botón Crear un Short</string>
     <string name="revanced_hide_comments_create_a_short_button_summary_on">El botón Crear un Short está oculto</string>
     <string name="revanced_hide_comments_create_a_short_button_title">Ocultar botón \'Crear un Short\'</string>

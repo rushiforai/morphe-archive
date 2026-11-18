@@ -131,6 +131,43 @@ public final class MaterialYou {
         return pack((argb & 0xFF000000) | (context.getColor(tone) & 0xFFFFFF));
     }
 
+    /**
+     * Injected before the Rovo button is drawn: the container of the button in a wallpaper accent tone, dark in dark
+     * mode and light in light mode. Under the glass bar it has no container, so only the icon shows.
+     *
+     * @param packed the button's container color, packed
+     * @return the accent tone, transparent under the glass bar, or {@code packed} while Material You is off
+     */
+    public static long rovoContainer(long packed) {
+        return rovoFlat() ? pack(0) : rovoTone(packed, android.R.color.system_accent1_800, android.R.color.system_accent1_200);
+    }
+
+    /** Whether the Rovo button is only its icon, as the glass bar is on. It does not depend on Material You. */
+    public static boolean rovoFlat() {
+        return AppRuntime.application() != null && glassNavigationBar();
+    }
+
+    /**
+     * Injected before the Rovo button is drawn: the color of its icon, the accent tone that reads on
+     * {@link #rovoContainer}, or the accent of the bar's selected tab where the icon has nothing behind it.
+     *
+     * @param packed the button's icon color, packed
+     * @return the accent tone, or {@code packed} while Material You is off
+     */
+    public static long rovoContent(long packed) {
+        if (!rovoFlat()) return rovoTone(packed, android.R.color.system_accent1_100, android.R.color.system_accent1_900);
+        // The accent of the bar's selected tab: the wallpaper's, or Jira's blue.
+        Context context = AppRuntime.application();
+        return pack(app.fakh.extension.shared.MaterialYou.accent(context, materialYou(context), 0xFF1868DB, 0xFF669DF1));
+    }
+
+    /** The color of a tone in the theme's mode, packed, or {@code packed} without the wallpaper's colors. */
+    private static long rovoTone(long packed, int dark, int light) {
+        Context context = AppRuntime.application();
+        if (context == null || !app.fakh.extension.shared.MaterialYou.wallpaper(materialYou(context))) return packed;
+        return pack(context.getColor(app.fakh.extension.shared.MaterialYou.night(context) ? dark : light));
+    }
+
     /** The dark surface role, packed. */
     private static long surfaceDark(Context context) {
         return pack(0xFF000000 | (context.getColor(DARK_SURFACES.get(DARK_CANVAS)) & 0xFFFFFF));

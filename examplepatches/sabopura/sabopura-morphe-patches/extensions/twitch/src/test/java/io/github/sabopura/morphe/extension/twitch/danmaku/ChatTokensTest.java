@@ -82,5 +82,6 @@ public final class ChatTokensTest {
         assertTrue(segments.get(1).isEmote());
         assertEquals(" ok", segments.get(2).text);
         assertEquals("hi @bob look Kappa ok", ChatTokens.plainText(segments));
+        assertEquals("hi @bob look   ok", ChatTokens.withoutEmotes(segments));
     }
 }

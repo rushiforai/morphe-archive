@@ -91,6 +91,20 @@ private const val LAST_ROOT_CLASS = "${MAIN_ACTIVITY}->serajrNavLastRootClass:Lj
 // Haze.
 private const val FORCE_HAZE_ALWAYS_VISIBLE = true
 private const val DEBUG_MAGENTA_TINT = false
+private const val USE_PROGRESSIVE_HAZE = true
+private const val PROGRESSIVE_BLUR_RADIUS = 32.0f
+private const val USE_PROGRESSIVE_MASK = true
+private const val PROGRESSIVE_MASK_FACTORY = "Lcom/google/firebase/perf/logging/b;->J(Ljava/util/List;FFI)Landroidx/compose/ui/graphics/t0;"
+private const val PROGRESSIVE_MASK_SETTER = "Ldev/chrisbanes/haze/blur/l;->c(Landroidx/compose/ui/graphics/v;)V"
+private const val MASK_BLACK = "Landroidx/compose/ui/graphics/z;->b:J"
+private const val MASK_TRANSPARENT = "Landroidx/compose/ui/graphics/z;->m:J"
+private const val MASK_COLOR_CTOR = "Landroidx/compose/ui/graphics/z;-><init>(J)V"
+private const val PROGRESSIVE_CALLBACK = "Lcom/x/compose/core/p0;"
+private const val PROGRESSIVE_TYPE = "Ldev/chrisbanes/haze/n0;"
+private const val PROGRESSIVE_EASING = "Lcom/x/compose/core/s0;->d:Landroidx/compose/animation/core/v;"
+private const val PROGRESSIVE_CTOR = "${PROGRESSIVE_TYPE}-><init>(Landroidx/compose/animation/core/a0;JJ)V"
+private const val PROGRESSIVE_SETTER = "Ldev/chrisbanes/haze/blur/l;->e(${PROGRESSIVE_TYPE})V"
+private const val GET_PROGRESSIVE = "${MAIN_ACTIVITY}->serajrGetNavProgressive()${PROGRESSIVE_CALLBACK}"
 
 // D3-K1A.11-T2: temporary diagnostics.
 private const val DIAG_TAG = "SerajrNavHaze"
@@ -122,7 +136,7 @@ private fun Method.refAt(index: Int): String? =
 @Suppress("unused")
 val fixNavigationBarHazeExperimentalPatch = bytecodePatch(
     name = "Fix Navigation Bar Haze (Experimental)",
-    description = "D3-K1A.11-T10-B1-T3A: native Navigation Bar Haze with configurable visibility and diagnostic tint.",
+    description = "D3-K1A.11-T10-B1-T4B-R1: native solid or progressive Navigation Bar Haze with configurable radius and optional linear mask.",
     default = false
 ) {
     compatibleWith(Constants.COMPATIBILITY_X)
@@ -153,7 +167,10 @@ val fixNavigationBarHazeExperimentalPatch = bytecodePatch(
             MUTABLE_STATE_FACTORY,
             MUTABLE_STATE_GET,
             MUTABLE_STATE_SET
-        )
+        ) + (if (USE_PROGRESSIVE_HAZE) setOf(PROGRESSIVE_CTOR, PROGRESSIVE_SETTER) else emptySet()) +
+            (if (USE_PROGRESSIVE_HAZE && USE_PROGRESSIVE_MASK)
+                setOf(PROGRESSIVE_MASK_FACTORY, PROGRESSIVE_MASK_SETTER, MASK_COLOR_CTOR)
+            else emptySet())
 
         val requiredFields = setOf(
             BOTTOM_START,
@@ -171,7 +188,9 @@ val fixNavigationBarHazeExperimentalPatch = bytecodePatch(
             "Lcom/x/compose/core/s2;->a:Ljava/lang/Object;",
             "${TAB_CONTENT}->c:Lcom/x/navigation/wd;",
             "${TAB_NAVIGATOR}->h:Lcom/x/navigation/wd;"
-        )
+        ) + (if (USE_PROGRESSIVE_HAZE) setOf(PROGRESSIVE_EASING) else emptySet()) +
+            (if (USE_PROGRESSIVE_HAZE && USE_PROGRESSIVE_MASK)
+                setOf(MASK_BLACK, MASK_TRANSPARENT) else emptySet())
 
         val foundMethods = mutableSetOf<String>()
         val foundFields = mutableSetOf<String>()
@@ -569,6 +588,109 @@ val fixNavigationBarHazeExperimentalPatch = bytecodePatch(
 
             method.addInstructions(0, body.trimIndent())
             mutableClass.methods.add(method)
+        }
+
+        // T4B-R1: isolated, cached progressive-only callback.
+        // Stock p0 instances retain their original invoke path.
+        if (USE_PROGRESSIVE_HAZE) {
+            require(PROGRESSIVE_BLUR_RADIUS.isFinite() && PROGRESSIVE_BLUR_RADIUS > 0f)
+            val callback = mutableClassDefBy(PROGRESSIVE_CALLBACK)
+            require(callback.superclass == "Ljava/lang/Object;")
+            require("Lkotlin/jvm/functions/Function1;" in callback.interfaces)
+            val flag = "${PROGRESSIVE_CALLBACK}->serajrProgressiveOnly:Z"
+            require(callback.fields.none { it.name == "serajrProgressiveOnly" })
+            require(callback.methods.none { it.name == "<init>" && it.parameterTypes.isEmpty() })
+            val invoke = callback.methods.single {
+                it.name == "invoke" && it.returnType == "Ljava/lang/Object;" &&
+                    it.parameterTypes.map { p -> p.toString() } == listOf("Ljava/lang/Object;")
+            }
+            val impl = invoke.implementation ?: error("T4B-R1: missing callback implementation")
+            require(impl.registerCount == 14 &&
+                impl.instructions[0].opcode == Opcode.CHECK_CAST &&
+                invoke.refAt(0) == "Ldev/chrisbanes/haze/blur/l;" &&
+                (impl.instructions[0] as? OneRegisterInstruction)?.registerA == 13 &&
+                impl.instructions[1].opcode == Opcode.SGET_OBJECT &&
+                invoke.refAt(1) == "Lcom/x/compose/core/s0;->b:Landroidx/compose/ui/graphics/t0;" &&
+                (impl.instructions[1] as? OneRegisterInstruction)?.registerA == 0 &&
+                impl.instructions.any { (it as? ReferenceInstruction)?.reference?.toString() == PROGRESSIVE_SETTER }
+            ) { "T4B-R1: unexpected native callback layout" }
+            require(mutableClass.fields.none { it.name == "serajrNavProgressive" })
+            require(mutableClass.methods.none { it.name == "serajrGetNavProgressive" })
+            callback.fields.add(ImmutableField(PROGRESSIVE_CALLBACK, "serajrProgressiveOnly", "Z",
+                AccessFlags.PRIVATE.value, null, null, null).toMutable())
+            val maskField = "${PROGRESSIVE_CALLBACK}->serajrProgressiveMask:Landroidx/compose/ui/graphics/t0;"
+            if (USE_PROGRESSIVE_MASK) {
+                require(callback.fields.none { it.name == "serajrProgressiveMask" })
+                callback.fields.add(ImmutableField(PROGRESSIVE_CALLBACK, "serajrProgressiveMask",
+                    "Landroidx/compose/ui/graphics/t0;",
+                    AccessFlags.PRIVATE.value or AccessFlags.FINAL.value,
+                    null, null, null).toMutable())
+            }
+            val ctor = ImmutableMethod(PROGRESSIVE_CALLBACK, "<init>",
+                emptyList<ImmutableMethodParameter>(), "V",
+                AccessFlags.PUBLIC.value or AccessFlags.CONSTRUCTOR.value,
+                null, null, MutableMethodImplementation(if (USE_PROGRESSIVE_MASK) 6 else 2)).toMutable()
+            ctor.addInstructions(0, """
+                invoke-direct {p0}, Ljava/lang/Object;-><init>()V
+                const/4 v0, 0x1
+                iput-boolean v0, p0, $flag
+                ${if (USE_PROGRESSIVE_MASK) {
+                    """
+                        # Build the inverted linear mask once per cached callback.
+                        sget-wide v0, $MASK_BLACK
+                        new-instance v2, Landroidx/compose/ui/graphics/z;
+                        invoke-direct {v2, v0, v1}, $MASK_COLOR_CTOR
+                        sget-wide v0, $MASK_TRANSPARENT
+                        new-instance v3, Landroidx/compose/ui/graphics/z;
+                        invoke-direct {v3, v0, v1}, $MASK_COLOR_CTOR
+                        filled-new-array {v2, v3}, [Landroidx/compose/ui/graphics/z;
+                        move-result-object v0
+                        invoke-static {v0}, Ljava/util/Arrays;->asList([Ljava/lang/Object;)Ljava/util/List;
+                        move-result-object v0
+                        const/high16 v1, 0x7f800000
+                        const/4 v2, 0x0
+                        const/4 v3, 0x0
+                        invoke-static {v0, v1, v2, v3}, $PROGRESSIVE_MASK_FACTORY
+                        move-result-object v0
+                        iput-object v0, p0, $maskField
+                    """.trimIndent()
+                } else ""}
+                return-void
+            """.trimIndent())
+            callback.methods.add(ctor)
+            invoke.addInstructionsWithLabels(1, """
+                iget-boolean v0, p0, $flag
+                if-eqz v0, :serajr_progressive_stock
+                new-instance v0, $PROGRESSIVE_TYPE
+                sget-object v1, $PROGRESSIVE_EASING
+                const-wide/32 v2, 0x7f800000
+                const-wide/16 v4, 0x0
+                invoke-direct/range {v0 .. v5}, $PROGRESSIVE_CTOR
+                invoke-interface {p1, v0}, $PROGRESSIVE_SETTER
+                ${if (USE_PROGRESSIVE_MASK) {
+                    """
+                        iget-object v0, p0, $maskField
+                        invoke-interface {p1, v0}, $PROGRESSIVE_MASK_SETTER
+                    """.trimIndent()
+                } else ""}
+                sget-object v0, Lkotlin/Unit;->a:Lkotlin/Unit;
+                return-object v0
+            """.trimIndent(), ExternalLabel("serajr_progressive_stock", 1))
+            val cache = "${MAIN_ACTIVITY}->serajrNavProgressive:${PROGRESSIVE_CALLBACK}"
+            addStaticField("serajrNavProgressive", PROGRESSIVE_CALLBACK)
+            addStaticMethod(
+                name = "serajrGetNavProgressive",
+                parameters = emptyList(), returnType = PROGRESSIVE_CALLBACK, registers = 1,
+                body = """
+                    sget-object v0, $cache
+                    if-nez v0, :progressive_ready
+                    new-instance v0, $PROGRESSIVE_CALLBACK
+                    invoke-direct {v0}, ${PROGRESSIVE_CALLBACK}-><init>()V
+                    sput-object v0, $cache
+                    :progressive_ready
+                    return-object v0
+                """
+            )
         }
 
         // Temporary diagnostic fields.
@@ -1009,8 +1131,6 @@ val fixNavigationBarHazeExperimentalPatch = bytecodePatch(
                 ushr-int/lit8 v8, v7, 0x1
                 and-int/2addr v8, v9
                 or-int/2addr v11, v8
-                move v6, v11
-
                 ${if (FORCE_HAZE_ALWAYS_VISIBLE) {
                     "const/4 v6, 0x1"
                 } else {
@@ -1061,13 +1181,24 @@ val fixNavigationBarHazeExperimentalPatch = bytecodePatch(
                 move-result v5
                 and-int/2addr v6, v5
                 move-object v1, p0
-                const/high16 v5, 0x42000000
+                ${if (USE_PROGRESSIVE_HAZE) {
+                    "const v5, 0x${PROGRESSIVE_BLUR_RADIUS.toRawBits().toString(16)}"
+                } else {
+                    "const/high16 v5, 0x42000000"
+                }}
                 const v7, 0x3d4ccccd
                 const/4 v8, 0x0
-                const/4 v9, 0x0
+                ${if (USE_PROGRESSIVE_HAZE) {
+                    """
+                        invoke-static {}, $GET_PROGRESSIVE
+                        move-result-object v9
+                    """.trimIndent()
+                } else {
+                    "const/4 v9, 0x0"
+                }}
                 move-object v10, p1
                 const/4 v11, 0x0
-                const/16 v12, 0xc0
+                ${if (USE_PROGRESSIVE_HAZE) "const/16 v12, 0x40" else "const/16 v12, 0xc0"}
                 invoke-static/range {v0 .. v12}, $HAZE_EFFECT_METHOD
                 move-result-object v0
 
@@ -1275,7 +1406,7 @@ val fixNavigationBarHazeExperimentalPatch = bytecodePatch(
                 sput-boolean v0, $versionLoggedField
 
                 const-string v0, "$DIAG_TAG"
-                const-string v1, "D3-K1A.11-T10-B1-T3A ACTIVE"
+                const-string v1, "D3-K1A.11-T10-B1-T4B-R1 ACTIVE"
 
                 invoke-static {v0, v1}, Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I
 

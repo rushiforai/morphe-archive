@@ -162,7 +162,7 @@ public class SupportReportTest {
                 assertTrue(report, report.contains("\nDisable analytics coverage: channel read metrics; missing: "
                         + "Premium promo views, Premium promo taps, Premium promo accepts, Premium promo failures, dual camera reports, "
                         + "read receipts and story views, receive only mode, powering off accounts, instant lock, quiet sign-up, "
-                        + "the device in Active sessions, account deletion\n"));
+                        + "the device in Active sessions, account deletion, duress passcode\n"));
                 assertTrue(report, report.contains("\ndebug_logging: off\n"));
                 assertFalse(report, report.contains("[SELECTED EVENTS]"));
             }

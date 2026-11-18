@@ -866,6 +866,15 @@ class CloneInstallPatchTest {
         assertEquals(0, applyRunningNames(lookup, check))
     }
 
+    // The extension builds each copy's names out of these same strings. Pointing its own static initializer at the
+    // fields it was still filling in left every name null, and Messenger crashed on launch the first time it read one.
+    @Test fun theExtensionsOwnNamesAreNotDedupSites() {
+        val compat = dedupUris(id = "Lapp/hushmessenger/extension/CloneCompat;-><clinit>()V")
+        val classes = listOf(fixtureClass("LX/6TB;", listOf(dedupUris())), fixtureClass(DEDUP_PROVIDER, listOf(dedupMatcher())),
+            fixtureClass("Lapp/hushmessenger/extension/CloneCompat;", listOf(compat)))
+        assertEquals(setOf("$DEDUP_URIS_OWNER@4", "$DEDUP_URIS_OWNER@8", "$DEDUP_MATCHER@8"), findDedupSites(classes))
+    }
+
     @Test fun whatCloneInstallAlreadyPinnedIsLeftAsItIs() {
         val lookup = backupLookup()
         val check = attachmentCheck()

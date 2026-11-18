@@ -79,6 +79,13 @@ Laporan bersifat publik dan ditinjau sebelum saluran ditambahkan ke daftar. Peng
     <string name="morphe_custom_branding_splash_animation_size_title">Ukuran animasi splash</string>
     <string name="morphe_custom_branding_use_as_system_splash_summary">Gunakan animasi terpilih sebagai splash sistem Android</string>
     <string name="morphe_custom_branding_use_as_system_splash_title">Gunakan sebagai splash sistem</string>
+    <string name="morphe_custom_seekbar_thumb_file_invalid">Berkas yang dipilih bukan gambar yang didukung</string>
+    <string name="morphe_custom_seekbar_thumb_file_not_found">Gambar thumb seekbar khusus tidak ditemukan</string>
+    <string name="morphe_custom_seekbar_thumb_file_title">Gambar thumb</string>
+    <string name="morphe_custom_seekbar_thumb_scale_type_entry_fit_seekbar">Sesuaikan seekbar</string>
+    <string name="morphe_custom_seekbar_thumb_scale_type_entry_original">Ukuran asli</string>
+    <string name="morphe_custom_seekbar_thumb_scale_type_title">Ukuran thumb</string>
+    <string name="morphe_custom_seekbar_thumb_title">Aktifkan thumb seekbar khusus</string>
     <string name="morphe_dark_theme_custom_color_summary">Digunakan saat Kustom dipilih</string>
     <string name="morphe_dark_theme_custom_color_title">Warna tema gelap Kustom</string>
     <string name="morphe_dark_theme_title">Tema gelap</string>
@@ -112,6 +119,12 @@ Video diminta dengan awalan pendek dari ID video yang di-hash, sehingga server t
     <string name="morphe_disable_toolbar_navigation_tabs_summary">Menampilkan Subscription di bilah navigasi, jika YouTube memindahkannya ke tab di bagian atas Beranda</string>
     <string name="morphe_disable_toolbar_navigation_tabs_title">Nonaktifkan tab navigasi toolbar</string>
     <string name="morphe_dual_captions_enabled_title">Teks Dwibahasa</string>
+    <string name="morphe_enhanced_ambient_mode_dim_duration_title">Durasi redup</string>
+    <string name="morphe_enhanced_ambient_mode_dim_while_scrolling_summary">Meredupkan cahaya saat halaman digulir atau disentuh</string>
+    <string name="morphe_enhanced_ambient_mode_dim_while_scrolling_title">Redupkan saat menggulir</string>
+    <string name="morphe_enhanced_ambient_mode_readable_text_summary">Meredupkan cahaya pada video terang agar teks di halaman tetap terbaca</string>
+    <string name="morphe_enhanced_ambient_mode_readable_text_title">Jaga agar teks tetap terbaca</string>
+    <string name="morphe_enhanced_ambient_mode_title">Mode pencahayaan sinematik yang ditingkatkan</string>
     <string name="morphe_expand_livestream_dvr_duration_not_available">"'Perluas durasi siaran langsung DVR' mungkin tidak tersedia
 
 Untuk memperbaikinya, aktifkan 'Palsukan aliran video' dan ubah 'Klien bawaan' menjadi 'TV Simply' atau 'visionOS'"</string>
@@ -281,6 +294,12 @@ Untuk memperbaikinya, aktifkan 'Palsukan aliran video' dan ubah 'Klien bawaan' m
     <string name="morphe_playback_in_feeds_title">Pemutaran di feed</string>
     <string name="morphe_player_control_buttons_background_opacity_summary">Sesuaikan opasitas latar belakang di belakang tombol kontrol pemutar dan bilah waktu (0 tidak terlihat, 100 solid)</string>
     <string name="morphe_player_control_buttons_background_opacity_title">Opasitas latar belakang tombol kontrol</string>
+    <string name="morphe_playlist_hide_removal_snackbar_summary">Konfirmasi tidak ditampilkan setelah video dihapus dari daftar putar</string>
+    <string name="morphe_playlist_hide_removal_snackbar_title">Sembunyikan snackbar penghapusan daftar putar</string>
+    <string name="morphe_playlist_long_press_drag_summary">Sentuh dan tahan video di daftar putar Anda untuk menyeretnya ke posisi baru</string>
+    <string name="morphe_playlist_long_press_drag_title">Tekan lama untuk mengatur ulang urutan video daftar putar</string>
+    <string name="morphe_playlist_wide_drag_handles_summary">Handle seret daftar putar lebih mudah diambil</string>
+    <string name="morphe_playlist_wide_drag_handles_title">Perlebar handle seret daftar putar</string>
     <string name="morphe_post_buttons_layout_entry_1">Server</string>
     <string name="morphe_post_buttons_layout_entry_2">Dipaksakan</string>
     <string name="morphe_post_buttons_layout_title">Tata letak tombol postingan</string>
@@ -760,19 +779,7 @@ Setelan → Putar Otomatis / Pemutaran → Putar otomatis video berikutnya"</str
     <string name="revanced_disable_landscape_mode_summary_off">Orientasi video mengikuti setelan perangkat saat mode layar penuh</string>
     <string name="revanced_disable_landscape_mode_summary_on">Orientasi video adalah mode potret dalam layar penuh</string>
     <string name="revanced_disable_landscape_mode_title">Nonaktifkan mode lanskap</string>
-    <string name="revanced_disable_layout_updates_summary_off">Tata letak akan diperbarui oleh server</string>
-    <string name="revanced_disable_layout_updates_summary_on">Tata letak tidak akan diperbarui oleh server</string>
     <string name="revanced_disable_layout_updates_title">Nonaktifkan pembaruan tata letak</string>
-    <string name="revanced_disable_layout_updates_user_dialog_message">"Tata letak aplikasi kembali ke tata letak yang digunakan saat pertama kali dipasang
-
-Beberapa tata letak sisi server mungkin tidak kembali
-
-Perubahan termasuk:
-• Komponen di menu pemutar yang melayang (atau setelan terkait) mungkin tidak berfungsi
-• Angka yang bergulir tidak dianimasi
-• Tab pustaka ditampilkan
-• Bagian musik dari deskripsi video mungkin tidak berfungsi
-• Tombol beralih akun mungkin tidak muncul di tab Pustaka"</string>
     <string name="revanced_disable_like_dislike_glow_summary_off">Tombol Suka dan Tidak Suka akan berkedip saat disebutkan</string>
     <string name="revanced_disable_like_dislike_glow_summary_on">Tombol Suka dan Tidak Suka tidak akan bersinar saat disebutkan</string>
     <string name="revanced_disable_like_dislike_glow_title">Disable Like and Dislike buttons glow</string>
@@ -1085,10 +1092,6 @@ Toko"</string>
     <string name="revanced_hide_comments_carousel_filter_strings_summary">Masukkan nama komentar yang berputar untuk disaring, dipisahkan dengan baris baru</string>
     <string name="revanced_hide_comments_carousel_filter_strings_title">Penyaring komentar yang berputar</string>
     <string name="revanced_hide_comments_carousel_title">Aktifkan penyaring komentar yang berputar</string>
-    <string name="revanced_hide_comments_carousel_user_dialog_message">"Catatan:
-• Pastikan untuk memasukkan nama item carousel yang tepat (misalnya: Tanya, Hype video ini, Dengarkan di YouTube Music, dll.)
-• Menyembunyikan item carousel mungkin memiliki efek samping yang tidak diinginkan
-• Jika semua item carousel disembunyikan, seluruh bagian komentar juga akan disembunyikan"</string>
     <string name="revanced_hide_comments_create_a_short_button_summary_off">Tombol Buat Short ditampilkan</string>
     <string name="revanced_hide_comments_create_a_short_button_summary_on">Tombol Buat Short disembunyikan</string>
     <string name="revanced_hide_comments_create_a_short_button_title">Sembunyikan tombol \'Buat Short\'</string>

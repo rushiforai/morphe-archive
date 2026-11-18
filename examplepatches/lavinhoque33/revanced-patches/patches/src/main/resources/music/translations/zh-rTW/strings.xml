@@ -130,6 +130,8 @@ SABR 播放（影片串流模擬已關閉）"</string>
     <string name="morphe_music_downloads_started">已開始下載</string>
     <string name="morphe_music_downloads_starting">正在開始下載…</string>
     <string name="morphe_music_downloads_unknown_track">無法識別要下載的曲目</string>
+    <string name="morphe_music_hide_you_may_also_like_section_title">隱藏「你可能也喜歡」區塊</string>
+    <string name="morphe_music_hide_your_downloads_shelf_title">隱藏「您的下載」區塊</string>
     <string name="morphe_music_lyrics_about_summary">"歌詞是根據標題和藝人進行配對，不尋常的中繼資料可能導致找不到內容或找到錯誤的版本。請使用重新整理按鈕來切換版本。標記 * 的服務提供者需要權杖。並非所有啟用的服務提供者都會按照您的設定順序請求回應，而是根據其速度回應。
 
 歌詞來自第三方服務，這些服務與 RVX 無關，也未獲得 RVX 贊助或認可。各項服務皆按其原始狀態使用：歌詞內容、可用性及其授權權利仍歸屬於該服務及其授權方，使用這些服務可能受其服務條款約束。傳送至已啟用服務的資訊只有你查詢所需的數據——即標題、藝人名稱，以及該服務需要時所包含的影片 ID。可選的人工智慧端點和 QuickLRC 轉錄功能僅在你設定後才會執行，且僅接收歌詞文字或歌曲的影片 URL。"</string>

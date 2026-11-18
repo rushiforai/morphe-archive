@@ -4,6 +4,9 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction35c
+import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction3rc
 
 /**
  * Multi-version anchor resolution.
@@ -39,3 +42,19 @@ internal fun BytecodePatchContext.resolveAnchor(
     vararg candidates: Fingerprint,
 ): MutableMethod = boundMethodOrNull(*candidates)
     ?: throw PatchException("$label: none of the ${candidates.size} known anchor shapes matched this build")
+
+/**
+ * The register holding the first declared parameter of an invoke.
+ *
+ * The first explicit parameter sits one slot past the receiver in both invoke forms: index 1 of a
+ * five-register list, or `start + 1` of a range. Reads it off the instruction instead of hardcoding a
+ * register, because a method that keeps its signature can still be rebuilt with its arguments moved
+ * (5.27.4.900 passed a flag in v1, 5.27.90.900 passes the same flag in v0).
+ */
+internal fun firstParameterRegister(instruction: Instruction): Int? = when (instruction) {
+    // 35c names its slots C..G, C being the receiver: the first declared parameter is D.
+    is Instruction35c -> if (instruction.registerCount >= 2) instruction.registerD else null
+    // 3rc is contiguous from startRegister, so the parameter is one slot past the receiver.
+    is Instruction3rc -> if (instruction.registerCount >= 2) instruction.startRegister + 1 else null
+    else -> null
+}

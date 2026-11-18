@@ -57,6 +57,17 @@ public final class LokiLog {
         if (context != null) write(context, "I", detail);
     }
 
+    /**
+     * A routine event: written only while diagnostic logging is on. Success paths use this, so a report stays
+     * readable - note() is for the few lines that explain a failure whatever the switch says.
+     */
+    public static void debug(String detail) {
+        Context context = application();
+        if (context == null || !LokiPrefs.debug(context)) return;
+        Log.d(LokiPrefs.TAG, detail);
+        write(context, "D", detail);
+    }
+
     public static Context application() {
         try {
             return (Context) Class.forName("android.app.ActivityThread").getMethod("currentApplication").invoke(null);

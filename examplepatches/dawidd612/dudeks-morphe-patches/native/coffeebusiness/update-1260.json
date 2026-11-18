@@ -1,0 +1,12 @@
+{
+  "version": "1.26.0",
+  "input_sha256": "1ee06bb1596af03e10d5798617991bd047ada4a3d5c7139c10a68e34eae7a948",
+  "move_next": "0x181cee8",
+  "hook": "0x181cfd4",
+  "epilogue": "0x181d308",
+  "initialized": "0x3749be8",
+  "java_vm": "0x375ec90",
+  "signer_check": "0x197c3e4",
+  "segment": "0x3980000",
+  "entry": "0x3980400"
+}

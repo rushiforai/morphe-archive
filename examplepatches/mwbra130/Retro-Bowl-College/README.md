@@ -2,7 +2,7 @@
 
 Some apps I patched and other apps that were requested if you would like to request an app please drop a comment in my reddit discussion for patches: https://www.reddit.com/r/MorpheApp/s/xRx6wdTYA5
 
-**43 apps · 94 patches** · current bundle: [v1.79.22](https://github.com/mwbra130/Retro-Bowl-College/releases/tag/v1.79.22)
+**27 apps · 46 patches** · current bundle: [v0.0.1](https://github.com/mwbra130/Retro-Bowl-College/releases/tag/v0.0.1)
 
 ## Apps
 
@@ -13,7 +13,7 @@ Some apps I patched and other apps that were requested if you would like to requ
      the GRID_START / GRID_END markers on every release — new apps get their name, Play
      Store icon and experimental marker automatically, and grid names link to the
      detailed sections below (which use the apps' full Play Store names). Kept OUTSIDE the auto-generated patches
-     block below on purpose. Reflects bundle v1.79.22. -->
+     block below on purpose. Reflects bundle v0.0.1. -->
 
 <!-- GRID_START -->
 <table>
@@ -86,19 +86,6 @@ Some apps I patched and other apps that were requested if you would like to requ
 </tr>
 <tr>
 <td align="center" width="20%">
-<img src="https://play-lh.googleusercontent.com/N4P3p5wvAau7_GaIZWi6NhHKPhjzYQfJRU0LZ79Q2_W2nB0p52mqCxa8tci7KqdqY73AOdlpij4lpq2kcyLp2A=w128-h128" width="72" height="72" alt="Moises icon">
-<br><a href="#app-ai-moises"><b>Moises</b></a>
-</td>
-<td align="center" width="20%">
-<img src="https://play-lh.googleusercontent.com/juZBxj0uxtz80RMbyvPxco2O7rD7aU71VvhLsgConfsM4FmtzXTprkGXiEZQHugPU0A17AYnQ_tgF-0Nph9MIQ=w128-h128" width="72" height="72" alt="Notes icon">
-<br><a href="#app-com-inotesapp-inotes"><b>Notes</b></a>
-<br><sub>🧪 experimental</sub>
-</td>
-<td align="center" width="20%">
-<img src="https://play-lh.googleusercontent.com/6pwBTSQ4miOUb2Bj1043PM71JyzCUAa62TiH95RE2WW168iIT3hy4ANK3jaQZYAWSFHlEg7f7g7g0pSogSfsaA=w128-h128" width="72" height="72" alt="OLX Pakistan icon">
-<br><a href="#app-com-olx-pk"><b>OLX Pakistan</b></a>
-</td>
-<td align="center" width="20%">
 <img src="https://play-lh.googleusercontent.com/-21ASw97RWIu-CnDVbEEtTrfVIDqpfhY4eofgk5aT98q4E8jnrMVxNqI0J7JYgRTkHjoOoWM58ScUzu30cxevQ=w128-h128" width="72" height="72" alt="Poweramp icon">
 <br><a href="#app-com-maxmpz-audioplayer"><b>Poweramp</b></a>
 </td>
@@ -106,8 +93,6 @@ Some apps I patched and other apps that were requested if you would like to requ
 <img src="https://play-lh.googleusercontent.com/DrvO8zMElYMrKfmdRtxwyH_kkvk6MJD87mBaC_38Bw1Pkq0DJB0h-SpfbK5SOAkoJQRJ2TpUU0QvW3bSdUe8=w128-h128" width="72" height="72" alt="Retro Bowl College icon">
 <br><a href="#app-com-newstargames-retrobowlcollege"><b>Retro Bowl College</b></a>
 </td>
-</tr>
-<tr>
 <td align="center" width="20%">
 <img src="https://play-lh.googleusercontent.com/ssy9sm_kmFckXCA5OT-VpT4pYOE_P0dy8oM8mTvvXaD692W14esUS6saR8qaprJcrfMrmPyYG4Dvyr4Mudp3gg=w128-h128" width="72" height="72" alt="Rocket Player icon">
 <br><a href="#app-com-jrtstudio-anothermusicplayer"><b>Rocket Player</b></a>
@@ -120,6 +105,8 @@ Some apps I patched and other apps that were requested if you would like to requ
 <img src="https://play-lh.googleusercontent.com/OdQDxdeo_WyMUftwJbJHF4PALrfSJ4B4vpOWkXPKar1_JN3NKc9ULakQ5o3mjzcuRRTDheF36xSh9mxVRnjD=w128-h128" width="72" height="72" alt="Smart MP3 Tagger icon">
 <br><a href="#app-tageditor-automatictageditor-audiotagging-audioedit-mp3edit"><b>Smart MP3 Tagger</b></a>
 </td>
+</tr>
+<tr>
 <td align="center" width="20%">
 <img src="https://play-lh.googleusercontent.com/c-cyyIsMn659H-p3XFezpj3wjkC9Z7XhmZIz-WiZuVGZyMWp7t_pGUdpS0_be_Qu8_9UewBqVxFtONQ4-GiwaQ=w128-h128" width="72" height="72" alt="Smashy Road 2 icon">
 <br><a href="#app-com-rkgames-basisgame"><b>Smashy Road 2</b></a>
@@ -128,8 +115,6 @@ Some apps I patched and other apps that were requested if you would like to requ
 <img src="https://play-lh.googleusercontent.com/G1eIJ3yor1yW20izrYjOfCzHgVkRtewlfPFG9CEFTHzSI2m0Lwds_Y1xYgeg21CFok_UXrol-ox2IwqL4JMrLQ=w128-h128" width="72" height="72" alt="Subway Surfers icon">
 <br><a href="#app-com-kiloo-subwaysurf"><b>Subway Surfers</b></a>
 </td>
-</tr>
-<tr>
 <td align="center" width="20%">
 <img src="https://play-lh.googleusercontent.com/foOfzWD2UQTfnP9gP6aCSRUx-6s4fmm6ZemRW__C3e7_fbjwhyXbBSvZjr1IS31q9PElU6oqLY1HvP3McqMfK_8=w128-h128" width="72" height="72" alt="Timemark icon">
 <br><a href="#app-com-oceangalaxy-camera-new"><b>Timemark</b></a>
@@ -142,6 +127,8 @@ Some apps I patched and other apps that were requested if you would like to requ
 <img src="https://play-lh.googleusercontent.com/o2AAUlWu7gGP5WwbE7eg0aP3vqNKjna0HbfFP3LIFVAHpUpT3KfLxnGv3R8Nn6z0XUP9hsly0SBR4jniSW08Dw=w128-h128" width="72" height="72" alt="Unified Remote icon">
 <br><a href="#app-com-relmtech-remote"><b>Unified Remote</b></a>
 </td>
+</tr>
+<tr>
 <td align="center" width="20%">
 <img src="https://play-lh.googleusercontent.com/z74H5YZukP3qJGkbJGUZj39y_1rDADZI_rkRUB04ID1x9WjhpuBA_t_FMdMQ7vFm0MFwLWkMFQPInRq-kC7MXg=w128-h128" width="72" height="72" alt="Video Cutter icon">
 <br><a href="#app-com-losslessvideocutter"><b>Video Cutter</b></a>
@@ -149,13 +136,6 @@ Some apps I patched and other apps that were requested if you would like to requ
 <td align="center" width="20%">
 <img src="https://play-lh.googleusercontent.com/79Q266gifrq0sHAhSLlPk2Bur1fgWIZJW-B4vWPpoEcvlIOCFIFooR7OV3qXhWMNJbE8MTTmtIoHwWUYj0hLVA=w128-h128" width="72" height="72" alt="VPN Gate icon">
 <br><a href="#app-com-giamping-sevpn"><b>VPN Gate</b></a>
-</td>
-</tr>
-<tr>
-<td align="center" width="20%">
-<img src="https://play-lh.googleusercontent.com/MyptZXmcCyF59phIWPsNCfHq6zSO_ojEdw_4rMYYWPOGdikSjqeOXcoszBZ053VYpINe5K7ZR9KV1nkFWgxdOw=w128-h128" width="72" height="72" alt="YouTube Music (Wear OS) icon">
-<br><a href="#app-com-google-android-apps-youtube-music"><b>YouTube Music (Wear OS)</b></a>
-<br><sub>🧪 experimental</sub>
 </td>
 </tr>
 </table>
@@ -167,72 +147,7 @@ Some apps I patched and other apps that were requested if you would like to requ
 
 <!-- TESTING_START -->
 <table>
-<tr>
-<td align="center" width="20%">
-<img src="https://play-lh.googleusercontent.com/ZcFuvOQUSbZWo5diJwpoRn4g1jNT5I8XZ_Kmz7Lox_EBUO1b0TAQ9jsFRAru4vUWTP04Er7LE3A8k0HGYO-YCQ=w128-h128" width="72" height="72" alt="BusinessX icon">
-<br><a href="#app-com-shrey-businessx-android"><b>BusinessX</b></a>
-<br><sub>🧪 experimental</sub>
-</td>
-<td align="center" width="20%">
-<img src="https://play-lh.googleusercontent.com/ldoC6AYZEHze9vFmmXz7nDIFPQK866Cw0oWSL6R7TGH3a5ZUabqplWV5kuJj5fKEBPIwDAxYmTzKII9K-2sC_w=w128-h128" width="72" height="72" alt="Call Recorder icon">
-<br><a href="#app-org-skvalex-cr"><b>Call Recorder</b></a>
-<br><sub>🧪 experimental</sub>
-</td>
-<td align="center" width="20%">
-<img src="https://play-lh.googleusercontent.com/3Q9MNHslRe9p1Zbzn-H7b0OUZkqlvxuaMoPyZ_8mzQmry8tB-FeFPXfbJ7zBxVY6B8zrphBREyZhL-8I9R4r=w128-h128" width="72" height="72" alt="DiskWala icon">
-<br><a href="#app-com-diskwalaapp"><b>DiskWala</b></a>
-<br><sub>🧪 experimental</sub>
-</td>
-<td align="center" width="20%">
-<img src="https://placehold.co/128x128/png?text=F" width="72" height="72" alt="FORScan Lite icon">
-<br><a href="#app-com-astech-forscanlite"><b>FORScan Lite</b></a>
-<br><sub>🧪 experimental</sub>
-</td>
-<td align="center" width="20%">
-<img src="https://play-lh.googleusercontent.com/Ndfiaudmk4fiveYNm5Gsnso8gFcvLeskQUdwgh9yNnOghIH0LN-Hth_yAMsY2TxN1u9jleiOX6Y81Wh5Vy5M=w128-h128" width="72" height="72" alt="Google Messages icon">
-<br><a href="#app-com-google-android-apps-messaging"><b>Google Messages</b></a>
-<br><sub>🧪 experimental</sub>
-</td>
-</tr>
-<tr>
-<td align="center" width="20%">
-<img src="https://play-lh.googleusercontent.com/fgeKZ4Jl9iOyASIdpxVk5VMbmCOJbgZTx00FnNpGun0fxya2jZvvqCsS3btbORv6O9XyXl--tkFwB2r8XiX8=w128-h128" width="72" height="72" alt="Pika Spot icon">
-<br><a href="#app-com-pika-dynamicisland"><b>Pika Spot</b></a>
-<br><sub>🧪 experimental</sub>
-</td>
-<td align="center" width="20%">
-<img src="https://play-lh.googleusercontent.com/S-gCULXUiJ9cWJlV9mhTj-1e6nleHaBWXDAZrzlHOaVavugkYBqqMeR7Q5p_-sjLdC9xM9HI7cte-iweKHDfhw=w128-h128" width="72" height="72" alt="RainViewer icon">
-<br><a href="#app-com-lucky-apps-rainviewer"><b>RainViewer</b></a>
-<br><sub>🧪 experimental</sub>
-</td>
-<td align="center" width="20%">
-<img src="https://play-lh.googleusercontent.com/J4LN2qH2PQkZ3sFQonz-HWYkd7M38BtEO4Grzh1Xn7L2J6NUILHPkhYvPjdhMZQzrdm4BarUj547wfthyMz_vWM=w128-h128" width="72" height="72" alt="Strava icon">
-<br><a href="#app-com-strava"><b>Strava</b></a>
-<br><sub>🧪 experimental</sub>
-</td>
-<td align="center" width="20%">
-<img src="https://play-lh.googleusercontent.com/6aOhYA2V2PxxxAKVZMFBBWzMN1TttEZFuZ4tEiFQoc-WISs9YSnihT3NeFPV_jtyDci-3IoOyT3L7lMc5Qf7=w128-h128" width="72" height="72" alt="Vehico icon">
-<br><a href="#app-com-optimageeks-vehico-app"><b>Vehico</b></a>
-<br><sub>🧪 experimental</sub>
-</td>
-<td align="center" width="20%">
-<img src="https://play-lh.googleusercontent.com/WJ8t0dcoBL8_6BonyM6196e1MI7xZ0t6iE61HOqRdWmEoVWaOsgzP3eFfjLfH3MUJ4muEt2kDI7IbyGC8aCsVQ=w128-h128" width="72" height="72" alt="Web Video Caster icon">
-<br><a href="#app-com-instantbits-cast-webvideo"><b>Web Video Caster</b></a>
-<br><sub>🧪 experimental</sub>
-</td>
-</tr>
-<tr>
-<td align="center" width="20%">
-<img src="https://play-lh.googleusercontent.com/ANtuOsdWIW2Z58FWqGfpt9u6Tau7HUox1gVDbtfX2-1pu1MpAyuGszSUq5KqY0iZqQi2GxOcAVdoD0ltW2bSow=w128-h128" width="72" height="72" alt="X-plore icon">
-<br><a href="#app-com-lonelycatgames-xplore"><b>X-plore</b></a>
-<br><sub>🧪 experimental</sub>
-</td>
-<td align="center" width="20%">
-<img src="https://play-lh.googleusercontent.com/eZs5iqAZIxCcvq0I820wedBRA3UJDuJOkxVVbCPsmlvuSQ_xC_QnXfOOc8vMamG7D6yJuuqU3wTLJRBYeXByU5o=w128-h128" width="72" height="72" alt="Yin Yang Launcher icon">
-<br><a href="#app-com-yinyang-launcher"><b>Yin Yang Launcher</b></a>
-<br><sub>🧪 experimental</sub>
-</td>
-</tr>
+
 </table>
 <!-- TESTING_END -->
 
@@ -251,51 +166,7 @@ Some apps I patched and other apps that were requested if you would like to requ
 ## Patch descriptions
 
 <!-- PATCHES_START -->
-> **[v1.79.22](https://github.com/mwbra130/Retro-Bowl-College/releases/tag/v1.79.22)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;94 patches total
-<a id="app-com-diskwalaapp" name="app-com-diskwalaapp"></a>
-<details>
-<summary>DiskWala&nbsp;&nbsp;•&nbsp;&nbsp;9 patches</summary>
-<br>
-
-**Supported versions:**
-
-| 27.3 |
-| :---: |
-
-| Patch | Description | Options |
-|----------|----------------|-----------|
-| [Bypass PairIP application checks](#bypass-pairip-application-checks) | Required for re-signed builds: PairIP's Application class runs the signature and license checks at startup. This rewrites that one method so it only registers the app context and never calls either check, instead of relying on the checks themselves being stubbed. |  |
-| [Bypass PairIP license check](#bypass-pairip-license-check) | Required for re-signed builds: PairIP asks Google Play to license the app at startup and sends non-Play installs to a Play Store block page. Disables that check, its verdict handler, both block-page launchers, the delayed shutdown, and the block activity itself so the patched app can open. |  |
-| [Change installer source](#change-installer-source) | Spoofs the installer source so the app appears to be installed from Google Play everywhere it is read. Pre-selected companion for the DiskWala patch set — keep it on. | • Spoofed package installer name |
-| [Disable PairIP license activity](#disable-pairip-license-activity) | Required for re-signed builds: removes PairIP's LicenseActivity from the manifest entirely, so the Play Store block page and license error dialog can never be shown, whatever tries to open them. |  |
-| [Disable ads](#disable-ads) | Stubs AppLovin, AdMob, InMobi and other ad SDKs at the bytecode level to prevent ads from loading without breaking the app. |  |
-| [Disable forced update](#disable-forced-update) | Bypasses PairIP license check ('Download from Play Store'), Play Integrity, and signature verification to allow modified and sideloaded app usage. |  |
-| [Enable Premium](#enable-premium) | Turns on Premium (no ads, real file names, HD downloads, faster streaming) as if subscribed. Keep the pre-selected PairIP bypass patches on — a re-signed build cannot pass PairIP's startup license check without them. |  |
-| [Patch native libraries](#patch-native-libraries) | Neutralizes PairIP traps in native .so libraries and patches Hermes bundle. Also applies the standalone-install manifest fixes (real Application class, original component factory, native library extraction) and removes the stock baseline profiles. |  |
-| [Unlock premium](#unlock-premium) | Makes RevenueCat entitlements appear active so ads-free and premium features are unlocked. |  |
-
-</details>
-
-<a id="app-com-instantbits-cast-webvideo" name="app-com-instantbits-cast-webvideo"></a>
-<details>
-<summary>Web Video Caster&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
-<br>
-
-**Supported versions:**
-
-| 6.1.0 |
-| :---: |
-
-| Patch | Description | Options |
-|----------|----------------|-----------|
-| [Bypass PairIP application checks](#bypass-pairip-application-checks) | Required for re-signed builds: PairIP's Application class runs the signature and license checks at startup. This rewrites that one method so it only registers the app context and never calls either check, instead of relying on the checks themselves being stubbed. |  |
-| [Bypass PairIP license check](#bypass-pairip-license-check) | Required for re-signed builds: PairIP asks Google Play to license the app at startup and sends non-Play installs to a Play Store block page. Disables that check, its verdict handler, both block-page launchers, the delayed shutdown, and the block activity itself so the patched app can open. |  |
-| [Bypass PairIP signature check](#bypass-pairip-signature-check) | Required for re-signed builds: PairIP checks the APK signature at startup and crashes the app on launch when it is not the developer's. Disables that one check so the patched app can start. |  |
-| [Disable PairIP license activity](#disable-pairip-license-activity) | Required for re-signed builds: removes PairIP's LicenseActivity from the manifest entirely, so the Play Store block page and license error dialog can never be shown, whatever tries to open them. |  |
-| [Unlock premium](#unlock-premium) | Unlocks Web Video Caster Premium (ad removal, ad block, bookmarks, queue and the other premium features). No real purchase is made. |  |
-
-</details>
-
+> **[v0.0.1](https://github.com/mwbra130/Retro-Bowl-College/releases/tag/v0.0.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;46 patches total
 <a id="app-com-jamworks-alwaysondisplay" name="app-com-jamworks-alwaysondisplay"></a>
 <details>
 <summary>aodNotify&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
@@ -367,94 +238,6 @@ Some apps I patched and other apps that were requested if you would like to requ
 
 </details>
 
-<a id="app-com-pika-dynamicisland" name="app-com-pika-dynamicisland"></a>
-<details>
-<summary>Pika! Spot - Dynamic animation&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
-<br>
-
-**Supported versions:**
-
-| 1.4.5 |
-| :---: |
-
-| Patch | Description | Options |
-|----------|----------------|-----------|
-| [Bypass PairIP license check](#bypass-pairip-license-check) | Required for re-signed builds: PairIP asks Google Play to license the app at startup and sends unlicensed installs to a Play Store block page. Disables that check, its verdict handler and both block-page launchers so the patched app can open. |  |
-| [Enable Lifetime VIP](#enable-lifetime-vip) | Turns on the lifetime Life Member (SVIP) state: no ads and every animated theme applies for free, with no expiry — the VIP screen reads Level: SVIP and Status: life member. Needs the stock Pika! Spot 1.4.5 XAPK. |  |
-| [Spoof app signature](#spoof-app-signature) | Fixes the 'Can not connect to server' stop at 30% on launch: the app's first server login carries a token derived from the APK signing certificate, and a re-signed build computes it from the wrong certificate, so the server rejects the login. Recomputes the token with the stock signing certificate. Needs the stock Pika! Spot 1.4.5 XAPK. |  |
-
-</details>
-
-<a id="app-ai-moises" name="app-ai-moises"></a>
-<details>
-<summary>Moises: The Musician's AI App&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
-<br>
-
-**Supported versions:**
-
-| 2.141.0 |
-| :---: |
-
-| Patch | Description | Options |
-|----------|----------------|-----------|
-| [Bypass PairIP signature check](#bypass-pairip-signature-check) | Required for re-signed builds: PairIP verifies the app's signing certificate at startup and kills tampered builds. Disables that Java-layer check (its pass state is returning normally). The native PairIP VM layer is untouched. |  |
-| [Enable Pro](#enable-pro) | Turns on the app's Pro plan state (plan-gated features, Hi-Fi and drum-part pickers, advanced creative control, credit checks) as if the Pro plan were active. Note: stem separation itself runs on Moises' servers, which meter the account separately. |  |
-| [Remove telemetry](#remove-telemetry) | Stops the app reporting usage: the Singular attribution SDK never initializes and its events are refused, and Firebase Analytics/Crashlytics collection is turned off in the manifest. Separation jobs, account, purchases and push are unaffected. |  |
-
-</details>
-
-<a id="app-com-lonelycatgames-xplore" name="app-com-lonelycatgames-xplore"></a>
-<details>
-<summary>X-plore File Manager&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
-<br>
-
-**Supported versions:**
-
-| 4.52.02 |
-| :---: |
-
-| Patch | Description | Options |
-|----------|----------------|-----------|
-| [Bypass PairIP signature check](#bypass-pairip-signature-check) | Required for re-signed builds: PairIP verifies the app's signing certificate at startup and kills the app if it isn't the Play signature. This disables that one check so the patched app can open. |  |
-| [Enable Premium](#enable-premium) | Unlocks all premium features and removes ads by enabling the app's top donation tier state (the Dinner tier) — no purchase is made. |  |
-
-</details>
-
-<a id="app-com-lucky-apps-rainviewer" name="app-com-lucky-apps-rainviewer"></a>
-<details>
-<summary>RainViewer: Live Weather Radar&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
-<br>
-
-**Supported versions:**
-
-| 8.4.1 |
-| :---: |
-
-| Patch | Description | Options |
-|----------|----------------|-----------|
-| [Bypass integrity check](#bypass-integrity-check) | Stops the Play Integrity (Raindrop) verdict from blocking the app. If the app already shows App Blocked, reinstall it fresh after patching. |  |
-| [Change installer source](#change-installer-source) | Spoofs the installer source so the app appears to be installed from an app store. | • Spoofed package installer name |
-| [Enable Premium](#enable-premium) | Unlocks RainViewer Pro. Use with Change installer source. |  |
-
-</details>
-
-<a id="app-com-shrey-businessx-android" name="app-com-shrey-businessx-android"></a>
-<details>
-<summary>BusinessX&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
-<br>
-
-**Supported versions:**
-
-| 6.5.2 |
-| :---: |
-
-| Patch | Description | Options |
-|----------|----------------|-----------|
-| [Change installer source](#change-installer-source) | Spoofs the installer source so the app appears to be installed from Google Play. Required for BusinessX: its PairIP local installer check is live, so a re-signed build fails the license check without it — keep it on. | • Spoofed package installer name |
-| [Enable Premium](#enable-premium) | Grants Premium's on-device features: inventory & sales export (PDF/Excel/CSV), full sales history and trends, shop sharing, no ads, and Google Drive backup. BusinessX Cloud backup/sync are authorized on the developer's server and may still require a real subscription. |  |
-
-</details>
-
 <a id="app-com-hapibits-soundlift" name="app-com-hapibits-soundlift"></a>
 <details>
 <summary>Echo Equalizer: Bass Booster&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
@@ -506,23 +289,6 @@ Some apps I patched and other apps that were requested if you would like to requ
 
 </details>
 
-<a id="app-com-yinyang-launcher" name="app-com-yinyang-launcher"></a>
-<details>
-<summary>Yin Yang Minimalist Launcher&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
-<br>
-
-**Supported versions:**
-
-| 5.13.1 |
-| :---: |
-
-| Patch | Description | Options |
-|----------|----------------|-----------|
-| [Change installer source](#change-installer-source) | Spoofs the installer source so the app appears to be installed from Google Play. Required for Yin Yang Launcher: its PairIP local installer check is live, so a re-signed build fails the license check without it — keep it on. | • Spoofed package installer name |
-| [Enable Premium](#enable-premium) | Unlocks Yin Yang Pro for free, as if the Lifetime purchase were bought: all clocks, fonts, live wallpapers and icons. Also enable the Change installer source patch (pre-selected) — it is required for the patched app to pass the license check. |  |
-
-</details>
-
 <a id="app-com-subtlesignals-gradientweather" name="app-com-subtlesignals-gradientweather"></a>
 <details>
 <summary>Gradient Weather&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
@@ -554,29 +320,6 @@ Some apps I patched and other apps that were requested if you would like to requ
 |----------|----------------|-----------|
 | [Disable PairIP protection](#disable-pairip-protection) | Lets the patched app run: replaces PairIP's VM startup with harvested vault/handle data, removes the signature check and license dialog, installs the decrypted native libraries and runtime classes, and fixes camera streaming. DroidCam 10.0 only. |  |
 | [Unlock Pro](#unlock-pro) | Unlocks DroidCam Pro (HD/4K, no watermark, all options): the license verdict is forced to Pro and renews itself at every silent re-check. Requires 'Disable PairIP protection'. DroidCam 10.0 only. |  |
-
-</details>
-
-<a id="app-com-google-android-apps-youtube-music" name="app-com-google-android-apps-youtube-music"></a>
-<details>
-<summary>YouTube Music (Wear OS)&nbsp;&nbsp;•&nbsp;&nbsp;8 patches</summary>
-<br>
-
-**Supported versions:**
-
-| 9.45.41-WEAR_RELEASE |
-| :---: |
-
-| Patch | Description | Options |
-|----------|----------------|-----------|
-| [Disable QUIC protocol](#disable-quic-protocol) | Disables the QUIC (HTTP/3) network protocol in the Wear OS app's Cronet stack, forcing TCP-based HTTP/2 connections. |  |
-| [Disable audio ducking](#disable-audio-ducking) | Keeps the volume unchanged when another app plays a short sound, such as a notification, instead of ducking the music. |  |
-| [Disable network telemetry](#disable-network-telemetry) | Turns off the Cronet networking library's telemetry in the Wear OS app (its manifest switch ships set to true). Does not affect playback, downloads, or sign-in. |  |
-| [Enable downloads](#enable-downloads) | Unlocks the offline save gate (offlineability) for videos and playlists the app delivers, so attempted downloads save instead of refusing or showing a Premium dialog. Does not change what the server sends a free account. |  |
-| [GmsCore support](#gmscore-support) | Routes the app's Google services calls to MicroG (app.revanced.android.gms) instead of real Google Play services, so a re-signed build can sign in. Requires MicroG-RE with a signed-in account on the watch, and the stock app uninstalled first (the package name is not changed). Experimental: verified against 9.45.41-WEAR_RELEASE by dex scan, not yet tested on a watch. |  |
-| [Remove background playback restrictions](#remove-background-playback-restrictions) | Removes restrictions on background playback in the Wear OS app. Experimental: fingerprint verified against 9.45.41-WEAR_RELEASE, not yet tested on a watch. |  |
-| [Skip silence](#skip-silence) | Automatically skips silent pauses in audio playback. |  |
-| [Spoof app version](#spoof-app-version) | Tricks the app into thinking you are running an older version (8.23.51). |  |
 
 </details>
 
@@ -612,23 +355,6 @@ Some apps I patched and other apps that were requested if you would like to requ
 | Patch | Description | Options |
 |----------|----------------|-----------|
 | [Enable Full](#enable-full) | Unlocks Unified Remote Full for free, as if the one-time Full purchase were bought: 70+ remotes, no ads, screen mirroring, floating remotes, extended keyboard, widgets and quick actions, voice commands, custom remotes, IR and NFC actions. |  |
-
-</details>
-
-<a id="app-org-skvalex-cr" name="app-org-skvalex-cr"></a>
-<details>
-<summary>Call Recorder - SKVALEX&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
-<br>
-
-**Supported versions:**
-
-| 3.6.9 |
-| :---: |
-
-| Patch | Description | Options |
-|----------|----------------|-----------|
-| [Enable Lifetime](#enable-lifetime) | Pins the license state to the permanent verified state (the $49.99 Lifetime tier) at its single writer, so the app always runs as a lifetime license. Experimental: the license verdict is computed in the app's native library, so whether every feature honors the Java-side state can only be settled on a device. Call Recorder 3.6.9 only — 3.7.x wraps its native code in an anti-tamper payload that cannot run re-signed. Get the exact 3.6.9 APK from the developer's own release archive: https://github.com/skvalex/callrecorder/releases/tag/3.6.9 |  |
-| [Remove telemetry](#remove-telemetry) | Disables the Bugsnag crash-reporting startup provider so no crash, ANR or session reports are sent. Call Recorder ships no other telemetry SDK. Recording and all other features are unaffected. Call Recorder 3.6.9 only. |  |
 
 </details>
 
@@ -745,23 +471,6 @@ Some apps I patched and other apps that were requested if you would like to requ
 
 </details>
 
-<a id="app-com-astech-forscanlite" name="app-com-astech-forscanlite"></a>
-<details>
-<summary>FORScan Lite&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
-<br>
-
-**Supported versions:**
-
-| 1.5.31 |
-| :---: |
-
-| Patch | Description | Options |
-|----------|----------------|-----------|
-| [Enable license](#enable-license) | Opens the full app without an activation code. FORScan Lite checks your license once at startup against its server; this patch pins that startup check to its licensed outcome, so the activation dialog never appears and no activation request is sent. FORScan Lite 1.5.31 only. |  |
-| [Remove telemetry](#remove-telemetry) | Stops the app from phoning home. FORScan Lite has no analytics or ad SDKs; the only non-essential traffic is a launch-time version check to forscan.org, which this patch disables. Diagnostics and all other features are unaffected. FORScan Lite 1.5.31 only. |  |
-
-</details>
-
 <a id="app-com-giamping-sevpn" name="app-com-giamping-sevpn"></a>
 <details>
 <summary>VPN Gate - Software Ethernet&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
@@ -796,56 +505,6 @@ Some apps I patched and other apps that were requested if you would like to requ
 
 </details>
 
-<a id="app-com-strava" name="app-com-strava"></a>
-<details>
-<summary>Strava: Run, Bike, Walk&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**Supported versions:**
-
-| 486.9 | 486.11 |
-| :---: | :---: |
-
-| Patch | Description | Options |
-|----------|----------------|-----------|
-| [Liquid Glass navigation](#liquid-glass-navigation) | Turns Strava's bottom bar into a floating Liquid Glass pill: detached from the screen edges, live blurred backdrop with a translucent tint, content scrolling underneath it, like the current YouTube and Proton VPN bars. Tweak it under Extra Settings at the top of Strava's Settings screen (on/off, floating vs docked, blur, tint opacity). Uses Strava's classic bottom bar to make the effect possible. |  |
-
-</details>
-
-<a id="app-com-google-android-apps-messaging" name="app-com-google-android-apps-messaging"></a>
-<details>
-<summary>Google Messages&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**Supported versions:**
-
-| messages.android_20261020_00_RC01.phone_dynamic |
-| :---: |
-
-| Patch | Description | Options |
-|----------|----------------|-----------|
-| [OLED black mode](#oled-black-mode) | Turns the dark theme true black (#000000) for OLED screens: backgrounds and surfaces go pure black, raised containers (cards, bubbles, sheets) become near-black steps so they stay visible. Dark theme only — light mode is untouched. Needs the stock APK of the target version (messages.android_20261020_00_RC01.phone_dynamic, the universal APK — not a BUNDLE — from APKMirror: https://www.apkmirror.com/apk/google-inc/messenger-google-inc/); Morphe Manager also suggests that exact version when you don't have the file. A few settings screens on Android 12+ take surfaces from the system palette and stay dark grey. |  |
-
-</details>
-
-<a id="app-com-olx-pk" name="app-com-olx-pk"></a>
-<details>
-<summary>OLX Pakistan - Online Shopping&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
-<br>
-
-**Supported versions:**
-
-| 18.13.1 |
-| :---: |
-
-| Patch | Description | Options |
-|----------|----------------|-----------|
-| [Plain listings only](#plain-listings-only) | Removes featured, boosted and paid-promo listings and all agency, dealer and store listings from home, search and category feeds, leaving only plain listings from individual sellers. OLX Pakistan 18.13.1 only. |  |
-| [Remove ads](#remove-ads) | Removes the Google Ads banner, featured-agency cards and promo widgets that are interleaved into home, search and category feeds. OLX Pakistan 18.13.1 only. |  |
-| [Remove telemetry](#remove-telemetry) | Turns off Firebase Analytics, Crashlytics and Performance reporting and ad-id collection, disables the Firebase report-upload plumbing, and disables MoEngage in-app campaigns and push-open tracking. Search, chat, sign-in and notifications are unaffected. OLX Pakistan 18.13.1 only. |  |
-
-</details>
-
 <a id="app-com-pixel-art-coloring-color-number" name="app-com-pixel-art-coloring-color-number"></a>
 <details>
 <summary>Happy Color®: Color by Number&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
@@ -875,38 +534,6 @@ Some apps I patched and other apps that were requested if you would like to requ
 | Patch | Description | Options |
 |----------|----------------|-----------|
 | [Remove ads](#remove-ads) | Removes ads (Appodeal mediation and the direct Amazon ads path), hides the app's own rotating promo bars (the bottom house-promo bar and the downloads-screen VPN/Telegram offer strip) and the green "Upgrade to 1DM+" bar in the settings drawer. Does NOT unlock 1DM+ features — 1DM+ is a separate paid app and its features are not in this app. |  |
-
-</details>
-
-<a id="app-com-inotesapp-inotes" name="app-com-inotesapp-inotes"></a>
-<details>
-<summary>Notes - iOS Style Notepad&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**Supported versions:**
-
-| 2.2.2 |
-| :---: |
-
-| Patch | Description | Options |
-|----------|----------------|-----------|
-| [Remove ads](#remove-ads) | Stops interstitial ad breaks and native ads in the notes list from loading (Google Mobile Ads). Rewarded ads that unlock features when watched are left working. Does not unlock premium. |  |
-
-</details>
-
-<a id="app-com-optimageeks-vehico-app" name="app-com-optimageeks-vehico-app"></a>
-<details>
-<summary>Vehico - Vehicle management&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**Supported versions:**
-
-| 1.2.31 |
-| :---: |
-
-| Patch | Description | Options |
-|----------|----------------|-----------|
-| [Remove ads](#remove-ads) | Stops banner and interstitial ads from loading (Google Mobile Ads). |  |
 
 </details>
 

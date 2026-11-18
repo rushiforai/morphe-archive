@@ -98,6 +98,61 @@ final class Media {
             for (var h : b.getExceptionHandlers()) targets.add(offsets.getOrDefault(h.getHandlerCodeAddress(), -1));
         return targets;
     }
+    static final String SEND_CLICKED = "ComposeFragment.onSendClicked";
+    static final String CAPTION_MAP = "Lcom/google/common/collect/ImmutableMap;";
+    static final String CAPTION_STRING = "Ljava/lang/String;";
+
+    /** The compose fragment's own text send, as MediaCaption.kt reads it: static, returns nothing, takes a list last. */
+    static List<String> mediaCaptionSends(Method method) {
+        var sends = new ArrayList<String>();
+        for (var i : instructions(method)) {
+            if (i.getOpcode() != Opcode.INVOKE_STATIC && i.getOpcode() != Opcode.INVOKE_STATIC_RANGE) continue;
+            if (!(i instanceof ReferenceInstruction r) || !(r.getReference() instanceof MethodReference m)) continue;
+            var params = m.getParameterTypes().stream().map(Object::toString).toList();
+            if (!m.getDefiningClass().equals(method.getDefiningClass()) || !"V".equals(m.getReturnType())) continue;
+            if (!params.equals(List.of(method.getDefiningClass(), IMMUTABLE_LIST, CAPTION_MAP, CAPTION_STRING, "Ljava/util/List;"))) continue;
+            var id = m.getName() + "(" + String.join("", params) + ")";
+            if (!sends.contains(id)) sends.add(id);
+        }
+        return sends;
+    }
+
+    /**
+     * Whether the composer's send hands the typed text to the media parameters once, in a plain invoke-direct whose
+     * object register isn't the text's, with nothing branching onto the new-instance in front of it, and the fragment
+     * having exactly one text send to pass the words to. Mirrors MediaCaption.kt.
+     */
+    static boolean mediaCaptionSite(Method method) {
+        var code = instructions(method);
+        boolean marked = false;
+        for (var i : code)
+            if ((i.getOpcode() == Opcode.CONST_STRING || i.getOpcode() == Opcode.CONST_STRING_JUMBO) &&
+                i instanceof ReferenceInstruction r && r.getReference() instanceof StringReference s && SEND_CLICKED.equals(s.getString())) marked = true;
+        if (!marked || mediaCaptionSends(method).size() != 1) return false;
+        var sites = new ArrayList<Integer>();
+        for (int at = 0; at + 1 < code.size(); at++) {
+            if (code.get(at).getOpcode() != Opcode.NEW_INSTANCE) continue;
+            if (!(code.get(at) instanceof ReferenceInstruction made) || !(made.getReference() instanceof TypeReference built)) continue;
+            int holder = register(code.get(at));
+            var next = code.get(at + 1);
+            if (next.getOpcode() != Opcode.INVOKE_DIRECT || !(next instanceof FiveRegisterInstruction call)) continue;
+            if (!(next instanceof ReferenceInstruction r) || !(r.getReference() instanceof MethodReference ctor)) continue;
+            var params = ctor.getParameterTypes().stream().map(Object::toString).toList();
+            if (!ctor.getDefiningClass().equals(built.getType()) || !"<init>".equals(ctor.getName()) || call.getRegisterCount() != 5) continue;
+            if (!params.equals(List.of(method.getDefiningClass(), IMMUTABLE_LIST, CAPTION_MAP, CAPTION_STRING))) continue;
+            if (call.getRegisterC() != holder || call.getRegisterG() == holder) continue;
+            sites.add(at);
+        }
+        return sites.size() == 1 && !mediaTargets(method).contains(sites.get(0));
+    }
+
+    /** media_caption: the one send that carries a caption into the media parameters. Mirrors MediaCaption.kt. */
+    static List<Method> mediaCaption(List<ClassDef> classes) {
+        var found = new ArrayList<Method>();
+        for (var cls : classes) for (var method : cls.getMethods()) if (mediaCaptionSite(method)) found.add(method);
+        return found;
+    }
+
     static boolean mediaWrites(Instruction i, int r) {
         return i.getOpcode().setsRegister() && (register(i) == r || (i.getOpcode().name().contains("WIDE") && register(i) + 1 == r));
     }
@@ -1450,6 +1505,131 @@ final class Media {
         for (var m : immutable.getMethods()) if (hookId(m).equals(CALL_LIST_COPY) &&
             AccessFlags.STATIC.isSet(m.getAccessFlags()) && AccessFlags.PUBLIC.isSet(m.getAccessFlags())) copies = true;
         return copies ? List.of(lists.get(0), arrays.get(0)) : List.of();
+    }
+
+    static final String VIEW_ONCE_PROP = "showViewOnceToggle";
+    static final String VIEW_ONCE_STRING_ARRAY = "[Ljava/lang/String;";
+    static final String VIEW_ONCE_BIT_SET = "Ljava/util/BitSet;";
+    static final String VIEW_ONCE_BIT_SET_SET = "Ljava/util/BitSet;->set(I)V";
+    static final String VIEW_ONCE_CAPABILITIES = "Lcom/facebook/xapp/messaging/capability/vector/Capabilities;";
+
+    /** The builder that counts the View once prop, the component it builds and the prop's index. Mirrors ViewOnceGate. */
+    record ViewOnceGate(String builder, String component, int prop) {}
+
+    static FieldReference viewOnceField(Instruction i) {
+        return i instanceof ReferenceInstruction r && r.getReference() instanceof FieldReference f ? f : null;
+    }
+
+    /**
+     * The required prop names a generated Litho builder packs into one string array, in the order the array takes them
+     * rather than the order Redex loaded them. Null when it packs none, or packs a register it didn't load itself.
+     * Mirrors requiredProps in ViewOnceAnywhere.kt.
+     */
+    static List<String> viewOnceRequiredProps(Method m) {
+        if (m.getImplementation() == null) return null;
+        var loaded = new HashMap<Integer, String>();
+        for (var i : instructions(m)) {
+            if (i.getOpcode() == Opcode.CONST_STRING || i.getOpcode() == Opcode.CONST_STRING_JUMBO) {
+                if (!(i instanceof ReferenceInstruction r) || !(r.getReference() instanceof StringReference s)) return null;
+                loaded.put(register(i), s.getString());
+                continue;
+            }
+            if (i.getOpcode() != Opcode.FILLED_NEW_ARRAY && i.getOpcode() != Opcode.FILLED_NEW_ARRAY_RANGE) continue;
+            if (!(i instanceof ReferenceInstruction r) || !(r.getReference() instanceof TypeReference t) ||
+                !VIEW_ONCE_STRING_ARRAY.equals(t.getType())) continue;
+            var props = new ArrayList<String>();
+            for (var packed : callArgs(i)) {
+                var name = loaded.get(packed);
+                if (name == null) return null;
+                props.add(name);
+            }
+            return props;
+        }
+        return null;
+    }
+
+    /** A builder constructor that keeps what it counted, each in a field of its own class. Mirrors keepsProps. */
+    static boolean viewOnceKeepsProps(Method m) {
+        if (m.getImplementation() == null) return false;
+        boolean names = false, bits = false;
+        for (var i : instructions(m)) {
+            if (i.getOpcode() != Opcode.IPUT_OBJECT) continue;
+            var field = viewOnceField(i);
+            if (field == null || !field.getDefiningClass().equals(m.getDefiningClass())) continue;
+            if (VIEW_ONCE_STRING_ARRAY.equals(field.getType())) names = true;
+            if (VIEW_ONCE_BIT_SET.equals(field.getType())) bits = true;
+        }
+        return names && bits;
+    }
+
+    /** The one generated builder in the app that counts the View once prop. Mirrors viewOncePropOf. */
+    static ViewOnceGate viewOncePropOf(List<ClassDef> classes) {
+        var gates = new ArrayList<ViewOnceGate>();
+        for (var cls : classes) for (var m : cls.getMethods()) {
+            if (!"<init>".equals(m.getName()) || m.getParameterTypes().size() != 2) continue;
+            String component = m.getParameterTypes().get(1).toString();
+            if (!component.startsWith("L")) continue;
+            var props = viewOnceRequiredProps(m);
+            if (props == null || new HashSet<>(props).size() != props.size()) continue;
+            int prop = props.indexOf(VIEW_ONCE_PROP);
+            if (prop < 0 || !viewOnceKeepsProps(m)) continue;
+            var gate = new ViewOnceGate(m.getDefiningClass(), component, prop);
+            if (!gates.contains(gate)) gates.add(gate);
+        }
+        return gates.size() == 1 ? gates.get(0) : null;
+    }
+
+    /**
+     * Where a method writes the gallery's View once prop, which is the only place its answer can still be changed: the
+     * boolean write into the component, then the constant and the BitSet.set that name the prop. -1 unless there is
+     * exactly one such write and its value is a local the hook can hand on and take back. Mirrors viewOnceSite.
+     */
+    static int viewOnceSite(Method m, ViewOnceGate gate) {
+        if (m.getImplementation() == null) return -1;
+        var code = instructions(m);
+        int local = parameterRegister(m, 0);
+        int site = -1;
+        for (int i = 0; i + 2 < code.size(); i++) {
+            if (code.get(i).getOpcode() != Opcode.IPUT_BOOLEAN) continue;
+            var field = viewOnceField(code.get(i));
+            if (field == null || !gate.component().equals(field.getDefiningClass()) || !"Z".equals(field.getType())) continue;
+            var index = code.get(i + 1);
+            var set = code.get(i + 2);
+            if (index.getOpcode() != Opcode.CONST_4 && index.getOpcode() != Opcode.CONST_16 && index.getOpcode() != Opcode.CONST) continue;
+            if (!(index instanceof NarrowLiteralInstruction lit) || lit.getNarrowLiteral() != gate.prop()) continue;
+            if (set.getOpcode() != Opcode.INVOKE_VIRTUAL && set.getOpcode() != Opcode.INVOKE_VIRTUAL_RANGE) continue;
+            if (!VIEW_ONCE_BIT_SET_SET.equals(ref(set))) continue;
+            var args = callArgs(set);
+            if (args.size() < 2 || args.get(1) != register(index)) continue;
+            int value = ((TwoRegisterInstruction) code.get(i)).getRegisterA();
+            if (value > 15 || value >= local) continue;
+            if (site >= 0) return -1;
+            site = i;
+        }
+        return site;
+    }
+
+    /**
+     * view_once_anywhere: the chat composer's gallery plugin, the one method that takes the capability vector, makes the
+     * gallery component's builder and writes the View once prop once. The other two gallery surfaces write the prop from
+     * a plain answer of their own, so they're left alone. Mirrors findViewOnceAnywhere in ViewOnceAnywhere.kt.
+     */
+    static List<Method> viewOnceAnywhere(List<ClassDef> classes) {
+        var gate = viewOncePropOf(classes);
+        if (gate == null) return List.of();
+        boolean built = false;
+        for (var cls : classes) if (gate.component().equals(cls.getType())) built = true;
+        if (!built) return List.of();
+        var hosts = new ArrayList<Method>();
+        for (var cls : classes) for (var m : cls.getMethods()) {
+            boolean vector = false;
+            for (var p : m.getParameterTypes()) if (VIEW_ONCE_CAPABILITIES.contentEquals(p)) vector = true;
+            if (!vector || viewOnceSite(m, gate) < 0) continue;
+            boolean makes = false;
+            for (var i : instructions(m)) if (i.getOpcode() == Opcode.NEW_INSTANCE && gate.builder().equals(typeOf(i))) makes = true;
+            if (makes) hosts.add(m);
+        }
+        return hosts.size() == 1 ? hosts : List.of();
     }
 
     /** menu_blur: DialogFragment's onStart, while exactly one class has the DialogFragment shape. Mirrors MenuBlur.kt. */

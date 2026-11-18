@@ -9,7 +9,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-10-21.
+ * Modified by lavinhoque33, 2026-11-17.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -61,6 +61,7 @@ import app.morphe.patches.music.utils.playservice.is_6_42_or_greater
 import app.morphe.patches.music.utils.playservice.is_6_48_or_greater
 import app.morphe.patches.music.utils.playservice.is_8_05_or_greater
 import app.morphe.patches.music.utils.playservice.is_8_15_or_greater
+import app.morphe.patches.music.utils.playservice.is_9_00_or_greater
 import app.morphe.patches.music.utils.playservice.versionCheckPatch
 import app.morphe.patches.music.utils.resourceid.musicTasteBuilderShelf
 import app.morphe.patches.music.utils.resourceid.playerOverlayChip
@@ -75,6 +76,7 @@ import app.morphe.patches.music.utils.settings.settingsPatch
 import app.morphe.patches.shared.misc.settings.preference.InputType
 import app.morphe.patches.shared.litho.addLithoFilter
 import app.morphe.patches.shared.litho.lithoFilterPatch
+import app.morphe.util.Utils.printWarn
 import app.morphe.util.fingerprint.injectLiteralInstructionBooleanCall
 import app.morphe.util.fingerprint.matchOrNull
 import app.morphe.util.fingerprint.matchOrThrow
@@ -166,8 +168,8 @@ val layoutComponentsPatch = bytecodePatch(
             )
         }
 
-        // modified by lavinhoque33, 2026-10-16: Morphe's view based Library "New" button hook, controlled
-        // by the existing "Hide floating button" setting. Skipped when the Library button is not bound this way.
+        // Morphe's view-based Library "New" button hook uses the existing "Hide floating button" setting.
+        // Skip it when the Library button is not bound this way.
         runCatching { LibraryNewButtonFingerprint.match() }.getOrNull()?.let {
             val moveResult = it.instructionMatches[1]
             val register = it.method.getInstruction<OneRegisterInstruction>(moveResult.index).registerA
@@ -400,7 +402,6 @@ val layoutComponentsPatch = bytecodePatch(
                 "false"
             )
         }
-        // modified by lavinhoque33, 2026-10-16: podcast episode Download button ported from Morphe.
         addSwitchPreference(
             CategoryType.GENERAL,
             "revanced_hide_podcast_episode_download_button",
@@ -440,6 +441,24 @@ val layoutComponentsPatch = bytecodePatch(
             "revanced_hide_playlist_card_shelf",
             "false"
         )
+        addSwitchPreference(
+            CategoryType.GENERAL,
+            "morphe_music_hide_your_downloads_shelf",
+            "false"
+        )
+
+        if (is_9_00_or_greater) {
+            hideSuggestedSearchShelves()
+
+            addSwitchPreference(
+                CategoryType.GENERAL,
+                "morphe_music_hide_you_may_also_like_section",
+                "false",
+                setSummary = false
+            )
+        } else {
+            printWarn("Hide 'You may also like' search suggestions requires YouTube Music 9.00 or newer.")
+        }
 
         updatePatchStatus(HIDE_LAYOUT_COMPONENTS)
 

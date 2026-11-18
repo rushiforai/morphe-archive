@@ -1,20 +1,18 @@
 package app.fakh.extension.linkedin;
 
-/** The shared {@link app.fakh.extension.shared.I18n} with the language LinkedIn's settings let the user pick. */
+/** The shared {@link app.fakh.extension.shared.I18n}, in the device language. */
 final class I18n {
-    static final String LANGUAGE_AUTO = app.fakh.extension.shared.I18n.LANGUAGE_AUTO;
-
     private I18n() {
     }
 
-    /** The language code in use: the one picked in settings, or the device language when set to automatic. */
+    /** The language code in use: the device language when it has a translation, or "en". */
     static String language() {
-        return app.fakh.extension.shared.I18n.language(Settings.language());
+        return app.fakh.extension.shared.I18n.language(app.fakh.extension.shared.I18n.LANGUAGE_AUTO);
     }
 
-    /** The text in the current language, or the English text when it has no translation. */
+    /** The text in the device language, or the English text when it has no translation. */
     static String tr(String english) {
-        return app.fakh.extension.shared.I18n.tr(english, Settings.language());
+        return app.fakh.extension.shared.I18n.tr(english);
     }
 
     /** A translated template filled with values, for example f("Made by %1$s", AUTHOR). */

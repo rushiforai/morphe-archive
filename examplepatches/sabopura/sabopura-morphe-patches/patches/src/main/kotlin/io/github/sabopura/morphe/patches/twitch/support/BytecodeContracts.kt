@@ -2,12 +2,11 @@ package io.github.sabopura.morphe.patches.twitch.support
 
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.BytecodePatchContext
-import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.*
-import com.android.tools.smali.dexlib2.iface.reference.MethodReference
-import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
 internal fun Instruction.callRegisters(): List<Int> = when (this) {
     is FiveRegisterInstruction -> listOf(registerC, registerD, registerE, registerF, registerG).take(registerCount)
@@ -34,65 +33,73 @@ internal fun BytecodePatchContext.classesMatching(predicate: (ClassDef) -> Boole
     return matches
 }
 
-internal data class HeaderWrite(val index: Int, val registers: List<Int>, val replace: Boolean)
+/** The enum constant, such as GOTO_16; Kotlin's `opcode.name` is dexlib2's smali spelling (goto/16). */
+private val Opcode.constant: String get() = (this as Enum<*>).name
 
-/** Follow the actual key argument, not the next arbitrary call after a string constant. */
-internal fun certificateHeaderWrites(method: Method): List<HeaderWrite> {
-    val implementation = method.implementation ?: return emptyList()
-    val code = implementation.instructions.toList()
-    val offsets = code.runningFold(0) { offset, instruction -> offset + instruction.codeUnits }.dropLast(1)
-    val joins = implementation.tryBlocks.flatMap { it.exceptionHandlers }.map { it.handlerCodeAddress }.toMutableSet()
-    code.forEachIndexed { i, instruction ->
-        if (instruction is OffsetInstruction) joins += offsets[i] + instruction.codeOffset
+private fun Instruction.reads(register: Int): Boolean {
+    val written = if (this is ThreeRegisterInstruction || this is TwoRegisterInstruction || this is OneRegisterInstruction) {
+        (this as OneRegisterInstruction).registerA
+    } else -1
+    // Over-approximates: an int operand of a LONG or DOUBLE opcode also counts its next register.
+    val wide = listOf("WIDE", "LONG", "DOUBLE").any { it in opcode.constant }
+    val used = when (this) {
+        is FiveRegisterInstruction, is RegisterRangeInstruction -> callRegisters()
+        is ThreeRegisterInstruction -> listOf(registerB, registerC)
+        is TwoRegisterInstruction -> listOf(registerB)
+        else -> emptyList()
     }
-    code.forEachIndexed { i, instruction ->
-        if (instruction is SwitchPayload) {
-            code.forEachIndexed { j, branch ->
-                if (branch is OffsetInstruction && offsets[j] + branch.codeOffset == offsets[i])
-                    instruction.switchElements.forEach { joins += offsets[j] + it.offset }
-            }
-        }
-    }
-    val strings = mutableMapOf<Int, String>()
-    val found = mutableListOf<HeaderWrite>()
-    code.forEachIndexed { i, instruction ->
-        if (offsets[i] in joins) strings.clear()
-        val reference = (instruction as? ReferenceInstruction)?.reference
-        val registers = instruction.callRegisters()
-        if (instruction.opcode in setOf(Opcode.INVOKE_VIRTUAL, Opcode.INVOKE_VIRTUAL_RANGE) &&
-            reference is MethodReference && reference.definingClass in setOf(
-                "Ljava/net/URLConnection;", "Ljava/net/HttpURLConnection;", "Ljavax/net/ssl/HttpsURLConnection;"
-            ) && reference.name in setOf("addRequestProperty", "setRequestProperty") &&
-            reference.parameterTypes.map { it.toString() } == listOf("Ljava/lang/String;", "Ljava/lang/String;") &&
-            reference.returnType == "V" && registers.size == 3 && strings[registers[1]] == "X-Android-Cert") {
-            found += HeaderWrite(i, registers, reference.name == "setRequestProperty")
-        }
-        val a = (instruction as? OneRegisterInstruction)?.registerA
-        val moved = if (instruction is TwoRegisterInstruction) strings[instruction.registerB] else null
-        if (a != null && instruction.opcode.setsRegister()) {
-            strings.remove(a)
-            if (instruction.opcode.setsWideRegister()) strings.remove(a + 1)
-        }
-        when (instruction.opcode) {
-            Opcode.CONST_STRING, Opcode.CONST_STRING_JUMBO -> strings[a!!] = (reference as StringReference).string
-            Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16 -> if (moved != null) strings[a!!] = moved
-            else -> Unit
-        }
-        if (instruction is OffsetInstruction || instruction.opcode.name.startsWith("RETURN") ||
-            instruction.opcode == Opcode.THROW || instruction.opcode.name.endsWith("PAYLOAD")) strings.clear()
-    }
-    return found
+    if (register in used || wide && (register - 1) in used) return true
+    if (written != register && !(wide && written + 1 == register)) return false
+    return !opcode.setsRegister() || opcode == Opcode.CHECK_CAST || opcode.constant.endsWith("_2ADDR")
 }
 
-internal fun staticHeaderCall(write: HeaderWrite): String {
-    val target = "Lio/github/sabopura/morphe/extension/twitch/notifications/FirebaseHeaders;->" +
-        (if (write.replace) "set" else "add") + "(Ljava/net/URLConnection;Ljava/lang/String;Ljava/lang/String;)V"
-    val registers = write.registers
-    return if (registers.all { it <= 15 }) {
-        "invoke-static {${registers.joinToString { "v$it" }}}, $target"
-    } else {
-        if (registers.zipWithNext().any { (a, b) -> b != a + 1 })
-            throw PatchException("Twitch notifications: non-contiguous high registers; input layout changed")
-        "invoke-static/range {v${registers.first()} .. v${registers.last()}}, $target"
+private fun Instruction.writes(register: Int): Boolean =
+    opcode.setsRegister() && this is OneRegisterInstruction &&
+        (registerA == register || opcode.setsWideRegister() && registerA + 1 == register)
+
+/** The lowest local register (never a parameter) that no path from instruction [index] reads again, or null. */
+internal fun freeLocalAt(method: Method, index: Int): Int? {
+    val implementation = method.implementation ?: return null
+    val parameters = method.parameterTypes.sumOf { if (it.toString() == "J" || it.toString() == "D") 2 else 1 } +
+        if (AccessFlags.STATIC.isSet(method.accessFlags)) 0 else 1
+    return (0 until minOf(implementation.registerCount - parameters, 256)).firstOrNull { registerDeadAt(method, index, it) }
+}
+
+/**
+ * True when nothing reads [register] again on any path from instruction [from], following
+ * branches, switches and exception handlers, so a hook there may overwrite it.
+ */
+internal fun registerDeadAt(method: Method, from: Int, register: Int): Boolean {
+    val implementation = method.implementation ?: return false
+    val code = implementation.instructions.toList()
+    val addresses = code.runningFold(0) { address, instruction -> address + instruction.codeUnits }
+    val indexAt = addresses.dropLast(1).withIndex().associate { (index, address) -> address to index }
+    val seen = HashSet<Int>()
+    val pending = ArrayDeque(listOf(from))
+    while (pending.isNotEmpty()) {
+        val index = pending.removeLast()
+        val instruction = code.getOrNull(index) ?: continue
+        if (!seen.add(index)) continue
+        if (instruction.reads(register)) return false
+        implementation.tryBlocks.filter {
+            addresses[index] in it.startCodeAddress until it.startCodeAddress + it.codeUnitCount
+        }.flatMap { it.exceptionHandlers }.forEach { indexAt[it.handlerCodeAddress]?.let(pending::addLast) }
+        if (instruction.writes(register)) continue
+        val name = instruction.opcode.constant
+        when {
+            name.startsWith("RETURN") || instruction.opcode == Opcode.THROW -> Unit
+            name.startsWith("GOTO") -> indexAt[addresses[index] + (instruction as OffsetInstruction).codeOffset]?.let(pending::addLast)
+            instruction.opcode == Opcode.PACKED_SWITCH || instruction.opcode == Opcode.SPARSE_SWITCH -> {
+                val payload = code[indexAt.getValue(addresses[index] + (instruction as OffsetInstruction).codeOffset)] as SwitchPayload
+                payload.switchElements.forEach { indexAt[addresses[index] + it.offset]?.let(pending::addLast) }
+                pending.addLast(index + 1)
+            }
+            instruction is OffsetInstruction -> {
+                indexAt[addresses[index] + instruction.codeOffset]?.let(pending::addLast)
+                pending.addLast(index + 1)
+            }
+            else -> pending.addLast(index + 1)
+        }
     }
+    return true
 }

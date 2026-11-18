@@ -49,6 +49,9 @@ final class ReelsCategory {
             reels.add(toggle(context, Settings.HIDE_REELS_SUGGESTIONS, L10n.t("Hide suggested accounts"),
                     L10n.t("The cards of people and creators to follow that Instagram puts between reels. "
                             + "Every reel still plays.")));
+            reels.add(toggle(context, Settings.HIDE_REELS_STORIES, L10n.t("Hide stories in Reels"),
+                    L10n.t("The Catch up with friends pages of stories that Instagram puts between reels. "
+                            + "Stories stay at the top of Home.")));
         }
         if (build.contains(PatchFamily.PAID_PARTNERSHIP_REELS)) {
             reels.add(toggle(context, Settings.HIDE_PAID_PARTNERSHIP_REELS, L10n.t("Hide paid partnership Reels"),
@@ -125,6 +128,9 @@ final class ReelsCategory {
                     L10n.t("Takes away the row at the top of the Reels tab, with the Reels title, the camera button and "
                             + "anything else Instagram puts there. Reels you open from a profile, a post or a chat keep "
                             + "theirs. The camera still opens from Home.")));
+            reels.add(toggle(context, Settings.HIDE_OTHER_REELS_TOP_BAR, L10n.t("Hide the top bar on other reels"),
+                    L10n.t("Takes the back arrow and the title off the top of reels you open from Explore, a profile, "
+                            + "a post, Saved or a chat. Your phone's back button or gesture still goes back.")));
             reels.add(toggle(context, Settings.HIDE_REELS_CREATE_BUTTON, L10n.t("Hide the Create button on reels"),
                     L10n.t("Takes the plus button that opens the camera off the top of reels, on the Reels tab and "
                             + "everywhere else, and closes up the gap. The rest of the bar stays.")));
@@ -211,6 +217,9 @@ final class ReelsCategory {
                             + "plays, at its largest size.")));
             reels.add(toggle(context, Settings.DOWNLOAD_REEL_AUDIO, L10n.t("Download audio"),
                     L10n.t("Adds Download audio under Download. It saves the sound of the reel as an audio file.")));
+            reels.add(toggle(context, Settings.DOWNLOAD_REEL_SONG, L10n.t("Download full song"),
+                    L10n.t("Adds Download full song under Download on reels that use a song from Instagram's music. "
+                            + "It saves the whole song as an audio file, not only the part the reel plays.")));
         }
         if (build.contains(PatchFamily.DOUBLE_TAP_LIKE)) {
             reels.add(toggle(context, Settings.TURN_OFF_DOUBLE_TAP_LIKE, L10n.t("Turn off double tap to like"),
@@ -287,8 +296,9 @@ final class ReelsCategory {
                     L10n.t("Reels that are a photo with a song get the same seek bar and time as a video reel, "
                             + "following the song. Drag it to seek.")));
             reels.add(toggle(context, Settings.HIDE_REEL_SEEK_BAR, L10n.t("Hide the seek bar on reels"),
-                    L10n.t("Takes the seek bar off the bottom of every reel, long ones too. Hold a reel to bring it "
-                            + "back and seek. Keep a seek bar and the seek bar looks above win over it.")));
+                    L10n.t("Takes the seek bar off the bottom of every reel, long ones too. Drag sideways along "
+                            + "the bottom edge of a reel to bring it back and seek. Keep a seek bar and the seek bar looks above win over it. "
+                            + "Restart Instagram to see the change.")));
         }
         if (build.contains(PatchFamily.REEL_ZOOM)) {
             reels.add(toggle(context, Settings.PINCH_ZOOM_REELS, L10n.t("Pinch to zoom"),

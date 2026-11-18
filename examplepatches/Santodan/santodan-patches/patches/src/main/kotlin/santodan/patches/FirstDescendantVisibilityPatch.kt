@@ -13,7 +13,7 @@ private val broadActions = setOf("android.intent.action.MAIN", "android.intent.a
 val firstDescendantVisibilityPatch = resourcePatch(
     name = TFD_VISIBILITY_NAME,
     description = "Removes broad MAIN/VIEW package queries while preserving specific app integrations. " +
-        "For Android 11+. Leaves NGSM and authentication unchanged; other detections may still occur.",
+        "For Android 11+. Select only one TFD visibility patch. Leaves NGSM and authentication unchanged; other detections may still occur.",
     default = true,
 ) {
     compatibleWith(FirstDescendantCompatibility.createVisibility())
@@ -22,13 +22,30 @@ val firstDescendantVisibilityPatch = resourcePatch(
     }
 }
 
-internal fun restrictFirstDescendantVisibility(document: Document) {
+internal const val TFD_VISIBILITY_EXPERIMENTAL_NAME =
+    "TFD Companion - Remove illegal apps detection (Experimental)"
+
+/** Unrestricted alternative; the same manifest contract must still be present. */
+@Suppress("unused")
+val firstDescendantVisibilityExperimentalPatch = resourcePatch(
+    name = TFD_VISIBILITY_EXPERIMENTAL_NAME,
+    description = "Experimental alternative without a version restriction. Select instead of the regular patch. " +
+        "Requires the original MAIN/VIEW query layout and Android 11+. Future compatibility is not guaranteed.",
+    default = false,
+) {
+    compatibleWith(FirstDescendantCompatibility.createExperimentalVisibility())
+    finalize {
+        document("AndroidManifest.xml").use { restrictFirstDescendantVisibility(it, experimental = true) }
+    }
+}
+
+internal fun restrictFirstDescendantVisibility(document: Document, experimental: Boolean = false) {
     val manifest = document.documentElement
     check(manifest.tagName == "manifest" && manifest.getAttribute("package") == FirstDescendantCompatibility.PACKAGE) {
         "Expected original TFD Companion package identity"
     }
-    check(androidAttribute(manifest, "versionName") == FirstDescendantCompatibility.VERSION) {
-        "Expected TFD Companion 1.1.5"
+    check(experimental || androidAttribute(manifest, "versionName") in setOf(FirstDescendantCompatibility.VERSION, "1.1.6")) {
+        "Expected TFD Companion 1.1.5 or 1.1.6"
     }
     val allPackages = document.getElementsByTagName("uses-permission")
     check((0 until allPackages.length).none {

@@ -78,7 +78,13 @@ final class ChoicesBackup {
             if (documentBusy || documentImport || documentExport != null) return;
             documentGeneration++;
             documentImport = false;
-            documentExport = ChoiceCodec.encode(Settings.preferences, Settings.installed);
+            String backup = ChoiceCodec.encode(Settings.preferences, Settings.installed);
+            // Checked before the picker, so a file too big to read back is never made.
+            if (ChoiceCodec.tooLarge(backup)) {
+                refuseTooLarge(backup);
+                return;
+            }
+            documentExport = backup;
             Intent picker = new Intent(Intent.ACTION_CREATE_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE)
                 .setType("text/plain").putExtra(Intent.EXTRA_TITLE, "HushMessenger-choices.txt");
             try { page.startActivityForResult(picker, SAVE_CHOICES); }
@@ -159,7 +165,12 @@ final class ChoicesBackup {
     void exportChoices() {
         SettingsText text = page.text;
         try {
-            ClipData clip = ClipData.newPlainText(text.get("clipboard"), ChoiceCodec.encode(Settings.preferences, Settings.installed));
+            String backup = ChoiceCodec.encode(Settings.preferences, Settings.installed);
+            if (ChoiceCodec.tooLarge(backup)) {
+                refuseTooLarge(backup);
+                return;
+            }
+            ClipData clip = ClipData.newPlainText(text.get("clipboard"), backup);
             PersistableBundle extras = new PersistableBundle();
             extras.putBoolean(Build.VERSION.SDK_INT >= 33 ? ClipDescription.EXTRA_IS_SENSITIVE : "android.content.extra.IS_SENSITIVE", true);
             clip.getDescription().setExtras(extras);
@@ -189,54 +200,97 @@ final class ChoicesBackup {
                 return;
             }
             CharSequence raw = clip.getItemAt(0).getText();
-            restoreChoices(ChoiceCodec.parse(raw == null ? null : raw.toString()));
+            String backup = raw == null ? null : raw.toString();
+            if (ChoiceCodec.tooLarge(backup)) {
+                page.feedback(text.get("import_too_large"), Toast.LENGTH_LONG);
+                return;
+            }
+            restoreChoices(ChoiceCodec.parse(backup));
         } catch (Exception error) {
             android.util.Log.e("HushMessenger", "Can't import choices", error);
             page.feedback(text.get("import_invalid"), Toast.LENGTH_LONG);
         }
     }
 
-    private void restoreChoices(Map<String, Boolean> choices) {
+    private void restoreChoices(Map<String, Object> choices) {
         SettingsText text = page.text;
+        SharedPreferences prefs = Settings.preferences;
         java.util.Set<String> known = new java.util.HashSet<>();
         for (String[] spec : SettingsActivity.CONTROLS) known.add(spec[0]);
         known.addAll(Settings.SUB_SWITCHES.keySet());
         Map<String, Boolean> supported = new java.util.LinkedHashMap<>();
+        // The choices that aren't switches, already cleaned the way their own rows save them.
+        Map<String, Object> values = new java.util.LinkedHashMap<>();
         int unknown = 0, unavailable = 0;
-        for (Map.Entry<String, Boolean> choice : choices.entrySet()) {
+        for (Map.Entry<String, Object> choice : choices.entrySet()) {
             String key = choice.getKey();
+            ChoiceCodec.Value spec = ChoiceCodec.value(key);
+            if (spec != null) {
+                Object value = spec.availableIn(Settings.installed) ? ChoiceCodec.clean(spec, choice.getValue()) : null;
+                if (value != null) values.put(key, value);
+                else if (spec.availableIn(Settings.installed)) unknown++;
+                else unavailable++;
+                continue;
+            }
             String owner = Settings.SUB_SWITCHES.get(key);
-            if ("paused".equals(key) || (known.contains(key) && Settings.installed.contains(owner != null ? owner : key)))
-                supported.put(key, choice.getValue());
+            if (!(choice.getValue() instanceof Boolean)) unknown++;
+            else if ("paused".equals(key) || (known.contains(key) && Settings.installed.contains(owner != null ? owner : key)))
+                supported.put(key, (Boolean) choice.getValue());
             else if (known.contains(key)) unavailable++;
             else unknown++;
         }
         String skipped = (unknown == 0 ? "" : " " + text.count("import_unknown", unknown)) +
             (unavailable == 0 ? "" : " " + text.count("import_unavailable", unavailable));
-        // A backup carries Auto reply's switch but not its replies. Turning it on here would start answering with
-        // whatever replies this phone already has, so it only comes on from this screen. Turning it off still applies.
+        // Turning Auto reply on with no replies from the backup would start answering with whatever replies this phone
+        // already has, so then it only comes on from this screen. Turning it off still applies.
+        Object rules = values.get(AutoReply.RULES);
         boolean autoReplyLeftOff = Boolean.TRUE.equals(supported.get(AutoReply.KEY)) &&
-            !Settings.preferences.getBoolean(AutoReply.KEY, false);
+            !prefs.getBoolean(AutoReply.KEY, false) && !(rules instanceof String && AutoReply.hasReplies((String) rules));
         if (autoReplyLeftOff) supported.remove(AutoReply.KEY);
         String autoReply = autoReplyLeftOff ? " " + text.get("import_auto_reply_off") : "";
-        if (supported.isEmpty()) {
+        if (supported.isEmpty() && values.isEmpty()) {
             restoreResult(autoReplyLeftOff ? text.get("import_auto_reply_off") : text.get("import_no_choices"), skipped);
             return;
         }
         // Every choice starts off, so a value the backup shares with this phone isn't news, and the count says so. The
         // pause isn't a choice; it gets its own sentence.
         int changed = 0, total = 0;
-        boolean wasPaused = Settings.preferences.getBoolean("paused", false);
-        SharedPreferences.Editor editor = Settings.preferences.edit();
+        java.util.Set<String> changedKeys = new java.util.HashSet<>();
+        boolean wasPaused = prefs.getBoolean("paused", false);
+        Map<String, ?> current = prefs.getAll();
+        SharedPreferences.Editor editor = prefs.edit();
         for (Map.Entry<String, Boolean> choice : supported.entrySet()) {
+            if (prefs.getBoolean(choice.getKey(), false) != choice.getValue()) changedKeys.add(choice.getKey());
             if (!"paused".equals(choice.getKey())) {
                 total++;
-                if (Settings.preferences.getBoolean(choice.getKey(), false) != choice.getValue()) changed++;
+                if (changedKeys.contains(choice.getKey())) changed++;
             }
             editor.putBoolean(choice.getKey(), choice.getValue());
         }
+        Integer keepDays = null;
+        for (Map.Entry<String, Object> value : values.entrySet()) {
+            String key = value.getKey();
+            Object saved = value.getValue();
+            total++;
+            Object was = MessageLog.KEEP_DAYS.equals(key) ? (Object) MessageLog.keepDays() : current.get(key);
+            if (saved.equals(was)) continue;
+            changed++;
+            changedKeys.add(key);
+            // A shorter time to keep messages gets the same grace as one picked on the log's own screen.
+            if (MessageLog.KEEP_DAYS.equals(key)) keepDays = (Integer) saved;
+            else if (saved instanceof String) editor.putString(key, (String) saved);
+            else if (saved instanceof Integer) editor.putInt(key, (Integer) saved);
+            else editor.putBoolean(key, (Boolean) saved);
+        }
         editor.apply();
-        page.refreshChoices();
+        if (keepDays != null) MessageLog.keepFor(keepDays, System.currentTimeMillis());
+        boolean reload = false;
+        for (String key : changedKeys) {
+            if (key.startsWith(ChatHiding.SAVED)) ChatHiding.forget();
+            else if (key.startsWith(LocalPins.SAVED)) LocalPins.forget();
+            else if (HomeHeader.TEXT.equals(key)) HomeHeader.forget();
+            reload |= values.containsKey(key);
+        }
         // A backup can carry the pause, and a restored pause is easy to miss, so it stays in the toast, and so does a
         // pause the backup lifted.
         Boolean pause = supported.get("paused");
@@ -247,6 +301,40 @@ final class ChoicesBackup {
         String headline = changed == 0 ? text.get(whole ? "import_same" : "import_none_changed")
             : changed == total ? text.count("imported", changed) : text.get("imported_partial", changed, total);
         restoreResult(headline + paused, autoReply + skipped);
+        page.followRestored(changedKeys);
+        // Lists, words and pictures are drawn once as the page opens, so a restored one opens the page again. The result
+        // above stays on the card through that.
+        if (reload) page.reloadAfterRestore();
+        else page.refreshChoices();
+    }
+
+    /**
+     * A backup too big to keep says whose settings filled it, so it's clear what to trim. A toast shows two lines at
+     * most, so the setting's name goes on the card under the buttons.
+     */
+    private void refuseTooLarge(String backup) {
+        String owner = ChoiceCodec.biggest(backup);
+        if (owner == null) {
+            page.feedback(page.text.get("export_failed"), Toast.LENGTH_LONG);
+            return;
+        }
+        String title = owner;
+        if (ChoiceCodec.MENU_ROW.equals(owner)) title = page.text.get("menu_tab");
+        else for (String[] spec : SettingsActivity.CONTROLS) if (spec[0].equals(owner)) title = page.text.control(spec, 1);
+        restoreResult(page.text.get("export_too_large"), " " + page.text.get("export_too_large_detail", title));
+    }
+
+    /** The result on the card outlives the page opening again after a restore. */
+    void saveState(android.os.Bundle state) {
+        if (restoreStatus != null && restoreStatus.getVisibility() == View.VISIBLE)
+            state.putCharSequence("choices_restore_status", restoreStatus.getText());
+    }
+
+    void restoreState(android.os.Bundle state) {
+        CharSequence status = state.getCharSequence("choices_restore_status");
+        if (status == null || restoreStatus == null) return;
+        restoreStatus.setText(status);
+        restoreStatus.setVisibility(View.VISIBLE);
     }
 
     /**
@@ -279,7 +367,7 @@ final class ChoicesBackup {
         }
     }
 
-    private void finishDocumentJob(DocumentJob job, boolean success, Map<String, Boolean> choices) {
+    private void finishDocumentJob(DocumentJob job, boolean success, Map<String, Object> choices) {
         SettingsText text = page.text;
         if (documentJob != job || page.isDestroyed()) return;
         documentJob = null;
@@ -289,7 +377,8 @@ final class ChoicesBackup {
         cancelChoicesFile.setVisibility(View.GONE);
         documentStatus.setVisibility(View.GONE);
         // A file that can't be read isn't a bad backup, so the two get different advice.
-        if (!success) page.feedback(text.get(job.request == SAVE_CHOICES ? "choices_file_save_failed" : job.invalid ? "import_invalid" : "restore_failed"), Toast.LENGTH_LONG);
+        if (!success) page.feedback(text.get(job.request == SAVE_CHOICES ? "choices_file_save_failed" : job.tooLarge ? "import_too_large"
+            : job.invalid ? "import_invalid" : "restore_failed"), Toast.LENGTH_LONG);
         else if (job.request == SAVE_CHOICES) page.feedback(text.get("choices_file_saved"), Toast.LENGTH_SHORT);
         else if (job.generation == documentGeneration && job.before.equals(ChoiceCodec.encode(Settings.preferences, Settings.installed)))
             restoreChoices(choices);
@@ -312,6 +401,8 @@ final class ChoicesBackup {
         volatile boolean canceled;
         /** The document was read but isn't a backup, as opposed to a document that couldn't be read. */
         volatile boolean invalid;
+        /** The document is bigger than a backup can be, so it isn't read to the end. */
+        volatile boolean tooLarge;
         volatile android.content.res.AssetFileDescriptor asset;
         volatile java.io.Closeable stream;
         private int users = 1;
@@ -376,7 +467,7 @@ final class ChoicesBackup {
         }
 
         @Override public void run() {
-            Map<String, Boolean> choices = null;
+            Map<String, Object> choices = null;
             boolean success = false;
             try {
                 if (canceled) return;
@@ -446,7 +537,8 @@ final class ChoicesBackup {
                             stream = input;
                             if (canceled) return;
                             try { choices = ChoiceCodec.parse(ChoiceCodec.read(input)); }
-                            catch (ChoiceCodec.TooLarge | IllegalArgumentException malformed) { invalid = true; throw malformed; }
+                            catch (ChoiceCodec.TooLarge oversized) { tooLarge = true; throw oversized; }
+                            catch (IllegalArgumentException malformed) { invalid = true; throw malformed; }
                         }
                     }
                 }
@@ -459,7 +551,7 @@ final class ChoicesBackup {
                 stream = null;
                 handler.removeCallbacks(deadline);
                 boolean completed = success;
-                Map<String, Boolean> result = choices;
+                Map<String, Object> result = choices;
                 handler.post(() -> {
                     ChoicesBackup screen = owner.get();
                     if (screen != null) screen.finishDocumentJob(this, completed, result);

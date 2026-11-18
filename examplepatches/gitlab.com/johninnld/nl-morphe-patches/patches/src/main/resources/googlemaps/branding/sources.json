@@ -1,0 +1,32 @@
+{
+  "classic_pin": {
+    "label": "Classic pin",
+    "source": "google-maps (3).png",
+    "sha256": "9d911275c4a582a8138afdb587424885121a702b1811a10811d63cdec90cc364"
+  },
+  "outlined_pin": {
+    "label": "Outlined pin",
+    "source": "google-maps (2).png",
+    "sha256": "ea70b308d20c1da7ad88a8c60cd844dc9ffd5765ce4adca9ac0fe1fa8df00401"
+  },
+  "classic_map_tile": {
+    "label": "Classic map tile",
+    "source": "google-maps (1).png",
+    "sha256": "09bc3ac7c8b2c96754f75739907f44abf133b2d33b869fa26ba257384cc04329"
+  },
+  "raised_map_pin": {
+    "label": "Raised map pin",
+    "source": "logo (1).png",
+    "sha256": "eb50d75cdf2272a101c8d801ad7d80816c1649fe435e22e52f349e8d15394905"
+  },
+  "gradient_pin": {
+    "label": "Gradient pin",
+    "source": "image-1.png",
+    "sha256": "3da9a5212f8380cfd691bd4f11c8bf5eb11f2aeb2f0b1951dfe848b08350d3f2"
+  },
+  "folded_map": {
+    "label": "Folded map",
+    "source": "image-2.png",
+    "sha256": "78db43e95187e781e3cac46e235ce161afe60ae5a9ec0d412b76b2cae2b74796"
+  }
+}

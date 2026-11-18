@@ -119,11 +119,18 @@ public class SupportRowTest {
             root.findViewWithTag("tab_app").performClick();
             Runnable undo = denyLaunches(screen.get());
             try {
-                for (String tag : new String[] {"source_licenses", "report_problem", "support"}) {
+                for (String tag : new String[] {"report_problem", "support"}) {
                     ShadowToast.reset();
                     root.findViewWithTag(tag).performClick();
                     assertEquals(tag, "Your phone didn't allow opening that page", ShadowToast.getTextOfLatestToast());
                 }
+                // Source and licenses opens in the app, and only its Source code button leaves for a page.
+                ShadowToast.reset();
+                root.findViewWithTag("source_licenses").performClick();
+                assertNull(ShadowToast.getTextOfLatestToast());
+                screen.get().licensesSheet().findViewWithTag("licenses_source").performClick();
+                assertEquals("Your phone didn't allow opening that page", ShadowToast.getTextOfLatestToast());
+                screen.get().licensesSheet().dialog.dismiss();
             } finally {
                 undo.run();
             }

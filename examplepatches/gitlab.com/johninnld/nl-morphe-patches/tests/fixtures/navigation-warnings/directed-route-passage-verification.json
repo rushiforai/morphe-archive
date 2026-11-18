@@ -1,0 +1,69 @@
+{
+  "format": 1,
+  "scope": "Correct actual Maps scheduler-policy route precedence, strict passage projection shared by both receiver route adapters, pinned native geometry ABI guards, rebuilt signed intended APK combinations and actual Maps native-route snapshot binding. Route-bend/parallel/ambiguous/pass-point behavior is verified by explicit native-shape unit inputs; the runtime binding observes an app-created active route, not a moving/source-warning passage trajectory.",
+  "serial": "emulator-5590",
+  "avd": "native_warnings_ui_api34",
+  "bundle": {
+    "mpp_sha256": "7b35da6933b4cb64862fb0d7a1829bc9b298e5615cd53f7235c52c96dbb8cc73",
+    "maps_apk_sha256": "a85076dbe6b94cab28f5148a81faa1b90ea2fb152e97f60f6ce8f54659b52efb",
+    "vela_apk_sha256": "db277bae28b17584c34c31caa0eea313a76b45ed118084e5e9a856d9044e1670",
+    "bytecode_mode": "FULL",
+    "validated": true,
+    "original_guard_log": ".analysis/native-warning-bindings/directed-passage-full-original-guards.log"
+  },
+  "runtime_route": {
+    "package": "org.ungoogled.android.apps.maps",
+    "process_uid": 10194,
+    "process_pid": 24532,
+    "last_reviewed_setup_action": "Dismiss",
+    "route_class": "anys",
+    "controller_class": "anvg",
+    "native_navigation_active": true,
+    "current_route_present": true,
+    "current_step_present": true,
+    "native_route_model_class": "blot",
+    "native_path_class": "yap",
+    "native_polyline_class": "bjix",
+    "native_polyline_points": 112,
+    "first_polyline_latitude": 52.37007369326961,
+    "first_polyline_longitude": 4.899738393723965,
+    "product_directed_route_points": 112,
+    "native_geometry_snapshot_matches_product": true,
+    "status": "observed",
+    "actual_route_ready": true,
+    "scope": "Actual navigation intent and original route/controller/current-step state; no route/model/step or navigation flag created or replaced.",
+    "probe_completed": true
+  },
+  "native_geometry_runtime_result": ".analysis/native-warning-bindings/maps-directed-route-runtime-01/result.json",
+  "native_geometry_contract": "maps-route-geometry-contract.json",
+  "native_original_guard_methods": 42,
+  "red_policy_log": ".analysis/native-warning-bindings/maps-directed-policy-red.log",
+  "red_policy_result": "Three actual previous scheduler-policy assertions failed: route-ahead bend, active route with unusable geometry, and directed progress despite opposite current bearing. The no-route heading fallback passed.",
+  "green_log": ".analysis/native-warning-bindings/directed-passage-full-original-guards.log",
+  "component_tests": {
+    "extension": {
+      "tests": 79,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "vela": {
+      "tests": 85,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "pinned_maps_original_guard_executed_without_skip": true,
+  "policy": "An active native route takes precedence over a straight heading. Missing/unusable/oversized/changed native geometry leaves passage unknown, rather than falling back to a potentially wrong heading. Passage projection requires a strict accuracy-derived corridor (minimum 12m) and refuses nearby route legs separated by more than 80m of progress; legacy approach geometry remains unchanged. Only nonspatial-emergency-exempt point-ahead events are eligible.",
+  "native_snapshot_cached_by_geometry_identity": true,
+  "native_snapshot_max_points": 50000,
+  "bounded_passage_target_cache": 512,
+  "ordinary_native_heading_fallback_without_active_route_preserved": true,
+  "native_geometry_runtime_preferences_and_permissions_restored_exactly": true,
+  "remaining": [
+    "Moving native source lead and actual GPS crossing/passage",
+    "Source-driven delayed/replayed warning relevance and route/parallel cases",
+    "Other lifecycle/mode/compatibility, actual car routing and final review/delivery"
+  ]
+}

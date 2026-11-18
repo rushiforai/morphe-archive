@@ -35,11 +35,12 @@
 | InPost Mobile | `pl.inpost.inmobile` |
 | Żappka | `pl.zabka.apb2c` |
 | Lidl Plus | `com.lidl.eci.lidlplus` |
+| Meteo ICM | `pl.janpogocki.icm.pogoda` |
 
 All patches are enabled by default.
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.7.2](https://github.com/RikoDEV/morphed-pl/releases/tag/v1.7.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;37 patches total
+> **[v1.7.3](https://github.com/RikoDEV/morphed-pl/releases/tag/v1.7.3)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;41 patches total
 <details open>
 <summary>📦 Lidl Plus&nbsp;&nbsp;•&nbsp;&nbsp;16 patches</summary>
 <br>
@@ -121,6 +122,24 @@ All patches are enabled by default.
 | [Custom Google Maps key](#custom-google-maps-key) | Replaces the app's Google Maps API key. The original key is locked to the developer's signing certificate, so maps stay grey in a re-signed app. Use a key you own that allows the app's package name and the SHA-1 of the key the patched app is signed with. | • Google Maps API key |
 | [Hide Von Halsky](#hide-von-halsky) | Removes Von Halsky shopping: the Kupuj tab, the home search box, and the banners and promotions in parcel lists, details, the cart and the More menu. |  |
 | [Hide promotional banners](#hide-promotional-banners) | Removes the promotional banner carousel from the home screen. |  |
+
+</details>
+
+<details open>
+<summary>📦 Meteo ICM&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 4.2.8 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Block telemetry](#block-telemetry) | Turns off Firebase Analytics, Crashlytics, Performance, In-App Messaging and Sessions, removes the advertising ID permissions and the Google datatransport upload backend. Push notifications (FCM), RevenueCat and the weather API keep working. |  |
+| [Bypass license check](#bypass-license-check) | Removes the Google Play license check that shows "Get this app from Google Play" and closes the app when it was not installed from the Play Store. |  |
+| [Remove ads](#remove-ads) | Removes the banner ads (WP ads / Google Ad Manager) and the interstitial ads, and stops the ad SDK from starting at launch. |  |
+| [Unlock premium](#unlock-premium) | Injects an active premium entitlement into the RevenueCat response so the app reports premium tier without a subscription. Weather model UM 120h and ad-free mode become available. |  |
 
 </details>
 

@@ -1,3 +1,23 @@
+## [1.2.0](https://github.com/jibon-k/notes-morphe-patches/compare/v1.1.0...v1.2.0) (2026-11-17)
+
+### ✨ New Features
+
+* rename backup to local backup and sync ([6610480](https://github.com/jibon-k/notes-morphe-patches/commit/661048033b1f37f38e3a599841d9b6c939bc9c86))
+* samsung cloud sync through web sign-in ([a5eb27d](https://github.com/jibon-k/notes-morphe-patches/commit/a5eb27d5dac390eadaf7de9bf5c0cf533e44f308))
+
+## [1.1.0](https://github.com/jibon-k/notes-morphe-patches/compare/v1.0.2...v1.1.0) (2026-11-17)
+
+### ✨ New Features
+
+* folder sync on by default ([3f76c14](https://github.com/jibon-k/notes-morphe-patches/commit/3f76c14ad9506373eec3fbee9f3d1e2013902c3d))
+* turn off Samsung telemetry and Google services ([2d5eab2](https://github.com/jibon-k/notes-morphe-patches/commit/2d5eab2d592a55ae1f4f546f4579eaf2f98a34e5))
+
+## [1.0.2](https://github.com/jibon-k/notes-morphe-patches/compare/v1.0.1...v1.0.2) (2026-11-17)
+
+### 🐛 Bug Fixes
+
+* share opens the app chooser ([53289b8](https://github.com/jibon-k/notes-morphe-patches/commit/53289b836a30aad050a4dc89831aafc0e086a3af))
+
 ## [1.0.1](https://github.com/jibon-k/notes-morphe-patches/compare/v1.0.0...v1.0.1) (2026-11-01)
 
 ### 🐛 Bug Fixes

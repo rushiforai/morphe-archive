@@ -720,7 +720,7 @@ public final class FreeProxies {
         }
 
         @Nullable
-        private static Object entry(String link) {
+        static Object entry(String link) {
             Object proxy = proxy(link);
             List<?> saved = TelegramProxies.proxies();
             if (proxy == null || saved == null) return null;

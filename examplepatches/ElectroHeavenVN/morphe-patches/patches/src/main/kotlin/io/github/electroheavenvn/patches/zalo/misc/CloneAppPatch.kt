@@ -1,9 +1,10 @@
 package io.github.electroheavenvn.patches.zalo.misc
 
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.document
+import app.morphe.patcher.patch.patch
 import app.morphe.patcher.patch.stringOption
 import io.github.electroheavenvn.patches.zalo.shared.Constants.COMPATIBILITY_ZALO
-import io.github.electroheavenvn.patches.zalo.xposed.integrateXposedPatch
+import io.github.electroheavenvn.patches.zalo.xposed.integrateZaloXposedPatch
 
 import org.w3c.dom.Document
 import org.w3c.dom.Element
@@ -18,12 +19,8 @@ private val cloneNumberOption = stringOption(
     required = false,
 ) { it.isNullOrBlank() || it.all { char -> char.isDigit() } }
 
-
 const val ORG_PKGNAME = "com.zing.zalo"
 private const val PERMISSION_PREFIX = "zing.zalo.permission."
-private val PKGNAME_REGEX = Regex("^[a-z][\\w]*(\\.[a-z][\\w]*)+$")
-
-fun isValidZaloPackageName(name: String?): Boolean = name != null && PKGNAME_REGEX.matches(name)
 
 /** Rewrites manifest identities */
 fun rewriteZaloPackage(document: Document, newPackage: String) {
@@ -83,13 +80,13 @@ fun rewriteAppLabel(document: Document, newName: String, launcherActivity: Strin
 }
 
 @Suppress("unused")
-val cloneZaloPatch = resourcePatch(
+val cloneZaloPatch = patch(
     name = "Clone app",
     description = "Change Zalo package name and update the app name to allow multiple installations.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_ZALO)
-    dependsOn(integrateXposedPatch)
+    dependsOn(integrateZaloXposedPatch)
 
     val cloneNumber by cloneNumberOption()
 
@@ -107,6 +104,3 @@ val cloneZaloPatch = resourcePatch(
         }
     }
 }
-
-
-

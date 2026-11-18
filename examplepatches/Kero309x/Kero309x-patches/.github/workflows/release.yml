@@ -1,0 +1,140 @@
+# Publishes a release from main when the version in gradle.properties is new.
+# v0.1.0 was published manually; v0.1.1 was the first release produced here.
+
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Read version
+        id: version
+        run: |
+          version="$(sed -n 's/^version=//p' gradle.properties | head -n 1)"
+          if [ -z "$version" ]; then
+            echo "No version found in gradle.properties" >&2
+            exit 1
+          fi
+          echo "value=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Check for an existing tag
+        id: tag
+        run: |
+          if git rev-parse --quiet --verify "refs/tags/v${{ steps.version.outputs.value }}" >/dev/null; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Require the framework registry token
+        if: steps.tag.outputs.exists == 'false'
+        env:
+          REGISTRY_TOKEN: ${{ secrets.MORPHE_REGISTRY_TOKEN }}
+        run: |
+          if [ -z "$REGISTRY_TOKEN" ]; then
+            echo "::error::MORPHE_REGISTRY_TOKEN is empty. Add a classic personal access token with the read:packages scope as both a repository secret and a Dependabot secret; see docs/development/setup.md."
+            exit 1
+          fi
+
+      - name: Set up JDK
+        if: steps.tag.outputs.exists == 'false'
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Gradle
+        if: steps.tag.outputs.exists == 'false'
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Build
+        if: steps.tag.outputs.exists == 'false'
+        # `buildAndroid` adds `classes.dex` to the bundle and signs it when a key
+        # is available; `build` alone produces a Desktop-only bundle. The task
+        # captures the Project, so it cannot run with the configuration cache.
+        run: ./gradlew buildAndroid --no-daemon --no-configuration-cache --stacktrace
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.MORPHE_REGISTRY_TOKEN }}
+          MORPHE_SIGNING_KEY: ${{ secrets.MORPHE_SIGNING_KEY }}
+
+      - name: Publish
+        if: steps.tag.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          version="${{ steps.version.outputs.value }}"
+          bundle="$(find patches/build/libs -maxdepth 1 -type f -name 'patches-*.mpp' \
+            ! -name '*-sources.mpp' ! -name '*-javadoc.mpp' | head -n 1)"
+          if [ -z "$bundle" ]; then
+            echo "No bundle produced" >&2
+            exit 1
+          fi
+          asset="Kero309x-Patches-${version}.mpp"
+          cp "$bundle" "$asset"
+          prerelease=()
+          if [[ "$version" == 0.* ]]; then
+            prerelease=(--prerelease)
+          fi
+          gh release create "v$version" \
+            --title "Kero309x Patches $version" \
+            --generate-notes \
+            "${prerelease[@]}" \
+            "$asset"
+
+      # Morphe reads this file from the repository root on main and downloads
+      # whatever `download_url` points at, so every release republishes it.
+      # `created_at` must have no time-zone suffix or Manager fails to parse it.
+      - name: Publish the patch source metadata
+        if: steps.tag.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MORPHE_SIGNING_KEY: ${{ secrets.MORPHE_SIGNING_KEY }}
+        run: |
+          version="${{ steps.version.outputs.value }}"
+          asset="Kero309x-Patches-${version}.mpp"
+          created_at="$(gh release view "v$version" --json publishedAt -q .publishedAt | sed 's/Z$//')"
+          notes="$(gh release view "v$version" --json body -q .body)"
+          # Only advertise a public key when the build was actually signed;
+          # otherwise the manager would reject a bundle whose signature is absent.
+          public_key=""
+          if [ -n "${MORPHE_SIGNING_KEY:-}" ] && [ -f morphe-signing.pub ]; then
+            public_key="$(tr -d '\r\n' < morphe-signing.pub)"
+          fi
+          jq -n \
+            --arg version "$version" \
+            --arg created_at "$created_at" \
+            --arg description "$notes" \
+            --arg download_url "https://github.com/${GITHUB_REPOSITORY}/releases/download/v${version}/${asset}" \
+            --arg public_key "$public_key" \
+            '{
+              version: $version,
+              created_at: $created_at,
+              description: $description,
+              download_url: $download_url,
+              signature_download_url: ""
+            } + (if $public_key == "" then {} else { public_key: $public_key } end)' > patches-bundle.json
+          git add patches-bundle.json patches-list.json
+          git -c user.name='github-actions[bot]' \
+              -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+              commit -m "chore: publish the patch source metadata for v${version}"
+          git push origin HEAD:main

@@ -1,6 +1,7 @@
 /*
  * Copyright 2026 Morphe.
  * https://github.com/MorpheApp/morphe-patches/pull/2269
+ * Modified by lavinhoque33, 2026-11-17.
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  */
@@ -150,6 +151,7 @@ public final class TextTranslator {
             case "in" -> "id";
             case "iw" -> "he";
             case "ji" -> "yi";
+            case "kmr" -> "ku";
             default -> language;
         };
     }

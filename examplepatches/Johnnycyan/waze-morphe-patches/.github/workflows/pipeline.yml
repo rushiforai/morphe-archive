@@ -1,0 +1,159 @@
+name: Sync, build and release
+
+# 1. Point upstream.lock at the newest Waze and Google Maps versions nl-morphe-patches targets.
+# 2. Build the bundle for those versions and publish it as the "candidate" prerelease. The worker (worker/) waits for both APKs to be uploaded, test-patches them
+#    and commits verified/<key>.json.
+# 3. Once the candidate's inputs are verified, publish that exact bundle as a release and update
+#    patches-bundle.json, which Morphe Manager reads.
+on:
+  schedule:
+    - cron: "17 */4 * * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - upstream.lock
+      - VERSION
+      - patches/**
+      - extensions/**
+      - gradle/**
+      - "*.kts"
+      - gradle.properties
+      - scripts/**
+      - verified/**
+      - .github/workflows/pipeline.yml
+
+concurrency:
+  group: pipeline
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+env:
+  GH_TOKEN: ${{ github.token }}
+
+jobs:
+  pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Sync upstream tags
+        run: |
+          if [ "$(bash scripts/sync.sh)" = changed ]; then
+            . <(grep -E '^[A-Z_]+=' upstream.lock)
+            git commit -am "chore: target Waze $WAZE_VERSION, Maps $MAPS_VERSION (nl $NL_TAG)"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
+
+      - name: Work out what to do
+        id: meta
+        run: |
+          bash scripts/meta.sh >> "$GITHUB_OUTPUT"
+          . <(bash scripts/meta.sh)
+          if gh api "repos/$GITHUB_REPOSITORY/releases" --paginate \
+              --jq '.[] | select(.prerelease | not) | .body' | grep -q "inputs: $KEY"; then
+            echo "released=true" >> "$GITHUB_OUTPUT"
+          fi
+          if [ -f "verified/$KEY.json" ] && jq -e '.ok == true' "verified/$KEY.json" >/dev/null; then
+            echo "verified=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/setup-java@v4
+        if: steps.meta.outputs.released != 'true' && steps.meta.outputs.verified != 'true'
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: gradle/actions/setup-gradle@v4
+        if: steps.meta.outputs.released != 'true' && steps.meta.outputs.verified != 'true'
+
+      - name: Build and publish candidate
+        if: steps.meta.outputs.released != 'true' && steps.meta.outputs.verified != 'true'
+        env:
+          KEY: ${{ steps.meta.outputs.KEY }}
+          BASE_VERSION: ${{ steps.meta.outputs.BASE_VERSION }}
+        run: |
+          # Rebuilds for the same VERSION and app versions get a .N suffix.
+          version="$BASE_VERSION"; n=1
+          while git ls-remote --exit-code --tags origin "refs/tags/v$version" >/dev/null; do
+            n=$((n + 1)); version="$BASE_VERSION.$n"
+          done
+          bash scripts/build.sh "$version"
+
+          . <(grep -E '^[A-Z_]+=' upstream.lock)
+          jq -n --arg key "$KEY" --arg version "$version" --arg waze "$WAZE_VERSION" \
+                --arg maps "$MAPS_VERSION" --arg nl "$NL_TAG" --arg commit "$GITHUB_SHA" \
+                '{key: $key, version: $version, waze_version: $waze, maps_version: $maps, nl_tag: $nl, commit: $commit}' \
+                > out/candidate.json
+          gh release delete candidate --yes --cleanup-tag 2>/dev/null || true
+          gh release create candidate --prerelease --target "$GITHUB_SHA" \
+            --title "Candidate $version (Waze $WAZE_VERSION, Maps $MAPS_VERSION)" \
+            --notes "Awaiting verification against Waze $WAZE_VERSION and Google Maps $MAPS_VERSION. Upload both APKs to the worker. inputs: $KEY" \
+            out/patches.mpp out/patches-list.json out/candidate.json
+
+      # Optional: tell the worker now instead of at its next poll. Polling still covers a miss.
+      - name: Notify worker
+        if: steps.meta.outputs.released != 'true' && steps.meta.outputs.verified != 'true'
+        env:
+          WORKER_URL: ${{ secrets.WORKER_URL }}
+          WORKER_NOTIFY_TOKEN: ${{ secrets.WORKER_NOTIFY_TOKEN }}
+        run: |
+          if [ -z "$WORKER_URL" ] || [ -z "$WORKER_NOTIFY_TOKEN" ]; then
+            echo "WORKER_URL / WORKER_NOTIFY_TOKEN not set; the worker will pick the candidate up when it polls."
+            exit 0
+          fi
+          curl -fsS --max-time 30 -X POST -H "Authorization: Bearer $WORKER_NOTIFY_TOKEN" \
+            "${WORKER_URL%/}/api/notify" \
+            || echo "::warning::Could not reach the worker; it will pick the candidate up when it polls."
+
+      # Publishes the exact bundle the worker verified, not a rebuild.
+      - name: Release verified candidate
+        if: steps.meta.outputs.released != 'true' && steps.meta.outputs.verified == 'true'
+        env:
+          KEY: ${{ steps.meta.outputs.KEY }}
+        run: |
+          mkdir -p out
+          gh release download candidate --dir out \
+            --pattern patches.mpp --pattern patches-list.json --pattern candidate.json
+          if [ "$(jq -r .key out/candidate.json)" != "$KEY" ]; then
+            echo "candidate does not match verified inputs $KEY" >&2
+            exit 1
+          fi
+          VERSION="$(jq -r .version out/candidate.json)"
+          WAZE="$(jq -r .waze_version out/candidate.json)"
+          MAPS="$(jq -r .maps_version out/candidate.json)"
+          NL_TAG="$(jq -r .nl_tag out/candidate.json)"
+          mpp="patches-$VERSION.mpp"
+          mv out/patches.mpp "out/$mpp"
+          {
+            echo "ElevenLabs voice for Waze $WAZE and Google Maps $MAPS, verified against the real APKs."
+            echo
+            echo "- App versions as targeted by nl-morphe-patches [$NL_TAG](https://gitlab.com/johninnld/nl-morphe-patches/-/releases/$NL_TAG)"
+            echo "- verification: verified/$KEY.json"
+            echo
+            echo "inputs: $KEY"
+          } > out/notes.md
+          gh release create "v$VERSION" --target "$GITHUB_SHA" --title "v$VERSION" \
+            --notes-file out/notes.md "out/$mpp"
+          gh release delete candidate --yes --cleanup-tag 2>/dev/null || true
+
+          jq -n --arg v "$VERSION" --rawfile notes out/notes.md \
+                --arg url "https://github.com/$GITHUB_REPOSITORY/releases/download/v$VERSION/$mpp" \
+                --arg at "$(date -u +%Y-%m-%dT%H:%M:%S)" \
+                '{created_at: $at, description: $notes, download_url: $url, signature_download_url: "", version: $v}' \
+                > patches-bundle.json
+          jq --arg v "$VERSION" '.version = $v' out/patches-list.json > patches-list.json
+          git add patches-bundle.json patches-list.json
+          git commit -m "chore: release v$VERSION [skip ci]"
+          git pull --rebase origin main
+          git push origin HEAD:main

@@ -17,7 +17,8 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
-/**
+/** 
+Test
  * Forces the boolean this method stores into [fieldClass]->[fieldName]
  * to true. In the target methods the store is fed directly by a
  * move-result (the config-store read whose value is being cached),

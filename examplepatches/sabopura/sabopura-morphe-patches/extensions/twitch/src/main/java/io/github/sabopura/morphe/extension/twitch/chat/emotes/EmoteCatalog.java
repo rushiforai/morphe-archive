@@ -4,37 +4,31 @@ package io.github.sabopura.morphe.extension.twitch.chat.emotes;
 import android.content.Context;
 
 import io.github.sabopura.morphe.extension.twitch.chat.ChatSettings;
+import io.github.sabopura.morphe.extension.twitch.chat.PublicApi;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 final class EmoteCatalog {
     private static final long CACHE_TTL_MS = 6L * 60L * 60L * 1000L;
     private static final long RETRY_BACKOFF_MS = 5L * 60L * 1000L;
+    /** Only the download queue was full, which says nothing about the provider. */
+    private static final long QUEUE_FULL_RETRY_MS = 10_000L;
     private static final int MAX_RESPONSE_BYTES = 4 * 1024 * 1024;
     private static final int MAX_CHANNEL_CATALOGS = 32;
-    private static final String USER_AGENT = "SabopuraChat/1.0";
 
     private final Object channelCacheLock = new Object();
     private final LinkedHashMap<String, ChannelState> channels =
@@ -42,14 +36,6 @@ final class EmoteCatalog {
     private final ProviderState globalSevenTv = new ProviderState();
     private final ProviderState globalBetterTtv = new ProviderState();
     private final ProviderState globalFfz = new ProviderState();
-    private final ThreadPoolExecutor executor =
-            new ThreadPoolExecutor(
-                    2,
-                    2,
-                    0L,
-                    TimeUnit.MILLISECONDS,
-                    new LinkedBlockingQueue<>(64),
-                    new DaemonThreadFactory());
     private final Consumer<String> onUpdated;
 
     EmoteCatalog(Consumer<String> onUpdated) {
@@ -57,32 +43,36 @@ final class EmoteCatalog {
     }
 
     void ensureLoaded(Context context, String channelId) {
-        Context applicationContext = context.getApplicationContext();
+        Context app = context.getApplicationContext();
         long now = System.currentTimeMillis();
         ChatSettings settings = ChatSettings.get(context);
         if (settings.sevenTv)
-            schedule(globalSevenTv, now, () -> loadGlobalSevenTv(applicationContext));
+            schedule(app, globalSevenTv, null, "7tv-global", "https://7tv.io/v3/emote-sets/global", false,
+                    (text, out) -> parseSevenTv(new JSONObject(text), out, true));
         if (settings.bttv)
-            schedule(globalBetterTtv, now, () -> loadGlobalBetterTtv(applicationContext));
+            schedule(app, globalBetterTtv, null, "bttv-global", "https://api.betterttv.net/3/cached/emotes/global", false,
+                    (text, out) -> parseBetterTtvArray(new JSONArray(text), out, true));
         if (settings.ffz)
-            schedule(globalFfz, now, () -> loadFfz(applicationContext, null, globalFfz));
-
-        if (channelId == null) {
-            return;
-        }
+            schedule(app, globalFfz, null, "ffz-global", "https://api.frankerfacez.com/v1/set/global", true,
+                    (text, out) -> parseFfz(new JSONObject(text), out, true));
+        if (channelId == null) return;
         ChannelState channel = getChannel(channelId, true);
         if (settings.sevenTv)
-            schedule(
-                    channel.sevenTv,
-                    now,
-                    () -> loadChannelSevenTv(applicationContext, channelId, channel));
+            schedule(app, channel.sevenTv, channelId, "7tv-channel-" + channelId, "https://7tv.io/v3/users/twitch/" + channelId, true,
+                    (text, out) -> {
+                        JSONObject set = new JSONObject(text).optJSONObject("emote_set");
+                        if (set != null) parseSevenTv(set, out, false);
+                    });
         if (settings.bttv)
-            schedule(
-                    channel.betterTtv,
-                    now,
-                    () -> loadChannelBetterTtv(applicationContext, channelId, channel));
+            schedule(app, channel.betterTtv, channelId, "bttv-channel-" + channelId, "https://api.betterttv.net/3/cached/users/twitch/" + channelId, true,
+                    (text, out) -> {
+                        JSONObject root = new JSONObject(text);
+                        parseBetterTtvArray(root.optJSONArray("channelEmotes"), out, false);
+                        parseBetterTtvArray(root.optJSONArray("sharedEmotes"), out, false);
+                    });
         if (settings.ffz)
-            schedule(channel.ffz, now, () -> loadFfz(applicationContext, channelId, channel.ffz));
+            schedule(app, channel.ffz, channelId, "ffz-channel-" + channelId, "https://api.frankerfacez.com/v1/room/id/" + channelId, true,
+                    (text, out) -> parseFfz(new JSONObject(text), out, false));
     }
 
     Emote find(Context context, String channelId, String name) {
@@ -108,6 +98,17 @@ final class EmoteCatalog {
         return emote;
     }
 
+    /** The emotes chat draws in this channel: its own ones, or the global ones no channel emote hides. */
+    java.util.List<Emote> emotes(Context context, String channelId, boolean global) {
+        java.util.List<Emote> found = new java.util.ArrayList<>();
+        for (String name : names(context, channelId)) {
+            Emote emote = find(context, channelId, name);
+            if (emote != null && emote.global == global) found.add(emote);
+        }
+        found.sort((a, b) -> a.name.compareToIgnoreCase(b.name));
+        return found;
+    }
+
     java.util.List<String> names(Context context, String channelId) {
         ensureLoaded(context, channelId);
         java.util.Set<String> names = new java.util.TreeSet<>();
@@ -122,27 +123,6 @@ final class EmoteCatalog {
             if (s.ffz) names.addAll(c.ffz.emotes.keySet());
         }
         return new java.util.ArrayList<>(names);
-    }
-
-    private void loadFfz(Context context, String channelId, ProviderState state) {
-        boolean updated = false;
-        try {
-            LoadedValue<JSONObject> response =
-                    loadOptionalJson(
-                            context,
-                            channelId == null ? "ffz-global" : "ffz-channel-" + channelId,
-                            "https://api.frankerfacez.com/v1/"
-                                    + (channelId == null ? "set/global" : "room/id/" + channelId));
-            Map<String, Emote> loaded = new LinkedHashMap<>();
-            parseFfz(response.value, loaded, channelId == null);
-            state.publish(loaded, response.fresh);
-            updated = true;
-        } catch (Exception ignored) {
-            state.failed();
-        } finally {
-            state.loading.set(false);
-        }
-        if (updated) onUpdated.accept(channelId);
     }
 
     static void parseFfz(JSONObject root, Map<String, Emote> target, boolean global) {
@@ -171,110 +151,46 @@ final class EmoteCatalog {
                 String url = urls == null ? "" : urls.optString("2", urls.optString("1", ""));
                 if (url.startsWith("//")) url = "https:" + url;
                 if (!name.isEmpty() && EmoteUrls.allowed(url))
-                    target.put(name, new Emote(name, url, animated != null));
+                    target.put(name, new Emote("ffz", emote.optString("id", ""), name, url, animated != null, false, global));
             }
         }
     }
 
-    private void schedule(ProviderState state, long now, Runnable load) {
-        if (!state.needsRefresh(now) || !state.loading.compareAndSet(false, true)) {
-            return;
-        }
-        try {
-            executor.execute(load);
-        } catch (RejectedExecutionException ignored) {
+    private interface Parser {
+        void parse(String text, Map<String, Emote> out) throws JSONException;
+    }
+
+    private void schedule(Context context, ProviderState state, String channelId, String cacheKey, String url,
+                          boolean allowNotFound, Parser parser) {
+        long now = System.currentTimeMillis();
+        if (!state.needsRefresh(now) || !state.loading.compareAndSet(false, true)) return;
+        if (!PublicApi.submit(() -> load(context, state, channelId, cacheKey, url, allowNotFound, parser))) {
             state.loading.set(false);
-            state.retryAfter = now + RETRY_BACKOFF_MS;
+            state.retryAfter = now + QUEUE_FULL_RETRY_MS;
         }
     }
 
-    private void loadGlobalSevenTv(Context context) {
+    private void load(Context context, ProviderState state, String channelId, String cacheKey, String url,
+                      boolean allowNotFound, Parser parser) {
         boolean updated = false;
         try {
-            LoadedValue<JSONObject> response =
-                    loadJson(context, "7tv-global", "https://7tv.io/v3/emote-sets/global");
+            LoadedText text = loadText(context, cacheKey, url, allowNotFound);
             Map<String, Emote> loaded = new LinkedHashMap<>();
-            parseSevenTv(response.value, loaded);
-            globalSevenTv.publish(loaded, response.fresh);
-            updated = true;
-        } catch (Exception ignored) {
-            globalSevenTv.failed();
-        } finally {
-            globalSevenTv.loading.set(false);
-        }
-        if (updated) {
-            onUpdated.accept(null);
-        }
-    }
-
-    private void loadGlobalBetterTtv(Context context) {
-        boolean updated = false;
-        try {
-            LoadedValue<JSONArray> response =
-                    loadJsonArray(
-                            context,
-                            "bttv-global",
-                            "https://api.betterttv.net/3/cached/emotes/global");
-            Map<String, Emote> loaded = new LinkedHashMap<>();
-            parseBetterTtvArray(response.value, loaded);
-            globalBetterTtv.publish(loaded, response.fresh);
-            updated = true;
-        } catch (Exception ignored) {
-            globalBetterTtv.failed();
-        } finally {
-            globalBetterTtv.loading.set(false);
-        }
-        if (updated) {
-            onUpdated.accept(null);
-        }
-    }
-
-    private void loadChannelSevenTv(Context context, String channelId, ChannelState channel) {
-        boolean updated = false;
-        try {
-            LoadedValue<JSONObject> response =
-                    loadOptionalJson(
-                            context,
-                            "7tv-channel-" + channelId,
-                            "https://7tv.io/v3/users/twitch/" + channelId);
-            Map<String, Emote> loaded = new LinkedHashMap<>();
-            JSONObject set = response.value.optJSONObject("emote_set");
-            if (set != null) {
-                parseSevenTv(set, loaded);
+            try {
+                parser.parse(text.value, loaded);
+            } catch (JSONException failure) {
+                //noinspection ResultOfMethodCallIgnored
+                cacheFile(context, cacheKey).delete();
+                throw failure;
             }
-            channel.sevenTv.publish(loaded, response.fresh);
+            state.publish(loaded, text.loadedAt);
             updated = true;
-        } catch (Exception ignored) {
-            channel.sevenTv.failed();
+        } catch (Throwable ignored) {
+            state.failed();
         } finally {
-            channel.sevenTv.loading.set(false);
+            state.loading.set(false);
         }
-        if (updated) {
-            onUpdated.accept(channelId);
-        }
-    }
-
-    private void loadChannelBetterTtv(Context context, String channelId, ChannelState channel) {
-        boolean updated = false;
-        try {
-            LoadedValue<JSONObject> response =
-                    loadOptionalJson(
-                            context,
-                            "bttv-channel-" + channelId,
-                            "https://api.betterttv.net/3/cached/users/twitch/" + channelId);
-            Map<String, Emote> loaded = new LinkedHashMap<>();
-            parseBetterTtvArray(response.value.optJSONArray("channelEmotes"), loaded);
-            parseBetterTtvArray(response.value.optJSONArray("sharedEmotes"), loaded);
-            channel.betterTtv.publish(loaded, response.fresh);
-            updated = true;
-        } catch (Exception ignored) {
-            channel.betterTtv.failed();
-        } finally {
-            channel.betterTtv.loading.set(false);
-        }
-        if (updated) {
-            onUpdated.accept(channelId);
-        }
+        if (updated) onUpdated.accept(channelId);
     }
 
     private ChannelState getChannel(String channelId, boolean create) {
@@ -292,7 +208,7 @@ final class EmoteCatalog {
         }
     }
 
-    private static void parseSevenTv(JSONObject root, Map<String, Emote> target)
+    static void parseSevenTv(JSONObject root, Map<String, Emote> target, boolean global)
             throws JSONException {
         JSONArray emotes = root.optJSONArray("emotes");
         if (emotes == null) {
@@ -322,10 +238,13 @@ final class EmoteCatalog {
                 target.put(
                         name,
                         new Emote(
+                                "7tv",
+                                item.optString("id", ""),
                                 name,
                                 url,
                                 data != null && data.optBoolean("animated", false),
-                                (item.optInt("flags", 0) & 1) != 0));
+                                (item.optInt("flags", 0) & 1) != 0,
+                                global));
         }
     }
 
@@ -351,7 +270,7 @@ final class EmoteCatalog {
         return fallback;
     }
 
-    private static void parseBetterTtvArray(JSONArray emotes, Map<String, Emote> target) {
+    static void parseBetterTtvArray(JSONArray emotes, Map<String, Emote> target, boolean global) {
         if (emotes == null) {
             return;
         }
@@ -368,125 +287,57 @@ final class EmoteCatalog {
             target.put(
                     name,
                     new Emote(
+                            "bttv",
+                            id,
                             name,
                             "https://cdn.betterttv.net/emote/" + id + "/2x.webp",
-                            item.optBoolean("animated", false)));
+                            item.optBoolean("animated", false),
+                            false,
+                            global));
         }
     }
 
-    private static LoadedValue<JSONObject> loadJson(Context context, String cacheKey, String url)
-            throws IOException, JSONException {
-        LoadedValue<String> text = loadText(context, cacheKey, url, false);
-        try {
-            return new LoadedValue<>(new JSONObject(text.value), text.fresh);
-        } catch (JSONException failure) {
-            deleteCachedText(context, cacheKey);
-            throw failure;
-        }
+    private static File cacheFile(Context context, String cacheKey) {
+        return new File(new File(context.getCacheDir(), "morphe_emote_catalog"), cacheKey + ".json");
     }
 
-    private static LoadedValue<JSONObject> loadOptionalJson(
-            Context context, String cacheKey, String url) throws IOException, JSONException {
-        LoadedValue<String> text = loadText(context, cacheKey, url, true);
-        try {
-            return new LoadedValue<>(new JSONObject(text.value), text.fresh);
-        } catch (JSONException failure) {
-            deleteCachedText(context, cacheKey);
-            throw failure;
-        }
-    }
-
-    private static LoadedValue<JSONArray> loadJsonArray(
-            Context context, String cacheKey, String url) throws IOException, JSONException {
-        LoadedValue<String> text = loadText(context, cacheKey, url, false);
-        try {
-            return new LoadedValue<>(new JSONArray(text.value), text.fresh);
-        } catch (JSONException failure) {
-            deleteCachedText(context, cacheKey);
-            throw failure;
-        }
-    }
-
-    private static void deleteCachedText(Context context, String cacheKey) {
-        File cache =
-                new File(
-                        new File(context.getCacheDir(), "morphe_emote_catalog"),
-                        cacheKey + ".json");
-        //noinspection ResultOfMethodCallIgnored
-        cache.delete();
-    }
-
-    private static LoadedValue<String> loadText(
-            Context context, String cacheKey, String url, boolean allowNotFound)
+    private static LoadedText loadText(Context context, String cacheKey, String url, boolean allowNotFound)
             throws IOException {
-        File directory = new File(context.getCacheDir(), "morphe_emote_catalog");
-        File cache = new File(directory, cacheKey + ".json");
+        File cache = cacheFile(context, cacheKey);
+        File directory = cache.getParentFile();
         long now = System.currentTimeMillis();
-        if (cache.isFile() && now - cache.lastModified() <= CACHE_TTL_MS) {
+        long savedAt = Math.min(now, cache.lastModified());
+        if (cache.isFile() && now - savedAt <= CACHE_TTL_MS) {
             try {
-                return new LoadedValue<>(readText(cache), true);
+                return new LoadedText(readText(cache), savedAt);
             } catch (IOException ignored) {
                 //noinspection ResultOfMethodCallIgnored
                 cache.delete();
             }
         }
-
         try {
             String result = request(url, allowNotFound);
-            if (directory.isDirectory() || directory.mkdirs()) {
-                writeText(cache, result);
-            }
-            return new LoadedValue<>(result, true);
+            if (directory.isDirectory() || directory.mkdirs()) writeText(cache, result);
+            return new LoadedText(result, now);
         } catch (IOException failure) {
-            if (cache.isFile()) {
-                return new LoadedValue<>(readText(cache), false);
-            }
+            if (cache.isFile()) return new LoadedText(readText(cache), 0L);
             throw failure;
         }
     }
 
     private static String request(String url, boolean allowNotFound) throws IOException {
-        HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
-        connection.setConnectTimeout(7_000);
-        connection.setReadTimeout(10_000);
-        connection.setInstanceFollowRedirects(false);
-        connection.setRequestProperty("Accept", "application/json");
-        connection.setRequestProperty("User-Agent", USER_AGENT);
         try {
-            int status = connection.getResponseCode();
-            if (allowNotFound && status == HttpURLConnection.HTTP_NOT_FOUND) {
-                return "{}";
-            }
-            if (status < 200 || status >= 300) {
-                throw new IOException("HTTP " + status + " for " + url);
-            }
-            try (InputStream input = connection.getInputStream()) {
-                return new String(readLimited(input, MAX_RESPONSE_BYTES), StandardCharsets.UTF_8);
-            }
-        } finally {
-            connection.disconnect();
+            return PublicApi.get(url);
+        } catch (IOException failure) {
+            if (allowNotFound && "HTTP 404".equals(failure.getMessage())) return "{}";
+            throw failure;
         }
     }
 
     private static String readText(File file) throws IOException {
         try (InputStream input = new FileInputStream(file)) {
-            return new String(readLimited(input, MAX_RESPONSE_BYTES), StandardCharsets.UTF_8);
+            return new String(PublicApi.readLimited(input, MAX_RESPONSE_BYTES), StandardCharsets.UTF_8);
         }
-    }
-
-    private static byte[] readLimited(InputStream input, int limit) throws IOException {
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
-        byte[] buffer = new byte[8_192];
-        int total = 0;
-        int read;
-        while ((read = input.read(buffer)) != -1) {
-            total += read;
-            if (total > limit) {
-                throw new IOException("Response exceeds " + limit + " bytes");
-            }
-            output.write(buffer, 0, read);
-        }
-        return output.toByteArray();
     }
 
     private static synchronized void writeText(File file, String text) throws IOException {
@@ -495,9 +346,6 @@ final class EmoteCatalog {
             output.write(text.getBytes(StandardCharsets.UTF_8));
         }
         if (!temporary.renameTo(file)) {
-            try (FileOutputStream output = new FileOutputStream(file)) {
-                output.write(text.getBytes(StandardCharsets.UTF_8));
-            }
             //noinspection ResultOfMethodCallIgnored
             temporary.delete();
         }
@@ -518,7 +366,7 @@ final class EmoteCatalog {
         }
     }
 
-    private static final class ProviderState {
+    static final class ProviderState {
         final AtomicBoolean loading = new AtomicBoolean();
         volatile Map<String, Emote> emotes = Collections.emptyMap();
         volatile long loadedAt;
@@ -528,11 +376,11 @@ final class EmoteCatalog {
             return now >= retryAfter && (loadedAt == 0L || now - loadedAt >= CACHE_TTL_MS);
         }
 
-        void publish(Map<String, Emote> loaded, boolean fresh) {
-            long now = System.currentTimeMillis();
+        /** {@code at} is when the list was downloaded, or 0 for an expired copy used because the download failed. */
+        void publish(Map<String, Emote> loaded, long at) {
             emotes = Collections.unmodifiableMap(loaded);
-            loadedAt = fresh ? now : 0L;
-            retryAfter = fresh ? 0L : now + RETRY_BACKOFF_MS;
+            loadedAt = at;
+            retryAfter = at > 0L ? 0L : System.currentTimeMillis() + RETRY_BACKOFF_MS;
         }
 
         void failed() {
@@ -546,24 +394,13 @@ final class EmoteCatalog {
         final ProviderState ffz = new ProviderState();
     }
 
-    private static final class LoadedValue<T> {
-        final T value;
-        final boolean fresh;
+    private static final class LoadedText {
+        final String value;
+        final long loadedAt;
 
-        LoadedValue(T value, boolean fresh) {
+        LoadedText(String value, long loadedAt) {
             this.value = value;
-            this.fresh = fresh;
-        }
-    }
-
-    private static final class DaemonThreadFactory implements ThreadFactory {
-        private int nextId;
-
-        @Override
-        public synchronized Thread newThread(Runnable runnable) {
-            Thread thread = new Thread(runnable, "morphe-emote-catalog-" + nextId++);
-            thread.setDaemon(true);
-            return thread;
+            this.loadedAt = loadedAt;
         }
     }
 }

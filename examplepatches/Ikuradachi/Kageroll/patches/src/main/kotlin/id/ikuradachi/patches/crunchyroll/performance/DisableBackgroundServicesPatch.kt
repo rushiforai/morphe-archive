@@ -7,10 +7,11 @@ import id.ikuradachi.patches.crunchyroll.shared.Constants.COMPATIBILITY_CRUNCHYR
 @Suppress("unused")
 val disableBackgroundServicesPatch = bytecodePatch(
     name = "Disable background services",
-    description = "Disables background broadcast receivers, schedulers, widget polling, Firebase session service binding, and DataTransport JobScheduler tasks to eliminate background wakeups and idle battery drain.",
+    description = "Disables background broadcast receivers, schedulers, widget polling, Firebase sessions initialization and service binding, and DataTransport JobScheduler tasks to eliminate background wakeups and idle battery drain.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_CRUNCHYROLL)
+    category("Performance")
 
     execute {
         // Target 1: Google Engage continuation broadcast receiver
@@ -24,6 +25,10 @@ val disableBackgroundServicesPatch = bytecodePatch(
 
         // Target 4: Continue Watching 30-minute recurring PeriodicWorkRequest scheduler
         ContinueWatchingPeriodicSchedulerFingerprint.matchAll(1..1).single().method.addInstruction(0, "return-void")
+
+        // Firebase Sessions eager startup (lifecycle callbacks + @Background coroutine)
+        val sessionsInitMatch = FirebaseSessionsInitFingerprint.matchAll(1..1).single()
+        sessionsInitMatch.method.addInstruction(sessionsInitMatch.instructionMatches.single().index + 1, "return-void")
 
         // Target 5: Firebase SessionLifecycleService background binder
         FirebaseSessionServiceBinderFingerprint.matchAll(1..1).single().method.addInstruction(0, "return-void")

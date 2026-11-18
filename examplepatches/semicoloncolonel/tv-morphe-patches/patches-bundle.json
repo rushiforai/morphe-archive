@@ -1,0 +1,8 @@
+{
+  "created_at": "2026-11-18T01:19:15",
+  "description": "### Bug fixes\n\n- **MLB**: Skip ads no longer breaks a playlist that starts with an ad. Removing that ad also removed the lines that begin the playlist, so the video could not play. An encryption or map change right before an ad break is now kept as well.\n- **YouTube TV**: Block tracking now answers each blocked request with an empty response, as intended. Before, the blocked request returned nothing, which could cause errors in the page.",
+  "download_url": "https://github.com/semicoloncolonel/tv-morphe-patches/releases/download/v1.1.2/patches-1.1.2.mpp",
+  "signature_download_url": "",
+  "version": "1.1.2",
+  "public_key": "6sNE7CnUmEbvfVcaYklfOzJuN60m4+HH2LKlqlxhSN0="
+}

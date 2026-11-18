@@ -15,4 +15,11 @@ public class LiveProxyTest {
         assertNull(LiveProxy.proxyUrl("http://proxy.example/live/","abc"));
         assertNull(LiveProxy.proxyUrl("https://proxy.example/live/","a/../b"));
     }
+    @org.junit.Test public void aFailingProxyIsSkippedForAWhileExceptWhenTheChannelIsOffline() {
+        assertFalse(LiveProxy.proxyFailed(200));
+        assertFalse(LiveProxy.proxyFailed(404));
+        assertTrue(LiveProxy.proxyAvailable());
+        assertTrue(LiveProxy.proxyFailed(503));
+        assertFalse(LiveProxy.proxyAvailable());
+    }
 }

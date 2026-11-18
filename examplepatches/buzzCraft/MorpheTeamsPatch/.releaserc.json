@@ -1,0 +1,38 @@
+{
+  "branches": ["main", "dev"],
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    "@semantic-release/release-notes-generator",
+    "@semantic-release/changelog",
+    "gradle-semantic-release-plugin",
+    [
+      "@semantic-release/exec",
+      {
+        "prepareCmd": "./gradlew :patches:buildAndroid generatePatchesList --no-daemon && jq --arg v \"${nextRelease.version}\" --arg url \"https://github.com/${process.env.GITHUB_REPOSITORY}/releases/download/v${nextRelease.version}/patches-${nextRelease.version}.mpp\" --arg created \"$(date -u +%Y-%m-%dT%H:%M:%S)\" '.version = $v | .download_url = $url | .created_at = $created' patches-bundle.json > patches-bundle.json.tmp && mv patches-bundle.json.tmp patches-bundle.json"
+      }
+    ],
+    [
+      "@semantic-release/git",
+      {
+        "assets": [
+          "CHANGELOG.md",
+          "gradle.properties",
+          "patches-bundle.json",
+          "patches-list.json"
+        ]
+      }
+    ],
+    [
+      "@semantic-release/github",
+      {
+        "assets": [
+          {
+            "path": "patches/build/libs/patches-!(*sources*|*javadoc*).mpp?(.asc)"
+          }
+        ],
+        "successComment": false,
+        "failComment": false
+      }
+    ]
+  ]
+}

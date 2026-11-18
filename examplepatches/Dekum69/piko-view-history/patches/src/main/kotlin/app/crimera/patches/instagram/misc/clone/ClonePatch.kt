@@ -1,0 +1,185 @@
+/*
+ * Copyright (C) 2026 piko <https://github.com/crimera/piko>
+ *
+ * See the included NOTICE file for GPLv3 §7(b) terms that apply to this code.
+*/
+
+package app.crimera.patches.instagram.misc.clone
+
+import app.crimera.patches.instagram.utils.Constants.COMPATIBILITY_INSTAGRAM
+import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.StringComparisonType
+import app.morphe.patcher.StringFilter
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.document
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.stringOption
+import app.morphe.patcher.string
+import app.morphe.util.asSequence
+import app.morphe.util.findElementByAttributeValue
+import app.morphe.util.forEachChildElement
+import app.morphe.patcher.util.getReference
+import app.morphe.patcher.util.matchAllMethodIndicesForEach
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction21c
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableStringReference
+import org.w3c.dom.Element
+import org.w3c.dom.NodeList
+import kotlin.collections.forEach
+
+private const val ORIGINAL_PACKAGE_NAME = "com.instagram.android"
+
+@Suppress("unused")
+val clonePatch =
+    patch(
+        name = "Clone",
+        description =
+            "Changes the package name and the app name. " +
+                "This allows you to install the patched app alongside the original Instagram app.",
+        default = false,
+    ) {
+        compatibleWith(COMPATIBILITY_INSTAGRAM)
+
+        val packageName by stringOption(
+            key = "packageName",
+            default = "com.instagram.android.piko",
+            title = "Package name",
+            description = "A new package name for the patched app.",
+            required = true,
+        ) {
+            it?.matches(Regex("^[a-z]\\w*(\\.[a-z]\\w*)+$")) == true
+        }
+
+        val appName by stringOption(
+            key = "appName",
+            default = "Piko Instagram",
+            title = "App name",
+            description = "A new app name (label). Entering \"Instagram\" will skip changing the app name.",
+            required = true,
+        )
+
+        execute {
+            val newPackageName = packageName!!
+
+            /** Pairs of the original authority and the renamed authority */
+            val providerReplacements = mutableListOf<Pair<String, String>>()
+
+            document("AndroidManifest.xml").use { document ->
+                val manifest = document.documentElement
+
+                // Change package name
+                manifest.setAttribute("package", newPackageName)
+
+                // Rename custom permissions
+                val permissions = manifest.getElementsByTagName("permission")
+                val usesPermissions = manifest.getElementsByTagName("uses-permission")
+
+                permissions.elementsForEach {
+                    val oldName = it.getAttribute("android:name")
+                    if (oldName.startsWith('.')) {
+                        return@elementsForEach
+                    }
+                    val newName = oldName.replace(ORIGINAL_PACKAGE_NAME, newPackageName)
+                    it.setAttribute("android:name", newName)
+
+                    // Rename a corresponding uses-permission as well if it exists
+                    usesPermissions
+                        .findElementByAttributeValue("android:name", oldName)
+                        ?.setAttribute("android:name", newName)
+                }
+
+                // Rename provider authorities
+                val application = manifest.getElementsByTagName("application").item(0) as Element
+                application.getElementsByTagName("provider").elementsForEach { provider ->
+                    val oldAuthority = provider.getAttribute("android:authorities")
+                    val newAuthority =
+                        if (oldAuthority.startsWith("$ORIGINAL_PACKAGE_NAME.")) {
+                            oldAuthority.replaceFirst(ORIGINAL_PACKAGE_NAME, newPackageName)
+                        } else {
+                            "${newPackageName}_$oldAuthority"
+                        }
+
+                    provider.setAttribute("android:authorities", newAuthority)
+                    providerReplacements.add(oldAuthority to newAuthority)
+                }
+            }
+
+            // Change app name
+            if (!appName.isNullOrEmpty() && appName != "Instagram") {
+                // The string "Instagram" is not localized and only exists in "values".
+                // Resource names vary depending on the build.
+                document("res/values/strings.xml").use { document ->
+                    document.documentElement.forEachChildElement {
+                        if (it.textContent == "Instagram") {
+                            it.textContent = appName
+                        }
+                    }
+                }
+            }
+
+            // Replace all instances of the string "com.instagram.android" in the bytecode to fix
+            // the issue where video stories only play audio.
+            // Also rename providers just in case.
+            val targets = listOf(
+                string(ORIGINAL_PACKAGE_NAME),
+            ) + providerReplacements.map { string(it.first, StringComparisonType.CONTAINS) }
+            transformStringReferences(targets) { string ->
+                if (string == ORIGINAL_PACKAGE_NAME) {
+                    return@transformStringReferences newPackageName
+                }
+
+                val matchedReplacement = providerReplacements.find { string.contains(it.first) }
+
+                if (matchedReplacement != null) {
+                    string.replaceFirst(matchedReplacement.first, matchedReplacement.second)
+                } else {
+                    null
+                }
+            }
+        }
+
+        finalize {
+            // Change a package name in shortcuts.xml added by SettingsResourcePatch.
+            // Run in the finalize block in case SettingsPatch is run after this patch.
+            document("res/xml/shortcuts.xml").use {
+                it.getElementsByTagName("intent")
+                    .findElementByAttributeValue("android:targetPackage", ORIGINAL_PACKAGE_NAME)
+                    ?.setAttribute("android:targetPackage", packageName)
+            }
+        }
+    }
+
+/**
+ * Use this only for `getElementsByTagName` (A [NodeList] in which every Node is an instance of [Element]).
+ */
+private fun NodeList.elementsForEach(action: (Element) -> Unit) = asSequence().map { it as Element }.forEach(action)
+
+private fun transformStringReferences(
+    targetStrings: List<StringFilter>,
+    transform: (str: String) -> String?,
+) {
+    targetStrings.forEach { stringFilter ->
+        Fingerprint(
+            filters = listOf(stringFilter)
+        ).matchAllMethodIndicesForEach(requireMatches = false) { index ->
+            val instruction = getInstruction(index)
+            val foundString = instruction.getReference<StringReference>()!!.string
+            // Apply transformation.
+            val transformedString = transform(foundString) ?: return@matchAllMethodIndicesForEach
+
+            replaceInstruction(
+                index,
+                BuilderInstruction21c(
+                    Opcode.CONST_STRING,
+                    (instruction as OneRegisterInstruction).registerA,
+                    ImmutableStringReference(transformedString)
+                )
+            )
+        }
+    }
+}

@@ -60,9 +60,24 @@ final class ProblemReport {
         return parts.group(1) + " (" + parts.group(2) + ", " + parts.group(3) + " mapping)";
     }
 
+    /** The key morphe-signing.pub publishes. Every official bundle is signed with it. */
+    static final String OFFICIAL_KEY = "pILfM6XBAkLIsBqcZOcJwc8X0aSiyEn02TkUWKrbs8w=";
+
+    /**
+     * Which bundle the patch came from, as far as the APK can say. A fork published a bundle under the same version
+     * number and asset name, so the version alone doesn't identify the code: only the official bundle is signed with
+     * the official key. [signedKey] is the public key the build signed with, empty for an unsigned build.
+     */
+    static String bundle(String signedKey) {
+        if (signedKey == null || signedKey.isEmpty()) return "unsigned, not an official release";
+        if (OFFICIAL_KEY.equals(signedKey)) return "official, signed";
+        String start = signedKey.replaceAll("[^A-Za-z0-9+/=]", "");
+        return "signed with another key (" + start.substring(0, Math.min(8, start.length())) + ")";
+    }
+
     /** What the report says about this install. Built from the phone by SettingsActivity, or by hand in a test. */
     static final class Facts {
-        final String hushVersion, messengerVersion, patchedFrom, manufacturer, model, androidRelease;
+        final String hushVersion, messengerVersion, patchedFrom, bundle, manufacturer, model, androidRelease;
         final long messengerCode;
         final int sdk;
         final boolean paused, safeMode;
@@ -94,10 +109,18 @@ final class ProblemReport {
         Facts(String hushVersion, String messengerVersion, long messengerCode, String patchedFrom, String manufacturer,
                 String model, String androidRelease, int sdk, boolean paused, boolean safeMode, List<String> controlsOn,
                 String galleryOutcome, String lastCrash, String notifications) {
+            this(hushVersion, messengerVersion, messengerCode, patchedFrom, bundle(BundleKey.SIGNED), manufacturer, model,
+                androidRelease, sdk, paused, safeMode, controlsOn, galleryOutcome, lastCrash, notifications);
+        }
+
+        Facts(String hushVersion, String messengerVersion, long messengerCode, String patchedFrom, String bundle,
+                String manufacturer, String model, String androidRelease, int sdk, boolean paused, boolean safeMode,
+                List<String> controlsOn, String galleryOutcome, String lastCrash, String notifications) {
             this.hushVersion = clean(hushVersion);
             this.messengerVersion = clean(messengerVersion);
             this.messengerCode = messengerCode;
             this.patchedFrom = clean(patchedFrom);
+            this.bundle = clean(bundle);
             this.manufacturer = clean(manufacturer);
             this.model = clean(model);
             this.androidRelease = clean(androidRelease);
@@ -199,6 +222,7 @@ final class ProblemReport {
         StringBuilder body = new StringBuilder()
             .append("Versions: ").append(versionsLine(facts)).append('\n')
             .append("Patched from: ").append(orUnknown(facts.patchedFrom)).append('\n')
+            .append("Bundle: ").append(orUnknown(facts.bundle)).append('\n')
             .append("Phone: ").append(phoneLine(facts)).append('\n');
         if (facts.notifications.startsWith("Notifications: ")) body.append(facts.notifications).append('\n');
         if (facts.safeMode) body.append("Safe mode: on\n");
@@ -216,7 +240,7 @@ final class ProblemReport {
             if (url.length() <= MAX_LENGTH) return url;
         }
         // Not reached in practice: five free-text facts of 120 characters, nine each once encoded, come to 5,400, and the
-        // patched-from line is a short ASCII line patchedFrom built. A crash line adds at most 1,200 more and the
+        // patched-from and bundle lines are short ASCII lines patchedFrom and bundle built. A crash line adds at most 1,200 more and the
         // notifications line, plain ASCII, about 600 encoded, and only when every free-text fact is at its longest does
         // this run. Kept so odd facts can't push the questions out.
         return url(WHAT_HAPPENED + "\n\n\n" + WHAT_EXPECTED + "\n\n");

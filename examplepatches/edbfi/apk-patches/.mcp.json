@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "rea": {
+      "type": "stdio",
+      "command": "sh",
+      "args": ["-c", "exec sh \"$(git rev-parse --show-toplevel)/scripts/rea.sh\""]
+    }
+  }
+}

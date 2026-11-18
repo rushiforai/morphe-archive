@@ -1,0 +1,85 @@
+{
+  "format": 1,
+  "scope": "Semantic policy annex to the frozen native type/capture coverage manifest. The producer packet carries the resulting category, priority and relevance; the capture inventory and its digest retain their original meaning.",
+  "capture_manifest": "flitsmeister-coverage.json",
+  "capture_manifest_sha256": "881aa19c7a51d5cfee1ec0acf6be9a926f7b79b5563e4326f666fe661bdb2deb",
+  "native_original_sha256": "17f622c8072c9fd8bd121b872a3733a9a22aaff041d57560f6f3dd59a33ce1b7",
+  "early_emergency_policies": {
+    "AMBULANCE": {
+      "category": "emergency_vehicle",
+      "priority": 0,
+      "relevance": "moving_emergency",
+      "geometry_required": false,
+      "native_stationary_source_override": {
+        "priority": 1,
+        "relevance": "notice"
+      },
+      "evidence": [
+        "native-warning-suite-verification.json",
+        "NativeWarningsTest.nativeStationaryEmergencyIsNotInferredToBeApproaching"
+      ]
+    },
+    "FIRE_DEPARTMENT": {
+      "category": "emergency_vehicle",
+      "priority": 0,
+      "relevance": "moving_emergency",
+      "geometry_required": false,
+      "native_stationary_source_override": {
+        "priority": 1,
+        "relevance": "notice"
+      },
+      "evidence": [
+        "native-warning-suite-verification.json",
+        "NativeWarningsTest.nativeStationaryEmergencyIsNotInferredToBeApproaching"
+      ]
+    },
+    "POLICE": {
+      "category": "emergency_vehicle",
+      "priority": 0,
+      "relevance": "moving_emergency",
+      "geometry_required": false,
+      "native_stationary_source_override": {
+        "priority": 1,
+        "relevance": "notice"
+      },
+      "evidence": [
+        "native-warning-suite-verification.json",
+        "NativeWarningsTest.nativeStationaryEmergencyIsNotInferredToBeApproaching"
+      ]
+    },
+    "ROAD_SERVICE": {
+      "category": "emergency_vehicle",
+      "priority": 0,
+      "relevance": "moving_emergency",
+      "geometry_required": false,
+      "native_stationary_source_override": {
+        "priority": 1,
+        "relevance": "notice"
+      },
+      "evidence": [
+        "native-warning-suite-verification.json",
+        "NativeWarningsTest.nativeStationaryEmergencyIsNotInferredToBeApproaching",
+        "NativeWarningsTest.acceptedEarlyRoadServiceUsesEmergencyCategoryAndImmediatePriorityWithoutGeometry",
+        "NativeWarningsTest.roadServiceNotificationUsesTheSameEmergencyPolicy",
+        "NativeWarningsTest.explicitStationaryRoadServiceStillUsesNativeStationaryPolicy"
+      ]
+    }
+  },
+  "ordinary_road_service_incident": {
+    "category": "road_danger",
+    "priority": 2,
+    "reason": "An ordinary Incident/ROAD_SERVICE does not acquire the separate EarlyWarningReport/EarlyWarningNotification emergency semantics.",
+    "evidence": [
+      "NativeWarningsTest.ordinaryRoadServiceIncidentDoesNotAcquireEarlyEmergencySemantics"
+    ]
+  },
+  "stationary_override": {
+    "source_event": "StationaryEmergencyVehicle",
+    "priority": 1,
+    "relevance": "notice",
+    "evidence": [
+      "NativeWarningsTest.explicitStationaryRoadServiceStillUsesNativeStationaryPolicy",
+      "NativeWarningsTest.nativeStationaryEmergencyIsNotInferredToBeApproaching"
+    ]
+  }
+}

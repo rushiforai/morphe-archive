@@ -1,0 +1,62 @@
+{
+  "brand": {
+    "product": "Rex IG Lite",
+    "developer": "by xboyrex",
+    "logo": "Rex-owned monogram/wordmark; do not use Instagram logo as Rex identity"
+  },
+  "colors": {
+    "amoled_black": "#000000",
+    "background": "#05070A",
+    "surface": "#11161D",
+    "surface_elevated": "#1A222B",
+    "border": "#293441",
+    "text_primary": "#F4F7FA",
+    "text_secondary": "#9AA7B5",
+    "brand_cyan": "#16B8D4",
+    "active_teal": "#39C9B5",
+    "action_blue": "#398BE8",
+    "destructive": "#EF6675",
+    "success": "#43B985",
+    "warning": "#E4B65D"
+  },
+  "dimensions_dp": {
+    "spacing_scale": [
+      4,
+      8,
+      12,
+      16,
+      20,
+      24,
+      32
+    ],
+    "card_radius": 22,
+    "dialog_radius": 26,
+    "divider": 1,
+    "standard_icon": 24,
+    "compact_icon": 20,
+    "trailing_icon": 18,
+    "min_touch_target": 48
+  },
+  "motion_ms": {
+    "dialog_open": 200,
+    "dialog_close": 160,
+    "toggle": 180,
+    "icon_crossfade": 160,
+    "row_press": 100
+  },
+  "motion": {
+    "reduce_motion_respected": true,
+    "avoid_infinite_decorative_animation": true
+  },
+  "icons": {
+    "primary_family": "Tabler Outline",
+    "source": "user-provided outline.zip",
+    "filled_variant": "user-provided filled.zip; use only for meaningful selected states",
+    "viewBox": "0 0 24 24",
+    "outline_stroke_width": 2,
+    "linecap": "round",
+    "linejoin": "round",
+    "transparent_background": true,
+    "central_registry_required": true
+  }
+}

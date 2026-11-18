@@ -1,0 +1,89 @@
+{
+  "run_id": "151295a5-a9d3-491e-a2e4-11ac9e164731",
+  "serial": "emulator-5580",
+  "avd": "native_warnings_api34",
+  "qemu": "1",
+  "build_report_sha256": "ebcbe5246aa39255544a414887880218c298fae77b44f173d5cfd1c6600a2b1d",
+  "authorized": {
+    "remote_binder_class": "android.os.BinderProxy",
+    "source_uid": 10198,
+    "client_uid": 10199,
+    "client_pid": 10117,
+    "android_sdk": 34,
+    "remote_descriptor_discovered": true,
+    "observed_callback_uid": 10198,
+    "handshake_ms": 11,
+    "authenticated_ping": true,
+    "wrong_uid_callback_rejected": true,
+    "delivery_age_ms": 3,
+    "event_sequence": 1,
+    "claim_status": "OK",
+    "begin_status": "GRANTED",
+    "not_started_status": "OK",
+    "release_status": "OK",
+    "callback_order": [
+      "snapshot",
+      "events"
+    ],
+    "snapshot_before_live": true,
+    "speaker_readiness": "simulated_true_no_speaker_created",
+    "audio_started": false,
+    "probe_completed": true,
+    "acceptance_scope": "Synthetic cross-process Binder authentication, delivery and grant bookkeeping only; no native FM capture, speaker or car acceptance"
+  },
+  "unauthorized": {
+    "remote_binder_class": "android.os.BinderProxy",
+    "source_uid": 10198,
+    "client_uid": 10200,
+    "client_pid": 10183,
+    "android_sdk": 34,
+    "unauthorized_registration_rejected": true,
+    "probe_completed": true,
+    "acceptance_scope": "Synthetic cross-process Binder authentication, delivery and grant bookkeeping only; no native FM capture, speaker or car acceptance"
+  },
+  "date": "2026-11-02",
+  "artifacts": {
+    "source": {
+      "package": "nl.johninnl.warningprobe.binder.source",
+      "sha256": "bdc356790de53e560ac660f85b1184397e54c03ddf52d3bec54354c9b226fe18"
+    },
+    "client": {
+      "package": "nl.johninnl.warningprobe.binder.client",
+      "sha256": "97843a65afbdf83e7cd48f5e78a083c3898feaee2383b607b83fad5114478a44"
+    },
+    "stranger": {
+      "package": "nl.johninnl.warningprobe.binder.stranger",
+      "sha256": "0a93830e5235858457a1b17c4536635857b4101d0aabd4524ca1782db6043656"
+    }
+  },
+  "android_jar_sha256": "d9eb9da824d9e247a352f570f01e1169e725b2954bca9e283a71786c59b59f9a",
+  "source_sha256": {
+    "scripts/navigation-alerts/probe/BinderSourceService.java": "c337d24059ef972d5d0949f787e0c5d5e2618267173d0ecccfd3aa4cdc6f7e50",
+    "scripts/navigation-alerts/probe/BinderClientProbe.java": "9482a302b40bf77b4b3c9cb193fc25a02fb976f33f837c5a9235b78c0403cad7",
+    "support/navigation-alerts/src/main/java/nl/johninnl/navigation/alerts/AtomicPlaybackStore.java": "bd9b4d3aa904071b6d027470af075761834f46ba774225310c307ee06aea9a67",
+    "support/navigation-alerts/src/main/java/nl/johninnl/navigation/alerts/FlitsmeisterWarningTypes.java": "760d6744c58cc0bbe30be0b8eafe08d6f1f715508f0cf21c57cea347401fbfab",
+    "support/navigation-alerts/src/main/java/nl/johninnl/navigation/alerts/PlaybackGrant.java": "32b6f403c47345719f7bb65f3e7dac90af16a254f4a92a686b649dbd8f9cb53a",
+    "support/navigation-alerts/src/main/java/nl/johninnl/navigation/alerts/PlaybackStore.java": "96051cd54d722a3bbb998b0928b287141ecaab81211ad94671450f452746f7fe",
+    "support/navigation-alerts/src/main/java/nl/johninnl/navigation/alerts/WarningAudioOwner.java": "94048d1c99550e852099cfedf6001a2a4032deae647e7fd8f514fca325cfeba0",
+    "support/navigation-alerts/src/main/java/nl/johninnl/navigation/alerts/WarningCapabilities.java": "d690228171195b0fe0102712df565cd05891d4cb7e91acbf12f77980513d602b",
+    "support/navigation-alerts/src/main/java/nl/johninnl/navigation/alerts/WarningCodec.java": "82c474a49d02495b55145874184e1843d7b377e4fbc3129894fe6d02331d4f18",
+    "support/navigation-alerts/src/main/java/nl/johninnl/navigation/alerts/WarningConnection.java": "a660d7c0108eb82bc38f4e01755be190eebc2c039f2f55af1f3fb75c9dfc709b",
+    "support/navigation-alerts/src/main/java/nl/johninnl/navigation/alerts/WarningEndpoint.java": "0dbc08f8f09c4186ae18cc3aef157b5bfb62fbc385ac3834ee749fdc4cf750b4",
+    "support/navigation-alerts/src/main/java/nl/johninnl/navigation/alerts/WarningEvent.java": "863ee6bcf1b3c631ae9f68dba891ebf311346e585b6453bc55900102f975a63c",
+    "support/navigation-alerts/src/main/java/nl/johninnl/navigation/alerts/WarningJournal.java": "1f1d0df91e68cd7e3e9a8ed242844f1c93507e0f51ef14788662822a8b52effb",
+    "support/navigation-alerts/src/main/java/nl/johninnl/navigation/alerts/WarningSession.java": "4997be54aaea2913c42712507c0aa94f238c6ceaea1e298f4d867591561607f8",
+    "support/navigation-alerts/src/main/java/nl/johninnl/navigation/alerts/WarningView.java": "528e222e78acb7a71c9e9fee15763858ed6cba16f1d63280003dccc1c0f31897",
+    "support/navigation-alerts/src/main/java/nl/johninnl/navigation/alerts/WarningWire.java": "5cf63c024f8ee7ad0b4070242179d50faf7366669d42888102adab9048c0af5e",
+    "support/navigation-startup/src/main/java/nl/johninnl/navigation/startup/NavigationClient.java": "746d84e0ecf4a992a58492c5f4a03a329088354ce9462d6c24c2f004325ad139",
+    "support/navigation-startup/src/main/java/nl/johninnl/navigation/startup/ProviderAudio.java": "3a88690febbf80a8c67797f6183d4a878b91a806d063ef9fcb46762daf3ee2a3",
+    "support/navigation-startup/src/main/java/nl/johninnl/navigation/startup/ProviderControlService.java": "c13764e7529d2296e3fb3cdc76fa91c79484d6daad7842dfa1585bc009ffd2bb",
+    "support/navigation-startup/src/main/java/nl/johninnl/navigation/startup/ProviderEngineService.java": "a517fbfe32fedcb6c12ade059860717917abde8e577332f8dce4db7ee7acf553",
+    "support/navigation-startup/src/main/java/nl/johninnl/navigation/startup/StartupPolicy.java": "877f3be511cc027ba5f37d2c4fa6c196b1f2ff8e4274bfbe2f97176b4ec1ca6b",
+    "support/navigation-startup/src/main/java/nl/johninnl/navigation/startup/StartupProtocol.java": "cd02280536d1b2896e1dc453495738c8ebf8662925128eae892d7c6e56330cfe"
+  },
+  "limitations": [
+    "Synthetic events and simulated speaker readiness; no audio engine constructed.",
+    "Does not prove native Flitsmeister capture, speech scheduling, passage checks or phone/car output.",
+    "Hung receiver, multi-client contention and interruption recovery matrix remain incomplete."
+  ]
+}

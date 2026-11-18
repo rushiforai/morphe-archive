@@ -1,0 +1,182 @@
+{
+  "format": 1,
+  "scope": "Two genuine Android freeform receiver Activities and independent UIDs, one real FM production endpoint; no constructed owner/grant/session, fake navigation/ready flags, packet injection, coverage override or private ledger cleanup. Controlled native camera inputs; this proves this BUSY/release handover, not process death or car routing.",
+  "serial": "emulator-5584",
+  "avd": "native_warnings_car_api34",
+  "apps": {
+    "nl.flitsmeister": "3e3c2e987bb6e9b28bc5692e52828ee03d317cf925f719ed4aece29f11614ac8",
+    "com.google.android.apps.maps": "979dba530da9c9c09c0d7867288206a1aa357a27e3701c63f8123bbe72ba9815",
+    "app.vela": "72012bd0dd02ee3b3eb31a35df55d24de5fea79ba830906568c0d029c101aeab"
+  },
+  "helpers": {
+    "maps": "1dd7c534c9bea14786c0b41962ba66193745835b66f5701e03a4de909fa4c729",
+    "vela": "633a39cacf3a68fbdef25250bae33b18c834309a6701c42440ccbddd2e4f7cb9",
+    "source": "d3851f83c421bde6c0655e5e714e448245052d3a712f92f50dc4b703387f832b"
+  },
+  "both_confirmed_before_first_warning": true,
+  "contender_busy_state": {
+    "elapsed_ms": 4200353,
+    "package": "app.vela",
+    "session": "ready",
+    "audio": "BUSY:com.google.android.apps.maps"
+  },
+  "actual_starts_and_completions": [
+    {
+      "key": "55b6f1385ff6539fdce12688d605f05012e7cfcabce03411fbbb59b6c801a6ec",
+      "receiver": "maps",
+      "elapsed_ms": 4198856,
+      "completed_ms": 4200168
+    },
+    {
+      "key": "63954d4d8f87098accf3960e14e930efa518a62d7ac4d6e868aa2a01db95aac9",
+      "receiver": "vela",
+      "elapsed_ms": 4201457,
+      "completed_ms": 4203056
+    }
+  ],
+  "native_authorities_and_source_acknowledgements": [
+    {
+      "index": 1,
+      "owner": "com.google.android.apps.maps",
+      "authority": {
+        "language_tag": "en-US",
+        "native_local_mute_bypass": false,
+        "issued_elapsed_ms": 4198786,
+        "latitude": 52.001,
+        "native_family": "SpeedCam",
+        "priority": 1,
+        "protocol_version": 1,
+        "native_announce_observed": true,
+        "position_observed_elapsed_ms": 4198785,
+        "relationship": "unknown",
+        "revision": 1,
+        "category": "speed_control",
+        "phase": "enter",
+        "relevance": "point_ahead",
+        "longitude": 5,
+        "position_estimated": false,
+        "capture_path": "regular",
+        "state_until_elapsed_ms": 4228786,
+        "native_subtype": "SPEED_50",
+        "message_origin": "native_text",
+        "native_text_key": "374708fff7719dd5979ec875d56cd2286f6d3cf7ec317a3b25632aab28ec37bb",
+        "message": "Speed cam 50",
+        "announcement_index": 1,
+        "native_point_target": true,
+        "provider_session": "878f3d39-a4f0-46f5-ab7a-90bc8c2ab367",
+        "sequence": 1,
+        "observed_elapsed_ms": 4198786,
+        "operation": "ANNOUNCE",
+        "native_type": "SPEED_CAM",
+        "position_clock_origin": "native_decision",
+        "warning_id": "SpeedCam:probe-handover-83e03470941e40ec9a0df496321af19e-1",
+        "announce_until_elapsed_ms": 4208786
+      },
+      "source_dispositions": [
+        {
+          "receiver_uid": 10195,
+          "outcome": "GRANTED",
+          "started": false,
+          "mode": "VOICE"
+        },
+        {
+          "receiver_uid": 10195,
+          "outcome": "STARTED",
+          "started": true,
+          "mode": "VOICE"
+        },
+        {
+          "receiver_uid": 10195,
+          "outcome": "COMPLETED",
+          "started": true,
+          "mode": "VOICE"
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "owner": "app.vela",
+      "authority": {
+        "language_tag": "en-US",
+        "native_local_mute_bypass": false,
+        "issued_elapsed_ms": 4200696,
+        "latitude": 52.001,
+        "native_family": "SpeedCam",
+        "priority": 1,
+        "protocol_version": 1,
+        "native_announce_observed": true,
+        "position_observed_elapsed_ms": 4200696,
+        "relationship": "unknown",
+        "revision": 1,
+        "category": "speed_control",
+        "phase": "enter",
+        "relevance": "point_ahead",
+        "longitude": 5,
+        "position_estimated": false,
+        "capture_path": "regular",
+        "state_until_elapsed_ms": 4230696,
+        "native_subtype": "SPEED_50",
+        "message_origin": "native_text",
+        "native_text_key": "374708fff7719dd5979ec875d56cd2286f6d3cf7ec317a3b25632aab28ec37bb",
+        "message": "Speed cam 50",
+        "announcement_index": 1,
+        "native_point_target": true,
+        "provider_session": "878f3d39-a4f0-46f5-ab7a-90bc8c2ab367",
+        "sequence": 4,
+        "observed_elapsed_ms": 4200696,
+        "operation": "ANNOUNCE",
+        "native_type": "SPEED_CAM",
+        "position_clock_origin": "native_decision",
+        "warning_id": "SpeedCam:probe-handover-83e03470941e40ec9a0df496321af19e-2",
+        "announce_until_elapsed_ms": 4210696
+      },
+      "source_dispositions": [
+        {
+          "receiver_uid": 10194,
+          "outcome": "GRANTED",
+          "started": false,
+          "mode": "VOICE"
+        },
+        {
+          "receiver_uid": 10194,
+          "outcome": "STARTED",
+          "started": true,
+          "mode": "VOICE"
+        },
+        {
+          "receiver_uid": 10194,
+          "outcome": "COMPLETED",
+          "started": true,
+          "mode": "VOICE"
+        }
+      ]
+    }
+  ],
+  "no_overlap": true,
+  "one_start_per_authority": true,
+  "provider_managed_mute": true,
+  "source_result": ".analysis/native-warning-bindings/ownership-handover-19813898-2c0d-4f6e-b674-04ea7c99dbba/source/49325a69-a771-451b-921d-dc869cb38cd6/result.json",
+  "receiver_results": {
+    "maps": ".analysis/native-warning-bindings/ownership-handover-19813898-2c0d-4f6e-b674-04ea7c99dbba/maps-result.json",
+    "vela": ".analysis/native-warning-bindings/ownership-handover-19813898-2c0d-4f6e-b674-04ea7c99dbba/vela-result.json"
+  },
+  "concurrent_android_activities": ".analysis/native-warning-bindings/ownership-handover-19813898-2c0d-4f6e-b674-04ea7c99dbba/concurrent-activities-1609244872939791.txt",
+  "source_network_and_lease_restored": true,
+  "source_location_permissions_restored_exactly": true,
+  "receiver_preferences_restored_exactly": true,
+  "receiver_output_quiescent": true,
+  "remaining": [
+    "Death during actual playback and durable unknown-output fencing",
+    "Actual ready-owner refusal and parked uncertain-output recovery",
+    "Background navigation and car routing"
+  ],
+  "window_settings_restored_exactly": true,
+  "window_settings_cleanup": ".analysis/native-warning-bindings/ownership-handover-19813898-2c0d-4f6e-b674-04ea7c99dbba/window-settings-cleanup.json",
+  "coordinator_reproduction": {
+    "raw_result": ".analysis/native-warning-bindings/ownership-handover-runner-final/result.json",
+    "probe_completed": true,
+    "source_location_permissions_restored_exactly": true,
+    "window_settings_restored_exactly": true
+  },
+  "related_provider_restart_verification": "tests/fixtures/navigation-warnings/provider-restart-verification.json"
+}

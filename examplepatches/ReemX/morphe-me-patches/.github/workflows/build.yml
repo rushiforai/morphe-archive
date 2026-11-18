@@ -1,0 +1,42 @@
+name: Build and release
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['patches-bundle.json', '**.md']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Build patches (.mpp, dex)
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew buildAndroid --no-daemon --stacktrace
+      - name: Release and point patches-bundle.json at it
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=$(sed -n 's/^version = //p' gradle.properties)
+          MPP=$(ls patches/build/libs/patches-*.mpp | grep -v sources | head -1)
+          cp "$MPP" "patches-$VERSION.mpp"
+          NOTES=$(git log -1 --format=%B)
+          gh release create "v$VERSION" "patches-$VERSION.mpp" --title "v$VERSION" --notes "$NOTES" || \
+            gh release upload "v$VERSION" "patches-$VERSION.mpp" --clobber
+          jq --arg v "$VERSION" --arg url "https://github.com/${{ github.repository }}/releases/download/v$VERSION/patches-$VERSION.mpp" \
+             --arg d "$NOTES" --arg t "$(date -u +%Y-%m-%dT%H:%M:%S)" \
+             '.version=$v | .download_url=$url | .description=$d | .created_at=$t' patches-bundle.json > b.json && mv b.json patches-bundle.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "chore: bundle v$VERSION" && git push

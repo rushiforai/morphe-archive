@@ -7,7 +7,7 @@
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
- * Modified by lavinhoque33, 2026-11-06.
+ * Modified by lavinhoque33, 2026-11-17.
  */
 
 package app.morphe.extension.youtube.patches.general;
@@ -25,6 +25,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import java.util.List;
 import java.util.Objects;
 
+import app.morphe.extension.shared.ui.Dim;
 import app.morphe.extension.shared.utils.Logger;
 import app.morphe.extension.shared.utils.PackageUtils;
 import app.morphe.extension.youtube.settings.Settings;
@@ -78,6 +79,8 @@ public class ChangeFormFactorPatch {
             return BooleanUtils.isTrue(setMinimumDp);
         }
     }
+
+    private static final int COMPACT_CONTAINER_MAX_WIDTH_DP = 599;
 
     private static final FormFactor FORM_FACTOR = Settings.CHANGE_FORM_FACTOR.get();
     @Nullable
@@ -176,6 +179,16 @@ public class ChangeFormFactorPatch {
         return FORM_FACTOR.setMinimumDp()
                 ? Math.min(smallestScreenWidthDp, widthDp)
                 : Math.max(smallestScreenWidthDp, widthDp);
+    }
+
+    /**
+     * Injection point. Keep the phone feed in the compact responsive size class on wider screens.
+     */
+    public static int getResponsiveContainerWidth(int widthPx) {
+        if (FORM_FACTOR != FormFactor.SMALL) {
+            return widthPx;
+        }
+        return Math.min(widthPx, Dim.dp(COMPACT_CONTAINER_MAX_WIDTH_DP));
     }
 
     public static boolean phoneLayoutEnabled() {

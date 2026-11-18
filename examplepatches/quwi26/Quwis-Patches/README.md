@@ -54,7 +54,7 @@ hyzor's patch is.
 
 The patches for other apps (Block Blast, Gboard, Geocaching) are **not** in this bundle.
 
-Everything else is Noam's work, unchanged: chess.com 4.10.18 and 4.10.23 with arrows in games and in
+Everything else is Noam's work, unchanged: chess.com 4.10.27, 4.10.23 and 4.10.18 with arrows in games and in
 reviews, board and accent colours,
 AMOLED black, the website's Arcade animations, custom Home and bottom bar, time controls under a minute,
 offline Stockfish analysis on the phone, Lichess reviews and offline Lichess puzzles, every bot unlocked,
@@ -141,7 +141,7 @@ phone talks to your computer on that network only.
 All patches are [Noam's](https://github.com/ImNoammm/Noams-Morphe-Patches) (GPL-3.0), which itself builds on
 PrathxmOp's work; the computer reviewer was added in this fork. Without Noam's Morphe Patches this project
 would not exist: the whole patch tree and extension are his work, and this fork only adds the Game Review
-features on top. The chess.com 4.10.23 support follows
+features on top. The chess.com 4.10.23 and 4.10.27 support follows
 [hyzor's port](https://github.com/hyzor/hyzor-morphe-patches) (GPL-3.0) of the same patches. The crash screen
 is [PrathxmOp's crash handler](https://github.com/PrathxmOp/Prathxm-Patches) (GPL-3.0), renamed so Morphe sees
 it as the same patch when both bundles are added. If you want the patches for other apps too, use Noam's own

@@ -1,0 +1,16 @@
+.gradle/
+.gradle-user-home/
+.android-home/
+.kotlin/
+**/build/
+local.properties
+.idea/
+.vscode/
+*.iml
+*.log
+*.apk
+*.apkm
+*.xapk
+
+# Keep credentials out of source control. Use ~/.gradle/gradle.properties.
+gradle.properties.local

@@ -241,6 +241,88 @@ public final class InlineDownloadButtonTest {
     }
 
     @Test
+    public void cardVideoDownloadsUseMp4VariantsSortedByBitrate() {
+        String rawJson = "{\"type\":\"video_website\",\"media_entities\":{" +
+                "\"13_2122608655896035329\":{" +
+                "\"media_url_https\":\"https://pbs.twimg.com/amplify_video_thumb/2122608655896035329/img/AVlKF2x-VdGXCM8M.jpg\"," +
+                "\"type\":\"video\"," +
+                "\"video_info\":{\"aspect_ratio\":[424,239],\"duration_millis\":235055,\"variants\":[" +
+                "{\"bitrate\":288000,\"content_type\":\"video/mp4\"," +
+                "\"url\":\"https://video.twimg.com/amplify_video/2122608655896035329/vid/avc1/478x270/low.mp4?tag=14\"}," +
+                "{\"bitrate\":832000,\"content_type\":\"video/mp4\"," +
+                "\"url\":\"https://video.twimg.com/amplify_video/2122608655896035329/vid/avc1/848x478/high.mp4?tag=14\"}," +
+                "{\"content_type\":\"application/x-mpegURL\"," +
+                "\"url\":\"https://video.twimg.com/amplify_video/2122608655896035329/pl/stream.m3u8?tag=14\"}" +
+                "]}}}}";
+
+        List<InlineDownloadButton.DownloadItem> items =
+                InlineDownloadButton.cardDownloadItems(rawJson);
+
+        assertEquals(1, items.size());
+        InlineDownloadButton.DownloadItem item = items.get(0);
+        assertEquals("Video", item.label);
+        assertEquals(
+                "https://video.twimg.com/amplify_video/2122608655896035329/vid/avc1/848x478/high.mp4?tag=14",
+                item.url
+        );
+        assertEquals("848x478", item.resolution);
+        // The HLS playlist is not a downloadable file, so only the two mp4 variants are offered.
+        assertEquals(2, item.resolutionOptions.size());
+        assertEquals("848x478", item.resolutionOptions.get(0).label);
+        assertEquals("832 kbps", item.resolutionOptions.get(0).detail);
+        assertEquals("478x270", item.resolutionOptions.get(1).label);
+        assertEquals("288 kbps", item.resolutionOptions.get(1).detail);
+        assertEquals(
+                "https://pbs.twimg.com/amplify_video_thumb/2122608655896035329/img/AVlKF2x-VdGXCM8M.jpg",
+                item.thumbnailCacheUrl
+        );
+        assertEquals(
+                "https://pbs.twimg.com/amplify_video_thumb/2122608655896035329/img/AVlKF2x-VdGXCM8M.jpg?format=jpg&name=small",
+                item.thumbnailUrl
+        );
+    }
+
+    @Test
+    public void cardGifDownloadsAreLabelledAsGif() {
+        String rawJson = "{\"media_entities\":{\"7_1\":{" +
+                "\"media_url_https\":\"https://pbs.twimg.com/tweet_video_thumb/1/img/x.jpg\"," +
+                "\"type\":\"animated_gif\"," +
+                "\"video_info\":{\"variants\":[" +
+                "{\"bitrate\":0,\"content_type\":\"video/mp4\"," +
+                "\"url\":\"https://video.twimg.com/tweet_video/1/vid/avc1/480x480/clip.mp4\"}" +
+                "]}}}}";
+
+        List<InlineDownloadButton.DownloadItem> items =
+                InlineDownloadButton.cardDownloadItems(rawJson);
+
+        assertEquals(1, items.size());
+        assertEquals("GIF", items.get(0).label);
+        assertEquals("480x480", items.get(0).resolution);
+    }
+
+    @Test
+    public void cardMediaWithoutMp4VariantsIsNotDownloadable() {
+        String hlsOnly = "{\"media_entities\":{\"7_1\":{" +
+                "\"type\":\"video\",\"video_info\":{\"variants\":[" +
+                "{\"content_type\":\"application/x-mpegURL\"," +
+                "\"url\":\"https://video.twimg.com/ext_tw_video/1/pl/stream.m3u8\"}" +
+                "]}}}}";
+        String photo = "{\"media_entities\":{\"7_2\":{" +
+                "\"media_url_https\":\"https://pbs.twimg.com/media/x.jpg\",\"type\":\"photo\"}}}";
+
+        assertTrue(InlineDownloadButton.cardDownloadItems(hlsOnly).isEmpty());
+        assertTrue(InlineDownloadButton.cardDownloadItems(photo).isEmpty());
+    }
+
+    @Test
+    public void cardDownloadsTolerateMissingOrMalformedJson() {
+        assertTrue(InlineDownloadButton.cardDownloadItems(null).isEmpty());
+        assertTrue(InlineDownloadButton.cardDownloadItems("not json").isEmpty());
+        assertTrue(InlineDownloadButton.cardDownloadItems("{}").isEmpty());
+        assertTrue(InlineDownloadButton.cardDownloadItems("{\"media_entities\":{}}").isEmpty());
+    }
+
+    @Test
     public void bitrateIsFormattedFromBitsPerSecond() {
         assertEquals("10.4 Mbps", InlineDownloadButton.formatBitRate(10368000));
         assertEquals("2.2 Mbps", InlineDownloadButton.formatBitRate(2176000));

@@ -7,13 +7,14 @@
  * https://github.com/anddea/revanced-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
- * Modified by lavinhoque33, 2026-11-10
+ * Modified by lavinhoque33, 2026-11-17
  */
 
 package app.morphe.extension.youtube.patches.utils;
 
 import static app.morphe.extension.shared.utils.StringRef.str;
 import static app.morphe.extension.youtube.settings.YouTubeActivityHook.useBoldFlyoutIcons;
+import static app.morphe.extension.youtube.shared.RootView.isShortsActive;
 
 import android.annotation.SuppressLint;
 import android.app.Dialog;
@@ -58,6 +59,7 @@ import app.morphe.extension.youtube.patches.VideoDelayPatch;
 import app.morphe.extension.youtube.videoplayer.VideoDelayDialogButton;
 import app.morphe.extension.youtube.patches.components.PlayerFlyoutMenuFilter;
 import app.morphe.extension.youtube.patches.general.DownloadActionsPatch;
+import app.morphe.extension.youtube.patches.shorts.CustomActionsPatch;
 import app.morphe.extension.youtube.settings.Settings;
 import app.morphe.extension.youtube.shared.VideoInformation;
 import app.morphe.extension.youtube.utils.ThemeUtils;
@@ -247,6 +249,12 @@ public final class FlyoutUtils {
         // The items of the menu that is closing are gone, and their typeface is copied
         // onto whatever this call adds instead.
         customItemTextRefs.clear();
+
+        // Bottom sheets already receive these actions from their model-builder hook.
+        // Only anchored popups bypass that hook and need view-level insertion.
+        if (flyoutPanel instanceof PopupWindow && isShortsActive()) {
+            nextButtonIndex = CustomActionsPatch.addPopupMenuActions(flyoutPanel, nextButtonIndex);
+        }
 
         final String flyoutVideoId = DownloadActionsPatch.getFlyoutVideoId();
 
@@ -472,7 +480,18 @@ public final class FlyoutUtils {
             View.OnClickListener clickListener,
             int index
     ) {
-        return addFlyoutMenuItem(flyoutPanel, icon, text, clickListener, index, false);
+        return addFlyoutButton(flyoutPanel, icon, text, clickListener, null, index);
+    }
+
+    public static int addFlyoutButton(
+            Object flyoutPanel,
+            Drawable icon,
+            String text,
+            View.OnClickListener clickListener,
+            @Nullable View.OnLongClickListener longClickListener,
+            int index
+    ) {
+        return addFlyoutMenuItem(flyoutPanel, icon, text, clickListener, longClickListener, index, false);
     }
 
     /**
@@ -551,7 +570,7 @@ public final class FlyoutUtils {
 
     @SuppressWarnings("UnusedReturnValue")
     private static int addDivider(Object flyoutPanel, int index) {
-        return addFlyoutMenuItem(flyoutPanel, null, null, null, index, true);
+        return addFlyoutMenuItem(flyoutPanel, null, null, null, null, index, true);
     }
 
     private static int addFlyoutMenuItem(
@@ -559,6 +578,7 @@ public final class FlyoutUtils {
             @Nullable Drawable icon,
             @Nullable String text,
             @Nullable View.OnClickListener clickListener,
+            @Nullable View.OnLongClickListener longClickListener,
             int index,
             boolean isDivider
     ) {
@@ -576,6 +596,9 @@ public final class FlyoutUtils {
             View view = isDivider
                     ? createFlyoutDivider(context)
                     : addFlyoutButton(context, menuInfo.menuContainer(), icon, text, clickListener);
+            if (longClickListener != null) {
+                view.setOnLongClickListener(longClickListener);
+            }
 
             if (index == 0 && view.getLayoutParams() instanceof ViewGroup.MarginLayoutParams marginParams) {
                 marginParams.topMargin = getDragHandleHeight(menuInfo.menuContainer());

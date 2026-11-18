@@ -1,0 +1,70 @@
+{
+  "project": "InstaRex (Rex IG Lite v3.15.0)",
+  "repository": "https://github.com/xboyrex/rex-ig-lite",
+  "developer": "xboyrex (Mayank)",
+  "iconSystem": {
+    "primaryLibrary": "Tabler Icons (https://tablericons.com/ \u2022 https://github.com/tabler/tabler-icons)",
+    "viewBox": "24x24",
+    "strokeWidth": "2px",
+    "strokeLinecap": "round",
+    "strokeLinejoin": "round",
+    "totalSemanticIcons": 186,
+    "totalMappedKeys": 253
+  },
+  "colorModes": [
+    {
+      "id": "Rex Cyan AMOLED",
+      "background": "#000000",
+      "cardSurface": "#15181D",
+      "elevatedSurface": "#20252C",
+      "borderStroke": "#303741",
+      "accentPrimary": "#23C6D8",
+      "activeSwitch": "#35CDBB"
+    },
+    {
+      "id": "Prime Crimson Rose",
+      "background": "#000000",
+      "cardSurface": "#171215",
+      "elevatedSurface": "#221A1F",
+      "borderStroke": "#382830",
+      "accentPrimary": "#FF4D6D",
+      "activeSwitch": "#FF758F"
+    },
+    {
+      "id": "Royal Violet Glass",
+      "background": "#000000",
+      "cardSurface": "#14131D",
+      "elevatedSurface": "#1E1C2B",
+      "borderStroke": "#312E45",
+      "accentPrimary": "#9D4EDD",
+      "activeSwitch": "#B565F2"
+    },
+    {
+      "id": "Emerald Matrix Pro",
+      "background": "#000000",
+      "cardSurface": "#111815",
+      "elevatedSurface": "#18231E",
+      "borderStroke": "#283B33",
+      "accentPrimary": "#10B981",
+      "activeSwitch": "#34D399"
+    },
+    {
+      "id": "Sunset Amber Gold",
+      "background": "#000000",
+      "cardSurface": "#181511",
+      "elevatedSurface": "#231E18",
+      "borderStroke": "#3A3227",
+      "accentPrimary": "#F59E0B",
+      "activeSwitch": "#FBBF24"
+    },
+    {
+      "id": "Monochrome Titanium",
+      "background": "#000000",
+      "cardSurface": "#161618",
+      "elevatedSurface": "#202024",
+      "borderStroke": "#323238",
+      "accentPrimary": "#E2E8F0",
+      "activeSwitch": "#94A3B8"
+    }
+  ]
+}

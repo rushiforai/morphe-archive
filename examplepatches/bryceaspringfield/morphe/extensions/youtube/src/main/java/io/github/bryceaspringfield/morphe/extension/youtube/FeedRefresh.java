@@ -55,6 +55,11 @@ final class FeedRefresh {
 
     /** A finger drag from the upper to the lower part of the screen, as the pull that reloads a feed at its top. */
     static void pullDown(View decor) {
+        // Never pull a video, a channel page, or the profile: only Home reloads this way (2026-11-17).
+        if (!HomeMore.onHomePage()) return;
+        // Logged with its caller and page so a pull the user did not make can be traced (2026-11-17).
+        Logger.printDebug(() -> "YouTube Extras: pull down on page [" + BrowsePage.id() + "] from "
+                + new Throwable().getStackTrace()[1].getClassName() + "." + new Throwable().getStackTrace()[1].getMethodName());
         long start = android.os.SystemClock.uptimeMillis();
         float x = decor.getWidth() / 2f, y0 = decor.getHeight() * 0.25f, y1 = decor.getHeight() * 0.65f;
         int steps = 16;
@@ -89,6 +94,10 @@ final class FeedRefresh {
                 Utils.runOnMainThreadDelayed(() -> {
                     View home = findHome(decor, decor.getHeight() * 3 / 4);
                     if (home == null || !home.isSelected()) {
+                        MorpheKeywords.usedSignature = used;
+                        return;
+                    }
+                    if (!HomeMore.onHomePage()) {
                         MorpheKeywords.usedSignature = used;
                         return;
                     }

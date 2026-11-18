@@ -1,0 +1,33 @@
+name: Docs release gate
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  app-pages:
+    name: App guides match candidate patches
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+      - name: Generate candidate patch metadata
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SHARED_MAPS_API_KEY: AIzaSyDOCSGATEPLACEHOLDER00000000000000
+          BRIGHT_ARTICLE_SIGNING_KEY: ${{ secrets.BRIGHT_ARTICLE_SIGNING_KEY }}
+        run: ./gradlew :patches:generatePatchesList --no-daemon
+      - run: python scripts/check_docs_app_pages.py --metadata patches-list.json

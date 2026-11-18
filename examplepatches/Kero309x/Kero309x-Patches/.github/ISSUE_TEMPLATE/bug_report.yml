@@ -1,0 +1,61 @@
+name: Bug report
+description: Something does not work after patching.
+title: "[Bug] "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please check the behaviour specs before reporting: each spec lists what
+        the behaviour is expected to do and what it deliberately does not do.
+  - type: input
+    id: bundle
+    attributes:
+      label: Bundle version
+      description: The version shown in the manager.
+    validations:
+      required: true
+  - type: input
+    id: app
+    attributes:
+      label: Application and version
+      placeholder: Anghami 8.0.28
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Device and Android version
+      placeholder: Pixel 7, Android 15
+    validations:
+      required: true
+  - type: textarea
+    id: patches
+    attributes:
+      label: Patches enabled
+      description: List the behaviours that were on when the problem happened.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open ...
+        2. Tap ...
+        3. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Paste a logcat excerpt if the application crashed. Remove tokens and account identifiers.
+      render: text

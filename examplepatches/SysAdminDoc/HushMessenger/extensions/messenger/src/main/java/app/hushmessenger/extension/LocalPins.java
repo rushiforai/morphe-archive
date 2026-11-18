@@ -25,7 +25,7 @@ import java.util.Set;
  */
 public final class LocalPins {
     static final String KEY = Settings.PINNED_CHATS;
-    private static final String SAVED = "local_pins_";
+    static final String SAVED = "local_pins_";
     private static final long RELOAD_MILLIS = 2000;
 
     /** Null until a patched build's route is read, and always null in a build that didn't prove one. */
@@ -279,6 +279,13 @@ public final class LocalPins {
     private static Set<String> asked() {
         noAccountUntil = 0;
         return saved();
+    }
+
+    /** A restored backup wrote the pins straight to the preferences, so the account's pins are read again next time. */
+    static synchronized void forget() {
+        pins = null;
+        savedUnder = null;
+        noAccountUntil = 0;
     }
 
     /** This account's pins in the order they were pinned. Empty, and not kept, until the account can be told, which is asked at most every RELOAD_MILLIS. */

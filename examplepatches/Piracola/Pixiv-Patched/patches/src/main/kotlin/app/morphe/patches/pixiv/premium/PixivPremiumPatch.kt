@@ -71,9 +71,5 @@ val pixivPremiumPatch: BytecodePatch = bytecodePatch(
                 )
             }
         }
-
-        // The browsing history is not patched here: Pixiv only serves it to premium accounts, so the
-        // works the user opens are recorded locally by PixivHistoryPatch instead of being mapped into
-        // the shared illust/novel list pipeline.
     }
 }

@@ -1,0 +1,5 @@
+package patches.gboard.features.addsymbols
+
+import patches.gboard.shared.gboardPatchesExtensionCarrierPatch
+
+internal val gboardZhuyinCustomSymbolsExtensionPatch = gboardPatchesExtensionCarrierPatch

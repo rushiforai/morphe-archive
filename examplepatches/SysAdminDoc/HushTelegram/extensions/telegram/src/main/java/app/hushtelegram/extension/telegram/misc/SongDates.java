@@ -29,7 +29,7 @@ import app.hushtelegram.extension.telegram.settings.Settings;
 public final class SongDates {
     private SongDates() {}
 
-    private static final String PREFS = "hushtelegram_song_dates";
+    static final String PREFS = "hushtelegram_song_dates";
 
     static Function<Context, SharedPreferences> store = context -> context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
     static LongSupplier clock = System::currentTimeMillis;

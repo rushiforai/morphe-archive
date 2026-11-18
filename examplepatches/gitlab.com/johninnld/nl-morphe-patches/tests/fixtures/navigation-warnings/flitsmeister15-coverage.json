@@ -1,0 +1,1430 @@
+{
+  "format": 1,
+  "source_version": "15.0/1289",
+  "artifact_sha256": "09d01a21ae058c9c9a75dcd0714f39ddbd37b63b68259692675f19b1a39a66ea",
+  "alternate_original_base_sha256": "7668b9d93a309520184a01194aa47dde40a05b0e74e96a2237c428ed7a613bf0",
+  "completion_status": "producer_capture_complete_r8_end_to_end_separate",
+  "scope": "Original FM15 native road-warning capture. Original models/resources and accepted callback entries were exercised on the owned emulator; natural detection, final receiving playback, moving lead, compatibility and car acceptance remain separate.",
+  "enums": {
+    "Lnl/flitsmeister/earlywarning/model/EarlyWarningTypeEnum;": {
+      "ACTION_CAR": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/earlywarning/model/EarlyWarningTypeEnum;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "ADVICE": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/earlywarning/model/EarlyWarningTypeEnum;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "AMBULANCE": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/earlywarning/model/EarlyWarningTypeEnum;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "BE_RAILWAY_CROSSING": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/earlywarning/model/EarlyWarningTypeEnum;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "BE_UNSECURED_RAILWAY_CROSSING": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/earlywarning/model/EarlyWarningTypeEnum;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "BRIDGE_CLOSED": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/earlywarning/model/EarlyWarningTypeEnum;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "FIRE_DEPARTMENT": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/earlywarning/model/EarlyWarningTypeEnum;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "POLICE": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/earlywarning/model/EarlyWarningTypeEnum;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "RAILWAY_CROSSING": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/earlywarning/model/EarlyWarningTypeEnum;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "ROAD_SERVICE": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/earlywarning/model/EarlyWarningTypeEnum;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "ROAD_WORKER": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/earlywarning/model/EarlyWarningTypeEnum;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "SERVICE_CAR": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/earlywarning/model/EarlyWarningTypeEnum;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "SLOWING_DOWN_TRAFFIC": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/earlywarning/model/EarlyWarningTypeEnum;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "TEXT_CAR": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/earlywarning/model/EarlyWarningTypeEnum;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "TRAFFIC_CONTROLLER": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/earlywarning/model/EarlyWarningTypeEnum;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "UNKNOWN": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/earlywarning/model/EarlyWarningTypeEnum;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "UNSECURED_RAILWAY_CROSSING": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/earlywarning/model/EarlyWarningTypeEnum;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      }
+    },
+    "Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;": {
+      "AVG_SPEED_CHECK": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "BASEREPORT": {
+        "status": "excluded",
+        "reason": "Original15 BaseReportListItem returns BASEREPORT with -1 icon/pin/color getters and empty short/share text. The two non-enum direct field reads are rated SpeedCam persistence null fallback (t4f$d) and invalid stored enum conversion fallback (q2), not announcement producers.",
+        "scope": "Native road-warning ANNOUNCE completeness; not an instruction to discard current native display/state data.",
+        "evidence": [
+          "flitsmeister15-nonwarning-scope.json:members/BASEREPORT"
+        ]
+      },
+      "CITS_BRIDE_CLOSED": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "CITS_LANE_CLOSED": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "CITS_PARKING": {
+        "status": "excluded",
+        "reason": "Original15 CitsParking directly extends BaseReport, not CitsBaseReport; its getters expose parking name/capacity/pricing/opening hours and return null short/share text. It therefore does not enter the generic CitsBaseReport sound branch in original fc0.x.",
+        "scope": "Native road-warning ANNOUNCE completeness; not an instruction to discard current native display/state data.",
+        "evidence": [
+          "flitsmeister15-nonwarning-scope.json:members/CITS_PARKING"
+        ]
+      },
+      "CITS_SPEED_ADVICE": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "CITS_WEATHER": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "ENVIRONMENTAL_ZONE": {
+        "status": "excluded",
+        "reason": "In all seven original15 DEX instruction-reference inventories, this exact enum field occurs only in BaseReportType declaration/value-array initialization. No explicit concrete producer is established by this bounded search; original fc0.x has no corresponding typed arm or generic BaseReport fallback.",
+        "scope": "Native road-warning ANNOUNCE completeness; not an instruction to discard current native display/state data.",
+        "evidence": [
+          "flitsmeister15-nonwarning-scope.json:members/ENVIRONMENTAL_ZONE"
+        ]
+      },
+      "FM_OFFICE": {
+        "status": "excluded",
+        "reason": "Original15 FMOfficeReport constructors set the FM_OFFICE enum, office pin and point coordinates. Its short/share text getters return null. The concrete class is a direct BaseReport and has no matching original fc0.x dispatch arm.",
+        "scope": "Native road-warning ANNOUNCE completeness; not an instruction to discard current native display/state data.",
+        "evidence": [
+          "flitsmeister15-nonwarning-scope.json:members/FM_OFFICE"
+        ]
+      },
+      "INCIDENT": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "LBA": {
+        "status": "excluded",
+        "reason": "The exact original15 BaseReportType.LBA field has only enum declaration/value-array uses. Actual LBA content is a distinct Object/Parcelable DTO, with LBANotificationType END_OF_TRIP/NONE and a separate BusLBAUpdated. This does not classify arbitrary informative/backend LBA text as a road warning.",
+        "scope": "Native road-warning ANNOUNCE completeness; not an instruction to discard current native display/state data.",
+        "evidence": [
+          "flitsmeister15-nonwarning-scope.json:members/LBA"
+        ]
+      },
+      "PARKED_LOCATION": {
+        "status": "excluded",
+        "reason": "In all seven original15 DEX instruction-reference inventories, this exact enum field occurs only in BaseReportType declaration/value-array initialization. No explicit concrete producer is established by this bounded search; original fc0.x has no corresponding typed arm or generic BaseReport fallback.",
+        "scope": "Native road-warning ANNOUNCE completeness; not an instruction to discard current native display/state data.",
+        "evidence": [
+          "flitsmeister15-nonwarning-scope.json:members/PARKED_LOCATION"
+        ]
+      },
+      "POLICEHOTSPOT": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "SERVICE_VEHICLE": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "SLOW_MOVING_VEHICLE": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "SPEED_CAM": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "SPEED_TRAP": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "TOLLING": {
+        "status": "excluded",
+        "reason": "Original15 TollReport remains a toll-marker BaseReport with common_toll_gate title, toll pin/color and empty short/share text. Positive15 geometry, feature-filter and lookahead uses are present (ka1, wd6$a$a); these are retained in evidence. The concrete type still matches no original fc0.x audible dispatch arm.",
+        "scope": "Native road-warning ANNOUNCE completeness; not an instruction to discard current native display/state data.",
+        "evidence": [
+          "flitsmeister15-nonwarning-scope.json:members/TOLLING"
+        ]
+      },
+      "TRAFFIC_JAM": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      }
+    },
+    "Lnl/flitsmeister/fmcore/data/model/reports/IncidentType;": {
+      "ACCIDENT": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/IncidentType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "ACTION_CAR": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/IncidentType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "ANIMAL_ON_ROAD": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/IncidentType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "BRIDGE_OPEN": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/IncidentType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "BUMPY_ROAD": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/IncidentType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "CLOSURE_WITH_REROUTE": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/IncidentType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "CONTROL": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/IncidentType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "DANGEROUS_SITUATION_FM": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/IncidentType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "DANGEROUS_SITUATION_TM": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/IncidentType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "ELKS_ON_THE_ROAD": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/IncidentType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "HEAVY_TRAFFIC": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/IncidentType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "HEAVY_WIND": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/IncidentType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "ICE_ON_THE_ROAD": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/IncidentType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "INFORMATIVE": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/IncidentType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "MAJOR_EVENT": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/IncidentType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "OBSTACLE": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/IncidentType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "OTHER": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/IncidentType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "PERSON_ON_ROAD": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/IncidentType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "POOR_VISIBILITY": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/IncidentType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "REINDEER_NEAR_THE_ROAD": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/IncidentType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "REINDEER_ON_THE_ROAD": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/IncidentType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "ROADWORKS": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/IncidentType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "ROAD_CLOSURE": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/IncidentType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "ROAD_SERVICE": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/IncidentType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "ROAD_WORKER": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/IncidentType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "SLIPPERY_ROAD": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/IncidentType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "SNOW_ON_THE_ROAD": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/IncidentType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "STATIONARY_VEHICLE": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/IncidentType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "TEXT_CAR": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/IncidentType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "TRAFFIC": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/IncidentType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "TRAFFIC_CONTROLLER": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/IncidentType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "UNKNOWN": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/IncidentType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "VOICE_ONLY": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/IncidentType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "WILD_ANIMALS_ON_THE_ROAD": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/IncidentType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "WRONG_WAY_DRIVER": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/IncidentType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      }
+    },
+    "Lnl/flitsmeister/fmcore/data/model/reports/ServiceVehicle$Type;": {
+      "COMMON_SERVICE": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/ServiceVehicle$Type;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "GRITTER_SERVICE": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/ServiceVehicle$Type;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "IMPACT_ATTENUATOR": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/ServiceVehicle$Type;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "ROADSIDE_ASSISTANCE": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/ServiceVehicle$Type;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "ROAD_INSPECTOR": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/ServiceVehicle$Type;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "TOW_SERVICE": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/ServiceVehicle$Type;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      }
+    },
+    "Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;": {
+      "BUSLANE_CONTROL": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "CHECKPOINT": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "CROSSWALK_CONTROL": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "DISTANCE_CONTROL": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "DRIVEWAY_CONTROL": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "DUMMY": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "DUMMY_30": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "DUMMY_50": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "DUMMY_70": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "DUMMY_80": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "ENTRANCE_CONTROL": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "HEIGHT_CONTROL": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "OTHER": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "PASSING_CONTROL": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "RED_LIGHT": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "RED_LIGHT_20": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "RED_LIGHT_30": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "RED_LIGHT_40": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "RED_LIGHT_50": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "RED_LIGHT_60": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "RED_LIGHT_70": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "RED_LIGHT_80": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "RED_LIGHT_90": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "RED_LIGHT_SPEED": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "SECTION_END": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "SECTION_END_100": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "SECTION_END_110": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "SECTION_END_120": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "SECTION_END_130": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "SECTION_END_20": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "SECTION_END_30": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "SECTION_END_40": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "SECTION_END_50": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "SECTION_END_60": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "SECTION_END_70": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "SECTION_END_80": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "SECTION_END_90": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "SECTION_END_VARIABLE": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "SECTION_START": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "SECTION_START_100": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "SECTION_START_110": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "SECTION_START_120": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "SECTION_START_130": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "SECTION_START_20": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "SECTION_START_30": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "SECTION_START_40": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "SECTION_START_50": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "SECTION_START_60": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "SECTION_START_70": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "SECTION_START_80": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "SECTION_START_90": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "SECTION_START_VARIABLE": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "SPEED_10": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "SPEED_100": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "SPEED_110": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "SPEED_120": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "SPEED_130": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "SPEED_140": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "SPEED_20": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "SPEED_30": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "SPEED_40": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "SPEED_50": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "SPEED_60": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "SPEED_70": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "SPEED_80": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "SPEED_90": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "SPEED_VARIABLE": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "TOLL_CONTROL": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "TRAFFIC_CAMERA": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "TUNNEL": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "TUNNEL_100": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "TUNNEL_110": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "TUNNEL_130": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "TUNNEL_30": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "TUNNEL_40": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "TUNNEL_50": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "TUNNEL_60": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "TUNNEL_70": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "TUNNEL_80": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "TUNNEL_90": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "TUNNEL_VARIABLE": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      },
+      "WEIGHT_CONTROL": {
+        "status": "exported",
+        "evidence": [
+          "flitsmeister15-contract.json:enums/Lnl/flitsmeister/fmcore/data/model/reports/SpeedCamType;",
+          "flitsmeister15-producer-coverage.json:model_languages",
+          "NativeWarningsTest.all159FrozenNativeEnumMembersPreserveRawIdentityAndExactAcceptedText"
+        ]
+      }
+    }
+  },
+  "entry_points": [
+    {
+      "method": "Lfc0;->J(Lnl/flitsmeister/fmcore/data/model/reports/BaseReport;Z)V",
+      "status": "exported",
+      "evidence": [
+        "flitsmeister15-producer-coverage.json:callback_roots/Lfc0;->J(Lnl/flitsmeister/fmcore/data/model/reports/BaseReport;Z)V",
+        "flitsmeister15-contract.json"
+      ]
+    },
+    {
+      "method": "Lfc0;->P(Lnl/flitsmeister/fmcore/data/model/reports/BaseReport;)V",
+      "status": "exported",
+      "evidence": [
+        "flitsmeister15-producer-coverage.json:callback_roots/Lfc0;->P(Lnl/flitsmeister/fmcore/data/model/reports/BaseReport;)V",
+        "flitsmeister15-contract.json"
+      ]
+    },
+    {
+      "method": "Lfc0;->x(Lnl/flitsmeister/fmcore/data/model/reports/BaseReport;)V",
+      "status": "exported",
+      "evidence": [
+        "flitsmeister15-producer-coverage.json:callback_roots/Lfc0;->x(Lnl/flitsmeister/fmcore/data/model/reports/BaseReport;)V",
+        "flitsmeister15-contract.json"
+      ]
+    },
+    {
+      "method": "Lfci;->b(Lnl/flitsmeister/earlywarning/model/EarlyWarningTypeEnum;Lnl/flitsmeister/fmcore/models/data/reports/EarlyWarningReport;Lnl/flitsmeister/earlywarning/model/EarlyWarningNotification;Ljava/lang/String;ZLs39;)V",
+      "status": "exported",
+      "evidence": [
+        "flitsmeister15-producer-coverage.json:callback_roots/Lfci;->b(Lnl/flitsmeister/earlywarning/model/EarlyWarningTypeEnum;Lnl/flitsmeister/fmcore/models/data/reports/EarlyWarningReport;Lnl/flitsmeister/earlywarning/model/EarlyWarningNotification;Ljava/lang/String;ZLs39;)V",
+        "flitsmeister15-contract.json"
+      ]
+    },
+    {
+      "method": "Lfci;->l(Lnl/flitsmeister/fmcore/data/model/reports/BaseReport;ZZLjava/lang/String;Ls39;)V",
+      "status": "exported",
+      "evidence": [
+        "flitsmeister15-producer-coverage.json:callback_roots/Lfci;->l(Lnl/flitsmeister/fmcore/data/model/reports/BaseReport;ZZLjava/lang/String;Ls39;)V",
+        "flitsmeister15-contract.json"
+      ]
+    },
+    {
+      "method": "Llh7$c;->onEarlyWarningNotificationUpdate(Landroid/location/Location;Lnl/flitsmeister/earlywarning/model/EarlyWarningNotification;)V",
+      "status": "exported",
+      "evidence": [
+        "flitsmeister15-producer-coverage.json:callback_roots/Llh7$c;->onEarlyWarningNotificationUpdate(Landroid/location/Location;Lnl/flitsmeister/earlywarning/model/EarlyWarningNotification;)V",
+        "flitsmeister15-contract.json"
+      ]
+    },
+    {
+      "method": "Lpz2$c;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+      "status": "exported",
+      "evidence": [
+        "flitsmeister15-producer-coverage.json:callback_roots/Lpz2$c;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+        "flitsmeister15-contract.json"
+      ]
+    },
+    {
+      "method": "Lpz2;->J(Lbemobile/cits/sdk/core/model/response/generalObjects/BaseEvent;)Z",
+      "status": "exported",
+      "evidence": [
+        "flitsmeister15-producer-coverage.json:callback_roots/Lpz2;->J(Lbemobile/cits/sdk/core/model/response/generalObjects/BaseEvent;)Z",
+        "flitsmeister15-contract.json"
+      ]
+    },
+    {
+      "method": "Lpz2;->K(Lbemobile/cits/sdk/core/model/response/generalObjects/BaseEvent;)Z",
+      "status": "exported",
+      "evidence": [
+        "flitsmeister15-producer-coverage.json:callback_roots/Lpz2;->K(Lbemobile/cits/sdk/core/model/response/generalObjects/BaseEvent;)Z",
+        "flitsmeister15-contract.json"
+      ]
+    },
+    {
+      "method": "Lpz2;->L(Lbemobile/cits/sdk/core/model/response/generalObjects/BaseEvent;)Z",
+      "status": "exported",
+      "evidence": [
+        "flitsmeister15-producer-coverage.json:callback_roots/Lpz2;->L(Lbemobile/cits/sdk/core/model/response/generalObjects/BaseEvent;)Z",
+        "flitsmeister15-contract.json"
+      ]
+    },
+    {
+      "method": "Lxl$c;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+      "status": "exported",
+      "evidence": [
+        "flitsmeister15-producer-coverage.json:callback_roots/Lxl$c;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+        "flitsmeister15-contract.json"
+      ]
+    },
+    {
+      "method": "Lxl;->i(Landroid/content/Context;Lnl/flitsmeister/fmcore/models/data/earlywarnings/EarlyWarning;Z)V",
+      "status": "exported",
+      "evidence": [
+        "flitsmeister15-producer-coverage.json:callback_roots/Lxl;->i(Landroid/content/Context;Lnl/flitsmeister/fmcore/models/data/earlywarnings/EarlyWarning;Z)V",
+        "flitsmeister15-contract.json"
+      ]
+    },
+    {
+      "method": "Lyy2;->a(Lbemobile/cits/sdk/core/model/response/generalObjects/BaseEvent;)V",
+      "status": "exported",
+      "evidence": [
+        "flitsmeister15-producer-coverage.json:callback_roots/Lyy2;->a(Lbemobile/cits/sdk/core/model/response/generalObjects/BaseEvent;)V",
+        "flitsmeister15-contract.json"
+      ]
+    },
+    {
+      "method": "Lyy2;->b(Lbemobile/cits/sdk/core/model/response/generalObjects/BaseEvent;)V",
+      "status": "exported",
+      "evidence": [
+        "flitsmeister15-producer-coverage.json:callback_roots/Lyy2;->b(Lbemobile/cits/sdk/core/model/response/generalObjects/BaseEvent;)V",
+        "flitsmeister15-contract.json"
+      ]
+    },
+    {
+      "method": "Lyy2;->e(Lbemobile/cits/sdk/core/model/response/generalObjects/BaseEvent;)V",
+      "status": "exported",
+      "evidence": [
+        "flitsmeister15-producer-coverage.json:callback_roots/Lyy2;->e(Lbemobile/cits/sdk/core/model/response/generalObjects/BaseEvent;)V",
+        "flitsmeister15-contract.json"
+      ]
+    }
+  ],
+  "eligibility_policy": "Observe the original accepted native path; do not rerun or bypass feature/category predicates.",
+  "audio_policy": "Provider-local speech/tone/BLE preferences do not veto captured native intent.",
+  "completion_evidence": "flitsmeister15-producer-coverage.json",
+  "nonwarning_scope": "flitsmeister15-nonwarning-scope.json",
+  "model_adapter_acceptance": {
+    "exported_original_enum_rows": 152,
+    "excluded_nonwarning_rows": 7,
+    "native_adapter_calls_per_language": 170,
+    "languages": [
+      "en",
+      "nl"
+    ],
+    "base_warning_families": 12,
+    "additional_native_lane_subtypes": 3,
+    "additional_native_weather_subtypes": 2
+  }
+}

@@ -9,7 +9,8 @@
     "🧹": "clutter",
     "📵": "call screens",
     "👯": "clone",
-    "🔑": "Google sign-in"
+    "🔑": "Google sign-in",
+    "🎞️": "codecs"
   },
   "apps": {
     "com.linkedin.android": {
@@ -51,6 +52,16 @@
       "highlights": "💎 🧹 👯 🔑",
       "featured": 4,
       "blurb": "Full version, no clutter, clone"
+    },
+    "com.mxtech.videoplayer.pro": {
+      "name": "MX Player Pro",
+      "slug": "mx-player-pro",
+      "category": "Video & music",
+      "file": "APK",
+      "menu": "Settings",
+      "highlights": "💎 🎞️",
+      "featured": 5,
+      "blurb": "Pro unlocked, every audio codec built in"
     }
   }
 }

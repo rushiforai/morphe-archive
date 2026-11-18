@@ -19,7 +19,7 @@ internal enum class PatchList(
     ),
     AMBIENT_MODE_CONTROL(
         "Ambient mode control",
-        "Forces Ambient mode on and adds options to bypass power saving restrictions for Ambient mode and disable it entirely or in fullscreen."
+        "Adds Enhanced Ambient mode and controls for stock Ambient mode, including power saving and fullscreen."
     ),
     BYPASS_IMAGE_REGION_RESTRICTIONS(
         "Bypass image region restrictions",
@@ -328,10 +328,10 @@ internal enum class PatchList(
         "Sanitize sharing links",
         "Adds an option to sanitize sharing links by removing tracking query parameters."
     ),
-    WATCH_LATER_IMPROVEMENTS(
-        "Watch later improvements",
-        "Adds options to widen the drag handles of the Watch later videos " +
-                "and to hide the snackbar shown after removing a video."
+    PLAYLIST_IMPROVEMENTS(
+        "Playlist improvements",
+        "Adds options to widen playlist drag handles, reorder videos by long press, " +
+                "and hide removal confirmations."
     ),
     SAVE_TO_WATCH_LATER(
         "Save to Watch later",

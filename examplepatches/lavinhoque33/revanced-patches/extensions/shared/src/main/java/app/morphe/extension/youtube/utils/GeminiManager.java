@@ -9,6 +9,7 @@
  * - kondratjev (https://github.com/kondratjev)
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-17.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -1520,7 +1521,7 @@ public final class GeminiManager {
                     public void onSuccessWithModel(String result, @Nullable String model) {
                         ensureMainThread(() -> {
                             if (summarySheet == sheet && sheet.isShowing()) {
-                                sheet.commitPendingResponse(normalizeGeminiText(result));
+                                sheet.commitPendingResponse(result);
                             }
                             activeSummaryChatTask = null;
                         });
@@ -1722,8 +1723,8 @@ public final class GeminiManager {
     @MainThread
     private void showSummaryDialog(@NonNull Context context, @NonNull String summary, int seconds, @NonNull String videoUrl, @Nullable String usedModel) {
         String videoId = getVideoIdFromUrl(videoUrl);
-        String normalizedSummary = normalizeGeminiText(summary);
-        CharSequence formattedSummary = formatGeminiText(normalizedSummary, videoUrl);
+        // Keep API text intact until citations have consumed its UTF-8 segment offsets.
+        CharSequence formattedSummary = formatGeminiText(summary, videoUrl);
         List<GeminiUtils.ChatMessage> cachedConversation = new ArrayList<>(
                 Objects.requireNonNull(summaryConversationCache.getOrDefault(videoId, Collections.emptyList()))
         );
@@ -1734,16 +1735,17 @@ public final class GeminiManager {
                 getVideoMetaText(videoUrl),
                 buildInfoText(seconds, usedModel),
                 formattedSummary,
-                normalizedSummary,
+                summary,
                 cachedConversation,
                 text -> formatGeminiText(text, videoUrl),
-                text -> setClipboard(context, normalizeGeminiText(text), str("revanced_gemini_copy_success")),
+                text -> setClipboard(context, normalizeGeminiText(GeminiGrounding.strip(text)),
+                        str("revanced_gemini_copy_success")),
                 history -> summaryConversationCache.put(videoId, new ArrayList<>(history)),
                 () -> ensureMainThread(() -> {
                     cancelActiveSummaryChatTaskInternal();
                     summarySheet = null;
                 }),
-                (sheet, question) -> ensureMainThread(() -> handleSummaryChatSend(videoUrl, normalizedSummary, sheet))
+                (sheet, question) -> ensureMainThread(() -> handleSummaryChatSend(videoUrl, summary, sheet))
         );
     }
 
@@ -1754,10 +1756,19 @@ public final class GeminiManager {
 
     @NonNull
     private CharSequence formatGeminiText(@NonNull String text, @NonNull String videoUrl) {
-        String normalizedText = normalizeGeminiText(text);
+        JSONObject grounding = GeminiGrounding.metadata(text);
+        String normalizedText = normalizeGeminiText(GeminiGrounding.cite(GeminiGrounding.strip(text), grounding));
         String displayText = wrapTimestampReferencesForPillStyle(normalizedText);
         Spanned formattedText = MarkdownUtils.fromMarkdown(displayText);
-        return createClickableTimestampText(formattedText, videoUrl);
+        SpannableStringBuilder result = createClickableTimestampText(formattedText, videoUrl);
+        String searchHtml = GeminiGrounding.html(grounding);
+        if (!searchHtml.isEmpty()) {
+            int start = result.length();
+            result.append("\n ");
+            result.setSpan(new android.text.Annotation(GeminiGrounding.ANNOTATION, searchHtml),
+                    start, result.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+        return result;
     }
 
     @NonNull

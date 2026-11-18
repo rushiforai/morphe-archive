@@ -6,20 +6,20 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.ImageDecoder;
+import android.graphics.drawable.AnimatedImageDrawable;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.util.LruCache;
 import android.util.Size;
 
-import java.io.ByteArrayOutputStream;
+import io.github.sabopura.morphe.extension.twitch.chat.PublicApi;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -27,11 +27,6 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 final class EmoteImageLoader {
@@ -42,20 +37,12 @@ final class EmoteImageLoader {
     private static final int MAX_DECODE_DIMENSION = 512;
     private static final int MIN_DECODE_DIMENSION = 128;
     private static final long RETRY_BACKOFF_MS = 5L * 60L * 1000L;
-    private static final String USER_AGENT = "SabopuraChat/1.0";
+    private static final long QUEUE_FULL_RETRY_MS = 1500;
 
     private final Object diskCacheLock = new Object();
     private long diskCacheBytes = -1L;
     private final Set<String> loading = ConcurrentHashMap.newKeySet();
     private final ConcurrentHashMap<String, Long> failedUntil = new ConcurrentHashMap<>();
-    private final ThreadPoolExecutor executor =
-            new ThreadPoolExecutor(
-                    2,
-                    2,
-                    0L,
-                    TimeUnit.MILLISECONDS,
-                    new LinkedBlockingQueue<>(64),
-                    new DaemonThreadFactory());
     private final Consumer<String> onUpdated;
     private final LruCache<String, ImageData> memory =
             new LruCache<>(16 * 1024 * 1024) {
@@ -69,33 +56,35 @@ final class EmoteImageLoader {
         this.onUpdated = onUpdated;
     }
 
-    Drawable createDrawable(Resources resources, Emote emote) {
+    /** An image ready to draw; {@code animation} is set when it is animated and shared. */
+    static final class Image {
+        final Drawable drawable;
+        final SharedAnimation animation;
+
+        Image(Drawable drawable, SharedAnimation animation) {
+            this.drawable = drawable;
+            this.animation = animation;
+        }
+    }
+
+    Image image(Resources resources, Emote emote) {
         ImageData data = memory.get(emote.url);
-        if (data == null) {
-            return null;
-        }
-        if (data.drawableState != null) {
-            return data.drawableState.newDrawable(resources);
-        }
-        return data.bitmap == null ? null : new BitmapDrawable(resources, data.bitmap);
+        if (data == null) return null;
+        if (data.animation != null) return new Image(data.animation.drawable, data.animation);
+        return new Image(new BitmapDrawable(resources, data.bitmap), null);
     }
 
     void request(Context context, Emote emote, int targetHeight) {
         Long retryAfter = failedUntil.get(emote.url);
-        if (retryAfter != null && retryAfter > System.currentTimeMillis()) {
-            return;
-        }
-        if (memory.get(emote.url) != null || !loading.add(emote.url)) {
-            return;
-        }
+        if (retryAfter != null && retryAfter > System.currentTimeMillis()) return;
+        if (memory.get(emote.url) != null || !loading.add(emote.url)) return;
         Context applicationContext = context.getApplicationContext();
         int targetDimension =
                 Math.min(MAX_DECODE_DIMENSION, Math.max(MIN_DECODE_DIMENSION, targetHeight * 2));
-        try {
-            executor.execute(() -> load(applicationContext, emote, targetDimension));
-        } catch (RejectedExecutionException ignored) {
+        if (!PublicApi.submit(() -> load(applicationContext, emote, targetDimension))) {
+            // Only the queue was full, so the rows waiting for it ask again shortly.
             loading.remove(emote.url);
-            failedUntil.put(emote.url, System.currentTimeMillis() + RETRY_BACKOFF_MS);
+            PublicApi.UI.postDelayed(() -> onUpdated.accept(emote.url), QUEUE_FULL_RETRY_MS);
         }
     }
 
@@ -114,20 +103,19 @@ final class EmoteImageLoader {
                 }
             }
             if (data == null) {
-                byte[] downloaded = download(emote.url);
+                if (!EmoteUrls.allowed(emote.url)) throw new IOException("Unexpected emote image host");
+                byte[] downloaded = PublicApi.fetch(emote.url, "image/webp,image/*;q=0.8", MAX_IMAGE_BYTES);
                 data = decode(downloaded, emote.animated, targetDimension);
                 writeCache(directory, cache, downloaded);
             }
             memory.put(emote.url, data);
             failedUntil.remove(emote.url);
             succeeded = true;
-        } catch (Exception ignored) {
+        } catch (Throwable ignored) {
             failedUntil.put(emote.url, System.currentTimeMillis() + RETRY_BACKOFF_MS);
         } finally {
             loading.remove(emote.url);
-            if (succeeded) {
-                onUpdated.accept(emote.url);
-            }
+            if (succeeded) onUpdated.accept(emote.url);
         }
     }
 
@@ -172,23 +160,8 @@ final class EmoteImageLoader {
             }
         }
         if (animated && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            Drawable decoded;
-            try {
-                decoded =
-                        ImageDecoder.decodeDrawable(
-                                ImageDecoder.createSource(ByteBuffer.wrap(bytes)),
-                                (decoder, info, source) ->
-                                        configureDecoder(decoder, info, targetDimension));
-            } catch (IllegalArgumentException failure) {
-                throw new IOException("Invalid animated emote dimensions", failure);
-            }
-            Drawable.ConstantState state = decoded.getConstantState();
-            if (state != null) {
-                int width = Math.max(1, decoded.getIntrinsicWidth());
-                int height = Math.max(1, decoded.getIntrinsicHeight());
-                long estimate = (long) width * height * 4L * 4L;
-                return new ImageData(null, state, saturatedInt(estimate));
-            }
+            ImageData data = decodeAnimated(bytes, targetDimension);
+            if (data != null) return data;
         }
 
         Bitmap bitmap = decodeBitmap(bytes, targetDimension);
@@ -196,6 +169,24 @@ final class EmoteImageLoader {
             throw new IOException("Unable to decode emote image");
         }
         return new ImageData(bitmap, null, bitmap.getByteCount());
+    }
+
+    /** Null when the file turns out to have a single frame; a plain bitmap is lighter then. */
+    private static ImageData decodeAnimated(byte[] bytes, int targetDimension) throws IOException {
+        Drawable decoded;
+        try {
+            decoded =
+                    ImageDecoder.decodeDrawable(
+                            ImageDecoder.createSource(ByteBuffer.wrap(bytes)),
+                            (decoder, info, source) -> configureDecoder(decoder, info, targetDimension));
+        } catch (IllegalArgumentException failure) {
+            throw new IOException("Invalid animated emote dimensions", failure);
+        }
+        if (!(decoded instanceof AnimatedImageDrawable)) return null;
+        ((AnimatedImageDrawable) decoded).setRepeatCount(AnimatedImageDrawable.REPEAT_INFINITE);
+        // The drawable keeps the compressed file and about two decoded frames in memory.
+        long frames = 2L * Math.max(1, decoded.getIntrinsicWidth()) * Math.max(1, decoded.getIntrinsicHeight()) * 4L;
+        return new ImageData(null, new SharedAnimation(decoded), saturatedInt(bytes.length + frames));
     }
 
     private static void configureDecoder(
@@ -293,11 +284,7 @@ final class EmoteImageLoader {
                 try (FileOutputStream output = new FileOutputStream(temporary)) {
                     output.write(bytes);
                 }
-                if (!temporary.renameTo(cache)) {
-                    try (FileOutputStream output = new FileOutputStream(cache)) {
-                        output.write(bytes);
-                    }
-                }
+                if (!temporary.renameTo(cache)) return;
             } finally {
                 //noinspection ResultOfMethodCallIgnored
                 temporary.delete();
@@ -320,40 +307,8 @@ final class EmoteImageLoader {
         }
     }
 
-    private static byte[] download(String url) throws IOException {
-        if (!EmoteUrls.allowed(url)) throw new IOException("Unexpected emote image host");
-        HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
-        connection.setInstanceFollowRedirects(false);
-        connection.setConnectTimeout(7_000);
-        connection.setReadTimeout(10_000);
-        connection.setRequestProperty("Accept", "image/webp,image/*;q=0.8");
-        connection.setRequestProperty("User-Agent", USER_AGENT);
-        try {
-            int status = connection.getResponseCode();
-            if (status < 200 || status >= 300) {
-                throw new IOException("HTTP " + status + " for " + url);
-            }
-            try (InputStream input = connection.getInputStream()) {
-                return readLimited(input);
-            }
-        } finally {
-            connection.disconnect();
-        }
-    }
-
     private static byte[] readLimited(InputStream input) throws IOException {
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
-        byte[] buffer = new byte[8_192];
-        int total = 0;
-        int read;
-        while ((read = input.read(buffer)) != -1) {
-            total += read;
-            if (total > MAX_IMAGE_BYTES) {
-                throw new IOException("Emote image exceeds " + MAX_IMAGE_BYTES + " bytes");
-            }
-            output.write(buffer, 0, read);
-        }
-        return output.toByteArray();
+        return PublicApi.readLimited(input, MAX_IMAGE_BYTES);
     }
 
     private static String sha256(String value) throws Exception {
@@ -402,24 +357,13 @@ final class EmoteImageLoader {
 
     private static final class ImageData {
         final Bitmap bitmap;
-        final Drawable.ConstantState drawableState;
+        final SharedAnimation animation;
         final int costBytes;
 
-        ImageData(Bitmap bitmap, Drawable.ConstantState drawableState, int costBytes) {
+        ImageData(Bitmap bitmap, SharedAnimation animation, int costBytes) {
             this.bitmap = bitmap;
-            this.drawableState = drawableState;
+            this.animation = animation;
             this.costBytes = costBytes;
-        }
-    }
-
-    private static final class DaemonThreadFactory implements ThreadFactory {
-        private int nextId;
-
-        @Override
-        public synchronized Thread newThread(Runnable runnable) {
-            Thread thread = new Thread(runnable, "morphe-emote-image-" + nextId++);
-            thread.setDaemon(true);
-            return thread;
         }
     }
 }

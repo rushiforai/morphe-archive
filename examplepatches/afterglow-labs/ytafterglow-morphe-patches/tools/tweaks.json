@@ -1,0 +1,896 @@
+{
+  "_doc": "Morphe tweak list. Each entry becomes one named patch in Morphe's list; its keys are the iOS settings it owns. Keys under 'base' belong to the always-installed Afterglow settings page. Names follow the iOS settings; the split follows Morphe's own patch granularity where Morphe has the same feature (see C:/Users/Corey/ytag-scratch/morphe-research/featuremap.md).",
+  "base": [
+    "advancedMode",
+    "debugLogEnabled",
+    "debugLogFirehose",
+    "debugLogDownloads",
+    "debugLogPlayerUI",
+    "debugLogPremiumControls",
+    "debugLogPiP",
+    "debugLogProbes",
+    "debugHUDEnabled",
+    "action.exportPreferences",
+    "action.importPreferences",
+    "action.resetSettings",
+    "action.clearCache",
+    "action.clearDebugLog"
+  ],
+  "tweaks": [
+    {
+      "id": "remove-ads",
+      "name": "Remove ads",
+      "keys": [
+        "noAds",
+        "noPromotionCards"
+      ]
+    },
+    {
+      "id": "privacy",
+      "name": "Privacy",
+      "keys": [
+        "noSearchHistory",
+        "noLinkTracking",
+        "noShareChunk"
+      ]
+    },
+    {
+      "id": "lite-mode",
+      "name": "Lite Mode",
+      "keys": [
+        "liteModeEnabled"
+      ]
+    },
+    {
+      "id": "startup",
+      "name": "Startup tab and animation",
+      "keys": [
+        "startupTab",
+        "startupAnimation"
+      ]
+    },
+    {
+      "id": "interface-layout",
+      "name": "Interface layout",
+      "keys": [
+        "oldYTUI",
+        "floatingKeyboard",
+        "disableRTL"
+      ]
+    },
+    {
+      "id": "navigation-bar",
+      "name": "Navigation bar",
+      "keys": [
+        "noCast",
+        "noNotifsButton",
+        "noSearchButton",
+        "noVoiceSearchButton",
+        "stickyNavbar",
+        "noSubbar",
+        "noYTLogo",
+        "premiumYTLogo"
+      ]
+    },
+    {
+      "id": "tab-bar",
+      "name": "Tab bar",
+      "keys": [
+        "frostedPivot",
+        "disableFloatingTabBar",
+        "removeLabels",
+        "removeIndicators",
+        "twoRowTabBar",
+        "centeredAnchorTabBar",
+        "anchorLeftTab",
+        "anchorRightTab",
+        "activeTabs"
+      ]
+    },
+    {
+      "id": "typography",
+      "name": "Typography",
+      "keys": [
+        "theme_fontMode",
+        "theme_fontSizeMode",
+        "theme_fontWeightMode",
+        "theme_fontStyleMode",
+        "theme_tabLabelSizeMode"
+      ]
+    },
+    {
+      "id": "seek-bar",
+      "name": "Seek bar",
+      "keys": [
+        "seekBarScrubberSize",
+        "persistentProgressBar",
+        "hideHeatwaves",
+        "redProgressBar",
+        "seekBarGradient",
+        "seekBarAnimated",
+        "seekBarScrubberImage",
+        "theme_seekBar",
+        "theme_seekBarLive",
+        "theme_seekBarScrubber",
+        "theme_seekBarScrubberLive"
+      ]
+    },
+    {
+      "id": "glow",
+      "name": "Glow",
+      "keys": [
+        "theme_glowEnabled",
+        "theme_glowStrength",
+        "theme_glowStrengthMode",
+        "theme_glowStrengthCustom",
+        "theme_glowOpacity",
+        "theme_glowRadius",
+        "theme_glowLayers",
+        "theme_glowPivot",
+        "theme_glowOverlay",
+        "theme_glowScrubber",
+        "theme_glowSeekBar",
+        "destination.glowLab",
+        "theme_glowColor"
+      ]
+    },
+    {
+      "id": "ambient-mode",
+      "name": "Disable ambient mode",
+      "keys": [
+        "disableAmbientMode"
+      ]
+    },
+    {
+      "id": "theme-studio",
+      "name": "Theme Studio",
+      "keys": [
+        "destination.themeStudio",
+        "action.resetThemeColors"
+      ]
+    },
+    {
+      "id": "sponsorblock",
+      "name": "SponsorBlock",
+      "keys": [
+        "sponsorBlockEnabled",
+        "sponsorBlockShortsEnabled",
+        "sponsorBlockMarkersEnabled",
+        "sponsorBlockMarkerSponsor",
+        "sponsorBlockMarkerInteraction",
+        "sponsorBlockMarkerSelfPromo",
+        "sponsorBlockMarkerIntro",
+        "sponsorBlockMarkerOutro",
+        "sponsorBlockMarkerPreview",
+        "sponsorBlockMarkerHook",
+        "sponsorBlockMarkerFiller",
+        "sponsorBlockMarkerMusicOfftopic",
+        "sponsorBlockCategorySponsor",
+        "sponsorBlockCategoryInteraction",
+        "sponsorBlockCategorySelfPromo",
+        "sponsorBlockCategoryIntro",
+        "sponsorBlockCategoryOutro",
+        "sponsorBlockCategoryPreview",
+        "sponsorBlockCategoryHook",
+        "sponsorBlockCategoryFiller",
+        "sponsorBlockCategoryMusicOfftopic"
+      ]
+    },
+    {
+      "id": "background-playback",
+      "name": "Background playback",
+      "keys": [
+        "backgroundPlayback"
+      ]
+    },
+    {
+      "id": "playback-speed",
+      "name": "Playback speed",
+      "keys": [
+        "speedIndex",
+        "autoSpeedIndex"
+      ]
+    },
+    {
+      "id": "video-quality",
+      "name": "Video quality",
+      "keys": [
+        "wiFiQualityIndex",
+        "cellQualityIndex",
+        "classicQuality"
+      ]
+    },
+    {
+      "id": "autoplay",
+      "name": "Autoplay",
+      "keys": [
+        "autoplayMode"
+      ]
+    },
+    {
+      "id": "loop",
+      "name": "Remember loop mode",
+      "keys": [
+        "rememberLoop"
+      ]
+    },
+    {
+      "id": "captions",
+      "name": "Captions",
+      "keys": [
+        "disableAutoCaptions",
+        "rememberCaptionState"
+      ]
+    },
+    {
+      "id": "content-warning",
+      "name": "Skip content warning",
+      "keys": [
+        "noContentWarning"
+      ]
+    },
+    {
+      "id": "watch-page",
+      "name": "Watch page",
+      "keys": [
+        "noContinueWatching",
+        "noRelatedWatchNexts",
+        "hideEndScreenCards",
+        "noRelatedVids",
+        "noContinueWatchingPrompt"
+      ]
+    },
+    {
+      "id": "miniplayer",
+      "name": "Mini player",
+      "keys": [
+        "miniplayer",
+        "playlistOldMinibar"
+      ]
+    },
+    {
+      "id": "fullscreen",
+      "name": "Fullscreen",
+      "keys": [
+        "portraitFullscreen",
+        "autoFullscreen",
+        "exitFullscreen"
+      ]
+    },
+    {
+      "id": "player-gestures",
+      "name": "Player gestures",
+      "keys": [
+        "tapToSeek",
+        "noDoubleTapToSeek",
+        "noTwoFingerSnapToChapter",
+        "dontSnapToChapter",
+        "noFreeZoom"
+      ]
+    },
+    {
+      "id": "player-buttons-menus",
+      "name": "Player buttons and menus",
+      "keys": [
+        "noPlayerDownloadButton",
+        "noPlayerShareButton",
+        "noPlayerSaveButton",
+        "noPlayerRemixButton",
+        "noPlayerClipButton",
+        "removeDownloadMenu",
+        "removeShareMenu"
+      ]
+    },
+    {
+      "id": "overlay-buttons",
+      "name": "Overlay buttons",
+      "keys": [
+        "muteButton",
+        "lockButton",
+        "downloadButton",
+        "controlsSheetButton",
+        "overlayDeclutterButton",
+        "action.resetOverlayMode"
+      ]
+    },
+    {
+      "id": "player-overlay",
+      "name": "Player overlay",
+      "keys": [
+        "hideOverlayTitle",
+        "hidePlayerFullscreenButton",
+        "hidePlayerOverflowButton",
+        "hidePlayerYouTubeMusicButton",
+        "hidePlayerCollapseButton",
+        "hideSubs",
+        "noHUDMsgs",
+        "hidePrevNext",
+        "replacePrevNext",
+        "noDarkBg",
+        "noFullscreenActions",
+        "stockVolumeHUD",
+        "noWatermarks",
+        "pauseOnOverlay"
+      ]
+    },
+    {
+      "id": "video-end-time",
+      "name": "Playback end time",
+      "keys": [
+        "videoEndTime",
+        "24hrFormat"
+      ]
+    },
+    {
+      "id": "shorts",
+      "name": "Shorts",
+      "keys": [
+        "shortsOnlyMode",
+        "autoSkipShorts",
+        "hideShorts",
+        "shortsProgress",
+        "pinchToFullscreenShorts",
+        "shortsToRegular",
+        "resumeShorts"
+      ]
+    },
+    {
+      "id": "shorts-layout",
+      "name": "Shorts layout and buttons",
+      "keys": [
+        "hideShortsLogo",
+        "hideShortsSearch",
+        "hideShortsCamera",
+        "hideShortsMore",
+        "hideShortsLens",
+        "hideShortsSubscriptions",
+        "hideShortsLike",
+        "hideShortsDislike",
+        "hideShortsComments",
+        "hideShortsRemix",
+        "hideShortsShare",
+        "hideShortsAvatars",
+        "hideShortsThanks",
+        "hideShortsSource",
+        "hideShortsChannelName",
+        "hideShortsDescription",
+        "hideShortsAudioTrack",
+        "hideShortsPromoCards",
+        "hideShortsInfoPanel",
+        "hideShortsMetapanel",
+        "hideShortsPlayerLayer"
+      ]
+    },
+    {
+      "id": "downloads",
+      "name": "Downloads and Vault",
+      "keys": [
+        "downloadRefreshMetadata",
+        "downloadPreferStableAudio",
+        "downloadIncludeAutoCaptions",
+        "downloadOfferTranslatedCaptions",
+        "nativeDownloadRouting",
+        "downloadPostActionMode",
+        "downloadAudioTrackMode",
+        "downloadAudioQualityMode",
+        "downloadPickerFontScaleMode",
+        "downloadPickerFontFaceMode",
+        "destination.vault"
+      ]
+    },
+    {
+      "id": "feed-menus",
+      "name": "Feed menus",
+      "keys": [
+        "removePlayNext",
+        "removeWatchLaterMenu",
+        "removeSaveToPlaylistMenu",
+        "removeNotInterestedMenu",
+        "removeDontRecommendMenu",
+        "removeReportMenu"
+      ]
+    },
+    {
+      "id": "comments-header",
+      "name": "Comments header",
+      "keys": [
+        "commentsHeaderMode"
+      ]
+    },
+    {
+      "id": "long-press-tools",
+      "name": "Long-press tools",
+      "keys": [
+        "copyVideoInfo",
+        "saveProfilePhoto",
+        "postManager",
+        "commentManager",
+        "copyWithTimestamp"
+      ]
+    },
+    {
+      "id": "native-share",
+      "name": "Native share sheet",
+      "keys": [
+        "nativeShare"
+      ]
+    },
+    {
+      "id": "fix-albums",
+      "name": "Fix album covers",
+      "keys": [
+        "fixAlbums"
+      ]
+    },
+    {
+      "id": "ai-home",
+      "name": "AI Home",
+      "keys": [
+        "destination.aiHome"
+      ]
+    },
+    {
+      "id": "ab-lab",
+      "name": "AB Lab",
+      "keys": [
+        "destination.experimentLab"
+      ]
+    },
+    {
+      "id": "control-center",
+      "name": "Afterglow Control Center",
+      "keys": [
+        "destination.controlCenter"
+      ]
+    },
+    {
+      "id": "gmscore-support",
+      "name": "GmsCore support",
+      "keys": []
+    },
+    {
+      "id": "spoof-video-streams",
+      "name": "Spoof video streams",
+      "keys": []
+    },
+    {
+      "id": "morphe-ai-channel-filter",
+      "name": "AI channel filter",
+      "keys": []
+    },
+    {
+      "id": "morphe-add-to-queue",
+      "name": "Add to queue",
+      "keys": []
+    },
+    {
+      "id": "morphe-ambient-mode",
+      "name": "Ambient mode",
+      "keys": []
+    },
+    {
+      "id": "morphe-app-refresh-rate",
+      "name": "App refresh rate",
+      "keys": []
+    },
+    {
+      "id": "morphe-ask-flyout-menu",
+      "name": "Ask flyout menu",
+      "keys": []
+    },
+    {
+      "id": "morphe-bypass-link-redirects",
+      "name": "Bypass link redirects",
+      "keys": []
+    },
+    {
+      "id": "morphe-captions",
+      "name": "Caption options",
+      "keys": []
+    },
+    {
+      "id": "morphe-change-form-factor",
+      "name": "Change form factor",
+      "keys": []
+    },
+    {
+      "id": "morphe-channel-search",
+      "name": "Channel search",
+      "keys": []
+    },
+    {
+      "id": "morphe-channel-whitelist",
+      "name": "Channel whitelist",
+      "keys": []
+    },
+    {
+      "id": "morphe-check-watch-history-domain-name-resolution",
+      "name": "Check watch history domain name resolution",
+      "keys": []
+    },
+    {
+      "id": "morphe-copy-text",
+      "name": "Copy text",
+      "keys": []
+    },
+    {
+      "id": "morphe-copy-video-link",
+      "name": "Copy video link",
+      "keys": []
+    },
+    {
+      "id": "morphe-custom-font",
+      "name": "Custom font",
+      "keys": []
+    },
+    {
+      "id": "morphe-custom-player-overlay-opacity",
+      "name": "Custom player overlay opacity",
+      "keys": []
+    },
+    {
+      "id": "morphe-dearrow",
+      "name": "DeArrow",
+      "keys": []
+    },
+    {
+      "id": "morphe-disable-drc-audio",
+      "name": "Disable DRC audio",
+      "keys": []
+    },
+    {
+      "id": "morphe-disable-quic-protocol",
+      "name": "Disable QUIC protocol",
+      "keys": []
+    },
+    {
+      "id": "morphe-disable-auto-feed-refresh",
+      "name": "Disable auto feed refresh",
+      "keys": []
+    },
+    {
+      "id": "morphe-disable-fullscreen-gestures",
+      "name": "Disable fullscreen gestures",
+      "keys": []
+    },
+    {
+      "id": "morphe-disable-haptic-feedback",
+      "name": "Disable haptic feedback",
+      "keys": []
+    },
+    {
+      "id": "morphe-disable-layout-updates",
+      "name": "Disable layout updates",
+      "keys": []
+    },
+    {
+      "id": "morphe-disable-player-popup-panels",
+      "name": "Disable player popup panels",
+      "keys": []
+    },
+    {
+      "id": "morphe-disable-playlist-autoplay",
+      "name": "Disable playlist autoplay",
+      "keys": []
+    },
+    {
+      "id": "morphe-disable-rolling-number-animations",
+      "name": "Disable rolling number animations",
+      "keys": []
+    },
+    {
+      "id": "morphe-disable-scrolling-speed-limit",
+      "name": "Disable scrolling speed limit",
+      "keys": []
+    },
+    {
+      "id": "morphe-disable-sign-in-to-tv-popup",
+      "name": "Disable sign in to TV popup",
+      "keys": []
+    },
+    {
+      "id": "morphe-disable-video-codecs",
+      "name": "Disable video codecs",
+      "keys": []
+    },
+    {
+      "id": "morphe-double-tap-to-seek",
+      "name": "Double tap to seek",
+      "keys": []
+    },
+    {
+      "id": "morphe-download-post-images",
+      "name": "Download post images",
+      "keys": []
+    },
+    {
+      "id": "morphe-enable-debugging",
+      "name": "Enable debugging",
+      "keys": []
+    },
+    {
+      "id": "morphe-feed-card-layout",
+      "name": "Feed card layout",
+      "keys": []
+    },
+    {
+      "id": "morphe-feed-video-actions",
+      "name": "Feed video actions",
+      "keys": []
+    },
+    {
+      "id": "morphe-feed-view-count",
+      "name": "Feed view count",
+      "keys": []
+    },
+    {
+      "id": "morphe-force-animations",
+      "name": "Force animations",
+      "keys": []
+    },
+    {
+      "id": "morphe-force-fullscreen-landscape",
+      "name": "Force fullscreen landscape",
+      "keys": []
+    },
+    {
+      "id": "morphe-force-original-audio",
+      "name": "Force original audio",
+      "keys": []
+    },
+    {
+      "id": "morphe-fullscreen-video-scale",
+      "name": "Fullscreen video scale",
+      "keys": []
+    },
+    {
+      "id": "morphe-hide-shorts-components",
+      "name": "Hide Shorts components",
+      "keys": []
+    },
+    {
+      "id": "morphe-hide-autoplay-preview",
+      "name": "Hide autoplay preview",
+      "keys": []
+    },
+    {
+      "id": "morphe-hide-info-cards",
+      "name": "Hide info cards",
+      "keys": []
+    },
+    {
+      "id": "morphe-hide-layout-components",
+      "name": "Hide layout components",
+      "keys": []
+    },
+    {
+      "id": "morphe-hide-player-flyout-menu-components",
+      "name": "Hide player flyout menu components",
+      "keys": []
+    },
+    {
+      "id": "morphe-hide-player-overlay-buttons",
+      "name": "Hide player overlay buttons",
+      "keys": []
+    },
+    {
+      "id": "morphe-hide-related-video-overlay",
+      "name": "Hide related video overlay",
+      "keys": []
+    },
+    {
+      "id": "morphe-hide-status-bar",
+      "name": "Hide status bar",
+      "keys": []
+    },
+    {
+      "id": "morphe-hide-timestamp",
+      "name": "Hide timestamp",
+      "keys": []
+    },
+    {
+      "id": "morphe-hide-video-action-buttons",
+      "name": "Hide video action buttons",
+      "keys": []
+    },
+    {
+      "id": "morphe-loop-video",
+      "name": "Loop video",
+      "keys": []
+    },
+    {
+      "id": "morphe-media-notification-controls",
+      "name": "Media notification controls",
+      "keys": []
+    },
+    {
+      "id": "morphe-miniplayer",
+      "name": "Miniplayer",
+      "keys": []
+    },
+    {
+      "id": "morphe-navigation-bar",
+      "name": "Navigation options",
+      "keys": []
+    },
+    {
+      "id": "morphe-network-proxy",
+      "name": "Network proxy",
+      "keys": []
+    },
+    {
+      "id": "morphe-niconico-comments",
+      "name": "Niconico comments",
+      "keys": []
+    },
+    {
+      "id": "morphe-open-channel-of-live-avatar",
+      "name": "Open channel of live avatar",
+      "keys": []
+    },
+    {
+      "id": "morphe-open-links-externally",
+      "name": "Open links externally",
+      "keys": []
+    },
+    {
+      "id": "morphe-override-youtube-music-buttons",
+      "name": "Override YouTube Music buttons",
+      "keys": []
+    },
+    {
+      "id": "morphe-picture-in-picture-button",
+      "name": "Picture-in-picture button",
+      "keys": []
+    },
+    {
+      "id": "morphe-play-all",
+      "name": "Play all",
+      "keys": []
+    },
+    {
+      "id": "morphe-playback-buffer",
+      "name": "Playback buffer",
+      "keys": []
+    },
+    {
+      "id": "morphe-playback-in-feeds",
+      "name": "Playback in feeds",
+      "keys": []
+    },
+    {
+      "id": "morphe-playback-speed",
+      "name": "Playback speed options",
+      "keys": []
+    },
+    {
+      "id": "morphe-player-icon-style",
+      "name": "Player icon style",
+      "keys": []
+    },
+    {
+      "id": "morphe-potoken-provider",
+      "name": "PoToken provider",
+      "keys": []
+    },
+    {
+      "id": "morphe-reload-video",
+      "name": "Reload video",
+      "keys": []
+    },
+    {
+      "id": "morphe-remember-live-stream-playback-position",
+      "name": "Remember live stream playback position",
+      "keys": []
+    },
+    {
+      "id": "morphe-remove-background-playback-restrictions",
+      "name": "Remove background playback restrictions",
+      "keys": []
+    },
+    {
+      "id": "morphe-restore-original-titles",
+      "name": "Restore original titles",
+      "keys": []
+    },
+    {
+      "id": "morphe-return-youtube-dislike",
+      "name": "Return YouTube Dislike",
+      "keys": []
+    },
+    {
+      "id": "morphe-save-to-watch-later",
+      "name": "Save to Watch later",
+      "keys": []
+    },
+    {
+      "id": "morphe-search-comments",
+      "name": "Search comments",
+      "keys": []
+    },
+    {
+      "id": "morphe-seekbar",
+      "name": "Seekbar",
+      "keys": []
+    },
+    {
+      "id": "morphe-series-tracking",
+      "name": "Series tracking",
+      "keys": []
+    },
+    {
+      "id": "morphe-settings-menu-filter",
+      "name": "Settings menu filter",
+      "keys": []
+    },
+    {
+      "id": "morphe-shorts-autoplay",
+      "name": "Shorts autoplay",
+      "keys": []
+    },
+    {
+      "id": "morphe-shorts-icon-style",
+      "name": "Shorts icon style",
+      "keys": []
+    },
+    {
+      "id": "morphe-skip-live-shorts",
+      "name": "Skip live Shorts",
+      "keys": []
+    },
+    {
+      "id": "morphe-skip-silence",
+      "name": "Skip silence",
+      "keys": []
+    },
+    {
+      "id": "morphe-spoof-app-version",
+      "name": "Spoof app version",
+      "keys": []
+    },
+    {
+      "id": "morphe-spoof-device-dimensions",
+      "name": "Spoof device dimensions",
+      "keys": []
+    },
+    {
+      "id": "morphe-swipe-controls",
+      "name": "Swipe controls",
+      "keys": []
+    },
+    {
+      "id": "morphe-translate-posts",
+      "name": "Translate posts",
+      "keys": []
+    },
+    {
+      "id": "morphe-video-delay",
+      "name": "Video delay",
+      "keys": []
+    },
+    {
+      "id": "morphe-video-quality",
+      "name": "Video quality options",
+      "keys": []
+    },
+    {
+      "id": "morphe-voice-over-translation",
+      "name": "Voice over translation",
+      "keys": []
+    },
+    {
+      "id": "morphe-wide-search-bar",
+      "name": "Wide search bar",
+      "keys": []
+    }
+  ],
+  "implementedInternalKeys": {
+    "seekBarScrubberImage": "SeekBarTheme and AfterglowActivity color/image picker; runtime QA pending",
+    "theme_seekBar": "SeekBarTheme and AfterglowActivity color/image picker; runtime QA pending",
+    "theme_seekBarLive": "SeekBarTheme and AfterglowActivity color/image picker; runtime QA pending",
+    "theme_seekBarScrubber": "SeekBarTheme and AfterglowActivity color/image picker; runtime QA pending",
+    "theme_glowColor": "GlowStyle, GlowLabScreen and AfterglowActivity color picker",
+    "activeTabs": "NativeTabs verified native model composition and TabEditorScreen ordering; runtime validation pending",
+    "theme_seekBarScrubberLive": "Verified native player/response identity and final scrubber draw; runtime validation pending"
+  }
+}

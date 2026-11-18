@@ -3,6 +3,7 @@ package app.crimera.patches.newx.misc.inlineactions
 import app.crimera.patches.newx.utils.unsupportedOnMount
 import app.crimera.patches.newx.misc.extension.newXExtensionPatch
 import app.crimera.patches.newx.misc.extension.newXInitHook
+import app.crimera.patches.newx.models.ResolvedNewXCardModels
 import app.crimera.patches.newx.models.ResolvedNewXInlineActionBarModels
 import app.crimera.patches.newx.models.ResolvedNewXInlineActionKindOverride
 import app.crimera.patches.newx.models.ResolvedNewXInlineActionModels
@@ -26,6 +27,8 @@ import app.crimera.patches.newx.models.resolvedNewXInlineDownloadModels
 import app.crimera.patches.newx.models.resolvedNewXInlineMediaModels
 import app.crimera.patches.newx.models.resolvedNewXPostMediaModels
 import app.crimera.patches.newx.models.resolvedNewXPostModels
+import app.crimera.patches.newx.models.resolvedNewXCardModels
+import app.crimera.patches.newx.models.newXCardModelResolutionPatch
 import app.crimera.patches.newx.models.newXInlineDownloadModelResolutionPatch
 import app.crimera.patches.newx.models.newXPostMediaModelResolutionPatch
 import app.crimera.patches.newx.settings.Categories
@@ -90,6 +93,12 @@ private const val CANONICAL_POST_HELPER = "getCanonicalPost"
 private const val CONTEXTUAL_POST_HELPER = "getContextualPost"
 private const val NO_CONTEXTUAL_POST_LABEL = "no_contextual_post"
 private const val POST_MEDIA_HELPER = "getPostMedia"
+private const val POST_CARD_HELPER = "getPostCard"
+private const val CARD_BINDINGS_HELPER = "getCardBindings"
+private const val BINDING_KEY_HELPER = "getBindingKey"
+private const val BINDING_VALUE_HELPER = "getBindingValue"
+private const val UNIFIED_CARD_JSON_HELPER = "getUnifiedCardRawJson"
+private const val NO_UNIFIED_CARD_LABEL = "piko_newx_no_unified_card_value"
 private const val COMPOSITION_MEDIA_HELPER = "isCompositionDownloadableMedia"
 private const val REPOSTED_POST_HELPER = "getRepostedPost"
 private const val REPOSTED_CANONICAL_POST_HELPER = "getRepostedCanonicalPost"
@@ -107,13 +116,14 @@ private fun MutableMethod.requireStatic(label: String) {
 val newXInlineDownloadButtonPatch =
     bytecodePatch(
         name = "NewX: Inline download button",
-        description = "NewXのポストの下にダウンロードボタンを追加し、選んだフォルダへメディアを保存します。ファイル名はテンプレートでカスタマイズできます。",
+        description = "NewXのポストの下にダウンロードボタンを追加し、選んだフォルダへメディアを保存します。カードで参照された動画もダウンロードできます。ファイル名はテンプレートでカスタマイズできます。",
     ) {
         unsupportedOnMount()
         compatibleWith(COMPATIBILITY_NEW_X)
         dependsOn(
             customizeNewXInlineActionsPatch,
             newXPostMediaModelResolutionPatch,
+            newXCardModelResolutionPatch,
             newXTimelineModelResolutionPatch,
             newXInlineDownloadModelResolutionPatch,
             newXThumbnailCachePatch,
@@ -274,6 +284,7 @@ val newXInlineDownloadButtonPatch =
                 inlineMediaModels,
                 downloadModels,
                 resolvedNewXTimelineModels(),
+                resolvedNewXCardModels(),
             )
             patchInlineActionKindOverride(entryModels, kindOverrideModels)
             val applicationOnCreate = newXInitHook.fingerprint.method
@@ -971,6 +982,7 @@ private fun patchPostModelBridges(
     inlineMediaModels: ResolvedNewXInlineMediaModels,
     downloadModels: ResolvedNewXInlineDownloadModels,
     timelineModels: ResolvedNewXTimelineModels,
+    cardModels: ResolvedNewXCardModels,
 ) {
     val contextualCanonicalPostField = postModels.contextualCanonicalPostField
     val contextualRepostedPostField = postModels.contextualRepostedPostField
@@ -1007,6 +1019,31 @@ private fun patchPostModelBridges(
         postModels.canonicalPostDescriptor,
         canonicalPostMediaField,
     )
+    extensionClass.portHelperBody(
+        POST_CARD_HELPER,
+        listOf(OBJECT_DESCRIPTOR),
+        postModels.canonicalPostDescriptor,
+        cardModels.canonicalPostCardField,
+    )
+    extensionClass.portHelperBody(
+        CARD_BINDINGS_HELPER,
+        listOf(OBJECT_DESCRIPTOR),
+        cardModels.legacyCardDescriptor,
+        cardModels.cardBindingsField,
+    )
+    extensionClass.portHelperBody(
+        BINDING_KEY_HELPER,
+        listOf(OBJECT_DESCRIPTOR),
+        cardModels.cardBindingDescriptor,
+        cardModels.cardBindingKeyField,
+    )
+    extensionClass.portHelperBody(
+        BINDING_VALUE_HELPER,
+        listOf(OBJECT_DESCRIPTOR),
+        cardModels.cardBindingDescriptor,
+        cardModels.cardBindingValueField,
+    )
+    patchUnifiedCardJsonHelper(extensionClass, cardModels)
     val compositionMediaStub = extensionClass.requireBooleanHelper(
         COMPOSITION_MEDIA_HELPER,
         listOf(OBJECT_DESCRIPTOR),
@@ -1064,6 +1101,39 @@ private fun patchPostModelBridges(
         constInt(3, 1)
         invokeDirect(actionConstructor, 0, 1, 2, 3)
         returnObject(0)
+    }
+}
+
+/**
+ * Fills the unified-card JSON bridge: only a UnifiedCardValue carries the raw card JSON, so any
+ * other binding value yields null instead of failing the cast the plain field bridges perform.
+ */
+context(context: BytecodePatchContext)
+private fun patchUnifiedCardJsonHelper(
+    extensionClass: MutableClass,
+    cardModels: ResolvedNewXCardModels,
+) {
+    val stub = extensionClass.requireHelper(UNIFIED_CARD_JSON_HELPER, listOf(OBJECT_DESCRIPTOR))
+    val helper =
+        stub.cloneMutable(additionalRegisters = stub.numberOfParameterRegisters + 1).also { expanded ->
+            extensionClass.methods.remove(stub)
+            extensionClass.methods.add(expanded)
+        }
+    val value = helper.p0Register
+    if (value < 2) {
+        throw PatchException("NewX unified card JSON helper has no spare registers: $helper")
+    }
+    helper.insertHook(0, relocateBranchTargets = false) {
+        val workRegister = 0
+        val typeCheckRegister = 1
+        instanceOf(typeCheckRegister, value, cardModels.unifiedCardValueDescriptor)
+        ifEqz(typeCheckRegister, Target.Local(NO_UNIFIED_CARD_LABEL))
+        checkCast(value, cardModels.unifiedCardValueDescriptor)
+        iget(value, value, cardModels.unifiedCardRawJsonField)
+        returnObject(value)
+        label(NO_UNIFIED_CARD_LABEL)
+        constInt(workRegister, 0)
+        returnObject(workRegister)
     }
 }
 

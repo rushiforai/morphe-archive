@@ -348,6 +348,15 @@ public final class AutoReply {
         if (saved == null || saved.isEmpty()) return Collections.emptyList();
         Parsed last = parsed;
         if (last != null && last.saved.equals(saved)) return last.rules;
+        List<Rule> rules = parse(saved);
+        if (rules == null) return Collections.emptyList();
+        List<Rule> kept = Collections.unmodifiableList(rules);
+        parsed = new Parsed(saved, kept);
+        return kept;
+    }
+
+    /** The replies in [saved], at most [MAX_RULES] with text, or null when it isn't a list of replies. */
+    private static List<Rule> parse(String saved) {
         List<Rule> rules = new ArrayList<>();
         try {
             JSONArray array = new JSONArray(saved);
@@ -358,15 +367,34 @@ public final class AutoReply {
                 if (!rule.reply.isEmpty()) rules.add(rule);
             }
         } catch (JSONException damaged) {
-            return Collections.emptyList();
+            return null;
         }
-        List<Rule> kept = Collections.unmodifiableList(rules);
-        parsed = new Parsed(saved, kept);
-        return kept;
+        return rules;
+    }
+
+    /**
+     * [saved] as this version saves it: the same replies, cut to size like the sheet cuts them, or null when it isn't a
+     * list of replies. A backup's replies go through here before they're restored.
+     */
+    static String clean(String saved) {
+        List<Rule> rules = saved == null ? null : parse(saved);
+        return rules == null ? null : encode(rules).toString();
+    }
+
+    /** Whether [saved] holds at least one reply with text. */
+    static boolean hasReplies(String saved) {
+        List<Rule> rules = saved == null ? null : parse(saved);
+        return rules != null && !rules.isEmpty();
     }
 
     /** Keeps replies with text, trimmed and cut to size, at most [MAX_RULES]. Returns how many were kept. */
     static int save(SharedPreferences prefs, List<Rule> rules, boolean groups) {
+        JSONArray array = encode(rules);
+        prefs.edit().putString(RULES, array.toString()).putBoolean(GROUPS, groups).apply();
+        return array.length();
+    }
+
+    private static JSONArray encode(List<Rule> rules) {
         JSONArray array = new JSONArray();
         try {
             for (Rule rule : rules) {
@@ -380,7 +408,6 @@ public final class AutoReply {
         } catch (JSONException impossible) {
             throw new IllegalStateException(impossible);
         }
-        prefs.edit().putString(RULES, array.toString()).putBoolean(GROUPS, groups).apply();
-        return array.length();
+        return array;
     }
 }

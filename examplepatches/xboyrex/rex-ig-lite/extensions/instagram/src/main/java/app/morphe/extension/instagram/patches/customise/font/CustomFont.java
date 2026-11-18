@@ -129,15 +129,27 @@ public class CustomFont {
      * A stored font always wins over the system-font switch: the switch only ever matters when
      * nothing has been added.
      */
+    public static synchronized void reload() {
+        typefaceSubstitutions.clear();
+        contentTypefaces.clear();
+        contentCopies.clear();
+        drawsTextCache.clear();
+        interfaceDescriptors.clear();
+        load();
+    }
+
     public static void load() {
         if (FontStorage.hasFile()) {
             customTypeface = FontStorage.loadTypeface();
             systemFontSelected = false;
             active = customTypeface != null;
         } else if (FontStorage.useSystemFont()) {
+            customTypeface = null;
             systemFontSelected = true;
             active = true;
         } else {
+            customTypeface = null;
+            systemFontSelected = false;
             active = false;
         }
     }
@@ -164,9 +176,15 @@ public class CustomFont {
                 interfaceDescriptors.put(descriptor.getClass(), isInterface);
             }
 
-            // A handful of interface fonts double as story and note text styles, and those are
-            // told apart by who asked rather than by name.
+            // Map Story Editor font styles directly to bundled iOS Story Fonts or the active custom font
             if (!isInterface || isResolvingContent()) {
+                Typeface storyMapped = FontStorage.resolveStoryDescriptorTypeface(String.valueOf(descriptor));
+                if (storyMapped != null) {
+                    return Typeface.create(storyMapped, original.getWeight(), original.isItalic());
+                }
+                if (customTypeface != null) {
+                    return replacementFor(original);
+                }
                 return keepAsContent(original);
             }
             return replacementFor(original);
@@ -289,6 +307,9 @@ public class CustomFont {
         if (current.depth > 0) {
             current.depth--;
             resolversRunning.decrementAndGet();
+        }
+        if (returned != null && customTypeface != null) {
+            return replacementFor(returned);
         }
         return returned != null ? keepAsContent(returned) : null;
     }

@@ -5,7 +5,7 @@
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  *
- * Modified by lavinhoque33, 2026-11-14.
+ * Modified by lavinhoque33, 2026-11-17.
  */
 
 package app.morphe.patches.youtube.player.seekbar
@@ -158,7 +158,32 @@ val seekbarComponentsPatch = bytecodePatch(
                     )
                 }
             }
+
+            // Disabled time bars ignore the event that ends a tap-opened scrub.
+            // Complete it through the same methods used when the player controls are hidden.
+            TimeBarCompleteHiddenScrubFingerprint.match().let {
+                val isScrubbingMethod = it.instructionMatches.first().methodReference
+                val completeScrubMethod = it.instructionMatches[3].methodReference
+                val completeScrubHook = "$PLAYER_CLASS_DESCRIPTOR->" +
+                        "shouldCompleteScrub(Landroid/view/View;Landroid/view/MotionEvent;)Z"
+
+                it.method.addInstructionsWithLabels(
+                    0,
+                    """
+                        invoke-static { p0, p1 }, $completeScrubHook
+                        move-result v0
+                        if-eqz v0, :ignore
+                        invoke-virtual { p0 }, $isScrubbingMethod
+                        move-result v0
+                        if-eqz v0, :ignore
+                        invoke-virtual { p0 }, $completeScrubMethod
+                        :ignore
+                        nop
+                    """
+                )
+            }
         } else {
+            printWarn("Disabled-timebar scrub completion requires YouTube 21.04+; keeping legacy tap-to-seek.")
             SeekbarTappingFingerprint.method.apply {
                 val pointIndex = indexOfPointInstruction(this)
                 val pointInstruction = getInstruction<FiveRegisterInstruction>(pointIndex)
@@ -809,6 +834,19 @@ val seekbarComponentsPatch = bytecodePatch(
                     "setFineScrubbingPreviewBitmap(Landroid/graphics/Bitmap;)V"
         )
 
+        StoryboardFrameRegionFingerprint.let {
+            val rectIndex = it.instructionMatches[1].index
+            val rectRegister = it.instructionMatches[1].getInstruction<OneRegisterInstruction>().registerA
+            val decoderRegister = it.instructionMatches[2].getInstruction<FiveRegisterInstruction>().registerC
+
+            it.method.addInstruction(
+                rectIndex + 1,
+                "invoke-static { v$rectRegister, v$decoderRegister }, " +
+                    "Lapp/morphe/extension/youtube/patches/SeekbarThumbnailPreviewPatch;->" +
+                    "fixStoryboardFrameRect(Landroid/graphics/Rect;Landroid/graphics/BitmapRegionDecoder;)V"
+            )
+        }
+
         seekbarOnDrawFingerprint.methodOrThrow(seekbarFingerprint).addInstruction(
             0,
             "invoke-static/range { p0 .. p0 }, Lapp/morphe/extension/youtube/patches/SeekbarThumbnailPreviewPatch;->" +
@@ -832,6 +870,29 @@ val seekbarComponentsPatch = bytecodePatch(
             """
         )
 
+        // Match the video size instead of fitting a zoomed video inside the preview.
+        SeekbarBigBoardsScrubFingerprint.let {
+            val previewField = it.classDef.fields.single { field ->
+                field.type == "Landroid/widget/ImageView;"
+            }
+            val seekMethod = it.instructionMatches.first().getInstruction<ReferenceInstruction>().reference
+
+            it.method.apply {
+                val index = indexOfFirstInstructionReversedOrThrow {
+                    opcode == Opcode.INVOKE_DIRECT && getReference<MethodReference>() == seekMethod
+                }
+                val register = findFreeRegister(index)
+
+                addInstructions(
+                    index,
+                    """
+                        iget-object v$register, p0, $previewField
+                        invoke-static { v$register }, Lapp/morphe/extension/youtube/patches/SeekbarThumbnailPreviewPatch;->setBigBoardScale(Landroid/widget/ImageView;)V
+                    """
+                )
+            }
+        }
+
         if (is_21_21_or_greater) {
             ShortsDisableSeekbarThumbnailsFeatureFlagFingerprint.matchAll().forEach {
                 it.method.insertLiteralOverride(
@@ -842,6 +903,29 @@ val seekbarComponentsPatch = bytecodePatch(
         }
 
         // endregion
+
+        // Replace the circle last, preserving the color, preview and SponsorBlock hook anchors.
+        CustomSeekbarThumbOnDrawFingerprint.clearMatch()
+        CustomSeekbarThumbOnDrawFingerprint.let {
+            it.method.apply {
+                val drawCircleIndex = it.instructionMatches.last().index
+                val drawCircle = getInstruction<FiveRegisterInstruction>(drawCircleIndex)
+
+                replaceInstruction(
+                    drawCircleIndex,
+                    "invoke-static { v${drawCircle.registerC}, v${drawCircle.registerD}, " +
+                        "v${drawCircle.registerE}, v${drawCircle.registerF}, v${drawCircle.registerG} }, " +
+                        "Lapp/morphe/extension/youtube/patches/CustomSeekbarThumbPatch;->" +
+                        "drawCircle(Landroid/graphics/Canvas;FFFLandroid/graphics/Paint;)V"
+                )
+                addInstruction(
+                    0,
+                    "invoke-static/range { p0 .. p0 }, " +
+                        "Lapp/morphe/extension/youtube/patches/CustomSeekbarThumbPatch;->" +
+                        "setSeekbarView(Landroid/view/View;)V"
+                )
+            }
+        }
 
         // region add settings
 

@@ -12,9 +12,27 @@ patches {
     }
 }
 
+// The bundle's version as a constant, so a patch can write it into the app it patches.
+val generateBuildInfo by tasks.registering {
+    val version = project.version.toString()
+    val directory = layout.buildDirectory.dir("generated/buildInfo")
+    inputs.property("version", version)
+    outputs.dir(directory)
+    doLast {
+        val file = directory.get().file("io/github/sabopura/morphe/patches/BuildInfo.kt").asFile
+        file.parentFile.mkdirs()
+        file.writeText(
+            "package io.github.sabopura.morphe.patches\n\ninternal const val PATCHES_VERSION = \"$version\"\n",
+        )
+    }
+}
+
 kotlin {
     compilerOptions {
         freeCompilerArgs.add("-Xcontext-parameters")
+    }
+    sourceSets.named("main") {
+        kotlin.srcDir(generateBuildInfo)
     }
 }
 

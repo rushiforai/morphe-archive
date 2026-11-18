@@ -35,6 +35,10 @@ private const val SETTINGS_COMBINE =
 private const val CLASSIC_STATE = "Lcom/chess/features/puzzles/rated/ui/h0\$a;"
 private const val RATING_HISTORY = "Lcom/chess/features/puzzles/rated/ui/l;"
 private const val RATING_POINT = "Lcom/chess/features/puzzles/rated/ui/m;"
+// 4.10.27 shifted them to l0$a (state), p (graph) and q (point).
+private const val CLASSIC_STATE_41027 = "Lcom/chess/features/puzzles/rated/ui/l0\$a;"
+private const val RATING_HISTORY_41027 = "Lcom/chess/features/puzzles/rated/ui/p;"
+private const val RATING_POINT_41027 = "Lcom/chess/features/puzzles/rated/ui/q;"
 private const val PUZZLES_TAB = "Lcom/chess/features/puzzles/home/ui/HomePuzzlePathRootContentKt;"
 private const val BUTTON_SIZE = "Lcom/chess/palette/core/style/ButtonSize;"
 private const val MENU_LISTENER = "Lcom/chess/palette/components/menu/a;"
@@ -45,13 +49,16 @@ private const val MODE = "Lcom/chess/navigationinterface/PathPuzzlesMode;"
 private const val REPOSITORY = "Lcom/chess/internal/puzzles/RatedPuzzleRepositoryImpl;"
 private const val SOURCE = "Lcom/chess/features/puzzles/db/model/ProblemSource;"
 private const val SOLUTION = "Lcom/chess/features/puzzles/db/model/m;"
+private const val SOLUTION_41027 = "Lcom/chess/features/puzzles/db/model/l;"
 private const val TACTICS_PROBLEM = "Lcom/chess/net/model/TacticsProblem;"
 private const val PATH_RESULT = "Lchesscom/puzzles/v1/PuzzlePathResult;"
 private const val RATING = "Lchesscom/puzzles/v1/Rating;"
 private const val SETTINGS_LOADED = "Lcom/chess/features/puzzles/rated/p0\$l0;"
 private const val PUZZLE_SETTINGS = "Lcom/chess/features/puzzles/rated/api/PuzzleSettings;"
 private const val PATH_STATS = "Lcom/chess/features/path/ui/v4;"
+private const val PATH_STATS_41027 = "Lcom/chess/features/path/ui/t2;"
 private const val RATING_STATS = "Lcom/chess/features/puzzles/db/model/o;"
+private const val RATING_STATS_41027 = "Lcom/chess/features/puzzles/db/model/n;"
 private const val STATS_LOADED = "Lcom/chess/features/puzzles/rated/p0\$q0;"
 private const val VIEW_MODEL = "Lcom/chess/features/puzzles/rated/RatedPuzzlesGameViewModel;"
 private const val PATH_REPOSITORY = "Lcom/chess/features/path/data/PathProgressRepositoryImpl;"
@@ -69,6 +76,10 @@ private const val HUB_USER = "Lcom/chess/features/puzzles/home/ui/a2;"
 private const val HUB_STATE_41023 = "Lcom/chess/features/puzzles/home/ui/o0;"
 private const val HUB_PATH_41023 = "Lcom/chess/features/puzzles/home/ui/q0;"
 private const val HUB_USER_41023 = "Lcom/chess/features/puzzles/home/ui/p0;"
+// 4.10.27 dropped the leading boolean from the state: i0 (state), o0 (path), n0 (user).
+private const val HUB_STATE_41027 = "Lcom/chess/features/puzzles/home/ui/i0;"
+private const val HUB_PATH_41027 = "Lcom/chess/features/puzzles/home/ui/o0;"
+private const val HUB_USER_41027 = "Lcom/chess/features/puzzles/home/ui/n0;"
 private const val UNIT = "sget-object v0, Lkotlin/Unit;->a:Lkotlin/Unit;\nreturn-object v0"
 private const val NOTHING = "const/4 v0, 0x0\nreturn-object v0"
 
@@ -108,6 +119,24 @@ val lichessPuzzlesPatch = bytecodePatch(
         markFeaturePatched("lichessPuzzlesPatched")
         val names = mutableClassDefBy(PUZZLES).methods
         fun name(stub: String, value: String) = names.first { it.name == stub }.returnString(value)
+
+        // 4.10.27 renamed several obfuscated puzzle models; its Classic layout state (l0$a) is the
+        // marker, since the hub's short names overlap the older builds' unrelated classes.
+        val v41027 = classDefByOrNull(CLASSIC_STATE_41027) != null
+        val classicStateType = if (v41027) CLASSIC_STATE_41027 else CLASSIC_STATE
+        val ratingHistoryType = if (v41027) RATING_HISTORY_41027 else RATING_HISTORY
+        val ratingPointType = if (v41027) RATING_POINT_41027 else RATING_POINT
+        val solutionType = if (v41027) SOLUTION_41027 else SOLUTION
+        val ratingStatsType = if (v41027) RATING_STATS_41027 else RATING_STATS
+        val pathStatsType = when {
+            v41027 -> PATH_STATS_41027
+            classDefByOrNull(PATH_STATS) != null -> PATH_STATS
+            else -> "Lcom/chess/features/path/ui/o2;"
+        }
+        // The extension constructs the rating summary and the graph's points, so it needs the
+        // obfuscated model names of this build.
+        name("ratingStatsClass", ratingStatsType.javaName())
+        name("ratingPointClass", ratingPointType.javaName())
 
         // An enum constant's field, from the name its static initialiser gives it.
         fun enumField(type: String, constant: String): String {
@@ -200,7 +229,7 @@ val lichessPuzzlesPatch = bytecodePatch(
                     val instructions = method.implementation?.instructions ?: return@any false
                     val converts = instructions.any { instruction ->
                         instruction.methodReference?.let { reference ->
-                            reference.name == "i" && reference.parameterTypes.size == 3 &&
+                            reference.parameterTypes.size == 3 &&
                                 reference.parameterTypes[0].toString() == TACTICS_PROBLEM &&
                                 reference.parameterTypes[1].toString() == SOURCE &&
                                 reference.parameterTypes[2].toString() == "J"
@@ -399,6 +428,8 @@ val lichessPuzzlesPatch = bytecodePatch(
             )
         }
         when {
+            v41027 ->
+                hookHubState(HUB_STATE_41027, HUB_PATH_41027, HUB_USER_41027, arity = 13, pathIndex = 4, userIndex = 5)
             classDefByOrNull(HUB_STATE) != null ->
                 hookHubState(HUB_STATE, HUB_PATH, HUB_USER, arity = 12, pathIndex = 6, userIndex = 5)
             classDefByOrNull(HUB_STATE_41023) != null ->
@@ -408,7 +439,7 @@ val lichessPuzzlesPatch = bytecodePatch(
 
         val score: MutableMethod = repository.methods.singleOrNull { method ->
             method.parameterTypes.size == 4 && method.parameterTypes[0].toString() == "Ljava/util/List;" &&
-                method.parameterTypes[1].toString() == SOLUTION && method.parameterTypes[2].toString() == "Z"
+                method.parameterTypes[1].toString() == solutionType && method.parameterTypes[2].toString() == "Z"
         } ?: throw PatchException("The solution scoring was not found")
         val scoreCode = score.implementation!!.instructions.toList()
         fun constructed(parameters: List<String>) = scoreCode.firstNotNullOfOrNull { instruction ->
@@ -420,7 +451,7 @@ val lichessPuzzlesPatch = bytecodePatch(
                     }
             }?.definingClass
         } ?: throw PatchException("Nothing in the scoring is made from $parameters")
-        name("resultClass", constructed(listOf(SOLUTION, "Ljava/lang/Object;")).javaName())
+        name("resultClass", constructed(listOf(solutionType, "Ljava/lang/Object;")).javaName())
         name("scoreClass", constructed(listOf(PATH_RESULT, RATING, "Ljava/lang/Throwable;")).javaName())
         val logged = scoreCode.indexOfFirst {
             ((it as? ReferenceInstruction)?.reference as? StringReference)?.string == "Scoring puzzle "
@@ -429,9 +460,9 @@ val lichessPuzzlesPatch = bytecodePatch(
         // 4.10.18 reads the id through a getter; 4.10.23 through a public field.
         val problemId = scoreCode.take(logged.coerceAtLeast(0)).lastOrNull { instruction ->
             instruction.methodReference?.let {
-                it.definingClass == SOLUTION && it.returnType == "J" && it.parameterTypes.isEmpty()
+                it.definingClass == solutionType && it.returnType == "J" && it.parameterTypes.isEmpty()
             } == true || instruction.fieldReference?.let {
-                it.definingClass == SOLUTION && it.type == "J"
+                it.definingClass == solutionType && it.type == "J"
             } == true
         }?.takeIf { logged >= 0 } ?: throw PatchException("The solution's problem id was not found")
         name("problemIdGetter", problemId.methodReference?.name ?: problemId.fieldReference!!.name)
@@ -492,8 +523,12 @@ val lichessPuzzlesPatch = bytecodePatch(
                     val instruction = snapshot[index]
                     val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
                     instruction.opcode == Opcode.INVOKE_STATIC &&
-                        reference?.definingClass == "Lcom/chess/utils/android/preferences/f;" &&
-                        reference.name == "a" && reference.returnType == "Z" &&
+                        reference?.definingClass?.startsWith("Lcom/chess/utils/android/preferences/") == true &&
+                        reference.returnType == "Z" &&
+                        reference.parameterTypes.map(CharSequence::toString) == listOf(
+                            "Landroid/content/SharedPreferences;", "Ljava/lang/String;",
+                            "Ljava/lang/String;", "Z",
+                        ) &&
                         snapshot.getOrNull(index + 1)?.opcode == Opcode.MOVE_RESULT
                 }.sortedDescending().forEach { index ->
                     val register = (snapshot[index + 1] as OneRegisterInstruction).registerA
@@ -557,8 +592,7 @@ val lichessPuzzlesPatch = bytecodePatch(
             }
         }
         val ratingValue = "invoke-static { }, $PUZZLES->rating()I\nmove-result v0\nreturn v0"
-        val pathStats = mutableClassDefByOrNull(PATH_STATS)
-            ?: mutableClassDefBy("Lcom/chess/features/path/ui/o2;")
+        val pathStats = mutableClassDefBy(pathStatsType)
         val pathStatsConstructor = pathStats.methods.first { method ->
             method.name == "<init>" && method.parameterTypes.size == 12 &&
                 method.parameterTypes[1].toString() == "I"
@@ -615,7 +649,7 @@ val lichessPuzzlesPatch = bytecodePatch(
             """,
             ExternalLabel("morphe_stats", withStats.getInstruction(0)),
         )
-        val ratingStatsClass = mutableClassDefBy(RATING_STATS)
+        val ratingStatsClass = mutableClassDefBy(ratingStatsType)
         val currentRating = runCatching { ratingStatsClass.getterForLabel(", current=") }.getOrNull()
         if (currentRating != null) {
             currentRating.whileSession(ratingValue)
@@ -638,14 +672,14 @@ val lichessPuzzlesPatch = bytecodePatch(
         // above. Supply an empty summary during a session; its constructor above sets current.
         val statsEvent = statsLoaded.methods.singleOrNull { method ->
             method.name == "<init>" && method.parameterTypes.size == 3 &&
-                method.parameterTypes[1].toString() == RATING_STATS
+                method.parameterTypes[1].toString() == ratingStatsType
         } ?: throw PatchException("The puzzle stats event was not found")
         statsEvent.addInstructions(
             0,
             """
                 invoke-static { p2 }, $PUZZLES->ratingStats(Ljava/lang/Object;)Ljava/lang/Object;
                 move-result-object p2
-                check-cast p2, $RATING_STATS
+                check-cast p2, $ratingStatsType
             """,
         )
         // The rating chip also needs stats, which guest mode gives as flowOf(null).
@@ -707,19 +741,19 @@ val lichessPuzzlesPatch = bytecodePatch(
         // 4.10.23's Classic layout: the rating box and its graph. The box's value comes from the
         // path stats captured when the session started, and the graph from chess.com's rating
         // history; show the live Lichess rating and a local history instead.
-        if (classDefByOrNull(CLASSIC_STATE) != null) {
-            val classicState = mutableClassDefBy(CLASSIC_STATE).methods.singleOrNull { method ->
+        if (classDefByOrNull(classicStateType) != null) {
+            val classicState = mutableClassDefBy(classicStateType).methods.singleOrNull { method ->
                 // (timer, rating, ratingChange, ratingHistory): the hook reads p2, so only the two
                 // ints after the timer and the graph's type have to be what it expects.
                 val parameters = method.parameterTypes.map(CharSequence::toString)
                 method.name == "<init>" && parameters.size == 4 &&
-                    parameters[1] == "I" && parameters[2] == "I" && parameters[3] == RATING_HISTORY
+                    parameters[1] == "I" && parameters[2] == "I" && parameters[3] == ratingHistoryType
             }
             if (classicState != null) {
                 classicState.addInstructions(0, "invoke-static { p2 }, $PUZZLES->displayRating(I)I\nmove-result p2")
-                val ratingGraph = mutableClassDefBy(RATING_HISTORY).methods.singleOrNull { method ->
+                val ratingGraph = mutableClassDefBy(ratingHistoryType).methods.singleOrNull { method ->
                     method.name == "<init>" && method.parameterTypes.map(CharSequence::toString) ==
-                        listOf(RATING_POINT, "Ljava/util/List;", "I")
+                        listOf(ratingPointType, "Ljava/util/List;", "I")
                 }
                 if (ratingGraph != null) {
                     ratingGraph.addInstructions(
@@ -727,7 +761,7 @@ val lichessPuzzlesPatch = bytecodePatch(
                         """
                             invoke-static { p1 }, $PUZZLES->liveRatingPoint(Ljava/lang/Object;)Ljava/lang/Object;
                             move-result-object p1
-                            check-cast p1, $RATING_POINT
+                            check-cast p1, $ratingPointType
                             invoke-static { p2 }, $PUZZLES->ratingHistory(Ljava/util/List;)Ljava/util/List;
                             move-result-object p2
                         """,
@@ -739,8 +773,13 @@ val lichessPuzzlesPatch = bytecodePatch(
         mutableClassDefByOrNull(SETTINGS_COMBINE)?.let { settings ->
             fun Instruction.handsOffSettingsList(): Boolean {
                 val reference = (this as? ReferenceInstruction)?.reference as? MethodReference ?: return false
+                // The hand-off lives in the obfuscated Compose runtime (vb6.j in 4.10.23, renamed
+                // in 4.10.27); (state, value) -> value identifies it.
                 return opcode == Opcode.INVOKE_INTERFACE &&
-                    reference.definingClass == "Lcom/google/android/vb6;" && reference.name == "j"
+                    reference.parameterTypes.size == 2 &&
+                    reference.parameterTypes[0].toString().startsWith("Lcom/google/android/") &&
+                    reference.parameterTypes[1].toString() == "Ljava/lang/Object;" &&
+                    reference.returnType == "Ljava/lang/Object;"
             }
             val emit = settings.methods.firstOrNull { method ->
                 method.returnType == "Ljava/lang/Object;" &&

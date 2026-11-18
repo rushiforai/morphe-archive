@@ -1,0 +1,16 @@
+{
+  "methods": {
+    "Lbmrc;": ["l", "m", "n", "o", "p", "y", "z", "B", "k"],
+    "Lbmtl;": ["d", "g", "h"],
+    "Lbmtd;": ["b"],
+    "Lbmrb;": ["b"],
+    "Lbmth;": ["a", "b"],
+    "Lbmsk;": ["d", "g", "l"],
+    "Lbmsp;": ["b", "c", "l"],
+    "Lbmtf;": ["b"],
+    "Lbmun;": ["<clinit>"],
+    "Lbmuf;": ["<clinit>"],
+    "Lbmuk;": ["<clinit>"]
+  },
+  "enums": ["Lbmun;", "Lbmuf;", "Lbmuk;"]
+}

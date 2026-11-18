@@ -1,0 +1,45 @@
+{
+  "format": 1,
+  "scope": "Actual private source recovery screen, two required confirmations and source-actor reset in verified initially unowned/no-pending state. No unknown output cleared, no playback attempted. Live-owner refusal and recovery of genuinely uncertain output remain separate.",
+  "serial": "emulator-5580",
+  "avd": "native_warnings_api34",
+  "api": 34,
+  "source_apk_sha256": "816e3f875d271c57b834c7e2f09a76bdcec367384dfe082e46f624bf5c1fd53a",
+  "helper_sha256": "db9efe09ab71dd558bbf931dd7188bfd0ec4825439a413c79abce254d61292e1",
+  "process_uid": 10204,
+  "target_uid": 10204,
+  "language": "en",
+  "activity": "nl.johninnl.flitsmeister.WarningRecoveryActivity",
+  "exported": false,
+  "both_confirmations_required": true,
+  "activity_finished_after_success": true,
+  "before": {
+    "code": "UNOWNED",
+    "owner_present": false,
+    "pending_present": false
+  },
+  "after": {
+    "code": "UNOWNED",
+    "owner_present": false,
+    "pending_present": false
+  },
+  "source_preferences_restored_exactly": true,
+  "source_process_stopped_after_test": true,
+  "owned_helper_removed": true,
+  "raw_result": ".analysis/native-warning-bindings/parked-recovery-ui-themed/result.json",
+  "raw_result_sha256": "059459105370690b6a7c4fe8163d5dd6bb92fa97439a6561a5459c4b6b65ed3a",
+  "screenshot": ".analysis/native-warning-bindings/parked-recovery-ui-themed/recovery-confirmations.png",
+  "screenshot_sha256": "6c305111dd6849988023662a77b7f078c0fe482a415794805df310f27ad961ce",
+  "visual_review": "Corrected candidate uses a platform light theme: the two confirmation boxes are visibly blue, with readable confirmation labels and reset button. Actual empty-state reset passed after both confirmations; dark/Dutch/large-font views remain untested.",
+  "remaining": [
+    "Actual ready-owner UI refusal",
+    "Genuinely uncertain output recovery after an explicit parked stop",
+    "Dutch/dark/large-font runtime rendering"
+  ],
+  "previous_candidate_observation": {
+    "source_apk_sha256": "72cc503223356ecafde51049b66ddb379e16e0eeb497fca1b00afc47aa51d973",
+    "raw_result": ".analysis/native-warning-bindings/parked-recovery-ui/result.json",
+    "raw_result_sha256": "ac9d6416eebb6920a0139aca9b744a23cbea18638c78867b2aa0072768735adf",
+    "theme_problem": "White checkbox marks inherited from host theme on a near-white background."
+  }
+}

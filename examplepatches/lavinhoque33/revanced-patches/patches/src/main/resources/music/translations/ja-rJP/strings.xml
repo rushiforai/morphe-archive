@@ -130,6 +130,8 @@ SABR再生（動画ストリームのスプーフがオフ）"</string>
     <string name="morphe_music_downloads_started">ダウンロードを開始しました</string>
     <string name="morphe_music_downloads_starting">ダウンロードを開始しています…</string>
     <string name="morphe_music_downloads_unknown_track">ダウンロードする楽曲を特定できませんでした</string>
+    <string name="morphe_music_hide_you_may_also_like_section_title">「おすすめ」セクションを非表示</string>
+    <string name="morphe_music_hide_your_downloads_shelf_title">「ダウンロード済み」欄を非表示</string>
     <string name="morphe_music_lyrics_about_summary">"歌詞はタイトルとアーティストでマッチングされます。通常のメタデータ以外では何も見つからない場合や、間違ったバージョンが見つかる場合があります。バージョンを切り替えるには更新を使用してください。* マーク付きのプロバイダーにはトークンが必要です。有効化されたすべてのプロバイダーが常にリクエスト順に含まれるわけではありませんが、速度に基づいて応答します。
 
 歌詞は RVX に関係ない、スポンサーでもない、推奨もされていないサードパーティーサービスからのものです。それぞれのサービスはそのまま使用されます：歌詞、その利用可能性、ライセンスはすべてサービス提供元とその許諾元に属し、これらを使用することはサービスの利用規約の対象となる場合があります。有効化されたサービスに送信されるのは、検索要求のみです（タイトル、アーティスト、そのサービスが必要とする場合はビデオ ID）。オプショナルな AI エンドポイントと QuickLRC 文字起こしは、設定を行った後にのみ実行され、受け取る情報は歌詞テキストまたはトラックの動画 URL です。"</string>

@@ -5,7 +5,7 @@
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  *
- * Modified by lavinhoque33, 2026-11-14.
+ * Modified by lavinhoque33, 2026-11-17.
  */
 
 package app.morphe.patches.youtube.player.seekbar
@@ -13,6 +13,7 @@ package app.morphe.patches.youtube.player.seekbar
 import app.morphe.patches.shared.VideoStreamingDataToStringFingerprint
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.InstructionLocation.MatchAfterImmediately
+import app.morphe.patcher.InstructionLocation.MatchAfterLast
 import app.morphe.patcher.InstructionLocation.MatchAfterWithin
 import app.morphe.patcher.OpcodesFilter
 import app.morphe.patcher.anyInstruction
@@ -441,14 +442,29 @@ internal object SlideSeekbarGetViewControllerFingerprint : Fingerprint (
     )
 )
 
+/**
+ * Storyboard frame rectangle and its region decoder.
+ */
+internal object StoryboardFrameRegionFingerprint : Fingerprint(
+    returnType = "Landroid/graphics/Bitmap;",
+    parameters = listOf("L", "I", "Landroid/graphics/Bitmap;"),
+    filters = listOf(
+        methodCall(
+            opcode = Opcode.INVOKE_VIRTUAL,
+            parameters = listOf("I"),
+            returnType = "Landroid/graphics/Rect;"
+        ),
+        opcode(Opcode.MOVE_RESULT_OBJECT, location = MatchAfterImmediately()),
+        methodCall(
+            definingClass = "Landroid/graphics/BitmapRegionDecoder;",
+            name = "decodeRegion"
+        ),
+        string("Storyboard regionDecoder.decodeRegion exception - ")
+    )
+)
+
 internal object SeekbarFineScrubbingBitmapFingerprint : Fingerprint (
-    classFingerprint = Fingerprint (
-        returnType = "Landroid/graphics/Bitmap;",
-        parameters = listOf("L", "I", "Landroid/graphics/Bitmap;"),
-        filters = listOf(
-            string("Storyboard regionDecoder.decodeRegion exception - ")
-        )
-    ),
+    classFingerprint = StoryboardFrameRegionFingerprint,
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL, AccessFlags.DECLARED_SYNCHRONIZED),
     returnType = "V",
     parameters = listOf("Landroid/graphics/Bitmap;")
@@ -477,22 +493,24 @@ internal object SeekbarBigBoardsUpdateFingerprint : Fingerprint (
     )
 )
 
-internal object SeekbarBigBoardsUpdateLegacyFingerprint : Fingerprint (
-    classFingerprint = Fingerprint(
-        accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
-        returnType = "V",
-        parameters = listOf("Z"),
-        filters = listOf(
-            fieldAccess(
-                opcode = Opcode.SGET_OBJECT,
-                smali = $$"Landroid/widget/ImageView$ScaleType;->CENTER_CROP:Landroid/widget/ImageView$ScaleType;"
-            ),
-            fieldAccess(
-                opcode = Opcode.SGET_OBJECT,
-                smali = $$"Landroid/widget/ImageView$ScaleType;->FIT_CENTER:Landroid/widget/ImageView$ScaleType;"
-            )
+internal object SeekbarBigBoardsScaleTypeFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "V",
+    parameters = listOf("Z"),
+    filters = listOf(
+        fieldAccess(
+            opcode = Opcode.SGET_OBJECT,
+            smali = $$"Landroid/widget/ImageView$ScaleType;->CENTER_CROP:Landroid/widget/ImageView$ScaleType;"
+        ),
+        fieldAccess(
+            opcode = Opcode.SGET_OBJECT,
+            smali = $$"Landroid/widget/ImageView$ScaleType;->FIT_CENTER:Landroid/widget/ImageView$ScaleType;"
         )
-    ),
+    )
+)
+
+internal object SeekbarBigBoardsUpdateLegacyFingerprint : Fingerprint(
+    classFingerprint = SeekbarBigBoardsScaleTypeFingerprint,
     accessFlags = listOf(AccessFlags.PRIVATE, AccessFlags.FINAL),
     returnType = "Z",
     parameters = listOf(),
@@ -506,5 +524,29 @@ internal object SeekbarBigBoardsUpdateLegacyFingerprint : Fingerprint (
 internal object ShortsDisableSeekbarThumbnailsFeatureFlagFingerprint : Fingerprint(
     filters = listOf(
         literal(45787901)
+    )
+)
+
+internal object SeekbarBigBoardsScrubFingerprint : Fingerprint(
+    classFingerprint = SeekbarBigBoardsScaleTypeFingerprint,
+    returnType = "V",
+    parameters = listOf("I", "J"),
+    filters = listOf(
+        methodCall(
+            opcode = Opcode.INVOKE_DIRECT,
+            definingClass = "this",
+            parameters = listOf("J"),
+            returnType = "V"
+        )
+    )
+)
+
+internal object CustomSeekbarThumbOnDrawFingerprint : Fingerprint(
+    classFingerprint = SeekbarFingerprint,
+    name = "onDraw",
+    filters = listOf(
+        methodCall(smali = "Ljava/lang/Math;->round(F)I"),
+        opcode(Opcode.MOVE_RESULT, location = MatchAfterImmediately()),
+        methodCall(name = "drawCircle", location = MatchAfterLast())
     )
 )

@@ -18,7 +18,8 @@ import java.util.Set;
 final class MenuRows {
     /** The Log out row's switch, under the Menu row in the settings App tab. */
     static final String LOG_OUT = "menu_log_out";
-    private static final String HIDDEN = "menu_rows_hidden", SEEN = "menu_rows_seen", LABEL = "menu_rows_label_";
+    static final String HIDDEN = "menu_rows_hidden";
+    private static final String SEEN = "menu_rows_seen", LABEL = "menu_rows_label_";
     /** More than the Menu tab shows, so a row Messenger drops falls off the list in time. */
     private static final int REMEMBERED = 40;
     /** How much of a folder key's own value goes into the name. Enough to tell two rows apart, short enough to store. */

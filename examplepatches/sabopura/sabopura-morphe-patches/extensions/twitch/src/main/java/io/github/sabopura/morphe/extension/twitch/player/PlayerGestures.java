@@ -1,21 +1,26 @@
 package io.github.sabopura.morphe.extension.twitch.player;
 
+import io.github.sabopura.morphe.extension.twitch.Diagnostics;
+import io.github.sabopura.morphe.extension.twitch.ui.Feature;
+import io.github.sabopura.morphe.extension.twitch.ui.Features;
+import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.content.Context;
-import android.content.ContextWrapper;
 import android.content.SharedPreferences;
 import android.graphics.Canvas;
 import android.graphics.ColorFilter;
+import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.graphics.RectF;
-import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.provider.Settings;
 import android.util.TypedValue;
 import android.view.ActionMode;
+import android.view.HapticFeedbackConstants;
 import android.view.KeyEvent;
 import android.view.KeyboardShortcutGroup;
 import android.view.Menu;
@@ -31,7 +36,10 @@ import android.view.accessibility.AccessibilityEvent;
 
 import io.github.sabopura.morphe.extension.twitch.chat.ChatSettings;
 import io.github.sabopura.morphe.extension.twitch.chat.PublicApi;
-import io.github.sabopura.morphe.extension.twitch.ui.Text;
+import io.github.sabopura.morphe.extension.twitch.ui.Icons;
+import io.github.sabopura.morphe.extension.twitch.ui.TouchLock;
+import io.github.sabopura.morphe.extension.twitch.ui.TwitchRes;
+import io.github.sabopura.morphe.extension.twitch.ui.Ui;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -49,13 +57,16 @@ public final class PlayerGestures {
     private static final List<WeakReference<View>> FRAMES = new ArrayList<>();
     /** Share of the width at each side, and the top and bottom bands left to the controls. */
     private static final float EDGE = .22f, BAND = .15f;
+    private static final int BRIGHTNESS = 1, VOLUME = 2;
+    private static final int FADE_MS = 100;
 
     private PlayerGestures() {}
 
     static void attach(View frame) {
+        if (!Features.has(Feature.GESTURES)) return;
         prune(null);
         FRAMES.add(new WeakReference<>(frame));
-        Activity activity = activity(frame.getContext());
+        Activity activity = Ui.activity(frame.getContext());
         if (activity == null) return;
         Window window = activity.getWindow();
         Window.Callback callback = window == null ? null : window.getCallback();
@@ -65,14 +76,20 @@ public final class PlayerGestures {
 
     static void detach(View frame) {
         prune(frame);
-        Activity activity = activity(frame.getContext());
+        Activity activity = Ui.activity(frame.getContext());
         Window window = activity == null ? null : activity.getWindow();
         if (window != null && window.getCallback() instanceof Callback) {
             Callback callback = (Callback) window.getCallback();
             // A feed preview leaving the screen must not cut off a swipe on the theatre.
             if (callback.frame == frame) callback.end();
             // Rotating or re-laying out the theatre moves the player; only leaving it restores.
-            PublicApi.UI.postDelayed(callback::restoreIfClosed, 1500);
+            PublicApi.UI.postDelayed(() -> {
+                try {
+                    callback.restoreIfClosed();
+                } catch (RuntimeException | LinkageError e) {
+                    Diagnostics.note("player.gestures-restore", e);
+                }
+            }, 1500);
         }
     }
 
@@ -83,18 +100,8 @@ public final class PlayerGestures {
         }
     }
 
-    private static Activity activity(Context context) {
-        while (context instanceof ContextWrapper) {
-            if (context instanceof Activity) return (Activity) context;
-            Context next = ((ContextWrapper) context).getBaseContext();
-            if (next == context) break;
-            context = next;
-        }
-        return null;
-    }
-
     private static int id(View view, String name) {
-        return view.getResources().getIdentifier(name, "id", view.getContext().getPackageName());
+        return TwitchRes.id(view.getContext(), name, "id");
     }
 
     private static View ancestor(View view, int id) {
@@ -124,8 +131,8 @@ public final class PlayerGestures {
         frame.getLocationInWindow(at);
         float rx = (x - at[0]) / frame.getWidth(), ry = (y - at[1]) / frame.getHeight();
         if (ry <= BAND || ry >= 1 - BAND) return 0;
-        if (rx < EDGE) return Swipe.BRIGHTNESS;
-        if (rx > 1 - EDGE) return Swipe.VOLUME;
+        if (rx < EDGE) return BRIGHTNESS;
+        if (rx > 1 - EDGE) return VOLUME;
         return 0;
     }
 
@@ -143,10 +150,6 @@ public final class PlayerGestures {
         return false;
     }
 
-    private static final class Swipe {
-        static final int BRIGHTNESS = 1, VOLUME = 2;
-    }
-
     /** Sits in front of the activity, so it sees each touch before any view does. */
     private static final class Callback implements Window.Callback {
         private final Window window;
@@ -154,6 +157,7 @@ public final class PlayerGestures {
         private View frame;
         private int kind;
         private boolean tracking, claimed;
+        private int pointerId = -1;
         private float startX, startY, baseY, startValue;
         private int maxVolume, lastVolume = -1;
         private float originalBrightness = Float.NaN;
@@ -170,6 +174,7 @@ public final class PlayerGestures {
             try {
                 ours = onTouch(event);
             } catch (RuntimeException e) {
+                Diagnostics.note("player.gestures", e);
                 end();
                 ours = false;
             }
@@ -180,25 +185,36 @@ public final class PlayerGestures {
             switch (e.getActionMasked()) {
                 case MotionEvent.ACTION_DOWN:
                     end();
+                    if (!Float.isNaN(originalBrightness)) restoreIfClosed();
                     begin(e.getX(), e.getY());
+                    pointerId = e.getPointerId(0);
                     return false;
                 case MotionEvent.ACTION_POINTER_DOWN:
                     tracking = false;
                     return claimed;
-                case MotionEvent.ACTION_MOVE:
+                case MotionEvent.ACTION_POINTER_UP:
+                    if (e.getPointerId(e.getActionIndex()) != pointerId) return claimed;
+                    tracking = false;
+                    if (!claimed) return false;
+                    end();
+                    return true;
+                case MotionEvent.ACTION_MOVE: {
+                    int index = e.findPointerIndex(pointerId);
+                    if (index < 0) return claimed;
                     if (claimed) {
-                        update(e.getY());
+                        update(e.getY(index));
                         return true;
                     }
                     if (!tracking) return false;
-                    float dx = e.getX() - startX, dy = e.getY() - startY;
+                    float dx = e.getX(index) - startX, dy = e.getY(index) - startY;
                     // Decide a little before the views' own slop, so Twitch never starts dragging first.
                     float slop = ViewConfiguration.get(frame.getContext()).getScaledTouchSlop() * .8f;
                     if (dx * dx + dy * dy <= slop * slop) return false;
                     tracking = false;
                     if (Math.abs(dy) <= Math.abs(dx) * 1.5f) return false;
-                    claim(e);
+                    claim(e, e.getY(index));
                     return true;
+                }
                 case MotionEvent.ACTION_UP:
                 case MotionEvent.ACTION_CANCEL:
                     tracking = false;
@@ -211,6 +227,7 @@ public final class PlayerGestures {
         }
 
         private void begin(float x, float y) {
+            if (TouchLock.locked()) return;
             // Every touch of the screen passes here: settle the common case (both off) first.
             SharedPreferences prefs = ChatSettings.preferences(window.getContext());
             boolean brightness = prefs.getBoolean("brightness_gesture", false),
@@ -221,14 +238,14 @@ public final class PlayerGestures {
                 if (view == null || view.getWindowToken() == null
                         || view.getWindowToken() != window.getDecorView().getWindowToken()) continue;
                 int found = zone(view, x, y);
-                if (found == 0 || !(found == Swipe.BRIGHTNESS ? brightness : volume)) continue;
+                if (found == 0 || !(found == BRIGHTNESS ? brightness : volume)) continue;
                 if (!inExpandedTheatre(view)) continue;
                 // Chat drawn over the video in landscape scrolls with the same swipe; it wins. Only
                 // the theatre's own views count: the screen it opened over (a feed, a list) stays
                 // underneath and can always scroll.
                 View theatre = ancestor(view, id(view, "video_presenter_container"));
                 if (scrollsAt(theatre != null ? theatre : view, (int) x, (int) y)) continue;
-                if (found == Swipe.VOLUME) {
+                if (found == VOLUME) {
                     AudioManager audio = audio(view);
                     if (audio == null || audio.isVolumeFixed()) continue;
                 }
@@ -241,14 +258,14 @@ public final class PlayerGestures {
             }
         }
 
-        private void claim(MotionEvent e) {
+        private void claim(MotionEvent e, float y) {
             claimed = true;
             MotionEvent cancel = MotionEvent.obtain(e);
             cancel.setAction(MotionEvent.ACTION_CANCEL);
             base.dispatchTouchEvent(cancel);
             cancel.recycle();
-            baseY = e.getY();
-            if (kind == Swipe.BRIGHTNESS) {
+            baseY = y;
+            if (kind == BRIGHTNESS) {
                 float current = window.getAttributes().screenBrightness;
                 if (current < 0) {
                     try {
@@ -265,24 +282,27 @@ public final class PlayerGestures {
                 lastVolume = audio == null ? 0 : audio.getStreamVolume(AudioManager.STREAM_MUSIC);
                 startValue = lastVolume;
             }
-            Text.use(frame.getContext());
-            indicator = new Indicator(frame.getContext(),
-                    kind == Swipe.BRIGHTNESS ? Text.label("明るさ", "Brightness") : Text.label("音量", "Volume"));
+            if (indicator == null) indicator = new Indicator(frame.getContext());
             Rect visible = new Rect();
             frame.getGlobalVisibleRect(visible);
-            indicator.place(visible);
-            window.getDecorView().getOverlay().add(indicator);
-            update(e.getY());
+            indicator.place(visible, kind);
+            if (!indicator.attached) {
+                window.getDecorView().getOverlay().add(indicator);
+                indicator.attached = true;
+            }
+            indicator.fade(true, () -> {
+            });
+            update(y);
         }
 
         private void update(float y) {
             float delta = (baseY - y) / Math.max(1, frame.getHeight());
-            if (kind == Swipe.BRIGHTNESS) {
+            if (kind == BRIGHTNESS) {
                 WindowManager.LayoutParams params = window.getAttributes();
                 if (Float.isNaN(originalBrightness)) originalBrightness = params.screenBrightness;
                 params.screenBrightness = clamp(startValue + delta, .01f, 1);
                 window.setAttributes(params);
-                indicator.show(params.screenBrightness);
+                indicator.show(params.screenBrightness, frame);
             } else {
                 AudioManager audio = audio(frame);
                 if (audio == null || maxVolume <= 0) return;
@@ -294,19 +314,22 @@ public final class PlayerGestures {
                     }
                     lastVolume = audio.getStreamVolume(AudioManager.STREAM_MUSIC);
                 }
-                indicator.show(lastVolume / (float) maxVolume);
+                indicator.show(lastVolume / (float) maxVolume, frame);
             }
         }
 
         void end() {
             tracking = false;
             claimed = false;
+            pointerId = -1;
             frame = null;
             Indicator shown = indicator;
-            indicator = null;
-            if (shown != null) {
+            if (shown != null && shown.attached) {
                 View decor = window.getDecorView();
-                decor.postDelayed(() -> decor.getOverlay().remove(shown), 600);
+                shown.fade(false, () -> {
+                    decor.getOverlay().remove(shown);
+                    shown.attached = false;
+                });
             }
         }
 
@@ -317,7 +340,7 @@ public final class PlayerGestures {
                 View view = ref.get();
                 if (view != null && view.getWindowToken() != null
                         && view.getWindowToken() == window.getDecorView().getWindowToken()
-                        && ancestor(view, id(view, "video_presenter_container")) != null) return;
+                        && inExpandedTheatre(view)) return;
             }
             WindowManager.LayoutParams params = window.getAttributes();
             params.screenBrightness = originalBrightness;
@@ -456,62 +479,101 @@ public final class PlayerGestures {
         return Math.max(min, Math.min(max, value));
     }
 
-    /** A small label with a level bar, drawn over the video while swiping. */
+    /** An icon and a vertical level bar at the side being swiped, reused between swipes and faded in and out. */
     private static final class Indicator extends Drawable {
-        private final Paint box = new Paint(Paint.ANTI_ALIAS_FLAG), text = new Paint(Paint.ANTI_ALIAS_FLAG),
-                track = new Paint(Paint.ANTI_ALIAS_FLAG), fill = new Paint(Paint.ANTI_ALIAS_FLAG);
-        private final String title;
-        private final float pad, gap, bar, radius, minWidth;
+        private final Paint box = new Paint(Paint.ANTI_ALIAS_FLAG), track = new Paint(Paint.ANTI_ALIAS_FLAG),
+                fill = new Paint(Paint.ANTI_ALIAS_FLAG), glyph = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final float density;
         private final RectF shape = new RectF();
-        private float level;
+        private final Matrix matrix = new Matrix();
+        private final Path scaled = new Path();
+        private Path icon;
+        private float level = -1, opacity;
+        private ValueAnimator fader;
+        boolean attached;
 
-        Indicator(Context context, String title) {
-            this.title = title;
-            pad = px(context, TypedValue.COMPLEX_UNIT_DIP, 16);
-            gap = px(context, TypedValue.COMPLEX_UNIT_DIP, 8);
-            bar = px(context, TypedValue.COMPLEX_UNIT_DIP, 4);
-            radius = px(context, TypedValue.COMPLEX_UNIT_DIP, 14);
-            minWidth = px(context, TypedValue.COMPLEX_UNIT_DIP, 132);
-            box.setColor(0xC0000000);
-            text.setColor(0xFFFFFFFF);
-            text.setTextSize(px(context, TypedValue.COMPLEX_UNIT_SP, 17));
-            text.setTypeface(Typeface.DEFAULT_BOLD);
-            text.setTextAlign(Paint.Align.CENTER);
+        Indicator(Context context) {
+            density = context.getResources().getDisplayMetrics().density;
+            box.setColor(0xB0000000);
             track.setColor(0x4DFFFFFF);
             fill.setColor(0xFFFFFFFF);
+            glyph.setColor(0xFFFFFFFF);
+            glyph.setStyle(Paint.Style.STROKE);
+            glyph.setStrokeCap(Paint.Cap.ROUND);
+            glyph.setStrokeJoin(Paint.Join.ROUND);
         }
 
-        private static float px(Context context, int unit, float value) {
-            return TypedValue.applyDimension(unit, value, context.getResources().getDisplayMetrics());
+        /** Beside the edge being swiped, so the middle of the video stays clear. */
+        void place(Rect video, int kind) {
+            icon = Icons.path(kind == BRIGHTNESS ? Icons.Kind.SUN : Icons.Kind.VOLUME);
+            int width = Math.round(44 * density);
+            int height = Math.round(Math.min(168 * density, video.height() * .6f));
+            int margin = Math.round(20 * density);
+            int left = kind == BRIGHTNESS ? video.left + margin : video.right - margin - width;
+            int top = video.centerY() - height / 2;
+            setBounds(left, top, left + width, top + height);
         }
 
-        /** Centres the label over the visible part of the video. */
-        void place(Rect video) {
-            Paint.FontMetrics metrics = text.getFontMetrics();
-            float width = Math.max(minWidth, text.measureText(title + " 100%")) + pad * 2;
-            float height = (metrics.descent - metrics.ascent) + gap + bar + pad * 1.5f;
-            int left = Math.round(video.exactCenterX() - width / 2), top = Math.round(video.exactCenterY() - height / 2);
-            setBounds(left, top, left + Math.round(width), top + Math.round(height));
-        }
-
-        void show(float value) {
-            level = clamp(value, 0, 1);
+        void show(float value, View frame) {
+            float next = clamp(value, 0, 1);
+            boolean edge = level >= 0 && (next <= 0 || next >= 1) && next != level;
+            level = next;
+            if (edge) frame.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK);
             invalidateSelf();
+        }
+
+        void fade(boolean in, Runnable then) {
+            if (fader != null) fader.cancel();
+            float target = in ? 1 : 0;
+            ValueAnimator animator = ValueAnimator.ofFloat(opacity, target);
+            animator.setDuration(FADE_MS);
+            animator.addUpdateListener(a -> {
+                opacity = (float) a.getAnimatedValue();
+                invalidateSelf();
+            });
+            animator.addListener(new android.animation.AnimatorListenerAdapter() {
+                private boolean cancelled;
+
+                @Override
+                public void onAnimationCancel(android.animation.Animator a) {
+                    cancelled = true;
+                }
+
+                @Override
+                public void onAnimationEnd(android.animation.Animator a) {
+                    if (!cancelled) then.run();
+                }
+            });
+            fader = animator;
+            animator.start();
         }
 
         @Override
         public void draw(Canvas canvas) {
             Rect b = getBounds();
+            int alpha = Math.round(opacity * 255);
+            box.setAlpha(Math.round(opacity * 0xB0));
+            track.setAlpha(Math.round(opacity * 0x4D));
+            fill.setAlpha(alpha);
+            glyph.setAlpha(alpha);
+            float radius = b.width() / 2f;
             shape.set(b);
             canvas.drawRoundRect(shape, radius, radius, box);
-            Paint.FontMetrics metrics = text.getFontMetrics();
-            float baseline = b.top + pad * .75f - metrics.ascent;
-            canvas.drawText(title + " " + Math.round(level * 100) + "%", b.exactCenterX(), baseline, text);
-            float top = baseline + metrics.descent + gap, left = b.left + pad, right = b.right - pad;
-            shape.set(left, top, right, top + bar);
-            canvas.drawRoundRect(shape, bar / 2, bar / 2, track);
-            shape.set(left, top, left + (right - left) * level, top + bar);
-            canvas.drawRoundRect(shape, bar / 2, bar / 2, fill);
+            float iconSize = 24 * density;
+            float cx = b.exactCenterX();
+            float iconTop = b.top + 12 * density;
+            float scale = iconSize / 24f;
+            matrix.setScale(scale, scale);
+            matrix.postTranslate(cx - iconSize / 2, iconTop);
+            icon.transform(matrix, scaled);
+            glyph.setStrokeWidth(2 * density);
+            canvas.drawPath(scaled, glyph);
+            float barWidth = 6 * density;
+            float top = iconTop + iconSize + 10 * density, bottom = b.bottom - 14 * density;
+            shape.set(cx - barWidth / 2, top, cx + barWidth / 2, bottom);
+            canvas.drawRoundRect(shape, barWidth / 2, barWidth / 2, track);
+            shape.set(cx - barWidth / 2, top + (bottom - top) * (1 - Math.max(0, level)), cx + barWidth / 2, bottom);
+            canvas.drawRoundRect(shape, barWidth / 2, barWidth / 2, fill);
         }
 
         @Override

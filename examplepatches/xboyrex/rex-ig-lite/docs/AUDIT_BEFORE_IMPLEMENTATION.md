@@ -1,0 +1,27 @@
+# INSTAREX (REX IG LITE v3.15.0) — SOURCE AUDIT & DEPENDENCY MAP (`AUDIT_BEFORE_IMPLEMENTATION.md`)
+
+## 1. Repository & Build Architecture Inventory
+- **Repository Root**: `/working_dir/c_15cecc76b42f1ce2/work/rex-ig-lite` ([`https://github.com/xboyrex/rex-ig-lite`](https://github.com/xboyrex/rex-ig-lite))
+- **Product Identity**: **InstaRex** (`Rex IG Lite • by xboyrex`)
+- **Version**: `3.15.0` (`gradle.properties`)
+- **Gradle Modules**:
+  - `:patches` (`patches/build.gradle.kts`) — Kotlin Morphe patch definitions, bytecode fingerprints, resource injection (`patches-list.json`, `patches-bundle.json`).
+  - `:extensions:instagram` (`extensions/instagram/build.gradle.kts`) — Java 17 Android runtime extension (`app.morphe.extension.instagram.*` & `app.morphe.extension.suite.instagram.*`).
+  - `:extensions:shared` (`extensions/shared/build.gradle.kts`) — Shared logging, resource lookup, and preference helpers.
+  - `:extensions:all` — Combined DEX extension packaging module.
+- **Supported Instagram Target Versions**: `439.0.0.37.89`, `444.0.0.47.66`, `452.1.0.53.64`, `453.0.0.57.79`, `454.0.0.54.77`, `455.0.0.51.72`.
+- **UI Framework**: Native Android `PreferenceFragment` + custom `View`/`Dialog`/`ScrollView` hierarchy (`SettingsActivity.java`, `ScreenBuilder.java`, `InstagramPreferenceStyle.java`, `RexDialogs.java`, `RexAboutView.java`).
+
+---
+
+## 2. Source-Level Defect & Root-Cause Evidence Table
+
+| Component / Defect | File Path & Symbol | Line Evidence | Pre-Fix Behaviour & Risk | Root-Cause Fix Implemented |
+| :--- | :--- | :--- | :--- | :--- |
+| **`BUG-DL-001`**: `ImageInfoImpl.A31[]` `NoSuchMethodException` | `patches/src/main/kotlin/app/rex/patches/instagram/entity/mediadata/MediaDataEntity.kt` (`GetImageVariantsExtensionFingerprint`, `ExtMediaDictImageInfoMapperFingerprint`) | Lines 110–136 | `GetImageVariantsExtensionFingerprint.changeFirstString(candidatesMethodName, 1)` targeted string index `1` on a 1-string method, and `ExtMediaDictImageInfoMapperFingerprint` overwrote index `0` with `"A31"`, causing `ImageData.getImageVariants()` to call `ImageInfoImpl.A31()`. | Added `ResolveImageInfoObjectExtensionFingerprint`, patched index `0` on `GetImageVariantsExtensionFingerprint`, and routed `ExtMediaDictImageInfoMapperFingerprint` to `MediaData.resolveImageInfoObject(Object)`. |
+| **`BUG-DL-002`**: `ImmutablePandoImageInfo.A31[]` Crash | `extensions/instagram/src/main/java/app/morphe/extension/instagram/entity/Entity.java` & `ImageData.java` | `Entity.java:19–105`, `ImageData.java:30–135` | `Entity.findMethod` only inspected `getDeclaredMethod` on the leaf class without traversing superclasses/interfaces or Pando candidate getters (`ImmutablePandoImageInfo` in Instagram `452.1+`). | Upgraded `Entity.java` to traverse full superclass/interface hierarchies and added multi-stage Pando candidate extraction in `ImageData.extractCandidatesFromImageInfo()`. |
+| **`BUG-CAROUSEL-001`**: Carousel `1/10` showing `(0)` items | `MediaDataEntity.kt` (`CarouselMediaGetterFingerprint`) & `MediaData.java` (`getCarouselMedia()`) | `MediaDataEntity.kt:142–188`, `MediaData.java:210–295` | `EditMediaInfoFragmentMediaSizeFingerprint` matched a non-carousel `List` getter first, so `getCarouselMedia()` returned `null`/`0` items. | Prioritized `CarouselMediaGetterFingerprint` + `"carousel_media"` field lookup and added a 4-stage runtime fallback in `MediaData.getCarouselMedia()`. |
+| **Carousel & Single Action Matrix Parity** | `MediaActionRegistry.java` & `RexRuntimeFeatures.java` | `MediaActionRegistry.java:58–298` | Missing `Repost all N as Posts`, `Repost all N as Stories`, `Repost all N as WA Stories`, `Hidden Mentions` & `Story Media Information` in Story sheet, and context-specific `Image to Text (OCR)` vs `Cover Image to Text (OCR)`. | Added `REPOST_ALL_IG_POST`, `REPOST_ALL_IG_STORY`, `REPOST_ALL_WHATSAPP_STORY`, `VIEW_STORY_MENTIONS`, `STORY_MEDIA_INFO`, and `RexRuntimeFeatures.repostAllCarouselMedia()` using `Intent.ACTION_SEND_MULTIPLE`. |
+| **Story Hidden Mentions Empty State (`122305`)** | `StoryMentionPopup.java` & `PeopleCellDialogBox.java` | `StoryMentionPopup.java:123`, `PeopleCellDialogBox.java:36` | `StoryMentionPopup.show` returned silently when `mentions.isEmpty()`, and titles did not include the dynamic `(0)` / `(N)` count shown in `122305` and `122336`. | Updated `StoryMentionPopup.show` and `PeopleCellDialogBox.showPeopleDialog` to render `Hidden Mentions (0)` (`No hidden mentions found for this story.`) with a `Close` button, and `Hidden Mentions (N)` when populated. |
+| **Central Icon & Feature Registries** | `RexIconRegistry.java`, `RexIcon.java` & `RexFeatureRegistry.java` | `RexIconRegistry.java:1–98`, `RexFeatureRegistry.java:1–115` | Required dedicated central `RexIconRegistry` and `RexFeatureRegistry` classes alongside `RexIcon`. | Created `RexIconRegistry.java` (`186` semantic Tabler icons, `241` mapped preference/route keys) and `RexFeatureRegistry.java` (`151` registered category & setting entries). |
+| **Brand Mark & Identity (`InstaRex`)** | `SettingsActivity.java` & `RexAboutView.java` | `SettingsActivity.java:408`, `RexAboutView.java:70` | `RexAboutView` used `"instagram"` for `brandIcon` (violating `DESIGN_TOKENS.json` `"do not use Instagram logo as Rex identity"`), and user requested `Name InstaRex rkhna`. | Switched `brandIcon` to `"hexagon"` (`RexIconRegistry`) and updated headers to **InstaRex** (`Rex IG Lite • by xboyrex`) with in-app OTA `UpdateChecker.checkNow(context)`. |

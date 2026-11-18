@@ -22,6 +22,7 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
@@ -51,7 +52,7 @@ class SendConfirmFixtureTest {
     private val textLength = "Ljava/lang/CharSequence;->length()I"
     private val fixed = setOf(
         "Lorg/telegram/ui/Components/ChatActivityEnterView;", "Lorg/telegram/messenger/MediaController;", "Lorg/telegram/ui/LaunchActivity;",
-        CALLBACK, chat, voip,
+        CALLBACK, chat, voip, "Lorg/telegram/messenger/VideoEditedInfo;",
     )
 
     /** Telegram's join of a voice chat: the chat, its invite hash, whether it starts one, a join-as flag, the window, the screen and the account. */
@@ -80,6 +81,11 @@ class SendConfirmFixtureTest {
         val body = m.controlBody()
         if (body.isEmpty()) return false
         if (instance && m.origReturnType == "V" && VideoShape.values().any { it.target == params } && body.any { it.controlRef() == CAMERA_ALLOWED }) return true
+        // The record button's touch handler, which hands the round video recorder its state through the chat.
+        if (instance && m.origName == "onTouchEvent" && m.origReturnType == "Z" && params == listOf("Landroid/view/MotionEvent;") &&
+            body.any { i -> i.opcode == Opcode.INVOKE_INTERFACE_RANGE && i.call()?.let { c ->
+                c.returnType == "V" && VideoShape.values().any { it.target == c.parameterTypes.map { p -> p.toString() } }
+            } == true }) return true
         if (body.any { it.call()?.let { c -> c.origDefiningClass == SEND_HELPER && c.origName == "sendSticker" } == true }) return true
         return body.any { it.call()?.let { c -> c.origReturnType == "V" && c.origParameterTypes == callParameters } == true }
     }
@@ -108,6 +114,8 @@ class SendConfirmFixtureTest {
             assertEquals("$name: the strip's two sends, in a chat and in a story's reply bar", 2, site.strips.size)
             val stripsBefore = site.strips.map { ImmutableMethod.of(it.method) }
             val barBefore = ImmutableMethod.of(site.barSendMethod)
+            assertEquals("$name: the record button's locked send and its release", 2, site.videoTaps.size)
+            val touchBefore = ImmutableMethod.of(site.videoTouch)
             assertEquals(emptyList<String>(), PatchLogCapture.warnings { sendConfirmPatch.execute(context) })
 
             // A question: the extension's call first, then Telegram's own code, which is everything the method held.
@@ -229,6 +237,36 @@ class SendConfirmFixtureTest {
             assertEquals("$name: the chat bar's send as it was", kept(barBefore.controlBody()),
                 kept(barGated.filterIndexed { i, _ -> i !in hooked }))
 
+            // The record button's sends of a round video: the question with the call's own registers,
+            // true back to the touch when it asked, so the bar keeps the paused clip, else the call.
+            val touchGated = site.videoTouch.controlBody()
+            val touchFlow = ControlFlow.of(site.videoTouch)
+            val touchTop = site.videoTouch.implementation!!.registerCount
+            val taps = touchGated.indices.filter { touchGated[it].controlRef()?.startsWith("$SEND_CONFIRM->${site.shape.hook}(") == true }
+            assertEquals("$name: a question at each of the record button's two sends", 2, taps.size)
+            for (at in taps) {
+                val key = "$name record button @$at"
+                val call = touchGated[at + 5]
+                assertEquals("$key: the recorder's entry right after", listOf(Opcode.INVOKE_INTERFACE_RANGE, site.video.name, site.video.parameterTypes.map { it.toString() }),
+                    listOf(call.opcode, call.call()?.name, call.call()?.parameterTypes?.map { it.toString() }))
+                assertEquals(Opcode.INVOKE_STATIC_RANGE, touchGated[at].opcode)
+                assertEquals("$key: the extension's question, as the chat asks it",
+                    "$SEND_CONFIRM->${site.shape.hook}(${listOf("Ljava/lang/Object;").plus(site.shape.target).joinToString("")})Z", touchGated[at].controlRef())
+                assertEquals("$key: the call's own registers", call.namedRegisters(), touchGated[at].namedRegisters())
+                assertEquals("$key: state 1", 1, (touchGated.subList(0, at).last { it.namedRegisters().firstOrNull() == call.namedRegisters()[1] }
+                    as NarrowLiteralInstruction).narrowLiteral)
+                assertEquals(listOf(Opcode.MOVE_RESULT, Opcode.IF_NEZ, Opcode.CONST_16, Opcode.RETURN), touchGated.subList(at + 1, at + 5).map { it.opcode })
+                val answer = touchGated[at + 1].namedRegisters().single()
+                assertEquals("$key: the answer in a free local, true returned", List(4) { listOf(answer) }, touchGated.subList(at + 1, at + 5).map { it.namedRegisters() })
+                assertTrue("$key: a local outside the call's registers", answer < touchTop - 2 && answer !in call.namedRegisters())
+                assertEquals("$key: true", 1, (touchGated[at + 3] as NarrowLiteralInstruction).narrowLiteral)
+                assertEquals("$key: Send goes on to the call", setOf(at + 3, at + 5), touchFlow.normal[at + 2].toSet())
+                assertTrue("$key: only the instruction before falls into it", touchFlow.normal.withIndex().none { (from, to) -> from != at - 1 && at in to })
+            }
+            val touchHooked = taps.flatMap { it until it + 5 }.toSet()
+            assertEquals("$name: the record button's touch as it was", kept(touchBefore.controlBody()),
+                kept(touchGated.filterIndexed { i, _ -> i !in touchHooked }))
+
             // A call: the same registers and the same place, to the extension.
             for ((key, method, index) in listOf(Triple("header", site.header, site.headerCall), Triple("profile", site.profile, site.profileCall))) {
                 val stock = before.getValue(key).controlBody()
@@ -311,6 +349,18 @@ class SendConfirmFixtureTest {
                     listOf(declared.origType, AccessFlags.PUBLIC.isSet(declared.accessFlags), AccessFlags.PRIVATE.isSet(declared.accessFlags),
                         AccessFlags.STATIC.isSet(declared.accessFlags)))
             }
+            // The paused round video's length: the field the chat bar takes its recorded time from
+            // when the clip reaches its preview.
+            val lengthRef = "Lorg/telegram/messenger/VideoEditedInfo;->estimatedDuration:J"
+            val length = stub("videoLength")
+            assertEquals("$name videoLength", listOf(Opcode.CHECK_CAST, Opcode.IGET_WIDE, Opcode.RETURN_WIDE), length.map { it.opcode })
+            assertEquals("$name videoLength: the clip's own length", listOf(lengthRef, listOf(0, 2)),
+                listOf(length[1].controlRef(), length[1].namedRegisters()))
+            assertTrue("$name: the chat bar reads its paused clip's length there", bar.methods.any { m ->
+                m.implementation != null && m.controlBody().zipWithNext().any { (clip, read) ->
+                    clip.opcode == Opcode.IGET_OBJECT && clip.controlRef() == site.videoClip && read.opcode == Opcode.IGET_WIDE && read.controlRef() == lengthRef
+                }
+            })
 
             // The pauses before a question: the media controller's for a voice recording, and the
             // recorder's for a round video, each one the chat really implements.
@@ -496,5 +546,78 @@ class SendConfirmFixtureTest {
             :none
             return-void
         """), clip))
+    }
+
+    private val entry = "Lcom/example/Recorder;->start(IZIIJJ)V"
+
+    /** A touch handler that takes the event in p0, with ten locals. */
+    private fun touch(body: String) = MutableMethod(
+        ImmutableMethod(
+            "Lcom/example/Button;", "onTouchEvent", listOf(ImmutableMethodParameter("Landroid/view/MotionEvent;", null, null)), "Z",
+            AccessFlags.PUBLIC.value or AccessFlags.STATIC.value, null, null,
+            ImmutableMethodImplementation(11, emptyList(), null, null),
+        ),
+    ).apply { addInstructionsWithLabels(0, body.trimIndent()) }
+
+    /** The recorder's other arguments, a recorder and the call, after the state in v1. */
+    private val rest = """
+        const/4 v2, 0x1
+        const/4 v3, 0x0
+        const/4 v4, 0x0
+        const-wide/16 v5, 0x0
+        const/4 v0, 0x0
+        const-wide/16 v7, 0x0
+    """.trimIndent()
+
+    @Test fun `the record button sends a round video only where state 1 alone reaches the call`() {
+        assertEquals("state 1, then the call", listOf(7), videoTapSites(touch("""
+            const/4 v1, 0x1
+            $rest
+            invoke-interface/range {v0 .. v8}, $entry
+            const/4 v9, 0x1
+            return v9
+        """), entry))
+        for ((what, state) in listOf("a start" to 0, "a cancel" to 2)) {
+            assertEquals(what, emptyList<Int>(), videoTapSites(touch("""
+                const/4 v1, $state
+                $rest
+                invoke-interface/range {v0 .. v8}, $entry
+                const/4 v9, 0x1
+                return v9
+            """), entry))
+        }
+        assertEquals("another recorder's call", emptyList<Int>(), videoTapSites(touch("""
+            const/4 v1, 0x1
+            $rest
+            invoke-interface/range {v0 .. v8}, Lcom/example/Other;->start(IZIIJJ)V
+            const/4 v9, 0x1
+            return v9
+        """), entry))
+        assertEquals("a jump onto the call would skip the question", emptyList<Int>(), videoTapSites(touch("""
+            const/4 v1, 0x1
+            $rest
+            :again
+            invoke-interface/range {v0 .. v8}, $entry
+            const/4 v9, 0x0
+            if-eqz v9, :again
+            return v9
+        """), entry))
+        assertEquals("a path around the state", emptyList<Int>(), videoTapSites(touch("""
+            const/4 v9, 0x0
+            move v1, v9
+            if-eqz v9, :around
+            const/4 v1, 0x1
+            :around
+            $rest
+            invoke-interface/range {v0 .. v8}, $entry
+            return v9
+        """), entry))
+        assertEquals("the state isn't a literal", emptyList<Int>(), videoTapSites(touch("""
+            const/4 v9, 0x1
+            move v1, v9
+            $rest
+            invoke-interface/range {v0 .. v8}, $entry
+            return v9
+        """), entry))
     }
 }

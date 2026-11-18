@@ -12,3 +12,6 @@ META-INF/
 
 .idea/
 .vscode/
+
+# Local agent instructions - never commit or publish
+AGENTS.md

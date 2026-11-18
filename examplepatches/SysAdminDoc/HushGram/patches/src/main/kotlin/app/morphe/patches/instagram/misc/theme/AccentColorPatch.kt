@@ -131,6 +131,8 @@ val accentColorPatch = bytecodePatch(
         fillSecondaryButtons()
         tintHeaderIcons()
         tintTabIcons()
+        tintLithoIcons()
+        tintRepostAnimation()
         tintChipDot()
         dropLikedHeartOutline()
         colorAccentRings(rings)

@@ -31,14 +31,14 @@ class VerifyAdsDex {
             }
         }
         for (var hook : hooks.entrySet()) System.out.println("HOOK " + hook + " " + sites.get(hook.getKey()));
-        exactly(hooks, "AdBlock;->initialize", 1);
         exactly(hooks, "AdBlock;->allowClientAds", 1);
         exactly(hooks, "AdBlock;->service", 1);
         exactly(hooks, "AdBlock;->enabled", 1);
         exactly(hooks, "AdBlock;->answerReactRequest", 1);
         exactly(hooks, "AdBlock;->dropReactCue", 1);
         require(hooks.getOrDefault("AdBlock;->allowPictureByPicture", 0) >= 1, "picture-by-picture check");
-        exactly(hooks, "AdBlock;->onPlayerAdEvent", 2);
+        require(hooks.getOrDefault("AdBlock;->onPlayerEvent", 0) >= 1, "player ad event dispatchers");
+        exactly(hooks, "AdBlock;->pubSubType", 3);
         exactly(hooks, "AdFreeHttpClient;->wrap", 1);
 
         ClassDef adBlock = classes.get(ads + "AdBlock;");
@@ -47,9 +47,15 @@ class VerifyAdsDex {
             if (!m.getName().equals("single")) continue;
             for (Instruction i : m.getImplementation().getInstructions())
                 if (i instanceof ReferenceInstruction r && r.getReference() instanceof MethodReference t
-                        && t.getDefiningClass().equals("Lio/reactivex/u;")) bridged = true;
+                        && t.getParameterTypes().size() == 1 && !t.getDefiningClass().startsWith(ads)) bridged = true;
         }
         require(bridged, "Single.just bridge installed");
+        int eventKinds = 0;
+        for (Method m : adBlock.getMethods()) {
+            if (!m.getName().equals("kind")) continue;
+            for (Instruction i : m.getImplementation().getInstructions()) if (i.getOpcode() == Opcode.INSTANCE_OF) eventKinds++;
+        }
+        require(eventKinds >= 4, "event kind bridge generated");
         for (String type : List.of("ReadCallback", "StreamConsumer")) {
             ClassDef c = classes.get("Lcom/amazonaws/ivs/net/" + type + ";");
             require(c != null && AccessFlags.PUBLIC.isSet(c.getAccessFlags()), type + " is public");
@@ -76,9 +82,8 @@ class VerifyAdsDex {
             for (Method m : route.getMethods()) {
                 if (!m.getName().equals("rnTheatreRouteDecision")) continue;
                 Instruction first = m.getImplementation().getInstructions().iterator().next();
-                // RefuseUltralightOff up to 31.8.0, RefuseUltralightUnsupported from 31.9.0.
                 forced = first instanceof ReferenceInstruction r && r.getReference() instanceof FieldReference f
-                        && f.getName().startsWith("RefuseUltralight");
+                        && f.getName().startsWith("Refuse");
             }
             require(forced, "streams open in the native player screen");
         }

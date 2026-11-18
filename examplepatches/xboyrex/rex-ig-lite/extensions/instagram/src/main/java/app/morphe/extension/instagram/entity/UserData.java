@@ -15,11 +15,30 @@ public class UserData extends Entity {
 
     public UserData(Object obj) {
         super(obj);
-        this.obj = obj;
+        this.obj = super.getObject();
     }
 
     private Object getAdditionalUserInfo() throws Exception {
-        return super.getField(this.obj, "fieldName");
+        if (this.obj == null) return null;
+        if (this.obj.getClass().getName().contains("LiveTreeUserDict")) {
+            return this.obj;
+        }
+        try {
+            Object v = super.getField(this.obj, "fieldName");
+            if (v != null) return v;
+        } catch (Throwable ignored) {}
+        for (Class<?> c = this.obj.getClass(); c != null && c != Object.class; c = c.getSuperclass()) {
+            for (java.lang.reflect.Field f : c.getDeclaredFields()) {
+                if (f.getType().getName().contains("LiveTreeUserDict")) {
+                    try {
+                        f.setAccessible(true);
+                        Object v = f.get(this.obj);
+                        if (v != null) return v;
+                    } catch (Throwable ignored) {}
+                }
+            }
+        }
+        return this.obj;
     }
 
     public Boolean isPrivate() throws Exception {

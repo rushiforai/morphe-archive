@@ -4,7 +4,7 @@ patches {
     // TODO: Update this section with your project details.
     about {
         name = "GTA SA DE Mods (RAZORRZR0)"
-        description = "AML mod loader and PC mod ports for GTA: San Andreas - Definitive Edition"
+        description = "AML mod loader and PC mod ports for GTA: San Andreas - Definitive Edition; cheat menu and texture/radio pack loader for GTA: Chinatown Wars"
         source = "git@github.com:RAZORRZR0/gtasa-de-morphe-patches.git"
         author = "RAZORRZR0"
         contact = "na"

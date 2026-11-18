@@ -26,7 +26,7 @@ public final class ChatHiding {
     static final String KEY = Settings.HIDDEN_CHATS;
     /** "HU" and a 1. Messenger's own rows use small ids, so this one can't be mistaken for any of them. */
     static final int ROW_ID = 0x48550001;
-    private static final String SAVED = "hidden_chat_keys_";
+    static final String SAVED = "hidden_chat_keys_";
     private static final String ROW_NAME = "hush_hide_chat";
     private static final long RELOAD_MILLIS = 2000;
 
@@ -48,6 +48,16 @@ public final class ChatHiding {
         savedUnder = null;
         noAccountUntil = 0;
         suppliers.clear();
+    }
+
+    /**
+     * A restored backup wrote the hidden chats straight to the preferences. The account's list is read again next time,
+     * so the next hide or unhide doesn't write the old list back over them.
+     */
+    static synchronized void forget() {
+        hidden = null;
+        savedUnder = null;
+        noAccountUntil = 0;
     }
 
     /** The patched items read hands over its supplier and the chats its filters kept, and walks what comes back. */

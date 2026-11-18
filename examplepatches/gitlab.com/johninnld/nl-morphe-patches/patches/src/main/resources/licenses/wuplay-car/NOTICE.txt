@@ -1,0 +1,8 @@
+WuPlay Gearslip car interface
+
+Includes AndroidX Car App 1.8.0-rc01 and selected AndroidX Core 1.15.0 Person classes.
+Copyright The Android Open Source Project.
+These upstream components are licensed under the Apache License, Version 2.0.
+Their license is included in Apache-2.0.txt.
+
+The integration code is distributed under this repository's GPL-3.0 license.

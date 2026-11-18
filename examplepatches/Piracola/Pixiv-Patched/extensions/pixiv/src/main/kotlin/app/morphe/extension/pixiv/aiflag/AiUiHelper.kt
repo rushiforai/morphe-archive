@@ -5,7 +5,6 @@ import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.GradientDrawable
-import android.os.Build
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
@@ -153,10 +152,7 @@ object AiUiHelper {
                 setStroke(dpToPx(context, 1.2f).toInt(), 0x99FB7185.toInt())
             }
             background = bg
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                elevation = dpToPx(context, 6f)
-            }
+            elevation = dpToPx(context, 6f)
         }
 
         val iconBadge = TextView(context).apply {
@@ -190,9 +186,7 @@ object AiUiHelper {
             setTextColor(0xFFFFF1F2.toInt())
             gravity = Gravity.CENTER_VERTICAL
             includeFontPadding = false
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                letterSpacing = 0.03f
-            }
+            letterSpacing = 0.03f
             setShadowLayer(dpToPx(context, 2f), 0f, dpToPx(context, 1f), 0x99000000.toInt())
         }
         banner.addView(textView)
@@ -314,24 +308,6 @@ object AiUiHelper {
                     }
                 }
             }
-        } catch (_: Throwable) {
-        }
-    }
-
-    @JvmStatic
-    fun onDetailViewBound(detailContainer: ViewGroup?, illust: Any?) {
-        try {
-            if (detailContainer == null || illust == null) return
-            onDetailImageBound(detailContainer, illust)
-        } catch (_: Throwable) {
-        }
-    }
-
-    @JvmStatic
-    fun onDetailMetadataBound(titleView: TextView?, authorView: TextView?, illust: Any?) {
-        try {
-            if (titleView == null || illust == null) return
-            onDetailBottomBarBound(titleView, illust)
         } catch (_: Throwable) {
         }
     }

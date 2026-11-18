@@ -644,6 +644,12 @@ final class AppPages {
             privacy.addPreference(toggle(context, Settings.BLOCK_SCREENSHOT_DETECTION,
                     L10n.t("Facebook can't tell when you take a screenshot or record your screen, so it can't react.")));
         }
+        if (build.contains(PatchFamily.LOCATION_PROMPTS)) {
+            // Asked each time Facebook checks whether its location page may show, so a change counts from the next check.
+            privacy.addPreference(toggle(context, Settings.SKIP_LOCATION_PROMPTS,
+                    L10n.t("Facebook's page asking you to allow Location Services, the one with Skip and Continue, "
+                            + "doesn't show. Location you turn on yourself still works.")));
+        }
         if (build.contains(PatchFamily.SCREENSHOTS)) {
             privacy.addPreference(toggle(context, Settings.ALLOW_SCREENSHOTS,
                     L10n.t("Lets you take screenshots and screen recordings on pages where Facebook blocks them. Reopen a page "

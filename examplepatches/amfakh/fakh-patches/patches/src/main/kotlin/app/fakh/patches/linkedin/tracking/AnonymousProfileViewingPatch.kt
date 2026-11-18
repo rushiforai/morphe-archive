@@ -24,8 +24,7 @@ private object ProfileEventQueueFingerprint : Fingerprint(
 @Suppress("unused")
 val anonymousProfileViewingPatch = patch(
     name = "Anonymous profile viewing",
-    description = "Adds an option (off by default) to visit profiles without being listed in " +
-        "\"Who viewed your profile\": the app does not report the visit.",
+    description = "Lets you view profiles without showing up in \"Who viewed your profile\". Adds a switch in Fakh Patches.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)

@@ -21,9 +21,16 @@ import app.morphe.extension.crimera.ui.DialogView;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import app.morphe.extension.crimera.downloader.DownloadEngine;
 import app.morphe.extension.crimera.downloader.EnqueueResult;
@@ -166,7 +173,7 @@ public final class InlineDownloadButton {
         final String username;
         try {
             String postText = post.toString();
-            downloads = downloadItems(mediaFor(post));
+            downloads = downloadsForPost(post);
             postContext = DownloadFileName.PostContext.fromText(postText);
             username = NewXUtils.sourceUsername(postText);
         } catch (RuntimeException exception) {
@@ -252,11 +259,15 @@ public final class InlineDownloadButton {
         try {
             Object canonicalPost = canonicalPost(post);
             if (hasCompositionDownloadableMedia(mediaForCanonical(canonicalPost))) return true;
+            if (!cardDownloadsForCanonical(canonicalPost).isEmpty()) return true;
 
             Object repostedPost = getRepostedPost(post);
             if (repostedPost == null) return false;
             Object repostedCanonicalPost = getRepostedCanonicalPost(repostedPost);
-            return hasCompositionDownloadableMedia(mediaForCanonical(repostedCanonicalPost));
+            if (hasCompositionDownloadableMedia(mediaForCanonical(repostedCanonicalPost))) {
+                return true;
+            }
+            return !cardDownloadsForCanonical(repostedCanonicalPost).isEmpty();
         } catch (RuntimeException exception) {
             NewXLogger.printException(() -> "Failed to check NewX post media", exception);
             return false;
@@ -323,6 +334,27 @@ public final class InlineDownloadButton {
 
     private static Object getPostMedia(Object canonicalPost) {
         throw unpatchedBridge("getPostMedia");
+    }
+
+    private static Object getPostCard(Object canonicalPost) {
+        throw unpatchedBridge("getPostCard");
+    }
+
+    private static Object getCardBindings(Object card) {
+        throw unpatchedBridge("getCardBindings");
+    }
+
+    private static Object getBindingKey(Object binding) {
+        throw unpatchedBridge("getBindingKey");
+    }
+
+    private static Object getBindingValue(Object binding) {
+        throw unpatchedBridge("getBindingValue");
+    }
+
+    /** Raw unified-card JSON for a binding value, or null when the value is not a unified card. */
+    private static Object getUnifiedCardRawJson(Object bindingValue) {
+        throw unpatchedBridge("getUnifiedCardRawJson");
     }
 
     private static Object getRepostedPost(Object post) {
@@ -415,6 +447,158 @@ public final class InlineDownloadButton {
         if (hasDownloadableMedia(canonicalMedia)) return canonicalMedia;
         if (hasDownloadableMedia(repostedMedia)) return repostedMedia;
         return java.util.Collections.emptyList();
+    }
+
+    /** Attached media first (a repost's media included), then media a unified card references. */
+    private static List<DownloadItem> downloadsForPost(Object post) {
+        List<DownloadItem> downloads = downloadItems(mediaFor(post));
+        if (!downloads.isEmpty()) return downloads;
+
+        List<DownloadItem> cardDownloads = cardDownloadsForCanonical(canonicalPost(post));
+        if (!cardDownloads.isEmpty()) return cardDownloads;
+
+        Object repostedPost = getRepostedPost(post);
+        if (repostedPost == null) return java.util.Collections.emptyList();
+        return cardDownloadsForCanonical(getRepostedCanonicalPost(repostedPost));
+    }
+
+    private static final String UNIFIED_CARD_BINDING_KEY = "unified_card";
+    private static final int CARD_DOWNLOAD_CACHE_LIMIT = 24;
+    // Parsed card downloads by raw card JSON. Timeline rows rebuild their action bars for the
+    // same posts while scrolling, so this keeps the JSON parse off the scroll path.
+    private static final Map<String, List<DownloadItem>> CARD_DOWNLOAD_CACHE =
+            Collections.synchronizedMap(new LinkedHashMap<String, List<DownloadItem>>(
+                    16, 0.75f, true) {
+                @Override
+                protected boolean removeEldestEntry(
+                        Map.Entry<String, List<DownloadItem>> eldest) {
+                    return size() > CARD_DOWNLOAD_CACHE_LIMIT;
+                }
+            });
+
+    /** Downloads referenced by the canonical post's unified card; empty when it has none. */
+    private static List<DownloadItem> cardDownloadsForCanonical(Object canonicalPost) {
+        if (canonicalPost == null) return java.util.Collections.emptyList();
+        String rawJson = unifiedCardJson(canonicalPost);
+        if (rawJson == null) return java.util.Collections.emptyList();
+        List<DownloadItem> cached = CARD_DOWNLOAD_CACHE.get(rawJson);
+        if (cached != null) return cached;
+        List<DownloadItem> downloads = cardDownloadItems(rawJson);
+        CARD_DOWNLOAD_CACHE.put(rawJson, downloads);
+        return downloads;
+    }
+
+    private static String unifiedCardJson(Object canonicalPost) {
+        try {
+            Object card = getPostCard(canonicalPost);
+            if (card == null) return null;
+            Object bindings = getCardBindings(card);
+            if (!(bindings instanceof List<?> list)) return null;
+            for (Object binding : list) {
+                if (binding == null) continue;
+                if (!UNIFIED_CARD_BINDING_KEY.equals(getBindingKey(binding))) continue;
+                Object rawJson = getUnifiedCardRawJson(getBindingValue(binding));
+                if (rawJson instanceof String json && !json.isEmpty()) return json;
+            }
+        } catch (RuntimeException exception) {
+            NewXLogger.printException(() -> "Failed to read NewX post card", exception);
+        }
+        return null;
+    }
+
+    /**
+     * Builds downloads from a unified card's raw JSON. A card's media entities mirror the post
+     * media shape (video_info variants plus a preview image), so the items reuse the same
+     * variant ordering and labels as attached media. Only videos and GIFs are offered; a card's
+     * still images stay unsupported, as they are not part of the post's media either.
+     */
+    static List<DownloadItem> cardDownloadItems(String rawJson) {
+        if (rawJson == null) return java.util.Collections.emptyList();
+        final JSONObject mediaEntities;
+        try {
+            mediaEntities = new JSONObject(rawJson).optJSONObject("media_entities");
+        } catch (JSONException exception) {
+            return java.util.Collections.emptyList();
+        }
+        if (mediaEntities == null) return java.util.Collections.emptyList();
+
+        List<DownloadItem> downloads = new ArrayList<>();
+        Iterator<String> keys = mediaEntities.keys();
+        while (keys.hasNext()) {
+            JSONObject entity = mediaEntities.optJSONObject(keys.next());
+            if (entity == null) continue;
+            try {
+                DownloadItem item = cardDownloadItem(entity);
+                if (item != null) downloads.add(item);
+            } catch (RuntimeException exception) {
+                NewXLogger.printException(() -> "Failed to read NewX card media", exception);
+            }
+        }
+        return downloads;
+    }
+
+    private static DownloadItem cardDownloadItem(JSONObject entity) {
+        String type = entity.optString("type");
+        boolean gif = "animated_gif".equals(type);
+        if (!gif && !"video".equals(type)) return null;
+
+        JSONObject videoInfo = entity.optJSONObject("video_info");
+        if (videoInfo == null) return null;
+        JSONArray variants = videoInfo.optJSONArray("variants");
+        if (variants == null) return null;
+
+        List<Variant> mp4Variants = new ArrayList<>();
+        for (int index = 0; index < variants.length(); index++) {
+            JSONObject variant = variants.optJSONObject(index);
+            if (variant == null) continue;
+            String url = variant.optString("url");
+            String contentType = variant.optString("content_type");
+            if (isHttpMp4Variant(url, contentType)) {
+                mp4Variants.add(new Variant(
+                        url,
+                        variant.optInt("bitrate", 0),
+                        resolutionFromUrl(url)
+                ));
+            }
+        }
+        if (mp4Variants.isEmpty()) return null;
+        mp4Variants.sort((left, right) -> Integer.compare(right.bitRate, left.bitRate));
+
+        String thumbnailCacheUrl = entity.optString("media_url_https");
+        if (thumbnailCacheUrl.isEmpty()) thumbnailCacheUrl = null;
+        String thumbnailUrl = thumbnailUrlForImage(thumbnailCacheUrl);
+
+        String label = gif ? "GIF" : "Video";
+        List<DownloadItem> options = new ArrayList<>(mp4Variants.size());
+        for (Variant variant : mp4Variants) {
+            String optionLabel = variant.resolution != null ? variant.resolution : label;
+            options.add(new DownloadItem(
+                    variant.url,
+                    "mp4",
+                    "video/mp4",
+                    optionLabel,
+                    thumbnailUrl,
+                    thumbnailCacheUrl,
+                    variant.resolution,
+                    formatBitRate(variant.bitRate),
+                    null,
+                    java.util.Collections.emptyList()
+            ));
+        }
+        // Variants are sorted by descending bitrate, so the first entry is the current default.
+        DownloadItem best = options.get(0);
+        return new DownloadItem(
+                best.url,
+                "mp4",
+                "video/mp4",
+                label,
+                thumbnailUrl,
+                thumbnailCacheUrl,
+                best.resolution,
+                null,
+                null,
+                options
+        );
     }
 
     private static boolean hasDownloadableMedia(List<?> media) {

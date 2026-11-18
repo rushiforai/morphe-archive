@@ -3,7 +3,7 @@
  * https://github.com/MorpheApp/morphe-patches/pull/3942
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
- * Modified by lavinhoque33, 2026-11-05: the setting stays in the Player settings, off by default.
+ * Modified by lavinhoque33, 2026-11-17: keep the fork setting and update every engagement-panel header bind.
  */
 
 package app.morphe.patches.youtube.interaction.searchcomments
@@ -30,9 +30,7 @@ import app.morphe.util.Utils.printWarn
 import app.morphe.util.ResourceGroup
 import app.morphe.util.copyResources
 import app.morphe.util.indexOfFirstInstructionOrThrow
-import app.morphe.util.indexOfFirstInstructionReversedOrThrow
-import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private const val EXTENSION_FILTER =
@@ -84,24 +82,19 @@ val searchCommentsPatch = bytecodePatch(
 
         addLithoFilter(EXTENSION_FILTER)
 
-        // The search button is added next to the close button of the comments panel.
+        // Every panel binds its close button, even when it has no subheader (such as Description).
         PanelSubheaderFingerprint.let {
             it.method.apply {
-                val removeAllViewsIndex = indexOfFirstInstructionReversedOrThrow {
-                    opcode == Opcode.INVOKE_VIRTUAL &&
-                            getReference<MethodReference>()?.name == "removeAllViews"
+                val closeButtonLookupIndex = indexOfFirstInstructionOrThrow(it.instructionMatches[1].index) {
+                    getReference<MethodReference>()?.name == "findViewById"
                 }
-
-                val setVisibilityIndex = indexOfFirstInstructionOrThrow(removeAllViewsIndex) {
-                    opcode == Opcode.INVOKE_VIRTUAL &&
-                            getReference<MethodReference>()?.name == "setVisibility"
-                }
-
-                val subheaderRegister = getInstruction<FiveRegisterInstruction>(setVisibilityIndex).registerC
+                val closeButtonIndex = closeButtonLookupIndex + 1
+                val closeButtonRegister = getInstruction<OneRegisterInstruction>(closeButtonIndex).registerA
 
                 addInstruction(
-                    setVisibilityIndex + 1,
-                    "invoke-static { v$subheaderRegister }, $EXTENSION_FILTER->onPanelSubheaderShown(Landroid/view/View;)V"
+                    closeButtonIndex + 1,
+                    "invoke-static { v$closeButtonRegister }, " +
+                            "$EXTENSION_FILTER->onPanelHeaderBound(Landroid/view/View;)V"
                 )
             }
         }

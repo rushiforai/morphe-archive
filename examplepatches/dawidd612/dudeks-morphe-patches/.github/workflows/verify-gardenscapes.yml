@@ -1,0 +1,51 @@
+name: Verify Gardenscapes repair
+on:
+  pull_request:
+    paths: ['native/gardenscapes/**', 'patches/**', 'scripts/*gardenscapes*.py', '.github/workflows/verify-gardenscapes.yml']
+permissions:
+  contents: read
+  packages: read
+jobs:
+  build:
+    # The committed ARM64 payload was built with the Ubuntu 24.04 toolchain.
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v5.7.0
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools platforms;android-36 build-tools;36.0.0'
+          log-accepted-android-sdk-licenses: false
+      - name: Install native linker
+        run: sudo apt-get update -qq && sudo apt-get install -y clang lld gcc-aarch64-linux-gnu qemu-user
+      - name: Test production logic and build ARM64 payload
+        run: python3 scripts/build_gardenscapes_payload.py --update
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gardenscapes-native-candidate
+          path: patches/src/main/resources/gardenscapes/repair-arm64.b64
+      - name: Test real ARM64 file operations
+        run: |
+          aarch64-linux-gnu-gcc -static -Wall -Wextra -Werror -DREPAIR_TEST native/gardenscapes/repair.c native/gardenscapes/test_filesystem.c -o /tmp/gardenscapes-filesystem-test
+          qemu-aarch64 /tmp/gardenscapes-filesystem-test
+      - name: Execute compiled ARM64 code
+        run: |
+          python3 -m pip install unicorn==2.1.4
+          python3 scripts/test_gardenscapes_arm64.py
+      - name: Verify committed payload is reproducible
+        run: git diff --exit-code -- patches/src/main/resources/gardenscapes/repair-arm64.b64
+      - name: Compile patch bundle
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew :patches:buildAndroid :patches:generatePatchesList --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gardenscapes-repair-test
+          path: |
+            patches/build/libs/*.mpp
+            patches/src/main/resources/gardenscapes/repair-arm64.b64
+            patches-list.json
+          if-no-files-found: error

@@ -20,4 +20,12 @@ public class ChatMetadataTest {
         assertNull(ChatMetadata.pronounLabel(kinds, "", ""));
         assertNull(ChatMetadata.pronounLabel(kinds, "unknown", ""));
     }
+
+    /** Every result that arrives redraws all chat rows when it counts as a change. */
+    @Test public void theSamePronounsAgainOrAUserWithoutPronounsChangesNoRow() {
+        assertFalse(ChatMetadata.changes(new String[] {"hehim", ""}, new String[] {"hehim", ""}));
+        assertFalse(ChatMetadata.changes(null, null));
+        assertTrue(ChatMetadata.changes(null, new String[] {"hehim", ""}));
+        assertTrue(ChatMetadata.changes(new String[] {"hehim", ""}, new String[] {"theythem", ""}));
+    }
 }

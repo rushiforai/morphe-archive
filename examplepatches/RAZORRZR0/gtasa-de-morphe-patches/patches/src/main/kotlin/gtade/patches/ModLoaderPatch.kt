@@ -37,14 +37,14 @@ val GTASA_DE = Compatibility(
 )
 
 private const val ACTIVITY = "Lcom/epicgames/ue4/GameActivity;"
-private const val BOOT_START = "Lgtade/boot/Boot;->start()V"
+internal const val BOOT_START = "Lgtade/boot/Boot;->start()V"
 
 /** Bytes of a file bundled in this patches file under src/main/resources/gtade/. */
 internal fun bundled(name: String): ByteArray =
     object {}.javaClass.getResourceAsStream("/gtade/$name")?.use { it.readBytes() }
         ?: throw PatchException("$name is missing from the patches file")
 
-private val amlLibraryPatch = rawResourcePatch {
+internal val amlLibraryPatch = rawResourcePatch {
     execute {
         // Re-patching an installed patched game: its assets/gtade/ still holds the previous selection, so a mod unticked
         // now would be installed again by Boot. Its entries are dropped (the patcher's delete: original APK entries under
@@ -76,7 +76,7 @@ internal val modLoaderPatch = bytecodePatch {
     }
 }
 
-private fun isBootStart(ins: BuilderInstruction): Boolean {
+internal fun isBootStart(ins: BuilderInstruction): Boolean {
     val ref = (ins as? ReferenceInstruction)?.reference as? MethodReference ?: return false
     return ins.opcode == Opcode.INVOKE_STATIC && ref.definingClass == "Lgtade/boot/Boot;" && ref.name == "start"
 }
@@ -87,13 +87,13 @@ private fun isBootStart(ins: BuilderInstruction): Boolean {
  * Boot would run (seen on device: v1.1.1's Boot under v1.2.0, which deleted the Rubbish-DE pak). Replace those classes'
  * fields and methods with this patches file's extension.
  */
-private fun BytecodePatchContext.refreshExtensionClasses() {
+internal fun BytecodePatchContext.refreshExtensionClasses() {
     val dex = object {}.javaClass.getResourceAsStream("/extensions/extension.mpe")?.use { it.readBytes() }
         ?: throw PatchException("extensions/extension.mpe is missing from the patches file")
     val classes: Set<ClassDef> =
         DexBackedDexFile.fromInputStream(Opcodes.getDefault(), java.io.BufferedInputStream(dex.inputStream())).classes
     for (ext in classes) {
-        if (!ext.type.startsWith("Lgtade/")) continue
+        if (!ext.type.startsWith("Lgtade/") && !ext.type.startsWith("Lctw/")) continue
         val cls: MutableClass = mutableClassDefByOrNull(ext.type) ?: continue
         cls.directMethods.clear()
         cls.virtualMethods.clear()
@@ -110,7 +110,7 @@ private fun BytecodePatchContext.refreshExtensionClasses() {
 }
 
 /** The literal passed to System.loadLibrary at [i] (the last const-string into its register), or null. */
-private fun loadLibraryArg(insns: List<BuilderInstruction>, i: Int): String? {
+internal fun loadLibraryArg(insns: List<BuilderInstruction>, i: Int): String? {
     val ins = insns[i]
     val reg = when {
         ins.opcode == Opcode.INVOKE_STATIC && ins is Instruction35c -> ins.registerC

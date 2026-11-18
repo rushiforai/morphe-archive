@@ -262,6 +262,49 @@ final class Chats {
     }
 
     /**
+     * passkey_login: the availability question of every credential provider in the build, an instance isAvailableOnDevice()Z
+     * with code behind it on a class that also declares onGetCredential. Taken only while Play services' provider is one
+     * of them, those providers share one interface and no other class in the build implements it. Mirrors PasskeyLogin.kt.
+     */
+    static List<Method> passkeyLogin(List<ClassDef> classes) {
+        var providers = new ArrayList<ClassDef>();
+        for (var cls : classes) {
+            boolean gets = false;
+            boolean asks = false;
+            for (var method : cls.getMethods()) {
+                if ("onGetCredential".equals(method.getName())) gets = true;
+                if (passkeyAvailability(method)) asks = true;
+            }
+            if (gets && asks) providers.add(cls);
+        }
+        boolean playServices = false;
+        for (var cls : providers) {
+            if ("Landroidx/credentials/playservices/CredentialProviderPlayServicesImpl;".equals(cls.getType())) playServices = true;
+        }
+        if (!playServices) return List.of();
+        Set<String> shared = null;
+        var covered = new HashSet<String>();
+        for (var cls : providers) {
+            var interfaces = new HashSet<String>(cls.getInterfaces());
+            if (shared == null) shared = interfaces;
+            else shared.retainAll(interfaces);
+            covered.add(cls.getType());
+        }
+        if (shared == null || shared.size() != 1) return List.of();
+        var only = shared.iterator().next();
+        for (var cls : classes) if (cls.getInterfaces().contains(only) && !covered.contains(cls.getType())) return List.of();
+        var checks = new ArrayList<Method>();
+        for (var cls : providers) for (var method : cls.getMethods()) if (passkeyAvailability(method)) checks.add(method);
+        return checks;
+    }
+
+    static boolean passkeyAvailability(Method method) {
+        return "isAvailableOnDevice".equals(method.getName()) && "Z".equals(method.getReturnType()) &&
+            method.getParameterTypes().isEmpty() && !AccessFlags.STATIC.isSet(method.getAccessFlags()) &&
+            method.getImplementation() != null;
+    }
+
+    /**
      * nearby_scans: the foreground location controller's one static (Context, FbUserSession, controller, J)V that names
      * the task it queues, and the app's one reader of WifiManager.getScanResults. Both are taken only while the app's
      * single WifiManager.startScan sits in the class that scheduler instantiates, its single BluetoothLeScanner.startScan
@@ -520,6 +563,66 @@ final class Chats {
             if (seen.add(hookId(reader))) found.add(reader);
         }
         return encrypted > 0 ? found : List.of();
+    }
+
+    static final long INBOX_TYPING_FLAG = 0x010100eb0000136fL;
+    static final String INBOX_TYPING_CONFIG = "Lcom/facebook/mobileconfig/factory/MobileConfigUnsafeContext;";
+
+    /** Where one method loads the inbox-typing flag. */
+    static List<Integer> inboxTypingLoads(List<Instruction> code) {
+        var loads = new ArrayList<Integer>();
+        for (int at = 0; at < code.size(); at++)
+            if (code.get(at).getOpcode() == Opcode.CONST_WIDE && ((WideLiteralInstruction) code.get(at)).getWideLiteral() == INBOX_TYPING_FLAG) loads.add(at);
+        return loads;
+    }
+
+    /**
+     * How many of one method's flag loads the switch can answer: the pair loaded, nothing but a move or a cast before
+     * the config interface's (long) check taking it last, the answer straight into a register, and an if-eqz or if-nez
+     * on it right after, with nothing landing on that branch. Mirrors InboxTyping.kt.
+     */
+    static int inboxTypingSites(Method method) {
+        var code = instructions(method);
+        var targets = mediaTargets(method);
+        int sites = 0;
+        for (int at : inboxTypingLoads(code)) {
+            int pair = register(code.get(at));
+            int read = -1;
+            for (int i = at + 1; i <= at + 3 && i < code.size(); i++) if (code.get(i).getOpcode() == Opcode.INVOKE_INTERFACE) { read = i; break; }
+            if (read < 0) continue;
+            boolean steps = true;
+            for (int between = at + 1; between < read; between++) {
+                var step = code.get(between);
+                if (step.getOpcode() != Opcode.MOVE_OBJECT && step.getOpcode() != Opcode.MOVE_OBJECT_FROM16 && step.getOpcode() != Opcode.CHECK_CAST) steps = false;
+                else if (register(step) == pair || register(step) == pair + 1) steps = false;
+            }
+            if (!steps || read + 2 >= code.size() || !(code.get(read) instanceof FiveRegisterInstruction call) ||
+                !(((ReferenceInstruction) call).getReference() instanceof MethodReference check)) continue;
+            var args = List.of(call.getRegisterC(), call.getRegisterD(), call.getRegisterE(), call.getRegisterF(), call.getRegisterG()).subList(0, call.getRegisterCount());
+            var params = check.getParameterTypes();
+            if (!INBOX_TYPING_CONFIG.equals(check.getDefiningClass()) || !"Z".equals(check.getReturnType()) || params.size() != 1 ||
+                !"J".equals(params.get(0).toString()) || args.size() != 3 || args.get(1) != pair || args.get(2) != pair + 1) continue;
+            if (code.get(read + 1).getOpcode() != Opcode.MOVE_RESULT) continue;
+            int answer = register(code.get(read + 1));
+            var branch = code.get(read + 2).getOpcode();
+            if (branch != Opcode.IF_EQZ && branch != Opcode.IF_NEZ || register(code.get(read + 2)) != answer) continue;
+            if (targets.contains(read + 2)) continue;
+            sites++;
+        }
+        return sites;
+    }
+
+    /**
+     * inbox_typing: every method that loads the flag, taken only while the switch can answer every load each of them
+     * makes. One load left alone would turn on part of the feature without the rest. Mirrors InboxTyping.kt.
+     */
+    static List<Method> inboxTyping(List<ClassDef> classes) {
+        var readers = new ArrayList<Method>();
+        for (var cls : classes) for (var method : cls.getMethods())
+            if (!inboxTypingLoads(instructions(method)).isEmpty()) readers.add(method);
+        if (readers.isEmpty()) return List.of();
+        for (var reader : readers) if (inboxTypingSites(reader) != inboxTypingLoads(instructions(reader)).size()) return List.of();
+        return readers;
     }
 
     static final String PREVIEW_TAP_TAG = "InboxThreadPreviewDialogFragment.preview_tap";

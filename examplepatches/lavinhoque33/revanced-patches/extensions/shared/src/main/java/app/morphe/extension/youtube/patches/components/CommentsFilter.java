@@ -5,11 +5,9 @@
  * Original hard forked code:
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
  *
- * Modified by lavinhoque33, 2026-10-24.
+ * Modified by lavinhoque33, 2026-11-17.
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
- *
- * Modified by lavinhoque33, 2026-10-24
  */
 
 package app.morphe.extension.youtube.patches.components;
@@ -361,6 +359,7 @@ public final class CommentsFilter extends Filter {
 
     /**
      * Injection point.
+     * Matches titles exactly or by substring. Substring remains the default for existing lists.
      */
     public static byte[] onCommentsLoaded(byte[] bytes) {
         if (!Settings.HIDE_COMMENTS_CAROUSEL.get()) {
@@ -373,6 +372,7 @@ public final class CommentsFilter extends Filter {
         }
 
         String[] commentsCarouselFilterStrings = rawFilterText.split("\\n");
+        boolean matchContains = Settings.HIDE_COMMENTS_CAROUSEL_FILTER_TYPE.get();
 
         try {
             var newElement = NewElement.parseFrom(bytes).toBuilder();
@@ -394,7 +394,7 @@ public final class CommentsFilter extends Filter {
                 Logger.printDebug(() -> "comments title: " + title);
 
                 for (String filter : commentsCarouselFilterStrings) {
-                    if (!filter.isEmpty() && title.contains(filter)) {
+                    if (!filter.isEmpty() && (matchContains ? title.contains(filter) : title.equals(filter))) {
                         data.removeCarouselItemDatas(i);
                         data.removeCarouselTitleDatas(i);
                         modified = true;

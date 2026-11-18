@@ -1,0 +1,95 @@
+# Builds the patch bundle on pull requests and on pushes to main.
+
+name: Build
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "docs/**"
+      - "**/*.md"
+      - ".github/ISSUE_TEMPLATE/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out
+        uses: actions/checkout@v7
+
+      - name: Reject committed credentials
+        run: |
+          if git grep -nE 'ghp_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{20,}' -- . \
+              ':!docs' ':!*.md' ; then
+            echo "A credential appears to be committed. Remove it and rotate it." >&2
+            exit 1
+          fi
+
+      - name: Require the framework registry token
+        env:
+          REGISTRY_TOKEN: ${{ secrets.MORPHE_REGISTRY_TOKEN }}
+        run: |
+          if [ -z "$REGISTRY_TOKEN" ]; then
+            echo "::error::MORPHE_REGISTRY_TOKEN is empty. Add a classic personal access token with the read:packages scope as both a repository secret and a Dependabot secret; see docs/development/setup.md."
+            exit 1
+          fi
+
+      - name: Set up JDK
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Build
+        # `buildAndroid` produces the bundle Morphe Manager consumes and signs it
+        # when a key is present. The task captures the Project, so the
+        # configuration cache must stay off.
+        run: ./gradlew buildAndroid --no-daemon --no-configuration-cache --stacktrace
+        env:
+          # Read-only access to the framework plugin registry.
+          # Requires the MORPHE_REGISTRY_TOKEN repository secret.
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.MORPHE_REGISTRY_TOKEN }}
+
+      - name: Check the index file is current
+        # `buildAndroid` regenerates patches-list.json from the catalogue. A diff
+        # here means the committed copy is stale and indexes would advertise the
+        # wrong patches.
+        run: git diff --exit-code patches-list.json
+
+      - name: Check the metadata files carry no byte order mark
+        # The manager reads patches-bundle.json as JSON. A byte order mark in
+        # front of it makes the read fail, which leaves the source without a name
+        # and unable to update, so it is refused here instead.
+        run: |
+          for file in patches-bundle.json patches-list.json; do
+            if [ "$(head -c 3 "$file" | od -An -tx1 | tr -d ' \n')" = "efbbbf" ]; then
+              echo "::error::$file starts with a byte order mark, which the manager cannot read."
+              exit 1
+            fi
+          done
+
+      - name: Upload bundle
+        if: success()
+        uses: actions/upload-artifact@v7
+        with:
+          name: patches-bundle
+          path: |
+            patches/build/libs/*.mpp
+            !patches/build/libs/*-sources.mpp
+            !patches/build/libs/*-javadoc.mpp
+          if-no-files-found: error
+          retention-days: 7

@@ -1,0 +1,28 @@
+{
+  "dependencies_and_test_input_sha256": {
+    "tooling/morphe.jar": "679f579b3ad743ac0ca697ef71e57430d00be59411b04494afd1845c43fb79f0",
+    "tooling/r8.jar": "d31fd0dc751d48740009cdd9a485126acb1d0d14c59b9f05579479940f4adf74",
+    "tooling/android.jar": "60be6880d7b2b526d654460d4ce6fa81bf23efaa28b02d901d0b63a01ccf4671",
+    "tooling/jdk.tar.gz": "d7f5d5cf865a2902b70ff549b97586a7d3f234e016f041ab447ea740c7d66d1c",
+    "/tmp/walmart-gradle.zip": "bafd5ce9cfaea0fbccfdc8439a1ac42fbd4cd9c89dc9a988228d8a2639a58e6c",
+    "canada-26.31/base.apk": "87a2b4283e36e1752f3b07cce95a16bbbfdf1df7101b9d710cc65a5c75751fe2",
+    "upload/ca.walmart.ecommerceapp_26.31-26310017_4arch_7dpi_2lang_e3c03e1014664ee79adf9a6078688c00_apkmirror.com.apkm": "d4f9ec218ec9dd7934580fcee49efed67a71862c051d6d33040b1644ebf0a048"
+  },
+  "upstream_commit": "25ea2dd699ec08c30ef2451b96f14ea9dd1698d2",
+  "target": {
+    "package": "ca.walmart.ecommerceapp",
+    "version": "26.31",
+    "version_code": 26310017,
+    "validation_abi": "arm64-v8a",
+    "device_tested": false
+  },
+  "android_test_dependencies": {
+    "robolectric": "4.16.1",
+    "android-all": "15-robolectric-12650502",
+    "junit": "4.13.2"
+  },
+  "dex_regression_dependencies": {
+    "asm": "9.10.1 (included in Gradle 9.8.0)",
+    "dexlib2": "bundled in Morphe Desktop 1.20.0"
+  }
+}

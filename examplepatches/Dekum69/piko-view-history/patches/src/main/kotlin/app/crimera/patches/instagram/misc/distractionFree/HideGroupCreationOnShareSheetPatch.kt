@@ -1,0 +1,69 @@
+/*
+ * Copyright (C) 2026 piko <https://github.com/crimera/piko>
+ *
+ * See the included NOTICE file for GPLv3 §7(b) terms that apply to this code.
+ */
+
+package app.crimera.patches.instagram.misc.distractionFree
+
+import app.crimera.patches.instagram.misc.settings.settingsPatch
+import app.crimera.patches.instagram.utils.Constants.COMPATIBILITY_INSTAGRAM
+import app.crimera.patches.instagram.utils.Constants.PREF_CALL_DESCRIPTOR
+import app.crimera.patches.instagram.utils.Constants.USER_SESSION_CLASS
+import app.crimera.patches.instagram.utils.enableSettings
+import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.InstructionLocation.MatchAfterImmediately
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.fieldAccess
+import app.morphe.patcher.methodCall
+import app.morphe.patcher.opcode
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.util.smali.ExternalLabel
+import app.morphe.patcher.util.findFreeRegister
+import com.android.tools.smali.dexlib2.Opcode
+
+internal object ShareSheetItemsBinderFingerprint : Fingerprint(
+    returnType = "V",
+    parameters = listOf("Ljava/util/List;", "Z", USER_SESSION_CLASS),
+    definingClass = "Lcom/instagram/direct/fragment/sharesheet/view/DirectShareSheetFragmentMessageComposerViewBinder;",
+    filters = listOf(
+        opcode(Opcode.GOTO_16),
+        fieldAccess(
+            type = "Lcom/instagram/direct/fragment/sharesheet/groupsendbutton/shared/GroupSendButton;",
+            opcode = Opcode.IGET_OBJECT,
+            location = MatchAfterImmediately(),
+        ),
+        // Group send button condition.
+        methodCall(opcode = Opcode.INVOKE_STATIC, location = MatchAfterImmediately()),
+    ),
+)
+
+@Suppress("unused")
+val hideGroupCreationOnShareSheetPatch =
+    patch(
+        name = "Hide group creation button on sharesheet",
+        default = true,
+    ) {
+        compatibleWith(COMPATIBILITY_INSTAGRAM)
+        dependsOn(settingsPatch)
+        execute {
+            ShareSheetItemsBinderFingerprint.method.apply {
+                val conditionIndex = ShareSheetItemsBinderFingerprint.instructionMatches.last().index
+                val freeRegister = findFreeRegister(conditionIndex + 1)
+
+                addInstructionsWithLabels(
+                    conditionIndex,
+                    """
+                    ${PREF_CALL_DESCRIPTOR}->hideGroupCreationOnSharesheet()Z
+                     move-result v$freeRegister
+                     if-eqz v$freeRegister, :piko
+                     return-void
+                    """.trimIndent(),
+                    ExternalLabel("piko", getInstruction(conditionIndex)),
+                )
+
+                enableSettings("hideGroupCreationOnSharesheet")
+            }
+        }
+    }

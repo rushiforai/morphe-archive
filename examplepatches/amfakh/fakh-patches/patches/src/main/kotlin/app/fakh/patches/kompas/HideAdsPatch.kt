@@ -66,7 +66,7 @@ private object TeadsBindFingerprint : Fingerprint(
 @Suppress("unused")
 val hideAdsPatch = patch(
     name = "Hide ads",
-    description = "Removes the ad banners with their \"Iklan\" block from the home feed, articles and lists, the native ad in the feed, the Teads video ad in articles and the full-screen ad.",
+    description = "Removes banner, feed, video and full-screen ads.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_KOMPAS)

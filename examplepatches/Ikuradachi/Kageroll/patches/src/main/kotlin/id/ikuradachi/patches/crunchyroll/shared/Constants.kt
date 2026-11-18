@@ -10,8 +10,6 @@ object Constants {
         packageName = "com.crunchyroll.crunchyroid",
         apkFileType = ApkFileType.APKM_REQUIRED,
         targets = listOf(
-            AppTarget(version = "3.127.0", minSdk = 26),
-            AppTarget(version = "3.128.0", minSdk = 26),
             AppTarget(version = "3.129.1", minSdk = 26),
         ),
     )
