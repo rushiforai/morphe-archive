@@ -191,6 +191,7 @@ MiguelNinja19/miguel-morphe-patches
 Mlkem/Morphe
 MohamedElnaggar00/morphe-patches-tiktok-lite-only
 MohuttTT/yahoo-transit-patches
+MojiRS/morphe-rif-patches
 MoonShadowKeeper/Telegram-patchesMorphe
 MorpheApp/morphe-patches
 Mouchoir/sound-connect-patches
@@ -573,6 +574,7 @@ kveld9/brave-patches
 kveld9/kveld-extra-morphe-patches
 kveld9/kveld-morphe-patches
 kyurem39/mpvEx-patches
+lamphung-phuc/nmax-patches
 latanvillegas/lawnchair-morphe-patches
 latanvillegas/modo-patches
 lavinhoque33/revanced-patches
@@ -745,6 +747,7 @@ urroxyz/morphe-patches
 uta-a/cutlog
 uta-a/linimal
 v1rtu0s/morphe-patches
+v4inwald/wispr-flow-patches
 vaas1k/morphe-patches-gemini-ask
 variablenine/morphe-patches
 vippium/brokenn-patches

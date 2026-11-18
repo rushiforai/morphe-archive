@@ -515,14 +515,6 @@
                 "updatedAt": 1784836035894
             },
             {
-                "name": "morphe-patches",
-                "source": "https://raw.githubusercontent.com/hoo-dles/morphe-patches/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 63,
-                "createdAt": 1784836036710,
-                "updatedAt": 1784836036710
-            },
-            {
                 "name": "HK-Morphe-Patches",
                 "source": "https://raw.githubusercontent.com/humzakh/HK-Morphe-Patches/main/patches-bundle.json",
                 "autoUpdate": true,
@@ -3867,14 +3859,6 @@
                 "updatedAt": 1793593478109
             },
             {
-                "name": "consumer-clarity",
-                "source": "https://raw.githubusercontent.com/AltF4G0x/consumer-clarity/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 556,
-                "createdAt": 1793685206492,
-                "updatedAt": 1793685206492
-            },
-            {
                 "name": "YT-Music-Morphe-Pitch-Patch",
                 "source": "https://raw.githubusercontent.com/AnTo88-svg/YT-Music-Morphe-Pitch-Patch/main/patches-bundle.json",
                 "autoUpdate": true,
@@ -5505,6 +5489,38 @@
                 "sortOrder": 772,
                 "createdAt": 1794983002967,
                 "updatedAt": 1794983002967
+            },
+            {
+                "name": "Morphe",
+                "source": "https://raw.githubusercontent.com/Mlkem/Morphe/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 773,
+                "createdAt": 1795039011902,
+                "updatedAt": 1795039011902
+            },
+            {
+                "name": "morphe-rif-patches",
+                "source": "https://raw.githubusercontent.com/MojiRS/morphe-rif-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 774,
+                "createdAt": 1795039012856,
+                "updatedAt": 1795039012856
+            },
+            {
+                "name": "nmax-patches",
+                "source": "https://raw.githubusercontent.com/lamphung-phuc/nmax-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 775,
+                "createdAt": 1795039028586,
+                "updatedAt": 1795039028586
+            },
+            {
+                "name": "wispr-flow-patches",
+                "source": "https://raw.githubusercontent.com/v4inwald/wispr-flow-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 776,
+                "createdAt": 1795039033872,
+                "updatedAt": 1795039033872
             }
         ]
     }
