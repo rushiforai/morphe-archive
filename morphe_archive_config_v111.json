@@ -5481,6 +5481,30 @@
                 "sortOrder": 769,
                 "createdAt": 1794966140578,
                 "updatedAt": 1794966140578
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/ComoEstaisAmigos/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 770,
+                "createdAt": 1794982986151,
+                "updatedAt": 1794982986151
+            },
+            {
+                "name": "morphe-bilibili-danmaku",
+                "source": "https://raw.githubusercontent.com/RizkLee/morphe-bilibili-danmaku/master/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 771,
+                "createdAt": 1794982992491,
+                "updatedAt": 1794982992491
+            },
+            {
+                "name": "brave-patches",
+                "source": "https://raw.githubusercontent.com/kveld9/brave-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 772,
+                "createdAt": 1794983002967,
+                "updatedAt": 1794983002967
             }
         ]
     }
