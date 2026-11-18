@@ -3,6 +3,7 @@ Generates the static GitHub Pages site in docs/.
 """
 
 import json
+import os
 import re
 import urllib.error
 import urllib.parse
@@ -15,6 +16,11 @@ CONFIG_PREFIX = "morphe_archive_config_v"
 CONFIG_PATTERN = re.compile(rf"^{CONFIG_PREFIX}(\d+)\.json$")
 OUTPUT_DIR = Path("docs")
 TIMEOUT_SECONDS = 8
+CATALOG_TIMEOUT_SECONDS = 30
+CATALOG_URL = os.environ.get(
+    "CATALOG_URL",
+    "https://morphe-patches.software/data/bundles.json",
+)
 ICON_CACHE_PATH = Path("scripts/app_icon_cache.json")
 MAX_CHANGELOG_ITEMS = 8
 
@@ -51,13 +57,13 @@ def load_icon_cache():
     }
 
 
-def fetch_json(url):
+def fetch_json(url, timeout=TIMEOUT_SECONDS):
     req = urllib.request.Request(
         url,
         headers={"User-Agent": "morphe-archive-site-generator/1.0"},
     )
     try:
-        with urllib.request.urlopen(req, timeout=TIMEOUT_SECONDS) as resp:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
             if resp.status != 200:
                 return None
             charset = resp.headers.get_content_charset() or "utf-8"
@@ -249,7 +255,7 @@ def summarize_changelog(markdown):
     return {"title": title, "date": date, "items": items}
 
 
-def normalize_compatible_packages(value):
+def normalize_compatible_packages(value, name_is_package=False):
     if isinstance(value, dict):
         for package_name, versions in value.items():
             targets = []
@@ -269,7 +275,221 @@ def normalize_compatible_packages(value):
         if isinstance(app, str):
             yield {"packageName": app, "name": app, "targets": []}
         elif isinstance(app, dict):
-            yield app
+            package_name = app.get("packageName")
+            if not package_name and name_is_package:
+                package_name = app.get("name")
+            yield {
+                **app,
+                "packageName": package_name,
+                "name": app.get("name") or package_name or "",
+            }
+
+
+def normalize_app_entries(apps):
+    normalized_apps = []
+    for app in apps.values():
+        normalized_apps.append(
+            {
+                "packageName": app["packageName"],
+                "name": app["name"],
+                "patches": sorted(app["patches"], key=str.lower),
+                "patchDetails": [
+                    {"name": name, "description": app["patchDetails"].get(name, "")}
+                    for name in sorted(app["patches"], key=str.lower)
+                ],
+                "versions": sorted(app["versions"], key=str.lower),
+                "iconColor": app["iconColor"],
+                "iconUrl": app["iconUrl"],
+            }
+        )
+
+    return sorted(normalized_apps, key=lambda item: item["name"].lower())
+
+
+def catalog_repo_key(bundle):
+    source = str(bundle.get("source") or "").strip().lower()
+    repo = str(bundle.get("repo") or "").strip().strip("/")
+    if not repo:
+        return None
+
+    if repo.startswith(("https://", "http://")):
+        parsed = urllib.parse.urlparse(repo)
+        host = parsed.netloc.lower()
+        repo = parsed.path.strip("/").removesuffix(".git")
+    elif repo.lower().startswith(("github.com/", "gitlab.com/")):
+        host, repo = repo.split("/", 1)
+        host = host.lower()
+    else:
+        host = "gitlab.com" if source == "gitlab" else "github.com"
+
+    if host not in ("github.com", "gitlab.com") or not repo:
+        return None
+    return (host, repo.lower()), (host, repo)
+
+
+def load_catalog():
+    data = fetch_json(CATALOG_URL, timeout=CATALOG_TIMEOUT_SECONDS)
+    if not isinstance(data, dict):
+        print(f"Warning: could not load catalog {CATALOG_URL}; using patches-list only")
+        return {}, [], {}
+
+    compatibilities = data.get("compatibilities") or []
+    if not isinstance(compatibilities, list):
+        compatibilities = []
+    store = data.get("store") or {}
+    if not isinstance(store, dict):
+        store = {}
+    store = {
+        str(package).lower(): info
+        for package, info in store.items()
+        if isinstance(info, dict)
+    }
+
+    repos = {}
+    for bundle in data.get("bundles") or []:
+        key = catalog_repo_key(bundle)
+        if key:
+            repos[key[0]] = bundle
+    return repos, compatibilities, store
+
+
+def collect_catalog_metadata(bundle, compatibilities, store, icon_cache):
+    patches = bundle.get("patches") if isinstance(bundle, dict) else []
+    if not isinstance(patches, list):
+        patches = []
+    apps = {}
+    universal_patches = []
+    patch_count = 0
+
+    for patch in patches:
+        if not isinstance(patch, dict):
+            continue
+        patch_count += 1
+        patch_name = patch.get("name") or "Unnamed patch"
+        patch_description = patch.get("description") or ""
+        compatible_apps = []
+        key = patch.get("compatiblePackagesKey")
+        if isinstance(key, int) and 0 <= key < len(compatibilities):
+            compatible_apps = list(
+                normalize_compatible_packages(compatibilities[key], name_is_package=True)
+            )
+        if not compatible_apps:
+            compatible_apps = list(
+                normalize_compatible_packages(
+                    patch.get("compatiblePackages", []) or [],
+                    name_is_package=True,
+                )
+            )
+        if not compatible_apps:
+            universal_patches.append(
+                {
+                    "name": patch_name,
+                    "description": patch_description,
+                    "default": patch.get("default", patch.get("use", "")),
+                }
+            )
+            continue
+
+        for app in compatible_apps:
+            package_name = app.get("packageName")
+            if not package_name:
+                continue
+            store_info = store.get(package_name.lower(), {})
+            app_name = store_info.get("name") or app.get("name") or package_name
+            versions = []
+            for target in app.get("targets", []) or []:
+                version = target.get("version") if isinstance(target, dict) else target
+                if version:
+                    versions.append(str(version))
+            entry = apps.setdefault(
+                package_name,
+                {
+                    "packageName": package_name,
+                    "name": app_name,
+                    "patches": set(),
+                    "patchDetails": {},
+                    "versions": set(),
+                    "iconColor": app.get("appIconColor") or "",
+                    "iconUrl": (
+                        app.get("iconUrl")
+                        or app.get("appIconUrl")
+                        or store_info.get("iconUrl")
+                        or icon_cache.get(package_name.lower(), "")
+                    ),
+                },
+            )
+            entry["patches"].add(patch_name)
+            entry["patchDetails"][patch_name] = patch_description
+            entry["versions"].update(versions)
+            if not entry["iconColor"] and app.get("appIconColor"):
+                entry["iconColor"] = app.get("appIconColor")
+            if not entry["iconUrl"] and (app.get("iconUrl") or app.get("appIconUrl")):
+                entry["iconUrl"] = app.get("iconUrl") or app.get("appIconUrl")
+
+    # A few bundles expose target apps without linking patches to them. Keep
+    # those apps visible instead of dropping them from the index entirely.
+    known_packages = {package.lower() for package in apps}
+    for package_name in bundle.get("targetApps") or []:
+        if not isinstance(package_name, str) or not package_name:
+            continue
+        if package_name.lower() in known_packages:
+            continue
+        store_info = store.get(package_name.lower(), {})
+        apps[package_name] = {
+            "packageName": package_name,
+            "name": store_info.get("name") or package_name,
+            "patches": set(),
+            "patchDetails": {},
+            "versions": set(),
+            "iconColor": "",
+            "iconUrl": store_info.get("iconUrl") or icon_cache.get(package_name.lower(), ""),
+        }
+        known_packages.add(package_name.lower())
+
+    return (
+        max(patch_count, int(bundle.get("patchCount") or 0)),
+        normalize_app_entries(apps),
+        sorted(universal_patches, key=lambda item: item["name"].lower()),
+    )
+
+
+def merge_patch_metadata(primary, secondary):
+    patch_count = max(primary[0], secondary[0])
+    apps = {}
+
+    for app in list(primary[1]) + list(secondary[1]):
+        entry = apps.setdefault(
+            app["packageName"],
+            {
+                "packageName": app["packageName"],
+                "name": app["name"],
+                "patches": set(),
+                "patchDetails": {},
+                "versions": set(),
+                "iconColor": "",
+                "iconUrl": "",
+            },
+        )
+        entry["patches"].update(app["patches"])
+        for detail in app["patchDetails"]:
+            entry["patchDetails"][detail["name"]] = detail.get("description", "")
+        entry["versions"].update(app["versions"])
+        if not entry["iconColor"] and app.get("iconColor"):
+            entry["iconColor"] = app["iconColor"]
+        if not entry["iconUrl"] and app.get("iconUrl"):
+            entry["iconUrl"] = app["iconUrl"]
+
+    universal = {}
+    for patch in list(primary[2]) + list(secondary[2]):
+        key = str(patch.get("name") or "").lower()
+        if key:
+            universal.setdefault(key, patch)
+
+    return (
+        patch_count,
+        normalize_app_entries(apps),
+        sorted(universal.values(), key=lambda item: item["name"].lower()),
+    )
 
 
 def collect_patch_metadata(bundle, icon_cache):
@@ -336,26 +556,9 @@ def collect_patch_metadata(bundle, icon_cache):
             if not entry["iconUrl"] and (app.get("iconUrl") or app.get("appIconUrl")):
                 entry["iconUrl"] = app.get("iconUrl") or app.get("appIconUrl")
 
-    normalized_apps = []
-    for app in apps.values():
-        normalized_apps.append(
-            {
-                "packageName": app["packageName"],
-                "name": app["name"],
-                "patches": sorted(app["patches"], key=str.lower),
-                "patchDetails": [
-                    {"name": name, "description": app["patchDetails"].get(name, "")}
-                    for name in sorted(app["patches"], key=str.lower)
-                ],
-                "versions": sorted(app["versions"], key=str.lower),
-                "iconColor": app["iconColor"],
-                "iconUrl": app["iconUrl"],
-            }
-        )
-
     return (
         patch_count,
-        sorted(normalized_apps, key=lambda item: item["name"].lower()),
+        normalize_app_entries(apps),
         sorted(universal_patches, key=lambda item: item["name"].lower()),
     )
 
@@ -371,10 +574,23 @@ def build_data():
     host_counts = defaultdict(int)
     total_patch_count = 0
     icon_cache = load_icon_cache()
+    catalog_repos, catalog_compatibilities, catalog_store = load_catalog()
 
     for bundle in bundles:
         host, repo_path = repo_from_source(bundle.get("source", ""))
         patch_count, apps, universal_patches = collect_patch_metadata(bundle, icon_cache)
+        catalog_bundle = catalog_repos.get((host, repo_path.lower()))
+        if catalog_bundle:
+            catalog_metadata = collect_catalog_metadata(
+                catalog_bundle,
+                catalog_compatibilities,
+                catalog_store,
+                icon_cache,
+            )
+            patch_count, apps, universal_patches = merge_patch_metadata(
+                catalog_metadata,
+                (patch_count, apps, universal_patches),
+            )
         source_changelog_url = changelog_url(bundle.get("source", ""))
         latest_changes = summarize_changelog(fetch_text(source_changelog_url))
         host_counts[host or "other"] += 1
