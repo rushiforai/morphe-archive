@@ -1939,8 +1939,6 @@ Mistral Nemo هو الخيار الأرخص، بينما توفر Gemma 4 أعل
     <string name="revanced_overlay_button_copy_video_url_title">عرض زر نسخ رابط الفيديو</string>
     <string name="revanced_overlay_button_external_downloader_queue_manager_summary">بدلًا من تشغيل برنامج تنزيل خارجي، افتح مدير قائمة الانتظار</string>
     <string name="revanced_overlay_button_external_downloader_queue_manager_title">مدير قائمة الانتظار</string>
-    <string name="revanced_overlay_button_external_downloader_summary">انقر لتشغيل برنامَج التنزيل الخارجي</string>
-    <string name="revanced_overlay_button_external_downloader_title">عرض زر التنزيل الخارجي</string>
     <string name="revanced_overlay_button_gemini_about_summary">"قد يستغرق تحليل الفيديو بعض الوقت اعتماداً على طوله. وقد يتجاوز تفريغ مقاطع الفيديو الطويلة حدود Gemini
 
 قد تحتوي الردود المولدة بالذكاء الاصطناعي على معلومات غير دقيقة
@@ -2539,9 +2537,6 @@ Mistral Nemo هو الخيار الأرخص، بينما توفر Gemma 4 أعل
     <string name="revanced_shorts_custom_actions_copy_video_url_timestamp_title">عرض قائمة نسخ URL مع الطابع الزمني</string>
     <string name="revanced_shorts_custom_actions_copy_video_url_title">عرض قائمة نسخ رابط الفيديو</string>
     <string name="revanced_shorts_custom_actions_external_downloader_label">التنزيل الخارجي</string>
-    <string name="revanced_shorts_custom_actions_external_downloader_summary_off">تم إخفاء قائمة التنزيل الخارجي</string>
-    <string name="revanced_shorts_custom_actions_external_downloader_summary_on">يتم عرض قائمة التنزيل الخارجي</string>
-    <string name="revanced_shorts_custom_actions_external_downloader_title">عرض قائمة التنزيل الخارجي</string>
     <string name="revanced_shorts_custom_actions_gemini_label">تلخيص Gemini</string>
     <string name="revanced_shorts_custom_actions_gemini_summary_off">قائمة تلخيص Gemini مخفية</string>
     <string name="revanced_shorts_custom_actions_gemini_summary_on">قائمة تلخيص Gemini ظاهرة في قائمة الافعال المخصصه</string>

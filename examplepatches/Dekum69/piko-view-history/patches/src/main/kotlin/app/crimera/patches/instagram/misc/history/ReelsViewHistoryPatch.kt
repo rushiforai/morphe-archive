@@ -24,6 +24,10 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 // Reels viewer onPageSelected(newPosition, oldPosition). Its first call to a private helper of the
 // listener resolves the clips item at the new position.
+//
+// The trace label is the anchor: on 452 the (I, I)V shape plus a self invoke-direct whose result
+// is kept still matches two sibling methods of the same class, so a shape-only match would be a
+// coin flip. The Media-field check below cannot separate them either.
 private object ClipsPageSelectedFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf("I", "I"),
@@ -45,8 +49,13 @@ val reelsViewHistoryPatch =
         execute {
             fun fail(what: String): Nothing = throw PatchException("Reels view history: $what not found")
 
-            val listenerClass = ClipsPageSelectedFingerprint.classDef
-            ClipsPageSelectedFingerprint.method.apply {
+            val match = ClipsPageSelectedFingerprint.singleMatchOrFail(
+                "Reels view history: clips page-selected listener",
+                "Look for the (I, I)V method whose body logs " +
+                    "\"ClipsViewerViewPagerListener.onPageSelected\".",
+            )
+            val listenerClass = match.classDef
+            match.method.apply {
                 val itemLookup =
                     instructions.indexOfFirst {
                         it.opcode == Opcode.INVOKE_DIRECT &&

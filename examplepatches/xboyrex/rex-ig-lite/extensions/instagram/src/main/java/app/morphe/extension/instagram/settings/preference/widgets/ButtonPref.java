@@ -113,6 +113,9 @@ public class ButtonPref extends Preference {
             "rex_last_active_format_btn",
             "rex_emoji_type_btn",
             "rex_font_type_btn",
+            "rex_add_story_fonts_btn",
+            "rex_pref_add_emoji_font",
+            "rex_pref_add_story_font",
             "rex_legal_licenses_btn",
             "rex_color_mode_btn",
             "rex_apply_pro_config_v6",
@@ -206,7 +209,9 @@ public class ButtonPref extends Preference {
                         || key.equals("rex_export_pref")
                         || key.equals("rex_import_pref")
                         || key.equals("rex_download_set_path")
-                        || key.equals("rex_pref_add_font")) {
+                        || key.equals("rex_pref_add_font")
+                        || key.equals("rex_pref_add_emoji_font")
+                        || key.equals("rex_pref_add_story_font")) {
                     ActivityHook.launchFragment((Activity) context, key);
 
                 } else if (key.equals("rex_reset_download_path")) {
@@ -332,6 +337,9 @@ public class ButtonPref extends Preference {
                 } else if (key.equals("rex_font_type_btn")) {
                     RexRuntimeFeatures.showFontTypePicker(context, recreateActivityOnComplete(context));
 
+                } else if (key.equals("rex_add_story_fonts_btn")) {
+                    RexRuntimeFeatures.showAddStoryFontsDialog(context, recreateActivityOnComplete(context));
+
                 } else if (key.equals("rex_color_mode_btn")) {
                     RexRuntimeFeatures.showColorModePicker(context, recreateActivityOnComplete(context));
 
@@ -383,31 +391,10 @@ public class ButtonPref extends Preference {
                     RecommendedFlags.downloadRecommendedFlagsFile(recreateActivityOnComplete(context));
 
                 } else if (key.equals("rex_rec_flags_enable_all")) {
-                    java.util.List<app.morphe.extension.instagram.patches.devFlags.Flag> flags = RecommendedFlags.getFlags(false);
-                    int count = 0;
-                    for (app.morphe.extension.instagram.patches.devFlags.Flag f : flags) {
-                        if (f != null && !f.isLongType() && f.getCode() != null) {
-                            app.morphe.extension.instagram.patches.devFlags.FlagsSharedPref.setStringPref(
-                                    f.getCode().key,
-                                    app.morphe.extension.instagram.patches.devFlags.FlagState.ENABLE.toString()
-                            );
-                            count++;
-                        }
-                    }
-                    app.morphe.extension.instagram.patches.devFlags.FlagsSharedPref.flush();
-                    app.morphe.extension.instagram.patches.devFlags.HookFlags.load();
-                    app.morphe.extension.instagram.settings.SettingsRestart.markChanged("rex_rec_flags_enable_all", "Default", "Enable");
-                    Utils.showToastShort("Enabled " + count + " recommended flags");
-                    Runnable r = recreateActivityOnComplete(context);
-                    if (r != null) r.run();
+                    RecommendedFlags.enableAllBooleanFlagsTransactionally(context, recreateActivityOnComplete(context));
 
                 } else if (key.equals("rex_rec_flags_reset_all")) {
-                    app.morphe.extension.instagram.patches.devFlags.FlagsSharedPref.clearAll();
-                    app.morphe.extension.instagram.patches.devFlags.HookFlags.load();
-                    app.morphe.extension.instagram.settings.SettingsRestart.markChanged("rex_rec_flags_reset_all", "Custom", "Default");
-                    Utils.showToastShort("Reset all recommended flags to Default");
-                    Runnable r = recreateActivityOnComplete(context);
-                    if (r != null) r.run();
+                    RecommendedFlags.resetAllFlagsTransactionally(context, recreateActivityOnComplete(context));
 
                 } else if (SettingsStatus.FLAGS.containsKey(key)) {
                     Boolean active = SettingsStatus.FLAGS.get(key);

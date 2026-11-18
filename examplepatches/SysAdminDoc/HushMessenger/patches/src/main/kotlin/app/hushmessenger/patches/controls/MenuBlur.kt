@@ -22,10 +22,18 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
  * is set by then, a plain AlertDialog's included, and the change lands before the sheet's first frame. The menu a long
  * press on a message opens (MessageReactionsOverlayFragment) comes through the same hook but draws its own dim, so the
  * extension finds it by its MessageReactionsOverlayView instead of by the window's dim.
+ *
+ * On 587 that menu is ReactionsBarFragment instead, a DialogFragment Messenger adds into the chat's own frame with no
+ * dialog at all, so its onStart never reaches a `show()`. Its own onViewCreated is the second hook: the menu's view is
+ * in the chat's frame by then, and the extension blurs the chat around it from there.
  */
 internal const val MENU_BLUR = "menu_blur"
 internal const val MENU_BLUR_HOST = "Lapp/hushmessenger/extension/MenuBlur;"
 internal const val MENU_BLUR_CALL = "$MENU_BLUR_HOST->shown(Landroid/app/Dialog;)V"
+internal const val MENU_BLUR_IN_CHAT_CALL = "$MENU_BLUR_HOST->inChat(Landroid/view/View;)V"
+
+/** The menu a long press on a message opens inside the chat. Redex keeps the name on every supported build. */
+internal const val REACTIONS_BAR = "Lcom/facebook/xapp/messaging/reactions/sendbar/fragment/ReactionsBarFragment;"
 
 private const val DIALOG ="Landroid/app/Dialog;"
 private const val DIALOG_SHOW = "Landroid/app/Dialog;->show()V"
@@ -70,22 +78,43 @@ internal fun Method.menuBlurSite(): Pair<Int, Int>? {
     return at + 1 to dialog
 }
 
-/** DialogFragment's onStart, taken only while exactly one class has the DialogFragment shape and its onStart the site. */
+/** ReactionsBarFragment's own onViewCreated(View, Bundle), which gets the menu's view. */
+internal fun Method.isReactionsBarView(): Boolean = definingClass == REACTIONS_BAR && name == "onViewCreated" &&
+    returnType == "V" && parameterTypes.map { it.toString() } == listOf("Landroid/view/View;", "Landroid/os/Bundle;") &&
+    !AccessFlags.STATIC.isSet(accessFlags) && implementation != null
+
+/**
+ * DialogFragment's onStart, taken only while exactly one class has the DialogFragment shape and its onStart the site,
+ * and ReactionsBarFragment's onViewCreated beside it.
+ */
 internal fun findMenuBlur(classes: Iterable<ClassDef>): List<Method> {
     val fragments = classes.filter { it.isDialogFragment() }
     val fragment = fragments.singleOrNull() ?: return emptyList()
-    return fragment.methods.filter { it.menuBlurSite() != null }.takeIf { it.size == 1 }.orEmpty()
+    val onStart = fragment.methods.filter { it.menuBlurSite() != null }.takeIf { it.size == 1 }.orEmpty()
+    val inChat = classes.filter { it.type == REACTIONS_BAR }.flatMap { it.methods.filter { m -> m.isReactionsBarView() } }
+    return onStart + inChat.takeIf { it.size == 1 }.orEmpty()
 }
 
 private fun menuBlurChanged(method: Method): Nothing =
-    throw PatchException("Messenger controls: DialogFragment's onStart in ${method.hookId()} no longer matches the tested build")
+    throw PatchException("Messenger controls: DialogFragment's onStart or ReactionsBarFragment's onViewCreated in " +
+        "${method.hookId()} no longer matches the tested build")
 
 internal fun MutableMethod.validateMenuBlur() {
-    menuBlurSite() ?: menuBlurChanged(this)
+    if (menuBlurSite() == null && !isReactionsBarView()) menuBlurChanged(this)
 }
 
-/** The dialog goes to the extension right after it's shown. It only changes the window, and Off leaves it as it was. */
+/**
+ * The dialog goes to the extension right after it's shown. It only changes the window, and Off leaves it as it was.
+ * The in-chat menu's view goes first thing, before Messenger's own setup, which is left to run as it did.
+ */
 internal fun MutableMethod.injectMenuBlur() {
-    val (at, dialog) = menuBlurSite() ?: menuBlurChanged(this)
-    addInstructions(at, "invoke-static/range {v$dialog .. v$dialog}, $MENU_BLUR_CALL")
+    val site = menuBlurSite()
+    if (site != null) {
+        val (at, dialog) = site
+        addInstructions(at, "invoke-static/range {v$dialog .. v$dialog}, $MENU_BLUR_CALL")
+        return
+    }
+    if (!isReactionsBarView()) menuBlurChanged(this)
+    val view = parameterRegister(1)
+    addInstructions(0, "invoke-static/range {v$view .. v$view}, $MENU_BLUR_IN_CHAT_CALL")
 }

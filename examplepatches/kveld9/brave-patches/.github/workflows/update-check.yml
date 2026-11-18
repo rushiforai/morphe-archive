@@ -1,0 +1,303 @@
+name: Update check
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: update-check
+  cancel-in-progress: false
+
+jobs:
+  check-updates:
+    name: Check updates
+    permissions:
+      contents: read
+      issues: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          # Scheduled runs execute workflow from default branch (main); version bumps land on dev first.
+          ref: dev
+
+      - name: Setup Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.x'
+
+      - name: Run update check
+        id: update_check
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 scripts/check_app_updates.py --check --json updates.json
+
+      - name: File update issues
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          if [ ! -f updates.json ]; then
+            echo "[WARN] updates.json not found, skipping issue creation."
+            exit 0
+          fi
+
+          gh label create app-update --color 0E8A16 --description "Upstream app update available" --repo "$GITHUB_REPOSITORY" 2>/dev/null || true
+
+          python3 - <<'EOF'
+          import json
+          import os
+          import re
+          import subprocess
+          import sys
+
+          # Ensure repository root is in sys.path to import scheme-aware helpers
+          sys.path.insert(0, os.path.abspath("."))
+          from scripts.check_app_updates import (
+              compare_versions,
+              format_issue_body,
+              format_issue_title,
+              parse_version,
+          )
+
+          def parse_issue_remote_version(title, app_name):
+              if app_name not in title:
+                  return None
+              if "->" not in title:
+                  return None
+              parts = title.split("->")
+              if len(parts) != 2:
+                  return None
+              candidate = parts[1].strip()
+              if not candidate:
+                  return None
+              core, _ = parse_version(candidate)
+              if not core:
+                  return None
+              return ".".join(str(part) for part in core)
+
+          def compare_app_versions(v_issue, v_check):
+              fwd = compare_versions(v_issue, v_check)
+              bwd = compare_versions(v_check, v_issue)
+              if fwd == "unknown" or bwd == "unknown":
+                  return "inconclusive"
+              if fwd == "update-available":
+                  return "newer"
+              if bwd == "update-available":
+                  return "older"
+              return "equal"
+
+          def create_issue(repo, app_name, local_ver, remote_ver, source_url, download_url, remote_channel, download_urls):
+              title = format_issue_title(app_name, local_ver, remote_ver, remote_channel)
+              body = format_issue_body(
+                  local_ver=local_ver,
+                  remote_ver=remote_ver,
+                  source_url=source_url,
+                  download_url=download_url,
+                  download_urls=download_urls,
+              )
+
+              print(f"[INFO] Creating issue for {app_name}: {title}")
+              create_cmd = [
+                  "gh", "issue", "create",
+                  "--repo", repo,
+                  "--title", title,
+                  "--label", "app-update",
+                  "--body", body,
+              ]
+              create_res = subprocess.run(create_cmd, capture_output=True, text=True)
+              if create_res.returncode == 0:
+                  print(f"[INFO] Issue created successfully: {create_res.stdout.strip()}")
+                  return True
+              else:
+                  print(f"[WARN] Failed to create issue for {app_name}: {create_res.stderr.strip()}", file=sys.stderr)
+                  return False
+
+          repo = os.environ.get("GITHUB_REPOSITORY", "")
+          if not os.path.isfile("updates.json"):
+              print("[WARN] updates.json not found, skipping issue creation.")
+              sys.exit(0)
+
+          with open("updates.json", "r", encoding="utf-8") as f:
+              report = json.load(f)
+
+          apps = report.get("apps", [])
+          for app in apps:
+              if app.get("status") != "update-available":
+                  continue
+
+              app_name = app.get("name", "")
+              local_ver = app.get("local_version", "")
+              remote_ver = app.get("remote_version", "")
+              source_url = app.get("source_url", "")
+              download_url = app.get("download_url", "")
+              remote_channel = app.get("remote_channel", "")
+              download_urls = app.get("download_urls", {})
+
+              print(f"[INFO] Checking existing issues for {app_name}...")
+              list_cmd = [
+                  "gh", "issue", "list",
+                  "--repo", repo,
+                  "--label", "app-update",
+                  "--search", f"{app_name} in:title",
+                  "--state", "open",
+                  "--json", "number,title,url",
+              ]
+              res = subprocess.run(list_cmd, capture_output=True, text=True)
+              if res.returncode != 0:
+                  print(f"[WARN] gh issue list failed for {app_name}: {res.stderr.strip()}", file=sys.stderr)
+                  continue
+
+              try:
+                  open_issues = json.loads(res.stdout) if res.stdout.strip() else []
+              except Exception as exc:
+                  print(f"[WARN] Failed to parse gh issue list output for {app_name}: {exc}", file=sys.stderr)
+                  open_issues = []
+
+              title_pattern = re.compile(rf"^Update: {re.escape(app_name)} \d", re.I)
+              matching_issues = [
+                  issue for issue in open_issues
+                  if title_pattern.match((issue.get("title") or "").strip())
+              ]
+
+              if not matching_issues:
+                  create_issue(repo, app_name, local_ver, remote_ver, source_url, download_url, remote_channel, download_urls)
+                  continue
+
+              if len(matching_issues) > 1:
+                  extra_nums = [i.get("number") for i in matching_issues[1:]]
+                  print(f"[INFO] Multiple open issues found for {app_name}, handling first #{matching_issues[0].get('number')} and leaving others untouched: {extra_nums}")
+
+              target_issue = matching_issues[0]
+              num = target_issue.get("number", "unknown")
+              target_title = target_issue.get("title", "")
+              issue_url = target_issue.get("url") or f"https://github.com/{repo}/issues/{num}"
+
+              issue_remote = parse_issue_remote_version(target_title, app_name)
+              if not issue_remote:
+                  print(f"[WARN] Failed to parse remote version from open issue title for {app_name} (#{num}: {target_title}), skipping.")
+                  continue
+
+              cmp_result = compare_app_versions(issue_remote, remote_ver)
+              if cmp_result == "inconclusive":
+                  print(f"[WARN] Version comparison inconclusive between issue remote '{issue_remote}' and current remote '{remote_ver}' for {app_name}, skipping.")
+                  continue
+
+              if cmp_result == "equal":
+                  print(f"[INFO] Open issue already exists for {app_name} (#{num}: {target_title}), already reported, skipping.")
+                  continue
+
+              if cmp_result == "older":
+                  print(f"[INFO] Current remote version {remote_ver} is older than open issue remote {issue_remote} for {app_name}, skipping.")
+                  continue
+
+              # cmp_result == "newer": roll forward
+              print(f"[INFO] Closing stale issue #{num} for {app_name} (superseded by {remote_ver})...")
+              close_comment = (
+                  f"Tracked remote was superseded by {remote_ver}.\n\n"
+                  f"Closing as completed [{num}]({issue_url})."
+              )
+              close_cmd = [
+                  "gh", "issue", "close", str(num),
+                  "--repo", repo,
+                  "--reason", "completed",
+                  "--comment", close_comment,
+              ]
+              close_res = subprocess.run(close_cmd, capture_output=True, text=True)
+              if close_res.returncode != 0:
+                  print(f"[WARN] Failed to close stale issue #{num} for {app_name}: {close_res.stderr.strip()}", file=sys.stderr)
+                  continue
+
+              print(f"[INFO] Closed stale issue #{num} successfully.")
+              create_issue(repo, app_name, local_ver, remote_ver, source_url, download_url, remote_channel, download_urls)
+          EOF
+
+      - name: Close stale update issues
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          if [ ! -f updates.json ]; then
+            echo "[WARN] updates.json not found, skipping stale issue cleanup."
+            exit 0
+          fi
+
+          python3 - <<'EOF'
+          import json
+          import os
+          import re
+          import subprocess
+          import sys
+
+          repo = os.environ.get("GITHUB_REPOSITORY", "")
+          if not os.path.isfile("updates.json"):
+              print("[WARN] updates.json not found, skipping stale issue cleanup.")
+              sys.exit(0)
+
+          with open("updates.json", "r", encoding="utf-8") as f:
+              report = json.load(f)
+
+          apps = report.get("apps", [])
+          for app in apps:
+              if app.get("status") != "current":
+                  continue
+
+              app_name = app.get("name", "")
+              if not app_name:
+                  continue
+
+              print(f"[INFO] Checking stale issues for {app_name}...")
+              list_cmd = [
+                  "gh", "issue", "list",
+                  "--repo", repo,
+                  "--label", "app-update",
+                  "--search", f"{app_name} in:title",
+                  "--state", "open",
+                  "--json", "number,title,url",
+              ]
+              res = subprocess.run(list_cmd, capture_output=True, text=True)
+              if res.returncode != 0:
+                  print(f"[WARN] gh issue list failed for {app_name}: {res.stderr.strip()}", file=sys.stderr)
+                  continue
+
+              try:
+                  open_issues = json.loads(res.stdout) if res.stdout.strip() else []
+              except Exception as exc:
+                  print(f"[WARN] Failed to parse gh issue list output for {app_name}: {exc}", file=sys.stderr)
+                  open_issues = []
+
+              title_pattern = re.compile(rf"^Update: {re.escape(app_name)} \d", re.I)
+              for issue in open_issues:
+                  num = issue.get("number")
+                  title = issue.get("title", "")
+                  if not num:
+                      continue
+                  if not title_pattern.match(title.strip()):
+                      continue
+
+                  issue_url = issue.get("url") or f"https://github.com/{repo}/issues/{num}"
+                  comment = f"Tracked version is already supported on dev. Closing as completed [#{num}]({issue_url})."
+                  print(f"[INFO] Closing stale issue #{num} ({title}) for {app_name}...")
+                  close_cmd = [
+                      "gh", "issue", "close",
+                      str(num),
+                      "--repo", repo,
+                      "--reason", "completed",
+                      "--comment", comment,
+                  ]
+                  close_res = subprocess.run(close_cmd, capture_output=True, text=True)
+                  if close_res.returncode == 0:
+                      print(f"[INFO] Issue #{num} closed successfully: {close_res.stdout.strip()}")
+                  else:
+                      print(f"[WARN] Failed to close issue #{num} for {app_name}: {close_res.stderr.strip()}", file=sys.stderr)
+          EOF
+
+      - name: Fail when an upstream version could not be determined
+        if: steps.update_check.outcome == 'failure'
+        run: |
+          echo "[ERROR] One or more upstream versions could not be determined; see the 'Run update check' step."
+          echo "A silent 'unknown' hides real updates, so this run is reported as failed."
+          exit 1

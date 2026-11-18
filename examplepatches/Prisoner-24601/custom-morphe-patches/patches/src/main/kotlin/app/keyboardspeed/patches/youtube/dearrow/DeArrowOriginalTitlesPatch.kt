@@ -20,6 +20,9 @@ internal const val EXTENSION_CLASS = "Lapp/keyboardspeed/extension/dearrow/DeArr
 private const val EXTENSION_COMBINE_TITLES =
     "$EXTENSION_CLASS->combineTitles(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;"
 
+private const val EXTENSION_COMBINE_TITLES_WITH_VIDEO_ID =
+    "$EXTENSION_CLASS->combineTitles(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;"
+
 /**
  * DeArrow title of a video, in the extension of the official Morphe YouTube patches.
  */
@@ -38,12 +41,16 @@ private const val MORPHE_PATCHES_MISSING =
     "The DeArrow code of the Morphe YouTube patches was not found. " +
         "Apply this patch together with the official Morphe Patches source."
 
-private fun MutableClass.findMethod(name: String, returnType: String, vararg parameters: String) =
+private fun MutableClass.findMethodOrNull(name: String, returnType: String, vararg parameters: String) =
     methods.firstOrNull { method ->
         method.name == name &&
             method.returnType == returnType &&
             method.parameterTypes.map { it.toString() } == parameters.toList()
-    } ?: throw PatchException("$MORPHE_PATCHES_MISSING Missing method: $type->$name")
+    }
+
+private fun MutableClass.findMethod(name: String, returnType: String, vararg parameters: String) =
+    findMethodOrNull(name, returnType, *parameters)
+        ?: throw PatchException("$MORPHE_PATCHES_MISSING Missing method: $type->$name")
 
 /**
  * @return The number of registers that are not parameter registers.
@@ -159,7 +166,16 @@ val deArrowOriginalTitlesPatch = bytecodePatch(
         // titleFor returns the DeArrow title shown instead of the original title, which it receives
         // to check the casual mode votes. The original code is kept in a copy, and its result
         // is combined with the original title.
-        val titleFor = titleClass.findMethod("titleFor", "Ljava/lang/String;", "Ljava/lang/String;")
+        // Morphe Patches 2.3 and newer: titleFor(String videoId, String originalTitle).
+        // Morphe Patches 2.2: titleFor(String originalTitle).
+        val titleForWithVideoId = titleClass.findMethodOrNull(
+            "titleFor",
+            "Ljava/lang/String;",
+            "Ljava/lang/String;",
+            "Ljava/lang/String;",
+        )
+        val titleFor = titleForWithVideoId
+            ?: titleClass.findMethod("titleFor", "Ljava/lang/String;", "Ljava/lang/String;")
         if (titleFor.localRegisterCount() < 1) {
             throw PatchException("DeArrowTitle.titleFor has no free register")
         }
@@ -186,13 +202,23 @@ val deArrowOriginalTitlesPatch = bytecodePatch(
         // The original code after the inserted code is no longer reached.
         titleFor.addInstructions(
             0,
-            """
-                invoke-direct { p0, p1 }, $DEARROW_TITLE_CLASS->$TITLE_FOR_WITHOUT_ORIGINAL(Ljava/lang/String;)Ljava/lang/String;
-                move-result-object v0
-                invoke-static { v0, p1 }, $EXTENSION_COMBINE_TITLES
-                move-result-object v0
-                return-object v0
-            """,
+            if (titleForWithVideoId != null) {
+                """
+                    invoke-direct { p0, p1, p2 }, $DEARROW_TITLE_CLASS->$TITLE_FOR_WITHOUT_ORIGINAL(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+                    move-result-object v0
+                    invoke-static { v0, p2, p1 }, $EXTENSION_COMBINE_TITLES_WITH_VIDEO_ID
+                    move-result-object v0
+                    return-object v0
+                """
+            } else {
+                """
+                    invoke-direct { p0, p1 }, $DEARROW_TITLE_CLASS->$TITLE_FOR_WITHOUT_ORIGINAL(Ljava/lang/String;)Ljava/lang/String;
+                    move-result-object v0
+                    invoke-static { v0, p1 }, $EXTENSION_COMBINE_TITLES
+                    move-result-object v0
+                    return-object v0
+                """
+            },
         )
     }
 }

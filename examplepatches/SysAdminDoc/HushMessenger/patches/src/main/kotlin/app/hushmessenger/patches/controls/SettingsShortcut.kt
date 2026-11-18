@@ -88,7 +88,7 @@ internal const val DEFAULT_STRINGS = "res/values/strings.xml"
 /** The name the settings label carries in every language, which a clone swaps for its own app name. */
 internal const val SETTINGS_LABEL_NAME = "HushMessenger"
 
-/** Each label's text by strings file. The translations are the settings page's own rows (SettingsTextViVN, SettingsTextZhTw). */
+/** Each label's text by strings file. The translations are the settings page's own rows (l10n/vi.tsv, l10n/zh-TW.tsv). */
 internal val MANIFEST_STRINGS: Map<String, Map<String, String>> = linkedMapOf(
     DEFAULT_STRINGS to linkedMapOf(SETTINGS_LABEL to "HushMessenger settings", RESTART_LABEL to "Restart Messenger",
         BOLD_LABEL to "Bold", ITALIC_LABEL to "Italic"),

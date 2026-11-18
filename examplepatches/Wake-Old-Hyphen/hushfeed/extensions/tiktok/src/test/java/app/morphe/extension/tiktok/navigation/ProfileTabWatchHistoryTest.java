@@ -63,13 +63,13 @@ public class ProfileTabWatchHistoryTest {
         bar.addView(profile, new FrameLayout.LayoutParams(216, 138));
         content.addView(bar, new FrameLayout.LayoutParams(-1, 138, Gravity.BOTTOM));
         activity.setContentView(content);
-        FeedVisibility.resolveForTests(activity.getPackageName(), "47.7.3:oph", PROFILE_ID);
+        FeedVisibility.resolveForTests(activity.getPackageName(), "47.8.3:oqf", PROFILE_ID);
     }
 
     @After public void tearDown() {
         PausedProcess.set(false);
         HomeTabSettingsShortcut.resetForTests();
-        FeedVisibility.resolveForTests(activity.getPackageName(), "47.7.3:oph", 0);
+        FeedVisibility.resolveForTests(activity.getPackageName(), "47.8.3:oqf", 0);
         ReflectionHelpers.setStaticField(SettingsStatus.class, "feedNavigationEnabled", false);
         Settings.PROFILE_TAB_OPENS_WATCH_HISTORY.resetToDefault();
         Settings.PROFILE_TAB_SWITCHES_ACCOUNTS.resetToDefault();
@@ -166,6 +166,49 @@ public class ProfileTabWatchHistoryTest {
         assertTrue("a tap on Profile stopped reaching TikTok", profile.performClick());
         assertEquals(1, taps.get());
         assertNull("a tap opened Watch history", nextStarted());
+    }
+
+    /**
+     * #425: the hold opens the Activity center address TikTok's servers sent, the way its Settings
+     * and privacy row does, through its router, and gives way to Watch history.
+     */
+    @Test public void aLongPressOnProfileOpensActivityCenter() {
+        String served = "aweme://lynxview?url=https%3A%2F%2Finapp.tiktokv.com%2Factivity_center";
+        com.bytedance.router.SmartRouter.OPENED.clear();
+        com.ss.android.ugc.aweme.ActivityCenterEntranceExperiment.SERVED.url = served;
+        Settings.PROFILE_TAB_OPENS_ACTIVITY_CENTER.save(true);
+        try {
+            installAndResume();
+
+            assertTrue("the long press was not handled", profile.performLongClick());
+            assertEquals(java.util.List.of(served + "%26grey_bg%3D1"), com.bytedance.router.SmartRouter.OPENED);
+            assertNull("an outside link opened too", nextStarted());
+            assertEquals("a long press also counted as a tap", 0, taps.get());
+
+            Settings.PROFILE_TAB_OPENS_WATCH_HISTORY.save(true);
+            assertTrue(profile.performLongClick());
+            assertEquals("Watch history gave way", 1, com.bytedance.router.SmartRouter.OPENED.size());
+            assertNotNull("Watch history didn't open", nextStarted());
+        } finally {
+            Settings.PROFILE_TAB_OPENS_ACTIVITY_CENTER.resetToDefault();
+            com.ss.android.ugc.aweme.ActivityCenterEntranceExperiment.SERVED.url = null;
+            com.bytedance.router.SmartRouter.OPENED.clear();
+        }
+    }
+
+    /** #425: with no address from TikTok, the hold still lands one tap away, on Settings and privacy. */
+    @Test public void withNoActivityCenterAddressTheHoldOpensSettings() {
+        com.bytedance.router.SmartRouter.OPENED.clear();
+        Settings.PROFILE_TAB_OPENS_ACTIVITY_CENTER.save(true);
+        try {
+            installAndResume();
+
+            assertTrue("the long press was not handled", profile.performLongClick());
+            assertEquals(java.util.List.of("aweme://setting"), com.bytedance.router.SmartRouter.OPENED);
+        } finally {
+            Settings.PROFILE_TAB_OPENS_ACTIVITY_CENTER.resetToDefault();
+            com.bytedance.router.SmartRouter.OPENED.clear();
+        }
     }
 
     @Test public void offByDefaultTheTabIsLeftAsItWas() {

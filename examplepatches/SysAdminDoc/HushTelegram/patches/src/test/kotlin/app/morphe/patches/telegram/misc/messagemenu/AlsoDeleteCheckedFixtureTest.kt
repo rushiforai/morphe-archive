@@ -8,6 +8,7 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.PlusPending
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
 import app.morphe.patches.telegram.misc.extension.SETTINGS_STATUS
@@ -32,6 +33,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /** Also delete for, checked by default (#83): one hook in Telegram's delete messages dialog, right where it fills the box in. */
+@PlusPending
 class AlsoDeleteCheckedFixtureTest {
     private fun Instruction.kind() = when (opcode) {
         Opcode.GOTO_16, Opcode.GOTO_32 -> Opcode.GOTO

@@ -21,6 +21,18 @@ import app.morphe.patcher.patch.PatchAvailability
  */
 
 @Suppress("unused")
+val appIconTweakPatch = bytecodePatch(
+    name = "Afterglow app icon",
+    description = "Uses the Afterglow play-button artwork for the app icon, including round and adaptive launchers.",
+    default = true,
+) {
+    compatibleWith(COMPATIBILITY_YOUTUBE)
+    dependsOn(afterglowExtensionPatch, afterglowSettingsPatch,
+        app.afterglow.patches.branding.afterglowAppIconResourcesPatch)
+    execute { markTweakInstalled("app-icon") }
+}
+
+@Suppress("unused")
 val controlCenterTweakPatch = bytecodePatch(
     name = "Afterglow Control Center",
     description = "Adds the Afterglow hub with Vault, player state, quick controls, themes and recovery tools.",

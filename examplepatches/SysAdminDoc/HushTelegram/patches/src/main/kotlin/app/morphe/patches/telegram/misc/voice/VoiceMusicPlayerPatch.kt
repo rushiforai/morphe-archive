@@ -72,7 +72,7 @@ val voiceMusicPlayerPatch = bytecodePatch(
 ) {
     category("Playback")
     dependsOn(settingsPatch, telegramExtensionPatch)
-    compatibleWith(*AppCompatibilities.telegram())
+    compatibleWith(*AppCompatibilities.telegramOnly())
     execute {
         val site = resolveVoiceMusicPlayer()
         val position = resolvePlaybackPosition()

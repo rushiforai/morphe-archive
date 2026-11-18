@@ -82,6 +82,19 @@ public class DiagnosticRedactorTest {
                         + " and api16-normal-useast5.tiktokv.us"));
     }
 
+    @Test public void aServerNamingLineKeepsTheBareServerAndLosesTheRest() {
+        assertEquals("p16-sign-sg.tiktokcdn.com: 3 fetched, 1 failed",
+                DiagnosticRedactor.redactKeepingServerNames("p16-sign-sg.tiktokcdn.com: 3 fetched, 1 failed"));
+        assertEquals("Unable to resolve host \"[host omitted]\" and [host omitted] via [host omitted]",
+                DiagnosticRedactor.redactKeepingServerNames("Unable to resolve host \"v16m.tiktokcdn-us.com\""
+                        + " and p16.tiktokcdn.com/obj/tos-alisg/x.webp via p16.tiktokcdn.com:443"));
+        assertEquals("p19.ibyteimg.com sent [url omitted] for [handle omitted] at [address omitted]",
+                DiagnosticRedactor.redactKeepingServerNames("p19.ibyteimg.com sent"
+                        + " https://p19.ibyteimg.com/img/a.jpg?sig=SECRETSIG for @dana.q at 203.0.113.9"));
+        assertEquals("[host omitted] 3 fetched, 1 failed",
+                DiagnosticRedactor.redact("p16-sign-sg.tiktokcdn.com: 3 fetched, 1 failed"));
+    }
+
     @Test public void theToastLineLosesTheNameAndKeepsTheAction() {
         String line = DiagnosticRedactor.redact("Showing toast: Blocked " + FSI + "Dana Q" + PDI);
 
@@ -161,10 +174,10 @@ public class DiagnosticRedactorTest {
 
     @Test public void anInternationalPhoneNumberGoesWhileVersionsAndTimesStay() {
         String text = DiagnosticRedactor.redact("code sent to +12025550123, retry in 60s;"
-                + " 10:23:11.269 TikTok 47.7.3 offset +0500");
+                + " 10:23:11.269 TikTok 47.8.3 offset +0500");
 
         assertEquals("code sent to [phone omitted], retry in 60s;"
-                + " 10:23:11.269 TikTok 47.7.3 offset +0500", text);
+                + " 10:23:11.269 TikTok 47.8.3 offset +0500", text);
     }
 
     @Test public void aPhoneNumberSplitBySpacesDashesDotsOrBracketsGoesToo() {

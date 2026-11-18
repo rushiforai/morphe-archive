@@ -22,6 +22,9 @@ private const val REEL_ITEM_CLASS = "Lcom/instagram/model/reels/ReelItem;"
 
 // Called when a story item becomes the one on screen in the story viewer (not when neighbouring
 // items are preloaded). Anchored on its own trace name.
+//
+// ReelViewerFragment has ten V-returning methods taking ReelItem on 452, three of which read the
+// item's Media field, so neither the class nor the shape narrows this down on its own.
 private object StoryActiveItemBoundFingerprint : Fingerprint(
     definingClass = REEL_VIEWER_FRAGMENT_CLASS,
     returnType = "V",
@@ -51,7 +54,13 @@ val storiesViewHistoryPatch =
                     .singleOrNull { it.type == MEDIA_CLASS_NAME && AccessFlags.FINAL.isSet(it.accessFlags) }
                     ?: fail("ReelItem media field")
 
-            StoryActiveItemBoundFingerprint.method.apply {
+            val match = StoryActiveItemBoundFingerprint.singleMatchOrFail(
+                "Stories view history: active item callback",
+                "Look for the ReelViewerFragment method taking ReelItem that logs " +
+                    "\"ReelViewerFragment.onCurrentActiveItemBound\".",
+            )
+
+            match.method.apply {
                 val used = mutableListOf<Int>()
                 fun freeRegister() = findFreeRegister(0, used).also { used += it }
                 val sessionReg = freeRegister()

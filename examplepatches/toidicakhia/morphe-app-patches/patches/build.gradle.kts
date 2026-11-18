@@ -2,7 +2,7 @@ group = "me.toidicakhia"
 
 patches {
     about {
-        name = "App Patches"
+        name = "toidicakhia's patches"
         description = "Patches for Android apps, for use with Morphe."
         source = "https://github.com/toidicakhia/morphe-app-patches"
         author = "toidicakhia"
@@ -26,7 +26,9 @@ tasks {
     register<JavaExec>("generatePatchesList") {
         description = "Build patch with patch list"
 
-        dependsOn(build)
+        // Must not depend on "build": re-running "jar" here overwrites the patches file
+        // after "buildAndroid" has merged classes.dex into it.
+        dependsOn(classes)
 
         classpath = sourceSets["main"].runtimeClasspath + patchListGeneratorClasspath
         mainClass.set("util.PatchListGeneratorKt")

@@ -52,6 +52,8 @@ public class ChoiceBackupTest {
         SeekableDescriptor.files.clear();
         SeekableOs.errno = 0;
         ChoicesBackup.documentTimeoutMillis = 30_000;
+        // A picture, font or followed person another class left behind would turn Save into a zip.
+        ChoiceFilesTest.clearFiles(RuntimeEnvironment.getApplication());
     }
 
     /** Keep the original stream fault fixtures while exercising cancellable descriptor opens. */

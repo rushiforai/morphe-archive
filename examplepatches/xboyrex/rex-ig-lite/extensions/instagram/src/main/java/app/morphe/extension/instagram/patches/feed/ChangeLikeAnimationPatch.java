@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2026 rex <https://github.com/xboyrex/rex-ig-lite>
+ * Copyright (C) 2026 xboyrex <https://github.com/xboyrex/rex-ig-lite>
  *
  * See the included NOTICE file for GPLv3 §7(b) terms that apply to this code.
  */
@@ -53,6 +53,8 @@ public class ChangeLikeAnimationPatch {
                     currentTaskIds.add(task.getTaskInfo().persistentId);
                 }
                 sessionTaskIds.retainAll(currentTaskIds);
+                // Task removal can leave the process alive. Keep the choice while any
+                // task from this session remains, including during Activity recreation.
                 if (sessionTaskIds.isEmpty()) sessionAnimation = null;
             }
             sessionTaskIds.add(taskId);
@@ -67,8 +69,7 @@ public class ChangeLikeAnimationPatch {
 
     public static Object changeLikeAnimation(Object defaultAnimation) {
         try {
-            Object selected = selectedAnimation();
-            return selected != null ? selected : defaultAnimation;
+            return selectedAnimation();
         } catch (Exception e) {
             Logger.printException(() -> "changeLikeAnimation failure", e);
         }
@@ -78,9 +79,7 @@ public class ChangeLikeAnimationPatch {
     public static Object changeRenderAnimation(Object defaultAnimation) {
         try {
             Object animation = selectedAnimation();
-            if (animation == null) return defaultAnimation;
-            Object mapped = mapAnimation(animation);
-            return mapped != null ? mapped : defaultAnimation;
+            return animation == null ? null : mapAnimation(animation);
         } catch (Exception e) {
             Logger.printException(() -> "changeRenderAnimation failure", e);
             return defaultAnimation;
@@ -91,18 +90,26 @@ public class ChangeLikeAnimationPatch {
         String choice = currentChoice();
         if (choice == null || DEFAULT.equals(choice)) return null;
         String name = RANDOM.equals(choice) ? sessionAnimation() : choice;
-        if (DEFAULT.equals(name)) return null;
+        if (name == null || DEFAULT.equals(name)) return null;
         Class<?> enumCls = animationClass();
         try {
             return new Entity().getMethod(enumCls, "valueOf", name);
         } catch (Throwable ignored) {
             Object[] constants = enumCls.getEnumConstants();
             if (constants != null) {
+                Object fallback = null;
                 for (Object c : constants) {
-                    if (c instanceof Enum<?> && ((Enum<?>) c).name().equalsIgnoreCase(name)) {
-                        return c;
+                    if (c instanceof Enum<?>) {
+                        String cName = ((Enum<?>) c).name();
+                        if (cName.equalsIgnoreCase(name)) {
+                            return c;
+                        }
+                        if (!DEFAULT.equals(cName) && !"UNRECOGNIZED".equalsIgnoreCase(cName) && fallback == null) {
+                            fallback = c;
+                        }
                     }
                 }
+                if (fallback != null) return fallback;
             }
             return null;
         }
@@ -128,7 +135,9 @@ public class ChangeLikeAnimationPatch {
             Object[] constants = animationClass().getEnumConstants();
             if (constants != null) {
                 for (Object value : constants) {
-                    available.add(((Enum<?>) value).name());
+                    if (value instanceof Enum<?>) {
+                        available.add(((Enum<?>) value).name());
+                    }
                 }
             }
         } catch (Throwable ignored) {}
@@ -138,6 +147,13 @@ public class ChangeLikeAnimationPatch {
                 if (DEFAULT.equals(name) || RANDOM.equals(name)) continue;
                 if (available.isEmpty() || available.contains(name)) {
                     candidates.add(name);
+                }
+            }
+        }
+        if (candidates.isEmpty() && !available.isEmpty()) {
+            for (String avail : available) {
+                if (!DEFAULT.equals(avail) && !RANDOM.equals(avail) && !"UNRECOGNIZED".equalsIgnoreCase(avail)) {
+                    candidates.add(avail);
                 }
             }
         }

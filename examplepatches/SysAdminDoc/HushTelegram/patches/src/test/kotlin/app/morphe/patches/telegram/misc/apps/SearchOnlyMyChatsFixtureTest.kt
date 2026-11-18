@@ -4,6 +4,7 @@
  */
 package app.morphe.patches.telegram.misc.apps
 
+import app.morphe.PlusPending
 import app.morphe.util.names.loadsInt
 import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
@@ -60,6 +61,7 @@ private val LOCAL_PHONES = ChatSearchHooks("Disable draft link previews", LOCAL_
  * Search only my chats on the pinned builds: the tab row, the Downloads shortcut, a hashtag's searches,
  * the Chats tab's public lookups, every account search answer and the public stories search.
  */
+@PlusPending
 class SearchOnlyMyChatsFixtureTest {
     @Test fun `each public part of search takes its own way out and the rest of search stays stock`() {
         for (build in Fixtures.declaredBuilds()) {

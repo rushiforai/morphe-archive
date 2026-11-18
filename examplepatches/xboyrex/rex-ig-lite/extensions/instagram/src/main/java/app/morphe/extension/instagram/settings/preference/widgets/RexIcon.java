@@ -431,7 +431,10 @@ public final class RexIcon {
         KEY_MAP.put("rex_focus_lock", "lock-access");
         KEY_MAP.put("rex_focus_lock_action", "lock-access");
         KEY_MAP.put("rex_font", "type");
-        KEY_MAP.put("rex_font_type_btn", "text-plus");
+        KEY_MAP.put("rex_font_type_btn", "type");
+        KEY_MAP.put("rex_add_story_fonts_btn", "text-plus");
+        KEY_MAP.put("rex_pref_add_emoji_font", "mood-smile");
+        KEY_MAP.put("rex_pref_add_story_font", "text-plus");
         KEY_MAP.put("rex_gestures", "hand");
         KEY_MAP.put("rex_ghost", "ghost");
         KEY_MAP.put("rex_hidden_chats_list_btn", "message-pin");

@@ -2,9 +2,8 @@ package app.hushmessenger.tools
 
 import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 import app.morphe.patcher.patch.stringOption
-import app.morphe.patcher.patch.resourcePatch
 import app.hushmessenger.patches.controls.fixtureClass
 import app.hushmessenger.patches.controls.fixtureMethod
 import app.hushmessenger.patches.controls.lifecycleApk
@@ -155,15 +154,15 @@ class CatalogToolTest {
     }
 
     @Test fun metadataPreservesEscapingDefaultsDependenciesAndExactTargetDescription() {
-        val dependency = resourcePatch(description = "Fixture dependency") { }
-        val patch = bytecodePatch("Quoted \"patch\"", "Line one\nLine two", default = false) {
+        val dependency = patch(description = "Fixture dependency") { }
+        val feature = patch("Quoted \"patch\"", "Line one\nLine two", default = false) {
             category("Example")
             dependsOn(dependency)
             compatibleWith(Compatibility("com.example.app", "Example", targets = listOf(
                 AppTarget("582", versionCodes = null, minSdk = 28, description = "346611369, 346611423 and 346611438"),
             )))
         }
-        val catalog = CatalogTool.catalog("1.2.3", setOf(patch))
+        val catalog = CatalogTool.catalog("1.2.3", setOf(feature))
         assertEquals(catalog, Json.parseToJsonElement(catalog.toString()))
         val entry = catalog.getValue("patches").jsonArray.single().jsonObject
         assertEquals("Quoted \"patch\"", entry.getValue("name").jsonPrimitive.content)
@@ -171,7 +170,7 @@ class CatalogToolTest {
         assertFalse(entry.getValue("default").jsonPrimitive.boolean)
         assertEquals("Example", entry.getValue("category").jsonPrimitive.content)
         val dependencyEntry = entry.getValue("dependencies").jsonArray.single().jsonObject
-        assertEquals("ResourcePatch", dependencyEntry.getValue("type").jsonPrimitive.content)
+        assertEquals("Patch", dependencyEntry.getValue("type").jsonPrimitive.content)
         assertEquals("Fixture dependency", dependencyEntry.getValue("description").jsonPrimitive.content)
         val target = entry.getValue("compatiblePackages").jsonArray.single().jsonObject.getValue("targets").jsonArray.single().jsonObject
         assertEquals(JsonNull, target.getValue("versionCodes"))
@@ -191,15 +190,15 @@ class CatalogToolTest {
     }
 
     @Test fun catalogOrderIsIndependentOfDiscoveryOrder() {
-        val first = resourcePatch("A", "First") { }
-        val last = resourcePatch("Z", "Last") { }
+        val first = patch("A", "First") { }
+        val last = patch("Z", "Last") { }
         assertEquals(CatalogTool.catalog("1", linkedSetOf(first, last)), CatalogTool.catalog("1", linkedSetOf(last, first)))
     }
 
     @Test fun replacingNamedHiddenOrTransitiveDependenciesChangesTheCatalog() {
         fun snapshot(name: String?, description: String?, child: String) = CatalogTool.catalog("1", setOf(
-            bytecodePatch("Feature") {
-                dependsOn(resourcePatch(name, description) { dependsOn(resourcePatch(child) { }) })
+            patch("Feature") {
+                dependsOn(patch(name, description) { dependsOn(patch(child) { }) })
             },
         ))
         assertNotEquals(snapshot("A", null, "Leaf"), snapshot("B", null, "Leaf"))
@@ -231,7 +230,7 @@ class CatalogToolTest {
     }
 
     @Test fun stringOptionsAreListedInKeyOrder() {
-        val entry = CatalogTool.catalog("1", setOf(bytecodePatch("Clone", default = false) {
+        val entry = CatalogTool.catalog("1", setOf(patch("Clone", default = false) {
             stringOption("cloneAppName", "Copy", null, "App name", "The name under the icon.", true) { it != null }
             stringOption("clonePackageName", "com.example.copy", null, "Package name", "The package name.", true) { it != null }
         }))["patches"]!!.jsonArray.single().jsonObject
@@ -247,7 +246,7 @@ class CatalogToolTest {
             "values" to JsonObject(emptyMap()),
         )), entry["options"]!!.jsonArray[1])
         assertFailsWith<IllegalArgumentException> {
-            CatalogTool.catalog("1", setOf(bytecodePatch("Untitled") { stringOption("bare", "a", null, null, null, false) }))
+            CatalogTool.catalog("1", setOf(patch("Untitled") { stringOption("bare", "a", null, null, null, false) }))
         }
     }
 

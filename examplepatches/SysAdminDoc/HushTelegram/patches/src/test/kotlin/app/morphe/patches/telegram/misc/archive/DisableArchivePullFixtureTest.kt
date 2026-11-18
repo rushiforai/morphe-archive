@@ -8,6 +8,7 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.PlusPending
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
 import app.morphe.patches.telegram.misc.extension.SETTINGS_STATUS
 import app.morphe.patches.telegram.misc.extension.localRegisterCount
@@ -31,6 +32,7 @@ import app.morphe.util.names.origName
 import app.morphe.util.names.tgMutableClassDefBy
 
 /** hasHiddenArchive, the archive row's sort, the chat list's menu, the stubs and the runtime. */
+@PlusPending
 class DisableArchivePullFixtureTest {
     @Test fun `a hidden archive stays out of the list and the menu opens it`() {
         for (build in Fixtures.declaredBuilds()) {

@@ -55,6 +55,7 @@ public final class GhostMode {
     private static final String TYPING_STATUS = "typing status";
     private static final String STORY_PLAY_STATS = "story play stats";
     private static final String ONLINE_STATUS = "online status";
+    static final String LIVE_ENTER = "live enter";
 
     /** TikTok's aweme types for a story; getIsTikTokStory covers the rest. */
     private static final int STORY_TYPE = 40;
@@ -136,12 +137,15 @@ public final class GhostMode {
      * A story's carries its aid, play_delta=1 and story_consumption_type beside the
      * reportStoryViewed call above, and with only that call blocked a second account still saw
      * the viewer (#39). Only a story's report is held back; a feed video's goes as before, and
-     * asks nothing of the export.
+     * asks nothing of the export. A story held back here is remembered as watched, so the inbox
+     * doesn't light its ring again after a restart (#427).
      */
     public static boolean shouldBlockStoryStats(Aweme aweme) {
         if (!isStory(aweme)) return false;
         // Either call alone puts you on the viewer list, so both follow the story views switch.
-        return answer(STORY_PLAY_STATS, Settings.GHOST_HIDE_STORY_VIEWS);
+        boolean block = answer(STORY_PLAY_STATS, Settings.GHOST_HIDE_STORY_VIEWS);
+        if (block) StoryReads.remember(aweme);
+        return block;
     }
 
     /**
@@ -152,6 +156,15 @@ public final class GhostMode {
      */
     public static boolean shouldBlockOnlineStatus() {
         return answer(ONLINE_STATUS, Settings.GHOST_HIDE_ONLINE_STATUS);
+    }
+
+    /**
+     * A LIVE room enter, the request that puts you on the host's viewer list (#420). Held back
+     * while Ghost mode and its Watch LIVEs unseen switch are on, unless the eye was tapped in
+     * that room to let the host see you.
+     */
+    static boolean holdLiveEnter(boolean revealed) {
+        return answer(LIVE_ENTER, !revealed && Settings.GHOST_MODE.get() && Settings.GHOST_HIDE_LIVE_VIEWS.get());
     }
 
     static boolean isStory(Aweme aweme) {

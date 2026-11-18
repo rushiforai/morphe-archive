@@ -545,6 +545,7 @@ final class SettingsText {
         ENGLISH.put("import_empty", "Nothing to paste. Copy your choices first.");
         ENGLISH.put("import_invalid", "Not a choices backup. Nothing changed.");
         ENGLISH.put("import_too_large", "That backup is bigger than 128 KB, so nothing changed.");
+        ENGLISH.put("import_zip_too_large", "That backup is too big, so nothing changed.");
         ENGLISH.put("export_too_large", "Your choices are too big for one backup.");
         ENGLISH.put("export_too_large_detail", "Most of it is from %s. Nothing was copied or saved.");
         ENGLISH.put("restore_failed", "Couldn't read that file. Try again, or pick another file.");
@@ -553,10 +554,12 @@ final class SettingsText {
         ENGLISH.put("import_unknown_many", "Skipped %d choices this version doesn't know.");
         ENGLISH.put("import_unavailable_one", "Skipped %d choice whose patch isn't installed.");
         ENGLISH.put("import_unavailable_many", "Skipped %d choices whose patches aren't installed.");
+        ENGLISH.put("import_damaged_one", "Skipped %d file that couldn't be used.");
+        ENGLISH.put("import_damaged_many", "Skipped %d files that couldn't be used.");
         ENGLISH.put("import_no_choices", "Nothing to restore. None of those match your patches.");
         ENGLISH.put("save_choices_file", "Save choices to a file");
         ENGLISH.put("read_choices_file", "Restore choices from a file");
-        ENGLISH.put("choices_file_help", "Saves your choices, up to 128 KB, auto replies and hidden or pinned chats included. Messages and pictures stay out of it, and so does your account. Choices missing from the file stay as they are. If settings close while you pick a file, pick it again.");
+        ENGLISH.put("choices_file_help", "Saves your choices, auto replies and hidden or pinned chats included. A header or tab picture, your own font, auto reply pictures or people Special contacts follows make it a .zip that carries them too. Messages stay out, and so does your account. Choices missing from the file stay as they are. If settings close while you pick a file, pick it again.");
         ENGLISH.put("choices_file_saved", "Choices file saved");
         ENGLISH.put("choices_file_saving", "Saving choices file...");
         ENGLISH.put("choices_file_reading", "Reading choices file...");

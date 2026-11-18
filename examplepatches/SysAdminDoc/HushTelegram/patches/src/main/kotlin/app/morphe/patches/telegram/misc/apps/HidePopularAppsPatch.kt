@@ -64,7 +64,7 @@ val hidePopularAppsPatch = bytecodePatch(
 ) {
     category("Search")
     dependsOn(settingsPatch, telegramExtensionPatch)
-    compatibleWith(*AppCompatibilities.telegram())
+    compatibleWith(*AppCompatibilities.telegramOnly())
 
     execute {
         requireStatusMethod("hidePopularApps")

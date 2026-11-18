@@ -8,6 +8,7 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.PlusPending
 import app.morphe.util.names.origRef
 import app.morphe.util.names.addInstructions
 import app.morphe.util.names.replaceInstruction
@@ -55,6 +56,7 @@ private const val MEDIA_DATA = "Lorg/telegram/messenger/MediaDataController;"
 private val FLAGS = listOf("disableDraftPreviews", "localDrafts", "localSearch", "linkPreviewRules") + DraftPreviewTarget.entries.map { it.capability }
 
 /** The builders' classes and the classes they hand work to are the whole context; nothing else is a target. */
+@PlusPending
 class DisableDraftPreviewsFixtureTest {
     @Test
     fun `every compose builder is gated before its request and keeps its stock flow`() {

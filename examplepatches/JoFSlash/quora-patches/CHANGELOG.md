@@ -1,3 +1,17 @@
+## [1.3.3](https://github.com/JoFSlash/quora-patches/compare/v1.3.2...v1.3.3) (2026-11-18)
+
+### 🐛 Bug Fixes
+
+* Show profile photos with Data saver, hide leftover counts and dots ([76751b1](https://github.com/JoFSlash/quora-patches/commit/76751b11e09c5b4dc15d1f02c064433705eb802b))
+
+## [1.3.2](https://github.com/JoFSlash/quora-patches/compare/v1.3.1...v1.3.2) (2026-11-18)
+
+### 🐛 Bug Fixes
+
+* Make page patches work in answer and post views, as seen on a phone ([71131be](https://github.com/JoFSlash/quora-patches/commit/71131bef5e4607472715dbf038b03be8ed8049ec))
+* Phone test fixes for ads, prompts, feed and Patch settings ([40f22c7](https://github.com/JoFSlash/quora-patches/commit/40f22c7dfdc1289c90a9bc2caaf038bbb1794a4f))
+* Save images, tap-to-load and Expand answers, tested on a phone ([c27af03](https://github.com/JoFSlash/quora-patches/commit/c27af03b88cc2bef734b731bff08401fa5413285))
+
 ## [1.3.1](https://github.com/JoFSlash/quora-patches/compare/v1.3.0...v1.3.1) (2026-11-17)
 
 ### 🐛 Bug Fixes

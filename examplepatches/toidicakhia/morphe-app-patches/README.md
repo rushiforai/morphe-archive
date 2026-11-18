@@ -1,4 +1,4 @@
-# 🧩 App Patches
+# 🧩 toidicakhia's patches
 
 Patches for Android apps, built for [Morphe](https://morphe.software).
 
@@ -18,6 +18,7 @@ This bundle currently supports:
 | NetMonster | 4.0.5 | Unlock premium |
 | HTTP Sniffer | 2.5.2-ad_mob, 2.4.9-ad_mob | Unlock VIP |
 | VTVGo | 12.11.05 | Remove video/product ads, disable analytics, remove Ad ID permissions |
+| TeraBox | 4.27.5 | Auto reward ads, auto claim tasks, spoof signature |
 
 Only the exact versions listed above are supported. Newer app releases usually need
 updated fingerprints before a patch can be applied.
@@ -227,7 +228,7 @@ python3 .github/scripts/generate_patches_readme.py \
 
 ## 🧑‍💻 Development workflow
 
-- Make changes on the `dev` branch.
+- Make changes on the `main` branch.
 - Use [semantic commit](https://kapeli.com/cheat_sheets/Semantic_Commits.docset/Contents/Resources/Documents/index)
   messages:
   - `feat: add a new feature`
@@ -237,7 +238,7 @@ python3 .github/scripts/generate_patches_readme.py \
   [release workflow](.github/workflows/release.yml) manually from the Actions tab
   (**Run workflow**). [`.releaserc`](.releaserc) determines the version from the commit
   history.
-- Run the workflow on `dev` for a pre-release and on `main` for a stable release.
+- Run the workflow on `main` to create a stable release.
 - Do not create releases or edit generated files manually.
 
 ## 🤓 Tips
@@ -251,4 +252,4 @@ python3 .github/scripts/generate_patches_readme.py \
 
 ## 📜 License
 
-App Patches are licensed under the [GNU General Public License v3.0](LICENSE).
+toidicakhia's patches are licensed under the [GNU General Public License v3.0](LICENSE).

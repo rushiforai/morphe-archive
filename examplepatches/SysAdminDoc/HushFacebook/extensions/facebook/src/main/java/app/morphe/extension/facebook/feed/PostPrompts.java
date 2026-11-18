@@ -438,4 +438,62 @@ public final class PostPrompts {
             return text;
         }
     }
+
+    private static volatile boolean bubblesLogged;
+
+    /** Counted under the patch's name each time the friend bubbles over a post's media are left out. */
+    static final String BUBBLES_HIDDEN = "Friend reaction bubbles kept out";
+
+    /**
+     * The hook, first thing in the render of the bubble row Facebook lays over a post's photo or
+     * video: each friend who reacted, as their picture with their reaction on it (#483). True makes
+     * the render answer null, its own answer for a post with no bubbles, so nothing is drawn over the
+     * media. False, which is the answer while the switch is off, paused, before the settings are
+     * ready or when anything here fails, lets Facebook draw the row.
+     */
+    public static boolean hideReactionBubbles() {
+        try {
+            HookStatus.invoked(FAMILY);
+            if (!Utils.settingsReady() || !Settings.HIDE_REACTION_BUBBLES.get()) return false;
+            HookStatus.bound(FAMILY, "reaction bubbles");
+            HookStatus.counted(FAMILY, BUBBLES_HIDDEN);
+            if (!bubblesLogged) {
+                bubblesLogged = true;
+                Logger.printDebug(() -> "Post prompts: a post's friend reaction bubbles were left out");
+            }
+            return true;
+        } catch (Throwable failure) {
+            HookStatus.threw(FAMILY, "reaction bubbles", failure);
+            return false;
+        }
+    }
+
+    private static volatile boolean reactorsLogged;
+
+    /** Counted under the patch's name each time the line naming who reacted to a post is left out. */
+    static final String REACTORS_HIDDEN = "Names of who reacted kept out";
+
+    /**
+     * The hook, first thing in the two checks the bar under a post's buttons uses to decide whether
+     * to name who reacted: the short "Name and others reacted" line and the "Name and 20 others"
+     * sentence (#483). True makes the check answer no, so the bar leaves that line out and keeps
+     * whatever else it shows. False, which is the answer while the switch is off, paused, before the
+     * settings are ready or when anything here fails, lets Facebook decide.
+     */
+    public static boolean hideReactorNames() {
+        try {
+            HookStatus.invoked(FAMILY);
+            if (!Utils.settingsReady() || !Settings.HIDE_REACTOR_NAMES.get()) return false;
+            HookStatus.bound(FAMILY, "who reacted");
+            HookStatus.counted(FAMILY, REACTORS_HIDDEN);
+            if (!reactorsLogged) {
+                reactorsLogged = true;
+                Logger.printDebug(() -> "Post prompts: the line naming who reacted to a post was left out");
+            }
+            return true;
+        } catch (Throwable failure) {
+            HookStatus.threw(FAMILY, "who reacted", failure);
+            return false;
+        }
+    }
 }

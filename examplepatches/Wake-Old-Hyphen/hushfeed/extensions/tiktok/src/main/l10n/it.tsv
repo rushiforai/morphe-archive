@@ -501,6 +501,15 @@ Entry %1$d has a field with the wrong data type.	La voce %1$d ha un campo con il
 Entry %1$d isn't an object.	La voce %1$d non è un oggetto.
 Errors	Errori
 Expand activity list	Espandi l'elenco delle attività
+Group likes per comment	Raggruppa i Mi piace per commento
+Show one row for each comment or video people liked, with everyone who liked it counted, instead of a new row for every few likes. Applies the next time the Likes list loads.	Mostra una riga per ogni commento o video che è piaciuto alle persone, contando tutti quelli che hanno messo Mi piace, invece di una riga nuova ogni pochi Mi piace. Vale dal prossimo caricamento dell'elenco dei Mi piace.
+Swap lists	Scambia elenchi
+Split the Activity page	Dividi la pagina Attività
+Show your newest comments at the top of the Activity page and likes below, each scrolling on its own. The bar between them swaps the two lists or hides the lower one until you bring it back. Picking another list from Activity still shows just that list. Applies the next time the page opens.	Mostra i commenti più recenti in alto nella pagina Attività e i Mi piace sotto, ognuno con il proprio scorrimento. La barra tra i due elenchi li scambia o nasconde quello in basso finché non lo mostri di nuovo. Se scegli un altro elenco da Attività, vedi ancora solo quell'elenco. Vale dalla prossima apertura della pagina.
+Hide likes	Nascondi Mi piace
+Show likes	Mostra Mi piace
+Hide comments	Nascondi commenti
+Show comments	Mostra commenti
 Explore or Community	Esplora o Community
 Export diagnostic report	Esporta rapporto diagnostico
 Export loaded values	Esporta i valori caricati
@@ -530,6 +539,8 @@ Filters, translation and copy options	Filtri, traduzione e opzioni di copia
 First caller	Primo chiamante
 First rejection:	Primo rifiuto:
 Fit the video to the screen	Adatta il video allo schermo
+Fill a tall screen instead	Riempi invece uno schermo alto
+With the switch above on, the video is cropped to fill a tall screen like a folding phone's front screen. A squarer one, like the big screen opened up, still shows the whole video.	Con l'interruttore sopra attivo, il video viene ritagliato fino a riempire uno schermo alto come quello esterno di un telefono pieghevole. Uno più quadrato, come quello grande da aperto, mostra ancora tutto il video.
 Fill the screen with the video	Riempi lo schermo con il video
 Crop the video until it covers the whole window. On a tall phone the black strip TikTok leaves under a video goes and so does a little of each side.	Ritaglia il video finché non copre l'intera finestra. Su un telefono molto allungato, la striscia nera che TikTok lascia sotto un video scompare, insieme a un po' di spazio su ogni lato.
 Focus	Focus
@@ -1433,6 +1444,27 @@ TikTok closed three times within a minute of starting, so Hushfeed paused itself
 A file named hushfeed-safe-mode in TikTok's folder under Android/data paused Hushfeed. Your settings stay as they are.	Un file chiamato hushfeed-safe-mode nella cartella di TikTok sotto Android/data ha messo in pausa Hushfeed. Le tue impostazioni restano come sono.
 Turn Hushfeed back on	Riattiva Hushfeed
 Pause Hushfeed	Metti in pausa Hushfeed
+Settings theme	Tema delle impostazioni
+Hushfeed language	Lingua di Hushfeed
+For Hushfeed's settings and messages. TikTok keeps its own language.	Per le impostazioni e i messaggi di Hushfeed. TikTok mantiene la sua lingua.
+# context: the rows below are each language's own name in the Hushfeed language list, kept as they are in every table
+English	English
+العربية	العربية
+Azərbaycan dili	Azərbaycan dili
+Deutsch	Deutsch
+Español	Español
+Bahasa Indonesia	Bahasa Indonesia
+Italiano	Italiano
+Português (Brasil)	Português (Brasil)
+Русский	Русский
+ไทย	ไทย
+Türkçe	Türkçe
+Tiếng Việt	Tiếng Việt
+简体中文	简体中文
+Match TikTok	Come TikTok
+Always dark	Sempre scuro
+Always light	Sempre chiaro
+Colors these settings and Hushfeed's own pop-ups.	Colora queste impostazioni e i pop-up di Hushfeed.
 Pause Hushfeed's switches after TikTok restarts. Your settings stay saved. Changes made when you patched, like the app's name or icon, stay.	Sospendi gli interruttori di Hushfeed dopo il riavvio di TikTok. Le impostazioni restano salvate. Le modifiche fatte con la patch, come il nome o l'icona dell'app, restano.
 Hushfeed turns back on when TikTok restarts.	Hushfeed si riattiva quando TikTok viene riavviato.
 The file hushfeed-safe-mode couldn't be removed. Delete it from TikTok's folder under Android/data to turn Hushfeed back on.	Non è stato possibile rimuovere il file hushfeed-safe-mode. Eliminalo dalla cartella di TikTok sotto Android/data per riattivare Hushfeed.
@@ -1818,6 +1850,8 @@ Hide the Service+ row under LIVE previews	Nascondi la riga Service+ sotto le ant
 A LIVE in the feed can show a Service+ line under the creator's name, such as Ask me anything. This keeps it hidden.	Un LIVE nel feed può mostrare una riga Service+ sotto il nome del creator, come «Chiedimi qualsiasi cosa». Questo la tiene nascosta.
 Play sounds TikTok pulled	Riproduci i suoni rimossi da TikTok
 Play the audio on videos TikTok silenced because their sound was pulled for copyright or in your region. TikTok may still say the sound isn't available.	Riproduce l'audio dei video che TikTok ha silenziato perché il loro suono è stato rimosso per copyright o nella tua regione. TikTok potrebbe continuare a indicare il suono come non disponibile.
+Play original audio	Riproduci l'audio originale
+Play videos and mini dramas in their own language instead of TikTok's AI dub in your app language. Captions and translations stay as they are.	Riproduce video e mini drama nella loro lingua invece del doppiaggio IA di TikTok nella lingua dell'app. Sottotitoli e traduzioni restano come sono.
 Match region fields in requests	Allinea i campi regione nelle richieste
 Keep the For You feed on your real SIM	Mantieni Per te sulla SIM reale
 With the SIM changed, TikTok can keep showing videos you've already watched. Turn this on to stop that. Sticker search and the rest of TikTok still see the SIM above, while For You asks for videos with your phone's own SIM country and carrier. Your IP address and account history still count.	Con la SIM cambiata, TikTok può continuare a mostrarti video che hai già visto. Attivalo per evitarlo. La ricerca degli sticker e il resto di TikTok vedono ancora la SIM qui sopra, mentre Per te chiede video con il paese e l'operatore della SIM del tuo telefono. Il tuo indirizzo IP e la cronologia dell'account contano ancora.
@@ -1833,6 +1867,10 @@ Clear screen hides a LIVE's chat, gifts and buttons so only the stream shows. Ti
 Keep clear screen in the next LIVE	Mantieni lo schermo pulito nella LIVE successiva
 # context: summary of Keep clear screen in the next LIVE; a room is a LIVE stream page, swiping moves to the next one (#354)
 A LIVE you swipe to comes back with its chat, gifts and buttons showing. This keeps clear screen on from room to room until you turn it off.	Una LIVE a cui scorri torna a mostrare chat, regali e pulsanti. Questo mantiene lo schermo pulito da una stanza all'altra finché non lo disattivi.
+# context: LIVE settings row under Keep clear screen in the next LIVE; adds TikTok's full screen button (turns the phone sideways for a wide stream) to LIVE rooms that lack it (#57)
+Offer full screen in more LIVEs	Offri lo schermo intero in più LIVE
+# context: summary of Offer full screen in more LIVEs; streamed from a computer means TikTok LIVE Studio, a wide video is a landscape stream (#57)
+TikTok shows its full screen button only in LIVEs streamed from a computer or a shared screen. This shows it in every other LIVE with a wide video.	TikTok mostra il pulsante schermo intero solo nelle LIVE trasmesse da un computer o da uno schermo condiviso. Così compare in ogni altra LIVE con un video largo.
 Dark LIVE panels in dark mode	Pannelli LIVE scuri in modalità scura
 With TikTok in dark mode, a LIVE room still opens its share menu, fan club and other panels in light colors. This opens them dark.	Con TikTok in modalità scura, una stanza LIVE apre comunque il menu di condivisione, il fan club e altri pannelli con colori chiari. Così si aprono scuri.
 Keep watching in a small window	Continua a guardare in una piccola finestra
@@ -2244,6 +2282,8 @@ Show the time zone	Mostra il fuso orario
 Puts your time zone after the time to the second, like EDT.	Mette il tuo fuso orario dopo l'ora al secondo, come EDT.
 Short date	Data breve
 Writes the date before the time to the second the short way your language does, like 10/7/25.	Scrive la data prima dell'ora al secondo nella forma breve della tua lingua, come 07/10/25.
+Day before month	Giorno prima del mese
+Writes TikTok's date by the creator's name day first, like 29.09, with the year after it for an older video. Ages like 2d ago stay as they are.	Scrive la data di TikTok accanto al nome del creator con il giorno per primo, come 29.09, e l'anno dopo per un video più vecchio. Le età come 2 g fa restano come sono.
 Color commenter names	Colora i nomi di chi commenta
 Give each commenter's name a color of its own, the same one every time you see that account, so a long thread is easier to follow.	Assegna al nome di ogni persona che commenta un colore tutto suo, sempre lo stesso per quell'account, così è più facile seguire una discussione lunga.
 Show the country as a flag	Mostra il paese come bandiera
@@ -2293,6 +2333,8 @@ How much of the video shows through the glass pill on the main feed. Most see-th
 On the main feed, a raised bubble of glass sits behind the tab you're on and slides to the next tab you pick. Works on any bottom bar, with or without Liquid glass look.	Nel feed principale, una bolla di vetro in rilievo sta dietro la scheda in cui sei e scivola sulla prossima scheda che scegli. Funziona con qualsiasi barra in basso, con o senza Aspetto vetro liquido.
 Slide across the tabs	Scorri tra le schede
 On the main feed, slide a finger along the tabs and the lens follows it. Let go and that tab opens. Taps and long presses work as before. Needs Glass lens on the current tab.	Nel feed principale, fai scorrere un dito lungo le schede e la lente lo segue. Lascia e si apre quella scheda. I tocchi e le pressioni lunghe funzionano come prima. Richiede Lente di vetro sulla scheda attuale.
+Liquid glass when held	Vetro liquido tenendo premuto
+On the main feed, hold a finger on the tabs and the glass lens swells, then wobbles back when you let go. With Blur the video behind the bar on Android 13 and up, the video under it bends harder and splits into color at its edge. Needs Glass lens on the current tab.	Nel feed principale, tieni un dito sulle schede e la lente di vetro si gonfia, poi torna indietro ondeggiando quando lasci. Con Sfoca il video dietro la barra su Android 13 e successivi, il video sotto di essa si piega di più e si divide in colori sul bordo. Richiede Lente di vetro sulla scheda attuale.
 Haptics on the tabs	Vibrazione sulle schede
 On the main feed, a light tick each time the glass lens passes a tab, as it slides after a tap or under your finger. Needs Glass lens on the current tab.	Nel feed principale, un leggero tic ogni volta che la lente di vetro passa su una scheda, mentre scivola dopo un tocco o sotto il tuo dito. Richiede Lente di vetro sulla scheda attuale.
 Haptic style	Stile della vibrazione
@@ -2449,6 +2491,8 @@ search suggestions	suggerimenti di ricerca
 AI chat	chat IA
 AI Tako	IA Tako
 save photos	salva foto
+download button	pulsante di download scarica
+It's in %1$s, under %2$s. Tap to go there.	Si trova in %1$s, sotto %2$s. Tocca per andarci.
 Lock the feed at set times	Blocca il feed a orari fissi
 The feed locks by itself during these hours, on your phone's clock. Write days and hours like Mon-Fri 21:00-07:00; Sat Sun 13:00-15:00. Leave the days out for every day. A time that ends earlier than it starts runs past midnight.	Il feed si blocca da solo in queste ore, secondo l'orologio del telefono. Scrivi giorni e orari come Mon-Fri 21:00-07:00; Sat Sun 13:00-15:00. Ometti i giorni per farlo valere ogni giorno. Un orario che finisce prima di iniziare va oltre la mezzanotte.
 Couldn't read %1$s. Write days and hours like Mon-Fri 21:00-07:00.	Impossibile leggere %1$s. Scrivi giorni e orari come Mon-Fri 21:00-07:00.
@@ -2514,6 +2558,16 @@ Proxy %1$s needs a user name and password	Il proxy %1$s richiede nome e password
 Proxy %1$s refused your user name or password	Il proxy %1$s rifiuta nome o password
 Save this video	Salva questo video
 Show the save button on videos	Mostra il pulsante per salvare sui video
+Hold TikTok's save button to download	Tieni premuto il pulsante Salva di TikTok per scaricare
+Press and hold the save button in the right column to save the video with your download settings. A tap still adds it to Favorites. It wins over Hold speed on Favorites.	Tieni premuto il pulsante Salva nella colonna destra per salvare il video con le tue impostazioni di download. Un tocco lo aggiunge comunque ai Preferiti. Ha la precedenza su Velocità accelerata su Preferiti.
+Size of the buttons on videos	Dimensione dei pulsanti sui video
+Size of the LIVE buttons	Dimensione dei pulsanti LIVE
+Smallest	Minima
+Small	Piccola
+Large	Grande
+Line them up over the right column	Allineali sopra la colonna destra
+Stack the buttons above TikTok's own on the right, starting over the avatar. They follow the column instead of staying where you dragged them.	Impila i pulsanti sopra quelli di TikTok a destra, partendo sopra l'avatar. Seguono la colonna invece di restare dove li hai trascinati.
+Turn off Line them up over the right column to move it	Disattiva Allineali sopra la colonna destra per spostarlo
 Add a button beside the block control that saves the video on screen in one tap. Drag it wherever you like.	Aggiunge un pulsante accanto al controllo di blocco che salva il video sullo schermo con un tocco. Trascinalo dove vuoi.
 Couldn't save this one. Try again.	Non salvato. Riprova.
 Opening TikTok or your messages no longer pauses music from another app. TikTok takes the sound while a video plays and gives it back when you leave the video.	Aprire TikTok o i tuoi messaggi non mette più in pausa la musica di un'altra app. TikTok prende l'audio mentre un video è in riproduzione e lo restituisce quando esci dal video.
@@ -2611,6 +2665,18 @@ Clearing Favorites in %1$d	Svuotamento dei Preferiti tra %1$d
 Reposts removed: %1$d	Ripubblicazioni rimosse: %1$d
 Likes removed: %1$d	Mi piace rimossi: %1$d
 Favorites removed: %1$d	Rimossi dai Preferiti: %1$d
+Remove all comments	Rimuovi tutti i commenti
+Deletes every comment you've posted one after another.	Elimina ogni commento che hai pubblicato, uno dopo l'altro.
+Remove selected comments	Rimuovi i commenti scelti
+Pick comments from your comment history to delete.	Scegli dalla cronologia dei commenti quelli da eliminare.
+Removing all comments in %1$d	Rimozione dei commenti tra %1$d
+Removing the picked comments in %1$d	Rimozione dei commenti scelti tra %1$d
+Comments removed: %1$d	Commenti rimossi: %1$d
+TikTok refused to list your comments	TikTok non ha voluto elencare i tuoi commenti
+Couldn't load your comments. Try again.	Impossibile caricare i tuoi commenti. Riprova.
+Loading your comments	Caricamento dei tuoi commenti
+No comments to show	Nessun commento da mostrare
+No text	Nessun testo
 Nothing to remove	Niente da rimuovere
 Done. %1$d removed.	Fatto. Rimossi: %1$d.
 Stopped. %1$d removed.	Interrotto. Rimossi: %1$d.
@@ -2620,6 +2686,14 @@ Not available on this TikTok version	Non disponibile in questa versione di TikTo
 Sign in to TikTok first	Prima accedi a TikTok
 A removal is already running	Una rimozione è già in corso
 Cancelled	Annullato
+# context: A switch under Clean up your account on the Privacy page
+Tap a video to remove it	Tocca un video per rimuoverlo
+In your own Liked videos, Favorites and Reposts, a tap takes the video off that list instead of opening it.	Nei tuoi video con Mi piace, nei Preferiti e nelle ripubblicazioni, un tocco toglie il video da quell'elenco invece di aprirlo.
+# context: Toasts after one tap on your own Liked, Favorites or Reposts grid removes a video, or fails to
+Couldn't remove that video. Try again.	Impossibile rimuovere il video. Riprova.
+Removed from Liked videos	Rimosso dai video con Mi piace
+Removed from Favorites	Rimosso dai Preferiti
+Removed from Reposts	Rimosso dalle ripubblicazioni
 Show inbox filters	Mostra i filtri della posta in arrivo
 Adds the Main, Requests, Unread and Starred tabs above your chats, the ones TikTok gives creator accounts.	Aggiunge sopra le tue chat le schede Principale, Richieste, Non letti e Preferiti, quelle che TikTok dà agli account creator.
 Rebuild message search	Ricostruisci la ricerca dei messaggi
@@ -2861,3 +2935,80 @@ Account country on profiles	Paese dell'account nei profili
 A profile's share sheet gets an Account country button. It asks TikTok where that account is based, or where its latest videos were posted from.	Il menu di condivisione di un profilo ottiene un pulsante Paese dell'account. Chiede a TikTok dove si trova quell'account, o da dove sono stati pubblicati i suoi ultimi video.
 Account country	Paese dell'account
 Videos posted from %1$s	Paese dei video: %1$s
+Long-press Profile for Activity center	Tieni premuto su Profilo per il Centro attività
+# context: Summary under that switch; Long-press Profile for Watch history is the row just above it
+Press and hold the Profile tab to open TikTok's Activity center. A tap on Profile works as before. While Long-press Profile for Watch history is on, that one takes the press.	Tieni premuto sulla scheda Profilo per aprire il Centro attività di TikTok. Un tocco su Profilo funziona come prima. Finché Tieni premuto su Profilo per la cronologia visualizzazioni è attivo, prende quel gesto.
+Share the video after a save	Condividi il video dopo il salvataggio
+# context: Summary under Share the video after a save, a switch in Downloads
+Opens Android's share sheet with the file as soon as a video is saved, video stories included, so you can send it straight to WhatsApp, Telegram or any other app. Picked videos saved together get the usual notice.	Apre il menu di condivisione di Android con il file appena un video viene salvato, storie video comprese, così puoi inviarlo subito a WhatsApp, Telegram o qualsiasi altra app. I video scelti salvati insieme ricevono il solito avviso.
+Caption spot in Clear display	Posizione dei sottotitoli nella vista pulita
+# context: A choice for Caption spot in Clear display: the kept caption stays where TikTok draws its own
+Where TikTok shows it	Dove li mostra TikTok
+# context: The other choice for Caption spot in Clear display: the kept caption sits lower on the screen
+Lower, near the bottom	Più in basso, vicino al bordo inferiore
+# context: A switch on the Playback page beside Fit, Fill and Stretch: the video covers the screen with a little cropping and a little stretching
+Crop and stretch to fill the screen	Ritaglia e allunga per riempire lo schermo
+# context: Summary for Crop and stretch to fill the screen. Fill and Stretch are the names of the switches above it
+Cover the whole window with half the crop of Fill and half the stretch of Stretch, so neither is easy to spot. A video far from the screen's shape keeps TikTok's size.	Copre tutta la finestra con metà del ritaglio di Riempi e metà dell'allungamento di Allunga, così nessuno dei due si nota molto. Un video con una forma molto diversa da quella dello schermo mantiene le dimensioni di TikTok.
+Watch LIVEs unseen	Guarda le LIVE senza farti vedere
+You stay off the viewer list of LIVEs you open. Tap the eye in a LIVE to let that host see you. Needs Ghost mode on.	Non comparirai nell'elenco degli spettatori delle LIVE che apri. Tocca l'occhio in una LIVE per farti vedere da chi la conduce. Serve la modalità fantasma attiva.
+The host can see you	Chi conduce può vederti
+Let the host see you	Fatti vedere da chi conduce
+Couldn't tell which LIVE this is. Open it again.	Impossibile capire quale LIVE sia. Riaprila.
+The host can already see you in this LIVE	Chi conduce ti vede già in questa LIVE
+Letting the host see you	Ti stai facendo vedere da chi conduce
+The host can see you now	Ora chi conduce può vederti
+The host sees you next time you open it	Chi conduce ti vedrà la prossima volta che la apri
+Couldn't reach TikTok. Open this LIVE again.	Impossibile raggiungere TikTok. Riapri questa LIVE.
+LIVE name alerts	Avvisi del tuo nome nelle LIVE
+Tells you when your name comes up in a LIVE, in the chat or said out loud in a room with captions on. You get a notification when TikTok's notifications are on, and a banner in the room when they're off.	Ti avvisa quando il tuo nome viene fuori in una LIVE, in chat o detto ad alta voce in una stanza con i sottotitoli attivi. Ricevi una notifica se le notifiche di TikTok sono attive, altrimenti un banner nella stanza.
+Names to listen for	Nomi da ascoltare
+Your handle and TikTok name are on the list already. Add other names people call you, separated by commas.	Il tuo nome utente e il tuo nome TikTok sono già nella lista. Aggiungi altri nomi con cui ti chiamano, separati da virgole.
+Your name came up in a LIVE	Il tuo nome è venuto fuori in una LIVE
+Listen for your name	Ascolta il tuo nome
+Also listens to the LIVE's sound, so your name counts when it's said out loud in rooms without captions. Your phone's own speech recognition does the listening, with TikTok's microphone permission. It hears only the LIVE, though Android shows its microphone dot, and it uses a little more data.	Ascolta anche l'audio della LIVE, così il tuo nome conta quando viene detto ad alta voce nelle stanze senza sottotitoli. Ad ascoltare è il riconoscimento vocale del tuo telefono, con l'autorizzazione al microfono di TikTok. Sente solo la LIVE, anche se Android mostra il suo puntino del microfono, e usa un po' più di dati.
+Needs Android 13 or newer.	Richiede Android 13 o versioni successive.
+Off: this phone's speech recognition only hears the microphone. Turn this off and on to try again.	Disattivato: il riconoscimento vocale di questo telefono sente solo il microfono. Disattiva e riattiva l'opzione per riprovare.
+This phone has no speech recognition. Choose one under Android's voice input settings, then open the LIVE again.	Questo telefono non ha il riconoscimento vocale. Scegline uno nelle impostazioni di input vocale di Android, poi riapri la LIVE.
+TikTok needs the microphone permission for speech recognition. Allow it in Android's app settings, then open the LIVE again.	TikTok ha bisogno dell'autorizzazione al microfono per il riconoscimento vocale. Consentila nelle impostazioni delle app di Android, poi riapri la LIVE.
+Speech recognition has no model for your phone's language. Download one in Android's speech settings, then open the LIVE again.	Il riconoscimento vocale non ha un modello per la lingua del telefono. Scaricane uno nelle impostazioni vocali di Android, poi riapri la LIVE.
+Speech recognition kept failing in the last LIVE. Open the LIVE again to retry.	Il riconoscimento vocale ha continuato a non funzionare nell'ultima LIVE. Riapri la LIVE per riprovare.
+Save the photo posts as one video?	Salvare i post di foto come un unico video?
+One video	Un video
+One per post	Uno per post
+# context: A switch on the Playback page beside Fit, Fill, Stretch and Crop and stretch: the video covers the screen, its middle keeps its own shape and only bands along the top and bottom are stretched
+Keep the middle unstretched	Mantieni il centro senza allungarlo
+# context: Summary for Keep the middle unstretched
+Cover the whole window and keep the middle of the video at its own shape. A little comes off the sides, and only the top and bottom are stretched. A video far from the screen's shape keeps TikTok's size.	Copre tutta la finestra e mantiene il centro del video nella sua forma. Si perde un po' dai lati e vengono allungate solo la parte superiore e quella inferiore. Un video con una forma molto diversa da quella dello schermo mantiene le dimensioni di TikTok.
+# context: A Feature Gate Lab preset title: when a video is paused, TikTok shows a search tag on things in the frame, which opens its visual search
+Visual search on paused videos	Ricerca visiva nei video in pausa
+App icon	Icona dell'app
+Some home screens drop the icon when it changes. If yours does, add TikTok back from the app list.	Alcune schermate Home rimuovono l'icona quando cambia. Se la tua lo fa, aggiungi di nuovo TikTok dall'elenco delle app.
+Icon changed	Icona cambiata
+Couldn't change the icon. Try again.	Impossibile cambiare l'icona. Riprova.
+TikTok colors	Colori di TikTok
+Black background	Sfondo nero
+White on black	Bianco su nero
+Black on white	Nero su bianco
+Material You	Material You
+Your icon	La tua icona
+Save episodes	Salva episodi
+Pick episodes to save	Scegli gli episodi da salvare
+Episode %1$s	Episodio %1$s
+Preview only	Solo anteprima
+Loading episodes	Caricamento degli episodi
+Couldn't load the episodes. Try again.	Impossibile caricare gli episodi. Riprova.
+Pick at least one episode	Scegli almeno un episodio
+Saving %1$s. Tap Save again for the rest.	Salvo %1$s. Tocca di nuovo Salva per gli altri.
+Save episodes button in the share sheet	Pulsante Salva episodi nel menu di condivisione
+Adds Save episodes when you share an episode of a mini drama. It lists the drama's episodes so you can pick several and save them in one go. An episode you haven't unlocked saves only its preview.	Aggiunge Salva episodi quando condividi un episodio di un mini drama. Elenca gli episodi del drama, così puoi sceglierne diversi e salvarli in una volta. Di un episodio che non hai sbloccato si salva solo l'anteprima.
+Save to a collection	Salva in una raccolta
+Collections aren't available for this video	Le raccolte non sono disponibili per questo video
+# context: Inbox settings, two switches under Hide On this day. The first hides LIVE circles in the stories tray from accounts the user doesn't follow. The second hides the Widget circle TikTok puts at the end of the tray, which offers its home screen widget.
+Hide LIVEs from accounts you don't follow	Nascondi i LIVE degli account che non segui
+LIVEs from accounts you don't follow leave the stories tray. LIVEs from accounts you follow stay.	I LIVE degli account che non segui escono dalla barra delle storie. I LIVE degli account che segui restano.
+Hide the Widget circle	Nascondi il cerchio Widget
+The Widget circle at the end of the stories tray goes. TikTok's home screen widget still works.	Il cerchio Widget alla fine della barra delle storie sparisce. Il widget di TikTok per la schermata Home continua a funzionare.
+# context: Feed screen settings, a switch under Show video length on profile grids. It removes the view count and the play icon from each video tile on profile grids. If the date, video length or engagement rate are switched on, they take the first line instead.
+Hide view counts on profile grids	Nascondi le visualizzazioni nella griglia del profilo
+Takes the view count and its play icon off each video on profile grids. Dates, lengths and the engagement rate you turned on move up in its place.	Toglie il numero di visualizzazioni e la sua icona di riproduzione da ogni video nella griglia del profilo. Date, durate e tasso di interazione che hai attivato salgono al suo posto.

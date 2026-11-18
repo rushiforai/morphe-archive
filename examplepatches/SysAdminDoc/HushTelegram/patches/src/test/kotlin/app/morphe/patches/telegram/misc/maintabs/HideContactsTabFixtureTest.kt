@@ -8,6 +8,7 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.PlusPending
 import app.morphe.util.names.addInstruction
 import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
@@ -38,6 +39,7 @@ import app.morphe.util.names.origName
 import app.morphe.util.names.tgMutableClassDefBy
 
 /** Telegram's main screen, its bar and tab views, its pager and the runtime. */
+@PlusPending
 class HideContactsTabFixtureTest {
     @Test fun `the Contacts tab is hidden each time the bar is set, and a swipe asks before landing on its page`() {
         for (build in Fixtures.declaredBuilds()) {

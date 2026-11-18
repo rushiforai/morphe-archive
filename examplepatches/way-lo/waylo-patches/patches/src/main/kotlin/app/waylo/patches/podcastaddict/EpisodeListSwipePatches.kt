@@ -11,6 +11,9 @@ import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 
 private const val EPISODE_LIST_SWIPE_CLASS = "Lapp/waylo/extension/podcastaddict/EpisodeListSwipe;"
+private const val ABS_LIST_VIEW = "Landroid/widget/AbsListView;"
+
+private fun isListType(type: String) = type == ABS_LIST_VIEW || type.endsWith("RecyclerView;")
 
 /**
  * Shared by the episode list swipe patches: hands every episode list view to the extension when
@@ -25,26 +28,37 @@ private val episodeListSwipeHookPatch = patch(
         val method = EpisodeListCreationFingerprint.method
         val instructions = method.implementation!!.instructions.toList()
 
-        // fragment.listView = (AbsListView) view.findViewById(android.R.id.list)
-        val index = instructions.indexOfFirst { instruction ->
+        // fragment.listView = view.findViewById(...), the last list assignment before the log
+        // string. The list is a ListView (AbsListView) up to 2026.14 and a RecyclerView after.
+        val stringIndex = EpisodeListCreationFingerprint.stringMatches.first().index
+        val index = instructions.subList(0, stringIndex).indexOfLast { instruction ->
             instruction.opcode == Opcode.IPUT_OBJECT &&
-                    ((instruction as ReferenceInstruction).reference as FieldReference).type ==
-                    "Landroid/widget/AbsListView;"
+                    isListType(((instruction as ReferenceInstruction).reference as FieldReference).type)
         }
         if (index < 0) throw PatchException("Episode list view assignment not found")
 
         val assignment = instructions[index] as TwoRegisterInstruction
+        val listType = ((instructions[index] as ReferenceInstruction).reference as FieldReference).type
         val listRegister = assignment.registerA
         val fragmentRegister = assignment.registerB
         if (listRegister > 15 || fragmentRegister > 15) {
             throw PatchException("Episode list registers v$fragmentRegister, v$listRegister are out of range")
         }
 
-        method.addInstructions(
-            index + 1,
-            "invoke-static { v$fragmentRegister, v$listRegister }, " +
-                    "$EPISODE_LIST_SWIPE_CLASS->attach(Ljava/lang/Object;Landroid/widget/AbsListView;)V"
-        )
+        if (listType == ABS_LIST_VIEW) {
+            method.addInstructions(
+                index + 1,
+                "invoke-static { v$fragmentRegister, v$listRegister }, " +
+                        "$EPISODE_LIST_SWIPE_CLASS->attach(Ljava/lang/Object;Landroid/widget/AbsListView;)V"
+            )
+        } else {
+            method.addInstructions(
+                index + 1,
+                "invoke-static { v$fragmentRegister, v$listRegister }, " +
+                        "$EPISODE_LIST_SWIPE_CLASS->attachRecycler(Ljava/lang/Object;Landroid/view/View;)V"
+            )
+            hookRecyclerTouch(listType)
+        }
     }
 }
 

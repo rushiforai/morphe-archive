@@ -7,8 +7,10 @@
 package app.morphe.extension.tiktok.settings.preference.categories;
 
 import android.content.Context;
+import android.os.Build;
 import android.preference.PreferenceScreen;
 import android.text.InputType;
+import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.settings.BooleanSetting;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.L10n;
@@ -38,6 +40,7 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
                 || SettingsStatus.storyControlsEnabled
                 || SettingsStatus.liveControlsEnabled
                 || SettingsStatus.feedMuteEnabled || SettingsStatus.keepPulledSoundsEnabled
+                || SettingsStatus.originalAudioEnabled
                 || SettingsStatus.backgroundPlayEnabled || SettingsStatus.pictureInPictureEnabled
                 || SettingsStatus.showSeekbarEnabled || SettingsStatus.seekbarThumbnailEnabled
                 || SettingsStatus.stopVideoLoopingEnabled || SettingsStatus.resumeVideoAfterScrollEnabled
@@ -150,6 +153,10 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
                     "A LIVE you swipe to comes back with its chat, gifts and buttons showing. This "
                             + "keeps clear screen on from room to room until you turn it off.",
                     Settings.KEEP_LIVE_CLEAR_SCREEN));
+            addPreference(new TogglePreference(context, "Offer full screen in more LIVEs",
+                    "TikTok shows its full screen button only in LIVEs streamed from a computer or "
+                            + "a shared screen. This shows it in every other LIVE with a wide video.",
+                    Settings.OFFER_LIVE_FULL_SCREEN));
             addPreference(new TogglePreference(context, "Dark LIVE panels in dark mode",
                     "With TikTok in dark mode, a LIVE room still opens its share menu, fan club "
                             + "and other panels in light colors. This opens them dark.",
@@ -183,6 +190,40 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
             addPreference(new ChoicePreference(context, "Auto tap speed", Settings.LIVE_AUTO_TAP_RATE,
                     app.morphe.extension.tiktok.live.LiveAutoTap.RATE_LABELS,
                     app.morphe.extension.tiktok.live.LiveAutoTap.RATE_VALUES));
+            // #359: Record, Auto tap, Block and the eye can cover the room's own buttons on small screens.
+            addPreference(new ChoicePreference(context, "Size of the LIVE buttons", Settings.LIVE_BUTTON_SIZE,
+                    new String[]{"Smallest", "Small", "Normal"},
+                    new String[]{"32", "40", "48"}));
+            addPreference(new TogglePreference(context, "LIVE name alerts",
+                    "Tells you when your name comes up in a LIVE, in the chat or said out loud in a room "
+                            + "with captions on. You get a notification when TikTok's notifications are on, "
+                            + "and a banner in the room when they're off.",
+                    Settings.LIVE_NAME_ALERTS));
+            InputTextPreference alertNames = new InputTextPreference(context, "Names to listen for",
+                    "Your handle and TikTok name are on the list already. Add other names people call "
+                            + "you, separated by commas.",
+                    Settings.LIVE_NAME_ALERT_NAMES);
+            alertNames.withNameKeyboard();
+            addPreference(alertNames);
+            TogglePreference listen = new TogglePreference(context, "Listen for your name",
+                    "Also listens to the LIVE's sound, so your name counts when it's said out loud in "
+                            + "rooms without captions. Your phone's own speech recognition does the "
+                            + "listening, with TikTok's microphone permission. It hears only the LIVE, "
+                            + "though Android shows its microphone dot, and it uses a little more data.",
+                    Settings.LIVE_NAME_ALERTS_LISTEN);
+            Runnable refreshListen = () -> listen.showExtraLine(
+                    app.morphe.extension.tiktok.live.LiveListen.statusLine(context));
+            refreshListen.run();
+            // The listener runs before the change is saved, so the work waits a turn of the main thread.
+            listen.setOnPreferenceChangeListener((preference, value) -> {
+                boolean on = Boolean.TRUE.equals(value);
+                Utils.runOnMainThread(() -> {
+                    app.morphe.extension.tiktok.live.LiveListen.settingChanged(context, on);
+                    refreshListen.run();
+                });
+                return true;
+            });
+            addPreference(listen);
         }
         if (SettingsStatus.stopVideoLoopingEnabled) {
             addPreference(new TogglePreference(
@@ -204,7 +245,8 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
         // leave. The bar rows were on App and the frame rows under Quality, which they aren't.
         if (SettingsStatus.showSeekbarEnabled || SettingsStatus.seekbarThumbnailEnabled
                 || SettingsStatus.videoFitEnabled || SettingsStatus.feedMuteEnabled
-                || SettingsStatus.keepPulledSoundsEnabled || SettingsStatus.backgroundPlayEnabled
+                || SettingsStatus.keepPulledSoundsEnabled || SettingsStatus.originalAudioEnabled
+                || SettingsStatus.backgroundPlayEnabled
                 || SettingsStatus.pictureInPictureEnabled) {
             addPreference(new SectionHeadingPreference(context, "Player"));
         }
@@ -290,26 +332,53 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
                             + "taller or wider to do it. A video far from the screen's shape keeps "
                             + "TikTok's size.",
                     Settings.STRETCH_VIDEO_TO_SCREEN);
+            TogglePreference blend = new TogglePreference(context, "Crop and stretch to fill the screen",
+                    "Cover the whole window with half the crop of Fill and half the stretch of "
+                            + "Stretch, so neither is easy to spot. A video far from the screen's "
+                            + "shape keeps TikTok's size.",
+                    Settings.BLEND_VIDEO_TO_SCREEN);
+            // Drawn with a shader Android 13 brought in (#421). Below that it would only crop
+            // and stretch like the row above, so it isn't offered.
+            TogglePreference middle = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+                    ? new TogglePreference(context, "Keep the middle unstretched",
+                    "Cover the whole window and keep the middle of the video at its own shape. "
+                            + "A little comes off the sides, and only the top and bottom are "
+                            + "stretched. A video far from the screen's shape keeps TikTok's size.",
+                    Settings.KEEP_MIDDLE_VIDEO_TO_SCREEN)
+                    : null;
             // One at a time: each sizes the video its own way, so turning one on turns the rest off.
-            TogglePreference[] rows = {fit, fill, stretch};
+            TogglePreference[] rows = middle == null
+                    ? new TogglePreference[]{fit, fill, stretch, blend}
+                    : new TogglePreference[]{fit, fill, stretch, blend, middle};
             BooleanSetting[] switches = {Settings.FIT_VIDEO_TO_SCREEN, Settings.FILL_VIDEO_TO_SCREEN,
-                    Settings.STRETCH_VIDEO_TO_SCREEN};
+                    Settings.STRETCH_VIDEO_TO_SCREEN, Settings.BLEND_VIDEO_TO_SCREEN,
+                    Settings.KEEP_MIDDLE_VIDEO_TO_SCREEN};
             for (int index = 0; index < rows.length; index++) {
                 int chosen = index;
                 rows[index].setOnPreferenceChangeListener((preference, value) -> {
                     if (Boolean.TRUE.equals(value)) {
-                        for (int other = 0; other < rows.length; other++) {
+                        // Every other switch, the one not offered below Android 13 included, so
+                        // a backup that carried it can't take over once this goes off again.
+                        for (int other = 0; other < switches.length; other++) {
                             if (other == chosen) continue;
                             switches[other].save(false);
-                            rows[other].setChecked(false);
+                            if (other < rows.length) rows[other].setChecked(false);
                         }
                     }
                     return true;
                 });
             }
             addPreference(fit);
+            // #345: Fit for a folding phone's opened screen, Fill for its tall front one.
+            addPreference(new TogglePreference(context, "Fill a tall screen instead",
+                    "With the switch above on, the video is cropped to fill a tall screen like a "
+                            + "folding phone's front screen. A squarer one, like the big screen "
+                            + "opened up, still shows the whole video.",
+                    Settings.FIT_FILLS_TALL_SCREEN));
             addPreference(fill);
             addPreference(stretch);
+            addPreference(blend);
+            if (middle != null) addPreference(middle);
         }
         if (SettingsStatus.feedMuteEnabled) {
             addPreference(new TogglePreference(context, "Mute feed videos",
@@ -328,6 +397,12 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
                             + "copyright or in your region. TikTok may still say the sound isn't "
                             + "available.",
                     Settings.KEEP_PULLED_SOUNDS));
+        }
+        if (SettingsStatus.originalAudioEnabled) {
+            addPreference(new TogglePreference(context, "Play original audio",
+                    "Play videos and mini dramas in their own language instead of TikTok's AI dub "
+                            + "in your app language. Captions and translations stay as they are.",
+                    Settings.ORIGINAL_AUDIO));
         }
         if (SettingsStatus.backgroundPlayEnabled) {
             addPreference(new TogglePreference(context, "Keep playing in the background",

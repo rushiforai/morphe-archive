@@ -7,6 +7,7 @@ package app.morphe.patches.tiktok.interaction.pip
 import app.morphe.Fixtures
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patches.tiktok.interaction.blockauthor.PLAYER_CONTROLLER
 import app.morphe.patches.tiktok.interaction.live.LIVE_PLAY_FRAGMENT
 import app.morphe.takes
 import app.morphe.util.getReference
@@ -28,6 +29,7 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction10x
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11x
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21c
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction22c
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction35c
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableFieldReference
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference
@@ -307,6 +309,113 @@ class PictureInPictureAnchorsTest {
                 stockOpcodes.filter { it != Opcode.NOP },
                 (patched.take(result + 1) + patched.drop(result + 3)).map { it.opcode }.filter { it != Opcode.NOP })
         }
+    }
+
+    @Test
+    fun `each declared build hands the page-select step's on-screen answer over right before the step reads it`() {
+        Fixtures.forEachDeclared { apk ->
+            val classes = classesOf(apk)
+            val step = classes.values.flatMap { classDef ->
+                classDef.methods.filter { FeedPageSelectPlayFingerprint.takes(it, classDef) }
+            }.single()
+            val mutable = MutableMethod(step)
+            // The patch's order: the paused answer first, then this one, found after that hook.
+            mutable.keepPageSelectPlayingInWindow(pageSelectPausedResult(mutable))
+            val result = pageSelectVisibleResult(mutable)
+            val before = mutable.implementation!!.instructions.toList()
+            val answer = (before[result] as OneRegisterInstruction).registerA
+            val read = before[result + 1]
+            assertEquals("${apk.name}: the step reads the answer straight away", Opcode.IF_NEZ, read.opcode)
+            assertEquals(answer, (read as OneRegisterInstruction).registerA)
+            val jumps = before.filterIsInstance<BuilderOffsetInstruction>().filter { it.target.location.index == result + 1 }
+            val beforeOpcodes = before.map { it.opcode }
+
+            mutable.showPageSelectFeedInWindow(result)
+            val patched = mutable.implementation!!.instructions.toList()
+            val hand = patched[result + 1]
+            assertEquals(Opcode.INVOKE_STATIC_RANGE, hand.opcode)
+            assertEquals(answer, (hand as RegisterRangeInstruction).startRegister)
+            assertEquals(1, hand.registerCount)
+            val ask = hand.getReference<MethodReference>()!!
+            assertEquals(EXTENSION, ask.definingClass)
+            assertEquals("pageSelectVisible", ask.name)
+            assertEquals(listOf("I"), ask.parameterTypes.map(CharSequence::toString))
+            assertEquals(Opcode.MOVE_RESULT, patched[result + 2].opcode)
+            assertEquals(answer, (patched[result + 2] as OneRegisterInstruction).registerA)
+            assertEquals(Opcode.IF_NEZ, patched[result + 3].opcode)
+            jumps.forEach { assertEquals("${apk.name}: a path skips the hook", result + 1, it.target.location.index) }
+            assertEquals("${apk.name}: TikTok's page-select step changed",
+                beforeOpcodes.filter { it != Opcode.NOP },
+                (patched.take(result + 1) + patched.drop(result + 3)).map { it.opcode }.filter { it != Opcode.NOP })
+        }
+    }
+
+    @Test
+    fun `each declared build hands the player's in-front flag over right after the can-play check reads it`() {
+        Fixtures.forEachDeclared { apk ->
+            val classes = classesOf(apk)
+            val taken = classes.getValue(PLAYER_CONTROLLER).methods.filter {
+                PlayerCanPlayFingerprint.takes(it, classes.getValue(PLAYER_CONTROLLER))
+            }
+            assertEquals("${apk.name}: ${taken.map { it.name }}", 1, taken.size)
+            val mutable = MutableMethod(taken.single())
+            val read = playerForegroundRead(mutable)
+            val stock = mutable.implementation!!.instructions.toList()
+            val flag = (stock[read] as OneRegisterInstruction).registerA
+            assertEquals("${apk.name}: the check reads the flag straight away", flag,
+                (stock[read + 1] as OneRegisterInstruction).registerA)
+            val jumps = stock.filterIsInstance<BuilderOffsetInstruction>().filter { it.target.location.index == read + 1 }
+            assertTrue("${apk.name}: a path jumps between the read and its use", jumps.isEmpty())
+            val stockOpcodes = stock.map { it.opcode }
+
+            mutable.letPlayerPlayInWindow(read)
+            val patched = mutable.implementation!!.instructions.toList()
+            val hand = patched[read + 1]
+            assertEquals(Opcode.INVOKE_STATIC_RANGE, hand.opcode)
+            assertEquals(flag, (hand as RegisterRangeInstruction).startRegister)
+            assertEquals(1, hand.registerCount)
+            val ask = hand.getReference<MethodReference>()!!
+            assertEquals(EXTENSION, ask.definingClass)
+            assertEquals("playerForeground", ask.name)
+            assertEquals(listOf("I"), ask.parameterTypes.map(CharSequence::toString))
+            assertEquals("I", ask.returnType)
+            assertEquals(Opcode.MOVE_RESULT, patched[read + 2].opcode)
+            assertEquals(flag, (patched[read + 2] as OneRegisterInstruction).registerA)
+            assertEquals("${apk.name}: TikTok's can-play check changed",
+                stockOpcodes.filter { it != Opcode.NOP },
+                (patched.take(read + 1) + patched.drop(read + 3)).map { it.opcode }.filter { it != Opcode.NOP })
+        }
+    }
+
+    @Test
+    fun `a can-play check that doesn't read mIsForeGround once stops the patch`() {
+        val read = ImmutableInstruction22c(Opcode.IGET_BOOLEAN, 0, 1,
+            ImmutableFieldReference(PLAYER_CONTROLLER, "mIsForeGround", "Z"))
+        val other = ImmutableInstruction22c(Opcode.IGET_BOOLEAN, 0, 1,
+            ImmutableFieldReference(PLAYER_CONTROLLER, "mIsBackground", "Z"))
+        fun check(vararg body: Instruction) = code(PLAYER_CONTROLLER, "LLLFF",
+            listOf("Lcom/ss/android/ugc/aweme/feed/model/Aweme;", "Z"), "Z", false, *body,
+            ImmutableInstruction11x(Opcode.RETURN, 0))
+
+        assertEquals(1, playerForegroundRead(check(other, read)))
+        assertThrows(PatchException::class.java) { playerForegroundRead(check(other)) }
+        assertThrows(PatchException::class.java) { playerForegroundRead(check(read, other, read)) }
+    }
+
+    @Test
+    fun `a page-select step that doesn't ask getUserVisibleHint once, or drops the answer, stops the patch`() {
+        val ask = ImmutableInstruction35c(Opcode.INVOKE_VIRTUAL, 1, 0, 0, 0, 0, 0,
+            ImmutableMethodReference("LX/Panel;", "getUserVisibleHint", emptyList(), "Z"))
+        val keep = ImmutableInstruction11x(Opcode.MOVE_RESULT, 1)
+        val static = ImmutableInstruction35c(Opcode.INVOKE_STATIC, 1, 0, 0, 0, 0, 0,
+            ImmutableMethodReference("LX/Panel;", "getUserVisibleHint", listOf("LX/Panel;"), "Z"))
+        fun step(vararg body: Instruction) =
+            code("LX/Step;", "LJ", listOf("I", "Z"), "V", false, *body, ImmutableInstruction10x(Opcode.RETURN_VOID))
+
+        assertEquals(2, pageSelectVisibleResult(step(static, ask, keep)))
+        assertThrows(PatchException::class.java) { pageSelectVisibleResult(step(static, keep)) }
+        assertThrows(PatchException::class.java) { pageSelectVisibleResult(step(ask, keep, ask, keep)) }
+        assertThrows(PatchException::class.java) { pageSelectVisibleResult(step(ask, ImmutableInstruction10x(Opcode.NOP))) }
     }
 
     @Test

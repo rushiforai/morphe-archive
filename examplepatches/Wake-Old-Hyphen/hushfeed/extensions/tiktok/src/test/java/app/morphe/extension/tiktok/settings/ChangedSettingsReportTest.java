@@ -128,20 +128,21 @@ public class ChangedSettingsReportTest {
 
         assertEquals(new TreeSet<>(List.of(
                 "app_lock_timeout", "bottom_bar_height", "bottom_navigation_tabs", "burn_in_guard", "caption_background",
+                "caption_clear_display_spot",
                 "caption_font_weight", "default_speed", "double_tap_action", "double_tap_bottom_left_action",
                 "double_tap_bottom_right_action", "double_tap_top_left_action", "double_tap_top_right_action",
                 "download_saves_at_once",
                 "download_sound_format", "download_sticker_format", "download_video_codec",
                 "download_video_quality", "feed_navigation_tabs", "feed_text_backdrop", "feed_text_color",
                 "glass_bar_height", "glass_blur_strength",
-                "glass_corners", "glass_haptic_style", "glass_opacity", "hold_speed", "hold_speed_hud_style",
+                "glass_corners", "glass_haptic_style", "glass_opacity", "hold_speed", "hold_speed_hud_style", "hushfeed_language",
                 "hold_speed_slide_axis",
-                "live_auto_tap_rate", "live_min_max_followers",
+                "live_auto_tap_rate", "live_button_size", "live_min_max_followers",
                 "live_min_max_viewers", "live_record_quality", "live_record_source", "liked_grid_sort", "favorites_grid_sort", "collection_grid_sort", "long_press_action", "min_max_comments", "min_max_favourites",
                 "min_max_likes", "min_max_shares", "min_max_views", "network_proxy_type",
-                "playback_quality", "playback_quality_metered", "profile_grid_sort", "seekbar_time_placement", "sound_grid_sort", "start_page",
+                "playback_quality", "playback_quality_metered", "profile_grid_sort", "seekbar_time_placement", "settings_theme", "sound_grid_sort", "start_page",
                 "bottom_tab_icon_style", "store_identity_installer", "subtitle_language", "swipe_left_action", "swipe_levels_left", "swipe_levels_right",
-                "touch_target_scale", "ytdlnis_download_type")), shown);
+                "touch_target_scale", "video_button_size", "ytdlnis_download_type")), shown);
     }
 
     @Test public void aLongListWraps() {

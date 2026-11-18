@@ -1,6 +1,6 @@
-# InstaRex v3.15.0 — Final Engineering & UI/UX Audit Report
+# InstaRex v3.16.0 — Final Engineering & UI/UX Audit Report
 
-**Project**: InstaRex (`Rex IG Lite v3.15.0 • by xboyrex`)
+**Project**: InstaRex (`Rex IG Lite v3.16.0 • by xboyrex`)
 **Repository**: [https://github.com/xboyrex/rex-ig-lite](https://github.com/xboyrex/rex-ig-lite)
 
 ## 1. Screenshot-by-Screenshot Implementation Matrix (`22870` – `23086`)

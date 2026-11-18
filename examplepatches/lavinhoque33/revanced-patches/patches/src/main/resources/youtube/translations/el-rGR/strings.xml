@@ -1846,8 +1846,6 @@ Playlists
     <string name="revanced_overlay_button_copy_video_url_title">Εμφάνιση κουμπιού αντιγραφής διεύθυνσης URL του βίντεο</string>
     <string name="revanced_overlay_button_external_downloader_queue_manager_summary">Αντί να ανοίξει η εξωτερική εφαρμογή λήψης, θα ανοίξει ο διαχειριστή ουράς</string>
     <string name="revanced_overlay_button_external_downloader_queue_manager_title">Διαχειριστής ουράς</string>
-    <string name="revanced_overlay_button_external_downloader_summary">Πατήστε για εκκίνηση της προεπιλεγμένης σας εξωτερικής εφαρμογής λήψης</string>
-    <string name="revanced_overlay_button_external_downloader_title">Εμφάνιση κουμπιού εξωτερικής λήψης του βίντεο</string>
     <string name="revanced_overlay_button_gemini_about_summary">"Η ανάλυση του βίντεο ενδέχεται να διαρκέσει λίγο, ανάλογα με τη διάρκειά του. Η μεταγραφή μεγάλων βίντεο ενδέχεται να υπερβεί τα όρια του Gemini
 
 Οι απαντήσεις που παράγονται από AI ενδέχεται να περιέχουν ανακριβείς πληροφορίες
@@ -2453,9 +2451,6 @@ Playlists
     <string name="revanced_shorts_custom_actions_copy_video_url_timestamp_title">Εμφάνιση μενού αντιγραφή διεύθυνσης URL με χρονική σήμανση</string>
     <string name="revanced_shorts_custom_actions_copy_video_url_title">Εμφάνιση μενού αντιγραφής διεύθυνσης URL του βίντεο</string>
     <string name="revanced_shorts_custom_actions_external_downloader_label">Εξωτερική εφαρμογή λήψης</string>
-    <string name="revanced_shorts_custom_actions_external_downloader_summary_off">Το μενού εξωτερικής εφαρμογής λήψης δεν εμφανίζεται</string>
-    <string name="revanced_shorts_custom_actions_external_downloader_summary_on">Το μενού εξωτερικής εφαρμογής λήψης εμφανίζεται</string>
-    <string name="revanced_shorts_custom_actions_external_downloader_title">Εμφάνιση μενού εξωτερικής εφαρμογής λήψης</string>
     <string name="revanced_shorts_custom_actions_gemini_label">Σύνοψη Gemini</string>
     <string name="revanced_shorts_custom_actions_gemini_summary_off">Κρυμμένο</string>
     <string name="revanced_shorts_custom_actions_gemini_summary_on">Εμφανίζεται</string>

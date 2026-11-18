@@ -6,27 +6,31 @@
 package app.hushmessenger.patches.coexist
 
 import app.hushmessenger.patches.MessengerTarget
-import app.hushmessenger.patches.isExtension
-import app.hushmessenger.patches.messengerClasses
 import app.hushmessenger.patches.controls.BASE_PROFILE
 import app.hushmessenger.patches.controls.DEFAULT_STRINGS
 import app.hushmessenger.patches.controls.MANIFEST_STRINGS
-import app.hushmessenger.patches.controls.PROFILE_347415280
 import app.hushmessenger.patches.controls.PROFILE_347415262
+import app.hushmessenger.patches.controls.PROFILE_347415280
 import app.hushmessenger.patches.controls.PROFILE_347415302
 import app.hushmessenger.patches.controls.SETTINGS_LABEL
 import app.hushmessenger.patches.controls.SETTINGS_LABEL_NAME
 import app.hushmessenger.patches.controls.SHORTCUTS_DIRECTORIES
 import app.hushmessenger.patches.controls.addStrings
-import app.hushmessenger.patches.controls.setString
 import app.hushmessenger.patches.controls.controlProfileFor
 import app.hushmessenger.patches.controls.hookId
 import app.hushmessenger.patches.controls.resolveShortcutsPath
+import app.hushmessenger.patches.controls.setString
+import app.hushmessenger.patches.isExtension
+import app.hushmessenger.patches.messengerClasses
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.decode
+import app.morphe.patcher.patch.document
+import app.morphe.patcher.patch.mutableClassDefBy
+import app.morphe.patcher.patch.packageMetadata
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.resourceFile
 import app.morphe.patcher.patch.stringOption
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -572,7 +576,7 @@ internal fun requestClone(packageName: String, label: String) {
     cloneRequest = CloneRequest(packageName, label)
 }
 
-internal val cloneResources = resourcePatch(description = "Move Messenger's manifest to the clone's package name") {
+internal val cloneResources = patch(description = "Move Messenger's manifest to the clone's package name") {
     execute {
         cloneRequest = null
     }
@@ -582,12 +586,12 @@ internal val cloneResources = resourcePatch(description = "Move Messenger's mani
         cloneRequest = null
         val shortcutsPath = resolveShortcutsPath(decode(SHORTCUTS_DIRECTORIES)) { path -> document(path).use { it } }
         // Settings decoded these already when it's in the patch. Decoding one again would read it back from the APK.
-        val undecoded = MANIFEST_STRINGS.keys.filterNot { get(it, false).exists() }
+        val undecoded = MANIFEST_STRINGS.keys.filterNot { resourceFile(it, false).exists() }
         if (undecoded.isNotEmpty()) decode(*undecoded.toTypedArray())
-        if (!get(DEFAULT_STRINGS, false).exists()) fail("Messenger has no $DEFAULT_STRINGS to hold the app name")
+        if (!resourceFile(DEFAULT_STRINGS, false).exists()) fail("Messenger has no $DEFAULT_STRINGS to hold the app name")
         document("AndroidManifest.xml").use { it.renameForClone(request.packageName, request.label) }
         document(shortcutsPath).use { it.retargetShortcuts(request.packageName) }
-        for (path in MANIFEST_STRINGS.keys) if (get(path, false).exists()) document(path).use { it.nameClone(path, request.label) }
+        for (path in MANIFEST_STRINGS.keys) if (resourceFile(path, false).exists()) document(path).use { it.nameClone(path, request.label) }
     }
 }
 
@@ -601,7 +605,7 @@ internal fun Document.nameClone(path: String, label: String) {
 }
 
 @Suppress("unused")
-val cloneInstallPatch = bytecodePatch(
+val cloneInstallPatch = patch(
     name = CLONE_PATCH_NAME,
     description = "Installs a second copy of Messenger beside the first, with its own app name. Push notifications may not reach the copy. Pick it in Morphe Manager's Expert mode. Works as soon as you patch it in, with no switch.",
     default = false,

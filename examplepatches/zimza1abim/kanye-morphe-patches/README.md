@@ -169,7 +169,7 @@ Each listed version passed patching and verification. Other versions may fail to
 |---|---|---|
 | Anytype | `io.anytype.app` | `0.48.10` `0.49.0` `0.50.4` |
 | Titanium Browser | `io.github.jqssun.helium` | `157.0.8103.38` `157.0.8103.50` `157.0.8103.78` |
-| Bare Browser | `org.barebrowser` | `2.0.2` `2.0.3` `2.0.4` |
+| Bare Browser | `org.barebrowser` | `2.0.3` `2.0.4` `2.0.5` |
 | Bitwarden | `com.x8bit.bitwarden` | `2026.10.1` |
 | Brave Browser | `com.brave.browser` | `1.98.63` `1.99.55` `1.100.56` |
 | Joplin | `net.cozic.joplin` | `3.7.8` `3.7.10` `3.7.11` |
@@ -182,7 +182,7 @@ Each listed version passed patching and verification. Other versions may fail to
 ## 🩹 Patches
 
 <!-- PATCHES_START -->
-> **[v0.0.14](../../releases/tag/v0.0.14)**&nbsp;&nbsp;•&nbsp;&nbsp;17 patches total
+> **[v0.0.19](../../releases/tag/v0.0.19)**&nbsp;&nbsp;•&nbsp;&nbsp;17 patches total
 <details>
 <summary>📦 Anytype&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -222,7 +222,7 @@ Each listed version passed patching and verification. Other versions may fail to
 
 **🎯 Supported versions:**
 
-| 2.0.2 | 2.0.3 | 2.0.4 |
+| 2.0.3 | 2.0.4 | 2.0.5 |
 | :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |

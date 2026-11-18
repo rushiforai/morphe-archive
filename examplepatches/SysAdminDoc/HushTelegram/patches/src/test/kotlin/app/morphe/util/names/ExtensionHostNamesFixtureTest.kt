@@ -33,6 +33,11 @@ class ExtensionHostNamesFixtureTest {
             "f org.telegram.messenger.d20 selectedAccount t0",
             "r string PushReactText 7f0fded6",
         ),
+        "22710" to listOf(
+            "m org.telegram.messenger.br getInstance (I) I1",
+            "f org.telegram.messenger.e50 selectedAccount N0",
+            "r string PushReactText 7f0fd93b",
+        ),
     )
 
     @Test

@@ -542,6 +542,19 @@
       "via": [],
       "license": "GPL-3.0-only",
       "changes": "Name translation written for HushTelegram when Telegram 13.2 began shipping R8-renamed classes: per-build tables matched from the dex, smali and reference rewriting for the patches, and the run-time table the extension's reflection reads."
+    },
+    {
+      "paths": [
+        "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/settings/NewRowDots.java"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/HushGram",
+      "commit": "9aecf67d0a1da2a488695e051badb2b526b53a51",
+      "via": [
+        "https://github.com/SysAdminDoc/Hushfacebook"
+      ],
+      "license": "GPL-3.0-only",
+      "changes": "The new-setting dots copied from the Instagram sibling: package app.hushtelegram.extension.telegram.settings, owned by the settings list instead of a static page, sections that open in place instead of category pages, and only keys the sections hold can count as new."
     }
   ]
 }

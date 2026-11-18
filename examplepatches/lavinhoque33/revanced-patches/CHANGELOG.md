@@ -1,5 +1,21 @@
 ## Unreleased
 
+## [1.39.0](https://github.com/lavinhoque33/revanced-patches/compare/v1.38.0...v1.39.0) (2026-11-18)
+
+### Features
+
+* **Music - Settings:** Use the modern capsule restart dialog for settings changes and the first-run prompt.
+  Refs #61.
+* **Music - Hide 'Get Music Premium' label:** Add a restart-required option for the account-menu footer.
+  Enabled by default, with stock visibility restored when disabled, including Music 9.45.51. Refs #62.
+
+### Bug Fixes
+
+* **YouTube - Shorts:** Rename "Show external downloader menu" to "Show download menu", covering both
+  the built-in and external downloaders. Clarify the backend setting and the matching player download button.
+* **YouTube / Music - Settings:** Prevent duplicate restart prompts while a dialog or delayed restart is pending.
+  Refs #61.
+
 ## [1.38.0](https://github.com/lavinhoque33/revanced-patches/compare/v1.37.3...v1.38.0) (2026-11-18)
 
 ### Features

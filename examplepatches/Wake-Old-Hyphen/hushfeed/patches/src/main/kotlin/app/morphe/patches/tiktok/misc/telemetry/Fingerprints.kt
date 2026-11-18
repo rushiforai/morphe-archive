@@ -279,7 +279,7 @@ internal const val RESOLVER_LOOKUP_HOST = "whoami.akamai.net"
  * The Orbu SDK's log upload: the suspend call that builds a put-logs body and posts it to
  * proxy.telemetry.us-ashburn-1.oci.oraclecloud.com, the host #379's DNS log shows being called
  * thousands of times a day. The SDK's classes are renamed but its model classes keep their
- * names. Only this implementation builds the body (47.7.3: Lttpobfuscated/ld;->a).
+ * names. Only this implementation builds the body (47.8.3: Lttpobfuscated/ld;->a).
  */
 internal object OrbuLogSendFingerprint : Fingerprint(
     returnType = "Ljava/lang/Object;",
@@ -294,6 +294,36 @@ internal fun buildsOrbuLogBody(method: Method): Boolean =
 
 /**
  * The lookups of whoami.akamai.net, TikTok's way of learning which DNS resolver the phone uses.
- * Seven copies on 47.7.3, in the video and upload libraries and two renamed classes.
+ * Seven copies on 47.8.3, in the video and upload libraries and two renamed classes.
  */
 internal object ResolverLookupFingerprint : Fingerprint(strings = listOf(RESOLVER_LOOKUP_HOST))
+
+internal const val ORBU_SERVER_TYPE = "Lttp/orbu/sdk/configuration/model/ServerAPIType;"
+internal const val ORBU_SERVER_CONFIG = "Lttp/orbu/sdk/configuration/model/ServerConfig;"
+
+/**
+ * The default base URL of each Orbu server type (#379). LOGGING, SAMPLING and CHALLENGE all
+ * default to proxy.telemetry.us-ashburn-1.oci.oraclecloud.com, and this getter is the only
+ * reader of the field. The SDK's model classes keep their names.
+ */
+internal object OrbuServerTypeBaseUrlFingerprint : Fingerprint(
+    definingClass = ORBU_SERVER_TYPE,
+    name = "getBaseUrl",
+    returnType = "Ljava/lang/String;",
+    parameters = listOf(),
+)
+
+/**
+ * The one constructor of an Orbu server config (#379), the base URL the SDK's interceptor
+ * rewrites every request's host to. Defaults, fallbacks and remote configs parsed from JSON all
+ * come through it, with the base URL second after the server type.
+ */
+internal object OrbuServerConfigInitFingerprint : Fingerprint(
+    definingClass = ORBU_SERVER_CONFIG,
+    name = "<init>",
+    custom = { method, _ ->
+        method.parameterTypes.size >= 2 &&
+            method.parameterTypes[0].toString() == ORBU_SERVER_TYPE &&
+            method.parameterTypes[1].toString() == "Ljava/lang/String;"
+    },
+)

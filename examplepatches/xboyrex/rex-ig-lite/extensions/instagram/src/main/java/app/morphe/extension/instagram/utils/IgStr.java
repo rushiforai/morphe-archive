@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2026 rex <https://github.com/xboyrex/rex-ig-lite>
+ * Copyright (C) 2026 xboyrex <https://github.com/xboyrex/rex-ig-lite>
  *
  * See the included NOTICE file for GPLv3 §7(b) terms that apply to this code.
  */
@@ -8,20 +8,92 @@ package app.morphe.extension.instagram.utils;
 
 import android.content.Context;
 import android.content.ContextWrapper;
+import android.content.res.Configuration;
+import android.content.res.Resources;
+import android.os.LocaleList;
+
+import java.util.Locale;
 import java.util.concurrent.ConcurrentHashMap;
 
+import app.morphe.extension.instagram.settings.Settings;
+import app.morphe.extension.rex.sharedPreference.SharedPref;
 import app.morphe.extension.shared.Utils;
 
 public final class IgStr {
 
     private static final ConcurrentHashMap<String, Integer> idCache = new ConcurrentHashMap<>();
-    private static Context baseContext;
+    private static volatile Context baseContext;
+    private static volatile Context localizedContext;
+    private static volatile String cachedLangKey;
 
-    private IgStr() {}
+    private IgStr() {
+    }
+
+    public static Locale resolveSelectedLocale() {
+        String lang = "English";
+        try {
+            String pref = SharedPref.getStringPref(Settings.TRANSLATOR_LANGUAGE);
+            if (pref != null && !pref.trim().isEmpty()) {
+                lang = pref.trim();
+            }
+        } catch (Throwable ignored) {
+        }
+        return localeForLanguageName(lang);
+    }
+
+    public static Locale localeForLanguageName(String languageName) {
+        if (languageName == null) return Locale.ENGLISH;
+        String lower = languageName.trim().toLowerCase(Locale.ROOT);
+        if (lower.startsWith("portuguese")) return new Locale("pt", "BR");
+        if (lower.startsWith("hindi")) return new Locale("hi", "IN");
+        if (lower.startsWith("arabic")) return new Locale("ar", "SA");
+        if (lower.startsWith("turkish")) return new Locale("tr", "TR");
+        if (lower.startsWith("indonesian")) return new Locale("id", "ID");
+        if (lower.startsWith("russian")) return new Locale("ru", "RU");
+        if (lower.startsWith("spanish")) return new Locale("es", "ES");
+        if (lower.startsWith("french")) return new Locale("fr", "FR");
+        if (lower.startsWith("german")) return new Locale("de", "DE");
+        if (lower.startsWith("japanese")) return new Locale("ja", "JP");
+        if (lower.startsWith("korean")) return new Locale("ko", "KR");
+        return Locale.ENGLISH;
+    }
+
+    public static synchronized void refreshLocale() {
+        localizedContext = null;
+        cachedLangKey = null;
+        try {
+            Locale target = resolveSelectedLocale();
+            Locale.setDefault(target);
+            Context base = baseContext();
+            if (base != null) {
+                applyLocaleToContext(base);
+            }
+        } catch (Throwable ignored) {
+        }
+    }
+
+    public static Context applyLocaleToContext(Context ctx) {
+        if (ctx == null) return null;
+        try {
+            Locale target = resolveSelectedLocale();
+            Locale.setDefault(target);
+            Resources res = ctx.getResources();
+            if (res != null) {
+                Configuration cfg = new Configuration(res.getConfiguration());
+                cfg.setLocale(target);
+                cfg.setLocales(new LocaleList(target));
+                res.updateConfiguration(cfg, res.getDisplayMetrics());
+                return ctx.createConfigurationContext(cfg);
+            }
+        } catch (Throwable ignored) {
+        }
+        return ctx;
+    }
 
     public static String str(String name) {
         try {
-            Context ctx = baseContext();
+            Context ctx = localizedContext();
+            if (ctx == null) return name;
             Integer cached = idCache.get(name);
             int id = cached != null ? cached : ctx.getResources().getIdentifier(name, "string", ctx.getPackageName());
             if (id == 0) return name;
@@ -36,9 +108,39 @@ public final class IgStr {
         String template = str(name);
         if (template.equals(name)) return name;
         try {
-            return String.format(template, args);
+            return String.format(resolveSelectedLocale(), template, args);
         } catch (Exception e) {
             return template;
+        }
+    }
+
+    private static Context localizedContext() {
+        Context base = baseContext();
+        if (base == null) return null;
+        String currentLang = "English";
+        try {
+            String pref = SharedPref.getStringPref(Settings.TRANSLATOR_LANGUAGE);
+            if (pref != null && !pref.trim().isEmpty()) {
+                currentLang = pref.trim();
+            }
+        } catch (Throwable ignored) {
+        }
+        Context loc = localizedContext;
+        if (loc != null && currentLang.equals(cachedLangKey)) {
+            return loc;
+        }
+        synchronized (IgStr.class) {
+            Locale target = localeForLanguageName(currentLang);
+            try {
+                Configuration cfg = new Configuration(base.getResources().getConfiguration());
+                cfg.setLocale(target);
+                cfg.setLocales(new LocaleList(target));
+                localizedContext = base.createConfigurationContext(cfg);
+                cachedLangKey = currentLang;
+                return localizedContext;
+            } catch (Throwable ignored) {
+                return base;
+            }
         }
     }
 

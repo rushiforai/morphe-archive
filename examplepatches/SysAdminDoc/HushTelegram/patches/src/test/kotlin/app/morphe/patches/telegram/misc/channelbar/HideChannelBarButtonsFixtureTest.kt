@@ -8,6 +8,7 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.PlusPending
 import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patches.telegram.misc.commerce.COMMERCE
@@ -37,6 +38,7 @@ import app.morphe.util.names.origType
 import app.morphe.util.names.tgMutableClassDefBy
 
 /** A channel's bottom bar, the chat screen that fills it, the Recent actions log that reuses it, and the runtime. */
+@PlusPending
 class HideChannelBarButtonsFixtureTest {
     @Test fun `the chat screen hands each bar button to the extension and Recent actions keeps its own Search`() {
         for (build in Fixtures.declaredBuilds()) {

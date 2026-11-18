@@ -8,6 +8,7 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.PlusPending
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
 import app.morphe.patches.telegram.misc.extension.SETTINGS_STATUS
 import app.morphe.patches.telegram.misc.localcontrols.controlBody
@@ -31,6 +32,7 @@ import app.morphe.util.names.replaceInstruction
 import app.morphe.util.names.tgMutableClassDefBy
 
 /** The four mention swaps in NotificationsController, the stubs and the runtime. */
+@PlusPending
 class IgnoreMutedMentionsFixtureTest {
     private val hostTypes = setOf(NOTIFICATIONS, MESSAGE_OBJECT, "Lorg/telegram/messenger/MessagesController;")
 

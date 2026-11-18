@@ -1,8 +1,8 @@
 # Handoff
 
-> Updated: 2026-11-16, published build133
+> Updated: 2026-11-17, published build134 icon update
 > Project: ytafterglow-morphe-patches (active checkout `/home/corey/projects/ytafterglow-morphe-patches`; original checkout `/home/corey/projects/xuninc/YTAfterglow-Android`, GitHub `afterglow-labs/ytafterglow-morphe-patches`, public as verified 2026-11-15)
-> Session summary: Build133 is published, with its public feed and anonymous download checksum verified. It contains 127 public patches and 104 defaults: 41 Afterglow/compatibility patches and 86 original Morphe features. Afterglow owns Downloads and Vault, Theme Studio and its other custom destinations; original Morphe Return YouTube Dislike, DeArrow, Copy text and post-image downloading remain integrated. Original settings are available through Afterglow settings → Additional features. The functional Android parity ledger is 195 done / 4 n/a / 0 todo. This is implementation coverage, not a claim that every physical device, account, server variant or optional combination has been tested. Build118 and earlier sections below are historical.
+> Session summary: Build134 adds the project owner's supplied Afterglow app icon as a default-selected patch. It contains 128 public patches and 105 defaults: 42 Afterglow/compatibility patches and 86 original Morphe features. Afterglow owns Downloads and Vault, Theme Studio and its other custom destinations; original Morphe Return YouTube Dislike, DeArrow, Copy text and post-image downloading remain integrated. Original settings are available through Afterglow settings → Additional features. The functional Android parity ledger is 195 done / 4 n/a / 0 todo. This is implementation coverage, not a claim that every physical device, account, server variant or optional combination has been tested. See the build134 checkpoint for publication status; older build sections below retain their historical evidence.
 
 ## Goal
 
@@ -13,7 +13,8 @@ and complete Theme Studio and the remaining Afterglow destinations. Morphe
 remains the implementation for shared features such as Return YouTube Dislike;
 the downloader is the explicit exception to the earlier reuse instruction.
 Published build133 includes that work and passes the checks described below.
-The public source feed points to its verified release bundle.
+Build134 adds the supplied Afterglow app icon. The public source feed points to
+the verified build134 release bundle.
 
 Deliver a usable Afterglow bundle for Android YouTube **21.43.523**. Reuse Morphe's
 existing feature implementations and settings wherever Morphe already provides a
@@ -28,7 +29,43 @@ bundle. The build110 checkpoint below predates this broader integration.
 - An Afterglow settings page lives inside YouTube's settings and shows only rows for tweaks that are installed and implemented.
 - GmsCore and stream compatibility are included as named patches in this bundle, adapted from pinned Morphe sources. Use these selections with Afterglow; avoid duplicate compatibility patches from another source. The companion GmsCore app remains a separate installation.
 
-## Current checkpoint: published build133
+## Current checkpoint: published build134 icon update
+
+The user supplied the icon artwork on 2026-11-17. **Afterglow app icon** is
+default-selected and updates the application plus all four launcher aliases,
+preserving enabled states, package, app label and notifications. The PNG is
+unchanged; adaptive foreground padding keeps the wordmark visible in the
+system circle and rounded-square/squircle previews. See [app icon](docs/app-icon.md).
+
+All 1,810 frozen production/provenance inputs are in `source-134.json` under
+`~/.cache/ytafterglow-android/afterglow-vault-20261116/`. Strict patching and APK
+assembly pass for default105, all128, icon-only1 and independent8 without the
+icon. Compiled APK checks verify every launcher alias, the adaptive resource,
+unchanged alias enablement, and omission of the artwork when unselected.
+The loader verifies 128 exports, 105 defaults, 436 acyclic dependency objects,
+six forwarded options and original resource hashes. Settings pass 540/540.
+The upgraded emulator APK loads the actual adaptive drawable and launches;
+playback advances from 7 to 19 seconds with an empty crash buffer. Its existing
+Vault still contains five saved items. Physical Samsung testing remains pending.
+
+[Build134 release record](docs/release-build134.md) tracks publication and
+Manager consumer verification. Previous runtime evidence below still identifies
+the tested builds; this update changes only the launcher icon and its registry.
+
+Source commit `b3841fb0dad062c2b96f4c42f94672cd81f27d9a` is published as
+`v0.1.0-build.134`; the feed, anonymous bundle, checksum and manifest are verified.
+Manager 2.6 refreshes the existing public source to 128 patches, applies all
+105 defaults, rebuilds and signs. The saved APK passes ZIP, Android v2 signature,
+launcher-resource and 51 watch-action DEX checks. Its signing certificate matches
+the Manager build133 APK previously delivered to Samsung. No temporary source
+was added; original Morphe remains disabled. The temporary icon probe is removed.
+
+The ready APK is `Afterglow-build134-YouTube-21.43.523.apk` in
+`C:\Users\Corey\ytag-scratch\android\deliveries`. The Samsung is disconnected
+from adb and offline in Tailscale at this checkpoint, so build134 has not been
+transferred or installed on it. The last verified phone transfer remains build133.
+
+## Historical checkpoint: published build133
 
 All 1,806 production/provenance inputs are recorded in `source-133.json` under
 `~/.cache/ytafterglow-android/afterglow-vault-20261116/`. Strict Desktop1.20 /

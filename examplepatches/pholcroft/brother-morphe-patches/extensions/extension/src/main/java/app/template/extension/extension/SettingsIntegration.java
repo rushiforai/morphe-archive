@@ -39,7 +39,7 @@ public final class SettingsIntegration {
         dividerParams.topMargin = (int)(2 * density);
         section.addView(divider, dividerParams);
         TextView attribution = new TextView(activity);
-        attribution.setText("Unofficial community patch · Not affiliated with Brother");
+        attribution.setText("Unofficial community patch by Peter Holcroft");
         attribution.setTextSize(12);
         attribution.setTextColor(0xff666666);
         attribution.setTypeface(null, 2);

@@ -29,6 +29,8 @@ import app.morphe.patches.shared.mainactivity.onStopMethod
 import app.morphe.util.fingerprint.matchOrNull
 import app.morphe.util.fingerprint.matchOrThrow
 import app.morphe.util.fingerprint.methodOrThrow
+import app.morphe.util.addInstructionsAtControlFlowLabel
+import app.morphe.util.findFreeRegister
 import app.morphe.util.getWalkerMethod
 import app.morphe.util.indexOfFirstInstructionOrThrow
 import app.morphe.util.indexOfFirstLiteralInstructionOrThrow
@@ -38,6 +40,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private const val ADS_FILTER_CLASS_DESCRIPTOR =
     "$COMPONENTS_PATH/AdsFilter;"
@@ -155,17 +158,37 @@ val adsPatch = adsPatch(
 
             val walkerMethod = getWalkerMethod(walkerIndex)
             walkerMethod.apply {
-                val insertIndex = indexOfFirstInstructionOrThrow {
-                    getReference<FieldReference>()?.toString() == viewReference
+                val panelReadIndex = indexOfFirstInstructionOrThrow {
+                    opcode == Opcode.IGET_OBJECT &&
+                        getReference<FieldReference>()?.toString() == viewReference
                 }
-                val nullCheckIndex =
-                    indexOfFirstInstructionOrThrow(insertIndex - 1, Opcode.IF_NEZ)
-                val nullCheckRegister =
-                    getInstruction<OneRegisterInstruction>(nullCheckIndex).registerA
+                val panelRegister = getInstruction<TwoRegisterInstruction>(panelReadIndex).registerA
+                val visibilityIndex = indexOfFirstInstructionOrThrow(panelReadIndex + 1) {
+                    val method = getReference<MethodReference>()
+                    method?.definingClass == "Landroid/view/View;" &&
+                        method.name == "setVisibility" &&
+                        method.parameterTypes == listOf("I") &&
+                        method.returnType == "V" &&
+                        (this as? FiveRegisterInstruction)?.registerC == panelRegister
+                }
+                val visibilityRegister = getInstruction<FiveRegisterInstruction>(visibilityIndex).registerD
+                val resultRegister = findFreeRegister(visibilityIndex, panelRegister, visibilityRegister)
+                val visibilityHook =
+                    "$ADS_PATH/MusicAdsPatch;->getPremiumLabelVisibility(Landroid/view/View;I)I"
 
-                addInstruction(
-                    nullCheckIndex,
-                    "const/4 v$nullCheckRegister, 0x0"
+                // Preserve the stock visibility register: it can be reused by later menu components.
+                replaceInstruction(
+                    visibilityIndex,
+                    "invoke-virtual {v$panelRegister, v$resultRegister}, " +
+                        "Landroid/view/View;->setVisibility(I)V"
+                )
+                // Stock branches can jump directly to setVisibility; route those through the helper too.
+                addInstructionsAtControlFlowLabel(
+                    visibilityIndex,
+                    """
+                        invoke-static {v$panelRegister, v$visibilityRegister}, $visibilityHook
+                        move-result v$resultRegister
+                    """
                 )
             }
         }
@@ -182,6 +205,11 @@ val adsPatch = adsPatch(
         addSwitchPreference(
             CategoryType.ADS,
             "revanced_hide_general_ads",
+            "true"
+        )
+        addSwitchPreference(
+            CategoryType.ADS,
+            "morphe_music_hide_get_premium_label",
             "true"
         )
         addSwitchPreference(

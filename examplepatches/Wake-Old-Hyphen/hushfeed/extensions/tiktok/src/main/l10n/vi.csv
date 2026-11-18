@@ -370,6 +370,8 @@ Clear preset,Xóa cấu hình sẵn
 Hashtags,Hashtag
 Keep clear screen in the next LIVE,Giữ xóa màn hình ở LIVE tiếp theo
 "A LIVE you swipe to comes back with its chat, gifts and buttons showing. This keeps clear screen on from room to room until you turn it off.","LIVE bạn vuốt tới sẽ hiện lại khung chat, quà tặng và các nút. Tùy chọn này giữ chế độ xóa màn hình từ phòng này sang phòng khác cho đến khi bạn tắt nó."
+Offer full screen in more LIVEs,Cung cấp toàn màn hình trong nhiều LIVE hơn
+TikTok shows its full screen button only in LIVEs streamed from a computer or a shared screen. This shows it in every other LIVE with a wide video.,TikTok chỉ hiện nút Toàn màn hình trong các LIVE phát từ máy tính hoặc màn hình được chia sẻ. Tùy chọn này hiện nút đó trong mọi LIVE khác có video ngang.
 Clear search,Xóa tìm kiếm
 Clear search history,Xóa lịch sử tìm kiếm
 Clear seen videos,Xóa video đã xem
@@ -590,6 +592,15 @@ Entry %1$d has a field with the wrong data type.,Mục %1$d có một trường 
 Entry %1$d isn't an object.,Mục %1$d không phải là một đối tượng.
 Errors,Lỗi
 Expand activity list,Mở rộng danh sách hoạt động
+Group likes per comment,Gộp lượt thích theo bình luận
+"Show one row for each comment or video people liked, with everyone who liked it counted, instead of a new row for every few likes. Applies the next time the Likes list loads.","Hiện một dòng cho mỗi bình luận hoặc video được mọi người thích, đếm đủ tất cả người đã thích, thay vì một dòng mới sau mỗi vài lượt thích. Áp dụng khi danh sách Lượt thích tải lần tới."
+Swap lists,Đổi chỗ danh sách
+Split the Activity page,Chia đôi trang Hoạt động
+"Show your newest comments at the top of the Activity page and likes below, each scrolling on its own. The bar between them swaps the two lists or hides the lower one until you bring it back. Picking another list from Activity still shows just that list. Applies the next time the page opens.","Hiện các bình luận mới nhất của bạn ở đầu trang Hoạt động và lượt thích ở bên dưới, mỗi phần cuộn riêng. Thanh ở giữa đổi chỗ hai danh sách hoặc ẩn danh sách dưới cho đến khi bạn hiện lại. Chọn danh sách khác trong Hoạt động vẫn chỉ hiện danh sách đó. Áp dụng khi trang được mở lần tới."
+Hide likes,Ẩn lượt thích
+Show likes,Hiện lượt thích
+Hide comments,Ẩn bình luận
+Show comments,Hiện bình luận
 Expanded,Đã mở rộng
 Explore or Community,Khám phá hoặc Cộng đồng
 Export CSV,Xuất CSV
@@ -641,6 +652,8 @@ Find the sound on YouTube Music,Tìm âm thanh trên YouTube Music
 First caller,Người gọi đầu tiên
 First rejection:,Lần từ chối đầu tiên:
 Fit the video to the screen,Hiển thị vừa vặn video trên màn hình
+Fill a tall screen instead,Lấp đầy màn hình cao thay vào đó
+"With the switch above on, the video is cropped to fill a tall screen like a folding phone's front screen. A squarer one, like the big screen opened up, still shows the whole video.","Khi bật công tắc ở trên, video sẽ được cắt để lấp đầy màn hình cao như màn hình ngoài của điện thoại gập. Màn hình vuông hơn, như màn hình lớn khi mở ra, vẫn hiện toàn bộ video."
 Floating bottom bar,Thanh nổi dưới cùng
 Focus,Tiêu điểm
 Fold the search into a button,Thu gọn tìm kiếm thành một nút bấm
@@ -1318,6 +1331,8 @@ On or off,Bật hoặc tắt
 "On the main feed, a light tick each time the glass lens passes a tab, as it slides after a tap or under your finger. Needs Glass lens on the current tab.","Trên bảng tin chính, máy sẽ rung nhẹ mỗi khi kính lúp trượt qua một thẻ (khi chạm hoặc trượt ngón tay). Yêu cầu bật Kính lúp dạng kính trên thẻ hiện tại."
 "On the main feed, a raised bubble of glass sits behind the tab you're on and slides to the next tab you pick. Works on any bottom bar, with or without Liquid glass look.","Trên bảng tin chính, một bong bóng kính nổi sẽ nằm phía sau thẻ bạn đang chọn và trượt sang thẻ tiếp theo bạn bấm. Hoạt động với mọi thanh dưới cùng, dù có bật Giao diện kính lỏng (Liquid glass) hay không."
 "On the main feed, slide a finger along the tabs and the lens follows it. Let go and that tab opens. Taps and long presses work as before. Needs Glass lens on the current tab.","Trên bảng tin chính, vuốt ngón tay dọc theo các thẻ và kính lúp sẽ trượt theo. Thả tay ra để mở thẻ đó. Thao tác chạm và nhấn giữ vẫn hoạt động như trước. Yêu cầu bật Kính lúp dạng kính trên thẻ hiện tại."
+Liquid glass when held,Kính lỏng khi nhấn giữ
+"On the main feed, hold a finger on the tabs and the glass lens swells, then wobbles back when you let go. With Blur the video behind the bar on Android 13 and up, the video under it bends harder and splits into color at its edge. Needs Glass lens on the current tab.","Trên bảng tin chính, giữ ngón tay trên các thẻ và kính lúp sẽ phồng lên, rồi rung nhẹ trở lại khi bạn thả tay. Khi bật Làm mờ video phía sau thanh điều hướng trên Android 13 trở lên, video bên dưới sẽ bị bẻ cong mạnh hơn và tách thành nhiều màu ở viền. Yêu cầu bật Kính lúp dạng kính trên thẻ hiện tại."
 On. Hushfeed hasn't seen TikTok send any reports since it started.,Bật. Hushfeed chưa thấy TikTok gửi bất kỳ báo cáo nào kể từ khi khởi động.
 "Once today's budget runs out, the hold stays and can't be dismissed. The budget settings are locked until the day starts over. Turn this off any time before the budget runs out.","Một khi ngân sách hôm nay dùng hết, trạng thái tạm giữ sẽ tiếp tục duy trì và không thể bỏ qua. Cài đặt ngân sách sẽ bị khóa cho đến khi bắt đầu ngày mới. Hãy tắt tính năng này bất kỳ lúc nào trước khi hết ngân sách."
 One area was checked and everything it needs is here.,Đã kiểm tra một khu vực và mọi thứ cần thiết đều có ở đây.
@@ -1393,6 +1408,26 @@ Paid partnerships,Hợp tác trả phí
 Pass TikTok's install checks,Vượt qua các kiểm tra cài đặt của TikTok
 Pause,Tạm dừng
 Pause Hushfeed,Tạm dừng Hushfeed
+Settings theme,Giao diện cài đặt
+Hushfeed language,Ngôn ngữ của Hushfeed
+For Hushfeed's settings and messages. TikTok keeps its own language.,Cho phần cài đặt và thông báo của Hushfeed. TikTok vẫn giữ ngôn ngữ riêng.
+English,English
+العربية,العربية
+Azərbaycan dili,Azərbaycan dili
+Deutsch,Deutsch
+Español,Español
+Bahasa Indonesia,Bahasa Indonesia
+Italiano,Italiano
+Português (Brasil),Português (Brasil)
+Русский,Русский
+ไทย,ไทย
+Türkçe,Türkçe
+Tiếng Việt,Tiếng Việt
+简体中文,简体中文
+Match TikTok,Theo TikTok
+Always dark,Luôn tối
+Always light,Luôn sáng
+Colors these settings and Hushfeed's own pop-ups.,Tô màu các cài đặt này và cửa sổ bật lên của Hushfeed.
 "Pause Hushfeed's switches after TikTok restarts. Your settings stay saved. Changes made when you patched, like the app's name or icon, stay.",Tạm dừng các công tắc của Hushfeed sau khi TikTok khởi động lại. Cài đặt của bạn vẫn được lưu. Các thay đổi thực hiện khi vá (như tên hoặc biểu tượng ứng dụng) vẫn được giữ nguyên.
 Pause the video while comments are open,Tạm dừng video khi đang mở phần bình luận
 Paused,Đã tạm dừng
@@ -1428,6 +1463,8 @@ Play Store,Cửa hàng Play Store
 Play sounds TikTok pulled,Phát âm thanh bị TikTok gỡ bỏ
 "Play the Following feed newest post first. A newer post that loads later moves up to right after the video you're watching, and nothing you've already scrolled past moves. Ads and LIVEs keep their place.","Phát bảng tin Đang theo dõi theo thứ tự bài đăng mới nhất xếp trước. Bài đăng mới hơn tải sau sẽ được đưa lên ngay sau video bạn đang xem, và các nội dung bạn đã lướt qua sẽ không bị thay đổi vị trí. Quảng cáo và LIVE giữ nguyên vị trí."
 Play the audio on videos TikTok silenced because their sound was pulled for copyright or in your region. TikTok may still say the sound isn't available.,Phát âm thanh trên các video đã bị TikTok tắt tiếng do bản quyền hoặc bị gỡ ở khu vực của bạn. TikTok vẫn có thể thông báo âm thanh không khả dụng.
+Play original audio,Phát âm thanh gốc
+Play videos and mini dramas in their own language instead of TikTok's AI dub in your app language. Captions and translations stay as they are.,Phát video và phim ngắn bằng ngôn ngữ gốc thay vì bản lồng tiếng AI của TikTok theo ngôn ngữ ứng dụng. Phụ đề và bản dịch vẫn giữ nguyên.
 Playback,Phát lại
 Player,Trình phát
 Playing at %1$sx,Đang phát ở tốc độ %1$sx
@@ -2406,6 +2443,8 @@ Works only with YTDLnis (com.deniscerri.ytdl). Starts the download in the backgr
 Write the username and caption on the video,In tên người dùng và chú thích lên video
 "Write the video's sound beside it, in the format picked under Sound format. Android 10 and later file audio separately, so it lands in Music under the same folder name as your videos.","Lưu tên âm thanh của video đi kèm theo định dạng được chọn trong phần Định dạng âm thanh. Trên Android 10 trở lên, tệp âm thanh được lưu riêng biệt vào thư mục Nhạc (Music) dưới cùng tên thư mục với video của bạn."
 "Writes the date before the time to the second the short way your language does, like 10/7/25.","Hiển thị định dạng ngày trước thời gian chính xác đến từng giây theo kiểu viết rút gọn của ngôn ngữ bạn đang dùng, ví dụ như 10/7/25."
+Day before month,Ngày trước tháng
+"Writes TikTok's date by the creator's name day first, like 29.09, with the year after it for an older video. Ages like 2d ago stay as they are.","Ghi ngày của TikTok cạnh tên nhà sáng tạo với ngày đứng trước, như 29.09, kèm năm phía sau cho video cũ hơn. Thời gian như 2 ngày trước vẫn giữ nguyên."
 Writing,Đang ghi tệp
 Writing the caption on the video,Đang in chú thích lên video
 Writing the caption on the video: %1$s,Đang in chú thích lên video: %1$s
@@ -2442,6 +2481,8 @@ debug debugging logs logging,gỡ lỗi gỡ lỗi nhật ký ghi nhật ký
 expanded,Đã mở rộng
 picture in picture PiP,hình trong hình PiP
 save photos,lưu ảnh
+download button,nút tải xuống tải về
+"It's in %1$s, under %2$s. Tap to go there.","Nằm trong %1$s, mục %2$s. Chạm để đến đó."
 search suggestions,gợi ý tìm kiếm
 this creator,nhà sáng tạo này
 Hide read receipts,Ẩn trạng thái đã đọc
@@ -2459,6 +2500,16 @@ Proxy %1$s needs a user name and password,Proxy %1$s cần tên người dùng v
 Proxy %1$s refused your user name or password,Proxy %1$s từ chối tên hoặc mật khẩu
 Save this video,Lưu video này
 Show the save button on videos,Hiển thị nút lưu trên video
+Hold TikTok's save button to download,Giữ nút lưu của TikTok để tải xuống
+Press and hold the save button in the right column to save the video with your download settings. A tap still adds it to Favorites. It wins over Hold speed on Favorites.,Nhấn giữ nút lưu ở cột bên phải để lưu video theo cài đặt tải xuống của bạn. Chạm một lần vẫn thêm video vào Yêu thích. Nó được ưu tiên hơn Nhấn giữ mục Yêu thích để chỉnh tốc độ phát.
+Size of the buttons on videos,Kích thước nút trên video
+Size of the LIVE buttons,Kích thước nút LIVE
+Smallest,Nhỏ nhất
+Small,Nhỏ
+Large,Lớn
+Line them up over the right column,Xếp chúng phía trên cột bên phải
+"Stack the buttons above TikTok's own on the right, starting over the avatar. They follow the column instead of staying where you dragged them.","Xếp các nút chồng lên trên các nút của TikTok ở bên phải, bắt đầu từ trên ảnh đại diện. Chúng đi theo cột thay vì ở yên chỗ bạn đã kéo."
+Turn off Line them up over the right column to move it,Tắt Xếp chúng phía trên cột bên phải để di chuyển
 Add a button beside the block control that saves the video on screen in one tap. Drag it wherever you like.,Thêm một nút bên cạnh điều khiển chặn để lưu video trên màn hình chỉ với một lần chạm. Bạn có thể kéo nút đến bất kỳ đâu.
 Couldn't save this one. Try again.,Không thể lưu. Vui lòng thử lại.
 Opening TikTok or your messages no longer pauses music from another app. TikTok takes the sound while a video plays and gives it back when you leave the video.,Mở TikTok hoặc tin nhắn của bạn sẽ không còn làm tạm dừng nhạc từ ứng dụng khác. TikTok chỉ chiếm âm thanh khi video đang phát và trả lại khi bạn rời khỏi video.
@@ -2556,6 +2607,18 @@ Clearing Favorites in %1$d,Xóa mục Yêu thích sau %1$d
 Reposts removed: %1$d,Đã xóa bài đăng lại: %1$d
 Likes removed: %1$d,Đã bỏ thích: %1$d
 Favorites removed: %1$d,Đã xóa khỏi Yêu thích: %1$d
+Remove all comments,Xóa tất cả bình luận
+Deletes every comment you've posted one after another.,Lần lượt xóa từng bình luận bạn đã đăng.
+Remove selected comments,Xóa bình luận đã chọn
+Pick comments from your comment history to delete.,Chọn bình luận trong lịch sử bình luận để xóa.
+Removing all comments in %1$d,Xóa tất cả bình luận sau %1$d
+Removing the picked comments in %1$d,Xóa bình luận đã chọn sau %1$d
+Comments removed: %1$d,Đã xóa bình luận: %1$d
+TikTok refused to list your comments,TikTok từ chối liệt kê bình luận của bạn
+Couldn't load your comments. Try again.,Không tải được bình luận của bạn. Hãy thử lại.
+Loading your comments,Đang tải bình luận của bạn
+No comments to show,Không có bình luận nào
+No text,Không có chữ
 Nothing to remove,Không có gì để xóa
 Done. %1$d removed.,Xong. Đã xóa %1$d.
 Stopped. %1$d removed.,Đã dừng. Đã xóa %1$d.
@@ -2565,6 +2628,12 @@ Not available on this TikTok version,Không khả dụng trên phiên bản TikT
 Sign in to TikTok first,Hãy đăng nhập TikTok trước
 A removal is already running,Đang có một lượt xóa chạy
 Cancelled,Đã hủy
+Tap a video to remove it,Chạm vào video để xóa
+"In your own Liked videos, Favorites and Reposts, a tap takes the video off that list instead of opening it.","Trong Video đã thích, mục Yêu thích và bài đăng lại của chính bạn, chạm sẽ gỡ video khỏi danh sách đó thay vì mở nó."
+Couldn't remove that video. Try again.,Không thể xóa video. Vui lòng thử lại.
+Removed from Liked videos,Đã xóa khỏi Video đã thích
+Removed from Favorites,Đã xóa khỏi mục Yêu thích
+Removed from Reposts,Đã xóa khỏi bài đăng lại
 Show inbox filters,Hiện bộ lọc hộp thư
 "Adds the Main, Requests, Unread and Starred tabs above your chats, the ones TikTok gives creator accounts.","Thêm các tab Chính, Yêu cầu, Chưa đọc và Đã gắn sao phía trên các cuộc trò chuyện, giống như TikTok cung cấp cho tài khoản nhà sáng tạo."
 Rebuild message search,Tạo lại tìm kiếm tin nhắn
@@ -2722,3 +2791,69 @@ Account country on profiles,Quốc gia của tài khoản trên trang cá nhân
 "A profile's share sheet gets an Account country button. It asks TikTok where that account is based, or where its latest videos were posted from.","Bảng chia sẻ của trang cá nhân có thêm nút ""Quốc gia của tài khoản"". Nút này hỏi TikTok tài khoản đó ở đâu, hoặc các video mới nhất của tài khoản đó được đăng từ đâu."
 Account country,Quốc gia của tài khoản
 Videos posted from %1$s,Video được đăng từ %1$s
+Long-press Profile for Activity center,Nhấn giữ trang cá nhân để mở Trung tâm hoạt động
+"Press and hold the Profile tab to open TikTok's Activity center. A tap on Profile works as before. While Long-press Profile for Watch history is on, that one takes the press.","Nhấn giữ thẻ Hồ sơ để mở Trung tâm hoạt động của TikTok. Chạm vào Hồ sơ vẫn hoạt động như trước. Khi Nhấn giữ trang cá nhân để xem Lịch sử xem đang bật, tùy chọn đó sẽ nhận thao tác nhấn này."
+Share the video after a save,Chia sẻ video sau khi lưu
+"Opens Android's share sheet with the file as soon as a video is saved, video stories included, so you can send it straight to WhatsApp, Telegram or any other app. Picked videos saved together get the usual notice.","Mở bảng chia sẻ của Android với tệp ngay khi video được lưu, kể cả tin video, để bạn gửi thẳng tới WhatsApp, Telegram hoặc bất kỳ ứng dụng nào khác. Các video đã chọn được lưu cùng nhau vẫn nhận thông báo như thường lệ."
+Caption spot in Clear display,Vị trí phụ đề khi bật xóa hiển thị
+Where TikTok shows it,Nơi TikTok hiển thị
+"Lower, near the bottom","Thấp hơn, gần cạnh dưới"
+Crop and stretch to fill the screen,Cắt và kéo giãn để lấp đầy màn hình
+"Cover the whole window with half the crop of Fill and half the stretch of Stretch, so neither is easy to spot. A video far from the screen's shape keeps TikTok's size.","Phủ kín cả cửa sổ với một nửa phần cắt của Lấp đầy và một nửa độ giãn của Kéo giãn, nên cả hai đều khó nhận ra. Video có hình dạng khác xa màn hình sẽ giữ kích thước của TikTok."
+Watch LIVEs unseen,Xem LIVE mà không bị thấy
+You stay off the viewer list of LIVEs you open. Tap the eye in a LIVE to let that host see you. Needs Ghost mode on.,Bạn sẽ không có tên trong danh sách người xem của những LIVE bạn mở. Chạm vào con mắt trong LIVE để chủ phòng thấy bạn. Yêu cầu bật Chế độ ẩn danh.
+The host can see you,Chủ phòng thấy bạn
+Let the host see you,Cho chủ phòng thấy bạn
+Couldn't tell which LIVE this is. Open it again.,Không rõ đây là LIVE nào. Hãy mở lại.
+The host can already see you in this LIVE,Chủ phòng đã thấy bạn trong LIVE này
+Letting the host see you,Đang cho chủ phòng thấy bạn
+The host can see you now,Giờ chủ phòng đã thấy bạn
+The host sees you next time you open it,Chủ phòng sẽ thấy bạn khi bạn mở lại
+Couldn't reach TikTok. Open this LIVE again.,Không kết nối được TikTok. Mở lại LIVE này.
+LIVE name alerts,Cảnh báo tên trong LIVE
+"Tells you when your name comes up in a LIVE, in the chat or said out loud in a room with captions on. You get a notification when TikTok's notifications are on, and a banner in the room when they're off.","Báo cho bạn khi tên bạn được nhắc trong LIVE, trong phần chat hoặc được nói to trong phòng có bật phụ đề. Bạn nhận thông báo khi thông báo của TikTok đang bật, và một biểu ngữ trong phòng khi chúng tắt."
+Names to listen for,Tên cần lắng nghe
+"Your handle and TikTok name are on the list already. Add other names people call you, separated by commas.","Tên người dùng và tên TikTok của bạn đã có trong danh sách. Thêm các tên khác mà mọi người gọi bạn, cách nhau bằng dấu phẩy."
+Your name came up in a LIVE,Tên bạn được nhắc trong LIVE
+Listen for your name,Nghe tên của bạn
+"Also listens to the LIVE's sound, so your name counts when it's said out loud in rooms without captions. Your phone's own speech recognition does the listening, with TikTok's microphone permission. It hears only the LIVE, though Android shows its microphone dot, and it uses a little more data.","Nghe cả âm thanh của LIVE, nên tên bạn được tính khi ai đó nói to trong phòng không có phụ đề. Việc nghe do tính năng nhận dạng giọng nói của chính điện thoại bạn đảm nhận, với quyền micrô của TikTok. Nó chỉ nghe LIVE, dù Android vẫn hiện chấm micrô, và dùng thêm một ít dữ liệu."
+Needs Android 13 or newer.,Cần Android 13 trở lên.
+Off: this phone's speech recognition only hears the microphone. Turn this off and on to try again.,Đang tắt: tính năng nhận dạng giọng nói của điện thoại này chỉ nghe micrô. Tắt rồi bật lại mục này để thử lại.
+"This phone has no speech recognition. Choose one under Android's voice input settings, then open the LIVE again.","Điện thoại này không có tính năng nhận dạng giọng nói. Chọn một dịch vụ trong cài đặt nhập liệu bằng giọng nói của Android, rồi mở lại LIVE."
+"TikTok needs the microphone permission for speech recognition. Allow it in Android's app settings, then open the LIVE again.","TikTok cần quyền micrô để nhận dạng giọng nói. Cho phép trong cài đặt ứng dụng của Android, rồi mở lại LIVE."
+"Speech recognition has no model for your phone's language. Download one in Android's speech settings, then open the LIVE again.","Tính năng nhận dạng giọng nói không có mô hình cho ngôn ngữ của điện thoại bạn. Tải một mô hình trong cài đặt giọng nói của Android, rồi mở lại LIVE."
+Speech recognition kept failing in the last LIVE. Open the LIVE again to retry.,Tính năng nhận dạng giọng nói liên tục lỗi trong LIVE vừa rồi. Mở lại LIVE để thử lại.
+Save the photo posts as one video?,Lưu các bài đăng ảnh thành một video?
+One video,Một video
+One per post,Mỗi bài một video
+Keep the middle unstretched,Giữ phần giữa không bị kéo giãn
+"Cover the whole window and keep the middle of the video at its own shape. A little comes off the sides, and only the top and bottom are stretched. A video far from the screen's shape keeps TikTok's size.","Phủ kín cả cửa sổ và giữ phần giữa của video đúng hình dạng gốc. Hai bên bị cắt bớt một chút, và chỉ phần trên cùng và dưới cùng bị kéo giãn. Video có hình dạng khác xa màn hình sẽ giữ kích thước của TikTok."
+Visual search on paused videos,Tìm kiếm hình ảnh trên video đang tạm dừng
+App icon,Biểu tượng ứng dụng
+"Some home screens drop the icon when it changes. If yours does, add TikTok back from the app list.","Một số màn hình chính sẽ xóa biểu tượng khi nó thay đổi. Nếu màn hình của bạn như vậy, hãy thêm lại TikTok từ danh sách ứng dụng."
+Icon changed,Đã đổi biểu tượng
+Couldn't change the icon. Try again.,Không đổi được biểu tượng. Hãy thử lại.
+TikTok colors,Màu TikTok
+Black background,Nền đen
+White on black,Trắng trên nền đen
+Black on white,Đen trên nền trắng
+Material You,Material You
+Your icon,Biểu tượng của bạn
+Save episodes,Lưu các tập
+Pick episodes to save,Chọn tập để lưu
+Episode %1$s,Tập %1$s
+Preview only,Chỉ xem trước
+Loading episodes,Đang tải các tập
+Couldn't load the episodes. Try again.,Không tải được các tập. Hãy thử lại.
+Pick at least one episode,Hãy chọn ít nhất một tập
+Saving %1$s. Tap Save again for the rest.,Đang lưu %1$s. Nhấn Lưu lần nữa để lưu phần còn lại.
+Save episodes button in the share sheet,Nút Lưu các tập trong bảng chia sẻ
+Adds Save episodes when you share an episode of a mini drama. It lists the drama's episodes so you can pick several and save them in one go. An episode you haven't unlocked saves only its preview.,Thêm nút Lưu các tập khi bạn chia sẻ một tập phim ngắn. Danh sách các tập của phim hiện ra để bạn chọn nhiều tập và lưu một lần. Tập bạn chưa mở khóa chỉ lưu được đoạn xem trước.
+Save to a collection,Lưu vào bộ sưu tập
+Collections aren't available for this video,Bộ sưu tập không khả dụng cho video này
+Hide LIVEs from accounts you don't follow,Ẩn LIVE từ tài khoản bạn không theo dõi
+LIVEs from accounts you don't follow leave the stories tray. LIVEs from accounts you follow stay.,LIVE từ các tài khoản bạn không theo dõi sẽ rời khỏi khay chứa tin. LIVE từ các tài khoản bạn theo dõi vẫn ở lại.
+Hide the Widget circle,Ẩn vòng tròn Tiện ích (Widget)
+The Widget circle at the end of the stories tray goes. TikTok's home screen widget still works.,Vòng tròn Tiện ích (Widget) ở cuối khay chứa tin sẽ bị gỡ. Tiện ích màn hình chính của TikTok vẫn hoạt động.
+Hide view counts on profile grids,Ẩn số lượt xem trên lưới trang cá nhân
+"Takes the view count and its play icon off each video on profile grids. Dates, lengths and the engagement rate you turned on move up in its place.","Bỏ số lượt xem và biểu tượng phát khỏi từng video trên lưới trang cá nhân. Ngày, thời lượng và tỷ lệ tương tác bạn đã bật sẽ chuyển lên thay chỗ."

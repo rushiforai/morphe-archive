@@ -8,6 +8,7 @@ import app.morphe.FixtureDex
 import app.morphe.ExtensionDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.PlusPending
 import app.morphe.util.names.origRef
 import app.morphe.util.names.replaceInstruction
 import app.morphe.util.names.addInstruction
@@ -54,6 +55,7 @@ import app.morphe.util.names.origString
 import app.morphe.util.names.origType
 import app.morphe.util.names.tgMutableClassDefBy
 
+@PlusPending
 class NativeSettingsFixtureTest {
     @Test fun clickInputAndCallbackCastsRefuseDriftAtomically() {
         for (build in Fixtures.declaredBuilds()) for (change in listOf("item clobber", "owner clobber", "item cast", "view cast", "boxed argument")) {

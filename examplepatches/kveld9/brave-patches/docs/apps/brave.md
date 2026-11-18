@@ -1,0 +1,101 @@
+# Brave Patches Guide
+
+Technical documentation and patch catalog for Brave Private Web Browser on Android.
+
+---
+
+## 1. Target & Compatibility
+
+| Property | Value |
+| :--- | :--- |
+| **Target App** | Brave Private Web Browser, VPN |
+| **Package Name** | `com.brave.browser` |
+| **Target Version** | `Single pinned version (see README Patch Catalog)` |
+| **Target Package Format** | standalone APK (`Bravemonoarm64.apk` or `BraveMonoarm.apk`) |
+| **Primary Architecture** | `arm64-v8a` / `armeabi-v7a` |
+| **Download Target** | [APKMirror](https://www.apkmirror.com/apk/brave-software/brave-browser/) |
+| **Authoritative Source** | github.com/brave/brave-browser/releases |
+
+---
+
+## 2. Applied Patches Catalog
+
+The authoritative patch catalog with descriptions and options is generated in README.md from the built .mpp; see also patches-list.json.
+
+---
+
+## 3. Technical Breakdown
+
+### A. Telemetry & Background Sync Neutralization
+- **Stop Background Wakeups**:
+  - *Objective*: Stop periodic background wakeups and conserve battery.
+  - *How*: Modifies the background sync check to return true, preventing scheduled sync tasks from running.
+- **Block Telemetry & Hosts**:
+  - *Objective*: Prevent transmission of telemetry, crash reports, and remote experiment metrics.
+  - *How*: Strips the Google Play install referrer permission from the manifest, neutralizes crash dump uploads, experiment synchronization, and Google Play install referrer attribution queries, and redirects telemetry server endpoints to 0.0.0.0. Provides the option to also block shopping offer servers.
+
+### B. Interface & Promo Suppression
+- **Clean New Tab**:
+  - *Objective*: Provide a distraction-free start page free of ads, sponsored cards, and unwanted news.
+  - *How*: Disables sponsored background wallpapers, Brave News feeds, and marketing cards by intercepting preference queries and layout initialization guards (allows background images only when a custom NTP wallpaper is installed). Includes an option to hide shortcut tiles:
+    - `hideTopSites`: Removes most-visited shortcut tiles for a completely blank new tab page.
+- **Stop Promo Notifications**:
+  - *Objective*: Eliminate unsolicited marketing reminders, tips, and rewards onboarding notifications.
+  - *How*: Neutralizes tips notification scheduling, rewards onboarding alarm enqueue, and retention marketing broadcast dispatch.
+- **Block Popups & Ratings**:
+  - *Objective*: Prevent rating prompts, review nag dialogs, and promotional modal interruptions.
+  - *How*: Disables in-app review and promotional sign-up eligibility checks, and drops promotional dialog tags before display. Hides the Rate Brave entry and its Support category in Settings.
+
+### C. Browser Navigation & Performance
+- **Keep All Tabs Loaded**:
+  - *Objective*: Prevent the browser from discarding or minimizing background tabs unexpectedly.
+  - *How*: Disables inactive tab suspension and automatic tab minimization logic.
+- **Close Tab In Group Order**:
+  - *Objective*: Return directly to the previously viewed tab inside a tab group when closing the active tab.
+  - *How*: Alters tab closure selection logic to preselect the predecessor tab within the active tab group.
+- **Brave Origin**:
+  - *Objective*: Provide access to internal Brave Origin feature switches and experimental settings.
+  - *How*: Unlocks Origin preference toggles and bypasses internal feature gatekeepers across Rewards, News, Wallet, and VPN settings.
+
+### D. Resource Debloating
+- **Remove Unused AI & VPN**:
+  - *Objective*: Reduce overall application size on device storage.
+  - *How*: Overwrites unused companion native libraries in place with empty stubs, targeting augmented reality and extended reality binaries. Includes an option to also remove the WireGuard VPN library.
+
+### E. Theming & Interface Customization
+- **Custom Brave theme**:
+  - *Objective*: Provide fully customizable styling for Brave dark mode chrome, replacing standard charcoal grey surfaces with custom colors. Defaults preserve pure-black AMOLED styling (#000000) while allowing granular customization of backgrounds, elevated containers, text ink, highlights, and Material You system role mappings.
+  - *Two-Tier Surfaces*: Distinguishes between flat base backgrounds (toolbars, window roots, web view containers) and elevated surfaces (dialog boxes, modal bottom sheets, popover menus, and settings cards).
+    - When `surfaceUsesBackground` is enabled (`true`, default), all surfaces share the base background color, providing a uniform true-black AMOLED appearance. Defaults are OLED pure-black out of the box, with #1e2029 as the suggested value for tier depth.
+    - When `surfaceUsesBackground` is disabled (`false`), elevated cards and dialogs use the dedicated `surfaceColor` (default `#000000`), creating clear visual separation when set to a distinct tier color such as `#1e2029`.
+  - *Material You Dynamic Palette Opt-Out*: On Android 12 and higher, system-wide wallpaper palette extraction dynamically tints app surfaces. When `disableDynamicColors` is enabled (`true`, default), the patch intercepts internal dynamic color readers and rewrites Android system neutral/container color definitions, preventing dynamic system wallpaper colors from overriding the chosen dark theme. Users wanting Android wallpaper-derived tints can toggle this setting to `false`.
+  - *Customization Options*:
+
+| Option Key | Typology | Default | Title & Visible Effect | Description & Example |
+| :--- | :--- | :--- | :--- | :--- |
+| `backgroundColor` | `colorOption` | `#000000` | Background color | Primary background for toolbars, window chrome, and base surfaces. Example: `#000000` for pure OLED black, or `#0d1117` for deep navy. |
+| `surfaceUsesBackground` | `booleanOption` | `true` | Surfaces use background color | When true, elevated dialogs and cards share the base background color. When false, elevated surfaces use `surfaceColor`. |
+| `surfaceColor` | `colorOption` | `#000000` | Surface / container color | Dedicated color for raised containers, modal sheets, and cards. Defaults to OLED pure-black (#000000) out of the box; use #1e2029 for visible tier depth. |
+| `textColor` | `colorOption` | `#f0f2ff` | Text ink color | Primary text ink for labels, addresses, tab headers, and menus. Defaults to Brave slate ink (`#f0f2ff`). |
+| `accentColor` | `colorOption` | `#737ade` | Accent highlight color | Interactive highlights, active toggles, links, and action buttons. Defaults to Brave purple-blue (`#737ade`). |
+| `disableDynamicColors` | `booleanOption` | `true` | Disable Material You dynamic colors | Prevents wallpaper extraction on Android 12+ from overriding custom dark surfaces. |
+| `windowBackgroundColor` | `colorOption` | `#000000` | Window background color | Root window background applied behind decor views in two-tier mode. Defaults to `#000000`. |
+| `cardColor` | `colorOption` | `#000000` | Preference card color | Fill color for settings and preference rows in two-tier mode. Defaults to OLED pure-black (#000000) out of the box; use #1e2029 for visible tier depth. |
+| `enablePreferenceCards` | `booleanOption` | `true` | Style preference rows as cards | Groups Settings and preference rows into rounded cards with subtle margins in two-tier mode. |
+| `modulateTextLuminance` | `booleanOption` | `true` | Modulate text tiers by luminance | Dynamically scales secondary (81%) and disabled (62%) text brightness relative to the primary text ink color. |
+| `patchMaterialYouRoles` | `booleanOption` | `true` | Patch Material You system color roles | Rewrites Android S+ system neutral and container color roles in `values-v31+` directories to theme colors. |
+| `patchLStarSelectors` | `booleanOption` | `true` | Patch color state list lStar selectors | Rewrites color state list `lStar` luminance attributes in `res/color*` to match background and container surfaces. |
+| `patchVectorDrawables` | `booleanOption` | `true` | Patch vector drawable surface fills | Rewrites dark surface fills inside vector drawables in `res/drawable*` to match background and container colors. |
+
+  - *How*: Rewrites color values, vector fills, window background references, and lStar selector resources at patch time across day, night, and version-specific resource directories (`res/values*`, `res/color*`, `res/drawable*`, `res/layout*`, `res/xml*`), updates preference XML defaults, and injects bytecode prologues into dynamic color reader methods in DEX bytecode to return false.
+- **Custom NTP wallpaper**:
+  - *Objective*: Replace the Brave New Tab Page background with a user-supplied custom PNG or JPG image.
+  - *How*: Deploys the selected PNG or JPG into `res/drawable-nodpi` at patch time, rewrites the Java ambient wallpaper catalog accessor to construct and return a `BackgroundImage` model referencing the custom drawable resource ID via `BraveExtension.getCustomNtpWallpaperDrawableId()`, and forces wallpaper callback handlers to consume the ambient catalog instead of native URL-loaded branded wallpapers. Includes an option for the wallpaper image:
+    - `customWallpaper`: PNG or JPG image file on host system used as the new-tab background (validated for PNG or JPEG magic bytes, dimensions between 480 and 8192 px, and size up to 8 MiB to prevent Android heap memory exhaustion and OutOfMemory errors on high-resolution bitmaps).
+
+---
+
+## 4. Known Limitations
+
+- **Binary Stripping**: Applying native file removal zeroes selected components in-situ; features depending on those libraries (e.g. AR, XR, or Brave VPN when its library is removed) will become unavailable.
+- **Standalone Builds**: Patches target official standalone release APKs (`Bravemonoarm64.apk` or `BraveMonoarm.apk`); split or bundle variants are unsupported.

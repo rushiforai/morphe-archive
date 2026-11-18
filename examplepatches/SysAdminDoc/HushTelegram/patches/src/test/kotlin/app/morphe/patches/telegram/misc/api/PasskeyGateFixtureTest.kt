@@ -8,6 +8,7 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.PlusPending
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
 import app.morphe.patches.telegram.misc.localcontrols.controlBody
 import app.morphe.patches.telegram.misc.localcontrols.controlRef
@@ -35,6 +36,7 @@ import app.morphe.util.names.tgMutableClassDefBy
  * passkey step) and the chat list's SETUP_PASSKEY banner check each hand their answer to the
  * extension, in the same register, and the rest of each method is Telegram's code unchanged.
  */
+@PlusPending
 class PasskeyGateFixtureTest {
     private fun Instruction.shape() = listOf(opcode, origRef())
 

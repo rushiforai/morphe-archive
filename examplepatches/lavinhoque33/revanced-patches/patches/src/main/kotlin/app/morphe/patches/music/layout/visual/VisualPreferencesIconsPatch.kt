@@ -298,6 +298,7 @@ private var preferenceKey = mutableMapOf(
 )
 
 private val rvxPreferenceKey = mapOf(
+    "morphe_music_hide_get_premium_label" to "revanced_hide_premium_promotion",
     // Glass uses the same icon aliases and variants as the existing navigation color controls.
     "morphe_music_navigation_bar_glass" to "revanced_enable_custom_navigation_bar_color",
     "morphe_music_navigation_bar_glass_height" to "revanced_enable_custom_navigation_bar_color",

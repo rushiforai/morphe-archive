@@ -7,6 +7,7 @@ package app.morphe.patches.telegram.misc.apps
 import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
+import app.morphe.PlusPending
 import app.morphe.hostsOf
 import app.morphe.PatchContexts
 import app.morphe.util.names.origRef
@@ -40,6 +41,7 @@ import app.morphe.util.names.tgMutableClassDefBy
 import app.morphe.util.names.tgMutableClassDefByOrNull
 
 /** Both pinned builds' LocaleController, where search's transliteration takes the name fold. */
+@PlusPending
 class NameFoldFixtureTest {
     @Test fun `every transliteration starts with the fold and then runs as Telegram's`() {
         for (build in Fixtures.declaredBuilds()) {

@@ -55,4 +55,6 @@ fs.writeFileSync(path.join(adapters, version + '.properties'), [
 const versions = fs.readdirSync(adapters).filter(n => /^\d+\.\d+\.\d+\.properties$/.test(n)).map(n => n.slice(0, -11))
   .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 fs.writeFileSync(path.join(adapters, 'index.properties'), 'versions=' + versions.join(',') + '\n');
+// Support scope: the three newest versions, NOTESNOOK_VERSIONS and older adapters included.
+execFileSync('python3', ['-I', path.join(repo, 'scripts/compat/prune_versions.py'), 'notesnook'], { stdio: 'inherit' });
 console.log('Registered Notesnook UI adapters: ' + versions.join(', ') + '. Temporary artifacts: ' + temp);

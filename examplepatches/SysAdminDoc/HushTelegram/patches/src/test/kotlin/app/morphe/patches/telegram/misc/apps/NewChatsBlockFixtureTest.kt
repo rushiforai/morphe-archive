@@ -7,6 +7,7 @@ package app.morphe.patches.telegram.misc.apps
 import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
+import app.morphe.PlusPending
 import app.morphe.hostsOf
 import app.morphe.PatchContexts
 import app.morphe.util.names.origRef
@@ -62,6 +63,7 @@ private const val PLAIN_POLL = "$MESSAGES_CONTROLLER->startShortPoll(${TL_CHAT}I
  * asks before it sets up a channel or supergroup you aren't in, and the topic list asks before it
  * loads a forum you aren't in. A build that has moved any of it leaves all three stock and says why.
  */
+@PlusPending
 class NewChatsBlockFixtureTest {
     @Test fun `every join the block drops is a class each declared build still has under that name`() {
         val named = ExtensionDex.classes().single { it.origType == NEW_CHATS_BLOCK }.methods.flatMap { it.body() }

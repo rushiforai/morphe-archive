@@ -1,31 +1,87 @@
 /*
- * Copyright (C) 2026 rex <https://github.com/xboyrex/rex-ig-lite>
+ * Copyright (C) 2026 xboyrex <https://github.com/xboyrex/rex-ig-lite>
  *
  * See the included NOTICE file for GPLv3 §7(b) terms that apply to this code.
  */
 
-
 package app.morphe.extension.instagram.patches.devFlags;
 
+import android.app.Activity;
 import android.content.Context;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
+
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 
-import static app.morphe.extension.instagram.utils.IgStr.str;
-
-import app.morphe.extension.rex.RexUtils;
-import app.morphe.extension.instagram.entity.DeveloperOptions;
-import app.morphe.extension.instagram.entity.DeveloperOptionsItem;
 import app.morphe.extension.instagram.constants.Constants;
+import app.morphe.extension.instagram.settings.RestartPolicy;
+import app.morphe.extension.instagram.settings.SettingRegistry;
+import app.morphe.extension.instagram.settings.SettingsRestart;
+import app.morphe.extension.instagram.settings.preference.widgets.RexDialogs;
 import app.morphe.extension.instagram.utils.InstaUtils;
+import app.morphe.extension.rex.RexUtils;
+import app.morphe.extension.shared.Logger;
+import app.morphe.extension.shared.Utils;
 
 public class RecommendedFlags {
     private static final Set<Runnable> changeListeners = new CopyOnWriteArraySet<>();
+
+    public static final class ValidationReport {
+        public final List<Flag> validFlags = new ArrayList<>();
+        public final List<String> duplicateCodes = new ArrayList<>();
+        public final List<String> malformedEntries = new ArrayList<>();
+        public final List<String> unknownTypeEntries = new ArrayList<>();
+        public int booleanCount;
+        public int longCount;
+
+        public boolean isClean() {
+            return !validFlags.isEmpty() && malformedEntries.isEmpty();
+        }
+    }
+
+    public static final class BulkActionResult {
+        public final boolean success;
+        public final int totalEligibleBoolean;
+        public final int newlyChangedCount;
+        public final int alreadyTargetStateCount;
+        public final int preservedLongCount;
+        public final int skippedInvalidCount;
+        public final RestartPolicy strongestRestartPolicy;
+        public final String summaryMessage;
+
+        public BulkActionResult(
+                boolean success,
+                int totalEligibleBoolean,
+                int newlyChangedCount,
+                int alreadyTargetStateCount,
+                int preservedLongCount,
+                int skippedInvalidCount,
+                RestartPolicy strongestRestartPolicy,
+                String summaryMessage
+        ) {
+            this.success = success;
+            this.totalEligibleBoolean = totalEligibleBoolean;
+            this.newlyChangedCount = newlyChangedCount;
+            this.alreadyTargetStateCount = alreadyTargetStateCount;
+            this.preservedLongCount = preservedLongCount;
+            this.skippedInvalidCount = skippedInvalidCount;
+            this.strongestRestartPolicy = strongestRestartPolicy;
+            this.summaryMessage = summaryMessage;
+        }
+    }
 
     public static void addChangeListener(Runnable listener) {
         changeListeners.add(listener);
@@ -35,7 +91,7 @@ public class RecommendedFlags {
         changeListeners.remove(listener);
     }
 
-    private static File getRecommendedFlagsFile() {
+    public static File getRecommendedFlagsFile() {
         Context context = RexUtils.getContext();
         return new File(context.getFilesDir(), Constants.REC_FLAGS + ".json");
     }
@@ -54,8 +110,8 @@ public class RecommendedFlags {
             + "{\"name\":\"Selected Instagram Plus features and entry points\",\"desc\":\"Unlock experimental Plus creator tools and entry points\",\"type\":\"bool\",\"code\":\"rec_selected_plus_entry_points\"}"
             + "]";
 
-    private static JSONArray readFlagsFromFileDir(boolean notifyErrors){
-        try{
+    private static JSONArray readFlagsFromFileDir(boolean notifyErrors) {
+        try {
             File recFlagsFile = getRecommendedFlagsFile();
             if (recFlagsFile.exists()) {
                 String data = RexUtils.readFile(recFlagsFile);
@@ -68,8 +124,8 @@ public class RecommendedFlags {
             if (ctx != null && ctx.getResources() != null) {
                 int rawId = ctx.getResources().getIdentifier("rex_recommended_flags_v3", "raw", ctx.getPackageName());
                 if (rawId != 0) {
-                    try (java.io.InputStream in = ctx.getResources().openRawResource(rawId);
-                         java.util.Scanner sc = new java.util.Scanner(in, "UTF-8").useDelimiter("\\A")) {
+                    try (InputStream in = ctx.getResources().openRawResource(rawId);
+                         Scanner sc = new Scanner(in, "UTF-8").useDelimiter("\\A")) {
                         String bundled = sc.hasNext() ? sc.next() : "";
                         if (!bundled.trim().isEmpty()) return new JSONArray(bundled);
                     }
@@ -80,9 +136,56 @@ public class RecommendedFlags {
             RexUtils.logger(e);
             try {
                 return new JSONArray(DEFAULT_RECOMMENDED_FLAGS_JSON);
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
         return new JSONArray();
+    }
+
+    /**
+     * Parses and validates a JSONArray of Recommended Flag definitions:
+     * - Detects missing name/code keys
+     * - Detects duplicate code identifiers
+     * - Validates "bool" and "long" types and reports unknown types
+     * - Registers each flag's StringSetting with SettingRegistry
+     */
+    public static ValidationReport parseAndValidate(JSONArray arr) {
+        ValidationReport report = new ValidationReport();
+        if (arr == null) return report;
+        Set<String> seenCodes = new HashSet<>();
+        for (int i = 0; i < arr.length(); i++) {
+            JSONObject obj = arr.optJSONObject(i);
+            if (obj == null) {
+                report.malformedEntries.add("Entry #" + i + " is not a JSON object");
+                continue;
+            }
+            String name = obj.optString("name", "").trim();
+            String code = obj.optString("code", "").trim();
+            String type = obj.optString("type", "bool").trim();
+            if (name.isEmpty() || code.isEmpty()) {
+                report.malformedEntries.add("Entry #" + i + " missing required name or code");
+                continue;
+            }
+            if (!"bool".equalsIgnoreCase(type) && !"long".equalsIgnoreCase(type)) {
+                report.unknownTypeEntries.add(code + " (type=" + type + ")");
+                continue;
+            }
+            if (!seenCodes.add(code)) {
+                report.duplicateCodes.add(code);
+                continue;
+            }
+            Flag flag = new Flag(obj);
+            if (flag.getCode() != null) {
+                SettingRegistry.register(flag.getCode().key, RestartPolicy.REQUIRED);
+            }
+            if (flag.isLongType()) {
+                report.longCount++;
+            } else {
+                report.booleanCount++;
+            }
+            report.validFlags.add(flag);
+        }
+        return report;
     }
 
     public static List<Flag> getFlags() {
@@ -90,22 +193,258 @@ public class RecommendedFlags {
     }
 
     public static List<Flag> getFlags(boolean notifyErrors) {
-        List<Flag> flags = new ArrayList();
         try {
             JSONArray arr = readFlagsFromFileDir(notifyErrors);
-            for (int i = 0; i < arr.length(); i++) {
-                JSONObject obj = arr.getJSONObject(i);
-                flags.add(new Flag(obj));
+            ValidationReport report = parseAndValidate(arr);
+            if (notifyErrors && (!report.malformedEntries.isEmpty() || !report.unknownTypeEntries.isEmpty())) {
+                RexUtils.toast("Skipped " + (report.malformedEntries.size() + report.unknownTypeEntries.size()) + " invalid flag entries");
             }
+            return report.validFlags;
         } catch (Exception e) {
             RexUtils.logger(e);
             if (notifyErrors) RexUtils.toast("getFlags failed");
+            return new ArrayList<>();
         }
-        return flags;
+    }
+
+    /**
+     * Dedicated transactional controller for "Enable All Recommended Flags":
+     * - Never registers or marks "rex_rec_flags_enable_all" as a BooleanSetting (eliminating the SettingRegistry crash).
+     * - Validates all Boolean flags, preserves Long/numeric flags, and snapshots state for atomic rollback on failure.
+     * - Calculates the strongest RestartPolicy across changed flags and marks each modified flag with its explicit RestartPolicy.
+     * - Prompts the user if a restart is required and refreshes the screen.
+     */
+    public static BulkActionResult enableAllBooleanFlagsTransactionally(Context context, Runnable onScreenRefresh) {
+        Map<String, String> snapshot = FlagsSharedPref.snapshotRawStrings();
+        try {
+            JSONArray arr = readFlagsFromFileDir(false);
+            ValidationReport report = parseAndValidate(arr);
+            int skipped = report.malformedEntries.size() + report.unknownTypeEntries.size() + report.duplicateCodes.size();
+            int changed = 0;
+            int alreadyEnabled = 0;
+            Map<String, String> stagedChanges = new LinkedHashMap<>();
+
+            for (Flag f : report.validFlags) {
+                if (f == null || f.getCode() == null || f.getCode().key == null || f.getCode().key.trim().isEmpty()) {
+                    skipped++;
+                    continue;
+                }
+                if (f.isLongType()) {
+                    continue;
+                }
+                String key = f.getCode().key;
+                String current = FlagsSharedPref.getStringPref(f.getCode());
+                if (FlagState.ENABLE.toString().equalsIgnoreCase(current)) {
+                    alreadyEnabled++;
+                } else {
+                    Boolean saved = FlagsSharedPref.setStringPref(key, FlagState.ENABLE.toString());
+                    if (!Boolean.TRUE.equals(saved)) {
+                        throw new IllegalStateException("Failed to persist flag override for " + key);
+                    }
+                    stagedChanges.put(key, current == null ? FlagState.DEFAULT.toString() : current);
+                    changed++;
+                }
+            }
+
+            if (!FlagsSharedPref.flush()) {
+                throw new IllegalStateException("Failed to flush Recommended Flags store");
+            }
+            HookFlags.load();
+
+            RestartPolicy strongest = changed > 0 ? RestartPolicy.REQUIRED : RestartPolicy.NOT_REQUIRED;
+            for (Map.Entry<String, String> entry : stagedChanges.entrySet()) {
+                SettingsRestart.markChanged(
+                        entry.getKey(),
+                        RestartPolicy.REQUIRED,
+                        entry.getValue(),
+                        FlagState.ENABLE.toString()
+                );
+            }
+
+            String msg;
+            if (changed > 0) {
+                msg = "Enabled " + changed + " Boolean flags (" + alreadyEnabled + " already active, "
+                        + report.longCount + " numeric preserved)";
+            } else {
+                msg = "All " + report.booleanCount + " Recommended Boolean flags are already enabled";
+            }
+            if (skipped > 0) {
+                msg += " • Skipped " + skipped + " invalid";
+            }
+            Utils.showToastShort(msg);
+
+            if (onScreenRefresh != null) {
+                onScreenRefresh.run();
+            }
+            if (strongest == RestartPolicy.REQUIRED && context != null) {
+                final String dialogSummary = msg + ".\n\nRestart InstaRex now to apply all " + (changed + alreadyEnabled) + " active Recommended Flags to the current session?";
+                RexDialogs.showConfirmDialog(
+                        context,
+                        "Recommended Flags Applied",
+                        dialogSummary,
+                        "Restart Now",
+                        false,
+                        () -> Utils.restartApp(context)
+                );
+            }
+            return new BulkActionResult(true, report.booleanCount, changed, alreadyEnabled, report.longCount, skipped, strongest, msg);
+        } catch (Throwable t) {
+            Logger.printException(() -> "enableAllBooleanFlagsTransactionally rollback", t);
+            FlagsSharedPref.restoreSnapshot(snapshot);
+            try {
+                HookFlags.load();
+            } catch (Throwable ignored) {
+            }
+            String err = "Failed to enable all flags — rolled back to previous state";
+            Utils.showToastShort(err);
+            return new BulkActionResult(false, 0, 0, 0, 0, 0, RestartPolicy.NOT_REQUIRED, err);
+        }
+    }
+
+    /**
+     * Dedicated transactional controller for "Reset All Flags to Default":
+     * - Snapshots existing overrides for rollback safety.
+     * - Clears all Boolean and Long overrides back to Default and reloads HookFlags.
+     */
+    public static BulkActionResult resetAllFlagsTransactionally(Context context, Runnable onScreenRefresh) {
+        Map<String, String> snapshot = FlagsSharedPref.snapshotRawStrings();
+        try {
+            int activeBefore = snapshot.size();
+            if (!FlagsSharedPref.clearAll()) {
+                throw new IllegalStateException("Failed to clear Recommended Flags store");
+            }
+            HookFlags.load();
+            RestartPolicy strongest = activeBefore > 0 ? RestartPolicy.REQUIRED : RestartPolicy.NOT_REQUIRED;
+            for (Map.Entry<String, String> entry : snapshot.entrySet()) {
+                if (!FlagState.DEFAULT.toString().equals(entry.getValue())) {
+                    SettingsRestart.markChanged(
+                            entry.getKey(),
+                            RestartPolicy.REQUIRED,
+                            entry.getValue(),
+                            FlagState.DEFAULT.toString()
+                    );
+                }
+            }
+            String msg = activeBefore > 0
+                    ? ("Reset " + activeBefore + " flag overrides back to Default")
+                    : "All Recommended Flags are already at Default";
+            Utils.showToastShort(msg);
+            if (onScreenRefresh != null) {
+                onScreenRefresh.run();
+            }
+            if (strongest == RestartPolicy.REQUIRED && context != null) {
+                RexDialogs.showConfirmDialog(
+                        context,
+                        "Flags Reset to Default",
+                        msg + ".\n\nRestart InstaRex now to restore default behavior?",
+                        "Restart Now",
+                        true,
+                        () -> Utils.restartApp(context)
+                );
+            }
+            return new BulkActionResult(true, 0, activeBefore, 0, 0, 0, strongest, msg);
+        } catch (Throwable t) {
+            Logger.printException(() -> "resetAllFlagsTransactionally rollback", t);
+            FlagsSharedPref.restoreSnapshot(snapshot);
+            try {
+                HookFlags.load();
+            } catch (Throwable ignored) {
+            }
+            String err = "Failed to reset flags — rolled back to previous state";
+            Utils.showToastShort(err);
+            return new BulkActionResult(false, 0, 0, 0, 0, 0, RestartPolicy.NOT_REQUIRED, err);
+        }
+    }
+
+    /**
+     * Atomically imports either a Recommended Flags catalog JSONArray (e.g. rex_recommended_flags_v3.json)
+     * or a Recommended Flags state JSONObject, with backup & rollback on failure.
+     */
+    public static boolean importRecommendedFlagsJson(String jsonContent) {
+        if (jsonContent == null || jsonContent.trim().isEmpty()) return false;
+        Map<String, String> snapshot = FlagsSharedPref.snapshotRawStrings();
+        File catalogFile = getRecommendedFlagsFile();
+        File backupFile = new File(catalogFile.getPath() + ".bak");
+        try {
+            String trimmed = jsonContent.trim();
+            if (trimmed.startsWith("[")) {
+                JSONArray arr = new JSONArray(trimmed);
+                ValidationReport report = parseAndValidate(arr);
+                if (report.validFlags.isEmpty()) {
+                    return false;
+                }
+                if (catalogFile.exists()) {
+                    copyFile(catalogFile, backupFile);
+                }
+                File tmp = new File(catalogFile.getPath() + ".tmp");
+                try (FileOutputStream fos = new FileOutputStream(tmp)) {
+                    fos.write(arr.toString(2).getBytes(StandardCharsets.UTF_8));
+                }
+                if (!tmp.renameTo(catalogFile)) {
+                    if (catalogFile.exists()) catalogFile.delete();
+                    if (!tmp.renameTo(catalogFile)) {
+                        throw new IllegalStateException("Failed atomic replace of recommended_flags.json");
+                    }
+                }
+                // Apply any explicit "state" or "value" fields included in the catalog entries
+                for (int i = 0; i < arr.length(); i++) {
+                    JSONObject item = arr.optJSONObject(i);
+                    if (item == null) continue;
+                    String code = item.optString("code", "").trim();
+                    String state = item.optString("state", "").trim();
+                    if (!code.isEmpty() && !state.isEmpty()) {
+                        FlagsSharedPref.setStringPref(code, state);
+                    }
+                }
+                FlagsSharedPref.flush();
+                HookFlags.load();
+                if (backupFile.exists()) backupFile.delete();
+                return true;
+            }
+        } catch (Throwable t) {
+            FlagsSharedPref.restoreSnapshot(snapshot);
+            if (backupFile.exists()) {
+                try {
+                    copyFile(backupFile, catalogFile);
+                    backupFile.delete();
+                } catch (Throwable ignored) {
+                }
+            }
+            Logger.printException(() -> "importRecommendedFlagsJson failed", t);
+        }
+        return false;
+    }
+
+    public static JSONArray exportRecommendedFlagsWithState() {
+        JSONArray out = new JSONArray();
+        try {
+            List<Flag> flags = getFlags(false);
+            for (Flag f : flags) {
+                if (f == null || f.getCode() == null) continue;
+                JSONObject item = new JSONObject();
+                item.put("name", f.getName());
+                item.put("desc", f.getDesc());
+                item.put("type", f.isLongType() ? "long" : "bool");
+                item.put("code", f.getCode().key);
+                item.put("state", FlagsSharedPref.getStringPref(f.getCode()));
+                out.put(item);
+            }
+        } catch (Exception ignored) {
+        }
+        return out;
+    }
+
+    private static void copyFile(File src, File dst) throws Exception {
+        try ( java.io.FileInputStream in = new java.io.FileInputStream(src);
+              FileOutputStream out = new FileOutputStream(dst)) {
+            byte[] buf = new byte[8192];
+            int n;
+            while ((n = in.read(buf)) != -1) out.write(buf, 0, n);
+        }
     }
 
     public static void downloadRecommendedFlagsFile(Runnable onComplete) {
-        String filename = Constants.REC_FLAGS+".json";
+        String filename = Constants.REC_FLAGS + ".json";
         String host = Constants.REX_MAPPINGS_PATH;
         InstaUtils.downloadFile(host, filename, getRecommendedFlagsFile(), () -> {
             for (Runnable listener : changeListeners) {

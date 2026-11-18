@@ -1,4 +1,4 @@
-# Implementation Changelog (`v3.15.0`)
+# Implementation Changelog (`v3.16.0`)
 
 1. **`RexDialogs.java`**: Fixed lines 213–214 (`viewerUnconnected == null`), redesigned `showFriendshipStatusSheet` (`23113.png`) and `showStoryMentionsSheet` (`23125.png`).
 2. **`BaseSharedPref.java` & `FlagsSharedPref.java`**: Fixed `getString(StringSetting)` to read from `this` (`Constants.REC_FLAGS` for `FlagsSharedPref`) rather than `SharedPref`, and added synchronous `flushPreferences()` on `FlagsSharedPref.setStringPref` and `clearAll()`.

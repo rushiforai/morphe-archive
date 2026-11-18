@@ -8,6 +8,7 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.PlusPending
 import app.morphe.hostsOf
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.util.smali.ExternalLabel
@@ -42,6 +43,7 @@ internal fun chatListAvatarHosts(build: File): List<ClassDef> = AVATAR_HOSTS.hos
 }
 
 /** The chat row's layout, ImageReceiver and the runtime. */
+@PlusPending
 class ChatListAvatarFixtureTest {
     @Test fun `the extension gets the avatar's square right after each layout sets it`() {
         for (build in Fixtures.declaredBuilds()) {

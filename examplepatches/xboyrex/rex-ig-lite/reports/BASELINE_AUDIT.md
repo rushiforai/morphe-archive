@@ -1,6 +1,6 @@
-# InstaRex v3.15.0 — Baseline & Architecture Audit
+# InstaRex v3.16.0 — Baseline & Architecture Audit
 
-- **Repository Root**: `xboyrex/rex-ig-lite` (v3.15.0, `patches-3.15.0.mpp`)
+- **Repository Root**: `xboyrex/rex-ig-lite` (v3.16.0, `patches-3.16.0.mpp`)
 - **Total Java/Kotlin Files**: 1,220 (0 brace/syntax errors)
 - **Total XML Files**: 648 (0 parse errors)
 - **Total JSON Files**: 19 (0 parse errors, 0 GitHub Push Protection secrets)

@@ -166,7 +166,7 @@ python scripts/check_install.py --apk .\messenger-signed.apk --stock-apk .\messe
 
 ## Build from source
 
-You need JDK 21, Android SDK 36 and GitHub Packages credentials for the Morphe Gradle plugin. Set `ANDROID_HOME` to your SDK directory.
+You need JDK 21, Android SDK 36 and GitHub Packages credentials for the Morphe Gradle plugin, either in `GITHUB_ACTOR` and `GITHUB_TOKEN` as below or as `gpr.user` and `gpr.key` in your own gradle.properties. Set `ANDROID_HOME` to your SDK directory.
 
 ```powershell
 $env:GITHUB_ACTOR = gh api user --jq .login
@@ -186,7 +186,7 @@ Where things live:
 
 To add a control, `scripts/new_control.py` stubs it in every file it has to reach. Find its hook in the stock APK with `:patches:inspectDex -PapkPath=<apk> -Ptarget=<query>` (queries like `class:LX/Foo;`, `method:LX/Foo;->A01`, `callers:` and `strings:<text>`).
 
-Translations are welcome. A language is one Java table of text pairs registered with one line in `SettingsTranslations.java`, and `SettingsTranslationTest` fails the build when a text is missing or a placeholder changed.
+Translations are welcome. A language is one tab-separated file in `extensions/messenger/src/main/l10n/`, an id and its text on each line, registered with one line in `SettingsTranslations.java`. The build writes the Java table from it, and `SettingsTranslationTest` fails the build when a text is missing or a placeholder changed.
 
 ## Credits
 

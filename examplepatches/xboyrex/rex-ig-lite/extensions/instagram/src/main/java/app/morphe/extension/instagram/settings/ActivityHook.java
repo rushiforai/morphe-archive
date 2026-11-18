@@ -245,7 +245,7 @@ public class ActivityHook {
         if (bundleKey.equals("rex_export_dev_overrides") || bundleKey.equals("rex_export_pref")) {
             launchType = LAUNCH_TYPE_BACKUP;
         } else if (bundleKey.equals("rex_import_dev_overrides") || bundleKey.equals("rex_import_id_mapping")
-                || bundleKey.equals("rex_import_pref") || bundleKey.equals("rex_pref_add_font")) {
+                || bundleKey.equals("rex_import_pref") || bundleKey.equals("rex_pref_add_font") || bundleKey.equals("rex_pref_add_emoji_font") || bundleKey.equals("rex_pref_add_story_font")) {
             launchType = LAUNCH_TYPE_RESTORE;
         } else if (bundleKey.equals("rex_download_set_path")) {
             launchType = LAUNCH_TYPE_FOLDER_PICKER;

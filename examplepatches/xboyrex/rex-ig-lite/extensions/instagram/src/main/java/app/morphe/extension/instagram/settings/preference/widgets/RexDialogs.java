@@ -45,6 +45,8 @@ import java.util.Locale;
 import java.util.concurrent.Callable;
 
 import app.morphe.extension.instagram.constants.Constants;
+import app.morphe.extension.instagram.patches.customise.font.CustomFont;
+import app.morphe.extension.instagram.utils.IgStr;
 import app.morphe.extension.instagram.db.RexMessageDb;
 import app.morphe.extension.instagram.entity.MediaData;
 import app.morphe.extension.instagram.entity.UserData;
@@ -450,6 +452,7 @@ public final class RexDialogs {
                     UserData u = mentions.get(i);
                     final String uname = safeCall(() -> u.getUsername(), "");
                     final String fname = safeCall(() -> u.getFullName(), uname);
+                    final String picUrl = safeCall(() -> u.getProfilePictureUrl(), "");
                     final boolean verified = safeBool(() -> u.isVerified(), false);
                     if (!uname.isEmpty()) {
                         if (allHandles.length() > 0) allHandles.append(" ");
@@ -466,18 +469,32 @@ public final class RexDialogs {
                     GradientDrawable avBg = new GradientDrawable();
                     avBg.setShape(GradientDrawable.OVAL);
                     avBg.setColor(ELEVATED_SURFACE);
-                    avBg.setStroke(Math.max(1, RexVectorIcons.dp(hostCtx, 1)), BRAND_CYAN);
+                    avBg.setStroke(Math.max(1, RexVectorIcons.dp(hostCtx, 1)), InstagramPreferenceStyle.accentColor());
                     avatarCircle.setBackground(avBg);
                     TextView avInit = new TextView(hostCtx);
                     avInit.setText(uname.isEmpty() ? "@" : uname.substring(0, 1).toUpperCase(Locale.ROOT));
-                    avInit.setTextColor(BRAND_CYAN);
+                    avInit.setTextColor(InstagramPreferenceStyle.accentColor());
                     avInit.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f);
                     avInit.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
                     avInit.setGravity(Gravity.CENTER);
                     avatarCircle.addView(avInit, new FrameLayout.LayoutParams(
                             ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+
+                    ImageView avatarImg = new ImageView(hostCtx);
+                    avatarImg.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                    avatarImg.setOutlineProvider(new android.view.ViewOutlineProvider() {
+                        @Override
+                        public void getOutline(View view, android.graphics.Outline outline) {
+                            outline.setOval(0, 0, view.getWidth(), view.getHeight());
+                        }
+                    });
+                    avatarImg.setClipToOutline(true);
+                    avatarCircle.addView(avatarImg, new FrameLayout.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+                    app.morphe.extension.instagram.patches.story.StoryMentionPopup.loadAvatarInto(picUrl, avatarImg, avInit);
+
                     LinearLayout.LayoutParams avLp = new LinearLayout.LayoutParams(
-                            RexVectorIcons.dp(hostCtx, 40), RexVectorIcons.dp(hostCtx, 40));
+                            RexVectorIcons.dp(hostCtx, 42), RexVectorIcons.dp(hostCtx, 42));
                     avLp.setMarginEnd(RexVectorIcons.dp(hostCtx, 12));
                     uRow.addView(avatarCircle, avLp);
 
@@ -664,8 +681,14 @@ public final class RexDialogs {
                 row.setOnClickListener(v -> {
                     RexHaptics.tap(v);
                     SharedPref.setStringPref(Settings.TRANSLATOR_LANGUAGE.key, lang);
+                    IgStr.refreshLocale();
+                    IgStr.applyLocaleToContext(hostCtx);
                     Utils.showToastShort("Language & Translator set to " + lang);
                     dialog.dismiss();
+                    Activity act = resolveActivity(hostCtx);
+                    if (act != null && !act.isFinishing()) {
+                        try { act.recreate(); } catch (Throwable ignored) {}
+                    }
                 });
                 list.addView(row);
             }
@@ -929,6 +952,9 @@ public final class RexDialogs {
         }
         attachBlurBehind(dialog, context);
         dialog.show();
+        if (dialog.getWindow() != null && dialog.getWindow().getDecorView() != null) {
+            CustomFont.applyToViewTree(dialog.getWindow().getDecorView());
+        }
     }
 
     public static LinearLayout createDialogSheet(Context context, String headerIconId, String titleText) {
@@ -1959,7 +1985,7 @@ public final class RexDialogs {
             TextView meta = new TextView(context);
             meta.setText("Release Date: 17/11/2026\n" +
                     "Base: 453.0.0.57.79 & 452.1.0.53.64 / Universal\n" +
-                    "Version: 3.15.0 (InstaRex • Rex IG Lite AMOLED Suite)");
+                    "Version: 3.16.0 (InstaRex • Rex IG Lite AMOLED Suite)");
             meta.setTextColor(TEXT_SECONDARY);
             meta.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13.5f);
             meta.setPadding(RexVectorIcons.dp(context, 4), 0, RexVectorIcons.dp(context, 4), RexVectorIcons.dp(context, 12));
@@ -2224,33 +2250,76 @@ public final class RexDialogs {
         try {
             final Context hostCtx = resolveActivity(context) != null ? resolveActivity(context) : context;
             final MediaCapabilities caps = MediaContextResolver.resolveForStory(mediaObject, reelObject, userSession);
-            final List<ActionSpec> actions = MediaActionRegistry.buildActions(caps, false);
+            final MediaData resolvedStoryMediaData = caps.currentMedia != null ? caps.currentMedia : caps.rootMedia;
+            final Object resolvedStoryMediaObj = (resolvedStoryMediaData != null && resolvedStoryMediaData.getObject() != null)
+                    ? resolvedStoryMediaData.getObject()
+                    : mediaObject;
+            int resolvedMentionCount = 0;
+            try {
+                if (resolvedStoryMediaData != null && resolvedStoryMediaData.getMentionSet() != null) {
+                    resolvedMentionCount = resolvedStoryMediaData.getMentionSet().size();
+                }
+            } catch (Throwable ignored) {
+            }
 
             final AlertDialog dialog = new AlertDialog.Builder(hostCtx).create();
             String sheetTitle = caps.totalCount > 1
-                    ? "Story Options (" + caps.displayIndex + " of " + caps.totalCount + ")"
-                    : "Story Options & Quick Settings";
-            LinearLayout sheet = createDialogSheet(hostCtx, "settings", sheetTitle);
+                    ? "Story Quick Menu (" + caps.displayIndex + " of " + caps.totalCount + ")"
+                    : "Story Quick Menu";
+            LinearLayout sheet = createDialogSheet(hostCtx, "circle-dashed", sheetTitle);
 
-            for (ActionGroup group : ActionGroup.values()) {
-                List<ActionSpec> groupActions = new ArrayList<>();
-                for (ActionSpec spec : actions) {
-                    if (spec.group == group) groupActions.add(spec);
-                }
-                if (groupActions.isEmpty()) continue;
+            addQuickAccessSectionHeader(hostCtx, sheet, "STORY ACTIONS");
+            LinearLayout storyActionsCard = createGroupedMenuCard(hostCtx);
 
-                addQuickAccessSectionHeader(hostCtx, sheet, group.headerTitle);
-                LinearLayout groupCard = createGroupedMenuCard(hostCtx);
-                for (int i = 0; i < groupActions.size(); i++) {
-                    final ActionSpec spec = groupActions.get(i);
-                    boolean hasDivider = i < groupActions.size() - 1;
-                    addGroupedMenuRow(hostCtx, groupCard, spec.iconId, spec.label, hasDivider, () -> {
-                        dialog.dismiss();
-                        dispatchMediaAction(hostCtx, caps, spec.id);
-                    });
+            addGroupedMenuRow(hostCtx, storyActionsCard, "download", "Download Story", true, () -> {
+                dialog.dismiss();
+                DownloadUtils.downloadStory(null, userSession, resolvedStoryMediaObj, reelObject, false);
+            });
+            addGroupedMenuRow(hostCtx, storyActionsCard, "folder-down", "Download Options", true, () -> {
+                dialog.dismiss();
+                DownloadUtils.showStoryDownloadOptions(hostCtx, userSession, resolvedStoryMediaObj, reelObject, null);
+            });
+            String mentionsLabel = "View Story Mentions (" + resolvedMentionCount + ")";
+            addGroupedMenuRow(hostCtx, storyActionsCard, "at-sign", mentionsLabel, true, () -> {
+                dialog.dismiss();
+                app.morphe.extension.instagram.patches.story.ViewStoryMentionsPatch.viewMentions(
+                        hostCtx,
+                        resolvedStoryMediaData != null ? resolvedStoryMediaData : resolvedStoryMediaObj,
+                        null
+                );
+            });
+            addGroupedMenuRow(hostCtx, storyActionsCard, "adjustments", "Mention Pill Settings", true, () -> {
+                dialog.dismiss();
+                app.morphe.extension.instagram.patches.story.StoryMentionSettings.showSettings(hostCtx);
+            });
+            addGroupedMenuRow(hostCtx, storyActionsCard, "heart-spark", "Story Likes History", true, () -> {
+                dialog.dismiss();
+                app.morphe.extension.instagram.patches.story.StoryLikeHistoryActivity.open(hostCtx);
+            });
+            addGroupedMenuRow(hostCtx, storyActionsCard, "language", "Translate Story Text / Caption", true, () -> {
+                dialog.dismiss();
+                if (caps.hasCaption && caps.rawCaption != null && !caps.rawCaption.trim().isEmpty()) {
+                    RexRuntimeFeatures.translateText(hostCtx, caps.rawCaption, "Story Caption");
+                } else if (resolvedStoryMediaData != null) {
+                    RexRuntimeFeatures.extractOcrFromMedia(hostCtx, resolvedStoryMediaData, caps.currentIndex);
+                } else {
+                    Utils.showToastShort("No story text found to translate");
                 }
-                sheet.addView(groupCard);
+            });
+            String extPkg = app.morphe.extension.instagram.utils.Pref.getExternalDownloaderPackageName();
+            boolean hasExtDownloader = app.morphe.extension.instagram.utils.Pref.downloadWithExternalDownloader()
+                    && extPkg != null && !extPkg.trim().isEmpty();
+            addGroupedMenuRow(hostCtx, storyActionsCard, "sliders-horizontal", "Story Quick Settings", hasExtDownloader, () -> {
+                dialog.dismiss();
+                showSurfaceQuickSettingsDialog(hostCtx, "STORY");
+            });
+            if (hasExtDownloader) {
+                addGroupedMenuRow(hostCtx, storyActionsCard, "external-link", "Download with External Downloader", false, () -> {
+                    dialog.dismiss();
+                    DownloadUtils.externalDownloader(resolvedStoryMediaObj, caps.currentIndex);
+                });
             }
+            sheet.addView(storyActionsCard);
 
             // Direct Enable/Disable switches inline on every Story Options sheet
             addQuickAccessSectionHeader(hostCtx, sheet, "DIRECT ENABLE / DISABLE TOGGLES");

@@ -828,6 +828,23 @@ public class DownloadUtils {
                 && !Boolean.TRUE.equals(SharedPref.getBooleanPref(Settings.DISABLE_FEED_OPTIONS_ICON));
     }
 
+    public static void openPostOptionsFromState(Context context, UserSession userSession, Object mediaState) {
+        try {
+            RexDialogs.showPostOptionsSheet(context, userSession, extractMedia(mediaState), currentMediaIndex(mediaState));
+        } catch (Exception e) {
+            Logger.printException(() -> "openPostOptionsFromState failure", e);
+        }
+    }
+
+    public static boolean openFeedQuickSettingsFromState(Context context) {
+        try {
+            RexDialogs.showSurfaceQuickSettingsDialog(context, "FEED");
+        } catch (Exception e) {
+            Logger.printException(() -> "openFeedQuickSettingsFromState failure", e);
+        }
+        return true;
+    }
+
     public static String feedDownloadButtonDescription() {
         return str("rex_download_current_media");
     }
@@ -942,48 +959,11 @@ public class DownloadUtils {
     private static ImageView createFeedHexagonButton(Context context, View rootView, View saveButton, ViewGroup buttonGroup) {
         ImageView button = new ImageView(context);
         button.setTag(FEED_HEXAGON_BUTTON_TAG);
+        // Placed in buttonGroup beside Download/Save rather than inside row_feed_button_share (23244.png / 23246.png)
         button.setContentDescription("InstaRex Post Options");
         button.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
         int iconColor = UI.getThemedColour("igds_color_primary_icon");
         button.setImageDrawable(RexVectorIcons.create(context, "rex_vec_hexagon", iconColor, 22));
-
-        // Screenshot 22916.png & 23120.png fix:
-        // row_feed_button_share is inside a cell ViewGroup (FrameLayout/MotionLayout) that holds both the
-        // paper-plane icon and the share count ("18.5K"). Never add into that cell wrapper or it stacks on
-        // top of the Share icon! Instead, walk up to the horizontal LinearLayout row that holds the cells,
-        // or place cleanly in buttonGroup (before Download/Save) when the left cluster has multiple counts.
-        int shareId = ResourceUtils.getIdentifier(context, ResourceType.ID, "row_feed_button_share");
-        View shareButton = (shareId != 0 && rootView != null) ? rootView.findViewById(shareId) : null;
-        if (shareButton != null) {
-            View cellChild = shareButton;
-            ViewGroup parentGroup = (shareButton.getParent() instanceof ViewGroup)
-                    ? (ViewGroup) shareButton.getParent() : null;
-            while (parentGroup != null
-                    && !(parentGroup instanceof LinearLayout
-                    && ((LinearLayout) parentGroup).getOrientation() == LinearLayout.HORIZONTAL
-                    && parentGroup.getChildCount() >= 3)) {
-                cellChild = parentGroup;
-                ViewParent next = parentGroup.getParent();
-                parentGroup = (next instanceof ViewGroup) ? (ViewGroup) next : null;
-            }
-            if (parentGroup instanceof LinearLayout
-                    && !parentGroup.getClass().getName().startsWith("com.facebook.litho.")
-                    && countVisibleFeedCounters(parentGroup) <= 2) {
-                int padH = RexVectorIcons.dp(context, 8);
-                int padV = saveButton.getPaddingTop();
-                button.setPadding(padH, padV, padH, saveButton.getPaddingBottom());
-                int shareCellIdx = parentGroup.indexOfChild(cellChild);
-                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                        ViewGroup.LayoutParams.WRAP_CONTENT,
-                        saveButton.getLayoutParams() != null && saveButton.getLayoutParams().height > 0
-                                ? saveButton.getLayoutParams().height
-                                : ViewGroup.LayoutParams.MATCH_PARENT);
-                lp.gravity = android.view.Gravity.CENTER_VERTICAL;
-                parentGroup.addView(button, Math.min(parentGroup.getChildCount(), shareCellIdx + 1), lp);
-                return button;
-            }
-        }
-
         button.setPadding(
                 saveButton.getPaddingLeft(),
                 saveButton.getPaddingTop(),
@@ -1107,30 +1087,8 @@ public class DownloadUtils {
                 alignStoryTopClusterWithHeader(storyRoot, topCluster);
             }
 
-            // 1. Story Hidden Mentions (@N) Pill/Button in Top Header Cluster
-            android.widget.TextView mentionsBtn = topCluster.findViewWithTag(STORY_MENTIONS_BUTTON_TAG);
-            boolean showMentions = media != null && Pref.viewStoryMentions()
-                    && app.morphe.extension.instagram.patches.story.StoryMentionSettings.isEnabled(context);
-            if (!showMentions) {
-                if (mentionsBtn != null) topCluster.removeView(mentionsBtn);
-            } else {
-                if (mentionsBtn == null) {
-                    mentionsBtn = createStoryTopMentionsChip(context);
-                    topCluster.addView(mentionsBtn, 0);
-                }
-                int mentionCount = resolveVerifiedMentionCount(media);
-                bindStoryTopMentionsChip(context, mentionsBtn, mentionCount);
-                mentionsBtn.setOnClickListener(v -> {
-                    app.morphe.extension.instagram.settings.preference.widgets.RexHaptics.tap(v);
-                    app.morphe.extension.instagram.patches.story.ViewStoryMentionsPatch.viewMentions(
-                            context, media, null);
-                });
-                mentionsBtn.setOnLongClickListener(v -> {
-                    app.morphe.extension.instagram.settings.preference.widgets.RexHaptics.longPress(v);
-                    app.morphe.extension.instagram.patches.story.StoryMentionSettings.showSettings(context);
-                    return true;
-                });
-            }
+            // 1. Bind current Story's Hidden Mentions indicator & tap handler (clears any stale previous Story state)
+            bindStoryHeaderHiddenMentionTap(storyRoot, topCluster, context, media);
 
             // 2. Story Direct Download Button in Top Header Cluster
             ImageView button = topCluster.findViewWithTag(STORY_DOWNLOAD_BUTTON_TAG);
@@ -1161,7 +1119,7 @@ public class DownloadUtils {
                 if (optionsBtn != null) topCluster.removeView(optionsBtn);
             } else {
                 if (optionsBtn == null) {
-                    optionsBtn = createStoryTopIconButton(context, STORY_OPTIONS_BUTTON_TAG, "sliders-horizontal", "InstaRex Story Options");
+                    optionsBtn = createStoryTopIconButton(context, STORY_OPTIONS_BUTTON_TAG, "hexagon", "InstaRex Story Options");
                     topCluster.addView(optionsBtn);
                 }
                 optionsBtn.setOnClickListener(v -> {
@@ -1263,6 +1221,63 @@ public class DownloadUtils {
         });
     }
 
+    private static void bindStoryHeaderHiddenMentionTap(
+            ViewGroup storyRoot,
+            LinearLayout topCluster,
+            final Context context,
+            final Object media
+    ) {
+        if (storyRoot == null || topCluster == null) return;
+        try {
+            android.widget.TextView mentionsChip = topCluster.findViewWithTag(STORY_MENTIONS_BUTTON_TAG);
+            int mentionCount = (media != null && Pref.viewStoryMentions() && app.morphe.extension.instagram.patches.story.StoryMentionSettings.isEnabled(context))
+                    ? resolveVerifiedMentionCount(media)
+                    : 0;
+            if (mentionCount <= 0) {
+                if (mentionsChip != null) {
+                    mentionsChip.setVisibility(View.GONE);
+                    mentionsChip.setOnClickListener(null);
+                }
+                for (String resName : new String[]{"reel_viewer_subtitle", "reel_viewer_timestamp"}) {
+                    int id = ResourceUtils.getIdentifier(context, ResourceType.ID, resName);
+                    View v = id == 0 ? null : storyRoot.findViewById(id);
+                    if (v != null) v.setOnClickListener(null);
+                }
+                return;
+            }
+
+            // Show compact "N · Hidden Mentions" chip in topCluster if header doesn't already have StoryMentionIcon pill
+            View inlineHeaderPill = storyRoot.findViewWithTag("xboyrex_story_mention_pill");
+            boolean headerPillVisible = inlineHeaderPill != null && inlineHeaderPill.getVisibility() == View.VISIBLE;
+            if (headerPillVisible) {
+                if (mentionsChip != null) mentionsChip.setVisibility(View.GONE);
+            } else {
+                if (mentionsChip == null) {
+                    mentionsChip = createStoryTopMentionsChip(context);
+                    topCluster.addView(mentionsChip, 0);
+                }
+                String label = mentionCount + " · " + (mentionCount == 1 ? "Hidden Mention" : "Hidden Mentions");
+                mentionsChip.setText(label);
+                mentionsChip.setVisibility(View.VISIBLE);
+                mentionsChip.setOnClickListener(view -> {
+                    app.morphe.extension.instagram.settings.preference.widgets.RexHaptics.tap(view);
+                    app.morphe.extension.instagram.patches.story.ViewStoryMentionsPatch.viewMentions(context, media, null);
+                });
+            }
+
+            for (String resName : new String[]{"reel_viewer_subtitle", "reel_viewer_timestamp", "reel_viewer_title", "reel_viewer_text_container"}) {
+                int id = ResourceUtils.getIdentifier(context, ResourceType.ID, resName);
+                View v = id == 0 ? null : storyRoot.findViewById(id);
+                if (v != null) {
+                    v.setOnClickListener(view -> {
+                        app.morphe.extension.instagram.settings.preference.widgets.RexHaptics.tap(view);
+                        app.morphe.extension.instagram.patches.story.ViewStoryMentionsPatch.viewMentions(context, media, null);
+                    });
+                }
+            }
+        } catch (Throwable ignored) {}
+    }
+
     private static int resolveVerifiedMentionCount(Object media) {
         if (media == null) return 0;
         try {
@@ -1310,24 +1325,23 @@ public class DownloadUtils {
         ImageView button = new ImageView(context);
         button.setTag(tag);
         button.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-        button.setImageDrawable(app.morphe.extension.instagram.settings.preference.widgets.RexIcon.getDrawable(
-                context, iconId, Color.WHITE, 19));
+        if ("hexagon".equals(iconId)) {
+            button.setImageDrawable(RexVectorIcons.create(context, "rex_vec_hexagon", Color.WHITE, 23));
+        } else {
+            button.setImageDrawable(app.morphe.extension.instagram.settings.preference.widgets.RexIcon.getDrawable(
+                    context, iconId, Color.WHITE, 21));
+        }
         button.setContentDescription(contentDesc);
-        int pad = RexVectorIcons.dp(context, 7);
+        int pad = RexVectorIcons.dp(context, 5);
         button.setPadding(pad, pad, pad, pad);
-        android.graphics.drawable.GradientDrawable bg = new android.graphics.drawable.GradientDrawable();
-        bg.setShape(android.graphics.drawable.GradientDrawable.OVAL);
-        bg.setColor(0x8815181D);
-        bg.setStroke(Math.max(1, RexVectorIcons.dp(context, 1)), 0x55FFFFFF);
-        button.setBackground(bg);
-        int size = RexVectorIcons.dp(context, 32);
+        int size = RexVectorIcons.dp(context, 34);
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(size, size);
-        lp.setMarginEnd(RexVectorIcons.dp(context, 6));
+        lp.setMarginEnd(RexVectorIcons.dp(context, 4));
         button.setLayoutParams(lp);
         return button;
     }
 
-    private static void downloadStory(View anchor, UserSession userSession, Object media, Object reel, boolean longPress) {
+    public static void downloadStory(View anchor, UserSession userSession, Object media, Object reel, boolean longPress) {
         try {
             if (isActionDebounced()) return;
             Activity activity = storyActivity(anchor);

@@ -12,9 +12,9 @@ import android.view.ViewGroup;
 import android.webkit.WebView;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -36,7 +36,7 @@ public final class PatchSettings {
     /** Text options that ran at least once: key to {name, value baked in when patching}. */
     private static final Map<String, String[]> TEXTS = new LinkedHashMap<>();
 
-    private static WeakReference<WebView> lastWebView = new WeakReference<>(null);
+    private static final Map<WebView, Boolean> WEB_VIEWS = new java.util.WeakHashMap<>();
 
     private PatchSettings() {
     }
@@ -47,7 +47,11 @@ public final class PatchSettings {
      * @return Whether the patch is switched on (the default).
      */
     public static boolean active(WebView webView, String key, String name) {
-        if (webView != null) lastWebView = new WeakReference<>(webView);
+        if (webView != null) {
+            synchronized (WEB_VIEWS) {
+                WEB_VIEWS.put(webView, Boolean.TRUE);
+            }
+        }
         synchronized (PATCHES) {
             if (!PATCHES.containsKey(key)) PATCHES.put(key, name);
         }
@@ -152,8 +156,12 @@ public final class PatchSettings {
         final Map<String, EditText> fields = new LinkedHashMap<>();
         synchronized (TEXTS) {
             for (Map.Entry<String, String[]> entry : TEXTS.entrySet()) {
+                TextView label = new TextView(activity);
+                label.setText(entry.getValue()[0]);
+                label.setPadding(0, pad / 2, 0, 0);
+                layout.addView(label);
                 EditText field = new EditText(activity);
-                field.setHint(entry.getValue()[0] + " (separate with commas)");
+                field.setHint("Separate with commas");
                 field.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
                 field.setText(prefs.getString(entry.getKey(), entry.getValue()[1]));
                 layout.addView(field);
@@ -176,14 +184,18 @@ public final class PatchSettings {
                 .show();
     }
 
-    /** Page patches are added when a page loads, so a reload applies the new settings. */
+    /** Page patches are added when a page loads, so reloading the app's pages applies the new settings. */
     private static void reload() {
-        WebView webView = lastWebView.get();
-        if (webView == null) return;
-        try {
-            webView.reload();
-        } catch (Exception ex) {
-            Log.e(TAG, "Failed to reload", ex);
+        List<WebView> webViews;
+        synchronized (WEB_VIEWS) {
+            webViews = new ArrayList<>(WEB_VIEWS.keySet());
+        }
+        for (WebView webView : webViews) {
+            try {
+                webView.reload();
+            } catch (Exception ex) {
+                Log.e(TAG, "Failed to reload", ex);
+            }
         }
     }
 

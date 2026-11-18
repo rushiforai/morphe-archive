@@ -1969,8 +1969,6 @@ Nhấn và giữ để sao chép dấu thời gian"</string>
     <string name="revanced_overlay_button_copy_video_url_title">Nút Sao chép URL video</string>
     <string name="revanced_overlay_button_external_downloader_queue_manager_summary">Thay vì mở trình tải xuống bên ngoài, khi tương tác sẽ mở hộp thoại quản lý hàng chờ</string>
     <string name="revanced_overlay_button_external_downloader_queue_manager_title">Quản lý hàng chờ</string>
-    <string name="revanced_overlay_button_external_downloader_summary">Nhấn để khởi chạy trình tải xuống bên ngoài</string>
-    <string name="revanced_overlay_button_external_downloader_title">Nút Trình tải xuống bên ngoài</string>
     <string name="revanced_overlay_button_gemini_about_summary">"Thời gian xử lý phụ thuộc vào thời lượng của video. Với các video quá dài, quá trình chép lời có thể vượt quá giới hạn của Gemini
 
 Lưu ý: Nội dung do AI tạo ra có thể chưa hoàn toàn chính xác
@@ -2621,9 +2619,6 @@ Hầu hết các lỗi không thể sửa được do hạn chế tới từ ph�
     <string name="revanced_shorts_custom_actions_copy_video_url_timestamp_title">Mục sao chép URL kèm dấu thời gian</string>
     <string name="revanced_shorts_custom_actions_copy_video_url_title">Mục sao chép URL của video</string>
     <string name="revanced_shorts_custom_actions_external_downloader_label">Trình tải xuống bên ngoài</string>
-    <string name="revanced_shorts_custom_actions_external_downloader_summary_off">Mục trình tải xuống bên ngoài đã ẩn</string>
-    <string name="revanced_shorts_custom_actions_external_downloader_summary_on">Mục trình tải xuống bên ngoài được hiển thị</string>
-    <string name="revanced_shorts_custom_actions_external_downloader_title">Mục trình tải xuống bên ngoài</string>
     <string name="revanced_shorts_custom_actions_gemini_label">Tóm tắt Gemini</string>
     <string name="revanced_shorts_custom_actions_gemini_summary_off">Mục tóm tắt Gemini đã ẩn</string>
     <string name="revanced_shorts_custom_actions_gemini_summary_on">Mục tóm tắt Gemini đã được hiển thị</string>

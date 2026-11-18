@@ -122,7 +122,7 @@ val messageMenuPatch = bytecodePatch(
 ) {
     category("Conversations")
     dependsOn(settingsPatch, telegramExtensionPatch)
-    compatibleWith(*AppCompatibilities.telegram())
+    compatibleWith(*AppCompatibilities.telegramOnly())
     execute {
         val site = resolveMessageMenu()
         val selection = resolveSelectionCopy()

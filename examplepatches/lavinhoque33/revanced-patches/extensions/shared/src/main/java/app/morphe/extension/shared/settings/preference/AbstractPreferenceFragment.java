@@ -10,7 +10,7 @@
  * - COOLak (https://github.com/COOLak)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-10.
+ * Modified by lavinhoque33, 2026-11-17.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -58,6 +58,7 @@ import static app.morphe.extension.shared.utils.ResourceUtils.getXmlIdentifier;
 import static app.morphe.extension.shared.utils.StringRef.str;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
@@ -515,7 +516,9 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
      * The restart dialog is shown when the settings are closed.
      */
     public static void setRestartNeeded() {
-        restartNeeded = true;
+        if (!showingRestartDialog) {
+            restartNeeded = true;
+        }
     }
 
     /**
@@ -525,16 +528,15 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
      * @return If the dialog is shown, and the settings must not close yet.
      */
     public static boolean showRestartDialogIfNeeded(Context context) {
+        if (showingRestartDialog) {
+            restartNeeded = false;
+            return true;
+        }
         if (!restartNeeded) {
             return false;
         }
-        restartNeeded = false;
 
-        Dialog dialog = showRestartDialog(context);
-        if (dialog == null) {
-            restartNeeded = true;
-            return true;
-        }
+        showRestartDialog(context);
         return true;
     }
 
@@ -560,6 +562,9 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
             Logger.printDebug(() -> "Ignoring show restart dialog as restart dialog is already shown");
             return null;
         }
+        if (!isRestartActivityAlive(context)) {
+            return null;
+        }
         if (restartDialogTitle == null) {
             restartDialogTitle = str("revanced_restart_title");
         }
@@ -571,55 +576,57 @@ public abstract class AbstractPreferenceFragment extends PreferenceFragment {
         }
 
         showingRestartDialog = true;
-
-        if (BaseThemeUtils.isSupportModernDialog) {
+        try {
             Pair<Dialog, LinearLayout> dialogPair = CustomDialog.create(
                     context,
-                    // Title.
                     restartDialogTitle,
-                    // Message.
                     message == null ? restartDialogMessage : message,
-                    // EditText.
                     null,
-                    // OK button text.
                     restartDialogButtonText,
-                    // OK button action (dismiss restarts).
                     () -> {},
-                    // No Cancel button.
                     null,
-                    // Neutral button text.
                     null,
-                    // Neutral button action.
                     null,
-                    // Dismiss dialog when onNeutralClick.
                     true
             );
-
-            dialogPair.first.setOnDismissListener(d -> {
-                showingRestartDialog = false;
-                Utils.runOnMainThreadDelayed(() -> Utils.restartApp(context), delay);
-            });
+            Dialog dialog = dialogPair.first;
+            dialog.setOnDismissListener(d -> scheduleRestart(context, delay));
             if (!cancelable) {
-                dialogPair.first.setCancelable(false);
-                dialogPair.first.setCanceledOnTouchOutside(false);
+                dialog.setCancelable(false);
+                dialog.setCanceledOnTouchOutside(false);
             }
 
-            // Show the dialog.
-            dialogPair.first.show();
-            return dialogPair.first;
-        } else {
-            AlertDialog.Builder builder = new AlertDialog.Builder(context)
-                    .setTitle(restartDialogTitle)
-                    .setMessage(message == null ? restartDialogMessage : message)
-                    .setPositiveButton(android.R.string.ok, (dialog, id) -> {});
-            if (!cancelable) {
-                builder.setCancelable(false);
-            }
-            return builder.setOnDismissListener(d -> {
-                showingRestartDialog = false;
-                Utils.runOnMainThreadDelayed(() -> Utils.restartApp(context), delay);
-            }).show();
+            dialog.show();
+            restartNeeded = false;
+            return dialog;
+        } catch (RuntimeException exception) {
+            showingRestartDialog = false;
+            throw exception;
         }
+    }
+
+    private static boolean isRestartActivityAlive(Context context) {
+        if (context instanceof Activity) {
+            Activity activity = (Activity) context;
+            return !activity.isFinishing() && !activity.isDestroyed();
+        }
+        return true;
+    }
+
+    private static void scheduleRestart(Context context, long delay) {
+        Utils.runOnMainThreadDelayed(() -> {
+            try {
+                if (isRestartActivityAlive(context)) {
+                    Utils.restartApp(context);
+                } else {
+                    // The host disappeared before the restart could run.
+                    restartNeeded = true;
+                }
+            } finally {
+                // Keep the guard through dismissal and the entire delayed restart.
+                showingRestartDialog = false;
+            }
+        }, delay);
     }
 
     @SuppressLint("ResourceType")

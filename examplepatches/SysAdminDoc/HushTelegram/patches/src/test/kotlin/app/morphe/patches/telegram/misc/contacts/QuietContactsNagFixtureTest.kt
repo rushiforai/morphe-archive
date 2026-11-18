@@ -8,6 +8,7 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.PlusPending
 import app.morphe.util.names.origRef
 import app.morphe.util.names.addInstructions
 import app.morphe.util.names.replaceInstruction
@@ -38,6 +39,7 @@ import app.morphe.util.names.origType
 import app.morphe.util.names.tgMutableClassDefBy
 
 /** The Contacts tab's class, the badge's class and the runtime are the whole context. */
+@PlusPending
 class QuietContactsNagFixtureTest {
     @Test
     fun `the Contacts tab prompt and its badge are gated and keep their stock flow`() {

@@ -1,0 +1,67 @@
+# 🛡️ Architecture & Security Notes
+
+## Brave Browser: Privacy Scanner False Positives
+
+> [!NOTE]
+> Component scanners such as App Manager or Exodus Privacy may flag Google Play Billing and Google ML Kit components as "trackers" inside Brave. These are false positives caused by generic package name signatures.
+
+When inspecting Brave with package analysis tools, the following components may be highlighted:
+
+| Component | Origin / Library | Actual Function | Privacy & Telemetry Impact |
+| :--- | :--- | :--- | :--- |
+| `com.android.billingclient.api.ProxyBillingActivity`<br>`com.android.billingclient.api.ProxyBillingActivityV2` | **Google Play Billing** (`billingclient`) | Handles user-initiated in-app subscriptions (Brave Leo AI Premium, Brave VPN). | **None (Transactional only).** These are trampoline UI activities for Google Play checkout sheets. They collect zero browsing analytics or telemetry. Stripping them breaks subscription handling and triggers `ActivityNotFoundException`. |
+| `com.google.mlkit.common.internal.MlKitInitProvider`<br>`com.google.mlkit.common.internal.MlKitComponentDiscoveryService` | **Google ML Kit** (`mlkit.common`) | Powers local, on-device OCR and vision features (e.g. camera-based credit card scanning in Autofill and QR code scanning). | **None (On-device execution).** Flagged by Exodus because ML Kit uses the Firebase component dependency injector (`CommonComponentRegistrar`). All model operations run strictly local to the device. |
+
+---
+
+Genuine Brave telemetry is fully neutralized by the **Block Brave Telemetry** patch:
+- **P3A (Privacy-Preserving Product Analytics)**: Preference getters forced to return `false` in Dalvik bytecode (`PrefService.e`).
+- **Brave Stats & Web Discovery Project (WDP)**: Reporting loops disabled and 12 native telemetry and diagnostic endpoints redirected to `0.0.0.0` in `libchrome.so` (covering Stats, WDP, Crashpad, and Variations).
+- **Crashpad & Minidump Uploads**: Upload hooks aborted before dispatch (`MinidumpUploadServiceImpl`, `ChromeMinidumpUploadJobService`) and crash reporter endpoints redirected to `0.0.0.0` in `libchrome.so`.
+- **Variations Seed Fetching**: Blocked before HTTP socket creation (`IOException("Blocked by Morphe")`).
+
+---
+
+## Brave Browser: Privacy, Debloat & Anti-Fingerprinting Architecture
+
+### 1. Clean New Tab Page (Sponsored Wallpaper & Feed Neutralization)
+Official Brave periodically downloads full-screen sponsored advertising wallpapers and updates the Brave News/Today feed in the background. The **`Clean New Tab Page`** patch enforces a zero-ad startup state across three layers:
+- **Asset Schema Sanitization (`rawResourcePatch`)**: Overwrites `assets/brave/sponsored-images/default.json` with an empty campaigns schema (`{"schemaVersion":1,"campaigns":[]}`). Chromium's sponsored image coordinator finds zero campaigns to download, preventing background bandwidth consumption (~15–30 MB/month) and memory allocations.
+- **Preference Defaults Enforcement (`resourcePatch`)**: Sets XML defaults for `show_sponsored_images`, `new_tab_page_show_sponsored_images`, `brave_news_switch`, and `show_brave_news` to `false`.
+- **Dalvik Gatekeeper Interception (`bytecodePatch`)**: Intercepts `PrefService.e` for `brave.new_tab_page.show_sponsored_images`, `brave.today.enabled`, `brave.today.opted_in`, and `brave.new_tab_page.show_brave_news`, returning `false` directly at the preference service layer.
+
+### 2. Block Motion Sensors (W3C Generic Sensor API Neutralization)
+Web applications can fingerprint device hardware variations or infer user input patterns (keystroke acoustic leakage and walking cadence) via high-frequency accelerometer and gyroscope APIs. The **`Block Motion Sensors`** patch neutralizes the underlying Chromium sensor providers:
+- **`PlatformSensorProvider.hasSensorType(int)`**: Forces return `false` (`0x0`) so hardware sensor existence queries report unsupported.
+- **`PlatformSensor.create(PlatformSensorProvider, int, long)`**: Forces return `null` so any low-level or sensor-fusion creation attempts gracefully resolve to `nullptr`.
+- **JNI Receiver Stability**: Preserves the `PlatformSensorProvider` Java instance created by `PlatformSensorProvider.create()` because Chromium's native `PlatformSensorProviderAndroid` caches it as a JNI receiver; returning null would trigger a fatal `SIGSEGV` / CheckJNI abort when calling instance methods.
+- **Standard Compliant Fallback**: Follows W3C Generic Sensor specifications: sites querying sensors receive standard "NotReadableError" or sensor unavailable responses without crashing web pages.
+
+---
+
+## TikTok: Share URL Sanitization
+
+The TikTok companion filter ([`TikTokShareHostHook.sanitizeShareUrlWithHost`](../extensions/extension/src/main/java/com/kveld9/morphe/extension/tiktok/TikTokShareHostHook.java)) is domain-scoped (`tiktok.com`) and purges ByteDance-specific user tracking and device fingerprinting keys:
+- `user_id`, `sec_user_id`, `u_code` (sender user identification)
+- `sender_device`, `checksum` (device telemetry and verification)
+- `share_link_id`, `share_item_id`, `share_app_id`, `ug_source`, `tt_from`, `timestamp`, `_r`, `source` (viral loop and graph correlation)
+
+---
+
+## Chromium DataPack v5 vs. Android Resource Architecture
+
+### Why Chromium Requires Specialized PAK Slimming
+Standard Android applications (such as Gboard Lite) store localized strings, layouts, and XML assets inside the compiled Android resource table (`resources.arsc`) and directory hierarchy (`res/values-<locale>/`). When a locale qualifier directory is removed, Android's runtime `AssetManager` automatically resolves missing strings using the unquantified `res/values/` fallback directory.
+
+Chromium browsers (such as Brave), however, bypass Android's resource pipeline for the browser UI, Omnibox, navigation, Shields, settings, and native rendering engine. Instead, they utilize Chromium's native **DataPack v5** binary format:
+1. **Binary DataPack v5 Structure**: Locales are stored as discrete binary files in `assets/locales/<locale>.pak`, consisting of a 12-byte header (`uint32 version`, `uint8 encoding`, `uint24 resource_count`, `uint16 alias_count`), followed by an index of resource IDs and offsets, and raw string payloads.
+2. **Native Loader Failure Modes**:
+   - Deleting `<locale>.pak` from the APK causes Chromium's native C++ resource loader (`ui::ResourceBundle::LoadLocaleResources`) to fail startup initialization when the host device is set to that language.
+   - Truncating `<locale>.pak` to an empty (0-byte) file causes Chromium to trigger an assertion crash (`Check failed: file_is_valid`).
+3. **Morphe's Safe Substitution Strategy**:
+   - `Locale PAK Slimmer` (`localePakSlimmerPatch`): Copies `en-US.pak` into each stripped locale path, satisfying the C++ bundle loader with zero native crashes while freeing several MB (measured at time of writing), but leaves a locale pak untouched (and does not count it as stripped) when it is already smaller than `en-US.pak` (e.g. zh-CN, zh-HK, zh-TW in recent Brave builds), since replacing it would grow the APK.
+4. **Separation of Concerns**:
+   - `Remove Extra Languages (Universal)` operates universally across all Android apps on `res/values-*`.
+   - `Locale PAK Slimmer` operates specifically on Chromium's native `assets/locales/*.pak`.
+   - In Brave, both patches can be combined to achieve complete language stripping at both the C++ native engine and Android wrapper layers.
+

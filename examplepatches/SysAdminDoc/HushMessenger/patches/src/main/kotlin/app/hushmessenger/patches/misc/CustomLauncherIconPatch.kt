@@ -3,7 +3,11 @@ package app.hushmessenger.patches.misc
 import app.hushmessenger.patches.MessengerTarget
 import app.hushmessenger.patches.coexist.validateVersionCode
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.decode
+import app.morphe.patcher.patch.document
+import app.morphe.patcher.patch.packageMetadata
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.resourceFile
 import app.morphe.patcher.patch.stringOption
 import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
@@ -111,7 +115,7 @@ private fun readXml(file: File): Document =
     DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file)
 
 @Suppress("unused")
-val customLauncherIconPatch = resourcePatch(
+val customLauncherIconPatch = patch(
     name = LAUNCHER_ICON_PATCH,
     description = "Makes Messenger's home screen icon white on black or black on white. Pick it and its style in Morphe Manager's Expert mode. Works as soon as you patch it in, with no switch.",
     default = false,
@@ -131,11 +135,11 @@ val customLauncherIconPatch = resourcePatch(
     execute {
         validateVersionCode(packageMetadata.versionCode)
         val chosen = launcherIconStyle(style)
-        val icon = applicationIcon(readXml(get("AndroidManifest.xml")))
+        val icon = applicationIcon(readXml(resourceFile("AndroidManifest.xml")))
         val resource = appResource(icon) ?: refuse("the app's icon $icon isn't one of Messenger's own resources")
-        val path = adaptiveIconPath(decode(launcherIconGlob(resource)), resource) { readXml(get(it)) }
+        val path = adaptiveIconPath(decode(launcherIconGlob(resource)), resource) { readXml(resourceFile(it)) }
         // A dry run on a throwaway copy: a refusal leaves the icon file as it was.
-        restyleLauncherIcon(readXml(get(path)), chosen)
+        restyleLauncherIcon(readXml(resourceFile(path)), chosen)
         document(path).use { restyleLauncherIcon(it, chosen) }
     }
 }

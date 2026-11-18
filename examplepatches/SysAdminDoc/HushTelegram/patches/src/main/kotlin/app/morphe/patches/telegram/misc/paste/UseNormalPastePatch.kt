@@ -38,7 +38,7 @@ val useNormalPastePatch = bytecodePatch(
 ) {
     category("Writing")
     dependsOn(settingsPatch, telegramExtensionPatch)
-    compatibleWith(*AppCompatibilities.telegram())
+    compatibleWith(*AppCompatibilities.telegramOnly())
     execute {
         requireStatusMethod("mentionById")
         val sites = resolveNormalPaste()

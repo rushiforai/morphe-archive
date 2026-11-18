@@ -2,7 +2,9 @@ package app.waylo.patches.podcastaddict
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.patch.classDefBy
 import app.morphe.patcher.patch.classDefByOrNull
+import app.morphe.patcher.patch.classDefForEach
 import app.morphe.patcher.patch.mutableClassDefBy
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.patch
@@ -12,6 +14,13 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.waylo.patches.podcastaddict.Constants.COMPATIBILITY_PODCAST_ADDICT
 import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
@@ -36,6 +45,12 @@ val playlistSwipeToRemovePatch = patch(
     extendWith("extensions/extension.mpe")
 
     execute {
+        // Since 2026.14.1 the Playlist is a RecyclerView, without the drag-sort ListView.
+        if (classDefByOrNull(DRAG_SORT_LIST_CLASS) == null) {
+            patchRecyclerPlaylist()
+            return@execute
+        }
+
         // ---------------------------------------------------------------------------------
         // 1. Hook the touch handling of the drag-sort list.
         //
@@ -176,4 +191,69 @@ val playlistSwipeToRemovePatch = patch(
             )
         }
     }
+}
+
+/**
+ * The Playlist on 2026.14.1 and later: a RecyclerView based list. The swipe runs the long press
+ * menu's "Remove" (see RecyclerSwipe and ContextMenuAction), so only two things are hooked: the
+ * list's touch handling, and the Playlist fragment assigning its list, to register it.
+ */
+private fun patchRecyclerPlaylist() {
+    val fragmentType = PlaylistFragmentTagFingerprint.originalClassDef.type
+    val listField = classDefBy(fragmentType).fields
+        .filter { field -> !AccessFlags.STATIC.isSet(field.accessFlags) && field.type.endsWith("RecyclerView;") }
+        .let { candidates ->
+            candidates.singleOrNull() ?: throw PatchException(
+                "Expected exactly one RecyclerView field in the Playlist fragment, found ${candidates.map { it.name }}"
+            )
+        }
+
+    fun Instruction.assignsList() = opcode == Opcode.IPUT_OBJECT &&
+            ((this as ReferenceInstruction).reference as FieldReference).let { field ->
+                field.definingClass == fragmentType && field.name == listField.name
+            }
+
+    // Every assignment of the list field. Clearing it (null) is ignored by the extension.
+    val sites = mutableListOf<Pair<ClassDef, Method>>()
+    classDefForEach { classDef ->
+        classDef.methods.forEach { method ->
+            if (method.implementation?.instructions?.any { it.assignsList() } == true) sites += classDef to method
+        }
+    }
+    if (sites.isEmpty()) throw PatchException("No assignment of the Playlist list field ${listField.name} found")
+
+    sites.forEach { (classDef, method) ->
+        val mutableMethod = mutableClassDefBy(classDef).methods.first { candidate ->
+            candidate.name == method.name &&
+                    candidate.returnType == method.returnType &&
+                    candidate.parameterTypes.map { it.toString() } == method.parameterTypes.map { it.toString() }
+        }
+        val indices = mutableMethod.implementation!!.instructions
+            .withIndex()
+            .filter { (_, instruction) -> instruction.assignsList() }
+            .map { it.index }
+            .reversed()
+        indices.forEach { index ->
+            val assignment = mutableMethod.implementation!!.instructions[index] as TwoRegisterInstruction
+            val listRegister = assignment.registerA
+            val fragmentRegister = assignment.registerB
+            if (listRegister > 15 || fragmentRegister > 15) {
+                throw PatchException("Playlist list registers v$fragmentRegister, v$listRegister are out of range")
+            }
+            mutableMethod.addInstructions(
+                index + 1,
+                "invoke-static { v$fragmentRegister, v$listRegister }, " +
+                        "$RECYCLER_SWIPE_CLASS->attachPlaylist(Ljava/lang/Object;Landroid/view/View;)V"
+            )
+        }
+    }
+
+    // The list's floating drag view, non-null only while a row is dragged to reorder it.
+    val floatViewField = classDefBy(listField.type).fields
+        .singleOrNull { field ->
+            !AccessFlags.STATIC.isSet(field.accessFlags) && field.type == "Landroid/widget/FrameLayout;"
+        }
+        ?.let { field -> "${field.definingClass}->${field.name}:${field.type}" }
+
+    hookRecyclerTouch(listField.type, floatViewField)
 }

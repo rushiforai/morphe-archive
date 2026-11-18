@@ -140,17 +140,18 @@ class SettingsShortcutTest {
         val source = File("../extensions/messenger/src/main/java/app/hushmessenger/extension")
         val keys = mapOf(SETTINGS_LABEL to "settings", RESTART_LABEL to "restart", BOLD_LABEL to "text_style_bold", ITALIC_LABEL to "text_style_italic")
         val english = source.resolve("SettingsText.java").readText()
-        val tables = mapOf("res/values-vi/strings.xml" to "SettingsTextViVN.java", "res/values-zh-rTW/strings.xml" to "SettingsTextZhTw.java")
+        val l10n = File("../extensions/messenger/src/main/l10n")
+        val tables = mapOf("res/values-vi/strings.xml" to "vi.tsv", "res/values-zh-rTW/strings.xml" to "zh-TW.tsv")
         assertEquals(setOf(DEFAULT_STRINGS) + tables.keys, MANIFEST_STRINGS.keys)
         for ((path, texts) in MANIFEST_STRINGS) {
             assertEquals(keys.keys, texts.keys, path)
             // A clone puts its own name in place of this one.
             assertTrue(SETTINGS_LABEL_NAME in texts.getValue(SETTINGS_LABEL), path)
-            val table = tables[path]?.let { source.resolve(it).readText() }
+            val table = tables[path]?.let { l10n.resolve(it).readText().lines() }
             for ((string, key) in keys) {
                 val text = texts.getValue(string)
                 if (table == null) assertTrue("ENGLISH.put(\"$key\", \"$text\");" in english, "$path $string")
-                else assertTrue("{\"$key\", \"$text\"}" in table, "$path $string")
+                else assertTrue("$key\t$text" in table, "$path $string")
             }
         }
     }

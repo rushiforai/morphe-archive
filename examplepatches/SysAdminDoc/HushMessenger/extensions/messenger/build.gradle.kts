@@ -87,9 +87,107 @@ val generateBundleKey = tasks.register<GenerateBundleKey>("generateBundleKey") {
     outputDir.set(layout.buildDirectory.dir("generated/source/bundleKey"))
 }
 
+/**
+ * Writes each settings translation table in src/main/l10n into a Java class, so a language is edited as text, one id, a
+ * tab and its text per line, and the table that ships can't drift from it. es.tsv becomes SettingsTextEs.TEXT and
+ * zh-TW.tsv SettingsTextZhTw.TEXT. A line starting with # is a comment (the first one names the language), and \n, \t
+ * and \\ in a text are escapes. A missing id or a changed placeholder is SettingsTranslationTest's to catch.
+ */
+abstract class GenerateSettingsTranslations : DefaultTask() {
+    @get:InputDirectory
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val tables: DirectoryProperty
+
+    @get:OutputDirectory
+    abstract val outputDir: DirectoryProperty
+
+    private fun unescape(text: String, where: String): String = buildString {
+        var i = 0
+        while (i < text.length) {
+            val ch = text[i]
+            if (ch != '\\') {
+                append(ch)
+                i++
+                continue
+            }
+            when (text.getOrNull(i + 1)) {
+                'n' -> append('\n')
+                't' -> append('\t')
+                '\\' -> append('\\')
+                else -> throw GradleException("$where: a backslash has to start \\n, \\t or \\\\")
+            }
+            i += 2
+        }
+    }
+
+    private fun javaString(text: String): String = buildString {
+        append('"')
+        for (ch in text) {
+            when (ch) {
+                '\\' -> append("\\\\")
+                '"' -> append("\\\"")
+                '\n' -> append("\\n")
+                '\t' -> append("\\t")
+                else -> if (ch.code < 0x20) throw GradleException("A control character in $text") else append(ch)
+            }
+        }
+        append('"')
+    }
+
+    @TaskAction
+    fun generate() {
+        val source = tables.get().asFile
+        val directory = outputDir.get().asFile.resolve("app/hushmessenger/extension")
+        directory.deleteRecursively()
+        directory.mkdirs()
+        val files = source.listFiles { file -> file.name.endsWith(".tsv") }.orEmpty().sortedBy { it.name }
+        if (files.isEmpty()) throw GradleException("No .tsv tables in $source")
+        val id = Regex("[A-Za-z0-9_.]+")
+        for (file in files) {
+            val tag = file.name.removeSuffix(".tsv")
+            val name = "SettingsText" + tag.split('-').joinToString("") { it.lowercase().replaceFirstChar(Char::uppercaseChar) }
+            var language = ""
+            val seen = HashSet<String>()
+            val rows = StringBuilder()
+            file.readText(Charsets.UTF_8).removePrefix(Char(0xFEFF).toString()).split('\n').forEachIndexed { index, raw ->
+                val line = raw.removeSuffix("\r")
+                val where = "src/main/l10n/${file.name}:${index + 1}"
+                if (line.isEmpty()) return@forEachIndexed
+                if (line.startsWith("#")) {
+                    if (language.isEmpty()) language = line.removePrefix("#").trim()
+                    return@forEachIndexed
+                }
+                val tab = line.indexOf('\t')
+                if (tab < 0) throw GradleException("$where: no tab between the id and its text")
+                val key = line.substring(0, tab)
+                if (!key.matches(id)) throw GradleException("$where: \"$key\" isn't an id")
+                if (!seen.add(key)) throw GradleException("$where: $key is in the table twice")
+                rows.append("        {\"").append(key).append("\", ").append(javaString(unescape(line.substring(tab + 1), where))).append("},\n")
+            }
+            if (language.isEmpty() || "*/" in language) throw GradleException("src/main/l10n/${file.name}: the first line has to be a # comment naming the language")
+            directory.resolve("$name.java").writeText(
+                "package app.hushmessenger.extension;\n\n" +
+                    "/** $language Generated from src/main/l10n/${file.name} by :extensions:messenger:generateSettingsTranslations. Do not edit. */\n" +
+                    "final class $name {\n" +
+                    "    private $name() { }\n\n" +
+                    "    static final String[][] TEXT = {\n" +
+                    rows +
+                    "    };\n}\n",
+                Charsets.UTF_8,
+            )
+        }
+    }
+}
+
+val generateSettingsTranslations = tasks.register<GenerateSettingsTranslations>("generateSettingsTranslations") {
+    tables.set(layout.projectDirectory.dir("src/main/l10n"))
+    outputDir.set(layout.buildDirectory.dir("generated/source/settingsTranslations"))
+}
+
 extensions.getByType<com.android.build.api.variant.ApplicationAndroidComponentsExtension>().onVariants { variant ->
     variant.sources.java?.addGeneratedSourceDirectory(generateLicenseNotice, GenerateLicenseNotice::outputDir)
     variant.sources.java?.addGeneratedSourceDirectory(generateBundleKey, GenerateBundleKey::outputDir)
+    variant.sources.java?.addGeneratedSourceDirectory(generateSettingsTranslations, GenerateSettingsTranslations::outputDir)
 }
 
 android {

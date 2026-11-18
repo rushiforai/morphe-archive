@@ -8,8 +8,9 @@ import java.util.Map;
 /**
  * Translations of the settings screen, one table per language tag: "pt-BR" for one region, or "pt" for all of them.
  * A table pairs each SettingsText id, and each control key plus ".title" or ".description", with its text. It has to
- * cover every id and keep every format placeholder, or SettingsTranslationTest fails. The tables are plain Java, so
- * they can't collide with the resource IDs in Messenger's own APK.
+ * cover every id and keep every format placeholder, or SettingsTranslationTest fails. Each table is written as text in
+ * src/main/l10n (pt-BR.tsv for a SettingsTextPtBr) and the build turns it into a plain Java class, so the tables can't
+ * collide with the resource IDs in Messenger's own APK.
  */
 final class SettingsTranslations {
     private SettingsTranslations() { }
@@ -17,12 +18,12 @@ final class SettingsTranslations {
     static final Map<String, Map<String, String>> LOCALES = new HashMap<>();
 
     static {
-        // Add a locale with one line here, for example: add("pt-BR", SettingsTextPtBr.TEXT);
+        // Add a locale with src/main/l10n/pt-BR.tsv and one line here: add("pt-BR", SettingsTextPtBr.TEXT);
         add("zh-TW", SettingsTextZhTw.TEXT);
         // Traditional Chinese anywhere else (zh-Hant-HK, and zh-HK or zh-MO, which imply it). Simplified stays English.
         add("zh-Hant", SettingsTextZhTw.TEXT);
         // Vietnamese is written the same everywhere, so one table covers vi-VN and any other region.
-        add("vi", SettingsTextViVN.TEXT);
+        add("vi", SettingsTextVi.TEXT);
         // Thai is written the same everywhere, so one table covers th-TH and any other region.
         add("th", SettingsTextTh.TEXT);
         // Turkish is written the same everywhere, so one table covers tr-TR, tr-CY and any other region.

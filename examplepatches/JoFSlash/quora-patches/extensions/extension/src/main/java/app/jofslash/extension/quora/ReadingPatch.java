@@ -22,6 +22,9 @@ public final class ReadingPatch {
 
     private static final String ANSWER_TEXT = ".puppeteer_test_answer_content";
 
+    // Paragraphs of answers and posts, also in the answer and post modals, which have no answer_content class.
+    private static final String PARAGRAPH = "p.q-text";
+
     /** The query parameter the page adds to an image the reader tapped, so the request is let through. */
     private static final String LOAD_PARAM = "jofslash_load";
 
@@ -81,17 +84,24 @@ public final class ReadingPatch {
     // ---------------------------------------------------------------- reading
 
     /**
-     * Injection point: start of QWebViewClient.onPageFinished. Opens "(more)" on answers as they load.
+     * Injection point: start of QWebViewClient.onPageFinished. Shows the whole answer preview in the feed.
      */
     public static void expandAnswers(WebView webView) {
         if (!PatchSettings.active(webView, "expandAnswers", "Expand answers")) return;
+        // "Read more" opens the full answer in a new view in the app, so it is not clicked.
+        // The feed holds a longer preview than the three lines it shows; show all of it.
+        injectCss(webView, "jofslash-expand",
+                ANSWER_TEXT + " [class*=\"qu-truncateLines--\"]{-webkit-line-clamp:unset !important;"
+                        + "line-clamp:unset !important;max-height:none !important;}");
+        // On question pages "Continue Reading" opens the answer in place, so it is clicked there.
+        // It has no stable class, so it is found by its text, and never in the feed, where "Read more" opens a new view.
         evaluate(webView, "(function(){"
                 + "if(window.__jofslashExpand)return;window.__jofslashExpand=1;"
-                + "function run(){document.querySelectorAll('.qt_read_more,.puppeteer_test_read_more_button').forEach(function(b){"
-                + "if(b.hasAttribute('data-jofslash-expanded'))return;b.setAttribute('data-jofslash-expanded','');"
-                + "if(b.closest('a[href]'))return;"
-                + "try{b.click();}catch(e){}"
-                + "});}"
+                + "function run(){document.querySelectorAll('div,span').forEach(function(e){"
+                + "if(e.children.length||e.hasAttribute('data-jofslash-expanded'))return;"
+                + "if(!/^Continue Reading/.test((e.textContent||'').trim())||e.textContent.trim().length>20)return;"
+                + "if(e.closest('[class*=\"dom_annotate_multifeed_bundle_\"]'))return;"
+                + "e.setAttribute('data-jofslash-expanded','');try{e.click();}catch(x){}});}"
                 + observe("run")
                 + "})();", "expand answers");
     }
@@ -121,7 +131,8 @@ public final class ReadingPatch {
      */
     public static void hideAskButton(WebView webView) {
         if (!PatchSettings.active(webView, "hideAskButton", "Hide Ask button")) return;
-        injectCss(webView, "jofslash-hide-ask", ".puppeteer_test_add_question_button{display:none !important;}");
+        injectCss(webView, "jofslash-hide-ask", ".puppeteer_test_add_question_button,.puppeteer_test_ask_question_prompt,"
+                + "[class*=\"dom_annotate_multifeed_bundle_AskQuestionPromptBundle\"]{display:none !important;}");
     }
 
     /**
@@ -151,8 +162,9 @@ public final class ReadingPatch {
     public static void comfortableReading(WebView webView) {
         if (!PatchSettings.active(webView, "comfortableReading", "Comfortable reading")) return;
         injectCss(webView, "jofslash-reading",
-                ANSWER_TEXT + "," + ANSWER_TEXT + " .q-text{line-height:1.75 !important;letter-spacing:.005em;}"
-                        + ANSWER_TEXT + " p," + ANSWER_TEXT + " .q-text.qu-display--block{margin-bottom:.8em !important;}");
+                ANSWER_TEXT + "," + ANSWER_TEXT + " .q-text," + PARAGRAPH
+                        + "{line-height:1.75 !important;letter-spacing:.005em;}"
+                        + ANSWER_TEXT + " p," + PARAGRAPH + "{margin-bottom:.8em !important;}");
     }
 
     /**
@@ -166,7 +178,8 @@ public final class ReadingPatch {
                 ? "Georgia,\"Noto Serif\",\"Droid Serif\",serif"
                 : "Roboto,\"Noto Sans\",\"Helvetica Neue\",Arial,sans-serif";
         injectCss(webView, "jofslash-font",
-                ANSWER_TEXT + "," + ANSWER_TEXT + " *:not(code):not(pre):not(kbd){font-family:" + family + " !important;}");
+                ANSWER_TEXT + "," + ANSWER_TEXT + " *:not(code):not(pre):not(kbd)," + PARAGRAPH + "," + PARAGRAPH
+                        + " *:not(code):not(pre):not(kbd){font-family:" + family + " !important;}");
     }
 
     /**
@@ -191,21 +204,41 @@ public final class ReadingPatch {
         if (!PatchSettings.active(webView, "dataSaver", "Data saver")) return;
         injectCss(webView, "jofslash-data-saver",
                 "img[data-jofslash-tap]{min-width:72px;min-height:56px;background:rgba(128,128,128,.22) !important;"
-                        + "cursor:pointer;object-fit:contain;}");
+                        + "cursor:pointer;object-fit:contain;}"
+                        // Pictures drawn as a CSS background (post images in the feed).
+                        + "[data-jofslash-bgtap]{background-color:rgba(128,128,128,.22) !important;position:relative;cursor:pointer;}"
+                        + "[data-jofslash-bgtap]::after{content:\"Tap to load image\";position:absolute;left:12px;top:10px;"
+                        + "font:15px/1.3 sans-serif;opacity:.75;}");
         evaluate(webView, "(function(){"
                 + "if(window.__jofslashData)return;window.__jofslashData=1;"
                 + "var cdn=/(^|\\.)quoracdn\\.net$/;"
+                + "var LABEL='data:image/svg+xml,'+encodeURIComponent('<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"320\" height=\"64\">"
+                + "<text x=\"16\" y=\"38\" font-family=\"sans-serif\" font-size=\"18\" fill=\"#8a8a8a\">Tap to load image</text></svg>');"
                 + "function mark(img){if(img.hasAttribute('data-jofslash-tap'))return;"
                 + "try{if(!cdn.test(new URL(img.currentSrc||img.src).hostname))return;}catch(e){return;}"
                 + "if(img.complete&&img.naturalWidth>0)return;"
                 // Only images in answers and feed items become tap targets; blocked decorations are hidden.
-                + "if(!img.closest('" + ANSWER_TEXT + "," + UNITS + "')){img.style.setProperty('visibility','hidden','important');return;}"
-                + "img.setAttribute('data-jofslash-tap','');img.alt=img.alt||'Tap to load image';"
-                + "img.addEventListener('click',function(ev){ev.preventDefault();ev.stopPropagation();"
-                + "var u=new URL(img.currentSrc||img.src);u.searchParams.set('" + LOAD_PARAM + "','1');"
-                + "img.removeAttribute('srcset');img.src=u.toString();img.removeAttribute('data-jofslash-tap');},{capture:true,once:true});}"
+                + "var src=img.currentSrc||img.src;"
+                // Profile photos and Space icons are small; tapping them opens the profile, so just hide them.
+                + "if(/thumb|profile_default/.test(src)||!img.closest('" + ANSWER_TEXT + "," + UNITS + ",.q-text')){img.style.setProperty('visibility','hidden','important');return;}"
+                // Show a label instead of the browser's broken image icon; keep the real address for the tap.
+                + "img.setAttribute('data-jofslash-tap',src);img.removeAttribute('srcset');img.src=LABEL;}"
+                + "function bg(el){if(el.hasAttribute('data-jofslash-bgtap')||el.hasAttribute('data-jofslash-bgdone'))return;"
+                + "var m=(el.getAttribute('style')||'').match(/url\\([\"']?([^\"')]*quoracdn\\.net[^\"')]*)[\"']?\\)/);if(!m)return;"
+                + "if(/thumb|profile_default/.test(m[1]))return;"
+                + "el.setAttribute('data-jofslash-bgtap',m[1]);}"
+                // One listener on the window, in the capture phase, so it runs before Quora's own
+                // handlers, which would open the post instead of loading the picture.
+                + "function load(url){var u=new URL(url,location.href);u.searchParams.set('" + LOAD_PARAM + "','1');return u.toString();}"
+                + "window.addEventListener('click',function(ev){"
+                + "var t=ev.target&&ev.target.closest&&ev.target.closest('img[data-jofslash-tap],[data-jofslash-bgtap]');if(!t)return;"
+                + "ev.preventDefault();ev.stopPropagation();ev.stopImmediatePropagation();"
+                + "if(t.tagName==='IMG'){t.src=load(t.getAttribute('data-jofslash-tap'));t.removeAttribute('data-jofslash-tap');}"
+                + "else{t.style.backgroundImage='url(\"'+load(t.getAttribute('data-jofslash-bgtap'))+'\")';"
+                + "t.removeAttribute('data-jofslash-bgtap');t.setAttribute('data-jofslash-bgdone','');}},true);"
                 + "function run(){document.querySelectorAll('img').forEach(function(img){"
-                + "if(img.complete)mark(img);else img.addEventListener('error',function(){mark(img);},{once:true});});}"
+                + "if(img.complete)mark(img);else img.addEventListener('error',function(){mark(img);},{once:true});});"
+                + "document.querySelectorAll('[style*=\"quoracdn.net\"]').forEach(bg);}"
                 + observe("run")
                 + "})();", "data saver");
     }
@@ -225,6 +258,8 @@ public final class ReadingPatch {
             if (!host.equals("quoracdn.net") && !host.endsWith(".quoracdn.net")) return null;
             if (uri.getQueryParameter(LOAD_PARAM) != null) return null;
             String path = uri.getPath() == null ? "" : uri.getPath().toLowerCase();
+            // Profile photos and Space icons ("main-thumb-…") are a few KB each; let them load.
+            if (path.contains("main-thumb")) return null;
             boolean image = path.contains("qimg") || path.contains("thumb")
                     || path.matches(".*\\.(jpe?g|png|gif|webp|avif)$");
             if (!image) return null;

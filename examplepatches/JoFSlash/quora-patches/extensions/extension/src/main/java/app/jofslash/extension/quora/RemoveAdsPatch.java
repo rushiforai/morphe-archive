@@ -20,6 +20,8 @@ public final class RemoveAdsPatch {
     private static final String AD_SELECTORS = String.join(",",
             "[class*=\"dom_annotate_ad_\"]",
             ".dom_annotate_multifeed_bundle_AdBundle",
+            // Other ad units, such as BrandSafetyAdBundle on the Home feed.
+            "[class*=\"dom_annotate_multifeed_bundle_\"][class*=\"AdBundle\"]",
             ".dom_annotate_google_ad",
             ".spacing_log_question_page_ad",
             ".AdBundle",

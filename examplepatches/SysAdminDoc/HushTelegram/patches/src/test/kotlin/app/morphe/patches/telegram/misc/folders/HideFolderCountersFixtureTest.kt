@@ -8,6 +8,7 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.PlusPending
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
 import app.morphe.patches.telegram.misc.extension.SETTINGS_STATUS
 import app.morphe.patches.telegram.misc.localcontrols.controlBody
@@ -27,6 +28,7 @@ import app.morphe.util.names.origReturnType
 import app.morphe.util.names.tgMutableClassDefBy
 
 /** The chat list's folder tab counter and the runtime. */
+@PlusPending
 class HideFolderCountersFixtureTest {
     @Test fun `the extension answers first and a no counts the way Telegram does`() {
         for (build in Fixtures.declaredBuilds()) {

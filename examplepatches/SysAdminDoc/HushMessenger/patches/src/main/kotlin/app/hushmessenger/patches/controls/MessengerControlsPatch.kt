@@ -1,12 +1,18 @@
 package app.hushmessenger.patches.controls
 
 import app.hushmessenger.patches.MessengerTarget
-import app.hushmessenger.patches.messengerClasses
 import app.hushmessenger.patches.coexist.validateVersionCode
-import app.morphe.patcher.patch.BytecodePatch
+import app.hushmessenger.patches.messengerClasses
+import app.morphe.patcher.patch.Patch
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.classDefBy
+import app.morphe.patcher.patch.classDefByOrNull
+import app.morphe.patcher.patch.decode
+import app.morphe.patcher.patch.document
+import app.morphe.patcher.patch.mutableClassDefBy
+import app.morphe.patcher.patch.packageMetadata
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.resourceFile
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.iface.Method
 import org.w3c.dom.Document
@@ -54,7 +60,7 @@ internal fun Document.addSettingsEntry() {
         "theme" to "@android:style/Theme.Material.NoActionBar")
 }
 
-internal val settingsResources = resourcePatch(description = "Install HushMessenger settings") {
+internal val settingsResources = patch(description = "Install HushMessenger settings") {
     execute {
         validateVersionCode(packageMetadata.versionCode)
         nativeBubbleActivityVerified = document("AndroidManifest.xml").use {
@@ -64,9 +70,9 @@ internal val settingsResources = resourcePatch(description = "Install HushMessen
         document("AndroidManifest.xml").use { it.addSettingsAccess() }
         // One decode call: patcher 2 loads the whole APK again for each one.
         decode(*MANIFEST_STRINGS.keys.toTypedArray())
-        if (!get(DEFAULT_STRINGS, false).exists()) throw PatchException("Messenger controls: Messenger has no $DEFAULT_STRINGS for the labels")
-        for ((path, strings) in MANIFEST_STRINGS) if (get(path, false).exists()) document(path).use { it.addStrings(strings) }
-        val icon = get(SETTINGS_ICON_PATH)
+        if (!resourceFile(DEFAULT_STRINGS, false).exists()) throw PatchException("Messenger controls: Messenger has no $DEFAULT_STRINGS for the labels")
+        for ((path, strings) in MANIFEST_STRINGS) if (resourceFile(path, false).exists()) document(path).use { it.addStrings(strings) }
+        val icon = resourceFile(SETTINGS_ICON_PATH)
         if (icon.exists()) throw PatchException("HushMessenger: $SETTINGS_ICON_PATH is already in the APK. Start with the stock APK.")
         icon.parentFile.mkdirs()
         icon.writeText(SETTINGS_ICON_XML)
@@ -80,7 +86,7 @@ internal var communityInboxContract: CommunityInboxContract? = null
 /** Each control's hooks, filled as the control patches below are declared. HookInjectionReplayTest replays them. */
 internal val controlHooks = linkedMapOf<String, Set<String>>()
 
-internal val settingsExtension = bytecodePatch(description = "Load HushMessenger runtime controls") {
+internal val settingsExtension = patch(description = "Load HushMessenger runtime controls") {
     dependsOn(settingsResources)
     extendWith("extensions/messenger.mpe")
     execute {
@@ -422,12 +428,12 @@ internal fun injectControl(key: String, methods: Map<String, List<MutableMethod>
 
 /** [manifest] adds the components a control needs, and runs only once its hooks are in. */
 private fun controlPatch(key: String, title: String, summary: String, group: String, vararg hooks: String,
-    manifest: (Document.() -> Unit)? = null): BytecodePatch {
+    manifest: (Document.() -> Unit)? = null): Patch {
     var applied = false
     var nativeRoutesApplied = false
     val selected = hooks.toSet().ifEmpty { setOf(key) }
     controlHooks[key] = selected
-    val featureResources = resourcePatch(description = "Record HushMessenger capability: $key") {
+    val featureResources = patch(description = "Record HushMessenger capability: $key") {
         dependsOn(settingsResources)
         execute {
             applied = false
@@ -442,7 +448,7 @@ private fun controlPatch(key: String, title: String, summary: String, group: Str
             }
         }
     }
-    return bytecodePatch(
+    return patch(
         name = title,
         description = "$summary Starts off. Turn it on in HushMessenger settings > Controls.",
         default = true,
@@ -919,7 +925,7 @@ val iosBarsPatch = controlPatch("ios_bars", "Translucent chat bars",
     "Theme", IOS_BARS)
 private var anonymousStoriesApplied = false
 
-private val anonymousStoriesResources = resourcePatch(description = "Record HushMessenger capability: anonymous_stories") {
+private val anonymousStoriesResources = patch(description = "Record HushMessenger capability: anonymous_stories") {
     dependsOn(settingsResources)
     execute {
         anonymousStoriesApplied = false
@@ -931,7 +937,7 @@ private val anonymousStoriesResources = resourcePatch(description = "Record Hush
 }
 
 @Suppress("unused")
-val anonymousStoriesPatch = bytecodePatch(
+val anonymousStoriesPatch = patch(
     name = "View stories anonymously",
     description = "Opens other people's stories without adding you to their viewer list. Messenger still marks them as seen on your side. Starts off. Turn it on in HushMessenger settings > Controls.",
     default = true,
@@ -966,7 +972,7 @@ val anonymousStoriesPatch = bytecodePatch(
 
 private var saveStoriesApplied = false
 
-private val saveStoriesResources = resourcePatch(description = "Record HushMessenger capability: save_stories") {
+private val saveStoriesResources = patch(description = "Record HushMessenger capability: save_stories") {
     dependsOn(settingsResources)
     execute {
         saveStoriesApplied = false
@@ -978,7 +984,7 @@ private val saveStoriesResources = resourcePatch(description = "Record HushMesse
 }
 
 @Suppress("unused")
-val saveStoriesPatch = bytecodePatch(
+val saveStoriesPatch = patch(
     name = "Save any story",
     description = "Adds Save to the More options menu on other people's stories, so you can keep their photo or video on your phone. Starts off. Turn it on in HushMessenger settings > Controls.",
     default = true,
@@ -1010,7 +1016,7 @@ val saveStoriesPatch = bytecodePatch(
 private val CHAT_ANIMATION_HOOKS = setOf("chat_animation", "chat_fragment", "chat_inbox", "chat_legacy")
 private var chatAnimationApplied = false
 
-private val chatAnimationResources = resourcePatch(description = "Record HushMessenger capability: chat_animation") {
+private val chatAnimationResources = patch(description = "Record HushMessenger capability: chat_animation") {
     dependsOn(settingsResources)
     execute {
         chatAnimationApplied = false
@@ -1020,7 +1026,7 @@ private val chatAnimationResources = resourcePatch(description = "Record HushMes
         if (!chatAnimationApplied) return@finalize
         // Search and notifications open a chat as an activity of its own, and Android animates those from resources.
         for ((path, xml) in CHAT_ANIMATION_FILES) {
-            val file = get(path)
+            val file = resourceFile(path)
             if (file.exists()) throw PatchException("HushMessenger: $path is already in the APK. Start with the stock APK.")
             file.parentFile.mkdirs()
             file.writeText(xml)
@@ -1030,7 +1036,7 @@ private val chatAnimationResources = resourcePatch(description = "Record HushMes
 }
 
 @Suppress("unused")
-val chatAnimationPatch = bytecodePatch(
+val chatAnimationPatch = patch(
     name = "Slide chats in and out",
     description = "Slides a chat in from the side when you open it and back out when you go back. Chat heads and bubbles keep their own animations. Starts off. Turn it on in HushMessenger settings > Controls.",
     default = true,
@@ -1064,7 +1070,7 @@ val chatAnimationPatch = bytecodePatch(
 
 private var textStyleApplied = false
 
-private val textStyleResources = resourcePatch(description = "Record HushMessenger capability: $TEXT_STYLE") {
+private val textStyleResources = patch(description = "Record HushMessenger capability: $TEXT_STYLE") {
     dependsOn(settingsResources)
     execute {
         textStyleApplied = false
@@ -1079,7 +1085,7 @@ private val textStyleResources = resourcePatch(description = "Record HushMesseng
 }
 
 @Suppress("unused")
-val textStylePatch = bytecodePatch(
+val textStylePatch = patch(
     name = "Bold and italic text",
     description = "Adds Bold and Italic to the menu that shows when you select words you typed. They're special Unicode letters, so they show on any phone, but screen readers may read them oddly. Starts off. Turn it on in HushMessenger settings > Controls.",
     default = true,
@@ -1107,7 +1113,7 @@ private var logoLongPressApplied = false
 internal const val LOGO_LONG_PRESS = "logo_long_press"
 
 // Lets the settings screen mention the Menu tab row and the logo only on builds that have them.
-private val menuRowResources = resourcePatch(description = "Record HushMessenger capability: menu_row") {
+private val menuRowResources = patch(description = "Record HushMessenger capability: menu_row") {
     dependsOn(settingsResources)
     execute {
         menuRowApplied = false
@@ -1126,7 +1132,7 @@ private val menuRowResources = resourcePatch(description = "Record HushMessenger
 }
 
 @Suppress("unused")
-val menuSettingsPatch = bytecodePatch(
+val menuSettingsPatch = patch(
     name = "Open settings from menu",
     description = "Adds a HushMessenger entry to Messenger's Menu tab and side menu, and makes a long press on the Messenger logo at the top of Chats or on the Menu tab's title open these settings too. Works as soon as you patch it in. The settings App tab can turn off each way in, as long as one stays on.",
     default = true,

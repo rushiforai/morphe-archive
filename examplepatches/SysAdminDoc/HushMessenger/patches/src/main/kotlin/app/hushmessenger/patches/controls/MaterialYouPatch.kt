@@ -17,8 +17,12 @@ import app.hushmessenger.patches.MessengerTarget
 import app.hushmessenger.patches.isExtension
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.classDefBy
+import app.morphe.patcher.patch.classDefByOrNull
+import app.morphe.patcher.patch.classDefForEach
+import app.morphe.patcher.patch.document
+import app.morphe.patcher.patch.mutableClassDefBy
+import app.morphe.patcher.patch.patch
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -91,7 +95,7 @@ internal fun isFdsColorsShape(cls: ClassDef): Boolean {
     return field.type == cls.type && AccessFlags.STATIC.isSet(field.accessFlags) && cls.methods.any(::isFdsResolver)
 }
 
-private val materialYouResources = resourcePatch(description = "Record HushMessenger capability: material_you") {
+private val materialYouResources = patch(description = "Record HushMessenger capability: material_you") {
     dependsOn(settingsResources)
     execute {
         materialYouApplied = false
@@ -103,7 +107,7 @@ private val materialYouResources = resourcePatch(description = "Record HushMesse
 }
 
 @Suppress("unused")
-val materialYouPatch = bytecodePatch(
+val materialYouPatch = patch(
     name = "Material You theme",
     description = "Colors Messenger's dark mode with your wallpaper colors on Android 12 and newer, and a fixed blue on Android 11. Turn on dark mode in Messenger first. Light mode keeps its colors unless you turn on Light mode accent. Starts off. Turn it on in HushMessenger settings > Controls.",
 ) {

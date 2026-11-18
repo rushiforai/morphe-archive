@@ -8,6 +8,7 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.PlusPending
 import app.morphe.util.names.origRef
 import app.morphe.util.names.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
@@ -74,6 +75,7 @@ private const val BOOL_TRUE = "Lorg/telegram/tgnet/TLRPC\$TL_boolTrue;"
 private fun Method.isDelegateRun() = name == "run" && parameterTypes.map(CharSequence::toString) == DELEGATE_PARAMETERS && returnType == "V"
 
 /** Independent signer and request census, with complete pre-mutation refusal snapshots. */
+@PlusPending
 class RepairFirebasePushFixtureTest {
     @Test
     fun `header seed is the actual official fixture signer rather than a guessed fingerprint`() {

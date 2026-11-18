@@ -359,6 +359,8 @@ Clear preset,清除预设
 "Clear screen hides a LIVE's chat, gifts and buttons so only the stream shows. TikTok puts it in the menu of only some rooms. This adds it to the others.",清晰的屏幕隐藏了 LIVE 的聊天、礼物和按钮，因此只有流显示。 TikTok 仅将其放入某些房间的菜单中。这将其添加到其他内容中.
 Keep clear screen in the next LIVE,在下一个 LIVE 中保持清屏
 "A LIVE you swipe to comes back with its chat, gifts and buttons showing. This keeps clear screen on from room to room until you turn it off.",滑到下一个 LIVE 时，聊天、礼物和按钮会重新显示。此设置会让清屏在各个房间之间保持开启，直到你关闭它.
+Offer full screen in more LIVEs,在更多 LIVE 中提供全屏
+TikTok shows its full screen button only in LIVEs streamed from a computer or a shared screen. This shows it in every other LIVE with a wide video.,TikTok 只在从电脑或共享屏幕直播的 LIVE 中显示全屏按钮。开启后，其他画面为横屏的 LIVE 也会显示它.
 Clear search,清除搜索
 Recent searches,最近搜索
 Clear search history,清除搜索记录
@@ -563,6 +565,15 @@ Entry %1$d isn't an object.,条目 %1$d 不是对象.
 Errors,错误
 All loaded items are picked or saved. Scroll for more.,已加载的项目均已选中或保存，向下滚动查看更多.
 Expand activity list,展开活动列表
+Group likes per comment,按评论合并点赞
+"Show one row for each comment or video people liked, with everyone who liked it counted, instead of a new row for every few likes. Applies the next time the Likes list loads.",每条被点赞的评论或视频只显示一行，并计入所有点赞的人，而不是每隔几个赞就新增一行。下次加载点赞列表时生效.
+Swap lists,交换列表
+Split the Activity page,拆分活动页面
+"Show your newest comments at the top of the Activity page and likes below, each scrolling on its own. The bar between them swaps the two lists or hides the lower one until you bring it back. Picking another list from Activity still shows just that list. Applies the next time the page opens.",在活动页面顶部显示你最新的评论，下方显示点赞，两部分各自滚动。中间的栏可以交换两个列表，或隐藏下方的列表直到你重新显示。在“活动”中选择其他列表时仍只显示该列表。下次打开该页面时生效.
+Hide likes,隐藏点赞
+Show likes,显示点赞
+Hide comments,隐藏评论
+Show comments,显示评论
 Explore or Community,探索或社区
 Export CSV,导出CSV
 Export JSON,导出JSON
@@ -610,6 +621,8 @@ Find the sound on YouTube Music,在 YouTube Music 上查找声音
 First caller,第一个来电者
 First rejection:,第一次拒绝:
 Fit the video to the screen,让视频适合屏幕
+Fill a tall screen instead,改为铺满较高的屏幕
+"With the switch above on, the video is cropped to fill a tall screen like a folding phone's front screen. A squarer one, like the big screen opened up, still shows the whole video.","开启上面的开关后，视频会被裁剪以铺满折叠手机外屏这类较高的屏幕。接近方形的屏幕，比如展开后的大屏幕，仍会显示完整视频."
 Floating bottom bar,浮动底栏
 Focus,焦点
 Follow probe,跟随探头
@@ -1249,6 +1262,26 @@ Paid partnerships,付费合作伙伴
 Pass TikTok's install checks,通过 TikTok 的安装检查
 Pause,暂停
 Pause Hushfeed,暂停Hushfeed
+Settings theme,设置主题
+Hushfeed language,Hushfeed 语言
+For Hushfeed's settings and messages. TikTok keeps its own language.,用于 Hushfeed 的设置和消息。TikTok 保持自己的语言.
+English,English
+العربية,العربية
+Azərbaycan dili,Azərbaycan dili
+Deutsch,Deutsch
+Español,Español
+Bahasa Indonesia,Bahasa Indonesia
+Italiano,Italiano
+Português (Brasil),Português (Brasil)
+Русский,Русский
+ไทย,ไทย
+Türkçe,Türkçe
+Tiếng Việt,Tiếng Việt
+简体中文,简体中文
+Match TikTok,跟随 TikTok
+Always dark,始终深色
+Always light,始终浅色
+Colors these settings and Hushfeed's own pop-ups.,为这些设置和 Hushfeed 自己的弹窗配色.
 "Pause Hushfeed's switches after TikTok restarts. Your settings stay saved. Changes made when you patched, like the app's name or icon, stay.",TikTok 重新启动后暂停 Hushfeed 的开关。你的设置将保持保存。修补时所做的更改（例如应用程序的名称或图标）将保留.
 Pause the video while comments are open,评论开放时暂停视频
 Paused,已暂停
@@ -1280,6 +1313,8 @@ Play Store,Play 商店
 Let other apps play until a video starts,在视频开始播放前不打断其他应用
 Play sounds TikTok pulled,播放声音 TikTok 拉动
 Play the audio on videos TikTok silenced because their sound was pulled for copyright or in your region. TikTok may still say the sound isn't available.,播放视频 TikTok 上的音频，该视频被静音，因为它们的声音因版权原因或在你所在的地区而被拉取。 TikTok 可能仍然会说声音不可用.
+Play original audio,播放原声
+Play videos and mini dramas in their own language instead of TikTok's AI dub in your app language. Captions and translations stay as they are.,以原语言播放视频和短剧，而不是 TikTok 按你的应用语言生成的 AI 配音。字幕和翻译保持不变.
 Playback,回放
 Player,玩家
 Playing at %1$sx,在 %1$sx 进行比赛
@@ -1658,6 +1693,8 @@ How much of the video shows through the glass pill on the main feed. Most see-th
 "On the main feed, a raised bubble of glass sits behind the tab you're on and slides to the next tab you pick. Works on any bottom bar, with or without Liquid glass look.",在主信息流上，一个凸起的玻璃气泡位于你所在的选项卡后面，并滑到你选择的下一个选项卡。适用于任何底部栏，无论是否开启液态玻璃外观.
 Slide across the tabs,在选项卡上滑动
 "On the main feed, slide a finger along the tabs and the lens follows it. Let go and that tab opens. Taps and long presses work as before. Needs Glass lens on the current tab.",在主信息流上，手指沿选项卡滑动，透镜会跟着手指移动。松开手指就会打开那个选项卡。点按和长按照常使用。需要当前选项卡上的玻璃透镜.
+Liquid glass when held,按住时呈现液态玻璃
+"On the main feed, hold a finger on the tabs and the glass lens swells, then wobbles back when you let go. With Blur the video behind the bar on Android 13 and up, the video under it bends harder and splits into color at its edge. Needs Glass lens on the current tab.",在主信息流上，手指按住选项卡，玻璃透镜会鼓起，松开后晃动着恢复原状。在 Android 13 及以上版本开启模糊栏后面的视频时，透镜下的视频会弯曲得更明显，边缘还会分出彩色光。需要当前选项卡上的玻璃透镜.
 Haptics on the tabs,选项卡触感反馈
 "On the main feed, a light tick each time the glass lens passes a tab, as it slides after a tap or under your finger. Needs Glass lens on the current tab.",在主信息流上，玻璃透镜每经过一个选项卡就轻震一下，无论是点按后滑动还是在手指下滑动。需要当前选项卡上的玻璃透镜.
 Haptic style,触感样式
@@ -2234,6 +2271,8 @@ Works only with YTDLnis (com.deniscerri.ytdl). Starts the download in the backgr
 Write the username and caption on the video,在视频上写下用户名和标题
 "Write the video's sound beside it, in the format picked under Sound format. Android 10 and later file audio separately, so it lands in Music under the same folder name as your videos.",按照在声音格式下选择的格式在其旁边写下视频的声音。 Android 10 及更高版本单独归档音频，因此它位于与视频相同的文件夹名称下的音乐中.
 "Writes the date before the time to the second the short way your language does, like 10/7/25.",按照你的语言的缩写方式将时间之前的日期写成秒，例如 10/7/25.
+Day before month,日在月前
+"Writes TikTok's date by the creator's name day first, like 29.09, with the year after it for an older video. Ages like 2d ago stay as they are.",将创作者名字旁的 TikTok 日期写成日在前，如 29.09，较旧的视频后面加上年份。像 2天前 这样的时长保持不变.
 Writing,写作
 Writing the caption on the video,在视频上写标题
 Writing the caption on the video: %1$s,在视频上写下标题：%1$s
@@ -2397,6 +2436,8 @@ search suggestions,搜索建议
 AI chat,AI 聊天
 AI Tako,AI Tako
 save photos,保存照片
+download button,下载按钮 下载
+"It's in %1$s, under %2$s. Tap to go there.",在%1$s的%2$s中。点击前往.
 Lock the feed at set times,在设定时间锁定信息流
 "The feed locks by itself during these hours, on your phone's clock. Write days and hours like Mon-Fri 21:00-07:00; Sat Sun 13:00-15:00. Leave the days out for every day. A time that ends earlier than it starts runs past midnight.",信息流会在这些时间按手机时钟自动锁定。像这样填写日期和时间：Mon-Fri 21:00-07:00; Sat Sun 13:00-15:00。不写日期表示每天。结束早于开始的时间段会跨过午夜.
 Couldn't read %1$s. Write days and hours like Mon-Fri 21:00-07:00.,无法读取 %1$s。请像 Mon-Fri 21:00-07:00 这样填写日期和时间.
@@ -2459,6 +2500,16 @@ Proxy %1$s needs a user name and password,代理 %1$s 需要用户名和密码
 Proxy %1$s refused your user name or password,代理 %1$s 拒绝了你的用户名或密码
 Save this video,保存此视频
 Show the save button on videos,在视频上显示保存按钮
+Hold TikTok's save button to download,长按 TikTok 的收藏按钮来下载
+Press and hold the save button in the right column to save the video with your download settings. A tap still adds it to Favorites. It wins over Hold speed on Favorites.,长按右侧栏的收藏按钮，用你的下载设置保存视频。轻点仍会加入收藏。它的优先级高于“在收藏夹上保持速度”.
+Size of the buttons on videos,视频上按钮的大小
+Size of the LIVE buttons,LIVE 按钮的大小
+Smallest,最小
+Small,小
+Large,大
+Line them up over the right column,排在右侧栏上方
+"Stack the buttons above TikTok's own on the right, starting over the avatar. They follow the column instead of staying where you dragged them.",把按钮叠放在右侧 TikTok 自带按钮的上方，从头像上方开始。它们会跟随右侧栏，而不是停在你拖到的位置.
+Turn off Line them up over the right column to move it,关闭“排在右侧栏上方”即可移动它
 Add a button beside the block control that saves the video on screen in one tap. Drag it wherever you like.,在块控件旁边添加一个按钮，点一下即可保存屏幕上的视频。可以把它拖到任意位置.
 Couldn't save this one. Try again.,无法保存。再试一次.
 Opening TikTok or your messages no longer pauses music from another app. TikTok takes the sound while a video plays and gives it back when you leave the video.,打开 TikTok 或你的消息时，不再暂停其他应用的音乐。TikTok 只在视频播放时占用声音，离开视频后就会交还.
@@ -2556,6 +2607,18 @@ Clearing Favorites in %1$d,%1$d 秒后清空收藏
 Reposts removed: %1$d,已移除转发：%1$d
 Likes removed: %1$d,已取消点赞：%1$d
 Favorites removed: %1$d,已移出收藏：%1$d
+Remove all comments,删除所有评论
+Deletes every comment you've posted one after another.,逐条删除你发布过的每条评论.
+Remove selected comments,删除所选评论
+Pick comments from your comment history to delete.,从你的评论记录中挑选要删除的评论.
+Removing all comments in %1$d,%1$d 秒后删除所有评论
+Removing the picked comments in %1$d,%1$d 秒后删除所选评论
+Comments removed: %1$d,已删除评论：%1$d
+TikTok refused to list your comments,TikTok 拒绝列出你的评论
+Couldn't load your comments. Try again.,无法加载你的评论。请重试.
+Loading your comments,正在加载你的评论
+No comments to show,没有可显示的评论
+No text,无文字
 Nothing to remove,没有可移除的内容
 Done. %1$d removed.,完成。已移除 %1$d 项.
 Stopped. %1$d removed.,已停止。已移除 %1$d 项.
@@ -2565,6 +2628,12 @@ Not available on this TikTok version,此 TikTok 版本不支持
 Sign in to TikTok first,请先登录 TikTok
 A removal is already running,已有移除任务在进行
 Cancelled,已取消
+Tap a video to remove it,点按视频即可移除
+"In your own Liked videos, Favorites and Reposts, a tap takes the video off that list instead of opening it.",在你自己的喜欢的视频、收藏和转发中，点按会把视频从该列表移除，而不是打开它.
+Couldn't remove that video. Try again.,无法移除该视频。再试一次.
+Removed from Liked videos,已从喜欢的视频中移除
+Removed from Favorites,已从收藏中移除
+Removed from Reposts,已从转发中移除
 Show inbox filters,显示收件箱筛选
 "Adds the Main, Requests, Unread and Starred tabs above your chats, the ones TikTok gives creator accounts.",在聊天列表上方添加“主要”“请求”“未读”和“星标”标签，也就是 TikTok 给创作者账号的那些.
 Rebuild message search,重建消息搜索
@@ -2722,3 +2791,69 @@ Account country on profiles,个人资料上的账号国家/地区
 "A profile's share sheet gets an Account country button. It asks TikTok where that account is based, or where its latest videos were posted from.",个人资料的分享面板会多一个“账号国家/地区”按钮。它会向 TikTok 询问该账号所在的位置，或其最新视频的发布地.
 Account country,账号国家/地区
 Videos posted from %1$s,视频发布地：%1$s
+Long-press Profile for Activity center,长按“个人主页”打开活动中心
+"Press and hold the Profile tab to open TikTok's Activity center. A tap on Profile works as before. While Long-press Profile for Watch history is on, that one takes the press.",按住“个人主页”选项卡可打开 TikTok 的活动中心。点击“个人主页”仍像以前一样工作。开启长按“个人主页”打开观看历史时，由它接管该操作.
+Share the video after a save,保存后分享视频
+"Opens Android's share sheet with the file as soon as a video is saved, video stories included, so you can send it straight to WhatsApp, Telegram or any other app. Picked videos saved together get the usual notice.",视频一保存（包括视频快拍），就用该文件打开 Android 的分享面板，方便你直接发送到 WhatsApp、Telegram 或其他任何应用。一起保存的所选视频仍显示平常的提示.
+Caption spot in Clear display,清晰显示时的字幕位置
+Where TikTok shows it,TikTok 显示的位置
+"Lower, near the bottom",更低，靠近底部
+Crop and stretch to fill the screen,裁剪并拉伸以填满屏幕
+"Cover the whole window with half the crop of Fill and half the stretch of Stretch, so neither is easy to spot. A video far from the screen's shape keeps TikTok's size.",以“填满”一半的裁剪和“拉伸”一半的拉伸铺满整个窗口，两者都不易察觉。形状与屏幕相差太大的视频保持 TikTok 的尺寸.
+Watch LIVEs unseen,隐身观看 LIVE
+You stay off the viewer list of LIVEs you open. Tap the eye in a LIVE to let that host see you. Needs Ghost mode on.,你不会出现在你打开的 LIVE 的观众列表中。在 LIVE 中点按眼睛图标，让主播看到你。需要开启幽灵模式.
+The host can see you,主播能看到你
+Let the host see you,让主播看到你
+Couldn't tell which LIVE this is. Open it again.,无法判断这是哪个 LIVE。请再打开一次.
+The host can already see you in this LIVE,主播已经能在这个 LIVE 中看到你
+Letting the host see you,正在让主播看到你
+The host can see you now,主播现在能看到你
+The host sees you next time you open it,下次你打开时主播就会看到你
+Couldn't reach TikTok. Open this LIVE again.,无法连接 TikTok。请重新打开这个 LIVE.
+LIVE name alerts,LIVE 点名提醒
+"Tells you when your name comes up in a LIVE, in the chat or said out loud in a room with captions on. You get a notification when TikTok's notifications are on, and a banner in the room when they're off.",当有人在 LIVE 中提到你的名字时提醒你，包括聊天消息，以及在开启字幕的直播间里被大声说出。TikTok 通知开启时会收到通知，关闭时会在直播间显示横幅.
+Names to listen for,要留意的名字
+"Your handle and TikTok name are on the list already. Add other names people call you, separated by commas.",你的用户名和 TikTok 名字已经在列表里。添加别人称呼你的其他名字，用逗号分隔.
+Your name came up in a LIVE,有人在 LIVE 中提到了你的名字
+Listen for your name,收听你的名字
+"Also listens to the LIVE's sound, so your name counts when it's said out loud in rooms without captions. Your phone's own speech recognition does the listening, with TikTok's microphone permission. It hears only the LIVE, though Android shows its microphone dot, and it uses a little more data.",也会收听 LIVE 的声音，这样在没有字幕的直播间里，有人大声说出你的名字也算数。收听由你手机自带的语音识别完成，使用 TikTok 的麦克风权限。它只听 LIVE 的声音，不过 Android 会显示麦克风圆点，而且会多用一点流量.
+Needs Android 13 or newer.,需要 Android 13 或更高版本.
+Off: this phone's speech recognition only hears the microphone. Turn this off and on to try again.,已关闭：这台手机的语音识别只能听到麦克风。关闭后再打开即可重试.
+"This phone has no speech recognition. Choose one under Android's voice input settings, then open the LIVE again.",这台手机没有语音识别。在 Android 的语音输入设置里选择一个，然后重新打开 LIVE.
+"TikTok needs the microphone permission for speech recognition. Allow it in Android's app settings, then open the LIVE again.",TikTok 需要麦克风权限才能使用语音识别。在 Android 的应用设置里允许，然后重新打开 LIVE.
+"Speech recognition has no model for your phone's language. Download one in Android's speech settings, then open the LIVE again.",语音识别没有适用于你手机语言的模型。在 Android 的语音设置里下载一个，然后重新打开 LIVE.
+Speech recognition kept failing in the last LIVE. Open the LIVE again to retry.,语音识别在上一个 LIVE 里一直失败。重新打开 LIVE 即可重试.
+Save the photo posts as one video?,将照片帖子保存为一个视频?
+One video,一个视频
+One per post,每个帖子一个
+Keep the middle unstretched,保持中间不拉伸
+"Cover the whole window and keep the middle of the video at its own shape. A little comes off the sides, and only the top and bottom are stretched. A video far from the screen's shape keeps TikTok's size.",铺满整个窗口，并让视频中间保持原本的形状。两侧会裁掉一点，只有顶部和底部会被拉伸。形状与屏幕相差太大的视频保持 TikTok 的尺寸.
+Visual search on paused videos,在暂停的视频上使用视觉搜索
+App icon,应用图标
+"Some home screens drop the icon when it changes. If yours does, add TikTok back from the app list.",有些主屏幕会在图标更改时将其移除。如果你的主屏幕会这样，请从应用列表重新添加 TikTok.
+Icon changed,图标已更改
+Couldn't change the icon. Try again.,无法更改图标。请重试.
+TikTok colors,TikTok 配色
+Black background,黑色背景
+White on black,黑底白字
+Black on white,白底黑字
+Material You,Material You
+Your icon,你的图标
+Save episodes,保存剧集
+Pick episodes to save,选择要保存的剧集
+Episode %1$s,第 %1$s 集
+Preview only,仅预览
+Loading episodes,正在加载剧集
+Couldn't load the episodes. Try again.,无法加载剧集。请重试.
+Pick at least one episode,请至少选择一集
+Saving %1$s. Tap Save again for the rest.,正在保存 %1$s 集。再次点按保存即可保存其余剧集.
+Save episodes button in the share sheet,分享面板中的保存剧集按钮
+Adds Save episodes when you share an episode of a mini drama. It lists the drama's episodes so you can pick several and save them in one go. An episode you haven't unlocked saves only its preview.,分享短剧的某一集时，添加“保存剧集”。它会列出该剧的所有剧集，你可以选择多集一次保存。尚未解锁的剧集只保存预览.
+Save to a collection,保存到收藏夹
+Collections aren't available for this video,该视频无法保存到收藏夹
+Hide LIVEs from accounts you don't follow,隐藏你未关注账号的直播 (LIVE)
+LIVEs from accounts you don't follow leave the stories tray. LIVEs from accounts you follow stay.,你未关注账号的直播 (LIVE) 会离开故事托盘。你关注账号的直播会保留.
+Hide the Widget circle,隐藏小组件 (Widget) 圆圈
+The Widget circle at the end of the stories tray goes. TikTok's home screen widget still works.,故事托盘末尾的小组件 (Widget) 圆圈会消失。TikTok 的主屏幕小组件仍可正常使用.
+Hide view counts on profile grids,在个人资料网格上隐藏观看次数
+"Takes the view count and its play icon off each video on profile grids. Dates, lengths and the engagement rate you turned on move up in its place.",从个人资料网格上的每个视频移除观看次数及其播放图标。你开启的日期、时长和互动率会上移到它的位置.

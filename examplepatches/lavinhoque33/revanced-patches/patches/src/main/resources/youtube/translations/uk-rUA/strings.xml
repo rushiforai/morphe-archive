@@ -1963,8 +1963,6 @@
     <string name="revanced_overlay_button_copy_video_url_title">Показувати кнопку копіювання URL відео</string>
     <string name="revanced_overlay_button_external_downloader_queue_manager_summary">Замість запуску зовнішнього завантажувача відкриває керування чергою</string>
     <string name="revanced_overlay_button_external_downloader_queue_manager_title">Керування чергою</string>
-    <string name="revanced_overlay_button_external_downloader_summary">Натисніть для запуску зовнішнього завантажувача</string>
-    <string name="revanced_overlay_button_external_downloader_title">Показувати кнопку зовнішнього завантажувача</string>
     <string name="revanced_overlay_button_gemini_about_summary">"Розбір відео може зайняти деякий час залежно від його довжини. Транскрибування довгих відео може перевищити ліміти Gemini
 
 Відповіді, згенеровані ШІ, можуть містити недостовірну інформацію
@@ -2615,9 +2613,6 @@
     <string name="revanced_shorts_custom_actions_copy_video_url_timestamp_title">Показувати меню копіювання URL з міткою часу</string>
     <string name="revanced_shorts_custom_actions_copy_video_url_title">Показувати меню копіювання URL відео</string>
     <string name="revanced_shorts_custom_actions_external_downloader_label">Зовнішній завантажувач</string>
-    <string name="revanced_shorts_custom_actions_external_downloader_summary_off">Меню зовнішнього завантажувача приховано</string>
-    <string name="revanced_shorts_custom_actions_external_downloader_summary_on">Меню зовнішнього завантажувача показується</string>
-    <string name="revanced_shorts_custom_actions_external_downloader_title">Показувати меню зовнішнього завантажувача</string>
     <string name="revanced_shorts_custom_actions_gemini_label">Підсумок Gemini</string>
     <string name="revanced_shorts_custom_actions_gemini_summary_off">Меню Підсумок Gemini приховано</string>
     <string name="revanced_shorts_custom_actions_gemini_summary_on">Меню Підсумок Gemini показується</string>

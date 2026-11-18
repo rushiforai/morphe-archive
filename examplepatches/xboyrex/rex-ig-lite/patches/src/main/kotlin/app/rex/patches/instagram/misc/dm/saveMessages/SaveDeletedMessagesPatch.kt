@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2026 rex <https://github.com/xboyrex/rex-ig-lite>
+ * Copyright (C) 2026 xboyrex <https://github.com/xboyrex/rex-ig-lite>
  *
  * See the included NOTICE file for GPLv3 §7(b) terms that apply to this code.
  */
@@ -16,13 +16,13 @@ import app.rex.patches.instagram.utils.enableSettings
 import app.rex.utils.changeString
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.instructions
-import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
 import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.classDefBy
+import app.morphe.patcher.patch.mutableClassDefBy
 import app.morphe.patcher.patch.patch
 import app.morphe.patcher.util.getFreeRegisterProvider
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.indexOfFirstInstructionOrThrow
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -30,6 +30,8 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.BuilderOffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 
 private const val HOOK_CLASS = "$PATCHES_DESCRIPTOR/dm/SavedMessagesHook;"
 
@@ -46,105 +48,116 @@ val saveDeletedMessagesPatch =
         execute {
             runCatching { enableSettings("saveDeletedMessages") }
             runCatching {
-            val cacheInstance = UserCacheInstanceFingerprint.originalMethod
-            val idMap = UserCacheIdMapFingerprint.instructionMatches.last().fieldReference
-            val cacheLookup = userCacheLookupFingerprint(idMap).originalMethod
-            CachedUserLookupExtensionFingerprint.method.apply {
-                removeInstructions(0, instructions.size)
-                addInstructions(
-                    0,
-                    """
-                    invoke-static/range {p0 .. p0}, $cacheInstance
-                    move-result-object p0
-                    invoke-virtual/range {p0 .. p1}, $cacheLookup
-                    move-result-object p0
-                    return-object p0
-                    """.trimIndent(),
-                )
-            }
-
-            // Hook 1: REST/JSON path, inject at the return of the parser.
-            DirectItemJsonParserFingerprint.let {
-                val returnObject = it.instructionMatches.last()
-                val itemRegister = returnObject.getInstruction<OneRegisterInstruction>().registerA
-
-                it.method.addInstructionsAtControlFlowLabel(
-                    returnObject.index,
-                    """
-                    invoke-static {v$itemRegister}, $HOOK_CLASS->onMessageReceived(Ljava/lang/Object;)V
-                    """.trimIndent(),
-                )
-            }
-
-            // Hook 2: MQTT/MSys real-time path, which REST never touches. Hook at entry because
-            // normal branches jump directly to return instructions and skip code inserted before them.
-            val postprocess = DirectItemPostprocessFingerprint.method
-            val deltaType = postprocess.parameterTypes[1].toString()
-            val deltaStringFields =
-                classDefBy(deltaType)
-                    .fields.filter { field ->
-                        field.type == "Ljava/lang/String;" &&
-                            !AccessFlags.STATIC.isSet(field.accessFlags)
-                    }
-            if (deltaStringFields.size != 1) {
-                throw PatchException(
-                    "Expected one delta thread-id field in $deltaType, " +
-                        "found ${deltaStringFields.size}",
-                )
-            }
-            DeltaThreadIdFieldExtensionFingerprint.changeString(
-                "deltaThreadIdField",
-                deltaStringFields.single().name,
-            )
-            postprocess.addInstructions(
-                0,
-                """
-                invoke-static/range {p0 .. p2}, $HOOK_CLASS->onMessageReceived(Ljava/lang/Object;${USER_SESSION_CLASS}Ljava/lang/Object;)V
-                """.trimIndent(),
-            )
-
-            // Hook 4: SQLite DAO delete, inject at entry so our DB record is still present when the hook fires.
-            DirectItemDbHideFingerprint.method.apply {
-                val regs = getFreeRegisterProvider(index = 0, numberOfFreeRegistersNeeded = 2)
-                val serverIdRegister = regs.getFreeRegister()
-                val clientContextRegister = regs.getFreeRegister()
-
-                addInstructions(
-                    0,
-                    """
-                    move-object/from16 v$serverIdRegister, p2
-                    move-object/from16 v$clientContextRegister, p3
-                    invoke-static {v$serverIdRegister, v$clientContextRegister}, $HOOK_CLASS->onMessageHiddenFromDb(Ljava/lang/String;Ljava/lang/String;)V
-                    """.trimIndent(),
-                )
-            }
-
-            // REST participants supplement the cache used by real-time message delivery.
-            ThreadUsersDispatchFingerprint.matchOrNull()?.let { match ->
-                match.method.apply {
-                    // The list write is out of line, after other JSON fields. Follow the
-                    // array guard to its completion block instead of selecting the next list write.
-                    val arrayGuard = getInstruction<BuilderOffsetInstruction>(match.instructionMatches[1].index)
-                    val putIndex = indexOfFirstInstructionOrThrow(
-                        arrayGuard.target.location.index,
-                        fieldAccess(
-                            definingClass = parameterTypes.first().toString(),
-                            type = "Ljava/util/List;",
-                            opcode = Opcode.IPUT_OBJECT,
-                        ),
-                    )
-                    val parsedUsersRegister = getInstruction<TwoRegisterInstruction>(putIndex).registerA
-                    val usersRegister = getFreeRegisterProvider(putIndex + 1, 1).getFreeRegister()
+                val cacheInstance = UserCacheInstanceFingerprint.originalMethod
+                val idMap = UserCacheIdMapFingerprint.instructionMatches.last().fieldReference
+                val cacheLookup = userCacheLookupFingerprint(idMap).originalMethod
+                val lookupBridge = CachedUserLookupExtensionFingerprint.method
+                val lookupReplacement = MutableMethod(
+                    ImmutableMethod(
+                        lookupBridge.definingClass,
+                        lookupBridge.name,
+                        lookupBridge.parameters,
+                        lookupBridge.returnType,
+                        lookupBridge.accessFlags,
+                        lookupBridge.annotations,
+                        lookupBridge.hiddenApiRestrictions,
+                        ImmutableMethodImplementation(2, emptyList(), emptyList(), emptyList()),
+                    ),
+                ).apply {
                     addInstructions(
-                        putIndex + 1,
+                        0,
                         """
-                        move-object/from16 v$usersRegister, v$parsedUsersRegister
-                        invoke-static {v$usersRegister}, $HOOK_CLASS->noteThreadUsers(Ljava/util/List;)V
+                        invoke-static/range {p0 .. p0}, $cacheInstance
+                        move-result-object p0
+                        invoke-virtual/range {p0 .. p1}, $cacheLookup
+                        move-result-object p0
+                        return-object p0
                         """.trimIndent(),
                     )
                 }
-            }
+                mutableClassDefBy(lookupBridge.definingClass).methods.apply {
+                    remove(lookupBridge)
+                    add(lookupReplacement)
+                }
 
+                // Hook 1: REST/JSON path, inject at the return of the parser.
+                DirectItemJsonParserFingerprint.let {
+                    val returnObject = it.instructionMatches.last()
+                    val itemRegister = returnObject.getInstruction<OneRegisterInstruction>().registerA
+
+                    it.method.addInstructionsAtControlFlowLabel(
+                        returnObject.index,
+                        """
+                        invoke-static {v$itemRegister}, $HOOK_CLASS->onMessageReceived(Ljava/lang/Object;)V
+                        """.trimIndent(),
+                    )
+                }
+
+                // Hook 2: MQTT/MSys real-time path, which REST never touches.
+                val postprocess = DirectItemPostprocessFingerprint.method
+                val deltaType = postprocess.parameterTypes[1].toString()
+                val deltaStringFields =
+                    classDefBy(deltaType)
+                        .fields.filter { field ->
+                            field.type == "Ljava/lang/String;" &&
+                                !AccessFlags.STATIC.isSet(field.accessFlags)
                         }
+                if (deltaStringFields.size != 1) {
+                    throw PatchException(
+                        "Expected one delta thread-id field in $deltaType, " +
+                            "found ${deltaStringFields.size}",
+                    )
+                }
+                DeltaThreadIdFieldExtensionFingerprint.changeString(
+                    "deltaThreadIdField",
+                    deltaStringFields.single().name,
+                )
+                postprocess.addInstructions(
+                    0,
+                    """
+                    invoke-static/range {p0 .. p2}, $HOOK_CLASS->onMessageReceived(Ljava/lang/Object;${USER_SESSION_CLASS}Ljava/lang/Object;)V
+                    """.trimIndent(),
+                )
+
+                // Hook 4: SQLite DAO delete, inject at entry so our DB record is still present when the hook fires.
+                DirectItemDbHideFingerprint.method.apply {
+                    val regs = getFreeRegisterProvider(index = 0, numberOfFreeRegistersNeeded = 2)
+                    val serverIdRegister = regs.getFreeRegister()
+                    val clientContextRegister = regs.getFreeRegister()
+
+                    addInstructions(
+                        0,
+                        """
+                        move-object/from16 v$serverIdRegister, p2
+                        move-object/from16 v$clientContextRegister, p3
+                        invoke-static {v$serverIdRegister, v$clientContextRegister}, $HOOK_CLASS->onMessageHiddenFromDb(Ljava/lang/String;Ljava/lang/String;)V
+                        """.trimIndent(),
+                    )
+                }
+
+                // REST participants supplement the cache used by real-time message delivery.
+                ThreadUsersDispatchFingerprint.matchOrNull()?.let { match ->
+                    match.method.apply {
+                        val arrayGuard = getInstruction<BuilderOffsetInstruction>(match.instructionMatches[1].index)
+                        val putIndex = indexOfFirstInstructionOrThrow(
+                            arrayGuard.target.location.index,
+                            fieldAccess(
+                                definingClass = parameterTypes.first().toString(),
+                                type = "Ljava/util/List;",
+                                opcode = Opcode.IPUT_OBJECT,
+                            ),
+                        )
+                        val parsedUsersRegister = getInstruction<TwoRegisterInstruction>(putIndex).registerA
+                        val usersRegister = getFreeRegisterProvider(putIndex + 1, 1).getFreeRegister()
+                        addInstructions(
+                            putIndex + 1,
+                            """
+                            move-object/from16 v$usersRegister, v$parsedUsersRegister
+                            invoke-static {v$usersRegister}, $HOOK_CLASS->noteThreadUsers(Ljava/util/List;)V
+                            """.trimIndent(),
+                        )
+                    }
+                }
+            }
         }
     }

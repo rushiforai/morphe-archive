@@ -69,7 +69,7 @@ val hideStoriesPatch = bytecodePatch(
 ) {
     category("Stories")
     dependsOn(settingsPatch, telegramExtensionPatch)
-    compatibleWith(*AppCompatibilities.telegram())
+    compatibleWith(*AppCompatibilities.telegramOnly())
 
     execute {
         requireStatusMethod("hideStories")

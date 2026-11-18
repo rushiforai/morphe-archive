@@ -7,6 +7,7 @@ package app.morphe.patches.telegram.misc.folders
 import app.morphe.ExtensionDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.PlusPending
 import app.morphe.patches.telegram.misc.chattypefolders.LOCAL_ALWAYS
 import app.morphe.patches.telegram.misc.chattypefolders.LOCAL_FLAGS
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
@@ -25,6 +26,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /** The folder tab icons: where the strip makes a tab, and where a tab takes a new title. */
+@PlusPending
 class TabIconsFixtureTest {
     @Test fun `each tab's title takes its icon and the title check reads it without`() {
         for (build in Fixtures.declaredBuilds()) {

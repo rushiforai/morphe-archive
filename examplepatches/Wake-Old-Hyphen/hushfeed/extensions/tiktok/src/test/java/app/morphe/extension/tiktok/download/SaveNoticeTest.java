@@ -2,6 +2,7 @@ package app.morphe.extension.tiktok.download;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -15,6 +16,7 @@ import android.widget.TextView;
 
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.SettingsContextRule;
+import app.morphe.extension.tiktok.settings.Settings;
 
 import org.junit.After;
 import org.junit.Before;
@@ -50,6 +52,70 @@ public class SaveNoticeTest {
     @After public void tearDown() {
         Utils.setActivity(null);
         SaveNotice.windowRootsForTests = null;
+        SaveNotice.foregroundForTests = null;
+        Settings.SHARE_AFTER_SAVE.save(false);
+    }
+
+    /** #423: with Share the video after a save on, a saved video opens the share sheet on its file. */
+    @Test public void withShareOnASavedVideoOpensTheShareSheetOnItsFile() {
+        try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setActivity(activity);
+            Settings.SHARE_AFTER_SAVE.save(true);
+            SaveNotice.foregroundForTests = true;
+            Uri row = Uri.parse("content://media/external/video/media/80");
+
+            SaveNotice.savedVideo("Video saved to DCIM/TikTok", new MediaFileWriter.Saved("a.mp4", row));
+            idlePastTheSheetSettle();
+
+            Intent started = Shadows.shadowOf(activity).getNextStartedActivity();
+            assertNotNull("no share sheet came up", started);
+            assertEquals(Intent.ACTION_CHOOSER, started.getAction());
+            Intent send = started.getParcelableExtra(Intent.EXTRA_INTENT);
+            assertNotNull(send);
+            assertEquals(Intent.ACTION_SEND, send.getAction());
+            assertEquals(row, send.getParcelableExtra(Intent.EXTRA_STREAM));
+            assertEquals("video/mp4", send.getType());
+            assertEquals("the app picked can't read the file", Intent.FLAG_GRANT_READ_URI_PERMISSION,
+                    send.getFlags() & Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            assertEquals(row, send.getClipData().getItemAt(0).getUri());
+            assertEquals("Video saved to DCIM/TikTok", ShadowToast.getTextOfLatestToast());
+            assertNull("the banner went up under the share sheet",
+                    find(activity.findViewById(android.R.id.content), "Open"));
+        }
+    }
+
+    @Test public void withShareOffASavedVideoKeepsTheBanner() {
+        try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setActivity(activity);
+            SaveNotice.foregroundForTests = true;
+
+            SaveNotice.savedVideo("Video saved to DCIM/TikTok",
+                    new MediaFileWriter.Saved("a.mp4", Uri.parse("content://media/external/video/media/81")));
+            idlePastTheSheetSettle();
+
+            assertNull("a share sheet came up with the switch off",
+                    Shadows.shadowOf(activity).getNextStartedActivity());
+            assertNotNull(find(activity.findViewById(android.R.id.content), "Open"));
+        }
+    }
+
+    /** Android opens no share sheet for an app in the background, so the banner says it instead. */
+    @Test public void aVideoSavedWhileTikTokIsInTheBackgroundGetsTheBanner() {
+        try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setActivity(activity);
+            Settings.SHARE_AFTER_SAVE.save(true);
+            SaveNotice.foregroundForTests = false;
+
+            SaveNotice.savedVideo("Story saved to DCIM/TikTok",
+                    new MediaFileWriter.Saved("a.mp4", Uri.parse("content://media/external/video/media/82")));
+            idlePastTheSheetSettle();
+
+            assertNull(Shadows.shadowOf(activity).getNextStartedActivity());
+            assertNotNull("the save went unsaid", find(activity.findViewById(android.R.id.content), "Open"));
+        }
     }
 
     /** A quick save finished inside its own two-second toast, and the banner drew over it (#299). */
@@ -68,6 +134,62 @@ public class SaveNoticeTest {
             idlePastTheSheetSettle();
 
             assertTrue("the toast is still up under the banner", Shadows.shadowOf(saving).isCancelled());
+        }
+    }
+
+    /**
+     * #299 again on 0.82.0: a toast after "Saving" took the one slot the cancel kept, so the
+     * banner cancelled that one and "Saving" stayed on top of it. Android shows an app's toasts
+     * one at a time, so every toast still up or waiting goes.
+     */
+    @Test public void theBannerTakesDownSavingEvenWithAnotherToastQueuedBehindIt() {
+        try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
+            Utils.setActivity(owner.get());
+            Utils.showToastShort("Saving video to DCIM/TikTok");
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            android.widget.Toast saving = ShadowToast.getLatestToast();
+            Utils.showToastShort("Sound saved to Music/TikTok");
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            android.widget.Toast queued = ShadowToast.getLatestToast();
+            assertNotSame(saving, queued);
+
+            SaveNotice.saved("Video saved", new MediaFileWriter.Saved("a.mp4",
+                    Uri.parse("content://media/external/video/media/79")));
+            idlePastTheSheetSettle();
+
+            assertTrue("Saving is still up over the banner", Shadows.shadowOf(saving).isCancelled());
+            assertTrue("the queued toast would come up over the banner next",
+                    Shadows.shadowOf(queued).isCancelled());
+            assertNotNull(find(owner.get().findViewById(android.R.id.content), "Video saved"));
+        }
+    }
+
+    /**
+     * What a video save said in toasts after its banner rides on the banner instead: a toast
+     * queued up over it, and the cancel above would now take it down unread (#299).
+     */
+    @Test public void aVideoSavesOtherNewsGoesOnItsBannerAsLines() {
+        assertEquals("Video saved", VideoDownloads.withNotes("Video saved", "Video saved", null,
+                false, false, true));
+        assertEquals("Video saved\nSound saved to Music/TikTok\nSaved, but a later save may make a second copy",
+                VideoDownloads.withNotes("Video saved", "Video saved", "Sound saved to Music/TikTok",
+                        false, false, false));
+        String own = "No clean copy yet. Saved the watermarked one to DCIM/TikTok";
+        assertEquals("Saved 1 of 2, the rest ran out of time\nThe sound couldn't be saved. Try again.\n" + own,
+                VideoDownloads.withNotes("Saved 1 of 2, the rest ran out of time", own, null,
+                        true, true, true));
+        // When the watermark is the first line already, it isn't said twice.
+        assertEquals(own, VideoDownloads.withNotes(own, own, null, false, true, true));
+
+        try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
+            Utils.setActivity(owner.get());
+            String said = VideoDownloads.withNotes("Video saved", "Video saved",
+                    "Sound saved to Music/TikTok", false, false, true);
+            SaveNotice.savedVideo(said, new MediaFileWriter.Saved("a.mp4",
+                    Uri.parse("content://media/external/video/media/80")));
+            idlePastTheSheetSettle();
+            assertNotNull("the banner dropped the sound's line",
+                    find(owner.get().findViewById(android.R.id.content), said));
         }
     }
 

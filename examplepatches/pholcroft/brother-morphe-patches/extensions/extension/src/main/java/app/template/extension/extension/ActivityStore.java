@@ -150,6 +150,38 @@ public final class ActivityStore extends SQLiteOpenHelper implements CacheCoordi
             db.setTransactionSuccessful();return result;
         }finally{db.endTransaction();}
     }
+    /** Prefer the most recent burst that queried preview paper capabilities. */
+    public ActivityBurst preferredCardBurst(String printerId) {
+        SQLiteDatabase db = getReadableDatabase();
+        db.beginTransaction();
+        try {
+            String preview = "SELECT b.id FROM bursts b WHERE b.printer_id=? AND ("
+                    + "EXISTS (SELECT 1 FROM requests r WHERE r.burst_id=b.id AND r.oid LIKE ?) OR ("
+                    + "EXISTS (SELECT 1 FROM requests r WHERE r.burst_id=b.id AND r.oid LIKE ?) AND "
+                    + "EXISTS (SELECT 1 FROM requests r WHERE r.burst_id=b.id AND r.oid LIKE ?)))"
+                    + " ORDER BY b.sequence DESC LIMIT 1";
+            ActivityBurst result;
+            try (Cursor cursor = db.rawQuery(preview, new String[]{printerId,
+                    "1.3.6.1.4.1.2435.2.3.9.4.2.1.5.1.2.71.12.1.2.%",
+                    "1.3.6.1.2.1.43.8.2.1.13.%", "1.3.6.1.2.1.43.9.2.1.7.%"})) {
+                result = cursor.moveToFirst() ? loadBurst(printerId, cursor.getString(0)) : null;
+            }
+            if (result == null) {
+                String fallback = "SELECT recent.id FROM (SELECT id,sequence FROM bursts "
+                        + "WHERE printer_id=? ORDER BY sequence DESC LIMIT 2) recent "
+                        + "ORDER BY (SELECT COUNT(*) FROM requests r WHERE r.burst_id=recent.id) DESC, "
+                        + "recent.sequence DESC LIMIT 1";
+                try (Cursor cursor = db.rawQuery(fallback, new String[]{printerId})) {
+                    if (cursor.moveToFirst()) result = loadBurst(printerId, cursor.getString(0));
+                }
+            }
+            db.setTransactionSuccessful();
+            return result;
+        } finally {
+            db.endTransaction();
+        }
+    }
+
     /** Return complete immutable snapshots in reverse sequence order. */
     public java.util.List<ActivityBurst> listBursts(String printerId){
         SQLiteDatabase db=getReadableDatabase();db.beginTransaction();

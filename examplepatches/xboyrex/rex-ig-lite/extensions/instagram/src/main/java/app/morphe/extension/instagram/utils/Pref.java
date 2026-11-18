@@ -744,4 +744,12 @@ public class Pref {
     public static boolean customHomeWordmark() {
         return SharedPref.getBooleanPref(Settings.CUSTOM_HOME_WORDMARK);
     }
+
+    public static String getExternalDownloaderPackageName() {
+        return SharedPref.getStringPref(Settings.EXTERNAL_DOWNLOADER_PACKAGE_NAME);
+    }
+
+    public static boolean liquidGlassNav() {
+        return SharedPref.getBooleanPref(Settings.LIQUID_GLASS_NAV);
+    }
 }

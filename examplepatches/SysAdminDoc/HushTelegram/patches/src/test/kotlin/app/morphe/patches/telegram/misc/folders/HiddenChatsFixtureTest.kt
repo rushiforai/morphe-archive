@@ -7,6 +7,7 @@ package app.morphe.patches.telegram.misc.folders
 import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
+import app.morphe.PlusPending
 import app.morphe.hostsOf
 import app.morphe.PatchContexts
 import app.morphe.util.names.origRef
@@ -54,6 +55,7 @@ import app.morphe.util.names.origType
 import app.morphe.util.names.tgMutableClassDefBy
 
 /** Both pinned builds' chat sort, which hands its full lists to the extension before it drops empty folders. */
+@PlusPending
 class HiddenChatsFixtureTest {
     @Test fun `the sort hands the controller over once, right before the empty folder walk`() {
         for (build in Fixtures.declaredBuilds()) {

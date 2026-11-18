@@ -132,7 +132,7 @@ val unifiedPushPatch = bytecodePatch(
 ) {
     category("Notifications")
     dependsOn(settingsPatch, telegramExtensionPatch, unifiedPushManifestPatch)
-    compatibleWith(*AppCompatibilities.telegram())
+    compatibleWith(*AppCompatibilities.telegramOnly())
     execute {
         val plan = resolveUnifiedPush()
         val (reactions, reactionsMissing) = resolveReactionAlerts()

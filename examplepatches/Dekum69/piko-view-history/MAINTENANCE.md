@@ -16,6 +16,7 @@ Tools you need (already installed on this PC): **Git** and **GitHub CLI (`gh`)**
 | **Instagram released a new version** | Scenario 2 (usually nothing) |
 | Both | Scenario 1, then Scenario 2 |
 | Nothing changed, you just want a fresh `.mpp` | Scenario 3 |
+| You want a patched APK, or proof that a build actually works | Scenario 4 — `.\update.ps1` |
 
 ---
 
@@ -100,39 +101,56 @@ git push --force-with-lease
 
 Usually **nothing to do**. Patch the new APK with the same `.mpp` you already have.
 
-Only if Morphe Manager fails with a message like:
+Only if a patch fails with a message like:
 
 ```
-Feed view history: viewed_impression not found
-Reels view history: clips item lookup not found
-Stories view history: ReelItem media field not found
+Feed view history: viewed-impression callback not found. Look for a method with parameters
+(Object, J, Object) that casts to Media and to the carousel state class and logs an event
+ending in "viewed_impression".
 ```
 
-…does a patch need fixing. That message tells you exactly which file to edit:
+or:
+
+```
+Feed view history: viewed-impression callback matched 2 methods, so picking one would be a guess.
+Candidates:
+  LX/03sG;->A01
+  LX/03sG;->A02
+```
+
+The second form is the one to take seriously: Instagram sometimes keeps the method and adds a
+sibling beside it. The patch refuses to guess, because hooking the wrong method leaves History
+silently empty. Both forms name the file:
 
 | Error contains | File to edit |
 |---|---|
-| `viewed_impression` | `patches/src/main/kotlin/app/crimera/patches/instagram/misc/history/FeedViewHistoryPatch.kt` |
-| `clips item lookup` | `.../misc/history/ReelsViewHistoryPatch.kt` |
-| `ReelItem media field` | `.../misc/history/StoriesViewHistoryPatch.kt` |
+| `viewed-impression callback` | `patches/src/main/kotlin/app/crimera/patches/instagram/misc/history/FeedViewHistoryPatch.kt` |
+| `clips page-selected listener` | `.../misc/history/ReelsViewHistoryPatch.kt` |
+| `active item callback` | `.../misc/history/StoriesViewHistoryPatch.kt` |
 
 How to fix:
 
 1. Open the new Instagram APK in **MT Manager** (or jadx on PC) and search the dex for the
-   trace string that patch uses — `viewed_impression`,
+   trace string in the error — `viewed_impression`,
    `ClipsViewerViewPagerListener.onPageSelected`, or `ReelViewerFragment.onCurrentActiveItemBound`.
 2. Open that method and note its **return type** and **parameter types**.
-3. Update the `Fingerprint(...)` at the top of the file:
+3. Update the `Fingerprint(...)` at the top of the file, and the comment above it:
 
 ```kotlin
 private object FeedViewedImpressionFingerprint : Fingerprint(
     returnType = "V",                                             // <-- from step 2
     parameters = listOf("Ljava/lang/Object;", "J", "Ljava/lang/Object;"),  // <-- from step 2
-    strings = listOf("viewed_impression", "instagram_organic_viewed_impression"),
+    custom = { ... },                                             // <-- casts + event suffix
 )
 ```
 
-4. Save, then Scenario 3 to rebuild.
+The feed patch anchors on a **suffix**, not a literal: any event name ending in
+`viewed_impression` matches. That is why 452 renaming
+`instagram_organic_viewed_impression` to `instagram_organic_sub_viewed_impression` no longer breaks
+it. Do not replace the suffix check with a shape-only match — on 452 a four-instruction trampoline
+shares the same parameters and casts, so the event name is what separates the real logger from it.
+
+4. Save, then Scenario 4 to rebuild **and verify** (or Scenario 3 to only rebuild).
 
 The `execute { ... }` block underneath the fingerprint normally needs no change — it locates the
 casts and fields itself.
@@ -153,6 +171,56 @@ Or trigger it by hand: https://github.com/Dekum69/piko-view-history/actions →
 **Build patches** → **Run workflow**.
 
 Then download the artifact as in Scenario 1, steps 4–8.
+
+---
+
+## Scenario 4 — build and verify in one command
+
+`update.ps1` in the repo root runs the whole loop: triggers the CI build, downloads the `.mpp`,
+patches an APK, and prints what applied.
+
+```powershell
+cd C:\Users\itzde\piko-view-history\piko
+.\update.ps1
+```
+
+It ends with something like:
+
+```
+==> Result
+Applied: 69   Failed: 0
+
+APK:    C:\Users\itzde\Desktop\instagram-patched.apk
+Size:   162.59 MB
+SHA256: 91c1...
+
+All 69 patches applied.
+```
+
+Why this exists: **Build patches only proves the bundle compiles.** It never applies a patch to an
+APK, so a green CI run can still ship a `.mpp` whose fingerprints no longer match — which is exactly
+what happened with Instagram 452. This script patches a real APK, so a broken fingerprint shows up
+in seconds instead of after you install a broken app.
+
+| Switch | Effect |
+|---|---|
+| `-Apk <path>` | patch this APK/APKM instead of the newest Instagram file in `Downloads` |
+| `-Out <path>` | where to write the result (default: `Desktop\instagram-patched.apk`) |
+| `-SkipBuild` | reuse the newest `.mpp` in `dist\` instead of triggering CI |
+| `-Bundle <path>` | use a specific `.mpp` |
+| `-Validate` | also pass `--validate`: any fingerprint that matches more than one method fails |
+
+Failures are labelled. `[ours]` means a view-history fingerprint drifted — do Scenario 2.
+`[piko]` means stock piko does not support that Instagram build, so use the version the bundle
+targets or wait for upstream.
+
+The script signs with `tools\piko.jks` and creates it on first use. **Keep that file.** It is the key
+that lets a new build install over the previous one; delete it and every later build needs a full
+uninstall first. (It is JKS because morphe's own PKCS12 loader fails on Java 25 with
+`JCE cannot authenticate the provider BC`.)
+
+Outputs are kept in `dist\`: `last-run.log` (full patcher output) and `last-run.json` (machine
+readable per-patch result).
 
 ---
 
@@ -201,3 +269,7 @@ common case, and nothing breaks if you never use Copilot.
 - **Version in the `.mpp` name:** `gradle.properties` → `version = 3.11.1`. It always matches the
   piko release this fork is based on, so bump it only if you deliberately skip an upstream version.
 - **Docs:** `VIEW_HISTORY.md` (what the feature does), `MAINTENANCE.md` (this file).
+- **Signing key:** `tools\piko.jks`, alias `morphe`, store and key password `pikohistory`. Same key
+  as the first patched build, so new APKs install over old ones. Back it up; it cannot be recovered.
+- **Verify without CI:** `.\update.ps1 -SkipBuild -Bundle dist\patches-<version>.mpp -Out $env:TEMP\test.apk`
+  patches and reports without touching the repo or the Desktop.

@@ -64,6 +64,24 @@ internal object AppCompatibilities {
      */
     const val TELEGRAM_TARGET_MIN_SDK = 28
 
+    /** Plus Messenger's icon teal. */
+    private const val PLUS_COLOR = 0x009688
+
+    /**
+     * Plus Messenger, a Telegram fork on Google Play built from the same 13.2 sources under its own
+     * package and key. Play hands it out as a bundle, so APKMirror carries it as an .apkm.
+     */
+    const val PLUS_PACKAGE = "org.telegram.plus"
+
+    /** SHA-256 of Plus Messenger's signing certificate (CN=rafalense, O=android developer plus). */
+    const val PLUS_SIGNER_SHA256 = "6ebb622268aad319dbe8a1f414837d2843a9b35856aefb7dee2971a3d493f276"
+
+    /** The Plus release every patch here was applied to and read against. */
+    const val PLUS_TARGET_VERSION = "13.2.2.1"
+
+    /** The version code of the Plus bundle on APKMirror, which carries all four ABIs. */
+    const val PLUS_TARGET_VERSION_CODE = 22710
+
     fun telegram(): Array<Compatibility> = arrayOf(
         Compatibility(
             name = "Telegram",
@@ -93,5 +111,25 @@ internal object AppCompatibilities {
                 ),
             ),
         ),
+        Compatibility(
+            name = "Plus Messenger",
+            packageName = PLUS_PACKAGE,
+            apkFileType = ApkFileType.APKM,
+            appIconColor = PLUS_COLOR,
+            signatures = setOf(PLUS_SIGNER_SHA256),
+            targets = listOf(
+                AppTarget(
+                    version = PLUS_TARGET_VERSION,
+                    versionCodes = mapOf(SupportedAbi.ARM64_V8A to PLUS_TARGET_VERSION_CODE),
+                    minSdk = TELEGRAM_TARGET_MIN_SDK,
+                ),
+            ),
+        ),
     )
+
+    /**
+     * Telegram's own two builds, for a patch whose sites Plus Messenger's compiler lays out another
+     * way and that hasn't been read against Plus yet. Manager doesn't offer such a patch for Plus.
+     */
+    fun telegramOnly(): Array<Compatibility> = telegram().filter { it.packageName != PLUS_PACKAGE }.toTypedArray()
 }

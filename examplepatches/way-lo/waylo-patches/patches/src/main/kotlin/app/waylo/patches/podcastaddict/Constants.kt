@@ -13,6 +13,9 @@ internal object Constants {
         targets = listOf(
             // Versions the patch has been tested against. Newest first, so Morphe suggests it.
             AppTarget(
+                version = "2026.14.1" // build 21853, RecyclerView based lists
+            ),
+            AppTarget(
                 version = "2026.14" // build 21833
             ),
             AppTarget(

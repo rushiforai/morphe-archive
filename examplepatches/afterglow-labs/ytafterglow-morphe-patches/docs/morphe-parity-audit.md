@@ -1,13 +1,14 @@
 # Android parity and imported Morphe functionality
 
-Updated for published build133 on 2026-11-16. `tools/parity.json` contains 199 entries:
+Updated for published build134 on 2026-11-17. `tools/parity.json` contains 199 entries:
 **195 done, 4 not applicable and 0 TODO**. This records functional Android
 implementation, including supported platform adaptations. It does not claim
 runtime coverage for every physical device, account, server layout or setting
-combination. [Build133 is published](release-build133.md); its public feed and
-anonymous bundle download checksum are verified.
+combination. [Build134 is published](release-build134.md); it adds the supplied
+Afterglow app icon, with its public feed and anonymous bundle checksum verified.
+The functional parity coverage from build133 is unchanged.
 
-The bundle has **127 public patches and 104 defaults**: 41 Afterglow/compatibility
+The bundle has **128 public patches and 105 defaults**: 42 Afterglow/compatibility
 patches and 86 original Morphe features. The reuse boundary is the pinned Morphe
 2.0.0 source/runtime in [`vendor/morphe`](../vendor/morphe/README.md), with selection
 recorded in [`morphe-catalog.json`](../tools/morphe-catalog.json). Original code

@@ -8,6 +8,7 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.PlusPending
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
 import app.morphe.patches.telegram.misc.extension.SETTINGS_STATUS
 import app.morphe.patches.telegram.misc.localcontrols.controlBody
@@ -29,6 +30,7 @@ import app.morphe.util.names.origName
 import app.morphe.util.names.tgMutableClassDefBy
 
 /** The message bubble's content setter, Telegram's message model and the runtime. */
+@PlusPending
 class StickerSizeFixtureTest {
     private val contentLabel = "Lorg/telegram/messenger/R\$string;->SponsoredMessageAdWhatIsThis:I"
 

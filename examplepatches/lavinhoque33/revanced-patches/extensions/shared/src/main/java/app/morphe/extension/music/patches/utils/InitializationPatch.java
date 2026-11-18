@@ -1,6 +1,7 @@
 package app.morphe.extension.music.patches.utils;
 
-import static app.morphe.extension.music.utils.RestartUtils.showRestartDialog;
+import static app.morphe.extension.shared.settings.preference.AbstractPreferenceFragment.showRestartDialog;
+import static app.morphe.extension.shared.utils.StringRef.str;
 
 import android.app.Activity;
 
@@ -36,10 +37,12 @@ public class InitializationPatch {
             // User logged in.
             if (dataSyncId != null && dataSyncId.contains("||")) {
                 SETTINGS_INITIALIZED.save(true);
-                Utils.runOnMainThreadDelayed(() ->
-                                showRestartDialog(activityRef.get(), "revanced_restart_first_run", true),
-                        2000
-                );
+                Utils.runOnMainThreadDelayed(() -> {
+                    Activity activity = activityRef.get();
+                    if (activity != null && !activity.isFinishing() && !activity.isDestroyed()) {
+                        showRestartDialog(activity, str("revanced_restart_first_run"), 1000, false);
+                    }
+                }, 2000);
             }
         }
     }

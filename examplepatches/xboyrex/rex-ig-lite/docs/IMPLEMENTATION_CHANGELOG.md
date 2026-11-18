@@ -1,6 +1,6 @@
-# INSTAREX (REX IG LITE v3.15.0) — IMPLEMENTATION CHANGELOG (`IMPLEMENTATION_CHANGELOG.md`)
+# INSTAREX (REX IG LITE v3.16.0) — IMPLEMENTATION CHANGELOG (`IMPLEMENTATION_CHANGELOG.md`)
 
-## Version `3.15.0` (2026-11-17)
+## Version `3.16.0` (2026-11-17)
 ### 1. Product Identity & Brand Architecture (`InstaRex`)
 - Updated primary settings landing page header, About screen, Quick Access menu, and release metadata to **InstaRex** (`Rex IG Lite • by xboyrex`) per explicit user directive (`Name InstaRex rkhna`).
 - Replaced the Instagram icon in `RexAboutView.java` with the Rex-owned `hexagon` monogram (`RexIconRegistry.getIconDrawable(context, "hexagon", REX_CYAN, 28)`) in compliance with `DESIGN_TOKENS.json`.

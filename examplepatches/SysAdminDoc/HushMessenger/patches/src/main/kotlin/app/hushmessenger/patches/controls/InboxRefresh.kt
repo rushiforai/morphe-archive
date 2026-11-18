@@ -2,8 +2,9 @@ package app.hushmessenger.patches.controls
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
-import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.classDefByOrNull
+import app.morphe.patcher.patch.mutableClassDefBy
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -146,7 +147,7 @@ internal fun MutableMethod.writeInboxRefreshRoute(route: InboxRefreshRoute) {
 }
 
 /** Checks the extension's half before any edit and returns the stub the route goes into. */
-internal fun BytecodePatchContext.inboxRefreshStub(): MutableMethod {
+internal fun inboxRefreshStub(): MutableMethod {
     val call = classDefByOrNull(INBOX_REFRESH)?.methods?.singleOrNull { it.hookId() == INBOX_ITEMS_CALL }
     if (call == null || !AccessFlags.STATIC.isSet(call.accessFlags) || !AccessFlags.PUBLIC.isSet(call.accessFlags)) extensionChanged()
     val stub = mutableClassDefBy(HOST_SCREENS).methods.singleOrNull { it.hookId() == INBOX_REFRESH_ROUTE } ?: extensionChanged()

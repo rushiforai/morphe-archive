@@ -2009,8 +2009,6 @@ Shorts
     <string name="revanced_overlay_button_copy_video_url_title">Кнопка копировать URL видео</string>
     <string name="revanced_overlay_button_external_downloader_queue_manager_summary">Вместо запуска внешнего загрузчика открывается управление очередью</string>
     <string name="revanced_overlay_button_external_downloader_queue_manager_title">Управление очередью</string>
-    <string name="revanced_overlay_button_external_downloader_summary">Запустить внешний загрузчик</string>
-    <string name="revanced_overlay_button_external_downloader_title">Кнопка внешний загрузчик</string>
     <string name="revanced_overlay_button_gemini_about_summary">• Анализ видео может занять некоторое время в зависимости от его длины.\n• Транскрибирование длинных видео может превысить лимиты Gemini.\n• Ответы, созданные AI, могут содержать неточную информацию</string>
     <string name="revanced_overlay_button_gemini_about_title">Примечание:</string>
     <string name="revanced_overlay_button_gemini_summarize">Резюмировать</string>
@@ -2654,9 +2652,6 @@ Shorts
     <string name="revanced_shorts_custom_actions_copy_video_url_timestamp_title">Копирование URL с меткой времени</string>
     <string name="revanced_shorts_custom_actions_copy_video_url_title">Меню копирования URL видео</string>
     <string name="revanced_shorts_custom_actions_external_downloader_label">Внешний загрузчик</string>
-    <string name="revanced_shorts_custom_actions_external_downloader_summary_off">Меню внешнего загрузчика скрыто</string>
-    <string name="revanced_shorts_custom_actions_external_downloader_summary_on">Меню внешнего загрузчика отображено</string>
-    <string name="revanced_shorts_custom_actions_external_downloader_title">Меню внешнего загрузчика</string>
     <string name="revanced_shorts_custom_actions_gemini_label">Сводка Gemini</string>
     <string name="revanced_shorts_custom_actions_gemini_summary_off">Меню сводки Gemini скрыто</string>
     <string name="revanced_shorts_custom_actions_gemini_summary_on">Меню сводки Gemini показано</string>

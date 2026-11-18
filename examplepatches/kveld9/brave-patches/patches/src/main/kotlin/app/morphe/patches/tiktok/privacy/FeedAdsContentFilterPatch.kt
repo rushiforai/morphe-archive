@@ -1,0 +1,1257 @@
+package app.morphe.patches.tiktok.privacy
+
+import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.booleanOption
+import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.intOption
+import app.morphe.patcher.patch.stringOption
+import app.morphe.patches.shared.Constants
+import app.morphe.patches.shared.addInstructionsAtControlFlowLabel
+import app.morphe.patches.shared.ensureRegisterCount
+import app.morphe.patches.shared.sharedExtensionPatch
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+
+val feedContentFilterPatch = bytecodePatch(
+    name = "Feed Content & Bloat Filter",
+    description = "Filters bloat, shopping tags, live cards, and clutter from your feed.",
+    default = true,
+) {
+    compatibleWith(Constants.COMPATIBILITY_TIKTOK, Constants.COMPATIBILITY_TIKTOK_LITE)
+    dependsOn(sharedExtensionPatch)
+
+    val filterBloat by booleanOption(
+        key = "filterBloat",
+        title = "Filter Feed Bloat",
+        description = "Removes non-video clutter and floating ad widgets from the For You and Following feeds, including Touchpoint Rewards pendants, floating ad stickers, mini-games, CapCut/template creation prompts, memories ('On This Day'), community/topic cards, post-video surveys and evaluation questionnaires, mini-drama paywalls, and in-feed search recommendations.",
+        default = true,
+        required = false,
+    )
+
+    val stripShopAnchors by booleanOption(
+        key = "stripShopAnchors",
+        title = "Hide Video Product Anchors",
+        description = "Removes shopping cart tags, product showcase badges, and commercial anchors from FYP and Following feed videos.",
+        default = true,
+        required = false,
+    )
+
+    val blockLiveStreams by booleanOption(
+        key = "blockLiveStreams",
+        title = "Block Live Streams",
+        description = "Removes live stream broadcast cards and live recommendations from the For You and Following feeds.",
+        default = false,
+        required = false,
+    )
+
+    val hideSeenVideos by booleanOption(
+        key = "hideSeenVideos",
+        title = "Hide Seen Videos",
+        description = "Filters previously watched videos from incoming For You feed batches.",
+        default = true,
+        required = false,
+    )
+
+    val minViews by intOption(
+        key = "minViews",
+        title = "Minimum Views",
+        description = "Hide videos with fewer views than this. 0 disables the minimum.",
+        default = 0,
+        required = false,
+    )
+
+    val maxViews by intOption(
+        key = "maxViews",
+        title = "Maximum Views",
+        description = "Hide videos with more views than this. 0 disables the maximum.",
+        default = 0,
+        required = false,
+    )
+
+    val minLikes by intOption(
+        key = "minLikes",
+        title = "Minimum Likes",
+        description = "Hide videos with fewer likes than this. 0 disables the minimum.",
+        default = 0,
+        required = false,
+    )
+
+    val maxLikes by intOption(
+        key = "maxLikes",
+        title = "Maximum Likes",
+        description = "Hide videos with more likes than this. 0 disables the maximum.",
+        default = 0,
+        required = false,
+    )
+
+    val blockedAuthors by stringOption(
+        key = "blockedAuthors",
+        title = "Blocked Creators",
+        description = "Hide posts from these creators. Comma-separated usernames, for example: user1,user2.",
+        default = "",
+        required = false,
+    )
+
+    val blockedHashtags by stringOption(
+        key = "blockedHashtags",
+        title = "Blocked Hashtags",
+        description = "Hide posts with any of these hashtags. Comma-separated, for example: fyp,ad.",
+        default = "",
+        required = false,
+    )
+
+    val blockedKeywords by stringOption(
+        key = "blockedKeywords",
+        title = "Blocked Keywords",
+        description = "Hide posts whose caption contains any of these words. Comma-separated, for example: giveaway,crypto.",
+        default = "",
+        required = false,
+    )
+
+    val hiddenRegions by stringOption(
+        key = "hiddenRegions",
+        title = "Hidden Regions",
+        description = "Hide posts published from these countries. Comma-separated two-letter country codes, for example: US,BR.",
+        default = "",
+        required = false,
+    )
+
+    val maxAgeDays by intOption(
+        key = "maxAgeDays",
+        title = "Maximum Post Age",
+        description = "Hide posts older than this many days. 0 disables it.",
+        default = 0,
+        required = false,
+    )
+
+    val minDurationSec by intOption(
+        key = "minDurationSec",
+        title = "Minimum Video Length",
+        description = "Hide videos shorter than this many seconds. 0 disables it.",
+        default = 0,
+        required = false,
+    )
+
+    val maxDurationSec by intOption(
+        key = "maxDurationSec",
+        title = "Maximum Video Length",
+        description = "Hide videos longer than this many seconds. 0 disables it.",
+        default = 0,
+        required = false,
+    )
+
+    val hideStories by booleanOption(
+        key = "hideStories",
+        title = "Hide Stories",
+        description = "Removes story posts from the For You feed.",
+        default = true,
+        required = false,
+    )
+
+    val hidePhotoPosts by booleanOption(
+        key = "hidePhotoPosts",
+        title = "Hide Photo Posts",
+        description = "Removes photo-mode posts from the For You feed.",
+        default = false,
+        required = false,
+    )
+
+    execute {
+        val viewsLikesConfigured = (minViews ?: 0) > 0 || (maxViews ?: 0) > 0 || (minLikes ?: 0) > 0 || (maxLikes ?: 0) > 0
+        val authorsConfigured = !blockedAuthors.isNullOrBlank()
+        val hashtagsConfigured = !blockedHashtags.isNullOrBlank()
+        val keywordsConfigured = !blockedKeywords.isNullOrBlank()
+        val regionsConfigured = !hiddenRegions.isNullOrBlank()
+        val ageConfigured = (maxAgeDays ?: 0) > 0
+        val durationConfigured = (minDurationSec ?: 0) > 0 || (maxDurationSec ?: 0) > 0
+        val contentFilterActive = viewsLikesConfigured || authorsConfigured || hashtagsConfigured || keywordsConfigured || regionsConfigured || ageConfigured || durationConfigured || hideStories == true || hidePhotoPosts == true
+
+        if (filterBloat != true &&
+            stripShopAnchors != true &&
+            blockLiveStreams != true &&
+            hideSeenVideos != true &&
+            !contentFilterActive
+        ) {
+            println("[Feed Content & Bloat Filter] Skipped: All content filter options are disabled.")
+            return@execute
+        }
+
+        var patched = 0
+        val isLite = packageMetadata.packageName == Constants.TIKTOK_LITE_PACKAGE_NAME
+
+        if (isLite) {
+            if (contentFilterActive) {
+                val hook = Constants.TIKTOK_EXTENSION_CONTENT_FILTER_HOOK
+                try {
+                    val minV = (minViews ?: 0).coerceAtLeast(0).toLong()
+                    val maxV = (maxViews ?: 0).coerceAtLeast(0).toLong()
+                    val minL = (minLikes ?: 0).coerceAtLeast(0).toLong()
+                    val maxL = (maxLikes ?: 0).coerceAtLeast(0).toLong()
+                    val maxAge = (maxAgeDays ?: 0).coerceAtLeast(0)
+                    val minDur = (minDurationSec ?: 0).coerceAtLeast(0)
+                    val maxDur = (maxDurationSec ?: 0).coerceAtLeast(0)
+                    val clinit = Fingerprint(
+                        definingClass = hook,
+                        name = "<clinit>",
+                    ).method
+                    clinit.ensureRegisterCount(2)
+                    val instructions = clinit.implementation!!.instructions
+                    val returnIdx = instructions.indexOfLast { it.opcode == Opcode.RETURN_VOID }
+                    val insertIdx = if (returnIdx != -1) returnIdx else 0
+                    val authorInstructions = buildPushCsvInstructions(hook, "blockedAuthorsCsv", blockedAuthors)
+                    val hashtagInstructions = buildPushCsvInstructions(hook, "blockedHashtagsCsv", blockedHashtags)
+                    val keywordInstructions = buildPushCsvInstructions(hook, "blockedKeywordsCsv", blockedKeywords)
+                    val regionInstructions = buildPushCsvInstructions(hook, "hiddenRegionsCsv", hiddenRegions)
+                    clinit.addInstructions(
+                        insertIdx,
+                        """
+                            const-wide v0, 0x${minV.toString(16)}
+                            sput-wide v0, $hook->minViews:J
+                            const-wide v0, 0x${maxV.toString(16)}
+                            sput-wide v0, $hook->maxViews:J
+                            const-wide v0, 0x${minL.toString(16)}
+                            sput-wide v0, $hook->minLikes:J
+                            const-wide v0, 0x${maxL.toString(16)}
+                            sput-wide v0, $hook->maxLikes:J
+                            const v0, 0x${maxAge.toString(16)}
+                            sput v0, $hook->maxAgeDays:I
+                            const v0, 0x${minDur.toString(16)}
+                            sput v0, $hook->minDurationSec:I
+                            const v0, 0x${maxDur.toString(16)}
+                            sput v0, $hook->maxDurationSec:I
+                            const/4 v0, ${if (hideStories != false) "0x1" else "0x0"}
+                            sput-boolean v0, $hook->hideStories:Z
+                            const/4 v0, ${if (hidePhotoPosts == true) "0x1" else "0x0"}
+                            sput-boolean v0, $hook->hidePhotoPosts:Z$authorInstructions$hashtagInstructions$keywordInstructions$regionInstructions
+                        """.trimIndent(),
+                    )
+                    println("[Feed Content & Bloat Filter] Pushed Lite content filter configuration.")
+                    patched++
+                } catch (e: Exception) {
+                    println("[Feed Content & Bloat Filter] Lite content filter config note: ${e.message}")
+                }
+            }
+
+            fun hookReturnList(definingClass: String, name: String, returnType: String, logLabel: String) {
+                val fingerprint = Fingerprint(
+                    definingClass = definingClass,
+                    name = name,
+                    returnType = returnType,
+                )
+                val method = fingerprint.method
+                val returnIndices = method.implementation?.instructions?.withIndex()
+                    ?.filter { it.value.opcode == Opcode.RETURN_OBJECT }
+                    ?.map { it.index to (it.value as OneRegisterInstruction).registerA }
+                    ?.toList() ?: emptyList()
+
+                val callSnippets = mutableListOf<String>()
+                if (filterBloat != false) {
+                    callSnippets.add("invoke-static/range {v\$reg .. v\$reg}, ${Constants.TIKTOK_EXTENSION_FILTER_CLASS}->filterFeedBloatInList(Ljava/lang/Object;)V")
+                }
+                if (stripShopAnchors != false) {
+                    callSnippets.add("invoke-static/range {v\$reg .. v\$reg}, ${Constants.TIKTOK_EXTENSION_FILTER_CLASS}->stripShopAnchorsInList(Ljava/lang/Object;)V")
+                }
+                if (blockLiveStreams != false) {
+                    callSnippets.add("invoke-static/range {v\$reg .. v\$reg}, ${Constants.TIKTOK_EXTENSION_FILTER_CLASS}->filterLiveStreamsInList(Ljava/lang/Object;)V")
+                }
+                if (contentFilterActive) {
+                    callSnippets.add("invoke-static/range {v\$reg .. v\$reg}, ${Constants.TIKTOK_EXTENSION_CONTENT_FILTER_HOOK}->filterContentInList(Ljava/lang/Object;)V")
+                }
+                if (hideSeenVideos != false) {
+                    callSnippets.add("invoke-static/range {v\$reg .. v\$reg}, ${Constants.TIKTOK_EXTENSION_SEEN_VIDEO_HOOK}->filterSeenVideosInList(Ljava/lang/Object;)V")
+                }
+
+                if (callSnippets.isEmpty()) return
+
+                val instructions = callSnippets.joinToString("\n")
+                returnIndices.asReversed().forEach { (returnIndex, reg) ->
+                    method.addInstructionsAtControlFlowLabel(
+                        returnIndex,
+                        instructions.replace("\$reg", reg.toString()),
+                    )
+                }
+                if (returnIndices.isNotEmpty()) {
+                    println("[Feed Content & Bloat Filter] Hooked $definingClass->$name() (${returnIndices.size} return point(s)) -> $logLabel protected.")
+                    patched++
+                }
+            }
+
+            // Hook FeedFragment.C2(List, ...) (primary ingestion point for all feed items before display)
+            val c2Fp = Fingerprint(
+                definingClass = "Lcom/ss/android/ugc/aweme/minilite/feed/FeedFragment;",
+                name = "C2",
+                returnType = "V",
+            )
+            val c2Method = c2Fp.method
+            val c2CallSnippets = mutableListOf<String>()
+            if (filterBloat != false) {
+                c2CallSnippets.add("invoke-static/range {p1 .. p1}, ${Constants.TIKTOK_EXTENSION_FILTER_CLASS}->filterFeedBloatInList(Ljava/lang/Object;)V")
+            }
+            if (stripShopAnchors != false) {
+                c2CallSnippets.add("invoke-static/range {p1 .. p1}, ${Constants.TIKTOK_EXTENSION_FILTER_CLASS}->stripShopAnchorsInList(Ljava/lang/Object;)V")
+            }
+            if (blockLiveStreams != false) {
+                c2CallSnippets.add("invoke-static/range {p1 .. p1}, ${Constants.TIKTOK_EXTENSION_FILTER_CLASS}->filterLiveStreamsInList(Ljava/lang/Object;)V")
+            }
+            if (contentFilterActive) {
+                c2CallSnippets.add("invoke-static/range {p1 .. p1}, ${Constants.TIKTOK_EXTENSION_CONTENT_FILTER_HOOK}->filterContentInList(Ljava/lang/Object;)V")
+            }
+            if (hideSeenVideos != false) {
+                c2CallSnippets.add("invoke-static/range {p1 .. p1}, ${Constants.TIKTOK_EXTENSION_SEEN_VIDEO_HOOK}->filterSeenVideosInList(Ljava/lang/Object;)V")
+            }
+
+            if (c2CallSnippets.isNotEmpty()) {
+                c2Method.addInstructions(
+                    0,
+                    c2CallSnippets.joinToString("\n"),
+                )
+                println("[Feed Content & Bloat Filter] Hooked FeedFragment.C2(List, ...) -> Ingested feed stream protected at UI entry point.")
+                patched++
+            }
+
+            // Hook FeedItemList.getItems() and getAwemeList() (covers feed, cached, and home consumers on Lite)
+            hookReturnList(
+                definingClass = "Lcom/ss/android/ugc/aweme/minilite/feed/data/bean/FeedItemList;",
+                name = "getItems",
+                returnType = "Ljava/util/List;",
+                logLabel = "All Lite feed model consumers (getItems)",
+            )
+
+            hookReturnList(
+                definingClass = "Lcom/ss/android/ugc/aweme/minilite/feed/data/bean/FeedItemList;",
+                name = "getAwemeList",
+                returnType = "Ljava/util/List;",
+                logLabel = "All Lite feed model consumers (getAwemeList)",
+            )
+
+            // Suppress Touchpoint Rewards & Ad Pendants (floating activity widgets)
+            if (filterBloat != false) {
+                val feedPendantDef = classDefByOrNull("Lcom/bytedance/touchpoint/serviceimp/FeedPendantService;")
+                val targetMethod = feedPendantDef?.methods?.firstOrNull {
+                    it.parameterTypes.size == 1 && it.parameterTypes[0] == "Ljava/lang/String;" && it.returnType == "V"
+                }
+                if (targetMethod != null) {
+                    val pendantFp = Fingerprint(
+                        definingClass = "Lcom/bytedance/touchpoint/serviceimp/FeedPendantService;",
+                        name = targetMethod.name,
+                        parameters = listOf("Ljava/lang/String;"),
+                        returnType = "V",
+                    )
+                    pendantFp.method.addInstructions(0, "return-void")
+                    println("[Feed Content & Bloat Filter] Neutralized FeedPendantService.${targetMethod.name}(String).")
+                    patched++
+                }
+            }
+
+            if (hideSeenVideos != false) {
+                val awemeGetVideoFp = Fingerprint(
+                    definingClass = "Lcom/ss/android/ugc/aweme/minilite/feed/model/Aweme;",
+                    name = "getVideo",
+                    returnType = "Lcom/ss/android/ugc/aweme/minilite/feed/model/Video;",
+                )
+                awemeGetVideoFp.method.addInstructions(
+                    0,
+                    """
+                        invoke-static {p0}, ${Constants.TIKTOK_EXTENSION_SEEN_VIDEO_HOOK}->onAwemeLoaded(Ljava/lang/Object;)V
+                    """.trimIndent(),
+                )
+                println("[Feed Content & Bloat Filter] Hooked Aweme.getVideo() -> Lite seen video tracking active.")
+                patched++
+            }
+
+            println("[Feed Content & Bloat Filter] Applied $patched feed and search content filter hook(s).")
+            return@execute
+        }
+
+        // 2. Branch: filterBloat (excluding Section 7 Friends-feed blocks)
+        if (filterBloat != false) {
+            // 2.1 Hook FeedApiService.fetchFeedList return points (live FYP/Home responses)
+            try {
+                val feedApiFingerprint = Fingerprint(
+                    definingClass = "Lcom/ss/android/ugc/aweme/feed/FeedApiService;",
+                    name = "fetchFeedList",
+                    returnType = "Lcom/ss/android/ugc/aweme/feed/model/FeedItemList;",
+                )
+                val method = feedApiFingerprint.method
+                val returnIndices = method.implementation?.instructions?.withIndex()
+                    ?.filter { it.value.opcode == Opcode.RETURN_OBJECT }
+                    ?.map { it.index to (it.value as OneRegisterInstruction).registerA }
+                    ?.toList() ?: emptyList()
+
+                returnIndices.asReversed().forEach { (returnIndex, reg) ->
+                    method.addInstructionsAtControlFlowLabel(
+                        returnIndex,
+                        """
+                            invoke-static/range {v$reg .. v$reg}, ${Constants.TIKTOK_EXTENSION_FILTER_CLASS}->filterFeedBloatInFeedItemList(Ljava/lang/Object;)V
+                        """.trimIndent(),
+                    )
+                }
+                if (returnIndices.isNotEmpty()) {
+                    println("[Feed Content & Bloat Filter] Hooked FeedApiService.fetchFeedList() (${returnIndices.size} return point(s)) -> FYP stream protected from bloat cards.")
+                    patched++
+                }
+            } catch (e: Exception) {
+                println("[Feed Content & Bloat Filter] FeedApiService note: ${e.message}")
+            }
+
+            // 2.2 Hook FeedItemList.getItems() (covers cached, offline, and UI adapter consumers)
+            try {
+                val feedItemListFingerprint = Fingerprint(
+                    definingClass = "Lcom/ss/android/ugc/aweme/feed/model/FeedItemList;",
+                    name = "getItems",
+                    returnType = "Ljava/util/List;",
+                )
+                val method = feedItemListFingerprint.method
+                val returnIndices = method.implementation?.instructions?.withIndex()
+                    ?.filter { it.value.opcode == Opcode.RETURN_OBJECT }
+                    ?.map { it.index to (it.value as OneRegisterInstruction).registerA }
+                    ?.toList() ?: emptyList()
+
+                returnIndices.asReversed().forEach { (returnIndex, reg) ->
+                    method.addInstructionsAtControlFlowLabel(
+                        returnIndex,
+                        """
+                            invoke-static/range {v$reg .. v$reg}, ${Constants.TIKTOK_EXTENSION_FILTER_CLASS}->filterFeedBloatInList(Ljava/lang/Object;)V
+                        """.trimIndent(),
+                    )
+                }
+                if (returnIndices.isNotEmpty()) {
+                    println("[Feed Content & Bloat Filter] Hooked FeedItemList.getItems() (${returnIndices.size} return point(s)) -> Feed bloat filtered.")
+                    patched++
+                }
+            } catch (e: Exception) {
+                println("[Feed Content & Bloat Filter] FeedItemList.getItems note: ${e.message}")
+            }
+
+            // 2.3 Hook FollowFeedList.getItems() (covers Following feed UI consumers)
+            try {
+                val followFeedListFingerprint = Fingerprint(
+                    definingClass = "Lcom/ss/android/ugc/aweme/follow/presenter/FollowFeedList;",
+                    name = "getItems",
+                    returnType = "Ljava/util/List;",
+                )
+                val method = followFeedListFingerprint.method
+                val returnIndices = method.implementation?.instructions?.withIndex()
+                    ?.filter { it.value.opcode == Opcode.RETURN_OBJECT }
+                    ?.map { it.index to (it.value as OneRegisterInstruction).registerA }
+                    ?.toList() ?: emptyList()
+
+                returnIndices.asReversed().forEach { (returnIndex, reg) ->
+                    method.addInstructionsAtControlFlowLabel(
+                        returnIndex,
+                        """
+                            invoke-static/range {v$reg .. v$reg}, ${Constants.TIKTOK_EXTENSION_FILTER_CLASS}->filterFeedBloatInFollowFeedList(Ljava/lang/Object;)V
+                        """.trimIndent(),
+                    )
+                }
+                if (returnIndices.isNotEmpty()) {
+                    println("[Feed Content & Bloat Filter] Hooked FollowFeedList.getItems() (${returnIndices.size} return point(s)) -> Following bloat filtered.")
+                    patched++
+                }
+            } catch (e: Exception) {
+                println("[Feed Content & Bloat Filter] FollowFeedList.getItems note: ${e.message}")
+            }
+
+            // 2.4 Neutralize Lemon8 cross-promotion feed task
+            try {
+                Fingerprint(
+                    definingClass = "Lcom/ss/android/ugc/aweme/lemon/card/Lemon8ServiceInitTask;",
+                    name = "run",
+                    parameters = listOf("Landroid/content/Context;"),
+                    returnType = "V",
+                ).method.addInstructions(
+                    0,
+                    """
+                        return-void
+                    """.trimIndent(),
+                )
+                println("[Feed Content & Bloat Filter] Neutralized Lemon8ServiceInitTask.run(Context).")
+                patched++
+            } catch (e: Exception) {
+                println("[Feed Content & Bloat Filter] Lemon8ServiceInitTask note: ${e.message}")
+            }
+
+            // 2.5 Suppress Touchpoint Rewards & Ad Pendants (floating activity widgets / Issue #33)
+            try {
+                Fingerprint(
+                    definingClass = "Lcom/bytedance/touchpoint/ui/pendant/SpecActWidget;",
+                    name = "bind",
+                    parameters = listOf("Landroid/view/ViewGroup;"),
+                    returnType = "V",
+                ).method.addInstructions(
+                    0,
+                    """
+                        return-void
+                    """.trimIndent(),
+                )
+                println("[Feed Content & Bloat Filter] Suppressed SpecActWidget.bind(ViewGroup) -> Floating pendant inflation blocked.")
+                patched++
+            } catch (e: Exception) {
+                println("[Feed Content & Bloat Filter] SpecActWidget.bind note: ${e.message}")
+            }
+
+            try {
+                Fingerprint(
+                    definingClass = "Lcom/bytedance/touchpoint/ui/pendant/SpecActWidget;",
+                    name = "showOrHidePendant",
+                    parameters = listOf("Z", "Z"),
+                    returnType = "V",
+                ).method.addInstructions(
+                    0,
+                    """
+                        return-void
+                    """.trimIndent(),
+                )
+                println("[Feed Content & Bloat Filter] Suppressed SpecActWidget.showOrHidePendant(ZZ).")
+                patched++
+            } catch (e: Exception) {
+                println("[Feed Content & Bloat Filter] SpecActWidget.showOrHidePendant note: ${e.message}")
+            }
+
+            try {
+                Fingerprint(
+                    definingClass = "Lcom/bytedance/touchpoint/ui/pendant/SpecActWidget;",
+                    name = "showNormalPendant",
+                    returnType = "V",
+                ).method.addInstructions(
+                    0,
+                    """
+                        return-void
+                    """.trimIndent(),
+                )
+                println("[Feed Content & Bloat Filter] Suppressed SpecActWidget.showNormalPendant().")
+                patched++
+            } catch (e: Exception) {
+                println("[Feed Content & Bloat Filter] SpecActWidget.showNormalPendant note: ${e.message}")
+            }
+
+            try {
+                Fingerprint(
+                    definingClass = "Lcom/bytedance/touchpoint/serviceimp/FeedPendantService;",
+                    name = "LIZ",
+                    parameters = listOf("Ljava/lang/String;"),
+                    returnType = "V",
+                ).method.addInstructions(
+                    0,
+                    """
+                        return-void
+                    """.trimIndent(),
+                )
+                println("[Feed Content & Bloat Filter] Neutralized FeedPendantService.LIZ(String).")
+                patched++
+            } catch (e: Exception) {
+                println("[Feed Content & Bloat Filter] FeedPendantService.LIZ note: ${e.message}")
+            }
+
+            try {
+                Fingerprint(
+                    definingClass = "Lcom/bytedance/touchpoint/serviceimp/AdPendantService;",
+                    name = "LIZ",
+                    parameters = listOf("Ljava/lang/String;"),
+                    returnType = "V",
+                ).method.addInstructions(
+                    0,
+                    """
+                        return-void
+                    """.trimIndent(),
+                )
+                println("[Feed Content & Bloat Filter] Neutralized AdPendantService.LIZ(String).")
+                patched++
+            } catch (e: Exception) {
+                println("[Feed Content & Bloat Filter] AdPendantService.LIZ note: ${e.message}")
+            }
+
+            // 2.6 Suppress In-Video Floating Bloat, Commercial Stickers & Activity Pendants on Aweme
+            try {
+                Fingerprint(
+                    definingClass = "Lcom/ss/android/ugc/aweme/feed/model/Aweme;",
+                    name = "getActivityPendant",
+                    returnType = "Lcom/ss/android/ugc/aweme/commerce/model/CommerceActivityStruct;",
+                ).method.addInstructions(
+                    0,
+                    """
+                        const/4 v0, 0x0
+                        return-object v0
+                    """.trimIndent(),
+                )
+                println("[Feed Content & Bloat Filter] Neutralized Aweme.getActivityPendant() -> Null returned.")
+                patched++
+            } catch (e: Exception) {
+                println("[Feed Content & Bloat Filter] Aweme.getActivityPendant note: ${e.message}")
+            }
+
+            try {
+                Fingerprint(
+                    definingClass = "Lcom/ss/android/ugc/aweme/feed/model/Aweme;",
+                    name = "getCommerceStickerInfo",
+                    returnType = "Lcom/ss/android/ugc/aweme/commercialize/model/CommerceStickerInfo;",
+                ).method.addInstructions(
+                    0,
+                    """
+                        const/4 v0, 0x0
+                        return-object v0
+                    """.trimIndent(),
+                )
+                println("[Feed Content & Bloat Filter] Neutralized Aweme.getCommerceStickerInfo() -> Null returned.")
+                patched++
+            } catch (e: Exception) {
+                println("[Feed Content & Bloat Filter] Aweme.getCommerceStickerInfo note: ${e.message}")
+            }
+
+            try {
+                Fingerprint(
+                    definingClass = "Lcom/ss/android/ugc/aweme/feed/model/Aweme;",
+                    name = "getSpecialSticker",
+                    returnType = "Lcom/ss/android/ugc/aweme/feed/model/SpecialSticker;",
+                ).method.addInstructions(
+                    0,
+                    """
+                        const/4 v0, 0x0
+                        return-object v0
+                    """.trimIndent(),
+                )
+                println("[Feed Content & Bloat Filter] Neutralized Aweme.getSpecialSticker() -> Null returned.")
+                patched++
+            } catch (e: Exception) {
+                println("[Feed Content & Bloat Filter] Aweme.getSpecialSticker note: ${e.message}")
+            }
+
+            try {
+                Fingerprint(
+                    definingClass = "Lcom/ss/android/ugc/aweme/feed/model/Aweme;",
+                    name = "getFloatingCardInfo",
+                    returnType = "Lcom/ss/android/ugc/aweme/feed/model/FloatingCardInfo;",
+                ).method.addInstructions(
+                    0,
+                    """
+                        const/4 v0, 0x0
+                        return-object v0
+                    """.trimIndent(),
+                )
+                println("[Feed Content & Bloat Filter] Neutralized Aweme.getFloatingCardInfo() -> Null returned.")
+                patched++
+            } catch (e: Exception) {
+                println("[Feed Content & Bloat Filter] Aweme.getFloatingCardInfo note: ${e.message}")
+            }
+
+            try {
+                Fingerprint(
+                    definingClass = "Lcom/ss/android/ugc/aweme/feed/model/Aweme;",
+                    name = "getBannerTip",
+                    returnType = "Lcom/ss/android/ugc/aweme/feed/model/BannerTip;",
+                ).method.addInstructions(
+                    0,
+                    """
+                        const/4 v0, 0x0
+                        return-object v0
+                    """.trimIndent(),
+                )
+                println("[Feed Content & Bloat Filter] Neutralized Aweme.getBannerTip() -> Null returned.")
+                patched++
+            } catch (e: Exception) {
+                println("[Feed Content & Bloat Filter] Aweme.getBannerTip note: ${e.message}")
+            }
+
+            try {
+                Fingerprint(
+                    definingClass = "Lcom/ss/android/ugc/aweme/feed/model/Aweme;",
+                    name = "getStandardComponentInfo",
+                    returnType = "Lcom/ss/android/ugc/aweme/feed/model/banner/StandardComponentInfo;",
+                ).method.addInstructions(
+                    0,
+                    """
+                        const/4 v0, 0x0
+                        return-object v0
+                    """.trimIndent(),
+                )
+                println("[Feed Content & Bloat Filter] Neutralized Aweme.getStandardComponentInfo() -> Null returned.")
+                patched++
+            } catch (e: Exception) {
+                println("[Feed Content & Bloat Filter] Aweme.getStandardComponentInfo note: ${e.message}")
+            }
+
+            // 2.8 Neutralize In-Feed Safety Surveys, Evaluation Cards & Questionnaires
+            try {
+                Fingerprint(
+                    definingClass = "Lcom/ss/android/ugc/feed/platform/cell/component/survey/CellSurveyComponent;",
+                    name = "onViewCreated",
+                    parameters = listOf("Landroid/view/View;"),
+                    returnType = "V",
+                ).method.addInstructions(
+                    0,
+                    """
+                        return-void
+                    """.trimIndent(),
+                )
+                println("[Feed Content & Bloat Filter] Suppressed CellSurveyComponent.onViewCreated(View) -> Survey inflation blocked.")
+                patched++
+            } catch (e: Exception) {
+                println("[Feed Content & Bloat Filter] CellSurveyComponent.onViewCreated note: ${e.message}")
+            }
+
+            Fingerprint(
+                definingClass = "Lcom/ss/android/ugc/feed/platform/cell/component/survey/CellSurveyComponent;",
+                name = "pq", // in v47.7.3, was kq in v47.7.2
+                parameters = listOf("Lcom/ss/android/ugc/aweme/feed/model/Aweme;"),
+                returnType = "V",
+            ).method.addInstructions(
+                0,
+                """
+                    return-void
+                """.trimIndent(),
+            )
+            println("[Feed Content & Bloat Filter] Neutralized CellSurveyComponent.pq(Aweme).")
+            patched++
+
+            Fingerprint(
+                definingClass = "Lcom/ss/android/ugc/feed/platform/cell/component/survey/CellSurveyComponent;",
+                name = "qq", // in v47.7.3, was lq in v47.7.2
+                parameters = listOf("Lcom/ss/android/ugc/aweme/feed/model/Aweme;", "Z"),
+                returnType = "V",
+            ).method.addInstructions(
+                0,
+                """
+                    return-void
+                """.trimIndent(),
+            )
+            println("[Feed Content & Bloat Filter] Neutralized CellSurveyComponent.qq(Aweme, Z).")
+            patched++
+
+            try {
+                Fingerprint(
+                    definingClass = "Lcom/ss/android/ugc/aweme/feed/model/AwemeExtKt;",
+                    name = "isWithSurvey",
+                    parameters = listOf("Lcom/ss/android/ugc/aweme/feed/model/Aweme;"),
+                    returnType = "Z",
+                ).method.addInstructions(
+                    0,
+                    """
+                        const/4 v0, 0x0
+                        return v0
+                    """.trimIndent(),
+                )
+                println("[Feed Content & Bloat Filter] Neutralized AwemeExtKt.isWithSurvey(Aweme) -> False returned.")
+                patched++
+            } catch (e: Exception) {
+                println("[Feed Content & Bloat Filter] AwemeExtKt.isWithSurvey note: ${e.message}")
+            }
+
+            try {
+                Fingerprint(
+                    definingClass = "Lcom/ss/android/ugc/tiktok/pns/feedsafety/survey/PNSSurveyService;",
+                    name = "LIZIZ",
+                    returnType = "Z",
+                ).method.addInstructions(
+                    0,
+                    """
+                        const/4 v0, 0x0
+                        return v0
+                    """.trimIndent(),
+                )
+                println("[Feed Content & Bloat Filter] Neutralized PNSSurveyService.LIZIZ() -> Safety surveys disabled.")
+                patched++
+            } catch (e: Exception) {
+                println("[Feed Content & Bloat Filter] PNSSurveyService.LIZIZ note: ${e.message}")
+            }
+
+            Fingerprint(
+                definingClass = "Lcom/ss/android/ugc/aweme/feed/assem/pushsurvey/PushSurveyAssemTrigger;",
+                name = "qq", // in v47.7.3, was lq in v47.7.2
+                parameters = listOf("Lcom/ss/android/ugc/aweme/feed/model/VideoItemParams;"),
+                returnType = "Z",
+            ).method.addInstructions(
+                0,
+                """
+                    const/4 v0, 0x0
+                    return v0
+                """.trimIndent(),
+            )
+            println("[Feed Content & Bloat Filter] Neutralized PushSurveyAssemTrigger.qq(VideoItemParams) -> Push survey triggers disabled.")
+            patched++
+
+            try {
+                Fingerprint(
+                    definingClass = "Lcom/ss/android/ugc/aweme/feed/component/surveybutton/FeedBottomSurveyButtonComponent;",
+                    name = "onParentViewCreated",
+                    returnType = "V",
+                ).method.addInstructions(
+                    0,
+                    """
+                        return-void
+                    """.trimIndent(),
+                )
+                println("[Feed Content & Bloat Filter] Suppressed FeedBottomSurveyButtonComponent.onParentViewCreated().")
+                patched++
+            } catch (e: Exception) {
+                println("[Feed Content & Bloat Filter] FeedBottomSurveyButtonComponent.onParentViewCreated note: ${e.message}")
+            }
+
+            try {
+                Fingerprint(
+                    definingClass = "Lcom/ss/android/ugc/aweme/feed/model/Aweme;",
+                    name = "getWithSurvey",
+                    returnType = "Z",
+                ).method.addInstructions(
+                    0,
+                    """
+                        const/4 v0, 0x0
+                        return v0
+                    """.trimIndent(),
+                )
+                println("[Feed Content & Bloat Filter] Neutralized Aweme.getWithSurvey() -> False returned.")
+                patched++
+            } catch (e: Exception) {
+                println("[Feed Content & Bloat Filter] Aweme.getWithSurvey note: ${e.message}")
+            }
+
+            try {
+                Fingerprint(
+                    definingClass = "Lcom/ss/android/ugc/aweme/feed/model/Aweme;",
+                    name = "getSurveyInfo",
+                    returnType = "Lcom/ss/android/ugc/aweme/feed/model/survey/SurveyInfo;",
+                ).method.addInstructions(
+                    0,
+                    """
+                        const/4 v0, 0x0
+                        return-object v0
+                    """.trimIndent(),
+                )
+                println("[Feed Content & Bloat Filter] Neutralized Aweme.getSurveyInfo() -> Null returned.")
+                patched++
+            } catch (e: Exception) {
+                println("[Feed Content & Bloat Filter] Aweme.getSurveyInfo note: ${e.message}")
+            }
+
+            try {
+                Fingerprint(
+                    definingClass = "Lcom/ss/android/ugc/aweme/feed/model/Aweme;",
+                    name = "getSurveyInfos",
+                    returnType = "Ljava/util/List;",
+                ).method.addInstructions(
+                    0,
+                    """
+                        const/4 v0, 0x0
+                        return-object v0
+                    """.trimIndent(),
+                )
+                println("[Feed Content & Bloat Filter] Neutralized Aweme.getSurveyInfos() -> Null returned.")
+                patched++
+            } catch (e: Exception) {
+                println("[Feed Content & Bloat Filter] Aweme.getSurveyInfos note: ${e.message}")
+            }
+
+            try {
+                Fingerprint(
+                    definingClass = "Lcom/ss/android/ugc/aweme/feed/model/Aweme;",
+                    name = "getPersonalizedSurveyUI",
+                    returnType = "Lcom/ss/android/ugc/aweme/feed/model/survey/PersonalizedSurveyUI;",
+                ).method.addInstructions(
+                    0,
+                    """
+                        const/4 v0, 0x0
+                        return-object v0
+                    """.trimIndent(),
+                )
+                println("[Feed Content & Bloat Filter] Neutralized Aweme.getPersonalizedSurveyUI() -> Null returned.")
+                patched++
+            } catch (e: Exception) {
+                println("[Feed Content & Bloat Filter] Aweme.getPersonalizedSurveyUI note: ${e.message}")
+            }
+
+            try {
+                Fingerprint(
+                    definingClass = "Lcom/ss/android/ugc/aweme/feed/model/Aweme;",
+                    name = "getOnboardingSurvey",
+                    returnType = "Lcom/ss/android/ugc/aweme/feed/model/survey/OnboardingSurvey;",
+                ).method.addInstructions(
+                    0,
+                    """
+                        const/4 v0, 0x0
+                        return-object v0
+                    """.trimIndent(),
+                )
+                println("[Feed Content & Bloat Filter] Neutralized Aweme.getOnboardingSurvey() -> Null returned.")
+                patched++
+            } catch (e: Exception) {
+                println("[Feed Content & Bloat Filter] Aweme.getOnboardingSurvey note: ${e.message}")
+            }
+
+            try {
+                Fingerprint(
+                    definingClass = "Lcom/ss/android/ugc/aweme/feed/model/Aweme;",
+                    name = "getPersonalizedOnboardingSurvey",
+                    returnType = "Lcom/ss/android/ugc/aweme/feed/model/survey/PersonalizedOnboardingSurvey;",
+                ).method.addInstructions(
+                    0,
+                    """
+                        const/4 v0, 0x0
+                        return-object v0
+                    """.trimIndent(),
+                )
+                println("[Feed Content & Bloat Filter] Neutralized Aweme.getPersonalizedOnboardingSurvey() -> Null returned.")
+                patched++
+            } catch (e: Exception) {
+                println("[Feed Content & Bloat Filter] Aweme.getPersonalizedOnboardingSurvey note: ${e.message}")
+            }
+
+            // 2.10 Neutralize In-Feed Explore Community / Topic Cards on Aweme
+            try {
+                Fingerprint(
+                    definingClass = "Lcom/ss/android/ugc/aweme/feed/model/Aweme;",
+                    name = "getExploreCommunityCommentShowType",
+                    returnType = "Ljava/lang/Integer;",
+                ).method.addInstructions(
+                    0,
+                    """
+                        const/4 v0, 0x0
+                        return-object v0
+                    """.trimIndent(),
+                )
+                println("[Feed Content & Bloat Filter] Neutralized Aweme.getExploreCommunityCommentShowType() -> Null returned.")
+                patched++
+            } catch (e: Exception) {
+                println("[Feed Content & Bloat Filter] Aweme.getExploreCommunityCommentShowType note: ${e.message}")
+            }
+        }
+
+        // 3. Branch: stripShopAnchors (video anchors feed hooks only)
+        if (stripShopAnchors != false) {
+            // Hook FeedApiService.fetchFeedList return points (live FYP/Home responses)
+            val feedApiFingerprint = Fingerprint(
+                definingClass = "Lcom/ss/android/ugc/aweme/feed/FeedApiService;",
+                name = "fetchFeedList",
+                returnType = "Lcom/ss/android/ugc/aweme/feed/model/FeedItemList;",
+            )
+            val feedApiMethod = feedApiFingerprint.method
+            val returnIndices = feedApiMethod.implementation?.instructions?.withIndex()
+                ?.filter { it.value.opcode == Opcode.RETURN_OBJECT }
+                ?.map { it.index }
+                ?.toList() ?: emptyList()
+
+            returnIndices.asReversed().forEach { returnIndex ->
+                val reg = (feedApiMethod.implementation!!.instructions[returnIndex] as OneRegisterInstruction).registerA
+                feedApiMethod.addInstructionsAtControlFlowLabel(
+                    returnIndex,
+                    """
+                        invoke-static/range {v$reg .. v$reg}, ${Constants.TIKTOK_EXTENSION_FILTER_CLASS}->stripShopAnchorsInFeedItemList(Ljava/lang/Object;)V
+                    """,
+                )
+            }
+            if (returnIndices.isNotEmpty()) {
+                println("[Feed Content & Bloat Filter] Hooked FeedApiService.fetchFeedList() (${returnIndices.size} return point(s)) -> FYP feed shop anchors stripped.")
+                patched++
+            }
+
+            // Hook FeedItemList.getItems() (covers cached, offline, and UI adapter consumers)
+            val feedItemListFingerprint = Fingerprint(
+                definingClass = "Lcom/ss/android/ugc/aweme/feed/model/FeedItemList;",
+                name = "getItems",
+                returnType = "Ljava/util/List;",
+            )
+            val feedItemListMethod = feedItemListFingerprint.method
+            val feedItemListReturnIndices = feedItemListMethod.implementation?.instructions?.withIndex()
+                ?.filter { it.value.opcode == Opcode.RETURN_OBJECT }
+                ?.map { it.index to (it.value as OneRegisterInstruction).registerA }
+                ?.toList() ?: emptyList()
+
+            feedItemListReturnIndices.asReversed().forEach { (returnIndex, reg) ->
+                feedItemListMethod.addInstructionsAtControlFlowLabel(
+                    returnIndex,
+                    """
+                        invoke-static/range {v$reg .. v$reg}, ${Constants.TIKTOK_EXTENSION_FILTER_CLASS}->stripShopAnchorsInList(Ljava/lang/Object;)V
+                    """,
+                )
+            }
+            if (feedItemListReturnIndices.isNotEmpty()) {
+                println("[Feed Content & Bloat Filter] Hooked FeedItemList.getItems() (${feedItemListReturnIndices.size} return point(s)) -> Feed video shop anchors stripped.")
+                patched++
+            }
+
+            // Hook FollowFeedList.getItems() (covers Following feed UI consumers)
+            val followFeedListFingerprint = Fingerprint(
+                definingClass = "Lcom/ss/android/ugc/aweme/follow/presenter/FollowFeedList;",
+                name = "getItems",
+                returnType = "Ljava/util/List;",
+            )
+            val followFeedListMethod = followFeedListFingerprint.method
+            val followFeedListReturnIndices = followFeedListMethod.implementation?.instructions?.withIndex()
+                ?.filter { it.value.opcode == Opcode.RETURN_OBJECT }
+                ?.map { it.index to (it.value as OneRegisterInstruction).registerA }
+                ?.toList() ?: emptyList()
+
+            followFeedListReturnIndices.asReversed().forEach { (returnIndex, reg) ->
+                followFeedListMethod.addInstructionsAtControlFlowLabel(
+                    returnIndex,
+                    """
+                        invoke-static/range {v$reg .. v$reg}, ${Constants.TIKTOK_EXTENSION_FILTER_CLASS}->stripShopAnchorsInFollowFeedList(Ljava/lang/Object;)V
+                    """,
+                )
+            }
+            if (followFeedListReturnIndices.isNotEmpty()) {
+                println("[Feed Content & Bloat Filter] Hooked FollowFeedList.getItems() (${followFeedListReturnIndices.size} return point(s)) -> Following feed shop anchors stripped.")
+                patched++
+            }
+        }
+
+        // 4. Branch: blockLiveStreams
+        if (blockLiveStreams != false) {
+            // Hook FeedApiService.fetchFeedList return points (live FYP/Home responses)
+            try {
+                val feedApiFingerprint = Fingerprint(
+                    definingClass = "Lcom/ss/android/ugc/aweme/feed/FeedApiService;",
+                    name = "fetchFeedList",
+                    returnType = "Lcom/ss/android/ugc/aweme/feed/model/FeedItemList;",
+                )
+                val method = feedApiFingerprint.method
+                val returnIndices = method.implementation?.instructions?.withIndex()
+                    ?.filter { it.value.opcode == Opcode.RETURN_OBJECT }
+                    ?.map { it.index }
+                    ?.toList() ?: emptyList()
+
+                returnIndices.asReversed().forEach { returnIndex ->
+                    val reg = (method.implementation!!.instructions[returnIndex] as OneRegisterInstruction).registerA
+                    method.addInstructionsAtControlFlowLabel(
+                        returnIndex,
+                        """
+                            invoke-static/range {v$reg .. v$reg}, ${Constants.TIKTOK_EXTENSION_FILTER_CLASS}->filterLiveStreamsInFeedItemList(Ljava/lang/Object;)V
+                        """.trimIndent(),
+                    )
+                }
+                if (returnIndices.isNotEmpty()) {
+                    println("[Feed Content & Bloat Filter] Hooked FeedApiService.fetchFeedList() (${returnIndices.size} return point(s)) -> FYP stream protected from live cards.")
+                    patched++
+                }
+            } catch (e: Exception) {
+                println("[Feed Content & Bloat Filter] FeedApiService note: ${e.message}")
+            }
+
+            // Hook FeedItemList.getItems() (covers cached, offline, and UI adapter consumers)
+            try {
+                val feedItemListFingerprint = Fingerprint(
+                    definingClass = "Lcom/ss/android/ugc/aweme/feed/model/FeedItemList;",
+                    name = "getItems",
+                    returnType = "Ljava/util/List;",
+                )
+                val method = feedItemListFingerprint.method
+                val returnIndices = method.implementation?.instructions?.withIndex()
+                    ?.filter { it.value.opcode == Opcode.RETURN_OBJECT }
+                    ?.map { it.index to (it.value as OneRegisterInstruction).registerA }
+                    ?.toList() ?: emptyList()
+
+                returnIndices.asReversed().forEach { (returnIndex, reg) ->
+                    method.addInstructionsAtControlFlowLabel(
+                        returnIndex,
+                        """
+                            invoke-static/range {v$reg .. v$reg}, ${Constants.TIKTOK_EXTENSION_FILTER_CLASS}->filterLiveStreamsInList(Ljava/lang/Object;)V
+                        """.trimIndent(),
+                    )
+                }
+                if (returnIndices.isNotEmpty()) {
+                    println("[Feed Content & Bloat Filter] Hooked FeedItemList.getItems() (${returnIndices.size} return point(s)) -> Feed live streams filtered.")
+                    patched++
+                }
+            } catch (e: Exception) {
+                println("[Feed Content & Bloat Filter] FeedItemList.getItems note: ${e.message}")
+            }
+
+            // Hook FollowFeedList.getItems() (covers Following feed UI consumers)
+            try {
+                val followFeedListFingerprint = Fingerprint(
+                    definingClass = "Lcom/ss/android/ugc/aweme/follow/presenter/FollowFeedList;",
+                    name = "getItems",
+                    returnType = "Ljava/util/List;",
+                )
+                val method = followFeedListFingerprint.method
+                val returnIndices = method.implementation?.instructions?.withIndex()
+                    ?.filter { it.value.opcode == Opcode.RETURN_OBJECT }
+                    ?.map { it.index to (it.value as OneRegisterInstruction).registerA }
+                    ?.toList() ?: emptyList()
+
+                returnIndices.asReversed().forEach { (returnIndex, reg) ->
+                    method.addInstructionsAtControlFlowLabel(
+                        returnIndex,
+                        """
+                            invoke-static/range {v$reg .. v$reg}, ${Constants.TIKTOK_EXTENSION_FILTER_CLASS}->filterLiveStreamsInFollowFeedList(Ljava/lang/Object;)V
+                        """.trimIndent(),
+                    )
+                }
+                if (returnIndices.isNotEmpty()) {
+                    println("[Feed Content & Bloat Filter] Hooked FollowFeedList.getItems() (${returnIndices.size} return point(s)) -> Following live streams filtered.")
+                    patched++
+                }
+            } catch (e: Exception) {
+                println("[Feed Content & Bloat Filter] FollowFeedList.getItems note: ${e.message}")
+            }
+        }
+
+        // 6. Branch: hideSeenVideos
+        if (hideSeenVideos != false) {
+            val playerControllerFp = Fingerprint(
+                definingClass = "Lcom/ss/android/ugc/aweme/feed/controller/PlayerController;",
+            )
+
+            val onProgressMethod = playerControllerFp.classDef.methods.firstOrNull {
+                it.name == "onPlayProgressChange" &&
+                    it.parameterTypes == listOf("Ljava/lang/String;", "J", "J") &&
+                    it.returnType == "V"
+            }
+            if (onProgressMethod != null) {
+                onProgressMethod.addInstructions(
+                    0,
+                    """
+                        invoke-static/range {p1 .. p5}, ${Constants.TIKTOK_EXTENSION_SEEN_VIDEO_HOOK}->onPlayProgressChange(Ljava/lang/String;JJ)V
+                    """.trimIndent(),
+                )
+                println("[Feed Content & Bloat Filter] Hooked PlayerController.onPlayProgressChange -> Playback threshold tracker active.")
+                patched++
+            } else {
+                println("[Feed Content & Bloat Filter] Skipped: PlayerController.onPlayProgressChange(String, long, long) not found.")
+            }
+
+            val onCompletedMethod = playerControllerFp.classDef.methods.firstOrNull {
+                it.name == "onPlayCompleted" &&
+                    it.parameterTypes == listOf("Ljava/lang/String;") &&
+                    it.returnType == "V"
+            }
+            if (onCompletedMethod != null) {
+                onCompletedMethod.addInstructions(
+                    0,
+                    """
+                        invoke-static/range {p1 .. p1}, ${Constants.TIKTOK_EXTENSION_SEEN_VIDEO_HOOK}->onPlayCompleted(Ljava/lang/String;)V
+                    """.trimIndent(),
+                )
+                println("[Feed Content & Bloat Filter] Hooked PlayerController.onPlayCompleted -> Completion tracker active.")
+                patched++
+            } else {
+                println("[Feed Content & Bloat Filter] Skipped: PlayerController.onPlayCompleted(String) not found.")
+            }
+
+            // Hook FeedApiService.fetchFeedList return points (live FYP network responses)
+            val feedApiFingerprint = Fingerprint(
+                definingClass = "Lcom/ss/android/ugc/aweme/feed/FeedApiService;",
+                name = "fetchFeedList",
+                returnType = "Lcom/ss/android/ugc/aweme/feed/model/FeedItemList;",
+            )
+            val feedApiMethod = feedApiFingerprint.method
+            val feedApiReturns = feedApiMethod.implementation?.instructions?.withIndex()
+                ?.filter { it.value.opcode == Opcode.RETURN_OBJECT }
+                ?.map { it.index to (it.value as OneRegisterInstruction).registerA }
+                ?.toList() ?: emptyList()
+
+            feedApiReturns.asReversed().forEach { (returnIndex, reg) ->
+                feedApiMethod.addInstructionsAtControlFlowLabel(
+                    returnIndex,
+                    """
+                        invoke-static/range {v$reg .. v$reg}, ${Constants.TIKTOK_EXTENSION_SEEN_VIDEO_HOOK}->filterSeenVideosInFeedItemList(Ljava/lang/Object;)V
+                    """.trimIndent(),
+                )
+            }
+            if (feedApiReturns.isNotEmpty()) {
+                println("[Feed Content & Bloat Filter] Hooked FeedApiService.fetchFeedList() (${feedApiReturns.size} return point(s)) -> FYP incoming batch filter active.")
+                patched++
+            }
+        }
+
+        // 7. Branch: views/likes/stories/photos content filter
+        if (contentFilterActive) {
+            val hook = Constants.TIKTOK_EXTENSION_CONTENT_FILTER_HOOK
+
+            // Push patch-time configuration into the runtime hook.
+            try {
+                val minV = (minViews ?: 0).coerceAtLeast(0).toLong()
+                val maxV = (maxViews ?: 0).coerceAtLeast(0).toLong()
+                val minL = (minLikes ?: 0).coerceAtLeast(0).toLong()
+                val maxL = (maxLikes ?: 0).coerceAtLeast(0).toLong()
+                val maxAge = (maxAgeDays ?: 0).coerceAtLeast(0)
+                val minDur = (minDurationSec ?: 0).coerceAtLeast(0)
+                val maxDur = (maxDurationSec ?: 0).coerceAtLeast(0)
+                val clinit = Fingerprint(
+                    definingClass = hook,
+                    name = "<clinit>",
+                ).method
+                clinit.ensureRegisterCount(2)
+                val instructions = clinit.implementation!!.instructions
+                val returnIdx = instructions.indexOfLast { it.opcode == Opcode.RETURN_VOID }
+                val insertIdx = if (returnIdx != -1) returnIdx else 0
+                val authorInstructions = buildPushCsvInstructions(hook, "blockedAuthorsCsv", blockedAuthors)
+                val hashtagInstructions = buildPushCsvInstructions(hook, "blockedHashtagsCsv", blockedHashtags)
+                val keywordInstructions = buildPushCsvInstructions(hook, "blockedKeywordsCsv", blockedKeywords)
+                val regionInstructions = buildPushCsvInstructions(hook, "hiddenRegionsCsv", hiddenRegions)
+                clinit.addInstructions(
+                    insertIdx,
+                    """
+                        const-wide v0, 0x${minV.toString(16)}
+                        sput-wide v0, $hook->minViews:J
+                        const-wide v0, 0x${maxV.toString(16)}
+                        sput-wide v0, $hook->maxViews:J
+                        const-wide v0, 0x${minL.toString(16)}
+                        sput-wide v0, $hook->minLikes:J
+                        const-wide v0, 0x${maxL.toString(16)}
+                        sput-wide v0, $hook->maxLikes:J
+                        const v0, 0x${maxAge.toString(16)}
+                        sput v0, $hook->maxAgeDays:I
+                        const v0, 0x${minDur.toString(16)}
+                        sput v0, $hook->minDurationSec:I
+                        const v0, 0x${maxDur.toString(16)}
+                        sput v0, $hook->maxDurationSec:I
+                        const/4 v0, ${if (hideStories != false) "0x1" else "0x0"}
+                        sput-boolean v0, $hook->hideStories:Z
+                        const/4 v0, ${if (hidePhotoPosts == true) "0x1" else "0x0"}
+                        sput-boolean v0, $hook->hidePhotoPosts:Z$authorInstructions$hashtagInstructions$keywordInstructions$regionInstructions
+                    """.trimIndent(),
+                )
+                val authorCount = countCsvEntries(blockedAuthors)
+                val hashtagCount = countCsvEntries(blockedHashtags)
+                val keywordCount = countCsvEntries(blockedKeywords)
+                val regionCount = countCsvEntries(hiddenRegions)
+                println("[Feed Content & Bloat Filter] Pushed configuration (views ${minViews ?: 0}..${maxViews ?: 0}, likes ${minLikes ?: 0}..${maxLikes ?: 0}, maxAge=${maxAge}d, duration=${minDur}..${maxDur}s, stories=$hideStories, photos=$hidePhotoPosts, authors=$authorCount entries, hashtags=$hashtagCount entries, keywords=$keywordCount entries, regions=$regionCount entries).")
+                patched++
+            } catch (e: Exception) {
+                println("[Feed Content & Bloat Filter] Configuration note: ${e.message}")
+            }
+
+            // Hook FeedApiService.fetchFeedList return points (live FYP responses).
+            val feedApiFingerprint = Fingerprint(
+                definingClass = "Lcom/ss/android/ugc/aweme/feed/FeedApiService;",
+                name = "fetchFeedList",
+                returnType = "Lcom/ss/android/ugc/aweme/feed/model/FeedItemList;",
+            )
+            val feedApiMethod = feedApiFingerprint.method
+            val feedApiReturns = feedApiMethod.implementation?.instructions?.withIndex()
+                ?.filter { it.value.opcode == Opcode.RETURN_OBJECT }
+                ?.map { it.index to (it.value as OneRegisterInstruction).registerA }
+                ?.toList() ?: emptyList()
+            if (feedApiReturns.isEmpty()) {
+                throw PatchException("No return point found in FeedApiService.fetchFeedList")
+            }
+            feedApiReturns.asReversed().forEach { (returnIndex, reg) ->
+                feedApiMethod.addInstructionsAtControlFlowLabel(
+                    returnIndex,
+                    "invoke-static/range {v$reg .. v$reg}, $hook->filterContentInFeedItemList(Ljava/lang/Object;)V",
+                )
+            }
+            println("[Feed Content & Bloat Filter] Hooked FeedApiService.fetchFeedList (${feedApiReturns.size} return(s)).")
+            patched++
+        }
+
+        if (patched == 0) {
+            println("[Feed Content & Bloat Filter] WARNING: applied 0 hook(s) -> this feature is NOT active on this APK; its targets moved upstream.")
+        } else {
+            println("[Feed Content & Bloat Filter] Applied $patched feed ads and content filter hook(s).")
+        }
+    }
+}
+
+private fun buildPushCsvInstructions(hook: String, fieldName: String, csvValue: String?): String {
+    if (csvValue.isNullOrBlank()) return ""
+    val escaped = csvValue
+        .replace("\\", "\\\\")
+        .replace("\"", "\\\"")
+    return "\nconst-string v0, \"$escaped\"\nsput-object v0, $hook->$fieldName:Ljava/lang/String;"
+}
+
+private fun countCsvEntries(csvValue: String?): Int =
+    if (csvValue.isNullOrBlank()) 0 else csvValue.split(',').count { it.trim().isNotEmpty() }
+

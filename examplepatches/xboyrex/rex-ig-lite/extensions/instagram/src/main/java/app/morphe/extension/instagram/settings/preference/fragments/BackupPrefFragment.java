@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2026 rex <https://github.com/xboyrex/rex-ig-lite>
+ * Copyright (C) 2026 xboyrex <https://github.com/xboyrex/rex-ig-lite>
  *
  * See the included NOTICE file for GPLv3 §7(b) terms that apply to this code.
  */
@@ -9,36 +9,46 @@ package app.morphe.extension.instagram.settings.preference.fragments;
 import static app.morphe.extension.instagram.utils.IgStr.str;
 
 import android.app.Activity;
+import android.app.Fragment;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 
-import android.app.Fragment;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.json.JSONTokener;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
-import app.morphe.extension.rex.RexUtils;
 import app.morphe.extension.instagram.constants.Constants;
+import app.morphe.extension.instagram.patches.devFlags.FlagsSharedPref;
+import app.morphe.extension.instagram.patches.devFlags.RecommendedFlags;
+import app.morphe.extension.rex.RexUtils;
 import app.morphe.extension.shared.Logger;
 
 public class BackupPrefFragment extends Fragment {
 
     private File sourceFile;
     private Context context;
+    private boolean isJsonExport;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         context = getActivity() != null ? getActivity() : RexUtils.getContext();
-
         Bundle args = getArguments();
 
         String filename = null;
@@ -46,19 +56,24 @@ public class BackupPrefFragment extends Fragment {
 
         if (args != null) {
             if (args.containsKey("rex_export_dev_overrides")) {
-                filename = "mc_overrides";
+                filename = "InstaRex_MetaConfig_Overrides_v3.16.0";
                 ext = ".json";
-                sourceFile = new File(context.getFilesDir() + "/mobileconfig", filename + ext);
+                isJsonExport = true;
+                File mcDir = new File(context.getFilesDir(), "mobileconfig");
+                if (!mcDir.exists()) mcDir.mkdirs();
+                sourceFile = new File(mcDir, "mc_overrides.json");
+                ensureValidOverridesFileForExport(context, sourceFile);
             } else if (args.containsKey("rex_export_pref")) {
-                filename = Constants.REX_SETTINGS;
+                filename = "InstaRex_Settings_Backup_v3.16.0";
                 ext = ".xml";
-                sourceFile = new File(context.getApplicationInfo().dataDir + "/shared_prefs", filename + ext);
+                isJsonExport = false;
+                sourceFile = new File(context.getApplicationInfo().dataDir + "/shared_prefs", Constants.REX_SETTINGS + ".xml");
             }
         }
 
         if (savedInstanceState == null) {
             if (filename != null && ext != null && sourceFile != null) {
-                if (sourceFile.exists()) {
+                if (sourceFile.exists() && sourceFile.length() > 0) {
                     startIntent(filename, ext);
                 } else {
                     toast(str("rex_fail_no_file"));
@@ -71,9 +86,46 @@ public class BackupPrefFragment extends Fragment {
         }
     }
 
+    /**
+     * Ensures mc_overrides.json exists and contains valid JSON before exporting:
+     * If mc_overrides.json has not been created yet, materializes active Recommended Flag overrides
+     * or the built-in InstaRex Pro Config V6 preset so Export MetaConfig Overrides always produces a valid,
+     * round-trip importable JSON file.
+     */
+    private static void ensureValidOverridesFileForExport(Context ctx, File mcFile) {
+        if (mcFile == null) return;
+        if (mcFile.exists() && mcFile.length() > 2) {
+            return;
+        }
+        try {
+            int rawId = ctx.getResources().getIdentifier("instarex_pro_config_v6", "raw", ctx.getPackageName());
+            if (rawId != 0) {
+                try (InputStream in = ctx.getResources().openRawResource(rawId);
+                     FileOutputStream out = new FileOutputStream(mcFile)) {
+                    byte[] buf = new byte[8192];
+                    int n;
+                    while ((n = in.read(buf)) != -1) {
+                        out.write(buf, 0, n);
+                    }
+                    out.flush();
+                }
+                if (mcFile.exists() && mcFile.length() > 2) return;
+            }
+        } catch (Throwable ignored) {
+        }
+        try {
+            JSONObject exported = FlagsSharedPref.exportAllAsJsonObject();
+            try (FileOutputStream out = new FileOutputStream(mcFile)) {
+                out.write(exported.toString(2).getBytes(StandardCharsets.UTF_8));
+                out.flush();
+            }
+        } catch (Throwable ignored) {
+        }
+    }
+
     private void startIntent(String fileName, String extension) {
         try {
-            fileName = fileName + "_" + new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss").format(new Date()) + extension;
+            fileName = fileName + "_" + new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss", Locale.US).format(new Date()) + extension;
             Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
             intent.addCategory(Intent.CATEGORY_OPENABLE);
             intent.setType(".xml".equals(extension) ? "application/xml" : "application/json");
@@ -89,17 +141,49 @@ public class BackupPrefFragment extends Fragment {
         }
     }
 
-    private void copyFile(Uri uri) {
-        try (FileInputStream in = new FileInputStream(sourceFile);
-             OutputStream out = context.getContentResolver().openOutputStream(uri)) {
-            if (out == null) {
-                throw new IOException("Could not open destination output stream: " + uri);
+    private void copyAndVerifyFile(Uri uri) {
+        try {
+            long totalWritten = 0;
+            try (FileInputStream in = new FileInputStream(sourceFile);
+                 OutputStream out = context.getContentResolver().openOutputStream(uri)) {
+                if (out == null) {
+                    throw new IOException("Could not open destination output stream: " + uri);
+                }
+                byte[] buffer = new byte[8192];
+                int read;
+                while ((read = in.read(buffer)) > 0) {
+                    out.write(buffer, 0, read);
+                    totalWritten += read;
+                }
+                out.flush();
             }
-            byte[] buffer = new byte[8192];
 
-            int read;
-            while ((read = in.read(buffer)) > 0) {
-                out.write(buffer, 0, read);
+            if (totalWritten <= 0) {
+                throw new IOException("Zero bytes written during export");
+            }
+
+            // Round-trip verification: read back exported document and verify structure
+            try (InputStream verifyIn = context.getContentResolver().openInputStream(uri)) {
+                if (verifyIn == null) {
+                    throw new IOException("Could not reopen exported file for verification");
+                }
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                byte[] buf = new byte[8192];
+                int n;
+                while ((n = verifyIn.read(buf)) != -1) {
+                    baos.write(buf, 0, n);
+                }
+                byte[] exportedBytes = baos.toByteArray();
+                if (exportedBytes.length == 0) {
+                    throw new IOException("Exported file is empty on readback");
+                }
+                if (isJsonExport) {
+                    String content = new String(exportedBytes, StandardCharsets.UTF_8);
+                    Object parsed = new JSONTokener(content).nextValue();
+                    if (!(parsed instanceof JSONObject) && !(parsed instanceof JSONArray)) {
+                        throw new IOException("Exported JSON failed round-trip parse validation");
+                    }
+                }
             }
 
             toast(str("rex_export_success"));
@@ -126,7 +210,7 @@ public class BackupPrefFragment extends Fragment {
         if (uri == null) {
             toast(str("rex_fail_no_path"));
         } else if (res == Activity.RESULT_OK) {
-            copyFile(uri);
+            copyAndVerifyFile(uri);
         }
 
         finishHost();

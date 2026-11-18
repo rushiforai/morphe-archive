@@ -58,7 +58,7 @@ val ignoreMutedMentionsPatch = bytecodePatch(
 ) {
     category("Notifications")
     dependsOn(settingsPatch, telegramExtensionPatch)
-    compatibleWith(*AppCompatibilities.telegram())
+    compatibleWith(*AppCompatibilities.telegramOnly())
     execute {
         val sites = resolveIgnoreMutedMentions()
         // Assembled on copies first, so a refusal leaves the app untouched.

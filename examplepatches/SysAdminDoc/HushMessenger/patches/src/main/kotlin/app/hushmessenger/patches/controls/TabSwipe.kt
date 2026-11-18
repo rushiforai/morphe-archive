@@ -3,8 +3,9 @@ package app.hushmessenger.patches.controls
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
-import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.classDefByOrNull
+import app.morphe.patcher.patch.mutableClassDefBy
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -209,7 +210,7 @@ internal fun MutableMethod.injectTabSwipe() {
 }
 
 /** The extension stub the route is written into, checked before any edit. */
-internal fun BytecodePatchContext.tabSwipeStub(): MutableMethod {
+internal fun tabSwipeStub(): MutableMethod {
     val wrap = classDefByOrNull(TAB_SWIPE_EXTENSION)?.methods?.singleOrNull { it.hookId() == TAB_SWIPE_WRAP }
     if (wrap == null || !AccessFlags.STATIC.isSet(wrap.accessFlags) || !AccessFlags.PUBLIC.isSet(wrap.accessFlags)) extensionChanged()
     val stub = mutableClassDefBy(HOST_SCREENS).methods.singleOrNull { it.hookId() == TAB_SWIPE_ROUTE } ?: extensionChanged()

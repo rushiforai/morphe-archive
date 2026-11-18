@@ -38,6 +38,7 @@ import app.morphe.patches.tiktok.interaction.exactcounts.isCountFormatter
 import app.morphe.patches.tiktok.interaction.engagement.ProfileGridBindFingerprint
 import app.morphe.patches.tiktok.interaction.engagement.ProfileGridHolderBindFingerprint
 import app.morphe.patches.tiktok.interaction.engagement.gridCountSite
+import app.morphe.patches.tiktok.interaction.engagement.holderCountShows
 import app.morphe.patches.tiktok.interaction.engagement.holderCountSites
 import app.morphe.patches.tiktok.interaction.feedtoolbar.SidebarIconViewFingerprint
 import app.morphe.patches.tiktok.interaction.feedtoolbar.isToolbarEnabledCheck
@@ -718,7 +719,7 @@ class TikTokPatchAnchorsMatchFixturesTest {
      * Show engagement rate hooks the profile grid adapter's bind right after the cell's view count
      * is formatted, and hands the extension the text and the cell's Aweme. One bind per declared
      * build, the item in the register its statistics were asked of, and the text the one the
-     * cell's next setText writes (v1 and v12 on all three builds).
+     * cell's next setText writes (v9 and v13 on 47.8.3, v1 and v12 on 47.7.3).
      */
     @Test
     fun `profile grid view count site for engagement rate resolves on every declared build`() {
@@ -730,7 +731,7 @@ class TikTokPatchAnchorsMatchFixturesTest {
             assertEquals("profile grid binds", 1, binds.size)
             val bind = binds.single()
             val site = runCatching { bind.gridCountSite() }.getOrElse { throw AssertionError(it.message, it) }
-            assertEquals("text and item registers", 1 to 12, site.textRegister to site.itemRegister)
+            assertEquals("text and item registers", 9 to 13, site.textRegister to site.itemRegister)
             val instructions = bind.implementation!!.instructions.toList()
             val result = instructions[site.insertAt - 1]
             assertEquals(Opcode.MOVE_RESULT_OBJECT, result.opcode)
@@ -765,11 +766,22 @@ class TikTokPatchAnchorsMatchFixturesTest {
             assertTrue("highest first", found.sites.zipWithNext().all { (a, b) -> a.insertAt > b.insertAt })
             val instructions = bind.implementation!!.instructions.toList()
             val thisRegister = bind.implementation!!.registerCount - bind.parameters.size - 1
-            val views = found.sites.map { site ->
+            // Hide view counts on profile grids (#449) swaps these setText calls for the extension's.
+            val shows = runCatching { bind.holderCountShows(found) }.getOrElse { throw AssertionError(it.message, it) }
+            val views = found.sites.mapIndexed { at, site ->
                 val setText = (site.insertAt until instructions.size).first {
                     val reference = (instructions[it] as? ReferenceInstruction)?.reference as? MethodReference
                     reference?.name == "setText" && reference.parameterTypes.map(CharSequence::toString) == listOf("Ljava/lang/CharSequence;")
                 }
+                assertEquals("the count's setText", setText, shows[at])
+                // TikTok's play icon goes on the same view right before the text.
+                val icon = (site.insertAt until setText).lastOrNull {
+                    val reference = (instructions[it] as? ReferenceInstruction)?.reference as? MethodReference
+                    instructions[it].opcode == Opcode.INVOKE_STATIC &&
+                        reference?.parameterTypes?.map(CharSequence::toString) ==
+                        listOf("Lcom/bytedance/tux/input/TuxTextView;", "Landroid/graphics/drawable/Drawable;")
+                }
+                assertNotNull("the play icon is set right before the count", icon)
                 val call = instructions[setText] as FiveRegisterInstruction
                 assertEquals("the cell's text is the formatted count", site.textRegister, call.registerD)
                 // The view is the holder's own count field, read right before the call.

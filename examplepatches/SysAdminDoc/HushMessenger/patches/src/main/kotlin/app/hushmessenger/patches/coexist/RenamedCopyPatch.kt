@@ -1,13 +1,15 @@
 package app.hushmessenger.patches.coexist
 
 import app.hushmessenger.patches.MessengerTarget
-import app.hushmessenger.patches.messengerClasses
 import app.hushmessenger.patches.controls.hookId
 import app.hushmessenger.patches.controls.settingsExtension
+import app.hushmessenger.patches.messengerClasses
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.mutableClassDefBy
+import app.morphe.patcher.patch.packageMetadata
+import app.morphe.patcher.patch.patch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
@@ -107,7 +109,7 @@ internal fun applyRunningNames(
  * writes the name it chose into those places itself, and this covers a rename by anything else.
  */
 @Suppress("unused")
-val renamedCopyPatch = bytecodePatch(
+val renamedCopyPatch = patch(
     name = RENAMED_PATCH_NAME,
     description = "Keeps a copy of Messenger working when another patch gives it a new package name. Without it the copy " +
         "stops at its loading screen, and its attachments and muted chats go to the Messenger it was copied from. " +

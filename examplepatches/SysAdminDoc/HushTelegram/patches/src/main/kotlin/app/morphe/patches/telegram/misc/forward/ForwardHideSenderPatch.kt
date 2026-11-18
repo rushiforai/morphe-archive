@@ -84,7 +84,7 @@ val forwardHideSenderPatch = bytecodePatch(
 ) {
     category("Conversations")
     dependsOn(settingsPatch, telegramExtensionPatch)
-    compatibleWith(*AppCompatibilities.telegram())
+    compatibleWith(*AppCompatibilities.telegramOnly())
     execute {
         val site = resolveForwardHideSender()
         val share = site.share

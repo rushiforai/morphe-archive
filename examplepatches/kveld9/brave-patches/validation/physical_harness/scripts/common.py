@@ -1,0 +1,185 @@
+"""
+Common ADB, Device and Environment utilities for Physical ARM64 Test Harness.
+"""
+
+from __future__ import annotations
+
+import functools
+import http.server
+import socketserver
+import subprocess
+import threading
+import time
+from pathlib import Path
+from typing import Dict, List, Optional, Tuple
+
+PACKAGE_NAME = "com.brave.browser"
+MAIN_ACTIVITY = "com.brave.browser/com.google.android.apps.chrome.Main"
+SERVER_PORT = 8080
+
+class AdbDevice:
+    def __init__(self, serial: Optional[str] = None):
+        self.serial = serial
+        self._ensure_device()
+
+    def _ensure_device(self):
+        all_devices = self.list_devices()
+        if not all_devices:
+            raise RuntimeError("No ADB devices connected. Please connect your ARM64 Android device with USB debugging enabled.")
+        if self.serial and self.serial not in [d[0] for d in all_devices]:
+            raise RuntimeError(f"Target device '{self.serial}' not found in connected devices: {[d[0] for d in all_devices]}")
+        if not self.serial:
+            # Prefer active authorized device over offline/unauthorized
+            active = [d[0] for d in all_devices if d[1] == "device"]
+            if not active:
+                raise RuntimeError(
+                    f"No authorized ADB devices found. Connected devices: {all_devices}. "
+                    "Please accept the USB debugging RSA authorization prompt on your device."
+                )
+            if len(active) > 1:
+                print(f"[WARNING] Multiple active devices found ({active}). Defaulting to '{active[0]}'. Use --device to target a specific device.")
+            self.serial = active[0]
+
+    @staticmethod
+    def list_devices() -> List[Tuple[str, str]]:
+        res = subprocess.run(["adb", "devices"], capture_output=True, text=True, check=True)
+        devices = []
+        in_device_list = False
+        for line in res.stdout.splitlines():
+            line = line.strip()
+            if not line or line.startswith("*"):
+                continue
+            if "List of devices attached" in line:
+                in_device_list = True
+                continue
+            if in_device_list:
+                parts = line.split()
+                if len(parts) >= 2:
+                    devices.append((parts[0], parts[1]))
+        return devices
+
+    def cmd(self, args: List[str], check: bool = True) -> subprocess.CompletedProcess:
+        full_cmd = ["adb"]
+        if self.serial:
+            full_cmd.extend(["-s", self.serial])
+        full_cmd.extend(args)
+        return subprocess.run(full_cmd, capture_output=True, text=True, check=check)
+
+    def shell(self, command: str) -> str:
+        res = self.cmd(["shell", command], check=False)
+        return res.stdout
+
+    def get_abi(self) -> str:
+        return self.shell("getprop ro.product.cpu.abi").strip()
+
+    def get_sdk_version(self) -> int:
+        val = self.shell("getprop ro.build.version.sdk").strip()
+        return int(val) if val.isdigit() else 0
+
+    def get_model(self) -> str:
+        return self.shell("getprop ro.product.model").strip()
+
+    def is_process_running(self) -> bool:
+        pid = self.shell(f"pidof {PACKAGE_NAME}").strip()
+        return len(pid) > 0
+
+    def get_pid(self) -> Optional[str]:
+        pid = self.shell(f"pidof {PACKAGE_NAME}").strip()
+        return pid.split()[0] if pid else None
+
+    def get_pids(self) -> List[str]:
+        """All live PIDs of the target package (main, renderer, gpu, utility...)."""
+        out = self.shell(f"pidof {PACKAGE_NAME}").strip()
+        return [p for p in out.split() if p]
+
+    def filter_logcat_by_pids(self, text: str) -> List[str]:
+        """Keeps only logcat lines emitted by the target package processes.
+
+        `dump_logcat()` returns the whole device buffer. Keywords like
+        ACTION_BATTERY_CHANGED or "sw-sync" are emitted by the system and by other
+        apps too, so counting them unscoped measures the device, not the patch.
+        Logcat lines carry the PID in the third column, which is matched against the
+        package PIDs; when the app is not running nothing is kept, so callers see no
+        evidence instead of foreign evidence.
+        """
+        pids = set(self.get_pids())
+        if not pids:
+            return []
+        kept: List[str] = []
+        for line in text.splitlines():
+            fields = line.split()
+            if len(fields) >= 4 and fields[2] in pids:
+                kept.append(line)
+        return kept
+
+    def force_stop(self):
+        self.shell(f"am force-stop {PACKAGE_NAME}")
+        time.sleep(0.5)
+
+    def clear_data(self):
+        self.shell(f"pm clear {PACKAGE_NAME}")
+        time.sleep(0.5)
+
+    def start_app(self, url: Optional[str] = None):
+        if url:
+            self.shell(f"am start -S -W -a android.intent.action.VIEW -d \"{url}\" -n {MAIN_ACTIVITY}")
+        else:
+            self.shell(f"am start -S -W -n {MAIN_ACTIVITY}")
+        time.sleep(1.0)
+
+    def press_key(self, keycode: str):
+        self.shell(f"input keyevent {keycode}")
+        time.sleep(0.3)
+
+    def swipe(self, x1: int, y1: int, x2: int, y2: int, duration_ms: int = 300):
+        self.shell(f"input swipe {x1} {y1} {x2} {y2} {duration_ms}")
+        time.sleep(0.3)
+
+    def setup_reverse_port(self, port: int = SERVER_PORT):
+        self.cmd(["reverse", f"tcp:{port}", f"tcp:{port}"], check=False)
+
+    def get_dumpsys_power(self) -> str:
+        return self.shell("dumpsys power")
+
+    def get_dumpsys_jobscheduler(self) -> str:
+        raw = self.shell(f"dumpsys jobscheduler {PACKAGE_NAME}")
+        # Scrub and restrict to target package only to avoid dumping third-party apps or user accounts
+        return "\n".join([line for line in raw.splitlines() if PACKAGE_NAME in line or ("JOB #" in line and PACKAGE_NAME in line)])
+
+    def get_dumpsys_alarms(self) -> str:
+        return self.shell(f"dumpsys alarm | grep -E '{PACKAGE_NAME}'")
+
+    def clear_logcat(self):
+        self.cmd(["logcat", "-c"], check=False)
+
+    def dump_logcat(self, filter_tag: Optional[str] = None) -> str:
+        # threadtime is enforced: filter_logcat_by_pids() reads the PID from the
+        # third column, which only holds in threadtime format.
+        if filter_tag:
+            return self.cmd(["logcat", "-d", "-v", "threadtime", "-s", filter_tag], check=False).stdout
+        return self.cmd(["logcat", "-d", "-v", "threadtime"], check=False).stdout
+
+
+class _ReusableTCPServer(socketserver.TCPServer):
+    allow_reuse_address = True
+
+
+class LocalTestServer:
+    """Spawns a local HTTP server serving validation pages and manages port forwarding."""
+    def __init__(self, directory: Path, port: int = SERVER_PORT):
+        self.directory = directory
+        self.port = port
+        self.server: Optional[socketserver.TCPServer] = None
+        self.thread: Optional[threading.Thread] = None
+
+    def start(self):
+        handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=str(self.directory))
+        self.server = _ReusableTCPServer(("127.0.0.1", self.port), handler)
+        self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
+        self.thread.start()
+
+    def stop(self):
+        if self.server:
+            self.server.shutdown()
+            self.server.server_close()
+            self.server = None

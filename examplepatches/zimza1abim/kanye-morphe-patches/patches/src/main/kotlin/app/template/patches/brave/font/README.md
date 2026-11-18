@@ -1,10 +1,9 @@
 # Brave webpage fonts
 
 Experimental ARM64 port for `com.brave.browser`, first checked against `1.97.57`
-(Chromium `155.0.8059.80`), a release that has since left the supported list; the
-current supported floor is `1.98.63`. Version matching is unrestricted; structural
-Java checks and native runtime validation still apply. Releases outside the
-supported list have not been verified.
+(Chromium `155.0.8059.80`). Supported releases are the ones in the README version
+table. Version matching is unrestricted; structural Java checks and native runtime
+validation still apply. Releases outside that table have not been verified.
 
 Morphe entries:
 

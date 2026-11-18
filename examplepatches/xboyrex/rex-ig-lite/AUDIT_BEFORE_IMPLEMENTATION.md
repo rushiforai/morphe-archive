@@ -1,4 +1,4 @@
-# InstaRex (Rex IG Lite v3.15.0) — Pre-Implementation Engineering & UI/UX Audit
+# InstaRex (Rex IG Lite v3.16.0) — Pre-Implementation Engineering & UI/UX Audit
 
 - **Repository**: [xboyrex/rex-ig-lite](https://github.com/xboyrex/rex-ig-lite) ([Releases](https://github.com/xboyrex/rex-ig-lite/releases))
 - **Developer**: [@xboyrex](https://github.com/xboyrex) ([YouTube @mayankdroid](https://youtube.com/@mayankdroid) • [Telegram @MayankDroid7](https://t.me/MayankDroid7))

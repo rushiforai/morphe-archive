@@ -26,7 +26,7 @@ public class ToastLengthTest {
         "restore_failed", "quick_unchanged", "font_file_set", "font_file_set_off",
         "quick_missing", "local_search_open_failed", "call_recording_failed", "copied", "copy_failed", "message_log_set_aside_failed", "message_log_cleared",
         "message_log_clear_failed", "auto_reply_saved_none", "import_empty", "import_invalid", "import_no_choices",
-        "import_too_large", "export_too_large",
+        "import_too_large", "import_zip_too_large", "export_too_large",
         "import_auto_reply_off", "open_help", "no_browser", "page_blocked", "camera_missing", "camera_failed",
         "camera_permission", "gallery_missing", "gallery_failed", "instant_gallery_shutter", "restart_save_failed", "restart_unavailable",
         "text_style_read_only", "text_style_bold_none", "text_style_italic_none", "mark_read_done", "mark_read_nothing",

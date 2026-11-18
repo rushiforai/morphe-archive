@@ -1,4 +1,4 @@
-# Patch Compatibility Report (`v3.15.0`)
+# Patch Compatibility Report (`v3.16.0`)
 
 - **Target Package**: `com.instagram.android` (and clone package support for `com.instarex.android` / `com.instaprime.android`)
 - **Verified Compatible Versions**:

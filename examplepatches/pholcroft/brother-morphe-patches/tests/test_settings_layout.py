@@ -41,9 +41,9 @@ assert 'â€' not in settings, 'navigation labels contain mojibake'
 assert 'Timing details and help' not in settings
 
 assert "Reset timing comparison" not in settings
-assert "Uncached replay result" in settings
+assert "Uncached replay result" not in settings
 assert "Stop uncached measurement" not in settings
-assert "View differences" in settings
+assert "View differences" not in settings
 
 assert 'menu.getMenu().add("What is this fix?")' not in settings
 assert 'infoTouch.setContentDescription("What is this fix?")' in settings
@@ -62,3 +62,13 @@ patch = (root / "patches/src/main/kotlin/app/template/patches/brother/AutomaticC
 assert "ReplayDiffActivity" in patch
 assert "lookup(Ljava/lang/Object;Ljava/lang/Object;II)" in patch
 
+
+diagnostics = (root / "extensions/extension/src/main/java/app/template/extension/extension/DiagnosticsActivity.java").read_text(encoding="utf-8")
+assert "CAPTURING-PRINTER-TRAFFIC.md" not in diagnostics
+assert ".setNeutralButton(\"Read guide\"" not in diagnostics
+assert "https://github.com/pholcroft/brother-morphe-patches/issues" in diagnostics
+
+assert "Printer options for " not in settings
+history = (root / "extensions/extension/src/main/java/app/template/extension/extension/ActivityHistoryActivity.java").read_text(encoding="utf-8")
+assert "Clear saved printer data" in history
+assert "Delete all activity" in history

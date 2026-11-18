@@ -15,7 +15,7 @@
 
 <p align="center">
   <a href="https://github.com/xboyrex/rex-ig-lite/releases/latest">
-    <img src="https://img.shields.io/badge/release-v3.15.0-88C2CE?style=flat-square&logo=github&labelColor=12161B" alt="Latest Release">
+    <img src="https://img.shields.io/badge/release-v3.16.0-88C2CE?style=flat-square&logo=github&labelColor=12161B" alt="Latest Release">
   </a>
   <a href="https://github.com/xboyrex/rex-ig-lite/actions/workflows/build.yml">
     <img src="https://img.shields.io/github/actions/workflow/status/xboyrex/rex-ig-lite/build.yml?branch=main&style=flat-square&logo=githubactions&label=build&color=80C8C4&labelColor=12161B" alt="CI Status">

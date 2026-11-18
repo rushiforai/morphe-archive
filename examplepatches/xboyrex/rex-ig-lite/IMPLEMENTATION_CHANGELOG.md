@@ -1,10 +1,10 @@
-# InstaRex (Rex IG Lite v3.15.0) — Implementation Changelog
+# InstaRex (Rex IG Lite v3.16.0) — Implementation Changelog
 
 - **Repository**: [xboyrex/rex-ig-lite](https://github.com/xboyrex/rex-ig-lite)
-- **Release Version**: `v3.15.0`
+- **Release Version**: `v3.16.0`
 - **Icon System**: [Tabler Icons](https://tablericons.com/) (`186` semantic icons, `253` mapped preference/route keys, `477` SVGs, `348` Android VectorDrawables)
 
-## Summary of Changes in v3.15.0
+## Summary of Changes in v3.16.0
 
 1. **Story Viewer 3-Button Toolbar (`DownloadUtils.addStoryDownloadButton` + `StoryButton.java`)**:
    - Injected 3 Tabler icon buttons into `toolbar_buttons_container`: **Direct Story Download (`download`)**, **Hidden Mentions (`at-sign` / `@`)**, and **Story Settings / Options (`settings`)**.

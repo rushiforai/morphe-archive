@@ -8,6 +8,7 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.PlusPending
 import app.morphe.util.names.origRef
 import app.morphe.util.names.addInstructions
 import app.morphe.util.names.replaceInstruction
@@ -46,6 +47,7 @@ import app.morphe.util.names.origReturnType
 import app.morphe.util.names.tgMutableClassDefBy
 
 /** Real pinned host methods prove sink scope, both patch orders and untouched stock control flow. */
+@PlusPending
 class LinkRoutingFixtureTest {
     private val trackingFlags = listOf("stripLinkTracking", "openedLinkTracking", "sharedLinkTracking", "skipAutologin")
     private val externalFlags = listOf("openExternalLinks", "externalBrowserRouting")

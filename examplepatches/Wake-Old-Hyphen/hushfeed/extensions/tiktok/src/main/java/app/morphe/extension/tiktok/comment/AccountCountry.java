@@ -244,13 +244,7 @@ public final class AccountCountry {
 
     /** A two letter country code in upper case, or null for anything else. */
     static String twoLetters(String raw) {
-        String code = AuthorRegion.regionCode(raw);
-        if (code == null || code.length() != 2) return null;
-        for (int i = 0; i < 2; i++) {
-            char c = code.charAt(i);
-            if (c < 'A' || c > 'Z') return null;
-        }
-        return code;
+        return AuthorRegion.countryCode(raw);
     }
 
     /** Whether {@code value} is a bare https origin, the way {@code Api} keeps its host. */
@@ -268,7 +262,12 @@ public final class AccountCountry {
         return query;
     }
 
-    private static String fetch(String path, Map<String, String> query) throws Exception {
+    /**
+     * A GET on TikTok's API host through TikTok's own client, signed and with its device
+     * parameters as its raw GETs are, and the reply's text. Save episodes reads a drama's
+     * episode list through it too (#444).
+     */
+    public static String fetch(String path, Map<String, String> query) throws Exception {
         Object api = api();
         Class<?> networkApi = Class.forName(NETWORK_API);
         Method get = networkApi.getMethod("doGetBytes", boolean.class, int.class, String.class,

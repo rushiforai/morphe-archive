@@ -8,6 +8,7 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.PlusPending
 import app.morphe.util.names.origRef
 import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
@@ -50,6 +51,7 @@ import app.morphe.util.names.tgClassDefByOrNull
 import app.morphe.util.names.tgMutableClassDefBy
 
 /** The message's translation decision, the menu builder and choice, the header item and its click, and the runtime. */
+@PlusPending
 class OutsideTranslateFixtureTest {
     private val list = "Ljava/util/ArrayList;"
     private val fixed = setOf(

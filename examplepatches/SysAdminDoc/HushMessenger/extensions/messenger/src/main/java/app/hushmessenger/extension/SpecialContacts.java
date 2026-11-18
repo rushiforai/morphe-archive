@@ -312,7 +312,7 @@ public final class SpecialContacts {
                 return null;
             }
             if (store == null || !user.equals(store.account)) {
-                SpecialContactsStore next = new SpecialContactsStore(new File(new File(context.getNoBackupFilesDir(), FOLDER), user));
+                SpecialContactsStore next = new SpecialContactsStore(new File(folder(context), user));
                 next.load();
                 store = next;
             }
@@ -325,6 +325,34 @@ public final class SpecialContacts {
         synchronized (SpecialContacts.class) {
             if (store == people) tracked = people.ids();
         }
+    }
+
+    /** Where every account's list lives, one folder per account. */
+    static File folder(Context context) {
+        return new File(context.getNoBackupFilesDir(), FOLDER);
+    }
+
+    /** The accounts that have a list, in order. */
+    static List<String> accounts(Context context) {
+        String[] names = folder(context).list();
+        List<String> accounts = new ArrayList<>();
+        if (names != null) for (String name : names) if (SpecialContactsStore.validId(name)) accounts.add(name);
+        Collections.sort(accounts);
+        return accounts;
+    }
+
+    /** [account]'s list: the one the hooks use when it's the account in use, so both see the same people. */
+    static SpecialContactsStore store(Context context, String account) {
+        synchronized (SpecialContacts.class) {
+            if (store != null && store.account.equals(account)) return store;
+        }
+        SpecialContactsStore inUse = current();
+        return inUse != null && inUse.account.equals(account) ? inUse : new SpecialContactsStore(new File(folder(context), account));
+    }
+
+    /** A restore added people to [people], so the hooks start looking for them. */
+    static void restored(SpecialContactsStore people) {
+        published(people);
     }
 
     /** Every so often the hooks look at which account is in use, off their own thread. */

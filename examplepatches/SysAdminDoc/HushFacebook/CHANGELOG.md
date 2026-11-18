@@ -4,10 +4,21 @@ Changes in each Hushfacebook version, newest first. Versions 0.1.0 to 0.19.0 are
 
 ## Unreleased
 
+### Added
+
+* `Ask before reacting to a story` under Stories makes a tap on a reaction at the bottom of a story ask "React to this story?" first. The story pauses while the question is up, and only Continue sends the reaction. Cancel, Back or a tap outside sends nothing and the story plays on. It's part of `Ask before a like` and starts off. (#502)
+* `Hide friends' reactions on photos and videos` under News feed takes away the little picture of a friend with their reaction on it that Facebook puts in the corner of a photo or video someone you know reacted to. It's off until you turn it on. (#483)
+* `Hide who reacted under posts` under News feed takes away the line under a post that names a friend or Page who reacted, like "Name and others reacted". It's off until you turn it on. (#483)
+
 ### Changed
 
 * The README is about half as long. The patch list moved to [docs/patches.md](https://github.com/SysAdminDoc/Hushfacebook/blob/main/docs/patches.md) and the help topics to [docs/help.md](https://github.com/SysAdminDoc/Hushfacebook/blob/main/docs/help.md), and the README links to each topic.
 * The changelog starts at 0.20.0 now, so Morphe Manager has a lot less to download when it shows what changed. Versions 0.1.0 to 0.19.0 are in the [changelog archive](https://github.com/SysAdminDoc/Hushfacebook/blob/main/docs/changelog-archive.md), word for word.
+
+### Fixed
+
+* With `Open comments at` on `Full height` or `Half height`, Comment on the Reels tab now slides the regular sheet straight up over the reel. Before, the reel shrank into the top of the screen first, the way Facebook's split view opens, and at full height the sheet covered it a moment later. (#501)
+* With the tab bar at the bottom and `See-through bars` or `Rounded tab bar` on, a reel's buttons and caption sit above the tab bar again instead of behind it. Each reel stops at the top of the bar now, and the strip under the bar stays black, so the next reel still doesn't peek out there. (#503)
 
 ## 0.23.0 (2026-11-17)
 

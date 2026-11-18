@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="#20083B" />
+    <foreground>
+        <!-- Keep the complete wordmark inside round and shaped launcher masks. -->
+        <inset android:inset="20%">
+            <bitmap android:src="@drawable/afterglow_launcher_artwork"
+                android:gravity="fill"
+                android:filter="true" />
+        </inset>
+    </foreground>
+</adaptive-icon>

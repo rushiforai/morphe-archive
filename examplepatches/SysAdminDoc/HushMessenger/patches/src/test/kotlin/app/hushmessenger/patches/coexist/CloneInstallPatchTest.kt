@@ -26,7 +26,7 @@ import app.morphe.patcher.dex.BytecodeMode
 import app.morphe.patcher.patch.Patch
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.ResourcePatchContext
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.DexFileFactory
@@ -690,7 +690,7 @@ class CloneInstallPatchTest {
 
     @Test fun theManifestMovesOnlyWhenACloneIsRequestedAndAfterSettingsAreAdded(@TempDir temporary: Path) {
         val extension = lifecycleExtension()
-        val request = bytecodePatch(description = "Request a test clone") {
+        val request = patch(description = "Request a test clone") {
             dependsOn(cloneResources)
             execute { requestClone(COPY, "Copy") }
         }

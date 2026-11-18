@@ -138,6 +138,8 @@ final class SettingsNavigation extends BaseAdapter {
     private final Map<PatchFamily.Group, Preference> groupHeadings = new EnumMap<>(PatchFamily.Group.class);
     /** The card each row of a split section is drawn in, and each of its headings. Empty elsewhere. */
     private final Map<Preference, Object> cards = new IdentityHashMap<>();
+    /** The dots on switches this build added and on the closed sections that hold them, or null (#96). */
+    @Nullable private final NewRowDots dots;
 
     private final DataSetObserver changes = new DataSetObserver() {
         @Override public void onChanged() { rebuild(); }
@@ -166,6 +168,14 @@ final class SettingsNavigation extends BaseAdapter {
         section("Settings backup", L10n.t("Settings backup"), null, SettingsIcons.EXPORT);
         section("Diagnostics", L10n.t("Diagnostics"), null, SettingsIcons.BUG);
         section("About", L10n.t("About"), null, SettingsIcons.ABOUT);
+        Map<PreferenceCategory, List<Preference>> pages = new IdentityHashMap<>();
+        for (Section section : sections) {
+            List<Preference> rows = new ArrayList<>();
+            for (int i = 0; i < section.category.getPreferenceCount(); i++) rows.add(section.category.getPreference(i));
+            pages.put(section.category, rows);
+        }
+        dots = NewRowDots.start(context, pages);
+        if (dots != null) for (Section section : sections) dots.opens(section.link, section.category);
         changed = link(context, L10n.t("Changed switches"), null, SettingsIcons.LIST);
         changed.setKey(CHANGED);
         changed.setOnPreferenceClickListener(ignored -> { navigate(CHANGED_PAGE); return true; });
@@ -378,8 +388,12 @@ final class SettingsNavigation extends BaseAdapter {
         int before = visible.indexOf(header);
         View bound = before < 0 ? null : list.getChildAt(before - list.getFirstVisiblePosition());
         int top = bound == null ? 0 : bound.getTop();
-        if (open) expanded.add(id);
-        else expanded.remove(id);
+        if (open) {
+            expanded.add(id);
+        } else {
+            expanded.remove(id);
+            seen(id);
+        }
         refocus = header;
         rebuild();
         if (bound != null) {
@@ -566,8 +580,15 @@ final class SettingsNavigation extends BaseAdapter {
     }
 
     void close() {
+        for (String id : expanded) seen(id);
         source.unregisterDataSetObserver(changes);
         AbstractPreferenceFragment.clearRestartFeedbackPresenter(restartFeedback);
+    }
+
+    /** Section [id] has been open: the rows it showed are no longer new. */
+    private void seen(String id) {
+        Section section = sectionOf(header(id));
+        if (dots != null && section != null) dots.left(section.category);
     }
 
     /** A change that waits for a restart was made or taken back: the restart row comes, goes or counts again. */
@@ -588,6 +609,7 @@ final class SettingsNavigation extends BaseAdapter {
         int anchorTop = list.getChildCount() == 0 ? 0 : list.getChildAt(0).getTop();
         visible.clear();
         cards.clear();
+        if (dots != null) dots.searching(!query.isEmpty());
         String terms = normalized(query).trim();
         if (!terms.isEmpty()) {
             for (Section section : sections) {
@@ -895,6 +917,7 @@ final class SettingsNavigation extends BaseAdapter {
                 }
                 if (section != null) bindHeader(row, item, section.id);
             }
+            if (dots != null) dots.paint(row, item, section != null && expanded.contains(section.id), palette().accent);
         }
         if (item == screen.getPreference(0)) {
             // The status card stays a card in either look, as a panel apart from the rows.

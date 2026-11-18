@@ -4,7 +4,6 @@ import app.morphe.patcher.Patcher
 import app.morphe.patcher.PatcherConfig
 import app.morphe.patcher.PatcherContext
 import app.morphe.patcher.dex.BytecodeMode
-import app.morphe.patcher.patch.BytecodePatch
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.Patch
 import app.morphe.patcher.patch.ResourcePatchContext
@@ -31,7 +30,7 @@ class ControlLifecycleTest {
         val name: String,
         val patches: Set<Patch>,
         val keys: Set<String>,
-        val failed: BytecodePatch? = null,
+        val failed: Patch? = null,
     )
 
     @Test fun visibleSelectionsFinalizeExactCapabilitiesAcrossFailuresAndFreshContexts(@TempDir temporary: Path) {

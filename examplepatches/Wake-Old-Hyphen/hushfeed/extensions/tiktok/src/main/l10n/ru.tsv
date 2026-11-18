@@ -546,6 +546,15 @@ Entry %1$d has a field with the wrong data type.	В записи %1$d поле �
 Entry %1$d isn't an object.	Запись %1$d не является объектом.
 Errors	Ошибки
 Expand activity list	Развернуть список активности
+Group likes per comment	Группировать лайки по комментариям
+Show one row for each comment or video people liked, with everyone who liked it counted, instead of a new row for every few likes. Applies the next time the Likes list loads.	Показывает одну строку для каждого комментария или видео, которое понравилось людям, и учитывает всех, кто поставил лайк, вместо новой строки на каждые несколько лайков. Применяется при следующей загрузке списка лайков.
+Swap lists	Поменять списки местами
+Split the Activity page	Разделить страницу активности
+Show your newest comments at the top of the Activity page and likes below, each scrolling on its own. The bar between them swaps the two lists or hides the lower one until you bring it back. Picking another list from Activity still shows just that list. Applies the next time the page opens.	Показывает новые комментарии вверху страницы активности, а лайки под ними, и каждый список прокручивается отдельно. Панель между ними меняет списки местами или скрывает нижний, пока вы не вернёте его. Если выбрать другой список в разделе «Активность», будет показан только он. Применяется при следующем открытии страницы.
+Hide likes	Скрыть лайки
+Show likes	Показать лайки
+Hide comments	Скрыть комментарии
+Show comments	Показать комментарии
 Explore or Community	Обзор или Сообщество
 Export diagnostic report	Экспортировать диагностический отчёт
 Export loaded values	Экспортировать загруженные значения
@@ -578,6 +587,8 @@ Filters, translation and copy options	Фильтры, перевод и пара
 First caller	Первый вызывающий
 First rejection:	Первое отклонение:
 Fit the video to the screen	Вписывать видео в экран
+Fill a tall screen instead	Заполнять высокий экран вместо этого
+With the switch above on, the video is cropped to fill a tall screen like a folding phone's front screen. A squarer one, like the big screen opened up, still shows the whole video.	Когда переключатель выше включён, видео обрезается, чтобы заполнить высокий экран, например внешний экран складного телефона. Более квадратный, например большой экран в раскрытом виде, по-прежнему показывает видео целиком.
 Fill the screen with the video	Заполнять экран видео
 Crop the video until it covers the whole window. On a tall phone the black strip TikTok leaves under a video goes and so does a little of each side.	Обрезать видео, пока оно не займёт всё окно. На вытянутом телефоне чёрная полоса, которую TikTok оставляет под видео, исчезает, как и немного с каждой стороны.
 Focus	Фокус
@@ -1553,6 +1564,27 @@ TikTok closed three times within a minute of starting, so Hushfeed paused itself
 A file named hushfeed-safe-mode in TikTok's folder under Android/data paused Hushfeed. Your settings stay as they are.	Файл с именем hushfeed-safe-mode в папке TikTok в Android/data поставил Hushfeed на паузу. Ваши настройки остаются как есть.
 Turn Hushfeed back on	Снова включить Hushfeed
 Pause Hushfeed	Поставить Hushfeed на паузу
+Settings theme	Тема настроек
+Hushfeed language	Язык Hushfeed
+For Hushfeed's settings and messages. TikTok keeps its own language.	Для настроек и сообщений Hushfeed. TikTok остаётся на своём языке.
+# context: the rows below are each language's own name in the Hushfeed language list, kept as they are in every table
+English	English
+العربية	العربية
+Azərbaycan dili	Azərbaycan dili
+Deutsch	Deutsch
+Español	Español
+Bahasa Indonesia	Bahasa Indonesia
+Italiano	Italiano
+Português (Brasil)	Português (Brasil)
+Русский	Русский
+ไทย	ไทย
+Türkçe	Türkçe
+Tiếng Việt	Tiếng Việt
+简体中文	简体中文
+Match TikTok	Как в TikTok
+Always dark	Всегда тёмная
+Always light	Всегда светлая
+Colors these settings and Hushfeed's own pop-ups.	Задаёт цвета этих настроек и собственных окон Hushfeed.
 Pause Hushfeed's switches after TikTok restarts. Your settings stay saved. Changes made when you patched, like the app's name or icon, stay.	Приостановить переключатели Hushfeed после перезапуска TikTok. Ваши настройки сохранятся. Изменения, сделанные при патчинге, например название или значок приложения, останутся.
 Hushfeed turns back on when TikTok restarts.	Hushfeed снова включится при перезапуске TikTok.
 The file hushfeed-safe-mode couldn't be removed. Delete it from TikTok's folder under Android/data to turn Hushfeed back on.	Не удалось удалить файл hushfeed-safe-mode. Удалите его из папки TikTok в Android/data, чтобы снова включить Hushfeed.
@@ -1959,6 +1991,8 @@ Hide the Service+ row under LIVE previews	Скрывать строку Service+
 A LIVE in the feed can show a Service+ line under the creator's name, such as Ask me anything. This keeps it hidden.	LIVE в ленте может показывать строку Service+ под именем автора, например «Спросите меня о чём угодно». С этим она остаётся скрытой.
 Play sounds TikTok pulled	Воспроизводить звуки, удалённые TikTok
 Play the audio on videos TikTok silenced because their sound was pulled for copyright or in your region. TikTok may still say the sound isn't available.	Воспроизводит звук в видео, которые TikTok заглушил, потому что их звук удалён из-за авторских прав или в вашем регионе. TikTok может по-прежнему писать, что звук недоступен.
+Play original audio	Оригинальная озвучка
+Play videos and mini dramas in their own language instead of TikTok's AI dub in your app language. Captions and translations stay as they are.	Воспроизводит видео и мини-сериалы на их языке вместо ИИ-дубляжа TikTok на языке приложения. Субтитры и переводы остаются как есть.
 Match region fields in requests	Подменять поля региона в запросах
 Keep the For You feed on your real SIM	Оставить «Рекомендации» на настоящей SIM
 With the SIM changed, TikTok can keep showing videos you've already watched. Turn this on to stop that. Sticker search and the rest of TikTok still see the SIM above, while For You asks for videos with your phone's own SIM country and carrier. Your IP address and account history still count.	С подменённой SIM TikTok может снова и снова показывать уже просмотренные видео. Включите это, чтобы такого не было. Поиск стикеров и остальной TikTok по-прежнему видят SIM, указанную выше, а «Рекомендации» запрашивают видео со страной и оператором SIM вашего телефона. Ваш IP-адрес и история аккаунта по-прежнему учитываются.
@@ -1974,6 +2008,10 @@ Clear screen hides a LIVE's chat, gifts and buttons so only the stream shows. Ti
 Keep clear screen in the next LIVE	Сохранять чистый экран в следующем LIVE
 # context: summary of Keep clear screen in the next LIVE; a room is a LIVE stream page, swiping moves to the next one (#354)
 A LIVE you swipe to comes back with its chat, gifts and buttons showing. This keeps clear screen on from room to room until you turn it off.	LIVE, на который вы перелистываете, снова показывает чат, подарки и кнопки. Этот переключатель сохраняет чистый экран от комнаты к комнате, пока вы его не выключите.
+# context: LIVE settings row under Keep clear screen in the next LIVE; adds TikTok's full screen button (turns the phone sideways for a wide stream) to LIVE rooms that lack it (#57)
+Offer full screen in more LIVEs	Полноэкранный режим в других LIVE
+# context: summary of Offer full screen in more LIVEs; streamed from a computer means TikTok LIVE Studio, a wide video is a landscape stream (#57)
+TikTok shows its full screen button only in LIVEs streamed from a computer or a shared screen. This shows it in every other LIVE with a wide video.	TikTok показывает кнопку полноэкранного режима только в LIVE, которые транслируются с компьютера или с общего экрана. Эта функция показывает её в любом другом LIVE с широким видео.
 Dark LIVE panels in dark mode	Тёмные панели LIVE в тёмной теме
 With TikTok in dark mode, a LIVE room still opens its share menu, fan club and other panels in light colors. This opens them dark.	Даже в тёмной теме комната LIVE открывает меню «Поделиться», фан-клуб и другие панели в светлых цветах. С этим переключателем они открываются тёмными.
 Keep watching in a small window	Смотреть в маленьком окне
@@ -2424,6 +2462,8 @@ Show the time zone	Показывать часовой пояс
 Puts your time zone after the time to the second, like EDT.	Добавляет ваш часовой пояс после времени до секунды, например EDT.
 Short date	Короткая дата
 Writes the date before the time to the second the short way your language does, like 10/7/25.	Пишет дату перед временем до секунды так коротко, как принято в вашем языке, например 07.10.2025.
+Day before month	День перед месяцем
+Writes TikTok's date by the creator's name day first, like 29.09, with the year after it for an older video. Ages like 2d ago stay as they are.	Пишет дату TikTok рядом с именем автора, начиная с дня, например 29.09, а для старого видео добавляет год. Возраст вроде 2 дн. назад остаётся как есть.
 Color commenter names	Цветные имена комментаторов
 Give each commenter's name a color of its own, the same one every time you see that account, so a long thread is easier to follow.	Давать имени каждого автора комментария свой цвет, всегда один и тот же для этого аккаунта, чтобы за длинной веткой было легче следить.
 Show the country as a flag	Показывать страну флагом
@@ -2473,6 +2513,8 @@ How much of the video shows through the glass pill on the main feed. Most see-th
 On the main feed, a raised bubble of glass sits behind the tab you're on and slides to the next tab you pick. Works on any bottom bar, with or without Liquid glass look.	В основной ленте за открытой вкладкой лежит выпуклый стеклянный пузырь, и он переезжает к следующей вкладке, которую вы выберете. Работает с любой нижней панелью, включён «Эффект жидкого стекла» или нет.
 Slide across the tabs	Скольжение по вкладкам
 On the main feed, slide a finger along the tabs and the lens follows it. Let go and that tab opens. Taps and long presses work as before. Needs Glass lens on the current tab.	В основной ленте проведите пальцем по вкладкам, и линза последует за ним. Отпустите, и откроется эта вкладка. Нажатия и долгие нажатия работают как раньше. Нужна «Стеклянная линза на текущей вкладке».
+Liquid glass when held	Жидкое стекло при удержании
+On the main feed, hold a finger on the tabs and the glass lens swells, then wobbles back when you let go. With Blur the video behind the bar on Android 13 and up, the video under it bends harder and splits into color at its edge. Needs Glass lens on the current tab.	В основной ленте удерживайте палец на вкладках, и стеклянная линза раздуется, а когда отпустите, вернётся, покачиваясь. С «Размывать видео за панелью» на Android 13 и новее видео под ней изгибается сильнее и распадается на цвета по краю. Нужна «Стеклянная линза на текущей вкладке».
 Haptics on the tabs	Вибрация на вкладках
 On the main feed, a light tick each time the glass lens passes a tab, as it slides after a tap or under your finger. Needs Glass lens on the current tab.	В основной ленте лёгкий щелчок каждый раз, когда стеклянная линза проходит вкладку, после нажатия или под вашим пальцем. Нужна «Стеклянная линза на текущей вкладке».
 Haptic style	Стиль вибрации
@@ -2629,6 +2671,8 @@ search suggestions	подсказки поиска
 AI chat	чат ИИ
 AI Tako	ИИ Tako
 save photos	сохранить фото
+download button	кнопка скачивания скачать
+It's in %1$s, under %2$s. Tap to go there.	Находится в разделе %1$s, в группе %2$s. Нажмите, чтобы перейти туда.
 Lock the feed at set times	Блокировать ленту по расписанию
 The feed locks by itself during these hours, on your phone's clock. Write days and hours like Mon-Fri 21:00-07:00; Sat Sun 13:00-15:00. Leave the days out for every day. A time that ends earlier than it starts runs past midnight.	Лента блокируется сама в эти часы, по часам телефона. Пишите дни и часы так: Mon-Fri 21:00-07:00; Sat Sun 13:00-15:00. Без дней значит каждый день. Время, которое заканчивается раньше, чем начинается, переходит через полночь.
 Couldn't read %1$s. Write days and hours like Mon-Fri 21:00-07:00.	Не удалось прочитать %1$s. Пишите дни и часы так: Mon-Fri 21:00-07:00.
@@ -2694,6 +2738,16 @@ Proxy %1$s needs a user name and password	Прокси %1$s требует ло�
 Proxy %1$s refused your user name or password	Прокси %1$s отклонил логин или пароль
 Save this video	Сохранить это видео
 Show the save button on videos	Показывать кнопку сохранения на видео
+Hold TikTok's save button to download	Удерживать кнопку сохранения TikTok для загрузки
+Press and hold the save button in the right column to save the video with your download settings. A tap still adds it to Favorites. It wins over Hold speed on Favorites.	Удерживайте кнопку сохранения в правой колонке, чтобы сохранить видео с вашими настройками загрузки. Обычное нажатие по-прежнему добавляет его в Избранное. Этот переключатель главнее, чем Скорость удержания на «Избранное».
+Size of the buttons on videos	Размер кнопок на видео
+Size of the LIVE buttons	Размер кнопок LIVE
+Smallest	Самые маленькие
+Small	Маленькие
+Large	Большие
+Line them up over the right column	Выстроить над правой колонкой
+Stack the buttons above TikTok's own on the right, starting over the avatar. They follow the column instead of staying where you dragged them.	Ставит кнопки столбиком над кнопками TikTok справа, начиная над аватаром. Они следуют за колонкой, а не остаются там, куда вы их перетащили.
+Turn off Line them up over the right column to move it	Сначала отключите «Выстроить над правой колонкой»
 Add a button beside the block control that saves the video on screen in one tap. Drag it wherever you like.	Добавлять рядом с кнопкой блокировки кнопку, сохраняющую видео на экране одним касанием. Её можно перетащить куда угодно.
 Couldn't save this one. Try again.	Не сохранено. Повторите.
 Opening TikTok or your messages no longer pauses music from another app. TikTok takes the sound while a video plays and gives it back when you leave the video.	Открытие TikTok или ваших сообщений больше не ставит на паузу музыку из другого приложения. TikTok забирает звук, пока играет видео, и возвращает его, когда вы уходите с видео.
@@ -2791,6 +2845,18 @@ Clearing Favorites in %1$d	Очистка Избранного через %1$d
 Reposts removed: %1$d	Удалено репостов: %1$d
 Likes removed: %1$d	Снято лайков: %1$d
 Favorites removed: %1$d	Убрано из Избранного: %1$d
+Remove all comments	Удалить все комментарии
+Deletes every comment you've posted one after another.	Удаляет все ваши комментарии по очереди.
+Remove selected comments	Удалить выбранные комментарии
+Pick comments from your comment history to delete.	Выберите в истории комментариев те, что нужно удалить.
+Removing all comments in %1$d	Удаление всех комментариев через %1$d
+Removing the picked comments in %1$d	Удаление выбранных комментариев через %1$d
+Comments removed: %1$d	Удалено комментариев: %1$d
+TikTok refused to list your comments	TikTok отказался показать ваши комментарии
+Couldn't load your comments. Try again.	Не удалось загрузить ваши комментарии. Попробуйте ещё раз.
+Loading your comments	Загрузка ваших комментариев
+No comments to show	Нет комментариев
+No text	Без текста
 Nothing to remove	Нечего удалять
 Done. %1$d removed.	Готово. Удалено: %1$d.
 Stopped. %1$d removed.	Остановлено. Удалено: %1$d.
@@ -2800,6 +2866,14 @@ Not available on this TikTok version	Недоступно в этой верси
 Sign in to TikTok first	Сначала войдите в TikTok
 A removal is already running	Удаление уже идёт
 Cancelled	Отменено
+# context: A switch under Clean up your account on the Privacy page
+Tap a video to remove it	Удалять видео касанием
+In your own Liked videos, Favorites and Reposts, a tap takes the video off that list instead of opening it.	В ваших понравившихся видео, Избранном и репостах касание убирает видео из этого списка, а не открывает его.
+# context: Toasts after one tap on your own Liked, Favorites or Reposts grid removes a video, or fails to
+Couldn't remove that video. Try again.	Не удалось удалить видео. Повторите.
+Removed from Liked videos	Удалено из понравившихся видео
+Removed from Favorites	Удалено из Избранного
+Removed from Reposts	Удалено из репостов
 Show inbox filters	Показывать фильтры входящих
 Adds the Main, Requests, Unread and Starred tabs above your chats, the ones TikTok gives creator accounts.	Добавляет над чатами вкладки «Основные», «Запросы», «Непрочитанные» и «Избранные», которые TikTok даёт аккаунтам авторов.
 Rebuild message search	Перестроить поиск по сообщениям
@@ -3044,3 +3118,80 @@ Account country on profiles	Страна аккаунта в профилях
 A profile's share sheet gets an Account country button. It asks TikTok where that account is based, or where its latest videos were posted from.	В меню «Поделиться» профиля появляется кнопка «Страна аккаунта». Она спрашивает у TikTok, где находится этот аккаунт или откуда опубликованы его последние видео.
 Account country	Страна аккаунта
 Videos posted from %1$s	Страна публикации видео: %1$s
+Long-press Profile for Activity center	Долгое нажатие на Профиль открывает Центр активности
+# context: Summary under that switch; Long-press Profile for Watch history is the row just above it
+Press and hold the Profile tab to open TikTok's Activity center. A tap on Profile works as before. While Long-press Profile for Watch history is on, that one takes the press.	Нажмите и удерживайте вкладку Профиль, чтобы открыть Центр активности TikTok. Обычное нажатие на Профиль работает как раньше. Пока включено «Долгое нажатие на Профиль открывает историю просмотров», нажатие занимает она.
+Share the video after a save	Делиться видео после сохранения
+# context: Summary under Share the video after a save, a switch in Downloads
+Opens Android's share sheet with the file as soon as a video is saved, video stories included, so you can send it straight to WhatsApp, Telegram or any other app. Picked videos saved together get the usual notice.	Открывает меню «Поделиться» Android с файлом сразу после сохранения видео, включая видеоистории, чтобы его можно было сразу отправить в WhatsApp, Telegram или любое другое приложение. Выбранные видео, сохранённые вместе, получают обычное уведомление.
+Caption spot in Clear display	Положение субтитров в чистом виде
+# context: A choice for Caption spot in Clear display: the kept caption stays where TikTok draws its own
+Where TikTok shows it	Там, где их показывает TikTok
+# context: The other choice for Caption spot in Clear display: the kept caption sits lower on the screen
+Lower, near the bottom	Ниже, у нижнего края
+# context: A switch on the Playback page beside Fit, Fill and Stretch: the video covers the screen with a little cropping and a little stretching
+Crop and stretch to fill the screen	Обрезать и растягивать на весь экран
+# context: Summary for Crop and stretch to fill the screen. Fill and Stretch are the names of the switches above it
+Cover the whole window with half the crop of Fill and half the stretch of Stretch, so neither is easy to spot. A video far from the screen's shape keeps TikTok's size.	Заполняет всё окно, обрезая вдвое меньше, чем «Заполнять», и растягивая вдвое меньше, чем «Растягивать», так что ни то, ни другое почти не заметно. Видео, форма которого сильно отличается от экрана, сохраняет размер TikTok.
+Watch LIVEs unseen	Смотреть LIVE незаметно
+You stay off the viewer list of LIVEs you open. Tap the eye in a LIVE to let that host see you. Needs Ghost mode on.	Вас не будет в списке зрителей LIVE, которые вы открываете. Нажмите на глаз в LIVE, чтобы ведущий вас увидел. Нужен включённый режим призрака.
+The host can see you	Ведущий вас видит
+Let the host see you	Показаться ведущему
+Couldn't tell which LIVE this is. Open it again.	Непонятно, какой это LIVE. Откройте его снова.
+The host can already see you in this LIVE	Ведущий уже видит вас в этом LIVE
+Letting the host see you	Показываем вас ведущему
+The host can see you now	Теперь ведущий вас видит
+The host sees you next time you open it	Ведущий увидит вас, когда вы откроете его снова
+Couldn't reach TikTok. Open this LIVE again.	Нет связи с TikTok. Откройте этот LIVE снова.
+LIVE name alerts	Оповещения об имени в LIVE
+Tells you when your name comes up in a LIVE, in the chat or said out loud in a room with captions on. You get a notification when TikTok's notifications are on, and a banner in the room when they're off.	Сообщает, когда ваше имя звучит в LIVE, в чате или вслух в комнате с включёнными субтитрами. Если уведомления TikTok включены, придёт уведомление, а если выключены, в комнате появится баннер.
+Names to listen for	Имена для отслеживания
+Your handle and TikTok name are on the list already. Add other names people call you, separated by commas.	Ваш никнейм и имя в TikTok уже в списке. Добавьте другие имена, которыми вас называют, через запятую.
+Your name came up in a LIVE	Ваше имя прозвучало в LIVE
+Listen for your name	Слушать ваше имя
+Also listens to the LIVE's sound, so your name counts when it's said out loud in rooms without captions. Your phone's own speech recognition does the listening, with TikTok's microphone permission. It hears only the LIVE, though Android shows its microphone dot, and it uses a little more data.	Также слушает звук LIVE, чтобы ваше имя засчитывалось, когда его произносят вслух в комнатах без субтитров. Слушает встроенное распознавание речи вашего телефона, с разрешением TikTok на микрофон. Оно слышит только LIVE, хотя Android показывает значок микрофона, и тратит немного больше трафика.
+Needs Android 13 or newer.	Нужен Android 13 или новее.
+Off: this phone's speech recognition only hears the microphone. Turn this off and on to try again.	Выключено: распознавание речи на этом телефоне слышит только микрофон. Выключите и снова включите, чтобы попробовать ещё раз.
+This phone has no speech recognition. Choose one under Android's voice input settings, then open the LIVE again.	На этом телефоне нет распознавания речи. Выберите его в настройках голосового ввода Android, затем снова откройте LIVE.
+TikTok needs the microphone permission for speech recognition. Allow it in Android's app settings, then open the LIVE again.	TikTok нужно разрешение на микрофон для распознавания речи. Разрешите его в настройках приложений Android, затем снова откройте LIVE.
+Speech recognition has no model for your phone's language. Download one in Android's speech settings, then open the LIVE again.	У распознавания речи нет модели для языка вашего телефона. Скачайте её в настройках речи Android, затем снова откройте LIVE.
+Speech recognition kept failing in the last LIVE. Open the LIVE again to retry.	Распознавание речи раз за разом не срабатывало в последнем LIVE. Откройте LIVE снова, чтобы повторить.
+Save the photo posts as one video?	Сохранить фотопубликации как одно видео?
+One video	Одно видео
+One per post	По одному на публикацию
+# context: A switch on the Playback page beside Fit, Fill, Stretch and Crop and stretch: the video covers the screen, its middle keeps its own shape and only bands along the top and bottom are stretched
+Keep the middle unstretched	Не растягивать середину
+# context: Summary for Keep the middle unstretched
+Cover the whole window and keep the middle of the video at its own shape. A little comes off the sides, and only the top and bottom are stretched. A video far from the screen's shape keeps TikTok's size.	Заполняет всё окно, а середина видео сохраняет свою форму. По бокам немного обрезается, а растягиваются только верх и низ. Видео, форма которого сильно отличается от экрана, сохраняет размер TikTok.
+# context: A Feature Gate Lab preset title: when a video is paused, TikTok shows a search tag on things in the frame, which opens its visual search
+Visual search on paused videos	Визуальный поиск на видео на паузе
+App icon	Значок приложения
+Some home screens drop the icon when it changes. If yours does, add TikTok back from the app list.	Некоторые рабочие столы убирают значок, когда он меняется. Если ваш так делает, добавьте TikTok снова из списка приложений.
+Icon changed	Значок изменён
+Couldn't change the icon. Try again.	Не удалось изменить значок. Попробуйте ещё раз.
+TikTok colors	Цвета TikTok
+Black background	Чёрный фон
+White on black	Белый на чёрном
+Black on white	Чёрный на белом
+Material You	Material You
+Your icon	Ваш значок
+Save episodes	Сохранить серии
+Pick episodes to save	Выберите серии для сохранения
+Episode %1$s	Серия %1$s
+Preview only	Только превью
+Loading episodes	Загрузка серий
+Couldn't load the episodes. Try again.	Не удалось загрузить серии. Попробуйте ещё раз.
+Pick at least one episode	Выберите хотя бы одну серию
+Saving %1$s. Tap Save again for the rest.	Сохраняем %1$s. Для остальных снова «Сохранить».
+Save episodes button in the share sheet	Кнопка «Сохранить серии» в меню «Поделиться»
+Adds Save episodes when you share an episode of a mini drama. It lists the drama's episodes so you can pick several and save them in one go. An episode you haven't unlocked saves only its preview.	Добавляет «Сохранить серии», когда вы делитесь серией мини-драмы. Показывает серии драмы, чтобы выбрать несколько и сохранить их за один раз. Для серии, которую вы не открыли, сохраняется только превью.
+Save to a collection	Сохранить в подборку
+Collections aren't available for this video	Подборки недоступны для этого видео
+# context: Inbox settings, two switches under Hide On this day. The first hides LIVE circles in the stories tray from accounts the user doesn't follow. The second hides the Widget circle TikTok puts at the end of the tray, which offers its home screen widget.
+Hide LIVEs from accounts you don't follow	Скрывать трансляции аккаунтов, на которые вы не подписаны
+LIVEs from accounts you don't follow leave the stories tray. LIVEs from accounts you follow stay.	Трансляции аккаунтов, на которые вы не подписаны, исчезают из панели историй. Трансляции аккаунтов, на которые вы подписаны, остаются.
+Hide the Widget circle	Скрывать кружок виджета
+The Widget circle at the end of the stories tray goes. TikTok's home screen widget still works.	Кружок виджета в конце панели историй исчезает. Виджет TikTok на главном экране продолжает работать.
+# context: Feed screen settings, a switch under Show video length on profile grids. It removes the view count and the play icon from each video tile on profile grids. If the date, video length or engagement rate are switched on, they take the first line instead.
+Hide view counts on profile grids	Скрывать число просмотров в сетке профиля
+Takes the view count and its play icon off each video on profile grids. Dates, lengths and the engagement rate you turned on move up in its place.	Убирает число просмотров и значок воспроизведения у каждого видео в сетке профиля. Включённые вами даты, длительность и уровень вовлечённости поднимаются на их место.

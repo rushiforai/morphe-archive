@@ -182,12 +182,38 @@ public class FloatingMenuTest {
         assertEquals(new Rect(23, 486, 623, 686), placed);
     }
 
-    @Test public void aCardUnderTheLastMessageOnTheScreenStaysOnTheScreen() {
+    @Test public void withNoRoomUnderTheLastMessageTheCardGoesOverTheEmojiRow() {
         Rect placed = FloatingMenu.place(new Rect(112, 1800, 969, 1978), new Rect(381, 1969, 1070, 2070),
             new Rect(0, 75, 1080, 2274), 600, 400, 20, 12);
 
-        assertEquals(2274 - 12 - 400, placed.top);
+        assertEquals(1800 - 20 - 400, placed.top);
         assertEquals(1080 - 12 - 600, placed.left);
+    }
+
+    @Test public void aCardWithRoomNeitherUnderNorOverStaysOnTheScreen() {
+        Rect placed = FloatingMenu.place(new Rect(112, 300, 969, 478), new Rect(381, 469, 1070, 570),
+            new Rect(0, 75, 1080, 2274), 600, 1900, 20, 12);
+
+        assertEquals(2274 - 12 - 1900, placed.top);
+    }
+
+    @Test public void theLastMessageRisesJustEnoughForTheCardUnderIt() {
+        Rect frame = new Rect(0, 75, 1080, 2274);
+        Rect panel = new Rect(112, 1800, 969, 1978);
+
+        assertEquals(2070 + 20 + 400 - (2274 - 12), FloatingMenu.rise(panel, new Rect(381, 1969, 1070, 2070), frame, 400, 20, 12));
+        assertEquals(0, FloatingMenu.rise(new Rect(112, 196, 969, 374), new Rect(381, 365, 1057, 466), frame, 400, 20, 12));
+        // Never past the top of the chat: the emoji row stops an edge under it.
+        assertEquals(200 - (75 + 12), FloatingMenu.rise(new Rect(112, 200, 969, 378), new Rect(381, 369, 1070, 2070), frame, 400, 20, 12));
+    }
+
+    @Test public void aBubbleThatOnlySaysItTakesATapIsStillThePressedMessage() {
+        View litho = at(new View(app), 23, 365, 699, 466);
+        litho.setClickable(true);
+        host.removeAllViews();
+        host.addView(litho);
+
+        assertEquals(new Rect(23, 365, 699, 466), FloatingMenu.bubble(host, new Rect(112, 196, 969, 374), density));
     }
 
     @Test public void withNoWordOnWhereTheMessageIsTheCardGoesUnderTheEmojiRow() {

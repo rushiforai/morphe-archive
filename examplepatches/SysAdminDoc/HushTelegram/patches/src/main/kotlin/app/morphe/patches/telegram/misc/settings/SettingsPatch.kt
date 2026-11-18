@@ -208,6 +208,69 @@ private fun Method.nativeCallable(static: Boolean) =
     AccessFlags.PUBLIC.isSet(accessFlags) && AccessFlags.STATIC.isSet(accessFlags) == static &&
         !AccessFlags.ABSTRACT.isSet(accessFlags) && !AccessFlags.NATIVE.isSet(accessFlags) && nativeBody().isNotEmpty()
 
+/** Where a click's ID dispatch sends each ID it names, how many switches it has and how often it loads "settings". */
+private class NativeDispatch(val routes: Map<Int, Int>, val switches: Int, val settingsLoads: Int)
+
+/**
+ * Walks the ID dispatch that starts at [from]: literal loads into other registers, `if-eq` tests of
+ * [id] against a register every path fills with one literal, and switches on [id], up to the first
+ * jump or instruction of anything else. An earlier test wins over a later one, as it does when it runs.
+ * Null when a test or switch reads anything but those.
+ */
+private fun nativeDispatch(body: List<Instruction>, addresses: IntArray, predecessors: List<Set<Int>>, from: Int, id: Int): NativeDispatch? {
+    fun target(at: Int, offset: Int) = addresses.indexOf(addresses[at] + offset)
+    // The one literal every path into [at] leaves in [register], or null.
+    fun literal(register: Int, at: Int): Int? {
+        val values = mutableSetOf<Int>()
+        val seen = mutableSetOf<Int>()
+        val pending = ArrayDeque(predecessors[at])
+        if (pending.isEmpty()) return null
+        while (pending.isNotEmpty()) {
+            val step = pending.removeFirst()
+            if (!seen.add(step)) continue
+            val instruction = body[step]
+            val written = instruction.namedRegisters().firstOrNull()
+            if (instruction.opcode.setsRegister() && written != null &&
+                (written == register || instruction.opcode.setsWideRegister() && written + 1 == register)) {
+                if (instruction.opcode !in NATIVE_LITERALS || written != register) return null
+                values += instruction.nativeInt() ?: return null
+                continue
+            }
+            if (predecessors[step].isEmpty()) return null
+            pending.addAll(predecessors[step])
+        }
+        return values.singleOrNull()
+    }
+    val routes = linkedMapOf<Int, Int>()
+    var switches = 0
+    var settingsLoads = 0
+    var at = from
+    while (at < body.size) {
+        val instruction = body[at]
+        when (instruction.opcode) {
+            Opcode.IF_EQ -> {
+                val other = instruction.namedRegisters().filter { it != id }
+                if (instruction.namedRegisters().size != 2 || other.size != 1) return null
+                val key = literal(other.single(), at) ?: return null
+                routes.putIfAbsent(key, target(at, (instruction as OffsetInstruction).codeOffset))
+            }
+            Opcode.PACKED_SWITCH, Opcode.SPARSE_SWITCH -> {
+                if (instruction.namedRegisters() != listOf(id)) return null
+                val payload = body.getOrNull(target(at, (instruction as OffsetInstruction).codeOffset)) as? SwitchPayload ?: return null
+                payload.switchElements.forEach { routes.putIfAbsent(it.key, target(at, it.offset)) }
+                switches++
+            }
+            Opcode.CONST_4, Opcode.CONST_16, Opcode.CONST, Opcode.CONST_STRING -> {
+                if (instruction.namedRegisters().single() == id) return null
+                if (((instruction as? ReferenceInstruction)?.reference as? StringReference)?.string == "settings") settingsLoads++
+            }
+            else -> return NativeDispatch(routes, switches, settingsLoads)
+        }
+        at++
+    }
+    return null
+}
+
 private fun BytecodePatchContext.requireSettingsEntry() {
     val owner = tgMutableClassDefBy(ENTRY)
     nativeShape(AccessFlags.PUBLIC.isSet(owner.accessFlags), "extension entry is inaccessible")
@@ -539,13 +602,24 @@ internal fun BytecodePatchContext.resolveNativeSettings(): NativeSettingsPlan? {
     val clickAt = idRead + 1
     val idRegister = clickBody[idRead].namedRegisters().first()
     val string = clickBody.getOrNull(clickAt)?.let { (it as? ReferenceInstruction)?.reference as? StringReference }
-    val scratch = clickBody.getOrNull(clickAt)?.namedRegisters()?.singleOrNull() ?: -1
     val clickFlow = click.nativeFlow()
+    val clickLive = RegisterLiveness.of(click).liveInto(clickAt)
+    // Telegram's builds load "settings" and switch on every ID at once, and the guard borrows the
+    // string's register. Plus Messenger's R8 tests IDs 1 to 3 one at a time first and spreads the
+    // rest, its own block above Telegram's included, over three switches; there the guard takes the
+    // lowest register nothing reads before writing it again.
+    val telegramDispatch = string?.string == "settings" && clickBody[clickAt].opcode == Opcode.CONST_STRING &&
+        clickBody.getOrNull(clickAt + 1)?.opcode == Opcode.PACKED_SWITCH
+    val scratch = if (telegramDispatch) clickBody[clickAt].namedRegisters().single()
+    else (0 until minOf(16, click.implementation!!.registerCount)).firstOrNull { it !in clickLive } ?: -1
     val inputs = setOf(click.parameterRegisterNumber(0), click.parameterRegisterNumber(1))
     val predecessors = clickBody.indices.map { mutableSetOf<Int>() }
     for (from in clickBody.indices) for (to in clickFlow.normal[from] + clickFlow.exceptional[from]) {
         predecessors[to].add(from)
     }
+    val addresses = IntArray(clickBody.size + 1)
+    clickBody.indices.forEach { addresses[it + 1] = addresses[it] + clickBody[it].codeUnits }
+    val dispatch = nativeDispatch(clickBody, addresses, predecessors, clickAt, idRegister)
     val reaching = mutableSetOf<Int>()
     val pending = ArrayDeque(predecessors[idRead])
     while (pending.isNotEmpty()) {
@@ -559,27 +633,26 @@ internal fun BytecodePatchContext.resolveNativeSettings(): NativeSettingsPlan? {
         } == true
     }, "incoming click item or owner can be overwritten")
     nativeShape(clickBody[idRead].namedRegisters().getOrNull(1) == click.parameterRegisterNumber(1) &&
-        string?.string == "settings" && clickBody[clickAt].opcode == Opcode.CONST_STRING &&
-        clickBody.getOrNull(clickAt + 1)?.opcode == Opcode.PACKED_SWITCH &&
-        clickBody[clickAt + 1].namedRegisters() == listOf(idRegister) &&
-        scratch in 0..15 && scratch !in RegisterLiveness.of(click).liveInto(clickAt) &&
+        dispatch != null && dispatch.settingsLoads == 1 &&
+        (!telegramDispatch || clickBody[clickAt + 1].namedRegisters() == listOf(idRegister)) &&
+        scratch in 0..15 && scratch !in clickLive &&
         clickFlow.normal[idRead] == listOf(clickAt) && clickFlow.exceptional[clickAt].isEmpty() &&
         clickBody.indices.none { it != idRead && clickAt in clickFlow.normal[it] || clickAt in clickFlow.exceptional[it] },
         "click identity or scratch register changed")
-    val payload = clickBody.filterIsInstance<SwitchPayload>().nativeSingle("click switch")
+    val keys = dispatch!!.routes.keys
     // Telegram 13.0 added identity 25, the Wallet row, the 13.0.2 beta 26, its audio recorder
-    // settings, and 13.2 one more.
-    nativeShape(payload.switchElements.map { it.key }.let { it.size in 25..27 && it == (1..it.size).toList() },
+    // settings, and 13.2 one more. Plus Messenger keeps Telegram's IDs, sends 4 and 14 (unused)
+    // to the default and adds a block of its own above them.
+    nativeShape(if (telegramDispatch) clickBody.count { it is SwitchPayload } == 1 && dispatch.switches == 1 &&
+            keys.size in 25..27 && keys.toList() == (1..keys.size).toList()
+        else keys.containsAll((1..25).toSet() - setOf(4, 14)) && keys.all { it in 1..27 || it in 28..999 },
         "ordinary click identities changed")
-    val addresses = IntArray(clickBody.size + 1)
-    clickBody.indices.forEach { addresses[it + 1] = addresses[it] + clickBody[it].codeUnits }
     var present: String? = null
     val clickKinds = RegisterKinds.of(click)
     for ((key, type) in mapOf(1 to "UserInfoActivity", 2 to "ThemeActivity", 3 to "PrivacySettingsActivity",
         5 to "NotificationsSettingsActivity", 6 to "DataSettingsActivity", 7 to "FiltersSetupActivity",
         8 to "SessionsActivity", 9 to null, 10 to "LanguageSelectActivity")) {
-        val route = payload.switchElements.single { it.key == key }
-        val target = addresses.indexOf(addresses[clickAt + 1] + route.offset)
+        val target = dispatch.routes[key] ?: -1
         nativeShape(target >= 0 && target + 3 < clickBody.size, "ordinary click route is truncated")
         val arm = clickBody.subList(target, target + 4)
         val allocation = arm[0].nativeRef()
@@ -732,8 +805,12 @@ private fun validateSettingsCallbacks(classes: Map<String, ClassDef>, owner: Cla
     val offsets = IntArray(ops.size + 1)
     ops.indices.forEach { offsets[it + 1] = offsets[it] + ops[it].codeUnits }
     val table = ops[offsets.indexOf(offsets[switchAt] + (ops[switchAt] as OffsetInstruction).codeOffset)] as SwitchPayload
-    val route = table.switchElements.filter { it.key == routeKey }.nativeSingle("fill callback route")
-    val target = offsets.indexOf(offsets[switchAt] + route.offset)
+    val routes = table.switchElements.filter { it.key == routeKey }
+    // Plus Messenger's R8 leaves the last route out of a table that holds every one below it, so
+    // that route runs on the switch's fall-through.
+    val fallsThrough = routes.isEmpty() && routeKey != null && table.switchElements.map { it.key } == (0 until routeKey).toList()
+    val target = if (fallsThrough) switchAt + 1
+    else offsets.indexOf(offsets[switchAt] + routes.nativeSingle("fill callback route").offset)
     nativeShape(target >= 0 && target + 8 <= ops.size, "fill callback route is truncated")
     val arm = ops.subList(target, target + 8)
     nativeShape(arm.map { it.opcode } == listOf(Opcode.IGET_OBJECT, Opcode.CHECK_CAST, Opcode.MOVE_OBJECT_FROM16,

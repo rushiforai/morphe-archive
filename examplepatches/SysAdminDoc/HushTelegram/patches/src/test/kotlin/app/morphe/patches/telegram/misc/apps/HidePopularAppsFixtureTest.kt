@@ -8,6 +8,7 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.PlusPending
 import app.morphe.util.names.origRef
 import app.morphe.util.names.loadsInt
 import app.morphe.util.names.addInstructions
@@ -36,6 +37,7 @@ import app.morphe.util.names.origType
 import app.morphe.util.names.tgMutableClassDefBy
 
 /** The loader's class, the Apps tab's class, what Search only my chats reads or edits and the runtime are the whole context. */
+@PlusPending
 class HidePopularAppsFixtureTest {
     @Test
     fun `the loader and the Apps tab are gated and keep their stock flow`() {

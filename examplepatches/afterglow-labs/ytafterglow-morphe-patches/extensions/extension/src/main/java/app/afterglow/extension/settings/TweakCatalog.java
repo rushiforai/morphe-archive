@@ -28,6 +28,7 @@ public final class TweakCatalog {
     }
 
     public static final Tweak[] ALL = {
+            new Tweak("app-icon", "Afterglow app icon", new String[] {}),
             new Tweak("remove-ads", "Remove ads", new String[] {
                     "noAds",
                     "noPromotionCards",

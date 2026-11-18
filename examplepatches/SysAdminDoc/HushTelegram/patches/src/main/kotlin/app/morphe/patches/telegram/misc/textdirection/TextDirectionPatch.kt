@@ -63,7 +63,7 @@ val textDirectionPatch = bytecodePatch(
 ) {
     category("Writing")
     dependsOn(settingsPatch, telegramExtensionPatch)
-    compatibleWith(*AppCompatibilities.telegram())
+    compatibleWith(*AppCompatibilities.telegramOnly())
     execute {
         val site = resolveTextDirection()
         // Assembled on copies first, so a refusal leaves the app untouched.

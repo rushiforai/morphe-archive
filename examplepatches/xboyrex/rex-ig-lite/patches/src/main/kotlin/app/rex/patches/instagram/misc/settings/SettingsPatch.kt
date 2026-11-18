@@ -39,6 +39,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.patch
 import app.morphe.patcher.resource.ResourceType
@@ -52,6 +53,7 @@ import app.morphe.patcher.util.smali.toInstruction
 import app.morphe.patches.all.misc.fix.spoofsignature.spoofSignaturePatch
 import app.morphe.patches.all.misc.resources.addAppResources
 import app.morphe.patches.all.misc.resources.addResourcesPatch
+import app.morphe.util.findInstructionIndicesReversed
 import app.morphe.util.indexOfFirstInstructionOrThrow
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.HiddenApiRestriction
@@ -71,10 +73,20 @@ private object WhitehatIndicatorFingerprint : Fingerprint(
     ),
 )
 
+private object BitmapGetPixelsCallFingerprint : Fingerprint(
+    filters = listOf(
+        methodCall(
+            definingClass = "Landroid/graphics/Bitmap;",
+            name = "getPixels",
+            parameters = listOf("[I", "I", "I", "I", "I", "I", "I"),
+            returnType = "V",
+        ),
+    ),
+)
+
 internal val whitehatIndicatorPatch = patch {
     dependsOn(sharedExtensionPatch)
     execute {
-            runCatching {
         runCatching {
             WhitehatIndicatorFingerprint.method.apply {
                 val activityRegister = parameterRegisterStart(this)
@@ -92,9 +104,7 @@ internal val whitehatIndicatorPatch = patch {
                 )
             }
         }
-    
-            }
-        }
+    }
 }
 
 @Suppress("unused")
@@ -132,192 +142,211 @@ val settingsPatch =
         )
         execute {
             runCatching {
-            addAppResources("shared")
-            addAppResources("instagram")
-            runCatching { enableSettings("addSettings") }
+                addAppResources("shared")
+                addAppResources("instagram")
+                runCatching { enableSettings("addSettings") }
 
-            for (fingerprint in listOf(IgFragmentActivityOnCreate, IgFragmentActivityOnResume)) {
+                // Guard all Bitmap.getPixels([IIIIIII)V calls in Instagram classes via SafeBitmap.getPixels
                 runCatching {
-                    fingerprint.method.addInstructions(
-                        fingerprint.instructionMatches.first().index,
-                        """
-                        invoke-static {p0}, Lapp/morphe/extension/shared/Utils;->setActivity(Landroid/app/Activity;)V
-                        invoke-static {p0}, $ACTIONBAR_DESCRIPTOR->attachHomeTabLongPress(Landroid/app/Activity;)V
-                        """.trimIndent(),
-                    )
-                }
-            }
-
-            runCatching {
-                ModalActivityOnCreate.method.apply {
-                    val overrideIndex = indexOfFirstInstructionOrThrow {
-                        opcode == Opcode.INVOKE_SUPER &&
-                            getReference<MethodReference>()?.name == "onCreate"
-                    } + 1
-
-                    val thisRegister = parameterRegisterStart(this)
-                    val freeRegister = findFreeRegister(overrideIndex, thisRegister)
-
-                    addInstructionsWithLabels(
-                        overrideIndex,
-                        """
-                            invoke-static/range { v$thisRegister .. v${thisRegister + 1} }, $ACTIVITY_SETTINGS_CLASS/ActivityHook;->create(Landroid/app/Activity;Landroid/os/Bundle;)Z
-                            move-result v$freeRegister
-                            if-eqz v$freeRegister, :not_rex
-                            return-void
-                            :not_rex
-                            nop
-                        """,
-                    )
-                }
-            }
-
-            runCatching {
-                ModalActivityOnPostCreate.method.apply {
-                    val overrideIndex = indexOfFirstInstructionOrThrow {
-                        opcode == Opcode.INVOKE_SUPER &&
-                            getReference<MethodReference>()?.name == "onPostCreate"
-                    } + 1
-
-                    val thisRegister = parameterRegisterStart(this)
-                    val freeRegister = findFreeRegister(overrideIndex, thisRegister)
-
-                    addInstructionsWithLabels(
-                        overrideIndex,
-                        """
-                            invoke-static/range { v$thisRegister .. v$thisRegister }, $ACTIVITY_SETTINGS_CLASS/ActivityHook;->isRex(Landroid/app/Activity;)Z
-                            move-result v$freeRegister
-                            if-eqz v$freeRegister, :not_rex_post_create
-                            return-void
-                            :not_rex_post_create
-                            nop
-                        """,
-                    )
-                }
-            }
-
-            runCatching {
-                ModalActivityInitStartingFragment.method.apply {
-                    val thisRegister = parameterRegisterStart(this)
-                    val freeRegister = findFreeRegister(0, thisRegister)
-
-                    addInstructionsWithLabels(
-                        0,
-                        """
-                            invoke-static/range { v$thisRegister .. v$thisRegister }, $ACTIVITY_SETTINGS_CLASS/ActivityHook;->isRex(Landroid/app/Activity;)Z
-                            move-result v$freeRegister
-                            if-eqz v$freeRegister, :not_rex_init
-                            return-void
-                            :not_rex_init
-                            nop
-                        """,
-                    )
-                }
-            }
-
-            runCatching {
-                ModalActivityOnCreate.classDef.apply {
-                    val activityClass = type
-                    val existingOnBackPressed = methods.firstOrNull {
-                        it.name == "onBackPressed" && it.parameterTypes.isEmpty() && it.returnType == "V"
-                    }
-                    if (existingOnBackPressed != null) {
-                        runCatching {
-                            existingOnBackPressed.apply {
-                                val activityRegister = implementation!!.registerCount - 1
-                                val freeRegister = findFreeRegister(0, activityRegister)
-
-                                addInstructionsWithLabels(
-                                    0,
-                                    """
-                                        invoke-static/range { v$activityRegister .. v$activityRegister }, $ACTIVITY_SETTINGS_CLASS/ActivityHook;->onBackPressed(Landroid/app/Activity;)Z
-                                        move-result v$freeRegister
-                                        if-eqz v$freeRegister, :continue_back_press
-                                        return-void
-                                        :continue_back_press
-                                        nop
-                                    """,
+                    BitmapGetPixelsCallFingerprint.matchAllOrNull()?.forEach { match ->
+                        if (match.classDef.type.startsWith("Lapp/morphe/")) return@forEach
+                        match.method.apply {
+                            findInstructionIndicesReversed {
+                                opcode == Opcode.INVOKE_VIRTUAL_RANGE &&
+                                    getReference<MethodReference>()?.toString() == "Landroid/graphics/Bitmap;->getPixels([IIIIIII)V"
+                            }.forEach { callIdx ->
+                                val regs = getInstruction(callIdx).registersUsed
+                                replaceInstruction(
+                                    callIdx,
+                                    "invoke-static/range {v${regs.first()} .. v${regs.last()}}, " +
+                                        "Lapp/morphe/extension/instagram/utils/SafeBitmap;->getPixels(Landroid/graphics/Bitmap;[IIIIIII)V",
                                 )
                             }
                         }
-                    } else {
-                        val implementationBuilder = MethodImplementationBuilder(2)
-                        implementationBuilder.addInstruction("return-void".toInstruction())
-
-                        val method =
-                            MutableMethod(
-                                InitMethod(
-                                    validator = {},
-                                    compare = { other ->
-                                        when {
-                                            activityClass != other.definingClass -> activityClass.compareTo(other.definingClass)
-                                            "onBackPressed" != other.name -> "onBackPressed".compareTo(other.name)
-                                            else -> 0
-                                        }
-                                    },
-                                    definingClass = activityClass,
-                                    name = "onBackPressed",
-                                    parameterTypes = mutableListOf<CharSequence>(),
-                                    returnType = "V",
-                                    annotations = mutableSetOf<Annotation>(),
-                                    accessFlags = AccessFlags.PUBLIC.value,
-                                    hiddenApiRestrictions = mutableSetOf<HiddenApiRestriction>(),
-                                    parameters = mutableListOf<MethodParameter>(),
-                                    implementation = implementationBuilder.methodImplementation,
-                                ),
-                            )
-
-                        method.addInstructionsWithLabels(
-                            0,
-                            """
-                                invoke-static { v1 }, $ACTIVITY_SETTINGS_CLASS/ActivityHook;->onBackPressed(Landroid/app/Activity;)Z
-                                move-result v0
-                                if-eqz v0, :continue_back_press
-                                return-void
-                                :continue_back_press
-                                invoke-super { v1 }, $superclass->onBackPressed()V
-                            """,
-                        )
-                        methods.add(method)
                     }
                 }
-            }
 
-            runCatching {
-                instagramInitHook.fingerprint.method.apply {
-                    val firstInvokeSuperIndex = indexOfFirstInstructionOrThrow(Opcode.INVOKE_SUPER)
-                    val contextRegister = getInstruction(firstInvokeSuperIndex).registersUsed[0]
-                    val freeRegister = findFreeRegister(firstInvokeSuperIndex, listOf(firstInvokeSuperIndex))
-
-                    addInstructions(
-                        firstInvokeSuperIndex + 1,
-                        """
-                        new-instance v$freeRegister, Lapp/morphe/extension/rex/CustomCrashHandler;
-                        invoke-direct {v$freeRegister, v$contextRegister}, Lapp/morphe/extension/rex/CustomCrashHandler;-><init>(Landroid/content/Context;)V
-                        invoke-static {v$freeRegister}, Ljava/lang/Thread;->setDefaultUncaughtExceptionHandler(Ljava/lang/Thread${'$'}UncaughtExceptionHandler;)V
-                        
-                        ${SSTS_DESCRIPTOR.format("load")}
-                        ${LOAD_FLAGS_DESCRIPTOR.format("load")}
-                        ${LOAD_FLAGS_DESCRIPTOR.format("load")}
-                        invoke-static {}, $CONSTANTS_DESCRIPTOR/Constants;->load()V
-                        """.trimIndent(),
-                    )
+                for (fingerprint in listOf(IgFragmentActivityOnCreate, IgFragmentActivityOnResume)) {
+                    runCatching {
+                        fingerprint.method.addInstructions(
+                            fingerprint.instructionMatches.first().index,
+                            """
+                            invoke-static {p0}, Lapp/morphe/extension/shared/Utils;->setActivity(Landroid/app/Activity;)V
+                            invoke-static {p0}, $ACTIONBAR_DESCRIPTOR->attachHomeTabLongPress(Landroid/app/Activity;)V
+                            """.trimIndent(),
+                        )
+                    }
                 }
-            }
 
-            runCatching {
-                MainFeedFragmentOnCreateFingerprint.let {
-                    val contextResultIndex = it.instructionMatches.last().index
-                    val contextRegister = it.instructionMatches.last().getInstruction<OneRegisterInstruction>().registerA
+                runCatching {
+                    ModalActivityOnCreate.method.apply {
+                        val overrideIndex = indexOfFirstInstructionOrThrow {
+                            opcode == Opcode.INVOKE_SUPER &&
+                                getReference<MethodReference>()?.name == "onCreate"
+                        } + 1
 
-                    it.method.addInstruction(
-                        contextResultIndex + 1,
-                        "invoke-static/range {v$contextRegister .. v$contextRegister}, " +
-                            "$PATCHES_DESCRIPTOR/WelcomeMessage;->openWelcomeMessage(Landroid/content/Context;)V",
-                    )
+                        val thisRegister = parameterRegisterStart(this)
+                        val freeRegister = findFreeRegister(overrideIndex, thisRegister)
+
+                        addInstructionsWithLabels(
+                            overrideIndex,
+                            """
+                                invoke-static/range { v$thisRegister .. v${thisRegister + 1} }, $ACTIVITY_SETTINGS_CLASS/ActivityHook;->create(Landroid/app/Activity;Landroid/os/Bundle;)Z
+                                move-result v$freeRegister
+                                if-eqz v$freeRegister, :not_rex
+                                return-void
+                                :not_rex
+                                nop
+                            """,
+                        )
+                    }
                 }
-            }
-        
+
+                runCatching {
+                    ModalActivityOnPostCreate.method.apply {
+                        val overrideIndex = indexOfFirstInstructionOrThrow {
+                            opcode == Opcode.INVOKE_SUPER &&
+                                getReference<MethodReference>()?.name == "onPostCreate"
+                        } + 1
+
+                        val thisRegister = parameterRegisterStart(this)
+                        val freeRegister = findFreeRegister(overrideIndex, thisRegister)
+
+                        addInstructionsWithLabels(
+                            overrideIndex,
+                            """
+                                invoke-static/range { v$thisRegister .. v$thisRegister }, $ACTIVITY_SETTINGS_CLASS/ActivityHook;->isRex(Landroid/app/Activity;)Z
+                                move-result v$freeRegister
+                                if-eqz v$freeRegister, :not_rex_post_create
+                                return-void
+                                :not_rex_post_create
+                                nop
+                            """,
+                        )
+                    }
+                }
+
+                runCatching {
+                    ModalActivityInitStartingFragment.method.apply {
+                        val thisRegister = parameterRegisterStart(this)
+                        val freeRegister = findFreeRegister(0, thisRegister)
+
+                        addInstructionsWithLabels(
+                            0,
+                            """
+                                invoke-static/range { v$thisRegister .. v$thisRegister }, $ACTIVITY_SETTINGS_CLASS/ActivityHook;->isRex(Landroid/app/Activity;)Z
+                                move-result v$freeRegister
+                                if-eqz v$freeRegister, :not_rex_init
+                                return-void
+                                :not_rex_init
+                                nop
+                            """,
+                        )
+                    }
+                }
+
+                runCatching {
+                    ModalActivityOnCreate.classDef.apply {
+                        val activityClass = type
+                        val existingOnBackPressed = methods.firstOrNull {
+                            it.name == "onBackPressed" && it.parameterTypes.isEmpty() && it.returnType == "V"
+                        }
+                        if (existingOnBackPressed != null) {
+                            runCatching {
+                                existingOnBackPressed.apply {
+                                    val activityRegister = implementation!!.registerCount - 1
+                                    val freeRegister = findFreeRegister(0, activityRegister)
+
+                                    addInstructionsWithLabels(
+                                        0,
+                                        """
+                                            invoke-static/range { v$activityRegister .. v$activityRegister }, $ACTIVITY_SETTINGS_CLASS/ActivityHook;->onBackPressed(Landroid/app/Activity;)Z
+                                            move-result v$freeRegister
+                                            if-eqz v$freeRegister, :continue_back_press
+                                            return-void
+                                            :continue_back_press
+                                            nop
+                                        """,
+                                    )
+                                }
+                            }
+                        } else {
+                            val implementationBuilder = MethodImplementationBuilder(2)
+                            implementationBuilder.addInstruction("return-void".toInstruction())
+
+                            val method =
+                                MutableMethod(
+                                    InitMethod(
+                                        validator = {},
+                                        compare = { other ->
+                                            when {
+                                                activityClass != other.definingClass -> activityClass.compareTo(other.definingClass)
+                                                "onBackPressed" != other.name -> "onBackPressed".compareTo(other.name)
+                                                else -> 0
+                                            }
+                                        },
+                                        definingClass = activityClass,
+                                        name = "onBackPressed",
+                                        parameterTypes = mutableListOf<CharSequence>(),
+                                        returnType = "V",
+                                        annotations = mutableSetOf<Annotation>(),
+                                        accessFlags = AccessFlags.PUBLIC.value,
+                                        hiddenApiRestrictions = mutableSetOf<HiddenApiRestriction>(),
+                                        parameters = mutableListOf<MethodParameter>(),
+                                        implementation = implementationBuilder.methodImplementation,
+                                    ),
+                                )
+
+                            method.addInstructionsWithLabels(
+                                0,
+                                """
+                                    invoke-static { v1 }, $ACTIVITY_SETTINGS_CLASS/ActivityHook;->onBackPressed(Landroid/app/Activity;)Z
+                                    move-result v0
+                                    if-eqz v0, :continue_back_press
+                                    return-void
+                                    :continue_back_press
+                                    invoke-super { v1 }, $superclass->onBackPressed()V
+                                """,
+                            )
+                            methods.add(method)
+                        }
+                    }
+                }
+
+                runCatching {
+                    instagramInitHook.fingerprint.method.apply {
+                        val firstInvokeSuperIndex = indexOfFirstInstructionOrThrow(Opcode.INVOKE_SUPER)
+                        val contextRegister = getInstruction(firstInvokeSuperIndex).registersUsed[0]
+                        val freeRegister = findFreeRegister(firstInvokeSuperIndex, listOf(firstInvokeSuperIndex))
+
+                        addInstructions(
+                            firstInvokeSuperIndex + 1,
+                            """
+                            invoke-static {v$contextRegister}, Lapp/morphe/extension/shared/Utils;->setContext(Landroid/content/Context;)V
+                            new-instance v$freeRegister, Lapp/morphe/extension/rex/CustomCrashHandler;
+                            invoke-direct {v$freeRegister, v$contextRegister}, Lapp/morphe/extension/rex/CustomCrashHandler;-><init>(Landroid/content/Context;)V
+                            invoke-static {v$freeRegister}, Ljava/lang/Thread;->setDefaultUncaughtExceptionHandler(Ljava/lang/Thread${'$'}UncaughtExceptionHandler;)V
+                            
+                            ${SSTS_DESCRIPTOR.format("load")}
+                            ${LOAD_FLAGS_DESCRIPTOR.format("load")}
+                            invoke-static {}, $CONSTANTS_DESCRIPTOR/Constants;->load()V
+                            """.trimIndent(),
+                        )
+                    }
+                }
+
+                runCatching {
+                    MainFeedFragmentOnCreateFingerprint.let {
+                        val contextResultIndex = it.instructionMatches.last().index
+                        val contextRegister = it.instructionMatches.last().getInstruction<OneRegisterInstruction>().registerA
+
+                        it.method.addInstruction(
+                            contextResultIndex + 1,
+                            "invoke-static/range {v$contextRegister .. v$contextRegister}, " +
+                                "$PATCHES_DESCRIPTOR/WelcomeMessage;->openWelcomeMessage(Landroid/content/Context;)V",
+                        )
+                    }
+                }
             }
         }
     }

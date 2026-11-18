@@ -83,3 +83,10 @@ internal object PlaylistTypeFingerprint : Fingerprint(
 internal object EpisodeListCreationFingerprint : Fingerprint(
     strings = listOf("Episode Grid Size default value was NOT set!! - ")
 )
+
+/**
+ * The Playlist fragment, on versions where the Playlist is a RecyclerView. Its log tag.
+ */
+internal object PlaylistFragmentTagFingerprint : Fingerprint(
+    strings = listOf("PlayListFragment")
+)

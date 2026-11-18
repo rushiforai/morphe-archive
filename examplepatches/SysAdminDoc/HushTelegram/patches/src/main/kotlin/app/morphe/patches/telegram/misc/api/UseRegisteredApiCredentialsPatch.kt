@@ -61,7 +61,7 @@ val useRegisteredApiCredentialsPatch = bytecodePatch(
     default = false,
 ) {
     category("Fixes")
-    compatibleWith(*AppCompatibilities.telegram())
+    compatibleWith(*AppCompatibilities.telegramOnly())
     val apiId by stringOption(
         key = "apiId", default = null, title = "Your API ID",
         description = "The number shown as App api_id at my.telegram.org/apps. Fill in the API hash too, " +

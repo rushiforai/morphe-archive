@@ -7,6 +7,7 @@ package app.morphe.patches.telegram.misc.folders
 import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
+import app.morphe.PlusPending
 import app.morphe.hostsOf
 import app.morphe.PatchContexts
 import app.morphe.util.names.origRef
@@ -49,6 +50,7 @@ import app.morphe.util.names.tgMutableClassDefBy
 import app.morphe.util.names.tgMutableClassDefByOrNull
 
 /** Both pinned builds' chat list, whose first folder tab build asks the extension which tab to start on. */
+@PlusPending
 class LaunchFolderFixtureTest {
     @Test fun `the first tab build hands the chat list to the extension before any tab goes in`() {
         for (build in Fixtures.declaredBuilds()) {

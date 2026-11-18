@@ -82,6 +82,7 @@ public final class SettingsActivity {
 
     @SuppressLint("ResourceType")
     public static void setupOnActivity(Activity activity, Bundle savedInstanceState) {
+        app.morphe.extension.instagram.utils.IgStr.applyLocaleToContext(activity);
         Controller controller = new Controller(activity);
         sControllers.put(activity, controller);
         controller.setup(savedInstanceState);
@@ -466,7 +467,7 @@ public final class SettingsActivity {
 
                 TextView versionBadge = new TextView(activity);
                 String rawVer = app.morphe.extension.shared.Utils.getPatchesReleaseVersion();
-                String verStr = "Rex IG Lite • " + (rawVer == null || rawVer.isEmpty() ? "v3.15.0" : (rawVer.startsWith("v") ? rawVer : "v" + rawVer)) + " • AMOLED Suite";
+                String verStr = "Rex IG Lite • " + (rawVer == null || rawVer.isEmpty() ? "v3.16.0" : (rawVer.startsWith("v") ? rawVer : "v" + rawVer)) + " • AMOLED Suite";
                 versionBadge.setText(verStr);
                 versionBadge.setTextColor(0xFF9AA3AE);
                 versionBadge.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11.5f);
@@ -923,7 +924,8 @@ public final class SettingsActivity {
 
         @Override
         public void onCreate(Bundle savedInstanceState) {
-            super.onCreate(savedInstanceState);
+            app.morphe.extension.instagram.utils.IgStr.applyLocaleToContext(getActivity());
+        super.onCreate(savedInstanceState);
 
             context = getActivity();
             preferenceManager = getPreferenceManager();

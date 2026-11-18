@@ -8,8 +8,10 @@ package app.hushmessenger.patches.misc
 import app.hushmessenger.patches.MessengerTarget
 import app.hushmessenger.patches.coexist.validateVersionCode
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.document
 import app.morphe.patcher.patch.intOption
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.packageMetadata
+import app.morphe.patcher.patch.patch
 import org.w3c.dom.Document
 
 internal const val SPOOF_VERSION_PATCH = "Spoof package version"
@@ -43,7 +45,7 @@ private fun refuse(reason: String): Nothing =
     throw PatchException("$SPOOF_VERSION_PATCH: $reason. Use an unmodified Messenger ${MessengerTarget.supportedApks()}.")
 
 @Suppress("unused")
-val spoofPackageVersionPatch = resourcePatch(
+val spoofPackageVersionPatch = patch(
     name = SPOOF_VERSION_PATCH,
     description = "Gives Messenger a high version number so the Play Store stops offering Meta's updates. Messenger may report it to Meta. Going back means uninstalling first, which erases its data. Pick it in Expert mode. Works as soon as you patch it in, with no switch.",
     default = false,

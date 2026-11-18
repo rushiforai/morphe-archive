@@ -1841,8 +1841,6 @@ Tartsa nyomva a videó időbélyegének másolásához"</string>
     <string name="revanced_overlay_button_copy_video_url_title">Videó URL másolás gomb megjelenítése</string>
     <string name="revanced_overlay_button_external_downloader_queue_manager_summary">A külső letöltő indítása helyett nyissa meg a várólistát</string>
     <string name="revanced_overlay_button_external_downloader_queue_manager_title">Várólista-kezelő</string>
-    <string name="revanced_overlay_button_external_downloader_summary">Érintse meg a külső videóletöltő indításához</string>
-    <string name="revanced_overlay_button_external_downloader_title">Külső letöltés gomb megjelenítése</string>
     <string name="revanced_overlay_button_gemini_about_summary">"A videó elemzése a hosszától függően eltarthat egy ideig. A hosszú videók átírása túllépheti a Gemini korlátait
 
 A mesterséges intelligencia által generált válaszok pontatlan információkat tartalmazhatnak
@@ -2447,9 +2445,6 @@ A legtöbb hiba nem javítható az ügyféloldali korlátozások miatt, ezért c
     <string name="revanced_shorts_custom_actions_copy_video_url_timestamp_title">Időbélyeg URL másolás menü mutatása</string>
     <string name="revanced_shorts_custom_actions_copy_video_url_title">Videó URL másolás menü mutatása</string>
     <string name="revanced_shorts_custom_actions_external_downloader_label">Külső letöltéskezelő</string>
-    <string name="revanced_shorts_custom_actions_external_downloader_summary_off">A külső letöltéskezelő menü el van rejtve</string>
-    <string name="revanced_shorts_custom_actions_external_downloader_summary_on">A külső letöltéskezelő menü látható</string>
-    <string name="revanced_shorts_custom_actions_external_downloader_title">Külső letöltéskezelő menü mutatása</string>
     <string name="revanced_shorts_custom_actions_gemini_label">Gemini összegzés</string>
     <string name="revanced_shorts_custom_actions_gemini_summary_off">A Gemini összegzés menü rejtett</string>
     <string name="revanced_shorts_custom_actions_gemini_summary_on">A Gemini összegzés menü látható</string>

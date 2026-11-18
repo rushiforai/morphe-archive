@@ -1,8 +1,8 @@
 package app.hushmessenger.patches.controls
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.mutableClassDefBy
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -125,7 +125,7 @@ internal fun logoLongPressSite(sites: List<Method>, title: TabTitle = CHATS_TAB_
  * log says why, and the patch that asked still applies everything else. The handler is checked before its class is
  * requested for editing. True when the call went in.
  */
-internal fun BytecodePatchContext.hookLogoLongPress(sites: List<Method> = logoLongPressSites, title: TabTitle = CHATS_TAB_TITLE): Boolean {
+internal fun hookLogoLongPress(sites: List<Method> = logoLongPressSites, title: TabTitle = CHATS_TAB_TITLE): Boolean {
     val site = logoLongPressSite(sites, title) ?: return false
     val target = runCatching { mutableClassDefBy(site.definingClass).methods.single { it.hookId() == site.hookId() } }
         .getOrElse {

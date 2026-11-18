@@ -8,6 +8,7 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.PlusPending
 import app.morphe.util.names.origRef
 import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
@@ -46,6 +47,7 @@ internal fun queueRunnables(build: File, queue: ClassDef): Collection<ClassDef> 
 }
 
 /** The download queues on both declared builds: FileLoader.loadFileInternal and where the queue counts its running files. */
+@PlusPending
 class DownloadManagerFixtureTest {
     private val loader = "Lorg/telegram/messenger/FileLoader;"
     private val queue = "Lorg/telegram/messenger/FileLoaderPriorityQueue;"

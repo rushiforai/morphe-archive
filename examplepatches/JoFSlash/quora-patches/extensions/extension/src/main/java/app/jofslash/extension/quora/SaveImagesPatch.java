@@ -34,17 +34,30 @@ public final class SaveImagesPatch {
 
     private static void attach(Object viewer) {
         try {
-            Field field = viewer.getClass().getDeclaredField("imageViewerImage");
-            field.setAccessible(true);
-            Object view = field.get(viewer);
+            Object view = field(viewer, "imageViewerImage");
             if (!(view instanceof View)) return;
-            ((View) view).setOnLongClickListener((v) -> {
-                save(v.getContext(), currentUrl);
+            View.OnLongClickListener listener = (v) -> {
+                save(((View) view).getContext(), currentUrl);
                 return true;
-            });
+            };
+            // The viewer's PhotoViewAttacher handles every touch on the image, so long presses
+            // only reach a listener set on the attacher.
+            Object attacher = field(viewer, "photoViewAttacher");
+            if (attacher != null) {
+                attacher.getClass().getMethod("setOnLongClickListener", View.OnLongClickListener.class)
+                        .invoke(attacher, listener);
+            } else {
+                ((View) view).setOnLongClickListener(listener);
+            }
         } catch (Exception ex) {
             Log.e(TAG, "Failed to attach image saving", ex);
         }
+    }
+
+    private static Object field(Object owner, String name) throws Exception {
+        Field field = owner.getClass().getDeclaredField(name);
+        field.setAccessible(true);
+        return field.get(owner);
     }
 
     private static void save(Context context, String url) {

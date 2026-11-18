@@ -8,6 +8,7 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.PlusPending
 import app.morphe.util.names.origRef
 import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
@@ -42,6 +43,7 @@ import app.morphe.util.names.origType
 import app.morphe.util.names.tgMutableClassDefBy
 
 /** Two presentation decisions on official fixtures. Shared requests and cached host objects stay stock. */
+@PlusPending
 class HideSponsoredProxyFixtureTest {
     @Test
     fun `all declared builds filter only cached proxy reinsertion and folder membership`() {

@@ -1,16 +1,17 @@
 package app.hushmessenger.patches.misc
 
-import app.hushmessenger.patches.isExtension
-import app.hushmessenger.patches.messengerClasses
 import app.hushmessenger.patches.controls.ControlProfile
 import app.hushmessenger.patches.controls.PROFILE_347415262
 import app.hushmessenger.patches.controls.activeProfile
 import app.hushmessenger.patches.controls.hookId
 import app.hushmessenger.patches.controls.settingsExtension
+import app.hushmessenger.patches.isExtension
+import app.hushmessenger.patches.messengerClasses
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.mutableClassDefBy
+import app.morphe.patcher.patch.patch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
@@ -108,7 +109,7 @@ internal fun MutableMethod.answerOwnVersionReads() {
  * Android reports. Every version read goes through OwnVersion, which leaves other apps' codes alone. Runs only as part
  * of that patch.
  */
-internal val spoofSelfReadsPatch = bytecodePatch(description = "Answer Messenger's own version reads with its original code") {
+internal val spoofSelfReadsPatch = patch(description = "Answer Messenger's own version reads with its original code") {
     dependsOn(settingsExtension)
     execute {
         val methods = mutableListOf<Method>()

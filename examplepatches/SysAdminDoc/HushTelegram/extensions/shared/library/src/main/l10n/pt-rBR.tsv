@@ -2469,3 +2469,5 @@ Shadowsocks plugins	plugins do Shadowsocks
 other Shadowsocks ciphers	outras cifras do Shadowsocks
 # context: Item in the list of skipped link kinds on the V2Ray server row: VLESS links that ask for VLESS's own encryption
 VLESS encryption	criptografia do VLESS
+# context: read aloud after a settings row's name when a dot marks it as added since the settings were last opened
+New	Novo

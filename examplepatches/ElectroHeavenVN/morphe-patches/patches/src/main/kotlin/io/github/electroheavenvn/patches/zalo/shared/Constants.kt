@@ -7,6 +7,7 @@ import app.morphe.patcher.patch.SupportedAbi
 object Constants {
     val COMPATIBILITY_ZALO = Compatibility(
         name = "Zalo",
+        description = "The latest APK files can be downloaded from the Releases section of the ZaloXposed repository.",
         packageName = "com.zing.zalo",
         appIconColor = 0x0068FF,
         targets = listOf(
@@ -28,7 +29,11 @@ object Constants {
             ),
             AppTarget(
                 version = "26.11.02",
-                versionCodes = mapOf(SupportedAbi.ARM64_V8A to 261102901),    
+                versionCodes = mapOf(
+                    SupportedAbi.ARM64_V8A to 261102901,
+                    SupportedAbi.ARMEABI_V7A to 261102901,
+                ),
+                description = "armeabi-v7a must use the experimental LSPatch framework instead of NPatch"
             )
         ),
     )

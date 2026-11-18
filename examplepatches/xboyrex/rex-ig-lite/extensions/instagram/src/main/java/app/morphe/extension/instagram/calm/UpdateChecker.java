@@ -200,7 +200,7 @@ public final class UpdateChecker implements Runnable {
      */
     private static final String BUNDLE_JSON_URL =
             "https://raw.githubusercontent.com/xboyrex/rex-ig-lite/main/patches-bundle.json";
-    private static final String CURRENT_PATCH_BUNDLE_VERSION = "3.15.0";
+    private static final String CURRENT_PATCH_BUNDLE_VERSION = "3.16.0";
 
     public static void checkNow(Context context) {
         if (context == null) return;

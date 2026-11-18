@@ -1876,8 +1876,6 @@ Videoyu zaman damgasıyla kopyalamak için basılı tutun"</string>
     <string name="revanced_overlay_button_copy_video_url_title">Linki kopyala butonunu ekle</string>
     <string name="revanced_overlay_button_external_downloader_queue_manager_summary">Harici bir indirici başlatmak yerine, sıra yöneticisini açar</string>
     <string name="revanced_overlay_button_external_downloader_queue_manager_title">Sıra yöneticisi</string>
-    <string name="revanced_overlay_button_external_downloader_summary">Harici indirme uygulamasını açmak için tıklayın</string>
-    <string name="revanced_overlay_button_external_downloader_title">Harici indirici butonunu ekle</string>
     <string name="revanced_overlay_button_gemini_about_summary">"Videonun süresine bağlı olarak ayrıştırılması biraz zaman alabilir. Uzun videoların yazıya geçirilmesi Gemini'nin sınırlarını aşabilir
 
 Yapay zeka tarafından oluşturulan yanıtlar yanlış bilgiler içerebilir
@@ -2500,9 +2498,6 @@ Aynısı mevcut"</string>
     <string name="revanced_shorts_custom_actions_copy_video_url_timestamp_title">Zaman damgalı URL\'yi kopyala menüsünü göster</string>
     <string name="revanced_shorts_custom_actions_copy_video_url_title">Video URL\'sini kopyala menüsünü göster</string>
     <string name="revanced_shorts_custom_actions_external_downloader_label">Harici indirici</string>
-    <string name="revanced_shorts_custom_actions_external_downloader_summary_off">Harici indirici menüsü gizlendi</string>
-    <string name="revanced_shorts_custom_actions_external_downloader_summary_on">Harici indirici menüsü gösteriliyor</string>
-    <string name="revanced_shorts_custom_actions_external_downloader_title">Harici indirici menüsünü göster</string>
     <string name="revanced_shorts_custom_actions_gemini_label">Gemini özeti</string>
     <string name="revanced_shorts_custom_actions_gemini_summary_off">Gemini özet menü gizli</string>
     <string name="revanced_shorts_custom_actions_gemini_summary_on">Gemini özet menü gösteriliyor</string>

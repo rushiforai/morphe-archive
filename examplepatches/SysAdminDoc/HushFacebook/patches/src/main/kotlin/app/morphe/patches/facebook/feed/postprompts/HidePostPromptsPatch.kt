@@ -65,7 +65,12 @@ internal const val STORY_MODEL = "Lcom/facebook/graphql/model/GraphQLStory;"
  * buttons by having their one text builder give its zero answer (PostCounts.kt, #180). The fourth,
  * also off, leaves the reaction faces and the reactions count under a post undrawn, and blanks the
  * count text beside the faces (ReactionPreview.kt, #158). The fifth, also off, takes the X off the top
- * of feed posts by having the check that offers it answer no (PostXButton.kt, #389).
+ * of feed posts by having the check that offers it answer no (PostXButton.kt, #389). The sixth, also
+ * off, leaves out the friend bubbles Facebook lays over a post's photo or video by having their row's
+ * render answer null (ReactionBubbles.kt, #483). The seventh, also off, leaves out the line under a
+ * post that names who reacted. The server writes that sentence, so the config check its row asks
+ * answers no; where the app builds it instead, its builder answers nothing and the row's gate and
+ * the bling bar's two checks for those names answer no (ReactorNames.kt, #483).
  */
 @Suppress("unused")
 val hidePostPromptsPatch = bytecodePatch(
@@ -73,9 +78,10 @@ val hidePostPromptsPatch = bytecodePatch(
     name = "Hide post prompts",
     description = "Removes the strip Facebook adds to some posts, like \"Are you interested in this post?\", " +
         "\"Show less\" or follow suggestions, so posts look less cluttered. No gap is left. On by default. Turn " +
-        "it off in Hushfacebook settings > News feed. Six more switches there, Hide the Follow link on posts, " +
-        "Hide the Subscribe link on posts, Hide the Join button on posts, Hide the X on posts, Hide counts on posts " +
-        "and Hide the reaction preview on posts, start off.",
+        "it off in Hushfacebook settings > News feed. Eight more switches there, Hide the Follow link on posts, " +
+        "Hide the Subscribe link on posts, Hide the Join button on posts, Hide the X on posts, Hide counts on posts, " +
+        "Hide the reaction preview on posts, Hide friends' reactions on photos and videos and Hide who reacted " +
+        "under posts, start off.",
 ) {
     category("Feed")
     dependsOn(settingsPatch)
@@ -88,6 +94,8 @@ val hidePostPromptsPatch = bytecodePatch(
         hidePostCounts()
         hideReactionPreview()
         hideReactionCount()
+        hideReactionBubbles()
+        hideReactorNames()
         enableStatus("postPrompts")
     }
 }

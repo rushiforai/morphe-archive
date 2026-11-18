@@ -251,7 +251,7 @@ val chatTypeFoldersPatch = bytecodePatch(
 ) {
     category("Chats")
     dependsOn(settingsPatch, telegramExtensionPatch)
-    compatibleWith(*AppCompatibilities.telegram())
+    compatibleWith(*AppCompatibilities.telegramOnly())
     execute {
         writeChatTypeFolderStubs(resolveChatTypeFolders())
         enableStatus("chatTypeFolders")

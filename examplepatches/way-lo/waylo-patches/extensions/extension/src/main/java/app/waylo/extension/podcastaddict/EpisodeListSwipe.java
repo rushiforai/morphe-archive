@@ -76,6 +76,33 @@ public final class EpisodeListSwipe {
     }
 
     /**
+     * Injection point. Called when an episode list fragment creates its list view, on versions
+     * where the list is a RecyclerView (2026.14.1 and later).
+     *
+     * @param fragment The episode list fragment.
+     */
+    public static void attachRecycler(Object fragment, View list) {
+        try {
+            if (list == null) return;
+            Activity activity = activityOf(list);
+            if (activity == null) return;
+
+            String name = activity.getClass().getName();
+            boolean candidate = (isRecentEnabled() && name.endsWith(".FilteredEpisodeListActivity"))
+                    || (isNewEpisodesEnabled() && name.endsWith(".NewEpisodesActivity"));
+            if (!candidate) return;
+
+            RecyclerSwipe.register(list, new RecyclerSwipe.Host(fragment, true, "dequeue", "enqueue") {
+                @Override
+                boolean isActive(android.view.ViewGroup view) {
+                    return EpisodeListSwipe.isActive(activityOf(view));
+                }
+            });
+        } catch (Exception ignored) {
+        }
+    }
+
+    /**
      * Whether swipes are on for the screen right now. The filtered episode list screen shows
      * several filters, and only the Recent one is swipeable.
      */

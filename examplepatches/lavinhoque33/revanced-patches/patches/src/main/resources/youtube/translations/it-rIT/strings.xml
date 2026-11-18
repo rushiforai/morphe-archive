@@ -2027,8 +2027,6 @@ Tocca e tieni premuto per copiare il timestamp del video"</string>
     <string name="revanced_overlay_button_copy_video_url_title">Mostra il pulsante Copia URL Video</string>
     <string name="revanced_overlay_button_external_downloader_queue_manager_summary">Invece di aprire uno scaricatore esterno, apri la finestra di dialogo del gestore delle code</string>
     <string name="revanced_overlay_button_external_downloader_queue_manager_title">Apri il gestore delle code</string>
-    <string name="revanced_overlay_button_external_downloader_summary">Tocca per avviare lo scaricatore esterno</string>
-    <string name="revanced_overlay_button_external_downloader_title">Mostra il pulsante Scaricatore Esterno</string>
     <string name="revanced_overlay_button_gemini_about_summary">"L'analisi del video può richiedere un po 'di tempo a seconda della sua lunghezza. La trascrizione di video lunghi può superare i limiti di Gemini
 
 Le risposte generate dall'IA possono contenere informazioni imprecise
@@ -2676,9 +2674,6 @@ La maggior parte dei bug non può essere risolta a causa di limitazioni lato cli
     <string name="revanced_shorts_custom_actions_copy_video_url_timestamp_title">Mostra il menù Copia l\'URL del Video con Timestamp</string>
     <string name="revanced_shorts_custom_actions_copy_video_url_title">Mostra il menù Copia l\'URL del Video</string>
     <string name="revanced_shorts_custom_actions_external_downloader_label">Scaricatore esterno</string>
-    <string name="revanced_shorts_custom_actions_external_downloader_summary_off">Il menù Scaricatore Esterno è nascosto</string>
-    <string name="revanced_shorts_custom_actions_external_downloader_summary_on">Il menù Scaricatore Esterno è visibile</string>
-    <string name="revanced_shorts_custom_actions_external_downloader_title">Mostra il menù Scaricatore Esterno</string>
     <string name="revanced_shorts_custom_actions_gemini_label">Riepilogo di Gemini</string>
     <string name="revanced_shorts_custom_actions_gemini_summary_off">L'azione di riepilogo Gemini nel menu delle azioni personalizzate degli Shorts è nascosta</string>
     <string name="revanced_shorts_custom_actions_gemini_summary_on">L'azione di riepilogo Gemini nel menu delle azioni personalizzate degli Shorts è visibile</string>

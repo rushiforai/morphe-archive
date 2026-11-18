@@ -1,7 +1,8 @@
 # Joplin custom font v11 — multiple release adapters
 
 Morphe patch preserving **Appearance font selection and Blush Pink**.
-The shipped adapters cover official Android **3.7.8, 3.7.10, and 3.7.11** in one MPP.
+The shipped adapters cover the supported official Android releases
+(`adapters/index.properties`, also the README version table) in one MPP.
 Use the original APK, not an already patched installation. Keep the existing
 Morphe signing key; do not uninstall Joplin or clear data on a signature mismatch.
 

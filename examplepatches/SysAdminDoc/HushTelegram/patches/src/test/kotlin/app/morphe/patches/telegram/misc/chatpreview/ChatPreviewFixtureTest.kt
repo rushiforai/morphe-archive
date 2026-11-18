@@ -8,6 +8,7 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.PlusPending
 import app.morphe.hostsOf
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
@@ -36,6 +37,7 @@ import org.junit.Test
 private val CHAT_PREVIEW_HOSTS = ConcurrentHashMap<String, List<ClassDef>>()
 
 /** The screens' base class's preview with a menu, and the stubs that open and close it. */
+@PlusPending
 class ChatPreviewFixtureTest {
     private fun Instruction.shape() = listOf(opcode, namedRegisters(), origRef())
     private fun Method.code() = controlBody().filter { it.opcode != Opcode.NOP }

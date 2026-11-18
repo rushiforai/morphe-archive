@@ -130,7 +130,28 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VER="${{ steps.ver.outputs.version }}"
+          TITLE="v${VER}"
+          echo "Release title: $TITLE"
+          PREV_TAG="$(gh release list --limit 1 --json tagName --jq '.[0].tagName' 2>/dev/null || true)"
+          if [ -n "$PREV_TAG" ] && git show "$PREV_TAG:patches-list.json" > /tmp/old-list.json 2>/dev/null; then
+            git log "$PREV_TAG..${{ github.sha }}" --pretty=format:'%H%x1f%s%x1f%b%x1e' > /tmp/commits.txt
+          else
+            echo '{"patches": []}' > /tmp/old-list.json
+            git log "${{ github.sha }}" --pretty=format:'%H%x1f%s%x1f%b%x1e' > /tmp/commits.txt
+          fi
+          python3 .github/scripts/generate_release_notes.py \
+            --new-list patches-list.json \
+            --old-list /tmp/old-list.json \
+            --commits /tmp/commits.txt \
+            --patches-dir patches/src/main/kotlin/app/zdrgon/patches \
+            --version "$VER" \
+            --repo "${{ github.repository }}" \
+            --date "$(date -u +%F)" \
+            --head-sha "${{ github.sha }}" \
+            > /tmp/release-notes.md
+          echo "--- release body ---"
+          cat /tmp/release-notes.md
           gh release create "v${VER}" \
             "patches/build/libs/patches-${VER}.mpp" \
-            --title "v${VER}" \
-            --notes "Release v${VER}"
+            --title "$TITLE" \
+            --notes-file /tmp/release-notes.md

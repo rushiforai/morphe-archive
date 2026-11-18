@@ -2688,6 +2688,10 @@ Hide the Join button on posts	Ocultar el botón Unirte en las publicaciones
 Hides the Join button next to the group's name on posts from groups you haven't joined, and the Join group bar under their videos. A change shows on the posts drawn after it.	Oculta el botón Unirte junto al nombre del grupo en las publicaciones de grupos a los que no te has unido, y la barra Unirte al grupo debajo de sus videos. Un cambio se ve en las publicaciones que se carguen después.
 Hide the X on posts	Ocultar la X en las publicaciones
 Takes the X off the top corner of posts in your feed. The three-dot menu next to it stays. A change shows on the posts drawn after it.	Quita la X de la esquina superior de las publicaciones de tu feed. El menú de tres puntos de al lado se queda. Un cambio se ve en las publicaciones que se carguen después.
+Hide friends' reactions on photos and videos	Ocultar las reacciones de amigos en fotos y videos
+Takes away the friend's picture with a reaction on it that Facebook puts on a photo or video when a friend reacted. A change shows on the posts drawn after it.	Quita la foto de un amigo con su reacción que Facebook pone sobre una foto o un video cuando un amigo reaccionó. Un cambio se ve en las publicaciones que se carguen después.
+Hide who reacted under posts	Ocultar quién reaccionó en las publicaciones
+Takes away the line under a post that names who reacted, like "Name and others reacted". A change shows on the posts drawn after it.	Quita la línea debajo de una publicación que dice quién reaccionó, como "Nombre y otras personas reaccionaron". Un cambio se ve en las publicaciones que se carguen después.
 Hide the Reels title	Ocultar el título Reels
 Takes the word Reels off the top of the Reels tab. The buttons beside it stay.	Quita la palabra Reels de la parte de arriba de la pestaña Reels. Los botones de al lado se quedan.
 Hide Back on opened videos	Ocultar Atrás en los videos abiertos
@@ -2943,3 +2947,9 @@ Move seen stories to the end	Mover las historias vistas al final
 Stories you've already watched move to the end of the Stories tray, after the ones you haven't. Hide seen stories goes first while it's on. Applies when Facebook next loads the tray.	Las historias que ya viste pasan al final de la bandeja de historias, después de las que no has visto. Mientras Ocultar historias vistas esté activado, va primero. Se aplica cuando Facebook cargue la bandeja de nuevo.
 Skip location prompts	Omitir avisos de ubicación
 Facebook's page asking you to allow Location Services, the one with Skip and Continue, doesn't show. Location you turn on yourself still works.	La pantalla de Facebook que te pide permitir los Servicios de ubicación, la de Omitir y Continuar, no aparece. La ubicación que actives tú sigue funcionando.
+# context: switch title under Stories; on, a tap on a reaction at the bottom of a story asks first
+Ask before reacting to a story	Preguntar antes de reaccionar a una historia
+# context: summary of that switch
+A tap on a reaction at the bottom of a story asks first, and the story waits. Only Continue sends the reaction.	Tocar una reacción en la parte inferior de una historia pregunta primero, y la historia espera. Solo Continuar envía la reacción.
+# context: the question shown after a tap on a reaction at the bottom of a story; Continue sends the reaction, Cancel leaves it
+React to this story?	¿Reaccionar a esta historia?

@@ -11,13 +11,15 @@ import app.rex.patches.instagram.entity.decoder.decoderEntity
 import app.rex.patches.instagram.entity.userfriendshipstatus.userFriendshipStatusEntity
 import app.rex.utils.changeFirstString
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.instructions
-import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
 import app.morphe.patcher.patch.classDefByOrNull
+import app.morphe.patcher.patch.mutableClassDefBy
 import app.morphe.patcher.patch.patch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 
 private fun findUserPandoStringGetter(fieldId: Int): String? =
     classDefByOrNull(USER_MODEL_CLASS_NAME)?.methods?.firstOrNull { method ->
@@ -30,6 +32,31 @@ private fun findUserPandoStringGetter(fieldId: Int): String? =
             } == true
     }?.name
 
+private fun replaceExtensionMethod(
+    target: MutableMethod,
+    registerCount: Int,
+    smaliBody: String,
+) {
+    val replacement = MutableMethod(
+        ImmutableMethod(
+            target.definingClass,
+            target.name,
+            target.parameters,
+            target.returnType,
+            target.accessFlags,
+            target.annotations,
+            target.hiddenApiRestrictions,
+            ImmutableMethodImplementation(registerCount, emptyList(), emptyList(), emptyList()),
+        ),
+    ).apply {
+        addInstructions(0, smaliBody.trimIndent())
+    }
+    mutableClassDefBy(target.definingClass).methods.apply {
+        remove(target)
+        add(replacement)
+    }
+}
+
 val userDataEntity =
     patch(
         description = "This patch is used for decoding obfuscated code of the user data",
@@ -38,62 +65,43 @@ val userDataEntity =
 
         execute {
             runCatching {
-            runCatching {
-                val usernameGetter = UserNameLiveTreeUserDictFingerprint.matchOrNull()?.originalMethod?.name
-                    ?: findUserPandoStringGetter(-265713450)
-                if (usernameGetter != null) {
-                    GetUsernameExtensionFingerprint.changeFirstString(usernameGetter)
+                runCatching {
+                    val usernameGetter = UserNameLiveTreeUserDictFingerprint.matchOrNull()?.originalMethod?.name
+                        ?: findUserPandoStringGetter(-265713450)
+                    if (usernameGetter != null) {
+                        GetUsernameExtensionFingerprint.changeFirstString(usernameGetter)
+                    }
                 }
-            }
-            runCatching {
-                val userIdGetter = UserIdLiveTreeUserDictFingerprint.matchOrNull()?.instructionMatches?.lastOrNull()?.methodReference?.name
-                    ?: findUserPandoStringGetter(0x7b27f5a8)
-                if (userIdGetter != null) {
-                    GetUserIdExtensionFingerprint.changeFirstString(userIdGetter)
+                runCatching {
+                    val userIdGetter = UserIdLiveTreeUserDictFingerprint.matchOrNull()?.instructionMatches?.lastOrNull()?.methodReference?.name
+                        ?: findUserPandoStringGetter(0x7b27f5a8)
+                    if (userIdGetter != null) {
+                        GetUserIdExtensionFingerprint.changeFirstString(userIdGetter)
+                    }
                 }
-            }
-            runCatching { GetFullNameExtensionFingerprint.changeFirstString(FullNameLiveTreeUserDictFingerprint.originalMethod.name) }
-            runCatching { GetUserFriendshipStatusExtensionFingerprint.changeFirstString(FriendshipStatusLiveTreeUserDictFingerprint.originalMethod.name) }
-            runCatching { GetBioExtensionFingerprint.changeFirstString(BiographyLiveTreeUserDictFingerprint.originalMethod.name) }
-            runCatching { GetProfilePictureUrlExtensionFingerprint.changeFirstString(HDProfileInfoUserTreeDictFingerprint.originalMethod.name) }
-            runCatching { GetLowResProfilePictureExtensionFingerprint.changeFirstString(LowResProfilePictureUserTreeDictFingerprint.originalMethod.name) }
-            runCatching { IsVerifiedExtensionFingerprint.changeFirstString(IsVerifiedUserTreeDictFingerprint.originalMethod.name) }
+                runCatching { GetFullNameExtensionFingerprint.changeFirstString(FullNameLiveTreeUserDictFingerprint.originalMethod.name) }
+                runCatching { GetUserFriendshipStatusExtensionFingerprint.changeFirstString(FriendshipStatusLiveTreeUserDictFingerprint.originalMethod.name) }
+                runCatching { GetBioExtensionFingerprint.changeFirstString(BiographyLiveTreeUserDictFingerprint.originalMethod.name) }
+                runCatching { GetProfilePictureUrlExtensionFingerprint.changeFirstString(HDProfileInfoUserTreeDictFingerprint.originalMethod.name) }
+                runCatching { GetLowResProfilePictureExtensionFingerprint.changeFirstString(LowResProfilePictureUserTreeDictFingerprint.originalMethod.name) }
+                runCatching { IsVerifiedExtensionFingerprint.changeFirstString(IsVerifiedUserTreeDictFingerprint.originalMethod.name) }
 
-            runCatching {
-                val request = ProfileUserRequestFingerprint.originalMethod
-                val repository = ProfileUserRequestFingerprint.originalClassDef.staticFields.single {
-                    it.type == request.definingClass && AccessFlags.PUBLIC.isSet(it.accessFlags)
-                }
-                FetchProfileUserExtensionFingerprint.method.apply {
-                    removeInstructions(0, instructions.size)
-                    addInstructions(
-                        0,
+                runCatching {
+                    val request = ProfileUserRequestFingerprint.originalMethod
+                    val repository = ProfileUserRequestFingerprint.originalClassDef.staticFields.single {
+                        it.type == request.definingClass && AccessFlags.PUBLIC.isSet(it.accessFlags)
+                    }
+                    replaceExtensionMethod(
+                        FetchProfileUserExtensionFingerprint.method,
+                        3,
                         """
                         sget-object p0, $repository
                         invoke-virtual/range {p0 .. p2}, $request
                         move-result-object p0
                         return-object p0
-                        """.trimIndent(),
+                        """,
                     )
                 }
-            }
-
-            runCatching {
-                GetAdditionalUserInfoExtensionFingerprint.method.apply {
-                    val userObjectField = GetAdditionalUserInfoExtensionFingerprint.classDef.fields.single {
-                        it.type == "Ljava/lang/Object;" && !AccessFlags.STATIC.isSet(it.accessFlags)
-                    }
-                    removeInstructions(0, instructions.size)
-                    addInstructions(
-                        0,
-                        """
-                        iget-object v0, p0, $userObjectField
-                        return-object v0
-                        """.trimIndent(),
-                    )
-                }
-            }
-        
             }
         }
     }

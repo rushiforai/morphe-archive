@@ -21,7 +21,7 @@ function fakePage(units = []) {
     querySelectorAll: () => units,
   };
   const sandbox = {
-    window: {}, document, URL, styles,
+    window: { addEventListener() {} }, document, URL, styles,
     MutationObserver: class { observe() {} },
     setTimeout: () => 0,
   };

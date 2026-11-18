@@ -6,19 +6,20 @@
 package app.hushmessenger.patches.misc
 
 import app.hushmessenger.patches.MessengerTarget
-import app.hushmessenger.patches.isExtension
-import app.hushmessenger.patches.messengerClasses
 import app.hushmessenger.patches.coexist.validateVersionCode
 import app.hushmessenger.patches.controls.hookId
 import app.hushmessenger.patches.controls.settingsExtension
+import app.hushmessenger.patches.isExtension
+import app.hushmessenger.patches.messengerClasses
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
-import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.document
+import app.morphe.patcher.patch.mutableClassDefBy
+import app.morphe.patcher.patch.packageMetadata
+import app.morphe.patcher.patch.patch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.proxy.mutableTypes.encodedValue.MutableStringEncodedValue
 import app.morphe.patcher.util.smali.ExternalLabel
@@ -432,10 +433,10 @@ internal fun planGmsCore(classes: Iterable<ClassDef>): GmsCorePlan {
     return GmsCorePlan(availability.single(), providers.single(), texts, fields)
 }
 
-private fun BytecodePatchContext.planGmsCore() = planGmsCore(messengerClasses())
+private fun planGmsCore() = planGmsCore(messengerClasses())
 
 /** Rewrites every planned text and field, then answers the two checks. Texts go first: they keep every index. */
-internal fun BytecodePatchContext.applyGmsCore(plan: GmsCorePlan) {
+internal fun applyGmsCore(plan: GmsCorePlan) {
     for ((type, sites) in plan.texts.groupBy { it.method.definingClass }) {
         val owner = mutableClassDefBy(type)
         for (site in sites) {
@@ -530,20 +531,20 @@ internal fun rerouteManifestToGmsCore(document: Document) {
 }
 
 /** Checks every bytecode edit first, so nothing refuses after the manifest changed. */
-internal val gmsCorePreflightPatch = bytecodePatch(description = "Check GmsCore support's bytecode edits before the manifest changes") {
+internal val gmsCorePreflightPatch = patch(description = "Check GmsCore support's bytecode edits before the manifest changes") {
     execute {
         validateVersionCode(packageMetadata.versionCode)
         planGmsCore()
     }
 }
 
-internal val gmsCoreManifestPatch = resourcePatch(description = "Point Messenger's manifest at microG-RE") {
+internal val gmsCoreManifestPatch = patch(description = "Point Messenger's manifest at microG-RE") {
     dependsOn(gmsCorePreflightPatch)
     execute { document("AndroidManifest.xml").use(::rerouteManifestToGmsCore) }
 }
 
 @Suppress("unused")
-val gmsCoreSupportPatch = bytecodePatch(
+val gmsCoreSupportPatch = patch(
     name = GMS_CORE_PATCH,
     description = "Gets Messenger's push notifications through microG-RE instead of Google Play services. It also gives microG-RE the signature of Meta's own Messenger for the Google services that check one. Only for phones with microG-RE installed, since Messenger stops asking Google Play services. Install microG-RE before you open the patched app. Pick it in Morphe Manager's Expert mode. Works as soon as you patch it in, with no switch.",
     default = false,

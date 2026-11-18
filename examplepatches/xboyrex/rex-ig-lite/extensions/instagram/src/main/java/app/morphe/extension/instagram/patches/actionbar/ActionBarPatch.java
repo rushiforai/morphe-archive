@@ -146,6 +146,11 @@ public class ActionBarPatch {
                     homeTab = ((ViewGroup) tabBar).getChildAt(0);
                 }
             }
+            if (Pref.liquidGlassNav()) {
+                try {
+                    app.morphe.extension.suite.instagram.settings.Settings.GLASS_TAB_BAR.save(Boolean.TRUE);
+                } catch (Throwable ignored) {}
+            }
             if (homeTab == null) return;
 
             synchronized (ARMED_HOME_TABS) {

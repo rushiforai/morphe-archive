@@ -51,7 +51,7 @@ val blackAndWhiteLaunchLogoPatch = resourcePatch(
 ) {
     category("Theme")
     dependsOn(amoledBlackPatch)
-    compatibleWith(*AppCompatibilities.telegram())
+    compatibleWith(*AppCompatibilities.telegramOnly())
     // Patcher 2.0 decodes only the files a patch asks for, and an undecoded file doesn't exist yet,
     // so each file the logo reads or checks is asked for first.
     execute { addLaunchLogo(get("res", false)) { decode("res/$it") } }

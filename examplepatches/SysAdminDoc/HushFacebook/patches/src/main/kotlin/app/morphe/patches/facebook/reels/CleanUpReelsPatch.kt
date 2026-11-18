@@ -270,9 +270,12 @@ internal fun BytecodePatchContext.reelsTabAudioLine(): MutableMethod {
     return mutableClassDefBy(owner).methods.first { it.sameSignatureAs(row) }
 }
 
-/** Asks [hook] first thing and answers null when it says so. v0 is free there, as in [answerWhen]. */
-internal fun MutableMethod.returnNullWhen(hook: String) {
-    requireLocals(PATCH, 1)
+/**
+ * Asks [hook] first thing and answers null when it says so. v0 is free there, as in [answerWhen].
+ * [patch] names the patch in the refusal when the method has no local to use.
+ */
+internal fun MutableMethod.returnNullWhen(hook: String, patch: String = PATCH) {
+    requireLocals(patch, 1)
     addInstructionsWithLabels(
         0,
         """
@@ -402,15 +405,18 @@ internal fun MutableMethod.returnTrueObjectForKeyWhen(keyField: FieldReference, 
 /** Asks [hook] first thing and answers true when it says so. */
 internal fun MutableMethod.returnTrueWhen(hook: String) = answerWhen(hook, true)
 
-/** Asks [hook] first thing and answers false when it says so. */
-internal fun MutableMethod.returnFalseWhen(hook: String) = answerWhen(hook, false)
+/**
+ * Asks [hook] first thing and answers false when it says so. [patch] names the patch in the refusal
+ * when the method has no local to use.
+ */
+internal fun MutableMethod.returnFalseWhen(hook: String, patch: String = PATCH) = answerWhen(hook, false, patch)
 
 /**
  * Asks [hook] first thing and answers [answer] when it says so. At the first instruction no local
  * holds anything yet, so v0 is free, and `const/4` and `return` both reach it.
  */
-private fun MutableMethod.answerWhen(hook: String, answer: Boolean) {
-    requireLocals(PATCH, 1)
+private fun MutableMethod.answerWhen(hook: String, answer: Boolean, patch: String = PATCH) {
+    requireLocals(patch, 1)
     addInstructionsWithLabels(
         0,
         """

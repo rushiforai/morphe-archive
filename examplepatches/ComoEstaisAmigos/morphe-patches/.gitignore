@@ -1,0 +1,27 @@
+# Gradle and Kotlin build output
+.gradle/
+.kotlin/
+build/
+
+# The local SDK path
+local.properties
+
+# Android Studio and IntelliJ
+.idea/
+*.iml
+
+# Game files and signing keys never belong here
+*.apk
+*.apkm
+*.apks
+*.jks
+*.keystore
+*.obb
+*.p12
+*.xapk
+
+# Python bytecode
+__pycache__/
+
+# What npm install puts down for the release workflow
+node_modules/

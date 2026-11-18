@@ -5,8 +5,8 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
-import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.mutableClassDefBy
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -102,12 +102,12 @@ internal fun MutableMethod.writeOriginalBuild(value: String) {
 }
 
 /** Records an applied control in the patched code, which Root Mount installs read instead of the manifest. */
-internal fun BytecodePatchContext.recordControl(key: String) {
+internal fun recordControl(key: String) {
     bundledControls.add(key)
     mutableClassDefBy(HOST_SCREENS).methods.single { it.hookId() == BUNDLED_CONTROLS }.writeBundledControls(bundledControls)
 }
 
-internal fun BytecodePatchContext.hookScreenHosts() {
+internal fun hookScreenHosts() {
     val factory = runCatching { mutableClassDefBy(FACTORY_TYPE) }.getOrElse { factoryChanged() }
     val activity = factory.methods.singleOrNull { it.hookId() == INSTANTIATE_ACTIVITY } ?: factoryChanged()
     val application = factory.methods.singleOrNull { it.hookId() == INSTANTIATE_APPLICATION } ?: factoryChanged()
@@ -155,7 +155,7 @@ internal fun MutableMethod.followShortcutWrites(): Int {
  * slipped down until Messenger next left the screen. Every write outside the extension now puts it back right after.
  * A build without any still patches, and the pair then goes back on top at each start and leave as before.
  */
-internal fun BytecodePatchContext.followShortcutWrites(classes: Iterable<ClassDef>) {
+internal fun followShortcutWrites(classes: Iterable<ClassDef>) {
     var count = 0
     for ((type, writers) in shortcutWriters(classes))
         for (method in mutableClassDefBy(type).methods) if (method.hookId() in writers) count += method.followShortcutWrites()

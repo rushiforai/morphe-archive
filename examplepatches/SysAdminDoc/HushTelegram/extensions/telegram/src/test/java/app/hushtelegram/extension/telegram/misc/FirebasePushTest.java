@@ -43,6 +43,8 @@ import app.hushtelegram.extension.telegram.settings.Settings;
 public class FirebasePushTest {
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
     private static final String OFFICIAL_SHA1 = "9723E5838612E9C7C08CA2C6573B6026D7A51F8F";
+    /** apksigner's SHA-1 for Plus Messenger 13.2.2.1's signer (CN=rafalense). */
+    private static final String PLUS_SHA1 = "49EBB949E0C74FA7A5E8B869762C7907B891941A";
     private static final String ORIGINAL = new String("installed-test-signer");
     private static final String CREATE = "https://firebaseinstallations.googleapis.com/v1/projects/test-project/installations";
 
@@ -542,6 +544,18 @@ public class FirebasePushTest {
         assertSame(ORIGINAL, FirebasePush.certificateHeader(missing, ORIGINAL));
         assertSame(ORIGINAL, FirebasePush.certificateHeader(null, ORIGINAL));
         assertFalse(HookStatus.report().get(0).contains("Counted:"));
+    }
+
+    @Test public void plusMessengerGetsItsOwnKeyNotTelegrams() throws Exception {
+        ProbeConnection connection = connection(CREATE);
+        connection.setRequestProperty("X-Android-Package", "org.telegram.plus");
+        assertEquals(PLUS_SHA1, FirebasePush.certificateHeader(connection, ORIGINAL));
+        String signed = new String(PLUS_SHA1.toLowerCase(java.util.Locale.ROOT));
+        assertSame(signed, FirebasePush.certificateHeader(connection, signed));
+        ProbeConnection lookalike = connection(CREATE);
+        lookalike.setRequestProperty("X-Android-Package", "org.telegram.plus.other");
+        assertSame(ORIGINAL, FirebasePush.certificateHeader(lookalike, ORIGINAL));
+        assertTrue(HookStatus.report().get(0).contains("certificate headers repaired 1"));
     }
 
     @Test public void playBuildUsesTheIndependentlyVerifiedSharedCertificateAndKeepsAllOtherHeaders() throws Exception {

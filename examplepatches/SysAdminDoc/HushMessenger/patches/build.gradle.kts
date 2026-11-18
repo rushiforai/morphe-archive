@@ -68,7 +68,10 @@ tasks.named<Jar>("jar") {
 // Ed25519 over "MorpheSig1" and the SHA-256 of the archive with an empty comment, stored in the zip
 // comment as "MorpheSig1 <public key> <signature>". scripts/bundle_signature.py checks it the same
 // way. MORPHE_SIGNING_KEY is the Base64 private key, as the Morphe patches plugin 2.1 reads it, and
-// release.ps1 sets it. Without it the bundle stays unsigned, which only a release refuses.
+// release.ps1 sets it. Without it the bundle stays unsigned, which only a release refuses. The
+// plugin signs the archive from the same variable (or a morphe-signing.key file) inside its own
+// action; the doLast below strips whatever comment that left and signs again, so the result only
+// ever carries this key's signature.
 fun signBundle(bundle: File, privateKey: String?, publicKey: String) {
     val bytes = bundle.readBytes()
     // The end of central directory record is the last one whose comment reaches the end.

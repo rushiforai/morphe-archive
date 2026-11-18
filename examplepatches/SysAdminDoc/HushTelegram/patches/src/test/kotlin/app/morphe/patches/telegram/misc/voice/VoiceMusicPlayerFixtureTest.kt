@@ -8,6 +8,7 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.PlusPending
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
 import app.morphe.patches.telegram.misc.extension.SETTINGS_STATUS
 import app.morphe.patches.telegram.misc.localcontrols.controlBody
@@ -29,6 +30,7 @@ import app.morphe.util.names.origType
 import app.morphe.util.names.tgMutableClassDefBy
 
 /** The bar's tap, the full player's own checks, the stubs and the runtime. */
+@PlusPending
 class VoiceMusicPlayerFixtureTest {
     @Test fun `the bar and the full player ask the extension where they check for music`() {
         for (build in Fixtures.declaredBuilds()) {

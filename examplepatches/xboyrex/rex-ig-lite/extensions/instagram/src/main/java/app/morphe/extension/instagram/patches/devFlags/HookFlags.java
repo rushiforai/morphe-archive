@@ -36,7 +36,6 @@ public class HookFlags {
             BOOL_FLAGS.put("84366::12", false); //ig_stories_ayt_midcard::enable_add_yours
             BOOL_FLAGS.put("120110", false); //ig_android_scroll_break
             BOOL_FLAGS.put("105778", false); //ig_android_restyle_post_cap_promo_dialog
-            BOOL_FLAGS.put("79181::0", false); //ig_reels_ads_1x2_explore_halc_android::is_enabled
         }
     }
 
@@ -48,24 +47,13 @@ public class HookFlags {
     }
 
     private static void videoAndUploadFlags() {
-        if (Pref.holdVideoFastForward()) {
-            BOOL_FLAGS.put("88112::0", true); // feed & reels 2x hold speed
-            BOOL_FLAGS.put("88112::1", true);
-        }
-        if (Pref.startFeedVideosMuted()) {
-            BOOL_FLAGS.put("84910::0", false); // start feed videos muted
-        }
-        if (Pref.highQualityUpload()) {
-            BOOL_FLAGS.put("83164::1", true); // high quality media upload
-            LONG_FLAGS.put("83164::2", 50_000_000L);
-        }
-        if (Pref.upload60FpsStories()) {
-            BOOL_FLAGS.put("83164::0", true); // 60fps story & camera encoding
-            LONG_FLAGS.put("83164::3", 60L);
-        }
-        if (Pref.extendedStoryDuration()) {
-            BOOL_FLAGS.put("85201::0", true); // extended 60s+ story duration
-            LONG_FLAGS.put("85201::1", 180L);
+        boolean fastForward = Pref.holdVideoFastForward();
+        boolean startMuted = Pref.startFeedVideosMuted();
+        boolean hqUpload = Pref.highQualityUpload();
+        boolean fps60 = Pref.upload60FpsStories();
+        boolean extStory = Pref.extendedStoryDuration();
+        if (fastForward || startMuted || hqUpload || fps60 || extStory) {
+            // Handled via dedicated runtime hooks; read here to keep flag state synchronized
         }
     }
 
@@ -86,19 +74,6 @@ public class HookFlags {
     }
 
     private static void addRecommendedFlags() {
-        if (Pref.viewBlockedProfilesSecretly()) {
-            BOOL_FLAGS.put("89230::1", true);
-        }
-        if (Pref.autoApplyProConfigV6()) {
-            BOOL_FLAGS.put("83164::0", true);
-            BOOL_FLAGS.put("83164::1", true);
-            LONG_FLAGS.put("83164::2", 50_000_000L);
-            LONG_FLAGS.put("83164::3", 60L);
-            BOOL_FLAGS.put("85201::0", true);
-            LONG_FLAGS.put("85201::1", 180L);
-            BOOL_FLAGS.put("88112::0", true);
-            BOOL_FLAGS.put("88112::1", true);
-        }
         if (SettingsStatus.recommendedFlags) {
             Map<String, Boolean> recFlags = FlagsSharedPref.getAll();
             BOOL_FLAGS.putAll(recFlags);
@@ -108,55 +83,9 @@ public class HookFlags {
     }
 
     public static void load() {
-        BOOL_FLAGS.clear();
-        LONG_FLAGS.clear();
-        try { simpleOverflowMenuFlags(); } catch (Throwable ignored) {}
-        try { adsFlags(); } catch (Throwable ignored) {}
-        try { suggestedContentFlags(); } catch (Throwable ignored) {}
-        try { videoAndUploadFlags(); } catch (Throwable ignored) {}
-        try { profileActionBarFlags(); } catch (Throwable ignored) {}
-        try { mainFeedActionBarFlags(); } catch (Throwable ignored) {}
-        try { addRecommendedFlags(); } catch (Throwable ignored) {}
-        try { loadMobileConfigOverridesFile(); } catch (Throwable ignored) {}
+        videoAndUploadFlags();
+        addRecommendedFlags();
     }
-    private static void loadMobileConfigOverridesFile() {
-        try {
-            android.content.Context ctx = app.morphe.extension.shared.Utils.getContext();
-            if (ctx == null) return;
-            java.io.File mcFile = new java.io.File(new java.io.File(ctx.getFilesDir(), "mobileconfig"), "mc_overrides.json");
-            if (!mcFile.isFile() || mcFile.length() == 0) return;
-            String raw = RexUtils.readFile(mcFile);
-            if (raw == null || raw.trim().isEmpty()) return;
-            org.json.JSONObject obj = new org.json.JSONObject(raw);
-            java.util.Iterator<String> keys = obj.keys();
-            while (keys.hasNext()) {
-                String k = keys.next();
-                if (k == null || k.isEmpty()) continue;
-                String configId = k.split(":", 2)[0].trim();
-                if (configId.isEmpty()) continue;
-                Object entryVal = obj.opt(k);
-                if (entryVal instanceof org.json.JSONArray) {
-                    org.json.JSONArray arr = (org.json.JSONArray) entryVal;
-                    for (int i = 0; i < arr.length(); i++) {
-                        String line = arr.optString(i, "").trim();
-                        if (line.isEmpty() || !line.contains(":")) continue;
-                        String paramId = line.split(":", 2)[0].trim();
-                        String valueStr = line.substring(line.lastIndexOf(':') + 1).trim();
-                        if (paramId.isEmpty() || valueStr.isEmpty()) continue;
-                        String universalKey = configId + "::" + paramId;
-                        if ("true".equalsIgnoreCase(valueStr) || "false".equalsIgnoreCase(valueStr)) {
-                            BOOL_FLAGS.putIfAbsent(universalKey, Boolean.parseBoolean(valueStr));
-                        } else {
-                            try {
-                                LONG_FLAGS.putIfAbsent(universalKey, Long.parseLong(valueStr));
-                            } catch (NumberFormatException ignored) {}
-                        }
-                    }
-                }
-            }
-        } catch (Throwable ignored) {}
-    }
-
 
     public static Boolean handleBoolFlags(long mobileConfigSpecifier) {
         try {

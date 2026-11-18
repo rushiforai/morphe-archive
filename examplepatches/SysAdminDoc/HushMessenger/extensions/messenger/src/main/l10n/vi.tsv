@@ -1,0 +1,938 @@
+# Vietnamese text for the settings screen.
+# One id, a tab, then its text on each line. The build writes this file into SettingsTextVi.java, and SettingsTranslationTest fails the build when an id is missing or a placeholder changed. In a text, \n is a new line, \t a tab and \\ a backslash.
+controls	Điều khiển tính năng
+app	Ứng dụng
+inbox	Hộp thư đến
+chat_menu	Menu phòng chat
+navigation	Điều hướng
+tab_bar	Thanh thẻ
+stickers	Nhãn dán
+conversations	Cuộc trò chuyện
+notifications	Thông báo
+calls	Cuộc gọi
+photos_videos	Ảnh và video
+links_bubbles	Liên kết và bong bóng thông báo
+privacy	Quyền riêng tư
+tracking	Theo dõi
+theme	Chủ đề
+settings	Cài đặt HushMessenger
+preview_title	Xem trước giao diện HushMessenger
+preview_notice	Xem trước giao diện. Các điều khiển này sẽ không làm thay đổi Messenger.
+mounted_build_mismatch	Bản này được vá từ Messenger %1$d, nhưng Android đang cài bản %2$d. Hãy vá bản %2$d để dùng Root Mount, nếu không bong bóng chat và các màn hình khác có thể bị lỗi.
+gmscore_without_microg	Bản này đã vá GmsCore support, nhưng microG-RE chưa được cài hoặc đang bị tắt. Vì vậy Messenger không nhận được thông báo qua dịch vụ đẩy của Google. Hãy cài microG-RE, hoặc vá lại mà không chọn GmsCore support.
+open	Mở
+open_messenger	Mở Messenger
+back	Quay lại
+search_settings	Tìm kiếm cài đặt
+show_as_list	Hiện mọi cài đặt dạng danh sách
+show_by_category	Hiện cài đặt theo danh mục
+header_version	Phiên bản %1$s cho Messenger %2$s
+header_version_alone	Phiên bản %s
+reopen	Một số thay đổi yêu cầu khởi động lại Messenger thông qua 'Ứng dụng > Khởi động lại Messenger' để có hiệu lực.
+quick_access	Truy cập nhanh
+access_help	Nhấn giữ biểu tượng Messenger trên màn hình chính để chọn 'Điều khiển bản vá (Patch controls)' hoặc 'Khởi động lại Messenger (Restart Messenger)'. Bạn cũng có thể mở Cài đặt HushMessenger từ ngăn kéo ứng dụng.
+hide_drawer_icon	Ẩn biểu tượng trong ngăn kéo ứng dụng
+hide_drawer_icon_help	Vẫn có thể mở cài đặt thông qua menu của Messenger hoặc phím tắt trên màn hình chính.
+hide_menu_row	Ẩn mục cài đặt trong menu
+hide_menu_row_help	Xóa mục HushMessenger khỏi tab 'Menu' và menu bên của Messenger. Nhấn giữ logo Messenger ở đầu 'Đoạn chat', hoặc nhấn giữ biểu tượng Messenger trên màn hình chính và chọn 'Điều khiển bản vá (Patch controls)' để quay lại đây. Nếu cả hai lối vào này đều không khả dụng, mục trong menu sẽ được hiển thị lại.
+menu_row_needs_shortcut	Vui lòng mở cài đặt ít nhất một lần thông qua phím tắt nhấn giữ (nhấn giữ biểu tượng Messenger trên màn hình chính, sau đó chọn 'Điều khiển bản vá (Patch controls)'), để đảm bảo bạn vẫn có thể quay lại đây sau khi ẩn mục menu.
+shared_install_help	Gỡ cài đặt mục này cũng sẽ xóa Messenger và dữ liệu cục bộ của ứng dụng. Vui lòng sử dụng 'Ẩn biểu tượng trong ngăn kéo ứng dụng' thay thế.
+access_help_hosted	Nhấn giữ biểu tượng Messenger trên màn hình chính để chọn 'Điều khiển bản vá (Patch controls)' hoặc 'Khởi động lại Messenger (Restart Messenger)'. Khi cài đặt bằng Root Mount, sẽ không có biểu tượng cài đặt riêng trong ngăn kéo ứng dụng.
+access_help_hosted_menu	Mở cài đặt từ mục HushMessenger trong tab 'Menu' hoặc menu bên của Messenger, hoặc nhấn giữ logo Messenger ở đầu 'Đoạn chat'. Nhấn giữ biểu tượng Messenger trên màn hình chính để chọn 'Điều khiển bản vá (Patch controls)' hoặc 'Khởi động lại Messenger (Restart Messenger)'. Khi cài đặt bằng Root Mount, sẽ không có biểu tượng cài đặt riêng trong ngăn kéo ứng dụng.
+access_help_menu	Mở cài đặt từ menu của Messenger hoặc ngăn kéo ứng dụng, hoặc nhấn giữ logo Messenger ở đầu 'Đoạn chat'. Nhấn giữ biểu tượng Messenger trên màn hình chính cũng có thể mở.
+access_help_missing	Nhấn giữ biểu tượng Messenger trên màn hình chính để chọn 'Điều khiển bản vá (Patch controls)' hoặc 'Khởi động lại Messenger (Restart Messenger)'. Gói bản vá này không cung cấp biểu tượng cài đặt trong ngăn kéo ứng dụng.
+access_help_missing_menu	Mở HushMessenger từ tab 'Menu' hoặc menu bên của Messenger, hoặc nhấn giữ logo Messenger ở đầu 'Đoạn chat'. Nhấn giữ biểu tượng Messenger trên màn hình chính để chọn 'Điều khiển bản vá (Patch controls)' hoặc 'Khởi động lại Messenger (Restart Messenger)'. Gói bản vá này không cung cấp biểu tượng cài đặt trong ngăn kéo ứng dụng.
+access_help_logo	Nhấn giữ logo Messenger ở đầu 'Đoạn chat', hoặc nhấn giữ biểu tượng Messenger trên màn hình chính và chọn 'Điều khiển bản vá (Patch controls)' hoặc 'Khởi động lại Messenger (Restart Messenger)'. Bạn cũng có thể mở Cài đặt HushMessenger từ ngăn kéo ứng dụng.
+access_help_hosted_logo	Nhấn giữ logo Messenger ở đầu 'Đoạn chat', hoặc nhấn giữ biểu tượng Messenger trên màn hình chính và chọn 'Điều khiển bản vá (Patch controls)' hoặc 'Khởi động lại Messenger (Restart Messenger)'. Khi cài đặt bằng Root Mount, sẽ không có biểu tượng cài đặt riêng trong ngăn kéo ứng dụng.
+access_help_missing_logo	Nhấn giữ logo Messenger ở đầu 'Đoạn chat', hoặc nhấn giữ biểu tượng Messenger trên màn hình chính và chọn 'Điều khiển bản vá (Patch controls)' hoặc 'Khởi động lại Messenger (Restart Messenger)'. Gói bản vá này không cung cấp biểu tượng cài đặt trong ngăn kéo ứng dụng.
+access_help_menu_without_logo	Mở cài đặt từ menu của Messenger hoặc ngăn kéo ứng dụng. Nhấn giữ biểu tượng Messenger trên màn hình chính cũng có thể mở.
+access_help_hosted_menu_without_logo	Mở cài đặt từ mục HushMessenger trong tab 'Menu' hoặc menu bên của Messenger. Nhấn giữ biểu tượng Messenger trên màn hình chính để chọn 'Điều khiển bản vá (Patch controls)' hoặc 'Khởi động lại Messenger (Restart Messenger)'. Khi cài đặt bằng Root Mount, sẽ không có biểu tượng cài đặt riêng trong ngăn kéo ứng dụng.
+access_help_missing_menu_without_logo	Mở HushMessenger từ tab 'Menu' hoặc menu bên của Messenger. Nhấn giữ biểu tượng Messenger trên màn hình chính để chọn 'Điều khiển bản vá (Patch controls)' hoặc 'Khởi động lại Messenger (Restart Messenger)'. Gói bản vá này không cung cấp biểu tượng cài đặt trong ngăn kéo ứng dụng.
+hide_menu_row_help_without_logo	Xóa mục HushMessenger khỏi tab 'Menu' và menu bên của Messenger. Nhấn giữ biểu tượng Messenger trên màn hình chính và chọn 'Điều khiển bản vá (Patch controls)' để quay lại đây. Nếu phím tắt 'Điều khiển bản vá (Patch controls)' biến mất, các mục trong menu sẽ được hiển thị lại.
+hide_icon_shortcuts	Ẩn phím tắt của biểu tượng
+shortcut_turned_off	Đã tắt trong cài đặt HushMessenger
+hide_icon_shortcuts_help	Xóa 'Điều khiển bản vá (Patch controls)' và 'Khởi động lại Messenger (Restart Messenger)' khỏi menu hiện ra khi nhấn giữ biểu tượng Messenger trên màn hình chính. Phím tắt đã ghim ra màn hình chính sẽ chuyển sang màu xám cho đến khi bạn tắt tùy chọn này.
+hide_logo_press	Bỏ qua thao tác nhấn giữ logo
+hide_logo_press_help	Nhấn giữ logo Messenger ở đầu 'Đoạn chat' hoặc tiêu đề của tab 'Menu' sẽ không còn mở màn hình cài đặt này.
+last_way_in	Đây là lối vào cuối cùng còn bật để mở cài đặt này. Vui lòng bật một lối vào khác trước.
+menu_row_needs_logo	Vui lòng mở cài đặt ít nhất một lần bằng cách nhấn giữ logo Messenger ở đầu 'Đoạn chat', để đảm bảo bạn vẫn có thể quay lại đây sau khi ẩn mục menu.
+menu_row_needs_way	Vui lòng bật lại phím tắt của biểu tượng hoặc thao tác nhấn giữ logo trước, để đảm bảo bạn vẫn có thể quay lại đây sau khi ẩn mục menu.
+hide_menu_row_help_without_shortcut	Xóa mục HushMessenger khỏi tab 'Menu' và menu bên của Messenger. Nhấn giữ logo Messenger ở đầu 'Đoạn chat' để quay lại đây. Nếu tắt tính năng nhấn giữ logo, mục trong menu sẽ được hiển thị lại.
+hide_menu_row_help_plain	Xóa mục HushMessenger khỏi tab 'Menu' và menu bên của Messenger.
+menu_tab	Tab 'Menu'
+menu_rows_help	Những mục Messenger đặt trong tab 'Menu', chẳng hạn Cộng đồng hoặc Lời mời vào kênh. Hãy ẩn những mục bạn không bao giờ mở. Mỗi mục xuất hiện ở đây sau khi tab 'Menu' đã hiển thị nó một lần.
+menu_rows_empty	Hãy mở tab 'Menu' của Messenger một lần, các mục sẽ xuất hiện ở đây để bạn ẩn.
+menu_log_out	Mục 'Đăng xuất' trong tab 'Menu'
+menu_log_out_help	Đặt 'Đăng xuất' vào tab 'Menu' của Messenger, bên dưới Cài đặt. Nó đăng xuất theo cách giống với tính năng 'Đăng xuất' của chính Messenger.
+way_menu	Mở cài đặt từ mục HushMessenger trong tab 'Menu' hoặc menu bên của Messenger.
+way_logo	Nhấn giữ logo Messenger ở đầu 'Đoạn chat' để mở màn hình cài đặt này.
+way_drawer	Mở Cài đặt HushMessenger từ ngăn kéo ứng dụng.
+way_shortcuts_hidden	Đã ẩn phím tắt 'Điều khiển bản vá (Patch controls)' và 'Khởi động lại Messenger (Restart Messenger)' của biểu tượng Messenger trên màn hình chính.
+drawer_search	Cài đặt biểu tượng ngăn kéo ứng dụng
+drawer_root	Khi cài đặt bằng Root Mount, không cần sử dụng 'Ẩn biểu tượng trong ngăn kéo ứng dụng' vì không có biểu tượng cài đặt riêng để ẩn.
+drawer_missing	Không thể sử dụng 'Ẩn biểu tượng trong ngăn kéo ứng dụng'. Gói bản vá này không cung cấp biểu tượng cài đặt có thể ẩn.
+drawer_requires_menu	Để ẩn biểu tượng trong ngăn kéo ứng dụng, trước tiên hãy áp dụng tính năng vá 'Mở cài đặt từ menu' để đảm bảo bạn vẫn có thể tìm thấy màn hình cài đặt này. Nếu không, biểu tượng sẽ được giữ lại.
+restart	Khởi động lại Messenger
+restarting	Đang khởi động lại Messenger…
+restart_saving	Đang lưu cài đặt của bạn, Messenger sẽ được mở lại sau khi hoàn tất.
+restart_account	Tài khoản của bạn sẽ vẫn đăng nhập.
+choices	Cài đặt của bạn
+restart_unavailable	Không thể khởi động lại. Vui lòng đóng và mở lại Messenger thủ công.
+settings_open_failed	Không thể mở Cài đặt HushMessenger.
+settings_open_instead	Điều khiển bản vá (Patch controls): Nhấn giữ biểu tượng Messenger trên màn hình chính
+restart_save_failed	Không thể lưu, do đó chưa khởi động lại Messenger. Vui lòng thử lại.
+paused	Tạm dừng mọi thay đổi
+search	Tìm kiếm điều khiển
+empty_title	Không có điều khiển phù hợp
+empty_help	Vui lòng thử từ khóa khác hoặc xóa bộ lọc. Chỉ các điều khiển trong gói bản vá này mới được liệt kê ở đây.
+clear	Xóa bộ lọc
+unavailable	Phiên bản Android này không được hỗ trợ. Cài đặt của bạn đã được lưu.
+camera_unsupported	Phương pháp cài đặt này không cung cấp màn hình cần thiết để mở ứng dụng máy ảnh của điện thoại, vì vậy phòng chat vẫn sử dụng máy ảnh tích hợp của Messenger. Không thể thêm màn hình này khi cài đặt bằng Root Mount. Cài đặt của bạn đã được lưu.
+gallery_unsupported	Không có ứng dụng nào trên điện thoại này để Messenger chọn ảnh, vì vậy phòng chat vẫn sử dụng thư viện tích hợp của Messenger. Cài đặt của bạn đã được lưu.
+local_search_unsupported	Phương pháp cài đặt này không có màn hình tìm kiếm. Không thể thêm màn hình này khi cài đặt bằng Root Mount. Cài đặt của bạn đã được lưu.
+local_search_open	Tìm tin nhắn đã lưu trên điện thoại này
+local_search_title	Tin nhắn đã lưu
+local_search_hint	Từ cần tìm
+local_search_run	Tìm kiếm
+local_search_stop	Dừng
+local_search_help	Tìm trong các tin nhắn của đoạn chat này đã lưu trên điện thoại. Hãy cuộn lên trong đoạn chat trước để tải các tin nhắn cũ hơn.
+local_search_running	Đang tìm...
+local_search_done	Tìm thấy %1$d trong %2$d tin nhắn đã lưu, từ %3$s trở lại đây. Để tìm xa hơn, hãy cuộn lên trong đoạn chat rồi tìm lại.
+local_search_stopped	Đã dừng với %1$d kết quả trong %2$d tin nhắn đã lưu, từ %3$s trở lại đây.
+local_search_full	Đang hiển thị %1$d kết quả mới nhất. Đã tìm trong %2$d tin nhắn đã lưu, từ %3$s trở lại đây. Hãy thêm từ để thu hẹp kết quả.
+local_search_nothing	Điện thoại này chưa lưu nội dung nào của đoạn chat này. Hãy cuộn lên trong đoạn chat để tải các tin nhắn cũ hơn rồi tìm lại.
+local_search_failed	Không đọc được các tin nhắn đã lưu. Hãy thử lại sau giây lát.
+local_search_open_failed	Không mở được tin nhắn đó
+local_search_empty	Hãy nhập một từ cần tìm trước.
+call_recording_unsupported	Tính năng này cần Android 10 trở lên. Lựa chọn của bạn đã được lưu.
+call_recording_start	Ghi âm
+call_recording_stop_pill	Đang ghi âm, chạm để dừng
+call_recording_stop_time	Dừng %1$s
+call_recording_paused_time	Đang tạm dừng %1$s
+call_recording_pause	Tạm dừng
+call_recording_resume	Tiếp tục
+call_recording_on	Đang ghi âm cuộc gọi này
+call_recording_stop	Dừng
+call_recording_channel	Ghi âm cuộc gọi
+call_recording_saved	Đã lưu cuộc gọi vào %1$s
+call_recording_failed	Không ghi âm được cuộc gọi này
+call_recording_scope	Cuộc gọi cần ghi âm
+call_recording_scope_tap	Chỉ khi tôi chạm Ghi âm
+call_recording_scope_all	Mọi cuộc gọi
+call_recording_scope_chosen	Chỉ những cuộc trò chuyện đã chọn
+call_recording_scope_help	Cuộc gọi tự ghi âm ngay khi bắt đầu. Chỉ những cuộc trò chuyện đã chọn sẽ ghi âm những người bạn bật bên dưới, còn cuộc gọi bạn gọi đi thì dựa vào tên trên màn hình gọi.
+call_recording_scope_picked	Cuộc gọi cần ghi âm: %1$s
+call_recording_recent_empty	Những cuộc trò chuyện sẽ hiện ở đây khi họ gọi cho bạn, mới nhất ở trên cùng.
+call_recording_folder	Thư mục bản ghi âm
+call_recording_folder_help	Bản ghi âm sẽ vào thư mục Recordings của điện thoại nếu bạn không chọn thư mục khác. Chọn một thư mục trên thẻ SD hoặc trong thư mục của ứng dụng đám mây thì bản ghi được ghi thẳng vào đó.
+call_recording_folder_default	Thư mục Recordings của điện thoại
+call_recording_folder_choose	Chọn một thư mục
+call_recording_folder_reset	Dùng thư mục mặc định
+call_recording_folder_picked	Thư mục bản ghi âm: %1$s
+call_recording_folder_refused	Không dùng được thư mục đó. Hãy chọn thư mục bạn ghi được.
+call_recording_format	Lưu cuộc gọi dưới dạng
+call_recording_format_wav	WAV, chất lượng tốt nhất
+call_recording_format_ogg	OGG Opus, nhẹ hơn khoảng mười lần
+call_recording_format_help	Một giờ gọi chiếm khoảng 115 MB ở dạng WAV và chừng 10 MB ở dạng Opus, giọng nói nghe gần như nhau. WAV mở được ở mọi nơi, còn vài trình phát cũ thì không biết Opus.
+call_recording_format_picked	Lưu cuộc gọi dưới dạng: %1$s
+call_recording_format_unavailable	Điện thoại này không có bộ mã hóa Opus, nên dù bạn chọn gì thì cuộc gọi vẫn được lưu ở dạng WAV.
+call_recording_tracks	Hai bên
+call_recording_tracks_mixed	Chung một kênh
+call_recording_tracks_sides	Mỗi bên một kênh, bạn ở bên trái
+call_recording_tracks_help	Một kênh là bản ghi như thường lệ, hai giọng nói chung. Mỗi bên một kênh thì bạn ở bên trái và người kia ở bên phải, nên có thể nghe riêng từng bên. Tệp sẽ lớn gấp đôi.
+call_recording_tracks_picked	Hai bên: %1$s
+call_recording_keep	Giữ bản ghi âm
+call_recording_keep_all	Giữ tất cả
+call_recording_keep_days	Trong %1$s ngày
+call_recording_keep_help	Được kiểm sau khi một cuộc gọi được lưu. Chỉ tính những bản ghi tạo ở đây, còn tệp bạn đã chuyển đi hay đổi tên thì vẫn nằm nguyên.
+call_recording_keep_picked	Giữ bản ghi âm: %1$s
+call_recording_notify	Thông báo khi lưu xong cuộc gọi
+call_recording_notify_help	Một thông báo ngay khi bản ghi được ghi xuống, kèm tên tệp. Nhấn để nghe, chọn Gửi vào một đoạn chat để cất vào đoạn chat của chính bạn, hoặc Chia sẻ để gửi đi nơi khác.
+call_recording_saved_channel	Bản ghi âm cuộc gọi đã lưu
+call_recording_saved_title	Đã lưu bản ghi âm cuộc gọi
+call_recording_share	Chia sẻ
+call_recording_send	Gửi vào một đoạn chat
+call_captions_unsupported	Tính năng này cần Android 13 trở lên. Lựa chọn của bạn đã được lưu.
+call_captions_speak	Đọc to phụ đề
+call_captions_speak_help	Đọc to từng câu phụ đề bằng giọng của điện thoại khi câu nói kết thúc. Hãy dùng tai nghe để người kia không nghe thấy.
+call_captions_duck	Giảm giọng họ khi đang đọc
+call_captions_duck_help	Giảm âm lượng của người kia khi đang đọc phụ đề để bạn nghe rõ giọng đọc.
+call_captions_heard	Họ nói: %1$s
+call_captions_heard_title	Ngôn ngữ họ nói
+call_captions_heard_hint	Phụ đề nghe ngôn ngữ này. Ngôn ngữ có ghi tải xuống sẽ được điện thoại tải về trước, và hàng cuối mở những ngôn ngữ khác mà điện thoại biết.
+call_captions_shown	Hiện phụ đề bằng: %1$s
+call_captions_shown_title	Hiện phụ đề bằng
+call_captions_shown_hint	Phụ đề được dịch ngay trên điện thoại sang ngôn ngữ này. Danh sách là những gì điện thoại báo, và hàng cuối mở các ngôn ngữ khác mà nó biết.
+call_captions_phone_language	Ngôn ngữ của điện thoại (%1$s)
+call_captions_untranslated_choice	Giữ nguyên, không dịch
+call_captions_loading	Đang xem điện thoại của bạn có gì
+call_captions_download	%1$s (tải xuống trước)
+call_captions_other	Ngôn ngữ khác…
+call_captions_picked	Phụ đề: %1$s
+call_captions_downloading_now	Đang tải %1$s
+call_captions_cancel	Hủy
+call_captions_no_recognizer	Điện thoại của bạn không có nhận dạng giọng nói trên máy, nên không dùng được phụ đề.
+call_captions_no_translator	Điện thoại của bạn không có dịch trên máy, nên phụ đề giữ nguyên ngôn ngữ được nói.
+call_captions_untranslated	Điện thoại của bạn không dịch được cặp ngôn ngữ này, nên phụ đề giữ nguyên như lời nói.
+call_captions_unavailable	Điện thoại của bạn không nhận dạng được ngôn ngữ này. Hãy chọn ngôn ngữ khác trong cài đặt HushMessenger.
+call_captions_downloading	Điện thoại đang tải ngôn ngữ này. Phụ đề sẽ bắt đầu khi tải xong.
+call_captions_stopped	Phụ đề đã dừng cho cuộc gọi này.
+call_captions_no_voice	Điện thoại của bạn không có giọng đọc cho ngôn ngữ này, nên phụ đề không được đọc to.
+save_voice_menu_row	Lưu tin nhắn thoại
+save_voice_menu_saved	Đã lưu vào %1$s
+save_voice_menu_failed	Không lưu được tin nhắn thoại này
+local_pin_kept	Đã ghim trên điện thoại này
+local_pin_removed	Đã bỏ ghim
+hidden_chats_hide	Ẩn khỏi danh sách trò chuyện
+hidden_chats_show	Hiện trong danh sách trò chuyện
+hidden_chats_hidden	Đã ẩn khỏi danh sách trò chuyện
+hidden_chats_shown	Đã hiện lại trong danh sách trò chuyện
+hidden_chats_failed	Không ẩn được phòng chat này
+hidden_chats_empty	Những phòng chat bạn ẩn khỏi danh sách trò chuyện sẽ hiện ở đây.
+hidden_chats_unhide	Bỏ ẩn
+hidden_chats_unnamed	Phòng chat
+special_contacts_track	Theo dõi người này
+special_contacts_untrack	Ngừng theo dõi
+special_contacts_tracked	Đang theo dõi người này
+special_contacts_untracked	Đã ngừng theo dõi người này
+special_contacts_full	Bạn theo dõi được tối đa 50 người
+special_contacts_failed	Không đổi được. Hãy thử lại.
+special_contacts_cleared	Đã xóa lịch sử
+special_contacts_empty	Những người bạn theo dõi sẽ hiện ở đây. Nhấn giữ phòng chat với một người rồi chọn Theo dõi người này.
+special_contacts_unnamed	Một người
+special_contacts_nothing	Chưa thấy gì
+special_contacts_history	Lịch sử
+special_contacts_hide_history	Ẩn lịch sử
+special_contacts_clear	Xóa lịch sử
+special_contacts_online	Trực tuyến lúc %s
+special_contacts_offline	Ngoại tuyến lúc %s
+special_contacts_offline_at	Ngoại tuyến lúc %1$s, hoạt động lần cuối %2$s
+special_contacts_typing	Đang nhập lúc %s
+special_contacts_since	Theo dõi từ %s
+special_contacts_renamed	Đổi tên thành %2$s lúc %1$s
+message_actions_sent	Tin nhắn bạn gửi
+message_actions_got	Tin nhắn bạn nhận
+message_actions_empty_sent	Nhấn giữ một tin nhắn bạn gửi, các thao tác của nó sẽ hiện ở đây.
+message_actions_empty_got	Nhấn giữ một tin nhắn bạn nhận, các thao tác của nó sẽ hiện ở đây.
+chat_menu_items_empty	Nhấn giữ một phòng chat trong danh sách trò chuyện, các mục trong menu của nó sẽ hiện ở đây.
+invisible_buttons_empty	Dùng Messenger một lúc, mọi nút nó hiện cho bạn sẽ xuất hiện ở đây.
+invisible_buttons_level_choice	%1$s cho %2$s
+invisible_buttons_invisible	Đã vô hình
+invisible_buttons_visible	Đã trở lại bình thường
+invisible_buttons_level	Giờ hiện %1$s
+message_actions_hidden_label	%1$s (đã ẩn)
+message_actions_move_up	Đưa %1$s lên
+message_actions_move_down	Đưa %1$s xuống
+message_actions_moved	%1$s, %2$d trên %3$d
+message_actions_hide	Ẩn
+message_actions_show	Hiện
+message_actions_hidden	Đã ẩn khỏi menu
+message_actions_shown	Đã hiện lại trong menu
+message_actions_reset	Về thứ tự của Messenger
+message_actions_reset_done	Đã về thứ tự của Messenger
+text_style_bold	Đậm
+text_style_italic	Nghiêng
+text_style_read_only	'Đậm' và 'Nghiêng' chỉ áp dụng cho văn bản bạn đang nhập.
+text_style_bold_none	'Đậm' chỉ áp dụng cho các chữ cái từ A đến Z, chữ cái có dấu và các chữ số.
+text_style_italic_none	'Nghiêng' chỉ áp dụng cho các chữ cái từ A đến Z và chữ cái có dấu.
+bubble_stock	Mặc định gốc
+bubble_chat_heads	Bong bóng chat
+bubble_native	Bong bóng thông báo Android
+bubble_changed	Đã chọn '%s'. Có hiệu lực sau khi khởi động lại Messenger.
+bubble_help	'Mặc định gốc' để Messenger quyết định hành vi. 'Bong bóng chat' cũng yêu cầu bật công tắc 'Bong bóng chat' của riêng Messenger và cho phép hiển thị trên các ứng dụng khác. Nếu không cho phép dùng pin không hạn chế, bong bóng chat chỉ hiện khi Messenger đã đóng lúc tin nhắn đến, vì vậy hãy bật cả mục đó bên dưới. Nếu sử dụng 'Bong bóng thông báo Android', vui lòng cho phép bong bóng thông báo của Messenger trong cài đặt Android bên dưới. Các tài khoản không hỗ trợ bong bóng thông báo sẽ giữ nguyên hành vi ban đầu của Messenger. 'Tạm dừng mọi thay đổi' sẽ trả lại toàn bộ hành vi cho Messenger quyết định.
+bubble_unsupported	Gói bản vá này không hỗ trợ bong bóng thông báo Android, vì vậy Messenger sẽ giữ nguyên hành vi ban đầu. Cài đặt của bạn đã được lưu.
+bubble_battery_off	Cho phép dùng pin không hạn chế
+bubble_battery_on	Mức dùng pin: Không hạn chế
+bubble_battery_missing	Không tìm thấy màn hình này. Vui lòng mở thông tin ứng dụng, sau đó chọn 'Pin'.
+bubble_permissions	Cài đặt bong bóng thông báo Android
+bubble_notifications	Cài đặt thông báo Messenger
+bubble_conversations	Cài đặt hội thoại Android
+bubble_settings_missing	Không tìm thấy màn hình này. Vui lòng mở thông tin ứng dụng, sau đó chọn 'Thông báo'.
+facebook_keep_profile	Giữ lại nút trang cá nhân
+facebook_keep_profile_help	Giữ lại nút trang cá nhân trong trang chi tiết phòng chat và nút Xem trang cá nhân ở đầu một cuộc trò chuyện mới, cho phép bạn mở trang cá nhân Facebook của người khác. Các phím tắt Facebook khác vẫn sẽ bị ẩn.
+avatar_shape_rounded	Góc bo tròn
+avatar_shape_rounded_help	Làm cho các góc của ảnh đại diện hình vuông được bo tròn thay vì góc vuông.
+hidden_words_words	Từ cần ẩn
+hidden_words_hint	Tối đa %1$d ký tự, cách nhau bằng dấu phẩy
+hidden_words_help	Phải khớp cả từ, nên "ok" không ẩn "okay". Chữ hoa chữ thường không quan trọng.
+home_header_words	Chữ
+home_header_words_hint	Tối đa %1$d ký tự
+home_header_none	Chưa có chữ hoặc ảnh nào, nên logo chữ của Messenger vẫn được giữ.
+home_header_using_words	Chữ của bạn hiện ở đầu danh sách đoạn chat.
+home_header_picture	Ảnh của bạn hiện ở đầu danh sách đoạn chat, thay cho chữ.
+home_header_copying	Đang sao chép ảnh…
+home_header_choose	Chọn ảnh
+home_header_remove	Xóa ảnh
+home_header_help	Ảnh sẽ hiện thay cho chữ, cao bằng logo chữ. Ảnh có nền trong suốt trông đẹp nhất. Ảnh có thể lớn tối đa %1$d MB.
+home_header_saved	Đã lưu ảnh.
+home_header_removed	Đã xóa ảnh.
+home_header_remove_failed	Không thể xóa ảnh.
+home_header_not_picture	Tệp đó không phải là ảnh.
+home_header_too_large	Ảnh có thể lớn tối đa %1$d MB.
+home_header_unreadable	Không thể mở ảnh đó.
+home_header_not_saved	Không thể lưu ảnh.
+home_header_busy	Vẫn đang sao chép ảnh trước.
+home_header_timeout	Ảnh mất quá lâu. Vui lòng thử lại.
+tab_icons_help	Mỗi tab nhận một biểu tượng nét đơn giản theo màu Messenger đang dùng. Chọn một ảnh cho tab bất kỳ để đặt ảnh của bạn vào đó. Ảnh vuông có nền trong suốt trông đẹp nhất. Ảnh có thể nặng tối đa %1$d MB.
+tab_icons_choose	Chọn
+tab_icons_remove	Bỏ
+tab_icons_plain	Biểu tượng đơn giản
+tab_icons_yours	Ảnh của bạn
+tab_icons_copying	Đang sao chép...
+tab_icons_saved	Đã lưu biểu tượng tab. Khởi động lại Messenger để thấy.
+tab_icons_removed	Đã bỏ biểu tượng tab.
+tab_icons_remove_failed	Không bỏ được biểu tượng tab đó.
+tab_icons_not_picture	Tệp đó không phải là ảnh.
+tab_icons_too_large	Ảnh có thể nặng tối đa %1$d MB.
+tab_icons_unreadable	Không mở được ảnh đó.
+tab_icons_not_saved	Không lưu được biểu tượng tab.
+tab_icons_busy	Vẫn đang sao chép ảnh trước.
+tab_icons_timeout	Ảnh mất quá lâu. Vui lòng thử lại.
+tab_icons_tab_inbox	Đoạn chat
+tab_icons_tab_montage	Tin
+tab_icons_tab_people	Mọi người
+tab_icons_tab_calls	Cuộc gọi
+tab_icons_tab_metaai	Meta AI
+tab_icons_tab_jewel	Facebook
+tab_icons_tab_more	Menu
+tab_icons_tab_mesetting	Trang cá nhân của bạn
+quiet_calls_chosen	Chỉ những cuộc trò chuyện đã chọn
+quiet_calls_chosen_help	Cuộc gọi từ những cuộc trò chuyện bạn bật bên dưới sẽ đến trong im lặng. Các cuộc gọi khác vẫn đổ chuông như bình thường.
+quiet_calls_recent_empty	Những cuộc trò chuyện gọi cho bạn sẽ hiện ở đây, mới nhất ở trên cùng.
+quiet_mode_daily	Mỗi đêm
+quiet_mode_daily_help	Im lặng giữa hai giờ bên dưới mỗi đêm, dù có đang nghỉ hay không.
+quiet_mode_break	Nghỉ một lát
+quiet_mode_open	Đang nghỉ đến khi bạn dừng
+quiet_mode_until	Đang nghỉ đến %1$s
+quiet_mode_no_end	Đến khi tôi dừng
+quiet_mode_minutes	%1$s phút
+quiet_mode_hour	1 giờ
+quiet_mode_hours	%1$s giờ
+quiet_mode_start	Im lặng từ %1$s
+quiet_mode_stop	Im lặng đến %1$s
+quiet_mode_how_long	Trong bao lâu?
+quiet_mode_how_long_hint	Tin nhắn và cuộc gọi vẫn đến. Điện thoại chỉ không phát ra tiếng.
+quiet_mode_end	Dừng nghỉ
+quiet_mode_channel	Chế độ im lặng
+tab_badges_keep_chats	Giữ huy hiệu cuộc trò chuyện
+tab_badges_keep_people	Giữ huy hiệu liên hệ
+tab_badges_keep_notifications	Giữ huy hiệu thông báo
+tab_badges_keep_menu	Giữ huy hiệu menu
+tab_badges_keep_facebook	Giữ huy hiệu nút Facebook
+experimental	Tính năng thử nghiệm
+new_setting	Mới
+choice_on	'%s' đã được bật
+choice_off	'%s' đã bị tắt
+appearance	Giao diện
+material_you_black	Chế độ tối đen tuyền
+material_you_black_help	Sử dụng nền đen tuyền với Material You trong Messenger. Chế độ sáng không bị ảnh hưởng.
+material_you_light	Màu nhấn cho chế độ sáng
+material_you_light_help	Đổi các màu xanh lam của Messenger trong chế độ sáng sang màu nhấn của bạn. Màu xám và màu trắng giữ nguyên.
+material_you_light_grays	Màu xám cho chế độ sáng
+material_you_light_grays_help	Phủ tông màu của bảng màu lên các màu xám của Messenger trong chế độ sáng. Màu trắng và màu đen giữ nguyên.
+material_you_style	Kiểu bảng màu
+material_you_style_help	Mức màu sắc Material You sử dụng, giống các kiểu trong cài đặt hình nền của Android. Mặc định giữ nguyên bảng màu của hình nền hoặc chủ đề của bạn.
+material_you_style_default	Mặc định
+material_you_style_tonal_spot	Điểm tông màu
+material_you_style_neutral	Trung tính
+material_you_style_vibrant	Rực rỡ
+material_you_style_expressive	Biểu cảm
+material_you_style_rainbow	Cầu vồng
+material_you_style_fruit_salad	Salad trái cây
+material_you_style_monochrome	Đơn sắc
+material_you_style_changed	Đã lưu kiểu %s
+light	Chủ đề sáng
+light_help	Chuyển màn hình cài đặt này sang màu sáng. Bản thân Messenger không bị ảnh hưởng.
+theme_help	Mặc định sử dụng chủ đề tối. Cài đặt của bạn sẽ được giữ lại.
+theme_status_wallpaper	Material You lấy màu từ hình nền của bạn. Chọn một màu nhấn hoặc dán một chủ đề để dùng màu của riêng bạn.
+theme_status_saved	Đã lưu chủ đề %s. Material You dùng chủ đề này khi đang bật.
+theme_status_unnamed	Đã lưu chủ đề của bạn. Material You dùng chủ đề này khi đang bật.
+theme_accents	Màu nhấn
+theme_accent_saved	Đã lưu màu nhấn
+theme_accent_blue	Xanh lam
+theme_accent_purple	Tím
+theme_accent_pink	Hồng
+theme_accent_red	Đỏ
+theme_accent_orange	Cam
+theme_accent_green	Xanh lá
+theme_accent_teal	Xanh mòng két
+theme_paste	Dùng chủ đề đã sao chép
+theme_copy	Sao chép chủ đề
+theme_clear	Quay lại màu hình nền
+theme_pasted	Đã lưu chủ đề
+theme_paste_empty	Không có gì để dán. Hãy sao chép một chủ đề trước.
+theme_paste_invalid	Đây không phải là chủ đề. Màu của bạn không thay đổi.
+theme_copied	Đã sao chép chủ đề
+theme_copy_failed	Không thể sao chép chủ đề. Hãy thử lại.
+theme_cleared	Đã quay lại màu hình nền
+theme_change	đổi màu giao diện
+theme_file_help	Chủ đề là một đoạn văn bản như {"name": "Sunset", "accent": "#E1306C", "neutral": "#1A1418", "pure_black": true}. Accent tô lại màu xanh của Messenger và neutral tô lại các màu xám. Cả hai giữ nguyên độ sáng của Messenger nên chữ vẫn dễ đọc. Sao chép chủ đề cho bạn các màu đang dùng để chỉnh sửa hoặc chia sẻ.
+about	Giới thiệu về HushMessenger
+version	Phiên bản
+installed	Các điều khiển đã cài đặt
+screen_art_blurry	Phiên bản tải xuống Messenger này chỉ chứa các biểu tượng cho màn hình %1$s dpi, trong khi điện thoại này là %2$s dpi, vì vậy biểu tượng sẽ bị mờ. Để khắc phục, vui lòng vá phiên bản trên APKMirror được dán nhãn là nodpi hoặc phù hợp với màn hình của bạn.
+copy	Sao chép thông tin cài đặt
+copy_help	Sao chép phiên bản ứng dụng và cài đặt điều khiển, không bao gồm dữ liệu tài khoản hoặc cuộc trò chuyện, và không truyền bất kỳ nội dung nào.
+setup_activity_help	Nhật ký hoạt động chỉ cho biết điều khiển đã chạy, không chứng minh được nó thực sự ảnh hưởng đến màn hình hoặc bảo vệ quyền riêng tư của bạn.
+usage	Cách sử dụng điều khiển
+save_help	Thay đổi sẽ được lưu ngay lập tức. Các tùy chọn hộp thư đến sẽ có hiệu lực lần tới khi Messenger tạo danh sách trò chuyện, nhấp vào 'Khởi động lại Messenger' sẽ áp dụng tất cả các thay đổi cùng lúc. Tài khoản của bạn sẽ vẫn đăng nhập.
+pause_help	'Tạm dừng mọi thay đổi' sẽ tạm thời vô hiệu hóa tất cả các điều khiển và giữ lại cài đặt của bạn.
+account_help	Cài đặt của bạn sẽ được áp dụng cho tất cả tài khoản Messenger trong phiên bản đã cài đặt này.
+missing	Không tìm thấy điều khiển?
+missing_help	Vui lòng chọn tính năng vá đó trong Morphe Manager và vá lại Messenger. Chỉ cập nhật nguồn vá sẽ không thêm điều khiển mới.
+log_out	Đăng xuất
+log_out_help	Đăng xuất tài khoản này trên điện thoại này, cách thức giống với tính năng 'Đăng xuất' của chính Messenger.
+log_out_unavailable	Không tìm thấy tính năng 'Đăng xuất' của Messenger trong phiên bản này, vui lòng sử dụng tính năng đăng xuất trong menu của Messenger.
+log_out_failed	Không thể mở tính năng 'Đăng xuất' của Messenger. Tính năng đăng xuất trong menu Messenger vẫn có thể sử dụng.
+source	Mã nguồn và giấy phép
+licenses_hint	Những gì HushMessenger mang theo từ các dự án mà nó dựa trên. Các thông báo giữ nguyên tiếng Anh, giống như giấy phép gốc.
+licenses_source	Mã nguồn
+no_browser	Không tìm thấy trình duyệt web trên điện thoại này
+page_blocked	Điện thoại của bạn không cho phép mở trang đó
+support	Hỗ trợ HushMessenger
+report	Báo cáo sự cố
+report_help	Mở trang báo cáo sự cố công khai trên GitHub, điền trước phiên bản và các điều khiển đã bật của bạn. Vui lòng kiểm tra nội dung trước khi bổ sung quá trình xảy ra sự cố.
+restart_waiting_one	Có %d thay đổi đang chờ khởi động lại
+restart_waiting_many	Có %d thay đổi đang chờ khởi động lại
+quick_setups	Cài đặt nhanh
+quick_setups_help	Nhấn một lần để áp dụng một nhóm cài đặt điều khiển, sau đó bạn vẫn có thể điều chỉnh từng mục. Nhấn giữ để ẩn phần này.
+quick_setups_hidden	Đã ẩn. Vui lòng nhấn vào '%1$s' dưới '%2$s'.
+quick_setups_home	Phần cài đặt nhanh
+quick_setups_home_shown	Hiện đang hiển thị. Nhấn một lần để ẩn.
+quick_setups_home_hidden	Hiện đang ẩn. Nhấn một lần để hiển thị lại.
+quick_quiet	Chế độ gọn gàng
+quick_quiet_help	Ẩn quảng cáo, nội dung quảng cáo, liên hệ được đề xuất và lời nhắc mời thêm liên hệ.
+quick_privacy	Quyền riêng tư
+quick_privacy_help	Dừng tải lên dữ liệu tiết lộ cho Meta cách bạn sử dụng Messenger, bao gồm cả ID quảng cáo của bạn.
+quick_iphone	Giao diện iPhone
+quick_iphone_help	Đặt tiêu đề Đoạn chat ở đầu danh sách đoạn chat thay cho logo chữ, giữ thanh tìm kiếm bên dưới và làm mờ màn hình phía sau menu (Android 12 trở lên), giống Messenger trên iPhone. Khởi động lại Messenger để thấy thay đổi.
+quick_iphone_words	Đoạn chat
+quick_defaults	Khôi phục cài đặt mặc định
+quick_defaults_help	Vô hiệu hóa tất cả các điều khiển. Trạng thái tạm dừng và chủ đề được giữ nguyên.
+quick_changed_one	Đã thay đổi %d điều khiển
+quick_changed_many	Đã thay đổi %d điều khiển
+quick_unchanged	Không có mục nào cần thay đổi. Các điều khiển này đã ở cài đặt được chỉ định.
+quick_missing	Các điều khiển này chưa được cài đặt. Không có cài đặt nào bị thay đổi.
+quick_undone_one	Đã hoàn tác %d điều khiển
+quick_undone_many	Đã hoàn tác %d điều khiển
+undo	Hoàn tác
+undo_action	Hoàn tác '%s'
+credits	GPL-3.0. Bao gồm các thành quả từ Morphe, De-Vanced, ReVanced, Doom và Messenger Cleaner.
+independent	Dự án này độc lập với Meta và Morphe.
+clipboard	Thông tin cài đặt HushMessenger
+copied	Đã sao chép thông tin cài đặt
+copy_failed	Không thể sao chép thông tin cài đặt. Vui lòng thử lại.
+export	Sao chép cài đặt
+export_help	Sao chép cài đặt của bạn thành văn bản. Để khôi phục trong phiên bản cài đặt khác, trước tiên hãy sao chép đoạn văn bản đó ở đó, sau đó nhấp vào 'Dán cài đặt'.
+exported	Đã sao chép cài đặt
+export_failed	Không thể sao chép cài đặt của bạn. Vui lòng thử lại.
+choices_file_save_failed	Không thể lưu cài đặt của bạn vào tệp. Vui lòng thử lại.
+import_choices	Dán cài đặt
+import_help	Khôi phục cài đặt từ văn bản do 'Sao chép cài đặt' tạo ra. Vui lòng sao chép văn bản đó trước, sau đó nhấp vào đây.
+imported_one	Đã khôi phục %d mục cài đặt.
+imported_many	Đã khôi phục %d mục cài đặt.
+imported_partial	Đã khôi phục %1$d / %2$d mục cài đặt.
+import_same	Cài đặt của bạn đã giống với bản sao lưu đó.
+import_none_changed	Không có cài đặt nào bị thay đổi.
+import_auto_reply_off	Trả lời tự động vẫn tắt vì bản sao lưu đó không có nội dung trả lời.
+import_empty	Không có nội dung để dán. Vui lòng sao chép cài đặt của bạn trước.
+import_invalid	Đây không phải là bản sao lưu cài đặt. Không có cài đặt nào bị thay đổi.
+import_too_large	Bản sao lưu đó lớn hơn 128 KB nên không có gì thay đổi.
+import_zip_too_large	Bản sao lưu đó quá lớn nên không có gì thay đổi.
+export_too_large	Cài đặt của bạn quá lớn để lưu vào một bản sao lưu.
+export_too_large_detail	Phần lớn là của %s. Chưa sao chép hay lưu gì cả.
+restore_failed	Không thể đọc tệp đó. Vui lòng thử lại hoặc chọn tệp khác.
+choices_file_no_picker	Không thể mở bộ chọn tệp trên điện thoại này.
+import_unknown_one	Đã bỏ qua %d cài đặt không được nhận dạng bởi phiên bản này.
+import_unknown_many	Đã bỏ qua %d cài đặt không được nhận dạng bởi phiên bản này.
+import_unavailable_one	Đã bỏ qua %d cài đặt chưa cài đặt tính năng vá tương ứng.
+import_unavailable_many	Đã bỏ qua %d cài đặt chưa cài đặt tính năng vá tương ứng.
+import_damaged_one	Đã bỏ qua %d tệp không dùng được.
+import_damaged_many	Đã bỏ qua %d tệp không dùng được.
+import_no_choices	Không có cài đặt nào để khôi phục. Tất cả các mục không khớp với các tính năng vá bạn đã cài đặt.
+save_choices_file	Lưu cài đặt vào tệp
+read_choices_file	Khôi phục cài đặt từ tệp
+choices_file_help	Lưu cài đặt của bạn, gồm cả trả lời tự động và các cuộc trò chuyện đã ẩn hoặc đã ghim. Nếu có ảnh tiêu đề hoặc ảnh thẻ, phông chữ riêng, ảnh trả lời tự động hoặc những người mà Liên hệ đặc biệt theo dõi, tệp sẽ là .zip chứa cả những thứ đó. Tin nhắn và tài khoản không được lưu. Các cài đặt không có trong tệp sẽ được giữ nguyên. Nếu màn hình cài đặt đóng lại khi chọn tệp, vui lòng chọn lại tệp.
+choices_file_saved	Đã lưu tệp cài đặt
+choices_file_saving	Đang lưu tệp cài đặt…
+choices_file_reading	Đang đọc tệp cài đặt…
+cancel_choices_file	Hủy thao tác tệp
+choices_file_canceled	Đã hủy. Tệp đang lưu có thể không đầy đủ.
+choices_file_canceled_read	Đã hủy. Cài đặt của bạn không thay đổi.
+choices_file_timeout	Thao tác hết thời gian chờ. Tệp đã lưu có thể không đầy đủ. Vui lòng thử lại.
+choices_file_timeout_read	Thao tác hết thời gian chờ. Cài đặt của bạn không thay đổi. Vui lòng thử lại.
+choices_file_busy	Thao tác lưu hoặc khôi phục tệp trước đó vẫn đang tiến hành. Vui lòng thử lại sau.
+choices_file_changed	Cài đặt của bạn đã thay đổi trong quá trình khôi phục. Vui lòng thử lại.
+check_updates	Kiểm tra cập nhật
+check_updates_help	Khi bật và khi mở màn hình cài đặt, GitHub sẽ được truy vấn xem có phiên bản mới hay không. Kết quả truy vấn sẽ được tái sử dụng trong một giờ. Mặc định tắt. GitHub có thể thấy địa chỉ IP của bạn nhưng sẽ không nhận được dữ liệu tài khoản hoặc cuộc trò chuyện.
+check_now	Kiểm tra ngay
+update_loading	Đang kiểm tra cập nhật…
+update_available	Đã có sẵn phiên bản %s
+update_action	Xem bản phát hành
+up_to_date	Bạn đang sử dụng phiên bản mới nhất.
+update_ahead	Đã cài đặt %s. Bản phát hành công khai mới nhất là %s.
+update_retry	GitHub tạm thời không phản hồi. Vui lòng thử lại sau %s khi nhấp vào 'Kiểm tra ngay'.
+update_error	Không thể kiểm tra cập nhật. Vui lòng kiểm tra kết nối mạng rồi thử lại.
+active_now	Vừa sử dụng
+active_ago	Đã sử dụng cách đây %s
+seconds_short	%d giây
+minutes_short	%d phút
+hours_short	%d giờ
+days_short	%d ngày
+not_active	Đã bật, đang đợi Messenger sử dụng tính năng này
+unsent_not_active	Đã bật, chưa nhận được tin nhắn nào bị thu hồi
+restart_pending_on	Có hiệu lực sau khi khởi động lại Messenger
+restart_pending_off	Vẫn có hiệu lực trước khi khởi động lại Messenger
+meta_ai_tab_pending_on	Ẩn tab Meta AI sau khi khởi động lại Messenger
+meta_ai_tab_pending_off	Hiển thị lại tab Meta AI sau khi khởi động lại Messenger
+tab_people_pending_on	Ẩn tab 'Liên hệ' sau khi khởi động lại Messenger
+tab_people_pending_off	Hiển thị lại tab 'Liên hệ' sau khi khởi động lại Messenger
+tab_people_show_pending_on	Tab 'Liên hệ' hiện ra sau khi khởi động lại Messenger
+tab_people_show_pending_off	Tab 'Liên hệ' biến mất sau khi khởi động lại Messenger
+tab_settings_show_pending_on	Tab cài đặt hiện ra sau khi khởi động lại Messenger
+tab_settings_show_pending_off	Tab cài đặt biến mất sau khi khởi động lại Messenger
+tab_notifications_pending_on	Ẩn tab 'Thông báo' sau khi khởi động lại Messenger
+tab_notifications_pending_off	Hiển thị lại tab 'Thông báo' sau khi khởi động lại Messenger
+tab_stories_pending_on	Ẩn tab 'Tin' sau khi khởi động lại Messenger
+tab_stories_pending_off	Hiển thị lại tab 'Tin' sau khi khởi động lại Messenger
+error_now	Vừa dừng lại do lỗi. Vui lòng nhấn 'Sao chép thông tin cài đặt' trong tab 'Ứng dụng' để xem chi tiết.
+error_ago	Đã dừng lại do lỗi cách đây %s. Vui lòng nhấn 'Sao chép thông tin cài đặt' trong tab 'Ứng dụng' để xem chi tiết.
+changes_paused	Đã tạm dừng thay đổi
+changes_resumed	Đã tiếp tục thay đổi
+safe_mode	Chế độ an toàn
+safe_mode_help	Messenger liên tục bị sự cố nhiều lần, do đó tất cả các điều khiển đã bị vô hiệu hóa. Cài đặt của bạn vẫn được giữ lại. Nhấn 'Khôi phục' để bật lại.
+safe_mode_help_paused	Messenger liên tục bị sự cố nhiều lần. Cài đặt của bạn vẫn được giữ lại. Vui lòng thoát chế độ an toàn trước. 'Tạm dừng mọi thay đổi' sẽ vẫn bật cho đến khi bạn tắt nó.
+resume	Khôi phục
+clear_safe_mode	Thoát chế độ an toàn
+safe_mode_cleared	Đã thoát chế độ an toàn. Các thay đổi vẫn tạm dừng.
+safe_mode_save_failed	Không thể rời khỏi chế độ an toàn. Các thay đổi vẫn tạm dừng.
+enabled_one	Đã bật %d điều khiển
+enabled_many	Đã bật %d điều khiển
+saved_one	Đã lưu %d mục cài đặt. Tắt 'Tạm dừng mọi thay đổi' để sử dụng.
+saved_many	Đã lưu %d mục cài đặt. Tắt 'Tạm dừng mọi thay đổi' để sử dụng.
+saved	Cài đặt của bạn được tự động lưu.
+none_installed	Chưa cài đặt điều khiển nào. Vui lòng chọn tính năng vá trong Morphe Manager và vá lại Messenger.
+no_matches	Không có điều khiển phù hợp.
+results_one	Hiển thị %d / tổng số %d điều khiển đã cài đặt
+results_many	Hiển thị %d / tổng số %d điều khiển đã cài đặt
+group_count_one	%d điều khiển
+group_count_many	%d điều khiển
+open_help	Mở Messenger từ ngăn kéo ứng dụng
+message_log_view	Xem nhật ký
+search_clear	Xóa
+search_clear_description	Xóa nội dung tìm kiếm
+camera_missing	Không tìm thấy ứng dụng máy ảnh để chụp ảnh.
+camera_failed	Không thể mở ứng dụng máy ảnh. Vui lòng thử lại.
+camera_permission	Vui lòng cho phép quyền máy ảnh trong thông tin ứng dụng của Messenger.
+camera_photo	Ảnh
+camera_video	Video
+system_camera_ask	Hỏi chụp ảnh hay quay video
+system_camera_ask_help	Nút máy ảnh hỏi bạn muốn chụp ảnh hay quay video, rồi mở ứng dụng máy ảnh cho việc đó.
+gallery_missing	Không tìm thấy ứng dụng thư viện để chọn ảnh.
+gallery_failed	Không thể mở ứng dụng thư viện. Vui lòng thử lại.
+instant_gallery_shutter	Chạm nút chụp để gửi ảnh của bạn.
+message_log_clear	Xóa nhật ký
+message_log_close	Đóng
+message_log_title	Nhật ký tin nhắn
+message_log_hint	Chỉ được lưu trên điện thoại này. Tin nhắn mới nhất được liệt kê ở đầu.
+message_log_hint_by_chat	Chỉ được lưu trên điện thoại này. Cuộc trò chuyện có tin nhắn mới nhất được liệt kê ở đầu.
+message_log_retention	Sau khi tắt nhật ký tin nhắn, việc thêm nhật ký mới sẽ dừng lại. Tin nhắn đã lưu sẽ được giữ lại cho đến khi bạn xóa nhật ký hoặc quá thời gian bạn đã chọn. Nhật ký giữ tối đa 20.000 tin nhắn.
+message_log_loading	Đang tải…
+message_log_empty	Chưa có tin nhắn nào được lưu.
+message_log_empty_on	Tin nhắn mới có chứa văn bản trong thông báo sẽ được hiển thị ở đây. Các tin nhắn hiện có trong phòng chat sẽ không được thêm vào nhật ký.
+message_log_empty_off	Vui lòng bật 'Giữ lại nhật ký tin nhắn' trong 'Điều khiển tính năng' để lưu các tin nhắn mới có chứa văn bản trong thông báo. Các tin nhắn hiện có trong phòng chat sẽ không được thêm vào nhật ký.
+message_log_load_failed	Không thể mở nhật ký tin nhắn
+message_log_load_help	Vui lòng thử lại. Nếu vẫn tiếp tục thất bại, 'Xóa nhật ký' sẽ xóa nhật ký đã lưu và khóa của chúng để các tin nhắn mới có thể tiếp tục được lưu.
+message_log_set_aside	Không thể đọc nhật ký cũ hơn
+message_log_set_aside_help	Nhật ký đó đã được lưu riêng để tiếp tục lưu trữ tin nhắn mới. Hiện không thể mở nhật ký đó dưới bất kỳ hình thức nào, việc xóa nó sẽ không ảnh hưởng đến các tin nhắn mới hơn.
+message_log_set_aside_remove	Xóa nhật ký cũ
+message_log_set_aside_failed	Không thể xóa nhật ký cũ. Vui lòng thử lại.
+message_log_clear_failed	Không thể xóa toàn bộ nhật ký
+message_log_clear_help	Không thể xóa một số dữ liệu hoặc khóa đã lưu. Vui lòng thử lại 'Xóa nhật ký'.
+retry	Thử lại
+message_log_unknown_thread	Phòng chat không xác định
+message_log_in_group	%s (%s)
+message_log_no_text	(Không có văn bản)
+message_log_unsent	Đã thu hồi
+message_log_unsent_only	Chỉ hiện tin nhắn đã thu hồi
+message_log_show_all	Hiện tất cả tin nhắn
+message_log_cleared	Đã xóa nhật ký tin nhắn
+message_log_restored	Đã khôi phục nhật ký tin nhắn
+message_log_restore_failed	Không thể khôi phục nhật ký tin nhắn
+message_log_now	Vừa xong
+message_log_ago	Cách đây %s
+message_log_quiet_chats	Ghi lại các đoạn chat không thông báo
+message_log_quiet_chats_help	Ghi lại cả tin nhắn từ các đoạn chat đã tắt thông báo và các đoạn chat bạn đã hạn chế, mà không báo cho bạn. Đoạn chat mã hóa bạn đã hạn chế không gửi gì đến điện thoại, nên chỉ thấy được khi bạn tìm tên người đó.
+message_log_save_expiring	Lưu tin nhắn trước khi bị xóa
+message_log_save_expiring_help	Ngay trước khi nhật ký xóa một tin nhắn, tin nhắn đó được thêm vào một tệp văn bản trong Download/Messenger, mỗi tháng một tệp. Tệp này không được mã hóa nên các ứng dụng đọc được tệp của bạn cũng đọc được nó.
+message_log_search	Tìm tin nhắn và tên
+message_log_by_chat	Nhóm theo cuộc trò chuyện
+message_log_by_date	Mới nhất trước
+message_log_all_chats	Tất cả cuộc trò chuyện
+message_log_chat_count	Tin nhắn: %s
+message_log_no_match	Không có tin nhắn đã lưu nào khớp.
+message_log_save_text	Lưu dạng văn bản
+message_log_save_csv	Lưu dạng CSV
+message_log_save_help	Lưu những gì đang hiển thị. Tệp không được mã hóa.
+message_log_saved	Đã lưu tin nhắn: %s
+message_log_save_failed	Không lưu được tệp. Hãy thử lại.
+message_log_keep	Giữ tin nhắn trong
+message_log_keep_30	30 ngày
+message_log_keep_90	90 ngày
+message_log_keep_365	1 năm
+message_log_keep_0	Cho đến khi tôi xóa nhật ký
+message_log_keep_changed	Tin nhắn được giữ trong %s.
+message_log_keep_shorter	Tin nhắn được giữ trong %s. Tin nhắn cũ hơn được giữ thêm 10 phút phòng khi bạn đổi lại.
+message_log_keep_forever	Tin nhắn được giữ cho đến khi bạn xóa nhật ký.
+message_log_kind_all	Tất cả
+message_log_kind_direct	Trò chuyện riêng
+message_log_kind_groups	Nhóm
+message_log_rename_hint	Đặt tên cho cuộc trò chuyện này
+message_log_rename_save	Lưu tên
+message_log_renamed	Đã lưu tên
+message_log_rename_removed	Đã xóa tên
+message_log_rename_failed	Không lưu được tên. Hãy thử lại.
+message_log_attachment	Ảnh hoặc tệp đính kèm
+message_log_photo	Ảnh
+message_log_photo_missing	Không thể hiển thị ảnh này.
+message_log_keep_photos	Giữ ảnh ở kích cỡ đầy đủ
+message_log_keep_photos_help	Tải ảnh về ngay khi nó được ghi vào nhật ký, đúng kích cỡ lúc gửi, nên bạn vẫn xem được sau khi người gửi thu hồi. Không bật thì nhật ký chỉ giữ ảnh xem trước nhỏ từ thông báo, và chỉ trong những đoạn chat không được mã hóa đầu cuối. Ảnh chiếm nhiều dung lượng hơn hẳn phần còn lại của nhật ký, và chúng mất đi cùng với tin nhắn của mình.
+message_log_keep_videos	Giữ video
+message_log_keep_videos_help	Tải video về ngay khi nó được ghi vào nhật ký, nên bạn vẫn xem được sau khi người gửi thu hồi. Messenger chỉ tải khi bạn mở video, vì vậy một lần thu hồi trước đó sẽ mang nó đi. Video chiếm nhiều dung lượng nhất trong nhật ký, tối đa 16 MB mỗi cái, và chúng mất đi cùng với tin nhắn của mình.
+message_log_video_title	Video
+message_log_video_hint	Phát từ bản sao của nhật ký, bản đó vẫn được mã hóa trong điện thoại này.
+message_log_video_play	Phát video
+message_log_video_missing	Không thể phát video này.
+message_log_keep_voice	Giữ tin nhắn thoại
+message_log_keep_voice_help	Tải tin nhắn thoại về ngay khi nó được ghi vào nhật ký, nên bạn vẫn nghe được sau khi người gửi thu hồi. Messenger chỉ tải khi bạn bấm phát, vì vậy một lần thu hồi trước đó sẽ mang nó đi. Các đoạn thoại chiếm nhiều dung lượng hơn phần còn lại của nhật ký, và chúng mất đi cùng với tin nhắn của mình.
+message_log_clip_play	Phát tin nhắn thoại
+message_log_clip_stop	Dừng
+message_log_clip_missing	Không thể phát tin nhắn thoại này.
+message_log_button	Nút ở đầu Đoạn chat
+message_log_button_help	Thêm một đồng hồ cạnh nút tin nhắn mới. Chạm vào để mở nhật ký.
+message_log_menu_row	Mục trong tab 'Menu'
+message_log_menu_row_help	Thêm mục Nhật ký tin nhắn dưới Cài đặt trong tab 'Menu' của Messenger. Chạm vào để mở nhật ký.
+message_log_chat_row	Mục trong menu đoạn chat
+message_log_chat_row_help	Thêm mục Nhật ký tin nhắn vào menu hiện ra khi bạn nhấn giữ một đoạn chat. Chạm vào để mở nhật ký của riêng đoạn chat đó.
+auto_reply_edit	Chỉnh sửa phản hồi
+auto_reply_title	Phản hồi tự động
+auto_reply_hint	So khớp các quy tắc phản hồi theo thứ tự từ trên xuống dưới, gửi phản hồi đầu tiên đáp ứng điều kiện.
+auto_reply_when	Từ khóa kích hoạt (tùy chọn)
+auto_reply_when_hint	Xin chào, giờ mở cửa
+auto_reply_reply	Gửi phản hồi này
+auto_reply_reply_hint	Nhập nội dung phản hồi
+auto_reply_any	Vui lòng sử dụng dấu phẩy nửa chiều rộng để phân tách các từ hoặc cụm từ. Để trống sẽ phản hồi tất cả tin nhắn.
+auto_reply_off	Phản hồi tự động đã bị tắt. Vui lòng lưu phản hồi ở đây, sau đó bật nó trong 'Điều khiển tính năng'.
+auto_reply_count	%1$s / %2$s phản hồi
+auto_reply_number	Phản hồi %s
+auto_reply_remove_number	Xóa phản hồi %s
+auto_reply_required	Hãy viết nội dung phản hồi ở đây, hoặc xóa phản hồi này trước khi lưu.
+auto_reply_cancel	Hủy
+auto_reply_remove	Xóa
+auto_reply_add	Thêm phản hồi
+auto_reply_save	Lưu
+auto_reply_groups	Cũng phản hồi phòng chat nhóm
+auto_reply_full	Đã đạt giới hạn phản hồi có thể lưu (%s phản hồi)
+auto_reply_saved	Đã lưu phản hồi: %s
+auto_reply_saved_none	Chưa có phản hồi nào được lưu, vì vậy sẽ không tự động phản hồi
+auto_reply_picture	Hình ảnh (tùy chọn)
+auto_reply_picture_none	Chưa có hình ảnh. Sau khi thêm hình ảnh, nó sẽ được gửi ngay sau phản hồi.
+auto_reply_picture_set	Gửi ngay sau phản hồi
+auto_reply_picture_missing	Không tìm thấy hình ảnh. Vui lòng chọn lại hoặc xóa.
+auto_reply_picture_pick	Thêm hình ảnh
+auto_reply_picture_change	Thay đổi hình ảnh
+auto_reply_picture_clear	Xóa hình ảnh
+auto_reply_picture_thumb	Hình ảnh đính kèm với phản hồi này
+auto_reply_picture_copying	Đang sao chép hình ảnh…
+auto_reply_picture_failed	Không thể sử dụng hình ảnh đó. Vui lòng thử hình ảnh khác.
+auto_reply_picture_too_big	Hình ảnh này quá lớn. Vui lòng chọn hình ảnh nhỏ hơn.
+auto_reply_picture_too_slow	Tải hình ảnh quá lâu. Vui lòng thử lại hoặc chọn hình ảnh khác.
+auto_reply_picture_no_picker	Không có ứng dụng nào để chọn hình ảnh
+font_file_choose	Chọn tệp phông chữ
+font_phone	Sử dụng phông chữ của điện thoại
+font_file_help	Sau khi chọn tệp phông chữ, một số ít màn hình của Messenger vẫn sẽ sử dụng phông chữ của điện thoại.
+font_file_none	Chưa được chọn, do đó sẽ sử dụng phông chữ của điện thoại. Vui lòng chọn tệp phông chữ .ttf hoặc .otf có kích thước không vượt quá %1$d MB.
+font_file_none_off	Chưa được chọn. Bật công tắc này để sử dụng phông chữ của điện thoại, hoặc bạn có thể chọn tệp phông chữ .ttf hoặc .otf có kích thước không vượt quá %1$d MB.
+font_file_using	Đang sử dụng %1$s. Chọn tệp khác để thay thế.
+font_file_picked_off	Đã chọn %1$s. Bật công tắc này để sử dụng.
+font_file_missing	Bản sao %1$s được lưu bởi HushMessenger đã bị mất, do đó sẽ sử dụng phông chữ của điện thoại. Vui lòng chọn lại tệp.
+font_file_copying	Đang sao chép tệp phông chữ…
+font_file_set	Đã chọn phông chữ. Có thể sử dụng sau khi khởi động lại Messenger.
+font_file_set_off	Đã chọn phông chữ. Bật công tắc này để sử dụng.
+font_file_not_font	Đây không phải là phông chữ .ttf hoặc .otf. Phông chữ của bạn không thay đổi.
+font_file_too_large	Tệp phông chữ đó vượt quá %1$d MB. Phông chữ của bạn không thay đổi.
+font_file_wont_load	Android không thể sử dụng phông chữ đó. Phông chữ của bạn không thay đổi.
+font_file_not_saved	Không thể lưu phông chữ. Vui lòng kiểm tra dung lượng trống rồi thử lại.
+font_file_unreadable	Không thể mở tệp đó. Phông chữ của bạn không thay đổi.
+font_file_no_picker	Điện thoại này không có bộ chọn tệp.
+font_file_picker_failed	Không thể mở bộ chọn tệp. Vui lòng thử lại.
+font_file_busy	Không thể bắt đầu thao tác. Vui lòng thử lại sau.
+font_file_stop	Dừng sao chép
+font_file_stopped	Đã dừng sao chép. Phông chữ của bạn không thay đổi.
+font_file_timeout	Sao chép hết thời gian chờ. Phông chữ của bạn không thay đổi.
+font_file_finishing	Đang lưu phông chữ, sẽ hoàn tất sau chốc lát.
+font_file_stuck	Thao tác sao chép trước đó vẫn đang chờ đọc tệp. Bạn chỉ có thể chọn tệp khác sau khi các thao tác đó từ bỏ việc chờ đợi.
+font_phone_set	Đã đổi lại phông chữ của điện thoại. Có thể thấy thay đổi sau khi khởi động lại Messenger.
+font_phone_failed	Không thể đổi lại phông chữ của điện thoại. Vui lòng thử lại.
+font_size	Kích thước văn bản %1$d%%
+font_size_smaller	Thu nhỏ
+font_size_larger	Phóng to
+font_shift_none	Vị trí văn bản theo mặc định phông chữ
+font_shift_down	Di chuyển văn bản xuống %1$d%%
+font_shift_up	Di chuyển văn bản lên %1$d%%
+font_shift_up_button	Di chuyển lên
+font_shift_down_button	Di chuyển xuống
+font_adjust_help	Nếu phông chữ trông quá nhỏ trong bong bóng tin nhắn, hoặc vị trí quá cao hay quá thấp, bạn có thể điều chỉnh kích thước hoặc vị trí ở đây. Khoảng cách di chuyển mỗi lần là 2%% kích thước văn bản. Có thể thấy thay đổi sau khi khởi động lại Messenger.
+font_adjust_saved	%1$s. Có thể thấy thay đổi sau khi khởi động lại Messenger.
+font_adjust_failed	Không thể lưu. Phông chữ của bạn không thay đổi.
+hide_delivered	Ẩn trạng thái Đã nhận
+hide_delivered_help	Cũng giữ lại dấu Đã nhận, nên tin nhắn bạn nhận được sẽ không hiện là đã nhận trên máy của người kia. Áp dụng cho phòng chat thường. Phòng chat mã hóa gửi trạng thái này theo cách riêng và vẫn hiển thị.
+mark_read	Đánh dấu là đã đọc
+mark_read_done	Đã đánh dấu là đã đọc
+mark_read_nothing	Không có tin nhắn mới nào để đánh dấu là đã đọc
+save_view_once	Nút Lưu trên nội dung xem một lần
+save_view_once_help	Thêm nút Lưu vào ảnh xem một lần và Quicksnap khi Cho phép chụp màn hình đang bật. Một lần chạm sẽ giữ những gì đang hiện trên màn hình vào ảnh của bạn trong Pictures/Messenger, nên bạn không mất nó khi ảnh đóng lại hoặc bị thu hồi. Với video, nó giữ khung hình bạn đang xem.
+save_view_once_button	Lưu
+save_view_once_saved	Đã lưu vào %1$s
+save_view_once_failed	Không lưu được mục đó.
+floating_menu	Menu tin nhắn nổi
+floating_menu_help	Chuyển các tùy chọn khi bạn nhấn giữ một tin nhắn từ dưới cùng màn hình lên một thẻ bo góc ngay bên dưới tin nhắn đó, giống như trên iPhone. Hàng biểu tượng cảm xúc vẫn ở chỗ cũ và mọi tùy chọn vẫn là của Messenger.
+story_seen_button	Nút đánh dấu là đã xem
+story_seen_button_help	Thêm nút hình con mắt vào tin bạn mở. Chạm vào khi bạn muốn người đó thấy bạn đã xem tin đang hiện trên màn hình. Con mắt có gạch chéo cho đến khi bạn chạm.
+story_seen	Đánh dấu là đã xem
+story_seen_done	Đã đánh dấu là đã xem
+story_seen_nothing	Không có tin nào để đánh dấu là đã xem
+call_confirm_audio	Bắt đầu cuộc gọi thoại?
+call_confirm_video	Bắt đầu cuộc gọi video?
+call_confirm_call	Gọi
+call_confirm_cancel	Hủy
+chat_jump_title	Chuyển đến
+chat_jump_first	Tin nhắn đầu tiên
+chat_jump_date	Một ngày
+chat_jump_loading	Đang tải tin nhắn cũ hơn (đã có %1$d)
+chat_jump_loading_plain	Đang tải tin nhắn cũ hơn
+chat_jump_seeking	Đang tìm ngày đó
+chat_jump_cancel	Hủy
+chat_jump_start	Đây là đầu đoạn chat
+chat_jump_found	Đây là tin nhắn đầu tiên của ngày đó
+chat_jump_next	Ngày đó không có tin nhắn, đây là tin nhắn tiếp theo
+chat_jump_none	Không có tin nhắn nào từ ngày đó trở đi
+chat_jump_no_dates	Không đọc được ngày trong đoạn chat này
+chat_jump_no_list	Không tìm thấy tin nhắn của đoạn chat này
+link_player_play	Phát
+link_player_pause	Tạm dừng
+link_player_replay	Phát lại
+link_player_full_screen	Toàn màn hình
+link_player_open	Mở trong %1$s
+people.title	Ẩn những người bạn có thể biết
+people.description	Ẩn các liên hệ được đề xuất trong mục trò chuyện, tìm kiếm, tin (stories), và các tab 'Liên hệ' và 'Thông báo'. Phù hợp với những người dùng chỉ muốn nhìn thấy những người họ quen biết.
+friend_requests.title	Ẩn thẻ lời mời kết bạn
+friend_requests.description	Ẩn thẻ lời mời kết bạn trong danh sách trò chuyện. Sẽ không chấp nhận hoặc từ chối bất kỳ lời mời nào.
+community_inbox.title	Ẩn phòng chat cộng đồng đã tham gia
+community_inbox.description	Ẩn các phòng chat cộng đồng đã tham gia trong danh sách trò chuyện chính. Tìm kiếm và thư mục cộng đồng vẫn sẽ hiển thị các phòng chat này. Có hiệu lực vào lần làm mới danh sách tiếp theo.
+growth.title	Ẩn lời nhắc quảng cáo tương tác
+growth.description	Ẩn lời nhắc mời thêm liên hệ, bảng giải thích trong ghi chú (ví dụ: 'Công khai ghi chú của tôi'), và thẻ 'Chia sẻ tin của riêng bạn'.
+inbox_promotions.title	Ẩn nội dung quảng cáo trong hộp thư đến
+inbox_promotions.description	Ẩn banner quảng cáo trong danh sách trò chuyện.
+stories.title	Ẩn tin và ghi chú
+stories.description	Ẩn thanh tin (stories) và ghi chú phía trên danh sách trò chuyện, cùng vòng tin quanh ảnh đại diện.
+instants_button.title	Ẩn nút Instants
+instants_button.description	Ẩn nút + trượt vào từ mép phải danh sách trò chuyện và nút bên dưới bong bóng chat. Cả hai đều mở Instants.
+subtabs.title	Ẩn tab hộp thư đến
+subtabs.description	Ẩn các tab 'Tất cả', 'Chưa đọc' và 'Nhóm' phía trên các đoạn chat.
+inbox_typing.title	Đang nhập trong danh sách đoạn chat
+inbox_typing.description	Viết 'đang nhập' lên tin nhắn cuối của một đoạn chat trong danh sách khi người kia đang nhập, thay vì chỉ hiện khi bạn đã vào đoạn chat. Messenger đã có sẵn phần này và máy chủ của Meta vẫn tắt nó. Khởi động lại Messenger để nó bắt đầu.
+inbox_search_bar.title	Giữ thanh tìm kiếm
+inbox_search_bar.description	Đưa thanh tìm kiếm trở lại đầu danh sách trò chuyện khi Messenger đã thay nó bằng biểu tượng tìm kiếm. Có hiệu lực sau khi khởi động lại Messenger. Nếu bạn chưa nhận được biểu tượng đó, sẽ không có thay đổi nào xảy ra.
+chat_preview.title	Xem trước phòng chat khi nhấn giữ
+chat_preview.description	Nhấn giữ một phòng chat để xem nhanh trong bản xem trước của chính Messenger, kèm menu của phòng chat ở bên dưới, mà không cần mở phòng chat.
+chat_preview_size.title	Bản xem trước phòng chat lớn hơn
+chat_preview_size.description	Cho phòng chat thêm chỗ trong bản xem trước hiện ra khi nhấn giữ phòng chat, và cho phép cuộn lại để xem tin nhắn cũ ngay trong đó. Menu bên dưới giữ chiều cao cố định và cuộn được khi có nhiều mục.
+mark_read_action.title	Ẩn 'Đánh dấu là đã đọc'
+mark_read_action.description	Ẩn 'Đánh dấu là đã đọc' trong menu hiển thị khi nhấn giữ phòng chat trong danh sách trò chuyện, tránh việc vô tình đánh dấu phòng chat là đã đọc. 'Đánh dấu là chưa đọc' sẽ vẫn được giữ lại.
+pinned_chats.title	Ghim nhiều cuộc trò chuyện hơn
+pinned_chats.description	Cho phép ghim vượt quá giới hạn của Messenger và đưa mục Ghim trở lại ở những phòng chat không có. Các phòng chat ghim vượt giới hạn chỉ lưu trên điện thoại này, nên sẽ không hiện trên thiết bị khác.
+hidden_chats.title	Ẩn các phòng chat đã chọn
+hidden_chats.description	Thêm mục Ẩn khỏi danh sách trò chuyện vào menu hiển thị khi nhấn giữ phòng chat. Phòng chat đã ẩn sẽ không hiện lại trong danh sách trò chuyện khi có tin nhắn mới, và vẫn tìm thấy được bằng tìm kiếm. Việc ẩn chỉ lưu trên điện thoại này, và bạn có thể bỏ ẩn trong cài đặt HushMessenger. Tính năng này không tắt thông báo, nên hãy tắt thông báo phòng chat trong Messenger nếu cần.
+special_contacts.title	Liên hệ đặc biệt
+special_contacts.description	Thêm mục Theo dõi người này vào menu hiển thị khi nhấn giữ phòng chat với một người. Sau đó HushMessenger lưu lịch sử khi người đó trực tuyến, ngoại tuyến, nhập tin cho bạn và đổi tên, dựa trên những gì Messenger vốn đã hiển thị cho bạn. Lịch sử chỉ lưu trên điện thoại này, và bạn có thể xem trong cài đặt HushMessenger.
+chat_menu_items.title	Ẩn mục trong menu phòng chat
+chat_menu_items.description	Ẩn các mục bạn chọn khỏi menu hiện ra khi nhấn giữ một phòng chat trong danh sách trò chuyện. Nhấn giữ một phòng chat bất kỳ một lần, các mục của menu đó sẽ hiện bên dưới công tắc này để bạn chọn.
+facebook.title	Ẩn phím tắt Facebook
+facebook.description	Ẩn nút Facebook, phím tắt trang cá nhân và chia sẻ, cũng như phần 'Các sản phẩm khác của Meta' và 'Đăng ký' trong tab 'Menu'. Phù hợp với người dùng chỉ sử dụng Messenger.
+meta_ai.title	Ẩn Meta AI
+meta_ai.description	Ẩn nút nổi Meta AI, nút thanh công cụ, tab và mục menu, nội dung AI trong tìm kiếm và gợi ý @, cùng lời mời tóm tắt các tin nhắn chưa đọc trong đoạn chat. Tab sẽ chỉ bị ẩn sau khi khởi động lại Messenger.
+moments.title	Ẩn Chat Moments
+moments.description	Ẩn Chat Moments trong menu.
+reels_badge.title	Ẩn huy hiệu Reels
+reels_badge.description	Ẩn huy hiệu thông báo Reels.
+tab_people.title	Ẩn tab liên hệ
+tab_people.description	Ẩn tab 'Liên hệ' trên thanh điều hướng dưới cùng. Sẽ chỉ ẩn sau khi khởi động lại Messenger.
+tab_people_show.title	Hiện tab liên hệ
+tab_people_show.description	Đưa tab 'Liên hệ' trở lại thanh điều hướng dưới cùng, ngay sau 'Đoạn chat', trên tài khoản mà Messenger đã bỏ tab này. Nếu bật cả hai, 'Ẩn tab liên hệ' được ưu tiên. Khởi động lại Messenger để thấy tab.
+tab_settings_show.title	Hiện tab cài đặt
+tab_settings_show.description	Đưa tab cài đặt của Messenger vào cuối thanh điều hướng dưới cùng, kèm ảnh của bạn, để cài đặt tài khoản chỉ cách một lần nhấn. Khởi động lại Messenger để thấy tab.
+tab_badges.title	Ẩn huy hiệu tab
+tab_badges.description	Ẩn các chấm đỏ và số trên các tab dưới cùng và nút Facebook ở trên cùng. Bật tùy chọn 'Giữ lại' tương ứng để giữ lại các huy hiệu cần thiết. Có hiệu lực sau khi khởi động lại Messenger.
+hide_tab_labels.title	Ẩn nhãn các tab
+hide_tab_labels.description	Bỏ chữ trên các tab dưới cùng và chỉ để lại biểu tượng. Trình đọc màn hình vẫn đọc tên từng tab. Có hiệu lực sau khi khởi động lại Messenger.
+tab_icons.title	Biểu tượng tab của riêng bạn
+tab_icons.description	Đổi các biểu tượng ở thanh dưới cùng thành biểu tượng nét đơn giản, và cho bạn đặt ảnh của riêng mình lên tab bất kỳ. Có hiệu lực sau khi khởi động lại Messenger.
+tab_stories.title	Ẩn tab tin
+tab_stories.description	Ẩn tab 'Tin' trên thanh điều hướng dưới cùng. Sẽ chỉ ẩn sau khi khởi động lại Messenger.
+tab_notifications.title	Ẩn tab thông báo
+tab_notifications.description	Ẩn tab 'Thông báo' trên thanh điều hướng dưới cùng. Sẽ chỉ ẩn sau khi khởi động lại Messenger.
+tab_bar_scroll_away.title	Ẩn thanh tab khi cuộn
+tab_bar_scroll_away.description	Thanh tab dưới cùng trượt đi khi bạn cuộn xuống danh sách đoạn chat và quay lại khi bạn cuộn lên. Có hiệu lực sau khi khởi động lại Messenger.
+floating_tab_bar.title	Thanh tab nổi
+floating_tab_bar.description	Chuyển thanh tab dưới cùng sang kiểu nổi mà Messenger đang thử nghiệm, nằm đè lên danh sách đoạn chat thay vì bên dưới. Messenger có thể vẫn giữ thanh tab thông thường trên một số màn hình. Có hiệu lực sau khi khởi động lại Messenger.
+tab_swipe.title	Vuốt để chuyển tab
+tab_swipe.description	Vuốt ngang trên danh sách trò chuyện để sang tab kế tiếp trên thanh dưới cùng, thay vì phải với tay xuống nút của nó. Các tab đang ẩn sẽ được bỏ qua, và danh sách tự cuộn ngang vẫn giữ cú vuốt của nó. Khởi động lại Messenger sau khi bật.
+chat_animation.title	Mở và đóng phòng chat bằng hiệu ứng trượt
+chat_animation.description	Trượt vào từ cạnh bên khi mở phòng chat và trượt ra khi quay lại. Bong bóng chat và bong bóng thông báo không bị ảnh hưởng.
+story_hold.title	Dừng lại khi kết thúc tin
+story_hold.description	Giữ lại trên màn hình sau khi tin kết thúc, không tự động chuyển sang tin tiếp theo, cho phép bạn nhấn hoặc vuốt trước khi tiếp tục. Cả ảnh và video đều sẽ chờ thao tác, và tin cuối cùng cũng sẽ được giữ mở cho đến khi bạn đóng nó.
+ai_stickers.title	Ẩn công cụ nhãn dán AI
+ai_stickers.description	Ẩn các nút 'Tạo' và 'Tạo nhãn dán AI', tab nhãn dán AI và gợi ý nhãn dán AI. Nhãn dán tùy chỉnh và âm nhạc trong menu 'Tạo' cũng sẽ bị ẩn.
+avatar_stickers.title	Ẩn nhãn dán hình đại diện ảo (Avatar)
+avatar_stickers.description	Ẩn tab hình đại diện ảo trong bàn phím nhãn dán.
+emoji_drawer.title	Khôi phục bảng biểu tượng cảm xúc phiên bản cũ
+emoji_drawer.description	Vô hiệu hóa thiết kế mới của Meta, khôi phục bố cục bàn phím biểu tượng cảm xúc trước đó. Có hiệu lực sau khi khởi động lại Messenger. Nếu bạn chưa nhận được thiết kế mới, sẽ không có thay đổi nào xảy ra.
+emoji_search.title	Giữ tìm kiếm biểu tượng cảm xúc
+emoji_search.description	Nhập văn bản khi mở bàn phím biểu tượng cảm xúc sẽ không còn chuyển sang tìm kiếm nhãn dán nữa. Bàn phím sẽ ở lại trang biểu tượng cảm xúc.
+chat_promotions.title	Ẩn nội dung quảng cáo trong phòng chat
+chat_promotions.description	Ẩn banner quảng cáo trong cuộc trò chuyện.
+ad_context_banner.title	Ẩn banner quảng cáo phòng chat doanh nghiệp
+ad_context_banner.description	Nếu phòng chat được mở thông qua quảng cáo doanh nghiệp, hãy ẩn banner hiển thị quảng cáo đó.
+suggested_replies.title	Ẩn gợi ý phản hồi của doanh nghiệp
+suggested_replies.description	Ẩn các phản hồi được gợi ý khi trò chuyện với doanh nghiệp.
+business_suggestions.title	Ẩn gợi ý nhập liệu của doanh nghiệp
+business_suggestions.description	Ẩn các gợi ý của doanh nghiệp bật lên khi nhập văn bản.
+event_prompts.title	Ẩn nhắc nhở sự kiện
+event_prompts.description	Ẩn lời nhắc quảng cáo sự kiện trong phòng chat.
+typing.title	Ẩn trạng thái 'Đang nhập…'
+typing.description	Ngăn Messenger hiển thị trạng thái đang nhập của bạn cho người khác, áp dụng cả cho các phòng chat mã hóa đầu cuối.
+use_system_emoji.title	Sử dụng biểu tượng cảm xúc hệ thống
+use_system_emoji.description	Hiển thị biểu tượng cảm xúc theo phong cách riêng của điện thoại, thay thế phong cách tích hợp sẵn của Messenger.
+disappearing_swipe.title	Vô hiệu hóa vuốt lên để mở tin nhắn tạm thời
+disappearing_swipe.description	Khi vuốt lên ở cuối phòng chat, tính năng tin nhắn tạm thời sẽ không còn được bật nữa. Tính năng cuộn không bị ảnh hưởng, bạn vẫn có thể cài đặt tin nhắn tạm thời trong cài đặt phòng chat.
+message_actions.title	Tùy chỉnh thao tác tin nhắn
+message_actions.description	Chọn thứ tự các thao tác hiện ra khi bạn nhấn giữ một tin nhắn và ẩn những thao tác bạn không dùng, riêng cho tin nhắn bạn gửi và tin nhắn bạn nhận. Các thao tác đầu tiên hiện ở hàng dưới tin nhắn, phần còn lại nằm trong Xem thêm. Nhấn giữ một tin nhắn một lần để các thao tác của nó hiện bên dưới.
+auto_reply.title	Phản hồi tự động
+auto_reply.description	Khi tin nhắn chứa từ khóa do bạn chỉ định, hãy gửi phản hồi được thiết lập bên dưới; nếu để trống từ khóa, hãy phản hồi tất cả tin nhắn. Phản hồi được gửi qua tính năng trả lời thông báo của chính Messenger, áp dụng cả cho phòng chat mã hóa, tối đa phản hồi năm phút một lần cho mỗi phòng chat. Mặc định chỉ phản hồi phòng chat 1-1 trừ khi bạn cho phép nhóm. Các phòng chat bật tin nhắn tạm thời không thể sử dụng tính năng trả lời thông báo của Messenger, vì vậy sẽ không tự động phản hồi.
+text_style.title	Văn bản in đậm và in nghiêng
+text_style.description	Chọn văn bản bạn đã nhập, sau đó chọn 'Đậm' hoặc 'Nghiêng' trong menu bật lên (có thể ẩn trong menu ba chấm). Chọn lại để hoàn tác. 'Đậm' chuyển đổi các chữ cái từ A đến Z (bao gồm cả chữ cái có dấu) và chữ số; 'Nghiêng' chỉ chuyển đổi các chữ cái, các hệ thống văn bản khác giữ nguyên. Đây là các ký tự Unicode đặc biệt nên điện thoại nào cũng hiển thị được, nhưng trình đọc màn hình có thể đọc chúng theo cách không tự nhiên.
+quiet_calls.title	Tắt tiếng cuộc gọi đến
+quiet_calls.description	Vẫn nhận được cuộc gọi đến, nhưng Messenger sẽ không đổ chuông, rung hoặc bật lên màn hình. Cuộc gọi đến sẽ nằm trong thanh thông báo kèm theo các nút trả lời và từ chối. Cuộc gọi nhỡ sẽ vẫn hiển thị trong phòng chat. Bật Chỉ những cuộc trò chuyện đã chọn để chỉ áp dụng cho những cuộc trò chuyện bạn chọn, các cuộc gọi khác vẫn đổ chuông. Nếu ứng dụng Facebook đã được cài đặt trên điện thoại, nó vẫn có thể đổ chuông do cùng một cuộc gọi đó.
+quiet_mode.title	Chế độ im lặng
+quiet_mode.description	Một quãng nghỉ khỏi Messenger. Chọn 15 phút, một giờ, hai giờ, tám giờ hoặc đến khi bạn tự kết thúc, và trong khoảng đó Messenger không phát âm thanh hay rung. Tin nhắn và cuộc gọi vẫn đến và chờ trong khay thông báo, nên bạn không bỏ sót gì khi đang nghỉ. Mỗi đêm, ngay bên dưới, làm điều tương tự giữa hai giờ bạn chọn. Người trong danh sách Liên hệ đặc biệt vẫn đến được với bạn, dù họ nhắn tin hay gọi.
+car_messages.title	Tin nhắn trên Android Auto
+car_messages.description	Cho phép Android Auto đọc to tin nhắn của bạn và gửi câu trả lời bạn nói, trên màn hình nhắn tin của Android Auto. Android Auto chỉ hiển thị ứng dụng cài từ Play Store. Nguồn không xác định trong phần cài đặt dành cho nhà phát triển của nó mở được giới hạn này trên desktop head unit, còn xe thật vẫn có thể không hiện Messenger. Khi phát to một tin nhắn, phòng chat sẽ được đánh dấu là đã đọc và hiển thị trạng thái đã đọc cho người khác, kể cả khi bật Ẩn thông báo đã đọc.
+local_chat_search.title	Tìm tin nhắn đã lưu
+local_chat_search.description	Thêm một nút vào kết quả tìm kiếm trong đoạn chat để tìm trong các tin nhắn đã lưu trên điện thoại này. Tính năng này hữu ích với các đoạn chat cũ mà tìm kiếm của Messenger không tìm thấy gì. Tính năng hoạt động trong các đoạn chat không được mã hóa đầu cuối và chỉ tìm được những gì điện thoại đã tải, vì vậy hãy cuộn lên trong đoạn chat trước.
+chat_jump.title	Chuyển đến tin nhắn đầu tiên hoặc một ngày
+chat_jump.description	Nhấn giữ tên đoạn chat ở trên cùng để chuyển đến tin nhắn đầu tiên hoặc một ngày bạn chọn. Mũi tên ở góc dưới bên trái đoạn chat đưa bạn đến tin nhắn đầu tiên, nhấn giữ mũi tên để chọn một ngày. Messenger chỉ tải đoạn chat từng trang, nên nó cuộn ngược lại và hiện số lượng trên màn hình cho đến khi tới nơi, bấm Hủy để dừng. Nó chỉ lùi được tới mức Messenger tải được.
+landscape.title	Cho phép xoay ngang
+landscape.description	Cho phép Messenger xoay ngang theo điện thoại, để bàn phím rộng hơn và ảnh, video lớn hơn. Nó làm theo cài đặt tự động xoay của điện thoại. Cuộc gọi, máy ảnh, thanh toán và một vài màn hình khác vẫn giữ dọc. Hãy khởi động lại Messenger sau khi thay đổi.
+call_recording.title	Ghi âm cuộc gọi
+call_recording.description	Thêm nút Ghi âm trên Messenger trong khi gọi. Cuộc gọi được lưu thành một tệp âm thanh trong Recordings/Messenger Calls trên điện thoại (Music/Messenger Calls trên Android 10 và 11). Khi bật, cuộc gọi dùng đường âm thanh thông thường của Android thay vì của Messenger, và cần khởi động lại Messenger sau khi thay đổi. Messenger không báo cho những người khác, và luật về ghi âm khác nhau tùy nơi, vì vậy hãy hỏi ý kiến mọi người trước.
+call_captions.title	Phụ đề trực tiếp khi gọi
+call_captions.description	Hiện lời người kia nói trong cuộc gọi thành phụ đề trên Messenger. Điện thoại tự tạo phụ đề, và có thể dịch sang ngôn ngữ của bạn rồi đọc to. Cần Android 13 trở lên và nhận dạng giọng nói trên điện thoại. Khi bật, cuộc gọi dùng đường âm thanh thông thường của Android thay vì của Messenger, và cần khởi động lại Messenger sau khi thay đổi.
+hide_call_buttons.title	Ẩn nút gọi
+hide_call_buttons.description	Bỏ nút gọi thoại và gọi video khỏi thanh trên cùng của đoạn chat, đoạn chat với doanh nghiệp và màn hình Tin nhắn mới để bạn không bấm nhầm. Cuộc gọi đến vẫn đổ chuông, và bạn vẫn có thể tham gia cuộc gọi đang diễn ra.
+call_confirm.title	Hỏi trước khi gọi
+call_confirm.description	Khi bấm nút gọi thoại hoặc gọi video, bạn sẽ được hỏi trước để không lỡ gọi cho ai. Áp dụng cho thanh trên cùng của đoạn chat, đoạn chat với doanh nghiệp và màn hình Tin nhắn mới. Gọi sẽ bắt đầu cuộc gọi, Hủy thì không. Cuộc gọi đến không bị ảnh hưởng.
+original_photo.title	Gửi ảnh với chất lượng gốc
+original_photo.description	Khi bật HD, hãy gửi ảnh JPEG với kích thước đầy đủ, không còn thu nhỏ nữa. Thông tin vị trí sẽ vẫn bị xóa. Ảnh lớn hơn 20 MB vẫn sẽ bị thu nhỏ.
+original_video.title	Gửi video mà không mã hóa lại
+original_video.description	Gửi tệp video gốc khi Messenger cho phép, thay thế phiên bản nén lại. Video lớn hơn 25 MB và video đã chỉnh sửa sẽ vẫn bị nén.
+xhe_audio.title	Khắc phục video không gửi được
+xhe_audio.description	Một số video sẽ hiển thị 'Không thể gửi' do định dạng âm thanh mới hơn (xHE-AAC) hoặc các thẻ do chương trình ghi màn hình Samsung thêm vào, Messenger gốc cũng gặp sự cố này. Tính năng này sẽ sửa âm thanh hoặc xóa thẻ trước khi gửi, áp dụng cho dù chia sẻ từ ứng dụng khác vào Messenger hay chọn video trong phòng chat. Hình ảnh video sẽ không thay đổi.
+media_caption.title	Đặt lời nhắn của bạn lên trên ảnh
+media_caption.description	Nhập nội dung rồi đính kèm ảnh hoặc video, lời nhắn của bạn sẽ được gửi trước, thành một tin nhắn riêng ở phía trên thay vì nằm bên dưới. Nhắc tên vẫn hoạt động. Nếu không nhập gì, ảnh vẫn được gửi một mình như trước.
+recent_media.title	Ẩn thẻ ảnh gần đây
+recent_media.description	Khi mở phòng chat ngay sau khi chụp màn hình, chụp ảnh hoặc quay video, thẻ gợi ý gửi nội dung đó sẽ không còn hiển thị phía trên hộp nhập tin nhắn nữa. Bạn vẫn có thể chọn từ thư viện.
+save_voice.title	Lưu tin nhắn thoại bạn phát
+save_voice.description	Mỗi tin nhắn thoại bạn phát cũng được lưu vào Recordings/Messenger trên điện thoại (Music/Messenger trên Android 10 và 11), để trình quản lý tệp hoặc trình phát khác có thể mở. Phát lại sẽ không lưu thêm bản sao.
+save_voice_menu.title	Nút lưu cho tin nhắn thoại
+save_voice_menu.description	Nhấn giữ một tin nhắn thoại rồi chọn Thêm: Lưu tin nhắn thoại là mục trên cùng, để chỉ lưu riêng tin đó. Tệp nằm cùng thư mục với Lưu tin nhắn thoại bạn phát, và công tắc đó có thể để tắt.
+share_story.title	Ẩn tin của bạn khi chia sẻ
+share_story.description	Khi chia sẻ ảnh, video hoặc liên kết từ các ứng dụng khác sang Messenger, menu chia sẻ của điện thoại sẽ không còn hiển thị mục tin của bạn của Messenger, nên sẽ vào thẳng 'Đoạn chat'. Danh sách 'Gửi tới' cũng không còn hiển thị tin của bạn, tránh việc vô tình nhấn 'Thêm' để đăng. Các phòng chat và nhóm của bạn vẫn sẽ hiển thị.
+system_camera.title	Sử dụng ứng dụng máy ảnh của điện thoại
+system_camera.description	Nút máy ảnh trong phòng chat sẽ mở ứng dụng máy ảnh của điện thoại. Ảnh chụp sẽ mở trong trình chỉnh sửa của Messenger để bạn gửi. Bật 'Hỏi chụp ảnh hay quay video' để quay cả video.
+external_gallery.title	Mở ứng dụng thư viện của điện thoại
+external_gallery.description	Nút thư viện trong phòng chat sẽ mở ứng dụng thư viện của chính điện thoại. Khi chọn một ảnh hoặc một video, nó sẽ mở trong trình chỉnh sửa Messenger của phòng chat đó để bạn gửi. Khi chọn nhiều mục, nó sẽ mở bảng 'Gửi đến' của Messenger, hiển thị tất cả các mục đã chọn và liệt kê phòng chat đó ở trên cùng.
+gallery_to_chat.title	Đưa mục đã chọn vào phòng chat
+gallery_to_chat.description	Khi bật Mở ứng dụng thư viện của điện thoại, những gì bạn chọn sẽ vào ô tin nhắn của phòng chat giống như thư viện riêng của Messenger, thay vì trình chỉnh sửa hoặc bảng 'Gửi đến'. Không có gì được gửi cho đến khi bạn nhấn Gửi.
+paste_photo.title	Dán ảnh vào phòng chat
+paste_photo.description	Ảnh bạn dán vào phòng chat sẽ vào ô tin nhắn của phòng chat giống như ảnh chọn từ thư viện, thay vì tự gửi đi. Không có gì được gửi cho đến khi bạn nhấn Gửi, nên bạn có thể thêm chú thích hoặc đổi ý. Văn bản đã dán và GIF của bàn phím vẫn hoạt động như trước. Phòng chat đang mở sẵn cần được mở lại.
+instant_gallery.title	Gửi Instants từ thư viện
+instant_gallery.description	Chạm nút chụp trong Instants sẽ mở ứng dụng thư viện của điện thoại thay vì chụp ảnh. Ảnh bạn chọn sẽ được gửi dưới dạng Instant, cắt theo khung hình của camera. Thoát khỏi thư viện mà không chọn thì không có gì được gửi.
+view_once_anywhere.title	Cho dùng Xem một lần trong mọi đoạn chat
+view_once_anywhere.description	Thư viện của Messenger chỉ hiện nút Xem một lần trong một số đoạn chat, nên nhóm thì không bao giờ có. Tùy chọn này cho dùng nút đó ở mọi nơi thư viện mở ra. Còn Messenger của người nhận có coi đó là Xem một lần hay không thì vẫn do Meta quyết định.
+external_browser.title	Mở liên kết web trong trình duyệt ngoài
+external_browser.description	Sử dụng trình duyệt mặc định để mở liên kết web (http và https). Các loại liên kết khác giữ nguyên hành vi ban đầu.
+link_player.title	Phát liên kết video ngay trong đoạn chat
+link_player.description	Video YouTube, TikTok, Instagram hoặc Facebook được chia sẻ sẽ phát trong một cửa sổ phía trên đoạn chat, thay vì đưa bạn sang ứng dụng hoặc trình duyệt. Video đến từ trình phát của chính trang web đó và cửa sổ này không lưu cookie. Liên kết rút gọn (trừ youtu.be), tin Facebook và mọi liên kết không phải trang video vẫn mở như trước.
+bubbles.title	Cho phép bong bóng thông báo trò chuyện
+bubbles.description	Chọn 'Mặc định gốc', 'Bong bóng chat' hoặc 'Bong bóng thông báo Android' bên dưới. Bong bóng thông báo Android yêu cầu phiên bản Android 11 trở lên, tài khoản được hỗ trợ và quyền thông báo. Vui lòng khởi động lại Messenger sau khi thay đổi.
+analytics_uploads.title	Ngừng tải lên dữ liệu phân tích
+analytics_uploads.description	Ngăn dịch vụ nền của Messenger tải lên số liệu thống kê sử dụng. Dữ liệu sẽ vẫn được ghi lại trên điện thoại và có thể tiếp tục tải lên sau khi tắt tùy chọn này.
+attribution_uploads.title	Ngừng tải lên dữ liệu quy kết quảng cáo
+attribution_uploads.description	Dừng công việc đọc ID quảng cáo của điện thoại và gửi nó cùng với cài đặt theo dõi quảng cáo cho Meta. ID quảng cáo tự nó sẽ không thay đổi.
+ad_events.title	Ngừng ghi lại hoạt động liên kết hộp thư đến và quảng cáo
+ad_events.description	Dừng hai loại báo cáo được ghi lại bởi Messenger. Một loại ghi lại phần nào của danh sách trò chuyện được hiển thị trên màn hình, Messenger phân loại là dữ liệu quảng cáo hộp thư đến; loại kia ghi lại liên kết quảng cáo nào bạn đã dùng để mở phòng chat.
+dwell_tracking.title	Ngừng ghi lại thời gian bạn chú ý
+dwell_tracking.description	Dừng báo cáo mà Messenger gửi khi bạn rời khỏi một màn hình, trong đó ghi lại bạn đã nhìn mỗi thứ bao lâu, theo thứ tự nào và quay lại bao nhiêu lần. Nó cũng dừng bản sao của những mốc thời gian đó được ghi vào nhật ký hành trình của Messenger.
+mqtt_telemetry.title	Ngừng ghi lại hoạt động kết nối thời gian thực
+mqtt_telemetry.description	Hủy bỏ báo cáo trạng thái kết nối và nhật ký đẩy do Messenger gửi qua kết nối thời gian thực (MQTT). Hầu hết dữ liệu của Messenger được truyền qua các kênh khác, vì vậy thường có rất ít nội dung bị chặn. Tin nhắn, cuộc gọi và trạng thái trực tuyến sẽ vẫn hoạt động bình thường.
+nearby_scans.title	Ngừng quét thiết bị và mạng lân cận
+nearby_scans.description	Ngăn Messenger đọc danh sách mạng Wi-Fi lân cận, đồng thời ẩn tên và địa chỉ phần cứng của mạng hiện đang kết nối, hiệu quả giống như cách Android xử lý khi Messenger không có quyền truy cập thông tin vị trí. Cũng sẽ dừng các tác vụ hẹn giờ mà Messenger có thể chạy trong khi mở để tránh việc nó kiểm tra định kỳ vị trí và quét mạng Wi-Fi cũng như thiết bị Bluetooth.
+phone_id_sync.title	Ngừng chia sẻ danh sách ứng dụng và ID thiết bị
+phone_id_sync.description	Ngăn Messenger tìm kiếm các ứng dụng Meta khác trên điện thoại và yêu cầu các ứng dụng đó cung cấp ID thiết bị mà Meta sử dụng để liên kết các ứng dụng khác nhau trên cùng một điện thoại. Messenger sẽ vẫn giữ lại các ID đã lấy được.
+message_log.title	Giữ lại nhật ký tin nhắn
+message_log.description	Lưu tin nhắn khi nhận được thông báo tin nhắn, cho phép bạn đọc lại sau khi tin nhắn bị thu hồi và đánh dấu những tin nhắn đã bị thu hồi. Hỗ trợ phòng chat mã hóa, dữ liệu được lưu trữ trên điện thoại. Nếu phòng chat đã bật tin nhắn tạm thời, thông báo của Messenger sẽ không chứa văn bản, do đó không thể ghi lại những tin nhắn này.
+allow_screenshot.title	Cho phép chụp màn hình
+allow_screenshot.description	Cho phép chụp màn hình phương tiện trò chuyện được bảo vệ, chẳng hạn như ảnh chỉ xem một lần và Quicksnap, đồng thời tắt thông báo chụp màn hình. Một công tắc bên dưới thêm nút Lưu vào trình xem một lần. Không thêm tính năng phát lại.
+secure_chat.title	Chặn chụp màn hình trong phòng chat
+secure_chat.description	Ngăn việc chụp màn hình hoặc ghi màn hình phòng chat đang mở trên điện thoại này, và giữ phòng chat đó khỏi ảnh xem trước trong danh sách ứng dụng gần đây. Chính Android từ chối ảnh chụp, nên tính năng này áp dụng cho mọi phòng chat chứ không riêng phòng chat có tin nhắn tự xóa. Phòng chat đang mở sẵn cần được mở lại. Người bạn đang trò chuyện vẫn có điện thoại của họ để chụp màn hình.
+appear_offline.title	Hiện là ngoại tuyến
+appear_offline.description	Ngăn Messenger cho ngưỗi khác biết bạn đang hoạt động, trong khi bạn vẫn thấy ai đang hoạt động. Cài đầt Trạng thái hoạt động của chính Messenger vẫn bật, nên các dấu chấm xanh trong danh sách đoạn chat và ố tab Mọi ngưỗi vẫn hoạt động như trước, chỉ có điều Messenger báo về bạn là thay đổi. Thay đổi có hiệu lực lần kế tiếp khi Messenger chuyển xuống nền hoặc mở lại, nên khởi động lại ứng dụng sẽ áp dụng ngay.
+hide_read_receipts.title	Ẩn thông báo đã đọc
+hide_read_receipts.description	Khi mở phòng chat, không còn thông báo cho người khác biết bạn đã đọc tin nhắn và phòng chat đó vẫn ở trạng thái chưa đọc trên thiết bị cục bộ. Khi đánh dấu thủ công là đã đọc hoặc trả lời, phòng chat sẽ được đánh dấu là đã đọc theo hành vi ban đầu của Messenger và hiển thị trạng thái đã đọc cho người khác. Phòng chat nhóm chưa được thử nghiệm. Cài đặt 'Thông báo đã đọc' của chính Messenger trong 'Quyền riêng tư và an toàn' có thể đánh dấu phòng chat là đã đọc mà không hiển thị trạng thái đã đọc cho người khác. Tùy chọn Ẩn trạng thái Đã nhận bên dưới cũng giữ lại dấu Đã nhận trong phòng chat thường.
+mark_read_button.title	Nút đánh dấu là đã đọc
+mark_read_button.description	Khi bật 'Ẩn thông báo đã đọc', hãy thêm biểu tượng 'Đánh dấu là đã đọc' của Messenger vào thanh trên cùng của phòng chat. Mở phòng chat vẫn sẽ không gửi thông báo đã đọc; khi bạn muốn người khác thấy đã đọc, hãy nhấp vào biểu tượng, thiết bị cục bộ cũng sẽ đánh dấu phòng chat là đã đọc. Khi thanh trên cùng đã đầy, biểu tượng này sẽ thay thế nút chi tiết phòng chat (nhấp vào tên phòng chat vẫn có thể mở cùng một trang), hoặc một nút khác không dùng để gọi nếu phòng chat không có nút đó, trong khi nút gọi vẫn ở vị trí cũ.
+read_chats_locally.title	Đánh dấu đã đọc trên điện thoại này
+read_chats_locally.description	Xóa vẻ ngoài chưa đọc của phòng chat bạn đã mở khi bật Ẩn thông báo đã đọc, nhờ vậy danh sách chat không còn hiển thị phòng chat đó in đậm kèm số tin nhắn. Không có gì được gửi tới Messenger, nên người kia vẫn không biết bạn đã đọc. Một tin nhắn mới trong phòng chat sẽ khiến vẻ ngoài chưa đọc xuất hiện lại.
+keep_unsent.title	Giữ lại tin nhắn đã thu hồi
+keep_unsent.description	Trong các phòng chat được hỗ trợ, giữ lại tin nhắn trên màn hình sau khi người khác thu hồi tin nhắn. Trong phòng chat mã hóa, tin nhắn sẽ được giữ lại trong thông báo. Phòng chat nhóm chưa được thử nghiệm. Tính năng tự thu hồi tin nhắn của chính bạn có thể bị hạn chế.
+hidden_words.title	Ẩn tin nhắn có từ bạn chọn
+hidden_words.description	Ẩn những tin nhắn có chứa các từ bạn chọn. Hãy nhập các từ đó bên dưới, cách nhau bằng dấu phẩy. Tin nhắn đến có một trong các từ đó sẽ hiện là [hidden] trong phòng chat thay cho nội dung, và không có thông báo nào xuất hiện. Không có gì được gửi lại và không có gì bị xóa, nên tin nhắn vẫn còn ở phía người gửi, còn tin nhắn bạn gửi đi vẫn như thường. Dòng cuối trong danh sách chat vẫn hiện bản xem trước của Messenger.
+anonymous_stories.title	Xem tin ẩn danh
+anonymous_stories.description	Khi xem tin của người khác, bạn sẽ không bị thêm vào danh sách người xem. Messenger vẫn sẽ đánh dấu là đã xem ở phía bạn.
+save_stories.title	Lưu bất kỳ tin nào
+save_stories.description	Thêm 'Lưu' vào menu 'Tùy chọn khác' của tin người khác, cho phép bạn lưu ảnh hoặc video về điện thoại.
+blocked_list_pictures.title	Ẩn ảnh trong danh sách chặn
+blocked_list_pictures.description	Ẩn ảnh đại diện của những người bạn đã chặn trong danh sách chặn, ở mục 'Quyền riêng tư và an toàn'. Tên của họ và nút 'Bỏ chặn' vẫn hiển thị.
+restricted_notify.title	Thông báo cho phòng chat bị hạn chế
+restricted_notify.description	Phòng chat với những người bạn đã hạn chế sẽ gửi thông báo cho bạn như các phòng chat khác, trừ khi phòng chat được mã hóa đầu cuối. Phòng chat bạn đã tắt thông báo vẫn im lặng. Người bị hạn chế vẫn không thấy khi nào bạn đang hoạt động hoặc đã đọc tin nhắn của họ.
+passkey_login.title	Bỏ qua đăng nhập bằng mã khóa
+passkey_login.description	Khi đăng nhập, mã khóa trên điện thoại này không còn được đưa ra nữa, nên Facebook quay lại cách yêu cầu bạn phê duyệt lần đăng nhập từ một thiết bị khác mà bạn đang đăng nhập, giống như với tài khoản không có mã khóa. Messenger đã vá không thể vượt qua bước kiểm tra mã khóa của Facebook, và đó là lý do một số lần đăng nhập cứ quay vòng ở bước kiểm tra bằng trình duyệt. Khi bật, Messenger cũng không dùng được mã khóa cho bản sao lưu được mã hóa, vì vậy hãy để tắt trừ khi một lần đăng nhập bị kẹt. Nhấn giữ biểu tượng Messenger trên màn hình chính để mở phần cài đặt này mà không cần đăng nhập.
+material_you.title	Chủ đề Material You
+material_you.description	Trong Android 12 trở lên, tô màu chế độ tối của Messenger theo bảng màu hình nền; trong Android 11, sử dụng màu xanh lam cố định. Vui lòng bật chế độ tối trong Messenger trước. Chế độ sáng giữ nguyên màu trừ khi bạn bật Màu nhấn cho chế độ sáng.
+app_icons.title	Mở khóa biểu tượng ứng dụng
+app_icons.description	Chọn bất kỳ biểu tượng nào trong cài đặt 'Biểu tượng ứng dụng' của Messenger mà không cần đăng ký. Việc hiển thị cài đặt đó vẫn do Messenger quyết định. Sau khi tắt tùy chọn này, biểu tượng mặc định có thể được khôi phục.
+app_themes.title	Mở khóa chủ đề ứng dụng
+app_themes.description	Chọn bất kỳ chủ đề nào trong cài đặt 'Chủ đề' của Messenger mà không cần đăng ký, để chế độ sáng cũng có màu. Messenger vẫn quyết định những chủ đề nào được cung cấp cho tài khoản của bạn.
+avatar_shape.title	Ảnh đại diện hình vuông
+avatar_shape.description	Hiển thị ảnh đại diện của người dùng bằng hình vuông thay vì hình tròn. Bật 'Góc bo tròn' bên dưới để đổi thành hình vuông bo tròn. Có hiệu lực sau khi khởi động lại Messenger.
+home_header.title	Tiêu đề trang chủ của riêng bạn
+home_header.description	Đặt chữ hoặc ảnh của riêng bạn ở đầu danh sách đoạn chat, thay cho logo chữ của Messenger. Nhập chữ hoặc chọn ảnh bên dưới. Nếu không có cả hai, logo chữ vẫn được giữ. Khởi động lại Messenger để thấy thay đổi.
+custom_font.title	Sử dụng phông chữ tùy chỉnh
+custom_font.description	Thay thế phông chữ Meta bằng phông chữ điện thoại để hiển thị văn bản Messenger, hoặc bạn có thể sử dụng tệp phông chữ .ttf hoặc .otf được chọn bên dưới, đồng thời điều chỉnh kích thước hoặc vị trí lên xuống. Biểu tượng cảm xúc không bị ảnh hưởng. Có thể thấy thay đổi sau khi khởi động lại Messenger.
+menu_blur.title	Làm mờ phía sau menu
+menu_blur.description	Làm mờ màn hình phía sau menu hiện ra khi bạn nhấn giữ một đoạn chat hoặc một tin nhắn, cùng các menu và bảng bật lên khác của Messenger, giống như trên iPhone. Cần Android 12 trở lên.
+invisible_buttons.title	Nút vô hình
+invisible_buttons.description	Làm các nút bạn chọn bên dưới vô hình hoặc trong suốt một phần nhưng vẫn giữ nguyên vị trí, kích thước và chức năng, nên một lần nhấn vẫn trúng. Dùng được ở danh sách chat, trong đoạn chat và trong các menu, kể cả nút của HushMessenger. Mọi nút Messenger đã hiện cho bạn đều được liệt kê theo tên mà trình đọc màn hình gọi, vì vậy hãy dùng Messenger một lúc để lấp danh sách.
+ios_bars.title	Thanh chat trong mờ
+ios_bars.description	Thanh trên cùng của đoạn chat và hộp tin nhắn trở nên trong mờ, tin nhắn chạy bên dưới và hiện lên mờ qua thanh, giống các thanh trên iPhone. Cần Android 12 hoặc mới hơn.

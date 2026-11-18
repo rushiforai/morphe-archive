@@ -1,3 +1,9 @@
+## [1.5.2](https://github.com/Prisoner-24601/custom-morphe-patches/compare/v1.5.1...v1.5.2) (2026-11-18)
+
+### 🐛 Bug Fixes
+
+* DeArrow original titles works with Morphe Patches 2.3 ([4433795](https://github.com/Prisoner-24601/custom-morphe-patches/commit/4433795ff09aedfb855107ab9fd410a613b6d745))
+
 ## [1.5.1](https://github.com/Prisoner-24601/custom-morphe-patches/compare/v1.5.0...v1.5.1) (2026-11-15)
 
 ### 🐛 Bug Fixes

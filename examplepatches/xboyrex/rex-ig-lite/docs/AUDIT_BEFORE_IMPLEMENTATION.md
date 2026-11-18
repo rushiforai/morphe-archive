@@ -1,9 +1,9 @@
-# INSTAREX (REX IG LITE v3.15.0) — SOURCE AUDIT & DEPENDENCY MAP (`AUDIT_BEFORE_IMPLEMENTATION.md`)
+# INSTAREX (REX IG LITE v3.16.0) — SOURCE AUDIT & DEPENDENCY MAP (`AUDIT_BEFORE_IMPLEMENTATION.md`)
 
 ## 1. Repository & Build Architecture Inventory
 - **Repository Root**: `/working_dir/c_15cecc76b42f1ce2/work/rex-ig-lite` ([`https://github.com/xboyrex/rex-ig-lite`](https://github.com/xboyrex/rex-ig-lite))
 - **Product Identity**: **InstaRex** (`Rex IG Lite • by xboyrex`)
-- **Version**: `3.15.0` (`gradle.properties`)
+- **Version**: `3.16.0` (`gradle.properties`)
 - **Gradle Modules**:
   - `:patches` (`patches/build.gradle.kts`) — Kotlin Morphe patch definitions, bytecode fingerprints, resource injection (`patches-list.json`, `patches-bundle.json`).
   - `:extensions:instagram` (`extensions/instagram/build.gradle.kts`) — Java 17 Android runtime extension (`app.morphe.extension.instagram.*` & `app.morphe.extension.suite.instagram.*`).

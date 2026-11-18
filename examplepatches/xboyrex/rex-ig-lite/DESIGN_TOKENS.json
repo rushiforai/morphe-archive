@@ -1,5 +1,5 @@
 {
-  "project": "InstaRex (Rex IG Lite v3.15.0)",
+  "project": "InstaRex (Rex IG Lite v3.16.0)",
   "repository": "https://github.com/xboyrex/rex-ig-lite",
   "developer": "xboyrex (Mayank)",
   "iconSystem": {
@@ -24,11 +24,11 @@
     {
       "id": "Prime Crimson Rose",
       "background": "#000000",
-      "cardSurface": "#171215",
-      "elevatedSurface": "#221A1F",
-      "borderStroke": "#382830",
-      "accentPrimary": "#FF4D6D",
-      "activeSwitch": "#FF758F"
+      "cardSurface": "#15181D",
+      "elevatedSurface": "#20252C",
+      "borderStroke": "#303741",
+      "accentPrimary": "#F10623",
+      "activeSwitch": "#FF2E4C"
     },
     {
       "id": "Royal Violet Glass",
@@ -66,5 +66,20 @@
       "accentPrimary": "#E2E8F0",
       "activeSwitch": "#94A3B8"
     }
-  ]
+  ],
+  "brandReference": {
+    "sourceImage": "22951.png",
+    "primaryAccent": "#F10623",
+    "secondaryAccent": "#FF2E4C",
+    "background": "#000000",
+    "surface": "#0D0F13",
+    "cardSurface": "#15181D",
+    "elevatedSurface": "#20252C",
+    "divider": "#303741",
+    "primaryText": "#F5F7FA",
+    "secondaryText": "#A4ACB8",
+    "selectedState": "#F10623",
+    "errorState": "#F06470",
+    "successState": "#35CDBB"
+  }
 }

@@ -15,6 +15,7 @@ import java.util.ArrayList;
 
 import com.instagram.common.session.UserSession;
 
+import app.morphe.extension.instagram.entity.MediaData;
 import app.morphe.extension.instagram.patches.download.DownloadUtils;
 import app.morphe.extension.instagram.settings.SettingsStatus;
 import app.morphe.extension.instagram.settings.preference.widgets.RexDialogs;
@@ -32,29 +33,47 @@ public class StoryButton {
         return Pref.enableDownload() && SettingsStatus.downloadMedia;
     }
 
+    private static boolean isExternalDownloaderConfigured() {
+        if (!Pref.downloadWithExternalDownloader()) return false;
+        String pkg = Pref.getExternalDownloaderPackageName();
+        return pkg != null && !pkg.trim().isEmpty();
+    }
+
     private static boolean isDebugEnabled() {
         return Pref.rexDebug();
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     public static ArrayList addButtons(ArrayList buttonList) {
-        if (isDebugEnabled()) {
+        if (buttonList == null) return new ArrayList();
+        if (isDebugEnabled() && !buttonList.contains(str("rex_debug"))) {
             buttonList.add(str("rex_debug"));
         }
-        buttonList.add("xboyrex Options");
-        buttonList.add("Story Quick Settings");
-        buttonList.add("Story Likes History");
-        buttonList.add("Mention Pill Settings");
+        addUnique(buttonList, "Story Quick Settings");
+        addUnique(buttonList, "Story Likes History");
         if (isViewStoryMentionsEnabled()) {
-            buttonList.add(str("rex_view_story_mentions"));
+            addUnique(buttonList, str("rex_view_story_mentions"));
+            addUnique(buttonList, "Mention Pill Settings");
         }
         if (isDownloadEnabled()) {
-            buttonList.add(str("rex_download_options"));
+            addUnique(buttonList, "Download Story");
+            addUnique(buttonList, str("rex_download_options"));
         }
-        if (Pref.downloadWithExternalDownloader()) {
-            buttonList.add(str("rex_download_with_external_downloader"));
+        if (isExternalDownloaderConfigured()) {
+            addUnique(buttonList, str("rex_download_with_external_downloader"));
         }
         return buttonList;
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private static void addUnique(ArrayList list, CharSequence item) {
+        if (item == null) return;
+        for (Object existing : list) {
+            if (existing != null && existing.toString().equalsIgnoreCase(item.toString())) {
+                return;
+            }
+        }
+        list.add(item);
     }
 
     public static boolean storyDialogAction(
@@ -66,13 +85,10 @@ public class StoryButton {
             DialogInterface.OnDismissListener onDismiss
     ) {
         try {
+            if (buttonText == null) return false;
             String label = buttonText.toString();
-            if (label.equals("xboyrex Options") || label.equals("InstaRex Story Options")) {
+            if (label.equals("Story Quick Settings") || label.equals("xboyrex Options") || label.equals("InstaRex Story Options")) {
                 RexDialogs.showStoryOptionsSheet(context, userSession, mediaObject, reelObject);
-                if (onDismiss != null) onDismiss.onDismiss(null);
-                return true;
-            } else if (label.equals("Story Quick Settings")) {
-                RexDialogs.showSurfaceQuickSettingsDialog(context, "STORY");
                 if (onDismiss != null) onDismiss.onDismiss(null);
                 return true;
             } else if (label.equals("Story Likes History")) {
@@ -86,21 +102,34 @@ public class StoryButton {
             } else if (label.equals(str("rex_view_story_mentions"))) {
                 ViewStoryMentionsPatch.viewMentions(context, mediaObject, onDismiss);
                 return true;
-            } else if (label.equals(str("rex_download_options"))) {
+            } else if (label.equals("Download Story")) {
+                DownloadUtils.downloadStory(null, userSession, mediaObject, reelObject, false);
+                if (onDismiss != null) onDismiss.onDismiss(null);
+                return true;
+            } else if (label.equals(str("rex_download_options")) || label.equals(str("rex_category_download_media"))) {
                 DownloadUtils.showStoryDownloadOptions(context, userSession, mediaObject, reelObject, onDismiss);
-                return true;
-            } else if (label.equals(str("rex_debug"))) {
-                if (onDismiss != null) onDismiss.onDismiss(null);
-                ObjectBrowser.browseObject(context, mediaObject);
-                return true;
-            } else if (label.equals(str("rex_download_with_external_downloader"))) {
-                DownloadUtils.externalDownloader(mediaObject, 0);
-                if (onDismiss != null) onDismiss.onDismiss(null);
                 return true;
             }
         } catch (Exception ex) {
             Logger.printException(() -> "StoryDialogAction failure", ex);
             if (onDismiss != null) onDismiss.onDismiss(null);
+        }
+        return false;
+    }
+
+    public static boolean storyButtonAction(CharSequence buttonText, Context ctx, Object mediaObject) {
+        try {
+            if (buttonText == null) return false;
+            String label = buttonText.toString();
+            if (label.equals(str("rex_debug"))) {
+                ObjectBrowser.browseObject(ctx, new MediaData(mediaObject));
+                return true;
+            } else if (label.equals(str("rex_download_with_external_downloader"))) {
+                DownloadUtils.externalDownloader(mediaObject, 0);
+                return true;
+            }
+        } catch (Exception ex) {
+            Logger.printException(() -> "Failed storyButtonAction", ex);
         }
         return false;
     }

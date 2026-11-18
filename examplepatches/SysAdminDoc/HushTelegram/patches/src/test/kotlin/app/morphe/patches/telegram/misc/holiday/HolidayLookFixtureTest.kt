@@ -8,6 +8,7 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.PlusPending
 import app.morphe.util.names.addInstructions
 import app.morphe.util.names.addInstructionsWithLabels
 import app.morphe.patcher.util.smali.ExternalLabel
@@ -49,6 +50,7 @@ import app.morphe.util.names.tgClassDefByOrNull
 import app.morphe.util.names.tgMutableClassDefBy
 
 /** The holiday check's class, every class that reads its snow flag and the runtime are the whole context. */
+@PlusPending
 class HolidayLookFixtureTest {
     @Test
     fun `the holiday check shows the look or puts it back before its date test`() {

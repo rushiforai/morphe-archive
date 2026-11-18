@@ -60,6 +60,8 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_POST_COUNTS) return L10n.t("Hide counts on posts");
         if (setting == Settings.HIDE_POST_REACTIONS) return L10n.t("Hide the reaction preview on posts");
         if (setting == Settings.HIDE_COMMENT_REACTIONS) return L10n.t("Hide the reaction preview on comments");
+        if (setting == Settings.HIDE_REACTION_BUBBLES) return L10n.t("Hide friends' reactions on photos and videos");
+        if (setting == Settings.HIDE_REACTOR_NAMES) return L10n.t("Hide who reacted under posts");
         if (setting == Settings.HIDE_FEED_PROFILE_PICTURES) return L10n.t("Hide profile pictures on posts");
         if (setting == Settings.HIDE_COMMENT_PROFILE_PICTURES) return L10n.t("Hide profile pictures in comments");
         if (setting == Settings.HIDE_SEEN_POSTS) return L10n.t("Hide posts you've already seen");
@@ -256,6 +258,7 @@ final class SwitchLabels {
         if (setting == Settings.ASK_BEFORE_LIKING_COMMENTS) return L10n.t("Ask before liking a comment");
         if (setting == Settings.ASK_BEFORE_FOLLOWING_POSTS) return L10n.t("Ask before following from a post");
         if (setting == Settings.ASK_BEFORE_FOLLOWING_REELS) return L10n.t("Ask before following from a reel");
+        if (setting == Settings.ASK_BEFORE_REACTING_TO_STORIES) return L10n.t("Ask before reacting to a story");
         if (setting == Settings.DOUBLE_TAP_SKIP) return L10n.t("Double tap to skip");
         if (setting == Settings.HIDE_SKIP_SECONDS) return L10n.t("Hide the skip seconds");
         if (setting == Settings.TAP_SHOWS_CONTROLS) return L10n.t("Tap shows the controls");

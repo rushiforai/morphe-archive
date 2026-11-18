@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2026 rex <https://github.com/xboyrex/rex-ig-lite>
+ * Copyright (C) 2026 xboyrex <https://github.com/xboyrex/rex-ig-lite>
  *
  * See the included NOTICE file for GPLv3 §7(b) terms that apply to this code.
  */
@@ -35,6 +35,8 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 
 internal const val TYPEFACE_CLASS = "Landroid/graphics/Typeface;"
+private const val CHAR_SEQUENCE_CLASS = "Ljava/lang/CharSequence;"
+private const val BUFFER_TYPE_CLASS = "Landroid/widget/TextView\$BufferType;"
 
 internal const val LOAD_CUSTOM_FONT = "$CUSTOM_FONT_DESCRIPTOR->load()V"
 
@@ -50,8 +52,14 @@ private const val BEGIN_CONTENT_FONT_REQUEST =
 private const val END_CONTENT_FONT_REQUEST =
     "$CUSTOM_FONT_DESCRIPTOR->endContentFontRequest($TYPEFACE_CLASS)$TYPEFACE_CLASS"
 
+private const val END_CONTENT_FONT_REQUEST_WITH_SOURCE =
+    "$CUSTOM_FONT_DESCRIPTOR->endContentFontRequest(Ljava/lang/Object;$TYPEFACE_CLASS)$TYPEFACE_CLASS"
+
 private const val ASSIGN_CUSTOM_FONT =
     "$CUSTOM_FONT_DESCRIPTOR->assign($TYPEFACE_CLASS)$TYPEFACE_CLASS"
+
+private const val APPLY_EMOJI_SPANS =
+    "$CUSTOM_FONT_DESCRIPTOR->applyEmojiSpans($CHAR_SEQUENCE_CLASS)$CHAR_SEQUENCE_CLASS"
 
 /** The platform text widgets whose direct subclasses get [overrideTypefaceAssignment]. */
 internal val PLATFORM_TEXT_WIDGETS =
@@ -60,17 +68,6 @@ internal val PLATFORM_TEXT_WIDGETS =
         "AutoCompleteTextView", "MultiAutoCompleteTextView", "Switch", "ToggleButton",
     ).map { "Landroid/widget/$it;" }.toSet()
 
-/**
- * Hooks the typeface repository, whose first parameter describes the font being resolved. The
- * description is what tells an interface font apart from a font the user picked inside the app.
- *
- * The descriptor is read at the returns, out of the parameter register it arrived in, rather than
- * being put on record when the method is entered - which saves a call and a thread local write on
- * every single piece of text the app draws. That only holds while nothing writes over the register
- * on the way there, so it is checked rather than assumed.
- *
- * Each return is replaced rather than preceded, since a return is often a branch target.
- */
 internal fun MutableMethod.hookResolvedTypefaces() {
     val descriptorRegister = p0Register + if (AccessFlags.STATIC.isSet(accessFlags)) 0 else 1
     if (isOverwritten(descriptorRegister)) {
@@ -95,17 +92,7 @@ internal fun MutableMethod.hookResolvedTypefaces() {
     }
 }
 
-/**
- * Replaces the typeface a method wraps in the object it hands back, for a method that returns a
- * result rather than the typeface itself.
- *
- * Usually every branch of such a method meets at one point where the wrapper is built - but that
- * is not asserted anywhere the app builds it, so every constructor call for the wrapper type is
- * hooked rather than only the first: a second, non-converging construction site is then still
- * covered instead of silently keeping the app's own font.
- */
 internal fun MutableMethod.hookWrappedTypeface() {
-    // Last index first, so earlier indices stay valid while instructions are inserted.
     findInstructionIndicesReversedOrThrow(
         {
             val reference = getReference<MethodReference>()
@@ -115,9 +102,6 @@ internal fun MutableMethod.hookWrappedTypeface() {
                     returnType in classDefBy(reference.definingClass).interfaces)
         },
     ).forEach { wrapIndex ->
-        // The instance is the first register of the constructor call, the typeface the second. The
-        // insertion goes on the call itself, not on the `new-instance` before it, which is where the
-        // branches land.
         val constructor = getInstruction(wrapIndex)
         val typefaceRegister = constructor.registersUsed[1]
         val apply = if (constructor.getReference<MethodReference>()!!.parameterTypes.first().toString() == TYPEFACE_CLASS) {
@@ -136,15 +120,18 @@ internal fun MutableMethod.hookWrappedTypeface() {
     }
 }
 
-/**
- * Marks a method as resolving a font the user picked inside the app, so the typefaces it asks the
- * repository for, and the one it returns, are left as they are.
- */
 internal fun MutableMethod.markAsContentFontResolver() {
+    val isInstanceMethod = !AccessFlags.STATIC.isSet(accessFlags)
+    val thisReg = p0Register
+    val canPassThis = isInstanceMethod && !isOverwritten(thisReg)
     findInstructionIndicesReversedOrThrow(Opcode.RETURN_OBJECT).forEach { index ->
         val register = getInstruction<OneRegisterInstruction>(index).registerA
 
-        replaceInstruction(index, "invoke-static/range {v$register .. v$register}, $END_CONTENT_FONT_REQUEST")
+        if (canPassThis && thisReg <= 15 && register <= 15) {
+            replaceInstruction(index, "invoke-static {v$thisReg, v$register}, $END_CONTENT_FONT_REQUEST_WITH_SOURCE")
+        } else {
+            replaceInstruction(index, "invoke-static/range {v$register .. v$register}, $END_CONTENT_FONT_REQUEST")
+        }
         addInstructions(
             index + 1,
             """
@@ -156,18 +143,15 @@ internal fun MutableMethod.markAsContentFontResolver() {
     addInstruction(0, "invoke-static {}, $BEGIN_CONTENT_FONT_REQUEST")
 }
 
-/**
- * Overrides `setTypeface(Typeface)`, which every way a view gets its font ends in - XML,
- * `setTextAppearance`, `setTypeface(null)` or a resolved typeface.
- */
 internal fun MutableClass.overrideTypefaceAssignment() {
-    val existing = methods.firstOrNull {
+    // 1. Override/hook setTypeface(Typeface)
+    val existingTypeface = methods.firstOrNull {
         it.name == "setTypeface" && it.returnType == "V" &&
             it.parameterTypes.map(CharSequence::toString) == listOf(TYPEFACE_CLASS)
     }
-    if (existing != null) {
-        if (existing.implementation != null) {
-            existing.addInstructions(
+    if (existingTypeface != null) {
+        if (existingTypeface.implementation != null) {
+            existingTypeface.addInstructions(
                 0,
                 """
                 invoke-static/range {p1 .. p1}, $ASSIGN_CUSTOM_FONT
@@ -175,27 +159,65 @@ internal fun MutableClass.overrideTypefaceAssignment() {
                 """.trimIndent(),
             )
         }
-        return
+    } else {
+        val implementation = MethodImplementationBuilder(2).apply {
+            addInstruction("invoke-static {v1}, $ASSIGN_CUSTOM_FONT".toInstruction())
+            addInstruction("move-result-object v1".toInstruction())
+            addInstruction("invoke-super {v0, v1}, $superclass->setTypeface($TYPEFACE_CLASS)V".toInstruction())
+            addInstruction("return-void".toInstruction())
+        }.methodImplementation
+        methods.add(
+            MutableMethod(
+                ImmutableMethod(
+                    type, "setTypeface", listOf(ImmutableMethodParameter(TYPEFACE_CLASS, null, null)),
+                    "V", AccessFlags.PUBLIC.value, emptySet(), emptySet(), implementation,
+                ),
+            ),
+        )
     }
 
-    // Registers: v0 is this, v1 the typeface.
-    val implementation = MethodImplementationBuilder(2).apply {
-        addInstruction("invoke-static {v1}, $ASSIGN_CUSTOM_FONT".toInstruction())
-        addInstruction("move-result-object v1".toInstruction())
-        addInstruction("invoke-super {v0, v1}, $superclass->setTypeface($TYPEFACE_CLASS)V".toInstruction())
-        addInstruction("return-void".toInstruction())
-    }.methodImplementation
-    methods.add(
-        MutableMethod(
-            ImmutableMethod(
-                type, "setTypeface", listOf(ImmutableMethodParameter(TYPEFACE_CLASS, null, null)),
-                "V", AccessFlags.PUBLIC.value, emptySet(), emptySet(), implementation,
+    // 2. Override/hook setText(CharSequence, TextView$BufferType) so custom Emoji packs render in all TextViews & EditTexts
+    val existingSetText = methods.firstOrNull {
+        it.name == "setText" && it.returnType == "V" &&
+            it.parameterTypes.map(CharSequence::toString) == listOf(CHAR_SEQUENCE_CLASS, BUFFER_TYPE_CLASS)
+    }
+    if (existingSetText != null) {
+        if (existingSetText.implementation != null) {
+            existingSetText.addInstructions(
+                0,
+                """
+                invoke-static/range {p1 .. p1}, $APPLY_EMOJI_SPANS
+                move-result-object p1
+                """.trimIndent(),
+            )
+        }
+    } else {
+        val setTextImpl = MethodImplementationBuilder(3).apply {
+            addInstruction("invoke-static {v1}, $APPLY_EMOJI_SPANS".toInstruction())
+            addInstruction("move-result-object v1".toInstruction())
+            addInstruction("invoke-super {v0, v1, v2}, $superclass->setText($CHAR_SEQUENCE_CLASS$BUFFER_TYPE_CLASS)V".toInstruction())
+            addInstruction("return-void".toInstruction())
+        }.methodImplementation
+        methods.add(
+            MutableMethod(
+                ImmutableMethod(
+                    type,
+                    "setText",
+                    listOf(
+                        ImmutableMethodParameter(CHAR_SEQUENCE_CLASS, null, null),
+                        ImmutableMethodParameter(BUFFER_TYPE_CLASS, null, null),
+                    ),
+                    "V",
+                    AccessFlags.PUBLIC.value,
+                    emptySet(),
+                    emptySet(),
+                    setTextImpl,
+                ),
             ),
-        ),
-    )
+        )
+    }
 }
 
-/** A `Paint.setTypeface` call, where spans and custom-drawn text set their font. */
 internal fun Instruction.isPaintTypefaceCall() =
     (opcode == Opcode.INVOKE_VIRTUAL || opcode == Opcode.INVOKE_VIRTUAL_RANGE) &&
         getReference<MethodReference>()?.let { reference ->
@@ -206,12 +228,9 @@ internal fun Instruction.isPaintTypefaceCall() =
 
 private val PAINT_CLASSES = setOf("Landroid/graphics/Paint;", "Landroid/text/TextPaint;")
 
-/** Passes the typeface of every `Paint.setTypeface` call the method makes through the custom font. */
 internal fun MutableMethod.hookPaintTypefaceCalls() {
-    // Last index first, so earlier indices stay valid while instructions are inserted.
     findInstructionIndicesReversedOrThrow { isPaintTypefaceCall() }
         .forEach { callIndex ->
-            // The paint is the first register of the call, the typeface the second.
             val register = getInstruction(callIndex).registersUsed[1]
             addInstructions(
                 callIndex,
@@ -225,10 +244,8 @@ internal fun MutableMethod.hookPaintTypefaceCalls() {
 
 internal val FONT_EXTENSION_PACKAGE = CUSTOM_FONT_DESCRIPTOR.removeSuffix("CustomFont;")
 
-/** A platform class, the rex subclass that replaces it, and the constructors that subclass has. */
 internal typealias Replacements = Map<String, Pair<String, Set<List<String>>>>
 
-/** Platform spans that set their font inside the framework while drawing. */
 internal val PLATFORM_TYPEFACE_SPANS: Replacements =
     mapOf(
         "Landroid/text/style/TypefaceSpan;" to
@@ -246,7 +263,6 @@ internal val PLATFORM_TYPEFACE_SPANS: Replacements =
                 )),
     )
 
-/** The platform text widgets rex's own code creates. */
 internal val REX_TEXT_WIDGETS: Replacements =
     listOf("TextView", "Button", "CheckBox", "EditText").associate {
         "Landroid/widget/$it;" to
@@ -257,15 +273,10 @@ internal val REX_TEXT_WIDGETS: Replacements =
                 ))
     }
 
-/** A `new-instance` of one of the [replacements]. */
 internal fun Instruction.createsOneOf(replacements: Replacements) =
     opcode == Opcode.NEW_INSTANCE &&
         getReference<TypeReference>()?.type in replacements
 
-/**
- * Creates rex's subclass wherever the method creates one of the [replacements], unless a
- * constructor call there is one the subclass lacks.
- */
 internal fun MutableMethod.replaceCreations(replacements: Replacements) {
     val creations = findInstructionIndicesReversed { createsOneOf(replacements) }
     val created = creations.map { getInstruction<OneRegisterInstruction>(it).registerA }.toSet()
@@ -285,7 +296,6 @@ internal fun MutableMethod.replaceCreations(replacements: Replacements) {
         }
     if (constructions.isEmpty() || !supported) return
 
-    // Last index first, so earlier indices stay valid while instructions are replaced.
     (creations + constructions).sortedDescending().forEach { index ->
         val instruction = getInstruction(index)
         val registers = instruction.registersUsed
@@ -308,9 +318,6 @@ internal fun MutableMethod.replaceCreations(replacements: Replacements) {
     }
 }
 
-/**
- * Hooks React Native's "Optimistic VF App Lite" font registration, at the result of its resolved font getter.
- */
 internal fun MutableMethod.hookReactNativeFontRegistration(result: Match.InstructionMatch) {
     val register = result.getInstruction<OneRegisterInstruction>().registerA
 
@@ -323,13 +330,6 @@ internal fun MutableMethod.hookReactNativeFontRegistration(result: Match.Instruc
     )
 }
 
-/**
- * Whether anything in the method writes over a register it was handed a parameter in.
- *
- * A check-cast is excluded: it re-asserts the value's type in place rather than replacing it, the
- * same exclusion this codebase already established for the identical question in
- * DisableAutoScrollPatch.kt.
- */
 private fun MutableMethod.isOverwritten(register: Int) =
     indexOfFirstInstruction {
         opcode.setsRegister() && opcode != Opcode.CHECK_CAST && registersUsed.firstOrNull() == register

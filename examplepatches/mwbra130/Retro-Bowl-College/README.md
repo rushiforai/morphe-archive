@@ -2,7 +2,7 @@
 
 Some apps I patched and other apps that were requested if you would like to request an app please drop a comment in my reddit discussion for patches: https://www.reddit.com/r/MorpheApp/s/xRx6wdTYA5
 
-**27 apps · 46 patches** · current bundle: [v0.0.1](https://github.com/mwbra130/Retro-Bowl-College/releases/tag/v0.0.1)
+**27 apps · 47 patches** · current bundle: [v0.0.2](https://github.com/mwbra130/Retro-Bowl-College/releases/tag/v0.0.2)
 
 ## Apps
 
@@ -13,7 +13,7 @@ Some apps I patched and other apps that were requested if you would like to requ
      the GRID_START / GRID_END markers on every release — new apps get their name, Play
      Store icon and experimental marker automatically, and grid names link to the
      detailed sections below (which use the apps' full Play Store names). Kept OUTSIDE the auto-generated patches
-     block below on purpose. Reflects bundle v0.0.1. -->
+     block below on purpose. Reflects bundle v0.0.2. -->
 
 <!-- GRID_START -->
 <table>
@@ -166,7 +166,7 @@ Some apps I patched and other apps that were requested if you would like to requ
 ## Patch descriptions
 
 <!-- PATCHES_START -->
-> **[v0.0.1](https://github.com/mwbra130/Retro-Bowl-College/releases/tag/v0.0.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;46 patches total
+> **[v0.0.2](https://github.com/mwbra130/Retro-Bowl-College/releases/tag/v0.0.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;47 patches total
 <a id="app-com-jamworks-alwaysondisplay" name="app-com-jamworks-alwaysondisplay"></a>
 <details>
 <summary>aodNotify&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
@@ -325,7 +325,7 @@ Some apps I patched and other apps that were requested if you would like to requ
 
 <a id="app-com-oceangalaxy-camera-new" name="app-com-oceangalaxy-camera-new"></a>
 <details>
-<summary>Timemark: Photo Proof for Work&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
+<summary>Timemark: Photo Proof for Work&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
 <br>
 
 **Supported versions:**
@@ -339,6 +339,7 @@ Some apps I patched and other apps that were requested if you would like to requ
 | [Enable Plus](#enable-plus) | Turns on the app's Plus premium state: edit and remove watermarks, ultra quality, custom file names, unlimited annotations and saves, exports and the other personal Plus features, as if the Plus plan were bought. |  |
 | [Remove telemetry](#remove-telemetry) | Stops the app reporting usage to SensorsData: both analytics event funnels (the SensorAnalyzeUtil sinks and the framework logger's LogService sinks) are cut, so no clicks, watermark edits, purchase steps or location-page events leave the device. Camera, backup, weather and all other features are unaffected. |  |
 | [Spoof watermark location](#spoof-watermark-location) | Stamps photos with a location you pick on an OpenStreetMap pin-drop map (Timemark settings → Timemark patches) instead of your real GPS location. Off or unpicked means real GPS; change it any time without re-patching. |  |
+| [Use device date & time](#use-device-date-time) | Uses Android's current device time instead of Timemark's network-synchronized timestamp for the watermark clock. |  |
 
 </details>
 

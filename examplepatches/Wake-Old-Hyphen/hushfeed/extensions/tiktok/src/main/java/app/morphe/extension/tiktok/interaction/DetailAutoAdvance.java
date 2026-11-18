@@ -19,6 +19,8 @@ import app.morphe.extension.tiktok.settings.L10n;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.wellbeing.FeedLock;
 import app.morphe.extension.tiktok.wellbeing.SessionBudget;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.Map;
 import java.util.WeakHashMap;
 
@@ -26,19 +28,166 @@ import java.util.WeakHashMap;
  * Auto-advance for a video opened from a profile or a list (#311). TikTok builds its auto scroll
  * component for the main feed and search, so its detail page has nothing to start and a video
  * there loops at its end. That page plays the same cells in the same native pager, so the end of
- * a video moves the pager on by one, as blocking a creator does. It stays put off screen, as the
- * main feed does: TikTok's background session holds one video, and a move ends it with nothing
- * playing, so the video that had finished is gone from the notification as well.
+ * a video moves the pager on by one, as blocking a creator does.
+ *
+ * <p>Off screen the pager is left alone: TikTok's usual background session holds one video, and a
+ * move ends it with nothing playing. TikTok has a second background session that plays a page's
+ * videos in turn, but gives it only to your own collections. A page opened from a profile gets it
+ * too while Auto-advance and Background play are both on, so its videos keep coming with the
+ * screen off (#292), and is turned on as TikTok's collection switch would turn it on. That
+ * session moves on by itself, so the limit and the holds are applied as
+ * each video there ends, and its foreground twin, which would move the page a second time, waits
+ * for this class instead.
  */
 public final class DetailAutoAdvance {
     private static final String PAGER = "com.ss.android.ugc.aweme.common.widget.VerticalViewPager";
     private static final String FAMILY = "detail auto-advance";
     private static final String OPENED_FROM = "video_from";
     private static final String FROM_SEARCH = "from_search";
+    /** TikTok keys a background queue by your collection's id; a profile page's key is ours. */
+    static final String PROFILE_SCOPE = "hushfeed_profile_";
+    /** TikTok's mode for that queue: 1 plays your collections in turn, without its bottom bar. */
+    private static final int QUEUE_ON = 1;
+    private static final String QUEUE_SCENE = "com.ss.android.ugc.aweme.backgroundplay.ScopedBgPlayScene";
+    private static final String QUEUE_STATE = "com.ss.android.ugc.aweme.backgroundplay.ScopedBgPlaySessionState";
+    private static final String QUEUE_SCOPE_ID = "scopeId";
+    private static final String QUEUE_OFF = "OFF";
+    private static final String QUEUE_ACTIVE = "ACTIVE";
+    // Profile queues turned on here, so one TikTok's switch turned off stays off.
+    private static final Map<Object, Boolean> ARMED = new WeakHashMap<>();
     // One session per page, so the limit counts this page's videos, as it does for each feed.
     private static final Map<Activity, AutoAdvance.Control> SESSIONS = new WeakHashMap<>();
+    // TikTok's background queue reports its ends off the page, so it keeps a count of its own.
+    private static final Map<Object, AutoAdvance.Control> QUEUES = new WeakHashMap<>();
 
     private DetailAutoAdvance() { }
+
+    private static boolean profileQueue() {
+        return Settings.AUTO_ADVANCE.get() && Settings.BACKGROUND_PLAY.get();
+    }
+
+    /**
+     * TikTok's key for a page's background queue, as the places that start that queue read it.
+     * TikTok answers only for your own collections, so a page opened from a profile gets a key of
+     * its own here, and leaving the app hands it to the queue rather than to the one-video session
+     * that rewinds and pauses at the end (#292). A page opened from a profile's grid names the
+     * profile only as the page's user ({@code pageUid}); {@code profileUid} is filled on the
+     * routes that say which profile they came from, and wins when both are there.
+     */
+    public static String backgroundScope(String scope, String profileUid, String pageUid) {
+        try {
+            Logger.printDebug(() -> "Background queue key " + scope + " profile " + profileUid
+                    + " page " + pageUid + " auto-advance+background " + profileQueue());
+            if (scope != null && !scope.isEmpty()) return scope;
+            String profile = profileUid != null && !profileUid.isEmpty() ? profileUid : pageUid;
+            if (profile == null || profile.isEmpty() || !profileQueue()) return scope;
+            return PROFILE_SCOPE + profile;
+        } catch (Throwable error) {
+            Logger.printException(() -> "Could not choose a background queue for a profile page", error);
+            return scope;
+        }
+    }
+
+    /**
+     * The same key, read by TikTok's own move to the next video on screen. With Auto-advance on
+     * this class makes that move, so TikTok's is turned away, or the page would skip a video.
+     */
+    public static String foregroundScope(String scope) {
+        try {
+            return Settings.AUTO_ADVANCE.get() ? null : scope;
+        } catch (Throwable error) {
+            Logger.printException(() -> "Could not read Auto-advance for TikTok's own next video", error);
+            return scope;
+        }
+    }
+
+    /** TikTok's mode for the queue, read once a process; a page needs it on to use the queue. */
+    public static int collectionMode(int served) {
+        try {
+            int mode = served < QUEUE_ON && profileQueue() ? QUEUE_ON : served;
+            Logger.printDebug(() -> "Background queue mode " + served + " -> " + mode);
+            return mode;
+        } catch (Throwable error) {
+            Logger.printException(() -> "Could not read the background queue settings", error);
+            return served;
+        }
+    }
+
+    /**
+     * Called as a video ends in TikTok's background queue, with whether the queue has another one
+     * after it. The answer is whether it moves on. No ends the queue as its last video does, which
+     * is how the limit and the holds stop it there.
+     */
+    public static boolean backgroundNext(boolean hasNext, Object queue, String id) {
+        try {
+            Logger.printDebug(() -> "Background queue end of " + id + " hasNext " + hasNext);
+            if (!hasNext || !Settings.AUTO_ADVANCE.get()) return hasNext;
+            if (SessionBudget.isLocked() || FeedLock.linkVideoAlone()) return false;
+            if (queue == null || id == null) return true;
+            synchronized (QUEUES) {
+                AutoAdvance.Control count = QUEUES.get(queue);
+                if (count == null) {
+                    count = new AutoAdvance.Control(null);
+                    count.owned = true;
+                    QUEUES.put(queue, count);
+                }
+                count.recordCompletion(id);
+                return !count.limitReached();
+            }
+        } catch (Throwable error) {
+            Logger.printException(() -> "Could not check the limit for TikTok's background queue", error);
+            return hasNext;
+        }
+    }
+
+    /**
+     * Called where TikTok, as the app leaves the screen, checks that a page's background queue was
+     * turned on before it arms it. TikTok's switch for that sits on your own collections only, so
+     * a profile page's queue is still off there and TikTok skips it, after it has already passed
+     * over the one-video session: the video stopped on Home (#292 on the S22). A profile page's
+     * queue is turned on here instead, once per session, so TikTok's own switch can still turn it
+     * off again.
+     */
+    public static void armProfileQueue(Object session) {
+        try {
+            if (session == null || !profileQueue()) return;
+            Field sceneField = fieldOfType(session.getClass(), QUEUE_SCENE);
+            Field stateField = fieldOfType(session.getClass(), QUEUE_STATE);
+            if (sceneField == null || stateField == null) {
+                HookStatus.missingMember(FAMILY, "field", session.getClass().getName(),
+                        sceneField == null ? QUEUE_SCENE : QUEUE_STATE);
+                return;
+            }
+            Object scene = sceneField.get(session);
+            if (scene == null) return;
+            Object scope = scene.getClass().getField(QUEUE_SCOPE_ID).get(scene);
+            if (!(scope instanceof String) || !((String) scope).startsWith(PROFILE_SCOPE)) return;
+            Object state = stateField.get(session);
+            if (!(state instanceof Enum) || !QUEUE_OFF.equals(((Enum<?>) state).name())) return;
+            synchronized (ARMED) {
+                if (ARMED.containsKey(session)) return;
+                ARMED.put(session, Boolean.TRUE);
+            }
+            @SuppressWarnings({"unchecked", "rawtypes"})
+            Object on = Enum.valueOf((Class) stateField.getType(), QUEUE_ACTIVE);
+            stateField.set(session, on);
+            HookStatus.bound(FAMILY, "profile background queue");
+            Logger.printDebug(() -> "Background queue turned on for " + scope);
+        } catch (Throwable error) {
+            Logger.printException(() -> "Could not turn on the background queue for a profile page", error);
+        }
+    }
+
+    private static Field fieldOfType(Class<?> type, String typeName) {
+        for (Class<?> at = type; at != null && at != Object.class; at = at.getSuperclass()) {
+            for (Field field : at.getDeclaredFields()) {
+                if (Modifier.isStatic(field.getModifiers()) || !typeName.equals(field.getType().getName())) continue;
+                field.setAccessible(true);
+                return field;
+            }
+        }
+        return null;
+    }
 
     /** Called from {@code PlayerController.onPlayCompleted} with the video that finished. */
     public static void onPlayCompleted(String id) {

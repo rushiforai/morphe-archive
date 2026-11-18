@@ -60,7 +60,7 @@ val stickerSizePatch = bytecodePatch(
 ) {
     category("Interface")
     dependsOn(settingsPatch, telegramExtensionPatch)
-    compatibleWith(*AppCompatibilities.telegram())
+    compatibleWith(*AppCompatibilities.telegramOnly())
     execute {
         val plan = resolveStickerSize()
         // Assembled on a copy first, so a refusal leaves the app untouched.

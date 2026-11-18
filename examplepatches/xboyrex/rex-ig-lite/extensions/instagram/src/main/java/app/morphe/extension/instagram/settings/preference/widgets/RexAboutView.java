@@ -45,7 +45,7 @@ public final class RexAboutView {
                 return v.startsWith("v") || v.startsWith("V") ? v.substring(1) : v;
             }
         } catch (Throwable ignored) {}
-        return "3.15.0";
+        return "3.16.0";
     }
 
     public static View createAboutScreen(final Context context) {

@@ -1,4 +1,4 @@
-# Feature Status Matrix (`v3.15.0`)
+# Feature Status Matrix (`v3.16.0`)
 
 | Feature Area | Key Classes | Verification Level | Status |
 |---|---|---|---|

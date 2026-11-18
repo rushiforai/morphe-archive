@@ -8,6 +8,7 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.PlusPending
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
@@ -30,6 +31,7 @@ import app.morphe.util.names.origName
 import app.morphe.util.names.origType
 
 /** The Mention by ID hook on the real pinned web and Play builds. */
+@PlusPending
 class MentionByIdFixtureTest {
     @Test fun `the entities method hands its list over before its last return only when asked, and keeps its stock body`() {
         for (build in Fixtures.declaredBuilds()) {

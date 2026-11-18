@@ -75,7 +75,7 @@ val myMessagesPatch = bytecodePatch(
 ) {
     category("Search")
     dependsOn(settingsPatch, telegramExtensionPatch)
-    compatibleWith(*AppCompatibilities.telegram())
+    compatibleWith(*AppCompatibilities.telegramOnly())
     execute {
         val site = resolveMyMessages()
         // Assembled on copies first, so a refusal leaves the app untouched.

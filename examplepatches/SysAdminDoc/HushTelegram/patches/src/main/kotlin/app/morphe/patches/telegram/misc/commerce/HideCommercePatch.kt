@@ -120,7 +120,7 @@ val hideCommercePatch = bytecodePatch(
 ) {
     category("Ads")
     dependsOn(settingsPatch, telegramExtensionPatch)
-    compatibleWith(*AppCompatibilities.telegram())
+    compatibleWith(*AppCompatibilities.telegramOnly())
 
     execute {
         requireStatusMethod("hideCommerce")

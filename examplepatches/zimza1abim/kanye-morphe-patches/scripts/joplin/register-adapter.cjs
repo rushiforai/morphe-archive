@@ -14,4 +14,6 @@ fs.writeFileSync(target + '.bundle', bytes);
 fs.writeFileSync(target + '.properties', Object.entries({ ...props, patchedSha256 }).map(([k,v]) => k+'='+v).join('\n')+'\n');
 const versions = fs.readdirSync(adapters).filter(x=>/^\d+\.\d+\.\d+\.properties$/.test(x)).map(x=>x.slice(0,-11)).sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
 fs.writeFileSync(path.join(adapters, 'index.properties'), 'versions='+versions.join(',')+'\n');
+// Support scope: the three newest versions; older adapters are deleted with their index entries.
+require('node:child_process').execFileSync('python3', ['-I', path.join(repo, 'scripts/compat/prune_versions.py'), 'joplin'], { stdio: 'inherit' });
 console.log('Registered UI adapters: ' + versions.join(', '));

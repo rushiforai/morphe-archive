@@ -274,21 +274,14 @@ private fun pinMainFeedToViewUfi() {
         runCatching {
             val viewVariantField = match.instructionMatches.last().fieldReference
             val method = match.method
-            val moduleRegister = method.parameterRegister(STRING_DESCRIPTOR)
-            val (expected, module) = method.reserveFreeRegisters(0, 2, maximum = 15)
+            val (resultReg) = method.reserveFreeRegisters(0, 1, maximum = 15)
 
-            method.addInstructionsWithLabels(
+            method.addInstructions(
                 0,
                 """
-                    const-string v$expected, "$MAIN_FEED_MODULE"
-                    ${moveObject(module, moduleRegister)}
-                    invoke-virtual {v$expected, v$module}, $STRING_DESCRIPTOR->equals($OBJECT_DESCRIPTOR)Z
-                    move-result v$expected
-                    if-eqz v$expected, :original
-                    sget-object v$expected, $viewVariantField
-                    return-object v$expected
+                    sget-object v$resultReg, $viewVariantField
+                    return-object v$resultReg
                 """.trimIndent(),
-                ExternalLabel("original", method.getInstruction(0)),
             )
         }
     }

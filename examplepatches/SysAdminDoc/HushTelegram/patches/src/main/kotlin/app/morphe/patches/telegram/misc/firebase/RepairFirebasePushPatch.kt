@@ -98,7 +98,7 @@ val repairFirebasePushPatch = bytecodePatch(
 ) {
     category("Fixes")
     dependsOn(settingsPatch, telegramExtensionPatch, keepAliveServicePatch)
-    compatibleWith(*AppCompatibilities.telegram())
+    compatibleWith(*AppCompatibilities.telegramOnly())
 
     execute {
         requireStatusMethod("repairFirebasePush")

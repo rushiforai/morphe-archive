@@ -1,5 +1,6 @@
 package app.jofslash.patches.quora.notifications
 
+import app.jofslash.patches.quora.messages.HandleMessageFingerprint
 import app.jofslash.patches.quora.shared.Constants.COMPATIBILITY_QUORA
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
@@ -22,7 +23,7 @@ internal object RequestNotificationPermissionFingerprint : Fingerprint(
 @Suppress("unused")
 val disableNotificationPromptPatch = bytecodePatch(
     name = "Disable notification prompt",
-    description = "Stops the app from asking for permission to show notifications. " +
+    description = "Stops the app from asking to show notifications, both its own prompt and Android's. " +
             "You can still turn notifications on in Android's settings.",
     default = true
 ) {
@@ -31,6 +32,19 @@ val disableNotificationPromptPatch = bytecodePatch(
     extendWith("extensions/extension.mpe")
 
     execute {
+        // The page first shows its own "Let Quora send you notifications?" alert. p1 is the message, p2 its data.
+        HandleMessageFingerprint.method.addInstructionsWithLabels(
+            0,
+            """
+                invoke-static { p1, p2 }, $EXTENSION_CLASS->isNotificationAlert(Ljava/lang/Object;Lorg/json/JSONObject;)Z
+                move-result v0
+                if-eqz v0, :show_alert
+                return-void
+                :show_alert
+                nop
+            """
+        )
+
         // p0 is the message data, p1 the WebView controller. When skipping the prompt,
         // answer the page's callback with { success: false }, as if the user declined.
         RequestNotificationPermissionFingerprint.method.addInstructionsWithLabels(

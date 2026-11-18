@@ -8,6 +8,7 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.PlusPending
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
 import app.morphe.patches.telegram.misc.extension.SETTINGS_STATUS
 import app.morphe.patches.telegram.misc.settings.MAIN_ACTIVITY
@@ -34,6 +35,7 @@ import app.morphe.util.names.tgMutableClassDefBy
  * of the method alone. Google Play's build has no update check from 13.2 on, so the patch passes
  * there without touching the activity and leaves its status off.
  */
+@PlusPending
 class DisableUpdateChecksFixtureTest {
     private val updateChecks = "Lapp/hushtelegram/extension/telegram/misc/UpdateChecks;"
     private val getAppUpdate = "Lorg/telegram/tgnet/TLRPC\$TL_help_getAppUpdate;"

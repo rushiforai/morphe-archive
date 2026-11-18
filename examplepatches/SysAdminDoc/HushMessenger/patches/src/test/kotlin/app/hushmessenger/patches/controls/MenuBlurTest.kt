@@ -55,8 +55,24 @@ private fun dialogFragment(
 ): MutableClass = fixtureClass(type, listOf(method), interfaces = interfaces, superclass = superclass,
     extraFields = listOfNotNull(fieldFlags?.let { dialogField(type, it) }))
 
-/** DialogFragment with its onStart, for the complete discovery fixture. */
-internal fun menuBlurFixture(): List<MutableClass> = listOf(dialogFragment())
+internal const val SYNTHETIC_IN_CHAT_MENU = "$REACTIONS_BAR->onViewCreated(Landroid/view/View;Landroid/os/Bundle;)V"
+
+/** ReactionsBarFragment's onViewCreated as 587 starts it, cut down: nine registers, so p0 is v6 and the view v7. */
+private val REACTIONS_VIEW_BODY = """
+    const/4 v5, 0x0
+    iget-object v0, p0, $ANDROIDX_FRAGMENT->mView:Landroid/view/View;
+    invoke-super {p0, p1, p2}, $DIALOG_FRAGMENT->onViewCreated(Landroid/view/View;Landroid/os/Bundle;)V
+    return-void
+""".trimIndent()
+
+private fun reactionsView(id: String = SYNTHETIC_IN_CHAT_MENU, flags: Int = AccessFlags.PUBLIC.value) =
+    fixtureMethod(id, REACTIONS_VIEW_BODY, 9, flags)
+
+private fun reactionsBar(method: MutableMethod = reactionsView(), type: String = REACTIONS_BAR): MutableClass =
+    fixtureClass(type, listOf(method), superclass = DIALOG_FRAGMENT)
+
+/** DialogFragment with its onStart and the in-chat menu with its onViewCreated, for the complete discovery fixture. */
+internal fun menuBlurFixture(): List<MutableClass> = listOf(dialogFragment(), reactionsBar())
 
 private fun Method.code() = implementation!!.instructions.toList()
 private fun Instruction.reference() = (this as? ReferenceInstruction)?.reference?.toString()
@@ -68,10 +84,41 @@ class MenuBlurTest {
 
     private fun found(classes: List<MutableClass>) = mirroredControls(classes).getValue(MENU_BLUR)
 
-    @Test fun findsDialogFragmentsOnStart() {
-        assertEquals(listOf(SYNTHETIC_MENU_BLUR), found(menuBlurFixture()).map { it.hookId() })
+    @Test fun findsDialogFragmentsOnStartAndTheInChatMenusView() {
+        assertEquals(listOf(SYNTHETIC_MENU_BLUR, SYNTHETIC_IN_CHAT_MENU), found(menuBlurFixture()).map { it.hookId() })
         validateControls(mirroredControls(menuBlurFixture()), setOf(MENU_BLUR))
-        assertEquals(setOf(SYNTHETIC_MENU_BLUR), SYNTHETIC_PROFILE.hooks.getValue(MENU_BLUR))
+        assertEquals(setOf(SYNTHETIC_MENU_BLUR, SYNTHETIC_IN_CHAT_MENU), SYNTHETIC_PROFILE.hooks.getValue(MENU_BLUR))
+        for ((code, profile) in controlProfiles) {
+            assertTrue("$REACTIONS_BAR->onViewCreated(Landroid/view/View;Landroid/os/Bundle;)V" in profile.hooks.getValue(MENU_BLUR), "$code")
+        }
+    }
+
+    /** #162: on 587 the menu on a pressed message is drawn in the chat, with no dialog for onStart to show. */
+    @Test fun withoutTheInChatMenuTheSwitchIsRefused() {
+        val cases = mapOf(
+            "no in-chat menu" to listOf(dialogFragment()),
+            "an in-chat menu under another name" to listOf(dialogFragment(), reactionsBar(type = "LX/0AN;",
+                method = reactionsView("LX/0AN;->onViewCreated(Landroid/view/View;Landroid/os/Bundle;)V"))),
+            "a static onViewCreated" to listOf(dialogFragment(), reactionsBar(fixtureMethod(SYNTHETIC_IN_CHAT_MENU,
+                REACTIONS_VIEW_BODY.replace("p0", "v6").replace("p1", "v7").replace("p2", "v8"), 9,
+                AccessFlags.PUBLIC.value or AccessFlags.STATIC.value))),
+        )
+        for ((case, classes) in cases) {
+            assertEquals(listOf(SYNTHETIC_MENU_BLUR), found(classes).map { it.hookId() }, case)
+            assertFailsWith<PatchException>(case) { validateControls(mirroredControls(classes), setOf(MENU_BLUR)) }
+        }
+    }
+
+    @Test fun theInChatMenusViewGoesToTheExtensionBeforeMessengersOwnSetup() {
+        val method = reactionsView()
+        val before = method.code()
+        injectControl(MENU_BLUR, mapOf(MENU_BLUR to listOf(method)))
+        val code = method.code()
+        val call = code.first() as RegisterRangeInstruction
+        assertEquals(Opcode.INVOKE_STATIC_RANGE, code.first().opcode)
+        assertEquals(MENU_BLUR_IN_CHAT_CALL, code.first().reference())
+        assertEquals(7 to 1, call.startRegister to call.registerCount)
+        assertStockKept(before, code.drop(1), "onViewCreated")
     }
 
     @Test fun lookalikesAreNotFound() {
@@ -132,7 +179,13 @@ class MenuBlurTest {
             val hooks = findMenuBlur(classes)
             assertEquals(activeProfile.hooks.getValue(MENU_BLUR), hooks.map { it.hookId() }.toSet(), code)
             validateControls(mapOf(MENU_BLUR to hooks), setOf(MENU_BLUR))
-            val method = MutableMethod(hooks.single())
+            val inChat = MutableMethod(hooks.single { it.definingClass == REACTIONS_BAR })
+            val stock = inChat.code()
+            inChat.injectMenuBlur()
+            assertEquals(MENU_BLUR_IN_CHAT_CALL, inChat.code().first().reference(), code)
+            assertEquals(inChat.parameterRegister(1), (inChat.code().first() as RegisterRangeInstruction).startRegister, code)
+            assertStockKept(stock, inChat.code().drop(1), code)
+            val method = MutableMethod(hooks.single { it.definingClass != REACTIONS_BAR })
             val (at, dialog) = method.menuBlurSite()!!
             val before = method.code()
             method.injectMenuBlur()

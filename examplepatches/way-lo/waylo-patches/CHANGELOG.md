@@ -1,3 +1,29 @@
+## [1.3.1](https://github.com/way-lo/waylo-patches/compare/v1.3.0...v1.3.1) (2026-11-18)
+
+### 🐛 Bug Fixes
+
+* **googlenews:** apply GMS availability bypasses before the string transform ([c568517](https://github.com/way-lo/waylo-patches/commit/c5685173be38978a4a8b0a03bfcc15eeaae2811c))
+
+## [1.3.0](https://github.com/way-lo/waylo-patches/compare/v1.2.1...v1.3.0) (2026-11-18)
+
+### ✨ New Features
+
+* add Change package name patch (ported from patched-up, off by default) ([94785ea](https://github.com/way-lo/waylo-patches/commit/94785ead6396b2c50385ea8dfed9168811ed30fb))
+* **googlenews:** add Enable CustomTabs patch (ported from patched-up) ([d89c3ac](https://github.com/way-lo/waylo-patches/commit/d89c3acdaade27c156baa6c261f61ea06b9a3418))
+* **googlenews:** add GmsCore support patch with the MicroG sign-in fix built in (ported from patched-up), replacing the separate Declare MicroG in manifest queries patch ([2efc934](https://github.com/way-lo/waylo-patches/commit/2efc93411bb72d8fb25a5daa9d9b85eb0f1a9cff))
+
+## [1.2.1](https://github.com/way-lo/waylo-patches/compare/v1.2.0...v1.2.1) (2026-11-18)
+
+### 🐛 Bug Fixes
+
+* support Podcast Addict 2026.14.1 (RecyclerView based lists) ([cc87abd](https://github.com/way-lo/waylo-patches/commit/cc87abdf8354f6603f549bf7e451d3d73f90d346))
+
+## [1.2.0](https://github.com/way-lo/waylo-patches/compare/v1.1.0...v1.2.0) (2026-11-18)
+
+### ✨ New Features
+
+* **googlenews:** declare MicroG in manifest queries ([2030935](https://github.com/way-lo/waylo-patches/commit/203093597a6b9133ed33b683fde4f05701a95fb9))
+
 ## [1.1.0](https://github.com/way-lo/waylo-patches/compare/v1.0.5...v1.1.0) (2026-11-08)
 
 ### ✨ New Features

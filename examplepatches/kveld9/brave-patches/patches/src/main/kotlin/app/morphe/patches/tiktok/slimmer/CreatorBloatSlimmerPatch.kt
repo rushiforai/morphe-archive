@@ -1,0 +1,80 @@
+package app.morphe.patches.tiktok.slimmer
+
+import app.morphe.patcher.patch.rawResourcePatch
+import app.morphe.patches.shared.Constants
+import java.io.File
+
+private val EMPTY_BYTES = byteArrayOf()
+
+val creatorBloatSlimmerPatch = rawResourcePatch(
+    name = "Remove Creator Tools",
+    description = "Removes video editing and effects tools to free up space.",
+    default = false,
+) {
+    compatibleWith(Constants.COMPATIBILITY_TIKTOK)
+
+    execute {
+        val abis = listOf("lib/arm64-v8a", "lib/armeabi-v7a")
+        val explicitLibs = listOf(
+            "libeffect_plugin.so",
+            "libttvesdk_plugin.so",
+            "libEffectCreatorJni.so",
+            "libILAMaterialSDK.so",
+            // CutSame template engine (NEEDED-depends on NLE editor + ttvesdk, creation-only)
+            "libCutSameJni.so",
+            "libDavinciResourceJni.so",
+            // Upload-path video encoders (playback uses ByteVC decoders linked by libttmplayer)
+            "libbytevc1enc.so",
+            "libbytevc1enc10b.so",
+            // Camera dynamic feature (df_ family). df_music_dsp is kept: it carries the viewer Add-to-Spotify/DSP flow that Fix Spotify Login hooks.
+            "libdex_df_camera_biz.so",
+            // On-device AI runtimes (LiteRT + client AI JNI, loaded via df_ship SPI for creation/assistant features; playback AI uses libbytenn.so)
+            "libLiteRtRuntimeCApi.so",
+            "libLiteRtOpenClAccelerator.so",
+            "liblitert_jni.so",
+            "libclient_ai_impl_jni.so",
+            "libclient_ai_impl_df_jni.so",
+            "libByteAINN.so",
+        )
+
+        var savedBytes = 0L
+        var count = 0
+
+        fun stripFile(file: File) {
+            if (file.exists() && file.isFile) {
+                val orig = file.length()
+                if (orig > 0) {
+                    file.writeBytes(EMPTY_BYTES)
+                    savedBytes += orig
+                    count++
+                }
+            }
+        }
+
+        // 1. Explicit creator & editor libraries across ABIs
+        abis.forEach { abi ->
+            explicitLibs.forEach { lib ->
+                stripFile(get("$abi/$lib"))
+            }
+
+            // CapCut NLE editor libraries (libNLE*.so) are preserved because stripping/zeroing them
+            // causes TikTok's feed player (AnchorBusinessOutBridgeServiceImpl -> canSupportAnchorFeatureBits -> NLE.loadNLELibrary)
+            // to crash with Librarian EOFException on 0-byte ELF headers when playing videos with anchor/template features.
+        }
+
+        // 3. Face models
+        val faceModelDir = get("assets/model/ttfacemodel")
+        if (faceModelDir.exists() && faceModelDir.isDirectory) {
+            faceModelDir.walkTopDown().filter { it.isFile }.forEach { file ->
+                stripFile(file)
+            }
+        }
+
+        if (count > 0) {
+            val savedMb = String.format(java.util.Locale.US, "%.2f", savedBytes.toDouble() / (1024 * 1024))
+            println("[Remove Creator Tools] Stripped $count creator/editor binaries and models -> Saved $savedMb MB uncompressed")
+        } else {
+            println("[Remove Creator Tools] Target creator binaries not present.")
+        }
+    }
+}

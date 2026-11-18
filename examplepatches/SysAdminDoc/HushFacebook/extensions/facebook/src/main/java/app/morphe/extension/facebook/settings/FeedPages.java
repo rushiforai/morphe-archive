@@ -310,6 +310,12 @@ final class FeedPages {
                         L10n.t("Hides the stacked reaction icons and the reactions count under posts. The space stays, "
                                 + "so a tap where they were still opens the list of reactions. To take the number off the Like "
                                 + "button too, turn on Hide counts on posts.")));
+                feed.addPreference(toggle(context, Settings.HIDE_REACTION_BUBBLES,
+                        L10n.t("Takes away the friend's picture with a reaction on it that Facebook puts on a photo or "
+                                + "video when a friend reacted. A change shows on the posts drawn after it.")));
+                feed.addPreference(toggle(context, Settings.HIDE_REACTOR_NAMES,
+                        L10n.t("Takes away the line under a post that names who reacted, like \"Name and others "
+                                + "reacted\". A change shows on the posts drawn after it.")));
             }
             if (build.contains(PatchFamily.PROFILE_PICTURES)) {
                 // Read as each post's header is built, so a change shows on the posts drawn after it.
@@ -779,7 +785,7 @@ final class FeedPages {
                 || build.contains(PatchFamily.STORY_MUSIC_LENGTH) || build.contains(PatchFamily.STORIES_TRAY_CIRCLES)
                 || build.contains(PatchFamily.STORY_TAPS) || build.contains(PatchFamily.STORY_VIEWER_CLEANUP)
                 || build.contains(PatchFamily.STORY_RINGS) || build.contains(PatchFamily.PINCH_TO_ZOOM)
-                || storyNamesBoxed(build)) {
+                || build.contains(PatchFamily.ASK_BEFORE_LIKE) || storyNamesBoxed(build)) {
             PreferenceCategory stories = category(screen, L10n.t("Stories"));
             if (build.contains(PatchFamily.SPONSORED_STORIES)) {
                 stories.addPreference(toggle(context, Settings.HIDE_SPONSORED_STORIES,
@@ -881,6 +887,12 @@ final class FeedPages {
                         L10n.t("Stories change only on a double tap, the left side for the one before and anywhere else "
                                 + "for the next. A single tap pauses or plays the story, or shows the play button when "
                                 + "that's on.")));
+            }
+            if (build.contains(PatchFamily.ASK_BEFORE_LIKE)) {
+                // Read on each tap, so a change shows on the next one.
+                stories.addPreference(toggle(context, Settings.ASK_BEFORE_REACTING_TO_STORIES,
+                        L10n.t("A tap on a reaction at the bottom of a story asks first, and the story waits. Only "
+                                + "Continue sends the reaction.")));
             }
             if (build.contains(PatchFamily.STORY_VIEWER_CLEANUP)) {
                 // Read each time the part draws, so a change shows from the next story.

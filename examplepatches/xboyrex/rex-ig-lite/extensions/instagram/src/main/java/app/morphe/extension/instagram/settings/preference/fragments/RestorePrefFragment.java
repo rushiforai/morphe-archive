@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2026 rex <https://github.com/xboyrex/rex-ig-lite>
+ * Copyright (C) 2026 xboyrex <https://github.com/xboyrex/rex-ig-lite>
  *
  * See the included NOTICE file for GPLv3 §7(b) terms that apply to this code.
  */
@@ -9,6 +9,7 @@ package app.morphe.extension.instagram.settings.preference.fragments;
 import static app.morphe.extension.instagram.utils.IgStr.str;
 
 import android.app.Activity;
+import android.app.Fragment;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
@@ -18,8 +19,13 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Xml;
 
-import android.app.Fragment;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.json.JSONTokener;
+import org.xmlpull.v1.XmlPullParser;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -27,17 +33,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.json.JSONTokener;
-import org.xmlpull.v1.XmlPullParser;
-
 import app.morphe.extension.instagram.constants.Constants;
 import app.morphe.extension.instagram.patches.customise.font.FontStorage;
+import app.morphe.extension.instagram.patches.devFlags.HookFlags;
+import app.morphe.extension.instagram.patches.devFlags.RecommendedFlags;
 import app.morphe.extension.instagram.patches.dm.InboxLock;
 import app.morphe.extension.instagram.patches.focusLock.FocusLock;
 import app.morphe.extension.shared.Logger;
@@ -60,6 +66,8 @@ public class RestorePrefFragment extends Fragment {
     private File destinationFile;
     private Context context;
     private boolean isFontImport;
+    private boolean isEmojiFontImport;
+    private boolean isStoryFontImport;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -74,7 +82,6 @@ public class RestorePrefFragment extends Fragment {
             } else if (args.containsKey("rex_import_id_mapping")) {
                 destinationFile = new File(context.getFilesDir() + "/mobileconfig", "id_name_mapping.json");
             } else if (args.containsKey("rex_import_pref")) {
-                // Importing an older settings file would drop an active Focus Lock.
                 if (FocusLock.isActive()) {
                     toast(str("rex_focus_lock_blocked_action"));
                     finishHost();
@@ -82,13 +89,17 @@ public class RestorePrefFragment extends Fragment {
                 }
                 destinationFile = new File(context.getApplicationInfo().dataDir + "/shared_prefs", Constants.REX_SETTINGS + ".xml");
             } else if (args.containsKey("rex_pref_add_font")) {
-                // FontStorage decides where the font goes, and validates it first.
                 isFontImport = true;
+            } else if (args.containsKey("rex_pref_add_emoji_font")) {
+                isFontImport = true;
+                isEmojiFontImport = true;
+            } else if (args.containsKey("rex_pref_add_story_font")) {
+                isFontImport = true;
+                isStoryFontImport = true;
             }
         }
         if (savedInstanceState == null) {
             if (destinationFile != null || isFontImport) {
-                // An imported file can turn Inbox lock off, so it has to be confirmed first while the lock is up.
                 if (args != null && args.containsKey("rex_import_pref") && getActivity() != null) {
                     InboxLock.confirmIfLocked(getActivity(), this::requestFileForRestore, this::finishHost);
                 } else {
@@ -106,7 +117,7 @@ public class RestorePrefFragment extends Fragment {
             Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
             intent.addCategory(Intent.CATEGORY_OPENABLE);
             intent.setType("*/*");
-            if (isFontImport) {
+            if (isFontImport && !isStoryFontImport) {
                 intent.putExtra(Intent.EXTRA_MIME_TYPES, FONT_MIME_TYPES);
             }
             startActivityForResult(intent, READ_REQUEST_CODE);
@@ -119,18 +130,28 @@ public class RestorePrefFragment extends Fragment {
         }
     }
 
-    /**
-     * Imports a picked font through {@link FontStorage}, off the main thread: a font can be several
-     * megabytes and often comes from a cloud-backed provider, which could otherwise cause an ANR.
-     */
     private void receiveFont(Context ctx, Uri uri) {
         new Thread(() -> {
-            FontStorage.ImportResult result = FontStorage.importFrom(ctx, uri);
+            if (isStoryFontImport) {
+                int count = FontStorage.importStoryFontsFromUri(ctx, uri);
+                mainHandler.post(() -> {
+                    if (count > 0) {
+                        toast("Added " + count + " custom story font" + (count > 1 ? "s" : "") + "!");
+                    } else {
+                        toast(str("rex_pref_add_font_invalid"));
+                    }
+                    finishHost();
+                });
+                return;
+            }
+            FontStorage.ImportResult result = isEmojiFontImport
+                    ? FontStorage.importEmojiFrom(ctx, uri)
+                    : FontStorage.importFrom(ctx, uri);
 
             mainHandler.post(() -> {
                 switch (result) {
                     case ADDED:
-                        toast(str("rex_pref_add_font_success"));
+                        toast(isEmojiFontImport ? "Custom Emoji font applied!" : str("rex_pref_add_font_success"));
                         break;
                     case NOT_A_FONT:
                         toast(str("rex_pref_add_font_invalid"));
@@ -171,9 +192,22 @@ public class RestorePrefFragment extends Fragment {
                 boolean zipImported = handleZipPackageImport(ctx, tempFile);
                 tempFile.delete();
                 if (zipImported) {
-                    app.morphe.extension.instagram.patches.devFlags.HookFlags.load();
+                    HookFlags.load();
                     toast("Imported package successfully — restarting...");
                     Utils.restartApp(ctx);
+                }
+                return;
+            }
+
+            // Check if the picked JSON file is a Recommended Flags catalog (JSONArray of {name, desc, type, code})
+            if (isRecommendedFlagsCatalogFile(tempFile)) {
+                String content = new String(readStreamBytes(new FileInputStream(tempFile), MAX_RESTORE_BYTES), StandardCharsets.UTF_8);
+                tempFile.delete();
+                if (RecommendedFlags.importRecommendedFlagsJson(content)) {
+                    toast("Imported Recommended Flags catalog successfully!");
+                    Utils.restartApp(ctx);
+                } else {
+                    toast(str("rex_import_fail"));
                 }
                 return;
             }
@@ -182,24 +216,19 @@ public class RestorePrefFragment extends Fragment {
             if (destinationFile.getName().endsWith(".xml") && isJsonFile(tempFile)) {
                 File mcDir = new File(ctx.getFilesDir(), "mobileconfig");
                 if (!mcDir.exists()) mcDir.mkdirs();
-                destinationFile = new File(mcDir, "mc_overrides.json");
+                destinationFile = new File(mcDir, isIdMappingJsonFile(tempFile) ? "id_name_mapping.json" : "mc_overrides.json");
             }
 
-            // Don't touch the current file unless the whole picked file is what we restore.
             if (!isValidRestoreFile(tempFile)) {
                 tempFile.delete();
                 toast(str("rex_import_fail"));
                 return;
             }
-            if (!tempFile.renameTo(destinationFile)) {
-                if (destinationFile.exists()) destinationFile.delete();
-                if (!tempFile.renameTo(destinationFile)) {
-                    throw new IOException("Could not replace " + destinationFile);
-                }
-            }
+
+            replaceWithBackupRollback(tempFile, destinationFile);
 
             if (destinationFile.getName().equals("mc_overrides.json")) {
-                app.morphe.extension.instagram.patches.devFlags.HookFlags.load();
+                HookFlags.load();
             }
             toast(str("rex_import_success"));
             Utils.restartApp(ctx);
@@ -208,6 +237,60 @@ public class RestorePrefFragment extends Fragment {
             tempFile.delete();
             toast(str("rex_import_fail"));
             Logger.printException(() -> "import failure", e);
+        }
+    }
+
+    /**
+     * Atomically replaces dest with stagedTemp, creating a .bak backup of dest first
+     * and restoring .bak if anything fails.
+     */
+    public static void replaceWithBackupRollback(File stagedTemp, File dest) throws IOException {
+        File parent = dest.getParentFile();
+        if (parent != null && !parent.exists()) {
+            parent.mkdirs();
+        }
+        File backup = new File(dest.getPath() + ".bak");
+        boolean hadExisting = dest.exists() && dest.length() > 0;
+        if (hadExisting) {
+            copyFileBytes(dest, backup);
+        }
+        try {
+            if (!stagedTemp.renameTo(dest)) {
+                if (dest.exists() && !dest.delete()) {
+                    throw new IOException("Could not remove existing file for atomic replace: " + dest);
+                }
+                if (!stagedTemp.renameTo(dest)) {
+                    copyFileBytes(stagedTemp, dest);
+                    stagedTemp.delete();
+                }
+            }
+            if (!dest.exists() || dest.length() == 0) {
+                throw new IOException("Destination file invalid after atomic replace: " + dest);
+            }
+            if (backup.exists()) {
+                backup.delete();
+            }
+        } catch (IOException e) {
+            if (hadExisting && backup.exists()) {
+                try {
+                    copyFileBytes(backup, dest);
+                    backup.delete();
+                } catch (Throwable ignored) {
+                }
+            }
+            throw e;
+        }
+    }
+
+    private static void copyFileBytes(File src, File dst) throws IOException {
+        try (FileInputStream in = new FileInputStream(src);
+             FileOutputStream out = new FileOutputStream(dst)) {
+            byte[] buf = new byte[8192];
+            int n;
+            while ((n = in.read(buf)) != -1) {
+                out.write(buf, 0, n);
+            }
+            out.flush();
         }
     }
 
@@ -226,7 +309,33 @@ public class RestorePrefFragment extends Fragment {
         }
     }
 
-    private static boolean isZipArchive(File file) {
+    private static boolean isRecommendedFlagsCatalogFile(File file) {
+        if (!isJsonFile(file)) return false;
+        try {
+            String content = new String(readStreamBytes(new FileInputStream(file), MAX_RESTORE_BYTES), StandardCharsets.UTF_8).trim();
+            if (!content.startsWith("[")) return false;
+            JSONArray arr = new JSONArray(content);
+            if (arr.length() == 0) return false;
+            JSONObject first = arr.optJSONObject(0);
+            return first != null && first.has("name") && first.has("code");
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private static boolean isIdMappingJsonFile(File file) {
+        if (!isJsonFile(file)) return false;
+        try {
+            String content = new String(readStreamBytes(new FileInputStream(file), MAX_RESTORE_BYTES), StandardCharsets.UTF_8).trim();
+            if (!content.startsWith("[")) return false;
+            JSONArray arr = new JSONArray(content);
+            return arr.length() > 0 && arr.opt(0) instanceof String;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public static boolean isZipArchive(File file) {
         if (file == null || file.length() < 4) return false;
         try (InputStream in = new FileInputStream(file)) {
             byte[] magic = new byte[4];
@@ -237,80 +346,158 @@ public class RestorePrefFragment extends Fragment {
         }
     }
 
+    /**
+     * Validates and atomically imports a ZIP configuration archive:
+     * - Enforces Zip Slip / path traversal checks (canonical path verification + '..' / leading slash rejection)
+     * - Rejects duplicate entry names inside the archive
+     * - Validates every JSON/XML payload in memory before touching existing files
+     * - Backs up existing target files and rolls back all changes if any write fails
+     */
     private boolean handleZipPackageImport(Context ctx, File zipFile) {
-        int importedCount = 0;
-        boolean sawEncryptedContainer = false;
         File mcDir = new File(ctx.getFilesDir(), "mobileconfig");
         if (!mcDir.exists()) mcDir.mkdirs();
 
+        Map<File, byte[]> stagedWrites = new LinkedHashMap<>();
+        String stagedRecommendedFlagsJson = null;
+        boolean sawEncryptedContainer = false;
+        Set<String> seenEntryNames = new HashSet<>();
+
         try (ZipInputStream zis = new ZipInputStream(new FileInputStream(zipFile))) {
+            String canonicalTargetRoot = ctx.getFilesDir().getCanonicalPath();
             ZipEntry entry;
             while ((entry = zis.getNextEntry()) != null) {
                 if (entry.isDirectory()) continue;
                 String name = entry.getName();
-                if (name == null) continue;
-                String base = new File(name).getName().toLowerCase();
-                if (base.isEmpty() || name.contains("..")) continue;
+                if (name == null || name.trim().isEmpty()) continue;
+
+                // Zip Slip / path traversal defense
+                if (name.contains("..") || name.startsWith("/") || name.startsWith("\\")) {
+                    throw new SecurityException("Rejected unsafe ZIP entry path: " + name);
+                }
+                File candidatePath = new File(ctx.getFilesDir(), name);
+                if (!candidatePath.getCanonicalPath().startsWith(canonicalTargetRoot)) {
+                    throw new SecurityException("Zip Slip traversal detected: " + name);
+                }
+
+                String base = candidatePath.getName().toLowerCase(Locale.ROOT);
+                if (base.isEmpty()) continue;
+                if (!seenEntryNames.add(base)) {
+                    throw new IOException("Duplicate configuration entry in ZIP archive: " + base);
+                }
 
                 byte[] data = readZipEntryBytes(zis, MAX_RESTORE_BYTES);
                 if (data == null || data.length == 0) continue;
 
                 if (base.endsWith(".json")) {
                     String jsonStr = new String(data, StandardCharsets.UTF_8);
-                    try {
-                        JSONTokener tok = new JSONTokener(jsonStr);
-                        Object parsed = tok.nextValue();
-                        if (base.contains("mapping") || (parsed instanceof JSONArray && !base.contains("override"))) {
-                            if (parsed instanceof JSONArray && ((JSONArray) parsed).length() > 0) {
-                                File dest = new File(mcDir, "id_name_mapping.json");
-                                writeAtomic(dest, data);
-                                importedCount++;
+                    JSONTokener tok = new JSONTokener(jsonStr);
+                    Object parsed = tok.nextValue();
+                    if (tok.nextClean() != 0) {
+                        throw new IOException("Trailing garbage in JSON entry: " + base);
+                    }
+                    if (parsed instanceof JSONArray) {
+                        JSONArray arr = (JSONArray) parsed;
+                        if (arr.length() == 0) {
+                            throw new IOException("Empty JSONArray in ZIP entry: " + base);
+                        }
+                        Object first = arr.get(0);
+                        if (first instanceof JSONObject && ((JSONObject) first).has("code")) {
+                            stagedRecommendedFlagsJson = jsonStr;
+                        } else if (first instanceof String) {
+                            for (int i = 0; i < arr.length(); i++) {
+                                if (!(arr.get(i) instanceof String) || ((String) arr.get(i)).isEmpty()) {
+                                    throw new IOException("Invalid id_name_mapping entry at index " + i);
+                                }
                             }
-                        } else if (parsed instanceof JSONObject) {
-                            File dest = new File(mcDir, "mc_overrides.json");
-                            writeAtomic(dest, data);
-                            importedCount++;
+                            stagedWrites.put(new File(mcDir, "id_name_mapping.json"), data);
                         }
-                    } catch (Throwable ignored) {}
+                    } else if (parsed instanceof JSONObject) {
+                        JSONObject obj = (JSONObject) parsed;
+                        if (obj.length() == 0) {
+                            throw new IOException("Empty JSONObject in ZIP entry: " + base);
+                        }
+                        if (base.contains("mapping")) {
+                            stagedWrites.put(new File(mcDir, "id_name_mapping.json"), data);
+                        } else {
+                            stagedWrites.put(new File(mcDir, "mc_overrides.json"), data);
+                        }
+                    }
                 } else if (base.endsWith(".xml") && !FocusLock.isActive()) {
-                    try (InputStream xmlIn = new java.io.ByteArrayInputStream(data)) {
-                        if (isValidPreferences(xmlIn)) {
-                            File prefsDest = new File(ctx.getApplicationInfo().dataDir + "/shared_prefs", Constants.REX_SETTINGS + ".xml");
-                            writeAtomic(prefsDest, data);
-                            importedCount++;
+                    try (InputStream xmlIn = new ByteArrayInputStream(data)) {
+                        if (!isValidPreferences(xmlIn)) {
+                            throw new IOException("Invalid SharedPreferences XML in ZIP: " + base);
                         }
-                    } catch (Throwable ignored) {}
+                        File prefsDest = new File(ctx.getApplicationInfo().dataDir + "/shared_prefs", Constants.REX_SETTINGS + ".xml");
+                        stagedWrites.put(prefsDest, data);
+                    }
                 } else if (base.contains("mc_overrides") || base.contains("id_name_mapping")) {
                     sawEncryptedContainer = true;
                 }
             }
         } catch (Exception e) {
-            Logger.printException(() -> "ZIP package import failure", e);
+            Logger.printException(() -> "ZIP package validation failure", e);
+            toast(str("rex_import_fail"));
+            return false;
         }
 
-        if (sawEncryptedContainer && importedCount == 0) {
+        if (sawEncryptedContainer && stagedWrites.isEmpty() && stagedRecommendedFlagsJson == null) {
             try {
                 int rawId = ctx.getResources().getIdentifier("instarex_pro_config_v6", "raw", ctx.getPackageName());
                 if (rawId != 0) {
                     byte[] fallbackBytes = readStreamBytes(ctx.getResources().openRawResource(rawId), MAX_RESTORE_BYTES);
                     if (fallbackBytes != null && fallbackBytes.length > 0) {
-                        writeAtomic(new File(mcDir, "mc_overrides.json"), fallbackBytes);
-                        importedCount++;
+                        stagedWrites.put(new File(mcDir, "mc_overrides.json"), fallbackBytes);
                     }
                 }
-            } catch (Throwable ignored) {}
+            } catch (Throwable ignored) {
+            }
         }
 
-        if (importedCount > 0) {
-            return true;
+        if (stagedWrites.isEmpty() && stagedRecommendedFlagsJson == null) {
+            toast(str("rex_import_fail"));
+            return false;
         }
-        toast(str("rex_import_fail"));
-        return false;
+
+        // Apply all staged writes transactionally with backup & rollback
+        Map<File, File> backups = new LinkedHashMap<>();
+        try {
+            for (Map.Entry<File, byte[]> entry : stagedWrites.entrySet()) {
+                File dest = entry.getKey();
+                if (dest.exists() && dest.length() > 0) {
+                    File bak = new File(dest.getPath() + ".zipbak");
+                    copyFileBytes(dest, bak);
+                    backups.put(dest, bak);
+                }
+                writeAtomic(dest, entry.getValue());
+            }
+            if (stagedRecommendedFlagsJson != null) {
+                if (!RecommendedFlags.importRecommendedFlagsJson(stagedRecommendedFlagsJson)) {
+                    throw new IOException("Failed to import Recommended Flags JSON from ZIP");
+                }
+            }
+            for (File bak : backups.values()) {
+                if (bak.exists()) bak.delete();
+            }
+            return true;
+        } catch (Exception e) {
+            for (Map.Entry<File, File> b : backups.entrySet()) {
+                try {
+                    if (b.getValue().exists()) {
+                        copyFileBytes(b.getValue(), b.getKey());
+                        b.getValue().delete();
+                    }
+                } catch (Throwable ignored) {
+                }
+            }
+            Logger.printException(() -> "ZIP package atomic commit rollback", e);
+            toast(str("rex_import_fail"));
+            return false;
+        }
     }
 
     private static byte[] readStreamBytes(InputStream in, long maxBytes) throws IOException {
         try (InputStream autoClose = in) {
-            java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
             byte[] buf = new byte[8192];
             long total = 0;
             int n;
@@ -324,7 +511,7 @@ public class RestorePrefFragment extends Fragment {
     }
 
     private static byte[] readZipEntryBytes(ZipInputStream zis, long maxBytes) throws IOException {
-        java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
         byte[] buf = new byte[8192];
         long total = 0;
         int n;
@@ -342,11 +529,9 @@ public class RestorePrefFragment extends Fragment {
         File tmp = new File(dest.getPath() + ".tmp");
         try (FileOutputStream fos = new FileOutputStream(tmp)) {
             fos.write(data);
+            fos.flush();
         }
-        if (!tmp.renameTo(dest)) {
-            if (dest.exists()) dest.delete();
-            if (!tmp.renameTo(dest)) throw new IOException("Failed atomic replace: " + dest);
-        }
+        replaceWithBackupRollback(tmp, dest);
     }
 
     private boolean isValidRestoreFile(File file) {
@@ -376,7 +561,13 @@ public class RestorePrefFragment extends Fragment {
                 }
                 return true;
             }
-            return json instanceof JSONObject || json instanceof JSONArray;
+            if (json instanceof JSONObject) {
+                return ((JSONObject) json).length() > 0;
+            }
+            if (json instanceof JSONArray) {
+                return ((JSONArray) json).length() > 0;
+            }
+            return false;
         } catch (Exception e) {
             return false;
         }
@@ -397,7 +588,6 @@ public class RestorePrefFragment extends Fragment {
                 depth--;
                 continue;
             }
-            // Android's reader throws on any text inside a primitive entry.
             if (event == XmlPullParser.TEXT && inPrimitive) return false;
             if (event != XmlPullParser.START_TAG) continue;
             depth++;
@@ -454,7 +644,6 @@ public class RestorePrefFragment extends Fragment {
             if (uri == null) {
                 toast(str("rex_fail_no_path"));
             } else if (isFontImport) {
-                // Finishes itself once the font is imported off the main thread.
                 receiveFont(ctx, uri);
                 return;
             } else {

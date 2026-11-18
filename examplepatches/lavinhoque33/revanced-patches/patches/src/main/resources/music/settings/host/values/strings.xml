@@ -1088,6 +1088,8 @@ Please download %2$s from the website"</string>
     <!-- modified by lavinhoque33, 2026-10-16: podcast episode Download button ported from Morphe -->
     <string name="revanced_hide_podcast_episode_download_button_summary">Hides the Download button under podcast episode descriptions in episode lists</string>
     <string name="revanced_hide_podcast_episode_download_button_title">Hide podcast episode Download button</string>
+    <string name="morphe_music_hide_get_premium_label_title">Hide \'Get Music Premium\' label</string>
+    <string name="morphe_music_hide_get_premium_label_summary">Hides the Get Music Premium footer in the account menu</string>
     <string name="revanced_hide_premium_promotion_closed_toast">Premium promotion popups are closed</string>
     <string name="revanced_hide_premium_promotion_summary">Hides the premium promotion popups</string>
     <string name="revanced_hide_premium_promotion_title">Hide premium promotion popups</string>
@@ -1180,6 +1182,7 @@ Click to open the 'Change start page' settings"</string>
     <string name="revanced_replace_navigation_upgrade_button_summary">Replaces the Upgrade button with the Settings button</string>
     <string name="revanced_replace_navigation_upgrade_button_title">Replace Upgrade button</string>
     <string name="revanced_reset_to_default_toast">Reset to default values</string>
+    <string name="revanced_restart">Restart</string>
     <string name="revanced_restart_dialog_message">Restart the app for this change to take effect</string>
     <string name="revanced_restart_first_run">Restart to load the layout normally</string>
     <string name="revanced_restart_message">Refresh and restart</string>

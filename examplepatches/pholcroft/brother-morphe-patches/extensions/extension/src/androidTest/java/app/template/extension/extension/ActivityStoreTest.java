@@ -59,7 +59,38 @@ public final class ActivityStoreTest {
         assertFalse(store.publish(burst, generation));
         store.close();
         getContextPrinterIdentity(context);
+        preferredCardBurst(context);
     }
+    private static void preferredCardBurst(Context context) {
+        try (ActivityStore store = new ActivityStore(context)) {
+            String printerId = "card-test";
+            long generation = store.registerPrinter(printerId);
+            String basic = "1.3.6.1.2.1.1.1.0";
+            saveBurst(store, printerId, generation, 1, basic, basic, basic);
+            saveBurst(store, printerId, generation, 2, basic, basic);
+            saveBurst(store, printerId, generation, 3, basic);
+            assertTrue(store.preferredCardBurst(printerId).ref.sequence == 2);
+            saveBurst(store, printerId, generation, 4, basic, "1.3.6.1.4.1.2435.2.3.9.4.2.1.5.1.2.71.12.1.2.1");
+            saveBurst(store, printerId, generation, 5, basic, basic, basic);
+            saveBurst(store, printerId, generation, 6, basic);
+            assertTrue(store.preferredCardBurst(printerId).ref.sequence == 4);
+            saveBurst(store, printerId, generation, 7, "1.3.6.1.2.1.43.8.2.1.13.1.1", "1.3.6.1.2.1.43.9.2.1.7.1.1");
+            assertTrue(store.preferredCardBurst(printerId).ref.sequence == 7);
+            store.clearPrinter(printerId);
+            assertTrue(store.preferredCardBurst(printerId) == null);
+        }
+    }
+
+    private static void saveBurst(ActivityStore store, String printerId, long generation, long sequence, String... oids) {
+        java.util.ArrayList<RequestRecord> requests = new java.util.ArrayList<>();
+        for (String oid : oids) {
+            int ordinal = requests.size();
+            requests.add(new RequestRecord("row-" + ordinal, ordinal, oid, 0, 4, false, null));
+        }
+        ActivityBurst.Ref ref = new ActivityBurst.Ref(printerId, "card-" + sequence, sequence);
+        assertTrue(store.publish(new ActivityBurst(ref, sequence, 4, requests), generation));
+    }
+
     private static void getContextPrinterIdentity(Context context) {
         context.deleteDatabase(ActivityStore.DATABASE_NAME);
         ActivityStore store=new ActivityStore(context);

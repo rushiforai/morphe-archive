@@ -10,8 +10,8 @@ import com.instagram.common.session.UserSession;
 import java.util.ArrayList;
 import java.util.List;
 
-final class StoryDownloadMedia {
-    static List<Object> items(Object reel, UserSession session) {
+public final class StoryDownloadMedia {
+    public static List<Object> items(Object reel, UserSession session) {
         List<Object> result = new ArrayList<>();
         if (reel == null || session == null) return result;
         for (Object item : nativeItems(reel, session)) {
@@ -23,11 +23,11 @@ final class StoryDownloadMedia {
     }
 
     // The patch supplies the viewer's ordered list and the nullable media of each item.
-    private static List<?> nativeItems(Object reel, UserSession session) {
+    public static List<?> nativeItems(Object reel, UserSession session) {
         return null;
     }
 
-    private static Object media(Object item) {
+    public static Object media(Object item) {
         return null;
     }
 }

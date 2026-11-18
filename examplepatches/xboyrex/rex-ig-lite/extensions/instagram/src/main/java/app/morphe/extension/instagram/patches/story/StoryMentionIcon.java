@@ -162,15 +162,40 @@ public final class StoryMentionIcon {
     }
 
     private static List<StoryMentionPopup.Mention> readMentions(Object reelItem, Names names) throws Exception {
-        // ReelItem has more than one Media field (the final one is the story's own media, which is
-        // what xboyrex reads). Try the final one first, then any other, and take the first with mentions.
         for (Object media : mediaCandidates(reelItem)) {
             Object dict = firstFieldOfType(media, MEDIA_DICT);
-            if (dict == null) continue;
-            List<StoryMentionPopup.Mention> result = readNames(dict, names);
-            if (!result.isEmpty()) return result;
+            if (dict != null) {
+                List<StoryMentionPopup.Mention> result = readNames(dict, names);
+                if (!result.isEmpty()) return result;
+            }
         }
-        return new ArrayList<>();
+        // Fallback: resolve via MediaData.getMentionSet() + UserData (supports Pando, array MediaData.A9q[], and LiveTree)
+        LinkedHashMap<String, StoryMentionPopup.Mention> fallbackMap = new LinkedHashMap<>();
+        try {
+            java.util.HashSet<app.morphe.extension.instagram.entity.UserData> set =
+                    new app.morphe.extension.instagram.entity.MediaData(reelItem).getMentionSet();
+            if (set != null) {
+                for (app.morphe.extension.instagram.entity.UserData ud : set) {
+                    if (ud == null) continue;
+                    String uname = "";
+                    String fname = "";
+                    String pic = "";
+                    boolean ver = false;
+                    try { uname = ud.getUsername(); } catch (Throwable ignored) {}
+                    if (uname == null || uname.isEmpty()) continue;
+                    try { fname = ud.getFullName(); } catch (Throwable ignored) {}
+                    try { pic = ud.getProfilePictureUrl(); } catch (Throwable ignored) {}
+                    try { ver = Boolean.TRUE.equals(ud.isVerified()); } catch (Throwable ignored) {}
+                    fallbackMap.put(uname, new StoryMentionPopup.Mention(
+                            uname,
+                            fname == null ? "" : fname,
+                            pic == null ? "" : pic,
+                            ver
+                    ));
+                }
+            }
+        } catch (Throwable ignored) {}
+        return new ArrayList<>(fallbackMap.values());
     }
 
     private static List<StoryMentionPopup.Mention> readNames(Object dict, Names names) throws Exception {
@@ -319,7 +344,7 @@ public final class StoryMentionIcon {
             pill.appliedStyle = style;
         }
         int count = mentions.size();
-        pill.setText("@" + count + (count == 1 ? " mention" : " mentions"));
+        pill.setText(count + " · " + (count == 1 ? "Hidden Mention" : "Hidden Mentions"));
         pill.setOnClickListener(v -> showMentions(v.getContext(), pill.mentions));
         pill.setVisibility(View.VISIBLE);
     }

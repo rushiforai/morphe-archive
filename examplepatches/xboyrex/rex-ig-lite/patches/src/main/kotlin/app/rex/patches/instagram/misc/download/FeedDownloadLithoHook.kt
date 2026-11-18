@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2026 rex <https://github.com/xboyrex/rex-ig-lite>
+ * Copyright (C) 2026 xboyrex <https://github.com/xboyrex/rex-ig-lite>
  *
  * See the included NOTICE file for GPLv3 §7(b) terms that apply to this code.
  */
@@ -46,13 +46,15 @@ private const val CLICK_HANDLER_DESCRIPTOR =
     "Lapp/morphe/extension/instagram/patches/download/FeedDownloadClickFunction;"
 private const val CLICK_HANDLER_CONSTRUCTOR =
     "$CLICK_HANDLER_DESCRIPTOR-><init>($CONTEXT_DESCRIPTOR$USER_SESSION_DESCRIPTOR$OBJECT_DESCRIPTOR)V"
+private const val CLICK_HANDLER_OPTIONS_CONSTRUCTOR =
+    "$CLICK_HANDLER_DESCRIPTOR-><init>($CONTEXT_DESCRIPTOR$USER_SESSION_DESCRIPTOR${OBJECT_DESCRIPTOR}Z)V"
 private const val DOWNLOAD_ICON_METHOD = "rexCreateDownloadIcon"
+private const val OPTIONS_ICON_METHOD = "rexCreateOptionsIcon"
 
 private fun saveIconFingerprint(stateType: String) = Fingerprint(
     parameters = listOf("L", "L", "L", stateType, "Z"),
     returnType = "L",
     filters = listOf(
-        // Neutral icon style, before save state and event handlers are attached.
         fieldAccess(opcode = Opcode.SGET_OBJECT),
         fieldAccess(opcode = Opcode.SGET_OBJECT, location = MatchAfterImmediately()),
         methodCall(parameters = listOf("L", "L"), opcode = Opcode.INVOKE_STATIC, location = MatchAfterImmediately()),
@@ -81,7 +83,6 @@ private fun saveIconFingerprint(stateType: String) = Fingerprint(
     ),
 )
 
-/** The download component is added by the caller, independently of the save helper's visibility. */
 internal fun injectLithoDownloadButton(stateType: String) {
     val save = saveIconFingerprint(stateType)
     val matches = save.instructionMatches
@@ -145,7 +146,6 @@ internal fun injectLithoDownloadButton(stateType: String) {
     ) {
         throw PatchException("Unexpected component factory registers in $builder")
     }
-    // All staging registers must be overwritten before the native path reads them again.
     call.forEach { register ->
         val firstUse = instructions.subList(saveIndex, factoryIndex).firstOrNull { register in it.registersUsed }
         if (firstUse == null || !firstUse.opcode.setsRegister() || firstUse.registersUsed.first() != register) {
@@ -169,7 +169,78 @@ internal fun injectLithoDownloadButton(stateType: String) {
     val categoryField = category.getReference<FieldReference>()!!
 
     val owner = mutableClassDefBy(save.originalClassDef)
-    if (owner.methods.any { it.name == DOWNLOAD_ICON_METHOD }) throw PatchException("Download icon helper already exists")
+    if (owner.methods.any { it.name == DOWNLOAD_ICON_METHOD || it.name == OPTIONS_ICON_METHOD }) {
+        throw PatchException("Download/Options icon helper already exists")
+    }
+
+    val optionsHelper = ImmutableMethod(
+        owner.type,
+        OPTIONS_ICON_METHOD,
+        listOf(contextType, USER_SESSION_DESCRIPTOR, stateType).map { ImmutableMethodParameter(it, emptySet(), null) },
+        iconConstructor.definingClass,
+        AccessFlags.PRIVATE.value or AccessFlags.STATIC.value,
+        emptySet(),
+        emptySet(),
+        MutableMethodImplementation(13),
+    ).toMutable().apply {
+        addInstructions(
+            0,
+            """
+                invoke-static {}, $DOWNLOAD_UTILS_DESCRIPTOR->isFeedOptionsButtonEnabled()Z
+                move-result v0
+                if-eqz v0, :disabled
+                invoke-interface {p0}, $contextGetter
+                move-result-object v1
+                const/4 v2, 0x1
+                new-instance v0, $CLICK_HANDLER_DESCRIPTOR
+                invoke-direct {v0, v1, p1, p2, v2}, $CLICK_HANDLER_OPTIONS_CONSTRUCTOR
+
+                sget-object v2, $neutralStyle
+                sget-object v3, $alignment
+                invoke-static {v2, v3}, $alignmentSetter
+                move-result-object v2
+                const v3, $heightResource
+                invoke-static {p0, v3}, $heightAccessor
+                move-result-wide v3
+                invoke-static {v2, v3, v4}, $heightSetter
+                move-result-object v2
+                const-string v3, "InstaRex Post Options"
+                invoke-static {v2, v3}, $descriptionSetter
+                move-result-object v2
+                const-string v3, "android.widget.Button"
+                invoke-static {v2, v3}, $classSetter
+                move-result-object v2
+                const/4 v3, -2
+                invoke-static {v2, v3}, $idSetter
+                move-result-object v2
+                invoke-static {v2, v0}, $onClickSetter
+                move-result-object v2
+                invoke-virtual {v0}, $CLICK_HANDLER_DESCRIPTOR->longClick()$FUNCTION1_DESCRIPTOR
+                move-result-object v0
+                invoke-static {v2, v0}, $onLongClickSetter
+                move-result-object v5
+
+                const v3, $dimensionAttribute
+                invoke-static {p0, v3}, $themeAccessor
+                move-result v8
+                const v3, $tintAttribute
+                invoke-static {p0, v3}, $themeAccessor
+                move-result v6
+                invoke-static {v6}, $INTEGER_VALUE_OF
+                move-result-object v6
+                sget-object v4, $CENTER_SCALE_TYPE
+                const v7, ${resourceId(ResourceType.DRAWABLE, "rex_ic_hexagon").toInt()}
+                const/4 v9, 0
+                new-instance v3, ${iconConstructor.definingClass}
+                invoke-direct/range {v3 .. v9}, $iconConstructor
+                return-object v3
+                :disabled
+                const/4 v0, 0
+                return-object v0
+            """.trimIndent(),
+        )
+    }
+
     val helper = ImmutableMethod(
         owner.type,
         DOWNLOAD_ICON_METHOD,
@@ -237,10 +308,30 @@ internal fun injectLithoDownloadButton(stateType: String) {
             """.trimIndent(),
         )
     }
+    owner.methods.add(optionsHelper)
     owner.methods.add(helper)
     builder.addInstructionsWithLabels(
         saveIndex,
         """
+            ${moveObject(call[0], saveCall[1])}
+            ${moveObject(call[1], sources[2])}
+            ${moveObject(call[2], saveCall[4])}
+            invoke-static/range ${registerRange(call[0], call[2])}, $optionsHelper
+            move-result-object v${call[1]}
+            if-eqz v${call[1]}, :download_btn
+            sget-object v${call[0]}, $categoryField
+            ${moveObject(call[2], sources[0])}
+            ${moveObject(call[3], sources[1])}
+            ${moveObject(call[4], sources[2])}
+            ${moveInt(call[5], sources[3])}
+            ${moveInt(call[6], sources[4])}
+            invoke-static/range ${registerRange(call.first(), call.last())}, $factory
+            move-result-object v${call[1]}
+            if-eqz v${call[1]}, :download_btn
+            ${moveObject(call[2], listRegister)}
+            ${moveObject(call[3], call[1])}
+            invoke-virtual/range ${registerRange(call[2], call[3])}, $COMPONENT_LIST_ADD
+            :download_btn
             ${moveObject(call[0], saveCall[1])}
             ${moveObject(call[1], sources[2])}
             ${moveObject(call[2], saveCall[4])}

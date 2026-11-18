@@ -1,0 +1,68 @@
+name: 🐞 Bug report
+description: Something in the patched app or in patching it does not work.
+title: "bug: "
+labels: ["Bug report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before you report, please check that:
+
+        - it is not reported already: [open and closed bug reports](https://github.com/ComoEstaisAmigos/morphe-patches/issues?q=label%3A%22Bug+report%22)
+        - the file you patched is the one the README table lists for that title (a bundle with the OBB when that column says required), not a repack
+  - type: input
+    attributes:
+      label: Title
+      description: Name, package, and version from the README table.
+      placeholder: Contract Killer: Zombies (NR), com.glu.android.zombsniper, 3.1.0
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: What happens
+      description: |
+        - What you did, what you expected, and what happened instead
+        - Steps to reproduce it, if you can
+        - Screenshots or a video, if they help
+    validations:
+      required: true
+  - type: dropdown
+    attributes:
+      label: Patched with
+      options:
+        - Morphe Manager
+        - Morphe Desktop
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Morphe version
+      placeholder: latest Manager or Desktop
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Patches applied
+      description: Which patches were on. Names from the README list.
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Device and Android version
+      placeholder: Pixel 6, Android 14
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Logs
+      description: For a crash, `adb logcat -d -b crash,main` filtered by `AndroidRuntime`, `DEBUG`, and the package name.
+      render: shell
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Acknowledgements
+      options:
+        - label: This is not a duplicate of an open or closed bug report.
+          required: true
+        - label: I patched the file the README table lists for that title, not a repack.
+          required: true

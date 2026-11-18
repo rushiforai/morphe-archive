@@ -9,12 +9,12 @@
             "category": "Links and bubbles",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -22,12 +22,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: bubbles",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -66,12 +66,12 @@
             "category": "Conversations",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -79,12 +79,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: landscape",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -123,12 +123,12 @@
             "category": "Privacy",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -136,12 +136,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: allow_screenshot",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -180,12 +180,12 @@
             "category": "Conversations",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -193,12 +193,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: car_messages",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -237,12 +237,12 @@
             "category": "Privacy",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -250,12 +250,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: appear_offline",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -294,12 +294,12 @@
             "category": "Calls",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -307,12 +307,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: call_confirm",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -351,12 +351,12 @@
             "category": "Conversations",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -364,12 +364,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: auto_reply",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -408,12 +408,12 @@
             "category": "Chat menu",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -421,12 +421,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: chat_preview_size",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -465,12 +465,12 @@
             "category": "Privacy",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -478,12 +478,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: secure_chat",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -522,12 +522,12 @@
             "category": "Theme",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -535,12 +535,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: menu_blur",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -579,12 +579,12 @@
             "category": "Conversations",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -592,12 +592,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: text_style",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -636,17 +636,17 @@
             "category": "Fixes",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": "Install beside Meta apps",
                     "description": "Lets your patched Messenger install next to Facebook and other Meta apps. Without it, the apps can clash over shared permissions and the install can stop at a blank screen. Works as soon as you patch it in, with no switch.",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Rename Messenger shared permissions",
                             "dependencies": [
                                 {
-                                    "type": "BytecodePatch",
+                                    "type": "Patch",
                                     "name": null,
                                     "description": "Validate Messenger shared-permission bytecode",
                                     "dependencies": []
@@ -656,7 +656,7 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Move Messenger's manifest to the clone's package name",
                     "dependencies": []
@@ -804,12 +804,12 @@
             "category": "Conversations",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -817,12 +817,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: message_actions",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -861,12 +861,12 @@
             "category": "Fixes",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -905,12 +905,12 @@
             "category": "Photos and videos",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -918,12 +918,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: xhe_audio",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -962,12 +962,12 @@
             "category": "Tab bar",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -975,12 +975,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: floating_tab_bar",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -1019,12 +1019,12 @@
             "category": "Fixes",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -1032,12 +1032,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Point Messenger's manifest at microG-RE",
                     "dependencies": [
                         {
-                            "type": "BytecodePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Check GmsCore support's bytecode edits before the manifest changes",
                             "dependencies": []
@@ -1076,12 +1076,12 @@
             "category": "Stickers",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -1089,12 +1089,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: ai_stickers",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -1133,12 +1133,12 @@
             "category": "Navigation",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -1146,12 +1146,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: moments",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -1190,12 +1190,12 @@
             "category": "Navigation",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -1203,12 +1203,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: facebook",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -1247,12 +1247,12 @@
             "category": "Chat menu",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -1260,12 +1260,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: mark_read_action",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -1304,12 +1304,12 @@
             "category": "Navigation",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -1317,12 +1317,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: meta_ai",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -1361,12 +1361,12 @@
             "category": "Tab bar",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -1374,12 +1374,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: tab_notifications",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -1418,12 +1418,12 @@
             "category": "Inbox",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -1431,12 +1431,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: people",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -1475,12 +1475,12 @@
             "category": "Tab bar",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -1488,12 +1488,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: tab_people",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -1532,12 +1532,12 @@
             "category": "Navigation",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -1545,12 +1545,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: reels_badge",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -1589,12 +1589,12 @@
             "category": "Tab bar",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -1602,12 +1602,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: tab_stories",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -1646,12 +1646,12 @@
             "category": "Photos and videos",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -1659,12 +1659,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: share_story",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -1703,12 +1703,12 @@
             "category": "Conversations",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -1716,12 +1716,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: ad_context_banner",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -1760,12 +1760,12 @@
             "category": "Stickers",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -1773,12 +1773,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: avatar_stickers",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -1817,12 +1817,12 @@
             "category": "Conversations",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -1830,12 +1830,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: suggested_replies",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -1874,12 +1874,12 @@
             "category": "Conversations",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -1887,12 +1887,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: business_suggestions",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -1931,12 +1931,12 @@
             "category": "Calls",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -1944,12 +1944,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: hide_call_buttons",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -1988,12 +1988,12 @@
             "category": "Chat menu",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -2001,12 +2001,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: chat_menu_items",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -2045,12 +2045,12 @@
             "category": "Conversations",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -2058,12 +2058,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: chat_promotions",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -2102,12 +2102,12 @@
             "category": "Chat menu",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -2115,12 +2115,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: hidden_chats",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -2159,12 +2159,12 @@
             "category": "Conversations",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -2172,12 +2172,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: event_prompts",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -2216,12 +2216,12 @@
             "category": "Inbox",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -2229,12 +2229,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: friend_requests",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -2273,12 +2273,12 @@
             "category": "Inbox",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -2286,12 +2286,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: growth",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -2330,12 +2330,12 @@
             "category": "Inbox",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -2343,12 +2343,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: inbox_promotions",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -2387,12 +2387,12 @@
             "category": "Inbox",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -2400,12 +2400,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: subtabs",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -2444,12 +2444,12 @@
             "category": "Inbox",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -2457,12 +2457,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: community_inbox",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -2501,12 +2501,12 @@
             "category": "Privacy",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -2514,12 +2514,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: hidden_words",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -2558,12 +2558,12 @@
             "category": "Privacy",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -2571,12 +2571,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: blocked_list_pictures",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -2615,12 +2615,12 @@
             "category": "Privacy",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -2628,12 +2628,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: hide_read_receipts",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -2672,12 +2672,12 @@
             "category": "Inbox",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -2685,12 +2685,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: stories",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -2729,12 +2729,12 @@
             "category": "Tab bar",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -2742,12 +2742,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: tab_badges",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -2786,12 +2786,12 @@
             "category": "Tab bar",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -2799,12 +2799,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: hide_tab_labels",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -2843,12 +2843,12 @@
             "category": "Inbox",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -2856,12 +2856,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: instants_button",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -2900,12 +2900,12 @@
             "category": "Photos and videos",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -2913,12 +2913,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: recent_media",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -2957,12 +2957,12 @@
             "category": "Tab bar",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -2970,12 +2970,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: tab_bar_scroll_away",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -3014,12 +3014,12 @@
             "category": "Conversations",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -3027,12 +3027,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: typing",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -3071,12 +3071,12 @@
             "category": "Navigation",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -3084,12 +3084,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: story_hold",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -3128,12 +3128,12 @@
             "category": "Conversations",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -3141,12 +3141,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: disappearing_swipe",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -3185,12 +3185,12 @@
             "category": "Fixes",
             "dependencies": [
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Rename Messenger shared permissions",
                     "dependencies": [
                         {
-                            "type": "BytecodePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Validate Messenger shared-permission bytecode",
                             "dependencies": []
@@ -3229,12 +3229,12 @@
             "category": "Theme",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -3242,12 +3242,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: invisible_buttons",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -3286,12 +3286,12 @@
             "category": "Conversations",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -3299,12 +3299,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: chat_jump",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -3343,12 +3343,12 @@
             "category": "Privacy",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -3356,12 +3356,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: message_log",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -3400,12 +3400,12 @@
             "category": "Fixes",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -3444,12 +3444,12 @@
             "category": "Fixes",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -3488,12 +3488,12 @@
             "category": "Stickers",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -3501,12 +3501,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: emoji_search",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -3545,12 +3545,12 @@
             "category": "Inbox",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -3558,12 +3558,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: inbox_search_bar",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -3602,12 +3602,12 @@
             "category": "Privacy",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -3615,12 +3615,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: keep_unsent",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -3659,12 +3659,12 @@
             "category": "Calls",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -3672,12 +3672,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: call_captions",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -3716,12 +3716,12 @@
             "category": "Privacy",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -3729,12 +3729,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: mark_read_button",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -3773,12 +3773,12 @@
             "category": "Privacy",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -3786,12 +3786,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: read_chats_locally",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -3830,12 +3830,12 @@
             "category": "Theme",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -3843,12 +3843,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: material_you",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -3887,12 +3887,12 @@
             "category": "Notifications",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -3900,12 +3900,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: restricted_notify",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -3944,12 +3944,12 @@
             "category": "Photos and videos",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -3957,12 +3957,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: view_once_anywhere",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -4001,12 +4001,12 @@
             "category": "Navigation",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -4014,12 +4014,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: menu_row",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -4058,12 +4058,12 @@
             "category": "Links and bubbles",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -4071,12 +4071,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: external_browser",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -4115,12 +4115,12 @@
             "category": "Photos and videos",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -4128,12 +4128,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: external_gallery",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -4172,12 +4172,12 @@
             "category": "Photos and videos",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -4185,12 +4185,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: paste_photo",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -4229,12 +4229,12 @@
             "category": "Chat menu",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -4242,12 +4242,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: pinned_chats",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -4286,12 +4286,12 @@
             "category": "Links and bubbles",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -4299,12 +4299,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: link_player",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -4343,12 +4343,12 @@
             "category": "Chat menu",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -4356,12 +4356,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: chat_preview",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -4400,12 +4400,12 @@
             "category": "Photos and videos",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -4413,12 +4413,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: gallery_to_chat",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -4457,12 +4457,12 @@
             "category": "Photos and videos",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -4470,12 +4470,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: media_caption",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -4514,12 +4514,12 @@
             "category": "Calls",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -4527,12 +4527,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: quiet_calls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -4571,12 +4571,12 @@
             "category": "Notifications",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -4584,12 +4584,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: quiet_mode",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -4628,12 +4628,12 @@
             "category": "Calls",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -4641,12 +4641,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: call_recording",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -4685,12 +4685,12 @@
             "category": "Stickers",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -4698,12 +4698,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: emoji_drawer",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -4742,12 +4742,12 @@
             "category": "Fixes",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -4786,12 +4786,12 @@
             "category": "Privacy",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -4799,12 +4799,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: save_stories",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -4843,12 +4843,12 @@
             "category": "Photos and videos",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -4856,12 +4856,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: save_voice_menu",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -4900,12 +4900,12 @@
             "category": "Photos and videos",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -4913,12 +4913,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: save_voice",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -4957,12 +4957,12 @@
             "category": "Conversations",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -4970,12 +4970,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: local_chat_search",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -5014,12 +5014,12 @@
             "category": "Photos and videos",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -5027,12 +5027,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: instant_gallery",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -5071,12 +5071,12 @@
             "category": "Photos and videos",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -5084,12 +5084,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: original_photo",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -5128,12 +5128,12 @@
             "category": "Photos and videos",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -5141,12 +5141,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: original_video",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -5185,12 +5185,12 @@
             "category": "Tab bar",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -5198,12 +5198,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: tab_people_show",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -5242,12 +5242,12 @@
             "category": "Tab bar",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -5255,12 +5255,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: tab_settings_show",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -5299,12 +5299,12 @@
             "category": "Privacy",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -5312,12 +5312,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: passkey_login",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -5356,12 +5356,12 @@
             "category": "Navigation",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -5369,12 +5369,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: chat_animation",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -5413,12 +5413,12 @@
             "category": "Chat menu",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -5426,12 +5426,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: special_contacts",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -5470,17 +5470,17 @@
             "category": "Updates",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Answer Messenger's own version reads with its original code",
                     "dependencies": [
                         {
-                            "type": "BytecodePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Load HushMessenger runtime controls",
                             "dependencies": [
                                 {
-                                    "type": "ResourcePatch",
+                                    "type": "Patch",
                                     "name": null,
                                     "description": "Install HushMessenger settings",
                                     "dependencies": []
@@ -5531,12 +5531,12 @@
             "category": "Theme",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -5544,12 +5544,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: avatar_shape",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -5588,12 +5588,12 @@
             "category": "Tracking",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -5601,12 +5601,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: attribution_uploads",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -5645,12 +5645,12 @@
             "category": "Tracking",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -5658,12 +5658,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: analytics_uploads",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -5702,12 +5702,12 @@
             "category": "Tracking",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -5715,12 +5715,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: phone_id_sync",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -5759,12 +5759,12 @@
             "category": "Tracking",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -5772,12 +5772,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: dwell_tracking",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -5816,12 +5816,12 @@
             "category": "Tracking",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -5829,12 +5829,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: ad_events",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -5873,12 +5873,12 @@
             "category": "Tracking",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -5886,12 +5886,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: mqtt_telemetry",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -5930,12 +5930,12 @@
             "category": "Tracking",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -5943,12 +5943,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: nearby_scans",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -5987,12 +5987,12 @@
             "category": "Tab bar",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -6000,12 +6000,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: tab_swipe",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -6044,12 +6044,12 @@
             "category": "Theme",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -6057,12 +6057,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: ios_bars",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -6101,12 +6101,12 @@
             "category": "Inbox",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -6114,12 +6114,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: inbox_typing",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -6158,12 +6158,12 @@
             "category": "Theme",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -6171,12 +6171,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: app_icons",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -6215,12 +6215,12 @@
             "category": "Theme",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -6228,12 +6228,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: app_themes",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -6272,12 +6272,12 @@
             "category": "Conversations",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -6285,12 +6285,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: use_system_emoji",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -6329,12 +6329,12 @@
             "category": "Photos and videos",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -6342,12 +6342,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: system_camera",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -6386,12 +6386,12 @@
             "category": "Theme",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -6399,12 +6399,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: custom_font",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -6443,12 +6443,12 @@
             "category": "Privacy",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -6456,12 +6456,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: anonymous_stories",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -6500,12 +6500,12 @@
             "category": "Theme",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -6513,12 +6513,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: home_header",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -6557,12 +6557,12 @@
             "category": "Tab bar",
             "dependencies": [
                 {
-                    "type": "BytecodePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Load HushMessenger runtime controls",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []
@@ -6570,12 +6570,12 @@
                     ]
                 },
                 {
-                    "type": "ResourcePatch",
+                    "type": "Patch",
                     "name": null,
                     "description": "Record HushMessenger capability: tab_icons",
                     "dependencies": [
                         {
-                            "type": "ResourcePatch",
+                            "type": "Patch",
                             "name": null,
                             "description": "Install HushMessenger settings",
                             "dependencies": []

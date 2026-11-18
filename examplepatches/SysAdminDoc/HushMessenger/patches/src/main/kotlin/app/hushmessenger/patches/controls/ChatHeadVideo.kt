@@ -3,7 +3,8 @@ package app.hushmessenger.patches.controls
 import app.hushmessenger.patches.MessengerTarget
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.mutableClassDefBy
+import app.morphe.patcher.patch.patch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -111,7 +112,7 @@ internal fun MutableMethod.injectChatHeadVideo() {
 }
 
 @Suppress("unused")
-val chatHeadVideoPatch = bytecodePatch(
+val chatHeadVideoPatch = patch(
     name = "Fix videos in chat heads",
     description = "Draws videos in a chat head like the rest of the chat instead of on a separate layer, which some phones showed as a black box that stayed on screen after the chat head closed. On the Huawei and Honor phones where that layer also leaves a box behind in the chat itself, every video is drawn this way.",
     default = true,

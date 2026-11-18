@@ -1940,8 +1940,6 @@ Appuyez longuement pour copier l'horodatage de la vidéo"</string>
     <string name="revanced_overlay_button_copy_video_url_title">Afficher bouton \'Copier le lien\'</string>
     <string name="revanced_overlay_button_external_downloader_queue_manager_summary">Au lieu de lancer un téléchargeur externe, ouvrez le gestionnaire de file d\'attente</string>
     <string name="revanced_overlay_button_external_downloader_queue_manager_title">Gestionnaire de file d’attente</string>
-    <string name="revanced_overlay_button_external_downloader_summary">Appuyez pour lancer le téléchargeur externe</string>
-    <string name="revanced_overlay_button_external_downloader_title">Aff. bouton téléchargement externe</string>
     <string name="revanced_overlay_button_gemini_about_summary">"L'analyse de la vidéo peut prendre un certain temps selon sa durée. La transcription de vidéos longues peut dépasser les limites de Gemini 
 
 Les réponses générées par l'IA peuvent contenir des informations inexactes
@@ -2594,9 +2592,6 @@ La plupart des bugs ne peuvent pas être corrigés en raison des limitations cô
     <string name="revanced_shorts_custom_actions_copy_video_url_timestamp_title">Afficher le menu \"Copier l\'URL avec l\'horodatage\"</string>
     <string name="revanced_shorts_custom_actions_copy_video_url_title">Afficher le menu \"Copier le lien\"</string>
     <string name="revanced_shorts_custom_actions_external_downloader_label">Téléchargeur externe</string>
-    <string name="revanced_shorts_custom_actions_external_downloader_summary_off">Le menu du téléchargeur externe est masqué</string>
-    <string name="revanced_shorts_custom_actions_external_downloader_summary_on">Le menu du téléchargeur externe est affiché</string>
-    <string name="revanced_shorts_custom_actions_external_downloader_title">Aff. menu téléchargeur externe</string>
     <string name="revanced_shorts_custom_actions_gemini_label">Résumé Gemini</string>
     <string name="revanced_shorts_custom_actions_gemini_summary_off">Le menu résumé Gemini est masqué</string>
     <string name="revanced_shorts_custom_actions_gemini_summary_on">Le menu résumé Gemini est affiché</string>

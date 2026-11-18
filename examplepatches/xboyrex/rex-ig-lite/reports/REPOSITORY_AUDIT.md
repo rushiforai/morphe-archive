@@ -1,6 +1,6 @@
-# InstaRex / Rex IG Lite v3.15.0 — Repository & Architecture Audit
+# InstaRex / Rex IG Lite v3.16.0 — Repository & Architecture Audit
 
-- **Repository**: `https://github.com/xboyrex/rex-ig-lite` (`v3.15.0`)
+- **Repository**: `https://github.com/xboyrex/rex-ig-lite` (`v3.16.0`)
 - **Modules**: `:patches`, `:extensions:instagram`, `:extensions:shared:library`, `:extensions:instagram:stub`
 - **Total Named Patches (`patches-list.json`)**: `161` (`86` Instagram-only, `74` X-only, `1` shared)
 - **Supported Instagram Versions**: `439.0.0.37.89`, `444.0.0.47.66`, `452.1.0.53.64`, `453.0.0.57.79`, `454.0.0.54.77`, `455.0.0.51.72`

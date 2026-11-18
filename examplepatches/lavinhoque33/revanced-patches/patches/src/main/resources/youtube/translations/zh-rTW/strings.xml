@@ -1859,8 +1859,6 @@ AV1 視訊播放可能會卡頓或丟格"</string>
     <string name="revanced_overlay_button_copy_video_url_title">複製連結按鈕</string>
     <string name="revanced_overlay_button_external_downloader_queue_manager_summary">不要啟動外部下載程序，而是開啟佇列管理器。</string>
     <string name="revanced_overlay_button_external_downloader_queue_manager_title">佇列管理器</string>
-    <string name="revanced_overlay_button_external_downloader_summary">點擊以開啟外部下載器。</string>
-    <string name="revanced_overlay_button_external_downloader_title">外部下載按鈕</string>
     <string name="revanced_overlay_button_gemini_about_summary">"解析影片所需時間取決於影片長度。轉錄長影片可能會超過 Gemini 的限制。
 
 AI 生成的回應可能包含不準確的資訊。
@@ -2484,9 +2482,6 @@ AI 生成的回應可能包含不準確的資訊。
     <string name="revanced_shorts_custom_actions_copy_video_url_timestamp_title">顯示複製時間戳 網址選單</string>
     <string name="revanced_shorts_custom_actions_copy_video_url_title">顯示複製影片網址選單</string>
     <string name="revanced_shorts_custom_actions_external_downloader_label">外部下載器</string>
-    <string name="revanced_shorts_custom_actions_external_downloader_summary_off">外部下載器選單已隱藏。</string>
-    <string name="revanced_shorts_custom_actions_external_downloader_summary_on">外部下載器選單已顯示。</string>
-    <string name="revanced_shorts_custom_actions_external_downloader_title">顯示外部下載器選單</string>
     <string name="revanced_shorts_custom_actions_gemini_label">Gemini 摘要</string>
     <string name="revanced_shorts_custom_actions_gemini_summary_off">Gemini 摘要選單已隱藏。</string>
     <string name="revanced_shorts_custom_actions_gemini_summary_on">Gemini 摘要選單已顯示。</string>

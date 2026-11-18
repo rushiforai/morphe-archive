@@ -627,6 +627,13 @@ public final class FeatureGateLabStore {
                     "manage_topics_enable:BOOLEAN:true"),
             new Preset("visual_search", "Visual search", CATALOG_BUILDS,
                     "show_visual_search_entrance:BOOLEAN:true"),
+            // Japan's search tag on a paused video (#98). SearchVisualTagComponentTrigger adds it
+            // only with enable_vision_search and visual_search_enable_feed_tag both at 1. With a
+            // home page that blocks Circle to Search, show_tag_after_circle_search_block at 1 lets
+            // it through; otherwise the server's Crowd enableVTag still has a say.
+            new Preset("visual_search_pause", "Visual search on paused videos", CATALOG_BUILDS,
+                    "enable_vision_search:INT:1", "visual_search_enable_feed_tag:INT:1",
+                    "show_tag_after_circle_search_block:INT:1"),
             new Preset("ai_self", "AI Self", CATALOG_BUILDS,
                     "ai_self_enable:BOOLEAN:true", "ai_self_effects_panel_enabled:BOOLEAN:true",
                     "ai_self_free_create_enable:BOOLEAN:true"),
@@ -641,7 +648,7 @@ public final class FeatureGateLabStore {
             // Korea's one-line comments that scroll across a video (#98), TikTok's "one-liners".
             // Group 1 or 2 turns the feature on once TikTok's own strategy switch allows it, and
             // the landscape flag only counts after that. Each video still carries its own server
-            // flag for them (Aweme.isSupportDanmaku, read by DanmakuServiceImpl). On 47.7.3 the
+            // flag for them (Aweme.isSupportDanmaku, read by DanmakuServiceImpl). On 47.8.3 the
             // server sets it on wide (1024x576) posts for a US account, and with both rules on
             // those get Add one-liner under the video and a one-liner bar in the landscape player;
             // with the rules off the same creator's wide post shows only Full screen. Portrait

@@ -60,7 +60,7 @@ val holidayLookPatch = bytecodePatch(
 ) {
     category("Theme")
     dependsOn(settingsPatch, telegramExtensionPatch)
-    compatibleWith(*AppCompatibilities.telegram())
+    compatibleWith(*AppCompatibilities.telegramOnly())
 
     execute {
         requireStatusMethod("holidayLook")

@@ -1,0 +1,121 @@
+package app.morphe.patches.universal
+
+import app.morphe.patcher.patch.rawResourcePatch
+import app.morphe.patches.shared.LocaleUtils
+import java.io.File
+
+private val PROTECTED_EXTENSIONS = setOf(
+    "dex", "arsc", "xml", "so", "rsa", "sf", "dsa", "ec"
+)
+
+private val PROTECTED_ROOT_DIRS = setOf(
+    "assets", "res", "lib", "smali",
+    "kotlin", // Runtime descriptors for kotlin-reflect, not build junk
+)
+
+private val EXACT_JUNK_NAMES = setOf(
+    "debugprobeskt.bin",
+    "stamp-cert-sha256",
+    "version-control-info.textproto",
+    "kotlin-tooling-metadata.json",
+    "androidsupportmultidexversion.txt",
+    "changes",
+    "dependencies"
+)
+
+private fun isProtectedFile(relativePath: String, file: File): Boolean {
+    val ext = file.extension.lowercase()
+    if (ext in PROTECTED_EXTENSIONS) return true
+    if (relativePath == "AndroidManifest.xml" || relativePath == "resources.arsc") return true
+    if (relativePath.startsWith("META-INF/services/")) return true
+    if (relativePath.equals("META-INF/MANIFEST.MF", ignoreCase = true)) return true
+
+    val topDir = relativePath.substringBefore('/').lowercase()
+    return topDir in PROTECTED_ROOT_DIRS
+}
+
+private fun isJunkFile(relativePath: String, file: File): Boolean {
+    if ('/' in relativePath && !relativePath.startsWith("META-INF/")) return false
+
+    val lowerName = file.name.lowercase()
+    if (lowerName in EXACT_JUNK_NAMES) return true
+    if (lowerName.endsWith(".version") || lowerName.endsWith("_version")) return true
+    if (lowerName.endsWith(".properties") || lowerName.endsWith(".proto")) return true
+
+    if (relativePath.startsWith("META-INF/")) {
+        if (lowerName.startsWith("license") || lowerName.startsWith("notice") || lowerName.startsWith("readme")) {
+            return true
+        }
+    }
+
+    return false
+}
+
+private fun pruneEmptyDirectories(root: File) {
+    root.walkBottomUp()
+        .filter { it.isDirectory && it != root && it.listFiles()?.isEmpty() == true }
+        .forEach { it.delete() }
+}
+
+@Suppress("unused")
+val apkJunkCleanerPatch = rawResourcePatch(
+    name = "Clean App Packaging",
+    description = "Removes build leftovers and duplicate files.",
+    default = false,
+) {
+    // Universal patch: applies to any target APK in Morphe Manager / CLI
+    execute {
+        val apkRoot = try {
+            get(".").absoluteFile.normalize()
+        } catch (_: Throwable) {
+            get(".")
+        }
+
+        if (!apkRoot.exists() || !apkRoot.isDirectory) {
+            println("[Clean App Packaging] APK root directory not found - skipping safely.")
+            return@execute
+        }
+
+        var junkFilesCount = 0
+        var savedBytes = 0L
+
+        // Skip protected top-level trees (assets/res/lib/smali) entirely instead of visiting
+        // every file inside them only to discard it in isProtectedFile().
+        apkRoot.walkTopDown()
+            .onEnter { dir ->
+                dir == apkRoot ||
+                    dir.relativeTo(apkRoot).path.replace('\\', '/').substringBefore('/').lowercase() !in PROTECTED_ROOT_DIRS
+            }
+            .filter { it.isFile }
+            .forEach { file ->
+                val relativePath = file.relativeTo(apkRoot).path.replace('\\', '/')
+
+                if (isProtectedFile(relativePath, file)) return@forEach
+
+                if (isJunkFile(relativePath, file)) {
+                    val fileSize = file.length()
+                    if (file.delete()) {
+                        junkFilesCount++
+                        savedBytes += fileSize
+                    }
+                }
+            }
+
+
+        // Prune empty subdirectories left in META-INF
+        try {
+            val metaInfDir = get("META-INF")
+            if (metaInfDir.exists() && metaInfDir.isDirectory) {
+                pruneEmptyDirectories(metaInfDir)
+            }
+        } catch (_: Throwable) {}
+
+        if (junkFilesCount == 0) {
+            println("[Clean App Packaging] APK root and META-INF are already clean (0 junk files found).")
+            return@execute
+        }
+
+        val savedFormatted = LocaleUtils.formatBytes(savedBytes)
+        println("[Clean App Packaging] Purged $junkFilesCount non-functional build/metadata files -> Saved $savedFormatted")
+    }
+}

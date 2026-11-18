@@ -16,17 +16,18 @@ pluginManagement {
     }
 }
 
-// The Morphe patches plugin 1.3.4 brings kotlin-gradle-plugin 2.4.10, which is inside
-// CVE-2026-53914 (GHSA-r937-wjx7-w2jp, unsafe deserialization in the Kotlin build cache); 2.4.20
-// is the first release outside it. The same classpath carries Bouncy Castle 1.77 (the patcher's
-// pin) and 1.79 (the Android build tools'), both inside CVE-2026-5588, CVE-2025-14813,
+// The Morphe patches plugin 2.1.1 brings kotlin-gradle-plugin 2.4.21, outside CVE-2026-53914
+// (GHSA-r937-wjx7-w2jp, unsafe deserialization in the Kotlin build cache); 1.3.4 brought 2.4.10,
+// inside it. Gradle 9.9.1 embeds kotlin-stdlib and kotlin-reflect 2.4.21 too, but the Android build
+// tools still ask for older stdlib-jdk7/jdk8, so every org.jetbrains.kotlin request is held to the
+// plugin's 2.4.21. The same classpath carries Bouncy Castle 1.77 (the patcher's pin and the plugin's
+// own bundle signer) and 1.79 (the Android build tools'), both inside CVE-2026-5588, CVE-2025-14813,
 // CVE-2026-0636, CVE-2026-8763 and CVE-2026-13506, and 1.77 also inside CVE-2025-8916. 1.86 is
 // outside all six and publishes bcprov, bcpkix and bcutil. Signing runs on this classpath, and a
 // force inside a project can't reach it, so it's set here. Keep 1.86 in step with
-// gradle/libs.versions.toml, which the version catalog can't supply this early in the build.
-// 2.4.21 is the current bugfix release and what :patches already compiles against, so one force
-// keeps the plugin, compiler and stdlib on the same version instead of three.
-// Drop the Kotlin line once the plugin moves past 2.4.21 on its own.
+// gradle/libs.versions.toml, which the version catalog can't supply this early in the build. Move
+// the Kotlin line with the plugin's kotlin-gradle-plugin; gradle/verification-metadata.xml says
+// which version actually resolved.
 buildscript {
     configurations.all {
         resolutionStrategy.eachDependency {
@@ -41,7 +42,7 @@ buildscript {
 }
 
 plugins {
-    id("app.morphe.patches") version "1.3.4"
+    id("app.morphe.patches") version "2.1.1"
 }
 
 settings {

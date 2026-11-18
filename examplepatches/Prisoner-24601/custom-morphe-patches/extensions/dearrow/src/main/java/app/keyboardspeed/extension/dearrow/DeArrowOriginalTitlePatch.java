@@ -4,6 +4,7 @@ import android.util.Log;
 
 import java.lang.reflect.Field;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -26,7 +27,7 @@ public final class DeArrowOriginalTitlePatch {
      * Titles that Morphe treats as DeArrow titles, such as for showing the DeArrow icon.
      * Null if not found, and then the combined titles are shown without the icon.
      */
-    private static Set<String> deArrowTitles;
+    private static Object deArrowTitles;
 
     private DeArrowOriginalTitlePatch() {
     }
@@ -56,6 +57,16 @@ public final class DeArrowOriginalTitlePatch {
      *         if there is no original title or both titles are the same.
      */
     public static String combineTitles(String deArrowTitle, String originalTitle) {
+        return combineTitles(deArrowTitle, originalTitle, null);
+    }
+
+    /**
+     * Injection point for Morphe Patches 2.3 and newer. Called off the main thread, by multiple threads at the same time.
+     *
+     * @param videoId The video id of the titles, or null if not known.
+     * @see #combineTitles(String, String)
+     */
+    public static String combineTitles(String deArrowTitle, String originalTitle, String videoId) {
         try {
             if (deArrowTitle == null || originalTitle == null) {
                 return deArrowTitle;
@@ -69,7 +80,7 @@ public final class DeArrowOriginalTitlePatch {
             String combined = isOriginalTitleFirst()
                     ? original + getSeparator() + deArrowTitle.trim()
                     : deArrowTitle.trim() + getSeparator() + original;
-            registerDeArrowTitle(combined);
+            registerDeArrowTitle(combined, videoId);
             return combined;
         } catch (Exception ex) {
             Log.e(TAG, "combineTitles failure", ex);
@@ -84,9 +95,10 @@ public final class DeArrowOriginalTitlePatch {
     /**
      * Morphe shows the DeArrow icon only before the titles it fetched from DeArrow,
      * so the combined title is added to them.
+     * Morphe Patches 2.3 and newer keep them in a map of title to video id, and older versions in a set.
      */
     @SuppressWarnings("unchecked")
-    private static void registerDeArrowTitle(String title) {
+    private static void registerDeArrowTitle(String title, String videoId) {
         synchronized (DeArrowOriginalTitlePatch.class) {
             if (!initialized) {
                 initialized = true;
@@ -95,17 +107,26 @@ public final class DeArrowOriginalTitlePatch {
                             DeArrowOriginalTitlePatch.class.getClassLoader());
                     Field field = requestClass.getDeclaredField("fetchedTitles");
                     field.setAccessible(true);
-                    deArrowTitles = (Set<String>) field.get(null);
+                    Object titles = field.get(null);
+                    if (titles instanceof Map<?, ?> || titles instanceof Set<?>) {
+                        deArrowTitles = titles;
+                    } else {
+                        Log.w(TAG, "Morphe DeArrow titles have an unknown type, the DeArrow icon is not shown");
+                    }
                 } catch (Exception ex) {
                     Log.w(TAG, "Morphe DeArrow titles not found, the DeArrow icon is not shown", ex);
                 }
             }
         }
 
-        Set<String> titles = deArrowTitles;
-        if (titles != null) {
-            // Morphe compares the trimmed text.
-            titles.add(title.trim());
+        // Morphe compares the trimmed text.
+        Object titles = deArrowTitles;
+        if (titles instanceof Map<?, ?> map) {
+            if (videoId != null) {
+                ((Map<String, String>) map).put(title.trim(), videoId);
+            }
+        } else if (titles instanceof Set<?> set) {
+            ((Set<String>) set).add(title.trim());
         }
     }
 }

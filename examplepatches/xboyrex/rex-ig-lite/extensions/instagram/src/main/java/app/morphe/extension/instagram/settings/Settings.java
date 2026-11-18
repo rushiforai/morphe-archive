@@ -182,4 +182,5 @@ public class Settings {
     public static final BooleanSetting REELS_FLOATING_TOOLBAR = new BooleanSetting("reels_floating_toolbar", true, NOT_REQUIRED);
     public static final BooleanSetting STORY_FILTERS_MASTER = new BooleanSetting("story_filters_master", true, NOT_REQUIRED);
     public static final BooleanSetting CUSTOM_HOME_WORDMARK = new BooleanSetting("custom_home_wordmark", true, NOT_REQUIRED);
+    public static final BooleanSetting LIQUID_GLASS_NAV = new BooleanSetting("xboyrex_glass_tab_bar", false, REQUIRED);
 }

@@ -65,7 +65,7 @@ val disableChannelPullPatch = bytecodePatch(
 ) {
     category("Conversations")
     dependsOn(settingsPatch, telegramExtensionPatch)
-    compatibleWith(*AppCompatibilities.telegram())
+    compatibleWith(*AppCompatibilities.telegramOnly())
     execute {
         requireStatusMethod("disableChannelPull")
         val sites = resolveChannelPullSites()

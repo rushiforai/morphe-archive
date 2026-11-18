@@ -8,6 +8,7 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.PlusPending
 import app.morphe.util.names.origRef
 import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
@@ -49,6 +50,7 @@ import app.morphe.util.names.tgClassDefByOrNull
 import app.morphe.util.names.tgMutableClassDefBy
 
 /** TranslateController, MessageObject, the chat screen, and the runtime. */
+@PlusPending
 class HideTranslateBarFixtureTest {
     @Test fun `the chat screen's two reads ask the runtime and message translation stays Telegram's`() {
         for (build in Fixtures.declaredBuilds()) {

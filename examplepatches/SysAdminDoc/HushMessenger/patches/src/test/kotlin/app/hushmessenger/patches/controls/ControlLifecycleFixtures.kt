@@ -197,6 +197,9 @@ internal fun <T> withLifecycleExtension(bytes: ByteArray, action: (() -> Int) ->
     return try { action { reads } } finally { field.set(settingsExtension, original) }
 }
 
+/** The control's own capability record, the dependency that isn't the shared settings extension. */
+internal fun Patch.capabilityRecord(): Patch = dependencies.single { it !== settingsExtension }
+
 /** Collect the actual cold flow without adding the patcher's runtime coroutine library to compile dependencies. */
 internal fun collectLifecycle(patcher: Patcher): List<PatchResult> {
     val results = mutableListOf<PatchResult>()

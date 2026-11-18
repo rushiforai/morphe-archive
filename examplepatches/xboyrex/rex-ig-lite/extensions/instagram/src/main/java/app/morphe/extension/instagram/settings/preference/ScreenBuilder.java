@@ -703,12 +703,46 @@ public class ScreenBuilder {
                 Settings.CUSTOM_CHAT_WALLPAPER
         ));
         addPreference(catChat, helper.buttonPreference(
-                "Choose Chat Background Color",
-                "Pick from 7 curated AMOLED & Gaussian Blur presets",
+                "Choose Background Image",
+                "You can choose background image to set Chat Background",
                 "rex_chat_wallpaper_picker"
         ));
 
-        PreferenceCategory catBars = addCategory("Top Action Bar, Bottom Nav & Floating Toolbar");
+        PreferenceCategory catEmojiFonts = addCategory("Emoji and Fonts");
+        addPreference(catEmojiFonts, helper.buttonPreference(
+                "Choose Emoji Type",
+                "You can apply iOS Emoji across the app.",
+                "rex_emoji_type_btn"
+        ));
+        addPreference(catEmojiFonts, helper.buttonPreference(
+                "Choose Font Type",
+                "You can apply iOS Font across the app.",
+                "rex_font_type_btn"
+        ));
+        addPreference(catEmojiFonts, helper.buttonPreference(
+                "Add Custom Story Fonts",
+                "You can add unlimited custom story fonts",
+                "rex_add_story_fonts_btn"
+        ));
+        addPreference(catEmojiFonts, helper.buttonPreference(
+                "Creative Fonts for DMs",
+                "You can send stylish text using cool fonts in your DMs, It makes your messages look unique and stand out from others.",
+                "rex_creative_fonts_btn"
+        ));
+
+        PreferenceCategory catBars = addCategory("Customize Navigation UI");
+        if (SettingsStatus.hideNavigationButtons) {
+            addPreference(catBars, helper.buttonPreference(
+                    "Bottom Navigation Tabs & Startup Tab",
+                    "Choose which tab should open automatically when you start the app and customize navigation tabs according to your needs.",
+                    Constants.REX_FRAGMENT_NAV_BTNS
+            ));
+        }
+        addPreference(catBars, helper.switchPreference(
+                "Frosted Glass Bottom Navigation",
+                "Adds a Frosted Glass look to the bottom navigation bar.",
+                Settings.LIQUID_GLASS_NAV
+        ));
         addPreference(catBars, helper.switchPreference(
                 "Custom InstaRex Home Wordmark",
                 "Display calligraphic two-tone InstaRex script logo in the Home top action bar (tap for Quick Access)",
@@ -724,13 +758,6 @@ public class ScreenBuilder {
                 "Configure which xboyrex icons appear on Home, Profile, Inbox & Chat",
                 Constants.REX_FRAGMENT_ACTION_BAR
         ));
-        if (SettingsStatus.hideNavigationButtons) {
-            addPreference(catBars, helper.buttonPreference(
-                    "Bottom Navigation Tabs & Startup Tab",
-                    "Reorder or hide bottom tabs and choose your startup screen",
-                    Constants.REX_FRAGMENT_NAV_BTNS
-            ));
-        }
         addPreference(catBars, helper.switchPreference(
                 "Reels Floating Top-Right Toolbar",
                 "Show quick xboyrex Options and Download buttons at top-right of Reels",
@@ -740,21 +767,6 @@ public class ScreenBuilder {
                 "Remove Empty Bottom Gesture Bar Space",
                 "Reclaim bottom padding under the navigation bar on gesture nav devices",
                 Settings.REMOVE_EMPTY_BOTTOM_SPACE
-        ));
-        addPreference(catTheme, helper.buttonPreference(
-                "Choose Emoji Type",
-                SharedPref.getStringPref(Settings.CHOOSE_EMOJI_TYPE),
-                "rex_emoji_type_btn"
-        ));
-        addPreference(catTheme, helper.buttonPreference(
-                "Choose Font Preset",
-                SharedPref.getStringPref(Settings.CHOOSE_FONT_TYPE),
-                "rex_font_type_btn"
-        ));
-        addPreference(catTheme, helper.buttonPreference(
-                "Creative Fonts for DMs",
-                "Style and copy Unicode fonts (" + SharedPref.getStringPref(Settings.DM_CREATIVE_FONT_STYLE) + ") for messages",
-                "rex_creative_fonts_btn"
         ));
         addPreference(catBars, helper.switchPreference(
                 "Story Filters (Hide by Type / Count)",
@@ -1225,6 +1237,27 @@ public class ScreenBuilder {
 
     public void buildFontSection() {
         if (!SettingsStatus.fontSection()) return;
+
+        addPreference(helper.buttonPreference(
+                "Choose Emoji Type",
+                "You can apply iOS Emoji across the app.",
+                "rex_emoji_type_btn"
+        ));
+        addPreference(helper.buttonPreference(
+                "Choose Font Type",
+                "You can apply iOS Font across the app.",
+                "rex_font_type_btn"
+        ));
+        addPreference(helper.buttonPreference(
+                "Add Custom Story Fonts",
+                "You can add unlimited custom story fonts",
+                "rex_add_story_fonts_btn"
+        ));
+        addPreference(helper.buttonPreference(
+                "Creative Fonts for DMs",
+                "You can send stylish text using cool fonts in your DMs, It makes your messages look unique and stand out from others.",
+                "rex_creative_fonts_btn"
+        ));
 
         SwitchPref useSystemFont = new SwitchPref(context);
         useSystemFont.setTitle(str("rex_use_system_font"));

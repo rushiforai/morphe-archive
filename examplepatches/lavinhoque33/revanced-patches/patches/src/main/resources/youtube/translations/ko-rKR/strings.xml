@@ -2045,8 +2045,6 @@ MainThread에서 무언가를 테스트할 경우에 사용할 수 있습니다"
     <string name="revanced_overlay_button_copy_video_url_title">동영상 URL 복사 버튼 표시하기</string>
     <string name="revanced_overlay_button_external_downloader_queue_manager_summary">외부 다운로더 대신 현재 재생목록 관리자를 실행할 수 있습니다</string>
     <string name="revanced_overlay_button_external_downloader_queue_manager_title">현재 재생목록 관리자</string>
-    <string name="revanced_overlay_button_external_downloader_summary">버튼을 탭하여 외부 다운로더를 실행할 수 있습니다</string>
-    <string name="revanced_overlay_button_external_downloader_title">외부 다운로더 버튼 표시하기</string>
     <string name="revanced_overlay_button_gemini_about_summary">"동영상 구문 분석은 동영상 길이에 따라 어느 정도의 시간이 걸릴 수 있습니다. 너무 긴 동영상을 기록하게 되면 Gemini의 한계를 초과할 수 있습니다
 
 AI가 생성한 동영상 요약에는 부정확한 정보가 포함될 수 있습니다
@@ -2701,9 +2699,6 @@ API Key를 발급받는 방법을 보려면 여기를 탭하세요"</string>
     <string name="revanced_shorts_custom_actions_copy_video_url_timestamp_title">타임스탬프 URL 복사 메뉴 표시하기</string>
     <string name="revanced_shorts_custom_actions_copy_video_url_title">동영상 URL 복사 메뉴 표시하기</string>
     <string name="revanced_shorts_custom_actions_external_downloader_label">외부 다운로더 실행</string>
-    <string name="revanced_shorts_custom_actions_external_downloader_summary_off">외부 다운로더 실행 메뉴가 숨겨집니다</string>
-    <string name="revanced_shorts_custom_actions_external_downloader_summary_on">외부 다운로더 실행 메뉴가 표시됩니다</string>
-    <string name="revanced_shorts_custom_actions_external_downloader_title">외부 다운로더 실행 메뉴 표시하기</string>
     <string name="revanced_shorts_custom_actions_gemini_label">Gemini 요약</string>
     <string name="revanced_shorts_custom_actions_gemini_summary_off">Shorts 사용자 정의 작업 메뉴에서 Gemini 요약 작업이 숨겨집니다</string>
     <string name="revanced_shorts_custom_actions_gemini_summary_on">Shorts 사용자 정의 작업 메뉴에서 Gemini 요약 작업이 표시됩니다</string>

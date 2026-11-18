@@ -28,13 +28,13 @@ imported from that release in Manager or Desktop.
 
 ## Current preview
 
-The [build133 preview](docs/release-build133.md) provides **127 selectable patches**, with **104 selected
-by default**. It includes **Afterglow's downloader, queue and Vault**, **Theme
+The [build134 preview](docs/release-build134.md) provides **128 selectable patches**, with **105 selected
+by default**. It adds the [Afterglow app icon](docs/app-icon.md) and includes **Afterglow's downloader, queue and Vault**, **Theme
 Studio**, Control Center, AB Lab and AI Home Studio. Morphe supplies **Return
 YouTube Dislike**, **DeArrow**, **Copy text**, **GmsCore support** and **Spoof
 video streams**.
 Use an unpatched **YouTube 21.43.523** APK and select the Afterglow source.
-Refresh the source and reset saved selections to the **104 defaults** for the
+Refresh the source and reset saved selections to the **105 defaults** for the
 tested configuration; a saved selection from an older release can omit new groups.
 Use this bundle's compatibility patches only; selecting another source's copies
 applies overlapping hooks. A compatible GmsCore companion app is still required

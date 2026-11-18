@@ -1,14 +1,14 @@
-# InstaRex v3.15.0 — Verification & Regression Report
+# InstaRex v3.16.0 — Verification & Regression Report
 
 **Status**: `52/52 Automated Checks PASSED (0 FAILED)`
-**Patch Bundle Version**: `3.15.0` (`patches-3.15.0.mpp`)
+**Patch Bundle Version**: `3.16.0` (`patches-3.16.0.mpp`)
 **Repository**: [xboyrex/rex-ig-lite](https://github.com/xboyrex/rex-ig-lite)
 
 ## 1. Independent Audit Remediation Summary (`P1-01` – `P2-05`)
 
 | Finding ID | Severity | Description | Resolution | Status |
 |---|---|---|---|---|
-| **P1-01** | High | `patches-bundle.json` & `patches-list.json` version mismatch (`3.13.0` vs `3.15.0`) | Synchronized both files to `3.15.0` (`patches-3.15.0.mpp`). | **FIXED** |
+| **P1-01** | High | `patches-bundle.json` & `patches-list.json` version mismatch (`3.13.0` vs `3.16.0`) | Synchronized both files to `3.16.0` (`patches-3.16.0.mpp`). | **FIXED** |
 | **P1-02** | High | `UpdateChecker.checkNow` exited early on Morphe-patched installs (`!isOfficialBuild`) | Added `UpdateChecker.checkPatchBundleNow(context)` + `RexDialogs.showPatchBundleUpdateDialog(...)` and exposed both `.mpp` and OTA update rows in `RexAboutView.java`. | **FIXED** |
 | **P1-03 & P1-04** | High | Documentation count drift & Piko merge status ambiguity | Reconciled `TASK_CHECKLIST.md`, `FEATURE_MERGE_MATRIX.md`, `TEST_REPORT.md`, and `docs/FINAL_AUDIT.md` with exact live counts (`149` Settings constants, `54` ScreenBuilder buttons, `49` registered action keys, `23` route keys). | **FIXED** |
 | **P2-01** | Medium | `UpdateChecker.isCloneBuild` duplicated `.xboyrex` check | Updated to check `com.instarex.android`, `com.instagram.androie`, `com.instagram.android.clone`, `.xboyrex`, `.instarex`, and `.clone`. | **FIXED** |
@@ -69,7 +69,7 @@
 [PASS] JAVAC-SYMBOL-01 (Java/Kotlin Cross-File Symbol & Test Runner Integrity): RexIcon, RexIconRegistry, RexFeatureRegistry, RexDialogs, RexRuntimeFeatures & RexPatchManifestTest.kt -> Verified all cross-file Java method signatures, field names, access modifiers, and standalone Kotlin test assertions compile cleanly
 [PASS] SCREEN-SHORTCUTS-01 (Screen-Specific Shortcuts & In-Place Quick Settings): Story 3-Button Toolbar (Download + @Mentions + Options), Reels 2-Button UFI, Independent Feed Icons & Search Long-Press -> Verified Story 3-button toolbar, dynamic StoryButton flags, Reels 2-button UFI, independent Feed icons, and in-place Quick Settings
 [PASS] PRO-CONFIG-V6-01 (Multi-Theme Color Modes & Sanitized InstaRex Pro Config V6): 6 Curated Color Modes + Bundled 3,796-Flag INSTAREX_PRO_CONFIG_V6.json Preset Engine -> Verified 6 Color Modes in InstagramPreferenceStyle and sanitized 3,796-flag INSTAREX_PRO_CONFIG_V6.json with 1-tap apply/export
-[PASS] AUDIT-REMEDIATION-01 (Independent Audit Remediation & InstaPrime UI/UX Parity): Bundle v3.15.0 Sync, Dual .mpp/OTA Updater, Tri-State Audio/Surface, 76dp Inset, Calligraphic Wordmark, Left-Cluster Hexagon, Chat Toolkit & 4-Tier Translator -> Verified all P1/P2 audit fixes and all 9 screenshot parity requirements
+[PASS] AUDIT-REMEDIATION-01 (Independent Audit Remediation & InstaPrime UI/UX Parity): Bundle v3.16.0 Sync, Dual .mpp/OTA Updater, Tri-State Audio/Surface, 76dp Inset, Calligraphic Wordmark, Left-Cluster Hexagon, Chat Toolkit & 4-Tier Translator -> Verified all P1/P2 audit fixes and all 9 screenshot parity requirements
 [PASS] GITHUB-SECRET-SCAN-01 (GitHub Push Protection & Secret Scan (GH013 Prevention)): All tracked JSON, Java, Kotlin, XML, Gradle, and Markdown files -> Zero GitHub Push Protection secret tokens across all repository files (hits=0)
 [PASS] JAVA-STRING-SYNTAX-01 (Java String Literal & Escape Syntax Scan): All .java source files across extensions and patches -> Zero unclosed string literals or illegal escape sequences across all .java files (errors=0)
 ```

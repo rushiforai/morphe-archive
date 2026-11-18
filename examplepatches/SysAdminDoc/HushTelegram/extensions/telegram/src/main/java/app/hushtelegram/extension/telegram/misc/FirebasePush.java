@@ -36,6 +36,8 @@ import app.hushtelegram.extension.telegram.settings.Settings;
 public final class FirebasePush {
     // Independently verified from both pinned official Play and telegram.org APK signing certificates.
     private static final String OFFICIAL_CERTIFICATE_SHA1 = "9723E5838612E9C7C08CA2C6573B6026D7A51F8F";
+    // Plus Messenger's own key (CN=rafalense), read off the pinned 13.2.2.1 bundle's base APK.
+    private static final String PLUS_CERTIFICATE_SHA1 = "49EBB949E0C74FA7A5E8B869762C7907B891941A";
     private static final Pattern INSTALLATION_PATH = Pattern.compile(
             "/v1/projects/[A-Za-z0-9_-]+/installations(?:/[A-Za-z0-9_-]+(?:/authTokens:generate)?)?");
 
@@ -536,15 +538,21 @@ public final class FirebasePush {
                     || !INSTALLATION_PATH.matcher(url.getPath()).matches()) {
                 return original;
             }
-            String nativePackage = connection.getRequestProperty("X-Android-Package");
-            if (!"org.telegram.messenger".equals(nativePackage)
-                    && !"org.telegram.messenger.web".equals(nativePackage)) return original;
-            if (OFFICIAL_CERTIFICATE_SHA1.equalsIgnoreCase(original)) return original;
+            String official = officialCertificate(connection.getRequestProperty("X-Android-Package"));
+            if (official == null || official.equalsIgnoreCase(original)) return original;
+            HookStatus.counted(FamilyNames.REPAIR_FIREBASE_PUSH, "certificate headers repaired");
+            return official;
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.REPAIR_FIREBASE_PUSH, "certificate header", failure);
             return original;
         }
-        HookStatus.counted(FamilyNames.REPAIR_FIREBASE_PUSH, "certificate headers repaired");
-        return OFFICIAL_CERTIFICATE_SHA1;
+    }
+
+    /** The SHA-1 of the key that signs {@code nativePackage}'s store build, or null for any other package. */
+    static String officialCertificate(String nativePackage) {
+        if ("org.telegram.messenger".equals(nativePackage) || "org.telegram.messenger.web".equals(nativePackage)) {
+            return OFFICIAL_CERTIFICATE_SHA1;
+        }
+        return "org.telegram.plus".equals(nativePackage) ? PLUS_CERTIFICATE_SHA1 : null;
     }
 }

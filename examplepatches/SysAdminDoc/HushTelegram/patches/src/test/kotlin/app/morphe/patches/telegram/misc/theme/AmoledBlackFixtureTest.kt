@@ -8,6 +8,7 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.PlusPending
 import app.morphe.util.names.origRef
 import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
@@ -50,6 +51,7 @@ import app.morphe.util.names.tgClassDefByOrNull
 import app.morphe.util.names.tgMutableClassDefBy
 
 /** The classes that parse theme files, Telegram's key lookup, and the runtime. */
+@PlusPending
 class AmoledBlackFixtureTest {
     @Test fun `one hook where the theme reader returns its colors and every stock path stays`() {
         for (build in Fixtures.declaredBuilds()) {

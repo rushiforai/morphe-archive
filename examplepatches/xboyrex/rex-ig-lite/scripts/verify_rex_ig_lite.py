@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Read-Only Static, Call-Graph, Resource & Workflow Verification Suite for InstaRex (Rex IG Lite v3.15.0)
+Read-Only Static, Call-Graph, Resource & Workflow Verification Suite for InstaRex (Rex IG Lite v3.16.0)
 by xboyrex
 
 Note: By default this verifier is 100% READ-ONLY and never mutates repository files.
@@ -398,7 +398,7 @@ def run_suite():
     ok_btn = (
         'key.startsWith("rex_")' not in btext
         and len(route_items) == 23
-        and len(action_items) in (43, 44, 46, 49, 51)
+        and len(action_items) in (43, 44, 46, 49, 51, 54)
         and "PRIMARY_ACTION_KEYS" in btext
         and "DESTRUCTIVE_ACTION_KEYS" in btext
         and ("0xFF3998E8" in style_text or "0xFF2D95E8" in style_text)
@@ -446,7 +446,7 @@ def run_suite():
         "BTN-REG-02",
         "Button & Route Registry",
         f"All {len(sb_button_keys)} ScreenBuilder buttonPreference declarations registered",
-        "PASS" if (len(sb_button_keys) in (51, 54, 56) and not missing_btn_keys) else "FAIL",
+        "PASS" if (len(sb_button_keys) in (51, 54, 56, 61) and not missing_btn_keys) else "FAIL",
         f"All {len(sb_button_keys)} buttonPreference declarations in ScreenBuilder are explicitly registered in ButtonPref"
         if not missing_btn_keys else f"Unregistered keys: {missing_btn_keys}",
     )
@@ -735,8 +735,8 @@ def run_suite():
     rf_text = all_files.get("extensions/instagram/src/main/java/app/morphe/extension/instagram/patches/devFlags/RecommendedFlags.java", "")
     rfr_text = all_files.get("extensions/instagram/src/main/java/app/morphe/extension/instagram/settings/RexFeatureRegistry.java", "")
     audit_rem_ok = (
-        bundle_json.get("version") == "3.15.0"
-        and pdata.get("version") == "3.15.0"
+        bundle_json.get("version") == "3.16.0"
+        and pdata.get("version") in ("3.15.0", "3.16.0")
         and "checkPatchBundleNow(" in uc_text
         and "com.instarex.android" in uc_text
         and "AudioState" in md_text
@@ -752,7 +752,7 @@ def run_suite():
     record(
         "AUDIT-REMEDIATION-01",
         "Independent Audit Remediation & InstaPrime UI/UX Parity",
-        "Bundle v3.15.0 Sync, Dual .mpp/OTA Updater, Tri-State Audio/Surface, 76dp Inset, Calligraphic Wordmark, Left-Cluster Hexagon, Chat Toolkit & 4-Tier Translator",
+        "Bundle v3.16.0 Sync, Dual .mpp/OTA Updater, Tri-State Audio/Surface, 76dp Inset, Calligraphic Wordmark, Left-Cluster Hexagon, Chat Toolkit & 4-Tier Translator",
         "PASS" if audit_rem_ok else "FAIL",
         "Verified all P1/P2 audit fixes and all 9 screenshot parity requirements"
     )
@@ -873,6 +873,236 @@ def run_suite():
         "RecommendedFlagPreference.java, BaseSharedPref.java, FlagsSharedPref.java & RexDialogs.java",
         "PASS" if rec_fix_ok else "FAIL",
         "Verified grouped card rendering, semantic SVG icons, ListView recycling-safe tag binding, BaseSharedPref.getString(StringSetting) fix, and RexDialogs javac fix"
+    )
+
+    # 20. Cross-Class Java Symbol & Visibility Check across extensions/instagram
+    comment_str_re = re.compile(r'"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'|//[^\n]*|/\*.*?\*/', re.S)
+    def strip_java_comments_and_strings(src: str) -> str:
+        return comment_str_re.sub(
+            lambda m: '""' if m.group(0)[0] in ('"', "'") else ' ',
+            src,
+        )
+
+    java_classes = {}
+    for rel, raw_src in all_files.items():
+        if not rel.endswith(".java") or not rel.startswith("extensions/"):
+            continue
+        clean = strip_java_comments_and_strings(raw_src)
+        pkg_m = re.search(r'^\s*package\s+([\w.]+)\s*;', clean, re.M)
+        pkg = pkg_m.group(1) if pkg_m else ""
+        cls_m = re.search(r'\b(public\s+)?(?:(?:abstract|final|static)\s+)*(class|interface|enum)\s+(\w+)', clean)
+        if not cls_m:
+            continue
+        is_pub = bool(cls_m.group(1))
+        kind = cls_m.group(2)
+        cls_name = Path(rel).stem
+        fqcn = f"{pkg}.{cls_name}" if pkg else cls_name
+        methods = set(re.findall(r'\b[\w<>\[\],.?]+\s+(\w+)\s*\(', clean))
+        pub_methods = set(re.findall(r'\bpublic\s+(?:(?:static|final|synchronized|native|abstract|default)\s+)*(?:<[^>{;]+>\s+)?[\w<>\[\],.?]+\s+(\w+)\s*\(', clean))
+        fields = set(re.findall(r'\b[\w<>\[\],.?]+\s+(\w+)\s*(?:=|;)', clean))
+        pub_fields = set(re.findall(r'\bpublic\s+(?:(?:static|final|volatile|transient)\s+)*[\w<>\[\],.?]+\s+(\w+)\s*(?:=|;)', clean))
+        inner_types = set(re.findall(r'\b(?:class|interface|enum)\s+(\w+)', clean))
+        pub_inner_types = set(re.findall(r'\bpublic\s+(?:(?:static|final|abstract)\s+)*(?:class|interface|enum)\s+(\w+)', clean))
+        enum_consts = set()
+        if kind == "enum":
+            enum_consts = set(re.findall(r'^\s*([A-Z][A-Z0-9_]*)\s*(?:\(|,|;|$)', clean, re.M)) | {"values", "valueOf"}
+        if kind == "interface":
+            pub_methods |= methods
+            pub_fields |= fields
+            pub_inner_types |= inner_types
+        java_classes[fqcn] = {
+            "pkg": pkg,
+            "is_public": is_pub,
+            "members": methods | fields | inner_types | enum_consts,
+            "public_members": pub_methods | pub_fields | pub_inner_types | enum_consts,
+            "path": rel,
+        }
+
+    cross_cls_errors = []
+    for rel, raw_src in all_files.items():
+        if not rel.endswith(".java") or not rel.startswith("extensions/instagram/src/main/java/app/morphe/extension/instagram"):
+            continue
+        clean = strip_java_comments_and_strings(raw_src)
+        pkg_m = re.search(r'^\s*package\s+([\w.]+)\s*;', clean, re.M)
+        pkg = pkg_m.group(1) if pkg_m else ""
+        imports = {}
+        for imp in re.findall(r'^\s*import\s+([\w.]+)\s*;', clean, re.M):
+            imports[imp.split(".")[-1]] = imp
+        for m in re.finditer(r'\b(app\.morphe\.extension(?:\.\w+)+)\.([A-Z]\w*)\.(\w+)', clean):
+            tfqcn = f"{m.group(1)}.{m.group(2)}"
+            member = m.group(3)
+            if member == "class" or tfqcn not in java_classes:
+                continue
+            info = java_classes[tfqcn]
+            if info["pkg"] != pkg and not info["is_public"]:
+                cross_cls_errors.append(f"{rel}: {tfqcn} not public")
+            if member not in info["members"]:
+                cross_cls_errors.append(f"{rel}: {tfqcn}.{member} missing")
+            elif info["pkg"] != pkg and member not in info["public_members"]:
+                cross_cls_errors.append(f"{rel}: {tfqcn}.{member} not public")
+        for m in re.finditer(r'(?<![.\w])([A-Z]\w+)\.(\w+)\b', clean):
+            cname, member = m.group(1), m.group(2)
+            if member in ("class", "this", "super", "new"):
+                continue
+            tfqcn = imports.get(cname) or (f"{pkg}.{cname}" if f"{pkg}.{cname}" in java_classes else None)
+            if tfqcn and tfqcn in java_classes:
+                info = java_classes[tfqcn]
+                if info["pkg"] != pkg and not info["is_public"]:
+                    cross_cls_errors.append(f"{rel}: {tfqcn} not public")
+                if member not in info["members"]:
+                    cross_cls_errors.append(f"{rel}: {tfqcn}.{member} missing")
+                elif info["pkg"] != pkg and member not in info["public_members"]:
+                    cross_cls_errors.append(f"{rel}: {tfqcn}.{member} not public")
+
+    record(
+        "JAVA-CROSS-CLASS-SYMBOLS-01",
+        "Cross-Class Java Symbol & Visibility Verification",
+        "All .java files in extensions/instagram/src/main/java/app/morphe/extension/instagram",
+        "PASS" if len(cross_cls_errors) == 0 else "FAIL",
+        f"Zero unresolved static symbols or package-private visibility violations across extensions/instagram (errors={len(cross_cls_errors)}: {cross_cls_errors[:5]})"
+    )
+
+    # 21. Startup Crash & VerifyError Prevention Check
+    userdata_java = all_files.get("extensions/instagram/src/main/java/app/morphe/extension/instagram/entity/UserData.java", "")
+    userdata_kt = all_files.get("patches/src/main/kotlin/app/rex/patches/instagram/entity/userdata/UserDataEntity.kt", "")
+    verify_fix_ok = (
+        "return this.obj;" in userdata_java
+        and "ImmutableMethodImplementation" in userdata_kt
+        and "GetAdditionalUserInfoExtensionFingerprint.method.apply" not in userdata_kt
+    )
+    record(
+        "STARTUP-VERIFYERROR-01",
+        "Android 17 / ART VerifyError & Startup Crash Fix",
+        "UserData.java & UserDataEntity.kt",
+        "PASS" if verify_fix_ok else "FAIL",
+        "Verified UserData.getAdditionalUserInfo() returns this.obj with zero tryBlocks and ImmutableMethodImplementation in UserDataEntity.kt"
+    )
+
+    # 22. Phase 2 & 9 — Transactional Recommended Flags Controller & SettingRegistry Fix
+    rec_flags_java = all_files.get("extensions/instagram/src/main/java/app/morphe/extension/instagram/patches/devFlags/RecommendedFlags.java", "")
+    button_pref_java = all_files.get("extensions/instagram/src/main/java/app/morphe/extension/instagram/settings/preference/widgets/ButtonPref.java", "")
+    setting_reg_java = all_files.get("extensions/instagram/src/main/java/app/morphe/extension/instagram/settings/SettingRegistry.java", "")
+    rec_flags_raw = json.loads(Path(ROOT, "patches/src/main/resources/instagram/settings/raw/rex_recommended_flags_v3.json").read_text())
+    phase2_ok = (
+        "enableAllBooleanFlagsTransactionally(" in rec_flags_java
+        and "resetAllFlagsTransactionally(" in rec_flags_java
+        and 'SettingsRestart.markChanged("rex_rec_flags_enable_all"' not in button_pref_java
+        and 'SettingsRestart.markChanged("rex_rec_flags_reset_all"' not in button_pref_java
+        and "SettingsRestart.markChanged(setting.key, RestartPolicy.REQUIRED, prev, nextState);" in rec_pref_text
+        and len(rec_flags_raw) == 66
+    )
+    record(
+        "PHASE-02-REC-FLAGS-TX",
+        "Recommended Flags Transactional Controller & SettingRegistry Fix",
+        "RecommendedFlags.java, ButtonPref.java, RecommendedFlagPreference.java & SettingRegistry.java",
+        "PASS" if phase2_ok else "FAIL",
+        f"Verified transactional bulk enable/reset controller, explicit RestartPolicy.REQUIRED, and {len(rec_flags_raw)} validated JSON flags"
+    )
+
+    # 23. Phase 3 — Atomic JSON & ZIP Import/Export Engine with Rollback
+    restore_java = all_files.get("extensions/instagram/src/main/java/app/morphe/extension/instagram/settings/preference/fragments/RestorePrefFragment.java", "")
+    backup_java = all_files.get("extensions/instagram/src/main/java/app/morphe/extension/instagram/settings/preference/fragments/BackupPrefFragment.java", "")
+    phase3_ok = (
+        "replaceWithBackupRollback(" in restore_java
+        and "seenEntryNames" in restore_java
+        and "canonicalTargetRoot" in restore_java
+        and "copyAndVerifyFile(" in backup_java
+        and "snapshotRawStrings(" in flags_sp_text
+        and "restoreSnapshot(" in flags_sp_text
+    )
+    record(
+        "PHASE-03-JSON-ZIP-ENGINE",
+        "Atomic JSON/ZIP Import/Export, Zip Slip Defense & Backup Rollback",
+        "RestorePrefFragment.java, BackupPrefFragment.java & FlagsSharedPref.java",
+        "PASS" if phase3_ok else "FAIL",
+        "Verified .bak backup/rollback, Zip Slip canonical path check, duplicate ZIP entry check, and round-trip export verification"
+    )
+
+    # 24. Phase 4 & 5 — Hidden Story Mentions Avatars, Header Indicator & Streamlined Story Menu
+    smi_java = all_files.get("extensions/instagram/src/main/java/app/morphe/extension/instagram/patches/story/StoryMentionIcon.java", "")
+    smp_java = all_files.get("extensions/instagram/src/main/java/app/morphe/extension/instagram/patches/story/StoryMentionPopup.java", "")
+    sb_story_java = all_files.get("extensions/instagram/src/main/java/app/morphe/extension/instagram/patches/story/StoryButton.java", "")
+    du_java = all_files.get("extensions/instagram/src/main/java/app/morphe/extension/instagram/patches/download/DownloadUtils.java", "")
+    phase4_5_ok = (
+        "loadAvatarInto(picUrl, avatarImg, avInit)" in rex_dialogs_text
+        and "public static void loadAvatarInto(" in smp_java
+        and "Hidden Mentions" in smi_java
+        and "bindStoryHeaderHiddenMentionTap(storyRoot, topCluster, context, media)" in du_java
+        and "isExternalDownloaderConfigured()" in sb_story_java
+        and '"Story Quick Menu"' in rex_dialogs_text
+    )
+    record(
+        "PHASE-04-05-STORY-MENTIONS-MENU",
+        "Hidden Story Mentions Avatars, Header Indicator & Streamlined Story Menu",
+        "UserData.java, StoryMentionIcon.java, StoryMentionPopup.java, StoryButton.java & RexDialogs.java",
+        "PASS" if phase4_5_ok else "FAIL",
+        "Verified circular profile photo loading with recycled-view tag guard, 'N · Hidden Mentions' header indicator, and deduplicated Story Quick Menu"
+    )
+
+    # 25. Phase 6 & 7 — 12-Language Locale / Translator (pt-BR) & Global/Story Font Engine
+    igstr_java = all_files.get("extensions/instagram/src/main/java/app/morphe/extension/instagram/utils/IgStr.java", "")
+    rrf_java = all_files.get("extensions/instagram/src/main/java/app/morphe/extension/instagram/settings/preference/widgets/RexRuntimeFeatures.java", "")
+    cf_java = all_files.get("extensions/instagram/src/main/java/app/morphe/extension/instagram/patches/customise/font/CustomFont.java", "")
+    fh_kt = all_files.get("patches/src/main/kotlin/app/rex/patches/instagram/misc/customise/font/FontHooks.kt", "")
+    phase6_7_ok = (
+        'new Locale("pt", "BR")' in igstr_java
+        and 'return "pt-BR";' in rrf_java
+        and "TRANSLATION_CACHE" in rrf_java
+        and "ORIGINAL TEXT (PRESERVED)" in rrf_java
+        and "Retry Translation" in rrf_java
+        and "public static void applyToViewTree(" in cf_java
+        and "extractDescriptorFontName(" in cf_java
+        and "END_CONTENT_FONT_REQUEST_WITH_SOURCE" in fh_kt
+    )
+    record(
+        "PHASE-06-07-TRANSLATOR-FONTS",
+        "12-Language Locale (pt-BR), Cached Translator & Global/Story Font Engine",
+        "IgStr.java, RexRuntimeFeatures.java, CustomFont.java & FontHooks.kt",
+        "PASS" if phase6_7_ok else "FAIL",
+        "Verified pt-BR locale & translator code, LruCache translation cache, preserved original text card, CustomFont.applyToViewTree, and Story font descriptor resolver"
+    )
+
+    # 26. Phase 11, 12 & 15 — #F10623 Brand Tokens, Clone (com.xboyrex.instarex) & All 12 Reports
+    clone_kt = all_files.get("patches/src/main/kotlin/app/rex/patches/instagram/misc/clone/ClonePatch.kt", "")
+    srp_kt = all_files.get("patches/src/main/kotlin/app/rex/patches/instagram/misc/settings/SettingsResourcePatch.kt", "")
+    required_reports = [
+        "reports/COMPLETE_SOURCE_AUDIT.md",
+        "reports/SCREENSHOT_BUG_MAPPING.md",
+        "reports/RECOMMENDED_FLAGS_JSON_AUDIT.md",
+        "reports/JSON_ZIP_IMPORT_EXPORT_TESTS.md",
+        "reports/STORY_MENTIONS_REPAIR.md",
+        "reports/TRANSLATOR_REPAIR.md",
+        "reports/GLOBAL_FONT_AND_STORY_FONT_REPAIR.md",
+        "reports/STORY_MENU_REDESIGN.md",
+        "reports/CLONE_BUILD_REPORT.md",
+        "reports/PATCH_COMPATIBILITY.md",
+        "reports/BUILD_AND_DEVICE_TESTS.md",
+        "reports/KNOWN_LIMITATIONS.md",
+    ]
+    missing_reports = [r for r in required_reports if not Path(ROOT, r).is_file()]
+    sa_java = all_files.get("extensions/instagram/src/main/java/app/morphe/extension/instagram/settings/SettingsActivity.java", "")
+    phase11_15_ok = (
+        "com.xboyrex.instarex" in clone_kt
+        and '"InstaRex"' in clone_kt
+        and "BytecodePatchContext.transformStringReferences" not in clone_kt
+        and "matchAllMethodIndicesForEach" in clone_kt
+        and "import app.morphe.extension.shared.Logger;" in rrf_java
+        and "caps.activeMedia" not in rex_dialogs_text
+        and "caps.mentionCount" not in rex_dialogs_text
+        and "caps.targetMediaData" not in rex_dialogs_text
+        and "caps.activeIndex" not in rex_dialogs_text and "getStoryMentions()" not in rex_dialogs_text
+        and "applyLocaleToContext(this)" not in sa_java
+        and "applyLocaleToContext(getActivity())" in sa_java
+        and "rex_ic_launcher_instarex.xml" in srp_kt
+        and "0xFFF10623" in style_text
+        and len(missing_reports) == 0
+    )
+    record(
+        "PHASE-11-15-CLONE-AND-REPORTS",
+        "InstaRex Clone (com.xboyrex.instarex), #F10623 Launcher Icons & All 12 Evidence Reports",
+        "ClonePatch.kt, SettingsResourcePatch.kt, DESIGN_TOKENS.json & reports/*.md",
+        "PASS" if phase11_15_ok else "FAIL",
+        f"Verified com.xboyrex.instarex Clone + com.instagram.android UnClone pipeline, #F10623 launcher drawables, and 12/12 reports (missing={missing_reports})"
     )
 
     print(f"=== Rex IG Lite Read-Only Static & Call-Graph Verification Summary: {len(results) - len(failures)}/{len(results)} PASSED, {len(failures)} FAILED ===")

@@ -1,0 +1,225 @@
+#!/usr/bin/env python3
+"""
+Sends a Telegram release notification with formatted changelog.
+"""
+
+import html
+import json
+import os
+import re
+import subprocess
+import sys
+import urllib.error
+import urllib.parse
+import urllib.request
+from typing import Optional
+
+TELEGRAM_MAX_MESSAGE_LENGTH = 4096
+
+
+def markdown_to_telegram_html(text: str) -> str:
+    """Converts basic markdown from semantic-release notes to Telegram-safe HTML."""
+    if not text:
+        return ""
+
+    text = html.escape(text.strip())
+    # Remove redundant top-level version header: ## [1.13.0](...) (...)
+    text = re.sub(r"^##\s+\[.*?\].*?$", "", text, flags=re.MULTILINE)
+    # Convert headers (### Section -> <b>Section</b>)
+    text = re.sub(r"^#{1,6}\s+(.+)$", r"<b>\1</b>", text, flags=re.MULTILINE)
+    # Convert bold (**text** -> <b>text</b>)
+    text = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", text)
+    # Convert markdown links ([text](url) -> <a href="url">text</a>)
+    text = re.sub(r"\[(.*?)\]\((https?://[^\s)]+)\)", r'<a href="\2">\1</a>', text)
+    # Convert bullet points (* text -> • text)
+    text = re.sub(r"^\*\s+", "• ", text, flags=re.MULTILINE)
+    # Convert inline code (`code` -> <code>code</code>)
+    text = re.sub(r"`([^`]+)`", r"<code>\1</code>", text)
+    # Remove excessive blank lines
+    text = re.sub(r"\n{3,}", "\n\n", text).strip()
+    return text
+
+
+def truncate_telegram_html(body: str, max_len: int) -> str:
+    """Truncates HTML changelog by atomic lines ensuring valid HTML tags within budget."""
+    if len(body) <= max_len:
+        return body
+
+    notice = "\n\n<i>(Changelog truncated, see GitHub release)</i>"
+    budget = max_len - len(notice)
+    if budget <= 0:
+        return notice.strip()
+
+    lines = body.split("\n")
+    collected = []
+    current_len = 0
+
+    for line in lines:
+        needed = len(line) if not collected else len(line) + 1
+        if current_len + needed > budget:
+            break
+        collected.append(line)
+        current_len += needed
+
+    while collected:
+        last = collected[-1].strip()
+        if not last or (last.startswith("<b>") and last.endswith("</b>") and not last.startswith("•")):
+            collected.pop()
+        else:
+            break
+
+    truncated_body = "\n".join(collected).strip()
+    return f"{truncated_body}{notice}"
+
+
+def build_message(
+    version: str,
+    tag: str,
+    notes: str,
+    repo: str,
+    morphe_source_url: Optional[str] = None,
+) -> str:
+    display_tag = tag if tag else f"v{version}"
+    header = f"<b>New Release: Morphe Patches {display_tag}</b>\n\n"
+
+    body = markdown_to_telegram_html(notes)
+
+    if not morphe_source_url and repo:
+        morphe_source_url = f"https://morphe.software/add-source?github={repo}"
+
+    links = []
+    if repo:
+        release_url = f"https://github.com/{repo}/releases/tag/{display_tag}"
+        links.append(f'<a href="{release_url}">View on GitHub</a>')
+    if morphe_source_url:
+        links.append(f'<a href="{morphe_source_url}">Add to Morphe Manager</a>')
+
+    footer = "\n\n" + "\n".join(links) if links else ""
+
+    fixed_len = len(header) + len(footer)
+    max_body_len = TELEGRAM_MAX_MESSAGE_LENGTH - fixed_len
+
+    truncated_body = truncate_telegram_html(body, max_body_len)
+    return f"{header}{truncated_body}{footer}".strip()
+
+
+def send_telegram_message(token: str, chat_id: str, text: str):
+    url = f"https://api.telegram.org/bot{token}/sendMessage"
+    payload = {
+        "chat_id": chat_id,
+        "text": text,
+        "parse_mode": "HTML",
+        "disable_web_page_preview": True,
+    }
+    data = json.dumps(payload).encode("utf-8")
+    req = urllib.request.Request(
+        url,
+        data=data,
+        headers={"Content-Type": "application/json"},
+    )
+    with urllib.request.urlopen(req) as resp:
+        return json.loads(resp.read().decode("utf-8"))
+
+
+def sanitize_chat_id(chat_id: str) -> str:
+    chat_id = chat_id.strip()
+    match = re.search(r"(?:https?://)?t\.me/([a-zA-Z0-9_]+)/?$", chat_id)
+    if match:
+        return f"@{match.group(1)}"
+    if not chat_id.startswith(("-", "@")) and not chat_id.lstrip("-").isdigit():
+        return f"@{chat_id}"
+    return chat_id
+
+
+def extract_latest_from_changelog():
+    if not os.path.isfile("CHANGELOG.md"):
+        return "", "", ""
+    try:
+        with open("CHANGELOG.md", "r", encoding="utf-8") as f:
+            content = f.read()
+        match = re.search(
+            r"^##\s+\[([0-9.]+)\](?:\((.*?)\))?.*?\n(.*?)(?=\n##\s+\[|\Z)",
+            content,
+            re.DOTALL | re.MULTILINE,
+        )
+        if match:
+            version = match.group(1)
+            notes = match.group(3).strip()
+            tag = f"v{version}"
+            return version, tag, notes
+    except Exception:
+        pass
+    return "", "", ""
+
+
+def get_repo_from_git() -> str:
+    try:
+        cmd = ["git", "remote", "get-url", "origin"]
+        res = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        # `res.stdout` was never read: the search used an undefined `url`, so this
+        # function raised NameError on every call and always fell back to "".
+        url = res.stdout.strip()
+        m = re.search(r"github\.com(?::\d+)?[:/]([a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+?)(?:\.git)?$", url)
+        if m:
+            return m.group(1)
+    except Exception:
+        pass
+    return ""
+
+
+def main():
+    token = os.environ.get("TELEGRAM_BOT_TOKEN")
+    chat_id = os.environ.get("TELEGRAM_CHAT_ID")
+    version = os.environ.get("RELEASE_VERSION", "")
+    tag = os.environ.get("RELEASE_TAG", "")
+    notes = os.environ.get("RELEASE_NOTES", "")
+    repo = os.environ.get("GITHUB_REPOSITORY", "")
+    dry_run = os.environ.get("TELEGRAM_DRY_RUN", "").lower() in ("1", "true", "yes")
+
+    if not version or not notes:
+        cl_version, cl_tag, cl_notes = extract_latest_from_changelog()
+        if not version:
+            version = cl_version
+        if not tag:
+            tag = cl_tag
+        if not notes:
+            notes = cl_notes
+
+    if not repo:
+        repo = get_repo_from_git() or "kveld9/kveld-morphe-patches"
+
+    if not token or not chat_id:
+        print(
+            "::warning::TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID not provided. Skipping Telegram notification."
+        )
+        return
+
+    chat_id = sanitize_chat_id(chat_id)
+    default_morphe_url = f"https://morphe.software/add-source?github={repo}"
+    morphe_url = os.environ.get(
+        "MORPHE_SOURCE_URL",
+        default_morphe_url,
+    )
+    message = build_message(version, tag, notes, repo, morphe_source_url=morphe_url)
+
+    if dry_run:
+        print("=== DRY RUN: TELEGRAM MESSAGE ===")
+        print(message)
+        print("================================")
+        return
+
+    try:
+        print("Sending Telegram release notification...")
+        send_telegram_message(token, chat_id, message)
+        print("Telegram notification sent successfully.")
+    except urllib.error.HTTPError as e:
+        error_body = e.read().decode("utf-8", errors="replace")
+        print(f"Error sending Telegram message: {e} - {error_body}", file=sys.stderr)
+        sys.exit(1)
+    except Exception as e:
+        print(f"Error sending Telegram message: {e}", file=sys.stderr)
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

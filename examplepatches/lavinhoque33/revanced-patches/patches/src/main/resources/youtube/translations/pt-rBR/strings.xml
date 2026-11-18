@@ -1937,8 +1937,6 @@ Toque e segure para copiar a marcação de tempo do vídeo"</string>
     <string name="revanced_overlay_button_copy_video_url_title">Exibir botão copiar URL do vídeo</string>
     <string name="revanced_overlay_button_external_downloader_queue_manager_summary">Ao invés de lançar um downloader externo, abra o gerenciador de filas</string>
     <string name="revanced_overlay_button_external_downloader_queue_manager_title">Gerenciador de fila</string>
-    <string name="revanced_overlay_button_external_downloader_summary">Toque para iniciar o aplicativo de download externo</string>
-    <string name="revanced_overlay_button_external_downloader_title">Exibir botão de download externo</string>
     <string name="revanced_overlay_button_gemini_about_summary">"O processamento do vídeo pode demorar um pouco, dependendo da duração. A transcrição de vídeos longos pode exceder os limites do Gemini
 
 As respostas geradas por IA podem conter informações imprecisas
@@ -2590,9 +2588,6 @@ A maioria dos bugs não podem ser corrigidos devido a limitações no lado do cl
     <string name="revanced_shorts_custom_actions_copy_video_url_timestamp_title">Exibir menu copiar URL com marcação de tempo</string>
     <string name="revanced_shorts_custom_actions_copy_video_url_title">Exibir menu copiar URL do vídeo</string>
     <string name="revanced_shorts_custom_actions_external_downloader_label">Download</string>
-    <string name="revanced_shorts_custom_actions_external_downloader_summary_off">O menu Download externo está oculto</string>
-    <string name="revanced_shorts_custom_actions_external_downloader_summary_on">O menu Download externo será exibido</string>
-    <string name="revanced_shorts_custom_actions_external_downloader_title">Exibir menu de download externo</string>
     <string name="revanced_shorts_custom_actions_gemini_label">Resumo do Gemini</string>
     <string name="revanced_shorts_custom_actions_gemini_summary_off">A ação de resumo do Gemini fica oculta no menu de ações personalizadas do Shorts</string>
     <string name="revanced_shorts_custom_actions_gemini_summary_on">A ação de resumo do Gemini é exibida no menu de ações personalizadas do Shorts</string>

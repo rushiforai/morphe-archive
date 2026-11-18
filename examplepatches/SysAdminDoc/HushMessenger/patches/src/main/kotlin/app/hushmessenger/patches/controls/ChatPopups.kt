@@ -1,12 +1,13 @@
 package app.hushmessenger.patches.controls
 
+import app.hushmessenger.patches.MessengerTarget
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.mutableClassDefBy
+import app.morphe.patcher.patch.patch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
-import app.hushmessenger.patches.MessengerTarget
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -125,7 +126,7 @@ internal fun MutableMethod.injectChatChannelKeep() {
 }
 
 @Suppress("unused")
-val keepChatPopupsPatch = bytecodePatch(
+val keepChatPopupsPatch = patch(
     name = "Keep chat pop-ups",
     description = "Messenger can turn off message pop-ups for good when it expects a chat head to show. This stops that and brings them back on a phone where it already happened, unless you lowered them yourself in Android's settings or picked Chat heads under Allow chat bubbles.",
     default = true,

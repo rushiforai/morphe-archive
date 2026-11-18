@@ -1,4 +1,4 @@
-# INSTA REX (`Rex IG Lite` v3.15.0) — GOD-LEVEL MASTER PROMPT FOR GEMINI / ANTIGRAVITY
+# INSTA REX (`Rex IG Lite` v3.16.0) — GOD-LEVEL MASTER PROMPT FOR GEMINI / ANTIGRAVITY
 
 * **Target Repository**: [xboyrex/rex-ig-lite](https://github.com/xboyrex/rex-ig-lite) ([Releases](https://www.google.com/search?q=https://github.com/xboyrex/rex-ig-lite/releases))
 
@@ -11,7 +11,7 @@
 ## 1. ROLE & EXECUTION MODE
 
 Act as a **Principal Android UI/UX Architect, Reverse Engineering Specialist, Senior Java/Kotlin Systems Engineer, and Media Pipeline Lead**.
-Execute a complete, production-grade implementation across **InstaRex (`Rex IG Lite` v3.15.0)** so every screen, toolbar button, popup sheet, Color Mode, and MobileConfig preset matches the 28 reference screenshots (`Screenshot_20261117-121210_InstaPrime.png` through `Screenshot_20261117-122448_InstaPrime.png`) with **100% Tabler Icon coverage** and **zero paywalls/crown locks**.
+Execute a complete, production-grade implementation across **InstaRex (`Rex IG Lite` v3.16.0)** so every screen, toolbar button, popup sheet, Color Mode, and MobileConfig preset matches the 28 reference screenshots (`Screenshot_20261117-121210_InstaPrime.png` through `Screenshot_20261117-122448_InstaPrime.png`) with **100% Tabler Icon coverage** and **zero paywalls/crown locks**.
 
 ## 2. MANDATORY SCREEN-SPECIFIC DUAL & TRIPLE SHORTCUTS + IN-PLACE QUICK SETTINGS
 

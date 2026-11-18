@@ -4,6 +4,7 @@
  */
 package app.morphe.patches.telegram.misc.messagemenu
 
+import app.morphe.PlusPending
 import app.morphe.util.names.origParameterTypes
 import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
@@ -43,6 +44,7 @@ import app.morphe.util.names.origReturnType
 import app.morphe.util.names.tgMutableClassDefBy
 
 /** The menu builder's return, the choice handler's entry, the forward the stubs send with, and the runtime. */
+@PlusPending
 class MessageMenuFixtureTest {
     private val list = "Ljava/util/ArrayList;"
     private val fixed = setOf(

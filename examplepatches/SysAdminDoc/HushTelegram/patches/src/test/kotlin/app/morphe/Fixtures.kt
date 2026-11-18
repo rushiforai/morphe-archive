@@ -51,14 +51,14 @@ internal object Fixtures {
 
     /** Every retained APK of a declared Telegram distribution. */
     fun apks(): List<File> = files { file -> file.extension == "apk" &&
-        AppCompatibilities.telegram().any { file.name.startsWith("${prefix(it.packageName)}-") } }
+        distributions().any { file.name.startsWith("${prefix(it.packageName)}-") } }
 
     /**
      * The exact universal APK of every declared package, version and code. A web fixture cannot
      * stand in for the Play build, and a different code of the same version cannot prove either build.
      */
     fun declaredBuilds(): List<File> =
-        AppCompatibilities.telegram().flatMap { compatibility ->
+        distributions().flatMap { compatibility ->
             compatibility.targets.flatMap { target ->
                 val version = checkNotNull(target.version)
                 val codes = checkNotNull(target.versionCodes).values.toSet()
@@ -70,6 +70,22 @@ internal object Fixtures {
     fun prefix(packageName: String?): String = when (packageName) {
         AppCompatibilities.TELEGRAM_PACKAGE -> "telegram-play"
         AppCompatibilities.TELEGRAM_WEB_PACKAGE -> "telegram-web"
+        AppCompatibilities.PLUS_PACKAGE -> "plus"
         else -> error("No vendor fixture naming rule for $packageName")
     }
+
+    private val callers = StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE)
+
+    /** Every declared distribution, less Plus Messenger when a [PlusPending] test class is asking. */
+    private fun distributions() = if (callers.walk { frames -> frames.anyMatch { frame ->
+            generateSequence(frame.declaringClass) { it.enclosingClass }.last().isAnnotationPresent(PlusPending::class.java) } })
+        AppCompatibilities.telegramOnly() else AppCompatibilities.telegram()
 }
+
+/**
+ * A fixture test of patches that are still `telegramOnly()`, whose sites Plus Messenger lays out
+ * another way. [Fixtures] leaves the Plus build out of it until those patches are read against Plus.
+ */
+@Target(AnnotationTarget.CLASS)
+@Retention(AnnotationRetention.RUNTIME)
+internal annotation class PlusPending

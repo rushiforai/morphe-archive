@@ -501,6 +501,15 @@ Entry %1$d has a field with the wrong data type.	รายการ %1$d มี�
 Entry %1$d isn't an object.	รายการ %1$d ไม่ใช่ออบเจ็กต์
 Errors	ข้อผิดพลาด
 Expand activity list	ขยายรายการกิจกรรม
+Group likes per comment	รวมยอดถูกใจตามความคิดเห็น
+Show one row for each comment or video people liked, with everyone who liked it counted, instead of a new row for every few likes. Applies the next time the Likes list loads.	แสดงหนึ่งแถวต่อความคิดเห็นหรือวิดีโอที่มีคนกดถูกใจ โดยนับทุกคนที่กดถูกใจ แทนที่จะขึ้นแถวใหม่ทุกครั้งที่ได้ถูกใจไม่กี่ครั้ง มีผลเมื่อโหลดรายการถูกใจครั้งถัดไป
+Swap lists	สลับรายการ
+Split the Activity page	แบ่งหน้ากิจกรรม
+Show your newest comments at the top of the Activity page and likes below, each scrolling on its own. The bar between them swaps the two lists or hides the lower one until you bring it back. Picking another list from Activity still shows just that list. Applies the next time the page opens.	แสดงความคิดเห็นล่าสุดของคุณไว้ด้านบนของหน้ากิจกรรมและยอดถูกใจไว้ด้านล่าง โดยเลื่อนแยกกันได้ แถบระหว่างสองรายการจะสลับรายการ หรือซ่อนรายการล่างไว้จนกว่าคุณจะแสดงอีกครั้ง หากเลือกรายการอื่นจากกิจกรรม ก็จะยังแสดงเฉพาะรายการนั้น มีผลเมื่อเปิดหน้านี้ครั้งถัดไป
+Hide likes	ซ่อนยอดถูกใจ
+Show likes	แสดงยอดถูกใจ
+Hide comments	ซ่อนความคิดเห็น
+Show comments	แสดงความคิดเห็น
 Explore or Community	สำรวจหรือชุมชน
 Export diagnostic report	ส่งออกรายงานการวินิจฉัย
 Export loaded values	ส่งออกค่าที่โหลดแล้ว
@@ -530,6 +539,8 @@ Filters, translation and copy options	ตัวเลือกตัวกรอ
 First caller	ผู้เรียกแรก
 First rejection:	การปฏิเสธแรก:
 Fit the video to the screen	ปรับวิดีโอให้พอดีกับหน้าจอ
+Fill a tall screen instead	เติมเต็มหน้าจอสูงแทน
+With the switch above on, the video is cropped to fill a tall screen like a folding phone's front screen. A squarer one, like the big screen opened up, still shows the whole video.	เมื่อเปิดสวิตช์ด้านบน วิดีโอจะถูกครอปให้เต็มหน้าจอสูงอย่างหน้าจอด้านนอกของโทรศัพท์พับได้ ส่วนหน้าจอที่เกือบเป็นสี่เหลี่ยมจัตุรัสอย่างหน้าจอใหญ่ตอนกางออกยังคงแสดงวิดีโอทั้งหมด
 Fill the screen with the video	แสดงวิดีโอเต็มหน้าจอ
 Crop the video until it covers the whole window. On a tall phone the black strip TikTok leaves under a video goes and so does a little of each side.	ครอปวิดีโอจนครอบคลุมทั้งหน้าต่าง บนโทรศัพท์จอสูง แถบสีดำที่ TikTok แสดงไว้ใต้วิดีโอจะหายไป รวมถึงขอบด้านข้างเล็กน้อยด้วย
 Focus	โฟกัส
@@ -1436,6 +1447,27 @@ TikTok closed three times within a minute of starting, so Hushfeed paused itself
 A file named hushfeed-safe-mode in TikTok's folder under Android/data paused Hushfeed. Your settings stay as they are.	ไฟล์ชื่อ hushfeed-safe-mode ในโฟลเดอร์ของ TikTok ภายใต้ Android/data ทำให้ Hushfeed หยุดทำงานชั่วคราว การตั้งค่าของคุณจะยังคงเหมือนเดิม
 Turn Hushfeed back on	เปิด Hushfeed อีกครั้ง
 Pause Hushfeed	หยุด Hushfeed ชั่วคราว
+Settings theme	ธีมของการตั้งค่า
+Hushfeed language	ภาษาของ Hushfeed
+For Hushfeed's settings and messages. TikTok keeps its own language.	สำหรับการตั้งค่าและข้อความของ Hushfeed ส่วน TikTok ยังใช้ภาษาของตัวเอง
+# context: the rows below are each language's own name in the Hushfeed language list, kept as they are in every table
+English	English
+العربية	العربية
+Azərbaycan dili	Azərbaycan dili
+Deutsch	Deutsch
+Español	Español
+Bahasa Indonesia	Bahasa Indonesia
+Italiano	Italiano
+Português (Brasil)	Português (Brasil)
+Русский	Русский
+ไทย	ไทย
+Türkçe	Türkçe
+Tiếng Việt	Tiếng Việt
+简体中文	简体中文
+Match TikTok	ตาม TikTok
+Always dark	มืดเสมอ
+Always light	สว่างเสมอ
+Colors these settings and Hushfeed's own pop-ups.	กำหนดสีของการตั้งค่านี้และป๊อปอัปของ Hushfeed เอง
 Pause Hushfeed's switches after TikTok restarts. Your settings stay saved. Changes made when you patched, like the app's name or icon, stay.	หยุดสวิตช์ของ Hushfeed ชั่วคราวหลังจาก TikTok รีสตาร์ท การตั้งค่าของคุณจะยังคงบันทึกไว้ การเปลี่ยนแปลงที่ทำตอนแพตช์ เช่น ชื่อหรือไอคอนของแอป จะยังคงอยู่
 Hushfeed turns back on when TikTok restarts.	Hushfeed จะเปิดกลับมาทำงานอีกครั้งเมื่อ TikTok รีสตาร์ท
 The file hushfeed-safe-mode couldn't be removed. Delete it from TikTok's folder under Android/data to turn Hushfeed back on.	ไม่สามารถลบไฟล์ hushfeed-safe-mode ได้ โปรดลบไฟล์ดังกล่าวออกจากโฟลเดอร์ของ TikTok ภายใต้ Android/data เพื่อเปิด Hushfeed อีกครั้ง
@@ -1821,6 +1853,8 @@ Hide the Service+ row under LIVE previews	ซ่อนแถว Service+ ใต�
 A LIVE in the feed can show a Service+ line under the creator's name, such as Ask me anything. This keeps it hidden.	LIVE ในฟีดอาจแสดงแถว Service+ ใต้ชื่อครีเอเตอร์ เช่น ถามฉันได้ทุกอย่าง การตั้งค่านี้จะซ่อนแถวดังกล่าวไว้
 Play sounds TikTok pulled	เล่นเสียงที่ TikTok ลบออก
 Play the audio on videos TikTok silenced because their sound was pulled for copyright or in your region. TikTok may still say the sound isn't available.	เล่นเสียงในวิดีโอที่ TikTok ปิดเสียงไว้เนื่องจากเสียงถูกนำออกเพราะลิขสิทธิ์หรือไม่มีให้บริการในภูมิภาคของคุณ TikTok อาจยังคงระบุว่าเสียงนั้นไม่พร้อมใช้งาน
+Play original audio	เล่นเสียงต้นฉบับ
+Play videos and mini dramas in their own language instead of TikTok's AI dub in your app language. Captions and translations stay as they are.	เล่นวิดีโอและมินิซีรีส์ด้วยภาษาต้นฉบับแทนเสียงพากย์ AI ของ TikTok ในภาษาของแอป คำบรรยายและคำแปลยังคงเหมือนเดิม
 Match region fields in requests	จับคู่ฟิลด์ภูมิภาคในคำขอ
 Keep the For You feed on your real SIM	ให้ฟีดสำหรับคุณใช้ข้อมูลจาก SIM จริงของคุณ
 With the SIM changed, TikTok can keep showing videos you've already watched. Turn this on to stop that. Sticker search and the rest of TikTok still see the SIM above, while For You asks for videos with your phone's own SIM country and carrier. Your IP address and account history still count.	เมื่อเปลี่ยน SIM ทาง TikTok อาจแสดงวิดีโอที่คุณเคยดูแล้วซ้ำๆ ให้เปิดการตั้งค่านี้เพื่อหยุดสิ่งนั้น การค้นหาสติกเกอร์และส่วนอื่นๆ ของ TikTok จะยังคงเห็น SIM ข้างต้น ขณะที่ฟีดสำหรับคุณจะขอรับวิดีโอตามประเทศและผู้ให้บริการของ SIM ในโทรศัพท์ของคุณเอง ที่อยู่ IP และประวัติบัญชีของคุณจะยังคงถูกนำมาพิจารณาตามปกติ
@@ -1836,6 +1870,10 @@ Clear screen hides a LIVE's chat, gifts and buttons so only the stream shows. Ti
 Keep clear screen in the next LIVE	คงการล้างหน้าจอไว้ใน LIVE ถัดไป
 # context: summary of Keep clear screen in the next LIVE; a room is a LIVE stream page, swiping moves to the next one (#354)
 A LIVE you swipe to comes back with its chat, gifts and buttons showing. This keeps clear screen on from room to room until you turn it off.	LIVE ที่คุณปัดไปจะกลับมาแสดงแชท ของขวัญ และปุ่มต่างๆ การตั้งค่านี้จะคงการล้างหน้าจอไว้อย่างต่อเนื่องจากห้องหนึ่งไปยังอีกห้องหนึ่งจนกว่าคุณจะปิด
+# context: LIVE settings row under Keep clear screen in the next LIVE; adds TikTok's full screen button (turns the phone sideways for a wide stream) to LIVE rooms that lack it (#57)
+Offer full screen in more LIVEs	เพิ่มตัวเลือกเต็มหน้าจอใน LIVE อื่นๆ
+# context: summary of Offer full screen in more LIVEs; streamed from a computer means TikTok LIVE Studio, a wide video is a landscape stream (#57)
+TikTok shows its full screen button only in LIVEs streamed from a computer or a shared screen. This shows it in every other LIVE with a wide video.	TikTok แสดงปุ่มเต็มหน้าจอเฉพาะใน LIVE ที่สตรีมจากคอมพิวเตอร์หรือจากหน้าจอที่แชร์ ตัวเลือกนี้จะแสดงปุ่มใน LIVE อื่นทุกห้องที่มีวิดีโอแนวกว้าง
 Dark LIVE panels in dark mode	พาเนล LIVE สีมืดในโหมดมืด
 With TikTok in dark mode, a LIVE room still opens its share menu, fan club and other panels in light colors. This opens them dark.	แม้ TikTok จะอยู่ในโหมดมืด ห้อง LIVE ก็ยังคงเปิดเมนูแชร์ แฟนคลับ และพาเนลอื่นๆ ในธีมสีสว่าง การตั้งค่านี้จะเปิดพาเนลเหล่านั้นเป็นธีมสีมืด
 Keep watching in a small window	ดูต่อในหน้าต่างขนาดเล็ก
@@ -2247,6 +2285,8 @@ Show the time zone	แสดงเขตเวลา
 Puts your time zone after the time to the second, like EDT.	แสดงเขตเวลาของคุณต่อท้ายเวลาแบบระบุวินาที เช่น EDT
 Short date	วันที่แบบสั้น
 Writes the date before the time to the second the short way your language does, like 10/7/25.	แสดงวันที่ก่อนเวลาแบบระบุวินาทีในรูปแบบสั้นตามภาษาของคุณ เช่น 10/7/25
+Day before month	วันก่อนเดือน
+Writes TikTok's date by the creator's name day first, like 29.09, with the year after it for an older video. Ages like 2d ago stay as they are.	เขียนวันที่ของ TikTok ข้างชื่อครีเอเตอร์โดยขึ้นต้นด้วยวัน เช่น 29.09 และต่อท้ายด้วยปีสำหรับวิดีโอที่เก่ากว่า อายุอย่าง 2 วันที่แล้ว ยังคงเหมือนเดิม
 Color commenter names	ใส่สีชื่อผู้แสดงความคิดเห็น
 Give each commenter's name a color of its own, the same one every time you see that account, so a long thread is easier to follow.	กำหนดสีเฉพาะให้กับชื่อของผู้แสดงความคิดเห็นแต่ละคน โดยจะใช้สีเดิมทุกครั้งที่คุณเห็นบัญชีนั้น เพื่อให้ติดตามเธรดขนาดยาวได้ง่ายขึ้น
 Show the country as a flag	แสดงประเทศเป็นรูปธง
@@ -2296,6 +2336,8 @@ How much of the video shows through the glass pill on the main feed. Most see-th
 On the main feed, a raised bubble of glass sits behind the tab you're on and slides to the next tab you pick. Works on any bottom bar, with or without Liquid glass look.	ในฟีดหลัก ฟองกระจกนูนจะปรากฏอยู่ด้านหลังแท็บที่คุณใช้งานอยู่และเลื่อนไปยังแท็บถัดไปที่คุณเลือก ใช้ได้กับแถบด้านล่างทุกแบบ ไม่ว่าจะเปิดรูปลักษณ์ Liquid glass หรือไม่
 Slide across the tabs	เลื่อนผ่านแท็บต่างๆ
 On the main feed, slide a finger along the tabs and the lens follows it. Let go and that tab opens. Taps and long presses work as before. Needs Glass lens on the current tab.	ในฟีดหลัก ให้เลื่อนนิ้วไปตามแท็บแล้วเลนส์จะเลื่อนตาม เมื่อปล่อยนิ้ว แท็บนั้นจะเปิดขึ้น การแตะและการกดค้างจะยังคงใช้งานได้ตามปกติ จำเป็นต้องเปิดใช้เลนส์กระจกบนแท็บปัจจุบัน
+Liquid glass when held	กระจกเหลวเมื่อกดค้าง
+On the main feed, hold a finger on the tabs and the glass lens swells, then wobbles back when you let go. With Blur the video behind the bar on Android 13 and up, the video under it bends harder and splits into color at its edge. Needs Glass lens on the current tab.	ในฟีดหลัก ให้กดนิ้วค้างไว้บนแท็บ แล้วเลนส์กระจกจะพองขึ้น และเด้งกลับเมื่อปล่อยนิ้ว เมื่อเปิดเบลอวิดีโอด้านหลังแถบบน Android 13 ขึ้นไป วิดีโอใต้เลนส์จะโค้งงอมากขึ้นและแยกเป็นสีที่ขอบ จำเป็นต้องเปิดใช้เลนส์กระจกบนแท็บปัจจุบัน
 Haptics on the tabs	การสั่นตอบสนองบนแท็บ
 On the main feed, a light tick each time the glass lens passes a tab, as it slides after a tap or under your finger. Needs Glass lens on the current tab.	ในฟีดหลัก จะมีการสั่นเบาๆ ทุกครั้งที่เลนส์กระจกเลื่อนผ่านแท็บ ไม่ว่าจะเลื่อนหลังจากการแตะหรือเลื่อนตามนิ้วของคุณ จำเป็นต้องเปิดใช้เลนส์กระจกบนแท็บปัจจุบัน
 Haptic style	รูปแบบการสั่นตอบสนอง
@@ -2452,6 +2494,8 @@ search suggestions	คำแนะนำการค้นหา
 AI chat	แชท AI
 AI Tako	AI Tako
 save photos	บันทึกรูปภาพ
+download button	ปุ่มดาวน์โหลด ดาวน์โหลด
+It's in %1$s, under %2$s. Tap to go there.	อยู่ใน %1$s ใต้ %2$s แตะเพื่อไปที่นั่น
 Lock the feed at set times	ล็อกฟีดตามเวลาที่กำหนด
 The feed locks by itself during these hours, on your phone's clock. Write days and hours like Mon-Fri 21:00-07:00; Sat Sun 13:00-15:00. Leave the days out for every day. A time that ends earlier than it starts runs past midnight.	ฟีดจะล็อกโดยอัตโนมัติในช่วงเวลาเหล่านี้ตามนาฬิกาของโทรศัพท์คุณ ระบุวันและเวลา เช่น Mon-Fri 21:00-07:00; Sat Sun 13:00-15:00 ไม่ต้องระบุวันหากต้องการให้มีผลทุกวัน เวลาที่สิ้นสุดเร็วกว่าเวลาเริ่มต้นจะครอบคลุมข้ามเที่ยงคืน
 Couldn't read %1$s. Write days and hours like Mon-Fri 21:00-07:00.	ไม่สามารถอ่าน %1$s ได้ ระบุวันและเวลา เช่น Mon-Fri 21:00-07:00
@@ -2517,6 +2561,16 @@ Proxy %1$s needs a user name and password	พร็อกซี %1$s ต้อ�
 Proxy %1$s refused your user name or password	พร็อกซี %1$s ปฏิเสธชื่อผู้ใช้หรือรหัสผ่านของคุณ
 Save this video	บันทึกวิดีโอนี้
 Show the save button on videos	แสดงปุ่มบันทึกบนวิดีโอ
+Hold TikTok's save button to download	กดปุ่มบันทึกของ TikTok ค้างไว้เพื่อดาวน์โหลด
+Press and hold the save button in the right column to save the video with your download settings. A tap still adds it to Favorites. It wins over Hold speed on Favorites.	กดปุ่มบันทึกในคอลัมน์ขวาค้างไว้เพื่อบันทึกวิดีโอตามการตั้งค่าดาวน์โหลดของคุณ แตะครั้งเดียวยังเพิ่มลงในรายการโปรดเหมือนเดิม โดยจะมีผลเหนือ ความเร็วเมื่อกดค้างที่รายการโปรด
+Size of the buttons on videos	ขนาดของปุ่มบนวิดีโอ
+Size of the LIVE buttons	ขนาดของปุ่ม LIVE
+Smallest	เล็กที่สุด
+Small	เล็ก
+Large	ใหญ่
+Line them up over the right column	เรียงไว้เหนือคอลัมน์ขวา
+Stack the buttons above TikTok's own on the right, starting over the avatar. They follow the column instead of staying where you dragged them.	เรียงปุ่มซ้อนเหนือปุ่มของ TikTok ทางขวา เริ่มจากเหนือรูปโปรไฟล์ ปุ่มจะตามคอลัมน์ไปแทนที่จะอยู่ตรงที่คุณลากไว้
+Turn off Line them up over the right column to move it	ปิด เรียงไว้เหนือคอลัมน์ขวา เพื่อย้ายปุ่มนี้
 Add a button beside the block control that saves the video on screen in one tap. Drag it wherever you like.	เพิ่มปุ่มข้างการควบคุมการบล็อกเพื่อบันทึกวิดีโอบนหน้าจอด้วยการแตะเพียงครั้งเดียว ลากไปไว้ที่ใดก็ได้ตามที่คุณต้องการ
 Couldn't save this one. Try again.	ไม่สามารถบันทึกวิดีโอนี้ได้ โปรดลองอีกครั้ง
 Opening TikTok or your messages no longer pauses music from another app. TikTok takes the sound while a video plays and gives it back when you leave the video.	การเปิด TikTok หรือข้อความของคุณจะไม่หยุดเพลงจากแอปอื่นชั่วคราวอีกต่อไป TikTok จะใช้เสียงขณะเล่นวิดีโอและคืนเสียงให้เมื่อคุณออกจากวิดีโอ
@@ -2614,6 +2668,18 @@ Clearing Favorites in %1$d	กำลังล้างรายการโป�
 Reposts removed: %1$d	ลบรีโพสต์แล้ว: %1$d
 Likes removed: %1$d	ลบการถูกใจแล้ว: %1$d
 Favorites removed: %1$d	ลบออกจากรายการโปรดแล้ว: %1$d
+Remove all comments	ลบความคิดเห็นทั้งหมด
+Deletes every comment you've posted one after another.	ลบทุกความคิดเห็นที่คุณโพสต์ทีละรายการ
+Remove selected comments	ลบความคิดเห็นที่เลือก
+Pick comments from your comment history to delete.	เลือกความคิดเห็นที่จะลบจากประวัติความคิดเห็นของคุณ
+Removing all comments in %1$d	กำลังลบความคิดเห็นทั้งหมดใน %1$d
+Removing the picked comments in %1$d	กำลังลบความคิดเห็นที่เลือกใน %1$d
+Comments removed: %1$d	ลบความคิดเห็นแล้ว: %1$d
+TikTok refused to list your comments	TikTok ปฏิเสธการแสดงความคิดเห็นของคุณ
+Couldn't load your comments. Try again.	โหลดความคิดเห็นของคุณไม่ได้ ลองอีกครั้ง
+Loading your comments	กำลังโหลดความคิดเห็นของคุณ
+No comments to show	ไม่มีความคิดเห็นที่จะแสดง
+No text	ไม่มีข้อความ
 Nothing to remove	ไม่มีข้อมูลให้ลบ
 Done. %1$d removed.	เสร็จสิ้น ลบแล้ว %1$d รายการ
 Stopped. %1$d removed.	หยุดแล้ว ลบแล้ว %1$d รายการ
@@ -2623,6 +2689,14 @@ Not available on this TikTok version	ไม่พร้อมใช้งาน�
 Sign in to TikTok first	โปรดลงชื่อเข้าใช้ TikTok ก่อน
 A removal is already running	การลบกำลังดำเนินการอยู่แล้ว
 Cancelled	ยกเลิกแล้ว
+# context: A switch under Clean up your account on the Privacy page
+Tap a video to remove it	แตะวิดีโอเพื่อลบออก
+In your own Liked videos, Favorites and Reposts, a tap takes the video off that list instead of opening it.	ในวิดีโอที่ถูกใจ รายการโปรด และรีโพสต์ของคุณเอง การแตะจะนำวิดีโอออกจากรายการนั้นแทนการเปิด
+# context: Toasts after one tap on your own Liked, Favorites or Reposts grid removes a video, or fails to
+Couldn't remove that video. Try again.	ลบวิดีโอนี้ไม่ได้ โปรดลองอีกครั้ง
+Removed from Liked videos	ลบออกจากวิดีโอที่ถูกใจแล้ว
+Removed from Favorites	ลบออกจากรายการโปรดแล้ว
+Removed from Reposts	ลบออกจากรีโพสต์แล้ว
 Show inbox filters	แสดงตัวกรองกล่องขาเข้า
 Adds the Main, Requests, Unread and Starred tabs above your chats, the ones TikTok gives creator accounts.	เพิ่มแท็บหลัก คำขอ ยังไม่ได้อ่าน และติดดาว เหนือแชทของคุณ ซึ่งเป็นแท็บที่ TikTok มอบให้กับบัญชีครีเอเตอร์
 Rebuild message search	สร้างการค้นหาข้อความใหม่
@@ -2864,3 +2938,80 @@ Account country on profiles	ประเทศของบัญชีบนโ�
 A profile's share sheet gets an Account country button. It asks TikTok where that account is based, or where its latest videos were posted from.	แผงแชร์ของโปรไฟล์จะมีปุ่ม "ประเทศของบัญชี" ซึ่งจะถาม TikTok ว่าบัญชีนั้นอยู่ที่ไหน หรือวิดีโอล่าสุดของบัญชีนั้นโพสต์จากที่ไหน
 Account country	ประเทศของบัญชี
 Videos posted from %1$s	วิดีโอโพสต์จาก %1$s
+Long-press Profile for Activity center	กดค้างที่โปรไฟล์เพื่อเปิดศูนย์กิจกรรม
+# context: Summary under that switch; Long-press Profile for Watch history is the row just above it
+Press and hold the Profile tab to open TikTok's Activity center. A tap on Profile works as before. While Long-press Profile for Watch history is on, that one takes the press.	กดแท็บโปรไฟล์ค้างไว้เพื่อเปิดศูนย์กิจกรรมของ TikTok การแตะที่โปรไฟล์จะยังคงทำงานตามปกติ ขณะที่เปิดกดค้างที่โปรไฟล์เพื่อเปิดประวัติการดูอยู่ การตั้งค่านั้นจะรับการกดนี้แทน
+Share the video after a save	แชร์วิดีโอหลังบันทึก
+# context: Summary under Share the video after a save, a switch in Downloads
+Opens Android's share sheet with the file as soon as a video is saved, video stories included, so you can send it straight to WhatsApp, Telegram or any other app. Picked videos saved together get the usual notice.	เปิดหน้าต่างแชร์ของ Android พร้อมไฟล์ทันทีที่บันทึกวิดีโอ รวมถึงสตอรี่วิดีโอ เพื่อให้คุณส่งต่อไปยัง WhatsApp, Telegram หรือแอปอื่นได้ทันที วิดีโอที่เลือกซึ่งบันทึกพร้อมกันจะได้รับการแจ้งเตือนตามปกติ
+Caption spot in Clear display	ตำแหน่งคำบรรยายในจอแสดงผลที่ชัดเจน
+# context: A choice for Caption spot in Clear display: the kept caption stays where TikTok draws its own
+Where TikTok shows it	ตำแหน่งที่ TikTok แสดง
+# context: The other choice for Caption spot in Clear display: the kept caption sits lower on the screen
+Lower, near the bottom	ต่ำลง ใกล้ด้านล่าง
+# context: A switch on the Playback page beside Fit, Fill and Stretch: the video covers the screen with a little cropping and a little stretching
+Crop and stretch to fill the screen	ครอปและยืดวิดีโอให้เต็มหน้าจอ
+# context: Summary for Crop and stretch to fill the screen. Fill and Stretch are the names of the switches above it
+Cover the whole window with half the crop of Fill and half the stretch of Stretch, so neither is easy to spot. A video far from the screen's shape keeps TikTok's size.	แสดงวิดีโอเต็มทั้งหน้าต่าง โดยครอปเพียงครึ่งหนึ่งของแบบเต็มหน้าจอและยืดเพียงครึ่งหนึ่งของแบบยืด จึงแทบไม่สังเกตเห็นทั้งสองอย่าง วิดีโอที่มีรูปทรงต่างจากหน้าจอมากจะคงขนาดของ TikTok
+Watch LIVEs unseen	ดู LIVE โดยไม่มีใครเห็น
+You stay off the viewer list of LIVEs you open. Tap the eye in a LIVE to let that host see you. Needs Ghost mode on.	คุณจะไม่ปรากฏในรายชื่อผู้ชมของ LIVE ที่คุณเปิด แตะรูปตาใน LIVE เพื่อให้โฮสต์เห็นคุณ ต้องเปิดใช้งานโหมด Ghost
+The host can see you	โฮสต์มองเห็นคุณ
+Let the host see you	ให้โฮสต์เห็นคุณ
+Couldn't tell which LIVE this is. Open it again.	ไม่รู้ว่านี่คือ LIVE ไหน เปิดอีกครั้ง
+The host can already see you in this LIVE	โฮสต์เห็นคุณใน LIVE นี้อยู่แล้ว
+Letting the host see you	กำลังให้โฮสต์เห็นคุณ
+The host can see you now	ตอนนี้โฮสต์เห็นคุณแล้ว
+The host sees you next time you open it	โฮสต์จะเห็นคุณเมื่อคุณเปิดอีกครั้ง
+Couldn't reach TikTok. Open this LIVE again.	เชื่อมต่อ TikTok ไม่ได้ เปิด LIVE นี้อีกครั้ง
+LIVE name alerts	แจ้งเตือนชื่อใน LIVE
+Tells you when your name comes up in a LIVE, in the chat or said out loud in a room with captions on. You get a notification when TikTok's notifications are on, and a banner in the room when they're off.	บอกคุณเมื่อมีคนพูดถึงชื่อคุณใน LIVE ทั้งในแชทหรือพูดออกเสียงในห้องที่เปิดคำบรรยายไว้ คุณจะได้รับการแจ้งเตือนเมื่อเปิดการแจ้งเตือนของ TikTok และจะเห็นแบนเนอร์ในห้องเมื่อปิดไว้
+Names to listen for	ชื่อที่ต้องการให้ฟัง
+Your handle and TikTok name are on the list already. Add other names people call you, separated by commas.	ชื่อผู้ใช้และชื่อ TikTok ของคุณอยู่ในรายการแล้ว เพิ่มชื่ออื่นที่คนใช้เรียกคุณ คั่นด้วยเครื่องหมายจุลภาค
+Your name came up in a LIVE	มีคนพูดถึงชื่อคุณใน LIVE
+Listen for your name	ฟังชื่อของคุณ
+Also listens to the LIVE's sound, so your name counts when it's said out loud in rooms without captions. Your phone's own speech recognition does the listening, with TikTok's microphone permission. It hears only the LIVE, though Android shows its microphone dot, and it uses a little more data.	ฟังเสียงของ LIVE ด้วย ชื่อของคุณจึงนับเมื่อมีคนพูดออกเสียงในห้องที่ไม่มีคำบรรยาย การฟังทำโดยระบบจดจำเสียงพูดของโทรศัพท์คุณเอง โดยใช้สิทธิ์ไมโครโฟนของ TikTok ระบบได้ยินเฉพาะ LIVE แม้ Android จะแสดงจุดไมโครโฟน และใช้ข้อมูลมากขึ้นเล็กน้อย
+Needs Android 13 or newer.	ต้องใช้ Android 13 ขึ้นไป
+Off: this phone's speech recognition only hears the microphone. Turn this off and on to try again.	ปิดอยู่: ระบบจดจำเสียงพูดของโทรศัพท์นี้ได้ยินแค่ไมโครโฟน ปิดแล้วเปิดตัวเลือกนี้อีกครั้งเพื่อลองใหม่
+This phone has no speech recognition. Choose one under Android's voice input settings, then open the LIVE again.	โทรศัพท์นี้ไม่มีระบบจดจำเสียงพูด เลือกระบบหนึ่งในการตั้งค่าการป้อนข้อมูลด้วยเสียงของ Android แล้วเปิด LIVE อีกครั้ง
+TikTok needs the microphone permission for speech recognition. Allow it in Android's app settings, then open the LIVE again.	TikTok ต้องได้รับสิทธิ์ไมโครโฟนสำหรับระบบจดจำเสียงพูด อนุญาตในการตั้งค่าแอปของ Android แล้วเปิด LIVE อีกครั้ง
+Speech recognition has no model for your phone's language. Download one in Android's speech settings, then open the LIVE again.	ระบบจดจำเสียงพูดไม่มีโมเดลสำหรับภาษาของโทรศัพท์คุณ ดาวน์โหลดในการตั้งค่าเสียงพูดของ Android แล้วเปิด LIVE อีกครั้ง
+Speech recognition kept failing in the last LIVE. Open the LIVE again to retry.	ระบบจดจำเสียงพูดล้มเหลวซ้ำๆ ใน LIVE ล่าสุด เปิด LIVE อีกครั้งเพื่อลองใหม่
+Save the photo posts as one video?	บันทึกโพสต์รูปภาพเป็นวิดีโอเดียว?
+One video	วิดีโอเดียว
+One per post	แยกตามโพสต์
+# context: A switch on the Playback page beside Fit, Fill, Stretch and Crop and stretch: the video covers the screen, its middle keeps its own shape and only bands along the top and bottom are stretched
+Keep the middle unstretched	คงสัดส่วนตรงกลางไว้ไม่ยืด
+# context: Summary for Keep the middle unstretched
+Cover the whole window and keep the middle of the video at its own shape. A little comes off the sides, and only the top and bottom are stretched. A video far from the screen's shape keeps TikTok's size.	แสดงวิดีโอเต็มทั้งหน้าต่างโดยคงรูปทรงเดิมของส่วนกลางไว้ ด้านข้างจะถูกครอปออกเล็กน้อย และยืดเฉพาะด้านบนกับด้านล่าง วิดีโอที่มีรูปทรงต่างจากหน้าจอมากจะคงขนาดของ TikTok
+# context: A Feature Gate Lab preset title: when a video is paused, TikTok shows a search tag on things in the frame, which opens its visual search
+Visual search on paused videos	การค้นหาด้วยภาพในวิดีโอที่หยุดชั่วคราว
+App icon	ไอคอนแอป
+Some home screens drop the icon when it changes. If yours does, add TikTok back from the app list.	หน้าจอหลักบางแบบจะเอาไอคอนออกเมื่อไอคอนเปลี่ยน ถ้าของคุณเป็นแบบนั้น ให้เพิ่ม TikTok กลับจากรายการแอป
+Icon changed	เปลี่ยนไอคอนแล้ว
+Couldn't change the icon. Try again.	เปลี่ยนไอคอนไม่ได้ ลองอีกครั้ง
+TikTok colors	สีของ TikTok
+Black background	พื้นหลังสีดำ
+White on black	ขาวบนดำ
+Black on white	ดำบนขาว
+Material You	Material You
+Your icon	ไอคอนของคุณ
+Save episodes	บันทึกตอน
+Pick episodes to save	เลือกตอนที่จะบันทึก
+Episode %1$s	ตอนที่ %1$s
+Preview only	ตัวอย่างเท่านั้น
+Loading episodes	กำลังโหลดตอน
+Couldn't load the episodes. Try again.	โหลดตอนไม่ได้ ลองอีกครั้ง
+Pick at least one episode	เลือกอย่างน้อยหนึ่งตอน
+Saving %1$s. Tap Save again for the rest.	กำลังบันทึก %1$s ตอน แตะบันทึกอีกครั้งเพื่อบันทึกที่เหลือ
+Save episodes button in the share sheet	ปุ่มบันทึกตอนในเมนูแชร์
+Adds Save episodes when you share an episode of a mini drama. It lists the drama's episodes so you can pick several and save them in one go. An episode you haven't unlocked saves only its preview.	เพิ่มบันทึกตอนเมื่อคุณแชร์ตอนหนึ่งของมินิดราม่า แสดงรายการตอนของเรื่องให้คุณเลือกหลายตอนแล้วบันทึกทีเดียว ตอนที่คุณยังไม่ได้ปลดล็อกจะบันทึกได้แค่ตัวอย่าง
+Save to a collection	บันทึกลงคอลเลกชัน
+Collections aren't available for this video	ไม่มีคอลเลกชันสำหรับวิดีโอนี้
+# context: Inbox settings, two switches under Hide On this day. The first hides LIVE circles in the stories tray from accounts the user doesn't follow. The second hides the Widget circle TikTok puts at the end of the tray, which offers its home screen widget.
+Hide LIVEs from accounts you don't follow	ซ่อน LIVE จากบัญชีที่คุณไม่ได้ติดตาม
+LIVEs from accounts you don't follow leave the stories tray. LIVEs from accounts you follow stay.	LIVE จากบัญชีที่คุณไม่ได้ติดตามจะหายไปจากถาดสตอรี่ ส่วน LIVE จากบัญชีที่คุณติดตามยังอยู่
+Hide the Widget circle	ซ่อนวงกลมวิดเจ็ต
+The Widget circle at the end of the stories tray goes. TikTok's home screen widget still works.	วงกลมวิดเจ็ตท้ายถาดสตอรี่จะหายไป วิดเจ็ตหน้าจอหลักของ TikTok ยังใช้งานได้
+# context: Feed screen settings, a switch under Show video length on profile grids. It removes the view count and the play icon from each video tile on profile grids. If the date, video length or engagement rate are switched on, they take the first line instead.
+Hide view counts on profile grids	ซ่อนจำนวนการดูบนตารางโปรไฟล์
+Takes the view count and its play icon off each video on profile grids. Dates, lengths and the engagement rate you turned on move up in its place.	นำจำนวนการดูและไอคอนเล่นออกจากแต่ละวิดีโอบนตารางโปรไฟล์ วันที่ ความยาว และอัตราการมีส่วนร่วมที่คุณเปิดไว้จะขึ้นมาแทนที่

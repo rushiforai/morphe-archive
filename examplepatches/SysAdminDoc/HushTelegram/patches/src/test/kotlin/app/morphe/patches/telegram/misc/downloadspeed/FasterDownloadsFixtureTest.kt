@@ -8,6 +8,7 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.PlusPending
 import app.morphe.util.names.origRef
 import app.morphe.util.names.addInstruction
 import app.morphe.util.names.replaceInstruction
@@ -64,6 +65,7 @@ internal fun dataSaverClasses(build: File): Collection<ClassDef> {
 }
 
 /** FileLoadOperation.updateParams on both declared builds, where Telegram picks a download's piece size. */
+@PlusPending
 class FasterDownloadsFixtureTest {
     private fun context(build: File): BytecodePatchContext {
         val queue = "Lorg/telegram/messenger/FileLoaderPriorityQueue;"

@@ -132,7 +132,7 @@
     },
     {
       "name": "Ask before a like",
-      "description": "Switches that make a tap on Like under a post, beside a reel or under a comment, or on Follow in a post or beside a reel, ask first, and only Continue goes ahead, so a stray tap doesn't like or follow. All five start off. Turn them on in Hushfacebook settings > News feed, Reels and Watch, and Comments and writing.",
+      "description": "Switches that make a tap on Like under a post, beside a reel or under a comment, on Follow in a post or beside a reel, or on a reaction at the bottom of a story, ask first, and only Continue goes ahead, so a stray tap doesn't like, follow or react. The story waits while the question is up. All six start off. Turn them on in Hushfacebook settings > News feed, Reels and Watch, Stories, and Comments and writing.",
       "category": "Privacy",
       "use": true,
       "dependencies": [
@@ -1628,7 +1628,7 @@
     },
     {
       "name": "Hide post prompts",
-      "description": "Removes the strip Facebook adds to some posts, like \"Are you interested in this post?\", \"Show less\" or follow suggestions, so posts look less cluttered. No gap is left. On by default. Turn it off in Hushfacebook settings > News feed. Six more switches there, Hide the Follow link on posts, Hide the Subscribe link on posts, Hide the Join button on posts, Hide the X on posts, Hide counts on posts and Hide the reaction preview on posts, start off.",
+      "description": "Removes the strip Facebook adds to some posts, like \"Are you interested in this post?\", \"Show less\" or follow suggestions, so posts look less cluttered. No gap is left. On by default. Turn it off in Hushfacebook settings > News feed. Eight more switches there, Hide the Follow link on posts, Hide the Subscribe link on posts, Hide the Join button on posts, Hide the X on posts, Hide counts on posts, Hide the reaction preview on posts, Hide friends' reactions on photos and videos and Hide who reacted under posts, start off.",
       "category": "Feed",
       "use": true,
       "dependencies": [

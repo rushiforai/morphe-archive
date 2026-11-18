@@ -22,6 +22,7 @@ import java.util.Locale;
 import app.morphe.extension.instagram.patches.devFlags.FlagState;
 import app.morphe.extension.instagram.patches.devFlags.FlagsSharedPref;
 import app.morphe.extension.instagram.patches.devFlags.HookFlags;
+import app.morphe.extension.instagram.settings.RestartPolicy;
 import app.morphe.extension.instagram.settings.SettingsRestart;
 import app.morphe.extension.instagram.settings.StringSetting;
 import app.morphe.extension.shared.Utils;
@@ -122,7 +123,7 @@ public final class RecommendedFlagPreference extends Preference {
         try {
             HookFlags.load();
         } catch (Throwable ignored) {}
-        SettingsRestart.markChanged(setting.key, prev, nextState);
+        SettingsRestart.markChanged(setting.key, RestartPolicy.REQUIRED, prev, nextState);
         View targetView = activeView != null ? activeView : boundRowView;
         if (targetView != null) {
             bindStateToView(targetView, animate);

@@ -7,6 +7,7 @@
 package app.morphe.extension.tiktok.settings.preference.categories;
 
 import android.content.Context;
+import android.preference.Preference;
 import android.preference.PreferenceScreen;
 import android.text.format.Formatter;
 
@@ -23,6 +24,7 @@ import app.morphe.extension.tiktok.settings.preference.InputTextPreference;
 import app.morphe.extension.tiktok.settings.preference.NumberInputPreference;
 import app.morphe.extension.tiktok.settings.preference.SavesNowPreference;
 import app.morphe.extension.tiktok.settings.preference.SectionHeadingPreference;
+import app.morphe.extension.tiktok.settings.preference.TikTokPreferenceFragment;
 import app.morphe.extension.tiktok.settings.preference.TogglePreference;
 import app.morphe.extension.tiktok.download.DownloadDestination;
 import app.morphe.extension.tiktok.download.DownloadNamePreview;
@@ -152,6 +154,7 @@ public class DownloadsPreferenceCategory extends ConditionalPreferenceCategory {
         }
         if (SettingsStatus.advancedDownloadsEnabled) {
             addPreference(new SectionHeadingPreference(context, "Video"));
+            addPreference(saveButtonPointer(context));
             addPreference(new ChoicePreference(context, "Video download quality", Settings.DOWNLOAD_VIDEO_QUALITY,
                     new String[]{"Automatic", "Highest", "Lowest", "1080p", "720p", "540p", "480p", "360p"},
                     new String[]{"auto", "highest", "lowest", "1080", "720", "540", "480", "360"}));
@@ -183,8 +186,16 @@ public class DownloadsPreferenceCategory extends ConditionalPreferenceCategory {
             addPreference(new TogglePreference(context, "Save cover button in the share sheet",
                     "Adds Save cover next to Download when you share a video, so you save the cover only when you want it. While this is on, Download saves just the video, even with Save the cover as well on.",
                     Settings.SAVE_COVER_BUTTON));
+            addPreference(new TogglePreference(context, "Save episodes button in the share sheet",
+                    "Adds Save episodes when you share an episode of a mini drama. It lists the drama's episodes so you can pick several and save them in one go. An episode you haven't unlocked saves only its preview.",
+                    Settings.SAVE_EPISODES_BUTTON));
             addPreference(new TogglePreference(context, "Show download progress",
                     "Show a progress bar while a video saves.", Settings.DOWNLOAD_PROGRESS));
+            addPreference(new TogglePreference(context, "Share the video after a save",
+                    "Opens Android's share sheet with the file as soon as a video is saved, video stories included, "
+                            + "so you can send it straight to WhatsApp, Telegram or any other app. "
+                            + "Picked videos saved together get the usual notice.",
+                    Settings.SHARE_AFTER_SAVE));
             addPreference(new TogglePreference(context, "Pick videos to save from profile grids",
                     L10n.f(context, "Puts a circle on each video in a profile, Liked or Favorites "
                             + "grid. Pick up to %1$s, then tap Save to save them one after another, "
@@ -354,5 +365,22 @@ public class DownloadsPreferenceCategory extends ConditionalPreferenceCategory {
                 });
             }
         }
+    }
+
+    /**
+     * The save button's switch is on Feed screen with every other button drawn on the video, and
+     * Downloads is where people look for it (#299). This row takes them there. It has no key, so
+     * the settings search lists the real row only.
+     */
+    static Preference saveButtonPointer(Context context) {
+        Preference pointer = new Preference(context);
+        pointer.setTitle(L10n.t(context, "Show the save button on videos"));
+        pointer.setSummary(L10n.f(context, "It's in %1$s, under %2$s. Tap to go there.",
+                L10n.t(context, "Feed screen"), L10n.t(context, "Buttons on videos")));
+        pointer.setOnPreferenceClickListener(row -> {
+            TikTokPreferenceFragment.openFeedScreenRow(Settings.DOWNLOAD_BUTTON.key);
+            return true;
+        });
+        return pointer;
     }
 }

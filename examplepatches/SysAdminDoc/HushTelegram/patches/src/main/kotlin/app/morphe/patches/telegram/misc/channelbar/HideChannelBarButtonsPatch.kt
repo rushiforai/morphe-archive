@@ -63,7 +63,7 @@ val hideChannelBarButtonsPatch = bytecodePatch(
 ) {
     category("Interface")
     dependsOn(settingsPatch, telegramExtensionPatch)
-    compatibleWith(*AppCompatibilities.telegram())
+    compatibleWith(*AppCompatibilities.telegramOnly())
     execute {
         val plan = resolveChannelBarButtons()
         val mute = resolveChannelMute(plan)

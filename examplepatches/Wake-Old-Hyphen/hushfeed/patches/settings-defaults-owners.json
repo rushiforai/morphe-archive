@@ -2,6 +2,7 @@
   "patches": {
     "Advanced downloads": [
       "DOWNLOAD_BUTTON",
+      "HOLD_SAVE_TO_DOWNLOAD",
       "DOWNLOAD_BUTTON_POSITION",
       "DOWNLOAD_VIDEO_QUALITY",
       "DOWNLOAD_VIDEO_CODEC",
@@ -15,6 +16,7 @@
       "DOWNLOAD_WATERMARK_FALLBACK",
       "DOWNLOAD_COVER",
       "SAVE_COVER_BUTTON",
+      "SAVE_EPISODES_BUTTON",
       "DOWNLOAD_WITHOUT_SOUND",
       "DOWNLOAD_PROGRESS",
       "DOWNLOAD_SAVES_AT_ONCE",
@@ -36,7 +38,10 @@
       "DOWNLOAD_VIDEO_PATH",
       "DOWNLOAD_PHOTO_PATH",
       "DOWNLOAD_VIDEO_FILENAME_TEMPLATE",
-      "DOWNLOAD_PHOTO_FILENAME_TEMPLATE"
+      "DOWNLOAD_PHOTO_FILENAME_TEMPLATE",
+      "SHARE_AFTER_SAVE",
+      "VIDEO_BUTTON_SIZE",
+      "VIDEO_BUTTONS_OVER_RAIL"
     ],
     "Allow Duet and Stitch": [
       "ALLOW_DUET_AND_STITCH",
@@ -50,8 +55,10 @@
       "PUBLISH_DATE_EXACT_TIME",
       "PUBLISH_DATE_TIME_ZONE",
       "PUBLISH_DATE_SHORT_DATE",
+      "PUBLISH_DATE_DAY_FIRST",
       "PUBLISH_DATE_ON_GRID",
       "VIDEO_LENGTH_ON_GRID",
+      "HIDE_GRID_VIEW_COUNT",
       "PROFILE_GRID_SORT",
       "LIKED_GRID_SORT",
       "FAVORITES_GRID_SORT",
@@ -103,7 +110,9 @@
       "BLOCK_SOUND_BUTTON",
       "BLOCK_AUTHOR_BUTTON_POSITION",
       "LOCAL_HIDE_BUTTON_POSITION",
-      "BLOCK_SOUND_BUTTON_POSITION"
+      "BLOCK_SOUND_BUTTON_POSITION",
+      "VIDEO_BUTTON_SIZE",
+      "VIDEO_BUTTONS_OVER_RAIL"
     ],
     "Block contact list access": [
       "BLOCK_CONTACT_LIST"
@@ -318,6 +327,7 @@
       "KEEP_FOR_YOU_ON_PULL_DOWN",
       "HOME_TAB_OPENS_SETTINGS",
       "PROFILE_TAB_OPENS_WATCH_HISTORY",
+      "PROFILE_TAB_OPENS_ACTIVITY_CENTER",
       "PROFILE_TAB_SWITCHES_ACCOUNTS",
       "INBOX_TAB_FLIPS_READ_RECEIPTS",
       "SEARCH_INSTEAD_OF_HOME",
@@ -335,8 +345,11 @@
     ],
     "Fit the video to the screen": [
       "FIT_VIDEO_TO_SCREEN",
+      "FIT_FILLS_TALL_SCREEN",
       "FILL_VIDEO_TO_SCREEN",
-      "STRETCH_VIDEO_TO_SCREEN"
+      "STRETCH_VIDEO_TO_SCREEN",
+      "BLEND_VIDEO_TO_SCREEN",
+      "KEEP_MIDDLE_VIDEO_TO_SCREEN"
     ],
     "Foldable split comment view": [
       "FOLDABLE_SPLIT_VIEW",
@@ -350,7 +363,11 @@
       "GHOST_HIDE_ONLINE_STATUS",
       "GHOST_HIDE_STORY_VIEWS",
       "GHOST_HIDE_PROFILE_VISITS",
-      "GHOST_HIDE_TYPING"
+      "GHOST_HIDE_TYPING",
+      "GHOST_HIDE_LIVE_VIEWS"
+    ],
+    "Group likes per comment": [
+      "BUNDLE_ACTIVITY_LIKES"
     ],
     "Hide already seen videos": [
       "HIDE_SEEN_VIDEOS",
@@ -390,6 +407,8 @@
     "Hide inbox items": [
       "HIDE_INBOX_STORIES",
       "HIDE_INBOX_ON_THIS_DAY",
+      "HIDE_INBOX_SUGGESTED_LIVES",
+      "HIDE_INBOX_WIDGET_GUIDE",
       "HIDE_INBOX_NEW_FOLLOWERS",
       "HIDE_INBOX_ACTIVITY",
       "HIDE_INBOX_ARCHIVE",
@@ -472,6 +491,7 @@
       "GLASS_BAR_HEIGHT",
       "GLASS_CORNERS",
       "GLASS_TAB_SLIDE",
+      "GLASS_LIQUID_HOLD",
       "GLASS_HAPTICS",
       "GLASS_HAPTIC_STYLE",
       "SEE_THROUGH_STATUS_BAR",
@@ -553,6 +573,7 @@
       "REMEMBER_LIVE_QUALITY",
       "OFFER_LIVE_CLEAR_SCREEN",
       "KEEP_LIVE_CLEAR_SCREEN",
+      "OFFER_LIVE_FULL_SCREEN",
       "DARK_LIVE_PANELS",
       "RECORD_LIVE",
       "AUTO_RECORD_LIVE",
@@ -560,7 +581,11 @@
       "LIVE_RECORD_SOURCE",
       "LIVE_AUTO_TAP",
       "LIVE_AUTO_TAP_RATE",
+      "LIVE_BUTTON_SIZE",
       "LIVE_AUDIO_ONLY",
+      "LIVE_NAME_ALERTS",
+      "LIVE_NAME_ALERT_NAMES",
+      "LIVE_NAME_ALERTS_LISTEN",
       "REMEMBERED_LIVE_QUALITY"
     ],
     "Location access governor": [
@@ -572,6 +597,7 @@
       "RAIL_HOLD_COMMENT",
       "RAIL_HOLD_SHARE",
       "RAIL_HOLD_FAVORITES",
+      "HOLD_SAVE_TO_DOWNLOAD",
       "LONG_PRESS_FULL_MENU_ON_PROFILES",
       "LONG_PRESS_FULL_MENU_IN_SEARCH",
       "LONG_PRESS_COMPACT_MENU",
@@ -586,7 +612,9 @@
       "FEED_MUTED",
       "FEED_MUTE_BUTTON",
       "FEED_MUTE_BUTTON_POSITION",
-      "FOCUS_WAITS_FOR_VIDEO"
+      "FOCUS_WAITS_FOR_VIDEO",
+      "VIDEO_BUTTON_SIZE",
+      "VIDEO_BUTTONS_OVER_RAIL"
     ],
     "Network proxy": [
       "NETWORK_PROXY",
@@ -599,7 +627,9 @@
     "Not interested button": [
       "NOT_INTERESTED_BUTTON",
       "NOT_INTERESTED_ALSO_FILTER",
-      "NOT_INTERESTED_BUTTON_POSITION"
+      "NOT_INTERESTED_BUTTON_POSITION",
+      "VIDEO_BUTTON_SIZE",
+      "VIDEO_BUTTONS_OVER_RAIL"
     ],
     "Keep unsent messages": [
       "KEEP_UNSENT_MESSAGES",
@@ -619,6 +649,9 @@
     ],
     "Picture-in-picture": [
       "PICTURE_IN_PICTURE"
+    ],
+    "Play original audio": [
+      "ORIGINAL_AUDIO"
     ],
     "Play SDR instead of HDR": [
       "PLAY_SDR"
@@ -690,6 +723,8 @@
     ],
     "Settings": [
       "MORPHE_LANGUAGE",
+      "HUSHFEED_LANGUAGE",
+      "SETTINGS_THEME",
       "SHOW_MENU_ICONS",
       "HIDE_SETTINGS_ROW",
       "SETTINGS_ROW_PICKS",
@@ -780,6 +815,9 @@
     "Keep the next videos in full screen": [
       "FULL_SCREEN_NEXT_VIDEOS"
     ],
+    "Split activity list": [
+      "SPLIT_ACTIVITY_LIST"
+    ],
     "Stay on the video in full screen": [
       "FULL_SCREEN_HOLD"
     ],
@@ -812,6 +850,7 @@
       "CAPTION_BACKGROUND",
       "KEEP_CAPTIONS_CLEAR_DISPLAY",
       "CAPTION_CLEAR_DISPLAY_OFFSET",
+      "CAPTION_CLEAR_DISPLAY_SPOT",
       "KEEP_CAPTIONS_AVAILABLE"
     ],
     "Swipe-left controls": [
@@ -840,10 +879,14 @@
       "SYSTEM_FONT",
       "SYSTEM_EMOJI",
       "IMPORTED_FONT"
+    ],
+    "Account cleanup": [
+      "TAP_TO_REMOVE"
     ]
   },
   "excluded": {
     "CAPTION_REGULAR_WEIGHT": "Runtime state or legacy migration data; not a configurable feature default.",
+    "LIVE_LISTEN_SOUND_IGNORED": "Runtime state or legacy migration data; not a configurable feature default.",
     "RECENT_SETTINGS_SEARCHES": "Runtime state or legacy migration data; not a configurable feature default.",
     "LAUNCHER_SHORTCUTS_REMOVED": "Runtime state or legacy migration data; not a configurable feature default.",
     "REMOTE_CONFIG_STAMP": "Runtime state or legacy migration data; not a configurable feature default.",
@@ -857,6 +900,8 @@
     "SESSION_BUDGET_PENDING": "Runtime state or legacy migration data; not a configurable feature default.",
     "SESSION_BUDGET_STATE": "Runtime state or legacy migration data; not a configurable feature default.",
     "SHARE_ACTION_CATALOG": "Runtime state or legacy migration data; not a configurable feature default.",
+    "SPLIT_ACTIVITY_BOTTOM_HIDDEN": "Runtime state or legacy migration data; not a configurable feature default.",
+    "SPLIT_ACTIVITY_LIKES_FIRST": "Runtime state or legacy migration data; not a configurable feature default.",
     "PROFILE_SHORTCUT_CATALOG": "Runtime state or legacy migration data; not a configurable feature default.",
     "POPUP_LABEL_CATALOG": "Runtime state or legacy migration data; not a configurable feature default.",
     "SEARCH_TAB_CATALOG": "Runtime state or legacy migration data; not a configurable feature default.",

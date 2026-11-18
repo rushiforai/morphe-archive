@@ -1,0 +1,105 @@
+name: 🐞 Bug report
+description: Report a bug or an issue.
+title: "bug(<app>): "
+labels: ["Bug report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # Morphe Patches bug report
+
+        Before creating a new bug report, please keep the following in mind:
+
+        - **Title format**: bug(<app>): <short user-visible symptom>, e.g. bug(tiktok): download button missing on Lite.
+        - **Do not submit a duplicate bug report**: Search for existing bug reports [here](https://github.com/kveld9/kveld-morphe-patches/issues?q=label%3A%22Bug+report%22).
+        - **Check Setup Guides**: If reporting missing dictionaries or Glide Typing on Gboard Lite, include your exact app version and the patch options you enabled.
+        - **Review existing issues**: Make sure your bug report includes all requested information.
+  - type: dropdown
+    id: app
+    attributes:
+      label: Target App
+      description: Which app are you reporting an issue for?
+      options:
+        - Brave Browser
+        - Gboard Lite
+        - TikTok
+        - TikTok Lite
+        - Universal / Other
+    validations:
+      required: true
+  - type: input
+    id: app-version
+    attributes:
+      label: Target app version (exact)
+      description: Exact version from app settings or APK filename, no "latest".
+      placeholder: e.g. 1.98.60, 18.5.1.993608717-lite_beta-arm64-v8a, 47.5.3, 47.5.52
+    validations:
+      required: true
+  - type: input
+    id: apk-filename
+    attributes:
+      label: APK filename + architecture
+      placeholder: e.g. Bravemonoarm64.apk (arm64) / com.zhiliaoapp.musically v47.5.3 arm64-v8a nodpi
+    validations:
+      required: true
+  - type: dropdown
+    id: failure-type
+    attributes:
+      label: Failure type (triage)
+      description: Pick what best matches; crash reporters must fill the logcat field.
+      options:
+        - Patching failed (no APK produced)
+        - Patched app crashes on launch
+        - Runtime misbehavior (feature broken)
+        - Wrong patch output
+    validations:
+      required: true
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: Bug description
+      description: |
+        - Describe your bug or unexpected behavior in detail.
+        - Steps to reproduce the issue (Step 1. ... Step 2. ...).
+    validations:
+      required: true
+  - type: textarea
+    id: patcher-log
+    attributes:
+      label: Morphe Manager Patching Log
+      description: FULL untruncated log including the header lines ([INFO] Build / Device), selected patches and all [WARN] [STDIO] lines; truncated logs are closed as incomplete.
+      placeholder: |
+        [INFO] Build: manager=1.29.0 patcher=1.11.0 nativeLibs=true
+        [INFO] Device: android=16 api=36 ...
+        [INFO] Patching started at ...
+        ...
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: runtime-logcat
+    attributes:
+      label: Runtime Crash Logcat (required for crashes)
+      description: Mandatory when Failure type is a crash (paste logcat | grep AndroidRuntime); write N/A only when the app does not crash.
+      render: shell
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional context
+      description: Add any other context, screenshots, or screen recordings here.
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Acknowledgements
+      description: Your bug report will be closed if you don't follow the checklist below.
+      options:
+        - label: I have checked all open and closed bug reports and this is not a duplicate.
+          required: true
+        - label: If reporting a fresh install or setup issue (e.g. Gboard offline dictionaries/glide typing), I have verified the relevant setup guide.
+          required: true
+        - label: "I used the required title format bug(<app>): <symptom>."
+          required: true
+        - label: All requested information and full Morphe Manager patching logs have been provided.
+          required: true
+        - label: I am on the single pinned version above, not an older release (no multi-version support).
+          required: true

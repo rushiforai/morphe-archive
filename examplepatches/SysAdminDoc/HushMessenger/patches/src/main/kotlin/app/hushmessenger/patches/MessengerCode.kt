@@ -1,6 +1,6 @@
 package app.hushmessenger.patches
 
-import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.classDefForEach
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 
@@ -21,5 +21,5 @@ internal fun Method.isExtension(): Boolean = definingClass.startsWith(EXTENSION_
  * Messenger's own classes, without the extension's. Every patch that searches the whole app for code to rewrite reads
  * these, so it sees the same classes in a real patch as the real-APK tests do, which read the stock dex alone.
  */
-internal fun BytecodePatchContext.messengerClasses(): List<ClassDef> =
+internal fun messengerClasses(): List<ClassDef> =
     mutableListOf<ClassDef>().apply { classDefForEach { if (!it.isExtension()) add(it) } }

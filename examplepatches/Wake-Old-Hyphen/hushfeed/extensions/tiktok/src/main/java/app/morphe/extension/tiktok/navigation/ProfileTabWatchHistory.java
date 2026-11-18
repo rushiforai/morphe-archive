@@ -13,6 +13,8 @@ import android.view.View;
 
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
@@ -24,7 +26,8 @@ import app.morphe.extension.tiktok.settings.preference.LocalWatchHistoryPreferen
 /**
  * A long press on the Profile tab opens TikTok's Watch history (#199), which otherwise sits
  * behind Profile, the menu, Settings and privacy and Activity center. A switch under Keep my own
- * watch history sends it to that list over the feed instead (#172).
+ * watch history sends it to that list over the feed instead (#172), and another sends it to
+ * TikTok's Activity center (#425).
  *
  * <p>The page is TikTok's own hybrid page, opened the way its profile menu does: a
  * {@code webview} route on TikTok's scheme carrying the inapp.tiktokv.com watch_history address.
@@ -53,6 +56,19 @@ public final class ProfileTabWatchHistory {
             + "%26hide_nav_bar%3D1%26use_spark%3D1%26show_loading%3D1%26should_full_screen%3D1"
             + "%26allow_webview_gesture%3D1%26bdhm_bid%3Dtiktok_privacy_product_hybrid"
             + "%26enable_search_history%3D1%26enter_from%3Dprofile_menu";
+
+    /**
+     * Where TikTok keeps the Activity center address its Settings and privacy row opens (#425).
+     * The address comes from TikTok's servers, so it's read from here at each hold. A fixed
+     * {@code aweme://pns/activity_center} route reached TikTok's router and opened nothing (S22,
+     * 47.8.3), and its deep link handler drops the route from outside.
+     */
+    static final String ENTRANCE_CLASS = "com.ss.android.ugc.aweme.ActivityCenterEntranceExperiment";
+    /** What TikTok's row adds to the address before opening it. */
+    static final String ENTRANCE_SUFFIX = "%26grey_bg%3D1";
+    /** Settings and privacy, one tap from Activity center, for an account TikTok sent no address. */
+    static final String SETTINGS_ROUTE = "aweme://setting";
+    static final String ROUTER_CLASS = "com.bytedance.router.SmartRouter";
 
     /** The tab tag TikTok's switcher handler gets for Profile. */
     static final String PROFILE_TAG = "USER";
@@ -83,9 +99,13 @@ public final class ProfileTabWatchHistory {
     private ProfileTabWatchHistory() {
     }
 
-    /** Either switch sends the hold somewhere: TikTok's Watch history, or the list kept on the phone. */
+    /**
+     * Any switch sends the hold somewhere: TikTok's Watch history, the list kept on the phone, or
+     * TikTok's Activity center, which only gets the press while the other two are off.
+     */
     static boolean wanted() {
-        return Settings.PROFILE_TAB_OPENS_WATCH_HISTORY.get() || opensLocalHistory();
+        return Settings.PROFILE_TAB_OPENS_WATCH_HISTORY.get() || opensLocalHistory()
+                || Settings.PROFILE_TAB_OPENS_ACTIVITY_CENTER.get();
     }
 
     /**
@@ -96,16 +116,74 @@ public final class ProfileTabWatchHistory {
         return Settings.PROFILE_HOLD_OPENS_LOCAL_WATCH_HISTORY.get() && Settings.LOCAL_WATCH_HISTORY.get();
     }
 
-    static void open(Context context) {
+    static void open(Context context) throws ReflectiveOperationException {
         if (opensLocalHistory()) {
             Logger.printInfo(() -> "Watch history requested by a long press on Profile");
             LocalWatchHistoryPreference.showOverFeed(context);
+            return;
+        }
+        if (!Settings.PROFILE_TAB_OPENS_WATCH_HISTORY.get()) {
+            Logger.printInfo(() -> "Activity center requested by a long press on Profile");
+            openActivityCenter(context);
             return;
         }
         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(WATCH_HISTORY_URI))
                 .setPackage(context.getPackageName());
         if (!(context instanceof Activity)) intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startActivity(intent);
+    }
+
+    /** Opens Activity center the way TikTok's Settings and privacy row does, through its router. */
+    static void openActivityCenter(Context context) throws ReflectiveOperationException {
+        String address = activityCenterAddress();
+        if (address == null) {
+            Logger.printInfo(() -> "TikTok sent no Activity center address; opening Settings and privacy");
+            address = SETTINGS_ROUTE;
+        }
+        Class<?> router = Class.forName(ROUTER_CLASS, true, ProfileTabWatchHistory.class.getClassLoader());
+        Object route = router.getMethod("buildRoute", Context.class, String.class)
+                .invoke(null, context, address);
+        route.getClass().getMethod("open").invoke(route);
+    }
+
+    /**
+     * The address TikTok's Settings and privacy row opens, or null when TikTok has none. The
+     * experiment class holds a built-in model with no address and a lazy one with the address its
+     * servers sent; the static fields are read by their values, since their names are obfuscated.
+     */
+    static String activityCenterAddress() {
+        try {
+            Class<?> entrance = Class.forName(ENTRANCE_CLASS, true, ProfileTabWatchHistory.class.getClassLoader());
+            for (Field field : entrance.getFields()) {
+                if (!Modifier.isStatic(field.getModifiers())) continue;
+                String url = modelUrl(field.get(null));
+                if (url != null) return url + ENTRANCE_SUFFIX;
+            }
+        } catch (Throwable error) {
+            Logger.printException(() -> "Could not read TikTok's Activity center address", error);
+        }
+        return null;
+    }
+
+    private static String modelUrl(Object value) throws ReflectiveOperationException {
+        if (value != null && !isEntranceModel(value)) {
+            Method get;
+            try {
+                get = value.getClass().getMethod("getValue");
+            } catch (NoSuchMethodException notLazy) {
+                return null;
+            }
+            // The lazy's class isn't public, so its public getValue still needs the access opened.
+            get.setAccessible(true);
+            value = get.invoke(value);
+        }
+        if (value == null || !isEntranceModel(value)) return null;
+        Object url = value.getClass().getField("url").get(value);
+        return url instanceof String && !((String) url).isEmpty() ? (String) url : null;
+    }
+
+    private static boolean isEntranceModel(Object value) {
+        return value.getClass().getName().equals(ENTRANCE_CLASS + "$ActivityCenterSettingModel");
     }
 
     /**

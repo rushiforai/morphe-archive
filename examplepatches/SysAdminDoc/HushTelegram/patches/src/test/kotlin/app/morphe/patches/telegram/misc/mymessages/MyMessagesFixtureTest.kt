@@ -8,6 +8,7 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.PlusPending
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
@@ -39,6 +40,7 @@ import org.junit.Test
 import java.io.File
 
 /** The chat screen's instant search, its menu at the top and the click delegate My messages shares with Outside translate. */
+@PlusPending
 class MyMessagesFixtureTest {
     private val user = "Lorg/telegram/tgnet/TLRPC\$User;"
     private val chat = "Lorg/telegram/tgnet/TLRPC\$Chat;"

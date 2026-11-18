@@ -231,7 +231,7 @@ internal val PROFILE_347415354 = ControlProfile(
         ),
         "mark_read_click" to setOf("LX/CeA;->onClick(Landroid/view/View;)V"),
         "media_caption" to setOf("LX/4Dl;->A0K(LX/4Dl;)V"),
-        "menu_blur" to setOf("LX/0AL;->onStart()V"),
+        "menu_blur" to setOf("LX/0AL;->onStart()V", "Lcom/facebook/xapp/messaging/reactions/sendbar/fragment/ReactionsBarFragment;->onViewCreated(Landroid/view/View;Landroid/os/Bundle;)V"),
         "menu_settings" to setOf(
             "LX/8wE;->A1j()V", "LX/TGN;->BYp(LX/0Lz;)Ljava/util/ArrayList;", "LX/VMa;->onClick(Landroid/view/View;)V",
             "LX/cSh;->DqM(LX/4n7;I)V", "LX/cSj;->A0J(Ljava/util/List;)V",
@@ -580,7 +580,7 @@ internal val PROFILE_347415280 = ControlProfile(
         ),
         "mark_read_click" to setOf("LX/CeK;->onClick(Landroid/view/View;)V"),
         "media_caption" to setOf("LX/4D7;->A0L(LX/4D7;)V"),
-        "menu_blur" to setOf("LX/0AL;->onStart()V"),
+        "menu_blur" to setOf("LX/0AL;->onStart()V", "Lcom/facebook/xapp/messaging/reactions/sendbar/fragment/ReactionsBarFragment;->onViewCreated(Landroid/view/View;Landroid/os/Bundle;)V"),
         "menu_settings" to setOf(
             "LX/8x0;->A1j()V", "LX/HUo;->BYt(LX/0Ly;)Ljava/util/ArrayList;", "LX/HWE;->onClick(Landroid/view/View;)V",
             "LX/TDX;->DqT(LX/4mS;I)V", "LX/TDg;->A0J(Ljava/util/List;)V",
@@ -929,7 +929,7 @@ internal val PROFILE_347415302 = ControlProfile(
         ),
         "mark_read_click" to setOf("LX/CeA;->onClick(Landroid/view/View;)V"),
         "media_caption" to setOf("LX/4Dl;->A0K(LX/4Dl;)V"),
-        "menu_blur" to setOf("LX/0AL;->onStart()V"),
+        "menu_blur" to setOf("LX/0AL;->onStart()V", "Lcom/facebook/xapp/messaging/reactions/sendbar/fragment/ReactionsBarFragment;->onViewCreated(Landroid/view/View;Landroid/os/Bundle;)V"),
         "menu_settings" to setOf(
             "LX/8wE;->A1j()V", "LX/TGL;->BYp(LX/0Lz;)Ljava/util/ArrayList;", "LX/VMY;->onClick(Landroid/view/View;)V",
             "LX/cSh;->DqM(LX/4n7;I)V", "LX/cSj;->A0J(Ljava/util/List;)V",
@@ -1278,7 +1278,7 @@ internal val PROFILE_347415262 = ControlProfile(
         ),
         "mark_read_click" to setOf("LX/Ch1;->onClick(Landroid/view/View;)V"),
         "media_caption" to setOf("LX/4EE;->A0L(LX/4EE;)V"),
-        "menu_blur" to setOf("LX/0AL;->onStart()V"),
+        "menu_blur" to setOf("LX/0AL;->onStart()V", "Lcom/facebook/xapp/messaging/reactions/sendbar/fragment/ReactionsBarFragment;->onViewCreated(Landroid/view/View;Landroid/os/Bundle;)V"),
         "menu_settings" to setOf(
             "LX/8xZ;->A1j()V", "LX/T3F;->BYv(LX/0M4;)Ljava/util/ArrayList;", "LX/TDa;->Dqm(LX/4nd;I)V",
             "LX/TDl;->A0J(Ljava/util/List;)V", "LX/VAW;->onClick(Landroid/view/View;)V",

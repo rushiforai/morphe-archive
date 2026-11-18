@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2026 rex <https://github.com/xboyrex/rex-ig-lite>
+ * Copyright (C) 2026 xboyrex <https://github.com/xboyrex/rex-ig-lite>
  *
  * See the included NOTICE file for GPLv3 §7(b) terms that apply to this code.
  */
@@ -16,17 +16,32 @@ public final class SettingRegistry {
     private SettingRegistry() {
     }
 
-    static void register(String key, RestartPolicy restartPolicy) {
+    public static void register(String key, RestartPolicy restartPolicy) {
+        if (key == null || key.isEmpty()) return;
         Objects.requireNonNull(restartPolicy);
         RestartPolicy previous = restartPolicies.putIfAbsent(key, restartPolicy);
         // Dynamic flags and Focus Lock selections can recreate the same setting.
         if (previous != null && previous != restartPolicy) {
-            throw new IllegalArgumentException("Conflicting restart policy for setting: " + key);
+            restartPolicies.put(key, RestartPolicy.REQUIRED);
         }
     }
 
+    public static boolean isRegistered(String key) {
+        return key != null && restartPolicies.containsKey(key);
+    }
+
     public static RestartPolicy restartPolicyFor(String key) {
-        return Objects.requireNonNull(restartPolicies.get(key),
-                "No restart policy declared for setting: " + key);
+        if (key == null || key.isEmpty()) {
+            return RestartPolicy.NOT_REQUIRED;
+        }
+        RestartPolicy policy = restartPolicies.get(key);
+        if (policy != null) {
+            return policy;
+        }
+        // Dynamic MobileConfig / Recommended Flag keys require an app restart to reload session config
+        if (key.startsWith("rec_") || key.contains(",")) {
+            return RestartPolicy.REQUIRED;
+        }
+        return Objects.requireNonNull(policy, "No restart policy declared for setting: " + key);
     }
 }

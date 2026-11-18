@@ -1830,8 +1830,6 @@ Tap and hold to copy video timestamp"</string>
     <string name="revanced_overlay_button_copy_video_url_title">Show copy video URL button</string>
     <string name="revanced_overlay_button_external_downloader_queue_manager_summary">Statt einen externen Downloader zu starten, öffnen Sie den Warteschlangen-Manager</string>
     <string name="revanced_overlay_button_external_downloader_queue_manager_title">Warteschlangen Manager</string>
-    <string name="revanced_overlay_button_external_downloader_summary">Tap to launch external downloader</string>
-    <string name="revanced_overlay_button_external_downloader_title">Show external download button</string>
     <string name="revanced_overlay_button_gemini_about_title">Über Gemini</string>
     <string name="revanced_overlay_button_gemini_summarize">Zusammenfassen</string>
     <string name="revanced_overlay_button_gemini_summarize_api_key_summary">"API-Schlüssel auf https://aistudio.google.com/apikey holen"</string>
@@ -2415,9 +2413,6 @@ Dies kann nicht funktionieren, wenn:
     <string name="revanced_shorts_custom_actions_copy_video_url_timestamp_title">Kopierzeitstempel URL-Menü anzeigen</string>
     <string name="revanced_shorts_custom_actions_copy_video_url_title">Kopiere Video-URL-Menü anzeigen</string>
     <string name="revanced_shorts_custom_actions_external_downloader_label">Externer Downloader</string>
-    <string name="revanced_shorts_custom_actions_external_downloader_summary_off">Externes Download-Menü ist ausgeblendet</string>
-    <string name="revanced_shorts_custom_actions_external_downloader_summary_on">Externes Download-Menü wird angezeigt</string>
-    <string name="revanced_shorts_custom_actions_external_downloader_title">Externes Downloadmenü anzeigen</string>
     <string name="revanced_shorts_custom_actions_gemini_label">Zusammenfassung von Gemini</string>
     <string name="revanced_shorts_custom_actions_open_video_label">Video öffnen</string>
     <string name="revanced_shorts_custom_actions_open_video_summary_off">Video-Menü öffnen ist ausgeblendet</string>

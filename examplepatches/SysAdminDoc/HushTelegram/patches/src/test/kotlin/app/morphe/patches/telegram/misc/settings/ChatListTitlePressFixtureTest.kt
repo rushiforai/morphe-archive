@@ -8,6 +8,7 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.PlusPending
 import app.morphe.util.names.addInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
@@ -37,6 +38,7 @@ import app.morphe.util.names.origRef
  * chat list makes Telegram's logo the bar's title. The context is the extension, the chat list, its
  * action bar and the holiday look's classes, which edit the same method.
  */
+@PlusPending
 class ChatListTitlePressFixtureTest {
     @Test
     fun `the chat list hands its top bar over right after the logo title on both fixtures`() {

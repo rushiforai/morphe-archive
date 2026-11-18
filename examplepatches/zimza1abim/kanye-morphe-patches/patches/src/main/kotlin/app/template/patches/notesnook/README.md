@@ -3,7 +3,8 @@
 Applies a device font or a TTF/OTF/TTC file to every piece of Notesnook text
 the app draws itself: app UI, note list, editor, reader, dialogs and menus.
 Icon fonts (MaterialCommunityIcons, EvilIcons), emoji and KaTeX math keep their
-own glyphs. Verified on official Android **3.4.14** (`notesnook-arm64-v8a.apk`).
+own glyphs. First verified on official Android 3.4.14 (`notesnook-arm64-v8a.apk`); supported
+releases are the ones in the README version table.
 
 This folder, `extensions/.../extension/notesnook/` and `scripts/notesnook/`
 hold everything the Notesnook patch uses.

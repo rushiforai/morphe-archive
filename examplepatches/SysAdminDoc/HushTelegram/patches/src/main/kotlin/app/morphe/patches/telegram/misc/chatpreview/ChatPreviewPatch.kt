@@ -55,7 +55,7 @@ val chatPreviewButtonsPatch = bytecodePatch(
 ) {
     category("Chats")
     dependsOn(settingsPatch, telegramExtensionPatch)
-    compatibleWith(*AppCompatibilities.telegram())
+    compatibleWith(*AppCompatibilities.telegramOnly())
     execute {
         val site = resolveChatPreview()
         // Assembled on a copy first, so a refusal leaves the app untouched.

@@ -93,22 +93,31 @@ final class FloatingMenu {
 
     /**
      * Builds the card from the menu's own bottom bar and puts it under the pressed message. Leaves the bar alone when
-     * the menu isn't laid out the way this expects.
+     * the menu isn't laid out the way this expects. The card, or null when there's none.
      */
-    static void dress(View overlay, View host) {
+    static View dress(View overlay, View host) {
+        return dress(overlay, host, null);
+    }
+
+    /**
+     * The same, for a menu whose pressed message is drawn again on top of the chat (see InChatMenu). When the card has no
+     * room under that message, the emoji row moves up with it, the way an iPhone lifts the last message in a chat, and
+     * lift is told how far so the message is drawn that much higher too. Null keeps both where Messenger put them.
+     */
+    static View dress(View overlay, View host, java.util.function.IntConsumer lift) {
         ViewGroup actions = actionBar(overlay);
-        if (actions == null) return;
+        if (actions == null) return null;
         FrameLayout frameHolder = frame(overlay);
-        if (frameHolder == null || frameHolder.getWidth() <= 0 || frameHolder.getHeight() <= 0) return;
+        if (frameHolder == null || frameHolder.getWidth() <= 0 || frameHolder.getHeight() <= 0) return null;
         Rect frame = bounds.apply(frameHolder);
         View panel = emojiRow(overlay, actions, frame);
-        if (panel == null) return;
+        if (panel == null) return null;
         List<View> sources = buttons(actions);
-        if (sources.size() < MIN_ACTIONS || sources.size() > MAX_ACTIONS) return;
+        if (sources.size() < MIN_ACTIONS || sources.size() > MAX_ACTIONS) return null;
         List<String> labels = new ArrayList<>();
         for (View source : sources) {
             String label = label(source);
-            if (label == null) return;
+            if (label == null) return null;
             labels.add(label);
         }
         Context context = overlay.getContext();
@@ -117,28 +126,52 @@ final class FloatingMenu {
         int width = (int) (WIDTH_DP * density);
         int height = height(sources.size(), density);
         Rect anchor = bounds.apply(panel);
-        Rect placed = place(anchor, bubble(host, anchor, density), frame, width, height,
-            (int) (GAP_DP * density), (int) (EDGE_DP * density));
+        View message = pressed(host, overlay, anchor, density);
+        Rect bubble = message == null ? null : bounds.apply(message);
+        int gap = (int) (GAP_DP * density), edge = (int) (EDGE_DP * density);
+        int rise = lift == null ? 0 : rise(anchor, bubble, frame, height, gap, edge);
+        if (rise > 0) {
+            anchor.offset(0, -rise);
+            if (bubble != null) bubble.offset(0, -rise);
+            panel.setTranslationY(panel.getTranslationY() - rise);
+            lift.accept(rise);
+        }
+        Rect placed = place(anchor, bubble, frame, width, height, gap, edge);
         FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(width, height);
         params.gravity = Gravity.TOP | Gravity.START;
         params.leftMargin = placed.left - frame.left;
         params.topMargin = placed.top - frame.top;
         actions.setVisibility(View.GONE);
         frameHolder.addView(card, params);
+        return card;
     }
 
     /**
      * Where the card goes, in the coordinates the rects come in. Under the pressed message when the chat behind says
      * where it is, a line under the emoji row when it doesn't, lined up with the side the message is on and always
-     * fully on screen.
+     * fully on screen. With no room under the message it goes over the emoji row instead, so it never covers the row.
      */
     static Rect place(Rect panel, Rect bubble, Rect frame, int width, int height, int gap, int edge) {
         Rect anchor = bubble == null || bubble.isEmpty() ? panel : bubble;
         int top = anchor.bottom + gap;
         int left = anchor.centerX() > frame.centerX() ? anchor.right - width : anchor.left;
         left = Math.max(frame.left + edge, Math.min(left, frame.right - edge - width));
+        int over = Math.min(panel.top, anchor.top) - gap - height;
+        if (top + height > frame.bottom - edge && over >= frame.top + edge) top = over;
         top = Math.max(frame.top + edge, Math.min(top, frame.bottom - edge - height));
         return new Rect(left, top, left + width, top + height);
+    }
+
+    /**
+     * How far the emoji row and the pressed message have to move up for the card to fit under the message, never so
+     * far that the row leaves the top of the screen. 0 when it already fits.
+     */
+    static int rise(Rect panel, Rect bubble, Rect frame, int height, int gap, int edge) {
+        Rect anchor = bubble == null || bubble.isEmpty() ? panel : bubble;
+        int missing = anchor.bottom + gap + height - (frame.bottom - edge);
+        if (missing <= 0) return 0;
+        int room = Math.min(panel.top, anchor.top) - (frame.top + edge);
+        return Math.max(0, Math.min(missing, room));
     }
 
     /** How tall the card is for that many rows, counting the hairlines between them and its own padding. */
@@ -248,23 +281,32 @@ final class FloatingMenu {
 
     /**
      * The pressed message in the chat behind, found by the emoji row Messenger put against its edge: of everything in
-     * the chat that takes a long press, the one whose top sits closest to that row's bottom. Null when nothing is close
-     * enough, and then the card goes a line under the emoji row instead.
+     * the chat that takes a press, the one whose top sits closest to that row's bottom. 587's bubbles take their long
+     * press through Litho and only say they take a tap, so a tap counts. Null when nothing is close enough, and then the
+     * card goes a line under the emoji row instead.
      */
     static Rect bubble(View host, Rect panel, float density) {
+        View message = pressed(host, null, panel, density);
+        return message == null ? null : bounds.apply(message);
+    }
+
+    /** The pressed message's own view, as bubble() finds it, leaving out the menu itself when it sits in the chat. */
+    static View pressed(View host, View menu, Rect panel, float density) {
         if (host == null) return null;
         int reach = (int) (ANCHOR_DP * density);
-        Rect closest = null;
+        View closest = null;
+        Rect closestBox = null;
         int best = Integer.MAX_VALUE;
-        for (View view : tree(host, CHAT_SEARCH_LIMIT)) {
-            if (!view.isLongClickable() || view.getVisibility() != View.VISIBLE) continue;
+        for (View view : tree(host, menu, CHAT_SEARCH_LIMIT)) {
+            if (!(view.isLongClickable() || view.isClickable()) || view.getVisibility() != View.VISIBLE) continue;
             Rect box = bounds.apply(view);
             if (box.width() <= 0 || box.height() <= 0) continue;
             int off = Math.abs(box.top - panel.bottom);
             if (off > reach) continue;
-            if (off < best || (off == best && closest != null && box.height() < closest.height())) {
+            if (off < best || (off == best && closestBox != null && box.height() < closestBox.height())) {
                 best = off;
-                closest = box;
+                closest = view;
+                closestBox = box;
             }
         }
         return closest;
@@ -311,11 +353,17 @@ final class FloatingMenu {
 
     /** Everything under a view, nearest first, up to a limit so a deep screen can't hold the press up. */
     private static List<View> tree(View root, int limit) {
+        return tree(root, null, limit);
+    }
+
+    /** The same, leaving out one view and everything under it. */
+    private static List<View> tree(View root, View skip, int limit) {
         List<View> found = new ArrayList<>();
         ArrayDeque<View> queue = new ArrayDeque<>();
         queue.add(root);
         while (!queue.isEmpty() && found.size() < limit) {
             View view = queue.poll();
+            if (view == skip) continue;
             found.add(view);
             if (!(view instanceof ViewGroup)) continue;
             ViewGroup group = (ViewGroup) view;

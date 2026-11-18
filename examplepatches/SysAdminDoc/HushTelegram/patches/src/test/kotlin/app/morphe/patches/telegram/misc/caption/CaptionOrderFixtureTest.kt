@@ -8,6 +8,7 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.PlusPending
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
 import app.morphe.patches.telegram.misc.extension.SETTINGS_STATUS
 import app.morphe.patches.telegram.misc.localcontrols.controlBody
@@ -30,6 +31,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /** The attach menu gallery's addToSelectedPhotos and the preview's write back of its order. */
+@PlusPending
 class CaptionOrderFixtureTest {
     @Test fun `a change of first photo reloads the comment field with that photo's caption`() {
         for (build in Fixtures.declaredBuilds()) {

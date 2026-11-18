@@ -4,7 +4,10 @@ import app.hushmessenger.patches.MessengerTarget
 import app.hushmessenger.patches.coexist.validateVersionCode
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.filePathOption
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.listApkEntries
+import app.morphe.patcher.patch.packageMetadata
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.resourceFile
 import java.io.File
 import java.security.MessageDigest
 
@@ -74,7 +77,7 @@ internal fun replaceMessageSound(chosen: String?, entries: List<String>, file: (
 }
 
 @Suppress("unused")
-val customMessageSoundPatch = resourcePatch(
+val customMessageSoundPatch = patch(
     name = MESSAGE_SOUND_PATCH,
     description = "Replaces Messenger's new-message sound with an .ogg, .mp3, .m4a or .wav file (1 MB or less) that you choose. Pick it in Morphe Manager's Expert mode. Works as soon as you patch it in, with no switch.",
     default = false,
@@ -92,6 +95,6 @@ val customMessageSoundPatch = resourcePatch(
 
     execute {
         validateVersionCode(packageMetadata.versionCode)
-        replaceMessageSound(soundFile, listApkEntries("res/"), { get(it) })
+        replaceMessageSound(soundFile, listApkEntries("res/"), { resourceFile(it) })
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2026 rex <https://github.com/xboyrex/rex-ig-lite>
+ * Copyright (C) 2026 xboyrex <https://github.com/xboyrex/rex-ig-lite>
  *
  * See the included NOTICE file for GPLv3 §7(b) terms that apply to this code.
  */
@@ -16,14 +16,24 @@ import android.widget.TextView;
 public final class CustomFontTextView extends TextView {
     public CustomFontTextView(Context context) {
         super(context);
+        super.setTypeface(CustomFont.forRexView(getTypeface()));
     }
 
     public CustomFontTextView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
+        super.setTypeface(CustomFont.forRexView(getTypeface()));
     }
 
     @Override
     public void setTypeface(Typeface typeface) {
         super.setTypeface(CustomFont.forRexView(typeface));
+    }
+
+    @Override
+    public void setTypeface(Typeface tf, int style) {
+        Typeface base = style == Typeface.NORMAL
+                ? tf
+                : Typeface.create(tf != null ? tf : Typeface.DEFAULT, style);
+        super.setTypeface(CustomFont.forRexView(base), style);
     }
 }

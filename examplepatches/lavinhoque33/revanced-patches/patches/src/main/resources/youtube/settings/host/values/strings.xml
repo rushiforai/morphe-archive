@@ -2335,8 +2335,9 @@ Tap and hold to copy video timestamp"</string>
     <string name="revanced_overlay_button_external_downloader_queue_manager_title">Queue manager</string>
     <string name="revanced_overlay_button_queue_manager_title">Queue manager (player button)</string>
     <string name="revanced_override_video_download_button_queue_manager_title">Queue manager (download action)</string>
-    <string name="revanced_overlay_button_external_downloader_summary">Tap to launch external downloader</string>
-    <string name="revanced_overlay_button_external_downloader_title">Show external downloader button</string>
+    <string name="revanced_overlay_button_external_downloader_summary">"Tap to download the video.
+RVX > General > Hook buttons > Built-in downloader selects the built-in or external downloader"</string>
+    <string name="revanced_overlay_button_external_downloader_title">Show download button</string>
     <string name="revanced_overlay_button_gemini_about_summary">"Parsing the video may take a while depending on its length. Transcribing long videos may exceed Gemini's limits
 
 AI-generated responses may contain inaccurate information
@@ -3228,9 +3229,13 @@ Most bugs cannot be fixed due to client-side limitations, so use it only for tes
     <string name="revanced_shorts_custom_actions_copy_video_url_title">Show copy video URL menu</string>
     <string name="revanced_shorts_custom_actions_external_downloader_label">External downloader</string>
     <string name="revanced_video_download_label">Download</string>
-    <string name="revanced_shorts_custom_actions_external_downloader_summary_off">External downloader menu is hidden</string>
-    <string name="revanced_shorts_custom_actions_external_downloader_summary_on">External downloader menu is shown</string>
-    <string name="revanced_shorts_custom_actions_external_downloader_title">Show external downloader menu</string>
+    <string name="revanced_shorts_custom_actions_external_downloader_summary_off"
+        >"Download action is hidden from the Shorts menu.
+RVX > General > Hook buttons > Built-in downloader selects the built-in or external downloader"</string>
+    <string name="revanced_shorts_custom_actions_external_downloader_summary_on"
+        >"Download action is shown in the Shorts menu.
+RVX > General > Hook buttons > Built-in downloader selects the built-in or external downloader"</string>
+    <string name="revanced_shorts_custom_actions_external_downloader_title">Show download menu</string>
     <string name="revanced_shorts_custom_actions_gemini_label">Gemini summary</string>
     <string name="revanced_shorts_custom_actions_gemini_summary_off">The Gemini summary action is hidden from the Shorts custom actions menu</string>
     <string name="revanced_shorts_custom_actions_gemini_summary_on">The Gemini summary action is shown in the Shorts custom actions menu</string>

@@ -1,0 +1,304 @@
+#!/usr/bin/env python3
+"""
+Generates the patches section of README.md from patches-list.json
+and injects it between <!-- PATCHES_START --> / <!-- PATCHES_END --> markers.
+
+Spoilers are expanded (open by default) if:
+  1. Total patch count <= AUTO_EXPAND_THRESHOLD.
+  2. The README marker explicitly says: <!-- PATCHES_START EXPANDED -->
+
+python3 generate_patches_readme.py <owner/repo> <branch> [patches-list.json] [README.md]
+"""
+
+import json
+import re
+import sys
+import os
+from pathlib import Path
+
+
+if len(sys.argv) < 3:
+    print("Usage: generate_patches_readme.py <owner/repo> <branch> [json] [readme]")
+    sys.exit(1)
+
+repo_full   = sys.argv[1]
+branch      = sys.argv[2]
+json_path   = Path(sys.argv[3]) if len(sys.argv) > 3 else Path("patches-list.json")
+readme_path = Path(sys.argv[4]) if len(sys.argv) > 4 else Path("README.md")
+
+
+if "/" not in repo_full:
+    raise ValueError(f"Invalid repo format: {repo_full} (expected owner/repo)")
+
+owner, repo = repo_full.split("/", 1)
+
+
+with open(json_path, encoding="utf-8") as f:
+    data = json.load(f)
+
+
+def pkg_prefix(pkg):
+    """Return an empty prefix for package grouping."""
+    return ""
+
+# Group patches by app name; patches with no compatiblePackages are universal.
+# JSON structure: compatiblePackages is a list of objects with
+# { packageName, name, targets: [{ version, isExperimental, description }] }
+by_app = {}   # app_name -> { name, prefix, packages, patches, targets }
+universal = {}
+
+for patch in data["patches"]:
+    cp = patch.get("compatiblePackages")
+    if not cp:
+        # Deduplicate universal patches by name
+        if patch["name"] not in universal:
+            universal[patch["name"]] = patch
+        continue
+    for pkg_entry in cp:
+        pkg  = pkg_entry["packageName"]
+        name = pkg_entry.get("name") or pkg  # fall back to package name if no label
+        if name not in by_app:
+            by_app[name] = {
+                "name":     name,
+                "prefix":   pkg_prefix(pkg),
+                "packages": set(),
+                "patches":  {},
+                "targets":  [],
+            }
+        by_app[name]["packages"].add(pkg)
+        for t in pkg_entry.get("targets", []):
+            if t not in by_app[name]["targets"]:
+                by_app[name]["targets"].append(t)
+        # Deduplicate patches that appear across multiple packages
+        if patch["name"] not in by_app[name]["patches"]:
+            by_app[name]["patches"][patch["name"]] = patch
+
+
+def patches_table(patches):
+    """Render a sorted markdown table of patches with name, description, and options."""
+    rows = [
+        "| Patch | Description | Options |",
+        "|----------|----------------|-----------|",
+    ]
+    for p in sorted(patches, key=lambda x: x["name"]):
+        options = p.get("options") or []
+        if options:
+            # Show only option titles as a bullet list
+            parts = [opt.get("title") or opt.get("key") or "" for opt in options]
+            opts_cell = "<br>".join(f"• {t}" for t in parts)
+        else:
+            opts_cell = ""
+        desc = (p.get("description") or "").replace("\n", "<br>")
+        rows.append(f"| **{p['name']}** | {desc} | {opts_cell} |")
+    return "\n".join(rows)
+
+
+def versions_table(targets):
+    """Render a markdown table of supported versions.
+    Experimental versions get an (experimental) suffix.
+    Versions with a description get it shown in a second row below.
+    """
+    if not targets:
+        return ""
+
+    cells = []
+    for t in targets:
+        ver   = t["version"]
+        if ver is None:
+            continue
+        label = f"{ver} (experimental)" if t.get("isExperimental") else ver
+        cells.append(label)
+
+    if not cells:
+        return ""
+
+    header = "| " + " | ".join(cells) + " |"
+    sep = "| " + " | ".join(":---:" for _ in cells) + " |"
+    rows = [header, sep]
+
+    # Optional description row — only rendered if at least one target has one
+    descs = [(t.get("description") or "").replace("\n", "<br>") for t in targets]
+    if any(descs):
+        rows.append("| " + " | ".join(descs) + " |")
+
+    return "\n".join(rows)
+
+
+def spoiler(label, count, targets, tbl, expanded=False):
+    """Wrap a patches table in a <details> spoiler with a versions sub-table.
+    If expanded=True, the spoiler is open by default (for repos with few patches).
+    """
+    noun = "patch" if count == 1 else "patches"
+    vtbl = versions_table(targets)
+    versions_section = f"**Supported versions:**\n\n{vtbl}\n\n" if vtbl else ""
+    tag = "<details open>" if expanded else "<details>"
+    return f"""{tag}
+<summary>{label}&nbsp;&nbsp;•&nbsp;&nbsp;<b>{count} {noun}</b></summary>
+<br>
+
+{versions_section}{tbl}
+
+</details>"""
+
+
+def build_content(expanded=False):
+    """Build the full generated patches section."""
+    lines = []
+
+    # One spoiler per app, in the order they appear in the JSON
+    for app_name, entry in by_app.items():
+        patches = list(entry["patches"].values())
+        prefix = f"{entry['prefix']} " if entry["prefix"] else ""
+        label   = f"{prefix}{entry['name']}"
+        lines.append(spoiler(label, len(patches), entry["targets"], patches_table(patches), expanded))
+        lines.append("")
+
+    # Universal patches (no specific app)
+    if universal:
+        uni_patches = list(universal.values())
+        noun = "patch" if len(uni_patches) == 1 else "patches"
+        tag  = "<details open>" if expanded else "<details>"
+        lines.append(f"""{tag}
+<summary>Universal&nbsp;&nbsp;•&nbsp;&nbsp;<b>{len(uni_patches)} {noun}</b></summary>
+<br>
+
+{patches_table(uni_patches)}
+
+</details>""")
+        lines.append("")
+
+    return "\n".join(lines)
+
+
+# Build and inject
+raw_ver = data["version"]
+# Strip leading "v" if present
+ver   = raw_ver.lstrip("v")
+total = sum(len(e["patches"]) for e in by_app.values()) + len(universal)
+
+readme = readme_path.read_text(encoding="utf-8")
+
+# Marker pattern — matches both <!-- PATCHES_START --> and <!-- PATCHES_START EXPANDED -->
+START_PATTERN = r"<!-- PATCHES_START(?:\s+EXPANDED)?\s*-->"
+END_MARKER    = "<!-- PATCHES_END -->"
+
+marker_match = re.search(START_PATTERN, readme)
+
+if not marker_match or END_MARKER not in readme:
+    # Fallback: print to stdout so CI can catch the issue
+    print(build_content(expanded=False))
+    sys.stderr.write(
+        f"[WARN] Markers <!-- PATCHES_START [EXPANDED] --> / {END_MARKER} not found in {readme_path}. "
+        "Printed to stdout instead.\n"
+    )
+    sys.exit(1)
+
+actual_start = marker_match.group(0)
+
+# Auto-expand threshold
+AUTO_EXPAND_THRESHOLD = 20
+
+# Spoilers are expanded if:
+# 1. Total patch count is small (≤ AUTO_EXPAND_THRESHOLD)
+#    with only a few patches where collapsing adds no benefit.
+# 2. The README marker explicitly requests it: <!-- PATCHES_START EXPANDED -->
+expanded = (
+    total <= AUTO_EXPAND_THRESHOLD or
+    "EXPANDED" in actual_start
+)
+
+generated  = build_content(expanded=expanded)
+
+# Update target versions and download URLs in README table
+for entry in by_app.values():
+    pkgs = entry["packages"]
+    targets = entry.get("targets") or []
+    if targets and targets[0].get("version"):
+        target_ver = targets[0]["version"]
+        if any("latin" in p for p in pkgs):
+            base_ver = target_ver.split("-")[0]
+            channel_ver = re.sub(r"-(?:arm64-v8a|armeabi-v7a)$", "", target_ver)
+            slug_ver = base_ver.replace(".", "-")
+            channel = "beta" if "beta" in target_ver else "release"
+            readme = re.sub(
+                r"(\|\s*\*\*Gboard Lite\*\*\s*\|\s*`com\.google\.android\.inputmethod\.latin`\s*\|\s*`)[^`]+(`\s*\|)",
+                rf"\g<1>{channel_ver}\g<2>",
+                readme,
+                count=1,
+            )
+            readme = re.sub(
+                r"https://www\.apkmirror\.com/apk/google-inc/gboard/(?:gboard|gboard-the-google-keyboard)-[^/]+-(?:release|beta)/",
+                f"https://www.apkmirror.com/apk/google-inc/gboard/gboard-the-google-keyboard-{slug_ver}-{channel}/",
+                readme,
+                count=1,
+            )
+        elif any("brave" in p for p in pkgs):
+            readme = re.sub(
+                r"(\|\s*\*\*Brave Browser\*\*\s*\|\s*`com\.brave\.browser`\s*\|\s*`)[^`]+(`\s*\|)",
+                rf"\g<1>{target_ver}\g<2>",
+                readme,
+                count=1,
+            )
+            readme = re.sub(
+                r"https://github\.com/brave/brave-browser/releases/download/v[^/]+/Bravemonoarm64\.apk",
+                f"https://github.com/brave/brave-browser/releases/download/v{target_ver}/Bravemonoarm64.apk",
+                readme,
+                count=1,
+            )
+            readme = re.sub(
+                r"https://github\.com/brave/brave-browser/releases/download/v[^/]+/BraveMonoarm\.apk",
+                f"https://github.com/brave/brave-browser/releases/download/v{target_ver}/BraveMonoarm.apk",
+                readme,
+                count=1,
+            )
+        elif any("musically" in p for p in pkgs) or any("trill" in p for p in pkgs):
+            slug_ver = target_ver.replace(".", "-")
+            readme = re.sub(
+                r"(\|\s*\*\*TikTok\*\*\s*\|[^|\n]+\|\s*`)[^`]+(`\s*\|)",
+                rf"\g<1>{target_ver}\g<2>",
+                readme,
+                count=1,
+            )
+            readme = re.sub(
+                r"https://www\.apkmirror\.com/apk/tiktok-pte-ltd/tik-tok-including-musical-ly/tiktok-[^/]+-release/",
+                f"https://www.apkmirror.com/apk/tiktok-pte-ltd/tik-tok-including-musical-ly/tiktok-{slug_ver}-release/",
+                readme,
+                count=1,
+            )
+            readme = re.sub(
+                r"https://www\.apkmirror\.com/apk/tiktok-pte-ltd/tik-tok/tiktok-[^/]+-2-release/",
+                f"https://www.apkmirror.com/apk/tiktok-pte-ltd/tik-tok/tiktok-{slug_ver}-2-release/",
+                readme,
+                count=1,
+            )
+        elif any("lite.go" in p for p in pkgs):
+            slug_ver = target_ver.replace(".", "-")
+            readme = re.sub(
+                r"(\|\s*\*\*TikTok Lite\*\*\s*\|\s*`com\.tiktok\.lite\.go`\s*\|\s*`)[^`]+(`\s*\|)",
+                rf"\g<1>{target_ver}\g<2>",
+                readme,
+                count=1,
+            )
+            readme = re.sub(
+                r"https://www\.apkmirror\.com/apk/tiktok-pte-ltd/tiktok-lite-faster-tiktok/tiktok-lite-faster-tiktok-[^/]+-release/",
+                f"https://www.apkmirror.com/apk/tiktok-pte-ltd/tiktok-lite-faster-tiktok/tiktok-lite-faster-tiktok-{slug_ver}-release/",
+                readme,
+                count=1,
+            )
+
+# The generated section is inserted as a *function* replacement, never as a template:
+# a patch description containing a backslash (C:\path, \1, \g<name>) would otherwise be
+# parsed as a regex escape and abort the whole release with `bad escape`.
+new_readme, replacements = re.subn(
+    rf"{START_PATTERN}.*?{re.escape(END_MARKER)}",
+    lambda _match: f"{actual_start}\n{generated}\n{END_MARKER}",
+    readme,
+    flags=re.DOTALL,
+)
+readme_path.write_text(new_readme, encoding="utf-8")
+if sys.stdout.encoding and sys.stdout.encoding.lower() not in ("utf-8", "utf8"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
+print(f"Injected patches section and synchronized target callouts into {readme_path} (v{ver}, branch={branch}, {total} patches, expanded={expanded})")

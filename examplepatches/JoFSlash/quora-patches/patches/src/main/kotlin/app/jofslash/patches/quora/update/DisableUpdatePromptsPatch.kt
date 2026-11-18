@@ -2,6 +2,8 @@ package app.jofslash.patches.quora.update
 
 import app.jofslash.patches.quora.shared.Constants.COMPATIBILITY_QUORA
 import app.morphe.patcher.Fingerprint
+import app.jofslash.patches.quora.ads.PageFinishedFingerprint
+import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 
@@ -15,12 +17,20 @@ internal object HandleAppUpdateInfoFingerprint : Fingerprint(
 @Suppress("unused")
 val disableUpdatePromptsPatch = bytecodePatch(
     name = "Disable update prompts",
-    description = "Stops the app from showing the Google Play update screen.",
+    description = "Stops the app from showing the Google Play update screen and the feed's update card.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_QUORA)
 
+    extendWith("extensions/extension.mpe")
+
     execute {
+        // The feed also shows its own "Update Available" card.
+        PageFinishedFingerprint.method.addInstruction(
+            0,
+            "invoke-static { p1 }, Lapp/jofslash/extension/quora/HideContentPatch;->hideUpdateCard(Landroid/webkit/WebView;)V"
+        )
+
         // Always report UpdateAvailability.UPDATE_NOT_AVAILABLE (1), so the update flow never starts.
         HandleAppUpdateInfoFingerprint.method.addInstructions(
             0,

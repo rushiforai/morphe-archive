@@ -18,6 +18,11 @@
   ],
   "tweaks": [
     {
+      "id": "app-icon",
+      "name": "Afterglow app icon",
+      "keys": []
+    },
+    {
       "id": "remove-ads",
       "name": "Remove ads",
       "keys": [

@@ -8,6 +8,7 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.PlusPending
 import app.morphe.util.names.origRef
 import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
@@ -50,6 +51,7 @@ import app.morphe.util.names.origType
 import app.morphe.util.names.tgMutableClassDefBy
 
 /** PushListenerController's sign-up and wake-up on both declared builds, where UnifiedPush plugs in. */
+@PlusPending
 class UnifiedPushFixtureTest {
     private companion object {
         val EMOJI_CENSUS = FixtureDex.ClassCensus()

@@ -9,7 +9,7 @@ Stubs a new settings control in every file a control has to reach, so what's lef
 It writes the control's Kotlin file (key constant, finder, validator and inject, each a stub) and a test file with a
 fixture, and wires the key into MessengerControlsPatch (validate, inject, the patch declaration), ControlHooks,
 SyntheticProfile, ControlDiscoveryTest, both ExpectedTotals, Settings, SettingsActivity (the CONTROLS row, and
-EXPERIMENTAL unless --stable), every SettingsText table (rows left empty for the translations), the extension
+EXPERIMENTAL unless --stable), every translation table in src/main/l10n (rows left empty to translate), the extension
 manifest, SettingsNavigationTest when it lists the section, CompatReport's PATCHES row, Controls.findControls and the
 finder's mirror in scripts/compat/<family>.java.
 
@@ -30,7 +30,8 @@ PATCHES_DIR = "patches/src/main/kotlin/app/hushmessenger/patches"
 TESTS_DIR = "patches/src/test/kotlin/app/hushmessenger/patches/controls"
 EXTENSION_DIR = "extensions/messenger/src/main/java/app/hushmessenger/extension"
 EXTENSION_TESTS = "extensions/messenger/src/test/java/app/hushmessenger/extension"
-LOCALES = ("Es", "Th", "Tr", "ViVN", "ZhTw")
+L10N_DIR = "extensions/messenger/src/main/l10n"
+LOCALES = ("es", "th", "tr", "vi", "zh-TW")
 STRING = r'"((?:[^"\\]|\\.)*)"'
 
 
@@ -367,9 +368,9 @@ class {camel}Test {{
         tree.set(rel, text)
 
     def locale(name: str) -> None:
-        rel = f"{EXTENSION_DIR}/SettingsText{name}.java"
-        rows = f'        {{"{key}.title", ""}},\n        {{"{key}.description", ""}},\n'
-        tree.set(rel, insert_after(tree.read(rel), rows, [rf'^\s*\{{"{re.escape(after)}\.description", '], rel))
+        rel = f"{L10N_DIR}/{name}.tsv"
+        rows = f"{key}.title\t\n{key}.description\t\n"
+        tree.set(rel, insert_after(tree.read(rel), rows, [rf"^{re.escape(after)}\.description\t"], rel))
 
     def manifest() -> None:
         rel = "extensions/messenger/src/main/AndroidManifest.xml"
@@ -428,7 +429,7 @@ class {camel}Test {{
         f"{lower}Fixture in {TESTS_DIR}/{camel}Test.kt with the stock method's shape, then the tests that refuse a changed shape",
         f"java scripts/CompatReport.java --record-control {key} fixtures/587 to write the hook ids into the records and ControlProfiles.kt,"
         f" then raise ExpectedTotals.HOOKS_587 by the hooks it found per build",
-        f"the {len(LOCALES)} translations left empty in SettingsText{{{','.join(LOCALES)}}}.java",
+        f"the {len(LOCALES)} translations left empty in {L10N_DIR}/{{{','.join(LOCALES)}}}.tsv",
         "a CHANGELOG bullet under ## Unreleased, then :patches:generatePatchCatalog in the same commit",
     ]
 

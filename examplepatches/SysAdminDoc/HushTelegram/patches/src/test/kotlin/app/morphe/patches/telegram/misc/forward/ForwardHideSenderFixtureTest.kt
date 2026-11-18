@@ -8,6 +8,7 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.PlusPending
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
 import app.morphe.patches.telegram.misc.extension.SETTINGS_STATUS
 import app.morphe.patches.telegram.misc.localcontrols.controlBody
@@ -39,6 +40,7 @@ private const val SET_CHECKED = "->setChecked(Z)V"
 private fun List<Instruction>.counted() = count { it.opcode != Opcode.NOP }
 
 /** The forward preview's update, the picker's and the Share sheet's sends, the Premium gate's article number, the stubs and the runtime. */
+@PlusPending
 class ForwardHideSenderFixtureTest {
     @Test fun `the extension sees each new forward first and keeps Telegram's article gate`() {
         for (build in Fixtures.declaredBuilds()) {

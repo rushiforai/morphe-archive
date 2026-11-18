@@ -1,6 +1,6 @@
-# InstaRex v3.15.0 — Master Implementation & Audit Remediation Checklist
+# InstaRex v3.16.0 — Master Implementation & Audit Remediation Checklist
 
-- [x] **P1-01**: Synchronized `patches-bundle.json` and `patches-list.json` from `3.13.0` to `3.15.0` (`patches-3.15.0.mpp`).
+- [x] **P1-01**: Synchronized `patches-bundle.json` and `patches-list.json` from `3.13.0` to `3.16.0` (`patches-3.16.0.mpp`).
 - [x] **P1-02**: Split `UpdateChecker.java` & `RexAboutView.java` into two honest update pathways: `Check Patch Bundle Update (.mpp)` (works on all Morphe-patched installs) and `Check Signed APK Update (OTA)`.
 - [x] **P2-01**: Fixed `UpdateChecker.isCloneBuild(Context)` duplicated `.xboyrex` condition to check `com.instarex.android`, `com.instagram.androie`, `com.instagram.android.clone`, `.xboyrex`, `.instarex`, and `.clone`.
 - [x] **P2-02 & P2-03**: Added `MediaData.AudioState { YES, NO, UNKNOWN }` and `MediaContextResolver.SurfaceType.UNKNOWN` so unknown media objects or audio exceptions never produce false positives.

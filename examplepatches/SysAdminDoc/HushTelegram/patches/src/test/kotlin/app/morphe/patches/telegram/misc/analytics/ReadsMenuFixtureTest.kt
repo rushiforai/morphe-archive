@@ -8,6 +8,7 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.PlusPending
 import app.morphe.hostsOf
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
 import app.morphe.patches.telegram.misc.localcontrols.controlBody
@@ -44,6 +45,7 @@ internal fun readsMenuHosts(build: File): List<ClassDef> = READS_MENU_HOST_CACHE
 }
 
 /** Send read receipts in a chat's menu at the top (#69), on the header My messages and Outside translate share. */
+@PlusPending
 class ReadsMenuFixtureTest {
     private val menu = "$READS_MENU->headerMenu(Ljava/lang/Object;)V"
     private val click = "$READS_MENU->headerClick(Ljava/lang/Object;I)Z"

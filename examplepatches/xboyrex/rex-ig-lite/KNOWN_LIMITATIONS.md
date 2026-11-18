@@ -1,7 +1,7 @@
-# INSTAREX (REX IG LITE v3.15.0) — KNOWN LIMITATIONS & ENVIRONMENT CONSTRAINTS (`KNOWN_LIMITATIONS.md`)
+# INSTAREX (REX IG LITE v3.16.0) — KNOWN LIMITATIONS & ENVIRONMENT CONSTRAINTS (`KNOWN_LIMITATIONS.md`)
 
 1. **Headless VM Sandbox Network & Device Isolation**:
-   - The local verification VM has no outbound internet access and no attached Android device/emulator. Therefore, full Gradle artifact resolution (`./gradlew build`) and `patches-3.15.0.mpp` packaging execute automatically in GitHub Actions upon running `bash push_to_github.sh` in Termux.
+   - The local verification VM has no outbound internet access and no attached Android device/emulator. Therefore, full Gradle artifact resolution (`./gradlew build`) and `patches-3.16.0.mpp` packaging execute automatically in GitHub Actions upon running `bash push_to_github.sh` in Termux.
 2. **Instagram Private-Account & Server-Side Access Controls**:
    - Per `MASTER_PROMPT.md` Rule 11, InstaRex only reads media URLs, carousel children, and story mentions exposed to the currently authenticated user session by Instagram's client models (`MediaData`, `ImageInfo`, `VideoVersion`, `ReelItem`). It does not bypass server-side private account restrictions or DRM.
 3. **Batch Carousel Reposting on Android**:

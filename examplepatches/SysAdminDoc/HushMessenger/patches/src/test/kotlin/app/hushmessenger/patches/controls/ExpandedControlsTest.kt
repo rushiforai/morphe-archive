@@ -2,7 +2,6 @@ package app.hushmessenger.patches.controls
 
 import app.hushmessenger.patches.CompatMirror
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
-import app.morphe.patcher.patch.BytecodePatch
 import app.morphe.patcher.patch.Patch
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
@@ -32,12 +31,12 @@ class ExpandedControlsTest {
 
     @Test fun catalogExposesTwentyIndependentControlsWithOneSharedExtension() {
         val patches = Class.forName("app.hushmessenger.patches.controls.MessengerControlsPatchKt").methods
-            .filter { it.name.startsWith("get") && it.returnType == BytecodePatch::class.java }
-            .map { it.invoke(null) as BytecodePatch }.filter { it.name != null }
+            .filter { it.name.startsWith("get") && it.returnType == Patch::class.java }
+            .map { it.invoke(null) as Patch }.filter { it.name != null }
         assertEquals(ExpectedTotals.CONTROLS, patches.size)
         assertEquals(ExpectedTotals.CONTROLS, patches.map { it.name }.toSet().size)
-        val shared = patches.map { it.dependencies.filterIsInstance<BytecodePatch>().single() }.toSet()
-        assertEquals(1, shared.size)
+        val shared = patches.map { it.dependencies.toSet() }.reduce { common, next -> common intersect next }
+        assertEquals(setOf<Patch>(settingsExtension), shared)
         assertNull(shared.single().name)
         fun descendants(patch: Patch): Set<Patch> = patch.dependencies.flatMap { setOf(it) + descendants(it) }.toSet()
         for (patch in patches) {
@@ -48,8 +47,8 @@ class ExpandedControlsTest {
     // Descriptions name the settings page, since "Long-press Messenger" (#27) read as the title inside the app.
     @Test fun settingsDirectionsNameTheSettingsPage() {
         val patches = Class.forName("app.hushmessenger.patches.controls.MessengerControlsPatchKt").methods
-            .filter { it.name.startsWith("get") && it.returnType == BytecodePatch::class.java }
-            .map { it.invoke(null) as BytecodePatch }.filter { it.name != null }
+            .filter { it.name.startsWith("get") && it.returnType == Patch::class.java }
+            .map { it.invoke(null) as Patch }.filter { it.name != null }
         val directed = patches.filter { "HushMessenger settings > Controls" in it.description.orEmpty() }
         assertEquals(ExpectedTotals.DIRECTED_CONTROLS, directed.size)
         for (patch in directed) {

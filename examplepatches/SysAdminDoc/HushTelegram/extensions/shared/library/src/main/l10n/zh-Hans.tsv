@@ -2472,3 +2472,5 @@ Shadowsocks plugins	Shadowsocks 插件
 other Shadowsocks ciphers	其他 Shadowsocks 加密方式
 # context: Item in the list of skipped link kinds on the V2Ray server row: VLESS links that ask for VLESS's own encryption
 VLESS encryption	VLESS 加密
+# context: read aloud after a settings row's name when a dot marks it as added since the settings were last opened
+New	新增

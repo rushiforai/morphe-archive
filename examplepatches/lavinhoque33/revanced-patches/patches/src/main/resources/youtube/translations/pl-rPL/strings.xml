@@ -2030,8 +2030,6 @@ Stuknij i przytrzymaj, by skopiować czas filmu"</string>
     <string name="revanced_overlay_button_copy_video_url_title">Przycisk od kopiowania URL filmu</string>
     <string name="revanced_overlay_button_external_downloader_queue_manager_summary">Zamiast otwierać zewnętrzną aplikację od pobierania, otwiera menedżera kolejki</string>
     <string name="revanced_overlay_button_external_downloader_queue_manager_title">Menedżer kolejki</string>
-    <string name="revanced_overlay_button_external_downloader_summary">Stuknij, by otworzyć aplikacje od pobierania</string>
-    <string name="revanced_overlay_button_external_downloader_title">Przycisk do pobierania</string>
     <string name="revanced_overlay_button_gemini_about_summary">"Przetwarzanie filmu może zająć trochę czasu w zależności od jego długości. Transkrypcja długich filmów może przekroczyć limity Gemini
 
 Odpowiedzi generowane przez sztuczną inteligencję mogą zawierać niedokładne informacje
@@ -2686,9 +2684,6 @@ Większość błędów nie może być naprawiona w skutek ograniczeń po stronie
     <string name="revanced_shorts_custom_actions_copy_video_url_timestamp_title">Menu od kopiowania adresu filmu z czasem</string>
     <string name="revanced_shorts_custom_actions_copy_video_url_title">Menu od kopiowania adresu filmu</string>
     <string name="revanced_shorts_custom_actions_external_downloader_label">Pobierz film (zewnętrzna aplikacja)</string>
-    <string name="revanced_shorts_custom_actions_external_downloader_summary_off">Ukryte</string>
-    <string name="revanced_shorts_custom_actions_external_downloader_summary_on">Widoczne</string>
-    <string name="revanced_shorts_custom_actions_external_downloader_title">Menu od zewnętrznej aplikacji do pobierania</string>
     <string name="revanced_shorts_custom_actions_gemini_label">Podsumowanie przez Gemini</string>
     <string name="revanced_shorts_custom_actions_gemini_summary_off">Ukryte Gemini Shorts</string>
     <string name="revanced_shorts_custom_actions_gemini_summary_on">Widoczne Gemini Shorts</string>

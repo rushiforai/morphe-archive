@@ -14,9 +14,10 @@ public final class ActivityTestRunner extends Instrumentation {
             HistoryRuntimeTest.run(getTargetContext());
             HistoryUiTest.run(this,getTargetContext());
             HistoryExportTest.run(getTargetContext());
+            DiagnosticsUiTest.run(this,getTargetContext());
             String apkPath=args==null?null:args.getString("patched_apk");
             if(apkPath!=null){PatchedSdkTest.run(apkPath,getTargetContext());ServiceCacheIntegrationTest.run(apkPath,getTargetContext());}
-            result.putString("result", "ActivityStoreTest, ReplayKeyTest, HistoryRuntimeTest and HistoryUiTest passed"+(apkPath==null?"":"; patched SDK and service cache tests passed")); finish(0,result);
+            result.putString("result", "Activity store, history, diagnostics and export tests passed"+(apkPath==null?"":"; patched SDK and service cache tests passed")); finish(0,result);
         } catch (Throwable t) { result.putString("error",android.util.Log.getStackTraceString(t)); finish(1,result); }
     }
 }

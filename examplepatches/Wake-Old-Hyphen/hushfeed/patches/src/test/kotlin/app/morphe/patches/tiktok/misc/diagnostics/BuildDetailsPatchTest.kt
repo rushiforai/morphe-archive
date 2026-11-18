@@ -27,7 +27,7 @@ import org.junit.rules.TemporaryFolder
 
 class BuildDetailsPatchTest {
     @get:Rule val temporary = TemporaryFolder()
-    private val target = packageMetadata("com.zhiliaoapp.musically", "47.7.3", "2024707030")
+    private val target = packageMetadata("com.zhiliaoapp.musically", "47.8.3", "2024708030")
     private val fingerprint = "A1234567890123456789B" + "c".repeat(43)
 
     @Test fun `bundle manifest paths preserve plus spaces percent and unicode and release the jar`() {
@@ -306,8 +306,9 @@ class BuildDetailsPatchTest {
 
     private fun File.facts() = readLines().associate { it.substringBefore('=') to it.substringAfter('=') }
 
-    // Patcher metadata is public at the JVM boundary but its constructor is Kotlin-internal.
+    // Patcher metadata is public at the JVM boundary but its constructor is Kotlin-internal. Patcher
+    // 2.4.0 hands it the bundle's OBB files after the signature block; a context with no APK has none.
     private fun packageMetadata(name: String, version: String, code: String) =
-        PackageMetadata::class.java.constructors.single { it.parameterCount == 4 }
-            .newInstance(name, version, code, null) as PackageMetadata
+        PackageMetadata::class.java.constructors.single { it.parameterCount == 5 }
+            .newInstance(name, version, code, null, emptyMap<String, File>()) as PackageMetadata
 }

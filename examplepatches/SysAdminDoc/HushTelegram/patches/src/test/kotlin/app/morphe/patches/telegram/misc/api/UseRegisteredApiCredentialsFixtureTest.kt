@@ -7,6 +7,7 @@ package app.morphe.patches.telegram.misc.api
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.PlusPending
 import app.morphe.util.names.addInstruction
 import app.morphe.util.names.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
@@ -58,6 +59,7 @@ import app.morphe.util.names.tgMutableClassDefBy
 import app.morphe.util.names.tgClassDefBy
 
 /** Registered credentials change two initialization literals and tag the native init version. Authentication stays intact. */
+@PlusPending
 class UseRegisteredApiCredentialsFixtureTest {
     @Test
     fun `credential patch is optional and both input options remain optional`() {

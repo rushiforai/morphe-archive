@@ -1,0 +1,162 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "ignoredIssues": [
+    {
+      "issue": 13,
+      "reason": "False positive in App Manager scanner signatures (closed as answered)"
+    },
+    {
+      "issue": 30,
+      "reason": "Referred to external Morphe patch repository (d0nj/morphe-patches)"
+    },
+    {
+      "issue": 41,
+      "reason": "Settings panel UI injection rejected as out of scope (docs/out-of-scope.md)"
+    },
+    {
+      "issue": 20,
+      "reason": "Vivaldi Browser target dropped and deprecated"
+    },
+    {
+      "issue": 44,
+      "reason": "Telemetry offset update already aligned on main branch"
+    }
+  ],
+  "contributors": [
+    {
+      "username": "Lxchoooo",
+      "customText": "Testing: Daily patch testing, runtime APK validation, and bug diagnostics."
+    },
+    {
+      "username": "Diego694",
+      "customText": "Testing: Daily patch testing, runtime APK validation, and bug diagnostics."
+    },
+    {
+      "username": "ll0r3nt3",
+      "contributions": [
+        {
+          "title": "DPI Resource Slimmer",
+          "issue": 16
+        },
+        {
+          "title": "Remove Debug Info",
+          "issue": 198
+        }
+      ]
+    },
+    {
+      "username": "aidenking2102-dotcom",
+      "contributions": [
+        {
+          "title": "TikTok Feed Ad Blocker",
+          "issue": 23
+        },
+        {
+          "title": "Playback Speed Setter",
+          "issue": 25
+        },
+        {
+          "title": "Floating Ad Pendant / Sticker Blocker",
+          "issue": 33
+        }
+      ]
+    },
+    {
+      "username": "mparvezalam808",
+      "contributions": [
+        {
+          "title": "TikTok Always show publish date, Copy comments without username, Fix Google login, and Show seekbar",
+          "issue": 35
+        },
+        {
+          "title": "TikTok Custom offline videos limit",
+          "issue": 40
+        }
+      ]
+    },
+    {
+      "username": "raxelbyte",
+      "contributions": [
+        {
+          "title": "Gboard Lite Clipboard Enhancements",
+          "issue": 17
+        }
+      ]
+    },
+    {
+      "username": "rafipasya",
+      "contributions": [
+        {
+          "title": "TikTok Auto-translate comments",
+          "issue": 48
+        }
+      ]
+    },
+    {
+      "username": "Fahry-a",
+      "contributions": [
+        {
+          "title": "Brave ARMv7a (32-bit) architecture support",
+          "issue": 50
+        }
+      ]
+    },
+    {
+      "username": "marcoodhb",
+      "contributions": [
+        {
+          "title": "TikTok Disable double tap to like",
+          "issue": 55
+        }
+      ]
+    },
+    {
+      "username": "miyqwx-dev",
+      "customText": "Feature request: Proposed Gboard Lite Hide Incognito Icon toggle feature request."
+    },
+    {
+      "username": "rdx011",
+      "contributions": [
+        {
+          "title": "Gboard Lite Decouple keyboard vibration from system touch feedback",
+          "issue": 69
+        },
+        {
+          "title": "A Universal Patch to Disable Browser File Associations",
+          "issue": 93
+        }
+      ]
+    },
+    {
+      "username": "nightsper",
+      "contributions": [
+        {
+          "title": "Tab selection after deleting a tab in a tab group",
+          "issue": 76
+        }
+      ]
+    },
+    {
+      "username": "nadr21a21",
+      "contributions": [
+        {
+          "title": "Gboard lite Option to pause automatic deletion in clipboard",
+          "issue": 61
+        }
+      ]
+    },
+    {
+      "username": "polosugars-sketch",
+      "contributions": [
+        {
+          "title": "Include other monetization SDKs in the patches",
+          "issue": 164
+        }
+      ]
+    },
+    {
+      "username": "AlexanderQueen",
+      "customText": "Feature request: Proposed a user-chosen New Tab Page background image ([#197](https://github.com/kveld9/kveld-morphe-patches/issues/197))."
+    }
+  ]
+}

@@ -1,11 +1,9 @@
 package app.hushmessenger.patches.controls
 
-import app.morphe.patcher.PatcherConfig
-import app.morphe.patcher.PatcherProgress
+import app.hushmessenger.patches.useClasses
+import app.hushmessenger.patches.withPatcherContext
 import app.morphe.patcher.patch.BytecodePatchContext
-import app.morphe.patcher.patch.ResourcePatch
 import app.morphe.patcher.patch.ResourcePatchContext
-import app.morphe.patcher.resource.ResourceMode
 import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
@@ -19,7 +17,6 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.SwitchPayload
 import org.junit.jupiter.api.io.TempDir
 import org.w3c.dom.Element
-import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.readText
 import kotlin.test.*
@@ -325,29 +322,16 @@ class MaterialYouPatchTest {
         action: (BytecodePatchContext, ResourcePatchContext) -> Unit) {
         val apk = Path.of("../extensions/messenger/build/intermediates/linked_resources_binary_format/release/" +
             "processReleaseResources/linked-resources-binary-format-release.ap_").toFile()
-        val config = PatcherConfig(apk, temporary.toFile())
-        val resources = ResourcePatchContext::class.java.getDeclaredConstructor(PatcherConfig::class.java).newInstance(config)
-        resources.use {
-            ResourcePatchContext::class.java.getMethod("decodeResources\$morphe_patcher", ResourceMode::class.java)
-                .invoke(resources, ResourceMode.RAW_ONLY)
-            Files.writeString(temporary.resolve("apk/AndroidManifest.xml"),
-                """<manifest xmlns:android="http://schemas.android.com/apk/res/android"><application /></manifest>""")
-            val context = BytecodePatchContext::class.java.declaredConstructors.single()
-                .newInstance(config, resources.packageMetadata) as BytecodePatchContext
-            val patchClasses = Class.forName("app.morphe.patcher.util.PatchClasses")
-            BytecodePatchContext::class.java.getMethod("setPatchClasses\$morphe_patcher", patchClasses)
-                .invoke(context, patchClasses.getConstructor(Set::class.java, PatcherProgress::class.java).newInstance(classes.toSet(), null))
-            context.use {
-                val capability = materialYouPatch.dependencies.filterIsInstance<ResourcePatch>().single()
-                capability.execute(resources)
-                bundledControls.clear()
-                action(context, resources)
-            }
+        withPatcherContext(apk, temporary, emptyManifest = true) { resources, context ->
+            context.useClasses(classes.toSet())
+            materialYouPatch.capabilityRecord().execute(resources)
+            bundledControls.clear()
+            action(context, resources)
         }
     }
 
     private fun ResourcePatchContext.hasTheme(): Boolean {
-        materialYouPatch.dependencies.filterIsInstance<ResourcePatch>().single().finalize(this)
+        materialYouPatch.capabilityRecord().finalize(this)
         return document("AndroidManifest.xml").use { doc ->
             val metadata = doc.getElementsByTagName("meta-data")
             (0 until metadata.length).any {

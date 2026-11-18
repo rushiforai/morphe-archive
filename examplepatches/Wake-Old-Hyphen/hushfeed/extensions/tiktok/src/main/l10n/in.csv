@@ -483,6 +483,15 @@ Entry %1$d has a field with the wrong data type.,Entri %1$d memiliki kolom denga
 Entry %1$d isn't an object.,Entri %1$d bukan objek.
 Errors,Kesalahan
 Expand activity list,Bentangkan daftar aktivitas
+Group likes per comment,Kelompokkan suka per komentar
+"Show one row for each comment or video people liked, with everyone who liked it counted, instead of a new row for every few likes. Applies the next time the Likes list loads.","Menampilkan satu baris untuk setiap komentar atau video yang disukai orang, dengan semua yang menyukainya terhitung, bukan baris baru setiap beberapa suka. Berlaku saat daftar Suka dimuat berikutnya."
+Swap lists,Tukar daftar
+Split the Activity page,Bagi halaman Aktivitas
+"Show your newest comments at the top of the Activity page and likes below, each scrolling on its own. The bar between them swaps the two lists or hides the lower one until you bring it back. Picking another list from Activity still shows just that list. Applies the next time the page opens.","Menampilkan komentar terbarumu di bagian atas halaman Aktivitas dan suka di bawahnya, masing-masing bisa digulir sendiri. Bilah di antaranya menukar kedua daftar atau menyembunyikan daftar bawah sampai kamu menampilkannya lagi. Memilih daftar lain dari Aktivitas tetap hanya menampilkan daftar itu. Berlaku saat halaman dibuka berikutnya."
+Hide likes,Sembunyikan suka
+Show likes,Tampilkan suka
+Hide comments,Sembunyikan komentar
+Show comments,Tampilkan komentar
 Explore or Community,Jelajahi atau Komunitas
 Export diagnostic report,Ekspor laporan diagnostik
 Export loaded values,Ekspor nilai yang dimuat
@@ -512,6 +521,8 @@ Filter: %1$s,Filter: %1$s
 First caller,Pemanggil pertama
 First rejection:,Penolakan pertama:
 Fit the video to the screen,Sesuaikan video dengan layar
+Fill a tall screen instead,Penuhi layar tinggi sebagai gantinya
+"With the switch above on, the video is cropped to fill a tall screen like a folding phone's front screen. A squarer one, like the big screen opened up, still shows the whole video.","Saat tombol di atas aktif, video dipotong sampai memenuhi layar tinggi seperti layar depan ponsel lipat. Layar yang lebih persegi, seperti layar besar saat dibuka, tetap menampilkan seluruh video."
 Fill the screen with the video,Penuhi layar dengan video
 Crop the video until it covers the whole window. On a tall phone the black strip TikTok leaves under a video goes and so does a little of each side.,Memotong video sampai menutupi seluruh jendela. Di ponsel yang tinggi garis hitam yang ditinggalkan TikTok di bawah video hilang dan sedikit dari tiap sisi ikut hilang.
 Focus,Fokus
@@ -1414,6 +1425,26 @@ Hushfeed is paused,Hushfeed dijeda
 A file named hushfeed-safe-mode in TikTok's folder under Android/data paused Hushfeed. Your settings stay as they are.,File bernama hushfeed-safe-mode di folder TikTok di dalam Android/data menjeda Hushfeed. Pengaturanmu tetap seperti semula.
 Turn Hushfeed back on,Aktifkan Hushfeed lagi
 Pause Hushfeed,Jeda Hushfeed
+Settings theme,Tema pengaturan
+Hushfeed language,Bahasa Hushfeed
+For Hushfeed's settings and messages. TikTok keeps its own language.,Untuk pengaturan dan pesan Hushfeed. TikTok tetap memakai bahasanya sendiri.
+English,English
+العربية,العربية
+Azərbaycan dili,Azərbaycan dili
+Deutsch,Deutsch
+Español,Español
+Bahasa Indonesia,Bahasa Indonesia
+Italiano,Italiano
+Português (Brasil),Português (Brasil)
+Русский,Русский
+ไทย,ไทย
+Türkçe,Türkçe
+Tiếng Việt,Tiếng Việt
+简体中文,简体中文
+Match TikTok,Ikuti TikTok
+Always dark,Selalu gelap
+Always light,Selalu terang
+Colors these settings and Hushfeed's own pop-ups.,Mewarnai pengaturan ini dan pop-up milik Hushfeed sendiri.
 "Pause Hushfeed's switches after TikTok restarts. Your settings stay saved. Changes made when you patched, like the app's name or icon, stay.","Jeda sakelar Hushfeed setelah TikTok dimulai ulang. Pengaturanmu tetap tersimpan. Perubahan yang dibuat saat kamu mem-patch, seperti nama atau ikon aplikasi, tetap ada."
 Hushfeed turns back on when TikTok restarts.,Hushfeed aktif lagi saat TikTok dimulai ulang.
 The file hushfeed-safe-mode couldn't be removed. Delete it from TikTok's folder under Android/data to turn Hushfeed back on.,File hushfeed-safe-mode tidak bisa dihapus. Hapus dari folder TikTok di dalam Android/data untuk mengaktifkan Hushfeed lagi.
@@ -1791,6 +1822,8 @@ Hide the Service+ row under LIVE previews,Sembunyikan baris Service+ di bawah pr
 "A LIVE in the feed can show a Service+ line under the creator's name, such as Ask me anything. This keeps it hidden.",LIVE di feed bisa menampilkan baris Service+ di bawah nama kreator seperti Tanya apa saja. Ini membuatnya tetap tersembunyi.
 Play sounds TikTok pulled,Putar suara yang ditarik TikTok
 Play the audio on videos TikTok silenced because their sound was pulled for copyright or in your region. TikTok may still say the sound isn't available.,Putar audio pada video yang dibisukan TikTok karena suaranya ditarik akibat hak cipta atau di wilayah Anda. TikTok mungkin tetap menyebut suaranya tidak tersedia.
+Play original audio,Putar audio asli
+Play videos and mini dramas in their own language instead of TikTok's AI dub in your app language. Captions and translations stay as they are.,"Putar video dan drama mini dalam bahasa aslinya, bukan dengan sulih suara AI TikTok dalam bahasa aplikasimu. Teks dan terjemahan tetap seperti semula."
 Match region fields in requests,Samakan kolom wilayah dalam permintaan
 Keep the For You feed on your real SIM,Biarkan Untuk Kamu memakai SIM asli
 "With the SIM changed, TikTok can keep showing videos you've already watched. Turn this on to stop that. Sticker search and the rest of TikTok still see the SIM above, while For You asks for videos with your phone's own SIM country and carrier. Your IP address and account history still count.","Dengan SIM yang diganti, TikTok bisa terus menampilkan video yang sudah kamu tonton. Aktifkan ini untuk menghentikannya. Pencarian stiker dan bagian TikTok lainnya tetap melihat SIM di atas, sedangkan Untuk Kamu meminta video dengan negara dan operator SIM ponselmu sendiri. Alamat IP dan riwayat akunmu tetap berpengaruh."
@@ -1802,6 +1835,8 @@ Offer clear screen in every LIVE room,Tawarkan layar bersih di setiap ruang LIVE
 "Clear screen hides a LIVE's chat, gifts and buttons so only the stream shows. TikTok puts it in the menu of only some rooms. This adds it to the others.","Layar bersih menyembunyikan obrolan, hadiah, dan tombol LIVE sehingga hanya siarannya yang terlihat. TikTok hanya menaruhnya di menu beberapa ruang. Ini menambahkannya ke ruang lainnya."
 Keep clear screen in the next LIVE,Pertahankan layar bersih di LIVE berikutnya
 "A LIVE you swipe to comes back with its chat, gifts and buttons showing. This keeps clear screen on from room to room until you turn it off.","LIVE yang kamu geser akan kembali menampilkan obrolan, hadiah, dan tombolnya. Ini membuat layar bersih tetap aktif dari ruang ke ruang sampai kamu mematikannya."
+Offer full screen in more LIVEs,Tawarkan layar penuh di lebih banyak LIVE
+TikTok shows its full screen button only in LIVEs streamed from a computer or a shared screen. This shows it in every other LIVE with a wide video.,TikTok hanya menampilkan tombol layar penuh di LIVE yang disiarkan dari komputer atau layar yang dibagikan. Ini menampilkannya di setiap LIVE lain dengan video lebar.
 Keep watching in a small window,Tetap menonton di jendela kecil
 "When you leave TikTok while a video plays, it keeps playing in a small window over your other apps, with buttons to pause it and to go to the previous or next video. Works in the feed, in LIVEs and on videos you open from a profile, search or a sound. Needs Android 8 or later.","Saat Anda meninggalkan TikTok ketika video sedang diputar, video tetap diputar di jendela kecil di atas aplikasi lain, dengan tombol untuk menjedanya dan untuk pindah ke video sebelumnya atau berikutnya. Berfungsi di feed, di LIVE, dan pada video yang Anda buka dari profil, pencarian, atau suara. Memerlukan Android 8 atau yang lebih baru."
 Play,Putar
@@ -2200,6 +2235,8 @@ Show the time zone,Tampilkan zona waktu
 "Puts your time zone after the time to the second, like EDT.","Menaruh zona waktumu setelah waktu hingga detik, seperti EDT."
 Short date,Tanggal singkat
 "Writes the date before the time to the second the short way your language does, like 10/7/25.","Menulis tanggal sebelum waktu hingga detik dengan cara singkat bahasamu, seperti 07/10/25."
+Day before month,Hari sebelum bulan
+"Writes TikTok's date by the creator's name day first, like 29.09, with the year after it for an older video. Ages like 2d ago stay as they are.","Menulis tanggal TikTok di samping nama kreator dengan hari lebih dulu, seperti 29.09, dengan tahun di belakangnya untuk video yang lebih lama. Usia seperti 2 hr lalu tetap apa adanya."
 Color commenter names,Warnai nama pengomentar
 "Give each commenter's name a color of its own, the same one every time you see that account, so a long thread is easier to follow.","Beri nama setiap pengomentar warnanya sendiri, selalu sama setiap kali kamu melihat akun itu, supaya utas yang panjang lebih mudah diikuti."
 Show the country as a flag,Tampilkan negara sebagai bendera
@@ -2249,6 +2286,8 @@ How much of the video shows through the glass pill on the main feed. Most see-th
 "On the main feed, a raised bubble of glass sits behind the tab you're on and slides to the next tab you pick. Works on any bottom bar, with or without Liquid glass look.","Di feed utama, gelembung kaca yang menonjol ada di belakang tab yang sedang kamu buka dan bergeser ke tab berikutnya yang kamu pilih. Berfungsi di bilah bawah mana pun, dengan atau tanpa Tampilan kaca cair."
 Slide across the tabs,Geser di sepanjang tab
 "On the main feed, slide a finger along the tabs and the lens follows it. Let go and that tab opens. Taps and long presses work as before. Needs Glass lens on the current tab.","Di feed utama, geser jari di sepanjang tab dan lensanya ikut. Lepas jari dan tab itu terbuka. Ketuk dan tekan lama tetap seperti biasa. Perlu Lensa kaca di tab saat ini."
+Liquid glass when held,Kaca cair saat ditahan
+"On the main feed, hold a finger on the tabs and the glass lens swells, then wobbles back when you let go. With Blur the video behind the bar on Android 13 and up, the video under it bends harder and splits into color at its edge. Needs Glass lens on the current tab.","Di feed utama, tahan jari di tab dan lensa kacanya membesar, lalu bergoyang kembali saat dilepas. Dengan Buramkan video di belakang bilah di Android 13 ke atas, video di bawahnya melengkung lebih kuat dan terpecah jadi warna di tepinya. Perlu Lensa kaca di tab saat ini."
 Haptics on the tabs,Getaran di tab
 "On the main feed, a light tick each time the glass lens passes a tab, as it slides after a tap or under your finger. Needs Glass lens on the current tab.","Di feed utama, getaran ringan setiap kali lensa kaca melewati sebuah tab, saat bergeser setelah ketukan atau di bawah jarimu. Perlu Lensa kaca di tab saat ini."
 Haptic style,Gaya getaran
@@ -2399,6 +2438,8 @@ search suggestions,saran pencarian
 AI chat,chat AI
 AI Tako,AI Tako
 save photos,simpan foto
+download button,tombol unduh download
+"It's in %1$s, under %2$s. Tap to go there.","Ada di %1$s, di bawah %2$s. Ketuk untuk ke sana."
 Lock the feed at set times,Kunci feed pada waktu tertentu
 "The feed locks by itself during these hours, on your phone's clock. Write days and hours like Mon-Fri 21:00-07:00; Sat Sun 13:00-15:00. Leave the days out for every day. A time that ends earlier than it starts runs past midnight.","Feed terkunci sendiri selama jam-jam ini, menurut jam ponselmu. Tulis hari dan jam seperti Mon-Fri 21:00-07:00; Sat Sun 13:00-15:00. Kosongkan hari agar berlaku setiap hari. Waktu yang berakhir lebih awal dari mulainya berlanjut melewati tengah malam."
 Couldn't read %1$s. Write days and hours like Mon-Fri 21:00-07:00.,Tidak dapat membaca %1$s. Tulis hari dan jam seperti Mon-Fri 21:00-07:00.
@@ -2461,6 +2502,16 @@ Proxy %1$s needs a user name and password,Proxy %1$s perlu nama pengguna dan kat
 Proxy %1$s refused your user name or password,Proxy %1$s menolak nama pengguna atau sandi
 Save this video,Simpan video ini
 Show the save button on videos,Tampilkan tombol simpan di video
+Hold TikTok's save button to download,Tahan tombol simpan TikTok untuk mengunduh
+Press and hold the save button in the right column to save the video with your download settings. A tap still adds it to Favorites. It wins over Hold speed on Favorites.,Tekan dan tahan tombol simpan di kolom kanan untuk menyimpan video dengan pengaturan unduhan Anda. Ketukan biasa tetap menambahkannya ke Favorit. Ini mengalahkan Kecepatan tahan di Favorit.
+Size of the buttons on videos,Ukuran tombol di video
+Size of the LIVE buttons,Ukuran tombol LIVE
+Smallest,Terkecil
+Small,Kecil
+Large,Besar
+Line them up over the right column,Jajarkan di atas kolom kanan
+"Stack the buttons above TikTok's own on the right, starting over the avatar. They follow the column instead of staying where you dragged them.","Menumpuk tombol di atas tombol TikTok di kanan, mulai dari atas avatar. Tombol mengikuti kolom, bukan tetap di tempat Anda menyeretnya."
+Turn off Line them up over the right column to move it,Matikan dulu Jajarkan di atas kolom kanan
 Add a button beside the block control that saves the video on screen in one tap. Drag it wherever you like.,Tambahkan tombol di samping kontrol blokir yang menyimpan video di layar dengan satu ketukan. Seret ke mana pun Anda suka.
 Couldn't save this one. Try again.,Tidak dapat disimpan. Coba lagi.
 Opening TikTok or your messages no longer pauses music from another app. TikTok takes the sound while a video plays and gives it back when you leave the video.,Membuka TikTok atau pesanmu tidak lagi menjeda musik dari aplikasi lain. TikTok mengambil suara saat video diputar dan mengembalikannya saat kamu meninggalkan video.
@@ -2558,6 +2609,18 @@ Clearing Favorites in %1$d,Mengosongkan Favorit dalam %1$d
 Reposts removed: %1$d,Repost dihapus: %1$d
 Likes removed: %1$d,Suka dihapus: %1$d
 Favorites removed: %1$d,Dihapus dari Favorit: %1$d
+Remove all comments,Hapus semua komentar
+Deletes every comment you've posted one after another.,Menghapus setiap komentar yang kamu kirim satu per satu.
+Remove selected comments,Hapus komentar terpilih
+Pick comments from your comment history to delete.,Pilih komentar dari riwayat komentarmu untuk dihapus.
+Removing all comments in %1$d,Menghapus semua komentar dalam %1$d
+Removing the picked comments in %1$d,Menghapus komentar terpilih dalam %1$d
+Comments removed: %1$d,Komentar dihapus: %1$d
+TikTok refused to list your comments,TikTok menolak menampilkan komentarmu
+Couldn't load your comments. Try again.,Tidak dapat memuat komentarmu. Coba lagi.
+Loading your comments,Memuat komentarmu
+No comments to show,Tidak ada komentar untuk ditampilkan
+No text,Tanpa teks
 Nothing to remove,Tidak ada yang perlu dihapus
 Done. %1$d removed.,Selesai. %1$d dihapus.
 Stopped. %1$d removed.,Dihentikan. %1$d dihapus.
@@ -2567,6 +2630,12 @@ Not available on this TikTok version,Tidak tersedia di versi TikTok ini
 Sign in to TikTok first,Masuk ke TikTok terlebih dahulu
 A removal is already running,Penghapusan sedang berjalan
 Cancelled,Dibatalkan
+Tap a video to remove it,Ketuk video untuk menghapusnya
+"In your own Liked videos, Favorites and Reposts, a tap takes the video off that list instead of opening it.","Di Video yang disukai, Favorit, dan repost milik Anda sendiri, ketukan menghapus video dari daftar itu, bukan membukanya."
+Couldn't remove that video. Try again.,Video tidak dapat dihapus. Coba lagi.
+Removed from Liked videos,Dihapus dari Video yang disukai
+Removed from Favorites,Dihapus dari Favorit
+Removed from Reposts,Dihapus dari repost
 Show inbox filters,Tampilkan filter kotak masuk
 "Adds the Main, Requests, Unread and Starred tabs above your chats, the ones TikTok gives creator accounts.","Menambahkan tab Utama, Permintaan, Belum dibaca, dan Berbintang di atas obrolanmu, yang diberikan TikTok kepada akun kreator."
 Rebuild message search,Bangun ulang pencarian pesan
@@ -2724,3 +2793,69 @@ Account country on profiles,Negara akun di profil
 "A profile's share sheet gets an Account country button. It asks TikTok where that account is based, or where its latest videos were posted from.","Lembar bagikan profil mendapat tombol Negara akun. Tombol ini menanyakan ke TikTok di mana akun itu berada, atau dari mana video terbarunya diunggah."
 Account country,Negara akun
 Videos posted from %1$s,Video diunggah dari %1$s
+Long-press Profile for Activity center,Tekan lama Profil untuk Pusat aktivitas
+"Press and hold the Profile tab to open TikTok's Activity center. A tap on Profile works as before. While Long-press Profile for Watch history is on, that one takes the press.","Tekan lama tab Profil untuk membuka Pusat aktivitas TikTok. Mengetuk Profil tetap berfungsi seperti biasa. Selama Tekan lama Profil untuk riwayat tontonan aktif, opsi itu mengambil tekanan tersebut."
+Share the video after a save,Bagikan video setelah disimpan
+"Opens Android's share sheet with the file as soon as a video is saved, video stories included, so you can send it straight to WhatsApp, Telegram or any other app. Picked videos saved together get the usual notice.","Membuka lembar berbagi Android dengan file begitu video disimpan, termasuk cerita video, sehingga Anda bisa langsung mengirimnya ke WhatsApp, Telegram, atau aplikasi lain. Video pilihan yang disimpan bersamaan mendapat pemberitahuan biasa."
+Caption spot in Clear display,Posisi keterangan saat tampilan bersih
+Where TikTok shows it,Tempat TikTok menampilkannya
+"Lower, near the bottom","Lebih rendah, dekat bagian bawah"
+Crop and stretch to fill the screen,Potong dan regangkan untuk memenuhi layar
+"Cover the whole window with half the crop of Fill and half the stretch of Stretch, so neither is easy to spot. A video far from the screen's shape keeps TikTok's size.","Menutupi seluruh jendela dengan separuh potongan Penuhi dan separuh regangan Regangkan, jadi keduanya tidak terlalu terlihat. Video yang bentuknya jauh berbeda dari layar tetap memakai ukuran TikTok."
+Watch LIVEs unseen,Tonton LIVE tanpa terlihat
+You stay off the viewer list of LIVEs you open. Tap the eye in a LIVE to let that host see you. Needs Ghost mode on.,Kamu tidak akan muncul di daftar penonton LIVE yang kamu buka. Ketuk ikon mata di LIVE agar host bisa melihatmu. Mode siluman harus menyala.
+The host can see you,Host bisa melihatmu
+Let the host see you,Biarkan host melihatmu
+Couldn't tell which LIVE this is. Open it again.,Tidak tahu LIVE mana ini. Buka lagi.
+The host can already see you in this LIVE,Host sudah bisa melihatmu di LIVE ini
+Letting the host see you,Membiarkan host melihatmu
+The host can see you now,Sekarang host bisa melihatmu
+The host sees you next time you open it,Host akan melihatmu saat kamu membukanya lagi
+Couldn't reach TikTok. Open this LIVE again.,Tidak bisa terhubung ke TikTok. Buka LIVE ini lagi.
+LIVE name alerts,Peringatan nama di LIVE
+"Tells you when your name comes up in a LIVE, in the chat or said out loud in a room with captions on. You get a notification when TikTok's notifications are on, and a banner in the room when they're off.","Memberi tahu saat namamu disebut di LIVE, di chat atau diucapkan di ruang dengan subtitel aktif. Kamu mendapat notifikasi saat notifikasi TikTok aktif, dan banner di ruang saat notifikasinya mati."
+Names to listen for,Nama yang didengarkan
+"Your handle and TikTok name are on the list already. Add other names people call you, separated by commas.","Nama pengguna dan nama TikTok-mu sudah ada di daftar. Tambahkan nama lain yang biasa dipakai orang untuk memanggilmu, pisahkan dengan koma."
+Your name came up in a LIVE,Namamu disebut di LIVE
+Listen for your name,Dengarkan namamu
+"Also listens to the LIVE's sound, so your name counts when it's said out loud in rooms without captions. Your phone's own speech recognition does the listening, with TikTok's microphone permission. It hears only the LIVE, though Android shows its microphone dot, and it uses a little more data.","Juga mendengarkan suara LIVE, jadi namamu terhitung saat diucapkan keras-keras di ruang tanpa subtitel. Yang mendengarkan adalah pengenalan suara bawaan ponselmu, dengan izin mikrofon TikTok. Ia hanya mendengar LIVE, meski Android menampilkan titik mikrofonnya, dan memakai sedikit lebih banyak data."
+Needs Android 13 or newer.,Perlu Android 13 atau yang lebih baru.
+Off: this phone's speech recognition only hears the microphone. Turn this off and on to try again.,Mati: pengenalan suara ponsel ini hanya mendengar mikrofon. Matikan lalu nyalakan lagi untuk mencoba lagi.
+"This phone has no speech recognition. Choose one under Android's voice input settings, then open the LIVE again.","Ponsel ini tidak punya pengenalan suara. Pilih satu di setelan input suara Android, lalu buka LIVE lagi."
+"TikTok needs the microphone permission for speech recognition. Allow it in Android's app settings, then open the LIVE again.","TikTok perlu izin mikrofon untuk pengenalan suara. Izinkan di setelan aplikasi Android, lalu buka LIVE lagi."
+"Speech recognition has no model for your phone's language. Download one in Android's speech settings, then open the LIVE again.","Pengenalan suara tidak punya model untuk bahasa ponselmu. Unduh satu di setelan ucapan Android, lalu buka LIVE lagi."
+Speech recognition kept failing in the last LIVE. Open the LIVE again to retry.,Pengenalan suara terus gagal di LIVE terakhir. Buka LIVE lagi untuk mencoba ulang.
+Save the photo posts as one video?,Simpan unggahan foto sebagai satu video?
+One video,Satu video
+One per post,Satu per unggahan
+Keep the middle unstretched,Jaga bagian tengah tidak teregang
+"Cover the whole window and keep the middle of the video at its own shape. A little comes off the sides, and only the top and bottom are stretched. A video far from the screen's shape keeps TikTok's size.","Menutupi seluruh jendela dan menjaga bagian tengah video tetap dalam bentuk aslinya. Sedikit bagian sisi terpotong, dan hanya bagian atas dan bawah yang diregangkan. Video yang bentuknya jauh berbeda dari layar tetap memakai ukuran TikTok."
+Visual search on paused videos,Pencarian visual di video yang dijeda
+App icon,Ikon aplikasi
+"Some home screens drop the icon when it changes. If yours does, add TikTok back from the app list.","Beberapa layar utama menghapus ikon saat ikon berubah. Jika layarmu begitu, tambahkan TikTok lagi dari daftar aplikasi."
+Icon changed,Ikon diubah
+Couldn't change the icon. Try again.,Tidak bisa mengubah ikon. Coba lagi.
+TikTok colors,Warna TikTok
+Black background,Latar hitam
+White on black,Putih di atas hitam
+Black on white,Hitam di atas putih
+Material You,Material You
+Your icon,Ikonmu
+Save episodes,Simpan episode
+Pick episodes to save,Pilih episode untuk disimpan
+Episode %1$s,Episode %1$s
+Preview only,Hanya pratinjau
+Loading episodes,Memuat episode
+Couldn't load the episodes. Try again.,Tidak dapat memuat episode. Coba lagi.
+Pick at least one episode,Pilih setidaknya satu episode
+Saving %1$s. Tap Save again for the rest.,Menyimpan %1$s. Ketuk Simpan lagi untuk sisanya.
+Save episodes button in the share sheet,Tombol Simpan episode di menu bagikan
+Adds Save episodes when you share an episode of a mini drama. It lists the drama's episodes so you can pick several and save them in one go. An episode you haven't unlocked saves only its preview.,"Menambahkan Simpan episode saat kamu membagikan episode drama mini. Daftar episode dramanya muncul, jadi kamu bisa memilih beberapa dan menyimpannya sekaligus. Episode yang belum kamu buka hanya tersimpan pratinjaunya."
+Save to a collection,Simpan ke koleksi
+Collections aren't available for this video,Koleksi tidak tersedia untuk video ini
+Hide LIVEs from accounts you don't follow,Sembunyikan LIVE dari akun yang tidak kamu ikuti
+LIVEs from accounts you don't follow leave the stories tray. LIVEs from accounts you follow stay.,LIVE dari akun yang tidak kamu ikuti hilang dari deret Story. LIVE dari akun yang kamu ikuti tetap ada.
+Hide the Widget circle,Sembunyikan lingkaran Widget
+The Widget circle at the end of the stories tray goes. TikTok's home screen widget still works.,Lingkaran Widget di akhir deret Story hilang. Widget layar utama TikTok tetap berfungsi.
+Hide view counts on profile grids,Sembunyikan jumlah tayangan di kisi profil
+"Takes the view count and its play icon off each video on profile grids. Dates, lengths and the engagement rate you turned on move up in its place.","Menghapus jumlah tayangan dan ikon putarnya dari setiap video di kisi profil. Tanggal, durasi, dan tingkat interaksi yang kamu aktifkan naik ke tempatnya."

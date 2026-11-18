@@ -12,14 +12,17 @@
 package app.morphe.patches.shared.compat
 
 import app.morphe.Fixtures
+import app.morphe.patcher.patch.ApkFileType
 import com.android.apksig.ApkVerifier
 import com.android.apksig.apk.ApkUtils
 import com.android.apksig.util.DataSources
 import com.reandroid.apk.ApkModule
+import java.io.File
 import java.io.RandomAccessFile
 import java.io.StringReader
 import java.io.StringWriter
 import java.security.MessageDigest
+import java.util.zip.ZipFile
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -33,25 +36,34 @@ import javax.xml.parsers.DocumentBuilderFactory
  * code it was not told about as unsupported, so a wrong value here would warn every user who
  * downloaded the genuine release.
  *
- * Telegram ships as one universal APK, not a split bundle, so a fixture here is read directly:
- * nothing to unzip a base APK out of first.
+ * Telegram ships as one universal APK, so its fixtures are read directly. Plus Messenger ships as a
+ * split bundle: its fixture is the bundle merged into one APK, the way Manager patches it, and the
+ * signature is read from the vendor `.apkm` kept beside it.
  */
 class AppCompatibilitiesMatchFixturesTest {
 
     @Test
     fun `every retained vendor build is signed by a declared certificate`() {
         val compatibilities = AppCompatibilities.telegram().associateBy { it.packageName }
+        val vendorKeys = mapOf(
+            AppCompatibilities.TELEGRAM_PACKAGE to AppCompatibilities.TELEGRAM_SIGNER_SHA256,
+            AppCompatibilities.TELEGRAM_WEB_PACKAGE to AppCompatibilities.TELEGRAM_SIGNER_SHA256,
+            AppCompatibilities.PLUS_PACKAGE to AppCompatibilities.PLUS_SIGNER_SHA256,
+        )
         for (compatibility in compatibilities.values) assertEquals(
-            "${compatibility.packageName} declared signatures", setOf(AppCompatibilities.TELEGRAM_SIGNER_SHA256),
+            "${compatibility.packageName} declared signatures", setOfNotNull(vendorKeys[compatibility.packageName]),
             compatibility.signatures.orEmpty())
         val undeclared = mutableMapOf<String, Set<String>>()
         var checked = 0
         for (fixture in Fixtures.apks()) {
             val identity = identity(fixture)
-            val declared = checkNotNull(compatibilities[identity.first]) {
+            val compatibility = checkNotNull(compatibilities[identity.first]) {
                 "${fixture.name} is an undeclared package ${identity.first}"
-            }.signatures.orEmpty()
-            val result = ApkVerifier.Builder(fixture).build().verify()
+            }
+            val declared = compatibility.signatures.orEmpty()
+            val result = vendorSigned(fixture, compatibility.apkFileType).let { signed ->
+                try { ApkVerifier.Builder(signed).build().verify() } finally { if (signed != fixture) signed.delete() }
+            }
             assertTrue("${fixture.name} does not verify: ${result.errors}", result.isVerified)
             // v3.1 rotation puts the newer key in its own block, for Android 13 and newer, so the
             // certificates of every v3 and v3.1 signer count beside the headline ones.
@@ -79,7 +91,8 @@ class AppCompatibilitiesMatchFixturesTest {
         val compatibilities = AppCompatibilities.telegram()
         assertEquals(
             "only independently verified distributions and versions",
-            mapOf("org.telegram.messenger" to listOf("13.2.2"), "org.telegram.messenger.web" to listOf("13.2.2")),
+            mapOf("org.telegram.messenger" to listOf("13.2.2"), "org.telegram.messenger.web" to listOf("13.2.2"),
+                "org.telegram.plus" to listOf("13.2.2.1")),
             compatibilities.associate { it.packageName to it.targets.map { target -> target.version } },
         )
         var checked = 0
@@ -113,7 +126,24 @@ class AppCompatibilitiesMatchFixturesTest {
         assertEquals("one retained fixture for each declared package target", compatibilities.sumOf { it.targets.size }, checked)
     }
 
-    private fun identity(fixture: java.io.File): Pair<String, String> {
+    /**
+     * The file that carries the vendor's signature. An `.apkm` fixture is its splits merged into one
+     * APK, as Manager merges them, and merging drops the signature, so the base APK comes out of the
+     * vendor's `.apkm` kept beside it.
+     */
+    private fun vendorSigned(fixture: File, type: ApkFileType?): File {
+        if (type != ApkFileType.APKM) return fixture
+        val bundle = File(fixture.parentFile, fixture.nameWithoutExtension + ".apkm")
+        assertTrue("${fixture.name} needs the vendor's ${bundle.name} beside it", bundle.isFile)
+        val base = File.createTempFile("vendor-base", ".apk")
+        ZipFile(bundle).use { zip ->
+            val entry = checkNotNull(zip.getEntry("base.apk")) { "${bundle.name} holds no base.apk" }
+            zip.getInputStream(entry).use { input -> base.outputStream().use { input.copyTo(it) } }
+        }
+        return base
+    }
+
+    private fun identity(fixture: File): Pair<String, String> {
         val xml = StringWriter()
         ApkModule.loadApkFile(fixture).use { module ->
             module.tableBlock

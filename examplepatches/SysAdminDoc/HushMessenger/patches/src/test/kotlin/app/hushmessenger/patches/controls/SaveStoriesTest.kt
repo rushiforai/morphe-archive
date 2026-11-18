@@ -1,11 +1,8 @@
 package app.hushmessenger.patches.controls
 
+import app.hushmessenger.patches.useClasses
+import app.hushmessenger.patches.withPatcherContext
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.PatcherConfig
-import app.morphe.patcher.PatcherProgress
-import app.morphe.patcher.patch.BytecodePatchContext
-import app.morphe.patcher.patch.ResourcePatchContext
-import app.morphe.patcher.resource.ResourceMode
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.DexFileFactory
@@ -104,31 +101,21 @@ class SaveStoriesTest {
 
     @Test fun helperSurvivesAnAlreadyMaterializedDirectMethodSet(@TempDir temporary: Path) {
         val classes = listOf(fixtureClass("LX/JgG;", listOf(builder())), handlerClass()) + screenHostClasses()
-        val config = PatcherConfig(lifecycleApk(temporary.resolve("input"), classes), temporary.resolve("work").toFile())
-        val resources = ResourcePatchContext::class.java.getDeclaredConstructor(PatcherConfig::class.java).newInstance(config)
         val previousProfile = activeProfile
         val previousControls = discoveredControls
         try {
             activeProfile = SYNTHETIC_PROFILE
-            resources.use {
-                ResourcePatchContext::class.java.getMethod("decodeResources\$morphe_patcher", ResourceMode::class.java)
-                    .invoke(resources, ResourceMode.RAW_ONLY)
-                val context = BytecodePatchContext::class.java.declaredConstructors.single()
-                    .newInstance(config, resources.packageMetadata) as BytecodePatchContext
-                val patchClasses = Class.forName("app.morphe.patcher.util.PatchClasses")
-                BytecodePatchContext::class.java.getMethod("setPatchClasses\$morphe_patcher", patchClasses)
-                    .invoke(context, patchClasses.getConstructor(Set::class.java, PatcherProgress::class.java).newInstance(classes.toSet(), null))
-                context.use {
-                    val owner = context.mutableClassDefBy("LX/JgG;")
-                    assertTrue(owner.directMethods.isEmpty())
-                    discoveredControls = mirroredControls(classes)
-                    saveStoriesPatch.execute(context)
-                    assertEquals(1, owner.methods.count { it.name == STORY_SAVE_HELPER })
-                    assertEquals(1, owner.directMethods.count { it.name == STORY_SAVE_HELPER })
-                    val emitted = DexBackedDexFile(Opcodes.forApi(28), java.nio.ByteBuffer.wrap(lifecycleDex(listOf(owner)))).classes.single()
-                    assertEquals(1, emitted.methods.count { it.name == STORY_SAVE_HELPER })
-                    assertEquals(1, emitted.directMethods.count { it.name == STORY_SAVE_HELPER })
-                }
+            withPatcherContext(lifecycleApk(temporary.resolve("input"), classes), temporary.resolve("work")) { _, context ->
+                context.useClasses(classes.toSet())
+                val owner = context.mutableClassDefBy("LX/JgG;")
+                assertTrue(owner.directMethods.isEmpty())
+                discoveredControls = mirroredControls(classes)
+                saveStoriesPatch.execute(context)
+                assertEquals(1, owner.methods.count { it.name == STORY_SAVE_HELPER })
+                assertEquals(1, owner.directMethods.count { it.name == STORY_SAVE_HELPER })
+                val emitted = DexBackedDexFile(Opcodes.forApi(28), java.nio.ByteBuffer.wrap(lifecycleDex(listOf(owner)))).classes.single()
+                assertEquals(1, emitted.methods.count { it.name == STORY_SAVE_HELPER })
+                assertEquals(1, emitted.directMethods.count { it.name == STORY_SAVE_HELPER })
             }
         } finally {
             activeProfile = previousProfile

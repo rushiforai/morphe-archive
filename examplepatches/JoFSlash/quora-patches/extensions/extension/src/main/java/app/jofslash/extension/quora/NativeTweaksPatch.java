@@ -64,6 +64,18 @@ public final class NativeTweaksPatch {
     /**
      * Injection point: start of QMessageBroadcaster.handle.
      *
+     * @return True for the page's own "Let Quora send you notifications?" alert (a SHOW_ALERT message
+     * whose title mentions notifications), which comes before the system permission prompt.
+     */
+    public static boolean isNotificationAlert(Object message, JSONObject data) {
+        if (!isMessage(message, "SHOW_ALERT") || data == null) return false;
+        String title = data.optString("title", "") + " " + data.optString("message", "");
+        return title.toLowerCase().contains("notification");
+    }
+
+    /**
+     * Injection point: start of QMessageBroadcaster.handle.
+     *
      * @return True if the message is the one named and the patch with this key is switched on.
      */
     public static boolean isBlockedMessage(Object message, String name, String key) {

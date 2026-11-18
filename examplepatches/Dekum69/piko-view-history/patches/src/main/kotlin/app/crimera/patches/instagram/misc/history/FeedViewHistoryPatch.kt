@@ -22,14 +22,38 @@ import app.morphe.patcher.util.findFreeRegister
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 // Feed "viewed impression" callback, called once a post has actually been on screen (not for
 // prefetched rows). The Media and carousel state arguments are cast in the method body.
+//
+// The event name is matched by suffix rather than as a literal: 452 renamed the organic variant
+// to "instagram_organic_sub_viewed_impression", which broke an exact-string fingerprint.
+//
+// Do not replace the suffix check with a shape-only match. On 452 the (Object, J, Object)V shape
+// plus the two casts already matches two sibling methods (a four-instruction trampoline and the
+// real logger); the event suffix is the only thing that separates them.
 private object FeedViewedImpressionFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf("Ljava/lang/Object;", "J", "Ljava/lang/Object;"),
-    strings = listOf("viewed_impression", "instagram_organic_viewed_impression"),
+    custom = { method, _ ->
+        var mediaCast = false
+        var carouselCast = false
+        var impressionEvent = false
+        method.implementation?.instructions?.forEach { instruction ->
+            if (instruction !is ReferenceInstruction) return@forEach
+            val reference = instruction.reference
+            if (instruction.opcode == Opcode.CHECK_CAST && reference is TypeReference) {
+                if (reference.type == MEDIA_CLASS_NAME) mediaCast = true
+                if (reference.type == MEDIA_ADD_INFO_CLASS_NAME) carouselCast = true
+            }
+            if (reference is StringReference && reference.string.endsWith("viewed_impression")) {
+                impressionEvent = true
+            }
+        }
+        mediaCast && carouselCast && impressionEvent
+    },
 )
 
 private const val VIEW_HISTORY_HOOK_CLASS = "$INTEGRATIONS_PACKAGE/patches/history/ViewHistoryHook;"
@@ -45,7 +69,13 @@ val feedViewHistoryPatch =
         compatibleWith(COMPATIBILITY_INSTAGRAM)
 
         execute {
-            FeedViewedImpressionFingerprint.method.apply {
+            val match = FeedViewedImpressionFingerprint.singleMatchOrFail(
+                "Feed view history: viewed-impression callback",
+                "Look for a method with parameters (Object, J, Object) that casts to Media and to the " +
+                    "carousel state class and logs an event ending in \"viewed_impression\".",
+            )
+
+            match.method.apply {
                 fun fail(what: String): Nothing = throw PatchException("Feed view history: $what not found")
 
                 fun castIndex(type: String) =
@@ -59,7 +89,7 @@ val feedViewHistoryPatch =
                 val mediaReg = (instructions[mediaCast] as OneRegisterInstruction).registerA
                 val carouselReg = (instructions[carouselCast] as OneRegisterInstruction).registerA
                 val userSessionField =
-                    FeedViewedImpressionFingerprint.classDef.fields.firstOrNull { it.type == USER_SESSION_CLASS }
+                    match.classDef.fields.firstOrNull { it.type == USER_SESSION_CLASS }
                         ?: fail("user session")
 
                 // Right after both casts, before Instagram's own early return that skips the logging.

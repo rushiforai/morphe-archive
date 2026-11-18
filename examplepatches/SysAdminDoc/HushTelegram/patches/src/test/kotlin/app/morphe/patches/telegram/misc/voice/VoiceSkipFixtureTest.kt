@@ -7,6 +7,7 @@ package app.morphe.patches.telegram.misc.voice
 import app.morphe.ExtensionDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.PlusPending
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
@@ -30,6 +31,7 @@ import org.junit.Test
 import java.io.File
 
 /** Next and previous for voice messages (#77): the song skips, the session's music checks and its buttons. */
+@PlusPending
 class VoiceSkipFixtureTest {
     @Test fun `next and previous ask the extension first and a voice message gets the skip buttons`() {
         for (build in Fixtures.declaredBuilds()) {

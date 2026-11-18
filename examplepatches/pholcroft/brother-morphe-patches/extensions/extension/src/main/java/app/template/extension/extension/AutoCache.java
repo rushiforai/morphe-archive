@@ -268,10 +268,10 @@ public final class AutoCache {
             long requestEpoch=endpointEpoch(ip);REQUEST_EPOCH.set(requestEpoch);REQUEST_START.set(System.nanoTime());
             CommunicationTiming.request(ip,requestEpoch,isVerified(ip)&&prefs!=null?prefs.getString("mac|"+ip,null):null);
             try{String community=(String)field(request,"community");int version=(Integer)field(request,"version"),requestId=(Integer)field(request,"req_id"),port=(Integer)field(socket,"mPort");if(community==null||port<1||port>65535||timeout<0||retries<1)REQUEST_CAPTURE.set(CommunicationTiming.capture(ip,null));else REQUEST_CAPTURE.set(CommunicationTiming.capture(ip,new ReplayEngine.Spec(id,community,version,requestId,port,timeout,retries)));}catch(Exception ignored){REQUEST_CAPTURE.set(CommunicationTiming.capture(ip,null));}
-            Diagnostics.begin(ip,id,CommunicationTiming.captureSequence(REQUEST_CAPTURE.get()));
+            boolean recording = Diagnostics.begin(ip,id,CommunicationTiming.captureSequence(REQUEST_CAPTURE.get()));
             if(!enabled())return null;
             if(id.equals(MAC_OID)){VERIFIED.remove(ip);return null;}
-            if(!isVerified(ip))return null;
+            if(recording || !isVerified(ip))return null;
             String saved;
             if(historyStarted){try{saved=(String)historyLookup.invoke(null,ip,(Integer)field(request,"version"),(String)field(request,"community"),id);}catch(Exception|LinkageError ignored){saved=null;}}
             else saved=prefs.getString(key(ip,id),null);

@@ -1832,8 +1832,6 @@
     <string name="revanced_overlay_button_copy_video_url_title">复制链接按钮</string>
     <string name="revanced_overlay_button_external_downloader_queue_manager_summary">不启动外部下载器，而是打开队列管理器。</string>
     <string name="revanced_overlay_button_external_downloader_queue_manager_title">队列管理器</string>
-    <string name="revanced_overlay_button_external_downloader_summary">点击以打开外部下载器</string>
-    <string name="revanced_overlay_button_external_downloader_title">外部下载按钮</string>
     <string name="revanced_overlay_button_gemini_about_summary">"解析视频可能需要一段时间，具体取决于视频长度。转录长视频可能会超出Gemini的限制。
 
 AI生成的回复可能包含不准确的信息。
@@ -2441,9 +2439,6 @@ AI生成的回复可能包含不准确的信息。
     <string name="revanced_shorts_custom_actions_copy_video_url_timestamp_title">显示复制时间戳URL菜单</string>
     <string name="revanced_shorts_custom_actions_copy_video_url_title">显示复制视频URL菜单</string>
     <string name="revanced_shorts_custom_actions_external_downloader_label">外部下载器</string>
-    <string name="revanced_shorts_custom_actions_external_downloader_summary_off">外部下载器菜单已隐藏。</string>
-    <string name="revanced_shorts_custom_actions_external_downloader_summary_on">外部下载器菜单已显示。</string>
-    <string name="revanced_shorts_custom_actions_external_downloader_title">显示外部下载器菜单</string>
     <string name="revanced_shorts_custom_actions_gemini_label">Gemini总结</string>
     <string name="revanced_shorts_custom_actions_gemini_summary_off">Gemini总结菜单已隐藏。</string>
     <string name="revanced_shorts_custom_actions_gemini_summary_on">Gemini总结菜单已显示。</string>

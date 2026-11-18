@@ -83,7 +83,7 @@ No root needed. The patched app is signed with a different key, which is why the
 Generated from the latest release, with each patch's options and supported versions.
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.3.1](https://github.com/JoFSlash/quora-patches/releases/tag/v1.3.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;48 patches total
+> **[v1.3.3](https://github.com/JoFSlash/quora-patches/releases/tag/v1.3.3)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;48 patches total
 <details open>
 <summary>📦 Quora&nbsp;&nbsp;•&nbsp;&nbsp;48 patches</summary>
 <br>
@@ -112,17 +112,17 @@ Generated from the latest release, with each patch's options and supported versi
 | [Data saver](#data-saver) | Images load only when you tap them. |  |
 | [Disable WebView debugging](#disable-webview-debugging) | Stops the app from letting a connected computer inspect its pages, which would show your account's cookies. |  |
 | [Disable analytics](#disable-analytics) | Turns off Firebase Analytics, Crashlytics, Firebase Performance and Facebook app events, and their advertising ID collection. |  |
-| [Disable notification prompt](#disable-notification-prompt) | Stops the app from asking for permission to show notifications. You can still turn notifications on in Android's settings. |  |
+| [Disable notification prompt](#disable-notification-prompt) | Stops the app from asking to show notifications, both its own prompt and Android's. You can still turn notifications on in Android's settings. |  |
 | [Disable rating prompts](#disable-rating-prompts) | Stops the app from asking you to rate it on Google Play. |  |
 | [Disable sign-in prompts](#disable-sign-in-prompts) | Stops Google's "Save password?" and automatic Google sign-in prompts. You can still sign in with the buttons on the login page. |  |
 | [Disable swipe gestures](#disable-swipe-gestures) | Turns off pulling down to refresh and swiping sideways between feeds, so a page doesn't reload or change while you read. | • Disable pull to refresh<br>• Disable swiping between feeds |
 | [Disable tab prefetching](#disable-tab-prefetching) | Saves data by loading the other tabs only when you open them. |  |
 | [Disable tracking jobs](#disable-tracking-jobs) | Stops the background jobs that tell Quora every hour whether your phone is charging and every day whether notifications are on. |  |
-| [Disable update prompts](#disable-update-prompts) | Stops the app from showing the Google Play update screen. |  |
+| [Disable update prompts](#disable-update-prompts) | Stops the app from showing the Google Play update screen and the feed's update card. |  |
 | [Disable vibration](#disable-vibration) | Stops the app from vibrating when you tap buttons such as upvote. |  |
 | [Disable video autoplay](#disable-video-autoplay) | Videos in the feed and in answers only play when you tap them. |  |
 | [Enable text selection](#enable-text-selection) | Lets you select and copy text on every page. |  |
-| [Expand answers](#expand-answers) | Opens shortened answers in full, so you don't have to tap "(more)". |  |
+| [Expand answers](#expand-answers) | Opens shortened answers on question pages, and shows the whole answer preview in the feed. |  |
 | [Filter keywords](#filter-keywords) | Hides answers, posts and questions that mention words you pick. | • Keywords |
 | [Hide AI answers](#hide-ai-answers) | Hides answers written by Poe bots. |  |
 | [Hide Ask button](#hide-ask-button) | Hides the button for asking a question in the top bar and on pages. |  |

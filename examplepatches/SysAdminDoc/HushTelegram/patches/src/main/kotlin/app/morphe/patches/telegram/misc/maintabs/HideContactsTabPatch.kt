@@ -89,7 +89,7 @@ val hideContactsTabPatch = bytecodePatch(
 ) {
     category("Chats")
     dependsOn(settingsPatch, telegramExtensionPatch)
-    compatibleWith(*AppCompatibilities.telegram())
+    compatibleWith(*AppCompatibilities.telegramOnly())
     execute {
         val plan = resolveMainTabs()
         requireStatusMethod("compactTabBar")

@@ -28,8 +28,9 @@ import java.util.function.Predicate;
  * press on a message opens draws its own dim, so it's found by its view and blurs the chat under its dim.
  * Window blur needs Android 12. Where the phone can't blur behind a window (some Samsung phones never report it, and
  * battery saver turns it off), the Messenger screen under the menu blurs itself until the menu's window goes away. A menu with no
- * Messenger screen under it keeps Messenger's own dim. Public, since the call comes from androidx's DialogFragment in
- * another package.
+ * Messenger screen under it keeps Messenger's own dim. On 587 the menu on a pressed message is drawn inside the chat
+ * with no window of its own, and comes through inChat() instead (see InChatMenu). Public, since the calls come from
+ * androidx's DialogFragment and Messenger's ReactionsBarFragment in other packages.
  */
 public final class MenuBlur {
     static final String KEY = "menu_blur";
@@ -76,6 +77,14 @@ public final class MenuBlur {
         } catch (Throwable error) {
             Settings.hookFailedPrivately(KEY, "Couldn't blur behind a menu", error);
         }
+    }
+
+    /**
+     * The menu a long press on a message opens, handed over as Messenger puts its view into the chat (#162, #176). The
+     * chat around it blurs and the actions can float under the message; see InChatMenu. Never throws.
+     */
+    public static void inChat(View menu) {
+        InChatMenu.shown(menu);
     }
 
     /**

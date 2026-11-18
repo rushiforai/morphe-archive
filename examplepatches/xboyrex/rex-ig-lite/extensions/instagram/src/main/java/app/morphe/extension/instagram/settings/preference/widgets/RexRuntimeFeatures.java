@@ -61,6 +61,7 @@ import app.morphe.extension.instagram.entity.MediaData;
 import app.morphe.extension.instagram.patches.dm.HiddenChatsPref;
 import app.morphe.extension.instagram.settings.Settings;
 import app.morphe.extension.rex.sharedPreference.SharedPref;
+import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 
 public final class RexRuntimeFeatures {
@@ -620,7 +621,7 @@ public final class RexRuntimeFeatures {
     }
 
     public static void showTranslatorLanguagePicker(final Context context, final Runnable onUpdated) {
-        String[] langs = {"English", "Hindi", "Spanish", "Russian", "Portuguese", "Arabic", "Indonesian", "Turkish", "Japanese", "Korean", "French", "German"};
+        String[] langs = {"English", "Arabic", "Hindi", "Turkish", "Portuguese (Brazil)", "Indonesian", "Russian", "Spanish", "French", "German", "Japanese", "Korean"};
         showSingleChoiceDialog(context, "Change Translator Language", langs,
                 SharedPref.getStringPref(Settings.TRANSLATOR_LANGUAGE), chosen -> {
                     SharedPref.setStringPref(Settings.TRANSLATOR_LANGUAGE.key, chosen);
@@ -665,104 +666,494 @@ public final class RexRuntimeFeatures {
     }
 
     public static void showEmojiTypePicker(final Context context, final Runnable onUpdated) {
-        String[] emojis = {"iOS 17.4 Emoji", "System Default", "Twemoji", "OpenMoji", "Blobmoji", "Custom Emoji Font (.TTF)"};
-        showSingleChoiceDialog(context, "Choose Emoji Type", emojis,
-                SharedPref.getStringPref(Settings.CHOOSE_EMOJI_TYPE), chosen -> {
-                    SharedPref.setStringPref(Settings.CHOOSE_EMOJI_TYPE.key, chosen);
-                    try {
-                        if ("Custom Emoji Font (.TTF)".equals(chosen)) {
-                            Activity act = RexDialogs.resolveActivity(context);
-                            if (act != null) {
-                                app.morphe.extension.instagram.settings.ActivityHook.launchFragment(act, "rex_pref_add_font");
+        final String[] emojis = {
+                "Original Emoji",
+                "From Local Storage",
+                "iOS 26.4",
+                "iOS 18.4",
+                "iOS 17.4",
+                "iOS 14.5",
+                "Facebook",
+                "Joy Pixel",
+                "Samsung"
+        };
+        final boolean[] downloadable = {
+                false, false, true, true, true, true, true, true, true
+        };
+
+        String currentSaved = SharedPref.getStringPref(Settings.CHOOSE_EMOJI_TYPE);
+        if (currentSaved == null || currentSaved.isEmpty()) currentSaved = "Original Emoji";
+        final String[] selectedHolder = {currentSaved};
+
+        LinearLayout card = createRadioPackDialogContainer(context, "Choose Emoji");
+        LinearLayout listContainer = new LinearLayout(context);
+        listContainer.setOrientation(LinearLayout.VERTICAL);
+
+        final List<ImageView> radioViews = new ArrayList<>();
+        final List<ImageView> dlViews = new ArrayList<>();
+
+        for (int i = 0; i < emojis.length; i++) {
+            final int idx = i;
+            final String itemLabel = emojis[i];
+            final boolean hasDl = downloadable[i];
+
+            LinearLayout row = new LinearLayout(context);
+            row.setOrientation(LinearLayout.HORIZONTAL);
+            row.setGravity(Gravity.CENTER_VERTICAL);
+            row.setPadding(RexVectorIcons.dp(context, 4), RexVectorIcons.dp(context, 10),
+                    RexVectorIcons.dp(context, 4), RexVectorIcons.dp(context, 10));
+
+            ImageView radio = new ImageView(context);
+            int rSize = RexVectorIcons.dp(context, 22);
+            LinearLayout.LayoutParams rLp = new LinearLayout.LayoutParams(rSize, rSize);
+            rLp.rightMargin = RexVectorIcons.dp(context, 16);
+            radio.setLayoutParams(rLp);
+            radioViews.add(radio);
+            row.addView(radio);
+
+            TextView tv = new TextView(context);
+            tv.setText(itemLabel);
+            tv.setTextColor(Color.WHITE);
+            tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f);
+            try {
+                String rawName = app.morphe.extension.instagram.patches.customise.font.FontStorage.rawResourceForFontName(itemLabel);
+                if (rawName != null) {
+                    Typeface previewTf = app.morphe.extension.instagram.patches.customise.font.FontStorage.loadBundledTypefaceByRawName(rawName);
+                    if (previewTf != null) tv.setTypeface(previewTf);
+                }
+            } catch (Throwable ignored) {}
+            LinearLayout.LayoutParams tvLp = new LinearLayout.LayoutParams(
+                    0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+            tv.setLayoutParams(tvLp);
+            row.addView(tv);
+
+            final ImageView dlBtn;
+            if (hasDl) {
+                dlBtn = new ImageView(context);
+                int dSize = RexVectorIcons.dp(context, 26);
+                LinearLayout.LayoutParams dLp = new LinearLayout.LayoutParams(dSize, dSize);
+                dlBtn.setLayoutParams(dLp);
+                boolean ready = app.morphe.extension.instagram.patches.customise.font.FontStorage.isEmojiPackDownloaded(context, itemLabel);
+                bindCircleActionIcon(context, dlBtn, ready);
+                dlBtn.setOnClickListener(v -> {
+                    RexHaptics.tap(v);
+                    Utils.showToastShort("Downloading " + itemLabel + " Emoji pack...");
+                    final Context appCtx = context.getApplicationContext();
+                    Utils.runOnBackgroundThread(() -> {
+                        boolean ok = app.morphe.extension.instagram.patches.customise.font.FontStorage.downloadEmojiPackSync(appCtx, itemLabel);
+                        Utils.runOnMainThread(() -> {
+                            if (ok) {
+                                bindCircleActionIcon(context, dlBtn, true);
+                                selectedHolder[0] = itemLabel;
+                                updateRadioStates(context, radioViews, emojis, selectedHolder[0]);
+                                Utils.showToastShort(itemLabel + " downloaded — tap Apply to activate");
+                            } else {
+                                Utils.showToastShort("Couldn't download " + itemLabel + ". Check connection.");
                             }
-                            if (onUpdated != null) onUpdated.run();
-                            return;
-                        } else if ("System Default".equals(chosen)) {
-                            app.morphe.extension.suite.instagram.settings.Settings.NOTO_EMOJI.save(false);
-                            app.morphe.extension.suite.instagram.settings.Settings.EMOJI_FONT.save(
-                                    app.morphe.extension.suite.instagram.misc.EmojiChoice.PHONE);
-                            Utils.showToastShort("Emoji Type: System Default active");
-                        } else if ("iOS 17.4 Emoji".equals(chosen)) {
-                            app.morphe.extension.suite.instagram.settings.Settings.NOTO_EMOJI.save(true);
-                            app.morphe.extension.instagram.patches.customise.font.FontStorage.applyBundledFont(
-                                    context, "iOS ExtraBold CT 2026");
-                            Utils.showToastShort("Applied iOS 17.4 Emoji & Typography Pack");
-                        } else {
-                            final app.morphe.extension.suite.instagram.misc.EmojiChoice packChoice =
-                                    "Twemoji".equals(chosen) ? app.morphe.extension.suite.instagram.misc.EmojiChoice.TWEMOJI
-                                    : ("OpenMoji".equals(chosen) ? app.morphe.extension.suite.instagram.misc.EmojiChoice.OPENMOJI
-                                    : app.morphe.extension.suite.instagram.misc.EmojiChoice.BLOBMOJI);
-                            app.morphe.extension.suite.instagram.settings.Settings.EMOJI_FONT.save(packChoice);
-                            Utils.showToastShort("Downloading & activating " + chosen + " pack...");
-                            final Context appCtx = context.getApplicationContext();
-                            Utils.runOnBackgroundThread(() -> {
-                                try {
-                                    app.morphe.extension.suite.instagram.misc.Fonts.Prepared prep =
-                                            app.morphe.extension.suite.instagram.misc.EmojiFonts.download(appCtx, packChoice);
-                                    if (prep != null) {
-                                        app.morphe.extension.suite.instagram.misc.EmojiFonts.prepareInstall(appCtx, prep);
-                                        app.morphe.extension.suite.instagram.misc.EmojiFonts.installed();
-                                        prep.close();
-                                        Utils.runOnMainThread(() ->
-                                                Utils.showToastShort(chosen + " installed — restart Instagram to apply everywhere"));
-                                    }
-                                } catch (Throwable ignored) {}
-                            });
-                        }
-                    } catch (Throwable ignored) {
-                        Utils.showToastShort("Emoji Type: " + chosen);
-                    }
-                    if (onUpdated != null) onUpdated.run();
+                        });
+                    });
                 });
+                row.addView(dlBtn);
+            } else {
+                dlBtn = null;
+            }
+            dlViews.add(dlBtn);
+
+            row.setOnClickListener(v -> {
+                RexHaptics.tap(v);
+                selectedHolder[0] = itemLabel;
+                updateRadioStates(context, radioViews, emojis, selectedHolder[0]);
+            });
+            listContainer.addView(row);
+        }
+
+        updateRadioStates(context, radioViews, emojis, selectedHolder[0]);
+        ScrollView sv = new ScrollView(context);
+        sv.addView(listContainer);
+        LinearLayout.LayoutParams svLp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f);
+        card.addView(sv, svLp);
+
+        final android.app.Dialog dialog = createRawDarkDialog(context, card);
+        addDialogFooterButtons(context, card, "Close", "Apply",
+                v -> dialog.dismiss(),
+                v -> {
+                    final String chosen = selectedHolder[0];
+                    dialog.dismiss();
+                    if ("From Local Storage".equals(chosen)) {
+                        Activity act = RexDialogs.resolveActivity(context);
+                        if (act != null) {
+                            app.morphe.extension.instagram.settings.ActivityHook.launchFragment(act, "rex_pref_add_emoji_font");
+                        }
+                        if (onUpdated != null) onUpdated.run();
+                        return;
+                    }
+                    if ("Original Emoji".equals(chosen)) {
+                        app.morphe.extension.instagram.patches.customise.font.FontStorage.clearEmojiFont();
+                        Utils.showToastShort("Original Emoji restored");
+                        if (onUpdated != null) onUpdated.run();
+                        return;
+                    }
+                    if (app.morphe.extension.instagram.patches.customise.font.FontStorage.isEmojiPackDownloaded(context, chosen)) {
+                        if (app.morphe.extension.instagram.patches.customise.font.FontStorage.applyEmojiPack(context, chosen)) {
+                            Utils.showToastShort("Applied " + chosen + " Emoji across the app");
+                        }
+                        if (onUpdated != null) onUpdated.run();
+                    } else {
+                        Utils.showToastShort("Downloading & applying " + chosen + " Emoji...");
+                        final Context appCtx = context.getApplicationContext();
+                        Utils.runOnBackgroundThread(() -> {
+                            boolean ok = app.morphe.extension.instagram.patches.customise.font.FontStorage.downloadEmojiPackSync(appCtx, chosen);
+                            if (ok) {
+                                app.morphe.extension.instagram.patches.customise.font.FontStorage.applyEmojiPack(appCtx, chosen);
+                            }
+                            Utils.runOnMainThread(() -> {
+                                if (ok) {
+                                    Utils.showToastShort("Applied " + chosen + " Emoji across the app");
+                                } else {
+                                    Utils.showToastShort("Couldn't download " + chosen + " Emoji pack");
+                                }
+                                if (onUpdated != null) onUpdated.run();
+                            });
+                        });
+                    }
+                });
+        dialog.show();
     }
 
     public static void showFontTypePicker(final Context context, final Runnable onUpdated) {
-        String[] fonts = {
+        final String[] fonts = {
+                "Original Font",
                 "System Default",
+                "iOS San Francisco",
                 "Instagram Sans",
-                "iOS ExtraBold CT 2026",
-                "iOS Semibold Lite CT 2026",
-                "iOS Story Classic",
-                "iOS Story Modern",
+                "Google Sans",
+                "From Local Storage",
+                "iOS Font 01",
+                "iOS Font 02",
+                "iOS Font 03",
+                "iOS Font 04",
+                "iOS Font 05",
                 "iOS Story Neon",
                 "iOS Story Typewriter",
                 "iOS Story Strong",
-                "iOS Story Elegant",
                 "iOS Story Literature",
                 "iOS Story Beach",
                 "iOS Story Directional",
                 "iOS Story Papyrus",
                 "iOS Story Hindi",
-                "iOS Story Hindi/Gujarati/Marathi",
-                "Custom .TTF / .OTF Font"
+                "iOS Story Hindi/Gujarati/Marathi"
         };
-        showSingleChoiceDialog(context, "Choose Font Type (Stories & UI)", fonts,
-                SharedPref.getStringPref(Settings.CHOOSE_FONT_TYPE), chosen -> {
+
+        String currentSaved = SharedPref.getStringPref(Settings.CHOOSE_FONT_TYPE);
+        if (currentSaved == null || currentSaved.isEmpty()) currentSaved = "Original Font";
+        final String[] selectedHolder = {currentSaved};
+
+        LinearLayout card = createRadioPackDialogContainer(context, "Choose Font");
+        LinearLayout listContainer = new LinearLayout(context);
+        listContainer.setOrientation(LinearLayout.VERTICAL);
+
+        final List<ImageView> radioViews = new ArrayList<>();
+
+        for (int i = 0; i < fonts.length; i++) {
+            final String itemLabel = fonts[i];
+            final boolean hasDl = app.morphe.extension.instagram.patches.customise.font.FontStorage.rawResourceForFontName(itemLabel) != null;
+
+            LinearLayout row = new LinearLayout(context);
+            row.setOrientation(LinearLayout.HORIZONTAL);
+            row.setGravity(Gravity.CENTER_VERTICAL);
+            row.setPadding(RexVectorIcons.dp(context, 4), RexVectorIcons.dp(context, 10),
+                    RexVectorIcons.dp(context, 4), RexVectorIcons.dp(context, 10));
+
+            ImageView radio = new ImageView(context);
+            int rSize = RexVectorIcons.dp(context, 22);
+            LinearLayout.LayoutParams rLp = new LinearLayout.LayoutParams(rSize, rSize);
+            rLp.rightMargin = RexVectorIcons.dp(context, 16);
+            radio.setLayoutParams(rLp);
+            radioViews.add(radio);
+            row.addView(radio);
+
+            TextView tv = new TextView(context);
+            tv.setText(itemLabel);
+            tv.setTextColor(Color.WHITE);
+            tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f);
+            LinearLayout.LayoutParams tvLp = new LinearLayout.LayoutParams(
+                    0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+            tv.setLayoutParams(tvLp);
+            row.addView(tv);
+
+            if (hasDl) {
+                final ImageView dlBtn = new ImageView(context);
+                int dSize = RexVectorIcons.dp(context, 26);
+                LinearLayout.LayoutParams dLp = new LinearLayout.LayoutParams(dSize, dSize);
+                dlBtn.setLayoutParams(dLp);
+                boolean ready = app.morphe.extension.instagram.patches.customise.font.FontStorage.isFontPresetReady(context, itemLabel);
+                bindCircleActionIcon(context, dlBtn, ready);
+                dlBtn.setOnClickListener(v -> {
+                    RexHaptics.tap(v);
+                    boolean ok = app.morphe.extension.instagram.patches.customise.font.FontStorage.prepareBundledFontPreset(context, itemLabel);
+                    if (ok) {
+                        bindCircleActionIcon(context, dlBtn, true);
+                        selectedHolder[0] = itemLabel;
+                        updateRadioStates(context, radioViews, fonts, selectedHolder[0]);
+                        Utils.showToastShort(itemLabel + " ready — tap Apply to activate");
+                    } else {
+                        Utils.showToastShort("Couldn't prepare " + itemLabel);
+                    }
+                });
+                row.addView(dlBtn);
+            }
+
+            row.setOnClickListener(v -> {
+                RexHaptics.tap(v);
+                selectedHolder[0] = itemLabel;
+                updateRadioStates(context, radioViews, fonts, selectedHolder[0]);
+            });
+            listContainer.addView(row);
+        }
+
+        updateRadioStates(context, radioViews, fonts, selectedHolder[0]);
+        ScrollView sv = new ScrollView(context);
+        sv.addView(listContainer);
+        LinearLayout.LayoutParams svLp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f);
+        card.addView(sv, svLp);
+
+        final android.app.Dialog dialog = createRawDarkDialog(context, card);
+        addDialogFooterButtons(context, card, "Close", "Apply",
+                v -> dialog.dismiss(),
+                v -> {
+                    final String chosen = selectedHolder[0];
+                    dialog.dismiss();
                     SharedPref.setStringPref(Settings.CHOOSE_FONT_TYPE.key, chosen);
-                    if ("Custom .TTF / .OTF Font".equals(chosen)) {
+                    if ("From Local Storage".equals(chosen)) {
                         Activity act = RexDialogs.resolveActivity(context);
                         if (act != null) {
                             app.morphe.extension.instagram.settings.ActivityHook.launchFragment(act, "rex_pref_add_font");
-                        } else {
-                            Utils.showToastShort("Open Settings -> Custom Typography & Fonts -> Add Font");
                         }
+                        if (onUpdated != null) onUpdated.run();
                         return;
                     }
-                    if ("System Default".equals(chosen)) {
-                        app.morphe.extension.instagram.patches.customise.font.FontStorage.delete();
-                        app.morphe.extension.instagram.patches.customise.font.FontStorage.setUseSystemFont(true);
-                        Utils.showToastShort("Font Type: System Default (Restart to apply)");
-                    } else if ("Instagram Sans".equals(chosen)) {
+                    if ("Original Font".equals(chosen)) {
                         app.morphe.extension.instagram.patches.customise.font.FontStorage.delete();
                         app.morphe.extension.instagram.patches.customise.font.FontStorage.setUseSystemFont(false);
-                        Utils.showToastShort("Font Type: Instagram Sans (Restart to apply)");
+                        Utils.showToastShort("Original Font restored");
+                    } else if ("System Default".equals(chosen)) {
+                        app.morphe.extension.instagram.patches.customise.font.FontStorage.delete();
+                        app.morphe.extension.instagram.patches.customise.font.FontStorage.setUseSystemFont(true);
+                        Utils.showToastShort("System Default font applied");
                     } else if (app.morphe.extension.instagram.patches.customise.font.FontStorage.applyBundledFont(context, chosen)) {
-                        Utils.showToastShort("Applied " + chosen + " (Restart Instagram to activate)");
+                        Utils.showToastShort("Applied " + chosen + " across the app");
                     } else {
-                        Utils.showToastShort("Bundled font resource unavailable");
+                        Utils.showToastShort("Couldn't apply " + chosen);
                     }
                     if (onUpdated != null) onUpdated.run();
                 });
+        dialog.show();
+    }
+
+    public static void showAddStoryFontsDialog(final Context context, final Runnable onUpdated) {
+        final String[] rows = {
+                "From Local Storage",
+                "Official Fonts Pack",
+                "AnshulDixit Fonts Pack",
+                "Askxtylishh Fonts Pack",
+                "Affan Fonts Pack",
+                "Valentines Fonts Pack"
+        };
+
+        LinearLayout card = createRadioPackDialogContainer(context, "Add Story Fonts");
+        LinearLayout listContainer = new LinearLayout(context);
+        listContainer.setOrientation(LinearLayout.VERTICAL);
+
+        final android.app.Dialog dialog = createRawDarkDialog(context, card);
+
+        for (int i = 0; i < rows.length; i++) {
+            final String itemLabel = rows[i];
+            final boolean isPack = i > 0;
+
+            LinearLayout row = new LinearLayout(context);
+            row.setOrientation(LinearLayout.HORIZONTAL);
+            row.setGravity(Gravity.CENTER_VERTICAL);
+            row.setPadding(RexVectorIcons.dp(context, 4), RexVectorIcons.dp(context, 13),
+                    RexVectorIcons.dp(context, 4), RexVectorIcons.dp(context, 13));
+
+            TextView tv = new TextView(context);
+            tv.setText(itemLabel);
+            tv.setTextColor(Color.WHITE);
+            tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f);
+            LinearLayout.LayoutParams tvLp = new LinearLayout.LayoutParams(
+                    0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+            tv.setLayoutParams(tvLp);
+            row.addView(tv);
+
+            if (isPack) {
+                final ImageView dlBtn = new ImageView(context);
+                int dSize = RexVectorIcons.dp(context, 26);
+                LinearLayout.LayoutParams dLp = new LinearLayout.LayoutParams(dSize, dSize);
+                dlBtn.setLayoutParams(dLp);
+                boolean installed = app.morphe.extension.instagram.patches.customise.font.FontStorage.isStoryFontPackInstalled(context, itemLabel);
+                bindCircleActionIcon(context, dlBtn, installed);
+                View.OnClickListener installAction = v -> {
+                    RexHaptics.tap(v);
+                    int count = app.morphe.extension.instagram.patches.customise.font.FontStorage.installStoryFontPack(context, itemLabel);
+                    if (count > 0) {
+                        bindCircleActionIcon(context, dlBtn, true);
+                        Utils.showToastShort("Installed " + itemLabel + " (" + count + " story fonts)");
+                        if (onUpdated != null) onUpdated.run();
+                    } else {
+                        Utils.showToastShort("Couldn't install " + itemLabel);
+                    }
+                };
+                dlBtn.setOnClickListener(installAction);
+                row.setOnClickListener(installAction);
+                row.addView(dlBtn);
+            } else {
+                row.setOnClickListener(v -> {
+                    RexHaptics.tap(v);
+                    dialog.dismiss();
+                    Activity act = RexDialogs.resolveActivity(context);
+                    if (act != null) {
+                        app.morphe.extension.instagram.settings.ActivityHook.launchFragment(act, "rex_pref_add_story_font");
+                    }
+                });
+            }
+            listContainer.addView(row);
+        }
+
+        ScrollView sv = new ScrollView(context);
+        sv.addView(listContainer);
+        LinearLayout.LayoutParams svLp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        card.addView(sv, svLp);
+
+        addDialogFooterButtons(context, card, "Cancel", "Reset",
+                v -> dialog.dismiss(),
+                v -> {
+                    app.morphe.extension.instagram.patches.customise.font.FontStorage.resetStoryFonts(context);
+                    Utils.showToastShort("Reset all custom Story fonts");
+                    dialog.dismiss();
+                    if (onUpdated != null) onUpdated.run();
+                });
+        dialog.show();
+    }
+
+    private static LinearLayout createRadioPackDialogContainer(Context context, String titleText) {
+        LinearLayout card = new LinearLayout(context);
+        card.setOrientation(LinearLayout.VERTICAL);
+        int padH = RexVectorIcons.dp(context, 22);
+        int padV = RexVectorIcons.dp(context, 20);
+        card.setPadding(padH, padV, padH, RexVectorIcons.dp(context, 16));
+        GradientDrawable bg = new GradientDrawable();
+        bg.setColor(0xFF121316);
+        bg.setCornerRadius(RexVectorIcons.dp(context, 26));
+        bg.setStroke(Math.max(1, RexVectorIcons.dp(context, 1)), 0x22FFFFFF);
+        card.setBackground(bg);
+
+        TextView title = new TextView(context);
+        title.setText(titleText);
+        title.setTextColor(Color.WHITE);
+        title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 21f);
+        title.setPadding(RexVectorIcons.dp(context, 2), 0, 0, RexVectorIcons.dp(context, 12));
+        card.addView(title);
+        return card;
+    }
+
+    private static android.app.Dialog createRawDarkDialog(Context context, View contentView) {
+        Activity act = RexDialogs.resolveActivity(context);
+        Context hostCtx = act != null ? act : context;
+        android.app.Dialog dialog = new android.app.Dialog(hostCtx);
+        dialog.requestWindowFeature(android.view.Window.FEATURE_NO_TITLE);
+        app.morphe.extension.instagram.patches.customise.font.CustomFont.applyToViewTree(contentView);
+        dialog.setContentView(contentView);
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(Color.TRANSPARENT));
+            int screenW = hostCtx.getResources().getDisplayMetrics().widthPixels;
+            int screenH = hostCtx.getResources().getDisplayMetrics().heightPixels;
+            dialog.getWindow().setLayout((int) (screenW * 0.88f), ViewGroup.LayoutParams.WRAP_CONTENT);
+            RexDialogs.attachBlurBehind(dialog, hostCtx);
+        }
+        return dialog;
+    }
+
+    private static void addDialogFooterButtons(
+            Context context,
+            LinearLayout card,
+            String leftLabel,
+            String rightLabel,
+            View.OnClickListener onLeft,
+            View.OnClickListener onRight
+    ) {
+        LinearLayout footer = new LinearLayout(context);
+        footer.setOrientation(LinearLayout.HORIZONTAL);
+        footer.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
+        footer.setPadding(0, RexVectorIcons.dp(context, 14), 0, 0);
+
+        TextView leftBtn = new TextView(context);
+        leftBtn.setText(leftLabel);
+        leftBtn.setTextColor(Color.WHITE);
+        leftBtn.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15.5f);
+        leftBtn.setPadding(RexVectorIcons.dp(context, 16), RexVectorIcons.dp(context, 8),
+                RexVectorIcons.dp(context, 16), RexVectorIcons.dp(context, 8));
+        leftBtn.setOnClickListener(onLeft);
+        footer.addView(leftBtn);
+
+        TextView rightBtn = new TextView(context);
+        rightBtn.setText(rightLabel);
+        rightBtn.setTextColor(Color.WHITE);
+        rightBtn.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15.5f);
+        rightBtn.setPadding(RexVectorIcons.dp(context, 16), RexVectorIcons.dp(context, 8),
+                RexVectorIcons.dp(context, 8), RexVectorIcons.dp(context, 8));
+        rightBtn.setOnClickListener(onRight);
+        footer.addView(rightBtn);
+
+        card.addView(footer);
+    }
+
+    private static void updateRadioStates(Context context, List<ImageView> radios, String[] labels, String selected) {
+        for (int i = 0; i < radios.size() && i < labels.length; i++) {
+            boolean checked = labels[i].equals(selected);
+            ImageView iv = radios.get(i);
+            int size = RexVectorIcons.dp(context, 22);
+            android.graphics.Bitmap bmp = android.graphics.Bitmap.createBitmap(size, size, android.graphics.Bitmap.Config.ARGB_8888);
+            android.graphics.Canvas c = new android.graphics.Canvas(bmp);
+            android.graphics.Paint p = new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
+            p.setColor(Color.WHITE);
+            p.setStyle(android.graphics.Paint.Style.STROKE);
+            p.setStrokeWidth(RexVectorIcons.dp(context, 2));
+            float r = size / 2f - RexVectorIcons.dp(context, 2);
+            c.drawCircle(size / 2f, size / 2f, r, p);
+            if (checked) {
+                p.setStyle(android.graphics.Paint.Style.FILL);
+                c.drawCircle(size / 2f, size / 2f, r * 0.52f, p);
+            }
+            iv.setImageBitmap(bmp);
+        }
+    }
+
+    private static void bindCircleActionIcon(Context context, ImageView iv, boolean isReady) {
+        int size = RexVectorIcons.dp(context, 26);
+        android.graphics.Bitmap bmp = android.graphics.Bitmap.createBitmap(size, size, android.graphics.Bitmap.Config.ARGB_8888);
+        android.graphics.Canvas c = new android.graphics.Canvas(bmp);
+        android.graphics.Paint p = new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
+        p.setColor(isReady ? 0xFF23C6D8 : Color.WHITE);
+        p.setStyle(android.graphics.Paint.Style.STROKE);
+        p.setStrokeWidth(RexVectorIcons.dp(context, 1.8f));
+        p.setStrokeCap(android.graphics.Paint.Cap.ROUND);
+        p.setStrokeJoin(android.graphics.Paint.Join.ROUND);
+        float cx = size / 2f;
+        float cy = size / 2f;
+        float r = size / 2f - RexVectorIcons.dp(context, 2);
+        c.drawCircle(cx, cy, r, p);
+        if (isReady) {
+            c.drawLine(cx - r * 0.42f, cy + r * 0.02f, cx - r * 0.08f, cy + r * 0.36f, p);
+            c.drawLine(cx - r * 0.08f, cy + r * 0.36f, cx + r * 0.44f, cy - r * 0.28f, p);
+        } else {
+            c.drawLine(cx, cy - r * 0.42f, cx, cy + r * 0.38f, p);
+            c.drawLine(cx - r * 0.32f, cy + r * 0.08f, cx, cy + r * 0.40f, p);
+            c.drawLine(cx + r * 0.32f, cy + r * 0.08f, cx, cy + r * 0.40f, p);
+        }
+        iv.setImageBitmap(bmp);
     }
 
     public static void showVideoSplitterDialog(final Context context) {
@@ -808,15 +1199,17 @@ public final class RexRuntimeFeatures {
     }
 
     // -------------------------------------------------------------------------
-    // 6. Real-Time Translator (Bio & Caption)
+    // 6. Real-Time Translator (Story Text, Story Captions, Post Captions, Bio)
     // -------------------------------------------------------------------------
-    private static String languageCodeFor(String languageName) {
+    private static final android.util.LruCache<String, String> TRANSLATION_CACHE = new android.util.LruCache<>(128);
+
+    public static String languageCodeFor(String languageName) {
         if (languageName == null) return "en";
-        String lower = languageName.toLowerCase();
+        String lower = languageName.trim().toLowerCase(java.util.Locale.ROOT);
+        if (lower.startsWith("portuguese")) return "pt-BR";
         if (lower.startsWith("hindi")) return "hi";
         if (lower.startsWith("spanish")) return "es";
         if (lower.startsWith("russian")) return "ru";
-        if (lower.startsWith("portuguese")) return "pt";
         if (lower.startsWith("arabic")) return "ar";
         if (lower.startsWith("indonesian")) return "id";
         if (lower.startsWith("turkish")) return "tr";
@@ -928,46 +1321,188 @@ public final class RexRuntimeFeatures {
 
     public static void translateText(final Context context, final String text, final String label) {
         if (text == null || text.trim().isEmpty()) {
-            Utils.showToastShort(label + " is empty");
+            Utils.showToastShort((label == null ? "Text" : label) + " is empty");
             return;
         }
         final String raw = text.trim();
         final String targetLangName = SharedPref.getStringPref(Settings.TRANSLATOR_LANGUAGE);
-        final String safeLangName = (targetLangName == null || targetLangName.isEmpty()) ? "English" : targetLangName;
+        final String safeLangName = (targetLangName == null || targetLangName.trim().isEmpty()) ? "English" : targetLangName.trim();
         final String tl = languageCodeFor(safeLangName);
-        Utils.showToastShort("Translating to " + safeLangName + "...");
+        final String fallbackShortTl = tl.contains("-") ? tl.substring(0, tl.indexOf('-')) : tl;
+        final String cacheKey = tl + "|" + raw;
+
+        String cached = TRANSLATION_CACHE.get(cacheKey);
+        if (cached != null && !cached.isEmpty()) {
+            showTranslationResultDialog(context, raw, cached, safeLangName, tl, label, true);
+            return;
+        }
+
+        Utils.showToastShort("Translating to " + safeLangName + " (" + tl + ")...");
 
         Utils.runOnBackgroundThread(() -> {
             String translated = translateViaTier1(raw, tl);
+            if ((translated == null || translated.isEmpty()) && !tl.equals(fallbackShortTl)) {
+                translated = translateViaTier1(raw, fallbackShortTl);
+            }
             if (translated == null || translated.isEmpty()) {
                 translated = translateViaTier2(raw, tl);
             }
-            if (translated == null || translated.isEmpty()) {
-                translated = translateViaTier3(raw, tl);
+            if ((translated == null || translated.isEmpty()) && !tl.equals(fallbackShortTl)) {
+                translated = translateViaTier2(raw, fallbackShortTl);
             }
             if (translated == null || translated.isEmpty()) {
-                translated = translateViaTier4(raw, tl);
+                translated = translateViaTier3(raw, fallbackShortTl);
+            }
+            if (translated == null || translated.isEmpty()) {
+                translated = translateViaTier4(raw, fallbackShortTl);
             }
 
-            final boolean ok = translated != null && !translated.isEmpty();
-            final String resultText = ok ? translated : raw;
-            Utils.runOnMainThread(() -> {
-                if (ok) {
-                    Utils.setClipboard(resultText);
-                    Utils.showToastShort("Translated to " + safeLangName + " & copied to clipboard");
-                } else {
-                    Utils.showToastShort("Translation service unreachable — showing original text");
-                }
-                RexDialogs.showTextStudioDialog(
-                        context,
-                        ok ? ("Translated " + label + " (" + safeLangName + ")")
-                           : ("Translation Failed — Original " + label),
-                        "",
-                        resultText,
-                        ""
-                );
-            });
+            final boolean ok = translated != null && !translated.trim().isEmpty();
+            final String cleanTranslated = ok ? translated.trim() : "";
+            if (ok) {
+                TRANSLATION_CACHE.put(cacheKey, cleanTranslated);
+            }
+            Utils.runOnMainThread(() -> showTranslationResultDialog(
+                    context, raw, cleanTranslated, safeLangName, tl, label, ok
+            ));
         });
+    }
+
+    private static void showTranslationResultDialog(
+            final Context context,
+            final String originalText,
+            final String translatedText,
+            final String targetLangName,
+            final String targetLangCode,
+            final String label,
+            final boolean succeeded
+    ) {
+        try {
+            final Context hostCtx = RexDialogs.resolveActivity(context) != null ? RexDialogs.resolveActivity(context) : context;
+            final AlertDialog dialog = new AlertDialog.Builder(hostCtx).create();
+            String headerTitle = succeeded
+                    ? ("Translated " + label + " • " + targetLangName + " (" + targetLangCode + ")")
+                    : ("Translation Failed • " + label);
+            LinearLayout root = createCardContainer(hostCtx, headerTitle);
+
+            TextView langSwitchBtn = createActionButton(
+                    hostCtx,
+                    "Target Language: " + targetLangName + " (" + targetLangCode + ") — Tap to Change",
+                    InstagramPreferenceStyle.elevatedSurfaceColor(),
+                    InstagramPreferenceStyle.accentColor()
+            );
+            langSwitchBtn.setOnClickListener(v -> {
+                RexHaptics.tap(v);
+                dialog.dismiss();
+                showTranslatorLanguagePicker(hostCtx, () -> translateText(hostCtx, originalText, label));
+            });
+            root.addView(langSwitchBtn);
+
+            if (succeeded) {
+                TextView transHeader = new TextView(hostCtx);
+                transHeader.setText("TRANSLATED TEXT (" + targetLangName.toUpperCase(java.util.Locale.ROOT) + ")");
+                transHeader.setTextColor(InstagramPreferenceStyle.accentColor());
+                transHeader.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11.5f);
+                transHeader.setTypeface(Typeface.DEFAULT_BOLD);
+                transHeader.setPadding(0, RexVectorIcons.dp(hostCtx, 6), 0, RexVectorIcons.dp(hostCtx, 4));
+                root.addView(transHeader);
+
+                TextView transBody = new TextView(hostCtx);
+                transBody.setText(translatedText);
+                transBody.setTextColor(Color.WHITE);
+                transBody.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f);
+                transBody.setTextIsSelectable(true);
+                int boxPad = RexVectorIcons.dp(hostCtx, 12);
+                transBody.setPadding(boxPad, boxPad, boxPad, boxPad);
+                GradientDrawable boxBg = new GradientDrawable();
+                boxBg.setColor(InstagramPreferenceStyle.elevatedSurfaceColor());
+                boxBg.setCornerRadius(RexVectorIcons.dp(hostCtx, 14));
+                boxBg.setStroke(Math.max(1, RexVectorIcons.dp(hostCtx, 1)), InstagramPreferenceStyle.borderStrokeColor());
+                transBody.setBackground(boxBg);
+                root.addView(transBody);
+
+                TextView copyTransBtn = createActionButton(
+                        hostCtx,
+                        "Copy Translated Text",
+                        InstagramPreferenceStyle.accentColor(),
+                        Color.WHITE
+                );
+                copyTransBtn.setOnClickListener(v -> {
+                    RexHaptics.tap(v);
+                    Utils.setClipboard(translatedText);
+                    Utils.showToastShort("Copied translated text");
+                });
+                LinearLayout.LayoutParams ctLp = (LinearLayout.LayoutParams) copyTransBtn.getLayoutParams();
+                ctLp.topMargin = RexVectorIcons.dp(hostCtx, 8);
+                root.addView(copyTransBtn);
+            } else {
+                TextView errBox = new TextView(hostCtx);
+                errBox.setText("Could not reach translation provider. Original text is preserved below without modification.");
+                errBox.setTextColor(InstagramPreferenceStyle.DESTRUCTIVE_RED);
+                errBox.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13.5f);
+                int boxPad = RexVectorIcons.dp(hostCtx, 12);
+                errBox.setPadding(boxPad, boxPad, boxPad, boxPad);
+                root.addView(errBox);
+
+                TextView retryBtn = createActionButton(
+                        hostCtx,
+                        "Retry Translation",
+                        InstagramPreferenceStyle.accentColor(),
+                        Color.WHITE
+                );
+                retryBtn.setOnClickListener(v -> {
+                    RexHaptics.tap(v);
+                    dialog.dismiss();
+                    translateText(hostCtx, originalText, label);
+                });
+                root.addView(retryBtn);
+            }
+
+            TextView origHeader = new TextView(hostCtx);
+            origHeader.setText("ORIGINAL TEXT (PRESERVED)");
+            origHeader.setTextColor(InstagramPreferenceStyle.secondaryTextColor());
+            origHeader.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11.5f);
+            origHeader.setTypeface(Typeface.DEFAULT_BOLD);
+            origHeader.setPadding(0, RexVectorIcons.dp(hostCtx, 10), 0, RexVectorIcons.dp(hostCtx, 4));
+            root.addView(origHeader);
+
+            TextView origBody = new TextView(hostCtx);
+            origBody.setText(originalText);
+            origBody.setTextColor(InstagramPreferenceStyle.secondaryTextColor());
+            origBody.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13.5f);
+            origBody.setTextIsSelectable(true);
+            int oPad = RexVectorIcons.dp(hostCtx, 10);
+            origBody.setPadding(oPad, oPad, oPad, oPad);
+            GradientDrawable oBg = new GradientDrawable();
+            oBg.setColor(0xFF101216);
+            oBg.setCornerRadius(RexVectorIcons.dp(hostCtx, 12));
+            oBg.setStroke(Math.max(1, RexVectorIcons.dp(hostCtx, 1)), InstagramPreferenceStyle.borderStrokeColor());
+            origBody.setBackground(oBg);
+            root.addView(origBody);
+
+            TextView copyOrigBtn = createActionButton(
+                    hostCtx,
+                    "Copy Original Text",
+                    InstagramPreferenceStyle.elevatedSurfaceColor(),
+                    Color.WHITE
+            );
+            copyOrigBtn.setOnClickListener(v -> {
+                RexHaptics.tap(v);
+                Utils.setClipboard(originalText);
+                Utils.showToastShort("Copied original text");
+            });
+            LinearLayout.LayoutParams coLp = (LinearLayout.LayoutParams) copyOrigBtn.getLayoutParams();
+            coLp.topMargin = RexVectorIcons.dp(hostCtx, 8);
+            root.addView(copyOrigBtn);
+
+            addCloseButton(hostCtx, root, dialog);
+            ScrollView scroll = new ScrollView(hostCtx);
+            scroll.addView(root);
+            dialog.setView(scroll);
+            RexDialogs.showBlurredDialog(hostCtx, dialog);
+        } catch (Throwable e) {
+            Logger.printException(() -> "showTranslationResultDialog failed", e);
+        }
     }
 
     // -------------------------------------------------------------------------

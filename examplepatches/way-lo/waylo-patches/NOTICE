@@ -19,3 +19,13 @@ provided that such references:
 - Are accurate, factual, and non-misleading;
 - Do not suggest authorship by the Morphe project; and
 - Appear only in a secondary or descriptive context, not as part of the product or project name.
+
+Third-party patch code
+----------------------
+
+The Google News patches (app.waylo.patches.googlenews) and the "Change package
+name" patch (app.waylo.patches.all.misc.packagename) are ported from
+docbt/patched-up (https://github.com/docbt/patched-up), licensed GPLv3, which
+in turn builds on ReVanced Patches and hoo-dles/morphe-patches (GPLv3).
+Changes: Kotlin package renamed; "Change package name" made opt-in; the
+GmsCore support patch also declares MicroG in the manifest <queries>.

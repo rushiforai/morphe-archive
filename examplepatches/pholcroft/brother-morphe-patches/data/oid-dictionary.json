@@ -1,0 +1,573 @@
+[
+  {
+    "oid": "1.3.6.1.2.1.1.1",
+    "symbol": "sysDescr",
+    "name": "System description",
+    "description": "Description of the device and its software.",
+    "source": "https://www.rfc-editor.org/rfc/rfc3418.html"
+  },
+  {
+    "oid": "1.3.6.1.2.1.1.2",
+    "symbol": "sysObjectID",
+    "name": "Device type identifier",
+    "description": "Manufacturer's authoritative identification of the device type.",
+    "source": "https://www.rfc-editor.org/rfc/rfc3418.html"
+  },
+  {
+    "oid": "1.3.6.1.2.1.1.3",
+    "symbol": "sysUpTime",
+    "name": "Time since network management restart",
+    "description": "Time since the network management portion of the system was reinitialised.",
+    "source": "https://www.rfc-editor.org/rfc/rfc3418.html"
+  },
+  {
+    "oid": "1.3.6.1.2.1.2.2.1.6",
+    "symbol": "ifPhysAddress",
+    "name": "Network interface hardware address",
+    "description": "Hardware address associated with a network interface.",
+    "source": "https://www.rfc-editor.org/rfc/rfc2863.html"
+  },
+  {
+    "oid": "1.3.6.1.2.1.25.3.2.1.3",
+    "symbol": "hrDeviceDescr",
+    "name": "Device description",
+    "description": "Description of the device, including its manufacturer and revision where available.",
+    "source": "https://www.rfc-editor.org/rfc/rfc2790.html"
+  },
+  {
+    "oid": "1.3.6.1.2.1.43.8.2.1.2",
+    "symbol": "prtInputType",
+    "name": "Paper input type",
+    "description": "Feed mechanism of the paper input, such as a sheet tray or manual feed.",
+    "source": "https://www.rfc-editor.org/rfc/rfc3805.html"
+  },
+  {
+    "oid": "1.3.6.1.2.1.43.8.2.1.12",
+    "symbol": "prtInputMediaName",
+    "name": "Paper input media name",
+    "description": "Reported name of the media in this input.",
+    "source": "https://www.rfc-editor.org/rfc/rfc3805.html"
+  },
+  {
+    "oid": "1.3.6.1.2.1.43.8.2.1.21",
+    "symbol": "prtInputMediaType",
+    "name": "Paper type",
+    "description": "Reported type of media associated with this input.",
+    "source": "https://www.rfc-editor.org/rfc/rfc3805.html"
+  },
+  {
+    "oid": "1.3.6.1.2.1.43.8.2.1.13",
+    "symbol": "prtInputName",
+    "name": "Paper input name",
+    "description": "Name assigned to a printer input unit.",
+    "source": "https://www.rfc-editor.org/rfc/rfc3805.html"
+  },
+  {
+    "oid": "1.3.6.1.2.1.43.9.2.1.7",
+    "symbol": "prtOutputName",
+    "name": "Paper output name",
+    "description": "Name assigned to a printer output unit.",
+    "source": "https://www.rfc-editor.org/rfc/rfc3805.html"
+  },
+  {
+    "oid": "1.3.6.1.2.1.43.10.2.1.2",
+    "symbol": "prtMarkerMarkTech",
+    "name": "Printing technology",
+    "description": "Technology used by a marking unit.",
+    "source": "https://www.rfc-editor.org/rfc/rfc3805.html"
+  },
+  {
+    "oid": "1.3.6.1.2.1.43.10.2.1.4",
+    "symbol": "prtMarkerLifeCount",
+    "name": "Lifetime marker count",
+    "description": "Lifetime count for a marking unit, in the marker's reported unit.",
+    "source": "https://www.rfc-editor.org/rfc/rfc3805.html"
+  },
+  {
+    "oid": "1.3.6.1.2.1.43.10.2.1.6",
+    "symbol": "prtMarkerProcessColorants",
+    "name": "Process colour count",
+    "description": "Number of process colours supported by a marking unit.",
+    "source": "https://www.rfc-editor.org/rfc/rfc3805.html"
+  },
+  {
+    "oid": "1.3.6.1.2.1.43.15.1.1.2",
+    "symbol": "prtInterpreterLangFamily",
+    "name": "Printer language family",
+    "description": "Page description or control language supported by an interpreter.",
+    "source": "https://www.rfc-editor.org/rfc/rfc3805.html",
+    "values": {
+      "1": "Other",
+      "3": "PCL",
+      "4": "HP-GL",
+      "5": "PJL",
+      "6": "PostScript",
+      "37": "Automatic language detection",
+      "47": "PCL XL",
+      "66": "XPS",
+      "67": "OpenXPS"
+    },
+    "values_source": "https://www.iana.org/assignments/ianaprinter-mib/ianaprinter-mib"
+  },
+  {
+    "oid": "1.3.6.1.2.1.43.15.1.1.3",
+    "symbol": "prtInterpreterLangLevel",
+    "name": "Printer language level",
+    "description": "Level of the language supported by an interpreter.",
+    "source": "https://www.rfc-editor.org/rfc/rfc3805.html"
+  },
+  {
+    "oid": "1.3.6.1.2.1.43.15.1.1.4",
+    "symbol": "prtInterpreterLangVersion",
+    "name": "Printer language version",
+    "description": "Version of the language supported by an interpreter.",
+    "source": "https://www.rfc-editor.org/rfc/rfc3805.html"
+  },
+  {
+    "oid": "1.3.6.1.4.1.2435.2.3.9.4.2.1.5.1.2.71.12.1.2",
+    "symbol": "brotherPaperSize",
+    "name": "Supported paper size",
+    "description": "Brother checks the values in this table when identifying supported paper sizes.",
+    "source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md"
+  },
+  {
+    "oid": "1.3.6.1.4.1.2435.2.3.9.4.2.1.5.1.2.70.1.1.2",
+    "symbol": "brotherPdlLanguage",
+    "name": "Brother print language",
+    "description": "Brother checks this table for support of its common print language.",
+    "source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md",
+    "values": {
+      "17": "Brother common print language"
+    },
+    "values_source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md"
+  },
+  {
+    "oid": "1.3.6.1.4.1.2435.2.3.9.4.2.1.5.1.2.69.2.1",
+    "symbol": "brotherAutoRotate",
+    "name": "Automatic rotation support",
+    "description": "Brother associates this value with automatic rotation in its common print language.",
+    "source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md",
+    "values": {
+      "0": "Not supported",
+      "1": "Supported"
+    },
+    "values_source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md"
+  },
+  {
+    "oid": "1.3.6.1.4.1.2435.2.3.9.4.2.1.5.1.2.69.2.2",
+    "symbol": "brotherIPrintInfo",
+    "name": "iPrint information",
+    "description": "Brother associates this value with its iPrintInfo query key.",
+    "source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md"
+  },
+  {
+    "oid": "1.3.6.1.4.1.2435.2.3.9.4.2.1.5.1.2.63.3.0",
+    "symbol": "brotherFunctionLock",
+    "name": "Function lock",
+    "description": "Brother uses this value when evaluating its function lock setting.",
+    "source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md",
+    "values": {
+      "1": "Inactive",
+      "2": "Active"
+    },
+    "values_source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md"
+  },
+  {
+    "oid": "1.3.6.1.4.1.2435.2.3.9.4.2.1.5.1.2.63.5.1.4.11",
+    "symbol": "brotherPrintFunctionLock",
+    "name": "Print function lock",
+    "description": "Brother uses this value when evaluating the print function lock.",
+    "source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md",
+    "values": {
+      "0": "Locked",
+      "1": "Not locked"
+    },
+    "values_source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md"
+  },
+  {
+    "oid": "1.3.6.1.4.1.2435.2.3.9.4.2.1.5.1.2.63.5.1.4.5",
+    "symbol": "brotherScanFunctionLock",
+    "name": "Scan function lock",
+    "description": "Brother uses this value when evaluating the scan function lock.",
+    "source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md",
+    "values": {
+      "0": "Locked",
+      "1": "Not locked"
+    },
+    "values_source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md"
+  },
+  {
+    "oid": "1.3.6.1.4.1.2435.2.3.9.4.2.1.5.1.2.69.1.1",
+    "symbol": "brotherScanColor",
+    "name": "Colour scanning support",
+    "description": "Brother associates this value with colour scanning.",
+    "source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md"
+  },
+  {
+    "oid": "1.3.6.1.4.1.2435.2.3.9.4.2.1.5.1.2.69.1.2",
+    "symbol": "brotherScanDuplex",
+    "name": "Duplex scanning support",
+    "description": "Brother associates this value with duplex scanning.",
+    "source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md",
+    "values": {
+      "0": "Not supported",
+      "1": "Supported"
+    },
+    "values_source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md"
+  },
+  {
+    "oid": "1.3.6.1.4.1.2435.2.3.9.4.2.1.5.1.2.69.1.3",
+    "symbol": "brotherScanAutoSizeFormed",
+    "name": "Automatic document size: formed",
+    "description": "Brother associates this value with formed-document automatic size detection.",
+    "source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md"
+  },
+  {
+    "oid": "1.3.6.1.4.1.2435.2.3.9.4.2.1.5.1.2.69.1.4",
+    "symbol": "brotherScanAutoSizeUnformed",
+    "name": "Automatic document size: unformed",
+    "description": "Brother associates this value with unformed-document automatic size detection.",
+    "source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md"
+  },
+  {
+    "oid": "1.3.6.1.4.1.2435.2.3.9.4.2.1.5.1.2.69.1.5",
+    "symbol": "brotherScanAutoCrop",
+    "name": "Automatic scan cropping",
+    "description": "Brother associates this value with automatic scan cropping.",
+    "source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md",
+    "values": {
+      "0": "Not supported",
+      "1": "Supported"
+    },
+    "values_source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md"
+  },
+  {
+    "oid": "1.3.6.1.4.1.2435.2.3.9.4.2.1.5.1.2.69.1.6",
+    "symbol": "brotherScanMultiFeed",
+    "name": "Scanner multi-feed",
+    "description": "Brother associates this value with scanner multi-feed support.",
+    "source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md",
+    "values": {
+      "0": "Not supported",
+      "1": "Supported"
+    },
+    "values_source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md"
+  },
+  {
+    "oid": "1.3.6.1.4.1.2435.2.3.9.4.2.1.5.1.2.69.1.7",
+    "symbol": "brotherScanLongDocument",
+    "name": "Long-document scanning",
+    "description": "Brother associates this value with long-document scanning support.",
+    "source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md"
+  },
+  {
+    "oid": "1.3.6.1.4.1.2435.2.3.9.4.2.1.5.1.2.69.1.8",
+    "symbol": "brotherScanLongDocumentMax",
+    "name": "Maximum long-document size",
+    "description": "Brother associates this value with the maximum long-document size. The unit is not verified.",
+    "source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md"
+  },
+  {
+    "oid": "1.3.6.1.4.1.2435.2.3.9.4.2.1.5.1.2.69.1.9",
+    "symbol": "brotherScanCarrierSheet",
+    "name": "Scanner carrier sheet",
+    "description": "Brother associates this value with carrier-sheet scanning.",
+    "source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md"
+  },
+  {
+    "oid": "1.3.6.1.4.1.2435.2.3.9.4.2.1.5.1.2.69.1.10",
+    "symbol": "brotherScanResolutionMax",
+    "name": "Maximum scan resolution",
+    "description": "Brother associates this value with its maximum main scan resolution. The unit is not verified.",
+    "source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md"
+  },
+  {
+    "oid": "1.3.6.1.4.1.2435.2.3.9.4.2.1.5.1.2.69.1.11",
+    "symbol": "brotherScanFlatbedWidthMax",
+    "name": "Maximum flatbed width",
+    "description": "Brother associates this value with maximum flatbed scan width. The unit is not verified.",
+    "source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md"
+  },
+  {
+    "oid": "1.3.6.1.4.1.2435.2.3.9.4.2.1.5.1.2.69.1.12",
+    "symbol": "brotherScanFlatbedHeightMax",
+    "name": "Maximum flatbed height",
+    "description": "Brother associates this value with maximum flatbed scan height. The unit is not verified.",
+    "source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md"
+  },
+  {
+    "oid": "1.3.6.1.4.1.2435.2.3.9.4.2.1.5.1.2.69.1.13",
+    "symbol": "brotherScanAdfFrontWidthMax",
+    "name": "Maximum feeder front width",
+    "description": "Brother associates this value with maximum front-side document feeder width. The unit is not verified.",
+    "source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md"
+  },
+  {
+    "oid": "1.3.6.1.4.1.2435.2.3.9.4.2.1.5.1.2.69.1.14",
+    "symbol": "brotherScanAdfFrontHeightMax",
+    "name": "Maximum feeder front height",
+    "description": "Brother associates this value with maximum front-side document feeder height. The unit is not verified.",
+    "source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md"
+  },
+  {
+    "oid": "1.3.6.1.4.1.2435.2.3.9.4.2.1.5.1.2.69.1.15",
+    "symbol": "brotherScanAdfBackWidthMax",
+    "name": "Maximum feeder back width",
+    "description": "Brother associates this value with maximum back-side document feeder width. The unit is not verified.",
+    "source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md"
+  },
+  {
+    "oid": "1.3.6.1.4.1.2435.2.3.9.4.2.1.5.1.2.69.1.16",
+    "symbol": "brotherScanAdfBackHeightMax",
+    "name": "Maximum feeder back height",
+    "description": "Brother associates this value with maximum back-side document feeder height. The unit is not verified.",
+    "source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md"
+  },
+  {
+    "oid": "1.3.6.1.4.1.2435.2.3.9.4.2.1.5.1.2.69.1.17",
+    "symbol": "brotherScanAdfFrontWidthMin",
+    "name": "Minimum feeder front width",
+    "description": "Brother associates this value with minimum front-side document feeder width. The unit is not verified.",
+    "source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md"
+  },
+  {
+    "oid": "1.3.6.1.4.1.2435.2.3.9.4.2.1.5.1.2.69.1.18",
+    "symbol": "brotherScanAdfFrontHeightMin",
+    "name": "Minimum feeder front height",
+    "description": "Brother associates this value with minimum front-side document feeder height. The unit is not verified.",
+    "source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md"
+  },
+  {
+    "oid": "1.3.6.1.4.1.2435.2.3.9.4.2.1.5.1.2.69.1.19",
+    "symbol": "brotherScanAdfBackWidthMin",
+    "name": "Minimum feeder back width",
+    "description": "Brother associates this value with minimum back-side document feeder width. The unit is not verified.",
+    "source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md"
+  },
+  {
+    "oid": "1.3.6.1.4.1.2435.2.3.9.4.2.1.5.1.2.69.1.20",
+    "symbol": "brotherScanAdfBackHeightMin",
+    "name": "Minimum feeder back height",
+    "description": "Brother associates this value with minimum back-side document feeder height. The unit is not verified.",
+    "source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md"
+  },
+  {
+    "oid": "1.3.6.1.4.1.2435.2.3.9.4.2.1.5.1.2.69.1.21",
+    "symbol": "brotherScanSkewAdjust",
+    "name": "Scan skew adjustment",
+    "description": "Brother associates this value with scan skew adjustment.",
+    "source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md"
+  },
+  {
+    "oid": "1.3.6.1.4.1.2435.2.3.9.4.2.1.5.1.2.69.1.22",
+    "symbol": "brotherScanProtocol",
+    "name": "Scan protocol",
+    "description": "Brother associates this value with a scan protocol.",
+    "source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md"
+  },
+  {
+    "oid": "1.3.6.1.4.1.2435.2.3.9.4.2.1.5.1.2.69.1.23",
+    "symbol": "brotherScanColorType",
+    "name": "Scan colour type",
+    "description": "Brother associates this value with the scan colour type.",
+    "source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md"
+  },
+  {
+    "oid": "1.3.6.1.4.1.2435.2.3.9.4.2.1.5.1.2.69.1.24",
+    "symbol": "brotherScanDetectJam",
+    "name": "Scan jam detection",
+    "description": "Brother associates this value with scan jam detection.",
+    "source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md"
+  },
+  {
+    "oid": "1.3.6.1.4.1.2435.2.3.9.4.2.1.5.1.2.69.1.25",
+    "symbol": "brotherScanCorner",
+    "name": "Corner scan support",
+    "description": "Brother associates this value with corner scanning support.",
+    "source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md"
+  },
+  {
+    "oid": "1.3.6.1.4.1.2435.2.3.9.4.2.1.5.1.2.69.1.26",
+    "symbol": "brotherScanCornerTop",
+    "name": "Corner scan top excess",
+    "description": "Brother associates this value with top excess size in corner scanning. The unit is not verified.",
+    "source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md"
+  },
+  {
+    "oid": "1.3.6.1.4.1.2435.2.3.9.4.2.1.5.1.2.69.1.27",
+    "symbol": "brotherScanCornerBottom",
+    "name": "Corner scan bottom excess",
+    "description": "Brother associates this value with bottom excess size in corner scanning. The unit is not verified.",
+    "source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md"
+  },
+  {
+    "oid": "1.3.6.1.4.1.2435.2.3.9.4.2.1.5.1.2.69.1.28",
+    "symbol": "brotherScanCornerRight",
+    "name": "Corner scan right excess",
+    "description": "Brother associates this value with right excess size in corner scanning. The unit is not verified.",
+    "source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md"
+  },
+  {
+    "oid": "1.3.6.1.4.1.2435.2.3.9.4.2.1.5.1.2.69.1.29",
+    "symbol": "brotherScanCornerLeft",
+    "name": "Corner scan left excess",
+    "description": "Brother associates this value with left excess size in corner scanning. The unit is not verified.",
+    "source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md"
+  },
+  {
+    "oid": "1.3.6.1.4.1.1240.2.3.4.1.1",
+    "symbol": "brotherNodeName",
+    "name": "Printer node name",
+    "description": "Brother associates this value with the printer node name.",
+    "source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md"
+  },
+  {
+    "oid": "1.3.6.1.4.1.2435.2.3.9.1.1.7",
+    "symbol": "brotherCommandSet",
+    "name": "Printer command set",
+    "description": "Brother checks this response for supported print commands.",
+    "source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md"
+  },
+  {
+    "oid": "1.3.6.1.4.1.2435.2.4.4.1240.5.2.1.1.5.1",
+    "symbol": "brotherLanMac",
+    "name": "Wired interface address",
+    "description": "Brother associates this value with the LAN hardware address.",
+    "source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md"
+  },
+  {
+    "oid": "1.3.6.1.4.1.2435.2.4.4.1240.5.2.1.1.5.2",
+    "symbol": "brotherWlanMac",
+    "name": "Wireless interface address",
+    "description": "Brother associates this value with the WLAN hardware address.",
+    "source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md"
+  },
+  {
+    "oid": "1.3.6.1.4.1.2435.2.4.4.1240.5.2.1.1.5.3",
+    "symbol": "brotherWidiMac",
+    "name": "WiDi interface address",
+    "description": "Brother labels this value as a WiDi hardware address.",
+    "source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md"
+  },
+  {
+    "oid": "1.3.6.1.4.1.2435.2.4.3.2435.5.39.1",
+    "symbol": "brotherPhoenixSupport",
+    "name": "Phoenix support",
+    "description": "Brother associates this value with Phoenix support; the feature is not otherwise identified.",
+    "source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md",
+    "values": {
+      "0": "Not supported",
+      "1": "Supported"
+    },
+    "values_source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md"
+  },
+  {
+    "oid": "1.3.6.1.4.1.2435.2.4.3.2435.5.39.2",
+    "symbol": "brotherPhoenixEnabled",
+    "name": "Phoenix enabled",
+    "description": "Brother associates this value with whether Phoenix is enabled; the feature is not otherwise identified.",
+    "source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md",
+    "values": {
+      "0": "Disabled",
+      "1": "Enabled"
+    },
+    "values_source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md"
+  },
+  {
+    "oid": "1.3.6.1.4.1.2435.2.4.3.2435.5.39.3",
+    "symbol": "brotherPhoenixVersion",
+    "name": "Phoenix version",
+    "description": "Brother associates this value with the version of Phoenix; the feature is not otherwise identified.",
+    "source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md"
+  },
+  {
+    "oid": "1.3.6.1.4.1.2435.2.3.9.4.2.1.5.5.17",
+    "symbol": "brotherMainRomVersion",
+    "name": "Main ROM version",
+    "description": "Brother associates this value with the main ROM version.",
+    "source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md"
+  },
+  {
+    "oid": "1.3.6.1.4.1.2435.2.3.9.4.2.1.5.5.24",
+    "symbol": "brotherSubRomVersion",
+    "name": "Secondary ROM version",
+    "description": "Brother associates this value with the secondary ROM version.",
+    "source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md"
+  },
+  {
+    "oid": "1.3.6.1.4.1.2435.2.3.9.4.2.1.5.5.65.1",
+    "symbol": "brotherCopyScanSupport",
+    "name": "Copy scanning support",
+    "description": "Brother associates this value with copy scanning support.",
+    "source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md"
+  },
+  {
+    "oid": "1.3.6.1.4.1.2435.2.3.9.4.2.1.5.5.65.2",
+    "symbol": "brotherCopyPrintSupport",
+    "name": "Copy printing support",
+    "description": "Brother associates this value with copy printing support.",
+    "source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md"
+  },
+  {
+    "oid": "1.3.6.1.4.1.2435.2.3.9.4.2.1.5.5.66.1",
+    "symbol": "brotherCdLabelSupport",
+    "name": "Disc label printing support",
+    "description": "Brother associates this value with disc label printing support.",
+    "source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md"
+  },
+  {
+    "oid": "1.3.6.1.4.1.2435.2.3.9.4.2.1.5.5.66.2.1.2",
+    "symbol": "brotherCdLabelLanguage",
+    "name": "Disc label print language",
+    "description": "Brother checks the values in this table for disc-label printing language support.",
+    "source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md",
+    "values": {
+      "1": "BRJPC",
+      "2": "HBP"
+    },
+    "values_source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md"
+  },
+  {
+    "oid": "1.3.6.1.4.1.2435.2.3.9.2.101.3.11.1",
+    "symbol": "brotherScanSupport",
+    "name": "Scanning support",
+    "description": "Brother associates this value with scanning support.",
+    "source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md"
+  },
+  {
+    "oid": "1.3.6.1.4.1.2435.2.3.9.4.2.1.5.5.1",
+    "symbol": "brotherSerial",
+    "name": "Printer serial number",
+    "description": "Brother associates this value with the device serial number.",
+    "source": "https://github.com/pholcroft/brother-morphe-patches/blob/dev/docs/BROTHER-OID-EVIDENCE.md"
+  },
+  {
+    "oid": "1.3.6.1.2.1.1.6",
+    "symbol": "sysLocation",
+    "name": "Device location",
+    "description": "Administratively recorded physical location of the device.",
+    "source": "https://www.rfc-editor.org/rfc/rfc3418.html"
+  },
+  {
+    "oid": "1.3.6.1.2.1.1.4",
+    "symbol": "sysContact",
+    "name": "Device contact",
+    "description": "Administratively recorded contact for the device.",
+    "source": "https://www.rfc-editor.org/rfc/rfc3418.html"
+  },
+  {
+    "oid": "1.3.6.1.2.1.43.13.4.1.9",
+    "symbol": "prtMediaPathType",
+    "name": "Paper path type",
+    "description": "Type of a paper path. Brother checks the paths to determine duplex support.",
+    "source": "https://www.rfc-editor.org/rfc/rfc3805.html",
+    "values": {
+      "1": "Other",
+      "2": "Unknown",
+      "3": "Duplex, long-edge binding",
+      "4": "Duplex, short-edge binding",
+      "5": "Single-sided"
+    },
+    "values_source": "https://www.iana.org/assignments/ianaprinter-mib/ianaprinter-mib"
+  }
+]

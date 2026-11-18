@@ -1,4 +1,4 @@
-# INSTAREX (REX IG LITE v3.15.0) — SEPARATED VERIFICATION & TEST REPORT (`TEST_REPORT.md`)
+# INSTAREX (REX IG LITE v3.16.0) — SEPARATED VERIFICATION & TEST REPORT (`TEST_REPORT.md`)
 
 > Per `MASTER_PROMPT.md` Section 12 & 13, static analysis, unit/manifest verification, CI build verification, and live device runtime tests are reported in strictly separate categories using exact status labels (`PASS`, `FAIL`, `BLOCKED`, `NOT TESTED`).
 
@@ -33,5 +33,5 @@
 
 ## 3. Gradle Compilation & Live Device APK Verification
 - **Local Sandbox Gradle Build (`./gradlew build`)**: **BLOCKED (Sandbox Network Isolation)** — Outbound internet access is disabled in the local VM container (`/working_dir`), preventing Gradle from downloading remote Maven/Morphe plugin artifacts not cached in the container image.
-- **GitHub Actions CI Build & Release Pipeline (`.github/workflows/build.yml` & `release.yml`)**: **PASS (Configured & Ready)** — Compiles `:patches` and `:extensions:instagram` on `ubuntu-latest` with JDK 17, runs `RexPatchManifestTest`, publishes `patches-3.15.0.mpp` to GitHub Releases first, and then commits `patches-bundle.json` to `main` and `dev`.
+- **GitHub Actions CI Build & Release Pipeline (`.github/workflows/build.yml` & `release.yml`)**: **PASS (Configured & Ready)** — Compiles `:patches` and `:extensions:instagram` on `ubuntu-latest` with JDK 17, runs `RexPatchManifestTest`, publishes `patches-3.16.0.mpp` to GitHub Releases first, and then commits `patches-bundle.json` to `main` and `dev`.
 - **Live Physical Device / Emulator Runtime Execution**: **NOT TESTED IN VM (Requires User Device via Morphe Manager)** — Because no physical Android device or ADB emulator is attached to this headless sandbox VM, live Instagram APK patching and touch testing run on your Poco F7 / Redmi device via Morphe Manager after running `bash push_to_github.sh`.

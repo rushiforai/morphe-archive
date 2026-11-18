@@ -8,6 +8,7 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.PlusPending
 import app.morphe.util.names.origRef
 import app.morphe.util.names.addInstructions
 import app.morphe.util.names.addInstructionsWithLabels
@@ -46,6 +47,7 @@ import app.morphe.util.names.origType
 import app.morphe.util.names.tgMutableClassDefBy
 
 /** Both pinned builds' bot location manager, web view prompt and its dialog, gated where the switch can answer. */
+@PlusPending
 class MiniAppLocationFixtureTest {
     @Test fun `both builds keep location from Mini Apps and web pages and keep every stock instruction`() {
         for (build in Fixtures.declaredBuilds()) {

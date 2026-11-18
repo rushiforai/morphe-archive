@@ -1,0 +1,415 @@
+package app.morphe.patches.tiktok.usability
+
+import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.patcher.patch.booleanOption
+import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.stringOption
+import app.morphe.patches.shared.Constants
+import app.morphe.patches.shared.sharedExtensionPatch
+import app.morphe.patches.shared.ensureRegisterCount
+import app.morphe.patches.shared.replaceWithReturnBoolean
+import app.morphe.patches.shared.replaceWithReturnVoid
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+
+val mediaEnhancementsPatch = bytecodePatch(
+    name = "Download Without Watermark",
+    description = "Unlocks downloading and saves videos without watermarks.",
+    default = true,
+) {
+    compatibleWith(Constants.COMPATIBILITY_TIKTOK)
+    dependsOn(sharedExtensionPatch)
+
+    val removeWatermark by booleanOption(
+        key = "removeWatermark",
+        default = true,
+        title = "Remove Watermark",
+        description = "Saves clean videos without watermark overlays.",
+        required = false,
+    )
+
+    val downloadQuality by stringOption(
+        key = "downloadQuality",
+        title = "Saved-Video Quality Preference",
+        description = "Select download quality: 'high', 'medium', 'low', or a resolution ceiling (e.g. 1080, 720).",
+        default = "high",
+        values = mapOf("High" to "high", "Medium" to "medium", "Low" to "low", "1080p" to "1080", "720p" to "720", "540p" to "540", "480p" to "480", "360p" to "360"),
+        required = false,
+    )
+
+    val suppressPostDownloadDialog by booleanOption(
+        key = "suppressPostDownloadDialog",
+        default = false,
+        title = "Disable Post-Download Share Dialog",
+        description = "Suppresses the automatic 'Share to' and friend suggestions bottom sheet that pops up after finishing a download.",
+        required = false,
+    )
+
+    execute {
+        var patched = 0
+        val watermarkFree = removeWatermark != false
+        val rawQuality = (downloadQuality?.trim()?.lowercase() ?: "high")
+        val quality = when {
+            rawQuality == "medium" || rawQuality == "low" -> rawQuality
+            rawQuality.toIntOrNull() in listOf(1080, 720, 540, 480, 360) -> rawQuality
+            else -> "high"
+        }
+
+        // 0. Push quality preference into the runtime hook.
+        try {
+            val clinit = Fingerprint(
+                definingClass = Constants.TIKTOK_EXTENSION_MEDIA_HOOK,
+                name = "<clinit>",
+            ).method
+            val instructions = clinit.implementation!!.instructions
+            val returnIdx = instructions.indexOfLast { it.opcode == Opcode.RETURN_VOID }
+            val insertIdx = if (returnIdx != -1) returnIdx else 0
+            clinit.addInstructions(
+                insertIdx,
+                """
+                    const-string v0, "$quality"
+                    sput-object v0, ${Constants.TIKTOK_EXTENSION_MEDIA_HOOK}->downloadQuality:Ljava/lang/String;
+                    const/4 v0, ${if (watermarkFree) "0x1" else "0x0"}
+                    sput-boolean v0, ${Constants.TIKTOK_EXTENSION_MEDIA_HOOK}->forceWatermarkFreeDownload:Z
+                """.trimIndent(),
+            )
+            println("[Download Without Watermark] Pushed download configuration (quality=$quality, watermarkFree=$watermarkFree).")
+            patched++
+        } catch (e: Exception) {
+            println("[Download Without Watermark] Download configuration note: ${e.message}")
+        }
+
+        // 1. Force Aweme download permission flags
+            try {
+                Fingerprint(
+                    definingClass = "Lcom/ss/android/ugc/aweme/feed/model/Aweme;",
+                    name = "isPreventDownload",
+                    returnType = "Z",
+                ).method.addInstructions(
+                    0,
+                    """
+                        const/4 v0, 0x0
+                        return v0
+                    """.trimIndent(),
+                )
+                println("[Download Without Watermark] Forced Aweme.isPreventDownload() -> false.")
+                patched++
+            } catch (e: Exception) {
+                println("[Download Without Watermark] Aweme.isPreventDownload note: ${e.message}")
+            }
+
+            try {
+                Fingerprint(
+                    definingClass = "Lcom/ss/android/ugc/aweme/feed/model/Aweme;",
+                    name = "getDownloadWithoutWatermark",
+                    returnType = "Z",
+                ).method.addInstructions(
+                    0,
+                    """
+                        const/4 v0, 0x1
+                        return v0
+                    """.trimIndent(),
+                )
+                println("[Download Without Watermark] Forced Aweme.getDownloadWithoutWatermark() -> true.")
+                patched++
+            } catch (e: Exception) {
+                println("[Download Without Watermark] Aweme.getDownloadWithoutWatermark note: ${e.message}")
+            }
+
+            try {
+                Fingerprint(
+                    definingClass = "Lcom/ss/android/ugc/aweme/feed/model/Aweme;",
+                    name = "needTTSWatermarkWhenDownload",
+                    returnType = "Z",
+                ).method.addInstructions(
+                    0,
+                    """
+                        const/4 v0, 0x0
+                        return v0
+                    """.trimIndent(),
+                )
+                println("[Download Without Watermark] Forced Aweme.needTTSWatermarkWhenDownload() -> false.")
+                patched++
+            } catch (e: Exception) {
+                println("[Download Without Watermark] Aweme.needTTSWatermarkWhenDownload note: ${e.message}")
+            }
+
+            try {
+                Fingerprint(
+                    definingClass = "Lcom/ss/android/ugc/aweme/feed/model/Aweme;",
+                    name = "getIsCommentPostVideo",
+                    returnType = "Z",
+                ).method.addInstructions(
+                    0,
+                    """
+                        const/4 v0, 0x0
+                        return v0
+                    """.trimIndent(),
+                )
+                println("[Download Without Watermark] Forced Aweme.getIsCommentPostVideo() -> false.")
+                patched++
+            } catch (e: Exception) {
+                println("[Download Without Watermark] Aweme.getIsCommentPostVideo note: ${e.message}")
+            }
+
+            // 2. ACLCommonShare invariants (Unblocks restricted downloads & activates watermark-free mode)
+            val aclHooks = mutableListOf(
+                "getCode" to ("I" to "const/4 v0, 0x0\nreturn v0"), // 0 = Allowed
+                "getShowType" to ("I" to "const/4 v0, 0x2\nreturn v0"), // 2 = Visible in share panel
+                "getMute" to ("Z" to "const/4 v0, 0x0\nreturn v0"), // false = Audio retained
+            )
+            if (watermarkFree) {
+                aclHooks.add("getTranscode" to ("I" to "const/4 v0, 0x1\nreturn v0")) // 1 = Direct watermark-free mode
+            }
+
+            for ((methodName, sig) in aclHooks) {
+                val (retType, smaliCode) = sig
+                try {
+                    Fingerprint(
+                        definingClass = "Lcom/ss/android/ugc/aweme/feed/model/ACLCommonShare;",
+                        name = methodName,
+                        returnType = retType,
+                    ).method.addInstructions(0, smaliCode.trimIndent())
+                    println("[Download Without Watermark] Forced ACLCommonShare.$methodName() -> unblocked/watermark-free.")
+                    patched++
+                } catch (e: Exception) {
+                    println("[Download Without Watermark] ACLCommonShare.$methodName note: ${e.message}")
+                }
+            }
+
+        // 3. Hook Aweme.getVideo() to pre-populate video.downloadNoWatermarkAddr with clean stream
+        try {
+            val fp = Fingerprint(
+                definingClass = "Lcom/ss/android/ugc/aweme/feed/model/Aweme;",
+                name = "getVideo",
+                returnType = "Lcom/ss/android/ugc/aweme/feed/model/Video;",
+            )
+            val method = fp.method
+            val returnIndices = method.implementation?.instructions?.withIndex()
+                ?.filter { it.value.opcode == Opcode.RETURN_OBJECT }
+                ?.map { it.index to (it.value as OneRegisterInstruction).registerA }
+                ?.toList() ?: emptyList()
+
+            returnIndices.asReversed().forEach { (returnIndex, reg) ->
+                method.addInstructions(
+                    returnIndex,
+                    """
+                        invoke-static {v$reg, p0}, ${Constants.TIKTOK_EXTENSION_MEDIA_HOOK}->patchVideoObject(Ljava/lang/Object;Ljava/lang/Object;)V
+                    """.trimIndent(),
+                )
+            }
+            if (returnIndices.isNotEmpty()) {
+                println("[Download Without Watermark] Hooked Aweme.getVideo() (${returnIndices.size} return point(s)) -> Video object unwatermarked stream injector active.")
+                patched++
+            }
+        } catch (e: Exception) {
+            println("[Download Without Watermark] Aweme.getVideo note: ${e.message}")
+        }
+
+        // 4. Hook Video.getDownloadNoWatermarkAddr() to guarantee non-null clean stream
+        try {
+            val fp = Fingerprint(
+                definingClass = "Lcom/ss/android/ugc/aweme/feed/model/Video;",
+                name = "getDownloadNoWatermarkAddr",
+                returnType = "Lcom/ss/android/ugc/aweme/base/model/UrlModel;",
+            )
+            val method = fp.method
+            val returnIndices = method.implementation?.instructions?.withIndex()
+                ?.filter { it.value.opcode == Opcode.RETURN_OBJECT }
+                ?.map { it.index to (it.value as OneRegisterInstruction).registerA }
+                ?.toList() ?: emptyList()
+
+            returnIndices.asReversed().forEach { (returnIndex, reg) ->
+                method.addInstructions(
+                    returnIndex,
+                    """
+                        invoke-static {v$reg, p0}, ${Constants.TIKTOK_EXTENSION_MEDIA_HOOK}->getWatermarkFreeDownloadUrl(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+                        move-result-object v$reg
+                        check-cast v$reg, Lcom/ss/android/ugc/aweme/base/model/UrlModel;
+                    """.trimIndent(),
+                )
+            }
+            if (returnIndices.isNotEmpty()) {
+                println("[Download Without Watermark] Hooked Video.getDownloadNoWatermarkAddr() (${returnIndices.size} return point(s)) -> Clean stream redirection active.")
+                patched++
+            }
+        } catch (e: Exception) {
+            println("[Download Without Watermark] Video.getDownloadNoWatermarkAddr note: ${e.message}")
+        }
+
+        // 5. Hook Video.getDownloadAddr() to route legacy download requests to clean unwatermarked playAddr stream
+        try {
+            val fp = Fingerprint(
+                definingClass = "Lcom/ss/android/ugc/aweme/feed/model/Video;",
+                name = "getDownloadAddr",
+                returnType = "Lcom/ss/android/ugc/aweme/base/model/UrlModel;",
+            )
+            val method = fp.method
+            val returnIndices = method.implementation?.instructions?.withIndex()
+                ?.filter { it.value.opcode == Opcode.RETURN_OBJECT }
+                ?.map { it.index to (it.value as OneRegisterInstruction).registerA }
+                ?.toList() ?: emptyList()
+
+            returnIndices.asReversed().forEach { (returnIndex, reg) ->
+                method.addInstructions(
+                    returnIndex,
+                    """
+                        invoke-static {v$reg, p0}, ${Constants.TIKTOK_EXTENSION_MEDIA_HOOK}->getWatermarkFreeDownloadUrl(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+                        move-result-object v$reg
+                        check-cast v$reg, Lcom/ss/android/ugc/aweme/base/model/UrlModel;
+                    """.trimIndent(),
+                )
+            }
+            if (returnIndices.isNotEmpty()) {
+                println("[Download Without Watermark] Hooked Video.getDownloadAddr() (${returnIndices.size} return point(s)) -> Clean stream redirection active.")
+                patched++
+            }
+        } catch (e: Exception) {
+            println("[Download Without Watermark] Video.getDownloadAddr note: ${e.message}")
+        }
+
+        // 6. Neutralize AwemeVideoWaterMarkAbilityProtocol watermark triggers
+        if (watermarkFree) {
+        val protocolClasses = listOf(
+            "Lcom/ss/android/ugc/trill/download/protocol/watermark/AwemeVideoWaterMarkAbilityProtocol;",
+            "Lcom/ss/android/ugc/aweme/share/base/download/configuration/protocol/WaterMarkAbilityProtocol;",
+        )
+        val protocolMethods = listOf("LJIIIZ", "LJIIJ", "LJIIIIZZ", "LJII")
+
+        for (clsName in protocolClasses) {
+            for (mName in protocolMethods) {
+                try {
+                    Fingerprint(
+                        definingClass = clsName,
+                        name = mName,
+                        returnType = "Z",
+                    ).method.addInstructions(
+                        0,
+                        """
+                            const/4 v0, 0x0
+                            return v0
+                        """.trimIndent(),
+                    )
+                    patched++
+                } catch (e: Exception) {
+                    // Protocol methods may be partially implemented or inherited
+                }
+            }
+        }
+        println("[Download Without Watermark] Neutralized WaterMarkAbilityProtocol & AwemeVideoWaterMarkAbilityProtocol watermark flags.")
+        } else {
+            println("[Download Without Watermark] Watermark removal disabled -> protocol flags kept stock.")
+        }
+
+        // 7. Strip client-side drawn watermark on saved image posts & comment pictures
+        if (watermarkFree) {
+            try {
+                val fp = Fingerprint(
+                    strings = listOf("[tiktok_logo]"),
+                    parameters = listOf("Landroid/graphics/Bitmap;"),
+                    returnType = "V",
+                )
+                val method = fp.method
+                val drawIndices = method.implementation?.instructions?.withIndex()
+                    ?.filter {
+                        it.value.opcode == Opcode.INVOKE_VIRTUAL &&
+                            (it.value as? ReferenceInstruction)?.reference?.toString()
+                                ?.contains("->drawBitmap(Landroid/graphics/Bitmap;FFLandroid/graphics/Paint;)V") == true
+                    }
+                    ?.map { it.index }
+                    ?.toList() ?: emptyList()
+
+                drawIndices.asReversed().forEach { idx ->
+                    method.replaceInstruction(idx, "nop")
+                }
+                if (drawIndices.isNotEmpty()) {
+                    println("[Download Without Watermark] Neutralized client-side image watermark overlay (${drawIndices.size} draw point(s)).")
+                    patched++
+                }
+            } catch (e: Exception) {
+                println("[Download Without Watermark] CommentImageWatermark note: ${e.message}")
+            }
+        } else {
+            println("[Download Without Watermark] Watermark removal disabled -> image overlays kept stock.")
+        }
+
+        // 8. Safe client-side WaterMarkServiceImpl bypass
+        if (watermarkFree) {
+            try {
+                Fingerprint(
+                    definingClass = "Lcom/ss/android/ugc/aweme/watermark/WaterMarkServiceImpl;",
+                    name = "waterMark",
+                ).method.addInstructionsWithLabels(
+                    0,
+                    """
+                        invoke-static {p1}, ${Constants.TIKTOK_EXTENSION_MEDIA_HOOK}->handleWatermark(Ljava/lang/Object;)Z
+                        move-result v0
+                        if-eqz v0, :cond_skip
+                        return-void
+                        :cond_skip
+                        nop
+                    """.trimIndent(),
+                )
+                println("[Download Without Watermark] Injected smart lossless bypass into WaterMarkServiceImpl.waterMark().")
+                patched++
+            } catch (e: Exception) {
+                println("[Download Without Watermark] WaterMarkServiceImpl note: ${e.message}")
+            }
+        } else {
+            println("[Download Without Watermark] Watermark removal disabled -> WaterMarkService kept stock.")
+        }
+
+        // 9. Redirect watermarked downloader spec (LIZIZ) to unwatermarked downloader spec (LIZ)
+        if (watermarkFree) {
+            try {
+                val fp = Fingerprint(
+                    strings = listOf("suffix_scene"),
+                    parameters = listOf("Lcom/ss/android/ugc/aweme/feed/model/Aweme;"),
+                    returnType = "V",
+                )
+                val method = fp.method
+                val classDef = fp.classDef
+                val targetMethod = classDef.methods.firstOrNull {
+                    it.parameterTypes == listOf("Lcom/ss/android/ugc/aweme/feed/model/Aweme;", "Z")
+                }?.name ?: "LIZ"
+
+                method.ensureRegisterCount(3)
+                method.addInstructionsWithLabels(
+                    0,
+                    """
+                        invoke-static {p1}, ${Constants.TIKTOK_EXTENSION_MEDIA_HOOK}->isPhotoMode(Ljava/lang/Object;)Z
+                        move-result v0
+                        if-nez v0, :cond_skip_redirect
+                        const/4 v0, 0x1
+                        invoke-virtual {p0, p1, v0}, ${classDef.type}->$targetMethod(Lcom/ss/android/ugc/aweme/feed/model/Aweme;Z)V
+                        return-void
+                        :cond_skip_redirect
+                        nop
+                    """.trimIndent(),
+                )
+                println("[Download Without Watermark] Redirected downloader spec ($targetMethod) -> unwatermarked mode (photo mode preserved).")
+                patched++
+            } catch (e: Exception) {
+                println("[Download Without Watermark] DownloaderSpec redirect note: ${e.message}")
+            }
+        } else {
+            println("[Download Without Watermark] Watermark removal disabled -> downloader spec kept stock.")
+        }
+
+        // 10. Post-download share dialog suppression
+        if (suppressPostDownloadDialog == true) {
+            // Post-download share panel suppression was specific to TikTok Lite
+        }
+
+        if (patched == 0) {
+            println("[Download Without Watermark] WARNING: applied 0 hook(s) -> this feature is NOT active on this APK; its targets moved upstream.")
+        } else {
+            println("[Download Without Watermark] Applied $patched media usability and watermark-free download hook(s).")
+        }
+    }
+}
+

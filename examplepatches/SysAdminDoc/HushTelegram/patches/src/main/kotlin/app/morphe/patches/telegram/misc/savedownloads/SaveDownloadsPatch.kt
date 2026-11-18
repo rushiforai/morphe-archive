@@ -118,7 +118,7 @@ val saveDownloadsPatch = bytecodePatch(
 ) {
     category("Playback")
     dependsOn(settingsPatch, telegramExtensionPatch, storageFolderManifestPatch)
-    compatibleWith(*AppCompatibilities.telegram())
+    compatibleWith(*AppCompatibilities.telegramOnly())
     execute {
         val callback = resolveSaveDownloads()
         val finishing = resolveFoundFiles()

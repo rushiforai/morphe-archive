@@ -80,7 +80,7 @@ val amoledBlackPatch = bytecodePatch(
 ) {
     category("Theme")
     dependsOn(settingsPatch, telegramExtensionPatch)
-    compatibleWith(*AppCompatibilities.telegram())
+    compatibleWith(*AppCompatibilities.telegramOnly())
     execute {
         val site = resolveBlackTheme()
         // The picture behind the lists stands on its own: a build without its targets keeps black themes.

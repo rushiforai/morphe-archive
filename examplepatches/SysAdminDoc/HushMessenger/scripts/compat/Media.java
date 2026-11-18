@@ -1632,14 +1632,35 @@ final class Media {
         return hosts.size() == 1 ? hosts : List.of();
     }
 
-    /** menu_blur: DialogFragment's onStart, while exactly one class has the DialogFragment shape. Mirrors MenuBlur.kt. */
+    /** The menu a long press on a message opens on 587, which Messenger draws inside the chat with no dialog. */
+    static final String REACTIONS_BAR = "Lcom/facebook/xapp/messaging/reactions/sendbar/fragment/ReactionsBarFragment;";
+
+    /**
+     * menu_blur: DialogFragment's onStart, while exactly one class has the DialogFragment shape, and ReactionsBarFragment's
+     * onViewCreated(View, Bundle) when there's exactly one. Mirrors MenuBlur.kt's findMenuBlur.
+     */
     static List<Method> menuBlur(List<ClassDef> classes) {
         var fragments = new ArrayList<ClassDef>();
         for (var cls : classes) if (dialogFragment(cls)) fragments.add(cls);
         if (fragments.size() != 1) return List.of();
         var sites = new ArrayList<Method>();
         for (var method : fragments.get(0).getMethods()) if (menuBlurSite(method) >= 0) sites.add(method);
-        return sites.size() == 1 ? sites : List.of();
+        var found = new ArrayList<Method>(sites.size() == 1 ? sites : List.of());
+        var inChat = new ArrayList<Method>();
+        for (var cls : classes) {
+            if (!REACTIONS_BAR.equals(cls.getType())) continue;
+            for (var method : cls.getMethods()) if (reactionsBarView(method)) inChat.add(method);
+        }
+        if (inChat.size() == 1) found.addAll(inChat);
+        return found;
+    }
+
+    /** ReactionsBarFragment's own onViewCreated(View, Bundle), with a body. Mirrors MenuBlur.kt's isReactionsBarView. */
+    static boolean reactionsBarView(Method method) {
+        return REACTIONS_BAR.equals(method.getDefiningClass()) && "onViewCreated".equals(method.getName())
+            && "V".equals(method.getReturnType())
+            && List.of("Landroid/view/View;", "Landroid/os/Bundle;").equals(method.getParameterTypes().stream().map(CharSequence::toString).toList())
+            && !AccessFlags.STATIC.isSet(method.getAccessFlags()) && method.getImplementation() != null;
     }
 
     /**

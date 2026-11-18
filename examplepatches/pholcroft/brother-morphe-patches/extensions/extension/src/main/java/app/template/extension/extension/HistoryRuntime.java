@@ -106,6 +106,16 @@ public final class HistoryRuntime {
             }callback.complete(null);
         }catch(Exception e){failure=new IllegalStateException("Could not export printer history",e);callback.complete("Could not save activity history. Please try again.");}});
     }
+    public static void exportBurst(Context context,android.net.Uri destination,ActivityBurst.Ref ref,ReplayCallback callback){
+        ExecutorService target=worker;if(target==null){callback.complete("Printer history is unavailable.");return;}final Context app=context.getApplicationContext();
+        target.execute(()->{try{ActivityStore db=store;if(db==null)throw new IllegalStateException("Printer history is unavailable.");
+            PrinterRecord printer=db.findPrinter(ref.printerId);ActivityBurst burst=db.loadBurst(ref.printerId,ref.burstId);
+            if(printer==null||burst==null||burst.ref.sequence!=ref.sequence)throw new IllegalStateException("Activity no longer available.");
+            try(java.io.OutputStream stream=app.getContentResolver().openOutputStream(destination);java.io.Writer writer=stream==null?null:new java.io.OutputStreamWriter(stream,java.nio.charset.StandardCharsets.UTF_8)){
+                if(writer==null)throw new java.io.IOException("No output stream");HistoryExport.writeBurst(writer,printer,burst);
+            }callback.complete(null);
+        }catch(Exception e){callback.complete("Could not save this activity. Please try again.");}});
+    }
     public static void clearHistory(String ip,String mac,ReplayCallback callback){
         ExecutorService target=worker;if(target==null){callback.complete("Printer history is unavailable.");return;}
         CommunicationTiming.discard(ip);
@@ -135,11 +145,15 @@ public final class HistoryRuntime {
             callback.complete(db.findPrinter(id),db.listBursts(id),null);
         }catch(RuntimeException e){failure=e;callback.complete(null,null,"Could not load printer history.");}});
     }
-    public static void loadLatest(String ip,String mac,LatestCallback callback){
+    public static void loadBurst(ActivityBurst.Ref ref,LatestCallback callback){
+        ExecutorService target=worker;if(target==null){callback.complete(null,"Printer history is unavailable.");return;}
+        target.execute(()->{try{ActivityStore db=store;if(db==null){callback.complete(null,"Printer history is unavailable.");return;}ActivityBurst burst=db.loadBurst(ref.printerId,ref.burstId);callback.complete(burst!=null&&burst.ref.sequence==ref.sequence?burst:null,null);}catch(RuntimeException e){failure=e;callback.complete(null,"Could not load printer activity.");}});
+    }
+    public static void loadCardBurst(String ip,String mac,LatestCallback callback){
         ExecutorService target=worker;if(target==null){callback.complete(null,"Printer history is unavailable.");return;}
         target.execute(()->{try{ActivityStore db=store;if(db==null){callback.complete(null,"Printer history is unavailable.");return;}
             String id=mac==null||mac.isEmpty()?db.findPrinterIdByAddress(ip):db.findPrinterIdByMac(mac);
-            callback.complete(id==null?null:db.latestBurst(id),null);
+            callback.complete(id==null?null:db.preferredCardBurst(id),null);
         }catch(RuntimeException e){failure=e;callback.complete(null,"Could not load printer activity.");}});
     }
     public static void startReplay(ActivityBurst.Ref ref,ReplayCallback callback){

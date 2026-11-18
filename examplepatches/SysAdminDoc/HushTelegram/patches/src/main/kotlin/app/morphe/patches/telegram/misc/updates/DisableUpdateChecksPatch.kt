@@ -106,7 +106,7 @@ val disableUpdateChecksPatch = bytecodePatch(
 ) {
     category("Updates")
     dependsOn(settingsPatch, telegramExtensionPatch)
-    compatibleWith(*AppCompatibilities.telegram())
+    compatibleWith(*AppCompatibilities.telegramOnly())
 
     execute {
         requireStatusMethod("disableUpdateChecks")

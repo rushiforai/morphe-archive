@@ -3,6 +3,74 @@
   "version": "1.7.2",
   "patches": [
     {
+      "name": "Auto claim Benefits tasks",
+      "description": "Injects a clicker into the Benefits/task-center webview that presses the page's own controls by CSS selector: the reward popup button, task card claim/watch actions, the daily check-in button and today's check-in icon. Complete, subscribe/remind and close controls are never touched, and an overlay shows whether it is clicking, waiting for an ad, and which control it pressed. Use it together with \"Auto reward ads\" so the ad closes itself once watched; if the web app renames its classes the clicker stops until it is updated.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.dubox.drive",
+          "name": "TeraBox",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#226DF6",
+          "signatures": [
+            "b75fd2b70084d7e0813b8f74dd74b62ab79b2aa0ce1372331a1841bd88eed993"
+          ],
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "4.27.5",
+              "versionCodes": {
+                "ARM64_V8A": 702,
+                "ARMEABI_V7A": 702,
+                "X86_64": 702,
+                "X86": 702
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Auto reward ads",
+      "description": "Lets rewarded videos play normally and closes the ad right after the reward is earned, so ad completion stays server-valid while the end card does not need to be dismissed by hand. Only the ad activity that is on top is finished. The full-screen native ad the app shows afterwards is dismissed too, otherwise the Benefits page never receives its reward callback.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.dubox.drive",
+          "name": "TeraBox",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#226DF6",
+          "signatures": [
+            "b75fd2b70084d7e0813b8f74dd74b62ab79b2aa0ce1372331a1841bd88eed993"
+          ],
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "4.27.5",
+              "versionCodes": {
+                "ARM64_V8A": 702,
+                "ARMEABI_V7A": 702,
+                "X86_64": 702,
+                "X86": 702
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Block Product Ad Banners",
       "description": "Points the product-ad API endpoint at a non-existent path so in-app ad banners are not loaded. Best effort: ads embedded in content responses are not affected.",
       "default": true,
@@ -397,6 +465,93 @@
         }
       ],
       "options": []
+    },
+    {
+      "name": "Spoof signature",
+      "description": "Makes the re-signed APK report the stock developer certificate and disables Play Integrity token requests, so Google login and TeraBox's anti-cheat accept the patched app. Skip it when patching with another set that already spoofs the signature.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.dubox.drive",
+          "name": "TeraBox",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#226DF6",
+          "signatures": [
+            "b75fd2b70084d7e0813b8f74dd74b62ab79b2aa0ce1372331a1841bd88eed993"
+          ],
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "4.27.5",
+              "versionCodes": {
+                "ARM64_V8A": 702,
+                "ARMEABI_V7A": 702,
+                "X86_64": 702,
+                "X86": 702
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Spoofer server",
+      "description": "Sends Locket's API traffic (feed, profile, AI frames, captions) to a self-hosted spoofer server instead of api.locketcamera.com. Enter the server address; the app keeps using the server's own HTTPS certificate, so no DNS profile or CA install is needed. Enable the second option to route RevenueCat and Firebase Remote Config through the same server as well. Not selected by default.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.locket.Locket",
+          "name": "Locket Widget",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#FFB201",
+          "signatures": [
+            "f7dd2c755cbbdf342b216c453e76e2ffcb34d688e5f91499bec0341648cbcb16"
+          ],
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "1.247.1",
+              "versionCodes": {
+                "ARM64_V8A": 632,
+                "ARMEABI_V7A": 632,
+                "X86_64": 632,
+                "X86": 632
+              },
+              "isExperimental": false,
+              "minSdk": 27,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "spooferServer",
+          "title": "Spoofer server",
+          "description": "Address of the spoofer server, for example https://spoofer.example. It must answer HTTPS with a certificate for this name. A scheme is optional and is assumed to be https when missing; a path is not supported.",
+          "required": true,
+          "type": "kotlin.String",
+          "default": null,
+          "values": null
+        },
+        {
+          "key": "routeRevenueCat",
+          "title": "Route RevenueCat and Remote Config",
+          "description": "Also sends api.revenuecat.com and firebaseremoteconfig.googleapis.com to the spoofer server, so its Gold payload and feature flags reach the app without a DNS profile. The server must answer /v1/subscribers*, /v1/receipts* and /v1/projects*. Rebuilding the app's dex files makes patching take noticeably longer.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        }
+      ]
     },
     {
       "name": "Trust User Certificates",

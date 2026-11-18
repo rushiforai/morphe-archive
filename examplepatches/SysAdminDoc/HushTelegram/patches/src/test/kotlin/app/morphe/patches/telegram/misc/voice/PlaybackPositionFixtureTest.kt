@@ -8,6 +8,7 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.PlusPending
 import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
@@ -28,6 +29,7 @@ import app.morphe.util.names.origType
 import app.morphe.util.names.tgMutableClassDefBy
 
 /** The lengths Telegram remembers a position past, on the pinned builds. */
+@PlusPending
 class PlaybackPositionFixtureTest {
     @Test fun `each length Telegram compares against is answered by the extension in its own register`() {
         for (build in Fixtures.declaredBuilds()) {

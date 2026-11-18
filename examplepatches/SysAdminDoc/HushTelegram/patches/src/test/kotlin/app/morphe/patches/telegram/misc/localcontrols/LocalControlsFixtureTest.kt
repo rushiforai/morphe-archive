@@ -8,6 +8,7 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.PlusPending
 import app.morphe.util.names.loadsInt
 import app.morphe.util.names.origRef
 import app.morphe.util.names.addInstruction
@@ -55,6 +56,7 @@ import app.morphe.util.names.TelegramNames
 import app.morphe.util.names.tgClassDefByOrNull
 import app.morphe.util.names.tgMutableClassDefBy
 
+@PlusPending
 class LocalControlsFixtureTest {
     @Test fun `normal paste changes only the action operand before the complete stock editor`() {
         for (build in Fixtures.declaredBuilds()) {

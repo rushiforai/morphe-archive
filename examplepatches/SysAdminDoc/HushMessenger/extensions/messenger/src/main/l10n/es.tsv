@@ -1,0 +1,938 @@
+# Spanish text for the settings screen.
+# One id, a tab, then its text on each line. The build writes this file into SettingsTextEs.java, and SettingsTranslationTest fails the build when an id is missing or a placeholder changed. In a text, \n is a new line, \t a tab and \\ a backslash.
+controls	Controles
+app	Aplicación
+inbox	Bandeja de entrada
+chat_menu	Menú del chat
+navigation	Navegación
+tab_bar	Barra de pestañas
+stickers	Stickers
+conversations	Conversaciones
+notifications	Notificaciones
+calls	Llamadas
+photos_videos	Fotos y videos
+links_bubbles	Enlaces y burbujas
+privacy	Privacidad
+tracking	Seguimiento
+theme	Tema
+settings	Ajustes de HushMessenger
+preview_title	Vista previa de la interfaz de HushMessenger
+preview_notice	Vista previa de la interfaz. Estos controles no cambian Messenger.
+mounted_build_mismatch	Esto se parcheó a partir de Messenger %1$d, pero Android tiene instalada la versión %2$d. Parchea la %2$d para Root Mount, o las burbujas de chat y otras pantallas pueden fallar.
+gmscore_without_microg	GmsCore support está parcheado, pero microG-RE no está instalado o está desactivado, así que Messenger no puede recibir notificaciones a través del servicio push de Google. Instala microG-RE o vuelve a parchear sin GmsCore support.
+open	Abrir
+open_messenger	Abrir Messenger
+back	Atrás
+search_settings	Buscar en los ajustes
+show_as_list	Mostrar todos los ajustes en una lista
+show_by_category	Mostrar los ajustes por categoría
+header_version	Versión %1$s para Messenger %2$s
+header_version_alone	Versión %s
+reopen	Algunos cambios se aplican después de Aplicación > Reiniciar Messenger.
+quick_access	Acceso rápido
+access_help	Mantén presionado el icono de Messenger en la pantalla de inicio para usar Patch controls o Restart Messenger. También puedes abrir los ajustes de HushMessenger desde el cajón de aplicaciones.
+hide_drawer_icon	Ocultar el icono del cajón de aplicaciones
+hide_drawer_icon_help	Mantén el acceso a través del Menú de Messenger o del acceso directo de su icono en la pantalla de inicio.
+hide_menu_row	Ocultar la fila del Menú
+hide_menu_row_help	Quita la fila de HushMessenger de la pestaña Menú y del menú lateral de Messenger. Mantén presionado el logo de Messenger en la parte superior de Chats para volver aquí, o mantén presionado el icono de Messenger en la pantalla de inicio y toca Patch controls. Si no queda ninguna de las dos formas, la fila vuelve.
+menu_row_needs_shortcut	Primero abre estos ajustes una vez desde el acceso directo (mantén presionado el icono de Messenger en la pantalla de inicio y luego toca Patch controls), para tener una forma de volver sin la fila.
+shared_install_help	Desinstalar esta entrada también elimina Messenger y sus datos locales. Usa Ocultar el icono del cajón de aplicaciones en su lugar.
+access_help_hosted	Mantén presionado el icono de Messenger en la pantalla de inicio para usar Patch controls o Restart Messenger. Una instalación Root Mount no tiene un icono de ajustes aparte en el cajón de aplicaciones.
+access_help_hosted_menu	Abre los ajustes de HushMessenger desde su fila en la pestaña Menú o en el menú lateral de Messenger, o mantén presionado el logo de Messenger en la parte superior de Chats. Mantén presionado el icono de Messenger en la pantalla de inicio para usar Patch controls o Restart Messenger. Una instalación Root Mount no tiene un icono de ajustes aparte en el cajón de aplicaciones.
+access_help_menu	Abre los ajustes desde el Menú de Messenger o desde el cajón de aplicaciones, o mantén presionado el logo de Messenger en la parte superior de Chats. También funciona mantener presionado el icono de Messenger en la pantalla de inicio.
+access_help_missing	Mantén presionado el icono de Messenger en la pantalla de inicio para usar Patch controls o Restart Messenger. Este paquete no tiene icono de ajustes en el cajón de aplicaciones.
+access_help_missing_menu	Abre HushMessenger desde la pestaña Menú o el menú lateral de Messenger, o mantén presionado el logo de Messenger en la parte superior de Chats. Mantén presionado el icono de Messenger en la pantalla de inicio para usar Patch controls o Restart Messenger. Este paquete no tiene icono de ajustes en el cajón de aplicaciones.
+access_help_logo	Mantén presionado el logo de Messenger en la parte superior de Chats, o mantén presionado el icono de Messenger en la pantalla de inicio para usar Patch controls o Restart Messenger. También puedes abrir los ajustes de HushMessenger desde el cajón de aplicaciones.
+access_help_hosted_logo	Mantén presionado el logo de Messenger en la parte superior de Chats, o mantén presionado el icono de Messenger en la pantalla de inicio para usar Patch controls o Restart Messenger. Una instalación Root Mount no tiene un icono de ajustes aparte en el cajón de aplicaciones.
+access_help_missing_logo	Mantén presionado el logo de Messenger en la parte superior de Chats, o mantén presionado el icono de Messenger en la pantalla de inicio para usar Patch controls o Restart Messenger. Este paquete no tiene icono de ajustes en el cajón de aplicaciones.
+access_help_menu_without_logo	Abre los ajustes desde el Menú de Messenger o desde el cajón de aplicaciones. También funciona mantener presionado el icono de Messenger en la pantalla de inicio.
+access_help_hosted_menu_without_logo	Abre los ajustes de HushMessenger desde su fila en la pestaña Menú o en el menú lateral de Messenger. Mantén presionado el icono de Messenger en la pantalla de inicio para usar Patch controls o Restart Messenger. Una instalación Root Mount no tiene un icono de ajustes aparte en el cajón de aplicaciones.
+access_help_missing_menu_without_logo	Abre HushMessenger desde la pestaña Menú o el menú lateral de Messenger. Mantén presionado el icono de Messenger en la pantalla de inicio para usar Patch controls o Restart Messenger. Este paquete no tiene icono de ajustes en el cajón de aplicaciones.
+hide_menu_row_help_without_logo	Quita la fila de HushMessenger de la pestaña Menú y del menú lateral de Messenger. Mantén presionado el icono de Messenger en la pantalla de inicio y toca Patch controls para volver aquí. Si el acceso directo Patch controls desaparece, la fila vuelve.
+hide_icon_shortcuts	Ocultar los accesos directos del icono
+shortcut_turned_off	Desactivado en los ajustes de HushMessenger
+hide_icon_shortcuts_help	Quita Patch controls y Restart Messenger del menú que aparece al mantener presionado el icono de Messenger en la pantalla de inicio. Una copia fijada en la pantalla de inicio se vuelve gris hasta que desactives esto.
+hide_logo_press	Ignorar la pulsación larga en el logo
+hide_logo_press_help	Mantener presionado el logo de Messenger en la parte superior de Chats, o el título de la pestaña Menú, ya no abre estos ajustes.
+last_way_in	Esta es la última forma de entrar a estos ajustes que sigue activada. Activa otra primero.
+menu_row_needs_logo	Abre estos ajustes una vez manteniendo presionado el logo de Messenger en la parte superior de Chats, para tener una forma de volver sin la fila.
+menu_row_needs_way	Vuelve a activar primero los accesos directos del icono o la pulsación larga en el logo, para tener una forma de volver sin la fila.
+hide_menu_row_help_without_shortcut	Quita la fila de HushMessenger de la pestaña Menú y del menú lateral de Messenger. Mantén presionado el logo de Messenger en la parte superior de Chats para volver aquí. Si desactivas la pulsación larga en el logo, la fila vuelve.
+hide_menu_row_help_plain	Quita la fila de HushMessenger de la pestaña Menú y del menú lateral de Messenger.
+menu_tab	Pestaña Menú
+menu_rows_help	Filas que Messenger pone en su pestaña Menú, como Comunidades o Invitaciones a canales. Oculta las que nunca abres. Cada fila aparece aquí en cuanto la pestaña Menú la ha mostrado.
+menu_rows_empty	Abre una vez la pestaña Menú de Messenger y sus filas aparecerán aquí para que las ocultes.
+menu_log_out	Fila Cerrar sesión en la pestaña Menú
+menu_log_out_help	Pone Cerrar sesión en la pestaña Menú de Messenger, debajo de Configuración. Cierra la sesión igual que la opción Cerrar sesión de Messenger.
+way_menu	Abre los ajustes de HushMessenger desde su fila en la pestaña Menú o en el menú lateral de Messenger.
+way_logo	Mantén presionado el logo de Messenger en la parte superior de Chats para abrir estos ajustes.
+way_drawer	Abre los ajustes de HushMessenger desde el cajón de aplicaciones.
+way_shortcuts_hidden	Patch controls y Restart Messenger están ocultos en el icono de Messenger de la pantalla de inicio.
+drawer_search	Ajustes del icono del cajón de aplicaciones
+drawer_root	Ocultar el icono del cajón de aplicaciones no hace falta en Root Mount. No hay un icono de ajustes aparte que ocultar.
+drawer_missing	Ocultar el icono del cajón de aplicaciones no está disponible. Este paquete de parches no tiene icono de ajustes que ocultar.
+drawer_requires_menu	Para ocultar el icono del cajón de aplicaciones, primero aplica el parche Open settings from menu, así podrás seguir encontrando estos ajustes. Sin él, el icono se queda.
+restart	Reiniciar Messenger
+restarting	Reiniciando Messenger...
+restart_saving	Guardando tus opciones antes de volver a abrir Messenger.
+restart_account	Tu cuenta sigue con la sesión iniciada.
+choices	Tus opciones
+restart_unavailable	No se pudo reiniciar. Cierra Messenger y vuelve a abrirlo.
+settings_open_failed	No se pudieron abrir los ajustes de HushMessenger.
+settings_open_instead	Patch controls: mantén presionado el icono de Messenger en la pantalla de inicio
+restart_save_failed	No se pudo guardar, así que Messenger no se reinició. Inténtalo de nuevo.
+paused	Pausar todos los cambios
+search	Buscar un control
+empty_title	Ningún control coincide
+empty_help	Prueba con otra palabra o borra el filtro. Solo aparecen los controles de este paquete de parches.
+clear	Borrar filtros
+unavailable	No está disponible en esta versión de Android. Tu elección queda guardada.
+camera_unsupported	Esta instalación no tiene una pantalla para abrir la app de cámara del teléfono, así que la cámara del chat sigue siendo la de Messenger. Las instalaciones Root Mount no pueden añadir una. Tu elección queda guardada.
+gallery_unsupported	Ninguna app de este teléfono puede elegir una foto para Messenger, así que la galería del chat sigue siendo la de Messenger. Tu elección queda guardada.
+local_search_unsupported	Esta instalación no tiene pantalla de búsqueda. Las instalaciones Root Mount no pueden añadir una. Tu elección queda guardada.
+local_search_open	Buscar mensajes guardados en este teléfono
+local_search_title	Mensajes guardados
+local_search_hint	Palabras que buscar
+local_search_run	Buscar
+local_search_stop	Detener
+local_search_help	Busca entre los mensajes de este chat que el teléfono tiene guardados. Primero desplázate hacia arriba en el chat para cargar los más antiguos.
+local_search_running	Buscando...
+local_search_done	Resultados: %1$d en %2$d mensajes guardados, hasta el %3$s. Para buscar más atrás, desplázate hacia arriba en el chat y vuelve a buscar.
+local_search_stopped	Detenido. Resultados: %1$d en %2$d mensajes guardados, hasta el %3$s.
+local_search_full	Se muestran los %1$d más recientes. Se buscó en %2$d mensajes guardados, hasta el %3$s. Añade una palabra para acotar la búsqueda.
+local_search_nothing	Este teléfono no tiene texto guardado de este chat. Desplázate hacia arriba en el chat para cargar mensajes más antiguos y vuelve a buscar.
+local_search_failed	No se pudieron leer los mensajes guardados. Inténtalo de nuevo en un momento.
+local_search_open_failed	No se pudo abrir ese mensaje
+local_search_empty	Primero escribe una palabra que buscar.
+call_recording_unsupported	Esto necesita Android 10 o posterior. Tu elección queda guardada.
+call_recording_start	Grabar
+call_recording_stop_pill	Grabando, toca para detener
+call_recording_stop_time	Detener %1$s
+call_recording_paused_time	En pausa %1$s
+call_recording_pause	Pausar
+call_recording_resume	Reanudar
+call_recording_on	Grabando esta llamada
+call_recording_stop	Detener
+call_recording_channel	Grabación de llamadas
+call_recording_saved	Llamada guardada en %1$s
+call_recording_failed	No se pudo grabar esta llamada
+call_recording_scope	Llamadas que se graban
+call_recording_scope_tap	Solo cuando toco Grabar
+call_recording_scope_all	Todas las llamadas
+call_recording_scope_chosen	Solo chats elegidos
+call_recording_scope_help	La llamada empieza a grabarse sola en cuanto comienza. Solo chats elegidos graba a las personas que actives abajo, y una llamada que haces tú se reconoce por el nombre en la pantalla de llamada.
+call_recording_scope_picked	Llamadas que se graban: %1$s
+call_recording_recent_empty	Los chats aparecen aquí en cuanto te llaman, los más recientes primero.
+call_recording_folder	Carpeta de las grabaciones
+call_recording_folder_help	Las grabaciones van a la carpeta Grabaciones del teléfono si no eliges otra. Elige una carpeta de la tarjeta SD o de una app en la nube y se escriben directamente ahí.
+call_recording_folder_default	La carpeta Grabaciones del teléfono
+call_recording_folder_choose	Elegir una carpeta
+call_recording_folder_reset	Usar la predeterminada
+call_recording_folder_picked	Carpeta de las grabaciones: %1$s
+call_recording_folder_refused	No se pudo usar esa carpeta. Elige una en la que puedas escribir.
+call_recording_format	Guardar las llamadas como
+call_recording_format_wav	WAV, la mejor calidad
+call_recording_format_ogg	OGG Opus, una décima parte del tamaño
+call_recording_format_help	Una hora de llamada ocupa unos 115 MB en WAV y cerca de 10 MB en Opus, y las voces suenan casi igual. El WAV se reproduce en cualquier sitio, mientras que algunos reproductores antiguos no conocen Opus.
+call_recording_format_picked	Guardar las llamadas como: %1$s
+call_recording_format_unavailable	Este teléfono no tiene codificador de Opus, así que las llamadas se guardan en WAV elijas lo que elijas.
+call_recording_tracks	Las dos voces
+call_recording_tracks_mixed	Juntas en una sola pista
+call_recording_tracks_sides	Una cada una, tú a la izquierda
+call_recording_tracks_help	Una sola pista es la grabación de siempre, con las dos voces mezcladas. Una cada una te pone a la izquierda y a la otra persona a la derecha, así puedes escuchar cada lado por separado. El archivo ocupa el doble.
+call_recording_tracks_picked	Las dos voces: %1$s
+call_recording_keep	Conservar las grabaciones
+call_recording_keep_all	Conservarlas todas
+call_recording_keep_days	Durante %1$s días
+call_recording_keep_help	Se revisa después de guardar una llamada. Solo cuenta las grabaciones hechas aquí, y lo que hayas movido o renombrado se queda donde está.
+call_recording_keep_picked	Conservar las grabaciones: %1$s
+call_recording_notify	Avisar cuando se guarde una llamada
+call_recording_notify_help	Una notificación en cuanto se escribe la grabación, con el nombre del archivo. Tócala para escucharla, Enviar a un chat para dejarla en un chat tuyo, o Compartir para enviarla a cualquier otro sitio.
+call_recording_saved_channel	Grabaciones de llamadas guardadas
+call_recording_saved_title	Grabación de llamada guardada
+call_recording_share	Compartir
+call_recording_send	Enviar a un chat
+call_captions_unsupported	Esto necesita Android 13 o posterior. Tu elección queda guardada.
+call_captions_speak	Leer los subtítulos en voz alta
+call_captions_speak_help	Lee cada subtítulo en voz alta con la voz del teléfono cuando termina. Usa auriculares para que los demás no lo oigan también.
+call_captions_duck	Bajar su voz durante la lectura
+call_captions_duck_help	Baja el volumen de los demás mientras se lee un subtítulo, para que puedas seguir la voz.
+call_captions_heard	Hablan: %1$s
+call_captions_heard_title	Idioma que hablan
+call_captions_heard_hint	Los subtítulos escuchan este idioma. Si uno está marcado para descargar, el teléfono lo descarga primero, y la última fila abre los demás idiomas que conoce tu teléfono.
+call_captions_shown	Mostrar subtítulos en: %1$s
+call_captions_shown_title	Mostrar subtítulos en
+call_captions_shown_hint	Los subtítulos se traducen en el teléfono a este idioma. La lista es lo que informa tu teléfono, y la última fila abre los demás idiomas que conoce.
+call_captions_phone_language	Idioma del teléfono (%1$s)
+call_captions_untranslated_choice	Tal como se habla, sin traducción
+call_captions_loading	Revisando lo que tiene tu teléfono
+call_captions_download	%1$s (se descarga primero)
+call_captions_other	Otro idioma…
+call_captions_picked	Subtítulos: %1$s
+call_captions_downloading_now	Descargando %1$s
+call_captions_cancel	Cancelar
+call_captions_no_recognizer	Tu teléfono no tiene reconocimiento de voz en el dispositivo, así que los subtítulos no pueden funcionar en él.
+call_captions_no_translator	Tu teléfono no tiene traducción en el dispositivo, así que los subtítulos se quedan en el idioma en que se hablan.
+call_captions_untranslated	Tu teléfono no puede traducir este par de idiomas, así que los subtítulos se quedan tal como se hablan.
+call_captions_unavailable	Tu teléfono no puede reconocer este idioma. Elige otro en los ajustes de HushMessenger.
+call_captions_downloading	Tu teléfono está descargando este idioma. Los subtítulos empiezan cuando termine.
+call_captions_stopped	Subtítulos detenidos para esta llamada.
+call_captions_no_voice	Tu teléfono no tiene voz para este idioma, así que los subtítulos no se leen en voz alta.
+save_voice_menu_row	Guardar mensaje de voz
+save_voice_menu_saved	Guardado en %1$s
+save_voice_menu_failed	No se pudo guardar este mensaje de voz
+local_pin_kept	Fijado en este teléfono
+local_pin_removed	Ya no está fijado
+hidden_chats_hide	Ocultar de la lista de chats
+hidden_chats_show	Mostrar en la lista de chats
+hidden_chats_hidden	Se ocultó de tu lista de chats
+hidden_chats_shown	De vuelta en tu lista de chats
+hidden_chats_failed	No se pudo ocultar este chat
+hidden_chats_empty	Los chats que ocultes de tu lista de chats aparecen aquí.
+hidden_chats_unhide	Dejar de ocultar
+hidden_chats_unnamed	Chat
+special_contacts_track	Rastrear a esta persona
+special_contacts_untrack	Dejar de rastrear
+special_contacts_tracked	Ahora rastreas a esta persona
+special_contacts_untracked	Dejaste de rastrear a esta persona
+special_contacts_full	Puedes rastrear hasta 50 personas
+special_contacts_failed	No se pudo cambiar. Inténtalo de nuevo.
+special_contacts_cleared	Historial borrado
+special_contacts_empty	Las personas que rastreas aparecen aquí. Mantén presionado un chat con alguien y toca Rastrear a esta persona.
+special_contacts_unnamed	Alguien
+special_contacts_nothing	Todavía no se ha visto nada
+special_contacts_history	Historial
+special_contacts_hide_history	Ocultar historial
+special_contacts_clear	Borrar historial
+special_contacts_online	En línea: %s
+special_contacts_offline	Sin conexión: %s
+special_contacts_offline_at	Sin conexión: %1$s, última actividad: %2$s
+special_contacts_typing	Escribiendo: %s
+special_contacts_since	Rastreando desde %s
+special_contacts_renamed	%1$s: cambió su nombre a %2$s
+message_actions_sent	Mensajes que enviaste
+message_actions_got	Mensajes que recibiste
+message_actions_empty_sent	Mantén presionado un mensaje que enviaste y sus acciones aparecerán aquí.
+message_actions_empty_got	Mantén presionado un mensaje que recibiste y sus acciones aparecerán aquí.
+chat_menu_items_empty	Mantén presionado un chat de tu lista de chats y los elementos de su menú aparecerán aquí.
+invisible_buttons_empty	Usa Messenger un rato y cada botón que te muestre aparecerá aquí.
+invisible_buttons_level_choice	%1$s para %2$s
+invisible_buttons_invisible	Ahora es invisible
+invisible_buttons_visible	Se ve como antes
+invisible_buttons_level	Ahora visible al %1$s
+message_actions_hidden_label	%1$s (sin mostrar)
+message_actions_move_up	Subir %1$s
+message_actions_move_down	Bajar %1$s
+message_actions_moved	%1$s, %2$d de %3$d
+message_actions_hide	Ocultar
+message_actions_show	Mostrar
+message_actions_hidden	Ya no aparece en el menú
+message_actions_shown	De vuelta en el menú
+message_actions_reset	Restablecer el orden de Messenger
+message_actions_reset_done	De vuelta al orden de Messenger
+text_style_bold	Negrita
+text_style_italic	Cursiva
+text_style_read_only	Negrita y Cursiva solo funcionan en el texto que estás escribiendo.
+text_style_bold_none	Negrita solo funciona con las letras de la A a la Z, las letras con acento y los dígitos.
+text_style_italic_none	Cursiva solo funciona con las letras de la A a la Z y las letras con acento.
+bubble_stock	Original
+bubble_chat_heads	Burbujas de chat
+bubble_native	Burbujas de Android
+bubble_changed	Elegiste %s. Reinicia Messenger para aplicarlo.
+bubble_help	Original deja que Messenger decida. Burbujas de chat también necesita el interruptor Burbujas de chat de Messenger y permiso para mostrarse sobre otras apps. Sin uso de batería sin restricciones, una burbuja de chat solo aparece si Messenger estaba cerrado cuando llegó el mensaje, así que actívalo también abajo. Para Burbujas de Android, permite las burbujas de Messenger en los ajustes de Android de abajo. Las cuentas que no admiten burbujas mantienen el comportamiento normal de Messenger. Pausar todos los cambios devuelve todo a la elección de Messenger.
+bubble_unsupported	Las burbujas de Android no están disponibles en este paquete de parches, así que Messenger funciona como siempre. Tu elección queda guardada.
+bubble_battery_off	Permitir uso de batería sin restricciones
+bubble_battery_on	Uso de batería: Sin restricciones
+bubble_battery_missing	No se encontró la pantalla. Abre la información de la app y luego Batería.
+bubble_permissions	Ajustes de burbujas de Android
+bubble_notifications	Ajustes de notificaciones de Messenger
+bubble_conversations	Ajustes de conversaciones de Android
+bubble_settings_missing	No se encontró la pantalla. Abre la información de la app y luego Notificaciones.
+facebook_keep_profile	Mantener el botón Perfil
+facebook_keep_profile_help	Deja el botón Perfil en la página de detalles de un chat y el botón Ver perfil en la parte superior de un chat nuevo, para que puedas seguir abriendo el perfil de Facebook de la persona. Los demás accesos directos de Facebook siguen ocultos.
+avatar_shape_rounded	Redondear las esquinas
+avatar_shape_rounded_help	Da a los cuadrados esquinas redondeadas en lugar de rectas.
+hidden_words_words	Palabras que ocultar
+hidden_words_hint	Hasta %1$d caracteres, separadas por comas
+hidden_words_help	Tiene que coincidir la palabra completa, así que "ok" no oculta "okay". Las mayúsculas no importan.
+home_header_words	Texto
+home_header_words_hint	Hasta %1$d caracteres
+home_header_none	Todavía no hay texto ni imagen, así que se queda el logotipo de Messenger.
+home_header_using_words	Tu texto aparece en la parte superior de la lista de chats.
+home_header_picture	Tu imagen aparece en la parte superior de la lista de chats, en lugar del texto.
+home_header_copying	Copiando la imagen...
+home_header_choose	Elegir una imagen
+home_header_remove	Quitar la imagen
+home_header_help	Una imagen aparece en lugar del texto, a la altura del logotipo. Una con fondo transparente se ve mejor. Las imágenes pueden ocupar hasta %1$d MB.
+home_header_saved	Imagen guardada.
+home_header_removed	Imagen quitada.
+home_header_remove_failed	No se pudo quitar la imagen.
+home_header_not_picture	Ese archivo no es una imagen.
+home_header_too_large	Las imágenes pueden ocupar hasta %1$d MB.
+home_header_unreadable	No se pudo abrir esa imagen.
+home_header_not_saved	No se pudo guardar la imagen.
+home_header_busy	Todavía se está copiando la anterior.
+home_header_timeout	La imagen tardó demasiado. Inténtalo de nuevo.
+tab_icons_help	Cada pestaña recibe un icono sencillo de contorno en el color que Messenger ya usa. Elige una imagen para cualquier pestaña y pon la tuya en su lugar. Una imagen cuadrada con fondo transparente queda mejor. Las imágenes pueden pesar hasta %1$d MB.
+tab_icons_choose	Elegir
+tab_icons_remove	Quitar
+tab_icons_plain	Icono sencillo
+tab_icons_yours	Tu imagen
+tab_icons_copying	Copiando...
+tab_icons_saved	Icono de pestaña guardado. Reinicia Messenger para verlo.
+tab_icons_removed	Icono de pestaña quitado.
+tab_icons_remove_failed	No se pudo quitar ese icono de pestaña.
+tab_icons_not_picture	Ese archivo no es una imagen.
+tab_icons_too_large	Las imágenes pueden pesar hasta %1$d MB.
+tab_icons_unreadable	No se pudo abrir esa imagen.
+tab_icons_not_saved	No se pudo guardar el icono de pestaña.
+tab_icons_busy	Todavía se está copiando la anterior.
+tab_icons_timeout	La imagen tardó demasiado. Inténtalo de nuevo.
+tab_icons_tab_inbox	Chats
+tab_icons_tab_montage	Historias
+tab_icons_tab_people	Personas
+tab_icons_tab_calls	Llamadas
+tab_icons_tab_metaai	Meta AI
+tab_icons_tab_jewel	Facebook
+tab_icons_tab_more	Menú
+tab_icons_tab_mesetting	Tu perfil
+quiet_calls_chosen	Solo chats elegidos
+quiet_calls_chosen_help	Las llamadas de los chats que actives abajo entran en silencio. Todas las demás suenan como siempre.
+quiet_calls_recent_empty	Los chats que te llaman aparecen aquí, los más recientes primero.
+quiet_mode_daily	Todas las noches
+quiet_mode_daily_help	Silencio entre las dos horas de abajo, todas las noches, con o sin un descanso en marcha.
+quiet_mode_break	Tomar un descanso
+quiet_mode_open	De descanso hasta que lo termines
+quiet_mode_until	De descanso hasta las %1$s
+quiet_mode_no_end	Hasta que yo lo termine
+quiet_mode_minutes	%1$s minutos
+quiet_mode_hour	1 hora
+quiet_mode_hours	%1$s horas
+quiet_mode_start	En silencio desde las %1$s
+quiet_mode_stop	En silencio hasta las %1$s
+quiet_mode_how_long	¿Cuánto tiempo?
+quiet_mode_how_long_hint	Los mensajes y las llamadas siguen llegando. Tu teléfono solo se queda callado.
+quiet_mode_end	Terminar el descanso
+quiet_mode_channel	Modo silencio
+tab_badges_keep_chats	Mantener el indicador de Chats
+tab_badges_keep_people	Mantener el indicador de Personas
+tab_badges_keep_notifications	Mantener el indicador de Notificaciones
+tab_badges_keep_menu	Mantener el indicador de Menú
+tab_badges_keep_facebook	Mantener el indicador del botón de Facebook
+experimental	Experimental
+new_setting	Nuevo
+choice_on	%s está activado
+choice_off	%s está desactivado
+appearance	Apariencia
+material_you_black	Modo oscuro en negro puro
+material_you_black_help	Usa negro puro con Material You en Messenger. El modo claro no cambia.
+material_you_light	Color de acento en modo claro
+material_you_light_help	Da también tu color de acento a los azules de Messenger en modo claro. Los grises y el blanco se quedan como están.
+material_you_light_grays	Grises en modo claro
+material_you_light_grays_help	Da también un tono de tu paleta a los grises de Messenger en modo claro. El blanco y el negro se quedan como están.
+material_you_style	Estilo de paleta
+material_you_style_help	Cuánto color usa Material You, como los estilos de los ajustes de fondo de pantalla de Android. Predeterminado mantiene la paleta de tu fondo de pantalla o tu tema tal como está.
+material_you_style_default	Predeterminado
+material_you_style_tonal_spot	Punto tonal
+material_you_style_neutral	Neutro
+material_you_style_vibrant	Vibrante
+material_you_style_expressive	Expresivo
+material_you_style_rainbow	Arcoíris
+material_you_style_fruit_salad	Ensalada de frutas
+material_you_style_monochrome	Monocromo
+material_you_style_changed	Estilo %s guardado
+light	Tema claro
+light_help	Usa un fondo claro en estos ajustes. Messenger no cambia.
+theme_help	Oscuro de forma predeterminada. Tu elección queda guardada.
+theme_status_wallpaper	Material You toma sus colores de tu fondo de pantalla. Elige un color de acento o pega un tema para usar los tuyos.
+theme_status_saved	Tu tema %s está guardado. Material You lo usa mientras esté activado.
+theme_status_unnamed	Tu tema está guardado. Material You lo usa mientras esté activado.
+theme_accents	Color de acento
+theme_accent_saved	Color de acento guardado
+theme_accent_blue	Azul
+theme_accent_purple	Morado
+theme_accent_pink	Rosa
+theme_accent_red	Rojo
+theme_accent_orange	Naranja
+theme_accent_green	Verde
+theme_accent_teal	Verde azulado
+theme_paste	Usar el tema copiado
+theme_copy	Copiar tema
+theme_clear	Volver a los colores del fondo de pantalla
+theme_pasted	Tema guardado
+theme_paste_empty	No hay nada que pegar. Copia un tema primero.
+theme_paste_invalid	Eso no es un tema. Tus colores no cambiaron.
+theme_copied	Tema copiado
+theme_copy_failed	No se pudo copiar el tema. Inténtalo de nuevo.
+theme_cleared	De vuelta a los colores de tu fondo de pantalla
+theme_change	el cambio de tema
+theme_file_help	Un tema es un texto breve como {"name": "Sunset", "accent": "#E1306C", "neutral": "#1A1418", "pure_black": true}. El valor accent tiñe los azules de Messenger y neutral tiñe sus grises. Los dos mantienen el brillo propio de Messenger, así que el texto sigue siendo fácil de leer. Copiar tema te da los colores en uso para editarlos o compartirlos.
+about	Acerca de HushMessenger
+version	Versión
+installed	Controles instalados
+screen_art_blurry	Esta descarga de Messenger solo tiene iconos para pantallas de %1$s dpi, y la de este teléfono es de %2$s dpi, así que se ven borrosos. Para arreglarlo, parchea una versión de APKMirror marcada como nodpi o una hecha para tu pantalla.
+copy	Copiar configuración
+copy_help	Copia las versiones de la app y las opciones de los controles. Sin datos de cuentas ni de chats. No se envía nada.
+setup_activity_help	Las notas de actividad solo muestran que un control se ejecutó. No prueban que tuviera un efecto visible ni que protegiera tu privacidad.
+usage	Cómo usar tus controles
+save_help	Los cambios se guardan sobre la marcha. Las opciones de la bandeja de entrada aparecen en la próxima lista de chats que genere Messenger, y Reiniciar Messenger lo aplica todo a la vez. Tu cuenta sigue con la sesión iniciada.
+pause_help	Pausar todos los cambios desactiva todos los controles por ahora. Tus opciones se conservan.
+account_help	Tus opciones se aplican a todas las cuentas de Messenger de esta instalación.
+missing	¿Falta un control?
+missing_help	Elígelo en Morphe Manager y vuelve a parchear Messenger. Actualizar solo la fuente de parches no añade controles nuevos.
+log_out	Cerrar sesión
+log_out_help	Cierra la sesión de esta cuenta en este teléfono, igual que la opción Cerrar sesión de Messenger.
+log_out_unavailable	No se encontró la opción Cerrar sesión de Messenger en esta versión, así que usa la del menú de Messenger.
+log_out_failed	La opción Cerrar sesión de Messenger no se abrió. La del menú de Messenger sigue funcionando.
+source	Código fuente y licencias
+licenses_hint	Lo que HushMessenger toma de los proyectos en los que se basa. Los avisos siguen en inglés, igual que las licencias de las que vienen.
+licenses_source	Código fuente
+no_browser	No se encontró ningún navegador web en este teléfono
+page_blocked	Tu teléfono no permitió abrir esa página
+support	Apoyar HushMessenger
+report	Informar de un problema
+report_help	Abre un informe público en GitHub que ya incluye tus versiones y los controles que tienes activados. Revísalo y añade lo que pasó.
+restart_waiting_one	%d cambio espera un reinicio
+restart_waiting_many	%d cambios esperan un reinicio
+quick_setups	Configuraciones rápidas
+quick_setups_help	Cambia un conjunto de controles con un toque. Después puedes cambiar cada uno por separado. Mantén presionado para ocultar esta sección.
+quick_setups_hidden	Oculta. Toca %s en %s.
+quick_setups_home	Sección de configuraciones rápidas
+quick_setups_home_shown	Visible. Toca para ocultarla.
+quick_setups_home_hidden	Oculta. Toca para volver a mostrarla.
+quick_quiet	Tranquilo
+quick_quiet_help	Oculta anuncios, promociones, personas sugeridas y avisos de crecimiento.
+quick_privacy	Privacidad
+quick_privacy_help	Detiene los envíos que le cuentan a Meta cómo usas Messenger, incluido tu ID de publicidad.
+quick_iphone	Estilo iPhone
+quick_iphone_help	Pone un título Chats en la parte superior de tu lista de chats en lugar del logotipo, mantiene la barra de búsqueda debajo y desenfoca la pantalla detrás de los menús (Android 12 o posterior), como se ve Messenger en un iPhone. Reinicia Messenger para verlo.
+quick_iphone_words	Chats
+quick_defaults	Volver a los valores predeterminados
+quick_defaults_help	Desactiva todos los controles. La pausa y el tema se quedan como están.
+quick_changed_one	Se cambió %d control
+quick_changed_many	Se cambiaron %d controles
+quick_unchanged	No hay nada que cambiar. Esos controles ya estaban configurados.
+quick_missing	Esos controles no están instalados. No cambió nada.
+quick_undone_one	Se restauró %d control
+quick_undone_many	Se restauraron %d controles
+undo	Deshacer
+undo_action	Deshacer %s
+credits	GPL-3.0. Incluye trabajo de Morphe, De-Vanced, ReVanced, Doom y Messenger Cleaner.
+independent	Independiente de Meta y de Morphe.
+clipboard	Configuración de HushMessenger
+copied	Configuración copiada
+copy_failed	No se pudo copiar la configuración. Inténtalo de nuevo.
+export	Copiar opciones
+export_help	Copia tus opciones como texto. Para recuperarlas en otra instalación, copia ese texto allí y toca Pegar opciones.
+exported	Opciones copiadas
+export_failed	No se pudieron copiar tus opciones. Inténtalo de nuevo.
+choices_file_save_failed	No se pudieron guardar tus opciones en el archivo. Inténtalo de nuevo.
+import_choices	Pegar opciones
+import_help	Restaura opciones a partir del texto que copiaste con Copiar opciones. Cópialo primero y luego toca aquí.
+imported_one	Se restauró %d opción.
+imported_many	Se restauraron %d opciones.
+imported_partial	Se restauraron %1$d de %2$d opciones.
+import_same	Tus opciones ya coinciden con esa copia de seguridad.
+import_none_changed	Ninguna de tus opciones cambió.
+import_auto_reply_off	La respuesta automática sigue desactivada, porque esa copia de seguridad no trae respuestas.
+import_empty	No hay nada que pegar. Copia tus opciones primero.
+import_invalid	No es una copia de seguridad de opciones. No cambió nada.
+import_too_large	Esa copia de seguridad pesa más de 128 KB, así que no cambió nada.
+import_zip_too_large	La copia es demasiado grande y no cambió nada.
+export_too_large	Tus opciones no caben en una copia de seguridad.
+export_too_large_detail	Lo que más ocupa es %s. No se copió ni se guardó nada.
+restore_failed	No se pudo leer ese archivo. Inténtalo de nuevo o elige otro archivo.
+choices_file_no_picker	No se pudo abrir un selector de archivos en este teléfono.
+import_unknown_one	Se omitió %d opción que esta versión no conoce.
+import_unknown_many	Se omitieron %d opciones que esta versión no conoce.
+import_unavailable_one	Se omitió %d opción cuyo parche no está instalado.
+import_unavailable_many	Se omitieron %d opciones cuyos parches no están instalados.
+import_damaged_one	Se omitió %d archivo que no se pudo usar.
+import_damaged_many	Se omitieron %d archivos que no se pudieron usar.
+import_no_choices	No hay nada que restaurar. Ninguna coincide con tus parches.
+save_choices_file	Guardar opciones en un archivo
+read_choices_file	Restaurar opciones desde un archivo
+choices_file_help	Guarda tus opciones, con las respuestas automáticas y los chats ocultos o fijados. Si tienes una imagen de encabezado o de pestaña, tu propia fuente, imágenes de respuestas automáticas o personas que sigue Contactos especiales, se guarda como .zip y las incluye. Los mensajes no se incluyen, y tu cuenta tampoco. Las opciones que falten en el archivo se quedan como están. Si los ajustes se cierran mientras eliges un archivo, vuelve a elegirlo.
+choices_file_saved	Archivo de opciones guardado
+choices_file_saving	Guardando el archivo de opciones...
+choices_file_reading	Leyendo el archivo de opciones...
+cancel_choices_file	Cancelar la operación con el archivo
+choices_file_canceled	Cancelado. Un guardado puede dejar un archivo incompleto.
+choices_file_canceled_read	Cancelado. Tus opciones no cambiaron.
+choices_file_timeout	Tardó demasiado. Un archivo guardado puede estar cortado. Inténtalo de nuevo.
+choices_file_timeout_read	Tardó demasiado. Tus opciones no cambiaron. Inténtalo de nuevo.
+choices_file_busy	Todavía se están terminando guardados o restauraciones anteriores. Inténtalo de nuevo en un momento.
+choices_file_changed	Tus opciones cambiaron durante la restauración. Inténtalo de nuevo.
+check_updates	Buscar actualizaciones
+check_updates_help	Busca en GitHub una versión más reciente cuando activas esto y cuando se abren los ajustes. Reutiliza su última respuesta durante una hora. Desactivado de forma predeterminada. GitHub puede ver tu dirección IP. No se envía información de cuentas ni de chats.
+check_now	Buscar ahora
+update_loading	Buscando actualizaciones...
+update_available	La versión %s está disponible
+update_action	Ver la versión
+up_to_date	Tienes la versión más reciente.
+update_ahead	Versión instalada: %s. La última versión publicada es %s.
+update_retry	GitHub todavía no pudo responder. Prueba Buscar ahora después de %s.
+update_error	No se pudo comprobar si hay actualizaciones. Revisa tu conexión e inténtalo de nuevo.
+active_now	Se usó ahora mismo
+active_ago	Se usó hace %s
+seconds_short	%d s
+minutes_short	%d min
+hours_short	%d h
+days_short	%d d
+not_active	Activado. Esperando a que Messenger lo use
+unsent_not_active	Activado. Todavía no llegó ningún mensaje anulado
+restart_pending_on	Se aplica cuando Messenger se reinicie
+restart_pending_off	Sigue aplicándose hasta que Messenger se reinicie
+meta_ai_tab_pending_on	La pestaña Meta AI se oculta cuando Messenger se reinicie
+meta_ai_tab_pending_off	La pestaña Meta AI vuelve cuando Messenger se reinicie
+tab_people_pending_on	La pestaña Personas se oculta cuando Messenger se reinicie
+tab_people_pending_off	La pestaña Personas vuelve cuando Messenger se reinicie
+tab_people_show_pending_on	La pestaña Personas aparece cuando Messenger se reinicie
+tab_people_show_pending_off	La pestaña Personas desaparece cuando Messenger se reinicie
+tab_settings_show_pending_on	La pestaña de ajustes aparece cuando Messenger se reinicie
+tab_settings_show_pending_off	La pestaña de ajustes desaparece cuando Messenger se reinicie
+tab_notifications_pending_on	La pestaña Notificaciones se oculta cuando Messenger se reinicie
+tab_notifications_pending_off	La pestaña Notificaciones vuelve cuando Messenger se reinicie
+tab_stories_pending_on	La pestaña Historias se oculta cuando Messenger se reinicie
+tab_stories_pending_off	La pestaña Historias vuelve cuando Messenger se reinicie
+error_now	Se detuvo con un error ahora mismo. En la pestaña Aplicación, Copiar configuración tiene los detalles.
+error_ago	Se detuvo con un error hace %s. En la pestaña Aplicación, Copiar configuración tiene los detalles.
+changes_paused	Cambios en pausa
+changes_resumed	Cambios reanudados
+safe_mode	Modo seguro
+safe_mode_help	Messenger falló varias veces seguidas, así que se desactivaron todos los controles. Tus opciones siguen guardadas. Toca Reanudar para volver a activarlos.
+safe_mode_help_paused	Messenger falló varias veces seguidas. Tus opciones siguen guardadas. Primero toca Salir del modo seguro. Pausar todos los cambios seguirá activado hasta que lo desactives.
+resume	Reanudar
+clear_safe_mode	Salir del modo seguro
+safe_mode_cleared	Saliste del modo seguro. Los cambios siguen en pausa.
+safe_mode_save_failed	No se pudo salir del modo seguro. Los cambios siguen en pausa.
+enabled_one	%d control activado
+enabled_many	%d controles activados
+saved_one	%d opción guardada. Desactiva Pausar todos los cambios para usarla.
+saved_many	%d opciones guardadas. Desactiva Pausar todos los cambios para usarlas.
+saved	Tus opciones se guardan automáticamente.
+none_installed	No hay controles instalados. Elige parches en Morphe Manager y vuelve a parchear Messenger.
+no_matches	Ningún control coincide.
+results_one	%d de %d control instalado
+results_many	%d de %d controles instalados
+group_count_one	%d control
+group_count_many	%d controles
+open_help	Abre Messenger desde el cajón de aplicaciones
+message_log_view	Ver registro
+search_clear	Borrar
+search_clear_description	Borrar búsqueda
+camera_missing	No se encontró ninguna app de cámara que pueda tomar fotos.
+camera_failed	No se puede abrir tu app de cámara. Inténtalo de nuevo.
+camera_permission	Activa el permiso de cámara en la información de la app de Messenger.
+camera_photo	Foto
+camera_video	Video
+system_camera_ask	Preguntar foto o video
+system_camera_ask_help	El botón de cámara pregunta si quieres una foto o un video y luego abre tu app de cámara para eso.
+gallery_missing	No se encontró ninguna app de galería que pueda elegir fotos.
+gallery_failed	Tu galería no pudo terminar la selección. Inténtalo de nuevo.
+instant_gallery_shutter	Toca el obturador para enviar tu foto.
+message_log_clear	Borrar registro
+message_log_close	Cerrar
+message_log_title	Registro de mensajes
+message_log_hint	Guardado solo en este teléfono. Los más recientes primero.
+message_log_hint_by_chat	Guardado solo en este teléfono. Los chats con el último mensaje primero.
+message_log_retention	Desactivar el registro detiene las entradas nuevas. Los mensajes guardados se quedan hasta que los borres o pase el tiempo que elegiste. El registro guarda hasta 20 000.
+message_log_loading	Cargando...
+message_log_empty	Todavía no hay mensajes guardados.
+message_log_empty_on	Los mensajes nuevos con texto en la notificación aparecerán aquí. Los mensajes que ya están en tus chats no se añaden.
+message_log_empty_off	Activa Guardar un registro de mensajes en Controles para guardar los mensajes nuevos con texto en la notificación. Los mensajes que ya están en tus chats no se añaden.
+message_log_load_failed	No se pudo abrir el registro de mensajes
+message_log_load_help	Inténtalo de nuevo. Si sigue fallando, Borrar registro elimina el registro guardado y su clave para que se puedan guardar mensajes nuevos.
+message_log_set_aside	No se pudo leer un registro anterior
+message_log_set_aside_help	Se apartó para que los mensajes nuevos se sigan guardando. Ya nada puede abrirlo, y quitarlo no afecta a los mensajes más nuevos.
+message_log_set_aside_remove	Quitar el registro anterior
+message_log_set_aside_failed	No se pudo quitar el registro anterior. Inténtalo de nuevo.
+message_log_clear_failed	No se pudo borrar todo el registro
+message_log_clear_help	No se pudieron quitar algunos datos guardados o su clave. Prueba Borrar registro otra vez.
+retry	Intentar de nuevo
+message_log_unknown_thread	Chat desconocido
+message_log_in_group	%s en %s
+message_log_no_text	(sin texto)
+message_log_unsent	Anulado
+message_log_unsent_only	Mostrar solo los anulados
+message_log_show_all	Mostrar todos los mensajes
+message_log_cleared	Registro de mensajes borrado
+message_log_restored	Registro de mensajes restaurado
+message_log_restore_failed	No se pudo restaurar el registro
+message_log_now	Ahora mismo
+message_log_ago	Hace %s
+message_log_quiet_chats	Registrar chats que no notifican
+message_log_quiet_chats_help	También registra mensajes de chats silenciados y de chats que restringiste, sin notificación. Los chats cifrados restringidos no envían nada a tu teléfono, así que esos solo aparecen cuando buscas a la persona.
+message_log_save_expiring	Guardar los mensajes antes de que se quiten
+message_log_save_expiring_help	Justo antes de que el registro quite un mensaje, se añade a un archivo de texto en Download/Messenger, un archivo por mes. Ese archivo no está cifrado, así que las apps que pueden leer tus archivos pueden leerlo.
+message_log_search	Buscar mensajes y nombres
+message_log_by_chat	Agrupar por chat
+message_log_by_date	Más recientes primero
+message_log_all_chats	Todos los chats
+message_log_chat_count	Mensajes: %s
+message_log_no_match	Ningún mensaje guardado coincide.
+message_log_save_text	Guardar como texto
+message_log_save_csv	Guardar como CSV
+message_log_save_help	Guarda lo que se muestra. El archivo no está cifrado.
+message_log_saved	Mensajes guardados: %s
+message_log_save_failed	No se pudo guardar el archivo. Inténtalo de nuevo.
+message_log_keep	Guardar mensajes durante
+message_log_keep_30	30 días
+message_log_keep_90	90 días
+message_log_keep_365	1 año
+message_log_keep_0	Hasta que borre el registro
+message_log_keep_changed	Los mensajes se guardan durante %s.
+message_log_keep_shorter	Los mensajes se guardan durante %s. Los más antiguos se quedan 10 minutos más por si cambias de opinión.
+message_log_keep_forever	Los mensajes se guardan hasta que borres el registro.
+message_log_kind_all	Todos
+message_log_kind_direct	Directos
+message_log_kind_groups	Grupos
+message_log_rename_hint	Ponle un nombre a este chat
+message_log_rename_save	Guardar nombre
+message_log_renamed	Nombre guardado
+message_log_rename_removed	Nombre quitado
+message_log_rename_failed	No se pudo guardar el nombre. Inténtalo de nuevo.
+message_log_attachment	Foto o archivo adjunto
+message_log_photo	Foto
+message_log_photo_missing	No se pudo mostrar esta foto.
+message_log_keep_photos	Guardar las fotos en tamaño completo
+message_log_keep_photos_help	Descarga una foto al guardarla en el registro, con el tamaño que tenía al enviarse, así puedes verla aunque quien la envió la quite. Sin esto el registro guarda la vista previa pequeña de la notificación, y solo en chats que no están cifrados de extremo a extremo. Las fotos ocupan mucho más espacio que el resto del registro y se van cuando se va su mensaje.
+message_log_keep_videos	Guardar los videos
+message_log_keep_videos_help	Descarga un video al guardarlo en el registro, así puedes verlo aunque quien lo envió lo quite. Messenger solo lo descarga cuando lo abres, y por eso se pierde si lo quitan antes. Los videos ocupan más espacio que todo lo demás del registro, hasta 16 MB cada uno, y se van cuando se va su mensaje.
+message_log_video_title	Video
+message_log_video_hint	Se reproduce desde la copia del registro, que sigue cifrada en este teléfono.
+message_log_video_play	Reproducir video
+message_log_video_missing	No se pudo reproducir este video.
+message_log_keep_voice	Guardar los mensajes de voz
+message_log_keep_voice_help	Descarga un mensaje de voz al guardarlo en el registro, así puedes escucharlo aunque quien lo envió lo quite. Messenger solo lo descarga cuando lo reproduces, y por eso se pierde si lo quitan antes. Los clips ocupan más espacio que el resto del registro y se van cuando se va su mensaje.
+message_log_clip_play	Reproducir mensaje de voz
+message_log_clip_stop	Detener
+message_log_clip_missing	No se pudo reproducir este mensaje de voz.
+message_log_button	Botón en la parte superior de Chats
+message_log_button_help	Pone un reloj junto al botón de mensaje nuevo. Tócalo para abrir el registro.
+message_log_menu_row	Fila en la pestaña Menú
+message_log_menu_row_help	Añade Registro de mensajes debajo de Configuración en la pestaña Menú de Messenger. Tócalo para abrir el registro.
+message_log_chat_row	Fila en el menú del chat
+message_log_chat_row_help	Añade Registro de mensajes al menú que aparece al mantener presionado un chat. Tócalo para abrir el registro solo de ese chat.
+auto_reply_edit	Editar respuestas
+auto_reply_title	Respuestas automáticas
+auto_reply_hint	Las respuestas se prueban de arriba abajo. Se envía la primera que coincide.
+auto_reply_when	Palabras clave (opcional)
+auto_reply_when_hint	hola, horario de atención
+auto_reply_reply	Enviar esta respuesta
+auto_reply_reply_hint	Escribe tu respuesta
+auto_reply_any	Separa las palabras o frases con comas. Déjalo en blanco para responder a cualquier mensaje.
+auto_reply_off	La respuesta automática está desactivada. Guarda tus respuestas aquí y luego actívala en Controles.
+auto_reply_count	%1$s de %2$s respuestas
+auto_reply_number	Respuesta %s
+auto_reply_remove_number	Quitar la respuesta %s
+auto_reply_required	Escribe una respuesta aquí o quita esta antes de guardar.
+auto_reply_cancel	Cancelar
+auto_reply_remove	Quitar
+auto_reply_add	Añadir una respuesta
+auto_reply_save	Guardar
+auto_reply_groups	Responder también en chats de grupo
+auto_reply_full	Ese es el máximo de respuestas que guarda (%s)
+auto_reply_saved	Respuestas guardadas: %s
+auto_reply_saved_none	No hay respuestas guardadas, así que no se responde a nada
+auto_reply_picture	Imagen (opcional)
+auto_reply_picture_none	Sin imagen. Añade una para enviarla justo después de la respuesta.
+auto_reply_picture_set	Se envía justo después de la respuesta
+auto_reply_picture_missing	La imagen ya no está. Vuelve a elegirla o quítala.
+auto_reply_picture_pick	Añadir una imagen
+auto_reply_picture_change	Cambiar imagen
+auto_reply_picture_clear	Quitar imagen
+auto_reply_picture_thumb	La imagen que se envía con esta respuesta
+auto_reply_picture_copying	Copiando la imagen...
+auto_reply_picture_failed	No se pudo usar esa imagen. Prueba con otra.
+auto_reply_picture_too_big	Esa imagen es demasiado grande. Elige una más pequeña.
+auto_reply_picture_too_slow	Esa imagen tardó demasiado en cargarse. Inténtalo de nuevo o elige otra.
+auto_reply_picture_no_picker	Ninguna app de aquí puede elegir una imagen
+font_file_choose	Elegir un archivo de fuente
+font_phone	Usar la fuente de tu teléfono
+font_file_help	Con un archivo elegido, algunas pantallas de Messenger siguen usando la fuente de tu teléfono.
+font_file_none	No elegiste ninguno, así que se usa la fuente de tu teléfono. Elige un archivo de fuente .ttf u .otf de hasta %1$d MB.
+font_file_none_off	No elegiste ninguno. Activa el interruptor para usar la fuente de tu teléfono, o elige un archivo de fuente .ttf u .otf de hasta %1$d MB.
+font_file_using	Usando %1$s. Elige otro archivo para reemplazarlo.
+font_file_picked_off	Elegiste %1$s. Activa el interruptor para usarlo.
+font_file_missing	La copia de %1$s que guardó HushMessenger ya no está, así que se usa la fuente de tu teléfono. Vuelve a elegir el archivo.
+font_file_copying	Copiando el archivo de fuente...
+font_file_set	Fuente elegida. Reinicia Messenger para usarla.
+font_file_set_off	Fuente elegida. Activa el interruptor para usarla.
+font_file_not_font	No es una fuente .ttf u .otf. Tu fuente no cambió.
+font_file_too_large	Ese archivo de fuente supera los %1$d MB. Tu fuente no cambió.
+font_file_wont_load	Android no puede usar esa fuente. Tu fuente no cambió.
+font_file_not_saved	No se pudo guardar la fuente. Revisa el espacio libre e inténtalo de nuevo.
+font_file_unreadable	No se pudo abrir ese archivo. Tu fuente no cambió.
+font_file_no_picker	Este teléfono no tiene selector de archivos.
+font_file_picker_failed	No se pudo abrir el selector de archivos. Inténtalo de nuevo.
+font_file_busy	No se pudo empezar. Inténtalo de nuevo en un momento.
+font_file_stop	Dejar de copiar
+font_file_stopped	Se dejó de copiar. Tu fuente no cambió.
+font_file_timeout	La copia tardó demasiado. Tu fuente no cambió.
+font_file_finishing	Ya se está guardando la fuente. Terminará en un momento.
+font_file_stuck	Hay copias anteriores que siguen esperando sus archivos. Podrás elegir otro cuando se den por vencidas.
+font_phone_set	De vuelta a la fuente de tu teléfono. Reinicia Messenger para verla.
+font_phone_failed	No se pudo volver a la fuente de tu teléfono. Inténtalo de nuevo.
+font_size	Tamaño del texto %1$d%%
+font_size_smaller	Más pequeño
+font_size_larger	Más grande
+font_shift_none	El texto queda donde lo pone la fuente
+font_shift_down	Texto %1$d%% más abajo
+font_shift_up	Texto %1$d%% más arriba
+font_shift_up_button	Subir
+font_shift_down_button	Bajar
+font_adjust_help	Si tu fuente se ve demasiado pequeña o queda muy alta o muy baja en una burbuja de mensaje, cambia su tamaño o muévela aquí. Cada movimiento es un 2%% del tamaño del texto. Reinicia Messenger para ver un cambio.
+font_adjust_saved	%1$s. Reinicia Messenger para verlo.
+font_adjust_failed	No se pudo guardar. Tu fuente no cambió.
+hide_delivered	Ocultar Entregado
+hide_delivered_help	También retiene la marca de Entregado, así que un mensaje que recibiste no aparece como entregado en el teléfono de la otra persona. Cubre los chats normales. Los chats cifrados envían Entregado por su cuenta y lo siguen mostrando.
+mark_read	Marcar como leído
+mark_read_done	Marcado como leído
+mark_read_nothing	No hay nada nuevo que marcar como leído
+save_view_once	Botón Guardar en el contenido de una sola vez
+save_view_once_help	Pone un botón Guardar en las fotos de una sola vez y en Quicksnap mientras Permitir capturas de pantalla está activado. Un toque guarda lo que hay en pantalla en tus imágenes, en Pictures/Messenger, para que no lo pierdas cuando la foto se cierre o la eliminen. En un video guarda el fotograma que estás viendo.
+save_view_once_button	Guardar
+save_view_once_saved	Guardado en %1$s
+save_view_once_failed	No se pudo guardar.
+floating_menu	Menú flotante de mensajes
+floating_menu_help	Saca las acciones que aparecen al mantener presionado un mensaje de la parte inferior de la pantalla y las pone en una tarjeta redondeada justo debajo de ese mensaje, como en un iPhone. La fila de emojis se queda donde está y cada acción sigue siendo la de Messenger.
+story_seen_button	Botón Marcar como vista
+story_seen_button_help	Pone un botón con un ojo en las historias que abres. Tócalo cuando quieras que esa persona vea que viste la historia en pantalla. El ojo aparece tachado hasta que lo hagas.
+story_seen	Marcar como vista
+story_seen_done	Marcada como vista
+story_seen_nothing	No hay nada que marcar como visto
+call_confirm_audio	¿Iniciar una llamada de voz?
+call_confirm_video	¿Iniciar una videollamada?
+call_confirm_call	Llamar
+call_confirm_cancel	Cancelar
+chat_jump_title	Saltar a
+chat_jump_first	El primer mensaje
+chat_jump_date	Una fecha
+chat_jump_loading	Cargando mensajes anteriores (%1$d hasta ahora)
+chat_jump_loading_plain	Cargando mensajes anteriores
+chat_jump_seeking	Buscando ese día
+chat_jump_cancel	Cancelar
+chat_jump_start	Este es el comienzo del chat
+chat_jump_found	Este es el primer mensaje de ese día
+chat_jump_next	No hay nada ese día, así que este es el siguiente mensaje
+chat_jump_none	No hay mensajes ese día ni después
+chat_jump_no_dates	No se pueden leer las fechas de este chat
+chat_jump_no_list	No se encuentran los mensajes de este chat
+link_player_play	Reproducir
+link_player_pause	Pausar
+link_player_replay	Volver a reproducir
+link_player_full_screen	Pantalla completa
+link_player_open	Abrir en %1$s
+people.title	Ocultar Personas que quizá conozcas
+people.description	Oculta las personas sugeridas en chats, búsqueda e historias, y en las pestañas Personas y Notificaciones. Ideal si solo quieres a gente que conoces.
+friend_requests.title	Ocultar tarjetas de solicitudes de amistad
+friend_requests.description	Oculta las tarjetas de solicitudes de amistad en tu lista de chats. No acepta ni rechaza a nadie.
+community_inbox.title	Ocultar chats de comunidades a las que te uniste
+community_inbox.description	Oculta de tu lista principal de chats los chats de comunidades a las que te uniste. La búsqueda y las carpetas de comunidades siguen mostrándolos. La lista se actualiza la próxima vez que se refresque.
+growth.title	Ocultar avisos de crecimiento
+growth.description	Oculta los avisos para añadir a más personas, las hojas de consejos en las notas como Hacer públicas mis notas y la tarjeta Comparte tu propia historia.
+inbox_promotions.title	Ocultar promociones de la bandeja de entrada
+inbox_promotions.description	Oculta los banners de promociones en tu lista de chats.
+stories.title	Ocultar historias y notas
+stories.description	Oculta la fila de historias y notas encima de tus chats, y los anillos de historias alrededor de las fotos de perfil.
+instants_button.title	Ocultar el botón Instants
+instants_button.description	Oculta el botón + que aparece deslizándose en el borde derecho de tu lista de chats y el que está debajo de tus burbujas de chat. Los dos abren Instants.
+subtabs.title	Ocultar pestañas de la bandeja de entrada
+subtabs.description	Oculta las pestañas Todos, No leídos y Grupos encima de tus chats.
+inbox_typing.title	Escribiendo en tu lista de chats
+inbox_typing.description	Pone «escribiendo» sobre el último mensaje de un chat de tu lista mientras la otra persona escribe, en vez de mostrarlo solo cuando ya estás dentro del chat. Messenger ya lo trae y el servidor de Meta lo mantiene apagado. Reinicia Messenger para que empiece.
+inbox_search_bar.title	Mantener la barra de búsqueda
+inbox_search_bar.description	Recupera la barra de búsqueda en la parte superior de tu lista de chats cuando Messenger la cambió por un icono de búsqueda. Reinicia Messenger para ver el cambio. No cambia nada si nunca te apareció el icono.
+chat_preview.title	Vista previa de chats al mantener presionado
+chat_preview.description	Mantén presionado un chat para echarle un vistazo en la vista previa de Messenger, con el menú del chat debajo, sin abrir el chat.
+chat_preview_size.title	Vista previa de chat más grande
+chat_preview_size.description	Da más espacio al chat en la vista previa que aparece al mantener presionado un chat, y te deja desplazarte hacia atrás en él ahí mismo. El menú de debajo tiene una altura fija y se desplaza cuando tiene más elementos.
+mark_read_action.title	Ocultar Marcar como leído
+mark_read_action.description	Oculta Marcar como leído en el menú que aparece al mantener presionado un chat en tu lista de chats, para que no marques un chat como leído sin querer. Marcar como no leído se queda.
+pinned_chats.title	Fijar más chats
+pinned_chats.description	Te deja fijar chats por encima del límite de Messenger y vuelve a poner Fijar en los chats que no lo ofrecen. Los chats fijados por encima del límite se quedan en este teléfono, así que no aparecerán en tus otros dispositivos.
+hidden_chats.title	Ocultar chats elegidos
+hidden_chats.description	Añade Ocultar de la lista de chats al menú que aparece al mantener presionado un chat. Un chat oculto no vuelve a tu lista de chats cuando llegan mensajes nuevos, y la búsqueda lo sigue encontrando. Lo que ocultas se queda en este teléfono, y puedes volver a mostrar los chats en los ajustes de HushMessenger. No detiene las notificaciones, así que para eso silencia el chat en Messenger.
+special_contacts.title	Contactos especiales
+special_contacts.description	Añade Rastrear a esta persona al menú que aparece al mantener presionado un chat con una persona. Luego HushMessenger guarda un historial de cuándo se conecta, se desconecta, te escribe y cambia su nombre, a partir de lo que Messenger ya te muestra. El historial se queda en este teléfono, y puedes leerlo en los ajustes de HushMessenger.
+chat_menu_items.title	Ocultar elementos del menú del chat
+chat_menu_items.description	Oculta los elementos que elijas del menú que aparece al mantener presionado un chat en tu lista de chats. Mantén presionado cualquier chat una vez y los elementos de ese menú aparecerán debajo de este interruptor para que los elijas.
+facebook.title	Ocultar accesos directos de Facebook
+facebook.description	Oculta los botones de Facebook, los accesos directos de perfil y de compartir, y las secciones Más de Meta y Suscripciones de la pestaña Menú. Útil si solo usas Messenger.
+meta_ai.title	Ocultar Meta AI
+meta_ai.description	Oculta el botón flotante de Meta AI, su botón en la barra de herramientas, su pestaña y sus entradas de menú, la IA en la búsqueda y en las sugerencias con @, y la oferta de resumir los mensajes no leídos de un chat. Reinicia Messenger para que desaparezca la pestaña.
+moments.title	Ocultar Chat Moments
+moments.description	Oculta Chat Moments en el menú.
+reels_badge.title	Ocultar el indicador de Reels
+reels_badge.description	Oculta el indicador de notificaciones de Reels.
+tab_people.title	Ocultar la pestaña Personas
+tab_people.description	Oculta la pestaña Personas de la barra inferior. Reinicia Messenger para que desaparezca la pestaña.
+tab_people_show.title	Mostrar la pestaña Personas
+tab_people_show.description	Vuelve a poner la pestaña Personas en la barra inferior, justo después de Chats, en las cuentas en las que Messenger la quitó. Si los dos están activados, gana Ocultar la pestaña Personas. Reinicia Messenger para ver la pestaña.
+tab_settings_show.title	Mostrar la pestaña de ajustes
+tab_settings_show.description	Pone la pestaña de ajustes de Messenger al final de la barra inferior, con tu foto, para tener los ajustes de tu cuenta a un toque. Reinicia Messenger para ver la pestaña.
+tab_badges.title	Ocultar indicadores de las pestañas
+tab_badges.description	Oculta los puntos rojos y los contadores de las pestañas de abajo y del botón de Facebook de arriba. Activa Mantener en los que todavía quieras ver. Reinicia Messenger para ver el cambio.
+hide_tab_labels.title	Ocultar los nombres de las pestañas
+hide_tab_labels.description	Quita las palabras de las pestañas de abajo y deja solo los iconos. Los lectores de pantalla siguen nombrando cada pestaña. Reinicia Messenger para ver el cambio.
+tab_icons.title	Tus propios iconos de pestaña
+tab_icons.description	Cambia los iconos de la barra de abajo por iconos sencillos de contorno y te deja poner tu propia imagen en cualquier pestaña. Reinicia Messenger para ver el cambio.
+tab_stories.title	Ocultar la pestaña Historias
+tab_stories.description	Oculta la pestaña Historias de la barra inferior. Reinicia Messenger para que desaparezca la pestaña.
+tab_notifications.title	Ocultar la pestaña Notificaciones
+tab_notifications.description	Oculta la pestaña Notificaciones de la barra inferior. Reinicia Messenger para que desaparezca la pestaña.
+tab_bar_scroll_away.title	Ocultar la barra de pestañas al desplazarte
+tab_bar_scroll_away.description	Aparta la barra de pestañas de abajo cuando te desplazas hacia abajo por tus chats y la trae de vuelta cuando te desplazas hacia arriba. Reinicia Messenger para ver el cambio.
+floating_tab_bar.title	Barra de pestañas flotante
+floating_tab_bar.description	Cambia la barra de pestañas de abajo al estilo flotante que Messenger está probando, que queda sobre tus chats en lugar de debajo. Messenger puede mantener su barra habitual en algunas pantallas. Reinicia Messenger para ver el cambio.
+tab_swipe.title	Deslizar entre pestañas
+tab_swipe.description	Desliza de lado en tus chats para pasar a la siguiente pestaña de la barra de abajo, en vez de bajar la mano hasta su botón. Las pestañas ocultas se saltan, y una lista que se desliza de lado se queda con el gesto. Reinicia Messenger después de activarlo.
+chat_animation.title	Deslizar los chats al abrirlos y cerrarlos
+chat_animation.description	Desliza un chat desde un lado al abrirlo y hacia fuera al volver. No afecta a las burbujas de chat ni a las burbujas de Android.
+story_hold.title	Detener las historias al final
+story_hold.description	Mantiene una historia en pantalla cuando termina en lugar de pasar a la siguiente, así que sigues con un toque o deslizando. Las fotos y los videos esperan, y la última historia se queda abierta hasta que la cierres.
+ai_stickers.title	Ocultar herramientas de stickers con IA
+ai_stickers.description	Oculta los botones Generar y Generar sticker con IA, la pestaña de stickers con IA y las sugerencias de stickers con IA. Los stickers personalizados y de música del menú Generar también desaparecen.
+avatar_stickers.title	Ocultar stickers de avatar
+avatar_stickers.description	Oculta la pestaña de avatar en el teclado de stickers.
+emoji_drawer.title	Restaurar el teclado de emojis anterior
+emoji_drawer.description	Recupera el diseño anterior del teclado de emojis desactivando el rediseño de Meta. Reinicia Messenger para ver el cambio. No cambia nada si nunca te llegó el rediseño.
+emoji_search.title	Mantener la búsqueda de emojis en emojis
+emoji_search.description	Escribir con el teclado de emojis abierto ya no salta a la búsqueda de stickers. El teclado se queda en los emojis.
+chat_promotions.title	Ocultar promociones en los chats
+chat_promotions.description	Oculta los banners de promociones dentro de las conversaciones.
+ad_context_banner.title	Ocultar banners de anuncios en chats de empresas
+ad_context_banner.description	En un chat que empezaste desde el anuncio de una empresa, oculta el banner que muestra ese anuncio.
+suggested_replies.title	Ocultar respuestas sugeridas de empresas
+suggested_replies.description	Oculta las respuestas sugeridas en conversaciones con empresas.
+business_suggestions.title	Ocultar sugerencias de empresas al escribir
+business_suggestions.description	Oculta las sugerencias de empresas que aparecen mientras escribes.
+event_prompts.title	Ocultar avisos de eventos
+event_prompts.description	Oculta los avisos de promoción de eventos dentro de los chats.
+typing.title	Ocultar el indicador de escritura
+typing.description	Evita que Messenger muestre a los demás cuándo estás escribiendo, incluso en los chats con cifrado de extremo a extremo.
+use_system_emoji.title	Usar los emojis del sistema
+use_system_emoji.description	Muestra los emojis con el estilo de tu teléfono en lugar del conjunto integrado de Messenger.
+disappearing_swipe.title	Ignorar el deslizamiento hacia arriba de los mensajes temporales
+disappearing_swipe.description	Deslizar hacia arriba en la parte inferior de un chat ya no activa los mensajes temporales. El desplazamiento funciona como siempre, y puedes seguir activándolos en los ajustes del chat.
+message_actions.title	Personalizar las acciones de los mensajes
+message_actions.description	Elige el orden de las acciones que aparecen al mantener presionado un mensaje y oculta las que no uses, por separado para los mensajes que enviaste y los que recibiste. Las primeras aparecen en la fila debajo del mensaje y el resto en Más. Mantén presionado un mensaje una vez y sus acciones aparecerán abajo.
+auto_reply.title	Respuesta automática
+auto_reply.description	Responde a un mensaje con una respuesta que escribes abajo cuando contiene las palabras que elijas, o a cualquier mensaje si dejas las palabras vacías. Las respuestas se envían con la opción de responder desde la notificación de Messenger, también en chats cifrados, como máximo una vez cada cinco minutos por chat. Solo en chats individuales, a menos que permitas los grupos. En un chat con mensajes temporales activados, Messenger no ofrece responder desde la notificación, así que ese chat no recibe respuesta.
+text_style.title	Texto en negrita y cursiva
+text_style.description	Selecciona palabras que escribiste y elige Negrita o Cursiva en el menú que aparece (puede estar detrás de los tres puntos). Elígelo otra vez para deshacerlo. Negrita cambia las letras de la A a la Z (los acentos no son problema) y los dígitos. Cursiva cambia solo las letras, y los demás alfabetos se quedan como están. Son letras Unicode especiales, así que se ven en cualquier teléfono, pero los lectores de pantalla pueden leerlas de forma extraña.
+quiet_calls.title	Llamadas entrantes en silencio
+quiet_calls.description	Las llamadas siguen entrando, pero Messenger no suena, no vibra ni muestra la llamada sobre tu pantalla. La llamada espera en el panel de notificaciones con Responder y Rechazar. Una llamada perdida sigue apareciendo en el chat. Solo chats elegidos limita esto a los chats que elijas, y todas las demás llamadas suenan. Si tienes la app de Facebook en tu teléfono, puede seguir sonando por la misma llamada.
+quiet_mode.title	Modo silencio
+quiet_mode.description	Un descanso de Messenger. Elige 15 minutos, una hora, dos horas, ocho horas o hasta que lo termines tú, y durante ese tiempo nada de Messenger suena ni vibra. Los mensajes y las llamadas siguen llegando y esperan en la barra de notificaciones, así que no se pierde nada mientras estás fuera. Cada noche, justo debajo, hace lo mismo entre dos horas que elijas. Quien esté en tu lista de Contactos especiales sigue pasando, tanto si te escribe como si te llama.
+car_messages.title	Mensajes en Android Auto
+car_messages.description	Permite que Android Auto lea tus mensajes en voz alta y envíe las respuestas que dictes, en su propia pantalla de mensajes. Android Auto solo muestra apps de Play Store. Activar Fuentes desconocidas en sus ajustes para desarrolladores lo permite en una Desktop Head Unit, aunque en un vehículo real Messenger puede seguir sin aparecer. Reproducir un mensaje en voz alta marca el chat como leído y muestra Visto, aunque Ocultar confirmaciones de lectura esté activado.
+local_chat_search.title	Buscar mensajes guardados
+local_chat_search.description	Añade un botón a los resultados de búsqueda de un chat que busca en los mensajes guardados en este teléfono. Ayuda con chats antiguos en los que la búsqueda de Messenger no encuentra nada. Funciona en chats sin cifrado de extremo a extremo, y solo puede encontrar lo que el teléfono haya cargado, así que primero desplázate hacia arriba en el chat.
+chat_jump.title	Saltar al primer mensaje o a una fecha
+chat_jump.description	Mantén presionado el nombre de un chat en la parte superior para saltar a su primer mensaje o a un día que elijas. La flecha en la parte inferior izquierda del chat lleva a su primer mensaje, y si la mantienes presionada te pide un día. Messenger carga un chat página por página, así que va hacia atrás con un contador en pantalla hasta llegar, y Cancelar lo detiene. Solo puede llegar hasta donde Messenger pueda cargar.
+landscape.title	Permitir modo horizontal
+landscape.description	Permite que Messenger gire con tu teléfono, para tener un teclado más ancho y fotos y videos más grandes. Sigue el ajuste de rotación automática de tu teléfono. Las llamadas, la cámara, los pagos y algunas otras pantallas se quedan en vertical. Reinicia Messenger después de cambiarlo.
+call_recording.title	Grabar llamadas
+call_recording.description	Añade un botón Grabar sobre Messenger durante una llamada. La llamada se guarda en un archivo de sonido en Recordings/Messenger Calls en tu teléfono (Music/Messenger Calls en Android 10 y 11). Mientras está activado, las llamadas usan la ruta de audio normal de Android en lugar de la de Messenger, y Messenger necesita reiniciarse después de cambiarlo. Messenger no avisa a los demás, y las leyes sobre grabaciones cambian de un lugar a otro, así que pide permiso a todos primero.
+call_captions.title	Subtítulos en vivo en llamadas
+call_captions.description	Muestra lo que dicen los demás durante una llamada como subtítulos sobre Messenger. Tu teléfono los genera por sí mismo, y puede traducirlos a tu idioma y leerlos en voz alta. Necesita Android 13 o posterior con reconocimiento de voz en el teléfono. Mientras está activado, las llamadas usan la ruta de audio normal de Android en lugar de la de Messenger, y Messenger necesita reiniciarse después de cambiarlo.
+hide_call_buttons.title	Ocultar botones de llamada
+hide_call_buttons.description	Quita los botones de llamada de voz y videollamada de la barra superior de un chat, de los chats de empresas y de la pantalla Mensaje nuevo, para que no toques uno sin querer. Las llamadas siguen sonando, y puedes unirte a una que esté en curso.
+call_confirm.title	Preguntar antes de llamar
+call_confirm.description	Tocar un botón de llamada de voz o videollamada pregunta primero, así un toque accidental no llama a nadie. Esto incluye la barra superior de un chat, los chats de empresas y la pantalla Mensaje nuevo. Llamar la inicia y Cancelar no. Las llamadas entrantes no cambian.
+original_photo.title	Enviar fotos en calidad original
+original_photo.description	Con HD activado, envía las fotos JPEG a su tamaño completo, no una copia más pequeña. La ubicación se sigue quitando. Las fotos de más de 20 MB se siguen reduciendo.
+original_video.title	Enviar videos sin recodificar
+original_video.description	Envía un video como el archivo original cuando Messenger lo permite, en lugar de una copia recomprimida. Los videos de más de 25 MB y los videos editados se siguen comprimiendo.
+xhe_audio.title	Arreglar videos que no se envían
+xhe_audio.description	Algunos videos fallan con "No se pudo enviar", incluso en Messenger sin parches, por un formato de sonido más nuevo (xHE-AAC) o una etiqueta que añade la grabadora de pantalla de Samsung. Esto arregla el sonido o quita la etiqueta antes de que salga el video, tanto si lo compartes en Messenger como si lo eliges en un chat. La imagen no se toca.
+media_caption.title	Pon tu texto encima de la foto
+media_caption.description	Escribe algo, adjunta una foto o un video y tu texto sale primero, como su propio mensaje encima, en vez de debajo. Las menciones siguen funcionando. Si no escribes nada, la foto sale sola, como siempre.
+recent_media.title	Ocultar la tarjeta de foto reciente
+recent_media.description	Abrir un chat justo después de hacer una captura de pantalla, tomar una foto o grabar un video ya no muestra una tarjeta encima del cuadro de mensaje que ofrece enviarlo. Puedes seguir eligiéndolo desde la galería.
+save_voice.title	Guardar los mensajes de voz que reproduces
+save_voice.description	Cada mensaje de voz que reproduces también se guarda en Recordings/Messenger en tu teléfono (Music/Messenger en Android 10 y 11), donde un administrador de archivos u otro reproductor puede abrirlo. Volver a reproducirlo no guarda otra copia.
+save_voice_menu.title	Botón Guardar para mensajes de voz
+save_voice_menu.description	Mantén presionado un mensaje de voz y toca Más: Guardar mensaje de voz es la primera fila, para guardar solo ese. Se guarda en la misma carpeta que Guardar los mensajes de voz que reproduces, y ese interruptor puede quedarse desactivado.
+share_story.title	Ocultar Tu historia al compartir
+share_story.description	Cuando compartes una foto, un video o un enlace en Messenger desde otra app, el menú para compartir de tu teléfono ya no ofrece Tu historia de Messenger, así que va directo a Chats. La lista Enviar a también quita Tu historia, así que tocar Añadir no puede publicarla por error. Tus chats y grupos siguen ahí.
+system_camera.title	Usar la app de cámara del teléfono
+system_camera.description	El botón de cámara de un chat abre la app de cámara de tu teléfono. La foto se abre en el editor de Messenger, lista para enviar. Activa Preguntar foto o video para grabar videos también.
+external_gallery.title	Abrir tu app de galería
+external_gallery.description	El botón de galería de un chat abre la app de galería de tu teléfono. Una foto o un video se abre en el editor de Messenger para ese chat, listo para enviar. Si eliges varios, se abre el panel Enviar a de Messenger con todos ellos y ese chat arriba.
+gallery_to_chat.title	Poner lo elegido en la galería en el chat
+gallery_to_chat.description	Con Abrir tu app de galería activado, lo que elijas va al cuadro de mensaje del chat como con la galería de Messenger, en lugar del editor o del panel Enviar a. No se envía nada hasta que tocas Enviar. Un chat que ya estaba abierto necesita volver a abrirse.
+paste_photo.title	Pegar una foto en el chat
+paste_photo.description	Una foto que pegas en un chat va al cuadro de mensaje del chat, como lo que eliges en tu galería, en lugar de salir por su cuenta. No se envía nada hasta que tocas Enviar, así que puedes añadir un comentario o cambiar de idea. El texto pegado y los GIF del teclado funcionan como antes. Un chat que ya estaba abierto necesita volver a abrirse.
+instant_gallery.title	Enviar Instants desde tu galería
+instant_gallery.description	Tocar el obturador en Instants abre la app de galería de tu teléfono en lugar de tomar una foto. La foto que elijas sale como el Instant, recortada a la forma de la cámara. Si sales de la galería, no se envía nada.
+view_once_anywhere.title	Ofrecer Ver una vez en todos los chats
+view_once_anywhere.description	La galería de Messenger muestra el botón de Ver una vez solo en algunos chats, así que un grupo nunca lo tiene. Esto lo ofrece en todos los sitios donde se abre la galería. Que el Messenger del otro lado lo trate como Ver una vez sigue dependiendo de Meta.
+external_browser.title	Abrir los enlaces web fuera de Messenger
+external_browser.description	Abre los enlaces web (http y https) en tu navegador predeterminado. Los demás tipos de enlaces funcionan como antes.
+link_player.title	Reproducir los enlaces de vídeo en el chat
+link_player.description	Un vídeo de YouTube, TikTok, Instagram o Facebook que te compartan se reproduce en una ventana sobre el chat, en lugar de llevarte a la aplicación o al navegador. El vídeo viene del reproductor del propio sitio y la ventana no guarda cookies. Los enlaces acortados (salvo youtu.be), las historias de Facebook y todo lo que no sea una página de vídeo se abren como siempre.
+bubbles.title	Permitir burbujas
+bubbles.description	Elige Original, Burbujas de chat o Burbujas de Android abajo. Las burbujas de Android necesitan Android 11 o posterior, una cuenta compatible y permiso de notificaciones. Reinicia Messenger después de cambiarlo.
+analytics_uploads.title	Detener el envío de analíticas
+analytics_uploads.description	Evita que los servicios en segundo plano de Messenger envíen estadísticas de uso. Messenger las sigue registrando en tu teléfono, y pueden enviarse después de que desactives esto.
+attribution_uploads.title	Detener el envío de atribución de anuncios
+attribution_uploads.description	Detiene la tarea que lee el ID de publicidad de tu teléfono y lo envía a Meta junto con tu ajuste de seguimiento de anuncios. El ID en sí no cambia.
+ad_events.title	Detener el registro de la bandeja y de los enlaces de anuncios
+ad_events.description	Detiene dos informes que registra Messenger. Uno indica qué parte de tu lista de chats estaba en pantalla, algo que Messenger clasifica como anuncios de la bandeja de entrada. El otro indica qué anuncio te trajo cuando un enlace de un anuncio abre un chat.
+dwell_tracking.title	Detener el registro del tiempo de atención
+dwell_tracking.description	Detiene el informe que Messenger envía cuando sales de una pantalla, donde consta cuánto tiempo miraste cada elemento, en qué orden y cuántas veces volviste. También detiene la copia de esos tiempos que va al registro de recorrido de Messenger.
+mqtt_telemetry.title	Detener el registro de la conexión en vivo
+mqtt_telemetry.description	Descarta los informes de estado y el registro de notificaciones push que Messenger envía por su conexión en vivo (MQTT). Messenger envía la mayor parte de su tráfico por otra vía, así que a menudo hay poco que descartar. Los mensajes, las llamadas y el estado de actividad siguen funcionando.
+nearby_scans.title	Detener la búsqueda de redes cercanas
+nearby_scans.description	Evita que Messenger lea la lista de redes Wi-Fi a tu alrededor y oculta el nombre y la dirección de hardware de la red a la que estás conectado, igual que hace Android cuando Messenger no puede ver tu ubicación. También detiene el temporizador que puede ejecutar mientras está abierto para comprobar tu ubicación y buscar redes Wi-Fi y dispositivos Bluetooth.
+phone_id_sync.title	Dejar de compartir la lista de apps y el ID del dispositivo
+phone_id_sync.description	Evita que Messenger revise las apps de tu teléfono para encontrar otras apps de Meta, y que les pida el ID de dispositivo que Meta usa para vincular las apps de un mismo teléfono. Messenger conserva el ID que ya tiene.
+message_log.title	Guardar un registro de mensajes
+message_log.description	Guarda cada mensaje cuando llega su notificación, para que puedas leerlo después de que se anule su envío, y marca los que se anularon. Funciona en chats cifrados. Se queda en tu teléfono. En un chat con mensajes temporales activados, Messenger no incluye el texto en su notificación, así que esos mensajes no se registran.
+allow_screenshot.title	Permitir capturas de pantalla
+allow_screenshot.description	Te deja hacer capturas de pantalla del contenido protegido de los chats, como las fotos de una sola visualización y Quicksnap, y detiene los avisos de captura de pantalla. Un interruptor debajo pone un botón Guardar en el visor de una sola vez. No añade la opción de volver a ver.
+secure_chat.title	Bloquear capturas de pantalla en los chats
+secure_chat.description	Impide hacer una captura de pantalla o grabar la pantalla de un chat que tengas abierto en este teléfono, y deja el chat fuera de la vista previa del selector de apps. Android rechaza la captura por su cuenta, así que cubre todos los chats y no solo los de mensajes temporales. Un chat que ya estaba abierto hay que volver a abrirlo. La persona con la que chateas sigue teniendo su propio teléfono para hacer capturas.
+appear_offline.title	Aparecer desconectado
+appear_offline.description	Impide que Messenger diga a los demás que estás activo, mientras tú sigues viendo quién lo está. El ajuste Estado activo de Messenger se queda encendido, así que los puntos verdes de tu lista de chats y de la pestaña Personas funcionan como siempre, y solo cambia lo que Messenger cuenta sobre ti. Surte efecto la próxima vez que Messenger pase al fondo o vuelva, así que reiniciarlo hace que el cambio se aplique de inmediato.
+hide_read_receipts.title	Ocultar confirmaciones de lectura
+hide_read_receipts.description	Abrir un chat ya no le dice a la gente que leíste su mensaje, y el chat sigue sin leer aquí. Si lo marcas como leído o respondes, el chat pasa a leído y aparece Visto, como en Messenger. Los chats de grupo no están probados. El ajuste Confirmaciones de lectura de Messenger, en Privacidad y seguridad, marca los chats como leídos sin Visto. Ocultar Entregado, debajo, también retiene la marca de Entregado en los chats normales.
+mark_read_button.title	Botón Marcar como leído
+mark_read_button.description	Pone el icono Marcar como leído de Messenger en la barra superior de un chat mientras Ocultar confirmaciones de lectura está activado. Abrir el chat sigue sin enviar nada. Toca el icono cuando quieras que el remitente vea Visto, y el chat también pasa a leído aquí. Cuando la barra está llena, ocupa el lugar del botón de detalles del chat (tocar el nombre del chat abre la misma página), o de otro botón que no sea de llamadas cuando un chat no tiene ese botón, así que los botones de llamada se quedan en su sitio.
+read_chats_locally.title	Marcar los chats como leídos en este teléfono
+read_chats_locally.description	Quita el aspecto de no leído de un chat que abriste mientras Ocultar confirmaciones de lectura está activado, así la lista de chats deja de mostrarlo en negrita y con un número. No se envía nada a Messenger, así que la otra persona sigue sin saber que lo leíste. Un mensaje nuevo en el chat le devuelve el aspecto de no leído.
+keep_unsent.title	Conservar mensajes anulados
+keep_unsent.description	Mantiene los mensajes en pantalla después de que alguien anule su envío. En los chats cifrados conserva el texto que ya viste en el chat o en una notificación, y lo sigue teniendo después de que Messenger se reinicie. Los chats de grupo no están probados. Las anulaciones de tus propios mensajes pueden estar limitadas.
+hidden_words.title	Ocultar mensajes con tus palabras
+hidden_words.description	Oculta los mensajes que traen palabras que tú elijas. Escríbelas abajo, separadas por comas. Un mensaje que llegue con alguna de ellas aparece como [hidden] en el chat en lugar de su texto, y no se muestra ninguna notificación. No se envía nada de vuelta ni se borra nada, así que el mensaje sigue ahí para quien lo escribió, y los mensajes que tú envías salen como siempre. La última línea de la lista de chats sigue mostrando la vista previa de Messenger.
+anonymous_stories.title	Ver historias de forma anónima
+anonymous_stories.description	Abre las historias de otras personas sin añadirte a su lista de espectadores. Messenger sigue marcándolas como vistas de tu lado.
+save_stories.title	Guardar cualquier historia
+save_stories.description	Añade Guardar al menú Más opciones en las historias de otras personas, para que puedas guardar la foto o el video en tu teléfono.
+blocked_list_pictures.title	Ocultar fotos en la lista de bloqueados
+blocked_list_pictures.description	Oculta las fotos de perfil en la lista de personas que bloqueaste, en Privacidad y seguridad. Sus nombres y el botón Desbloquear se quedan.
+restricted_notify.title	Notificar los chats restringidos
+restricted_notify.description	Los chats con personas que restringiste te notifican como tus otros chats, salvo que tengan cifrado de extremo a extremo. Un chat que silenciaste sigue en silencio. Las personas restringidas siguen sin poder ver cuándo estás en línea ni cuándo leíste sus mensajes.
+passkey_login.title	Omitir el inicio de sesión con llave de acceso
+passkey_login.description	Al iniciar sesión ya no se ofrece la llave de acceso de este teléfono, así que Facebook vuelve a pedirte que apruebes el inicio de sesión desde otro dispositivo en el que ya estés conectado, igual que con una cuenta sin llave de acceso. Un Messenger parcheado no puede pasar la comprobación de llaves de acceso de Facebook, y eso es lo que deja algunos inicios de sesión dando vueltas en la comprobación del navegador. Mientras está activado, Messenger tampoco puede usar una llave de acceso para sus copias de seguridad cifradas, así que déjalo desactivado salvo que un inicio de sesión se quede atascado. Mantén pulsado el icono de Messenger en la pantalla de inicio para llegar a estos ajustes sin iniciar sesión.
+material_you.title	Tema Material You
+material_you.description	Colorea el modo oscuro de Messenger con los colores de tu fondo de pantalla en Android 12 y posterior, y con un azul fijo en Android 11. Activa primero el modo oscuro en Messenger. El modo claro mantiene sus colores salvo que actives Color de acento en modo claro.
+app_icons.title	Desbloquear iconos de la app
+app_icons.description	Te deja elegir cualquier icono en el ajuste Icono de la app de Messenger sin suscripción. Messenger decide si ese ajuste te aparece. Desactivar esto puede devolver el icono predeterminado.
+app_themes.title	Desbloquear temas de la app
+app_themes.description	Te deja elegir cualquier tema en el ajuste Tema de Messenger sin suscripción, así que el modo claro también puede tener color. Messenger sigue decidiendo qué temas ofrece a tu cuenta.
+avatar_shape.title	Fotos de perfil cuadradas
+avatar_shape.description	Muestra las fotos de perfil de la gente como cuadrados en lugar de círculos. Activa Redondear las esquinas abajo para tener cuadrados redondeados. Reinicia Messenger para ver el cambio.
+home_header.title	Tu propio encabezado de inicio
+home_header.description	Pone un texto o una imagen tuya en la parte superior de la lista de chats en lugar del logotipo de Messenger. Escribe el texto o elige la imagen abajo. Sin ninguno de los dos, se queda el logotipo. Reinicia Messenger para ver un cambio.
+custom_font.title	Usar tu propia fuente
+custom_font.description	Muestra el texto de Messenger con la fuente de tu teléfono en lugar de la de Meta, o con un archivo de fuente .ttf u .otf que elijas abajo, que además puedes hacer más grande o más pequeña y mover hacia arriba o hacia abajo. Los emojis no cambian. Reinicia Messenger para ver un cambio.
+menu_blur.title	Desenfocar detrás de los menús
+menu_blur.description	Desenfoca la pantalla detrás del menú que aparece al mantener presionado un chat o un mensaje, y detrás de los otros menús emergentes y paneles de Messenger, como en un iPhone. Necesita Android 12 o posterior.
+invisible_buttons.title	Botones invisibles
+invisible_buttons.description	Vuelve invisibles, o medio transparentes, los botones que elijas abajo, pero conservan su lugar, su tamaño y lo que hacen, así que un toque sigue llegando. Funciona en la lista de chats, dentro de un chat y en los menús, también con los botones de HushMessenger. Cada botón que Messenger te ha mostrado aparece con el nombre que dice un lector de pantalla, así que usa Messenger un rato para llenar la lista.
+ios_bars.title	Barras del chat translúcidas
+ios_bars.description	La barra de arriba del chat y la caja de mensajes se vuelven translúcidas, con los mensajes pasando por debajo y asomando borrosos, como lo hacen las barras de un iPhone. Necesita Android 12 o posterior.

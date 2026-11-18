@@ -1299,6 +1299,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_ask_before_following_reels", FALSE);
 
     /**
+     * A tap on a reaction at the bottom of a story asks "React to this story?" first, with the story
+     * paused while it's up, and only Continue sends the reaction
+     * ({@link app.morphe.extension.facebook.feed.AskBeforeLike}, #502). Starts off. Read on each tap.
+     */
+    public static final BooleanSetting ASK_BEFORE_REACTING_TO_STORIES =
+            new BooleanSetting("hushfacebook_ask_before_reacting_to_stories", FALSE);
+
+    /**
      * Facebook's own double-tap skip on reels and videos, which a server test keeps off for most
      * accounts: a double tap on the left or right edge skips back or forward 10 seconds, or 5 on a
      * video under 30 seconds ({@link app.morphe.extension.facebook.reels.DoubleTapSkip}, #225).
@@ -3323,6 +3331,24 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting HIDE_COMMENT_REACTIONS =
             new BooleanSetting("hushfacebook_hide_comment_reaction_preview", FALSE);
+
+    /**
+     * The friend bubbles over a post's photo or video, each a friend's picture with the reaction they
+     * left, are left out, and the media is drawn as for a post nobody Facebook shows reacted to
+     * ({@link app.morphe.extension.facebook.feed.PostPrompts#hideReactionBubbles}, #483). Off by
+     * default. A change shows on the posts drawn after it.
+     */
+    public static final BooleanSetting HIDE_REACTION_BUBBLES =
+            new BooleanSetting("hushfacebook_hide_reaction_bubbles", FALSE);
+
+    /**
+     * The line under a post that names who reacted ("Name and others reacted", "Name and 20 others")
+     * is left out, and the bar under the post keeps whatever else it shows
+     * ({@link app.morphe.extension.facebook.feed.PostPrompts#hideReactorNames}, #483). Off by
+     * default. A change shows on the posts drawn after it.
+     */
+    public static final BooleanSetting HIDE_REACTOR_NAMES =
+            new BooleanSetting("hushfacebook_hide_reactor_names", FALSE);
 
     /**
      * The profile picture leaves the top of posts, and the name moves over into its space

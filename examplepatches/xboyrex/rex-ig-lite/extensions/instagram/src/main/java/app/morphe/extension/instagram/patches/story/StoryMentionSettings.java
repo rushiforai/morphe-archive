@@ -46,7 +46,14 @@ public final class StoryMentionSettings {
 
     public static ArrayList addButtons(ArrayList list) {
         try {
-            list.add(menuLabel());
+            if (list != null) {
+                for (Object item : list) {
+                    if (item != null && item.toString().toLowerCase(Locale.ROOT).contains("mention pill")) {
+                        return list;
+                    }
+                }
+                list.add(menuLabel());
+            }
         } catch (Throwable t) {
             Log.e(TAG, "addButtons failed", t);
         }

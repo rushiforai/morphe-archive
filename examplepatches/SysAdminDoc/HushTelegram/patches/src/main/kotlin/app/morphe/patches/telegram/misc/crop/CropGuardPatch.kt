@@ -79,7 +79,7 @@ val cropGuardPatch = bytecodePatch(
 ) {
     category("Fixes")
     dependsOn(settingsPatch, telegramExtensionPatch)
-    compatibleWith(*AppCompatibilities.telegram())
+    compatibleWith(*AppCompatibilities.telegramOnly())
     execute {
         val sites = resolveCropGuard()
         // Assembled on copies first, so a refusal leaves the app untouched.

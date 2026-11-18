@@ -4,8 +4,9 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
-import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.classDefByOrNull
+import app.morphe.patcher.patch.mutableClassDefBy
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -310,7 +311,7 @@ internal fun resolveHiddenChatRoute(list: Method, row: Method, tap: Method, clas
 }
 
 /** Checks the extension's half before any edit and returns the stub the route goes into. */
-internal fun BytecodePatchContext.hiddenChatStub(): MutableMethod {
+internal fun hiddenChatStub(): MutableMethod {
     val calls = classDefByOrNull(CHAT_HIDING)?.methods?.toList().orEmpty()
     for (id in listOf(HIDDEN_ROWS_CALL, HIDE_ROW_CALL, HIDE_TAP_CALL)) {
         val call = calls.singleOrNull { it.hookId() == id }

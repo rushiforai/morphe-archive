@@ -30,6 +30,7 @@ import app.morphe.util.addInstruction
 import app.morphe.util.addInstructions
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.addInstructionsWithLabels
+import app.morphe.util.findInstructionIndicesReversedOrThrow
 import app.morphe.util.findMutableMethodOf
 import app.morphe.util.literalReads
 import app.morphe.util.returnEarly
@@ -77,6 +78,32 @@ internal object LivePlayFragmentResumeFingerprint : Fingerprint(
     name = "onResume",
     returnType = "V",
     parameters = listOf(),
+)
+
+internal const val LIVE_MENTIONS_EXTENSION = "Lapp/morphe/extension/tiktok/live/LiveMentions;"
+
+/** A message from the LIVE message server, real-named on 47.8.3. */
+internal const val LIVE_MESSAGE = "Lcom/ss/ugc/live/sdk/message/data/IMessage;"
+
+/**
+ * The LIVE message manager's dispatch of one message (#424), in the obfuscated manager that
+ * implements the room's message manager. It tells TikTok's event listeners a message is about to
+ * go out, stamps "dispatch_strategy" and "dispatch_time" on its tracking, then hands it to each
+ * listener. Every chat line and caption a room gets passes here once, so the name alert reads
+ * each one at the top of the method.
+ */
+internal object LiveMessageDispatchFingerprint : Fingerprint(
+    returnType = "V",
+    parameters = listOf(LIVE_MESSAGE),
+    strings = listOf("dispatch_strategy", "dispatch_time"),
+    filters = listOf(
+        methodCall(
+            opcode = Opcode.INVOKE_INTERFACE,
+            definingClass = "Lcom/ss/ugc/live/sdk/message/interfaces/EventListener;",
+            name = "onPreDispatchMessage",
+            parameters = listOf(LIVE_MESSAGE),
+        ),
+    ),
 )
 
 private const val PIP_PARAMS_BUILDER = "Landroid/app/PictureInPictureParams\$Builder;"
@@ -145,7 +172,7 @@ internal object LivePreviewAutoEnterFingerprint : Fingerprint(
     strings = listOf("live_preview_page_enable_auto_entering_guide", "homepage_follow"),
 )
 
-/** The AI Summary card on a feed LIVE preview, real-named on 47.7.3 (#418). */
+/** The AI Summary card on a feed LIVE preview, real-named on 47.8.3 (#418). */
 internal const val LIVE_AI_SUMMARY_WIDGET =
     "Lcom/ss/android/ugc/aweme/feed/adapter/widget/aisummary/LiveAiSummaryWidget;"
 
@@ -168,16 +195,16 @@ internal object LiveAiSummaryShowFingerprint : Fingerprint(
 /**
  * The newer AI Summary card, a bottom card the LIVE preview's interaction layer loads instead of
  * or beside the older one when the room's LiveNewAiSummaryConfig is enabled (#418). It never goes
- * through the base widget's show, so the older card's guard can't reach it. Real-named on 47.7.3.
+ * through the base widget's show, so the older card's guard can't reach it. Real-named on 47.8.3.
  */
 internal const val LIVE_AI_SUMMARY_NEW_WIDGET =
     "Lcom/ss/android/ugc/aweme/feed/adapter/widget/aisummary/LivePreviewAiSummaryNewWidget;"
 
-/** The room's newer-card settings, a real-named server config read through LX/1KO2 on 47.7.3. */
+/** The room's newer-card settings, a real-named server config read through LX/1KO2 on 47.8.3. */
 internal const val LIVE_NEW_AI_SUMMARY_CONFIG = "Lcom/ss/android/ugc/aweme/ab/LiveNewAiSummaryConfig;"
 
 /**
- * The newer card's countdown (startCountDownToShow, e2 on 47.7.3). Its bind, its slot observer
+ * The newer card's countdown (startCountDownToShow, e2 on 47.8.3). Its bind, its slot observer
  * and its holder-selected path all run it, and it's the only place that arms the runnable that
  * claims the bottom-card slot and makes the card visible, after the room's delayShowInterval.
  */
@@ -189,7 +216,7 @@ internal object LiveAiSummaryNewCountdownFingerprint : Fingerprint(
 )
 
 /**
- * The newer card's hide (f2 on 47.7.3). Handed false it sets the card's view GONE and frees the
+ * The newer card's hide (f2 on 47.8.3). Handed false it sets the card's view GONE and frees the
  * bottom-card slot, and it returns at once when the card isn't up.
  */
 internal object LiveAiSummaryNewHideFingerprint : Fingerprint(
@@ -268,8 +295,47 @@ internal object LiveClearScreenSessionFingerprint : Fingerprint(
     parameters = listOf(),
 )
 
+/** The full screen button of a portrait LIVE room, both versions real-named on 47.8.3. */
+internal const val LIVE_FULL_VIDEO_BUTTON = "Lcom/bytedance/android/livesdk/chatroom/viewmodule/FullVideoButtonWidget;"
+internal const val LIVE_FULL_VIDEO_BUTTON_V2 = "Lcom/bytedance/android/livesdk/chatroom/viewmodule/FullVideoButtonWidgetV2;"
+
 /**
- * LIVE's per-room controller (X.0Las on 47.7.3, whose obfuscated name moves every build), found by
+ * Whether a LIVE room loads its full screen button (#57). It answers true only for a LIVE Studio
+ * or screen share room that isn't a star room, or while live_mt_mock_landscape is on, and on the
+ * way it notes whether the room is a multi-stream one. Once loaded, the button shows while the
+ * video is wide, and a tap turns the room to landscape. Its last return carries that answer; the
+ * first one answers false for a widget that has no data channel yet.
+ */
+internal object LiveFullVideoButtonAttachFingerprint : Fingerprint(
+    definingClass = LIVE_FULL_VIDEO_BUTTON,
+    name = "shouldAttach",
+    returnType = "Z",
+    parameters = listOf(),
+)
+
+/** The same answer for the button's second version, which rooms load in its place. */
+internal object LiveFullVideoButtonV2AttachFingerprint : Fingerprint(
+    definingClass = LIVE_FULL_VIDEO_BUTTON_V2,
+    name = "shouldAttach",
+    returnType = "Z",
+    parameters = listOf(),
+)
+
+/**
+ * Hands a full screen button's shouldAttach answer to the extension at its last return, on that
+ * return's label so the branch onto it runs the call too (#57).
+ */
+internal fun hookFullScreenAttach(method: MutableMethod) = method.apply {
+    val last = findInstructionIndicesReversedOrThrow { opcode == Opcode.RETURN }.first()
+    val register = getInstruction<OneRegisterInstruction>(last).registerA
+    addInstructionsAtControlFlowLabel(last, """
+        invoke-static/range { v$register .. v$register }, $EXTENSION->offerFullScreen(Z)Z
+        move-result v$register
+    """)
+}
+
+/**
+ * LIVE's per-room controller (X.0LVx on 47.8.3, whose obfuscated name moves every build), found by
  * its constructor. It owns the actual clear state, including swipe gestures, and that constructor
  * may restore Clear screen before the room page has resumed.
  */
@@ -423,7 +489,7 @@ internal const val LIVE_STREAM_URL = "Lcom/bytedance/android/livesdkapi/depend/m
 internal const val AUDIO_SWITCH_REFUSED = "not support switch to audio, streamFormat: "
 
 /**
- * The LIVE player's message loop (X.0Jxr on 47.7.3). A switch to "ao", a room's sound on its own,
+ * The LIVE player's message loop (X.0JtB on 47.8.3). A switch to "ao", a room's sound on its own,
  * goes through there only while the server's EnableOnlyAudioInAoRes flag is on, and logs
  * [AUDIO_SWITCH_REFUSED] otherwise (#265).
  */
@@ -435,7 +501,7 @@ internal object LiveAudioSwitchGateFingerprint : Fingerprint(
 )
 
 /**
- * Whether the player is on a room's sound alone (LLJJJJLIIL on 47.7.3), which adds
+ * Whether the player is on a room's sound alone (LLJJJJLIIL on 47.8.3), which adds
  * only_audio=1 to the room's address so the picture stops downloading. It checks the same flag.
  */
 internal object LiveAudioUrlGateFingerprint : Fingerprint(
@@ -1204,7 +1270,7 @@ private const val DATA_CHANNEL = "Lcom/bytedance/ies/sdk/datachannel/DataChannel
 /**
  * Adds Audio only to the older picker's rows (#265), the one Share > Video quality opens on some
  * accounts (Login2, 2026-11-05). [viewCreated] gets its rows from a static builder that takes the
- * room's data channel (X.0fUN.LIZ on 47.7.3). TikTok also reads that builder to find the next lower
+ * room's data channel (X.0yBd.LIZ on 47.8.3). TikTok also reads that builder to find the next lower
  * quality on a weak connection, so the row goes only into the dialog's copy: right after the
  * builder answers, the extension answers the rows. A jump to the instruction after the answer
  * skips the hook, as it should, since the rows didn't just come from the builder there. Returns
@@ -1570,7 +1636,7 @@ private const val SET_BACKGROUND = "Landroid/view/View;->setBackground(Landroid/
  * view, from a lazy field and gives it a rounded shape drawn from the badge's server background
  * (a border around the server's art, a server color, or a border alone). The server draws that
  * art and the text over it for the white card, the low levels' "Lv." tile see-through, so on the
- * dark card the tile and its text went dark gray together (Login2, 2026-10-20). On 47.7.3 the
+ * dark card the tile and its text went dark gray together (Login2, 2026-10-20). On 47.8.3 the
  * bind is X.10n1.LJIJI again: it takes the badge and returns nothing, like 47.6.3's X.0wa2.LJIJI,
  * and sets the tile's background on each of those three paths. 47.7.2 had inlined it into
  * X.11kh.LJJIIZI(User)Z, with the same three calls.
@@ -1744,7 +1810,7 @@ internal fun guideBubbleView(builder: Method, classOf: (String) -> ClassDef?): S
 
 /**
  * The container LIVE anchors its toolbar tips in, the creator's direct message tip among them
- * (X.0Xoe on 47.7.3, #362): the one FrameLayout answering getWindowRect, beside getAnchorRect.
+ * (X.0XZJ on 47.8.3, #362): the one FrameLayout answering getWindowRect, beside getAnchorRect.
  * TikTok draws the tip white, and its text took the darkened room's white, so it read white on
  * white. Its (Context) constructor builds the tip's own view from that context too.
  */
@@ -1778,11 +1844,136 @@ internal fun hookLightRoomView(constructor: MutableMethod, view: String) {
     )
 }
 
+/** LIVE's widget base, real-named on 47.8.3. */
+internal const val LIVE_WIDGET = "Lcom/bytedance/android/widget/Widget;"
+
+/** The manager LIVE's widgets load through, real-named on 47.8.3. */
+internal const val LIVE_WIDGET_MANAGER = "Lcom/bytedance/android/widget/WidgetManager;"
+
+/** The managers a LIVE room loads widgets through: the base and its two recycling kinds, real-named on 47.8.3. */
+internal val LIVE_WIDGET_MANAGERS = listOf(
+    LIVE_WIDGET_MANAGER,
+    "Lcom/bytedance/ies/sdk/widgets/RecyclableWidgetManager;",
+    "Lcom/bytedance/ies/sdk/widgets/LayeredWidgetManagerV2;",
+)
+
+private val LIVE_WIDGET_TYPES = setOf(LIVE_WIDGET, "Lcom/bytedance/ies/sdk/widgets/LiveRecyclableWidget;")
+
+/** The managers' loaders that take a widget beside whether it inflates in the background. */
+private val LIVE_WIDGET_LOADERS = setOf(
+    "loadNew", "loadOld", "generateNewWidget", "generateOldWidget", "generateNewWidgetV2", "generateOldWidgetV2",
+)
+
+/** Whether [method] is the manager's overlay inflater, which wraps an inflater in a widget's theme overlay. */
+internal fun isWidgetOverlayInflater(method: Method) =
+    method.name == "getThemeOverlayLayoutInflater" && method.returnType == "Landroid/view/LayoutInflater;" &&
+        method.parameterTypes.map(CharSequence::toString) == listOf("Landroid/view/LayoutInflater;", "I") &&
+        !AccessFlags.STATIC.isSet(method.accessFlags)
+
+/**
+ * Where [method]'s background flag sits as a loader: the flag's index among its parameters and
+ * whether the widget comes right before it, or null for a method that isn't one of the loaders or
+ * keeps the flag apart from its widget.
+ */
+internal fun widgetLoaderFlag(method: Method): Pair<Int, Boolean>? {
+    if (method.name !in LIVE_WIDGET_LOADERS || AccessFlags.STATIC.isSet(method.accessFlags) ||
+        AccessFlags.SYNTHETIC.isSet(method.accessFlags) || method.implementation == null
+    ) {
+        return null
+    }
+    val types = method.parameterTypes.map(CharSequence::toString)
+    val flag = types.indexOf("Z")
+    if (flag < 0 || types.lastIndexOf("Z") != flag || types.any { it == "J" || it == "D" }) return null
+    return when {
+        flag > 0 && types[flag - 1] in LIVE_WIDGET_TYPES -> flag to true
+        flag + 1 < types.size && types[flag + 1] in LIVE_WIDGET_TYPES -> flag to false
+        else -> null
+    }
+}
+
+/**
+ * Hands the overlay inflater's inflater and overlay to the extension first, which answers the
+ * inflater the overlay goes over: one over the room's light theme for a pinned comment the manager
+ * just named, TikTok's own for everything else.
+ */
+internal fun hookWidgetOverlayInflater(method: MutableMethod) {
+    if (!isWidgetOverlayInflater(method)) {
+        throw PatchException("LIVE controls: the widget manager's overlay inflater is gone")
+    }
+    method.addInstructions(
+        0,
+        """
+            invoke-static/range {p1 .. p2}, $PANEL_THEME->widgetInflater(Landroid/view/LayoutInflater;I)Landroid/view/LayoutInflater;
+            move-result-object p1
+        """,
+    )
+}
+
+/**
+ * Names the widget to the extension right before each of [method]'s calls to the overlay inflater,
+ * from the receiver of the widget's getThemeOverlay just before it, which that call's overlay came
+ * from. A write to that register or a branch landing in between could name another widget, so
+ * either is refused. Returns how many calls were hooked.
+ */
+internal fun hookWidgetLoads(method: MutableMethod): Int {
+    val code = method.implementation?.instructions?.toList() ?: return 0
+    val called = { at: Int -> (code[at] as? ReferenceInstruction)?.reference as? MethodReference }
+    val calls = code.indices.filter { at ->
+        val call = called(at)
+        (code[at].opcode == Opcode.INVOKE_VIRTUAL || code[at].opcode == Opcode.INVOKE_VIRTUAL_RANGE) &&
+            call != null && call.name == "getThemeOverlayLayoutInflater" &&
+            call.parameterTypes.map(CharSequence::toString) == listOf("Landroid/view/LayoutInflater;", "I")
+    }
+    for (call in calls.reversed()) {
+        val overlay = (call - 1 downTo 0).firstOrNull { at ->
+            val asked = called(at)
+            asked != null && asked.name == "getThemeOverlay" && asked.returnType == "I" &&
+                asked.parameterTypes.map(CharSequence::toString) == listOf("Landroid/content/Context;")
+        } ?: throw PatchException("LIVE controls: ${method.name} asks for an overlay inflater with no widget's overlay")
+        val widget = when (val ask = code[overlay]) {
+            is FiveRegisterInstruction -> ask.registerC
+            is RegisterRangeInstruction -> ask.startRegister
+            else -> throw PatchException("LIVE controls: ${method.name} reads a widget's overlay in an unknown form")
+        }
+        if ((overlay + 1..call).any { code[it].location.labels.isNotEmpty() } ||
+            (overlay + 1 until call).any { writesRegister(code[it], widget) }
+        ) {
+            throw PatchException("LIVE controls: ${method.name} loses its widget before the overlay inflater")
+        }
+        method.addInstruction(call, "invoke-static/range {v$widget .. v$widget}, $PANEL_THEME->widgetLoading(Ljava/lang/Object;)V")
+    }
+    return calls.size
+}
+
+/**
+ * Hands a loader's widget and background flag to the extension first, which answers the flag: a
+ * pinned comment over a darkened room loads in the foreground, where the overlay inflater hook
+ * reaches it. The flag sits right beside the widget, so both go as one range, and the answer goes
+ * back into the flag before the loader reads it.
+ */
+internal fun hookWidgetLoader(method: MutableMethod) {
+    val (flag, widgetFirst) = widgetLoaderFlag(method)
+        ?: throw PatchException("LIVE controls: ${method.name} takes no background flag beside its widget")
+    val register = flag + 1
+    val call = if (widgetFirst) {
+        "invoke-static/range {p${register - 1} .. p$register}, $PANEL_THEME->widgetInBackground(Ljava/lang/Object;Z)Z"
+    } else {
+        "invoke-static/range {p$register .. p${register + 1}}, $PANEL_THEME->backgroundWidget(ZLjava/lang/Object;)Z"
+    }
+    method.addInstructions(
+        0,
+        """
+            $call
+            move-result p$register
+        """,
+    )
+}
+
 private const val ANDROID_THEME = "Landroid/content/res/Resources\$Theme;"
 
 /**
  * LIVE's themed fragment base being created (#362). It hands its context, in a room the room
- * activity, to TikTok's LIVE color theme (X.0JgL.LIZ on 47.7.3), which applies one of LIVE's color
+ * activity, to TikTok's LIVE color theme (X.0Jbq.LIZ on 47.8.3), which applies one of LIVE's color
  * theme styles to that context's theme without force. Those styles define attributes the room's
  * views look up, the gift guide bubble's text among them, and they reach the room after the room
  * hook took its light copy.
@@ -2434,6 +2625,13 @@ val liveControlsPatch = bytecodePatch(
             "invoke-static {}, $EXTENSION->keepClearScreen()Z",
             "const/4 v0, 0x1\nreturn v0",
         )
+        // Both versions of the room's full screen button pass their answer through the extension
+        // at their last return, which answers true while its switch is on, so every room loads
+        // the button (#57). TikTok's own answer runs first, so the multi-stream flag it notes on
+        // the way is still set, and the early false for a widget with no data channel stays.
+        listOf(LiveFullVideoButtonAttachFingerprint, LiveFullVideoButtonV2AttachFingerprint).forEach {
+            hookFullScreenAttach(it.method)
+        }
         // Answers true while its switch is on and the panel's context is in dark mode, so LIVE
         // panels take TikTok's dark LIVE theme in rooms too (#159).
         LiveDarkThemeFingerprint.method.guardAtEntry(
@@ -2535,6 +2733,27 @@ val liveControlsPatch = bytecodePatch(
         hookLightRoomView(LiveAnchorTipFingerprint.classDef.methods.single {
             it.name == "<init>" && it.parameterTypes.map(CharSequence::toString) == listOf("Landroid/content/Context;")
         }, "the toolbar tip")
+        // A host's pinned comment takes LIVE's dark overlay over the room's theme, which the room
+        // hook darkened, so its Pinned and timer tags came out in other colors than with the switch
+        // off (#362). Each manager names the widget to the extension right before it asks for the
+        // overlay inflater, which lays a pinned comment's overlay over the room's light copy, and
+        // the loaders send a pinned comment to the foreground, where that inflater is asked.
+        hookWidgetOverlayInflater(mutableClassDefBy(LIVE_WIDGET_MANAGER).methods.single(::isWidgetOverlayInflater))
+        var widgetLoads = 0
+        var widgetLoaders = 0
+        for (manager in LIVE_WIDGET_MANAGERS) {
+            if (classDefByOrNull(manager) == null) continue
+            for (method in mutableClassDefBy(manager).methods) {
+                widgetLoads += hookWidgetLoads(method)
+                if (widgetLoaderFlag(method) != null) {
+                    hookWidgetLoader(method)
+                    widgetLoaders++
+                }
+            }
+        }
+        if (widgetLoads == 0 || widgetLoaders == 0) {
+            throw PatchException("LIVE controls: the widget managers' loads are gone ($widgetLoads, $widgetLoaders)")
+        }
         // That light copy is taken before the room's color scheme styles, the style its base adds
         // in onCreate and TikTok's LIVE color theme, which the room's LIVE fragments apply as
         // they're created. The bubble inflated over a copy without them threw on its text (S22,
@@ -2593,6 +2812,11 @@ val liveControlsPatch = bytecodePatch(
         LivePlayFragmentResumeFingerprint.method.addInstruction(
             0,
             "invoke-static/range {p0 .. p0}, $RECORD_EXTENSION->noteRoomFragment(Ljava/lang/Object;)V",
+        )
+        // Each message a LIVE room gets, for the name alert, before TikTok hands it out (#424).
+        LiveMessageDispatchFingerprint.method.addInstruction(
+            0,
+            "invoke-static/range {p1 .. p1}, $LIVE_MENTIONS_EXTENSION->onMessage(Ljava/lang/Object;)V",
         )
         // The same button in TikTok's own picture-in-picture window, next to its play and pause (#413).
         LivePipActionsFingerprint.method.let { pipActions ->

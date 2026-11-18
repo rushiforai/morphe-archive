@@ -8,6 +8,7 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.PlusPending
 import app.morphe.util.names.origRef
 import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
@@ -43,6 +44,7 @@ import app.morphe.util.names.origType
 import app.morphe.util.names.tgClassDefByOrNull
 import app.morphe.util.names.tgMutableClassDefBy
 
+@PlusPending
 class DisableChannelPullFixtureTest {
     @Test fun `both hooks retain every stock operand edge handler and explicit channel opener`() {
         for (build in Fixtures.declaredBuilds()) {

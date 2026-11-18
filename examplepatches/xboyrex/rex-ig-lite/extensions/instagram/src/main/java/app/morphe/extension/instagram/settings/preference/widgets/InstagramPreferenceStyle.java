@@ -39,6 +39,7 @@ import android.widget.LinearLayout;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import app.morphe.extension.instagram.patches.customise.font.CustomFont;
 import app.morphe.extension.instagram.patches.customise.font.CustomFontContext;
 import app.morphe.extension.instagram.settings.ActivityHook;
 
@@ -113,7 +114,7 @@ public final class InstagramPreferenceStyle {
         if (mode == null) mode = "Rex Cyan AMOLED";
         String lower = mode.toLowerCase();
         if (lower.contains("crimson") || lower.contains("rose") || lower.contains("prime")) {
-            return new ColorPalette("Prime Crimson Rose", 0xFF000000, 0xFF171215, 0xFF221A1F, 0xFF382830, 0xFFFF4D6D, 0xFFFF758F);
+            return new ColorPalette("Prime Crimson Rose", 0xFF000000, 0xFF15181D, 0xFF20252C, 0xFF303741, 0xFFF10623, 0xFFFF2E4C);
         }
         if (lower.contains("violet") || lower.contains("royal") || lower.contains("purple")) {
             return new ColorPalette("Royal Violet Glass", 0xFF000000, 0xFF14131D, 0xFF1E1C2B, 0xFF312E45, 0xFF9D4EDD, 0xFFB565F2);
@@ -334,6 +335,7 @@ public final class InstagramPreferenceStyle {
             row.addView(trailing, trailLp);
         }
 
+        CustomFont.applyToViewTree(row);
         return row;
     }
 

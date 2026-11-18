@@ -265,9 +265,19 @@
    "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/privacy/AccountCleanup.java",
    "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/privacy/AccountCleanupSources.java",
    "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/privacy/CleanupRunner.java",
-   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/privacy/TikTokCalls.java"
+   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/privacy/TikTokCalls.java",
+   "patches/src/main/kotlin/app/morphe/patches/tiktok/privacy/QuickRemoveHooks.kt",
+   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/privacy/QuickRemove.java",
+   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/settings/preference/CommentPickerPreference.java"
   ],
-  "settings": [],
+  "settings": [
+   {
+    "key": "tap_to_remove",
+    "default": false,
+    "type": "bool",
+    "row": "Tap a video to remove it"
+   }
+  ],
   "surface": "settings",
   "checks": [
    {
@@ -301,7 +311,10 @@
    "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/download/StoryDownloads.java",
    "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/download/ProfileAvatarSaver.java",
    "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/share/ShareSaveCover.java",
-   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/download/QualitySelector.java"
+   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/download/QualitySelector.java",
+   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/share/ShareSaveEpisodes.java",
+   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/download/EpisodePicker.java",
+   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/download/DramaEpisodes.java"
   ],
   "settings": [
    {
@@ -357,6 +370,12 @@
     "default": false,
     "type": "bool",
     "row": "Save cover button in the share sheet"
+   },
+   {
+    "key": "save_episodes_button",
+    "default": false,
+    "type": "bool",
+    "row": "Save episodes button in the share sheet"
    },
    {
     "key": "save_profile_picture",
@@ -820,7 +839,7 @@
     "auto": true
    }
   ],
-  "notes": "SecurePopupProbe builds one of TikTok's own Compose popups with its obfuscated classes (X.011b, X.01o6, X.011Z, X.01t2 on 47.7.3), so a TikTok build that renames them makes the action fail with an exception line instead of 'ok'; that means the probe needs updating, not that the patch is broken. The popup is shown on top of the feed for a moment and removed by secure-popup-close; it is a controlled test view, not a screen capture. Circle to Search itself is a system gesture and is a review item."
+  "notes": "SecurePopupProbe builds one of TikTok's own Compose popups with its obfuscated classes (X.010u, X.01nR, X.010s, X.01sF on 47.8.3), so a TikTok build that renames them makes the action fail with an exception line instead of 'ok'; that means the probe needs updating, not that the patch is broken. The popup is shown on top of the feed for a moment and removed by secure-popup-close; it is a controlled test view, not a screen capture. Circle to Search itself is a system gesture and is a review item."
  },
  {
   "name": "Always show publish date",
@@ -856,6 +875,12 @@
     "default": false,
     "type": "bool",
     "row": "Short date"
+   },
+   {
+    "key": "publish_date_day_first",
+    "default": false,
+    "type": "bool",
+    "row": "Day before month"
    },
    {
     "key": "publish_date_on_grid",
@@ -1383,6 +1408,18 @@
    "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/blockauthor/BlockAuthorOverlay.java"
   ],
   "settings": [
+   {
+    "key": "video_button_size",
+    "default": "48",
+    "type": "string",
+    "row": "Size of the buttons on videos"
+   },
+   {
+    "key": "video_buttons_over_rail",
+    "default": false,
+    "type": "bool",
+    "row": "Line them up over the right column"
+   },
    {
     "key": "block_author_button",
     "default": false,
@@ -3367,7 +3404,7 @@
     "auto": false
    }
   ],
-  "notes": "Options: iconStyle tiktok (default), black, white-on-black, black-on-white, material-you (hushfeed_launcher_background and hushfeed_launcher_glyph colors: white on black in values, system_neutral2_700 on system_accent1_100 in values-v31, system_accent1_100 on system_neutral1_800 in values-night-v31); iconBackground an optional #RRGGBB that replaces any style's background, picture included; iconPicture an optional 432-1024 pixel square PNG (then no themed icon). The monochrome check only proves the themed layer exists. icon-style-option names Black on white in buildOptions, so it runs only on a build patched with it (scripts/patch-for-device.ps1 -Option 'Custom launcher icon|iconStyle=black-on-white'), and reads the inline vectors the style draws into the background and foreground layers: every path white behind, the note black in front. Themed icons need Android 13+ and the launcher's themed-icons switch on (Samsung One UI has it under Wallpaper and style). The App info page shows the full-color icon; the themed (wallpaper-tinted) look only shows on the home screen with the launcher's themed icons on, and the monochrome layer check covers what it draws."
+  "notes": "Options: iconStyle tiktok (default), black, white-on-black, black-on-white, material-you (hushfeed_launcher_background and hushfeed_launcher_glyph colors: white on black in values, system_neutral2_700 on system_accent1_100 in values-v31, system_accent1_100 on system_neutral1_800 in values-night-v31); iconBackground an optional #RRGGBB that replaces any style's background, picture included; iconPicture an optional 432-1024 pixel square PNG (then no themed icon); iconPicker (off by default, #114) takes SplashActivity off the launcher and adds an alias per style, plus Your icon when a picture or background was set, each opening AppIconLaunchActivity, and the App icon row under Appearance switches which one is on. The monochrome check only proves the themed layer exists. icon-style-option names Black on white in buildOptions, so it runs only on a build patched with it (scripts/patch-for-device.ps1 -Option 'Custom launcher icon|iconStyle=black-on-white'), and reads the inline vectors the style draws into the background and foreground layers: every path white behind, the note black in front. Themed icons need Android 13+ and the launcher's themed-icons switch on (Samsung One UI has it under Wallpaper and style). The App info page shows the full-color icon; the themed (wallpaper-tinted) look only shows on the home screen with the launcher's themed icons on, and the monochrome layer check covers what it draws."
  },
  {
   "name": "Custom offline videos limit",
@@ -4902,7 +4939,7 @@
   "checks": [
    {
     "id": "record-and-report",
-    "what": "A recording starts, TikTok's gate reads during a few feed swipes are captured, and the report names the 47.7.3 target with at least one gate.",
+    "what": "A recording starts, TikTok's gate reads during a few feed swipes are captured, and the report names the 47.8.3 target with at least one gate.",
     "steps": [
      {
       "open": "feed"
@@ -6143,6 +6180,12 @@
     "default": false,
     "type": "bool",
     "row": "Fit the video to the screen"
+   },
+   {
+    "key": "fit_fills_tall_screen",
+    "default": false,
+    "type": "bool",
+    "row": "Fill a tall screen instead"
    },
    {
     "key": "fill_video_to_screen",
@@ -9818,7 +9861,7 @@
      {
       "probe": "playerspeed",
       "extras": {
-       "holder": "X.03Yp",
+       "holder": "X.03Yy",
        "getter": "LJIILIIL",
        "gap": "1200"
       },
@@ -9881,7 +9924,7 @@
      {
       "probe": "playerspeed",
       "extras": {
-       "holder": "X.03Yp",
+       "holder": "X.03Yy",
        "getter": "LJIILIIL",
        "gap": "1200"
       },
@@ -10203,7 +10246,7 @@
      {
       "probe": "playerspeed",
       "extras": {
-       "holder": "X.03Yp",
+       "holder": "X.03Yy",
        "getter": "LJIILIIL",
        "gap": "1500"
       },
@@ -10981,6 +11024,12 @@
     "row": "Auto tap in LIVE rooms"
    },
    {
+    "key": "live_button_size",
+    "default": "48",
+    "type": "string",
+    "row": "Size of the LIVE buttons"
+   },
+   {
     "key": "live_audio_only",
     "default": false,
     "type": "bool",
@@ -11254,7 +11303,7 @@
      {
       "probe": "playerspeed",
       "extras": {
-       "holder": "X.03Yp",
+       "holder": "X.03Yy",
        "getter": "LJIILIIL",
        "gap": "1500"
       },
@@ -11401,6 +11450,12 @@
     "default": false,
     "type": "bool",
     "row": "Full long-press menu on a creator's videos"
+   },
+   {
+    "key": "hold_save_to_download",
+    "default": false,
+    "type": "bool",
+    "row": "Hold TikTok's save button to download"
    }
   ],
   "surface": "feed",
@@ -12254,7 +12309,7 @@
      {
       "probe": "playerspeed",
       "extras": {
-       "holder": "X.03Yp",
+       "holder": "X.03Yy",
        "getter": "LJIILIIL",
        "gap": "1500"
       },
@@ -12266,6 +12321,79 @@
    }
   ],
   "notes": "The behavior (the video shrinking into a floating window when TikTok is left) cannot be reached: the runner has no step that leaves the app. The manifest regex only asks that some activity has the attribute; PictureInPicturePatch.kt allowPictureInPicture sets it on the feed activity and the detail pager, and the feed activity already declares it for LIVE on every build, so an inert patch could still pass the manifest line. The flag is the proof that the hooks were applied. Manual check: switch on, play a video, press Home, expect a small window."
+ },
+ {
+  "name": "Play original audio",
+  "category": "Playback",
+  "default": true,
+  "kind": "runtime",
+  "source": [
+   "patches/src/main/kotlin/app/morphe/patches/tiktok/interaction/originalaudio/OriginalAudioPatch.kt",
+   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/playback/OriginalAudio.java"
+  ],
+  "settings": [
+   {
+    "key": "original_audio",
+    "default": false,
+    "type": "bool",
+    "row": "Play original audio"
+   }
+  ],
+  "surface": "feed",
+  "checks": [
+   {
+    "id": "patch-applied",
+    "what": "SettingsStatus.originalAudioEnabled is true, so the patch is in this APK and the extension loaded it.",
+    "steps": [
+     {
+      "probe": "fields",
+      "extras": {
+       "class": "app.morphe.extension.tiktok.settings.SettingsStatus",
+       "names": "originalAudioEnabled"
+      },
+      "expect": "\\boriginalAudioEnabled=true\\b",
+      "waitMs": 1500
+     }
+    ],
+    "auto": true
+   },
+   {
+    "id": "switch-drives-hook",
+    "what": "With the switch on, the hook that hides a post's AI dub tracks answers true (and false when off).",
+    "steps": [
+     {
+      "set": {
+       "original_audio": "true"
+      }
+     },
+     {
+      "probe": "call",
+      "extras": {
+       "class": "app.morphe.extension.tiktok.playback.OriginalAudio",
+       "method": "on"
+      },
+      "expect": "^ok call on -> true",
+      "waitMs": 1500
+     },
+     {
+      "set": {
+       "original_audio": "false"
+      }
+     },
+     {
+      "probe": "call",
+      "extras": {
+       "class": "app.morphe.extension.tiktok.playback.OriginalAudio",
+       "method": "on"
+      },
+      "expect": "^ok call on -> false",
+      "waitMs": 1500
+     }
+    ],
+    "auto": true
+   }
+  ],
+  "notes": "dubTracks(List) takes an argument, so the audit calls on(), which it reads. A dubbed post (TikTok adds dub tracks only for some languages and regions) is not something the audit can find on demand; the manual check is a dubbed mini drama playing in its own language with the switch on."
  },
  {
   "name": "Play SDR instead of HDR",
@@ -12540,7 +12668,7 @@
      {
       "probe": "playerspeed",
       "extras": {
-       "holder": "X.03Yp",
+       "holder": "X.03Yy",
        "getter": "LJIILIIL",
        "gap": "1000"
       },
@@ -12569,7 +12697,7 @@
      {
       "probe": "playerspeed",
       "extras": {
-       "holder": "X.03Yp",
+       "holder": "X.03Yy",
        "getter": "LJIILIIL",
        "gap": "1000"
       },
@@ -13513,7 +13641,7 @@
     "auto": true
    }
   ],
-  "notes": "The strip empties the effect and VE SDK plugin libraries for both ABIs; 47.7.3's split bundle carries both arm64 copies. The face model (#285: face effects and Retouch lost the face), libEffectCreatorJni (#285: All effects closed TikTok) and the camera feature dex (libdex_*.so) stay on purpose. On the S22 2026-11-08 with the plugins empty, the camera, Retouch, a face effect, All effects, effect search, the Create tab and the editor all worked and TikTok never tried to load either plugin. The camera walk is not scripted: it uses the camera, and a crash dialog on the audit phone costs a restart."
+  "notes": "The strip empties the effect and VE SDK plugin libraries for both ABIs; 47.8.3's split bundle carries both arm64 copies. The face model (#285: face effects and Retouch lost the face), libEffectCreatorJni (#285: All effects closed TikTok) and the camera feature dex (libdex_*.so) stay on purpose. On the S22 2026-11-08 with the plugins empty, the camera, Retouch, a face effect, All effects, effect search, the Create tab and the editor all worked and TikTok never tried to load either plugin. The camera walk is not scripted: it uses the camera, and a crash dialog on the audit phone costs a restart."
  },
  {
   "name": "Remove unused language packs",
@@ -13893,7 +14021,7 @@
      {
       "probe": "playerspeed",
       "extras": {
-       "holder": "X.03Yp",
+       "holder": "X.03Yy",
        "getter": "LJIILIIL",
        "gap": "300"
       },
@@ -14224,6 +14352,18 @@
     "default": "",
     "type": "string",
     "row": "(internal list behind the Hide Settings and privacy rows checklist, no row)"
+   },
+   {
+    "key": "settings_theme",
+    "default": "tiktok",
+    "type": "string",
+    "row": "Settings theme"
+   },
+   {
+    "key": "hushfeed_language",
+    "default": "tiktok",
+    "type": "string",
+    "row": "Hushfeed language"
    }
   ],
   "surface": "settings",
@@ -15250,7 +15390,7 @@
      {
       "probe": "countformat",
       "extras": {
-       "class": "X.0GCg",
+       "class": "X.0G9f",
        "method": "LIZIZ",
        "count": "123456"
       },
@@ -15259,7 +15399,7 @@
      {
       "probe": "countformat",
       "extras": {
-       "class": "X.0HJQ",
+       "class": "X.0HG7",
        "method": "LIZ",
        "count": "123456"
       },
@@ -15273,7 +15413,7 @@
      {
       "probe": "countformat",
       "extras": {
-       "class": "X.0GCg",
+       "class": "X.0G9f",
        "method": "LIZIZ",
        "count": "123456"
       },
@@ -15282,7 +15422,7 @@
      {
       "probe": "countformat",
       "extras": {
-       "class": "X.0HJQ",
+       "class": "X.0HG7",
        "method": "LIZ",
        "count": "123456"
       },

@@ -10,10 +10,12 @@ import app.hushmessenger.patches.isExtension
 import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
-import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.classDefByStrings
+import app.morphe.patcher.patch.document
+import app.morphe.patcher.patch.mutableClassDefBy
+import app.morphe.patcher.patch.packageMetadata
+import app.morphe.patcher.patch.patch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
@@ -222,14 +224,14 @@ internal fun Document.renameSharedPermissions() {
     mentions.values.flatten().forEach { it.value = renamed(it.value) }
 }
 
-private val validatePermissionBytecode = bytecodePatch(description = "Validate Messenger shared-permission bytecode") {
+private val validatePermissionBytecode = patch(description = "Validate Messenger shared-permission bytecode") {
     execute {
         validateVersionCode(packageMetadata.versionCode)
         checkedPermissionMethods()
     }
 }
 
-private val renameManifest = resourcePatch(description = "Rename Messenger shared permissions") {
+private val renameManifest = patch(description = "Rename Messenger shared permissions") {
     dependsOn(validatePermissionBytecode)
     execute {
         validateVersionCode(packageMetadata.versionCode)
@@ -278,7 +280,7 @@ private fun MutableMethod.renameSharedNames(): Int {
     return sites.size
 }
 
-private fun BytecodePatchContext.checkedPermissionMethods(): List<MutableMethod> {
+private fun checkedPermissionMethods(): List<MutableMethod> {
     val classes = dexNames.flatMap { classDefByStrings(it, StringComparisonType.EQUALS) }
         .filterNot { it.isExtension() }.map { it.type }.distinct()
     val methods = classes.flatMap { type ->
@@ -297,7 +299,7 @@ private fun BytecodePatchContext.checkedPermissionMethods(): List<MutableMethod>
     return methods
 }
 
-private fun BytecodePatchContext.renameDexNames(): Int {
+private fun renameDexNames(): Int {
     val methods = checkedPermissionMethods()
     val renamed = methods.sumOf { it.renameSharedNames() }
     if (renamed != expectedDexSitesFor(packageMetadata.versionCode).size || methods.any { it.hasSharedName() }) {
@@ -312,7 +314,7 @@ private fun BytecodePatchContext.renameDexNames(): Int {
  * two patched apps still requires one signing key and separate cross-app trust checks.
  */
 @Suppress("unused")
-val installBesideMetaAppsPatch = bytecodePatch(
+val installBesideMetaAppsPatch = patch(
     name = PATCH_NAME,
     description = "Lets your patched Messenger install next to Facebook and other Meta apps. Without it, the apps can clash over shared permissions and the install can stop at a blank screen. Works as soon as you patch it in, with no switch.",
     default = true,

@@ -1,8 +1,8 @@
 /*
- * Copyright (C) 2026 rex <https://github.com/xboyrex/rex-ig-lite>
+ * Copyright (C) 2026 xboyrex <https://github.com/xboyrex/rex-ig-lite>
  *
  * See the included NOTICE file for GPLv3 §7(b) terms that apply to this code.
-*/
+ */
 
 package app.rex.patches.instagram.misc.clone
 
@@ -12,9 +12,7 @@ import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.StringFilter
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
-import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.document
-import app.morphe.patcher.patch.patch
 import app.morphe.patcher.patch.patch
 import app.morphe.patcher.patch.stringOption
 import app.morphe.patcher.string
@@ -30,26 +28,27 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableStringReference
 import org.w3c.dom.Element
 import org.w3c.dom.NodeList
-import kotlin.collections.forEach
 
 private const val ORIGINAL_PACKAGE_NAME = "com.instagram.android"
+private const val DEFAULT_CLONE_PACKAGE_NAME = "com.xboyrex.instarex"
+private const val DEFAULT_APP_NAME = "InstaRex"
 
 @Suppress("unused")
 val clonePatch =
     patch(
         name = "Clone",
         description =
-            "Changes the package name and the app name. " +
-                "This allows you to install the patched app alongside the original Instagram app.",
+            "Changes the package name to com.xboyrex.instarex and the app label/icon to InstaRex. " +
+                "Allows installing the patched InstaRex Clone alongside the original Instagram app without authority conflicts.",
         default = false,
     ) {
         compatibleWith(COMPATIBILITY_INSTAGRAM)
 
         val packageName by stringOption(
             key = "packageName",
-            default = "com.instagram.android.rex",
+            default = DEFAULT_CLONE_PACKAGE_NAME,
             title = "Package name",
-            description = "A new package name for the patched app.",
+            description = "Package name for the patched app (use com.xboyrex.instarex for Clone or com.instagram.android for UnClone).",
             required = true,
         ) {
             it?.matches(Regex("^[a-z]\\w*(\\.[a-z]\\w*)+$")) == true
@@ -57,135 +56,159 @@ val clonePatch =
 
         val appName by stringOption(
             key = "appName",
-            default = "xboyrex Instagram",
+            default = DEFAULT_APP_NAME,
             title = "App name",
-            description = "A new app name (label). Entering \"Instagram\" will skip changing the app name.",
+            description = "Display name (label) shown in the Android launcher and recent apps.",
             required = true,
         )
 
         execute {
             runCatching {
-            val newPackageName = packageName!!
+                val newPackageName = (packageName ?: DEFAULT_CLONE_PACKAGE_NAME).trim()
+                val resolvedAppName = (appName ?: DEFAULT_APP_NAME).trim().ifEmpty { DEFAULT_APP_NAME }
+                val isCloneVariant = newPackageName != ORIGINAL_PACKAGE_NAME
 
-            /** Pairs of the original authority and the renamed authority */
-            val providerReplacements = mutableListOf<Pair<String, String>>()
+                /** Pairs of the original authority and the renamed authority */
+                val providerReplacements = mutableListOf<Pair<String, String>>()
 
-            document("AndroidManifest.xml").use { document ->
-                val manifest = document.documentElement
+                document("AndroidManifest.xml").use { document ->
+                    val manifest = document.documentElement
 
-                // Change package name
-                manifest.setAttribute("package", newPackageName)
+                    if (isCloneVariant) {
+                        // Change package name for Clone variant (com.xboyrex.instarex)
+                        manifest.setAttribute("package", newPackageName)
 
-                // Rename custom permissions
-                val permissions = manifest.getElementsByTagName("permission")
-                val usesPermissions = manifest.getElementsByTagName("uses-permission")
+                        // Rename custom permissions & corresponding uses-permission tags
+                        val permissions = manifest.getElementsByTagName("permission")
+                        val usesPermissions = manifest.getElementsByTagName("uses-permission")
 
-                permissions.elementsForEach {
-                    val oldName = it.getAttribute("android:name")
-                    if (oldName.startsWith('.')) {
-                        return@elementsForEach
-                    }
-                    val newName = oldName.replace(ORIGINAL_PACKAGE_NAME, newPackageName)
-                    it.setAttribute("android:name", newName)
+                        permissions.elementsForEach {
+                            val oldName = it.getAttribute("android:name")
+                            if (oldName.startsWith('.')) {
+                                return@elementsForEach
+                            }
+                            val newName = if (oldName.startsWith(ORIGINAL_PACKAGE_NAME)) {
+                                oldName.replaceFirst(ORIGINAL_PACKAGE_NAME, newPackageName)
+                            } else {
+                                "$newPackageName.permission.${oldName.substringAfterLast('.')}"
+                            }
+                            it.setAttribute("android:name", newName)
 
-                    // Rename a corresponding uses-permission as well if it exists
-                    usesPermissions
-                        .findElementByAttributeValue("android:name", oldName)
-                        ?.setAttribute("android:name", newName)
-                }
-
-                // Rename provider authorities
-                val application = manifest.getElementsByTagName("application").item(0) as Element
-                application.getElementsByTagName("provider").elementsForEach { provider ->
-                    val oldAuthority = provider.getAttribute("android:authorities")
-                    val newAuthority =
-                        if (oldAuthority.startsWith("$ORIGINAL_PACKAGE_NAME.")) {
-                            oldAuthority.replaceFirst(ORIGINAL_PACKAGE_NAME, newPackageName)
-                        } else {
-                            "${newPackageName}_$oldAuthority"
-                        }
-
-                    provider.setAttribute("android:authorities", newAuthority)
-                    providerReplacements.add(oldAuthority to newAuthority)
-                }
-            }
-
-            // Change app name
-            if (!appName.isNullOrEmpty() && appName != "Instagram") {
-                // The string "Instagram" is not localized and only exists in "values".
-                // Resource names vary depending on the build.
-                document("res/values/strings.xml").use { document ->
-                    document.documentElement.forEachChildElement {
-                        if (it.textContent == "Instagram") {
-                            it.textContent = appName
+                            usesPermissions
+                                .findElementByAttributeValue("android:name", oldName)
+                                ?.setAttribute("android:name", newName)
                         }
                     }
-                }
-            }
 
-            // Replace all instances of the string "com.instagram.android" in the bytecode to fix
-            // the issue where video stories only play audio.
-            // Also rename providers just in case.
-            val targets = listOf(
-                string(ORIGINAL_PACKAGE_NAME),
-            ) + providerReplacements.map { string(it.first, StringComparisonType.CONTAINS) }
-            transformStringReferences(targets) { string ->
-                if (string == ORIGINAL_PACKAGE_NAME) {
-                    return@transformStringReferences newPackageName
+                    val application = manifest.getElementsByTagName("application").item(0) as? Element
+                    if (application != null) {
+                        // Apply InstaRex display label and custom launcher icon on <application>
+                        application.setAttribute("android:label", resolvedAppName)
+                        application.setAttribute("android:icon", "@drawable/rex_ic_launcher_instarex")
+                        application.setAttribute("android:roundIcon", "@drawable/rex_ic_launcher_round")
+
+                        if (isCloneVariant) {
+                            // Rename all provider authorities so Clone installs alongside official Instagram without conflict
+                            application.getElementsByTagName("provider").elementsForEach { provider ->
+                                val oldAuthority = provider.getAttribute("android:authorities")
+                                if (oldAuthority.isNotEmpty()) {
+                                    val newAuthority = oldAuthority.split(';').joinToString(";") { auth ->
+                                        val trimmed = auth.trim()
+                                        if (trimmed.startsWith("$ORIGINAL_PACKAGE_NAME.")) {
+                                            trimmed.replaceFirst(ORIGINAL_PACKAGE_NAME, newPackageName)
+                                        } else {
+                                            "${newPackageName}_$trimmed"
+                                        }
+                                    }
+                                    provider.setAttribute("android:authorities", newAuthority)
+                                    oldAuthority.split(';').zip(newAuthority.split(';')).forEach { (oldA, newA) ->
+                                        if (oldA.isNotBlank() && oldA != newA) {
+                                            providerReplacements.add(oldA.trim() to newA.trim())
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // Apply InstaRex label & icon on MAIN/LAUNCHER activities and activity-aliases
+                        listOf("activity", "activity-alias").forEach { tagName ->
+                            application.getElementsByTagName(tagName).elementsForEach { actEl ->
+                                val intents = actEl.getElementsByTagName("category")
+                                var isLauncher = false
+                                intents.elementsForEach { cat ->
+                                    if (cat.getAttribute("android:name") == "android.intent.category.LAUNCHER") {
+                                        isLauncher = true
+                                    }
+                                }
+                                if (isLauncher) {
+                                    actEl.setAttribute("android:label", resolvedAppName)
+                                    actEl.setAttribute("android:icon", "@drawable/rex_ic_launcher_instarex")
+                                    actEl.setAttribute("android:roundIcon", "@drawable/rex_ic_launcher_round")
+                                }
+                            }
+                        }
+                    }
                 }
 
-                val matchedReplacement = providerReplacements.find { string.contains(it.first) }
-
-                if (matchedReplacement != null) {
-                    string.replaceFirst(matchedReplacement.first, matchedReplacement.second)
-                } else {
-                    null
+                // Change app name in res/values/strings.xml
+                if (resolvedAppName.isNotEmpty() && resolvedAppName != "Instagram") {
+                    runCatching {
+                        document("res/values/strings.xml").use { document ->
+                            document.documentElement.forEachChildElement {
+                                if (it.textContent == "Instagram") {
+                                    it.textContent = resolvedAppName
+                                }
+                            }
+                        }
+                    }
                 }
-            }
-        
+
+                if (isCloneVariant) {
+                    // transformStringReferences across all matching string constants in bytecode
+                    val targets: List<StringFilter> = listOf(
+                        string(ORIGINAL_PACKAGE_NAME),
+                    ) + providerReplacements.map { string(it.first, StringComparisonType.CONTAINS) }
+                    targets.forEach { stringFilter ->
+                        Fingerprint(
+                            filters = listOf(stringFilter)
+                        ).matchAllMethodIndicesForEach(requireMatches = false) { index ->
+                            val instruction = getInstruction(index)
+                            val foundString = instruction.getReference<StringReference>()!!.string
+                            val transformedString = if (foundString == ORIGINAL_PACKAGE_NAME) {
+                                newPackageName
+                            } else {
+                                val matchedReplacement = providerReplacements.find { foundString.contains(it.first) }
+                                if (matchedReplacement != null) {
+                                    foundString.replaceFirst(matchedReplacement.first, matchedReplacement.second)
+                                } else {
+                                    null
+                                }
+                            } ?: return@matchAllMethodIndicesForEach
+
+                            replaceInstruction(
+                                index,
+                                BuilderInstruction21c(
+                                    Opcode.CONST_STRING,
+                                    (instruction as OneRegisterInstruction).registerA,
+                                    ImmutableStringReference(transformedString)
+                                )
+                            )
+                        }
+                    }
+                }
             }
         }
 
         finalize {
             runCatching {
-            // Change a package name in shortcuts.xml added by SettingsResourcePatch.
-            // Run in the finalize block in case SettingsPatch is run after this patch.
-            document("res/xml/shortcuts.xml").use {
-                it.getElementsByTagName("intent")
-                    .findElementByAttributeValue("android:targetPackage", ORIGINAL_PACKAGE_NAME)
-                    ?.setAttribute("android:targetPackage", packageName)
-            }
-        
+                val resolvedPkg = (packageName ?: DEFAULT_CLONE_PACKAGE_NAME).trim()
+                document("res/xml/shortcuts.xml").use {
+                    it.getElementsByTagName("intent")
+                        .findElementByAttributeValue("android:targetPackage", ORIGINAL_PACKAGE_NAME)
+                        ?.setAttribute("android:targetPackage", resolvedPkg)
+                }
             }
         }
     }
 
-/**
- * Use this only for `getElementsByTagName` (A [NodeList] in which every Node is an instance of [Element]).
- */
 private fun NodeList.elementsForEach(action: (Element) -> Unit) = asSequence().map { it as Element }.forEach(action)
-
-private fun transformStringReferences(
-    targetStrings: List<StringFilter>,
-    transform: (str: String) -> String?,
-) {
-    targetStrings.forEach { stringFilter ->
-        Fingerprint(
-            filters = listOf(stringFilter)
-        ).matchAllMethodIndicesForEach(requireMatches = false) { index ->
-            val instruction = getInstruction(index)
-            val foundString = instruction.getReference<StringReference>()!!.string
-            // Apply transformation.
-            val transformedString = transform(foundString) ?: return@matchAllMethodIndicesForEach
-
-            replaceInstruction(
-                index,
-                BuilderInstruction21c(
-                    Opcode.CONST_STRING,
-                    (instruction as OneRegisterInstruction).registerA,
-                    ImmutableStringReference(transformedString)
-                )
-            )
-        }
-    }
-}

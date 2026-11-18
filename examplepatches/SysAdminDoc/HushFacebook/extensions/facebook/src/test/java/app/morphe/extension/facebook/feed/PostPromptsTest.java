@@ -50,6 +50,8 @@ public class PostPromptsTest {
         Settings.HIDE_POST_COUNTS.resetToDefault();
         Settings.HIDE_POST_REACTIONS.resetToDefault();
         Settings.HIDE_COMMENT_REACTIONS.resetToDefault();
+        Settings.HIDE_REACTION_BUBBLES.resetToDefault();
+        Settings.HIDE_REACTOR_NAMES.resetToDefault();
         HookStatus.clear();
     }
 
@@ -337,6 +339,58 @@ public class PostPromptsTest {
             PauseForTests.resume();
         }
         assertTrue("resumed, the preview didn't go again", PostPrompts.hideReactionPreview());
+    }
+
+    /**
+     * The friend bubbles over a post's media (#483): off Facebook draws them, on the row answers
+     * null, the other reaction switches leave them alone, and a paused Hushfacebook draws them.
+     */
+    @Test
+    public void theFriendBubblesStayUntilTheirSwitchIsOn() {
+        assertFalse("the switch doesn't start off", Settings.HIDE_REACTION_BUBBLES.get());
+        assertFalse("the bubbles went with the switch off", PostPrompts.hideReactionBubbles());
+
+        Settings.HIDE_POST_REACTIONS.save(true);
+        Settings.HIDE_COMMENT_REACTIONS.save(true);
+        assertFalse("another reaction switch hid the bubbles", PostPrompts.hideReactionBubbles());
+
+        Settings.HIDE_REACTION_BUBBLES.save(true);
+        assertTrue("the bubbles stayed with the switch on", PostPrompts.hideReactionBubbles());
+        assertTrue("the status line doesn't count the hidden bubbles",
+                statusLine().contains(PostPrompts.BUBBLES_HIDDEN + " 1"));
+
+        PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
+        assertFalse("a paused Hushfacebook hid the bubbles", PostPrompts.hideReactionBubbles());
+        PauseForTests.resume();
+
+        Settings.HIDE_REACTION_BUBBLES.save(false);
+        assertFalse("turning the switch off didn't bring the bubbles back", PostPrompts.hideReactionBubbles());
+    }
+
+    /**
+     * The line naming who reacted to a post (#483): off Facebook draws it, on both checks answer no,
+     * the other reaction switches leave it alone, and a paused Hushfacebook draws it.
+     */
+    @Test
+    public void theReactorLineStaysUntilItsSwitchIsOn() {
+        assertFalse("the switch doesn't start off", Settings.HIDE_REACTOR_NAMES.get());
+        assertFalse("the line went with the switch off", PostPrompts.hideReactorNames());
+
+        Settings.HIDE_POST_REACTIONS.save(true);
+        Settings.HIDE_REACTION_BUBBLES.save(true);
+        assertFalse("another reaction switch hid the line", PostPrompts.hideReactorNames());
+
+        Settings.HIDE_REACTOR_NAMES.save(true);
+        assertTrue("the line stayed with the switch on", PostPrompts.hideReactorNames());
+        assertTrue("the status line doesn't count the hidden line",
+                statusLine().contains(PostPrompts.REACTORS_HIDDEN + " 1"));
+
+        PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
+        assertFalse("a paused Hushfacebook hid the line", PostPrompts.hideReactorNames());
+        PauseForTests.resume();
+
+        Settings.HIDE_REACTOR_NAMES.save(false);
+        assertFalse("turning the switch off didn't bring the line back", PostPrompts.hideReactorNames());
     }
 
     /** A comment's reaction faces answer to their own switch (#158): off draws them, on leaves them undrawn. */

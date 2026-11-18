@@ -1,0 +1,938 @@
+# Traditional Chinese (Taiwan) text for the settings screen.
+# One id, a tab, then its text on each line. The build writes this file into SettingsTextZhTw.java, and SettingsTranslationTest fails the build when an id is missing or a placeholder changed. In a text, \n is a new line, \t a tab and \\ a backslash.
+controls	功能控制
+app	應用程式
+inbox	收件匣
+chat_menu	聊天室選單
+navigation	導覽
+tab_bar	分頁列
+stickers	貼圖
+conversations	對話
+notifications	通知
+calls	通話
+photos_videos	相片與影片
+links_bubbles	連結與泡泡通知
+privacy	隱私
+tracking	追蹤
+theme	主題
+settings	HushMessenger 設定
+preview_title	HushMessenger 介面預覽
+preview_notice	介面預覽。這些控制項不會變更 Messenger。
+mounted_build_mismatch	此版本是從 Messenger %1$d 修補的，但 Android 安裝的是 %2$d。請修補 %2$d 再使用 Root Mount，否則聊天大頭貼和其他畫面可能會當機。
+gmscore_without_microg	已修補 GmsCore support，但未安裝 microG-RE 或已將其停用。因此 Messenger 無法透過 Google 的推播服務接收通知。請安裝 microG-RE，或不選 GmsCore support 重新修補。
+open	開啟
+open_messenger	開啟 Messenger
+back	返回
+search_settings	搜尋設定
+show_as_list	以清單顯示所有設定
+show_by_category	依分類顯示設定
+header_version	版本 %1$s，適用於 Messenger %2$s
+header_version_alone	版本 %s
+reopen	部分變更需透過「應用程式 > 重新啟動 Messenger」才會生效。
+quick_access	快速存取
+access_help	長按主畫面上的 Messenger 圖示，即可選擇「Patch controls（修補功能控制）」或「Restart Messenger（重新啟動 Messenger）」。你也可以從應用程式抽屜開啟 HushMessenger 設定。
+hide_drawer_icon	隱藏應用程式抽屜圖示
+hide_drawer_icon_help	仍可透過 Messenger 的選單或主畫面圖示捷徑開啟設定。
+hide_menu_row	隱藏選單中的設定項目
+hide_menu_row_help	從 Messenger 的「選單」分頁與側邊選單移除 HushMessenger 項目。長按「聊天室」頂端的 Messenger 標誌，或長按主畫面上的 Messenger 圖示並點選「Patch controls（修補功能控制）」，即可返回這裡。若這兩種入口都無法使用，選單中的項目就會恢復顯示。
+menu_row_needs_shortcut	請先透過長按捷徑開啟一次設定（長按主畫面上的 Messenger 圖示，再點選「Patch controls（修補功能控制）」），確保隱藏選單項目後仍能返回這裡。
+shared_install_help	解除安裝此項目也會移除 Messenger 及其本機資料。請改用「隱藏應用程式抽屜圖示」。
+access_help_hosted	長按主畫面上的 Messenger 圖示，即可選擇「Patch controls（修補功能控制）」或「Restart Messenger（重新啟動 Messenger）」。以 Root Mount 安裝時，應用程式抽屜中不會有獨立的設定圖示。
+access_help_hosted_menu	從 Messenger「選單」分頁或側邊選單中的 HushMessenger 項目開啟設定，也可以長按「聊天室」頂端的 Messenger 標誌。長按主畫面上的 Messenger 圖示，即可選擇「Patch controls（修補功能控制）」或「Restart Messenger（重新啟動 Messenger）」。以 Root Mount 安裝時，應用程式抽屜中不會有獨立的設定圖示。
+access_help_menu	從 Messenger 的選單或應用程式抽屜開啟設定，也可以長按「聊天室」頂端的 Messenger 標誌。長按主畫面上的 Messenger 圖示也能開啟。
+access_help_missing	長按主畫面上的 Messenger 圖示，即可選擇「Patch controls（修補功能控制）」或「Restart Messenger（重新啟動 Messenger）」。此修補套件未提供應用程式抽屜中的設定圖示。
+access_help_missing_menu	從 Messenger 的「選單」分頁或側邊選單開啟 HushMessenger，也可以長按「聊天室」頂端的 Messenger 標誌。長按主畫面上的 Messenger 圖示，即可選擇「Patch controls（修補功能控制）」或「Restart Messenger（重新啟動 Messenger）」。此修補套件未提供應用程式抽屜中的設定圖示。
+access_help_logo	長按「聊天室」頂端的 Messenger 標誌，或長按主畫面上的 Messenger 圖示並選擇「Patch controls（修補功能控制）」或「Restart Messenger（重新啟動 Messenger）」。你也可以從應用程式抽屜開啟 HushMessenger 設定。
+access_help_hosted_logo	長按「聊天室」頂端的 Messenger 標誌，或長按主畫面上的 Messenger 圖示並選擇「Patch controls（修補功能控制）」或「Restart Messenger（重新啟動 Messenger）」。以 Root Mount 安裝時，應用程式抽屜中不會有獨立的設定圖示。
+access_help_missing_logo	長按「聊天室」頂端的 Messenger 標誌，或長按主畫面上的 Messenger 圖示並選擇「Patch controls（修補功能控制）」或「Restart Messenger（重新啟動 Messenger）」。此修補套件未提供應用程式抽屜中的設定圖示。
+access_help_menu_without_logo	從 Messenger 的選單或應用程式抽屜開啟設定。長按主畫面上的 Messenger 圖示也能開啟。
+access_help_hosted_menu_without_logo	從 Messenger「選單」分頁或側邊選單中的 HushMessenger 項目開啟設定。長按主畫面上的 Messenger 圖示，即可選擇「Patch controls（修補功能控制）」或「Restart Messenger（重新啟動 Messenger）」。以 Root Mount 安裝時，應用程式抽屜中不會有獨立的設定圖示。
+access_help_missing_menu_without_logo	從 Messenger 的「選單」分頁或側邊選單開啟 HushMessenger。長按主畫面上的 Messenger 圖示，即可選擇「Patch controls（修補功能控制）」或「Restart Messenger（重新啟動 Messenger）」。此修補套件未提供應用程式抽屜中的設定圖示。
+hide_menu_row_help_without_logo	從 Messenger 的「選單」分頁與側邊選單移除 HushMessenger 項目。長按主畫面上的 Messenger 圖示並點選「Patch controls（修補功能控制）」，即可返回這裡。若「Patch controls（修補功能控制）」捷徑消失，選單中的項目就會恢復顯示。
+hide_icon_shortcuts	隱藏圖示捷徑
+shortcut_turned_off	已在 HushMessenger 設定中停用
+hide_icon_shortcuts_help	從長按主畫面上 Messenger 圖示顯示的選單中，移除「Patch controls（修補功能控制）」與「Restart Messenger（重新啟動 Messenger）」。釘選在主畫面上的捷徑會變成灰色，直到你關閉此選項。
+hide_logo_press	停用長按標誌
+hide_logo_press_help	長按「聊天室」頂端的 Messenger 標誌或「選單」分頁的標題時，不再開啟此設定畫面。
+last_way_in	這是目前唯一仍啟用的設定入口。請先啟用其他入口。
+menu_row_needs_logo	請先長按「聊天室」頂端的 Messenger 標誌開啟一次設定，確保隱藏選單項目後仍能返回這裡。
+menu_row_needs_way	請先重新啟用圖示捷徑或長按標誌，確保隱藏選單項目後仍能返回這裡。
+hide_menu_row_help_without_shortcut	從 Messenger 的「選單」分頁與側邊選單移除 HushMessenger 項目。長按「聊天室」頂端的 Messenger 標誌即可返回這裡。停用長按標誌後，選單中的項目就會恢復顯示。
+hide_menu_row_help_plain	從 Messenger 的「選單」分頁與側邊選單移除 HushMessenger 項目。
+menu_tab	「選單」分頁
+menu_rows_help	Messenger 放在「選單」分頁裡的項目，例如社群或頻道邀請。把你從不打開的隱藏起來。每個項目在「選單」分頁顯示過一次之後，就會出現在這裡。
+menu_rows_empty	先開一次 Messenger 的「選單」分頁，它的項目就會出現在這裡讓你隱藏。
+menu_log_out	「選單」分頁中的登出項目
+menu_log_out_help	在 Messenger「選單」分頁的設定下方加入登出，登出方式與 Messenger 本身的「登出」相同。
+way_menu	從 Messenger「選單」分頁或側邊選單中的 HushMessenger 項目開啟設定。
+way_logo	長按「聊天室」頂端的 Messenger 標誌即可開啟此設定畫面。
+way_drawer	從應用程式抽屜開啟 HushMessenger 設定。
+way_shortcuts_hidden	已隱藏主畫面上 Messenger 圖示的「Patch controls（修補功能控制）」與「Restart Messenger（重新啟動 Messenger）」捷徑。
+drawer_search	應用程式抽屜圖示設定
+drawer_root	以 Root Mount 安裝時，不需要使用「隱藏應用程式抽屜圖示」，因為沒有獨立的設定圖示可隱藏。
+drawer_missing	無法使用「隱藏應用程式抽屜圖示」。此修補套件未提供可隱藏的設定圖示。
+drawer_requires_menu	若要隱藏應用程式抽屜圖示，請先套用「從選單開啟設定」修補功能，確保仍能找到此設定畫面。否則圖示會保留。
+restart	重新啟動 Messenger
+restarting	正在重新啟動 Messenger…
+restart_saving	正在儲存你的設定，完成後將重新開啟 Messenger。
+restart_account	你的帳號會保持登入。
+choices	你的設定
+restart_unavailable	無法重新啟動。請關閉後重新開啟 Messenger。
+settings_open_failed	無法開啟 HushMessenger 設定。
+settings_open_instead	Patch controls（修補功能控制）：長按主畫面上的 Messenger 圖示
+restart_save_failed	無法儲存，因此未重新啟動 Messenger。請再試一次。
+paused	暫停所有變更
+search	搜尋控制項
+empty_title	沒有符合的控制項
+empty_help	請嘗試其他關鍵字，或清除篩選條件。這裡只會列出此修補套件中的控制項。
+clear	清除篩選條件
+unavailable	此 Android 版本不支援。你的設定已儲存。
+camera_unsupported	此安裝方式未提供開啟手機相機應用程式所需的畫面，因此聊天室仍使用 Messenger 內建相機。以 Root Mount 安裝時無法新增此畫面。你的設定已儲存。
+gallery_unsupported	此手機上沒有可供 Messenger 挑選相片的應用程式，因此聊天室仍使用 Messenger 內建相簿。你的設定已儲存。
+local_search_unsupported	此安裝方式沒有搜尋畫面。以 Root Mount 安裝時無法新增。你的設定已儲存。
+local_search_open	搜尋儲存在這支手機上的訊息
+local_search_title	已儲存的訊息
+local_search_hint	要尋找的字詞
+local_search_run	搜尋
+local_search_stop	停止
+local_search_help	在這支手機為此聊天室儲存的訊息中搜尋。請先在聊天室中向上捲動，載入較舊的訊息。
+local_search_running	搜尋中...
+local_search_done	在 %2$d 則已儲存的訊息中找到 %1$d 則，最早到 %3$s。若要搜尋更早的訊息，請在聊天室中向上捲動，然後再搜尋一次。
+local_search_stopped	已停止。在 %2$d 則已儲存的訊息中找到 %1$d 則，最早到 %3$s。
+local_search_full	顯示最新的 %1$d 則。已搜尋 %2$d 則已儲存的訊息，最早到 %3$s。可以多加一個字詞來縮小範圍。
+local_search_nothing	這支手機尚未儲存此聊天室的文字。請在聊天室中向上捲動以載入較舊的訊息，然後再搜尋一次。
+local_search_failed	無法讀取已儲存的訊息，請稍後再試。
+local_search_open_failed	無法開啟該訊息
+local_search_empty	請先輸入要尋找的字詞。
+call_recording_unsupported	此功能需要 Android 10 或更新版本。你的選擇已儲存。
+call_recording_start	錄音
+call_recording_stop_pill	錄音中，輕觸即可停止
+call_recording_stop_time	停止 %1$s
+call_recording_paused_time	已暫停 %1$s
+call_recording_pause	暫停
+call_recording_resume	繼續
+call_recording_on	正在錄製這通通話
+call_recording_stop	停止
+call_recording_channel	通話錄音
+call_recording_saved	通話已儲存至 %1$s
+call_recording_failed	無法錄製這通通話
+call_recording_scope	要錄下的通話
+call_recording_scope_tap	只在我按下錄音時
+call_recording_scope_all	每一通通話
+call_recording_scope_chosen	只限選定的聊天室
+call_recording_scope_help	通話一接通就會自己開始錄。只限選定的聊天室只會錄下你在下面打開的人，你打出去的通話則看通話畫面上的名字。
+call_recording_scope_picked	要錄下的通話：%1$s
+call_recording_recent_empty	聊天室打電話給你之後就會顯示在這裡，最新的在最上面。
+call_recording_folder	錄音資料夾
+call_recording_folder_help	沒有另外挑資料夾的話，錄音會存到手機本身的 Recordings 資料夾。挑了記憶卡上或雲端 App 的資料夾，錄音就會直接寫進那裡。
+call_recording_folder_default	手機的 Recordings 資料夾
+call_recording_folder_choose	挑一個資料夾
+call_recording_folder_reset	用預設的
+call_recording_folder_picked	錄音資料夾：%1$s
+call_recording_folder_refused	那個資料夾用不了，挑一個你寫得進去的。
+call_recording_format	通話存成
+call_recording_format_wav	WAV，音質最好
+call_recording_format_ogg	OGG Opus，大小約十分之一
+call_recording_format_help	一小時的通話存成 WAV 大約 115 MB，存成 Opus 大約 10 MB，人聲聽起來差不多。WAV 什麼都播得出來，少數舊播放器不認得 Opus。
+call_recording_format_picked	通話存成：%1$s
+call_recording_format_unavailable	這支手機沒有 Opus 編碼器，所以不管你挑哪個，通話都會存成 WAV。
+call_recording_tracks	兩邊的聲音
+call_recording_tracks_mixed	合在同一軌
+call_recording_tracks_sides	各自一軌，你在左邊
+call_recording_tracks_help	同一軌就是平常的錄音，兩邊的聲音混在一起。各自一軌的話，你在左邊、對方在右邊，可以單獨聽其中一邊。檔案會變成兩倍大。
+call_recording_tracks_picked	兩邊的聲音：%1$s
+call_recording_keep	保留錄音
+call_recording_keep_all	全部保留
+call_recording_keep_days	保留 %1$s 天
+call_recording_keep_help	每次存好一通通話後檢查一次。只計算在這裡錄下的檔案，你搬走或改過名字的仍留在原處。
+call_recording_keep_picked	保留錄音：%1$s
+call_recording_notify	錄音存好後通知我
+call_recording_notify_help	錄音一寫好就發通知，並附上檔名。點一下可以播放，按「傳到聊天室」可以留在自己的聊天室，按「分享」可以傳到別的地方。
+call_recording_saved_channel	已存的通話錄音
+call_recording_saved_title	通話錄音已存好
+call_recording_share	分享
+call_recording_send	傳到聊天室
+call_captions_unsupported	此功能需要 Android 13 或更新版本。你的選擇已儲存。
+call_captions_speak	朗讀字幕
+call_captions_speak_help	每句字幕說完後，以手機的語音朗讀出來。請戴耳機，以免對方也聽到。
+call_captions_duck	朗讀時降低對方音量
+call_captions_duck_help	朗讀字幕時調低對方的聲音，讓你聽清楚朗讀內容。
+call_captions_heard	對方說：%1$s
+call_captions_heard_title	對方說的語言
+call_captions_heard_hint	字幕會辨識這個語言。標示需下載的語言會先由手機下載，最後一列則會打開手機知道的其他語言。
+call_captions_shown	字幕顯示語言：%1$s
+call_captions_shown_title	字幕顯示語言
+call_captions_shown_hint	字幕會在手機上翻譯成這個語言。清單是手機回報的語言，最後一列會打開它知道的其他語言。
+call_captions_phone_language	手機語言（%1$s）
+call_captions_untranslated_choice	維持原文，不翻譯
+call_captions_loading	正在查看你的手機支援哪些語言
+call_captions_download	%1$s（需先下載）
+call_captions_other	其他語言…
+call_captions_picked	字幕：%1$s
+call_captions_downloading_now	正在下載 %1$s
+call_captions_cancel	取消
+call_captions_no_recognizer	你的手機沒有裝置端語音辨識，因此無法使用字幕。
+call_captions_no_translator	你的手機沒有裝置端翻譯，因此字幕會維持原本說的語言。
+call_captions_untranslated	你的手機無法翻譯這組語言，因此字幕維持原文。
+call_captions_unavailable	你的手機無法辨識這個語言。請在 HushMessenger 設定中選擇其他語言。
+call_captions_downloading	手機正在下載這個語言。下載完成後就會開始顯示字幕。
+call_captions_stopped	這通通話的字幕已停止。
+call_captions_no_voice	你的手機沒有這個語言的語音，因此不會朗讀字幕。
+save_voice_menu_row	儲存語音訊息
+save_voice_menu_saved	已儲存到 %1$s
+save_voice_menu_failed	無法儲存這則語音訊息
+local_pin_kept	已在這支手機上置頂
+local_pin_removed	已取消置頂
+hidden_chats_hide	從聊天清單隱藏
+hidden_chats_show	在聊天清單顯示
+hidden_chats_hidden	已從聊天清單隱藏
+hidden_chats_shown	已回到聊天清單
+hidden_chats_failed	無法隱藏這個聊天室
+hidden_chats_empty	你從聊天清單隱藏的聊天室會顯示在這裡。
+hidden_chats_unhide	取消隱藏
+hidden_chats_unnamed	聊天室
+special_contacts_track	追蹤這個人
+special_contacts_untrack	停止追蹤
+special_contacts_tracked	已開始追蹤這個人
+special_contacts_untracked	已停止追蹤這個人
+special_contacts_full	最多可追蹤 50 人
+special_contacts_failed	無法變更，請再試一次。
+special_contacts_cleared	已清除紀錄
+special_contacts_empty	你追蹤的人會顯示在這裡。長按與某人的聊天室，然後點選「追蹤這個人」。
+special_contacts_unnamed	某人
+special_contacts_nothing	尚未看到任何動態
+special_contacts_history	紀錄
+special_contacts_hide_history	隱藏紀錄
+special_contacts_clear	清除紀錄
+special_contacts_online	%s 上線
+special_contacts_offline	%s 離線
+special_contacts_offline_at	%1$s 離線，最後活動時間 %2$s
+special_contacts_typing	%s 正在輸入
+special_contacts_since	自 %s 開始追蹤
+special_contacts_renamed	%1$s 將名稱改為 %2$s
+message_actions_sent	你傳送的訊息
+message_actions_got	你收到的訊息
+message_actions_empty_sent	按住一則你傳送的訊息，它的動作就會顯示在這裡。
+message_actions_empty_got	按住一則你收到的訊息，它的動作就會顯示在這裡。
+chat_menu_items_empty	按住聊天清單中的一個聊天室，它的選單項目就會顯示在這裡。
+invisible_buttons_empty	使用 Messenger 一陣子，它顯示給你的每個按鈕就會出現在這裡。
+invisible_buttons_level_choice	%2$s 設為 %1$s
+invisible_buttons_invisible	現在看不見了
+invisible_buttons_visible	恢復原狀了
+invisible_buttons_level	現在以 %1$s 顯示
+message_actions_hidden_label	%1$s（已隱藏）
+message_actions_move_up	將%1$s上移
+message_actions_move_down	將%1$s下移
+message_actions_moved	%1$s，第 %2$d 項，共 %3$d 項
+message_actions_hide	隱藏
+message_actions_show	顯示
+message_actions_hidden	已從選單隱藏
+message_actions_shown	已回到選單
+message_actions_reset	恢復 Messenger 的順序
+message_actions_reset_done	已恢復 Messenger 的順序
+text_style_bold	粗體
+text_style_italic	斜體
+text_style_read_only	「粗體」與「斜體」僅適用於你正在輸入的文字。
+text_style_bold_none	「粗體」僅適用於 A 到 Z 的字母、帶重音符號的字母及數字。
+text_style_italic_none	「斜體」僅適用於 A 到 Z 的字母及帶重音符號的字母。
+bubble_stock	原始設定
+bubble_chat_heads	聊天大頭貼
+bubble_native	Android 泡泡通知
+bubble_changed	已選擇「%s」。重新啟動 Messenger 後生效。
+bubble_help	「原始設定」由 Messenger 決定行為。「聊天大頭貼」還需要啟用 Messenger 自身的「聊天大頭貼」開關，並允許顯示在其他應用程式上層。若未開啟「不受限制」的電池用量，只有在訊息送達時 Messenger 已關閉，才會顯示聊天大頭貼，所以也請在下方開啟。若使用「Android 泡泡通知」，請在下方 Android 設定中允許 Messenger 的泡泡通知。不支援泡泡通知的帳號會維持 Messenger 原本的行為。「暫停所有變更」會將所有行為交回 Messenger 決定。
+bubble_unsupported	此修補套件不支援 Android 泡泡通知，因此 Messenger 會維持原本的行為。你的設定已儲存。
+bubble_battery_off	允許不受限制的電池用量
+bubble_battery_on	電池用量：不受限制
+bubble_battery_missing	找不到此畫面。請開啟應用程式資訊，再選擇「電池」。
+bubble_permissions	Android 泡泡通知設定
+bubble_notifications	Messenger 通知設定
+bubble_conversations	Android 對話設定
+bubble_settings_missing	找不到此畫面。請開啟應用程式資訊，再選擇「通知」。
+facebook_keep_profile	保留個人檔案按鈕
+facebook_keep_profile_help	保留聊天室詳細資料頁面中的個人檔案按鈕，以及新聊天室頂端的「查看個人檔案」按鈕，讓你仍可開啟對方的 Facebook 個人檔案。其他 Facebook 捷徑仍會隱藏。
+avatar_shape_rounded	圓角
+avatar_shape_rounded_help	讓方形大頭貼照的邊角變圓，而不是直角。
+hidden_words_words	要隱藏的字詞
+hidden_words_hint	最多 %1$d 個字元，以逗號分隔
+hidden_words_help	必須整個字詞相符，所以「ok」不會隱藏「okay」。大小寫不影響。
+home_header_words	文字
+home_header_words_hint	最多 %1$d 個字元
+home_header_none	尚未設定文字或圖片，因此會保留 Messenger 的字標。
+home_header_using_words	你的文字會顯示在聊天清單頂端。
+home_header_picture	你的圖片會取代文字，顯示在聊天清單頂端。
+home_header_copying	正在複製圖片…
+home_header_choose	選擇圖片
+home_header_remove	移除圖片
+home_header_help	圖片會取代文字，以字標的高度顯示。背景透明的圖片效果最好。圖片大小上限為 %1$d MB。
+home_header_saved	圖片已儲存。
+home_header_removed	圖片已移除。
+home_header_remove_failed	無法移除圖片。
+home_header_not_picture	該檔案不是圖片。
+home_header_too_large	圖片大小上限為 %1$d MB。
+home_header_unreadable	無法開啟該圖片。
+home_header_not_saved	無法儲存圖片。
+home_header_busy	仍在複製上一張圖片。
+home_header_timeout	圖片處理太久，請再試一次。
+tab_icons_help	每個分頁都會換成簡單的線條圖示，顏色沿用 Messenger 原本的。想換成自己的圖片，就為該分頁挑一張。背景透明的正方形圖片最好看。圖片最大 %1$d MB。
+tab_icons_choose	選擇
+tab_icons_remove	移除
+tab_icons_plain	簡單圖示
+tab_icons_yours	你的圖片
+tab_icons_copying	複製中...
+tab_icons_saved	已儲存分頁圖示。重新啟動 Messenger 後即可看到。
+tab_icons_removed	已移除分頁圖示。
+tab_icons_remove_failed	無法移除該分頁圖示。
+tab_icons_not_picture	那個檔案不是圖片。
+tab_icons_too_large	圖片最大 %1$d MB。
+tab_icons_unreadable	無法開啟該圖片。
+tab_icons_not_saved	無法儲存分頁圖示。
+tab_icons_busy	仍在複製上一張圖片。
+tab_icons_timeout	圖片處理太久，請再試一次。
+tab_icons_tab_inbox	聊天
+tab_icons_tab_montage	限時動態
+tab_icons_tab_people	聯絡人
+tab_icons_tab_calls	通話
+tab_icons_tab_metaai	Meta AI
+tab_icons_tab_jewel	Facebook
+tab_icons_tab_more	選單
+tab_icons_tab_mesetting	你的個人檔案
+quiet_calls_chosen	只限選定的聊天室
+quiet_calls_chosen_help	你在下方開啟的聊天室來電會安靜地進來，其他來電照常響鈴。
+quiet_calls_recent_empty	打電話給你的聊天室會顯示在這裡，最新的在最上面。
+quiet_mode_daily	每天晚上
+quiet_mode_daily_help	每天晚上在下面兩個時間之間保持安靜，不管有沒有在休息。
+quiet_mode_break	休息一下
+quiet_mode_open	休息中，直到你結束
+quiet_mode_until	休息中，直到 %1$s
+quiet_mode_no_end	直到我自己結束
+quiet_mode_minutes	%1$s 分鐘
+quiet_mode_hour	1 小時
+quiet_mode_hours	%1$s 小時
+quiet_mode_start	從 %1$s 開始安靜
+quiet_mode_stop	安靜到 %1$s
+quiet_mode_how_long	要多久？
+quiet_mode_how_long_hint	訊息和來電還是會到，只是手機不會出聲。
+quiet_mode_end	結束休息
+quiet_mode_channel	靜音模式
+tab_badges_keep_chats	保留聊天室標記
+tab_badges_keep_people	保留聯絡人標記
+tab_badges_keep_notifications	保留通知標記
+tab_badges_keep_menu	保留選單標記
+tab_badges_keep_facebook	保留 Facebook 按鈕標記
+experimental	實驗性功能
+new_setting	新功能
+choice_on	「%s」已啟用
+choice_off	「%s」已停用
+appearance	外觀
+material_you_black	純黑深色模式
+material_you_black_help	在 Messenger 中搭配 Material You 使用純黑背景。淺色模式不受影響。
+material_you_light	淺色模式強調色
+material_you_light_help	淺色模式中 Messenger 的藍色也會改用你的強調色。灰色和白色保持不變。
+material_you_light_grays	淺色模式灰色
+material_you_light_grays_help	淺色模式中 Messenger 的灰色也會帶上你的調色盤色調。白色和黑色保持不變。
+material_you_style	調色盤樣式
+material_you_style_help	Material You 使用多少色彩，就像 Android 桌布設定中的樣式。「預設」會保留桌布的調色盤或你的主題。
+material_you_style_default	預設
+material_you_style_tonal_spot	色調點綴
+material_you_style_neutral	中性
+material_you_style_vibrant	鮮豔
+material_you_style_expressive	表現力
+material_you_style_rainbow	彩虹
+material_you_style_fruit_salad	水果沙拉
+material_you_style_monochrome	單色
+material_you_style_changed	已儲存「%s」樣式
+light	淺色主題
+light_help	將此設定畫面改為淺色。Messenger 本身不受影響。
+theme_help	預設使用深色主題。你的設定會保留。
+theme_status_wallpaper	Material You 會使用桌布的顏色。選擇強調色或貼上主題即可使用自己的顏色。
+theme_status_saved	已儲存「%s」主題。開啟 Material You 時會使用它。
+theme_status_unnamed	已儲存你的主題。開啟 Material You 時會使用它。
+theme_accents	強調色
+theme_accent_saved	已儲存強調色
+theme_accent_blue	藍色
+theme_accent_purple	紫色
+theme_accent_pink	粉紅色
+theme_accent_red	紅色
+theme_accent_orange	橘色
+theme_accent_green	綠色
+theme_accent_teal	藍綠色
+theme_paste	使用已複製的主題
+theme_copy	複製主題
+theme_clear	改回桌布顏色
+theme_pasted	已儲存主題
+theme_paste_empty	沒有可貼上的內容。請先複製主題。
+theme_paste_invalid	這不是主題。你的顏色沒有變更。
+theme_copied	已複製主題
+theme_copy_failed	無法複製主題。請再試一次。
+theme_cleared	已改回桌布顏色
+theme_change	主題變更
+theme_file_help	主題是一段文字，例如 {"name": "Sunset", "accent": "#E1306C", "neutral": "#1A1418", "pure_black": true}。accent 會改變 Messenger 的藍色，neutral 會改變灰色。兩者都保留 Messenger 原本的亮度，文字依然清楚易讀。「複製主題」會提供目前使用的顏色，方便編輯或分享。
+about	關於 HushMessenger
+version	版本
+installed	已安裝的控制項
+screen_art_blurry	此 Messenger 下載版本只含 %1$s dpi 螢幕用的圖示，而這支手機是 %2$s dpi，所以圖示會模糊。若要修正，請修補 APKMirror 上標示為 nodpi 或符合你螢幕的版本。
+copy	複製設定資訊
+copy_help	複製應用程式版本與控制項設定，不含帳號或對話資料，也不會傳送任何內容。
+setup_activity_help	活動紀錄僅表示控制項曾執行，無法證明它實際影響了畫面或保護了你的隱私。
+usage	控制項使用方式
+save_help	變更會即時儲存。收件匣選項會在 Messenger 下次建立聊天清單時生效，點選「重新啟動 Messenger」則會一次套用所有變更。你的帳號會保持登入。
+pause_help	「暫停所有變更」會暫時停用所有控制項，並保留你的設定。
+account_help	你的設定會套用至此安裝版本中的所有 Messenger 帳號。
+missing	找不到控制項？
+missing_help	請在 Morphe Manager 中選取該修補功能，並重新修補 Messenger。只更新修補來源不會新增控制項。
+log_out	登出
+log_out_help	在此手機上登出這個帳號，方式與 Messenger 本身的「登出」相同。
+log_out_unavailable	此版本中找不到 Messenger 的「登出」，請改用 Messenger 選單中的登出。
+log_out_failed	無法開啟 Messenger 的「登出」。Messenger 選單中的登出仍可使用。
+source	原始碼與授權
+licenses_hint	HushMessenger 從其所依據的專案中沿用的內容。這些聲明維持英文，與其來源授權相同。
+licenses_source	原始碼
+no_browser	此手機上找不到網頁瀏覽器
+page_blocked	你的手機不允許開啟該頁面
+support	支持 HushMessenger
+report	回報問題
+report_help	開啟公開的 GitHub 問題回報，並預先填入你的版本與已啟用的控制項。請先檢查內容，再補充問題經過。
+restart_waiting_one	有 %d 項變更等待重新啟動
+restart_waiting_many	有 %d 項變更等待重新啟動
+quick_setups	快速設定
+quick_setups_help	點一下即可套用一組控制項設定，之後仍可逐項調整。長按可隱藏此區塊。
+quick_setups_hidden	已隱藏。請點選「%2$s」下的「%1$s」。
+quick_setups_home	快速設定區塊
+quick_setups_home_shown	目前顯示。點一下可隱藏。
+quick_setups_home_hidden	目前隱藏。點一下可重新顯示。
+quick_quiet	清爽模式
+quick_quiet_help	隱藏廣告、宣傳內容、推薦聯絡人與邀請新增聯絡人的提示。
+quick_privacy	隱私
+quick_privacy_help	停止上傳會向 Meta 透露你如何使用 Messenger 的資料，包括你的廣告 ID。
+quick_iphone	iPhone 外觀
+quick_iphone_help	在聊天室清單頂端以「聊天室」標題取代文字標誌，保留下方的搜尋列，並讓選單背後的畫面變模糊（Android 12 以上），就像 iPhone 上的 Messenger。重新啟動 Messenger 即可看到。
+quick_iphone_words	聊天室
+quick_defaults	還原預設設定
+quick_defaults_help	停用所有控制項。暫停狀態與主題維持不變。
+quick_changed_one	已變更 %d 個控制項
+quick_changed_many	已變更 %d 個控制項
+quick_unchanged	沒有需要變更的項目。這些控制項已是指定設定。
+quick_missing	尚未安裝這些控制項。未變更任何設定。
+quick_undone_one	已還原 %d 個控制項
+quick_undone_many	已還原 %d 個控制項
+undo	復原
+undo_action	復原「%s」
+credits	GPL-3.0。包含來自 Morphe、De-Vanced、ReVanced、Doom 與 Messenger Cleaner 的成果。
+independent	本專案獨立於 Meta 與 Morphe。
+clipboard	HushMessenger 設定資訊
+copied	已複製設定資訊
+copy_failed	無法複製設定資訊。請再試一次。
+export	複製設定
+export_help	將你的設定複製為文字。若要在其他安裝版本中還原，請先在該處複製這段文字，再點選「貼上設定」。
+exported	已複製設定
+export_failed	無法複製你的設定。請再試一次。
+choices_file_save_failed	無法將你的設定儲存到檔案。請再試一次。
+import_choices	貼上設定
+import_help	從「複製設定」產生的文字還原設定。請先複製該文字，再點選這裡。
+imported_one	已還原 %d 項設定。
+imported_many	已還原 %d 項設定。
+imported_partial	已還原 %1$d 項設定，共 %2$d 項。
+import_same	你的設定已與該備份相同。
+import_none_changed	未變更任何設定。
+import_auto_reply_off	自動回覆維持停用，因為該備份不含回覆內容。
+import_empty	沒有可貼上的內容。請先複製你的設定。
+import_invalid	這不是設定備份。未變更任何設定。
+import_too_large	該備份超過 128 KB，因此未變更任何設定。
+import_zip_too_large	該備份太大，因此未變更任何設定。
+export_too_large	你的設定太大，無法放進一份備份。
+export_too_large_detail	主要來自「%s」。未複製或儲存任何內容。
+restore_failed	無法讀取該檔案。請再試一次，或選擇其他檔案。
+choices_file_no_picker	無法在此手機上開啟檔案選擇器。
+import_unknown_one	已略過 %d 項此版本無法辨識的設定。
+import_unknown_many	已略過 %d 項此版本無法辨識的設定。
+import_unavailable_one	已略過 %d 項未安裝對應修補功能的設定。
+import_unavailable_many	已略過 %d 項未安裝對應修補功能的設定。
+import_damaged_one	已略過 %d 個無法使用的檔案。
+import_damaged_many	已略過 %d 個無法使用的檔案。
+import_no_choices	沒有可還原的設定。所有項目都與你已安裝的修補功能不符。
+save_choices_file	將設定儲存至檔案
+read_choices_file	從檔案還原設定
+choices_file_help	儲存你的設定，包含自動回覆及已隱藏或已釘選的對話，但不含訊息或帳號資料。若有頁首或分頁圖片、自訂字型、自動回覆圖片或特別聯絡人追蹤的對象，檔案會存成 .zip 一併保存。檔案中未包含的設定會維持不變。若挑選檔案時設定畫面關閉，請重新選取檔案。
+choices_file_saved	已儲存設定檔案
+choices_file_saving	正在儲存設定檔案…
+choices_file_reading	正在讀取設定檔案…
+cancel_choices_file	取消檔案操作
+choices_file_canceled	已取消。儲存中的檔案可能不完整。
+choices_file_canceled_read	已取消。你的設定未變更。
+choices_file_timeout	操作逾時。儲存的檔案可能不完整。請再試一次。
+choices_file_timeout_read	操作逾時。你的設定未變更。請再試一次。
+choices_file_busy	先前的檔案儲存或還原作業仍在進行中。請稍後再試。
+choices_file_changed	還原期間你的設定已變更。請再試一次。
+check_updates	檢查更新
+check_updates_help	啟用時及開啟設定畫面時，會向 GitHub 查詢是否有新版本。查詢結果會重複使用一小時。預設停用。GitHub 可看見你的 IP 位址，但不會收到帳號或對話資料。
+check_now	立即檢查
+update_loading	正在檢查更新…
+update_available	已有 %s 版本可用
+update_action	查看發行版本
+up_to_date	你已使用最新版本。
+update_ahead	已安裝 %s。最新公開發行版本為 %s。
+update_retry	GitHub 暫時無法回應。請在 %s 後再點選「立即檢查」。
+update_error	無法檢查更新。請確認網路連線後再試一次。
+active_now	剛剛使用過
+active_ago	%s前使用過
+seconds_short	%d 秒
+minutes_short	%d 分鐘
+hours_short	%d 小時
+days_short	%d 天
+not_active	已啟用，等待 Messenger 使用此功能
+unsent_not_active	已啟用，尚未收到被收回的訊息
+restart_pending_on	重新啟動 Messenger 後生效
+restart_pending_off	重新啟動 Messenger 前仍會生效
+meta_ai_tab_pending_on	重新啟動 Messenger 後隱藏 Meta AI 分頁
+meta_ai_tab_pending_off	重新啟動 Messenger 後恢復顯示 Meta AI 分頁
+tab_people_pending_on	重新啟動 Messenger 後隱藏「聯絡人」分頁
+tab_people_pending_off	重新啟動 Messenger 後恢復顯示「聯絡人」分頁
+tab_people_show_pending_on	重新啟動 Messenger 後顯示「聯絡人」分頁
+tab_people_show_pending_off	重新啟動 Messenger 後移除「聯絡人」分頁
+tab_settings_show_pending_on	重新啟動 Messenger 後顯示設定分頁
+tab_settings_show_pending_off	重新啟動 Messenger 後移除設定分頁
+tab_notifications_pending_on	重新啟動 Messenger 後隱藏「通知」分頁
+tab_notifications_pending_off	重新啟動 Messenger 後恢復顯示「通知」分頁
+tab_stories_pending_on	重新啟動 Messenger 後隱藏「限時動態」分頁
+tab_stories_pending_off	重新啟動 Messenger 後恢復顯示「限時動態」分頁
+error_now	剛剛因錯誤而停止。請在「應用程式」分頁點選「複製設定資訊」查看詳細資料。
+error_ago	%s前因錯誤而停止。請在「應用程式」分頁點選「複製設定資訊」查看詳細資料。
+changes_paused	已暫停變更
+changes_resumed	已恢復變更
+safe_mode	安全模式
+safe_mode_help	Messenger 連續當機數次，因此已停用所有控制項。你的設定仍已保留。點選「恢復」即可重新啟用。
+safe_mode_help_paused	Messenger 連續當機數次。你的設定仍已保留。請先解除安全模式。「暫停所有變更」會維持啟用，直到你將其關閉。
+resume	恢復
+clear_safe_mode	解除安全模式
+safe_mode_cleared	已解除安全模式。變更仍維持暫停。
+safe_mode_save_failed	無法離開安全模式。變更仍維持暫停。
+enabled_one	已啟用 %d 個控制項
+enabled_many	已啟用 %d 個控制項
+saved_one	已儲存 %d 項設定。關閉「暫停所有變更」即可使用。
+saved_many	已儲存 %d 項設定。關閉「暫停所有變更」即可使用。
+saved	你的設定會自動儲存。
+none_installed	尚未安裝任何控制項。請在 Morphe Manager 中選取修補功能，並重新修補 Messenger。
+no_matches	沒有符合的控制項。
+results_one	顯示 %d 個，共安裝 %d 個控制項
+results_many	顯示 %d 個，共安裝 %d 個控制項
+group_count_one	%d 個控制項
+group_count_many	%d 個控制項
+open_help	從應用程式抽屜開啟 Messenger
+message_log_view	查看紀錄
+search_clear	清除
+search_clear_description	清除搜尋內容
+camera_missing	找不到可拍照的相機應用程式。
+camera_failed	無法開啟相機應用程式。請再試一次。
+camera_permission	請在 Messenger 的應用程式資訊中允許相機權限。
+camera_photo	相片
+camera_video	影片
+system_camera_ask	詢問拍照或錄影
+system_camera_ask_help	相機按鈕會先詢問要拍照還是錄影，再開啟你的相機應用程式。
+gallery_missing	找不到可挑選相片的相簿應用程式。
+gallery_failed	無法開啟相簿應用程式。請再試一次。
+instant_gallery_shutter	點按快門即可傳送你的相片。
+message_log_clear	清除紀錄
+message_log_close	關閉
+message_log_title	訊息紀錄
+message_log_hint	只儲存在此手機上。最新訊息列在最前面。
+message_log_hint_by_chat	只儲存在此手機上。有最新訊息的聊天室列在最前面。
+message_log_retention	停用訊息紀錄後，將停止新增紀錄。已儲存的訊息會保留到你清除紀錄或超過你選擇的時間為止。紀錄最多保留 20,000 則。
+message_log_loading	載入中…
+message_log_empty	尚未儲存任何訊息。
+message_log_empty_on	通知中含有文字的新訊息會顯示在這裡。聊天室中的既有訊息不會加入紀錄。
+message_log_empty_off	請在「功能控制」中啟用「保留訊息紀錄」，以儲存通知中含有文字的新訊息。聊天室中的既有訊息不會加入紀錄。
+message_log_load_failed	無法開啟訊息紀錄
+message_log_load_help	請再試一次。若持續失敗，「清除紀錄」會刪除已儲存的紀錄及其金鑰，讓新訊息能繼續儲存。
+message_log_set_aside	無法讀取較舊的紀錄
+message_log_set_aside_help	該紀錄已另行存放，以便繼續儲存新訊息。目前無法以任何方式開啟該紀錄，移除它不會影響較新的訊息。
+message_log_set_aside_remove	移除舊紀錄
+message_log_set_aside_failed	無法移除舊紀錄。請再試一次。
+message_log_clear_failed	無法清除完整紀錄
+message_log_clear_help	部分已儲存的資料或金鑰無法移除。請再試一次「清除紀錄」。
+retry	再試一次
+message_log_unknown_thread	未知的聊天室
+message_log_in_group	%s（%s）
+message_log_no_text	（無文字）
+message_log_unsent	已收回
+message_log_unsent_only	只顯示已收回的訊息
+message_log_show_all	顯示所有訊息
+message_log_cleared	已清除訊息紀錄
+message_log_restored	已還原訊息紀錄
+message_log_restore_failed	無法還原訊息紀錄
+message_log_now	剛剛
+message_log_ago	%s前
+message_log_quiet_chats	記錄不會通知的聊天室
+message_log_quiet_chats_help	也會記錄已關閉通知和你已限制的聊天室訊息，但不會通知你。你已限制的加密聊天室不會傳送任何內容到手機，所以只能搜尋對方名字來查看。
+message_log_save_expiring	在訊息被移除前先儲存
+message_log_save_expiring_help	記錄移除訊息之前，會先把訊息加入 Download/Messenger 裡的文字檔，每個月一個檔案。這個檔案沒有加密，能讀取你檔案的應用程式都能看到它。
+message_log_search	搜尋訊息和名稱
+message_log_by_chat	依聊天室分組
+message_log_by_date	最新的在前
+message_log_all_chats	所有聊天室
+message_log_chat_count	訊息：%s
+message_log_no_match	沒有符合的已存訊息。
+message_log_save_text	存成文字檔
+message_log_save_csv	存成 CSV
+message_log_save_help	儲存目前顯示的內容。檔案沒有加密。
+message_log_saved	已儲存訊息：%s
+message_log_save_failed	無法儲存檔案，請再試一次。
+message_log_keep	訊息保留時間
+message_log_keep_30	30 天
+message_log_keep_90	90 天
+message_log_keep_365	1 年
+message_log_keep_0	直到我清除紀錄
+message_log_keep_changed	訊息會保留 %s。
+message_log_keep_shorter	訊息會保留 %s。較舊的訊息會再保留 10 分鐘，以防你改回來。
+message_log_keep_forever	訊息會保留到你清除紀錄為止。
+message_log_kind_all	全部
+message_log_kind_direct	私訊
+message_log_kind_groups	群組
+message_log_rename_hint	為這個聊天室命名
+message_log_rename_save	儲存名稱
+message_log_renamed	已儲存名稱
+message_log_rename_removed	已移除名稱
+message_log_rename_failed	無法儲存名稱，請再試一次。
+message_log_attachment	相片或附件
+message_log_photo	相片
+message_log_photo_missing	無法顯示這張相片。
+message_log_keep_photos	以原始大小保留相片
+message_log_keep_photos_help	相片寫進記錄時就以傳送時的大小下載，對方收回之後你還是看得到。沒開啟的話，記錄只會留下通知裡的小預覽圖，而且只有在沒有端對端加密的聊天室才有。相片比記錄的其他內容占去多很多空間，訊息消失時它們也一起消失。
+message_log_keep_videos	保留影片
+message_log_keep_videos_help	影片寫進記錄時就先下載，對方收回之後你還是能觀看。Messenger 只在你打開時才下載，所以在那之前被收回就會跟著消失。影片比記錄裡其他東西都占空間，每個最多 16 MB，訊息消失時它們也一起消失。
+message_log_video_title	影片
+message_log_video_hint	從記錄自己的副本播放，那份副本在這支手機上一直是加密的。
+message_log_video_play	播放影片
+message_log_video_missing	無法播放這部影片。
+message_log_keep_voice	保留語音訊息
+message_log_keep_voice_help	語音訊息寫進記錄時就先下載，對方收回之後你還是能播放。Messenger 只在你播放時才下載，所以在那之前被收回就會跟著消失。語音檔比記錄的其他內容占空間，訊息消失時它們也一起消失。
+message_log_clip_play	播放語音訊息
+message_log_clip_stop	停止
+message_log_clip_missing	無法播放這則語音訊息。
+message_log_button	聊天室頂端的按鈕
+message_log_button_help	在新訊息按鈕旁放一個時鐘，點一下就能開啟紀錄。
+message_log_menu_row	「選單」分頁中的項目
+message_log_menu_row_help	在 Messenger「選單」分頁的設定下方加入訊息紀錄，點一下就能開啟紀錄。
+message_log_chat_row	聊天室選單中的項目
+message_log_chat_row_help	在長按聊天室時跳出的選單中加入訊息紀錄，點一下就能開啟該聊天室的紀錄。
+auto_reply_edit	編輯回覆
+auto_reply_title	自動回覆
+auto_reply_hint	依序由上至下比對回覆規則，傳送第一則符合條件的回覆。
+auto_reply_when	觸發關鍵字（選填）
+auto_reply_when_hint	你好，營業時間
+auto_reply_reply	傳送此回覆
+auto_reply_reply_hint	輸入回覆內容
+auto_reply_any	請以半形逗號分隔單字或詞句。留空則回覆所有訊息。
+auto_reply_off	自動回覆已停用。請在這裡儲存回覆，再到「功能控制」中啟用。
+auto_reply_count	%1$s / %2$s 則回覆
+auto_reply_number	回覆 %s
+auto_reply_remove_number	移除回覆 %s
+auto_reply_required	請在這裡填寫回覆內容，或先移除這則回覆再儲存。
+auto_reply_cancel	取消
+auto_reply_remove	移除
+auto_reply_add	新增回覆
+auto_reply_save	儲存
+auto_reply_groups	也回覆群組聊天室
+auto_reply_full	已達可儲存的回覆上限（%s 則）
+auto_reply_saved	已儲存回覆：%s
+auto_reply_saved_none	尚未儲存任何回覆，因此不會自動回覆
+auto_reply_picture	圖片（選填）
+auto_reply_picture_none	尚無圖片。新增圖片後，會在回覆之後立即傳送。
+auto_reply_picture_set	在回覆之後立即傳送
+auto_reply_picture_missing	找不到圖片。請重新選取或移除。
+auto_reply_picture_pick	新增圖片
+auto_reply_picture_change	更換圖片
+auto_reply_picture_clear	移除圖片
+auto_reply_picture_thumb	此回覆隨附的圖片
+auto_reply_picture_copying	正在複製圖片…
+auto_reply_picture_failed	無法使用該圖片。請嘗試其他圖片。
+auto_reply_picture_too_big	這張圖片太大了。請選擇較小的圖片。
+auto_reply_picture_too_slow	圖片載入太久了。請再試一次，或選擇其他圖片。
+auto_reply_picture_no_picker	沒有可挑選圖片的應用程式
+font_file_choose	選擇字型檔案
+font_phone	使用手機字型
+font_file_help	選取字型檔案後，Messenger 的少數畫面仍會使用手機字型。
+font_file_none	尚未選取，因此會使用手機字型。請選擇大小不超過 %1$d MB 的 .ttf 或 .otf 字型檔案。
+font_file_none_off	尚未選取。啟用此開關即可使用手機字型，也可以選擇大小不超過 %1$d MB 的 .ttf 或 .otf 字型檔案。
+font_file_using	正在使用 %1$s。選取其他檔案即可替換。
+font_file_picked_off	已選取 %1$s。啟用此開關即可使用。
+font_file_missing	HushMessenger 儲存的 %1$s 副本已遺失，因此會使用手機字型。請重新選取檔案。
+font_file_copying	正在複製字型檔案…
+font_file_set	已選取字型。重新啟動 Messenger 後即可使用。
+font_file_set_off	已選取字型。啟用此開關即可使用。
+font_file_not_font	這不是 .ttf 或 .otf 字型。你的字型未變更。
+font_file_too_large	該字型檔案超過 %1$d MB。你的字型未變更。
+font_file_wont_load	Android 無法使用該字型。你的字型未變更。
+font_file_not_saved	無法儲存字型。請確認可用空間後再試一次。
+font_file_unreadable	無法開啟該檔案。你的字型未變更。
+font_file_no_picker	此手機沒有檔案選擇器。
+font_file_picker_failed	無法開啟檔案選擇器。請再試一次。
+font_file_busy	無法開始操作。請稍後再試。
+font_file_stop	停止複製
+font_file_stopped	已停止複製。你的字型未變更。
+font_file_timeout	複製逾時。你的字型未變更。
+font_file_finishing	正在儲存字型，稍後即會完成。
+font_file_stuck	先前的複製作業仍在等待讀取檔案。這些作業放棄等待後，你才能選擇其他檔案。
+font_phone_set	已改回手機字型。重新啟動 Messenger 後即可看到變更。
+font_phone_failed	無法改回手機字型。請再試一次。
+font_size	文字大小 %1$d%%
+font_size_smaller	縮小
+font_size_larger	放大
+font_shift_none	文字位置依字型預設
+font_shift_down	文字向下移動 %1$d%%
+font_shift_up	文字向上移動 %1$d%%
+font_shift_up_button	向上移動
+font_shift_down_button	向下移動
+font_adjust_help	若字型在訊息泡泡中看起來太小，或位置太高、太低，可在這裡調整大小或位置。每次移動的距離為文字大小的 2%%。重新啟動 Messenger 後即可看到變更。
+font_adjust_saved	%1$s。重新啟動 Messenger 後即可看到變更。
+font_adjust_failed	無法儲存。你的字型未變更。
+hide_delivered	隱藏「已送達」
+hide_delivered_help	也會擋下「已送達」標記，你收到的訊息就不會在對方手機上顯示為已送達。適用於一般聊天室。加密聊天室用自己的方式傳送已送達，仍然會顯示。
+mark_read	標示為已讀
+mark_read_done	已標示為已讀
+mark_read_nothing	沒有可標示為已讀的新訊息
+save_view_once	一次性內容的儲存按鈕
+save_view_once_help	在允許截圖開啟時，於一次性照片和 Quicksnap 上加入儲存按鈕。點一下就把畫面上的內容存到你的圖片中的 Pictures/Messenger，照片關閉或被收回也不會不見。影片會存下你正在看的那一格。
+save_view_once_button	儲存
+save_view_once_saved	已儲存到 %1$s
+save_view_once_failed	這個存不起來。
+floating_menu	浮動訊息選單
+floating_menu_help	把長按訊息後出現的動作從螢幕底部移到那則訊息正下方的圓角卡片上，就像 iPhone 一樣。表情符號那一排維持原位，每個動作也還是 Messenger 自己的。
+story_seen_button	標示為已看過按鈕
+story_seen_button_help	在你開啟的限時動態上加入眼睛按鈕。想讓對方知道你看過畫面上的限時動態時，點一下即可。點之前，眼睛上會有一條斜線。
+story_seen	標示為已看過
+story_seen_done	已標示為已看過
+story_seen_nothing	沒有可標示為已看過的限時動態
+call_confirm_audio	要開始語音通話嗎？
+call_confirm_video	要開始視訊通話嗎？
+call_confirm_call	通話
+call_confirm_cancel	取消
+chat_jump_title	跳到
+chat_jump_first	第一則訊息
+chat_jump_date	指定日期
+chat_jump_loading	正在載入較早的訊息（目前 %1$d 則）
+chat_jump_loading_plain	正在載入較早的訊息
+chat_jump_seeking	正在找那一天
+chat_jump_cancel	取消
+chat_jump_start	這是聊天室的開頭
+chat_jump_found	這是那一天的第一則訊息
+chat_jump_next	那一天沒有訊息，這是下一則
+chat_jump_none	那一天以後沒有訊息
+chat_jump_no_dates	讀不到這個聊天室的日期
+chat_jump_no_list	找不到這個聊天室的訊息
+link_player_play	播放
+link_player_pause	暫停
+link_player_replay	重新播放
+link_player_full_screen	全螢幕
+link_player_open	在 %1$s 開啟
+people.title	隱藏你可能認識的人
+people.description	隱藏聊天、搜尋、限時動態，以及「聯絡人」與「通知」分頁中的推薦聯絡人。適合只想看到認識的人的使用者。
+friend_requests.title	隱藏交友邀請卡片
+friend_requests.description	隱藏聊天清單中的交友邀請卡片。不會接受或拒絕任何邀請。
+community_inbox.title	隱藏已加入的社群聊天室
+community_inbox.description	在主要聊天清單中隱藏已加入的社群聊天室。搜尋與社群資料夾仍會顯示這些聊天室。清單下次重新整理時生效。
+growth.title	隱藏互動推廣提示
+growth.description	隱藏邀請新增聯絡人的提示、便利貼中的說明面板（例如「公開我的便利貼」），以及「分享你自己的限時動態」卡片。
+inbox_promotions.title	隱藏收件匣宣傳內容
+inbox_promotions.description	隱藏聊天清單中的宣傳橫幅。
+stories.title	隱藏限時動態與便利貼
+stories.description	隱藏聊天清單上方的限時動態與便利貼列，以及大頭貼周圍的限時動態圓圈。
+instants_button.title	隱藏 Instants 按鈕
+instants_button.description	隱藏從聊天清單右側邊緣滑入的 + 按鈕，以及聊天大頭貼下方的按鈕。兩者都會開啟 Instants。
+subtabs.title	隱藏收件匣分頁
+subtabs.description	隱藏聊天清單上方的「全部」、「未讀」與「群組」分頁。
+inbox_typing.title	聊天清單顯示正在輸入
+inbox_typing.description	對方正在輸入時，在你清單中該聊天的最後一則訊息上寫出正在輸入，而不是只有進入聊天後才看得到。Messenger 本來就帶著這個功能，是 Meta 的伺服器把它關著。重新啟動 Messenger 就會開始。
+inbox_search_bar.title	保留搜尋列
+inbox_search_bar.description	當 Messenger 把聊天清單頂端的搜尋列換成搜尋圖示時，把搜尋列找回來。重新啟動 Messenger 後生效。若你尚未取得搜尋圖示，則不會有任何變更。
+chat_preview.title	長按預覽聊天室
+chat_preview.description	長按聊天室，就能在 Messenger 內建的預覽中快速看一眼，下方附上聊天室選單，不必開啟聊天室。
+chat_preview_size.title	放大聊天室預覽
+chat_preview_size.description	長按聊天室時，讓預覽中的聊天內容有更多空間，並可在預覽中往回捲動查看。下方的選單維持固定高度，項目較多時可以捲動。
+mark_read_action.title	隱藏「標示為已讀」
+mark_read_action.description	在長按聊天清單中的聊天室所顯示的選單中，隱藏「標示為已讀」，避免誤將聊天室標示為已讀。「標示為未讀」仍會保留。
+pinned_chats.title	置頂更多聊天室
+pinned_chats.description	讓你置頂超過 Messenger 上限的聊天室，並在沒有「置頂」選項的聊天室加回此選項。超過上限的置頂只保存在這支手機上，不會顯示在你的其他裝置。
+hidden_chats.title	隱藏選定的聊天室
+hidden_chats.description	在長按聊天室所顯示的選單中加入「從聊天清單隱藏」。隱藏的聊天室在收到新訊息時不會回到聊天清單，搜尋仍然找得到。隱藏只保存在這支手機上，你可以在 HushMessenger 設定中取消隱藏。這不會停止通知，如需停止請在 Messenger 中將聊天室設為靜音。
+special_contacts.title	特別聯絡人
+special_contacts.description	在長按與單一對象的聊天室所顯示的選單中加入「追蹤這個人」。HushMessenger 會根據 Messenger 原本就顯示給你的資訊，記錄對方何時上線、離線、正在對你輸入及更改名稱。紀錄只保存在這支手機上，你可以在 HushMessenger 設定中查看。
+chat_menu_items.title	隱藏聊天室選單項目
+chat_menu_items.description	從長按聊天清單中的聊天室所顯示的選單裡，隱藏你選擇的項目。先按住任一聊天室一次，該選單的項目就會顯示在這個開關下方供你選擇。
+facebook.title	隱藏 Facebook 捷徑
+facebook.description	隱藏 Facebook 按鈕、個人檔案與分享捷徑，以及「選單」分頁中的「Meta 旗下其他產品」與「訂閱」區塊。適合只使用 Messenger 的使用者。
+meta_ai.title	隱藏 Meta AI
+meta_ai.description	隱藏 Meta AI 浮動按鈕、工具列按鈕、分頁與選單項目、搜尋與 @ 建議中的 AI 內容，以及摘要聊天室未讀訊息的提示。重新啟動 Messenger 後才會隱藏分頁。
+moments.title	隱藏 Chat Moments
+moments.description	隱藏選單中的 Chat Moments。
+reels_badge.title	隱藏 Reels 標記
+reels_badge.description	隱藏 Reels 通知標記。
+tab_people.title	隱藏聯絡人分頁
+tab_people.description	隱藏底部導覽列中的「聯絡人」分頁。重新啟動 Messenger 後才會隱藏。
+tab_people_show.title	顯示聯絡人分頁
+tab_people_show.description	在 Messenger 已移除「聯絡人」分頁的帳號上，把它放回底部導覽列，緊接在「聊天室」之後。兩個開關都開啟時，以「隱藏聯絡人分頁」為準。重新啟動 Messenger 後即可看到分頁。
+tab_settings_show.title	顯示設定分頁
+tab_settings_show.description	把 Messenger 內建的設定分頁放在底部導覽列最後，上面是你的大頭貼，帳號設定一點就到。重新啟動 Messenger 後即可看到分頁。
+tab_badges.title	隱藏分頁標記
+tab_badges.description	隱藏底部分頁與頂端 Facebook 按鈕上的紅點及數字。啟用對應的「保留」選項，即可保留需要的標記。重新啟動 Messenger 後生效。
+hide_tab_labels.title	隱藏分頁文字
+hide_tab_labels.description	移除底部分頁上的文字，只留下圖示。螢幕閱讀器仍會唐出每個分頁的名稱。重新啟動 Messenger 後生效。
+tab_icons.title	你自己的分頁圖示
+tab_icons.description	把底部列的圖示換成簡單的線條圖示，也讓你在任一分頁放上自己的圖片。重新啟動 Messenger 後生效。
+tab_stories.title	隱藏限時動態分頁
+tab_stories.description	隱藏底部導覽列中的「限時動態」分頁。重新啟動 Messenger 後才會隱藏。
+tab_notifications.title	隱藏通知分頁
+tab_notifications.description	隱藏底部導覽列中的「通知」分頁。重新啟動 Messenger 後才會隱藏。
+tab_bar_scroll_away.title	捲動時隱藏分頁列
+tab_bar_scroll_away.description	向下捲動聊天清單時，底部分頁列會滑出畫面，向上捲動時再滑回來。重新啟動 Messenger 後生效。
+floating_tab_bar.title	浮動分頁列
+floating_tab_bar.description	把底部分頁列換成 Messenger 正在試用的浮動樣式，疊在聊天清單上，而不是放在清單下方。在部分螢幕上，Messenger 可能仍保留一般分頁列。重新啟動 Messenger 後生效。
+tab_swipe.title	滑動切換分頁
+tab_swipe.description	在聊天清單上左右滑動就能切到下方分頁列的下一個分頁，不用再伸手去按它的按鈕。隱藏的分頁會跳過，會左右滑動的清單也會留住自己的滑動。開啟後請重新啟動 Messenger。
+chat_animation.title	以滑動動畫開啟與關閉聊天室
+chat_animation.description	開啟聊天室時從側邊滑入，返回時滑出。聊天大頭貼與泡泡通知不受影響。
+story_hold.title	限時動態結束時停留
+story_hold.description	限時動態結束後停留在畫面上，不會自動切換下一則，讓你點一下或滑動後再繼續。相片與影片都會等待操作，最後一則限時動態也會保持開啟，直到你將其關閉。
+ai_stickers.title	隱藏 AI 貼圖工具
+ai_stickers.description	隱藏「產生」與「產生 AI 貼圖」按鈕、AI 貼圖分頁及 AI 貼圖建議。「產生」選單中的自訂與音樂貼圖也會一併隱藏。
+avatar_stickers.title	隱藏虛擬替身貼圖
+avatar_stickers.description	隱藏貼圖鍵盤中的虛擬替身分頁。
+emoji_drawer.title	還原舊版表情符號面板
+emoji_drawer.description	停用 Meta 的新版設計，恢復先前的表情符號鍵盤配置。重新啟動 Messenger 後生效。若你尚未取得新版設計，則不會有任何變更。
+emoji_search.title	保持搜尋表情符號
+emoji_search.description	開啟表情符號鍵盤時輸入文字，不再跳至貼圖搜尋。鍵盤會停留在表情符號頁面。
+chat_promotions.title	隱藏聊天室宣傳內容
+chat_promotions.description	隱藏對話中的宣傳橫幅。
+ad_context_banner.title	隱藏商家聊天室廣告橫幅
+ad_context_banner.description	若聊天室是透過商家廣告開啟，隱藏其中顯示該廣告的橫幅。
+suggested_replies.title	隱藏商家回覆建議
+suggested_replies.description	隱藏與商家對話時顯示的建議回覆。
+business_suggestions.title	隱藏商家輸入建議
+business_suggestions.description	隱藏輸入文字時彈出的商家建議。
+event_prompts.title	隱藏活動提示
+event_prompts.description	隱藏聊天室中的活動推廣提示。
+typing.title	隱藏「正在輸入…」狀態
+typing.description	阻止 Messenger 向他人顯示你正在輸入的狀態，端對端加密聊天室也適用。
+use_system_emoji.title	使用系統表情符號
+use_system_emoji.description	以手機本身的樣式顯示表情符號，取代 Messenger 內建樣式。
+disappearing_swipe.title	停用向上滑動開啟限時訊息
+disappearing_swipe.description	在聊天室底部向上滑動時，不再啟用限時訊息。捲動功能不受影響，你仍可在聊天室設定中設定限時訊息。
+message_actions.title	自訂訊息動作
+message_actions.description	選擇按住訊息時出現的動作順序，並隱藏你用不到的動作，傳送與收到的訊息分開設定。前幾個會顯示在訊息下方那一列，其餘的在「更多」裡。按住一則訊息一次，它的動作就會顯示在下方。
+auto_reply.title	自動回覆
+auto_reply.description	訊息包含你指定的關鍵字時，傳送下方設定的回覆；若關鍵字留空，則回覆所有訊息。回覆透過 Messenger 本身的通知回覆功能傳送，加密聊天室也適用，每個聊天室每五分鐘最多回覆一次。預設僅回覆一對一聊天室，除非你允許群組。啟用限時訊息的聊天室無法使用 Messenger 的通知回覆，因此不會自動回覆。
+text_style.title	粗體與斜體文字
+text_style.description	選取你輸入的文字，再於彈出的選單中選擇「粗體」或「斜體」（可能藏在三點選單中）。再次選取即可復原。「粗體」會轉換 A 到 Z 的字母（含帶重音符號的字母）及數字；「斜體」僅轉換字母，其他文字系統保持原樣。這些是特殊 Unicode 字元，因此任何手機都能顯示，但螢幕閱讀器可能會以不自然的方式朗讀。
+quiet_calls.title	將來電設為靜音
+quiet_calls.description	仍會接到來電，但 Messenger 不會響鈴、震動，或在畫面上彈出來電。來電會留在通知欄中，並提供接聽與拒接按鈕。未接來電仍會顯示在聊天室中。開啟「只限選定的聊天室」後，只有你挑選的聊天室會這樣，其他來電照常響鈴。若手機上已安裝 Facebook 應用程式，它仍可能因同一通來電而響鈴。
+quiet_mode.title	靜音模式
+quiet_mode.description	讓你暫時離開 Messenger。可以選 15 分鐘、1 小時、2 小時、8 小時，或由你自己結束；在那段時間內，Messenger 不會發出聲音，也不會震動。訊息和來電仍然會到，並留在通知欄裡，所以你休息時不會漏掉任何東西。下方的「每天晚上」會在你挑的兩個時間之間做同樣的事。在你的「特別聯絡人」名單中的人，不論傳訊息或打電話，都還是會照常通知你。
+car_messages.title	Android Auto 訊息
+car_messages.description	讓 Android Auto 在它自己的訊息畫面上朗讀你的訊息，並傳送你口述的回覆。Android Auto 只會顯示從 Play 商店安裝的應用程式。開啟其開發人員設定中的「不明來源」後，桌面主機 (Desktop Head Unit) 就會顯示，但實際的車輛仍可能不列出 Messenger。朗讀訊息會將聊天室標示為已讀並向對方顯示已讀，即使開啟了「隱藏已讀標記」也一樣。
+local_chat_search.title	搜尋已儲存的訊息
+local_chat_search.description	在聊天室的搜尋結果中加入一個按鈕，用來搜尋儲存在這支手機上的訊息。對於 Messenger 內建搜尋找不到任何內容的舊聊天室很有幫助。此功能適用於未採用端對端加密的聊天室，而且只能找到手機已載入的內容，所以請先在聊天室中向上捲動。
+chat_jump.title	跳到第一則訊息或指定日期
+chat_jump.description	長按聊天室頂端的名稱，即可跳到第一則訊息或你選的日期。聊天室左下角的箭頭可直接跳到第一則訊息，長按箭頭則可選擇日期。Messenger 一次只載入一頁聊天內容，所以會一路往回捲動並在畫面上顯示數量，直到抵達為止，按「取消」即可停止。最多只能回到 Messenger 能載入的範圍。
+landscape.title	允許橫向顯示
+landscape.description	讓 Messenger 隨手機轉成橫向，鍵盤更寬，照片和影片也更大。會依照手機的自動旋轉設定。通話、相機、付款和其他少數畫面仍保持直向。變更後請重新啟動 Messenger。
+call_recording.title	通話錄音
+call_recording.description	在通話期間於 Messenger 上方加入錄音按鈕。通話會存成一個音訊檔，放在手機的 Recordings/Messenger Calls（Android 10 和 11 為 Music/Messenger Calls）。開啟時，通話會改用 Android 的一般音訊路徑，而不是 Messenger 自己的路徑，變更後需要重新啟動 Messenger。Messenger 不會通知其他人，而各地的錄音法規不同，所以請先取得所有人的同意。
+call_captions.title	通話即時字幕
+call_captions.description	在通話期間，將對方說的話以字幕顯示在 Messenger 上方。字幕由手機自行產生，還能翻譯成你的語言並朗讀出來。需要 Android 13 或更新版本，且手機需有語音辨識。開啟時，通話會改用 Android 的一般音訊路徑，而不是 Messenger 自己的路徑，變更後需要重新啟動 Messenger。
+hide_call_buttons.title	隱藏通話按鈕
+hide_call_buttons.description	移除聊天室頂端列、商家聊天室和「新訊息」畫面的語音與視訊通話按鈕，避免誤觸。來電仍會響鈴，也仍可加入進行中的通話。
+call_confirm.title	通話前先詢問
+call_confirm.description	點按語音或視訊通話按鈕時會先詢問，避免誤觸打給別人。適用於聊天室頂端列、商家聊天室和「新訊息」畫面。點「通話」才會開始，點「取消」則不會。來電不受影響。
+original_photo.title	以原始畫質傳送相片
+original_photo.description	啟用 HD 時，以完整尺寸傳送 JPEG 相片，不再縮小。仍會移除位置資訊。超過 20 MB 的相片仍會縮小。
+original_video.title	傳送影片時不重新編碼
+original_video.description	在 Messenger 允許時傳送影片原始檔案，取代重新壓縮的版本。超過 25 MB 的影片及編輯過的影片仍會壓縮。
+xhe_audio.title	修正無法傳送的影片
+xhe_audio.description	某些影片會因較新的音訊格式（xHE-AAC）或三星螢幕錄影程式加入的標記，而顯示「無法傳送」，原版 Messenger 也有此問題。此功能會在傳送前修正音訊或移除標記，無論從其他應用程式分享到 Messenger，或在聊天室中選取影片都適用。影片畫面不會變更。
+media_caption.title	把你的文字放在相片上方
+media_caption.description	先輸入文字再附加相片或影片，你的文字會以獨立訊息先送出並顯示在上方，而不是在下方。標註照常可用。若沒有輸入任何文字，相片就照舊單獨送出。
+recent_media.title	隱藏最近相片卡片
+recent_media.description	截圖、拍照或錄影後立即開啟聊天室時，不再於訊息輸入框上方顯示建議傳送該內容的卡片。你仍可從相簿選取。
+save_voice.title	儲存你播放的語音訊息
+save_voice.description	你播放的每則語音訊息也會儲存到手機的 Recordings/Messenger（Android 10 和 11 為 Music/Messenger），讓檔案管理員或其他播放器可以開啟。再次播放不會另存一份。
+save_voice_menu.title	語音訊息的儲存按鈕
+save_voice_menu.description	按住語音訊息後點選「更多」，最上面一列就是「儲存語音訊息」，只儲存那一則。檔案會放在與「儲存你播放的語音訊息」相同的資料夾，那個開關可以保持關閉。
+share_story.title	分享時隱藏你的限時動態
+share_story.description	從其他應用程式將相片、影片或連結分享到 Messenger 時，手機的分享選單不再提供 Messenger 的「你的限時動態」，會直接前往「聊天室」。「傳送給」清單也不再顯示你的限時動態，避免誤按「新增」而發佈。你的聊天室和群組仍會顯示。
+system_camera.title	使用手機相機應用程式
+system_camera.description	聊天室中的相機按鈕會開啟手機的相機應用程式。拍攝的相片會在 Messenger 編輯器中開啟，供你傳送。開啟「詢問拍照或錄影」即可錄影。
+external_gallery.title	開啟手機相簿應用程式
+external_gallery.description	聊天室中的相簿按鈕會開啟手機本身的相簿應用程式。選取一張相片或一部影片時，會在該聊天室的 Messenger 編輯器中開啟，供你傳送。選取多個項目時，則會開啟 Messenger 的「傳送至」面板，顯示所有選取項目，並將該聊天室列在最上方。
+gallery_to_chat.title	將相簿選取項目放入聊天室
+gallery_to_chat.description	開啟「開啟手機相簿應用程式」時，你選取的項目會像 Messenger 自己的相簿一樣放進聊天室的訊息框，而不是開啟編輯器或「傳送至」面板。在你點選傳送之前不會傳出任何內容。
+paste_photo.title	將相片貼到聊天室
+paste_photo.description	你貼到聊天室的相片會像從相簿選取的項目一樣放進聊天室的訊息框，而不是自己傳出去。在你點選傳送之前不會傳出任何內容，所以你可以加上說明文字或改變心意。貼上的文字和鍵盤的 GIF 和以前一樣。已經開啟的聊天室需要重新開啟。
+instant_gallery.title	從相簿傳送 Instants
+instant_gallery.description	在 Instants 中點按快門時，會開啟手機的相簿應用程式，而不是拍照。你選取的相片會裁成相機畫面的形狀，作為 Instant 傳出。從相簿返回而沒有選取，就不會傳送任何內容。
+view_once_anywhere.title	在每個聊天都提供查看一次
+view_once_anywhere.description	Messenger 的相簿只在部分聊天顯示查看一次的開關，群組永遠沒有。這會在相簿開啟的每個地方都提供那個開關。對方的 Messenger 是否把它當成查看一次，仍然由 Meta 決定。
+external_browser.title	在外部開啟網頁連結
+external_browser.description	使用預設瀏覽器開啟網頁連結（http 與 https）。其他類型的連結維持原本的行為。
+link_player.title	在聊天室中播放影片連結
+link_player.description	別人分享的 YouTube、TikTok、Instagram 或 Facebook 影片會在聊天室上方的視窗播放，不會把你帶到應用程式或瀏覽器。影片來自網站本身的播放器，視窗也不會保留 Cookie。縮網址（youtu.be 除外）、Facebook 限時動態，以及任何不是影片頁面的連結都維持原本的行為。
+bubbles.title	允許聊天泡泡通知
+bubbles.description	在下方選擇「原始設定」、「聊天大頭貼」或「Android 泡泡通知」。Android 泡泡通知需要 Android 11 以上版本、支援的帳號及通知權限。變更後請重新啟動 Messenger。
+analytics_uploads.title	停止上傳分析資料
+analytics_uploads.description	阻止 Messenger 的背景服務上傳使用統計資料。資料仍會記錄在手機上，停用此選項後可能繼續上傳。
+attribution_uploads.title	停止上傳廣告歸因資料
+attribution_uploads.description	停止讀取手機廣告 ID，並將其與廣告追蹤設定傳送給 Meta 的工作。廣告 ID 本身不會變更。
+ad_events.title	停止記錄收件匣與廣告連結活動
+ad_events.description	停止 Messenger 記錄的兩種報告。一種記錄畫面上顯示了聊天清單的哪個部分，Messenger 將其歸類為收件匣廣告資料；另一種記錄你是透過哪則廣告的連結開啟聊天室。
+dwell_tracking.title	停止記錄注視時間
+dwell_tracking.description	停止 Messenger 在你離開畫面時送出的報告，該報告記錄你看每項內容多久、依什麼順序看，以及回頭看了幾次。同時也停止將這些時間複製到 Messenger 的使用歷程紀錄。
+mqtt_telemetry.title	停止記錄即時連線活動
+mqtt_telemetry.description	丟棄 Messenger 透過即時連線（MQTT）傳送的連線狀況報告與推播紀錄。Messenger 大部分資料會透過其他管道傳送，因此通常可攔下的內容不多。訊息、通話與上線狀態仍可正常運作。
+nearby_scans.title	停止附近裝置與網路掃描
+nearby_scans.description	阻止 Messenger 讀取附近的 Wi-Fi 網路清單，並隱藏目前連線網路的名稱與硬體位址，效果如同 Android 在 Messenger 無權存取位置資訊時的處理方式。也會停止 Messenger 開啟期間可能執行的計時工作，避免它定時查看位置及掃描 Wi-Fi 網路與藍牙裝置。
+phone_id_sync.title	停止分享應用程式清單與裝置 ID
+phone_id_sync.description	阻止 Messenger 搜尋手機上的其他 Meta 應用程式，並向這些應用程式索取 Meta 用來關聯同一手機上各應用程式的裝置 ID。Messenger 仍會保留已取得的 ID。
+message_log.title	保留訊息紀錄
+message_log.description	收到訊息通知時儲存訊息，讓你在訊息被收回後仍可閱讀，並標示被收回的訊息。支援加密聊天室，資料保留在手機上。若聊天室已啟用限時訊息，Messenger 的通知不會包含文字，因此無法記錄這些訊息。
+allow_screenshot.title	允許截圖
+allow_screenshot.description	允許擷取受保護的聊天媒體畫面，例如僅限查看一次的相片與 Quicksnap，並停用截圖通知。下方的開關會在一次性檢視畫面加入儲存按鈕。不會新增重播功能。
+secure_chat.title	封鎖聊天室截圖
+secure_chat.description	阻止在這支手機上對已開啟的聊天室截圖或錄製螢幕，並讓該聊天室不出現在應用程式切換畫面的預覽中。截圖由 Android 本身拒絕，因此適用於所有聊天室，而不只是限時訊息的聊天室。原本已開啟的聊天室需要重新開啟。和你聊天的人仍可以用自己的手機截圖。
+appear_offline.title	顯示為離線
+appear_offline.description	阻止 Messenger 告訴別人你正在使用中，而你仍然看得到誰在線上。Messenger 自己的使用中狀態設定會保持開啟，所以聊天室列表和「好友」分頁上的綠點照舊運作，只有 Messenger 對外回報關於你的狀態會改變。這項設定會在 Messenger 下次進入背景或回到前景時生效，因此重新啟動應用程式就會立刻套用。
+hide_read_receipts.title	隱藏已讀標記
+hide_read_receipts.description	開啟聊天室時，不再通知對方你已讀訊息，且該聊天室在本機仍維持未讀。手動標示為已讀或回覆時，會依 Messenger 原本的行為將聊天室標示為已讀，並向對方顯示已讀。尚未測試群組聊天室。Messenger 本身在「隱私和安全」中的「已讀標記」設定，可將聊天室標示為已讀而不向對方顯示已讀。其下的「隱藏已送達」也會在一般聊天室擋下已送達標記。
+mark_read_button.title	標示為已讀按鈕
+mark_read_button.description	啟用「隱藏已讀標記」時，在聊天室頂端列加入 Messenger 的「標示為已讀」圖示。開啟聊天室仍不會傳送已讀標記；當你想讓對方看到已讀時，再點選圖示，本機也會將聊天室標示為已讀。頂端列已滿時，此圖示會取代聊天室詳細資料按鈕（點選聊天室名稱仍可開啟同一頁面）；聊天室沒有該按鈕時，則取代另一個非通話按鈕，通話按鈕都會保留原位。
+read_chats_locally.title	在這支手機上將聊天室標示為已讀
+read_chats_locally.description	開啟「隱藏已讀標記」時，清除你已看過的聊天室的未讀外觀，聊天室清單不再以粗體和未讀數量顯示它。不會傳送任何資料給 Messenger，所以對方仍然不會知道你已讀。聊天室收到新訊息時，未讀外觀會再次出現。
+keep_unsent.title	保留已收回的訊息
+keep_unsent.description	在支援的聊天室中，當對方收回訊息後仍將訊息保留在畫面上。在加密聊天室中，訊息會改為保留在通知裡。尚未測試群組聊天室。你自己收回訊息的功能可能受到限制。
+hidden_words.title	隱藏含有你的字詞的訊息
+hidden_words.description	隱藏含有你指定字詞的訊息。請在下方輸入這些字詞，並以逗號分隔。收到的訊息若含有其中任一字詞，聊天室中會改為顯示 [hidden]，也不會跳出通知。不會回傳任何內容，也不會刪除任何東西，所以傳送訊息的人那邊仍然看得到，而你自己傳出的訊息也和平常一樣。聊天列表最下方那一行仍會顯示 Messenger 自己的訊息預覽。
+anonymous_stories.title	匿名觀看限時動態
+anonymous_stories.description	觀看他人的限時動態時，不會將你加入觀看者名單。Messenger 仍會在你這一端將其標示為已看過。
+save_stories.title	儲存任何限時動態
+save_stories.description	在他人限時動態的「更多選項」選單中加入「儲存」，讓你將相片或影片儲存在手機上。
+blocked_list_pictures.title	隱藏封鎖名單上的大頭貼照
+blocked_list_pictures.description	隱藏「隱私和安全」中封鎖名單上你封鎖的人的大頭貼照。他們的名字和「解除封鎖」仍會顯示。
+restricted_notify.title	接收受限制聊天的通知
+restricted_notify.description	與你限制的人的聊天會像其他聊天一樣通知你，但端對端加密的聊天除外。你設為靜音的聊天仍保持安靜。受限制的人仍無法看到你何時在線上，或何時已讀他們的訊息。
+passkey_login.title	跳過密碼金鑰登入
+passkey_login.description	登入時不再提供這支手機上的密碼金鑰，Facebook 會改成請你用另一台已登入的裝置核准這次登入，就像帳號沒有密碼金鑰時那樣。修補過的 Messenger 無法通過 Facebook 的密碼金鑰檢查，這就是有些登入一直卡在瀏覽器檢查的原因。開啟時，Messenger 也無法用密碼金鑰做加密備份，所以除非登入卡住，請保持關閉。長按主畫面上的 Messenger 圖示，不必登入也能開啟這些設定。
+material_you.title	Material You 主題
+material_you.description	在 Android 12 以上版本中，依桌布配色為 Messenger 深色模式上色；在 Android 11 中則使用固定藍色。請先在 Messenger 中啟用深色模式。除非開啟「淺色模式強調色」，否則淺色模式保持原本的顏色。
+app_icons.title	解鎖應用程式圖示
+app_icons.description	不需訂閱，即可在 Messenger 的「應用程式圖示」設定中選擇任何圖示。該設定是否顯示仍由 Messenger 決定。停用此選項後，可能會恢復預設圖示。
+app_themes.title	解鎖應用程式主題
+app_themes.description	不需訂閱，即可在 Messenger 的「主題」設定中選擇任何主題，讓淺色模式也能有顏色。提供哪些主題仍由 Messenger 決定。
+avatar_shape.title	方形大頭貼照
+avatar_shape.description	以方形取代圓形顯示用戶的大頭貼照。開啟下方的「圓角」可改為圓角方形。重新啟動 Messenger 後生效。
+home_header.title	自訂首頁標題
+home_header.description	以你自己的文字或圖片取代聊天清單頂端的 Messenger 字標。在下方輸入文字或選擇圖片。兩者都沒有時，會保留原本的字標。重新啟動 Messenger 後即可看到變更。
+custom_font.title	使用自訂字型
+custom_font.description	以手機字型取代 Meta 字型來顯示 Messenger 文字，也可使用下方選取的 .ttf 或 .otf 字型檔案，並調整大小或上下位置。表情符號不受影響。重新啟動 Messenger 後即可看到變更。
+menu_blur.title	選單背景模糊
+menu_blur.description	長按聊天室或訊息時跳出的選單，以及 Messenger 其他的彈出選單和面板，背後的畫面會像 iPhone 一樣變模糊。需要 Android 12 以上。
+invisible_buttons.title	隱形按鈕
+invisible_buttons.description	把你在下面挑選的按鈕變成看不見或半透明，但位置、大小和功能都不變，所以點下去照樣有用。聊天列表、聊天室裡和選單都適用，HushMessenger 自己的按鈕也包括在內。Messenger 顯示給你的每個按鈕都會用螢幕閱讀器唸出的名稱列在這裡，所以先使用 Messenger 一陣子來填滿清單。
+ios_bars.title	半透明聊天列
+ios_bars.description	聊天室的頂端列和訊息框變成半透明，訊息會從下面滑過並透出模糊的樣子，就像 iPhone 的列一樣。需要 Android 12 或更新版本。

@@ -1,0 +1,313 @@
+package app.morphe.patches.tiktok.usability
+
+import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
+import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.booleanOption
+import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.stringOption
+import app.morphe.patches.shared.Constants
+import app.morphe.patches.shared.addInstructionsAtControlFlowLabel
+import app.morphe.patches.shared.ensureRegisterCount
+import app.morphe.patches.shared.sharedExtensionPatch
+
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+
+/**
+ * Locates the AB-helper class exposing the boolean/int experiment lookups and returns
+ * its type, or null when the obfuscated helper shape shifted.
+ */
+private fun BytecodePatchContext.findAbHelperType(): String? {
+    var helperType: String? = null
+    classDefForEach { classDef ->
+        if (helperType != null) return@classDefForEach
+        val methods = classDef.methods
+        val hasGetter = methods.any { it.name == "LJIIIZ" && it.parameterTypes.isEmpty() }
+        if (!hasGetter) return@classDefForEach
+        val hasBoolGate = methods.any {
+            it.name == "LIZJ" &&
+                it.parameterTypes.map { p -> p.toString() } == listOf("I", "Ljava/lang/String;", "Z", "Z") &&
+                it.returnType == "Z"
+        }
+        val hasIntGate = methods.any {
+            it.name == "LJIIJJI" &&
+                it.parameterTypes.map { p -> p.toString() } == listOf("I", "I", "Ljava/lang/String;", "Z") &&
+                it.returnType == "I"
+        }
+        if (hasBoolGate && hasIntGate) helperType = classDef.type
+    }
+    return helperType
+}
+
+val playbackSpeedPatch = bytecodePatch(
+    name = "Remember Playback Speed",
+    description = "Keeps your chosen playback speed across videos and restarts.",
+    default = false,
+) {
+    compatibleWith(Constants.COMPATIBILITY_TIKTOK, Constants.COMPATIBILITY_TIKTOK_LITE)
+    dependsOn(sharedExtensionPatch)
+
+    val defaultSpeed by stringOption(
+        key = "defaultSpeed",
+        default = "1.0",
+        title = "Default Playback Speed",
+        description = "Sets the default playback speed for videos when no UI selector is present.",
+        values = mapOf(
+            "0.5x" to "0.5",
+            "0.75x" to "0.75",
+            "1.0x" to "1.0",
+            "1.25x" to "1.25",
+            "1.5x" to "1.5",
+            "2.0x" to "2.0",
+        ),
+        required = false,
+    )
+
+    val enableSpeedLock by booleanOption(
+        key = "enableSpeedLock",
+        default = true,
+        title = "Hold-And-Slide 2x Speed Lock",
+        description = "Enables TikTok's native hold, slide down, and release gesture for locking playback at 2x speed (140dp slide distance fallback when the server returns no distance).",
+        required = false,
+    )
+
+    execute {
+        var patched = 0
+        val isLite = packageMetadata.packageName == Constants.TIKTOK_LITE_PACKAGE_NAME
+
+        if (isLite) {
+            val rawSpeed = defaultSpeed?.trim()?.removeSuffix("x")?.toFloatOrNull() ?: 1.0f
+            val speedVal = if (rawSpeed in 0.25f..4.0f) rawSpeed else 1.0f
+            val speedHex = "0x" + java.lang.Float.floatToRawIntBits(speedVal).toUInt().toString(16)
+
+            // 1. Hook SimplifyPlayerImpl.setPlaySpeed(F)V to intercept and normalize speed selections
+            val speedFp = Fingerprint(
+                parameters = listOf("F"),
+                returnType = "V",
+                strings = listOf("SimplifyPlayerImpl", "setPlaySpeed mPlayer = "),
+            )
+            val speedMethod = speedFp.method
+            val playerClass = speedMethod.definingClass
+            val speedMethodName = speedMethod.name
+
+            speedMethod.addInstructions(
+                0,
+                """
+                    invoke-static {p1}, ${Constants.TIKTOK_EXTENSION_SPEED_HOOK}->resolvePlayerSpeed(F)F
+                    move-result p1
+                    invoke-static {p1}, ${Constants.TIKTOK_EXTENSION_SPEED_HOOK}->onSpeedSelected(F)V
+                """.trimIndent(),
+            )
+            println("[Remember Playback Speed] Hooked Lite $playerClass.$speedMethodName -> state persisted.")
+            patched++
+
+            // 2. Hook SimplifyPlayerImpl.render()V to enforce saved speed on new video playback
+            val renderFp = Fingerprint(
+                definingClass = playerClass,
+                name = "render",
+                parameters = emptyList(),
+                returnType = "V",
+            )
+            val renderMethod = renderFp.method
+            renderMethod.ensureRegisterCount(4)
+            renderMethod.addInstructions(
+                0,
+                """
+                    const v1, $speedHex
+                    invoke-static {p0, v1}, ${Constants.TIKTOK_EXTENSION_SPEED_HOOK}->getPlaybackSpeed(Ljava/lang/Object;F)F
+                    move-result v0
+                    invoke-virtual {p0, v0}, $playerClass->$speedMethodName(F)V
+                """.trimIndent(),
+            )
+            println("[Remember Playback Speed] Hooked Lite $playerClass.render -> persistent speed enforced on render.")
+            patched++
+
+            println("[Remember Playback Speed] Applied $patched playback speed hook(s).")
+            return@execute
+        }
+
+        // 1. Hook Aweme.getParameterizedSpeed()F (Feed playback engine speed resolution)
+        try {
+            val speedMethod = Fingerprint(
+                definingClass = "Lcom/ss/android/ugc/aweme/feed/model/Aweme;",
+                name = "getParameterizedSpeed",
+                returnType = "F",
+            ).method
+            speedMethod.removeInstructions(0, speedMethod.implementation!!.instructions.count())
+            speedMethod.addInstructions(
+                0,
+                """
+                    invoke-static {p0}, ${Constants.TIKTOK_EXTENSION_SPEED_HOOK}->getPlaybackSpeed(Ljava/lang/Object;)F
+                    move-result v0
+                    return v0
+                """.trimIndent(),
+            )
+            println("[Remember Playback Speed] Hooked Aweme.getParameterizedSpeed() -> Persistent feed speed resolution active.")
+            patched++
+        } catch (e: Exception) {
+            println("[Remember Playback Speed] Aweme.getParameterizedSpeed note: ${e.message}")
+        }
+
+        // 2. Hook UI Speed Selection Handler (User selecting speed in TuxSheet / long press / share panel)
+        try {
+            val speedSelectFp = Fingerprint(
+                strings = listOf("swipe_up_lock_persist", "click_share_button", "long_press"),
+                parameters = listOf("F", "Lcom/ss/android/ugc/aweme/feed/model/Aweme;", "Ljava/lang/String;", "Ljava/lang/String;"),
+                returnType = "V",
+            )
+            val speedReg = if (AccessFlags.STATIC.isSet(speedSelectFp.method.accessFlags)) "p0" else "p1"
+            speedSelectFp.method.addInstructions(
+                0,
+                """
+                    invoke-static {$speedReg}, ${Constants.TIKTOK_EXTENSION_SPEED_HOOK}->onSpeedSelected(F)V
+                """.trimIndent(),
+            )
+            println("[Remember Playback Speed] Hooked native speed selection handler (${speedSelectFp.classDef.type}->${speedSelectFp.method.name}) -> Real-time speed persistence active.")
+            patched++
+
+            // 3. Hook Speed Selection UI Active Indicator in the same class (ensures UI sheet radio button reflects persistent speed)
+            val queryMethods = speedSelectFp.classDef.methods.filter {
+                it.implementation != null &&
+                    it.parameterTypes == listOf("Lcom/ss/android/ugc/aweme/feed/model/Aweme;") &&
+                    it.returnType == "F"
+            }
+            queryMethods.forEach { method ->
+                val awemeReg = if (AccessFlags.STATIC.isSet(method.accessFlags)) "p0" else "p1"
+                method.removeInstructions(0, method.implementation!!.instructions.count())
+                method.addInstructions(
+                    0,
+                    """
+                        invoke-static {$awemeReg}, ${Constants.TIKTOK_EXTENSION_SPEED_HOOK}->getPlaybackSpeed(Ljava/lang/Object;)F
+                        move-result v0
+                        return v0
+                    """.trimIndent(),
+                )
+            }
+            if (queryMethods.isNotEmpty()) {
+                println("[Remember Playback Speed] Hooked speed query methods (${queryMethods.size} method(s)) -> UI dialog synchronization active.")
+                patched++
+            }
+        } catch (e: Exception) {
+            println("[Remember Playback Speed] Speed selection handler note: ${e.message}")
+        }
+
+        // 4. Hook PlayerManager.setSpeed(F)V (Core playback engine speed dispatcher)
+        // Prevents search, profile, and non-FYP controllers from resetting playback speed back to 1.0f
+        try {
+            val playerManagerFp = Fingerprint(
+                strings = listOf("PlayerManager con useV3:"),
+            )
+            val setSpeedMethod = playerManagerFp.classDef.methods.firstOrNull {
+                it.implementation != null &&
+                    it.parameterTypes == listOf("F") &&
+                    it.returnType == "V" &&
+                    it.name != "seek"
+            } ?: error("Could not find setSpeed(F)V method in PlayerManager (${playerManagerFp.classDef.type})")
+
+            val speedParamReg = if (AccessFlags.STATIC.isSet(setSpeedMethod.accessFlags)) "p0" else "p1"
+            setSpeedMethod.addInstructions(
+                0,
+                """
+                    invoke-static {$speedParamReg}, ${Constants.TIKTOK_EXTENSION_SPEED_HOOK}->resolvePlayerSpeed(F)F
+                    move-result $speedParamReg
+                """.trimIndent(),
+            )
+            println("[Remember Playback Speed] Hooked core PlayerManager.setSpeed (${playerManagerFp.classDef.type}->${setSpeedMethod.name}) -> Global speed persistence across Search and Profiles active.")
+            patched++
+        } catch (e: Exception) {
+            println("[Remember Playback Speed] PlayerManager.setSpeed note: ${e.message}")
+        }
+
+        // 5. Hold-and-slide 2x speed lock (native long-press speed-up rollout gates).
+        // The gates are read through the AB-helper class (obfuscated, triaged per target
+        // version); hooks are key-scoped so other experiments are untouched.
+        if (enableSpeedLock == true) {
+            try {
+                val helper = findAbHelperType()
+                    ?: error("AB-helper class (LJIIIZ/LIZJ/LJIIJJI) not found")
+                println("[Remember Playback Speed] AB-helper class: $helper.")
+
+                val boolGate = Fingerprint(
+                    definingClass = helper,
+                    name = "LIZJ",
+                    parameters = listOf("I", "Ljava/lang/String;", "Z", "Z"),
+                    returnType = "Z",
+                ).method
+                boolGate.ensureRegisterCount(2)
+                val boolReturns = boolGate.implementation?.instructions?.withIndex()
+                    ?.filter { it.value.opcode == Opcode.RETURN }
+                    ?.map { it.index to (it.value as OneRegisterInstruction).registerA }
+                    ?.toList() ?: emptyList()
+                boolReturns.asReversed().forEachIndexed { ordinal, (returnIndex, reg) ->
+                    // Only the return register is live at a return point; scratch must differ.
+                    // Descending order keeps earlier indices valid after each insertion.
+                    val scratch = if (reg == 0) 1 else 0
+                    boolGate.addInstructionsAtControlFlowLabel(
+                        returnIndex,
+                        """
+                            if-eqz p2, :speed_lock_keep_stock_$ordinal
+                            const-string v$scratch, "long_press_speed_up_enable"
+                            invoke-virtual {p2, v$scratch}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+                            move-result v$scratch
+                            if-eqz v$scratch, :speed_lock_keep_stock_$ordinal
+                            const/4 v$reg, 0x1
+                            :speed_lock_keep_stock_$ordinal
+                            nop
+                        """.trimIndent(),
+                    )
+                }
+                if (boolReturns.isNotEmpty()) {
+                    println("[Remember Playback Speed] Forced long_press_speed_up_enable gate -> true (${boolReturns.size} return(s)).")
+                    patched++
+                }
+
+                val intGate = Fingerprint(
+                    definingClass = helper,
+                    name = "LJIIJJI",
+                    parameters = listOf("I", "I", "Ljava/lang/String;", "Z"),
+                    returnType = "I",
+                ).method
+                intGate.ensureRegisterCount(2)
+                val intReturns = intGate.implementation?.instructions?.withIndex()
+                    ?.filter { it.value.opcode == Opcode.RETURN }
+                    ?.map { it.index to (it.value as OneRegisterInstruction).registerA }
+                    ?.toList() ?: emptyList()
+                intReturns.asReversed().forEachIndexed { ordinal, (returnIndex, reg) ->
+                    // Only the return register is live at a return point; scratch must differ.
+                    // Descending order keeps earlier indices valid after each insertion.
+                    val scratch = if (reg == 0) 1 else 0
+                    intGate.addInstructionsAtControlFlowLabel(
+                        returnIndex,
+                        """
+                            if-eqz p3, :speed_lock_keep_distance_$ordinal
+                            const-string v$scratch, "long_press_speed_up_lock"
+                            invoke-virtual {p3, v$scratch}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+                            move-result v$scratch
+                            if-eqz v$scratch, :speed_lock_keep_distance_$ordinal
+                            if-lez v$reg, :speed_lock_keep_distance_$ordinal
+                            const/16 v$reg, 0x8c
+                            :speed_lock_keep_distance_$ordinal
+                            nop
+                        """.trimIndent(),
+                    )
+                }
+                if (intReturns.isNotEmpty()) {
+                    println("[Remember Playback Speed] Clamped long_press_speed_up_lock distance -> 140dp fallback (${intReturns.size} return(s)).")
+                    patched++
+                }
+            } catch (e: Exception) {
+                println("[Remember Playback Speed] Long-press speed-up lock note: ${e.message}")
+            }
+        }
+
+        if (patched == 0) {
+            println("[Remember Playback Speed] WARNING: applied 0 hook(s) -> this feature is NOT active on this APK; its targets moved upstream.")
+        } else {
+            println("[Remember Playback Speed] Applied $patched playback speed hook(s) -> Persistent speed active.")
+        }
+    }
+}

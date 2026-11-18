@@ -36,7 +36,7 @@
     "existing_wrapper_contract": "For decision=delegate_existing, reuse existing_wrapper_id and delegate to the original dependency graph once.",
     "selection_defaults": "Default-selected and runtime-enabled are separate. Original runtime defaults and existing morphe_prefs values are preserved.",
     "shared_settings": "Retain the complete original settings resources, startup initialization and extension graph; expose imported UI through the Afterglow settings bridge.",
-    "branding": "Exclude Custom branding and Change header exports and their unlicensed/logo source assets.",
+    "branding": "Exclude original Custom branding and Change header exports and their unlicensed/logo source assets. The independent Afterglow app icon patch uses artwork supplied by the project owner.",
     "exclusive_service_ownership": "Afterglow owns SponsorBlock and Downloads and Vault. Morphe Downloads is not exported. Original Hide ads can still enter through optional Channel whitelist; this dependency exception is explicit.",
     "validation_status": "Catalog and source inventory only; compile, strict patch application and device behavior are separate integration gates."
   },

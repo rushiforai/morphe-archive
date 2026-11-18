@@ -1,18 +1,14 @@
 package app.hushmessenger.patches.controls
 
-import app.morphe.patcher.PatcherConfig
-import app.morphe.patcher.PatcherProgress
-import app.morphe.patcher.patch.BytecodePatch
+import app.hushmessenger.patches.useClasses
+import app.hushmessenger.patches.withPatcherContext
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.ResourcePatch
 import app.morphe.patcher.patch.ResourcePatchContext
-import app.morphe.patcher.resource.ResourceMode
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import java.nio.file.Path
-import java.nio.file.Files
 import org.junit.jupiter.api.io.TempDir
 import org.w3c.dom.Element
 import kotlin.test.Test
@@ -41,7 +37,7 @@ class ControlFailureTest {
 
     @Test fun resourceDependencyCannotAdvertiseAControlBeforeBytecodeSucceeds(@TempDir temporary: Path) {
         withResourceContext(temporary) { context, _ ->
-            val feature = hidePeoplePatch.dependencies.filterIsInstance<ResourcePatch>().single()
+            val feature = hidePeoplePatch.capabilityRecord()
             feature.execute(context)
             feature.finalize(context)
             assertEquals(false, context.hasPeopleFeature(), "A resource dependency advertised a control that never executed")
@@ -49,9 +45,9 @@ class ControlFailureTest {
     }
 
     @Test fun successfulControlStateDoesNotLeakIntoTheNextFailedRun(@TempDir temporary: Path) {
-        val feature = hidePeoplePatch.dependencies.filterIsInstance<ResourcePatch>().single()
-        val discovery = hidePeoplePatch.dependencies.filterIsInstance<BytecodePatch>().single()
-        for (broken in listOf("none", "gate", "route")) withResourceContext(temporary.resolve("run-$broken")) { resources, config ->
+        val feature = hidePeoplePatch.capabilityRecord()
+        val discovery = settingsExtension
+        for (broken in listOf("none", "gate", "route")) withResourceContext(temporary.resolve("run-$broken")) { resources, context ->
             // The fixtures carry the synthetic names, and discovery picks the profile by the APK's version code. The
             // extension's resource APK stands in for Messenger here, so its code gets the synthetic profile.
             controlProfilesInUse = controlProfiles + (resources.packageMetadata.versionCode!!.toInt() to SYNTHETIC_PROFILE)
@@ -72,47 +68,37 @@ class ControlFailureTest {
             ).groupBy { it.definingClass }.map { (type, methods) -> fixtureClass(type, methods) }
                 .plus(peopleJewelKeyHolder()).plus(screenHostClasses())
                 .plus(if (broken == "route") listOf(inboxSupplierClass(), inboxObserverClass(low = 0)) else inboxRefreshClasses()).toSet()
-            val context = BytecodePatchContext::class.java.declaredConstructors.single()
-                .newInstance(config, resources.packageMetadata) as BytecodePatchContext
-            val patchClasses = Class.forName("app.morphe.patcher.util.PatchClasses")
-            BytecodePatchContext::class.java.getMethod("setPatchClasses\$morphe_patcher", patchClasses)
-                .invoke(context, patchClasses.getConstructor(Set::class.java, PatcherProgress::class.java).newInstance(classes, null))
-            context.use {
-                feature.execute(resources)
-                discovery.execute(context)
-                try {
-                    if (broken != "none") assertFailsWith<PatchException> { hidePeoplePatch.execute(context) }
-                    else hidePeoplePatch.execute(context)
-                    feature.finalize(resources)
-                    assertEquals(broken == "none", resources.hasPeopleFeature())
-                    // A Root Mount install reads the same list from the patched code.
-                    assertEquals(if (broken != "none") emptySet() else setOf("people"), bundledControls.toSet())
-                    val route = context.mutableClassDefBy(HOST_SCREENS).methods.single { it.hookId() == INBOX_REFRESH_ROUTE }
-                    assertEquals(if (broken == "none") INBOX_ROUTE.toString() else "",
-                        ((route.implementation!!.instructions.first() as ReferenceInstruction).reference as StringReference).string, broken)
-                    val items = context.mutableClassDefBy(INBOX_SUPPLIER).methods.single { it.hookId() == INBOX_ITEMS_HOOK }
-                    assertEquals(if (broken == "none") INBOX_ITEMS_CALL else INBOX_ITEMS_TRACE,
-                        (items.implementation!!.instructions.first() as ReferenceInstruction).reference.let { (it as? StringReference)?.string ?: it.toString() }, broken)
-                } finally {
-                    discovery.finalize(context)
-                }
+            context.useClasses(classes)
+            feature.execute(resources)
+            discovery.execute(context)
+            try {
+                if (broken != "none") assertFailsWith<PatchException> { hidePeoplePatch.execute(context) }
+                else hidePeoplePatch.execute(context)
+                feature.finalize(resources)
+                assertEquals(broken == "none", resources.hasPeopleFeature())
+                // A Root Mount install reads the same list from the patched code.
+                assertEquals(if (broken != "none") emptySet() else setOf("people"), bundledControls.toSet())
+                val route = context.mutableClassDefBy(HOST_SCREENS).methods.single { it.hookId() == INBOX_REFRESH_ROUTE }
+                assertEquals(if (broken == "none") INBOX_ROUTE.toString() else "",
+                    ((route.implementation!!.instructions.first() as ReferenceInstruction).reference as StringReference).string, broken)
+                val items = context.mutableClassDefBy(INBOX_SUPPLIER).methods.single { it.hookId() == INBOX_ITEMS_HOOK }
+                assertEquals(if (broken == "none") INBOX_ITEMS_CALL else INBOX_ITEMS_TRACE,
+                    (items.implementation!!.instructions.first() as ReferenceInstruction).reference.let { (it as? StringReference)?.string ?: it.toString() }, broken)
+            } finally {
+                discovery.finalize(context)
             }
         }
     }
 
     @Test fun aMenuRowThatFailsIsNeverAdvertised(@TempDir temporary: Path) {
-        val record = menuSettingsPatch.dependencies.filterIsInstance<ResourcePatch>().single()
-        withResourceContext(temporary) { resources, config ->
-            val context = BytecodePatchContext::class.java.declaredConstructors.single()
-                .newInstance(config, resources.packageMetadata) as BytecodePatchContext
-            context.use {
-                record.execute(resources)
-                discoveredControls = emptyMap()
-                assertFailsWith<PatchException> { menuSettingsPatch.execute(context) }
-                record.finalize(resources)
-                assertEquals(false, resources.hasFeature("menu_row"), "A failed Menu row was advertised")
-                assertEquals(false, resources.hasFeature(LOGO_LONG_PRESS), "A failed Menu row advertised the logo")
-            }
+        val record = menuSettingsPatch.capabilityRecord()
+        withResourceContext(temporary) { resources, context ->
+            record.execute(resources)
+            discoveredControls = emptyMap()
+            assertFailsWith<PatchException> { menuSettingsPatch.execute(context) }
+            record.finalize(resources)
+            assertEquals(false, resources.hasFeature("menu_row"), "A failed Menu row was advertised")
+            assertEquals(false, resources.hasFeature(LOGO_LONG_PRESS), "A failed Menu row advertised the logo")
         }
     }
 
@@ -120,8 +106,8 @@ class ControlFailureTest {
 
     @Test fun menuTargetsAreAtomicAcrossAllMappingGroups(@TempDir temporary: Path) {
         val originalProfile = activeProfile
-        val record = menuSettingsPatch.dependencies.filterIsInstance<ResourcePatch>().single()
-        val discovery = menuSettingsPatch.dependencies.filterIsInstance<BytecodePatch>().single()
+        val record = menuSettingsPatch.capabilityRecord()
+        val discovery = settingsExtension
         try {
             for ((group, profile) in controlProfiles.values.distinct().withIndex()) {
                 activeProfile = profile
@@ -138,13 +124,9 @@ class ControlFailureTest {
                         else -> drawer + chatsTitleClasses()
                     }.toSet()
                     val applies = broken in setOf("none", "no-logo", "menu-title-only")
-                    withResourceContext(temporary.resolve("$group-$broken")) { resources, config ->
-                        val context = BytecodePatchContext::class.java.declaredConstructors.single()
-                            .newInstance(config, resources.packageMetadata) as BytecodePatchContext
-                        val patchClasses = Class.forName("app.morphe.patcher.util.PatchClasses")
-                        BytecodePatchContext::class.java.getMethod("setPatchClasses\$morphe_patcher", patchClasses)
-                            .invoke(context, patchClasses.getConstructor(Set::class.java, PatcherProgress::class.java).newInstance(classes, null))
-                        context.use {
+                    withResourceContext(temporary.resolve("$group-$broken")) { resources, context ->
+                        context.useClasses(classes)
+                        run {
                             record.execute(resources)
                             discoveredControls = mirroredControls(classes)
                             validateControls(discoveredControls, setOf("menu_settings"))
@@ -195,11 +177,7 @@ class ControlFailureTest {
         } finally {
             activeProfile = originalProfile
             // Reset the shared run state as the real discovery dependency does.
-            withResourceContext(temporary.resolve("reset")) { resources, config ->
-                val context = BytecodePatchContext::class.java.declaredConstructors.single()
-                    .newInstance(config, resources.packageMetadata) as BytecodePatchContext
-                context.use { discovery.finalize(context) }
-            }
+            withResourceContext(temporary.resolve("reset")) { _, context -> discovery.finalize(context) }
         }
     }
 
@@ -210,22 +188,11 @@ class ControlFailureTest {
         }
     }
 
-    private fun withResourceContext(temporary: Path, action: (ResourcePatchContext, PatcherConfig) -> Unit) {
+    private fun withResourceContext(temporary: Path, action: (ResourcePatchContext, BytecodePatchContext) -> Unit) {
         // processResources builds this small resource APK while producing the extension.
         val apk = Path.of("../extensions/messenger/build/intermediates/linked_resources_binary_format/release/" +
             "processReleaseResources/linked-resources-binary-format-release.ap_").toFile()
         assertTrue(apk.isFile, "The extension's compiled resource fixture is missing")
-        val config = PatcherConfig(apk, temporary.toFile())
-        // Use the real resource context without adding a coroutine dependency to the bundle.
-        val context = ResourcePatchContext::class.java.getDeclaredConstructor(PatcherConfig::class.java)
-            .newInstance(config)
-        context.use {
-            ResourcePatchContext::class.java.getMethod("decodeResources\$morphe_patcher", ResourceMode::class.java)
-                .invoke(context, ResourceMode.RAW_ONLY)
-            // This framework-only extension has no application resource package to decode.
-            Files.writeString(temporary.resolve("apk/AndroidManifest.xml"),
-                """<manifest xmlns:android="http://schemas.android.com/apk/res/android"><application /></manifest>""")
-            action(context, config)
-        }
+        withPatcherContext(apk, temporary, emptyManifest = true, action)
     }
 }

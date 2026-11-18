@@ -4,8 +4,9 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
-import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.classDefByOrNull
+import app.morphe.patcher.patch.mutableClassDefBy
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -345,7 +346,7 @@ internal fun resolvePinnedChatRoute(row: Method, items: Method, classOf: (String
 }
 
 /** Checks the extension's half before any edit and returns the stub the route goes into. */
-internal fun BytecodePatchContext.pinnedChatStub(): MutableMethod {
+internal fun pinnedChatStub(): MutableMethod {
     val calls = classDefByOrNull(LOCAL_PINS)?.methods?.toList().orEmpty()
     for (id in listOf(PIN_ROW_CALL, UNPIN_ROW_CALL, PINNING_CALL, UNPINNING_CALL, PIN_FULL_CALL, PIN_ARRANGE_CALL)) {
         val call = calls.singleOrNull { it.hookId() == id }

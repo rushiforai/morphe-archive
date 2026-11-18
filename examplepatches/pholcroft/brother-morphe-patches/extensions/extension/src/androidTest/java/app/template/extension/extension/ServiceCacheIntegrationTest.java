@@ -37,6 +37,18 @@ public final class ServiceCacheIntegrationTest {
         ActivityStore store=new ActivityStore(context);String id=store.findPrinterIdByMac("02:01:02:03:04:09");
         String contextId=ReplayCredentials.contextId(ReplayKey.getOrCreate(),0,"test-community");
         if(id==null||!"octets:QQ==".equals(store.getCached(id,contextId,oid)))throw new AssertionError("service cache must persist under the verified printer");
+        Diagnostics.clear();
+        Diagnostics.start();
+        try {
+            Object diagnosticQuery=request(requestType,oid);
+            if(AutoCache.lookup(socket,diagnosticQuery)!=null)throw new AssertionError("diagnostics must bypass a warm cache");
+            AutoCache.record(socket,diagnosticQuery,response(loader,oid,new byte[]{65}));
+            if(Diagnostics.count()!=1||!Diagnostics.csv().contains("\"printer\""))throw new AssertionError("diagnostics must capture the live response");
+        } finally {
+            Diagnostics.stop();
+            Diagnostics.clear();
+        }
+        if(!AutoCache.enabled()||AutoCache.lookup(socket,request(requestType,oid))==null)throw new AssertionError("stopping diagnostics must restore cache hits");
         String movedIp="192.0.2.92";Object moved=socketType.getConstructor(InetAddress.class,int.class).newInstance(InetAddress.getByName(movedIp),161);
         Object movedIdentity=request(requestType,mac);AutoCache.lookup(moved,movedIdentity);AutoCache.record(moved,movedIdentity,response(loader,mac,new byte[]{2,1,2,3,4,9}));
         if(!HistoryRuntime.awaitIdle())throw new AssertionError("moved identity worker failed");

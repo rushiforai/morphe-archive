@@ -391,22 +391,38 @@ public final class StoryMentionPopup {
         return frame;
     }
 
-    private static void loadAvatar(String url, ImageView target) {
-        if (url == null || url.isEmpty()) return;
-        Bitmap cached = AVATARS.get(url);
-        if (cached != null) {
-            target.setImageBitmap(cached);
+    public static void loadAvatarInto(String url, ImageView target, View fallbackInitialView) {
+        if (target == null) return;
+        target.setImageBitmap(null);
+        if (fallbackInitialView != null) fallbackInitialView.setVisibility(View.VISIBLE);
+        if (url == null || url.trim().isEmpty()) {
+            target.setTag(null);
             return;
         }
-        target.setTag(url);
+        final String cleanUrl = url.trim();
+        Bitmap cached = AVATARS.get(cleanUrl);
+        if (cached != null) {
+            target.setTag(cleanUrl);
+            target.setImageBitmap(cached);
+            if (fallbackInitialView != null) fallbackInitialView.setVisibility(View.GONE);
+            return;
+        }
+        target.setTag(cleanUrl);
         POOL.execute(() -> {
-            Bitmap bitmap = download(url);
+            Bitmap bitmap = download(cleanUrl);
             if (bitmap == null) return;
-            AVATARS.put(url, bitmap);
+            AVATARS.put(cleanUrl, bitmap);
             target.post(() -> {
-                if (url.equals(target.getTag())) target.setImageBitmap(bitmap);
+                if (cleanUrl.equals(target.getTag())) {
+                    target.setImageBitmap(bitmap);
+                    if (fallbackInitialView != null) fallbackInitialView.setVisibility(View.GONE);
+                }
             });
         });
+    }
+
+    private static void loadAvatar(String url, ImageView target) {
+        loadAvatarInto(url, target, null);
     }
 
     private static Bitmap download(String url) {

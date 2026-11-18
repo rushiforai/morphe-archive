@@ -1,0 +1,28 @@
+name: Validate request dictionary
+on:
+  push:
+    paths:
+      - 'data/oid-dictionary.json'
+      - 'tools/generate_oid_dictionary.py'
+      - 'extensions/extension/src/main/java/app/template/extension/extension/OidDictionary.java'
+      - 'tests/OidDictionaryTest.java'
+      - '.github/workflows/dictionary.yml'
+  pull_request:
+    paths:
+      - 'data/oid-dictionary.json'
+      - 'tools/generate_oid_dictionary.py'
+      - 'extensions/extension/src/main/java/app/template/extension/extension/OidDictionary.java'
+      - 'tests/OidDictionaryTest.java'
+      - '.github/workflows/dictionary.yml'
+jobs:
+  dictionary:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate and check generated lookup
+        run: python3 tools/generate_oid_dictionary.py --check
+      - name: Check instance matching
+        run: |
+          mkdir -p /tmp/oid-tests
+          javac -encoding UTF-8 -d /tmp/oid-tests extensions/extension/src/main/java/app/template/extension/extension/OidDictionary.java tests/OidDictionaryTest.java
+          java -cp /tmp/oid-tests OidDictionaryTest
