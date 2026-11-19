@@ -255,6 +255,8 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushpinterest_hide_visual_search_thumbnails", FALSE);
     public static final BooleanSetting FOLD_RELATED_PINS =
             new BooleanSetting("hushpinterest_fold_related_pins", FALSE);
+    public static final BooleanSetting LET_SCREEN_SLEEP =
+            new BooleanSetting("hushpinterest_let_screen_sleep", FALSE);
     public static final BooleanSetting CUSTOM_SAVE_SOUND =
             new BooleanSetting("hushpinterest_custom_save_sound", FALSE);
     /**

@@ -34,9 +34,10 @@ bundle builds to `patches/build/libs/patches-1.0.0.mpp`.
   `extensions/smartlife/.../SignatureSpoof.java`) **does** defeat it: the app now
   launches and stays alive on the normal first-run privacy screen. Original cert
   extracted from the APK (SHA-256 matches `0fc3...88fe`).
-- **module_app.json pipelines removed & verified**: 8 ad + 9 telemetry + 12 AI startup
+- **module_app.json pipelines removed & verified**: 9 ad + 8 telemetry + 12 AI startup
   pipelines stripped from the patched APK (JSON intact, no `,,`/`[,`/`,]`); the app still
-  launches to the privacy screen with no crash or ClassNotFound.
+  launches to the privacy screen with no crash or ClassNotFound. (The 9 ad pipelines include
+  `AttributionConfigPipeline`, which `Disable telemetry` also removes.)
 - **AI bar bytecode gate: intentionally not added (redundant).** The bar's visibility
   method `B2()` reads `is_ai_assistant_support` through the LOCAL-only config path
   (`hhl.e`, not the remote-overridable `hhl.a`), so the flipped bool is authoritative. A
@@ -51,8 +52,8 @@ bundle builds to `patches/build/libs/patches-1.0.0.mpp`.
 | Patch | File | Flags set to false |
 |-------|------|--------------------|
 | Disable AI features | `ai/DisableAiPatch.kt` | `is_ai_assistant_support`, `is_ai_phone_support`, `support_ai`, `is_support_on_app_ai`, `is_aiAssistant_show_in_nav`, `is_aiAssistant_show_in_deeppull`, `ai_assistant_support_{action,greeting,inspiration}`, `support_ai_memory_manage`, `support_ble_gpt`, `batch_setting_xiaozhi`; + option: `support_agent_tab`, `assistant_tab` |
-| Hide ads | `ad/HideAdsPatch.kt` | `is_admob_support`, `is_admob_banner_badge_enabled`, `is_marketing_advertising_support` |
-| Disable telemetry | `misc/telemetry/DisableTelemetryPatch.kt` | `firebase_analytics_enable`, `firebase_crash_enable`, `is_open_page_auto_track` |
+| Hide ads | `ad/HideAdsPatch.kt` | `is_admob_support`, `is_admob_banner_badge_enabled`, `is_marketing_advertising_support`; + options: ad pipelines (on), Home/Profile promotional entries (on), ad `serviceMap` entries (off, experimental) |
+| Disable telemetry | `misc/telemetry/DisableTelemetryPatch.kt` | `firebase_analytics_enable`, `firebase_crash_enable`, `is_open_page_auto_track`; + option: tracking/attribution pipelines (on) |
 
 Each is ON by default and reversible via Morphe patch options. Unknown flags on a
 different app version are skipped with a warning (not a hard failure).
@@ -71,13 +72,20 @@ they depend on matching obfuscated code and on an iterative build loop:
   matching `serviceMap` impls (`AbsAdvertisementService`, `FirebaseAnalyticsService`,
   `AppsFlyerService`, `AbsActivityAdPushService`, `AbsMarketingBoothService`, …).
   Risk: removing a service an active screen resolves can crash on open → gate behind
-  per-item options and test.
-- **UI config edits**: remove `ThingMainPageMarketing` / `ThingMainPagePidBanner` /
-  `ThingShoppingMall` from `home_fragment_new.json`; `personal_center_advertising` /
-  `personal_center_welfare_banner` / `personal_center_mall` from
-  `personal_center_config_list.json`; AI/agent tab from `tab_config.json`.
-  (Confirm the Morphe patcher exposes `assets/` as editable files; if not, edit via a
-  bytecode hook on the asset loader instead.)
+  per-item options and test. The ad services are now behind the `Hide ads` option
+  `removeAdServices` (off by default, **not yet verified on device**). Entries are matched
+  on either the interface key or the impl value, and the whole pair is removed.
+- **Asset JSON editing** (`shared/AssetJson.kt`): assets are parsed into a tree (once per
+  patch per file) and written back minified, so only real array elements and pairs inside
+  `serviceMap` objects are removed, whatever the whitespace. Home/Profile entries match a
+  string element or an object element whose direct string member is the id. Expected
+  entries that are not found, and files that are missing or cannot be parsed, are logged as
+  warnings and skipped instead of failing the patch.
+- **広告 UI config edits**: `Hide ads` removes `ThingMainPageMarketing` /
+  `ThingMainPagePidBanner` / `ThingShoppingMall` from `home_fragment_new.json` and
+  `personal_center_advertising` / `personal_center_welfare_banner` /
+  `personal_center_mall` from `personal_center_config_list.json`. `tab_config.json`
+  remains unchanged because it is not an ad-specific entry.
 - **AI bar final gate** (bytecode): `com.thingclips.smart.ai.assistant.api.AIAssistantEnableService`
   impl `()Z` visibility methods → return false. Device-panel floating ball:
   `com.thingclips.smart.panel.common.ai.AIBarContainerMonitor` injection site.

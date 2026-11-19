@@ -557,7 +557,7 @@ public class SettingsNavigationTest {
                 .takeFresh(Setting.preferences.preferences, android.os.SystemClock.elapsedRealtime()));
     }
 
-    /** Asked to open on a page, as after that restart, the screen starts there with its title and no search. */
+    /** Asked to open on a page, as after that restart, the screen starts there with its title and an empty search box. */
     @Test public void aScreenAskedToStartOnAPageOpensThere() {
         dialog.dismissAllowingStateLoss();
         ShadowLooper.idleMainLooper();
@@ -568,7 +568,8 @@ public class SettingsNavigationTest {
         page = page(dialog);
         assertTrue(contains(Settings.EXTERNAL_BROWSER.key));
         assertEquals(categoryCount("Links"), list().getCount());
-        assertEquals(View.GONE, ((View) findSearch(dialog.getView()).getParent()).getVisibility());
+        assertEquals(View.VISIBLE, ((View) findSearch(dialog.getView()).getParent()).getVisibility());
+        assertEquals("", findSearch(dialog.getView()).getText().toString());
         assertTrue(page.navigation.back());
         assertTrue("Back from Links didn't go home", contains(SettingsNavigation.QUICK_SETUPS) && contains("section_Links"));
         assertFalse(page.navigation.back());
@@ -1052,6 +1053,39 @@ public class SettingsNavigationTest {
         assertEquals(16, list().getCount());
     }
 
+    /**
+     * The search box is on every page and searches all of them from there. Clearing it, or Back,
+     * goes back to the page it started on, even after the screen is recreated mid-search, and Back
+     * from that page goes home.
+     */
+    @Test public void aSearchFromAPageFindsAnySettingAndGoesBackToThatPage() {
+        page.navigation.navigate("Interface");
+        assertEquals("Interface", screenTitle());
+        int interfaceRows = list().getCount();
+        EditText search = findSearch(dialog.getView());
+        assertEquals(View.VISIBLE, ((View) search.getParent()).getVisibility());
+        search.setText("ai-labeled");
+        ShadowLooper.idleMainLooper();
+        assertTrue("a Feed switch found from Interface", contains(Settings.HIDE_AI_PINS.key));
+        assertEquals("HushPinterest", screenTitle());
+        search.setText("");
+        ShadowLooper.idleMainLooper();
+        assertEquals("Interface", screenTitle());
+        assertEquals(interfaceRows, list().getCount());
+        search.setText("ai-labeled");
+        recreate();
+        search = findSearch(dialog.getView());
+        assertEquals("ai-labeled", search.getText().toString());
+        assertTrue(page.navigation.back());
+        assertEquals("", search.getText().toString());
+        assertEquals("Interface", screenTitle());
+        assertEquals(interfaceRows, list().getCount());
+        assertEquals(View.VISIBLE, ((View) search.getParent()).getVisibility());
+        assertTrue(page.navigation.back());
+        assertEquals("HushPinterest", screenTitle());
+        assertEquals(16, list().getCount());
+    }
+
     /** A row with no summary used to carry the word "null" into the search text and come up for it. */
     @Test public void aRowWithoutASummaryDoesNotMatchTheWordNull() {
         PreferenceCategory category = null;
@@ -1301,6 +1335,8 @@ public class SettingsNavigationTest {
         summaryContains(Settings.HIDE_HIGHLIGHT_RING.key, "thick blue ring", "buttons such as Save");
         summaryContains(Settings.HIDE_VISUAL_SEARCH_THUMBNAILS.key, "lens button", "stack of cropped pictures", "next pin you open");
         summaryContains(Settings.FOLD_RELATED_PINS.key, "arrow under a pin", "don't load until you tap it", "last choice is kept", "Hide related pins wins");
+        summaryContains(Settings.LET_SCREEN_SLEEP.key, "keeps the screen on while a video is on it", "usual timeout",
+                "next pin you open");
         summaryContains(Settings.CUSTOM_SAVE_SOUND.key, "sound you pick below", "when you save a pin",
                 "With no sound picked, Pinterest's plays");
         summaryContains(Settings.CUSTOM_SPLASH_LOGO.key, "logo picked when patching", "Android 13 and newer",

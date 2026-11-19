@@ -93,6 +93,15 @@ public final class CR {
         cr.unregisterContentObserver(observer);
     }
 
+    /**
+     * Sync status for Samsung Cloud's settings screen. On a Samsung phone the provider it names belongs to the
+     * official Notes and only Samsung Cloud may notify it, so a patched Notes gets a SecurityException: skipped.
+     */
+    public static void notifyChange(ContentResolver cr, Uri uri, ContentObserver observer) {
+        try { cr.notifyChange(uri, observer); }
+        catch (SecurityException e) { android.util.Log.w("NotesCompat", "notifyChange " + uri + ": " + e.getMessage()); }
+    }
+
     private static <T> T unknown(IllegalArgumentException e, T fallback) {
         String message = e.getMessage();
         if (message != null && message.contains("Unknown ")) return fallback;

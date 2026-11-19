@@ -22,8 +22,7 @@ private val BOOL_RE = Regex(
 @Suppress("unused")
 val rateUsPatch = bytecodePatch(
     name = "Remove rate-us / review prompts",
-    description = "Suppresses in-app rating/review dialogs and gates. Optionally blocks the Play " +
-        "Core system review dialog (may crash apps that don't null-check the returned Task).",
+    description = "Suppresses in-app rating/review prompts.",
     default = false,
 ) {
     val blockSystemReview by booleanOption(

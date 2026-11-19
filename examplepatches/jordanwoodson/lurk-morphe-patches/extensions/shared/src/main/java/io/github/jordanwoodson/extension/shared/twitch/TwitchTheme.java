@@ -22,6 +22,7 @@ import io.github.jordanwoodson.extension.shared.settings.Settings;
  * window background and navigation bar turn black, and after each layout every view background of the dark
  * palette is repainted: the body and base greys (#0e0e10, #18181b) black, the raised grey (#1f1f23) a near black
  * so cards stay apart. Compose screens draw their own backgrounds and keep Twitch's greys. Read once per start.
+ * Channel point reward tiles keep the color the channel chose, even when it is one of those greys (issue 76).
  */
 @SuppressWarnings("unused")
 public final class TwitchTheme {
@@ -31,6 +32,8 @@ public final class TwitchTheme {
     private static final int RAISED = 0xFF1F1F23;
     private static final int NEAR_BLACK = 0xFF0B0B0D;
     private static Boolean enabled;
+    /** The view ID of a channel point reward tile, whose background is the reward's own color; 0 if unknown. */
+    private static int rewardTile = -1;
 
     private TwitchTheme() {
     }
@@ -73,6 +76,9 @@ public final class TwitchTheme {
         try {
             Window window = activity.getWindow();
             if (window == null || !dark(activity)) return;
+            if (rewardTile == -1) {
+                rewardTile = activity.getResources().getIdentifier("reward_inner_container", "id", activity.getPackageName());
+            }
             window.setBackgroundDrawable(new ColorDrawable(Color.BLACK));
             if (black(window.getNavigationBarColor()) != window.getNavigationBarColor()) window.setNavigationBarColor(Color.BLACK);
             View decor = window.getDecorView();
@@ -114,6 +120,7 @@ public final class TwitchTheme {
 
     /** Repaints the dark-grey backgrounds of a view tree. */
     static void repaint(View view) {
+        if (rewardTile > 0 && view.getId() == rewardTile) return;
         Drawable background = view.getBackground();
         if (background instanceof ColorDrawable) {
             int color = ((ColorDrawable) background).getColor();

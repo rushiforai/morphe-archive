@@ -169,7 +169,7 @@ public class ImageSizeLineTest {
         Settings.SHOW_POSTED_DATE.save(true);
         Pin pin = picture();
         pin.createdAt = new Date(OCT_12_2026);
-        String expected = "Posted Oct 12, 2026 " + DOT + " " + size("736 x 1104", "0.8");
+        String expected = "Oct 12, 2026 " + DOT + " " + size("736 x 1104", "0.8");
 
         LinearLayout dateFirst = module();
         PostedDate.show(dateFirst, pin);
@@ -203,7 +203,7 @@ public class ImageSizeLineTest {
         PostedDate.showSize(module, pin);
         Settings.SHOW_IMAGE_SIZE.save(false);
         PostedDate.showSize(module, pin);
-        assertEquals("Posted Oct 12, 2026", shown(module));
+        assertEquals("Oct 12, 2026", shown(module));
         assertEquals(View.VISIBLE, line(module).getVisibility());
     }
 

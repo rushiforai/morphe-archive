@@ -9,6 +9,7 @@ package app.morphe.extension.facebook.settings;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.burnInGuardRow;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.burnInWaitRow;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.category;
+import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.cleanReturnRow;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.reelDateStyleRow;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.downloadActionRow;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.fileNameRow;
@@ -164,6 +165,8 @@ final class VideoPages {
                         L10n.t("Adds a Clean mode button to the buttons down the side of a reel. Tap it to hide them, "
                                 + "and Clean mode stays on as you swipe. Facebook's own Clean mode button brings them back.")));
             }
+            // Back to Clean mode (#519): read as each reel leaves Clean mode, so a change shows from the next one.
+            reels.addPreference(cleanReturnRow(context));
             reels.addPreference(toggle(context, Settings.PLAY_REELS_ONCE,
                     L10n.t("A reel stops on its last frame instead of starting over. Tap it to watch again, or swipe to "
                             + "the next one. Feed videos and stories aren't changed. Off by default, since it hasn't "
@@ -230,6 +233,9 @@ final class VideoPages {
                             + "who posted it. A change shows from the next reel.")));
             // Asked as each reel's date is worded, so a change shows from the next reel (#357).
             reels.addPreference(reelDateStyleRow(context));
+            reels.addPreference(toggle(context, Settings.HIDE_REEL_NEW_FOR_YOU,
+                    L10n.t("Takes \"New for you\", and other reasons Facebook gives for showing you a reel, off the line "
+                            + "under its author, so the date and the song show right away. A change shows from the next reel.")));
             reels.addPreference(toggle(context, Settings.HIDE_REEL_SOUND_BUTTON,
                     L10n.t("Takes the speaker button off the bottom of the side of reels. "
                             + "A change shows from the next reel.")));
@@ -464,11 +470,11 @@ final class VideoPages {
             subheading(playback, L10n.t("Autoplay and resume"));
             if (build.contains(PatchFamily.TAP_TO_PLAY)) {
                 playback.addPreference(toggle(context, Settings.TAP_TO_PLAY,
-                        L10n.t("Videos, reels, stories and music wait for your tap instead of playing by themselves. Facebook's own "
+                        L10n.t("Videos, reels and music wait for your tap instead of playing by themselves. Facebook's own "
                                 + "Autoplay setting shows Off while this is on.")));
                 playback.addPreference(toggle(context, Settings.TAP_TO_PLAY_REELS_AFTER_FIRST,
                         L10n.t("With the switch above on, after you play one reel, the reels you swipe to play on their own. The "
-                                + "feed, Watch and stories always wait.")));
+                                + "feed and Watch always wait.")));
                 // Asked at each story video's start, so it applies to the next story you open.
                 playback.addPreference(toggle(context, Settings.TAP_TO_PLAY_STORIES,
                         L10n.t("Video stories don't start by themselves. Touch and hold a story, then let go, to play it. "

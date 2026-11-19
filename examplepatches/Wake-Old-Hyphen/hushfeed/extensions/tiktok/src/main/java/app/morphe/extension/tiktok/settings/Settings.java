@@ -131,6 +131,8 @@ public class Settings extends BaseSettings {
     // Use system font's hook draws TikTok's text in the imported font file while this is on and
     // the file loads; it wins over SYSTEM_FONT. The file itself lives in TikTok's files, not here.
     public static final BooleanSetting IMPORTED_FONT = new BooleanSetting("imported_font", FALSE, true);
+    // The same hook puts this file behind the text font, for emoji alone (#458).
+    public static final BooleanSetting IMPORTED_EMOJI_FONT = new BooleanSetting("imported_emoji_font", FALSE, true);
     // On by default: AMOLED dark theme is in a build only when it was picked, so black is the ask.
     // Off puts TikTok's own dark grays back at the next start (#372).
     public static final BooleanSetting AMOLED_DARK_MODE = new BooleanSetting("amoled_dark_mode", TRUE, true);
@@ -148,6 +150,8 @@ public class Settings extends BaseSettings {
                     Setting.parent(AUTOMATIC_CLEAR_DISPLAY)).withRange(0, 30000);
     public static final StringSetting PLAYBACK_QUALITY = new StringSetting("playback_quality", "auto");
     public static final StringSetting PLAYBACK_QUALITY_METERED = new StringSetting("playback_quality_metered", "off");
+    /** The heaviest video to play, in Mb/s, or "off" (#454). */
+    public static final StringSetting PLAYBACK_BITRATE_LIMIT = new StringSetting("playback_bitrate_limit", "off");
     public static final BooleanSetting PLAY_SDR = new BooleanSetting("play_sdr", FALSE);
     public static final BooleanSetting PREFER_H264 = new BooleanSetting("prefer_h264", FALSE);
     public static final StringSetting DOWNLOAD_VIDEO_QUALITY = new StringSetting("download_video_quality", "auto");
@@ -160,7 +164,7 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting KEEP_PHOTOS_AS_SENT = new BooleanSetting("keep_photos_as_sent", FALSE);
     public static final BooleanSetting DOWNLOAD_PHOTOS_AS_VIDEO = new BooleanSetting("download_photos_as_video", FALSE);
     public static final IntegerSetting PHOTO_VIDEO_SECONDS = new IntegerSetting("photo_video_seconds", 3, false,
-            Setting.parent(DOWNLOAD_PHOTOS_AS_VIDEO)).withRange(1, 10);
+            Setting.parent(DOWNLOAD_PHOTOS_AS_VIDEO)).withRange(1, 300);
     public static final BooleanSetting DOWNLOAD_AUDIO_TRACK = new BooleanSetting("download_audio_track", FALSE);
     /**
      * "original" keeps a saved sound in TikTok's own container; "opus" makes an .ogg where the
@@ -223,6 +227,9 @@ public class Settings extends BaseSettings {
     /** Hushfeed's own Save media box after a received chat sticker's tap (#274). */
     public static final BooleanSetting DM_STICKER_SAVE_BOX = new BooleanSetting("dm_sticker_save_box", TRUE);
     public static final BooleanSetting SAVE_PROFILE_PICTURE = new BooleanSetting("save_profile_picture", FALSE);
+    /** Holding a profile picture shows it full screen with a Save button instead of saving it at once (#467). */
+    public static final BooleanSetting PROFILE_PICTURE_VIEWER = new BooleanSetting("profile_picture_viewer", FALSE,
+            false, Setting.parent(SAVE_PROFILE_PICTURE));
     public static final BooleanSetting SAVE_STORY = new BooleanSetting("save_story", FALSE);
     public static final BooleanSetting SAVE_STORY_FROM_SHARE = new BooleanSetting("save_story_from_share", FALSE);
     /** A story save asks which of the person's stories to keep, with the one on screen checked (#393). */
@@ -371,6 +378,12 @@ public class Settings extends BaseSettings {
     /** The model {@link #REPORT_NEWER_PHONE_TO_EFFECTS} reports instead, empty for the Galaxy S24 Ultra. */
     public static final StringSetting EFFECT_PHONE_MODEL =
             new StringSetting("effect_phone_model", "", false, Setting.parent(REPORT_NEWER_PHONE_TO_EFFECTS));
+    /**
+     * Tells the LIVE server the phone is a Galaxy S25 Ultra while a LIVE is set up, so a game LIVE
+     * can be offered the qualities the server holds back from some phones (issue #459).
+     */
+    public static final BooleanSetting REPORT_NEWER_PHONE_TO_GAME_LIVE =
+            new BooleanSetting("report_newer_phone_to_game_live", FALSE);
     // The four Performance patches, in the default selection because each hook asks one of these
     // first. Off until the reader turns one on, and a paused build answers off. The splash, update
     // and traffic hooks act on TikTok's startup tasks, so they need a restart. The animated image
@@ -885,6 +898,11 @@ public class Settings extends BaseSettings {
     /** How big Hushfeed's buttons in a LIVE room are, in dp (#359). Read as a room's buttons are drawn. */
     public static final StringSetting LIVE_BUTTON_SIZE = new StringSetting("live_button_size", "48");
     /**
+     * Keeps Record and Auto tap off the video and offers them in the menu from holding the middle
+     * of a LIVE (#359). Read as a room's buttons are drawn and as the menu opens, so no restart.
+     */
+    public static final BooleanSetting LIVE_BUTTONS_IN_MENU = new BooleanSetting("live_buttons_in_menu", FALSE);
+    /**
      * Alerts you when your name comes up in a LIVE (#424); the LIVE controls patch. Read on each
      * message the room gets, so no restart.
      */
@@ -938,11 +956,15 @@ public class Settings extends BaseSettings {
             "publish_date_short_date", FALSE, false, Setting.parent(PUBLISH_DATE_EXACT_TIME));
     /** TikTok's date by the creator's name written day first with dots, 29.09 (#438). */
     public static final BooleanSetting PUBLISH_DATE_DAY_FIRST = new BooleanSetting("publish_date_day_first", FALSE);
+    /** TikTok's date by the creator's name with the month as a word, Oct 12, or 12 Oct with day first (#461). */
+    public static final BooleanSetting PUBLISH_DATE_MONTH_NAME = new BooleanSetting("publish_date_month_name", FALSE);
     public static final BooleanSetting PUBLISH_DATE_ON_GRID = new BooleanSetting("publish_date_on_grid", FALSE);
     public static final BooleanSetting VIDEO_LENGTH_ON_GRID = new BooleanSetting("video_length_on_grid", FALSE);
     public static final BooleanSetting HIDE_GRID_VIEW_COUNT = new BooleanSetting("hide_grid_view_count", FALSE);
     /** How loaded profile and Liked grids are ordered (#180): off, or one of the orders in GridSort. */
     public static final StringSetting PROFILE_GRID_SORT = new StringSetting("profile_grid_sort", "off");
+    /** A sorted grid puts pinned videos in the chosen order with the rest instead of first (#466). */
+    public static final BooleanSetting SORT_PINNED_WITH_REST = new BooleanSetting("sort_pinned_with_rest", FALSE);
     /** The Liked tab's own order (#180): "profile" follows PROFILE_GRID_SORT, otherwise one of GridSort's orders. */
     public static final StringSetting LIKED_GRID_SORT = new StringSetting("liked_grid_sort", "profile");
     /** The Favorites tab's own order (#180): "profile" follows PROFILE_GRID_SORT, otherwise one of GridSort's orders. */
@@ -1183,6 +1205,8 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_FEED_SURVEYS = new BooleanSetting("hide_feed_surveys", FALSE);
     /** The Footnotes banner TikTok lays over a video that carries a note. */
     public static final BooleanSetting HIDE_FOOTNOTES = new BooleanSetting("hide_footnotes", FALSE);
+    /** The people you may know tag beside a creator's name on a video (#462). */
+    public static final BooleanSetting HIDE_MAY_KNOW_TAG = new BooleanSetting("hide_may_know_tag", FALSE);
     /** The LIVE and stories row across the top of the Following tab and its count pill (#262). */
     public static final BooleanSetting HIDE_FOLLOWING_LIVE_ROW = new BooleanSetting("hide_following_live_row", FALSE);
     /**
@@ -1212,6 +1236,13 @@ public class Settings extends BaseSettings {
      */
     public static final IntegerSetting FADE_CONTROLS_OPACITY =
             new IntegerSetting("fade_controls_opacity", 100).withRange(0, 100);
+    /**
+     * The level the caption frame alone is drawn at: the creator's name, the date, the caption and
+     * the music line (#462). 100 leaves the frame to FADE_CONTROLS_OPACITY, lower wins over it, and
+     * 0 takes the frame out of sight the way a fade of 0 does.
+     */
+    public static final IntegerSetting FADE_CAPTION_OPACITY =
+            new IntegerSetting("fade_caption_opacity", 100).withRange(0, 100);
     /**
      * Whether a fade between 0 and 100 keeps the controls in sight in Clear display (#84). Off,
      * Clear display takes them away as it does at 100, and the fade only reaches them outside it,
@@ -1404,6 +1435,9 @@ public class Settings extends BaseSettings {
     /** LIVEs in the Inbox's stories tray from accounts the viewer doesn't follow (#449). */
     public static final BooleanSetting HIDE_INBOX_SUGGESTED_LIVES =
             new BooleanSetting("hide_inbox_suggested_lives", FALSE);
+    /** Stories in the Inbox's tray from accounts the viewer doesn't follow (#462). */
+    public static final BooleanSetting HIDE_INBOX_SUGGESTED_STORIES =
+            new BooleanSetting("hide_inbox_suggested_stories", FALSE);
     /** The Widget circle at the end of the Inbox's stories tray (#449). */
     public static final BooleanSetting HIDE_INBOX_WIDGET_GUIDE =
             new BooleanSetting("hide_inbox_widget_guide", FALSE);
@@ -1418,6 +1452,9 @@ public class Settings extends BaseSettings {
     // only a new bind collapses one.
     public static final BooleanSetting HIDE_INBOX_SUGGESTED_ACCOUNTS =
             new BooleanSetting("hide_inbox_suggested_accounts", FALSE, true);
+    /** A profile's own Suggested accounts panel stays while Hide suggested accounts is on (#462). */
+    public static final BooleanSetting KEEP_PROFILE_SUGGESTED_ACCOUNTS = new BooleanSetting(
+            "keep_profile_suggested_accounts", FALSE, false, Setting.parent(HIDE_INBOX_SUGGESTED_ACCOUNTS));
     public static final BooleanSetting HIDE_INBOX_MESSAGE_REQUESTS =
             new BooleanSetting("hide_inbox_message_requests", FALSE);
     public static final BooleanSetting HIDE_INBOX_CONVERSATIONS =
@@ -1793,8 +1830,12 @@ public class Settings extends BaseSettings {
     // Profile tabs: the checklist rows picked to hide (private, repost, favorite and the rest). Read
     // whenever a profile lays out its tabs, so a profile opened after a change follows it.
     public static final StringSetting PROFILE_TAB_PICKS = new StringSetting("profile_tab_picks", "");
+    // The same checklist's rows in the order picked for the strip (#466). Empty keeps TikTok's.
+    public static final StringSetting PROFILE_TAB_ORDER = new StringSetting("profile_tab_order", "");
     /** The Thoughts bubble above a profile picture (#122). Read when a profile's picture is built. */
     public static final BooleanSetting HIDE_PROFILE_THOUGHTS = new BooleanSetting("hide_profile_thoughts", FALSE, true);
+    /** The "+ Add bio" prompt on your own profile when it has no bio (#466). Read whenever the header binds. */
+    public static final BooleanSetting HIDE_ADD_BIO = new BooleanSetting("hide_add_bio", FALSE);
     /** TikTok's two Thoughts gates answer yes (#186). A restart, since TikTok keeps what it built. */
     public static final BooleanSetting ENABLE_THOUGHTS = new BooleanSetting("enable_thoughts", FALSE, true);
     // Popup labels (TikTok's own popup layer): the labels ticked in the checklist, and the ones

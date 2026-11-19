@@ -1444,6 +1444,42 @@
       "options": []
     },
     {
+      "name": "Let the screen sleep",
+      "description": "Lets the screen turn off after your phone's usual timeout while a pin is open. Pinterest keeps it on while a video is on the screen, playing or not. Starts off. Turn it on in HushPinterest settings > Interface.",
+      "category": "Pin page",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "HushPinterest settings"
+      ],
+      "compatiblePackages": {
+        "com.pinterest": [
+          "14.45.0"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Pinterest",
+          "packageName": "com.pinterest",
+          "description": null,
+          "appIconColor": 15073315,
+          "signatures": [
+            "341d6881b1ecf38361fbf8c8fbae0aa516b45375c39ef5e78b161869acc1bcfa"
+          ],
+          "targets": [
+            {
+              "version": "14.45.0",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 14458020
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Long-press download",
       "description": "Adds a Download button to the menu you get when you long-press a pin in a grid, the round one and the newer list, so you can save a pin without opening it. Needs Download pins on too. Four more switches take Pinterest's Save, Send, Search image or Send with an app button out of that menu, and another adds View, which shows the pin's picture full screen. All start off. Turn them on in HushPinterest settings > Pin actions.",
       "category": "Downloads",

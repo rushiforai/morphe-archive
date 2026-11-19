@@ -71,6 +71,7 @@ family|showImageSize|Show image size|imageSize
 family|hideHighlightRing|Hide blue highlight ring|highlightRing
 family|hideVisualSearchThumbnails|Hide visual search thumbnails|visualSearchThumbnails
 family|foldRelatedPins|Fold related pins|relatedPinsFold
+family|letScreenSleep|Let the screen sleep|screenSleep
 family|customSaveSound|Custom save sound|saveSound
 family|customSplashLogo|Custom splash logo|
 family|boardTabs|Customize board tabs|boardTabHeader,boardTabCovers
@@ -141,6 +142,7 @@ mutation|pinDescription|closeupGate|Lapp/hushpinterest/extension/pinterest/ui/Pi
 mutation|imageSize|postedDate|Lapp/hushpinterest/extension/pinterest/ui/PostedDate;->showSize(Landroid/view/View;Ljava/lang/Object;)V
 mutation|highlightRing|highlightRing|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->hideHighlightRing()Z
 mutation|visualSearchThumbnails|visualSearchThumbnails|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->visualSearchThumbnails(Ljava/util/ArrayList;)Ljava/util/ArrayList;
+mutation|screenSleep|screenSleep|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->keepScreenOn(Landroid/view/View;Z)V|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->addWindowFlags(Landroid/view/Window;I)V|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->setWindowFlags(Landroid/view/Window;II)V
 mutation|relatedPinsFold|relatedPinsFold|Lapp/hushpinterest/extension/pinterest/ui/RelatedPinsFold;->folded()Z|Lapp/hushpinterest/extension/pinterest/ui/RelatedPinsFold;->bind(Ljava/lang/Object;)V|Lapp/hushpinterest/extension/pinterest/ui/RelatedPinsFold;->module(Landroid/view/View;I)I
 mutation|saveSound|saveSound|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->saveSound(Landroid/content/Context;I)Landroid/media/MediaPlayer;
 mutation|saveToasts|guard|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->hideSaveToast(Ljava/lang/Object;)Z|saveToast|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->androidToast(Landroid/content/Context;Ljava/lang/CharSequence;I)Landroid/widget/Toast;|androidToast|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->androidToast(Landroid/content/Context;II)Landroid/widget/Toast;|androidToast

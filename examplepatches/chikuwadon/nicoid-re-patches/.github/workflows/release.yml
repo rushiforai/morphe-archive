@@ -203,6 +203,9 @@ jobs:
 
       - name: Audit release candidate source and lifecycle guards
         run: python3 porting/revisions/v1.11.1/release-readiness-audit.py
+      - name: Check release MPP publication integrity safeguards
+        run: python3 porting/tests/test_release_mpp_integrity.py
+
       - name: Build and verify approved release payload
         env:
           GITHUB_ACTOR: ${{ github.actor }}
@@ -265,6 +268,20 @@ jobs:
           else
             echo "new_release_published=false" >> "$GITHUB_OUTPUT"
           fi
+
+      # The just-published asset must be byte-identical to the MPP frozen by
+      # semantic-release's prepare phase, even after all publish plugins run.
+      - name: Verify published MPP matches approved staged bytes
+        if: steps.release.outputs.new_release_published == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          version=$(sed -nE 's/^version[[:space:]]*=[[:space:]]*([0-9]+\.[0-9]+\.[0-9]+)[[:space:]]*$/\1/p' gradle.properties)
+          test -n "$version"
+          mkdir -p "$RUNNER_TEMP/nicoid-published"
+          gh release download "v$version" --pattern "patches-$version.mpp" --dir "$RUNNER_TEMP/nicoid-published"
+          python3 .github/scripts/verify-release-mpp.py check "$version" "$RUNNER_TEMP/nicoid-published/patches-$version.mpp"
 
       - name: Backfill Issue #115 in previously published v2.0.0 release notes
         if: steps.release.outputs.new_release_published == 'true' && steps.release.outputs.new_release_git_tag == 'v2.0.1'

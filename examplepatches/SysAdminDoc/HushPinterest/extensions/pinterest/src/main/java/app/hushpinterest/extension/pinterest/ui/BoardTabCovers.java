@@ -329,18 +329,21 @@ public final class BoardTabCovers {
         }
         AlertDialog dialog = HushDialogs.builder(activity)
                 .setTitle(L10n.t("Board tab cover"))
-                .setItems(names.toArray(new CharSequence[0]), (shown, which) -> {
-                    try {
-                        actions.get(which).run();
-                    } catch (Throwable failure) {
-                        HookStatus.threw(FamilyNames.BOARD_TABS, "board tab cover choice", failure);
-                    }
-                })
+                .setItems(names.toArray(new CharSequence[0]), (shown, which) -> choose(actions, which))
                 .setNegativeButton(L10n.t("Cancel"), null)
                 .create();
         HushDialogs.prepareChoices(dialog);
         dialog.show();
         HushDialogs.paint(dialog);
+    }
+
+    /** Runs the cover menu row picked. Never throws. */
+    private static void choose(List<Runnable> actions, int which) {
+        try {
+            actions.get(which).run();
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.BOARD_TABS, "board tab cover choice", failure);
+        }
     }
 
     /** Opens the board when its button is there. Its pins then offer Use as tab cover for a while. */

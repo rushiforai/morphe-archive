@@ -5,6 +5,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.smartlife.patches.smartlife.misc.fix.signature.spoofSignaturePatch
 import app.smartlife.patches.smartlife.shared.Constants.COMPATIBILITY_SMARTLIFE
+import app.smartlife.patches.smartlife.shared.uniqueMatch
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 
@@ -25,7 +26,7 @@ val settingsEntryPatch = bytecodePatch(
 
     execute {
         // Entry 1: long-press the settings button in the profile tab.
-        ProfileSettingsCellFingerprint.let { fingerprint ->
+        uniqueMatch(ProfileSettingsCellFingerprint, "Profile settings cell").let { fingerprint ->
             val clickIndex = fingerprint.instructionMatches[1].index
             val viewRegister = fingerprint.method
                 .getInstruction<FiveRegisterInstruction>(clickIndex).registerC
@@ -37,7 +38,7 @@ val settingsEntryPatch = bytecodePatch(
         }
 
         // Entry 2: long-press the toolbar of the in-app Settings screen.
-        SettingActivityToolbarFingerprint.let { fingerprint ->
+        uniqueMatch(SettingActivityToolbarFingerprint, "Settings screen toolbar").let { fingerprint ->
             val getToolbarIndex = fingerprint.instructionMatches[0].index
             val moveResultIndex = getToolbarIndex + 1
             val toolbarRegister = fingerprint.method

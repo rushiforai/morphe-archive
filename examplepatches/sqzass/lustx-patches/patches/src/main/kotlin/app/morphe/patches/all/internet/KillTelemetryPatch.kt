@@ -90,10 +90,7 @@ private fun noOpSafe(m: MutableMethod) {
 @Suppress("unused")
 val telemetryKillPatch = patch(
     name = "Telemetry / crash-reporter kill",
-    description = "Silences common analytics, crash-reporting, attribution, session-replay " +
-        "and telemetry SDKs by forcing void logging/tracking sinks and boolean readiness " +
-        "predicates to no-op. Object-returning SDK methods are left intact to avoid null " +
-        "return crashes. Missing SDKs are skipped, so this is safe as a universal patch.",
+    description = "No-ops analytics, crash-reporting and telemetry SDK calls.",
     default = false,
 ) {
     val killInit by booleanOption(

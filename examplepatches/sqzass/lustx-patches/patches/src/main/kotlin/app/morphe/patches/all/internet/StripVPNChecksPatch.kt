@@ -81,8 +81,7 @@ private fun Instruction.isVpnNameString(): Boolean {
 @Suppress("unused")
 val stripVpnChecksPatch = bytecodePatch(
     name = "Strip VPN checks",
-    description = "Hides an active VPN from the app by neutralizing NetworkCapabilities " +
-        "transport/capability checks and (optionally) network-interface name checks.",
+    description = "Hides active VPN from the app.",
     default = false,
 ) {
     val stripInterfaceChecks by booleanOption(

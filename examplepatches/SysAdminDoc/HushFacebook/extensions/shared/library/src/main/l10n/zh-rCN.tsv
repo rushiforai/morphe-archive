@@ -447,7 +447,7 @@ Playback	播放
 # context: switch title; on, videos and music wait for a tap before they play
 Tap to play	点按播放
 # context: summary of that switch; Autoplay and Off are the name and value of Facebook's own setting, as Facebook shows them in this language
-Videos, reels, stories and music wait for your tap instead of playing by themselves. Facebook's own Autoplay setting shows Off while this is on.	视频、Reels、快拍和音乐会等你点按后才播放，而不是自动播放。开启此项时，Facebook 自己的“自动播放”设置会显示为“关闭”。
+Videos, reels and music wait for your tap instead of playing by themselves. Facebook's own Autoplay setting shows Off while this is on.	视频、Reels 和音乐会等你点按后才播放，而不是自动播放。开启此项时，Facebook 自己的“自动播放”设置会显示为“关闭”。
 # context: switch title under Opening Facebook; Marketplace is Facebook's tab and keeps its name
 Marketplace only	仅 Marketplace
 # context: switch title under Opening Facebook, next to Marketplace only; Events is Facebook's tab and keeps its name
@@ -1656,7 +1656,7 @@ Facebook hasn't downloaded this screen to this phone, so a tap opens the Whiteha
 # context: toast when the Facebook version has no such screen
 This Facebook build has no Whitehat settings screen.	此 Facebook 版本没有 Whitehat 设置页面。
 Only the first reel waits	只有第一个 Reels 等待点按
-With the switch above on, after you play one reel, the reels you swipe to play on their own. The feed, Watch and stories always wait.	开启上面的开关后，你播放一个 Reels 之后，滑动到的 Reels 会自动播放。动态消息、Watch 和快拍始终等待点按。
+With the switch above on, after you play one reel, the reels you swipe to play on their own. The feed and Watch always wait.	开启上面的开关后，你播放一个 Reels 之后，滑动到的 Reels 会自动播放。动态消息和 Watch 始终等待点按。
 Slower speeds	更慢的速度
 Adds 0.1x and 0.25x to the speed menu of reels and of feed and Watch videos, for slowing down a fast moment.	在 Reels 以及动态消息和 Watch 视频的速度菜单中添加 0.1 倍和 0.25 倍，用于放慢精彩瞬间。
 Faster speeds	更快的速度
@@ -2750,10 +2750,12 @@ Takes the row of suggested replies off the bottom of a story. The reply box stay
 Hide the Subscribe button	隐藏订阅按钮
 Takes the Subscribe button off the top of a story. Applies from the next story you open.	去掉快拍顶部的订阅按钮。从你打开的下一个快拍开始生效。
 Hide create story cards	隐藏创建快拍卡片
-Takes out the card between stories that asks you to make one, including the ones built from photos in your gallery. Applies the next time you open stories.	去掉快拍之间邀请你发快拍的卡片，包括用你图库照片生成的卡片。下次打开快拍时生效。
+Takes out the cards between stories that ask you to make one, including the full screen card that asks you to continue the story with photos from your gallery. Applies the next time you open stories.	去掉快拍之间邀请你发快拍的卡片，包括邀请你用图库照片继续快拍的全屏卡片。下次打开快拍时生效。
 Progress bar at the bottom	底部进度条
 Shows a thin bar along the bottom of a story that fills as it plays, like the one on Reels.	在快拍底部显示一条随播放逐渐填满的细条，和 Reels 上的一样。
 Seek bar on stories	快拍上的进度条
+Plain slide between people	不同人之间改为平移切换
+Swiping to the next or previous person's stories slides them across instead of turning them like a cube. Applies from your next swipe.	滑到下一个或上一个人的快拍时，画面会平移过去，而不是像立方体那样转动。从你下一次滑动开始生效。
 Fade the story seek bar	淡化快拍进度条
 Story position	快拍播放位置
 Shows a bar along the bottom of a video story that you drag to move through it. The story waits while you drag. Progress bar at the bottom makes way for it on video stories.	在视频快拍底部显示一条可以拖动的进度条，用来在快拍里前后移动。拖动时快拍会等你松手。在视频快拍上，“底部进度条”会给它让位。
@@ -2834,6 +2836,8 @@ A small label at the top of Reels shows the minutes you've watched. Time on othe
 %1$d min	%1$d 分钟
 Hide the tab bar on the Reels tab	在 Reels 标签页隐藏标签栏
 The tab bar goes away while the Reels tab is open, and the reel gets the whole screen. The other tabs keep the bar. Restart Facebook to see the change.	打开 Reels 标签页时标签栏会消失，Reels 占满整个屏幕。其他标签页保留标签栏。重启 Facebook 后可看到更改.
+Hide the line along the tab bar	隐藏标签栏边上的线
+The thin line Facebook draws along the edge of the tab bar goes away on every tab. Tap a tab to see the change.	Facebook 沿标签栏边缘画的细线会在所有标签页消失。点按任一标签页即可看到更改.
 Playback speed in the post menu	帖子菜单中的播放速度
 A feed or Watch video's 3-dot menu gets Playback speed, from 0.5x to 3x, live videos too. Off by default, since it hasn't been tried on a real account yet.	动态消息或 Watch 视频的三点菜单会加入播放速度，从 0.5 倍到 3 倍，直播视频也可以。默认关闭，因为尚未在真实账号上试过。
 Double tap to skip on feed videos	动态视频双击快进快退
@@ -2997,3 +3001,14 @@ Emoji font file cleared. Restart Facebook to apply the emoji change.	表情符�
 Couldn't go back to your phone's emoji. Try again.	无法恢复为手机的表情符号。请重试。
 # context: toast when the app holding the emoji font doesn't answer in time
 The app holding that font file is taking too long, so Hushfacebook stopped waiting. Your emoji didn't change.	持有该字体文件的应用响应太慢，Hushfacebook 已停止等待。你的表情符号没有更改。
+Never	从不
+Back to Clean mode	回到简洁模式
+When the comments or a menu close	评论或菜单关闭时
+When the comments or a menu close. A reel you took out of Clean mode goes back into it once whatever you opened over it closes.	评论或菜单关闭时。你退出简洁模式的 Reel 会在你打开的内容关闭后回到简洁模式。
+%1$s. A reel you took out of Clean mode goes back into it once you haven't touched the screen for that long. An open sheet holds the time.	%1$s。你退出简洁模式的 Reel 会在你这么久没有触摸屏幕后回到简洁模式。打开的面板会暂停计时。
+Never. A reel you take out of Clean mode stays out until you put it back.	从不。你退出简洁模式的 Reel 会一直保持退出，直到你重新打开。
+A reel you take out of Clean mode will stay out until you put it back.	你退出简洁模式的 Reel 会一直保持退出，直到你重新打开。
+A reel you take out of Clean mode will go back into it when the comments or a menu close.	你退出简洁模式的 Reel 会在评论或菜单关闭时回到简洁模式。
+A reel you take out of Clean mode will go back into it after %1$d seconds without a touch.	你退出简洁模式的 Reel 会在 %1$d 秒没有触摸后回到简洁模式。
+Hide New for you on reels	在 Reels 上隐藏“为你推荐”
+Takes "New for you", and other reasons Facebook gives for showing you a reel, off the line under its author, so the date and the song show right away. A change shows from the next reel.	把“为你推荐”以及 Facebook 给你推荐某个 Reel 的其他理由从发布者名字下方的那一行去掉，这样日期和歌曲会马上显示。从下一个 Reel 开始生效。

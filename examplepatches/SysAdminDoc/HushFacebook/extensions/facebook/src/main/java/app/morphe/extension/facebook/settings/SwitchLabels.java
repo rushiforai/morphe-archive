@@ -124,6 +124,7 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_STORY_SUBSCRIBE) return L10n.t("Hide the Subscribe button");
         if (setting == Settings.HIDE_STORY_CREATE_CARDS) return L10n.t("Hide create story cards");
         if (setting == Settings.STORY_PROGRESS_BAR) return L10n.t("Progress bar at the bottom");
+        if (setting == Settings.STORY_FLAT_SLIDE) return L10n.t("Plain slide between people");
         if (setting == Settings.HIDE_FEED_STORY_RINGS) return L10n.t("Hide rings in the feed");
         if (setting == Settings.HIDE_COMMENT_STORY_RINGS) return L10n.t("Hide rings in comments");
         if (setting == Settings.HIDE_PROFILE_STORY_RINGS) return L10n.t("Hide rings on profiles");
@@ -217,6 +218,7 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_REEL_SHARE_BUTTON) return L10n.t("Hide Share on reels");
         if (setting == Settings.SHOW_REEL_COMMENT_BUTTON) return L10n.t("Show Comment when comments are off");
         if (setting == Settings.SHOW_REEL_POST_DATE) return L10n.t("Show the post date on reels");
+        if (setting == Settings.HIDE_REEL_NEW_FOR_YOU) return L10n.t("Hide New for you on reels");
         if (setting == Settings.HIDE_REEL_SOUND_BUTTON) return L10n.t("Hide the speaker button on reels");
         if (setting == Settings.REEL_SPEAKER_ABOVE_MENU) return L10n.t("Move the speaker above the three dots");
         if (setting == Settings.HIDE_REEL_AUDIO_LINE) return L10n.t("Hide the audio line on reels");
@@ -416,6 +418,7 @@ final class SwitchLabels {
         if (setting == Settings.KEEP_TOP_BAR) return L10n.t("Keep the top bar on screen");
         if (setting == Settings.PHONE_LAYOUT_ON_BIG_SCREENS) return L10n.t("Phone layout on big screens");
         if (setting == Settings.HIDE_REELS_TAB_BAR) return L10n.t("Hide the tab bar on the Reels tab");
+        if (setting == Settings.HIDE_TAB_BAR_LINE) return L10n.t("Hide the line along the tab bar");
         if (setting == Settings.TRANSLUCENT_BARS) return L10n.t("See-through bars");
         if (setting == Settings.ROUNDED_TAB_BAR) return L10n.t("Rounded tab bar");
         if (setting == Settings.HIDE_STATUS_BAR) return L10n.t("Hide the status bar");

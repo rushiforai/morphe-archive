@@ -9,6 +9,6 @@ object Constants {
         name = "FlipSide",
         packageName = "com.dinoster.flipside",
         apkFileType = ApkFileType.XAPK,
-        targets = listOf(AppTarget(version = "1.6", versionCode = 71)),
+        targets = listOf(AppTarget(version = "1.6", versionCode = 71), AppTarget(version = "1.7.1", versionCode = 73)),
     )
 }

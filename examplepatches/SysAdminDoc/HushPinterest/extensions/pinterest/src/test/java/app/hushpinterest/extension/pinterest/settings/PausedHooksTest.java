@@ -598,6 +598,7 @@ public class PausedHooksTest {
         probes.put(Settings.HIDE_HIGHLIGHT_RING, Collections.singletonList(UiHooks::hideHighlightRing));
         probes.put(Settings.HIDE_VISUAL_SEARCH_THUMBNAILS, Collections.singletonList(PausedHooksTest::withholdsVisualSearchCrops));
         probes.put(Settings.FOLD_RELATED_PINS, Collections.singletonList(UiHooksForTests::foldSwitchedOn));
+        probes.put(Settings.LET_SCREEN_SLEEP, Collections.singletonList(UiHooksForTests::letsScreenSleep));
         probes.put(Settings.CUSTOM_SAVE_SOUND, Collections.singletonList(UiHooksForTests::playsPickedSaveSound));
         probes.put(Settings.CUSTOM_SPLASH_LOGO, Collections.singletonList(UiHooksForTests::nextStartShowsPickedLogo));
         probes.put(Settings.HIDE_BOARD_TAB_BUTTON, Collections.singletonList(UiHooksForTests::foldsBoardTabButton));

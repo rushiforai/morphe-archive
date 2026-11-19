@@ -945,7 +945,7 @@
     },
     {
       "name": "Default playback quality",
-      "description": "Plays videos, reels and video stories at the quality you choose, instead of the one Instagram picks as it plays. When your connection can't keep up, a video drops to the next lower quality instead of stalling. Nothing changes until you pick a quality. On by default. Turn it off in HushGram settings > Playback.",
+      "description": "Plays videos, reels and video stories at the quality you choose, instead of the one Instagram picks as it plays. When your connection can't keep up, a video drops to the next lower quality instead of stalling, unless you turn off Drop quality to keep playing. Nothing changes until you pick a quality. On by default. Turn it off in HushGram settings > Playback.",
       "category": "Playback",
       "use": true,
       "dependencies": [
@@ -2038,6 +2038,45 @@
       "options": []
     },
     {
+      "name": "Hide New message button and suggestions",
+      "description": "Takes the New message button off the top of your messages, and the Suggested people off the New message screen. Search still works. Both start off. Turn them on in HushGram settings > Messages.",
+      "category": "Privacy",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "HushGram settings"
+      ],
+      "compatiblePackages": {
+        "com.instagram.android": [
+          "456.0.0.53.78"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Instagram",
+          "packageName": "com.instagram.android",
+          "description": null,
+          "appIconColor": 14757996,
+          "signatures": [
+            "3a10c50c18ba937506c2875e9047be74f8fd8b86fae2ff9feaa50a81fcb4c014",
+            "5f3e50f435583c9ae626302a71f7340044087a7e2c60adacfc254205a993e305"
+          ],
+          "targets": [
+            {
+              "version": "456.0.0.53.78",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 386214574,
+                "ARMEABI_V7A": 386214562,
+                "X86": 386214575
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Hide Notes on profile pictures",
       "description": "Takes the Notes bubble off profile pictures, yours included. Notes in Messages stay. Starts off. Turn it on in HushGram settings > Profiles.",
       "category": "Profiles",
@@ -3092,7 +3131,7 @@
     },
     {
       "name": "Hide the Threads button",
-      "description": "Takes the Threads button off the top of profiles, with switches for the Create button and Share profile on your own, and Subscribe and the arrow after the buttons on creators' profiles. The menu and the other buttons stay. Each starts off. Turn them on in HushGram settings > Profiles.",
+      "description": "Takes the Threads button off the top of profiles, with switches for the Create button, Share profile and the empty profile prompt on your own, and Subscribe and the arrow after the buttons on creators' profiles. The menu and the other buttons stay. Each starts off. Turn them on in HushGram settings > Profiles.",
       "category": "Profiles",
       "use": true,
       "dependencies": [
@@ -3131,7 +3170,7 @@
     },
     {
       "name": "Hide the audio icon on posts",
-      "description": "Takes the speaker icon off videos in your feed. Tapping the video still turns the sound on or off. Starts off. Turn it on in HushGram settings > Feed.",
+      "description": "Takes the speaker icon off videos in your feed. Tapping the video still turns the sound on or off. A second switch takes the tagged people icon off posts too. Both start off. Turn them on in HushGram settings > Feed.",
       "category": "Interaction",
       "use": true,
       "dependencies": [
@@ -4918,7 +4957,7 @@
     },
     {
       "name": "Restore trust on re-signed builds",
-      "description": "Lets Instagram's own checks of who signed the app pass on a patched build, so the parts that need them keep working. Threads, Facebook and Messenger patched with the same key work too. Works as soon as you patch it in, with no switch.",
+      "description": "Lets Instagram's own checks of who signed the app pass on a patched build, so the parts that need them keep working. Threads, Facebook and Messenger patched with the same key work too. Facebook login goes through your browser instead of the Facebook app, which turns a patched Instagram away. Works as soon as you patch it in, with no switch.",
       "category": "Fixes",
       "use": true,
       "dependencies": [
@@ -5113,7 +5152,7 @@
     },
     {
       "name": "Save in the post menu",
-      "description": "Adds Save to the menu behind the three dots on posts in your feed, and switches that take the Save button or the Like button off them. Starts off. Turn them on in HushGram settings > Feed.",
+      "description": "Adds Save to the menu behind the three dots on posts in your feed, and switches that take the Save button, the Like button, the counts or the \"Liked by\" line off them. Starts off. Turn them on in HushGram settings > Feed.",
       "category": "Fixes",
       "use": true,
       "dependencies": [

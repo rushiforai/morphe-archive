@@ -854,6 +854,7 @@ Hidden commenters,Hidden commenters
 Hidden: %1$s,Hidden: %1$s
 Hide,Hide
 Hide AI-generated videos,Hide AI-generated videos
+Hide Add bio,Hide Add bio
 Hide Add friends,Hide Add friends
 Hide Balance from the menu your profile's top right button opens. Your coins and gifts stay as they are.,Hide Balance from the menu your profile's top right button opens. Your coins and gifts stay as they are.
 Hide Balance in the profile menu,Hide Balance in the profile menu
@@ -918,6 +919,7 @@ Hide mini dramas,Hide mini dramas
 Hide new follower notifications,Hide new follower notifications
 Hide new followers,Hide new followers
 Hide online status,Hide online status
+Hide or reorder profile tabs,Hide or reorder profile tabs
 Hide paid partnerships,Hide paid partnerships
 Hide people and options by name,Hide people and options by name
 Hide photo posts,Hide photo posts
@@ -929,7 +931,6 @@ Hide playlist videos,Hide playlist videos
 Hide profile pictures in comments,Hide profile pictures in comments
 Hide profile shortcuts,Hide profile shortcuts
 Hide profile shortcuts by name,Hide profile shortcuts by name
-Hide profile tabs,Hide profile tabs
 Hide profile views,Hide profile views
 Hide profile visits,Hide profile visits
 Hide promotional music,Hide promotional music
@@ -964,6 +965,7 @@ Hide surveys,Hide surveys
 Hide tabs TikTok adds later unless you allow them.,Hide tabs TikTok adds later unless you allow them.
 "Hide the ""Search this image"" prompt shown over videos. The feed search button and suggestions above comments are separate settings.","Hide the ""Search this image"" prompt shown over videos. The feed search button and suggestions above comments are separate settings."
 Hide the AI Cast button,Hide the AI Cast button
+Hide the Add bio prompt TikTok shows on your own profile while it has no bio. You can still add one from Edit profile.,Hide the Add bio prompt TikTok shows on your own profile while it has no bio. You can still add one from Edit profile.
 Hide the Add friends button at the top of your profile. The menu button stays where it is.,Hide the Add friends button at the top of your profile. The menu button stays where it is.
 Hide the All button at the end of the story row on the Following feed. The row and its stories stay.,Hide the All button at the end of the story row on the Following feed. The row and its stories stay.
 Hide the All button on Following,Hide the All button on Following
@@ -1017,6 +1019,7 @@ Hide the magnifying glass at the top right of the feed and the one over the vide
 Hide the music line,Hide the music line
 "Hide the notification saying somebody new followed you before it reaches the drawer. Every other notification is left alone, and the follower still appears in the Inbox.","Hide the notification saying somebody new followed you before it reaches the drawer. Every other notification is left alone, and the follower still appears in the Inbox."
 Hide the number beside the heart on each comment. The heart still works.,Hide the number beside the heart on each comment. The heart still works.
+Hide the people you may know tag,Hide the people you may know tag
 "Hide the photo, @ and gift buttons in the box where you write a comment. Emoji and sending work as before.","Hide the photo, @ and gift buttons in the box where you write a comment. Emoji and sending work as before."
 Hide the picture beside each comment and reply. The name and the comment move over to fill its place.,Hide the picture beside each comment and reply. The name and the comment move over to fill its place.
 Hide the playlist bar,Hide the playlist bar
@@ -1042,6 +1045,7 @@ Hide the search bar below videos,Hide the search bar below videos
 Hide the search button on the feed,Hide the search button on the feed
 Hide the share prompt after a like,Hide the share prompt after a like
 Hide the side menu button,Hide the side menu button
+Hide the small tag next to the creator's name that says you may know them. The video stays.,Hide the small tag next to the creator's name that says you may know them. The video stays.
 Hide the status bar,Hide the status bar
 Hide the status bar in LIVE rooms,Hide the status bar in LIVE rooms
 Hide the streak button in a chat and the reminder message that goes with it.,Hide the streak button in a chat and the reminder message that goes with it.
@@ -1180,6 +1184,7 @@ Keep offline videos until you delete them,Keep offline videos until you delete t
 Keep photos as TikTok sent them,Keep photos as TikTok sent them
 Keep playing in the background,Keep playing in the background
 "Keep playing in the background is on in Hushfeed's Playback settings, so TikTok gets 2 for this key and an override here has no effect until that switch is off.","Keep playing in the background is on in Hushfeed's Playback settings, so TikTok gets 2 for this key and an override here has no effect until that switch is off."
+Keep suggestions on profiles,Keep suggestions on profiles
 Keep the Favorites tab,Keep the Favorites tab
 Keep the For You feed on your real SIM,Keep the For You feed on your real SIM
 Keep the LIVE quality after TikTok restarts,Keep the LIVE quality after TikTok restarts
@@ -1648,7 +1653,7 @@ Pick the buttons to take off the column. The rest stay where they are.,Pick the 
 "Pick the popups to stop. The list holds the ones TikTok has tried to show on this phone, so a popup appears here after its first showing. CAPTCHA, verification, sign-in, age, ban and legal consent screens are never listed or blocked.","Pick the popups to stop. The list holds the ones TikTok has tried to show on this phone, so a popup appears here after its first showing. CAPTCHA, verification, sign-in, age, ban and legal consent screens are never listed or blocked."
 "Pick the rows to take out of TikTok's Settings and privacy page. This applies the next time the page opens, and a section left with no rows loses its title too.","Pick the rows to take out of TikTok's Settings and privacy page. This applies the next time the page opens, and a section left with no rows loses its title too."
 "Pick the shortcuts to remove from the row under a profile's bio, such as TikTok Studio or Your orders. Restart TikTok to apply this.","Pick the shortcuts to remove from the row under a profile's bio, such as TikTok Studio or Your orders. Restart TikTok to apply this."
-"Pick the tabs to hide from the strip above a profile's videos, such as Reposts or Liked videos. One tab always stays. Restart TikTok to apply this.","Pick the tabs to hide from the strip above a profile's videos, such as Reposts or Liked videos. One tab always stays. Restart TikTok to apply this."
+"Pick the tabs to hide from the strip above a profile's videos, such as Reposts or Liked videos, and use the arrows to put the rest in your order. One tab always stays. Restart TikTok to apply this.","Pick the tabs to hide from the strip above a profile's videos, such as Reposts or Liked videos, and use the arrows to put the rest in your order. One tab always stays. Restart TikTok to apply this."
 "Pick the tabs to remove from the top of the search results, such as Shop, LIVE or Places. The list holds the tabs TikTok has shown you, and Top always stays.","Pick the tabs to remove from the top of the search results, such as Shop, LIVE or Places. The list holds the tabs TikTok has shown you, and Top always stays."
 Pick videos to save from profile grids,Pick videos to save from profile grids
 Pick which stories to save,Pick which stories to save
@@ -1660,6 +1665,7 @@ Pill corners,Pill corners
 Pill height,Pill height
 Pill is the wide bubble with a row of dots under the speed. Circle is a small round dial with a notch for each speed around its edge.,Pill is the wide bubble with a row of dots under the speed. Circle is a small round dial with a notch for each speed around its edge.
 Pin more chats,Pin more chats
+"Pinned videos take their place in the order instead of staying at the top, so Newest first puts them at the date they were posted.","Pinned videos take their place in the order instead of staying at the top, so Newest first puts them at the date they were posted."
 Places,Places
 Play,Play
 Play SDR instead of HDR,Play SDR instead of HDR
@@ -1821,6 +1827,7 @@ Replace values when TikTok asks for them,Replace values when TikTok asks for the
 Replay a story from the start when it ends instead of moving to the next one. Tap or swipe to move on.,Replay a story from the start when it ends instead of moving to the next one. Tap or swipe to move on.
 Replay in the background,Replay in the background
 Report a newer phone to effects,Report a newer phone to effects
+Report a newer phone to game LIVE,Report a newer phone to game LIVE
 Report a problem,Report a problem
 Report saved to %1$s,Report saved to %1$s
 Repost with a comment,Repost with a comment
@@ -2131,6 +2138,7 @@ Show the handle instead of the name,Show the handle instead of the name
 Show the hide button on videos,Show the hide button on videos
 "Show the main feed's tabs on a rounded, see-through dark pill that floats over the video. Needs See-through bottom bar.","Show the main feed's tabs on a rounded, see-through dark pill that floats over the video. Needs See-through bottom bar."
 Show the mute button on videos,Show the mute button on videos
+Show the picture before saving,Show the picture before saving
 Show the progress bar,Show the progress bar
 Show the progress bar thumbnail,Show the progress bar thumbnail
 Show the save button on videos,Show the save button on videos
@@ -2203,6 +2211,7 @@ Sort loaded videos on Favorites grids,Sort loaded videos on Favorites grids
 Sort loaded videos on Liked grids,Sort loaded videos on Liked grids
 Sort loaded videos on profile grids,Sort loaded videos on profile grids
 Sort loaded videos on sound pages,Sort loaded videos on sound pages
+Sort pinned videos with the rest,Sort pinned videos with the rest
 Sort this grid,Sort this grid
 "Sorts a profile or Liked grid with pinned videos first. While an order is on, the grid keeps loading by itself up to 300 videos, so the order covers more than the first screen. A button in the grid's top corner changes the order right there.","Sorts a profile or Liked grid with pinned videos first. While an order is on, the grid keeps loading by itself up to 300 videos, so the order covers more than the first screen. A button in the grid's top corner changes the order right there."
 "Sorts the videos on a sound's page the same way, loading up to 300 of them while an order is on.","Sorts the videos on a sound's page the same way, loading up to 300 of them while an order is on."
@@ -2415,6 +2424,7 @@ The Message requests row leaves the Inbox. Requests keep arriving and wait there
 The New followers row leaves the top of the Inbox. The accounts still follow you.,The New followers row leaves the top of the Inbox. The accounts still follow you.
 "The On this day memory at the front of the stories tray goes, and the stories after it move into its place. Nothing is deleted.","The On this day memory at the front of the stories tray goes, and the stories after it move into its place. Nothing is deleted."
 "The Stories button at the top of the Following feed turns to glass with round ends. On Android 12 and up, the video behind it is blurred too.","The Stories button at the top of the Following feed turns to glass with round ends. On Android 12 and up, the video behind it is blurred too."
+"The Suggested accounts row under a profile's Follow button still shows, so you can find similar accounts after you follow someone.","The Suggested accounts row under a profile's Follow button still shows, so you can find similar accounts after you follow someone."
 The Tako assistant's conversation leaves the Inbox list. The Tako bubble on the feed has its own switch under Feed tabs.,The Tako assistant's conversation leaves the Inbox list. The Tako bubble on the feed has its own switch under Feed tabs.
 "The Translate comments button in a LIVE room also needs a Japanese SIM. Turn on Override SIM details in Hushfeed settings > Region, set SIM country preset to Japan, NTT DOCOMO (44010), then restart TikTok.","The Translate comments button in a LIVE room also needs a Japanese SIM. Turn on Override SIM details in Hushfeed settings > Region, set SIM country preset to Japan, NTT DOCOMO (44010), then restart TikTok."
 The Widget circle at the end of the stories tray goes. TikTok's home screen widget still works.,The Widget circle at the end of the stories tray goes. TikTok's home screen widget still works.
@@ -2466,6 +2476,7 @@ The network proxy from that file is off. Check its address before you turn it on
 The partial file couldn't be removed. Delete it from the folder you chose.,The partial file couldn't be removed. Delete it from the folder you chose.
 "The port the proxy listens on, like 8080 or 1080.","The port the proxy listens on, like 8080 or 1080."
 The presets couldn't load. Open the Lab again.,The presets couldn't load. Open the Lab again.
+The profile picture couldn't be loaded. Try again.,The profile picture couldn't be loaded. Try again.
 The profile picture couldn't be saved. Try again.,The profile picture couldn't be saved. Try again.
 "The proxy's address, like 192.168.1.20 or proxy.example.com.","The proxy's address, like 192.168.1.20 or proxy.example.com."
 The publication state of these older recording files is unknown. Export a copy or delete the retained files.,The publication state of these older recording files is unknown. Export a copy or delete the retained files.
@@ -2593,6 +2604,7 @@ TikTok's messages didn't start in time. It tries again at %1$s.,TikTok's message
 "TikTok's own daily screen-time reminder sends the app to the background instead of waiting to be dismissed. Coming straight back leaves the reminder on screen, so the limit stays reachable. Needs a daily limit set under TikTok's Settings and privacy, under Time and well-being.","TikTok's own daily screen-time reminder sends the app to the background instead of waiting to be dismissed. Coming straight back leaves the reminder on screen, so the limit stays reachable. Needs a daily limit set under TikTok's Settings and privacy, under Time and well-being."
 TikTok's own name,TikTok's own name
 TikTok's own value,TikTok's own value
+"TikTok's server picks the qualities a game LIVE can stream in, and some phones get fewer than they can handle. While you set up a LIVE, this tells the LIVE server you have a Galaxy S25 Ultra. Sign-in and everything else still see your real phone. A quality your phone can't keep up with may stutter.","TikTok's server picks the qualities a game LIVE can stream in, and some phones get fewer than they can handle. While you set up a LIVE, this tells the LIVE server you have a Galaxy S25 Ultra. Sign-in and everything else still see your real phone. A quality your phone can't keep up with may stutter."
 "TikTok's servers keep sending it new settings, which is how it tests new layouts and features on people. With this on, TikTok keeps the ones it has now and ignores new ones. If something in TikTok stops working, turn this off so it can get fixes.","TikTok's servers keep sending it new settings, which is how it tests new layouts and features on people. With this on, TikTok keeps the ones it has now and ignores new ones. If something in TikTok stops working, turn this off so it can get fixes."
 TikTok's size,TikTok's size
 TikTok's suggested reply cells and their intro banner stop showing in a chat. Messages you type or receive are untouched.,TikTok's suggested reply cells and their intro banner stop showing in a chat. Messages you type or receive are untouched.
@@ -2809,6 +2821,7 @@ Window width needed to enable the layout. Restart TikTok to apply this.,Window w
 "With TikTok in dark mode, a LIVE room still opens its share menu, fan club and other panels in light colors. This opens them dark.","With TikTok in dark mode, a LIVE room still opens its share menu, fan club and other panels in light colors. This opens them dark."
 "With the SIM changed, TikTok can keep showing videos you've already watched. Turn this on to stop that. Sticker search and the rest of TikTok still see the SIM above, while For You asks for videos with your phone's own SIM country and carrier. Your IP address and account history still count.","With the SIM changed, TikTok can keep showing videos you've already watched. Turn this on to stop that. Sticker search and the rest of TikTok still see the SIM above, while For You asks for videos with your phone's own SIM country and carrier. Your IP address and account history still count."
 "With the fade below 100, the buttons and caption stay on screen at that level in Clear display, and taps go through them to the video. Off, Clear display hides them the way it does at 100.","With the fade below 100, the buttons and caption stay on screen at that level in Clear display, and taps go through them to the video. Off, Clear display hides them the way it does at 100."
+"With the long press save on, holding a profile picture opens it full screen at full size, with a Save button under it.","With the long press save on, holding a profile picture opens it full screen at full size, with a Save button under it."
 "With the switch above on, the video is cropped to fill a tall screen like a folding phone's front screen. A squarer one, like the big screen opened up, still shows the whole video.","With the switch above on, the video is cropped to fill a tall screen like a folding phone's front screen. A squarer one, like the big screen opened up, still shows the whole video."
 "Word rules only, not every feed filter:","Word rules only, not every feed filter:"
 "Words, countries and languages","Words, countries and languages"

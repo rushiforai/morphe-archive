@@ -10,6 +10,6 @@ object Constants {
         packageName = "com.atlassian.android.jira.core",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x1868DB,
-        targets = listOf(AppTarget(version = "2026.22.0", versionCode = 202616079)),
+        targets = listOf(AppTarget(version = "2026.22.0", versionCode = 202616079), AppTarget(version = "2026.22.1", versionCode = 202616088)),
     )
 }

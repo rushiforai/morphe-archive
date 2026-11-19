@@ -157,9 +157,7 @@ Forget the video @%2$s has seen.	Esquecer o vídeo que @%2$s viu.
 Got it	Entendi
 Hide profile shortcuts	Ocultar atalhos do perfil
 # context: Title of the checklist that hides tabs from the strip above a profile's videos
-Hide profile tabs	Ocultar abas do perfil
 # context: Note under that title. Reposts and Liked videos are two of the checklist's rows, and the checklist never takes away every tab
-Pick the tabs to hide from the strip above a profile's videos, such as Reposts or Liked videos. One tab always stays. Restart TikTok to apply this.	Escolha as abas a ocultar na faixa acima dos vídeos de um perfil, como Republicações ou Vídeos curtidos. Uma aba sempre fica. Reinicie o TikTok para aplicar.
 # context: Checklist row for the profile tab with the account's private videos (lock icon)
 Private videos	Vídeos privados
 # context: Checklist row for the profile tab with the videos the account reposted
@@ -3030,3 +3028,18 @@ Takes the Record and Auto tap buttons off the video and puts them in the menu yo
 Auto tap started	Toque automático iniciado
 Hide stories from accounts you don't follow	Esconder stories de contas que você não segue
 Stories from accounts you don't follow leave the stories tray. Stories from accounts you follow stay.	Os stories de contas que você não segue saem da bandeja de stories. Os stories de contas que você segue continuam.
+Hide the people you may know tag	Esconder a etiqueta de pessoas que você talvez conheça
+Hide the small tag next to the creator's name that says you may know them. The video stays.	Esconde a etiqueta pequena ao lado do nome do criador que diz que você talvez o conheça. O vídeo continua.
+Report a newer phone to game LIVE	Informar um celular mais novo às LIVEs de jogos
+TikTok's server picks the qualities a game LIVE can stream in, and some phones get fewer than they can handle. While you set up a LIVE, this tells the LIVE server you have a Galaxy S25 Ultra. Sign-in and everything else still see your real phone. A quality your phone can't keep up with may stutter.	O servidor do TikTok escolhe as qualidades em que uma LIVE de jogos pode ser transmitida, e alguns celulares recebem menos do que aguentam. Enquanto você prepara uma LIVE, isso diz ao servidor de LIVE que você tem um Galaxy S25 Ultra. O login e todo o resto continuam vendo o seu celular de verdade. Uma qualidade que o seu celular não aguenta pode travar.
+Keep suggestions on profiles	Manter sugestões nos perfis
+The Suggested accounts row under a profile's Follow button still shows, so you can find similar accounts after you follow someone.	A linha de Contas sugeridas abaixo do botão Seguir de um perfil continua aparecendo, para você encontrar contas parecidas depois de seguir alguém.
+Sort pinned videos with the rest	Ordenar os vídeos fixados com o resto
+Pinned videos take their place in the order instead of staying at the top, so Newest first puts them at the date they were posted.	Os vídeos fixados ficam no seu lugar na ordem em vez de ficar no topo, então Mais recentes primeiro coloca cada um na data em que foi postado.
+Hide or reorder profile tabs	Ocultar ou reordenar abas do perfil
+Pick the tabs to hide from the strip above a profile's videos, such as Reposts or Liked videos, and use the arrows to put the rest in your order. One tab always stays. Restart TikTok to apply this.	Escolha as abas a ocultar na faixa acima dos vídeos de um perfil, como Republicações ou Vídeos curtidos, e use as setas para colocar as outras na sua ordem. Uma aba sempre fica. Reinicie o TikTok para aplicar.
+Hide Add bio	Ocultar Adicionar bio
+Hide the Add bio prompt TikTok shows on your own profile while it has no bio. You can still add one from Edit profile.	Oculta o aviso Adicionar bio que o TikTok mostra no seu próprio perfil enquanto ele não tem bio. Você ainda pode adicionar uma em Editar Perfil.
+Show the picture before saving	Mostrar a foto antes de salvar
+With the long press save on, holding a profile picture opens it full screen at full size, with a Save button under it.	Com o salvamento ao segurar ativado, segurar uma foto de perfil abre a foto em tela cheia e em tamanho cheio, com um botão Salvar embaixo.
+The profile picture couldn't be loaded. Try again.	A foto de perfil não carregou. Tente de novo.

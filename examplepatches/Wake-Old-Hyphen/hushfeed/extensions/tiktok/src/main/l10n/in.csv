@@ -154,8 +154,6 @@ Forget the seen video.,Lupakan video yang telah dilihat.
 Forget the video @%2$s has seen.,Lupakan video yang telah dilihat @%2$s.
 Got it,Mengerti
 Hide profile shortcuts,Sembunyikan pintasan profil
-Hide profile tabs,Sembunyikan tab profil
-"Pick the tabs to hide from the strip above a profile's videos, such as Reposts or Liked videos. One tab always stays. Restart TikTok to apply this.","Pilih tab yang disembunyikan dari strip di atas video profil, misalnya Postingan ulang atau Video yang disukai. Satu tab selalu tetap ada. Mulai ulang TikTok agar berlaku."
 Private videos,Video pribadi
 Reposts,Postingan ulang
 Favorites,Favorit
@@ -2859,3 +2857,36 @@ Hide the Widget circle,Sembunyikan lingkaran Widget
 The Widget circle at the end of the stories tray goes. TikTok's home screen widget still works.,Lingkaran Widget di akhir deret Story hilang. Widget layar utama TikTok tetap berfungsi.
 Hide view counts on profile grids,Sembunyikan jumlah tayangan di kisi profil
 "Takes the view count and its play icon off each video on profile grids. Dates, lengths and the engagement rate you turned on move up in its place.","Menghapus jumlah tayangan dan ikon putarnya dari setiap video di kisi profil. Tanggal, durasi, dan tingkat interaksi yang kamu aktifkan naik ke tempatnya."
+Video bitrate limit,Batas bitrate video
+%1$s Mb/s,%1$s Mb/s
+"A video heavier than this plays a lighter version. If none fits, it plays its lightest one.","Video yang lebih berat diputar dalam versi lebih ringan. Jika tidak ada yang pas, diputar versi paling ringan."
+Use an imported emoji font,Gunakan font emoji yang diimpor
+"Shows emoji in the font file you import below, whichever font the text is in. Restart TikTok to see the change.","Menampilkan emoji dengan berkas font yang kamu impor di bawah, apa pun font teksnya. Mulai ulang TikTok untuk melihat perubahannya."
+Import an emoji font file,Impor berkas font emoji
+Remove the imported emoji font,Hapus font emoji yang diimpor
+No emoji font is imported,Belum ada font emoji yang diimpor
+%1$s is imported. Turn on Use an imported emoji font to see it.,%1$s sudah diimpor. Nyalakan Gunakan font emoji yang diimpor untuk melihatnya.
+Write the month as a word,Tulis bulan sebagai kata
+"Writes TikTok's date by the creator's name with the month's name, like Oct 12. Day before month makes it 12 Oct.","Menulis tanggal TikTok di samping nama kreator dengan nama bulan, seperti Oct 12. Hari sebelum bulan membuatnya 12 Oct."
+"Fade the name, date and caption","Pudarkan nama, tanggal, dan keterangan"
+"Draws the creator's name, the date, the caption and the music line over the video at this level, and they still take taps. At 100 they follow Fade the video controls. At 0 they're hidden.","Menampilkan nama kreator, tanggal, keterangan, dan baris musik di atas video pada level ini, dan semuanya tetap bisa diketuk. Di 100 mengikuti Pudarkan kontrol video. Di 0 disembunyikan."
+LIVE buttons in the long-press menu,Tombol LIVE di menu tekan lama
+Takes the Record and Auto tap buttons off the video and puts them in the menu you get by holding the middle of a LIVE.,Memindahkan tombol Rekam dan Ketuk otomatis dari video ke menu yang muncul saat menekan lama bagian tengah LIVE.
+Auto tap started,Ketuk otomatis dimulai
+Hide stories from accounts you don't follow,Sembunyikan Story dari akun yang tidak kamu ikuti
+Stories from accounts you don't follow leave the stories tray. Stories from accounts you follow stay.,Story dari akun yang tidak kamu ikuti hilang dari deret Story. Story dari akun yang kamu ikuti tetap ada.
+Hide the people you may know tag,Sembunyikan tag orang yang mungkin kamu kenal
+Hide the small tag next to the creator's name that says you may know them. The video stays.,Sembunyikan tag kecil di samping nama kreator yang bilang kamu mungkin mengenalnya. Videonya tetap ada.
+Report a newer phone to game LIVE,Laporkan ponsel lebih baru ke LIVE game
+"TikTok's server picks the qualities a game LIVE can stream in, and some phones get fewer than they can handle. While you set up a LIVE, this tells the LIVE server you have a Galaxy S25 Ultra. Sign-in and everything else still see your real phone. A quality your phone can't keep up with may stutter.","Server TikTok yang memilih kualitas siaran LIVE game, dan sebagian ponsel mendapat lebih sedikit dari yang sanggup ditanganinya. Saat kamu menyiapkan LIVE, ini memberi tahu server LIVE bahwa kamu memakai Galaxy S25 Ultra. Proses masuk dan semua yang lain tetap melihat ponsel aslimu. Kualitas yang tidak sanggup diikuti ponselmu bisa tersendat."
+Keep suggestions on profiles,Tetap tampilkan saran di profil
+"The Suggested accounts row under a profile's Follow button still shows, so you can find similar accounts after you follow someone.","Baris Akun yang disarankan di bawah tombol Ikuti pada profil tetap muncul, jadi kamu bisa menemukan akun serupa setelah mengikuti seseorang."
+Sort pinned videos with the rest,Urutkan video yang disematkan bersama lainnya
+"Pinned videos take their place in the order instead of staying at the top, so Newest first puts them at the date they were posted.","Video yang disematkan menempati tempatnya dalam urutan, tidak tetap di atas, jadi Terbaru dulu menaruhnya sesuai tanggal diunggah."
+Hide or reorder profile tabs,Sembunyikan atau urutkan ulang tab profil
+"Pick the tabs to hide from the strip above a profile's videos, such as Reposts or Liked videos, and use the arrows to put the rest in your order. One tab always stays. Restart TikTok to apply this.","Pilih tab yang disembunyikan dari strip di atas video profil, misalnya Postingan ulang atau Video yang disukai, lalu pakai tanda panah untuk mengatur urutan tab lainnya. Satu tab selalu tetap ada. Mulai ulang TikTok agar berlaku."
+Hide Add bio,Sembunyikan Tambahkan bio
+Hide the Add bio prompt TikTok shows on your own profile while it has no bio. You can still add one from Edit profile.,Sembunyikan ajakan Tambahkan bio yang ditampilkan TikTok di profil Anda sendiri selama belum ada bio. Anda tetap bisa menambahkannya dari Edit profil.
+Show the picture before saving,Tampilkan foto sebelum menyimpan
+"With the long press save on, holding a profile picture opens it full screen at full size, with a Save button under it.","Saat simpan dengan tekan lama aktif, menahan foto profil membukanya di layar penuh dalam ukuran penuh, dengan tombol Simpan di bawahnya."
+The profile picture couldn't be loaded. Try again.,Foto profilnya tidak bisa dimuat. Coba lagi.

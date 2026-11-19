@@ -147,6 +147,8 @@ public final class SettingsStatus {
     public static boolean visualSearchThumbnails() { return false; }
     public static boolean foldRelatedPins() { return false; }
     public static boolean relatedPinsFold() { return false; }
+    public static boolean letScreenSleep() { return false; }
+    public static boolean screenSleep() { return false; }
     public static boolean customSaveSound() { return false; }
     public static boolean saveSound() { return false; }
     public static boolean customSplashLogo() { return false; }

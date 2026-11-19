@@ -154,8 +154,6 @@ Forget the seen video.,Lupakan video yang telah dilihat.
 Forget the video @%2$s has seen.,Lupakan video yang telah dilihat @%2$s.
 Got it,Mengerti
 Hide profile shortcuts,Sembunyikan pintasan profil
-Hide profile tabs,Sembunyikan tab profil
-"Pick the tabs to hide from the strip above a profile's videos, such as Reposts or Liked videos. One tab always stays. Restart TikTok to apply this.","Pilih tab yang disembunyikan dari strip di atas video profil, misalnya Postingan ulang atau Video yang disukai. Satu tab selalu tetap ada. Mulai ulang TikTok agar berlaku."
 Private videos,Video pribadi
 Reposts,Postingan ulang
 Favorites,Favorit
@@ -2877,3 +2875,18 @@ Takes the Record and Auto tap buttons off the video and puts them in the menu yo
 Auto tap started,Ketuk otomatis dimulai
 Hide stories from accounts you don't follow,Sembunyikan Story dari akun yang tidak kamu ikuti
 Stories from accounts you don't follow leave the stories tray. Stories from accounts you follow stay.,Story dari akun yang tidak kamu ikuti hilang dari deret Story. Story dari akun yang kamu ikuti tetap ada.
+Hide the people you may know tag,Sembunyikan tag orang yang mungkin kamu kenal
+Hide the small tag next to the creator's name that says you may know them. The video stays.,Sembunyikan tag kecil di samping nama kreator yang bilang kamu mungkin mengenalnya. Videonya tetap ada.
+Report a newer phone to game LIVE,Laporkan ponsel lebih baru ke LIVE game
+"TikTok's server picks the qualities a game LIVE can stream in, and some phones get fewer than they can handle. While you set up a LIVE, this tells the LIVE server you have a Galaxy S25 Ultra. Sign-in and everything else still see your real phone. A quality your phone can't keep up with may stutter.","Server TikTok yang memilih kualitas siaran LIVE game, dan sebagian ponsel mendapat lebih sedikit dari yang sanggup ditanganinya. Saat kamu menyiapkan LIVE, ini memberi tahu server LIVE bahwa kamu memakai Galaxy S25 Ultra. Proses masuk dan semua yang lain tetap melihat ponsel aslimu. Kualitas yang tidak sanggup diikuti ponselmu bisa tersendat."
+Keep suggestions on profiles,Tetap tampilkan saran di profil
+"The Suggested accounts row under a profile's Follow button still shows, so you can find similar accounts after you follow someone.","Baris Akun yang disarankan di bawah tombol Ikuti pada profil tetap muncul, jadi kamu bisa menemukan akun serupa setelah mengikuti seseorang."
+Sort pinned videos with the rest,Urutkan video yang disematkan bersama lainnya
+"Pinned videos take their place in the order instead of staying at the top, so Newest first puts them at the date they were posted.","Video yang disematkan menempati tempatnya dalam urutan, tidak tetap di atas, jadi Terbaru dulu menaruhnya sesuai tanggal diunggah."
+Hide or reorder profile tabs,Sembunyikan atau urutkan ulang tab profil
+"Pick the tabs to hide from the strip above a profile's videos, such as Reposts or Liked videos, and use the arrows to put the rest in your order. One tab always stays. Restart TikTok to apply this.","Pilih tab yang disembunyikan dari strip di atas video profil, misalnya Postingan ulang atau Video yang disukai, lalu pakai tanda panah untuk mengatur urutan tab lainnya. Satu tab selalu tetap ada. Mulai ulang TikTok agar berlaku."
+Hide Add bio,Sembunyikan Tambahkan bio
+Hide the Add bio prompt TikTok shows on your own profile while it has no bio. You can still add one from Edit profile.,Sembunyikan ajakan Tambahkan bio yang ditampilkan TikTok di profil Anda sendiri selama belum ada bio. Anda tetap bisa menambahkannya dari Edit profil.
+Show the picture before saving,Tampilkan foto sebelum menyimpan
+"With the long press save on, holding a profile picture opens it full screen at full size, with a Save button under it.","Saat simpan dengan tekan lama aktif, menahan foto profil membukanya di layar penuh dalam ukuran penuh, dengan tombol Simpan di bawahnya."
+The profile picture couldn't be loaded. Try again.,Foto profilnya tidak bisa dimuat. Coba lagi.

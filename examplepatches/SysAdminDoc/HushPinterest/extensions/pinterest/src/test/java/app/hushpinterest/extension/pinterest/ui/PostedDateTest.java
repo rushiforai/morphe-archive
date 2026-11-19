@@ -136,7 +136,7 @@ public class PostedDateTest {
         TextView line = (TextView) module.getChildAt(1);
         assertEquals(PostedDate.LINE_TAG, line.getTag());
         assertEquals(View.VISIBLE, line.getVisibility());
-        assertEquals("Posted Oct 12, 2026", shown(module));
+        assertEquals("Oct 12, 2026", shown(module));
         assertEquals(Color.RED, line.getCurrentTextColor());
         assertEquals(24, line.getPaddingStart());
         assertEquals(32, line.getPaddingEnd());
@@ -149,7 +149,7 @@ public class PostedDateTest {
         Settings.SHOW_POSTED_DATE.save(true);
         LinearLayout module = module();
         PostedDate.show(module, postedOn(OCT_12_2026));
-        assertEquals("Gepostet am 12.10.2026", shown(module));
+        assertEquals("12.10.2026", shown(module));
     }
 
     @Test public void aPinWithNoUsableDateGetsNoLine() {
@@ -181,7 +181,7 @@ public class PostedDateTest {
         PostedDate.show(module, postedOn(OCT_12_2026));
         PostedDate.show(module, postedOn(OCT_12_2026 - 365L * 24 * 60 * 60 * 1000));
         assertEquals(2, module.getChildCount());
-        assertEquals("Posted Oct 12, 2025", shown(module));
+        assertEquals("Oct 12, 2025", shown(module));
 
         PostedDate.show(module, new Pin(null));
         assertEquals(2, module.getChildCount());
@@ -189,7 +189,7 @@ public class PostedDateTest {
 
         PostedDate.show(module, postedOn(OCT_12_2026));
         assertEquals(View.VISIBLE, module.getChildAt(1).getVisibility());
-        assertEquals("Posted Oct 12, 2026", shown(module));
+        assertEquals("Oct 12, 2026", shown(module));
     }
 
     @Test public void turningItOffHidesTheLineOnTheNextPin() {

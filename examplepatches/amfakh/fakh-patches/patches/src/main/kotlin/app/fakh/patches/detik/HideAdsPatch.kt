@@ -15,12 +15,12 @@ private const val WEB_ADS = "Lapp/fakh/extension/detik/WebAds;"
 
 /** The screens that show detik.com HTML: the article body (two row types), the in-app browser, the feature pages and Milidetik. */
 private val WEB_SCREENS = listOf(
-    "Ld8/l;",
-    "Ld8/o;",
-    "Ls8/b;",
+    "Le8/l;",
+    "Le8/o;",
+    "Lt8/a;",
     "Lorg/detikcom/rss/ui/in_app_browser/InAppBrowserDetikActivity;",
     "Lorg/detikcom/rss/ui/detik_feature/detail_feature/DetikFeatureDetailActivity;",
-    "LY7/a;",
+    "LZ7/a;",
 )
 
 /**

@@ -1,6 +1,6 @@
 # Jira
 
-Patches for the Jira app (`com.atlassian.android.jira.core`, version `2026.22.0`, APKM from APKMirror).
+Patches for the Jira app (`com.atlassian.android.jira.core`, versions `2026.22.0` and `2026.22.1`, APKM from APKMirror).
 
 ## Patches
 
@@ -26,10 +26,10 @@ otherwise Android asks you to uninstall first.
 With [morphe-desktop](https://github.com/MorpheApp/morphe-cli/releases) (needs Java 21):
 
 ```bash
-java -jar morphe-desktop-1.19.1-all.jar patch -p patches/build/libs/patches-<version>.mpp -o jira-patched.apk <jira-2026.22.0>.apkm
+java -jar morphe-desktop-1.19.1-all.jar patch -p patches/build/libs/patches-<version>.mpp -o jira-patched.apk <jira-2026.22.1>.apkm
 ```
 
 ## Getting the APK
 
-Download the `2026.22.0` APKM from APKMirror. Morphe Manager looks the app up on APKMirror itself,
+Download the `2026.22.1` APKM from APKMirror. Morphe Manager looks the app up on APKMirror itself,
 so it can take you to that page.

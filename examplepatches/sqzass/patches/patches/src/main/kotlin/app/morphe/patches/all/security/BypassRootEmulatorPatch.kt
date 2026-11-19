@@ -68,9 +68,7 @@ private fun processClass(classDef: ClassDef) {
 @Suppress("unused")
 val bypassRootEmulatorPatch = bytecodePatch(
     name = "Bypass root / emulator detection",
-    description = "Forces common root and emulator detection methods to report clean. " +
-        "Covers Java/Kotlin-level checks in app code; library packages and native " +
-        "(.so) detection are not affected.",
+    description = "Bypasses root/emulator detection methods.",
     default = false,
 ) {
     execute {

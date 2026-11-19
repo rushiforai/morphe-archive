@@ -277,7 +277,7 @@ public final class RelatedPinsFold {
         void show(String id, Object owner, int color) {
             pin = id;
             presenter = new WeakReference<>(owner);
-            chevron.color(color);
+            chevron.paintWith(color);
             follow(false);
             drawn = true;
         }
@@ -337,7 +337,7 @@ public final class RelatedPinsFold {
             paint.setStrokeWidth(stroke);
         }
 
-        void color(int color) {
+        void paintWith(int color) {
             if (paint.getColor() == color) return;
             paint.setColor(color);
             invalidateSelf();

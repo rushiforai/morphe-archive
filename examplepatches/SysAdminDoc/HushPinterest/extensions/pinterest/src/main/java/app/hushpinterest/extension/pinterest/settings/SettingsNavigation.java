@@ -108,6 +108,13 @@ final class SettingsNavigation extends BaseAdapter {
     private Preference refocus;
     private int homePosition;
     private int homeOffset;
+    /**
+     * The page a search started on and where its list was. The search box is on every page and
+     * searches all of them, and clearing it or Back goes back to that page at that place.
+     */
+    private String searchFrom = "";
+    private int searchPosition;
+    private int searchOffset;
 
     private final DataSetObserver changes = new DataSetObserver() {
         @Override public void onChanged() { rebuild(); }
@@ -159,7 +166,8 @@ final class SettingsNavigation extends BaseAdapter {
         restart.setSummary(L10n.t("Pinterest closes and reopens on this page."));
         restart.setIcon(SettingsIcons.icon(context, SettingsIcons.UPDATES, palette().heading));
         restart.setOnPreferenceClickListener(row -> {
-            ReopenSettingsAfterRestart.restartInto(row.getContext(), route);
+            // From a search, the page the search started on.
+            ReopenSettingsAfterRestart.restartInto(row.getContext(), query.isEmpty() ? route : searchFrom);
             return true;
         });
         // The row appears as the switch flips, and the screen's live status reads its count to a
@@ -181,9 +189,13 @@ final class SettingsNavigation extends BaseAdapter {
             query = state.getString("query", "");
             homePosition = state.getInt("homePosition");
             homeOffset = state.getInt("homeOffset");
+            searchFrom = state.getString("searchFrom", "");
+            searchPosition = state.getInt("searchPosition");
+            searchOffset = state.getInt("searchOffset");
             // A route that names no page, such as "more" saved before More settings joined the
             // home page, opens home.
             if (selected() == null) route = "";
+            if (sectionFor(searchFrom) == null) searchFrom = "";
         } else {
             // Nothing saved: the page the screen was asked to open on, such as the one a restart
             // from the restart row left.
@@ -210,7 +222,7 @@ final class SettingsNavigation extends BaseAdapter {
             return true;
         });
         rebuild();
-        host.showPage(title(), route.isEmpty(), query);
+        host.showPage(title(), query);
         if (state != null) showAt(state.getInt("position"), state.getInt("offset"));
     }
 
@@ -271,7 +283,11 @@ final class SettingsNavigation extends BaseAdapter {
     }
 
     private Section selected() {
-        for (Section section : sections) if (section.id.equals(route)) return section;
+        return sectionFor(route);
+    }
+
+    private Section sectionFor(String id) {
+        for (Section section : sections) if (section.id.equals(id)) return section;
         return null;
     }
 
@@ -288,7 +304,7 @@ final class SettingsNavigation extends BaseAdapter {
         route = destination;
         if (selected() == null) route = "";
         rebuild();
-        host.showPage(title(), route.isEmpty(), query);
+        host.showPage(title(), query);
         showAt(0, 0);
         list.sendAccessibilityEvent(android.view.accessibility.AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED);
     }
@@ -308,18 +324,28 @@ final class SettingsNavigation extends BaseAdapter {
     void search(String text) {
         if (query.equals(text)) return;
         refocus = null;
-        if (query.isEmpty()) rememberIndex();
+        boolean starting = query.isEmpty();
+        if (starting) {
+            rememberIndex();
+            searchFrom = route;
+            View first = list.getChildAt(0);
+            searchPosition = list.getFirstVisiblePosition();
+            searchOffset = first == null ? 0 : first.getTop();
+        }
         pageStatusHeight = 0;
         query = text;
-        route = "";
+        route = query.isEmpty() ? searchFrom : "";
         rebuild();
-        showAt(query.isEmpty() ? homePosition : 0, query.isEmpty() ? homeOffset : 0);
+        // The title follows the page under the search; the field keeps its focus and keyboard.
+        if (starting || query.isEmpty()) host.showTitle(title());
+        if (query.isEmpty()) showAt(searchPosition, searchOffset);
+        else showAt(0, 0);
     }
 
     boolean back() {
         if (!query.isEmpty()) {
             search("");
-            host.showPage(title(), true, "");
+            host.showPage(title(), "");
             return true;
         }
         if (route.isEmpty()) return false;
@@ -328,7 +354,7 @@ final class SettingsNavigation extends BaseAdapter {
         // Every page opens from home, so Back goes home, to the place the list was left.
         route = "";
         rebuild();
-        host.showPage(title(), true, query);
+        host.showPage(title(), query);
         showAt(homePosition, homeOffset);
         refocus = section != null ? section.link : null;
         return true;
@@ -357,6 +383,9 @@ final class SettingsNavigation extends BaseAdapter {
         state.putString("query", query);
         state.putInt("homePosition", homePosition);
         state.putInt("homeOffset", homeOffset);
+        state.putString("searchFrom", searchFrom);
+        state.putInt("searchPosition", searchPosition);
+        state.putInt("searchOffset", searchOffset);
         state.putInt("position", list.getFirstVisiblePosition());
         View first = list.getChildAt(0);
         state.putInt("offset", first == null ? 0 : first.getTop());

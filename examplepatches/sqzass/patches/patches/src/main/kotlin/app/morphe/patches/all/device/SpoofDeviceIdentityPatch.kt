@@ -501,10 +501,7 @@ private fun spoofDevice(
 @Suppress("unused")
 val spoofDeviceIdentityPatch = bytecodePatch(
     name = "Spoof device identity",
-    description = "Unified device spoofing with per-category toggles: " +
-        "Android ID, MAC address, SIM/carrier, and Build device fields. " +
-        "Includes emulator presets. Library packages keep the real device " +
-        "so their internal behavior is unaffected.",
+    description = "Spoofs Android ID, MAC, SIM/carrier and Build fields.",
     default = false,
 ) {
     val enableAndroidId by booleanOption(

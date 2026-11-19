@@ -185,8 +185,8 @@ private fun MutableMethod.redirectContextCall(signature: String, replacement: St
 @Suppress("unused")
 val samsungAccountPatch = bytecodePatch(
     name = "Samsung account sign-in",
-    description = "Signs in to your Samsung account on Samsung's web page to sync with Samsung Cloud. " +
-        "Needs the Samsung Account app to be absent.",
+    description = "Signs in to your Samsung account on Samsung's web page to sync with Samsung Cloud, also on Samsung " +
+        "phones, where the Samsung Account app doesn't serve a patched Notes.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_NOTES)

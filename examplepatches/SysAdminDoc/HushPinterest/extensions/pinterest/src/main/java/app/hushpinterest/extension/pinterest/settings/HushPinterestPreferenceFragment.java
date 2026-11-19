@@ -639,6 +639,11 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                     L10n.t("Puts an arrow under a pin you open. Related pins stay folded and don't load until you tap "
                         + "it, and tapping again folds them. Your last choice is kept. Hide related pins wins when "
                         + "both are on. The change shows on the next pin you open."), SettingsIcons.TOOLS);
+            patchToggle(ui, context, build, PatchFamily.LET_SCREEN_SLEEP, Settings.LET_SCREEN_SLEEP,
+                    L10n.t("Let the screen sleep"),
+                    L10n.t("Pinterest keeps the screen on while a video is on it, playing or not, so an open pin "
+                        + "can keep the phone awake. With this on, the screen turns off after your phone's usual "
+                        + "timeout, videos included. The change shows on the next pin you open."), SettingsIcons.TOOLS);
             patchToggle(ui, context, build, PatchFamily.CUSTOM_SAVE_SOUND, Settings.CUSTOM_SAVE_SOUND,
                     L10n.t("Custom save sound"),
                     L10n.t("Plays the sound you pick below when you save a pin, instead of Pinterest's. With no sound "

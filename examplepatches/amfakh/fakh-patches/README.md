@@ -15,12 +15,12 @@ Each app has its own README with the full patch list.
 | BARDI Smart Home | `com.bardi.smart.home` | `1.5.3` | XAPK from APKPure | [apps/smartlife](apps/smartlife/README.md) |
 | CNN Indonesia | `com.cnn.indonesia` | `2.50.7`, `2.50.8` | APK from APKMirror | [apps/cnn](apps/cnn/README.md) |
 | CoverScreen OS | `apps.ijp.coverscreenos` | `CSOS_9.0.3_BETA` | APKM from APKMirror | [apps/coverscreen](apps/coverscreen/README.md) |
-| detikcom | `org.detikcom.rss` | `7.14.1` | APK from APKMirror | [apps/detik](apps/detik/README.md) |
-| DoDo Music | `com.dundunstudio.autoplay` | `2.0.14`, `2.0.17` | XAPK from APKPure | [apps/dodo](apps/dodo/README.md) |
-| FlipSide | `com.dinoster.flipside` | `1.6` | APKS from APKCube | [apps/flipside](apps/flipside/README.md) |
+| detikcom | `org.detikcom.rss` | `7.15.0` | APK from APKMirror | [apps/detik](apps/detik/README.md) |
+| DoDo Music | `com.dundunstudio.autoplay` | `2.0.14`, `2.0.17`, `2.0.18` | XAPK from APKPure | [apps/dodo](apps/dodo/README.md) |
+| FlipSide | `com.dinoster.flipside` | `1.6`, `1.7.1` | APKS from APKCube | [apps/flipside](apps/flipside/README.md) |
 | GitHub | `com.github.android` | `1.282.0`, `1.283.0`, `1.284.0` | APKM from APKMirror | [apps/github](apps/github/README.md) |
 | IDN | `com.idntimes.idntimes` | `6.69.1` | XAPK or APKS from APKPure or APKCube | [apps/idn](apps/idn/README.md) |
-| Jira | `com.atlassian.android.jira.core` | `2026.22.0` | APKM from APKMirror | [apps/jira](apps/jira/README.md) |
+| Jira | `com.atlassian.android.jira.core` | `2026.22.0`, `2026.22.1` | APKM from APKMirror | [apps/jira](apps/jira/README.md) |
 | KOMPAS.com | `com.ertanto.kompas.official` | `9.8.7` | XAPK from APKPure | [apps/kompas](apps/kompas/README.md) |
 | LinkedIn | `com.linkedin.android` | `4.1.1264`, `4.1.1267`, `4.1.1269`, `4.1.1270`, `4.1.1272`, `4.1.1275` | APKM from APKMirror | [apps/linkedin](apps/linkedin/README.md) |
 | Radio Indonesia | `com.appmind.radios.id` | `4.2.30` | XAPK from APKPure | [apps/radio](apps/radio/README.md) |

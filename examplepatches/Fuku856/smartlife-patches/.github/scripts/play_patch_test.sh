@@ -235,6 +235,27 @@ cmd_patch() {
   fi
 
   echo "### ✅ すべてのパッチが適用できました" >>"$summary"
+
+  # パッチは成功扱いでも、照合件数がおかしい (例: 同じ処理が 2 箇所に複製されていた) などの
+  # 警告は SMARTLIFE-WARN: で出しているので、見落とさないようサマリーと Actions の警告に出す。
+  local warnings
+  warnings=$(grep -o 'SMARTLIFE-WARN:.*' "$plog" | sort -u || true)
+  if [ -n "$warnings" ]; then
+    {
+      echo
+      echo "### ⚠️ 照合の警告 (パッチは当たったが、意図どおりに効かない可能性あり)"
+      echo
+      echo '```'
+      echo "$warnings"
+      echo '```'
+    } >>"$summary"
+    # ワークフローコマンドの値は % を、プロパティ (title) は : と , もエスケープする
+    local title="$app_name $version_name" w
+    title=${title//'%'/'%25'}; title=${title//:/'%3A'}; title=${title//,/'%2C'}
+    while IFS= read -r w; do
+      echo "::warning title=$title::${w//'%'/'%25'}"
+    done <<<"$warnings"
+  fi
 }
 
 case "${1:-}" in

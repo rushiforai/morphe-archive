@@ -92,6 +92,30 @@ public class FeedFilterTest {
         }
     }
 
+    /** 14.45.0's featured placement details (wf), which say whether the board is paid for. */
+    static final class FeaturedDetails {
+        @Json("is_sponsored_content") Boolean sponsored;
+
+        FeaturedDetails(Boolean sponsored) {
+            this.sponsored = sponsored;
+        }
+    }
+
+    /** 14.45.0's board (x4) as the featured boards row on Search carries it. */
+    static final class FeaturedBoard {
+        @Json("id") String id;
+        @Json("featured_board_metadata") Object featured;
+
+        FeaturedBoard(String id, Object featured) {
+            this.id = id;
+            this.featured = featured;
+        }
+
+        @Override public String toString() {
+            return id;
+        }
+    }
+
     /** A pin whose words came back as something other than text. */
     static final class OddPin {
         @Json("id") String id = "odd";
@@ -284,6 +308,37 @@ public class FeedFilterTest {
         List<?> kept = FeedFilter.filter(page());
         assertEquals("[plain, labeled, emptyLabels, ideas]", kept.toString());
         assertTrue(String.join("\n", HookStatus.report()), String.join("\n", HookStatus.report()).contains("promoted pin removed"));
+    }
+
+    private static Module featuredRow() {
+        return new Module("row",
+                new FeaturedBoard("paid", new FeaturedDetails(true)),
+                new FeaturedBoard("picked", new FeaturedDetails(false)),
+                new FeaturedBoard("unmarked", new FeaturedDetails(null)));
+    }
+
+    @Test
+    public void aSponsoredBoardLeavesTheFeaturedRowAndPinterestsPicksStay() {
+        Settings.HIDE_AI_PINS.save(false);
+        Module row = featuredRow();
+        assertEquals("[row]", FeedFilter.filter(new ArrayList<Object>(Arrays.asList(row))).toString());
+        assertEquals("[picked, unmarked]", row.objects.toString());
+    }
+
+    @Test
+    public void aFeaturedRowOfOnlySponsoredBoardsGoesWhole() {
+        Settings.HIDE_AI_PINS.save(false);
+        Module row = new Module("row", new FeaturedBoard("paid", new FeaturedDetails(true)));
+        assertEquals("[plain]", FeedFilter.filter(new ArrayList<Object>(Arrays.asList(plain, row))).toString());
+    }
+
+    @Test
+    public void sponsoredBoardsStayWithHideAdsOff() {
+        Settings.HIDE_ADS.save(false);
+        Settings.HIDE_AI_PINS.save(false);
+        Module row = featuredRow();
+        FeedFilter.filter(new ArrayList<Object>(Arrays.asList(row)));
+        assertEquals("[paid, picked, unmarked]", row.objects.toString());
     }
 
     /**

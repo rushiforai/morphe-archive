@@ -31,6 +31,7 @@
       "YTDLNIS_DOWNLOAD_TYPE",
       "YTDLNIS_BACKGROUND",
       "SAVE_PROFILE_PICTURE",
+      "PROFILE_PICTURE_VIEWER",
       "SAVE_STORY",
       "SAVE_STORY_FROM_SHARE",
       "SAVE_STORY_PICK",
@@ -56,10 +57,12 @@
       "PUBLISH_DATE_TIME_ZONE",
       "PUBLISH_DATE_SHORT_DATE",
       "PUBLISH_DATE_DAY_FIRST",
+      "PUBLISH_DATE_MONTH_NAME",
       "PUBLISH_DATE_ON_GRID",
       "VIDEO_LENGTH_ON_GRID",
       "HIDE_GRID_VIEW_COUNT",
       "PROFILE_GRID_SORT",
+      "SORT_PINNED_WITH_REST",
       "LIKED_GRID_SORT",
       "FAVORITES_GRID_SORT",
       "COLLECTION_GRID_SORT",
@@ -408,6 +411,7 @@
       "HIDE_INBOX_STORIES",
       "HIDE_INBOX_ON_THIS_DAY",
       "HIDE_INBOX_SUGGESTED_LIVES",
+      "HIDE_INBOX_SUGGESTED_STORIES",
       "HIDE_INBOX_WIDGET_GUIDE",
       "HIDE_INBOX_NEW_FOLLOWERS",
       "HIDE_INBOX_ACTIVITY",
@@ -442,7 +446,9 @@
       "HIDDEN_PROFILE_SHORTCUTS",
       "PROFILE_SHORTCUT_PICKS",
       "PROFILE_TAB_PICKS",
+      "PROFILE_TAB_ORDER",
       "HIDE_PROFILE_THOUGHTS",
+      "HIDE_ADD_BIO",
       "ENABLE_THOUGHTS"
     ],
     "Hide search suggestions": [
@@ -451,7 +457,8 @@
       "DISCOVER_SEARCH_BAR_ONLY"
     ],
     "Hide suggested accounts": [
-      "HIDE_INBOX_SUGGESTED_ACCOUNTS"
+      "HIDE_INBOX_SUGGESTED_ACCOUNTS",
+      "KEEP_PROFILE_SUGGESTED_ACCOUNTS"
     ],
     "Hide the launcher shortcuts": [
       "HIDE_LAUNCHER_SHORTCUTS"
@@ -466,6 +473,7 @@
       "HIDE_FEED_ACTION_BAR",
       "HIDE_FEED_SURVEYS",
       "HIDE_FOOTNOTES",
+      "HIDE_MAY_KNOW_TAG",
       "HIDE_FOLLOWING_LIVE_ROW",
       "GLASS_STORIES_PILL",
       "HIDE_FOLLOWING_ALL_BUTTON",
@@ -474,6 +482,7 @@
       "HIDE_DETAIL_COMMENT_BAR",
       "HIDE_CLEAR_DISPLAY_CONTROLS",
       "KEEP_CLEAR_DISPLAY_SEEK_BAR",
+      "FADE_CAPTION_OPACITY",
       "FADE_CONTROLS_OPACITY",
       "FADE_IN_CLEAR_DISPLAY",
       "INVISIBLE_CONTROLS_BUTTON",
@@ -581,6 +590,7 @@
       "LIVE_RECORD_SOURCE",
       "LIVE_AUTO_TAP",
       "LIVE_AUTO_TAP_RATE",
+      "LIVE_BUTTONS_IN_MENU",
       "LIVE_BUTTON_SIZE",
       "LIVE_AUDIO_ONLY",
       "LIVE_NAME_ALERTS",
@@ -658,7 +668,8 @@
     ],
     "Playback quality": [
       "PLAYBACK_QUALITY",
-      "PLAYBACK_QUALITY_METERED"
+      "PLAYBACK_QUALITY_METERED",
+      "PLAYBACK_BITRATE_LIMIT"
     ],
     "Playback speed": [
       "REMEMBER_SPEED",
@@ -708,6 +719,9 @@
     "Report a newer phone to effects": [
       "REPORT_NEWER_PHONE_TO_EFFECTS",
       "EFFECT_PHONE_MODEL"
+    ],
+    "Report a newer phone to game LIVE": [
+      "REPORT_NEWER_PHONE_TO_GAME_LIVE"
     ],
     "Resource and battery governor": [
       "BLOCK_MOTION_SENSORS",
@@ -878,7 +892,8 @@
     "Use system font": [
       "SYSTEM_FONT",
       "SYSTEM_EMOJI",
-      "IMPORTED_FONT"
+      "IMPORTED_FONT",
+      "IMPORTED_EMOJI_FONT"
     ],
     "Account cleanup": [
       "TAP_TO_REMOVE"

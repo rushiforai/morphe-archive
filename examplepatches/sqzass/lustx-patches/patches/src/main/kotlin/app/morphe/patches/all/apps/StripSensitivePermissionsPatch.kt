@@ -8,8 +8,7 @@ private fun p(vararg names: String) = names.map { "android.permission.$it" }
 @Suppress("unused")
 val stripSensitivePermissionsPatch = resourcePatch(
     name = "Strip sensitive permissions",
-    description = "Removes selected sensitive permissions from the manifest. Can break features " +
-        "that rely on them; enable only the groups you want stripped.",
+    description = "Removes selected sensitive permissions from the manifest.",
     default = false,
 ) {
     val location by booleanOption("location", true, title = "Location")

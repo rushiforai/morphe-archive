@@ -1,0 +1,85 @@
+name: One-time repair of published v2.1.1 MPP
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Enter REPLACE_V2_1_1 to replace the previously published incorrect MPP'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  packages: read
+  id-token: write
+  attestations: write
+
+concurrency:
+  group: repair-v2.1.1-release-asset
+  cancel-in-progress: false
+
+jobs:
+  repair:
+    name: Verify and replace v2.1.1 release asset
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 65
+    env:
+      GITHUB_ACTOR: ${{ github.actor }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      REPAIR_APPROVAL: ${{ inputs.confirmation }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Require explicit approval and unchanged release tag
+        run: |
+          set -euo pipefail
+          test "$REPAIR_APPROVAL" = 'REPLACE_V2_1_1'
+          test "$GITHUB_REF" = 'refs/heads/main'
+          grep -Eq '^version[[:space:]]*=[[:space:]]*2[.]1[.]1[[:space:]]*$' gradle.properties
+          test "$(git rev-parse 'refs/tags/v2.1.1^{commit}')" = '6fc205f63e61bc4ee8a21210a8002c7aa1349f7e'
+          python3 porting/revisions/v2.1.1-release/test_release.py
+          python3 porting/tests/test_release_mpp_integrity.py
+      - name: Confirm existing incorrect asset has not changed
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/old-mpp"
+          gh release download v2.1.1 --pattern patches-2.1.1.mpp --dir "$RUNNER_TEMP/old-mpp"
+          printf '%s  %s\n' '7dd4890aa463a1daf6cb4e8e28175bf10f25489203288128936162d0ec907789' "$RUNNER_TEMP/old-mpp/patches-2.1.1.mpp" | sha256sum -c -
+      - name: Keep original asset for seven-day rollback
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: pre-repair-v2.1.1-mpp
+          path: ${{ runner.temp }}/old-mpp/patches-2.1.1.mpp
+          retention-days: 7
+          if-no-files-found: error
+      - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          distribution: temurin
+          java-version: '25'
+      - name: Build Kotlin MPP and stage verified v2.1.1-dev.12 bytecode
+        run: |
+          set -euo pipefail
+          ./gradlew :patches:buildAndroid --no-daemon
+          NICOID_OFFICIAL_RELEASE_APPROVED=APPROVE bash .github/scripts/stage-v2.1.1-mpp.sh
+          python3 .github/scripts/verify-release-mpp.py record 2.1.1
+      - name: Attest repaired MPP before publication
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-name: 'Repaired nicoid Re v2.1.1'
+          subject-path: patches/build/libs/patches-2.1.1.mpp
+      - name: Replace only the v2.1.1 MPP asset
+        run: |
+          set -euo pipefail
+          python3 .github/scripts/verify-release-mpp.py check 2.1.1
+          gh release upload v2.1.1 patches/build/libs/patches-2.1.1.mpp --clobber
+      - name: Verify published repaired asset is byte-identical
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/repaired-mpp"
+          gh release download v2.1.1 --pattern patches-2.1.1.mpp --dir "$RUNNER_TEMP/repaired-mpp"
+          python3 .github/scripts/verify-release-mpp.py check 2.1.1 "$RUNNER_TEMP/repaired-mpp/patches-2.1.1.mpp"
+          echo '### v2.1.1 release MPP successfully repaired and SHA-256 verified' >> "$GITHUB_STEP_SUMMARY"

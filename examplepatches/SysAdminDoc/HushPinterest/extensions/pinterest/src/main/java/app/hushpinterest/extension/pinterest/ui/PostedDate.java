@@ -146,10 +146,12 @@ public final class PostedDate {
         return at < EARLIEST || at > System.currentTimeMillis() + CLOCK_SLACK ? null : (Date) value;
     }
 
-    /** "Posted" and the day, in the language HushPinterest shows and the phone's time zone. */
+    /**
+     * The day alone, written the way the language HushPinterest shows writes dates, in the phone's
+     * time zone. No "Posted" in front, which keeps the line short (#47).
+     */
     static String text(Date posted) {
-        String day = DateFormat.getDateInstance(DateFormat.MEDIUM, L10n.locale()).format(posted);
-        return L10n.f("Posted %1$s", L10n.isolate(day));
+        return L10n.isolate(DateFormat.getDateInstance(DateFormat.MEDIUM, L10n.locale()).format(posted));
     }
 
     @Nullable

@@ -1,3 +1,25 @@
+## [1.17.2](https://github.com/jordanwoodson/lurk-morphe-patches/compare/v1.17.1...v1.17.2) (2026-11-19)
+
+### Twitch
+
+#### 🐛 Bug Fixes
+
+* **AMOLED black** keeps channel point reward colors ([f969a60](https://github.com/jordanwoodson/lurk-morphe-patches/commit/f969a60ecdda7236ef4984dd1cb89c49c7c84e87))
+* **Chat timestamps** also on your own messages ([a102400](https://github.com/jordanwoodson/lurk-morphe-patches/commit/a102400fd9ee31216005112cf500ddbcc69fea04))
+* **Latency badge** shows "? s" when the player loses its measure ([5db8ab0](https://github.com/jordanwoodson/lurk-morphe-patches/commit/5db8ab0dde0c1316f909a6ceb4cfc4948d5c4798))
+* pull to refresh Home again with Hide Stories on ([b0f5ef0](https://github.com/jordanwoodson/lurk-morphe-patches/commit/b0f5ef00bf814de015a8b8b018f3f7f07c2b2e41))
+
+## [1.17.2-dev.1](https://github.com/jordanwoodson/lurk-morphe-patches/compare/v1.17.1...v1.17.2-dev.1) (2026-11-19)
+
+### Twitch
+
+#### 🐛 Bug Fixes
+
+* **AMOLED black** keeps channel point reward colors ([f969a60](https://github.com/jordanwoodson/lurk-morphe-patches/commit/f969a60ecdda7236ef4984dd1cb89c49c7c84e87))
+* **Chat timestamps** also on your own messages ([a102400](https://github.com/jordanwoodson/lurk-morphe-patches/commit/a102400fd9ee31216005112cf500ddbcc69fea04))
+* **Latency badge** shows "? s" when the player loses its measure ([5db8ab0](https://github.com/jordanwoodson/lurk-morphe-patches/commit/5db8ab0dde0c1316f909a6ceb4cfc4948d5c4798))
+* pull to refresh Home again with Hide Stories on ([b0f5ef0](https://github.com/jordanwoodson/lurk-morphe-patches/commit/b0f5ef00bf814de015a8b8b018f3f7f07c2b2e41))
+
 ## [1.17.1](https://github.com/jordanwoodson/lurk-morphe-patches/compare/v1.17.0...v1.17.1) (2026-11-18)
 
 ### Kick

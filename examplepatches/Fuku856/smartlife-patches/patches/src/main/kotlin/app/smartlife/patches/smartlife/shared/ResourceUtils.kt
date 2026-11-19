@@ -2,6 +2,9 @@ package app.smartlife.patches.smartlife.shared
 
 import app.morphe.patcher.patch.ResourcePatchContext
 import org.w3c.dom.Element
+import java.util.Collections
+import java.util.WeakHashMap
+import java.util.logging.Logger
 
 /**
  * SmartLife gates most optional features (AI, ads, analytics) behind
@@ -31,32 +34,70 @@ internal fun ResourcePatchContext.setBoolResources(values: Map<String, Boolean>)
     return changed
 }
 
+/** Asset files edited by the patches. */
+internal const val MODULE_APP_JSON = "assets/module_app.json"
+internal const val HOME_FRAGMENT_JSON = "assets/home_fragment_new.json"
+internal const val PERSONAL_CENTER_JSON = "assets/personal_center_config_list.json"
 
 /**
- * Remove class-name entries from the startup pipeline arrays in assets/module_app.json.
- * The file is minified JSON ("A","B",...), and the given fully-qualified class names appear
- * only as array elements (pipeline initializers), so removing each quoted element with its
- * adjacent comma stops that subsystem from starting without touching the service map.
- * Unknown names (different app version) are skipped.
+ * Parse the asset JSON file at [path] once, let [edit] apply all of a patch's changes
+ * to the tree, and write it back once if [edit] returns true.
  *
- * @return the set of class names that were found and removed.
+ * A missing file or a file this parser cannot read (e.g. a future app version ships
+ * non-strict JSON) is skipped with a warning instead of failing the whole patch.
  */
-internal fun ResourcePatchContext.removeModuleAppPipelines(classNames: Collection<String>): Set<String> {
-    val file = get("assets/module_app.json")
-    if (!file.exists()) return emptySet()
-
-    var text = file.readText()
-    val removed = mutableSetOf<String>()
-    for (name in classNames) {
-        val quoted = "\"" + name + "\""
-        if (!text.contains(quoted)) continue
-        removed += name
-        // Order matters: first/middle element (quoted,), then last element (,quoted),
-        // then a sole element (quoted) leaving an empty array.
-        while (text.contains("$quoted,")) text = text.replace("$quoted,", "")
-        while (text.contains(",$quoted")) text = text.replace(",$quoted", "")
-        while (text.contains(quoted)) text = text.replace(quoted, "")
+internal fun ResourcePatchContext.editAssetJson(
+    patchName: String,
+    path: String,
+    edit: (JsonNode) -> Boolean,
+) {
+    val file = get(path)
+    if (!file.exists()) {
+        logger(patchName).warning("$patchName: $path not found (app version may differ); skipped")
+        return
     }
-    if (removed.isNotEmpty()) file.writeText(text)
+
+    val root = try {
+        JsonNode.parse(file.readText())
+    } catch (e: IllegalArgumentException) {
+        logger(patchName).warning("$patchName: could not parse $path (${e.message}); skipped")
+        return
+    }
+    if (edit(root)) file.writeText(root.write())
+}
+
+/**
+ * Log a warning for entries a patch expected but did not find, which usually means
+ * the app version differs and the patch had no effect for them.
+ */
+internal fun warnIfMissing(patchName: String, what: String, expected: Collection<String>, found: Set<String>) {
+    val missing = expected.toSet() - found
+    if (missing.isEmpty()) return
+    logger(patchName).warning("$patchName: these $what were not found (app version may differ): $missing")
+}
+
+private fun logger(patchName: String): Logger = Logger.getLogger(patchName)
+
+internal const val ATTRIBUTION_PIPELINE = "com.thingclips.smart.attribution.common.AttributionConfigPipeline"
+
+/** Patching sessions in which [ATTRIBUTION_PIPELINE] has already been removed. */
+private val attributionRemovedIn: MutableSet<ResourcePatchContext> =
+    Collections.synchronizedSet(Collections.newSetFromMap(WeakHashMap()))
+
+/**
+ * Remove the AppsFlyer attribution pipeline (install/campaign tracking) from the
+ * module_app.json tree [root]. It is both ad-related and telemetry, so both "Hide ads"
+ * and "Disable telemetry" call this. A warning is logged only when it was not found
+ * and the other patch has not already removed it in this patching session.
+ *
+ * @return true if the tree was changed.
+ */
+internal fun ResourcePatchContext.removeAttributionPipeline(patchName: String, root: JsonNode): Boolean {
+    val removed = root.removeArrayElements(setOf(ATTRIBUTION_PIPELINE)).isNotEmpty()
+    if (removed) {
+        attributionRemovedIn += this
+    } else if (this !in attributionRemovedIn) {
+        warnIfMissing(patchName, "module_app.json pipelines", listOf(ATTRIBUTION_PIPELINE), emptySet())
+    }
     return removed
 }

@@ -812,6 +812,15 @@
           "values": null
         },
         {
+          "key": "publish_date_month_name",
+          "title": "Default: publish date month name",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
           "key": "publish_date_on_grid",
           "title": "Default: publish date on grid",
           "description": null,
@@ -845,6 +854,15 @@
           "required": false,
           "type": "kotlin.String",
           "default": "off",
+          "values": null
+        },
+        {
+          "key": "sort_pinned_with_rest",
+          "title": "Default: sort pinned with rest",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
           "values": null
         },
         {
@@ -5503,6 +5521,15 @@
           "values": null
         },
         {
+          "key": "hide_inbox_suggested_stories",
+          "title": "Default: hide inbox suggested stories",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
           "key": "hide_inbox_widget_guide",
           "title": "Default: hide inbox widget guide",
           "description": null,
@@ -5771,7 +5798,7 @@
     },
     {
       "name": "Hide profile shortcuts",
-      "description": "Hides the shortcuts you pick from the row under a profile's bio, like TikTok Studio or Your orders, and the profile tabs you pick, like Reposts or Liked videos. It can hide the Thoughts bubble, and Balance and the TikTok Minis icons in your profile's menu. It can also turn Thoughts on for accounts TikTok left out. Starts off. Turn it on in Hushfeed settings > App, then restart TikTok.",
+      "description": "Hides the shortcuts you pick from the row under a profile's bio, like TikTok Studio or Your orders, and the profile tabs you pick, like Reposts or Liked videos, with the tabs that stay in your order. It can hide the Thoughts bubble and the Add bio prompt, plus Balance and the TikTok Minis icons in your profile's menu. It can also turn Thoughts on for accounts TikTok left out. Starts off. Turn it on in Hushfeed settings > App, then restart TikTok.",
       "category": "Feed",
       "use": true,
       "dependencies": [
@@ -5853,8 +5880,26 @@
           "values": null
         },
         {
+          "key": "profile_tab_order",
+          "title": "Default: profile tab order",
+          "description": null,
+          "required": false,
+          "type": "kotlin.String",
+          "default": "",
+          "values": null
+        },
+        {
           "key": "hide_profile_thoughts",
           "title": "Default: hide profile thoughts",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "hide_add_bio",
+          "title": "Default: hide add bio",
           "description": null,
           "required": false,
           "type": "kotlin.Boolean",
@@ -6029,6 +6074,15 @@
         {
           "key": "hide_inbox_suggested_accounts",
           "title": "Default: hide inbox suggested accounts",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "keep_profile_suggested_accounts",
+          "title": "Default: keep profile suggested accounts",
           "description": null,
           "required": false,
           "type": "kotlin.Boolean",
@@ -6245,6 +6299,15 @@
           "values": null
         },
         {
+          "key": "hide_may_know_tag",
+          "title": "Default: hide may know tag",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
           "key": "hide_following_live_row",
           "title": "Default: hide following live row",
           "description": null,
@@ -6314,6 +6377,15 @@
           "required": false,
           "type": "kotlin.Boolean",
           "default": false,
+          "values": null
+        },
+        {
+          "key": "fade_caption_opacity",
+          "title": "Default: fade caption opacity",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Int",
+          "default": 100,
           "values": null
         },
         {
@@ -7564,6 +7636,15 @@
           "values": null
         },
         {
+          "key": "live_buttons_in_menu",
+          "title": "Default: live buttons in menu",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
           "key": "live_button_size",
           "title": "Default: live button size",
           "description": null,
@@ -8701,6 +8782,15 @@
           "type": "kotlin.String",
           "default": "off",
           "values": null
+        },
+        {
+          "key": "playback_bitrate_limit",
+          "title": "Default: playback bitrate limit",
+          "description": null,
+          "required": false,
+          "type": "kotlin.String",
+          "default": "off",
+          "values": null
         }
       ]
     },
@@ -9501,6 +9591,55 @@
       ]
     },
     {
+      "name": "Report a newer phone to game LIVE",
+      "description": "Tells TikTok's LIVE server you have a newer phone while you set up a LIVE, so a game LIVE can offer qualities it holds back from some phones. Starts off. Turn it on in Hushfeed settings > App.",
+      "category": "Interface",
+      "use": true,
+      "dependencies": [
+        "Patch",
+        "Settings"
+      ],
+      "compatiblePackages": {
+        "com.zhiliaoapp.musically": [
+          "47.9.1"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "TikTok",
+          "packageName": "com.zhiliaoapp.musically",
+          "description": null,
+          "appIconColor": 16657493,
+          "signatures": [
+            "9041803e91bcb814b4b4399fb5c85a91640b755e5e8ba76813814bf4cf2ab5ba"
+          ],
+          "targets": [
+            {
+              "version": "47.9.1",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 2024709010,
+                "ARMEABI_V7A": 2024709010,
+                "X86": 2024709010,
+                "X86_64": 2024709010
+              }
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "report_newer_phone_to_game_live",
+          "title": "Default: report newer phone to game live",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        }
+      ]
+    },
+    {
       "name": "Repost diagnostics",
       "description": "With diagnostic logging on, notes when you repost a video and what TikTok answered, to help track down reposts that don't stick. Works as soon as you patch it in, with no switch.",
       "category": "Interaction",
@@ -9648,9 +9787,9 @@
     },
     {
       "name": "Run beside the store app",
-      "description": "Lets a renamed copy of TikTok, made with Morphe's Clone app patch, sign in while the regular TikTok stays installed. Pick it together with Clone app. Google and Facebook sign-in won't work in the copy, so use email or phone.",
+      "description": "Lets a renamed copy of TikTok, made with Morphe's Clone app patch, sign in while the regular TikTok stays installed. It does nothing unless Clone app renamed the package. If Google sign-in fails in the copy, use email or phone.",
       "category": "Settings",
-      "use": false,
+      "use": true,
       "dependencies": [
         "Patch"
       ],
@@ -11945,6 +12084,15 @@
         {
           "key": "imported_font",
           "title": "Default: imported font",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "imported_emoji_font",
+          "title": "Default: imported emoji font",
           "description": null,
           "required": false,
           "type": "kotlin.Boolean",

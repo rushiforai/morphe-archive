@@ -10,8 +10,10 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import android.content.Context;
+import android.graphics.Insets;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowInsets;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 
@@ -38,9 +40,10 @@ import app.morphe.extension.shared.settings.SettingReadsForTests;
 
 /**
  * Hide the tab bar on the Reels tab: with the switch on, selecting Reels hides the bar, the Reels
- * page loses the bar's bottom margin and its reels lose the bar's height, and selecting another tab
- * brings the bar back while the other pages keep their margin. The bar and the margin stay Facebook's with the switch off, paused, before
- * the settings are ready and when the switch can't be read.
+ * page and its reels keep only the room the phone's navigation bar takes (#516), and selecting
+ * another tab brings the bar back while the other pages keep their margin. The bar and the margin
+ * stay Facebook's with the switch off, paused, before the settings are ready and when the switch
+ * can't be read.
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 30)
@@ -48,6 +51,8 @@ public class ReelsTabBarHiddenTest {
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
 
     private static final int BAR = 200;
+    /** The phone's navigation bar along the bottom, which Facebook's bar height includes. */
+    private static final int STRIP = 63;
 
     private View bar;
 
@@ -55,14 +60,24 @@ public class ReelsTabBarHiddenTest {
     public void start() {
         HookStatus.clear();
         bar = new View(RuntimeEnvironment.getApplication());
+        ReelsTabBarHidden.insetsForTests = navigationBar(STRIP);
     }
 
     @After
     public void restore() {
+        Settings.HIDE_TAB_BAR_LINE.resetToDefault();
         ReelsTabBarHidden.tabShown(bar, new FeedTab());
         PauseForTests.resume();
         Settings.HIDE_REELS_TAB_BAR.resetToDefault();
+        ReelsTabBarHidden.insetsForTests = null;
+        ReelsTabBarHidden.forgetWindow();
         HookStatus.clear();
+    }
+
+    private static WindowInsets navigationBar(int height) {
+        return new WindowInsets.Builder()
+                .setInsets(WindowInsets.Type.navigationBars(), Insets.of(0, 0, 0, height))
+                .build();
     }
 
     private void assertFacebooksBar(String why) {
@@ -85,9 +100,9 @@ public class ReelsTabBarHiddenTest {
         Settings.HIDE_REELS_TAB_BAR.save(true);
         ReelsTabBarHidden.tabShown(bar, new WatchTab());
         assertEquals("the bar stayed on the Reels tab", View.GONE, bar.getVisibility());
-        assertEquals("the Reels page kept the bar's margin", 0, ReelsTabBarHidden.pageBottomMargin(BAR, new WatchTab()));
+        assertEquals("the Reels page kept the bar's margin", STRIP, ReelsTabBarHidden.pageBottomMargin(BAR, new WatchTab()));
         assertEquals("Home's page lost the bar's margin", BAR, ReelsTabBarHidden.pageBottomMargin(BAR, new FeedTab()));
-        assertEquals("the reel stayed short of the hidden bar", 0, ReelsTabBarHidden.reelBottomBars(BAR));
+        assertEquals("the reel stayed short of the hidden bar", STRIP, ReelsTabBarHidden.reelBottomBars(BAR));
 
         ReelsTabBarHidden.tabShown(bar, new FeedTab());
         assertEquals("Home didn't get the bar back", View.VISIBLE, bar.getVisibility());
@@ -100,7 +115,55 @@ public class ReelsTabBarHiddenTest {
         Settings.HIDE_REELS_TAB_BAR.save(true);
         ReelsTabBarHidden.tabShown(bar, new FeedTab());
         assertEquals("Home lost its bar", View.VISIBLE, bar.getVisibility());
-        assertEquals("a reel sized before Reels showed stopped short of the bar", 0, ReelsTabBarHidden.reelBottomBars(BAR));
+        assertEquals("a reel sized before Reels showed stopped short of the bar", STRIP, ReelsTabBarHidden.reelBottomBars(BAR));
+    }
+
+    /**
+     * #516: Facebook's bar height includes the phone's navigation bar, so answering 0 ran the reel,
+     * its time and its seek bar down under the gesture bar, where they couldn't be tapped or held.
+     */
+    @Test
+    public void theReelStopsAboveThePhonesNavigationBar() {
+        Settings.HIDE_REELS_TAB_BAR.save(true);
+        ReelsTabBarHidden.tabShown(bar, new WatchTab());
+        assertEquals("the reel ran under the navigation bar", STRIP, ReelsTabBarHidden.reelBottomBars(BAR));
+        assertEquals("the page ran under the navigation bar", STRIP, ReelsTabBarHidden.pageBottomMargin(BAR, new WatchTab()));
+        assertEquals("a bar shorter than the strip grew", 40, ReelsTabBarHidden.reelBottomBars(40));
+
+        ReelsTabBarHidden.insetsForTests = navigationBar(0);
+        assertEquals("a phone with no navigation bar kept a gap", 0, ReelsTabBarHidden.reelBottomBars(BAR));
+    }
+
+    /** A strip already read stands for a call that comes before the window can say. */
+    @Test
+    public void theLastStripReadStandsUntilTheWindowCanSay() {
+        Settings.HIDE_REELS_TAB_BAR.save(true);
+        ReelsTabBarHidden.insetsForTests = null;
+        assertEquals("a reel sized before any window was known kept a gap", 0, ReelsTabBarHidden.reelBottomBars(BAR));
+        ReelsTabBarHidden.insetsForTests = navigationBar(STRIP);
+        ReelsTabBarHidden.reelBottomBars(BAR);
+        ReelsTabBarHidden.insetsForTests = null;
+        ReelsTabBarHidden.tabShown(bar, new WatchTab());
+        assertEquals("the strip was forgotten", STRIP, ReelsTabBarHidden.reelBottomBars(BAR));
+    }
+
+    /** A window that already stops above the navigation bar (no edge to edge) needs no room for it. */
+    @Test
+    public void aWindowThatStopsAboveTheNavigationBarGetsNoRoomForIt() {
+        Context context = RuntimeEnvironment.getApplication();
+        FrameLayout root = new FrameLayout(context);
+        FrameLayout content = new FrameLayout(context);
+        content.setId(android.R.id.content);
+        root.addView(content);
+        content.addView(bar);
+        root.layout(0, 0, 1080, 2400);
+        content.layout(0, 0, 1080, 2400 - STRIP);
+        Settings.HIDE_REELS_TAB_BAR.save(true);
+        ReelsTabBarHidden.tabShown(bar, new WatchTab());
+        assertEquals("a window above the navigation bar left a gap", 0, ReelsTabBarHidden.reelBottomBars(BAR));
+
+        content.layout(0, 0, 1080, 2400);
+        assertEquals("an edge to edge window ran under the navigation bar", STRIP, ReelsTabBarHidden.reelBottomBars(BAR));
     }
 
     @Test
@@ -227,6 +290,113 @@ public class ReelsTabBarHiddenTest {
         PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
         ReelsTabBarHidden.tabShown(bar, new WatchTab());
         assertEquals("a pause left the line hidden", 1f, line.getAlpha(), 0f);
+    }
+
+    /** #521: the line along the bar goes on every tab with its own switch, and comes back with it off. */
+    @Test
+    public void theLineAlongTheBarGoesOnEveryTabWithItsOwnSwitch() {
+        View line = addLine(headerAroundTheBar());
+        line.setAlpha(0.5f);
+        assertFalse(Settings.HIDE_TAB_BAR_LINE.defaultValue);
+        assertFalse("the next tab tapped shows the change", Settings.HIDE_TAB_BAR_LINE.rebootApp);
+        assertTrue(PatchFamily.BOTTOM_TAB_BAR.switches.contains(Settings.HIDE_TAB_BAR_LINE));
+        ReelsTabBarHidden.tabShown(bar, new FeedTab());
+        assertEquals("the line went with the switch off", 0.5f, line.getAlpha(), 0f);
+
+        Settings.HIDE_TAB_BAR_LINE.save(true);
+        ReelsTabBarHidden.tabShown(bar, new FeedTab());
+        assertEquals("Home kept the line", 0f, line.getAlpha(), 0f);
+        assertEquals("Facebook's own visibility was changed", View.VISIBLE, line.getVisibility());
+        ReelsTabBarHidden.tabShown(bar, new WatchTab());
+        assertEquals("Reels kept the line", 0f, line.getAlpha(), 0f);
+        assertEquals("the bar went on Reels with only the line's switch on", View.VISIBLE, bar.getVisibility());
+
+        Settings.HIDE_TAB_BAR_LINE.save(false);
+        ReelsTabBarHidden.tabShown(bar, new FeedTab());
+        assertEquals("the line didn't come back as it was", 0.5f, line.getAlpha(), 0f);
+    }
+
+    /** With both switches on, the bar comes back off Reels and the line stays gone. */
+    @Test
+    public void theLineStaysGoneWhenTheReelsBarComesBack() {
+        View line = addLine(headerAroundTheBar());
+        Settings.HIDE_REELS_TAB_BAR.save(true);
+        Settings.HIDE_TAB_BAR_LINE.save(true);
+        ReelsTabBarHidden.tabShown(bar, new WatchTab());
+        ReelsTabBarHidden.tabShown(bar, new FeedTab());
+        assertEquals("Home didn't get the bar back", View.VISIBLE, bar.getVisibility());
+        assertEquals("the line came back with the bar", 0f, line.getAlpha(), 0f);
+    }
+
+    @Test
+    public void theLineStaysFacebooksWhilePausedOrBeforeTheSettingsAreReady() {
+        View line = addLine(headerAroundTheBar());
+        Settings.HIDE_TAB_BAR_LINE.save(true);
+        ReelsTabBarHidden.tabShown(bar, new FeedTab());
+        assertEquals(0f, line.getAlpha(), 0f);
+        PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
+        ReelsTabBarHidden.tabShown(bar, new FeedTab());
+        assertEquals("a pause left the line hidden", 1f, line.getAlpha(), 0f);
+        PauseForTests.resume();
+        SettingsContextRule.withoutContext(() -> {
+            ReelsTabBarHidden.tabShown(bar, new FeedTab());
+            assertEquals("the line went before the settings were ready", 1f, line.getAlpha(), 0f);
+        });
+    }
+
+    @Test
+    public void aFadedLineIsCountedOnce() {
+        addLine(headerAroundTheBar());
+        Settings.HIDE_TAB_BAR_LINE.save(true);
+        ReelsTabBarHidden.tabShown(bar, new FeedTab());
+        ReelsTabBarHidden.tabShown(bar, new FeedTab());
+        String found = null;
+        for (String line : HookStatus.report()) {
+            if (line.startsWith(FamilyNames.BOTTOM_TAB_BAR + ":") && line.contains(ReelsTabBarHidden.LINE_HIDDEN)) found = line;
+        }
+        assertNotNull("no faded line counted: " + HookStatus.report(), found);
+        assertTrue(found, found.contains(ReelsTabBarHidden.LINE_HIDDEN + " 1"));
+    }
+
+    /** #521: Facebook doesn't restyle the bar as it starts, so the line stayed until a tab was tapped. */
+    @Test
+    public void theLineGoesAtTheBarsLayoutBeforeAnyTabIsTapped() {
+        View line = addLine(headerAroundTheBar());
+        line.setAlpha(0.5f);
+        ReelsTabBarHidden.barLaidOut(bar);
+        assertEquals("the line went with the switch off", 0.5f, line.getAlpha(), 0f);
+
+        Settings.HIDE_TAB_BAR_LINE.save(true);
+        ReelsTabBarHidden.barLaidOut(null);
+        ReelsTabBarHidden.barLaidOut(bar);
+        assertEquals("the line stayed until a tab was tapped", 0f, line.getAlpha(), 0f);
+        assertEquals("Facebook's own visibility was changed", View.VISIBLE, line.getVisibility());
+        ReelsTabBarHidden.barLaidOut(bar);
+        boolean countedOnce = false;
+        for (String reported : HookStatus.report()) {
+            if (reported.startsWith(FamilyNames.BOTTOM_TAB_BAR + ":") && reported.contains(ReelsTabBarHidden.LINE_HIDDEN + " 1")) {
+                countedOnce = true;
+            }
+        }
+        assertTrue("a second layout faded the line again: " + HookStatus.report(), countedOnce);
+
+        Settings.HIDE_TAB_BAR_LINE.save(false);
+        ReelsTabBarHidden.tabShown(bar, new FeedTab());
+        assertEquals("the line didn't come back as it was", 0.5f, line.getAlpha(), 0f);
+    }
+
+    @Test
+    public void theBarsLayoutLeavesTheLineWhilePausedOrBeforeTheSettingsAreReady() {
+        View line = addLine(headerAroundTheBar());
+        Settings.HIDE_TAB_BAR_LINE.save(true);
+        PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
+        ReelsTabBarHidden.barLaidOut(bar);
+        assertEquals("the line went while paused", 1f, line.getAlpha(), 0f);
+        PauseForTests.resume();
+        SettingsContextRule.withoutContext(() -> {
+            ReelsTabBarHidden.barLaidOut(bar);
+            assertEquals("the line went before the settings were ready", 1f, line.getAlpha(), 0f);
+        });
     }
 
     private static String line() {

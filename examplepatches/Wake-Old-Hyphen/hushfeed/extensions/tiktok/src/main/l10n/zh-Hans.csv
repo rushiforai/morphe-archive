@@ -747,8 +747,6 @@ Don't open a reply under each comment. View replies still shows all of them.,不
 Hide playlist videos,隐藏播放列表视频
 Hide subscriber-only videos,隐藏仅限订阅者的视频
 Hide profile shortcuts,隐藏个人资料快捷方式
-Hide profile tabs,隐藏个人资料标签页
-"Pick the tabs to hide from the strip above a profile's videos, such as Reposts or Liked videos. One tab always stays. Restart TikTok to apply this.",选择要在个人资料视频上方的标签栏中隐藏的标签页，例如转发或喜欢的视频。始终保留一个标签页。重新启动 TikTok 以应用此操作.
 Private videos,私密视频
 Reposts,转发
 Favorites,收藏
@@ -2857,3 +2855,36 @@ Hide the Widget circle,隐藏小组件 (Widget) 圆圈
 The Widget circle at the end of the stories tray goes. TikTok's home screen widget still works.,故事托盘末尾的小组件 (Widget) 圆圈会消失。TikTok 的主屏幕小组件仍可正常使用.
 Hide view counts on profile grids,在个人资料网格上隐藏观看次数
 "Takes the view count and its play icon off each video on profile grids. Dates, lengths and the engagement rate you turned on move up in its place.",从个人资料网格上的每个视频移除观看次数及其播放图标。你开启的日期、时长和互动率会上移到它的位置.
+Video bitrate limit,视频码率上限
+%1$s Mb/s,%1$s Mb/s
+"A video heavier than this plays a lighter version. If none fits, it plays its lightest one.",超过此值的视频会播放较轻的版本。如果都不符合，就播放最轻的版本.
+Use an imported emoji font,使用导入的表情字体
+"Shows emoji in the font file you import below, whichever font the text is in. Restart TikTok to see the change.",无论文字使用哪种字体，都用你在下面导入的字体文件显示表情。重启 TikTok 即可看到变化.
+Import an emoji font file,导入表情字体文件
+Remove the imported emoji font,删除导入的表情字体
+No emoji font is imported,没有导入表情字体
+%1$s is imported. Turn on Use an imported emoji font to see it.,%1$s 已导入。打开“使用导入的表情字体”即可查看它.
+Write the month as a word,用文字写月份
+"Writes TikTok's date by the creator's name with the month's name, like Oct 12. Day before month makes it 12 Oct.",将创作者名字旁的 TikTok 日期写成月份名称，如 Oct 12。开启日在月前后则为 12 Oct.
+"Fade the name, date and caption",淡化名称、日期和说明文字
+"Draws the creator's name, the date, the caption and the music line over the video at this level, and they still take taps. At 100 they follow Fade the video controls. At 0 they're hidden.",以此级别在视频上显示创作者名称、日期、说明文字和音乐行，它们仍可点按。为 100 时跟随淡入淡出视频控件。为 0 时隐藏.
+LIVE buttons in the long-press menu,长按菜单中的 LIVE 按钮
+Takes the Record and Auto tap buttons off the video and puts them in the menu you get by holding the middle of a LIVE.,将记录和自动点击按钮从视频上移到长按 LIVE 中间时出现的菜单中.
+Auto tap started,自动点击已开始
+Hide stories from accounts you don't follow,隐藏你未关注账号的故事
+Stories from accounts you don't follow leave the stories tray. Stories from accounts you follow stay.,你未关注账号的故事会离开故事托盘。你关注账号的故事会保留.
+Hide the people you may know tag,隐藏“你可能认识的人”标签
+Hide the small tag next to the creator's name that says you may know them. The video stays.,隐藏创作者名字旁边说你可能认识对方的小标签。视频会保留.
+Report a newer phone to game LIVE,向游戏 LIVE 报告更新的手机
+"TikTok's server picks the qualities a game LIVE can stream in, and some phones get fewer than they can handle. While you set up a LIVE, this tells the LIVE server you have a Galaxy S25 Ultra. Sign-in and everything else still see your real phone. A quality your phone can't keep up with may stutter.",游戏 LIVE 可用哪些画质直播由 TikTok 服务器决定，部分手机拿到的比它能承受的少。在你设置 LIVE 时，此设置会告诉 LIVE 服务器你使用的是 Galaxy S25 Ultra。登录和其他一切仍会看到你的真实手机。手机跟不上的画质可能会卡顿.
+Keep suggestions on profiles,在个人主页保留推荐
+"The Suggested accounts row under a profile's Follow button still shows, so you can find similar accounts after you follow someone.",个人主页关注按钮下的推荐账号一栏会继续显示，方便你关注某人后找到相似的账号.
+Sort pinned videos with the rest,置顶视频与其他视频一起排序
+"Pinned videos take their place in the order instead of staying at the top, so Newest first puts them at the date they were posted.",置顶视频按所选顺序排在相应位置，而不是留在最前面，所以「最新的在前」会按发布日期放置它们.
+Hide or reorder profile tabs,隐藏或重新排列个人资料标签页
+"Pick the tabs to hide from the strip above a profile's videos, such as Reposts or Liked videos, and use the arrows to put the rest in your order. One tab always stays. Restart TikTok to apply this.",选择要在个人资料视频上方的标签栏中隐藏的标签页，例如转发或喜欢的视频，并用箭头把其余标签页排成你想要的顺序。始终保留一个标签页。重新启动 TikTok 以应用此操作.
+Hide Add bio,隐藏添加简介
+Hide the Add bio prompt TikTok shows on your own profile while it has no bio. You can still add one from Edit profile.,隐藏 TikTok 在你自己的主页还没有简介时显示的添加简介提示。你仍然可以在编辑主页中添加简介.
+Show the picture before saving,保存前先查看图片
+"With the long press save on, holding a profile picture opens it full screen at full size, with a Save button under it.",开启长按保存后，按住个人资料图片会以原尺寸全屏打开它，下方有一个保存按钮.
+The profile picture couldn't be loaded. Try again.,无法加载个人资料图片。再试一次.

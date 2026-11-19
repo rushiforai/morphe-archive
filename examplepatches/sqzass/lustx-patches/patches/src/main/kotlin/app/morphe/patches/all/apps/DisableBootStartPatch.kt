@@ -23,8 +23,7 @@ private fun childElements(parent: Element, tag: String): List<Element> {
 @Suppress("unused")
 val disableBootStartPatch = resourcePatch(
     name = "Disable boot start-up",
-    description = "Prevents the app from auto-starting on device boot by removing boot " +
-        "intent-filter actions and the RECEIVE_BOOT_COMPLETED permission.",
+    description = "Prevents auto-start on boot.",
     default = false,
 ) {
     val blockPackageReplaced by booleanOption(

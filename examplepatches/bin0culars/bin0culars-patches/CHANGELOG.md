@@ -1,3 +1,31 @@
+## [1.9.0](https://github.com/bin0culars/bin0culars-patches/compare/v1.8.0...v1.9.0) (2026-11-19)
+
+### ✨ New Features
+
+* **reddit:** keep full-screen media in one subreddit ([#35](https://github.com/bin0culars/bin0culars-patches/issues/35)) ([5c70499](https://github.com/bin0culars/bin0culars-patches/commit/5c70499e91c0722183cbb381c695270b6f598cd1))
+
+### 🐛 Bug Fixes
+
+* **reddit:** keep same-subreddit media on Following and other feeds ([#37](https://github.com/bin0culars/bin0culars-patches/issues/37)) ([94fa252](https://github.com/bin0culars/bin0culars-patches/commit/94fa252df0f00429ab46f8d7fbe5ae0c8b061970))
+
+## [1.9.0-dev.2](https://github.com/bin0culars/bin0culars-patches/compare/v1.9.0-dev.1...v1.9.0-dev.2) (2026-11-19)
+
+### 🐛 Bug Fixes
+
+* **reddit:** keep same-subreddit media on Following and other feeds ([#37](https://github.com/bin0culars/bin0culars-patches/issues/37)) ([94fa252](https://github.com/bin0culars/bin0culars-patches/commit/94fa252df0f00429ab46f8d7fbe5ae0c8b061970))
+
+## [1.9.0-dev.1](https://github.com/bin0culars/bin0culars-patches/compare/v1.8.0...v1.9.0-dev.1) (2026-11-19)
+
+### ✨ New Features
+
+* **reddit:** keep full-screen media in one subreddit ([#35](https://github.com/bin0culars/bin0culars-patches/issues/35)) ([5c70499](https://github.com/bin0culars/bin0culars-patches/commit/5c70499e91c0722183cbb381c695270b6f598cd1))
+
+## [1.9.0-dev.1](https://github.com/bin0culars/bin0culars-patches/compare/v1.8.0...v1.9.0-dev.1) (2026-11-19)
+
+### ✨ New Features
+
+* **reddit:** keep full-screen media in one subreddit ([#35](https://github.com/bin0culars/bin0culars-patches/issues/35)) ([5c70499](https://github.com/bin0culars/bin0culars-patches/commit/5c70499e91c0722183cbb381c695270b6f598cd1))
+
 ## [1.8.0](https://github.com/bin0culars/bin0culars-patches/compare/v1.7.0...v1.8.0) (2026-11-18)
 
 ### ✨ New Features

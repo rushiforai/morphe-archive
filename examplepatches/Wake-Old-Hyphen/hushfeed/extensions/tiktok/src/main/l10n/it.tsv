@@ -160,9 +160,7 @@ Forget the video @%2$s has seen.	Dimentica il video visto da @%2$s.
 Got it	Capito
 Hide profile shortcuts	Nascondi le scorciatoie del profilo
 # context: Title of the checklist that hides tabs from the strip above a profile's videos
-Hide profile tabs	Nascondi le schede del profilo
 # context: Note under that title. Reposts and Liked videos are two of the checklist's rows, and the checklist never takes away every tab
-Pick the tabs to hide from the strip above a profile's videos, such as Reposts or Liked videos. One tab always stays. Restart TikTok to apply this.	Scegli le schede da nascondere nella fascia sopra i video di un profilo, come Repost o Video con Mi piace. Una scheda resta sempre. Riavvia TikTok per applicare la modifica.
 # context: Checklist row for the profile tab with the account's private videos (lock icon)
 Private videos	Video privati
 # context: Checklist row for the profile tab with the videos the account reposted
@@ -3012,3 +3010,36 @@ The Widget circle at the end of the stories tray goes. TikTok's home screen widg
 # context: Feed screen settings, a switch under Show video length on profile grids. It removes the view count and the play icon from each video tile on profile grids. If the date, video length or engagement rate are switched on, they take the first line instead.
 Hide view counts on profile grids	Nascondi le visualizzazioni nella griglia del profilo
 Takes the view count and its play icon off each video on profile grids. Dates, lengths and the engagement rate you turned on move up in its place.	Toglie il numero di visualizzazioni e la sua icona di riproduzione da ogni video nella griglia del profilo. Date, durate e tasso di interazione che hai attivato salgono al suo posto.
+Video bitrate limit	Limite di bitrate dei video
+%1$s Mb/s	%1$s Mb/s
+A video heavier than this plays a lighter version. If none fits, it plays its lightest one.	Un video più pesante viene riprodotto in una versione più leggera. Se nessuna rientra, viene riprodotta la più leggera.
+Use an imported emoji font	Usa un carattere emoji importato
+Shows emoji in the font file you import below, whichever font the text is in. Restart TikTok to see the change.	Mostra le emoji con il file di carattere che importi qui sotto, qualunque sia il carattere del testo. Riavvia TikTok per vedere la modifica.
+Import an emoji font file	Importa un file di carattere emoji
+Remove the imported emoji font	Rimuovi il carattere emoji importato
+No emoji font is imported	Nessun carattere emoji importato
+%1$s is imported. Turn on Use an imported emoji font to see it.	%1$s è stato importato. Attiva Usa un carattere emoji importato per vederlo.
+Write the month as a word	Scrivi il mese in lettere
+Writes TikTok's date by the creator's name with the month's name, like Oct 12. Day before month makes it 12 Oct.	Scrive la data di TikTok accanto al nome del creator con il nome del mese, come Oct 12. Giorno prima del mese la rende 12 Oct.
+Fade the name, date and caption	Attenua nome, data e descrizione
+Draws the creator's name, the date, the caption and the music line over the video at this level, and they still take taps. At 100 they follow Fade the video controls. At 0 they're hidden.	Mostra il nome del creator, la data, la descrizione e la riga della musica sul video a questo livello, e restano toccabili. A 100 seguono Attenua i controlli del video. A 0 vengono nascosti.
+LIVE buttons in the long-press menu	Pulsanti LIVE nel menu a pressione prolungata
+Takes the Record and Auto tap buttons off the video and puts them in the menu you get by holding the middle of a LIVE.	Toglie i pulsanti Registra e Tocco automatico dal video e li mette nel menu che si apre tenendo premuto il centro di un LIVE.
+Auto tap started	Tocco automatico avviato
+Hide stories from accounts you don't follow	Nascondi le storie degli account che non segui
+Stories from accounts you don't follow leave the stories tray. Stories from accounts you follow stay.	Le storie degli account che non segui escono dalla barra delle storie. Le storie degli account che segui restano.
+Hide the people you may know tag	Nascondi l'etichetta delle persone che potresti conoscere
+Hide the small tag next to the creator's name that says you may know them. The video stays.	Nasconde la piccola etichetta accanto al nome del creator che dice che potresti conoscerlo. Il video resta.
+Report a newer phone to game LIVE	Segnala un telefono più recente ai LIVE di giochi
+TikTok's server picks the qualities a game LIVE can stream in, and some phones get fewer than they can handle. While you set up a LIVE, this tells the LIVE server you have a Galaxy S25 Ultra. Sign-in and everything else still see your real phone. A quality your phone can't keep up with may stutter.	Il server di TikTok sceglie le qualità in cui può andare in onda un LIVE di giochi, e alcuni telefoni ne ricevono meno di quante ne reggono. Mentre prepari un LIVE, così dici al server dei LIVE che hai un Galaxy S25 Ultra. L'accesso e tutto il resto vedono ancora il tuo telefono vero. Una qualità che il tuo telefono non riesce a reggere potrebbe andare a scatti.
+Keep suggestions on profiles	Mantieni i suggerimenti sui profili
+The Suggested accounts row under a profile's Follow button still shows, so you can find similar accounts after you follow someone.	La riga Account suggeriti sotto il pulsante Segui di un profilo resta visibile, così trovi account simili dopo aver seguito qualcuno.
+Sort pinned videos with the rest	Ordina i video in evidenza con gli altri
+Pinned videos take their place in the order instead of staying at the top, so Newest first puts them at the date they were posted.	I video in evidenza prendono il loro posto nell'ordine invece di restare in cima, così Prima i più recenti li mette alla data in cui sono stati pubblicati.
+Hide or reorder profile tabs	Nascondi o riordina le schede del profilo
+Pick the tabs to hide from the strip above a profile's videos, such as Reposts or Liked videos, and use the arrows to put the rest in your order. One tab always stays. Restart TikTok to apply this.	Scegli le schede da nascondere nella fascia sopra i video di un profilo, come Repost o Video con Mi piace, e usa le frecce per mettere le altre nel tuo ordine. Una scheda resta sempre. Riavvia TikTok per applicare la modifica.
+Hide Add bio	Nascondi Aggiungi bio
+Hide the Add bio prompt TikTok shows on your own profile while it has no bio. You can still add one from Edit profile.	Nascondi l'invito Aggiungi bio che TikTok mostra sul tuo profilo finché non ha una bio. Puoi comunque aggiungerne una da Modifica profilo.
+Show the picture before saving	Mostra la foto prima di salvarla
+With the long press save on, holding a profile picture opens it full screen at full size, with a Save button under it.	Con il salvataggio a pressione prolungata attivo, tenere premuta una foto profilo la apre a schermo intero e a piena dimensione, con un pulsante Salva sotto.
+The profile picture couldn't be loaded. Try again.	Impossibile caricare la foto del profilo. Riprova.

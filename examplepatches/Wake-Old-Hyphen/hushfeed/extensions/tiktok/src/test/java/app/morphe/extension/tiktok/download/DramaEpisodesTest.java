@@ -96,6 +96,24 @@ public class DramaEpisodesTest {
         assertEquals("the row stands in for both", 6, page.episodes.get(4).number);
     }
 
+    @Test public void aLockedEpisodeWithAnEmptyWholeEpisodeSlotIsListedFromItsPost() throws Exception {
+        // #463: on a drama the account hasn't bought, episodes past the free ones came with a
+        // whole-episode slot holding no post, and the picker stopped at the last free episode.
+        JSONObject emptySlot = item("113", 13, true).put("full_paid_videos_for_partial_preview", new JSONObject());
+        JSONObject slotWithoutId = item("114", 14, true).put("full_paid_videos_for_partial_preview",
+                new JSONObject().put("paid_content_info", new JSONObject().put("is_partial_preview", false)));
+
+        DramaEpisodes.Page page = DramaEpisodes.page(reply(1, true, item("112", 12, false), emptySlot,
+                slotWithoutId), DramaEpisodes.readerForTests);
+
+        List<String> ids = new ArrayList<>();
+        for (DramaEpisodes.Episode episode : page.episodes) ids.add(episode.id);
+        assertEquals(List.of("112", "113", "114"), ids);
+        assertTrue("a locked episode read from its listed post is a preview", page.episodes.get(1).preview);
+        assertEquals(14, page.episodes.get(2).number);
+        assertTrue(page.episodes.get(2).preview);
+    }
+
     @Test public void aRefusalOrNoReplyThrows() throws Exception {
         String refused = new JSONObject().put("status_code", 2483).put("status_msg", "not available").toString();
         try {
@@ -142,6 +160,35 @@ public class DramaEpisodesTest {
         assertEquals("2", asked.get(1).get("requested_page"));
     }
 
+    /** #463: TikTok's list now starts at page 1, and page 0 is empty but says more follow. */
+    @Test public void anEmptyPageZeroThatSaysMoreFollowIsSteppedOver() throws Exception {
+        replies.put("0", reply(0, true));
+        replies.put("1", reply(1, true, item("41", 1, false)));
+        replies.put("2", reply(2, false, item("42", 2, false)));
+
+        List<DramaEpisodes.Episode> episodes = DramaEpisodes.load(1L);
+
+        assertEquals(2, episodes.size());
+        assertEquals("41", episodes.get(0).id);
+        assertEquals(3, asked.size());
+        assertEquals("1", asked.get(1).get("requested_page"));
+        assertEquals("2", asked.get(2).get("requested_page"));
+    }
+
+    @Test public void aSecondEmptyPageEndsTheList() throws Exception {
+        replies.put("0", reply(0, true));
+        replies.put("1", reply(1, true));
+        replies.put("2", reply(2, false, item("51", 1, false)));
+        assertTrue(DramaEpisodes.load(1L).isEmpty());
+        assertEquals("an empty drama isn't asked thirty times", 2, asked.size());
+    }
+
+    @Test public void anEmptyFirstPageWithNothingMoreIsAnEmptyList() throws Exception {
+        replies.put("0", reply(0, false));
+        assertTrue(DramaEpisodes.load(1L).isEmpty());
+        assertEquals(1, asked.size());
+    }
+
     @Test public void aPageWithNothingNewEndsTheList() throws Exception {
         replies.put("0", reply(0, true, item("31", 1, false)));
         replies.put("1", reply(1, true, item("31", 1, false)));
@@ -159,6 +206,52 @@ public class DramaEpisodesTest {
         }
         replies.put("0", reply(0, true, item("41", 1, false)));
         assertEquals(1, DramaEpisodes.load(1L).size());
+    }
+
+    /** A post's video with one address in its play address and one in each rendition given. */
+    private static JSONObject video(int renditions) throws Exception {
+        JSONArray rates = new JSONArray();
+        for (int i = 0; i < renditions; i++) {
+            rates.put(new JSONObject().put("play_addr", new JSONObject()
+                    .put("url_list", new JSONArray().put("https://v16m.example/" + i + ".mp4"))));
+        }
+        return new JSONObject().put("bit_rate", rates).put("play_addr", new JSONObject()
+                .put("url_list", new JSONArray().put("https://v16m.example/play.mp4")));
+    }
+
+    @Test public void anEpisodeListedWithoutItsVideoIsAskedForOnItsOwn() throws Exception {
+        Post episode = new Post(new Paid(7431100L, "Night Shift"));
+        DramaEpisodes.sourceForTests = (path, query) -> {
+            assertEquals("/aweme/v1/aweme/detail/", path);
+            asked.add(query);
+            return new JSONObject().put("status_code", 0).put("aweme_detail", new JSONObject()
+                    .put("aweme_id", query.get("aweme_id")).put("video", video(2))).toString();
+        };
+        assertEquals("post 13", DramaEpisodes.whole(episode, "13"));
+        assertEquals("13", asked.get(0).get("aweme_id"));
+        assertNull("a post that isn't a drama's isn't asked for", DramaEpisodes.whole(new Post(null), "14"));
+        assertNull(DramaEpisodes.whole(episode, ""));
+        assertEquals(1, asked.size());
+
+        DramaEpisodes.sourceForTests = (path, query) -> new JSONObject().put("status_code", 0)
+                .put("aweme_detail", new JSONObject().put("aweme_id", "15")
+                        .put("video", new JSONObject().put("play_addr", new JSONObject()))).toString();
+        assertNull("a reply with no video either", DramaEpisodes.whole(episode, "15"));
+        DramaEpisodes.sourceForTests = (path, query) -> new JSONObject().put("status_code", 2053).toString();
+        assertNull("a refusal", DramaEpisodes.whole(episode, "16"));
+        DramaEpisodes.sourceForTests = (path, query) -> {
+            throw new IOException("offline");
+        };
+        assertNull(DramaEpisodes.whole(episode, "17"));
+    }
+
+    @Test public void aPostsAddressesAreCountedAcrossItsPlayAddressAndRenditions() throws Exception {
+        assertEquals(3, DramaEpisodes.addresses(new JSONObject().put("video", video(2))));
+        assertEquals(1, DramaEpisodes.addresses(new JSONObject().put("video", video(0))));
+        assertEquals("the list's copy of an episode past the free ones", 0,
+                DramaEpisodes.addresses(new JSONObject().put("video", new JSONObject().put("cover", "x"))));
+        assertEquals(0, DramaEpisodes.addresses(new JSONObject().put("aweme_id", "1")));
+        assertEquals(0, DramaEpisodes.addresses(null));
     }
 
     @Test public void theDramaIdAndNameComeFromThePostsPaidStruct() {

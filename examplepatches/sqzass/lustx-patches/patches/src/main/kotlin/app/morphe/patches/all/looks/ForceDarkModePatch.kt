@@ -17,8 +17,7 @@ private val AMOLED_FLAG_RE = Regex(
 @Suppress("unused")
 val forceDarkPatch = bytecodePatch(
     name = "Force dark / AMOLED theme",
-    description = "Forces AppCompat night mode to YES and (optionally) flips AMOLED/pure-black flags. " +
-        "Covers AppCompat/Material apps; Jetpack Compose themes are not affected.",
+    description = "Forces AppCompat dark / AMOLED theme.",
     default = false,
 ) {
     val amoled by booleanOption(

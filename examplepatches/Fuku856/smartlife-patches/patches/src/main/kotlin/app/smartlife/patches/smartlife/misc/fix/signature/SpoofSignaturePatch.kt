@@ -2,6 +2,7 @@ package app.smartlife.patches.smartlife.misc.fix.signature
 
 import app.morphe.patcher.patch.bytecodePatch
 import app.smartlife.patches.smartlife.shared.Constants.COMPATIBILITY_SMARTLIFE
+import app.smartlife.patches.smartlife.shared.uniqueMatch
 
 private const val EXTENSION_CLASS = "Lapp/smartlife/extension/SignatureSpoof;"
 
@@ -21,6 +22,6 @@ val spoofSignaturePatch = bytecodePatch(
     execute {
         // Insert SignatureSpoof (which extends Application) as the superclass of the app's
         // Application subclass, so its static initializer spoofs the signature very early.
-        SmartApplicationFingerprint.classDef.setSuperClass(EXTENSION_CLASS)
+        uniqueMatch(SmartApplicationFingerprint, "Application subclass").classDef.setSuperClass(EXTENSION_CLASS)
     }
 }

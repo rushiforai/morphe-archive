@@ -65,6 +65,13 @@ public final class Ads {
     static final String AD_PAYLOAD = "ad_data";
 
     /**
+     * A featured board keeps its placement details in this object. Most featured boards are Pinterest's
+     * own picks, so only the flag inside it marks one as paid, the board Pinterest labels Sponsored.
+     */
+    static final String FEATURED_BOARD = "featured_board_metadata";
+    static final String SPONSORED_CONTENT = "is_sponsored_content";
+
+    /**
      * A feed module whose whole content is a shopping placement. Some models keep {@code story_type}
      * as its JSON text, others as Pinterest's own enum, whose constant keeps this name upper-cased.
      */
@@ -94,7 +101,13 @@ public final class Ads {
             if (ModelFields.hasText(fields, item, text)) return true;
         }
         if (ModelFields.isSet(fields, item, AD_PAYLOAD)) return true;
+        if (isSponsoredBoard(ModelFields.read(fields, item, FEATURED_BOARD))) return true;
         return isSpotlight(ModelFields.read(fields, item, STORY_TYPE));
+    }
+
+    /** True when a board's featured placement says an advertiser paid for it. */
+    private static boolean isSponsoredBoard(@Nullable Object featured) {
+        return featured != null && ModelFields.isTrue(ModelFields.of(featured.getClass()), featured, SPONSORED_CONTENT);
     }
 
     /**

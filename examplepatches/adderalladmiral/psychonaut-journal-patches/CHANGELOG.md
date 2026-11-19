@@ -1,3 +1,17 @@
+## [1.0.1](https://github.com/adderalladmiral/psychonaut-journal-patches/compare/v1.0.0...v1.0.1) (2026-11-19)
+
+### 🐛 Bug Fixes
+
+* Changed Target APK version to 15.5 (2) ([009757a](https://github.com/adderalladmiral/psychonaut-journal-patches/commit/009757afd08c75e90eae29f3954764fa7c4ad0ed))
+* Changed target input APK version to 15.5 ([7af2762](https://github.com/adderalladmiral/psychonaut-journal-patches/commit/7af276291f93f4247116ac4bf22f5aabfa47a53b))
+
+## [1.0.1-dev.1](https://github.com/adderalladmiral/psychonaut-journal-patches/compare/v1.0.0...v1.0.1-dev.1) (2026-09-20)
+
+### 🐛 Bug Fixes
+
+* Changed Target APK version to 15.5 (2) ([009757a](https://github.com/adderalladmiral/psychonaut-journal-patches/commit/009757afd08c75e90eae29f3954764fa7c4ad0ed))
+* Changed target input APK version to 15.5 ([7af2762](https://github.com/adderalladmiral/psychonaut-journal-patches/commit/7af276291f93f4247116ac4bf22f5aabfa47a53b))
+
 ## 1.0.0 (2026-09-02)
 
 ### 🐛 Bug Fixes

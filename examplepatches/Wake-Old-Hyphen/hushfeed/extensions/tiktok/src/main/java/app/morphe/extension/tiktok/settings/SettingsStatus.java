@@ -133,6 +133,7 @@ public class SettingsStatus {
     public static boolean refreshRateEnabled = false;
     public static boolean cameraBrightnessEnabled = false;
     public static boolean effectDeviceSpoofEnabled = false;
+    public static boolean gameLiveDeviceEnabled = false;
     public static boolean launcherShortcutsEnabled = false;
     public static boolean firstLaunchSetupEnabled = false;
     public static boolean duetStitchEnabled = false;
@@ -598,6 +599,10 @@ public class SettingsStatus {
         effectDeviceSpoofEnabled = true;
     }
 
+    public static void enableGameLiveDevice() {
+        gameLiveDeviceEnabled = true;
+    }
+
     public static void enableLauncherShortcuts() {
         launcherShortcutsEnabled = true;
     }
@@ -798,6 +803,13 @@ public class SettingsStatus {
         footnotesEnabled = true;
     }
 
+    /** Hide video overlays found the people you may know tag's gate and hooked it (#462). */
+    public static boolean mayKnowTagEnabled = false;
+
+    public static void enableMayKnowTag() {
+        mayKnowTagEnabled = true;
+    }
+
     /** Hide video overlays found the Following tab's LIVE and stories row toggle and hooked it (#262). */
     public static boolean followingSkylightEnabled = false;
 
@@ -848,6 +860,13 @@ public class SettingsStatus {
         inboxSuggestedLivesEnabled = true;
     }
 
+    /** Hide inbox items found the stories tray's story cell on this build and hooked its bind. */
+    public static boolean inboxSuggestedStoriesEnabled = false;
+
+    public static void enableInboxSuggestedStories() {
+        inboxSuggestedStoriesEnabled = true;
+    }
+
     /** Hide inbox items found the stories tray's Widget cell on this build and hooked its bind. */
     public static boolean inboxWidgetGuideEnabled = false;
 
@@ -860,6 +879,13 @@ public class SettingsStatus {
 
     public static void enableProfileThoughts() {
         profileThoughtsEnabled = true;
+    }
+
+    /** Hide profile shortcuts found where your profile's header shows its Add bio prompt, and hooked it. */
+    public static boolean addBioEnabled = false;
+
+    public static void enableAddBio() {
+        addBioEnabled = true;
     }
 
     /** Hide profile shortcuts found TikTok's two Thoughts gates on this build and put the switch in front. */

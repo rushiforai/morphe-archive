@@ -447,7 +447,7 @@ Playback	Phát lại
 # context: switch title; on, videos and music wait for a tap before they play
 Tap to play	Nhấn để phát
 # context: summary of that switch; Autoplay and Off are the name and value of Facebook's own setting, as Facebook shows them in this language
-Videos, reels, stories and music wait for your tap instead of playing by themselves. Facebook's own Autoplay setting shows Off while this is on.	Video, reel, tin và nhạc chờ bạn nhấn thay vì tự phát. Cài đặt Tự động phát của Facebook sẽ hiện Tắt khi mục này bật.
+Videos, reels and music wait for your tap instead of playing by themselves. Facebook's own Autoplay setting shows Off while this is on.	Video, reel và nhạc chờ bạn nhấn thay vì tự phát. Cài đặt Tự động phát của Facebook sẽ hiện Tắt khi mục này bật.
 # context: switch title under Opening Facebook; Marketplace is Facebook's tab and keeps its name
 Marketplace only	Chỉ Marketplace
 # context: switch title under Opening Facebook, next to Marketplace only; Events is Facebook's tab and keeps its name
@@ -1660,7 +1660,7 @@ Facebook hasn't downloaded this screen to this phone, so a tap opens the Whiteha
 # context: toast when the Facebook version has no such screen
 This Facebook build has no Whitehat settings screen.	Bản Facebook này không có màn hình cài đặt Whitehat.
 Only the first reel waits	Chỉ reel đầu tiên chờ
-With the switch above on, after you play one reel, the reels you swipe to play on their own. The feed, Watch and stories always wait.	Khi công tắc phía trên bật, sau khi bạn phát một reel, các reel bạn vuốt đến sẽ tự phát. Bảng tin, Watch và tin luôn chờ bạn nhấn.
+With the switch above on, after you play one reel, the reels you swipe to play on their own. The feed and Watch always wait.	Khi công tắc phía trên bật, sau khi bạn phát một reel, các reel bạn vuốt đến sẽ tự phát. Bảng tin và Watch luôn chờ bạn nhấn.
 Slower speeds	Tốc độ chậm hơn
 Adds 0.1x and 0.25x to the speed menu of reels and of feed and Watch videos, for slowing down a fast moment.	Thêm 0,1x và 0,25x vào menu tốc độ của reel cũng như video trên bảng tin và Watch, để xem chậm những khoảnh khắc nhanh.
 Faster speeds	Tốc độ nhanh hơn
@@ -2755,10 +2755,12 @@ Takes the row of suggested replies off the bottom of a story. The reply box stay
 Hide the Subscribe button	Ẩn nút Đăng ký
 Takes the Subscribe button off the top of a story. Applies from the next story you open.	Bỏ nút Đăng ký ở đầu tin. Áp dụng từ tin tiếp theo bạn mở.
 Hide create story cards	Ẩn thẻ tạo tin
-Takes out the card between stories that asks you to make one, including the ones built from photos in your gallery. Applies the next time you open stories.	Bỏ thẻ giữa các tin mời bạn tạo tin, kể cả thẻ tạo từ ảnh trong thư viện của bạn. Áp dụng từ lần tiếp theo bạn mở tin.
+Takes out the cards between stories that ask you to make one, including the full screen card that asks you to continue the story with photos from your gallery. Applies the next time you open stories.	Bỏ các thẻ giữa các tin mời bạn tạo tin, kể cả thẻ toàn màn hình mời bạn tiếp tục tin bằng ảnh trong thư viện của bạn. Áp dụng từ lần tiếp theo bạn mở tin.
 Progress bar at the bottom	Thanh tiến trình ở dưới
 Shows a thin bar along the bottom of a story that fills as it plays, like the one on Reels.	Hiện một thanh mỏng ở cuối tin, đầy dần khi tin phát, giống thanh trên Reels.
 Seek bar on stories	Thanh tua trên tin
+Plain slide between people	Trượt thường khi chuyển người
+Swiping to the next or previous person's stories slides them across instead of turning them like a cube. Applies from your next swipe.	Khi vuốt sang tin của người tiếp theo hoặc người trước, tin sẽ trượt ngang thay vì xoay như khối lập phương. Áp dụng từ lần vuốt tiếp theo.
 Fade the story seek bar	Làm mờ thanh tua của tin
 Story position	Vị trí trong tin
 Shows a bar along the bottom of a video story that you drag to move through it. The story waits while you drag. Progress bar at the bottom makes way for it on video stories.	Hiện một thanh ở cuối tin video để bạn kéo đi qua tin. Tin chờ trong lúc bạn kéo. Thanh tiến trình ở dưới nhường chỗ cho thanh này trên tin video.
@@ -2839,6 +2841,8 @@ A small label at the top of Reels shows the minutes you've watched. Time on othe
 %1$d min	%1$d phút
 Hide the tab bar on the Reels tab	Ẩn thanh tab ở tab Reels
 The tab bar goes away while the Reels tab is open, and the reel gets the whole screen. The other tabs keep the bar. Restart Facebook to see the change.	Thanh tab biến mất khi tab Reels đang mở, và reel chiếm toàn bộ màn hình. Các tab khác vẫn giữ thanh tab. Khởi động lại Facebook để thấy thay đổi.
+Hide the line along the tab bar	Ẩn đường kẻ dọc thanh tab
+The thin line Facebook draws along the edge of the tab bar goes away on every tab. Tap a tab to see the change.	Đường kẻ mảnh Facebook vẽ dọc mép thanh tab sẽ biến mất ở mọi tab. Chạm vào một tab để thấy thay đổi.
 Playback speed in the post menu	Tốc độ phát trong menu bài viết
 A feed or Watch video's 3-dot menu gets Playback speed, from 0.5x to 3x, live videos too. Off by default, since it hasn't been tried on a real account yet.	Menu ba chấm của video trên bảng tin hoặc Watch có thêm Tốc độ phát, từ 0,5x đến 3x, cả với video trực tiếp. Mặc định tắt vì chưa được thử trên tài khoản thật.
 Double tap to skip on feed videos	Nhấn đúp để tua trên video bảng tin
@@ -3002,3 +3006,14 @@ Emoji font file cleared. Restart Facebook to apply the emoji change.	Đã xóa t
 Couldn't go back to your phone's emoji. Try again.	Không thể quay lại emoji của điện thoại. Hãy thử lại.
 # context: toast when the app holding the emoji font doesn't answer in time
 The app holding that font file is taking too long, so Hushfacebook stopped waiting. Your emoji didn't change.	Ứng dụng chứa tệp phông chữ đó phản hồi quá lâu nên Hushfacebook đã ngừng chờ. Emoji của bạn không đổi.
+Never	Không bao giờ
+Back to Clean mode	Trở lại Chế độ gọn gàng
+When the comments or a menu close	Khi đóng bình luận hoặc menu
+When the comments or a menu close. A reel you took out of Clean mode goes back into it once whatever you opened over it closes.	Khi đóng bình luận hoặc menu. Reel bạn đã đưa ra khỏi Chế độ gọn gàng sẽ quay lại chế độ đó khi thứ bạn mở phía trên đóng lại.
+%1$s. A reel you took out of Clean mode goes back into it once you haven't touched the screen for that long. An open sheet holds the time.	%1$s. Reel bạn đã đưa ra khỏi Chế độ gọn gàng sẽ quay lại chế độ đó khi bạn không chạm vào màn hình trong khoảng thời gian đó. Một bảng đang mở sẽ giữ thời gian lại.
+Never. A reel you take out of Clean mode stays out until you put it back.	Không bao giờ. Reel bạn đưa ra khỏi Chế độ gọn gàng sẽ ở ngoài cho đến khi bạn bật lại.
+A reel you take out of Clean mode will stay out until you put it back.	Reel bạn đưa ra khỏi Chế độ gọn gàng sẽ ở ngoài cho đến khi bạn bật lại.
+A reel you take out of Clean mode will go back into it when the comments or a menu close.	Reel bạn đưa ra khỏi Chế độ gọn gàng sẽ quay lại chế độ đó khi bình luận hoặc menu đóng.
+A reel you take out of Clean mode will go back into it after %1$d seconds without a touch.	Reel bạn đưa ra khỏi Chế độ gọn gàng sẽ quay lại chế độ đó sau %1$d giây không chạm.
+Hide New for you on reels	Ẩn "Mới cho bạn" trên reel
+Takes "New for you", and other reasons Facebook gives for showing you a reel, off the line under its author, so the date and the song show right away. A change shows from the next reel.	Bỏ "Mới cho bạn" và các lý do khác Facebook đưa ra khi cho bạn xem một reel khỏi dòng dưới tên người đăng, để ngày đăng và bài hát hiện ngay. Thay đổi có hiệu lực từ reel tiếp theo.

@@ -83,9 +83,7 @@ private fun forceFloatArg(
 @Suppress("unused")
 val forceRefreshRatePatch = patch(
     name = "Force refresh rate",
-    description = "Rewrites the float argument at Surface.setFrameRate() call sites to the " +
-        "selected refresh rate. This only affects apps that already request a frame rate; " +
-        "it does not globally force a display mode. Missing call sites are skipped safely.",
+    description = "Rewrites Surface.setFrameRate() to the selected refresh rate.",
     default = false,
 ) {
     val targetHz = stringOption(

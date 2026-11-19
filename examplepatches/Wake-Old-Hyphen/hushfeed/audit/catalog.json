@@ -839,7 +839,7 @@
     "auto": true
    }
   ],
-  "notes": "SecurePopupProbe builds one of TikTok's own Compose popups with its obfuscated classes (X.010u, X.01nR, X.010s, X.01sF on 47.8.3), so a TikTok build that renames them makes the action fail with an exception line instead of 'ok'; that means the probe needs updating, not that the patch is broken. The popup is shown on top of the feed for a moment and removed by secure-popup-close; it is a controlled test view, not a screen capture. Circle to Search itself is a system gesture and is a review item."
+  "notes": "SecurePopupProbe builds one of TikTok's own Compose popups with its obfuscated classes (X.014u, X.01pR, X.014s, X.01u4 on 47.9.1), so a TikTok build that renames them makes the action fail with an exception line instead of 'ok'; that means the probe needs updating, not that the patch is broken. The popup is shown on top of the feed for a moment and removed by secure-popup-close; it is a controlled test view, not a screen capture. Circle to Search itself is a system gesture and is a review item."
  },
  {
   "name": "Always show publish date",
@@ -4939,7 +4939,7 @@
   "checks": [
    {
     "id": "record-and-report",
-    "what": "A recording starts, TikTok's gate reads during a few feed swipes are captured, and the report names the 47.8.3 target with at least one gate.",
+    "what": "A recording starts, TikTok's gate reads during a few feed swipes are captured, and the report names the 47.9.1 target with at least one gate.",
     "steps": [
      {
       "open": "feed"
@@ -9109,6 +9109,12 @@
     "row": "Hide Footnotes"
    },
    {
+    "key": "hide_may_know_tag",
+    "default": false,
+    "type": "bool",
+    "row": "Hide the people you may know tag"
+   },
+   {
     "key": "hide_following_live_row",
     "default": false,
     "type": "bool",
@@ -9861,7 +9867,7 @@
      {
       "probe": "playerspeed",
       "extras": {
-       "holder": "X.03Yy",
+       "holder": "X.04B4",
        "getter": "LJIILIIL",
        "gap": "1200"
       },
@@ -9924,7 +9930,7 @@
      {
       "probe": "playerspeed",
       "extras": {
-       "holder": "X.03Yy",
+       "holder": "X.04B4",
        "getter": "LJIILIIL",
        "gap": "1200"
       },
@@ -10246,7 +10252,7 @@
      {
       "probe": "playerspeed",
       "extras": {
-       "holder": "X.03Yy",
+       "holder": "X.04B4",
        "getter": "LJIILIIL",
        "gap": "1500"
       },
@@ -10966,6 +10972,44 @@
   "notes": "Issue #176, an experiment. The effect platform sends Build.MODEL as device_type in two configs (EffectConfiguration and DownloadableModelConfig), and the server's API error 2003 (\"The current device is not supported\") is what shows \"This effect doesn't work on this device\". With the switch on the three build sites send SM-S928B instead. Whether the server's verdict moves is unproven: it may also key on the device id. Check on a phone that gets the message (a Redmi A3), with the switch on, by opening an effect that was refused."
  },
  {
+  "name": "Report a newer phone to game LIVE",
+  "category": "Interface",
+  "default": true,
+  "kind": "runtime",
+  "source": [
+   "patches/src/main/kotlin/app/morphe/patches/tiktok/interaction/live/GameLiveDevicePatch.kt",
+   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/live/GameLiveDevice.java"
+  ],
+  "settings": [
+   {
+    "key": "report_newer_phone_to_game_live",
+    "default": false,
+    "type": "bool",
+    "row": "Report a newer phone to game LIVE"
+   }
+  ],
+  "surface": "other",
+  "checks": [
+   {
+    "id": "patch-applied",
+    "what": "SettingsStatus.gameLiveDeviceEnabled is true, so the patch is in this APK and the extension loaded it.",
+    "steps": [
+     {
+      "probe": "fields",
+      "extras": {
+       "class": "app.morphe.extension.tiktok.settings.SettingsStatus",
+       "names": "gameLiveDeviceEnabled"
+      },
+      "expect": "\\bgameLiveDeviceEnabled=true\\b",
+      "waitMs": 1500
+     }
+    ],
+    "auto": true
+   }
+  ],
+  "notes": "Issue #459, an experiment. A game LIVE's qualities come from RoomCreateInfo.pushStreamInfoMap, sent by /webcast/room/create_info/ when the Go LIVE page opens. With the switch on, the common-parameter handler swaps device_type for SM-S938B and device_brand for samsung on create_info, room/create and push_stream_info only. Whether the server offers more qualities is unproven: it may key on the device id or the account. The debug log line \"Game LIVE setup: reporting SM-S938B\" shows the swap ran. Check on an account that can go LIVE, Mobile Gaming, on a phone held below 1080p 60fps."
+ },
+ {
   "name": "LIVE controls",
   "category": "Playback",
   "default": true,
@@ -11022,6 +11066,12 @@
     "default": false,
     "type": "bool",
     "row": "Auto tap in LIVE rooms"
+   },
+   {
+    "key": "live_buttons_in_menu",
+    "default": false,
+    "type": "bool",
+    "row": "LIVE buttons in the long-press menu"
    },
    {
     "key": "live_button_size",
@@ -11303,7 +11353,7 @@
      {
       "probe": "playerspeed",
       "extras": {
-       "holder": "X.03Yy",
+       "holder": "X.04B4",
        "getter": "LJIILIIL",
        "gap": "1500"
       },
@@ -12309,7 +12359,7 @@
      {
       "probe": "playerspeed",
       "extras": {
-       "holder": "X.03Yy",
+       "holder": "X.04B4",
        "getter": "LJIILIIL",
        "gap": "1500"
       },
@@ -12668,7 +12718,7 @@
      {
       "probe": "playerspeed",
       "extras": {
-       "holder": "X.03Yy",
+       "holder": "X.04B4",
        "getter": "LJIILIIL",
        "gap": "1000"
       },
@@ -12697,7 +12747,7 @@
      {
       "probe": "playerspeed",
       "extras": {
-       "holder": "X.03Yy",
+       "holder": "X.04B4",
        "getter": "LJIILIIL",
        "gap": "1000"
       },
@@ -13641,7 +13691,7 @@
     "auto": true
    }
   ],
-  "notes": "The strip empties the effect and VE SDK plugin libraries for both ABIs; 47.8.3's split bundle carries both arm64 copies. The face model (#285: face effects and Retouch lost the face), libEffectCreatorJni (#285: All effects closed TikTok) and the camera feature dex (libdex_*.so) stay on purpose. On the S22 2026-11-08 with the plugins empty, the camera, Retouch, a face effect, All effects, effect search, the Create tab and the editor all worked and TikTok never tried to load either plugin. The camera walk is not scripted: it uses the camera, and a crash dialog on the audit phone costs a restart."
+  "notes": "The strip empties the effect and VE SDK plugin libraries for both ABIs; 47.9.1's split bundle has neither library in either ABI, so there the strip has nothing to empty. The face model (#285: face effects and Retouch lost the face), libEffectCreatorJni (#285: All effects closed TikTok) and the camera feature dex (libdex_*.so) stay on purpose. On the S22 2026-11-08 with the plugins empty, the camera, Retouch, a face effect, All effects, effect search, the Create tab and the editor all worked and TikTok never tried to load either plugin. The camera walk is not scripted: it uses the camera, and a crash dialog on the audit phone costs a restart."
  },
  {
   "name": "Remove unused language packs",
@@ -14021,7 +14071,7 @@
      {
       "probe": "playerspeed",
       "extras": {
-       "holder": "X.03Yy",
+       "holder": "X.04B4",
        "getter": "LJIILIIL",
        "gap": "300"
       },
@@ -14037,7 +14087,7 @@
  {
   "name": "Run beside the store app",
   "category": "Settings",
-  "default": false,
+  "default": true,
   "kind": "static",
   "source": [
    "patches/src/main/kotlin/app/morphe/patches/tiktok/misc/branding/RunBesideStoreAppPatch.kt",
@@ -15390,7 +15440,7 @@
      {
       "probe": "countformat",
       "extras": {
-       "class": "X.0G9f",
+       "class": "X.0FMh",
        "method": "LIZIZ",
        "count": "123456"
       },
@@ -15399,7 +15449,7 @@
      {
       "probe": "countformat",
       "extras": {
-       "class": "X.0HG7",
+       "class": "X.0HSz",
        "method": "LIZ",
        "count": "123456"
       },
@@ -15413,7 +15463,7 @@
      {
       "probe": "countformat",
       "extras": {
-       "class": "X.0G9f",
+       "class": "X.0FMh",
        "method": "LIZIZ",
        "count": "123456"
       },
@@ -15422,7 +15472,7 @@
      {
       "probe": "countformat",
       "extras": {
-       "class": "X.0HG7",
+       "class": "X.0HSz",
        "method": "LIZ",
        "count": "123456"
       },

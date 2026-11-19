@@ -66,8 +66,8 @@ public final class SmartLifeSettingsScreen {
 
             root.addView(toggleRow(context,
                     text("AIアシスタントを非表示", "Hide AI assistant"),
-                    text("Hey Tuya の AI バー・AI タブ・フローティングボールを隠します。",
-                            "Hide the Hey Tuya AI bar, AI tab and floating ball."),
+                    text("Hey Tuya の AI バー・AI タブ・フローティングボール・ショートカットを隠します。",
+                            "Hide the Hey Tuya AI bar, AI tab, floating ball and shortcut."),
                     SmartLifeSettings.KEY_HIDE_AI, true));
 
             root.addView(toggleRow(context,
@@ -75,6 +75,18 @@ public final class SmartLifeSettingsScreen {
                     text("ホーム画面の「おすすめ」カードを表示しません。",
                             "Hide the \"Recommended\" cards on the home screen."),
                     SmartLifeSettings.KEY_HIDE_HOME_RECOMMENDATIONS, true));
+
+            root.addView(toggleRow(context,
+                    text("Smart App タブを非表示", "Hide Smart App tab"),
+                    text("スマートタブ上部の「Smart App」タブ (AI アプリ作成) を表示しません。",
+                            "Hide the \"Smart App\" (AI app builder) tab on the smart tab."),
+                    SmartLifeSettings.KEY_HIDE_SMART_APP_TAB, true));
+
+            root.addView(toggleRow(context,
+                    text("シーンのお勧めを非表示", "Hide scene recommendations"),
+                    text("自動化・ワンクリック実行の一覧の下に出る「お勧め」を表示しません。",
+                            "Hide the recommended scenes under the automation and tap-to-run lists."),
+                    SmartLifeSettings.KEY_HIDE_SCENE_RECOMMENDATIONS, true));
 
             TextView note = new TextView(context);
             note.setText(text(

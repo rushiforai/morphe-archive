@@ -37,6 +37,7 @@
       "ytdlnis_download_type",
       "ytdlnis_background",
       "save_profile_picture",
+      "profile_picture_viewer",
       "save_story",
       "save_story_from_share",
       "save_story_pick",
@@ -62,10 +63,12 @@
       "publish_date_time_zone",
       "publish_date_short_date",
       "publish_date_day_first",
+      "publish_date_month_name",
       "publish_date_on_grid",
       "video_length_on_grid",
       "hide_grid_view_count",
       "profile_grid_sort",
+      "sort_pinned_with_rest",
       "liked_grid_sort",
       "favorites_grid_sort",
       "collection_grid_sort",
@@ -411,6 +414,7 @@
       "hide_inbox_stories",
       "hide_inbox_on_this_day",
       "hide_inbox_suggested_lives",
+      "hide_inbox_suggested_stories",
       "hide_inbox_widget_guide",
       "hide_inbox_new_followers",
       "hide_inbox_activity",
@@ -445,7 +449,9 @@
       "hidden_profile_shortcuts",
       "profile_shortcut_picks",
       "profile_tab_picks",
+      "profile_tab_order",
       "hide_profile_thoughts",
+      "hide_add_bio",
       "enable_thoughts"
     ],
     "Hide read receipts": [
@@ -457,7 +463,8 @@
       "discover_search_bar_only"
     ],
     "Hide suggested accounts": [
-      "hide_inbox_suggested_accounts"
+      "hide_inbox_suggested_accounts",
+      "keep_profile_suggested_accounts"
     ],
     "Hide the launcher shortcuts": [
       "hide_launcher_shortcuts"
@@ -472,6 +479,7 @@
       "hide_feed_action_bar",
       "hide_feed_surveys",
       "hide_footnotes",
+      "hide_may_know_tag",
       "hide_following_live_row",
       "glass_stories_pill",
       "hide_following_all_button",
@@ -480,6 +488,7 @@
       "hide_detail_comment_bar",
       "hide_clear_display_controls",
       "keep_clear_display_seek_bar",
+      "fade_caption_opacity",
       "fade_controls_opacity",
       "fade_in_clear_display",
       "invisible_controls_button",
@@ -585,6 +594,7 @@
       "live_record_source",
       "live_auto_tap",
       "live_auto_tap_rate",
+      "live_buttons_in_menu",
       "live_button_size",
       "live_audio_only",
       "live_name_alerts",
@@ -664,7 +674,8 @@
     ],
     "Playback quality": [
       "playback_quality",
-      "playback_quality_metered"
+      "playback_quality_metered",
+      "playback_bitrate_limit"
     ],
     "Playback speed": [
       "remember_playback_speed",
@@ -714,6 +725,9 @@
     "Report a newer phone to effects": [
       "report_newer_phone_to_effects",
       "effect_phone_model"
+    ],
+    "Report a newer phone to game LIVE": [
+      "report_newer_phone_to_game_live"
     ],
     "Resource and battery governor": [
       "block_motion_sensors",
@@ -881,7 +895,8 @@
     "Use system font": [
       "system_font",
       "system_emoji",
-      "imported_font"
+      "imported_font",
+      "imported_emoji_font"
     ]
   },
   "settings": {
@@ -1857,6 +1872,14 @@
       "type": "string",
       "default": ""
     },
+    "fade_caption_opacity": {
+      "field": "FADE_CAPTION_OPACITY",
+      "key": "fade_caption_opacity",
+      "type": "integer",
+      "default": 100,
+      "minimum": 0,
+      "maximum": 100
+    },
     "fade_controls_opacity": {
       "field": "FADE_CONTROLS_OPACITY",
       "key": "fade_controls_opacity",
@@ -2196,6 +2219,12 @@
       "key": "hidden_profile_shortcuts",
       "type": "string",
       "default": ""
+    },
+    "hide_add_bio": {
+      "field": "HIDE_ADD_BIO",
+      "key": "hide_add_bio",
+      "type": "boolean",
+      "default": false
     },
     "hide_ai_cast": {
       "field": "HIDE_AI_CAST",
@@ -2563,6 +2592,12 @@
       "type": "boolean",
       "default": false
     },
+    "hide_inbox_suggested_stories": {
+      "field": "HIDE_INBOX_SUGGESTED_STORIES",
+      "key": "hide_inbox_suggested_stories",
+      "type": "boolean",
+      "default": false
+    },
     "hide_inbox_tako": {
       "field": "HIDE_INBOX_TAKO",
       "key": "hide_inbox_tako",
@@ -2632,6 +2667,12 @@
     "hide_location_labels": {
       "field": "HIDE_LOCATION_LABELS",
       "key": "hide_location_labels",
+      "type": "boolean",
+      "default": false
+    },
+    "hide_may_know_tag": {
+      "field": "HIDE_MAY_KNOW_TAG",
+      "key": "hide_may_know_tag",
       "type": "boolean",
       "default": false
     },
@@ -3051,6 +3092,12 @@
       "minimum": 0,
       "maximum": 240
     },
+    "imported_emoji_font": {
+      "field": "IMPORTED_EMOJI_FONT",
+      "key": "imported_emoji_font",
+      "type": "boolean",
+      "default": false
+    },
     "imported_font": {
       "field": "IMPORTED_FONT",
       "key": "imported_font",
@@ -3165,6 +3212,12 @@
       "type": "boolean",
       "default": false
     },
+    "keep_profile_suggested_accounts": {
+      "field": "KEEP_PROFILE_SUGGESTED_ACCOUNTS",
+      "key": "keep_profile_suggested_accounts",
+      "type": "boolean",
+      "default": false
+    },
     "keep_pulled_sounds": {
       "field": "KEEP_PULLED_SOUNDS",
       "key": "keep_pulled_sounds",
@@ -3242,6 +3295,12 @@
       "key": "live_button_size",
       "type": "string",
       "default": "48"
+    },
+    "live_buttons_in_menu": {
+      "field": "LIVE_BUTTONS_IN_MENU",
+      "key": "live_buttons_in_menu",
+      "type": "boolean",
+      "default": false
     },
     "live_feed_countries": {
       "field": "LIVE_FEED_COUNTRIES",
@@ -3747,7 +3806,7 @@
       "type": "integer",
       "default": 3,
       "minimum": 1,
-      "maximum": 10
+      "maximum": 300
     },
     "pick_grid_videos": {
       "field": "PICK_GRID_VIDEOS",
@@ -3772,6 +3831,12 @@
       "key": "play_sdr",
       "type": "boolean",
       "default": false
+    },
+    "playback_bitrate_limit": {
+      "field": "PLAYBACK_BITRATE_LIMIT",
+      "key": "playback_bitrate_limit",
+      "type": "string",
+      "default": "off"
     },
     "playback_quality": {
       "field": "PLAYBACK_QUALITY",
@@ -3815,6 +3880,12 @@
       "type": "boolean",
       "default": false
     },
+    "profile_picture_viewer": {
+      "field": "PROFILE_PICTURE_VIEWER",
+      "key": "profile_picture_viewer",
+      "type": "boolean",
+      "default": false
+    },
     "profile_shortcut_picks": {
       "field": "PROFILE_SHORTCUT_PICKS",
       "key": "profile_shortcut_picks",
@@ -3832,6 +3903,12 @@
       "key": "profile_tab_opens_watch_history",
       "type": "boolean",
       "default": false
+    },
+    "profile_tab_order": {
+      "field": "PROFILE_TAB_ORDER",
+      "key": "profile_tab_order",
+      "type": "string",
+      "default": ""
     },
     "profile_tab_picks": {
       "field": "PROFILE_TAB_PICKS",
@@ -3854,6 +3931,12 @@
     "publish_date_exact_time": {
       "field": "PUBLISH_DATE_EXACT_TIME",
       "key": "publish_date_exact_time",
+      "type": "boolean",
+      "default": false
+    },
+    "publish_date_month_name": {
+      "field": "PUBLISH_DATE_MONTH_NAME",
+      "key": "publish_date_month_name",
       "type": "boolean",
       "default": false
     },
@@ -3980,6 +4063,12 @@
     "report_newer_phone_to_effects": {
       "field": "REPORT_NEWER_PHONE_TO_EFFECTS",
       "key": "report_newer_phone_to_effects",
+      "type": "boolean",
+      "default": false
+    },
+    "report_newer_phone_to_game_live": {
+      "field": "REPORT_NEWER_PHONE_TO_GAME_LIVE",
+      "key": "report_newer_phone_to_game_live",
       "type": "boolean",
       "default": false
     },
@@ -4398,6 +4487,12 @@
     "skip_update_checks": {
       "field": "SKIP_UPDATE_CHECKS",
       "key": "skip_update_checks",
+      "type": "boolean",
+      "default": false
+    },
+    "sort_pinned_with_rest": {
+      "field": "SORT_PINNED_WITH_REST",
+      "key": "sort_pinned_with_rest",
       "type": "boolean",
       "default": false
     },

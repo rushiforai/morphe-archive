@@ -1,3 +1,9 @@
+## [1.3.1](https://github.com/jibon-k/notes-morphe-patches/compare/v1.3.0...v1.3.1) (2026-11-19)
+
+### 🐛 Bug Fixes
+
+* Samsung account sign-in and cloud sync on Samsung phones ([200291d](https://github.com/jibon-k/notes-morphe-patches/commit/200291df38762df8f83d8e7d312d18130df14053))
+
 ## [1.3.0](https://github.com/jibon-k/notes-morphe-patches/compare/v1.2.0...v1.3.0) (2026-11-18)
 
 ### ✨ New Features

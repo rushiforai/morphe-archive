@@ -96,8 +96,7 @@ private fun processSplashMethod(mc: MutableClass, method: Method) {
 @Suppress("unused")
 val skipSplashPatch = bytecodePatch(
     name = "Skip splash",
-    description = "Skips splash/intro screens by running their deferred navigation immediately and " +
-        "removing artificial sleeps. Scoped to splash-named Activity/Fragment classes.",
+    description = "Skips splash/intro screens.",
     default = false,
 ) {
     val convertDelays by booleanOption(

@@ -37,6 +37,8 @@ Every switch starts off, so a freshly patched Messenger behaves like stock until
 
 Prefer a local source? Download [`patches-0.30.0.mpp`](https://github.com/SysAdminDoc/HushMessenger/releases/tag/v0.30.0) and add it through **Sources > + > Local**. It won't update itself. The `.mpp` file is a patch bundle, not a Messenger APK. Morphe Desktop 2.1.0 or newer can load the same source too.
 
+There are Hush patch sources for other apps too: [Hushfacebook](https://github.com/SysAdminDoc/HushFacebook) for Facebook, [HushGram](https://github.com/SysAdminDoc/HushGram) for Instagram, [HushPine](https://github.com/SysAdminDoc/HushPine) for PineDrama, [HushPinterest](https://github.com/SysAdminDoc/HushPinterest) for Pinterest, [HushTelegram](https://github.com/SysAdminDoc/HushTelegram) for Telegram, [HushThreads](https://github.com/SysAdminDoc/HushThreads) for Threads, [Hushfeed](https://github.com/SysAdminDoc/HushFeed) for TikTok and [HushTumblr](https://github.com/SysAdminDoc/HushTumblr) for Tumblr. Each one is a separate source in Manager, so add only the ones for apps you patch.
+
 ## Settings
 
 Long-press Messenger's icon on your home screen and tap **Patch controls**. The **HushMessenger** row in Messenger's Menu tab opens the same screen, and so does a long press on the Messenger logo at the top of Chats or the **HushMessenger settings** icon in your app drawer. The App tab can turn any of those ways in off, as long as one stays on.

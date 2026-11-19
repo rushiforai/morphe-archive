@@ -1,3 +1,20 @@
+## [1.23.0](https://github.com/sqzass/lustx-patches/compare/v1.22.3...v1.23.0) (2026-11-19)
+
+### ✨ New Features
+
+* add a `Unlock Premium` patch for Radio Garden ([1002b40](https://github.com/sqzass/lustx-patches/commit/1002b407ca1daca138e157f4af398d57329f741a))
+
+### 🐛 Bug Fixes
+
+* **decompile.py:** add missing comma ([9c4011e](https://github.com/sqzass/lustx-patches/commit/9c4011ea464898cb25cd57a54d5b49973a646c26))
+* i put it in quotes sighs ([825f82f](https://github.com/sqzass/lustx-patches/commit/825f82f36258b7b71bcdbc4f7a0dcc6293dc96ce))
+
+## [1.22.3](https://github.com/sqzass/lustx-patches/compare/v1.22.2...v1.22.3) (2026-11-18)
+
+### 🐛 Bug Fixes
+
+* **Postparty:** HOPEFULLY fix bumper ([0e572e6](https://github.com/sqzass/lustx-patches/commit/0e572e68a6d21c196d53537da544d9e4448b7f6a))
+
 ## [1.22.2](https://github.com/sqzass/lustx-patches/compare/v1.22.1...v1.22.2) (2026-11-17)
 
 ### 🐛 Bug Fixes

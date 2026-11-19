@@ -17,8 +17,7 @@ private const val TAMPER_CHECK = "Lcom/stealthcopter/portdroid/core/utils/Tamper
 @Suppress("unused")
 val bypassTamperCheckPatch = bytecodePatch(
     name = "Bypass signature check",
-    description = "Forces TamperCheck.validateAppSignature to true. Patched builds are " +
-        "re-signed, so the app's three hardcoded certificate SHA-1 hashes no longer match.",
+    description = "Bypasses PortDroid's signature check so the re-signed app passes validation.",
 ) {
     compatibleWith(
         Compatibility(

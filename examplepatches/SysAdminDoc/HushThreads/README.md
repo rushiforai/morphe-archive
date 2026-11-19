@@ -141,6 +141,7 @@ If you also patch Instagram with [HushGram](https://github.com/SysAdminDoc/HushG
 - **Android won't install the patched app.** Uninstall the stock Threads first. An update to your patched Threads needs the same signing key as the copy on your phone.
 - **Android says `INSTALL_FAILED_NO_MATCHING_ABIS`.** The Threads file you patched was built for a different processor. Get the variant in the [table above](#supported-threads-build) that matches your phone's CPU (most phones are arm64-v8a) and patch it again.
 - **Patching stops with a patch's name.** That usually means your Threads isn't the supported build. Check the Threads version name against the [table above](#supported-threads-build).
+- **Patching other apps too?** Hush has sources for them: [Hushfacebook](https://github.com/SysAdminDoc/HushFacebook) for Facebook, [HushGram](https://github.com/SysAdminDoc/HushGram) for Instagram, [HushMessenger](https://github.com/SysAdminDoc/HushMessenger) for Messenger, [HushPine](https://github.com/SysAdminDoc/HushPine) for PineDrama, [HushPinterest](https://github.com/SysAdminDoc/HushPinterest) for Pinterest, [HushTelegram](https://github.com/SysAdminDoc/HushTelegram) for Telegram, [Hushfeed](https://github.com/SysAdminDoc/HushFeed) for TikTok and [HushTumblr](https://github.com/SysAdminDoc/HushTumblr) for Tumblr. Each one is a separate source in Manager, so add only the ones for apps you patch.
 
 ## Your Threads account
 

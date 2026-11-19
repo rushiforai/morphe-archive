@@ -25,7 +25,8 @@ import io.github.jordanwoodson.extension.shared.settings.Settings;
  * Latency badge: how far a live stream plays behind the broadcast, on the native player in the theatre, read
  * from the player once a second (the live latency the stats panel reports). A tap reloads the stream through
  * the player's own Retry (a new access token and playlist), which starts at the live edge: the native player
- * has no seek to live. Feed previews, VODs and clips show nothing.
+ * has no seek to live. Feed previews, VODs and clips show nothing. After a switch between channels the player
+ * can report a negative latency until the stream is reloaded; the pill then reads "? s", and a tap fixes it.
  */
 @SuppressWarnings("unused")
 public final class TwitchLatency {
@@ -70,9 +71,19 @@ public final class TwitchLatency {
         return (millis / 1000) + " s";
     }
 
-    /** Whether the badge shows: the switch on, a live latency, and a player in the theatre. */
-    private static boolean shows(View view, long latency) {
-        return latency > 0 && Settings.isEnabled(KEY) && inTheatre(view);
+    /**
+     * The pill's text for a reading, or null to hide it. -1 is no player (or nothing measured yet) and 0 a stream
+     * still loading. The IVS player can go on reporting a negative latency after a switch between channels, until
+     * the stream is reloaded (issue 77): that shows as "? s", and a tap reloads it like any other reading.
+     */
+    static String text(long millis) {
+        if (millis > 0) return label(millis);
+        return millis < -1 ? "? s" : null;
+    }
+
+    /** Whether the badge shows a reading: the switch on and a player in the theatre. */
+    private static boolean shows(View view) {
+        return Settings.isEnabled(KEY) && inTheatre(view);
     }
 
     private static boolean inTheatre(View view) {
@@ -137,9 +148,9 @@ public final class TwitchLatency {
             if (!polling) return;
             try {
                 Object player = presenter.get();
-                long latency = player == null ? -1 : latencyMillis(player);
-                if (shows(this, latency)) {
-                    setText(label(latency));
+                String text = player == null ? null : text(latencyMillis(player));
+                if (text != null && shows(this)) {
+                    setText(text);
                     setVisibility(VISIBLE);
                 } else if (getVisibility() != GONE) {
                     setVisibility(GONE);

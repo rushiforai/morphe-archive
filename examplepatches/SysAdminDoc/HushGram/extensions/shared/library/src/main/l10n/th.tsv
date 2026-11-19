@@ -250,8 +250,12 @@ Turn on Tap to play to use this choice.	เปิด "แตะเพื่อ�
 Resume long videos	เล่นวิดีโอยาวต่อจากเดิม
 Videos and reels over two minutes pick up where you left off. Seek to start elsewhere. Live videos and ads start as usual.	วิดีโอและรีลส์ที่ยาวเกินสองนาทีจะเล่นต่อจากจุดที่คุณดูค้างไว้ เลื่อนแถบเวลาเพื่อเริ่มเล่นจากจุดอื่น ส่วนวิดีโอถ่ายทอดสดและโฆษณาจะเริ่มเล่นตามปกติ
 Default playback quality	คุณภาพการเล่นเริ่มต้น
-# context: description of the Default playback quality switch on the Playback page, with the list of qualities below it. A video that keeps stalling because the connection is too slow for its quality switches to the next lower quality that video offers (#599)
-Videos, reels and stories play at the quality below, starting with the next one you open. When your connection can't keep up, a video drops to the next lower quality.	วิดีโอ, รีลส์ และสตอรี่จะเล่นตามคุณภาพด้านล่าง โดยเริ่มจากรายการถัดไปที่คุณเปิด เมื่อการเชื่อมต่อตามไม่ทัน วิดีโอจะลดไปใช้คุณภาพที่ต่ำกว่าถัดไป
+# context: description of the Default playback quality switch on the Playback page, with the list of qualities below it
+Videos, reels and stories play at the quality below, starting with the next one you open.	วิดีโอ, รีลส์ และสตอรี่จะเล่นตามคุณภาพด้านล่าง โดยเริ่มจากรายการถัดไปที่คุณเปิด
+# context: title of a switch under Default playback quality on the Playback page. On, a video that keeps stalling because the connection is too slow for its quality switches to the next lower quality that video offers (#599); off, it keeps the quality picked (#761)
+Drop quality to keep playing	ลดคุณภาพเพื่อให้เล่นต่อได้
+# context: description of the Drop quality to keep playing switch
+When your connection can't keep up, a video drops to the next lower quality instead of stalling. Turn this off to keep the quality you picked.	เมื่อการเชื่อมต่อตามไม่ทัน วิดีโอจะลดลงไปเป็นคุณภาพที่ต่ำกว่าถัดไปแทนการหยุดค้าง ปิดตัวเลือกนี้เพื่อคงคุณภาพที่คุณเลือกไว้
 Playback quality	คุณภาพการเล่น
 Auto	อัตโนมัติ
 Data saver	โหมดประหยัดอินเทอร์เน็ต
@@ -464,6 +468,8 @@ Turn on Start Home on Following to use this choice.	เปิดใช้งา�
 # context: Settings page: the summary of a greyed-out slider in place of its value; %1$s is the title of the switch it waits on, like Glass tab bar
 Turn on %1$s to use this slider.	เปิดใช้งาน %1$s เพื่อใช้แถบเลื่อนนี้
 Turn on Story ring size to use this choice.	เปิดใช้งาน "ขนาดวงแหวนสตอรี่" เพื่อใช้ตัวเลือกนี้
+# context: Settings page, Reels: the line under the greyed-out Fill the screen switch while Show the whole reel is on
+Turn off Show the whole reel to use this choice.	ปิดใช้งาน "แสดงรีลส์ทั้งคลิป" เพื่อใช้ตัวเลือกนี้
 Turn on Default playback quality to use this choice.	เปิดใช้งาน "คุณภาพการเล่นเริ่มต้น" เพื่อใช้ตัวเลือกนี้
 Updating remembered positions...	กำลังอัปเดตตำแหน่งที่จำไว้...
 Undo cleared positions	เลิกทำการล้างตำแหน่งที่จำไว้
@@ -955,6 +961,12 @@ Half a second	ครึ่งวินาที
 On this Instagram build it covers %1$d of %2$d routes. The diagnostic report lists the rest.	ในบิลด์ Instagram นี้ครอบคลุม %1$d จาก %2$d เส้นทาง รายงานการวินิจฉัยจะแสดงรายการที่เหลือ
 Hide suggested accounts in Messages	ซ่อนบัญชีที่แนะนำในข้อความ
 Takes the accounts Instagram suggests off the bottom of your messages. Your chats and follow requests stay. Restart Instagram to see the change.	นำบัญชีที่ Instagram แนะนำออกจากด้านล่างของข้อความของคุณ โดยแชทและคำขอติดตามจะยังคงอยู่ โปรดรีสตาร์ท Instagram เพื่อดูการเปลี่ยนแปลง
+# context: switch on the Messages page after Hide suggested accounts in Messages; New message is Instagram's own label for the pencil button in the inbox top bar and the screen it opens (#762)
+Hide the New message button	ซ่อนปุ่มข้อความใหม่
+Takes the pencil button for a new message off the top of your messages.	นำปุ่มรูปดินสอสำหรับข้อความใหม่ออกจากด้านบนของข้อความของคุณ
+# context: switch right after it; Suggested is the header Instagram puts over the people listed on the New message screen before you type, and new group is the screen for starting a group chat (#762)
+Hide suggestions in New message	ซ่อนคำแนะนำในข้อความใหม่
+Takes the Suggested people off the New message and new group screens. Search still finds anyone.	นำคนที่แนะนำออกจากหน้าข้อความใหม่และกลุ่มใหม่ การค้นหายังคงหาได้ทุกคน
 A light tick each time the highlight slides past a tab, so it follows the bar as you tap or swipe between screens.	มีการสั่นเบาๆ ทุกครั้งที่ไฮไลต์เลื่อนผ่านแท็บ เพื่อให้การสั่นตอบสนองสัมพันธ์กับแถบเมื่อคุณแตะหรือปัดระหว่างหน้าจอ
 Blur behind the tab bar	เบลอด้านหลังแถบแท็บ
 Blurs what's behind the pill on Android 12 and newer. Off, the pill is a frosted tint.	เบลอสิ่งที่อยู่ด้านหลังแถบเม็ดยาใน Android 12 ขึ้นไป หากปิด แถบเม็ดยาจะเป็นสีกระจกฝ้า
@@ -1422,6 +1434,9 @@ Once Burn-in guard fades the buttons, they stay faded on Reels whatever you tap 
 # context: Profiles: switches next to Hide the Threads button. Create is the plus at the top of your own profile (#254); Share profile and Edit profile are Instagram's own button names (#253)
 Hide the Create button	ซ่อนปุ่มสร้าง
 Takes the plus for new posts off the top of your own profile. The other buttons stay where they were.	นำเครื่องหมายบวกสำหรับสร้างโพสต์ใหม่ออกจากด้านบนโปรไฟล์ของคุณ โดยปุ่มอื่นๆ จะยังคงอยู่ที่เดิม
+# context: switch on the Profiles page after Hide the Create button; the prompt is the big picture, heading and Create button Instagram shows in place of the grid on your own profile before your first post (#762)
+Hide the empty profile prompt	ซ่อนข้อความชวนบนโปรไฟล์ว่าง
+Takes the big prompt for your first post off your own profile while it has no posts. Other people's profiles stay as they are.	นำข้อความใหญ่ที่ชวนให้ลงโพสต์แรกออกจากโปรไฟล์ของคุณเองขณะที่ยังไม่มีโพสต์ โปรไฟล์ของคนอื่นจะยังคงเหมือนเดิม
 Hide Share profile	ซ่อนแชร์โปรไฟล์
 Takes the Share profile button off your profile, and Edit profile stretches to fill the space.	นำปุ่ม "แชร์โปรไฟล์" ออกจากโปรไฟล์ของคุณ และปุ่ม "แก้ไขโปรไฟล์" จะขยายเพื่อเติมเต็มพื้นที่
 # context: Profiles: switches that hide Subscribe and the arrow at the end of the action buttons on someone's profile, which opens a menu of the buttons that didn't fit (#248). Subscribe is Instagram's own button label, as in the Feed switch that hides Follow and Subscribe.
@@ -1616,7 +1631,7 @@ Unmute all	ยกเลิกการปิดเสียงทั้งหม
 Settings button on Home's header	ปุ่มการตั้งค่าบนส่วนหัวของหน้าหลัก
 Adds a gear at the top of Home that opens HushGram settings. Restart Instagram to see the change.	เพิ่มไอคอนรูปฟันเฟืองที่ด้านบนของหน้าหลักเพื่อเปิดการตั้งค่า HushGram รีสตาร์ท Instagram เพื่อดูการเปลี่ยนแปลง
 Download button on stories	ปุ่มดาวน์โหลดบนสตอรี่
-Puts a Download button at the top of a story, beside the three dots. One tap saves the photo or video in front, the same as Download in the menu.	เพิ่มปุ่มดาวน์โหลดที่ด้านบนของสตอรี่ ข้างจุดสามจุด แตะครั้งเดียวจะบันทึกรูปภาพหรือวิดีโอที่อยู่ตรงหน้า เช่นเดียวกับปุ่ม "ดาวน์โหลด" ในเมนู
+Puts a Download button at the top of a story, beside the three dots. One tap saves the photo or video in front, the same as Download in the menu. Press and hold for Save all, to save every story in the set you're watching.	เพิ่มปุ่มดาวน์โหลดที่ด้านบนของสตอรี่ ข้างจุดสามจุด แตะครั้งเดียวจะบันทึกรูปภาพหรือวิดีโอที่อยู่ตรงหน้า เช่นเดียวกับปุ่ม "ดาวน์โหลด" ในเมนู กดค้างเพื่อเลือก "บันทึกทั้งหมด" ซึ่งจะบันทึกทุกสตอรี่ในชุดที่กำลังดู
 Start reels muted	เริ่มเล่นรีลส์แบบปิดเสียง
 Every reel starts silent, wherever you open it from. The volume keys or the speaker icon unmute it. Wins over Start reels with sound.	รีลส์ทุกคลิปจะเริ่มเล่นแบบไม่มีเสียง ไม่ว่าจะเปิดจากที่ใดก็ตาม ปุ่มปรับระดับเสียงหรือไอคอนลำโพงจะเปิดเสียง การตั้งค่านี้จะมีความสำคัญเหนือกว่า "เริ่มเล่นรีลส์แบบมีเสียง"
 Hide captions	ซ่อนคำบรรยาย
@@ -1880,6 +1895,9 @@ While you swipe through a chat's reels, a banner says when the other person sent
 New message after this reel	ข้อความใหม่หลังรีลส์นี้
 Hide the audio icon on posts	ซ่อนไอคอนเสียงบนโพสต์
 Takes the speaker icon off videos in your feed. Tapping the video still turns the sound on or off. Posts already on screen change when they load again.	นำไอคอนลำโพงออกจากวิดีโอในฟีดของคุณ โดยการแตะวิดีโอจะยังคงเปิดหรือปิดเสียงได้เหมือนเดิม โพสต์ที่อยู่บนหน้าจออยู่แล้วจะเปลี่ยนเมื่อโหลดใหม่อีกครั้ง
+# context: second switch on the Feed page under Hide the audio icon on posts; the tag icon is the small person badge in the corner of a post with people tagged (#762)
+Hide the tag icon on posts	ซ่อนไอคอนแท็กบนโพสต์
+Takes the little person icon off posts with people tagged in them. Tapping the photo still shows who's tagged.	นำไอคอนรูปคนเล็กๆ ออกจากโพสต์ที่มีการแท็กคน การแตะรูปภาพยังคงแสดงว่าใครถูกแท็ก
 Light when paused	สว่างขึ้นเมื่อหยุดชั่วคราว
 Pause a reel and Burn-in guard brings the buttons back to full brightness until you play it again or swipe on. The wait then starts over.	เมื่อหยุดรีลส์ชั่วคราว การป้องกันหน้าจอเบิร์นอินจะปรับปุ่มกลับมาที่ความสว่างเต็มที่จนกว่าคุณจะเล่นต่อหรือปัดออก จากนั้นการนับเวลารอจะเริ่มใหม่อีกครั้ง
 Grow the heart	ขยายขนาดหัวใจ
@@ -2066,6 +2084,11 @@ Hide the Save button	ซ่อนปุ่มบันทึก
 Takes the Save button off the bottom of posts in your feed, so a stray tap can't save one.	นำปุ่มบันทึกออกจากด้านล่างของโพสต์ในฟีดของคุณ เพื่อป้องกันการแตะโดนโดยไม่ตั้งใจจนบันทึกโพสต์
 Hide the Like button	ซ่อนปุ่มถูกใจ
 Takes the heart and the like count off the bottom of posts in your feed. Double tap still likes a post.	นำรูปหัวใจและจำนวนถูกใจออกจากด้านล่างของโพสต์ในฟีดของคุณ คุณยังแตะสองครั้งเพื่อกดถูกใจโพสต์ได้อยู่
+# context: two switches on the Feed page under Hide the Like button; Liked by is the line under a feed post naming who liked it (#762)
+Hide counts on posts	ซ่อนตัวเลขบนโพสต์
+Takes the like, comment, share and repost numbers off posts in your feed. The buttons stay. Posts already on screen change when they load again.	นำตัวเลขถูกใจ ความคิดเห็น การแชร์ และการรีโพสต์ออกจากโพสต์ในฟีดของคุณ ปุ่มต่างๆ ยังอยู่ โพสต์ที่แสดงบนหน้าจออยู่แล้วจะเปลี่ยนเมื่อโหลดใหม่
+Hide Liked by	ซ่อน "ถูกใจโดย"
+Takes the "Liked by" line off posts in your feed.	นำบรรทัด "ถูกใจโดย" ออกจากโพสต์ในฟีดของคุณ
 # context: the row in a feed post's three-dot menu for a post you already saved, and the row that takes an account off Saved profiles, on its profile's menu and on the Saved profiles page (#629)
 Remove from saved	ลบออกจากรายการที่บันทึกไว้
 # context: a switch on the Reels page

@@ -253,8 +253,12 @@ Turn on Tap to play to use this choice.	Attiva Tocca per riprodurre per usare qu
 Resume long videos	Riprendi i video lunghi
 Videos and reels over two minutes pick up where you left off. Seek to start elsewhere. Live videos and ads start as usual.	I video e i reel oltre i due minuti riprendono da dove eri rimasto. Cerca per iniziare da un altro punto. I video in diretta e gli annunci partono come al solito.
 Default playback quality	Qualità di riproduzione predefinita
-# context: description of the Default playback quality switch on the Playback page, with the list of qualities below it. A video that keeps stalling because the connection is too slow for its quality switches to the next lower quality that video offers (#599)
-Videos, reels and stories play at the quality below, starting with the next one you open. When your connection can't keep up, a video drops to the next lower quality.	I video, i reel e le storie vengono riprodotti alla qualità qui sotto, a partire dal prossimo che apri. Quando la connessione non regge, il video scende alla qualità subito inferiore.
+# context: description of the Default playback quality switch on the Playback page, with the list of qualities below it
+Videos, reels and stories play at the quality below, starting with the next one you open.	I video, i reel e le storie vengono riprodotti alla qualità qui sotto, a partire dal prossimo che apri.
+# context: title of a switch under Default playback quality on the Playback page. On, a video that keeps stalling because the connection is too slow for its quality switches to the next lower quality that video offers (#599); off, it keeps the quality picked (#761)
+Drop quality to keep playing	Abbassa la qualità per continuare a riprodurre
+# context: description of the Drop quality to keep playing switch
+When your connection can't keep up, a video drops to the next lower quality instead of stalling. Turn this off to keep the quality you picked.	Quando la connessione non regge, il video scende alla qualità subito inferiore invece di bloccarsi. Disattiva questa opzione per mantenere la qualità che hai scelto.
 Playback quality	Qualità di riproduzione
 Auto	Auto
 Data saver	Risparmio dati
@@ -467,6 +471,8 @@ Turn on Start Home on Following to use this choice.	Attiva Apri la Home su Segui
 # context: Settings page: the summary of a greyed-out slider in place of its value; %1$s is the title of the switch it waits on, like Glass tab bar
 Turn on %1$s to use this slider.	Attiva %1$s per usare questo cursore.
 Turn on Story ring size to use this choice.	Attiva Dimensione dei cerchi delle storie per usare questa scelta.
+# context: Settings page, Reels: the line under the greyed-out Fill the screen switch while Show the whole reel is on
+Turn off Show the whole reel to use this choice.	Disattiva Mostra il reel intero per usare questa scelta.
 Turn on Default playback quality to use this choice.	Attiva Qualità di riproduzione predefinita per usare questa scelta.
 Updating remembered positions...	Aggiornamento delle posizioni memorizzate...
 Undo cleared positions	Annulla la cancellazione delle posizioni
@@ -962,6 +968,12 @@ Half a second	Mezzo secondo
 On this Instagram build it covers %1$d of %2$d routes. The diagnostic report lists the rest.	Su questa build di Instagram copre %1$d percorsi su %2$d. Il report diagnostico elenca il resto.
 Hide suggested accounts in Messages	Nascondi gli account suggeriti nei Messaggi
 Takes the accounts Instagram suggests off the bottom of your messages. Your chats and follow requests stay. Restart Instagram to see the change.	Toglie gli account suggeriti da Instagram dal fondo dei tuoi messaggi. Le tue chat e le richieste di seguire restano. Riavvia Instagram per vedere la modifica.
+# context: switch on the Messages page after Hide suggested accounts in Messages; New message is Instagram's own label for the pencil button in the inbox top bar and the screen it opens (#762)
+Hide the New message button	Nascondi il pulsante Nuovo messaggio
+Takes the pencil button for a new message off the top of your messages.	Toglie il pulsante con la matita per un nuovo messaggio dalla parte alta dei tuoi messaggi.
+# context: switch right after it; Suggested is the header Instagram puts over the people listed on the New message screen before you type, and new group is the screen for starting a group chat (#762)
+Hide suggestions in New message	Nascondi i suggerimenti in Nuovo messaggio
+Takes the Suggested people off the New message and new group screens. Search still finds anyone.	Toglie le persone suggerite dalle schermate Nuovo messaggio e nuovo gruppo. La ricerca trova ancora chiunque.
 A light tick each time the highlight slides past a tab, so it follows the bar as you tap or swipe between screens.	Un leggero tic ogni volta che l'evidenziazione scorre oltre una scheda, così segue la barra mentre tocchi o scorri tra le schermate.
 Blur behind the tab bar	Sfocatura dietro la barra delle schede
 Blurs what's behind the pill on Android 12 and newer. Off, the pill is a frosted tint.	Sfoca ciò che sta dietro la pillola su Android 12 e successivi. Se è off, la pillola ha una tinta smerigliata.
@@ -1431,6 +1443,9 @@ Once Burn-in guard fades the buttons, they stay faded on Reels whatever you tap 
 # context: Profiles: switches next to Hide the Threads button. Create is the plus at the top of your own profile (#254); Share profile and Edit profile are Instagram's own button names (#253)
 Hide the Create button	Nascondi il pulsante Crea
 Takes the plus for new posts off the top of your own profile. The other buttons stay where they were.	Toglie il più per i nuovi post dalla parte alta del tuo profilo. Gli altri pulsanti restano dove erano.
+# context: switch on the Profiles page after Hide the Create button; the prompt is the big picture, heading and Create button Instagram shows in place of the grid on your own profile before your first post (#762)
+Hide the empty profile prompt	Nascondi l'invito del profilo vuoto
+Takes the big prompt for your first post off your own profile while it has no posts. Other people's profiles stay as they are.	Toglie il grande invito per il tuo primo post dal tuo profilo finché non ha post. I profili degli altri restano come sono.
 Hide Share profile	Nascondi Condividi profilo
 Takes the Share profile button off your profile, and Edit profile stretches to fill the space.	Toglie il pulsante Condividi profilo dal tuo profilo, e Modifica profilo si allarga per riempire lo spazio.
 # context: Profiles: switches that hide Subscribe and the arrow at the end of the action buttons on someone's profile, which opens a menu of the buttons that didn't fit (#248). Subscribe is Instagram's own button label, as in the Feed switch that hides Follow and Subscribe.
@@ -1626,7 +1641,7 @@ Unmute all	Riattiva tutti
 Settings button on Home's header	Pulsante Impostazioni nell'intestazione della Home
 Adds a gear at the top of Home that opens HushGram settings. Restart Instagram to see the change.	Aggiunge un ingranaggio in alto nella Home che apre le impostazioni di HushGram. Riavvia Instagram per vedere la modifica.
 Download button on stories	Pulsante Scarica nelle storie
-Puts a Download button at the top of a story, beside the three dots. One tap saves the photo or video in front, the same as Download in the menu.	Mette un pulsante Scarica in alto in una storia, accanto ai tre puntini. Un tocco salva la foto o il video che stai guardando, come Scarica nel menu.
+Puts a Download button at the top of a story, beside the three dots. One tap saves the photo or video in front, the same as Download in the menu. Press and hold for Save all, to save every story in the set you're watching.	Mette un pulsante Scarica in alto in una storia, accanto ai tre puntini. Un tocco salva la foto o il video che stai guardando, come Scarica nel menu. Tieni premuto per Salva tutto, che salva ogni storia della serie che stai guardando.
 Start reels muted	Avvia i reel senza audio
 Every reel starts silent, wherever you open it from. The volume keys or the speaker icon unmute it. Wins over Start reels with sound.	Ogni reel parte senza audio, da qualunque punto lo apri. I tasti del volume o l'icona dell'altoparlante lo riattivano. Ha la precedenza su Avvia i reel con l'audio.
 Hide captions	Nascondi le didascalie
@@ -1893,6 +1908,9 @@ While you swipe through a chat's reels, a banner says when the other person sent
 New message after this reel	Nuovo messaggio dopo questo reel
 Hide the audio icon on posts	Nascondi l'icona audio nei post
 Takes the speaker icon off videos in your feed. Tapping the video still turns the sound on or off. Posts already on screen change when they load again.	Toglie l'icona dell'altoparlante dai video nel tuo feed. Toccando il video l'audio si attiva o si disattiva come prima. I post già sullo schermo cambiano quando vengono ricaricati.
+# context: second switch on the Feed page under Hide the audio icon on posts; the tag icon is the small person badge in the corner of a post with people tagged (#762)
+Hide the tag icon on posts	Nascondi l'icona dei tag nei post
+Takes the little person icon off posts with people tagged in them. Tapping the photo still shows who's tagged.	Toglie la piccola icona della persona dai post con persone taggate. Toccando la foto vedi ancora chi è taggato.
 Light when paused	Luminosi in pausa
 Pause a reel and Burn-in guard brings the buttons back to full brightness until you play it again or swipe on. The wait then starts over.	Metti in pausa un reel e la protezione burn-in riporta i pulsanti alla piena luminosità finché non lo riprendi o scorri oltre. Poi l'attesa riparte da zero.
 Grow the heart	Ingrandisci il cuore
@@ -2079,6 +2097,11 @@ Hide the Save button	Nascondi il pulsante Salva
 Takes the Save button off the bottom of posts in your feed, so a stray tap can't save one.	Toglie il pulsante Salva dal fondo dei post nel tuo feed, così un tocco per sbaglio non ne salva nessuno.
 Hide the Like button	Nascondi il pulsante Mi piace
 Takes the heart and the like count off the bottom of posts in your feed. Double tap still likes a post.	Toglie il cuore e il numero di Mi piace dalla parte bassa dei post nel tuo feed. Il doppio tocco mette ancora Mi piace a un post.
+# context: two switches on the Feed page under Hide the Like button; Liked by is the line under a feed post naming who liked it (#762)
+Hide counts on posts	Nascondi i numeri sui post
+Takes the like, comment, share and repost numbers off posts in your feed. The buttons stay. Posts already on screen change when they load again.	Toglie i numeri di Mi piace, commenti, condivisioni e repost dai post nel tuo feed. I pulsanti restano. I post già sullo schermo cambiano quando si ricaricano.
+Hide Liked by	Nascondi "Piace a"
+Takes the "Liked by" line off posts in your feed.	Toglie la riga "Piace a" dai post nel tuo feed.
 # context: the row in a feed post's three-dot menu for a post you already saved, and the row that takes an account off Saved profiles, on its profile's menu and on the Saved profiles page (#629)
 Remove from saved	Rimuovi dagli elementi salvati
 # context: a switch on the Reels page

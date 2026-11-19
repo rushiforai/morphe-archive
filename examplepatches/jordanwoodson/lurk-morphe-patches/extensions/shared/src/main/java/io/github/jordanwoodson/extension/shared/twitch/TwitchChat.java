@@ -136,6 +136,16 @@ public final class TwitchChat {
     }
 
     /**
+     * Injection point: the send time (Unix seconds) of a chat message read from IRC, from its tmi-sent-ts tag. The
+     * copy of a message you send, shown at once, is an IRC line Twitch builds without that tag; while Chat
+     * timestamps is on it gets the time it is read, which is when it was sent.
+     */
+    public static Long sentTime(Long stock) {
+        if (stock != null || !Settings.isEnabled(TIMESTAMPS)) return stock;
+        return System.currentTimeMillis() / 1000;
+    }
+
+    /**
      * Injection point: the pattern of the time shown before a chat line. Read once per formatter. The same
      * formatter draws Twitch's own chat-history timestamps, so the clock choice applies only while Chat
      * timestamps is on.

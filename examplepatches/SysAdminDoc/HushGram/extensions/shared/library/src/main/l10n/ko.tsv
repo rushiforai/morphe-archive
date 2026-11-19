@@ -254,8 +254,12 @@ Turn on Tap to play to use this choice.	이 옵션을 사용하려면 ‘탭하�
 Resume long videos	긴 동영상 이어보기
 Videos and reels over two minutes pick up where you left off. Seek to start elsewhere. Live videos and ads start as usual.	2분이 넘는 동영상과 릴스는 시청을 중단한 시점부터 이어서 재생됩니다. 다른 부분을 보려면 원하는 시점으로 이동하세요. 라이브 동영상과 광고는 기존과 동일하게 처음부터 재생됩니다
 Default playback quality	기본 재생 화질
-# context: description of the Default playback quality switch on the Playback page, with the list of qualities below it. A video that keeps stalling because the connection is too slow for its quality switches to the next lower quality that video offers (#599)
-Videos, reels and stories play at the quality below, starting with the next one you open. When your connection can't keep up, a video drops to the next lower quality.	동영상, 릴스 및 스토리는 다음에 여는 콘텐츠부터 아래 설정된 화질로 재생됩니다. 연결 속도가 따라가지 못하면 동영상이 한 단계 낮은 화질로 내려갑니다
+# context: description of the Default playback quality switch on the Playback page, with the list of qualities below it
+Videos, reels and stories play at the quality below, starting with the next one you open.	동영상, 릴스 및 스토리는 다음에 여는 콘텐츠부터 아래 설정된 화질로 재생됩니다.
+# context: title of a switch under Default playback quality on the Playback page. On, a video that keeps stalling because the connection is too slow for its quality switches to the next lower quality that video offers (#599); off, it keeps the quality picked (#761)
+Drop quality to keep playing	끊기지 않도록 화질 낮추기
+# context: description of the Drop quality to keep playing switch
+When your connection can't keep up, a video drops to the next lower quality instead of stalling. Turn this off to keep the quality you picked.	연결 속도가 따라가지 못하면 동영상이 멈추는 대신 한 단계 낮은 화질로 내려갑니다. 선택한 화질을 유지하려면 이 설정을 끄세요.
 Playback quality	재생 화질
 Auto	자동
 Data saver	데이터 절약
@@ -468,6 +472,8 @@ Turn on Start Home on Following to use this choice.	이 옵션을 사용하려�
 # context: Settings page: the summary of a greyed-out slider in place of its value; %1$s is the title of the switch it waits on, like Glass tab bar
 Turn on %1$s to use this slider.	이 슬라이더를 사용하려면 ‘%1$s’을(를) 활성화하세요.
 Turn on Story ring size to use this choice.	이 옵션을 사용하려면 ‘스토리 링 사이즈’를 활성화하세요
+# context: Settings page, Reels: the line under the greyed-out Fill the screen switch while Show the whole reel is on
+Turn off Show the whole reel to use this choice.	이 옵션을 사용하려면 ‘릴스 전체 보기’를 비활성화하세요
 Turn on Default playback quality to use this choice.	이 옵션을 사용하려면 ‘기본 재생 화질’을 활성화하세요
 Updating remembered positions...	저장된 위치를 업데이트하는 중...
 Undo cleared positions	위치 지우기 실행 취소
@@ -961,6 +967,12 @@ Half a second	0.5초
 On this Instagram build it covers %1$d of %2$d routes. The diagnostic report lists the rest.	이 Instagram 빌드에서는 경로 %2$d개 중 %1$d개를 다룹니다. 나머지는 진단 보고서에 나와 있습니다.
 Hide suggested accounts in Messages	메시지에서 추천 계정 숨기기
 Takes the accounts Instagram suggests off the bottom of your messages. Your chats and follow requests stay. Restart Instagram to see the change.	메시지 하단에서 Instagram이 추천하는 계정을 숨깁니다. 채팅과 팔로우 요청은 그대로 유지됩니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.
+# context: switch on the Messages page after Hide suggested accounts in Messages; New message is Instagram's own label for the pencil button in the inbox top bar and the screen it opens (#762)
+Hide the New message button	새 메시지 버튼 숨기기
+Takes the pencil button for a new message off the top of your messages.	메시지 상단에서 새 메시지를 쓰는 연필 버튼을 숨깁니다.
+# context: switch right after it; Suggested is the header Instagram puts over the people listed on the New message screen before you type, and new group is the screen for starting a group chat (#762)
+Hide suggestions in New message	새 메시지의 추천 숨기기
+Takes the Suggested people off the New message and new group screens. Search still finds anyone.	새 메시지와 새 그룹 화면에서 추천 사람을 숨깁니다. 검색으로는 누구든 계속 찾을 수 있습니다.
 A light tick each time the highlight slides past a tab, so it follows the bar as you tap or swipe between screens.	하이라이트가 탭을 지날 때마다 가벼운 진동이 울려, 탭하거나 화면 사이를 넘길 때 막대를 따라갑니다.
 Blur behind the tab bar	탭 바 뒤 흐림 효과
 Blurs what's behind the pill on Android 12 and newer. Off, the pill is a frosted tint.	Android 12 이상에서 알약 모양 뒤에 있는 화면을 흐리게 합니다. 끄면 알약은 불투명한 색조가 됩니다.
@@ -1430,6 +1442,9 @@ Once Burn-in guard fades the buttons, they stay faded on Reels whatever you tap 
 # context: Profiles: switches next to Hide the Threads button. Create is the plus at the top of your own profile (#254); Share profile and Edit profile are Instagram's own button names (#253)
 Hide the Create button	만들기 버튼 숨기기
 Takes the plus for new posts off the top of your own profile. The other buttons stay where they were.	내 프로필 상단에서 새 게시물용 더하기 버튼을 숨깁니다. 다른 버튼은 원래 자리에 그대로 있습니다.
+# context: switch on the Profiles page after Hide the Create button; the prompt is the big picture, heading and Create button Instagram shows in place of the grid on your own profile before your first post (#762)
+Hide the empty profile prompt	빈 프로필 안내 숨기기
+Takes the big prompt for your first post off your own profile while it has no posts. Other people's profiles stay as they are.	게시물이 없는 동안 내 프로필에서 첫 게시물을 올리라는 큰 안내를 숨깁니다. 다른 사람의 프로필은 그대로입니다.
 Hide Share profile	프로필 공유 숨기기
 Takes the Share profile button off your profile, and Edit profile stretches to fill the space.	내 프로필에서 프로필 공유 버튼을 숨기고, 프로필 편집 버튼이 늘어나 빈 공간을 채웁니다.
 # context: Profiles: switches that hide Subscribe and the arrow at the end of the action buttons on someone's profile, which opens a menu of the buttons that didn't fit (#248). Subscribe is Instagram's own button label, as in the Feed switch that hides Follow and Subscribe.
@@ -1625,7 +1640,7 @@ Unmute all	모두 무음 해제
 Settings button on Home's header	홈 상단의 설정 버튼
 Adds a gear at the top of Home that opens HushGram settings. Restart Instagram to see the change.	홈 상단에 HushGram 설정을 여는 톱니바퀴를 추가합니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.
 Download button on stories	스토리의 다운로드 버튼
-Puts a Download button at the top of a story, beside the three dots. One tap saves the photo or video in front, the same as Download in the menu.	스토리 상단의 점 세 개 옆에 다운로드 버튼을 추가합니다. 한 번 탭하면 메뉴의 다운로드와 똑같이 보고 있는 사진이나 동영상을 저장합니다.
+Puts a Download button at the top of a story, beside the three dots. One tap saves the photo or video in front, the same as Download in the menu. Press and hold for Save all, to save every story in the set you're watching.	스토리 상단의 점 세 개 옆에 다운로드 버튼을 추가합니다. 한 번 탭하면 메뉴의 다운로드와 똑같이 보고 있는 사진이나 동영상을 저장합니다. 길게 누르면 모두 저장을 선택해 보고 있는 스토리 묶음 전체를 저장할 수 있습니다.
 Start reels muted	릴스를 음소거로 시작
 Every reel starts silent, wherever you open it from. The volume keys or the speaker icon unmute it. Wins over Start reels with sound.	어디서 열든 모든 릴스가 소리 없이 시작됩니다. 볼륨 키나 스피커 아이콘으로 소리를 켤 수 있습니다. 릴스를 소리와 함께 시작보다 우선합니다.
 Hide captions	캡션 숨기기
@@ -1892,6 +1907,9 @@ While you swipe through a chat's reels, a banner says when the other person sent
 New message after this reel	이 릴스 다음에 새 메시지
 Hide the audio icon on posts	게시물의 오디오 아이콘 숨기기
 Takes the speaker icon off videos in your feed. Tapping the video still turns the sound on or off. Posts already on screen change when they load again.	피드의 동영상에서 스피커 아이콘을 없앱니다. 동영상을 탭하면 이전처럼 소리가 켜지거나 꺼집니다. 이미 화면에 있는 게시물은 다시 불러올 때 바뀝니다.
+# context: second switch on the Feed page under Hide the audio icon on posts; the tag icon is the small person badge in the corner of a post with people tagged (#762)
+Hide the tag icon on posts	게시물의 태그 아이콘 숨기기
+Takes the little person icon off posts with people tagged in them. Tapping the photo still shows who's tagged.	사람이 태그된 게시물에서 작은 사람 아이콘을 없앱니다. 사진을 탭하면 이전처럼 태그된 사람이 보입니다.
 Light when paused	일시정지 시 밝게
 Pause a reel and Burn-in guard brings the buttons back to full brightness until you play it again or swipe on. The wait then starts over.	릴스를 일시정지하면 번인 방지가 버튼을 다시 최대 밝기로 되돌리고, 다시 재생하거나 넘길 때까지 유지합니다. 그 뒤 대기 시간이 처음부터 다시 시작됩니다.
 Grow the heart	하트 키우기
@@ -2078,6 +2096,11 @@ Hide the Save button	저장 버튼 숨기기
 Takes the Save button off the bottom of posts in your feed, so a stray tap can't save one.	피드 게시물 아래쪽의 저장 버튼을 없애서 실수로 눌러 저장되는 일이 없게 합니다.
 Hide the Like button	좋아요 버튼 숨기기
 Takes the heart and the like count off the bottom of posts in your feed. Double tap still likes a post.	피드 게시물 아래쪽에서 하트와 좋아요 수를 없앱니다. 두 번 탭하면 여전히 게시물에 좋아요를 누를 수 있습니다.
+# context: two switches on the Feed page under Hide the Like button; Liked by is the line under a feed post naming who liked it (#762)
+Hide counts on posts	게시물의 숫자 숨기기
+Takes the like, comment, share and repost numbers off posts in your feed. The buttons stay. Posts already on screen change when they load again.	피드 게시물에서 좋아요, 댓글, 공유, 리포스트 수를 없앱니다. 버튼은 그대로 있습니다. 이미 화면에 있는 게시물은 다시 불러올 때 바뀝니다.
+Hide Liked by	좋아요 누른 사람 줄 숨기기
+Takes the "Liked by" line off posts in your feed.	피드 게시물에서 누가 좋아요를 눌렀는지 보여 주는 줄을 없앱니다.
 # context: the row in a feed post's three-dot menu for a post you already saved, and the row that takes an account off Saved profiles, on its profile's menu and on the Saved profiles page (#629)
 Remove from saved	저장됨에서 삭제
 # context: a switch on the Reels page

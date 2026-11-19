@@ -21,12 +21,19 @@ workflows:
         - 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1'
         - 'actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880'
         - 'actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1'
+    '.github/workflows/repair-v2.1.1-mpp.yml':
+        - 'actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8'
+        - 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1'
+        - 'actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880'
+        - 'actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9'
     '.github/workflows/sync-release-notes.yml':
         - 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1'
     '.github/workflows/verify-main.yml':
         - 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1'
         - 'actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880'
         - 'actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1'
+    '.github/workflows/verify-release-mpp.yml':
+        - 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1'
     '.github/workflows/verify-v2.1.0-source.yml':
         - 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1'
         - 'actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880'

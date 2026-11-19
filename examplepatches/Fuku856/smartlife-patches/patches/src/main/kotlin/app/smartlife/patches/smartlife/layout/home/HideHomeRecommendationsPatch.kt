@@ -4,6 +4,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLa
 import app.morphe.patcher.patch.bytecodePatch
 import app.smartlife.patches.smartlife.misc.fix.signature.spoofSignaturePatch
 import app.smartlife.patches.smartlife.shared.Constants.COMPATIBILITY_SMARTLIFE
+import app.smartlife.patches.smartlife.shared.uniqueMatch
 
 private const val EXTENSION_CLASS = "Lapp/smartlife/extension/SmartLifeSettings;"
 
@@ -20,7 +21,7 @@ val hideHomeRecommendationsPatch = bytecodePatch(
     dependsOn(spoofSignaturePatch)
 
     execute {
-        BuildHomeRecommendationsFingerprint.method.addInstructionsWithLabels(
+        uniqueMatch(BuildHomeRecommendationsFingerprint, "Home recommendations builder").method.addInstructionsWithLabels(
             0,
             """
                 invoke-static { }, $EXTENSION_CLASS->hideHomeRecommendations()Z

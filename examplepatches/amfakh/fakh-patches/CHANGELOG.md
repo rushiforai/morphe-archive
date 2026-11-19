@@ -1,3 +1,12 @@
+## [2.3.1](https://github.com/amfakh/fakh-patches/compare/v2.3.0...v2.3.1) (2026-11-19)
+
+### Updated App Support
+
+* **Jira:** add support for `2026.22.1`, next to `2026.22.0` ([3008b31](https://github.com/amfakh/fakh-patches/commit/3008b3169bf54774a518b50033e53f31c460a004))
+* **DoDo Music:** add support for `2.0.18`, next to `2.0.14` and `2.0.17` ([3008b31](https://github.com/amfakh/fakh-patches/commit/3008b3169bf54774a518b50033e53f31c460a004))
+* **FlipSide:** add support for `1.7.1`, next to `1.6` ([3008b31](https://github.com/amfakh/fakh-patches/commit/3008b3169bf54774a518b50033e53f31c460a004))
+* **detikcom:** move support to `7.15.0`, `7.14.1` is dropped ([f31f11e](https://github.com/amfakh/fakh-patches/commit/f31f11e47f04e692bf3ceb3a1ab6956bbf66a79a))
+
 ## [2.3.0](https://github.com/amfakh/fakh-patches/compare/v2.2.4...v2.3.0) (2026-11-18)
 
 ### New Features

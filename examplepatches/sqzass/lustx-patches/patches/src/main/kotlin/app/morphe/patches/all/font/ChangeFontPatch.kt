@@ -69,8 +69,7 @@ private fun forceFamily(method: MutableMethod, invokeIndex: Int, reg: Int, famil
 @Suppress("unused")
 val customFontPatch = bytecodePatch(
     name = "Custom font",
-    description = "Overrides the app's typeface with a built-in font family. Affects explicit " +
-        "Typeface usage; views that never set a typeface keep the system default.",
+    description = "Overrides the app's typeface with a built-in font.",
     default = false,
 ) {
     val familyOption = stringOption(

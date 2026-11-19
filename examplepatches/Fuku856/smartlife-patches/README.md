@@ -15,22 +15,24 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.1.0](https://github.com/Fuku856/smartlife-patches/releases/tag/v1.1.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;6 patches total
+> **[v1.2.1](https://github.com/Fuku856/smartlife-patches/releases/tag/v1.2.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;8 patches total
 <details open>
-<summary>📦 SmartLife&nbsp;&nbsp;•&nbsp;&nbsp;6 patches</summary>
+<summary>📦 SmartLife&nbsp;&nbsp;•&nbsp;&nbsp;8 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 7.12.0 |
-| :---: |
+| 7.12.6 | 7.12.0 |
+| :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Disable telemetry](#disable-telemetry) | Disables Firebase Analytics/Crashlytics and automatic page tracking. Works by turning off the app's own analytics feature flags. | • Disable Firebase<br>• Disable page tracking |
-| [Hide AI assistant](#hide-ai-assistant) | Hides the "Hey Tuya" AI assistant added in app 7.0 (the home AI bar, the device-panel floating ball and the B2-gated entry points). This is a runtime toggle: it can be turned on and off in the in-app "SmartLife Patches" settings screen (long-press the settings button in the profile tab, or the Settings screen toolbar). Hidden by default. |  |
-| [Hide ads](#hide-ads) | Disables in-app ads: AdMob/PID banners and the Tuya marketing ad service. Works by turning off the app's own advertising feature flags. |  |
+| [Disable telemetry](#disable-telemetry) | Disables Firebase Analytics/Crashlytics and automatic page tracking, and stops the app's analytics, log-upload and attribution subsystems from starting. | • Disable Firebase<br>• Disable page tracking<br>• Stop tracking subsystems |
+| [Hide AI assistant](#hide-ai-assistant) | Hides the "Hey Tuya" AI assistant added in app 7.0 (the AI bar on the home and smart tabs, the device-panel floating ball, the launcher shortcut and the other entry points). This is a runtime toggle: it can be turned on and off in the in-app "SmartLife Patches" settings screen (long-press the settings button in the profile tab, or the Settings screen toolbar). Hidden by default. |  |
+| [Hide Smart App tab](#hide-smart-app-tab) | Hides the "Smart App" tab (AI app builder) at the top of the smart tab. This is a runtime toggle in the in-app "SmartLife Patches" settings screen. Hidden by default. |  |
+| [Hide ads](#hide-ads) | Disables in-app ads (including the AdMob native ad on the home screen), promotional banners, ad push, and ad-related attribution. Stops the corresponding advertising subsystems and removes Home/Profile ad entries. | • Stop ad subsystems<br>• Remove Home/Profile ad entries<br>• Remove ad services (experimental) |
 | [Hide home recommendations](#hide-home-recommendations) | Hides the "おすすめ" (Recommended) cards on the home screen. This is a runtime toggle in the in-app "SmartLife Patches" settings screen. Hidden by default. |  |
+| [Hide scene recommendations](#hide-scene-recommendations) | Hides the recommended scenes ("お勧め") shown under the automation and tap-to-run lists of the smart tab. This is a runtime toggle in the in-app "SmartLife Patches" settings screen. Hidden by default. |  |
 | [SmartLife Patches settings](#smartlife-patches-settings) | Adds two ways to open the in-app "SmartLife Patches" settings screen: long-press the settings button at the top of the profile tab, or long-press the toolbar of the app's Settings screen. |  |
 | [Spoof signature](#spoof-signature) | Keeps the original APK signature visible to the app after re-signing, so the app's integrity self-check passes instead of showing "integrity check failed" and quitting, and so email/phone + password login keeps working. Enabled by default because the app does not start without it. |  |
 

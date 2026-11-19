@@ -127,10 +127,7 @@ private fun processClass(classDef: ClassDef, spoofBuild: Boolean) {
 @Suppress("unused")
 val spoofRootedEnvironmentPatch = bytecodePatch(
     name = "Spoof rooted environment",
-    description = "Makes Java-level root checks report rooted: forces named detection " +
-        "methods true, spoofs Build.TAGS/USER/HOST at read sites, and forces su-path " +
-        "file checks to succeed. String/field-based targeting survives obfuscation. " +
-        "Native checks and Runtime.exec(\"su\") are not faked.",
+    description = "Spoofs root checks and Build fields.",
     default = false,
 ) {
     val spoofBuild by booleanOption(

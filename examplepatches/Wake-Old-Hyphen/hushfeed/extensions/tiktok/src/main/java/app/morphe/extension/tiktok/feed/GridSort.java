@@ -1152,7 +1152,7 @@ public final class GridSort {
 
     /**
      * The FrameLayout the grid's chips, rail and loading cover float in: the grid's own parent, or
-     * the frame around the LinearLayout TikTok wraps the Favorites grid in. On 47.8.3 that layout
+     * the frame around the LinearLayout TikTok wraps the Favorites grid in. On 47.9.1 that layout
      * sits in a fragment container, which refuses any other view, inside a plain frame of the
      * same size, so a frame that vets what's added to it is passed over, as is a scroll view.
      */
@@ -1520,12 +1520,18 @@ public final class GridSort {
         }
     }
 
-    /** A new list: the pinned videos first as TikTok has them, then the rest by [by]. */
+    /**
+     * A new list: the pinned videos first as TikTok has them, then the rest by [by]. With Sort
+     * pinned videos with the rest on, pinned videos are sorted in like any other (#466); a
+     * folder's header rows stay in front either way.
+     */
     static List<Object> sort(List<?> list, Comparator<Object> by) {
         List<Object> pinned = new ArrayList<>();
         List<Object> rest = new ArrayList<>();
+        boolean pinnedFirst = !Settings.SORT_PINNED_WITH_REST.get();
         for (Object item : list) {
-            (isPinned(item) ? pinned : rest).add(item);
+            boolean front = isPinned(item) && (pinnedFirst || GridPicker.wrapsPost(item));
+            (front ? pinned : rest).add(item);
         }
         // List.sort is stable, so equal values and missing ones stay in TikTok's order.
         Collections.sort(rest, by);
@@ -1578,7 +1584,7 @@ public final class GridSort {
 
     /**
      * The video a grid item stands for: the item itself, or the one a collection folder's row
-     * wraps. Null for anything else, a header row included, which on 47.8.3 wraps an empty video
+     * wraps. Null for anything else, a header row included, which on 47.9.1 wraps an empty video
      * with no id.
      */
     static Aweme postOf(Object item) {

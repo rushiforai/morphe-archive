@@ -447,7 +447,7 @@ Playback	Oynatma
 # context: switch title; on, videos and music wait for a tap before they play
 Tap to play	Oynatmak için dokun
 # context: summary of that switch; Autoplay and Off are the name and value of Facebook's own setting, as Facebook shows them in this language
-Videos, reels, stories and music wait for your tap instead of playing by themselves. Facebook's own Autoplay setting shows Off while this is on.	Videolar, reeller, hikayeler ve müzik kendiliğinden oynamak yerine dokunuşunuzu bekler. Bu açıkken Facebook'un kendi Otomatik oynat ayarı Kapalı görünür.
+Videos, reels and music wait for your tap instead of playing by themselves. Facebook's own Autoplay setting shows Off while this is on.	Videolar, reeller ve müzik kendiliğinden oynamak yerine dokunuşunuzu bekler. Bu açıkken Facebook'un kendi Otomatik oynat ayarı Kapalı görünür.
 # context: switch title under Opening Facebook; Marketplace is Facebook's tab and keeps its name
 Marketplace only	Yalnızca Marketplace
 # context: switch title under Opening Facebook, next to Marketplace only; Events is Facebook's tab and keeps its name
@@ -1660,7 +1660,7 @@ Facebook hasn't downloaded this screen to this phone, so a tap opens the Whiteha
 # context: toast when the Facebook version has no such screen
 This Facebook build has no Whitehat settings screen.	Bu Facebook sürümünde Whitehat ayarları ekranı yok.
 Only the first reel waits	Yalnızca ilk reel bekler
-With the switch above on, after you play one reel, the reels you swipe to play on their own. The feed, Watch and stories always wait.	Yukarıdaki anahtar açıkken bir reel oynattıktan sonra kaydırdığınız reeller kendiliğinden oynar. Akış, Watch ve hikayeler her zaman bekler.
+With the switch above on, after you play one reel, the reels you swipe to play on their own. The feed and Watch always wait.	Yukarıdaki anahtar açıkken bir reel oynattıktan sonra kaydırdığınız reeller kendiliğinden oynar. Akış ve Watch her zaman bekler.
 Slower speeds	Daha yavaş hızlar
 Adds 0.1x and 0.25x to the speed menu of reels and of feed and Watch videos, for slowing down a fast moment.	Reellerin ve akış ile Watch videolarının hız menüsüne 0,1x ve 0,25x seçeneklerini ekler; hızlı geçen bir anı yavaşlatmak için.
 Faster speeds	Daha yüksek hızlar
@@ -2755,10 +2755,12 @@ Takes the row of suggested replies off the bottom of a story. The reply box stay
 Hide the Subscribe button	Abone ol düğmesini gizle
 Takes the Subscribe button off the top of a story. Applies from the next story you open.	Bir hikayenin üstündeki Abone ol düğmesini kaldırır. Açtığın bir sonraki hikayeden itibaren geçerli olur.
 Hide create story cards	Hikaye oluşturma kartlarını gizle
-Takes out the card between stories that asks you to make one, including the ones built from photos in your gallery. Applies the next time you open stories.	Hikayeler arasında senden bir tane oluşturmanı isteyen kartı, galerindeki fotoğraflardan hazırlananlar dahil kaldırır. Hikayeleri bir sonraki açışında geçerli olur.
+Takes out the cards between stories that ask you to make one, including the full screen card that asks you to continue the story with photos from your gallery. Applies the next time you open stories.	Hikayeler arasında senden bir tane oluşturmanı isteyen kartları, galerindeki fotoğraflarla hikayeye devam etmeni isteyen tam ekran kart dahil kaldırır. Hikayeleri bir sonraki açışında geçerli olur.
 Progress bar at the bottom	Altta ilerleme çubuğu
 Shows a thin bar along the bottom of a story that fills as it plays, like the one on Reels.	Bir hikayenin altında, oynatıldıkça dolan ince bir çubuk gösterir, Reels'teki gibi.
 Seek bar on stories	Hikayelerde sarma çubuğu
+Plain slide between people	Kişiler arasında düz kaydırma
+Swiping to the next or previous person's stories slides them across instead of turning them like a cube. Applies from your next swipe.	Sonraki ya da önceki kişinin hikayelerine kaydırdığında hikayeler küp gibi dönmek yerine yana kayar. Bir sonraki kaydırmandan itibaren uygulanır.
 Fade the story seek bar	Hikaye sarma çubuğunu soldur
 Story position	Hikaye konumu
 Shows a bar along the bottom of a video story that you drag to move through it. The story waits while you drag. Progress bar at the bottom makes way for it on video stories.	Bir video hikayenin altında, içinde ilerlemek için sürükleyebileceğiniz bir çubuk gösterir. Siz sürüklerken hikaye bekler. “Altta ilerleme çubuğu” video hikayelerde ona yer açar.
@@ -2839,6 +2841,8 @@ A small label at the top of Reels shows the minutes you've watched. Time on othe
 %1$d min	%1$d dk
 Hide the tab bar on the Reels tab	Reels sekmesinde sekme çubuğunu gizle
 The tab bar goes away while the Reels tab is open, and the reel gets the whole screen. The other tabs keep the bar. Restart Facebook to see the change.	Reels sekmesi açıkken sekme çubuğu kaybolur ve reel tüm ekranı kaplar. Diğer sekmeler çubuğu korur. Değişikliği görmek için Facebook'u yeniden başlatın.
+Hide the line along the tab bar	Sekme çubuğundaki çizgiyi gizle
+The thin line Facebook draws along the edge of the tab bar goes away on every tab. Tap a tab to see the change.	Facebook'un sekme çubuğunun kenarına çizdiği ince çizgi tüm sekmelerde kaybolur. Değişikliği görmek için bir sekmeye dokunun.
 Playback speed in the post menu	Gönderi menüsünde oynatma hızı
 A feed or Watch video's 3-dot menu gets Playback speed, from 0.5x to 3x, live videos too. Off by default, since it hasn't been tried on a real account yet.	Akıştaki veya Watch'taki bir videonun üç nokta menüsüne 0,5x ile 3x arasında Oynatma hızı eklenir, canlı videolarda da. Varsayılan olarak kapalı, çünkü gerçek bir hesapta henüz denenmedi.
 Double tap to skip on feed videos	Akış videolarında atlamak için çift dokun
@@ -3002,3 +3006,14 @@ Emoji font file cleared. Restart Facebook to apply the emoji change.	Emoji yazı
 Couldn't go back to your phone's emoji. Try again.	Telefonunun emojilerine geri dönülemedi. Tekrar dene.
 # context: toast when the app holding the emoji font doesn't answer in time
 The app holding that font file is taking too long, so Hushfacebook stopped waiting. Your emoji didn't change.	O yazı tipi dosyasını tutan uygulama çok uzun sürüyor, bu yüzden Hushfacebook beklemeyi bıraktı. Emojilerin değişmedi.
+Never	Asla
+Back to Clean mode	Temiz moda dön
+When the comments or a menu close	Yorumlar veya bir menü kapanınca
+When the comments or a menu close. A reel you took out of Clean mode goes back into it once whatever you opened over it closes.	Yorumlar veya bir menü kapanınca. Temiz moddan çıkardığın bir reel, üstünde açtığın şey kapanınca bu moda geri döner.
+%1$s. A reel you took out of Clean mode goes back into it once you haven't touched the screen for that long. An open sheet holds the time.	%1$s. Temiz moddan çıkardığın bir reel, ekrana bu kadar süre dokunmadığında bu moda geri döner. Açık bir sayfa süreyi durdurur.
+Never. A reel you take out of Clean mode stays out until you put it back.	Asla. Temiz moddan çıkardığın bir reel, sen geri alana kadar dışarıda kalır.
+A reel you take out of Clean mode will stay out until you put it back.	Temiz moddan çıkardığın bir reel, sen geri alana kadar dışarıda kalacak.
+A reel you take out of Clean mode will go back into it when the comments or a menu close.	Temiz moddan çıkardığın bir reel, yorumlar veya bir menü kapanınca bu moda geri dönecek.
+A reel you take out of Clean mode will go back into it after %1$d seconds without a touch.	Temiz moddan çıkardığın bir reel, %1$d saniye dokunulmadığında bu moda geri dönecek.
+Hide New for you on reels	Reels'te “Senin için yeni” yazısını gizle
+Takes "New for you", and other reasons Facebook gives for showing you a reel, off the line under its author, so the date and the song show right away. A change shows from the next reel.	“Senin için yeni” ve Facebook'un sana bir reel göstermek için verdiği diğer nedenleri paylaşan kişinin adının altındaki satırdan kaldırır, böylece tarih ve şarkı hemen görünür. Değişiklik bir sonraki reel'den itibaren görünür.

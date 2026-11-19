@@ -216,9 +216,7 @@ Forget the video @%2$s has seen.	انس الفيديو الذي شاهده @%2$s
 Got it	فهمت
 Hide profile shortcuts	إخفاء اختصارات الملف الشخصي
 # context: Title of the checklist that hides tabs from the strip above a profile's videos
-Hide profile tabs	إخفاء علامات تبويب الملف الشخصي
 # context: Note under that title. Reposts and Liked videos are two of the checklist's rows, and the checklist never takes away every tab
-Pick the tabs to hide from the strip above a profile's videos, such as Reposts or Liked videos. One tab always stays. Restart TikTok to apply this.	اختر علامات التبويب التي تريد إخفاءها من الشريط فوق فيديوهات الملف الشخصي، مثل إعادات النشر أو الفيديوهات التي أعجبتك. تبقى علامة تبويب واحدة دائمًا. أعد تشغيل TikTok لتطبيق هذا.
 # context: Checklist row for the profile tab with the account's private videos (lock icon)
 Private videos	الفيديوهات الخاصة
 # context: Checklist row for the profile tab with the videos the account reposted
@@ -3259,3 +3257,36 @@ The Widget circle at the end of the stories tray goes. TikTok's home screen widg
 # context: Feed screen settings, a switch under Show video length on profile grids. It removes the view count and the play icon from each video tile on profile grids. If the date, video length or engagement rate are switched on, they take the first line instead.
 Hide view counts on profile grids	إخفاء عدد المشاهدات في شبكات الملف الشخصي
 Takes the view count and its play icon off each video on profile grids. Dates, lengths and the engagement rate you turned on move up in its place.	يزيل عدد المشاهدات وأيقونة التشغيل بجانبه من كل فيديو في شبكات الملف الشخصي. التواريخ والمدد ونسبة التفاعل التي فعّلتها تنتقل إلى مكانه.
+Video bitrate limit	حد معدل البت للفيديو
+%1$s Mb/s	%1$s ميجابت/ث
+A video heavier than this plays a lighter version. If none fits, it plays its lightest one.	الفيديو الأثقل من هذا يعمل بنسخة أخف. إذا لم تناسبه أي نسخة، يعمل بأخف نسخة.
+Use an imported emoji font	استخدام خط إيموجي مستورد
+Shows emoji in the font file you import below, whichever font the text is in. Restart TikTok to see the change.	يعرض الإيموجي بملف الخط الذي تستورده أدناه، أيًا كان خط النص. أعد تشغيل TikTok لرؤية التغيير.
+Import an emoji font file	استيراد ملف خط إيموجي
+Remove the imported emoji font	أزل خط الإيموجي المستورد
+No emoji font is imported	لا يوجد خط إيموجي مستورد
+%1$s is imported. Turn on Use an imported emoji font to see it.	تم استيراد %1$s. فعّل «استخدام خط إيموجي مستورد» لرؤيته.
+Write the month as a word	اكتب الشهر بالاسم
+Writes TikTok's date by the creator's name with the month's name, like Oct 12. Day before month makes it 12 Oct.	يكتب تاريخ TikTok بجانب اسم صانع المحتوى باسم الشهر، مثل Oct 12. ويجعله خيار اليوم قبل الشهر 12 Oct.
+Fade the name, date and caption	إخفاء الاسم والتاريخ والوصف تدريجيا
+Draws the creator's name, the date, the caption and the music line over the video at this level, and they still take taps. At 100 they follow Fade the video controls. At 0 they're hidden.	يعرض اسم صانع المحتوى والتاريخ والوصف وسطر الموسيقى فوق الفيديو بهذا المستوى، مع بقائها قابلة للنقر. عند 100 تتبع إخفاء عناصر التحكم في الفيديو تدريجيا. وعند 0 تُخفى.
+LIVE buttons in the long-press menu	أزرار LIVE في قائمة الضغط المطول
+Takes the Record and Auto tap buttons off the video and puts them in the menu you get by holding the middle of a LIVE.	يزيل زري تسجيل والنقر التلقائي من الفيديو ويضعهما في القائمة التي تظهر عند الضغط مطولا على وسط LIVE.
+Auto tap started	بدأ النقر التلقائي
+Hide stories from accounts you don't follow	إخفاء القصص من حسابات لا تتابعها
+Stories from accounts you don't follow leave the stories tray. Stories from accounts you follow stay.	تختفي القصص من الحسابات التي لا تتابعها من شريط القصص. تبقى القصص من الحسابات التي تتابعها.
+Hide the people you may know tag	إخفاء وسم الأشخاص الذين قد تعرفهم
+Hide the small tag next to the creator's name that says you may know them. The video stays.	إخفاء الوسم الصغير بجوار اسم صانع المحتوى الذي يقول إنك قد تعرفه. يبقى الفيديو.
+Report a newer phone to game LIVE	إبلاغ LIVE الألعاب بهاتف أحدث
+TikTok's server picks the qualities a game LIVE can stream in, and some phones get fewer than they can handle. While you set up a LIVE, this tells the LIVE server you have a Galaxy S25 Ultra. Sign-in and everything else still see your real phone. A quality your phone can't keep up with may stutter.	يختار خادم TikTok الجودات التي يمكن بث LIVE الألعاب بها، وتحصل بعض الهواتف على أقل مما تستطيع. أثناء إعداد LIVE، يخبر هذا خادم LIVE أن لديك Galaxy S25 Ultra. لا يزال تسجيل الدخول وكل شيء آخر يريان هاتفك الحقيقي. قد تتقطع جودة لا يستطيع هاتفك مجاراتها.
+Keep suggestions on profiles	إبقاء الاقتراحات في الملفات الشخصية
+The Suggested accounts row under a profile's Follow button still shows, so you can find similar accounts after you follow someone.	يبقى صف الحسابات المقترحة أسفل زر المتابعة في الملف الشخصي ظاهرًا، لتجد حسابات مشابهة بعد أن تتابع شخصًا.
+Sort pinned videos with the rest	رتّب الفيديوهات المثبتة مع البقية
+Pinned videos take their place in the order instead of staying at the top, so Newest first puts them at the date they were posted.	تأخذ الفيديوهات المثبتة مكانها في الترتيب بدلًا من البقاء في الأعلى، فيضعها خيار الأحدث أولا في تاريخ نشرها.
+Hide or reorder profile tabs	إخفاء علامات تبويب الملف الشخصي أو إعادة ترتيبها
+Pick the tabs to hide from the strip above a profile's videos, such as Reposts or Liked videos, and use the arrows to put the rest in your order. One tab always stays. Restart TikTok to apply this.	اختر علامات التبويب التي تريد إخفاءها من الشريط فوق فيديوهات الملف الشخصي، مثل إعادات النشر أو الفيديوهات التي أعجبتك، واستخدم الأسهم لترتيب البقية كما تريد. تبقى علامة تبويب واحدة دائمًا. أعد تشغيل TikTok لتطبيق هذا.
+Hide Add bio	إخفاء إضافة نبذة
+Hide the Add bio prompt TikTok shows on your own profile while it has no bio. You can still add one from Edit profile.	إخفاء مطالبة إضافة نبذة التي يعرضها TikTok في ملفك الشخصي ما دام بلا نبذة. يمكنك إضافة نبذة من تعديل الملف الشخصي.
+Show the picture before saving	عرض الصورة قبل حفظها
+With the long press save on, holding a profile picture opens it full screen at full size, with a Save button under it.	مع تشغيل الحفظ بالضغط المطوّل، يفتح الضغط المطوّل على صورة الملف الشخصي الصورة بملء الشاشة وبحجمها الكامل، وتحتها زر حفظ.
+The profile picture couldn't be loaded. Try again.	تعذر تحميل صورة الملف الشخصي. حاول مرة أخرى.

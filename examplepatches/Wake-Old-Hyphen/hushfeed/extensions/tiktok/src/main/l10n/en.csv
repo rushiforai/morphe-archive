@@ -23,6 +23,7 @@ source,target
 "%1$s (custom, unverified)","%1$s (custom, unverified)"
 %1$s (override returned),%1$s (override returned)
 %1$s (will be returned when requested),%1$s (will be returned when requested)
+%1$s Mb/s,%1$s Mb/s
 %1$s and above,%1$s and above
 %1$s appears more than once in this file.,%1$s appears more than once in this file.
 %1$s day,%1$s day
@@ -36,6 +37,7 @@ source,target
 %1$s is a kind of value the Lab can't override.,%1$s is a kind of value the Lab can't override.
 %1$s is already hidden,%1$s is already hidden
 %1$s is imported. Restart TikTok to see it.,%1$s is imported. Restart TikTok to see it.
+%1$s is imported. Turn on Use an imported emoji font to see it.,%1$s is imported. Turn on Use an imported emoji font to see it.
 %1$s is imported. Turn on Use an imported font to see it.,%1$s is imported. Turn on Use an imported font to see it.
 %1$s is removed,%1$s is removed
 %1$s is removed. Restart TikTok to see the change.,%1$s is removed. Restart TikTok to see the change.
@@ -170,6 +172,7 @@ A removal is already running,A removal is already running
 "A small label on the feed shows the minutes or videos left of today's budget, whichever is closer to running out.","A small label on the feed shows the minutes or videos left of today's budget, whichever is closer to running out."
 "A soft dark fade behind the clock and status icons, so they stay easy to read over a bright video. Needs See-through status bar.","A soft dark fade behind the clock and status icons, so they stay easy to read over a bright video. Needs See-through status bar."
 A tap on Home or on the For You tab while For You is showing no longer reloads it. The video you're on stays.,A tap on Home or on the For You tab while For You is showing no longer reloads it. The video you're on stays.
+"A video heavier than this plays a lighter version. If none fits, it plays its lightest one.","A video heavier than this plays a lighter version. If none fits, it plays its lightest one."
 A video you paused stays paused when you come back to the app instead of starting again. One you left playing starts as usual. It works on Android 10 and newer.,A video you paused stays paused when you come back to the app instead of starting again. One you left playing starts as usual. It works on Android 10 and newer.
 A web address someone left in a comment can be tapped instead of copied out by hand. Tapping anywhere else in the comment still does what it did.,A web address someone left in a comment can be tapped instead of copied out by hand. Tapping anywhere else in the comment still does what it did.
 "A zone name like Europe/Belgrade, used in place of the country's. Daylight saving follows by itself. Empty means the country's own zone.","A zone name like Europe/Belgrade, used in place of the country's. Daylight saving follows by itself. Empty means the country's own zone."
@@ -312,6 +315,7 @@ Author text size,Author text size
 Auto tap,Auto tap
 Auto tap in LIVE rooms,Auto tap in LIVE rooms
 Auto tap speed,Auto tap speed
+Auto tap started,Auto tap started
 Auto tap stopped,Auto tap stopped
 Auto translate comments,Auto translate comments
 Auto-advance,Auto-advance
@@ -672,6 +676,7 @@ Drag up or down along the left or right edge of a video to change what that edge
 Drama and Series,Drama and Series
 "Draw a larger handle and a slightly thicker line on the progress bar, so it's easier to see where you are.","Draw a larger handle and a slightly thicker line on the progress bar, so it's easier to see where you are."
 "Draw the main feed's floating pill as glass, lighter and more see-through, with a bright rim along its top edge. Needs Floating bottom bar.","Draw the main feed's floating pill as glass, lighter and more see-through, with a bright rim along its top edge. Needs Floating bottom bar."
+"Draws the creator's name, the date, the caption and the music line over the video at this level, and they still take taps. At 100 they follow Fade the video controls. At 0 they're hidden.","Draws the creator's name, the date, the caption and the music line over the video at this level, and they still take taps. At 100 they follow Fade the video controls. At 0 they're hidden."
 Each area shows how many of the things Hushfeed looks for were found in this TikTok and how many are missing.,Each area shows how many of the things Hushfeed looks for were found in this TikTok and how many are missing.
 "Each time TikTok starts, deletes the offline videos you've already watched, so the next download fills their places with new ones. A video counts as watched once it's been on screen.","Each time TikTok starts, deletes the offline videos you've already watched, so the next download fills their places with new ones. A video counts as watched once it's been on screen."
 Earlier this session,Earlier this session
@@ -721,6 +726,7 @@ Exported 1 loaded value,Exported 1 loaded value
 Extra bold,Extra bold
 "Fade the buttons, caption and tabs over the video to this level instead of hiding them. 100 leaves them as TikTok draws them. Faded controls still take taps. At 0 the buttons and caption are hidden, and the tabs stay at 10.","Fade the buttons, caption and tabs over the video to this level instead of hiding them. 100 leaves them as TikTok draws them. Faded controls still take taps. At 0 the buttons and caption are hidden, and the tabs stay at 10."
 Fade the feed out before the hold,Fade the feed out before the hold
+"Fade the name, date and caption","Fade the name, date and caption"
 Fade the video controls,Fade the video controls
 Fall back to the watermarked copy,Fall back to the watermarked copy
 Family Pairing,Family Pairing
@@ -848,6 +854,7 @@ Hidden commenters,Hidden commenters
 Hidden: %1$s,Hidden: %1$s
 Hide,Hide
 Hide AI-generated videos,Hide AI-generated videos
+Hide Add bio,Hide Add bio
 Hide Add friends,Hide Add friends
 Hide Balance from the menu your profile's top right button opens. Your coins and gifts stay as they are.,Hide Balance from the menu your profile's top right button opens. Your coins and gifts stay as they are.
 Hide Balance in the profile menu,Hide Balance in the profile menu
@@ -912,6 +919,7 @@ Hide mini dramas,Hide mini dramas
 Hide new follower notifications,Hide new follower notifications
 Hide new followers,Hide new followers
 Hide online status,Hide online status
+Hide or reorder profile tabs,Hide or reorder profile tabs
 Hide paid partnerships,Hide paid partnerships
 Hide people and options by name,Hide people and options by name
 Hide photo posts,Hide photo posts
@@ -923,7 +931,6 @@ Hide playlist videos,Hide playlist videos
 Hide profile pictures in comments,Hide profile pictures in comments
 Hide profile shortcuts,Hide profile shortcuts
 Hide profile shortcuts by name,Hide profile shortcuts by name
-Hide profile tabs,Hide profile tabs
 Hide profile views,Hide profile views
 Hide profile visits,Hide profile visits
 Hide promotional music,Hide promotional music
@@ -945,6 +952,7 @@ Hide speed messages,Hide speed messages
 Hide sponsored LIVEs,Hide sponsored LIVEs
 Hide sticker suggestions,Hide sticker suggestions
 Hide stories,Hide stories
+Hide stories from accounts you don't follow,Hide stories from accounts you don't follow
 Hide stories from the feed.,Hide stories from the feed.
 Hide stories tray,Hide stories tray
 Hide story views,Hide story views
@@ -957,6 +965,7 @@ Hide surveys,Hide surveys
 Hide tabs TikTok adds later unless you allow them.,Hide tabs TikTok adds later unless you allow them.
 "Hide the ""Search this image"" prompt shown over videos. The feed search button and suggestions above comments are separate settings.","Hide the ""Search this image"" prompt shown over videos. The feed search button and suggestions above comments are separate settings."
 Hide the AI Cast button,Hide the AI Cast button
+Hide the Add bio prompt TikTok shows on your own profile while it has no bio. You can still add one from Edit profile.,Hide the Add bio prompt TikTok shows on your own profile while it has no bio. You can still add one from Edit profile.
 Hide the Add friends button at the top of your profile. The menu button stays where it is.,Hide the Add friends button at the top of your profile. The menu button stays where it is.
 Hide the All button at the end of the story row on the Following feed. The row and its stories stay.,Hide the All button at the end of the story row on the Following feed. The row and its stories stay.
 Hide the All button on Following,Hide the All button on Following
@@ -1010,6 +1019,7 @@ Hide the magnifying glass at the top right of the feed and the one over the vide
 Hide the music line,Hide the music line
 "Hide the notification saying somebody new followed you before it reaches the drawer. Every other notification is left alone, and the follower still appears in the Inbox.","Hide the notification saying somebody new followed you before it reaches the drawer. Every other notification is left alone, and the follower still appears in the Inbox."
 Hide the number beside the heart on each comment. The heart still works.,Hide the number beside the heart on each comment. The heart still works.
+Hide the people you may know tag,Hide the people you may know tag
 "Hide the photo, @ and gift buttons in the box where you write a comment. Emoji and sending work as before.","Hide the photo, @ and gift buttons in the box where you write a comment. Emoji and sending work as before."
 Hide the picture beside each comment and reply. The name and the comment move over to fill its place.,Hide the picture beside each comment and reply. The name and the comment move over to fill its place.
 Hide the playlist bar,Hide the playlist bar
@@ -1035,6 +1045,7 @@ Hide the search bar below videos,Hide the search bar below videos
 Hide the search button on the feed,Hide the search button on the feed
 Hide the share prompt after a like,Hide the share prompt after a like
 Hide the side menu button,Hide the side menu button
+Hide the small tag next to the creator's name that says you may know them. The video stays.,Hide the small tag next to the creator's name that says you may know them. The video stays.
 Hide the status bar,Hide the status bar
 Hide the status bar in LIVE rooms,Hide the status bar in LIVE rooms
 Hide the streak button in a chat and the reminder message that goes with it.,Hide the streak button in a chat and the reminder message that goes with it.
@@ -1120,6 +1131,7 @@ Icon changed,Icon changed
 "If that name is taken, Hushfeed adds a number to the new file.","If that name is taken, Hushfeed adds a number to the new file."
 "If the feed's video blinks as you swipe with See-through bottom bar on, this draws it inside TikTok instead of on a layer of its own. It can use a little more battery. Needs See-through bottom bar.","If the feed's video blinks as you swipe with See-through bottom bar on, this draws it inside TikTok instead of on a layer of its own. It can use a little more battery. Needs See-through bottom bar."
 Import a font file,Import a font file
+Import an emoji font file,Import an emoji font file
 Import finished,Import finished
 Import loaded values,Import loaded values
 Import watch history,Import watch history
@@ -1172,6 +1184,7 @@ Keep offline videos until you delete them,Keep offline videos until you delete t
 Keep photos as TikTok sent them,Keep photos as TikTok sent them
 Keep playing in the background,Keep playing in the background
 "Keep playing in the background is on in Hushfeed's Playback settings, so TikTok gets 2 for this key and an override here has no effect until that switch is off.","Keep playing in the background is on in Hushfeed's Playback settings, so TikTok gets 2 for this key and an override here has no effect until that switch is off."
+Keep suggestions on profiles,Keep suggestions on profiles
 Keep the Favorites tab,Keep the Favorites tab
 Keep the For You feed on your real SIM,Keep the For You feed on your real SIM
 Keep the LIVE quality after TikTok restarts,Keep the LIVE quality after TikTok restarts
@@ -1198,6 +1211,7 @@ Kept so far: %1$d,Kept so far: %1$d
 "Kept to %1$s, the nearest value this row allows","Kept to %1$s, the nearest value this row allows"
 Kinds of post,Kinds of post
 LIVE,LIVE
+LIVE buttons in the long-press menu,LIVE buttons in the long-press menu
 LIVE chat auto-translate,LIVE chat auto-translate
 LIVE ended or dropped. Recording saved to %1$s,LIVE ended or dropped. Recording saved to %1$s
 LIVE feed,LIVE feed
@@ -1425,6 +1439,7 @@ No creator to hide on this video,No creator to hide on this video
 No current value,No current value
 No current value and no active override,No current value and no active override
 No delay,No delay
+No emoji font is imported,No emoji font is imported
 No folder picker here. Type the folder in the row.,No folder picker here. Type the folder in the row.
 No font is imported,No font is imported
 "No full file at this quality, so TikTok saves it","No full file at this quality, so TikTok saves it"
@@ -1638,7 +1653,7 @@ Pick the buttons to take off the column. The rest stay where they are.,Pick the 
 "Pick the popups to stop. The list holds the ones TikTok has tried to show on this phone, so a popup appears here after its first showing. CAPTCHA, verification, sign-in, age, ban and legal consent screens are never listed or blocked.","Pick the popups to stop. The list holds the ones TikTok has tried to show on this phone, so a popup appears here after its first showing. CAPTCHA, verification, sign-in, age, ban and legal consent screens are never listed or blocked."
 "Pick the rows to take out of TikTok's Settings and privacy page. This applies the next time the page opens, and a section left with no rows loses its title too.","Pick the rows to take out of TikTok's Settings and privacy page. This applies the next time the page opens, and a section left with no rows loses its title too."
 "Pick the shortcuts to remove from the row under a profile's bio, such as TikTok Studio or Your orders. Restart TikTok to apply this.","Pick the shortcuts to remove from the row under a profile's bio, such as TikTok Studio or Your orders. Restart TikTok to apply this."
-"Pick the tabs to hide from the strip above a profile's videos, such as Reposts or Liked videos. One tab always stays. Restart TikTok to apply this.","Pick the tabs to hide from the strip above a profile's videos, such as Reposts or Liked videos. One tab always stays. Restart TikTok to apply this."
+"Pick the tabs to hide from the strip above a profile's videos, such as Reposts or Liked videos, and use the arrows to put the rest in your order. One tab always stays. Restart TikTok to apply this.","Pick the tabs to hide from the strip above a profile's videos, such as Reposts or Liked videos, and use the arrows to put the rest in your order. One tab always stays. Restart TikTok to apply this."
 "Pick the tabs to remove from the top of the search results, such as Shop, LIVE or Places. The list holds the tabs TikTok has shown you, and Top always stays.","Pick the tabs to remove from the top of the search results, such as Shop, LIVE or Places. The list holds the tabs TikTok has shown you, and Top always stays."
 Pick videos to save from profile grids,Pick videos to save from profile grids
 Pick which stories to save,Pick which stories to save
@@ -1650,6 +1665,7 @@ Pill corners,Pill corners
 Pill height,Pill height
 Pill is the wide bubble with a row of dots under the speed. Circle is a small round dial with a notch for each speed around its edge.,Pill is the wide bubble with a row of dots under the speed. Circle is a small round dial with a notch for each speed around its edge.
 Pin more chats,Pin more chats
+"Pinned videos take their place in the order instead of staying at the top, so Newest first puts them at the date they were posted.","Pinned videos take their place in the order instead of staying at the top, so Newest first puts them at the date they were posted."
 Places,Places
 Play,Play
 Play SDR instead of HDR,Play SDR instead of HDR
@@ -1789,6 +1805,7 @@ Remove rings on the feed,Remove rings on the feed
 Remove selected comments,Remove selected comments
 Remove story rings,Remove story rings
 Remove the LIVE ring,Remove the LIVE ring
+Remove the imported emoji font,Remove the imported emoji font
 Remove the imported font,Remove the imported font
 Remove watermark,Remove watermark
 Removed %1$s,Removed %1$s
@@ -1810,6 +1827,7 @@ Replace values when TikTok asks for them,Replace values when TikTok asks for the
 Replay a story from the start when it ends instead of moving to the next one. Tap or swipe to move on.,Replay a story from the start when it ends instead of moving to the next one. Tap or swipe to move on.
 Replay in the background,Replay in the background
 Report a newer phone to effects,Report a newer phone to effects
+Report a newer phone to game LIVE,Report a newer phone to game LIVE
 Report a problem,Report a problem
 Report saved to %1$s,Report saved to %1$s
 Repost with a comment,Repost with a comment
@@ -2120,6 +2138,7 @@ Show the handle instead of the name,Show the handle instead of the name
 Show the hide button on videos,Show the hide button on videos
 "Show the main feed's tabs on a rounded, see-through dark pill that floats over the video. Needs See-through bottom bar.","Show the main feed's tabs on a rounded, see-through dark pill that floats over the video. Needs See-through bottom bar."
 Show the mute button on videos,Show the mute button on videos
+Show the picture before saving,Show the picture before saving
 Show the progress bar,Show the progress bar
 Show the progress bar thumbnail,Show the progress bar thumbnail
 Show the save button on videos,Show the save button on videos
@@ -2148,6 +2167,7 @@ Shows Add to Story in the share sheet and on stories even when the creator turne
 Shows TikTok's text in your phone's font instead of TikTok Sans. Icons and gift animations keep their own fonts. Restart TikTok to see the change.,Shows TikTok's text in your phone's font instead of TikTok Sans. Icons and gift animations keep their own fonts. Restart TikTok to see the change.
 "Shows a search button at the top left of the comments instead of the box, so the comments get that room back. Tap it to search, and tap it again to put the box away. Search within comments must be on.","Shows a search button at the top left of the comments instead of the box, so the comments get that room back. Tap it to search, and tap it again to put the box away. Search within comments must be on."
 "Shows a small count under TikTok's top tabs of what the feed filter has removed since TikTok started. It shows only on the feed, and taps on it go through to the video under it.","Shows a small count under TikTok's top tabs of what the feed filter has removed since TikTok started. It shows only on the feed, and taps on it go through to the video under it."
+"Shows emoji in the font file you import below, whichever font the text is in. Restart TikTok to see the change.","Shows emoji in the font file you import below, whichever font the text is in. Restart TikTok to see the change."
 Shows every emoji in your phone's own emoji font. The newest emoji your phone doesn't have yet may show as a box or in pieces.,Shows every emoji in your phone's own emoji font. The newest emoji your phone doesn't have yet may show as a box or in pieces.
 Shows the Duet and Stitch options even when the creator turned them off. TikTok may still refuse to accept the result.,Shows the Duet and Stitch options even when the creator turned them off. TikTok may still refuse to accept the result.
 "Shows the country's flag in place of its two letters, by the creator's name and by a commenter's time.","Shows the country's flag in place of its two letters, by the creator's name and by a commenter's time."
@@ -2191,6 +2211,7 @@ Sort loaded videos on Favorites grids,Sort loaded videos on Favorites grids
 Sort loaded videos on Liked grids,Sort loaded videos on Liked grids
 Sort loaded videos on profile grids,Sort loaded videos on profile grids
 Sort loaded videos on sound pages,Sort loaded videos on sound pages
+Sort pinned videos with the rest,Sort pinned videos with the rest
 Sort this grid,Sort this grid
 "Sorts a profile or Liked grid with pinned videos first. While an order is on, the grid keeps loading by itself up to 300 videos, so the order covers more than the first screen. A button in the grid's top corner changes the order right there.","Sorts a profile or Liked grid with pinned videos first. While an order is on, the grid keeps loading by itself up to 300 videos, so the order covers more than the first screen. A button in the grid's top corner changes the order right there."
 "Sorts the videos on a sound's page the same way, loading up to 300 of them while an order is on.","Sorts the videos on a sound's page the same way, loading up to 300 of them while an order is on."
@@ -2293,6 +2314,7 @@ Storage almost full. Recording saved to %1$s,Storage almost full. Recording save
 Store TikTok thinks it came from,Store TikTok thinks it came from
 "Stores the caption, creator, post date and link inside the video file, where media players can read them. Applies to saves made by Hushfeed.","Stores the caption, creator, post date and link inside the video file, where media players can read them. Applies to saves made by Hushfeed."
 Stories,Stories
+Stories from accounts you don't follow leave the stories tray. Stories from accounts you follow stay.,Stories from accounts you don't follow leave the stories tray. Stories from accounts you follow stay.
 Story,Story
 Story %1$s,Story %1$s
 Story position,Story position
@@ -2328,6 +2350,7 @@ Take the rings off the creator's picture in the feed's right column. Needs Remov
 Takes TikTok's AI Cast button off the camera's side toolbar. Open the camera again to see the change.,Takes TikTok's AI Cast button off the camera's side toolbar. Open the camera again to see the change.
 Takes TikTok's own Auto scroll action out of the video panel and the Auto scroll label off the top of videos. Tablets and unfolded foldables also lose the Auto scroll switch beside videos. Works with Auto-advance off too.,Takes TikTok's own Auto scroll action out of the video panel and the Auto scroll label off the top of videos. Tablets and unfolded foldables also lose the Auto scroll switch beside videos. Works with Auto-advance off too.
 "Takes out the small bar above the progress bar that says a friend reposted the video, or asks you to repost it.","Takes out the small bar above the progress bar that says a friend reposted the video, or asks you to repost it."
+Takes the Record and Auto tap buttons off the video and puts them in the menu you get by holding the middle of a LIVE.,Takes the Record and Auto tap buttons off the video and puts them in the menu you get by holding the middle of a LIVE.
 "Takes the view count and its play icon off each video on profile grids. Dates, lengths and the engagement rate you turned on move up in its place.","Takes the view count and its play icon off each video on profile grids. Dates, lengths and the engagement rate you turned on move up in its place."
 Tall,Tall
 Taller,Taller
@@ -2401,6 +2424,7 @@ The Message requests row leaves the Inbox. Requests keep arriving and wait there
 The New followers row leaves the top of the Inbox. The accounts still follow you.,The New followers row leaves the top of the Inbox. The accounts still follow you.
 "The On this day memory at the front of the stories tray goes, and the stories after it move into its place. Nothing is deleted.","The On this day memory at the front of the stories tray goes, and the stories after it move into its place. Nothing is deleted."
 "The Stories button at the top of the Following feed turns to glass with round ends. On Android 12 and up, the video behind it is blurred too.","The Stories button at the top of the Following feed turns to glass with round ends. On Android 12 and up, the video behind it is blurred too."
+"The Suggested accounts row under a profile's Follow button still shows, so you can find similar accounts after you follow someone.","The Suggested accounts row under a profile's Follow button still shows, so you can find similar accounts after you follow someone."
 The Tako assistant's conversation leaves the Inbox list. The Tako bubble on the feed has its own switch under Feed tabs.,The Tako assistant's conversation leaves the Inbox list. The Tako bubble on the feed has its own switch under Feed tabs.
 "The Translate comments button in a LIVE room also needs a Japanese SIM. Turn on Override SIM details in Hushfeed settings > Region, set SIM country preset to Japan, NTT DOCOMO (44010), then restart TikTok.","The Translate comments button in a LIVE room also needs a Japanese SIM. Turn on Override SIM details in Hushfeed settings > Region, set SIM country preset to Japan, NTT DOCOMO (44010), then restart TikTok."
 The Widget circle at the end of the stories tray goes. TikTok's home screen widget still works.,The Widget circle at the end of the stories tray goes. TikTok's home screen widget still works.
@@ -2452,6 +2476,7 @@ The network proxy from that file is off. Check its address before you turn it on
 The partial file couldn't be removed. Delete it from the folder you chose.,The partial file couldn't be removed. Delete it from the folder you chose.
 "The port the proxy listens on, like 8080 or 1080.","The port the proxy listens on, like 8080 or 1080."
 The presets couldn't load. Open the Lab again.,The presets couldn't load. Open the Lab again.
+The profile picture couldn't be loaded. Try again.,The profile picture couldn't be loaded. Try again.
 The profile picture couldn't be saved. Try again.,The profile picture couldn't be saved. Try again.
 "The proxy's address, like 192.168.1.20 or proxy.example.com.","The proxy's address, like 192.168.1.20 or proxy.example.com."
 The publication state of these older recording files is unknown. Export a copy or delete the retained files.,The publication state of these older recording files is unknown. Export a copy or delete the retained files.
@@ -2579,6 +2604,7 @@ TikTok's messages didn't start in time. It tries again at %1$s.,TikTok's message
 "TikTok's own daily screen-time reminder sends the app to the background instead of waiting to be dismissed. Coming straight back leaves the reminder on screen, so the limit stays reachable. Needs a daily limit set under TikTok's Settings and privacy, under Time and well-being.","TikTok's own daily screen-time reminder sends the app to the background instead of waiting to be dismissed. Coming straight back leaves the reminder on screen, so the limit stays reachable. Needs a daily limit set under TikTok's Settings and privacy, under Time and well-being."
 TikTok's own name,TikTok's own name
 TikTok's own value,TikTok's own value
+"TikTok's server picks the qualities a game LIVE can stream in, and some phones get fewer than they can handle. While you set up a LIVE, this tells the LIVE server you have a Galaxy S25 Ultra. Sign-in and everything else still see your real phone. A quality your phone can't keep up with may stutter.","TikTok's server picks the qualities a game LIVE can stream in, and some phones get fewer than they can handle. While you set up a LIVE, this tells the LIVE server you have a Galaxy S25 Ultra. Sign-in and everything else still see your real phone. A quality your phone can't keep up with may stutter."
 "TikTok's servers keep sending it new settings, which is how it tests new layouts and features on people. With this on, TikTok keeps the ones it has now and ignores new ones. If something in TikTok stops working, turn this off so it can get fixes.","TikTok's servers keep sending it new settings, which is how it tests new layouts and features on people. With this on, TikTok keeps the ones it has now and ignores new ones. If something in TikTok stops working, turn this off so it can get fixes."
 TikTok's size,TikTok's size
 TikTok's suggested reply cells and their intro banner stop showing in a chat. Messages you type or receive are untouched.,TikTok's suggested reply cells and their intro banner stop showing in a chat. Messages you type or receive are untouched.
@@ -2684,6 +2710,7 @@ Use TikTok for a while. A popup shows up here after TikTok first tries to show i
 "Use TikTok's own hold, pull down and release gesture to keep playing at the hold speed, 2x unless Playback sets another.","Use TikTok's own hold, pull down and release gesture to keep playing at the hold speed, 2x unless Playback sets another."
 Use a default playback speed,Use a default playback speed
 "Use a whole number from 0 to %1$s, or leave the field empty.","Use a whole number from 0 to %1$s, or leave the field empty."
+Use an imported emoji font,Use an imported emoji font
 Use an imported font,Use an imported font
 Use non-personalized search,Use non-personalized search
 Use screen lock,Use screen lock
@@ -2717,6 +2744,7 @@ Video,Video
 Video (MP4),Video (MP4)
 Video ID copied,Video ID copied
 Video and details saved to %1$s,Video and details saved to %1$s
+Video bitrate limit,Video bitrate limit
 Video destination,Video destination
 Video download codec,Video download codec
 Video download quality,Video download quality
@@ -2793,14 +2821,17 @@ Window width needed to enable the layout. Restart TikTok to apply this.,Window w
 "With TikTok in dark mode, a LIVE room still opens its share menu, fan club and other panels in light colors. This opens them dark.","With TikTok in dark mode, a LIVE room still opens its share menu, fan club and other panels in light colors. This opens them dark."
 "With the SIM changed, TikTok can keep showing videos you've already watched. Turn this on to stop that. Sticker search and the rest of TikTok still see the SIM above, while For You asks for videos with your phone's own SIM country and carrier. Your IP address and account history still count.","With the SIM changed, TikTok can keep showing videos you've already watched. Turn this on to stop that. Sticker search and the rest of TikTok still see the SIM above, while For You asks for videos with your phone's own SIM country and carrier. Your IP address and account history still count."
 "With the fade below 100, the buttons and caption stay on screen at that level in Clear display, and taps go through them to the video. Off, Clear display hides them the way it does at 100.","With the fade below 100, the buttons and caption stay on screen at that level in Clear display, and taps go through them to the video. Off, Clear display hides them the way it does at 100."
+"With the long press save on, holding a profile picture opens it full screen at full size, with a Save button under it.","With the long press save on, holding a profile picture opens it full screen at full size, with a Save button under it."
 "With the switch above on, the video is cropped to fill a tall screen like a folding phone's front screen. A squarer one, like the big screen opened up, still shows the whole video.","With the switch above on, the video is cropped to fill a tall screen like a folding phone's front screen. A squarer one, like the big screen opened up, still shows the whole video."
 "Word rules only, not every feed filter:","Word rules only, not every feed filter:"
 "Words, countries and languages","Words, countries and languages"
 Works only with YTDLnis (com.deniscerri.ytdl). Picks audio or video when the save button sends it a link.,Works only with YTDLnis (com.deniscerri.ytdl). Picks audio or video when the save button sends it a link.
 Works only with YTDLnis (com.deniscerri.ytdl). Starts the download in the background without showing its download card.,Works only with YTDLnis (com.deniscerri.ytdl). Starts the download in the background without showing its download card.
+Write the month as a word,Write the month as a word
 Write the username and caption on the video,Write the username and caption on the video
 "Write the video's sound beside it, in the format picked under Sound format. Android 10 and later file audio separately, so it lands in Music under the same folder name as your videos.","Write the video's sound beside it, in the format picked under Sound format. Android 10 and later file audio separately, so it lands in Music under the same folder name as your videos."
 "Writes TikTok's date by the creator's name day first, like 29.09, with the year after it for an older video. Ages like 2d ago stay as they are.","Writes TikTok's date by the creator's name day first, like 29.09, with the year after it for an older video. Ages like 2d ago stay as they are."
+"Writes TikTok's date by the creator's name with the month's name, like Oct 12. Day before month makes it 12 Oct.","Writes TikTok's date by the creator's name with the month's name, like Oct 12. Day before month makes it 12 Oct."
 "Writes the date before the time to the second the short way your language does, like 10/7/25.","Writes the date before the time to the second the short way your language does, like 10/7/25."
 Writing,Writing
 Writing the caption on the video,Writing the caption on the video

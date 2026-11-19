@@ -156,7 +156,7 @@ switch that starts off; the full list says which, and where to turn it on.
 | Hide Shorts *(off)* | Removes Shorts from the bottom bar, Home, My Feed, channels, categories and search. Shorts links still open. |
 
 <!-- PATCHES_START -->
-> **[v1.17.1](https://github.com/jordanwoodson/lurk-morphe-patches/releases/tag/v1.17.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;138 patches total
+> **[v1.17.2](https://github.com/jordanwoodson/lurk-morphe-patches/releases/tag/v1.17.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;138 patches total
 <details>
 <summary><img src="assets/kick-icon-round.webp" width="28" height="28" align="center" alt="">&nbsp;&nbsp;<b>Kick</b>&nbsp;&nbsp;•&nbsp;&nbsp;39 patches</summary>
 <br>
@@ -315,7 +315,7 @@ switch that starts off; the full list says which, and where to turn it on.
 | Hide player buttons | Hides the player's Clip, Cast and Share buttons, each with its own switch. Cast stays visible by default. Other ways to clip and share, such as the channel page, are unchanged. |  |
 | Hide subscription upsells | Hides Subscribe and Gift a Sub prompts, Turbo promotions and the native Turbo signup/startup offer. Keeps the existing subscribed indicator and legitimate account entitlements. |  |
 | Highlight first-time chatters | Tints a chatter's first message in a channel in native live chat, using the first-msg tag Twitch's chat server puts on it. Chat history, VOD replay and React Native chat carry no such tag. Starts off. Turn it on in Lurk settings > Chat. |  |
-| Latency badge | Shows how far a live stream plays behind the broadcast on Twitch's native player in the theatre, read from the player itself once a second (the latency the stats panel reports). Tapping it reloads the stream through Twitch's own Retry, a new access token and playlist that start at the live edge: the native player has no seek to live. Feed previews, videos and clips show nothing. Starts off. Turn it on in Lurk settings > Playback. |  |
+| Latency badge | Shows how far a live stream plays behind the broadcast on Twitch's native player in the theatre, read from the player itself once a second (the latency the stats panel reports). Tapping it reloads the stream through Twitch's own Retry, a new access token and playlist that start at the live edge: the native player has no seek to live. After a switch between channels the player can lose its measure until the stream reloads; the badge then reads ? s, and a tap brings it back. Feed previews, videos and clips show nothing. Starts off. Turn it on in Lurk settings > Playback. |  |
 | Lurk icon | Replaces Twitch's launcher icon with Lurk artwork, including Android's themed icon. |  |
 | Mute stitched ads | While an ad break that Twitch's server stitched into a stream plays, mutes the player and covers the video with black, then restores both when the stream returns. Works in the native and React Native players. The ad still plays and the break isn't shorter. |  |
 | Navigation bar position | Adds a choice that moves Twitch's bottom navigation bar to the top of the screen and/or hides its labels, leaving only the icons. Twitch's own layout stays until another choice is made in Lurk settings. |  |

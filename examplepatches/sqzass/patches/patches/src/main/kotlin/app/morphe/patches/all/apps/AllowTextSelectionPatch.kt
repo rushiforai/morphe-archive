@@ -49,8 +49,7 @@ val allowTextSelectionPatch =
     bytecodePatch(
         name = "Allow text selection",
         description =
-        "Flips setTextIsSelectable(false)/setLongClickable(false) to true so text can be " +
-            "selected and copied.",
+        "Makes it so text can be selected and copied on apps that normally block it.",
         default = false,
     ) {
         execute {

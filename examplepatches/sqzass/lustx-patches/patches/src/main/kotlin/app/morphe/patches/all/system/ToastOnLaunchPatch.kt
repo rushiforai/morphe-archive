@@ -25,10 +25,7 @@ private fun escapeSmali(s: String): String = s.replace("\\", "\\\\")
 @Suppress("unused")
 val toastOnLaunchPatch = patch(
     name = "Toast on launch",
-    description = "Shows a Toast when the app starts by injecting framework Toast calls into " +
-        "the Application subclass's onCreate(). Pure inline smali — adds no classes or methods. " +
-        "No-op, never crashes, if the app has no custom Application, does not override onCreate, " +
-        "or its onCreate has too few free registers.",
+    description = "Shows a Toast when the app launches.",
     default = false,
 ) {
     val message = stringOption(

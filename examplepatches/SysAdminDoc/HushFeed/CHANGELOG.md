@@ -6,6 +6,13 @@ Every Hushfeed release, newest first.
 
 ### Features
 
+* `Show the picture before saving`, under `Save a profile picture on a long press`, opens a held profile picture full screen at full size first. Save under it saves the picture, and a tap anywhere else closes it. It starts off (#467).
+* `Report a newer phone to game LIVE` under App tells TikTok's LIVE server you have a Galaxy S25 Ultra while you set up a LIVE. If the server keeps a game LIVE under 1080p 60fps because of your phone, this gives it another chance. It starts off (#459).
+* `Seconds per photo` now goes up to 300, so a photo can stay on screen for up to five minutes in a video made from a photo post (#465).
+* `Sort pinned videos with the rest` lets a profile's sort put pinned videos in the order with everything else, so Newest first shows them at the date they were posted instead of at the top. It starts off (#466).
+* `Hide or reorder profile tabs` (it used to be `Hide profile tabs`) now has arrows on each tab. Move Liked to the top and it's first on your profile, while the tabs you didn't touch stay where TikTok puts them. `Original order` puts TikTok's back (#466).
+* `Hide Add bio` under App takes the Add bio prompt off your own profile while it has no bio. Edit profile still lets you add one. It starts off (#466).
+* `Hide the people you may know tag` under Feed screen takes that tag away from beside a creator's name. The Friends and Following labels stay (#462).
 * `Hide stories from accounts you don't follow` clears the recommended stories TikTok mixes into the Inbox's stories tray. Stories from accounts you follow, and your own, stay (#462).
 * `LIVE buttons in the long-press menu` takes Record and Auto tap off the video and puts them in the menu you get by holding the middle of a LIVE (#359).
 * `Fade the name, date and caption` gives the creator's name, the date, the caption and the music line their own opacity over the video (#462).
@@ -13,16 +20,23 @@ Every Hushfeed release, newest first.
 * `Use an imported emoji font` draws emoji in a font file you pick, separately from the text font. It's part of `Use system font` and needs Android 12 or newer (#458).
 * `Video bitrate limit` keeps a heavy video from eating your data. Anything over the limit plays a lighter version, and videos under it aren't touched (#454).
 * Double tap and Long press can mark the video on screen as not interested, with the same follow-up choices as the button. It needs the Not interested patch (#452).
+* The diagnostic report says when TikTok's main screen starts over while the app is still running, and what happened to the screen before it. That's what a feed jumping back to the top with no crash looks like (#419).
+* With `Stop recording watch history` in the patch set, the diagnostic report counts TikTok's view reports, the ones Watch history is built from. It shows how many were made and how many TikTok groups into one send. Then it counts the ones sent on their own, sent together, dropped because TikTok's server told the app to slow down, held back by `Keep videos out of Watch history` or failed, with the last failure's reason (#448).
 * Hushfeed moves to TikTok 47.9.1, and only that one. 47.8.3 isn't supported anymore. Get the 47.9.1 bundle or APK from APKMirror and patch it with your usual signing key.
 
 ### Bug Fixes
 
+* A copy made with Morphe's `Clone app` can log in with the default selection now. `Run beside the store app` is part of Simple mode, and it does nothing on a copy that keeps TikTok's own package name. Without it, TikTok's servers wouldn't give the renamed copy a device ID, so every login said you'd hit the maximum number of attempts (#455, #284).
 * The date and length on profile grids don't get cut in half anymore. The label's bar now grows when it needs a third line (#449, #462).
 * Patching no longer stops at `Settings` when TikTok's Open Debug row can't be found. You lose only the Hushfeed row in TikTok's settings, and holding Home still opens the page (#460).
 * `Save episodes` loads a mini drama's episode list again. It used to stop at "Couldn't load the episodes" (#463).
+* The `Save episodes` list goes past the free episodes of a drama you haven't unlocked, and saving one of those gets the whole episode. TikTok's list sends those episodes without their video, so Hushfeed asks for each one on its own instead of stopping at "This video isn't available as a complete file" (#463).
+* When TikTok's server turns down every copy of an original photo, `Download original photos` saves the copy TikTok shows on screen instead of stopping at "None of the photos could be saved" (#464).
+* With `Hide suggested accounts` on, following someone doesn't leave an empty Suggested accounts box on their profile anymore. Turn on `Keep suggestions on profiles` if you'd rather keep that row while the other suggestions stay hidden (#462).
+* `Play original audio` also covers videos TikTok dubs with a whole second copy of the video, which is how some mini dramas get theirs. Saving one of those with the switch on keeps the original sound too (#463, #444).
 * The note on the `White on black`, `Black on white` and `Material You` app icons, and on themed icons, has clean round edges now. TikTok's own note has dents that its colored echoes normally cover.
 * `Keep captions in Clear display` shows a video's first caption right away, sits near TikTok's own caption spot when it hasn't seen one yet, and stays above the progress bar (#456).
-* The country and date line doesn't get cut off anymore when you open a long caption (#457).
+* The country and date line doesn't get cut off anymore when you open a long caption, and the caption above it keeps every line after you open or close it with more and less (#457).
 * `Show the country and date under the caption` keeps the two together on photo posts and on videos with no caption. With no caption they go right under the creator's name (#453).
 
 ### Build

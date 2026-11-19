@@ -25,9 +25,7 @@ private const val TOOL_ACTION_CLASS = "Lcom/pawxy/browser/ui/element/options/Too
 @Suppress("unused")
 val enableMediaSnifferPatch = bytecodePatch(
     name = "Enable media sniffer",
-    description = "Restores Pawxy's hidden video/media sniffer to the default tool menu. " +
-        "The toolbar builder excludes Tool\$Action.SNIFFER from the default list; this " +
-        "patch removes that exclusion so the sniffer appears like any other tool.",
+    description = "Restores Pawxy's hidden media sniffer to the toolbar.",
 ) {
     compatibleWith(
         Compatibility(

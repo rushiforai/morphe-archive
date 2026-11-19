@@ -447,7 +447,7 @@ Playback	Pemutaran
 # context: switch title; on, videos and music wait for a tap before they play
 Tap to play	Ketuk untuk memutar
 # context: summary of that switch; Autoplay and Off are the name and value of Facebook's own setting, as Facebook shows them in this language
-Videos, reels, stories and music wait for your tap instead of playing by themselves. Facebook's own Autoplay setting shows Off while this is on.	Video, reel, cerita, dan musik menunggu ketukanmu, tidak diputar sendiri. Pengaturan Putar otomatis milik Facebook menampilkan Mati selama ini menyala.
+Videos, reels and music wait for your tap instead of playing by themselves. Facebook's own Autoplay setting shows Off while this is on.	Video, reel, dan musik menunggu ketukanmu, tidak diputar sendiri. Pengaturan Putar otomatis milik Facebook menampilkan Mati selama ini menyala.
 # context: switch title under Opening Facebook; Marketplace is Facebook's tab and keeps its name
 Marketplace only	Hanya Marketplace
 # context: switch title under Opening Facebook, next to Marketplace only; Events is Facebook's tab and keeps its name
@@ -1660,7 +1660,7 @@ Facebook hasn't downloaded this screen to this phone, so a tap opens the Whiteha
 # context: toast when the Facebook version has no such screen
 This Facebook build has no Whitehat settings screen.	Versi Facebook ini tidak punya layar pengaturan Whitehat.
 Only the first reel waits	Hanya reel pertama yang menunggu
-With the switch above on, after you play one reel, the reels you swipe to play on their own. The feed, Watch and stories always wait.	Saat sakelar di atas menyala, setelah kamu memutar satu reel, reel yang kamu geser berikutnya diputar sendiri. Feed, Watch, dan cerita selalu menunggu.
+With the switch above on, after you play one reel, the reels you swipe to play on their own. The feed and Watch always wait.	Saat sakelar di atas menyala, setelah kamu memutar satu reel, reel yang kamu geser berikutnya diputar sendiri. Feed dan Watch selalu menunggu.
 Slower speeds	Kecepatan lebih lambat
 Adds 0.1x and 0.25x to the speed menu of reels and of feed and Watch videos, for slowing down a fast moment.	Menambahkan 0,1x dan 0,25x ke menu kecepatan reel serta video feed dan Watch, untuk memperlambat momen yang terlalu cepat.
 Faster speeds	Kecepatan lebih cepat
@@ -2755,10 +2755,12 @@ Takes the row of suggested replies off the bottom of a story. The reply box stay
 Hide the Subscribe button	Sembunyikan tombol Berlangganan
 Takes the Subscribe button off the top of a story. Applies from the next story you open.	Menghapus tombol Berlangganan di bagian atas cerita. Berlaku mulai cerita berikutnya yang kamu buka.
 Hide create story cards	Sembunyikan kartu buat cerita
-Takes out the card between stories that asks you to make one, including the ones built from photos in your gallery. Applies the next time you open stories.	Menghapus kartu di antara cerita yang mengajakmu membuat cerita, termasuk yang dibuat dari foto di galerimu. Berlaku saat berikutnya kamu membuka cerita.
+Takes out the cards between stories that ask you to make one, including the full screen card that asks you to continue the story with photos from your gallery. Applies the next time you open stories.	Menghapus kartu di antara cerita yang mengajakmu membuat cerita, termasuk kartu layar penuh yang mengajakmu melanjutkan cerita dengan foto dari galerimu. Berlaku saat berikutnya kamu membuka cerita.
 Progress bar at the bottom	Bilah progres di bawah
 Shows a thin bar along the bottom of a story that fills as it plays, like the one on Reels.	Menampilkan bilah tipis di bagian bawah cerita yang terisi saat cerita diputar, seperti di Reels.
 Seek bar on stories	Bilah geser di cerita
+Plain slide between people	Geser biasa antar orang
+Swiping to the next or previous person's stories slides them across instead of turning them like a cube. Applies from your next swipe.	Saat menggeser ke cerita orang berikutnya atau sebelumnya, cerita bergeser ke samping, bukan berputar seperti kubus. Berlaku mulai geseran berikutnya.
 Fade the story seek bar	Redupkan bilah geser cerita
 Story position	Posisi cerita
 Shows a bar along the bottom of a video story that you drag to move through it. The story waits while you drag. Progress bar at the bottom makes way for it on video stories.	Menampilkan bilah di bagian bawah cerita video yang bisa kamu geser untuk berpindah di dalamnya. Cerita menunggu selama kamu menggeser. “Bilah progres di bawah” memberi tempat untuknya di cerita video.
@@ -2839,6 +2841,8 @@ A small label at the top of Reels shows the minutes you've watched. Time on othe
 %1$d min	%1$d mnt
 Hide the tab bar on the Reels tab	Sembunyikan bilah tab di tab Reels
 The tab bar goes away while the Reels tab is open, and the reel gets the whole screen. The other tabs keep the bar. Restart Facebook to see the change.	Bilah tab hilang selama tab Reels terbuka, dan reel memenuhi seluruh layar. Tab lainnya tetap menampilkan bilah. Mulai ulang Facebook untuk melihat perubahannya.
+Hide the line along the tab bar	Sembunyikan garis di bilah tab
+The thin line Facebook draws along the edge of the tab bar goes away on every tab. Tap a tab to see the change.	Garis tipis yang digambar Facebook di tepi bilah tab hilang di semua tab. Ketuk sebuah tab untuk melihat perubahannya.
 Playback speed in the post menu	Kecepatan putar di menu postingan
 A feed or Watch video's 3-dot menu gets Playback speed, from 0.5x to 3x, live videos too. Off by default, since it hasn't been tried on a real account yet.	Menu titik tiga video feed atau Watch mendapat Kecepatan putar, dari 0,5x sampai 3x, juga untuk video siaran langsung. Mati secara bawaan, karena belum dicoba di akun sungguhan.
 Double tap to skip on feed videos	Ketuk dua kali untuk melompat di video feed
@@ -3002,3 +3006,14 @@ Emoji font file cleared. Restart Facebook to apply the emoji change.	File font e
 Couldn't go back to your phone's emoji. Try again.	Tidak dapat kembali ke emoji ponsel Anda. Coba lagi.
 # context: toast when the app holding the emoji font doesn't answer in time
 The app holding that font file is taking too long, so Hushfacebook stopped waiting. Your emoji didn't change.	Aplikasi yang menyimpan file font itu terlalu lama, jadi Hushfacebook berhenti menunggu. Emoji Anda tidak berubah.
+Never	Tidak pernah
+Back to Clean mode	Kembali ke mode bersih
+When the comments or a menu close	Saat komentar atau menu ditutup
+When the comments or a menu close. A reel you took out of Clean mode goes back into it once whatever you opened over it closes.	Saat komentar atau menu ditutup. Reel yang kamu keluarkan dari mode bersih kembali ke mode itu setelah apa pun yang kamu buka di atasnya ditutup.
+%1$s. A reel you took out of Clean mode goes back into it once you haven't touched the screen for that long. An open sheet holds the time.	%1$s. Reel yang kamu keluarkan dari mode bersih kembali ke mode itu setelah kamu tidak menyentuh layar selama itu. Lembar yang terbuka menahan waktunya.
+Never. A reel you take out of Clean mode stays out until you put it back.	Tidak pernah. Reel yang kamu keluarkan dari mode bersih tetap di luar sampai kamu mengembalikannya.
+A reel you take out of Clean mode will stay out until you put it back.	Reel yang kamu keluarkan dari mode bersih akan tetap di luar sampai kamu mengembalikannya.
+A reel you take out of Clean mode will go back into it when the comments or a menu close.	Reel yang kamu keluarkan dari mode bersih akan kembali ke mode itu saat komentar atau menu ditutup.
+A reel you take out of Clean mode will go back into it after %1$d seconds without a touch.	Reel yang kamu keluarkan dari mode bersih akan kembali ke mode itu setelah %1$d detik tanpa sentuhan.
+Hide New for you on reels	Sembunyikan “Baru untukmu” di reel
+Takes "New for you", and other reasons Facebook gives for showing you a reel, off the line under its author, so the date and the song show right away. A change shows from the next reel.	Menghapus “Baru untukmu” dan alasan lain yang Facebook berikan untuk menampilkan reel dari baris di bawah nama pembuatnya, jadi tanggal dan lagunya langsung terlihat. Perubahan terlihat mulai reel berikutnya.

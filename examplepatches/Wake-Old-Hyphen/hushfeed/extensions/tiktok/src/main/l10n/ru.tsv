@@ -202,9 +202,7 @@ Forget the video @%2$s has seen.	Забыть видео, просмотренн
 Got it	Понятно
 Hide profile shortcuts	Скрыть ярлыки профиля
 # context: Title of the checklist that hides tabs from the strip above a profile's videos
-Hide profile tabs	Скрыть вкладки профиля
 # context: Note under that title. Reposts and Liked videos are two of the checklist's rows, and the checklist never takes away every tab
-Pick the tabs to hide from the strip above a profile's videos, such as Reposts or Liked videos. One tab always stays. Restart TikTok to apply this.	Выберите вкладки, которые нужно скрыть над видео профиля, например Репосты или Понравившиеся видео. Одна вкладка остаётся всегда. Перезапустите TikTok, чтобы это применить.
 # context: Checklist row for the profile tab with the account's private videos (lock icon)
 Private videos	Личные видео
 # context: Checklist row for the profile tab with the videos the account reposted
@@ -3195,3 +3193,36 @@ The Widget circle at the end of the stories tray goes. TikTok's home screen widg
 # context: Feed screen settings, a switch under Show video length on profile grids. It removes the view count and the play icon from each video tile on profile grids. If the date, video length or engagement rate are switched on, they take the first line instead.
 Hide view counts on profile grids	Скрывать число просмотров в сетке профиля
 Takes the view count and its play icon off each video on profile grids. Dates, lengths and the engagement rate you turned on move up in its place.	Убирает число просмотров и значок воспроизведения у каждого видео в сетке профиля. Включённые вами даты, длительность и уровень вовлечённости поднимаются на их место.
+Video bitrate limit	Лимит битрейта видео
+%1$s Mb/s	%1$s Мбит/с
+A video heavier than this plays a lighter version. If none fits, it plays its lightest one.	Более тяжёлое видео воспроизводится в облегчённой версии. Если ни одна не подходит, включается самая лёгкая.
+Use an imported emoji font	Использовать импортированный шрифт эмодзи
+Shows emoji in the font file you import below, whichever font the text is in. Restart TikTok to see the change.	Показывает эмодзи шрифтом из файла, который вы импортируете ниже, каким бы шрифтом ни был набран текст. Перезапустите TikTok, чтобы увидеть изменения.
+Import an emoji font file	Импортировать файл шрифта эмодзи
+Remove the imported emoji font	Удалить импортированный шрифт эмодзи
+No emoji font is imported	Шрифт эмодзи не импортирован
+%1$s is imported. Turn on Use an imported emoji font to see it.	%1$s импортирован. Включите Использовать импортированный шрифт эмодзи, чтобы увидеть его.
+Write the month as a word	Писать месяц словом
+Writes TikTok's date by the creator's name with the month's name, like Oct 12. Day before month makes it 12 Oct.	Пишет дату TikTok рядом с именем автора с названием месяца, например Oct 12. С параметром «День перед месяцем» получится 12 Oct.
+Fade the name, date and caption	Приглушить имя, дату и подпись
+Draws the creator's name, the date, the caption and the music line over the video at this level, and they still take taps. At 100 they follow Fade the video controls. At 0 they're hidden.	Показывает имя автора, дату, подпись и строку с музыкой поверх видео на этом уровне, и на них по-прежнему можно нажимать. При 100 они следуют настройке Приглушить кнопки поверх видео. При 0 они скрыты.
+LIVE buttons in the long-press menu	Кнопки LIVE в меню долгого нажатия
+Takes the Record and Auto tap buttons off the video and puts them in the menu you get by holding the middle of a LIVE.	Убирает кнопки Запись и Автонажатие с видео и помещает их в меню, которое открывается при долгом нажатии на середину LIVE.
+Auto tap started	Автонажатие запущено
+Hide stories from accounts you don't follow	Скрывать истории аккаунтов, на которые вы не подписаны
+Stories from accounts you don't follow leave the stories tray. Stories from accounts you follow stay.	Истории аккаунтов, на которые вы не подписаны, исчезают из панели историй. Истории аккаунтов, на которые вы подписаны, остаются.
+Hide the people you may know tag	Скрывать метку «Возможно, вы знакомы»
+Hide the small tag next to the creator's name that says you may know them. The video stays.	Скрывает маленькую метку рядом с именем автора о том, что вы можете быть знакомы. Видео остаётся.
+Report a newer phone to game LIVE	Сообщать игровым LIVE о более новом телефоне
+TikTok's server picks the qualities a game LIVE can stream in, and some phones get fewer than they can handle. While you set up a LIVE, this tells the LIVE server you have a Galaxy S25 Ultra. Sign-in and everything else still see your real phone. A quality your phone can't keep up with may stutter.	Сервер TikTok выбирает, в каком качестве может идти игровая LIVE-трансляция, и некоторым телефонам достаётся меньше, чем они тянут. Пока вы настраиваете LIVE, эта настройка сообщает серверу LIVE, что у вас Galaxy S25 Ultra. Вход в аккаунт и всё остальное по-прежнему видят ваш настоящий телефон. Качество, которое телефон не тянет, может подтормаживать.
+Keep suggestions on profiles	Оставить рекомендации в профилях
+The Suggested accounts row under a profile's Follow button still shows, so you can find similar accounts after you follow someone.	Строка «Рекомендуемые аккаунты» под кнопкой «Подписаться» в профиле остаётся, чтобы после подписки можно было найти похожие аккаунты.
+Sort pinned videos with the rest	Сортировать закреплённые видео вместе с остальными
+Pinned videos take their place in the order instead of staying at the top, so Newest first puts them at the date they were posted.	Закреплённые видео встают на своё место в порядке, а не остаются наверху, поэтому «Сначала новые» ставит их по дате публикации.
+Hide or reorder profile tabs	Скрыть или упорядочить вкладки профиля
+Pick the tabs to hide from the strip above a profile's videos, such as Reposts or Liked videos, and use the arrows to put the rest in your order. One tab always stays. Restart TikTok to apply this.	Выберите вкладки, которые нужно скрыть над видео профиля, например Репосты или Понравившиеся видео, а стрелками расставьте остальные в нужном порядке. Одна вкладка остаётся всегда. Перезапустите TikTok, чтобы это применить.
+Hide Add bio	Скрыть «Добавить описание»
+Hide the Add bio prompt TikTok shows on your own profile while it has no bio. You can still add one from Edit profile.	Скрывает подсказку «Добавить описание», которую TikTok показывает в вашем профиле, пока в нём нет описания. Добавить его по-прежнему можно в разделе «Изменить профиль».
+Show the picture before saving	Показывать фото перед сохранением
+With the long press save on, holding a profile picture opens it full screen at full size, with a Save button under it.	Когда сохранение долгим нажатием включено, удержание фото профиля открывает его во весь экран в полном размере, с кнопкой Сохранить под ним.
+The profile picture couldn't be loaded. Try again.	Не удалось загрузить фото профиля. Повторите попытку.

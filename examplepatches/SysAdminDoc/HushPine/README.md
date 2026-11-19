@@ -39,6 +39,8 @@ The main branch contains 101 patches, the same set as v0.2.0.
 
 If you patched PineDrama with Hushfeed before, patch again with HushPine using the same signing key and install over that copy.
 
+There are Hush patch sources for other apps too: [Hushfacebook](https://github.com/SysAdminDoc/HushFacebook) for Facebook, [HushGram](https://github.com/SysAdminDoc/HushGram) for Instagram, [HushMessenger](https://github.com/SysAdminDoc/HushMessenger) for Messenger, [HushPinterest](https://github.com/SysAdminDoc/HushPinterest) for Pinterest, [HushTelegram](https://github.com/SysAdminDoc/HushTelegram) for Telegram, [HushThreads](https://github.com/SysAdminDoc/HushThreads) for Threads, [Hushfeed](https://github.com/SysAdminDoc/HushFeed) for TikTok and [HushTumblr](https://github.com/SysAdminDoc/HushTumblr) for Tumblr. Each one is a separate source in Manager, so add only the ones for apps you patch.
+
 ## Settings
 
 The HushPine page sits at the top of PineDrama's **Settings and privacy**. Pressing and holding any tab at the top of the feed opens it too. Switches apply without patching again, though a few finish after PineDrama restarts, and a Restart row shows up when one needs it. Changes made while patching stay in the app. **Backup and restore** on the same page saves your settings to a file.

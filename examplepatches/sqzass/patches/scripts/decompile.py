@@ -441,7 +441,7 @@ def main():
         help="Output directory for decompiled code (default: apks/out/)"
     )
     parser.add_argument(
-        "--keep-input", "--keep-apk", "--keep", "-k"
+        "--keep-input", "--keep-apk", "--keep", "-k",
         dest="keep_input",
         action="store_true",
         help="Do not delete input app file after successful decompilation"

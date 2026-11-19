@@ -1,0 +1,37 @@
+name: Verify immutable release MPP gate
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.releaserc'
+      - '.github/scripts/verify-release-mpp.py'
+      - 'porting/tests/test_release_mpp_integrity.py'
+      - '.github/workflows/release.yml'
+      - '.github/workflows/verify-main.yml'
+      - '.github/workflows/verify-release-mpp.yml'
+  push:
+    branches: [main]
+    paths:
+      - '.releaserc'
+      - '.github/scripts/verify-release-mpp.py'
+      - 'porting/tests/test_release_mpp_integrity.py'
+      - '.github/workflows/release.yml'
+      - '.github/workflows/verify-main.yml'
+      - '.github/workflows/verify-release-mpp.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Compile release guard scripts
+        run: python3 -m py_compile .github/scripts/verify-release-mpp.py porting/tests/test_release_mpp_integrity.py
+      - name: Reject overwritten or unstaged MPP candidates
+        run: python3 porting/tests/test_release_mpp_integrity.py

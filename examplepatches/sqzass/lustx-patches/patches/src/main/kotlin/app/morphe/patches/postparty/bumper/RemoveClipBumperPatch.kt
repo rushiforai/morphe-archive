@@ -7,6 +7,7 @@
 package app.morphe.patches.postparty.bumper
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
@@ -48,10 +49,7 @@ private fun nullOutParam(method: MutableMethod, paramIndex: Int) {
 @Suppress("unused")
 val removeClipBumperPatch = patch(
     name = "Remove clip bumper",
-    description = "Removes the ~5s Postparty logo bumper from all exports. Forces " +
-        "client-side transcoding so unedited clips re-encode instead of direct-saving " +
-        "the server-baked file, then nulls the bumper path in both ffmpeg command " +
-        "builders so the re-encode never appends it.",
+    description = "Removes the Postparty logo bumper from all exports.",
     default = true,
 ) {
     compatibleWith(
@@ -113,5 +111,27 @@ val removeClipBumperPatch = patch(
 
         val valueReg = (list[idx] as TwoRegisterInstruction).registerA
         ctor.addInstruction(idx, constFor(valueReg, 1))
+
+        val paramsClass = mutableClassDefByOrNull("LCi/f;")
+            ?: throw PatchException("LCi/f; not found; class name drifted.")
+
+        val paramsCtor = paramsClass.methods
+            .filterIsInstance<MutableMethod>()
+            .firstOrNull {
+                it.name == "<init>" &&
+                    it.parameterTypes.size == 5 &&
+                    it.parameterTypes[0].toString() == "J"
+            }
+            ?: throw PatchException("Ci/f.<init>(J,Long,Long,Long,Long) not found.")
+
+        paramsCtor.addInstructions(
+            0,
+            """
+                if-nez p4, :morphe_edit_end_present
+                invoke-static/range {p1 .. p2}, Ljava/lang/Long;->valueOf(J)Ljava/lang/Long;
+                move-result-object p4
+                :morphe_edit_end_present
+            """.trimIndent(),
+        )
     }
 }

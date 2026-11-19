@@ -16,9 +16,10 @@ import java.util.regex.Pattern;
  * Adds a round filter button above the map's locate-me button ([data-test-id=LocateMeButtonId])
  * with a menu: All posts / Past 24 hours / 12 hours / hour / 10 minutes (persisted).
  *
- * Data: the map's queries (*RealityChannelContent_refetch_Query / *RealityChannelQR_Query) get
- * `createdAt` added to their post selections and the page script records each map object's post
- * time (Relay drops unknown fields, so the app's components never see it).
+ * Data (only while a filter is active; "All posts" leaves every request untouched): every query that loads map objects (viewport, by-id, preview card, activity center) gets
+ * `createdAt` added to its MapObject.post selections, and the page script records each map
+ * object's post time (Relay drops unknown fields, so the app's components never see it). Posts
+ * are therefore filtered from the moment they first appear, whichever query brought them.
  *
  * Rendering: the map draws fresh results plus its own map-object cache, merged in
  * getAllRenderableMapObjects(). That function is rewritten as the JS is served so its result
@@ -55,18 +56,21 @@ public final class MapPostFilter {
             + "  function active() { return option().ms > 0; }\n"
             + "\n"
             + "  // ---------------------------------------------------------------------------------------------\n"
-            + "  // Data: the map's queries (Default/Pgo RealityChannelContent / QR) select posts without a\n"
-            + "  // timestamp. Add createdAt to their post selections and remember each map object's post time.\n"
+            + "  // Data: map objects reach the map through several queries (viewport, by-id, preview card,\n"
+            + "  // activity center) whose post selections have no timestamp. Add createdAt to them and remember\n"
+            + "  // each map object's post time, so a post is filtered from the moment it first appears.\n"
             + "  // (Relay drops fields its compiled query doesn't know, so the components never see createdAt.)\n"
             + "  // ---------------------------------------------------------------------------------------------\n"
-            + "  var MAP_QUERY = /^\\s*query \\w*RealityChannel(?:Content_refetch_Query|QR_Query)\\b/;\n"
+            + "  var MAP_QUERY = /^\\s*query \\w*(?:RealityChannel|ActivityCenter|MapObject)\\w*\\b/;\n"
             + "  var postTimes = new Map(); // map object id -> post createdAt (ms)\n"
             + "\n"
+            + "  // Only while a filter is active: with \"All posts\" every request is exactly the app's own.\n"
             + "  function rewriteBody(body) {\n"
-            + "    if (typeof body !== 'string' || body.indexOf('realityChannelMapObjectsInLatLngBounds') === -1) return null;\n"
+            + "    if (!active() || typeof body !== 'string' || body.indexOf('post {') === -1) return null;\n"
             + "    var payload;\n"
             + "    try { payload = JSON.parse(body); } catch (e) { return null; }\n"
             + "    if (!payload || typeof payload.query !== 'string' || !MAP_QUERY.test(payload.query)) return null;\n"
+            + "    if (!/mapObject|realityChannelMapObjects|nearbyActivePois/.test(payload.query)) return null;\n"
             + "    payload.query = payload.query.replace(/(\\n([ \\t]*)post \\{\\n)/g, '$1$2  createdAt\\n');\n"
             + "    return JSON.stringify(payload);\n"
             + "  }\n"
@@ -79,19 +83,23 @@ public final class MapPostFilter {
             + "  }\n"
             + "\n"
             + "  function record(text) {\n"
-            + "    try {\n"
-            + "      var data = JSON.parse(text).data;\n"
-            + "      if (!data) return;\n"
-            + "      var n = 0;\n"
-            + "      Object.keys(data).forEach(function (key) {\n"
-            + "        if (key.indexOf('realityChannelMapObjectsInLatLngBounds') !== 0 || !Array.isArray(data[key])) return;\n"
-            + "        data[key].forEach(function (o) {\n"
-            + "          var t = o && o.id && o.post ? timeOf(o.post.createdAt) : NaN;\n"
-            + "          if (!isNaN(t)) { postTimes.set(o.id, t); n++; }\n"
-            + "        });\n"
-            + "      });\n"
-            + "      if (n && active()) console.log(TAG, 'learned', n, 'post time(s)');\n"
-            + "    } catch (e) {}\n"
+            + "    var json, data;\n"
+            + "    try { json = JSON.parse(text); data = json.data; } catch (e) { return; }\n"
+            + "    if (json && json.errors && json.errors.length) {\n"
+            + "      console.warn(TAG, 'GraphQL errors in a rewritten map query:', JSON.stringify(json.errors).slice(0, 800));\n"
+            + "    }\n"
+            + "    if (!data) return;\n"
+            + "    var n = 0;\n"
+            + "    (function walk(v, depth) {\n"
+            + "      if (!v || typeof v !== 'object' || depth > 12) return;\n"
+            + "      if (Array.isArray(v)) { for (var i = 0; i < v.length; i++) walk(v[i], depth + 1); return; }\n"
+            + "      if (typeof v.id === 'string' && v.post && typeof v.post === 'object') {\n"
+            + "        var t = timeOf(v.post.createdAt);\n"
+            + "        if (!isNaN(t)) { postTimes.set(v.id, t); n++; }\n"
+            + "      }\n"
+            + "      for (var k in v) if (k !== 'post') walk(v[k], depth + 1);\n"
+            + "    })(data, 0);\n"
+            + "    if (n && active()) console.log(TAG, 'learned', n, 'post time(s)');\n"
             + "  }\n"
             + "\n"
             + "  // Called by the app's map (getAllRenderableMapObjects, patched at serve time) with everything it\n"

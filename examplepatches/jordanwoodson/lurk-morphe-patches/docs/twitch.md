@@ -467,9 +467,15 @@ top left of the native player in the theatre. It is added through the shared pla
 (`TwitchPlayerViews.attached`) to the presenter's player view, a `FrameLayout`, only while the switch is on,
 and polls once a second while attached to a window. The latency is the presenter's own getter: the base
 presenter method returning `long` that calls the IVS wrapper's latency method (found by its `MediaPlayer`
-field read and `getLiveLatency()` call), reached through a bridge stub. The pill shows only for a positive
-latency and when the view sits under `theatre_root_container`, so Home's feed previews, VODs and clips get
-nothing. Twitch's native player has no seek to live (only the React Native theatre has a DVR "jump to live"
+field read and `getLiveLatency()` call), reached through a bridge stub. The pill shows only when the view sits
+under `theatre_root_container`, so Home's feed previews, VODs and clips get nothing (nor, as seen signed in on
+a phone in 32.1.0, does the vertical theatre of a dual-format stream: no pill is added to its player view), and
+only for a positive
+latency or a negative one below -1 (-1 means no player, 0 a stream still loading). After switching between
+live channels, IVS can keep reporting a negative latency (-28 to -96 s on the emulator in 32.1.0, also with
+only this patch applied) until the stream reloads, and Twitch's own stats panel shows that as 0 (issue 77).
+The pill then reads "? s"; a tap's Retry restored a normal 1.9 s at once. Signed in on a phone, about 30
+switches between live channels gave "? s" four times, and each tap tried brought it back to 1.4–1.6 s. Twitch's native player has no seek to live (only the React Native theatre has a DVR "jump to live"
 pill), so a tap calls the presenter's Retry with `(0, true)`, the same call the error screen and *Refresh
 stream* make: a new access token and playlist, which start at the live edge. Verified on the emulator on a
 live channel: the pill read 2.3–2.7 s with low latency, a tap logged `jump to live from 2342 ms`, the stream

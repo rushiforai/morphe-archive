@@ -32,9 +32,7 @@ private object RatePopupTriggerFingerprint : Fingerprint(
 @Suppress("unused")
 val ratePopupTextPatch = patch(
     name = "Rate-us popup",
-    description = "Either removes the rate-us popup entirely, or rewrites its text. " +
-        "Rewrite mode changes the dialog title/body/buttons. Remove mode kills the " +
-        "trigger so the popup never appears.",
+    description = "Removes or rewrites the rate-us popup text.",
 ) {
     compatibleWith(
         Compatibility(

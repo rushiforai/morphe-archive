@@ -291,7 +291,7 @@ public class DexDiff {
             Map.entry("pinMenuRows", 2),
             Map.entry("boardTabHeader", 1),
             Map.entry("boardTabCovers", 1),
-            Map.entry("closeupGate", 1), Map.entry("highlightRing", 1), Map.entry("visualSearchThumbnails", 1), Map.entry("relatedPinsFold", 3), Map.entry("ownAuthorities", 1));
+            Map.entry("closeupGate", 1), Map.entry("highlightRing", 1), Map.entry("visualSearchThumbnails", 1), Map.entry("relatedPinsFold", 3), Map.entry("screenSleep", 3), Map.entry("ownAuthorities", 1));
 
     /**
      * A start-call, next-call, sole-call or once-call line: its method reference, the next-call's
@@ -2379,6 +2379,10 @@ public class DexDiff {
                 "multi_board_save_saved_to_profile", "saved_onto_board", "saved_to_board_section", "saved_multiple_to_board_section", "pin_saved");
         static final String TOAST_MAKE = "Landroid/widget/Toast;->makeText";
         static final String MEDIA_PLAYER_CREATE = "Landroid/media/MediaPlayer;->create(Landroid/content/Context;I)Landroid/media/MediaPlayer;";
+        static final String KEEP_SCREEN_ON = "Landroid/view/View;->setKeepScreenOn(Z)V";
+        /** The view's screen hold, then a window's flags added and set under a mask, in the screenSleep rule's hook order. */
+        static final List<String> SCREEN_HOLDS = List.of(KEEP_SCREEN_ON, "Landroid/view/Window;->addFlags(I)V",
+                "Landroid/view/Window;->setFlags(II)V");
         static final Set<String> TOAST_SHAPES = Set.of("(Landroid/content/Context;Ljava/lang/CharSequence;I)Landroid/widget/Toast;",
                 "(Landroid/content/Context;II)Landroid/widget/Toast;");
         final FeatureIndex clean;
@@ -2583,10 +2587,18 @@ public class DexDiff {
         boolean carried(Method m, Instruction hook) {
             Method before = clean.methods.get(m.toString());
             if (before == null || before.getImplementation() == null) return false;
-            List<? extends CharSequence> shape = ((MethodReference) reference(hook)).getParameterTypes();
-            for (Instruction i : instructions(before))
-                if (i.getOpcode().name().startsWith("INVOKE_STATIC") && reference(i) instanceof MethodReference host
-                        && host.getParameterTypes().equals(shape) && arguments(i).equals(arguments(hook))) return true;
+            List<String> shape = new ArrayList<>();
+            for (CharSequence p : ((MethodReference) reference(hook)).getParameterTypes()) shape.add(p.toString());
+            // A stand-in for an instance call takes the receiver first, so Window.setFlags(x, x) carried
+            // into setWindowFlags(window, x, x) passes x twice because Pinterest did.
+            for (Instruction i : instructions(before)) {
+                if (!i.getOpcode().name().startsWith("INVOKE") || !(reference(i) instanceof MethodReference host)
+                        || !arguments(i).equals(arguments(hook))) continue;
+                List<String> passed = new ArrayList<>();
+                if (!i.getOpcode().name().startsWith("INVOKE_STATIC")) passed.add(host.getDefiningClass());
+                for (CharSequence p : host.getParameterTypes()) passed.add(p.toString());
+                if (passed.equals(shape)) return true;
+            }
             return false;
         }
 
@@ -6519,6 +6531,44 @@ public class DexDiff {
             capability(c.callee, closeupGatePlaced(c.strings.get(0)));
         }
 
+        /**
+         * Let the screen sleep (#47): every View.setKeepScreenOn, Window.addFlags and Window.setFlags
+         * call in Pinterest goes to its hook on the same registers and in the same spot. A pin page
+         * with a video holds its whole window on through addFlags. Each hook makes Pinterest's call
+         * itself, with Pinterest's value whenever its switch is off.
+         */
+        void screenSleep(Contract c) {
+            int total = 0;
+            for (int pair = 0; pair < SCREEN_HOLDS.size(); pair++) {
+                String original = SCREEN_HOLDS.get(pair), hook = c.strings.get(pair);
+                int found = 0;
+                for (ClassDef cd : clean.classes.values()) for (Method method : cd.getMethods()) {
+                    if (method.getImplementation() == null || cd.getType().startsWith("Lapp/hushpinterest/extension/")) continue;
+                    List<Instruction> was = instructions(method);
+                    List<Integer> holds = callSites(was, original);
+                    if (holds.isEmpty()) continue;
+                    found += holds.size();
+                    Method m = actual(method);
+                    List<Integer> hooked = calls(m, hook, holds.size());
+                    if (m == null) continue;
+                    List<Instruction> body = instructions(m);
+                    if (!callSites(body, original).isEmpty()) fail(hook + " left a screen hold in " + m);
+                    for (int n = 0; n < Math.min(hooked.size(), holds.size()); n++) {
+                        Instruction old = was.get(holds.get(n));
+                        if (!hooked.get(n).equals(holds.get(n))) fail(hook + " moved a screen hold in " + m);
+                        if (!arguments(body.get(hooked.get(n))).equals(arguments(old))) fail(hook + " changed its argument registers in " + m);
+                        edits.computeIfAbsent(m.toString(), k -> new FeatureEdits()).replacements.put(hooked.get(n), old);
+                    }
+                }
+                if (found > 0) {
+                    Method stand = actual(hook);
+                    if (stand != null) fallback(stand, original);
+                }
+                total += found;
+            }
+            capability(c.callee, total > 0);
+        }
+
         /** The ring's one method taking a size and a screen position asks the hook first and stops on yes. */
         void highlightRing(Contract c) {
             List<Method> places = new ArrayList<>();
@@ -8796,6 +8846,7 @@ public class DexDiff {
                     case "postedDate": postedDate(c); break;
                     case "closeupGate": closeupGate(c); break;
                     case "highlightRing": highlightRing(c); break;
+                    case "screenSleep": screenSleep(c); break;
                     case "visualSearchThumbnails": visualSearchThumbnails(c); break;
                     case "relatedPinsFold": relatedPinsFold(c); break;
                     case "saveSheet": saveSheet(c); break;

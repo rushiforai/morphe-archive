@@ -35,6 +35,8 @@ The latest release is [v0.0.11](https://github.com/SysAdminDoc/HushTumblr/releas
 
 Sign in with your email and Tumblr password. Google's sign-in checks the app's signing certificate, so it won't work on a patched Tumblr. If you joined through Google, set a Tumblr password first from the password reset page.
 
+There are Hush patch sources for other apps too: [Hushfacebook](https://github.com/SysAdminDoc/HushFacebook) for Facebook, [HushGram](https://github.com/SysAdminDoc/HushGram) for Instagram, [HushMessenger](https://github.com/SysAdminDoc/HushMessenger) for Messenger, [HushPine](https://github.com/SysAdminDoc/HushPine) for PineDrama, [HushPinterest](https://github.com/SysAdminDoc/HushPinterest) for Pinterest, [HushTelegram](https://github.com/SysAdminDoc/HushTelegram) for Telegram, [HushThreads](https://github.com/SysAdminDoc/HushThreads) for Threads and [Hushfeed](https://github.com/SysAdminDoc/HushFeed) for TikTok. Each one is a separate source in Manager, so add only the ones for apps you patch.
+
 ## Settings
 
 Long-press the Tumblr logo at the top of your dashboard. You can also tap **HushTumblr** at the bottom of Tumblr's Settings, or long-press the Tumblr icon. Switches apply without patching again, though a few, like Disable analytics, finish after Tumblr restarts, and a Restart row at the top of the page does that for you. **Pause** keeps your saved choices and makes the switches act as off, apart from Debug logging. Changes made while patching stay in the app. The same page backs up your settings.

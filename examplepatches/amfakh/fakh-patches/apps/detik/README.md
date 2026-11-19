@@ -1,6 +1,6 @@
 # detikcom
 
-Patches for **detikcom** (`org.detikcom.rss`), version `7.14.1`, as an APK from APKMirror.
+Patches for **detikcom** (`org.detikcom.rss`), version `7.15.0`, as an APK from APKMirror.
 
 ## Patches
 
@@ -43,5 +43,5 @@ See the [repo README](../../README.md).
 With [morphe-desktop](https://github.com/MorpheApp/morphe-cli/releases) (needs Java 21):
 
 ```bash
-java -jar morphe-desktop-1.19.1-all.jar patch -p patches/build/libs/patches-<version>.mpp -o detik-patched.apk <detikcom 7.14.1 APK>
+java -jar morphe-desktop-1.19.1-all.jar patch -p patches/build/libs/patches-<version>.mpp -o detik-patched.apk <detikcom 7.15.0 APK>
 ```

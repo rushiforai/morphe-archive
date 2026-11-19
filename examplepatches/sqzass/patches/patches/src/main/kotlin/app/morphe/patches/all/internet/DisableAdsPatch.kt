@@ -58,11 +58,7 @@ private val ADS = mapOf(
 @Suppress("unused")
 val disableAdsPatch = patch(
     name = "Disable ads",
-    description = "Neutralizes common ad SDKs (AdMob, Unity, Meta, AppLovin) by forcing their " +
-        "void load/show sinks to no-op and their boolean readiness predicates to false. " +
-        "Object-returning APIs are left intact to avoid null returns. Missing SDKs are " +
-        "skipped, so this is safe as a universal patch. Tradeoff: rewarded-ad gates never " +
-        "complete, so 'watch an ad to unlock' flows dead-end.",
+    description = "Neutralizes common ad SDKs (AdMob, Unity, Meta, AppLovin).",
     default = false,
 ) {
     execute {

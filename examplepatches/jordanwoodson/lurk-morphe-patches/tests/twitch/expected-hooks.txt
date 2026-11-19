@@ -91,6 +91,7 @@ TwitchChat.deletedLine
 TwitchChat.ignoreChatClears
 
 # if chat_timestamps
+TwitchChat.sentTime
 TwitchChat.timestampPattern
 TwitchChat.timestamps
 

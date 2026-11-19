@@ -453,7 +453,7 @@ Playback	Воспроизведение
 # context: switch title; on, videos and music wait for a tap before they play
 Tap to play	Воспроизведение по нажатию
 # context: summary of that switch; Autoplay and Off are the name and value of Facebook's own setting, as Facebook shows them in this language
-Videos, reels, stories and music wait for your tap instead of playing by themselves. Facebook's own Autoplay setting shows Off while this is on.	Видео, Reels, Истории и музыка ждут вашего нажатия, а не запускаются автоматически. Пока эта настройка включена, собственная настройка автозапуска Facebook показывает значение «Выкл.».
+Videos, reels and music wait for your tap instead of playing by themselves. Facebook's own Autoplay setting shows Off while this is on.	Видео, Reels и музыка ждут вашего нажатия, а не запускаются автоматически. Пока эта настройка включена, собственная настройка автозапуска Facebook показывает значение «Выкл.».
 # context: switch title under Opening Facebook; Marketplace is Facebook's tab and keeps its name
 Marketplace only	Только Marketplace
 # context: switch title under Opening Facebook, next to Marketplace only; Events is Facebook's tab and keeps its name
@@ -1692,7 +1692,7 @@ Facebook hasn't downloaded this screen to this phone, so a tap opens the Whiteha
 # context: toast when the Facebook version has no such screen
 This Facebook build has no Whitehat settings screen.	В этой сборке Facebook нет экрана настроек Whitehat.
 Only the first reel waits	Только первый Reels ожидает нажатия
-With the switch above on, after you play one reel, the reels you swipe to play on their own. The feed, Watch and stories always wait.	Если включен переключатель выше, после запуска первого Reels следующие ролики, к которым вы переходите свайпом, воспроизводятся автоматически. Лента, Watch и Истории всегда ждут нажатия.
+With the switch above on, after you play one reel, the reels you swipe to play on their own. The feed and Watch always wait.	Если включен переключатель выше, после запуска первого Reels следующие ролики, к которым вы переходите свайпом, воспроизводятся автоматически. Лента и Watch всегда ждут нажатия.
 Slower speeds	Более низкая скорость
 Adds 0.1x and 0.25x to the speed menu of reels and of feed and Watch videos, for slowing down a fast moment.	Добавляет скорости 0,1x и 0,25x в меню скорости Reels, видео в Ленте и Watch, чтобы замедлять быстрые моменты.
 Faster speeds	Более высокая скорость
@@ -2811,10 +2811,12 @@ Takes the row of suggested replies off the bottom of a story. The reply box stay
 Hide the Subscribe button	Скрыть кнопку «Подписаться»
 Takes the Subscribe button off the top of a story. Applies from the next story you open.	Убирает кнопку «Подписаться» вверху Истории. Действует со следующей открытой Истории.
 Hide create story cards	Скрыть карточки создания Истории
-Takes out the card between stories that asks you to make one, including the ones built from photos in your gallery. Applies the next time you open stories.	Убирает карточку между Историями, которая предлагает создать свою, в том числе собранную из фото вашей галереи. Действует при следующем открытии Историй.
+Takes out the cards between stories that ask you to make one, including the full screen card that asks you to continue the story with photos from your gallery. Applies the next time you open stories.	Убирает карточки между Историями, которые предлагают создать свою, в том числе полноэкранную карточку, которая предлагает продолжить Историю с фото из вашей галереи. Действует при следующем открытии Историй.
 Progress bar at the bottom	Полоса прогресса внизу
 Shows a thin bar along the bottom of a story that fills as it plays, like the one on Reels.	Показывает внизу Истории тонкую полосу, которая заполняется по мере воспроизведения, как в Reels.
 Seek bar on stories	Полоса перемотки в Историях
+Plain slide between people	Простое перелистывание между людьми
+Swiping to the next or previous person's stories slides them across instead of turning them like a cube. Applies from your next swipe.	При перелистывании к Историям следующего или предыдущего человека они сдвигаются в сторону, а не поворачиваются, как куб. Применяется со следующего перелистывания.
 Fade the story seek bar	Приглушать полосу перемотки Историй
 Story position	Позиция в Истории
 Shows a bar along the bottom of a video story that you drag to move through it. The story waits while you drag. Progress bar at the bottom makes way for it on video stories.	Показывает внизу видеоистории полосу, которую можно тянуть, чтобы перемещаться по ней. Пока вы тянете, История ждёт. «Полоса прогресса внизу» уступает ей место в видеоисториях.
@@ -2895,6 +2897,8 @@ A small label at the top of Reels shows the minutes you've watched. Time on othe
 %1$d min	%1$d мин
 Hide the tab bar on the Reels tab	Скрывать панель вкладок на вкладке Reels
 The tab bar goes away while the Reels tab is open, and the reel gets the whole screen. The other tabs keep the bar. Restart Facebook to see the change.	Панель вкладок исчезает, пока открыта вкладка Reels, и рилс занимает весь экран. На остальных вкладках панель остаётся. Перезапустите Facebook, чтобы увидеть изменения.
+Hide the line along the tab bar	Скрывать линию у панели вкладок
+The thin line Facebook draws along the edge of the tab bar goes away on every tab. Tap a tab to see the change.	Тонкая линия, которую Facebook рисует по краю панели вкладок, исчезает на всех вкладках. Нажмите на любую вкладку, чтобы увидеть изменения.
 Playback speed in the post menu	Скорость воспроизведения в меню публикации
 A feed or Watch video's 3-dot menu gets Playback speed, from 0.5x to 3x, live videos too. Off by default, since it hasn't been tried on a real account yet.	В меню с тремя точками у видео в Ленте или Watch появляется пункт «Скорость воспроизведения» от 0,5x до 3x, в том числе для прямых эфиров. По умолчанию выключено, поскольку функция еще не проверялась на реальном аккаунте.
 Double tap to skip on feed videos	Перемотка двойным нажатием для видео в Ленте
@@ -3060,3 +3064,14 @@ Emoji font file cleared. Restart Facebook to apply the emoji change.	Файл ш
 Couldn't go back to your phone's emoji. Try again.	Не удалось вернуться к эмодзи телефона. Повторите попытку.
 # context: toast when the app holding the emoji font doesn't answer in time
 The app holding that font file is taking too long, so Hushfacebook stopped waiting. Your emoji didn't change.	Приложение, в котором находится файл шрифта, слишком долго не отвечает, поэтому Hushfacebook прекратил ожидание. Эмодзи не изменены.
+Never	Никогда
+Back to Clean mode	Возврат в чистый режим
+When the comments or a menu close	Когда закрываются комментарии или меню
+When the comments or a menu close. A reel you took out of Clean mode goes back into it once whatever you opened over it closes.	Когда закрываются комментарии или меню. Reels, выведенный из чистого режима, возвращается в него, как только закроется то, что вы открыли поверх.
+%1$s. A reel you took out of Clean mode goes back into it once you haven't touched the screen for that long. An open sheet holds the time.	%1$s. Reels, выведенный из чистого режима, возвращается в него, если вы столько времени не касаетесь экрана. Открытая панель останавливает отсчёт.
+Never. A reel you take out of Clean mode stays out until you put it back.	Никогда. Reels, выведенный из чистого режима, остаётся вне его, пока вы не вернёте его сами.
+A reel you take out of Clean mode will stay out until you put it back.	Reels, выведенный из чистого режима, останется вне его, пока вы не вернёте его сами.
+A reel you take out of Clean mode will go back into it when the comments or a menu close.	Reels, выведенный из чистого режима, вернётся в него, когда закроются комментарии или меню.
+A reel you take out of Clean mode will go back into it after %1$d seconds without a touch.	Reels, выведенный из чистого режима, вернётся в него через %1$d секунд без касания.
+Hide New for you on reels	Скрывать «Новое для вас» в Reels
+Takes "New for you", and other reasons Facebook gives for showing you a reel, off the line under its author, so the date and the song show right away. A change shows from the next reel.	Убирает «Новое для вас» и другие причины, по которым Facebook показывает вам Reels, из строки под именем автора, чтобы дата и песня были видны сразу. Изменение применяется начиная со следующего Reels.

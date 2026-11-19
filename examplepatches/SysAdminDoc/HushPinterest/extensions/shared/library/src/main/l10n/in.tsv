@@ -373,6 +373,8 @@ Saving a pin no longer shows the "Saved to" message or a suggestion to follow it
 Original-quality images	Gambar kualitas asli
 collage images	gambar kolase
 pin closeups	tampilan dekat pin
+idea pin pages	halaman pin ide
+refused originals	gambar asli yang ditolak
 Shows the original image instead of the large size in pin closeups and collages, when Pinterest has one. Uses more data. Pins already loaded change the next time they load.	Menampilkan gambar asli, bukan ukuran besar, di tampilan dekat pin dan kolase, jika Pinterest punya. Memakai lebih banyak data. Pin yang sudah dimuat berubah saat dimuat lagi.
 Save media	Simpan media
 Recent searches autocomplete	Pelengkapan otomatis pencarian terbaru
@@ -718,14 +720,13 @@ Couldn't share the image. Check your connection and try again.	Tidak bisa membag
 # context: a Feed switch under Muted words, from the Keep Home feed patch. When it's on, the Home feed doesn't load new pins by itself when the person comes back to the app or to the Home tab, so the pins they were looking at stay put. Pulling down on Home still loads new ones. The title is also the patch's name in the build report and in the settings import preview
 Keep Home feed	Pertahankan beranda
 Home keeps the pins you were looking at when you come back to Pinterest or to the Home tab. Pull down on Home to load new pins.	Beranda tetap menampilkan pin yang sedang Anda lihat saat Anda kembali ke Pinterest atau ke tab Beranda. Tarik ke bawah di Beranda untuk memuat pin baru.
-# context: an Interface switch under Original images, from the Show posted date patch. When it's on, the day a pin was posted shows in small text under the pin's title when the pin is opened. The title is also the patch's name in the build report and in the settings import preview. In Posted %1$s, %1$s is the date written the phone's way, such as Oct 12, 2026
+# context: an Interface switch under Original images, from the Show posted date patch. When it's on, the day a pin was posted shows in small text under the pin's title when the pin is opened. The title is also the patch's name in the build report and in the settings import preview.
 Show posted date	Tampilkan tanggal posting
 Shows the day a pin was posted under its title. It shows on the next pin you open.	Menampilkan tanggal pin diposting di bawah judulnya. Tanggal muncul di pin berikutnya yang Anda buka.
 Hide suggested boards	Sembunyikan papan saran
 When you save a pin, hides the board Pinterest suggests under your own boards. Your own boards stay. The change shows the next time you save a pin.	Saat menyimpan pin, menyembunyikan papan yang disarankan Pinterest di bawah papan Anda sendiri. Papan Anda tetap ada. Perubahan terlihat saat Anda menyimpan pin berikutnya.
 Expand board list	Buka penuh daftar papan
 Opens the sheet that lists your boards all the way up when you save a pin, so more boards show without dragging it. The change shows the next time you save a pin.	Membuka penuh lembar berisi papan Anda saat menyimpan pin, sehingga lebih banyak papan terlihat tanpa perlu menariknya. Perubahan terlihat saat Anda menyimpan pin berikutnya.
-Posted %1$s	Diposting %1$s
 Install microG-RE to use Google sign-in.	Instal microG-RE untuk masuk dengan Google.
 Turn on microG-RE to use Google sign-in.	Aktifkan microG-RE untuk masuk dengan Google.
 microG-RE didn't answer. Open it, then try again.	microG-RE tidak merespons. Buka lalu coba lagi.
@@ -779,7 +780,6 @@ Pick the rows to take out of a pin's menu.	Pilih baris yang ingin dihapus dari m
 Hidden from pin menus: %s. Tap to change.	Disembunyikan dari menu pin: %s. Ketuk untuk mengubah.
 Picked: %s. Hide pin menu rows is off, so they still show.	Dipilih: %s. Sembunyikan baris menu pin nonaktif, jadi baris tetap muncul.
 Why you're seeing this pin	Alasan kamu melihat pin ini
-Customize board tabs	Sesuaikan tab papan
 Board tab header	Header tab papan
 Hide See board on board tabs	Sembunyikan Lihat papan di tab papan
 Takes the See board button off the picture at the top of a board tab on Home. The change shows the next time the tab opens.	Menghapus tombol Lihat papan dari gambar di bagian atas tab papan di Beranda. Perubahan terlihat saat tab dibuka berikutnya.
@@ -821,3 +821,6 @@ Fold related pins	Lipat pin terkait
 Puts an arrow under a pin you open. Related pins stay folded and don't load until you tap it, and tapping again folds them. Your last choice is kept. Hide related pins wins when both are on. The change shows on the next pin you open.	Menambahkan panah di bawah pin yang Anda buka. Pin terkait tetap terlipat dan tidak dimuat sampai Anda mengetuknya, dan ketukan berikutnya melipatnya lagi. Pilihan terakhir Anda disimpan. Jika keduanya aktif, Sembunyikan pin terkait yang berlaku. Perubahan terlihat pada pin berikutnya yang Anda buka.
 # context: what a screen reader says for the arrow under a pin while its related pins are folded
 Show related pins	Tampilkan pin terkait
+# context: a Pin page switch on the Interface page, from the Let the screen sleep patch. Pinterest keeps the phone's screen on while one of its videos is on the screen. When this is on, the screen turns off after the phone's normal screen timeout instead. The title is also the patch's name in the build report and in the settings import preview
+Let the screen sleep	Biarkan layar mati
+Pinterest keeps the screen on while a video is on it, playing or not, so an open pin can keep the phone awake. With this on, the screen turns off after your phone's usual timeout, videos included. The change shows on the next pin you open.	Pinterest membuat layar tetap menyala selama ada video di layar, diputar atau tidak, jadi pin yang terbuka bisa membuat ponsel tidak pernah tidur. Jika ini aktif, layar mati setelah batas waktu layar ponsel Anda yang biasa, termasuk saat ada video. Perubahan terlihat pada pin berikutnya yang Anda buka.

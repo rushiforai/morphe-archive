@@ -157,9 +157,7 @@ Forget the video @%2$s has seen.	@%2$s tərəfindən izlənmiş videonu unudun.
 Got it	Aydındır
 Hide profile shortcuts	Profil qısayollarını gizlədin
 # context: Title of the checklist that hides tabs from the strip above a profile's videos
-Hide profile tabs	Profil tablarını gizlədin
 # context: Note under that title. Reposts and Liked videos are two of the checklist's rows, and the checklist never takes away every tab
-Pick the tabs to hide from the strip above a profile's videos, such as Reposts or Liked videos. One tab always stays. Restart TikTok to apply this.	Profilin videolarının üstündəki zolaqda gizlədiləcək tabları seçin, məsələn Repostlar və ya Bəyənilən videolar. Bir tab həmişə qalır. Tətbiq etmək üçün TikTok-u yenidən başladın.
 # context: Checklist row for the profile tab with the account's private videos (lock icon)
 Private videos	Şəxsi videolar
 # context: Checklist row for the profile tab with the videos the account reposted
@@ -3012,3 +3010,36 @@ The Widget circle at the end of the stories tray goes. TikTok's home screen widg
 # context: Feed screen settings, a switch under Show video length on profile grids. It removes the view count and the play icon from each video tile on profile grids. If the date, video length or engagement rate are switched on, they take the first line instead.
 Hide view counts on profile grids	Profil şəbəkəsində baxış saylarını gizlədin
 Takes the view count and its play icon off each video on profile grids. Dates, lengths and the engagement rate you turned on move up in its place.	Profil şəbəkəsində hər videodan baxış sayını və onun oynatma ikonunu götürür. Açdığınız tarixlər, uzunluqlar və qarşılıqlı əlaqə nisbəti onun yerinə yuxarı qalxır.
+Video bitrate limit	Video bitreyt limiti
+%1$s Mb/s	%1$s Mb/san
+A video heavier than this plays a lighter version. If none fits, it plays its lightest one.	Bundan ağır video daha yüngül versiyada oynadılır. Heç biri uyğun gəlmirsə, ən yüngülü oynadılır.
+Use an imported emoji font	İdxal edilmiş emoji şriftindən istifadə edin
+Shows emoji in the font file you import below, whichever font the text is in. Restart TikTok to see the change.	Mətnin şrifti necə olursa olsun, emojiləri aşağıda idxal etdiyiniz şrift faylı ilə göstərir. Dəyişikliyi görmək üçün TikTok-u yenidən başladın.
+Import an emoji font file	Emoji şrift faylını idxal edin
+Remove the imported emoji font	İdxal edilmiş emoji şriftini silin
+No emoji font is imported	İdxal edilmiş emoji şrifti yoxdur
+%1$s is imported. Turn on Use an imported emoji font to see it.	%1$s idxal edildi. Onu görmək üçün İdxal edilmiş emoji şriftindən istifadə edin ayarını açın.
+Write the month as a word	Ayı sözlə yaz
+Writes TikTok's date by the creator's name with the month's name, like Oct 12. Day before month makes it 12 Oct.	Yaradıcının adının yanındakı TikTok tarixini ayın adı ilə yazır, məsələn Oct 12. Gün aydan əvvəl seçimi onu 12 Oct edir.
+Fade the name, date and caption	Ad, tarix və açıqlamanı solğunlaşdır
+Draws the creator's name, the date, the caption and the music line over the video at this level, and they still take taps. At 100 they follow Fade the video controls. At 0 they're hidden.	Yaradıcının adını, tarixi, açıqlamanı və musiqi sətrini videonun üzərində bu səviyyədə göstərir, onlara toxunmaq yenə mümkündür. 100 olduqda Video idarəetmələrini solğunlaşdır ayarına uyğun olur. 0 olduqda gizlənir.
+LIVE buttons in the long-press menu	LIVE düymələri uzun basma menyusunda
+Takes the Record and Auto tap buttons off the video and puts them in the menu you get by holding the middle of a LIVE.	Yaz və Avto toxunma düymələrini videodan götürür və LIVE-ın ortasına basıb saxlayanda açılan menyuya qoyur.
+Auto tap started	Avto toxunma başladı
+Hide stories from accounts you don't follow	İzləmədiyiniz hesabların hekayələrini gizlədin
+Stories from accounts you don't follow leave the stories tray. Stories from accounts you follow stay.	İzləmədiyiniz hesabların hekayələri hekayə panelindən çıxır. İzlədiyiniz hesabların hekayələri qalır.
+Hide the people you may know tag	Tanıya biləcəyiniz insanlar etiketini gizlədin
+Hide the small tag next to the creator's name that says you may know them. The video stays.	Yaradıcının adının yanında onu tanıya biləcəyinizi bildirən kiçik etiketi gizlədin. Video qalır.
+Report a newer phone to game LIVE	Oyun LIVE-larına daha yeni telefon bildir
+TikTok's server picks the qualities a game LIVE can stream in, and some phones get fewer than they can handle. While you set up a LIVE, this tells the LIVE server you have a Galaxy S25 Ultra. Sign-in and everything else still see your real phone. A quality your phone can't keep up with may stutter.	Oyun LIVE-ının hansı keyfiyyətlərdə yayımlana biləcəyini TikTok-un serveri seçir və bəzi telefonlar bacardıqlarından azını alır. LIVE hazırlayarkən bu, LIVE serverinə sizdə Galaxy S25 Ultra olduğunu bildirir. Giriş və qalan hər şey real telefonunuzu görməyə davam edir. Telefonunuzun çatdıra bilmədiyi keyfiyyət donub qala bilər.
+Keep suggestions on profiles	Profillərdə təklifləri saxla
+The Suggested accounts row under a profile's Follow button still shows, so you can find similar accounts after you follow someone.	Profildəki İzlə düyməsinin altındakı Təklif olunan hesablar sırası görünməyə davam edir, beləliklə kimisə izlədikdən sonra oxşar hesabları tapa bilərsən.
+Sort pinned videos with the rest	Sancılmış videoları qalanları ilə sırala
+Pinned videos take their place in the order instead of staying at the top, so Newest first puts them at the date they were posted.	Sancılmış videolar yuxarıda qalmaq əvəzinə sıradakı yerini tutur, beləliklə Əvvəlcə ən yenilər onları paylaşıldıqları tarixə qoyur.
+Hide or reorder profile tabs	Profil tablarını gizlədin və ya yenidən sıralayın
+Pick the tabs to hide from the strip above a profile's videos, such as Reposts or Liked videos, and use the arrows to put the rest in your order. One tab always stays. Restart TikTok to apply this.	Profilin videolarının üstündəki zolaqda gizlədiləcək tabları seçin, məsələn Repostlar və ya Bəyənilən videolar, qalanlarını isə oxlarla istədiyiniz sıraya qoyun. Bir tab həmişə qalır. Tətbiq etmək üçün TikTok-u yenidən başladın.
+Hide Add bio	Bio əlavə et təklifini gizlədin
+Hide the Add bio prompt TikTok shows on your own profile while it has no bio. You can still add one from Edit profile.	Profilinizdə bio olmayanda TikTok-un göstərdiyi Bio əlavə et təklifini gizlədin. Bio-nu yenə də Profili redaktə edin bölməsindən əlavə edə bilərsiniz.
+Show the picture before saving	Saxlamadan əvvəl şəkli göstər
+With the long press save on, holding a profile picture opens it full screen at full size, with a Save button under it.	Uzun basmaqla saxlama açıq olanda profil şəklini basıb saxlamaq onu tam ekranda, tam ölçüdə açır, altında Saxla düyməsi olur.
+The profile picture couldn't be loaded. Try again.	Profil şəkli yüklənə bilmədi. Yenidən cəhd edin.

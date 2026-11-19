@@ -28,7 +28,11 @@ internal object Constants {
                 minSdk = 24,
                 isExperimental = true
             ),
-            // Version used to develop and confirm these patches.
+            // Versions the patches were confirmed on.
+            AppTarget(
+                version = "7.12.6",
+                minSdk = 24
+            ),
             AppTarget(
                 version = "7.12.0",
                 minSdk = 24

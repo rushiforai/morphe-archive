@@ -8,6 +8,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import io.github.jordanwoodson.patches.shared.settings.ChoiceSetting
 import io.github.jordanwoodson.patches.shared.settings.Section
 import io.github.jordanwoodson.patches.shared.settings.SwitchSetting
@@ -27,6 +28,7 @@ val chatTimestampsPatch = bytecodePatch(
     dependsOn(twitchRNChatPatch, twitchSettingsPatch)
     execute {
         showTimeOnLiveMessages()
+        timeOwnMessages()
         chooseTimeFormat()
         twitchSettings.add(
             SwitchSetting("chat_timestamps", "Chat timestamps", "The time in front of each chat message.", Section.CHAT),
@@ -61,6 +63,31 @@ private fun BytecodePatchContext.showTimeOnLiveMessages() {
     method.addInstructions(0, """
         invoke-static/range { p3 .. p4 }, $CHAT->timestamps(Ljava/lang/Object;Z)Z
         move-result p4
+    """)
+}
+
+/**
+ * A message you send shows at once from a copy Twitch builds as an IRC line, without the server's tmi-sent-ts
+ * tag, so it had no time to show (issue 79). The send time goes to the event's constructor; the extension fills
+ * it in when it is missing.
+ */
+private fun BytecodePatchContext.timeOwnMessages() {
+    val method = IrcMessageTagsFingerprint.twitchMatch("IRC message tags").method
+    val event = method.returnType
+    val instructions = method.instructionList()
+    val create = instructions.indices.singleOrNull { index ->
+        instructions[index].opcode == Opcode.INVOKE_DIRECT_RANGE && instructions[index].methodRef?.let {
+            it.definingClass == event && it.name == "<init>" && it.parameterTypes.getOrNull(2)?.toString() == "Ljava/lang/Long;"
+        } == true
+    } ?: throw PatchException("Twitch: IRC message event isn't made once with a send time")
+    // Range registers: the event, then its parameters; the send time is the third.
+    val register = (instructions[create] as RegisterRangeInstruction).startRegister + 3
+    if (register > 255) throw PatchException("Twitch: IRC message send time register is too large")
+    method.requireNotBranchTarget(create, "IRC message event")
+    Locators.record("twitch.chat_timestamps.irc_event", event)
+    method.addInstructions(create, """
+        invoke-static/range { v$register .. v$register }, $CHAT->sentTime(Ljava/lang/Long;)Ljava/lang/Long;
+        move-result-object v$register
     """)
 }
 

@@ -36,6 +36,7 @@ public final class InboxPreferenceCategory extends ConditionalPreferenceCategory
                 || SettingsStatus.hideInboxStoriesEnabled
                 || SettingsStatus.inboxOnThisDayEnabled
                 || SettingsStatus.inboxSuggestedLivesEnabled
+                || SettingsStatus.inboxSuggestedStoriesEnabled
                 || SettingsStatus.inboxWidgetGuideEnabled
                 || SettingsStatus.chatDeclutterEnabled
                 || SettingsStatus.expandActivityListEnabled
@@ -202,6 +203,14 @@ public final class InboxPreferenceCategory extends ConditionalPreferenceCategory
                     Settings.HIDE_INBOX_SUGGESTED_LIVES
             ));
         }
+        if (SettingsStatus.inboxSuggestedStoriesEnabled) {
+            addPreference(new TogglePreference(
+                    context,
+                    "Hide stories from accounts you don't follow",
+                    "Stories from accounts you don't follow leave the stories tray. Stories from accounts you follow stay.",
+                    Settings.HIDE_INBOX_SUGGESTED_STORIES
+            ));
+        }
         if (SettingsStatus.inboxWidgetGuideEnabled) {
             addPreference(new TogglePreference(
                     context,
@@ -217,6 +226,14 @@ public final class InboxPreferenceCategory extends ConditionalPreferenceCategory
                 "The accounts TikTok suggests you follow no longer take up rows in the Inbox.",
                 Settings.HIDE_INBOX_SUGGESTED_ACCOUNTS
         ));
+        }
+        if (SettingsStatus.hideSuggestedAccountsEnabled) {
+            addPreference(new TogglePreference(
+                    context,
+                    "Keep suggestions on profiles",
+                    "The Suggested accounts row under a profile's Follow button still shows, so you can find similar accounts after you follow someone.",
+                    Settings.KEEP_PROFILE_SUGGESTED_ACCOUNTS
+            ));
         }
         if (SettingsStatus.chatDeclutterEnabled) {
             addPreference(new SectionHeadingPreference(context, "In a chat"));

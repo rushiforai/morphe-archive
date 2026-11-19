@@ -5,8 +5,7 @@ import app.morphe.patcher.patch.resourcePatch
 @Suppress("unused")
 val hideAppIconPatch = resourcePatch(
     name = "Hide app icon",
-    description = "Hides the app from the launcher by replacing the LAUNCHER category with " +
-        "DEFAULT. The app stays installed; launch it via another app or a shortcut.",
+    description = "Hides the app from the launcher.",
     default = false,
 ) {
     execute {

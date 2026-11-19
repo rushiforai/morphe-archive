@@ -41,6 +41,8 @@ When you sign in, Telegram often turns down the API ID that ships with a patched
 
 **Coming from stock Telegram?** The keys differ, so you'll have to uninstall stock Telegram before the patched copy goes on. That deletes this phone's secret chats for good, though cloud chats come back when you sign in. Stay signed in on another device until the patched app is in, because that's usually where the login code shows up.
 
+There are Hush patch sources for other apps too: [Hushfacebook](https://github.com/SysAdminDoc/HushFacebook) for Facebook, [HushGram](https://github.com/SysAdminDoc/HushGram) for Instagram, [HushMessenger](https://github.com/SysAdminDoc/HushMessenger) for Messenger, [HushPine](https://github.com/SysAdminDoc/HushPine) for PineDrama, [HushPinterest](https://github.com/SysAdminDoc/HushPinterest) for Pinterest, [HushThreads](https://github.com/SysAdminDoc/HushThreads) for Threads, [Hushfeed](https://github.com/SysAdminDoc/HushFeed) for TikTok and [HushTumblr](https://github.com/SysAdminDoc/HushTumblr) for Tumblr. Each one is a separate source in Manager, so add only the ones for apps you patch.
+
 ## Settings
 
 Open Telegram's Settings and tap **HushTelegram settings**, or press and hold the **Telegram** title at the top of your chat list. Long-pressing Telegram's icon and tapping **HushTelegram** works too, and so does **Additional settings in the app** on Telegram's App info page (Samsung calls it **Configure in Telegram**).

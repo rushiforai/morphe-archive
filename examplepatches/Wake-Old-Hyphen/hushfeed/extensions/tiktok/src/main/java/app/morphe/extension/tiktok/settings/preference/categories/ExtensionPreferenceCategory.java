@@ -11,6 +11,7 @@ import android.preference.PreferenceScreen;
 
 import app.morphe.extension.tiktok.misc.EffectDeviceSpoof;
 import app.morphe.extension.tiktok.privacy.StoreIdentity;
+import app.morphe.extension.tiktok.font.EmojiFont;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
 import app.morphe.extension.tiktok.settings.preference.AppIconPreference;
@@ -68,6 +69,7 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
                 || SettingsStatus.refreshRateEnabled
                 || SettingsStatus.cameraBrightnessEnabled
                 || SettingsStatus.effectDeviceSpoofEnabled
+                || SettingsStatus.gameLiveDeviceEnabled
                 || SettingsStatus.launcherShortcutsEnabled
                 || SettingsStatus.firstLaunchSetupEnabled
                 || SettingsStatus.screenCaptureEnabled
@@ -155,6 +157,17 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
             ));
             addPreference(ImportedFontPreference.pickRow(context));
             addPreference(ImportedFontPreference.removeRow(context));
+            if (android.os.Build.VERSION.SDK_INT >= EmojiFont.MIN_SDK) {
+                addPreference(new TogglePreference(
+                        context,
+                        "Use an imported emoji font",
+                        "Shows emoji in the font file you import below, whichever font the text "
+                                + "is in. Restart TikTok to see the change.",
+                        Settings.IMPORTED_EMOJI_FONT
+                ));
+                addPreference(ImportedFontPreference.emojiPickRow(context));
+                addPreference(ImportedFontPreference.emojiRemoveRow(context));
+            }
         }
         if (SettingsStatus.turnOffHapticsEnabled) {
             addPreference(new TogglePreference(
@@ -355,6 +368,15 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
                         Settings.HIDE_PROFILE_THOUGHTS
                 ));
             }
+            if (SettingsStatus.addBioEnabled) {
+                addPreference(new TogglePreference(
+                        context,
+                        "Hide Add bio",
+                        "Hide the Add bio prompt TikTok shows on your own profile while it has no bio. "
+                                + "You can still add one from Edit profile.",
+                        Settings.HIDE_ADD_BIO
+                ));
+            }
             if (SettingsStatus.thoughtsSwitchEnabled) {
                 addPreference(new TogglePreference(
                         context,
@@ -417,7 +439,7 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
         // the store check on Privacy, under a heading of its own.
         if (SettingsStatus.screenCaptureEnabled || SettingsStatus.videoOverlaysEnabled
                 || SettingsStatus.refreshRateEnabled || SettingsStatus.cameraBrightnessEnabled
-                || SettingsStatus.effectDeviceSpoofEnabled
+                || SettingsStatus.effectDeviceSpoofEnabled || SettingsStatus.gameLiveDeviceEnabled
                 || SettingsStatus.launcherShortcutsEnabled || SettingsStatus.firstLaunchSetupEnabled
                 || SettingsStatus.storeIdentityEnabled || SettingsStatus.passkeySignInEnabled
                 || SettingsStatus.appLanguageEnabled || SettingsStatus.remoteConfigFreezeEnabled) {
@@ -487,6 +509,16 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
                     .withCheck(EffectDeviceSpoof::modelProblem)
                     .withChoices(EffectDeviceSpoof.listedLabels(), EffectDeviceSpoof.listedModels(),
                             "Type another model"));
+        }
+        if (SettingsStatus.gameLiveDeviceEnabled) {
+            addPreference(new TogglePreference(
+                    context,
+                    "Report a newer phone to game LIVE",
+                    "TikTok's server picks the qualities a game LIVE can stream in, and some phones get fewer than they can handle. "
+                            + "While you set up a LIVE, this tells the LIVE server you have a Galaxy S25 Ultra. "
+                            + "Sign-in and everything else still see your real phone. A quality your phone can't keep up with may stutter.",
+                    Settings.REPORT_NEWER_PHONE_TO_GAME_LIVE
+            ));
         }
         if (SettingsStatus.launcherShortcutsEnabled) {
             addPreference(new TogglePreference(

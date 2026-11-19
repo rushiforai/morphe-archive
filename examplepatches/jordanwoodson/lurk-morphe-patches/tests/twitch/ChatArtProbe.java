@@ -276,6 +276,25 @@ public final class ChatArtProbe {
         settings.put("chat_timestamps", false);
         check("H:mm".equals(pattern.invoke(null, "H:mm")), "Off must keep Twitch's pattern whatever the clock choice");
         settings.remove("chat_timestamp_format");
+        ownMessageTime();
+    }
+
+    /**
+     * A message you send shows from an IRC line Twitch builds itself, without tmi-sent-ts (issue 79). The IRC
+     * parser passes the tag's time through sentTime: with the switch on a missing time becomes the time it is
+     * read; a server message keeps its own time either way.
+     */
+    private static void ownMessageTime() throws Exception {
+        Method sent = Class.forName(CHAT).getMethod("sentTime", Long.class);
+        for (boolean enabled : new boolean[]{false, true}) {
+            settings.put("chat_timestamps", enabled);
+            long before = System.currentTimeMillis() / 1000;
+            Long own = (Long) sent.invoke(null, (Long) null);
+            if (enabled) check(own != null && own >= before && own <= System.currentTimeMillis() / 1000, "On must time your message now, got " + own);
+            else check(own == null, "Off must leave your message without a time, got " + own);
+            check(Long.valueOf(1700000000L).equals(sent.invoke(null, 1700000000L)), "A server message keeps its time");
+        }
+        settings.remove("chat_timestamps");
     }
 
     private static void autoClaim() throws Exception {
@@ -400,7 +419,7 @@ public final class ChatArtProbe {
         section("anonymous chat: IRC login, read-only input, blocked send", ChatArtProbe::anonymousChat);
         section("ignore chat clears (timeouts and deletions still apply)", ChatArtProbe::chatClears);
         section("deleted messages", ChatArtProbe::deletedMessages);
-        section("timestamps", ChatArtProbe::timestamps);
+        section("timestamps (your own messages too)", ChatArtProbe::timestamps);
         section("auto-claim channel points", ChatArtProbe::autoClaim);
         section("React Native edits", () -> hermes(args[0]));
         if (failures > 0) {

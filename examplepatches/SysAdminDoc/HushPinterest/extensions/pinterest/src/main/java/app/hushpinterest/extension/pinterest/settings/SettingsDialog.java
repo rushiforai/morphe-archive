@@ -97,7 +97,6 @@ public final class SettingsDialog extends DialogFragment {
     private boolean replaceFailedChild;
     private boolean retryScheduled;
     private CharSequence mountedTitle = "HushPinterest";
-    private boolean mountedHome;
     private String mountedQuery = "";
     private int mountedResults = -1;
     private final Runnable retryMount = () -> {
@@ -388,20 +387,25 @@ public final class SettingsDialog extends DialogFragment {
         mountPage(true);
     }
 
-    void showPage(CharSequence title, boolean home, String query) {
-        mountedTitle = title;
-        mountedHome = home;
+    void showPage(CharSequence title, String query) {
         mountedQuery = query;
+        showTitle(title);
         if (mountFailed) return;
-        pageTitle.setText(title);
-        searchBox.setVisibility(home ? View.VISIBLE : View.GONE);
+        // On every page: a search reaches any setting from wherever it starts.
+        searchBox.setVisibility(View.VISIBLE);
         settingSearch = true;
         if (!search.getText().toString().equals(query)) search.setText(query);
         settingSearch = false;
-        if (!home || query.isEmpty()) {
+        if (query.isEmpty()) {
             search.clearFocus();
             hideKeyboard();
         }
+    }
+
+    /** The page under a search changed while the field keeps its focus and keyboard. */
+    void showTitle(CharSequence title) {
+        mountedTitle = title;
+        if (!mountFailed) pageTitle.setText(title);
     }
 
     /** How many settings the search shows, or -1 when there is no search. */
@@ -459,7 +463,7 @@ public final class SettingsDialog extends DialogFragment {
             }
             mountFailed = false;
             clearMountRecovery();
-            showPage(mountedTitle, mountedHome, mountedQuery);
+            showPage(mountedTitle, mountedQuery);
             showResults(mountedResults);
             if (retry) {
                 View list = getView().findViewById(android.R.id.list);

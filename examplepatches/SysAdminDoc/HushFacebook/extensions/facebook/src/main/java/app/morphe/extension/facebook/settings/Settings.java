@@ -23,6 +23,7 @@ import app.morphe.extension.facebook.media.RecentlyWatched;
 import app.morphe.extension.facebook.media.SurfaceQuality;
 import app.morphe.extension.facebook.reels.BurnInMode;
 import app.morphe.extension.facebook.reels.BurnInWait;
+import app.morphe.extension.facebook.reels.CleanReturn;
 import app.morphe.extension.facebook.reels.FeedVideoControls;
 import app.morphe.extension.facebook.reels.GrayOver;
 import app.morphe.extension.facebook.reels.HoldReaction;
@@ -553,6 +554,13 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_story_progress_bar", FALSE);
 
     /**
+     * The cube Facebook turns between people's stories stays flat, so their pages slide across ({@link
+     * app.morphe.extension.facebook.stories.StoryViewerCleanup}, #521). Starts off. Read on each frame of a swipe.
+     */
+    public static final BooleanSetting STORY_FLAT_SLIDE =
+            new BooleanSetting("hushfacebook_story_flat_slide", FALSE);
+
+    /**
      * The story and LIVE rings leave the profile pictures at the top of posts, and a tap on the picture
      * opens the profile ({@link app.morphe.extension.facebook.stories.StoryRings}, #397). Starts off.
      * Read as each post's header draws.
@@ -797,6 +805,15 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_reel_clean_button", FALSE);
 
     /**
+     * Back to Clean mode (#519): once the buttons are brought back over a reel with Always use
+     * Clean mode or the Clean mode button on, the reel goes back into Clean mode on its own, when a
+     * sheet opened over it closes or after a few seconds with no touch ({@link
+     * app.morphe.extension.facebook.reels.ReelCleanReturn}). Starts off.
+     */
+    public static final EnumSetting<CleanReturn> REEL_CLEAN_RETURN =
+            new EnumSetting<>("hushfacebook_reel_clean_return", CleanReturn.OFF);
+
+    /**
      * A reel stops on its last frame instead of starting over, so a tap plays it again and a swipe
      * moves on. Feed videos, stories and every other video play as Facebook has them. Off until
      * it's turned on, since nobody has seen it on a phone yet.
@@ -962,6 +979,14 @@ public class Settings extends BaseSettings {
      */
     public static final EnumSetting<ReelDateStyle> REEL_POST_DATE_STYLE =
             new EnumSetting<>("hushfacebook_reel_post_date_style", ReelDateStyle.AGO);
+
+    /**
+     * "New for you", the reason Facebook picked a reel, is left off the line under its author
+     * ({@link app.morphe.extension.facebook.reels.ReelDeclutter#slotNewForYou}, #520). Off by
+     * default. A change shows from the next reel.
+     */
+    public static final BooleanSetting HIDE_REEL_NEW_FOR_YOU =
+            new BooleanSetting("hushfacebook_hide_reel_new_for_you", FALSE);
 
     /**
      * The speaker button at the bottom of a reel's right side isn't built
@@ -1783,7 +1808,7 @@ public class Settings extends BaseSettings {
     /**
      * With {@link #TAP_TO_PLAY} on, once a tap plays a reel that was waiting, the reels swiped to
      * after it start on their own, until a start is held again (#91). Off by default, so every reel
-     * waits. The feed, Watch and stories wait either way.
+     * waits. The feed and Watch wait either way.
      */
     public static final BooleanSetting TAP_TO_PLAY_REELS_AFTER_FIRST =
             new BooleanSetting("hushfacebook_tap_to_play_reels_after_first", FALSE);
@@ -3100,6 +3125,14 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting HIDE_REELS_TAB_BAR =
             new BooleanSetting("hushfacebook_hide_reels_tab_bar", FALSE, true);
+
+    /**
+     * The thin line Facebook draws along the tab bar's edge goes on every tab (#521,
+     * {@link app.morphe.extension.facebook.navigation.ReelsTabBarHidden}). Off by default. Facebook
+     * restyles the bar each time a tab is selected, so a change shows on the next tab tapped.
+     */
+    public static final BooleanSetting HIDE_TAB_BAR_LINE =
+            new BooleanSetting("hushfacebook_hide_tab_bar_line", FALSE);
 
     /**
      * The top bar and the tab bar let the feed show through, with a blur of it behind them on

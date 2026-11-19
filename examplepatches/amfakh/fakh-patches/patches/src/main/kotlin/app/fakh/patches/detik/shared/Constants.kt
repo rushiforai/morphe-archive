@@ -10,6 +10,6 @@ object Constants {
         packageName = "org.detikcom.rss",
         apkFileType = ApkFileType.APK,
         appIconColor = 0x0A4D9C,
-        targets = listOf(AppTarget(version = "7.14.1", versionCode = 464)),
+        targets = listOf(AppTarget(version = "7.15.0", versionCode = 466)),
     )
 }

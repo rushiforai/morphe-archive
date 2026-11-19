@@ -1779,6 +1779,22 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_hide_inbox_suggestions", FALSE, true);
 
     /**
+     * The New message button in the top bar of your messages
+     * ({@link app.hushgram.extension.instagram.direct.NewMessageButton}, #762). Read each time the
+     * bar binds its buttons. Off to start.
+     */
+    public static final BooleanSetting HIDE_NEW_MESSAGE_BUTTON =
+            new BooleanSetting("hushgram_hide_new_message_button", FALSE);
+
+    /**
+     * The Suggested people on the New message screen and the new group picker
+     * ({@link app.hushgram.extension.instagram.direct.NewMessageSuggestions}, #762). Read each
+     * time a picker fills its rows, and a search still lists its matches. Off to start.
+     */
+    public static final BooleanSetting HIDE_NEW_MESSAGE_SUGGESTIONS =
+            new BooleanSetting("hushgram_hide_new_message_suggestions", FALSE);
+
+    /**
      * Instants, Instagram's no-edit camera for friends, everywhere Instagram offers it
      * ({@link app.hushgram.extension.instagram.direct.Instants}). Instagram settles what it shows when
      * it starts, so a change takes a restart. Off to start.
@@ -1861,10 +1877,20 @@ public class Settings extends BaseSettings {
     /**
      * Under {@link #FULL_SCREEN_REELS}: a reel whose shape is close to the screen's fills it, cut a
      * little at the sides, instead of fitting with black bars above and below (#288,
-     * {@link app.hushgram.extension.instagram.reels.ReelFill}). Off to start.
+     * {@link app.hushgram.extension.instagram.reels.ReelFill}). Rests while {@link #FIT_REEL_SCREEN} is on,
+     * which wins over it, so the two can't both look on (#755). Off to start.
      */
     public static final BooleanSetting FILL_REEL_SCREEN =
-            new BooleanSetting("hushgram_fill_reel_screen", FALSE, parent(FULL_SCREEN_REELS));
+            new BooleanSetting("hushgram_fill_reel_screen", FALSE, new Setting.Availability() {
+                @Override public boolean isAvailable() {
+                    return FULL_SCREEN_REELS.savedValue() && FULL_SCREEN_REELS.isAvailable()
+                            && !Settings.FIT_REEL_SCREEN.savedValue();
+                }
+
+                @Override public List<Setting<?>> getParentSettings() {
+                    return Collections.singletonList(FULL_SCREEN_REELS);
+                }
+            });
 
     /**
      * Every reel fits inside the viewer, with bars where its shape differs from the screen's, so
@@ -2619,6 +2645,15 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_hide_create_button", FALSE);
 
     /**
+     * The "Create your first post" prompt filling your own profile's grid while it has no posts, with
+     * its picture and Create button ({@link app.hushgram.extension.instagram.profile.ThreadsButton},
+     * #762). Read each time the grid decides whether to show it, so a change shows on the next profile
+     * opened. Other people's empty profiles keep theirs. Off to start.
+     */
+    public static final BooleanSetting HIDE_EMPTY_PROFILE_PROMPT =
+            new BooleanSetting("hushgram_hide_empty_profile_prompt", FALSE);
+
+    /**
      * The Share profile button in your profile's row of action buttons, with Edit profile taking its
      * space ({@link app.hushgram.extension.instagram.profile.ShareProfileButton}, #253). Read each time
      * Instagram builds the row, so a change shows on the next profile opened. Off to start.
@@ -3082,6 +3117,22 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_hide_feed_like_button", FALSE);
 
     /**
+     * The like, comment, share and repost counts beside the buttons under a feed post, the buttons
+     * kept (#762, {@link app.hushgram.extension.instagram.feed.FeedSaveRow}). Read as Feed builds a
+     * post's row, so posts already built change when they load again. Off to start.
+     */
+    public static final BooleanSetting HIDE_FEED_COUNTS =
+            new BooleanSetting("hushgram_hide_feed_counts", FALSE);
+
+    /**
+     * The likes row under a feed post, "Liked by" someone "and others" or a number of likes (#762,
+     * {@link app.hushgram.extension.instagram.feed.FeedSaveRow}). Read as the row is drawn. Off to
+     * start.
+     */
+    public static final BooleanSetting HIDE_LIKED_BY =
+            new BooleanSetting("hushgram_hide_liked_by", FALSE);
+
+    /**
      * The items left out of the menus behind the three dots on posts, reels and stories
      * ({@link app.hushgram.extension.instagram.feed.MenuItems}, #697, #707), with commas between: any
      * of REPORT, MUTE, UNFOLLOW, NOT_INTERESTED, INTERESTED, WHY, PLAYBACK_SPEED and PLAYBACK. Nothing
@@ -3130,6 +3181,14 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting HIDE_FEED_AUDIO_ICON =
             new BooleanSetting("hushgram_hide_feed_audio_icon", FALSE);
+
+    /**
+     * The small person icon in the corner of a post with people tagged in it (#762,
+     * {@link app.hushgram.extension.instagram.feed.FeedAudioIcon#tagIndicator}). Read as the icon is
+     * bound, so a post already on screen changes when Instagram draws it again. Off to start.
+     */
+    public static final BooleanSetting HIDE_FEED_TAG_ICON =
+            new BooleanSetting("hushgram_hide_feed_tag_icon", FALSE);
 
     /**
      * Home's header staying in place while the feed scrolls
@@ -4376,6 +4435,16 @@ public class Settings extends BaseSettings {
      */
     public static final EnumSetting<PlaybackQuality> PLAYBACK_QUALITY =
             new EnumSetting<>("hushgram_playback_quality", PlaybackQuality.AUTO, parent(DEFAULT_PLAYBACK_QUALITY));
+
+    /**
+     * While {@link #DEFAULT_PLAYBACK_QUALITY} keeps a video to the chosen quality, a video that keeps
+     * loading slower than it plays drops a rung, and new videos start no higher for two minutes
+     * (#599, {@link app.hushgram.extension.instagram.media.QualityChoice}). Off, the chosen quality
+     * stays whatever the connection does (#761). Read as each video starts. On to start, so a slow
+     * connection doesn't stall.
+     */
+    public static final BooleanSetting PLAYBACK_QUALITY_STEPS_DOWN =
+            new BooleanSetting("hushgram_playback_quality_steps_down", TRUE, parent(DEFAULT_PLAYBACK_QUALITY));
 
     /**
      * Photos in the feed, carousels and posts opened from a profile load at the largest size the

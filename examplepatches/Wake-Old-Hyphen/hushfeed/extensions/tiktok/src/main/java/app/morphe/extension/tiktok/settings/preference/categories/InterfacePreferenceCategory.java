@@ -351,6 +351,12 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
             ));
             addPreference(new TogglePreference(
                     context,
+                    "Write the month as a word",
+                    "Writes TikTok's date by the creator's name with the month's name, like Oct 12. Day before month makes it 12 Oct.",
+                    Settings.PUBLISH_DATE_MONTH_NAME
+            ));
+            addPreference(new TogglePreference(
+                    context,
                     "Show dates on profile grids",
                     "Show the day each video was posted under its view count on profile grids.",
                     Settings.PUBLISH_DATE_ON_GRID
@@ -376,6 +382,12 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                         new String[]{"off", "newest", "oldest", "longest", "shortest", "most_viewed",
                                 "least_viewed", "most_liked", "least_liked"})
                         .withNote("Sorts a profile or Liked grid with pinned videos first. While an order is on, the grid keeps loading by itself up to 300 videos, so the order covers more than the first screen. A button in the grid's top corner changes the order right there."));
+                addPreference(new TogglePreference(
+                        context,
+                        "Sort pinned videos with the rest",
+                        "Pinned videos take their place in the order instead of staying at the top, so Newest first puts them at the date they were posted.",
+                        Settings.SORT_PINNED_WITH_REST
+                ));
                 if (SettingsStatus.likedGridSortEnabled) {
                     addPreference(new ChoicePreference(context, "Sort loaded videos on Liked grids",
                             Settings.LIKED_GRID_SORT,
@@ -575,6 +587,14 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                     "Hide the question cards TikTok slides over a video near its end, and the buttons that ask if you're interested in it.",
                     Settings.HIDE_FEED_SURVEYS
             ));
+            if (SettingsStatus.mayKnowTagEnabled) {
+                addPreference(new TogglePreference(
+                        context,
+                        "Hide the people you may know tag",
+                        "Hide the small tag next to the creator's name that says you may know them. The video stays.",
+                        Settings.HIDE_MAY_KNOW_TAG
+                ));
+            }
             if (SettingsStatus.footnotesEnabled) {
                 addPreference(new TogglePreference(
                         context,
@@ -845,6 +865,12 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                     "Fade the buttons, caption and tabs over the video to this level instead of hiding them. 100 leaves them as TikTok draws them. Faded controls still take taps. At 0 the buttons and caption are hidden, and the tabs stay at 10.",
                     Settings.FADE_CONTROLS_OPACITY, "%1$s%%"
             ));
+            addPreference(new NumberInputPreference(
+                    context,
+                    "Fade the name, date and caption",
+                    "Draws the creator's name, the date, the caption and the music line over the video at this level, and they still take taps. At 100 they follow Fade the video controls. At 0 they're hidden.",
+                    Settings.FADE_CAPTION_OPACITY, "%1$s%%"
+            ));
             addPreference(new TogglePreference(
                     context,
                     "Keep faded controls in Clear display",
@@ -1018,6 +1044,10 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                 tapLabels.add("Turn Clear display on or off");
                 tapValues.add("clear_display");
             }
+            if (SettingsStatus.notInterestedEnabled) {
+                tapLabels.add("Not interested in this video");
+                tapValues.add("not_interested");
+            }
             String[] tapLabelArray = tapLabels.toArray(new String[0]);
             String[] tapValueArray = tapValues.toArray(new String[0]);
             addPreference(new ChoicePreference(context, "Double tap", Settings.DOUBLE_TAP_ACTION,
@@ -1053,6 +1083,10 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
             if (SettingsStatus.automaticClearDisplayEnabled) {
                 pressLabels.add("Turn Clear display on or off");
                 pressValues.add("clear_display");
+            }
+            if (SettingsStatus.notInterestedEnabled) {
+                pressLabels.add("Not interested in this video");
+                pressValues.add("not_interested");
             }
             addPreference(new ChoicePreference(context, "Long press", Settings.LONG_PRESS_ACTION,
                     pressLabels.toArray(new String[0]), pressValues.toArray(new String[0])));

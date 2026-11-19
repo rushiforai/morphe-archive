@@ -2,12 +2,16 @@ package dev.jibon.notes.patches.compat
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.returnEarly
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import dev.jibon.notes.patches.shared.Constants.COMPATIBILITY_NOTES
 
@@ -33,12 +37,22 @@ private object SupportedFileProviderFingerprint : Fingerprint(
 )
 
 private const val SHARE_AUTHORITY = "com.samsung.android.app.notes.shareprovider"
+private const val SCLOUD_LIB = "Lcom/samsung/android/scloud/lib/"
+
+/** `ContentResolver.notifyChange(Uri, ContentObserver)`. */
+private fun Instruction.isNotifyChange(): Boolean {
+    if (opcode != Opcode.INVOKE_VIRTUAL) return false
+    val ref = (this as ReferenceInstruction).reference as? MethodReference ?: return false
+    return ref.definingClass == "Landroid/content/ContentResolver;" && ref.name == "notifyChange" &&
+        ref.parameterTypes.map(CharSequence::toString) == listOf("Landroid/net/Uri;", "Landroid/database/ContentObserver;")
+}
 
 @Suppress("unused")
 val crashFixesPatch = bytecodePatch(
     name = "Crash fixes",
     description = "Reports no iris scanner, makes Share (PDF, image, Word...) open the app chooser, and finds " +
-        "the pen settings layouts, colour palettes and share provider after a package rename.",
+        "the pen settings layouts, colour palettes and share provider after a package rename, and keeps Samsung " +
+        "Cloud sync from crashing on Samsung phones.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_NOTES)
@@ -87,5 +101,32 @@ val crashFixesPatch = bytecodePatch(
             }
         }
         if (authorities == 0) throw PatchException("Share provider authority not found")
+
+        // Samsung Cloud's settings library tells the cloud's settings screen about sync progress. On a Samsung phone
+        // that provider is the official Notes', closed to other apps: the SecurityException would crash the sync.
+        var notifies = 0
+        classDefForEach { classDef ->
+            if (!classDef.type.startsWith(SCLOUD_LIB)) return@classDefForEach
+            val calls = classDef.methods.any { method ->
+                method.implementation?.instructions?.any { it.isNotifyChange() } == true
+            }
+            if (!calls) return@classDefForEach
+            mutableClassDefBy(classDef).methods.forEach { method ->
+                val instructions = method.implementation?.instructions ?: return@forEach
+                for (index in instructions.indices) {
+                    val instruction = instructions[index]
+                    if (!instruction.isNotifyChange()) continue
+                    val i = instruction as FiveRegisterInstruction
+                    method.replaceInstruction(
+                        index,
+                        "invoke-static { v${i.registerC}, v${i.registerD}, v${i.registerE} }, " +
+                            "Lsamsungcompat/CR;->notifyChange(Landroid/content/ContentResolver;Landroid/net/Uri;" +
+                            "Landroid/database/ContentObserver;)V",
+                    )
+                    notifies++
+                }
+            }
+        }
+        if (notifies == 0) throw PatchException("Samsung Cloud sync status notifications not found")
     }
 }

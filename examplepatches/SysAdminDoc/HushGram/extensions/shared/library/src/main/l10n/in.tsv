@@ -253,8 +253,12 @@ Turn on Tap to play to use this choice.	Aktifkan Ketuk untuk memutar untuk mengg
 Resume long videos	Lanjutkan video panjang
 Videos and reels over two minutes pick up where you left off. Seek to start elsewhere. Live videos and ads start as usual.	Video dan reel lebih dari dua menit dilanjutkan dari posisi terakhir. Geser bilah untuk posisi lain. Video langsung dan iklan mulai seperti biasa.
 Default playback quality	Kualitas pemutaran default
-# context: description of the Default playback quality switch on the Playback page, with the list of qualities below it. A video that keeps stalling because the connection is too slow for its quality switches to the next lower quality that video offers (#599)
-Videos, reels and stories play at the quality below, starting with the next one you open. When your connection can't keep up, a video drops to the next lower quality.	Video, reels, dan cerita diputar dengan kualitas di bawah, mulai dari yang berikutnya Anda buka. Saat koneksi tidak sanggup mengikuti, video turun ke kualitas satu tingkat di bawahnya.
+# context: description of the Default playback quality switch on the Playback page, with the list of qualities below it
+Videos, reels and stories play at the quality below, starting with the next one you open.	Video, reels, dan cerita diputar dengan kualitas di bawah, mulai dari yang berikutnya Anda buka.
+# context: title of a switch under Default playback quality on the Playback page. On, a video that keeps stalling because the connection is too slow for its quality switches to the next lower quality that video offers (#599); off, it keeps the quality picked (#761)
+Drop quality to keep playing	Turunkan kualitas agar tetap diputar
+# context: description of the Drop quality to keep playing switch
+When your connection can't keep up, a video drops to the next lower quality instead of stalling. Turn this off to keep the quality you picked.	Saat koneksi tidak sanggup mengikuti, video turun ke kualitas satu tingkat di bawahnya agar tidak tersendat. Matikan ini untuk mempertahankan kualitas yang Anda pilih.
 Playback quality	Kualitas pemutaran
 Auto	Otomatis
 Data saver	Penghemat data
@@ -467,6 +471,8 @@ Turn on Start Home on Following to use this choice.	Aktifkan Buka Beranda di Men
 # context: Settings page: the summary of a greyed-out slider in place of its value; %1$s is the title of the switch it waits on, like Glass tab bar
 Turn on %1$s to use this slider.	Aktifkan %1$s untuk menggunakan penggeser ini.
 Turn on Story ring size to use this choice.	Aktifkan Ukuran lingkaran cerita untuk menggunakan pilihan ini.
+# context: Settings page, Reels: the line under the greyed-out Fill the screen switch while Show the whole reel is on
+Turn off Show the whole reel to use this choice.	Nonaktifkan Tampilkan reel utuh untuk menggunakan pilihan ini.
 Turn on Default playback quality to use this choice.	Aktifkan Kualitas pemutaran default untuk menggunakan pilihan ini.
 Updating remembered positions...	Memperbarui posisi tersimpan...
 Undo cleared positions	Pulihkan posisi yang dihapus
@@ -962,6 +968,12 @@ Half a second	Setengah detik
 On this Instagram build it covers %1$d of %2$d routes. The diagnostic report lists the rest.	Pada build Instagram ini, fitur ini mencakup %1$d dari %2$d jalur. Laporan diagnostik mencantumkan sisanya.
 Hide suggested accounts in Messages	Sembunyikan akun yang disarankan di Pesan
 Takes the accounts Instagram suggests off the bottom of your messages. Your chats and follow requests stay. Restart Instagram to see the change.	Menghapus akun yang disarankan Instagram dari bagian bawah pesan kamu. Chat dan permintaan mengikuti tetap ada. Mulai ulang Instagram untuk melihat perubahannya.
+# context: switch on the Messages page after Hide suggested accounts in Messages; New message is Instagram's own label for the pencil button in the inbox top bar and the screen it opens (#762)
+Hide the New message button	Sembunyikan tombol Pesan baru
+Takes the pencil button for a new message off the top of your messages.	Menghapus tombol pensil untuk pesan baru dari bagian atas pesanmu.
+# context: switch right after it; Suggested is the header Instagram puts over the people listed on the New message screen before you type, and new group is the screen for starting a group chat (#762)
+Hide suggestions in New message	Sembunyikan saran di Pesan baru
+Takes the Suggested people off the New message and new group screens. Search still finds anyone.	Menghapus orang yang disarankan dari layar Pesan baru dan grup baru. Pencarian tetap bisa menemukan siapa saja.
 A light tick each time the highlight slides past a tab, so it follows the bar as you tap or swipe between screens.	Getaran halus setiap kali sorotan melewati sebuah tab, jadi mengikuti bilah saat kamu mengetuk atau menggeser antar layar.
 Blur behind the tab bar	Blur di belakang bilah tab
 Blurs what's behind the pill on Android 12 and newer. Off, the pill is a frosted tint.	Memburamkan yang ada di belakang pil pada Android 12 ke atas. Nonaktif, pil berupa warna buram.
@@ -1431,6 +1443,9 @@ Once Burn-in guard fades the buttons, they stay faded on Reels whatever you tap 
 # context: Profiles: switches next to Hide the Threads button. Create is the plus at the top of your own profile (#254); Share profile and Edit profile are Instagram's own button names (#253)
 Hide the Create button	Sembunyikan tombol Buat
 Takes the plus for new posts off the top of your own profile. The other buttons stay where they were.	Menghapus tanda plus untuk postingan baru dari bagian atas profilmu sendiri. Tombol lainnya tetap di tempatnya.
+# context: switch on the Profiles page after Hide the Create button; the prompt is the big picture, heading and Create button Instagram shows in place of the grid on your own profile before your first post (#762)
+Hide the empty profile prompt	Sembunyikan ajakan di profil kosong
+Takes the big prompt for your first post off your own profile while it has no posts. Other people's profiles stay as they are.	Menghapus ajakan besar untuk postingan pertamamu dari profilmu sendiri selama belum ada postingan. Profil orang lain tetap seperti biasa.
 Hide Share profile	Sembunyikan Bagikan profil
 Takes the Share profile button off your profile, and Edit profile stretches to fill the space.	Menghapus tombol Bagikan profil dari profilmu, dan Edit profil melebar mengisi ruangnya.
 # context: Profiles: switches that hide Subscribe and the arrow at the end of the action buttons on someone's profile, which opens a menu of the buttons that didn't fit (#248). Subscribe is Instagram's own button label, as in the Feed switch that hides Follow and Subscribe.
@@ -1626,7 +1641,7 @@ Unmute all	Batal bisukan semua
 Settings button on Home's header	Tombol Pengaturan di header Beranda
 Adds a gear at the top of Home that opens HushGram settings. Restart Instagram to see the change.	Menambahkan roda gigi di bagian atas Beranda yang membuka pengaturan HushGram. Mulai ulang Instagram untuk melihat perubahannya.
 Download button on stories	Tombol Unduh di cerita
-Puts a Download button at the top of a story, beside the three dots. One tap saves the photo or video in front, the same as Download in the menu.	Menaruh tombol Unduh di bagian atas cerita, di samping tiga titik. Satu ketukan menyimpan foto atau video yang sedang tampil, sama seperti Unduh di menu.
+Puts a Download button at the top of a story, beside the three dots. One tap saves the photo or video in front, the same as Download in the menu. Press and hold for Save all, to save every story in the set you're watching.	Menaruh tombol Unduh di bagian atas cerita, di samping tiga titik. Satu ketukan menyimpan foto atau video yang sedang tampil, sama seperti Unduh di menu. Tekan lama untuk Simpan semua, yang menyimpan setiap cerita dalam rangkaian yang sedang ditonton.
 Start reels muted	Mulai reel tanpa suara
 Every reel starts silent, wherever you open it from. The volume keys or the speaker icon unmute it. Wins over Start reels with sound.	Setiap reel dimulai tanpa suara, dari mana pun kamu membukanya. Tombol volume atau ikon speaker menyalakan suaranya. Mengalahkan Mulai reel dengan suara.
 Hide captions	Sembunyikan keterangan
@@ -1893,6 +1908,9 @@ While you swipe through a chat's reels, a banner says when the other person sent
 New message after this reel	Pesan baru setelah reel ini
 Hide the audio icon on posts	Sembunyikan ikon audio di postingan
 Takes the speaker icon off videos in your feed. Tapping the video still turns the sound on or off. Posts already on screen change when they load again.	Menghapus ikon speaker dari video di feed Anda. Mengetuk video tetap menyalakan atau mematikan suara. Postingan yang sudah ada di layar berubah saat dimuat ulang.
+# context: second switch on the Feed page under Hide the audio icon on posts; the tag icon is the small person badge in the corner of a post with people tagged (#762)
+Hide the tag icon on posts	Sembunyikan ikon tag di postingan
+Takes the little person icon off posts with people tagged in them. Tapping the photo still shows who's tagged.	Menghapus ikon orang kecil dari postingan yang menandai orang. Mengetuk foto tetap menampilkan siapa yang ditandai.
 Light when paused	Terang saat dijeda
 Pause a reel and Burn-in guard brings the buttons back to full brightness until you play it again or swipe on. The wait then starts over.	Jeda sebuah reel dan Pelindung burn-in mengembalikan tombol ke kecerahan penuh sampai Anda memutarnya lagi atau menggeser. Lalu waktu tunggu dimulai dari awal.
 Grow the heart	Perbesar hati
@@ -2079,6 +2097,11 @@ Hide the Save button	Sembunyikan tombol Simpan
 Takes the Save button off the bottom of posts in your feed, so a stray tap can't save one.	Menghapus tombol Simpan dari bagian bawah postingan di feed kamu, agar ketukan tak sengaja tidak menyimpannya.
 Hide the Like button	Sembunyikan tombol Suka
 Takes the heart and the like count off the bottom of posts in your feed. Double tap still likes a post.	Menghapus ikon hati dan jumlah suka dari bagian bawah postingan di feed kamu. Ketuk dua kali tetap menyukai postingan.
+# context: two switches on the Feed page under Hide the Like button; Liked by is the line under a feed post naming who liked it (#762)
+Hide counts on posts	Sembunyikan angka di postingan
+Takes the like, comment, share and repost numbers off posts in your feed. The buttons stay. Posts already on screen change when they load again.	Menghapus angka suka, komentar, bagikan, dan posting ulang dari postingan di feed kamu. Tombolnya tetap ada. Postingan yang sudah tampil di layar berubah saat dimuat ulang.
+Hide Liked by	Sembunyikan "Disukai oleh"
+Takes the "Liked by" line off posts in your feed.	Menghapus baris "Disukai oleh" dari postingan di feed kamu.
 # context: the row in a feed post's three-dot menu for a post you already saved, and the row that takes an account off Saved profiles, on its profile's menu and on the Saved profiles page (#629)
 Remove from saved	Hapus dari tersimpan
 # context: a switch on the Reels page

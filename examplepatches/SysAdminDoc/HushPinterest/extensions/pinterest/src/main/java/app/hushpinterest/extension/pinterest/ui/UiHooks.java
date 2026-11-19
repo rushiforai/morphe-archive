@@ -11,6 +11,8 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -161,6 +163,45 @@ public final class UiHooks {
         if (!enabled(FamilyNames.HIDE_HIGHLIGHT_RING, Settings.HIDE_HIGHLIGHT_RING)) return false;
         HookStatus.counted(FamilyNames.HIDE_HIGHLIGHT_RING, "highlight ring skipped");
         return true;
+    }
+
+    /**
+     * Pinterest's video view asks to hold the screen on, which it does for as long as the video
+     * sits on the screen, playing or not. With Let the screen sleep on the view asks for nothing,
+     * so the phone's own screen timeout applies. Off or paused, Pinterest's value goes through.
+     */
+    public static void keepScreenOn(View view, boolean on) {
+        if (view == null) return;
+        if (on && enabled(FamilyNames.LET_SCREEN_SLEEP, Settings.LET_SCREEN_SLEEP)) {
+            HookStatus.counted(FamilyNames.LET_SCREEN_SLEEP, "screen hold skipped");
+            on = false;
+        }
+        view.setKeepScreenOn(on);
+    }
+
+    /**
+     * A pin page with a video asks its whole window to hold the screen on, when it opens and again a
+     * few seconds later. With Let the screen sleep on that one flag stays off and the rest go through.
+     */
+    public static void addWindowFlags(Window window, int flags) {
+        if (window == null) return;
+        if ((flags & WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON) != 0
+                && enabled(FamilyNames.LET_SCREEN_SLEEP, Settings.LET_SCREEN_SLEEP)) {
+            HookStatus.counted(FamilyNames.LET_SCREEN_SLEEP, "screen hold skipped");
+            flags &= ~WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
+        }
+        window.addFlags(flags);
+    }
+
+    /** The same for a window's flags set under a mask: the hold comes off, the mask still clears it. */
+    public static void setWindowFlags(Window window, int flags, int mask) {
+        if (window == null) return;
+        if ((flags & WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON) != 0
+                && enabled(FamilyNames.LET_SCREEN_SLEEP, Settings.LET_SCREEN_SLEEP)) {
+            HookStatus.counted(FamilyNames.LET_SCREEN_SLEEP, "screen hold skipped");
+            flags &= ~WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
+        }
+        window.setFlags(flags, mask);
     }
 
     /**

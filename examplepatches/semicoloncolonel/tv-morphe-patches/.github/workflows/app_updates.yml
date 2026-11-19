@@ -1,0 +1,199 @@
+name: App updates
+
+# Checks every patched app for a newer public version four times a day, test-patches
+# it with the latest dev bundle, and keeps one "App update" issue per app.
+# APKPure downloads are used only when their signing certificate matches the
+# known-good one in .github/app-certs.json. Every app here is an Android TV
+# app: Google Play is asked as a Sony Bravia TV when PLAY_EMAIL and
+# PLAY_AAS_TOKEN are set, and otherwise APKPure's newer versions are tried. No
+# launch check runs, because there is no Android TV emulator check.
+#
+# The bump job moves apps that passed every check onto dev and starts a dev
+# pre-release. It runs only when the repository variable AUTO_BUMP is "true"
+# (Settings > Secrets and variables > Actions > Variables).
+
+on:
+  schedule:
+    # 00:30, 06:30, 12:30, and 18:30 Pacific time. GitHub's schedules run in
+    # UTC with no daylight saving time, so the PDT slots and the PST slots are
+    # two separate lines, and the schedule job runs only the line that matches
+    # Pacific time today. The line keeps working when GitHub starts a run
+    # hours late, which a check of the clock does not.
+    - cron: "30 1,7,13,19 * * *"
+    - cron: "30 2,8,14,20 * * *"
+  workflow_dispatch:
+    inputs:
+      only:
+        description: Comma-separated package names, empty for every app
+        required: false
+
+permissions: {}
+
+concurrency:
+  group: app-updates
+  cancel-in-progress: false
+
+jobs:
+  schedule:
+    name: Match Pacific time
+    runs-on: ubuntu-24.04
+    permissions: {}
+    outputs:
+      run: ${{ steps.slot.outputs.run }}
+    steps:
+      - name: Check the slot
+        id: slot
+        env:
+          EVENT: ${{ github.event_name }}
+          SCHEDULE: ${{ github.event.schedule }}
+        run: |
+          if [ "$EVENT" != "schedule" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # GitHub can start a scheduled run hours late, so the slot comes from
+          # the cron line that fired, not from the clock.
+          zone=$(TZ=America/Los_Angeles date +%Z)
+          if [ "$zone" = "PDT" ]; then line="30 1,7,13,19 * * *"; else line="30 2,8,14,20 * * *"; fi
+          run=false
+          [ "$SCHEDULE" = "$line" ] && run=true
+          echo "Cron line \"$SCHEDULE\", Pacific $zone, run=$run"
+          echo "run=$run" >> "$GITHUB_OUTPUT"
+
+  check:
+    name: Check app versions
+    needs: schedule
+    if: needs.schedule.outputs.run == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      # Scheduled runs start from main's copy of this file, but the scripts and
+      # certificates the bot works with are kept on dev. main's older copies
+      # reopened issues for versions dev already handled.
+      - name: Checkout dev
+        uses: actions/checkout@v7
+        with:
+          ref: dev
+
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          # Zulu downloads from Azul's CDN, so a GitHub release-download outage
+          # cannot stop the check, as it did with Temurin on 2026-11-08.
+          distribution: 'zulu'
+          java-version: '26'
+
+      - name: Setup Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+
+      - name: Install tools
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p "$HOME/bin" tools
+          # gh downloads through the API, which keeps working when direct release links do not.
+          gh release download 1.1.0 -R EFForg/apkeep -p apkeep-x86_64-unknown-linux-gnu -O "$HOME/bin/apkeep"
+          chmod +x "$HOME/bin/apkeep"
+          echo "$HOME/bin" >> "$GITHUB_PATH"
+          gh release download -R MorpheApp/morphe-cli -p '*-all.jar' -D tools
+          tag=$(gh release list -R "$GITHUB_REPOSITORY" --limit 1 --json tagName --jq '.[0].tagName')
+          gh release download "$tag" -R "$GITHUB_REPOSITORY" -p '*.mpp' -D tools
+          # Issues close only when a main release targets the version.
+          stable=$(gh release list -R "$GITHUB_REPOSITORY" --exclude-pre-releases --limit 1 --json tagName --jq '.[0].tagName')
+          gh release download "$stable" -R "$GITHUB_REPOSITORY" -p '*.mpp' -D tools/stable
+          echo "AAPT2=$(ls -d "$ANDROID_HOME"/build-tools/*/aapt2 | sort -V | tail -1)" >> "$GITHUB_ENV"
+          echo "APKSIGNER=$(ls -d "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)" >> "$GITHUB_ENV"
+
+      - name: Check versions
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ONLY: ${{ inputs.only }}
+          # A throwaway Google account, not in any beta program, for reading the
+          # version Google Play serves to an ordinary phone, and as a Sony Bravia
+          # TV, the version it serves to Android TV.
+          PLAY_EMAIL: ${{ secrets.PLAY_EMAIL }}
+          PLAY_AAS_TOKEN: ${{ secrets.PLAY_AAS_TOKEN }}
+        run: |
+          python .github/scripts/app_updates.py \
+            --cli tools/*-all.jar --mpp tools/*.mpp --aapt2 "$AAPT2" --apksigner "$APKSIGNER" \
+            --only "$ONLY" --out app-updates --issues --stable-mpp tools/stable/*.mpp
+
+      - name: Summary
+        if: always()
+        run: cat app-updates/app-updates.md >> "$GITHUB_STEP_SUMMARY" || true
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: app-updates
+          path: app-updates
+
+  bump:
+    name: Bump app versions on dev
+    needs: check
+    if: ${{ vars.AUTO_BUMP == 'true' && needs.check.result == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      actions: write
+      issues: write
+    steps:
+      - name: Checkout dev
+        uses: actions/checkout@v7
+        with:
+          ref: dev
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+
+      - name: Download report
+        uses: actions/download-artifact@v8
+        with:
+          name: app-updates
+          path: app-updates
+
+      - name: Bump, commit, and release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python .github/scripts/auto_bump.py app-updates --repo .
+          if git diff --quiet; then
+            echo "Nothing to bump." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -a -F app-updates/bump-message.txt
+          # Start from the newest dev, including any pre-release published by hand.
+          for attempt in 1 2 3; do
+            git pull --rebase origin dev && git push origin HEAD:dev && break
+            sleep 15
+          done
+          # A push made with GITHUB_TOKEN does not start other workflows.
+          sha=$(git rev-parse HEAD)
+          gh workflow run release.yml --ref dev
+          # Wait for that Release run, then label the issues if it published the pre-release.
+          release=""
+          run_id=""
+          for attempt in $(seq 1 12); do
+            sleep 10
+            run_id=$(gh run list --workflow release.yml --branch dev --event workflow_dispatch --commit "$sha" \
+              --limit 1 --json databaseId --jq '.[0].databaseId // empty')
+            [ -n "$run_id" ] && break
+          done
+          if [ -n "$run_id" ] && gh run watch "$run_id" --exit-status --interval 20 > /dev/null; then
+            release=$(gh release list --limit 1 --json tagName,isPrerelease \
+              --jq '.[0] | select(.isPrerelease) | .tagName')
+          fi
+          python .github/scripts/auto_bump.py app-updates --comment "$sha" ${release:+--release "$release"}
+          { echo "## Bumped on dev"; echo; head -1 app-updates/bump-message.txt; } >> "$GITHUB_STEP_SUMMARY"

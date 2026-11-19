@@ -9,17 +9,16 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.pm.PackageManager;
 import android.os.IBinder;
 import android.util.Log;
 
 /**
- * Samsung account sign-in without the Samsung Account app (experimental).
+ * Samsung account sign-in without the Samsung Account app (experimental), also on Samsung phones that have it.
  *
  * <p>Notes gets its Samsung account from the Samsung Account system app: the account name from Android's account list,
- * the access token from the app's bound service, sign-in from the app's screens. Phones without that app now get the
- * same answers from an account signed in on Samsung's own sign-in page (account.samsung.com) with Notes' own client ID,
- * so Notes runs its normal Samsung account mode and its own sync engine. Nothing about the phone is changed: Samsung's
+ * the access token from the app's bound service, sign-in from the app's screens. That app only serves Samsung-signed
+ * apps, so a patched Notes now gets the same answers from an account signed in on Samsung's own sign-in page
+ * (account.samsung.com) with Notes' own client ID, so Notes runs its normal Samsung account mode and its own sync engine. Nothing about the phone is changed: Samsung's
  * servers see this phone as what it is.
  *
  * <p>The patch calls the static methods here from Notes' account code (see the patch for where).
@@ -34,7 +33,6 @@ public final class SamsungAccount {
     private static final String CHANNEL = "samsung_account";
 
     private static volatile Context app;
-    private static volatile Boolean accountApp;
 
     private SamsungAccount() {
     }
@@ -55,28 +53,13 @@ public final class SamsungAccount {
         return c;
     }
 
-    /** Whether the phone has the Samsung Account app. */
-    static boolean accountAppInstalled(Context context) {
-        Boolean known = accountApp;
-        if (known != null) return known;
-        boolean installed;
-        try {
-            context.getPackageManager().getPackageInfo(ACCOUNT_APP, 0);
-            installed = true;
-        } catch (PackageManager.NameNotFoundException e) {
-            installed = false;
-        } catch (RuntimeException e) {
-            installed = false;
-        }
-        accountApp = installed;
-        return installed;
-    }
-
-    /** True when this sign-in answers for the missing Samsung Account app. */
+    /**
+     * True when this sign-in answers for the Samsung Account app: always. The app only serves Samsung-signed apps, so on
+     * a Samsung phone it has nothing for a patched (re-signed) Notes either.
+     */
     public static boolean web(Context context) {
         remember(context);
-        Context c = context != null ? context : app();
-        return c != null && !accountAppInstalled(c);
+        return true;
     }
 
     // ---- called from Notes

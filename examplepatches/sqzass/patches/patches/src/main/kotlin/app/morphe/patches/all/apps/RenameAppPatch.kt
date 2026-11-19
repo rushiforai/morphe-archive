@@ -23,8 +23,7 @@ private fun hasLauncherCategory(activity: Element): Boolean = children(activity,
 @Suppress("unused")
 val renameAppLabelPatch = resourcePatch(
     name = "Rename app label",
-    description = "Sets a literal launcher name on <application>, launcher activities and aliases. " +
-        "'Current' keeps the existing label.",
+    description = "Sets a literal launcher name.",
     default = false,
 ) {
     val labelOption = stringOption(

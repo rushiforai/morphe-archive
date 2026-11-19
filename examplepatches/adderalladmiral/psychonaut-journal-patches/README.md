@@ -5,10 +5,15 @@
 Seven focused patches: unlock premium features, hide bottom-nav tabs you don't use, drop the Feedback section from Settings, trim unused permissions (up to and including all network access), stop the app from talking to RevenueCat's servers entirely, swap in your own substances database, or clone the app to run side by side with a stock install..
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.0.0](https://github.com/adderalladmiral/test-actual/releases/tag/v1.0.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;7 patches total
+> **[v1.0.1](https://github.com/adderalladmiral/psychonaut-journal-patches/releases/tag/v1.0.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;7 patches total
 <details open>
 <summary>📦 Journal&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
 <br>
+
+**🎯 Supported versions:**
+
+| 15.5 |
+| :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|

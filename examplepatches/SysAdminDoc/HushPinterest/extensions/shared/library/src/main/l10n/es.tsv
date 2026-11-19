@@ -373,6 +373,8 @@ Saving a pin no longer shows the "Saved to" message or a suggestion to follow it
 Original-quality images	Imágenes en calidad original
 collage images	imágenes de collages
 pin closeups	vistas ampliadas de pines
+idea pin pages	páginas de pines de ideas
+refused originals	originales rechazados
 Shows the original image instead of the large size in pin closeups and collages, when Pinterest has one. Uses more data. Pins already loaded change the next time they load.	Muestra la imagen original en lugar del tamaño grande en las vistas ampliadas de pines y en los collages, cuando Pinterest la tiene. Usa más datos. Los pines ya cargados cambian la próxima vez que se carguen.
 Save media	Guardar contenido multimedia
 Recent searches autocomplete	Autocompletado de búsquedas recientes
@@ -718,14 +720,13 @@ Couldn't share the image. Check your connection and try again.	No se pudo compar
 # context: a Feed switch under Muted words, from the Keep Home feed patch. When it's on, the Home feed doesn't load new pins by itself when the person comes back to the app or to the Home tab, so the pins they were looking at stay put. Pulling down on Home still loads new ones. The title is also the patch's name in the build report and in the settings import preview
 Keep Home feed	Mantener el feed de inicio
 Home keeps the pins you were looking at when you come back to Pinterest or to the Home tab. Pull down on Home to load new pins.	El feed de inicio conserva los pines que estabas viendo cuando vuelves a Pinterest o a la pestaña Inicio. Desliza hacia abajo en Inicio para cargar pines nuevos.
-# context: an Interface switch under Original images, from the Show posted date patch. When it's on, the day a pin was posted shows in small text under the pin's title when the pin is opened. The title is also the patch's name in the build report and in the settings import preview. In Posted %1$s, %1$s is the date written the phone's way, such as Oct 12, 2026
+# context: an Interface switch under Original images, from the Show posted date patch. When it's on, the day a pin was posted shows in small text under the pin's title when the pin is opened. The title is also the patch's name in the build report and in the settings import preview.
 Show posted date	Mostrar fecha de publicación
 Shows the day a pin was posted under its title. It shows on the next pin you open.	Muestra bajo el título de un pin el día en que se publicó. Aparece en el próximo pin que abras.
 Hide suggested boards	Ocultar tableros sugeridos
 When you save a pin, hides the board Pinterest suggests under your own boards. Your own boards stay. The change shows the next time you save a pin.	Al guardar un pin, oculta el tablero que Pinterest sugiere debajo de tus propios tableros. Tus tableros se quedan. El cambio se ve la próxima vez que guardes un pin.
 Expand board list	Abrir toda la lista de tableros
 Opens the sheet that lists your boards all the way up when you save a pin, so more boards show without dragging it. The change shows the next time you save a pin.	Abre por completo la hoja con tus tableros al guardar un pin, para que se vean más tableros sin arrastrarla. El cambio se ve la próxima vez que guardes un pin.
-Posted %1$s	Publicado el %1$s
 Install microG-RE to use Google sign-in.	Instala microG-RE para iniciar sesión con Google.
 Turn on microG-RE to use Google sign-in.	Activa microG-RE para iniciar sesión con Google.
 microG-RE didn't answer. Open it, then try again.	microG-RE no respondió. Ábrelo e inténtalo de nuevo.
@@ -779,7 +780,6 @@ Pick the rows to take out of a pin's menu.	Elige las filas que quieres quitar de
 Hidden from pin menus: %s. Tap to change.	Oculto en los menús de pin: %s. Toca para cambiar.
 Picked: %s. Hide pin menu rows is off, so they still show.	Elegidas: %s. Ocultar filas del menú del pin está desactivado, así que siguen apareciendo.
 Why you're seeing this pin	Por qué ves este pin
-Customize board tabs	Personalizar pestañas de tableros
 Board tab header	Encabezado de las pestañas de tableros
 Hide See board on board tabs	Ocultar Ver tablero en las pestañas de tableros
 Takes the See board button off the picture at the top of a board tab on Home. The change shows the next time the tab opens.	Quita el botón Ver tablero de la imagen superior de una pestaña de tablero en Inicio. El cambio se ve la próxima vez que se abra la pestaña.
@@ -821,3 +821,6 @@ Fold related pins	Plegar pines relacionados
 Puts an arrow under a pin you open. Related pins stay folded and don't load until you tap it, and tapping again folds them. Your last choice is kept. Hide related pins wins when both are on. The change shows on the next pin you open.	Pone una flecha debajo del pin que abres. Los pines relacionados quedan plegados y no se cargan hasta que la tocas, y al tocarla otra vez se pliegan. Se guarda tu última elección. Si ambas opciones están activadas, manda Ocultar pines relacionados. El cambio se ve en el siguiente pin que abras.
 # context: what a screen reader says for the arrow under a pin while its related pins are folded
 Show related pins	Mostrar pines relacionados
+# context: a Pin page switch on the Interface page, from the Let the screen sleep patch. Pinterest keeps the phone's screen on while one of its videos is on the screen. When this is on, the screen turns off after the phone's normal screen timeout instead. The title is also the patch's name in the build report and in the settings import preview
+Let the screen sleep	Dejar que la pantalla se apague
+Pinterest keeps the screen on while a video is on it, playing or not, so an open pin can keep the phone awake. With this on, the screen turns off after your phone's usual timeout, videos included. The change shows on the next pin you open.	Pinterest mantiene la pantalla encendida mientras haya un video en ella, se reproduzca o no, así que un pin abierto puede mantener el teléfono despierto. Con esto activado, la pantalla se apaga tras el tiempo de espera habitual de tu teléfono, también con videos. El cambio se ve en el siguiente pin que abras.

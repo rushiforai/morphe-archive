@@ -50,8 +50,7 @@ private fun overrideConstInClinit(
 @Suppress("unused")
 val changeVersionPatch = patch(
     name = "Change version name / code",
-    description = "Rewrites the manifest versionName/versionCode and the baked-in BuildConfig values. " +
-        "'Current' keeps the existing value.",
+    description = "Changes the manifest and BuildConfig version values. Current keeps the current one, duh, or just disable this patch.",
     default = false,
 ) {
     val nameOption = stringOption(

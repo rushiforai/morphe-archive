@@ -19,6 +19,7 @@ import io.github.jordanwoodson.patches.twitch.settings.twitchSettings
 import io.github.jordanwoodson.patches.twitch.settings.twitchSettingsPatch
 import io.github.jordanwoodson.patches.twitch.shared.Constants.COMPATIBILITY_TWITCH
 import io.github.jordanwoodson.patches.twitch.shared.HermesBundle
+import io.github.jordanwoodson.patches.twitch.shared.hex
 import io.github.jordanwoodson.patches.twitch.shared.twitchHermes
 import io.github.jordanwoodson.patches.twitch.shared.twitchHermesPatch
 import io.github.jordanwoodson.patches.twitch.shared.twitchMatch
@@ -109,7 +110,7 @@ private fun BytecodePatchContext.filterFollowingSections() {
 
 /** RN Home (android-ultralight): the stories shelf prop and the continue-watching seat and section. */
 internal fun HermesBundle.hideHomeSections() {
-    falseProperty("FeedTopChromeComponent", "showStoriesShelf", STORIES)
+    hideStoriesShelf()
     // readContinueWatchingEnabled(flags) returns flags.getBoolean(<flag>, false): its Call3 becomes
     // false in the returned register, which is the flag-off path (no feed seat is fetched).
     val reader = function("readContinueWatchingEnabled")
@@ -126,4 +127,27 @@ internal fun HermesBundle.hideHomeSections() {
     // shelf of recent streams on the Live tab (discussion 50) are components of their own.
     returnNull("FollowingOfflineChannels", OFFLINE, defaultEnabled = false)
     returnNull("RecapsShelf", RECAPS, defaultEnabled = false)
+}
+
+/**
+ * RN Home shows Stories while its recaps shelf is off: DiscoveryFeedContent computes
+ * `showStoriesShelf = !useRecapsShelfEnabled()` and passes that one value to the top chrome (showStoriesShelf) and
+ * to useStoriesShelf (shelfPresent). With a shelf present, a pull at the top of the feed reveals the shelf instead
+ * of refreshing, so hiding the shelf only in the chrome left a pull that moved an empty header and never refreshed
+ * (issue 75). The `Not` negates the hook function itself instead of its result: a function is truthy, so the value
+ * is false everywhere it goes, as in stock Twitch with the recaps shelf on, and the hook is still called.
+ */
+private fun HermesBundle.hideStoriesShelf() {
+    val feed = function("DiscoveryFeedContent")
+    val body = feed.body
+    val recaps = hex(id16("useRecapsShelfEnabled"))
+    fun u8(at: Int) = body[at].toInt() and 255
+    // GetById f, o, cache, "useRecapsShelfEnabled"; Call1 result, f, this; Not shown, result
+    val at = (0..body.size - 13).filter { i ->
+        u8(i) == 0x45 && body[i + 4] == recaps[0] && body[i + 5] == recaps[1] &&
+            u8(i + 6) == 0x6c && body[i + 8] == body[i + 1] && body[i + 7] != body[i + 1] &&
+            u8(i + 10) == 0x13 && body[i + 12] == body[i + 7]
+    }.singleOrNull() ?: throw PatchException("Twitch: unexpected Stories shelf flag in DiscoveryFeedContent")
+    val before = body.copyOfRange(at + 6, at + 13)
+    replace(feed, STORIES, before, before.copyOf().also { it[6] = body[at + 1] })
 }

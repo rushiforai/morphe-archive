@@ -24,6 +24,13 @@ internal object ChatLineFormatterFingerprint : Fingerprint(
     name = "<init>", returnType = "V", filters = listOf(string("H:mm")),
 )
 
+// An IRC chat message's tags to its event; the send time comes from tmi-sent-ts. Twitch's copy of a message you
+// send is an IRC line it builds itself, without that tag.
+internal object IrcMessageTagsFingerprint : Fingerprint(
+    returnType = "L",
+    strings = listOf("tmi-sent-ts", "source-badges"),
+)
+
 // Turns a chat message into a list item. Its fourth parameter shows the time: true for chat history only.
 internal object ChatLineItemFingerprint : Fingerprint(
     returnType = "L", parameters = listOf("L", "Z", "L", "Z", "L", EVENT_DISPATCHER, EVENT_DISPATCHER),

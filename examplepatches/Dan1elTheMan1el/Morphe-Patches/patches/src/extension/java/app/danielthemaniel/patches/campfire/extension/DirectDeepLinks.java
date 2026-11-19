@@ -100,6 +100,12 @@ public final class DirectDeepLinks {
             return null;
         }
         int colon = base.indexOf(':');
+        if (colon == -1) {
+            // Bare scheme name (e.g. the check-in popup's af_dp=pokemongo): OneLink opens scheme://
+            if (!base.toLowerCase(Locale.ROOT).matches("[a-z][a-z0-9+.-]*")) return null;
+            base = base + "://";
+            colon = base.indexOf(':');
+        }
         if (colon <= 0) return null;
         String scheme = base.substring(0, colon).toLowerCase(Locale.ROOT);
         if (scheme.equals("http") || scheme.equals("https") || !scheme.matches("[a-z][a-z0-9+.-]*")) {

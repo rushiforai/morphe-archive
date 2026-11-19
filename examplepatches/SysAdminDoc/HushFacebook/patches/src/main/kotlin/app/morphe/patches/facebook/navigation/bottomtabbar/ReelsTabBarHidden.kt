@@ -38,13 +38,15 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
  *   controller's sum of the bottom entries' heights (586 `LX/03GR;->A0T()I`), the tab bar's. A hidden
  *   bar keeps its height there, so the reel stopped a bar's height short of the bottom (seen on the
  *   S22, 2026-11-10: the page 2041 of 2241). The sum goes through the extension with the fragment's
- *   TabTag, and the extension answers 0 for the Reels tab. The content manager's bottom padding
+ *   TabTag, and for the Reels tab the extension answers only the phone's navigation bar, which
+ *   the sum includes (#516: answering 0 put the reel's seek bar under the gesture bar on 588).
+ *   The content manager's bottom padding
  *   (586 `LX/030T;->A09`) already leaves the bar out on that tab, so it isn't touched.
  * - The reel. Each reel row is sized by a static (Activity, View, config)I (586 `LX/0AFt;->A00`):
  *   the window's content height, give or take the system bars, minus the same sum of the bottom
  *   entries' heights, taken last right before the return. With the page full height the row still
- *   stopped at 2041 (S22, 2026-11-10), so that last sum goes through the extension too and is 0 with
- *   the switch on. Only a viewer whose config says it sits in a tab takes that branch (586 `LX/05WE;`,
+ *   stopped at 2041 (S22, 2026-11-10), so that last sum goes through the extension too and is only
+ *   the navigation bar with the switch on. Only a viewer whose config says it sits in a tab takes that branch (586 `LX/05WE;`,
  *   built for "reels_tab_root_video_early_fetch"), and Facebook sets the Reels tab up at start while
  *   Home shows, so the extension can't wait for the bar to be hidden.
  */
@@ -239,4 +241,37 @@ internal fun BytecodePatchContext.hookReelsTabBarHidden() {
             move-result v${reel.register}
         """,
     )
+}
+
+private val LAYOUT_PARAMETERS = listOf("Z", "I", "I", "I", "I")
+
+/** The TabBarContainerLayout's own onLayout(ZIIII)V, or null for anything else. */
+internal fun barLayout(method: Method): Method? = method.takeIf {
+    it.definingClass == TAB_BAR_CONTAINER && it.name == "onLayout" && it.returnType == "V" &&
+        it.parameterTypes.map(CharSequence::toString) == LAYOUT_PARAMETERS && it.implementation != null
+}
+
+/**
+ * Hands the bar to the extension at the start of its own layout. The restyle above runs only as a
+ * tab is picked (588's start-up call sits behind two of Facebook's flags), so without this the line
+ * along the bar stayed until the first tab tap (#521).
+ */
+internal fun BytecodePatchContext.hookTabBarLineAtLayout() {
+    val container = mutableClassDefByOrNull(TAB_BAR_CONTAINER) ?: return skipLine("$TAB_BAR_CONTAINER isn't in this build")
+    val layout = container.methods.mapNotNull(::barLayout).singleOrNull()
+        ?: return skipLine("$TAB_BAR_CONTAINER has no onLayout of its own")
+    val code = layout.implementation!!.instructions.toList()
+    // onLayout's six parameters, the bar first, sit in the last six registers.
+    val self = layout.implementation!!.registerCount - LAYOUT_PARAMETERS.size - 1
+    if (self > 15 || 0 in branchTargets(code)) return skipLine("$TAB_BAR_CONTAINER->onLayout can't take the hook")
+    container.findMutableMethodOf(layout).addInstructions(
+        0,
+        """
+            invoke-static { v$self }, $REELS_TAB_BAR_HIDDEN->barLaidOut(Landroid/view/View;)V
+        """,
+    )
+}
+
+private fun skipLine(why: String) {
+    patchLog.warning("$PATCH: $why, so Hide the line along the tab bar waits for a tab to be tapped on this build")
 }

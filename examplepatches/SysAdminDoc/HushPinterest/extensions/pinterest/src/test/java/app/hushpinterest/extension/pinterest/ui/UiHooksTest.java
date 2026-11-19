@@ -16,6 +16,8 @@ import static org.robolectric.Shadows.shadowOf;
 
 import android.app.Activity;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.res.Resources;
@@ -89,7 +91,7 @@ public class UiHooksTest {
             Settings.HIDE_PIN_MENU_ROWS,
             Settings.HIDE_COMMENTS, Settings.HIDE_SUGGESTED_REPLIES, Settings.HIDE_COMMENT_PREVIEWS,
             Settings.HIDE_TOPIC_SUGGESTIONS, Settings.HIDE_INBOX_UPDATES, Settings.QUIET_EMAIL_REMINDER,
-            Settings.HIDE_SURVEY_PROMPTS, Settings.HIDE_POPUP_BANNERS, Settings.HIDE_RELATED_PINS, Settings.HIDE_CREATOR_NAME, Settings.HIDE_HIGHLIGHT_RING, Settings.HIDE_VISUAL_SEARCH_THUMBNAILS, Settings.CUSTOM_SAVE_SOUND, Settings.HIDE_BOARD_TAB_BUTTON, Settings.HIDE_BOARD_TAB_SUBTITLE, Settings.BOARD_TAB_COVERS, Settings.HIDE_SAVE_TOASTS, Settings.HIDE_DOWNLOAD_TOASTS, Settings.ORIGINAL_IMAGES, Settings.SHOW_POSTED_DATE,
+            Settings.HIDE_SURVEY_PROMPTS, Settings.HIDE_POPUP_BANNERS, Settings.HIDE_RELATED_PINS, Settings.HIDE_CREATOR_NAME, Settings.HIDE_HIGHLIGHT_RING, Settings.LET_SCREEN_SLEEP, Settings.HIDE_VISUAL_SEARCH_THUMBNAILS, Settings.CUSTOM_SAVE_SOUND, Settings.HIDE_BOARD_TAB_BUTTON, Settings.HIDE_BOARD_TAB_SUBTITLE, Settings.BOARD_TAB_COVERS, Settings.HIDE_SAVE_TOASTS, Settings.HIDE_DOWNLOAD_TOASTS, Settings.ORIGINAL_IMAGES, Settings.SHOW_POSTED_DATE,
             Settings.HIDE_SUGGESTED_BOARDS, Settings.EXPAND_BOARD_LIST,
             Settings.DISABLE_UPDATE_NAG, Settings.HIDE_SHOPPING
     }; }
@@ -251,6 +253,52 @@ public class UiHooksTest {
         PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
         assertFalse(UiHooks.hideHighlightRing());
         PauseForTests.resume();
+    }
+
+    @Test public void aVideoHoldsTheScreenOnUnlessTheScreenMaySleep() {
+        View video = new View(RuntimeEnvironment.getApplication());
+        UiHooks.keepScreenOn(video, true);
+        assertTrue("off by default, Pinterest's hold goes through", video.getKeepScreenOn());
+        Settings.LET_SCREEN_SLEEP.save(true);
+        UiHooks.keepScreenOn(video, true);
+        assertFalse("the screen may sleep", video.getKeepScreenOn());
+        String report = String.join(" ", HookStatus.report());
+        assertTrue(report, report.contains("screen hold skipped"));
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        UiHooks.keepScreenOn(video, true);
+        assertTrue("paused, Pinterest's hold goes through", video.getKeepScreenOn());
+        PauseForTests.resume();
+        UiHooks.keepScreenOn(video, false);
+        assertFalse("Pinterest letting go always goes through", video.getKeepScreenOn());
+        UiHooks.keepScreenOn(null, true);
+    }
+
+    @Test public void aPinPageHoldsItsWindowOnUnlessTheScreenMaySleep() {
+        ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup();
+        Window window = controller.get().getWindow();
+        int keep = WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON;
+        int dim = WindowManager.LayoutParams.FLAG_DIM_BEHIND;
+        UiHooks.addWindowFlags(window, keep);
+        assertTrue("off by default, Pinterest's hold goes through", (window.getAttributes().flags & keep) != 0);
+        window.clearFlags(keep);
+        Settings.LET_SCREEN_SLEEP.save(true);
+        UiHooks.addWindowFlags(window, keep | dim);
+        assertEquals("the hold stays off and the other flag goes through", dim, window.getAttributes().flags & (keep | dim));
+        String report = String.join(" ", HookStatus.report());
+        assertTrue(report, report.contains("screen hold skipped"));
+        UiHooks.setWindowFlags(window, keep, keep | dim);
+        assertEquals("under a mask the hold stays off and the mask still clears", 0, window.getAttributes().flags & (keep | dim));
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        UiHooks.addWindowFlags(window, keep);
+        assertTrue("paused, Pinterest's hold goes through", (window.getAttributes().flags & keep) != 0);
+        UiHooks.setWindowFlags(window, 0, keep);
+        assertEquals("Pinterest letting go always goes through", 0, window.getAttributes().flags & keep);
+        UiHooks.setWindowFlags(window, keep, keep);
+        assertTrue("paused, a masked hold goes through too", (window.getAttributes().flags & keep) != 0);
+        PauseForTests.resume();
+        UiHooks.addWindowFlags(null, keep);
+        UiHooks.setWindowFlags(null, keep, keep);
+        controller.pause().stop().destroy();
     }
 
     @Test public void visualSearchCropsAreWithheldOnlyWhileTheirSwitchIsOn() {

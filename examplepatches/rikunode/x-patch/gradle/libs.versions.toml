@@ -1,0 +1,31 @@
+[versions]
+morphe-patcher = "1.13.0"
+#noinspection GradleDependency
+smali = "d92701d947"
+gson = "2.14.0"
+morphe-patches-library = "1.6.2"
+instagram-morphe-patches-library = "1.1.0"
+annotation = "1.9.1"
+appcompat = "1.7.0"
+junit = "5.14.4"
+# Only for the tests; the patcher brings its own copy at runtime.
+kotlinx-coroutines = "1.10.2"
+
+[libraries]
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+morphe-patches-library = { module = "app.morphe:morphe-patches-library", version.ref = "morphe-patches-library" }
+instagram-morphe-patches-library = { module = "app.morphe:instagram-morphe-patches-library", version.ref = "instagram-morphe-patches-library" }
+morphe-extensions-library = { module = "app.morphe:morphe-extensions-library", version.ref = "morphe-patches-library" }
+instagram-morphe-extensions-library = { module = "app.morphe:instagram-morphe-extensions-library", version.ref = "instagram-morphe-patches-library" }
+annotation = { module = "androidx.annotation:annotation", version.ref = "annotation" }
+appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
+junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
+# Gradle plugins adds the dependency during build, this declaration is here only for dependabot to provide updates.
+#noinspection UnusedVersionCatalogEntry
+morphe-patcher = { module = "app.morphe:morphe-patcher", version.ref = "morphe-patcher" }
+
+[plugins]
+android-library = { id = "com.android.library" }

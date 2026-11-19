@@ -253,8 +253,12 @@ Turn on Tap to play to use this choice.	Bu seçimi kullanmak için Oynatmak içi
 Resume long videos	Uzun videolara kaldığın yerden devam et
 Videos and reels over two minutes pick up where you left off. Seek to start elsewhere. Live videos and ads start as usual.	İki dakikadan uzun videolar ve reels kaldığın yerden devam eder. Başka bir yerden başlatmak için çubuğu kaydır. Canlı videolar ve reklamlar normal başlar.
 Default playback quality	Varsayılan oynatma kalitesi
-# context: description of the Default playback quality switch on the Playback page, with the list of qualities below it. A video that keeps stalling because the connection is too slow for its quality switches to the next lower quality that video offers (#599)
-Videos, reels and stories play at the quality below, starting with the next one you open. When your connection can't keep up, a video drops to the next lower quality.	Videolar, reels ve hikayeler, açacağın bir sonrakinden itibaren aşağıdaki kalitede oynatılır. Bağlantın yetişemediğinde video bir alt kaliteye düşer.
+# context: description of the Default playback quality switch on the Playback page, with the list of qualities below it
+Videos, reels and stories play at the quality below, starting with the next one you open.	Videolar, reels ve hikayeler, açacağın bir sonrakinden itibaren aşağıdaki kalitede oynatılır.
+# context: title of a switch under Default playback quality on the Playback page. On, a video that keeps stalling because the connection is too slow for its quality switches to the next lower quality that video offers (#599); off, it keeps the quality picked (#761)
+Drop quality to keep playing	Oynamaya devam etmek için kaliteyi düşür
+# context: description of the Drop quality to keep playing switch
+When your connection can't keep up, a video drops to the next lower quality instead of stalling. Turn this off to keep the quality you picked.	Bağlantın yetişemediğinde video takılmak yerine bir alt kaliteye düşer. Seçtiğin kaliteyi korumak için bunu kapat.
 Playback quality	Oynatma kalitesi
 Auto	Otomatik
 Data saver	Veri tasarrufu
@@ -467,6 +471,8 @@ Turn on Start Home on Following to use this choice.	Bu seçimi kullanmak için A
 # context: Settings page: the summary of a greyed-out slider in place of its value; %1$s is the title of the switch it waits on, like Glass tab bar
 Turn on %1$s to use this slider.	Bu kaydırıcıyı kullanmak için %1$s seçeneğini açın.
 Turn on Story ring size to use this choice.	Bu seçimi kullanmak için Hikâye halkası boyutu seçeneğini açın.
+# context: Settings page, Reels: the line under the greyed-out Fill the screen switch while Show the whole reel is on
+Turn off Show the whole reel to use this choice.	Bu seçimi kullanmak için Reels videosunun tamamını göster seçeneğini kapatın.
 Turn on Default playback quality to use this choice.	Bu seçimi kullanmak için Varsayılan oynatma kalitesi seçeneğini açın.
 Updating remembered positions...	Kaydedilen konumlar güncelleniyor...
 Undo cleared positions	Silinen konumları geri yükle
@@ -962,6 +968,12 @@ Half a second	Yarım saniye
 On this Instagram build it covers %1$d of %2$d routes. The diagnostic report lists the rest.	Bu Instagram sürümünde %2$d yolun %1$d tanesini kapsıyor. Kalanlar tanılama raporunda listelenir.
 Hide suggested accounts in Messages	Mesajlar'daki önerilen hesapları gizle
 Takes the accounts Instagram suggests off the bottom of your messages. Your chats and follow requests stay. Restart Instagram to see the change.	Instagram'ın önerdiği hesapları mesajlarının altından kaldırır. Sohbetlerin ve takip istekleri kalır. Değişikliği görmek için Instagram'ı yeniden başlat.
+# context: switch on the Messages page after Hide suggested accounts in Messages; New message is Instagram's own label for the pencil button in the inbox top bar and the screen it opens (#762)
+Hide the New message button	Yeni mesaj düğmesini gizle
+Takes the pencil button for a new message off the top of your messages.	Mesajlarının üstündeki yeni mesaj için kalem düğmesini kaldırır.
+# context: switch right after it; Suggested is the header Instagram puts over the people listed on the New message screen before you type, and new group is the screen for starting a group chat (#762)
+Hide suggestions in New message	Yeni mesajdaki önerileri gizle
+Takes the Suggested people off the New message and new group screens. Search still finds anyone.	Önerilen kişileri Yeni mesaj ve yeni grup ekranlarından kaldırır. Arama yine herkesi bulur.
 A light tick each time the highlight slides past a tab, so it follows the bar as you tap or swipe between screens.	Vurgu bir sekmenin üzerinden her geçtiğinde hafif bir titreşim verir; ekranlar arasında dokunurken veya kaydırırken çubuğu takip eder.
 Blur behind the tab bar	Sekme çubuğunun arkasında bulanıklık
 Blurs what's behind the pill on Android 12 and newer. Off, the pill is a frosted tint.	Android 12 ve üzerinde hapın arkasındaki görüntüyü bulanıklaştırır. Kapalıyken hap, buzlu bir renk tonudur.
@@ -1431,6 +1443,9 @@ Once Burn-in guard fades the buttons, they stay faded on Reels whatever you tap 
 # context: Profiles: switches next to Hide the Threads button. Create is the plus at the top of your own profile (#254); Share profile and Edit profile are Instagram's own button names (#253)
 Hide the Create button	Oluştur düğmesini gizle
 Takes the plus for new posts off the top of your own profile. The other buttons stay where they were.	Yeni gönderiler için artı düğmesini kendi profilinin üstünden kaldırır. Diğer düğmeler oldukları yerde kalır.
+# context: switch on the Profiles page after Hide the Create button; the prompt is the big picture, heading and Create button Instagram shows in place of the grid on your own profile before your first post (#762)
+Hide the empty profile prompt	Boş profil davetini gizle
+Takes the big prompt for your first post off your own profile while it has no posts. Other people's profiles stay as they are.	Henüz gönderin yokken kendi profilinde ilk gönderin için çıkan büyük daveti kaldırır. Başkalarının profilleri olduğu gibi kalır.
 Hide Share profile	Profili paylaş düğmesini gizle
 Takes the Share profile button off your profile, and Edit profile stretches to fill the space.	Profili paylaş düğmesini profilinden kaldırır, Profili düzenle de boşluğu dolduracak şekilde genişler.
 # context: Profiles: switches that hide Subscribe and the arrow at the end of the action buttons on someone's profile, which opens a menu of the buttons that didn't fit (#248). Subscribe is Instagram's own button label, as in the Feed switch that hides Follow and Subscribe.
@@ -1626,7 +1641,7 @@ Unmute all	Tümünün sesini aç
 Settings button on Home's header	Ana sayfa üstünde Ayarlar düğmesi
 Adds a gear at the top of Home that opens HushGram settings. Restart Instagram to see the change.	Ana sayfanın üstüne HushGram ayarlarını açan bir dişli ekler. Değişikliği görmek için Instagram'ı yeniden başlat.
 Download button on stories	Hikayelerde indirme düğmesi
-Puts a Download button at the top of a story, beside the three dots. One tap saves the photo or video in front, the same as Download in the menu.	Bir hikayenin üstüne, üç noktanın yanına bir indirme düğmesi koyar. Tek dokunuş, menüdeki İndir gibi önündeki fotoğrafı veya videoyu kaydeder.
+Puts a Download button at the top of a story, beside the three dots. One tap saves the photo or video in front, the same as Download in the menu. Press and hold for Save all, to save every story in the set you're watching.	Bir hikayenin üstüne, üç noktanın yanına bir indirme düğmesi koyar. Tek dokunuş, menüdeki İndir gibi önündeki fotoğrafı veya videoyu kaydeder. Basılı tutunca Tümünü kaydet çıkar ve izlediğin dizideki tüm hikayeleri kaydeder.
 Start reels muted	Reel'leri sessiz başlat
 Every reel starts silent, wherever you open it from. The volume keys or the speaker icon unmute it. Wins over Start reels with sound.	Her reel, nereden açarsan aç sessiz başlar. Ses tuşları veya hoparlör simgesi sesi açar. Reel'leri sesli başlat ayarından önce gelir.
 Hide captions	Açıklamaları gizle
@@ -1893,6 +1908,9 @@ While you swipe through a chat's reels, a banner says when the other person sent
 New message after this reel	Bu videodan sonra yeni mesaj
 Hide the audio icon on posts	Gönderilerdeki ses simgesini gizle
 Takes the speaker icon off videos in your feed. Tapping the video still turns the sound on or off. Posts already on screen change when they load again.	Akışındaki videolardan hoparlör simgesini kaldırır. Videoya dokunmak sesi yine açıp kapatır. Ekranda zaten olan gönderiler yeniden yüklendiğinde değişir.
+# context: second switch on the Feed page under Hide the audio icon on posts; the tag icon is the small person badge in the corner of a post with people tagged (#762)
+Hide the tag icon on posts	Gönderilerdeki etiket simgesini gizle
+Takes the little person icon off posts with people tagged in them. Tapping the photo still shows who's tagged.	Kişilerin etiketlendiği gönderilerden küçük kişi simgesini kaldırır. Fotoğrafa dokunmak kimlerin etiketlendiğini yine gösterir.
 Light when paused	Duraklatınca aydınlık
 Pause a reel and Burn-in guard brings the buttons back to full brightness until you play it again or swipe on. The wait then starts over.	Bir reel'i duraklatın, Ekran yanığı koruması tuşları siz tekrar oynatana veya kaydırana kadar tam parlaklığa getirsin. Sonra bekleme baştan başlar.
 Grow the heart	Kalbi büyüt
@@ -2079,6 +2097,11 @@ Hide the Save button	Kaydet düğmesini gizle
 Takes the Save button off the bottom of posts in your feed, so a stray tap can't save one.	Akışındaki gönderilerin altındaki Kaydet düğmesini kaldırır, böylece yanlışlıkla bir dokunuş hiçbir şeyi kaydetmez.
 Hide the Like button	Beğen düğmesini gizle
 Takes the heart and the like count off the bottom of posts in your feed. Double tap still likes a post.	Akışındaki gönderilerin altından kalbi ve beğeni sayısını kaldırır. Çift dokunarak gönderiyi yine beğenebilirsin.
+# context: two switches on the Feed page under Hide the Like button; Liked by is the line under a feed post naming who liked it (#762)
+Hide counts on posts	Gönderilerdeki sayıları gizle
+Takes the like, comment, share and repost numbers off posts in your feed. The buttons stay. Posts already on screen change when they load again.	Akışındaki gönderilerden beğeni, yorum, paylaşım ve yeniden paylaşım sayılarını kaldırır. Düğmeler kalır. Ekranda olan gönderiler yeniden yüklendiğinde değişir.
+Hide Liked by	Beğenenler satırını gizle
+Takes the "Liked by" line off posts in your feed.	Akışındaki gönderilerden kimlerin beğendiğini gösteren satırı kaldırır.
 # context: the row in a feed post's three-dot menu for a post you already saved, and the row that takes an account off Saved profiles, on its profile's menu and on the Saved profiles page (#629)
 Remove from saved	Kaydedilenlerden kaldır
 # context: a switch on the Reels page

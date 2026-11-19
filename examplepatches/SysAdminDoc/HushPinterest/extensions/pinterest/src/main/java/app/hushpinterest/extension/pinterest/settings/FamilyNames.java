@@ -64,6 +64,7 @@ public final class FamilyNames {
     public static final String HIDE_HIGHLIGHT_RING = "Hide blue highlight ring";
     public static final String HIDE_VISUAL_SEARCH_THUMBNAILS = "Hide visual search thumbnails";
     public static final String FOLD_RELATED_PINS = "Fold related pins";
+    public static final String LET_SCREEN_SLEEP = "Let the screen sleep";
     public static final String CUSTOM_SAVE_SOUND = "Custom save sound";
     public static final String CUSTOM_SPLASH_LOGO = "Custom splash logo";
     public static final String BOARD_TABS = "Customize board tabs";

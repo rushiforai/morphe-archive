@@ -381,6 +381,11 @@ final class FeedCategory {
             feed.addPreference(onFlip(toggle(context, Settings.HIDE_FEED_LIKE_BUTTON, L10n.t("Hide the Like button"),
                     L10n.t("Takes the heart and the like count off the bottom of posts in your feed. Double tap still likes a post.")),
                     FeedSaveRow::switchChanged));
+            feed.addPreference(toggle(context, Settings.HIDE_FEED_COUNTS, L10n.t("Hide counts on posts"),
+                    L10n.t("Takes the like, comment, share and repost numbers off posts in your feed. The buttons stay. "
+                            + "Posts already on screen change when they load again.")));
+            feed.addPreference(toggle(context, Settings.HIDE_LIKED_BY, L10n.t("Hide Liked by"),
+                    L10n.t("Takes the \"Liked by\" line off posts in your feed.")));
         }
         if (menuItems) feed.addPreference(page.menuItemsRow(context));
         if (activityBubbles) {
@@ -405,6 +410,9 @@ final class FeedCategory {
             feed.addPreference(toggle(context, Settings.HIDE_FEED_AUDIO_ICON, L10n.t("Hide the audio icon on posts"),
                     L10n.t("Takes the speaker icon off videos in your feed. Tapping the video still turns the sound on "
                             + "or off. Posts already on screen change when they load again.")));
+            feed.addPreference(toggle(context, Settings.HIDE_FEED_TAG_ICON, L10n.t("Hide the tag icon on posts"),
+                    L10n.t("Takes the little person icon off posts with people tagged in them. Tapping the photo "
+                            + "still shows who's tagged.")));
         }
         if (feedAutoScroll) {
             feed.addPreference(toggle(context, Settings.FEED_AUTO_SCROLL, L10n.t("Auto scroll in Home"),

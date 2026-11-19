@@ -210,27 +210,176 @@ public final class MediaLinkMenu {
         return true; // Never dispatch our marker to X's sealed action handler.
     }
 
-    /** Resolves only the selected gallery item, never the post thumbnail. */
-    private static String galleryMediaUrl(Object media) throws ReflectiveOperationException {
+    /** Uses X 12.31's media model fields, not a fragile toString() parser. */
+    private static String galleryMediaUrl(Object media) {
         if (media == null) return null;
-        if ("com.x.models.t4".equals(media.getClass().getName())) {
-            Class<?> photo = Class.forName("com.x.models.t4");
-            Method original = Class.forName("com.x.media.imageloader.i").getDeclaredMethod("e", photo);
-            original.setAccessible(true);
-            Object value = original.invoke(null, media);
-            if (!(value instanceof String)) return null;
-            Uri uri = Uri.parse((String) value);
-            return "https".equalsIgnoreCase(uri.getScheme())
-                && "pbs.twimg.com".equalsIgnoreCase(uri.getHost())
-                && uri.getPath() != null && uri.getPath().startsWith("/media/")
-                ? (String) value : null;
+        String type = media.getClass().getName();
+        try {
+            if ("com.x.models.t4".equals(type)) {
+                Field imageField = media.getClass().getDeclaredField("c");
+                imageField.setAccessible(true);
+                Object value = imageField.get(media);
+                if (!(value instanceof String)) return null;
+                Uri uri = Uri.parse((String) value);
+                if (!"https".equalsIgnoreCase(uri.getScheme())
+                        || !"pbs.twimg.com".equalsIgnoreCase(uri.getHost())
+                        || uri.getPath() == null || !uri.getPath().startsWith("/media/"))
+                    return null;
+                String format = uri.getQueryParameter("format");
+                Uri.Builder original = uri.buildUpon().clearQuery();
+                if (format != null) original.appendQueryParameter("format", format);
+                return original.appendQueryParameter("name", "orig").build().toString();
+            }
+            String listField;
+            if ("com.x.models.w4".equals(type)) listField = "e";
+            else if ("com.x.models.q4".equals(type)) listField = "d";
+            else return null;
+            Field variantsField = media.getClass().getDeclaredField(listField);
+            variantsField.setAccessible(true);
+            Object value = variantsField.get(media);
+            if (!(value instanceof Iterable)) return null;
+            String best = null;
+            int bitrate = -1;
+            for (Object variant : (Iterable<?>) value) {
+                if (variant == null || !"com.x.models.media.v2".equals(variant.getClass().getName()))
+                    continue;
+                Field urlField = variant.getClass().getDeclaredField("a");
+                Field rateField = variant.getClass().getDeclaredField("b");
+                Field mimeField = variant.getClass().getDeclaredField("c");
+                urlField.setAccessible(true);
+                rateField.setAccessible(true);
+                mimeField.setAccessible(true);
+                Object urlValue = urlField.get(variant);
+                Object mime = mimeField.get(variant);
+                if (!(urlValue instanceof String) || !(mime instanceof String)
+                        || !"video/mp4".equalsIgnoreCase((String) mime)) continue;
+                Uri uri = Uri.parse((String) urlValue);
+                if (!"https".equalsIgnoreCase(uri.getScheme())
+                        || !"video.twimg.com".equalsIgnoreCase(uri.getHost())
+                        || uri.getPath() == null || !uri.getPath().endsWith(".mp4"))
+                    continue;
+                Object rate = rateField.get(variant);
+                int candidate = rate instanceof Number ? ((Number) rate).intValue() : 0;
+                if (candidate > bitrate) {
+                    best = (String) urlValue;
+                    bitrate = candidate;
+                }
+            }
+            return best;
+        } catch (ReflectiveOperationException | RuntimeException | LinkageError ignored) {
+            return null;
         }
-        if ("com.x.models.w4".equals(media.getClass().getName())
-                || "com.x.models.q4".equals(media.getClass().getName())) {
-            List<String> urls = mediaLinks(String.valueOf(media));
-            return urls.isEmpty() ? null : urls.get(0);
+    }
+
+    /**
+     * Returns a new immutable media sheet with one additional URL-copy row.
+     * Called after X builds the sheet: loop-exit branches skip hooks inserted
+     * before the original immutable-list conversion.
+     */
+    public static Object withLongPressMediaUrlAction(Object immutableRows) {
+        if (!(immutableRows instanceof Iterable)) return immutableRows;
+        try {
+            ArrayList<Object> rows = new ArrayList<>();
+            for (Object row : (Iterable<?>) immutableRows) rows.add(row);
+            int originalSize = rows.size();
+            appendLongPressMediaUrlAction(rows);
+            if (rows.size() == originalSize) return immutableRows;
+            Class<?> builder = Class.forName("com.x.urt.items.post.quote.nested.f");
+            Method freeze = builder.getDeclaredMethod("j", Iterable.class);
+            freeze.setAccessible(true);
+            return freeze.invoke(null, rows);
+        } catch (ReflectiveOperationException | RuntimeException | LinkageError ignored) {
+            return immutableRows;
         }
-        return null;
+    }
+
+    /**
+     * Adds a direct-CDN copy action to the native photo/video long-press
+     * sheet rows without removing or changing their existing actions.
+     */
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public static void appendLongPressMediaUrlAction(List<?> rows) {
+        if (rows == null || rows.isEmpty()) return;
+        try {
+            Object icon = null;
+            Object selectedMedia = null;
+            for (Object row : rows) {
+                if (row == null || !"com.x.ui.common.sheets.a".equals(row.getClass().getName())) continue;
+                Field key = row.getClass().getDeclaredField("a");
+                key.setAccessible(true);
+                Object action = key.get(row);
+                if (action == null) continue;
+                String actionType = action.getClass().getName();
+                // Only CopyLink / Download actions carry the selected media model.
+                if (!"com.x.urt.items.post.media.d".equals(actionType)
+                        && !"com.x.urt.items.post.media.g".equals(actionType)) continue;
+                Method mediaGetter = action.getClass().getDeclaredMethod("a");
+                mediaGetter.setAccessible(true);
+                selectedMedia = mediaGetter.invoke(action);
+                Field iconField = row.getClass().getDeclaredField("b");
+                iconField.setAccessible(true);
+                icon = iconField.get(row);
+                break;
+            }
+            if (selectedMedia == null) return;
+            if ("com.x.models.t4".equals(selectedMedia.getClass().getName())) {
+                // Reuse the native video Copy link icon, not the photo Save icon.
+                Field linkIcon = Class.forName("com.x.icons.a").getDeclaredField("h5");
+                linkIcon.setAccessible(true);
+                icon = linkIcon.get(null);
+            }
+            Class<?> itemType = rows.get(0).getClass();
+            String label = "ja".equals(java.util.Locale.getDefault().getLanguage())
+                ? "\u30e1\u30c7\u30a3\u30a2URL\u3092\u30b3\u30d4\u30fc" : "Copy media URL";
+            for (Constructor<?> ctor : itemType.getDeclaredConstructors()) {
+                Class<?>[] args = ctor.getParameterTypes();
+                if (args.length == 6 && args[0] == Object.class && args[2] == String.class
+                        && args[3] == String.class && args[4] == Boolean.class && args[5] == int.class) {
+                    ctor.setAccessible(true);
+                    ((List) rows).add(ctor.newInstance(new LongPressMediaCopyAction(selectedMedia), icon,
+                        label, null, null, 40));
+                    return;
+                }
+            }
+        } catch (ReflectiveOperationException | RuntimeException | LinkageError ignored) {
+            // Unknown X internals: do not alter the native media sheet.
+        }
+    }
+
+    private static final class LongPressMediaCopyAction {
+        final Object media;
+        LongPressMediaCopyAction(Object media) { this.media = media; }
+    }
+
+    /** Intercept only our custom row; every native action remains untouched. */
+    public static boolean handleLongPressMediaUrlAction(Object row) {
+        if (row == null || !"com.x.ui.common.sheets.a".equals(row.getClass().getName())) return false;
+        Object action;
+        try {
+            Field key = row.getClass().getDeclaredField("a");
+            key.setAccessible(true);
+            action = key.get(row);
+        } catch (ReflectiveOperationException | RuntimeException | LinkageError ignored) {
+            return false;
+        }
+        if (!(action instanceof LongPressMediaCopyAction)) return false;
+        try {
+            Activity screen = activity.get();
+            if (screen != null && !screen.isFinishing() && !screen.isDestroyed()) {
+                String url = galleryMediaUrl(((LongPressMediaCopyAction) action).media);
+                ClipboardManager clipboard = (ClipboardManager)
+                    screen.getSystemService(Context.CLIPBOARD_SERVICE);
+                if (url != null && clipboard != null) {
+                    clipboard.setPrimaryClip(ClipData.newPlainText("media_url", url));
+                    Toast.makeText(screen, "URL\u3092\u30b3\u30d4\u30fc\u3057\u307e\u3057\u305f", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(screen, "\u30e1\u30c7\u30a3\u30a2URL\u3092\u53d6\u5f97\u3067\u304d\u307e\u305b\u3093", Toast.LENGTH_SHORT).show();
+                }
+            }
+        } catch (RuntimeException | LinkageError ignored) {
+            // Never pass our custom row to X's sealed MediaAction cast.
+        }
+        return true;
     }
 
     /**

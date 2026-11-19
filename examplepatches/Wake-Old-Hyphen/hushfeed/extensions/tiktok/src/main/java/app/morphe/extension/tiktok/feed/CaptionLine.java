@@ -31,11 +31,13 @@ import java.util.WeakHashMap;
  * its post time come off the creator's row and go on a line of their own right under the
  * caption, "United States · 2d ago".
  *
- * <p>The caption is {@code desc}, in TikTok's generated caption layout (47.8.3's
- * common_feed_layout_video_desc): a vertical LinearLayout holding the caption block, a
- * LinearLayout subclass of TikTok's own with {@code desc} inside it. The line goes in the
- * nearest plain vertical LinearLayout above the caption, right after the child that holds it,
- * so TikTok's caption block, which opens and closes on "more", is left as it was.
+ * <p>The caption is {@code desc}, in TikTok's generated caption layout (47.9.1's
+ * common_feed_layout_video_desc), which sits in the cell's info column under the creator's row.
+ * The line goes in that column, the nearest vertical LinearLayout above the caption that also
+ * holds the creator's name, right after the child that holds the caption. Nothing inside the
+ * caption's own frame is touched: opening or closing the caption on "more" sets that frame to a
+ * fixed height TikTok works out from the caption's text alone, so a line in there was squeezed
+ * thin, or squeezed the caption, whichever gave way (#457).
  *
  * <p>The date is the row's own post time text, so it reads the way the row would have, Always
  * show publish date's exact time and Mark saved videos' check included. The row's post time is
@@ -76,10 +78,10 @@ public final class CaptionLine {
 
     /**
      * Writes the line under the caption of the cell {@code name} sits in, with {@code country}
-     * (or none) and the row's post time, and says whether it shows. With no caption to put it
-     * under, or nothing to say, no line shows and the row keeps its post time. A post with no
-     * caption still has the caption's views, with TikTok hiding the block that holds them, and a
-     * line in there would carry the date off screen.
+     * (or none) and the row's post time, and says whether it shows. A post with no caption still
+     * has the caption's views, with TikTok hiding the block that holds them, and a line in there
+     * would never show, so it goes right under the creator's row instead (#453). With nowhere to
+     * put it, or nothing to say, no line shows and the row keeps its post time.
      */
     static boolean show(TextView name, View root, String country) {
         if (name == null) {
@@ -92,13 +94,17 @@ public final class CaptionLine {
         View holder = caption;
         if (caption != null && shownUpTo(caption, root)) {
             for (ViewParent parent = caption.getParent(); parent instanceof View; parent = parent.getParent()) {
-                if (isColumn(parent)) {
+                if (isColumn(parent) && holds((View) parent, name)) {
                     host = (LinearLayout) parent;
                     break;
                 }
                 if (parent == root) break;
                 holder = (View) parent;
             }
+        }
+        if (host == null) {
+            holder = rowOf(name, postTime, root);
+            host = holder == null ? null : (LinearLayout) holder.getParent();
         }
         String date = dateOf(postTime);
         String text = join(country, date);
@@ -122,6 +128,33 @@ public final class CaptionLine {
         }
         hideOthers(line);
         return true;
+    }
+
+    /**
+     * The creator's whole row, post time included, as the child of the vertical LinearLayout
+     * above it: the same info column a line under the caption goes in.
+     */
+    private static View rowOf(TextView name, TextView postTime, View root) {
+        if (postTime == null) return null;
+        View cell = GestureActions.cellOf(name);
+        View child = name;
+        for (ViewParent parent = name.getParent(); parent instanceof View; parent = parent.getParent()) {
+            if (parent instanceof LinearLayout
+                    && ((LinearLayout) parent).getOrientation() == LinearLayout.VERTICAL
+                    && holds(child, postTime)) {
+                return child;
+            }
+            if (parent == root || parent == cell) break;
+            child = (View) parent;
+        }
+        return null;
+    }
+
+    private static boolean holds(View group, View view) {
+        for (ViewParent parent = view.getParent(); parent instanceof View; parent = parent.getParent()) {
+            if (parent == group) return true;
+        }
+        return false;
     }
 
     /** Whether {@code view} and everything above it up to {@code root} is set to show. */
@@ -215,8 +248,8 @@ public final class CaptionLine {
         return null;
     }
 
-    /** How many groups up from the name the post time is looked for. */
-    private static final int ROW_DEPTH = 3;
+    /** How many groups up from the name the post time is looked for: three on a video, four on a photo post. */
+    private static final int ROW_DEPTH = 4;
 
     /**
      * The caption in the name's cell. A video in a detail page with no pager around it has its
@@ -233,9 +266,9 @@ public final class CaptionLine {
         return scope == null ? null : scope.findViewById(captionViewId);
     }
 
-    /** A plain vertical LinearLayout, not one of TikTok's own subclasses. */
+    /** A vertical LinearLayout; 47.9.1's info column is one of TikTok's own subclasses. */
     private static boolean isColumn(ViewParent parent) {
-        return parent.getClass() == LinearLayout.class
+        return parent instanceof LinearLayout
                 && ((LinearLayout) parent).getOrientation() == LinearLayout.VERTICAL;
     }
 

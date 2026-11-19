@@ -23,9 +23,7 @@ private val BOOL_RE =
 val forcedUpdateBypassPatch =
     bytecodePatch(
         name = "Forced-update bypass",
-        description =
-        "Neuters in-app forced-update gates (dialogs, blocking checks, version prompts). " +
-            "Works on apps that keep readable method names; fully-obfuscated apps need per-app fingerprints.",
+        description = "Neuters in-app forced-update gates.",
         default = false,
     ) {
         execute {

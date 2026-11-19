@@ -258,8 +258,12 @@ Turn on Tap to play to use this choice.	請啟用「點擊播放」以使用此�
 Resume long videos	繼續播放長影片
 Videos and reels over two minutes pick up where you left off. Seek to start elsewhere. Live videos and ads start as usual.	超過兩分鐘的影片與 Reels 會從上次離開的位置繼續播放。可拖曳進度列改從其他位置開始。直播與廣告仍會照常播放。
 Default playback quality	預設播放畫質
-# context: description of the Default playback quality switch on the Playback page, with the list of qualities below it. A video that keeps stalling because the connection is too slow for its quality switches to the next lower quality that video offers (#599)
-Videos, reels and stories play at the quality below, starting with the next one you open. When your connection can't keep up, a video drops to the next lower quality.	從下一部開啟的影片開始，影片、Reels 和限時動態會以下方畫質播放。連線速度跟不上時，影片會降到低一級的畫質。
+# context: description of the Default playback quality switch on the Playback page, with the list of qualities below it
+Videos, reels and stories play at the quality below, starting with the next one you open.	從下一部開啟的影片開始，影片、Reels 和限時動態會以下方畫質播放。
+# context: title of a switch under Default playback quality on the Playback page. On, a video that keeps stalling because the connection is too slow for its quality switches to the next lower quality that video offers (#599); off, it keeps the quality picked (#761)
+Drop quality to keep playing	降低畫質以持續播放
+# context: description of the Drop quality to keep playing switch
+When your connection can't keep up, a video drops to the next lower quality instead of stalling. Turn this off to keep the quality you picked.	連線速度跟不上時，影片會降到低一級的畫質，而不是卡住。關閉此選項即可維持你選的畫質。
 Playback quality	播放畫質
 Auto	自動
 Data saver	節省數據
@@ -472,6 +476,8 @@ Turn on Start Home on Following to use this choice.	請啟用「首頁預設顯�
 # context: Settings page: the summary of a greyed-out slider in place of its value; %1$s is the title of the switch it waits on, like Glass tab bar
 Turn on %1$s to use this slider.	請啟用「%1$s」以使用此滑桿。
 Turn on Story ring size to use this choice.	請啟用「限時動態光圈尺寸」以使用此選項。
+# context: Settings page, Reels: the line under the greyed-out Fill the screen switch while Show the whole reel is on
+Turn off Show the whole reel to use this choice.	請關閉「顯示完整的 Reels」以使用此選項。
 Turn on Default playback quality to use this choice.	請啟用「預設播放畫質」以使用此選項。
 Updating remembered positions...	正在更新記住的播放位置…
 Undo cleared positions	復原清除播放位置
@@ -952,6 +958,12 @@ Half a second	半秒
 On this Instagram build it covers %1$d of %2$d routes. The diagnostic report lists the rest.	在此 Instagram 版本上，已涵蓋 %1$d 條路徑，共 %2$d 條。其餘路徑列於診斷報告。
 Hide suggested accounts in Messages	隱藏私訊中的建議帳號
 Takes the accounts Instagram suggests off the bottom of your messages. Your chats and follow requests stay. Restart Instagram to see the change.	移除私訊底部 Instagram 建議的帳號。聊天與追蹤邀請仍會保留。請重新啟動 Instagram 以套用變更。
+# context: switch on the Messages page after Hide suggested accounts in Messages; New message is Instagram's own label for the pencil button in the inbox top bar and the screen it opens (#762)
+Hide the New message button	隱藏新訊息按鈕
+Takes the pencil button for a new message off the top of your messages.	移除訊息頂端用來寫新訊息的鉛筆按鈕。
+# context: switch right after it; Suggested is the header Instagram puts over the people listed on the New message screen before you type, and new group is the screen for starting a group chat (#762)
+Hide suggestions in New message	隱藏新訊息中的建議
+Takes the Suggested people off the New message and new group screens. Search still finds anyone.	從新訊息和新群組畫面移除建議的人。搜尋仍然找得到任何人。
 A light tick each time the highlight slides past a tab, so it follows the bar as you tap or swipe between screens.	在點擊或滑動切換畫面時，標示每滑過一個分頁就會輕震一次，讓觸覺回饋跟隨分頁列。
 Blur behind the tab bar	模糊分頁列後方內容
 Blurs what's behind the pill on Android 12 and newer. Off, the pill is a frosted tint.	在 Android 12 以上版本模糊膠囊後方的內容。關閉時，膠囊使用霧面色調。
@@ -1417,6 +1429,9 @@ Once Burn-in guard fades the buttons, they stay faded on Reels whatever you tap 
 # context: Profiles: switches next to Hide the Threads button. Create is the plus at the top of your own profile (#254); Share profile and Edit profile are Instagram's own button names (#253)
 Hide the Create button	隱藏建立按鈕
 Takes the plus for new posts off the top of your own profile. The other buttons stay where they were.	移除自己個人檔案頂端用來建立貼文的加號。其他按鈕仍留在原位。
+# context: switch on the Profiles page after Hide the Create button; the prompt is the big picture, heading and Create button Instagram shows in place of the grid on your own profile before your first post (#762)
+Hide the empty profile prompt	隱藏空白個人檔案的提示
+Takes the big prompt for your first post off your own profile while it has no posts. Other people's profiles stay as they are.	在自己的個人檔案還沒有貼文時，移除邀你發第一則貼文的大型提示。其他人的個人檔案維持原樣。
 Hide Share profile	隱藏分享個人檔案
 Takes the Share profile button off your profile, and Edit profile stretches to fill the space.	移除個人檔案上的「分享個人檔案」按鈕，並將「編輯個人檔案」加寬以填滿空間。
 # context: Profiles: switches that hide Subscribe and the arrow at the end of the action buttons on someone's profile, which opens a menu of the buttons that didn't fit (#248). Subscribe is Instagram's own button label, as in the Feed switch that hides Follow and Subscribe.
@@ -1629,7 +1644,7 @@ Unmute all	全部取消靜音
 Settings button on Home's header	首頁頂端的設定按鈕
 Adds a gear at the top of Home that opens HushGram settings. Restart Instagram to see the change.	在首頁頂端加入齒輪，可開啟 HushGram 設定。請重新啟動 Instagram 以套用變更。
 Download button on stories	限時動態的下載按鈕
-Puts a Download button at the top of a story, beside the three dots. One tap saves the photo or video in front, the same as Download in the menu.	在限時動態頂端的三個點旁加入下載按鈕。點一下就能儲存目前的相片或影片，與選單中的下載相同。
+Puts a Download button at the top of a story, beside the three dots. One tap saves the photo or video in front, the same as Download in the menu. Press and hold for Save all, to save every story in the set you're watching.	在限時動態頂端的三個點旁加入下載按鈕。點一下就能儲存目前的相片或影片，與選單中的下載相同。長按可選擇儲存全部，儲存正在觀看的這組限時動態。
 Start reels muted	Reels 預設靜音
 Every reel starts silent, wherever you open it from. The volume keys or the speaker icon unmute it. Wins over Start reels with sound.	無論從哪裡開啟，每則 Reels 都會靜音開始。音量鍵或喇叭圖示可取消靜音。優先於「Reels 預設開啟聲音」。
 Hide captions	隱藏說明文字
@@ -1896,6 +1911,9 @@ While you swipe through a chat's reels, a banner says when the other person sent
 New message after this reel	這則 Reel 之後有新訊息
 Hide the audio icon on posts	隱藏貼文上的音訊圖示
 Takes the speaker icon off videos in your feed. Tapping the video still turns the sound on or off. Posts already on screen change when they load again.	移除動態中影片上的喇叭圖示。點一下影片仍可開啟或關閉聲音。畫面上已有的貼文會在重新載入後更新。
+# context: second switch on the Feed page under Hide the audio icon on posts; the tag icon is the small person badge in the corner of a post with people tagged (#762)
+Hide the tag icon on posts	隱藏貼文上的標註圖示
+Takes the little person icon off posts with people tagged in them. Tapping the photo still shows who's tagged.	移除有標註他人的貼文上的小人像圖示。點一下相片仍會顯示標註了誰。
 Light when paused	暫停時亮起
 Pause a reel and Burn-in guard brings the buttons back to full brightness until you play it again or swipe on. The wait then starts over.	暫停 Reels 後，防烙印保護會讓按鈕恢復全亮，直到你再次播放或滑到下一部。之後等待時間會重新計算。
 Grow the heart	放大愛心
@@ -2082,6 +2100,11 @@ Hide the Save button	隱藏儲存按鈕
 Takes the Save button off the bottom of posts in your feed, so a stray tap can't save one.	移除動態中貼文底部的儲存按鈕，避免誤觸而儲存貼文。
 Hide the Like button	隱藏讚按鈕
 Takes the heart and the like count off the bottom of posts in your feed. Double tap still likes a post.	移除動態消息貼文底部的愛心與讚數。仍可點兩下對貼文按讚。
+# context: two switches on the Feed page under Hide the Like button; Liked by is the line under a feed post naming who liked it (#762)
+Hide counts on posts	隱藏貼文上的數字
+Takes the like, comment, share and repost numbers off posts in your feed. The buttons stay. Posts already on screen change when they load again.	移除動態消息貼文上的讚、留言、分享和轉發次數。按鈕會保留。已在畫面上的貼文重新載入後才會改變。
+Hide Liked by	隱藏「說讚的人」
+Takes the "Liked by" line off posts in your feed.	移除動態消息貼文上顯示誰說讚的那一行。
 # context: the row in a feed post's three-dot menu for a post you already saved, and the row that takes an account off Saved profiles, on its profile's menu and on the Saved profiles page (#629)
 Remove from saved	從已儲存移除
 # context: a switch on the Reels page

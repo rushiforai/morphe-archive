@@ -22,7 +22,9 @@ val latencyBadgePatch = bytecodePatch(
     description = "Shows how far a live stream plays behind the broadcast on Twitch's native player in the " +
         "theatre, read from the player itself once a second (the latency the stats panel reports). Tapping it " +
         "reloads the stream through Twitch's own Retry, a new access token and playlist that start at the live " +
-        "edge: the native player has no seek to live. Feed previews, videos and clips show nothing. " +
+        "edge: the native player has no seek to live. After a switch between channels the player can lose its " +
+        "measure until the stream reloads; the badge then reads ? s, and a tap brings it back. " +
+        "Feed previews, videos and clips show nothing. " +
         "Starts off. Turn it on in Lurk settings > Playback.",
 ) {
     compatibleWith(COMPATIBILITY_TWITCH)
@@ -64,8 +66,8 @@ val latencyBadgePatch = bytecodePatch(
 
         twitchSettings.add(SwitchSetting("latency_badge", "Latency badge",
             "Shows how far a live stream is behind the broadcast on the player. Tap it to reload the stream at " +
-                "the live edge (a new access token and playlist, as Twitch's Retry). Applies to players opened " +
-                "after it's turned on.",
+                "the live edge (a new access token and playlist, as Twitch's Retry); \"? s\" means the player lost " +
+                "its measure, and a tap fixes it. Applies to players opened after it's turned on.",
             Section.PLAYBACK, default = false))
     }
 }

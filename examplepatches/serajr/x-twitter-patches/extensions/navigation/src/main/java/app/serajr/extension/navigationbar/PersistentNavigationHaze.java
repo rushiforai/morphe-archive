@@ -1,5 +1,11 @@
 package app.serajr.extension.navigationbar;
 
+import android.content.ContentResolver;
+import android.content.Context;
+import android.database.ContentObserver;
+import android.os.Handler;
+import android.os.Looper;
+import android.provider.Settings;
 import android.os.SystemClock;
 import android.util.Log;
 import java.lang.reflect.Field;
@@ -11,7 +17,47 @@ public final class PersistentNavigationHaze {
     private static int lastBottomBarSize = Integer.MIN_VALUE;
     private static long lastLayerLogMs;
 
-    private PersistentNavigationHaze() { }
+    private static final String SETTINGS_KEY = "serajr_x_fix_nav_bar_haze_disable_blur";
+    private static volatile boolean disableNativeBlur;
+    private static ContentObserver settingsObserver;
+
+    private PersistentNavigationHaze() {
+    }
+
+    public static synchronized void initialize(Context context) {
+        if (settingsObserver != null) return;
+        try {
+            Context app = context.getApplicationContext();
+            if (app == null) return;
+            final ContentResolver resolver = app.getContentResolver();
+            ContentObserver observer = new ContentObserver(new Handler(Looper.getMainLooper())) {
+                @Override
+                public void onChange(boolean selfChange) {
+                    refreshBlurSetting(resolver);
+                }
+            };
+            resolver.registerContentObserver(Settings.Global.getUriFor(SETTINGS_KEY), false, observer);
+            settingsObserver = observer;
+            refreshBlurSetting(resolver);
+            Log.i(TAG, "T4D observer registered");
+        } catch (RuntimeException e) {
+            Log.w(TAG, "T4D observer initialization failed", e);
+        }
+    }
+
+    private static void refreshBlurSetting(ContentResolver resolver) {
+        try {
+            disableNativeBlur = Settings.Global.getInt(resolver, SETTINGS_KEY, 0) == 1;
+            Log.i(TAG, "T4D disableNativeBlur=" + disableNativeBlur);
+        } catch (RuntimeException e) {
+            disableNativeBlur = false;
+            Log.w(TAG, "T4D settings read failed; preserving native blur", e);
+        }
+    }
+
+    public static boolean resolveBlurEnabled(boolean original) {
+        return original && !disableNativeBlur;
+    }
 
     public static void initialize() {
         Log.i(TAG, "PersistentNavigationHaze extension loaded successfully!");

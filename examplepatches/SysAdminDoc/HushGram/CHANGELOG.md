@@ -8,6 +8,12 @@ Every HushGram release, newest first.
 
 * Saving a reel gets its picture and sound at the same time now, instead of one after the other, so saves finish sooner. Asked about in #493.
 * A feed post's three-dot menu can now show Block and Playback speed. Turn on `Block in a post's menu` and `Speed in a post's menu` under Downloads. Requested in #743.
+* Press and hold the Download button on a story to pick `Download` or `Save all`, which saves every story in the set you're watching. It comes with `Download button on stories`. Requested in #745.
+* Under `Default playback quality` there's a new `Drop quality to keep playing` switch. It's on to start, so a slow connection still drops a rung instead of stalling. Turn it off and videos stay at the quality you picked. Requested in #761.
+* Two new switches under Feed, next to `Hide the Like button`. `Hide counts on posts` takes the like, comment, share and repost numbers off feed posts and keeps the buttons. `Hide Liked by` takes the "Liked by" line off them. Asked for in #762.
+* `Hide the tag icon on posts` sits right under `Hide the audio icon on posts` in Feed. It takes the little person icon off posts with people tagged in them, and product tags keep theirs. Also from #762.
+* `Hide the empty profile prompt` is new in Profiles, under `Hide the Create button`. While your profile has no posts yet, it takes the big "first post" prompt off your own grid. Other people's empty profiles look the same as before. Also from #762.
+* The Messages page has two new switches after `Hide suggested accounts in Messages`. `Hide the New message button` takes the pencil off the top of your messages and leaves the other buttons there. `Hide suggestions in New message` drops the Suggested people from the New message and new group screens, and search still finds anyone you type. Hiding one doesn't hide the other anymore. Asked for in #762.
 * **Tooling:** The GitHub release notes leave out the Tooling bullets and the What was checked part now. They're still here in the changelog, and Manager's notes keep their Validation line.
 
 ### Bug Fixes
@@ -20,6 +26,12 @@ Every HushGram release, newest first.
 * `Ask for VP9 instead of AV1` now says what you can expect. Instagram doesn't always listen, so videos can still come as AV1, and `Convert to keep the full size` gets you H.264. Reported in #546.
 * Letting go after `Hold for 2x on feed videos` no longer pauses the video when `Tap a feed video to pause it` is on too.
 * The `Show if a profile follows you` label no longer lands on top of the post count on profiles with no name.
+* `Glass in chats` keeps the message bar's glass when Instagram switches the bar to its newer layout, and `Message bar tint` works on it again. Reported in #759.
+* Messages in a chat no longer jump and snap back while you type a long message with `Glass in chats` on. Reported in #757.
+* `Fill the screen` goes grey with a line saying why while `Show the whole reel` is on, since that switch wins and reels kept their side bars. Reported in #755.
+* `Hide captions` no longer leaves an empty gap under the username on reels. The username row moves down into the caption's room. Reported in #680.
+* The seek bar on reels no longer sits under the floating tab bar after you come back from picture in picture. Reported in #450.
+* Logging in with Facebook no longer stops on Facebook's "link may be broken" page and a spinner that never ends. The Facebook app turns away a patched Instagram, so the login goes through your browser now. Reported in #760.
 
 ## 0.0.21 (2026-11-18)
 

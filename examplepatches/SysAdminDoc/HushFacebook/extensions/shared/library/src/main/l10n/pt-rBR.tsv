@@ -424,7 +424,7 @@ Leave calls and chats to Messenger	Deixar chamadas e conversas com o Messenger
 Facebook leaves calls and chat notifications to Messenger while Messenger is installed and enabled. Restart Facebook after changing this switch, or after installing, removing, enabling or disabling Messenger, so call routing updates. If you're signed out of Messenger, you'll miss calls and messages.	O Facebook deixa as chamadas e notificações de conversas para o Messenger enquanto ele estiver instalado e ativado. Reinicie o Facebook depois de mudar este botão ou de instalar, remover, ativar ou desativar o Messenger para atualizar o encaminhamento de chamadas. Se você estiver desconectado do Messenger, vai perder chamadas e mensagens.
 Playback	Reprodução
 Tap to play	Tocar para reproduzir
-Videos, reels, stories and music wait for your tap instead of playing by themselves. Facebook's own Autoplay setting shows Off while this is on.	Vídeos, reels, stories e músicas esperam o seu toque, em vez de tocar sozinhos. A configuração Reprodução automática do próprio Facebook mostra Desativada enquanto isto estiver ligado.
+Videos, reels and music wait for your tap instead of playing by themselves. Facebook's own Autoplay setting shows Off while this is on.	Vídeos, reels e músicas esperam o seu toque, em vez de tocar sozinhos. A configuração Reprodução automática do próprio Facebook mostra Desativada enquanto isto estiver ligado.
 Marketplace only	Só Marketplace
 # context: switch title under Opening Facebook, next to Marketplace only; Events is Facebook's tab and keeps its name
 Events only	Só Eventos
@@ -1546,7 +1546,7 @@ Facebook hasn't downloaded this screen to this phone, so a tap opens the Whiteha
 # context: toast when the Facebook version has no such screen
 This Facebook build has no Whitehat settings screen.	Esta versão do Facebook não tem a tela de configurações do Whitehat.
 Only the first reel waits	Só o primeiro reel espera
-With the switch above on, after you play one reel, the reels you swipe to play on their own. The feed, Watch and stories always wait.	Com o botão acima ligado, depois que você toca um reel, os reels para os quais você desliza tocam sozinhos. O feed, o Watch e os stories sempre esperam.
+With the switch above on, after you play one reel, the reels you swipe to play on their own. The feed and Watch always wait.	Com o botão acima ligado, depois que você toca um reel, os reels para os quais você desliza tocam sozinhos. O feed e o Watch sempre esperam.
 Slower speeds	Velocidades mais lentas
 Adds 0.1x and 0.25x to the speed menu of reels and of feed and Watch videos, for slowing down a fast moment.	Adiciona 0,1x e 0,25x ao menu de velocidade dos reels e dos vídeos do feed e do Watch, para desacelerar um momento rápido.
 Faster speeds	Velocidades mais rápidas
@@ -2641,10 +2641,12 @@ Takes the row of suggested replies off the bottom of a story. The reply box stay
 Hide the Subscribe button	Ocultar o botão Inscrever-se
 Takes the Subscribe button off the top of a story. Applies from the next story you open.	Tira o botão Inscrever-se da parte de cima de um story. Vale a partir do próximo story que você abrir.
 Hide create story cards	Ocultar cartões de criar story
-Takes out the card between stories that asks you to make one, including the ones built from photos in your gallery. Applies the next time you open stories.	Tira o cartão entre os stories que pede para você criar um, inclusive os feitos com fotos da sua galeria. Vale a partir da próxima vez que você abrir os stories.
+Takes out the cards between stories that ask you to make one, including the full screen card that asks you to continue the story with photos from your gallery. Applies the next time you open stories.	Tira os cartões entre os stories que pedem para você criar um, inclusive o cartão em tela cheia que pede para você continuar o story com fotos da sua galeria. Vale a partir da próxima vez que você abrir os stories.
 Progress bar at the bottom	Barra de progresso embaixo
 Shows a thin bar along the bottom of a story that fills as it plays, like the one on Reels.	Mostra uma barra fina na parte de baixo de um story que vai enchendo enquanto ele toca, como a do Reels.
 Seek bar on stories	Barra de progresso nos stories
+Plain slide between people	Deslizar simples entre pessoas
+Swiping to the next or previous person's stories slides them across instead of turning them like a cube. Applies from your next swipe.	Ao deslizar para os stories da próxima pessoa ou da anterior, eles passam de lado em vez de girar como um cubo. Vale a partir do próximo deslize.
 Fade the story seek bar	Esmaecer a barra de progresso dos stories
 Story position	Posição do story
 Shows a bar along the bottom of a video story that you drag to move through it. The story waits while you drag. Progress bar at the bottom makes way for it on video stories.	Mostra uma barra na parte de baixo de um story em vídeo que você arrasta para andar por ele. O story espera enquanto você arrasta. “Barra de progresso embaixo” dá lugar a ela nos stories em vídeo.
@@ -2725,6 +2727,8 @@ A small label at the top of Reels shows the minutes you've watched. Time on othe
 %1$d min	%1$d min
 Hide the tab bar on the Reels tab	Ocultar a barra de abas na aba Reels
 The tab bar goes away while the Reels tab is open, and the reel gets the whole screen. The other tabs keep the bar. Restart Facebook to see the change.	A barra de abas some enquanto a aba Reels está aberta, e o reel ocupa a tela inteira. As outras abas mantêm a barra. Reinicie o Facebook para ver a mudança.
+Hide the line along the tab bar	Ocultar a linha da barra de abas
+The thin line Facebook draws along the edge of the tab bar goes away on every tab. Tap a tab to see the change.	A linha fina que o Facebook desenha na borda da barra de abas some em todas as abas. Toque em uma aba para ver a mudança.
 Playback speed in the post menu	Velocidade de reprodução no menu da publicação
 A feed or Watch video's 3-dot menu gets Playback speed, from 0.5x to 3x, live videos too. Off by default, since it hasn't been tried on a real account yet.	O menu de três pontos de um vídeo do feed ou do Watch ganha Velocidade de reprodução, de 0,5x a 3x, inclusive em vídeos ao vivo. Desligado por padrão, porque ainda não foi testado em uma conta real.
 Double tap to skip on feed videos	Toque duplo para pular nos vídeos do feed
@@ -2888,3 +2892,14 @@ Emoji font file cleared. Restart Facebook to apply the emoji change.	Arquivo de 
 Couldn't go back to your phone's emoji. Try again.	Não foi possível voltar para os emojis do seu celular. Tente de novo.
 # context: toast when the app holding the emoji font doesn't answer in time
 The app holding that font file is taking too long, so Hushfacebook stopped waiting. Your emoji didn't change.	O app que guarda esse arquivo de fonte está demorando demais, então o Hushfacebook parou de esperar. Seus emojis não mudaram.
+Never	Nunca
+Back to Clean mode	Voltar ao modo limpo
+When the comments or a menu close	Quando os comentários ou um menu fecharem
+When the comments or a menu close. A reel you took out of Clean mode goes back into it once whatever you opened over it closes.	Quando os comentários ou um menu fecharem. Um reel que você tirou do modo limpo volta para ele assim que o que você abriu por cima fecha.
+%1$s. A reel you took out of Clean mode goes back into it once you haven't touched the screen for that long. An open sheet holds the time.	%1$s. Um reel que você tirou do modo limpo volta para ele quando você fica esse tempo sem tocar na tela. Uma folha aberta segura o tempo.
+Never. A reel you take out of Clean mode stays out until you put it back.	Nunca. Um reel que você tira do modo limpo fica fora até você colocá-lo de volta.
+A reel you take out of Clean mode will stay out until you put it back.	Um reel que você tirar do modo limpo vai ficar fora até você colocá-lo de volta.
+A reel you take out of Clean mode will go back into it when the comments or a menu close.	Um reel que você tirar do modo limpo vai voltar para ele quando os comentários ou um menu fecharem.
+A reel you take out of Clean mode will go back into it after %1$d seconds without a touch.	Um reel que você tirar do modo limpo vai voltar para ele depois de %1$d segundos sem toque.
+Hide New for you on reels	Ocultar “Novo para você” nos reels
+Takes "New for you", and other reasons Facebook gives for showing you a reel, off the line under its author, so the date and the song show right away. A change shows from the next reel.	Tira “Novo para você” e outros motivos que o Facebook dá para mostrar um reel da linha abaixo do nome de quem publicou, para que a data e a música apareçam na hora. A mudança aparece a partir do próximo reel.

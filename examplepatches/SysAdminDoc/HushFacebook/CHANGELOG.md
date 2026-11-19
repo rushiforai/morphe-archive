@@ -13,6 +13,10 @@ Changes in each Hushfacebook version, newest first. Versions 0.1.0 to 0.19.0 are
 * `Ask before downloading` under Downloads puts a Continue or Cancel question in front of a reel's Download button, the Download button under a post and a video's `Download to phone`. It starts off. (#511)
 * `Emoji font file` under Appearance lets you pick your own .ttf or .otf emoji font for `Use the phone's emoji`. Facebook needs a restart to pick it up, and a font with no emoji in it gets refused. (#513)
 * A video opened from a post with several photos or videos now has `Download to phone` in the three-dot menu at the top. (#509)
+* `Back to Clean mode` under Reels and Watch puts a reel back in Clean mode by itself after you bring its buttons back. Pick when: once the comments or a menu you opened close, or after 3, 5 or 10 seconds without touching the screen. It starts on Never. (#519)
+* `Hide the line along the tab bar` under Tabs and navigation takes away the thin line Facebook draws along the edge of the tab bar, on every tab. It starts off, and a change shows on the next tab you tap. (#521)
+* `Plain slide between people` under Stories turns the cube Facebook plays when you swipe from one person's stories to the next into a flat slide. Facebook only uses the cube on some accounts, and others already get a plain slide or a tilt. It's part of `Clean up the story viewer` and starts off. (#521)
+* `Hide New for you on reels` under Reels and Watch takes "New for you", and the other reasons Facebook gives for showing you a reel, off the line under its author. It's part of `Clean up Reels` and starts off. With the label kept and `Show the post date on reels` on, the date now shows first and "New for you" after it, so you don't wait for the line to turn over to see when the reel was posted. (#520)
 
 ### Changed
 
@@ -20,10 +24,11 @@ Changes in each Hushfacebook version, newest first. Versions 0.1.0 to 0.19.0 are
 * **Tooling:** The GitHub release notes leave out the Tooling bullets and the What was checked paragraph. How to update opens with the Facebook build the release targets, which is the sentence the in-app update check reads.
 * The README is about half as long. The patch list moved to [docs/patches.md](https://github.com/SysAdminDoc/Hushfacebook/blob/main/docs/patches.md) and the help topics to [docs/help.md](https://github.com/SysAdminDoc/Hushfacebook/blob/main/docs/help.md), and the README links to each topic.
 * The changelog starts at 0.20.0 now, so Morphe Manager has a lot less to download when it shows what changed. Versions 0.1.0 to 0.19.0 are in the [changelog archive](https://github.com/SysAdminDoc/Hushfacebook/blob/main/docs/changelog-archive.md), word for word.
+* `Hide create story cards` under Stories now also takes out the full screen "continue the story" card, the one asking you to share a recent moment from your gallery with a Create story button. (#521)
 
 ### Fixed
 
-* With `Keep playing in the background` on, a video playing in the picture-in-picture window keeps its sound when you lock the phone. (#495)
+* With `Keep playing in the background` on, a video playing in the picture-in-picture window keeps its sound when you lock the phone and plays on in the window when you unlock it. (#495)
 * With `Open comments at` on `Full height` or `Half height`, Comment on the Reels tab now slides the regular sheet straight up over the reel. Before, the reel shrank into the top of the screen first, the way Facebook's split view opens, and at full height the sheet covered it a moment later. (#501)
 * With the tab bar at the bottom and `See-through bars` or `Rounded tab bar` on, a reel's buttons and caption sit above the tab bar again instead of behind it. Each reel stops at the top of the bar now, and the strip under the bar stays black, so the next reel still doesn't peek out there. (#503)
 * `Fold long text` now holds to the number of lines you picked on posts it used to miss, including the first ones in the feed. Comments fold by how they actually wrap on your screen, so 8 lines means about 8 lines, and a video's caption follows the count you picked for posts. (#506)
@@ -32,6 +37,11 @@ Changes in each Hushfacebook version, newest first. Versions 0.1.0 to 0.19.0 are
 * The progress line on a reel opened from the feed sits above the gesture bar instead of under it. (#469)
 * `Hide the tab bar on the Reels tab` no longer leaves a grey line under the Reels title when your tabs are at the top. The line comes back with the bar on the other tabs. (#508)
 * `Seek bar on feed videos` stays out of Facebook's own video viewer, so a video you open from the feed only shows Facebook's bar. (#505)
+* A long press on a reel's Download, Cast or Clean mode button no longer opens an empty gray box. (#518)
+* With `Hide the tab bar on the Reels tab` on, a reel's time, caption and seek bar sit above the gesture bar again, so the seek bar can be tapped and held. (#516)
+* With `Tap to play` on, video stories play by themselves again, the way Facebook plays them. Before, the story after the first one, or one you swiped to, could sit frozen at the start, since a tap on a story moves on instead of playing it. Stories that wait for you are what `Video stories wait for a tap` is for. (#521)
+* A Threads post in your feed opens that post in Threads instead of the Threads home feed, also when Facebook sends the post in Threads' list form. The 0.23.0 fix only read a single post number, so those cards still landed on the feed. (#385)
+* With `View stories anonymously` on, a story you watch counts as watched on your phone again, so its ring turns gray and `Hide seen stories` can take it out. Hushfacebook read the wrong flag on the viewer and took every story for a quick peek, so none of them were kept as watched. (#165, #514)
 
 ## 0.23.0 (2026-11-17)
 

@@ -115,7 +115,7 @@ public enum PatchFamily {
             Settings.STORY_PLAY_BUTTON, Settings.STORY_DOUBLE_TAP),
     STORY_VIEWER_CLEANUP(FamilyNames.STORY_VIEWER_CLEANUP, "storyViewerCleanup", null,
             Settings.HIDE_STORY_CREDITS, Settings.HIDE_STORY_REPLY_SUGGESTIONS, Settings.HIDE_STORY_SUBSCRIBE,
-            Settings.HIDE_STORY_CREATE_CARDS, Settings.STORY_PROGRESS_BAR),
+            Settings.HIDE_STORY_CREATE_CARDS, Settings.STORY_PROGRESS_BAR, Settings.STORY_FLAT_SLIDE),
     STORY_RINGS(FamilyNames.STORY_RINGS, "storyRings", null,
             Settings.HIDE_FEED_STORY_RINGS, Settings.HIDE_COMMENT_STORY_RINGS, Settings.HIDE_PROFILE_STORY_RINGS),
     PINCH_TO_ZOOM(FamilyNames.PINCH_TO_ZOOM, "pinchToZoom", null,
@@ -153,7 +153,7 @@ public enum PatchFamily {
             Settings.HIDE_REEL_SAVE_BUTTON, Settings.HIDE_REEL_WHATSAPP_BUTTON, Settings.HIDE_REEL_LIKE_BUTTON,
             Settings.HIDE_REEL_COMMENT_BUTTON, Settings.HIDE_REEL_REPOST_BUTTON, Settings.HIDE_REEL_SHARE_BUTTON,
             Settings.SHOW_REEL_COMMENT_BUTTON,
-            Settings.SHOW_REEL_POST_DATE,
+            Settings.SHOW_REEL_POST_DATE, Settings.HIDE_REEL_NEW_FOR_YOU,
             Settings.HIDE_REEL_SOUND_BUTTON, Settings.REEL_SPEAKER_ABOVE_MENU, Settings.HIDE_REEL_AUDIO_LINE,
             Settings.HIDE_SLOW_CONNECTION_MESSAGE, Settings.HIDE_UP_NEXT, Settings.HIDE_REEL_FULLSCREEN_PILL, Settings.HIDE_FEED_VIDEO_BUTTONS,
             Settings.FEED_VIDEOS_ALONE, Settings.SHARED_REELS_ALONE, Settings.HIDE_SHARED_REEL_FRIEND_SHEET,
@@ -293,7 +293,7 @@ public enum PatchFamily {
             Settings.BOTTOM_TAB_BAR, Settings.TOP_TAB_BAR, Settings.TAB_BAR_SCROLL_AWAY, Settings.KEEP_TAB_BAR,
             Settings.KEEP_TOP_BAR,
             Settings.PHONE_LAYOUT_ON_BIG_SCREENS, Settings.TRANSLUCENT_BARS, Settings.ROUNDED_TAB_BAR, Settings.HIDE_STATUS_BAR,
-            Settings.LIGHT_REELS_TAB_BARS, Settings.HIDE_REELS_TAB_BAR,
+            Settings.LIGHT_REELS_TAB_BARS, Settings.HIDE_REELS_TAB_BAR, Settings.HIDE_TAB_BAR_LINE,
             Settings.HIDE_MESSENGER_BUTTON, Settings.HIDE_MESSENGER_COUNT, Settings.HIDE_FACEBOOK_LOGO,
             Settings.HIDE_CREATE_BUTTON, Settings.HIDE_SEARCH_BUTTON, Settings.SEARCH_WITH_PICTURE),
     FORCE_DARK_MODE(FamilyNames.FORCE_DARK_MODE, "forceDarkMode", null,
@@ -659,6 +659,11 @@ public enum PatchFamily {
             if (setting == Settings.SHOW_REEL_POST_DATE) {
                 line.append(", ").append(Settings.REEL_POST_DATE_STYLE.key).append('=')
                         .append(Settings.REEL_POST_DATE_STYLE.savedValue());
+            }
+            // When a reel goes back into Clean mode follows Clean mode's two switches (#519).
+            if (setting == Settings.REEL_CLEAN_BUTTON) {
+                line.append(", ").append(Settings.REEL_CLEAN_RETURN.key).append('=')
+                        .append(Settings.REEL_CLEAN_RETURN.savedValue());
             }
             // What a hold gives follows its two switches, once after the second (#454).
             if (setting == Settings.HOLD_VIDEO_TO_REACT) {

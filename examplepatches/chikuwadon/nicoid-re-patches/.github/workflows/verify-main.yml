@@ -62,6 +62,8 @@ jobs:
           printf '\nsystemProp.org.gradle.internal.http.connectionTimeout=180000\nsystemProp.org.gradle.internal.http.socketTimeout=180000\n' >> gradle.properties
       - name: Audit release candidate source and lifecycle guards
         run: python3 porting/revisions/v1.11.1/release-readiness-audit.py
+      - name: Test immutable release MPP publication safeguards
+        run: python3 porting/tests/test_release_mpp_integrity.py
       - name: Build and run Gradle verification
         env:
           GITHUB_ACTOR: ${{ github.actor }}
@@ -96,6 +98,11 @@ jobs:
           python3 porting/tests/retained-notification-regression.py
           python3 porting/tests/tap-regions-regression.py
           python3 porting/tests/tap-region-ui-regression.py
+      - name: Validate staged v2.1.1 runtime DEX
+        run: |
+          if grep -Fq 'version = 2.1.1' gradle.properties; then
+            python3 .github/scripts/verify-release-mpp.py record 2.1.1
+          fi
       - name: Verify MPP was produced
         shell: bash
         run: |

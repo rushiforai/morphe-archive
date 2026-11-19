@@ -447,7 +447,7 @@ Playback	การเล่น
 # context: switch title; on, videos and music wait for a tap before they play
 Tap to play	แตะเพื่อเล่น
 # context: summary of that switch; Autoplay and Off are the name and value of Facebook's own setting, as Facebook shows them in this language
-Videos, reels, stories and music wait for your tap instead of playing by themselves. Facebook's own Autoplay setting shows Off while this is on.	วิดีโอ คลิป Reels สตอรี่ และเพลงจะรอให้คุณแตะก่อนแทนที่จะเล่นโดยอัตโนมัติ การตั้งค่า "เล่นอัตโนมัติ" ของ Facebook เองจะแสดงเป็น "ปิด" ในขณะที่เปิดใช้ฟีเจอร์นี้
+Videos, reels and music wait for your tap instead of playing by themselves. Facebook's own Autoplay setting shows Off while this is on.	วิดีโอ คลิป Reels และเพลงจะรอให้คุณแตะก่อนแทนที่จะเล่นโดยอัตโนมัติ การตั้งค่า "เล่นอัตโนมัติ" ของ Facebook เองจะแสดงเป็น "ปิด" ในขณะที่เปิดใช้ฟีเจอร์นี้
 # context: switch title under Opening Facebook; Marketplace is Facebook's tab and keeps its name
 Marketplace only	เฉพาะ Marketplace
 # context: switch title under Opening Facebook, next to Marketplace only; Events is Facebook's tab and keeps its name
@@ -1660,7 +1660,7 @@ Facebook hasn't downloaded this screen to this phone, so a tap opens the Whiteha
 # context: toast when the Facebook version has no such screen
 This Facebook build has no Whitehat settings screen.	เวอร์ชันบิลด์ของ Facebook นี้ไม่มีหน้าจอการตั้งค่า Whitehat
 Only the first reel waits	เฉพาะ Reel แรกเท่านั้นที่จะหยุดรอ
-With the switch above on, after you play one reel, the reels you swipe to play on their own. The feed, Watch and stories always wait.	เมื่อเปิดสวิตช์ด้านบน หลังจากที่คุณเล่น Reel หนึ่งคลิป คลิป Reels ที่คุณปัดไปจะเล่นเองโดยอัตโนมัติ ทั้งนี้ฟีด Watch และสตอรี่จะหยุดรอเสมอ
+With the switch above on, after you play one reel, the reels you swipe to play on their own. The feed and Watch always wait.	เมื่อเปิดสวิตช์ด้านบน หลังจากที่คุณเล่น Reel หนึ่งคลิป คลิป Reels ที่คุณปัดไปจะเล่นเองโดยอัตโนมัติ ทั้งนี้ฟีดและ Watch จะหยุดรอเสมอ
 Slower speeds	ความเร็วที่ช้าลง
 Adds 0.1x and 0.25x to the speed menu of reels and of feed and Watch videos, for slowing down a fast moment.	เพิ่ม 0.1x และ 0.25x ในเมนูความเร็วของ Reels รวมถึงวิดีโอในฟีดและ Watch เพื่อให้เล่นช่วงเวลาที่รวดเร็วได้ช้าลง
 Faster speeds	ความเร็วที่เร็วขึ้น
@@ -2755,10 +2755,12 @@ Takes the row of suggested replies off the bottom of a story. The reply box stay
 Hide the Subscribe button	ซ่อนปุ่มสมัครรับข้อมูล
 Takes the Subscribe button off the top of a story. Applies from the next story you open.	นำปุ่มสมัครรับข้อมูลออกจากด้านบนของสตอรี่ จะมีผลตั้งแต่สตอรี่ถัดไปที่คุณเปิด
 Hide create story cards	ซ่อนการ์ดชวนสร้างสตอรี่
-Takes out the card between stories that asks you to make one, including the ones built from photos in your gallery. Applies the next time you open stories.	นำการ์ดระหว่างสตอรี่ที่ชวนให้คุณสร้างสตอรี่ออก รวมถึงการ์ดที่สร้างจากรูปภาพในแกลเลอรีของคุณ มีผลในครั้งถัดไปที่คุณเปิดสตอรี่
+Takes out the cards between stories that ask you to make one, including the full screen card that asks you to continue the story with photos from your gallery. Applies the next time you open stories.	นำการ์ดระหว่างสตอรี่ที่ชวนให้คุณสร้างสตอรี่ออก รวมถึงการ์ดแบบเต็มหน้าจอที่ชวนให้คุณเล่าสตอรี่ต่อด้วยรูปภาพจากแกลเลอรีของคุณ มีผลในครั้งถัดไปที่คุณเปิดสตอรี่
 Progress bar at the bottom	แถบแสดงความคืบหน้าที่ด้านล่าง
 Shows a thin bar along the bottom of a story that fills as it plays, like the one on Reels.	แสดงแถบบางๆ ตามขอบด้านล่างของสตอรี่ที่จะค่อยๆ เต็มขึ้นขณะเล่น เช่นเดียวกับใน Reels
 Seek bar on stories	แถบเลื่อนในสตอรี่
+Plain slide between people	เลื่อนแบบธรรมดาระหว่างแต่ละคน
+Swiping to the next or previous person's stories slides them across instead of turning them like a cube. Applies from your next swipe.	เมื่อปัดไปยังสตอรี่ของคนถัดไปหรือคนก่อนหน้า สตอรี่จะเลื่อนผ่านไปด้านข้างแทนการหมุนแบบลูกบาศก์ จะมีผลตั้งแต่การปัดครั้งถัดไป
 Fade the story seek bar	จางแถบเลื่อนในสตอรี่
 Story position	ตำแหน่งในสตอรี่
 Shows a bar along the bottom of a video story that you drag to move through it. The story waits while you drag. Progress bar at the bottom makes way for it on video stories.	แสดงแถบที่ด้านล่างของสตอรี่วิดีโอที่คุณสามารถลากเพื่อเลื่อนดูได้ โดยสตอรี่จะหยุดรอขณะที่คุณลาก ทั้งนี้ "แถบแสดงความคืบหน้าที่ด้านล่าง" จะเปิดทางให้แถบนี้ในสตอรี่วิดีโอ
@@ -2839,6 +2841,8 @@ A small label at the top of Reels shows the minutes you've watched. Time on othe
 %1$d min	%1$d นาที
 Hide the tab bar on the Reels tab	ซ่อนแถบแท็บในแท็บ Reels
 The tab bar goes away while the Reels tab is open, and the reel gets the whole screen. The other tabs keep the bar. Restart Facebook to see the change.	แถบแท็บจะหายไปขณะที่เปิดแท็บ Reels อยู่ และ Reel จะแสดงเต็มหน้าจอ แท็บอื่นๆ จะยังคงมีแถบแท็บ รีสตาร์ท Facebook เพื่อดูการเปลี่ยนแปลง
+Hide the line along the tab bar	ซ่อนเส้นตามแถบแท็บ
+The thin line Facebook draws along the edge of the tab bar goes away on every tab. Tap a tab to see the change.	เส้นบางที่ Facebook วาดไว้ตามขอบแถบแท็บจะหายไปในทุกแท็บ แตะแท็บใดก็ได้เพื่อดูการเปลี่ยนแปลง
 Playback speed in the post menu	ความเร็วในการเล่นในเมนูโพสต์
 A feed or Watch video's 3-dot menu gets Playback speed, from 0.5x to 3x, live videos too. Off by default, since it hasn't been tried on a real account yet.	เมนูจุดสามจุดของวิดีโอในฟีดหรือ Watch จะมีตัวเลือก "ความเร็วในการเล่น" ตั้งแต่ 0.5x ถึง 3x รวมถึงวิดีโอถ่ายทอดสดด้วย ปิดใช้งานตามค่าเริ่มต้นเนื่องจากยังไม่ได้ทดสอบกับบัญชีจริง
 Double tap to skip on feed videos	แตะสองครั้งเพื่อข้ามในวิดีโอบนฟีด
@@ -3002,3 +3006,14 @@ Emoji font file cleared. Restart Facebook to apply the emoji change.	ล้า�
 Couldn't go back to your phone's emoji. Try again.	ไม่สามารถเปลี่ยนกลับไปใช้อิโมจิของโทรศัพท์ได้ โปรดลองอีกครั้ง
 # context: toast when the app holding the emoji font doesn't answer in time
 The app holding that font file is taking too long, so Hushfacebook stopped waiting. Your emoji didn't change.	แอปที่มีไฟล์ฟอนต์ใช้เวลานานเกินไป Hushfacebook จึงหยุดรอ อิโมจิของคุณจึงไม่เปลี่ยนแปลง
+Never	ไม่เลย
+Back to Clean mode	กลับสู่โหมดคลีน
+When the comments or a menu close	เมื่อปิดความคิดเห็นหรือเมนู
+When the comments or a menu close. A reel you took out of Clean mode goes back into it once whatever you opened over it closes.	เมื่อปิดความคิดเห็นหรือเมนู Reel ที่คุณออกจากโหมดคลีนจะกลับเข้าโหมดนี้เมื่อสิ่งที่คุณเปิดทับไว้ปิดลง
+%1$s. A reel you took out of Clean mode goes back into it once you haven't touched the screen for that long. An open sheet holds the time.	%1$s Reel ที่คุณออกจากโหมดคลีนจะกลับเข้าโหมดนี้เมื่อคุณไม่ได้แตะหน้าจอนานเท่านั้น ชีตที่เปิดอยู่จะหยุดการนับเวลา
+Never. A reel you take out of Clean mode stays out until you put it back.	ไม่เลย Reel ที่คุณออกจากโหมดคลีนจะอยู่นอกโหมดจนกว่าคุณจะเปิดกลับ
+A reel you take out of Clean mode will stay out until you put it back.	Reel ที่คุณออกจากโหมดคลีนจะอยู่นอกโหมดจนกว่าคุณจะเปิดกลับ
+A reel you take out of Clean mode will go back into it when the comments or a menu close.	Reel ที่คุณออกจากโหมดคลีนจะกลับเข้าโหมดนี้เมื่อปิดความคิดเห็นหรือเมนู
+A reel you take out of Clean mode will go back into it after %1$d seconds without a touch.	Reel ที่คุณออกจากโหมดคลีนจะกลับเข้าโหมดนี้หลังจากไม่ได้แตะ %1$d วินาที
+Hide New for you on reels	ซ่อน "ใหม่สำหรับคุณ" ใน Reels
+Takes "New for you", and other reasons Facebook gives for showing you a reel, off the line under its author, so the date and the song show right away. A change shows from the next reel.	นำ "ใหม่สำหรับคุณ" และเหตุผลอื่นที่ Facebook ใช้แสดง Reel ให้คุณออกจากบรรทัดใต้ชื่อผู้โพสต์ เพื่อให้เห็นวันที่และเพลงได้ทันที การเปลี่ยนแปลงจะมีผลตั้งแต่ Reel ถัดไป
