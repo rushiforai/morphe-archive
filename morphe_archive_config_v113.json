@@ -5521,6 +5521,14 @@
                 "sortOrder": 776,
                 "createdAt": 1795039033872,
                 "updatedAt": 1795039033872
+            },
+            {
+                "name": "x-patch",
+                "source": "https://raw.githubusercontent.com/rikunode/x-patch/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 777,
+                "createdAt": 1795068651011,
+                "updatedAt": 1795068651011
             }
         ]
     }
