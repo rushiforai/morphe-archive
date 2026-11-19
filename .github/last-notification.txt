@@ -1,6 +1,2 @@
-# Repos reported by the last notification (5)
-Mlkem/Morphe
-MojiRS/morphe-rif-patches
-edbfi/apk-patches
-lamphung-phuc/nmax-patches
-v4inwald/wispr-flow-patches
+# Repos reported by the last notification (1)
+rikunode/x-patch
