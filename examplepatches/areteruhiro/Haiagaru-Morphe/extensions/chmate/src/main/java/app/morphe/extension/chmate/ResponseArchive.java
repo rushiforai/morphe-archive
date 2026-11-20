@@ -139,6 +139,7 @@ public final class ResponseArchive {
     public static boolean handle(Object object) {
         if(ResponseNotes.handle(object))return true;
         if(ResponseMultiSelection.handle(object))return true;
+        if(WacchoiLongPressMenu.handleCopyItem(object))return true;
         if (SharedNgResponseExclusion.handle(object)) return true;
         if(ResponseMenuSettings.handleTools(object))return true;
         if(WacchoiLongPressMenu.handlePrefixNg(object))return true;

@@ -1,8 +1,8 @@
 # Handoff
 
-> Updated: 2026-11-17, published build134 icon update
+> Updated: 2026-11-19, build135 tab repairs
 > Project: ytafterglow-morphe-patches (active checkout `/home/corey/projects/ytafterglow-morphe-patches`; original checkout `/home/corey/projects/xuninc/YTAfterglow-Android`, GitHub `afterglow-labs/ytafterglow-morphe-patches`, public as verified 2026-11-15)
-> Session summary: Build134 adds the project owner's supplied Afterglow app icon as a default-selected patch. It contains 128 public patches and 105 defaults: 42 Afterglow/compatibility patches and 86 original Morphe features. Afterglow owns Downloads and Vault, Theme Studio and its other custom destinations; original Morphe Return YouTube Dislike, DeArrow, Copy text and post-image downloading remain integrated. Original settings are available through Afterglow settings → Additional features. The functional Android parity ledger is 195 done / 4 n/a / 0 todo. This is implementation coverage, not a claim that every physical device, account, server variant or optional combination has been tested. See the build134 checkpoint for publication status; older build sections below retain their historical evidence.
+> Session summary: Build135 fixes the tab-editor drag crash, missing native labels, and uneven icon alignment with labels shown or hidden. It retains 128 public patches and 105 defaults: 42 Afterglow/compatibility patches and 86 original Morphe features. Afterglow owns Downloads and Vault, Theme Studio and its other custom destinations; original Morphe Return YouTube Dislike, DeArrow, Copy text and post-image downloading remain integrated. Original settings are available through Afterglow settings → Additional features. The functional Android parity ledger remains 195 done / 4 n/a / 0 todo. See the build135 checkpoint for current delivery and runtime evidence. The separate reported JS-player warning is not yet reproduced.
 
 ## Goal
 
@@ -13,8 +13,8 @@ and complete Theme Studio and the remaining Afterglow destinations. Morphe
 remains the implementation for shared features such as Return YouTube Dislike;
 the downloader is the explicit exception to the earlier reuse instruction.
 Published build133 includes that work and passes the checks described below.
-Build134 adds the supplied Afterglow app icon. The public source feed points to
-the verified build134 release bundle.
+Build134 added the supplied Afterglow app icon. The current priority is the
+Samsung tab-drag crash, missing/misaligned tab labels, and JS-player warning.
 
 Deliver a usable Afterglow bundle for Android YouTube **21.43.523**. Reuse Morphe's
 existing feature implementations and settings wherever Morphe already provides a
@@ -29,7 +29,49 @@ bundle. The build110 checkpoint below predates this broader integration.
 - An Afterglow settings page lives inside YouTube's settings and shows only rows for tweaks that are installed and implemented.
 - GmsCore and stream compatibility are included as named patches in this bundle, adapted from pinned Morphe sources. Use these selections with Afterglow; avoid duplicate compatibility patches from another source. The companion GmsCore app remains a separate installation.
 
-## Current checkpoint: published build134 icon update
+## Current checkpoint: build135 tab repairs
+
+Source commit `c4df981c84ac5875bde28788d14cdab5040c7ca7` fixes the user's
+Samsung crash in `TabEditorScreen.updateTarget`. Removing the touched row caused
+Android to send a synchronous cancellation, clearing `dragRow` before `addView`.
+The row now remains attached and a separate placeholder moves. Cancellation does
+not save a reorder. Native icon-only tab layouts are mapped to their labelled
+counterparts before YouTube's padding classification, fixing missing labels and
+the extra 16dp top padding. Label hiding is reversible on existing views.
+
+All 1,810 production/provenance inputs match frozen `source-135.json`. Strict
+patching passes default105, all128 and Tab bar/GmsCore/stream3. Real Android
+fixtures reproduce the old defects and pass 91 drag assertions plus 186 native
+layout assertions with the fixes. Actual APK inspection passes 20 layout and
+51 watch-action DEX checks. Settings540 and NativeTabs1898 pass. Full emulator
+testing verifies persisted drag reordering, eight aligned tabs in both rows with
+labels ON/OFF/ON, five retained Vault items, playback6→13 seconds and no crash.
+Original test preferences and tab order are restored.
+
+Bundle SHA-256:
+`d305d0d934f63187444ecee6546373dfc49c93faf1df4468546e7e3009c9293c`.
+[Build135 release record](docs/release-build135.md) tracks publication and delivery.
+The public feed and anonymous downloads are verified. Manager2.6 refreshes the
+existing public source, patches all105 defaults and signs with the same certificate
+as Samsung's build134. Its actual APK passes ZIP/signature/icon checks, layout20
+and watch51 DEX checks, and inspection of the fixed drag handler. No local source
+was added. Build135 APK and bundle were sent via Tailscale and hashes verified on
+Samsung SM-S938U1. ADB upgraded the app on Android17/SDK37; its installed APK hash
+matches `1acb31e9aa41157434602cc0e43d21f04c8ae1b9f74a26ee6596e349ab27a843`.
+The app launches and plays with no new crash. Phone tab UI checks remain incomplete:
+it returned to fullscreen playback during settings navigation. The tab gesture and
+layout runtime proof above is from the emulator. No phone preferences were changed
+and no app data was cleared. Receipt: `samsung-delivery-135.json` under
+`~/.cache/ytafterglow-android/afterglow-vault-20261116/`; APK:
+`C:\Users\Corey\ytag-scratch\android\deliveries\Afterglow-build135-YouTube-21.43.523.apk`.
+
+JS triage found no actual warning in Samsung app logs or a four-minute live
+capture. The pinned Morphe2.0.0 player-JS retrieval and both startup solver
+challenges pass from the host; Samsung WebView is ready. This is not Android
+sandbox proof. Exact warning text is still needed. Do not suppress upstream
+error toasts or replace the working stream code without a captured failure.
+
+## Historical checkpoint: published build134 icon update
 
 The user supplied the icon artwork on 2026-11-17. **Afterglow app icon** is
 default-selected and updates the application plus all four launcher aliases,
@@ -1292,7 +1334,7 @@ extension. The fingerprint now excludes the extension namespace. Cast visibility
 
 ## Release state and further coverage
 
-Build133 is published. Preserve its immutable source tag and unique delivery;
+Use the current release checkpoint above. Preserve immutable source tags and unique deliveries;
 new production changes need a new frozen build and validation record. The
 single source includes its own GmsCore and Spoof video streams selections; the
 companion GmsCore app remains a separate installation.

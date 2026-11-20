@@ -59,5 +59,5 @@ if __name__ == '__main__':
                            r'\1 return System.getProperty("lurk.test.proxy");', source)
     assert count == 1, 'playlist proxy patch-time template stub changed'
     run('PlaylistProxyProbe', [], Path(__file__).with_name('PlaylistProxyProbe.java').read_text(),
-        sys.argv[1:] or ['channel', 'invalid', 'bare', 'url', 'disabled'],
+        sys.argv[1:] or ['channel', 'invalid', 'bare', 'url', 'disabled', 'typed'],
         extra=PLATFORM | {PACKAGE + 'twitch/TwitchAds.java': source})

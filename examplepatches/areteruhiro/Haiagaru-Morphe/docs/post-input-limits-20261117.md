@@ -17,3 +17,8 @@ Haiagaru設定の投稿関連へ「投稿上限・残り文字数・行数と超
 実機3版で各26項目の上限計算・装飾・ON/OFF・長押し再取得検証に成功。実nativeの新規スレ／返信カウンター全体表示を含む既存gateway/native本文・画像・模擬投稿は191=657、226=663、242=660項目成功。既存filterフックは各1箇所を検査、新規製品クラッシュなし。外部サイトへの実投稿は0。
 
 最初の表示検証失敗はテストがOFF設定を残したため。Instrumentation.finishより前にfinallyの後片付けを済ませるよう修正し、サイト試験も設定を保存・ON・復元して再実行成功。製品レイアウトの不具合ではなかった。
+
+
+## 2026-11-17 Haiagaru 1.45.0 正式公開
+
+投稿上限・残量表示とON/OFF、未公開だったリンクカードの位置ずれ修正を正式公開。Release 44018811823（Release／Attest）とBuild Haiagaru 44018811942成功。生成030b7615をmaster／devへ反映。公開9アセットのサイズ・GitHub SHA-256・ZIP整合性、MPPの投稿上限設定と位置保持処理、画像検出／VPN統合資材を検証。master／devの両バンドルJSONは正式1.45.0と公開MPPを指す。MPP SHA-256 `3b1367dfac61b9b92ffde8e89570df3a5617f588629402cc963849c909d0a242`。証跡build/post-input-limits-20261117/verified-1.45.0.json。公開先 https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.45.0 。

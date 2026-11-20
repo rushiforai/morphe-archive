@@ -170,6 +170,9 @@ public class SettingsBackupTest {
         out.put("hushfacebook_text_box_darkness",
                 "it is picked by eye for this phone's screen, like See-through opacity, and the same number reads "
                         + "darker on an AMOLED one.");
+        out.put("hushfacebook_burn_in_level",
+                "it is picked by eye for this phone's screen, like Box darkness, and how much a dimmed button can "
+                        + "show before it burns in differs between screens.");
         out.put("hushfacebook_tab_bar_width",
                 "it is a size picked for this phone's screen, which reads differently on another phone.");
         out.put("hushfacebook_tab_bar_height",
@@ -243,6 +246,7 @@ public class SettingsBackupTest {
         Settings.PLAYBACK_QUALITY.resetToDefault();
         Settings.REELS_PLAYBACK_QUALITY.resetToDefault();
         Settings.STORIES_PLAYBACK_QUALITY.resetToDefault();
+        Settings.VIDEO_BUFFER.resetToDefault();
         Settings.REELS_ORDER.resetToDefault();
         Settings.BURN_IN_GUARD.resetToDefault();
         Settings.BURN_IN_WAIT.resetToDefault();
@@ -333,7 +337,7 @@ public class SettingsBackupTest {
                 Settings.SAVE_FOLDER, Settings.VIDEO_SUBFOLDER, Settings.PHOTO_SUBFOLDER, Settings.DOWNLOAD_QUALITY,
                 Settings.FILENAME_TEMPLATE, Settings.PHOTO_FILENAME_TEMPLATE, Settings.DOWNLOAD_ACTION, Settings.SEND_TO_APP,
                 Settings.START_TAB, Settings.FEEDS_SUBTAB, Settings.COMMENT_ORDER, Settings.PLAYBACK_QUALITY,
-                Settings.REELS_PLAYBACK_QUALITY, Settings.STORIES_PLAYBACK_QUALITY, Settings.QUIET_HOURS_FROM,
+                Settings.REELS_PLAYBACK_QUALITY, Settings.STORIES_PLAYBACK_QUALITY, Settings.VIDEO_BUFFER, Settings.QUIET_HOURS_FROM,
                 Settings.QUIET_HOURS_UNTIL, Settings.APP_LOCK_AFTER, Settings.OPENING_PAUSE_LENGTH, Settings.BREAK_AFTER,
                 Settings.BREAK_LENGTH, Settings.TEXT_SIZE, Settings.REFRESH_RATE, Settings.NEW_ROW_MARK, Settings.ACCENT_COLOR, Settings.ACCENT_CUSTOM, Settings.LOGO_EMOJI, Settings.BADGE_COLOR, Settings.LOGO_COLOR, Settings.TAB_COLOR), SettingsBackup.VALUES);
         assertEquals(Settings.SAVE_TO, SettingsBackup.TO);
@@ -359,6 +363,7 @@ public class SettingsBackupTest {
         assertEquals(Settings.PLAYBACK_QUALITY, SettingsBackup.PLAYBACK);
         assertEquals(Settings.REELS_PLAYBACK_QUALITY, SettingsBackup.REELS_QUALITY);
         assertEquals(Settings.STORIES_PLAYBACK_QUALITY, SettingsBackup.STORIES_QUALITY);
+        assertEquals(Settings.VIDEO_BUFFER, SettingsBackup.VIDEO_BUFFER);
         assertEquals(Settings.REELS_ORDER, SettingsBackup.REELS_ORDER);
         assertEquals(Settings.BURN_IN_GUARD, SettingsBackup.BURN_IN);
         assertEquals(Settings.BURN_IN_WAIT, SettingsBackup.BURN_IN_WAIT);

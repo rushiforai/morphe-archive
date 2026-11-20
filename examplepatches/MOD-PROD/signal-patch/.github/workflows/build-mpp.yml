@@ -1,0 +1,110 @@
+name: Build Signals patches MPP
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'patches/**'
+      - 'extensions/**'
+      - 'gradle/**'
+      - 'settings.gradle.kts'
+      - 'build.gradle.kts'
+      - '.github/workflows/build-mpp.yml'
+
+permissions:
+  contents: write
+  packages: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.8.1'
+
+      - name: Configure GitHub Packages credentials
+        env:
+          GPR_KEY: ${{ secrets.GPR_KEY }}
+        run: |
+          if [ -z "$GPR_KEY" ]; then
+            echo "ERROR: secret GPR_KEY is empty or missing"
+            echo "Create a classic PAT with read:packages and add it as repo secret GPR_KEY"
+            exit 1
+          fi
+          mkdir -p ~/.gradle
+          {
+            echo "gpr.user=${{ github.actor }}"
+            echo "gpr.key=$GPR_KEY"
+          } >> ~/.gradle/gradle.properties
+          echo "Credentials written for user=${{ github.actor }} (token length=${#GPR_KEY})"
+
+      - name: Build MPP
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GPR_KEY }}
+        run: gradle --no-daemon :patches:build :patches:generatePatchesList
+
+      - name: Locate MPP
+        id: mpp
+        run: |
+          mapfile -t bundles < <(find patches/build/libs -type f -name '*.mpp' ! -name '*-sources.mpp' ! -name '*-javadoc.mpp' | sort)
+          if [ "${#bundles[@]}" -ne 1 ]; then
+            printf 'Expected exactly one compiled MPP; found: %s\n' "${bundles[*]}"
+            exit 1
+          fi
+          mkdir -p dist
+          MPP=dist/patches-1.0.0.mpp
+          cp "${bundles[0]}" "$MPP"
+          unzip -p "$MPP" META-INF/MANIFEST.MF
+          echo "path=$MPP" >> "$GITHUB_OUTPUT"
+          echo "Found: $MPP"
+          test -n "$MPP"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: signals-auto-trading-mpp
+          path: ${{ steps.mpp.outputs.path }}
+          if-no-files-found: error
+
+      - name: Remove invalid release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view continuous >/dev/null 2>&1; then
+            for asset in patches-sources.mpp patches-1.0.0-javadoc.mpp; do
+              if gh release view continuous --json assets --jq '.assets[].name' | grep -Fxq "$asset"; then
+                gh release delete-asset continuous "$asset" --yes
+              fi
+            done
+          fi
+
+      - name: Create / update continuous release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: continuous
+          name: continuous
+          body: |
+            Automatic build of Signals Auto Trading patches.
+
+            Add this source in Morphe Manager:
+            https://morphe.software/add-source?github=MOD-PROD/signal-patch
+          files: ${{ steps.mpp.outputs.path }}
+          make_latest: true
+          fail_on_unmatched_files: true
+
+      - name: Update bundle metadata
+        run: |
+          python -c 'import json,datetime; p="patches-bundle.json"; d=json.load(open(p)); d.update(version="1.0.0", download_url="https://github.com/MOD-PROD/signal-patch/releases/download/continuous/patches-1.0.0.mpp", created_at=datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S")); open(p,"w").write(json.dumps(d,indent=2)+"\n")'
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add patches-bundle.json
+          git diff --cached --quiet || (git commit -m "chore: update compiled bundle metadata" && git push origin HEAD:main)

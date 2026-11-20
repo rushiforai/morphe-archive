@@ -4,15 +4,14 @@
 
 This document details the binary bytecode and native asset patches available for **Blackjack** (`com.tripledot.blackjack`).
 
-| Patch Name | Type | Default | Description |
-|---|---|---|---|
-| [Add Custom Chip Store](#patch-add-custom-chip-store) | `compositeFeaturePatch` | `true` | Replaces the defunct in-game chip store with a native Android dialog allowing players to enter any chip amount, backed by an internal ARM64 native hook in `libil2cpp.so`. |
-| [Skip to Next Level](#patch-skip-to-next-level) | `bytecodePatch` | `true` | Allows players to skip to the next level by tapping the level progress indicator in the main menu. |
-| [Remove Ads](#patch-remove-ads) | `rawResourcePatch` | `true` | Removes banner, interstitial, and rewarded advertising and removes ad-based chip offers. |
-| [Remove Tracking and Analytics](#patch-remove-tracking-and-analytics) | `rawResourcePatch` | `true` | Neutralizes active advertising telemetry, analytics, attribution, and crash reporting. |
-| [Remove Internet Permissions](#patch-remove-internet-permissions) | `resourcePatch` | `true` | Removes Internet permissions from AndroidManifest.xml to prevent network access. |
-| [Remove Notifications](#patch-remove-notifications) | `resourcePatch` | `true` | Removes notification permissions from AndroidManifest.xml to eliminate push notifications entirely. |
-
+| Patch Name                                                            | Type                    | Default | Description                                                                                                                                                                |
+| --------------------------------------------------------------------- | ----------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Add Custom Chip Store](#patch-add-custom-chip-store)                 | `compositeFeaturePatch` | `true`  | Replaces the defunct in-game chip store with a native Android dialog allowing players to enter any chip amount, backed by an internal ARM64 native hook in `libil2cpp.so`. |
+| [Skip to Next Level](#patch-skip-to-next-level)                       | `bytecodePatch`         | `true`  | Allows players to skip to the next level by tapping the level progress indicator in the main menu.                                                                         |
+| [Remove Ads](#patch-remove-ads)                                       | `rawResourcePatch`      | `true`  | Removes banner, interstitial, and rewarded advertising and removes ad-based chip offers.                                                                                   |
+| [Remove Tracking and Analytics](#patch-remove-tracking-and-analytics) | `rawResourcePatch`      | `true`  | Neutralizes active advertising telemetry, analytics, attribution, and crash reporting.                                                                                     |
+| [Remove Internet Permissions](#patch-remove-internet-permissions)     | `resourcePatch`         | `true`  | Removes Internet permissions from AndroidManifest.xml to prevent network access.                                                                                           |
+| [Remove Notifications](#patch-remove-notifications)                   | `resourcePatch`         | `true`  | Removes notification permissions from AndroidManifest.xml to eliminate push notifications entirely.                                                                        |
 
 ---
 
@@ -33,6 +32,7 @@ In offline or patched environments, Blackjack's native in-game chip store is non
 ### 2. Technical Implementation & Injection Points
 
 #### Native ARM64 Hook Layer (`lib/arm64-v8a/libil2cpp.so`)
+
 1. **`BlackjackApplication.OpenShop` (Offset `0x1fcf6d4`):**
    - Replaces store opening with a call to `MNAndroidNative.showDialog` (`0x3c98ce4`).
 2. **`BlackjackApplication.CheckUpdateToVersion` (Offset `0x1fd0850`):**
@@ -41,15 +41,18 @@ In offline or patched environments, Blackjack's native in-game chip store is non
    - If input is `"skip_level"`, advances to the next level via `PlayerProfile.EarnXp` and `GoToLastPlayedTable`.
 
 #### Dalvik Bytecode Hook Layer
+
 - **Class:** `Lcom/mnp/popups/NativePopupsManager;`
 - **Method:** `ShowDialog(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V`
 - **Injected Bytecode (at instruction offset 0):**
+
   ```smali
   invoke-static {}, Lapp/aidan/extension/blackjack/ChipBalanceDialog;->show()V
   return-void
   ```
 
-#### Extension Behavior (`ChipBalanceDialog.java`):
+#### Extension Behavior (`ChipBalanceDialog.java`)
+
 1. Resolves `com.unity3d.player.UnityPlayer.currentActivity` reflectively.
 2. Reads current chips from `SimpleStorage/PlayerData.json` (`value.Credit`).
 3. Inflates an `AlertDialog` with a numeric `EditText` padded with 24dp horizontal margins.
@@ -77,11 +80,13 @@ Advancing levels in Blackjack normally requires grinding hundreds of hands to ac
 - **Class:** `Lcom/unity3d/player/UnityPlayerActivity;`
 - **Method:** `onCreate(Landroid/os/Bundle;)V`
 - **Injected Bytecode (immediately before terminal `return-void`):**
+
   ```smali
   invoke-static {p0}, Lapp/aidan/extension/blackjack/SkipLevelDialog;->install(Landroid/app/Activity;)V
   ```
 
-#### Touch Proxy & Dialog Flow (`SkipLevelDialog.java`):
+#### Touch Proxy & Dialog Flow (`SkipLevelDialog.java`)
+
 1. Replaces the activity's `Window.Callback` with a dynamic `java.lang.reflect.Proxy`.
 2. Inspects `dispatchTouchEvent` events for `MotionEvent.ACTION_UP`.
 3. Validates touch coordinates against the safe-area-relative next-level badge rectangle using `MotionEvent.getX()` and `getY()` against the decor-view bounds and root window insets:
@@ -112,17 +117,17 @@ Blackjack displays intrusive interstitial ads between hands, banners along scree
 
 #### Target File: `lib/arm64-v8a/libil2cpp.so`
 
-| Target Function | Offset | Original Bytes | Injected Replacement | Effect |
-|---|---|---|---|---|
-| `PlayerData.get_AdsDisabled` | `0x1fb5210` | `00 b0 40 39 c0 03 5f d6` | `20 00 80 52 c0 03 5f d6` (`mov w0, #1; ret`) | Forces VIP ad-free status to `true`. |
-| `BlackjackAds.TryShowInterstitial` | `0x2010568` | `ff 03 02 d1 e9 23 03 6d` | `00 00 80 52 c0 03 5f d6` (`mov w0, #0; ret`) | Prevents interstitial triggers. |
-| `BlackjackAds.ShowInterstitial` | `0x20109b4` | `ff c3 03 d1 fe 5b 00 f9 ...` | `e0 03 1f aa e1 03 1f aa e2 03 1f aa e3 03 1f aa c0 03 5f d6` (`mov x0-x3, xzr; ret`) | Returns empty ad show result. |
-| `AdManager` ad entrypoint | `0x3bc9530` | `ff 83 01 d1` | `c0 03 5f d6` (`ret`) | No-ops mediation ad initialization. |
-| `AdManager` ad entrypoint | `0x3bcc22c` | `ff 83 01 d1` | `c0 03 5f d6` (`ret`) | No-ops mediation ad request. |
-| `AdManager` ad entrypoint | `0x3bce2c4` | `fe 0f 1c f8` | `c0 03 5f d6` (`ret`) | No-ops mediation ad load. |
-| `AdManager` ad entrypoint | `0x3bce738` | `fe 0f 1e f8` | `c0 03 5f d6` (`ret`) | No-ops mediation ad load callback. |
-| `AdManager` show entrypoints (6 sites) | `0x3bca7a8`, `0x3bca83c`, `0x3bca868`, `0x3bccd08`, `0x3bccd9c`, `0x3bccdc8` | Various prologues | `mov x0-x3, xzr; ret` (16 bytes) | Returns empty ad show result. |
-| `LevelUpRewardScreen.watchAnAdContainer` | `0x1ffd7dc` | `21 00 80 52` (`mov w1, #1`) | `e1 03 1f 2a` (`mov w1, wzr`) | Sets container visibility to `false`. |
+| Target Function                          | Offset                                                                       | Original Bytes                | Injected Replacement                                                                  | Effect                                |
+| ---------------------------------------- | ---------------------------------------------------------------------------- | ----------------------------- | ------------------------------------------------------------------------------------- | ------------------------------------- |
+| `PlayerData.get_AdsDisabled`             | `0x1fb5210`                                                                  | `00 b0 40 39 c0 03 5f d6`     | `20 00 80 52 c0 03 5f d6` (`mov w0, #1; ret`)                                         | Forces VIP ad-free status to `true`.  |
+| `BlackjackAds.TryShowInterstitial`       | `0x2010568`                                                                  | `ff 03 02 d1 e9 23 03 6d`     | `00 00 80 52 c0 03 5f d6` (`mov w0, #0; ret`)                                         | Prevents interstitial triggers.       |
+| `BlackjackAds.ShowInterstitial`          | `0x20109b4`                                                                  | `ff c3 03 d1 fe 5b 00 f9 ...` | `e0 03 1f aa e1 03 1f aa e2 03 1f aa e3 03 1f aa c0 03 5f d6` (`mov x0-x3, xzr; ret`) | Returns empty ad show result.         |
+| `AdManager` ad entrypoint                | `0x3bc9530`                                                                  | `ff 83 01 d1`                 | `c0 03 5f d6` (`ret`)                                                                 | No-ops mediation ad initialization.   |
+| `AdManager` ad entrypoint                | `0x3bcc22c`                                                                  | `ff 83 01 d1`                 | `c0 03 5f d6` (`ret`)                                                                 | No-ops mediation ad request.          |
+| `AdManager` ad entrypoint                | `0x3bce2c4`                                                                  | `fe 0f 1c f8`                 | `c0 03 5f d6` (`ret`)                                                                 | No-ops mediation ad load.             |
+| `AdManager` ad entrypoint                | `0x3bce738`                                                                  | `fe 0f 1e f8`                 | `c0 03 5f d6` (`ret`)                                                                 | No-ops mediation ad load callback.    |
+| `AdManager` show entrypoints (6 sites)   | `0x3bca7a8`, `0x3bca83c`, `0x3bca868`, `0x3bccd08`, `0x3bccd9c`, `0x3bccdc8` | Various prologues             | `mov x0-x3, xzr; ret` (16 bytes)                                                      | Returns empty ad show result.         |
+| `LevelUpRewardScreen.watchAnAdContainer` | `0x1ffd7dc`                                                                  | `21 00 80 52` (`mov w1, #1`)  | `e1 03 1f 2a` (`mov w1, wzr`)                                                         | Sets container visibility to `false`. |
 
 ---
 
@@ -142,6 +147,7 @@ Tripledot Blackjack embeds extensive third-party and first-party analytics libra
 ### 2. Technical Implementation & Binary Modifications
 
 #### Target File: `lib/arm64-v8a/libil2cpp.so`
+
 Every target is patched with the ARM64 return opcode `c0 03 5f d6` (`ret`):
 
 1. **Tripledot Proprietary Analytics:**
@@ -159,7 +165,6 @@ Every target is patched with the ARM64 return opcode `c0 03 5f d6` (`ret`):
    - `AppsFlyerManager.Init` (`0x3ca3980`)
 6. **Unity Engine Analytics:**
    - `UnityEngine.Analytics.Initialize` (`0x4085868`)
-
 
 ---
 
@@ -202,7 +207,6 @@ Tripledot Blackjack requests Android notification access for promotional push al
 The patch edits `AndroidManifest.xml` through the XML DOM and removes every `uses-permission` or `uses-permission-sdk-23` declaration whose `android:name` is `android.permission.POST_NOTIFICATIONS`. It reads the Android namespace attribute with a prefix-preserving fallback and fails fast when no matching declaration exists, preventing a version mismatch from silently producing an incomplete patch.
 
 ---
-
 
 ## Verification & Preconditions
 

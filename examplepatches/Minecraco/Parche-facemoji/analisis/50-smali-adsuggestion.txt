@@ -1,0 +1,1142 @@
+4 ficheros DEX, 164880 cadenas distintas
+
+
+### Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$AdSuggestionSwitch;
+  .method <init>()V
+      v1, 0
+      v2, 0
+      v3, 0
+      v4, 0
+      v5, 0
+      v6, 0
+      v7, 0
+      v8, 0
+      v9, 255
+      v10, 0
+      v0, v11
+      v0 ... v10, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$AdSuggestionSwitch;-><init>(Z Ljava/util/List; Z Z Ljava/lang/String; Ljava/lang/String; Ljava/lang/Integer; Ljava/lang/Long; I Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+      
+  .method <init>(Z Ljava/util/List; Z Z Ljava/lang/String; Ljava/lang/String; Ljava/lang/Integer; Ljava/lang/Long;)V
+      v0, "pkgs"
+      v3, v0, Lkotlin/jvm/internal/Intrinsics;->checkNotNullParameter(Ljava/lang/Object; Ljava/lang/String;)V
+      v0, "channel"
+      v6, v0, Lkotlin/jvm/internal/Intrinsics;->checkNotNullParameter(Ljava/lang/Object; Ljava/lang/String;)V
+      v1, Ljava/lang/Object;-><init>()V
+      v2, v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$AdSuggestionSwitch;->enable Z
+      v3, v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$AdSuggestionSwitch;->pkgs Ljava/util/List;
+      v4, v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$AdSuggestionSwitch;->isReportInput Z
+      v5, v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$AdSuggestionSwitch;->isWebView Z
+      v6, v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$AdSuggestionSwitch;->channel Ljava/lang/String;
+      v7, v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$AdSuggestionSwitch;->jumpUrl Ljava/lang/String;
+      v8, v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$AdSuggestionSwitch;->strategyType Ljava/lang/Integer;
+      v9, v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$AdSuggestionSwitch;->timeout Ljava/lang/Long;
+      
+  .method <init>(Z Ljava/util/List; Z Z Ljava/lang/String; Ljava/lang/String; Ljava/lang/Integer; Ljava/lang/Long; I Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+      v0, v19
+      v1, v0, 1
+      v2, 0
+      v1, +004h
+      v1, v2
+      +2h
+      v1, v11
+      v3, v0, 2
+      v3, +008h
+      v3, Ljava/util/ArrayList;
+      v3, Ljava/util/ArrayList;-><init>()V
+      +2h
+      v3, v12
+      v4, v0, 4
+      v4, +003h
+      +2h
+      v2, v13
+      v4, v0, 8
+      v4, +004h
+      v4, 1
+      +2h
+      v4, v14
+      v5, v0, 16
+      v5, +005h
+      v5, "7502944942"
+      +2h
+      v5, v15
+      v6, v0, 32
+      v6, +005h
+      v6, ""
+      +3h
+      v6, v16
+      v7, v0, 64
+      v7, +008h
+      v7, -1
+      v7, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+      v7
+      +3h
+      v7, v17
+      v0, v0, 128
+      v0, +009h
+      v8, 1000
+      v8, v9, Ljava/lang/Long;->valueOf(J)Ljava/lang/Long;
+      v0
+      +3h
+      v0, v18
+      v11, v10
+      v12, v1
+      v13, v3
+      v14, v2
+      v15, v4
+      v16, v5
+      v17, v6
+      v18, v7
+      v19, v0
+      v11 ... v19, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$AdSuggestionSwitch;-><init>(Z Ljava/util/List; Z Z Ljava/lang/String; Ljava/lang/String; Ljava/lang/Integer; Ljava/lang/Long;)V
+      
+  .method getChannel()Ljava/lang/String;
+      v0, v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$AdSuggestionSwitch;->channel Ljava/lang/String;
+      v0
+  .method getEnable()Z
+      v0, v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$AdSuggestionSwitch;->enable Z
+      v0
+  .method getJumpUrl()Ljava/lang/String;
+      v0, v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$AdSuggestionSwitch;->jumpUrl Ljava/lang/String;
+      v0
+  .method getPkgs()Ljava/util/List;
+      v0, v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$AdSuggestionSwitch;->pkgs Ljava/util/List;
+      v0
+  .method getStrategyType()Ljava/lang/Integer;
+      v0, v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$AdSuggestionSwitch;->strategyType Ljava/lang/Integer;
+      v0
+  .method getTimeout()Ljava/lang/Long;
+      v0, v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$AdSuggestionSwitch;->timeout Ljava/lang/Long;
+      v0
+  .method isReportInput()Z
+      v0, v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$AdSuggestionSwitch;->isReportInput Z
+      v0
+  .method isWebView()Z
+      v0, v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$AdSuggestionSwitch;->isWebView Z
+      v0
+
+### Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$EcommerceSuggestionSwitch;
+  .method <init>()V
+      v1, 0
+      v2, 0
+      v3, 0
+      v4, 0
+      v5, 0
+      v6, 31
+      v7, 0
+      v0, v8
+      v0 ... v7, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$EcommerceSuggestionSwitch;-><init>(Z Ljava/util/List; Ljava/util/List; Ljava/lang/String; Z I Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+      
+  .method <init>(Z Ljava/util/List; Ljava/util/List; Ljava/lang/String; Z)V
+      v0, "pkgs"
+      v3, v0, Lkotlin/jvm/internal/Intrinsics;->checkNotNullParameter(Ljava/lang/Object; Ljava/lang/String;)V
+      v0, "ecommerceAppPkgs"
+      v4, v0, Lkotlin/jvm/internal/Intrinsics;->checkNotNullParameter(Ljava/lang/Object; Ljava/lang/String;)V
+      v0, "includeLang"
+      v5, v0, Lkotlin/jvm/internal/Intrinsics;->checkNotNullParameter(Ljava/lang/Object; Ljava/lang/String;)V
+      v1, Ljava/lang/Object;-><init>()V
+      v2, v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$EcommerceSuggestionSwitch;->enable Z
+      v3, v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$EcommerceSuggestionSwitch;->pkgs Ljava/util/List;
+      v4, v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$EcommerceSuggestionSwitch;->ecommerceAppPkgs Ljava/util/List;
+      v5, v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$EcommerceSuggestionSwitch;->includeLang Ljava/lang/String;
+      v6, v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$EcommerceSuggestionSwitch;->isReportInput Z
+      
+  .method <init>(Z Ljava/util/List; Ljava/util/List; Ljava/lang/String; Z I Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+      v11, v10, 1
+      v0, 0
+      v11, +004h
+      v11, v0
+      +2h
+      v11, v5
+      v5, v10, 2
+      v5, +007h
+      v6, Ljava/util/ArrayList;
+      v6, Ljava/util/ArrayList;-><init>()V
+      v1, v6
+      v5, v10, 4
+      v5, +007h
+      v7, Ljava/util/ArrayList;
+      v7, Ljava/util/ArrayList;-><init>()V
+      v2, v7
+      v5, v10, 8
+      v5, +004h
+      v8, "id|en_US,en_US|id,in|en_US,en_US|in,in,id,en,en_GB"
+      v3, v8
+      v5, v10, 16
+      v5, +004h
+      v10, v0
+      +2h
+      v10, v9
+      v5, v4
+      v6, v11
+      v7, v1
+      v8, v2
+      v9, v3
+      v5 ... v10, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$EcommerceSuggestionSwitch;-><init>(Z Ljava/util/List; Ljava/util/List; Ljava/lang/String; Z)V
+      
+  .method getEcommerceAppPkgs()Ljava/util/List;
+      v0, v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$EcommerceSuggestionSwitch;->ecommerceAppPkgs Ljava/util/List;
+      v0
+  .method getEnable()Z
+      v0, v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$EcommerceSuggestionSwitch;->enable Z
+      v0
+  .method getIncludeLang()Ljava/lang/String;
+      v0, v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$EcommerceSuggestionSwitch;->includeLang Ljava/lang/String;
+      v0
+  .method getPkgs()Ljava/util/List;
+      v0, v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$EcommerceSuggestionSwitch;->pkgs Ljava/util/List;
+      v0
+  .method isReportInput()Z
+      v0, v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$EcommerceSuggestionSwitch;->isReportInput Z
+      v0
+
+### Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;
+  .method <init>()V
+      v1, 0
+      v2, 0
+      v3, 0
+      v4, 0
+      v5, 0
+      v6, 0
+      v7, 0
+      v8, 0
+      v9, 255
+      v10, 0
+      v0, v11
+      v0 ... v10, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;-><init>(Z Ljava/lang/String; Ljava/lang/String; Z I Ljava/util/List; Ljava/lang/String; Z I Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+      
+  .method <init>(Z Ljava/lang/String; Ljava/lang/String; Z I Ljava/util/List; Ljava/lang/String; Z)V
+      v0, "pkgName"
+      v3, v0, Lkotlin/jvm/internal/Intrinsics;->checkNotNullParameter(Ljava/lang/Object; Ljava/lang/String;)V
+      v0, "includeLang"
+      v4, v0, Lkotlin/jvm/internal/Intrinsics;->checkNotNullParameter(Ljava/lang/Object; Ljava/lang/String;)V
+      v0, "inputType"
+      v7, v0, Lkotlin/jvm/internal/Intrinsics;->checkNotNullParameter(Ljava/lang/Object; Ljava/lang/String;)V
+      v0, "avoidTimezone"
+      v8, v0, Lkotlin/jvm/internal/Intrinsics;->checkNotNullParameter(Ljava/lang/Object; Ljava/lang/String;)V
+      v1, Ljava/lang/Object;-><init>()V
+      v2, v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->enable Z
+      v3, v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->pkgName Ljava/lang/String;
+      v4, v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->includeLang Ljava/lang/String;
+      v5, v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->isReportInput Z
+      v6, v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->adStyle I
+      v7, v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->inputType Ljava/util/List;
+      v8, v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->avoidTimezone Ljava/lang/String;
+      v9, v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->avoidSimCard Z
+      
+  .method <init>(Z Ljava/lang/String; Ljava/lang/String; Z I Ljava/util/List; Ljava/lang/String; Z I Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+      v0, v18
+      v1, v0, 1
+      v2, 0
+      v1, +004h
+      v1, v2
+      +2h
+      v1, v10
+      v3, v0, 2
+      v3, +005h
+      v3, "com.android.vending"
+      +2h
+      v3, v11
+      v4, v0, 4
+      v4, +005h
+      v4, "en_US,en_IN,in,ru"
+      +2h
+      v4, v12
+      v5, v0, 8
+      v5, +004h
+      v5, v2
+      +2h
+      v5, v13
+      v6, v0, 16
+      v6, +004h
+      v6, 1
+      +2h
+      v6, v14
+      v7, v0, 32
+      v7, +008h
+      v7, Ljava/util/ArrayList;
+      v7, Ljava/util/ArrayList;-><init>()V
+      +2h
+      v7, v15
+      v8, v0, 64
+      v8, +005h
+      v8, ""
+      +3h
+      v8, v16
+      v0, v0, 128
+      v0, +003h
+      +3h
+      v2, v17
+      v10, v9
+      v11, v1
+      v12, v3
+      v13, v4
+      v14, v5
+      v15, v6
+      v16, v7
+      v17, v8
+      v18, v2
+      v10 ... v18, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;-><init>(Z Ljava/lang/String; Ljava/lang/String; Z I Ljava/util/List; Ljava/lang/String; Z)V
+      
+  .method copy$default(Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig; Z Ljava/lang/String; Ljava/lang/String; Z I Ljava/util/List; Ljava/lang/String; Z I Ljava/lang/Object;)Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;
+      v0, v9
+      v1, v18
+      v2, v1, 1
+      v2, +005h
+      v2, v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->enable Z
+      +2h
+      v2, v10
+      v3, v1, 2
+      v3, +005h
+      v3, v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->pkgName Ljava/lang/String;
+      +2h
+      v3, v11
+      v4, v1, 4
+      v4, +005h
+      v4, v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->includeLang Ljava/lang/String;
+      +2h
+      v4, v12
+      v5, v1, 8
+      v5, +005h
+      v5, v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->isReportInput Z
+      +2h
+      v5, v13
+      v6, v1, 16
+      v6, +005h
+      v6, v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->adStyle I
+      +2h
+      v6, v14
+      v7, v1, 32
+      v7, +005h
+      v7, v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->inputType Ljava/util/List;
+      +2h
+      v7, v15
+      v8, v1, 64
+      v8, +005h
+      v8, v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->avoidTimezone Ljava/lang/String;
+      +3h
+      v8, v16
+      v1, v1, 128
+      v1, +005h
+      v1, v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->avoidSimCard Z
+      +3h
+      v1, v17
+      v10, v2
+      v11, v3
+      v12, v4
+      v13, v5
+      v14, v6
+      v15, v7
+      v16, v8
+      v17, v1
+      v9 ... v17, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->copy(Z Ljava/lang/String; Ljava/lang/String; Z I Ljava/util/List; Ljava/lang/String; Z)Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;
+      v0
+      v0
+  .method component1()Z
+      v0, v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->enable Z
+      v0
+  .method component2()Ljava/lang/String;
+      v0, v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->pkgName Ljava/lang/String;
+      v0
+  .method component3()Ljava/lang/String;
+      v0, v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->includeLang Ljava/lang/String;
+      v0
+  .method component4()Z
+      v0, v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->isReportInput Z
+      v0
+  .method component5()I
+      v0, v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->adStyle I
+      v0
+  .method component6()Ljava/util/List;
+      v0, v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->inputType Ljava/util/List;
+      v0
+  .method component7()Ljava/lang/String;
+      v0, v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->avoidTimezone Ljava/lang/String;
+      v0
+  .method component8()Z
+      v0, v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->avoidSimCard Z
+      v0
+  .method copy(Z Ljava/lang/String; Ljava/lang/String; Z I Ljava/util/List; Ljava/lang/String; Z)Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;
+      v0, "pkgName"
+      v3, v12
+      v12, v0, Lkotlin/jvm/internal/Intrinsics;->checkNotNullParameter(Ljava/lang/Object; Ljava/lang/String;)V
+      v0, "includeLang"
+      v4, v13
+      v13, v0, Lkotlin/jvm/internal/Intrinsics;->checkNotNullParameter(Ljava/lang/Object; Ljava/lang/String;)V
+      v0, "inputType"
+      v7, v16
+      v7, v0, Lkotlin/jvm/internal/Intrinsics;->checkNotNullParameter(Ljava/lang/Object; Ljava/lang/String;)V
+      v0, "avoidTimezone"
+      v8, v17
+      v8, v0, Lkotlin/jvm/internal/Intrinsics;->checkNotNullParameter(Ljava/lang/Object; Ljava/lang/String;)V
+      v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;
+      v1, v0
+      v2, v11
+      v5, v14
+      v6, v15
+      v9, v18
+      v1 ... v9, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;-><init>(Z Ljava/lang/String; Ljava/lang/String; Z I Ljava/util/List; Ljava/lang/String; Z)V
+      v0
+  .method equals(Ljava/lang/Object;)Z
+      v0, 1
+      v4, v5, +003h
+      v0
+      v1, v5, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;
+      v2, 0
+      v1, +003h
+      v2
+      v5, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;
+      v1, v4, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->enable Z
+      v3, v5, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->enable Z
+      v1, v3, +003h
+      v2
+      v1, v4, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->pkgName Ljava/lang/String;
+      v3, v5, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->pkgName Ljava/lang/String;
+      v1, v3, Lkotlin/jvm/internal/Intrinsics;->b(Ljava/lang/Object; Ljava/lang/Object;)Z
+      v1
+      v1, +003h
+      v2
+      v1, v4, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->includeLang Ljava/lang/String;
+      v3, v5, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->includeLang Ljava/lang/String;
+      v1, v3, Lkotlin/jvm/internal/Intrinsics;->b(Ljava/lang/Object; Ljava/lang/Object;)Z
+      v1
+      v1, +003h
+      v2
+      v1, v4, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->isReportInput Z
+      v3, v5, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->isReportInput Z
+      v1, v3, +003h
+      v2
+      v1, v4, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->adStyle I
+      v3, v5, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->adStyle I
+      v1, v3, +003h
+      v2
+      v1, v4, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->inputType Ljava/util/List;
+      v3, v5, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->inputType Ljava/util/List;
+      v1, v3, Lkotlin/jvm/internal/Intrinsics;->b(Ljava/lang/Object; Ljava/lang/Object;)Z
+      v1
+      v1, +003h
+      v2
+      v1, v4, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->avoidTimezone Ljava/lang/String;
+      v3, v5, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->avoidTimezone Ljava/lang/String;
+      v1, v3, Lkotlin/jvm/internal/Intrinsics;->b(Ljava/lang/Object; Ljava/lang/Object;)Z
+      v1
+      v1, +003h
+      v2
+      v1, v4, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->avoidSimCard Z
+      v5, v5, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->avoidSimCard Z
+      v1, v5, +003h
+      v2
+      v0
+  .method getAdStyle()I
+      v0, v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->adStyle I
+      v0
+  .method getAvoidSimCard()Z
+      v0, v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->avoidSimCard Z
+      v0
+  .method getAvoidTimezone()Ljava/lang/String;
+      v0, v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->avoidTimezone Ljava/lang/String;
+      v0
+  .method getEnable()Z
+      v0, v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->enable Z
+      v0
+  .method getIncludeLang()Ljava/lang/String;
+      v0, v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->includeLang Ljava/lang/String;
+      v0
+  .method getInputType()Ljava/util/List;
+      v0, v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->inputType Ljava/util/List;
+      v0
+  .method getPkgName()Ljava/lang/String;
+      v0, v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->pkgName Ljava/lang/String;
+      v0
+  .method hashCode()I
+      v0, v2, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->enable Z
+      v0, Ll0/e;->a(Z)I
+      v0
+      v0, v0, 31
+      v1, v2, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->pkgName Ljava/lang/String;
+      v1, Ljava/lang/String;->hashCode()I
+      v1
+      v0, v1
+      v0, v0, 31
+      v1, v2, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->includeLang Ljava/lang/String;
+      v1, Ljava/lang/String;->hashCode()I
+      v1
+      v0, v1
+      v0, v0, 31
+      v1, v2, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->isReportInput Z
+      v1, Ll0/e;->a(Z)I
+      v1
+      v0, v1
+      v0, v0, 31
+      v1, v2, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->adStyle I
+      v0, v1
+      v0, v0, 31
+      v1, v2, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->inputType Ljava/util/List;
+      v1, Ljava/lang/Object;->hashCode()I
+      v1
+      v0, v1
+      v0, v0, 31
+      v1, v2, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->avoidTimezone Ljava/lang/String;
+      v1, Ljava/lang/String;->hashCode()I
+      v1
+      v0, v1
+      v0, v0, 31
+      v1, v2, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->avoidSimCard Z
+      v1, Ll0/e;->a(Z)I
+      v1
+      v0, v1
+      v0
+  .method isReportInput()Z
+      v0, v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->isReportInput Z
+      v0
+  .method toString()Ljava/lang/String;
+      v0, v10, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->enable Z
+      v1, v10, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->pkgName Ljava/lang/String;
+      v2, v10, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->includeLang Ljava/lang/String;
+      v3, v10, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->isReportInput Z
+      v4, v10, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->adStyle I
+      v5, v10, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->inputType Ljava/util/List;
+      v6, v10, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->avoidTimezone Ljava/lang/String;
+      v7, v10, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->avoidSimCard Z
+      v8, Ljava/lang/StringBuilder;
+      v8, Ljava/lang/StringBuilder;-><init>()V
+      v9, "GpAdSugConfig(enable="
+      v8, v9, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      v8, v0, Ljava/lang/StringBuilder;->append(Z)Ljava/lang/StringBuilder;
+      v0, ", pkgName="
+      v8, v0, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      v8, v1, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      v0, ", includeLang="
+      v8, v0, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      v8, v2, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      v0, ", isReportInput="
+      v8, v0, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      v8, v3, Ljava/lang/StringBuilder;->append(Z)Ljava/lang/StringBuilder;
+      v0, ", adStyle="
+      v8, v0, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      v8, v4, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
+      v0, ", inputType="
+      v8, v0, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      v8, v5, Ljava/lang/StringBuilder;->append(Ljava/lang/Object;)Ljava/lang/StringBuilder;
+      v0, ", avoidTimezone="
+      v8, v0, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      v8, v6, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      v0, ", avoidSimCard="
+      v8, v0, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      v8, v7, Ljava/lang/StringBuilder;->append(Z)Ljava/lang/StringBuilder;
+      v0, ")"
+      v8, v0, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      v8, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+      v0
+      v0
+
+### Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;
+  .method <clinit>()V
+      v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;
+      v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;-><init>()V
+      v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;->a Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;
+      
+  .method <init>()V
+      v0, Ljava/lang/Object;-><init>()V
+      
+  .method b()Z
+      v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;->d Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$AdSuggestionSwitch;
+      v1, 1
+      v0, +009h
+      v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$AdSuggestionSwitch;->getEnable()Z
+      v0
+      v0, v1, +003h
+      +7h
+      Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;->m()Z
+      v0
+      v0, +009h
+      Lcom/preff/kb/common/network/NetworkUtils2;->isNetworkAvailable()Z
+      v0
+      v0, +003h
+      +2h
+      v1, 0
+      v1
+  .method c()Z
+      v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;->d Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$AdSuggestionSwitch;
+      v1, 0
+      v2, 1
+      v0, +009h
+      v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$AdSuggestionSwitch;->getEnable()Z
+      v0
+      v0, v2, +003h
+      +bh
+      v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;->b Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;
+      v0, +009h
+      v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->getEnable()Z
+      v0
+      v0, v2, +003h
+      v1
+      v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;->c Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$EcommerceSuggestionSwitch;
+      v0, +01fh
+      v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$EcommerceSuggestionSwitch;->getEnable()Z
+      v0
+      v0, v2, +019h
+      Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;->f()Ljava/lang/String;
+      v0
+      v0, Ljava/lang/CharSequence;->length()I
+      v0
+      v0, +00fh
+      Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;->k()Z
+      v0
+      v0, +009h
+      Lcom/preff/kb/common/network/NetworkUtils2;->isNetworkAvailable()Z
+      v0
+      v0, +003h
+      v1, v2
+      v1
+  .method f()Ljava/lang/String;
+      Lh4/a;->a()Landroid/content/Context;
+      v0
+      v1, "key_last_ecommerce_app_pkg"
+      v2, ""
+      v0, v1, v2, Lcom/preff/kb/preferences/PreffMultiProcessPreference;->getStringPreference(Landroid/content/Context; Ljava/lang/String; Ljava/lang/String;)Ljava/lang/String;
+      v0
+      v1, "getStringPreference(...)"
+      v0, v1, Lkotlin/jvm/internal/Intrinsics;->checkNotNullExpressionValue(Ljava/lang/Object; Ljava/lang/String;)V
+      v0
+  .method h()J
+      v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;->d Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$AdSuggestionSwitch;
+      v0, +00dh
+      v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$AdSuggestionSwitch;->getTimeout()Ljava/lang/Long;
+      v0
+      v0, +007h
+      v0, Ljava/lang/Long;->longValue()J
+      v0
+      +3h
+      v0, 1000
+      v0
+  .method i()Z
+      Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;->j()Z
+      v0
+      v0, +00fh
+      v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;->b Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;
+      v0, +00bh
+      v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->getAdStyle()I
+      v0
+      v1, 2
+      v0, v1, +004h
+      v0, 1
+      +2h
+      v0, 0
+      v0
+  .method j()Z
+      Lcom/baidu/simeji/inputview/i0;->k1()Lcom/baidu/simeji/inputview/i0;
+      v0
+      v1, 0
+      v0, +00dh
+      v0, Lcom/baidu/simeji/inputview/i0;->E1()Lcom/baidu/simeji/SimejiIME;
+      v0
+      v0, +007h
+      v0, Lcom/baidu/simeji/SimejiIME;->getCurrentInputEditorInfo()Landroid/view/inputmethod/EditorInfo;
+      v0
+      +2h
+      v0, v1
+      v0, +006h
+      v2, v0, Landroid/view/inputmethod/EditorInfo;->packageName Ljava/lang/String;
+      v2, +004h
+      v2, ""
+      Lh4/a;->a()Landroid/content/Context;
+      v3
+      v3, Lcom/android/inputmethod/latin/utils/SubtypeLocaleUtils;->getSubtypeStr(Landroid/content/Context;)Ljava/lang/String;
+      v3
+      v4, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;->b Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;
+      v5, 0
+      v4, +065h
+      v4, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->getEnable()Z
+      v4
+      v6, 1
+      v4, v6, +05eh
+      v4, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;->b Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;
+      v4, +05ah
+      v4, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->getPkgName()Ljava/lang/String;
+      v4
+      v4, +054h
+      v7, 2
+      v4, v2, v5, v7, v1, Lkotlin/text/g;->E(Ljava/lang/CharSequence; Ljava/lang/CharSequence; Z I Ljava/lang/Object;)Z
+      v2
+      v2, v6, +04dh
+      v2, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;->b Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;
+      v2, +049h
+      v2, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->getIncludeLang()Ljava/lang/String;
+      v2
+      v2, +043h
+      v3, Lkotlin/jvm/internal/Intrinsics;->d(Ljava/lang/Object;)V
+      v2, v3, v5, v7, v1, Lkotlin/text/g;->E(Ljava/lang/CharSequence; Ljava/lang/CharSequence; Z I Ljava/lang/Object;)Z
+      v2
+      v2, v6, +03ah
+      v2, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;->b Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;
+      v2, +00fh
+      v2, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->getInputType()Ljava/util/List;
+      v2
+      v2, +009h
+      v2, Ljava/util/List;->size()I
+      v2
+      v2, +003h
+      +1bh
+      v2, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;->b Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;
+      v2, +025h
+      v2, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->getInputType()Ljava/util/List;
+      v2
+      v2, +01fh
+      v2, Ljava/lang/Iterable;
+      v0, +008h
+      v1, v0, Landroid/view/inputmethod/EditorInfo;->inputType I
+      v1, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+      v1
+      v2, v1, Lkotlin/collections/r;->J(Ljava/lang/Iterable; Ljava/lang/Object;)Z
+      v1
+      v1, v6, +00fh
+      Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;->o()Z
+      v1
+      v1, +009h
+      v0, Lle/b;->e(Landroid/view/inputmethod/EditorInfo;)Z
+      v0
+      v0, +003h
+      v5, v6
+      v5
+  .method k()Z
+      v0, Lc10/r;->b Lc10/r$a;
+      v0, Lcom/google/gson/Gson;
+      v0, Lcom/google/gson/Gson;-><init>()V
+      Lh4/a;->a()Landroid/content/Context;
+      v1
+      v2, "key_ecommerce_sug_close_click"
+      v3, ""
+      v1, v2, v3, Lcom/preff/kb/preferences/PreffMultiProcessPreference;->getStringPreference(Landroid/content/Context; Ljava/lang/String; Ljava/lang/String;)Ljava/lang/String;
+      v1
+      v2, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$isNeedShowEcommerceSug$clickTimestamp$1$1;
+      v2, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$isNeedShowEcommerceSug$clickTimestamp$1$1;-><init>()V
+      v2, Lcom/google/gson/reflect/TypeToken;->getType()Ljava/lang/reflect/Type;
+      v2
+      v0, v1, v2, Lcom/google/gson/Gson;->fromJson(Ljava/lang/String; Ljava/lang/reflect/Type;)Ljava/lang/Object;
+      v0
+      v0, Ljava/util/List;
+      v0, Lc10/r;->b(Ljava/lang/Object;)Ljava/lang/Object;
+      v0
+      +13h
+      v0
+      v1, "com/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils"
+      v2, "isNeedShowEcommerceSug"
+      v0, v1, v2, Lb7/b;->d(Ljava/lang/Throwable; Ljava/lang/String; Ljava/lang/String;)V
+      v1, Lc10/r;->b Lc10/r$a;
+      v0, Lc10/s;->a(Ljava/lang/Throwable;)Ljava/lang/Object;
+      v0
+      v0, Lc10/r;->b(Ljava/lang/Object;)Ljava/lang/Object;
+      v0
+      v0, Lc10/r;->g(Ljava/lang/Object;)Z
+      v1
+      v1, +003h
+      v0, 0
+      v0, Ljava/util/List;
+      v0, +007h
+      v0, Ljava/util/ArrayList;
+      v0, Ljava/util/ArrayList;-><init>()V
+      v0, Ljava/util/List;->isEmpty()Z
+      v1
+      v2, 1
+      v1, +003h
+      +23h
+      v0, Ljava/util/List;->size()I
+      v1
+      v3, 3
+      v4, 0
+      v1, v3, +01bh
+      v0, Lkotlin/collections/r;->d0(Ljava/util/List;)Ljava/lang/Object;
+      v0
+      v0, Ljava/lang/Long;
+      v0, +013h
+      v0, Ljava/lang/Number;->longValue()J
+      v0
+      Ljava/lang/System;->currentTimeMillis()J
+      v5
+      v5, v0
+      v0, 86400000
+      v0, v5, v0
+      v0, +003h
+      +2h
+      v2, v4
+      v2
+  .method l(Landroid/content/Context;)Z
+      v0, "context"
+      v3, v0, Lkotlin/jvm/internal/Intrinsics;->checkNotNullParameter(Ljava/lang/Object; Ljava/lang/String;)V
+      v0, "connectivity"
+      v3, v0, Landroid/content/Context;->getSystemService(Ljava/lang/String;)Ljava/lang/Object;
+      v3
+      v0, v3, Landroid/net/ConnectivityManager;
+      v0, +005h
+      v3, Landroid/net/ConnectivityManager;
+      +2h
+      v3, 0
+      v0, 0
+      v3, +003h
+      v0
+      v1, Landroid/os/Build$VERSION;->SDK_INT I
+      v2, 24
+      v1, v2, +014h
+      v3, Landroid/net/ConnectivityManager;->getActiveNetwork()Landroid/net/Network;
+      v1
+      v3, v1, Landroid/net/ConnectivityManager;->getNetworkCapabilities(Landroid/net/Network;)Landroid/net/NetworkCapabilities;
+      v3
+      v3, +00ah
+      v1, 4
+      v3, v1, Landroid/net/NetworkCapabilities;->hasTransport(I)Z
+      v3
+      v3, +003h
+      v0, 1
+      v0
+  .method m()Z
+      v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;->d Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$AdSuggestionSwitch;
+      v0, +006h
+      v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;->c Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$EcommerceSuggestionSwitch;
+      v0, +005h
+      Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;->q()V
+      Lcom/baidu/simeji/inputview/i0;->k1()Lcom/baidu/simeji/inputview/i0;
+      v0
+      v0, Lcom/baidu/simeji/inputview/i0;->E1()Lcom/baidu/simeji/SimejiIME;
+      v0
+      v1, 0
+      v0, +007h
+      v0, Lcom/baidu/simeji/SimejiIME;->getCurrentInputEditorInfo()Landroid/view/inputmethod/EditorInfo;
+      v0
+      +2h
+      v0, v1
+      v2, 0
+      v3, 1
+      v0, +012h
+      v0, Lcom/android/inputmethod/latin/utils/InputTypeUtils;->isSearchInputType(Landroid/view/inputmethod/EditorInfo;)Z
+      v4
+      v4, +00ch
+      v4, v0, Landroid/view/inputmethod/EditorInfo;->inputType I
+      v4, Lcom/android/inputmethod/latin/utils/InputTypeUtils;->isWebInputType(I)Z
+      v4
+      v4, +004h
+      v4, v3
+      +2h
+      v4, v2
+      Lh4/a;->a()Landroid/content/Context;
+      v5
+      v6, "key_share_status_enabled"
+      v5, v6, v2, Lcom/preff/kb/preferences/PreffMultiProcessPreference;->getBooleanPreference(Landroid/content/Context; Ljava/lang/String; Z)Z
+      v5
+      v4, +04eh
+      v5, +04ch
+      v4, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;->d Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$AdSuggestionSwitch;
+      v4, +01fh
+      v4, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$AdSuggestionSwitch;->getEnable()Z
+      v4
+      v4, v3, +019h
+      v4, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;->d Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$AdSuggestionSwitch;
+      v4, +015h
+      v4, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$AdSuggestionSwitch;->getPkgs()Ljava/util/List;
+      v4
+      v4, +00fh
+      v4, Ljava/lang/Iterable;
+      v0, +004h
+      v1, v0, Landroid/view/inputmethod/EditorInfo;->packageName Ljava/lang/String;
+      v4, v1, Lkotlin/collections/r;->J(Ljava/lang/Iterable; Ljava/lang/Object;)Z
+      v0
+      v0, v3, +003h
+      +dh
+      Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;->j()Z
+      v0
+      v0, +008h
+      Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;->n()Z
+      v0
+      v0, +01fh
+      Lcom/baidu/simeji/inputview/i0;->k1()Lcom/baidu/simeji/inputview/i0;
+      v0
+      v0, Lcom/baidu/simeji/inputview/i0;->k2()Z
+      v0
+      v0, +015h
+      Lz9/a;->a()Lz9/a;
+      v0
+      v0, Lz9/a;->e()Z
+      v0
+      v0, +00bh
+      v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;->a Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;
+      v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;->a()Z
+      v0
+      v0, +003h
+      v2, v3
+      v2
+  .method n()Z
+      v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;->d Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$AdSuggestionSwitch;
+      v1, 0
+      v2, 1
+      v0, +009h
+      v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$AdSuggestionSwitch;->getEnable()Z
+      v0
+      v0, v2, +003h
+      +bh
+      v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;->b Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;
+      v0, +009h
+      v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->getEnable()Z
+      v0
+      v0, v2, +003h
+      v1
+      Lcom/baidu/simeji/inputview/i0;->k1()Lcom/baidu/simeji/inputview/i0;
+      v0
+      v0, Lcom/baidu/simeji/inputview/i0;->E1()Lcom/baidu/simeji/SimejiIME;
+      v0
+      v3, 0
+      v0, +007h
+      v0, Lcom/baidu/simeji/SimejiIME;->getCurrentInputEditorInfo()Landroid/view/inputmethod/EditorInfo;
+      v0
+      +2h
+      v0, v3
+      Lh4/a;->a()Landroid/content/Context;
+      v4
+      v4, Lcom/android/inputmethod/latin/utils/SubtypeLocaleUtils;->getSubtypeStr(Landroid/content/Context;)Ljava/lang/String;
+      v4
+      v5, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;->c Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$EcommerceSuggestionSwitch;
+      v5, +045h
+      v5, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$EcommerceSuggestionSwitch;->getEnable()Z
+      v5
+      v5, v2, +03fh
+      v5, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;->c Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$EcommerceSuggestionSwitch;
+      v5, +03bh
+      v5, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$EcommerceSuggestionSwitch;->getPkgs()Ljava/util/List;
+      v5
+      v5, +035h
+      v5, Ljava/lang/Iterable;
+      v0, +005h
+      v0, v0, Landroid/view/inputmethod/EditorInfo;->packageName Ljava/lang/String;
+      +2h
+      v0, v3
+      v5, v0, Lkotlin/collections/r;->J(Ljava/lang/Iterable; Ljava/lang/Object;)Z
+      v0
+      v0, v2, +027h
+      v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;->c Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$EcommerceSuggestionSwitch;
+      v0, +023h
+      v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$EcommerceSuggestionSwitch;->getIncludeLang()Ljava/lang/String;
+      v0
+      v0, +01dh
+      v4, Lkotlin/jvm/internal/Intrinsics;->d(Ljava/lang/Object;)V
+      v5, 2
+      v0, v4, v1, v5, v3, Lkotlin/text/g;->E(Ljava/lang/CharSequence; Ljava/lang/CharSequence; Z I Ljava/lang/Object;)Z
+      v0
+      v0, v2, +013h
+      Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;->f()Ljava/lang/String;
+      v0
+      v0, Ljava/lang/CharSequence;->length()I
+      v0
+      v0, +009h
+      Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;->k()Z
+      v0
+      v0, +003h
+      v1, v2
+      v1
+  .method o()Z
+      Lh4/a;->a()Landroid/content/Context;
+      v0
+      v1, "save_has_sim_card"
+      v2, 1
+      v0, v1, v2, Lcom/preff/kb/preferences/PreffMultiProcessPreference;->getBooleanPreference(Landroid/content/Context; Ljava/lang/String; Z)Z
+      v0
+      v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;->b Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;
+      v3, 0
+      v1, +00bh
+      v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->getAvoidSimCard()Z
+      v1
+      v1, v2, +005h
+      v0, +003h
+      v3
+      v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;->b Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;
+      v1, 0
+      v0, +007h
+      v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->getAvoidTimezone()Ljava/lang/String;
+      v0
+      +2h
+      v0, v1
+      Lh4/a;->a()Landroid/content/Context;
+      v4
+      v5, "save_timeZoneGMT"
+      v6, ""
+      v4, v5, v6, Lcom/preff/kb/preferences/PreffMultiProcessPreference;->getStringPreference(Landroid/content/Context; Ljava/lang/String; Ljava/lang/String;)Ljava/lang/String;
+      v4
+      v5, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;->b Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;
+      v5, +006h
+      v5, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->getAvoidTimezone()Ljava/lang/String;
+      v1
+      v1, Landroid/text/TextUtils;->isEmpty(Ljava/lang/CharSequence;)Z
+      v1
+      v1, +009h
+      v4, v0, Landroid/text/TextUtils;->equals(Ljava/lang/CharSequence; Ljava/lang/CharSequence;)Z
+      v0
+      v0, +003h
+      v3
+      v2
+  .method p()V
+      v0, "key_ecommerce_sug_close_click"
+      v1, Lc10/r;->b Lc10/r$a;
+      v1, Lcom/google/gson/Gson;
+      v1, Lcom/google/gson/Gson;-><init>()V
+      Lh4/a;->a()Landroid/content/Context;
+      v2
+      v3, ""
+      v2, v0, v3, Lcom/preff/kb/preferences/PreffMultiProcessPreference;->getStringPreference(Landroid/content/Context; Ljava/lang/String; Ljava/lang/String;)Ljava/lang/String;
+      v2
+      v3, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$recordCloseBtnClick$clickTimestamp$1$1;
+      v3, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$recordCloseBtnClick$clickTimestamp$1$1;-><init>()V
+      v3, Lcom/google/gson/reflect/TypeToken;->getType()Ljava/lang/reflect/Type;
+      v3
+      v1, v2, v3, Lcom/google/gson/Gson;->fromJson(Ljava/lang/String; Ljava/lang/reflect/Type;)Ljava/lang/Object;
+      v1
+      v1, Ljava/util/List;
+      v1, Lc10/r;->b(Ljava/lang/Object;)Ljava/lang/Object;
+      v1
+      +13h
+      v1
+      v2, "com/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils"
+      v3, "recordCloseBtnClick"
+      v1, v2, v3, Lb7/b;->d(Ljava/lang/Throwable; Ljava/lang/String; Ljava/lang/String;)V
+      v2, Lc10/r;->b Lc10/r$a;
+      v1, Lc10/s;->a(Ljava/lang/Throwable;)Ljava/lang/Object;
+      v1
+      v1, Lc10/r;->b(Ljava/lang/Object;)Ljava/lang/Object;
+      v1
+      v1, Lc10/r;->g(Ljava/lang/Object;)Z
+      v2
+      v2, +003h
+      v1, 0
+      v1, Ljava/util/List;
+      v1, +007h
+      v1, Ljava/util/ArrayList;
+      v1, Ljava/util/ArrayList;-><init>()V
+      Ljava/lang/System;->currentTimeMillis()J
+      v2
+      v2, v3, Ljava/lang/Long;->valueOf(J)Ljava/lang/Long;
+      v2
+      v1, v2, Ljava/util/List;->add(Ljava/lang/Object;)Z
+      Lh4/a;->a()Landroid/content/Context;
+      v2
+      v3, Lcom/google/gson/Gson;
+      v3, Lcom/google/gson/Gson;-><init>()V
+      v3, v1, Lcom/google/gson/Gson;->toJson(Ljava/lang/Object;)Ljava/lang/String;
+      v1
+      v2, v0, v1, Lcom/preff/kb/preferences/PreffMultiProcessPreference;->saveStringPreference(Landroid/content/Context; Ljava/lang/String; Ljava/lang/String;)V
+      
+  .method q()V
+      v0, "ad_suggestion_switch_v2"
+      v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$AdSuggestionSwitch;
+      v0, v1, Lcom/baidu/simeji/util/b2;->e(Ljava/lang/String; Ljava/lang/Class;)Ljava/lang/Object;
+      v0
+      v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$AdSuggestionSwitch;
+      v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;->d Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$AdSuggestionSwitch;
+      v0, "key_req_gp_sug_api"
+      v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;
+      v0, v1, Lcom/baidu/simeji/util/b2;->e(Ljava/lang/String; Ljava/lang/Class;)Ljava/lang/Object;
+      v0
+      v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;
+      v0, +013h
+      v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;
+      v2, 0
+      v3, 0
+      v4, 0
+      v5, 0
+      v6, 0
+      v7, 0
+      v8, 0
+      v9, 0
+      v10, 255
+      v11, 0
+      v1, v0
+      v1 ... v11, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;-><init>(Z Ljava/lang/String; Ljava/lang/String; Z I Ljava/util/List; Ljava/lang/String; Z I Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+      v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;->b Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;
+      v0, "ecommerce_suggestion_switch"
+      v1, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$EcommerceSuggestionSwitch;
+      v0, v1, Lcom/baidu/simeji/util/b2;->e(Ljava/lang/String; Ljava/lang/Class;)Ljava/lang/Object;
+      v0
+      v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$EcommerceSuggestionSwitch;
+      v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;->c Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$EcommerceSuggestionSwitch;
+      v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;->d Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$AdSuggestionSwitch;
+      v1, 1
+      v0, +009h
+      v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$AdSuggestionSwitch;->getEnable()Z
+      v0
+      v0, v1, +003h
+      +24h
+      v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;->c Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$EcommerceSuggestionSwitch;
+      v0, +021h
+      v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$EcommerceSuggestionSwitch;->getEnable()Z
+      v0
+      v0, v1, +01bh
+      Lcom/baidu/simeji/inputview/i0;->k1()Lcom/baidu/simeji/inputview/i0;
+      v0
+      v0, +011h
+      v0, Lcom/baidu/simeji/inputview/i0;->E1()Lcom/baidu/simeji/SimejiIME;
+      v0
+      v0, +00bh
+      v0, Lcom/baidu/simeji/SimejiIME;->getCurrentInputEditorInfo()Landroid/view/inputmethod/EditorInfo;
+      v0
+      v0, +005h
+      v0, v0, Landroid/view/inputmethod/EditorInfo;->packageName Ljava/lang/String;
+      +2h
+      v0, 0
+      v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;->r(Ljava/lang/String;)V
+      
+  .method r(Ljava/lang/String;)V
+      v2, +023h
+      v2, Ljava/lang/CharSequence;->length()I
+      v0
+      v0, +003h
+      +1bh
+      v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;->c Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$EcommerceSuggestionSwitch;
+      v0, +00fh
+      v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$EcommerceSuggestionSwitch;->getEcommerceAppPkgs()Ljava/util/List;
+      v0
+      v0, +009h
+      v0, v2, Ljava/util/List;->contains(Ljava/lang/Object;)Z
+      v0
+      v0, +003h
+      
+      Lh4/a;->a()Landroid/content/Context;
+      v0
+      v1, "key_last_ecommerce_app_pkg"
+      v0, v1, v2, Lcom/preff/kb/preferences/PreffMultiProcessPreference;->saveStringPreference(Landroid/content/Context; Ljava/lang/String; Ljava/lang/String;)V
+      
+  .method a()Z
+      Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;->j()Z
+      v0
+      v1, 1
+      v0, +003h
+      +1eh
+      Lh4/a;->a()Landroid/content/Context;
+      v0
+      v2, "getInstance(...)"
+      v0, v2, Lkotlin/jvm/internal/Intrinsics;->checkNotNullExpressionValue(Ljava/lang/Object; Ljava/lang/String;)V
+      v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;->l(Landroid/content/Context;)Z
+      v0
+      v0, +010h
+      Lh4/a;->a()Landroid/content/Context;
+      v0
+      v2, "key_debug_intercept_vpn"
+      v0, v2, v1, Lcom/preff/kb/preferences/PreffMultiProcessPreference;->getBooleanPreference(Landroid/content/Context; Ljava/lang/String; Z)Z
+      v0
+      v0, +003h
+      +2h
+      v1, 0
+      v1
+  .method d()Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$EcommerceSuggestionSwitch;
+      v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;->c Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$EcommerceSuggestionSwitch;
+      v0
+  .method e()Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;
+      v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;->b Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;
+      v0
+  .method g()Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$AdSuggestionSwitch;
+      v0, Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;->d Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$AdSuggestionSwitch;
+      v0
+
+### Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$isNeedShowEcommerceSug$clickTimestamp$1$1;
+  .method <init>()V
+      v0, Lcom/google/gson/reflect/TypeToken;-><init>()V
+      
+
+### Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$recordCloseBtnClick$clickTimestamp$1$1;
+  .method <init>()V
+      v0, Lcom/google/gson/reflect/TypeToken;-><init>()V
+      

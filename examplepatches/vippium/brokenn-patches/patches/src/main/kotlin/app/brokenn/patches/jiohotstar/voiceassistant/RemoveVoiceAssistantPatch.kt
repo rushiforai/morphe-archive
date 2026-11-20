@@ -8,13 +8,18 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patcher.util.findFreeRegister
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
-import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import app.brokenn.patches.jiohotstar.shared.Constants.COMPATIBILITY_JIOHOTSTAR
+import app.brokenn.patches.jiohotstar.shared.Constants.ILLUSTRATION
+import app.brokenn.patches.jiohotstar.shared.Constants.ILLUSTRATION_PILL_DATA
+import app.brokenn.patches.jiohotstar.shared.Constants.ILLUSTRATION_PILL_SEGMENT
+import app.brokenn.patches.jiohotstar.shared.Constants.ILLUSTRATION_PILL_WIDGET
+import app.brokenn.patches.jiohotstar.shared.Constants.LOTTIE
+import app.brokenn.patches.shared.instrs
+import app.brokenn.patches.shared.instructionIndices
+import app.brokenn.patches.shared.referenceText
 
 
 @Suppress("unused")
@@ -50,9 +55,9 @@ val removeVoiceAssistantPatch = bytecodePatch(
             CvdEqualiserFlowFingerprint.method
         )
         for (method in equaliserMethods) {
-            val unboxIndex = method.implementation!!.instructions.indexOfFirst {
+            val unboxIndex = method.instrs().indexOfFirst {
                 it.opcode == Opcode.INVOKE_VIRTUAL &&
-                    (it as? ReferenceInstruction)?.reference?.toString()?.contains("booleanValue") == true
+                    it.referenceText()?.contains("booleanValue") == true
             }
             val reg = method.getInstruction<OneRegisterInstruction>(unboxIndex + 1).registerA
             val zero = if (reg <= 15) "const/4 v$reg, 0x0" else "const/16 v$reg, 0x0"
@@ -61,34 +66,34 @@ val removeVoiceAssistantPatch = bytecodePatch(
 
         // Unknown-widget cut: rename the CVD wire names so the parser skips them.
         val typeMethod = CvdWidgetTypeFingerprint.method
+        val typeImpl = typeMethod.instrs()
         val wires = setOf("CVDHeroWidget", "CVDControlUnitWidget", "CVDOrbWidget")
-        for ((index, instruction) in typeMethod.implementation!!.instructions.withIndex()) {
-            val reference = (instruction as? ReferenceInstruction)?.reference
-            if (instruction.opcode == Opcode.CONST_STRING && reference is StringReference) {
-                val wire = reference.string
-                if (wire in wires) {
-                    val reg = typeMethod.getInstruction<OneRegisterInstruction>(index).registerA
-                    typeMethod.replaceInstruction(index, "const-string v$reg, \"${wire}Removed\"")
-                }
-            }
+        // replaceInstruction is 1:1, so snapshot indices stay valid across the loop.
+        typeMethod.instructionIndices { instruction ->
+            instruction.opcode == Opcode.CONST_STRING &&
+                (instruction as? ReferenceInstruction)?.reference.let { it is StringReference && it.string in wires }
+        }.forEach { index ->
+            val wire = (typeImpl[index] as ReferenceInstruction).reference as StringReference
+            val reg = typeMethod.getInstruction<OneRegisterInstruction>(index).registerA
+            typeMethod.replaceInstruction(index, "const-string v$reg, \"${wire.string}Removed\"")
         }
 
         // Watch Ask pill: skip illustration pills whose lottie is the CVD ask; parser null-guards the result.
         runCatching {
             val parser = CvdSubNavParserFingerprint.method
-            val instrs = parser.implementation!!.instructions
+            val impl = parser.instrs()
             val anchorIdx = CvdSubNavParserFingerprint.instructionMatches[1].index
             val pillReg = parser.getInstruction<OneRegisterInstruction>(anchorIdx - 1).registerA
-            val b3Idx = (anchorIdx until instrs.size).first { i ->
-                instrs[i].opcode == Opcode.INVOKE_STATIC &&
-                    (instrs[i] as? ReferenceInstruction)?.reference.toString().contains("LBd/b3;->a(")
+            val b3Idx = (anchorIdx until impl.size).first { i ->
+                impl[i].opcode == Opcode.INVOKE_STATIC &&
+                    impl[i].referenceText()?.contains("LBd/b3;->a(") == true
             }
             // Main list-add is the only one followed by a 16-bit goto (loop back-edge).
-            val skipIdx = instrs.indices.firstOrNull { i ->
-                i > anchorIdx && i + 1 < instrs.size &&
-                    instrs[i].opcode == Opcode.INVOKE_VIRTUAL &&
-                    (instrs[i] as? ReferenceInstruction)?.reference.toString().contains("ArrayList;->add") &&
-                    instrs[i + 1].opcode == Opcode.GOTO_16
+            val skipIdx = impl.indices.firstOrNull { i ->
+                i > anchorIdx && i + 1 < impl.size &&
+                    impl[i].opcode == Opcode.INVOKE_VIRTUAL &&
+                    impl[i].referenceText()?.contains("ArrayList;->add") == true &&
+                    impl[i + 1].opcode == Opcode.GOTO_16
             }?.let { it + 1 } ?: error("CvdSubNavParser: main list-add not found")
 
             val itReg = parser.findFreeRegister(b3Idx)
@@ -96,9 +101,9 @@ val removeVoiceAssistantPatch = bytecodePatch(
             val strReg = parser.findFreeRegister(b3Idx, itReg, tmpReg)
 
             val block = """
-                invoke-virtual {v$pillReg}, Lcom/hotstar/ui/model/widget/IllustrationPillWidget;->getData()Lcom/hotstar/ui/model/widget/IllustrationPillWidget${'$'}Data;
+                invoke-virtual {v$pillReg}, ${ILLUSTRATION_PILL_WIDGET}->getData()${ILLUSTRATION_PILL_DATA}
                 move-result-object v$itReg
-                invoke-virtual {v$itReg}, Lcom/hotstar/ui/model/widget/IllustrationPillWidget${'$'}Data;->getSegmentsList()Ljava/util/List;
+                invoke-virtual {v$itReg}, ${ILLUSTRATION_PILL_DATA}->getSegmentsList()Ljava/util/List;
                 move-result-object v$itReg
                 invoke-interface {v$itReg}, Ljava/util/List;->iterator()Ljava/util/Iterator;
                 move-result-object v$itReg
@@ -108,12 +113,12 @@ val removeVoiceAssistantPatch = bytecodePatch(
                 if-eqz v$tmpReg, :not_ask
                 invoke-interface {v$itReg}, Ljava/util/Iterator;->next()Ljava/lang/Object;
                 move-result-object v$tmpReg
-                check-cast v$tmpReg, Lcom/hotstar/ui/model/widget/IllustrationPillWidget${'$'}Segment;
-                invoke-virtual {v$tmpReg}, Lcom/hotstar/ui/model/widget/IllustrationPillWidget${'$'}Segment;->getIllustration()Lcom/hotstar/ui/model/feature/image/Illustration;
+                check-cast v$tmpReg, $ILLUSTRATION_PILL_SEGMENT
+                invoke-virtual {v$tmpReg}, ${ILLUSTRATION_PILL_SEGMENT}->getIllustration()${ILLUSTRATION}
                 move-result-object v$tmpReg
-                invoke-virtual {v$tmpReg}, Lcom/hotstar/ui/model/feature/image/Illustration;->getLottie()Lcom/hotstar/ui/model/feature/image/Lottie;
+                invoke-virtual {v$tmpReg}, ${ILLUSTRATION}->getLottie()${LOTTIE}
                 move-result-object v$tmpReg
-                invoke-virtual {v$tmpReg}, Lcom/hotstar/ui/model/feature/image/Lottie;->getName()Ljava/lang/String;
+                invoke-virtual {v$tmpReg}, ${LOTTIE}->getName()Ljava/lang/String;
                 move-result-object v$tmpReg
                 const-string v$strReg, "cvd_ask"
                 invoke-virtual {v$tmpReg, v$strReg}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
@@ -126,18 +131,16 @@ val removeVoiceAssistantPatch = bytecodePatch(
             parser.addInstructionsWithLabels(
                 b3Idx,
                 block,
-                ExternalLabel("skip_ask", instrs[skipIdx])
+                ExternalLabel("skip_ask", impl[skipIdx])
             )
         }
 
-        // Home ChatGPT suggestion tray: null the staggered-tray converter result when the
-        // tray's first item is a TopicsPill chip. The parser null-guards the result, so the tray is dropped.
+        // Nulls the tray converter result when its first item is a TopicsPill chip; the parser null-guards.
         val tray = HomeSuggestionTrayFingerprint.method
-        val trayImpl = tray.implementation!!.instructions
+        val trayImpl = tray.instrs()
         val listIdx = trayImpl.indexOfFirst { ins ->
             ins.opcode == Opcode.INVOKE_VIRTUAL &&
-                (ins as? ReferenceInstruction)?.reference.toString()
-                    .contains("StaggeredTrayWidget${'$'}Data;->getItemsList")
+                ins.referenceText()?.contains("StaggeredTrayWidget${'$'}Data;->getItemsList") == true
         }
         require(listIdx > 0) { "SuggestionTray: getItemsList not found" }
         val keepInsn = trayImpl[listIdx + 2]

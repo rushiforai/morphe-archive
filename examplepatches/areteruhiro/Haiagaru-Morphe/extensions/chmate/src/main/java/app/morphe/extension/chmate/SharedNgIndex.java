@@ -12,10 +12,12 @@ final class SharedNgIndex {
         final List<String> names=new ArrayList<>(), words=new ArrayList<>();
         final List<SharedNgRules.Rule> expressions=new ArrayList<>();
         NgLiteralMatcher wordMatcher,nameMatcher;
+        boolean bodyRules;
         void finish(){
             wordMatcher=new NgLiteralMatcher(words);nameMatcher=new NgLiteralMatcher(names);
         }
         void add(SharedNgRules.Rule r) {
+            if("keyword".equals(r.kind))bodyRules=true;
             if(r.regex){expressions.add(r);return;}
             switch(r.kind) {
                 case "id":ids.add(r.value);break;
@@ -67,15 +69,16 @@ final class SharedNgIndex {
         Bucket local=boards.get(board);return local!=null&&"edge/all".equals(board)&&local.reporters.contains(reporter);
     }
     boolean matchesHtml(String board,String id,String nameHtml,String bodyHtml,NgResponseDecisionCache.Decoder decoder){
-        return responseDecisions.match(board,id,nameHtml,bodyHtml,SharedNgRules::regexEvaluationCertain,
+        Bucket local=boards.get(board),global=boards.get("*");
+        if(local==null&&global==null)return false;
+        boolean needsBody=local!=null&&local.bodyRules||global!=null&&global.bodyRules;
+        return responseDecisions.match(board,id,nameHtml,needsBody?bodyHtml:"",SharedNgRules::regexEvaluationCertain,
                 ()->{
                     SharedNgRules.beginRegexEvaluation();
-                    Bucket local=boards.get(board),global=boards.get("*");
-                    if(local==null&&global==null)return false;
                     if(local!=null&&local.ids.contains(id)||global!=null&&global.ids.contains(id))return true;
                     String name=decoder.plain(nameHtml);
                     if(local!=null&&local.literalIdentity(id,name)||global!=null&&global.literalIdentity(id,name))return true;
-                    return matchesAfterIdentity(local,global,id,name,decoder.plain(bodyHtml));
+                    return matchesAfterIdentity(local,global,id,name,needsBody?decoder.plain(bodyHtml):"");
                 });
     }
     static List<SharedNgRules.Rule> matchingRules(List<SharedNgRules.Rule> source, int votes,

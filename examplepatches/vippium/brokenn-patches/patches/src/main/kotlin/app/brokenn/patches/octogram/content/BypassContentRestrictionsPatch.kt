@@ -1,8 +1,8 @@
 package app.brokenn.patches.octogram.content
 
 import app.brokenn.patches.octogram.shared.Constants.COMPATIBILITY_OCTOGRAM
-import app.brokenn.patches.octogram.shared.readsField
-import app.brokenn.patches.octogram.shared.stringConstants
+import app.brokenn.patches.shared.readsField
+import app.brokenn.patches.shared.stringConstants
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch

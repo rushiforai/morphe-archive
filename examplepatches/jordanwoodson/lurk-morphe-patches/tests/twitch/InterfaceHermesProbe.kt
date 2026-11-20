@@ -1,5 +1,6 @@
 package io.github.jordanwoodson.patches.twitch.clips
 
+import io.github.jordanwoodson.patches.twitch.home.hideHomeLiveTab
 import io.github.jordanwoodson.patches.twitch.shared.HermesBundle
 import java.io.File
 import java.security.MessageDigest
@@ -11,9 +12,10 @@ fun main(args: Array<String>) {
     val subscribeStock = bundle.function("SubscribeButton").body
     check(subscribeStock.size == 1652)
     bundle.hideClipDiscoveryTabs()
+    bundle.hideHomeLiveTab()
     bundle.hideBitsInterface()
     bundle.hideSubscriptionInterface()
-    check(bundle.edits.map { it.key }.toSet() == setOf("hide_clips", "hide_tipping", "hide_subscription_upsells"))
+    check(bundle.edits.map { it.key }.toSet() == setOf("hide_clips", "hide_home_live", "hide_tipping", "hide_subscription_upsells"))
     val patched = bundle.preview()
     verifyClipNavigation(bundle, patched, stock)
     check(patched.size == stock.size)
@@ -68,7 +70,8 @@ fun main(args: Array<String>) {
     if (args.size > 3) {
         val actual = File(args[3]).readBytes()
         bundle.edits.forEach { edit ->
-            check(actual.copyOfRange(edit.offset, edit.offset + edit.replacement.size).contentEquals(edit.replacement))
+            check(actual.copyOfRange(edit.offset, edit.offset + edit.replacement.size)
+                .contentEquals(if (edit.defaultEnabled) edit.replacement else edit.original))
         }
         verifyClipNavigation(bundle, actual, stock)
         println("PASS: actual APK asset contains every UI transform and passes the caller probe")

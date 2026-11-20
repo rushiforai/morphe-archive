@@ -19,6 +19,11 @@ public final class EdgeReporterId {
         Matcher matcher = SUFFIX.matcher(title);
         return matcher.find() ? matcher.group().trim() : null;
     }
+    /** Return the reporter token without the display-only brackets and star. */
+    public static String reporterId(String title) {
+        String value=suffix(title);
+        return value==null?null:value.substring(1,value.length()-2);
+    }
     /** Reporter IDs are display metadata, not part of a next-thread title match. */
     public static String titleForNextThreadMatch(String title) {
         if (title == null) return null;

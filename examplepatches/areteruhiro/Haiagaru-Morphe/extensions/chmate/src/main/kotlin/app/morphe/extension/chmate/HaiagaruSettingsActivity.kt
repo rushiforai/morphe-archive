@@ -195,11 +195,21 @@ class HaiagaruSettingsActivity : HaiagaruComposeActivity() {
             matches = found; indexedQuery = searchQuery; indexedScope = selected; searching = false
         }
         Scaffold(topBar = {
-            if (selected < 0 && query.isBlank()) TopAppBar(expandedHeight = 48.dp, title = { Text("Haiagaru") },
+            if (selected < 0 && query.isBlank()) TopAppBar(expandedHeight = 64.dp, title = {
+                Column {
+                    Text("Haiagaru", maxLines = 1)
+                    Text("Patch ${BuildConfig.HAIAGARU_VERSION}", style = MaterialTheme.typography.labelSmall, maxLines = 1)
+                }
+            },
                 actions = { copyAction() },
                 navigationIcon = { IconButton(onClick = back) { Icon(Icons.AutoMirrored.Filled.ArrowBack, if (english) "Back" else "戻る") } })
-            else TopAppBar(expandedHeight = 48.dp, title = { Text(if (selected < 0) (if (english) "Find a setting" else "設定を検索") else currentCategory?.title(english).orEmpty(),
-                maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) },
+            else TopAppBar(expandedHeight = 64.dp, title = {
+                Column {
+                    Text(if (selected < 0) (if (english) "Find a setting" else "設定を検索") else currentCategory?.title(english).orEmpty(),
+                        maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                    Text("Patch ${BuildConfig.HAIAGARU_VERSION}", style = MaterialTheme.typography.labelSmall, maxLines = 1)
+                }
+            },
                 actions = { copyAction() },
                 navigationIcon = { IconButton(onClick = back) { Icon(Icons.AutoMirrored.Filled.ArrowBack, if (english) "Back" else "戻る") } })
         }) { insets ->

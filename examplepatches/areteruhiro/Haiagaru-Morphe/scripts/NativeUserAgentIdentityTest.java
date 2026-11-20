@@ -7,7 +7,7 @@ public final class NativeUserAgentIdentityTest {
     private static int checks;
     private static void check(boolean ok,String message){if(!ok)throw new AssertionError(message);checks++;}
     public static void main(String[] args){
-        String selected=BrowserUaTemplates.value(1);
+        String selected=BrowserUaTemplates.resolve(BrowserUaTemplates.value(1));
         for(String version:new String[]{"0.8.10.191","0.8.10.226","0.8.10.242 dev"}){
             String prefix="Monazilla/1.00 2chMate/"+version+" ";
             String nativeAgent=prefix+"Dalvik/2.1.0 (Linux; U; Android 15; ActualDevice Build/ACTUAL)";

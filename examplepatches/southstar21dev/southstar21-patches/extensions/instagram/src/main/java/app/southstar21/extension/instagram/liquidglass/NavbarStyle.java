@@ -129,6 +129,8 @@ final class NavbarStyle {
     /** 0..1, 0.5 by default. */
     final float edgeColors;
     final boolean haptics;
+    /** The glass highlight moves as the phone tilts. */
+    final boolean tiltLight;
     final boolean shrinkOnScroll;
     /** Changes whenever any value does. */
     final int version;
@@ -171,6 +173,7 @@ final class NavbarStyle {
         glassWhileDragging = b(LiquidGlassNavBarPatch.GLASS_WHILE_DRAGGING);
         edgeColors = i(LiquidGlassNavBarPatch.EDGE_COLORS) / 100f;
         haptics = b(LiquidGlassNavBarPatch.HAPTICS);
+        tiltLight = b(LiquidGlassNavBarPatch.TILT_LIGHT);
         shrinkOnScroll = b(LiquidGlassNavBarPatch.SHRINK_ON_SCROLL);
     }
 

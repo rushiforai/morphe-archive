@@ -16,7 +16,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 val markZaloReadFromNotificationPatch = bytecodePatch(
     name = "Mark Zalo conversation read from notifications",
     description = "Adds a mark-as-read action to eligible message notifications using Zalo's native handler.",
-    default = false,
+    default = true,
 ) {
     compatibleWith(COMPATIBILITY_ZALO_261002_AND_EXPERIMENTAL)
     execute {

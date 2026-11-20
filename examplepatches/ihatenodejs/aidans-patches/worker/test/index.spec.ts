@@ -10,6 +10,9 @@ import worker, {
   timingSafeEqual,
   performVersionCheck,
   saveAppRecord,
+  reconcileMediaAsset,
+  reconcileMediaAssetsList,
+  reconcileReviews,
 } from '../src/index';
 import type {
   AppVersionRecord,
@@ -1204,6 +1207,94 @@ describe('Version check and self-healing dispatches', () => {
     expect(saved.outstandingRequest?.gitRevision).toBe('git_commit_sha_123');
   });
 
+  it('preserves playMetadata, iconAsset, and needsAuthenticatedVersion on POST /api/compatibility-runs', async () => {
+    const pkg = 'com.ashtoncofer.Buzz';
+    const workerEnv: WorkerEnv = {
+      ...env,
+      PATCHES_KV: env.PATCHES_KV,
+      COMPATIBILITY_STATUS_SECRET: 'test_secret_abc',
+    };
+
+    const initialRecord: AppVersionRecord = {
+      appName: 'Fizz',
+      playVersion: '1.54.0',
+      playVersionCode: 1540,
+      playVersionSource: 'authenticated',
+      playVersionVerifiedForUpdatedAt: '2026-10-06T00:00:00Z',
+      needsAuthenticatedVersion: true,
+      iconUrl: 'https://example.com/icon.png',
+      iconAsset: {
+        sourceUrl: 'https://example.com/icon.png',
+        fallbackPath: '/media/play/com.ashtoncofer.Buzz/icon.png',
+        width: 512,
+        height: 512,
+        alt: 'Fizz icon',
+      },
+      playMetadata: {
+        summary: 'Rich summary',
+        description: 'Detailed description',
+        developer: 'Buzz Dev',
+        category: 'Productivity',
+        categoryId: 'PRODUCTIVITY',
+        releaseNotes: 'Bug fixes',
+        installs: '1M+',
+        score: 4.8,
+        ratingsCount: 5000,
+        reviewsCount: 1200,
+        contentRating: 'Everyone',
+        contentRatingIcon: null,
+        releasedOn: '2020-01-01',
+        minAndroid: 'Android 8.0',
+        inAppPurchases: null,
+        permissionGroups: [],
+        screenshots: [],
+        featuredReviews: [],
+      },
+      updatedAt: '2026-10-06T00:00:00Z',
+      updatedOn: 'Oct 6, 2026',
+      checkedAt: '2026-10-06T00:00:00Z',
+      status: 'up-to-date',
+      supportedVersions: ['1.54.0'],
+      latestSupportedVersion: '1.54.0',
+      targetCompatibility: null,
+      outstandingRequest: null,
+    };
+    await env.PATCHES_KV.put(
+      `app_version:${pkg}`,
+      JSON.stringify(initialRecord),
+    );
+
+    const runStartPayload = {
+      requestId: 'run-start-preserved-metadata',
+      packageName: pkg,
+      appName: 'Fizz',
+      targetVersion: '1.54.0',
+      supportedVersions: ['1.54.0'],
+      gitRevision: 'git_commit_sha_456',
+    };
+
+    const req = new Request('http://localhost/api/compatibility-runs', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer test_secret_abc',
+      },
+      body: JSON.stringify(runStartPayload),
+    });
+
+    const res = await worker.fetch(req, workerEnv);
+    expect(res.status).toBe(200);
+
+    const savedRaw = await env.PATCHES_KV.get(`app_version:${pkg}`);
+    const saved = JSON.parse(savedRaw!) as AppVersionRecord;
+    expect(saved.playMetadata).toEqual(initialRecord.playMetadata);
+    expect(saved.iconAsset).toEqual(initialRecord.iconAsset);
+    expect(saved.needsAuthenticatedVersion).toBe(true);
+    expect(saved.playVersionCode).toBe(1540);
+    expect(saved.playVersionSource).toBe('authenticated');
+    expect(saved.playVersionVerifiedForUpdatedAt).toBe('2026-10-06T00:00:00Z');
+  });
+
   it('initializes unknown new app on POST /api/compatibility-runs and shows queued status', async () => {
     const pkg = 'com.new.awesomeapp';
     const workerEnv: WorkerEnv = {
@@ -1959,5 +2050,363 @@ describe('Google Play store metadata scraping and status aggregation', () => {
     );
     const invalidPathRes = await worker.fetch(invalidPathReq, workerEnv);
     expect(invalidPathRes.status).toBe(400);
+  });
+
+  it('retains fallbackPath for matching screenshots across scraping and does not re-mirror them', async () => {
+    const pkg = 'com.adobe.scan.android';
+    const workerEnv: WorkerEnv = {
+      ...env,
+      PATCHES_KV: env.PATCHES_KV,
+      PLAY_MEDIA: env.PLAY_MEDIA,
+    };
+
+    const initialRecord: AppVersionRecord = {
+      appName: 'Adobe Scan',
+      playVersion: '24.01.00',
+      iconUrl: 'https://play-lh.googleusercontent.com/test-icon=w240-h480',
+      iconAsset: {
+        sourceUrl: 'https://play-lh.googleusercontent.com/test-icon=w240-h480',
+        fallbackPath: '/media/play/com.adobe.scan.android/prior-icon.png',
+        width: 512,
+        height: 512,
+        alt: 'Adobe Scan icon',
+      },
+      updatedAt: '2026-03-01T00:00:00.000Z',
+      checkedAt: '2026-03-01T01:00:00.000Z',
+      status: 'up-to-date',
+      supportedVersions: ['24.01.00'],
+      latestSupportedVersion: '24.01.00',
+      targetCompatibility: null,
+      outstandingRequest: null,
+      playMetadata: {
+        summary: 'Scan documents',
+        description: 'Scan documents to PDF',
+        developer: 'Adobe',
+        category: 'Productivity',
+        categoryId: 'PRODUCTIVITY',
+        releaseNotes: 'Updates',
+        installs: '100M+',
+        score: 4.7,
+        ratingsCount: 1000000,
+        reviewsCount: 500000,
+        contentRating: 'Everyone',
+        contentRatingIcon: {
+          sourceUrl:
+            'https://play-lh.googleusercontent.com/content-rating-icon',
+          fallbackPath: '/media/play/com.adobe.scan.android/prior-rating.png',
+          width: null,
+          height: null,
+          alt: 'Rating icon',
+        },
+        releasedOn: '2017-06-01',
+        minAndroid: 'Android 8.0',
+        inAppPurchases: null,
+        permissionGroups: [],
+        screenshots: [
+          {
+            sourceUrl: 'https://play-lh.googleusercontent.com/screenshot1',
+            fallbackPath: '/media/play/com.adobe.scan.android/prior-shot1.png',
+            width: 1080,
+            height: 1920,
+            alt: null,
+          },
+          {
+            sourceUrl: 'https://play-lh.googleusercontent.com/screenshot2',
+            fallbackPath: null,
+            width: 1080,
+            height: 1920,
+            alt: null,
+          },
+        ],
+        featuredReviews: [],
+      },
+    };
+    await env.PATCHES_KV.put(
+      `app_version:${pkg}`,
+      JSON.stringify(initialRecord),
+    );
+
+    const fetchedMediaUrls: string[] = [];
+    const testImageBytes = new Uint8Array([
+      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+    ]);
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = vi.fn(async (input: RequestInfo | URL) => {
+      const url = typeof input === 'string' ? input : input.toString();
+      if (
+        url.includes(
+          'play.google.com/store/apps/details?id=com.adobe.scan.android',
+        )
+      ) {
+        return new Response(fixtureHtml, { status: 200 });
+      }
+      if (url.includes('play.google.com')) {
+        return new Response('Not found', { status: 404 });
+      }
+      if (url.includes('play-lh.googleusercontent.com')) {
+        fetchedMediaUrls.push(url);
+        return new Response(testImageBytes, {
+          status: 200,
+          headers: {
+            'content-type': 'image/png',
+            'content-length': testImageBytes.length.toString(),
+          },
+        });
+      }
+      return new Response('Not found', { status: 404 });
+    });
+
+    try {
+      await performVersionCheck(workerEnv);
+
+      // Verify screenshot1, iconAsset, and contentRatingIcon were NOT fetched again
+      expect(fetchedMediaUrls).not.toContain(
+        'https://play-lh.googleusercontent.com/screenshot1',
+      );
+      expect(fetchedMediaUrls).not.toContain(
+        'https://play-lh.googleusercontent.com/test-icon=w240-h480',
+      );
+      expect(fetchedMediaUrls).not.toContain(
+        'https://play-lh.googleusercontent.com/content-rating-icon',
+      );
+      // screenshot2 had no fallbackPath, so it should be mirrored
+      expect(fetchedMediaUrls).toContain(
+        'https://play-lh.googleusercontent.com/screenshot2',
+      );
+
+      const savedRaw = await env.PATCHES_KV.get(`app_version:${pkg}`);
+      const saved = JSON.parse(savedRaw!) as AppVersionRecord;
+
+      expect(saved.iconAsset?.fallbackPath).toBe(
+        '/media/play/com.adobe.scan.android/prior-icon.png',
+      );
+      expect(saved.playMetadata?.contentRatingIcon?.fallbackPath).toBe(
+        '/media/play/com.adobe.scan.android/prior-rating.png',
+      );
+
+      const screenshots = saved.playMetadata?.screenshots ?? [];
+      expect(screenshots).toHaveLength(2);
+      expect(screenshots[0].sourceUrl).toBe(
+        'https://play-lh.googleusercontent.com/screenshot1',
+      );
+      expect(screenshots[0].fallbackPath).toBe(
+        '/media/play/com.adobe.scan.android/prior-shot1.png',
+      );
+      expect(screenshots[1].sourceUrl).toBe(
+        'https://play-lh.googleusercontent.com/screenshot2',
+      );
+      expect(screenshots[1].fallbackPath).not.toBeNull();
+      expect(screenshots[1].fallbackPath).toMatch(
+        /^\/media\/play\/com\.adobe\.scan\.android\/[a-f0-9]{64}\.png$/,
+      );
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it('reconciles media assets and lists correctly', () => {
+    expect(reconcileMediaAsset(null, null)).toBeNull();
+    expect(reconcileMediaAsset(undefined, null)).toBeNull();
+
+    const newAsset = {
+      sourceUrl: 'https://example.com/img.png',
+      fallbackPath: null,
+      width: 100,
+      height: 100,
+      alt: 'new alt',
+    };
+    const priorAsset = {
+      sourceUrl: 'https://example.com/img.png',
+      fallbackPath: '/media/play/img.png',
+      width: 50,
+      height: 50,
+      alt: 'old alt',
+    };
+    const reconciled = reconcileMediaAsset(newAsset, priorAsset);
+    expect(reconciled?.fallbackPath).toBe('/media/play/img.png');
+    expect(reconciled?.alt).toBe('new alt');
+
+    const diffAsset = {
+      sourceUrl: 'https://example.com/other.png',
+      fallbackPath: null,
+      width: 100,
+      height: 100,
+      alt: null,
+    };
+    expect(reconcileMediaAsset(diffAsset, priorAsset)?.fallbackPath).toBeNull();
+
+    const newScreenshots = [
+      {
+        sourceUrl: 'https://example.com/1.png',
+        fallbackPath: null,
+        width: null,
+        height: null,
+        alt: null,
+      },
+      {
+        sourceUrl: 'https://example.com/2.png',
+        fallbackPath: null,
+        width: null,
+        height: null,
+        alt: null,
+      },
+    ];
+    const priorScreenshots = [
+      {
+        sourceUrl: 'https://example.com/1.png',
+        fallbackPath: '/path/1.png',
+        width: null,
+        height: null,
+        alt: null,
+      },
+    ];
+    const reconciledList = reconcileMediaAssetsList(
+      newScreenshots,
+      priorScreenshots,
+    );
+    expect(reconciledList[0].fallbackPath).toBe('/path/1.png');
+    expect(reconciledList[1].fallbackPath).toBeNull();
+
+    const newReviews = [
+      {
+        author: 'User A',
+        rating: 5,
+        date: null,
+        text: 'Great',
+        helpfulCount: 0,
+        avatar: {
+          sourceUrl: 'https://example.com/a.png',
+          fallbackPath: null,
+          width: null,
+          height: null,
+          alt: null,
+        },
+      },
+      {
+        author: 'User B',
+        rating: 4,
+        date: null,
+        text: 'Good',
+        helpfulCount: 0,
+        avatar: null,
+      },
+    ];
+    const priorReviews = [
+      {
+        author: 'User A',
+        rating: 5,
+        date: null,
+        text: 'Great',
+        helpfulCount: 0,
+        avatar: {
+          sourceUrl: 'https://example.com/a.png',
+          fallbackPath: '/path/a.png',
+          width: null,
+          height: null,
+          alt: null,
+        },
+      },
+    ];
+    const reconciledReviews = reconcileReviews(newReviews, priorReviews);
+    expect(reconciledReviews[0].avatar?.fallbackPath).toBe('/path/a.png');
+    expect(reconciledReviews[1].avatar).toBeNull();
+  });
+});
+
+describe('Version API endpoint (/api/version/:packageName)', () => {
+  const workerEnv: WorkerEnv = {
+    PATCHES_KV: env.PATCHES_KV,
+  };
+
+  it('returns 200 with version payload and public CORS for valid package', async () => {
+    const buzzRecord: AppVersionRecord = {
+      appName: 'Fizz',
+      playVersion: '1.60.0',
+      playVersionCode: 400032,
+      checkedAt: '2026-10-21T20:48:51.000Z',
+      updatedAt: '2026-10-21T20:48:51.000Z',
+      status: 'fresh',
+      supportedVersions: ['1.54.0'],
+      latestSupportedVersion: '1.54.0',
+    };
+    await saveAppRecord(workerEnv, 'com.ashtoncofer.Buzz', buzzRecord);
+
+    const req = new Request(
+      'http://localhost/api/version/com.ashtoncofer.Buzz',
+      {
+        method: 'GET',
+      },
+    );
+    const res = await worker.fetch(req, workerEnv);
+
+    expect(res.status).toBe(200);
+    expect(res.headers.get('Content-Type')).toContain('application/json');
+    expect(res.headers.get('Cache-Control')).toBe('public, max-age=3600');
+    expect(res.headers.get('Access-Control-Allow-Origin')).toBe('*');
+
+    const data = (await res.json()) as {
+      packageName: string;
+      versionName: string;
+      versionCode: number;
+      updatedAt: string;
+    };
+    expect(data.packageName).toBe('com.ashtoncofer.Buzz');
+    expect(data.versionName).toBe('1.60.0');
+    expect(data.versionCode).toBe(400032);
+    expect(data.updatedAt).toBe('2026-10-21T20:48:51.000Z');
+  });
+
+  it('resolves "fizz" alias to com.ashtoncofer.Buzz', async () => {
+    const req = new Request('http://localhost/api/version/fizz', {
+      method: 'GET',
+    });
+    const res = await worker.fetch(req, workerEnv);
+
+    expect(res.status).toBe(200);
+    const data = (await res.json()) as {
+      packageName: string;
+      versionName: string;
+    };
+    expect(data.packageName).toBe('com.ashtoncofer.Buzz');
+    expect(data.versionName).toBe('1.60.0');
+  });
+
+  it('returns 404 for unknown package or missing playVersion', async () => {
+    const req = new Request('http://localhost/api/version/com.unknown.app', {
+      method: 'GET',
+    });
+    const res = await worker.fetch(req, workerEnv);
+
+    expect(res.status).toBe(404);
+    const data = (await res.json()) as { error: string };
+    expect(data.error).toBe('App version not found');
+    expect(res.headers.get('Access-Control-Allow-Origin')).toBe('*');
+  });
+
+  it('returns 400 when package name is missing', async () => {
+    const req1 = new Request('http://localhost/api/version', { method: 'GET' });
+    const res1 = await worker.fetch(req1, workerEnv);
+    expect(res1.status).toBe(400);
+    const data1 = (await res1.json()) as { error: string };
+    expect(data1.error).toBe('Missing package name');
+
+    const req2 = new Request('http://localhost/api/version/', {
+      method: 'GET',
+    });
+    const res2 = await worker.fetch(req2, workerEnv);
+    expect(res2.status).toBe(400);
+  });
+
+  it('handles HEAD request with 200 and empty body', async () => {
+    const req = new Request(
+      'http://localhost/api/version/com.ashtoncofer.Buzz',
+      {
+        method: 'HEAD',
+      },
+    );
+    const res = await worker.fetch(req, workerEnv);
+    expect(res.status).toBe(200);
+    expect(res.headers.get('Content-Type')).toContain('application/json');
+    expect(await res.text()).toBe('');
   });
 });

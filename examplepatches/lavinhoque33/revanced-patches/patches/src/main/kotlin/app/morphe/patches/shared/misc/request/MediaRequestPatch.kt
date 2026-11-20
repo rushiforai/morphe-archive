@@ -3,6 +3,8 @@
  * https://github.com/MorpheApp/morphe-patches/pull/4316
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ *
+ * Modified by lavinhoque33, 2026-11-19.
  */
 
 package app.morphe.patches.shared.misc.request
@@ -11,14 +13,22 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
+import app.morphe.util.Utils.printWarn
+import app.morphe.util.updatePatchStatus
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 
 private const val EXTENSION_MEDIA_HTTP_REQUEST_INTERFACE =
     "Lapp/morphe/extension/shared/patches/MediaHttpRequest;"
+private const val EXTENSION_MEDIA_HTTP_HEADER_INTERFACE =
+    "Lapp/morphe/extension/shared/patches/MediaHttpHeader;"
+private const val EXTENSION_WEB_MEDIA_REQUEST_INTERFACE =
+    "Lapp/morphe/extension/shared/patches/WebMediaRequest;"
 
 /**
  * Lets the extension read the media requests that native code starts, and replace them.
@@ -38,26 +48,7 @@ internal val mediaRequestPatch = bytecodePatch(
                 "patch_getUrl" to urlField,
                 "patch_getBody" to bodyField,
             ).forEach { (methodName, field) ->
-                methods.add(
-                    ImmutableMethod(
-                        type,
-                        methodName,
-                        listOf(),
-                        field.type,
-                        AccessFlags.PUBLIC.value or AccessFlags.FINAL.value,
-                        null,
-                        null,
-                        MutableMethodImplementation(2),
-                    ).toMutable().apply {
-                        addInstructions(
-                            0,
-                            """
-                                iget-object v0, p0, $field
-                                return-object v0
-                            """
-                        )
-                    }
-                )
+                addGetter(methodName, field)
             }
 
             // The constructor takes each field, and each field has its own type.
@@ -97,8 +88,87 @@ internal val mediaRequestPatch = bytecodePatch(
                     )
                 }
             )
+
+            val headerMatch = HttpHeaderConstructorFingerprint.matchOrNull()
+            val headersField = instanceFields.singleOrNull { field -> field.type == "Ljava/util/ArrayList;" }
+            if (headerMatch == null || headersField == null || headersField.type !in constructorParameters) {
+                printWarn("Mobile Web spoof client unavailable: native media request headers could not be linked.")
+                return@execute
+            }
+
+            val headerNameField = headerMatch.instructionMatches.first().fieldReference
+            mutableClassDefBy(HTTP_HEADER_CLASS_TYPE).apply {
+                interfaces.add(EXTENSION_MEDIA_HTTP_HEADER_INTERFACE)
+                addGetter("patch_getName", headerNameField)
+            }
+            interfaces.add(EXTENSION_WEB_MEDIA_REQUEST_INTERFACE)
+            addGetter("patch_getHeaders", headersField)
+
+            val loadWebParameters = constructorParameters.mapIndexed { index, parameterType ->
+                val register = "v${index + 1}"
+                val field = instanceFields.single { field -> field.type == parameterType }
+                when (parameterType) {
+                    bodyField.type -> "move-object $register, p1"
+                    headersField.type -> "move-object $register, p2"
+                    "Z" -> "iget-boolean $register, p0, $field"
+                    else -> "iget-object $register, p0, $field"
+                }
+            }.joinToString("\n")
+
+            methods.add(
+                ImmutableMethod(
+                    type,
+                    "patch_withBodyAndHeaders",
+                    listOf("[B", headersField.type).map { ImmutableMethodParameter(it, null, null) },
+                    EXTENSION_MEDIA_HTTP_REQUEST_INTERFACE,
+                    AccessFlags.PUBLIC.value or AccessFlags.FINAL.value,
+                    null,
+                    null,
+                    MutableMethodImplementation(1 + constructorParameters.size + 3),
+                ).toMutable().apply {
+                    addInstructions(
+                        0,
+                        """
+                            new-instance v0, $type
+                            $loadWebParameters
+                            invoke-direct/range { v0 .. v${constructorParameters.size} }, $constructor
+                            return-object v0
+                        """
+                    )
+                }
+            )
         }
     }
+}
+
+context(patchContext: BytecodePatchContext)
+internal fun enableMobileWebMediaBridge() {
+    if (EXTENSION_WEB_MEDIA_REQUEST_INTERFACE in patchContext.mutableClassDefBy(HTTP_REQUEST_CLASS_TYPE).interfaces) {
+        updatePatchStatus("Lapp/morphe/extension/shared/patches/PatchStatus;", "MobileWebMediaRequest")
+    }
+}
+
+private fun MutableClass.addGetter(methodName: String, field: FieldReference) {
+    methods.add(
+        ImmutableMethod(
+            type,
+            methodName,
+            listOf(),
+            field.type,
+            AccessFlags.PUBLIC.value or AccessFlags.FINAL.value,
+            null,
+            null,
+            MutableMethodImplementation(2),
+        ).toMutable().apply {
+            addInstructions(
+                0,
+                """
+                    iget-object v0, p0, $field
+                    return-object v0
+                """
+            )
+        }
+    )
 }
 
 /**

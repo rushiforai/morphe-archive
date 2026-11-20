@@ -246,7 +246,7 @@ An operator code is five or six digits, like 310260	รหัสผู้ให�
 An override changes the value TikTok reads from this gate. It doesn't change TikTok's saved copy or prove the named feature changed.	การแทนที่จะเปลี่ยนค่าที่ TikTok อ่านจากเกตนี้ ซึ่งจะไม่เปลี่ยนสำเนาที่บันทึกไว้ของ TikTok หรือพิสูจน์ว่าฟีเจอร์ดังกล่าวเปลี่ยนไป
 Animated sticker format	รูปแบบสติกเกอร์เคลื่อนไหว
 Save box for chat stickers	หน้าต่างบันทึกสำหรับสติกเกอร์แชท
-Tapping a sticker someone sent you in a chat opens a box with Save media. Turn this off to skip it.	การแตะสติกเกอร์ที่คนอื่นส่งให้คุณในแชทจะเปิดหน้าต่างพร้อมตัวเลือกบันทึกสื่อ ปิดการทำงานนี้เพื่อข้ามไป
+Tapping a sticker someone sent you in a chat opens a box with Save media. Holding one of TikTok's own stickers in a chat puts Save media in its menu too. Turn this off to skip both.	การแตะสติกเกอร์ที่คนอื่นส่งให้คุณในแชทจะเปิดหน้าต่างพร้อมตัวเลือกบันทึกสื่อ และการกดค้างที่สติกเกอร์ของ TikTok เองในแชทจะเพิ่มบันทึกสื่อลงในเมนูของสติกเกอร์นั้นด้วย ปิดการทำงานนี้เพื่อข้ามทั้งสองอย่าง
 TikTok gets no location from your phone. The Region settings change your country and time zone. This switch stops the exact position.	TikTok จะไม่ได้รับตำแหน่งจากโทรศัพท์ของคุณ การตั้งค่าภูมิภาคจะเปลี่ยนประเทศและเขตเวลาของคุณ สวิตช์นี้จะหยุดการระบุตำแหน่งที่แน่นอน
 TikTok sees an empty contact list instead of yours. Find Friends and People you may know can no longer use your contacts.	TikTok จะมองเห็นรายชื่อผู้ติดต่อที่ว่างเปล่าแทนรายชื่อของคุณ "ค้นหาเพื่อน" และ "คนที่คุณอาจรู้จัก" จะไม่สามารถใช้รายชื่อผู้ติดต่อของคุณได้อีกต่อไป
 TikTok sees an empty list of apps instead of the apps on your phone. Checks for one specific app, such as when TikTok opens an app you tap, still work.	TikTok จะมองเห็นรายการแอปที่ว่างเปล่าแทนแอปในโทรศัพท์ของคุณ การตรวจสอบแอปใดแอปหนึ่งโดยเฉพาะ เช่น เมื่อ TikTok เปิดแอปที่คุณแตะ จะยังคงทำงานได้
@@ -2335,7 +2335,7 @@ On the main feed, a raised bubble of glass sits behind the tab you're on and sli
 Slide across the tabs	เลื่อนผ่านแท็บต่างๆ
 On the main feed, slide a finger along the tabs and the lens follows it. Let go and that tab opens. Taps and long presses work as before. Needs Glass lens on the current tab.	ในฟีดหลัก ให้เลื่อนนิ้วไปตามแท็บแล้วเลนส์จะเลื่อนตาม เมื่อปล่อยนิ้ว แท็บนั้นจะเปิดขึ้น การแตะและการกดค้างจะยังคงใช้งานได้ตามปกติ จำเป็นต้องเปิดใช้เลนส์กระจกบนแท็บปัจจุบัน
 Liquid glass when held	กระจกเหลวเมื่อกดค้าง
-On the main feed, hold a finger on the tabs and the glass lens swells, then wobbles back when you let go. With Blur the video behind the bar on Android 13 and up, the video under it bends harder and splits into color at its edge. Needs Glass lens on the current tab.	ในฟีดหลัก ให้กดนิ้วค้างไว้บนแท็บ แล้วเลนส์กระจกจะพองขึ้น และเด้งกลับเมื่อปล่อยนิ้ว เมื่อเปิดเบลอวิดีโอด้านหลังแถบบน Android 13 ขึ้นไป วิดีโอใต้เลนส์จะโค้งงอมากขึ้นและแยกเป็นสีที่ขอบ จำเป็นต้องเปิดใช้เลนส์กระจกบนแท็บปัจจุบัน
+On the main feed, hold a finger on the tabs and the glass lens slides under it and swells, the tab beneath it grows, and they wobble back when you let go. On Android 13 and up the tabs bend at the lens's edge and split into color, and with Blur the video behind the bar so does the video. Needs Glass lens on the current tab.	ในฟีดหลัก ให้กดนิ้วค้างไว้บนแท็บ แล้วเลนส์กระจกจะเลื่อนมาอยู่ใต้นิ้วและพองขึ้น แท็บที่อยู่ใต้เลนส์จะขยายใหญ่ขึ้น และทั้งหมดจะเด้งกลับเมื่อปล่อยนิ้ว บน Android 13 ขึ้นไป แท็บจะโค้งงอที่ขอบเลนส์และแยกเป็นสี และเมื่อเปิดเบลอวิดีโอด้านหลังแถบ วิดีโอก็จะเป็นเช่นนั้นด้วย จำเป็นต้องเปิดใช้เลนส์กระจกบนแท็บปัจจุบัน
 Haptics on the tabs	การสั่นตอบสนองบนแท็บ
 On the main feed, a light tick each time the glass lens passes a tab, as it slides after a tap or under your finger. Needs Glass lens on the current tab.	ในฟีดหลัก จะมีการสั่นเบาๆ ทุกครั้งที่เลนส์กระจกเลื่อนผ่านแท็บ ไม่ว่าจะเลื่อนหลังจากการแตะหรือเลื่อนตามนิ้วของคุณ จำเป็นต้องเปิดใช้เลนส์กระจกบนแท็บปัจจุบัน
 Haptic style	รูปแบบการสั่นตอบสนอง
@@ -2395,10 +2395,11 @@ Most viewed first	ยอดดูมากที่สุดก่อน
 Least viewed first	ยอดดูน้อยที่สุดก่อน
 Most liked first	ถูกใจมากที่สุดก่อน
 Least liked first	ถูกใจน้อยที่สุดก่อน
-Sorts a profile or Liked grid with pinned videos first. While an order is on, the grid keeps loading by itself up to 300 videos, so the order covers more than the first screen. A button in the grid's top corner changes the order right there.	จัดเรียงตารางโปรไฟล์หรือตารางที่ถูกใจโดยแสดงวิดีโอที่ปักหมุดไว้ก่อน เมื่อเปิดใช้งานการจัดลำดับ ตารางจะโหลดวิดีโออัตโนมัติสูงสุด 300 วิดีโอ เพื่อให้การจัดลำดับครอบคลุมมากกว่าหน้าจอแรก ปุ่มที่มุมบนของตารางสามารถเปลี่ยนลำดับได้จากตรงนั้นทันที
+Sorts a profile or Liked grid with pinned videos first. While an order is on, the grid keeps loading by itself up to %1$s videos, so the order covers more than the first screen. A button in the grid's top corner changes the order right there.	จัดเรียงตารางโปรไฟล์หรือตารางที่ถูกใจโดยแสดงวิดีโอที่ปักหมุดไว้ก่อน เมื่อเปิดใช้งานการจัดลำดับ ตารางจะโหลดวิดีโออัตโนมัติสูงสุด %1$s วิดีโอ เพื่อให้การจัดลำดับครอบคลุมมากกว่าหน้าจอแรก ปุ่มที่มุมบนของตารางสามารถเปลี่ยนลำดับได้จากตรงนั้นทันที
+Tap to see the order now	แตะเพื่อดูลำดับตอนนี้
 Sort loaded videos on Liked grids	จัดเรียงวิดีโอที่โหลดแล้วในตารางที่ถูกใจ
 Sort loaded videos on sound pages	จัดเรียงวิดีโอที่โหลดแล้วในหน้าเสียง
-Sorts the videos on a sound's page the same way, loading up to 300 of them while an order is on.	จัดเรียงวิดีโอในหน้าของเสียงในลักษณะเดียวกัน โดยจะโหลดสูงสุด 300 วิดีโอเมื่อเปิดใช้งานการจัดลำดับ
+Sorts the videos on a sound's page the same way, loading up to %1$s of them while an order is on.	จัดเรียงวิดีโอในหน้าของเสียงในลักษณะเดียวกัน โดยจะโหลดสูงสุด %1$s วิดีโอเมื่อเปิดใช้งานการจัดลำดับ
 Same as profile grids	เหมือนกับตารางโปรไฟล์
 Sort this grid	จัดเรียงตารางนี้
 Blur the video behind the bar	เบลอวิดีโอด้านหลังแถบ
@@ -2619,7 +2620,7 @@ Use this phone's own IDs	ใช้ ID จริงของโทรศัพท
 Wipes TikTok's data once, on the next start, and goes back to this phone's real Android ID and advertising ID. You'll be signed out and lose your drafts.	ล้างข้อมูลของ TikTok หนึ่งครั้งในการเริ่มต้นครั้งถัดไป และเปลี่ยนกลับไปใช้ Android ID และ ID โฆษณาจริงของโทรศัพท์เครื่องนี้ คุณจะถูกลงชื่อออกและฉบับร่างของคุณจะหายไป
 TikTok goes back to this phone's IDs after the restart. Tap again to cancel.	TikTok จะเปลี่ยนกลับไปใช้ ID ของโทรศัพท์เครื่องนี้หลังจากรีสตาร์ท แตะอีกครั้งเพื่อยกเลิก
 On a one-photo post, Download video makes an MP4 with the post's sound and no TikTok logo or end card. On a post with several photos, Download asks if you want the originals or one video. A photo story saves as a video too.	ในโพสต์ที่มีรูปภาพเดียว "ดาวน์โหลดวิดีโอ" จะสร้างไฟล์ MP4 พร้อมเสียงของโพสต์โดยไม่มีโลโก้ TikTok หรือการ์ดปิดท้าย ในโพสต์ที่มีหลายรูปภาพ "ดาวน์โหลด" จะถามว่าคุณต้องการรูปภาพต้นฉบับหรือวิดีโอเดียว สตอรี่ที่เป็นรูปภาพจะบันทึกเป็นวิดีโอด้วยเช่นกัน
-How long each photo stays on screen in a video made from a photo post. A story's video runs as long as the story does.	ระยะเวลาที่แต่ละรูปภาพจะแสดงบนหน้าจอในวิดีโอที่สร้างจากโพสต์รูปภาพ วิดีโอของสตอรี่จะเล่นตามความยาวของสตอรี่นั้น
+How long each photo stays on screen in a video made from a photo post. A post with just one photo runs as long as its sound. A story's video runs as long as the story does.	ระยะเวลาที่แต่ละรูปภาพจะแสดงบนหน้าจอในวิดีโอที่สร้างจากโพสต์รูปภาพ โพสต์ที่มีรูปภาพเดียวจะยาวเท่ากับเสียงของโพสต์นั้น วิดีโอของสตอรี่จะเล่นตามความยาวของสตอรี่นั้น
 Stop loading	หยุดโหลด
 Recording files deleted	ลบไฟล์บันทึกแล้ว
 Hide story views	ซ่อนการดูสตอรี่
@@ -2918,6 +2919,10 @@ Cover the whole window without cropping anything. The video gets a little taller
 Sort loaded videos on Favorites grids	จัดเรียงวิดีโอที่โหลดแล้วในตารางรายการโปรด
 Show the country and date under the caption	แสดงประเทศและวันที่ใต้คำบรรยาย
 Moves the country and the post date off the creator's row onto a line of their own below the caption.	ย้ายประเทศและวันที่โพสต์ออกจากแถวของครีเอเตอร์ไปไว้ในบรรทัดของตัวเองใต้คำบรรยาย
+# context: picture-in-picture window button that moves TikTok's LIVE rooms
+Previous LIVE	LIVE ก่อนหน้า
+# context: picture-in-picture window button that moves TikTok's LIVE rooms
+Next LIVE	LIVE ถัดไป
 # context: picture-in-picture window button that moves TikTok's feed
 Previous video	วิดีโอก่อนหน้า
 # context: picture-in-picture window button that moves TikTok's feed

@@ -1,0 +1,46 @@
+{
+  "package": "org.ungoogled.android.apps.maps",
+  "version": "26.36.04.973607363",
+  "version_code": 1068763346,
+  "apk_sha256": "62dbb34ae8b7e6f84b7fe87d9bbec2ca6517a42748c68de0974a5c9c43af4490",
+  "installed_apk_hash_matches": true,
+  "rollback_apk_sha256": "a863ee0f1e8c539693b935bbae107377fca655bfed9b17d16abafd7211e39797",
+  "certificate_sha256": "62461247f71808fae15f63b8f489b5bf0d820b461b93394a663ec7c6ff29feed",
+  "signing": "Original Morphe key exported locally and reused. No uninstall or clear-data operation.",
+  "modified_original_classes": [
+    "org.ungoogled.ui.SavedPlaces$Front"
+  ],
+  "replaced_apk_entries": [
+    "classes.dex"
+  ],
+  "added_apk_entries": [
+    "classes12.dex"
+  ],
+  "preserved_byte_for_byte": "Manifest, permissions, resources, native libraries, assets and classes2.dex through classes11.dex.",
+  "native_widget": "com.google.android.material.chip.Chip; live category styling and existing Home/Work drawable resources reused.",
+  "shortcut_return": "After a shortcut route has opened, dismiss only its matching coordinate selection with Maps native clear action on returning from directions. Ordinary queries and active route UI are excluded.",
+  "back_fix_rollback_sha256": "f7b9103c93e8c66e42f0e10b5bb04674a6923687ad32120f74c7cc3cc604d8b4",
+  "verification": [
+    "Round-trip disassembly: only lifecycle callback class changed in original dex.",
+    "Emulator: no saved destinations leaves category row unchanged.",
+    "Emulator: Home and Work open the correct public test coordinates through existing routing action.",
+    "Emulator: removing Home removes only that shortcut.",
+    "Emulator: category scrolling and category search remain operational.",
+    "Emulator: shortcuts hide in account sheet, place details and route preview; return to main map.",
+    "Emulator: landscape rotation preserves correct alignment.",
+    "Pixel: in-place update accepted; original first-install timestamp retained.",
+    "Pixel final build: both existing destinations displayed and native cosmetics visually checked.",
+    "Pixel: installed APK SHA-256 equals final local deliverable.",
+    "Back fix: twelve coordinate-ownership checks passed, including rounding, differing coordinates, and non-coordinate text.",
+    "Back fix emulator: right-edge Back from Work directions returns to empty search prompt and shortcut row.",
+    "Back fix emulator: identical coordinates entered via ordinary search remain selected after Back from directions.",
+    "Back fix emulator: navigation starts normally; Back returns to route preview; next Back returns to empty search prompt.",
+    "Compared with previous working native-chip APK: only custom classes12.dex and renewed signature entries differ."
+  ],
+  "limits": [
+    "Pinned to this Maps version. Repatching or upgrading Maps can overwrite this custom addition.",
+    "No ETA inside shortcuts and no persistent saved-place map markers implemented.",
+    "Back behavior was tested using emulator public test destinations. Pixel verification covers in-place installation and installed binary hash.",
+    "Shortcut-return ownership is in memory only and resets if Android kills the app process."
+  ]
+}

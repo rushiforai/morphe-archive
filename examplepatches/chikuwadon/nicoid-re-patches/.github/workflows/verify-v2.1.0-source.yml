@@ -11,6 +11,11 @@ on:
 permissions:
   contents: read
 
+# Interim mitigation for CVE-2026-114938 until patched Temurin 25 is verified.
+# Disables the vulnerable x86-64 Base64 intrinsic for all Java subprocesses.
+env:
+  JAVA_TOOL_OPTIONS: '-XX:-UseBASE64Intrinsics'
+
 jobs:
   verify:
     name: Verify reviewed dev.28 Smali and stable-only version delta
@@ -24,6 +29,9 @@ jobs:
         with:
           distribution: temurin
           java-version: '25'
+          check-latest: true
+      - name: Verify patched Java 25 runtime
+        run: python3 .github/scripts/verify-java25-cspu.py
       - name: Validate approved source and MPP hashes
         run: python3 porting/revisions/v2.1.0-release/verify_dev28.py
       - name: Download SHA-256 pinned Smali toolchain

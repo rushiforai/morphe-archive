@@ -1,0 +1,44 @@
+[
+  {
+    "id": "nhl-default",
+    "name": "Aidan's NHL Rules",
+    "filename": "nhl-default.txt",
+    "url": "https://github.com/ihatenodejs/aidans-patches",
+    "date": "2026-10-18",
+    "sha256": "7f20b009ee25f1dbf44b1974de76eb0da4b499c6fc16250c48a3f227f029690b",
+    "license": "WTFPL",
+    "defaultEnabled": true,
+    "immutable": true
+  },
+  {
+    "id": "easylist",
+    "name": "EasyList",
+    "filename": "easylist.txt",
+    "url": "https://easylist.to/easylist/easylist.txt",
+    "date": "2026-10-18",
+    "license": "GPLv3 / CC BY-SA 3.0",
+    "defaultEnabled": false,
+    "immutable": true
+  },
+  {
+    "id": "easyprivacy",
+    "name": "EasyPrivacy",
+    "filename": "easyprivacy.txt",
+    "url": "https://easylist.to/easylist/easyprivacy.txt",
+    "date": "2026-10-18",
+    "license": "GPLv3 / CC BY-SA 3.0",
+    "defaultEnabled": false,
+    "immutable": true
+  },
+  {
+    "id": "content-script",
+    "name": "AdBlock Content Script",
+    "filename": "content.js",
+    "url": "https://github.com/ihatenodejs/aidans-patches",
+    "date": "2026-10-18",
+    "sha256": "40157d5e13d14df479cfcf8e9201195b322f153b9e1147cbfbcee70fa2f154d0",
+    "license": "MPL-2.0",
+    "defaultEnabled": true,
+    "immutable": true
+  }
+]

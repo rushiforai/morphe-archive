@@ -25,6 +25,11 @@ concurrency:
   group: gradle-dependency-submission-${{ github.ref }}
   cancel-in-progress: true
 
+# Interim mitigation for CVE-2026-114938 until patched Temurin 25 is verified.
+# Disables the vulnerable x86-64 Base64 intrinsic for all Java subprocesses.
+env:
+  JAVA_TOOL_OPTIONS: '-XX:-UseBASE64Intrinsics'
+
 jobs:
   submit:
     name: Generate and submit Gradle dependency graph
@@ -43,6 +48,9 @@ jobs:
         with:
           distribution: temurin
           java-version: '25'
+          check-latest: true
+      - name: Verify patched Java 25 runtime
+        run: python3 .github/scripts/verify-java25-cspu.py
       - name: Use validated Gradle distribution mirror
         shell: bash
         run: |

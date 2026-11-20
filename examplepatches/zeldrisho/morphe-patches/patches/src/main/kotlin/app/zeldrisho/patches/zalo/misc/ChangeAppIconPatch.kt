@@ -3,7 +3,7 @@ package app.zeldrisho.patches.zalo.misc
 import app.morphe.patcher.patch.resourceFile
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.patch.stringOption
-import app.zeldrisho.patches.shared.Constants.COMPATIBILITY_ZALO_261002
+import app.zeldrisho.patches.shared.Constants.COMPATIBILITY_ZALO_STABLE
 import java.io.File
 import java.nio.ByteBuffer
 import java.io.ByteArrayOutputStream
@@ -136,7 +136,7 @@ val changeZaloAppIconPatch = resourcePatch(
     description = "Replaces the launcher icon with a user-supplied PNG.",
     default = false,
 ) {
-    compatibleWith(COMPATIBILITY_ZALO_261002)
+    compatibleWith(COMPATIBILITY_ZALO_STABLE)
     val iconPath by stringOption(
         key = "iconPath", title = "PNG icon path",
         description = "Path accessible to the patcher. Use a square, non-interlaced 48–512 px PNG, at most 1 MiB, with padding for adaptive masking.",

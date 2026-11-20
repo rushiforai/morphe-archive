@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-19.
  * Written by lavinhoque33, 2026-11-18.
  */
 
@@ -29,7 +30,7 @@ public final class OverlayFilterPatch {
     private static final Set<Window> windowsWithSuppressedDim = Collections.newSetFromMap(new WeakHashMap<>());
 
     public static void updateDialogDim(Dialog dialog) {
-        updateWindowDim(dialog.getWindow());
+        if (dialog != null) updateWindowDim(dialog.getWindow());
     }
 
     static void updateWindowDim(Window window) {

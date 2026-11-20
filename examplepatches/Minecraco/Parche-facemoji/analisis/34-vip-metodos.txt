@@ -1,0 +1,96 @@
+4 ficheros DEX, 164880 cadenas distintas
+
+### Lcom/baidu/simeji/coolfont/CoolFontBean;
+    constructor            <init>(Ljava/lang/String; Ljava/lang/String; [Ljava/lang/String; Z Lcom/baidu/simeji/coolfont/a$e; Lcom/baidu/simeji/coolfont/a$c;)V  -> V
+    constructor            <init>(Ljava/lang/String; Ljava/lang/String; [Ljava/lang/String; Z Lcom/baidu/simeji/coolfont/a$e; Lcom/baidu/simeji/coolfont/a$d; Lcom/baidu/simeji/coolfont/a$c;)V  -> V
+    constructor            <init>(Ljava/lang/String; Ljava/lang/String; [Ljava/lang/String; Z Lcom/baidu/simeji/coolfont/a$e; Lcom/baidu/simeji/coolfont/a$d; Ljava/lang/String; Ljava/lang/String; Lcom/baidu/simeji/coolfont/a$c;)V  -> V
+    private                getFontStateAB()Lcom/baidu/simeji/coolfont/a$e;  -> Lcom/baidu/simeji/coolfont/a$e;
+    private                getVipIsUnLock()Ljava/lang/Boolean;  -> Ljava/lang/Boolean;
+    private                getVipLockMap()Ljava/util/HashMap;  -> Ljava/util/HashMap;
+                           getCharArray()[Ljava/lang/String;  -> [Ljava/lang/String;
+    public                 getDisplayString()Ljava/lang/String;  -> Ljava/lang/String;
+    public                 getFontCategory()Lcom/baidu/simeji/coolfont/a$c;  -> Lcom/baidu/simeji/coolfont/a$c;
+    public                 getFontType()Lcom/baidu/simeji/coolfont/a$d;  -> Lcom/baidu/simeji/coolfont/a$d;
+    public                 getFontTypeName()Ljava/lang/String;  -> Ljava/lang/String;
+    public                 getIndex()I  -> I
+                           getLeftText()Ljava/lang/String;  -> Ljava/lang/String;
+    public                 getName()Ljava/lang/String;  -> Ljava/lang/String;
+                           getRightText()Ljava/lang/String;  -> Ljava/lang/String;
+    public                 getSpliceTransformContent(Ljava/lang/String;)Ljava/lang/String;  -> Ljava/lang/String;
+    public                 isDivider()Z  -> Z
+    public                 isExpandView()Z  -> Z
+    public                 isFontLock()Z  -> Z
+    public                 isFontStateLockOrVip()Z  -> Z
+    public                 isLockType()Z  -> Z
+    public                 isRobloxKaomoji()Z  -> Z
+    public                 isSelected()Z  -> Z
+                           isTransformInComposing()Z  -> Z
+    public                 isVip()Z  -> Z
+    public                 isVipUnLockByVideoOrSubscribe()Z  -> Z
+    public                 setFontState(Lcom/baidu/simeji/coolfont/a$e;)V  -> V
+    public                 setIndex(I)V  -> V
+    public                 setSelected(Z)V  -> V
+    public                 unLockVipByVideo()V  -> V
+
+### Lcom/baidu/simeji/inapp/provider/vip/VIPContent;
+    public constructor     <init>(Ljava/lang/String; Ljava/lang/String; Ljava/lang/String;)V  -> V
+    public                 toContentValues()Landroid/content/ContentValues;  -> Landroid/content/ContentValues;
+
+### Lcom/baidu/simeji/skins/content/itemdata/StickerItem;
+    public constructor     <init>()V  -> V
+    public static          createSource(Ljava/lang/String;)Ljava/lang/String;  -> Ljava/lang/String;
+    public                 isSeriesVip()Z  -> Z
+    public                 needUpdateLocal()Z  -> Z
+
+### Lcom/baidu/simeji/sticker/series/SeriesStickerItem;
+    public constructor     <init>()V  -> V
+    public final           getAppVersion()Ljava/lang/String;  -> Ljava/lang/String;
+    public final           getCountry()Ljava/lang/String;  -> Ljava/lang/String;
+    public final           getDesignerImg()Ljava/lang/String;  -> Ljava/lang/String;
+    public final           getDesignerTitle()Ljava/lang/String;  -> Ljava/lang/String;
+    public final           getDownloadType()Ljava/lang/String;  -> Ljava/lang/String;
+    public final           getGpParam()Ljava/lang/String;  -> Ljava/lang/String;
+    public final           getIcon()Ljava/lang/String;  -> Ljava/lang/String;
+    public final           getId()Ljava/lang/String;  -> Ljava/lang/String;
+    public final           getKeyboardPreviewImg()Ljava/lang/String;  -> Ljava/lang/String;
+    public final           getSeriesLabel()Ljava/lang/String;  -> Ljava/lang/String;
+    public final           getType()Ljava/lang/String;  -> Ljava/lang/String;
+    public final           isSeriesVip()Z  -> Z
+    public final           setAppVersion(Ljava/lang/String;)V  -> V
+    public final           setCountry(Ljava/lang/String;)V  -> V
+    public final           setDesignerImg(Ljava/lang/String;)V  -> V
+    public final           setDesignerTitle(Ljava/lang/String;)V  -> V
+    public final           setDownloadType(Ljava/lang/String;)V  -> V
+    public final           setGpParam(Ljava/lang/String;)V  -> V
+    public final           setIcon(Ljava/lang/String;)V  -> V
+    public final           setId(Ljava/lang/String;)V  -> V
+    public final           setKeyboardPreviewImg(Ljava/lang/String;)V  -> V
+    public final           setSeriesLabel(Ljava/lang/String;)V  -> V
+    public final           setType(Ljava/lang/String;)V  -> V
+
+### Lcom/baidu/simeji/subscription/SubscriptionServerInfo;
+    public constructor     <init>()V  -> V
+
+### Lcom/baidu/simeji/inputview/convenient/textbomb/TextBombBean;
+    public constructor     <init>(Ljava/lang/String; Ljava/lang/String; Ljava/lang/String; Ljava/lang/String; Ljava/lang/Integer; Ljava/util/List; Ljava/util/ArrayList; Ljava/lang/Integer; Ljava/lang/Integer; Ljava/lang/String;)V  -> V
+    public synthetic constructor <init>(Ljava/lang/String; Ljava/lang/String; Ljava/lang/String; Ljava/lang/String; Ljava/lang/Integer; Ljava/util/List; Ljava/util/ArrayList; Ljava/lang/Integer; Ljava/lang/Integer; Ljava/lang/String; I Lkotlin/jvm/internal/DefaultConstructorMarker;)V  -> V
+    public                 equals(Ljava/lang/Object;)Z  -> Z
+    public final           getEmoji()Ljava/util/List;  -> Ljava/util/List;
+    public final           getId()Ljava/lang/String;  -> Ljava/lang/String;
+    public final           getLeftIcon()Ljava/lang/String;  -> Ljava/lang/String;
+    public final           getRightIcon()Ljava/lang/String;  -> Ljava/lang/String;
+    public final           getScene()Ljava/lang/String;  -> Ljava/lang/String;
+    public final           getShowOrder()Ljava/lang/Integer;  -> Ljava/lang/Integer;
+    public final           getTextContent()Ljava/lang/String;  -> Ljava/lang/String;
+    public final           getTextList()Ljava/util/ArrayList;  -> Ljava/util/ArrayList;
+    public final           getTitle()Ljava/lang/String;  -> Ljava/lang/String;
+    public final           getVip()Ljava/lang/Integer;  -> Ljava/lang/Integer;
+    public                 hashCode()I  -> I
+    public final           isInOrder()Z  -> Z
+    public final           isNew()Ljava/lang/Integer;  -> Ljava/lang/Integer;
+    public final           isNewType()Z  -> Z
+    public final           isVip()Z  -> Z
+    public final           setId(Ljava/lang/String;)V  -> V
+    public final           setTitle(Ljava/lang/String;)V  -> V
+    public final           setVip(Ljava/lang/Integer;)V  -> V
+

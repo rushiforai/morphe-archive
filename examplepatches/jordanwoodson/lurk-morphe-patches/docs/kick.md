@@ -235,7 +235,7 @@ details and validation follow.
 | Patch | Selected by default | Lurk settings | Behavior |
 | --- | --- | --- | --- |
 | Change app name | No | None (patch time) | Configurable launcher label; default `Kick Lurk`. |
-| Lurk icon | Yes | None (patch time) | Adaptive Lurk icon in Kick green, including themed icon. |
+| Lurk icon | Yes | App icon, Lurk | Adaptive Lurk icon in Kick green, including themed icon. Kick's own icon stays, and the App icon choice switches the launcher to it through two aliases of `MainActivity` ([how it works](rumble.md#app-icon)). |
 | Remove tracking permissions | Yes | None (patch time) | Removes the four verified advertising/referrer permissions. |
 | Clone app | No | None (patch time) | Separate package, permissions and 13 provider authorities; defaults to `com.kick.mobile.lurk`. |
 | Disable analytics | Yes | On; Block device fingerprinting, off | Firebase collection/event bridge, Insider initialization/events/queued jobs, Datadog initialization, Mux/Datazoom and PAL nonce suppression; optionally FingerprintJS Pro. Promise completion is preserved. |
@@ -270,6 +270,7 @@ details and validation follow.
 | Third-party badges | Yes | 7TV badges, off | The 7TV badge each chatter chose, next to their name in live chat. |
 | Chat timestamps | Yes | Off; clock 24-hour | The time next to each chat message, signed out too, as 13:05 or 1:05. |
 | Chat text size | Yes | Kick's size; Compact chat, off | Chat text from 12 to 24 px; less space between messages. |
+| Chat search | Yes | Off | A search button in chat that shows only the messages from or containing what you type. |
 | Chat keywords | Yes | Off; mentions on, vibration off, lists empty | Tints messages that mention you or contain highlight words, optionally vibrating; hides blocked words and users. |
 | Anonymous chat | Yes | Off | The chat page opens without the sign-in token and the account, as when signed out; sending chat messages is refused. |
 | Lurk in account menu | Yes | On, kept while paused (Advanced) | A Lurk row in the account menu (signed in) that opens Lurk settings. |
@@ -555,6 +556,17 @@ minutes were drawn by the page and hidden. Subs, gifts and hosts were rare durin
 those were handed to the page's socket as realtime frames in a test build (see Show deleted
 messages): with the switches on Kick drew each line and it stayed hidden; with them off each
 showed, as in stock.
+
+### Chat search
+
+*Chat search* ([issue #83](https://github.com/jordanwoodson/lurk-morphe-patches/issues/83), off by default) adds a
+search button at the top right of Kick's chat page, from the chat page script (`search` option). It opens a box;
+while the box holds text, only the chat lines (`.message-container`) whose sender (`data-sender-username`, or the
+`.username` text) or text (`data-original-content`, or `.message-content`) contain it, in any case, stay shown, and
+a MutationObserver filters new lines as they arrive. Clearing or closing the box shows every line again. It finds
+only the lines the page still holds, not older chat. `tests/kick/test_chat_page.py` checks the button, word and
+username matches, new lines, the empty box and closing it. Checked on the emulator, signed out, on a channel's Chat
+tab: the button showed above chat, and "pineapple" left only the line containing it.
 
 ### Stay on channel when it hosts
 

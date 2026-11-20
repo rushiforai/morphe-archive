@@ -2617,6 +2617,14 @@ After %1$d seconds	Sau %1$d giây
 # context: Reels: Burn-in guard's switch that keeps the faded buttons faded while you tap
 Stay dim when I tap	Vẫn mờ khi tôi chạm
 Once Burn-in guard fades the buttons, they stay faded on Reels whatever you tap or swipe, the next reel too. They still work. Leaving Reels brings them back.	Khi Chống lưu ảnh màn hình đã làm mờ các nút, chúng vẫn mờ trên Reels dù bạn chạm hay vuốt gì, kể cả ở reel tiếp theo. Các nút vẫn hoạt động. Rời khỏi Reels sẽ hiện lại chúng.
+# context: Reels: Burn-in guard's row for how much of the dimmed buttons, caption and bars still shows, a percent typed in
+Dim to	Làm mờ còn
+How much of the buttons, caption and bars still shows once they dim, in percent, from %1$s to %2$s. Leave it blank for %3$s.	Mức hiển thị còn lại của các nút, chú thích và thanh khi đã mờ, tính theo phần trăm, từ %1$s đến %2$s. Để trống để dùng %3$s.
+Once dimmed, the buttons, caption and bars show at %1$s percent. Type a number to change it.	Khi mờ, các nút, chú thích và thanh hiển thị ở mức %1$s phần trăm. Nhập một số để thay đổi.
+Once dimmed, the buttons, caption and bars show at %1$s percent.	Khi mờ, các nút, chú thích và thanh hiển thị ở mức %1$s phần trăm.
+# context: Reels: Burn-in guard's switch that fades the buttons out and back in slowly instead of at once
+Smooth fade	Mờ dần mượt mà
+The buttons, caption and bars fade out slowly as they dim and fade back in when they return, rather than changing at once.	Các nút, chú thích và thanh sẽ mờ dần và hiện lại từ từ, thay vì thay đổi ngay lập tức.
 # context: Reels: switch that shows the Reels screen and its video in black and white
 Show Reels in gray	Hiện Reels màu xám
 Reels and their buttons show in black and white, which makes them easier to put down. Your feed, stories, photos and chats keep their colors. It starts from the next reel, and Reels use a little more battery.	Reels và các nút của nó hiện đen trắng, giúp bạn dễ dừng xem hơn. Bảng tin, tin, ảnh và đoạn chat vẫn giữ màu. Bắt đầu từ reel tiếp theo, và Reels tốn pin hơn một chút.
@@ -3017,3 +3025,45 @@ A reel you take out of Clean mode will go back into it when the comments or a me
 A reel you take out of Clean mode will go back into it after %1$d seconds without a touch.	Reel bạn đưa ra khỏi Chế độ gọn gàng sẽ quay lại chế độ đó sau %1$d giây không chạm.
 Hide New for you on reels	Ẩn "Mới cho bạn" trên reel
 Takes "New for you", and other reasons Facebook gives for showing you a reel, off the line under its author, so the date and the song show right away. A change shows from the next reel.	Bỏ "Mới cho bạn" và các lý do khác Facebook đưa ra khi cho bạn xem một reel khỏi dòng dưới tên người đăng, để ngày đăng và bài hát hiện ngay. Thay đổi có hiệu lực từ reel tiếp theo.
+# context: switch title under Comments and writing; it turns Facebook's own comment translation on for every comment as it loads
+Translate every comment	Dịch mọi bình luận
+# context: description of that switch; See translation is the name of Facebook's own link under a comment that translates it on request
+Comments in another language show Facebook's translation as they load, as if you'd tapped See translation on each one.	Bình luận bằng ngôn ngữ khác hiển thị bản dịch của Facebook ngay khi tải, như thể bạn đã nhấn Xem bản dịch trên từng bình luận.
+# context: switch title under Downloads; holding a finger on a photo opened full screen from a Marketplace listing saves that photo to the phone
+Long press to save Marketplace photos	Nhấn giữ để lưu ảnh Marketplace
+# context: description of that switch; Save any photo is the title of the Downloads switch it needs, Marketplace is Facebook's buy-and-sell section
+With Save any photo on, a long press on a photo you open from a Marketplace listing saves it.	Khi bật Lưu mọi ảnh, nhấn giữ một ảnh bạn mở từ bài niêm yết trên Marketplace sẽ lưu ảnh đó.
+# context: the eight switches under Hide posts with words you choose and Hide link posts that pick where each hides; Home, the Reels tab, the Groups tab and Pages are Facebook's own names for them
+Your words on Home	Từ của bạn trên Trang chủ
+Your words on the Reels tab	Từ của bạn trong tab Reels
+Your words in groups	Từ của bạn trong nhóm
+Your words on profiles and Pages	Từ của bạn trên trang cá nhân và Trang
+Link posts on Home	Bài viết có liên kết trên Trang chủ
+Link reels on the Reels tab	Reel có liên kết trong tab Reels
+Link posts in groups	Bài viết có liên kết trong nhóm
+Link posts on profiles and Pages	Bài viết có liên kết trên trang cá nhân và Trang
+Posts on Home, the feed Facebook opens on.	Bài viết trên Trang chủ, bảng feed Facebook mở ra đầu tiên.
+Reels on the Reels tab, going by their captions.	Reel trong tab Reels, theo chú thích.
+Posts in a group's feed, on the Groups tab and in a member's posts in a group. Posts waiting for an admin stay.	Bài viết trong bảng feed của nhóm, trong tab Nhóm và trong bài viết của một thành viên trong nhóm. Bài viết đang chờ quản trị viên vẫn ở lại.
+Posts on people's profiles and on Pages.	Bài viết trên trang cá nhân của mọi người và trên Trang.
+# context: the search results switches under Hide posts with words you choose and Hide link posts, which start off; search results is Facebook's own name for the page a search opens
+Your words in search results	Từ của bạn trong kết quả tìm kiếm
+Link posts in search results	Bài viết có liên kết trong kết quả tìm kiếm
+Posts in search results. Off to begin with, so what you search for still shows.	Bài viết trong kết quả tìm kiếm. Mặc định tắt, để những gì bạn tìm vẫn hiện ra.
+# context: title of the list under Video quality that picks how much of a video loads before it starts and while it plays
+Video buffer	Bộ đệm video
+# context: the three sizes in the Video buffer list, from the least loaded ahead to the most
+Low	Thấp
+Medium	Trung bình
+Maximum	Tối đa
+# context: the line under Video buffer for each size, and for Facebook's choice
+Videos start once half a second has loaded, and load less ahead.	Video bắt đầu khi đã tải được nửa giây, và tải trước ít hơn.
+Videos wait for 1.5 seconds to load before they start, and load more ahead.	Video chờ tải 1,5 giây rồi mới bắt đầu, và tải trước nhiều hơn.
+Videos wait for 3 seconds to load before they start, and load up to a minute ahead.	Video chờ tải 3 giây rồi mới bắt đầu, và tải trước tối đa một phút.
+Facebook decides how much of a video loads before and while it plays.	Facebook quyết định tải bao nhiêu phần của video trước và trong khi phát.
+# context: what importing a settings file will do to the Video buffer list; %1$s is Low, Medium or Maximum
+Facebook will decide how much of a video loads.	Facebook sẽ quyết định tải bao nhiêu phần của video.
+Video buffer will be set to %1$s.	Bộ đệm video sẽ được đặt thành %1$s.
+Recently watched in the Menu	Đã xem gần đây trong Menu
+Adds a Recently watched row at the end of Settings and privacy in Facebook's Menu. It opens the list that Remember what you watch keeps.	Thêm dòng Đã xem gần đây vào cuối Cài đặt & quyền riêng tư trong Menu của Facebook. Dòng này mở danh sách mà Ghi nhớ những gì bạn xem lưu lại.
+Recently watched can't open here.	Không thể mở Đã xem gần đây ở đây.

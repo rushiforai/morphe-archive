@@ -1,15 +1,24 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-19.
  * Written by lavinhoque33, 2026-11-18.
  */
 
 package app.morphe.extension.youtube.patches.general;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
+import static app.morphe.extension.youtube.settings.Settings.SnackBarBorderPreset.CHIP;
+import static app.morphe.extension.youtube.settings.Settings.SnackBarBorderPreset.CUSTOM;
 
+import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.pm.PackageInfo;
 import android.content.res.Resources;
+import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -23,11 +32,14 @@ import org.robolectric.Shadows;
 import org.robolectric.annotation.Config;
 import org.robolectric.annotation.GraphicsMode;
 
+import app.morphe.extension.shared.settings.Setting;
 import app.morphe.extension.shared.utils.Utils;
 import app.morphe.extension.youtube.settings.Settings;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(manifest = Config.NONE, sdk = 28)
+// Export uses the process-wide settings registry. Give this YouTube suite its own app class loader.
+@Config(manifest = Config.NONE, sdk = 28,
+        instrumentedPackages = "app.morphe.extension.youtube.patches.general.SnackBarDrawableTest")
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class SnackBarDrawableTest {
     private Resources resources;
@@ -48,6 +60,7 @@ public class SnackBarDrawableTest {
         Settings.SNACK_BAR_CORNER_RADIUS.resetToDefault();
         Settings.SNACK_BAR_LIGHT_FILL.resetToDefault();
         Settings.SNACK_BAR_DARK_FILL.resetToDefault();
+        Settings.SNACK_BAR_BORDER_PRESET.resetToDefault();
         Settings.SNACK_BAR_STROKE_COLOR.resetToDefault();
         Settings.SNACK_BAR_STROKE_WIDTH.resetToDefault();
         Settings.SNACK_BAR_PLAYLIST_RADIUS.resetToDefault();
@@ -94,6 +107,71 @@ public class SnackBarDrawableTest {
     }
 
     @Test
+    public void chipUsesEachResolvedThemeAndReappliesWhenTheThemeIsInverted() {
+        exposeThemeTestAttribute();
+        Resources.Theme darkTheme = theme(android.R.style.Theme_Material);
+        Resources.Theme lightTheme = theme(android.R.style.Theme_Material_Light);
+        int darkChip = themeColor(darkTheme);
+        int lightChip = themeColor(lightTheme);
+        assertNotEquals(darkChip, lightChip);
+
+        SnackBarDrawable inDarkTheme = shape(new SnackBarDrawable(), 8, 0xFFF1F1F1);
+        SnackBarDrawable inLightTheme = shape(new SnackBarDrawable(), 8, 0xFF0F0F0F);
+        inDarkTheme.captureBase(resources, darkTheme);
+        inLightTheme.captureBase(resources, lightTheme);
+
+        Settings.SNACK_BAR_LIGHT_FILL.save("#F5D7A3");
+        Settings.SNACK_BAR_DARK_FILL.save("#32195A");
+        Settings.SNACK_BAR_STROKE_WIDTH.save(4f);
+        Settings.SNACK_BAR_BORDER_PRESET.save(CHIP);
+        assertEquals(darkChip, draw(inDarkTheme).getPixel(32, 1));
+        assertEquals(lightChip, draw(inLightTheme).getPixel(32, 1));
+        assertEquals(0xFFF5D7A3, draw(inDarkTheme).getPixel(32, 32));
+        assertEquals(0xFF32195A, draw(inLightTheme).getPixel(32, 32));
+
+        // Inversion supplies the opposite theme to the drawable, not a transformed color.
+        inDarkTheme.applyTheme(lightTheme);
+        inLightTheme.applyTheme(darkTheme);
+        assertEquals(lightChip, draw(inDarkTheme).getPixel(32, 1));
+        assertEquals(darkChip, draw(inLightTheme).getPixel(32, 1));
+    }
+
+    @Test
+    public void chipAndCustomRoundTripSeparatelyAndZeroWidthHidesEither() {
+        exposeThemeTestAttribute();
+        Resources.Theme theme = theme(android.R.style.Theme_Material);
+        SnackBarDrawable drawable = shape(new SnackBarDrawable(), 8, 0xFFF1F1F1);
+        drawable.captureBase(resources, theme);
+        Settings.SNACK_BAR_LIGHT_FILL.save("#00000000");
+        Settings.SNACK_BAR_STROKE_COLOR.save("#8000FF00");
+        Settings.SNACK_BAR_STROKE_WIDTH.save(4f);
+
+        assertEquals(CUSTOM, Settings.SNACK_BAR_BORDER_PRESET.get());
+        assertEquals(0x8000FF00, draw(drawable).getPixel(32, 1));
+
+        Settings.SNACK_BAR_BORDER_PRESET.save(CHIP);
+        assertFalse(Settings.SNACK_BAR_STROKE_COLOR.isAvailable());
+        assertEquals(themeColor(theme), draw(drawable).getPixel(32, 1));
+        Context app = RuntimeEnvironment.getApplication();
+        String exported = Setting.exportToJson(app);
+
+        Settings.SNACK_BAR_BORDER_PRESET.resetToDefault();
+        assertTrue(Settings.SNACK_BAR_STROKE_COLOR.isAvailable());
+        assertEquals(0x8000FF00, draw(drawable).getPixel(32, 1));
+        Settings.SNACK_BAR_STROKE_COLOR.resetToDefault();
+
+        assertFalse(Setting.importFromJSON(app, exported));
+        assertEquals(CHIP, Settings.SNACK_BAR_BORDER_PRESET.get());
+        assertEquals("#8000FF00", Settings.SNACK_BAR_STROKE_COLOR.get());
+        assertEquals(themeColor(theme), draw(drawable).getPixel(32, 1));
+
+        Settings.SNACK_BAR_STROKE_WIDTH.resetToDefault();
+        assertEquals(Color.TRANSPARENT, draw(drawable).getPixel(32, 1));
+        Settings.SNACK_BAR_BORDER_PRESET.resetToDefault();
+        assertEquals(Color.TRANSPARENT, draw(drawable).getPixel(32, 1));
+    }
+
+    @Test
     public void playlistReusesOnlyRadiusAndRestoresItsOwnRadius() {
         SnackBarDrawable playlist = shape(new SnackBarDrawable.Playlist(), 16, Color.RED);
         SnackBarDrawable picker = shape(new SnackBarDrawable.RadiusOnly(), 8, Color.BLUE);
@@ -111,6 +189,42 @@ public class SnackBarDrawableTest {
         Settings.SNACK_BAR_PLAYLIST_RADIUS.save(false);
         draw(playlist);
         assertEquals(16f * density, playlist.getCornerRadius(), 0f);
+    }
+
+    private static final int TEST_CHIP_ATTRIBUTE = android.R.attr.textColorPrimary;
+
+    @SuppressWarnings("deprecation")
+    private void exposeThemeTestAttribute() {
+        // Map YouTube's private attribute to a real framework color role in the SDK test resources.
+        Resources indexed = new Resources(resources.getAssets(), resources.getDisplayMetrics(),
+                resources.getConfiguration()) {
+            @Override
+            public int getIdentifier(String name, String defType, String defPackage) {
+                return "ytChipBackground".equals(name) && "attr".equals(defType)
+                        ? TEST_CHIP_ATTRIBUTE : super.getIdentifier(name, defType, defPackage);
+            }
+        };
+        Utils.setContext(new ContextWrapper(RuntimeEnvironment.getApplication()) {
+            @Override
+            public Resources getResources() {
+                return indexed;
+            }
+        });
+    }
+
+    private Resources.Theme theme(int style) {
+        Resources.Theme theme = resources.newTheme();
+        theme.applyStyle(style, true);
+        return theme;
+    }
+
+    private static int themeColor(Resources.Theme theme) {
+        TypedArray values = theme.obtainStyledAttributes(new int[]{ TEST_CHIP_ATTRIBUTE });
+        try {
+            return values.getColor(0, Color.TRANSPARENT);
+        } finally {
+            values.recycle();
+        }
     }
 
     private SnackBarDrawable shape(SnackBarDrawable drawable, int radiusDp, int color) {

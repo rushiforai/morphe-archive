@@ -15,6 +15,7 @@ import java.util.concurrent.*;
 /** Refresh registrations alongside the four stock history tabs. */
 public final class RefreshTargetHistory {
     static final String VISIBLE_KEY="showRefreshTargetsInHistoryPopup";
+    private static final String SELECTED_TAB_KEY="historyPopupSelectedTab";
     static boolean enabled(Context context){return RefreshTargets.prefs(context).getBoolean(VISIBLE_KEY,false);}
     private static final int TAG=0x48690e11;
     private static final ExecutorService IO=Executors.newSingleThreadExecutor();
@@ -110,6 +111,7 @@ public final class RefreshTargetHistory {
                         int tab = nativeTab == 0 ? 0 : Math.max(2, Math.min(4, nativeTab + 1));
                         if (selected != tab) {
                             selected = tab;
+                            rememberSelected();
                             updateSelection();
                         }
                     } catch (Exception unavailable) {
@@ -120,7 +122,10 @@ public final class RefreshTargetHistory {
                 return true;
             });
             int nativeSelected=((Number)read.invoke(flow)).intValue();
-            selected=nativeSelected==0?0:Math.max(2,Math.min(4,nativeSelected+1));
+            int fromNative=nativeSelected==0?0:Math.max(2,Math.min(4,nativeSelected+1));
+            int remembered=RefreshTargets.prefs(context).getInt(SELECTED_TAB_KEY,-1);
+            selected=remembered>=0&&remembered<buttons.length&&(remembered!=1||enabled(context))
+                    ?remembered:fromNative;
 
         }
         void restore(){
@@ -163,7 +168,7 @@ public final class RefreshTargetHistory {
                 catch(Exception error){android.util.Log.w("Haiagaru","Native history adapter restore unavailable",error);}
                 targetBinding=null;
             }
-            selected=tab;int request=++generation;
+            selected=tab;rememberSelected();int request=++generation;
             updateSelection();
             nativeContent.setVisibility(tab==1&&standardTabs==null?View.GONE:View.VISIBLE);
             status.setVisibility(View.GONE);
@@ -195,6 +200,10 @@ public final class RefreshTargetHistory {
                     });
                 }catch(Exception error){root.post(()->{if(generation==request){status.setText("更新対象の一覧を読み込めませんでした");status.setVisibility(View.VISIBLE);}});android.util.Log.w("Haiagaru","Refresh history unavailable",error);}
             });
+        }
+        void rememberSelected(){
+            try{RefreshTargets.prefs(root.getContext()).edit().putInt(SELECTED_TAB_KEY,selected).apply();}
+            catch(RuntimeException error){android.util.Log.w("Haiagaru","Unable to remember history popup tab",error);}
         }
     }
     static int adjacentTab(int selected, boolean forward, boolean targetsEnabled) {

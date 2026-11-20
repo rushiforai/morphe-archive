@@ -12,6 +12,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableStringReference
 import io.github.jordanwoodson.patches.shared.settings.Section
 import io.github.jordanwoodson.patches.shared.settings.SwitchSetting
+import io.github.jordanwoodson.patches.shared.settings.TextSetting
 import io.github.jordanwoodson.patches.twitch.settings.twitchSettings
 import io.github.jordanwoodson.patches.twitch.settings.twitchSettingsPatch
 import io.github.jordanwoodson.patches.shared.invokeStatic
@@ -22,20 +23,22 @@ import org.w3c.dom.Element
 import java.net.URI
 
 private const val KEY = "playlist_proxy"
+private const val PROXY_URL = "playlist_proxy_url"
 
 @Suppress("unused")
 val playlistProxyPatch = bytecodePatch(
     name = "Playlist proxy",
-    description = "Sends live stream playlist requests to a proxy server you set in this patch's options, for " +
-        "example one that returns playlists without stitched ads. The proxy sees which channel you watch and " +
+    description = "Sends live stream playlist requests to a proxy server you set in this patch's options or later " +
+        "in Lurk settings, for example one that returns playlists without stitched ads. The proxy sees which channel you watch and " +
         "when. With {channel}, only the lowercase channel name is forwarded; the original signed query is " +
         "omitted. Without {channel}, the proxy gets the full request, including your signed playback token, " +
         "which identifies your account. The token is in the request's address (its query, or with {url} the whole " +
         "Twitch URL), so the proxy's access logs can keep it. The proxy decides what the player plays and can add segments of " +
         "its own: only use a proxy you trust. " +
         "An http:// proxy gets an exception from Twitch's HTTPS-only rule for its host alone, and the request " +
-        "travels unencrypted. Does nothing while the proxy URL is empty; once it's set, the patch's switch " +
-        "starts on (Lurk settings > Playback). Videos and clips are not proxied. " +
+        "travels unencrypted; a URL typed in Lurk settings must be https:// or use that host. Does nothing while " +
+        "no proxy URL is set; with one set in the options, the patch's switch starts on (Lurk settings > Playback). " +
+        "Videos and clips are not proxied. " +
         "Avoid stitched ads leaves proxied streams alone: the proxy decides what their playlists hold.",
     default = false,
 ) {
@@ -78,16 +81,16 @@ val playlistProxyPatch = bytecodePatch(
 
     execute {
         val proxy = proxyUrl?.trim().orEmpty()
-        if (proxy.isEmpty()) return@execute
-        proxyProblem(proxy)?.let { throw PatchException("Playlist proxy: $it") }
-
-        // The extension reads the proxy from a stub that returns null.
-        ProxyTemplateFingerprint.twitchMatch("playlist proxy template stub").method.apply {
-            val first = implementation!!.instructions.firstOrNull()
-            if (first?.opcode != Opcode.CONST_4 || implementation!!.registerCount != 1) {
-                throw PatchException("Twitch: unexpected playlist proxy stub")
+        if (proxy.isNotEmpty()) {
+            proxyProblem(proxy)?.let { throw PatchException("Playlist proxy: $it") }
+            // The extension reads the option's proxy from a stub that returns null.
+            ProxyTemplateFingerprint.twitchMatch("playlist proxy template stub").method.apply {
+                val first = implementation!!.instructions.firstOrNull()
+                if (first?.opcode != Opcode.CONST_4 || implementation!!.registerCount != 1) {
+                    throw PatchException("Twitch: unexpected playlist proxy stub")
+                }
+                replaceInstruction(0, BuilderInstruction21c(Opcode.CONST_STRING, 0, ImmutableStringReference(proxy)))
             }
-            replaceInstruction(0, BuilderInstruction21c(Opcode.CONST_STRING, 0, ImmutableStringReference(proxy)))
         }
 
         // Native players (live, picture-by-picture and vertical): the finished usher URL, returned
@@ -119,15 +122,16 @@ val playlistProxyPatch = bytecodePatch(
             move-result-object p2
         """)
 
-        val host = proxyUri(proxy).host
-        val requestSummary = if (proxy.contains("{channel}")) {
-            "Only the channel name is forwarded; Twitch's signed query is omitted. "
-        } else {
-            "The proxy receives your signed playback token. "
-        }
-        twitchSettings.add(SwitchSetting(KEY, "Playlist proxy",
-            "Load live playlists through $host, which sees what you watch and decides what plays. " +
-                requestSummary + "On once a proxy is set.", Section.PLAYBACK))
+        // The URL can also be typed (or changed) in Lurk settings later: https://, or http:// to the option's host.
+        twitchSettings.add(
+            SwitchSetting(KEY, "Playlist proxy",
+                "Load live playlists through the proxy below, which sees what you watch and decides what plays. With " +
+                    "{channel} only the channel name is forwarded; otherwise the proxy receives your signed playback " +
+                    "token. Only use a proxy you trust.", Section.PLAYBACK, default = proxy.isNotEmpty()),
+            TextSetting(PROXY_URL, "Proxy URL",
+                "https:// URL. {channel} for the lowercase channel name, {url} for the full Twitch playlist URL, or " +
+                    "neither to take the place of usher.ttvnw.net.", Section.PLAYBACK, default = proxy, parent = KEY),
+        )
     }
 }
 

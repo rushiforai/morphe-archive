@@ -12,6 +12,7 @@
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  *
  * Modified by lavinhoque33, 2026-11-13
+ * Modified by lavinhoque33, 2026-11-19.
  */
 
 package app.morphe.extension.shared.spoof;
@@ -71,6 +72,11 @@ public class SpoofVideoStreamsPatch {
             String urlClient = uri.getQueryParameter("c");
             MediaHttpRequest requestToStart = request;
             byte[] body = request.patch_getBody();
+            if (ClientType.MWEB.clientName.equals(urlClient)) {
+                // Never write website session payloads to the general SABR debug logger.
+                return body == null ? request : MwebStream.onMediaRequest(request, uri, body, callbacks);
+            }
+
             // The other TV clients that use SABR are the same client on another device.
             if (body != null && ClientType.TV_SABR.clientName.equals(urlClient)) {
                 byte[] clientInfo = SabrRequestBody.buildClientInfo(ClientType.TV_SABR, getLocaleOverride());
@@ -96,6 +102,7 @@ public class SpoofVideoStreamsPatch {
             return;
         }
         try {
+            MwebStream.onMediaResponseChunk(callbacks, chunk);
             SabrMediaLogger.onResponseChunk(callbacks, chunk);
         } catch (Exception ex) {
             Logger.printException(() -> "onMediaResponseChunk failure", ex);
@@ -173,20 +180,24 @@ public class SpoofVideoStreamsPatch {
     }
 
     public static void setClientsToUse(List<ClientType> availableClients, ClientType client) {
-        preferredClient = Objects.requireNonNull(client);
+        ClientType selected = MwebSiteSession.selectAvailable(Objects.requireNonNull(client), ClientType.VISIONOS_1_02);
+        preferredClient = selected;
 
         if (SPOOF_VIDEO_STREAMS) {
-            StreamOrDetailsDataRequest.setClientOrderToUse(availableClients, client);
+            StreamOrDetailsDataRequest.setClientOrderToUse(availableClients, selected);
+
+            // Mobile Web does not read or persist a visitor ID in the shared requester.
+            if (selected == ClientType.MWEB) return;
 
             // Startup can precede network readiness. Playback retries and reports genuine failures.
             Utils.runOnBackgroundThread(() -> {
                 if (!Utils.isNetworkConnected()) return;
-                if (client.supportsOAuth2 && client.requireLogin
+                if (selected.supportsOAuth2 && selected.requireLogin
                         && !Utils.isNotEmpty(OAuth2Requester.getAndUpdateAccessTokenIfNeeded(false))) {
                     return;
                 }
 
-                VisitorIdRequester.getVisitorId(client);
+                VisitorIdRequester.getVisitorId(selected);
             });
         }
     }

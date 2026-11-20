@@ -1,0 +1,39 @@
+{
+  "note": "bearinmind extension members Tutto's patches call. Keep in sync with checkBindings and the finalize blocks in morphe/TuttoEnhancements.kt. Checked daily by .github/workflows/bearinmind-watch.yml (tools/check-upstream.py).",
+  "fields": [
+    "Lorg/ungoogled/ui/SavedStore;->home:Lorg/ungoogled/ui/SavedStore$Place;",
+    "Lorg/ungoogled/ui/SavedStore;->work:Lorg/ungoogled/ui/SavedStore$Place;",
+    "Lorg/ungoogled/ui/SavedStore;->labels:Ljava/util/Map;",
+    "Lorg/ungoogled/ui/SavedStore;->lists:Ljava/util/Map;",
+    "Lorg/ungoogled/ui/SavedStore;->places:Ljava/util/Map;",
+    "Lorg/ungoogled/ui/SavedStore$Place;->lat:D",
+    "Lorg/ungoogled/ui/SavedStore$Place;->lng:D",
+    "Lorg/ungoogled/ui/SavedStore$Place;->name:Ljava/lang/String;",
+    "Lorg/ungoogled/ui/SavedStore$Place;->ftid:Ljava/lang/String;",
+    "Lorg/ungoogled/ui/SavedStore$Place;->note:Ljava/lang/String;",
+    "Lorg/ungoogled/ui/SavedStore$Place;->category:Ljava/lang/String;",
+    "Lorg/ungoogled/ui/SavedStore$Place;->lists:Ljava/util/Set;",
+    "Lorg/ungoogled/ui/HistoryStore$Entry;->ftid:Ljava/lang/String;",
+    "Lorg/ungoogled/ui/HistoryStore$Entry;->name:Ljava/lang/String;",
+    "Lorg/ungoogled/ui/HistoryStore$Entry;->category:Ljava/lang/String;",
+    "Lorg/ungoogled/ui/HistoryStore$Entry;->lat:D",
+    "Lorg/ungoogled/ui/HistoryStore$Entry;->lng:D"
+  ],
+  "methods": [
+    "Lorg/ungoogled/ui/SavedStore;->load(Landroid/content/Context;)V",
+    "Lorg/ungoogled/ui/SavedStore;->labelled(Ljava/lang/String;)Lorg/ungoogled/ui/SavedStore$Place;",
+    "Lorg/ungoogled/ui/SavedStore$Place;-><init>()V",
+    "Lorg/ungoogled/ui/SavedStore$Place;->located()Z",
+    "Lorg/ungoogled/ui/SavedPlaces;->save(Ljava/lang/Object;Ljava/lang/String;Ljava/lang/Object;Ljava/lang/Object;)V",
+    "Lorg/ungoogled/ui/SavedPlaces;->directions(Landroid/content/Context;Lorg/ungoogled/ui/SavedStore$Place;)V",
+    "Lorg/ungoogled/ui/SavedPlaces;->searchLabel(Ljava/lang/String;)Z",
+    "Lorg/ungoogled/ui/SavedPlaces;->labelWaypoint(Ljava/lang/Object;Ljava/lang/String;)V",
+    "Lorg/ungoogled/ui/SavedPlaces$Front;->onActivityResumed(Landroid/app/Activity;)V",
+    "Lorg/ungoogled/ui/SavedPlaces$Front;->onActivityPaused(Landroid/app/Activity;)V",
+    "Lorg/ungoogled/ui/SavedPlaces$Front;->onActivityDestroyed(Landroid/app/Activity;)V",
+    "Lorg/ungoogled/ui/HistoryStore;->enabled(Landroid/content/Context;)Z",
+    "Lorg/ungoogled/ui/HistoryStore;->load(Landroid/content/Context;)V",
+    "Lorg/ungoogled/ui/HistoryStore;->newestFirst()Ljava/util/List;"
+  ],
+  "overlap_keywords": ["home", "work", "label", "suggest", "shortcut", "chip", "search", "backup"]
+}

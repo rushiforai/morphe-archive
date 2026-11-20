@@ -228,3 +228,19 @@ file first, then ask for a fresh debug log ([DEBUG_LOG.md](DEBUG_LOG.md)).
 - The Reels tab of the profile is **not** tapped yet: the tabs row moves with the profile's layout and sits next to the Follow and Message
   buttons (105 px above it), so a blind tap could follow the creator. After the redirect the log writes every list on screen with its item
   texts (`profile` tag, 2.5 s later); the tab's position has to come from that.
+
+## 12. Multi-photo posts lose their photos (issue #29, log 2026-11-20, build 536.0.0.11.107)
+
+- Report: after opening a post with several photos, the other photos vanish and one stays.
+- Cause: the group rule of `SponsoredPosts` (tappable + tappable flag + references on a child of container 30001 = sponsored header, hide
+  the whole group) also matches the **per-photo action rows** of a multi-photo post: 7 nodes (12 with a count), `A2X=6 A2k=2 A0M=2`,
+  texts only icon glyphs (`\ue029` to `\ue02b`, like/comment/share) and a digit. Each photo and its action row share one group id
+  (groups 64 to 67 and 110 to 112 in the log, one per photo), so hiding the row hid the photo too. The log shows them as
+  `FEED HIDDEN by rule, but no label found`, `treeHidden=true`, `h=0`.
+- Real ad headers in the same log: 14 to 17 nodes, `A2X=10 A2k=7 A0M=7`, texts advertiser name + `Ad` + icon glyphs. Note `sponsoredLabel` is
+  false for them because the label text is `Ad` followed by icon glyphs, so the label rule alone never catches the feed ad.
+- Fix: the group rule also needs a text with at least two letters in the header's subtree (`AdTrace.hasNameText`). Action rows never have one.
+  Only a positive result is cached.
+- To verify: open a multi-photo post, go back, open it again; the photos stay. `FEED HIDDEN by rule` lines must no longer list nodes=7/12
+  icon-only rows. Feed ads must still be hidden (look for `HIDDEN by rule` with a header that has a name).
+

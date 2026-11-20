@@ -224,6 +224,44 @@ final class AdTrace {
         return found;
     }
 
+    private static final WeakHashMap<Object, Boolean> NAMED = new WeakHashMap<>();
+
+    /**
+     * True when the subtree has a text with at least two letters, such as an advertiser name or the "Ad" label.
+     * A sponsored header always has one. The per-photo action rows of a multi-photo post (like, comment and share
+     * icons, plus a count such as "1" or "2") are tappable and carry references like a header does, but their texts
+     * are private-use icon glyphs and digits, so they never pass. Only a positive result is cached: a node can be
+     * checked before its texts are bound.
+     *
+     * How to find this again in a new build: debug log, open a multi-photo post, read the "FEED HIDDEN by rule"
+     * lines of container 30001 (children with 7 or 12 nodes, A2X=6 A2k=2 A0M=2, texts of icon glyphs only) and
+     * compare with a real ad header in the PAGER dump (14 to 17 nodes, A2X=10 A2k=7 A0M=7, a name and "Ad").
+     */
+    static boolean hasNameText(Object node) {
+        if (NAMED.get(node) != null) return true;
+        boolean found = false;
+        try {
+            if (ensure()) found = nameText(node, 0, new int[] {0});
+        } catch (Throwable ignored) {
+        }
+        if (found) NAMED.put(node, Boolean.TRUE);
+        return found;
+    }
+
+    private static boolean nameText(Object node, int depth, int[] visited) {
+        if (node == null || depth > 40 || ++visited[0] > 400) return false;
+        String text = textOf(node);
+        if (text != null && !text.isEmpty()) {
+            int letters = 0;
+            String t = clean(text);
+            for (int i = 0; i < t.length(); i++) {
+                if (Character.isLetter(t.charAt(i)) && ++letters >= 2) return true;
+            }
+        }
+        for (Object child : children(node)) if (nameText(child, depth + 1, visited)) return true;
+        return false;
+    }
+
     /** One line about a subtree: counts of the rule's markers and its text. */
     static String describe(Object node) {
         try {
@@ -320,7 +358,8 @@ final class AdTrace {
     private static boolean matchesFeedRule(Object node, int depth) throws Exception {
         if (node == null || depth > 30) return false;
         if (container.isInstance(node) && component.isInstance(node)
-                && (Integer) fGroup.get(node) != 0 && (Boolean) fA2X.get(node) && (Boolean) fA2k.get(node) && fRefs.get(node) != null) {
+                && (Integer) fGroup.get(node) != 0 && (Boolean) fA2X.get(node) && (Boolean) fA2k.get(node) && fRefs.get(node) != null
+                && hasNameText(node)) {
             return true;
         }
         for (Object child : children(node)) if (matchesFeedRule(child, depth + 1)) return true;

@@ -1,3 +1,50 @@
+## [1.14.0](https://github.com/zeldrisho/morphe-patches/compare/v1.13.0...v1.14.0) (2026-11-20)
+
+### 🐛 Bug Fixes
+
+* align README generation with Morphe template ([23b736d](https://github.com/zeldrisho/morphe-patches/commit/23b736dc2698dbe1aeeaf46259509995bb670eeb))
+* **patches:** enforce patch names and descriptions ([8c62cc4](https://github.com/zeldrisho/morphe-patches/commit/8c62cc4a57a9fd6eebe237903b4e9e85206bbb23))
+* **readme:** match Morphe template layout ([8b7cc43](https://github.com/zeldrisho/morphe-patches/commit/8b7cc43d258e3ebff508ca6642999142083eb779))
+* **repo:** address review findings ([5325e57](https://github.com/zeldrisho/morphe-patches/commit/5325e579b36074d752a248eb4691b22885bab0a3))
+* **zalo:** hide audio settings rows ([bf34c17](https://github.com/zeldrisho/morphe-patches/commit/bf34c17bc026819bdb5672aa0e8070fc7005dfbf))
+
+### ✨ New Features
+
+* **ci:** enable issue triage features ([1600bed](https://github.com/zeldrisho/morphe-patches/commit/1600bed38cf501c9f7a9e88064cd65e7dcc8d68d))
+* **zalo:** default links to external browser ([fb3d2a2](https://github.com/zeldrisho/morphe-patches/commit/fb3d2a2e580ec678ea3bc376adc6816ae26e8724))
+* **zalo:** support Zalo 26.11.01 patches ([505023e](https://github.com/zeldrisho/morphe-patches/commit/505023e99b26d411fb7adbef20c8cd749f64b75b))
+
+## [1.14.0-dev.3](https://github.com/zeldrisho/morphe-patches/compare/v1.14.0-dev.2...v1.14.0-dev.3) (2026-11-20)
+
+### 🐛 Bug Fixes
+
+* **repo:** address review findings ([5325e57](https://github.com/zeldrisho/morphe-patches/commit/5325e579b36074d752a248eb4691b22885bab0a3))
+
+## [1.14.0-dev.2](https://github.com/zeldrisho/morphe-patches/compare/v1.14.0-dev.1...v1.14.0-dev.2) (2026-11-20)
+
+### 🐛 Bug Fixes
+
+* **zalo:** hide audio settings rows ([bf34c17](https://github.com/zeldrisho/morphe-patches/commit/bf34c17bc026819bdb5672aa0e8070fc7005dfbf))
+
+### ✨ New Features
+
+* **ci:** enable issue triage features ([1600bed](https://github.com/zeldrisho/morphe-patches/commit/1600bed38cf501c9f7a9e88064cd65e7dcc8d68d))
+* **zalo:** default links to external browser ([fb3d2a2](https://github.com/zeldrisho/morphe-patches/commit/fb3d2a2e580ec678ea3bc376adc6816ae26e8724))
+
+## [1.14.0-dev.1](https://github.com/zeldrisho/morphe-patches/compare/v1.13.1-dev.1...v1.14.0-dev.1) (2026-11-19)
+
+### ✨ New Features
+
+* **zalo:** support Zalo 26.11.01 patches ([505023e](https://github.com/zeldrisho/morphe-patches/commit/505023e99b26d411fb7adbef20c8cd749f64b75b))
+
+## [1.13.1-dev.1](https://github.com/zeldrisho/morphe-patches/compare/v1.13.0...v1.13.1-dev.1) (2026-11-18)
+
+### 🐛 Bug Fixes
+
+* align README generation with Morphe template ([23b736d](https://github.com/zeldrisho/morphe-patches/commit/23b736dc2698dbe1aeeaf46259509995bb670eeb))
+* **patches:** enforce patch names and descriptions ([8c62cc4](https://github.com/zeldrisho/morphe-patches/commit/8c62cc4a57a9fd6eebe237903b4e9e85206bbb23))
+* **readme:** match Morphe template layout ([8b7cc43](https://github.com/zeldrisho/morphe-patches/commit/8b7cc43d258e3ebff508ca6642999142083eb779))
+
 ## [1.13.0](https://github.com/zeldrisho/morphe-patches/compare/v1.12.0...v1.13.0) (2026-11-18)
 
 ### 🐛 Bug Fixes

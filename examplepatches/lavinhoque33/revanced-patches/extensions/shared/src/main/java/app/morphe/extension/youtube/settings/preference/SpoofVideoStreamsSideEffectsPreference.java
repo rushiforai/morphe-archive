@@ -6,6 +6,7 @@
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
  *
  * Modified by lavinhoque33, 2026-11-13
+ * Modified by lavinhoque33, 2026-11-19.
  */
 
 package app.morphe.extension.youtube.settings.preference;
@@ -24,6 +25,7 @@ import app.morphe.extension.shared.settings.Setting;
 import app.morphe.extension.shared.settings.SharedYouTubeSettings;
 import app.morphe.extension.shared.settings.preference.BulletPointPreference;
 import app.morphe.extension.shared.spoof.ClientType;
+import app.morphe.extension.shared.spoof.MwebSiteSession;
 import app.morphe.extension.shared.spoof.WebViewCheck;
 import app.morphe.extension.shared.utils.Logger;
 import app.morphe.extension.shared.utils.Utils;
@@ -101,16 +103,18 @@ public class SpoofVideoStreamsSideEffectsPreference extends Preference {
                             + '\n' + str("morphe_spoof_video_streams_about_no_stable_volume")
                             + '\n' + str("morphe_spoof_video_streams_about_no_av1")
                             + '\n' + str("morphe_spoof_video_streams_about_no_force_original_audio");
-            // Android XR, Android XR Downgraded, and visionOS 1.03 are not exposed in the UI and should never be reached here.
             case ANDROID_VR_DASH, ANDROID_XR_DASH ->
                     summary = str("morphe_spoof_video_streams_about_no_audio_tracks")
                             + '\n' + str("morphe_spoof_video_streams_about_no_stable_volume")
                             + '\n' + str("morphe_spoof_video_streams_about_sign_in_to_vr_required");
-            case ANDROID_VR_SABR, ANDROID_XR_SABR ->
+            case ANDROID_VR_SABR, ANDROID_XR_SABR, ANDROID_VR_EXPERIMENTAL, ANDROID_XR_EXPERIMENTAL ->
                     summary = str("morphe_spoof_video_streams_about_no_stable_volume")
                             + '\n' + str("morphe_spoof_video_streams_about_sign_in_to_vr_required");
-            case VISIONOS_1_02, VISIONOS_1_03 ->
+            case VISIONOS_1_02, VISIONOS_1_03, VISIONOS_1_06, VISIONOS_1_06_AV1 ->
                     summary = str("morphe_spoof_video_streams_about_end_early");
+            case MWEB -> summary = str(MwebSiteSession.isSupported()
+                    ? "morphe_spoof_video_streams_about_mobile_web"
+                    : "morphe_spoof_video_streams_about_mobile_web_unavailable");
             // Include TV_SABR_WII_U (Morphe 5c6b8418).
             case TV_SABR, TV_SABR_WII_U, TV_DASH, TV_SIMPLY ->
                     summary = str("morphe_spoof_video_streams_about_js");

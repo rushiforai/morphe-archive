@@ -6,76 +6,114 @@ import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.AccessFlags
 
 /**
- * DramaBox (com.storymatrix.drama) Unlock Premium — conservative.
+ * DramaBox Unlock Premium + section/chapter unlock.
  *
- * Verified on 7.0.0:
- *  - UserInfo / LoginResult / ILoginService isVip()Z
- *  - SubInfoList / Record isVip / isVipType
- *  - Integer-backed isVip* helpers
- *
- * Avoids mass-patching isFree / interface-only methods that were linked to
- * startup crashes ("app does not open after patch").
+ * VIP-only forcing left locked episodes spinning: player waited on unlock status
+ * (needPay / isLocked / UnlockStatus) that never flipped. This also clears those
+ * local gates on Section / Chapter / UnlockStatus models.
  */
 @Suppress("unused")
 val unlockPremiumPatch = bytecodePatch(
     name = "Unlock Premium",
-    description = "Forces DramaBox VIP checks (UserInfo, LoginResult, SubInfo) " +
-        "so premium UI and local gates unlock. Server-locked episodes may still apply.",
+    description = "Forces DramaBox VIP checks and unlocks section/chapter lock flags " +
+        "so premium episodes do not freeze. Server-side DRM may still apply.",
     default = true,
 ) {
     compatibleWith(DramaBoxCompatibility.DRAMABOX)
 
     execute {
         var hits = 0
+        val returnTrue = """
+            const/4 v0, 0x1
+            return v0
+        """
+        val returnFalse = """
+            const/4 v0, 0x0
+            return v0
+        """
+        val returnZero = """
+            const/4 v0, 0x0
+            return v0
+        """
 
-        fun forceTrueZ(definingClass: String, name: String): Boolean {
+        fun forceZ(cls: String, name: String, smali: String): Boolean {
             return try {
-                val fp = Fingerprint(
-                    definingClass = definingClass,
+                Fingerprint(
+                    definingClass = cls,
                     name = name,
                     returnType = "Z",
                     parameters = emptyList(),
-                )
-                fp.method.addInstructions(
-                    0,
-                    """
-                        const/4 v0, 0x1
-                        return v0
-                    """,
-                )
+                ).method.addInstructions(0, smali)
                 true
             } catch (_: Exception) {
                 false
             }
         }
 
-        // High-confidence named gates only (skip bare interfaces that lack code).
-        val known = listOf(
+        fun forceI(cls: String, name: String, smali: String): Boolean {
+            return try {
+                Fingerprint(
+                    definingClass = cls,
+                    name = name,
+                    returnType = "I",
+                    parameters = emptyList(),
+                ).method.addInstructions(0, smali)
+                true
+            } catch (_: Exception) {
+                false
+            }
+        }
+
+        val vipTrue = listOf(
             "Lcom/storymatrix/drama/api/login/UserInfo;" to "isVip",
             "Lcom/storymatrix/drama/api/login/LoginResult;" to "isVip",
             "Lcom/lib/data/Record;" to "isVipType",
             "Lcom/lib/data/SubInfoList;" to "isVip",
             "Lcom/storymatrix/drama/api/ad/config/SplashAdShowConfig;" to "isVIP",
         )
-        for ((cls, name) in known) {
-            if (forceTrueZ(cls, name)) hits++
+        for ((cls, name) in vipTrue) {
+            if (forceZ(cls, name, returnTrue)) hits++
+        }
+
+        for (cls in listOf(
+            "Lcom/lib/data/Section;",
+            "Lcom/lib/data/Chapter;",
+            "Lcom/lib/data/ChapterVo;",
+            "Lcom/lib/data/ChapterInfo;",
+            "Lcom/lib/data/ChapterBean;",
+            "Lcom/lib/data/UnlockStatus;",
+            "Lcom/lib/data/SectionUnlockStatus;",
+            "Lcom/lib/data/UnlockData;",
+        )) {
+            for (name in listOf("needPay", "isLocked", "isLock", "getIsLock", "isVipTheater")) {
+                if (forceZ(cls, name, returnFalse)) hits++
+            }
+            for (name in listOf("isFree", "isVip", "isVIP", "getIsVip", "canPlay", "isUnlock")) {
+                if (forceZ(cls, name, returnTrue)) hits++
+            }
+            for (name in listOf("getUnlockStatus", "unlockStatus", "getLockStatus", "lockStatus")) {
+                if (forceI(cls, name, returnZero)) hits++
+                if (forceZ(cls, name, returnFalse)) hits++
+            }
         }
 
         val forceTrueNames = setOf(
-            "isVip",
-            "isVIP",
-            "isVipType",
-            "getIsVip",
-            "isVipEquity",
-            "isVipTheater",
-            "isMemberShip",
-            "isSubCoinVip",
+            "isVip", "isVIP", "isVipType", "getIsVip", "isVipEquity",
+            "isVipTheater", "isMemberShip", "isSubCoinVip", "isFree",
+            "canPlay", "isUnlock", "getIsUnlock",
+        )
+        val forceFalseNames = setOf(
+            "needPay", "isLocked", "isLock", "getIsLock", "getNeedPay",
+        )
+        val forceZeroNames = setOf(
+            "getUnlockStatus", "unlockStatus", "getLockStatus", "lockStatus",
         )
 
-        // Prefer classes that literally mention isVip in a toString / field dump.
-        val markers = listOf(", isVip=", "SubInfoList(isVip=", "isVip()Z", "isVipEquity", "isVipTheater")
+        val markers = listOf(
+            ", isVip=", "SubInfoList(isVip=", "isVip()Z", "needPay",
+            "UnlockStatus", "SectionUnlockStatus", ", isFree=", "isLocked",
+        )
         val seen = mutableSetOf<String>()
-
         for (marker in markers) {
             val defs = try {
                 classDefByStrings(marker)
@@ -92,12 +130,6 @@ val unlockPremiumPatch = bytecodePatch(
                 ) {
                     continue
                 }
-                // Skip pure interfaces — injecting into abstract methods caused VerifyError.
-                if (AccessFlags.INTERFACE.isSet(def.accessFlags) &&
-                    !AccessFlags.ABSTRACT.isSet(def.accessFlags)
-                ) {
-                    // still allow class with interface bit quirks; real filter below
-                }
                 if (AccessFlags.INTERFACE.isSet(def.accessFlags)) continue
 
                 val clazz = try {
@@ -110,32 +142,13 @@ val unlockPremiumPatch = bytecodePatch(
                     if (AccessFlags.ABSTRACT.isSet(method.accessFlags)) continue
                     if (AccessFlags.NATIVE.isSet(method.accessFlags)) continue
                     val name = method.name
-                    if (name !in forceTrueNames) continue
                     try {
-                        when (method.returnType) {
-                            "Z" -> {
-                                method.addInstructions(
-                                    0,
-                                    """
-                                        const/4 v0, 0x1
-                                        return v0
-                                    """,
-                                )
+                        when {
+                            name in forceTrueNames && method.returnType == "Z" -> {
+                                method.addInstructions(0, returnTrue)
                                 hits++
                             }
-                            "Ljava/lang/Integer;" -> {
-                                method.addInstructions(
-                                    0,
-                                    """
-                                        const/4 v0, 0x1
-                                        invoke-static {v0}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
-                                        move-result-object v0
-                                        return-object v0
-                                    """,
-                                )
-                                hits++
-                            }
-                            "Ljava/lang/Boolean;" -> {
+                            name in forceTrueNames && method.returnType == "Ljava/lang/Boolean;" -> {
                                 method.addInstructions(
                                     0,
                                     """
@@ -145,14 +158,16 @@ val unlockPremiumPatch = bytecodePatch(
                                 )
                                 hits++
                             }
-                            "I" -> {
-                                method.addInstructions(
-                                    0,
-                                    """
-                                        const/4 v0, 0x1
-                                        return v0
-                                    """,
-                                )
+                            name in forceFalseNames && method.returnType == "Z" -> {
+                                method.addInstructions(0, returnFalse)
+                                hits++
+                            }
+                            name in forceZeroNames && method.returnType == "I" -> {
+                                method.addInstructions(0, returnZero)
+                                hits++
+                            }
+                            name in forceZeroNames && method.returnType == "Z" -> {
+                                method.addInstructions(0, returnFalse)
                                 hits++
                             }
                         }
@@ -160,13 +175,6 @@ val unlockPremiumPatch = bytecodePatch(
                     }
                 }
             }
-        }
-
-        // Soft success: better a partial unlock than a hard fail / broken install.
-        // hits==0 is rare on 7.0.0; still don't abort the whole bundle.
-        if (hits == 0) {
-            // leave a breadcrumb in logs via exception only if truly nothing matched
-            // Prefer soft: app still installs, user can report.
         }
     }
 }

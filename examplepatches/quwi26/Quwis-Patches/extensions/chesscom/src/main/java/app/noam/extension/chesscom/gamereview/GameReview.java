@@ -90,9 +90,9 @@ public final class GameReview {
         return Features.networkScanPatched() && Features.isEnabled(Features.NETWORK_SCAN);
     }
 
-    /** The Great and Brilliant moves analysis patch, applied and switched on. */
+    /** Great and Brilliant marks come with Unlimited Game Review, applied and switched on. */
     public static boolean marksMoves() {
-        return Features.greatMovesPatched() && Features.isEnabled(Features.GREAT_MOVES);
+        return Features.greatMovesPatched();
     }
 
     static void setMode(Mode chosen) {
@@ -241,8 +241,8 @@ public final class GameReview {
     /**
      * Whether a review marks Great moves. It needs the engine's second-best line, so the review asks
      * Stockfish for two lines (MultiPV 2): no extra time at the same node budget, but the top line
-     * ends a ply or two shallower. With the switch off, or without the Great and Brilliant moves
-     * analysis patch, no Great or Brilliant mark is given.
+     * ends a ply or two shallower. With the switch off, or without Unlimited Game Review, no Great
+     * or Brilliant mark is given.
      */
     public static boolean greatMoves() {
         if (!marksMoves()) return false;

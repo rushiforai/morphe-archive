@@ -376,6 +376,46 @@ async def keywords_scenario(page):
     check(await page.eval("sent.length") == 2, "a line that moves is not sent again")
 
 
+async def search_scenario(page):
+    """Chat search: the box keeps only the lines from or containing the query, new ones included, until cleared."""
+    await page.call("Page.enable")
+    await page.call("Fetch.enable", patterns=[{"urlPattern": "*"}])
+    await page.go(PAGE)
+    await page.eval(KEYWORD_LINES)
+    check(await page.apply({"search": True}) == "search", "reports Chat search")
+    shown = """Array.from(document.querySelectorAll('.message-container'))
+        .filter(e => getComputedStyle(e).display !== 'none').map(e => e.dataset.messageId)"""
+    check(await page.eval("document.querySelectorAll('#lurk-search button').length") == 1, "adds one search button")
+    check(await page.eval("getComputedStyle(document.querySelector('#lurk-search input')).display") == "none",
+          "the box starts closed")
+    await page.eval("document.querySelector('#lurk-search button').click()")
+    check(await page.eval("getComputedStyle(document.querySelector('#lurk-search input')).display") == "block",
+          "the button opens the box")
+    type_ = """((value) => { const input = document.querySelector('#lurk-search input'); input.value = value;
+        input.dispatchEvent(new Event('input')); })"""
+    await page.eval(type_ + "('CLUTCH')")
+    check(await page.eval(shown) == ["m2"], "a word keeps only the lines containing it, any case")
+    await page.eval(type_ + "('troll')")
+    check(await page.eval(shown) == ["m1"], "a username keeps that sender's lines")
+    await page.eval("""(() => { const line = document.createElement('div'); line.className = 'message-container';
+        Object.assign(line.dataset, {messageId: 'm3', senderUsername: 'Late', senderSlug: 'late', originalContent: 'troll spotted'});
+        const other = document.createElement('div'); other.className = 'message-container';
+        Object.assign(other.dataset, {messageId: 'm4', senderUsername: 'Other', senderSlug: 'other', originalContent: 'hi'});
+        document.getElementById('app').append(line, other); })()""")
+    await asyncio.sleep(0.1)
+    check(await page.eval(shown) == ["m1", "m3"], "new lines are filtered as they arrive")
+    await page.eval(type_ + "('  ')")
+    check(await page.eval(shown) == ["m1", "m2", "m3", "m4"], "an empty box shows every line")
+    await page.eval(type_ + "('nice')")
+    await page.eval("document.querySelector('#lurk-search button').click()")
+    check(await page.eval(shown) == ["m1", "m2", "m3", "m4"] and
+          await page.eval("document.querySelector('#lurk-search input').value") == "",
+          "closing the box clears it and shows every line")
+    await page.go(PAGE)
+    check(await page.apply({}) == "nothing" and await page.eval("document.getElementById('lurk-search')") is None,
+          "off: no button")
+
+
 # Kick's page styles chat from custom properties on <body> that its own code sets inline from the app's settings
 # (tests/kick/chat-page-contract.json pins these rules on the real page).
 LOOK_PAGE = """<!doctype html><html><head><style>
@@ -714,6 +754,7 @@ async def main():
                 await moderator_scenario(page)
                 await keywords_scenario(page)
                 await look_scenario(page)
+                await search_scenario(page)
                 await resilient_scenario(page)
                 await badges_scenario(page)
                 await scenario(page)

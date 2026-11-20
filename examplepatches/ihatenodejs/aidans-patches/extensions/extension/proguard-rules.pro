@@ -1,0 +1,7 @@
+-dontobfuscate
+-dontoptimize
+-dontshrink
+-keep class app.aidan.extension.** { *; }
+-keep class com.tom_roush.** { *; }
+-keep class org.bouncycastle.** { *; }
+-dontwarn **

@@ -43,6 +43,8 @@ final class LiquidGlassController implements ViewTreeObserver.OnPreDrawListener 
     private final float density;
     /** Progressive blur behind the pill. Null if it can't be added. */
     private EdgeBlurView bottomBlur;
+    /** Progressive blur under the Home and Explore headers. Null when switched off or in a preview. */
+    private HeaderBlurController headerBlur;
     private final int[] location = new int[2];
     /** How far the bar's container stops short of the screen bottom for the navigation bar. */
     private int bottomInset;
@@ -57,6 +59,11 @@ final class LiquidGlassController implements ViewTreeObserver.OnPreDrawListener 
     private int appliedStyleVersion = -1;
     /** Driving a preview in the settings rather than Instagram's bar. */
     private boolean preview;
+    /** This pre-draw changed a size or margin, so the frame about to be drawn is stale. */
+    private boolean relaidOut;
+    private int skippedFrames;
+    private boolean barWasShown = true;
+    private static final int MAX_SKIPPED_FRAMES = 2;
 
     LiquidGlassController(ViewGroup bar, View shadow, boolean extendContent) {
         this(bar, shadow, extendContent, NavbarStyle::get);
@@ -128,6 +135,11 @@ final class LiquidGlassController implements ViewTreeObserver.OnPreDrawListener 
             lens.setOutlineProvider(null);
         }
 
+        if (!preview && LiquidGlassNavBarPatch.HEADER_BLUR.get()) {
+            headerBlur = new HeaderBlurController(bar.getRootView(), density,
+                    LiquidGlassNavBarPatch.GLASS_HEADER_BUTTONS.get());
+        }
+
         android.view.Window window = BackdropSampler.windowOf(bar.getContext());
         if (window != null && !preview) TouchRouter.install(window, lens);
 
@@ -165,6 +177,7 @@ final class LiquidGlassController implements ViewTreeObserver.OnPreDrawListener 
 
     @Override
     public boolean onPreDraw() {
+        relaidOut = false;
         try {
             enforce();
             if (bar.getVisibility() == View.VISIBLE && !preview) {
@@ -181,6 +194,18 @@ final class LiquidGlassController implements ViewTreeObserver.OnPreDrawListener 
                 glass.invalidateSelf();
             }
             lens.sync();
+            if (headerBlur != null) {
+                try {
+                    boolean shown = isBarShown();
+                    if (shown && !barWasShown) headerBlur.rescanSoon();
+                    barWasShown = shown;
+                    if (headerBlur.onPreDraw(isDark())) relaidOut = true;
+                } catch (Throwable t) {
+                    // Keep the bar working if the header can't be handled.
+                    headerBlur = null;
+                    android.util.Log.e(LiquidGlassNavBarPatch.TAG, "Disabling the header blur", t);
+                }
+            }
             if (bar.getVisibility() == View.VISIBLE && !preview) {
                 glass.getPill().round(sampleRect);
                 sampler.maybeSample(sampleRect, dp(20));
@@ -189,6 +214,14 @@ final class LiquidGlassController implements ViewTreeObserver.OnPreDrawListener 
             bar.getViewTreeObserver().removeOnPreDrawListener(this);
             android.util.Log.e(LiquidGlassNavBarPatch.TAG, "Disabling liquid glass", t);
         }
+        // A frame drawn now would still show the old layout: the reel's video blanks and the
+        // feed and reel swap back and forth while it opens or closes. Skip it and draw once the
+        // new layout is in. The cap keeps a fight with Instagram from stalling drawing.
+        if (relaidOut && skippedFrames < MAX_SKIPPED_FRAMES) {
+            skippedFrames++;
+            return false;
+        }
+        skippedFrames = 0;
         return true;
     }
 
@@ -250,6 +283,7 @@ final class LiquidGlassController implements ViewTreeObserver.OnPreDrawListener 
             lp.height = height;
             lp.bottomMargin = -bottomInset;
             bottomBlur.setLayoutParams(lp);
+            relaidOut = true;
         }
         bottomBlur.setDark(dark);
         setShown(bottomBlur, barShown);
@@ -351,10 +385,12 @@ final class LiquidGlassController implements ViewTreeObserver.OnPreDrawListener 
                 lp.height = want;
                 appliedHeight = want;
                 bar.setLayoutParams(lp);
+                relaidOut = true;
 
                 ViewGroup.LayoutParams lensLp = lens.getLayoutParams();
                 lensLp.height = appliedHeight + lens.extraTop;
                 lens.setLayoutParams(lensLp);
+                relaidOut = true;
             }
         }
 
@@ -374,6 +410,7 @@ final class LiquidGlassController implements ViewTreeObserver.OnPreDrawListener 
 
         glass.setPillInsets(basePadLeft + side, basePadRight + side, basePadBottom + gap);
         bar.setPadding(appliedPadLeft, appliedPadTop, appliedPadRight, appliedPadBottom);
+        relaidOut = true;
         bar.invalidateOutline();
     }
 
@@ -383,6 +420,12 @@ final class LiquidGlassController implements ViewTreeObserver.OnPreDrawListener 
      */
     private boolean contentBehindBar() {
         return extendContent && !isReelsSelected();
+    }
+
+    /** False while Instagram hides the bar (gone, collapsed or slid off screen). */
+    private boolean isBarShown() {
+        return bar.getVisibility() == View.VISIBLE && bar.getHeight() > 0
+                && bar.getTranslationY() < bar.getHeight();
     }
 
     private boolean isReelsSelected() {
@@ -403,8 +446,11 @@ final class LiquidGlassController implements ViewTreeObserver.OnPreDrawListener 
      */
     private void enforceContentMargins() {
         if (baseHeight <= 0) return;
-        // Content behind the bar also runs on under the navigation bar.
-        int target = contentBehindBar() ? -bottomInset : appliedHeight;
+        // Content behind the bar also runs on under the navigation bar. Full screen viewers
+        // (a reel opened from the feed, a DM or a profile) hide the bar: then nothing needs
+        // room for it and the content must stop above the navigation bar again, or the reel's
+        // comment box ends up under the gesture pill.
+        int target = !isBarShown() ? 0 : contentBehindBar() ? -bottomInset : appliedHeight;
         ViewGroup parent = (ViewGroup) bar.getParent();
         int barIndex = parent.indexOfChild(bar);
         for (int i = 0; i < barIndex; i++) {
@@ -418,7 +464,29 @@ final class LiquidGlassController implements ViewTreeObserver.OnPreDrawListener 
             if (lp.bottomMargin != target) {
                 lp.bottomMargin = target;
                 child.setLayoutParams(lp);
+                relaidOut = true;
             }
+            clipWhileBarHidden(child);
+        }
+    }
+
+    /**
+     * Opening a reel from the feed hides the bar at once and takes the feed out of the layout,
+     * but Instagram keeps drawing the feed (a disappearing child) at its old size while the reel
+     * slides over it. That old size runs on under the navigation bar, and with its parents no
+     * longer clipping, the feed and its frosted header showed under the gesture pill and in the
+     * status bar until the slide ended. While the bar is hidden nothing runs edge to edge, so
+     * clip the content to its own bounds, as it is without the patch.
+     */
+    private void clipWhileBarHidden(View child) {
+        if (!isBarShown()) {
+            android.graphics.Rect clip = child.getClipBounds();
+            if (clip == null || clip.left != 0 || clip.top != 0
+                    || clip.right != child.getWidth() || clip.bottom != child.getHeight()) {
+                child.setClipBounds(new android.graphics.Rect(0, 0, child.getWidth(), child.getHeight()));
+            }
+        } else if (child.getClipBounds() != null) {
+            child.setClipBounds(null);
         }
     }
 

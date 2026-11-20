@@ -1,0 +1,10 @@
+4 ficheros DEX, 164880 cadenas distintas
+
+Lcom/baidu/simeji/debug/b;->f(Landroid/app/Activity;)V
+      v0, v1, Lus/f$a;->b(Lcom/google/android/gms/ads/nativead/NativeAd$c;)Lus/f$a;
+Lcom/baidu/simeji/debug/b$e;->a(Lcom/google/android/gms/ads/nativead/NativeAd;)V
+      v1, Lcom/google/android/gms/ads/nativead/NativeAdView;
+Lcom/baidu/simeji/debug/b$e;->b(Lcom/google/android/gms/ads/nativead/NativeAd; Lcom/google/android/gms/ads/nativead/NativeAdView;)V
+      v1, Lcom/google/android/gms/ads/nativead/MediaView;
+
+3 metodos coinciden con gms/ads/

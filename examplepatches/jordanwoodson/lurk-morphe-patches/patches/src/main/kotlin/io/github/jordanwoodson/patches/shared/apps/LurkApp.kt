@@ -28,7 +28,7 @@ internal class LurkApp(
     settingsInit: String = "$SETTINGS_CLASS->init(Landroid/content/Context;)V",
     /** Set for an app whose screens are React Native, with its JavaScript as a Hermes bundle in the assets. */
     val reactNative: ReactNative? = null,
-    /** The launcher icon Lurk icon installs. */
+    /** The launcher icon Lurk icon installs next to the app's own (the App icon choice picks one). */
     val icon: LauncherIcon,
     /** What Clone app renames besides the package and the names under it. */
     val cloneRules: List<CloneRule> = emptyList(),

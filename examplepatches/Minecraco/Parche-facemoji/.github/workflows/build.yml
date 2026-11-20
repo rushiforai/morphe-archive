@@ -1,0 +1,74 @@
+name: Build patches bundle
+
+# Compila el .mpp en cada push y lo deja como artefacto descargable en la pestana
+# Actions del repositorio. Asi se puede probar el bundle sin esperar a una release.
+# Las releases estables las sigue generando release.yml (semantic-release) en main.
+
+on:
+  push:
+    branches-ignore:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  # write: el paso final vuelca el registro de Gradle en la rama si la compilacion falla.
+  contents: write
+
+jobs:
+  build:
+    name: Build .mpp
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Build patches
+        env:
+          # El plugin app.morphe.patches se descarga desde GitHub Packages.
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # set -o pipefail: el `tee` no debe ocultar el codigo de salida de Gradle.
+        run: |
+          set -o pipefail
+          ./gradlew buildAndroid --no-daemon 2>&1 | tee build.log
+
+      # Carga los parches desde el .mpp y genera patches-list.json. Esto valida en CI que
+      # las declaraciones de parche son correctas (nombres, compatibilidad y extensiones),
+      # algo que la simple compilacion no comprueba.
+      - name: Validar carga de los parches
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew generatePatchesList --no-daemon
+
+      # La API de Actions no deja leer los registros desde fuera del navegador, asi que si la
+      # compilacion falla se deja el registro de Gradle en la propia rama.
+      - name: Publicar el registro del fallo
+        if: failure()
+        continue-on-error: true
+        run: |
+          if [ -f build.log ]; then
+            tail -n 300 build.log > build-failure.log
+            rm -f build.log
+            git config user.name "Parche Facemoji"
+            git config user.email "noreply@example.com"
+            git add build-failure.log
+            git commit -m "ci: registro del fallo de compilacion" || true
+            # En un evento push el checkout deja HEAD suelto: hay que decir a que rama va.
+            git push origin "HEAD:refs/heads/${GITHUB_REF_NAME}" || true
+          fi
+
+      - name: Upload .mpp
+        uses: actions/upload-artifact@v4
+        with:
+          name: parche-facemoji-mpp
+          path: patches/build/libs/patches-*.mpp
+          if-no-files-found: error
+          retention-days: 30

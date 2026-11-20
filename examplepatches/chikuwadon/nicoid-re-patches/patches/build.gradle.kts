@@ -339,7 +339,7 @@ val dev111Smali = tasks.register<JavaExec>("dev111Smali") {
 val prepareNicoidHelpers = tasks.register<Exec>("prepareNicoidHelpers") {
     // Keep the verified v2.0.0 live payload once it is committed by the release workflow.
     // Never replace it with the earlier 1.11.1-only overlay on subsequent Gradle builds.
-    onlyIf { project.version.toString() !in setOf("2.0.0", "2.0.1", "2.0.2", "2.0.3", "2.0.4-dev.1", "2.0.4", "2.0.5-dev.1", "2.0.5-dev.2", "2.0.5-dev.3", "2.0.5-dev.4", "2.0.5-dev.5", "2.0.5-dev.6", "2.0.5-dev.7", "2.0.5-dev.8", "2.0.5-dev.9", "2.0.5-dev.10", "2.0.5-dev.11", "2.0.5-dev.12", "2.0.5-dev.13", "2.0.5-dev.14", "2.0.5-dev.15", "2.0.5-dev.16", "2.0.5-dev.17", "2.0.5") && !Regex("2\\.0\\.6(?:-dev\\.[1-9][0-9]*)?").matches(project.version.toString()) && !Regex("2\\.1\\.0(?:-dev\\.[1-9][0-9]*)?").matches(project.version.toString()) && !project.version.toString().startsWith("2.1.1-dev.") && project.version.toString() != "2.1.1" }
+    onlyIf { project.version.toString() !in setOf("2.0.0", "2.0.1", "2.0.2", "2.0.3", "2.0.4-dev.1", "2.0.4", "2.0.5-dev.1", "2.0.5-dev.2", "2.0.5-dev.3", "2.0.5-dev.4", "2.0.5-dev.5", "2.0.5-dev.6", "2.0.5-dev.7", "2.0.5-dev.8", "2.0.5-dev.9", "2.0.5-dev.10", "2.0.5-dev.11", "2.0.5-dev.12", "2.0.5-dev.13", "2.0.5-dev.14", "2.0.5-dev.15", "2.0.5-dev.16", "2.0.5-dev.17", "2.0.5") && !Regex("2\\.0\\.6(?:-dev\\.[1-9][0-9]*)?").matches(project.version.toString()) && !Regex("2\\.1\\.0(?:-dev\\.[1-9][0-9]*)?").matches(project.version.toString()) && !project.version.toString().startsWith("2.1.1-dev.") && project.version.toString() != "2.1.1" && !project.version.toString().startsWith("2.1.2-dev.") && project.version.toString() != "2.1.2" && !project.version.toString().startsWith("2.1.3-dev.") && project.version.toString() != "2.1.3" && project.version.toString() != "2.1.4" }
     dependsOn(dev111Smali)
     val revision = rootProject.file("porting/revisions/v1.11.1")
     val payloads = rootProject.file("patches/src/main/resources/nicoid")
@@ -351,15 +351,36 @@ val prepareNicoidHelpers = tasks.register<Exec>("prepareNicoidHelpers") {
     commandLine("bash", revision.resolve("build-payloads.sh"), payloads, devSources.get().asFile, "", project.version.toString())
 }
 
+// The Morphe buildAndroid task uses the standard jar archive configuration.
+// Do not move that task: it also moves the Android MPP's output location.
+// Build a separate JVM-only archive for patch-list metadata instead.
+val jvmPatchJar = tasks.register<Jar>("jvmPatchJar") {
+    dependsOn("classes")
+    archiveBaseName.set("patches-metadata")
+    archiveVersion.set(project.version.toString())
+    archiveExtension.set("jar")
+    destinationDirectory.set(layout.buildDirectory.dir("jvm-libs"))
+    from(sourceSets["main"].output)
+    manifest {
+        from(tasks.named<Jar>("jar").get().manifest)
+        attributes["Version"] = project.version.toString()
+    }
+}
+
 tasks {
     register<JavaExec>("generatePatchesList") {
         description = "Build patch with patch list"
 
-        dependsOn(build)
+        // Generate metadata from the JVM patch archive, but keep that archive
+        // isolated from build/libs where buildAndroid writes its Android MPP.
+        dependsOn(jvmPatchJar)
         dependsOn(prepareNicoidHelpers)
 
         classpath = sourceSets["main"].runtimeClasspath + patchListGeneratorClasspath
         mainClass.set("util.PatchListGeneratorKt")
+        doFirst {
+            args(jvmPatchJar.get().archiveFile.get().asFile.absolutePath)
+        }
     }
 
     // Used by gradle-semantic-release-plugin.

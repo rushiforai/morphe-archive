@@ -79,6 +79,7 @@ This document specifies patches for **365 Pay** (`com.avinside`).
    - **Target Class:** `Lcom/onesignal/rnonesignalandroid/RNOneSignal;` (`trackEvent`, `addOutcome`, `addOutcomeWithValue`, `addUniqueOutcome`, `addTag`, `addTags`, `setLocationShared`)
    - **Target Class:** `Lcom/onesignal/session/internal/SessionManager;` (`addOutcome`, `addOutcomeWithValue`, `addUniqueOutcome`)
    - **Target Class:** `Lcom/onesignal/location/internal/controller/impl/GmsLocationController;` (`start` returning `Boolean.FALSE`, `setLocationAndFire`, `subscribe`, and `getLastLocation` returning `null`)
+
 ---
 
 ## Patch: Unlock Developer Tools

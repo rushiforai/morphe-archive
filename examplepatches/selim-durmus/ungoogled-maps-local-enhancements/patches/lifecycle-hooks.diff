@@ -1,0 +1,26 @@
+--- original/SavedPlaces$Front.smali
++++ patched/SavedPlaces$Front.smali
+@@ -67,17 +67,23 @@
+ .method public onActivityDestroyed(Landroid/app/Activity;)V
+     .locals 0
+ 
++    invoke-static {p1}, Lorg/ungoogled/ui/HomeWorkShortcuts;->pause(Landroid/app/Activity;)V
++
+     return-void
+ .end method
+ 
+ .method public onActivityPaused(Landroid/app/Activity;)V
+     .locals 0
+ 
++    invoke-static {p1}, Lorg/ungoogled/ui/HomeWorkShortcuts;->pause(Landroid/app/Activity;)V
++
+     return-void
+ .end method
+ 
+ .method public onActivityResumed(Landroid/app/Activity;)V
+     .locals 3
++
++    invoke-static {p1}, Lorg/ungoogled/ui/HomeWorkShortcuts;->resume(Landroid/app/Activity;)V
+ 
+     .line 86
+     new-instance p0, Ljava/lang/ref/WeakReference;

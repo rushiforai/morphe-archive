@@ -241,3 +241,142 @@ def test_build_morphe_patch_cmd_skips_none_options():
     assert "optA=valueA" in cmd
     assert "optC=true" in cmd
     assert not any("optB" in arg for arg in cmd)
+
+
+def test_run_compatibility_check_parallel_ordering(monkeypatch, tmp_path):
+    import random
+    import time
+
+    from apk_lab.models import (
+        ArtifactInspection,
+        ContainerType,
+        ExitCode,
+        PatchTestCaseResult,
+    )
+    from apk_lab.morphe import run_compatibility_check
+
+    artifact = tmp_path / "app.apk"
+    artifact.write_bytes(b"dummy_apk")
+    mpp = tmp_path / "bundle.mpp"
+    mpp.write_bytes(b"dummy_mpp")
+
+    dummy_inspection = ArtifactInspection(
+        file_path=str(artifact),
+        container_type=ContainerType.APK,
+        file_size=1024,
+        sha256="dummy_sha256_hash",
+        package_name="com.test.app",
+        version_name="1.0.0",
+        version_code=100,
+    )
+    monkeypatch.setattr(
+        "apk_lab.morphe.inspect_artifact", lambda _path: dummy_inspection
+    )
+
+    mock_patches_data = {
+        "version": "1.2.3",
+        "patches": [
+            {
+                "name": "Alpha Patch",
+                "default": True,
+                "dependencies": [],
+                "compatiblePackages": [{"packageName": "com.test.app"}],
+                "options": [
+                    {
+                        "key": "featureA",
+                        "title": "Feature A",
+                        "description": "",
+                        "required": False,
+                        "default": True,
+                        "type": "kotlin.Boolean",
+                    }
+                ],
+            },
+            {
+                "name": "Beta Patch",
+                "default": True,
+                "dependencies": [],
+                "compatiblePackages": [{"packageName": "com.test.app"}],
+                "options": [],
+            },
+            {
+                "name": "Gamma Patch",
+                "default": True,
+                "dependencies": [],
+                "compatiblePackages": [{"packageName": "com.test.app"}],
+                "options": [
+                    {
+                        "key": "featureG",
+                        "title": "Feature G",
+                        "description": "",
+                        "required": False,
+                        "default": False,
+                        "type": "kotlin.Boolean",
+                    }
+                ],
+            },
+        ],
+    }
+    monkeypatch.setattr(
+        "apk_lab.morphe.load_patches_list", lambda *args, **kwargs: mock_patches_data
+    )
+
+    def mock_run_single_patch_case(
+        artifact_path,
+        mpp_path,
+        test_case,
+        input_inspection,
+        force,
+        keep_workspace,
+        ws_mgr,
+        tool_mgr,
+    ):
+        time.sleep(random.uniform(0.01, 0.03))
+        is_failing_case = (
+            test_case.patch_name == "Gamma Patch"
+            and test_case.options.get("featureG") is True
+        )
+        return PatchTestCaseResult(
+            patch_name=test_case.patch_name,
+            options=test_case.options,
+            success=not is_failing_case,
+            error_message="Injection error in Gamma" if is_failing_case else None,
+            applied_patches=[test_case.patch_name] if not is_failing_case else [],
+            injected_classes=["Lapp/aidan/Feature;"] if not is_failing_case else [],
+            duration_seconds=0.02,
+        )
+
+    monkeypatch.setattr(
+        "apk_lab.morphe.run_single_patch_case", mock_run_single_patch_case
+    )
+
+    report, exit_code = run_compatibility_check(
+        artifact_path=artifact,
+        mpp_path=mpp,
+        expected_package="com.test.app",
+        all_patches=True,
+        workspace_root=tmp_path / "ws",
+        jobs=4,
+    )
+
+    assert report.total_cases == 5
+    assert len(report.test_case_results) == 5
+    assert len(report.test_cases) == 5
+
+    assert report.test_case_results[0].patch_name == "Alpha Patch"
+    assert report.test_case_results[0].options == {"featureA": True}
+    assert report.test_case_results[1].patch_name == "Alpha Patch"
+    assert report.test_case_results[1].options == {"featureA": False}
+    assert report.test_case_results[2].patch_name == "Beta Patch"
+    assert report.test_case_results[2].options == {}
+    assert report.test_case_results[3].patch_name == "Gamma Patch"
+    assert report.test_case_results[3].options == {"featureG": False}
+    assert report.test_case_results[4].patch_name == "Gamma Patch"
+    assert report.test_case_results[4].options == {"featureG": True}
+
+    assert report.passed_cases == 4
+    assert report.failed_cases == 1
+    assert report.overall_status == "incompatible"
+    assert exit_code == ExitCode.COMPATIBILITY_FAILURE
+    assert report.failure_reason is not None
+    assert "[Gamma Patch] Injection error in Gamma" in report.failure_reason

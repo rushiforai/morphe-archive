@@ -1,0 +1,14 @@
+## [1.1.0](https://github.com/Deconta/deconta-patches/compare/v1.0.0...v1.1.0) (2026-11-19)
+
+### ✨ New Features
+
+* include exclusive coupons and refresh UI after claiming ([d62f44f](https://github.com/Deconta/deconta-patches/commit/d62f44f7f89e8ee5cda87ac0db5c5b8b2f2f6a56))
+
+## 1.0.0 (2026-11-18)
+
+### ✨ New Features
+
+* add AndroidManifest.xml for extension module ([5f0560e](https://github.com/Deconta/deconta-patches/commit/5f0560ed9e1a1a62af0cc9ee66222cf77c810158))
+* configure automated release and patches metadata ([e6ccf78](https://github.com/Deconta/deconta-patches/commit/e6ccf78f35cfadaa0a4e3d23848ff5efde1c51be))
+* fix generatePatchesList task and readme markers for release ([7f67f9e](https://github.com/Deconta/deconta-patches/commit/7f67f9e5232932213a9d487baaa6119689017d64))
+* initial release of Rossmann Auto Claim Coupons patch ([61d6132](https://github.com/Deconta/deconta-patches/commit/61d61323b8042fc4496b609afee2ede19eb36cbb))

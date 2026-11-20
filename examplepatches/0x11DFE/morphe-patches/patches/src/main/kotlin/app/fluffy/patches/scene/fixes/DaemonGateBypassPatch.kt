@@ -32,13 +32,10 @@ import java.io.File
 @Suppress("unused")
 val daemonGateBypassPatch = patch(
     name = "Daemon gate bypass",
-    description = "Keeps the root scene-daemon's monitor gate open so live stats " +
-        "(dashboard cards, system/mini/FPS overlays) keep updating instead of " +
-        "freezing ~40s after connect on rooted devices. Extends the daemon " +
-        "launcher script (raw resource 'up') with a validated gate poker that " +
-        "runs on every daemon start; unknown daemon layouts fail safe. " +
-        "Requires root (the daemon itself runs as root).",
-) {
+    description = "Keeps the scene-daemon monitor gate open so live stats (dashboard cards, " +
+        "overlays) keep updating instead of freezing ~40s after connect. The daemon " +
+        "launcher script re-asserts the gate on every start and fails safe on unknown " +
+        "daemon layouts. Requires root.",) {
     compatibleWith(COMPATIBILITY_SCENE)
 
     execute {

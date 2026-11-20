@@ -15,6 +15,6 @@ val COMPATIBILITY_CANVAS = Compatibility(
         "abfe1362d84c5234c174c2c03d405a480405e361162f7b28dad6bec825ba02b3"
     ),
     targets = listOf(
-        AppTarget(version = "8.10.0", minSdk = 28)
+        AppTarget(version = "8.12.0", minSdk = 28)
     )
 )

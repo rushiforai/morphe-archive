@@ -16,15 +16,15 @@ Do not copy volatile app versions, patch counts, or feature inventories into gui
 
 ## Architecture & Data Flow
 
-| Layer | Location | Responsibility |
-| --- | --- | --- |
-| Patch definitions | `patches/src/main/kotlin/app/aidan/patches/` | Morphe `bytecodePatch`, `resourcePatch`, `rawResourcePatch`, and `compositeFeaturePatch` declarations, grouped by app and feature. |
-| Runtime bridges | `extensions/extension/src/main/java/app/aidan/extension/` | Java classes merged into target DEX through `extensions/extension.mpe`. |
-| APK tooling | `tools/apk-lab/` | Artifact inspection, managed decompilation, comparison, patch verification, deployment, and monitoring. |
-| Metadata generation | `patches/src/main/kotlin/util/PatchListGenerator.kt` | Reflects compiled patches into root `patches-list.json`. |
-| Control plane | `worker/` | Cloudflare Worker for version scraping, KV-backed compatibility state, dispatch, and badges. |
-| Public site | `site/` | Static Astro UI consuming patch metadata, changelog data, compatibility state, and local icons. |
-| Automation | `scripts/`, `.github/` | Unified checks, release generation, deployments, compatibility CI, icons, and font preparation. |
+| Layer               | Location                                                  | Responsibility                                                                                                                     |
+| ------------------- | --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Patch definitions   | `patches/src/main/kotlin/app/aidan/patches/`              | Morphe `bytecodePatch`, `resourcePatch`, `rawResourcePatch`, and `compositeFeaturePatch` declarations, grouped by app and feature. |
+| Runtime bridges     | `extensions/extension/src/main/java/app/aidan/extension/` | Java classes merged into target DEX through `extensions/extension.mpe`.                                                            |
+| APK tooling         | `tools/apk-lab/`                                          | Artifact inspection, managed decompilation, comparison, patch verification, deployment, and monitoring.                            |
+| Metadata generation | `patches/src/main/kotlin/util/PatchListGenerator.kt`      | Reflects compiled patches into root `patches-list.json`.                                                                           |
+| Control plane       | `worker/`                                                 | Cloudflare Worker for version scraping, KV-backed compatibility state, dispatch, and badges.                                       |
+| Public site         | `site/`                                                   | Static Astro UI consuming patch metadata, changelog data, compatibility state, and local icons.                                    |
+| Automation          | `scripts/`, `.github/`                                    | Unified checks, release generation, deployments, compatibility CI, icons, and font preparation.                                    |
 
 Data flow:
 
@@ -38,18 +38,18 @@ Cross-layer rule: DEX, XML, and raw assets use different Morphe contexts. A feat
 
 ## Key Directories
 
-| Path | Use | Local guidance |
-| --- | --- | --- |
-| `patches/` | Kotlin patch bundle and metadata generator | `patches/AGENTS.md` |
-| `extensions/` | Java runtime bridges packaged as `.mpe` | `extensions/AGENTS.md` |
-| `tools/apk-lab/` | Python APK lifecycle CLI and pytest suite | `tools/apk-lab/AGENTS.md` |
-| `worker/` | Cloudflare Worker and Vitest suite | `worker/AGENTS.md` |
-| `site/` | Astro site and data-layer tests | `site/AGENTS.md` |
-| `docs/` | APK Lab reference and per-app reverse-engineering specs | `docs/AGENTS.md` |
-| `scripts/` | Bun audit orchestrator | `scripts/AGENTS.md` |
-| `.github/` | CI, release, deploy, and generator automation | `.github/AGENTS.md` |
-| `.apk-lab/` | Managed generated workspaces; never hand-clean | Use `apk-lab clean`. |
-| `apk/`, `analysis/` | Local artifacts and exploratory output | Not production source; avoid adding dependencies on them. |
+| Path                | Use                                                     | Local guidance                                            |
+| ------------------- | ------------------------------------------------------- | --------------------------------------------------------- |
+| `patches/`          | Kotlin patch bundle and metadata generator              | `patches/AGENTS.md`                                       |
+| `extensions/`       | Java runtime bridges packaged as `.mpe`                 | `extensions/AGENTS.md`                                    |
+| `tools/apk-lab/`    | Python APK lifecycle CLI and pytest suite               | `tools/apk-lab/AGENTS.md`                                 |
+| `worker/`           | Cloudflare Worker and Vitest suite                      | `worker/AGENTS.md`                                        |
+| `site/`             | Astro site and data-layer tests                         | `site/AGENTS.md`                                          |
+| `docs/`             | APK Lab reference and per-app reverse-engineering specs | `docs/AGENTS.md`                                          |
+| `scripts/`          | Bun audit orchestrator                                  | `scripts/AGENTS.md`                                       |
+| `.github/`          | CI, release, deploy, and generator automation           | `.github/AGENTS.md`                                       |
+| `.apk-lab/`         | Managed generated workspaces; never hand-clean          | Use `apk-lab clean`.                                      |
+| `apk/`, `analysis/` | Local artifacts and exploratory output                  | Not production source; avoid adding dependencies on them. |
 
 Per-app docs live at `docs/<app>/architecture.md` and `docs/<app>/patches.md`. Inspect the matching `shared/Constants.kt` and generated `patches-list.json` for current package and target compatibility.
 
@@ -65,6 +65,12 @@ uv sync --locked --project tools/apk-lab
 ```
 
 Gradle requires GitHub Packages credentials through `GITHUB_TOKEN`/`GITHUB_ACTOR` or `gpr.key`/`gpr.user` in Gradle properties.
+
+SDK and NDK resolution for Android and native builds:
+
+- **Android SDK**: Resolved via `ANDROID_HOME`, `ANDROID_SDK_ROOT`, or `sdk.dir` in `local.properties`.
+- **Android NDK**: Resolved via `ANDROID_NDK_HOME`, `ndk.dir` in `local.properties`, or falling back to `$sdkDir/ndk/$REQUIRED_NDK_VERSION` (matching `REQUIRED_NDK_VERSION = "28.2.13676358"` [r28c] in `patches/build.gradle.kts`).
+- **CMake & Ninja**: CMake 3.24+ and Ninja are required for native host and cross-compilation builds (`extensions/adobescan-pdf-native` and Rust native targets).
 
 ### Build and Metadata
 
@@ -85,6 +91,9 @@ bun run typecheck
 bun run test
 bun run format        # mutates supported files
 bun run lint:fix      # mutates supported files
+bun run deps:check    # read-only check across all monorepo dependencies
+bun run deps:update   # interactive update prompt (or --plan / --approve for agents)
+bun run audit --deps  # format + lint + typecheck + test + dependency freshness
 ```
 
 Use targeted checks while iterating, then run `bun run audit` after code changes. `scripts/audit.ts` is the source of truth for the exact command matrix.
@@ -117,7 +126,7 @@ npx semantic-release --dry-run
 - Optional/version-variable behavior must be explicitly optional; never convert a required mismatch into a silent skip.
 - Keep generated outputs generated. Do not hand-edit `.mpp`, `.mpe`, build output, `site/.astro/`, `site/dist/`, or managed `.apk-lab/` workspaces.
 - Update the matching docs when commands, user-visible patch behavior, compatibility, or safety invariants change.
-- Kotlin/Java use 4-space indentation. Patch Kotlin uses IntelliJ ktlint style from `.editorconfig`; TypeScript/Astro and configured JSON use Prettier/Oxlint; Python uses Ruff. Rust uses 2021 edition with standard 4-space cargo fmt and clippy with warnings denied. Match neighboring style for files outside the configured formatter scopes.
+- Kotlin/Java use 4-space indentation. Patch Kotlin uses IntelliJ ktlint style from `.editorconfig`; TypeScript/Astro and configured JSON use Prettier/Oxlint; Python uses Ruff. Rust uses 2021 edition with standard 4-space cargo fmt and clippy with warnings denied. C++ uses C++20 with standard 4-space clang-format (LLVM style) and compiles with `-Wall -Wextra` (warnings treated as errors). Match neighboring style for files outside the configured formatter scopes.
 
 ### State, Async, and Dependency Boundaries
 
@@ -125,6 +134,7 @@ npx semantic-release --dry-run
 - Site data modules should remain deterministic build-time transformations over root metadata and fetched release/status inputs. Keep rendering concerns in Astro components/pages.
 - Android extension bridges are static entry points called from injected Smali. Public Java descriptors are an ABI: change the Java method and its Kotlin/Smali caller together.
 - Python APK tooling passes paths/configuration explicitly and uses managed workspaces. Preserve deterministic output and archive/path-safety checks.
+- Monorepo dependency management uses `scripts/deps.ts` (`bun run deps:check`, `bun run deps:update`). Intentional holds require a mandatory reason in `dependency-policy.json`. Normal audit is offline and deterministic; dependency freshness is opt-in via `bun run audit --deps` or `bun scripts/audit.ts deps`. Updates require explicit confirmation (interactive TTY prompt for humans, or `--plan <report> --approve <digest>` for automated agents).
 
 ### Generated Metadata
 
@@ -145,18 +155,19 @@ Every commit must be scoped. Never author unscoped commits (e.g. `fix: ...`, `ch
 
 #### Commit Types
 
-| Type | Release impact (`.releaserc`) | Changelog section | Usage |
-| --- | --- | --- | --- |
-| `feat` | Minor | ✨ New Features | New user-facing patch, option, feature, or tooling capability. |
-| `fix` | Patch | 🐛 Bug Fixes | Bug fix in patch bytecode, resources, extension runtime, site, worker, or tools. |
-| `bump` | Patch | 🚀 Updated App Support | Updating supported target APK versions or compatibility ranges. Never use `fix` for version updates. |
-| `perf` | Patch | 🔧 Improvements | Performance optimization or bytecode execution efficiency. |
-| `chore` | None | Hidden | Maintenance, dependency upgrades, release config, icon sync, housekeeping. |
-| `docs` | None | Hidden | Documentation in `docs/`, `AGENTS.md`, or skill references. |
-| `style` | None | Hidden | Formatting, indentation, whitespace only (no runtime behavior changes). |
-| `refactor` | None | Hidden | Code restructuring without fixing a bug or adding a feature. |
-| `test` | None | Hidden | Adding or updating tests, fixtures, or test mocks. |
-| `ci` | None | Hidden | CI workflows, GitHub Actions, runner setup, or pipeline scripts. |
+| Type       | Release impact (`.releaserc`) | Changelog section      | Usage                                                                                                |
+| ---------- | ----------------------------- | ---------------------- | ---------------------------------------------------------------------------------------------------- |
+| `feat`     | Minor                         | ✨ New Features        | New user-facing patch, option, feature, or tooling capability.                                       |
+| `fix`      | Patch                         | 🐛 Bug Fixes           | Bug fix in patch bytecode, resources, extension runtime, site, worker, or tools.                     |
+| `bump`     | Patch                         | 🚀 Updated App Support | Updating supported target APK versions or compatibility ranges. Never use `fix` for version updates. |
+| `perf`     | Patch                         | 🔧 Improvements        | Performance optimization or bytecode execution efficiency.                                           |
+| `chore`    | None                          | Hidden                 | Maintenance, dependency upgrades, release config, icon sync, housekeeping.                           |
+| `docs`     | None                          | Hidden                 | Documentation in `docs/`, `AGENTS.md`, or skill references.                                          |
+| `style`    | None                          | Hidden                 | Formatting, indentation, whitespace only (no runtime behavior changes).                              |
+| `refactor` | None                          | Hidden                 | Code restructuring without fixing a bug or adding a feature.                                         |
+| `test`     | None                          | Hidden                 | Adding or updating tests, fixtures, or test mocks.                                                   |
+| `ci`       | None                          | Hidden                 | CI workflows, GitHub Actions, runner setup, or pipeline scripts.                                     |
+
 Release impacts in `.releaserc` apply strictly to application scopes. Non-application scopes (`site`, `worker`, `apk-lab`, `ci`, etc.) are configured with `release: false` in `.releaserc` and never trigger patch package releases.
 
 #### Scope Taxonomy
@@ -167,40 +178,43 @@ Every commit must use an exact scope from one of the two tables below.
 
 All patch definitions and Java extension changes must use the canonical app scope. The Astro site and release changelog resolve application icons and attribution directly from this scope.
 
-| App | Canonical scope | Note on legacy aliases |
-| --- | --- | --- |
-| Sezzle | `sezzle` | Aliases (`sezzlemobile`) are legacy site mappings only; never use in new commits. |
-| SidelineSwap | `sidelineswap` | Alias `sideline` is legacy. |
-| AfterShip | `aftership` | — |
-| Canvas Student | `canvas-student` | Aliases (`canvas`, `candroid`) are legacy. |
-| Navigate360 Student | `navigate360-student` | Aliases (`navigate360`, `navigate`, `eab`) are legacy. |
-| Blackjack | `blackjack` | Alias `tripledot` is legacy. |
-| Adobe Scan | `adobe-scan` | Aliases (`adobescan`, `adobe`, `scan`) are legacy. |
-| Fizz | `fizz` | Alias `buzz` is legacy. |
-| Geocaching | `geocaching` | Alias `groundspeak` is legacy. |
-| 365 Pay | `365pay` | Alias `pay365` is legacy. |
-| NHL | `nhl` | — |
+| App                 | Canonical scope       | Note on legacy aliases                                                            |
+| ------------------- | --------------------- | --------------------------------------------------------------------------------- |
+| Sezzle              | `sezzle`              | Aliases (`sezzlemobile`) are legacy site mappings only; never use in new commits. |
+| SidelineSwap        | `sidelineswap`        | Alias `sideline` is legacy.                                                       |
+| AfterShip           | `aftership`           | —                                                                                 |
+| Canvas Student      | `canvas-student`      | Aliases (`canvas`, `candroid`) are legacy.                                        |
+| Navigate360 Student | `navigate360-student` | Aliases (`navigate360`, `navigate`, `eab`) are legacy.                            |
+| Blackjack           | `blackjack`           | Alias `tripledot` is legacy.                                                      |
+| Adobe Scan          | `adobe-scan`          | Aliases (`adobescan`, `adobe`, `scan`) are legacy.                                |
+| Fizz                | `fizz`                | Alias `buzz` is legacy.                                                           |
+| Geocaching          | `geocaching`          | Alias `groundspeak` is legacy.                                                    |
+| 365 Pay             | `365pay`              | Alias `pay365` is legacy.                                                         |
+| NHL                 | `nhl`                 | —                                                                                 |
+| Adobe Reader        | `adobe-reader`        | Alias `adobereader` is legacy.                                                    |
+| Credit Karma        | `credit-karma`        | Alias `creditkarma` is legacy.                                                    |
+| Pro Metronome       | `pro-metronome`       | Alias `prometronome` is legacy.                                                   |
 
 ##### Non-Application Scopes
 
 Repository tooling, infrastructure, and shared modules must use only these fixed canonical scopes (no subdirectories or path prefixes):
 
-| Scope | Allowed boundary | Forbidden variants |
-| --- | --- | --- |
-| `apk-lab` | APK Lab Python CLI, toolchain, analysis, deployment, decompilation | `tools/apk-lab`, `skills/apk-lab` |
-| `site` | Astro static website, UI components, site data loaders, site tests | `web`, `frontend` |
-| `worker` | Cloudflare Worker control plane, scraping, KV compatibility state | `cf`, `backend` |
-| `audit` | Unified audit orchestrator (`scripts/audit.ts`), lint/format setups | `scripts` |
-| `ci` | GitHub Actions workflows, matrix checks, compatibility pipelines | `workflows`, `ci/workflows`, `deploy` |
-| `release` | Semantic release configuration, packaging plugins, release scripts | `build(release)` |
-| `docs` | General repository documentation, root README, architecture specs | `docs(docs)`, `specs` |
-| `icons` | Application icon synchronization pipeline and icons data | `chore(app-icons)` |
-| `deps` | Dependency upgrades across Bun, Gradle, or Python | `dependencies` |
-| `play-metadata` | Google Play metadata resolution CLI and gpapi client | `tools/play-metadata` |
+| Scope           | Allowed boundary                                                    | Forbidden variants                    |
+| --------------- | ------------------------------------------------------------------- | ------------------------------------- |
+| `apk-lab`       | APK Lab Python CLI, toolchain, analysis, deployment, decompilation  | `tools/apk-lab`, `skills/apk-lab`     |
+| `site`          | Astro static website, UI components, site data loaders, site tests  | `web`, `frontend`                     |
+| `worker`        | Cloudflare Worker control plane, scraping, KV compatibility state   | `cf`, `backend`                       |
+| `audit`         | Unified audit orchestrator (`scripts/audit.ts`), lint/format setups | `scripts`                             |
+| `ci`            | GitHub Actions workflows, matrix checks, compatibility pipelines    | `workflows`, `ci/workflows`, `deploy` |
+| `release`       | Semantic release configuration, packaging plugins, release scripts  | `build(release)`                      |
+| `docs`          | General repository documentation, root README, architecture specs   | `docs(docs)`, `specs`                 |
+| `icons`         | Application icon synchronization pipeline and icons data            | `chore(app-icons)`                    |
+| `deps`          | Dependency upgrades across Bun, Gradle, or Python                   | `dependencies`                        |
+| `play-metadata` | Google Play metadata resolution CLI and gpapi client                | `tools/play-metadata`                 |
 
 #### Summary Description Rules
 
-The summary text after `<type>(<scope>): ` must follow these rules:
+The summary text after `<type>(<scope>):` must follow these rules:
 
 1. **Imperative mood**: Use imperative verbs (`add`, `fix`, `update`, `remove`), never past tense (`added`, `fixed`, `removed`) or progressive (`adding`).
 2. **Lowercase start**: Begin the description with a lowercase letter (`add dark theme`, not `Add dark theme`).
@@ -210,23 +224,23 @@ The summary text after `<type>(<scope>): ` must follow these rules:
 
 ## Important Files
 
-| File | Purpose |
-| --- | --- |
-| `settings.gradle.kts` | Morphe plugin and authenticated plugin repositories. |
-| `gradle/libs.versions.toml` | Morphe, smali, and Gson versions. |
-| `patches/build.gradle.kts` | Patch metadata, generated font resource, build, and metadata tasks. |
-| `extensions/extension/build.gradle.kts` | `.mpe` output and Android namespace. |
-| `patches/src/main/kotlin/util/PatchListGenerator.kt` | `patches-list.json` generator. |
-| `tools/apk-lab/apk_lab/cli.py` | APK Lab CLI parser and handlers. |
-| `tools/apk-lab/tools.lock.json` | Pinned external APK tools and hashes. |
-| `scripts/audit.ts` | Unified format/lint/typecheck/test runner. |
-| `worker/src/index.ts` | Worker request, cron, dispatch, and compatibility control plane. |
-| `worker/src/apps.ts` | Patch metadata → monitored app derivation. |
-| `site/src/data/repo.ts` | Root metadata/changelog → static site model. |
-| `.releaserc` | Release rules and generated-asset pipeline. |
-| `.github/workflows/apk-lab-tests.yml` | Multi-stack check and patch build gate. |
-| `.github/workflows/apk-compatibility.yml` | Real-artifact compatibility and fixture pipeline. |
-| `docs/apk-lab.md` | Canonical APK Lab behavior and safety reference. |
+| File                                                 | Purpose                                                             |
+| ---------------------------------------------------- | ------------------------------------------------------------------- |
+| `settings.gradle.kts`                                | Morphe plugin and authenticated plugin repositories.                |
+| `gradle/libs.versions.toml`                          | Morphe, smali, and Gson versions.                                   |
+| `patches/build.gradle.kts`                           | Patch metadata, generated font resource, build, and metadata tasks. |
+| `extensions/extension/build.gradle.kts`              | `.mpe` output and Android namespace.                                |
+| `patches/src/main/kotlin/util/PatchListGenerator.kt` | `patches-list.json` generator.                                      |
+| `tools/apk-lab/apk_lab/cli.py`                       | APK Lab CLI parser and handlers.                                    |
+| `tools/apk-lab/tools.lock.json`                      | Pinned external APK tools and hashes.                               |
+| `scripts/audit.ts`                                   | Unified format/lint/typecheck/test runner.                          |
+| `worker/src/index.ts`                                | Worker request, cron, dispatch, and compatibility control plane.    |
+| `worker/src/apps.ts`                                 | Patch metadata → monitored app derivation.                          |
+| `site/src/data/repo.ts`                              | Root metadata/changelog → static site model.                        |
+| `.releaserc`                                         | Release rules and generated-asset pipeline.                         |
+| `.github/workflows/apk-lab-tests.yml`                | Multi-stack check and patch build gate.                             |
+| `.github/workflows/apk-compatibility.yml`            | Real-artifact compatibility and fixture pipeline.                   |
+| `docs/apk-lab.md`                                    | Canonical APK Lab behavior and safety reference.                    |
 
 ## Runtime/Tooling Preferences
 
@@ -238,20 +252,23 @@ The summary text after `<type>(<scope>): ` must follow these rules:
 - **External APK tools**: install only through `apk-lab setup`; versions and SHA-256 values live in `tools/apk-lab/tools.lock.json`.
 - **Cloudflare**: Worker development/deployment uses Wrangler through the Worker package scripts. Never deploy, mutate bindings, or rotate secrets during routine verification.
 - **Rust**: Stable toolchain (`cargo`, `clippy`, `rustfmt`) for `tools/play-metadata`. Managed via `tools/play-metadata/Cargo.lock`.
+- **Android NDK**: Version matching `REQUIRED_NDK_VERSION` in `patches/build.gradle.kts` (`28.2.13676358` / r28c). Resolution uses `ANDROID_NDK_HOME`, `ndk.dir` in `local.properties`, or `$sdkDir/ndk/$REQUIRED_NDK_VERSION`.
+- **C++**: C++20 for native PDF engine (`extensions/adobescan-pdf-native`). Clang-format (LLVM style, 4-space indent), CMake 3.24+ with Ninja, compiled with `-Wall -Wextra -Werror`.
 
 ## Testing & QA
 
 Tests are layered; unit tests do not prove that a proprietary target APK still patches or runs.
 
-| Change | Minimum targeted proof |
-| --- | --- |
-| Kotlin patch or Java bridge | Gradle compile/build, real-artifact `apk-lab check ... --all`, then device smoke for changed runtime behavior. |
-| APK Lab Python | Targeted pytest plus `uv run --project tools/apk-lab pytest -q`; smoke the changed CLI path. |
-| Worker | `bun run --cwd worker check` and `bun run --cwd worker test`; exercise changed route/cron behavior locally when applicable. |
-| Site | `bun run --cwd site test`, `check`, `check:icons`, and `build`; inspect the changed page/surface. |
-| CI/generator/release script | Targeted non-mutating/check-only mode, affected tests, and review generated boundaries. Do not perform a release/deploy as verification. |
-| Cross-stack code | `bun run audit` after targeted checks. |
-| Rust play-metadata | Targeted test: `cargo test --locked --manifest-path tools/play-metadata/Cargo.toml`; full validation: `bun run audit`. |
+| Change                      | Minimum targeted proof                                                                                                                                 |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Kotlin patch or Java bridge | Gradle compile/build, real-artifact `apk-lab check ... --all`, then device smoke for changed runtime behavior.                                         |
+| APK Lab Python              | Targeted pytest plus `uv run --project tools/apk-lab pytest -q`; smoke the changed CLI path.                                                           |
+| Worker                      | `bun run --cwd worker check` and `bun run --cwd worker test`; exercise changed route/cron behavior locally when applicable.                            |
+| Site                        | `bun run --cwd site test`, `check`, `check:icons`, and `build`; inspect the changed page/surface.                                                      |
+| CI/generator/release script | Targeted non-mutating/check-only mode, affected tests, and review generated boundaries. Do not perform a release/deploy as verification.               |
+| Cross-stack code            | `bun run audit` after targeted checks.                                                                                                                 |
+| Rust play-metadata          | Targeted test: `cargo test --locked --manifest-path tools/play-metadata/Cargo.toml`; full validation: `bun run audit`.                                 |
+| C++ native engine           | CMake host build and CTest (`ctest --test-dir extensions/adobescan-pdf-native/build/host --output-on-failure`); device validation via `apk-lab check`. |
 
 Patch compatibility policy:
 

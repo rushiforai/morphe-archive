@@ -1,3 +1,18 @@
+## [1.17.0](https://github.com/mich111discord/MightyMichs-Patches/compare/v1.16.0...v1.17.0) (2026-11-19)
+
+### 🐛 Bug Fixes
+
+* **dramabox,universal,inshot:** episode unlock, FLAG_SECURE, soft InShot pro ([079d482](https://github.com/mich111discord/MightyMichs-Patches/commit/079d48250d9276170133a9a2bb6363b9165b9d3c))
+* **dramabox:** unlock needPay/isLocked section gates to stop episode freeze ([7292ba4](https://github.com/mich111discord/MightyMichs-Patches/commit/7292ba47ca94886e8856372ded8f26ebe9f95aed))
+* **reelshort:** force episode isLock/needUnlock off to stop freeze ([226992e](https://github.com/mich111discord/MightyMichs-Patches/commit/226992ea3085235d0f6c7d6532efd6aec28d3820))
+* update ReelShort, DramaBox, InShot compatibility targets ([b1d7646](https://github.com/mich111discord/MightyMichs-Patches/commit/b1d7646211c59c853601cd07b76e53b2909c0d6b))
+
+### ✨ New Features
+
+* **whatsapp:** add Enable local backup (manifest + gates) ([034fc98](https://github.com/mich111discord/MightyMichs-Patches/commit/034fc98f86d09182f51b730f649adf01b0667f59))
+* **whatsapp:** add MicroG compatibility patch ([b69e794](https://github.com/mich111discord/MightyMichs-Patches/commit/b69e7946ffc0e3a1f0ed9e122f1265ccb823c30e))
+* **whatsapp:** local backup gates, MicroG compatibility, target 2.26.45.93 ([60598dc](https://github.com/mich111discord/MightyMichs-Patches/commit/60598dc0d45c7ba18177aebf8b87c53b5bd1fc17))
+
 ## [1.16.0](https://github.com/mich111discord/MightyMichs-Patches/compare/v1.15.0...v1.16.0) (2026-11-13)
 
 ### 🐛 Bug Fixes

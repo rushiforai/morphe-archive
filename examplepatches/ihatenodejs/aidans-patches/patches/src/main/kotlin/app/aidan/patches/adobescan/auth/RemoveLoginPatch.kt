@@ -1,5 +1,9 @@
 package app.aidan.patches.adobescan.auth
 
+import app.aidan.patches.adobescan.customization.removeEditText
+import app.aidan.patches.adobescan.customization.removeLinkSharing
+import app.aidan.patches.adobescan.customization.removeMove
+import app.aidan.patches.adobescan.customization.removeSaveAsWord
 import app.aidan.patches.adobescan.shared.COMPATIBILITY_ADOBE_SCAN
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
@@ -8,7 +12,6 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -34,17 +37,8 @@ private const val SCAN_FILE_MANAGER_AUTH_LISTENER = "Lcom/adobe/scan/android/fil
 private const val SETTINGS_FRAGMENT = "Ljt/v2;"
 private const val WELCOME_DIALOG = "Lzd/e5;"
 private const val WELCOME_DIALOG_TYPE = "Lzd/f5;"
-private const val SHARE_BOTTOM_SHEET = "Lqt/q2;"
-private const val SCAN_UTIL_A = "Lcom/adobe/scan/android/util/a;"
-private const val FILE_OPTIONS_MENU_HELPER = "Lqt/u;"
-private const val FILE_LIST_TOOLS_HELPER = "Lut/q0;"
-private const val FILE_LIST_TOOLS_ACTIONS = "Lut/r0;"
-private const val FILE_LIST_TOOLS = "Lut/p0;"
 private const val SCAN_FILE = "Lcom/adobe/scan/android/file/m0;"
 private const val RES_WAITING_TO_UPLOAD = 0x7f142937
-private const val RES_FILE_LIST_MOVE = 0x7f142396
-private const val RES_COMPRESS_PDF = 0x7f1421b3
-private const val RES_SEND_COMPRESSED = 0x7f1427dd
 
 @Suppress("unused")
 val removeLoginPatch = bytecodePatch(
@@ -84,12 +78,6 @@ val removeLoginPatch = bytecodePatch(
         title = "Remove Save as Word Doc",
         description = "Removes the cloud-dependent Save as Word doc option from scan cards."
     )
-    val removeCompressPdf = booleanOption(
-        key = "removeCompressPdf",
-        default = true,
-        title = "Remove Compress PDF",
-        description = "Removes the broken Compress PDF option from file option menus and the Share sheet."
-    )
 
     execute {
         patchSplashActivity()
@@ -115,11 +103,11 @@ val removeLoginPatch = bytecodePatch(
         if (removeMove.value != false) {
             removeMove()
         }
+    }
+
+    finalize {
         if (removeSaveAsWord.value != false) {
             removeSaveAsWord()
-        }
-        if (removeCompressPdf.value != false) {
-            removeCompressPdf()
         }
     }
 }
@@ -454,153 +442,6 @@ private fun BytecodePatchContext.cleanUpAuthComponents() {
 }
 
 /**
- * Removes cloud link sharing options from the Share bottom sheet, leaving only local PDF sharing.
- */
-private fun BytecodePatchContext.removeLinkSharing() {
-    val shareSheetClass = mutableClassDefByOrNull(SHARE_BOTTOM_SHEET)
-        ?: throw PatchException("Share bottom sheet class $SHARE_BOTTOM_SHEET not found")
-
-    // Neutralize q2.h(d3, q1, composer, i) by returning early
-    val hMethod = shareSheetClass.methods.firstOrNull {
-        it.name == "h" &&
-            it.parameterTypes.map(CharSequence::toString) == listOf("Lqt/d3;", "Lqt/q1;", "Lg3/o;", "I") &&
-            it.returnType == "V" &&
-            it.implementation != null
-    } ?: throw PatchException("Share link composable method h not found in $SHARE_BOTTOM_SHEET")
-    hMethod.addInstructions(0, "return-void")
-
-    // In q2.e, replace calls to h (link sharing) and d (divider) with nop
-    val eMethod = shareSheetClass.methods.firstOrNull {
-        it.name == "e" &&
-            it.parameterTypes.map(CharSequence::toString) == listOf("Lqt/d3;", "Lqt/q1;", "Lg3/o;", "I") &&
-            it.returnType == "V" &&
-            it.implementation != null
-    } ?: throw PatchException("Share bottom sheet composable method e not found in $SHARE_BOTTOM_SHEET")
-
-    val eInstructions = eMethod.implementation?.instructions
-        ?: throw PatchException("Method e has no implementation in $SHARE_BOTTOM_SHEET")
-
-    val hCallIndex = eInstructions.indexOfFirst { inst ->
-        val ref = (inst as? ReferenceInstruction)?.reference as? MethodReference
-        inst.opcode == Opcode.INVOKE_STATIC &&
-            ref?.definingClass == SHARE_BOTTOM_SHEET &&
-            ref.name == "h"
-    }
-    if (hCallIndex >= 0) {
-        eMethod.replaceInstruction(hCallIndex, "nop")
-    }
-
-    val dCallIndex = eInstructions.indexOfFirst { inst ->
-        val ref = (inst as? ReferenceInstruction)?.reference as? MethodReference
-        inst.opcode == Opcode.INVOKE_STATIC &&
-            ref?.definingClass == SHARE_BOTTOM_SHEET &&
-            ref.name == "d"
-    }
-    if (dCallIndex >= 0) {
-        eMethod.replaceInstruction(dCallIndex, "nop")
-    }
-}
-
-/**
- * Removes non-functional Edit text from File Options bottom sheets, Preview bottom toolbar,
- * and Recent scan cards by disabling the global edit text availability predicate.
- */
-private fun BytecodePatchContext.removeEditText() {
-    val utilAClass = mutableClassDefByOrNull(SCAN_UTIL_A)
-        ?: throw PatchException("Util class $SCAN_UTIL_A not found")
-    val jMethod = utilAClass.methods.singleOrNull {
-        it.name == "j" &&
-            it.parameterTypes.isEmpty() &&
-            it.returnType == "Z" &&
-            it.implementation != null
-    } ?: throw PatchException("Util method j not found in $SCAN_UTIL_A")
-
-    jMethod.addInstructions(0, "const/4 v0, 0x0\nreturn v0")
-}
-
-/**
- * Removes the Move file option from File Options bottom sheets across all surfaces.
- */
-private fun BytecodePatchContext.removeMove() {
-    val fileOptionsClass = mutableClassDefByOrNull(FILE_OPTIONS_MENU_HELPER)
-        ?: throw PatchException("FileOptionsMenuBottomSheet class $FILE_OPTIONS_MENU_HELPER not found")
-    val optionsMethod = fileOptionsClass.methods.singleOrNull {
-        it.name == "a" &&
-            it.parameterTypes.map(CharSequence::toString) == listOf("Lqt/a;", "Lfu/b;", "Ljava/util/List;") &&
-            it.returnType == "Lm90/b;" &&
-            it.implementation != null
-    } ?: throw PatchException("FileOptionsMenuBottomSheet options method not found")
-
-    val instructions = optionsMethod.implementation?.instructions
-        ?: throw PatchException("FileOptionsMenuBottomSheet options method has no implementation")
-
-    val moveIndices = instructions.mapIndexedNotNull { idx, inst ->
-        if (inst is NarrowLiteralInstruction && inst.narrowLiteral == RES_FILE_LIST_MOVE) idx else null
-    }
-    if (moveIndices.isEmpty()) {
-        throw PatchException("Could not find Move resource id in FileOptionsMenuBottomSheet")
-    }
-
-    moveIndices.forEach { moveIdx ->
-        val addIndex = (moveIdx + 1..minOf(instructions.size - 1, moveIdx + 10)).firstOrNull { idx ->
-            val ref = (instructions[idx] as? ReferenceInstruction)?.reference as? MethodReference
-            instructions[idx].opcode == Opcode.INVOKE_VIRTUAL &&
-                ref?.definingClass == "Lm90/b;" &&
-                ref.name == "add"
-        } ?: throw PatchException("Could not find Lm90/b;->add for Move")
-        optionsMethod.replaceInstruction(addIndex, "nop")
-    }
-}
-
-/**
- * Removes cloud-dependent Save as Word doc from Recent scan cards.
- */
-private fun BytecodePatchContext.removeSaveAsWord() {
-    val q0Class = mutableClassDefByOrNull(FILE_LIST_TOOLS_HELPER)
-        ?: throw PatchException("FileListToolsHelper class $FILE_LIST_TOOLS_HELPER not found")
-    val bMethod = q0Class.methods.singleOrNull {
-        it.name == "b" &&
-            it.parameterTypes.map(CharSequence::toString) == listOf("Lcom/adobe/scan/android/file/m0;") &&
-            it.returnType == "Z" &&
-            it.implementation != null
-    } ?: throw PatchException("FileListToolsHelper method b not found in $FILE_LIST_TOOLS_HELPER")
-
-    bMethod.addInstructions(0, "const/4 v0, 0x0\nreturn v0")
-
-    val toolsClass = mutableClassDefByOrNull(FILE_LIST_TOOLS_ACTIONS)
-        ?: throw PatchException("FileListTools actions class $FILE_LIST_TOOLS_ACTIONS not found")
-    val initMethod = toolsClass.methods.firstOrNull {
-        it.name == "<init>" &&
-            it.parameterTypes.map(CharSequence::toString) == listOf("Lod/ll;", "Lod/ll;") &&
-            it.implementation != null
-    } ?: throw PatchException("FileListTools actions constructor not found")
-
-    val initInstructions = initMethod.implementation?.instructions
-        ?: throw PatchException("FileListTools actions constructor has no implementation")
-
-    val wordSgetIndexInInit = initInstructions.indexOfFirst { inst ->
-        val ref = (inst as? ReferenceInstruction)?.reference as? FieldReference
-        inst.opcode == Opcode.SGET_OBJECT &&
-            ref?.definingClass == FILE_LIST_TOOLS &&
-            ref.name == "r"
-    }
-    if (wordSgetIndexInInit >= 0) {
-        val filledArrayIdxInInit = (wordSgetIndexInInit + 1..minOf(initInstructions.size - 1, wordSgetIndexInInit + 5)).firstOrNull {
-            initInstructions[it].opcode == Opcode.FILLED_NEW_ARRAY
-        }
-        if (filledArrayIdxInInit != null) {
-            val filledInst = initInstructions[filledArrayIdxInInit] as? FiveRegisterInstruction
-            if (filledInst != null) {
-                initMethod.replaceInstruction(
-                    filledArrayIdxInInit,
-                    "filled-new-array {v${filledInst.registerC}, v${filledInst.registerE}}, [Lod/ll;"
-                )
-            }
-        }
-    }
-}
-
-/**
  * Suppresses the "Waiting to upload..." status indicator on Home and Files screens
  * by preventing ScanFile.b from returning R.string.waiting_to_upload.
  */
@@ -626,67 +467,4 @@ private fun BytecodePatchContext.suppressWaitingToUpload() {
 
     val narrowInst = instructions[waitingUploadIndex] as OneRegisterInstruction
     bMethod.replaceInstruction(waitingUploadIndex, "const/4 v${narrowInst.registerA}, 0x0")
-}
-
-/**
- * Neutralizes the Compress PDF option in File Options bottom sheet
- * and Send compressed in the Share bottom sheet.
- * Post-save PDF compression requires Adobe Document Cloud server infrastructure
- * which is non-functional offline.
- */
-private fun BytecodePatchContext.removeCompressPdf() {
-    val fileOptionsClass = mutableClassDefByOrNull(FILE_OPTIONS_MENU_HELPER)
-        ?: throw PatchException("FileOptionsMenuBottomSheet class $FILE_OPTIONS_MENU_HELPER not found")
-    val optionsMethod = fileOptionsClass.methods.singleOrNull {
-        it.name == "a" &&
-            it.parameterTypes.map(CharSequence::toString) == listOf("Lqt/a;", "Lfu/b;", "Ljava/util/List;") &&
-            it.returnType == "Lm90/b;" &&
-            it.implementation != null
-    } ?: throw PatchException("FileOptionsMenuBottomSheet options method not found")
-
-    val instructions = optionsMethod.implementation?.instructions
-        ?: throw PatchException("FileOptionsMenuBottomSheet options method has no implementation")
-
-    val compressStringIndex = instructions.indexOfFirst {
-        it is NarrowLiteralInstruction && it.narrowLiteral == RES_COMPRESS_PDF
-    }
-    if (compressStringIndex < 0) {
-        throw PatchException("Could not find Compress PDF resource id in FileOptionsMenuBottomSheet")
-    }
-
-    val addIndex = (compressStringIndex + 1..minOf(instructions.size - 1, compressStringIndex + 15)).firstOrNull { idx ->
-        val ref = (instructions[idx] as? ReferenceInstruction)?.reference as? MethodReference
-        instructions[idx].opcode == Opcode.INVOKE_VIRTUAL &&
-            ref?.name == "add"
-    } ?: throw PatchException("Could not find add instruction for Compress PDF")
-
-    optionsMethod.replaceInstruction(addIndex, "nop")
-
-    val shareSheetClass = mutableClassDefByOrNull(SHARE_BOTTOM_SHEET)
-        ?: throw PatchException("Share bottom sheet class $SHARE_BOTTOM_SHEET not found")
-    val iMethod = shareSheetClass.methods.firstOrNull {
-        it.name == "i" &&
-            it.parameterTypes.map(CharSequence::toString) == listOf("Lqt/d3;", "Lqt/q1;", "Lg3/o;", "I") &&
-            it.returnType == "V" &&
-            it.implementation != null
-    } ?: throw PatchException("Share bottom sheet composable method i not found in $SHARE_BOTTOM_SHEET")
-
-    val iInstructions = iMethod.implementation?.instructions
-        ?: throw PatchException("Method i has no implementation in $SHARE_BOTTOM_SHEET")
-
-    val sendCompressedIndex = iInstructions.indexOfFirst {
-        it is NarrowLiteralInstruction && it.narrowLiteral == RES_SEND_COMPRESSED
-    }
-    if (sendCompressedIndex < 0) {
-        throw PatchException("Could not find Send compressed resource id in Share bottom sheet")
-    }
-
-    val gCallIndex = (sendCompressedIndex + 1..minOf(iInstructions.size - 1, sendCompressedIndex + 25)).firstOrNull { idx ->
-        val ref = (iInstructions[idx] as? ReferenceInstruction)?.reference as? MethodReference
-        iInstructions[idx].opcode == Opcode.INVOKE_STATIC &&
-            ref?.definingClass == SHARE_BOTTOM_SHEET &&
-            ref.name == "g"
-    } ?: throw PatchException("Could not find Share bottom sheet item render call g for Send compressed")
-
-    iMethod.replaceInstruction(gCallIndex, "nop")
 }

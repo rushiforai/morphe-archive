@@ -1,0 +1,13 @@
+[versions]
+morphe-patcher = "2.3.0"
+#noinspection GradleDependency
+smali = "4220ae75f7"
+gson = "2.15.0"
+coroutines = "1.10.2"
+
+[libraries]
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+# Gradle plugin adds this dependency during build; retained for dependency update tooling.
+#noinspection UnusedVersionCatalogEntry
+morphe-patcher = { module = "app.morphe:morphe-patcher", version.ref = "morphe-patcher" }

@@ -1,0 +1,41 @@
+4 ficheros DEX, 164880 cadenas distintas
+
+### Lcom/baidu/simeji/components/b;
+    public constructor     <init>()V  -> V
+    public static          B0()Z  -> Z
+    public static          E0(Landroid/app/Activity;)V  -> V
+    private                M0()V  -> V
+    private                N0()V  -> V
+    static bridge synthetic t0(Lcom/baidu/simeji/components/b;)Ljava/util/List;  -> Ljava/util/List;
+    public static          u0(Landroid/os/Bundle; Landroid/app/Activity;)V  -> V
+    private                x0()V  -> V
+    private                y0()V  -> V
+    public                 A0()Z  -> Z
+    protected              C0()V  -> V
+    public                 D0()V  -> V
+    protected              F0(Ljava/lang/Runnable;)V  -> V
+    protected              G0()V  -> V
+    protected              H0()V  -> V
+    protected              I0(Lcom/baidu/simeji/components/b$g;)V  -> V
+    protected              J0(Lcom/baidu/simeji/components/b$h;)V  -> V
+    protected              K0()V  -> V
+    protected              L0(I)V  -> V
+    public                 onBackPressed()V  -> V
+    protected              onCreate(Landroid/os/Bundle;)V  -> V
+    protected              onDestroy()V  -> V
+    protected              onPause()V  -> V
+    public                 onRequestPermissionsResult(I [Ljava/lang/String; [I)V  -> V
+    protected              onResume()V  -> V
+    protected              onSaveInstanceState(Landroid/os/Bundle;)V  -> V
+    protected              onStart()V  -> V
+    protected              onStop()V  -> V
+    protected              onTitleChanged(Ljava/lang/CharSequence; I)V  -> V
+    public                 onWindowFocusChanged(Z)V  -> V
+    public                 r0(Landroidx/fragment/app/Fragment;)V  -> V
+    public                 setContentView(I)V  -> V
+    public                 setContentView(Landroid/view/View;)V  -> V
+    public                 setContentView(Landroid/view/View; Landroid/view/ViewGroup$LayoutParams;)V  -> V
+    public                 v0()Lz8/a;  -> Lz8/a;
+    protected              w0()Z  -> Z
+    public                 z0()Z  -> Z
+

@@ -2,17 +2,17 @@
 
 ## 1. Overview
 
-| Attribute | Specification |
-|---|---|
-| **Application Name** | Blackjack |
-| **Package Name** | `com.tripledot.blackjack` |
-| **Supported Version** | `2.22.09` (Morphe Compatibility: `2.22.09`, `minSdk` 25) |
-| **Analyzed Version Code** | Null / Unconstrained in Constants |
-| **Minimum SDK** | `25` (Android 7.1) |
-| **Distribution Format** | APKM (`ApkFileType.APKM`) |
+| Attribute                   | Specification                                                      |
+| --------------------------- | ------------------------------------------------------------------ |
+| **Application Name**        | Blackjack                                                          |
+| **Package Name**            | `com.tripledot.blackjack`                                          |
+| **Supported Version**       | `2.22.09` (Morphe Compatibility: `2.22.09`, `minSdk` 25)           |
+| **Analyzed Version Code**   | Null / Unconstrained in Constants                                  |
+| **Minimum SDK**             | `25` (Android 7.1)                                                 |
+| **Distribution Format**     | APKM (`ApkFileType.APKM`)                                          |
 | **Package Signing SHA-256** | `32e1c2b4c9ab0189d3e4e1c67806e6f4fc454aa758a74ccaedda8a309aa6b205` |
-| **Target Architecture** | `arm64-v8a` (Unity IL2CPP native runtime) |
-| **Primary Icon Color** | `#205B1F` |
+| **Target Architecture**     | `arm64-v8a` (Unity IL2CPP native runtime)                          |
+| **Primary Icon Color**      | `#205B1F`                                                          |
 
 Blackjack by Tripledot Studios is a mobile casino gaming application built with the Unity game engine. Game simulations, rendering, animations, state machines, and business rules are written in C# and compiled via Unity's IL2CPP (Intermediate Language to C++) toolchain into native 64-bit ARM machine code (`lib/arm64-v8a/libil2cpp.so`), hosted by Android's `com.unity3d.player.UnityPlayerActivity`.
 
@@ -21,6 +21,7 @@ Blackjack by Tripledot Studios is a mobile casino gaming application built with 
 ## 2. Technology Stack & Runtime Architecture
 
 ### 2.1 Unity IL2CPP Runtime
+
 - **Host Activity:** `com.unity3d.player.UnityPlayerActivity` manages the window surface, Android lifecycle, and input dispatching.
 - **Native Binary:** `lib/arm64-v8a/libil2cpp.so` contains all compiled Unity game classes, including `BlackjackApplication`, `PlayerProfile`, `PlayerData`, `LevelData`, `BlackjackAds`, and `AdManager`.
 - **Unity-to-Java Messaging Bridge:**
@@ -28,6 +29,7 @@ Blackjack by Tripledot Studios is a mobile casino gaming application built with 
   - Android extensions communicate back into the Unity engine via `com.unity3d.player.UnityPlayer.UnitySendMessage(String gameObject, String methodName, String value)`.
 
 ### 2.2 Persistence & Storage
+
 - Player statistics, current level, XP, and chip balances are serialized as JSON structures inside `SimpleStorage/PlayerData.json`.
 - Candidate file paths used by extensions to resolve `PlayerData.json`:
   1. `/sdcard/Android/data/com.tripledot.blackjack/files/SimpleStorage/PlayerData.json`
@@ -40,14 +42,18 @@ Blackjack by Tripledot Studios is a mobile casino gaming application built with 
   - `value.XP`: Accumulated experience points toward the next level.
 
 ### 2.3 Advertising & Monetization Systems
+
 The original game incorporates an extensive advertising and monetization network:
+
 - **IronSource / AdManager mediation:** Coordinates banner, interstitial, and rewarded video ads across ad networks.
 - **`BlackjackAds`:** Manages interstitial displays between table rounds (`TryShowInterstitial`, `ShowInterstitial`).
 - **`LevelUpRewardScreen`:** Displays a rewarded video ad prompt container (`watchAnAdContainer`) offering bonus chips upon leveling up.
 - **Native Chip Store:** An in-game storefront (`BlackjackApplication.OpenShop`) that is non-functional or unconfigured in offline/patched states.
 
 ### 2.4 Telemetry & Analytics Architecture
+
 Tripledot Blackjack embeds six distinct analytics, attribution, and telemetry SDKs compiled into `libil2cpp.so`:
+
 1. **Tripledot Analytics:** Proprietary first-party behavioral telemetry (`Analytics.SendEvent`, `SendEventInternal`, `SendToSinks`).
 2. **Firebase Analytics:** Google event tracking (`FirebaseAnalytics.LogEvent` overloads).
 3. **Firebase Crashlytics:** Crash and exception reporting.
@@ -61,7 +67,7 @@ Tripledot Blackjack embeds six distinct analytics, attribution, and telemetry SD
 
 Patches for Blackjack introduce two native Java extension dialogs packaged into `extensions/extension.mpe` (`app.aidan.extension.blackjack.*`):
 
-```
+```text
                    +----------------------------------+
                    |       UnityPlayerActivity        |
                    +----------------------------------+

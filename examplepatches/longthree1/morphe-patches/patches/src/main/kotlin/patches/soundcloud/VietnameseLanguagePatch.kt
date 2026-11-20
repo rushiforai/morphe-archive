@@ -35,6 +35,28 @@ val vietnameseLanguagePatch = resourcePatch(
             }
         }
 
+        fun filterToDefinedResources(basePath: String, localizedPath: String, tagName: String) {
+            if (!get(basePath).isFile) return
+            val defined = buildSet {
+                document(basePath).use { doc ->
+                    val nodes = doc.getElementsByTagName(tagName)
+                    for (i in 0 until nodes.length) {
+                        val el = nodes.item(i) as? Element ?: continue
+                        add(el.getAttribute("name"))
+                    }
+                }
+            }
+            document(localizedPath).use { doc ->
+                val nodes = doc.getElementsByTagName(tagName)
+                val toRemove = mutableListOf<Element>()
+                for (i in 0 until nodes.length) {
+                    val el = nodes.item(i) as? Element ?: continue
+                    if (el.getAttribute("name") !in defined) toRemove += el
+                }
+                for (el in toRemove) el.parentNode?.removeChild(el)
+            }
+        }
+
         // 2. Write res/values-vi/strings.xml
         val stringsStream = object {}.javaClass.getResourceAsStream("/soundcloud/strings-vi.xml")
             ?: throw PatchException("Vietnamese strings resource not found in patch bundle (/soundcloud/strings-vi.xml)")
@@ -42,6 +64,7 @@ val vietnameseLanguagePatch = resourcePatch(
         val stringsFile = get("res/values-vi/strings.xml", false)
         stringsFile.parentFile.mkdirs()
         stringsFile.writeText(stringsXml)
+        filterToDefinedResources("res/values/strings.xml", "res/values-vi/strings.xml", "string")
 
         // 3. Write res/values-vi/plurals.xml
         val pluralsStream = object {}.javaClass.getResourceAsStream("/soundcloud/plurals-vi.xml")
@@ -50,5 +73,6 @@ val vietnameseLanguagePatch = resourcePatch(
         val pluralsFile = get("res/values-vi/plurals.xml", false)
         pluralsFile.parentFile.mkdirs()
         pluralsFile.writeText(pluralsXml)
+        filterToDefinedResources("res/values/plurals.xml", "res/values-vi/plurals.xml", "plurals")
     }
 }

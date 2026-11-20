@@ -29,7 +29,7 @@ import io.github.forsigh.waze.WazeConstants.COMPATIBILITY_WAZE
  * Rebuilt from the compiled classes in waze-patches-LOCAL-DEV-2026-10-22.mpp.
  */
 private const val FREE_MAP_ACTIVITY = "Lcom/waze/FreeMapAppActivity;"
-private const val FREE_MAP_SUPER = "Lcom/waze/bv;"
+// FREE_MAP_SUPER used to be hardcoded here; the superclass is read from the class def instead.
 private const val UID_ACTIVITY = "Lcom/waze/uid/activities/UidFragmentActivity;"
 private const val UID_SUPER = "Lcom/waze/sharedui/a/f;"
 private const val ACTIVITY_TYPE = "Landroid/app/Activity;"
@@ -120,6 +120,12 @@ val pictureInPicturePatch = bytecodePatch(
         // FreeMapAppActivity can be the first activity when Waze opens straight into the map. It has
         // no onResume of its own in 5.26.0.0, so one is added that defers to the superclass first.
         val freeMap = mutableClassDefBy(FREE_MAP_ACTIVITY)
+        // The superclass is obfuscated and moves between Waze releases (com/waze/bv on 5.26.5.0,
+        // com/waze/bq on 5.27.9x). A hardcoded descriptor makes the injected onResume invoke-super a
+        // class that is not this activity's super, which ART rejects at class load - the startup crash
+        // reported in issue #22. Always read it off the class being patched.
+        val freeMapSuper = freeMap.superclass
+            ?: throw PatchException("pictureInPicturePatch: $FREE_MAP_ACTIVITY has no superclass")
         val hasResume = freeMap.methods.any { it.name == "onResume" && it.parameterTypes.isEmpty() }
         if (!hasResume) {
             val override = MutableMethod(
@@ -137,7 +143,7 @@ val pictureInPicturePatch = bytecodePatch(
             override.addInstructions(
                 0,
                 """
-                invoke-super {p0}, $FREE_MAP_SUPER->onResume()V
+                invoke-super {p0}, $freeMapSuper->onResume()V
                 $call
                 return-void
                 """.trimIndent(),

@@ -3,39 +3,42 @@ package mightymich.morphe.patches.com.newleaf.app.android.victor
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
+import com.android.tools.smali.dexlib2.AccessFlags
 
 /**
- * ReelShort (com.newleaf.app.android.victor) Unlock Premium.
+ * ReelShort Unlock Premium + episode unlock.
  *
- * Bug #33: previous getVip_expire → -1 was rendered as "Jan 01, 1970"
- * (Unix epoch) and triggered "duplicate / expired subscription" UI.
+ * Users reported: VIP UI looks active but locked episodes freeze forever and never
+ * start. Root cause: Account VIP getters were forced, but chapter/episode lock
+ * flags (is_lock / needUnlock / lockStatus / show_unlock_btn) still blocked the
+ * player, which waited for an unlock callback that never arrived.
  *
- * Fix: expire = INT_MAX (2038-01-19 UTC) as Unix seconds; remaining sec large;
- * VIP status/type forced active; local coin/bonus getters boosted.
- * Server wallet / DRM episodes may still stay at 0.
+ * This revision also forces those local lock/paywall gates so playback can start.
+ * Server DRM / paid stream tokens may still apply on some titles.
  */
 @Suppress("unused")
 val unlockPremiumPatch = bytecodePatch(
     name = "Unlock Premium Features",
-    description = "Forces local VIP membership (status, type, expire far in the future) " +
-        "and unlocks ad/paywall episode flags. Does not forge server purchases.",
+    description = "Forces local VIP membership and unlocks episode lock / paywall flags " +
+        "so locked chapters do not freeze the player. Does not forge server purchases.",
     default = true,
 ) {
     compatibleWith(ReelShortCompatibility.REELSHORT)
 
     execute {
-        // Active VIP flag / category
-        val returnOne = """
+        val returnTrue = """
             const/4 v0, 0x1
             return v0
         """
-        // Unix seconds ≈ 2038-01-19 (Integer.MAX_VALUE) — valid future, not 1970
+        val returnFalse = """
+            const/4 v0, 0x0
+            return v0
+        """
         val returnFarExpire = """
             const v0, 0x7fffffff
             return v0
         """
-        // ~31 years of remaining seconds
-        val returnLongRemainingSec = """
+        val returnLongRemaining = """
             const v0, 0x3b9aca00
             return v0
         """
@@ -43,8 +46,7 @@ val unlockPremiumPatch = bytecodePatch(
             const/4 v0, 0x0
             return v0
         """
-        // Local display balance (client-side only)
-        val returnManyCoins = """
+        val returnMany = """
             const v0, 0xf423f
             return v0
         """
@@ -56,97 +58,136 @@ val unlockPremiumPatch = bytecodePatch(
             smali: String,
         ): Boolean {
             return try {
-                val fp = Fingerprint(
+                Fingerprint(
                     definingClass = definingClass,
                     name = methodName,
                     returnType = returnType,
                     parameters = emptyList(),
-                )
-                fp.method.addInstructions(0, smali)
+                ).method.addInstructions(0, smali)
                 true
             } catch (_: Exception) {
                 false
             }
         }
 
-        fun forceInt(cls: String, name: String, smali: String = returnOne) =
-            force(cls, name, "I", smali)
-
-        fun forceBool(cls: String, name: String, smali: String = returnOne) =
-            force(cls, name, "Z", smali)
-
-        fun forceLong(cls: String, name: String, smali: String): Boolean =
-            force(cls, name, "J", smali)
-
         var hits = 0
 
         val account = "Lcom/newleaf/app/android/victor/bean/Account;"
-
-        // VIP status / type
-        if (forceInt(account, "getVip_status")) hits++
-        if (forceInt(account, "getVip_type")) hits++
-        if (forceInt(account, "getVipStatus")) hits++
-        if (forceInt(account, "getVipType")) hits++
-        if (forceInt(account, "getOtpVip")) hits++
-        if (forceInt(account, "getVipCategory")) hits++
-        if (forceInt(account, "is_vip_renew")) hits++
-        if (forceBool(account, "is_vip")) hits++
-
-        // CRITICAL: expire must be a real future unix timestamp, never -1 / 0
-        if (forceInt(account, "getVip_expire", returnFarExpire)) hits++
-        if (forceInt(account, "getVipExpire", returnFarExpire)) hits++
-        if (forceInt(account, "getVip_sec", returnLongRemainingSec)) hits++
-        if (forceInt(account, "getVipSec", returnLongRemainingSec)) hits++
-        // Some builds use millis as long
-        forceLong(
-            account,
-            "getVipExpireTime",
+        for (name in listOf(
+            "getVip_status", "getVipStatus", "getVip_type", "getVipType",
+            "getOtpVip", "getVipCategory", "is_vip_renew",
+        )) {
+            if (force(account, name, "I", returnTrue)) hits++
+        }
+        if (force(account, "is_vip", "Z", returnTrue)) hits++
+        if (force(account, "getVip_expire", "I", returnFarExpire)) hits++
+        if (force(account, "getVipExpire", "I", returnFarExpire)) hits++
+        if (force(account, "getVip_sec", "I", returnLongRemaining)) hits++
+        if (force(account, "getVipSec", "I", returnLongRemaining)) hits++
+        force(
+            account, "getVipExpireTime", "J",
             """
                 const-wide v0, 0x1eaf039b000L
                 return-wide v0
             """,
         )
-        forceLong(
-            account,
-            "getVip_expire_time",
-            """
-                const-wide v0, 0x1eaf039b000L
-                return-wide v0
-            """,
-        )
+        force(account, "getCoins", "I", returnMany)
+        force(account, "getBonus", "I", returnMany)
 
-        // Local coins / bonus display (does not top-up server wallet)
-        forceInt(account, "getCoins", returnManyCoins)
-        forceInt(account, "getBonus", returnManyCoins)
-        forceInt(account, "getTotalCoins", returnManyCoins)
-        forceInt(account, "getTotalBonus", returnManyCoins)
-
-        // Episode / playlet unlock flags
         val episode = "Lcom/newleaf/app/android/victor/player/bean/EpisodeEntity;"
-        if (forceInt(episode, "getVip_status")) hits++
-        if (forceInt(episode, "isVipFreeAdvUnlock")) hits++
-        if (forceInt(episode, "is_adv_unlock")) hits++
-        if (forceInt(episode, "is_wait_free_unlock")) hits++
-        if (forceInt(episode, "getLimit_free_status")) hits++
-        if (forceInt(episode, "getUnlock_cost", returnZero)) hits++
-        if (forceInt(episode, "getOriginal_unlock_cost", returnZero)) hits++
-        if (forceInt(episode, "getTodayFirstVipFreeAdvUnlock")) hits++
-        forceBool(episode, "isHandWaitFreeUnlock")
+        for (name in listOf(
+            "getVip_status", "isVipFreeAdvUnlock", "is_adv_unlock",
+            "is_wait_free_unlock", "getLimit_free_status",
+            "getTodayFirstVipFreeAdvUnlock",
+        )) {
+            if (force(episode, name, "I", returnTrue)) hits++
+        }
+        for (name in listOf("getUnlock_cost", "getOriginal_unlock_cost", "getShow_unlock_btn")) {
+            if (force(episode, name, "I", returnZero)) hits++
+        }
+        for (name in listOf("isHandWaitFreeUnlock", "isVipFreeAdvUnlock")) {
+            force(episode, name, "Z", returnTrue)
+        }
+        for (name in listOf("getIsLock", "isLock", "isLocked", "needUnlock")) {
+            if (force(episode, name, "Z", returnFalse)) hits++
+            if (force(episode, name, "I", returnZero)) hits++
+        }
+        for (name in listOf("getLockStatus", "lockStatus", "getLock_status")) {
+            if (force(episode, name, "I", returnZero)) hits++
+            if (force(episode, name, "Z", returnFalse)) hits++
+        }
 
-        val playlet = "Lcom/newleaf/app/android/victor/player/bean/PlayletEntity;"
-        forceInt(playlet, "getVip_status")
-        forceInt(playlet, "getLimit_free_status")
-        forceInt(playlet, "getConvert_free")
+        val lockFalseNames = setOf(
+            "getIsLock", "isLock", "isLocked", "needUnlock", "getNeedUnlock",
+            "is_lock", "getIs_lock",
+        )
+        val lockZeroNames = setOf(
+            "getLockStatus", "lockStatus", "getLock_status", "getShow_unlock_btn",
+            "getUnlock_cost", "getOriginal_unlock_cost", "getUnlockCost",
+        )
+        val unlockTrueNames = setOf(
+            "isVipFreeAdvUnlock", "isHandWaitFreeUnlock", "is_adv_unlock",
+            "is_wait_free_unlock", "canPlay", "isUnlock", "getIsUnlock",
+        )
 
-        val interact = "Lcom/newleaf/app/android/victor/interackPlayer/bean/InteractEntity;"
-        forceInt(interact, "getVip_status")
-        forceInt(interact, "isVipFreeAdvUnlock")
-        forceInt(interact, "is_adv_unlock")
-
-        val interactPlaylet =
-            "Lcom/newleaf/app/android/victor/interackPlayer/bean/InteractPlayletEntity;"
-        forceInt(interactPlaylet, "getVip_status")
-
-        // Soft success — partial VIP still better than hard fail
+        val seen = mutableSetOf<String>()
+        for (marker in listOf(
+            "is_lock=", ",isLock=", "needUnlock", "lockStatus=",
+            "show_unlock_btn", "isVipFreeAdvUnlock", "EpisodeEntity",
+        )) {
+            val defs = try {
+                classDefByStrings(marker)
+            } catch (_: Exception) {
+                emptyList()
+            }
+            for (def in defs) {
+                if (!seen.add(def.type)) continue
+                val t = def.type
+                if (!t.contains("newleaf") && !t.contains("victor") && !t.contains("crazymaple")) {
+                    continue
+                }
+                if (AccessFlags.INTERFACE.isSet(def.accessFlags)) continue
+                val clazz = try {
+                    mutableClassDefBy(def)
+                } catch (_: Exception) {
+                    continue
+                }
+                for (method in clazz.methods) {
+                    if (AccessFlags.ABSTRACT.isSet(method.accessFlags)) continue
+                    if (AccessFlags.NATIVE.isSet(method.accessFlags)) continue
+                    if (method.parameterTypes.isNotEmpty()) continue
+                    val name = method.name
+                    try {
+                        when {
+                            name in lockFalseNames && method.returnType == "Z" -> {
+                                method.addInstructions(0, returnFalse)
+                                hits++
+                            }
+                            name in lockFalseNames && method.returnType == "I" -> {
+                                method.addInstructions(0, returnZero)
+                                hits++
+                            }
+                            name in lockZeroNames && method.returnType == "I" -> {
+                                method.addInstructions(0, returnZero)
+                                hits++
+                            }
+                            name in lockZeroNames && method.returnType == "Z" -> {
+                                method.addInstructions(0, returnFalse)
+                                hits++
+                            }
+                            name in unlockTrueNames && method.returnType == "Z" -> {
+                                method.addInstructions(0, returnTrue)
+                                hits++
+                            }
+                            name in unlockTrueNames && method.returnType == "I" -> {
+                                method.addInstructions(0, returnTrue)
+                                hits++
+                            }
+                        }
+                    } catch (_: Exception) {
+                    }
+                }
+            }
+        }
     }
 }

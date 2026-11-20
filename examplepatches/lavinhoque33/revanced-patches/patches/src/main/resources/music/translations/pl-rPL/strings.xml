@@ -136,6 +136,7 @@ Kroki:
     <string name="morphe_music_downloads_sort">Sortuj</string>
     <string name="morphe_music_downloads_started">Rozpoczęto pobieranie</string>
     <string name="morphe_music_downloads_starting">Rozpoczynanie pobierania…</string>
+    <string name="morphe_music_downloads_waiting_for_connection">Oczekiwanie na połączenie</string>
     <string name="morphe_music_downloads_storage_permission">Zezwól na dostęp do pamięci masowej, a następnie ponownie dotknij opcji Pobierz</string>
     <string name="morphe_music_downloads_unknown_track">Nie udało się zidentyfikować utworu do pobrania</string>
     <string name="morphe_music_hide_you_may_also_like_section_title">Ukryj sekcję \"To też może Ci się spodobać\"</string>
@@ -1068,4 +1069,8 @@ Efekt uboczny (blokada żądania):
     <string name="revanced_webview_toast_unavailable">WebView jest niedostępne</string>
     <string name="morphe_music_auto_song_version_title">Zawsze odtwarzaj wersję utworu</string>
     <string name="morphe_music_auto_song_version_summary">Zastępuje oficjalne teledyski w kolejce pasującymi utworami. Wymaga włączenia opcji „Nie odtwarzaj teledysków” w aplikacji. Utwory bez dokładnego dopasowania pozostają bez zmian</string>
+    <string name="morphe_music_playlist_download_connect">Połącz się z internetem, aby kontynuować pobieranie</string>
+    <string name="morphe_music_playlist_ready">Gotowe: %1$d z %2$d</string>
+    <string name="morphe_music_playlist_resume">Gotowe: %1$d z %2$d · Wznów</string>
+    <string name="morphe_music_playlist_partial_failed">Gotowe: %1$d z %2$d (niepowodzenia: %3$d) · Wznów</string>
 </resources>

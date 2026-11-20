@@ -29,15 +29,15 @@ activation is native code and is not affected.
 On by default. The tuner's Optional features dialog hides three entries behind
 checks that have nothing to do with whether the feature works on the device:
 
-- **Refresh rate** - shown only when the display API reports a discrete 60Hz
+- Refresh rate: shown only when the display API reports a discrete 60Hz
   mode next to a >60Hz mode. Samsung OneUI panels report their modes through
   vendor interfaces instead, so the probe fails even though rate control
   through the root daemon works. The patch makes the support check return
   true.
-- **FAS in games** - frame-aware scheduling, the in-game FPS control. Gated on
+- FAS in games: frame-aware scheduling, the in-game FPS control. Gated on
   a cloud `lp` profile branch with an online config source. The patch makes
   the availability check return true; the per-game config is local.
-- **CPU limiters** - gated on the config source being Scene Online. The patch
+- CPU limiters: gated on the config source being Scene Online. The patch
   removes that visibility branch in the dialog builder.
 
 `Bypass power supply` stays hidden on devices without a supported
@@ -49,7 +49,7 @@ The patch locates the dialog builder by fingerprint (its `View` onClick shape
 plus the `SOURCE_SCENE_ONLINE` / `CLOUD_PROFILE_BRANCH` literals), derives the
 refresh-rate check from the invoke right before the online-source anchor, and
 neutralizes the limiter gate by tracking the comparison result register to its
-branch - no obfuscated names are hardcoded, so app updates keep working as
+branch. No obfuscated names are hardcoded, so app updates keep working as
 long as the dialog keeps this shape.
 
 ## Daemon gate bypass
@@ -57,7 +57,7 @@ long as the dialog keeps this shape.
 On by default. The root scene-daemon serves the app's live stats (dashboard
 cards, system/mini/FPS overlays) through `adb-monitor-*` ops, but on rooted
 devices a local validator flips a RESTRICT flag ~40s after the app connects and
-those ops start answering empty - the well-known "stats freeze" of modded Scene
+those ops start answering empty: the known "stats freeze" of modded Scene
 installs. This patch makes the daemon's launcher script (raw resource `up`,
 extracted as `up.sh` and run as root on every daemon start) hold the daemon's
 internal MASTER override byte set (and RESTRICT cleared), which short-circuits

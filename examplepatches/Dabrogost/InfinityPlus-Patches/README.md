@@ -5,7 +5,7 @@ A lightweight [Morphe](https://morphe.software/) patch bundle for **Infinity for
 This project maintains only the Infinity+ patches, removing implementations for unrelated Reddit clients.
 
 **Supported package:** `ml.docilealligator.infinityforreddit.plus` (Infinity+ only; not Patreon)  
-**Suggested APK:** Infinity+ 8.3.5<br>
+**Suggested APK:** Infinity+ 8.4.0<br>
 **GitHub repository:** [InfinityPlus-Patches](https://github.com/Dabrogost/InfinityPlus-Patches)  
 **Gitea mirror:** [InfinityPlus-Patches](https://gitea.com/Dabrogost/InfinityPlus-Patches)
 
@@ -18,7 +18,7 @@ Modifies the Reddit OAuth configuration used by Infinity+:
 - **OAuth client ID:** Choose the RedReader preset or supply a custom 22-character client ID.
 - **Redirect URI:** Defaults to `redreader://rr_oauth_redir`.
 - **User agent:** Defaults to `org.quantumbadger.redreader/1.25.2`.
-- **Infinity+ compatibility:** Includes subscription and OAuth login fixes for Infinity+ 8.3.4.
+- **Infinity+ compatibility:** Includes subscription and OAuth login fixes for Infinity+ 8.3.4–8.4.0.
 - **Attribution:** Adds Patcheddit's required attribution to the main Infinity+ Settings screen, with a link to the original project's subreddit.
 
 ### Modify login WebView

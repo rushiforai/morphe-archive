@@ -72,11 +72,11 @@ val handleStoryButtonPatch =
             // appended to a boolean and the whole method failed to verify — the app crashed on
             // opening a story's options. The options list is instead taken from the toArray call
             // that builds the returned array, which is the list these buttons belong to by
-            // definition.
+            // definition. From 456 it is called through List, on the ArrayList the method built.
             SelfStoryAddStoryButtonFingerprint.method.apply {
                 val toArrayIndex =
                     instructions.indexOfFirst { instruction ->
-                        instruction.opcode == Opcode.INVOKE_VIRTUAL &&
+                        (instruction.opcode == Opcode.INVOKE_VIRTUAL || instruction.opcode == Opcode.INVOKE_INTERFACE) &&
                             instruction.getReference<MethodReference>()?.name == "toArray"
                     }
                 if (toArrayIndex < 0) throw PatchException("Could not find the story options list")

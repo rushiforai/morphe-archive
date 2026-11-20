@@ -47,13 +47,10 @@ object OptionalFeaturesDialogFingerprint : Fingerprint(
 @Suppress("unused")
 val unlockOptionalFeaturesPatch = patch(
     name = "Unlock optional features",
-    description = "Shows the gated entries of the tuner's Optional features " +
-        "dialog: Refresh rate (Samsung panels report no discrete 60Hz mode " +
-        "through the display API, so Scene hides the control), FAS in games " +
-        "(cloud lp-branch gated) and CPU limiters (online-profile gated). " +
-        "The features themselves work locally; Bypass power supply stays " +
-        "hidden on devices without a supported charging sysfs node.",
-) {
+    description = "Shows the gated Optional features entries: Refresh rate, FAS in games and " +
+        "CPU limiters. The gates are cloud-profile and display-API checks, not device " +
+        "limits, so the features work locally. Bypass power supply stays hidden without a " +
+        "supported charging node.",) {
     compatibleWith(COMPATIBILITY_SCENE)
 
     execute {

@@ -1,0 +1,69 @@
+name: Sync Fizz Target Version
+
+on:
+  schedule:
+    # Run daily at 04:00 UTC
+    - cron: '0 4 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync-fizz-version:
+    name: Check & Sync Fizz Version Seed
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: dev
+          persist-credentials: false
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Run Fizz Version Sync
+        id: sync
+        run: |
+          bun run sync:fizz-version
+          if ! git diff --quiet extensions/extension/src/main/java/app/aidan/extension/fizz/VersionBridge.java; then
+            echo "changes_detected=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changes_detected=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create or update Pull Request
+        if: steps.sync.outputs.changes_detected == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE_BRANCH: chore/sync-fizz-version
+          TARGET_BRANCH: dev
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -B "$SOURCE_BRANCH"
+          git add extensions/extension/src/main/java/app/aidan/extension/fizz/VersionBridge.java
+          git commit -m "bump(fizz): sync dynamic version spoofing seed from Google Play"
+          git push --force "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" "$SOURCE_BRANCH"
+
+          if gh pr list --base "$TARGET_BRANCH" --head "$SOURCE_BRANCH" --json number | jq -e '. | length > 0' >/dev/null; then
+            echo "Pull request already exists; pushed updated commit to $SOURCE_BRANCH."
+            exit 0
+          fi
+
+          gh pr create \
+            --base "$TARGET_BRANCH" \
+            --head "$SOURCE_BRANCH" \
+            --title "bump(fizz): sync dynamic version spoofing seed from Google Play" \
+            --body "$(cat <<'EOF'
+          ## Summary
+          Automated update of Fizz version spoofing seed in `VersionBridge.java` matching latest Play Store release.
+
+          - Source: Cloudflare Worker `/api/version/com.ashtoncofer.Buzz`
+          - Target: `extensions/extension/src/main/java/app/aidan/extension/fizz/VersionBridge.java`
+          - PR Target: `dev`
+          EOF
+          )"

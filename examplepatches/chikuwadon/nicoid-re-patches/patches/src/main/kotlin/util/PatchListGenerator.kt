@@ -13,15 +13,11 @@ import java.io.File
 import java.net.URLClassLoader
 import java.util.jar.Manifest
 
-fun main() {
-    val patchFiles = setOf(
-        File("build/libs/").listFiles { file ->
-            val fileName = file.name
-            !fileName.contains("javadoc") &&
-                    !fileName.contains("sources") &&
-                    fileName.endsWith(".mpp")
-        }!!.first()
-    )
+fun main(args: Array<String>) {
+    require(args.size == 1) { "Expected exactly one JVM patch archive path" }
+    val patchArchive = File(args[0])
+    require(patchArchive.isFile) { "Missing JVM patch archive: $patchArchive" }
+    val patchFiles = setOf(patchArchive)
     val loadedPatches = loadPatchesFromJar(patchFiles)
     val patchClassLoader = URLClassLoader(patchFiles.map { it.toURI().toURL() }.toTypedArray())
     val manifest = patchClassLoader.getResources("META-INF/MANIFEST.MF")

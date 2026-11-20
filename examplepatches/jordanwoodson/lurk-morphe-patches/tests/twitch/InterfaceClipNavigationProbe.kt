@@ -154,13 +154,13 @@ internal fun verifyClipNavigation(bundle: HermesBundle, patched: ByteArray, stoc
     val reserved = u32(header + 20) + u32(header + 24)
     val readCaches = stock[header + 32].toInt() and 255
     check(reserved == 2 && readCaches == 2)
-    // Every new reference-bearing result uses a GC-traced general register. Index255 is the
-    // official PROPERTY_CACHING_DISABLED sentinel; only indexes0/1 access the real cache pool.
+    // Every new reference-bearing result uses a GC-traced general register. A read cache index must be below the
+    // function's read cache count: 255 is only a valid entry in functions that have 256, elsewhere it reads past them.
     for (at in listOf(0, 3, 7, 13, 19, 25, 28, 32))
         check((nativeBody[at + 1].toInt() and 255) >= reserved)
     for (at in listOf(7, 13, 19)) {
         val cache = nativeBody[at + 3].toInt() and 255
-        check(cache < readCaches || cache == 255)
+        check(cache < readCaches)
     }
     check(nativeEntry.call(undefined, listOf("TappedSlug", "SeedSlug", "metadata")) === undefined)
     val hookEntry = bundle.matchingFunction(hex("3b 03 03 03 70 05 03 01 06 05 04"))

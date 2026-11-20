@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-11-18T05:17:56",
-  "description": "## [1.5.2](https://github.com/Prisoner-24601/custom-morphe-patches/compare/v1.5.1...v1.5.2) (2026-11-18)\n\n### 🐛 Bug Fixes\n\n* DeArrow original titles works with Morphe Patches 2.3 ([4433795](https://github.com/Prisoner-24601/custom-morphe-patches/commit/4433795ff09aedfb855107ab9fd410a613b6d745))",
-  "download_url": "https://github.com/Prisoner-24601/custom-morphe-patches/releases/download/v1.5.2/patches-1.5.2.mpp",
+  "created_at": "2026-11-20T06:11:50",
+  "description": "## [1.10.0](https://github.com/Prisoner-24601/custom-morphe-patches/compare/v1.9.1...v1.10.0) (2026-11-20)\n\n### ✨ New Features\n\n* Monitor caption size sets the phone size too, and replaces the Morphe caption size ([b027c6f](https://github.com/Prisoner-24601/custom-morphe-patches/commit/b027c6f54dade7ea4aaac504a32f40c26862e0dd))",
+  "download_url": "https://github.com/Prisoner-24601/custom-morphe-patches/releases/download/v1.10.0/patches-1.10.0.mpp",
   "signature_download_url": "",
-  "version": "1.5.2"
+  "version": "1.10.0"
 }

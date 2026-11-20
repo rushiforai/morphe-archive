@@ -104,16 +104,13 @@ public final class HissiMenuController extends ToolScreenController {
             try {
                 archiveSearchUi = EddiArchiveSearchUi.embed(host, incoming, this::openThreadInChMate, state, this::finish);
                 showArchive((LinearLayout)archiveSearchUi.rootView());
-            } catch (RuntimeException error) {
+            } catch (RuntimeException | LinkageError error) {
                 Haiagaru.reportEddiArchiveError(this, "VIEWER_START_FAILED",
                         "Native Edge archive viewer could not start", error);
-                TextView failure = new TextView(this);
-                failure.setText("エッヂ過去ログを開けませんでした（VIEWER_START_FAILED）。\n"
-                        + "Download/Haiagaru の診断ログを確認してください。");
-                failure.setPadding(32, 48, 32, 32);
-                showModel("投稿検索・結果", failure);
+                // Fall through to the managed-site WebView below. An optional
+                // native archive UI failure must not make the URL unopenable.
             }
-            return;
+            if(archiveSearchUi!=null)return;
         }
         sourceHost = getIntent() == null ? null
                 : getIntent().getStringExtra("haiagaru.wacchoi.host");
@@ -223,8 +220,8 @@ public final class HissiMenuController extends ToolScreenController {
         // Resolve the checker first so OFF still preserves the selected service,
         // source board, ID/ﾜｯﾁｮｲ and custom-scheme links cached by ChMate.
         // Every entry point (including explicit launches) reaches this boundary.
-        if (!Haiagaru.dedicatedViewerEnabled()
-                || (!eddiArchiveMode && !Haiagaru.dedicatedCheckerViewerAvailable())) {
+        if (!eddiArchiveMode && (!Haiagaru.dedicatedViewerEnabled()
+                || !Haiagaru.dedicatedCheckerViewerAvailable())) {
             Intent standardWeb = new Intent(Intent.ACTION_VIEW, Uri.parse(target));
             standardWeb.setClassName(this, "jp.syoboi.a2chMate.activity.WebViewActivity");
             startActivity(standardWeb);
@@ -317,6 +314,7 @@ public final class HissiMenuController extends ToolScreenController {
             return false;
         });
         webView.setOnLongClickListener(view -> {
+            if(eddiArchiveMode){ArchiveResultActions.longPress(host,webView,lastTouchX,lastTouchY);return true;}
             float scale = Math.max(0.1f, webView.getScale());
             int x = Math.round(lastTouchX / scale);
             int y = Math.round(lastTouchY / scale);
@@ -420,6 +418,7 @@ public final class HissiMenuController extends ToolScreenController {
                     kyodemoAnalysisButton.setText("分析");
                 }
                 configureHissiTabs(view);
+                if(eddiArchiveMode)ArchiveResultActions.install(view);
                 if (url.equals(pendingAnalysisResult)
                         || ("wt".equals(Uri.parse(url).getFragment())
                                 && !url.equals(analysisAutoOpenedUrl))) {
@@ -1246,6 +1245,11 @@ public final class HissiMenuController extends ToolScreenController {
 
     /** Receives viewer events from the WebView. */
     private final class ViewerBridge {
+        @JavascriptInterface public void openArchiveThread(String url){
+            if(!eddiArchiveMode||ArchiveResultActions.nativeUrl(url)==null)return;
+            host.runOnUiThread(()->{if(viewerWebView!=null&&isEddiArchiveUri(Uri.parse(viewerWebView.getUrl()==null?"":viewerWebView.getUrl())))openThreadInChMate(url);});
+        }
+
         @JavascriptInterface
         public void copyPost(String data) {
             runOnUiThread(() -> showPostCopyDialog(data));
@@ -1582,6 +1586,8 @@ public final class HissiMenuController extends ToolScreenController {
                     + "}"
                     + "body[data-haiagaru-eddi]{box-sizing:border-box;width:100%;max-width:760px;"
                     + "margin:0 auto;overflow-x:hidden;}"
+                    + "body[data-haiagaru-eddi] #threadContainer{border-top:1px solid "
+                    + (dark ? "#777d88" : "#8c919b") + " !important;padding-top:12px !important;margin-top:12px !important;}"
                     + "body[data-haiagaru-eddi] #myForm{box-sizing:border-box;width:100% !important;"
                     + "max-width:720px;margin:10px auto 14px !important;padding:12px !important;"
                     + "border:1px solid " + (dark ? "#41454c" : "#d8d8de") + " !important;"
@@ -1747,6 +1753,7 @@ public final class HissiMenuController extends ToolScreenController {
     }
 
     private boolean openThreadInChMate(String url) {
+        if(eddiArchiveMode){String nativeUrl=ArchiveResultActions.nativeUrl(url);if(nativeUrl!=null)url=nativeUrl;}
         if (openEddiThreadInChMate(url)) return true;
         String original = KyodemoRouting.sourceThreadUrl(sourceHost, sourceBoard, url);
         if (original != null) url = original;

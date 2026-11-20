@@ -1,6 +1,8 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-19.
+ * Modified by lavinhoque33, 2026-11-18.
  * Modified by lavinhoque33, 2026-11-17.
  * Modified by lavinhoque33, 2026-11-13
  * Written by lavinhoque33, 2026-11-07.
@@ -17,6 +19,7 @@ import androidx.annotation.Nullable;
 
 import com.google.protobuf.MessageLite;
 
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -98,6 +101,29 @@ public final class DownloadedMarkers {
                 PlaylistDownloads.isRunning(sourceId));
     }
 
+    static boolean isPlaylistPending(String sourceId) {
+        return registry.isPending(sourceId);
+    }
+
+    /** The automatic worker can start on cold launch, before the header registry is loaded. */
+    static boolean hasPendingDownload(String sourceId) {
+        return pendingPreferences().contains(sourceId);
+    }
+
+    @Nullable
+    static PlaylistTransfer.Progress playlistProgress(String sourceId) {
+        if (!registry.isPending(sourceId)) return null;
+
+        List<String> tracks = registry.sourceTracks(sourceId);
+        if (tracks == null) return null;
+
+        PlaylistTransfer.Progress progress = PlaylistTransfer.progress(tracks, id -> {
+            String copyId = registry.canonicalId(id);
+            return registry.hasOwnCopy(copyId) && OfflineCopyStore.has(copyId);
+        });
+        return progress.total() > 0 ? progress : null;
+    }
+
     /** Injection point: the final bind of every list row presenter, with its root view and its model. */
     public static void onRowBound(View view, Object model) {
         try {
@@ -129,14 +155,18 @@ public final class DownloadedMarkers {
                 state = new DownloadedHeaders.State();
                 headers.put(container, state);
             }
-            boolean enabled = enabled();
-            state.sourceIds = enabled && model instanceof MessageLite lite
+            boolean checks = enabled();
+            boolean supported = StreamSwap.supported();
+            state.sourceIds = supported && model instanceof MessageLite lite
                     ? HeaderPlaylistId.findAll(lite.toByteArray()) : Collections.emptyList();
             state.host = new WeakReference<>(null);
-            if (enabled) {
+            state.progress.bind(container, state.sourceIds);
+            if (!state.sourceIds.isEmpty()) {
                 ensureLoaded();
                 revalidateLater();
-                for (String sourceId : state.sourceIds) OfflineCopyStore.captureHeaderLater(sourceId);
+                if (checks) {
+                    for (String sourceId : state.sourceIds) OfflineCopyStore.captureHeaderLater(sourceId);
+                }
             }
             DownloadedAlbumRows.onBound(container, state.albumRows);
             DownloadedHeaders.apply(container, state);
@@ -202,30 +232,36 @@ public final class DownloadedMarkers {
      * Called when the download of a whole playlist or album with stream copies starts: the list is remembered at once,
      * with its tracks, as not finished. The songs it holds are then not loose whatever happens to the download, and
      * it is not saved (no check, no Remove) until {@link #onPlaylistCompleted}; a download that is cut off leaves it
-     * pending across restarts, and the header Download resumes it. The offline store also keeps the header
+     * pending across restarts. The offline store also keeps the header
      * ({@code title}, subtitle, cover url) the download resolved, for the offline lists.
      */
-    static void onPlaylistStarted(String sourceId, List<String> videoIds, SourceHeader header) {
-        synchronized (PlaylistSync.MUTATION) {
-            registry.start(sourceId, videoIds);
-            if (!pendingPreferences().edit().putBoolean(sourceId, true).commit()) {
-                Logger.printException(() -> "Could not remember that a playlist download started");
-            }
-            rememberSource(sourceId, videoIds, header, true);
-            refreshLater();
+    static void onPlaylistStarted(String sourceId, List<String> videoIds, SourceHeader header) throws Exception {
+        if (!pendingPreferences().edit().putBoolean(sourceId, true).commit()) {
+            throw new IOException("Could not remember that a playlist download started");
         }
-    }
-
-    /** Called when the whole download of a list, its videos included, ended: the list is saved from now on. */
-    static void onPlaylistCompleted(String sourceId) {
-        registry.finish(sourceId);
-        if (!pendingPreferences().edit().remove(sourceId).commit()) {
-            Logger.printException(() -> "Could not remember that a playlist download ended");
+        OfflineCopyStore.rememberSource(sourceId, header, videoIds, true);
+        registry.start(sourceId, videoIds);
+        if (!trackPreferences().edit().putString(sourceId, DownloadedRegistry.encode(videoIds)).commit()) {
+            throw new IOException("Could not remember the tracks of a playlist download");
         }
         refreshLater();
     }
 
-    /** Called when the download of a list ended: its header may now show the check. */
+    /** Clears pending only after every required track is offline-ready. The caller holds the source mutation lock. */
+    static void onPlaylistCompleted(String sourceId) throws IOException {
+        if (!pendingPreferences().edit().remove(sourceId).commit()) {
+            pendingPreferences().edit().putBoolean(sourceId, true).apply();
+            throw new IOException("Could not remember that a playlist download ended");
+        }
+        registry.finish(sourceId);
+        refreshLater();
+    }
+
+    /** Refreshes the header when the run starts, stops, or makes a retained track playable offline. */
+    static void onPlaylistActivityChanged() {
+        refresh.request();
+    }
+
     static void onPlaylistFinished() {
         refreshLater();
     }
@@ -233,8 +269,9 @@ public final class DownloadedMarkers {
     /** Called when a downloaded playlist or album was removed: its track list and its header check go. */
     static void onSourceRemoved(String sourceId) {
         registry.removeSource(sourceId);
-        if (!trackPreferences().edit().remove(sourceId).commit()
-                || !pendingPreferences().edit().remove(sourceId).commit()) {
+        boolean tracksRemoved = trackPreferences().edit().remove(sourceId).commit();
+        boolean pendingRemoved = pendingPreferences().edit().remove(sourceId).commit();
+        if (!tracksRemoved || !pendingRemoved) {
             Logger.printException(() -> "Could not forget the tracks of a removed playlist");
         }
         refreshLater();
@@ -270,6 +307,10 @@ public final class DownloadedMarkers {
         return Utils.getContext().getSharedPreferences(PENDING_PREFERENCES, 0);
     }
 
+    static Set<String> pendingPlaylistIds() {
+        return pendingPreferences().getAll().keySet();
+    }
+
     private static SharedPreferences trackPreferences() {
         return Utils.getContext().getSharedPreferences(TRACKS_PREFERENCES, 0);
     }
@@ -289,7 +330,7 @@ public final class DownloadedMarkers {
     }
 
     private static void rememberSource(String sourceId, List<String> videoIds, @Nullable SourceHeader header,
-                                       boolean explicitStream) {
+                                       boolean explicitStream) throws Exception {
         registry.putSource(sourceId, videoIds);
         if (!trackPreferences().edit().putString(sourceId, DownloadedRegistry.encode(videoIds)).commit()) {
             Logger.printException(() -> "Could not remember the tracks of a downloaded playlist");
@@ -309,10 +350,12 @@ public final class DownloadedMarkers {
                 registry.setAliases(RawAudioStore.aliases());
                 synchronized (PlaylistSync.MUTATION) {
                     Map<String, List<String>> saved = savedTrackLists();
-                    OfflineCopyStore.overlaySyncedTrackLists(saved);
+                    Set<String> pending = pendingPlaylistIds();
+                    OfflineCopyStore.overlaySourceTrackLists(saved, pending);
                     saved.forEach(registry::putSource);
-                    registry.setPending(pendingPreferences().getAll().keySet());
+                    registry.setPending(pending);
                 }
+                OfflineCopyStore.loadPlaybackData();
                 loaded = true;
                 refreshLater();
 
@@ -351,7 +394,11 @@ public final class DownloadedMarkers {
                     : DownloadedRegistry.resolveTracks(mediaIds, videoIdByMediaId);
             if (videoIds != null) {
                 synchronized (PlaylistSync.MUTATION) {
-                    if (!registry.hasSource(saved.getKey())) rememberSource(saved.getKey(), videoIds, null, false);
+                    try {
+                        if (!registry.hasSource(saved.getKey())) rememberSource(saved.getKey(), videoIds, null, false);
+                    } catch (Exception ex) {
+                        Logger.printException(() -> "Could not recover the tracks of a downloaded playlist", ex);
+                    }
                 }
             }
         }

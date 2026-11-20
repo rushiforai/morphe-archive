@@ -34,6 +34,7 @@ import app.morphe.patches.shared.VideoStreamingDataToStringFingerprint
 import app.morphe.patches.shared.misc.fix.proto.fixProtoLibraryPatch
 import app.morphe.patches.shared.misc.fix.proto.parseByteArrayMethodRef
 import app.morphe.patches.shared.misc.request.hookMediaRequest
+import app.morphe.patches.shared.misc.request.enableMobileWebMediaBridge
 import app.morphe.patches.shared.misc.request.hookMediaResponseChunk
 import app.morphe.patches.shared.misc.request.mediaRequestPatch
 import app.morphe.patches.shared.misc.request.buildRequestPatch
@@ -165,9 +166,10 @@ internal fun spoofVideoStreamsPatch(
         )
 
 
-        // Make the media requests of the streams of TV clients name the TV client.
+        // Name the client of spoofed TV and Mobile Web streams in native media requests.
         hookMediaRequest("$EXTENSION_CLASS->onMediaRequest", replacesRequest = true)
         hookMediaResponseChunk("$EXTENSION_CLASS->onMediaResponseChunk")
+        enableMobileWebMediaBridge()
 
         CreateStreamingDataFingerprint.let {
             it.method.apply {

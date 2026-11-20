@@ -2,32 +2,35 @@
 
 ## Patch Catalog
 
-| Patch Name | Category | Default | Description |
-|---|---|---|---|
-| **Remove Tracking and Analytics** | `Privacy` | `true` | Neutralizes first-party analytics (AnalyticsRepo), Google Analytics / Firebase (Analytics, Crashlytics, Performance, In-App Messaging), Facebook App Events, Iterable marketing telemetry, Usercentrics consent collection, and zeros the Google Play Advertising ID (AAID). |
-| **Remove Lists** | `Interface` | `true` | Removes the Lists option from the bottom navigation bar. |
-| **Unlock Cache Filter and Sorting Tools** | `Features` | `true` | Unlocks advanced cache search filters and sorting options without prompting for Geocaching Premium. |
-| **OpenStreetMap Drop-in Replacement** | `Customization` | `true` | Replaces proprietary Google Maps tiles with free, community-driven OpenStreetMap tiles without losing geocache pins, clusters, popups, or gestures. |
-| **Local Premium** | `Interface` | `true` | Enables local Premium membership status across profile and account screens, removes upgrade promotions, banners, and icons, and enriches public cache details (description, hints, owner) when server blocks basic accounts. |
-| **Unlock Templates** | `Features` | `true` | Unlocks geocache log templates, allowing creating, editing, and applying custom log templates without Geocaching Premium. |
-| **Unlock Experimental Features** | `Features` | `false` | Unlocks beta and experimental features in Settings without Geocaching Premium. |
-| **Remove Shop** | `Interface` | `true` | Removes the Shop Geocaching promotional section and link from the Profile screen. |
-| **Enable Developer Tools and Feature Flags** | `Developer` | `false` | Exposes the internal Debug Menu in Settings and provides selectors for LaunchDarkly feature flags, Remote Config controls, and remaining membership gates. |
+| Patch Name                                   | Category        | Default | Description                                                                                                                                                                                                                                                                  |
+| -------------------------------------------- | --------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Remove Tracking and Analytics**            | `Privacy`       | `true`  | Neutralizes first-party analytics (AnalyticsRepo), Google Analytics / Firebase (Analytics, Crashlytics, Performance, In-App Messaging), Facebook App Events, Iterable marketing telemetry, Usercentrics consent collection, and zeros the Google Play Advertising ID (AAID). |
+| **Remove Lists**                             | `Interface`     | `true`  | Removes the Lists option from the bottom navigation bar.                                                                                                                                                                                                                     |
+| **Unlock Cache Filter and Sorting Tools**    | `Features`      | `true`  | Unlocks advanced cache search filters and sorting options without prompting for Geocaching Premium.                                                                                                                                                                          |
+| **OpenStreetMap Drop-in Replacement**        | `Customization` | `true`  | Replaces proprietary Google Maps tiles with free, community-driven OpenStreetMap tiles without losing geocache pins, clusters, popups, or gestures.                                                                                                                          |
+| **Local Premium**                            | `Interface`     | `true`  | Enables local Premium membership status across profile and account screens, removes upgrade promotions, banners, and icons, and enriches public cache details (description, hints, owner) when server blocks basic accounts.                                                 |
+| **Unlock Templates**                         | `Features`      | `true`  | Unlocks geocache log templates, allowing creating, editing, and applying custom log templates without Geocaching Premium.                                                                                                                                                    |
+| **Unlock Experimental Features**             | `Features`      | `false` | Unlocks beta and experimental features in Settings without Geocaching Premium.                                                                                                                                                                                               |
+| **Remove Shop**                              | `Interface`     | `true`  | Removes the Shop Geocaching promotional section and link from the Profile screen.                                                                                                                                                                                            |
+| **Enable Developer Tools and Feature Flags** | `Developer`     | `false` | Exposes the internal Debug Menu in Settings and provides selectors for LaunchDarkly feature flags, Remote Config controls, and remaining membership gates.                                                                                                                   |
 
 ---
 
 ## 1. Remove Tracking and Analytics
 
 ### Overview
+
 Neutralizes all tracking, attribution, and analytics engines embedded within the application without breaking account authentication, network API sync, or offline cache bundling.
 
 ### Configuration Options
+
 - `stripCrashlytics` (default: `true`): Neutralizes Firebase Crashlytics logging, custom keys, user IDs, and exception reporting.
 - `stripFacebook` (default: `true`): Neutralizes Facebook App Events logger methods and settings downloads.
 - `stripIterable` (default: `true`): Neutralizes Iterable marketing event tracking and device registration.
 - `stripUsercentrics` (default: `true`): Neutralizes Usercentrics consent telemetry events while preserving the readiness lifecycle necessary for user login.
 
 ### Bytecode Modifications
+
 1. **Google Play Advertising ID (AAID)**:
    - Target: `com.google.android.gms.ads.identifier.AdvertisingIdClient.getAdvertisingIdInfo(Context)`
    - Rewritten to construct and return `AdvertisingIdClient$Info("00000000-0000-0000-0000-000000000000", true)` with ad tracking permanently limited.
@@ -53,9 +56,11 @@ Neutralizes all tracking, attribution, and analytics engines embedded within the
 ## 2. Remove Lists
 
 ### Overview
+
 Removes the Lists option from the bottom navigation bar (`res/menu/bottom_nav_menu.xml`). Since custom lists require server-authoritative synchronization that is locked to Geocaching Premium accounts, this patch eliminates the non-functional tab, leaving four evenly-spaced navigation options (Map, Profile, Messages, and Hides).
 
 ### Resource Modifications
+
 1. **Bottom Navigation Menu**:
    - Target: `res/menu/bottom_nav_menu.xml`
    - Removes `<item android:id="@+id/list_nav_graph" ... />` from the menu definition so `BottomNavigationView` only inflates the four working primary surfaces.
@@ -65,9 +70,11 @@ Removes the Lists option from the bottom navigation bar (`res/menu/bottom_nav_me
 ## 3. Unlock Cache Filter and Sorting Tools
 
 ### Overview
+
 Unlocks all advanced cache search filters and sorting options, allowing users to filter by cache type, size, difficulty, terrain, attributes, and minimum favorite points, and sort caches by distance, name, favorite points, rating, and event date without prompting for Geocaching Premium.
 
 ### Bytecode Modifications
+
 1. **Map Top-Right Filter Button**:
    - Targets: `com.groundspeak.geocaching.intro.mainmap.map.e.c(MenuItem)` (Google Maps) and `com.groundspeak.geocaching.intro.mainmap.map.k.c(MenuItem)` (MapLibre)
    - When `menu_item_filter` is selected, intercepts `l3c.d()` result by setting it to `0x1` (`true`), bypassing the upsell branch and directly launching coroutines navigating to `toFiltersNavGraph`.
@@ -103,20 +110,25 @@ Unlocks all advanced cache search filters and sorting options, allowing users to
    - Target: `com.groundspeak.geocaching.intro.map.rendering.a.e(List, Ll3c)`
      - Injects `GeocacheFilterBridge.filterMapItems(List)` at instruction 0 using `invoke-static/range`, filtering all map items (`Luq8`, `Ltq8`) against active `FilterModel` criteria (types, sizes, difficulty, terrain, minimum favorites, hide finds, hide owned) before generating pins for MapLibre, Google Maps, and list views.
    - Targets: `SharedMapViewModel$trySearching$1`, `SharedMapViewModel$trySearching$2`, and `SharedMapViewModel$reloadPins$1`
-    - Injects `GeocacheFilterBridge.updateAndFilterMapItems` on database and network search item emissions, replacing the master in-memory list with the latest non-empty database/network emission and emitting its filtered subset to `SharedMapViewModel.p0`.
-    - Injects `GeocacheFilterBridge.reapplyFilters` into `reloadPins$1` to re-filter that latest retained list (falling back to `currentList` only when the master list is empty) when filter criteria change.
+     - Injects `GeocacheFilterBridge.updateAndFilterMapItems` on database and network search item emissions, replacing the master in-memory list with the latest non-empty database/network emission and emitting its filtered subset to `SharedMapViewModel.p0`.
+     - Injects `GeocacheFilterBridge.reapplyFilters` into `reloadPins$1` to re-filter that latest retained list (falling back to `currentList` only when the master list is empty) when filter criteria change.
    - Target: `MapLibreFragment.onResume()`
      - Injects `SharedMapViewModel.p()` (`reloadPins`) on fragment resume so returning from `FilterNavHostActivity` immediately triggers pin reloading and updates the map.
    - Target: `SharedMapViewModel$refreshFilteredState$1`
      - Triggers `SharedMapViewModel.p()` whenever filter state is refreshed.
+
 ---
 
 ## 4. OpenStreetMap Drop-in Replacement
+
 ### Overview
+
 Replaces Google Maps with OpenStreetMap (MapLibre vector engine) across the main map and navigation screens. Completely eliminates the Google watermark logo and broken unauthenticated Google Maps canvases on re-signed builds, routing all map exploration, pins, clustering, cache preview sheets, bottom navigation trays, filters, search, and route navigation through the native MapLibre engine.
 
 ### In-App Map Style Controls
+
 The map settings menu (`MapTypeSelectionFragment` and bottom sheet) is rewired from the defunct Google Map types ("Street", "Satellite", "Terrain", "Hybrid") into dynamic OpenStreetMap style options:
+
 - **Bright** (`https://tiles.openfreemap.org/styles/bright`): Colorful OpenMapTiles vector basemap.
 - **Liberty** (`https://tiles.openfreemap.org/styles/liberty`): Clean, detailed OpenStreetMap style.
 - **Positron** (`https://tiles.openfreemap.org/styles/positron`): Minimal, light basemap with muted tones.
@@ -124,45 +136,59 @@ The map settings menu (`MapTypeSelectionFragment` and bottom sheet) is rewired f
 - **Custom URL**: Prompts for any custom MapLibre vector style JSON endpoint and saves it locally.
 
 ### Preview Thumbnails
+
 The legacy Google Map type thumbnail preview images (`map_preview_*.webp`) are replaced with rendered OpenStreetMap raster previews of a high-density location (Times Square / Midtown Manhattan, NYC) to accurately demonstrate each style's visual presentation.
 
 ### Architectural Layers & Patches
+
 The OpenStreetMap integration is packaged as a unified `compositeFeaturePatch`:
+
 1. **Bytecode Layer** (`bytecode`): Core Dalvik bytecode modifications routing all map deciders, view models, style requests, and settings interactions to MapLibre and `OsmStyleBridge`.
 2. **Resource Layer** (`resources`):
    - **Strings**: Updates `res/values/strings.xml` to rename Map types to "Map styles" and replace legacy Google Map labels and descriptions with OpenStreetMap presets ("Bright", "Liberty", "Positron", "Dark", "Custom URL").
    - **Preview Assets**: Replaces legacy Google Map preview thumbnails in `res/drawable-xxhdpi/` with 240x240 rendered raster previews of Times Square / Midtown Manhattan, NYC for each style.
+
 ### Bytecode Modifications
+
 1. **Main Map Decider Fragment**:
-- Target: `com.groundspeak.geocaching.intro.mainmap.map.MapDeciderFragment.onResume()`
-- Intercepts `List.contains()` result to unconditionally force `0x1` (`true`), permanently routing navigation to `toMapLibreMapFragment` (`0x7f0a0579`).
+   - Target: `com.groundspeak.geocaching.intro.mainmap.map.MapDeciderFragment.onResume()`
+   - Intercepts `List.contains()` result to unconditionally force `0x1` (`true`), permanently routing navigation to `toMapLibreMapFragment` (`0x7f0a0579`).
+
 2. **Navigation View Model**:
-- Target: `com.groundspeak.geocaching.intro.navigationmap.NavigationViewModel.h()Z`
-- Injected with `const/4 v0, 0x1; return v0;`, ensuring `NavigationMapActivity` displays the MapLibre engine instead of Google Maps.
+   - Target: `com.groundspeak.geocaching.intro.navigationmap.NavigationViewModel.h()Z`
+   - Injected with `const/4 v0, 0x1; return v0;`, ensuring `NavigationMapActivity` displays the MapLibre engine instead of Google Maps.
+
 3. **Dynamic Style URL Resolution**:
-- Targets: `t07`, `com.groundspeak.geocaching.intro.mainmap.map.n`, `com.groundspeak.geocaching.intro.navigationmap.NavigationViewModel`, and `dx1`.
-- Replaces hardcoded style references with `invoke-static OsmStyleBridge.getActiveStyleUrl()`, loading user-selected or custom style endpoints on demand.
+   - Targets: `t07`, `com.groundspeak.geocaching.intro.mainmap.map.n`, `com.groundspeak.geocaching.intro.navigationmap.NavigationViewModel`, and `dx1`.
+   - Replaces hardcoded style references with `invoke-static OsmStyleBridge.getActiveStyleUrl()`, loading user-selected or custom style endpoints on demand.
+
 4. **Map Style Selection Interception (Screen & Experimental Bottom Sheet)**:
-- Targets: `MapTypeSelectionFragment.z` (full-screen dialog) and `ky6.invoke(Object)` (`MapLibreFragment` Compose bottom sheet used when Experimental "Adjustable Highly Favorited" is enabled).
-- Intercepts map style clicks (`l07` in `MapTypeSelectionFragment.z` and `MapType` in `ky6.invoke`) and forwards `(fragment, mapTypeId)` to `OsmStyleBridge.onStyleSelected(fragment, mapTypeId)`.
-- Bypasses `w05.G` (Premium upsell gate) and the Google Maps fallback navigation (`0x7f0a0567`), stores the selected style in SharedPreferences (`UserMapPrefs.OSM_STYLE_URL` and `UserMapPrefs.PREFERRED_MAP_TYPE`), prompts for a custom URL when "Custom URL" is chosen, dismisses either `MapTypeSelectionFragment` or the Compose bottom sheet (`SharedMapViewModel.k0`), and prompts to restart the app.
+   - Targets: `MapTypeSelectionFragment.z` (full-screen dialog) and `ky6.invoke(Object)` (`MapLibreFragment` Compose bottom sheet used when Experimental "Adjustable Highly Favorited" is enabled).
+   - Intercepts map style clicks (`l07` in `MapTypeSelectionFragment.z` and `MapType` in `ky6.invoke`) and forwards `(fragment, mapTypeId)` to `OsmStyleBridge.onStyleSelected(fragment, mapTypeId)`.
+   - Bypasses `w05.G` (Premium upsell gate) and the Google Maps fallback navigation (`0x7f0a0567`), stores the selected style in SharedPreferences (`UserMapPrefs.OSM_STYLE_URL` and `UserMapPrefs.PREFERRED_MAP_TYPE`), prompts for a custom URL when "Custom URL" is chosen, dismisses either `MapTypeSelectionFragment` or the Compose bottom sheet (`SharedMapViewModel.k0`), and prompts to restart the app.
+
 5. **Neutralize Google Maps Fallback Listener**:
-- Target: `hy6.invoke(Object, Object)`
-- Forces `List.contains()` result register to `0x1` (`true`), preventing the fragment result listener from navigating back to Google Maps (`0x7f0a0567`) when non-Trails styles are selected.
+   - Target: `hy6.invoke(Object, Object)`
+   - Forces `List.contains()` result register to `0x1` (`true`), preventing the fragment result listener from navigating back to Google Maps (`0x7f0a0567`) when non-Trails styles are selected.
+
 6. **FTUE Onboarding Neutralization & Redirection Bypass**:
-- Targets: `i14.d(l3c, Z)Z` and `i14.e(l3c)Z`
-- Injected with `const/4 v0, 0x0; return v0;`, neutralizing first-time user suggestion flow checks.
-- Target: `com.groundspeak.geocaching.intro.onboarding.OnboardingMapActivity.onCreate(Bundle)`
-- Neutralizes `onDestroy` and injects an immediate redirect to `MainActivity` with `MainActivity.SKIP_INITIAL_SUGGESTION_FLOW=true`.
-- Target: `MainActivity.G(MainActivityVM$b, MainActivity$NavDestination)V`
-- Overrides `$c` (`OnboardingMapActivity`) and `b` (`PagingEducationActivity`) suggestion flow states with `$a` (`MainActivityVM$b$a`), guaranteeing `MainActivity` never bounces to `OnboardingMapActivity`.
+   - Targets: `i14.d(l3c, Z)Z` and `i14.e(l3c)Z`
+   - Injected with `const/4 v0, 0x0; return v0;`, neutralizing first-time user suggestion flow checks.
+   - Target: `com.groundspeak.geocaching.intro.onboarding.OnboardingMapActivity.onCreate(Bundle)`
+   - Neutralizes `onDestroy` and injects an immediate redirect to `MainActivity` with `MainActivity.SKIP_INITIAL_SUGGESTION_FLOW=true`.
+   - Target: `MainActivity.G(MainActivityVM$b, MainActivity$NavDestination)V`
+   - Overrides `$c` (`OnboardingMapActivity`) and `b` (`PagingEducationActivity`) suggestion flow states with `$a` (`MainActivityVM$b$a`), guaranteeing `MainActivity` never bounces to `OnboardingMapActivity`.
+
 7. **Better Events Map Customization Toggle**:
-- Targets: `le7.invoke` and `r07.a`
-- Forces `LaunchDarklyFlag.O` (`BETTER_EVENTS_MAP`) evaluation to `true`, making the "Event dates" toggle visible in both the Map settings screen and experimental bottom sheet.
+   - Targets: `le7.invoke` and `r07.a`
+   - Forces `LaunchDarklyFlag.O` (`BETTER_EVENTS_MAP`) evaluation to `true`, making the "Event dates" toggle visible in both the Map settings screen and experimental bottom sheet.
+
 ---
 
 ## 5. Local Premium
+
 Enables local Premium membership status across the application and removes upgrade promotions, canisters, and locked premium banners across primary exploration and configuration surfaces:
+
 1. Enables local Premium membership status in Account and Profile views, setting profile header membership to "Premium member" and account screen to "Membership type: Premium".
 2. Eliminates the floating map upgrade canister and pill button from the top-left corner of the map.
 3. Removes the promotional upgrade card ("Artwork Geocaching Premium", "Access it all", "Go Premium") and the server-dependent Statistics item from the Profile screen.
@@ -172,13 +198,17 @@ Enables local Premium membership status across the application and removes upgra
 7. Injects a styled light-orange alert banner directly above the Difficulty / Terrain / Size meters for Premium Member Only caches to notify users that full cache details (complete description, hints, activity logs) are restricted by the server.
 
 ### Options
+
 - `showLocalPremiumWarnings` (Boolean, default `true`): Displays styled in-app warning alerts on Premium Member Only caches where full cache data is restricted by the server.
 
 ### Resource Modifications
+
 1. **Cache Summary Warning Alert**:
    - Target: `res/layout/cd_item_summary.xml`
    - Injects a `LinearLayout` container (`@+id/pmo_warning_container`, `android:tag="pmo_warning_container"`) constrained between `@id/view_extra_space` and `@id/dts_container`. Contains a warning icon (`@drawable/warning_filled`) and notice text. Initial visibility is set to `gone` and dynamically toggled at runtime.
+
 ### Bytecode Modifications
+
 1. **Map Top-Left Upgrade Canister**:
    - Targets: `com.groundspeak.geocaching.intro.mainmap.map.SharedMapViewModel.<init>` and `A(MapMode)`
      - Intercepts `l3c.d()` checks by forcing move-result registers to `0x1` (`true`), ensuring StateFlow `r0` is initialized and maintained as `false`.
@@ -208,13 +238,17 @@ Enables local Premium membership status across the application and removes upgra
 6. **Cache Summary PMO Warning Banner Binding**:
    - Target: `com.groundspeak.geocaching.intro.geocachedetails.overviewitems.CacheSummaryItem.bindViewHolder(Li56;)V`
    - Injects a call to `GeocacheEnrichmentBridge.bindCacheSummaryWarning(itemView, data)` before view binding. Resolves the cache stub's `premium` status, applies light-orange alert styling (supporting both dark and light UI modes), and sets warning banner visibility.
+
 ---
 
 ## 6. Unlock Templates
+
 ### Overview
+
 Unlocks the full client-side geocache log templates system, allowing Basic accounts to create, edit, save, and apply custom log templates in the log creation workflow without a Geocaching Premium subscription.
 
 ### Bytecode Modifications
+
 1. **Settings Screen Gate**:
    - Target: `com.groundspeak.geocaching.intro.fragments.settings.SettingsFragment.x(d5c)`
    - Intercepts `l3c.d()` when `c5cVar instanceof b0` by forcing the check result to `0x1` (`true`), bypassing `toPremiumUpsellActivity` and directly navigating to `R.id.toTemplatesListFragment`.
@@ -229,17 +263,23 @@ Unlocks the full client-side geocache log templates system, allowing Basic accou
      - `b(int, Continuation)`: Returns `Success(Unit)` (`xk9(szb)`), allowing `TemplatesRepo.deleteTemplate` to delete by local ID from `TemplatesDao` (`Lai;`).
      - `c(Continuation)`: Returns `Failure("local")` (`wk9`), triggering `TemplatesRepo.getAllTemplates`'s built-in offline fallback that loads all persisted templates from Room DB (`Lo4b;`).
      - `d(int, String, String, Continuation)`: Returns `Success(Unit)` (`xk9(szb)`), allowing `TemplatesRepo.updateTemplate` to update the local row by ID in `TemplatesDao` (`Lt8b;`).
+
 ---
 
 ## 7. Unlock Experimental Features
+
 ### Overview
+
 Unlocks beta and experimental features in Settings without a Geocaching Premium membership, providing access to in-development tools, multiple log photos, Omni-Search, dark mode web descriptions, and 10% Projects.
 
 ### Configuration Options
+
 - `unlockAllBetaFeatures` (default: `true`): Unlocks all 10% beta features (Activity Feed, Cache Log Translation, Autofill, Confetti, etc.).
 - `enableUnpersistedExperimentalFeatures` (default: `true`): Persists and enables the Collaborative Lists, Has Parking, and Trackables Only toggles in Experimental Features.
 - `bypassExperimentalServerSync` (default: `true`): Keeps experimental feature toggles local without POSTing to or being overwritten by `/mobile/v1/user/settings/mobileexperiments`.
+
 ### Bytecode Modifications
+
 1. **Settings Screen Gate**:
    - Target: `com.groundspeak.geocaching.intro.fragments.settings.SettingsFragment.y()`
    - Intercepts `l3c.d()` by forcing the check result to `0x1` (`true`), bypassing upsell and directly pushing `R.id.toExperimentalFeaturesFrag`.
@@ -249,13 +289,17 @@ Unlocks beta and experimental features in Settings without a Geocaching Premium 
 3. **Beta Feature Flags**:
    - Target: `Ll75.E(LaunchDarklyFlag)`
    - When `unlockAllBetaFeatures` is enabled, intercepts `LaunchDarklyFlag.K` (`show-mobile-10-percent-menu`), `T` (`recent-log-icons`), and `b0` (`support-darkmode-webdescription`) in the high-level LaunchDarkly evaluation wrapper `l75.E`, returning `true` unconditionally so all beta features and their preferences populate and persist cleanly without interfering with application startup or LaunchDarkly initialization.
+
 ---
 
 ## 8. Remove Shop
+
 ### Overview
+
 Removes the Shop Geocaching promotional item row and promotional card ("Everything you need to hide, play, and share", featured shop items/banners) from the Profile screen.
 
 ### Bytecode Modifications
+
 1. **RemoteConfig Shop Link Gate**:
    - Target: `eh9.h()Z`
    - Injected with `const/4 v0, 0x1; return v0;`, unconditionally forcing `shopLinkIsHidden` to `true`. This causes `ProfileViewModel` (`q.<init>`) to initialize `ShopLinkData` with `isHidden = true`, cleanly eliminating the shop link from the profile domain model.
@@ -266,10 +310,13 @@ Removes the Shop Geocaching promotional item row and promotional card ("Everythi
 ---
 
 ## 9. Enable Developer Tools and Feature Flags
+
 ### Overview
+
 Exposes the internal Geocaching Developer/Debug menu in Settings and unlocks client-side LaunchDarkly feature flags, Remote Config parameters, and residual membership gates. Disabled by default (`default = false`) to avoid unintentional test mode activations or telemetry disruptions for standard users.
 
 ### Configuration Options
+
 1. **Debug & Diagnostic Surfaces**:
    - `exposeDebugMenuInSettings` (default: `true`): Restores the internal Debug Menu item in Settings (LaunchDarkly overrides, Remote Config overrides, AutoLogger, Style/Component/Tooltip previews, and DebugSharedPrefs toggles).
    - `enableAchievementDebugTap` (default: `false`): Enables the internal `Debug.TEST_AWARD` tap handler in `AchievementActivity` to test confetti and cycle achievement states.
@@ -281,5 +328,6 @@ Exposes the internal Geocaching Developer/Debug menu in Settings and unlocks cli
    - Individual toggles for Cache Details redesign, list sorting, and experiments.
 
 ### Bytecode Modifications
+
 - Targets `SettingsFragment.y()` to register the internal debug entry point.
 - Intercepts LaunchDarkly evaluation wrappers in `Ll75;` and RemoteConfig resolution methods to apply local overrides.

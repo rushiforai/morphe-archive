@@ -26,3 +26,11 @@ object PlayerSettingsViewModelConstructorFingerprint : Fingerprint(
         opcode(Opcode.FILLED_NEW_ARRAY),
     ),
 )
+
+object SpeedHelperMaxSpeedFingerprint : Fingerprint(
+    definingClass = "Lid/ikuradachi/kageroll/extension/crunchyroll/SpeedHelper;",
+    name = "getMaxSpeed",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    returnType = "F",
+    parameters = listOf(),
+)

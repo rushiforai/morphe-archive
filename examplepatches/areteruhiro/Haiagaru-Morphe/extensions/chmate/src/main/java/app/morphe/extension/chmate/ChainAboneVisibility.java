@@ -11,7 +11,7 @@ public final class ChainAboneVisibility {
     static final String COPY_PASTE_KEY="hideCopyPasteAbone";
     private static final int COPY_PASTE_FLAGS=0x04|0x20;
     // The three native renderers use this mask to choose ordinary aboon over chain aboon.
-    static final int DIRECT_REASONS=0x54a38;
+    static final int DIRECT_REASONS=0x54a38|0x10;
     static boolean chainOnly(int flags){return (flags&0x1000)!=0&&(flags&DIRECT_REASONS)==0;}
     private ChainAboneVisibility(){}
     public static void apply(Object owner){

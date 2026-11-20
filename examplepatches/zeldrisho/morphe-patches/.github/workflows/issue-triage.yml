@@ -21,26 +21,25 @@ jobs:
     steps:
       - name: Check model configuration
         env:
-          LLM_MODEL: ${{ vars.PI_MODEL }}
+          LLM_MODEL: ${{ vars.LLM_MODEL }}
           AI_GATEWAY_API_KEY: ${{ secrets.AI_GATEWAY_API_KEY }}
         run: |
-          test -n "$LLM_MODEL" || { echo 'Set the PI_MODEL repository variable to a Vercel AI Gateway model.' >&2; exit 1; }
+          test -n "$LLM_MODEL" || { echo 'Set the LLM_MODEL repository variable.' >&2; exit 1; }
           test -n "$AI_GATEWAY_API_KEY" || { echo 'Set the AI_GATEWAY_API_KEY repository secret.' >&2; exit 1; }
 
-      # The action reads config from the default branch and otherwise uses its defaults,
-      # including automatic labels. Fail closed until this repository config is available.
+      # Fail closed until this repository config is available on the default branch.
       - name: Verify issue triage configuration
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: gh api "repos/$GH_REPO/contents/.github/issue-triage.yml" --silent
 
-      - name: Investigate and reply
-        uses: zeldrisho/issue-triage-agent@ae22dd6ad6b3b26ce92b99837222ca7b51d6ab78 # v0.5.1
+      - name: Classify, investigate, and reply
+        uses: zeldrisho/issue-triage-agent@main
         with:
           github-token: ${{ github.token }}
           openai-api-key: ${{ secrets.AI_GATEWAY_API_KEY }}
           llm-provider: openai
-          llm-base-url: https://ai-gateway.vercel.sh/v1
-          llm-model: ${{ vars.PI_MODEL }}
+          llm-base-url: ${{ vars.LLM_BASE_URL }}
+          llm-model: ${{ vars.LLM_MODEL }}
           config-path: .github/issue-triage.yml

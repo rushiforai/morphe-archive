@@ -1,0 +1,51 @@
+{
+  "config": {
+    "default": true,
+    "MD013": false,
+    "MD046": {
+      "style": "fenced"
+    },
+    "MD024": {
+      "siblings_only": true
+    },
+    "MD028": false,
+    "MD033": {
+      "allowed_elements": [
+        "details",
+        "summary",
+        "br",
+        "img",
+        "a",
+        "sub",
+        "sup",
+        "b",
+        "i",
+        "div",
+        "h1",
+        "h2",
+        "span"
+      ]
+    },
+    "MD041": false,
+    "MD060": false
+  },
+  "globs": [
+    "*.md",
+    "docs/**/*.md",
+    "scripts/**/*.md",
+    "patches/**/*.md",
+    "extensions/**/*.md",
+    "tools/apk-lab/**/*.md",
+    "worker/**/*.md",
+    "site/**/*.md",
+    ".github/**/*.md"
+  ],
+  "ignores": [
+    "**/node_modules/**",
+    "**/.apk-lab/**",
+    "**/.venv/**",
+    "**/build/**",
+    "**/dist/**",
+    "**/.git/**"
+  ]
+}

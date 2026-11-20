@@ -1,0 +1,23 @@
+4 ficheros DEX, 164880 cadenas distintas
+
+Lcom/baidu/simeji/bean/OperationSubscribeConfig;  (base.apk:classes.dex)
+Lcom/baidu/simeji/billing/PurchaseEvent;  (base.apk:classes.dex)
+Lcom/baidu/simeji/billing/a;  (base.apk:classes.dex)
+Lcom/baidu/simeji/billing/c;  (base.apk:classes.dex)
+Lcom/baidu/simeji/inapp/provider/InAppPurchaseContent;  (base.apk:classes.dex)
+Lcom/baidu/simeji/inapp/provider/InAppPurchaseContentProvider;  (base.apk:classes.dex)
+Lcom/baidu/simeji/billing/b;  (base.apk:classes.dex)
+Lcom/baidu/simeji/subscription/SubscriptionListBannerNew;  (base.apk:classes2.dex)
+Lcom/baidu/simeji/subscription/SubscriptionServerInfo;  (base.apk:classes2.dex)
+Lcom/baidu/simeji/subscription/b;  (base.apk:classes2.dex)
+Lcom/baidu/simeji/subscription/c;  (base.apk:classes2.dex)
+Lcom/baidu/simeji/subscription/e;  (base.apk:classes2.dex)
+Lcom/baidu/simeji/voice/pro/billing/VoiceProPurchaseActivity;  (base.apk:classes2.dex)
+Lcom/baidu/simeji/subscription/a;  (base.apk:classes2.dex)
+Lcom/baidu/simeji/subscription/d;  (base.apk:classes2.dex)
+Lcom/baidu/simeji/subscription/SubscriptionPurchaseNewActivity;  (base.apk:classes2.dex)
+Lcom/baidu/simeji/skins/video/CoolFontVideoRewardActivity;  (base.apk:classes2.dex)
+Lcom/baidu/simeji/skins/video/GenmojiVideoRewardActivity;  (base.apk:classes2.dex)
+Lcom/baidu/simeji/skins/video/TextBombVideoRewardActivity;  (base.apk:classes2.dex)
+
+19 clases coinciden con (?i)^Lcom/baidu/simeji/[^$]*(subscri|purchase|billing|paywall|videoreward)[^$]*;

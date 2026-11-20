@@ -1,0 +1,40 @@
+4 ficheros DEX, 164880 cadenas distintas
+
+Lcom/baidu/simeji/settings/SettingsAdvancedFragment$b;-><init>(Lcom/baidu/simeji/settings/SettingsAdvancedFragment; Landroid/app/Dialog;)V
+      v1, v0, Lcom/baidu/simeji/settings/SettingsAdvancedFragment$b;->b Lcom/baidu/simeji/settings/SettingsAdvancedFragment;
+Lcom/baidu/simeji/settings/SettingsAdvancedFragment$b;->onClick(Landroid/view/View;)V
+      v1, v0, Lcom/baidu/simeji/settings/SettingsAdvancedFragment$b;->a Landroid/app/Dialog;
+Lcom/baidu/simeji/settings/SettingsAdvancedFragment$c;-><init>(Lcom/baidu/simeji/settings/SettingsAdvancedFragment; Landroid/app/Dialog;)V
+      v1, v0, Lcom/baidu/simeji/settings/SettingsAdvancedFragment$c;->b Lcom/baidu/simeji/settings/SettingsAdvancedFragment;
+Lcom/baidu/simeji/settings/SettingsAdvancedFragment$c;->onClick(Landroid/view/View;)V
+      v1, v0, Lcom/baidu/simeji/settings/SettingsAdvancedFragment$c;->a Landroid/app/Dialog;
+Lcom/baidu/simeji/settings/SettingsAdvancedFragment$d;-><init>(Lcom/baidu/simeji/settings/SettingsAdvancedFragment; Landroid/app/Dialog;)V
+      v1, v0, Lcom/baidu/simeji/settings/SettingsAdvancedFragment$d;->b Lcom/baidu/simeji/settings/SettingsAdvancedFragment;
+Lcom/baidu/simeji/settings/SettingsAdvancedFragment$d;->onClick(Landroid/view/View;)V
+      v2, v1, Lcom/baidu/simeji/settings/SettingsAdvancedFragment$d;->b Lcom/baidu/simeji/settings/SettingsAdvancedFragment;
+Lcom/baidu/simeji/settings/SettingsAdvancedFragment$a;-><init>(Lcom/baidu/simeji/settings/SettingsAdvancedFragment;)V
+      v1, v0, Lcom/baidu/simeji/settings/SettingsAdvancedFragment$a;->a Lcom/baidu/simeji/settings/SettingsAdvancedFragment;
+Lcom/baidu/simeji/settings/SettingsAdvancedFragment$a;->a(Lcom/google/android/ump/FormError;)V
+      v2, v1, Lcom/baidu/simeji/settings/SettingsAdvancedFragment$a;->a Lcom/baidu/simeji/settings/SettingsAdvancedFragment;
+Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->a(Lcom/google/android/ump/FormError;)V
+      v0, Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->lambda$onPreferenceClick$0(Lcom/google/android/ump/FormError;)V
+Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->b(Lcom/baidu/simeji/settings/SettingsAdvancedFragment;)Lcom/baidu/simeji/widget/PreferenceItem;
+      v0, v0, Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->mGdprSettings Lcom/baidu/simeji/widget/PreferenceItem;
+Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->c(Lcom/baidu/simeji/settings/SettingsAdvancedFragment;)Landroid/preference/PreferenceCategory;
+      v0, v0, Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->mSessionCategory Landroid/preference/PreferenceCategory;
+Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->d(Lcom/baidu/simeji/settings/SettingsAdvancedFragment;)Lcom/baidu/simeji/widget/UnCheckBoxPreferenceItem;
+      v0, v0, Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->mShareDataCheckBox Lcom/baidu/simeji/widget/UnCheckBoxPreferenceItem;
+Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->showSureDialog()V
+      v4, Lcom/baidu/simeji/settings/SettingsAdvancedFragment$b;
+Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->onCreate(Landroid/os/Bundle;)V
+      v5, v4, Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->mSessionCategory Landroid/preference/PreferenceCategory;
+Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->onPreferenceClick(Landroid/preference/Preference;)Z
+      v4, v3, Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->mSharedPrefs Landroid/content/SharedPreferences;
+Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->onResume()V
+      v0, v1, Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->isForeground Z
+Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->onSharedPreferenceChanged(Landroid/content/SharedPreferences; Ljava/lang/String;)V
+      v10, v8, Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->isForeground Z
+Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->onStop()V
+      v0, v1, Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->isForeground Z
+
+18 metodos coinciden con SettingsAdvancedFragment

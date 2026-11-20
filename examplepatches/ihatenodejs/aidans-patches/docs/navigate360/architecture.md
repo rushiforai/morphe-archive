@@ -2,16 +2,16 @@
 
 ## 1. Overview
 
-| Attribute | Specification |
-|---|---|
-| **Application Name** | Navigate360 Student |
-| **Package Name** | `com.eab.se` |
-| **Supported Version** | `26.19.22` (Morphe Compatibility: `26.19.22`, `minSdk` 31) |
-| **Analyzed Version Code** | `26190220` (Derived from APK analysis; Constants specifies version string) |
-| **Minimum SDK** | `31` (Android 12) |
-| **Distribution Format** | APKM (`ApkFileType.APKM`); base APK plus language and density splits |
-| **Package Signing SHA-256** | `7253620866df0a00048e7c1f43976992330e2fdb06f094d47fbf20045f56ec4b` |
-| **Primary Icon Color** | `#0071CE` |
+| Attribute                   | Specification                                                              |
+| --------------------------- | -------------------------------------------------------------------------- |
+| **Application Name**        | Navigate360 Student                                                        |
+| **Package Name**            | `com.eab.se`                                                               |
+| **Supported Version**       | `26.19.22` (Morphe Compatibility: `26.19.22`, `minSdk` 31)                 |
+| **Analyzed Version Code**   | `26190220` (Derived from APK analysis; Constants specifies version string) |
+| **Minimum SDK**             | `31` (Android 12)                                                          |
+| **Distribution Format**     | APKM (`ApkFileType.APKM`); base APK plus language and density splits       |
+| **Package Signing SHA-256** | `7253620866df0a00048e7c1f43976992330e2fdb06f094d47fbf20045f56ec4b`         |
+| **Primary Icon Color**      | `#0071CE`                                                                  |
 
 Navigate360 Student is a Cordova hybrid Android application. The native shell supplies Android and Cordova plugins, while the product UI and business flows are bundled in `assets/www/` and execute in an Ionic WebView.
 
@@ -20,13 +20,16 @@ Navigate360 Student is a Cordova hybrid Android application. The native shell su
 ## 2. Application Stack
 
 ### 2.1 Web Layer
+
 - **Apache Cordova 12+** provides the native-to-WebView bridge.
 - **Ionic WebView** hosts the frontend bootstrapped by `assets/www/index.html`.
 - Product applications, microsites, static resources, and their JavaScript bundles are stored below `assets/www/`.
 - Cordova plugin modules are registered from `assets/www/plugins/`.
 
 ### 2.2 Native Components
+
 The APK includes native Cordova integrations for:
+
 - Gainsight PX (`com.native360.gainsight.GainsightPlugin`)
 - InAppBrowser and Safari View Controller
 - Push notifications

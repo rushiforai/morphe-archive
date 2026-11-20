@@ -1,17 +1,22 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-18.
  * Written by lavinhoque33, 2026-11-08.
  */
 package app.morphe.extension.music.patches.downloads;
+
+import androidx.annotation.Nullable;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 /**
  * The tracks of one page of a playlist or album response, in order, and what is a track there. Contains no Android
@@ -35,6 +40,11 @@ final class PlaylistPage {
     /** The tracks of a page with the unavailable ones as {@link #UNAVAILABLE}, and the next page's token or null. */
     record Page(List<String> videoIds, String continuation) {}
 
+    @FunctionalInterface
+    interface Browse {
+        JSONObject next(String token) throws Exception;
+    }
+
     private PlaylistPage() {}
 
     static boolean isAvailable(String videoId) {
@@ -52,43 +62,83 @@ final class PlaylistPage {
         return GREY_OUT_POLICY.equals(row.optString("musicItemRendererDisplayPolicy"));
     }
 
+    /** Read the entire current list before changing saved membership, including when resuming. */
+    static List<String> readPlaylist(@Nullable String sourceId, JSONObject first, Browse browse) throws Exception {
+        List<String> tracks = new ArrayList<>();
+        Set<String> continuations = new HashSet<>();
+        JSONObject response = first;
+        boolean continuation = false;
+        while (true) {
+            Page page = read(response, sourceId, continuation);
+            tracks.addAll(page.videoIds());
+            String token = page.continuation();
+            if (token == null) return tracks;
+            if (!continuations.add(token)) throw new IOException("Music repeated a playlist continuation");
+
+            response = browse.next(token);
+            continuation = true;
+        }
+    }
+
     static Page read(JSONObject response) throws IOException {
+        return read(response, null, false);
+    }
+
+    private static Page read(JSONObject response, @Nullable String source, boolean continuation) throws IOException {
         List<String> ids = new ArrayList<>();
         String[] next = new String[1];
         boolean[] found = new boolean[1];
-        collectShelves(response, ids, next, found, false);
-        if (!found[0]) collectShelves(response, ids, next, found, true);
-        if (!found[0]) throw new IOException("Music did not return a playlist shelf");
+        collectShelves(response, ids, next, found, false, source, continuation);
+        if (!found[0]) collectShelves(response, ids, next, found, true, source, continuation);
+        if (!found[0] || source != null && continuation && ids.isEmpty()) {
+            throw new IOException("Music did not return a complete playlist shelf");
+        }
         return new Page(ids, next[0]);
     }
 
     private static void collectShelves(Object node, List<String> ids, String[] next, boolean[] found,
-                                      boolean legacyShelf) throws IOException {
+                                      boolean legacyShelf, @Nullable String source, boolean continuation)
+            throws IOException {
         if (node instanceof JSONObject object) {
             Iterator<String> keys = object.keys();
             while (keys.hasNext()) {
                 String key = keys.next();
                 Object value = object.opt(key);
-                if (key.equals("musicPlaylistShelfRenderer") || key.equals("musicPlaylistShelfContinuation")
+                boolean append = key.equals("appendContinuationItemsAction")
+                        || key.equals("reloadContinuationItemsCommand");
+                boolean shelf = key.equals("musicPlaylistShelfRenderer") || key.equals("musicPlaylistShelfContinuation")
                         || (legacyShelf && !found[0]
-                        && (key.equals("musicShelfRenderer") || key.equals("musicShelfContinuation")))) {
+                        && (key.equals("musicShelfRenderer") || key.equals("musicShelfContinuation")));
+                if (shelf || append) {
+                    if (source != null) {
+                        if (continuation != (append || key.endsWith("Continuation"))) continue;
+                        validateShelf(value, source, append ? "continuationItems" : "contents");
+                    }
                     found[0] = true;
-                    collectItems(value, ids, next);
-                } else if (key.equals("appendContinuationItemsAction")
-                        || key.equals("reloadContinuationItemsCommand")) {
-                    found[0] = true;
-                    collectItems(value, ids, next);
+                    collectItems(value, ids, next, source != null);
                 } else if (!key.equals("header") && !key.equals("menu") && !key.equals("menus")
                         && !key.equals("frameworkUpdates") && !key.equals("musicCarouselShelfRenderer")) {
-                    collectShelves(value, ids, next, found, legacyShelf);
+                    collectShelves(value, ids, next, found, legacyShelf, source, continuation);
                 }
             }
         } else if (node instanceof JSONArray array) {
-            for (int i = 0; i < array.length(); i++) collectShelves(array.opt(i), ids, next, found, legacyShelf);
+            for (int i = 0; i < array.length(); i++) {
+                collectShelves(array.opt(i), ids, next, found, legacyShelf, source, continuation);
+            }
         }
     }
 
-    private static void collectItems(Object node, List<String> ids, String[] next) throws IOException {
+    private static void validateShelf(Object value, String source, String items) throws IOException {
+        if (!(value instanceof JSONObject shelf) || shelf.optJSONArray(items) == null) {
+            throw new IOException("Music returned a malformed playlist shelf");
+        }
+        String id = shelf.optString("playlistId");
+        if (!id.isEmpty() && !id.equals(source) && !id.equals("VL" + source)) {
+            throw new IOException("Music returned a different playlist");
+        }
+    }
+
+    private static void collectItems(Object node, List<String> ids, String[] next, boolean strict) throws IOException {
         if (node instanceof JSONObject object) {
             for (String key : ROW_RENDERERS) {
                 JSONObject row = object.optJSONObject(key);
@@ -103,6 +153,9 @@ final class PlaylistPage {
                     if (watch != null) id = watch.optString("videoId");
                 }
                 if (id.isEmpty() && !isGreyedOut(row)) throw new IOException("A playlist track has no video id");
+                if (strict && !id.isEmpty() && !RawAudioFiles.validId(id)) {
+                    throw new IOException("A playlist track has an invalid video id");
+                }
                 // Deliberate duplicate positions must remain in the playlist, and so must the position of an
                 // unavailable track: the app numbers the rows after it with it counted.
                 ids.add(id.isEmpty() ? UNAVAILABLE : id);
@@ -112,13 +165,16 @@ final class PlaylistPage {
             if (continuation == null) continuation = object.optJSONObject("continuationCommand");
             if (continuation != null) {
                 String token = continuation.optString("continuation", continuation.optString("token"));
+                if (strict && (token.isBlank() || next[0] != null && !next[0].equals(token))) {
+                    throw new IOException("Music returned an invalid playlist continuation");
+                }
                 if (!token.isEmpty()) next[0] = token;
                 return;
             }
             Iterator<String> keys = object.keys();
-            while (keys.hasNext()) collectItems(object.opt(keys.next()), ids, next);
+            while (keys.hasNext()) collectItems(object.opt(keys.next()), ids, next, strict);
         } else if (node instanceof JSONArray array) {
-            for (int i = 0; i < array.length(); i++) collectItems(array.opt(i), ids, next);
+            for (int i = 0; i < array.length(); i++) collectItems(array.opt(i), ids, next, strict);
         }
     }
 }

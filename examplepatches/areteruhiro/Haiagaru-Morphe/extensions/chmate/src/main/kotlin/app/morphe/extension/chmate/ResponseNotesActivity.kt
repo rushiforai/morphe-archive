@@ -3,6 +3,7 @@ package app.morphe.extension.chmate
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.webkit.WebView
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.clickable
@@ -21,6 +22,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import kotlinx.coroutines.*
 
 class ResponseNotesActivity : HaiagaruComposeActivity() {
@@ -30,6 +32,18 @@ class ResponseNotesActivity : HaiagaruComposeActivity() {
         setContent { HaiagaruUi.Theme { Notes() } }
     }
     private fun blank() = ResponseNotesStore.Note("", "", "", "", "", 0, 0)
+    private fun mediaHtml(source: String): String {
+        val media = ThreadMediaUrls.collect(source, null).take(8).joinToString("") { raw ->
+            val safe = android.text.Html.escapeHtml(raw).replace("'", "&#39;")
+            if (DirectVideoUrls.supported(raw)) "<video controls playsinline preload='metadata' src='$safe'></video>"
+            else "<img loading='lazy' src='$safe'>"
+        }
+        return "<!doctype html><html><head><meta name='viewport' content='width=device-width,initial-scale=1'><style>body{margin:0;background:transparent;display:flex;gap:8px;overflow-x:auto}img,video{max-width:100%;height:170px;object-fit:contain;flex:0 0 auto}</style></head><body>$media</body></html>"
+    }
+    private fun openSource(address: String) {
+        if (address.isBlank()) return
+        startActivity(Intent(this, OpenUrlActivity::class.java).setData(Uri.parse(address)))
+    }
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable private fun Notes() {
         val scope = rememberCoroutineScope()
@@ -103,7 +117,11 @@ class ResponseNotesActivity : HaiagaruComposeActivity() {
                         Column(Modifier.padding(16.dp)) {
                             Text(note.title.ifBlank { note.text.lineSequence().firstOrNull().orEmpty() }, style = MaterialTheme.typography.titleMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
                             Text(note.text, maxLines = 3, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 6.dp))
-                            Text((if (note.number > 0) ">>${note.number} ・ " else "") + android.text.format.DateFormat.format("MM/dd HH:mm", note.updated), style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(top = 8.dp))
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text((if (note.number > 0) ">>${note.number} ・ " else "") + android.text.format.DateFormat.format("MM/dd HH:mm", note.updated), style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(top = 8.dp))
+                                TextButton(onClick = { select(note) }) { Text("メモを編集") }
+                            }
+                            if (note.url.isNotBlank()) TextButton(onClick = { openSource(note.url) }) { Text("元スレを開いて編集・返信") }
                         }
                     } }
                 }
@@ -112,9 +130,22 @@ class ResponseNotesActivity : HaiagaruComposeActivity() {
                 if (url.isNotEmpty()) {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         TextButton(onClick = { sourceExpanded = !sourceExpanded }) { Text(if (sourceExpanded) "元のレスを閉じる" else "元のレス >>$number") }
-                        TextButton(onClick = { startActivity(Intent(this@ResponseNotesActivity, OpenUrlActivity::class.java).setData(Uri.parse(url))) }) { Text("スレで開く") }
+                        TextButton(onClick = { openSource(url) }) { Text("元スレを開いて編集・返信") }
                     }
+                    Text(url, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.fillMaxWidth().clickable { openSource(url) })
                     if (sourceExpanded) Text(source, maxLines = 6, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodySmall)
+                    val mediaUrls = remember(source) { ThreadMediaUrls.collect(source, null) }
+                    if (mediaUrls.isNotEmpty()) AndroidView(
+                        modifier = Modifier.fillMaxWidth().height(180.dp),
+                        factory = { context -> WebView(context).apply {
+                            settings.javaScriptEnabled = false
+                            settings.domStorageEnabled = false
+                            settings.mediaPlaybackRequiresUserGesture = true
+                            setBackgroundColor(android.graphics.Color.TRANSPARENT)
+                        } },
+                        update = { view -> view.loadDataWithBaseURL(url, mediaHtml(source), "text/html", "UTF-8", null) }
+                    )
                 }
                 OutlinedTextField(text, { text = it.take(30000) }, enabled = !busy, modifier = Modifier.fillMaxWidth().weight(1f).focusRequester(memoFocus), label = { Text("メモ") },
                     placeholder = { Text("気になったことを書き留める") })

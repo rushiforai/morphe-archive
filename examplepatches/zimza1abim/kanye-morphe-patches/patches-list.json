@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "0.0.19",
+  "version": "0.1.2",
   "patches": [
     {
       "name": "Anytype custom font",
@@ -99,13 +99,6 @@
           "signatures": null,
           "targets": [
             {
-              "version": "2.0.3",
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            },
-            {
               "version": "2.0.4",
               "versionCodes": null,
               "isExperimental": false,
@@ -114,6 +107,13 @@
             },
             {
               "version": "2.0.5",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "2.0.7",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -141,13 +141,6 @@
           "signatures": null,
           "targets": [
             {
-              "version": "2.0.3",
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            },
-            {
               "version": "2.0.4",
               "versionCodes": null,
               "isExperimental": false,
@@ -156,6 +149,13 @@
             },
             {
               "version": "2.0.5",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "2.0.7",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -183,13 +183,6 @@
           "signatures": null,
           "targets": [
             {
-              "version": "2.0.3",
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            },
-            {
               "version": "2.0.4",
               "versionCodes": null,
               "isExperimental": false,
@@ -198,6 +191,13 @@
             },
             {
               "version": "2.0.5",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "2.0.7",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -228,6 +228,13 @@
               "isExperimental": false,
               "minSdk": null,
               "description": null
+            },
+            {
+              "version": "2026.11.1",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
             }
           ]
         }
@@ -254,6 +261,13 @@
               "isExperimental": false,
               "minSdk": null,
               "description": null
+            },
+            {
+              "version": "2026.11.1",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
             }
           ]
         }
@@ -276,6 +290,13 @@
           "targets": [
             {
               "version": "2026.10.1",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "2026.11.1",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -540,6 +561,34 @@
       "options": []
     },
     {
+      "name": "OpenBot custom font",
+      "description": "Follow the system font or choose an installed device font in Settings > Appearance > Font.",
+      "default": true,
+      "dependencies": [
+        "ResourcePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "run.openbot.mobile",
+          "name": "OpenBot",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": null,
+          "signatures": null,
+          "targets": [
+            {
+              "version": "1.4.11",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Skip Bare welcome screens",
       "description": "Skips the welcome and setup pages at startup.",
       "default": true,
@@ -554,13 +603,6 @@
           "signatures": null,
           "targets": [
             {
-              "version": "2.0.3",
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            },
-            {
               "version": "2.0.4",
               "versionCodes": null,
               "isExperimental": false,
@@ -569,6 +611,13 @@
             },
             {
               "version": "2.0.5",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "2.0.7",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,

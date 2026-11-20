@@ -4,11 +4,89 @@
 
 This document describes the Morphe bytecode patches available for **NHL** (`com.nhl.gc1112.free`).
 
-| Patch | Type | Default | Description |
-|---|---|---|---|
-| **Remove Ads** | `bytecodePatch` | `true` | Removes Google Ad Manager banner and native advertisements, disables Blaze story/moment sponsored placements, blocks Google Interactive Media Ads (IMA) video ad requests, and neutralizes Brightcove IMA mid-roll and pre-roll ad playback. |
-| **Remove Tracking** | `bytecodePatch` | `true` | Removes the OneTrust CMP tracking consent popup, zeros Google Play Advertising ID (AAID), blocks host application analytics, disables Firebase Analytics, AppMeasurement, Firebase Performance Monitoring, Crashlytics, and Sessions telemetry, neutralizes UrbanAirship and Blaze tracking and logging, suppresses Brightcove video metrics reporting, and blocks Ticketmaster telemetry. |
-| **Unlock Hidden Features** | `bytecodePatch` | `false` | Unlocks the internal Developer Settings menu, Draft Mini Tracker, and NHL GameZone on the Home surface, with independent options for each feature. |
+| Patch                                        | Type            | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| -------------------------------------------- | --------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Enable Notifications and Live Activities** | `bytecodePatch` | `true`  | Enables Firebase Cloud Messaging (FCM) push notifications and Live Activities (live game score lockscreen and notification drawer updates) by spoofing the release certificate SHA-1, bypassing Play Services signature checks for MicroG, and activating the live score tracker gate.                                                                                                                                            |
+| **Remove Ads**                               | `bytecodePatch` | `true`  | Removes Google Ad Manager banner and native advertisements, disables Blaze story/moment sponsored placements, blocks Google Interactive Media Ads (IMA) video ad requests, and neutralizes Brightcove IMA mid-roll and pre-roll ad playback.                                                                                                                                                                                      |
+| **Remove Tracking**                          | `bytecodePatch` | `true`  | Removes the OneTrust CMP tracking consent popup, zeros Google Play Advertising ID (AAID), blocks host application analytics, disables Firebase Analytics, AppMeasurement, Firebase Performance Monitoring, Crashlytics, and Sessions telemetry, neutralizes UrbanAirship and Blaze tracking, user activity, and logging, suppresses Brightcove video metrics reporting and backlog processing, and blocks Ticketmaster telemetry. |
+| **Unlock Hidden Features**                   | `bytecodePatch` | `false` | Unlocks the internal Developer Settings menu, Draft Mini Tracker, and NHL GameZone on the Home surface, with independent options for each feature.                                                                                                                                                                                                                                                                                |
+
+---
+
+## Patch: Enable Notifications and Live Activities
+
+- **Name:** Enable Notifications and Live Activities
+- **Target Package:** `com.nhl.gc1112.free`
+- **Supported Versions:** `17.0.0`
+- **Default State:** `true` (Enabled by default)
+- **Type:** Dalvik Bytecode Patch (`bytecodePatch`)
+- **Category:** `Notifications`
+
+### 1. Motivation & Purpose
+
+In unmodified and standard patched builds, push notifications and Live Activities (real-time game score updates in the notification drawer and lockscreen) fail completely due to four compounding root causes:
+
+1. **Firebase Installations (FIS) Certificate SHA-1 Mismatch:** Google Cloud API keys configured for Firebase Installations enforce Android package name and signing certificate SHA-1 digest restrictions. When the APK is modified and re-signed with a non-NHL keystore, `FirebaseMessaging.getToken()` queries `AndroidUtilsLight.getPackageCertificateHashBytes(Context, String)` to send the package SHA-1 in the `X-Android-Cert` HTTP header. Google's API gateway rejects non-NHL signatures with HTTP 403 `PERMISSION_DENIED` (`FIS_AUTH_ERROR`), completely preventing FCM token generation.
+2. **OneTrust CMP Over-Suppression in Privacy Patches:** Consent Management Platform (CMP) tracking suppression previously stubbed all consent queries to `Denied` (`0`). However, the `Lqoj;` enum gates both ad tracking and essential push infrastructure (`UrbanAirshipCore`, `UrbanAirshipFcm`, `BlazePushSdk`). When consent is denied, `Lgce;->d()` invokes `tjf.a([Lqjf.j])` to clear all UrbanAirship feature permissions, disabling `Feature.PUSH` (`qjf.d`). Without `Feature.PUSH`, UrbanAirship refuses to register an FCM token, and `LiveActivityNotificationManager.start()` (`cla.smali`) aborts immediately.
+3. **MicroG & Play Services Verification Failures:** On de-Googled devices running MicroG without OS-level signature spoofing, `GoogleSignatureVerifier` detects non-Google signatures on `com.google.android.gms` and rejects Play Services with `SERVICE_INVALID` (code 9).
+4. **Live Activities Remote Gate Override:** The shipped game actions response model conditionally gates the live activity toggle (`showLiveActivityToggle` in `GameCenterViewModel` / `ip7.smali`) through `ActionsResponse.liveActivityEnabled` (`rd.j: Boolean`), preventing users from enabling live lockscreen scores unless enabled by the NHL backend.
+
+The **Enable Notifications and Live Activities** patch resolves these issues natively within Dalvik bytecode and the Java extension bridge.
+
+### 2. Options
+
+| Key                          | Title                                     | Default | Description                                                                                                                     |
+| ---------------------------- | ----------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `spoofCertificateHash`       | Spoof Certificate SHA-1                   | `true`  | Spoofs the release signing certificate SHA-1 in Firebase Installations requests so FCM registration succeeds on re-signed APKs. |
+| `supportMicroG`              | Support MicroG & Unverified Play Services | `true`  | Bypasses GoogleSignatureVerifier checks to allow push registration with MicroG and unverified Play Services.                    |
+| `forceLiveActivitiesEnabled` | Force Live Activities Enabled             | `true`  | Forces the Live Activity game score tracker toggle to be available on all live and upcoming games.                              |
+
+### 3. Technical Implementation & Bytecode Hooks
+
+1. **Release Certificate SHA-1 Spoofing (`spoofCertificateHash`):**
+   - Targets `Lcom/google/android/gms/common/util/AndroidUtilsLight;->getPackageCertificateHashBytes(Landroid/content/Context;Ljava/lang/String;)[B`.
+   - Injects at offset 0:
+
+     ```smali
+     invoke-static {}, Lapp/aidan/extension/nhl/PushBridge;->getCertificateHashBytes()[B
+     move-result-object v0
+     return-object v0
+     ```
+
+   - `PushBridge.getCertificateHashBytes()` returns the exact 20-byte SHA-1 digest of the official NHL release certificate (`9D:1B:1A:C8:28:E0:47:72:A7:34:91:D8:39:D9:85:2B:80:C4:66:92`), satisfying Firebase Installations HTTP API requirements.
+2. **MicroG Signature Verifier Bypass (`supportMicroG`):**
+   - Targets `Lcom/google/android/gms/common/GoogleSignatureVerifier;`:
+     - `zza(Landroid/content/pm/PackageInfo;Z)Z`: injects `const/4 v0, 0x1` / `return v0`.
+     - `isGooglePublicSignedPackage(Landroid/content/pm/PackageInfo;)Z`: injects `const/4 v0, 0x1` / `return v0`.
+     - `isPackageGoogleSigned(Ljava/lang/String;)Z`: injects `const/4 v0, 0x1` / `return v0`.
+     - `isUidGoogleSigned(I)Z`: injects `const/4 v0, 0x1` / `return v0`.
+   - Targets `GooglePlayServicesUtilLight` and `GoogleApiAvailabilityLight`:
+     - `isGooglePlayServicesAvailable(Landroid/content/Context;I)I`: injects `const/4 v0, 0x0` / `return v0` (`ConnectionResult.SUCCESS`).
+     - `isGooglePlayServicesAvailable(Landroid/content/Context;)I`: injects `const/4 v0, 0x0` / `return v0` (`ConnectionResult.SUCCESS`).
+3. **Smart Consent Routing (in `RemoveTrackingPatch`):**
+   - Replaces blanket OneTrust denial with `PushBridge.isPushConsented(Object qojEnum)` in:
+     - `Lgce;->c(Lqoj;)Z`: returns `true` for `UrbanAirshipCore`, `UrbanAirshipFcm`, and `BlazePushSdk`; `false` for `GoogleAds` and telemetry.
+     - `Lqc8;->M(Lqoj;Lcom/onetrust/otpublishers/headless/Public/OTPublishersHeadlessSDK;)Lvu3;`: returns `Granted` for push SDKs, `Denied` for ad/tracking SDKs.
+   - Ensures `gce.d()` preserves `Feature.PUSH` in `UrbanAirship.PrivacyManager`.
+4. **Live Activities Gate Activation (`forceLiveActivitiesEnabled`):**
+   - Targets `Lrd;-><init>(ILjava/lang/String;Ljava/lang/String;Lfva;Lfva;Lfva;Ljava/lang/String;Lfva;Lfva;Lfva;Ljava/lang/Boolean;)V` (`ActionsResponse` constructor):
+     - Injects before `return-void`:
+
+       ```smali
+       sget-object v0, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;
+       iput-object v0, p0, Lrd;->j:Ljava/lang/Boolean;
+       ```
+
+   - Targets `Lrb;-><init>(Ljava/lang/String;Ljava/lang/String;Lafe;Lafe;Lafe;Leva;Lafe;Lafe;Z)V` (`Action` constructor):
+     - Injects before `return-void`:
+
+       ```smali
+       const/4 p9, 0x1
+       iput-boolean p9, p0, Lrb;->i:Z
+       ```
+
+   - Guarantees `GameCenterViewModel` (`ip7.smali`) computes `showLiveActivityToggle = true` for live and upcoming games.
+
 ---
 
 ## Patch: Remove Ads
@@ -23,6 +101,7 @@ This document describes the Morphe bytecode patches available for **NHL** (`com.
 ### 1. Motivation & Purpose
 
 The official NHL application integrates multiple advertising networks and formats:
+
 - **Google Ad Manager (GAM) Banners:** Displayed across game feeds, team hubs, and story views.
 - **Blaze Sponsored Stories:** Native sponsored story cards and interstitial ad pages in vertical video feeds.
 - **Brightcove Google IMA Video Ads:** Pre-roll and mid-roll video ad pods inserted before and during game highlights and video on demand.
@@ -31,9 +110,9 @@ The **Remove Ads** patch eliminates advertising across all formats without disru
 
 ### 2. Options
 
-| Key | Title | Default | Description |
-|---|---|---|---|
-| `removePromotionsCarousel` | Remove Promotions Carousel | `true` | Removes the promotions carousel from the Home screen. |
+| Key                        | Title                      | Default | Description                                           |
+| -------------------------- | -------------------------- | ------- | ----------------------------------------------------- |
+| `removePromotionsCarousel` | Remove Promotions Carousel | `true`  | Removes the promotions carousel from the Home screen. |
 
 ### 3. Technical Implementation & Bytecode Hooks
 
@@ -57,6 +136,7 @@ The **Remove Ads** patch eliminates advertising across all formats without disru
    - Targets content component mapper methods `Lawi;->b(Ldf3;Z)Lpj4;` and `Lawi;->e(Ldf3;Z)Ltj4;`.
    - Inspects deserialized `ComponentsResponse` fields (title in `df3.b->fva.a`, `id` in `df3.a`, `analyticSlug` in `df3.f`, and `analyticsSectionTitle` in `df3.e`).
    - If any identifier contains `"promotion"` (case-insensitive via `Locale.ROOT`), the mapper returns `null`, causing the parent flow parser `Lawi;->d(Lzvi;)Lmui;` to omit the component from the active UI hierarchy and completely suppress the Home screen carousel card.
+
 ---
 
 ## Patch: Remove Tracking
@@ -71,6 +151,7 @@ The **Remove Ads** patch eliminates advertising across all formats without disru
 ### 1. Motivation & Purpose
 
 The application captures pervasive behavioral, privacy, and device telemetry:
+
 - **OneTrust CMP Consent Popup & Telemetry:** Modal tracking and cookie disclosure banner requesting user consent to track; remote geolocation and consent logging calls.
 - **Google Play Advertising ID (AAID):** Unique hardware identifiers tracked for ad targeting and user attribution.
 - **Host Application Analytics:** Internal NHL screen-view and interaction analytics logging.
@@ -83,56 +164,73 @@ The application captures pervasive behavioral, privacy, and device telemetry:
 - **Firebase Crashlytics, Sessions & Datatransport:** Diagnostic exception recording, session lifecycle services, and Firelog batch upload telemetry.
 
 The **Remove Tracking** patch neutralizes these tracking systems while preserving normal application and video playback functionality.
+
 ### 2. Options
 
-| Key | Title | Default | Description |
-|---|---|---|---|
-| `removeBrokenPrivacySettings` | Remove Broken Privacy Settings | `true` | Removes the broken Privacy Settings entry from the Settings screen. |
+| Key                             | Title                                   | Default | Description                                                                                                            |
+| ------------------------------- | --------------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `disableOneTrustCmp`            | Disable OneTrust CMP                    | `true`  | Neutralizes OneTrust CMP tracking consent popups, network calls, and forces consent queries to Denied.                 |
+| `removeBrokenPrivacySettings`   | Remove Broken Privacy Settings          | `true`  | Removes the broken Privacy Settings entry from the Settings screen.                                                    |
+| `zeroAdvertisingId`             | Zero Advertising ID                     | `true`  | Spoofs the Google Play Advertising ID (AAID) to return an all-zero identifier and limit ad tracking.                   |
+| `disableHostAnalytics`          | Disable Host App Analytics              | `true`  | Blocks host application screen tracking and interaction event logging.                                                 |
+| `disableFirebaseAnalytics`      | Disable Firebase Analytics              | `true`  | Blocks Firebase Analytics, AppMeasurement, and the WebView JavaScript analytics bridge.                                |
+| `disableFirebasePerformance`    | Disable Firebase Performance Monitoring | `true`  | Neutralizes Firebase Performance Monitoring traces, metrics, and gauge collection.                                     |
+| `disableUrbanAirshipTelemetry`  | Disable UrbanAirship Telemetry          | `true`  | Neutralizes UrbanAirship install referrer capture, event queueing, session tracking, and metered usage telemetry.      |
+| `disableBlazeTracking`          | Disable Blaze Tracking & Logging        | `true`  | Blocks Blaze SDK bulk event analytics, user viewing activity history, and remote diagnostic logging.                   |
+| `disableBrightcoveAnalytics`    | Disable Brightcove Video Analytics      | `true`  | Suppresses Brightcove video playback metrics, interactivity tracking, and backlog processing.                          |
+| `disableTicketmasterTelemetry`  | Disable Ticketmaster Telemetry          | `true`  | Neutralizes Ticketmaster authentication analytics, event reporting queues, and presence analytics.                     |
+| `disableCrashlyticsAndSessions` | Disable Crashlytics & Sessions          | `true`  | Neutralizes Firebase Crashlytics logging, exception capture, Sessions lifecycle monitoring, and DataTransport uploads. |
 
 ### 3. Technical Implementation & Bytecode Hooks
 
 1. **Broken Privacy Settings Removal (`removeBrokenPrivacySettings`):**
    - Targets Preferences section builder `Lbg8;->d(ZLjava/lang/String;Lkotlin/jvm/functions/Function1;Lpn3;I)V`.
    - Locates the `invoke-interface {v0, v1}, Ljava/util/List;->add(Ljava/lang/Object;)Z` call following the Privacy Settings composable key (`-0x3635e702`) and removes it from bytecode, preventing the defunct setting row from being added to the Preferences list.
-2. **OneTrust CMP Neutralization & Banner Suppression:**
+2. **OneTrust CMP Neutralization & Banner Suppression (`disableOneTrustCmp`):**
    - Neutralizes UI display methods in `Lcom/onetrust/otpublishers/headless/Public/OTPublishersHeadlessSDK;` (`setupUI`, `showBannerUI`, `callSetupUI`, `callShowConsentPreferencesUI`, `callShowPreferenceCenterUI`, `showPreferenceCenterUI`, `showConsentPurposesUI`, `showConsentUI`), preventing the consent banner dialog from appearing.
    - Forces `shouldShowBanner` to return `false` and `isBannerShown` to return `0`.
    - Neutralizes OneTrust network calls (`startOtSdkNetworkCall`, `startSDK`, `saveConsent`, `saveAllowAll`, `saveRejectAll`).
    - Forces consent query methods (`getConsentStatusForGroupId`, `getConsentStatusForSDKId`, `getPurposeConsentLocal`, `getPurposeLegitInterestLocal`, `getUCPurposeConsent`) to return `0` (`Denied`).
-3. **Advertising ID Zeroing:**
+   - Routes host application consent checks through `PushBridge.isPushConsented` (`Lgce;->c(Lqoj;)Z` and `Lqc8;->M(...)Lvu3;`), preserving consent for `UrbanAirshipCore`, `UrbanAirshipFcm`, and `BlazePushSdk` while treating advertising and telemetry SDKs as unconsented.
+3. **Advertising ID Zeroing (`zeroAdvertisingId`):**
    - Spoofs minified `AdvertisingIdClient` (`Ljj;->a` and `Ljj;->f`) to return an Info object (`Lij;`) with a zeroed UUID (`00000000-0000-0000-0000-000000000000`) and `limitAdTrackingEnabled = true`.
    - Stubs unminified `AdvertisingIdClient$Info` (`getId` and `isLimitAdTrackingEnabled`) if present.
-4. **Host Application Analytics:**
+4. **Host Application Analytics (`disableHostAnalytics`):**
    - Neutralizes screen tracking (`a(Ljava/lang/String;)V`) and event logging (`b(Lbv;)V`) in `Lnv;` (internal analytics implementation).
-5. **Firebase Analytics & AppMeasurement:**
+5. **Firebase Analytics & AppMeasurement (`disableFirebaseAnalytics`):**
    - Neutralizes `AppMeasurement.logEventInternal`, `AppMeasurementSdk.logEvent`, and `FirebaseAnalytics` methods (`b`, `c`, `setCurrentScreen`).
    - Neutralizes Google Play Services AppMeasurement background task queue execution in `Lg3q;->c(Loxp;)V`.
    - Neutralizes WebView JavaScript analytics bridge in `Lhhd;` (`logEvent`, `setUserProperty`).
    - Neutralizes component registration in `Lcom/google/firebase/analytics/connector/internal/AnalyticsConnectorRegistrar;` (`getComponents` returns empty list).
-6. **Firebase Performance Monitoring:**
+6. **Firebase Performance Monitoring (`disableFirebasePerformance`):**
    - Stubs component registrars `FirebasePerfRegistrar` and `FirebasePerfKtxRegistrar` (`getComponents` returns empty list).
    - Neutralizes metric dispatch in `Lmak;` (`b`, `c`, `d`).
    - Neutralizes `AppStartTrace` lifecycle tracking (`onActivityCreated`, `onActivityResumed`, `onActivityStarted`) and `SessionManager` gauge collection.
-7. **UrbanAirship Telemetry & Analytics:**
+7. **UrbanAirship Telemetry & Analytics (`disableUrbanAirshipTelemetry`):**
    - Neutralizes `com.urbanairship.analytics.InstallReceiver.onReceive`.
    - Neutralizes event recording queue in `Lpo;->a(Loo;)V`.
-   - Neutralizes analytics event dispatch and screen tracking in `Lrt;` (`e`, `h`).
+   - Neutralizes analytics event dispatch, session start, and screen tracking in `Lrt;` (`e`, `g`, `h`).
+   - Forces `Lrt;->f()Z` (analytics enabled check) to return `false`.
    - Neutralizes metered usage telemetry scheduling in `Lqp;` (`g`, `h`).
-8. **Blaze SDK Event Dispatcher & Logging:**
+8. **Blaze SDK Event Dispatcher, User Activity & Logging (`disableBlazeTracking`):**
+   - Forces `BlazeSDK` configuration gates `getDisableAnalytics` and `getDisableUserActivity` to return `true`, and `getDoNotTrack` to return `true`.
    - Stubs `com.blaze.blazesdk.analytics.AnalyticsApi` methods `sendTrackEvents` and `sendDoNotTrackEvents` to return null.
    - Stubs `com.blaze.blazesdk.logger.apis.BlazeLoggerApi.sendLogs` to return null.
-9. **Brightcove Video Analytics & Interactivity:**
+9. **Brightcove Video Analytics & Interactivity (`disableBrightcoveAnalytics`):**
    - Neutralizes event publishing in `com.brightcove.player.analytics.AnalyticsClient.publish` (returns `this`).
    - Bypasses metric network requests in `com.brightcove.player.analytics.Analytics.sendAnalyticsRequest` (returns unmodified properties map).
-   - Neutralizes `com.brightcove.player.analytics.DefaultAnalyticsHandler.onAnalyticsEvent`.
-10. **Ticketmaster Telemetry:**
-   - Forces `com.ticketmaster.authenticationsdk.Analytics.getEnabled` to return `false`.
-   - Neutralizes event queueing and network dispatch in `com.ticketmaster.tickets.eventanalytic.AnalyticsQueue` (`putEvent`, `send`) and `TmxAnalyticsSender.send`.
-11. **Firebase Crashlytics, Sessions & Datatransport:**
+   - Neutralizes `com.brightcove.player.analytics.DefaultAnalyticsHandler` methods (`onAnalyticsEvent`, `processBacklog`, `trySubmit`, `trySubmitInteractivity`), blocking active event submission, interactivity metric reporting, and offline SQLite backlog flushes.
+10. **Ticketmaster Telemetry (`disableTicketmasterTelemetry`):**
+    - Forces `com.ticketmaster.authenticationsdk.Analytics.getEnabled` to return `false`.
+    - Neutralizes event queueing and network dispatch in `com.ticketmaster.tickets.eventanalytic.AnalyticsQueue` (`putEvent`, `send`) and `TmxAnalyticsSender.send`.
+    - Neutralizes presence analytics broadcasting in `com.ticketmaster.presence.AnalyticsHelper.sendAnalyticEvent`.
+
+11. **Firebase Crashlytics, Sessions & Datatransport (`disableCrashlyticsAndSessions`):**
     - Neutralizes Crashlytics logging and exception capture in `Lbn6;` (`b`, `c`).
     - Stubs `FirebaseSessionsRegistrar.getComponents` to return an empty list.
     - Neutralizes `SessionLifecycleService` lifecycle methods (`onCreate`, `onBind` returning null, `onStartCommand` returning `START_NOT_STICKY`).
     - Neutralizes Google DataTransport Firelog uploader in `Lomk;->a`.
+
 ---
 
 ## Patch: Unlock Hidden Features
@@ -147,6 +245,7 @@ The **Remove Tracking** patch neutralizes these tracking systems while preservin
 ### 1. Motivation & Purpose
 
 The NHL 17.0.0 release bundle contains several dormant and remotely gated host-app capabilities:
+
 - An internal **Developer Settings** suite with network environment switching (Prod, Staging, Mock), country overrides, String Key Overlay, Analytics Debugger, cache invalidation, and developer deep links.
 - A **Draft Mini Tracker** UI component gated by remote configuration.
 - An **NHL GameZone** web portal entry on the Home surface gated by remote configuration.
@@ -155,11 +254,11 @@ The **Unlock Hidden Features** patch unlocks these surfaces with independent opt
 
 ### 2. Options
 
-| Key | Title | Default | Description |
-|---|---|---|---|
+| Key                       | Title                             | Default | Description                                                                                                                                                                                                                       |
+| ------------------------- | --------------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `enableDeveloperSettings` | Enable Developer Tools & Settings | `false` | Unlocks the internal Developer Settings screen inside Settings (Environment switcher, Analytics Debugger, String Key Overlay, Mock Localization, Invalidate Cache, and Ad Inspector), and activates the `nhl://setAPI` deep link. |
-| `enableDraftMiniTracker` | Enable Draft Mini Tracker | `true` | Forces the shipped Draft Mini Tracker visibility gate on; tracker content still depends on NHL draft data. |
-| `showGameZoneOnHome` | Show GameZone on Home | `true` | Forces the shipped NHL GameZone Home visibility gate on; web content and authentication remain server-controlled. |
+| `enableDraftMiniTracker`  | Enable Draft Mini Tracker         | `true`  | Forces the shipped Draft Mini Tracker visibility gate on; tracker content still depends on NHL draft data.                                                                                                                        |
+| `showGameZoneOnHome`      | Show GameZone on Home             | `true`  | Forces the shipped NHL GameZone Home visibility gate on; web content and authentication remain server-controlled.                                                                                                                 |
 
 ### 3. Technical Implementation & Bytecode Hooks
 

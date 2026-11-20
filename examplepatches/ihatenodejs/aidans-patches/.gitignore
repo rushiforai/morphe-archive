@@ -103,3 +103,16 @@ target/
 google-play-accounts.json
 *google-play-accounts*.json
 *.ini
+
+# C/C++ & CMake
+compile_commands.json
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+CTestTestfile.cmake
+_deps/
+*.so
+*.dylib
+*.a
+*.o
+*.obj

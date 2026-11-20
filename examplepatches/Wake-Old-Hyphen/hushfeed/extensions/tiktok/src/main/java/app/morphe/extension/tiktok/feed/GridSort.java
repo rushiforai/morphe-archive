@@ -71,8 +71,8 @@ import app.morphe.extension.tiktok.wellbeing.SessionLockOverlay;
  * sort gives the same grid every time.
  *
  * <p>While an order is chosen, a grid on screen asks for its next page as each one comes in,
- * the way scrolling to its end would, until TikTok has no more, a page adds nothing, or the grid
- * holds {@link #LOAD_CAP} videos. That way the order covers the profile rather than the first
+ * the way scrolling to its end would, until TikTok has no more, a page adds nothing, the grid
+ * holds {@link #LOAD_CAP} videos, or its hold runs out. That way the order covers the profile rather than the first
  * screen of it. A chip over the grid's top corner names the order and changes it in place.
  *
  * <p>That chain used to play out in front of the reader, a fresh list or a pull to refresh showing
@@ -132,8 +132,12 @@ public final class GridSort {
     /** The event label TikTok builds a sound page's grid with. */
     static final String SOUND_LABEL = "single_song";
 
-    /** The most videos a sorted grid loads by itself. Past this the reader's scrolling loads more. */
-    static final int LOAD_CAP = 300;
+    /**
+     * The most videos a sorted grid loads by itself. Past this the reader's scrolling loads more.
+     * 300 left a long profile's oldest and longest videos out of the order (#180). The settings
+     * note formats this in, so it can't drift from the cap again.
+     */
+    public static final int LOAD_CAP = 1000;
     /** The pause before asking for the next page, so a long profile isn't fetched in one burst. */
     static final long NEXT_PAGE_DELAY_MS = 100;
     /** How many videos a page asks for. The server answers 50 with about 30, up from about 16 for 18. */
@@ -141,11 +145,14 @@ public final class GridSort {
     /** The source TikTok's footer names when it asks for a page. */
     static final String PAGE_SOURCE = "load_more_bind_footer";
     /**
-     * The longest a grid stays out of sight, so a slow or dead request can't leave it hidden. A
-     * profile past {@link #LOAD_CAP} took 18 s on Login2, and a limit under that shows the last
-     * pages reshuffling.
+     * The longest a grid stays out of sight, so a slow or dead request can't leave it hidden. 300
+     * videos took 18 s on Login2. The S22 on Wi-Fi got about 33 a page and a page a second, so 20 s
+     * ran out at 618 and the cap was never reached (#180). A later run averaged 1.14 s a page, so 35 s
+     * ran out at 981, a page short; 45 s leaves room for a slower page. A grid still loading when this
+     * runs out, or whose hold is tapped, stops loading by itself ({@link #TIMED_OUT}), so it shows
+     * its order once instead of reshuffling page by page.
      */
-    static final long HOLD_LIMIT_MS = 20_000;
+    static final long HOLD_LIMIT_MS = 45_000;
     /**
      * How long a hold waits on one page. The Liked tab keeps its listener past its last video and
      * just never answers the ask, so this is what ends that hold. Pages came within 3 s on Login2.
@@ -175,6 +182,11 @@ public final class GridSort {
     private static final Map<Class<?>, Field> ADAPTER_FIELDS = new WeakHashMap<>();
     /** Per grid, its hold while its pages load. Main thread only. */
     private static final Map<View, Hold> HOLDS = new WeakHashMap<>();
+    /**
+     * Adapters whose hold ran out or was tapped while pages were still coming, which leave the rest
+     * of their pages to the reader's scrolling until a fresh list. Main thread only.
+     */
+    private static final Map<Object, Boolean> TIMED_OUT = new WeakHashMap<>();
     /** Per frame class, whether it takes any view an overlay adds. Main thread only. */
     private static final Map<Class<?>, Boolean> TAKES_VIEWS = new WeakHashMap<>();
 
@@ -387,6 +399,7 @@ public final class GridSort {
             boolean fresh = before == 0 || size < before;
             if (fresh) startHold(adapter, size);
             MAIN.post(() -> {
+                if (fresh) TIMED_OUT.remove(adapter);
                 if (GridSearch.searching(adapter)) reshow(adapter);
                 afterTikTok(adapter, 0, size, fresh);
             });
@@ -799,8 +812,10 @@ public final class GridSort {
             boolean shown = onScreen(grid);
             // TikTok takes the listener away once it knows it has no more. It decides that after it
             // hands the list over, so this post is the first point that can tell.
-            boolean next = wantsNextPage(orderFor(adapter), GridSearch.searching(adapter), before, size, shown)
-                    && loadMoreListener(adapter) != null;
+            // A search stays in sight as it loads, so a hold that ran out doesn't stop it.
+            boolean searching = GridSearch.searching(adapter);
+            boolean next = wantsNextPage(orderFor(adapter), searching, before, size, shown)
+                    && (searching || !TIMED_OUT.containsKey(adapter)) && loadMoreListener(adapter) != null;
             Logger.printDebug(() -> "Grid sort: page " + before + " -> " + size
                     + (gridShown == null ? ", no grid" : shown ? "" : ", off screen") + (next ? ", asking for more" : ""));
             if (next) {
@@ -972,6 +987,13 @@ public final class GridSort {
             count.setPaddingRelative(SettingsUi.dp(context, 8), 0, 0, 0);
             setHoldCount(count, size);
             box.addView(count);
+            TextView hint = new TextView(context);
+            hint.setTextColor(SettingsUi.OVERLAY_TEXT);
+            hint.setTextSize(TypedValue.COMPLEX_UNIT_SP, SettingsUi.TEXT_CAPTION);
+            hint.setPaddingRelative(SettingsUi.dp(context, 8), 0, 0, 0);
+            hint.setText(L10n.t(context, "Tap to see the order now"));
+            box.addView(hint);
+            cover.setOnClickListener(view -> showNow(grid));
             FrameLayout.LayoutParams boxAt = new FrameLayout.LayoutParams(
                     ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT,
                     Gravity.TOP | Gravity.CENTER_HORIZONTAL);
@@ -995,7 +1017,13 @@ public final class GridSort {
                 }
             };
             grid.addOnAttachStateChangeListener(leaving);
-            Hold hold = new Hold(cover, count, () -> endHold(grid), () -> endHold(grid), leaving, adapter);
+            Runnable runOut = () -> {
+                Hold running = HOLDS.get(grid);
+                if (running != null && running.adapter != null) TIMED_OUT.put(running.adapter, Boolean.TRUE);
+                Logger.printDebug(() -> "Grid sort: hold ran out, the reader's scrolling loads the rest");
+                endHold(grid);
+            };
+            Hold hold = new Hold(cover, count, runOut, () -> endHold(grid), leaving, adapter);
             HOLDS.put(grid, hold);
             MAIN.postDelayed(hold.limit, HOLD_LIMIT_MS);
             MAIN.postDelayed(() -> box.setVisibility(View.VISIBLE), HOLD_SPINNER_DELAY_MS);
@@ -1027,6 +1055,15 @@ public final class GridSort {
     }
 
     /** Brings the grid back, with the one refresh the pages it hid were owed. */
+    /** A tap on the hold: the order it has now, with the rest of the pages left to the reader's scrolling. */
+    private static void showNow(View grid) {
+        Hold hold = HOLDS.get(grid);
+        if (hold == null) return;
+        if (hold.adapter != null) TIMED_OUT.put(hold.adapter, Boolean.TRUE);
+        Logger.printDebug(() -> "Grid sort: hold tapped, showing the order it has");
+        endHold(grid);
+    }
+
     private static void endHold(View grid) {
         Hold hold = grid == null ? null : HOLDS.remove(grid);
         if (hold == null) return;
@@ -1152,7 +1189,7 @@ public final class GridSort {
 
     /**
      * The FrameLayout the grid's chips, rail and loading cover float in: the grid's own parent, or
-     * the frame around the LinearLayout TikTok wraps the Favorites grid in. On 47.9.1 that layout
+     * the frame around the LinearLayout TikTok wraps the Favorites grid in. On 47.9.2 that layout
      * sits in a fragment container, which refuses any other view, inside a plain frame of the
      * same size, so a frame that vets what's added to it is passed over, as is a scroll view.
      */
@@ -1584,7 +1621,7 @@ public final class GridSort {
 
     /**
      * The video a grid item stands for: the item itself, or the one a collection folder's row
-     * wraps. Null for anything else, a header row included, which on 47.9.1 wraps an empty video
+     * wraps. Null for anything else, a header row included, which on 47.9.2 wraps an empty video
      * with no id.
      */
     static Aweme postOf(Object item) {
@@ -1625,6 +1662,7 @@ public final class GridSort {
             TABS.clear();
         }
         HOLDS.clear();
+        TIMED_OUT.clear();
         synchronized (ADAPTER_FIELDS) {
             ADAPTER_FIELDS.clear();
         }

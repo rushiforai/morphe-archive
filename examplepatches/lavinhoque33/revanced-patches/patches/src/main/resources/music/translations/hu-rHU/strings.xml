@@ -129,6 +129,7 @@ Lépések:
     <string name="morphe_music_downloads_sort">Rendezés</string>
     <string name="morphe_music_downloads_started">Letöltés elindítva</string>
     <string name="morphe_music_downloads_starting">Letöltés indítása…</string>
+    <string name="morphe_music_downloads_waiting_for_connection">Várakozás a kapcsolatra</string>
     <string name="morphe_music_downloads_unknown_track">Nem sikerült azonosítani a letöltendő számot</string>
     <string name="morphe_music_hide_you_may_also_like_section_title">„Ezek is érdekelhetnek” szakasz elrejtése</string>
     <string name="morphe_music_hide_your_downloads_shelf_title">\"Letöltéseim\" polc elrejtése</string>
@@ -1012,4 +1013,8 @@ A megtekintett videó azonosítóját elküldjük a Return YouTube Dislike API-n
     <string name="revanced_webview_toast_unavailable">A webes nézet nem elérhető</string>
     <string name="morphe_music_auto_song_version_title">Mindig a dalverzió lejátszása</string>
     <string name="morphe_music_auto_song_version_summary">A sorban lévő hivatalos zenei videókat a megfelelő dalra cseréli. A „Ne játsszon le zenei videókat” alkalmazásbeállítás bekapcsolása szükséges. Pontos egyezés nélkül a számok változatlanok maradnak</string>
+    <string name="morphe_music_playlist_download_connect">A letöltés folytatásához csatlakozz az internethez</string>
+    <string name="morphe_music_playlist_ready">%2$d számból %1$d kész</string>
+    <string name="morphe_music_playlist_resume">%2$d számból %1$d kész · Folytatás</string>
+    <string name="morphe_music_playlist_partial_failed">%2$d számból %1$d kész (%3$d sikertelen) · Folytatás</string>
 </resources>

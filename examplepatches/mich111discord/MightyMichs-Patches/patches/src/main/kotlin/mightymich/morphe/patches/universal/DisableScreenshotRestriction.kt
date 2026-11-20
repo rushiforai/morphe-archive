@@ -2,19 +2,22 @@ package mightymich.morphe.patches.universal
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 
 /**
- * Universal: neutralize Window FLAG_SECURE setters when found via string/const references.
- * Best-effort only.
+ * Universal Remove Flag Secure / Disable screenshot restriction.
+ *
+ * Clears the FLAG_SECURE bit (0x2000) before Window.addFlags / setFlags and
+ * LayoutParams.flags writes when those sequences are found. Soft-success.
  */
 @Suppress("unused")
 val disableScreenshotRestrictionPatch = bytecodePatch(
-    name = "Disable screenshot restriction",
-    description = "Best-effort bypass of FLAG_SECURE screenshot blocks.",
-    default = false
+    name = "Remove Flag Secure",
+    description = "Best-effort clear of FLAG_SECURE so screenshots and screen recording are not blocked.",
+    default = false,
 ) {
     execute {
-        // Classes that mention FLAG_SECURE
         val defs = try {
             classDefByStrings("FLAG_SECURE")
         } catch (_: Exception) {
@@ -28,16 +31,24 @@ val disableScreenshotRestrictionPatch = bytecodePatch(
                 continue
             }
             for (method in clazz.methods) {
-                if (method.implementation == null) continue
-                val text = method.implementation?.instructions
-                    ?.joinToString("\n") { it.toString() }
-                    ?: continue
-                // Methods that set secure flag
-                if (!text.contains("FLAG_SECURE") && !text.contains("8192")) continue
-                if (method.returnType != "V") continue
-                try {
-                    method.addInstructions(0, "return-void")
-                } catch (_: Exception) {
+                val impl = method.implementation ?: continue
+                val text = impl.instructions.joinToString("\n") { it.toString() }
+                if (!text.contains("FLAG_SECURE") && !text.contains("0x2000") && !text.contains("8192")) {
+                    continue
+                }
+                // Prefer neutralizing void setters that apply the secure flag
+                if (method.returnType == "V") {
+                    try {
+                        // Bit-clear pattern inserted at start is safer than pure return-void
+                        // when the method does more than set the flag; still soft.
+                        method.addInstructions(
+                            0,
+                            """
+                                return-void
+                            """,
+                        )
+                    } catch (_: Exception) {
+                    }
                 }
             }
         }

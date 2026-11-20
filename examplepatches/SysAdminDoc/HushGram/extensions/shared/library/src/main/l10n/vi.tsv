@@ -47,6 +47,8 @@ Loading older messages. %1$d message so far.	Đang tải tin nhắn cũ hơn. Đ
 Loading older messages. %1$d messages so far.	Đang tải tin nhắn cũ hơn. Đã có %1$d tin nhắn.
 Lock these settings	Khóa các cài đặt này
 Mark a chat seen when you reply	Đánh dấu đã xem khi bạn trả lời
+Mark a chat seen when you react	Đánh dấu đã xem khi bạn bày tỏ cảm xúc
+Reacting to a message in a chat lets the other person see that you've read up to that message. What they sent after it stays unseen to them.	Khi bạn bày tỏ cảm xúc với một tin nhắn trong cuộc trò chuyện, người kia sẽ thấy bạn đã đọc đến tin nhắn đó. Những gì họ gửi sau đó vẫn chưa được xem.
 No messages found to save.	Không có tin nhắn nào để lưu.
 Pick a wait from 1 to 72 hours. Locked, nothing here changes until you ask to unlock and the wait is over.	Chọn thời gian chờ từ 1 đến 72 giờ. Khi đã khóa, không có gì ở đây thay đổi được cho đến khi bạn yêu cầu mở khóa và hết thời gian chờ.
 Ask to unlock	Yêu cầu mở khóa
@@ -247,6 +249,22 @@ Only in Reels	Chỉ trong Reels
 Feed videos, reels and stories all wait for your tap.	Video trên bảng feed, reel và tin đều đợi bạn nhấn.
 Feed videos and stories wait for your tap. Reels play as you swipe to them.	Video trên bảng feed và tin đợi bạn nhấn. Reels phát khi bạn vuốt đến.
 Reels wait for your tap. Feed videos and stories play as Instagram plays them.	Reels đợi bạn nhấn. Video trên bảng feed và tin phát như Instagram vẫn làm.
+# context: Tap to play settings: 'Where videos wait' choice that holds feed videos, reels and stories but lets videos in the Explore tab play (#762)
+Everywhere but Explore	Mọi nơi trừ Khám phá
+# context: 'Where videos wait' choice that holds only videos in the Explore tab (#762)
+Only in Explore	Chỉ trong Khám phá
+# context: 'Where videos wait' choice that holds reels and videos in the Explore tab (#762)
+Reels and Explore	Reels và Khám phá
+# context: 'Where videos wait' choice that holds feed videos and stories but lets reels and the Explore tab play (#762)
+Everywhere but Reels and Explore	Mọi nơi trừ Reels và Khám phá
+# context: summary of 'Everywhere but Explore' (#762)
+Feed videos, reels and stories wait for your tap. Videos in Explore play as Instagram plays them.	Video trên bảng feed, reel và tin đợi bạn nhấn. Video trong Khám phá phát như Instagram vẫn làm.
+# context: summary of 'Only in Explore' (#762)
+Videos in Explore wait for your tap. Feed videos, reels and stories play as Instagram plays them.	Video trong Khám phá đợi bạn nhấn. Video trên bảng feed, reel và tin phát như Instagram vẫn làm.
+# context: summary of 'Reels and Explore' (#762)
+Reels and videos in Explore wait for your tap. Feed videos and stories play as Instagram plays them.	Reels và video trong Khám phá đợi bạn nhấn. Video trên bảng feed và tin phát như Instagram vẫn làm.
+# context: summary of 'Everywhere but Reels and Explore' (#762)
+Feed videos and stories wait for your tap. Reels and videos in Explore play as Instagram plays them.	Video trên bảng feed và tin đợi bạn nhấn. Reels và video trong Khám phá phát như Instagram vẫn làm.
 Turn on Tap to play to use this choice.	Hãy bật Nhấn để phát để dùng lựa chọn này.
 Resume long videos	Tiếp tục xem video dài
 Videos and reels over two minutes pick up where you left off. Seek to start elsewhere. Live videos and ads start as usual.	Video và reel dài hơn hai phút tiếp tục từ chỗ bạn dừng. Hãy tua để bắt đầu ở nơi khác. Video trực tiếp và quảng cáo bắt đầu như bình thường.
@@ -321,6 +339,10 @@ Stop swipe to create	Ngừng vuốt để tạo
 Full resolution photos	Ảnh độ phân giải đầy đủ
 Loads photos in your feed, carousels and opened posts at the largest size Instagram offers. This can use more data.	Tải ảnh trong bảng feed, ảnh nhiều trang và bài viết đã mở ở kích thước lớn nhất mà Instagram cung cấp. Có thể dùng nhiều dữ liệu hơn.
 A sideways swipe on Home no longer opens the camera. The + button and every other way into the camera still work.	Vuốt ngang trên trang chủ không còn mở máy ảnh. Nút + và mọi cách khác để vào máy ảnh vẫn dùng được.
+# context: a switch in HushGram settings > Feed, right after Stop swipe to create; Messages is Instagram's inbox, named as in Swipe left for Messages (#770)
+Stop swipe to Messages	Ngừng vuốt để mở Tin nhắn
+# context: summary under Stop swipe to Messages; the Messages button is the inbox button at the top of Home or on the tab bar (#770)
+A swipe left on Home no longer opens Messages. The Messages button still does.	Vuốt sang trái trên trang chủ không còn mở Tin nhắn. Nút Tin nhắn vẫn dùng được.
 Swipe left for Messages	Vuốt sang trái để mở Tin nhắn
 Swiping left on Home opens Messages, like Instagram used to. Carousels and the stories row still slide as before.	Vuốt sang trái trên trang chủ sẽ mở Tin nhắn, giống Instagram ngày trước. Ảnh nhiều trang và hàng tin vẫn vuốt được như cũ.
 Meta AI	Meta AI
@@ -451,6 +473,11 @@ Keep Featured off the heart's dot	Không để Nổi bật làm sáng chấm tr�
 Stops the red dot on the heart from showing up for Featured alone. Likes, comments and new followers still light it.	Ngăn chấm đỏ trên biểu tượng trái tim hiện lên chỉ vì Nổi bật. Lượt thích, bình luận và người theo dõi mới vẫn làm chấm sáng.
 Hide highlights	Ẩn tin nổi bật
 Takes the row of story highlights off profiles, yours included. Bios, counts and posts stay, and so does Add to highlight on your stories.	Gỡ hàng tin nổi bật khỏi trang cá nhân, kể cả của bạn. Tiểu sử, số liệu và bài viết vẫn giữ, Thêm vào tin nổi bật trên tin của bạn cũng vậy.
+# context: "Followers" and "Following" are the two buttons under a profile's name, beside the post count; use the words Instagram shows there in this language (#771)
+Hide follower counts	Ẩn số người theo dõi
+Takes the numbers off Followers and Following at the top of profiles, yours included. The words stay, and a tap still opens the list.	Bỏ con số khỏi Người theo dõi và Đang theo dõi ở đầu trang cá nhân, kể cả trang của bạn. Chữ vẫn giữ lại, và chạm vào vẫn mở danh sách.
+Hide Followers and Following	Ẩn Người theo dõi và Đang theo dõi
+Takes the Followers and Following buttons off the top of profiles, yours included, with no gap left. The post count stays.	Bỏ nút Người theo dõi và Đang theo dõi khỏi đầu trang cá nhân, kể cả trang của bạn, không để lại khoảng trống. Số bài viết vẫn giữ lại.
 Hide the Threads button	Ẩn nút Threads
 Takes the Threads button off the top of profiles, yours included. The menu and the other buttons stay where they were.	Gỡ nút Threads khỏi đầu trang cá nhân, kể cả của bạn. Menu và các nút khác vẫn ở chỗ cũ.
 Show profile posts as a list	Hiện bài viết trên trang cá nhân dạng danh sách
@@ -662,10 +689,10 @@ Reels you opened from a chat end after the last one shared in that chat, with no
 Adds Download cover under Download. It saves the still picture a reel shows before it plays, at its largest size.	Thêm Tải ảnh bìa bên dưới Tải xuống. Lưu ảnh tĩnh mà reel hiện trước khi phát, ở kích thước lớn nhất.
 Adds Download audio under Download. It saves the sound of the reel as an audio file.	Thêm Tải âm thanh bên dưới Tải xuống. Lưu âm thanh của reel thành tệp âm thanh.
 Download full song	Tải cả bài hát
-Adds Download full song under Download on reels that use a song from Instagram's music. It saves the whole song as an audio file, not only the part the reel plays.	Thêm Tải cả bài hát bên dưới Tải xuống trên các reel dùng bài hát từ nhạc của Instagram. Lưu toàn bộ bài hát thành tệp âm thanh, không chỉ đoạn mà reel phát.
+Adds Download full song under Download on reels that use a song from Instagram's music, and a Download icon beside Save on a song's page. Both save the whole song as an audio file, not only the part the reel plays.	Thêm Tải cả bài hát bên dưới Tải xuống trên các reel dùng bài hát từ nhạc của Instagram, và biểu tượng Tải xuống cạnh Lưu trên trang của một bài hát. Cả hai đều lưu toàn bộ bài hát thành tệp âm thanh, không chỉ đoạn mà reel phát.
 After the reels you pick below, swiping in Reels stops until Instagram has been in the background for the time you pick. A reel you open from a message or a post still plays.	Sau số reel bạn chọn bên dưới, việc vuốt trong Reels dừng cho đến khi Instagram ở chế độ nền đủ thời gian bạn chọn. Reel bạn mở từ tin nhắn hoặc bài viết vẫn phát.
 Find the reel you came from	Tìm reel bạn đã đến từ đó
-Open a creator's profile from a reel, then their Reels tab, and it scrolls to that reel and outlines it for a moment. A photo reel is found in their posts. Stop looking ends the search where it is.	Mở trang cá nhân của nhà sáng tạo từ một reel, rồi tab Reels của họ, trang sẽ cuộn đến reel đó và viền nó trong giây lát. Reel ảnh sẽ được tìm trong bài viết của họ. Dừng tìm kết thúc việc tìm tại chỗ đang dừng.
+Open a creator's profile from a reel, then their Reels tab, and it scrolls to that reel and labels it You just watched for a few seconds. A photo reel is found in their posts. Stop looking ends the search where it is.	Mở trang cá nhân của nhà sáng tạo từ một reel, rồi tab Reels của họ, trang sẽ cuộn đến reel đó và gắn nhãn Bạn vừa xem cho nó trong vài giây. Reel ảnh sẽ được tìm trong bài viết của họ. Dừng tìm kết thúc việc tìm tại chỗ đang dừng.
 Wait for a tap to find it	Chờ nhấn mới tìm
 When the reel isn't on the first screen, the profile shows a Find the reel button instead of scrolling on its own.	Khi reel không ở màn hình đầu tiên, trang cá nhân hiện nút Tìm reel thay vì tự cuộn.
 Find the reel	Tìm reel
@@ -673,6 +700,7 @@ Stop looking	Dừng tìm
 Couldn't find the reel you came from	Không tìm thấy reel bạn đã đến từ đó
 That's a trial reel, so it isn't on their profile	Đây là reel thử nghiệm nên không có trên trang cá nhân
 That reel isn't on their profile. It might be a trial reel.	Reel đó không có trên trang cá nhân của họ. Có thể đó là reel thử nghiệm.
+You just watched	Bạn vừa xem
 Clear saved copies now	Xóa bản đã lưu ngay
 Clear the media cache	Xóa bộ nhớ đệm phương tiện
 Couldn't clear the saved copies. Try again.	Không xóa được bản đã lưu. Hãy thử lại.
@@ -741,6 +769,12 @@ Takes the Comment button and the comment count off the posts in your feed.	Gỡ 
 # context: Comments: a second Hide comments switch that takes the Reply button off each comment in a comment sheet (#619). Reply and View more replies are Instagram's own labels under a comment; use this language's Instagram words for them.
 Hide Reply on comments	Ẩn Trả lời trên bình luận
 Takes Reply off each comment in a post's or reel's comments. View more replies stays, so you can still open them.	Gỡ Trả lời khỏi từng bình luận của bài viết hoặc reel. Xem thêm câu trả lời vẫn còn, nên bạn vẫn mở được các câu trả lời.
+# context: Comments: a Hide comments switch that takes the heart (the like button) and the like count under it off each comment in a comment sheet (#762).
+Hide likes on comments	Ẩn lượt thích trên bình luận
+Takes the heart and the like count off each comment in a post's or reel's comments.	Gỡ trái tim và số lượt thích khỏi từng bình luận của bài viết hoặc reel.
+# context: Comments: a Hide comments switch that takes the comment box off the bottom of a comment sheet (#762). Comment box is the field where you type a comment; Post is Instagram's own label on its send button, use this language's Instagram word for it.
+Hide the comment box	Ẩn ô bình luận
+Takes the comment box, with your picture and Post, off the bottom of a post's or reel's comments. Turn it off when you want to comment.	Gỡ ô bình luận, cùng ảnh của bạn và nút Đăng, khỏi phía dưới phần bình luận của bài viết hoặc reel. Hãy tắt khi bạn muốn bình luận.
 Hide the emoji row	Ẩn hàng biểu tượng cảm xúc
 Takes the row of quick emoji off above the comment box. The box itself stays.	Gỡ hàng biểu tượng cảm xúc nhanh phía trên ô bình luận. Bản thân ô vẫn giữ.
 # context: Comments: the switch that takes GIFs and stickers out of a post's comments (#511). A comment that has words keeps its words and loses only the picture. A comment that's only a GIF disappears, and its replies with it. Comment box is the field where you type a comment.
@@ -982,6 +1016,10 @@ Adds a bookmark to the tabs on your own profile that opens Saved. Restart Instag
 Fast scroll in Saved	Cuộn nhanh trong Đã lưu
 # context: Profiles > summary of Fast scroll in Saved; collections are Instagram's saved collections (#644)
 Shows a handle at the right edge of Saved and your collections while they scroll. Drag it to jump through them.	Hiện tay nắm ở cạnh phải của Đã lưu và bộ sưu tập của bạn khi cuộn. Kéo tay nắm để nhảy nhanh qua danh sách.
+# context: Profiles > switch right after Fast scroll in Saved; New collection is Instagram's own label for the + at the top right of Saved that starts a new saved collection (#762)
+Hide the New collection button	Ẩn nút Bộ sưu tập mới
+# context: Profiles > summary of Hide the New collection button; Saved is Instagram's own Saved page (#762)
+Takes the + for a new collection off the top of Saved. Your collections stay.	Gỡ nút + để tạo bộ sưu tập mới khỏi phía trên Đã lưu. Các bộ sưu tập của bạn vẫn còn.
 Battery	Pin
 Stop the background heartbeat	Ngừng nhịp nền
 Instagram wakes your phone every minute or two, screen off included, only to note that it is still running. This stops that. Messages, notifications and everything you see are unaffected.	Instagram đánh thức điện thoại mỗi một hai phút, kể cả khi tắt màn hình, chỉ để ghi nhận là nó vẫn đang chạy. Mục này ngăn điều đó. Tin nhắn, thông báo và mọi thứ bạn thấy không bị ảnh hưởng.
@@ -1247,6 +1285,12 @@ Stops the short buzz Instagram plays when a reel opens in clear mode. With Keep 
 # context: Reels settings: a switch under Don't vibrate in clear mode (#480). It keeps the seek bar on screen in clear mode; seek bar and clear mode use the same words as Keep a seek bar and Keep clear mode on
 Always show seek bar in clear mode	Luôn hiện thanh tua trong chế độ xem sạch
 Keeps the seek bar on a reel in clear mode, and you can still drag it, while the other buttons stay hidden. Short reels get a bar too, in clear mode or not.	Giữ thanh tua trên reel trong chế độ xem sạch để bạn vẫn kéo được, còn các nút khác vẫn ẩn. Reel ngắn cũng có thanh tua, dù có ở chế độ xem sạch hay không.
+# context: Reels settings: a switch under Always show seek bar in clear mode (#744). A two-finger pinch on a reel turns Instagram's clear mode on and off; clear mode uses the same words as Keep clear mode on, and Pinch to zoom is the Reels switch of that name
+Pinch for clear mode	Chụm để vào chế độ xem sạch
+Pinch a reel with two fingers to turn clear mode on, and pinch again to leave it. While Pinch to zoom is on, two fingers zoom instead.	Chụm hai ngón tay trên reel để bật chế độ xem sạch, chụm lần nữa để thoát. Khi Chụm để thu phóng đang bật, hai ngón tay sẽ thu phóng.
+# context: Reels settings: a switch under Pinch for clear mode (#744). It hides the round exit button a reel shows in clear mode, the button that leaves clear mode; Pinch to zoom is the Reels switch of that name
+Hide the exit button in clear mode	Ẩn nút thoát trong chế độ xem sạch
+Takes away the round button a reel shows in clear mode, so a pinch is how you leave it. The button stays while Pinch to zoom is on.	Bỏ nút tròn mà reel hiện trong chế độ xem sạch, nên bạn thoát bằng cách chụm. Nút vẫn còn khi Chụm để thu phóng đang bật.
 Unlock with	Mở khóa bằng
 Phone lock	Khóa điện thoại
 HushGram PIN	PIN HushGram
@@ -1588,6 +1632,22 @@ Start reels muted	Bắt đầu reel tắt tiếng
 Every reel starts silent, wherever you open it from. The volume keys or the speaker icon unmute it. Wins over Start reels with sound.	Mọi reel bắt đầu im lặng, dù mở từ đâu. Phím âm lượng hoặc biểu tượng loa sẽ bật tiếng. Được ưu tiên hơn Bắt đầu reel có tiếng.
 Hide captions	Ẩn chú thích
 Takes the caption off posts in your feed and off reels. The post stays, and the comments sheet still shows it.	Gỡ chú thích khỏi bài viết trong bảng feed và khỏi reel. Bài viết vẫn giữ, và bảng bình luận vẫn hiện chú thích.
+# context: "more" is the word Instagram puts at the end of a cut caption in the feed; use the word Instagram shows there in this language (#771)
+Expand captions	Mở rộng chú thích
+Shows more of a post's caption in your feed before "more", the whole caption to start. Reels and stories stay as they are.	Hiện nhiều chú thích hơn trên bài viết trong bảng feed trước "xem thêm", lúc đầu là toàn bộ chú thích. Reel và tin vẫn giữ nguyên.
+Caption lines before more	Số dòng trước "xem thêm"
+The whole caption shows, with no "more" to tap.	Hiện toàn bộ chú thích, không có "xem thêm" để nhấn.
+Captions longer than that end with "more", which opens the rest.	Chú thích dài hơn sẽ kết thúc bằng "xem thêm", nhấn vào để mở phần còn lại.
+Turn on Expand captions to use this choice.	Hãy bật Mở rộng chú thích để dùng lựa chọn này.
+Whole caption	Toàn bộ chú thích
+1 line	1 dòng
+2 lines	2 dòng
+3 lines	3 dòng
+4 lines	4 dòng
+5 lines	5 dòng
+6 lines	6 dòng
+8 lines	8 dòng
+10 lines	10 dòng
 Keep Home's top bar	Giữ thanh trên cùng của trang chủ
 Keeps the Instagram logo and the buttons beside it at the top of Home while you scroll, instead of sliding them away.	Giữ logo Instagram và các nút bên cạnh ở đầu trang chủ khi bạn cuộn, thay vì trượt đi.
 See-through top bar	Thanh trên cùng trong suốt
@@ -1600,6 +1660,9 @@ Find a post, reel, story or profile you saw before.	Tìm lại bài viết, reel
 Recently seen	Đã xem gần đây
 Open profile	Mở trang cá nhân
 Remove from history	Xóa khỏi lịch sử
+# context: the viewing history page's button that switches its rows to a grid of big pictures, then back
+Show as grid	Hiển thị dạng lưới
+Show as list	Hiển thị dạng danh sách
 Viewing history	Lịch sử đã xem
 Nothing here yet. With Keep a viewing history on, what you look at shows up here.	Chưa có gì. Khi Giữ lịch sử đã xem bật, những gì bạn xem sẽ hiện ở đây.
 # context: the kind of item in the viewing history list: Post, Reel, Story
@@ -1732,15 +1795,17 @@ Couldn't read that picture.	Không đọc được ảnh đó.
 This launcher can't add it.	Launcher này không thêm được.
 Glass in chats	Kính trong trò chuyện
 Gives a chat's top bar and message bar frosted glass and puts the back, call and video buttons on round glass circles. It shows the next time you open a chat. Needs Android 12 or newer for the blur.	Làm thanh trên cùng và thanh tin nhắn của cuộc trò chuyện có hiệu ứng kính mờ và đặt các nút quay lại, gọi và video lên những vòng tròn kính. Hiện ở lần mở cuộc trò chuyện tiếp theo. Hiệu ứng làm mờ cần Android 12 trở lên.
+Center names in chats	Căn giữa tên trong đoạn chat
+Puts the name and username at the top of a chat in the middle of the bar. A long name sits as near the middle as the call buttons leave room for.	Đặt tên và tên người dùng ở đầu đoạn chat vào giữa thanh. Tên dài sẽ nằm gần giữa nhất trong khoảng trống các nút gọi chừa lại.
 Glass top bar in chats	Kính ở thanh trên cùng của cuộc trò chuyện
 Turn it off to leave a chat's top bar as Instagram draws it, with no frosted band behind it. The round glass buttons and the glass message bar stay.	Tắt để thanh trên cùng của cuộc trò chuyện giữ nguyên như Instagram vẽ, không có dải kính mờ phía sau. Các nút kính tròn và thanh tin nhắn kính vẫn giữ nguyên.
 Top bar tint in chats	Độ đậm màu thanh trên cùng trong cuộc trò chuyện
 Message bar tint	Độ đậm màu thanh tin nhắn
 # context: Reels switch Hide reels with few views, its summary, the Minimum views row, its dialog message and the row's summary, then the Minimum likes row, its dialog message, its summary and its summary at 0; %1$s is a number with thousands separators (#444)
 Hide reels with few views	Ẩn reel có ít lượt xem
-Leaves out reels in the Reels tab with fewer views or likes than the numbers below. Reels from accounts you follow, reels sent to you and reels with no count still play.	Bỏ qua các reel trong tab Reels có lượt xem hoặc lượt thích ít hơn các con số bên dưới. Reel của tài khoản bạn theo dõi, reel được gửi cho bạn và reel không có con số vẫn phát bình thường.
+Leaves out reels in the Reels tab outside the numbers below. Reels from accounts you follow, reels sent to you and reels that don't show a number still play.	Bỏ qua các reel trong tab Reels nằm ngoài các con số bên dưới. Reel của tài khoản bạn theo dõi, reel được gửi cho bạn và reel không hiện con số vẫn phát bình thường.
 Minimum views	Số lượt xem tối thiểu
-Reels with fewer views than this are left out. Type a whole number.	Reel có ít lượt xem hơn số này sẽ bị bỏ qua. Nhập một số nguyên.
+Reels with fewer views than this are left out. Type a whole number, or 0 to not look at views.	Reel có ít lượt xem hơn số này sẽ bị bỏ qua. Nhập một số nguyên, hoặc 0 để không xét lượt xem.
 Fewer than %1$s views	Dưới %1$s lượt xem
 Minimum likes	Số lượt thích tối thiểu
 Reels with fewer likes than this are left out. Type a whole number, or 0 to not look at likes.	Reel có ít lượt thích hơn số này sẽ bị bỏ qua. Nhập một số nguyên, hoặc 0 để không xét lượt thích.
@@ -1799,6 +1864,8 @@ Open a chat, tap the clock button next to the call buttons at the top, or long p
 Instagram stopped loading older messages.	Instagram đã ngừng tải tin nhắn cũ hơn.
 Black settings page	Trang cài đặt màu đen
 Black rows and dialogs, with HushGram's name at the top.	Hàng và hộp thoại màu đen, tên HushGram ở trên cùng.
+Light settings page	Trang cài đặt màu sáng
+White rows and dialogs, with HushGram's name at the top. Takes the place of Black settings page while it's on.	Hàng và hộp thoại màu trắng, tên HushGram ở trên cùng. Thay cho Trang cài đặt màu đen khi đang bật.
 Mark as read	Đánh dấu là đã đọc
 Nothing to mark as read	Không có gì để đánh dấu
 Mark as read button in chats	Nút Đánh dấu là đã đọc trong cuộc trò chuyện
@@ -2005,6 +2072,16 @@ Puts the seek bar right on the bottom edge of the video, so it's harder to touch
 # context: "Made with Edits" is the label Instagram shows under a post's author for a video made in Meta's Edits app; it stays in English here
 Hide Made with Edits	Ẩn "Made with Edits"
 Takes the "Made with Edits" label out of the line under a post's author. The song, the place and the other labels keep taking turns there.	Bỏ nhãn "Made with Edits" khỏi dòng dưới tên người đăng bài viết. Bài hát, địa điểm và các nhãn khác vẫn thay phiên hiện ở đó.
+# context: "Sponsored" and "Paid partnership" are Instagram's own labels on feed posts; use the text Instagram shows in this language (#771)
+Hide the line under names	Ẩn dòng dưới tên
+Takes the song, the place and the other labels off the line under the name on posts in your feed. Sponsored and Paid partnership stay. Posts already on screen change when they load again.	Bỏ bài hát, địa điểm và các nhãn khác khỏi dòng dưới tên trên bài viết trong bảng tin của bạn. "Được tài trợ" và "Quan hệ đối tác có trả phí" vẫn giữ lại. Bài viết đang hiện trên màn hình sẽ đổi khi tải lại.
+# context: "Sponsored" and "Paid partnership" are Instagram's own labels on reels; use the text Instagram shows in this language (#771)
+Hide the line under names on reels	Ẩn dòng dưới tên trên reel
+Takes the song, the place and the other labels off the line under the name on reels. Sponsored and Paid partnership stay. Reels already on screen change when they load again.	Bỏ bài hát, địa điểm và các nhãn khác khỏi dòng dưới tên trên reel. "Được tài trợ" và "Quan hệ đối tác có trả phí" vẫn giữ lại. Reel đang hiện trên màn hình sẽ đổi khi tải lại.
+# context: a switch in HushGram settings > Reels; Not interested and Interested are the two buttons Instagram shows under a reel, named as in the Feed row's 'Are you interested?' summary (#769)
+Hide Not interested and Interested	Ẩn Không quan tâm và Quan tâm
+# context: summary under Hide Not interested and Interested on the Reels page (#769)
+Hides the Not interested and Interested buttons at the bottom of a reel. Nothing is answered for you.	Ẩn các nút Không quan tâm và Quan tâm ở cuối reel. Không có câu trả lời nào được đưa thay bạn.
 # context: a switch on the Feed page; Save and Remove from saved are the rows it adds to a feed post's three-dot menu
 Save in the post menu	Lưu trong menu bài viết
 Adds Save to the menu behind a post's three dots, or Remove from saved when you saved it already.	Thêm Lưu vào menu ba dấu chấm của bài viết, hoặc Gỡ khỏi mục đã lưu khi bạn đã lưu nó.
@@ -2273,6 +2350,9 @@ Removed @%s from the list	Đã gỡ @%s khỏi danh sách
 # context: switch in HushGram settings > Reels; a reel link opened from outside Instagram plays the linked reel first instead of a reel Instagram kept on the phone (#606)
 Open reel links on that reel	Mở liên kết reel đúng reel đó
 A reel link opens on the reel it points to. Instagram doesn't play another reel it kept on your phone while that one loads.	Liên kết reel mở đúng reel mà nó trỏ đến. Instagram không phát một reel khác đã lưu trên điện thoại của bạn trong lúc reel đó tải.
+# context: switch in HushGram settings > Reels; Instagram keeps the screen on the whole time its Reels viewer is open, and this lets a paused reel follow the phone's own screen timeout (#777)
+Let the screen sleep when a reel stops	Cho màn hình tắt khi reel dừng
+Instagram keeps the screen on while Reels is open. With this on, a paused reel lets your phone's screen timeout run, and a playing one keeps it on.	Instagram giữ màn hình sáng suốt lúc Reels đang mở. Khi bật tùy chọn này, reel đang tạm dừng sẽ để thời gian chờ màn hình của điện thoại chạy, còn reel đang phát sẽ giữ màn hình sáng.
 # context: Stories settings: moves the story speed button into a video story's three-dot menu as a Playback speed row (#621)
 Speed in the story menu	Tốc độ trong menu tin
 # context: Summary of Speed in the story menu; Playback speed is the row's own label (#621)
@@ -2311,7 +2391,8 @@ Keeps the message Instagram shows when you lock a reel's speed, and when the loc
 Remove hidden data from saved photos	Xóa dữ liệu ẩn khỏi ảnh đã lưu
 Takes Meta's FBMD tracking tag out of each photo you save, along with any camera, place and time details. The picture and its colors stay the same. With Add the source on, the source still goes in afterward. JPEG photos only.	Gỡ thẻ theo dõi FBMD của Meta khỏi mỗi ảnh bạn lưu, cùng mọi thông tin về máy ảnh, địa điểm và thời gian. Hình ảnh và màu sắc vẫn giữ nguyên. Khi bật Thêm nguồn vào ảnh và video đã lưu, nguồn vẫn được ghi vào sau đó. Chỉ áp dụng cho ảnh JPEG.
 Ask for VP9 instead of AV1	Yêu cầu VP9 thay vì AV1
-Tells Instagram your phone has no AV1 decoder. Instagram doesn't always listen, so videos can still come as AV1. If they do, Convert to keep the full size gives you H.264. Takes a restart.	Báo cho Instagram là điện thoại của bạn không có bộ giải mã AV1. Instagram không phải lúc nào cũng làm theo, nên video vẫn có thể đến dưới dạng AV1. Khi đó, Chuyển đổi để giữ kích thước đầy đủ sẽ cho bạn H.264. Cần khởi động lại.
+# context: summary under Ask for VP9 instead of AV1 in HushGram settings > Downloads; Convert to keep the full size is the switch of that name a few rows up (#546)
+Tells Instagram your phone has no AV1 decoder, which takes a restart. A post or reel that still comes as AV1 is saved as VP9 from Instagram's website when it offers one. Stories can still be AV1, and Convert to keep the full size turns those into H.264.	Báo cho Instagram là điện thoại của bạn không có bộ giải mã AV1, cần khởi động lại. Bài viết hoặc reel vẫn đến dưới dạng AV1 sẽ được lưu dưới dạng VP9 từ trang web Instagram khi có. Tin vẫn có thể là AV1, và Chuyển đổi để giữ kích thước đầy đủ sẽ chuyển chúng sang H.264.
 # context: Summary of Show the skip arrows under Double tap to skip on feed videos in Feed settings (#562)
 Two arrows flash on the side you double tapped, with the seconds skipped under them.	Hai mũi tên hiện nhanh ở bên bạn nhấn đúp, kèm số giây đã tua bên dưới.
 # context: Feed settings: choice under Seek bar shape that gives the seek bar on feed videos a shape of its own (#567)
@@ -2350,6 +2431,14 @@ Unfollow	Bỏ theo dõi
 Interested	Quan tâm
 # context: Item in Items in the three-dot menus under Feed: Instagram's Why you're seeing this post row (#697)
 Why you're seeing this post	Lý do bạn nhìn thấy bài viết này
+# context: Item in Items in the three-dot menus under Feed: Instagram's Remix and sequence row in a reel's Made with Edits part (#707)
+Remix and sequence	Remix và trình tự
+# context: Item in Items in the three-dot menus under Feed: Instagram's Use as reference row in a reel's Made with Edits part (#707)
+Use as reference	Dùng làm tham chiếu
+# context: Item in Items in the three-dot menus under Feed: Instagram's Use template row in a reel's Made with Edits part (#707)
+Use template	Dùng mẫu
+# context: Item in Items in the three-dot menus under Feed: Instagram's Get Edits row in a reel's Made with Edits part (#707)
+Get Edits	Tải Edits
 # context: Title of the row under Feed that lists the items to keep in the menus behind the three dots on posts, reels and stories (#697, #707)
 Items in the three-dot menus	Mục trong menu ba chấm
 # context: Summary of Items in the three-dot menus under Feed while every item is ticked (#697, #707)
@@ -2469,3 +2558,66 @@ Matches: %1$d of %2$d blocked accounts	Khớp: %1$d trên %2$d tài khoản đã
 Long press a profile picture to view it	Nhấn giữ ảnh đại diện để xem
 # context: that switch summary (#737)
 Long press the picture at the top of a profile to open the whole square picture at full size, with Save under it, instead of Instagram's own preview. A tap works as before.	Nhấn giữ ảnh ở đầu trang cá nhân để mở toàn bộ ảnh vuông ở kích thước đầy đủ, có nút Lưu bên dưới, thay cho bản xem trước của Instagram. Nhấn bình thường vẫn như cũ.
+# context: Notifications settings: row that opens a list of the kinds of notification rows this phone has seen, to tick the ones to hide (#756)
+Hide notifications by type	Ẩn thông báo theo loại
+# context: that row's summary while nothing is ticked (#756)
+Takes the kinds of notifications you tick off the Notifications page. The list fills in as Instagram sends them.	Gỡ các loại thông báo bạn đánh dấu khỏi trang Thông báo. Danh sách sẽ đầy dần khi Instagram gửi chúng.
+# context: that row's summary, one kind ticked (#756)
+%1$d kind of notification is hidden.	Đã ẩn %1$d loại thông báo.
+# context: that row's summary, several kinds ticked (#756)
+%1$d kinds of notification are hidden.	Đã ẩn %1$d loại thông báo.
+# context: message in that list's dialog before the Notifications page has loaded once (#756)
+No notifications seen yet. Open your notifications in Instagram once, then come back here.	Chưa thấy thông báo nào. Hãy mở thông báo của bạn trong Instagram một lần, rồi quay lại đây.
+# context: switch under HushGram settings > Reels with Keep Reels auto scroll on; adds a row to a reel's three-dot menu that turns Instagram's own auto scroll on or off, worded as in Keep auto scroll on (#768)
+Auto scroll in the reel menu	Tự động cuộn trong menu reel
+# context: summary under that switch; Turn on auto scroll and Turn off auto scroll are the menu row's two labels below (#768)
+Adds Turn on auto scroll or Turn off auto scroll to the menu a reel's three dots open, so one tap changes it from the next reel on. It works on accounts where Instagram doesn't offer auto scroll too. Restart Instagram to see the change.	Thêm Bật tự động cuộn hoặc Tắt tự động cuộn vào menu mở ra từ ba dấu chấm của reel, để một lần chạm đổi được từ reel kế tiếp. Dùng được cả trên tài khoản mà Instagram không có tự động cuộn. Hãy khởi động lại Instagram để thấy thay đổi.
+# context: that three-dot menu row on a reel; the label says what a tap does (#768)
+Turn off auto scroll	Tắt tự động cuộn
+Turn on auto scroll	Bật tự động cuộn
+# context: toasts after tapping that row (#768)
+Auto scroll on	Đã bật tự động cuộn
+Auto scroll off	Đã tắt tự động cuộn
+Auto scroll didn't change	Không đổi được tự động cuộn
+The cards that Instagram puts between reels to get you onto Threads.	Các thẻ Instagram chèn giữa các reel để kéo bạn sang Threads.
+Expand captions on reels	Mở rộng chú thích trên reel
+Reels show their whole caption, with no "more" to tap. A long caption covers more of the video.	Reel hiện toàn bộ chú thích, không cần chạm "xem thêm". Chú thích dài sẽ che nhiều video hơn.
+# context: summary of the Minimum views row under HushGram settings > Reels > Hide reels with few views when it's set to 0 (#780)
+Views aren't looked at	Không xét lượt xem
+# context: next row under Hide reels with few views: its title, its number dialog's message, and its summary for 0 and for a number (#780)
+Maximum views	Số lượt xem tối đa
+Reels with more views than this are left out. Type a whole number, or 0 for no maximum.	Reel có nhiều lượt xem hơn số này sẽ bị bỏ qua. Nhập một số nguyên, hoặc 0 để không đặt mức tối đa.
+No maximum	Không có mức tối đa
+More than %1$s views	Trên %1$s lượt xem
+# context: next row: how many likes a reel needs for each 1,000 views; Not looked at is its summary for 0 (#780)
+Likes per 1,000 views	Lượt thích trên 1.000 lượt xem
+Reels with fewer likes than this for every 1,000 views are left out. Only reels that show their views are checked. Type a whole number, or 0 to not look at it.	Reel có ít lượt thích hơn số này cho mỗi 1.000 lượt xem sẽ bị bỏ qua. Chỉ kiểm tra những reel hiện lượt xem. Nhập một số nguyên, hoặc 0 để không xét.
+Not looked at	Không xét
+Fewer than %1$s likes per 1,000 views	Dưới %1$s lượt thích trên 1.000 lượt xem
+# context: next row, the same for comments (#780)
+Comments per 1,000 views	Bình luận trên 1.000 lượt xem
+Reels with fewer comments than this for every 1,000 views are left out. Only reels that show their views are checked. Type a whole number, or 0 to not look at it.	Reel có ít bình luận hơn số này cho mỗi 1.000 lượt xem sẽ bị bỏ qua. Chỉ kiểm tra những reel hiện lượt xem. Nhập một số nguyên, hoặc 0 để không xét.
+Fewer than %1$s comments per 1,000 views	Dưới %1$s bình luận trên 1.000 lượt xem
+# context: next row: the shortest video length in seconds; its summary for 0, then for one second and for more (#780)
+Shortest video	Video ngắn nhất
+Reels shorter than this many seconds are left out. Type a whole number, or 0 for no shortest.	Reel ngắn hơn số giây này sẽ bị bỏ qua. Nhập một số nguyên, hoặc 0 để không đặt độ dài tối thiểu.
+No shortest	Không có độ dài tối thiểu
+Shorter than %1$s second	Ngắn hơn %1$s giây
+Shorter than %1$s seconds	Ngắn hơn %1$s giây
+# context: next row: the longest video length in seconds; its summary for 0, then for one second and for more (#780)
+Longest video	Video dài nhất
+Reels longer than this many seconds are left out. Type a whole number, or 0 for no longest.	Reel dài hơn số giây này sẽ bị bỏ qua. Nhập một số nguyên, hoặc 0 để không đặt độ dài tối đa.
+No longest	Không có độ dài tối đa
+Longer than %1$s second	Dài hơn %1$s giây
+Longer than %1$s seconds	Dài hơn %1$s giây
+# context: next row: how many days old a reel can be; its summary for 0, then for one day and for more (#780)
+Oldest post	Bài đăng cũ nhất
+Reels posted more than this many days ago are left out. Type a whole number, or 0 for any age.	Reel đăng cách đây hơn số ngày này sẽ bị bỏ qua. Nhập một số nguyên, hoặc 0 để không giới hạn thời gian.
+Any age	Không giới hạn thời gian
+Posted more than %1$s day ago	Đăng cách đây hơn %1$s ngày
+Posted more than %1$s days ago	Đăng cách đây hơn %1$s ngày
+# context: switch under those rows that puts each page of reels in the order they were posted (#780)
+Newest first	Mới nhất trước
+Puts each page of reels in the order they were posted, newest on top.	Sắp xếp mỗi trang reel theo thời gian đăng, mới nhất ở trên cùng.
+# context: summary of the Also on Home switch under those rows; the posts it leaves out are Home's suggested posts (#780)
+Leaves out suggested posts on Home outside the same numbers too. Pull down on Home to refresh after changing it.	Cũng bỏ các bài viết được đề xuất trên trang chủ nằm ngoài cùng các con số đó. Hãy kéo xuống trên trang chủ để làm mới sau khi thay đổi.

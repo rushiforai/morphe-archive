@@ -1,5 +1,7 @@
 package io.github.jordanwoodson.extension.shared.twitch;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.SystemClock;
 
 import org.json.JSONArray;
@@ -11,7 +13,9 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.HttpURLConnection;
 import java.net.Socket;
+import java.net.URL;
 import java.net.SocketTimeoutException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -25,6 +29,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BooleanSupplier;
+import java.util.function.LongSupplier;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSocket;
@@ -44,6 +49,8 @@ import io.github.jordanwoodson.extension.shared.settings.Settings;
 @SuppressWarnings({"rawtypes", "unchecked"})
 final class TwitchSevenTvBadges {
     static final String KEY = "badges_7tv";
+    /** My 7TV badge: look up the signed-in account's own badge, which the event service never reports to it. */
+    static final String KEY_SELF = "badges_7tv_self";
     static final String HOST = "events.7tv.io";
     static final String PATH = "/v3";
     static final long IDLE_MS = 10 * 60_000L;
@@ -69,6 +76,14 @@ final class TwitchSevenTvBadges {
     private static volatile long retryAt;
     /** Replaced by tests with a plain socket to a local server. */
     static volatile Transport transport = TwitchSevenTvBadges::openTls;
+    /** The signed-in account's Twitch user ID, 0 signed out. Replaced by tests. */
+    static volatile LongSupplier signedInUser = TwitchSevenTvBadges::storedUser;
+    /** HTTP for the own-badge lookup: a GET, or a POST of {@code body}; null on HTTP 404. Replaced by tests. */
+    static volatile Fetch fetch = TwitchSevenTvBadges::http;
+    /** The account whose own badge was looked up (or is being), and the 7TV badge it chose. */
+    private static volatile long selfUser;
+    private static volatile String selfBadge;
+    private static volatile long selfRetryAt;
     private static Connection current;
 
     private TwitchSevenTvBadges() {
@@ -76,6 +91,10 @@ final class TwitchSevenTvBadges {
 
     interface Transport {
         Socket open(String host) throws IOException;
+    }
+
+    interface Fetch {
+        String get(String url, String body) throws IOException;
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -101,6 +120,7 @@ final class TwitchSevenTvBadges {
 
     /** A chat line is being drawn with the switch on: keep (or open) the connection for the open channel. */
     static void ensure() {
+        ensureSelf();
         lastUse = SystemClock.elapsedRealtime();
         String id = channel;
         if (id == null) return;
@@ -141,7 +161,132 @@ final class TwitchSevenTvBadges {
 
     private static TwitchBadges.Badge badgeOf(long userId) {
         String id = USERS.get(userId);
+        if (id == null && userId == selfUser) id = selfBadge;
         return id == null ? null : BADGES.get(id);
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // My 7TV badge (issue 60)
+
+    /**
+     * With My 7TV badge on: looks up, once per account and start, the badge the signed-in account chose on 7TV.
+     * The event service only reports chatters whose own 7TV client announces them in a channel, which Lurk never
+     * does, so without this your own lines never show it. Sends your Twitch user ID to 7tv.io; nothing else, and
+     * other viewers still don't see the badge unless their client learns it from 7TV.
+     */
+    static void ensureSelf() {
+        if (!Settings.isRegistered(KEY_SELF) || !Settings.isEnabled(KEY_SELF)) return;
+        long user = signedInUser.getAsLong();
+        if (user <= 0 || user == selfUser || SystemClock.elapsedRealtime() < selfRetryAt) return;
+        synchronized (TwitchSevenTvBadges.class) {
+            if (user == selfUser) return;
+            selfUser = user;
+            selfBadge = null;
+        }
+        Logger.d("badges: 7TV: looking up your own badge");
+        Thread thread = new Thread(() -> lookupSelf(user), "lurk-7tv-self");
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+    static void lookupSelf(long user) {
+        try {
+            String profile = fetch.get("https://7tv.io/v3/users/twitch/" + user, null);
+            JSONObject style = profile == null ? null : optPath(new JSONObject(profile), "user", "style");
+            String badgeId = style == null ? null : style.optString("badge_id", null);
+            if (badgeId == null || badgeId.isEmpty() || !badgeId.matches("[0-9A-Za-z]{1,64}")) {
+                Logger.d("badges: 7TV: no badge chosen for your account");
+                return;
+            }
+            if (!BADGES.containsKey(badgeId)) {
+                String query = new JSONObject().put("query", "query($list:[ObjectID!]){cosmetics(list:$list){badges{" +
+                        "id name tooltip host{url files{name static_name width frame_count}}}}}")
+                        .put("variables", new JSONObject().put("list", new JSONArray().put(badgeId))).toString();
+                String answer = fetch.get("https://7tv.io/v3/gql", query);
+                JSONObject data = answer == null ? null : optPath(new JSONObject(answer), "data", "cosmetics");
+                JSONArray badges = data == null ? null : data.optJSONArray("badges");
+                JSONObject definition = null;
+                for (int i = 0; badges != null && i < badges.length(); i++) {
+                    JSONObject candidate = badges.optJSONObject(i);
+                    if (candidate != null && badgeId.equals(candidate.optString("id"))) definition = candidate;
+                }
+                TwitchBadges.Badge badge = definition == null ? null : parseBadge(badgeId, definition);
+                if (badge == null) {
+                    Logger.d("badges: 7TV: your badge has no usable image");
+                    return;
+                }
+                BADGES.putIfAbsent(badgeId, badge);
+            }
+            if (selfUser != user) return;
+            selfBadge = badgeId;
+            Logger.d("badges: 7TV: your badge is " + BADGES.get(badgeId).title);
+            TwitchThirdParty.catalogChanged();
+        } catch (IOException | org.json.JSONException | RuntimeException e) {
+            Logger.d("badges: 7TV: your badge lookup failed: " + e);
+            synchronized (TwitchSevenTvBadges.class) {
+                if (selfUser == user) selfUser = 0;
+            }
+            selfRetryAt = SystemClock.elapsedRealtime() + RETRY_MS;
+        }
+    }
+
+    private static JSONObject optPath(JSONObject object, String... keys) {
+        for (String key : keys) {
+            if (object == null) return null;
+            object = object.optJSONObject(key);
+        }
+        return object;
+    }
+
+    /** The signed-in account's Twitch user ID from Twitch's own account store, or 0. */
+    private static long storedUser() {
+        Context context = TwitchContext.application();
+        if (context == null) return 0;
+        for (String file : new String[]{"twitch_user_prefs", "user"}) {
+            SharedPreferences preferences = context.getSharedPreferences(file, Context.MODE_PRIVATE);
+            try {
+                String value = preferences.getString("userIdString", null);
+                long id = value == null ? 0 : Long.parseLong(value);
+                if (id > 0) return id;
+            } catch (ClassCastException | NumberFormatException e) {
+                // Not a user ID: keep looking.
+            }
+        }
+        return 0;
+    }
+
+    private static String http(String url, String body) throws IOException {
+        HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+        try {
+            connection.setConnectTimeout(15_000);
+            connection.setReadTimeout(15_000);
+            connection.setUseCaches(false);
+            connection.setInstanceFollowRedirects(false);
+            connection.setRequestProperty("User-Agent", USER_AGENT);
+            connection.setRequestProperty("Accept", "application/json");
+            if (body != null) {
+                connection.setRequestMethod("POST");
+                connection.setDoOutput(true);
+                connection.setRequestProperty("Content-Type", "application/json");
+                try (OutputStream out = connection.getOutputStream()) {
+                    out.write(body.getBytes(StandardCharsets.UTF_8));
+                }
+            }
+            int status = connection.getResponseCode();
+            if (status == HttpURLConnection.HTTP_NOT_FOUND) return null;
+            if (status != HttpURLConnection.HTTP_OK) throw new IOException("HTTP " + status);
+            try (InputStream in = new BufferedInputStream(connection.getInputStream())) {
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                byte[] buffer = new byte[8192];
+                for (int read; (read = in.read(buffer)) != -1; ) {
+                    out.write(buffer, 0, read);
+                    if (out.size() > 512 * 1024) throw new IOException("response too large");
+                }
+                return new String(out.toByteArray(), StandardCharsets.UTF_8);
+            }
+        } finally {
+            connection.disconnect();
+        }
     }
 
     // ---------------------------------------------------------------------------------------------

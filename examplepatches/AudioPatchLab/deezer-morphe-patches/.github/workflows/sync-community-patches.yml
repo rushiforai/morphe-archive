@@ -1,0 +1,65 @@
+name: Sync community patches list
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - patches-bundle.json
+      - morphe/GeneratePatchesList.java
+      - .github/workflows/sync-community-patches.yml
+
+concurrency:
+  group: community-patches-list
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Download the published bundle and metadata reader
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/community-patches"
+          curl --fail --location --retry 3 \
+            https://github.com/MorpheApp/morphe-desktop/releases/download/v2.2.0/morphe-desktop-2.2.0-all.jar \
+            -o "$RUNNER_TEMP/community-patches/morphe-desktop.jar"
+          echo "5ca0320ee05481df1ae3afd2f003bba3ff994d11d1f66ae48811ced71355e4fe  $RUNNER_TEMP/community-patches/morphe-desktop.jar" | sha256sum --check
+          curl --fail --location --retry 3 \
+            https://repo.maven.apache.org/maven2/com/google/code/gson/gson/2.13.2/gson-2.13.2.jar \
+            -o "$RUNNER_TEMP/community-patches/gson.jar"
+          echo "dd0ce1b55a3ed2080cb70f9c655850cda86c206862310009dcb5e5c95265a5e0  $RUNNER_TEMP/community-patches/gson.jar" | sha256sum --check
+          curl --fail --location --retry 3 \
+            "$(jq -er '.download_url' patches-bundle.json)" \
+            -o "$RUNNER_TEMP/community-patches/published.mpp"
+      - name: Generate the community list from the released MPP
+        shell: bash
+        run: |
+          java --class-path "$RUNNER_TEMP/community-patches/morphe-desktop.jar:$RUNNER_TEMP/community-patches/gson.jar" \
+            morphe/GeneratePatchesList.java \
+            "$RUNNER_TEMP/community-patches/published.mpp" patches-bundle.json patches-list.json
+      - name: Publish updated metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- patches-list.json; then
+            echo "Community list already up to date."
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- patches-list.json
+          git commit -m 'chore: synchronize community patches list'
+          git push origin HEAD:main

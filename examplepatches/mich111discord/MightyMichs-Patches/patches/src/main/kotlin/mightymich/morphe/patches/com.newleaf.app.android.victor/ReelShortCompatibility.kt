@@ -14,6 +14,7 @@ object ReelShortCompatibility {
             AppTarget(version = "4.2.60"),
             AppTarget(version = "4.2.20"),
             AppTarget(version = "4.2.00", isExperimental = true),
+            AppTarget(version = "4.1.90", isExperimental = true),
         ),
     )
 }

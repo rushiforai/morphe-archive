@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-19.
  * Modified by lavinhoque33, 2026-11-17.
  * Modified by lavinhoque33, 2026-11-12.
  * Written by lavinhoque33, 2026-11-07.
@@ -102,6 +103,7 @@ public final class StreamDownloads {
      */
     public static int removeSource(String sourceId) {
         synchronized (PlaylistSync.MUTATION) {
+            PlaylistDownloads.onSourceRemoved(sourceId);
             PlaylistSync.cancel();
             Map<String, List<String>> sources = OfflineCopyStore.copyTrackLists();
             CopyOwnership.Removal removal = CopyOwnership.removing(sourceId, sources, RawAudioStore.individualIds(),

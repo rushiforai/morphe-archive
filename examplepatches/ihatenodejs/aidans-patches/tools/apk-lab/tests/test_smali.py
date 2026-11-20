@@ -178,6 +178,19 @@ move-result-object v0
     assert not any(d.code == "MISSING_MOVE_RESULT" for d in report.diagnostics)
 
 
+def test_move_result_with_debug_directives():
+    snippet = """invoke-static {}, Lcom/example/Factory;->create()Ljava/lang/String;
+.line 10
+move-result-object v0
+"""
+    report = validate_smali_snippet(
+        snippet, locals_count=1, parameter_count=0, is_static=True
+    )
+    assert not any(d.code == "ORPHAN_MOVE_RESULT" for d in report.diagnostics)
+    assert not any(d.code == "MISSING_MOVE_RESULT" for d in report.diagnostics)
+    assert report.is_valid
+
+
 def test_orphan_move_result_error():
     snippet = """const/4 v0, 0x0
 move-result-object v0
@@ -203,6 +216,18 @@ move-result-wide v0
     )
     assert not any(d.code == "ORPHAN_MOVE_RESULT" for d in report.diagnostics)
     assert not any(d.code == "INVALID_MOVE_RESULT" for d in report.diagnostics)
+
+
+def test_invoke_custom_primitive_return_move_result():
+    snippet = """invoke-custom {v0}, call_site_0("name", ()I)@Ljava/lang/invoke/LambdaMetafactory;->metafactory(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;
+move-result v0
+"""
+    report = validate_smali_snippet(
+        snippet, locals_count=1, parameter_count=0, is_static=True
+    )
+    assert not any(d.code == "ORPHAN_MOVE_RESULT" for d in report.diagnostics)
+    assert not any(d.code == "INVALID_MOVE_RESULT" for d in report.diagnostics)
+    assert report.is_valid
 
 
 def test_move_result_after_void_invoke_error():

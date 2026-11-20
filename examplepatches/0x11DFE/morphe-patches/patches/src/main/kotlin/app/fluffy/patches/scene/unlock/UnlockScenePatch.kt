@@ -19,12 +19,9 @@ import kotlin.random.Random
 @Suppress("unused")
 val unlockSceneProPatch = bytecodePatch(
     name = "Unlock Scene N1",
-    description = "Unlocks Scene N1: the license state parser and the activation request " +
-        "are forced to a perpetual success (configurable expiry), the activation code type " +
-        "is reported as perpetual, and the APK signature MD5 the app reports to omarea's " +
-        "activation binding is spoofed to the original signing key so re-signed builds " +
-        "still match.",
-) {
+    description = "Unlocks Scene N1 with a perpetual license and a configurable expiry date. " +
+        "The signature MD5 reported to omarea is spoofed to the original signing key, so " +
+        "re-signed builds still pass the activation binding.",) {
     compatibleWith(COMPATIBILITY_SCENE)
 
     val expiryDate by stringOption(

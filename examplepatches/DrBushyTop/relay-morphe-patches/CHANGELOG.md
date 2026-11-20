@@ -1,3 +1,9 @@
+## [1.6.3](https://github.com/DrBushyTop/relay-morphe-patches/compare/v1.6.2...v1.6.3) (2026-11-20)
+
+### 🐛 Bug Fixes
+
+* Stop Relay's line spacing from adding a gap under comment pictures with text below ([7357574](https://github.com/DrBushyTop/relay-morphe-patches/commit/73575747efa1c17a788b1327cf3c80f5f2286531))
+
 ## [1.6.2](https://github.com/DrBushyTop/relay-morphe-patches/compare/v1.6.1...v1.6.2) (2026-11-13)
 
 ### 🐛 Bug Fixes

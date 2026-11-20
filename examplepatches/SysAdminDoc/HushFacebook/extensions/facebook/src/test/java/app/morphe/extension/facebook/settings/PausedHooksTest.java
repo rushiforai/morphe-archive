@@ -70,6 +70,7 @@ import app.morphe.extension.facebook.download.ClipboardLinkForTests;
 import app.morphe.extension.facebook.download.CommentGifForTests;
 import app.morphe.extension.facebook.download.CommentPhotoForTests;
 import app.morphe.extension.facebook.download.CommentVideoForTests;
+import app.morphe.extension.facebook.download.ListingPhotoForTests;
 import app.morphe.extension.facebook.download.MediaDownload;
 import app.morphe.extension.facebook.download.PhotoMenuItemForTests;
 import app.morphe.extension.facebook.download.PhotoSave;
@@ -105,6 +106,7 @@ import app.morphe.extension.facebook.feed.AskBeforeLike;
 import app.morphe.extension.facebook.feed.ProfilePictures;
 import app.morphe.extension.facebook.feed.ProfileSuggestionsForTests;
 import app.morphe.extension.facebook.feed.RelatedPosts;
+import app.morphe.extension.facebook.feed.TranslateCommentsForTests;
 import app.morphe.extension.facebook.misc.AppLockForTests;
 import app.morphe.extension.facebook.feed.TypedFeedUnit;
 import app.morphe.extension.facebook.feed.WhoSharedForTests;
@@ -595,10 +597,12 @@ public class PausedHooksTest {
         probes.put(PatchFamily.PHOTO_CAROUSEL, Arrays.asList(() -> PhotoCarousel.carousel(0),
                 () -> PhotoCarousel.skipLayout("com.facebook.feedplugins.attachments.album.PhotoLayoutFramePlugin")));
         // A post marked for automatic translation reads as one to translate on request, the reels
-        // footer hears a caption can't be translated by itself, so it asks for nothing, and an
-        // auto-translated comment reads as one shown as written.
+        // footer hears a caption can't be translated by itself, so it asks for nothing, an
+        // auto-translated comment reads as one shown as written, and a comment's See translation
+        // handler is tapped once the main thread is free.
         probes.put(PatchFamily.AUTO_TRANSLATION, Arrays.asList(AutoTranslationForTests::keepsThePost,
-                AutoTranslationForTests::keepsTheCaption, AutoTranslationForTests::keepsTheComment));
+                AutoTranslationForTests::keepsTheCaption, AutoTranslationForTests::keepsTheComment,
+                TranslateCommentsForTests::tapsTheLink));
         // The Feeds tab's yes to a title row is answered as a no, its filters go to a container
         // that's never on screen, and its posts get no room for them. The room follows what the
         // tab did with its filters, so that probe builds a tab first.
@@ -902,7 +906,9 @@ public class PausedHooksTest {
         // A long video picks up where it was left, and a reel played on and a story viewed go on the
         // Recently watched list (#183).
         probes.put(PatchFamily.RESUME_LONG_VIDEOS, Arrays.asList(ResumePlaybackForTests::resumesALongVideo,
-                RecentlyWatchedForTests::keepsAWatchedReel, StorySeenForTests::keepsAViewedStory));
+                RecentlyWatchedForTests::keepsAWatchedReel, StorySeenForTests::keepsAViewedStory,
+                // Facebook's Menu gets a Recently watched row (#529).
+                PausedHooksTest::addsTheRecentlyWatchedMenuRow));
         // A tap on the right third of a video you paused steps it a frame.
         probes.put(PatchFamily.FRAME_STEP, Collections.singletonList(FrameStepForTests::stepsAPausedVideo));
         // A new video's first choice plays the chosen quality rather than Facebook's.
@@ -959,12 +965,14 @@ public class PausedHooksTest {
                 PlayerSourcesForTests::recordsAVideoPlayer,
                 ClipboardLinkForTests::readsTheClipboard));
         // Every photo the viewer opens offers Save photo, a photo post's menu gets Save photo, a GIF
-        // comment's sheet gets Save GIF, and a photo comment's sheet gets Save photo.
+        // comment's sheet gets Save GIF, a photo comment's sheet gets Save photo, and a Marketplace
+        // listing's full-screen photo keeps its address for a long press to save.
         probes.put(PatchFamily.PHOTO_DOWNLOAD, Arrays.asList(
                 () -> PhotoSave.offersSave(false),
                 PhotoMenuItemForTests::addsAnItem,
                 CommentGifForTests::addsARow,
-                CommentPhotoForTests::addsARow));
+                CommentPhotoForTests::addsARow,
+                ListingPhotoForTests::keepsTheAddress));
         // A start from the launcher icon asks Facebook for the chosen tab.
         probes.put(PatchFamily.START_TAB, Collections.singletonList(StartTabRouteForTests::routes));
         // Home's request for its feed goes out for the most recent feed.
@@ -1327,6 +1335,17 @@ public class PausedHooksTest {
             if (!family.switches.isEmpty()) switched.add(family);
         }
         return switched;
+    }
+
+    /** The Menu asks for the Recently watched row, from a build with Resume long videos in it. */
+    private static boolean addsTheRecentlyWatchedMenuRow() {
+        Set<PatchFamily> before = PatchFamily.inBuildForTests;
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.RESUME_LONG_VIDEOS);
+        try {
+            return RecentlyWatchedScreen.menuRowWanted();
+        } finally {
+            PatchFamily.inBuildForTests = before;
+        }
     }
 
     /** The scrubber takes the next reel with its bar where the last reel stopped. */

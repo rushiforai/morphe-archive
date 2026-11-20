@@ -65,6 +65,28 @@ public final class LiquidGlassNavBarPatch {
                     + "glass and the blur at the bottom of the screen had nothing to blur. With this on, videos "
                     + "play the other way Instagram supports, which the glass can see. Takes effect after "
                     + "Instagram restarts.");
+    static final BooleanSetting HEADER_BLUR = new BooleanSetting("liquid_glass_header_blur",
+            "Blur under the header", "Home and Explore scroll under a frosted header, up to the top of the "
+            + "screen.", true, true)
+            .help("Like the blur behind the bar at the bottom: on Home and Explore the feed runs under the "
+                    + "header and the status bar, and is blurred and faded towards the top edge of the "
+                    + "screen. Takes effect after Instagram restarts.");
+    static final BooleanSetting GLASS_HEADER_BUTTONS = new BooleanSetting("liquid_glass_header_buttons",
+            "Glass header buttons", "The header's icons get glass circles once you scroll, like iOS.", true, true)
+            .help("On iOS 26 the buttons in the Home and Explore headers (new post, notifications, saved, "
+                    + "more) blend into the header at the top of the feed and get round pieces of glass once "
+                    + "it scrolls. Takes effect after Instagram restarts.");
+    static final BooleanSetting TILT_LIGHT = new BooleanSetting("liquid_glass_tilt_light",
+            "Tilt light", "The glass catches the light as you tilt the phone.", false, false)
+            .help("Like on iOS 26, a glint of light slides along the edge of the glass as you tilt the phone. It "
+                    + "uses the motion sensor while the glass is on screen, which costs a little battery. Held at "
+                    + "any angle, the glint slowly settles back to the top left.");
+    static final BooleanSetting GLASS_SHARE_MENU = new BooleanSetting("liquid_glass_share_menu",
+            "Glass share menu", "The share sheet becomes a sheet of frosted glass, like on iOS 26.", true, true)
+            .help("The menu that opens from the paper plane on a post or reel becomes a sheet of frosted "
+                    + "glass with the feed blurred behind it, reaching down to the bottom of the screen. Its "
+                    + "search field and the grey share buttons (Add to story, Copy link and the rest) get "
+                    + "glass too. Other menus stay as they are. Takes effect the next time you open the menu.");
     static final BooleanSetting HAPTICS = new BooleanSetting("liquid_glass_haptics",
             "Haptics", "A tick when the selection glides over a tab.", false, true)
             .help("A light tick each time the selection glides over another tab while you drag it.");
@@ -74,7 +96,7 @@ public final class LiquidGlassNavBarPatch {
             "iOS 26 style glass tab bar. Defaults come from the patch options in Morphe Manager.",
             LiquidGlassNavBarPatch::isIncluded,
             new SettingsGroup("Behavior", EXTEND_CONTENT, SHRINK_ON_SCROLL,
-                    NavbarStyle.SHRUNK_SIZE.shownWhen(SHRINK_ON_SCROLL), BLUR_VIDEOS, HAPTICS))
+                    NavbarStyle.SHRUNK_SIZE.shownWhen(SHRINK_ON_SCROLL), HEADER_BLUR, GLASS_HEADER_BUTTONS.shownWhen(HEADER_BLUR), GLASS_SHARE_MENU, BLUR_VIDEOS, HAPTICS))
             .customize("Customize navbar", "Glass, shape and selection, with a live preview.",
                     NavbarPreview::customizer,
                     new SettingsGroup("Style", "The southstar21 style moves differently: the bar shrinks back "
@@ -83,7 +105,7 @@ public final class LiquidGlassNavBarPatch {
                     new SettingsGroup("Glass", "Refraction needs Android 13+, blur needs Android 12+.",
                             BLUR_RADIUS, REFRACTION, NavbarStyle.OPACITY, NavbarStyle.VIBRANCY,
                             NavbarStyle.EDGE_CLARITY, NavbarStyle.RIM, NavbarStyle.GLARE,
-                            NavbarStyle.SHADOW, NavbarStyle.TINT),
+                            NavbarStyle.SHADOW, NavbarStyle.TINT, TILT_LIGHT),
                     new SettingsGroup("Shape", NavbarStyle.HEIGHT, NavbarStyle.SIDE_MARGIN,
                             NavbarStyle.BOTTOM_GAP, NavbarStyle.ROUNDNESS, NavbarStyle.TAB_INSET),
                     new SettingsGroup("Selection", "Edge colors need Android 13+.",
@@ -135,6 +157,11 @@ public final class LiquidGlassNavBarPatch {
 
     /** Called by {@link InstagramHooks} when this patch is included and switched on. */
     public static void onMainActivityReady(Activity activity) {
+        try {
+            ShareSheetGlass.watch(activity);
+        } catch (Throwable t) {
+            Log.e(TAG, "Failed to watch for the share sheet", t);
+        }
         try {
             View bar = findView(activity, "tab_bar");
             if (!(bar instanceof ViewGroup) || installed.containsKey(bar)) return;

@@ -253,7 +253,8 @@ public class DownloadsPreferenceCategory extends ConditionalPreferenceCategory {
                             + "saves as a video too.", Settings.DOWNLOAD_PHOTOS_AS_VIDEO));
             addPreference(new NumberInputPreference(context, "Seconds per photo",
                     "How long each photo stays on screen in a video made from a photo post. A "
-                            + "story's video runs as long as the story does.",
+                            + "post with just one photo runs as long as its sound. A story's video "
+                            + "runs as long as the story does.",
                     Settings.PHOTO_VIDEO_SECONDS, "%1$s second", "%1$s seconds"));
         }
         if (SettingsStatus.downloadEnabled) {
@@ -261,8 +262,9 @@ public class DownloadsPreferenceCategory extends ConditionalPreferenceCategory {
                     new String[]{"Video (MP4)", "GIF", "WebP, exactly as TikTok sent it"},
                     new String[]{"mp4", "gif", "webp"}));
             addPreference(new TogglePreference(context, "Save box for chat stickers",
-                    "Tapping a sticker someone sent you in a chat opens a box with Save media. Turn "
-                            + "this off to skip it.", Settings.DM_STICKER_SAVE_BOX));
+                    "Tapping a sticker someone sent you in a chat opens a box with Save media. "
+                            + "Holding one of TikTok's own stickers in a chat puts Save media in its menu too. Turn "
+                            + "this off to skip both.", Settings.DM_STICKER_SAVE_BOX));
         }
         if (SettingsStatus.advancedDownloadsEnabled) {
             addPreference(new SectionHeadingPreference(context, "Long press"));

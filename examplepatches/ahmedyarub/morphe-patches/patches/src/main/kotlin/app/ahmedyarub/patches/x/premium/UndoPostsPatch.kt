@@ -15,6 +15,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
+import java.util.logging.Logger
 
 private const val INSTANT = "Lkotlin/time/Instant;"
 
@@ -38,11 +39,15 @@ private object UploadJobToStringFingerprint : Fingerprint(
  * `undoUntil` argument register is overwritten with `now + the chosen delay`, before the
  * constructor consumes it — so the window is set the same way on every path, however the mapper
  * arrived at the construction.
+ *
+ * 12.44 removed the undo window from the upload pipeline: `Queued` became a plain object, the post
+ * command lost its undo period, and the banner lost its Undo action. There it leaves the app
+ * unchanged. It keeps the versions every X patch declares, which the bundle requires of one app.
  */
 @Suppress("unused")
 val undoPostsPatch = bytecodePatch(
     name = "Enable Undo Posts",
-    description = "Holds each post for a few seconds before sending it, so it can be undone.",
+    description = "Holds each post for a few seconds before sending it, so it can be undone (X 12.43 and older).",
 ) {
     compatibleWith(COMPATIBILITY_X)
 
@@ -58,7 +63,12 @@ val undoPostsPatch = bytecodePatch(
         val delay = seconds!!
         if (delay !in 1..60) throw PatchException("The undo period must be 1 to 60 seconds")
 
-        val queued = QueuedToStringFingerprint.classDef.type
+        // From 12.44 Queued has no undo window to extend.
+        val queuedClass = QueuedToStringFingerprint.classDefOrNull ?: run {
+            Logger.getLogger("UndoPostsPatch").warning("This X has no undo window (12.44 and later); Undo Posts changes nothing")
+            return@execute
+        }
+        val queued = queuedClass.type
         val uploadJob = UploadJobToStringFingerprint.classDef.type
 
         fun Instruction.isFromEpochMilliseconds() =

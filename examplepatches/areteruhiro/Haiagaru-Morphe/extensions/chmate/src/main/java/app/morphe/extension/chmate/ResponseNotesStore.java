@@ -5,12 +5,13 @@ import android.content.*;import android.database.*;import android.database.sqlit
 /** Private notes; native response bodies, DATs and NG/search data stay untouched. */
 public final class ResponseNotesStore extends SQLiteOpenHelper {
     private static ResponseNotesStore instance;
+    private final Context context;
     public static synchronized ResponseNotesStore get(Context context){if(instance==null)instance=new ResponseNotesStore(context);return instance;}
     public static final class Note {
         public final String id,url,title,text,source;public final int number;public final long updated;
         public Note(String id,String url,String title,String text,String source,int number,long updated){this.id=id;this.url=url;this.title=title;this.text=text;this.source=source;this.number=number;this.updated=updated;}
     }
-    public ResponseNotesStore(Context context){super(context.getApplicationContext(),"haiagaru-response-notes.db",null,1);}
+    public ResponseNotesStore(Context context){super(context.getApplicationContext(),"haiagaru-response-notes.db",null,1);this.context=context.getApplicationContext();}
     public void onCreate(SQLiteDatabase db){db.execSQL("CREATE TABLE notes(id TEXT PRIMARY KEY,url TEXT NOT NULL,title TEXT NOT NULL,text TEXT NOT NULL,source TEXT NOT NULL,number INTEGER NOT NULL,updated INTEGER NOT NULL)");db.execSQL("CREATE INDEX notes_updated ON notes(updated DESC)");db.execSQL("CREATE UNIQUE INDEX notes_response ON notes(url) WHERE url<>''");}
     public void onUpgrade(SQLiteDatabase db,int oldVersion,int newVersion){}
     private static String clean(String value,int max){return value==null?"":value.substring(0,Math.min(value.length(),max));}
@@ -32,7 +33,8 @@ public final class ResponseNotesStore extends SQLiteOpenHelper {
         SQLiteDatabase db=getWritableDatabase();db.beginTransaction();try{
             if(!note.url.isEmpty()){Note existing=response(note.url);if(existing!=null){id=existing.id;values.put("id",id);}}
             if(db.insertWithOnConflict("notes",null,values,SQLiteDatabase.CONFLICT_REPLACE)<0)throw new SQLException("Note was not saved");db.setTransactionSuccessful();return id;
-        }finally{db.endTransaction();}
+        }finally{db.endTransaction();if(this==instance)ResponseNoteIndicator.changed(context);}
     }
-    public void remove(String id){getWritableDatabase().delete("notes","id=?",new String[]{id});}
+    public void remove(String id){getWritableDatabase().delete("notes","id=?",new String[]{id});if(this==instance)ResponseNoteIndicator.changed(context);}
+    Map<String,String> responseUrls(){Map<String,String> result=new HashMap<>();try(Cursor c=getReadableDatabase().rawQuery("SELECT url FROM notes WHERE url<>''",null)){while(c.moveToNext())result.put(ResponseNoteIndicator.key(c.getString(0)),c.getString(0));}return Collections.unmodifiableMap(result);}
 }

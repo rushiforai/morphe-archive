@@ -214,7 +214,10 @@ relies on:
 - **Settings**: a new patch is selected by default with its switch off, except lockout protection,
   privacy that stays on the phone, nags and restoring expected behavior, and a same-named patch in
   another app takes the same defaults. Patch-time-only changes (icon, name, clone, permissions) have no
-  switch and say so. A settings key is never renamed: users' values are stored under it.
+  switch and say so. The exception is Lurk icon's App icon choice: the patch adds two launcher aliases of
+  the launcher activity, one with Lurk's icon and one with the app's own, and the choice enables one and
+  disables the other (`extensions/shared/.../settings/AppIcon.java`); on a root mount install, which keeps
+  the original manifest, it does nothing. A settings key is never renamed: users' values are stored under it.
 
 ## Testing
 

@@ -3,7 +3,9 @@
  * https://github.com/MorpheApp/morphe-patches/pull/2528
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ * Modified by lavinhoque33, 2026-11-19.
  *
+ * Modified by lavinhoque33, 2026-11-18.
  * Modified by lavinhoque33, 2026-11-07.
  * Modified by lavinhoque33, 2026-11-10
  * Modified by lavinhoque33, 2026-11-17.
@@ -19,6 +21,7 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.net.Uri;
+import android.os.Build;
 
 import androidx.annotation.Nullable;
 
@@ -41,6 +44,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.BooleanSupplier;
 import java.util.regex.Pattern;
 
 import app.morphe.extension.music.patches.spoof.SpoofVideoStreamsPatch;
@@ -181,8 +185,10 @@ public final class LocalDownloadManager {
             Utils.showToastShort(str("morphe_music_downloads_already_running"));
             return;
         }
+        String title = videoId.equals(VideoInformation.getVideoId()) ? currentTitle : videoId;
+        DownloadKeepAlive.Hold hold = DownloadKeepAlive.acquire(videoId, title);
         Utils.submitOnBackgroundThread(() -> {
-            try {
+            try (hold) {
                 if (mode.localFiles()) NativeDownloads.migrateLegacy();
                 // A music video saved before as its song names that song: there is nothing left to save.
                 String known = mode.streamCopy() ? RawAudioStore.aliases().get(videoId) : null;
@@ -193,12 +199,22 @@ public final class LocalDownloadManager {
                     return null;
                 }
                 Utils.showToastShort(str("morphe_music_downloads_started"));
-                downloadSingle(videoId, mode, quality);
+                if (mode.streamCopy()) {
+                    new DownloadNetwork(false, hold::timedOut, hold).transfer(() -> {
+                        downloadSingle(videoId, mode, quality, hold);
+                        return null;
+                    });
+                } else {
+                    downloadSingle(videoId, mode, quality, hold);
+                }
                 Utils.showToastShort(str(mode.localFiles()
                         ? "morphe_music_downloads_complete" : "morphe_music_downloads_stream_complete"));
                 if (mode.localFiles()) NativePlaylistStore.refreshUnsortedLater(); // list the new single.
             } catch (Exception ex) {
                 Logger.printException(() -> "Local audio download failed: " + videoId, ex);
+                awaitNotificationSlot();
+                showDownloadNotification(videoId, hold.title(), 0, false,
+                        str("morphe_music_downloads_failed_reason", PlaylistText.failureReason(ex)));
                 Utils.showToastShort(str("morphe_music_downloads_failed_reason", PlaylistText.failureReason(ex)));
             }
             return null;
@@ -238,15 +254,16 @@ public final class LocalDownloadManager {
      * id, and the video's id is recorded as the same song, so a tap on either finds it. A video that has no song
      * found is saved as it is, under its own id, and that is logged.
      */
-    private static void downloadSingle(String videoId, DownloadMode mode, DownloadQuality quality) throws Exception {
+    private static void downloadSingle(String videoId, DownloadMode mode, DownloadQuality quality,
+                                       DownloadKeepAlive.Hold hold) throws Exception {
         String savedId = videoId;
         Saved saved;
         try {
-            saved = download(videoId, mode, quality, Request.SINGLE);
+            saved = download(videoId, mode, quality, Request.SINGLE, hold);
         } catch (SongRedirect redirect) {
             savedId = redirect.songId;
             Logger.printInfo(() -> "Single download: v=" + videoId + " is saved as the song " + redirect.songId);
-            saved = download(savedId, mode, quality, Request.SONG_OF_VIDEO);
+            saved = download(savedId, mode, quality, Request.SONG_OF_VIDEO, hold);
             RawAudioStore.addAlias(savedId, videoId);
         }
         // A copy that was there already (kept by a playlist before) is now also one the user asked for.
@@ -270,11 +287,11 @@ public final class LocalDownloadManager {
 
     /** Brings one track to what the mode asks for: its local file or its stream copy. Returns at once when done. */
     static Saved download(String videoId, DownloadMode mode, DownloadQuality quality) throws Exception {
-        return download(videoId, mode, quality, Request.LIST_TRACK);
+        return download(videoId, mode, quality, Request.LIST_TRACK, null);
     }
 
-    private static Saved download(String videoId, DownloadMode mode, DownloadQuality quality, Request request)
-            throws Exception {
+    private static Saved download(String videoId, DownloadMode mode, DownloadQuality quality, Request request,
+                                  @Nullable DownloadKeepAlive.Hold hold) throws Exception {
         Utils.verifyOffMainThread();
         if (!VIDEO_ID.matcher(videoId).matches()) throw new IOException("Invalid video id");
         boolean playing = videoId.equals(VideoInformation.getVideoId());
@@ -285,7 +302,7 @@ public final class LocalDownloadManager {
             if (plan(videoId, mode) == DownloadMode.Work.SKIP) return saved(videoId, mode, false);
 
             FutureTask<Saved> task = new FutureTask<>(
-                    () -> downloadBlocking(videoId, mode, quality, request, title, artist));
+                    () -> downloadBlocking(videoId, mode, quality, request, title, artist, hold));
             FutureTask<Saved> existing = ACTIVE_DOWNLOADS.putIfAbsent(videoId, task);
             if (existing == null) {
                 try {
@@ -320,14 +337,19 @@ public final class LocalDownloadManager {
     // the stream is downloaded to a private temporary file; then it is published with embedded tags as a local
     // file, since Music's device-files library reads metadata only from the file, or moved to the stream copy.
     private static Saved downloadBlocking(String videoId, DownloadMode mode, DownloadQuality quality, Request request,
-                                         String title, String artist) throws Exception {
+                                         String title, String artist, @Nullable DownloadKeepAlive.Hold hold)
+            throws Exception {
         NativeAudioStore.Destination destination = null;
         File temporary = null;
+        BooleanSupplier stopped = hold == null ? PlaylistDownloads.stopSignal() : hold::timedOut;
+        // Groups with keep-alive only report at list level. The fallback must still replace track progress.
+        boolean report = (hold != null || !DownloadKeepAlive.supported()) && !PlaylistDownloads.quietTransfer();
         try {
             // A competing request may have finished the track between the lookup and single-flight ownership.
             DownloadMode.Work work = plan(videoId, mode);
             if (work == DownloadMode.Work.SKIP) return saved(videoId, mode, false);
 
+            checkStopped(stopped);
             DownloadCandidates<ResolvedStream> candidates = streamsFor(videoId, !work.writesLocalFile(), quality);
             ResolvedStream resolved = candidates.next();
             if (resolved == null) throw new IOException("Audio stream unavailable");
@@ -337,8 +359,12 @@ public final class LocalDownloadManager {
             }
             AudioTagger.Tags tags = TrackMetadata.resolve(videoId, title, artist, resolved.details());
             title = tags.title;
-            awaitNotificationSlot();
-            showDownloadNotification(videoId, title, 0, true, str("morphe_music_downloads_starting"));
+            if (hold != null) {
+                hold.progress(title, 0, str("morphe_music_downloads_starting"));
+            } else if (report) {
+                awaitNotificationSlot();
+                showDownloadNotification(videoId, title, 0, true, str("morphe_music_downloads_starting"));
+            }
             Format format;
             while (true) {
                 Format selected = resolved.format();
@@ -351,7 +377,7 @@ public final class LocalDownloadManager {
                     // Keep the existing bounded parallel range/resume downloader.
                     downloadWithResume(videoId, title, format.getUrl(),
                             new NativeAudioStore.Destination(null, temporary, format.getMimeType()),
-                            format.getContentLength());
+                            format.getContentLength(), hold, stopped);
                     break;
                 } catch (ForbiddenException ex) {
                     temporary.delete();
@@ -361,6 +387,7 @@ public final class LocalDownloadManager {
                 }
             }
 
+            checkStopped(stopped);
             Uri uri = null;
             if (work.writesLocalFile()) {
                 // Pending MediaStore files are hidden from native Library until the full audio has been indexed.
@@ -375,7 +402,8 @@ public final class LocalDownloadManager {
                 File completed = temporary;
                 Format savedFormat = format;
                 ResolvedStream selected = resolved;
-                PlaylistSync.publishMedia(() -> {
+                PlaylistDownloads.publishMedia(() -> {
+                    checkStopped(stopped);
                     if (!RawAudioStore.retain(videoId, completed, savedFormat, request.individual())) {
                         throw new IOException("Could not keep the stream copy");
                     }
@@ -383,16 +411,24 @@ public final class LocalDownloadManager {
                     return true;
                 });
             }
-            awaitNotificationSlot();
-            showDownloadNotification(videoId, title, 100, false, str(mode.localFiles()
-                    ? "morphe_music_downloads_complete" : "morphe_music_downloads_stream_complete"));
+            if (hold != null) {
+                if (!hold.finish()) throw new IOException("Download stopped");
+                hold.close();
+            }
+            if (report) {
+                awaitNotificationSlot();
+                showDownloadNotification(hold == null ? videoId : hold.key(), title, 100, false, str(mode.localFiles()
+                        ? "morphe_music_downloads_complete" : "morphe_music_downloads_stream_complete"));
+            }
             return new Saved(uri, true);
         } catch (SongRedirect redirect) {
             throw redirect;
         } catch (Exception ex) {
-            awaitNotificationSlot();
-            showDownloadNotification(videoId, title, 0, false,
-                    str("morphe_music_downloads_failed_reason", PlaylistText.failureReason(ex)));
+            if (hold == null && report) {
+                awaitNotificationSlot();
+                showDownloadNotification(videoId, title, 0, false,
+                        str("morphe_music_downloads_failed_reason", PlaylistText.failureReason(ex)));
+            }
             throw ex;
         } finally {
             if (destination != null) NativeAudioStore.abort(destination);
@@ -449,9 +485,7 @@ public final class LocalDownloadManager {
     }
 
     /** @return Whether a progress update may be posted without the system dropping it. */
-    static boolean canPostProgress() { // shared with playlist progress.
-        if (PlaylistSync.automaticTransfer()) return false;
-
+    static boolean canPostProgress() {
         long now = System.currentTimeMillis();
         long previous = lastNotificationTime.get();
         return now - previous >= NOTIFICATION_INTERVAL_MILLISECONDS
@@ -464,8 +498,6 @@ public final class LocalDownloadManager {
      * took the slot first. Must be called off the main thread.
      */
     static void awaitNotificationSlot() {
-        if (PlaylistSync.automaticTransfer()) return;
-
         while (true) {
             long now = System.currentTimeMillis();
             long previous = lastNotificationTime.get();
@@ -488,15 +520,27 @@ public final class LocalDownloadManager {
 
 
     // The video copy download reuses the same bounded downloader.
+    private static void checkStopped(BooleanSupplier stopped) throws IOException {
+        if (stopped.getAsBoolean()) throw new IOException("Download stopped");
+    }
+
     static void downloadWithResume(String videoId, String title, String url,
                                    NativeAudioStore.Destination temporary, long expectedLength) throws Exception {
+        downloadWithResume(videoId, title, url, temporary, expectedLength, null, PlaylistDownloads.stopSignal());
+    }
+
+    private static void downloadWithResume(String videoId, String title, String url,
+                                           NativeAudioStore.Destination temporary, long expectedLength,
+                                           @Nullable DownloadKeepAlive.Hold hold, BooleanSupplier stopped)
+            throws Exception {
+        checkStopped(stopped);
         if (expectedLength <= 0) expectedLength = probeContentLength(url);
         final long totalLength = expectedLength;
 
         if (totalLength <= 0) {
-            downloadUnknownLength(url, temporary);
+            downloadUnknownLength(url, temporary, stopped);
         } else {
-            downloadInParallel(videoId, title, url, temporary, totalLength);
+            downloadInParallel(videoId, title, url, temporary, totalLength, hold, stopped);
         }
 
         if (totalLength > 0) {
@@ -510,15 +554,19 @@ public final class LocalDownloadManager {
     // bounded ranges are handed out from a shared queue to a
     // capped worker pool; the first failure stops every connection immediately.
     private static void downloadInParallel(String videoId, String title, String url,
-                                           NativeAudioStore.Destination temporary, long totalLength) throws Exception {
+                                           NativeAudioStore.Destination temporary, long totalLength,
+                                           @Nullable DownloadKeepAlive.Hold hold, BooleanSupplier stopped)
+            throws Exception {
         temporary.setLength(totalLength);
 
         AtomicLong downloaded = new AtomicLong();
+        boolean notify = hold != null || (!DownloadKeepAlive.supported() && !PlaylistDownloads.quietTransfer());
         ProgressCallback progress = bytes -> {
-            if (!canPostProgress()) return;
+            if (!notify || !canPostProgress()) return;
             int percent = (int) Math.min(99, bytes * 100 / totalLength);
-            showDownloadNotification(videoId, title, percent, true,
-                    str("morphe_music_downloads_progress", percent));
+            String text = str("morphe_music_downloads_progress", percent);
+            if (hold != null) hold.progress(title, percent, text);
+            else showDownloadNotification(videoId, title, percent, true, text);
         };
 
         // Short files keep the original equal split, longer ones use ranges below the throttle.
@@ -526,7 +574,7 @@ public final class LocalDownloadManager {
         long rangeCount = (totalLength + rangeSize - 1) / rangeSize;
         int workers = (int) Math.min(MAX_CONNECTIONS, rangeCount);
         Requester.ConnectionProvider route = Requester.scopedConnection();
-        RangeQueue queue = new RangeQueue(url, temporary, totalLength, rangeSize, downloaded, progress, route);
+        RangeQueue queue = new RangeQueue(url, temporary, totalLength, rangeSize, downloaded, progress, route, stopped);
 
         // Android's ExecutorService is not AutoCloseable, so it is shut down in the finally below.
         //noinspection resource
@@ -575,12 +623,14 @@ public final class LocalDownloadManager {
         private final AtomicLong downloaded;
         private final ProgressCallback progress;
         private final Requester.ConnectionProvider route;
+        private final BooleanSupplier transferStopped;
         private final AtomicLong nextStart = new AtomicLong();
         private final Set<HttpURLConnection> connections = ConcurrentHashMap.newKeySet();
         private volatile boolean stopped;
 
         RangeQueue(String url, NativeAudioStore.Destination destination, long totalLength, long rangeSize,
-                   AtomicLong downloaded, ProgressCallback progress, @Nullable Requester.ConnectionProvider route) {
+                   AtomicLong downloaded, ProgressCallback progress, @Nullable Requester.ConnectionProvider route,
+                   BooleanSupplier transferStopped) {
             this.url = url;
             this.destination = destination;
             this.totalLength = totalLength;
@@ -588,6 +638,7 @@ public final class LocalDownloadManager {
             this.downloaded = downloaded;
             this.progress = progress;
             this.route = route;
+            this.transferStopped = transferStopped;
         }
 
         /** Aborts every connection, so blocked reads fail at once instead of timing out. */
@@ -613,7 +664,7 @@ public final class LocalDownloadManager {
         }
 
         private void checkStopped() {
-            if (stopped || (route != null && route.cancelled())) {
+            if (stopped || transferStopped.getAsBoolean() || (route != null && route.cancelled())) {
                 throw new CancellationException("Download stopped");
             }
         }
@@ -685,7 +736,7 @@ public final class LocalDownloadManager {
         }
     }
 
-    // modified by lavinhoque33, 2026-11-09: package-private, the video copy download asks the length of its stream.
+    // Package-private: the video copy downloader asks for its stream length.
     static long probeContentLength(String url) {
         HttpURLConnection connection = null;
         try {
@@ -716,7 +767,8 @@ public final class LocalDownloadManager {
         return connection;
     }
 
-    private static void downloadUnknownLength(String url, NativeAudioStore.Destination destination) throws Exception {
+    private static void downloadUnknownLength(String url, NativeAudioStore.Destination destination,
+                                              BooleanSupplier stopped) throws Exception {
         HttpURLConnection connection = Requester.openConnection(url);
         connection.setConnectTimeout(CONNECT_TIMEOUT_MILLISECONDS);
         connection.setReadTimeout(READ_TIMEOUT_MILLISECONDS);
@@ -736,6 +788,7 @@ public final class LocalDownloadManager {
                 int read;
                 Requester.ConnectionProvider route = Requester.scopedConnection();
                 while ((read = input.read(buffer)) != -1) {
+                    checkStopped(stopped);
                     if (route != null && route.cancelled()) throw new IOException("Download cancelled");
                     output.write(buffer, 0, read);
                 }
@@ -752,24 +805,44 @@ public final class LocalDownloadManager {
      */
     static void showDownloadNotification(String key, String title, int progress,
                                          boolean ongoing, String text) {
-        if (PlaylistSync.automaticTransfer()) return;
-
         Utils.runOnMainThread(() -> postDownloadNotification(key, title, progress, ongoing, text));
     }
 
-    @SuppressLint("NotificationPermission") // The patch declares POST_NOTIFICATIONS.
+    @SuppressLint("NotificationPermission") // The unmodified Music manifest declares POST_NOTIFICATIONS.
     private static void postDownloadNotification(String key, String title, int progress,
                                                  boolean ongoing, String text) {
         Context context = Utils.getContext();
-        NotificationManager manager =
-                (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-        if (manager == null) return;
+        NotificationManager manager = notificationManager(context);
+        if (manager == null || !manager.areNotificationsEnabled()) return;
 
-        manager.createNotificationChannel(new NotificationChannel(DOWNLOAD_CHANNEL,
-                str("morphe_music_downloads_notification_channel"),
-                NotificationManager.IMPORTANCE_LOW));
+        try {
+            manager.notify(key.hashCode(), buildDownloadNotification(context, title, progress, ongoing, text));
+        } catch (RuntimeException failure) {
+            Logger.printWarn(() -> "Music download notification unavailable", failure);
+        }
+    }
 
-        Notification.Builder builder = new Notification.Builder(context, DOWNLOAD_CHANNEL);
+    @Nullable
+    static NotificationManager notificationManager(Context context) {
+        return (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+    }
+
+    @SuppressWarnings("deprecation") // Older Android releases do not have channels.
+    static Notification buildDownloadNotification(Context context, @Nullable String title, int progress,
+                                                  boolean ongoing, String text) {
+        Notification.Builder builder;
+        if (Build.VERSION.SDK_INT >= 26) {
+            NotificationManager manager = notificationManager(context);
+            if (manager != null) {
+                manager.createNotificationChannel(new NotificationChannel(DOWNLOAD_CHANNEL,
+                        str("morphe_music_downloads_notification_channel"),
+                        NotificationManager.IMPORTANCE_LOW));
+            }
+            builder = new Notification.Builder(context, DOWNLOAD_CHANNEL);
+        } else {
+            builder = new Notification.Builder(context);
+        }
+
         builder.setSmallIcon(ongoing
                         ? android.R.drawable.stat_sys_download
                         : android.R.drawable.stat_sys_download_done)
@@ -779,7 +852,7 @@ public final class LocalDownloadManager {
                 .setOnlyAlertOnce(true);
 
         if (ongoing) builder.setProgress(100, Math.max(0, progress), progress < 0);
-        manager.notify(key.hashCode(), builder.build());
+        return builder.build();
     }
 
     private static List<ResolvedStream> parseStreams(String videoId, StreamOrDetailsDataRequest request,

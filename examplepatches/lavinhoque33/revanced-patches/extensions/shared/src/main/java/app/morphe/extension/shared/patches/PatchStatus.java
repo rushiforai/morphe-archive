@@ -31,6 +31,11 @@ public class PatchStatus {
         return false;
     }
 
+    // Modified by the media request patch only when the header bridge is linked.
+    public static boolean MobileWebMediaRequest() {
+        return false;
+    }
+
     public static String PatchVersion() {
         return "Unknown";
     }

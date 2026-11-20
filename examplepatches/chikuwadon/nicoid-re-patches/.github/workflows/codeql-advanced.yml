@@ -19,6 +19,11 @@ concurrency:
   group: codeql-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Interim mitigation for CVE-2026-114938 until patched Temurin 25 is verified.
+# Disables the vulnerable x86-64 Base64 intrinsic for all Java subprocesses.
+env:
+  JAVA_TOOL_OPTIONS: '-XX:-UseBASE64Intrinsics'
+
 jobs:
   java-kotlin:
     name: Analyze Java/Kotlin
@@ -38,6 +43,9 @@ jobs:
         with:
           distribution: temurin
           java-version: '25'
+          check-latest: true
+      - name: Verify patched Java 25 runtime
+        run: python3 .github/scripts/verify-java25-cspu.py
       - name: Use the validated Gradle download source
         run: |
           sed -i 's#https\\://services.gradle.org/distributions/gradle-9.9.1-bin.zip#https\\://downloads.gradle.org/distributions/gradle-9.9.1-bin.zip#' gradle/wrapper/gradle-wrapper.properties

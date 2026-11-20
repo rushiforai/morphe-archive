@@ -45,6 +45,7 @@ dependencies {
     compileOnly(libs.preference)
 
     implementation(libs.androidx.javascriptengine)
+    implementation(libs.androidx.webkit)
     implementation(libs.collections4)
     implementation(libs.gson)
     implementation(libs.lang3)

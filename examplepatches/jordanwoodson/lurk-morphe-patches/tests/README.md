@@ -40,7 +40,7 @@ need it rather than skipping them.
 | `tests/twitch/test_seventv_badges.py` | *7TV badges*: cosmetic and entitlement events into the badge pipeline (native models, React Native snapshots, Emote and badge info, deletes, the holder bound, the switch off), and the WebSocket client against a local server: handshake, masking, 2- and 8-byte lengths, ping, fragmentation, resubscribing to another channel, close, and no connection while off or without a channel. |
 | `tests/twitch/test_image_cache.py` | The third-party image cache under Glide's network fetcher (issue 71): only third-party image URLs kept, a complete body stored and served again (also after a restart), partial, failed, non-image and oversized bodies not stored, the disk and memory limits (least recently used out first) and expiry. |
 | `tests/twitch/test_rn_chat.py` | The compiled React Native chat helpers, the chat overlay's context and the landscape chat column's opacity. |
-| `tests/shared/test_settings.py` | The real `Settings`, `Registry` and settings screen helpers against each app's registered settings (`tests/shared/registry/`): JSON round trip, parent ordering, defaults, restart flags, stored and wrongly typed values, the unreadable-registry fallback. |
+| `tests/shared/test_settings.py` | The real `Settings`, `Registry` and settings screen helpers against each app's registered settings (`tests/shared/registry/`): JSON round trip, parent ordering, defaults, restart flags, stored and wrongly typed values, the unreadable-registry fallback; Lurk icon's App icon choice against a PackageManager double (the chosen launcher alias enabled before the other is disabled, both or neither repaired at a start, a refused enable, a mount install without the aliases, a build without Lurk icon). |
 | `tests/shared/test_sleep_timer.py` | *Sleep timer* in Kick and Twitch on a virtual clock: expiry, resuming, stop and release, races at dispatch. |
 | `tests/rumble/test_state_transitions.py` | Rumble's chat keywords across sign-in changes, *Anonymous chat*'s cookie and send decisions, and *Remember playback speed* switched on, off and on. |
 | `tests/rumble/test_video_stats.py` | Rumble's *Show video stats* text from Media3-shaped format logs and decoder counters: live and VOD renditions, missing values, and keys the panel skips not running into the ones it shows; where the panel starts in a frame Fill screen zoomed past its player view. |
@@ -81,6 +81,11 @@ they honor `MORPHE_WORK` and `JAVA_HOME`. Decode a patched APK for them with
   error, and a snippet with a label of its own added through plain `addInstructions` at an index other
   than 0 gets a branch into the middle of an instruction, which only ART's verifier reports, by
   rejecting the class (issue 49).
+- `tests/verify_launcher_entries.py <patched apktool dir> <stock apktool dir>` checks Lurk icon's launcher
+  entries in any app (a Clone app build too): the launcher activity keeps its name and link filters and is no
+  launcher entry any more; exactly two aliases of it are, Lurk's enabled and the original disabled, each with
+  the stock launcher filter and a fully qualified target; the original alias shows the stock icon (the same
+  files, or `lurk_original_` copies of them and of the layers they reference). Decode with `-s` (resources only).
 - `bin/bump <app> <version>` patches a new app version with every patch and sorts what fails by cause,
   including class names the probes here use that the new version no longer has.
 

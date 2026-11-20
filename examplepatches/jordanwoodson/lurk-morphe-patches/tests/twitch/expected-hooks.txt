@@ -52,6 +52,8 @@ TwitchEmotes.sizeEmote
 TwitchPrivacy.allowAnalyticsCollection
 TwitchPrivacy.allowAnalyticsCollectionBoxed
 TwitchPrivacy.disableBranchTracking
+TwitchPrivacy.keepSpadeBatch
+TwitchPrivacy.keepSpadeEvent
 
 # if block_cookie_notice
 TwitchPrivacy.showCookieNotice
@@ -100,6 +102,10 @@ TwitchChat.autoClaim
 
 # if drops_auto_claim
 TwitchDrops.presented
+
+# if drops_banner_keep
+# Keep Drops banner: each countdown the drops banner's state lambda makes (both layouts).
+TwitchDrops.bannerCountdown
 
 # if chat_hide_badges
 TwitchChatCompact.badges
@@ -164,6 +170,7 @@ TwitchBadges.badges
 # if hide_hype_train
 TwitchHighlights.celebrationsEnabled
 TwitchHighlights.celebrationsUpdate
+TwitchHighlights.extensionIcons
 TwitchHighlights.hideCallout
 TwitchHighlights.hideGiftNotice
 TwitchHighlights.hideHighlight
@@ -176,6 +183,7 @@ TwitchHighlights.pinnedCheersVisible
 TwitchHighlights.castVisibility
 TwitchHighlights.clipButtonVisible
 TwitchHighlights.hideCastButton
+TwitchHighlights.hideChatModePopup
 TwitchHighlights.hideShareButton
 TwitchHighlights.shareButtonVisible
 

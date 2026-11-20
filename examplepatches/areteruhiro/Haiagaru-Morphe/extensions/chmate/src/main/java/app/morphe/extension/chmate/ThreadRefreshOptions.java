@@ -6,11 +6,11 @@ import android.content.Context;
 public final class ThreadRefreshOptions {
     public static final String KEY = "skipConditionalThreadRefreshValidators";
 
-    /** Defaults to the existing Haiagaru behavior until the user changes it. */
+    /** Keep ChMate's normal conditional/Range refresh as the default. */
     public static boolean skipConditionalHeaders() {
         Context context = Haiagaru.applicationContextForExtension();
-        return context == null || context.getSharedPreferences(WacchoiSearchOptions.PREFS,
-                Context.MODE_PRIVATE).getBoolean(KEY, true);
+        return context != null && context.getSharedPreferences(WacchoiSearchOptions.PREFS,
+                Context.MODE_PRIVATE).getBoolean(KEY, false);
     }
 
     private ThreadRefreshOptions() { }

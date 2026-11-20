@@ -215,6 +215,27 @@ public class GridSortTest {
         assertEquals("apecdfb", order("newest", grid()));
     }
 
+    /** The video page a cell opens swipes in the grid's order, so where pinned videos sit carries over. */
+    @Test public void sortPinnedWithRestCarriesIntoTheVideoPage() {
+        String[] played = new String[2];
+        for (int pass = 0; pass < 2; pass++) {
+            GridSort.resetForTests();
+            Settings.SORT_PINNED_WITH_REST.save(pass == 1);
+            try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+                GridAdapter adapter = gridOnScreen(controller.get());
+                GridFragment fragment = new GridFragment(adapter);
+                List<Aweme> model = grid();
+                Settings.PROFILE_GRID_SORT.save("newest");
+                adapter.mmItems = GridSort.data(adapter, model);
+                idle(0);
+                GridSort.beforeOpen(fragment);
+                played[pass] = ids(model);
+            }
+        }
+        assertEquals("pinned first on the video page", "apecdfb", played[0]);
+        assertEquals("pinned in date order on the video page", "ecdfapb", played[1]);
+    }
+
     @Test public void longestAndShortest() {
         assertEquals("apecdfb", order("longest", grid()));
         assertEquals("apfcdeb", order("shortest", grid()));
@@ -265,18 +286,22 @@ public class GridSortTest {
     @Test public void theNextPageIsWantedOnlyForARealOrderOnScreenUnderTheCapWhilePagesAddVideos() {
         assertTrue(GridSort.wantsNextPage("newest", 0, 30, true));
         assertTrue(GridSort.wantsNextPage("least_liked", 30, 60, true));
-        assertTrue("one under the cap", GridSort.wantsNextPage("oldest", 270, 299, true));
+        assertTrue("one under the cap", GridSort.wantsNextPage("oldest", 970, GridSort.LOAD_CAP - 1, true));
 
         assertFalse("Original order is TikTok's own loading", GridSort.wantsNextPage("off", 0, 30, true));
         assertFalse("a choice this build doesn't know", GridSort.wantsNextPage("sideways", 0, 30, true));
         assertFalse(GridSort.wantsNextPage(null, 0, 30, true));
         assertFalse("a grid off screen doesn't load", GridSort.wantsNextPage("newest", 0, 30, false));
-        assertFalse("the cap", GridSort.wantsNextPage("newest", 270, GridSort.LOAD_CAP, true));
-        assertFalse("past the cap", GridSort.wantsNextPage("newest", 300, 330, true));
+        assertFalse("the cap", GridSort.wantsNextPage("newest", 970, GridSort.LOAD_CAP, true));
+        assertFalse("past the cap", GridSort.wantsNextPage("newest", GridSort.LOAD_CAP, GridSort.LOAD_CAP + 30, true));
         assertFalse("a page that added nothing ends the chain", GridSort.wantsNextPage("newest", 60, 60, true));
         assertFalse("a list that shrank", GridSort.wantsNextPage("newest", 60, 40, true));
         assertFalse("an empty grid", GridSort.wantsNextPage("newest", 0, 0, true));
-        assertEquals(300, GridSort.LOAD_CAP);
+        assertEquals("#180: 300 left a long profile's oldest videos out", 1000, GridSort.LOAD_CAP);
+        // The S22 on Wi-Fi (2026-11-19, @tiktok): about 33 videos a page. A 20 s hold ran out at 618,
+        // and a 35 s one at 981 on a run that averaged 1.14 s a page, so allow 1.4 s a page.
+        assertTrue("the cap fits in the hold at the S22's slower page rate",
+                GridSort.HOLD_LIMIT_MS >= (GridSort.LOAD_CAP / 33 + 1) * 1_400L);
     }
 
     /** The grid's own load more listener, as the adapter's footer calls it. */
@@ -510,6 +535,69 @@ public class GridSortTest {
             }
             idle(GridSort.HOLD_LIMIT_MS - passed + 100);
             assertInSight(slow);
+        }
+    }
+
+    /** #180: a hold that runs out leaves the rest to the reader, so the grid doesn't reshuffle in sight. */
+    @Test public void aHoldThatRunsOutStopsTheGridLoadingByItself() {
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            GridAdapter slow = gridOnScreen(controller.get());
+            Settings.PROFILE_GRID_SORT.save("newest");
+            List<Aweme> model = posts(10);
+            slow.mmItems = GridSort.data(slow, model);
+            long gap = GridSort.HOLD_QUIET_MS - 1000;
+            long passed = 0;
+            while (passed + gap < GridSort.HOLD_LIMIT_MS) {
+                idle(gap);
+                passed += gap;
+                model.addAll(posts(10));
+                slow.mmItems = GridSort.page(slow, model);
+            }
+            idle(GridSort.HOLD_LIMIT_MS - passed + 100);
+            assertInSight(slow);
+
+            int asked = slow.listener.calls;
+            model.addAll(posts(10));
+            slow.mmItems = GridSort.page(slow, model);
+            idle(GridSort.NEXT_PAGE_DELAY_MS + 100);
+            assertEquals("a page after the hold ran out asks for nothing", asked, slow.listener.calls);
+
+            slow.mmItems = GridSort.data(slow, posts(10));
+            idle(GridSort.NEXT_PAGE_DELAY_MS + 100);
+            assertEquals("a fresh list loads by itself again", asked + 1, slow.listener.calls);
+        }
+    }
+
+    /** #180: a long profile's hold can take half a minute, so a tap shows the order it has now. */
+    @Test public void aTapOnTheHoldShowsTheOrderItHasAndLeavesTheRestToScrolling() {
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            GridAdapter adapter = gridOnScreen(controller.get());
+            Settings.PROFILE_GRID_SORT.save("newest");
+            List<Aweme> model = posts(30);
+            adapter.mmItems = GridSort.data(adapter, model);
+            idle(GridSort.NEXT_PAGE_DELAY_MS + 100);
+            model.addAll(posts(30));
+            adapter.mmItems = GridSort.page(adapter, model);
+            assertHeld(adapter);
+            ViewGroup box = (ViewGroup) ((ViewGroup) holdOn(adapter)).getChildAt(0);
+            assertEquals("the hold says it can be tapped", "Tap to see the order now",
+                    String.valueOf(((TextView) box.getChildAt(2)).getText()));
+
+            assertTrue(holdOn(adapter).performClick());
+            idle(0);
+            assertInSight(adapter);
+            assertEquals("the pages it held for show at once", 1, adapter.refreshes);
+
+            int asked = adapter.listener.calls;
+            model.addAll(posts(30));
+            adapter.mmItems = GridSort.page(adapter, model);
+            idle(GridSort.NEXT_PAGE_DELAY_MS + 100);
+            assertEquals("a page after the tap asks for nothing", asked, adapter.listener.calls);
+            assertInSight(adapter);
+
+            adapter.mmItems = GridSort.data(adapter, posts(10));
+            idle(GridSort.NEXT_PAGE_DELAY_MS + 100);
+            assertEquals("a fresh list loads by itself again", asked + 1, adapter.listener.calls);
         }
     }
 
@@ -808,7 +896,7 @@ public class GridSortTest {
         }
     }
 
-    /** A collection folder's row, as 47.9.1's X/0wFj holds it: its video and its kind. A header's video is empty. */
+    /** A collection folder's row, as 47.9.2's X/0wFj holds it: its video and its kind. A header's video is empty. */
     public static final class Row {
         public final Aweme LIZ;
         public final int LIZIZ;
@@ -2429,7 +2517,8 @@ public class GridSortTest {
                 assertEquals(GridSort.LABELS[i], String.valueOf(list.getEntries()[i]));
             }
             String summary = String.valueOf(row.getSummary());
-            assertTrue(summary, summary.contains("pinned") && summary.contains("up to 300 videos")
+            // #180: the note kept saying 300 after the cap went to 1,000.
+            assertTrue(summary, summary.contains("pinned") && summary.contains("up to 1,000 videos")
                     && summary.contains("top corner"));
         }
     }
@@ -2530,7 +2619,7 @@ public class GridSortTest {
                 assertEquals(GridSort.LABELS[i], String.valueOf(list.getEntries()[i]));
             }
             String summary = String.valueOf(row.getSummary());
-            assertTrue(summary, summary.contains("sound's page") && summary.contains("up to 300"));
+            assertTrue(summary, summary.contains("sound's page") && summary.contains("up to 1,000"));
         }
     }
 

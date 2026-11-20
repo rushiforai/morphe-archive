@@ -1,14 +1,158 @@
 name: Test & Audit Verification Gate
 on:
   push:
-    branches: ["main"]
+    branches: ['main']
   pull_request:
-    branches: ["main", "dev", "next"]
+    branches: ['main', 'dev', 'next']
   workflow_dispatch:
 
+concurrency:
+  group: test-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
-  test:
-    name: Test & Build Gate
+  detect-changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      core: ${{ steps.filter.outputs.core }}
+      web: ${{ steps.filter.outputs.web }}
+      python: ${{ steps.filter.outputs.python }}
+      android: ${{ steps.filter.outputs.android }}
+      rust: ${{ steps.filter.outputs.rust }}
+      native: ${{ steps.filter.outputs.native }}
+      is_full_run: ${{ steps.run-type.outputs.is_full_run }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Filter Changed Paths
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            core:
+              - 'package.json'
+              - 'bun.lock'
+              - 'dependency-policy.json'
+              - 'scripts/**'
+              - '.github/workflows/apk-lab-tests.yml'
+              - '.prettierrc.json'
+              - '.oxlintrc.json'
+            web:
+              - 'worker/**'
+              - 'site/**'
+              - 'scripts/**'
+              - 'package.json'
+              - 'bun.lock'
+              - '.prettierrc.json'
+              - '.oxlintrc.json'
+              - 'docs/**'
+              - '*.md'
+              - '.markdownlint-cli2.jsonc'
+            python:
+              - 'tools/apk-lab/**'
+              - '.github/scripts/**'
+              - 'extensions/**/*.py'
+            android:
+              - 'patches/**'
+              - 'extensions/extension/**'
+              - 'gradle/**'
+              - 'build.gradle.kts'
+              - 'settings.gradle.kts'
+              - 'gradle.properties'
+              - 'extensions/adobescan-pdf-native/**'
+              - 'extensions/nhl-adblock-native/**'
+              - '.github/scripts/**'
+            rust:
+              - 'tools/play-metadata/**'
+              - 'extensions/nhl-adblock-native/**'
+            native:
+              - 'extensions/adobescan-pdf-native/**'
+              - '.clang-format'
+
+      - name: Determine Run Type
+        id: run-type
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          GITHUB_REF: ${{ github.ref }}
+          CORE_CHANGED: ${{ steps.filter.outputs.core }}
+        run: |
+          if [ "$EVENT_NAME" = "workflow_dispatch" ] || \
+             { [ "$EVENT_NAME" = "push" ] && [ "$GITHUB_REF" = "refs/heads/main" ]; } || \
+             [ "$CORE_CHANGED" = "true" ]; then
+            echo "is_full_run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_full_run=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  test-web:
+    name: Web Verification
+    needs: detect-changes
+    if: needs.detect-changes.outputs.is_full_run == 'true' || needs.detect-changes.outputs.web == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install root dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Install worker dependencies
+        working-directory: worker
+        run: bun install --frozen-lockfile
+
+      - name: Install site dependencies
+        working-directory: site
+        run: bun install --frozen-lockfile
+
+      - name: Audit web domain
+        run: bun scripts/audit.ts all --domain web
+
+  test-python:
+    name: Python Verification
+    needs: detect-changes
+    if: needs.detect-changes.outputs.is_full_run == 'true' || needs.detect-changes.outputs.python == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          version: 'latest'
+          enable-cache: true
+          python-version: '3.12'
+
+      - name: Sync apk-lab dependencies
+        run: uv sync --locked --project tools/apk-lab
+
+      - name: Audit python domain
+        run: bun scripts/audit.ts all --domain python
+
+  test-android:
+    name: Android Verification
+    needs: detect-changes
+    if: needs.detect-changes.outputs.is_full_run == 'true' || needs.detect-changes.outputs.android == 'true'
     runs-on: ubuntu-latest
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -22,14 +166,14 @@ jobs:
       - name: Setup Java
         uses: actions/setup-java@v6.0.1
         with:
-          distribution: "temurin"
-          java-version: "21"
-
+          distribution: 'temurin'
+          java-version: '21'
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
+
       - name: Cache font assets
         uses: actions/cache@v6
         with:
@@ -38,49 +182,155 @@ jobs:
           restore-keys: |
             emoji-font-
 
-
       - name: Install root dependencies
         run: bun install --frozen-lockfile
 
-      - name: Install worker dependencies
-        working-directory: worker
-        run: bun install --frozen-lockfile
-
-      - name: Install site dependencies
-        working-directory: site
-        run: bun install --frozen-lockfile
-      - name: Setup uv
-        uses: astral-sh/setup-uv@v7
+      - name: Setup Android NDK
+        id: setup-ndk
+        uses: nttld/setup-ndk@v1
         with:
-          version: "latest"
-          enable-cache: true
-          python-version: "3.12"
+          ndk-version: r28c
+          add-to-path: false
+          link-to-sdk: true
 
-      - name: Sync apk-lab dependencies
-        run: uv sync --locked --project tools/apk-lab
+      - name: Configure Android NDK environment
+        run: |
+          echo "ANDROID_NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK_ROOT=${{ steps.setup-ndk.outputs.ndk-path }}" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK=${{ steps.setup-ndk.outputs.ndk-path }}" >> "$GITHUB_ENV"
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@1.97.1
+        with:
+          targets: aarch64-linux-android
+      - name: Audit android domain
+        run: bun scripts/audit.ts all --domain android
+
+      - name: Build and verify patches
+        run: ./gradlew :patches:buildAndroid clean --no-daemon
+
+  test-rust:
+    name: Rust Verification
+    needs: detect-changes
+    if: needs.detect-changes.outputs.is_full_run == 'true' || needs.detect-changes.outputs.rust == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
 
       - name: Setup Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@1.97.1
         with:
+          targets: aarch64-linux-android
           components: rustfmt, clippy
 
       - name: Rust cache
         uses: Swatinem/rust-cache@v2
         with:
-          workspaces: tools/play-metadata -> tools/play-metadata/target
+          workspaces: |
+            tools/play-metadata -> tools/play-metadata/target
+            extensions/nhl-adblock-native -> extensions/nhl-adblock-native/target
 
-      - name: Audit formatting
-        run: bun run format:check
+      - name: Audit rust domain
+        run: bun scripts/audit.ts all --domain rust
 
-      - name: Audit code quality & lint
-        run: bun run lint
+  test-native:
+    name: Native Verification
+    needs: detect-changes
+    if: needs.detect-changes.outputs.is_full_run == 'true' || needs.detect-changes.outputs.native == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
 
-      - name: Audit types across all stacks
-        run: bun run typecheck
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
 
-      - name: Run all test suites
-        run: bun run test
-      - name: Build and verify patches
+      - name: Cache CMake dependencies
+        uses: actions/cache@v6
+        with:
+          path: |
+            extensions/adobescan-pdf-native/build/host/_deps
+            extensions/adobescan-pdf-native/build/android-arm64-v8a/_deps
+          key: cmake-deps-${{ hashFiles('extensions/adobescan-pdf-native/CMakeLists.txt', 'extensions/adobescan-pdf-native/cmake/*.cmake') }}
+
+      - name: Install system test tools
+        timeout-minutes: 5
+        run: |
+          sudo apt-get update -y -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15
+          sudo apt-get install -y -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 poppler-utils ninja-build clang-format
+
+      - name: Audit native domain
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew :patches:buildAndroid clean --no-daemon
+          AIDAN_REQUIRE_EXTERNAL_TOOLS: '1'
+        run: bun scripts/audit.ts all --domain native
+
+  gate:
+    name: Test & Build Gate
+    needs:
+      [
+        detect-changes,
+        test-web,
+        test-python,
+        test-android,
+        test-rust,
+        test-native,
+      ]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Aggregate Verification Status
+        run: |
+          echo "### Test & Build Gate Verification Summary" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Domain / Job | Status | Outcome |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| :--- | :--- | :--- |" >> "$GITHUB_STEP_SUMMARY"
+
+          FAILED=0
+
+          check_job() {
+            local name="$1"
+            local result="$2"
+            local icon="⚪"
+            local outcome="Skipped (unaffected)"
+
+            if [ "$result" = "success" ]; then
+              icon="🟢"
+              outcome="Passed"
+            elif [ "$result" = "failure" ]; then
+              icon="🔴"
+              outcome="Failed"
+              FAILED=1
+            elif [ "$result" = "cancelled" ]; then
+              icon="🟡"
+              outcome="Cancelled"
+              FAILED=1
+            elif [ "$result" = "skipped" ]; then
+              icon="⚪"
+              outcome="Skipped (unaffected)"
+            fi
+
+            echo "| **$name** | $icon $result | $outcome |" >> "$GITHUB_STEP_SUMMARY"
+          }
+
+          check_job "Detect Changes" "${{ needs.detect-changes.result }}"
+          check_job "Web (TypeScript / Site / Worker)" "${{ needs.test-web.result }}"
+          check_job "Python (APK Lab / Scripts)" "${{ needs.test-python.result }}"
+          check_job "Android (Patches / Extension)" "${{ needs.test-android.result }}"
+          check_job "Rust (Play Metadata / Native)" "${{ needs.test-rust.result }}"
+          check_job "Native (Adobe Scan C++)" "${{ needs.test-native.result }}"
+
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "$FAILED" -ne 0 ]; then
+            echo "❌ **One or more required verification jobs failed or were cancelled.**" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          else
+            echo "✅ **All required domain verification gates passed cleanly.**" >> "$GITHUB_STEP_SUMMARY"
+          fi

@@ -4,20 +4,19 @@ import app.ahmedyarub.patches.shared.Constants.COMPATIBILITY_INSTAGRAM
 import app.crimera.utils.changeString
 import app.morphe.library.instagram.patches.instagramExtensionPatch
 import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.string
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
 private const val REELS_BUTTONS_CLASS = "Lapp/ahmedyarub/extension/instagram/ReelsButtons;"
 private const val MEDIA_OPTION = "Lcom/instagram/feed/media/mediaoption/MediaOption\$Option;"
@@ -41,15 +40,34 @@ private object FindMoreButtonFingerprint : Fingerprint(
     strings = listOf("clips_ufi_more_button_component"),
 )
 
-/** The Reels ⋯ menu's options helper adding a row; the helper is bound to that menu's reel. */
+/**
+ * The Reels ⋯ menu's options helper adding a row (context, option, ..., icon, text); the helper is
+ * bound to that menu's reel. 456 dropped the row's log string; the helper's constructor still
+ * names its class.
+ */
 private object AddMenuRowFingerprint : Fingerprint(
     returnType = "V",
-    strings = listOf(string("MoreOptionsHelper_addBottomSheetRowItem", StringComparisonType.CONTAINS)),
+    parameters = listOf("Landroid/content/Context;", MEDIA_OPTION, "L", "L", "Ljava/lang/Integer;", "Ljava/lang/String;"),
+    custom = { _, classDef ->
+        classDef.methods.any { method ->
+            method.name == "<init>" && method.implementation?.instructions?.any {
+                it.getReference<StringReference>()?.string == "ClipsOrganicMoreOptionsHelper"
+            } == true
+        }
+    },
 )
 
-/** The Reels ⋯ menu: its header items, then its rows, Interested and Not interested among them. */
+/**
+ * The Reels ⋯ menu's rows, Interested and Not interested among them: the menu controller's method
+ * adding Interested (SEE_MORE). 456 dropped its log strings but the controller's name stays.
+ */
 private object ReelsMenuFingerprint : Fingerprint(
-    strings = listOf(string("MoreOptionsController_getBottomSheetHeaderItems", StringComparisonType.CONTAINS)),
+    strings = listOf("ClipsOrganicMediaItemViewMoreOptionsController"),
+    custom = { method, _ ->
+        method.implementation?.instructions?.any {
+            it.getReference<FieldReference>()?.let { field -> field.definingClass == MEDIA_OPTION && field.name == "SEE_MORE" } == true
+        } == true
+    },
 )
 
 private object MoreTagIdFingerprint : Fingerprint(

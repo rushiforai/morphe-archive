@@ -21,7 +21,11 @@ private const val MAX_CONST16_REGISTER = 0xFF
  * Forces only the value argument of the setter call immediately following the backup-media key.
  * This setter takes two booleans; the second (default) argument is deliberately preserved.
  */
-internal fun enableMediaBackup(method: app.morphe.patcher.util.proxy.mutableTypes.MutableMethod, version261002: Boolean = false) {
+internal fun enableMediaBackup(
+    method: app.morphe.patcher.util.proxy.mutableTypes.MutableMethod,
+    version261002: Boolean = false,
+    version261101: Boolean = false,
+) {
     val implementation = method.implementation
         ?: error("Zalo Google Drive backup: configuration method has no implementation")
     val instructions = implementation.instructions
@@ -49,8 +53,16 @@ internal fun enableMediaBackup(method: app.morphe.patcher.util.proxy.mutableType
     val writeReference = (writeInstruction as? ReferenceInstruction)?.reference as? MethodReference
         ?: error("Zalo Google Drive backup: ENABLE_BACKUP_MEDIA write reference not found")
     check(
-        writeReference.definingClass == (if (version261002) "Lp60/p0;" else "Lu40/p0;") &&
-            writeReference.name == (if (version261002) "x" else "i0") &&
+        writeReference.definingClass == when {
+                version261101 -> "Lcfj;"
+                version261002 -> "Lp60/p0;"
+                else -> "Lu40/p0;"
+            } &&
+            writeReference.name == when {
+                version261101 -> "r1"
+                version261002 -> "x"
+                else -> "i0"
+            } &&
             writeReference.parameterTypes == listOf("Ljava/lang/String;", "Z", "Z"),
     ) {
         "Zalo Google Drive backup: unexpected ENABLE_BACKUP_MEDIA setter signature"
@@ -110,10 +122,19 @@ val enableZaloGoogleDriveMediaBackupPatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_ZALO_STABLE)
 
     execute {
-        val current = packageMetadata.versionName == "26.10.02"
-        val configuration = (if (current) BackupConfiguration261002 else BackupConfiguration).matchAll(1..1).single().method
-        val eligibility = (if (current) MediaBackupEligibility261002 else MediaBackupEligibility).matchAll(1..1).single().method
-        enableMediaBackup(configuration, current)
+        val current261002 = packageMetadata.versionName == "26.10.02"
+        val current261101 = packageMetadata.versionName == "26.11.01"
+        val configuration = when {
+            current261101 -> BackupConfiguration261101
+            current261002 -> BackupConfiguration261002
+            else -> BackupConfiguration
+        }.matchAll(1..1).single().method
+        val eligibility = when {
+            current261101 -> MediaBackupEligibility261101
+            current261002 -> MediaBackupEligibility261002
+            else -> MediaBackupEligibility
+        }.matchAll(1..1).single().method
+        enableMediaBackup(configuration, current261002, current261101)
         forceMediaBackupEligible(eligibility)
     }
 }

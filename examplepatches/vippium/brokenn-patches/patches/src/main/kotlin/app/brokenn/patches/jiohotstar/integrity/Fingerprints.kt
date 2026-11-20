@@ -5,7 +5,7 @@ import app.morphe.patcher.methodCall
 import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.AccessFlags
 
-object SignatureCheckFingerprint : Fingerprint(
+internal object SignatureCheckFingerprint : Fingerprint(
     returnType = "Ljava/lang/String;",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.FINAL),
     filters = listOf(

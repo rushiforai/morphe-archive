@@ -2,6 +2,7 @@ package app.aidan.patches.shared
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.Option
 import app.morphe.patcher.patch.PatchException
 import com.android.tools.smali.dexlib2.Opcode
 
@@ -123,6 +124,26 @@ fun BytecodePatchContext.returnOptionalString(
     }
 }
 
+/** Makes all implemented object-returning overloads with [methodNames] return kotlin.Unit.INSTANCE. */
+fun BytecodePatchContext.returnOptionalUnit(
+    classDescriptor: String,
+    vararg methodNames: String
+) {
+    returnUnit(classDescriptor, methodNames.toList(), required = false)
+}
+
+/** Makes all implemented object-returning overloads with [methodNames] return kotlin.Unit.INSTANCE. */
+fun BytecodePatchContext.returnRequiredUnit(
+    classDescriptor: String,
+    vararg methodNames: String
+) {
+    returnUnit(classDescriptor, methodNames.toList(), required = true)
+}
+
+/** Returns true if this boolean option is explicitly enabled or defaulted to true. */
+val Option<Boolean>.isEnabled: Boolean
+    get() = (value ?: default) == true
+
 private fun BytecodePatchContext.returnBoolean(
     classDescriptor: String,
     methodName: String,
@@ -162,7 +183,7 @@ private fun BytecodePatchContext.returnNullObject(
     var matched = false
 
     for (method in mutableClass.methods) {
-        if (method.name == methodName && method.returnType.startsWith("L") && method.implementation != null) {
+        if (method.name == methodName && (method.returnType.startsWith("L") || method.returnType.startsWith("[")) && method.implementation != null) {
             method.addInstructions(0, "const/4 v0, 0x0\nreturn-object v0")
             matched = true
         }
@@ -170,6 +191,36 @@ private fun BytecodePatchContext.returnNullObject(
 
     if (required && !matched) {
         throw PatchException("Required policy failed: missing implemented object method $methodName in $classDescriptor")
+    }
+}
+
+private fun BytecodePatchContext.returnUnit(
+    classDescriptor: String,
+    methodNames: List<String>,
+    required: Boolean
+) {
+    val mutableClass = mutableClassDefByOrNull(classDescriptor)
+    if (mutableClass == null) {
+        if (!required) return
+        throw PatchException("Required policy failed: missing class $classDescriptor for unit method")
+    }
+    var matched = false
+
+    for (method in mutableClass.methods) {
+        if (method.name in methodNames && method.returnType.startsWith("L") && method.implementation != null) {
+            method.addInstructions(
+                0,
+                """
+                sget-object v0, Lkotlin/Unit;->INSTANCE:Lkotlin/Unit;
+                return-object v0
+                """.trimIndent()
+            )
+            matched = true
+        }
+    }
+
+    if (required && !matched) {
+        throw PatchException("Required policy failed: missing implemented unit method in $classDescriptor")
     }
 }
 

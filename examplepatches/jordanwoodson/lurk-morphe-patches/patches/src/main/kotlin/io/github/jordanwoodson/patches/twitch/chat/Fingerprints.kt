@@ -227,3 +227,11 @@ internal object TheatreLayoutFingerprint : Fingerprint(
         resourceLiteral(ResourceType.ID, "one_chat_overlay_container"),
     ),
 )
+
+// Keep Drops banner.
+
+// The countdown a community highlight above chat runs (a progress bar under it): its duration and the time left.
+internal object BannerCountdownFingerprint : Fingerprint(
+    name = "toString", returnType = "Ljava/lang/String;", parameters = emptyList(),
+    strings = listOf("BannerCountdown(durationMS=", ", remainingTimeMS="),
+)

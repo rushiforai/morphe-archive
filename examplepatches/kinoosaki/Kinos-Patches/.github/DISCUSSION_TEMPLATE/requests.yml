@@ -1,0 +1,42 @@
+title: "App request: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the request! Quick checks before you post:
+
+        - Search the category - if the app already has a thread, add a thumbs-up there instead.
+        - The [README patch list](https://github.com/kinoosaki/Kinos-Patches#-patches-list) shows what is already supported (Tasker only).
+        - [`docs/patch-blocklist.md`](https://github.com/kinoosaki/Kinos-Patches/blob/dev/docs/patch-blocklist.md) lists apps that were tried and cannot be patched (server-side entitlements, anti-tamper shields, nothing to patch) - requests for those will be closed.
+  - type: input
+    id: app-name
+    attributes:
+      label: App name
+      description: The app's display name, one app per request.
+    validations:
+      required: true
+  - type: input
+    id: package
+    attributes:
+      label: Package name or Play Store link
+      description: 'Example: com.example.app, or the full store URL. Found under Settings -> Apps -> [app].'
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: App version
+      description: The version you use, if known.
+  - type: checkboxes
+    id: wants
+    attributes:
+      label: What should the patch do?
+      options:
+        - label: Remove ads
+        - label: Unlock premium / pro
+        - label: Disable telemetry
+  - type: textarea
+    id: notes
+    attributes:
+      label: Anything else?
+      description: A clean APK source helps a lot if the app is not on APKMirror/APKPure.

@@ -249,6 +249,21 @@ internal object TabLabelFingerprint : Fingerprint(
 )
 
 /**
+ * Inflates a native tab and then derives its icon-only padding flag from the same layout ID.
+ * 21.43.523: `Lavbz;-><init>(PivotBar;ILandroid/view/ViewGroup;...)V` (classes2.dex).
+ */
+internal object TabLayoutFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.CONSTRUCTOR),
+    filters = listOf(
+        methodCall(smali = "Landroid/view/LayoutInflater;->inflate(ILandroid/view/ViewGroup;Z)Landroid/view/View;"),
+        resourceLiteral(ResourceType.LAYOUT, "image_only_tab"),
+        resourceLiteral(ResourceType.LAYOUT, "avatar_image_only_tab"),
+    ),
+    custom = { method, _ -> method.parameterTypes.take(3).map { it.toString() } ==
+        listOf(PIVOT_BAR_CLASS, "I", "Landroid/view/ViewGroup;") },
+)
+
+/**
  * A tab view: finds the new content dot stub in the inflated tab ([1] is its findViewById, whose
  * receiver is the tab view).
  *

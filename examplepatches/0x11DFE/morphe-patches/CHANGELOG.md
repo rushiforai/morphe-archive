@@ -1,3 +1,9 @@
+## [1.12.5](https://github.com/0x11DFE/morphe-patches/compare/v1.12.4...v1.12.5) (2026-11-19)
+
+### Bug Fixes
+
+* shorten the Scene and Waypoint patch descriptions ([7e563b5](https://github.com/0x11DFE/morphe-patches/commit/7e563b575051e180b6bbdb5c135dbdf45479c729))
+
 ## [1.12.4](https://github.com/0x11DFE/morphe-patches/compare/v1.12.3...v1.12.4) (2026-11-18)
 
 ### Bug Fixes

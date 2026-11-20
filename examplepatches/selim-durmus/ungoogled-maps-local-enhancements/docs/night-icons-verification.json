@@ -1,0 +1,35 @@
+{
+  "package": "org.ungoogled.android.apps.maps",
+  "version": "26.36.04.973607363",
+  "input_sha256": "a863ee0f1e8c539693b935bbae107377fca655bfed9b17d16abafd7211e39797",
+  "output_sha256": "89d16fb1db72e42e8ff972d4682169b789c6ea091d5270c301a711e4897e2f32",
+  "certificate_sha256": [
+    "62461247f71808fae15f63b8f489b5bf0d820b461b93394a663ec7c6ff29feed"
+  ],
+  "modified_original_classes": [
+    "smali/org/ungoogled/ui/SavedPlaces$Front.smali"
+  ],
+  "replaced_apk_entries": [
+    "classes.dex"
+  ],
+  "added_apk_entries": [
+    "classes12.dex"
+  ],
+  "route_ownership_checks": 12,
+  "marker_geometry_10000_points": "passed",
+  "installed": true,
+  "runtime_verified": false,
+  "pixel_installed_sha256_verified": true,
+  "emulator_final_apk_smoke": true,
+  "style": {
+    "visible_diameter_dp": 24,
+    "touch_target_dp": 44,
+    "palette": "Fixed night-map palette: soft category colors, dark glyphs, slate rim"
+  },
+  "visual_checks": [
+    "Home icon and numbered clusters inspected alongside dark-map POIs",
+    "tap beyond visible circle still opens cluster chooser"
+  ],
+  "scope": "Marker drawing and tint only; projection scheduling, geometry, edge clipping and Home/Work code unchanged.",
+  "test_classes_excluded": true
+}

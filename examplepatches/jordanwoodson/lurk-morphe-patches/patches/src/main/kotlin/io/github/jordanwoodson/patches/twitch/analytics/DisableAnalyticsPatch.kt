@@ -31,7 +31,9 @@ val disableAnalyticsPatch = bytecodePatch(
     description = "Stops Twitch's native and React Native Spade event uploads, denies local analytics SDK " +
         "consent, enables Branch's limited tracking mode, blocks Crashlytics uploads, Nielsen audience pings and Sprig surveys, " +
         "and prevents Sentry initialization. Watch progress, viewing statistics and rewards may " +
-        "stop updating. Restart Twitch after changing this setting. Playback requests still run.",
+        "stop updating; with Auto-claim channel points or Auto-claim Drops on, the minute-watched event that earns " +
+        "channel points and progresses Drops still goes. Restart Twitch after changing this setting. Playback " +
+        "requests still run.",
 ) {
     compatibleWith(COMPATIBILITY_TWITCH)
     dependsOn(twitchHermesPatch)
@@ -44,8 +46,14 @@ val disableAnalyticsPatch = bytecodePatch(
                 it.parameterTypes.map { type -> type.toString() } == listOf("Ljava/lang/Object;")
         } ?: throw PatchException("Twitch: Spade callback has no unique success completion")
         // Coroutine callers await this callback. Complete success exactly once, including when no
-        // network request is made; queued events pass null and need no completion.
+        // network request is made; queued events pass null and need no completion. Minute-watched still goes
+        // while Auto-claim channel points or Auto-claim Drops is on: channel points, bonus chests and Drops depend on it
+        // (issue 69).
         event.addInstructionsIfEnabled(KEY, """
+            move-object/from16 v1, p1
+            invoke-static { v1 }, $PRIVACY->keepSpadeEvent(Ljava/lang/String;)Z
+            move-result v0
+            if-nez v0, :lurk_off
             move-object/from16 v1, p3
             if-eqz v1, :done
             const/4 v0, 0x0
@@ -53,7 +61,13 @@ val disableAnalyticsPatch = bytecodePatch(
             :done
             return-void
         """, locals = 2)
-        SpadeBatchFingerprint.twitchMatch("Spade batch transport").method.addInstructionsIfEnabled(KEY, "return-void")
+        // Queued events upload in batches; minute-watched flushes the queue at once. Only kept events stay in it.
+        SpadeBatchFingerprint.twitchMatch("Spade batch transport").method.addInstructionsIfEnabled(KEY, """
+            invoke-static/range { p1 .. p1 }, $PRIVACY->keepSpadeBatch(Ljava/util/ArrayList;)Z
+            move-result v0
+            if-nez v0, :lurk_off
+            return-void
+        """)
         BranchEventFingerprint.twitchMatch("Branch analytics event").method.addInstructionsIfEnabled(KEY, "return-void")
 
         // Use Branch's own tracking-disabled state. Its queue completes denied operations with
@@ -177,7 +191,7 @@ val disableAnalyticsPatch = bytecodePatch(
         SprigConfigureFingerprint.twitchMatch("Sprig configuration").method.addInstructionsIfEnabled(KEY, "return-void")
 
         twitchSettings.add(SwitchSetting(KEY, "Disable analytics",
-            "Stops Spade, Nielsen and Sprig, limits Branch tracking, denies SDK consent, disables Crashlytics uploads and Sentry. Watch progress/rewards may be affected.",
+            "Stops Spade, Nielsen and Sprig, limits Branch tracking, denies SDK consent, disables Crashlytics uploads and Sentry. Watch progress/rewards may be affected; Auto-claim channel points and Auto-claim Drops keep the watch-time event that earns points and Drops.",
             Section.PRIVACY, restart = true))
     }
 }

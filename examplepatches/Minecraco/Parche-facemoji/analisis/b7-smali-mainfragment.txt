@@ -1,0 +1,373 @@
+4 ficheros DEX, 164880 cadenas distintas
+
+
+### Lef/n;
+  .method <init>()V
+      invoke-direct           v0, Lcom/baidu/simeji/components/o;-><init>()V
+      return-void             
+  .method a()V
+      invoke-virtual          v4, Landroid/app/Fragment;->getActivity()Landroid/app/Activity;
+      move-result-object      v0
+      check-cast              v0, Lcom/baidu/simeji/settings/SettingsActivity;
+      invoke-virtual          v0, Lcom/baidu/simeji/settings/SettingsActivity;->O0()Ljava/lang/String;
+      move-result-object      v0
+      iget-object             v1, v4, Lef/n;->a Ljava/lang/ref/WeakReference;
+      invoke-virtual          v1, Ljava/lang/ref/Reference;->get()Ljava/lang/Object;
+      move-result-object      v1
+      check-cast              v1, Landroid/content/SharedPreferences;
+      const-string            v2, "number_row"
+      const/4                 v3, 0
+      invoke-interface        v1, v2, v3, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String; Z)Z
+      move-result             v1
+      const-string            v2, "number_row_key"
+      invoke-virtual          v2, v0, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+      move-result             v0
+      if-eqz                  v0, +013h
+      if-nez                  v1, +011h
+      invoke-static           Lcom/preff/kb/util/ToastShowHandler;->getInstance()Lcom/preff/kb/util/ToastShowHandler;
+      move-result-object      v0
+      const                   v1, 2132019189
+      invoke-virtual          v4, v1, Landroid/app/Fragment;->getString(I)Ljava/lang/String;
+      move-result-object      v1
+      const/4                 v2, 1
+      invoke-virtual          v0, v1, v2, Lcom/preff/kb/util/ToastShowHandler;->showToast(Ljava/lang/String; I)V
+      return-void             
+  .method onActivityCreated(Landroid/os/Bundle;)V
+      invoke-super            v1, v2, Lcom/baidu/simeji/components/o;->onActivityCreated(Landroid/os/Bundle;)V
+      invoke-virtual          v1, Landroid/app/Fragment;->getView()Landroid/view/View;
+      move-result-object      v2
+      const                   v0, 16908298
+      invoke-virtual          v2, v0, Landroid/view/View;->findViewById(I)Landroid/view/View;
+      move-result-object      v2
+      check-cast              v2, Landroid/widget/ListView;
+      const/4                 v0, 0
+      invoke-virtual          v2, v0, Landroid/widget/ListView;->setDivider(Landroid/graphics/drawable/Drawable;)V
+      return-void             
+  .method onCreate(Landroid/os/Bundle;)V
+      invoke-super            v1, v2, Landroid/preference/PreferenceFragment;->onCreate(Landroid/os/Bundle;)V
+      const                   v2, 2132213994
+      invoke-virtual          v1, v2, Landroid/preference/PreferenceFragment;->addPreferencesFromResource(I)V
+      const-string            v2, "screen_advanced"
+      invoke-virtual          v1, v2, Landroid/preference/PreferenceFragment;->findPreference(Ljava/lang/CharSequence;)Landroid/preference/Preference;
+      move-result-object      v2
+      invoke-virtual          v2, v1, Landroid/preference/Preference;->setOnPreferenceClickListener(Landroid/preference/Preference$OnPreferenceClickListener;)V
+      new-instance            v2, Ljava/lang/ref/WeakReference;
+      invoke-static           Lcom/baidu/simeji/App;->g()Lcom/baidu/simeji/App;
+      move-result-object      v0
+      invoke-static           v0, Landroid/preference/PreferenceManager;->getDefaultSharedPreferences(Landroid/content/Context;)Landroid/content/SharedPreferences;
+      move-result-object      v0
+      invoke-direct           v2, v0, Ljava/lang/ref/WeakReference;-><init>(Ljava/lang/Object;)V
+      iput-object             v2, v1, Lef/n;->a Ljava/lang/ref/WeakReference;
+      const-string            v2, "auto_punctuation"
+      invoke-virtual          v1, v2, Landroid/preference/PreferenceFragment;->findPreference(Ljava/lang/CharSequence;)Landroid/preference/Preference;
+      move-result-object      v2
+      check-cast              v2, Lcom/baidu/simeji/widget/CheckBoxPreferenceItem;
+      iput-object             v2, v1, Lef/n;->b Lcom/baidu/simeji/widget/CheckBoxPreferenceItem;
+      const-string            v2, "auto_punctuation_divider"
+      invoke-virtual          v1, v2, Landroid/preference/PreferenceFragment;->findPreference(Ljava/lang/CharSequence;)Landroid/preference/Preference;
+      move-result-object      v2
+      iput-object             v2, v1, Lef/n;->c Landroid/preference/Preference;
+      const-string            v2, "cloud_input_switch_divider"
+      invoke-virtual          v1, v2, Landroid/preference/PreferenceFragment;->findPreference(Ljava/lang/CharSequence;)Landroid/preference/Preference;
+      move-result-object      v2
+      iput-object             v2, v1, Lef/n;->e Landroid/preference/Preference;
+      const-string            v2, "cloud_input_switch"
+      invoke-virtual          v1, v2, Landroid/preference/PreferenceFragment;->findPreference(Ljava/lang/CharSequence;)Landroid/preference/Preference;
+      move-result-object      v2
+      check-cast              v2, Lcom/baidu/simeji/widget/UnCheckBoxPreferenceItem;
+      iput-object             v2, v1, Lef/n;->d Lcom/baidu/simeji/widget/UnCheckBoxPreferenceItem;
+      invoke-virtual          v1, Landroid/preference/PreferenceFragment;->getPreferenceManager()Landroid/preference/PreferenceManager;
+      move-result-object      v2
+      invoke-virtual          v2, Landroid/preference/PreferenceManager;->getSharedPreferences()Landroid/content/SharedPreferences;
+      move-result-object      v2
+      invoke-interface        v2, v1, Landroid/content/SharedPreferences;->registerOnSharedPreferenceChangeListener(Landroid/content/SharedPreferences$OnSharedPreferenceChangeListener;)V
+      invoke-direct           v1, Lef/n;->a()V
+      return-void             
+  .method onDestroy()V
+      invoke-virtual          v1, Landroid/preference/PreferenceFragment;->getPreferenceManager()Landroid/preference/PreferenceManager;
+      move-result-object      v0
+      invoke-virtual          v0, Landroid/preference/PreferenceManager;->getSharedPreferences()Landroid/content/SharedPreferences;
+      move-result-object      v0
+      invoke-interface        v0, v1, Landroid/content/SharedPreferences;->unregisterOnSharedPreferenceChangeListener(Landroid/content/SharedPreferences$OnSharedPreferenceChangeListener;)V
+      invoke-super            v1, Lcom/baidu/simeji/components/o;->onDestroy()V
+      return-void             
+  .method onPreferenceClick(Landroid/preference/Preference;)Z
+      invoke-virtual          v2, Landroid/preference/Preference;->getKey()Ljava/lang/String;
+      move-result-object      v2
+      invoke-virtual          v2, Ljava/lang/String;->hashCode()I
+      const-string            v0, "screen_advanced"
+      invoke-virtual          v2, v0, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+      move-result             v2
+      if-nez                  v2, +003h
+      goto                    +7h
+      const                   v2, 100219
+      invoke-static           v2, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I)V
+      const/4                 v2, 0
+      return                  v2
+  .method onResume()V
+      invoke-super            v3, Landroid/preference/PreferenceFragment;->onResume()V
+      invoke-static           Lcom/baidu/simeji/App;->g()Lcom/baidu/simeji/App;
+      move-result-object      v0
+      const-string            v1, "key_voice_sdk_user_enable"
+      const/4                 v2, 1
+      invoke-static           v0, v1, v2, Lcom/preff/kb/preferences/PreffMultiProcessPreference;->getBooleanPreference(Landroid/content/Context; Ljava/lang/String; Z)Z
+      move-result             v0
+      iget-object             v1, v3, Lef/n;->b Lcom/baidu/simeji/widget/CheckBoxPreferenceItem;
+      invoke-virtual          v1, v0, Lcom/baidu/simeji/widget/CheckBoxPreferenceItem;->setChecked(Z)V
+      const-string            v0, "first_category"
+      invoke-virtual          v3, v0, Landroid/preference/PreferenceFragment;->findPreference(Ljava/lang/CharSequence;)Landroid/preference/Preference;
+      move-result-object      v0
+      check-cast              v0, Landroid/preference/PreferenceGroup;
+      invoke-static           Lcom/baidu/simeji/App;->g()Lcom/baidu/simeji/App;
+      move-result-object      v1
+      invoke-virtual          v1, Landroid/content/Context;->getApplicationContext()Landroid/content/Context;
+      move-result-object      v1
+      invoke-static           v1, Lcom/baidu/simeji/voice/o;->h(Landroid/content/Context;)Z
+      move-result             v1
+      if-nez                  v1, +00dh
+      iget-object             v1, v3, Lef/n;->b Lcom/baidu/simeji/widget/CheckBoxPreferenceItem;
+      invoke-virtual          v0, v1, Landroid/preference/PreferenceGroup;->removePreference(Landroid/preference/Preference;)Z
+      iget-object             v1, v3, Lef/n;->c Landroid/preference/Preference;
+      invoke-virtual          v0, v1, Landroid/preference/PreferenceGroup;->removePreference(Landroid/preference/Preference;)Z
+      goto                    +bh
+      iget-object             v1, v3, Lef/n;->b Lcom/baidu/simeji/widget/CheckBoxPreferenceItem;
+      invoke-virtual          v0, v1, Landroid/preference/PreferenceGroup;->addPreference(Landroid/preference/Preference;)Z
+      iget-object             v1, v3, Lef/n;->c Landroid/preference/Preference;
+      invoke-virtual          v0, v1, Landroid/preference/PreferenceGroup;->addPreference(Landroid/preference/Preference;)Z
+      invoke-static           Lcom/baidu/simeji/cloudinput/CloudInputUtils;->l()Z
+      move-result             v1
+      if-eqz                  v1, +00dh
+      iget-object             v1, v3, Lef/n;->d Lcom/baidu/simeji/widget/UnCheckBoxPreferenceItem;
+      invoke-virtual          v0, v1, Landroid/preference/PreferenceGroup;->addPreference(Landroid/preference/Preference;)Z
+      iget-object             v1, v3, Lef/n;->e Landroid/preference/Preference;
+      invoke-virtual          v0, v1, Landroid/preference/PreferenceGroup;->addPreference(Landroid/preference/Preference;)Z
+      goto                    +bh
+      iget-object             v1, v3, Lef/n;->e Landroid/preference/Preference;
+      invoke-virtual          v0, v1, Landroid/preference/PreferenceGroup;->removePreference(Landroid/preference/Preference;)Z
+      iget-object             v1, v3, Lef/n;->d Lcom/baidu/simeji/widget/UnCheckBoxPreferenceItem;
+      invoke-virtual          v0, v1, Landroid/preference/PreferenceGroup;->removePreference(Landroid/preference/Preference;)Z
+      return-void             
+  .method onSharedPreferenceChanged(Landroid/content/SharedPreferences; Ljava/lang/String;)V
+      iget-object             v0, v6, Lef/n;->a Ljava/lang/ref/WeakReference;
+      invoke-virtual          v0, Ljava/lang/ref/Reference;->get()Ljava/lang/Object;
+      move-result-object      v0
+      check-cast              v0, Landroid/content/SharedPreferences;
+      if-nez                  v0, +003h
+      return-void             
+      invoke-virtual          v8, Ljava/lang/String;->hashCode()I
+      invoke-virtual          v8, Ljava/lang/String;->hashCode()I
+      move-result             v1
+      const-string            v2, "auto_correction"
+      const/4                 v3, 0
+      const/4                 v4, 1
+      const/4                 v5, -1
+      sparse-switch           v1, +0000199h
+      goto/16                 +065h
+      const-string            v1, "auto_cap"
+      invoke-virtual          v8, v1, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+      move-result             v1
+      if-nez                  v1, +004h
+      goto/16                 +05bh
+      const/16                v5, 8
+      goto/16                 +057h
+      invoke-virtual          v8, v2, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+      move-result             v1
+      if-nez                  v1, +003h
+      goto                    +4fh
+      const/4                 v5, 7
+      goto                    +4dh
+      const-string            v1, "show_suggestions"
+      invoke-virtual          v8, v1, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+      move-result             v1
+      if-nez                  v1, +003h
+      goto                    +44h
+      const/4                 v5, 6
+      goto                    +42h
+      const-string            v1, "cloud_input_switch"
+      invoke-virtual          v8, v1, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+      move-result             v1
+      if-nez                  v1, +003h
+      goto                    +39h
+      const/4                 v5, 5
+      goto                    +37h
+      const-string            v1, "symbol_hint"
+      invoke-virtual          v8, v1, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+      move-result             v1
+      if-nez                  v1, +003h
+      goto                    +2eh
+      const/4                 v5, 4
+      goto                    +2ch
+      const-string            v1, "number_row"
+      invoke-virtual          v8, v1, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+      move-result             v1
+      if-nez                  v1, +003h
+      goto                    +23h
+      const/4                 v5, 3
+      goto                    +21h
+      const-string            v1, "autospace_punctuation"
+      invoke-virtual          v8, v1, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+      move-result             v1
+      if-nez                  v1, +003h
+      goto                    +18h
+      const/4                 v5, 2
+      goto                    +16h
+      const-string            v1, "auto_punctuation"
+      invoke-virtual          v8, v1, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+      move-result             v1
+      if-nez                  v1, +003h
+      goto                    +dh
+      move                    v5, v4
+      goto                    +bh
+      const-string            v1, "next_word_prediction"
+      invoke-virtual          v8, v1, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+      move-result             v1
+      if-nez                  v1, +003h
+      goto                    +2h
+      move                    v5, v3
+      packed-switch           v5, +0000157h
+      goto/16                 +12ch
+      invoke-interface        v0, v8, v4, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String; Z)Z
+      move-result             v7
+      invoke-static           v7, Ljava/lang/String;->valueOf(Z)Ljava/lang/String;
+      move-result-object      v7
+      const                   v8, 200079
+      invoke-static           v8, v7, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I Ljava/lang/String;)V
+      goto/16                 +11ch
+      invoke-interface        v7, v8, v3, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String; Z)Z
+      move-result             v7
+      invoke-virtual          v6, Landroid/app/Fragment;->isResumed()Z
+      move-result             v1
+      if-eqz                  v1, +012h
+      invoke-interface        v0, v8, v3, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String; Z)Z
+      move-result             v7
+      invoke-static           v7, Ljava/lang/String;->valueOf(Z)Ljava/lang/String;
+      move-result-object      v7
+      const                   v8, 200073
+      invoke-static           v8, v7, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I Ljava/lang/String;)V
+      goto/16                 +102h
+      invoke-virtual          v6, v2, Landroid/preference/PreferenceFragment;->findPreference(Ljava/lang/CharSequence;)Landroid/preference/Preference;
+      move-result-object      v8
+      check-cast              v8, Lcom/baidu/simeji/widget/CheckBoxPreferenceItem;
+      if-eqz                  v8, +0fah
+      invoke-virtual          v8, v7, Lcom/baidu/simeji/widget/CheckBoxPreferenceItem;->setChecked(Z)V
+      goto/16                 +0f5h
+      invoke-interface        v0, v8, v4, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String; Z)Z
+      move-result             v7
+      invoke-static           v7, Ljava/lang/String;->valueOf(Z)Ljava/lang/String;
+      move-result-object      v7
+      const                   v8, 200074
+      invoke-static           v8, v7, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I Ljava/lang/String;)V
+      goto/16                 +0e5h
+      invoke-interface        v0, v8, v3, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String; Z)Z
+      move-result             v7
+      invoke-static           Lcom/baidu/simeji/App;->g()Lcom/baidu/simeji/App;
+      move-result-object      v8
+      const-string            v0, "key_local_cloud_input_switch"
+      invoke-static           v8, v0, v7, Lcom/preff/kb/preferences/PreffMultiProcessPreference;->saveBooleanPreference(Landroid/content/Context; Ljava/lang/String; Z)V
+      if-eqz                  v7, +009h
+      const                   v7, 101254
+      invoke-static           v7, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I)V
+      goto                    +7h
+      const                   v7, 101255
+      invoke-static           v7, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I)V
+      invoke-static           Lcom/baidu/simeji/cloudinput/CloudInputUtils;->n()V
+      goto/16                 +0c4h
+      invoke-interface        v0, v8, v3, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String; Z)Z
+      move-result             v7
+      invoke-static           Lcom/baidu/simeji/App;->g()Lcom/baidu/simeji/App;
+      move-result-object      v8
+      invoke-virtual          v8, Landroid/content/Context;->getApplicationContext()Landroid/content/Context;
+      move-result-object      v8
+      const-string            v0, "key_symbol_enabled"
+      invoke-static           v8, v0, v7, Lcom/preff/kb/preferences/PreffMultiProcessPreference;->saveBooleanPreference(Landroid/content/Context; Ljava/lang/String; Z)V
+      const                   v8, 200289
+      invoke-static           v7, Ljava/lang/String;->valueOf(Z)Ljava/lang/String;
+      move-result-object      v7
+      invoke-static           v8, v7, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I Ljava/lang/String;)V
+      goto/16                 +0a7h
+      invoke-interface        v0, v8, v3, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String; Z)Z
+      move-result             v7
+      invoke-static           Lcom/baidu/simeji/App;->g()Lcom/baidu/simeji/App;
+      move-result-object      v8
+      invoke-virtual          v8, Lcom/baidu/simeji/App;->i()Lki/b;
+      move-result-object      v8
+      iget-object             v8, v8, Lki/b;->d Ld6/q0;
+      invoke-virtual          v8, v7, Ld6/q0;->b(Z)V
+      if-eqz                  v7, +00fh
+      invoke-static           Lcom/baidu/simeji/App;->g()Lcom/baidu/simeji/App;
+      move-result-object      v8
+      invoke-virtual          v8, Landroid/content/Context;->getApplicationContext()Landroid/content/Context;
+      move-result-object      v8
+      const-string            v0, "key_show_number_row_dialog"
+      invoke-static           v8, v0, v4, Lcom/preff/kb/preferences/PreffMainProcesspreference;->saveBooleanPreference(Landroid/content/Context; Ljava/lang/String; Z)V
+      invoke-static           Lcom/baidu/simeji/App;->g()Lcom/baidu/simeji/App;
+      move-result-object      v8
+      invoke-virtual          v8, Landroid/content/Context;->getApplicationContext()Landroid/content/Context;
+      move-result-object      v8
+      const-string            v0, "key_number_row_enabled"
+      invoke-static           v8, v0, v7, Lcom/preff/kb/preferences/PreffMultiProcessPreference;->saveBooleanPreference(Landroid/content/Context; Ljava/lang/String; Z)V
+      invoke-static           Lcom/baidu/simeji/theme/s;->x()Lcom/baidu/simeji/theme/s;
+      move-result-object      v8
+      invoke-virtual          v8, Lcom/baidu/simeji/theme/s;->W()V
+      const                   v8, 200260
+      invoke-static           v7, Ljava/lang/String;->valueOf(Z)Ljava/lang/String;
+      move-result-object      v7
+      invoke-static           v8, v7, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I Ljava/lang/String;)V
+      invoke-static           v4, Lcom/baidu/simeji/debug/l0;->b(Z)V
+      invoke-static           Lzd/a;->a()Lzd/a;
+      move-result-object      v7
+      invoke-virtual          v7, Lzd/a;->onKeyboardSizeChanged()V
+      goto                    +5dh
+      invoke-interface        v0, v8, v4, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String; Z)Z
+      move-result             v7
+      invoke-static           v7, Lj6/f;->r(Z)V
+      if-eqz                  v7, +009h
+      const                   v7, 100926
+      invoke-static           v7, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I)V
+      goto                    +4dh
+      const                   v7, 100927
+      invoke-static           v7, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I)V
+      invoke-static           Lgb/f;->q()Lgb/d;
+      move-result-object      v7
+      invoke-virtual          v7, Lgb/d;->e()Ljava/lang/String;
+      move-result-object      v7
+      const                   v8, 100928
+      invoke-static           v8, v7, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I Ljava/lang/String;)V
+      goto                    +38h
+      invoke-static           Lcom/baidu/simeji/App;->g()Lcom/baidu/simeji/App;
+      move-result-object      v7
+      const-string            v1, "key_voice_sdk_switch_clicked"
+      invoke-static           v7, v1, v4, Lcom/preff/kb/preferences/PreffMultiProcessPreference;->saveBooleanPreference(Landroid/content/Context; Ljava/lang/String; Z)V
+      invoke-interface        v0, v8, v4, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String; Z)Z
+      move-result             v7
+      invoke-static           Lcom/baidu/simeji/App;->g()Lcom/baidu/simeji/App;
+      move-result-object      v8
+      const-string            v0, "key_voice_sdk_user_enable"
+      invoke-static           v8, v0, v7, Lcom/preff/kb/preferences/PreffMultiProcessPreference;->saveBooleanPreference(Landroid/content/Context; Ljava/lang/String; Z)V
+      if-eqz                  v7, +009h
+      const                   v7, 100418
+      invoke-static           v7, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I)V
+      goto                    +19h
+      const                   v7, 100419
+      invoke-static           v7, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I)V
+      goto                    +12h
+      invoke-interface        v0, v8, v4, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String; Z)Z
+      move-result             v7
+      invoke-static           v7, Ljava/lang/String;->valueOf(Z)Ljava/lang/String;
+      move-result-object      v7
+      const                   v8, 200077
+      invoke-static           v8, v7, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I Ljava/lang/String;)V
+      invoke-static           Lcom/baidu/simeji/cloudinput/CloudInputUtils;->o()V
+      return-void             
+      nop                     
+      sparse-switch-payload   -7bc5b868 -6795c936 -3a56aa2e -175b081c -13ac1f32 -132510ed 23be1cad 35a683ee 55c61d42
+      packed-switch-payload   0 1 2 3 4 5 6 7 8
+  .method resetTitle()V
+      invoke-super            v2, Lcom/baidu/simeji/components/o;->resetTitle()V
+      invoke-virtual          v2, Landroid/app/Fragment;->getActivity()Landroid/app/Activity;
+      move-result-object      v0
+      const                   v1, 2132018706
+      invoke-virtual          v2, v1, Landroid/app/Fragment;->getString(I)Ljava/lang/String;
+      move-result-object      v1
+      invoke-virtual          v0, v1, Landroid/app/Activity;->setTitle(Ljava/lang/CharSequence;)V
+      return-void             

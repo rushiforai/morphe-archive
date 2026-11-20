@@ -275,6 +275,9 @@ final class EddiArchiveSearchUi {
             int mode = Haiagaru.hissiViewerSwipeHistory();
             if (mode != 0) navigateBySwipe(right == (mode == 1));
         });
+        View resultsDivider = new View(activity);
+        resultsDivider.setBackgroundColor(muted);
+        root.addView(resultsDivider, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, Math.max(1, dp(1))));
         results = new LinearLayout(activity);
         results.setOrientation(LinearLayout.VERTICAL);
         scroll.addView(results);
@@ -630,6 +633,7 @@ final class EddiArchiveSearchUi {
             card.setOnClickListener(view -> {
                 try {
                     saveState(null);
+                    EdgeArchiveLocalSearch.markArchiveResult(thread.url, thread.title);
                     if (opener.open(thread.url)) return;
                     Haiagaru.reportEddiArchiveError(activity, "THREAD_OPEN_FAILED",
                             "ChMate could not open archive result: " + thread.url, null);
@@ -660,21 +664,7 @@ final class EddiArchiveSearchUi {
     }
 
     private void showResultCopy(ThreadResult thread){
-        Uri uri=Uri.parse(thread.url);java.util.List<String> parts=uri.getPathSegments();
-        String board="liveedge",key=null;
-        if(parts.size()>=4&&parts.get(0).equals("sdemo")&&parts.get(1).equals("r")){board=parts.get(2).replaceFirst("^e_e_","");key=parts.get(3);}
-        else if(parts.size()>=4&&parts.get(0).equals("test")&&parts.get(1).equals("read.cgi")){board=parts.get(2);key=parts.get(3);}
-        if(key==null||!key.matches("[0-9]{9,12}"))return;
-        String nativeUrl="https://bbs.eddibb.cc/test/read.cgi/"+board+"/"+key+"/";
-        String kyodemo="https://www.kyodemo.net/sdemo/r/e_e_"+board+"/"+key+"/";
-        String label="liveedge".equals(board)?"エッヂ":board;
-        String[] values={kyodemo,nativeUrl,label+"\n"+nativeUrl,thread.title+"\n"+nativeUrl};
-        new HaiagaruDialog.Builder(activity).setTitle("検索結果をコピー")
-                .setItems(new String[]{"KyodemoのURL","スレのURL","板名とスレのURL","スレタイとURL"},(dialog,which)->{
-                    android.content.ClipboardManager clipboard=(android.content.ClipboardManager)activity.getSystemService(android.content.Context.CLIPBOARD_SERVICE);
-                    clipboard.setPrimaryClip(android.content.ClipData.newPlainText("スレ",values[which]));
-                    android.widget.Toast.makeText(activity,"コピーしました",android.widget.Toast.LENGTH_SHORT).show();
-                }).setNegativeButton("キャンセル",null).show();
+        ArchiveResultActions.show(activity,thread.title,thread.url);
     }
 
     private String resultStatus() {
@@ -878,9 +868,8 @@ final class EddiArchiveSearchUi {
         CheckBox lock=new CheckBox(activity);
         lock.setText("検索欄と結果一覧の高さを固定（つまみを隠す）");
         lock.setChecked(ArchiveSearchLayout.locked(activity));content.addView(lock);
-        CheckBox originalSite=new CheckBox(activity);
-        originalSite.setText("元サイトで開く（次回から）");
-        originalSite.setChecked(ArchiveSearchLayout.originalSite(activity));content.addView(originalSite);
+        Button originalSite=button("専用ビューア1／2を選ぶ");
+        originalSite.setOnClickListener(v->ArchiveSearchLayout.choose(activity));content.addView(originalSite);
         new HaiagaruDialog.Builder(activity).setTitle("過去ログ検索の表示設定")
                 .setView(content).setNegativeButton("キャンセル", null)
                 .setNeutralButton("標準に戻す", (dialog, which) -> {
@@ -890,7 +879,6 @@ final class EddiArchiveSearchUi {
                 })
                 .setPositiveButton("適用", (dialog, which) -> {
                     ArchiveSearchLayout.prefs(activity).edit().putBoolean(ArchiveSearchLayout.LOCKED,lock.isChecked()).apply();
-                    SettingsProfiles.prefs(activity).edit().putBoolean(ArchiveSearchLayout.ORIGINAL_SITE,originalSite.isChecked()).apply();
                     saveAppearance(
                         controls.getProgress() + 70, titles.getProgress() + 70,
                         spacing.getProgress(), density.getProgress() + 50, hide.isChecked());

@@ -48,11 +48,6 @@ def normalize_resource_query(query: str) -> ParsedQuery:
             f"Resource query contains invalid control characters: {clean!r}"
         )
 
-    # Reject path traversal or leading slashes
-    if ".." in clean or clean.startswith("/"):
-        raise ValueError(
-            f"Resource query contains path traversal or absolute path: '{clean}'"
-        )
     # 0. Text / value query: text:<str>, val:<str>, value:<str>
     if clean.startswith(("text:", "val:", "value:")) or clean.lower().startswith(
         ("text:", "val:", "value:")
@@ -62,6 +57,12 @@ def normalize_resource_query(query: str) -> ParsedQuery:
         if not search_text:
             raise ValueError("Text/value query string cannot be empty")
         return ParsedQuery(kind="value", raw_query=clean, text_value=search_text)
+
+    # Reject path traversal or leading slashes
+    if ".." in clean or clean.startswith("/"):
+        raise ValueError(
+            f"Resource query contains path traversal or absolute path: '{clean}'"
+        )
 
     # 1. Hex ID: 0x7f08028e or 7f08028e
     if re.match(r"^(?:0x)?[0-9a-fA-F]{8}$", clean):

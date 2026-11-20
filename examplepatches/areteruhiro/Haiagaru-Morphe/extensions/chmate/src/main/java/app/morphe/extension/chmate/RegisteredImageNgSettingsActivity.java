@@ -55,14 +55,14 @@ public final class RegisteredImageNgSettingsActivity extends Activity {
         setContentView(scroll);
         scroll.requestApplyInsets();
         TextView heading = new TextView(this);
-        heading.setText("登録画像によるあぼーん");
+        heading.setText("登録画像をあぼーんにする");
         heading.setTextSize(20);
         layout.addView(heading);
-        setTitle("登録画像によるあぼーん");
+        setTitle("登録画像をあぼーんにする");
         SharedPreferences settings = RegisteredImageNg.prefs(this);
 
         Switch enabled = new Switch(this);
-        enabled.setText("登録画像に一致するレスをあぼーん");
+        enabled.setText("登録画像をあぼーんにする");
         enabled.setChecked(settings.getBoolean(RegisteredImageNg.ENABLE, false));
         layout.addView(enabled);
         enabled.setOnCheckedChangeListener((button, value) -> {

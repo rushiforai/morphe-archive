@@ -7,9 +7,10 @@ import org.jsoup.Jsoup;import org.jsoup.nodes.*;
 /** Read-only public settings/form lookup for the native composer's selected board. */
 final class PostLimitSource {
     static final class Values {
-        final int title,body,lines;final boolean characters;
-        Values(int title,int body,int lines,boolean characters){this.title=title;this.body=body;this.lines=lines;this.characters=characters;}
-        boolean known(){return title>0||body>0||lines>0;}
+        final int title,body,lines,columns;final boolean characters,columnCharacters;
+        Values(int title,int body,int lines,boolean characters){this(title,body,lines,characters,0,true);}
+        Values(int title,int body,int lines,boolean characters,int columns,boolean columnCharacters){this.title=title;this.body=body;this.lines=lines;this.characters=characters;this.columns=columns;this.columnCharacters=columnCharacters;}
+        boolean known(){return title>0||body>0||lines>0||columns>0;}
     }
     static String address(String board){
         BoardAddress parsed=BoardAddress.parse(board);URI uri=URI.create(parsed.url);
@@ -18,7 +19,7 @@ final class PostLimitSource {
     }
     static Values parse(String board,String text){
         Map<String,String> values=PostLimitRules.settings(text);
-        return new Values(PostLimitRules.positive(values.get("BBS_SUBJECT_COUNT")),PostLimitRules.positive(values.get("BBS_MESSAGE_COUNT")),PostLimitRules.lines(values,URI.create(board).getHost()),false);
+        return new Values(PostLimitRules.positive(values.get("BBS_SUBJECT_COUNT")),PostLimitRules.positive(values.get("BBS_MESSAGE_COUNT")),PostLimitRules.lines(values,URI.create(board).getHost()),false,PostLimitRules.lineMaximum(values,board),PostLimitRules.lineCharacters(values,board));
     }
     static int maximum(Element doc,String selector){
         Element input=doc.selectFirst(selector);return input==null?0:PostLimitRules.positive(input.attr("maxlength"));
@@ -32,7 +33,10 @@ final class PostLimitSource {
         int count=lines==null?0:PostLimitRules.positive(lines.hasAttr("data-maxlines")?lines.attr("data-maxlines"):lines.attr("data-max-lines"));
         // Current native-to-Animanch creation adapter enforces these even if the public form omits them.
         if(thread&&kind.equals("animanch")){title=title>0?Math.min(64,title):64;body=body>0?Math.min(1000,body):1000;count=count>0?Math.min(30,count):30;}
-        return new Values(title,body,count,true);
+        Element lineLength=posting.selectFirst("textarea[data-max-line-chars],textarea[data-maxlinelength],textarea[data-max-line-length]");
+        int maximum=0;boolean chars=true;
+        if(lineLength!=null){String key=lineLength.hasAttr("data-max-line-chars")?"data-max-line-chars":lineLength.hasAttr("data-maxlinelength")?"data-maxlinelength":"data-max-line-length";maximum=PostLimitRules.positive(lineLength.attr(key));chars=!"bytes".equalsIgnoreCase(lineLength.attr("data-line-limit-unit"));}
+        return new Values(title,body,count,true,maximum,chars);
     }
     static Values fetch(Context context,String board,boolean thread)throws Exception{
         SiteBoardGateway gateway=SiteBoardGateway.get(context);

@@ -1,12 +1,16 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-19.
+ * Modified by lavinhoque33, 2026-11-18.
  * Modified by lavinhoque33, 2026-11-07.
  * Modified by lavinhoque33, 2026-11-10
  */
 package app.morphe.extension.music.patches.downloads;
 
 import static app.morphe.extension.shared.utils.StringRef.str;
+
+import android.os.SystemClock;
 
 import androidx.annotation.Nullable;
 
@@ -15,30 +19,69 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BooleanSupplier;
+import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 
 import app.morphe.extension.music.patches.misc.requests.MusicBrowseRequest;
 import app.morphe.extension.music.settings.Settings;
 import app.morphe.extension.shared.utils.Logger;
 import app.morphe.extension.shared.utils.Utils;
 
-// download the complete playlist, then publish a native offline queue in its original order.
+/** Downloads a playlist or album, keeping interrupted Stream downloads available to resume. */
 public final class PlaylistDownloads {
-    private static final Set<String> active = ConcurrentHashMap.newKeySet();
+    private static final ConcurrentHashMap<String, Run> active = new ConcurrentHashMap<>();
+    private static final ThreadLocal<Run> worker = new ThreadLocal<>();
+    private static final BooleanSupplier NOT_STOPPED = () -> false;
+
+    private static final class Run {
+        final DownloadMode mode;
+        final boolean automatic;
+        final long startedAt = SystemClock.elapsedRealtime();
+        DownloadKeepAlive.Hold hold;
+        DownloadNetwork network;
+        boolean madeProgress;
+        boolean interrupted;
+        volatile boolean removed;
+
+        Run(DownloadMode mode, boolean automatic) {
+            this.mode = mode;
+            this.automatic = automatic;
+        }
+
+        boolean cancelled() {
+            return removed || hold.timedOut();
+        }
+
+        void recordInterruption() {
+            if (automatic) {
+                interrupted = hold.timedOut() || Thread.currentThread().isInterrupted()
+                        || network.connectionInterrupted();
+            }
+        }
+    }
 
     private PlaylistDownloads() {}
 
     /**
-     * The header Download of a playlist or album: a stream download that is saved already offers Remove instead,
-     * so the playlist is never saved twice, and while its download runs a tap says so ({@link HeaderDownloadState}).
+     * A saved stream source (even if an automatic resume is filling it) offers Remove on the existing button.
      */
     static void onDownloadButton(String playlistId) {
+        Run run = active.get(playlistId);
+        if (run != null && run.automatic && !run.removed) {
+            DownloadRemoval.confirmSource(playlistId);
+            return;
+        }
+
         boolean streamCopy = LocalDownloadManager.downloadMode().streamCopy();
-        boolean running = isRunning(playlistId);
+        boolean running = run != null;
         HeaderDownloadState.Tap tap = HeaderDownloadState.tapOf(streamCopy,
                 streamCopy && DownloadedMarkers.isSourceDownloaded(playlistId), running);
         Logger.printDebug(() -> "PlaylistDownloads: header Download of " + playlistId + ", tap=" + tap);
@@ -56,95 +99,294 @@ public final class PlaylistDownloads {
 
     /** Whether a download of the list is running. */
     static boolean isRunning(@Nullable String playlistId) {
-        return playlistId != null && active.contains(playlistId);
+        return playlistId != null && active.containsKey(playlistId);
+    }
+
+    /** The mode of an active run takes priority over a setting changed since it started. */
+    static boolean showsStreamProgress(String playlistId) {
+        Run run = active.get(playlistId);
+        return run != null ? run.mode.streamCopy() : LocalDownloadManager.downloadMode().streamCopy();
+    }
+
+    static void resume(String playlistId) {
+        enqueue(playlistId, LocalDownloadManager.downloadMode(), true, false);
+    }
+
+    enum ResumeStart { STARTED, WIFI_UNAVAILABLE, NOT_PENDING, ALREADY_RUNNING, MODE_CHANGED, STORAGE_DENIED }
+
+    static ResumeStart resumeAutomatically(String playlistId) {
+        return enqueue(playlistId, LocalDownloadManager.downloadMode(), true, true);
+    }
+
+    /** Called under the source mutation lock; an explicit Remove must win over an outstanding worker. */
+    static void onSourceRemoved(String playlistId) {
+        Run run = active.get(playlistId);
+        if (run == null || !run.mode.streamCopy()) return;
+
+        run.removed = true;
+        DownloadNetwork.wakeWaiters();
+        Logger.printInfo(() -> "PlaylistDownloads: removed active " + playlistId);
+    }
+
+    static BooleanSupplier stopSignal() {
+        Run run = worker.get();
+        if (run != null) return run::cancelled;
+
+        BooleanSupplier sync = PlaylistSync.stopSignal();
+        return sync == null ? NOT_STOPPED : sync;
+    }
+
+    static boolean quietTransfer() {
+        Run run = worker.get();
+        return run == null ? PlaylistSync.transferring() : run.automatic;
+    }
+
+    static <T> T publishMedia(Callable<T> write) throws Exception {
+        Run run = worker.get();
+        if (run == null) return PlaylistSync.publishMedia(write);
+
+        synchronized (PlaylistSync.MUTATION) {
+            if (run.cancelled()) throw new IOException("Playlist download stopped");
+            return write.call();
+        }
     }
 
     public static void enqueue(String playlistId) {
-        // Decided once for the whole playlist, so a setting changed mid-way cannot split it between modes.
-        DownloadMode mode = LocalDownloadManager.downloadMode();
-        DownloadQuality quality = Settings.DOWNLOAD_QUALITY.get();
-        if (mode == DownloadMode.OFF) return;
-        if (mode.localFiles() && !NativeDownloads.ensureStoragePermission()) return;
-        if (!active.add(playlistId)) {
-            Utils.showToastShort(str("morphe_music_downloads_already_running"));
-            return;
-        }
-        Utils.showToastShort(str("morphe_music_playlist_download_started"));
-        Utils.submitOnBackgroundThread(() -> {
-            String title = playlistId;
-            SourceHeader header = SourceHeader.EMPTY;
-            try {
-                if (mode.localFiles()) NativeDownloads.migrateLegacy();
-                List<String> tracks = new ArrayList<>();
-                Set<String> continuations = new HashSet<>();
-                String continuation = null;
-                do {
-                    JSONObject response = MusicBrowseRequest.browse(Utils.getContext(), "VL" + playlistId,
-                            continuation, null);
-                    if (continuation == null) {
-                        header = header(playlistId, response);
-                        if (!header.hasTitle()) throw new IOException("Playlist title is unavailable");
-                        title = header.title();
-                    }
-                    PlaylistPage.Page page = PlaylistPage.read(response);
-                    tracks.addAll(page.videoIds());
-                    continuation = page.continuation();
-                    if (continuation != null && !continuations.add(continuation)) {
-                        throw new IOException("Music repeated a playlist continuation");
-                    }
-                } while (continuation != null);
-                // Unavailable tracks keep their place in the recorded list but are never downloaded.
-                List<String> available = PlaylistPage.available(tracks);
-                int skipped = tracks.size() - available.size();
-                if (available.isEmpty()) throw new IOException("Playlist contains no downloadable tracks");
-                if (skipped > 0) Logger.printDebug(() -> "PlaylistDownloads: " + playlistId + " skips " + skipped
-                        + " unavailable of " + tracks.size() + " tracks");
+        enqueue(playlistId, LocalDownloadManager.downloadMode(), false, false);
+    }
 
-                // Recorded as not finished before the first copy: a download cut off here is resumed, not lost.
-                if (mode.streamCopy()) DownloadedMarkers.onPlaylistStarted(playlistId, tracks, header);
+    private static ResumeStart enqueue(String playlistId, DownloadMode mode, boolean resume, boolean automatic) {
+        if (mode == DownloadMode.OFF || (automatic && !mode.streamCopy())) return ResumeStart.MODE_CHANGED;
+        if (mode.localFiles() && !NativeDownloads.ensureStoragePermission()) return ResumeStart.STORAGE_DENIED;
 
-                List<Long> mediaIds = new ArrayList<>(available.size());
-                int downloaded = 0;
-                for (int index = 0; index < available.size(); index++) {
-                    // already-saved tracks finish in milliseconds; unpaced
-                    // updates exceed Android's per-app rate limit, which then drops the final notification.
-                    if (LocalDownloadManager.canPostProgress()) {
-                        LocalDownloadManager.showDownloadNotification("playlist:" + playlistId, title,
-                                index * 100 / available.size(), true,
-                                str("morphe_music_playlist_download_progress", index + 1, available.size()));
-                    }
-                    LocalDownloadManager.Saved saved = LocalDownloadManager.download(available.get(index), mode, quality);
-                    if (saved.downloaded()) downloaded++;
-                    if (mode.localFiles()) mediaIds.add(NativeAudioStore.mediaId(saved.nativeTrack()));
-                }
-                // The playlist in Device files exists only for local files; a stream copy is invisible there.
-                if (mode.localFiles()) NativePlaylistStore.save(playlistId, title, mediaIds);
-                // The videos of the songs that have one follow the audio copies; a video that fails fails nothing.
-                VideoCopyDownloader.Outcome videos = mode.streamCopy()
-                        ? VideoCopyDownloader.ensure(playlistId, title, available, quality)
-                        : VideoCopyDownloader.Outcome.NONE;
-                // Every copy and video is in: the header may show the check and offer Remove.
-                if (mode.streamCopy()) DownloadedMarkers.onPlaylistCompleted(playlistId);
-                String done = completionText(mode, downloaded, available.size(), skipped, videos);
-                LocalDownloadManager.awaitNotificationSlot();
-                LocalDownloadManager.showDownloadNotification("playlist:" + playlistId, title, 100, false, done);
-                Utils.showToastShort(done);
-            } catch (Exception ex) {
-                Logger.printException(() -> "Playlist download failed", ex);
-                // Completed songs remain playable, but never label a truncated playlist complete.
-                LocalDownloadManager.awaitNotificationSlot();
-                String failed = str("morphe_music_playlist_download_failed", PlaylistText.failureReason(ex));
-                LocalDownloadManager.showDownloadNotification("playlist:" + playlistId, title, 0, false, failed);
-                Utils.showToastLong(failed);
-            } finally {
-                active.remove(playlistId);
-                if (mode.streamCopy()) DownloadedMarkers.onPlaylistFinished();
-                // tracks now in a playlist leave "Not in a playlist";
-                // songs kept from a failed download join it.
-                if (mode.localFiles()) NativePlaylistStore.refreshUnsortedLater();
+        Run run;
+        synchronized (PlaylistSync.MUTATION) {
+            if (resume && !DownloadRetryPlan.canResume(mode.streamCopy(), automatic
+                    ? DownloadedMarkers.hasPendingDownload(playlistId) : DownloadedMarkers.isPlaylistPending(playlistId))) {
+                return ResumeStart.NOT_PENDING;
             }
-            return null;
-        });
+            if (automatic && DownloadNetwork.eligibleWifi() == null) return ResumeStart.WIFI_UNAVAILABLE;
+
+            run = new Run(mode, automatic);
+            if (active.putIfAbsent(playlistId, run) != null) {
+                if (!automatic) Utils.showToastShort(str("morphe_music_downloads_already_running"));
+                return ResumeStart.ALREADY_RUNNING;
+            }
+            if (!automatic && mode.streamCopy() && !Utils.isInternetReachable()) {
+                active.remove(playlistId, run);
+                Utils.showToastShort(str("morphe_music_playlist_download_connect"));
+                return ResumeStart.WIFI_UNAVAILABLE;
+            }
+
+            OfflineSourceStore.Source source = resume ? OfflineCopyStore.source(playlistId) : null;
+            run.hold = DownloadKeepAlive.acquire("playlist:" + playlistId, source == null ? null : source.title());
+            if (mode.streamCopy()) run.network = new DownloadNetwork(automatic, run::cancelled, run.hold);
+        }
+
+        if (mode.streamCopy()) DownloadedMarkers.onPlaylistActivityChanged();
+        if (automatic) Logger.printInfo(() -> "PlaylistDownloads: auto-resume " + playlistId);
+        else {
+            if (resume) Logger.printInfo(() -> "PlaylistDownloads: manual resume " + playlistId);
+            Utils.showToastShort(str("morphe_music_playlist_download_started"));
+        }
+
+        DownloadQuality quality = Settings.DOWNLOAD_QUALITY.get();
+        Utils.runOnBackgroundThread(() -> downloadPlaylist(playlistId, run, quality));
+        return ResumeStart.STARTED;
+    }
+
+    private static void downloadPlaylist(String playlistId, Run run, DownloadQuality quality) {
+        worker.set(run);
+        try (DownloadKeepAlive.Hold hold = run.hold) {
+            if (run.cancelled()) {
+                run.recordInterruption();
+                return;
+            }
+            if (run.mode.localFiles()) NativeDownloads.migrateLegacy();
+
+            String browseId = "VL" + playlistId;
+            JSONObject first = browse(run, browseId, null);
+            SourceHeader header = run.network == null ? header(playlistId, first)
+                    : run.network.transfer(() -> header(playlistId, first));
+            if (!header.hasTitle()) throw new IOException("Playlist title is unavailable");
+            hold.progress(header.title(), -1, str("morphe_music_downloads_starting"));
+
+            List<String> tracks = PlaylistPage.readPlaylist(run.mode.streamCopy() ? playlistId : null, first,
+                    token -> browse(run, browseId, token));
+            List<String> available = PlaylistPage.available(tracks);
+            int skipped = tracks.size() - available.size();
+            if (available.isEmpty()) throw new IOException("Playlist contains no downloadable tracks");
+            if (skipped > 0) Logger.printDebug(() -> "PlaylistDownloads: " + playlistId + " skips " + skipped
+                    + " unavailable of " + tracks.size() + " tracks");
+
+            if (run.mode.streamCopy()) {
+                downloadStream(playlistId, header, tracks, available, skipped, quality, run);
+            } else {
+                downloadDeviceFiles(playlistId, header.title(), available, skipped, quality, run);
+            }
+        } catch (Exception ex) {
+            if (run.removed) return;
+            if (ex instanceof InterruptedException) Thread.currentThread().interrupt();
+
+            Logger.printWarn(() -> "PlaylistDownloads: list " + playlistId + " stopped", ex);
+            run.recordInterruption();
+            if (!DownloadRetryPlan.reportFailure(run.automatic, run.interrupted)) return;
+
+            LocalDownloadManager.awaitNotificationSlot();
+            if (run.removed) return;
+
+            String failed = str("morphe_music_playlist_download_failed", PlaylistText.failureReason(ex));
+            LocalDownloadManager.showDownloadNotification(run.hold.key(), run.hold.title(), 0, false, failed);
+            if (!run.automatic) Utils.showToastLong(failed);
+        } finally {
+            worker.remove();
+            active.remove(playlistId, run);
+            if (run.mode.streamCopy()) DownloadedMarkers.onPlaylistFinished();
+            if (run.mode.localFiles()) NativePlaylistStore.refreshUnsortedLater();
+            if (run.automatic) {
+                PlaylistSync.resumeFinished(playlistId, run.startedAt, run.madeProgress, run.interrupted);
+            } else if (run.mode.streamCopy() && !run.removed && DownloadedMarkers.hasPendingDownload(playlistId)) {
+                PlaylistSync.manualTransferPending();
+            }
+        }
+    }
+
+    private static JSONObject browse(Run run, String browseId, @Nullable String continuation) throws Exception {
+        Callable<JSONObject> request = () -> MusicBrowseRequest.browse(Utils.getContext(), browseId, continuation, null);
+        return run.network == null ? request.call() : run.network.transfer(request);
+    }
+
+    private static void downloadDeviceFiles(String playlistId, String title, List<String> tracks,
+                                            int skipped, DownloadQuality quality, Run run) throws Exception {
+        List<Long> mediaIds = new ArrayList<>(tracks.size());
+        for (int index = 0; index < tracks.size(); index++) {
+            run.hold.progress(title, index * 100 / tracks.size(),
+                    str("morphe_music_playlist_download_progress", index + 1, tracks.size()));
+            LocalDownloadManager.Saved saved = LocalDownloadManager.download(tracks.get(index), run.mode, quality);
+            mediaIds.add(NativeAudioStore.mediaId(saved.nativeTrack()));
+        }
+        if (!run.hold.finish()) throw new IOException("Playlist download stopped");
+        NativePlaylistStore.save(playlistId, title, mediaIds);
+        reportComplete(run, playlistId, title, completionText(run.mode, 0, tracks.size(), skipped,
+                VideoCopyDownloader.Outcome.NONE));
+    }
+
+    private static void downloadStream(String playlistId, SourceHeader header, List<String> tracks,
+                                       List<String> available, int skipped, DownloadQuality quality, Run run)
+            throws Exception {
+        synchronized (PlaylistSync.MUTATION) {
+            if (run.removed) return;
+            DownloadedMarkers.onPlaylistStarted(playlistId, tracks, header);
+        }
+
+        UnaryOperator<String> canonical = streamCopyIds();
+        Predicate<String> ready = PlaylistDownloads::offlineReady;
+        Set<String> failures = new HashSet<>();
+        String title = header.title();
+        var progress = new PlaylistTransfer.ProgressCounter(available, canonical, ready);
+        PlaylistTransfer.Progress initial = progress.snapshot();
+        showProgress(run, title, initial);
+        PlaylistTransfer.Outcome transfer = PlaylistTransfer.fill(available, canonical, ready,
+                () -> !run.network.stopped(),
+                id -> {
+                    boolean saved = run.network.transfer(() -> ensureStreamTrack(id, quality));
+                    progress.saved(id);
+                    if (DownloadKeepAlive.supported() || LocalDownloadManager.canPostProgress()) {
+                        showProgress(run, title, progress.snapshot());
+                    }
+                    return saved;
+                }, (id, ex) -> {
+                    if (run.removed) return;
+                    failures.add(id);
+                    Logger.printDebug(() -> "PlaylistDownloads: list=" + playlistId + " track=" + id + " failed", ex);
+                });
+        if (run.removed) return;
+
+        VideoCopyDownloader.Outcome videos = transfer.allReady() && !run.network.stopped()
+                ? VideoCopyDownloader.ensure(playlistId, title, available, quality, canonical, run.network, run.hold)
+                : VideoCopyDownloader.Outcome.NONE;
+        boolean connected = transfer.allReady() && !run.network.stopped() && run.network.awaitTransferConnection();
+
+        PlaylistTransfer.Progress result;
+        boolean completed;
+        synchronized (PlaylistSync.MUTATION) {
+            if (run.removed) return;
+            // A song or all copies may have been explicitly deleted during the transfers.
+            result = playlistProgress(available, streamCopyIds(), ready);
+            run.madeProgress = result.ready() > initial.ready();
+            completed = result.complete() && connected && !run.network.stopped() && run.hold.finish();
+            if (completed) DownloadedMarkers.onPlaylistCompleted(playlistId);
+        }
+        if (completed) {
+            reportComplete(run, playlistId, title, completionText(run.mode, transfer.downloaded(), result.total(),
+                    skipped, videos));
+        } else {
+            int failed = 0;
+            for (String id : available) if (failures.contains(canonical.apply(id))) failed++;
+            reportPartial(run, playlistId, title, result, Math.min(failed, result.total() - result.ready()));
+        }
+    }
+
+    private static UnaryOperator<String> streamCopyIds() {
+        Set<String> own = RawAudioStore.copyIds();
+        var aliases = RawAudioStore.aliases();
+        return id -> {
+            String copyId = OfflineCopyStore.copyId(id, own, aliases);
+            return !id.equals(copyId) && RawAudioStore.find(copyId) == null ? id : copyId;
+        };
+    }
+
+    private static PlaylistTransfer.Progress playlistProgress(List<String> tracks, UnaryOperator<String> canonical,
+                                                               Predicate<String> ready) {
+        var readyCopies = new HashMap<String, Boolean>();
+        return PlaylistTransfer.progress(tracks, id -> readyCopies.computeIfAbsent(canonical.apply(id), ready::test));
+    }
+
+    private static boolean offlineReady(String copyId) {
+        return OfflineCopyStore.metadataOf(copyId) != null && RawAudioStore.find(copyId) != null;
+    }
+
+    private static void showProgress(Run run, String title, PlaylistTransfer.Progress progress) {
+        run.hold.progress(title, progress.ready() * 100 / progress.total(), progressText(progress, false));
+    }
+
+    private static boolean ensureStreamTrack(String id, DownloadQuality quality) throws Exception {
+        return PlaylistTransfer.prepare(id, key -> RawAudioStore.find(key) != null,
+                key -> OfflineCopyStore.metadataOf(key) != null,
+                key -> LocalDownloadManager.download(key, DownloadMode.STREAM_COPY, quality).downloaded(),
+                key -> OfflineBackfill.fetchAndStore(key, true));
+    }
+
+    static String progressText(PlaylistTransfer.Progress progress, boolean resume) {
+        return str(resume ? "morphe_music_playlist_resume" : "morphe_music_playlist_ready",
+                progress.ready(), progress.total());
+    }
+
+    private static void reportComplete(Run run, String playlistId, String title, String text) {
+        run.hold.close();
+        LocalDownloadManager.awaitNotificationSlot();
+        if (run.removed) return;
+
+        Logger.printInfo(() -> "PlaylistDownloads: completed " + playlistId);
+        LocalDownloadManager.showDownloadNotification("playlist:" + playlistId, title, 100, false, text);
+        if (!run.automatic) Utils.showToastShort(text);
+    }
+
+    private static void reportPartial(Run run, String playlistId, String title, PlaylistTransfer.Progress progress,
+                                      int failed) {
+        String text = failed == 0 ? progressText(progress, true)
+                : str("morphe_music_playlist_partial_failed", progress.ready(), progress.total(), failed);
+        Logger.printInfo(() -> "PlaylistDownloads: pending " + playlistId + " ready=" + progress.ready()
+                + " total=" + progress.total() + " failed=" + failed);
+        run.hold.close();
+        run.recordInterruption();
+        if (!DownloadRetryPlan.reportFailure(run.automatic, run.interrupted)) return;
+
+        LocalDownloadManager.awaitNotificationSlot();
+        if (run.removed) return;
+
+        LocalDownloadManager.showDownloadNotification("playlist:" + playlistId, title, 0, false, text);
+        if (!run.automatic) Utils.showToastLong(text);
     }
 
     /**

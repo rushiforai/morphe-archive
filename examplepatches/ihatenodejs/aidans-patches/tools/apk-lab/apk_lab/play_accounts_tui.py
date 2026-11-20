@@ -41,7 +41,7 @@ def exchange_oauth_for_aas(email: str, oauth_token: str) -> str:
     if not apkeep_bin:
         print("\nNotice: apkeep executable not found on host/cache.")
         print("You can exchange manually with:")
-        print(f"  apkeep -e {email} --oauth-token {oauth_token}")
+        print(f"  apkeep -e {email} --oauth-token [OAUTH_TOKEN]")
         aas = questionary.password("Or enter pre-generated AAS token:").ask()
         if not aas or not aas.strip():
             raise GooglePlayAccountError("AAS token cannot be empty")
@@ -144,14 +144,16 @@ def add_account(accounts_file: GooglePlayAccountsFile | None) -> GooglePlayAccou
             print("Canceled: AAS token required.")
             return accounts_file or GooglePlayAccountsFile(version=1, accounts=())
 
-    new_acc = GooglePlayAccount(
-        label=label.strip(),
-        email=email.strip().lower(),
-        aas_token=aas_token.strip(),
-        device=device.strip(),
-        locale=locale.strip(),
-        timezone=timezone.strip(),
-        enabled=True,
+    new_acc = GooglePlayAccount.from_dict(
+        {
+            "label": label.strip(),
+            "email": email.strip().lower(),
+            "aasToken": aas_token.strip(),
+            "device": device.strip(),
+            "locale": locale.strip(),
+            "timezone": timezone.strip(),
+            "enabled": True,
+        }
     )
 
     current_list = list(accounts_file.accounts) if accounts_file else []
@@ -176,15 +178,37 @@ def delete_account(
         print("\nNo accounts to delete.\n")
         return accounts_file or GooglePlayAccountsFile(version=1, accounts=())
 
-    choices = [f"{acc.label} ({acc.redacted_email})" for acc in accounts_file.accounts]
-    choices.append("Cancel")
+    choices: list[questionary.Choice | str] = [
+        questionary.Choice(
+            title=f"{acc.label} ({acc.redacted_email})",
+            value=acc.email,
+        )
+        for acc in accounts_file.accounts
+    ]
+    choices.append(questionary.Choice(title="Cancel", value=None))
     selected = questionary.select("Select account to delete:", choices=choices).ask()
-    if selected == "Cancel" or not selected:
+    if not selected or selected == "Cancel":
         return accounts_file
 
-    selected_label = selected.split(" (")[0]
+    target_acc = next(
+        (acc for acc in accounts_file.accounts if acc.email == selected),
+        None,
+    )
+    if target_acc is None:
+        target_acc = next(
+            (
+                acc
+                for acc in accounts_file.accounts
+                if f"{acc.label} ({acc.redacted_email})" == selected
+                or acc.label == selected
+            ),
+            None,
+        )
+    if target_acc is None:
+        return accounts_file
+
     confirm = questionary.confirm(
-        f"Are you sure you want to permanently delete account [{selected_label}]?",
+        f"Are you sure you want to permanently delete account [{target_acc.label}]?",
         default=False,
     ).ask()
 
@@ -192,10 +216,10 @@ def delete_account(
         print("Deletion canceled.")
         return accounts_file
 
-    remaining = [acc for acc in accounts_file.accounts if acc.label != selected_label]
+    remaining = [acc for acc in accounts_file.accounts if acc.email != target_acc.email]
     updated = GooglePlayAccountsFile(version=1, accounts=tuple(remaining))
     save_google_play_accounts(updated)
-    print(f"Account [{selected_label}] deleted.\n")
+    print(f"Account [{target_acc.label}] deleted.\n")
     return updated
 
 
@@ -208,30 +232,33 @@ def check_accounts(accounts_file: GooglePlayAccountsFile | None) -> None:
     # Find play-metadata helper binary if compiled or Cargo project
     helper_bin = (
         Path(__file__).parent.parent.parent
+        / "tools"
         / "play-metadata"
         / "target"
         / "release"
         / "play-metadata"
     )
-    manifest_path = Path(__file__).parent.parent.parent / "play-metadata" / "Cargo.toml"
+    if not helper_bin.is_file():
+        helper_bin = (
+            Path(__file__).parent.parent.parent
+            / "play-metadata"
+            / "target"
+            / "release"
+            / "play-metadata"
+        )
+    manifest_path = (
+        Path(__file__).parent.parent.parent / "tools" / "play-metadata" / "Cargo.toml"
+    )
+    if not manifest_path.is_file():
+        manifest_path = (
+            Path(__file__).parent.parent.parent / "play-metadata" / "Cargo.toml"
+        )
 
-    request = {
-        "accounts": accounts_file.to_dict(),
-        "packages": ["com.adobe.scan.android"],
-    }
-    input_str = json.dumps(request)
-
-    res: subprocess.CompletedProcess[str] | None = None
+    cmd: list[str] | None = None
     if helper_bin.is_file() and os.access(helper_bin, os.X_OK):
         cmd = [str(helper_bin)]
-        res = subprocess.run(
-            cmd, input=input_str, capture_output=True, text=True, check=False
-        )
     elif manifest_path.is_file():
         cmd = ["cargo", "run", "--quiet", "--manifest-path", str(manifest_path), "--"]
-        res = subprocess.run(
-            cmd, input=input_str, capture_output=True, text=True, check=False
-        )
     else:
         print("play-metadata helper not found. Accounts file validated locally.")
         for acc in accounts_file.accounts:
@@ -241,26 +268,73 @@ def check_accounts(accounts_file: GooglePlayAccountsFile | None) -> None:
             )
         return
 
-    if res is None or res.returncode != 0:
-        code = res.returncode if res else -1
-        err_msg = res.stderr[:300] if res else "Command did not run"
-        print(f"Check failed with exit code {code}")
-        print(err_msg)
-        return
-
-    try:
-        data = json.loads(res.stdout)
-        results = data.get("results", [])
-        failures = data.get("failures", [])
-        print(f"Verified accounts: {len(results)} success, {len(failures)} failures.")
-        for r in results:
-            print(
-                f"  Account [{r.get('accountLabel')}]: Authenticated successfully (tested {r.get('packageName')} v{r.get('versionName')})"
+    all_results = []
+    all_failures = []
+    for acc in accounts_file.accounts:
+        if not acc.enabled:
+            continue
+        request = {
+            "accounts": {"version": accounts_file.version, "accounts": [acc.to_dict()]},
+            "packages": ["com.adobe.scan.android"],
+        }
+        input_str = json.dumps(request)
+        res = subprocess.run(
+            cmd, input=input_str, capture_output=True, text=True, check=False
+        )
+        if res.returncode != 0:
+            code = res.returncode
+            err_msg = res.stderr[:300] if res.stderr else "Command did not run"
+            if acc.aas_token and acc.aas_token in err_msg:
+                err_msg = err_msg.replace(acc.aas_token, "[REDACTED]")
+            all_failures.append(
+                {
+                    "accountLabel": acc.label,
+                    "packageName": "com.adobe.scan.android",
+                    "reason": f"Helper exited with code {code}: {err_msg.strip()}",
+                }
             )
-        for f in failures:
-            print(f"  Failed: {f.get('packageName')} ({f.get('reason')})")
-    except (json.JSONDecodeError, KeyError) as e:
-        print(f"Error parsing metadata response: {e}")
+            print(f"Check failed with exit code {code}")
+            print(err_msg)
+            continue
+
+        try:
+            data = json.loads(res.stdout)
+            if isinstance(data, dict):
+                results = data.get("results")
+                failures = data.get("failures")
+                if isinstance(results, list):
+                    all_results.extend([r for r in results if isinstance(r, dict)])
+                if isinstance(failures, list):
+                    all_failures.extend([f for f in failures if isinstance(f, dict)])
+            else:
+                all_failures.append(
+                    {
+                        "accountLabel": acc.label,
+                        "packageName": "com.adobe.scan.android",
+                        "reason": f"Unexpected response format: expected dict, got {type(data).__name__}",
+                    }
+                )
+        except (json.JSONDecodeError, KeyError, AttributeError) as e:
+            print(f"Error parsing metadata response: {e}")
+            all_failures.append(
+                {
+                    "accountLabel": acc.label,
+                    "packageName": "com.adobe.scan.android",
+                    "reason": f"Failed to parse response: {e}",
+                }
+            )
+
+    print(
+        f"Verified accounts: {len(all_results)} success, {len(all_failures)} failures."
+    )
+    for r in all_results:
+        print(
+            f"  Account [{r.get('accountLabel')}]: Authenticated successfully (tested {r.get('packageName')} v{r.get('versionName')})"
+        )
+    for f in all_failures:
+        print(
+            f"  Failed: [{f.get('accountLabel', 'unknown')}] {f.get('packageName', 'unknown')} ({f.get('reason')})"
+        )
 
 
 def sync_github_secret(accounts_file: GooglePlayAccountsFile | None) -> None:

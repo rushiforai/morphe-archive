@@ -16,6 +16,7 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Switch;
 import android.widget.CheckBox;
 import android.view.View;
 import java.io.ByteArrayOutputStream;
@@ -242,6 +243,19 @@ final class UpdateHistory {
                 boolean upper=option==ReleaseFeatureOptions.Option.WACCHOI_COPY_UPPER;
                 toggle(content,activity,activity.getSharedPreferences("haiagaru_response_actions",0),upper?"ワッチョイ長押しに「上4桁をコピー」を表示":"ワッチョイ長押しに「下4桁をコピー」を表示",
                         upper?"wacchoiLongPressCopyPrefix":"wacchoiLongPressCopySuffix",true,null); break;
+            case WACCHOI_COPY_PARENS:
+                toggle(content,activity,activity.getSharedPreferences("haiagaru_response_actions",0),
+                        "ワッチョイ全文コピーで前後の括弧を除く",WacchoiClipboard.STRIP_PARENTHESES,false,null);
+                break;
+            case THREAD_REPORTER_COPY:
+                TextView reporterCopyHelp=new TextView(activity);
+                reporterCopyHelp.setText("スレタイ長押しに「記者IDをコピー」を追加しました。エッヂの記者IDを含むNGThreadルールはスレ一覧でも照合します。");
+                content.addView(reporterCopyHelp);break;
+            case HIDDEN_NG_NEW_ARRIVAL_COUNT:
+                String nativeVersion="";try{nativeVersion=activity.getPackageManager().getPackageInfo(activity.getPackageName(),0).versionName;}catch(Exception ignored){}
+                if(nativeVersion.contains(".242"))toggle(content,activity,main,"スレ更新後の新着件数から非表示NGのレスを除く",HiddenNgUnread.NEW_ARRIVAL_KEY,false,HiddenNgUnread::clear);
+                else {TextView unsupported=new TextView(activity);unsupported.setText("この新着件数オプションはChMate 0.8.10.242向けです。");content.addView(unsupported);}
+                break;
             case LOCAL_IMAGES:
                 toggle(content, activity, LocalImageArchive.prefs(activity), "保存済み画像から表示",
                         "enabled", true, LocalImageArchive::reset);
@@ -281,7 +295,7 @@ final class UpdateHistory {
                         "videoLandscapeImmersive", false, null); break;
             case IMAGE_NG:
                 toggle(content, activity, RegisteredImageNg.prefs(activity),
-                        "登録画像に一致するレスをあぼーん", RegisteredImageNg.ENABLE, false,
+                        "登録画像をあぼーんにする", RegisteredImageNg.ENABLE, false,
                         RegisteredImageNg::settingsChanged); break;
             case COPY_PASTE_NG:
                 toggle(content, activity, main, "コピペ省略されたレスを透明あぼーん",
@@ -310,6 +324,45 @@ final class UpdateHistory {
                 names.setText("キーワードの表示名を設定");
                 names.setOnClickListener(view -> DisplayNames.showKeywords(activity));
                 content.addView(names); break;
+            case HOME_THREAD_ORDER:
+                toggle(content,activity,SettingsProfiles.prefs(activity),"HOMEのお気に入りスレの並び替え・固定を使う",HomeThreadOrder.ENABLED,true,activity::invalidateOptionsMenu); break;
+            case KEYWORD_MENU:
+                toggle(content,activity,SettingsProfiles.prefs(activity),"HOMEの3点メニューにキーワード表示名の設定を表示",HomeThreadOrder.KEYWORD_MENU,false,activity::invalidateOptionsMenu); break;
+            case RESPONSE_NOTES_MENU:
+                LiveSettings.Toggle memo=new LiveSettings.Toggle(activity);memo.setText("レス長押しに「メモ」を表示");
+                bindToggle(memo,activity.getSharedPreferences("haiagaru_response_actions",0),"response-note-menu",
+                        ()->ResponseMenuSettings.visible(ResponseNotes.MENU),on->ResponseMenuSettings.storeVisibility(activity.getSharedPreferences("haiagaru_response_actions",0),ResponseNotes.MENU,on?1:2));
+                content.addView(memo);break;
+            case ROTATION_MENU:
+                toggle(content,activity,FeatureSwitches.prefs(activity),"画像ビューアの回転操作を︙メニューにまとめる",ImageViewerRotationButton.MENU_KEY,true,null); break;
+            case EXTERNAL_VIDEO_CACHE:
+                toggle(content,activity,VideoViewerSettings.prefs(activity),"外部プレイヤー用にimgpile動画を一時取得",ExternalVideoCache.KEY,true,null); break;
+            case POST_LIMIT_DISPLAY:
+                toggle(content,activity,FeatureSwitches.prefs(activity),"投稿欄に板ごとの上限・残量・超過位置を表示", "postEditorLimitDisplay",true,null); break;
+            case FILTER_OPTIMIZATION:
+                toggle(content,activity,FeatureSwitches.prefs(activity),"フィルターの抽出・位置保持・件数集計を最適化",ExtraQuickFilters.OPTIMIZATION,false,null); break;
+            case DELAYED_POSITION_SNAPSHOT:
+                toggle(content,activity,SettingsProfiles.prefs(activity),"エキスパート設定：遅延位置スナップショット",FilterPosition.DELAYED_SNAPSHOT,false,null); break;
+            case NOTE_INDICATOR:
+                toggle(content,activity,SettingsProfiles.prefs(activity),"メモ済みレスの右下にアイコンを表示（タップで編集）",ResponseNoteIndicator.KEY,true,null); break;
+            case HOME_NOTES_MENU:
+                toggle(content,activity,SettingsProfiles.prefs(activity),"HOMEの3点メニューにメモを表示","homeResponseNotesMenu",true,activity::invalidateOptionsMenu); break;
+            case ARCHIVE_VIEWER_MODE:
+                Button viewerMode=new Button(activity);viewerMode.setText("専用ビューア1／2を選ぶ");viewerMode.setOnClickListener(view->ArchiveSearchLayout.choose(activity));content.addView(viewerMode);break;
+            case X_POST_TRUNCATION_MODE:
+                Button xWarningMode=new Button(activity);
+                Runnable updateXMode=()->xWarningMode.setText("X投稿の省略判定："+(Haiagaru.xPostWarningThresholdMode()==0?"詳細判定（280ポイント）":"簡易判定（420バイト）"));
+                updateXMode.run();
+                xWarningMode.setOnClickListener(view->new HaiagaruDialog.Builder(activity).setTitle("X投稿の省略判定")
+                        .setSingleChoiceItems(new String[]{"詳細判定（日本語・絵文字・URLを考慮）","簡易判定（420バイト）"},Haiagaru.xPostWarningThresholdMode(),(dialog,which)->{
+                            SettingsProfiles.prefs(activity).edit().putInt("xPostWarningThresholdMode",which).apply();
+                            updateXMode.run();XPostPreview.thresholdModeChanged();dialog.dismiss();
+                        }).setNegativeButton("閉じる",null).show());
+                content.addView(xWarningMode);break;
+            case WACCHOI_NG_EXPIRY:
+                TextView weeklyNgHelp=new TextView(activity);
+                weeklyNgHelp.setText("ﾜｯﾁｮｲ上下4桁のNG登録画面に「一週間のみNGにする」を追加しました。ONにすると次の週次更新でその登録を自動削除します。既存の複合NGへ追記する場合は、他の条件を消さないよう期限を設定できません。");
+                content.addView(weeklyNgHelp);break;
             case GLOBAL_SEARCH_BACKGROUND:
                 toggle(content, activity, main, "全板検索をバックグラウンドで実行",
                         GlobalSearchHome.BACKGROUND, true, null); break;
@@ -345,12 +398,44 @@ final class UpdateHistory {
             case NG_REPLY_NOTIFICATIONS:
                 toggle(content, activity, FeatureSwitches.prefs(activity), "NGされたレスの返信通知を無効にする",
                         NotificationNg.KEY, true, null); break;
+            case NG_CHAIN_REPLY_NOTIFICATIONS:
+                toggle(content, activity, FeatureSwitches.prefs(activity), "連鎖NGされたレスへの返信も通知しない",
+                        NotificationNg.CHAIN_KEY, false, null); break;
+            case FILTER_TRANSPARENT_BACKGROUND:
+                toggle(content, activity, SettingsProfiles.prefs(activity), "下部フィルターの背景を透過する",
+                        QuickFilterOptions.TRANSPARENT, true, () -> ExtraQuickFilters.updateOptions(activity)); break;
+            case CONDITIONAL_REFRESH:
+                toggle(content,activity,SettingsProfiles.prefs(activity),"スレ更新で条件付き取得を省く",ThreadRefreshOptions.KEY,false,null);
+                TextView conditionalRefreshHelp=new TextView(activity);
+                conditionalRefreshHelp.setText("初期OFFではChMate標準の条件付き・Range更新を使います。更新日時だけで新着を取りこぼす場合にONにすると条件付きヘッダーを省きます。通信量が増えることがあります。");
+                content.addView(conditionalRefreshHelp);break;
+            case IMAGE_PAGING_GESTURES:
+                toggle(content,activity,VideoViewerSettings.prefs(activity),"Haiagaruの画像切り替え設定を使う",
+                        NativeImagePaging.ENABLED,false,null);break;
+            case GIF_DEDICATED_VIEWER:
+                LiveSettings.Toggle gifViewer=new LiveSettings.Toggle(activity);
+                gifViewer.setText("GIF専用ビューアを使う");
+                gifViewer.setChecked(!VideoViewerSettings.nativeGif(activity));
+                gifViewer.setTag(SettingLinkEntry.KEY_TAG,VideoViewerSettings.GIF_DEDICATED);
+                gifViewer.setOnCheckedChangeListener((button,on)->{
+                    VideoViewerSettings.prefs(activity).edit().putBoolean(VideoViewerSettings.GIF_DEDICATED,on).apply();
+                    SettingsEffects.changed(activity,VideoViewerSettings.GIF_DEDICATED,on);
+                });content.addView(gifViewer);break;
             case IMAGE_NG_SETTINGS:
                 Button images = new Button(activity);
                 images.setText("登録画像・判定レベル・一致枚数を設定");
                 images.setOnClickListener(view -> activity.startActivity(
                         new Intent(activity, RegisteredImageNgSettingsActivity.class)));
                 content.addView(images); break;
+            case THREAD_SCOPED_NG:
+                Switch threadScopeToggle=new LiveSettings.Toggle(activity);
+                threadScopeToggle.setText("レスからNG登録するときに対象範囲を選べるようにする");
+                threadScopeToggle.setChecked(ThreadScopedNg.enabled(activity));
+                threadScopeToggle.setOnCheckedChangeListener((button,on)->FeatureSwitches.prefs(activity).edit().putBoolean(ThreadScopedNg.ENABLED,on).apply());
+                content.addView(threadScopeToggle);
+                TextView threadNgHelp=new TextView(activity);
+                threadNgHelp.setText("ONにすると、NG ID・NGName・NGワードをレスから登録するときに「このスレのみを対象にする」を選べます。OFFではChMate標準の登録処理を使います。ﾜｯﾁｮｲ上下4桁NGでは板限定も選べます。対象スレを削除すると、そのスレに限定したルールも削除します。");
+                content.addView(threadNgHelp);break;
         }
     }
 

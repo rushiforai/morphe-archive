@@ -1,3 +1,10 @@
+## [1.6.8](https://github.com/BlazeFTL/FaceBook-Lite-Morphe/compare/v1.6.7...v1.6.8) (2026-11-20)
+
+### 🐛 Bug Fixes
+
+* bug ([4a6cb16](https://github.com/BlazeFTL/FaceBook-Lite-Morphe/commit/4a6cb1631f657a6164caf96bea52a230c3cb9e9d))
+* https://github.com/BlazeFTL/FaceBook-Lite-Morphe/issues/29 ([616149e](https://github.com/BlazeFTL/FaceBook-Lite-Morphe/commit/616149ecedf7287d74954a6b04d54dbfbc1ec9ed))
+
 ## [1.6.7](https://github.com/BlazeFTL/FaceBook-Lite-Morphe/compare/v1.6.6...v1.6.7) (2026-11-12)
 
 ### 🐛 Bug Fixes

@@ -5,6 +5,7 @@
  * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to Morphe contributions.
  *
  * Modified by lavinhoque33, 2026-10-13.
+ * Modified by lavinhoque33, 2026-11-19.
  */
 
 package app.morphe.extension.shared.spoof;
@@ -12,11 +13,16 @@ package app.morphe.extension.shared.spoof;
 import static app.morphe.extension.shared.patches.AppCheckPatch.IS_YOUTUBE_MUSIC;
 
 import android.os.Build;
+import android.webkit.WebSettings;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import app.morphe.extension.shared.utils.Utils;
 
 @SuppressWarnings({"ConstantLocale"})
 public enum ClientType {
@@ -119,6 +125,30 @@ public enum ClientType {
             "Android VR Downgraded"
     ),
     /**
+     * Uses the latest Android VR app version; its player configuration can differ from the stable version.
+     */
+    ANDROID_VR_EXPERIMENTAL(
+            ANDROID_VR_SABR.id,
+            ANDROID_VR_SABR.clientName,
+            ANDROID_VR_SABR.packageName,
+            ANDROID_VR_SABR.deviceMake,
+            ANDROID_VR_SABR.deviceModel,
+            ANDROID_VR_SABR.osName,
+            ANDROID_VR_SABR.osVersion,
+            ANDROID_VR_SABR.androidSdkVersion,
+            ANDROID_VR_SABR.buildID,
+            "1.91.10",
+            ANDROID_VR_SABR.clientPlatform,
+            ANDROID_VR_SABR.canLogin,
+            ANDROID_VR_SABR.requireLogin,
+            ANDROID_VR_SABR.supportsMultiAudioTracks,
+            ANDROID_VR_SABR.supportsOAuth2,
+            ANDROID_VR_SABR.supportsVRImmersiveMode,
+            ANDROID_VR_SABR.requireSABR,
+            ANDROID_VR_SABR.usePlayerEndpoint,
+            "Android VR Experimental"
+    ),
+    /**
      * Same as {@code ANDROID_VR_SABR} but supports AV1 codec.
      */
     ANDROID_XR_SABR(
@@ -165,6 +195,30 @@ public enum ClientType {
             false,
             ANDROID_XR_SABR.usePlayerEndpoint,
             "Android XR Downgraded"
+    ),
+    /**
+     * The experimental VR version on the Galaxy XR device, which receives AV1 formats.
+     */
+    ANDROID_XR_EXPERIMENTAL(
+            ANDROID_XR_SABR.id,
+            ANDROID_XR_SABR.clientName,
+            ANDROID_XR_SABR.packageName,
+            ANDROID_XR_SABR.deviceMake,
+            ANDROID_XR_SABR.deviceModel,
+            ANDROID_XR_SABR.osName,
+            ANDROID_XR_SABR.osVersion,
+            ANDROID_XR_SABR.androidSdkVersion,
+            ANDROID_XR_SABR.buildID,
+            ANDROID_VR_EXPERIMENTAL.clientVersion,
+            ANDROID_XR_SABR.clientPlatform,
+            ANDROID_XR_SABR.canLogin,
+            ANDROID_XR_SABR.requireLogin,
+            ANDROID_XR_SABR.supportsMultiAudioTracks,
+            ANDROID_XR_SABR.supportsOAuth2,
+            ANDROID_XR_SABR.supportsVRImmersiveMode,
+            ANDROID_XR_SABR.requireSABR,
+            ANDROID_XR_SABR.usePlayerEndpoint,
+            "Android XR Experimental"
     ),
     /**
      * Video not playable: Livestream.
@@ -338,6 +392,73 @@ public enum ClientType {
             "visionOS 1.02"
     ),
     /**
+     * Uses the latest visionOS app and system version; the stable client remains selectable.
+     */
+    VISIONOS_1_06(
+            VISIONOS_1_02.id,
+            VISIONOS_1_02.clientName,
+            VISIONOS_1_02.deviceMake,
+            VISIONOS_1_02.deviceModel,
+            VISIONOS_1_02.osName,
+            "27.2",
+            "1.06",
+            VISIONOS_1_02.clientPlatform,
+            "com.google.visionosyoutube/1.06 (RealityDevice14,1; U; CPU visionOS 27_2 like Mac OS X; en_US) gzip",
+            VISIONOS_1_02.canLogin,
+            VISIONOS_1_02.requireLogin,
+            VISIONOS_1_02.supportsMultiAudioTracks,
+            VISIONOS_1_02.supportsVRImmersiveMode,
+            VISIONOS_1_02.requireJS,
+            VISIONOS_1_02.requirePoToken,
+            VISIONOS_1_02.requireSABR,
+            "visionOS 1.06"
+    ),
+    /**
+     * The experimental visionOS version on the device model that receives AV1 formats.
+     */
+    VISIONOS_1_06_AV1(
+            VISIONOS_1_06.id,
+            VISIONOS_1_06.clientName,
+            VISIONOS_1_06.deviceMake,
+            VISIONOS_1_03.deviceModel,
+            VISIONOS_1_06.osName,
+            VISIONOS_1_06.osVersion,
+            VISIONOS_1_06.clientVersion,
+            VISIONOS_1_06.clientPlatform,
+            "com.google.visionosyoutube/1.06 (RealityDevice17,1; U; CPU visionOS 27_2 like Mac OS X; en_US) gzip",
+            VISIONOS_1_06.canLogin,
+            VISIONOS_1_06.requireLogin,
+            VISIONOS_1_06.supportsMultiAudioTracks,
+            VISIONOS_1_06.supportsVRImmersiveMode,
+            VISIONOS_1_06.requireJS,
+            VISIONOS_1_06.requirePoToken,
+            VISIONOS_1_06.requireSABR,
+            "visionOS 1.06 AV1"
+    ),
+    /**
+     * Anonymous Mobile Web SABR. The website supplies the decoded URL and media session.
+     */
+    MWEB(
+            2,
+            "MWEB",
+            "Google",
+            "K",
+            "Android",
+            "10",
+            "2.20261110.07.00",
+            "MOBILE",
+            "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko)"
+                    + " Chrome/142.0.0.0 Mobile Safari/537.36",
+            false,
+            false,
+            true,
+            false,
+            false,
+            false,
+            true,
+            "Mobile Web"
+    ),
+    /**
      * Plain ANDROID client used for caption / transcript fetching.
      */
     ANDROID(
@@ -428,6 +549,26 @@ public enum ClientType {
     public final boolean requireSABR;
     public final boolean usePlayerEndpoint;
     public final String friendlyName;
+
+    private static final Pattern CHROME_MAJOR = Pattern.compile("Chrome/(\\d+)");
+    @Nullable
+    private static volatile String webUserAgent;
+
+    public String getUserAgent() {
+        if (this != MWEB) return userAgent;
+        String cached = webUserAgent;
+        if (cached == null) {
+            cached = userAgent;
+            try {
+                Matcher matcher = CHROME_MAJOR.matcher(WebSettings.getDefaultUserAgent(Utils.getContext()));
+                if (matcher.find()) cached = userAgent.replace("Chrome/142.", "Chrome/" + matcher.group(1) + ".");
+            } catch (RuntimeException ignored) {
+                // A missing provider is handled by the Mobile Web availability check.
+            }
+            webUserAgent = cached;
+        }
+        return cached;
+    }
 
     ClientType(int id,
                String clientName,

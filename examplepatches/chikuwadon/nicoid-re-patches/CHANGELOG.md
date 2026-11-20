@@ -1,3 +1,85 @@
+## 2.1.4 (2026-11-20)
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Fix scrolling comments disappearing when overlap prevention is turned off during playback
+* **nicoid:** Fix deferred scrolling comments appearing partway across the screen instead of entering from the right edge
+* **nicoid:** Prevent comments already on screen from unexpectedly changing speed or vertical position when additional comments arrive or display settings change
+* **nicoid:** Fix scrolling comments becoming stuck in crowded scenes by briefly waiting for space, then allowing controlled overlap without discarding comments
+
+### 🔧 Improvements
+
+* **nicoid:** Significantly reduce scrolling comment processing overhead by indexing comment timestamps and avoiding redundant full-list scans
+* **nicoid:** Optimize lane collision calculations to reduce unnecessary overlap when space is available while preserving dense danmaku in crowded scenes
+* **nicoid:** Spread large bursts of comment preparation and placement across successive frames, preserving comment order and retaining pending comments without dropping them
+* **nicoid:** Reduce comment rendering overhead by sharing playback-time samples, reusing drawing resources, and reducing time spent holding the SurfaceHolder lock
+* **nicoid:** Reduce allocations when drawing video statistics icons in lists and optimize first-line text extraction
+* **nicoid:** Reuse Ambient Mode opacity gradients when only sampled colors change, avoiding unnecessary shader creation
+* **nicoid:** Reduce unnecessary wake-ups between independent search and ranking page requests
+* **nicoid:** Optimize Media3 playback diagnostics by using the public player interface while preserving existing playback behavior
+* **nicoid:** Clarify overlap-prevention descriptions in Japanese, English, and Traditional Chinese
+
+## 2.1.3 (2026-11-19)
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Fix an MPP packaging issue that caused Morphe Manager to display 0 available patches and prevented patch application
+
+## 2.1.2 (2026-11-19)
+
+### ✨ New Features
+
+* **nicoid:** Add independent app-resume behavior settings for background and popup playback, allowing each playback mode to have its own return action
+* **nicoid:** Extend **Export settings** and **Import settings** to back up and restore local playlists, including folders, video entries, sorting preferences, customized video titles, and additional user settings such as ranking presets, gesture assignments, playback preferences, and NG comment lists
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Fix paused videos unexpectedly resuming when switching between normal, popup, mini-player, and background playback
+* **nicoid:** Fix automatic playback requests overriding an explicitly paused playback session during playback mode transitions
+* **nicoid:** Fix app-resume callbacks restoring an outdated playback session or interfering with newly started popup playback
+* **nicoid:** Fix background playback not being restored correctly when the retained playback service is still initializing
+* **nicoid:** Fix playback state inconsistencies when returning from popup or background playback to normal playback
+* **nicoid:** Fix interrupted Media3 scrubbing states potentially interfering with subsequent playback and seeking operations
+* **nicoid:** Fix explicit playback commands not properly preparing an idle player after a failed seek
+* **nicoid:** Prevent unlimited recovery attempts after recoverable playback errors and improve error handling when recovery fails
+* **nicoid:** Prevent delayed mini-player cleanup from closing a newer or unrelated playback session
+* **nicoid:** Fix orphaned mini-player panels remaining visible after closing or replacing a playback session
+* **nicoid:** Fix Ambient Mode lighting disappearing when switching between related videos, comments, and playback menu tabs
+* **nicoid:** Fix ambient backgrounds being overwritten when playback menus, buttons, or tab layouts are recreated or rethemed
+* **nicoid:** Fix dark or unlit areas appearing behind transparent playback menus and comment panels
+* **nicoid:** Fix uneven ambient lighting around centered videos, including side margins and 4:3 video layouts
+* **nicoid:** Fix incorrect ambient lighting boundaries caused by inconsistent video coordinates and color sampling
+* **nicoid:** Fix selected videos changing unexpectedly between local playlist destination selection and move confirmation
+* **nicoid:** Fix navigation state conflicts when opening and returning from Mylist folders in separate tabs
+* **nicoid:** Prevent customized video titles from being omitted when exporting settings and local playlists
+* **nicoid:** Fix playlist-specific sorting preferences and certain saved app settings being omitted from settings backups
+* **nicoid:** Prevent older settings-only backups from unnecessarily removing existing local playlists or customized video titles
+
+### 🔧 Improvements
+
+* **nicoid:** Improve Media3 playback state management across normal, fullscreen, popup, mini-player, and background modes
+* **nicoid:** Preserve playback intent, playback position, and the current seek target during playback transitions and recovery
+* **nicoid:** Improve app-resume session tracking to restore the correct playback owner without affecting newer sessions
+* **nicoid:** Refine popup playback handoff timing to reduce interruptions during app switching
+* **nicoid:** Improve mini-player lifecycle cleanup while preserving active playback sessions and unrelated videos
+* **nicoid:** Improve Media3 network recovery with bounded retries and safeguards against stale playback callbacks
+* **nicoid:** Expand playback diagnostics to record player commands, state transitions, and recovery activity
+* **nicoid:** Refine Ambient Mode rendering across playback tabs, menus, comments, and video information screens
+* **nicoid:** Improve ambient lighting coverage and color consistency around transparent controls and unused screen areas
+* **nicoid:** Reduce redundant ambient background updates, gradient reconstruction, and unnecessary compositing
+* **nicoid:** Improve ambient background restoration during tab transitions, scrolling, and theme changes
+* **nicoid:** Reduce unnecessary redraws and diagnostic processing during playback and settings operations
+* **nicoid:** Preserve independent background and popup return preferences while maintaining compatibility with existing settings
+* **nicoid:** Improve local playlist navigation and video selection consistency during folder operations
+* **nicoid:** Preserve custom playlist ordering, video metadata, folder associations, and saved sorting preferences in exported backups
+* **nicoid:** Increase the maximum settings backup import file size to 16 MiB to accommodate larger local playlists
+* **nicoid:** Validate backup data types, playlist structure, and customized title information before restoring settings
+* **nicoid:** Improve backup consistency by synchronizing export and import operations with pending local playlist changes
+* **nicoid:** Improve backup restoration reliability with rollback protection for customized video titles when settings restoration fails
+* **nicoid:** Maintain compatibility with existing settings backup files while preserving data not included in older backups
+* **nicoid:** Add explanatory descriptions to **Export settings** and **Import settings**
+* **nicoid:** Maintain the existing settings, user preferences, and default values while improving backup coverage and restoration behavior
+
 ## 2.1.1 (2026-11-18)
 
 ### ✨ New Features
@@ -156,60 +238,6 @@
 * **nicoid:** Improve ambient lighting boundaries to keep lighting outside the video image
 * **nicoid:** Refine fullscreen playback settings, playback option ordering, and menu consistency
 
-## 2.0.6 (2026-11-16)
-
-### ✨ New Features
-
-* **nicoid:** Add fullscreen playback options for video taps, external links, and video menus
-* **nicoid:** Add an option to return to fullscreen playback when resuming the app
-* **nicoid:** Add fullscreen playback to customizable video menu items, including visibility and ordering controls
-
-### 🐛 Bug Fixes
-
-* **nicoid:** Fix ambient lighting appearing inside the video during dark scenes
-* **nicoid:** Fix video menu items not following the configured visibility and order in long-press and overflow menus
-* **nicoid:** Fix incorrect playback behavior when selecting normal playback from video menus
-* **nicoid:** Fix scrolling comments disappearing unexpectedly during playback and comment updates
-* **nicoid:** Fix inconsistent scrolling comment positioning and timing during playback and seeking
-
-### 🔧 Improvements
-
-* **nicoid:** Improve scrolling comment placement to reduce unnecessary overlaps while preserving dense comment displays
-* **nicoid:** Keep active scrolling comments' positions and speeds stable when additional comments are loaded
-* **nicoid:** Improve delayed comment handling, duplicate prevention, and synchronization when seeking
-* **nicoid:** Improve ambient lighting boundaries to keep lighting outside the video image
-* **nicoid:** Refine fullscreen playback settings, playback option ordering, and menu consistency
-
-## 2.0.5 (2026-11-15)
-
-### ✨ New Features
-
-* **nicoid:** Add an option to choose the initial player panel when opening a video or advancing to the next video ([#138](https://github.com/chikuwadon/nicoid-re-patches/issues/138))
-* **nicoid:** Remember and restore the comment panel's auto-follow setting across videos and panel switches ([#137](https://github.com/chikuwadon/nicoid-re-patches/issues/137))
-* **nicoid:** Add options to keep popup playback active or return to normal playback when returning to the app ([#139](https://github.com/chikuwadon/nicoid-re-patches/issues/139))
-
-### 🐛 Bug Fixes
-
-* **nicoid:** Fix previously liked videos appearing with an inactive Like button ([#135](https://github.com/chikuwadon/nicoid-re-patches/issues/135))
-* **nicoid:** Fix the app return setting not restoring normal playback from background playback ([#141](https://github.com/chikuwadon/nicoid-re-patches/issues/141))
-* **nicoid:** Fix visible tab transition animations when opening a video with a custom initial player panel ([#138](https://github.com/chikuwadon/nicoid-re-patches/issues/138))
-* **nicoid:** Fix brief comment list flickering and unexpected jumps to the beginning during updates and screen transitions
-* **nicoid:** Reduce audio interruptions when switching to background playback
-* **nicoid:** Fix settings and navigation labels remaining untranslated after changing the app language
-* **nicoid:** Fix the sidebar's "Setting" heading remaining in English when Japanese is selected
-* **nicoid:** Improve security when processing channel feeds and malformed video URLs
-
-### 🔧 Improvements
-
-* **nicoid:** Reorganize settings into 18 categories for easier navigation while preserving existing settings and preferences
-* **nicoid:** Expand Japanese, English, and Traditional Chinese localization across settings, navigation, and Niconico Live
-* **nicoid:** Improve scrolling comment placement to reduce unnecessary overlaps and sudden appearances while preserving comment visibility
-* **nicoid:** Refine the comment panel toolbar with right-aligned sorting controls, balanced spacing, and better Ambient Mode integration
-* **nicoid:** Improve playback transitions and session continuity when switching between normal, popup, and background playback
-* **nicoid:** Refine player control icon sizing, default visibility, and dialog corner styling for a more consistent interface
-* **nicoid:** Remove the redundant Sleep Playback setting while retaining screen-off audio playback
-* **nicoid:** Reduce unnecessary UI updates and improve resource management during drawer navigation and comment list updates
-
 ## 2.0.5 (2026-11-15)
 
 ### ✨ New Features
@@ -329,76 +357,6 @@
 * **nicoid:** Improve Niconico Live history thumbnail retrieval and reduce unnecessary image loading delays
 * **nicoid:** Refine the central playback button with a thinner outline
 * **nicoid:** Update the Niconico Live sidebar description
-
-## 2.0.0 (2026-11-12)
-
-### ✨ New Features
-
-* **nicoid:** Add Niconico Live support with HLS playback, real-time comments, quality selection, fullscreen playback, popup playback, and background playback.
-* **nicoid:** Add six Niconico Live navigation sections: Live, Ranking, Timetable, Following, Watch History, and Timeshift Reservations.
-* **nicoid:** Add a searchable live broadcast list with filters for all, user, official, and channel broadcasts. Support searching by title, program ID, or URL.
-* **nicoid:** Add live broadcast sorting by start time, viewer count, and comment count.
-* **nicoid:** Add live broadcast rankings with separate user and official/channel categories and filters for live, upcoming, and ended broadcasts.
-* **nicoid:** Add a timetable for official and channel broadcasts, with date navigation covering the previous and next seven days.
-* **nicoid:** Add followed live broadcasts with overview, live, upcoming, and ended filters.
-* **nicoid:** Add live broadcast watch history with thumbnails and long-press deletion.
-* **nicoid:** Add timeshift reservation management, including reservation counts, reservation lists, and actions to reserve or cancel reservations.
-* **nicoid:** Display broadcast status and viewing restriction labels, including paid, member-free, and partially free programs, with alerts for unmet viewing requirements.
-* **nicoid:** Support real-time live comments, comment posting, anonymous comments, comment copying, and NG filtering by user or keyword.
-* **nicoid:** Add draggable and resizable live popup playback, allowing users to browse nicoid Re while watching broadcasts.
-* **nicoid:** Add Android media controls for live broadcasts, including program artwork, playback controls, and notification actions.
-* **nicoid:** Add Niconico Live settings for startup navigation, broadcast time display, floating refresh button, program tap behavior, and exit confirmation.
-* **nicoid:** Add an option to show or hide Niconico Live in the sidebar and support opening it through customizable gestures.
-* **nicoid:** Add options to position the multiple-tab bar at the top or bottom and adjust its height from 28 to 64 dp.
-* **nicoid:** Add an option to recognize horizontal-only gestures independently of vertical-only gesture recognition ([#115](https://github.com/chikuwadon/nicoid-re-patches/issues/115))
-* **nicoid:** Add an option to enable or disable rounded thumbnails across video lists, video information screens, playback screens, and Niconico Live.
-* **nicoid:** Add three exit confirmation modes: No Confirmation, Dialog, and Press Back Twice.
-* **nicoid:** Add manual drag-and-drop reordering to local playlists, with a persistent Custom Order sorting option.
-
-### 🐛 Bug Fixes
-
-* **nicoid:** Fix recurring live playback interruptions caused by compatibility issues with encrypted low-latency HLS streams.
-* **nicoid:** Fix AES-128 decryption failures and malformed MP4 parsing errors during live playback.
-* **nicoid:** Fix crashes, black screens, and playback interruptions when switching between normal and popup live playback.
-* **nicoid:** Fix the app closing when starting live popup playback, allowing the broadcast and browsing screen to remain active.
-* **nicoid:** Fix playback session conflicts between regular NicoNico videos and live broadcasts.
-* **nicoid:** Fix duplicate comment connections, outdated playback callbacks, and stale streaming sessions affecting active broadcasts.
-* **nicoid:** Fix missing thumbnails in live watch history and improve recovery from incomplete broadcast information.
-* **nicoid:** Fix inconsistent live broadcast lists and missing entries when loading multiple pages or combining different broadcast categories.
-* **nicoid:** Fix incorrect live playback controls, popup touch handling, and layout behavior during screen transitions.
-* **nicoid:** Fix timeshift reservation and cancellation requests being interrupted by concurrent list refreshes.
-* **nicoid:** Fix live media controls displaying incomplete artwork and incorrect playback states.
-* **nicoid:** Fix overlapping comment outlines becoming excessively dark when comment opacity is reduced.
-* **nicoid:** Fix visible boundaries between Ambient Mode lighting and the surrounding background, including noticeable seams in landscape mode.
-* **nicoid:** Fix local playlist thumbnails disappearing after adding manual reordering.
-* **nicoid:** Fix local playlists reopening at the wrong folder level when restoring the last selected tab.
-* **nicoid:** Fix the navigation drawer button incorrectly returning to the previous folder in local playlists.
-* **nicoid:** Fix playlist scroll positions being lost when entering or leaving reordering mode.
-
-### 🔧 Improvements
-
-* **nicoid:** Redesign the Niconico Live interface with compact navigation, integrated search controls, category filters, and a six-section bottom navigation bar.
-* **nicoid:** Improve live broadcast lists with clearer thumbnails, program titles, broadcaster names, viewer counts, comment counts, broadcast status, and reservation information.
-* **nicoid:** Improve live ranking, timetable, and following screens with more intuitive navigation, filtering, sorting, and presentation.
-* **nicoid:** Automatically load additional broadcast pages, remove duplicate entries, and preserve available results during refresh failures.
-* **nicoid:** Improve the live player layout, comment panel, program information screen, and playback controls across portrait and landscape orientations.
-* **nicoid:** Improve transitions between live playback and broadcast lists while preserving the active playback session.
-* **nicoid:** Add quick access to the currently playing broadcast, including an option to stop playback directly from the broadcast list.
-* **nicoid:** Improve encrypted HLS compatibility by refreshing AES-128 keys and prioritizing complete CMAF segments over low-latency partial segments for more stable continuous playback.
-* **nicoid:** Prevent unnecessary player initialization when live stream information is refreshed without changes to the media URL or quality.
-* **nicoid:** Improve live authentication handling by updating session cookies without interrupting active playback.
-* **nicoid:** Improve WebSocket connection management, viewing session maintenance, automatic recovery, and reconnection handling.
-* **nicoid:** Improve live comment synchronization, rendering efficiency, and connection management during long-running broadcasts.
-* **nicoid:** Improve live media notifications with program artwork, accurate playback states, and synchronized playback actions.
-* **nicoid:** Improve login handling, viewing restriction messages, reservation error reporting, and recovery from network failures.
-* **nicoid:** Add detailed Niconico Live diagnostics to the existing debug log export, including playback errors, HLS processing, HTTP communication, and WebSocket status, without exposing authentication credentials.
-* **nicoid:** Refine live broadcast menus, dialogs, playback controls, status labels, and theme integration for a more consistent interface.
-* **nicoid:** Improve multiple-tab settings with configurable placement, adjustable height, and more consistent setting descriptions.
-* **nicoid:** Refine gesture recognition settings with separate horizontal and vertical options, clearer defaults, and compact information dialogs.
-* **nicoid:** Improve rounded thumbnail rendering while preserving viewing progress indicators and existing video information.
-* **nicoid:** Improve local playlist management with persistent manual ordering, per-playlist sorting preferences, and restored navigation states.
-* **nicoid:** Improve Ambient Mode lighting with smoother falloff and more natural blending along video edges, corners, and landscape split-screen boundaries.
-* **nicoid:** Improve playback stability, resource management, and asynchronous processing while preserving existing features and compatibility.
 
 ## 2.0.0 (2026-11-12)
 

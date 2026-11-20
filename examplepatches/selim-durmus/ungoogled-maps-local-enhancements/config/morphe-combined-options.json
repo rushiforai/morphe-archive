@@ -1,0 +1,126 @@
+[
+  {
+    "meta": {
+      "source": "patches-2.10.0.mpp",
+      "sha256": "c21112f3b73a76de126965125b0564784ad78e111ceb979d472cacb9d7341d57"
+    },
+    "patches": {
+      "120 refresh rate": {
+        "enabled": true
+      },
+      "Account sheet cleanup": {
+        "enabled": true
+      },
+      "Add microG-RE support": {
+        "enabled": false
+      },
+      "Add original microG support": {
+        "enabled": false
+      },
+      "Any media app": {
+        "enabled": true
+      },
+      "Avoid Flock cameras": {
+        "enabled": true
+      },
+      "Better offline maps": {
+        "enabled": true
+      },
+      "Black theme": {
+        "enabled": true
+      },
+      "Blue pin": {
+        "enabled": true
+      },
+      "Bypass Play Services checks": {
+        "enabled": true
+      },
+      "Change app name": {
+        "enabled": true
+      },
+      "Change package name": {
+        "enabled": true
+      },
+      "Customization screen": {
+        "enabled": true
+      },
+      "Flock cameras": {
+        "enabled": true
+      },
+      "Follow playing media": {
+        "enabled": true
+      },
+      "Hide ads and clutter": {
+        "enabled": true
+      },
+      "Legacy icon": {
+        "enabled": true
+      },
+      "Light map": {
+        "enabled": true
+      },
+      "Location provider toggle": {
+        "enabled": true
+      },
+      "Map region": {
+        "enabled": true
+      },
+      "Media panel can be closed": {
+        "enabled": true
+      },
+      "Offline saved places": {
+        "enabled": true
+      },
+      "Power saving mode": {
+        "enabled": true
+      },
+      "Proxy": {
+        "enabled": true
+      },
+      "Rectangle shapes": {
+        "enabled": true
+      },
+      "Remove permissions": {
+        "enabled": true
+      },
+      "Remove sign-in prompts": {
+        "enabled": true
+      },
+      "Remove telemetry": {
+        "enabled": true
+      },
+      "Review counts in navigation search": {
+        "enabled": true
+      },
+      "Speed cameras": {
+        "enabled": true
+      },
+      "Speeding chime": {
+        "enabled": true
+      },
+      "Trim account menu": {
+        "enabled": true
+      },
+      "Waze alerts": {
+        "enabled": true
+      },
+      "Zoom controls in navigation": {
+        "enabled": true
+      }
+    }
+  },
+  {
+    "meta": {
+      "source": "tutto-enhancements-1.7.0.mpp",
+      "sha256": "0acfc4e57fde500953747d32f4bd0d4e08605cd3634d33c8b11350f61056d707"
+    },
+    "patches": {
+      "Home and Work shortcuts": {
+        "enabled": true
+      },
+      "Label search suggestions": {
+        "enabled": true
+      }
+    }
+  }
+]

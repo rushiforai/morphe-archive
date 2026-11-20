@@ -1,3 +1,17 @@
+# [1.9.30](https://github.com/quwi26/Quwis-Patches/compare/v1.9.29...v1.9.30) (2026-11-20)
+
+### New Features
+
+* **Quwi's Patches:** Great and Brilliant moves analysis is part of Unlimited Game Review now: one patch fewer, with its switch and the brilliant moves your saved reviews found in the Game Review page
+* **Quwi's Patches:** Game Review on your computer and Find the computer on the network open their own settings pages, so each page shows only its own settings instead of all of them
+* **Quwi's Patches:** the settings descriptions are one line, so the list is shorter and easier to scan
+
+# [1.9.29](https://github.com/quwi26/Quwis-Patches/compare/v1.9.28...v1.9.29) (2026-11-20)
+
+### Bug Fixes
+
+* **Game Review:** a local review on chess.com 4.10.27 opens its results again. 4.10.27 added a second rating field to the review's report card, so the report was built with the older constructor and the screen ended on "Try again" after the analysis had finished. The report is now built from the fields the installed build has, so Stockfish on the phone and Stockfish on your computer work on 4.10.27, and 4.10.23 and 4.10.18 are unchanged
+
 # [1.9.28](https://github.com/quwi26/Quwis-Patches/compare/v1.9.27...v1.9.28) (2026-11-17)
 
 ### New Features

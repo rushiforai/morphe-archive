@@ -25,8 +25,10 @@ import app.morphe.extension.shared.settings.Setting;
  * TabBarScrollAway#pagesTop}), and the header, which Facebook places by the same padding, went up
  * under the bar with it and showed through a see-through bar. Each frame this measures where the
  * tab bar ends and pushes the header down to there by its top margin, so the reel still fills the
- * screen behind the bar. A tab bar at the bottom, hidden, or already above the header leaves the
- * header where Facebook put it, and so does Hush while it's paused.
+ * screen behind the bar. With the tabs at the bottom the reel can run up behind the status bar
+ * instead ({@link ReelsStatusBar}, #466), and the header is kept below that bar the same way. A tab
+ * bar at the bottom with the status bar's strip open, a hidden bar, or one already above the header
+ * leaves the header where Facebook put it, and so does Hush while it's paused.
  */
 public final class ReelsHeaderClear implements View.OnAttachStateChangeListener, ViewTreeObserver.OnPreDrawListener {
     private static final String FAMILY = FamilyNames.BOTTOM_TAB_BAR;
@@ -35,7 +37,7 @@ public final class ReelsHeaderClear implements View.OnAttachStateChangeListener,
     static final String CLEARED = "Reels header kept below the top tab bar";
     private static final String TAB_BAR = "com.facebook.navigation.tabbar.ui.TabBarContainerLayout";
     /** How deep under the window's root to look for the tab bar. */
-    static final int TAB_BAR_LEVELS = 20;
+    private static final int TAB_BAR_LEVELS = 20;
 
     /** The headers being kept clear, each with its listener, which holds the header weakly. */
     private static final Map<View, ReelsHeaderClear> held = new WeakHashMap<>();
@@ -55,11 +57,16 @@ public final class ReelsHeaderClear implements View.OnAttachStateChangeListener,
         this.header = new WeakReference<>(header);
     }
 
-    /** The hook right after VideoHomeRootFragment stores the Reels header it found. Never throws. */
+    /**
+     * The hook right after VideoHomeRootFragment stores the Reels header it found. On the
+     * full-screen player screen that fragment is the video viewer, so it's told there too
+     * ({@link ImmersiveEdge}, #466). Never throws.
+     */
     public static void headerMade(@Nullable View header) {
         try {
             if (header == null) return;
             HookStatus.invoked(FAMILY);
+            ImmersiveEdge.viewerMade(header);
             ReelsHeaderClear clear;
             synchronized (held) {
                 if (held.containsKey(header)) return;
@@ -123,21 +130,26 @@ public final class ReelsHeaderClear implements View.OnAttachStateChangeListener,
         }
     }
 
-    /** How far below where Facebook puts it the header has to go to clear a tab bar at the top: 0 when it's clear already. */
+    /**
+     * How far below where Facebook puts it the header has to go to clear a tab bar at the top, or
+     * the status bar once the strip behind it closes over the Reels tab: 0 when it's clear already.
+     */
     private int wanted(View view, ViewGroup.MarginLayoutParams params) {
         if (Setting.isPaused()) return 0;
         ViewParent parent = view.getParent();
         if (!(parent instanceof View)) return 0;
+        int clear = ReelsStatusBar.closed() ? ReelsStatusBar.statusBar(view) : 0;
         View tabBar = tabBar(view);
-        if (tabBar == null || !tabBar.isShown() || tabBar.getAlpha() == 0f) return 0;
-        tabBar.getLocationInWindow(at);
-        int tabTop = at[1];
-        if (tabTop >= view.getRootView().getHeight() / 2) return 0;
-        int tabBottom = tabTop + tabBar.getHeight();
+        if (tabBar != null && tabBar.isShown() && tabBar.getAlpha() != 0f) {
+            tabBar.getLocationInWindow(at);
+            int tabTop = at[1];
+            if (tabTop < view.getRootView().getHeight() / 2) clear = Math.max(clear, tabTop + tabBar.getHeight());
+        }
+        if (clear <= 0) return 0;
         View page = (View) parent;
         page.getLocationInWindow(at);
         int natural = at[1] + page.getPaddingTop() + params.topMargin - added;
-        return Math.max(0, tabBottom - natural);
+        return Math.max(0, clear - natural);
     }
 
     /** The tab bar in the header's window, looked for again once it leaves; a window without one is searched once per attach. */
@@ -154,7 +166,7 @@ public final class ReelsHeaderClear implements View.OnAttachStateChangeListener,
 
     /** The tab bar under [view], looked for [levels] deep. */
     @Nullable
-    static View tabBarIn(View view, int levels) {
+    private static View tabBarIn(View view, int levels) {
         if (TAB_BAR.equals(view.getClass().getName())) return view;
         if (levels == 0 || !(view instanceof ViewGroup)) return null;
         ViewGroup group = (ViewGroup) view;

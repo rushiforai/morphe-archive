@@ -13,6 +13,11 @@ concurrency:
   group: verify-main-${{ github.ref }}
   cancel-in-progress: true
 
+# Interim mitigation for CVE-2026-114938 until patched Temurin 25 is verified.
+# Disables the vulnerable x86-64 Base64 intrinsic for all Java subprocesses.
+env:
+  JAVA_TOOL_OPTIONS: '-XX:-UseBASE64Intrinsics'
+
 jobs:
   verify:
     name: Verify source and compile MPP
@@ -29,6 +34,9 @@ jobs:
         with:
           distribution: temurin
           java-version: '25'
+          check-latest: true
+      - name: Verify patched Java 25 runtime
+        run: python3 .github/scripts/verify-java25-cspu.py
       - name: Verify version, metadata and immutable release sources
         run: |
           python3 porting/tests/VerifyReleaseBaseline.py
@@ -48,6 +56,12 @@ jobs:
             python3 porting/revisions/v2.1.0-release/test_release.py
           elif grep -Eq '^version[[:space:]]*=[[:space:]]*2\.1\.1[[:space:]]*$' gradle.properties; then
             python3 porting/revisions/v2.1.1-release/test_release.py
+          elif grep -Eq '^version[[:space:]]*=[[:space:]]*2\.1\.2[[:space:]]*$' gradle.properties; then
+            python3 porting/revisions/v2.1.2-release/test_release.py
+          elif grep -Eq '^version[[:space:]]*=[[:space:]]*2\.1\.3[[:space:]]*$' gradle.properties; then
+            python3 porting/revisions/v2.1.3-release/test_release.py
+          elif grep -Eq '^version[[:space:]]*=[[:space:]]*2\.1\.4[[:space:]]*$' gradle.properties; then
+            python3 porting/revisions/v2.1.4-release/test_release.py
           else
             echo "Unsupported official release version" >&2
             exit 1
@@ -68,7 +82,22 @@ jobs:
         env:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew clean :patches:buildAndroid :patches:generatePatchesList --no-daemon
+        shell: bash
+        run: |
+          set -euo pipefail
+          ./gradlew clean :patches:buildAndroid --no-daemon
+          version=$(sed -nE 's/^version[[:space:]]*=[[:space:]]*([^[:space:]]+)[[:space:]]*$/\1/p' gradle.properties)
+          bundle="patches/build/libs/patches-$version.mpp"
+          python3 .github/scripts/verify_android_mpp.py "$bundle" "$version"
+          before=$(sha256sum "$bundle" | cut -d' ' -f1)
+          ./gradlew :patches:generatePatchesList --no-daemon
+          python3 .github/scripts/verify_android_mpp.py "$bundle" "$version"
+          after=$(sha256sum "$bundle" | cut -d' ' -f1)
+          if [ "$before" != "$after" ]; then
+            echo "::error::generatePatchesList changed the compiled Android MPP" >&2
+            exit 1
+          fi
+          echo "PASS: generatePatchesList preserved Android MPP SHA-256 $after"
       - name: Verify release candidate MPP and regressions
         run: |
           if grep -Fq "version = 2.0.0" gradle.properties; then
@@ -89,6 +118,12 @@ jobs:
             NICOID_OFFICIAL_RELEASE_APPROVED=VERIFY bash .github/scripts/stage-v2.1.0-mpp.sh
           elif grep -Fq "version = 2.1.1" gradle.properties; then
             NICOID_OFFICIAL_RELEASE_APPROVED=VERIFY bash .github/scripts/stage-v2.1.1-mpp.sh
+          elif grep -Fq "version = 2.1.2" gradle.properties; then
+            NICOID_OFFICIAL_RELEASE_APPROVED=VERIFY bash .github/scripts/stage-v2.1.2-mpp.sh
+          elif grep -Fq "version = 2.1.3" gradle.properties; then
+            NICOID_OFFICIAL_RELEASE_APPROVED=VERIFY bash .github/scripts/stage-v2.1.3-mpp.sh
+          elif grep -Fq "version = 2.1.4" gradle.properties; then
+            NICOID_OFFICIAL_RELEASE_APPROVED=VERIFY bash .github/scripts/stage-v2.1.4-mpp.sh
           else
             python3 porting/revisions/v1.11.1/verify-mpp.py 1.11.1
           fi
@@ -98,10 +133,16 @@ jobs:
           python3 porting/tests/retained-notification-regression.py
           python3 porting/tests/tap-regions-regression.py
           python3 porting/tests/tap-region-ui-regression.py
-      - name: Validate staged v2.1.1 runtime DEX
+      - name: Validate staged official runtime DEX
         run: |
           if grep -Fq 'version = 2.1.1' gradle.properties; then
             python3 .github/scripts/verify-release-mpp.py record 2.1.1
+          elif grep -Fq 'version = 2.1.2' gradle.properties; then
+            python3 .github/scripts/verify-release-mpp.py record 2.1.2
+          elif grep -Fq 'version = 2.1.3' gradle.properties; then
+            python3 .github/scripts/verify-release-mpp.py record 2.1.3
+          elif grep -Fq 'version = 2.1.4' gradle.properties; then
+            python3 .github/scripts/verify-release-mpp.py record 2.1.4
           fi
       - name: Verify MPP was produced
         shell: bash

@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-18.
  * Modified by lavinhoque33, 2026-11-17.
  * Written by lavinhoque33, 2026-11-07.
  * Modified by lavinhoque33, 2026-11-10
@@ -256,11 +257,12 @@ final class OfflineSourceStore {
         publish(next);
     }
 
-    /** Forgets every source none of whose tracks has a stream copy any more. */
-    synchronized void retainWithCopies(Set<String> copyIds) throws IOException, JSONException {
+    /** Drops empty completed lists but keeps the ordered membership of interrupted downloads. */
+    synchronized void retainWithCopies(Set<String> copyIds, Set<String> pending) throws IOException, JSONException {
         ensureLoaded();
         Map<String, Source> next = new HashMap<>(sources);
-        boolean changed = next.values().removeIf(source -> Collections.disjoint(source.videoIds(), copyIds));
+        boolean changed = next.values().removeIf(source -> !pending.contains(source.id())
+                && Collections.disjoint(source.videoIds(), copyIds));
         if (changed) publish(next);
     }
 

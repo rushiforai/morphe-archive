@@ -52,6 +52,7 @@ import app.morphe.extension.facebook.settings.SettingsRows.Row;
 import app.morphe.extension.shared.L10n;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.settings.BaseSettings;
+import app.morphe.extension.shared.settings.BooleanSetting;
 import app.morphe.extension.shared.settings.StringSetting;
 
 /**
@@ -469,6 +470,9 @@ final class FeedPages {
                 feed.addPreference(page.wordsRow(context, Settings.KEPT_WORDS, false));
                 feed.addPreference(toggle(context, Settings.POST_WORDS_WHOLE_WORDS,
                         L10n.t("Matches whole words only, in both lists. For example, \"hat\" matches \"hat!\" but not \"what\" or \"hats\".")));
+                placeRows(feed, context, Settings.HIDE_POSTS_WITH_WORDS, Settings.POST_WORDS_ON_FEED,
+                        Settings.POST_WORDS_ON_REELS, Settings.POST_WORDS_IN_GROUPS, Settings.POST_WORDS_ON_TIMELINES,
+                        Settings.POST_WORDS_IN_SEARCH);
                 feed.addPreference(toggle(context, Settings.HIDE_POSTS_FROM_SOURCES,
                         L10n.t("Hides posts by people or Pages on your list below, or linking to sites on it, including shares. "
                                 + "Your list stays on this phone unless you export it.")));
@@ -480,6 +484,9 @@ final class FeedPages {
                 feed.addPreference(toggle(context, Settings.HIDE_LINK_POSTS,
                         L10n.t("Hides posts that share a link to a website, with its preview card. On profiles, Pages, groups and "
                                 + "the Reels tab, a post or reel whose words name a website goes too.")));
+                placeRows(feed, context, Settings.HIDE_LINK_POSTS, Settings.LINK_POSTS_ON_FEED,
+                        Settings.LINK_POSTS_ON_REELS, Settings.LINK_POSTS_IN_GROUPS, Settings.LINK_POSTS_ON_TIMELINES,
+                        Settings.LINK_POSTS_IN_SEARCH);
                 feed.addPreference(toggle(context, Settings.HIDE_BACKGROUND_POSTS,
                         L10n.t("Hides short posts shown as big text on a colored background.")));
                 feed.addPreference(toggle(context, Settings.HIDE_REPOSTS,
@@ -725,6 +732,26 @@ final class FeedPages {
             row.setSummary(feedTypesSummary(FeedTypeNames.hidden()));
             list.dismiss();
         });
+    }
+
+    /**
+     * The five places a words or links switch reaches, each with its own switch under it (#458), so
+     * one can stay while the others still go. Greyed out while the switch above is off.
+     */
+    private static void placeRows(PreferenceCategory feed, Context context, BooleanSetting parent, BooleanSetting home,
+                                  BooleanSetting reels, BooleanSetting groups, BooleanSetting timelines,
+                                  BooleanSetting search) {
+        feed.addPreference(toggle(context, home,
+                L10n.t("Posts on Home, the feed Facebook opens on.")).needs(parent));
+        feed.addPreference(toggle(context, reels,
+                L10n.t("Reels on the Reels tab, going by their captions.")).needs(parent));
+        feed.addPreference(toggle(context, groups,
+                L10n.t("Posts in a group's feed, on the Groups tab and in a member's posts in a group. Posts waiting "
+                        + "for an admin stay.")).needs(parent));
+        feed.addPreference(toggle(context, timelines,
+                L10n.t("Posts on people's profiles and on Pages.")).needs(parent));
+        feed.addPreference(toggle(context, search,
+                L10n.t("Posts in search results. Off to begin with, so what you search for still shows.")).needs(parent));
     }
 
     /**
@@ -977,7 +1004,9 @@ final class FeedPages {
         boolean pictures = build.contains(PatchFamily.PROFILE_PICTURES);
         boolean ask = build.contains(PatchFamily.ASK_BEFORE_LIKE);
         boolean fold = build.contains(PatchFamily.FOLD_LONG_TEXT);
-        if (!order && !summaries && !options && !reactions && !fullHeight && !tags && !pictures && !ask && !fold) return;
+        boolean translate = build.contains(PatchFamily.AUTO_TRANSLATION);
+        if (!order && !summaries && !options && !reactions && !fullHeight && !tags && !pictures && !ask && !fold
+                && !translate) return;
         PreferenceCategory comments = category(screen, L10n.t("Comments and writing"));
         if (order) {
             comments.addPreference(toggle(context, Settings.DEFAULT_COMMENT_ORDER,
@@ -999,6 +1028,12 @@ final class FeedPages {
             comments.addPreference(toggle(context, Settings.HIDE_COMMENT_PROFILE_PICTURES,
                     L10n.t("Takes the profile picture off comments, so the name and text start where the picture "
                             + "was. A change shows on the comments drawn after it.")));
+        }
+        if (translate) {
+            // Read as each comment's See translation link is built, so a change shows on the comments drawn after it.
+            comments.addPreference(toggle(context, Settings.TRANSLATE_EVERY_COMMENT,
+                    L10n.t("Comments in another language show Facebook's translation as they load, as if you'd tapped "
+                            + "See translation on each one.")));
         }
         if (fold) {
             // Read as each comment's text is cut, so a change shows on the comments drawn after it.

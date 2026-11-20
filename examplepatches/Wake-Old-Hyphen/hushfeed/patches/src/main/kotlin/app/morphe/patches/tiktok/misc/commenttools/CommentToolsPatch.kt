@@ -19,6 +19,7 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.interaction.blockauthor.BlockServiceFingerprint
 import app.morphe.patches.tiktok.interaction.blockauthor.sessionPlaybackBridgePatch
 import app.morphe.patches.tiktok.interaction.gesture.doubleTapPatch
+import app.morphe.patches.tiktok.misc.absettings.hookAppAbIntBoundary
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
@@ -154,7 +155,7 @@ internal fun MutableMethod.resolveCommentSuggestionGate(): CommentToolsWrite {
 }
 
 /**
- * The comment like-and-hate view's bind. The view keeps no name from build to build (`LX/1FsX;`
+ * The comment like-and-hate view's bind. The view keeps no name from build to build (`LX/1Gp4;`
  * on 46.2.3, `LX/0lNa;` on 46.8.3), but the line its bind logs is the same on every build and in
  * no other method of the app.
  */
@@ -351,7 +352,15 @@ val commentToolsPatch = bytecodePatch(
                     AdReportActionKeyFingerprint.matchAll().map { it.originalClassDef },
                     ProfileBlockActionKeyFingerprint.originalClassDef,
                 )
-                CommentMenuListFingerprint.method.resolveCommentMenuBlock(icon)
+                val rows = CommentMenuListFingerprint.method.resolveCommentMenuBlock(icon)
+                // With comment_share_expose_revamp at 3 a long press opens a share-style panel
+                // instead of this menu (#417). The extension answers 2 for it while a row is on,
+                // which keeps the share button and takes TikTok's own fallback to the menu.
+                val write: CommentToolsWrite = {
+                    rows()
+                    hookAppAbIntBoundary(COMMENT_MENU_BLOCK_DESCRIPTOR, "panelGate")
+                }
+                write
             },
             {
                 val settingsStatus = SettingsStatusLoadFingerprint.method

@@ -40,10 +40,6 @@ private val disableBillingPatch = bytecodePatch(
     default = false
 ) {
     execute {
-        if (!packageMetadata.versionName.matches(Regex("8\\.3\\.\\d+"))) {
-            throw PatchException("The Spoof client patch supports Infinity+ 8.3.x only.")
-        }
-
         // Resolve every critical method before modifying any of them. Missing or ambiguous
         // matches must fail even when the patcher is not running with --validate.
         val billingCallback = billingClientOnServiceConnectedFingerprint.matchAllOrNull()
@@ -150,7 +146,7 @@ val spoofClientPatch = spoofClientPatch { clientIdOption, redirectUriOption, use
             }
         }
 
-        userAgentFingerprint(packageMetadata.versionName).matchAll().forEach { match ->
+        userAgentFingerprint.matchAll().forEach { match ->
             match.replaceStringMatchesWithFunc(GET_USER_AGENT_METHOD)
         }
 

@@ -9,6 +9,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-19.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -58,6 +59,7 @@ import app.morphe.extension.shared.settings.IntegerSetting;
 import app.morphe.extension.shared.settings.LongSetting;
 import app.morphe.extension.shared.settings.Setting;
 import app.morphe.extension.shared.settings.StringSetting;
+import app.morphe.extension.shared.settings.preference.SpoofClientListPreference;
 import app.morphe.extension.shared.utils.Logger;
 
 public class ResettableListPreference {
@@ -107,11 +109,16 @@ public class ResettableListPreference {
 
             final String entryKey = settingsKey + "_entries";
             final String entryValueKey = settingsKey + "_entry_values";
-            final String[] mEntries = getStringArray(entryKey);
-            final String[] mEntryValues = getStringArray(entryValueKey);
+            final String[] entries = getStringArray(entryKey);
+            final String[] values = getStringArray(entryValueKey);
+            final boolean spoofClients = SpoofClientListPreference.SETTING_KEY.equals(settingsKey);
+            final var choices = spoofClients ? SpoofClientListPreference.filter(entries, values) : null;
+            final String[] mEntries = choices == null ? entries : choices.entries();
+            final String[] mEntryValues = choices == null ? values : choices.values();
 
             final int findIndex = ArrayUtils.indexOf(mEntryValues, setting.get().toString().toUpperCase(Locale.ENGLISH));
-            mClickedDialogEntryIndex = findIndex >= 0 ? findIndex : defaultIndex;
+            // An unavailable saved client must not turn into another choice unless the user taps a row.
+            mClickedDialogEntryIndex = findIndex >= 0 || spoofClients ? findIndex : defaultIndex;
 
             getDialogBuilder(mActivity)
                     .setTitle(str(settingsKey + "_title"))
@@ -123,6 +130,7 @@ public class ResettableListPreference {
                         if (setting.rebootApp) ReVancedPreferenceFragment.showRebootDialog();
                     })
                     .setPositiveButton(android.R.string.ok, (dialog, which) -> {
+                        if (mClickedDialogEntryIndex < 0) return;
                         setting.saveValueFromString(mEntryValues[mClickedDialogEntryIndex]);
                         if (setting.rebootApp) ReVancedPreferenceFragment.showRebootDialog();
                     })

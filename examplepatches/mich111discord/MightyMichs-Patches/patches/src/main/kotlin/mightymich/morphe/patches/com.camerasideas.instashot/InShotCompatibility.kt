@@ -11,8 +11,11 @@ object InShotCompatibility {
         apkFileType = ApkFileType.APK,
         appIconColor = 0xFF2558,
         targets = listOf(
-            AppTarget(version = "2.214.1539"),
             AppTarget(version = "2.243.1555"),
-        )
+            AppTarget(version = "2.214.1539"),
+            AppTarget(version = "2.240.1552", isExperimental = true),
+            AppTarget(version = "2.238.1550", isExperimental = true),
+            AppTarget(version = "2.230.1545", isExperimental = true),
+        ),
     )
 }

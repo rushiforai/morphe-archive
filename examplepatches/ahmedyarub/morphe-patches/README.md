@@ -15,15 +15,15 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.24.2](https://github.com/ahmedyarub/morphe-patches/releases/tag/v1.24.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;66 patches total
+> **[v1.25.1](https://github.com/ahmedyarub/morphe-patches/releases/tag/v1.25.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;66 patches total
 <details open>
 <summary>📦 X&nbsp;&nbsp;•&nbsp;&nbsp;44 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 12.32.0-prod.01 | 12.33.0-prod.01 | 12.33.1-prod.01 | 12.34.0-prod.01 | 12.35.0-prod.01 | 12.36.1-prod.01 | 12.37.2-prod.01 | 12.38.0-prod.01 | 12.38.1-prod.01 | 12.39.0-prod.01 | 12.40.1-prod.01 | 12.41.0-prod.01 | 12.42.0-prod.01 | 12.43.0-prod.01 |
-| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| 12.32.0-prod.01 | 12.33.0-prod.01 | 12.33.1-prod.01 | 12.34.0-prod.01 | 12.35.0-prod.01 | 12.36.1-prod.01 | 12.37.2-prod.01 | 12.38.0-prod.01 | 12.38.1-prod.01 | 12.39.0-prod.01 | 12.40.1-prod.01 | 12.41.0-prod.01 | 12.42.0-prod.01 | 12.43.0-prod.01 | 12.44.0-prod.01 |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -42,7 +42,7 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 | [Customize timeline top bar](#customize-timeline-top-bar) | Hides tabs from the top of the home timeline. At least one tab always stays. | • Hide For you<br>• Hide Following<br>• Hide Subscriptions<br>• Hide the topics suggestion<br>• Hide pinned lists<br>• Hide pinned communities<br>• Hide pinned topics<br>• Hide the Add tab |
 | [Delete from database](#delete-from-database) | Adds options to the Morphe settings to delete cached promoted entries or clear cached timelines. |  |
 | [Disable auto timeline scroll on launch](#disable-auto-timeline-scroll-on-launch) | Opens the home timelines where you left them, instead of at the newest posts. |  |
-| [Enable Undo Posts](#enable-undo-posts) | Holds each post for a few seconds before sending it, so it can be undone. | • Undo period |
+| [Enable Undo Posts](#enable-undo-posts) | Holds each post for a few seconds before sending it, so it can be undone (X 12.43 and older). | • Undo period |
 | [Enable debug menu for posts](#enable-debug-menu-for-posts) | Adds "Post data" to the post menu: everything the app knows about the post, as text. |  |
 | [Enable force HD videos](#enable-force-hd-videos) | Always plays videos at the highest quality the device supports, whatever the connection. |  |
 | [Feed filters](#feed-filters) | Adds feed filters to timelines: media only (images, videos, GIFs), hide followed profiles, and include/exclude keyword filtering. Toggle each filter from the Morphe settings. | • Initial include keywords |
@@ -80,7 +80,7 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 
 **🎯 Supported versions:**
 
-| 455.0.0.51.72 |
+| 456.1.0.56.78 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |

@@ -15,25 +15,25 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 private const val ABOUT_FRAGMENT = "Lnet/sjava/officereader/ui/fragments/AboutFragment;"
 private const val BINDINGS = "Lnet/sjava/officereader/databinding/FragmentAboutBinding;"
 
-object IsPurchasedFingerprint : Fingerprint(
+internal object IsPurchasedFingerprint : Fingerprint(
     definingClass = "Lnet/sjava/officereader/services/OptionService;",
     name = "isPurchased",
     returnType = "Z",
 )
 
-object ShowRateAppFingerprint : Fingerprint(
+internal object ShowRateAppFingerprint : Fingerprint(
     definingClass = ABOUT_FRAGMENT,
     name = "showRateApp",
     parameters = listOf("Landroid/content/Context;"),
 )
 
-object OnViewCreatedFingerprint : Fingerprint(
+internal object OnViewCreatedFingerprint : Fingerprint(
     definingClass = ABOUT_FRAGMENT,
     name = "onViewCreated",
     parameters = listOf("Landroid/view/View;", "Landroid/os/Bundle;"),
 )
 
-object RowBuilderFingerprint : Fingerprint(
+internal object RowBuilderFingerprint : Fingerprint(
     definingClass = ABOUT_FRAGMENT,
     name = "p",
     returnType = "Lnet/sjava/officereader/databinding/AboutRowBinding;",

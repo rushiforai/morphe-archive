@@ -1,0 +1,39 @@
+0 cadenas de recursos leidas
+
+### res/xml/prefs_about_debug.xml  (5 filas)
+    <com.baidu.simeji.widget.PreferenceItem>  key='pref_key_setting_about_version'  titulo='@7F140733'
+    <Preference>  key=''  titulo=''
+    <com.baidu.simeji.widget.PreferenceItem>  key='pref_key_block_display'  titulo='@7F140734'
+    <Preference>  key=''  titulo=''
+    <com.baidu.simeji.widget.CheckBoxPreferenceItem>  key='pref_key_setting_about_notification'  titulo='@7F140731'
+
+### res/xml/prefs_about_release.xml  (3 filas)
+    <com.baidu.simeji.widget.PreferenceItem>  key='pref_key_setting_about_version'  titulo='@7F140733'
+    <Preference>  key=''  titulo=''
+    <com.baidu.simeji.widget.CheckBoxPreferenceItem>  key='pref_key_setting_about_notification'  titulo='@7F140731'
+
+### res/xml/prefs_advanced.xml  (3 filas)
+    <PreferenceCategory>  key=''  titulo='@7F140817'
+    <PreferenceCategory>  key='gesture_category'  titulo='@7F140452'
+    <PreferenceCategory>  key='session_log_category'  titulo='@7F1407DA'
+
+### res/xml/prefs_correction.xml  (6 filas)
+    <com.baidu.simeji.widget.ListPreferenceItem>  key='auto_correction_threshold'  titulo='@7F1400F0'
+    <com.baidu.simeji.widget.CheckBoxPreferenceItem>  key='show_suggestions'  titulo='@7F140747'
+    <com.baidu.simeji.widget.CheckBoxPreferenceItem>  key='pref_key_use_personalized_dicts'  titulo='@7F140B67'
+    <com.baidu.simeji.widget.CheckBoxPreferenceItem>  key='pref_key_use_contacts_dict'  titulo='@7F140B60'
+    <com.baidu.simeji.widget.CheckBoxPreferenceItem>  key='next_word_prediction'  titulo='@7F140107'
+    <com.baidu.simeji.widget.CheckBoxPreferenceItem>  key='pref_key_block_potentially_offensive'  titulo='@7F140736'
+
+### res/xml/prefs_gesture.xml  (4 filas)
+    <com.baidu.simeji.widget.CheckBoxPreferenceItem>  key='gesture_input'  titulo='@7F140455'
+    <com.baidu.simeji.widget.CheckBoxPreferenceItem>  key='pref_gesture_floating_preview_text'  titulo='@7F140453'
+    <com.baidu.simeji.widget.CheckBoxPreferenceItem>  key='pref_gesture_preview_trail'  titulo='@7F140457'
+    <com.baidu.simeji.widget.CheckBoxPreferenceItem>  key='pref_gesture_space_aware'  titulo='@7F140458'
+
+### res/xml/prefs_screen_gesture.xml  (4 filas)
+    <CheckBoxPreference>  key='gesture_input'  titulo='@7F140455'
+    <CheckBoxPreference>  key='pref_gesture_floating_preview_text'  titulo='@7F140453'
+    <CheckBoxPreference>  key='pref_gesture_preview_trail'  titulo='@7F140457'
+    <CheckBoxPreference>  key='pref_gesture_space_aware'  titulo='@7F140458'
+

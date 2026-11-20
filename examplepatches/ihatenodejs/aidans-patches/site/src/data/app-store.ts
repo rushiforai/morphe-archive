@@ -137,14 +137,17 @@ export const STORE_CATEGORIES: Record<StoreCategoryId, StoreCategory> = {
  * Guaranteed baseline even before Worker or Google Play status loads.
  */
 export const APP_FALLBACK_CATEGORIES: Record<string, StoreCategoryId> = {
+  'adobe-reader': 'productivity',
   'adobe-scan': 'productivity',
   aftership: 'shopping',
   '365-pay': 'shopping',
+  'credit-karma': 'other',
   sezzle: 'shopping',
   sidelineswap: 'shopping',
   fizz: 'social',
   'canvas-student': 'education',
   'navigate360-student': 'education',
+  'pro-metronome': 'entertainment',
   geocaching: 'health-and-fitness',
   nhl: 'sports',
   blackjack: 'games',
@@ -154,12 +157,16 @@ export const APP_FALLBACK_CATEGORIES: Record<string, StoreCategoryId> = {
  * Fallback app descriptions for rich cards before live Play metadata hydrates.
  */
 export const APP_FALLBACK_SUMMARIES: Record<string, string> = {
+  'adobe-reader':
+    'View, annotate, and sign PDF documents with clean navigation and zero tracking or promotional upsells.',
   'adobe-scan':
     'Scan paperwork into clean PDFs, remove limits, and unlock high-speed document tools.',
   aftership:
     'Real-time package and shipment tracking across 1,000+ couriers with seamless notifications.',
   '365-pay':
     'Touchless marketplace checkout and cafeteria payment app for unattended micro-markets.',
+  'credit-karma':
+    'Track credit scores, monitor financial accounts, and explore loans with telemetry disabled.',
   sezzle:
     'Buy now, pay later marketplace financing split across interest-free installment schedules.',
   sidelineswap:
@@ -169,6 +176,8 @@ export const APP_FALLBACK_SUMMARIES: Record<string, string> = {
     'Access courses, submit assignments, collaborate, and stay on top of school deadlines.',
   'navigate360-student':
     'Connect with advisors, track degree progress, schedule appointments, and coordinate classes.',
+  'pro-metronome':
+    'Precision tempo and rhythm training metronome with pure offline timing and zero tracking.',
   geocaching:
     'Join the worlds largest real-world treasure hunting community with GPS coordinate logs.',
   nhl: 'Official scores, breaking hockey news, live shift tracking, Edge stats, and game highlights.',
@@ -189,21 +198,27 @@ export const DISCOVERY_SECTIONS: DiscoverySectionConfig[] = [
     title: "Editor's picks",
     description:
       'Hand-picked favorites delivering our most requested enhancements.',
-    appIds: ['adobe-scan', 'geocaching', 'sezzle', 'fizz'],
+    appIds: ['adobe-scan', 'geocaching', 'sezzle', 'fizz', 'adobe-reader'],
   },
   {
     id: 'everyday-essentials',
     title: 'Everyday essentials',
     description:
       'Daily companions built to make routines simpler, faster, and cleaner.',
-    appIds: ['aftership', '365-pay', 'canvas-student', 'navigate360-student'],
+    appIds: [
+      'aftership',
+      '365-pay',
+      'canvas-student',
+      'navigate360-student',
+      'credit-karma',
+    ],
   },
   {
     id: 'play-follow-connect',
     title: 'Play, follow & connect',
     description:
       'Stay in the loop, catch every highlight, and unwind with your favorites.',
-    appIds: ['blackjack', 'nhl', 'sidelineswap', 'fizz'],
+    appIds: ['blackjack', 'nhl', 'sidelineswap', 'fizz', 'pro-metronome'],
   },
 ];
 

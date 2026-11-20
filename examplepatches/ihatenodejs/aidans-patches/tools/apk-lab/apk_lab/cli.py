@@ -406,17 +406,41 @@ def handle_analyze(args: argparse.Namespace) -> int:
 
 def handle_check(args: argparse.Namespace) -> int:
     try:
+        from apk_lab.deployment import find_repo_root
         from apk_lab.morphe import run_compatibility_check
 
+        mpp_path = args.mpp
+        if mpp_path is None:
+            try:
+                repo_root = find_repo_root()
+            except Exception as e:
+                raise FileNotFoundError(
+                    "No compiled .mpp found in patches/build/libs/. Run ./gradlew :patches:buildAndroid first."
+                ) from e
+            libs_dir = repo_root / "patches" / "build" / "libs"
+            if not libs_dir.is_dir():
+                raise FileNotFoundError(
+                    "No compiled .mpp found in patches/build/libs/. Run ./gradlew :patches:buildAndroid first."
+                )
+            mpp_files = list(libs_dir.glob("*.mpp"))
+            if not mpp_files:
+                raise FileNotFoundError(
+                    "No compiled .mpp found in patches/build/libs/. Run ./gradlew :patches:buildAndroid first."
+                )
+            mpp_files.sort(key=lambda p: p.stat().st_mtime, reverse=True)
+            mpp_path = mpp_files[0]
+
+        jobs = getattr(args, "jobs", None)
         report, exit_code = run_compatibility_check(
             artifact_path=args.artifact,
-            mpp_path=args.mpp,
+            mpp_path=mpp_path,
             expected_package=args.package,
             requested_patches=args.patches,
             all_patches=args.all,
             force=args.force,
             keep_workspace=args.keep_workspace,
             workspace_root=args.workspace_root,
+            jobs=jobs,
         )
 
         if args.json is not None:
@@ -624,6 +648,14 @@ def handle_deploy(args: argparse.Namespace) -> int:
     try:
         from apk_lab.deployment import run_deploy
 
+        artifact_path = Path(args.artifact)
+        if getattr(args, "package", None) is None:
+            from apk_lab.inspection import inspect_artifact
+
+            args.package = inspect_artifact(artifact_path).package_name
+        if not getattr(args, "all", False) and not getattr(args, "enable", None):
+            args.all = True
+
         return run_deploy(args)
     except FileNotFoundError as e:
         print(f"Deployment error: {e}", file=sys.stderr)
@@ -649,21 +681,47 @@ def handle_dev(args: argparse.Namespace) -> int:
         repo_root = find_repo_root()
         print(f"Repository root: {repo_root}")
 
-        # 1. Build patch bundle
-        print("Building patch bundle via Gradle...")
-        mpp_path = build_patch_bundle(repo_root)
-        print(f"Built bundle: {mpp_path}")
+        # 1. Build or locate patch bundle
+        if getattr(args, "no_build", False):
+            libs_dir = repo_root / "patches" / "build" / "libs"
+            mpp_files = list(libs_dir.glob("*.mpp"))
+            if not mpp_files:
+                raise RuntimeError(f"No .mpp bundle found in {libs_dir}")
+            mpp_files.sort(key=lambda p: p.stat().st_mtime, reverse=True)
+            mpp_path = mpp_files[0]
+            print(f"Using existing bundle: {mpp_path}")
+        else:
+            print("Building patch bundle via Gradle...")
+            mpp_path = build_patch_bundle(repo_root)
+            print(f"Built bundle: {mpp_path}")
 
         # 2. Locate target artifact
-        artifact_path = find_app_artifact(args.app, repo_root)
-        if not artifact_path:
+        artifact_path: Path | None = None
+        if getattr(args, "artifact", None):
+            explicit_path = Path(args.artifact).resolve()
+            if not explicit_path.is_file():
+                print(
+                    f"Error: Artifact not found: {explicit_path}",
+                    file=sys.stderr,
+                )
+                return ExitCode.USAGE_OR_TOOL_ERROR
+            artifact_path = explicit_path
+        elif getattr(args, "app", None):
+            artifact_path = find_app_artifact(args.app, repo_root)
+            if not artifact_path:
+                print(
+                    f"Error: Could not find matching artifact for '{args.app}'",
+                    file=sys.stderr,
+                )
+                return ExitCode.USAGE_OR_TOOL_ERROR
+        else:
             print(
-                f"Error: Could not find matching artifact for '{args.app}'",
+                "Error: Either app or --artifact must be specified",
                 file=sys.stderr,
             )
             return ExitCode.USAGE_OR_TOOL_ERROR
+        assert artifact_path is not None
         print(f"Found artifact: {artifact_path}")
-
         # 3. Resolve package name
         insp = inspect_artifact(artifact_path)
         package_name = insp.package_name
@@ -782,6 +840,13 @@ def handle_inspect_code(args: argparse.Namespace) -> int:
         from apk_lab.code_inspection import run_inspect_code
 
         return run_inspect_code(args)
+    except BrokenPipeError:
+        # Suppress broken pipe error when piping to head/tail/less
+        try:
+            sys.stdout.close()
+        except Exception:  # noqa: BLE001, S110
+            pass
+        return ExitCode.SUCCESS
     except FileNotFoundError as e:
         print(f"Code inspection error: {e}", file=sys.stderr)
         return ExitCode.USAGE_OR_TOOL_ERROR
@@ -847,6 +912,163 @@ def handle_res(args: argparse.Namespace) -> int:
     except Exception as e:  # noqa: BLE001
         print(f"Resource inspection error: {e}", file=sys.stderr)
         return ExitCode.INFRASTRUCTURE_FAILURE
+
+
+def handle_strings(args: argparse.Namespace) -> int:
+    try:
+        from apk_lab.dex_strings import search_artifact_strings
+
+        matches = search_artifact_strings(
+            args.artifact,
+            query=args.query,
+            dex_filter=args.dex,
+            ignore_case=args.ignore_case,
+        )
+        if args.json:
+            import json
+
+            data = [
+                {"split": m.split, "dex": m.dex_name, "string": m.string}
+                for m in matches
+            ]
+            content = json.dumps(data, indent=2)
+            if args.json == "-":
+                print(content)
+            else:
+                Path(args.json).write_text(content, encoding="utf-8")
+        else:
+            for m in matches:
+                print(f"[{m.split}:{m.dex_name}] {m.string}")
+        return ExitCode.SUCCESS
+    except BrokenPipeError:
+        return ExitCode.SUCCESS
+    except Exception as e:  # noqa: BLE001
+        print(f"Strings search error: {e}", file=sys.stderr)
+        return ExitCode.INFRASTRUCTURE_FAILURE
+
+
+def handle_manifest(args: argparse.Namespace) -> int:
+    try:
+        import re
+
+        from apk_lab.manifest_inspection import inspect_artifact_components
+
+        components = inspect_artifact_components(
+            args.artifact, component_type=args.type
+        )
+        if args.filter:
+            pat = re.compile(args.filter, re.IGNORECASE)
+            components = [c for c in components if pat.search(c.name)]
+
+        if args.json:
+            import json
+
+            data = [
+                {
+                    "type": c.component_type,
+                    "name": c.name,
+                    "exported": c.exported,
+                    "permission": c.permission,
+                    "authorities": c.authorities,
+                    "intent_actions": c.intent_actions,
+                }
+                for c in components
+            ]
+            content = json.dumps(data, indent=2)
+            if args.json == "-":
+                print(content)
+            else:
+                Path(args.json).write_text(content, encoding="utf-8")
+        else:
+            for c in components:
+                exp = f" [exported={c.exported}]" if c.exported is not None else ""
+                actions = (
+                    f" (actions: {', '.join(c.intent_actions)})"
+                    if c.intent_actions
+                    else ""
+                )
+                print(f"[{c.component_type.upper()}] {c.name}{exp}{actions}")
+        return ExitCode.SUCCESS
+    except BrokenPipeError:
+        return ExitCode.SUCCESS
+    except Exception as e:  # noqa: BLE001
+        print(f"Manifest inspection error: {e}", file=sys.stderr)
+        return ExitCode.INFRASTRUCTURE_FAILURE
+
+
+def handle_ui_dump(args: argparse.Namespace) -> int:
+    try:
+        from apk_lab.device import dump_ui_hierarchy, find_ui_nodes
+
+        nodes = dump_ui_hierarchy(device=args.device)
+        matched = find_ui_nodes(
+            nodes,
+            text=args.text,
+            desc=args.desc,
+            clickable_only=args.clickable,
+        )
+        if args.json:
+            print(json.dumps([n.to_dict() for n in matched], indent=2))
+        else:
+            for node in matched:
+                text_part = f' text="{node.text}"' if node.text else ""
+                desc_part = f' desc="{node.content_desc}"' if node.content_desc else ""
+                id_part = f' id="{node.resource_id}"' if node.resource_id else ""
+                clickable_str = " [clickable]" if node.clickable else ""
+                print(
+                    f"{node.class_name} center={node.center} bounds={node.bounds}{clickable_str}{text_part}{desc_part}{id_part}"
+                )
+        return ExitCode.SUCCESS
+    except Exception as e:  # noqa: BLE001
+        print(f"Error dumping UI hierarchy: {e}", file=sys.stderr)
+        return ExitCode.USAGE_OR_TOOL_ERROR
+
+
+def handle_ui_click(args: argparse.Namespace) -> int:
+    try:
+        from apk_lab.device import (
+            click_ui_node,
+            dump_ui_hierarchy,
+            find_ui_nodes,
+            run_adb,
+        )
+
+        if args.coords:
+            parts = [p.strip() for p in args.coords.split(",")]
+            if len(parts) != 2 or not all(p.lstrip("-").isdigit() for p in parts):
+                print(
+                    f"Error: Invalid coords format '{args.coords}', expected 'X,Y'",
+                    file=sys.stderr,
+                )
+                return ExitCode.USAGE_OR_TOOL_ERROR
+            x, y = int(parts[0]), int(parts[1])
+            run_adb(args.device, ["shell", "input", "tap", str(x), str(y)])
+            print(f"Clicked coordinates: ({x}, {y})")
+            return ExitCode.SUCCESS
+
+        if not (args.text or args.desc):
+            print(
+                "Error: Must specify --text, --desc, or --coords for click",
+                file=sys.stderr,
+            )
+            return ExitCode.USAGE_OR_TOOL_ERROR
+
+        nodes = dump_ui_hierarchy(device=args.device)
+        matched = find_ui_nodes(nodes, text=args.text, desc=args.desc)
+        if not matched:
+            print(
+                f"Error: No matching UI node found (text='{args.text}', desc='{args.desc}')",
+                file=sys.stderr,
+            )
+            return ExitCode.USAGE_OR_TOOL_ERROR
+
+        node = matched[0]
+        click_ui_node(args.device, node)
+        print(f"Clicked node at {node.center}: {node}")
+        return ExitCode.SUCCESS
+    except Exception as e:  # noqa: BLE001
+        print(f"Error clicking UI node: {e}", file=sys.stderr)
+        return ExitCode.USAGE_OR_TOOL_ERROR
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -947,7 +1169,10 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p_check.add_argument("artifact", help="Path to target artifact")
     p_check.add_argument(
-        "--mpp", required=True, help="Path to compiled .mpp patch bundle"
+        "--mpp",
+        required=False,
+        default=None,
+        help="Path to compiled .mpp patch bundle (defaults to latest bundle in patches/build/libs/)",
     )
     p_check.add_argument("--package", help="Expected package name")
     p_check.add_argument(
@@ -968,6 +1193,13 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p_check.add_argument(
         "--json", nargs="?", const="-", help="Output compatibility report as JSON"
+    )
+    p_check.add_argument(
+        "-j",
+        "--jobs",
+        type=int,
+        default=None,
+        help="Number of concurrent test case worker threads (default: min(CPU count, 8))",
     )
     p_check.set_defaults(handler=handle_check)
 
@@ -1083,8 +1315,12 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Automatically compile newest .mpp patch bundle via Gradle",
     )
-    p_deploy.add_argument("--package", required=True, help="Expected package name")
-    g_patch = p_deploy.add_mutually_exclusive_group(required=True)
+    p_deploy.add_argument(
+        "--package",
+        default=None,
+        help="Expected package name (auto-detected if omitted)",
+    )
+    g_patch = p_deploy.add_mutually_exclusive_group(required=False)
     g_patch.add_argument(
         "--all", action="store_true", help="Apply all default-compatible patches"
     )
@@ -1141,7 +1377,22 @@ def build_parser() -> argparse.ArgumentParser:
     p_dev = subparsers.add_parser(
         "dev", help="Build patches, locate artifact, deploy to device, and launch"
     )
-    p_dev.add_argument("app", help="Application name or package (e.g. 'geocaching')")
+    p_dev.add_argument(
+        "app",
+        nargs="?",
+        default=None,
+        help="Application name or package (e.g. 'geocaching')",
+    )
+    p_dev.add_argument(
+        "--artifact",
+        default=None,
+        help="Explicit path to APK/APKM/XAPK artifact (bypasses auto-search)",
+    )
+    p_dev.add_argument(
+        "--no-build",
+        action="store_true",
+        help="Skip building patch bundle and use newest existing .mpp",
+    )
     p_dev.add_argument("--device", help="Target ADB device serial")
     p_dev.add_argument(
         "--launch",
@@ -1292,16 +1543,100 @@ def build_parser() -> argparse.ArgumentParser:
             "apk_lab.play_accounts_tui", fromlist=["run_play_accounts_tui"]
         ).run_play_accounts_tui()
     )
+    # strings
+    p_strings = subparsers.add_parser(
+        "strings",
+        help="Search string literal pools across all DEX files in an artifact",
+    )
+    p_strings.add_argument("artifact", help="Path to APK/APKM/XAPK")
+    p_strings.add_argument("-q", "--query", help="Regex query to filter strings")
+    p_strings.add_argument(
+        "--dex", help="Filter by specific DEX filename (e.g. classes2.dex)"
+    )
+    p_strings.add_argument(
+        "-i",
+        "--ignore-case",
+        action="store_true",
+        default=True,
+        help="Case-insensitive regex (default: True)",
+    )
+    p_strings.add_argument(
+        "-s",
+        "--case-sensitive",
+        dest="ignore_case",
+        action="store_false",
+        help="Case-sensitive regex",
+    )
+    p_strings.add_argument(
+        "--json", nargs="?", const="-", help="Output matches as JSON"
+    )
+    p_strings.set_defaults(handler=handle_strings)
 
+    # manifest
+    p_manifest = subparsers.add_parser(
+        "manifest",
+        help="Inspect AndroidManifest.xml components, providers, receivers, and permissions",
+    )
+    p_manifest.add_argument("artifact", help="Path to APK/APKM/XAPK")
+    p_manifest.add_argument(
+        "--type",
+        choices=["activity", "service", "receiver", "provider"],
+        help="Filter by component type",
+    )
+    p_manifest.add_argument(
+        "--filter",
+        help="Regex filter for component name",
+    )
+    p_manifest.add_argument(
+        "--json", nargs="?", const="-", help="Output components as JSON"
+    )
+    p_manifest.set_defaults(handler=handle_manifest)
+    # ui
+    p_ui = subparsers.add_parser(
+        "ui", help="Device UI hierarchy inspection and click automation"
+    )
+    p_ui_sub = p_ui.add_subparsers(dest="ui_subcommand", required=True)
+
+    # ui dump
+    p_ui_dump = p_ui_sub.add_parser("dump", help="Dump and filter UI hierarchy nodes")
+    p_ui_dump.add_argument("--device", help="Target ADB device serial")
+    p_ui_dump.add_argument(
+        "--clickable", action="store_true", help="Filter to clickable nodes only"
+    )
+    p_ui_dump.add_argument("--text", help="Filter by text substring")
+    p_ui_dump.add_argument("--desc", help="Filter by content-description substring")
+    p_ui_dump.add_argument(
+        "--json", action="store_true", help="Output JSON array of nodes"
+    )
+    p_ui_dump.set_defaults(handler=handle_ui_dump)
+
+    # ui click
+    p_ui_click = p_ui_sub.add_parser(
+        "click", help="Click first matching UI node or direct coordinates"
+    )
+    p_ui_click.add_argument("--device", help="Target ADB device serial")
+    p_ui_click.add_argument("--text", help="Click first node matching text substring")
+    p_ui_click.add_argument(
+        "--desc", help="Click first node matching content-desc substring"
+    )
+    p_ui_click.add_argument("--coords", help="Direct X,Y click")
+    p_ui_click.set_defaults(handler=handle_ui_click)
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = build_parser()
-    args = parser.parse_args(argv)
-    if hasattr(args, "handler"):
-        return args.handler(args)
-    return ExitCode.SUCCESS
+    try:
+        parser = build_parser()
+        args = parser.parse_args(argv)
+        if hasattr(args, "handler"):
+            return args.handler(args)
+        return ExitCode.SUCCESS
+    except BrokenPipeError:
+        try:
+            sys.stdout.close()
+        except Exception:  # noqa: BLE001, S110
+            pass
+        return ExitCode.SUCCESS
 
 
 if __name__ == "__main__":

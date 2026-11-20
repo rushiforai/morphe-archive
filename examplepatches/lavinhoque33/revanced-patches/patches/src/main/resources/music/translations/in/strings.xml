@@ -136,6 +136,7 @@ Langkah-langkah:
     <string name="morphe_music_downloads_sort">Urutkan</string>
     <string name="morphe_music_downloads_started">Pengunduhan dimulai</string>
     <string name="morphe_music_downloads_starting">Memulai pengunduhan…</string>
+    <string name="morphe_music_downloads_waiting_for_connection">Menunggu koneksi</string>
     <string name="morphe_music_downloads_storage_permission">Izinkan akses penyimpanan, lalu ketuk Download lagi</string>
     <string name="morphe_music_downloads_unknown_track">Tidak dapat mengidentifikasi lagu untuk diunduh</string>
     <string name="morphe_music_hide_you_may_also_like_section_title">Sembunyikan bagian \'Anda mungkin juga suka\'</string>
@@ -1066,4 +1067,8 @@ ID video yang Anda tonton dikirim ke API Return YouTube Dislike, dan suka dan ti
     <string name="revanced_webview_toast_unavailable">WebView tidak tersedia</string>
     <string name="morphe_music_auto_song_version_title">Selalu putar versi lagu</string>
     <string name="morphe_music_auto_song_version_summary">Mengganti video musik resmi dalam antrean dengan lagu yang cocok. Memerlukan setelan aplikasi Jangan putar video musik diaktifkan. Trek tanpa kecocokan persis tidak diubah</string>
+    <string name="morphe_music_playlist_download_connect">Sambungkan ke internet untuk melanjutkan download ini</string>
+    <string name="morphe_music_playlist_ready">%1$d dari %2$d siap</string>
+    <string name="morphe_music_playlist_resume">%1$d dari %2$d siap · Lanjutkan</string>
+    <string name="morphe_music_playlist_partial_failed">%1$d dari %2$d siap (%3$d gagal) · Lanjutkan</string>
 </resources>

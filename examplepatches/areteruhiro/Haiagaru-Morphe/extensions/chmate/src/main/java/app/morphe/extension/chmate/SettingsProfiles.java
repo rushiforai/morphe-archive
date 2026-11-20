@@ -34,6 +34,9 @@ public final class SettingsProfiles {
         booleanKey(ImageModeration.GORE);defaultValue(ImageModeration.GORE,false);
         booleanKey(ImageModeration.LIST);defaultValue(ImageModeration.LIST,false);
         booleanKey(NotificationNg.KEY);defaultValue(NotificationNg.KEY,true);
+        booleanKey(NotificationNg.CHAIN_KEY);defaultValue(NotificationNg.CHAIN_KEY,false);
+        booleanKey(ThreadScopedNg.ENABLED);defaultValue(ThreadScopedNg.ENABLED,!prefs(activity).getBoolean(MinimalSetup.ACTIVE,false));
+        booleanKey(QuickFilterOptions.TRANSPARENT);defaultValue(QuickFilterOptions.TRANSPARENT,false);
         booleanKey(MediaUploadHosts.ASK_DESTINATION);defaultValue(MediaUploadHosts.ASK_DESTINATION,false);
         booleanKey(NativeImageNgList.ENABLE);defaultValue(NativeImageNgList.ENABLE,false);
         numberKey(ThreadListThumbnail.REGISTERED_ACTION,0,3);defaultValue(ThreadListThumbnail.REGISTERED_ACTION,0);
@@ -51,11 +54,12 @@ public final class SettingsProfiles {
         booleanKey(ExternalBoardGroups.KEY);defaultValue(ExternalBoardGroups.KEY,false);
         booleanKey(BrowserUaTemplates.ENABLED);defaultValue(BrowserUaTemplates.ENABLED,false);
         booleanKey(ResponseMultiSelection.COPY_POPUP);defaultValue(ResponseMultiSelection.COPY_POPUP,false);
+        booleanKey(WacchoiClipboard.STRIP_PARENTHESES);defaultValue(WacchoiClipboard.STRIP_PARENTHESES,false);
         booleanKey("videoLandscapeImmersive");defaultValue("videoLandscapeImmersive",false);
         booleanKey(BoardCookies.KEY);defaultValue(BoardCookies.KEY,false);
         booleanKey(FirstResponseNg.KEY);defaultValue(FirstResponseNg.KEY,FirstResponseNg.DEFAULT);
         booleanKey(MediaViewerBackGesture.DOUBLE_BACK);
-        booleanKey(NativeImagePaging.ENABLED);defaultValue(NativeImagePaging.ENABLED,true);
+        booleanKey(NativeImagePaging.ENABLED);defaultValue(NativeImagePaging.ENABLED,false);
         numberKey(NativeImagePaging.NEXT,0,4);defaultValue(NativeImagePaging.NEXT,NativeImagePaging.defaultDirection(activity,NativeImagePaging.NEXT));
         numberKey(NativeImagePaging.PREVIOUS,0,4);defaultValue(NativeImagePaging.PREVIOUS,NativeImagePaging.defaultDirection(activity,NativeImagePaging.PREVIOUS));
         numberKey(ViewerCornerControls.BACK,0,3);defaultValue(ViewerCornerControls.BACK,1);
@@ -68,6 +72,9 @@ public final class SettingsProfiles {
         booleanKey(VideoViewerSettings.INLINE_GIF);defaultValue(VideoViewerSettings.INLINE_GIF,false);
         booleanKey(ImageViewerRotationButton.MENU_KEY);defaultValue(ImageViewerRotationButton.MENU_KEY,true);
         booleanKey(UpdateConnectionHeaders.KEY);defaultValue(UpdateConnectionHeaders.KEY,true);
+        booleanKey(ResponseNoteIndicator.KEY);defaultValue(ResponseNoteIndicator.KEY,true);
+        booleanKey(ExtraQuickFilters.OPTIMIZATION);defaultValue(ExtraQuickFilters.OPTIMIZATION,false);
+        booleanKey(FilterPosition.DELAYED_SNAPSHOT);defaultValue(FilterPosition.DELAYED_SNAPSHOT,false);
         booleanKey(ArchiveSearchLayout.ORIGINAL_SITE);defaultValue(ArchiveSearchLayout.ORIGINAL_SITE,false);
         for(String key:new String[]{"fast191UpdateConnect","optimize191UpdateProgress"}){booleanKey(key);defaultValue(key,true);}
         numberKey(CachedSearchOrder.KEY,0,4);defaultValue(CachedSearchOrder.KEY,0);
@@ -78,17 +85,19 @@ public final class SettingsProfiles {
 
         for(String key:new String[]{GlobalSearchHome.BACKGROUND,GlobalSearchHome.HISTORY,GlobalSearchHome.PARTIAL}){booleanKey(key);defaultValue(key,true);}
         booleanKey(GlobalTitleSearch.KEY);defaultValue(GlobalTitleSearch.KEY,false);
-        numberKey(GlobalTitleSearch.MODE,0,1);defaultValue(GlobalTitleSearch.MODE,0);
+        numberKey(GlobalTitleSearch.MODE,0,1);defaultValue(GlobalTitleSearch.MODE,1);
         RULES.put(GlobalTitleSearch.BOARDS,v->v instanceof String&&GlobalTitleSearch.validSelection((String)v));defaultValue(GlobalTitleSearch.BOARDS,"");
         for(String key:new String[]{VideoViewerSettings.GIF_NATIVE,VideoViewerSettings.VIDEO_NATIVE,VideoViewerSettings.THREAD_MEDIA}){
             booleanKey(key);defaultValue(key,false);
         }
+        booleanKey(VideoViewerSettings.GIF_DEDICATED);defaultValue(VideoViewerSettings.GIF_DEDICATED,false);
         RULES.put("userAgent",value->value instanceof String&&ViewingUserAgentRules.valid((String)value));
         defaultValue("userAgent",BrowserUaTemplates.DEFAULT);
         numberKey(HaiagaruSettingsGestures.SENSITIVITY,50,200);
         defaultValue(HaiagaruSettingsGestures.SENSITIVITY,100);
         defaultValue(ExpertSettings.KEY,false);
         for(String key:EXTRA_BOOLEAN)booleanKey(key);
+        for(String key:new String[]{ThreadSearchOptions.MENU_SEARCH,ThreadSearchOptions.MENU_SELECTION}){booleanKey(key);defaultValue(key,true);}
         for(String key:new String[]{ThreadSearchOptions.ID,ThreadSearchOptions.WACCHOI,ThreadSearchOptions.NAME}){booleanKey(key);defaultValue(key,false);}
         for(String key:new String[]{VideoViewerSettings.HOLD_SPEED,VideoViewerSettings.TAP_CONTROLS,VideoViewerSettings.CHMATE_GESTURES,
                 VideoViewerSettings.MEDIA_SWIPE,VideoViewerSettings.GIF_AUTOPLAY,VideoViewerSettings.LETTERBOX_TOUCH}){booleanKey(key);defaultValue(key,true);}
@@ -124,6 +133,8 @@ public final class SettingsProfiles {
         defaultValue(SiteCards.MAX_PER_RESPONSE_KEY,2);
         numberKey(SiteCards.CACHE_HOURS_KEY,1,168);
         defaultValue(SiteCards.CACHE_HOURS_KEY,24);
+        choiceKey("xPostWarningThresholdMode",new HashSet<>(Arrays.asList(0,1)));
+        defaultValue("xPostWarningThresholdMode",1);
         RULES.put(SiteCardExclusions.KEY,v->{if(!(v instanceof String))return false;
             try{SiteCardExclusions.parse((String)v);return true;}catch(IllegalArgumentException invalid){return false;}});
         defaultValue(SiteCardExclusions.KEY,SiteCardExclusions.DEFAULT);
@@ -134,7 +145,7 @@ public final class SettingsProfiles {
         booleanKey(EmojiFontFallback.ENABLED);
         defaultValue(EmojiFontFallback.ENABLED,true);
         booleanKey(ThreadRefreshOptions.KEY);
-        defaultValue(ThreadRefreshOptions.KEY,true);
+        defaultValue(ThreadRefreshOptions.KEY,false);
         booleanKey("hissiViewerShowAdjust");
         defaultValue(NativeToolTabs.HEADER_HEIGHT_KEY,48);
         defaultValue("hissiViewerShowAdjust",true);
@@ -143,7 +154,7 @@ public final class SettingsProfiles {
         booleanKey(PostEditorLimits.KEY);defaultValue(PostEditorLimits.KEY,true);
         numberKey("popularReplyThreshold",1,9999);
         numberKey("popularReplyStandardThreshold",1,9999);
-        for(String key:new String[]{"quickFilterAA","quickFilterMine","quickFilterReplies",HiddenNgUnread.KEY})booleanKey(key);
+        for(String key:new String[]{"quickFilterAA","quickFilterMine","quickFilterReplies",HiddenNgUnread.KEY,HiddenNgUnread.NEW_ARRIVAL_KEY})booleanKey(key);
         choiceKey("urlVideoFetchMode",new HashSet<>(Arrays.asList(0,1,2,3)));
         choiceKey(GifAutoFetchPolicy.KEY,new HashSet<>(Arrays.asList(0,1,2,3)));
         defaultValue(GifAutoFetchPolicy.KEY,Haiagaru.gifAutoFetchMode());
@@ -156,7 +167,7 @@ public final class SettingsProfiles {
         "hideNgWordIdReplies",ChainAboneVisibility.KEY,EdgeLevelNg.OBSERVED,
         "urlImageFetchEnabled","videoFrameThumbnailsEnabled","videoSwipeBrightness","videoSwipeVolume","videoDoubleTapSeek","videoYoutubeEnabled","videoAutoplay",
         "siteCardsEnabled","siteCardImages",XPostPreviewPosition.ENABLED,"patrolImagesEnabled","patrolImageFilterEnabled","responseArchiveEnabled","directBodySelection",
-        "popularReplyPopup","popularReplyDirect","quickFilterCounts","quickFilterExtras","bottomQuickFilterPanel","persistentBottomQuickFilters","compactQuickFilters","wacchoiSearchEnabled","wacchoiBackgroundSearch",
+        "popularReplyPopup","popularReplyDirect","quickFilterCounts","quickFilterExtras","bottomQuickFilterPanel","persistentBottomQuickFilters",QuickFilterOptions.TRANSPARENT,"compactQuickFilters","wacchoiSearchEnabled","wacchoiBackgroundSearch",
         "wacchoiLongPressSearch","wacchoiLongPressSuffixSearch","wacchoiLongPressPrefixSearch","wacchoiLongPressSuffixNg","wacchoiLongPressPrefixNg","responseExtraTools","wacchoiSearchHistory","showEdgeSearch","showZzzSearch","readThreadsFirstNewOnly","automaticFoldMode",
         "groupBrowsingHistoryByBoard","showRefreshTargetsInHistoryPopup","imageVpnEnabled","hideDroppedHomeThreads","hideDroppedDrafts","hideDroppedSent","nativeToolTabs","nativeToolTabSettings","nativeToolTabEddi",
         "nativeToolTabSearch","nativeToolTabChecker","nativeToolTabHissi","nativeToolTabWacchoi",NativeToolTabChMateGestures.KEY,"floatingQuickFilterButton","hissiViewerCompactHeader",
@@ -283,7 +294,7 @@ public final class SettingsProfiles {
         Map<String,Object> out=new LinkedHashMap<>();for(Map.Entry<String,Rule> e:RULES.entrySet())if(e.getValue().accepts(false))out.put(e.getKey(),false);
         for(String key:new String[]{"edgeReporterId","edgeReporterBoardList","dedicatedViewerEnabled","kyodemoEnhancedViewer","automaticDat",
                 "hideAd","chtoio","videoViewerEnabled","videoYoutubeEnabled","urlImageFetchEnabled","videoFrameThumbnailsEnabled","wacchoiSearchEnabled","showEdgeSearch",
-                ThreadRefreshOptions.KEY,UpdateConnectionHeaders.KEY,"fast191UpdateConnect","optimize191UpdateProgress"})out.put(key,true);
+                UpdateConnectionHeaders.KEY,"fast191UpdateConnect","optimize191UpdateProgress"})out.put(key,true);
         out.put("urlVideoFetchMode",0);return out;
     }
 }

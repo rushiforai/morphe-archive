@@ -1,0 +1,671 @@
+4 ficheros DEX, 164880 cadenas distintas
+
+
+### Lcom/baidu/simeji/settings/SettingsAdvancedFragment$b;
+  .method <init>(Lcom/baidu/simeji/settings/SettingsAdvancedFragment; Landroid/app/Dialog;)V
+      iput-object             v1, v0, Lcom/baidu/simeji/settings/SettingsAdvancedFragment$b;->b Lcom/baidu/simeji/settings/SettingsAdvancedFragment;
+      iput-object             v2, v0, Lcom/baidu/simeji/settings/SettingsAdvancedFragment$b;->a Landroid/app/Dialog;
+      invoke-direct           v0, Ljava/lang/Object;-><init>()V
+      return-void             
+  .method onClick(Landroid/view/View;)V
+      invoke-static           v1, Lb7/c;->a(Landroid/view/View;)V
+      iget-object             v1, v0, Lcom/baidu/simeji/settings/SettingsAdvancedFragment$b;->a Landroid/app/Dialog;
+      invoke-virtual          v1, Landroid/app/Dialog;->dismiss()V
+      return-void             
+
+### Lcom/baidu/simeji/settings/SettingsAdvancedFragment$c;
+  .method <init>(Lcom/baidu/simeji/settings/SettingsAdvancedFragment; Landroid/app/Dialog;)V
+      iput-object             v1, v0, Lcom/baidu/simeji/settings/SettingsAdvancedFragment$c;->b Lcom/baidu/simeji/settings/SettingsAdvancedFragment;
+      iput-object             v2, v0, Lcom/baidu/simeji/settings/SettingsAdvancedFragment$c;->a Landroid/app/Dialog;
+      invoke-direct           v0, Ljava/lang/Object;-><init>()V
+      return-void             
+  .method onClick(Landroid/view/View;)V
+      invoke-static           v1, Lb7/c;->a(Landroid/view/View;)V
+      iget-object             v1, v0, Lcom/baidu/simeji/settings/SettingsAdvancedFragment$c;->a Landroid/app/Dialog;
+      invoke-virtual          v1, Landroid/app/Dialog;->dismiss()V
+      return-void             
+
+### Lcom/baidu/simeji/settings/SettingsAdvancedFragment$d;
+  .method <init>(Lcom/baidu/simeji/settings/SettingsAdvancedFragment; Landroid/app/Dialog;)V
+      iput-object             v1, v0, Lcom/baidu/simeji/settings/SettingsAdvancedFragment$d;->b Lcom/baidu/simeji/settings/SettingsAdvancedFragment;
+      iput-object             v2, v0, Lcom/baidu/simeji/settings/SettingsAdvancedFragment$d;->a Landroid/app/Dialog;
+      invoke-direct           v0, Ljava/lang/Object;-><init>()V
+      return-void             
+  .method onClick(Landroid/view/View;)V
+      invoke-static           v2, Lb7/c;->a(Landroid/view/View;)V
+      invoke-static           Lcom/baidu/simeji/util/k;->d()V
+      iget-object             v2, v1, Lcom/baidu/simeji/settings/SettingsAdvancedFragment$d;->b Lcom/baidu/simeji/settings/SettingsAdvancedFragment;
+      invoke-static           v2, Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->d(Lcom/baidu/simeji/settings/SettingsAdvancedFragment;)Lcom/baidu/simeji/widget/UnCheckBoxPreferenceItem;
+      move-result-object      v2
+      const/4                 v0, 0
+      invoke-virtual          v2, v0, Landroid/preference/TwoStatePreference;->setChecked(Z)V
+      iget-object             v2, v1, Lcom/baidu/simeji/settings/SettingsAdvancedFragment$d;->a Landroid/app/Dialog;
+      invoke-virtual          v2, Landroid/app/Dialog;->dismiss()V
+      return-void             
+
+### Lcom/baidu/simeji/settings/SettingsAdvancedFragment$a;
+  .method <init>(Lcom/baidu/simeji/settings/SettingsAdvancedFragment;)V
+      iput-object             v1, v0, Lcom/baidu/simeji/settings/SettingsAdvancedFragment$a;->a Lcom/baidu/simeji/settings/SettingsAdvancedFragment;
+      invoke-direct           v0, Ljava/lang/Object;-><init>()V
+      return-void             
+  .method a(Lcom/google/android/ump/FormError;)V
+      if-nez                  v2, +029h
+      invoke-static           Lcom/baidu/simeji/skins/video/e;->p()Lcom/baidu/simeji/skins/video/e;
+      move-result-object      v2
+      invoke-virtual          v2, Lcom/baidu/simeji/skins/video/e;->r()Z
+      move-result             v2
+      if-eqz                  v2, +01fh
+      iget-object             v2, v1, Lcom/baidu/simeji/settings/SettingsAdvancedFragment$a;->a Lcom/baidu/simeji/settings/SettingsAdvancedFragment;
+      invoke-static           v2, Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->c(Lcom/baidu/simeji/settings/SettingsAdvancedFragment;)Landroid/preference/PreferenceCategory;
+      move-result-object      v2
+      iget-object             v0, v1, Lcom/baidu/simeji/settings/SettingsAdvancedFragment$a;->a Lcom/baidu/simeji/settings/SettingsAdvancedFragment;
+      invoke-static           v0, Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->b(Lcom/baidu/simeji/settings/SettingsAdvancedFragment;)Lcom/baidu/simeji/widget/PreferenceItem;
+      move-result-object      v0
+      invoke-virtual          v2, v0, Landroid/preference/PreferenceGroup;->addPreference(Landroid/preference/Preference;)Z
+      iget-object             v2, v1, Lcom/baidu/simeji/settings/SettingsAdvancedFragment$a;->a Lcom/baidu/simeji/settings/SettingsAdvancedFragment;
+      const-string            v0, "gdpr_settings"
+      invoke-virtual          v2, v0, Landroid/preference/PreferenceFragment;->findPreference(Ljava/lang/CharSequence;)Landroid/preference/Preference;
+      move-result-object      v2
+      iget-object             v0, v1, Lcom/baidu/simeji/settings/SettingsAdvancedFragment$a;->a Lcom/baidu/simeji/settings/SettingsAdvancedFragment;
+      invoke-virtual          v2, v0, Landroid/preference/Preference;->setOnPreferenceClickListener(Landroid/preference/Preference$OnPreferenceClickListener;)V
+      goto                    +10h
+      iget-object             v2, v1, Lcom/baidu/simeji/settings/SettingsAdvancedFragment$a;->a Lcom/baidu/simeji/settings/SettingsAdvancedFragment;
+      invoke-static           v2, Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->c(Lcom/baidu/simeji/settings/SettingsAdvancedFragment;)Landroid/preference/PreferenceCategory;
+      move-result-object      v2
+      iget-object             v0, v1, Lcom/baidu/simeji/settings/SettingsAdvancedFragment$a;->a Lcom/baidu/simeji/settings/SettingsAdvancedFragment;
+      invoke-static           v0, Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->b(Lcom/baidu/simeji/settings/SettingsAdvancedFragment;)Lcom/baidu/simeji/widget/PreferenceItem;
+      move-result-object      v0
+      invoke-virtual          v2, v0, Landroid/preference/PreferenceGroup;->removePreference(Landroid/preference/Preference;)Z
+      return-void             
+  .method b()V
+      return-void             
+
+### Lcom/baidu/simeji/settings/SettingsAdvancedFragment;
+  .method <init>()V
+      invoke-direct           v0, Lcom/baidu/simeji/components/o;-><init>()V
+      return-void             
+  .method a(Lcom/google/android/ump/FormError;)V
+      invoke-static           v0, Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->lambda$onPreferenceClick$0(Lcom/google/android/ump/FormError;)V
+      return-void             
+  .method b(Lcom/baidu/simeji/settings/SettingsAdvancedFragment;)Lcom/baidu/simeji/widget/PreferenceItem;
+      iget-object             v0, v0, Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->mGdprSettings Lcom/baidu/simeji/widget/PreferenceItem;
+      return-object           v0
+  .method c(Lcom/baidu/simeji/settings/SettingsAdvancedFragment;)Landroid/preference/PreferenceCategory;
+      iget-object             v0, v0, Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->mSessionCategory Landroid/preference/PreferenceCategory;
+      return-object           v0
+  .method d(Lcom/baidu/simeji/settings/SettingsAdvancedFragment;)Lcom/baidu/simeji/widget/UnCheckBoxPreferenceItem;
+      iget-object             v0, v0, Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->mShareDataCheckBox Lcom/baidu/simeji/widget/UnCheckBoxPreferenceItem;
+      return-object           v0
+  .method lambda$onPreferenceClick$0(Lcom/google/android/ump/FormError;)V
+      if-eqz                  v1, +00ch
+      invoke-static           Lcom/preff/kb/util/ToastShowHandler;->getInstance()Lcom/preff/kb/util/ToastShowHandler;
+      move-result-object      v1
+      const                   v0, 2132019864
+      invoke-virtual          v1, v0, Lcom/preff/kb/util/ToastShowHandler;->showToast(I)V
+      return-void             
+  .method showSureDialog()V
+      invoke-virtual          v11, Landroid/app/Fragment;->getActivity()Landroid/app/Activity;
+      move-result-object      v0
+      if-eqz                  v0, +101h
+      invoke-virtual          v11, Landroid/app/Fragment;->getActivity()Landroid/app/Activity;
+      move-result-object      v0
+      invoke-virtual          v0, Landroid/app/Activity;->isFinishing()Z
+      move-result             v0
+      if-nez                  v0, +0f7h
+      invoke-virtual          v11, Landroid/app/Fragment;->getActivity()Landroid/app/Activity;
+      move-result-object      v0
+      invoke-static           v0, Landroid/view/LayoutInflater;->from(Landroid/content/Context;)Landroid/view/LayoutInflater;
+      move-result-object      v0
+      const                   v1, 2131624211
+      const/4                 v2, 0
+      invoke-virtual          v0, v1, v2, Landroid/view/LayoutInflater;->inflate(I Landroid/view/ViewGroup;)Landroid/view/View;
+      move-result-object      v0
+      new-instance            v1, Landroid/app/Dialog;
+      invoke-virtual          v11, Landroid/app/Fragment;->getActivity()Landroid/app/Activity;
+      move-result-object      v2
+      const                   v3, 2132083888
+      invoke-direct           v1, v2, v3, Landroid/app/Dialog;-><init>(Landroid/content/Context; I)V
+      invoke-virtual          v1, v0, Landroid/app/Dialog;->setContentView(Landroid/view/View;)V
+      const                   v2, 2131429619
+      invoke-virtual          v0, v2, Landroid/view/View;->findViewById(I)Landroid/view/View;
+      move-result-object      v2
+      check-cast              v2, Landroid/widget/FrameLayout;
+      const                   v3, 2131428400
+      invoke-virtual          v0, v3, Landroid/view/View;->findViewById(I)Landroid/view/View;
+      move-result-object      v3
+      check-cast              v3, Landroid/widget/TextView;
+      const                   v4, 2132017256
+      invoke-virtual          v3, v4, Landroid/widget/TextView;->setText(I)V
+      const                   v3, 2131428395
+      invoke-virtual          v0, v3, Landroid/view/View;->findViewById(I)Landroid/view/View;
+      move-result-object      v3
+      check-cast              v3, Landroid/widget/TextView;
+      const                   v4, 2132017253
+      invoke-virtual          v11, v4, Landroid/app/Fragment;->getString(I)Ljava/lang/String;
+      move-result-object      v4
+      const                   v5, 2132017472
+      invoke-virtual          v11, v5, Landroid/app/Fragment;->getString(I)Ljava/lang/String;
+      move-result-object      v5
+      invoke-virtual          v4, v5, Ljava/lang/String;->indexOf(Ljava/lang/String;)I
+      move-result             v6
+      const/4                 v7, -1
+      if-eq                   v6, v7, +04eh
+      new-instance            v8, Landroid/text/SpannableStringBuilder;
+      invoke-direct           v8, v4, Landroid/text/SpannableStringBuilder;-><init>(Ljava/lang/CharSequence;)V
+      new-instance            v4, Lg7/a;
+      const-string            v9, "https://www.facemojikeyboard.com/page/privacy/googleplay/privacy.html"
+      invoke-virtual          v11, Landroid/app/Fragment;->getActivity()Landroid/app/Activity;
+      move-result-object      v10
+      invoke-direct           v4, v9, v1, v10, Lg7/a;-><init>(Ljava/lang/String; Landroid/app/Dialog; Landroid/content/Context;)V
+      invoke-virtual          v5, Ljava/lang/String;->length()I
+      move-result             v9
+      add-int/2addr           v9, v6
+      const/16                v10, 33
+      invoke-virtual          v8, v4, v6, v9, v10, Landroid/text/SpannableStringBuilder;->setSpan(Ljava/lang/Object; I I I)V
+      new-instance            v4, Landroid/text/style/TypefaceSpan;
+      const                   v9, 2132017870
+      invoke-virtual          v11, v9, Landroid/app/Fragment;->getString(I)Ljava/lang/String;
+      move-result-object      v9
+      invoke-direct           v4, v9, Landroid/text/style/TypefaceSpan;-><init>(Ljava/lang/String;)V
+      invoke-virtual          v5, Ljava/lang/String;->length()I
+      move-result             v5
+      add-int/2addr           v5, v6
+      invoke-virtual          v8, v4, v6, v5, v10, Landroid/text/SpannableStringBuilder;->setSpan(Ljava/lang/Object; I I I)V
+      new-instance            v4, Landroid/text/style/ForegroundColorSpan;
+      const-string            v5, "#d6000000"
+      invoke-static           v5, Landroid/graphics/Color;->parseColor(Ljava/lang/String;)I
+      move-result             v5
+      invoke-direct           v4, v5, Landroid/text/style/ForegroundColorSpan;-><init>(I)V
+      const/4                 v5, 0
+      invoke-virtual          v8, Landroid/text/SpannableStringBuilder;->length()I
+      move-result             v6
+      invoke-virtual          v8, v4, v5, v6, v10, Landroid/text/SpannableStringBuilder;->setSpan(Ljava/lang/Object; I I I)V
+      invoke-virtual          v3, v8, Landroid/widget/TextView;->setText(Ljava/lang/CharSequence;)V
+      invoke-static           Landroid/text/method/LinkMovementMethod;->getInstance()Landroid/text/method/MovementMethod;
+      move-result-object      v4
+      invoke-virtual          v3, v4, Landroid/widget/TextView;->setMovementMethod(Landroid/text/method/MovementMethod;)V
+      goto                    +4h
+      invoke-virtual          v3, v4, Landroid/widget/TextView;->setText(Ljava/lang/CharSequence;)V
+      const                   v3, 2131428392
+      invoke-virtual          v0, v3, Landroid/view/View;->findViewById(I)Landroid/view/View;
+      move-result-object      v3
+      check-cast              v3, Landroid/widget/TextView;
+      const                   v4, 2132017255
+      invoke-virtual          v3, v4, Landroid/widget/TextView;->setText(I)V
+      new-instance            v4, Lcom/baidu/simeji/settings/SettingsAdvancedFragment$b;
+      invoke-direct           v4, v11, v1, Lcom/baidu/simeji/settings/SettingsAdvancedFragment$b;-><init>(Lcom/baidu/simeji/settings/SettingsAdvancedFragment; Landroid/app/Dialog;)V
+      invoke-virtual          v3, v4, Landroid/view/View;->setOnClickListener(Landroid/view/View$OnClickListener;)V
+      const                   v3, 2131428391
+      invoke-virtual          v0, v3, Landroid/view/View;->findViewById(I)Landroid/view/View;
+      move-result-object      v0
+      check-cast              v0, Landroid/widget/TextView;
+      const                   v3, 2132017254
+      invoke-virtual          v0, v3, Landroid/widget/TextView;->setText(I)V
+      new-instance            v3, Lcom/baidu/simeji/settings/SettingsAdvancedFragment$c;
+      invoke-direct           v3, v11, v1, Lcom/baidu/simeji/settings/SettingsAdvancedFragment$c;-><init>(Lcom/baidu/simeji/settings/SettingsAdvancedFragment; Landroid/app/Dialog;)V
+      invoke-virtual          v2, v3, Landroid/view/View;->setOnClickListener(Landroid/view/View$OnClickListener;)V
+      new-instance            v2, Lcom/baidu/simeji/settings/SettingsAdvancedFragment$d;
+      invoke-direct           v2, v11, v1, Lcom/baidu/simeji/settings/SettingsAdvancedFragment$d;-><init>(Lcom/baidu/simeji/settings/SettingsAdvancedFragment; Landroid/app/Dialog;)V
+      invoke-virtual          v0, v2, Landroid/view/View;->setOnClickListener(Landroid/view/View$OnClickListener;)V
+      invoke-virtual          v1, Landroid/app/Dialog;->getWindow()Landroid/view/Window;
+      move-result-object      v0
+      invoke-virtual          v0, Landroid/view/Window;->getAttributes()Landroid/view/WindowManager$LayoutParams;
+      move-result-object      v2
+      iput                    v7, v2, Landroid/view/WindowManager$LayoutParams;->width I
+      iput                    v7, v2, Landroid/view/WindowManager$LayoutParams;->height I
+      invoke-virtual          v0, v2, Landroid/view/Window;->setAttributes(Landroid/view/WindowManager$LayoutParams;)V
+      invoke-virtual          v1, Landroid/app/Dialog;->show()V
+      goto                    +9h
+      move-exception          v0
+      const-string            v1, "com/baidu/simeji/settings/SettingsAdvancedFragment"
+      const-string            v2, "showSureDialog"
+      invoke-static           v0, v1, v2, Lb7/b;->d(Ljava/lang/Throwable; Ljava/lang/String; Ljava/lang/String;)V
+      return-void             
+  .method onActivityCreated(Landroid/os/Bundle;)V
+      invoke-super            v1, v2, Lcom/baidu/simeji/components/o;->onActivityCreated(Landroid/os/Bundle;)V
+      invoke-virtual          v1, Landroid/app/Fragment;->getView()Landroid/view/View;
+      move-result-object      v2
+      const                   v0, 16908298
+      invoke-virtual          v2, v0, Landroid/view/View;->findViewById(I)Landroid/view/View;
+      move-result-object      v2
+      check-cast              v2, Landroid/widget/ListView;
+      const/4                 v0, 0
+      invoke-virtual          v2, v0, Landroid/widget/ListView;->setDivider(Landroid/graphics/drawable/Drawable;)V
+      return-void             
+  .method onCreate(Landroid/os/Bundle;)V
+      invoke-super            v4, v5, Landroid/preference/PreferenceFragment;->onCreate(Landroid/os/Bundle;)V
+      const                   v5, 2132213991
+      invoke-virtual          v4, v5, Landroid/preference/PreferenceFragment;->addPreferencesFromResource(I)V
+      const-string            v5, "session_log_category"
+      invoke-virtual          v4, v5, Landroid/preference/PreferenceFragment;->findPreference(Ljava/lang/CharSequence;)Landroid/preference/Preference;
+      move-result-object      v5
+      check-cast              v5, Landroid/preference/PreferenceCategory;
+      iput-object             v5, v4, Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->mSessionCategory Landroid/preference/PreferenceCategory;
+      const-string            v5, "session_log_switch"
+      invoke-virtual          v4, v5, Landroid/preference/PreferenceFragment;->findPreference(Ljava/lang/CharSequence;)Landroid/preference/Preference;
+      move-result-object      v0
+      check-cast              v0, Lcom/baidu/simeji/widget/UnCheckBoxPreferenceItem;
+      iput-object             v0, v4, Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->mShareDataCheckBox Lcom/baidu/simeji/widget/UnCheckBoxPreferenceItem;
+      invoke-virtual          v4, v5, Landroid/preference/PreferenceFragment;->findPreference(Ljava/lang/CharSequence;)Landroid/preference/Preference;
+      move-result-object      v5
+      invoke-virtual          v5, v4, Landroid/preference/Preference;->setOnPreferenceClickListener(Landroid/preference/Preference$OnPreferenceClickListener;)V
+      const-string            v5, "gdpr_settings"
+      invoke-virtual          v4, v5, Landroid/preference/PreferenceFragment;->findPreference(Ljava/lang/CharSequence;)Landroid/preference/Preference;
+      move-result-object      v0
+      check-cast              v0, Lcom/baidu/simeji/widget/PreferenceItem;
+      iput-object             v0, v4, Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->mGdprSettings Lcom/baidu/simeji/widget/PreferenceItem;
+      iget-object             v1, v4, Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->mSessionCategory Landroid/preference/PreferenceCategory;
+      invoke-virtual          v1, v0, Landroid/preference/PreferenceGroup;->removePreference(Landroid/preference/Preference;)Z
+      invoke-static           Lcom/baidu/simeji/skins/video/e;->p()Lcom/baidu/simeji/skins/video/e;
+      move-result-object      v0
+      invoke-virtual          v0, Lcom/baidu/simeji/skins/video/e;->q()Z
+      move-result             v0
+      if-eqz                  v0, +03bh
+      sget-object             v0, Lcom/preff/kb/util/GDPRUtils;->INSTANCE Lcom/preff/kb/util/GDPRUtils;
+      invoke-virtual          v0, Lcom/preff/kb/util/GDPRUtils;->isGDPRRegion()Z
+      move-result             v0
+      if-eqz                  v0, +033h
+      invoke-static           Lcom/baidu/simeji/skins/video/e;->p()Lcom/baidu/simeji/skins/video/e;
+      move-result-object      v0
+      invoke-virtual          v4, Landroid/app/Fragment;->getActivity()Landroid/app/Activity;
+      move-result-object      v1
+      new-instance            v2, Lcom/baidu/simeji/settings/SettingsAdvancedFragment$a;
+      invoke-direct           v2, v4, Lcom/baidu/simeji/settings/SettingsAdvancedFragment$a;-><init>(Lcom/baidu/simeji/settings/SettingsAdvancedFragment;)V
+      const/4                 v3, 0
+      invoke-virtual          v0, v1, v3, v2, Lcom/baidu/simeji/skins/video/e;->h(Landroid/app/Activity; Z Lcom/baidu/simeji/skins/video/e$b;)V
+      invoke-static           Lcom/baidu/simeji/skins/video/e;->p()Lcom/baidu/simeji/skins/video/e;
+      move-result-object      v0
+      invoke-virtual          v0, Lcom/baidu/simeji/skins/video/e;->r()Z
+      move-result             v0
+      if-eqz                  v0, +011h
+      iget-object             v0, v4, Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->mSessionCategory Landroid/preference/PreferenceCategory;
+      iget-object             v1, v4, Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->mGdprSettings Lcom/baidu/simeji/widget/PreferenceItem;
+      invoke-virtual          v0, v1, Landroid/preference/PreferenceGroup;->addPreference(Landroid/preference/Preference;)Z
+      invoke-virtual          v4, v5, Landroid/preference/PreferenceFragment;->findPreference(Ljava/lang/CharSequence;)Landroid/preference/Preference;
+      move-result-object      v5
+      invoke-virtual          v5, v4, Landroid/preference/Preference;->setOnPreferenceClickListener(Landroid/preference/Preference$OnPreferenceClickListener;)V
+      goto                    +8h
+      iget-object             v5, v4, Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->mSessionCategory Landroid/preference/PreferenceCategory;
+      iget-object             v0, v4, Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->mGdprSettings Lcom/baidu/simeji/widget/PreferenceItem;
+      invoke-virtual          v5, v0, Landroid/preference/PreferenceGroup;->removePreference(Landroid/preference/Preference;)Z
+      invoke-virtual          v4, Landroid/app/Fragment;->getActivity()Landroid/app/Activity;
+      move-result-object      v5
+      invoke-static           v5, Landroid/preference/PreferenceManager;->getDefaultSharedPreferences(Landroid/content/Context;)Landroid/content/SharedPreferences;
+      move-result-object      v5
+      iput-object             v5, v4, Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->mSharedPrefs Landroid/content/SharedPreferences;
+      const-string            v5, "gesture_category"
+      invoke-virtual          v4, v5, Landroid/preference/PreferenceFragment;->findPreference(Ljava/lang/CharSequence;)Landroid/preference/Preference;
+      move-result-object      v5
+      check-cast              v5, Landroid/preference/PreferenceGroup;
+      const-string            v0, "gesture_type_divider_other"
+      invoke-virtual          v4, v0, Landroid/preference/PreferenceFragment;->findPreference(Ljava/lang/CharSequence;)Landroid/preference/Preference;
+      move-result-object      v0
+      invoke-virtual          v5, v0, Landroid/preference/PreferenceGroup;->removePreference(Landroid/preference/Preference;)Z
+      invoke-virtual          v4, Landroid/preference/PreferenceFragment;->getPreferenceManager()Landroid/preference/PreferenceManager;
+      move-result-object      v5
+      invoke-virtual          v5, Landroid/preference/PreferenceManager;->getSharedPreferences()Landroid/content/SharedPreferences;
+      move-result-object      v5
+      invoke-interface        v5, v4, Landroid/content/SharedPreferences;->registerOnSharedPreferenceChangeListener(Landroid/content/SharedPreferences$OnSharedPreferenceChangeListener;)V
+      return-void             
+  .method onDestroy()V
+      invoke-virtual          v1, Landroid/preference/PreferenceFragment;->getPreferenceManager()Landroid/preference/PreferenceManager;
+      move-result-object      v0
+      invoke-virtual          v0, Landroid/preference/PreferenceManager;->getSharedPreferences()Landroid/content/SharedPreferences;
+      move-result-object      v0
+      invoke-interface        v0, v1, Landroid/content/SharedPreferences;->unregisterOnSharedPreferenceChangeListener(Landroid/content/SharedPreferences$OnSharedPreferenceChangeListener;)V
+      invoke-super            v1, Lcom/baidu/simeji/components/o;->onDestroy()V
+      return-void             
+  .method onPreferenceClick(Landroid/preference/Preference;)Z
+      invoke-virtual          v4, Landroid/preference/Preference;->getKey()Ljava/lang/String;
+      move-result-object      v4
+      invoke-virtual          v4, Ljava/lang/String;->hashCode()I
+      const-string            v0, "session_log_switch"
+      invoke-virtual          v4, v0, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+      move-result             v1
+      const/4                 v2, 1
+      if-nez                  v1, +01ch
+      const-string            v0, "gdpr_settings"
+      invoke-virtual          v4, v0, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+      move-result             v4
+      if-nez                  v4, +003h
+      goto                    +23h
+      invoke-static           Lcom/baidu/simeji/skins/video/e;->p()Lcom/baidu/simeji/skins/video/e;
+      move-result-object      v4
+      invoke-virtual          v3, Landroid/app/Fragment;->getActivity()Landroid/app/Activity;
+      move-result-object      v0
+      new-instance            v1, Lef/m;
+      invoke-direct           v1, Lef/m;-><init>()V
+      invoke-virtual          v4, v0, v1, Lcom/baidu/simeji/skins/video/e;->s(Landroid/app/Activity; Llw/a$a;)V
+      goto                    +12h
+      iget-object             v4, v3, Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->mSharedPrefs Landroid/content/SharedPreferences;
+      invoke-interface        v4, v0, v2, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String; Z)Z
+      move-result             v4
+      if-eqz                  v4, +006h
+      invoke-direct           v3, Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->showSureDialog()V
+      goto                    +6h
+      iget-object             v4, v3, Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->mShareDataCheckBox Lcom/baidu/simeji/widget/UnCheckBoxPreferenceItem;
+      invoke-virtual          v4, v2, Landroid/preference/TwoStatePreference;->setChecked(Z)V
+      return                  v2
+  .method onResume()V
+      invoke-super            v1, Landroid/preference/PreferenceFragment;->onResume()V
+      const/4                 v0, 1
+      iput-boolean            v0, v1, Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->isForeground Z
+      invoke-virtual          v1, Landroid/app/Fragment;->onDetach()V
+      return-void             
+  .method onSharedPreferenceChanged(Landroid/content/SharedPreferences; Ljava/lang/String;)V
+      invoke-virtual          v10, Ljava/lang/String;->hashCode()I
+      invoke-virtual          v10, Ljava/lang/String;->hashCode()I
+      move-result             v0
+      const-string            v1, "vibrate_on"
+      const-string            v2, "sound_on"
+      const/16                v3, 10
+      const/4                 v4, 5
+      const/4                 v5, 1
+      const/4                 v6, 0
+      const/4                 v7, -1
+      sparse-switch           v0, +000025dh
+      goto/16                 +0c4h
+      invoke-virtual          v10, v1, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+      move-result             v0
+      if-nez                  v0, +004h
+      goto/16                 +0bch
+      const/16                v7, 15
+      goto/16                 +0b8h
+      invoke-virtual          v10, v2, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+      move-result             v0
+      if-nez                  v0, +004h
+      goto/16                 +0b0h
+      const/16                v7, 14
+      goto/16                 +0ach
+      const-string            v0, "pref_gesture_space_aware"
+      invoke-virtual          v10, v0, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+      move-result             v0
+      if-nez                  v0, +004h
+      goto/16                 +0a2h
+      const/16                v7, 13
+      goto/16                 +09eh
+      const-string            v0, "pref_key_use_personalized_dicts"
+      invoke-virtual          v10, v0, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+      move-result             v0
+      if-nez                  v0, +004h
+      goto/16                 +094h
+      const/16                v7, 12
+      goto/16                 +090h
+      const-string            v0, "pref_vibration_duration_settings"
+      invoke-virtual          v10, v0, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+      move-result             v0
+      if-nez                  v0, +004h
+      goto/16                 +086h
+      const/16                v7, 11
+      goto/16                 +082h
+      const-string            v0, "pref_gesture_floating_preview_text"
+      invoke-virtual          v10, v0, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+      move-result             v0
+      if-nez                  v0, +004h
+      goto/16                 +078h
+      move                    v7, v3
+      goto/16                 +075h
+      const-string            v0, "pref_gesture_preview_trail"
+      invoke-virtual          v10, v0, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+      move-result             v0
+      if-nez                  v0, +004h
+      goto/16                 +06bh
+      const/16                v7, 9
+      goto/16                 +067h
+      const-string            v0, "pref_key_use_contacts_dict"
+      invoke-virtual          v10, v0, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+      move-result             v0
+      if-nez                  v0, +004h
+      goto/16                 +05dh
+      const/16                v7, 8
+      goto/16                 +059h
+      const-string            v0, "popup_on"
+      invoke-virtual          v10, v0, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+      move-result             v0
+      if-nez                  v0, +003h
+      goto                    +4fh
+      const/4                 v7, 7
+      goto                    +4dh
+      const-string            v0, "pref_key_use_double_space_period"
+      invoke-virtual          v10, v0, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+      move-result             v0
+      if-nez                  v0, +003h
+      goto                    +44h
+      const/4                 v7, 6
+      goto                    +42h
+      const-string            v0, "gesture_input"
+      invoke-virtual          v10, v0, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+      move-result             v0
+      if-nez                  v0, +003h
+      goto                    +39h
+      move                    v7, v4
+      goto                    +37h
+      const-string            v0, "pref_key_block_potentially_offensive"
+      invoke-virtual          v10, v0, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+      move-result             v0
+      if-nez                  v0, +003h
+      goto                    +2eh
+      const/4                 v7, 4
+      goto                    +2ch
+      const-string            v0, "pref_keypress_sound_volume"
+      invoke-virtual          v10, v0, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+      move-result             v0
+      if-nez                  v0, +003h
+      goto                    +23h
+      const/4                 v7, 3
+      goto                    +21h
+      const-string            v0, "session_log_switch"
+      invoke-virtual          v10, v0, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+      move-result             v0
+      if-nez                  v0, +003h
+      goto                    +18h
+      const/4                 v7, 2
+      goto                    +16h
+      const-string            v0, "pref_key_longpress_timeout"
+      invoke-virtual          v10, v0, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+      move-result             v0
+      if-nez                  v0, +003h
+      goto                    +dh
+      move                    v7, v5
+      goto                    +bh
+      const-string            v0, "pref_key_preview_popup_dismiss_delay"
+      invoke-virtual          v10, v0, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+      move-result             v0
+      if-nez                  v0, +003h
+      goto                    +2h
+      move                    v7, v6
+      packed-switch           v7, +00001d8h
+      goto/16                 +192h
+      invoke-interface        v9, v10, v5, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String; Z)Z
+      move-result             v9
+      iget-boolean            v10, v8, Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->isForeground Z
+      if-eqz                  v10, +00eh
+      const                   v10, 200081
+      invoke-static           v9, Ljava/lang/String;->valueOf(Z)Ljava/lang/String;
+      move-result-object      v9
+      invoke-static           v10, v9, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I Ljava/lang/String;)V
+      goto/16                 +17eh
+      invoke-virtual          v8, v1, Landroid/preference/PreferenceFragment;->findPreference(Ljava/lang/CharSequence;)Landroid/preference/Preference;
+      move-result-object      v10
+      check-cast              v10, Lcom/baidu/simeji/widget/CheckBoxPreferenceItem;
+      if-eqz                  v10, +176h
+      invoke-virtual          v10, v9, Lcom/baidu/simeji/widget/CheckBoxPreferenceItem;->setChecked(Z)V
+      goto/16                 +171h
+      invoke-interface        v9, v10, v6, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String; Z)Z
+      move-result             v9
+      iget-boolean            v10, v8, Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->isForeground Z
+      if-eqz                  v10, +026h
+      const                   v10, 200082
+      invoke-static           v9, Ljava/lang/String;->valueOf(Z)Ljava/lang/String;
+      move-result-object      v9
+      invoke-static           v10, v9, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I Ljava/lang/String;)V
+      invoke-static           Lcom/baidu/simeji/theme/s;->x()Lcom/baidu/simeji/theme/s;
+      move-result-object      v9
+      invoke-virtual          v9, Lcom/baidu/simeji/theme/s;->r()I
+      move-result             v9
+      if-ne                   v9, v5, +00ah
+      const                   v9, 101135
+      invoke-static           v9, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I)V
+      goto/16                 +14dh
+      const                   v9, 101140
+      invoke-static           v9, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I)V
+      goto/16                 +145h
+      invoke-virtual          v8, v2, Landroid/preference/PreferenceFragment;->findPreference(Ljava/lang/CharSequence;)Landroid/preference/Preference;
+      move-result-object      v10
+      check-cast              v10, Lcom/baidu/simeji/widget/CheckBoxPreferenceItem;
+      if-eqz                  v10, +13dh
+      invoke-virtual          v10, v9, Lcom/baidu/simeji/widget/CheckBoxPreferenceItem;->setChecked(Z)V
+      goto/16                 +138h
+      iget-object             v9, v8, Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->mSharedPrefs Landroid/content/SharedPreferences;
+      invoke-interface        v9, v10, v6, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String; Z)Z
+      move-result             v9
+      invoke-static           v9, Ljava/lang/String;->valueOf(Z)Ljava/lang/String;
+      move-result-object      v9
+      const                   v10, 200087
+      invoke-static           v10, v9, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I Ljava/lang/String;)V
+      goto/16                 +126h
+      iget-object             v9, v8, Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->mSharedPrefs Landroid/content/SharedPreferences;
+      invoke-interface        v9, v10, v6, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String; Z)Z
+      move-result             v9
+      invoke-static           v9, Ljava/lang/String;->valueOf(Z)Ljava/lang/String;
+      move-result-object      v9
+      const                   v10, 200075
+      invoke-static           v10, v9, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I Ljava/lang/String;)V
+      goto/16                 +114h
+      iget-object             v9, v8, Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->mSharedPrefs Landroid/content/SharedPreferences;
+      invoke-interface        v9, v10, v4, Landroid/content/SharedPreferences;->getInt(Ljava/lang/String; I)I
+      move-result             v9
+      invoke-static           v9, Ljava/lang/String;->valueOf(I)Ljava/lang/String;
+      move-result-object      v9
+      const                   v10, 200144
+      invoke-static           v10, v9, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I Ljava/lang/String;)V
+      goto/16                 +102h
+      iget-object             v9, v8, Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->mSharedPrefs Landroid/content/SharedPreferences;
+      invoke-interface        v9, v10, v6, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String; Z)Z
+      move-result             v9
+      invoke-static           v9, Ljava/lang/String;->valueOf(Z)Ljava/lang/String;
+      move-result-object      v9
+      const                   v10, 200085
+      invoke-static           v10, v9, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I Ljava/lang/String;)V
+      goto/16                 +0f0h
+      iget-object             v9, v8, Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->mSharedPrefs Landroid/content/SharedPreferences;
+      invoke-interface        v9, v10, v5, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String; Z)Z
+      move-result             v9
+      invoke-static           v9, Ljava/lang/String;->valueOf(Z)Ljava/lang/String;
+      move-result-object      v9
+      const                   v10, 200086
+      invoke-static           v10, v9, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I Ljava/lang/String;)V
+      goto/16                 +0deh
+      iget-object             v9, v8, Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->mSharedPrefs Landroid/content/SharedPreferences;
+      invoke-interface        v9, v10, v6, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String; Z)Z
+      move-result             v9
+      invoke-static           v9, Ljava/lang/String;->valueOf(Z)Ljava/lang/String;
+      move-result-object      v9
+      const                   v10, 200076
+      invoke-static           v10, v9, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I Ljava/lang/String;)V
+      goto/16                 +0cch
+      iget-object             v9, v8, Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->mSharedPrefs Landroid/content/SharedPreferences;
+      invoke-interface        v9, v10, v5, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String; Z)Z
+      move-result             v9
+      invoke-static           v9, Ljava/lang/String;->valueOf(Z)Ljava/lang/String;
+      move-result-object      v9
+      const                   v10, 200083
+      invoke-static           v10, v9, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I Ljava/lang/String;)V
+      goto/16                 +0bah
+      iget-object             v9, v8, Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->mSharedPrefs Landroid/content/SharedPreferences;
+      invoke-interface        v9, v10, v6, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String; Z)Z
+      move-result             v9
+      invoke-static           v9, Ljava/lang/String;->valueOf(Z)Ljava/lang/String;
+      move-result-object      v9
+      const                   v10, 200080
+      invoke-static           v10, v9, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I Ljava/lang/String;)V
+      goto/16                 +0a8h
+      iget-object             v9, v8, Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->mSharedPrefs Landroid/content/SharedPreferences;
+      invoke-interface        v9, v10, v5, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String; Z)Z
+      move-result             v9
+      invoke-static           v9, Ljava/lang/String;->valueOf(Z)Ljava/lang/String;
+      move-result-object      v9
+      const                   v10, 200084
+      invoke-static           v10, v9, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I Ljava/lang/String;)V
+      goto/16                 +096h
+      iget-object             v9, v8, Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->mSharedPrefs Landroid/content/SharedPreferences;
+      invoke-interface        v9, v10, v6, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String; Z)Z
+      move-result             v9
+      invoke-static           v9, Ljava/lang/String;->valueOf(Z)Ljava/lang/String;
+      move-result-object      v9
+      const                   v10, 200078
+      invoke-static           v10, v9, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I Ljava/lang/String;)V
+      goto/16                 +084h
+      iget-object             v9, v8, Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->mSharedPrefs Landroid/content/SharedPreferences;
+      invoke-interface        v9, v10, v3, Landroid/content/SharedPreferences;->getInt(Ljava/lang/String; I)I
+      move-result             v9
+      invoke-static           v9, Ljava/lang/String;->valueOf(I)Ljava/lang/String;
+      move-result-object      v9
+      const                   v10, 200143
+      invoke-static           v10, v9, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I Ljava/lang/String;)V
+      invoke-static           Lcom/baidu/simeji/theme/s;->x()Lcom/baidu/simeji/theme/s;
+      move-result-object      v9
+      invoke-virtual          v9, Lcom/baidu/simeji/theme/s;->r()I
+      move-result             v9
+      if-ne                   v9, v5, +009h
+      const                   v9, 101136
+      invoke-static           v9, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I)V
+      goto                    +62h
+      const                   v9, 101141
+      invoke-static           v9, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I)V
+      goto                    +5bh
+      iget-object             v9, v8, Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->mSharedPrefs Landroid/content/SharedPreferences;
+      invoke-interface        v9, v10, v5, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String; Z)Z
+      move-result             v9
+      if-eqz                  v9, +009h
+      const                   v10, 100839
+      invoke-static           v10, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I)V
+      goto                    +10h
+      const                   v10, 100840
+      invoke-static           v10, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I)V
+      invoke-static           Lcom/baidu/simeji/App;->g()Lcom/baidu/simeji/App;
+      move-result-object      v10
+      const-string            v0, "key_use_emoji_cloud_translate"
+      invoke-static           v10, v0, v6, Lcom/preff/kb/preferences/PreffMultiProcessPreference;->saveBooleanPreference(Landroid/content/Context; Ljava/lang/String; Z)V
+      const                   v10, 300003
+      invoke-static           v9, Ljava/lang/String;->valueOf(Z)Ljava/lang/String;
+      move-result-object      v0
+      invoke-static           v10, v0, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I Ljava/lang/String;)V
+      invoke-static           Lcom/baidu/simeji/App;->g()Lcom/baidu/simeji/App;
+      move-result-object      v10
+      invoke-virtual          v10, Landroid/content/Context;->getApplicationContext()Landroid/content/Context;
+      move-result-object      v10
+      const-string            v0, "key_share_status_enabled"
+      invoke-static           v10, v0, v9, Lcom/preff/kb/preferences/PreffMultiProcessPreference;->saveBooleanPreference(Landroid/content/Context; Ljava/lang/String; Z)V
+      invoke-static           Lcom/baidu/simeji/cloudinput/CloudInputUtils;->m()V
+      goto                    +22h
+      iget-object             v9, v8, Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->mSharedPrefs Landroid/content/SharedPreferences;
+      const/16                v0, 300
+      invoke-interface        v9, v10, v0, Landroid/content/SharedPreferences;->getInt(Ljava/lang/String; I)I
+      move-result             v9
+      invoke-static           v9, Ljava/lang/String;->valueOf(I)Ljava/lang/String;
+      move-result-object      v9
+      const                   v10, 200089
+      invoke-static           v10, v9, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I Ljava/lang/String;)V
+      goto                    +fh
+      iget-object             v9, v8, Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->mSharedPrefs Landroid/content/SharedPreferences;
+      const-string            v0, "300"
+      invoke-interface        v9, v10, v0, Landroid/content/SharedPreferences;->getString(Ljava/lang/String; Ljava/lang/String;)Ljava/lang/String;
+      move-result-object      v9
+      const                   v10, 200088
+      invoke-static           v10, v9, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I Ljava/lang/String;)V
+      return-void             
+      sparse-switch-payload   -47d22db8 -2fe51293 14c15d8 15bd6249 1f386a9b 204b3d54 21c2f414 281b3252 344d246e 3e3b553d 4862174b 49405de5 54809582 551447d3 67dedb0f 68bd52af
+      packed-switch-payload   0 1 2 3 4 5 6 7 8 9 a b c d e f
+  .method onStop()V
+      invoke-super            v1, Landroid/preference/PreferenceFragment;->onStop()V
+      const/4                 v0, 0
+      iput-boolean            v0, v1, Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->isForeground Z
+      return-void             
+  .method resetTitle()V
+      invoke-super            v2, Lcom/baidu/simeji/components/o;->resetTitle()V
+      invoke-virtual          v2, Landroid/app/Fragment;->getActivity()Landroid/app/Activity;
+      move-result-object      v0
+      const                   v1, 2132019218
+      invoke-virtual          v0, v1, Landroid/app/Activity;->setTitle(I)V
+      return-void             

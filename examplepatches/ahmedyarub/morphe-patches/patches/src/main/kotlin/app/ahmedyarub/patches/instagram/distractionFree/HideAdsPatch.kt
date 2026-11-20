@@ -1,6 +1,8 @@
 package app.ahmedyarub.patches.instagram.distractionFree
 
 import app.ahmedyarub.patches.shared.Constants.COMPATIBILITY_INSTAGRAM
+import app.ahmedyarub.patches.shared.loadedStrings
+import app.ahmedyarub.patches.shared.stringPoolsPatch
 import app.morphe.library.instagram.patches.overrideMobileConfigBooleanFlag
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
@@ -34,12 +36,12 @@ private object DisableAdsFingerprint : Fingerprint(
  * Adapted from piko <https://github.com/crimera/piko>, GPLv3.
  *
  * The item filter of contextual feeds, the Following feed among them. Its first check is for
- * the self profile feed.
+ * the self profile feed, whose name it reads from a string pool since 456.
  */
 private object ContextualFeedFilterFingerprint : Fingerprint(
     returnType = "Z",
     parameters = listOf("Ljava/lang/Object;"),
-    filters = listOf(string("feed_contextual_self_profile")),
+    custom = { method, _ -> "feed_contextual_self_profile" in method.loadedStrings },
 )
 
 /**
@@ -77,6 +79,7 @@ val hideAdsPatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_INSTAGRAM)
 
     dependsOn(
+        stringPoolsPatch,
         overrideMobileConfigBooleanFlag(
             override = USE_V2_CONTROLLER_FLAG to false
         )

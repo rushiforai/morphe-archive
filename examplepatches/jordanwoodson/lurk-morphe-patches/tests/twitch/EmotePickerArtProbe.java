@@ -366,6 +366,18 @@ public final class EmotePickerArtProbe {
         check((boolean) trigger.invoke(null, false, "say Kappa") && !(boolean) trigger.invoke(null, false, "say Ka")
             && !(boolean) trigger.invoke(null, false, "say Kappa ") && !(boolean) trigger.invoke(null, false, "/me Kappa"),
             "On: the trigger follows the same rule");
+        // The choices under the switch (issue 65): matches anywhere in the name, and fewer characters.
+        settings.put("emotes_autocomplete_bare_match", "1");
+        check(complete(twitchSource, "pee").equals(List.of("peepoTwitch", "peepoClap", "WidepeepoHappy")),
+            "Anywhere: a plain word matches like ':', prefixes first: " + complete(twitchSource, "pee"));
+        settings.put("emotes_autocomplete_bare_match", "0");
+        settings.put("emotes_autocomplete_bare_min", "2");
+        check(tokenStart("say pe") == 4 && (boolean) trigger.invoke(null, false, "say Ka") && tokenStart("say p") == 0,
+            "Two characters: enough, one isn't");
+        settings.put("emotes_autocomplete_bare_min", "4");
+        check(tokenStart("say pep") == 0 && tokenStart("say pepe") == 4, "Four characters");
+        settings.remove("emotes_autocomplete_bare_min");
+        settings.remove("emotes_autocomplete_bare_match");
         settings.put("emotes_autocomplete_bare", false);
     }
 

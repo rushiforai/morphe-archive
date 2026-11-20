@@ -1112,7 +1112,10 @@ public final class GeocacheEnrichmentBridge {
             cv.put("IsLocked", 0);
             cv.put("LastModified", System.currentTimeMillis());
 
-            db.insertWithOnConflict("Geocache", null, cv, SQLiteDatabase.CONFLICT_REPLACE);
+            int rowsUpdated = db.update("Geocache", cv, "Code = ?", new String[]{code});
+            if (rowsUpdated <= 0) {
+                db.insertWithOnConflict("Geocache", null, cv, SQLiteDatabase.CONFLICT_REPLACE);
+            }
 
             // Also clean up any poisoned rows
             db.delete("Geocache", "Name IS NULL OR Name = '' OR ContainerTypeId <= 0", null);

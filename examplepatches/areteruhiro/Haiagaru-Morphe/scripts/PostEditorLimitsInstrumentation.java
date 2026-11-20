@@ -3,7 +3,7 @@ import android.app.*;import android.content.*;import android.os.*;import android
 
 /** Synthetic draft and local SETTING.TXT server; real native byte counter, no public posts. */
 public final class PostEditorLimitsInstrumentation extends Instrumentation {
- public static final class Config {public int title=6,body=12,lines=1;public int c(String key,int fallback){return key.equals("BBS_SUBJECT_COUNT")?title:key.equals("BBS_MESSAGE_COUNT")?body:key.equals("BBS_LINE_NUMBER")?lines:fallback;}public int d(String k,int f){return c(k,f);}public int e(String k,int f){return c(k,f);}}
+ public static final class Config {public int title=6,body=12,lines=1,columns=0;public int c(String key,int fallback){return key.equals("BBS_SUBJECT_COUNT")?title:key.equals("BBS_MESSAGE_COUNT")?body:key.equals("BBS_LINE_NUMBER")?lines:key.equals("BBS_MAX_LINE_CHARS")?columns:fallback;}public int d(String k,int f){return c(k,f);}public int e(String k,int f){return c(k,f);}}
  public static final class Model {public Config y,M,K;Model(Config settings){y=M=K=settings;}}
  int checks;boolean core,nativeOnly;Object model;Activity host,editor;Dialog dialog;LinearLayout root;EditText title,body;TextView counter;Class<?> limits,source,excess;Method bind;SharedPreferences prefs;boolean had,enabled;final ArrayList<String> keys=new ArrayList<>();ServerSocket server;volatile boolean serving;AtomicInteger gets=new AtomicInteger(),cap=new AtomicInteger(8);
  void ok(boolean b,String why){if(!b)throw new AssertionError(why);checks++;}
@@ -12,7 +12,7 @@ public final class PostEditorLimitsInstrumentation extends Instrumentation {
  <T>T main(Callable<T> action)throws Exception{FutureTask<T> t=new FutureTask<>(action);runOnMainSync(t);return t.get(10,TimeUnit.SECONDS);}
  void pause()throws Exception{Thread.sleep(180);waitForIdleSync();}
  int spanStart(EditText input){Object[] spans=input.getText().getSpans(0,input.length(),excess);return spans.length==0?-1:input.getText().getSpanStart(spans[0]);}
- Object values(int title,int body,int lines,boolean chars)throws Exception{Class<?> type=getTargetContext().getClassLoader().loadClass("app.morphe.extension.chmate.PostLimitSource$Values");Constructor<?> c=type.getDeclaredConstructor(int.class,int.class,int.class,boolean.class);c.setAccessible(true);return c.newInstance(title,body,lines,chars);}
+ Object values(int title,int body,int lines,boolean chars)throws Exception{Class<?> type=getTargetContext().getClassLoader().loadClass("app.morphe.extension.chmate.PostLimitSource$Values");Constructor<?> c=type.getDeclaredConstructor(int.class,int.class,int.class,boolean.class,int.class,boolean.class);c.setAccessible(true);return c.newInstance(title,body,lines,chars,0,false);}
  @SuppressWarnings("unchecked") Map<String,Object> cache()throws Exception{return (Map<String,Object>)field(limits,"CACHE").get(null);}
  void cached(String board,boolean thread,Object values)throws Exception{Class<?> type=getTargetContext().getClassLoader().loadClass("app.morphe.extension.chmate.PostEditorLimits$Cached");Constructor<?> c=type.getDeclaredConstructors()[0];c.setAccessible(true);String key=board+"\n"+thread;cache().put(key,c.newInstance(values));keys.add(key);}
  void fixture(Config config,String board,boolean thread,boolean warm)throws Exception{
@@ -26,6 +26,9 @@ public final class PostEditorLimitsInstrumentation extends Instrumentation {
   ok(field(type,"title").getInt(parsed)==70&&field(type,"body").getInt(parsed)==2000&&field(type,"lines").getInt(parsed)==15,"posting form excludes search field and reads explicit caps");
   Object rows=form.invoke(null,"futaba","<form><textarea name=com rows=999 maxlength=1200></textarea></form>",false);ok(field(type,"lines").getInt(rows)==0&&field(type,"body").getInt(rows)==1200,"textarea rows are not a posting limit");
   Object known=form.invoke(null,"animanch","<form><textarea name=text></textarea></form>",true);ok(field(type,"title").getInt(known)==64&&field(type,"body").getInt(known)==1000&&field(type,"lines").getInt(known)==30,"existing Animanch creation limits retained when form omits them");
+  Object column=form.invoke(null,"futaba","<form><textarea name=com data-max-line-chars=4 rows=2 cols=3></textarea></form>",false);ok(field(type,"columns").getInt(column)==4&&field(type,"columnCharacters").getBoolean(column),"explicit per-line form limit");
+  Object visual=form.invoke(null,"futaba","<form><textarea name=com rows=2 cols=3></textarea></form>",false);ok(field(type,"columns").getInt(visual)==0,"textarea visual columns are not a posting cap");
+  Object setting=method(source,"parse",String.class,String.class).invoke(null,"https://example.invalid/board/","BBS_MAX_LINE_CHARS=5");ok(field(type,"columns").getInt(setting)==5,"public setting per-line cap parsed");
   ok("https://jbbs.shitaraba.net/bbs/api/setting.cgi/computer/45040/".equals(method(source,"address",String.class).invoke(null,"https://jbbs.shitaraba.net/computer/45040/")),"Shitaraba uses its public settings endpoint");
  }
  void edits()throws Exception{
@@ -42,6 +45,10 @@ public final class PostEditorLimitsInstrumentation extends Instrumentation {
   main(()->{ok(counter.getText().toString().contains("上限未取得")&&!counter.getText().toString().contains("スレタイ")&&spanStart(body)<0&&spanStart(title)<0,"reply and unknown bounds never invent errors");return null;});
   String board="https://example.invalid/html-unit-fixture/";cached(board,true,values(2,3,0,true));fixture(unknown,board,true,false);
   main(()->{body.setText("a😀b");return null;});pause();main(()->{ok(spanStart(body)==3&&body.getText().toString().equals("a😀b"),"HTML UTF-16 limit never splits emoji");return null;});
+  Config perLine=new Config();perLine.body=1000;perLine.lines=50;perLine.columns=3;fixture(perLine,"https://example.invalid/per-line-fixture/",false,true);
+  main(()->{body.setText("abcd\nok\n12345");body.setSelection(6);return null;});pause();
+  main(()->{Object[] spans=body.getText().getSpans(0,body.length(),excess);java.util.Set<String> ranges=new java.util.HashSet<>();for(Object span:spans)ranges.add(body.getText().getSpanStart(span)+":"+body.getText().getSpanEnd(span));ok(ranges.equals(new java.util.HashSet<>(java.util.Arrays.asList("3:4","11:13"))),"independent per-line tails highlighted without coloring short lines");ok(counter.getText().toString().contains("1行（最長）")&&counter.getText().toString().contains("超過2文字"),"longest line cap and remaining units displayed");ok(body.getSelectionStart()==6&&body.getText().toString().equals("abcd\nok\n12345"),"line limits preserve draft/cursor");prefs.edit().putBoolean("postEditorLimitDisplay",false).commit();return null;});pause();main(()->{ok(spanStart(body)<0&&counter.getVisibility()==View.GONE,"OFF clears per-line highlights and display");prefs.edit().putBoolean("postEditorLimitDisplay",true).commit();return null;});pause();main(()->{ok(body.getText().getSpans(0,body.length(),excess).length==2,"ON reapplies per-line spans");return null;});
+
  }
  void server()throws Exception{
   server=new ServerSocket();server.bind(new InetSocketAddress("127.0.0.1",0));serving=true;Thread thread=new Thread(()->{while(serving)try(Socket socket=server.accept()){

@@ -1,0 +1,10 @@
+{
+  "build-bundle.py": "9ed202025e0cbb7280f71d1049e4622db1fc64cc06a406e5f003a0956195d9ff",
+  "morphe/GenerateCatalog.kt": "b949b162f5be49253de1c09365d186a34f89f15ff45297f7f0630413638ee3c6",
+  "morphe/TuttoEnhancements.kt": "f10d2635ad331a3757892996c4440b09271bebb5296c999eb011abf88b694fe9",
+  "src/org/ungoogled/ui/HomeWorkShortcuts.java": "fcc62f1c8f47ca46eedbd9850348cfabee2a57c1eddd46e9081dba2a0e34480e",
+  "src/org/ungoogled/ui/LabelIndex.java": "c6b6f36de65572b7f5619217f7905f787d7b920c15bfdf8107538d010ebb66eb",
+  "src/org/ungoogled/ui/LabelSuggestions.java": "2cecd92eeb79f0af84fd5509ae7c4b84ad20003bb4895477e4fd1fa7ef2ebe0f",
+  "stubs/org/ungoogled/ui/SavedPlaces.java": "642e5d91725cf36e3d4ea432f08ed4b9a0ea1b31bc8574976405963986c23789",
+  "stubs/org/ungoogled/ui/SavedStore.java": "29ee7ba5c240efc65cd33effad6a30cfe299e9fcac3b74e2ff2f60424af6897e"
+}

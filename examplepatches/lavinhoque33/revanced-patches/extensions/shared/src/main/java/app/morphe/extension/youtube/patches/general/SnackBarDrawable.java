@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-19.
  * Written by lavinhoque33, 2026-11-18.
  */
 
@@ -42,6 +43,7 @@ public class SnackBarDrawable extends GradientDrawable {
     private boolean lightFill;
     private boolean hasCustomFill;
     private int appliedFill;
+    private int chipStrokeColor;
     private int appliedStrokeWidth;
     private int appliedStrokeColor;
 
@@ -56,7 +58,7 @@ public class SnackBarDrawable extends GradientDrawable {
         density = resources.getDisplayMetrics().density;
         baseRadius = getCornerRadius();
         appliedRadius = baseRadius;
-        captureFill(theme);
+        captureColors(theme);
     }
 
     @Override
@@ -67,7 +69,7 @@ public class SnackBarDrawable extends GradientDrawable {
         }
 
         super.applyTheme(theme);
-        captureFill(theme);
+        captureColors(theme);
     }
 
     @Override
@@ -93,22 +95,35 @@ public class SnackBarDrawable extends GradientDrawable {
         super.getOutline(outline);
     }
 
-    private void captureFill(Resources.Theme theme) {
+    private void captureColors(Resources.Theme theme) {
         if (!stylesFillAndBorder()) return;
 
         baseFill = getColor();
-        if (baseFill == null) return;
-
-        lightFill = baseFill.getDefaultColor() == LIGHT_FILL;
+        lightFill = baseFill != null && baseFill.getDefaultColor() == LIGHT_FILL;
+        chipStrokeColor = Color.TRANSPARENT;
         if (theme == null) return;
 
-        // Read the color's role from the resolved snackbar theme, not the app theme or system night mode.
         TypedValue value = new TypedValue();
+        captureChipStroke(theme, value);
+
+        // Read the fill's role from the resolved snackbar theme, not the app theme or system night mode.
         int fillAttr = ResourceUtils.getAttrIdentifier("snackBarColor");
         int lightColor = ResourceUtils.getColorIdentifier("revanced_snack_bar_color_light");
         if (fillAttr != 0 && lightColor != 0 && theme.resolveAttribute(fillAttr, value, false)
                 && value.type == TypedValue.TYPE_REFERENCE) {
             lightFill = value.data == lightColor;
+        }
+    }
+
+    private void captureChipStroke(Resources.Theme theme, TypedValue value) {
+        // Resolve Chip from the same (possibly inverted) theme that inflated the background.
+        int chipAttr = ResourceUtils.getAttrIdentifier("ytChipBackground");
+        if (chipAttr == 0 || !theme.resolveAttribute(chipAttr, value, true)) return;
+
+        if (value.type >= TypedValue.TYPE_FIRST_COLOR_INT && value.type <= TypedValue.TYPE_LAST_COLOR_INT) {
+            chipStrokeColor = value.data;
+        } else if (value.type == TypedValue.TYPE_STRING && value.resourceId != 0) {
+            chipStrokeColor = theme.getResources().getColor(value.resourceId, theme);
         }
     }
 
@@ -142,7 +157,11 @@ public class SnackBarDrawable extends GradientDrawable {
     private void updateStroke() {
         float strokeDp = sizeDp(Settings.SNACK_BAR_STROKE_WIDTH);
         int width = strokeDp > 0 ? Math.max(1, Math.round(strokeDp * density)) : 0;
-        int color = width == 0 ? Color.TRANSPARENT : STROKE.resolve(DEFAULT_STROKE_COLOR, DEFAULT_STROKE_COLOR);
+        int color = Color.TRANSPARENT;
+        if (width != 0) {
+            color = Settings.SNACK_BAR_BORDER_PRESET.get() == Settings.SnackBarBorderPreset.CHIP
+                    ? chipStrokeColor : STROKE.resolve(DEFAULT_STROKE_COLOR, DEFAULT_STROKE_COLOR);
+        }
         if (Color.alpha(color) == 0) width = 0;
         if (appliedStrokeWidth != width || appliedStrokeColor != color) {
             setStroke(width, color);

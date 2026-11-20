@@ -1,0 +1,116 @@
+[
+    {
+        "meta": {
+            "created_at": "2026-10-05T21:58:45.317155800Z",
+            "source": "patches-1.3.0.mpp",
+            "sha256": "72c1e94d736b3214f560414bb8c700f551d28ff9d3d5800a79abd6207f982e80"
+        },
+        "patches": {
+            "Hide section title": {
+                "enabled": true
+            },
+            "Hide sign-in button": {
+                "enabled": true
+            },
+            "Your profile toast": {
+                "enabled": true
+            },
+            "Sign-in toast": {
+                "enabled": true
+            },
+            "Keep account sheet open": {
+                "enabled": true
+            },
+            "Trim account menu": {
+                "enabled": true
+            },
+            "Bypass Play Services checks": {
+                "enabled": true
+            },
+            "Restore map data": {
+                "enabled": true
+            },
+            "Hide explore feed": {
+                "enabled": true
+            },
+            "Hide navigation tabs": {
+                "enabled": true
+            },
+            "Hide login promo": {
+                "enabled": true
+            },
+            "Location provider toggle": {
+                "enabled": true,
+                "options": {
+                    "useFusedProvider": false
+                }
+            },
+            "Network location fallback": {
+                "enabled": true
+            },
+            "Remove permissions": {
+                "enabled": true
+            },
+            "Remove telemetry": {
+                "enabled": true
+            },
+            "Proxy": {
+                "enabled": true
+            },
+            "Better offline maps": {
+                "enabled": true
+            },
+            "Hide suggestions": {
+                "enabled": true
+            },
+            "Blue pin": {
+                "enabled": true
+            },
+            "Change app name": {
+                "enabled": true,
+                "options": {
+                    "appName": "Ungoogled Maps"
+                }
+            },
+            "Change package name": {
+                "enabled": true,
+                "options": {
+                    "packageName": "org.ungoogled.android.apps.maps"
+                }
+            },
+            "Legacy icon": {
+                "enabled": true
+            },
+            "Offline saved places": {
+                "enabled": true
+            },
+            "Offline timeline": {
+                "enabled": true
+            },
+            "Remove sign-in promo": {
+                "enabled": true
+            },
+            "Hide ads": {
+                "enabled": true
+            },
+            "Black theme": {
+                "enabled": true
+            },
+            "Customization screen": {
+                "enabled": true
+            },
+            "Zoom controls in navigation": {
+                "enabled": true
+            },
+            "Power saving mode": {
+                "enabled": true
+            },
+            "Rectangle shapes": {
+                "enabled": true
+            },
+            "120 refresh rate": {
+                "enabled": true
+            }
+        }
+    }
+]

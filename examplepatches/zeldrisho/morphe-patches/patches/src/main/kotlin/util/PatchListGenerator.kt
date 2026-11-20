@@ -38,6 +38,10 @@ private fun generatePatchList(version: String, patches: Set<Patch>) {
     val listJson = File("../patches-list.json")
 
     val patchesMap = patches.sortedBy { it.name }.map { patch ->
+        require(!patch.name.isNullOrBlank()) { "Every patch must define a non-blank user-facing name" }
+        require(!patch.description.isNullOrBlank()) {
+            "Patch '${patch.name}' must define a non-blank user-facing description"
+        }
         JsonPatch(
             name = patch.name!!,
             description = patch.description,

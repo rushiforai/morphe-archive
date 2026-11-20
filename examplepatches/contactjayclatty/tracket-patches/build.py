@@ -9,7 +9,7 @@ import urllib.request
 import zipfile
 
 ROOT = Path(__file__).resolve().parent
-VERSION = "1.0.1"
+VERSION = "1.0.2"
 TOOLS = {
     "morphe": (
         "https://github.com/MorpheApp/morphe-desktop/releases/download/v1.18.1/morphe-desktop-1.18.1-all.jar",

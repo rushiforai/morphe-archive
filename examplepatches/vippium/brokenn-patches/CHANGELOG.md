@@ -1,3 +1,11 @@
+## [1.4.1](https://github.com/vippium/brokenn-patches/compare/v1.4.0...v1.4.1) (2026-11-19)
+
+### 🐛 Bug Fixes
+* **shared:** encode zeroed tween duration register by width and match range invokes ([2cce056](https://github.com/vippium/brokenn-patches/commit/2cce056a40285f82578084b55493deb962fcca70))
+* **jiohotstar/remove-topbar-switcher:** compute target-branch index after the 25f insert ([9b5b9ec](https://github.com/vippium/brokenn-patches/commit/9b5b9ec5c390cb91d0fc5378b9f737f7dcd6e218))
+* **shared:** guard nextInstructionIndex against int overflow ([01eb604](https://github.com/vippium/brokenn-patches/commit/01eb6048f43ae74c15eb2e9521e466c0a9f17924))
+* **jiohotstar/remove-topbar-switcher:** snap header expand/collapse to stop tab-switch jump [skip ci] ([d0fc69b](https://github.com/vippium/brokenn-patches/commit/d0fc69b0cf101206af64ef12fdc3ef79710a45ce))
+
 ## [1.4.0](https://github.com/vippium/brokenn-patches/compare/v1.3.0...v1.4.0) (2026-11-17)
 
 ### ✨ New Features

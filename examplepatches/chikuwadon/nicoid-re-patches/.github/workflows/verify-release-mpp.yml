@@ -8,6 +8,19 @@ on:
       - '.github/scripts/verify-release-mpp.py'
       - 'porting/tests/test_release_mpp_integrity.py'
       - '.github/workflows/release.yml'
+      - '.github/scripts/stage-v2.1.2-mpp.sh'
+      - 'porting/revisions/v2.1.2-release/**'
+      - '.github/scripts/stage-v2.1.3-mpp.sh'
+      - 'porting/revisions/v2.1.3-release/**'
+      - '.github/scripts/stage-v2.1.4-mpp.sh'
+      - 'porting/revisions/v2.1.4-*/**'
+      - '.github/release-notes/v2.1.4.md'
+      - '.github/scripts/verify_android_mpp.py'
+      - '.github/release-notes/v2.1.3.md'
+      - 'patches/build.gradle.kts'
+      - 'gradle.properties'
+      - 'porting/helper-ownership.json'
+      - '.github/release-notes/v2.1.2.md'
       - '.github/workflows/verify-main.yml'
       - '.github/workflows/verify-release-mpp.yml'
   push:
@@ -17,6 +30,19 @@ on:
       - '.github/scripts/verify-release-mpp.py'
       - 'porting/tests/test_release_mpp_integrity.py'
       - '.github/workflows/release.yml'
+      - '.github/scripts/stage-v2.1.2-mpp.sh'
+      - 'porting/revisions/v2.1.2-release/**'
+      - '.github/scripts/stage-v2.1.3-mpp.sh'
+      - 'porting/revisions/v2.1.3-release/**'
+      - '.github/scripts/stage-v2.1.4-mpp.sh'
+      - 'porting/revisions/v2.1.4-*/**'
+      - '.github/release-notes/v2.1.4.md'
+      - '.github/scripts/verify_android_mpp.py'
+      - '.github/release-notes/v2.1.3.md'
+      - 'patches/build.gradle.kts'
+      - 'gradle.properties'
+      - 'porting/helper-ownership.json'
+      - '.github/release-notes/v2.1.2.md'
       - '.github/workflows/verify-main.yml'
       - '.github/workflows/verify-release-mpp.yml'
 
@@ -30,8 +56,67 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          fetch-depth: 0
           persist-credentials: false
       - name: Compile release guard scripts
         run: python3 -m py_compile .github/scripts/verify-release-mpp.py porting/tests/test_release_mpp_integrity.py
+      - name: Compile v2.1.4 staging sources and syntax-check the release script
+        run: |
+          python3 -m py_compile porting/revisions/v2.1.4-dev.1/stage_candidate.py porting/revisions/v2.1.4-dev.2/stage_candidate.py porting/revisions/v2.1.4-dev.3/stage_candidate.py porting/revisions/v2.1.4-release/reconstruct_dev3.py porting/revisions/v2.1.4-release/stage_candidate.py porting/revisions/v2.1.4-release/test_release.py
+          bash -n .github/scripts/stage-v2.1.4-mpp.sh
+          bash porting/revisions/v2.1.4-dev.3/test_budget.sh
+      - name: Prove SHA-256 identity of the approved v2.1.4-dev.3 MPP
+        run: |
+          set -euo pipefail
+          curl -fLsS --retry 3 --retry-delay 2 \
+            https://github.com/chikuwadon/nicoid-re-patches/releases/download/v2.1.3/patches-2.1.3.mpp \
+            -o "$RUNNER_TEMP/v2.1.3.mpp"
+          python3 porting/revisions/v2.1.4-release/reconstruct_dev3.py \
+            --base "$RUNNER_TEMP/v2.1.3.mpp" --output "$RUNNER_TEMP/reviewed-dev3.mpp"
+          python3 .github/scripts/verify_android_mpp.py "$RUNNER_TEMP/reviewed-dev3.mpp" 2.1.4-dev.3
       - name: Reject overwritten or unstaged MPP candidates
         run: python3 porting/tests/test_release_mpp_integrity.py
+      - name: Validate canonical helper ownership and shadowed Java changes
+        run: python3 porting/tests/VerifyCanonicalHelpers.py
+      - name: Check the approved stable staging contract and release notes
+        run: |
+          if grep -Eq '^version[[:space:]]*=[[:space:]]*2\.1\.4[[:space:]]*$' gradle.properties; then
+            python3 porting/revisions/v2.1.4-release/test_release.py
+          elif grep -Eq '^version[[:space:]]*=[[:space:]]*2\.1\.3[[:space:]]*$' gradle.properties; then
+            python3 porting/revisions/v2.1.3-release/test_release.py
+          else
+            python3 porting/revisions/v2.1.2-release/test_release.py
+          fi
+          python3 porting/tests/VerifyGithubActionsSecurity.py
+          python3 porting/tests/VerifyReleaseBaseline.py
+      - name: Exercise full stable v2.1.4 staging and verify runtime class equivalence
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import os
+          from copy import copy
+          from pathlib import Path
+          from zipfile import ZipFile
+          tmp = Path(os.environ["RUNNER_TEMP"])
+          source = tmp / "reviewed-dev3.mpp"
+          compiled = tmp / "candidate-v2.1.4.mpp"
+          with ZipFile(source) as approved, ZipFile(compiled, "w") as candidate:
+              for item in approved.infolist():
+                  data = approved.read(item.filename)
+                  if item.filename == "META-INF/MANIFEST.MF":
+                      old = b"Version: 2.1.4-dev.3\r\n"
+                      if data.count(old) != 1:
+                          raise ValueError("Unexpected candidate manifest version")
+                      data = data.replace(old, b"Version: 2.1.4\r\n")
+                  candidate.writestr(copy(item), data)
+          PY
+          python3 .github/scripts/verify_android_mpp.py "$RUNNER_TEMP/candidate-v2.1.4.mpp" 2.1.4
+          python3 porting/revisions/v2.1.0-release/prepare_smali_tools.py
+          python3 porting/revisions/v2.1.4-release/stage_candidate.py \
+            --compiled "$RUNNER_TEMP/candidate-v2.1.4.mpp" \
+            --reviewed "$RUNNER_TEMP/reviewed-dev3.mpp" \
+            --output "$RUNNER_TEMP/stable-v2.1.4.mpp" \
+            --tools porting/revisions/v2.0.0-dev.1/tools
+          python3 .github/scripts/verify_android_mpp.py "$RUNNER_TEMP/stable-v2.1.4.mpp" 2.1.4
+          python3 .github/scripts/verify-release-mpp.py record 2.1.4 "$RUNNER_TEMP/stable-v2.1.4.mpp"
+          python3 .github/scripts/verify-release-mpp.py check 2.1.4 "$RUNNER_TEMP/stable-v2.1.4.mpp"

@@ -150,6 +150,17 @@ ALL_MOVE_RESULT_OPCODES = {
 
 FILLED_NEW_ARRAY_OPCODES = {"filled-new-array", "filled-new-array/range"}
 
+DEBUG_DIRECTIVES = {
+    ".line",
+    ".local",
+    ".end local",
+    ".restart local",
+    ".prologue",
+    ".epilogue",
+    ".source",
+    ".param",
+}
+
 
 def extract_method_reference_return_type(operand: str) -> str | None:
     """Extracts the return type descriptor from a Smali method reference."""
@@ -164,6 +175,25 @@ def extract_invoke_return_type(opcode: str, tokens: list[str]) -> str | None:
     """Extracts the return type descriptor from an invoke instruction's operands."""
     if not tokens:
         return None
+
+    if opcode in INVOKE_CUSTOM_OPCODES:
+        custom_proto_pattern = re.compile(
+            r"\((?:[^()]*)\)(\[+(?:[ZBSCIJFD]|L[^;()\s]+;)|[VZBSCIJFD]|L[^;()\s]+;)"
+        )
+        joined_spec = ", ".join(tokens[1:])
+        specs = [joined_spec.split("@", 1)[0]] + [
+            tok.split("@", 1)[0] for tok in tokens[1:]
+        ]
+        for spec in specs:
+            m = custom_proto_pattern.search(spec)
+            if m:
+                return m.group(1)
+            m_fallback = re.search(r"\([^)]*\)(\S+)", spec)
+            if m_fallback:
+                ret = m_fallback.group(1).rstrip("),; \t")
+                if ret:
+                    return ret
+
     candidates: list[str] = []
     if opcode in INVOKE_POLYMORPHIC_OPCODES:
         candidates.extend([tokens[-1], tokens[1] if len(tokens) > 1 else ""])
@@ -727,7 +757,17 @@ def validate_smali_snippet(
         | INVOKE_POLYMORPHIC_OPCODES
     )
     for index, (line_idx, opcode, tokens) in enumerate(instructions):
-        previous_inst = instructions[index - 1] if index else None
+        prev_idx = index - 1
+        while prev_idx >= 0 and (
+            instructions[prev_idx][1] in DEBUG_DIRECTIVES
+            or (
+                instructions[prev_idx][2]
+                and f"{instructions[prev_idx][1]} {instructions[prev_idx][2][0]}"
+                in DEBUG_DIRECTIVES
+            )
+        ):
+            prev_idx -= 1
+        previous_inst = instructions[prev_idx] if prev_idx >= 0 else None
         previous_opcode = previous_inst[1] if previous_inst else None
         if opcode in ALL_MOVE_RESULT_OPCODES:
             if previous_opcode not in invoke_opcodes | FILLED_NEW_ARRAY_OPCODES:
@@ -794,7 +834,18 @@ def validate_smali_snippet(
         if return_type is None or return_type == "V":
             continue
 
-        if index + 1 == len(instructions):
+        next_idx = index + 1
+        while next_idx < len(instructions) and (
+            instructions[next_idx][1] in DEBUG_DIRECTIVES
+            or (
+                instructions[next_idx][2]
+                and f"{instructions[next_idx][1]} {instructions[next_idx][2][0]}"
+                in DEBUG_DIRECTIVES
+            )
+        ):
+            next_idx += 1
+
+        if next_idx == len(instructions):
             report.diagnostics.append(
                 SmaliDiagnostic(
                     line=line_idx,
@@ -806,8 +857,8 @@ def validate_smali_snippet(
                     ),
                 )
             )
-        elif instructions[index + 1][1] not in ALL_MOVE_RESULT_OPCODES:
-            next_opcode = instructions[index + 1][1]
+        elif instructions[next_idx][1] not in ALL_MOVE_RESULT_OPCODES:
+            next_opcode = instructions[next_idx][1]
             report.diagnostics.append(
                 SmaliDiagnostic(
                     line=line_idx,

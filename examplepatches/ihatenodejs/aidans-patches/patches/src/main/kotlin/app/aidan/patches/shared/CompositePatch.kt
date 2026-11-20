@@ -12,9 +12,9 @@ import app.morphe.patcher.patch.resourcePatch
 
 /**
  * Builder for declaring 1-to-1 composite patches that combine Dalvik bytecode mutations
- * with an internal companion resource or raw resource patch.
+ * with internal companion resource and/or raw resource patches.
  *
- * The companion patch is tagged with category "Internal" and automatically linked to the
+ * Companion patches are tagged with category "Internal" and automatically linked to the
  * user-facing bytecode patch via [dependsOn]. Metadata generation in [PatchListGenerator]
  * filters internal companion patches out of user-facing patch listings.
  */
@@ -77,13 +77,27 @@ class CompositePatchBuilder(
     }
 
     fun resources(block: ResourcePatchContext.() -> Unit) {
-        check(rawResourceBlock == null) { "Cannot register both resources and rawResources in the same composite patch" }
-        resourceBlock = block
+        val previous = resourceBlock
+        resourceBlock = if (previous == null) {
+            block
+        } else {
+            {
+                previous()
+                block()
+            }
+        }
     }
 
     fun rawResources(block: ResourcePatchContext.() -> Unit) {
-        check(resourceBlock == null) { "Cannot register both resources and rawResources in the same composite patch" }
-        rawResourceBlock = block
+        val previous = rawResourceBlock
+        rawResourceBlock = if (previous == null) {
+            block
+        } else {
+            {
+                previous()
+                block()
+            }
+        }
     }
 
     fun bytecode(block: BytecodePatchContext.() -> Unit) {
@@ -95,8 +109,10 @@ class CompositePatchBuilder(
     }
 
     fun build(): BytecodePatch {
-        val companionPatch: Patch<*>? = when {
-            resourceBlock != null -> resourcePatch(
+        val companionPatches = mutableListOf<Patch<*>>()
+
+        resourceBlock?.let { block ->
+            companionPatches += resourcePatch(
                 name = "$name (Internal Resource)",
                 description = "Internal resource layer for $name.",
                 default = default,
@@ -105,9 +121,12 @@ class CompositePatchBuilder(
                 if (compatibilities.isNotEmpty()) {
                     compatibleWith(*compatibilities.toTypedArray())
                 }
-                execute(resourceBlock!!)
+                execute(block)
             }
-            rawResourceBlock != null -> rawResourcePatch(
+        }
+
+        rawResourceBlock?.let { block ->
+            companionPatches += rawResourcePatch(
                 name = "$name (Internal Raw Resource)",
                 description = "Internal raw resource layer for $name.",
                 default = default,
@@ -116,9 +135,8 @@ class CompositePatchBuilder(
                 if (compatibilities.isNotEmpty()) {
                     compatibleWith(*compatibilities.toTypedArray())
                 }
-                execute(rawResourceBlock!!)
+                execute(block)
             }
-            else -> null
         }
 
         return bytecodePatch(
@@ -133,7 +151,9 @@ class CompositePatchBuilder(
             if (dependencies.isNotEmpty()) {
                 dependsOn(*dependencies.toTypedArray())
             }
-            companionPatch?.let { dependsOn(it) }
+            for (companion in companionPatches) {
+                dependsOn(companion)
+            }
             for (ext in extensionPaths) {
                 extendWith(ext)
             }
@@ -146,8 +166,8 @@ class CompositePatchBuilder(
 }
 
 /**
- * Creates a composite feature patch consisting of a user-facing bytecode patch and an
- * internal companion resource/raw resource patch.
+ * Creates a composite feature patch consisting of a user-facing bytecode patch and
+ * internal companion resource and/or raw resource patches.
  */
 fun compositeFeaturePatch(
     name: String,

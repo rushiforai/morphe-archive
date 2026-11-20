@@ -1,6 +1,8 @@
 package io.github.jordanwoodson.patches.twitch.highlights
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.resource.ResourceType
+import app.morphe.patcher.resourceLiteral
 import app.morphe.patcher.string
 
 // Top-of-chat highlights (Hype Train, gift banners, polls, raids...): one presenter receives every
@@ -78,4 +80,10 @@ internal object PrivateCalloutReceivedFingerprint : Fingerprint(
 internal object CelebrationEnableEventFingerprint : Fingerprint(
     name = "toString", returnType = "Ljava/lang/String;", parameters = emptyList(),
     strings = listOf("EnableEvent(shouldEnable=", ", shouldUpdateState="),
+)
+
+// Lays out the extension icons above chat (and in the chat header), one per extension, with an overflow count.
+internal object ExtensionIconsFingerprint : Fingerprint(
+    returnType = "V", parameters = listOf("Ljava/util/List;", "L"),
+    filters = listOf(resourceLiteral(ResourceType.LAYOUT, "extension_entry_point_single_icon")),
 )

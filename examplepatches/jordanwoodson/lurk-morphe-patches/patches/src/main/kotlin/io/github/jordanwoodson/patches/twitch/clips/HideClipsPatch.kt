@@ -20,13 +20,14 @@ import io.github.jordanwoodson.patches.twitch.tipping.INTERFACE_CLASS
 @Suppress("unused")
 val hideClipsPatch = bytecodePatch(
     name = "Hide Clips",
-    description = "Hides the Clips discovery tab on Home and the Clips tab on native channel profiles. Shared clip links still open.",
+    description = "Hides the Clips discovery tab and clip shelves such as \"Clips for you\" on Home, and the Clips tab on native channel profiles. Shared clip links still open.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_TWITCH)
     dependsOn(twitchSettingsPatch, twitchHermesPatch)
     execute {
         twitchHermes.hideClipDiscoveryTabs()
+        twitchHermes.hideClipShelves()
         hideNativeHomeClipsTab()
         val routes = ProfileTabRoutesFingerprint.twitchMatch("profile tab routes").method
         val constructor = mutableClassDefBy(routes.definingClass).methods.single { it.name == "<init>" }
@@ -45,6 +46,6 @@ val hideClipsPatch = bytecodePatch(
             move-result-object v$register
             check-cast v$register, Lkotlin/enums/EnumEntries;
         """)
-        twitchSettings.add(SwitchSetting("hide_clips", "Hide Clips", "Clips discovery on Home and the native channel profile tab. Shared links still open.", Section.INTERFACE, restart = true))
+        twitchSettings.add(SwitchSetting("hide_clips", "Hide Clips", "Clips discovery and clip shelves on Home, and the native channel profile tab. Shared links still open.", Section.INTERFACE, restart = true))
     }
 }

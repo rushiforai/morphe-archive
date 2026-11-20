@@ -72,6 +72,8 @@ assert "Fast-forward dev after a published stable release" in release
 assert "git merge-base --is-ancestor origin/dev origin/main" in release
 assert "git push origin HEAD:refs/heads/dev" in release
 assert "git push --force" not in release
+assert "gh release upload" not in release, "GitHub generates source archives automatically; do not upload duplicates"
+assert "git archive --format=" not in release, "Avoid redundant custom release source archives"
 assert "inputs.confirmation == 'UPDATE'" in sync
 assert "persist-credentials: false" in sync
 config = json.loads((ROOT / ".releaserc").read_text(encoding="utf-8"))

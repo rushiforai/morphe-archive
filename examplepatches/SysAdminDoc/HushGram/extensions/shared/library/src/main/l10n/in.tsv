@@ -47,6 +47,8 @@ Loading older messages. %1$d message so far.	Memuat pesan lama. Sejauh ini %1$d 
 Loading older messages. %1$d messages so far.	Memuat pesan lama. Sejauh ini %1$d pesan.
 Lock these settings	Kunci pengaturan ini
 Mark a chat seen when you reply	Tandai obrolan sudah dilihat saat kamu membalas
+Mark a chat seen when you react	Tandai obrolan sudah dilihat saat kamu bereaksi
+Reacting to a message in a chat lets the other person see that you've read up to that message. What they sent after it stays unseen to them.	Saat kamu bereaksi pada pesan di obrolan, orang lain melihat bahwa kamu sudah membaca sampai pesan itu. Pesan yang mereka kirim setelahnya tetap belum terlihat oleh mereka.
 No messages found to save.	Tidak ada pesan untuk disimpan.
 Pick a wait from 1 to 72 hours. Locked, nothing here changes until you ask to unlock and the wait is over.	Pilih waktu tunggu 1 sampai 72 jam. Saat terkunci, tidak ada yang berubah di sini sampai kamu meminta buka kunci dan waktu tunggunya selesai.
 Ask to unlock	Minta buka kunci
@@ -249,6 +251,22 @@ Only in Reels	Hanya di Reels
 Feed videos, reels and stories all wait for your tap.	Video di feed, reels, dan cerita semuanya menunggu ketukan Anda.
 Feed videos and stories wait for your tap. Reels play as you swipe to them.	Video di feed dan cerita menunggu ketukan Anda. Reels diputar saat Anda menggeser ke sana.
 Reels wait for your tap. Feed videos and stories play as Instagram plays them.	Reels menunggu ketukan Anda. Video di feed dan cerita diputar seperti biasa di Instagram.
+# context: Tap to play settings: 'Where videos wait' choice that holds feed videos, reels and stories but lets videos in the Explore tab play (#762)
+Everywhere but Explore	Di mana saja kecuali Jelajahi
+# context: 'Where videos wait' choice that holds only videos in the Explore tab (#762)
+Only in Explore	Hanya di Jelajahi
+# context: 'Where videos wait' choice that holds reels and videos in the Explore tab (#762)
+Reels and Explore	Reels dan Jelajahi
+# context: 'Where videos wait' choice that holds feed videos and stories but lets reels and the Explore tab play (#762)
+Everywhere but Reels and Explore	Di mana saja kecuali Reels dan Jelajahi
+# context: summary of 'Everywhere but Explore' (#762)
+Feed videos, reels and stories wait for your tap. Videos in Explore play as Instagram plays them.	Video di feed, reels, dan cerita menunggu ketukan Anda. Video di Jelajahi diputar seperti biasa di Instagram.
+# context: summary of 'Only in Explore' (#762)
+Videos in Explore wait for your tap. Feed videos, reels and stories play as Instagram plays them.	Video di Jelajahi menunggu ketukan Anda. Video di feed, reels, dan cerita diputar seperti biasa di Instagram.
+# context: summary of 'Reels and Explore' (#762)
+Reels and videos in Explore wait for your tap. Feed videos and stories play as Instagram plays them.	Reels dan video di Jelajahi menunggu ketukan Anda. Video di feed dan cerita diputar seperti biasa di Instagram.
+# context: summary of 'Everywhere but Reels and Explore' (#762)
+Feed videos and stories wait for your tap. Reels and videos in Explore play as Instagram plays them.	Video di feed dan cerita menunggu ketukan Anda. Reels dan video di Jelajahi diputar seperti biasa di Instagram.
 Turn on Tap to play to use this choice.	Aktifkan Ketuk untuk memutar untuk menggunakan pilihan ini.
 Resume long videos	Lanjutkan video panjang
 Videos and reels over two minutes pick up where you left off. Seek to start elsewhere. Live videos and ads start as usual.	Video dan reel lebih dari dua menit dilanjutkan dari posisi terakhir. Geser bilah untuk posisi lain. Video langsung dan iklan mulai seperti biasa.
@@ -323,6 +341,10 @@ Stop swipe to create	Hentikan geser untuk membuat
 Full resolution photos	Foto resolusi penuh
 Loads photos in your feed, carousels and opened posts at the largest size Instagram offers. This can use more data.	Memuat foto di feed, carousel, dan postingan yang dibuka dengan ukuran terbesar yang disediakan Instagram. Ini bisa memakai lebih banyak data.
 A sideways swipe on Home no longer opens the camera. The + button and every other way into the camera still work.	Menggeser ke samping di Beranda tidak lagi membuka kamera. Tombol + dan cara lain untuk membuka kamera tetap berfungsi.
+# context: a switch in HushGram settings > Feed, right after Stop swipe to create; Messages is Instagram's inbox, named as in Swipe left for Messages (#770)
+Stop swipe to Messages	Hentikan geser ke Pesan
+# context: summary under Stop swipe to Messages; the Messages button is the inbox button at the top of Home or on the tab bar (#770)
+A swipe left on Home no longer opens Messages. The Messages button still does.	Menggeser ke kiri di Beranda tidak lagi membuka Pesan. Tombol Pesan tetap berfungsi.
 Swipe left for Messages	Geser ke kiri untuk Pesan
 Swiping left on Home opens Messages, like Instagram used to. Carousels and the stories row still slide as before.	Menggeser ke kiri di Beranda membuka Pesan, seperti Instagram dulu. Carousel dan baris cerita tetap bisa digeser seperti biasa.
 Meta AI	Meta AI
@@ -451,6 +473,11 @@ Keep Featured off the heart's dot	Jangan nyalakan titik hati karena Unggulan
 Stops the red dot on the heart from showing up for Featured alone. Likes, comments and new followers still light it.	Mencegah titik merah di ikon hati muncul hanya karena Unggulan. Suka, komentar, dan pengikut baru tetap menyalakannya.
 Hide highlights	Sembunyikan sorotan
 Takes the row of story highlights off profiles, yours included. Bios, counts and posts stay, and so does Add to highlight on your stories.	Menghapus baris sorotan cerita dari profil, termasuk profilmu. Bio, jumlah, dan postingan tetap ada, begitu juga Tambahkan ke sorotan di ceritamu.
+# context: "Followers" and "Following" are the two buttons under a profile's name, beside the post count; use the words Instagram shows there in this language (#771)
+Hide follower counts	Sembunyikan jumlah pengikut
+Takes the numbers off Followers and Following at the top of profiles, yours included. The words stay, and a tap still opens the list.	Menghapus angka pada pengikut dan mengikuti di bagian atas profil, termasuk profilmu. Katanya tetap ada, dan ketukan tetap membuka daftarnya.
+Hide Followers and Following	Sembunyikan pengikut dan mengikuti
+Takes the Followers and Following buttons off the top of profiles, yours included, with no gap left. The post count stays.	Menghapus tombol pengikut dan mengikuti dari bagian atas profil, termasuk profilmu, tanpa menyisakan celah. Jumlah postingan tetap ada.
 Hide the Threads button	Sembunyikan tombol Threads
 Takes the Threads button off the top of profiles, yours included. The menu and the other buttons stay where they were.	Menghapus tombol Threads dari bagian atas profil, termasuk profilmu. Menu dan tombol lainnya tetap di tempatnya.
 Show profile posts as a list	Tampilkan postingan profil sebagai daftar
@@ -662,10 +689,10 @@ Reels you opened from a chat end after the last one shared in that chat, with no
 Adds Download cover under Download. It saves the still picture a reel shows before it plays, at its largest size.	Menambahkan Unduh sampul di bawah Unduh. Ini menyimpan gambar diam yang ditampilkan reel sebelum diputar, dalam ukuran terbesarnya.
 Adds Download audio under Download. It saves the sound of the reel as an audio file.	Menambahkan Unduh audio di bawah Unduh. Ini menyimpan suara reel sebagai file audio.
 Download full song	Unduh lagu lengkap
-Adds Download full song under Download on reels that use a song from Instagram's music. It saves the whole song as an audio file, not only the part the reel plays.	Menambahkan Unduh lagu lengkap di bawah Unduh pada reel yang memakai lagu dari musik Instagram. Ini menyimpan seluruh lagu sebagai file audio, bukan hanya bagian yang diputar reel.
+Adds Download full song under Download on reels that use a song from Instagram's music, and a Download icon beside Save on a song's page. Both save the whole song as an audio file, not only the part the reel plays.	Menambahkan Unduh lagu lengkap di bawah Unduh pada reel yang memakai lagu dari musik Instagram, dan ikon Unduh di samping Simpan pada halaman lagu. Keduanya menyimpan seluruh lagu sebagai file audio, bukan hanya bagian yang diputar reel.
 After the reels you pick below, swiping in Reels stops until Instagram has been in the background for the time you pick. A reel you open from a message or a post still plays.	Setelah jumlah reel yang Anda pilih di bawah, menggeser di Reels berhenti sampai Instagram berada di latar belakang selama waktu yang Anda pilih. Reel yang Anda buka dari pesan atau postingan tetap diputar.
 Find the reel you came from	Temukan reel asal Anda
-Open a creator's profile from a reel, then their Reels tab, and it scrolls to that reel and outlines it for a moment. A photo reel is found in their posts. Stop looking ends the search where it is.	Buka profil kreator dari sebuah reel, lalu tab Reels-nya, dan tab itu bergulir ke reel tersebut dan menandainya sebentar. Reel foto ditemukan di postingannya. Berhenti mencari menghentikan pencarian di posisinya saat itu.
+Open a creator's profile from a reel, then their Reels tab, and it scrolls to that reel and labels it You just watched for a few seconds. A photo reel is found in their posts. Stop looking ends the search where it is.	Buka profil kreator dari sebuah reel, lalu tab Reels-nya, dan tab itu bergulir ke reel tersebut dan menandainya dengan Baru kamu tonton selama beberapa detik. Reel foto ditemukan di postingannya. Berhenti mencari menghentikan pencarian di posisinya saat itu.
 Wait for a tap to find it	Tunggu ketukan untuk mencarinya
 When the reel isn't on the first screen, the profile shows a Find the reel button instead of scrolling on its own.	Jika reel tidak ada di layar pertama, profil menampilkan tombol Cari reel alih-alih menggulir sendiri.
 Find the reel	Cari reel
@@ -673,6 +700,7 @@ Stop looking	Berhenti mencari
 Couldn't find the reel you came from	Reel asal Anda tidak ditemukan
 That's a trial reel, so it isn't on their profile	Ini reel uji coba, jadi tidak ada di profilnya
 That reel isn't on their profile. It might be a trial reel.	Reel itu tidak ada di profilnya. Mungkin itu reel uji coba.
+You just watched	Baru kamu tonton
 Clear saved copies now	Hapus salinan tersimpan sekarang
 Clear the media cache	Bersihkan cache media
 Couldn't clear the saved copies. Try again.	Tidak bisa menghapus salinan tersimpan. Coba lagi.
@@ -744,6 +772,12 @@ Takes the Comment button and the comment count off the posts in your feed.	Mengh
 # context: Comments: a second Hide comments switch that takes the Reply button off each comment in a comment sheet (#619). Reply and View more replies are Instagram's own labels under a comment; use this language's Instagram words for them.
 Hide Reply on comments	Sembunyikan Balas di komentar
 Takes Reply off each comment in a post's or reel's comments. View more replies stays, so you can still open them.	Menghapus Balas dari setiap komentar di postingan atau reel. Lihat balasan lainnya tetap ada, jadi Anda masih bisa membukanya.
+# context: Comments: a Hide comments switch that takes the heart (the like button) and the like count under it off each comment in a comment sheet (#762).
+Hide likes on comments	Sembunyikan suka di komentar
+Takes the heart and the like count off each comment in a post's or reel's comments.	Menghapus hati dan jumlah suka dari setiap komentar di postingan atau reel.
+# context: Comments: a Hide comments switch that takes the comment box off the bottom of a comment sheet (#762). Comment box is the field where you type a comment; Post is Instagram's own label on its send button, use this language's Instagram word for it.
+Hide the comment box	Sembunyikan kotak komentar
+Takes the comment box, with your picture and Post, off the bottom of a post's or reel's comments. Turn it off when you want to comment.	Menghapus kotak komentar, beserta foto Anda dan Kirim, dari bagian bawah komentar postingan atau reel. Matikan saat Anda ingin berkomentar.
 # context: Comments: the switch that hides the row of quick emoji above the comment box (#248). Comment box is the field where you type a comment.
 Hide the emoji row	Sembunyikan baris emoji
 Takes the row of quick emoji off above the comment box. The box itself stays.	Menghapus baris emoji cepat di atas kotak komentar. Kotaknya tetap ada.
@@ -997,6 +1031,10 @@ Adds a bookmark to the tabs on your own profile that opens Saved. Restart Instag
 Fast scroll in Saved	Gulir cepat di Tersimpan
 # context: Profiles > summary of Fast scroll in Saved; collections are Instagram's saved collections (#644)
 Shows a handle at the right edge of Saved and your collections while they scroll. Drag it to jump through them.	Menampilkan pegangan di tepi kanan Tersimpan dan koleksimu saat digulir. Seret untuk melompat di dalamnya.
+# context: Profiles > switch right after Fast scroll in Saved; New collection is Instagram's own label for the + at the top right of Saved that starts a new saved collection (#762)
+Hide the New collection button	Sembunyikan tombol Koleksi baru
+# context: Profiles > summary of Hide the New collection button; Saved is Instagram's own Saved page (#762)
+Takes the + for a new collection off the top of Saved. Your collections stay.	Menghapus + untuk koleksi baru dari bagian atas Tersimpan. Koleksimu tetap ada.
 Battery	Baterai
 Stop the background heartbeat	Hentikan detak latar belakang
 Instagram wakes your phone every minute or two, screen off included, only to note that it is still running. This stops that. Messages, notifications and everything you see are unaffected.	Instagram membangunkan ponselmu setiap satu atau dua menit, termasuk saat layar mati, hanya untuk mencatat bahwa ia masih berjalan. Ini menghentikannya. Pesan, notifikasi, dan semua yang kamu lihat tidak terpengaruh.
@@ -1277,6 +1315,12 @@ Stops the short buzz Instagram plays when a reel opens in clear mode. With Keep 
 # context: Reels settings: a switch under Don't vibrate in clear mode (#480). It keeps the seek bar on screen in clear mode; seek bar and clear mode use the same words as Keep a seek bar and Keep clear mode on
 Always show seek bar in clear mode	Selalu tampilkan bilah putar di mode bersih
 Keeps the seek bar on a reel in clear mode, and you can still drag it, while the other buttons stay hidden. Short reels get a bar too, in clear mode or not.	Bilah putar tetap ada di reel dalam mode bersih, dan masih bisa kamu geser, sementara tombol lain tetap tersembunyi. Reel pendek juga mendapat bilah, dalam mode bersih atau tidak.
+# context: Reels settings: a switch under Always show seek bar in clear mode (#744). A two-finger pinch on a reel turns Instagram's clear mode on and off; clear mode uses the same words as Keep clear mode on, and Pinch to zoom is the Reels switch of that name
+Pinch for clear mode	Cubit untuk mode bersih
+Pinch a reel with two fingers to turn clear mode on, and pinch again to leave it. While Pinch to zoom is on, two fingers zoom instead.	Cubit reel dengan dua jari untuk menyalakan mode bersih, dan cubit lagi untuk keluar. Saat Cubit untuk memperbesar aktif, dua jari memperbesar video.
+# context: Reels settings: a switch under Pinch for clear mode (#744). It hides the round exit button a reel shows in clear mode, the button that leaves clear mode; Pinch to zoom is the Reels switch of that name
+Hide the exit button in clear mode	Sembunyikan tombol keluar di mode bersih
+Takes away the round button a reel shows in clear mode, so a pinch is how you leave it. The button stays while Pinch to zoom is on.	Menghapus tombol bulat yang muncul di reel dalam mode bersih, jadi kamu keluar dengan mencubit. Tombolnya tetap ada saat Cubit untuk memperbesar aktif.
 Unlock with	Buka kunci dengan
 Phone lock	Kunci ponsel
 HushGram PIN	PIN HushGram
@@ -1646,6 +1690,22 @@ Start reels muted	Mulai reel tanpa suara
 Every reel starts silent, wherever you open it from. The volume keys or the speaker icon unmute it. Wins over Start reels with sound.	Setiap reel dimulai tanpa suara, dari mana pun kamu membukanya. Tombol volume atau ikon speaker menyalakan suaranya. Mengalahkan Mulai reel dengan suara.
 Hide captions	Sembunyikan keterangan
 Takes the caption off posts in your feed and off reels. The post stays, and the comments sheet still shows it.	Menghapus keterangan dari kiriman di beranda dan dari reel. Kiriman tetap ada, dan lembar komentar masih menampilkannya.
+# context: "more" is the word Instagram puts at the end of a cut caption in the feed; use the word Instagram shows there in this language (#771)
+Expand captions	Bentangkan keterangan
+Shows more of a post's caption in your feed before "more", the whole caption to start. Reels and stories stay as they are.	Menampilkan lebih banyak keterangan kiriman di beranda sebelum "selengkapnya", seluruh keterangan pada awalnya. Reels dan cerita tetap seperti semula.
+Caption lines before more	Baris sebelum "selengkapnya"
+The whole caption shows, with no "more" to tap.	Seluruh keterangan ditampilkan, tanpa "selengkapnya" untuk diketuk.
+Captions longer than that end with "more", which opens the rest.	Keterangan yang lebih panjang diakhiri dengan "selengkapnya", yang membuka sisanya.
+Turn on Expand captions to use this choice.	Aktifkan Bentangkan keterangan untuk menggunakan pilihan ini.
+Whole caption	Seluruh keterangan
+1 line	1 baris
+2 lines	2 baris
+3 lines	3 baris
+4 lines	4 baris
+5 lines	5 baris
+6 lines	6 baris
+8 lines	8 baris
+10 lines	10 baris
 Keep Home's top bar	Tetap tampilkan bilah atas Beranda
 Keeps the Instagram logo and the buttons beside it at the top of Home while you scroll, instead of sliding them away.	Menjaga logo Instagram dan tombol di sampingnya tetap di atas Beranda saat Anda menggulir, tidak digeser hilang.
 # context: Feed settings: the See-through top bar switch, right under Keep Home's top bar (#418). It blurs the posts that scroll under Home's header, the bar with the Instagram logo.
@@ -1659,6 +1719,9 @@ Find a post, reel, story or profile you saw before.	Temukan lagi kiriman, reel, 
 Recently seen	Baru dilihat
 Open profile	Buka profil
 Remove from history	Hapus dari riwayat
+# context: the viewing history page's button that switches its rows to a grid of big pictures, then back
+Show as grid	Tampilkan sebagai kisi
+Show as list	Tampilkan sebagai daftar
 Viewing history	Riwayat tontonan
 Nothing here yet. With Keep a viewing history on, what you look at shows up here.	Belum ada apa-apa. Setelah Simpan riwayat tontonan diaktifkan, yang kamu lihat akan muncul di sini.
 Post	Kiriman
@@ -1817,15 +1880,17 @@ Couldn't read that picture.	Gambar itu tidak bisa dibaca.
 This launcher can't add it.	Launcher ini tidak bisa menambahkannya.
 Glass in chats	Kaca di chat
 Gives a chat's top bar and message bar frosted glass and puts the back, call and video buttons on round glass circles. It shows the next time you open a chat. Needs Android 12 or newer for the blur.	Memberi bilah atas dan bilah pesan chat efek kaca buram dan menaruh tombol kembali, panggilan, dan video di atas lingkaran kaca. Tampil saat Anda membuka chat berikutnya. Efek blur butuh Android 12 atau lebih baru.
+Center names in chats	Tengahkan nama di chat
+Puts the name and username at the top of a chat in the middle of the bar. A long name sits as near the middle as the call buttons leave room for.	Menaruh nama dan nama pengguna di atas chat di tengah bilah. Nama yang panjang ditaruh sedekat mungkin ke tengah, sebatas ruang yang disisakan tombol panggilan.
 Glass top bar in chats	Kaca di bilah atas chat
 Turn it off to leave a chat's top bar as Instagram draws it, with no frosted band behind it. The round glass buttons and the glass message bar stay.	Matikan agar bilah atas chat tetap seperti yang digambar Instagram, tanpa pita kaca buram di belakangnya. Tombol kaca bulat dan bilah pesan kaca tetap ada.
 Top bar tint in chats	Warna bilah atas chat
 Message bar tint	Warna bilah pesan
 # context: Reels switch Hide reels with few views, its summary, the Minimum views row, its dialog message and the row's summary, then the Minimum likes row, its dialog message, its summary and its summary at 0; %1$s is a number with thousands separators (#444)
 Hide reels with few views	Sembunyikan reel dengan sedikit tayangan
-Leaves out reels in the Reels tab with fewer views or likes than the numbers below. Reels from accounts you follow, reels sent to you and reels with no count still play.	Menyembunyikan reel di tab Reels yang tayangan atau sukanya lebih sedikit daripada angka di bawah. Reel dari akun yang kamu ikuti, reel yang dikirim kepadamu, dan reel tanpa jumlah tetap diputar.
+Leaves out reels in the Reels tab outside the numbers below. Reels from accounts you follow, reels sent to you and reels that don't show a number still play.	Menyembunyikan reel di tab Reels yang berada di luar angka di bawah. Reel dari akun yang kamu ikuti, reel yang dikirim kepadamu, dan reel yang tidak menampilkan angka tetap diputar.
 Minimum views	Tayangan minimum
-Reels with fewer views than this are left out. Type a whole number.	Reel dengan tayangan lebih sedikit dari ini disembunyikan. Ketik bilangan bulat.
+Reels with fewer views than this are left out. Type a whole number, or 0 to not look at views.	Reel dengan tayangan lebih sedikit dari ini disembunyikan. Ketik bilangan bulat, atau 0 agar tayangan tidak dihitung.
 Fewer than %1$s views	Kurang dari %1$s tayangan
 Minimum likes	Suka minimum
 Reels with fewer likes than this are left out. Type a whole number, or 0 to not look at likes.	Reel dengan suka lebih sedikit dari ini disembunyikan. Ketik bilangan bulat, atau 0 agar suka tidak dihitung.
@@ -1884,6 +1949,8 @@ Open a chat, tap the clock button next to the call buttons at the top, or long p
 Instagram stopped loading older messages.	Instagram berhenti memuat pesan lama.
 Black settings page	Halaman pengaturan hitam
 Black rows and dialogs, with HushGram's name at the top.	Baris dan dialog hitam, dengan nama HushGram di atas.
+Light settings page	Halaman pengaturan terang
+White rows and dialogs, with HushGram's name at the top. Takes the place of Black settings page while it's on.	Baris dan dialog putih, dengan nama HushGram di atas. Menggantikan Halaman pengaturan hitam selama aktif.
 Mark as read	Tandai sudah dibaca
 Nothing to mark as read	Tidak ada yang perlu ditandai
 Mark as read button in chats	Tombol Tandai sudah dibaca di chat
@@ -2090,6 +2157,16 @@ Puts the seek bar right on the bottom edge of the video, so it's harder to touch
 # context: "Made with Edits" is the label Instagram shows under a post's author for a video made in Meta's Edits app; it stays in English here
 Hide Made with Edits	Sembunyikan "Made with Edits"
 Takes the "Made with Edits" label out of the line under a post's author. The song, the place and the other labels keep taking turns there.	Menghapus label "Made with Edits" dari baris di bawah pembuat postingan. Lagu, lokasi, dan label lainnya tetap bergantian di sana.
+# context: "Sponsored" and "Paid partnership" are Instagram's own labels on feed posts; use the text Instagram shows in this language (#771)
+Hide the line under names	Sembunyikan baris di bawah nama
+Takes the song, the place and the other labels off the line under the name on posts in your feed. Sponsored and Paid partnership stay. Posts already on screen change when they load again.	Menghapus lagu, tempat, dan label lain dari baris di bawah nama pada postingan di feed Anda. "Bersponsor" dan "Kemitraan berbayar" tetap ada. Postingan yang sudah tampil berubah saat dimuat ulang.
+# context: "Sponsored" and "Paid partnership" are Instagram's own labels on reels; use the text Instagram shows in this language (#771)
+Hide the line under names on reels	Sembunyikan baris di bawah nama di reel
+Takes the song, the place and the other labels off the line under the name on reels. Sponsored and Paid partnership stay. Reels already on screen change when they load again.	Menghapus lagu, tempat, dan label lain dari baris di bawah nama pada reel. "Bersponsor" dan "Kemitraan berbayar" tetap ada. Reel yang sudah tampil berubah saat dimuat ulang.
+# context: a switch in HushGram settings > Reels; Not interested and Interested are the two buttons Instagram shows under a reel, named as in the Feed row's 'Are you interested?' summary (#769)
+Hide Not interested and Interested	Sembunyikan Tidak tertarik dan Tertarik
+# context: summary under Hide Not interested and Interested on the Reels page (#769)
+Hides the Not interested and Interested buttons at the bottom of a reel. Nothing is answered for you.	Menyembunyikan tombol Tidak tertarik dan Tertarik di bagian bawah reel. Tidak ada yang dijawab untukmu.
 # context: a switch on the Feed page; Save and Remove from saved are the rows it adds to a feed post's three-dot menu
 Save in the post menu	Simpan di menu postingan
 Adds Save to the menu behind a post's three dots, or Remove from saved when you saved it already.	Menambahkan Simpan ke menu di balik tiga titik postingan, atau Hapus dari tersimpan jika kamu sudah menyimpannya.
@@ -2358,6 +2435,9 @@ Removed @%s from the list	@%s dihapus dari daftar
 # context: switch in HushGram settings > Reels; a reel link opened from outside Instagram plays the linked reel first instead of a reel Instagram kept on the phone (#606)
 Open reel links on that reel	Buka tautan reel di reel itu
 A reel link opens on the reel it points to. Instagram doesn't play another reel it kept on your phone while that one loads.	Tautan reel membuka reel yang dituju. Instagram tidak memutar reel lain yang disimpan di ponselmu selama reel itu dimuat.
+# context: switch in HushGram settings > Reels; Instagram keeps the screen on the whole time its Reels viewer is open, and this lets a paused reel follow the phone's own screen timeout (#777)
+Let the screen sleep when a reel stops	Biarkan layar mati saat reel berhenti
+Instagram keeps the screen on while Reels is open. With this on, a paused reel lets your phone's screen timeout run, and a playing one keeps it on.	Instagram membuat layar tetap menyala selama Reels terbuka. Jika ini aktif, reel yang dijeda membiarkan batas waktu layar ponselmu berjalan, dan reel yang diputar membuat layar tetap menyala.
 # context: Stories settings: moves the story speed button into a video story's three-dot menu as a Playback speed row (#621)
 Speed in the story menu	Kecepatan di menu cerita
 # context: Summary of Speed in the story menu; Playback speed is the row's own label (#621)
@@ -2396,7 +2476,8 @@ Keeps the message Instagram shows when you lock a reel's speed, and when the loc
 Remove hidden data from saved photos	Hapus data tersembunyi dari foto tersimpan
 Takes Meta's FBMD tracking tag out of each photo you save, along with any camera, place and time details. The picture and its colors stay the same. With Add the source on, the source still goes in afterward. JPEG photos only.	Menghapus tag pelacak FBMD milik Meta dari setiap foto yang kamu simpan, beserta detail kamera, tempat, dan waktu. Gambar dan warnanya tetap sama. Jika Tambahkan sumber ke foto dan video tersimpan aktif, sumbernya tetap ditulis sesudahnya. Hanya foto JPEG.
 Ask for VP9 instead of AV1	Minta VP9, bukan AV1
-Tells Instagram your phone has no AV1 decoder. Instagram doesn't always listen, so videos can still come as AV1. If they do, Convert to keep the full size gives you H.264. Takes a restart.	Memberi tahu Instagram bahwa ponselmu tidak punya dekoder AV1. Instagram tidak selalu menurut, jadi video masih bisa datang sebagai AV1. Jika begitu, Konversi agar tetap ukuran penuh memberimu H.264. Perlu dimulai ulang.
+# context: summary under Ask for VP9 instead of AV1 in HushGram settings > Downloads; Convert to keep the full size is the switch of that name a few rows up (#546)
+Tells Instagram your phone has no AV1 decoder, which takes a restart. A post or reel that still comes as AV1 is saved as VP9 from Instagram's website when it offers one. Stories can still be AV1, and Convert to keep the full size turns those into H.264.	Memberi tahu Instagram bahwa ponselmu tidak punya dekoder AV1, dan perlu dimulai ulang. Kiriman atau reel yang masih datang sebagai AV1 disimpan sebagai VP9 dari situs web Instagram jika tersedia. Cerita masih bisa AV1, dan Konversi agar tetap ukuran penuh mengubahnya menjadi H.264.
 # context: Summary of Show the skip arrows under Double tap to skip on feed videos in Feed settings (#562)
 Two arrows flash on the side you double tapped, with the seconds skipped under them.	Dua panah muncul sebentar di sisi yang kamu ketuk dua kali, dengan detik yang dilompati di bawahnya.
 # context: Feed settings: choice under Seek bar shape that gives the seek bar on feed videos a shape of its own (#567)
@@ -2435,6 +2516,14 @@ Unfollow	Berhenti mengikuti
 Interested	Tertarik
 # context: Item in Items in the three-dot menus under Feed: Instagram's Why you're seeing this post row (#697)
 Why you're seeing this post	Mengapa Anda melihat postingan ini
+# context: Item in Items in the three-dot menus under Feed: Instagram's Remix and sequence row in a reel's Made with Edits part (#707)
+Remix and sequence	Remix dan urutan
+# context: Item in Items in the three-dot menus under Feed: Instagram's Use as reference row in a reel's Made with Edits part (#707)
+Use as reference	Gunakan sebagai referensi
+# context: Item in Items in the three-dot menus under Feed: Instagram's Use template row in a reel's Made with Edits part (#707)
+Use template	Gunakan template
+# context: Item in Items in the three-dot menus under Feed: Instagram's Get Edits row in a reel's Made with Edits part (#707)
+Get Edits	Dapatkan Edits
 # context: Title of the row under Feed that lists the items to keep in the menus behind the three dots on posts, reels and stories (#697, #707)
 Items in the three-dot menus	Item di menu titik tiga
 # context: Summary of Items in the three-dot menus under Feed while every item is ticked (#697, #707)
@@ -2554,3 +2643,66 @@ Matches: %1$d of %2$d blocked accounts	Cocok: %1$d dari %2$d akun yang diblokir
 Long press a profile picture to view it	Tekan lama foto profil untuk melihatnya
 # context: that switch summary (#737)
 Long press the picture at the top of a profile to open the whole square picture at full size, with Save under it, instead of Instagram's own preview. A tap works as before.	Tekan lama foto di bagian atas profil untuk membuka seluruh foto persegi dalam ukuran penuh, dengan Simpan di bawahnya, menggantikan pratinjau Instagram sendiri. Ketukan tetap berfungsi seperti biasa.
+# context: Notifications settings: row that opens a list of the kinds of notification rows this phone has seen, to tick the ones to hide (#756)
+Hide notifications by type	Sembunyikan notifikasi menurut jenis
+# context: that row's summary while nothing is ticked (#756)
+Takes the kinds of notifications you tick off the Notifications page. The list fills in as Instagram sends them.	Menghapus jenis notifikasi yang Anda centang dari halaman Notifikasi. Daftarnya terisi saat Instagram mengirimnya.
+# context: that row's summary, one kind ticked (#756)
+%1$d kind of notification is hidden.	%1$d jenis notifikasi disembunyikan.
+# context: that row's summary, several kinds ticked (#756)
+%1$d kinds of notification are hidden.	%1$d jenis notifikasi disembunyikan.
+# context: message in that list's dialog before the Notifications page has loaded once (#756)
+No notifications seen yet. Open your notifications in Instagram once, then come back here.	Belum ada notifikasi yang terlihat. Buka notifikasi Anda di Instagram sekali, lalu kembali ke sini.
+# context: switch under HushGram settings > Reels with Keep Reels auto scroll on; adds a row to a reel's three-dot menu that turns Instagram's own auto scroll on or off, worded as in Keep auto scroll on (#768)
+Auto scroll in the reel menu	Gulir otomatis di menu reel
+# context: summary under that switch; Turn on auto scroll and Turn off auto scroll are the menu row's two labels below (#768)
+Adds Turn on auto scroll or Turn off auto scroll to the menu a reel's three dots open, so one tap changes it from the next reel on. It works on accounts where Instagram doesn't offer auto scroll too. Restart Instagram to see the change.	Menambahkan Aktifkan gulir otomatis atau Matikan gulir otomatis ke menu yang dibuka tiga titik reel, jadi satu ketukan mengubahnya mulai reel berikutnya. Ini juga berfungsi di akun yang tidak ditawari gulir otomatis oleh Instagram. Mulai ulang Instagram untuk melihat perubahannya.
+# context: that three-dot menu row on a reel; the label says what a tap does (#768)
+Turn off auto scroll	Matikan gulir otomatis
+Turn on auto scroll	Aktifkan gulir otomatis
+# context: toasts after tapping that row (#768)
+Auto scroll on	Gulir otomatis aktif
+Auto scroll off	Gulir otomatis mati
+Auto scroll didn't change	Gulir otomatis tidak berubah
+The cards that Instagram puts between reels to get you onto Threads.	Kartu yang diselipkan Instagram di antara reel untuk mengajak Anda ke Threads.
+Expand captions on reels	Bentangkan keterangan di reel
+Reels show their whole caption, with no "more" to tap. A long caption covers more of the video.	Reel menampilkan seluruh keterangannya, tanpa "selengkapnya" untuk diketuk. Keterangan yang panjang menutupi lebih banyak bagian video.
+# context: summary of the Minimum views row under HushGram settings > Reels > Hide reels with few views when it's set to 0 (#780)
+Views aren't looked at	Tayangan tidak dihitung
+# context: next row under Hide reels with few views: its title, its number dialog's message, and its summary for 0 and for a number (#780)
+Maximum views	Tayangan maksimum
+Reels with more views than this are left out. Type a whole number, or 0 for no maximum.	Reel dengan tayangan lebih banyak dari ini disembunyikan. Ketik bilangan bulat, atau 0 untuk tanpa batas atas.
+No maximum	Tanpa batas atas
+More than %1$s views	Lebih dari %1$s tayangan
+# context: next row: how many likes a reel needs for each 1,000 views; Not looked at is its summary for 0 (#780)
+Likes per 1,000 views	Suka per 1.000 tayangan
+Reels with fewer likes than this for every 1,000 views are left out. Only reels that show their views are checked. Type a whole number, or 0 to not look at it.	Reel dengan suka lebih sedikit dari ini untuk setiap 1.000 tayangan disembunyikan. Hanya reel yang menampilkan tayangannya yang diperiksa. Ketik bilangan bulat, atau 0 agar tidak dihitung.
+Not looked at	Tidak dihitung
+Fewer than %1$s likes per 1,000 views	Kurang dari %1$s suka per 1.000 tayangan
+# context: next row, the same for comments (#780)
+Comments per 1,000 views	Komentar per 1.000 tayangan
+Reels with fewer comments than this for every 1,000 views are left out. Only reels that show their views are checked. Type a whole number, or 0 to not look at it.	Reel dengan komentar lebih sedikit dari ini untuk setiap 1.000 tayangan disembunyikan. Hanya reel yang menampilkan tayangannya yang diperiksa. Ketik bilangan bulat, atau 0 agar tidak dihitung.
+Fewer than %1$s comments per 1,000 views	Kurang dari %1$s komentar per 1.000 tayangan
+# context: next row: the shortest video length in seconds; its summary for 0, then for one second and for more (#780)
+Shortest video	Video terpendek
+Reels shorter than this many seconds are left out. Type a whole number, or 0 for no shortest.	Reel yang lebih pendek dari sekian detik ini disembunyikan. Ketik bilangan bulat, atau 0 untuk tanpa batas bawah.
+No shortest	Tanpa batas bawah
+Shorter than %1$s second	Lebih pendek dari %1$s detik
+Shorter than %1$s seconds	Lebih pendek dari %1$s detik
+# context: next row: the longest video length in seconds; its summary for 0, then for one second and for more (#780)
+Longest video	Video terpanjang
+Reels longer than this many seconds are left out. Type a whole number, or 0 for no longest.	Reel yang lebih panjang dari sekian detik ini disembunyikan. Ketik bilangan bulat, atau 0 untuk tanpa batas panjang.
+No longest	Tanpa batas panjang
+Longer than %1$s second	Lebih panjang dari %1$s detik
+Longer than %1$s seconds	Lebih panjang dari %1$s detik
+# context: next row: how many days old a reel can be; its summary for 0, then for one day and for more (#780)
+Oldest post	Postingan terlama
+Reels posted more than this many days ago are left out. Type a whole number, or 0 for any age.	Reel yang diposting lebih dari sekian hari lalu disembunyikan. Ketik bilangan bulat, atau 0 untuk umur berapa pun.
+Any age	Umur berapa pun
+Posted more than %1$s day ago	Diposting lebih dari %1$s hari lalu
+Posted more than %1$s days ago	Diposting lebih dari %1$s hari lalu
+# context: switch under those rows that puts each page of reels in the order they were posted (#780)
+Newest first	Terbaru dulu
+Puts each page of reels in the order they were posted, newest on top.	Mengurutkan setiap halaman reel menurut waktu diposting, yang terbaru di atas.
+# context: summary of the Also on Home switch under those rows; the posts it leaves out are Home's suggested posts (#780)
+Leaves out suggested posts on Home outside the same numbers too. Pull down on Home to refresh after changing it.	Juga menyembunyikan postingan yang disarankan di Beranda yang berada di luar angka yang sama. Tarik Beranda ke bawah untuk menyegarkan setelah mengubahnya.

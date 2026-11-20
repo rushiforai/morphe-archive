@@ -12,6 +12,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -73,6 +74,62 @@ public final class RegisteredImageNg {
         if(snapshot.isEmpty())return false;
         RegisteredImageHash.Stamp stamp=decode(bytes);
         return stamp!=null&&snapshot.stream().anyMatch(ref->RegisteredImageHash.similar(stamp,ref,level(context)));
+    }
+
+    /** Adds the opt-in action to ChMate's response-image long-press menu (242). */
+    public static void appendLongPressAction(Object nativeMenu, Object imageItem) {
+        Context context = app;
+        if (context == null || nativeMenu == null || imageItem == null
+                || !prefs(context).getBoolean(ENABLE, false)) return;
+        try {
+            java.lang.reflect.Field urlField;
+            try{urlField=NativeFields.find(imageItem.getClass(),"i");}
+            catch(NoSuchFieldException absent){urlField=NativeFields.find(imageItem.getClass(),"g");}
+            String url = (String) urlField.get(imageItem);
+            url = PreviewUrls.normalize(url);
+            if (!PatrolImageRules.imageUrl(url)) return;
+            ClassLoader loader = context.getClassLoader();
+            Class<?> callbackType=null;
+            String imageMenuType=nativeMenu.getClass().getName();
+            if("o.setDomStorageEnabled".equals(imageMenuType)){
+                Class<?> owner=Class.forName("o.YogaNodeJNIBase",false,loader);
+                for(Method method:owner.getDeclaredMethods()){
+                    Class<?>[] p=method.getParameterTypes();
+                    if(Modifier.isStatic(method.getModifiers())&&method.getReturnType()==void.class&&p.length==3
+                            &&p[0].isInstance(nativeMenu)&&p[1]==int.class&&p[2].isInterface()){
+                        callbackType=p[2];method.setAccessible(true);
+                        Object action=createImageRegistrationCallback(loader,callbackType,context,url);
+                        method.invoke(null,nativeMenu,R.string.registered_image_ng_add,action);return;
+                    }
+                }
+            }
+            Class<?> menuType = Class.forName("o.isDataValid", false, loader);
+            Method add = null;
+            for (Method method : menuType.getDeclaredMethods()) {
+                Class<?>[] p = method.getParameterTypes();
+                if (Modifier.isStatic(method.getModifiers()) && method.getReturnType() == void.class
+                        && p.length == 7 && p[0].isInstance(nativeMenu) && p[1] == int.class
+                        && p[2] == boolean.class && p[3] == boolean.class && p[4] == Integer.class
+                        && p[5].isInterface() && p[6] == int.class) { add = method; callbackType=p[5]; break; }
+            }
+            if (add == null) return;
+            Object callback = createImageRegistrationCallback(loader,callbackType,context,url);
+            add.setAccessible(true);
+            add.invoke(null, nativeMenu, R.string.registered_image_ng_add,
+                    false, false, Integer.valueOf(0x7f08010d), callback, 14);
+        } catch (Exception error) {
+            Log.w("HaiagaruImageNg", "Unable to add image registration action", error);
+        }
+    }
+
+    private static Object createImageRegistrationCallback(ClassLoader loader,Class<?> callbackType,Context context,String url){
+        return java.lang.reflect.Proxy.newProxyInstance(loader,new Class<?>[]{callbackType},(proxy,method,args)->{
+            if("invoke".equals(method.getName())&&method.getParameterTypes().length==0){
+                importUrls(java.util.Collections.singletonList(url),result->new android.os.Handler(android.os.Looper.getMainLooper()).post(()->
+                        android.widget.Toast.makeText(context,result,android.widget.Toast.LENGTH_LONG).show()));
+            }
+            return null;
+        });
     }
 
     /** Safe to invoke from the existing NG map hook: network and pixel work stay on WORKER. */

@@ -1,0 +1,5 @@
+build/
+downloads/
+*.apk
+*.class
+__pycache__/

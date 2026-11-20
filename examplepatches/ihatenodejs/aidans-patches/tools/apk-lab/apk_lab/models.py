@@ -378,3 +378,42 @@ class ResourceQueryReport:
             for w in self.warnings:
                 lines.append(f"Warning: {w}")
         return "\n".join(lines)
+
+
+@dataclass(frozen=True)
+class UiNode:
+    text: str
+    content_desc: str
+    resource_id: str
+    class_name: str
+    clickable: bool
+    bounds: tuple[int, int, int, int]  # left, top, right, bottom
+
+    @property
+    def center(self) -> tuple[int, int]:
+        left, top, right, bottom = self.bounds
+        return ((left + right) // 2, (top + bottom) // 2)
+
+    def matches(
+        self,
+        *,
+        text: str | None = None,
+        desc: str | None = None,
+        resource_id: str | None = None,
+    ) -> bool:
+        if text and text.lower() not in self.text.lower():
+            return False
+        if desc and desc.lower() not in self.content_desc.lower():
+            return False
+        return not (resource_id and resource_id.lower() not in self.resource_id.lower())
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "text": self.text,
+            "contentDesc": self.content_desc,
+            "resourceId": self.resource_id,
+            "className": self.class_name,
+            "clickable": self.clickable,
+            "bounds": list(self.bounds),
+            "center": list(self.center),
+        }

@@ -224,6 +224,16 @@ public final class ReelDeclutter {
     static final String DATE_ON_SOUND = "date on sound label";
     /** Counted under the date's name each time the date goes ahead of a reel's "New for you" (#520). */
     static final String DATE_BEFORE_REASON = "date before reason";
+    /** Counted under the date's name each time the date goes after the poster's name on a group's video (#520). */
+    static final String DATE_BESIDE_POSTER = "date beside poster";
+    /** Counted under the date's name each time a dated song line holds still instead of scrolling (#503). */
+    static final String DATE_SONG_STILL = "song line held still";
+    /** Counted under the date's name for each row the line under a reel's author no longer turns to (#503). */
+    static final String DATE_HELD = "line held on date";
+    /** Counted under the date's name each time Facebook's own date after a reel's caption is left out (#503). */
+    static final String DATE_CAPTION_LEFT_OUT = "caption date left out";
+    /** How many date rows {@link #footerDateRow} keeps on one thread until the footer's rows come by. */
+    static final int FOOTER_DATES_KEPT = 4;
     /** Counted under its own name each time a reel's "New for you" is left off the line under its author (#520). */
     static final String NEW_FOR_YOU_ROUTE = "Reel New for you";
     static final String NEW_FOR_YOU_HIDDEN = "left out";
@@ -840,6 +850,26 @@ public final class ReelDeclutter {
     }
 
     /**
+     * Injection point, in a reel caption's render, handed the server switch's answer to whether the
+     * caption gets a date row of its own after it (#503). Accounts in that test saw the date twice
+     * with the post date on, under the author and again after the caption. While the date is on this
+     * says no, so it shows under the author only. Never throws: anything going wrong answers what it
+     * was handed.
+     */
+    public static boolean captionDateShows(boolean shown) {
+        try {
+            HookStatus.invoked(FamilyNames.REEL_DECLUTTER);
+            if (!shown || !Utils.settingsReady() || !Settings.SHOW_REEL_POST_DATE.get()) return shown;
+            FeedFilterCounters.removed(DATE_ROUTE, 1, DATE_CAPTION_LEFT_OUT);
+            logOnce(DATE_CAPTION_LEFT_OUT, () -> "Reel post date: Facebook's date after the caption left out");
+            return false;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.REEL_DECLUTTER, DATE_CAPTION_LEFT_OUT, failure);
+            return shown;
+        }
+    }
+
+    /**
      * Injection point, in the helper that builds the post date under a reel's or a full-screen
      * video's author, handed the server switch's answer to whether that line is drawn, right before
      * the helper draws nothing for a no (#296). True while the switch is on, so the date shows.
@@ -964,6 +994,119 @@ public final class ReelDeclutter {
         }
     }
 
+    /**
+     * Injection point, in the Reels tab's audio line, handed the flag that makes the song chip scroll
+     * its line sideways, non-zero for yes (#503). With the date in front of the song, the scroll
+     * carried the date out of sight within a second. No while the date's switch is on, so the line
+     * holds still with the date first and ends in "..." where it runs long. Never throws: anything
+     * going wrong answers what it was handed.
+     */
+    public static boolean audioLineScrolls(int scrolls) {
+        boolean handed = scrolls != 0;
+        try {
+            HookStatus.invoked(FamilyNames.REEL_DECLUTTER);
+            if (!handed || !Utils.settingsReady() || !Settings.SHOW_REEL_POST_DATE.get()) return handed;
+            FeedFilterCounters.removed(DATE_ROUTE, 1, DATE_SONG_STILL);
+            logOnce(DATE_SONG_STILL, () -> "Reel post date: the song line held still");
+            return false;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.REEL_DECLUTTER, DATE_SONG_STILL, failure);
+            return handed;
+        }
+    }
+
+    /** The date rows the reel footer's builder made on this thread since its rows last came by, oldest first. */
+    private static final ThreadLocal<List<WeakReference<Object>>> FOOTER_DATES = new ThreadLocal<>();
+
+    /**
+     * Injection point, in the reel footer's builder, handed each row the post date helper answers,
+     * null where it draws none (#503). Kept for {@link #footerRows}, which looks for it among the
+     * rows the line under the author turns through.
+     */
+    public static void footerDateRow(@Nullable Object row) {
+        try {
+            HookStatus.invoked(FamilyNames.REEL_DECLUTTER);
+            if (row == null) return;
+            List<WeakReference<Object>> kept = FOOTER_DATES.get();
+            if (kept == null) {
+                kept = new ArrayList<>(FOOTER_DATES_KEPT);
+                FOOTER_DATES.set(kept);
+            }
+            if (kept.size() >= FOOTER_DATES_KEPT) kept.remove(0);
+            kept.add(new WeakReference<>(row));
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.REEL_DECLUTTER, DATE_HELD, failure);
+        }
+    }
+
+    /**
+     * Injection point, in the reel footer's builder, handed the rows the line under a reel's author
+     * turns through, right before they go to the view that flips between them (#503). The date row
+     * leads and a location or "New for you" row follows, so the line showed the date for a few
+     * seconds and then something else. While the date's switch is on and a row
+     * {@link #footerDateRow} kept is among them, the line gets that row alone and holds on it.
+     * Never throws: anything going wrong answers what it was handed.
+     */
+    @Nullable
+    public static List<Object> footerRows(@Nullable List<Object> rows) {
+        List<WeakReference<Object>> kept = FOOTER_DATES.get();
+        FOOTER_DATES.remove();
+        try {
+            HookStatus.invoked(FamilyNames.REEL_DECLUTTER);
+            if (rows == null || rows.size() < 2 || kept == null || !Utils.settingsReady() || !Settings.SHOW_REEL_POST_DATE.get()) {
+                return rows;
+            }
+            Object date = heldRow(rows, kept);
+            if (date == null) return rows;
+            List<Object> held = new ArrayList<>(1);
+            held.add(date);
+            FeedFilterCounters.removed(DATE_ROUTE, rows.size() - 1, DATE_HELD);
+            logOnce(DATE_HELD, () -> "Reel post date: the line under the author held on the date");
+            return held;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.REEL_DECLUTTER, DATE_HELD, failure);
+            return rows;
+        }
+    }
+
+    /** The first of [rows] that is one of the [kept] rows itself, not just equal to one, or null. */
+    @Nullable
+    static Object heldRow(List<Object> rows, List<WeakReference<Object>> kept) {
+        for (Object row : rows) {
+            if (row == null) continue;
+            for (WeakReference<Object> reference : kept) {
+                if (reference.get() == row) return row;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Injection point, in the author row of a group's video in the full-screen viewer, handed the
+     * poster's name and the video's story (#520). That row shows the group's name over the poster's
+     * and has no date line at all, so a group's video showed no date even with the switch on. With
+     * the switch on the date goes after the poster's name. Never throws: anything going wrong answers
+     * what it was handed.
+     */
+    @Nullable
+    public static String groupPosterText(@Nullable String name, @Nullable Object story) {
+        try {
+            HookStatus.invoked(FamilyNames.REEL_DECLUTTER);
+            if (name == null || name.isEmpty() || !Utils.settingsReady() || !Settings.SHOW_REEL_POST_DATE.get()) return name;
+            Date posted = PostDetails.postedOf(story);
+            if (posted == null) return name;
+            String dated = groupPoster(name, posted.getTime() / 1000, System.currentTimeMillis(),
+                    Settings.REEL_POST_DATE_STYLE.get(), L10n.locale(), TimeZone.getDefault());
+            if (dated.equals(name)) return name;
+            FeedFilterCounters.removed(DATE_ROUTE, 1, DATE_BESIDE_POSTER);
+            logOnce(DATE_BESIDE_POSTER, () -> "Reel post date: put after a group video's poster");
+            return dated;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.REEL_DECLUTTER, DATE_BESIDE_POSTER, failure);
+            return name;
+        }
+    }
+
     /** The story the soundtrack's own ticker label was asked for with, kept for {@link #soundTickerText}. */
     private static final ThreadLocal<WeakReference<Object>> SOUND_STORY = new ThreadLocal<>();
 
@@ -1038,6 +1181,16 @@ public final class ReelDeclutter {
     static String audioLine(String line, long seconds, long nowMillis, ReelDateStyle style, Locale locale, TimeZone zone) {
         String date = postDate(null, seconds, nowMillis, style, true, locale, zone);
         return date == null || date.isEmpty() ? line : date + DOT + line;
+    }
+
+    /**
+     * A group video's poster [name] with the day it was posted, at [seconds], after it: "Ana Lima ·
+     * 3 weeks ago". A blank name, or a time that can't be a post's, keeps the name as it was.
+     */
+    static String groupPoster(String name, long seconds, long nowMillis, ReelDateStyle style, Locale locale, TimeZone zone) {
+        if (name.isEmpty()) return name;
+        String date = postDate(null, seconds, nowMillis, style, true, locale, zone);
+        return date == null || date.isEmpty() ? name : name + DOT + date;
     }
 
     /**

@@ -10,6 +10,10 @@ Add-on YouTube patches for use with [Morphe](https://morphe.software):
 - **Keyboard frame step shortcuts**: the `,` and `.` keys step the video one frame back and forward.
 - **DeArrow original titles**: videos with a DeArrow title show both the DeArrow title and the
   original title, such as `Clear, descriptive title | YOU WON'T BELIEVE WHAT HAPPENED`.
+- **Comments menu item**: the menu of a video in a feed or list, such as the Home feed, the watch
+  history and playlists, has a Comments item that opens the comments without playing the video.
+- **Monitor caption size**: one caption size on the phone and another on a monitor, such as with
+  Samsung DeX or a USB-C dock, without changing any setting when docking.
 
 This bundle is an add-on. Its patches work through the official Morphe YouTube patches, so
 apply it **together with** the official "Morphe Patches" source, never on its own.
@@ -71,22 +75,58 @@ apply it **together with** the official "Morphe Patches" source, never on its ow
   patches, so the original title is always fetched for videos with a DeArrow title
   (`DeArrowTitle.needsOriginalTitle`) and is combined with the DeArrow title (`DeArrowTitle.titleFor`).
 
+### Comments menu item
+
+- The ⋮ menu (or tap and hold menu) of a video in a feed or list has a **Comments** item, as the first
+  of the Morphe items. It opens the comments panel of the video over the page, without playing the
+  video. Replies open in the panel as usual.
+- Works in the lists that show the Morphe items in the menus of videos, such as the Home feed,
+  subscriptions, search results, channel pages, playlists and the watch history.
+- If the video has no comments, such as when they are turned off, a message says so.
+- Needs the official Morphe Patches source with one of its patches that add items to the menus of
+  videos, such as **Save to Watch later button** or **Ask flyout menu**. The comments panel is
+  requested the same way as by the comment button of Morphe's **Cards with action buttons** layout.
+
+### Monitor caption size
+
+- The captions of YouTube grow with the size of the player, so on a monitor they are much larger than
+  on the phone. This patch uses one caption size on the phone and another on a monitor.
+- The sizes are the **Caption size on the phone** (100% by default) and **Caption size on a monitor**
+  (75% by default) patch options. They are percentages like the caption size setting of Morphe, which
+  the patch replaces: the Morphe setting no longer changes the size, whatever it is set to.
+- The caption size of Android still applies to both, so leave it on one size, such as Normal.
+- The screen is checked each time a caption is shown, so the size follows YouTube between the phone
+  and the monitor without a restart.
+- A monitor is a screen of at least 600 dp in both directions or the desktop of Samsung DeX, so a
+  tablet also counts as a monitor.
+
+### Tip: one giant video at a time on a monitor
+
+- On a monitor, such as with Samsung DeX or a USB-C dock, YouTube normally shows the home feed as
+  a grid of videos, but sometimes shows one giant video at a time instead. The cause is not known yet.
+- Unplugging and plugging the dock in again can fix it.
+- A VPN seemed to make it happen more often: YouTube gets its layout from its server, and through a
+  VPN the server can send another layout, or send it too late. Excluding YouTube from the VPN with
+  the split tunneling (app exclusion) setting of the VPN app helped, but did not fix it for good.
+
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.5.2](https://github.com/Prisoner-24601/custom-morphe-patches/releases/tag/v1.5.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;6 patches total
+> **[v1.10.0](https://github.com/Prisoner-24601/custom-morphe-patches/releases/tag/v1.10.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;8 patches total
 <details open>
-<summary>📦 YouTube&nbsp;&nbsp;•&nbsp;&nbsp;6 patches</summary>
+<summary>📦 YouTube&nbsp;&nbsp;•&nbsp;&nbsp;8 patches</summary>
 <br>
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
+| [Comments menu item](#comments-menu-item) | Adds a Comments item to the menu of videos in feeds and lists, such as the Home feed, the watch history and playlists, which opens the comments of the video without playing it. Apply together with the Morphe YouTube patches. |  |
 | [DeArrow original titles](#dearrow-original-titles) | Shows both the DeArrow title and the original title, instead of only the DeArrow title. Apply together with the Morphe YouTube patches, and turn on DeArrow titles in the Morphe settings. | • Separator<br>• Title order |
 | [Keyboard comments shortcut](#keyboard-comments-shortcut) | Makes a key of a hardware keyboard (M by default) show and hide the comments of the video. Apply together with the Morphe YouTube patches 2.2 or newer, which this patch uses to show the comments. | • Key |
 | [Keyboard frame step shortcuts](#keyboard-frame-step-shortcuts) | Makes the , and . keys of a hardware keyboard pause the video and step one frame back and forward, like on the YouTube website. Holding a key repeats the step. | • Frame rate |
 | [Keyboard fullscreen shortcut](#keyboard-fullscreen-shortcut) | Makes a key of a hardware keyboard (F by default) enter and exit fullscreen while a video is open. | • Key |
 | [Keyboard minimize shortcut](#keyboard-minimize-shortcut) | Makes a key of a hardware keyboard (Esc by default) minimize the open video to the miniplayer, also from fullscreen or with the comments open. | • Key |
 | [Keyboard speed shortcuts](#keyboard-speed-shortcuts) | Makes the - and = keys of a hardware keyboard decrease and increase the playback speed. Apply together with the Morphe YouTube patches, which this patch uses to change the speed. | • Speed step |
+| [Monitor caption size](#monitor-caption-size) | Sets the caption size by the screen the app is on: one size on the screen of the phone, another on a monitor, such as with Samsung DeX or a USB-C dock. Replaces the caption size setting of Morphe. | • Caption size on the phone<br>• Caption size on a monitor |
 
 </details>
 

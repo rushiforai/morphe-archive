@@ -1,3 +1,9 @@
+/*
+ * Copyright 2026 sqzass.
+ *
+ * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ */
+
 package app.morphe.patches.all.pairip
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
@@ -20,11 +26,11 @@ private const val LICENSE_CLIENT = "Lcom/pairip/licensecheck/LicenseClient;"
 @Suppress("unused")
 val removePairIpPatch = patch(
     name = "Remove PairIP",
-    description = "Removes the PairIP Play licensing gate.",
+    description = "Removes PairIP licensing and signature gates. Note: VM-based variants may still enforce checks natively.",
     default = false,
 ) {
     execute {
-        // 1. Skip the startup license check entirely.
+        // 1. Skip the startup license check (licensecheck variant).
         mutableClassDefByOrNull("Lcom/pairip/licensecheck/LicenseContentProvider;")
             ?.methods?.firstOrNull { it.name == "onCreate" && it.returnType == "Z" }
             ?.returnEarly(true)
@@ -67,7 +73,14 @@ val removePairIpPatch = patch(
             ?.methods?.firstOrNull { it.name == "startPaywallActivity" && it.returnType == "V" }
             ?.returnEarly()
 
-        // 5. Drop the licensing components from the manifest so they never run.
+        // 5. VM-based variant (SignatureCheck/VMRunner, no licensecheck package).
+        //    verifyIntegrity is called from Application.attachBaseContext,
+        //    CoreComponentFactory and w0/b — patch the method, not the call sites.
+        mutableClassDefByOrNull("Lcom/pairip/SignatureCheck;")
+            ?.methods?.firstOrNull { it.name == "verifyIntegrity" && it.returnType == "V" }
+            ?.returnEarly()
+
+        // 6. Drop the licensing components from the manifest so they never run.
         document("AndroidManifest.xml").use { doc ->
             val app = doc.getElementsByTagName("application").item(0) as? Element ?: return@use
             listOf("provider", "activity", "service", "receiver").forEach { tag ->
@@ -78,13 +91,5 @@ val removePairIpPatch = patch(
                 toRemove.forEach { app.removeChild(it) }
             }
         }
-
-        // 6. VM-based variant (SignatureCheck/VMRunner, no licensecheck package).
-        //    verifyIntegrity is called from Application.attachBaseContext,
-        //    CoreComponentFactory and w0/b — patch the method, not the call sites.
-        //    Asset VM programs are load-bearing: leave VMRunner/StartupLauncher intact.
-        mutableClassDefByOrNull("Lcom/pairip/SignatureCheck;")
-            ?.methods?.firstOrNull { it.name == "verifyIntegrity" && it.returnType == "V" }
-            ?.returnEarly()
     }
 }

@@ -1,0 +1,74 @@
+name: Verificar que el parche se aplica
+
+# Comprueba, sin dispositivo, que el bundle se puede aplicar a la APK real: ejecuta el
+# patcher completo sobre la 3.7.0 y valida el smali inyectado y el manifiesto.
+# Se lanza a mano (workflow_dispatch) o cambiando analisis/VERIFICAR.
+
+on:
+  push:
+    paths:
+      - 'analisis/VERIFICAR'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  APKM_FILE_ID: 1jddpsPYRfpOKYaqKvEhuMeYjRHQacOZR
+
+jobs:
+  verificar:
+    name: Aplicar el bundle a la APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Descargar la APK
+        run: |
+          pip install gdown
+          gdown "https://drive.google.com/uc?id=${APKM_FILE_ID}" -O facemoji.apkm
+          # El .apkm es un contenedor: el patcher trabaja sobre el base.apk de dentro.
+          mkdir -p apkm
+          unzip -o -q facemoji.apkm -d apkm
+          ls -la apkm | head -20
+
+      - name: Aplicar los parches
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APK_A_VERIFICAR: ${{ github.workspace }}/apkm/base.apk
+        run: |
+          set +e
+          ./gradlew buildAndroid verificarParcheo --no-daemon \
+            > verificacion.log 2>&1
+          echo "codigo de salida: $?" >> verificacion.log
+          tail -n 400 verificacion.log > analisis/95-verificacion.txt
+
+      - name: Comprobar el APK parcheado
+        if: always()
+        run: |
+          pip install androguard
+          python tools/verificar_parcheado.py patches/build/verificacion/facemoji-parcheado.apk \
+            | tee analisis/96-verificacion-apk.txt || true
+
+      - name: Publicar el resultado
+        if: always()
+        run: |
+          rm -rf facemoji.apkm apkm
+          git config user.name "verificar-apk"
+          git config user.email "noreply@example.com"
+          git add analisis/95-verificacion.txt analisis/96-verificacion-apk.txt
+          git commit -m "chore: resultado de la verificacion del parcheo" || echo "sin cambios"
+          git push

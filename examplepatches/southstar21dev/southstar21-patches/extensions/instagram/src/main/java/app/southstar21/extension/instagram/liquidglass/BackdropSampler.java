@@ -29,6 +29,7 @@ final class BackdropSampler {
 
     private final View anchor;
     private final Listener listener;
+    private final Rect src = new Rect();
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final Bitmap bitmap = Bitmap.createBitmap(24, 4, Bitmap.Config.ARGB_8888);
     private final int[] pixels = new int[24 * 4];
@@ -50,7 +51,9 @@ final class BackdropSampler {
 
         anchor.getLocationInWindow(location);
         int top = location[1] + pillInAnchor.top - stripHeight;
-        Rect src = new Rect(location[0] + pillInAnchor.left, Math.max(0, top),
+        // One instance, only rewritten while no copy is in flight.
+        Rect src = this.src;
+        src.set(location[0] + pillInAnchor.left, Math.max(0, top),
                 location[0] + pillInAnchor.right, location[1] + pillInAnchor.top);
         if (src.isEmpty()) return;
 

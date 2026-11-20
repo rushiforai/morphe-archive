@@ -40,7 +40,9 @@ val autoClaimDropsPatch = bytecodePatch(
         "channel shows it as claimable, by pressing that notification's Claim button for you: the same claim " +
         "request and the same \"claim\" analytics event a tap sends (Disable analytics blocks the event). Each " +
         "drop is claimed once per app start. Needs a signed-in account and the notification, which shows while " +
-        "you watch a channel with Drops; drops earned elsewhere stay in your inventory. Checked against " +
+        "you watch a channel with Drops; drops earned elsewhere stay in your inventory. Time-based Drops " +
+        "progress from the watch-time event Disable analytics blocks, so while this is on that one event still " +
+        "goes; every other analytics event stays blocked. Checked against " +
         "Twitch's code on Android's runtime, not yet with a real account. Starts off. Turn it on in Lurk " +
         "settings > Chat.",
 ) {
@@ -50,7 +52,8 @@ val autoClaimDropsPatch = bytecodePatch(
         autoClaimDrops()
         twitchSettings.add(SwitchSetting("drops_auto_claim", "Auto-claim Drops",
             "Claim a Drop for your account as soon as the channel's drops notification shows it as claimable. " +
-                "Needs a signed-in account.", Section.CHAT, default = false))
+                "Needs a signed-in account. Also sends the watch-time event that progresses Drops, which Disable " +
+                "analytics otherwise blocks.", Section.CHAT, default = false))
     }
 }
 

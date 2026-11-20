@@ -456,7 +456,7 @@
   },
   "PageCache": {
     "owner": "snapshot",
-    "java_sha256": "0ede7d090001182c8738173ffc727a789e17457121d06fb05f874cd26cd24070",
+    "java_sha256": "8b5330f7cee472d05fe62e1b219eda4f227966e16c367765166c6ab946c62292",
     "smali_sha256": "95ea89532f780b3c78150ab92aa23ff92f68558bc55c7751e649134c6667738c"
   },
   "PageRules": {
@@ -667,12 +667,12 @@
   },
   "SettingsBackup": {
     "owner": "snapshot",
-    "java_sha256": "0781471d1217cfc15c418681c7dc8d547049d7270e9a8331307b88371d4c74a3",
+    "java_sha256": "b0eeb48f43b9b32f2434d6947205a9d13b0304c1ad00b51da4eaebf133f38906",
     "smali_sha256": "186dbc096e34dfa087df44ffbeca3f34a4ed2dd381609fba20cc8f56a5569ba8"
   },
   "SettingsBackupData": {
     "owner": "snapshot",
-    "java_sha256": "1c15533fe5cd1ad13ff8a8d6ac82875b5638b877bcaa0c970174f22ae11179c7",
+    "java_sha256": "b611da79be1eaa17bb2c3f0416982dcc5e34c82f15d972fffd6966b829b29597",
     "smali_sha256": "e7a476b36ac4b05c44ab6bf7ea5f0903ca18d4e146208e46ef0c25a396919cc2"
   },
   "SettingsIntegrity": {

@@ -7,7 +7,8 @@ import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.string
-import app.zeldrisho.patches.shared.Constants.COMPATIBILITY_ZALO_261002
+import app.morphe.patcher.util.returnEarly
+import app.zeldrisho.patches.shared.Constants.COMPATIBILITY_ZALO_STABLE
 import app.zeldrisho.patches.zalo.navigation.zeldrisSettingsPatch
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -26,83 +27,11 @@ internal const val AMOLED_GUARD = """
     nop
 """
 
-private val amoledDarkColors = setOf(
-    // Legacy dark-theme surfaces used by themes that predate the design-system attributes.
-    "Dark_PrimaryBackgroundColor", "Dark_BottomNav", "Dark_TabBackgroundColor",
-    "Dark_ChatBarBackgroundColor", "Dark_FooterBackgroundColor", "Dark_ProfilePrimaryBackgroundColor",
-    "Dark_ProfileSecondaryBackgroundColor", "Dark_TimelinePrimaryBackgroundColor",
-    "Dark_TimelineSecondaryBackgroundColor", "Dark_PopupBackgroundColor", "Dark_HeaderStartColor",
-    "Dark_HeaderEndColor", "Dark_StoryPrimaryBackgroundColor", "Dark_SearchBackgroundColor",
-    "Dark_GalleryPickerViewBackgroundColor", "Dark_ChatFooterBackgroundNormal",
-    "Dark_CSCPrimaryBackground",
-)
-
-/**
- * Sets `bgCSC_Background` and `layer_background` in `BaseThemeDefault.Dark` to opaque black.
- *
- * @throws IllegalStateException before mutation if the theme is not unique, either item is not
- * unique, or either item's trimmed value is not `@color/ng95`.
- */
-internal fun blackenDesignSystemDarkSurfaces(document: Document) {
-    val styles = document.getElementsByTagName("style")
-    val themes = (0 until styles.length).map { styles.item(it) as Element }
-        .filter { it.getAttribute("name") == "BaseThemeDefault.Dark" }
-    check(themes.size == 1) { "AMOLED design-system dark theme changed" }
-    val items = themes.single().getElementsByTagName("item")
-    val targets = listOf("bgCSC_Background", "layer_background").map { name ->
-        val matches = (0 until items.length).map { items.item(it) as Element }
-            .filter { it.getAttribute("name") == name }
-        check(matches.size == 1 && matches.single().textContent.trim() == "@color/ng95") {
-            "AMOLED design-system surface changed: $name"
-        }
-        matches.single()
-    }
-    targets.forEach { it.textContent = "#ff000000" }
-}
-
-/**
- * Rewrites dark surface colors, not only the overlay style: activity themes are created before the
- * runtime overlay is applied, so XML-inflated roots such as the Me tab keep the palette value.
- */
+/** Adds a black overlay style without changing Zalo's native dark resources. */
 private val amoledOverlayResources = resourcePatch {
-    compatibleWith(COMPATIBILITY_ZALO_261002)
+    compatibleWith(COMPATIBILITY_ZALO_STABLE)
     execute {
-        document("res/values/colors.xml").use { document ->
-            val matched = mutableSetOf<String>()
-            val colors = document.getElementsByTagName("color")
-            for (index in 0 until colors.length) {
-                val color = colors.item(index) as Element
-                if (color.getAttribute("name") in amoledDarkColors) {
-                    color.textContent = "#ff000000"
-                    matched.add(color.getAttribute("name"))
-                }
-            }
-            check(matched == amoledDarkColors) {
-                "AMOLED dark colors changed: ${amoledDarkColors - matched}"
-            }
-        }
         document("res/values/styles.xml").use { document ->
-            // Transparent roots such as the Me tab fall through to the window background, which is
-            // inherited from the framework theme; the overlay style alone cannot reach it.
-            val darkThemes = mutableSetOf<String>()
-            val styles = document.getElementsByTagName("style")
-            blackenDesignSystemDarkSurfaces(document)
-            for (index in 0 until styles.length) {
-                val candidate = styles.item(index) as Element
-                val items = candidate.getElementsByTagName("item")
-                val isDark = (0 until items.length).any {
-                    val item = items.item(it) as Element
-                    item.getAttribute("name") == "PrimaryBackgroundColor" &&
-                        item.textContent == "@color/Dark_PrimaryBackgroundColor"
-                }
-                if (!isDark) continue
-                darkThemes.add(candidate.getAttribute("name"))
-                val window = document.createElement("item")
-                window.setAttribute("name", "android:windowBackground")
-                window.textContent = "#ff000000"
-                candidate.appendChild(window)
-            }
-            check(darkThemes.isNotEmpty()) { "AMOLED dark themes changed" }
             val style = document.createElement("style")
             style.setAttribute("name", "ZeldrisAmoledOverlay")
             for (name in listOf("PrimaryBackgroundColor", "SecondaryBackgroundColor", "BottomNav",
@@ -113,9 +42,8 @@ private val amoledOverlayResources = resourcePatch {
                 "ProfileUserInfoBackgroundColor", "ProfileSectionPhotoPrimaryBackgroundColor",
                 "StoryPrimaryBackgroundColor", "SearchBackgroundColor", "GalleryPickerViewBackgroundColor",
                 "ChatFooterBackgroundNormal", "social_timeline_background_color_content_centric",
-                "header_blue_container", "header_white_container",
-                // Design-system surfaces used by the Me tab root, tab containers and conversations.
-                "layer_background", "bgCSC_Background", "CSCPrimaryBackground")) {
+                "header_blue_container", "header_white_container", "layer_background", "bgCSC_Background",
+                "CSCPrimaryBackground")) {
                 val item = document.createElement("item")
                 item.setAttribute("name", name)
                 item.textContent = "#ff000000"
@@ -134,12 +62,16 @@ val zaloAmoledThemePatch = bytecodePatch(
         "Light mode is untouched.",
     default = false,
 ) {
-    compatibleWith(COMPATIBILITY_ZALO_261002)
+    compatibleWith(COMPATIBILITY_ZALO_STABLE)
     dependsOn(zeldrisSettingsPatch, amoledOverlayResources)
     execute {
+        val capability = mutableClassDefBy("Lapp/zeldrisho/zalo/extension/ZeldrisSettingsContent;")
+            .methods.single { it.name == "hasAmoledThemeSettings" && it.parameterTypes.isEmpty() && it.returnType == "Z" }
+        capability.returnEarly(true)
+
         val method = ThemeColor261002.matchAll(1..1).single().method
         check(method.implementation!!.registerCount == 5) { "Zalo themed color lookup register layout changed" }
-        val dark = classDefBy("Lef1/c;").methods.singleOrNull {
+        val dark = classDefBy("Lil1;").methods.singleOrNull {
             it.name == "d" && it.parameterTypes == listOf("Landroid/content/Context;") && it.returnType == "Z" &&
                 AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags)
         }
@@ -179,7 +111,7 @@ val zaloAmoledThemePatch = bytecodePatch(
 }
 
 private object ThemeSetup261002 : Fingerprint(
-    definingClass = "Lef1/c;", name = "a",
+    definingClass = "Lil1;", name = "a",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.FINAL),
     parameters = listOf("I", "I", "Ljava/util/ArrayList;", "Z"), returnType = "V",
     filters = listOf(string("SAVE_SETTING_THEME_SELECTED_POSITION"),
@@ -187,7 +119,7 @@ private object ThemeSetup261002 : Fingerprint(
 )
 
 private object MeTabLayout261002 : Fingerprint(
-    definingClass = "Lcom/zing/zalo/ui/maintab/me/TabMeView;", name = "l5",
+    definingClass = "Lcom/zing/zalo/ui/maintab/me/TabMeView;", name = "n5",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     parameters = listOf("Landroid/view/LayoutInflater;", "Landroid/view/ViewGroup;", "Landroid/os/Bundle;"),
     returnType = "Landroid/view/View;",
@@ -196,9 +128,9 @@ private object MeTabLayout261002 : Fingerprint(
 )
 
 private object ThemeColor261002 : Fingerprint(
-    definingClass = "Lef1/c;", name = "g",
+    definingClass = "Lil1;", name = "g",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.FINAL),
     parameters = listOf("Landroid/content/Context;", "I"), returnType = "I",
-    filters = listOf(methodCall(definingClass = "Lp60/p0;", name = "C",
+    filters = listOf(methodCall(definingClass = "Lmrx;", name = "f0",
         parameters = listOf("Landroid/content/Context;", "I"), returnType = "I")),
 )

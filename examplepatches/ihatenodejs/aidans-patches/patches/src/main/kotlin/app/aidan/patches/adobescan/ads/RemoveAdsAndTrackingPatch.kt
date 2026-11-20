@@ -7,6 +7,7 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
@@ -15,11 +16,53 @@ private const val ZEROED_ADVERTISING_ID = "00000000-0000-0000-0000-000000000000"
 @Suppress("unused")
 val removeAdsAndTrackingPatch = bytecodePatch(
     name = "Remove Ads and Tracking",
-    description = "Disables Adobe, Branch, Facebook, Creative SDK, and Crashlytics telemetry; removes in-app ads and review prompts; blocks install-referrer collection; and zeroes the Google Play Advertising ID.",
+    description = "Disables Adobe Experience Platform MobileCore, EventHub, Adobe Growth SDK (DGP/MAU and Dunamis), Adobe Journey Optimizer (AJO), Creative SDK, Branch attribution, Facebook App Events and Audience Network, Firebase Performance, Firebase Sessions, and Crashlytics telemetry; suppresses Google Mobile Ads (AdMob), interstitials, banner preloaders, and in-app reviews; removes telemetry preferences; zeroes the Google Play Advertising ID; and blocks hardware android_id collection.",
     default = true
 ) {
     category("Ads")
     compatibleWith(COMPATIBILITY_ADOBE_SCAN)
+
+    val removeAds = booleanOption(
+        key = "removeAds",
+        default = true,
+        title = "Disable In-App Ads",
+        description = "Disables banner and interstitial ads, banner preloading, ad analytics, and InMobi SDK initialization."
+    )
+
+    val removeAdobeTracking = booleanOption(
+        key = "removeAdobeTracking",
+        default = true,
+        title = "Disable Adobe Telemetry & Growth",
+        description = "Disables Adobe Experience Platform MobileCore, EventHub dispatch, Adobe Growth SDK (DGP/MAU and Dunamis), Adobe Journey Optimizer (AJO), Creative SDK, and AEP NetworkService."
+    )
+
+    val removeFirebaseTracking = booleanOption(
+        key = "removeFirebaseTracking",
+        default = true,
+        title = "Disable Firebase Telemetry",
+        description = "Disables Firebase Performance Monitoring (AppStartTrace and network timing), Firebase Sessions, Firebase Installations, and Crashlytics collection."
+    )
+
+    val removeFacebookTracking = booleanOption(
+        key = "removeFacebookTracking",
+        default = true,
+        title = "Disable Facebook Tracking",
+        description = "Disables Facebook SDK initialization (FacebookInitProvider), Audience Network ContentProvider, App Events logging, and remote settings fetch."
+    )
+
+    val removeDeviceIdentifiers = booleanOption(
+        key = "removeDeviceIdentifiers",
+        default = true,
+        title = "Zero Device Identifiers",
+        description = "Zeroes the Google Play Advertising ID, blocks Install Referrer, and neutralizes hardware android_id collection in AccountManager and Creative SDK."
+    )
+
+    val removeReviewPrompts = booleanOption(
+        key = "removeReviewPrompts",
+        default = true,
+        title = "Disable Review Prompts",
+        description = "Suppresses in-app rating and review dialogs."
+    )
 
     val removeSettings = booleanOption(
         key = "removeSettings",
@@ -29,107 +72,178 @@ val removeAdsAndTrackingPatch = bytecodePatch(
     )
 
     execute {
-        // Adobe Experience Platform MobileCore and Target.
-        patchVoidMethod("Lcom/adobe/marketing/mobile/MobileCore;", "h", listOf("Lcom/adobe/marketing/mobile/MobilePrivacyStatus;"))
-        patchVoidMethod("Lcom/adobe/marketing/mobile/MobileCore;", "i", listOf("Ljava/lang/String;", "Ljava/util/HashMap;"))
-        patchVoidMethod("Lcom/adobe/marketing/mobile/MobileCore;", "j", listOf("Ljava/util/HashMap;"))
-        patchVoidMethod("Lcom/adobe/marketing/mobile/Target;", "a", listOf("Ljava/util/ArrayList;", "Lrp/n;"))
+        if (removeAds.value != false) {
+            // In-app ads, preloaders, and ad analytics.
+            patchBooleanMethod("Lar/k;", "b", emptyList(), false)
+            patchVoidMethod("Lar/k;", "f", listOf("Landroid/app/Activity;"))
+            patchBooleanMethod("Lar/u;", "a", emptyList(), false)
+            patchVoidMethod("Lar/u;", "b", listOf("Landroid/content/Context;"))
+            patchVoidMethod("Lar/x;", "b", emptyList())
+            patchVoidMethod("Lar/x;", "f", listOf("Landroid/app/Activity;"))
+            patchNullObjectMethod("Lar/x;", "c", listOf("Lar/e;"))
+            patchVoidMethod("Lar/c;", "a", listOf("Lar/c${'$'}a;", "Lar/v;"))
+            patchVoidMethod("Lar/s;", "a", listOf("Lar/s${'$'}a;"))
+            patchAllVoidMethods("Lcom/inmobi/sdk/InMobiSdk;", "init")
+            patchBooleanMethod("Lcom/inmobi/sdk/InMobiSdk;", "isSDKInitialized", emptyList(), false)
+            patchAllVoidMethods("Lcom/inmobi/sdk/InMobiSdk;", "updateGDPRConsent")
+        }
 
-        // Document Cloud and Creative SDK analytics.
-        patchVoidMethod("Lbr/j;", "g", listOf("Ljava/lang/String;", "Ljava/util/Map;"))
-        patchVoidMethodIfPresent("Lbr/j;", "a0", listOf("Lh90/d;"))
-        patchVoidMethod("Luc/f;", "g", listOf("Ljava/lang/String;", "Ljava/util/Map;"))
-        patchVoidMethod("Luc/f;", "f", listOf("Z"))
-        patchBooleanMethod("Luc/f;", "e", emptyList(), false)
-        patchVoidMethod("Lbr/j${'$'}g;", "trackEvent", listOf("Ljava/lang/String;", "Ljava/util/HashMap;"))
-        patchVoidMethod("Lbr/j${'$'}h;", "a", listOf("Ljava/lang/String;", "Ljava/util/HashMap;"))
-        patchVoidMethod("Lcom/adobe/creativesdk/foundation/internal/analytics/n;", "a", listOf("Ljava/lang/String;", "Ljava/util/HashMap;"))
-        patchVoidMethod("Lcom/adobe/creativesdk/foundation/internal/analytics/n;", "b", listOf("Ljava/lang/String;"))
-        patchVoidMethod("Lcom/adobe/creativesdk/foundation/internal/analytics/n;", "c", listOf("Ljava/lang/String;"))
-        patchVoidMethod("Lcom/adobe/creativesdk/foundation/internal/analytics/g;", "b", emptyList())
+        if (removeAdobeTracking.value != false) {
+            // Adobe Experience Platform MobileCoreInitializer and EventHub.
+            patchVoidMethod("Lcom/adobe/marketing/mobile/MobileCoreInitializer;", "b", listOf("Lcom/adobe/scan/android/ScanApplication;"))
+            patchVoidMethod("Lcom/adobe/marketing/mobile/MobileCoreInitializer;", "a", listOf("Ljava/util/List;", "Lcom/adobe/marketing/mobile/AdobeCallback;"))
 
-        // Adobe analytics-monitoring broadcasts and Crashlytics reporting.
-        patchVoidMethod("Lbr/d;", "a", listOf("Ljava/lang/String;", "Ljava/util/Map;"))
-        patchVoidMethod("Lbr/j;", "r", listOf("Ljava/lang/String;"))
-        forceCrashReportingDisabled()
-        patchAllVoidMethods(
-            "Lcom/google/firebase/crashlytics/FirebaseCrashlytics;",
-            "deleteUnsentReports",
-            "log",
-            "recordException",
-            "sendUnsentReports",
-            "setCustomKey",
-            "setCustomKeys",
-            "setUserId"
-        )
+            // Adobe Experience Platform MobileCore and Target.
+            patchVoidMethod("Lcom/adobe/marketing/mobile/MobileCore;", "a", listOf("Lcom/adobe/marketing/mobile/Event;"))
+            patchVoidMethod("Lcom/adobe/marketing/mobile/MobileCore;", "b", listOf("Lcom/adobe/marketing/mobile/Event;", "J", "Lcom/adobe/marketing/mobile/AdobeCallbackWithError;"))
+            patchVoidMethod("Lcom/adobe/marketing/mobile/MobileCore;", "h", listOf("Lcom/adobe/marketing/mobile/MobilePrivacyStatus;"))
+            patchVoidMethod("Lcom/adobe/marketing/mobile/MobileCore;", "i", listOf("Ljava/lang/String;", "Ljava/util/HashMap;"))
+            patchVoidMethod("Lcom/adobe/marketing/mobile/MobileCore;", "j", listOf("Ljava/util/HashMap;"))
+            patchVoidMethod("Lcom/adobe/marketing/mobile/Target;", "a", listOf("Ljava/util/ArrayList;", "Lrp/n;"))
 
-        // In-app ads, preloaders, and ad analytics.
-        patchBooleanMethod("Lar/k;", "b", emptyList(), false)
-        patchVoidMethod("Lar/k;", "f", listOf("Landroid/app/Activity;"))
-        patchBooleanMethod("Lar/u;", "a", emptyList(), false)
-        patchVoidMethod("Lar/u;", "b", listOf("Landroid/content/Context;"))
-        patchVoidMethod("Lar/x;", "b", emptyList())
-        patchVoidMethod("Lar/x;", "f", listOf("Landroid/app/Activity;"))
-        patchNullObjectMethod("Lar/x;", "c", listOf("Lar/e;"))
-        patchVoidMethod("Lar/c;", "a", listOf("Lar/c${'$'}a;", "Lar/v;"))
-        patchVoidMethod("Lar/s;", "a", listOf("Lar/s${'$'}a;"))
-        patchAllVoidMethods("Lcom/inmobi/sdk/InMobiSdk;", "init")
-        patchBooleanMethod("Lcom/inmobi/sdk/InMobiSdk;", "isSDKInitialized", emptyList(), false)
-        patchAllVoidMethods("Lcom/inmobi/sdk/InMobiSdk;", "updateGDPRConsent")
+            // AEP NetworkService.
+            patchVoidMethod("Ldp/u;", "a", listOf("Ldp/s;", "Ldp/r;"))
 
-        // Branch attribution and deep-link telemetry.
-        patchVoidMethod("Lg90/e;", "r", listOf("Lcom/adobe/scan/android/ScanApplication;"))
-        patchVoidMethod("Lg90/e0;", "f", listOf("Lg90/z;"))
-        setBranchTrackingDisabled()
+            // Adobe Growth Platform (DGP / MAU / Dunamis).
+            patchVoidMethod("Lcom/adobe/dgp/DGPMau;", "dispatchMau", emptyList())
+            patchVoidMethod("Lcom/adobe/dgp/DGPMau;", "dispatchMauInternal", listOf("I"))
+            patchVoidMethod("Lcom/adobe/dgp/DGPMau;", "onBackground", emptyList())
+            patchVoidMethod("Lcom/adobe/dgp/DGPMau;", "onForeground", emptyList())
 
-        // Facebook App Events.
-        patchVoidMethod("Lcom/facebook/appevents/AppEventsLoggerImpl;", "d", listOf("Landroid/os/Bundle;", "Ljava/lang/String;"))
-        patchVoidMethod(
-            "Lcom/facebook/appevents/AppEventsLoggerImpl;",
-            "e",
-            listOf(
-                "Ljava/lang/String;",
-                "Ljava/lang/Double;",
-                "Landroid/os/Bundle;",
-                "Z",
-                "Ljava/util/UUID;",
-                "Lcom/facebook/appevents/OperationalData;"
+            patchBooleanMethod("Lcom/adobe/dgp/DGPAEPBridge;", "readyForEvent", listOf("Lcom/adobe/marketing/mobile/Event;"), false)
+            patchBooleanMethod("Lcom/adobe/dgp/DGPAEPBridge;", "isExtensionRegistered", emptyList(), false)
+            patchVoidMethod("Lcom/adobe/dgp/DGPAEPBridge;", "onRegistered", emptyList())
+            patchVoidMethod("Lcom/adobe/dgp/DGPAEPBridge;", "onUnregistered", emptyList())
+
+            patchGrowthSDKInitializer()
+            patchAllVoidMethods("Lcom/adobe/dgp/DGPLog${'$'}Companion;", "submitToDunamis", "sendDunamisEvent")
+            patchVoidMethod("Lcom/adobe/dgp/NetworkInterface${'$'}Companion;", "execute", listOf("Lorg/json/JSONObject;", "Lcom/adobe/dgp/JNI${'$'}Companion${'$'}a;"))
+
+            // Adobe Journey Optimizer (AJO).
+            patchVoidMethod("Lcom/adobe/dcmanalytics/ajo/AJOHelper;", "onRegistered", emptyList())
+            patchBooleanMethod("Lcom/adobe/dcmanalytics/ajo/AJOHelper;", "readyForEvent", listOf("Lcom/adobe/marketing/mobile/Event;"), false)
+
+            // Document Cloud and Creative SDK analytics.
+            patchVoidMethod("Lbr/j;", "g", listOf("Ljava/lang/String;", "Ljava/util/Map;"))
+            patchVoidMethodIfPresent("Lbr/j;", "a0", listOf("Lh90/d;"))
+            patchVoidMethod("Luc/f;", "g", listOf("Ljava/lang/String;", "Ljava/util/Map;"))
+            patchVoidMethod("Luc/f;", "f", listOf("Z"))
+            patchBooleanMethod("Luc/f;", "e", emptyList(), false)
+            patchVoidMethod("Lbr/j${'$'}g;", "trackEvent", listOf("Ljava/lang/String;", "Ljava/util/HashMap;"))
+            patchVoidMethod("Lbr/j${'$'}h;", "a", listOf("Ljava/lang/String;", "Ljava/util/HashMap;"))
+            patchVoidMethod("Lcom/adobe/creativesdk/foundation/internal/analytics/n;", "a", listOf("Ljava/lang/String;", "Ljava/util/HashMap;"))
+            patchVoidMethod("Lcom/adobe/creativesdk/foundation/internal/analytics/n;", "b", listOf("Ljava/lang/String;"))
+            patchVoidMethod("Lcom/adobe/creativesdk/foundation/internal/analytics/n;", "c", listOf("Ljava/lang/String;"))
+            patchVoidMethod("Lcom/adobe/creativesdk/foundation/internal/analytics/g;", "b", emptyList())
+            patchVoidMethod("Lcom/adobe/creativesdk/foundation/internal/analytics/c;", "b", emptyList())
+
+            // Adobe analytics-monitoring broadcasts.
+            patchVoidMethod("Lbr/d;", "a", listOf("Ljava/lang/String;", "Ljava/util/Map;"))
+            patchVoidMethod("Lbr/j;", "r", listOf("Ljava/lang/String;"))
+
+            // Branch attribution and deep-link telemetry.
+            patchVoidMethod("Lg90/e;", "r", listOf("Lcom/adobe/scan/android/ScanApplication;"))
+            patchVoidMethod("Lg90/e0;", "f", listOf("Lg90/z;"))
+            setBranchTrackingDisabled()
+        }
+
+        if (removeFirebaseTracking.value != false) {
+            // Firebase Crashlytics reporting.
+            forceCrashReportingDisabled()
+            patchAllVoidMethods(
+                "Lcom/google/firebase/crashlytics/FirebaseCrashlytics;",
+                "deleteUnsentReports",
+                "log",
+                "recordException",
+                "sendUnsentReports",
+                "setCrashlyticsCollectionEnabled",
+                "setCustomKey",
+                "setCustomKeys",
+                "setUserId"
             )
-        )
-        patchVoidMethod("Lcom/facebook/appevents/AppEventsLoggerImpl;", "g", listOf("Landroid/os/Bundle;", "Ljava/lang/String;"))
-        patchVoidMethod(
-            "Lcom/facebook/appevents/AppEventsLoggerImpl;",
-            "h",
-            listOf("Ljava/math/BigDecimal;", "Ljava/util/Currency;", "Landroid/os/Bundle;", "Lcom/facebook/appevents/OperationalData;")
-        )
-        patchVoidMethod(
-            "Lcom/facebook/appevents/AppEventsLoggerImpl${'$'}Companion;",
-            "a",
-            listOf(
+
+            // Firebase Performance Monitoring.
+            patchAllVoidMethods(
+                "Lcom/google/firebase/perf/metrics/AppStartTrace;",
+                "onActivityCreated",
+                "onActivityStarted",
+                "onActivityResumed"
+            )
+            patchAllVoidMethods("Lv50/j;", "b", "c", "d")
+
+            // Firebase Sessions.
+            patchAllVoidMethods("Ld60/x0;", "a")
+            patchAllVoidMethods("Ld60/l;", "a")
+
+            // Firebase Installations.
+            patchAllVoidMethods("Lcom/google/firebase/installations/a;", "b", "d")
+        }
+
+        if (removeFacebookTracking.value != false) {
+            // Facebook SDK auto-init ContentProvider and Audience Network.
+            patchBooleanMethod("Lcom/facebook/internal/FacebookInitProvider;", "onCreate", emptyList(), false)
+            patchBooleanMethod("Lcom/facebook/ads/AudienceNetworkContentProvider;", "onCreate", emptyList(), false)
+            patchAllVoidMethods("Lcom/facebook/ads/internal/dynamicloading/DynamicLoaderFactory;", "initialize")
+            patchAllVoidMethods("Lcom/facebook/internal/FetchedAppSettingsManager;", "d")
+
+            // Facebook App Events.
+            patchVoidMethod("Lcom/facebook/appevents/AppEventsLoggerImpl;", "d", listOf("Landroid/os/Bundle;", "Ljava/lang/String;"))
+            patchVoidMethod(
+                "Lcom/facebook/appevents/AppEventsLoggerImpl;",
+                "e",
+                listOf(
+                    "Ljava/lang/String;",
+                    "Ljava/lang/Double;",
+                    "Landroid/os/Bundle;",
+                    "Z",
+                    "Ljava/util/UUID;",
+                    "Lcom/facebook/appevents/OperationalData;"
+                )
+            )
+            patchVoidMethod("Lcom/facebook/appevents/AppEventsLoggerImpl;", "g", listOf("Landroid/os/Bundle;", "Ljava/lang/String;"))
+            patchVoidMethod(
+                "Lcom/facebook/appevents/AppEventsLoggerImpl;",
+                "h",
+                listOf("Ljava/math/BigDecimal;", "Ljava/util/Currency;", "Landroid/os/Bundle;", "Lcom/facebook/appevents/OperationalData;")
+            )
+            patchVoidMethod(
                 "Lcom/facebook/appevents/AppEventsLoggerImpl${'$'}Companion;",
-                "Lcom/facebook/appevents/AppEvent;",
-                "Lcom/facebook/appevents/AccessTokenAppIdPair;"
+                "a",
+                listOf(
+                    "Lcom/facebook/appevents/AppEventsLoggerImpl${'$'}Companion;",
+                    "Lcom/facebook/appevents/AppEvent;",
+                    "Lcom/facebook/appevents/AccessTokenAppIdPair;"
+                )
             )
-        )
+        }
 
-        // Google Play advertising identifier and install referrer.
-        spoofAdvertisingId()
-        patchConstStringMethod("Lcom/google/android/gms/ads/identifier/AdvertisingIdClient${'$'}Info;", "getId", ZEROED_ADVERTISING_ID)
-        patchBooleanMethod(
-            "Lcom/google/android/gms/ads/identifier/AdvertisingIdClient${'$'}Info;",
-            "isLimitAdTrackingEnabled",
-            emptyList(),
-            true
-        )
-        patchVoidMethod(
-            "Lyv/a;",
-            "b",
-            listOf("Lcom/android/installreferrer/api/InstallReferrerStateListener;")
-        )
+        if (removeDeviceIdentifiers.value != false) {
+            // Google Play advertising identifier and install referrer.
+            spoofAdvertisingId()
+            patchConstStringMethod("Lcom/google/android/gms/ads/identifier/AdvertisingIdClient${'$'}Info;", "getId", ZEROED_ADVERTISING_ID)
+            patchBooleanMethod(
+                "Lcom/google/android/gms/ads/identifier/AdvertisingIdClient${'$'}Info;",
+                "isLimitAdTrackingEnabled",
+                emptyList(),
+                true
+            )
+            patchVoidMethod(
+                "Lyv/a;",
+                "b",
+                listOf("Lcom/android/installreferrer/api/InstallReferrerStateListener;")
+            )
 
-        // In-app review prompts.
-        patchBooleanMethod("Lcom/adobe/scan/android/util/l;", "z1", emptyList(), false)
-        patchRateTheAppDialog()
+            // Hardware android_id neutralization in AccountManager and Creative SDK CommonID.
+            neutralizeAndroidIdInAccountManager()
+            patchVoidMethod("Lcb/d;", "run", emptyList())
+        }
+
+        if (removeReviewPrompts.value != false) {
+            // In-app review prompts.
+            patchBooleanMethod("Lcom/adobe/scan/android/util/l;", "z1", emptyList(), false)
+            patchRateTheAppDialog()
+        }
+
         if (removeSettings.value != false) {
             hideTelemetrySettings()
             patchCrashReportsDialog()
@@ -151,25 +265,25 @@ private fun BytecodePatchContext.patchVoidMethodIfPresent(
     methodName: String,
     parameterTypes: List<String>
 ) {
-    val mutableClass = mutableClassDefByOrNull(classDescriptor) ?: return
-    mutableClass.methods
-        .filter {
-            it.name == methodName &&
-                it.parameterTypes.map(CharSequence::toString) == parameterTypes &&
-                it.returnType == "V" &&
-                it.implementation != null
-        }
-        .forEach { it.addInstructions(0, "return-void") }
+    val classDef = mutableClassDefByOrNull(classDescriptor) ?: return
+    classDef.methods.filter {
+        it.name == methodName &&
+            it.parameterTypes == parameterTypes &&
+            it.returnType == "V" &&
+            it.implementation != null
+    }.forEach { it.addInstructions(0, "return-void") }
 }
 
 private fun BytecodePatchContext.patchAllVoidMethods(classDescriptor: String, methodName: String) {
-    val mutableClass = mutableClassDefByOrNull(classDescriptor)
+    val classDef = mutableClassDefByOrNull(classDescriptor)
         ?: throw PatchException("Missing required class $classDescriptor")
-    val methods = mutableClass.methods.filter {
-        it.name == methodName && it.returnType == "V" && it.implementation != null
+    val methods = classDef.methods.filter {
+        it.name == methodName &&
+            it.returnType == "V" &&
+            it.implementation != null
     }
     if (methods.isEmpty()) {
-        throw PatchException("Missing required void method $classDescriptor->$methodName")
+        throw PatchException("Missing required void methods named $methodName in $classDescriptor")
     }
     methods.forEach { it.addInstructions(0, "return-void") }
 }
@@ -184,9 +298,9 @@ private fun BytecodePatchContext.patchBooleanMethod(
     parameterTypes: List<String>,
     value: Boolean
 ) {
+    val literal = if (value) "0x1" else "0x0"
     val methods = matchingMethods(classDescriptor, methodName, parameterTypes, "Z")
-    val constant = if (value) "0x1" else "0x0"
-    methods.forEach { it.addInstructions(0, "const/4 v0, $constant\nreturn v0") }
+    methods.forEach { it.addInstructions(0, "const/4 v0, $literal\nreturn v0") }
 }
 
 private fun BytecodePatchContext.patchIntMethod(
@@ -196,7 +310,7 @@ private fun BytecodePatchContext.patchIntMethod(
     value: Int
 ) {
     val methods = matchingMethods(classDescriptor, methodName, parameterTypes, "I")
-    methods.forEach { it.addInstructions(0, "const/4 v0, 0x$value\nreturn v0") }
+    methods.forEach { it.addInstructions(0, "const/4 v0, $value\nreturn v0") }
 }
 
 private fun BytecodePatchContext.patchNullObjectMethod(
@@ -204,16 +318,16 @@ private fun BytecodePatchContext.patchNullObjectMethod(
     methodName: String,
     parameterTypes: List<String>
 ) {
-    val mutableClass = mutableClassDefByOrNull(classDescriptor)
+    val classDef = mutableClassDefByOrNull(classDescriptor)
         ?: throw PatchException("Missing required class $classDescriptor")
-    val methods = mutableClass.methods.filter {
+    val methods = classDef.methods.filter {
         it.name == methodName &&
-            it.parameterTypes.map(CharSequence::toString) == parameterTypes &&
+            it.parameterTypes == parameterTypes &&
             it.returnType.startsWith("L") &&
             it.implementation != null
     }
     if (methods.isEmpty()) {
-        throw PatchException("Missing required object method $classDescriptor->$methodName")
+        throw PatchException("Missing required object-returning method $classDescriptor->$methodName(${parameterTypes.joinToString()})")
     }
     methods.forEach { it.addInstructions(0, "const/4 v0, 0x0\nreturn-object v0") }
 }
@@ -236,7 +350,7 @@ private fun BytecodePatchContext.matchingMethods(
     ?.methods
     ?.filter {
         it.name == methodName &&
-            it.parameterTypes.map(CharSequence::toString) == parameterTypes &&
+            it.parameterTypes == parameterTypes &&
             it.returnType == returnType &&
             it.implementation != null
     }
@@ -267,8 +381,8 @@ private fun BytecodePatchContext.spoofAdvertisingId() {
         listOf("Landroid/content/Context;"),
         "Lcom/google/android/gms/ads/identifier/AdvertisingIdClient${'$'}Info;"
     )
-    methods.forEach {
-        it.addInstructions(
+    methods.forEach { method ->
+        method.addInstructions(
             0,
             """
             new-instance v0, Lcom/google/android/gms/ads/identifier/AdvertisingIdClient${'$'}Info;
@@ -278,6 +392,42 @@ private fun BytecodePatchContext.spoofAdvertisingId() {
             return-object v0
             """.trimIndent()
         )
+    }
+}
+
+private fun BytecodePatchContext.patchGrowthSDKInitializer() {
+    val methods = matchingMethods(
+        "Lcom/adobe/dgp/GrowthSDKInitializer;",
+        "create",
+        listOf("Landroid/content/Context;"),
+        "Lre/e;"
+    )
+    methods.forEach {
+        it.addInstructions(0, "sget-object v0, Lre/e;->a:Lre/e;\nreturn-object v0")
+    }
+}
+
+private fun BytecodePatchContext.neutralizeAndroidIdInAccountManager() {
+    val methods = matchingMethods(
+        "Lcr/d;",
+        "<init>",
+        listOf("Landroid/content/Context;", "Lcom/adobe/scan/android/ScanApplication;"),
+        "V"
+    )
+    methods.forEach { method ->
+        val impl = method.implementation
+            ?: throw PatchException("Missing implementation for Lcr/d;-><init>")
+        val getStringIndex = impl.instructions.indexOfFirst {
+            val ref = (it as? ReferenceInstruction)?.reference as? MethodReference
+            ref?.definingClass == "Landroid/provider/Settings\$Secure;" &&
+                ref.name == "getString"
+        }
+        if (getStringIndex == -1) {
+            throw PatchException("Missing Settings.Secure.getString in Lcr/d;-><init>")
+        }
+        val moveResult = impl.instructions.getOrNull(getStringIndex + 1) as? OneRegisterInstruction
+            ?: throw PatchException("Expected move-result-object after Settings.Secure.getString in Lcr/d;-><init>")
+        method.addInstructions(getStringIndex + 2, "const/4 v${moveResult.registerA}, 0x0")
     }
 }
 

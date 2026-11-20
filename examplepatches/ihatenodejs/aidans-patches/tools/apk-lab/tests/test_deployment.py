@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import subprocess
 from pathlib import Path
 from unittest.mock import MagicMock
@@ -9,6 +10,8 @@ from apk_lab.deployment import (
     MORPHE_KEYSTORE_SHA256,
     deploy_artifact,
     ensure_debug_keystore,
+    find_app_artifact,
+    is_derivative_artifact_name,
     resolve_signing_keystore,
     zipalign_and_sign,
 )
@@ -590,3 +593,29 @@ def test_resolve_signing_keystore_defaults_to_debug_keystore(tmp_path, monkeypat
     assert alias == "androiddebugkey"
     assert ks_pass == "android"
     assert key_pass == "android"
+
+
+def test_is_derivative_artifact_name():
+    assert is_derivative_artifact_name("app-patched.apk") is True
+    assert is_derivative_artifact_name("NHL-17.0.0-patches-1.8.0.apk") is True
+    assert is_derivative_artifact_name("foo_patched.apk") is True
+    assert is_derivative_artifact_name("something.mpe") is True
+    assert is_derivative_artifact_name("com.nhl.gc1112.free_17.0.0.apkm") is False
+    assert is_derivative_artifact_name("app-release.apk") is False
+
+
+def test_find_app_artifact_prefers_clean_split_over_newer_derivative(tmp_path):
+    repo_root = tmp_path / "repo"
+    app_dir = repo_root / "apk" / "NHL"
+    app_dir.mkdir(parents=True)
+
+    clean_apkm = app_dir / "com.nhl.gc1112.free_17.0.0.apkm"
+    clean_apkm.write_bytes(b"clean apkm")
+    os.utime(clean_apkm, (1000, 1000))
+
+    derivative_apk = app_dir / "NHL-17.0.0-patches-1.8.0.apk"
+    derivative_apk.write_bytes(b"derivative apk")
+    os.utime(derivative_apk, (2000, 2000))
+
+    found = find_app_artifact("NHL", repo_root)
+    assert found == clean_apkm

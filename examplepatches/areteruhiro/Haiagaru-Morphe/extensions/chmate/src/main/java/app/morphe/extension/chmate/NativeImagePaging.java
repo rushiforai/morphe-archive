@@ -36,7 +36,10 @@ public final class NativeImagePaging {
     // The previous "disable gestures" choice now means to leave handling to ChMate.
     // Keep reading its key until the user next changes the mode, without blocking native input.
     static boolean disabled(Context context){return false;}
-    static boolean enabled(Context context){SharedPreferences prefs=VideoViewerSettings.prefs(context);return !prefs.getBoolean(DISABLED,false)&&prefs.getBoolean(ENABLED,true);}
+    static boolean enabled(Context context){SharedPreferences prefs=VideoViewerSettings.prefs(context);return !prefs.getBoolean(DISABLED,false)&&prefs.getBoolean(ENABLED,false);}
+    static void resetDirections(SharedPreferences prefs){
+        prefs.edit().remove(NEXT).remove(PREVIOUS).putBoolean(ENABLED,true).remove(DISABLED).apply();
+    }
     static boolean legacy191(Context context){
         try{return "0.8.10.191 dev".equals(context.getPackageManager().getPackageInfo(context.getPackageName(),0).versionName);}
         catch(android.content.pm.PackageManager.NameNotFoundException ignored){return false;}
@@ -99,7 +102,13 @@ public final class NativeImagePaging {
             next.setEnabled(toggle.isChecked());previous.setEnabled(toggle.isChecked());
         };
         toggle.setOnCheckedChangeListener((button,on)->{prefs.edit().putBoolean(ENABLED,on).remove(DISABLED).apply();refresh.run();});
-        reset.setOnClickListener(view->{prefs.edit().remove(NEXT).remove(PREVIOUS).remove(ENABLED).remove(DISABLED).apply();toggle.setChecked(true);refresh.run();});
+        reset.setOnClickListener(view->{
+            // Reset only the direction assignments. Persist the enabled state even
+            // when the switch is already checked (setChecked(true) emits no change
+            // callback in that case).
+            resetDirections(prefs);
+            toggle.setChecked(true);refresh.run();
+        });
         refresh.run();
         HaiagaruDialog dialog=new HaiagaruDialog.Builder(activity).setTitle("画像の切り替えジェスチャー")
                 .setView(body).setNegativeButton("閉じる",null).create();
@@ -169,6 +178,12 @@ public final class NativeImagePaging {
     }
     public static boolean onActivityTouch(Activity activity,MotionEvent event){
         try{
+            // Whole-thread galleries use MediaViewerNavigation's thread snapshot and
+            // configured directions. The native-page handler must not compete with it.
+            if(activity.getIntent().getBooleanExtra(MediaViewerNavigation.THREAD_EXTRA,false)){
+                if(event.getActionMasked()==MotionEvent.ACTION_DOWN)SWIPES.remove(activity);
+                return false;
+            }
             if(event.getActionMasked()==MotionEvent.ACTION_DOWN){
                 SWIPES.remove(activity);
                 ArrayList<String> links=activity.getIntent().getStringArrayListExtra("links");

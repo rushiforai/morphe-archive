@@ -72,6 +72,7 @@ public final class Settings {
     private static final SharedPreferences.OnSharedPreferenceChangeListener WATCHER = (preferences, key) -> {
         CHANGES.incrementAndGet();
         Logger.refresh();
+        AppIcon.changed(key);
     };
     private static volatile SharedPreferences watched;
     private static volatile SharedPreferences unwatchable;
@@ -95,7 +96,11 @@ public final class Settings {
         pausedNow();
         startValues();
         guardCrashes();
-        new Thread(Settings::publishShortcut, "lurk-shortcut").start();
+        new Thread(() -> {
+            // The launcher entry first (Lurk icon's App icon choice), so the shortcut goes to the one that stays.
+            AppIcon.apply(appContext);
+            publishShortcut();
+        }, "lurk-shortcut").start();
     }
 
     /**
@@ -575,9 +580,10 @@ public final class Settings {
      * posts conversation shortcuts (Twitch, one per whisper) pushes each new one to the top. So on Android 11
      * and newer the shortcut is pushed to the top again on every start, which also updates it; on older
      * versions, where the apps don't push, it is added once and updated once per app or Lurk version, or when
-     * its label changed, so it never keeps an old label or icon.
+     * its label changed, so it never keeps an old label or icon. Android ties the shortcut to the launcher entry
+     * that was enabled when it was published, so {@link AppIcon} publishes it again after switching entries.
      */
-    private static void publishShortcut() {
+    static void publishShortcut() {
         Context current = context;
         if (current == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.N_MR1) return;
         try {

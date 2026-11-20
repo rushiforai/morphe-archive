@@ -49,7 +49,9 @@ first. CONTRIBUTING.md has the rules contributors see; keep the two in line with
   settings key: users' saved choices would reset.
 - Switch defaults: a new patch is selected by default and its switch starts off, except lockout
   protection, local privacy, nags and restoring expected behavior; same-named patches share defaults across
-  apps; patch-time-only changes (icon, name, clone, permissions, manifest) have no switch and say so.
+  apps; patch-time-only changes (icon, name, clone, permissions, manifest) have no switch and say so. The
+  one exception is Lurk icon's App icon choice (Lurk or the app's own icon), which switches between two
+  launcher aliases the patch adds and does nothing on a root mount install.
 
 ## Commands
 

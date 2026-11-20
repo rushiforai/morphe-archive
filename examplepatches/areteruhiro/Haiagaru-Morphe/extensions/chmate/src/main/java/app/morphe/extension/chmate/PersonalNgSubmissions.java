@@ -191,10 +191,10 @@ public final class PersonalNgSubmissions {
             long wait=p.getLong("retryAfter",0)-System.currentTimeMillis();
             if(wait>0){scheduleRetry(wait);return;}
             String deviceKey=deviceKey();String binding="identityRegistered."+hash(endpoint+"\n"+deviceKey);
-            if(!deviceKey.isEmpty()&&!p.getBoolean(binding,false)){
+            if(queue.length()==0&&!deviceKey.isEmpty()&&!p.getBoolean(binding,false)){
                 if(!p.getBoolean("consent",false)||generation!=p.getLong("generation",0)||!endpoint.equals(SharedNg.endpoint()))return;
                 JSONObject bound=SharedNg.request("POST",endpoint,requestIdentity("identity"));
-                if(!bound.optBoolean("ok"))throw new Exception("送信元の登録を再試行します");
+                if(!bound.optBoolean("ok"))throw new Exception(bound.optString("error","送信元の登録を再試行します"));
                 if(!p.edit().putBoolean(binding,true).commit())throw new Exception("送信元の登録結果を保存できません");
             }
             if(queue.length()==0)return;
@@ -206,6 +206,9 @@ public final class PersonalNgSubmissions {
             Set<String> sent=new HashSet<>();for(int i=0;i<batch.length();i++)sent.add(batch.getJSONObject(i).getString("operationId"));
             Set<String> ack=new HashSet<>();JSONArray acknowledged=answer.getJSONArray("ack");for(int i=0;i<acknowledged.length();i++){String id=acknowledged.getString(i);if(!sent.contains(id))throw new Exception("送信していない操作の応答が返りました");ack.add(id);}
             if(ack.isEmpty())throw new Exception("送信の受領確認がありません");
+            // Personal submission binds deviceKey under the same server lock.
+            // A failed standalone identity action must not block a valid queued batch.
+            if(!deviceKey.isEmpty())p.edit().putBoolean(binding,true).apply();
             JSONArray remaining=new JSONArray();for(int i=0;i<queue.length();i++)if(!ack.contains(queue.getJSONObject(i).getString("operationId")))remaining.put(queue.get(i));
             if(p.getBoolean("consent",false)&&generation==p.getLong("generation",0)&&endpoint.equals(SharedNg.endpoint())){
                 if(!p.edit().putString("queue."+sourceKey,remaining.toString()).putLong("retryAfter",0).putString("status","審査用NGを送信しました。残り "+remaining.length()+"件").commit())throw new Exception("送信結果を保存できません");

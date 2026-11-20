@@ -11,6 +11,8 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
@@ -101,7 +103,19 @@ internal fun bindQueueExport() {
         original.implementation?.instructions?.mapNotNull { (it as? ReferenceInstruction)?.reference as? MethodReference }?.toList() ?: emptyList()
     }.distinctBy { it.toString() }
     val connected = managerCalls.single { it.definingClass == connectionType && it.returnType == "Z" && it.parameterTypes.isEmpty() }
-    val predicate = managerCalls.single { it.name == "<init>" && it.parameterTypes.map(CharSequence::toString) == listOf(OBJECT, "Z", "I") }
+    val predicateShapes = setOf(listOf(OBJECT, "Z", "I"), listOf(OBJECT, "Z", "B"))
+    val predicate = managerCalls.single { it.name == "<init>" && it.parameterTypes.map(CharSequence::toString) in predicateShapes }
+    val predicateTag = context.classDefBy(MANAGER).methods.flatMap { original ->
+        val insns = original.implementation?.instructions?.toList() ?: emptyList()
+        insns.withIndex().mapNotNull { (idx, insn) ->
+            val ref = (insn as? ReferenceInstruction)?.reference as? MethodReference
+            val call = insn as? FiveRegisterInstruction
+            val prev = insns.getOrNull(idx - 1)
+            if (ref == predicate && call != null && prev is NarrowLiteralInstruction && prev is OneRegisterInstruction && prev.registerA == call.registerF) {
+                prev.narrowLiteral
+            } else null
+        }
+    }.distinct().singleOrNull() ?: throw PatchException("SoundCloud queue eligibility predicate tag changed")
     if (context.classDefBy(predicate.definingClass).methods.none { original ->
         original.name == "invoke" && original.implementation?.instructions?.any {
             ((it as? ReferenceInstruction)?.reference as? MethodReference)?.definingClass == verifierType
@@ -114,7 +128,7 @@ internal fun bindQueueExport() {
         iget-object v2, v1, $connection
         ${dispatch(connected)} { v2 }, $connected
         move-result v2
-        const/4 v3, 0x5
+        const/16 v3, $predicateTag
         new-instance v0, ${predicate.definingClass}
         invoke-direct { v0, v1, v2, v3 }, $predicate
         invoke-interface { v0, p1 }, Lkotlin/jvm/functions/Function1;->invoke($OBJECT)$OBJECT

@@ -1,0 +1,58 @@
+name: Check
+
+# The quick check for everything that isn't a release branch: feature branches, Dependabot
+# branches and pull requests from forks. dev and main get the full patch verification in
+# release.yml. To patch the test APKs from another branch, start "Verify patches" by hand.
+
+on:
+  push:
+    branches-ignore:
+      - dev
+      - main
+  # Not the dev to main pull request: dev is already verified by release.yml.
+  pull_request:
+    branches:
+      - dev
+
+permissions:
+  contents: read
+  packages: read
+
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build patches
+    # Branches of this repo are built on push, so only build pull requests that come from a fork.
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Check the patcher version
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cli=$(sed -nE 's/^ *MORPHE_CLI_VERSION: *([^ ]+).*/\1/p' .github/workflows/verify.yml)
+          .github/scripts/check_patcher_version.sh "$cli"
+
+      - name: Setup Java
+        uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      # Reads the cache main wrote; only dev and main write one.
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+        with:
+          cache-read-only: true
+
+      - name: Build patches
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew generatePatchesList --no-daemon

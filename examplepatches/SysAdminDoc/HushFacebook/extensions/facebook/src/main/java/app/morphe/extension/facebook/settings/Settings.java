@@ -18,6 +18,7 @@ import app.morphe.extension.facebook.download.SaveTo;
 import app.morphe.extension.facebook.download.SendLink;
 import app.morphe.extension.facebook.feed.FoldLines;
 import app.morphe.extension.facebook.feed.SeenPosts;
+import app.morphe.extension.facebook.media.BufferSize;
 import app.morphe.extension.facebook.media.PlaybackQuality;
 import app.morphe.extension.facebook.media.RecentlyWatched;
 import app.morphe.extension.facebook.media.SurfaceQuality;
@@ -267,6 +268,22 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_post_words_whole_words", FALSE);
 
     /**
+     * Where {@link #HIDE_POSTS_WITH_WORDS} hides posts: Home, the Reels tab, groups, and profiles
+     * and Pages. Each starts on, so turning the switch on hides everywhere it did before.
+     */
+    public static final BooleanSetting POST_WORDS_ON_FEED =
+            new BooleanSetting("hushfacebook_post_words_on_feed", TRUE, Setting.parent(HIDE_POSTS_WITH_WORDS));
+    public static final BooleanSetting POST_WORDS_ON_REELS =
+            new BooleanSetting("hushfacebook_post_words_on_reels", TRUE, Setting.parent(HIDE_POSTS_WITH_WORDS));
+    public static final BooleanSetting POST_WORDS_IN_GROUPS =
+            new BooleanSetting("hushfacebook_post_words_in_groups", TRUE, Setting.parent(HIDE_POSTS_WITH_WORDS));
+    public static final BooleanSetting POST_WORDS_ON_TIMELINES =
+            new BooleanSetting("hushfacebook_post_words_on_timelines", TRUE, Setting.parent(HIDE_POSTS_WITH_WORDS));
+    /** Search results, the one place that starts off, so what you search for still shows. */
+    public static final BooleanSetting POST_WORDS_IN_SEARCH =
+            new BooleanSetting("hushfacebook_post_words_in_search", FALSE, Setting.parent(HIDE_POSTS_WITH_WORDS));
+
+    /**
      * The words and phrases that hide a post while {@link #HIDE_POSTS_WITH_WORDS} is on, one per
      * line, bounded wherever it's read. It isn't a switch, and a paused Facebook reads it as empty.
      */
@@ -319,6 +336,21 @@ public class Settings extends BaseSettings {
     /** Feed posts whose attachment Facebook draws as a shared link, and shares of them. */
     public static final BooleanSetting HIDE_LINK_POSTS =
             new BooleanSetting("hushfacebook_hide_link_posts", FALSE);
+
+    /**
+     * Where {@link #HIDE_LINK_POSTS} hides posts, the same places, each on to begin with but search
+     * results.
+     */
+    public static final BooleanSetting LINK_POSTS_ON_FEED =
+            new BooleanSetting("hushfacebook_link_posts_on_feed", TRUE, Setting.parent(HIDE_LINK_POSTS));
+    public static final BooleanSetting LINK_POSTS_ON_REELS =
+            new BooleanSetting("hushfacebook_link_posts_on_reels", TRUE, Setting.parent(HIDE_LINK_POSTS));
+    public static final BooleanSetting LINK_POSTS_IN_GROUPS =
+            new BooleanSetting("hushfacebook_link_posts_in_groups", TRUE, Setting.parent(HIDE_LINK_POSTS));
+    public static final BooleanSetting LINK_POSTS_ON_TIMELINES =
+            new BooleanSetting("hushfacebook_link_posts_on_timelines", TRUE, Setting.parent(HIDE_LINK_POSTS));
+    public static final BooleanSetting LINK_POSTS_IN_SEARCH =
+            new BooleanSetting("hushfacebook_link_posts_in_search", FALSE, Setting.parent(HIDE_LINK_POSTS));
 
     /** Feed posts written on a colored background, which Facebook draws as large formatted text. */
     public static final BooleanSetting HIDE_BACKGROUND_POSTS =
@@ -891,6 +923,23 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting BURN_IN_STAY_DIM =
             new BooleanSetting("hushfacebook_burn_in_stay_dim", FALSE);
+
+    /**
+     * Dim to (#523): how much of the buttons, caption and bars still shows once Burn-in guard dims
+     * them, a percent from 0 to 100, digits only, blank for 25, the level from before it could be
+     * picked ({@link app.morphe.extension.facebook.reels.BurnInGuard#levelPercent}). Not a switch.
+     * Read on each pass.
+     */
+    public static final StringSetting BURN_IN_LEVEL =
+            new StringSetting("hushfacebook_burn_in_level", "");
+
+    /**
+     * Smooth fade (#523): Burn-in guard eases the controls down as it dims them and back up as they
+     * come back, rather than in one frame. Leaving the Reels screen still brings them back at once.
+     * Off by default.
+     */
+    public static final BooleanSetting BURN_IN_FADE =
+            new BooleanSetting("hushfacebook_burn_in_fade", FALSE);
 
     /**
      * Show Reels in gray: the Reels screen shows in black and white, video and buttons alike, and
@@ -2072,6 +2121,14 @@ public class Settings extends BaseSettings {
             };
 
     /**
+     * A Recently watched row at the end of Settings and privacy in Facebook's Menu, which opens the
+     * list over the Menu itself (#529). Needs Hushfacebook in the Menu in the build. Starts off. The
+     * Menu asks for its rows each time it builds them, so a change shows the next time it opens.
+     */
+    public static final BooleanSetting RECENTLY_WATCHED_MENU_ROW =
+            new BooleanSetting("hushfacebook_recently_watched_menu_row", FALSE);
+
+    /**
      * With a reel or video paused, a tap on its right third steps it one frame forward and a tap on
      * its left third one frame back ({@link app.morphe.extension.facebook.media.FrameStep}). Starts
      * off. Off or paused, every tap goes to Facebook as before.
@@ -2901,6 +2958,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_post_menu_photo_search", FALSE);
 
     /**
+     * Download any photo's fourth switch (#515): a long press on a photo opened full screen from a
+     * Marketplace listing saves it, the biggest size the listing sends, through the same save as
+     * every other photo. Off until you turn it on, and it needs {@link #DOWNLOAD_PHOTOS} on too.
+     */
+    public static final BooleanSetting MARKETPLACE_PHOTO_SAVE =
+            new BooleanSetting("hushfacebook_marketplace_photo_save", FALSE);
+
+    /**
      * Moves Download to phone and Save photo from the end of a post's three-dot menu to the start of
      * its options list (issue #151). Facebook's sheet keeps the rows it tags itself above them, and
      * on photo posts that list is the More options page. The row under a post has no room for a
@@ -3577,6 +3642,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_turn_off_auto_translation", FALSE);
 
     /**
+     * Comments in another language show Facebook's translation as they load, the way a tap on See
+     * translation shows it ({@link app.morphe.extension.facebook.feed.TranslateComments}, #522). A
+     * change shows on the comments drawn after it.
+     */
+    public static final BooleanSetting TRANSLATE_EVERY_COMMENT =
+            new BooleanSetting("hushfacebook_translate_every_comment", FALSE);
+
+    /**
      * The Feeds tab opens on its posts, without the title row or the filters under it
      * ({@link app.morphe.extension.facebook.feed.FeedsHeader}). Facebook settles both as the tab is
      * built, so a change waits for a restart.
@@ -3768,6 +3841,14 @@ public class Settings extends BaseSettings {
     /** The quality video stories start at, the way {@link #REELS_PLAYBACK_QUALITY} is the reels'. */
     public static final EnumSetting<SurfaceQuality> STORIES_PLAYBACK_QUALITY =
             new EnumSetting<>("hushfacebook_stories_playback_quality", SurfaceQuality.SAME);
+
+    /**
+     * How much of a video the player loads before it plays and keeps loaded ahead (#526,
+     * {@link app.morphe.extension.facebook.media.VideoBuffer}). Facebook's own numbers until a size
+     * is picked. It isn't a switch, and a paused Facebook uses its own numbers.
+     */
+    public static final EnumSetting<BufferSize> VIDEO_BUFFER =
+            new EnumSetting<>("hushfacebook_video_buffer", BufferSize.FACEBOOK);
 
     /**
      * The hour quiet hours start while {@link #NOTIFICATION_QUIET_HOURS} is on, 10 PM until someone

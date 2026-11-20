@@ -10,7 +10,7 @@ public final class VideoViewerSettings {
     static final String HOLD_SPEED="videoHoldDoubleSpeed",TAP_CONTROLS="videoTapControls",CHMATE_GESTURES="videoChmateGestures",
             X_GIF_AUTOPLAY="xMp4GifAutoplay",INLINE_GIF="inlineGifAutoplay",
             INLINE_WIFI="inlineGifWifiOnly",INLINE_LIMIT="inlineGifLimit",INLINE_MB="inlineGifMaxMb",
-            MEDIA_SWIPE="mediaSwipeNavigation",GIF_AUTOPLAY="gifAutoplay",GIF_NATIVE="gifUseNativeViewer",
+            MEDIA_SWIPE="mediaSwipeNavigation",GIF_AUTOPLAY="gifAutoplay",GIF_NATIVE="gifUseNativeViewer",GIF_DEDICATED="gifDedicatedViewerEnabled",
             VIDEO_NATIVE="videoUseNativeViewer",THREAD_MEDIA="mediaSwipeWholeThread",LETTERBOX_TOUCH="videoLetterboxTouch";
     private VideoViewerSettings() { }
     static SharedPreferences prefs(Context context) {
@@ -49,7 +49,12 @@ public final class VideoViewerSettings {
     static boolean autoplay(Context context,String url) {
         return prefs(context).getBoolean(xGif(url)?X_GIF_AUTOPLAY:"videoAutoplay",true);
     }
-    static boolean nativeGif(Context context){return prefs(context).getBoolean(GIF_NATIVE,false);}
+    static boolean nativeGif(Context context){
+        SharedPreferences settings=prefs(context);
+        if(settings.contains(GIF_DEDICATED))return !settings.getBoolean(GIF_DEDICATED,false);
+        if(settings.contains(GIF_NATIVE))return settings.getBoolean(GIF_NATIVE,false);
+        return true;
+    }
     static boolean nativeVideo(Context context){return prefs(context).getBoolean(VIDEO_NATIVE,false);}
     static void addSettingsButton(LinearLayout layout, Activity activity) {
         Button button = new Button(activity);
@@ -68,7 +73,10 @@ public final class VideoViewerSettings {
         Switch brightness = toggle(body, activity, "左半分の上下スワイプで明るさ調整", prefs.getBoolean("videoSwipeBrightness", false));
         Switch volume = toggle(body, activity, "右半分の上下スワイプで音量調整", prefs.getBoolean("videoSwipeVolume", false));
         Switch autoplay = toggle(body, activity, "動画を開いたら自動再生する", prefs.getBoolean("videoAutoplay", true));
-        Switch nativeGif=toggle(body,activity,"GIFをHaiagaru専用ビューアで開かない",nativeGif(activity));
+        LiveSettings.Toggle nativeGif=new LiveSettings.Toggle(activity);
+        nativeGif.setText("GIF専用ビューアを使う");nativeGif.setChecked(!nativeGif(activity));
+        nativeGif.setTag(SettingLinkEntry.KEY_TAG,GIF_DEDICATED);body.addView(nativeGif);
+        nativeGif.setOnCheckedChangeListener((button,on)->prefs.edit().putBoolean(GIF_DEDICATED,on).apply());
         Switch nativeVideo=toggle(body,activity,"動画をHaiagaru専用ビューアで開かない",nativeVideo(activity));
         Switch threadMedia=toggle(body,activity,"サムネイルから全レスの画像・GIF・動画へ移動",prefs.getBoolean(THREAD_MEDIA,false));
         Switch xGifAutoplay=toggle(body,activity,"X MP4 GIFを自動再生する（開いた後）",prefs.getBoolean(X_GIF_AUTOPLAY,true));
@@ -93,7 +101,7 @@ public final class VideoViewerSettings {
         body.addView(seconds);
         Switch youtube = toggle(body, activity, "YouTubeをアプリ内の公式プレーヤーで開く", youtubeEnabled(activity));
         TextView note = new TextView(activity);
-        note.setText("専用ビューアで開かない設定は、GIF・動画をそれぞれChMate標準の動作に戻します。YouTubeも動画側の設定に従います。全レスへの移動は読み込み済みレスのメディアが対象で、同じレス内への移動より優先します。ChMateの「画像→タップ時の動作」で連続表示ビューアを選ぶと、全レスのメディアを連続表示します。「常に1枚目から表示」も反映します。変更は次に開くメディアから反映します。長押し2倍速や再生バーなどは専用ビューアに適用します。上下操作をオンにした側ではChMateの縦ジェスチャーより優先します。"
+        note.setText("GIF専用ビューアを使う設定は初期OFFです。GIF・動画で専用ビューアを使わない場合はChMate標準の動作に戻します。YouTubeも動画側の設定に従います。全レスへの移動は読み込み済みレスのメディアが対象で、同じレス内への移動より優先します。ChMateの「画像→タップ時の動作」で連続表示ビューアを選ぶと、全レスのメディアを連続表示します。「常に1枚目から表示」も反映します。変更は次に開くメディアから反映します。長押し2倍速や再生バーなどは専用ビューアに適用します。上下操作をオンにした側ではChMateの縦ジェスチャーより優先します。"
                 + "明るさはこの画面内だけ、音量は端末のメディア音量を変更します。"
                 + "YouTubeは公式Webプレーヤーの操作を使います。広告・地域制限・埋め込み制限などは回避しません。");
         body.addView(note);
@@ -106,7 +114,7 @@ public final class VideoViewerSettings {
         doubleBack.setChecked(prefs(activity).getBoolean(MediaViewerBackGesture.DOUBLE_BACK,false));
         ((android.view.ViewGroup)nativeGif.getParent()).addView(doubleBack);
         live.toggle(doubleBack,MediaViewerBackGesture.DOUBLE_BACK);
-        live.toggle(nativeGif,GIF_NATIVE);live.toggle(nativeVideo,VIDEO_NATIVE);live.toggle(threadMedia,THREAD_MEDIA);
+        live.toggle(nativeVideo,VIDEO_NATIVE);live.toggle(threadMedia,THREAD_MEDIA);
         live.toggle(xGifAutoplay,X_GIF_AUTOPLAY);live.toggle(inlineGif,INLINE_GIF);live.toggle(inlineWifi,INLINE_WIFI);
         live.toggle(gifAutoplay,GIF_AUTOPLAY);live.toggle(holdSpeed,HOLD_SPEED);live.toggle(tapControls,TAP_CONTROLS);
         live.toggle(nativeGestures,CHMATE_GESTURES);live.toggle(mediaSwipe,MEDIA_SWIPE);

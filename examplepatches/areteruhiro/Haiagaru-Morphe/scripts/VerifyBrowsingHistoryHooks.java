@@ -40,6 +40,24 @@ public final class VerifyBrowsingHistoryHooks {
         String access=args[1].equals("191")?"c":args[1].equals("226")?"e":"d";
         boolean found=false;for(var f:classes.get(row).getFields())if(f.getName().equals(access)&&f.getType().equals("J"))found=true;
         check(found,"Native last-access timestamp field present");
+        ClassDef scoped=classes.get("Lapp/morphe/extension/chmate/ThreadScopedNg;");
+        check(scoped!=null&&(scoped.getAccessFlags()&1)!=0,"ThreadScopedNg is callable from ChMate package o lambdas");
+        Method scopedDelete=null;for(var method:scoped.getMethods())if(method.getName().equals("nativeThreadDeleted")
+                &&method.getParameterTypes().equals(List.of("Ljava/lang/Object;","J"))&&method.getReturnType().equals("V"))scopedDelete=method;
+        check(scopedDelete!=null&&(scopedDelete.getAccessFlags()&1)!=0,"thread delete bridge is public");
+        if(args[1].equals("191")){
+            ClassDef home=classes.get("Lo/r8lambdaTb_p0z6z2AqSZIga1YhmAVmiTPk;");
+            Method swipe=null,delegate=null;
+            for(var method:home.getMethods()){
+                if(method.getName().equals("a")&&method.getParameterTypes().equals(List.of("I","J"))&&method.getReturnType().equals("Z"))swipe=method;
+                if(method.getName().equals("haiagaruNativeHistoryDelete")&&method.getParameterTypes().equals(List.of("I","J"))&&method.getReturnType().equals("Z"))delegate=method;
+            }
+            check(swipe!=null&&delegate!=null,"191 HOME swipe wrapper preserves the native delete method");
+            Set<String> calls=new HashSet<>();for(var instruction:swipe.getImplementation().getInstructions())if(instruction instanceof ReferenceInstruction r&&r.getReference() instanceof MethodReference m)calls.add(m.getDefiningClass()+"->"+m.getName());
+            check(calls.contains("Lapp/morphe/extension/chmate/BrowsingHistory;->nativeHistoryDeleteStart")
+                    &&calls.contains("Lapp/morphe/extension/chmate/BrowsingHistory;->nativeHistoryDeleteResult")
+                    &&calls.contains(home.getType()+"->haiagaruNativeHistoryDelete"),"191 swipe calls begin/result hooks around native deletion");
+        }
         System.out.println("PASS "+args[1]+" normal history DEX binding / popup isolation");
     }
 }

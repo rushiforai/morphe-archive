@@ -212,23 +212,51 @@ public final class DropsArtProbe {
         check(claims() == 2, "A presentation without a claimable drop must not be claimed");
     }
 
+    /**
+     * Keep Drops banner: the countdown Twitch makes for the channel's Drops banner (its real class, a duration and the
+     * time left) is handed back while the switch is off, and replaced by none while it is on, so the banner doesn't
+     * run out. The banner itself needs the app's resources and a signed-in account; it was checked on a phone.
+     */
+    private static void keepBanner() throws Exception {
+        Class<?> countdownType = Class.forName(ProbeLocators.type("twitch.match.banner_countdown", "g0d"));
+        Constructor<?> make = countdownType.getDeclaredConstructor(long.class, long.class);
+        Object countdown = make.newInstance(60_000L, 42_000L);
+        check(countdown.toString().startsWith("BannerCountdown("), "Not the banner countdown: " + countdown);
+        Method filter = Class.forName(DROPS).getDeclaredMethod("bannerCountdown", Object.class);
+
+        settings.put("drops_banner_keep", false);
+        check(filter.invoke(null, countdown) == countdown, "Off must keep Twitch's countdown");
+        settings.put("drops_banner_keep", true);
+        check(filter.invoke(null, countdown) == null, "On must leave the banner without a countdown");
+    }
+
+    private static void section(String name, Section section) {
+        try {
+            section.run();
+            System.out.println("ok   " + name);
+        } catch (Throwable failure) {
+            Throwable cause = failure instanceof InvocationTargetException ? failure.getCause() : failure;
+            System.out.println("FAIL " + name + ": " + cause);
+            if (cause != null) cause.printStackTrace(System.out);
+            failures++;
+        }
+    }
+
+    private interface Section {
+        void run() throws Exception;
+    }
+
     public static void main(String[] args) throws Exception {
         ProbeLocators.load(args[0]);
         System.out.println(ProbeLocators.loaded() ? "names from the APK's locators" : "no locators in the APK: 31.7.0 names");
         install();
-        try {
-            autoClaim();
-            System.out.println("ok   auto-claim drops: off, on, once per drop, only claimable drops");
-        } catch (Throwable failure) {
-            Throwable cause = failure instanceof InvocationTargetException ? failure.getCause() : failure;
-            System.out.println("FAIL auto-claim drops: " + cause);
-            if (cause != null) cause.printStackTrace(System.out);
-            failures++;
-        }
+        section("auto-claim drops: off, on, once per drop, only claimable drops", DropsArtProbe::autoClaim);
+        section("keep drops banner: the banner's countdown only while off", DropsArtProbe::keepBanner);
         if (failures > 0) {
             System.out.println("FAILED");
             System.exit(1);
         }
-        System.out.println("PASS: Twitch's drops Claim handler is pressed for claimable drops only, once each");
+        System.out.println("PASS: Twitch's drops Claim handler is pressed for claimable drops only, once each; the Drops " +
+            "banner keeps its countdown only while Keep Drops banner is off");
     }
 }

@@ -235,7 +235,7 @@ injects more than five source registers.
 
 ## 2026-11-07 — issue #5: the bypass never caught anything (FIXED in v2.2.9 re-cut #2)
 
-Field report ("debug-cli"): patch reports success but the
+Field report: patch reports success but the
 `SecurityException("app integrity check failed")` still kills the app at
 `B1e6ad8077f6880e309d8da4b.d(ZZZZFZ)[J`.
 

@@ -189,21 +189,22 @@ https://github.com/areteruhiro/Haiagaru-Morphe/
 - [Amazon Gift Card](https://www.amazon.co.jp/gp/product/B004N3APGO) Send to (areteruhiro@gmail.com)
 - [PayPay](https://qr.paypay.ne.jp/p2p01_FSEj08sDQx0enogO)
 
-### 謝辞
-yujirox 様 <br>
-ﾜｯﾁｮｲ 8f01-uDul 様 <br>
-toya0717 様<br>
-MUMEI 様<br>
-タケヨシキ様<br>
-無名 様<br>
-ポジ 様 <br>
-ｵｲｺﾗﾐﾈｵ 様 <br>
-Red Frame X 様 <br>
-ﾜｯﾁｮｲ 3f3c-gNc7 様 <br>
+## 謝辞
 
-ご支援ありがとうございます。
+ご支援いただいている皆様、ありがとうございます。README掲載の支援者の皆様へ感謝申し上げます。
 
-皆様からのご報告・検証・ご支援が開発の励みになっています。
+👑 Kitadai 様
+- yujirox 様
+- ﾜｯﾁｮｲ 8f01-uDul 様
+- toya0717 様
+- MUMEI 様
+- タケヨシキ 様
+- 無名 様
+- ｵｲｺﾗﾐﾈｵ 様
+- Red Frame X 様
+- ﾜｯﾁｮｲ 3f3c-gNc7 様
+- chikuwadon 様（外部チェッカーとの連携をご快諾いただき、ありがとうございます）
+- rikunode 様
 
 ## 構成
 

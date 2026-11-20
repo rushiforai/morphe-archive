@@ -276,11 +276,13 @@ def test_non_negative_int_validator():
 
 def test_parser_deploy_arguments():
     parser = build_parser()
-    # Missing --all and -e fails
-    with pytest.raises(SystemExit):
-        parser.parse_args(
-            ["deploy", "app.apk", "--mpp", "p.mpp", "--package", "com.test"]
-        )
+    # Omitted --package and patch selection is allowed (auto-detected / defaulted)
+    args_minimal = parser.parse_args(["deploy", "app.apk", "--mpp", "p.mpp"])
+    assert args_minimal.artifact == "app.apk"
+    assert args_minimal.mpp == "p.mpp"
+    assert args_minimal.package is None
+    assert args_minimal.all is False
+    assert args_minimal.enable == []
 
     # --all works
     args = parser.parse_args(
@@ -322,6 +324,19 @@ def test_parser_deploy_arguments():
     assert args.reinstall is True
     assert args.out == "out.apk"
 
+    # --all and -e are mutually exclusive
+    with pytest.raises(SystemExit):
+        parser.parse_args(
+            [
+                "deploy",
+                "app.apk",
+                "--mpp",
+                "p.mpp",
+                "--all",
+                "-e",
+                "Patch1",
+            ]
+        )
     # --reinstall and --clean-install mutually exclusive
     with pytest.raises(SystemExit):
         parser.parse_args(
@@ -356,6 +371,10 @@ def test_dev_subcommand_parser():
     assert args_custom.device == "emulator-5554"
     assert args_custom.clean_install is True
 
+    args_flags = parser.parse_args(["dev", "--artifact", "custom.apk", "--no-build"])
+    assert args_flags.app is None
+    assert args_flags.artifact == "custom.apk"
+    assert args_flags.no_build is True
     with pytest.raises(SystemExit):
         parser.parse_args(["dev", "sezzle", "--reinstall", "--clean-install"])
 
@@ -481,6 +500,132 @@ def test_deploy_build_flag(monkeypatch, tmp_path):
     )
     with pytest.raises(ValueError, match="Either --mpp or --build"):
         run_deploy(args_missing)
+
+
+def test_deploy_auto_detect_package_and_default_all(monkeypatch, tmp_path):
+    from argparse import Namespace
+
+    from apk_lab.cli import handle_deploy
+
+    fake_mpp = tmp_path / "bundle.mpp"
+    fake_mpp.write_bytes(b"mpp")
+    fake_apk = tmp_path / "sample.apk"
+    fake_apk.write_bytes(b"apk")
+
+    class MockInspection:
+        package_name = "com.autodetected.package"
+
+    monkeypatch.setattr(
+        "apk_lab.inspection.inspect_artifact", lambda p: MockInspection()
+    )
+
+    deployed = {}
+
+    def mock_deploy_artifact(**kwargs):
+        deployed.update(kwargs)
+        return DeployResult(
+            output_apk=str(tmp_path / "out.apk"),
+            package_name=kwargs["package_name"],
+            device_serial=None,
+            applied_patches=["PatchA"],
+            install_mode="reinstall",
+            launch_component=None,
+        )
+
+    monkeypatch.setattr("apk_lab.deployment.deploy_artifact", mock_deploy_artifact)
+
+    args = Namespace(
+        artifact=str(fake_apk),
+        mpp=str(fake_mpp),
+        build=False,
+        package=None,
+        all=False,
+        enable=[],
+        options=[],
+        device=None,
+        launch=False,
+        clean_install=False,
+        out=None,
+        keystore=None,
+        ks_alias=None,
+        ks_pass=None,
+        key_pass=None,
+    )
+    ret = handle_deploy(args)
+    assert ret == ExitCode.SUCCESS
+    assert deployed["package_name"] == "com.autodetected.package"
+    assert deployed["all_defaults"] is True
+
+
+def test_dev_honors_artifact_and_no_build(monkeypatch, tmp_path):
+    from argparse import Namespace
+
+    from apk_lab.cli import handle_dev
+
+    fake_repo = tmp_path / "repo"
+    fake_repo.mkdir()
+    gradlew = fake_repo / "gradlew"
+    gradlew.write_text("#!/bin/sh\nexit 0\n")
+
+    libs_dir = fake_repo / "patches" / "build" / "libs"
+    libs_dir.mkdir(parents=True)
+    mpp_existing = libs_dir / "patches-existing.mpp"
+    mpp_existing.write_bytes(b"mpp")
+
+    explicit_apk = tmp_path / "custom.apk"
+    explicit_apk.write_bytes(b"apk")
+
+    monkeypatch.setattr("apk_lab.deployment.find_repo_root", lambda: fake_repo)
+
+    def fail_if_built(repo_root):
+        raise AssertionError("build_patch_bundle should not be called with --no-build")
+
+    monkeypatch.setattr("apk_lab.deployment.build_patch_bundle", fail_if_built)
+
+    def fail_if_searched(target, repo_root):
+        raise AssertionError(
+            "find_app_artifact should not be called when --artifact is set"
+        )
+
+    monkeypatch.setattr("apk_lab.deployment.find_app_artifact", fail_if_searched)
+
+    class MockInspection:
+        package_name = "com.custom.app"
+
+    monkeypatch.setattr(
+        "apk_lab.inspection.inspect_artifact", lambda p: MockInspection()
+    )
+
+    deployed = {}
+
+    def mock_deploy_artifact(**kwargs):
+        deployed.update(kwargs)
+        return DeployResult(
+            output_apk=str(tmp_path / "out.apk"),
+            package_name=kwargs["package_name"],
+            device_serial=None,
+            applied_patches=["PatchA"],
+            install_mode="reinstall",
+            launch_component="com.custom.app/.MainActivity",
+        )
+
+    monkeypatch.setattr("apk_lab.deployment.deploy_artifact", mock_deploy_artifact)
+
+    args = Namespace(
+        app=None,
+        artifact=str(explicit_apk),
+        no_build=True,
+        device=None,
+        launch=True,
+        all=True,
+        clean_install=False,
+    )
+
+    exit_code = handle_dev(args)
+    assert exit_code == ExitCode.SUCCESS
+    assert deployed["artifact_path"] == explicit_apk.resolve()
+    assert deployed["mpp_path"] == mpp_existing
+    assert deployed["package_name"] == "com.custom.app"
 
 
 def test_parser_monitor_arguments():
@@ -685,3 +830,131 @@ def test_handle_inspect_code_and_res_exception_handling(monkeypatch):
     monkeypatch.setattr("apk_lab.resources.run_res", raise_security)
     assert handle_inspect_code(args) == ExitCode.INVALID_ARTIFACT
     assert handle_res(args) == ExitCode.INVALID_ARTIFACT
+
+
+def test_handle_inspect_code_broken_pipe_returns_success(monkeypatch):
+    import io
+    import sys
+    from argparse import Namespace
+
+    from apk_lab.cli import handle_inspect_code, main
+    from apk_lab.models import ExitCode
+
+    dummy_stdout = io.StringIO()
+    monkeypatch.setattr(sys, "stdout", dummy_stdout)
+
+    args = Namespace(
+        artifact="dummy.apk",
+        class_name="com.example.Foo",
+        method=None,
+        format="smali",
+        compare=None,
+    )
+
+    def raise_broken_pipe(a):
+        raise BrokenPipeError("Broken pipe")
+
+    monkeypatch.setattr("apk_lab.code_inspection.run_inspect_code", raise_broken_pipe)
+    assert handle_inspect_code(args) == ExitCode.SUCCESS
+    assert dummy_stdout.closed
+
+    dummy_stdout2 = io.StringIO()
+    monkeypatch.setattr(sys, "stdout", dummy_stdout2)
+
+    def raise_broken_pipe_dispatch(argv=None):
+        raise BrokenPipeError("Broken pipe")
+
+    monkeypatch.setattr("apk_lab.cli.build_parser", raise_broken_pipe_dispatch)
+    assert main([]) == ExitCode.SUCCESS
+    assert dummy_stdout2.closed
+
+
+def test_parser_check_arguments_without_mpp_and_package():
+    parser = build_parser()
+    args = parser.parse_args(["check", "dummy.apk", "--all"])
+    assert args.artifact == "dummy.apk"
+    assert args.mpp is None
+    assert args.package is None
+    assert args.all is True
+
+
+def test_handle_check_auto_resolves_mpp(monkeypatch, tmp_path):
+    import os
+    from argparse import Namespace
+
+    from apk_lab.cli import handle_check
+    from apk_lab.models import ExitCode
+
+    repo_root = tmp_path / "repo"
+    libs_dir = repo_root / "patches" / "build" / "libs"
+    libs_dir.mkdir(parents=True)
+    mpp_old = libs_dir / "patches-1.0.0.mpp"
+    mpp_new = libs_dir / "patches-1.1.0.mpp"
+    mpp_old.write_bytes(b"old")
+    mpp_new.write_bytes(b"new")
+    os.utime(mpp_old, (1000, 1000))
+    os.utime(mpp_new, (2000, 2000))
+
+    monkeypatch.setattr("apk_lab.deployment.find_repo_root", lambda: repo_root)
+
+    resolved_mpp = []
+
+    def mock_run_check(**kwargs):
+        resolved_mpp.append(kwargs["mpp_path"])
+
+        class MockReport:
+            def __init__(self) -> None:
+                self.package_name = "com.example.app"
+                self.version_name = "1.0.0"
+                self.version_code = 1
+                self.artifact_sha256 = "1234567890abcdef" * 4
+                self.patch_bundle_version = "1.1.0"
+                self.git_revision = "abcdef123456"
+                self.passed_cases = 1
+                self.total_cases = 1
+                self.test_cases: list[str] = []
+                self.overall_status = "compatible"
+
+        return MockReport(), ExitCode.SUCCESS
+
+    monkeypatch.setattr("apk_lab.morphe.run_compatibility_check", mock_run_check)
+
+    args = Namespace(
+        artifact="test.apk",
+        mpp=None,
+        package=None,
+        patches=None,
+        all=True,
+        force=False,
+        keep_workspace=False,
+        workspace_root=".apk-lab",
+        json=None,
+    )
+    assert handle_check(args) == ExitCode.SUCCESS
+    assert resolved_mpp == [mpp_new]
+
+
+def test_handle_check_no_mpp_raises_error(monkeypatch, tmp_path):
+    from argparse import Namespace
+
+    from apk_lab.cli import handle_check
+    from apk_lab.models import ExitCode
+
+    repo_root = tmp_path / "repo"
+    libs_dir = repo_root / "patches" / "build" / "libs"
+    libs_dir.mkdir(parents=True)
+
+    monkeypatch.setattr("apk_lab.deployment.find_repo_root", lambda: repo_root)
+
+    args = Namespace(
+        artifact="test.apk",
+        mpp=None,
+        package=None,
+        patches=None,
+        all=True,
+        force=False,
+        keep_workspace=False,
+        workspace_root=".apk-lab",
+        json=None,
+    )
+    assert handle_check(args) == ExitCode.USAGE_OR_TOOL_ERROR

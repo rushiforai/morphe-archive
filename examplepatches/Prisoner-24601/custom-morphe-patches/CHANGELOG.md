@@ -1,3 +1,51 @@
+## [1.10.0](https://github.com/Prisoner-24601/custom-morphe-patches/compare/v1.9.1...v1.10.0) (2026-11-20)
+
+### ✨ New Features
+
+* Monitor caption size sets the phone size too, and replaces the Morphe caption size ([b027c6f](https://github.com/Prisoner-24601/custom-morphe-patches/commit/b027c6f54dade7ea4aaac504a32f40c26862e0dd))
+
+## [1.9.1](https://github.com/Prisoner-24601/custom-morphe-patches/compare/v1.9.0...v1.9.1) (2026-11-20)
+
+### 🐛 Bug Fixes
+
+* Monitor caption size defaults to 75% ([34b3da1](https://github.com/Prisoner-24601/custom-morphe-patches/commit/34b3da1f06522a23a22ef525f960ceafc22018c8))
+
+## [1.9.0](https://github.com/Prisoner-24601/custom-morphe-patches/compare/v1.8.0...v1.9.0) (2026-11-20)
+
+### ✨ New Features
+
+* Add monitor caption size patch ([6b2d52c](https://github.com/Prisoner-24601/custom-morphe-patches/commit/6b2d52c204b4c0de26a5a264a2c3ad2a480bb005))
+
+## [1.8.0](https://github.com/Prisoner-24601/custom-morphe-patches/compare/v1.7.2...v1.8.0) (2026-11-20)
+
+### ✨ New Features
+
+* Add comments menu item patch ([21c936e](https://github.com/Prisoner-24601/custom-morphe-patches/commit/21c936e2e7af08ed94d46ed1da0e776d15a98f9f))
+
+## [1.7.2](https://github.com/Prisoner-24601/custom-morphe-patches/compare/v1.7.1...v1.7.2) (2026-11-20)
+
+### 🐛 Bug Fixes
+
+* Remove the wide screen feed grid patch ([1240a51](https://github.com/Prisoner-24601/custom-morphe-patches/commit/1240a5112fbc0e871186dd1f2774ebd83b8527b1))
+
+## [1.7.1](https://github.com/Prisoner-24601/custom-morphe-patches/compare/v1.7.0...v1.7.1) (2026-11-20)
+
+### 🐛 Bug Fixes
+
+* Revert the monitor changes of the wide screen feed grid patch ([d08c54d](https://github.com/Prisoner-24601/custom-morphe-patches/commit/d08c54dca226962bc9259f8525ff8d28f05692a5))
+
+## [1.7.0](https://github.com/Prisoner-24601/custom-morphe-patches/compare/v1.6.0...v1.7.0) (2026-11-19)
+
+### ✨ New Features
+
+* Wide screen feed grid shows a grid on a monitor consistently ([64d7e36](https://github.com/Prisoner-24601/custom-morphe-patches/commit/64d7e361a1163260653380d1b4abea47b62f103e))
+
+## [1.6.0](https://github.com/Prisoner-24601/custom-morphe-patches/compare/v1.5.2...v1.6.0) (2026-11-19)
+
+### ✨ New Features
+
+* Add wide screen feed grid patch ([2828eb8](https://github.com/Prisoner-24601/custom-morphe-patches/commit/2828eb8732bc5b30059a317ef2f062f0f24aca3f))
+
 ## [1.5.2](https://github.com/Prisoner-24601/custom-morphe-patches/compare/v1.5.1...v1.5.2) (2026-11-18)
 
 ### 🐛 Bug Fixes

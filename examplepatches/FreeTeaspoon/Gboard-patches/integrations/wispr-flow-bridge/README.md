@@ -1,8 +1,8 @@
 # Wispr Flow keyboard bridge
 
 An experimental LSPosed companion for the Gboard **Wispr Flow** patch. It supports the
-Wispr Flow Android app **2.8.5**. Live dictation and text insertion have been confirmed
-on a REDMI K90 with patched Gboard **18.5.4**.
+Wispr Flow Android app versions **2.8.5** and **2.8.7**. Live dictation and text insertion
+have been confirmed on a REDMI K90 with patched Gboard **18.5.4** and Wispr Flow **2.8.5**.
 
 The Gboard menu button can be tapped in the menu or held and dragged to the toolbar.
 Its first successful tap enables keyboard mode and starts dictation. Tap again to
@@ -27,7 +27,7 @@ default keyboard's UID. No root command runs in Gboard.
 
 Root with LSPosed is required for this companion. The module runs inside the original
 Wispr app, so its APK and sign-in remain intact. A Gboard-only patch cannot start
-dictation in Wispr 2.8.5 because Wispr exposes no dictation intent or exported service.
+dictation in these versions because Wispr exposes no dictation intent or exported service.
 A separate patch to Wispr could provide the same bridge without LSPosed, but would
 require signing and installing a modified Wispr APK. That route is not implemented.
 
@@ -52,7 +52,7 @@ bash ./gradlew -p integrations/wispr-flow-bridge :app:assembleDebug :app:testDeb
 ```
 
 The APK is `app/build/outputs/apk/debug/app-debug.apk` under this directory. Tests
-cover sender identity, idle and recording visibility, the native microphone gate,
-short-tap arguments and native follow-up events. Physical-device verification must
+cover supported versions, sender identity, idle and recording visibility, the native
+microphone gate, short-tap arguments and native follow-up events. Physical-device verification must
 check starting and submitting dictation, insertion into the original text field,
 idle-bubble suppression and restoring the floating launcher.

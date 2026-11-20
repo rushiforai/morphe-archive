@@ -221,12 +221,55 @@ public final class DisableReelsPatch {
         return SETTINGS.isActive() && NO_SCROLLING.get();
     }
 
+    private static int tabPagerId = -1;
+
+    /**
+     * The Reels tab uses the same pager as the player opened from a message or profile. Only the
+     * latter is locked: the tab is where Reels are meant to be scrolled (it's hidden in
+     * Navigation buttons instead).
+     */
+    private static boolean inReelsTab(View pager) {
+        if (tabPagerId == -1) {
+            tabPagerId = pager.getResources().getIdentifier(
+                    "swipeable_tab_view_pager", "id", "com.instagram.android");
+        }
+        if (tabPagerId == 0) return false;
+        for (android.view.ViewParent p = pager.getParent(); p instanceof View; p = p.getParent()) {
+            if (((View) p).getId() == tabPagerId) return true;
+        }
+        return false;
+    }
+
+    private static void setUserInputEnabled(View pager, boolean enabled) throws Exception {
+        pager.getClass().getMethod("setUserInputEnabled", boolean.class).invoke(pager, enabled);
+    }
+
     /** Called when any ViewPager2 gets an adapter. Locks the Reels player's pager. */
     public static void onPagerAdapterSet(View pager) {
         try {
-            if (stopsScrolling() && isReelsPager(pager)) {
-                pager.getClass().getMethod("setUserInputEnabled", boolean.class).invoke(pager, false);
+            if (!stopsScrolling() || !isReelsPager(pager)) return;
+            if (pager.isAttachedToWindow()) {
+                if (!inReelsTab(pager)) setUserInputEnabled(pager, false);
+                return;
             }
+            // Not in the hierarchy yet, so it can't tell whether it's the tab: lock it for now and
+            // decide once it's attached.
+            setUserInputEnabled(pager, false);
+            pager.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
+                @Override
+                public void onViewAttachedToWindow(View v) {
+                    v.removeOnAttachStateChangeListener(this);
+                    try {
+                        if (inReelsTab(v)) setUserInputEnabled(v, true);
+                    } catch (Throwable t) {
+                        Log.e(TAG, "Failed to unlock the Reels tab", t);
+                    }
+                }
+
+                @Override
+                public void onViewDetachedFromWindow(View v) {
+                }
+            });
         } catch (Throwable t) {
             Log.e(TAG, "Failed to lock reels pager", t);
         }
@@ -235,7 +278,10 @@ public final class DisableReelsPatch {
     /** Called from ViewPager2.setUserInputEnabled. Keeps the Reels player's pager locked. */
     public static boolean pagerUserInputEnabled(View pager, boolean enabled) {
         try {
-            if (enabled && stopsScrolling() && isReelsPager(pager)) return false;
+            if (enabled && stopsScrolling() && isReelsPager(pager)
+                    && !(pager.isAttachedToWindow() && inReelsTab(pager))) {
+                return false;
+            }
         } catch (Throwable t) {
             Log.e(TAG, "Failed to check reels pager", t);
         }

@@ -14,6 +14,8 @@ import java.util.WeakHashMap;
 
 /** Pure black surfaces in Zalo's dark theme; light mode is untouched. */
 public final class AmoledTheme {
+  public static final String KEY = "amoled_theme";
+  private static final String PREFS = "zeldris_patch_settings";
   private static final Set<String> SURFACES = new HashSet<>(Arrays.asList(
       "PrimaryBackgroundColor", "SecondaryBackgroundColor", "BottomNav", "TabBackgroundColor",
       "ChatBarBackgroundColor", "FooterBackgroundColor", "ProfilePrimaryBackgroundColor",
@@ -32,7 +34,7 @@ public final class AmoledTheme {
 
   /** Applied after Zalo installs its dark theme, so XML inflation sees the same black surfaces. */
   public static void applyDarkOverlay(Context context) {
-    if (!isDark(context)) return;
+    if (!isEnabled(context) || !isDark(context)) return;
     try {
       int style = context.getResources().getIdentifier("ZeldrisAmoledOverlay", "style", context.getPackageName());
       if (style != 0) context.getTheme().applyStyle(style, true);
@@ -43,7 +45,7 @@ public final class AmoledTheme {
 
   /** Replaces the Me tab root background, whose theme attribute is resolved before the overlay. */
   public static void forceBlackBackground(View view) {
-    if (view == null || !isDark(view.getContext())) return;
+    if (view == null || !isEnabled(view.getContext()) || !isDark(view.getContext())) return;
     try {
       view.setBackgroundColor(0xff000000);
     } catch (RuntimeException ignored) {
@@ -57,7 +59,7 @@ public final class AmoledTheme {
    * configuration during theme-detection fallback can propagate.
    */
   public static boolean blackSurface(Context context, int attribute) {
-    if (!isDark(context)) return false;
+    if (!isEnabled(context) || !isDark(context)) return false;
     try {
       Resources resources = context.getResources();
       synchronized (SURFACE_IDS) {
@@ -76,6 +78,10 @@ public final class AmoledTheme {
     } catch (RuntimeException ignored) {
       return false;
     }
+  }
+
+  private static boolean isEnabled(Context context) {
+    return context != null && context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(KEY, false);
   }
 
   /** Zalo's selected theme mode: 0 is light, any other value is a dark theme. */

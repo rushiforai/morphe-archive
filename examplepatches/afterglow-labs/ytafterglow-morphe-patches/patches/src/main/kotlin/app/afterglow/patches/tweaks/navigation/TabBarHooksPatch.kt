@@ -26,16 +26,8 @@ internal const val TAB_BAR_HOOKS = "$EXTENSION_PACKAGE/navigation/TabBarHooks;"
  * Hooks of the iOS "Tab bar" settings on YouTube's bottom bar: removeLabels, removeIndicators
  * and frostedPivot. Used by the named "Tab bar" patch.
  *
- * Not ported yet, for a later batch: composing the bar from Afterglow's tab list (activeTabs,
- * with the History, Library, Posts, Explore/Hype, Messages and Afterglow tabs), twoRowTabBar and
- * the side anchors. Composition needs the pivot bar list hook (`Lnav`/`PivotBarRendererList`:
- * the list of tab items, whose renderers are protobuf messages read through
- * `MessageLite.toByteArray()`), a small protobuf reader/writer in the extension to read each
- * tab's pivot identifier and to clone Home's item with another browse id, title and icon, YouTube's
- * item factory (`Lj$/util/Optional;`-returning, literal 117501096) to build them, and a click
- * listener on the Afterglow tab's view (the image-resource tab hook of 21.43) that starts
- * AfterglowActivity. The bonus row and anchors need a second row view laid out inside
- * `bottom_bar_container` (`InitializeBottomBarContainerFingerprint`), and their taps a command router.
+ * NativeTabsPatch composes the items and rows. The layout hook here keeps icon-only native
+ * items and generated labelled items on the same native geometry, including avatar tabs.
  */
 internal val tabBarHooksPatch = bytecodePatch(
     description = "Hooks YouTube's tab bar for the Afterglow Tab bar settings.",
@@ -44,6 +36,18 @@ internal val tabBarHooksPatch = bytecodePatch(
     dependsOn(afterglowExtensionPatch)
 
     execute {
+        TabLayoutFingerprint.let {
+            val index = it.instructionMatches.first().index
+            val inflate = it.method.instruction<FiveRegisterInstruction>(index)
+            it.method.addInstructionsAtControlFlowLabel(
+                index,
+                """
+                    ${invokeStatic(inflate.registerD, inflate.registerE, method = "$TAB_BAR_HOOKS->tabLayout(ILandroid/view/ViewGroup;)I")}
+                    move-result v${inflate.registerD}
+                """.trimIndent(),
+            )
+        }
+
         TabLabelFingerprint.let {
             val index = it.instructionMatches.first().index
             val label = it.method.instruction<FiveRegisterInstruction>(index).registerC

@@ -80,6 +80,34 @@ public class PlaylistProxyProbe {
                 unchanged(LIVE);
                 if (TwitchAds.proxyPlaylist(null) != null) throw new AssertionError("null native URI was changed");
                 break;
+            case "typed":
+                // A URL typed in Lurk settings (issue 87) wins over the patch option when it can be used.
+                System.clearProperty("lurk.test.proxy");
+                Settings.values.put("playlist_proxy_url", "https://typed.example/live/{channel}");
+                equal("https://typed.example/live/mixed_case123", TwitchAds.proxyPlaylistUrl(LIVE),
+                    "a typed https:// URL needs no patch option");
+                template("https://example.org/live/{channel}");
+                equal("https://typed.example/live/mixed_case123", TwitchAds.proxyPlaylistUrl(LIVE),
+                    "a typed URL replaces the patch option's");
+                Settings.values.put("playlist_proxy_url", "http://typed.example/live/{channel}");
+                equal("https://example.org/live/mixed_case123", TwitchAds.proxyPlaylistUrl(LIVE),
+                    "http:// to another host than the option's is ignored");
+                template("http://typed.example/old/{channel}");
+                equal("http://typed.example/live/mixed_case123", TwitchAds.proxyPlaylistUrl(LIVE),
+                    "http:// to the option's host is allowed");
+                template("https://example.org/live/{channel}");
+                for (String bad : new String[]{"https://example.org/{channel}?u={url}", "https://{channel}.example.org/",
+                        "https://example.org/#{channel}", "ftp://example.org/{channel}", "example.org/{channel}", "https:///x"}) {
+                    Settings.values.put("playlist_proxy_url", bad);
+                    equal("https://example.org/live/mixed_case123", TwitchAds.proxyPlaylistUrl(LIVE),
+                        "an unusable typed URL falls back to the option's: " + bad);
+                }
+                Settings.values.put("playlist_proxy_url", "  ");
+                equal("https://example.org/live/mixed_case123", TwitchAds.proxyPlaylistUrl(LIVE), "blank: the option's");
+                Settings.values.put("playlist_proxy", "false");
+                Settings.values.put("playlist_proxy_url", "https://typed.example/live/{channel}");
+                unchanged(LIVE);
+                break;
             default:
                 throw new AssertionError("unknown scenario " + args[0]);
         }

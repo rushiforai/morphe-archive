@@ -63,7 +63,7 @@ public final class WisprFlowHooks implements IXposedHookLoadPackage {
     private static Session ensureSession(Service service) {
         try {
             // Fail open to the original UI when Wispr updates its private implementation.
-            if (!"2.8.5".equals(service.getPackageManager()
+            if (!BridgePolicy.supportsVersion(service.getPackageManager()
                     .getPackageInfo(PACKAGE, 0).versionName)) return null;
             Session session = sessions.get(service);
             if (session == null) {

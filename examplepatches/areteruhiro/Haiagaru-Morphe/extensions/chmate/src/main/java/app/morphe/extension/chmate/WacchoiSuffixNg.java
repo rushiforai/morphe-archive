@@ -16,9 +16,17 @@ import android.widget.AdapterView;
 import android.view.View;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.Calendar;
+import java.util.Locale;
+import java.util.TimeZone;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.security.MessageDigest;
 
 /** Explicit suffix registration; long press retains the copy-and-edit workflow. */
 public final class WacchoiSuffixNg {
@@ -28,6 +36,93 @@ public final class WacchoiSuffixNg {
     private static final int REGEX = 0x20;
     private static final int CHAIN = 0x08;
     private static final int HIDDEN = 0x01;
+    private static final Pattern SUFFIX_PART = Pattern.compile(
+            "(?<![A-Za-z0-9])[A-Za-z0-9]{4}-([^\\s()（）<>]{4})(?![A-Za-z0-9])");
+    private static final Pattern PREFIX_PART = Pattern.compile(
+            "(?<![A-Za-z0-9])([A-Za-z0-9]{4})-[^\\s()（）<>]{4}(?![A-Za-z0-9])");
+    private static final String EXPIRY_PREFS = "haiagaru_wacchoi_ng_expiry";
+    private static final ScheduledExecutorService EXPIRY_WORKER = Executors.newSingleThreadScheduledExecutor(r -> {
+        Thread thread = new Thread(r, "Haiagaru-wacchoi-expiry"); thread.setDaemon(true); return thread;
+    });
+    private static volatile boolean expiryScheduled;
+
+    static void scheduleExpiry(Context context) {
+        if (context == null || expiryScheduled) return;
+        synchronized (WacchoiSuffixNg.class) {
+            if (expiryScheduled) return;
+            expiryScheduled = true;
+            Context app = context.getApplicationContext();
+            EXPIRY_WORKER.scheduleWithFixedDelay(() -> cleanupExpired(app), 0, 30, TimeUnit.MINUTES);
+        }
+    }
+
+    private static void cleanupExpired(Context context) {
+        if (context == null) return;
+        android.content.SharedPreferences prefs = context.getSharedPreferences(EXPIRY_PREFS, 0);
+        long now = System.currentTimeMillis();
+        try {
+            NativeNgStore store = new NativeNgStore(context, "NAME");
+            List<NativeNgStore.Entry> entries = store.entries();
+            android.content.SharedPreferences.Editor edit = prefs.edit();
+            boolean changed = false;
+            for (Map.Entry<String, ?> saved : prefs.getAll().entrySet()) {
+                if (!(saved.getValue() instanceof Long)) { edit.remove(saved.getKey()); changed = true; continue; }
+                if ((Long) saved.getValue() > now) continue;
+                String fingerprint = saved.getKey();
+                NativeNgStore.Entry match = null;
+                for (NativeNgStore.Entry entry : entries) if (fingerprint(entry).equals(fingerprint)) { match = entry; break; }
+                if (match != null) {
+                    store.update(match.nativeItem, null);
+                    entries.remove(match);
+                }
+                edit.remove(fingerprint); changed = true;
+            }
+            if (changed) edit.apply();
+        } catch (ReflectiveOperationException | RuntimeException error) {
+            android.util.Log.w("Haiagaru", "Could not expire weekly Wacchoi NG", error);
+        }
+    }
+
+    private static String fingerprint(NativeNgStore.Entry entry) {
+        try {
+            String value = entry.pattern + "\n" + entry.flags + "\n" + entry.timestamp + "\n" + (entry.board == null ? "" : entry.board);
+            byte[] digest = MessageDigest.getInstance("SHA-256").digest(value.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            return "weekly:" + android.util.Base64.encodeToString(digest, android.util.Base64.URL_SAFE | android.util.Base64.NO_WRAP | android.util.Base64.NO_PADDING);
+        } catch (Exception impossible) { throw new IllegalStateException(impossible); }
+    }
+
+    private static boolean weeklySite(String host) {
+        if (host == null) return false;
+        String value = host.toLowerCase(Locale.ROOT);
+        return value.equals("5ch.net") || value.endsWith(".5ch.net") || value.equals("5ch.io") || value.endsWith(".5ch.io")
+                || value.equals("bbspink.com") || value.endsWith(".bbspink.com")
+                || value.equals("bbs.eddibb.cc") || value.endsWith(".eddibb.cc");
+    }
+
+    private static boolean edgeSite(String host) {
+        if (host == null) return false;
+        String value = host.toLowerCase(Locale.ROOT);
+        return value.equals("bbs.eddibb.cc") || value.endsWith(".eddibb.cc");
+    }
+
+    private static long nextWeeklyReset(boolean edge) {
+        long now = System.currentTimeMillis();
+        if (edge) {
+            // Eddiner computes its seed from Unix-epoch weeks: Thursday 00:00 UTC.
+            long week = 7L * 24 * 60 * 60 * 1000;
+            return (Math.floorDiv(now, week) + 1) * week;
+        }
+        Calendar next = Calendar.getInstance(TimeZone.getTimeZone("Asia/Tokyo"), Locale.ROOT);
+        next.setTimeInMillis(now); next.set(Calendar.HOUR_OF_DAY, 0); next.set(Calendar.MINUTE, 0);
+        next.set(Calendar.SECOND, 0); next.set(Calendar.MILLISECOND, 0);
+        do { next.add(Calendar.DAY_OF_YEAR, 1); } while (next.get(Calendar.DAY_OF_WEEK) != Calendar.SUNDAY || next.getTimeInMillis() <= now);
+        return next.getTimeInMillis();
+    }
+
+    private static void saveExpiry(Context context, NativeNgStore.Entry entry, long until) {
+        context.getSharedPreferences(EXPIRY_PREFS, 0).edit().putLong(fingerprint(entry), until).apply();
+        scheduleExpiry(context);
+    }
 
     static short registrationFlags(short previous, boolean chain, boolean hidden) {
         return (short) ((previous & ~(0x70 | CHAIN | HIDDEN)) | REGEX
@@ -67,7 +162,7 @@ public final class WacchoiSuffixNg {
 
     public static String suffix(String query) {
         if (query == null) return null;
-        Matcher match = Pattern.compile("(?<![A-Za-z0-9])[A-Za-z0-9]{4}-([^\\s()（）<>]{4})(?=$|[\\s()（）<>])").matcher(query);
+        Matcher match = SUFFIX_PART.matcher(query);
         return match.find() ? match.group(1) : null;
     }
 
@@ -77,14 +172,25 @@ public final class WacchoiSuffixNg {
     }
     public static String prefix(String query) {
         if(query==null)return null;
-        Matcher match=Pattern.compile("(?<![A-Za-z0-9])([A-Za-z0-9]{4})-[^\\s()（）<>]{4}(?=$|[\\s()（）<>])").matcher(query);
+        Matcher match=PREFIX_PART.matcher(query);
         return match.find()?match.group(1):null;
     }
-    public static void confirmPrefix(Context context,String query,String board){confirmPart(context,query,board,true);}
+    public static void confirmPrefix(Context context,String query,String board){confirmPart(context,query,board,true,null);}
+    static void confirmPrefix(Context context,String query,String board,String host){confirmPart(context,query,board,true,host);}
 
     public static String clipboardValue(String query) {
         String value = suffix(query);
         return value == null ? null : "-" + value + "|";
+    }
+
+    /** Copy-friendly forms accepted by NGName's literal and regex editors. */
+    public static String prefixClipboardValue(String query) {
+        String value = prefix(query);
+        return value == null ? null : value + "-";
+    }
+    public static String suffixClipboardValue(String query) {
+        String value = suffix(query);
+        return value == null ? null : "-" + value;
     }
 
     public static void confirm(Context context, String query) {
@@ -92,9 +198,12 @@ public final class WacchoiSuffixNg {
     }
 
     public static void confirm(Context context, String query, String currentBoard) {
-        confirmPart(context,query,currentBoard,false);
+        confirmPart(context,query,currentBoard,false,null);
     }
-    private static void confirmPart(Context context,String query,String currentBoard,boolean upper) {
+    static void confirm(Context context,String query,String currentBoard,String host){
+        confirmPart(context,query,currentBoard,false,host);
+    }
+    private static void confirmPart(Context context,String query,String currentBoard,boolean upper,String host) {
         String suffix = upper?prefix(query):suffix(query);
         String token=upper?suffix+"-":"-"+suffix;
         android.app.Activity activity = Haiagaru.toolbarActivity(context);
@@ -115,20 +224,39 @@ public final class WacchoiSuffixNg {
             CheckBox chain = new CheckBox(activity); chain.setText("連鎖"); content.addView(chain);
             CheckBox hidden = new CheckBox(activity); hidden.setText("非表示（あぼーん扱いにしない）"); content.addView(hidden);
             NgBoardScopePicker scope = new NgBoardScopePicker(activity, currentBoard, currentBoard);
+            CheckBox boardOnly=new CheckBox(activity);boardOnly.setText("この板のみを対象にする");
+            boardOnly.setChecked(currentBoard!=null&&!currentBoard.isEmpty());
+            boardOnly.setEnabled(currentBoard!=null&&!currentBoard.isEmpty());content.addView(boardOnly);
+            FilterPosition.ThreadTarget threadTarget=FilterPosition.currentVisibleThread();
+            boolean sameThreadBoard=threadTarget!=null&&Objects.equals(threadTarget.board,currentBoard);
+            CheckBox threadOnly=new CheckBox(activity);threadOnly.setText("このスレのみを対象にする");
+            threadOnly.setEnabled(sameThreadBoard);content.addView(threadOnly);
+            CheckBox oneWeek = new CheckBox(activity);
+            oneWeek.setText("一週間のみNGにする（次回ワッチョイ更新まで）");
+            oneWeek.setVisibility(weeklySite(host) ? View.VISIBLE : View.GONE);
+            content.addView(oneWeek);
             content.addView(scope);
             // Board scope is essential to registration, not optional help below the fold.
             content.removeView(scope);
             content.addView(scope, 0);
+            scope.setVisibility(boardOnly.isChecked()?View.VISIBLE:View.GONE);
+            java.util.function.Supplier<String> effectiveScope=()->threadOnly.isChecked()
+                    ?NgBoardScope.thread(threadTarget.board,threadTarget.threadId):boardOnly.isChecked()?scope.value():null;
             TextView baseLabel = new TextView(activity); baseLabel.setText("追加先（同じ板・有効／連鎖／非表示設定の正規表現NG）"); content.addView(baseLabel);
             Spinner base = new Spinner(activity); content.addView(base);
             List<NativeNgStore.Entry> choices = new ArrayList<>();
+            Runnable updateExpiryEnabled = () -> {
+                boolean canExpire = !regex.isChecked() || base.getSelectedItemPosition() == 0;
+                oneWeek.setEnabled(weeklySite(host) && canExpire);
+                if (!canExpire) oneWeek.setChecked(false);
+            };
             Runnable refresh = () -> {
                 choices.clear();
                 List<String> labels = new ArrayList<>(); labels.add("新規登録");
                 try {
                     short flags = registrationFlags((short) 0, true, enabled.isChecked(), chain.isChecked(), hidden.isChecked());
                     for (NativeNgStore.Entry entry : store.entries()) {
-                        if (entry.flags == flags && Objects.equals(entry.board, scope.value())) {
+                        if (entry.flags == flags && Objects.equals(entry.board, effectiveScope.get())) {
                             choices.add(entry); labels.add(entry.pattern);
                         }
                     }
@@ -139,6 +267,7 @@ public final class WacchoiSuffixNg {
                 adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item); base.setAdapter(adapter);
                 base.setVisibility(regex.isChecked() ? View.VISIBLE : View.GONE);
                 baseLabel.setVisibility(regex.isChecked() ? View.VISIBLE : View.GONE);
+                updateExpiryEnabled.run();
             };
             mode.setOnCheckedChangeListener((group, id) -> {
                 String value = text.getText().toString();
@@ -149,7 +278,17 @@ public final class WacchoiSuffixNg {
             enabled.setOnCheckedChangeListener((button, checked) -> refresh.run());
             chain.setOnCheckedChangeListener((button, checked) -> refresh.run());
             hidden.setOnCheckedChangeListener((button, checked) -> refresh.run());
+            boardOnly.setOnCheckedChangeListener((button, checked)->{
+                if(checked&&threadOnly.isChecked())threadOnly.setChecked(false);
+                scope.setVisibility(checked&&!threadOnly.isChecked()?View.VISIBLE:View.GONE);refresh.run();});
+            threadOnly.setOnCheckedChangeListener((button,checked)->{
+                if(checked&&boardOnly.isChecked())boardOnly.setChecked(false);
+                scope.setVisibility(boardOnly.isChecked()&&!checked?View.VISIBLE:View.GONE);refresh.run();});
             scope.onChanged(refresh);
+            base.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener(){
+                public void onNothingSelected(AdapterView<?> parent) { updateExpiryEnabled.run(); }
+                public void onItemSelected(AdapterView<?> parent,View view,int position,long id) { updateExpiryEnabled.run(); }
+            });
             TextView help = new TextView(activity);
             help.setText("NGNameを文字列で登録する人は\n-aabb\nNGのたびに新規登録\n―――――――――――――――――――\nNGNameを正規表現で登録する人は\n-aabb|\nベースとなるNGのところに追加登録\n\n正規表現では追加先を選択できます。末尾の | は追記用の区切りです。空の条件は保存しません。\nこのNG項目を長押しすると、下4桁をコピーして従来のNG編集画面を開きます。");
             if(upper)help.setText("上4桁は「aabb-」の形で登録します。\n文字列はNGごとに新規登録、正規表現は既存NGへの追加も選べます。対象板・有効／連鎖／非表示も指定できます。\n上4桁は複数の投稿者で共通することがあります。対象板と登録内容を確認してください。");
@@ -171,7 +310,8 @@ public final class WacchoiSuffixNg {
                     if (target != null) pattern = appendRegex(target.pattern, pattern);
                     if (regex.isChecked()) Pattern.compile(pattern);
                     short flags = registrationFlags((short) 0, regex.isChecked(), enabled.isChecked(), chain.isChecked(), hidden.isChecked());
-                    String board = scope.value();
+                    String board = effectiveScope.get();
+                    if(oneWeek.isChecked()&&target!=null){text.setError("複合NGには一週間期限を設定できません");return;}
                     NativeNgStore.Entry duplicate = ExistingNgActions.find(current, pattern, board, flags);
                     if (duplicate != null) {
                         text.setError("登録済みのNGです。変更はNG編集から行ってください");
@@ -179,8 +319,9 @@ public final class WacchoiSuffixNg {
                     }
                     if (target == null && current.size() >= Haiagaru.getNgRegistrationLimit())
                         throw new IllegalStateException("NGNameの登録上限に達しています");
-                    store.update(target == null ? null : target.nativeItem, store.item(pattern, flags,
-                            target == null ? System.currentTimeMillis() : target.timestamp, board));
+                    Object savedItem=store.item(pattern, flags,target == null ? System.currentTimeMillis() : target.timestamp, board);
+                    store.updateAndVerify(target == null ? null : target.nativeItem, savedItem);
+                    if(oneWeek.isChecked())saveExpiry(activity,new NativeNgStore.Entry(savedItem),nextWeeklyReset(edgeSite(host)));
                     dialog.dismiss(); Toast.makeText(activity, "NGNameに登録しました", Toast.LENGTH_SHORT).show();
                 } catch (ReflectiveOperationException | RuntimeException error) {
                     android.util.Log.w("Haiagaru", "NG suffix registration", error);

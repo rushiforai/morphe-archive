@@ -1,0 +1,13 @@
+4 ficheros DEX, 164880 cadenas distintas
+
+### Lcom/baidu/simeji/settings/SettingsActivity;
+    public constructor     <init>()V  -> V
+    private                P0(Landroid/content/Intent;)Ljava/lang/String;  -> Ljava/lang/String;
+    public static          Q0(Landroid/content/Context; Ljava/lang/String;)V  -> V
+    public                 O0()Ljava/lang/String;  -> Ljava/lang/String;
+    public                 onBackPressed()V  -> V
+    public                 onBackStackChanged()V  -> V
+    protected              onCreate(Landroid/os/Bundle;)V  -> V
+    protected              onPause()V  -> V
+    protected              onResume()V  -> V
+

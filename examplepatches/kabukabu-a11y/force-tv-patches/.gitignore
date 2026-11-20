@@ -1,0 +1,7 @@
+.gradle/
+build/
+patches/build/
+morphe-signing.key
+morphe-signing.pub
+*.mpp
+*.sig

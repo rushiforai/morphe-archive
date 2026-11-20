@@ -11,6 +11,7 @@ import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.view.WindowInsets;
 import android.widget.ImageView;
+import java.util.WeakHashMap;
 
 /**
  * Dynamically adapts 365 Pay screens (Home, Pay, Account) for devices with camera display cutouts.
@@ -21,6 +22,7 @@ import android.widget.ImageView;
 public final class DisplayCutoutBridge {
     private static final float BASELINE_STATUS_BAR_DP = 24.0f;
     private static final float HEADER_HEIGHT_BASELINE_DP = 78.0f;
+    private static final WeakHashMap<View, Integer> INSET_MAP = new WeakHashMap<>();
 
     private DisplayCutoutBridge() {
     }
@@ -104,6 +106,17 @@ public final class DisplayCutoutBridge {
             return;
         }
 
+        boolean alreadyRegistered;
+        synchronized (INSET_MAP) {
+            alreadyRegistered = INSET_MAP.containsKey(decorView);
+            INSET_MAP.put(decorView, cutoutInsetTop);
+        }
+
+        if (alreadyRegistered) {
+            decorView.postInvalidate();
+            return;
+        }
+
         final ViewTreeObserver vto = decorView.getViewTreeObserver();
 
         vto.addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
@@ -112,7 +125,14 @@ public final class DisplayCutoutBridge {
                 if (activity.isFinishing()) {
                     return true;
                 }
-                adaptViewHierarchy(decorView, density, cutoutInsetTop);
+                Integer inset;
+                synchronized (INSET_MAP) {
+                    inset = INSET_MAP.get(decorView);
+                }
+                if (inset != null && inset > 0) {
+                    float currentDensity = decorView.getResources().getDisplayMetrics().density;
+                    adaptViewHierarchy(decorView, currentDensity, inset);
+                }
                 return true;
             }
         });
@@ -123,10 +143,16 @@ public final class DisplayCutoutBridge {
                 if (activity.isFinishing()) {
                     return;
                 }
-                adaptViewHierarchy(decorView, density, cutoutInsetTop);
+                Integer inset;
+                synchronized (INSET_MAP) {
+                    inset = INSET_MAP.get(decorView);
+                }
+                if (inset != null && inset > 0) {
+                    float currentDensity = decorView.getResources().getDisplayMetrics().density;
+                    adaptViewHierarchy(decorView, currentDensity, inset);
+                }
             }
         });
-
         adaptViewHierarchy(decorView, density, cutoutInsetTop);
     }
 

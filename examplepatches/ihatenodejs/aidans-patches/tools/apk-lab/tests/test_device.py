@@ -8,9 +8,13 @@ from apk_lab.device import (
     AdbClient,
     AdbDevice,
     CrashReport,
+    click_ui_node,
+    dump_ui_hierarchy,
+    find_ui_nodes,
     harvest_recent_crashes,
     monitor_application,
     parse_adb_devices,
+    parse_bounds,
     parse_exit_info_records,
     parse_launcher_activity,
     parse_proc_stat,
@@ -20,7 +24,7 @@ from apk_lab.device import (
     resolve_frame_in_smali,
     select_device,
 )
-from apk_lab.models import ExitCode
+from apk_lab.models import ExitCode, UiNode
 
 
 def test_parse_adb_devices():
@@ -638,6 +642,89 @@ def test_resolve_frame_in_smali(tmp_path):
     assert "return-void" in resolved.code_snippet
 
 
+def test_resolve_frame_in_smali_targets_line_number(tmp_path):
+    smali_dir = tmp_path / "smali"
+    smali_pkg = smali_dir / "com" / "example"
+    smali_pkg.mkdir(parents=True)
+    target_smali = smali_pkg / "Foo.smali"
+
+    smali_lines = [
+        ".class public Lcom/example/Foo;",
+        ".super Ljava/lang/Object;",
+        "",
+        ".method public testMethod()V",
+        "    .registers 16",
+        "    .line 10",
+        "    const/4 v0, 0x0",
+        "    const/4 v1, 0x1",
+        "    const/4 v2, 0x2",
+        "    const/4 v3, 0x3",
+        "    .line 20",
+        "    const/4 v4, 0x4",
+        "    const/4 v5, 0x5",
+        "    const/4 v6, 0x6",
+        "    const/4 v7, 0x7",
+        "    nop",
+        "    nop",
+        "    nop",
+        "    nop",
+        "    nop",
+        "    .line 641",
+        "    invoke-virtual {v11, v12}, Lgw7;->t(Z)V",
+        "    move-result v8",
+        "    nop",
+        "    nop",
+        "    nop",
+        "    nop",
+        "    nop",
+        "    .line 700",
+        "    nop",
+        "    nop",
+        "    nop",
+        "    nop",
+        "    nop",
+        "    nop",
+        "    nop",
+        "    nop",
+        "    nop",
+        "    nop",
+        "    nop",
+        "    nop",
+        "    nop",
+        "    nop",
+        "    nop",
+        "    nop",
+        "    nop",
+        "    nop",
+        "    nop",
+        "    nop",
+        "    return-void",
+        ".end method",
+    ]
+    target_smali.write_text("\n".join(smali_lines) + "\n", encoding="utf-8")
+
+    frame = "    at com.example.Foo.testMethod(Foo.kt:641)"
+    resolved = resolve_frame_in_smali(frame, smali_dir)
+
+    assert resolved.code_snippet is not None
+    assert ".line 641" in resolved.code_snippet
+    assert "invoke-virtual {v11, v12}, Lgw7;->t(Z)V" in resolved.code_snippet
+    assert not resolved.code_snippet[0].startswith((".line 1", ".line 10"))
+
+    missing_frame = "    at com.example.Foo.testMethod(Foo.kt:9999)"
+    resolved_missing = resolve_frame_in_smali(missing_frame, smali_dir)
+
+    assert resolved_missing.code_snippet is not None
+    assert len(resolved_missing.code_snippet) == 15
+    assert resolved_missing.code_snippet[0] == ".registers 16"
+
+    no_line_frame = "    at com.example.Foo.testMethod(Foo.kt)"
+    resolved_no_line = resolve_frame_in_smali(no_line_frame, smali_dir)
+    assert resolved_no_line.code_snippet is not None
+    assert len(resolved_no_line.code_snippet) == 15
+    assert resolved_no_line.code_snippet[0] == ".registers 16"
+
+
 def test_resolve_frame_missing_smali(tmp_path):
     smali_dir = tmp_path / "smali"
     smali_dir.mkdir()
@@ -701,3 +788,66 @@ def test_resolve_crash_report_and_multidex(tmp_path):
     frames_only = resolve_crash_frames(crash, root_dir)
     assert len(frames_only) == 2
     assert frames_only[0].smali_path == bar_smali
+
+
+def test_parse_bounds_and_node_center():
+    bounds = parse_bounds("[32,103][251,192]")
+    assert bounds == (32, 103, 251, 192)
+    node = UiNode(
+        text="Test",
+        content_desc="",
+        resource_id="com.example:id/btn",
+        class_name="android.widget.Button",
+        clickable=True,
+        bounds=bounds,
+    )
+    assert node.center == (141, 147)
+    assert node.matches(text="test")
+    assert node.matches(resource_id="btn")
+    assert not node.matches(text="missing")
+
+
+def test_dump_ui_hierarchy_handles_trailing_stdout_noise(monkeypatch):
+    xml_output = """<?xml version='1.0' encoding='UTF-8' standalone='yes' ?>
+<hierarchy rotation="0">
+  <node index="0" text="Must Watch" resource-id="" class="android.widget.TextView" package="com.nhl" content-desc="" checkable="false" checked="false" clickable="false" enabled="true" focusable="false" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[32,297][861,361]" />
+  <node index="1" text="" resource-id="" class="android.view.View" package="com.nhl" content-desc="media" checkable="false" checked="false" clickable="true" enabled="true" focusable="false" focused="false" scrollable="false" long-clickable="false" password="false" selected="false" bounds="[281,2259][360,2290]" />
+</hierarchy>
+UI hierachy dumped to: /dev/tty
+"""
+    monkeypatch.setattr("apk_lab.device.run_adb", lambda dev, args: xml_output)
+
+    nodes = dump_ui_hierarchy(device="emulator-5554")
+    assert len(nodes) == 2
+    assert nodes[0].text == "Must Watch"
+    assert not nodes[0].clickable
+
+    media_nodes = find_ui_nodes(nodes, desc="media")
+    assert len(media_nodes) == 1
+    media_node = media_nodes[0]
+    assert media_node.content_desc == "media"
+    assert media_node.matches(desc="media")
+    assert media_node.clickable
+    assert media_node.center == (320, 2274)
+
+    clickable_nodes = find_ui_nodes(nodes, clickable_only=True)
+    assert len(clickable_nodes) == 1
+    assert clickable_nodes[0] == media_node
+
+
+def test_click_ui_node(monkeypatch):
+    mock_run_adb = MagicMock()
+    monkeypatch.setattr("apk_lab.device.run_adb", mock_run_adb)
+
+    node = UiNode(
+        text="",
+        content_desc="media",
+        resource_id="",
+        class_name="android.view.View",
+        clickable=True,
+        bounds=(281, 2259, 360, 2290),
+    )
+    click_ui_node("emulator-5554", node)
+    mock_run_adb.assert_called_once_with(
+        "emulator-5554", ["shell", "input", "tap", "320", "2274"]
+    )

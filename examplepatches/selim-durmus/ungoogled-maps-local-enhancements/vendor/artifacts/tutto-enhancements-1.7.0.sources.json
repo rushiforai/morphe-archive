@@ -1,0 +1,11 @@
+{
+  "build-bundle.py": "acf8277fb2c94d58dfd8e577aca0bcf86ece544d3d39a788515b08b3bf945cc7",
+  "morphe/GenerateCatalog.kt": "b949b162f5be49253de1c09365d186a34f89f15ff45297f7f0630413638ee3c6",
+  "morphe/TuttoEnhancements.kt": "1ed1580d2b522921dcdf29ee2cb881c700544230134543c1944f6bfd36b6da24",
+  "src/org/ungoogled/ui/HomeWorkShortcuts.java": "3487076dfb5b0e02bfadfe3be8ba536e5435ec40b6cb927fd257431eb5a42340",
+  "src/org/ungoogled/ui/LabelIndex.java": "10de5610f66d91b63c15651d2f24c8aba296b484957ffeaf76ce31b9be98a896",
+  "src/org/ungoogled/ui/LabelSuggestions.java": "bf35212c6c8334f7030d1931be532a807b5035eae07decac1443f30665c96be7",
+  "stubs/org/ungoogled/ui/HistoryStore.java": "34f3eced012b4ed697b6600e66cc0efe77bf5203daa34800c802b0fbe566ed71",
+  "stubs/org/ungoogled/ui/SavedPlaces.java": "ce24bfbc535d816a0cae042ae343ac4da48eeacfa44906fa565675ef8a7e75f1",
+  "stubs/org/ungoogled/ui/SavedStore.java": "d63c3bb3f422d52833e2cb3e5ad586075fd35887d620830502e212906ddf2037"
+}

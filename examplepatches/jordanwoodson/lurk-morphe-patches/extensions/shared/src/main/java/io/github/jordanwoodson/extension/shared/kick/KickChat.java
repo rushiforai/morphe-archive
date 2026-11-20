@@ -44,6 +44,7 @@ public final class KickChat {
     private static final String CLOCK = "chat_timestamp_format";
     private static final String TEXT_SIZE = "chat_text_size";
     private static final String COMPACT = "chat_compact";
+    private static final String SEARCH = "chat_search";
     static final String SEVEN_TV = "emotes_7tv";
     /** Third-party badges: 7TV badges, Twitch's key. */
     static final String SEVEN_TV_BADGES = "badges_7tv";
@@ -310,6 +311,7 @@ public final class KickChat {
         int textSize = Settings.isRegistered(TEXT_SIZE) ? Settings.getInt(TEXT_SIZE) : 0;
         if (textSize >= 10 && textSize <= 32) options.put("textSize", textSize);
         if (on(COMPACT)) options.put("compact", true);
+        if (on(SEARCH)) options.put("search", true);
         JSONArray hide = new JSONArray();
         for (String[] lines : HIDE) {
             if (!on(lines[0])) continue;

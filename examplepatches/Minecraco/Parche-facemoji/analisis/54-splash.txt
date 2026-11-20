@@ -1,0 +1,130 @@
+4 ficheros DEX, 164880 cadenas distintas
+
+### Lcom/baidu/simeji/settings/guide/AgreeGuideActivity;
+    public constructor     <init>()V  -> V
+    static bridge synthetic a(Lcom/baidu/simeji/settings/guide/AgreeGuideActivity;)V  -> V
+    static bridge synthetic b(Lcom/baidu/simeji/settings/guide/AgreeGuideActivity;)V  -> V
+    private                d()V  -> V
+    private                e()V  -> V
+    private                g()V  -> V
+    private                h()V  -> V
+    protected              c()V  -> V
+    protected              f()V  -> V
+    protected              onCreate(Landroid/os/Bundle;)V  -> V
+    protected              onDestroy()V  -> V
+    protected              onPause()V  -> V
+    protected              onResume()V  -> V
+    protected              onStart()V  -> V
+    protected              onStop()V  -> V
+
+### Lcom/baidu/simeji/settings/guide/SplashActivity;
+    static constructor     <clinit>()V  -> V
+    public constructor     <init>()V  -> V
+    public static final synthetic a(Lcom/baidu/simeji/settings/guide/SplashActivity; J)V  -> V
+    private final          b()Z  -> Z
+    private final          c(J)V  -> V
+    private final          d(J)V  -> V
+    protected              onCreate(Landroid/os/Bundle;)V  -> V
+    protected              onResume()V  -> V
+
+### Lcom/baidu/simeji/settings/guide/GuideNewCustomSkinActivity;
+    public constructor     <init>()V  -> V
+    static bridge synthetic O0(Lcom/baidu/simeji/settings/guide/GuideNewCustomSkinActivity;)Z  -> Z
+    static bridge synthetic P0(Lcom/baidu/simeji/settings/guide/GuideNewCustomSkinActivity; Z)V  -> V
+    static bridge synthetic Q0(Lcom/baidu/simeji/settings/guide/GuideNewCustomSkinActivity;)V  -> V
+    static bridge synthetic R0(Lcom/baidu/simeji/settings/guide/GuideNewCustomSkinActivity;)V  -> V
+    private                S0()F  -> F
+    private                T0()V  -> V
+    private                U0()V  -> V
+    private                V0()V  -> V
+    private                W0()V  -> V
+    private                X0()V  -> V
+    private                Y0()V  -> V
+    private                Z0()V  -> V
+    private                a1()V  -> V
+    private                b1()V  -> V
+    public                 onBackPressed()V  -> V
+    protected              onCreate(Landroid/os/Bundle;)V  -> V
+    protected              onDestroy()V  -> V
+    protected              onStart()V  -> V
+    protected              onStop()V  -> V
+
+### Lcom/baidu/simeji/settings/guide/GuideSelectLanguageActivity;
+    public constructor     <init>()V  -> V
+    static bridge synthetic O0(Lcom/baidu/simeji/settings/guide/GuideSelectLanguageActivity;)Landroid/widget/Button;  -> Landroid/widget/Button;
+    private                P0(Z)V  -> V
+    private                Q0()V  -> V
+    private                R0()V  -> V
+    private                S0()V  -> V
+    public                 onBackPressed()V  -> V
+    public                 onClick(Landroid/view/View;)V  -> V
+    protected              onCreate(Landroid/os/Bundle;)V  -> V
+    protected              onStop()V  -> V
+
+### Lcom/baidu/simeji/settings/guide/GuidingForUserActivity;
+    public constructor     <init>()V  -> V
+    public static synthetic O0()V  -> V
+    static bridge synthetic P0(Lcom/baidu/simeji/settings/guide/GuidingForUserActivity;)Lcom/baidu/simeji/skins/k;  -> Lcom/baidu/simeji/skins/k;
+    static bridge synthetic Q0(Lcom/baidu/simeji/settings/guide/GuidingForUserActivity;)Landroid/view/inputmethod/InputMethodManager;  -> Landroid/view/inputmethod/InputMethodManager;
+    static bridge synthetic R0(Lcom/baidu/simeji/settings/guide/GuidingForUserActivity; I)V  -> V
+    private                S0(Landroid/content/Intent;)V  -> V
+    private                T0(I)I  -> I
+    private                U0()V  -> V
+    private                V0(Z)V  -> V
+    private                W0()V  -> V
+    private                X0(Ljava/lang/String;)V  -> V
+    private                Y0()V  -> V
+    private                Z0()V  -> V
+    private                a1(Z)V  -> V
+    private                b1(I)V  -> V
+    private                c1()V  -> V
+    private static synthetic e1()V  -> V
+    private                f1(I)V  -> V
+    private                g1(I)V  -> V
+    private                h1()Lif/b;  -> Lif/b;
+    private                i1()V  -> V
+    private                j1(I)V  -> V
+    private                k1(Ljava/lang/String;)Z  -> Z
+    private                l1(Landroid/content/Intent;)V  -> V
+    private                m1(Landroid/content/Intent;)V  -> V
+    private                n1(I)V  -> V
+    private                o1(I)V  -> V
+    public                 A(I)V  -> V
+    protected              C0()V  -> V
+                           d1()V  -> V
+    public                 onBackPressed()V  -> V
+    public                 onConfigurationChanged(Landroid/content/res/Configuration;)V  -> V
+    protected              onCreate(Landroid/os/Bundle;)V  -> V
+    protected              onDestroy()V  -> V
+    public                 onKeyUp(I Landroid/view/KeyEvent;)Z  -> Z
+    protected              onNewIntent(Landroid/content/Intent;)V  -> V
+    protected              onPause()V  -> V
+    protected              onResume()V  -> V
+    protected              onStart()V  -> V
+    protected              onStop()V  -> V
+    public                 onWindowFocusChanged(Z)V  -> V
+    protected              w0()Z  -> Z
+
+### Lcom/baidu/simeji/settings/guide/MicrophonePermissionGuideActivity;
+    static constructor     <clinit>()V  -> V
+    public constructor     <init>()V  -> V
+    public static synthetic O0(Landroid/view/View; Landroidx/core/view/WindowInsetsCompat;)Landroidx/core/view/WindowInsetsCompat;  -> Landroidx/core/view/WindowInsetsCompat;
+    public static synthetic P0(Lcom/baidu/simeji/settings/guide/MicrophonePermissionGuideActivity; Landroid/view/View;)V  -> V
+    public static synthetic Q0(Lcom/baidu/simeji/settings/guide/MicrophonePermissionGuideActivity; Landroid/view/View;)V  -> V
+    private final          R0()Z  -> Z
+    private final          S0()Z  -> Z
+    private final          T0(Ljava/lang/String;)V  -> V
+    private final          U0(Ljava/lang/String;)V  -> V
+    private final          V0()V  -> V
+    private static final   W0(Landroid/view/View; Landroidx/core/view/WindowInsetsCompat;)Landroidx/core/view/WindowInsetsCompat;  -> Landroidx/core/view/WindowInsetsCompat;
+    private static final   X0(Lcom/baidu/simeji/settings/guide/MicrophonePermissionGuideActivity; Landroid/view/View;)V  -> V
+    private static final   Y0(Lcom/baidu/simeji/settings/guide/MicrophonePermissionGuideActivity; Landroid/view/View;)V  -> V
+    private final          Z0()V  -> V
+    public static final    a1(Landroid/content/Context;)Z  -> Z
+    public static final    b1(Landroid/app/Activity; Landroid/content/Intent;)V  -> V
+    public                 onBackPressed()V  -> V
+    protected              onCreate(Landroid/os/Bundle;)V  -> V
+    public                 onRequestPermissionsResult(I [Ljava/lang/String; [I)V  -> V
+    protected              onResume()V  -> V
+    protected              onSaveInstanceState(Landroid/os/Bundle;)V  -> V
+

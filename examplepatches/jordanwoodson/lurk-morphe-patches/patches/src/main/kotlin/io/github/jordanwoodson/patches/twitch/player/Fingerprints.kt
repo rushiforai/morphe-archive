@@ -240,3 +240,9 @@ internal object ExoPlayerTeardownFingerprint : Fingerprint(
     returnType = "V", parameters = emptyList(),
     strings = listOf("Error unregistering stream volume receiver"),
 )
+
+// Shows the "Changed to Column Chat" snackbar, with its Next Mode button, after the landscape chat mode changes.
+internal object ChatModeSnackbarFingerprint : Fingerprint(
+    returnType = "V", parameters = listOf("L"),
+    filters = listOf(resourceLiteral(ResourceType.STRING, "one_chat_next_mode")),
+)

@@ -1,5 +1,6 @@
 package app.aidan.patches.sidelineswap.tracking
 
+import app.aidan.patches.shared.compositeFeaturePatch
 import app.aidan.patches.shared.disableOptionalVoidMethods
 import app.aidan.patches.shared.returnOptionalBoolean
 import app.aidan.patches.shared.returnOptionalNullObject
@@ -7,112 +8,268 @@ import app.aidan.patches.shared.returnOptionalString
 import app.aidan.patches.sidelineswap.shared.COMPATIBILITY_SIDELINESWAP
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
-import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.AccessFlags
+import org.w3c.dom.Document
+import org.w3c.dom.Element
 
-val blockTrackingAndTelemetryPatch = bytecodePatch(
+private const val ANDROID_NS = "http://schemas.android.com/apk/res/android"
+
+val blockTrackingAndTelemetryPatch = compositeFeaturePatch(
     name = "Block Tracking and Telemetry",
-    description = "Neutralizes first-party analytics (SidelineSwap backend), behavioral tracking (Amplitude, Firebase Analytics, Facebook App Events, Iterable), diagnostic telemetry (Firebase Crashlytics, Timber logging tree), payment gateway telemetry (Braintree FPTI), and zeros the Google Play Advertising ID (AAID).",
-    default = true
+    description = "Neutralizes first-party analytics (SidelineSwap backend), behavioral tracking (Amplitude, Firebase Analytics, Facebook App Events, Iterable), diagnostic telemetry (Firebase Crashlytics, Timber logging tree), payment gateway telemetry (Braintree FPTI), Google Play Install Referrer, and zeros the Google Play Advertising ID (AAID).",
+    default = true,
 ) {
     category("Privacy")
     compatibleWith(COMPATIBILITY_SIDELINESWAP)
 
-    execute {
-        // Layer 1: Central Dispatcher Neutralization
-        // Cuts off all event broadcasting across the application.
-        disableOptionalVoidMethods("Lcom/sidelineswap/android/analytics/AnalyticsLogger;", "delegateToClients")
-        returnThis("Lcom/sidelineswap/android/analytics/AnalyticsLogger;", "addClient")
+    val disableFirstParty = booleanOption(
+        key = "disableFirstParty",
+        default = true,
+        title = "Disable First-Party Analytics",
+        description = "Neutralizes SidelineSwap's central event dispatcher (AnalyticsLogger), first-party client, and LogRepo HTTP event uploads.",
+    )
 
-        // Layer 2: First-Party Backend Telemetry Neutralization
-        disableOptionalVoidMethods(
-            "Lcom/sidelineswap/android/analytics/SidelineSwapClient;",
-            "logEvent",
-            "access\$logEvent"
-        )
-        returnOptionalNullObject("Lcom/sidelineswap/android/repo/LogRepo;", "trackEvent")
+    val disableAmplitude = booleanOption(
+        key = "disableAmplitude",
+        default = true,
+        title = "Disable Amplitude Analytics",
+        description = "Neutralizes the Amplitude client wrapper and core Amplitude SDK event tracking, identification, and initialization across all repositories.",
+    )
 
-        // Layer 3: Amplitude Analytics Neutralization
-        disableOptionalVoidMethods(
-            "Lcom/sidelineswap/android/analytics/AmplitudeClient;",
-            "logEvent",
-            "access\$logEvent"
-        )
-        disableOptionalVoidMethods("Lp073j1/d;", "d")
+    val disableFirebase = booleanOption(
+        key = "disableFirebase",
+        default = true,
+        title = "Disable Firebase & GMS Analytics",
+        description = "Neutralizes FirebaseClient, Google Play Services Measurement event queue, and removes background AppMeasurement services and sessions.",
+    )
 
-        // Layer 4: Firebase Analytics & Measurement Neutralization
-        disableOptionalVoidMethods(
-            "Lcom/sidelineswap/android/analytics/FirebaseClient;",
-            "logEvent",
-            "access\$logEvent"
-        )
-        disableOptionalVoidMethods(
-            "Lcom/google/firebase/analytics/FirebaseAnalytics;",
-            "logEvent",
-            "setAnalyticsCollectionEnabled",
-            "setUserProperty",
-            "setDefaultEventParameters"
-        )
-        disableOptionalVoidMethods(
-            "Lcom/google/firebase/perf/FirebasePerformance;",
-            "setPerformanceCollectionEnabled"
-        )
+    val disableCrashlytics = booleanOption(
+        key = "disableCrashlytics",
+        default = true,
+        title = "Disable Crashlytics & Diagnostic Logging",
+        description = "Neutralizes the Timber Crashlytics logging tree and Firebase Crashlytics exception, log, and custom key reporting.",
+    )
 
-        // Layer 5: Firebase Crashlytics & Timber Tree Neutralization
-        disableOptionalVoidMethods("Lcom/sidelineswap/android/log/CrashlyticsTree;", "log")
-        disableOptionalVoidMethods(
-            "Lcom/google/firebase/crashlytics/FirebaseCrashlytics;",
-            "log",
-            "recordException",
-            "setCrashlyticsCollectionEnabled"
-        )
+    val disableFacebook = booleanOption(
+        key = "disableFacebook",
+        default = true,
+        title = "Disable Facebook SDK & App Events",
+        description = "Neutralizes Facebook SDK initialization, auto-event collection, activity lifecycle tracking, and removes FacebookInitProvider.",
+    )
 
-        // Layer 6: Facebook SDK & App Events Neutralization
-        // Stub Facebook validation and event logging methods
-        disableOptionalVoidMethods(
-            "Lp173v2/y;",
-            "e",
-            "f",
-            "g",
-            "h",
-            "i",
-            "j",
-            "k",
-            "l"
-        )
-        disableOptionalVoidMethods(
-            "Lcom/sidelineswap/android/analytics/FacebookClient;",
-            "completedCheckout",
-            "initiatedCheckout",
-            "joined",
-            "newMadeOffer",
-            "newMadePurchase",
-            "visitedItem",
-            "visitedResults"
-        )
-        disableOptionalVoidMethods("Lp057h2/h;", "a")
+    val disableIterable = booleanOption(
+        key = "disableIterable",
+        default = true,
+        title = "Disable Iterable Telemetry",
+        description = "Neutralizes Iterable client calls, In-App message tracking, session event uploads, and lifecycle callback registration.",
+    )
 
-        // Layer 7: Iterable Telemetry Neutralization
-        disableOptionalVoidMethods("Lcom/sidelineswap/android/analytics/IterableClient;", "visitedLocker")
-        disableOptionalVoidMethods("Lp159t5/C1123h;", "d", "e", "f", "g")
+    val disableBraintreeTelemetry = booleanOption(
+        key = "disableBraintreeTelemetry",
+        default = true,
+        title = "Disable Braintree Gateway Telemetry",
+        description = "Stubs Braintree FPTI background upload and database workers with immediate success, and neutralizes BraintreeClient analytics dispatchers.",
+    )
 
-        // Layer 8: Braintree FPTI Gateway Telemetry Neutralization
-        returnWorkerSuccess("Lcom/braintreepayments/api/AnalyticsUploadWorker;", "g")
-        returnWorkerSuccess("Lcom/braintreepayments/api/AnalyticsWriteToDbWorker;", "g")
-        disableOptionalVoidMethods("Lcom/braintreepayments/api/L;", "b", "c")
+    val zeroAdvertisingId = booleanOption(
+        key = "zeroAdvertisingId",
+        default = true,
+        title = "Zero Google Play Advertising ID",
+        description = "Spoofs minified and standard Google Play AdvertisingIdClient calls to return an all-zero UUID and forces limit-ad-tracking to true.",
+    )
 
-        // Layer 9: Google Play Advertising ID Zeroing & Opt-Out
-        spoofMinifiedAdvertisingId("LY2/a;")
-        returnOptionalString(
-            "Lcom/google/android/gms/ads/identifier/AdvertisingIdClient\$Info;",
-            "getId",
-            "00000000-0000-0000-0000-000000000000"
-        )
-        returnOptionalBoolean(
-            "Lcom/google/android/gms/ads/identifier/AdvertisingIdClient\$Info;",
-            "isLimitAdTrackingEnabled",
-            true
-        )
+    val disableInstallReferrer = booleanOption(
+        key = "disableInstallReferrer",
+        default = true,
+        title = "Disable Install Referrer Tracking",
+        description = "Neutralizes Google Play Install Referrer querying and client connections across attribution listeners.",
+    )
+
+    resources {
+        val targetsToRemove = mutableSetOf<String>()
+        if (disableFirebase.value != false) {
+            targetsToRemove.addAll(
+                listOf(
+                    "com.google.android.gms.measurement.AppMeasurementReceiver",
+                    "com.google.android.gms.measurement.AppMeasurementService",
+                    "com.google.android.gms.measurement.AppMeasurementJobService",
+                    "com.google.firebase.sessions.SessionLifecycleService",
+                    "android.adservices.AD_SERVICES_CONFIG",
+                )
+            )
+        }
+        if (disableFacebook.value != false) {
+            targetsToRemove.addAll(
+                listOf(
+                    "com.facebook.internal.FacebookInitProvider",
+                    "com.facebook.CurrentAccessTokenExpirationBroadcastReceiver",
+                    "com.facebook.AuthenticationTokenManager\$CurrentAuthenticationTokenChangedBroadcastReceiver",
+                    "com.facebook.sdk.ApplicationId",
+                    "com.facebook.sdk.ClientToken",
+                )
+            )
+        }
+        if (disableIterable.value != false) {
+            targetsToRemove.addAll(
+                listOf(
+                    "com.iterable.iterableapi.IterableFirebaseMessagingService",
+                    "com.iterable.iterableapi.IterablePushActionReceiver",
+                )
+            )
+        }
+
+        if (targetsToRemove.isNotEmpty()) {
+            document("AndroidManifest.xml").use { doc ->
+                removeManifestComponents(doc, targetsToRemove)
+            }
+        }
+    }
+
+    bytecode {
+        // Layer 1: First-Party Analytics Neutralization
+        if (disableFirstParty.value != false) {
+            disableOptionalVoidMethods("Lcom/sidelineswap/android/analytics/AnalyticsLogger;", "delegateToClients")
+            returnThis("Lcom/sidelineswap/android/analytics/AnalyticsLogger;", "addClient")
+            disableOptionalVoidMethods(
+                "Lcom/sidelineswap/android/analytics/SidelineSwapClient;",
+                "logEvent",
+                "access\$logEvent",
+            )
+            returnOptionalNullObject("Lcom/sidelineswap/android/repo/LogRepo;", "trackEvent")
+        }
+
+        // Layer 2: Amplitude Analytics Neutralization
+        if (disableAmplitude.value != false) {
+            disableOptionalVoidMethods(
+                "Lcom/sidelineswap/android/analytics/AmplitudeClient;",
+                "logEvent",
+                "access\$logEvent",
+            )
+            disableOptionalVoidMethods(
+                "Lj1/d;",
+                "d",
+                "e",
+                "f",
+                "j",
+                "k",
+                "l",
+                "n",
+                "o",
+                "p",
+                "t",
+                "u",
+                "v",
+                "w",
+            )
+        }
+
+        // Layer 3: Firebase Analytics & GMS AppMeasurement Neutralization
+        if (disableFirebase.value != false) {
+            disableOptionalVoidMethods(
+                "Lcom/sidelineswap/android/analytics/FirebaseClient;",
+                "logEvent",
+                "access\$logEvent",
+                "completedCheckout",
+                "initiatedCheckout",
+                "joined",
+                "newMadeOffer",
+                "newMadePurchase",
+                "visitedItem",
+                "visitedResults",
+            )
+            disableOptionalVoidMethods(
+                "Lcom/google/android/gms/internal/measurement/r0;",
+                "b",
+            )
+        }
+
+        // Layer 4: Firebase Crashlytics & Timber Tree Neutralization
+        if (disableCrashlytics.value != false) {
+            disableOptionalVoidMethods("Lcom/sidelineswap/android/log/CrashlyticsTree;", "log")
+            disableOptionalVoidMethods(
+                "Lcom/google/firebase/crashlytics/FirebaseCrashlytics;",
+                "log",
+                "recordException",
+                "setCrashlyticsCollectionEnabled",
+                "setCustomKey",
+                "setCustomKeys",
+            )
+        }
+
+        // Layer 5: Facebook SDK & App Events Neutralization
+        if (disableFacebook.value != false) {
+            disableOptionalVoidMethods("Lg2/n;", "i")
+            disableOptionalVoidMethods("Lv2/y;", "a", "b", "c", "d", "e")
+            disableOptionalVoidMethods(
+                "Lcom/sidelineswap/android/analytics/FacebookClient;",
+                "completedCheckout",
+                "initiatedCheckout",
+                "joined",
+                "newMadeOffer",
+                "newMadePurchase",
+                "visitedItem",
+                "visitedResults",
+            )
+            disableOptionalVoidMethods("Lh2/h;", "a")
+            disableOptionalVoidMethods("Lh2/i;", "d", "e", "f", "g", "h")
+            disableOptionalVoidMethods("Lp2/a;", "c")
+        }
+
+        // Layer 6: Iterable Telemetry Neutralization
+        if (disableIterable.value != false) {
+            disableOptionalVoidMethods("Lcom/sidelineswap/android/analytics/IterableClient;", "visitedLocker")
+            disableOptionalVoidMethods("Lt5/h;", "d", "g", "h", "j", "k", "l", "m")
+            disableOptionalVoidMethods("Lt5/i;", "d")
+            disableOptionalVoidMethods("Lt5/e;", "a")
+        }
+
+        // Layer 7: Braintree FPTI Gateway Telemetry Neutralization
+        if (disableBraintreeTelemetry.value != false) {
+            returnWorkerSuccess("Lcom/braintreepayments/api/AnalyticsUploadWorker;", "g")
+            returnWorkerSuccess("Lcom/braintreepayments/api/AnalyticsWriteToDbWorker;", "g")
+            disableOptionalVoidMethods("Lcom/braintreepayments/api/L;", "b", "c")
+        }
+
+        // Layer 8: Google Play Advertising ID Zeroing & Opt-Out
+        if (zeroAdvertisingId.value != false) {
+            spoofMinifiedAdvertisingId("LY2/a;")
+            returnOptionalString(
+                "Lcom/google/android/gms/ads/identifier/AdvertisingIdClient\$Info;",
+                "getId",
+                "00000000-0000-0000-0000-000000000000",
+            )
+            returnOptionalBoolean(
+                "Lcom/google/android/gms/ads/identifier/AdvertisingIdClient\$Info;",
+                "isLimitAdTrackingEnabled",
+                true,
+            )
+        }
+
+        // Layer 9: Google Play Install Referrer Neutralization
+        if (disableInstallReferrer.value != false) {
+            disableOptionalVoidMethods("Ll1/a;", "b")
+            disableOptionalVoidMethods("Lv2/b\$a;", "a")
+        }
+    }
+}
+
+/**
+ * Removes components from AndroidManifest.xml matching the specified set of names.
+ */
+private fun removeManifestComponents(doc: Document, targets: Set<String>) {
+    val allElements = doc.getElementsByTagName("*")
+    val toRemove = mutableListOf<Element>()
+    for (i in 0 until allElements.length) {
+        val elem = allElements.item(i) as? Element ?: continue
+        val name = elem.getAttributeNS(ANDROID_NS, "name")
+            .ifEmpty { elem.getAttribute("android:name") }
+            .trim()
+        if (name in targets) {
+            toRemove.add(elem)
+        }
+    }
+    for (elem in toRemove) {
+        elem.parentNode?.removeChild(elem)
     }
 }
 
@@ -124,7 +281,7 @@ val blockTrackingAndTelemetryPatch = bytecodePatch(
  */
 private fun BytecodePatchContext.returnThis(
     classDescriptor: String,
-    methodName: String
+    methodName: String,
 ) {
     val mutableClass = mutableClassDefByOrNull(classDescriptor) ?: return
 
@@ -144,7 +301,7 @@ private fun BytecodePatchContext.returnThis(
                 0,
                 """
                 return-object v$thisRegister
-                """.trimIndent()
+                """.trimIndent(),
             )
         }
     }
@@ -157,7 +314,7 @@ private fun BytecodePatchContext.returnThis(
  */
 private fun BytecodePatchContext.returnWorkerSuccess(
     classDescriptor: String,
-    methodName: String = "g"
+    methodName: String = "g",
 ) {
     val mutableClass = mutableClassDefByOrNull(classDescriptor) ?: return
 
@@ -174,7 +331,7 @@ private fun BytecodePatchContext.returnWorkerSuccess(
                 new-instance v0, Landroidx/work/ListenableWorker${'$'}a${'$'}c;
                 invoke-direct {v0}, Landroidx/work/ListenableWorker${'$'}a${'$'}c;-><init>()V
                 return-object v0
-                """.trimIndent()
+                """.trimIndent(),
             )
         }
     }
@@ -186,7 +343,7 @@ private fun BytecodePatchContext.returnWorkerSuccess(
  * matches are skipped; parameter and return types are not checked.
  */
 private fun BytecodePatchContext.spoofMinifiedAdvertisingId(
-    classDescriptor: String = "LY2/a;"
+    classDescriptor: String = "LY2/a;",
 ) {
     val mutableClass = mutableClassDefByOrNull(classDescriptor) ?: return
 
@@ -200,7 +357,7 @@ private fun BytecodePatchContext.spoofMinifiedAdvertisingId(
                 const/4 v2, 0x1
                 invoke-direct {v0, v1, v2}, LY2/a${'$'}a;-><init>(Ljava/lang/String;Z)V
                 return-object v0
-                """.trimIndent()
+                """.trimIndent(),
             )
         }
     }

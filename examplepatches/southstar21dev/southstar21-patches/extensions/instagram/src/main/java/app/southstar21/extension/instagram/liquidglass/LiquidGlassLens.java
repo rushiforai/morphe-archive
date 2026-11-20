@@ -5,6 +5,7 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.LinearGradient;
+import android.graphics.Matrix;
 import android.graphics.Outline;
 import android.graphics.Paint;
 import android.graphics.RecordingCanvas;
@@ -42,6 +43,9 @@ final class LiquidGlassLens extends View {
             "uniform float dark;\n" +
             "uniform float dispersion;\n" +
             "uniform half4 wash;\n" +   // rgb the glass is washed towards, by alpha
+            "uniform float2 light;\n" + // unit direction towards the light, in screen axes
+            "uniform float4 glint;\n" + // tilt glint: anchor x, y from the center (px), sigma (px), peak (0 = off)
+            "uniform float2 glintOpp;\n" + // the weaker glint opposite it
 
             "float sdRoundRect(float2 p, float2 b, float r) {\n" +
             "  float2 q = abs(p) - b + r;\n" +
@@ -72,19 +76,30 @@ final class LiquidGlassLens extends View {
             "  col.r = 0.5 * (content.eval(src + fringe).r + content.eval(src + fringe * 0.5).r);\n" +
             "  col.g = content.eval(src).g;\n" +
             "  col.b = 0.5 * (content.eval(src - fringe).b + content.eval(src - fringe * 0.5).b);\n" +
-            "  col.a = 1.0;\n" +
+            // Kept from the content, premultiplied, not forced opaque: a video plays in a hole of
+            // the recording (its own layer, under the window) and must show through the drop.
+            "  col.a = content.eval(src).a;\n" +
 
+            // The wash covers holes as much as content, as in the bar's glass.
             "  col.rgb = mix(col.rgb, wash.rgb, wash.a);\n" +
+            "  col.a = mix(col.a, 1.0, wash.a);\n" +
 
-            "  float2 light = normalize(float2(-0.45, -0.9));\n" +
             "  float spec = pow(max(dot(n, light), 0.0), 2.0) + 0.5 * pow(max(dot(n, -light), 0.0), 2.0);\n" +
             "  float rim = smoothstep(0.5, 1.0, t);\n" +
-            "  col.rgb += half3(rim * spec * mix(0.65, 0.4, dark));\n" +
+            "  float2 ga = p - glint.xy;\n" +
+            "  float2 gb = p - glintOpp;\n" +
+            "  float gk = -0.5 / max(glint.z * glint.z, 1.0);\n" +
+            "  float g = exp(dot(ga, ga) * gk) + 0.35 * exp(dot(gb, gb) * gk);\n" +
+            "  half shine = half(rim * (spec * mix(0.65, 0.4, dark) + g * glint.w));\n" +
+            "  col.rgb += half3(shine);\n" +
+            "  col.a = max(col.a, shine);\n" +
             // Darker lower inner edge gives the droplet some volume.
             "  float lower = smoothstep(0.0, halfSize.y, p.y) * rim;\n" +
             "  col.rgb -= half3(lower * 0.08);\n" +
 
-            "  return clamp(col, 0.0, 1.0) * coverage;\n" +
+            "  col = clamp(col, 0.0, 1.0);\n" +
+            "  col.rgb = min(col.rgb, half3(col.a));\n" +
+            "  return col * coverage;\n" +
             "}\n";
 
     /**
@@ -106,6 +121,9 @@ final class LiquidGlassLens extends View {
             "uniform float innerAlpha;\n" +
             "uniform float highlightWidth;\n" +
             "uniform float highlight;\n" +
+            "uniform float2 light;\n" +             // the highlight's axis: 45 degrees
+            "uniform float4 glint;\n" +             // tilt glint: anchor x, y from the center (px), sigma (px), peak (0 = off)
+            "uniform float2 glintOpp;\n" +          // the weaker glint opposite it
 
             "float sdRoundedRect(float2 coord, float2 halfSize, float radius) {\n" +
             "  float2 cornerCoord = abs(coord) - (halfSize - float2(radius));\n" +
@@ -170,12 +188,24 @@ final class LiquidGlassLens extends View {
             // Inner shadow, darkest at the edge.
             "  float inner = 1.0 - smoothstep(0.0, max(innerRadius, 1.0), -sd);\n" +
             "  color.rgb *= 1.0 - innerAlpha * inner;\n" +
-            // Highlight: white, brightest where the edge faces 45 degrees (top left, bottom right).
-            "  float lit = abs(dot(gradSdRoundedRect(c, halfSize, gradRadius), float2(0.70710678)));\n" +
+            // Highlight: white, brightest where the edge faces the light axis (top left and
+            // bottom right at rest, turning as the phone tilts).
+            "  float lit = abs(dot(grad, light));\n" +
             "  float rim = 1.0 - smoothstep(0.0, max(highlightWidth, 1.0), -sd);\n" +
-            "  color.rgb += half3(highlight * lit * rim);\n" +
+            "  float2 ga = c - glint.xy;\n" +
+            "  float2 gb = c - glintOpp;\n" +
+            "  float gk = -0.5 / max(glint.z * glint.z, 1.0);\n" +
+            "  float g = exp(dot(ga, ga) * gk) + 0.35 * exp(dot(gb, gb) * gk);\n" +
+            "  float gband = 1.0 - smoothstep(0.0, max(highlightWidth * 2.5, 1.0), -sd);\n" +
+            "  half shine = half(highlight * lit * rim + gband * g * glint.w);\n" +
+            "  color.rgb += half3(shine);\n" +
+            // Alpha stays from the content (a video hole stays open), premultiplied, except where
+            // the highlight itself is drawn.
+            "  color.a = max(color.a, shine);\n" +
 
-            "  return clamp(color, 0.0, 1.0) * coverage;\n" +
+            "  color = clamp(color, 0.0, 1.0);\n" +
+            "  color.rgb = min(color.rgb, half3(color.a));\n" +
+            "  return color * coverage;\n" +
             "}\n";
 
     private final ViewGroup bar;
@@ -500,8 +530,46 @@ final class LiquidGlassLens extends View {
 
     // region Layout sync
 
+    /** Redraws the glass when the tilt moved the light. */
+    private final TiltLight.Listener tiltListener = () -> {
+        invalidate();
+        LiquidGlassLens.this.glass.invalidateSelf();
+    };
+    private boolean tilting;
+
+    /**
+     * Keeps the motion sensor on only while it can be seen: the setting is on, the view is
+     * attached, its window is showing (so not with the screen off) and the shaders exist.
+     */
+    private void updateTilt() {
+        boolean want = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && isAttachedToWindow()
+                && getWindowVisibility() == VISIBLE && bar.getVisibility() == VISIBLE && style().tiltLight;
+        if (want == tilting) return;
+        tilting = want;
+        TiltLight.setActive(getContext(), tiltListener, want);
+    }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        updateTilt();
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        updateTilt();
+    }
+
+    @Override
+    protected void onWindowVisibilityChanged(int visibility) {
+        super.onWindowVisibilityChanged(visibility);
+        updateTilt();
+    }
+
     /** Called by the controller every pre-draw to follow the bar around. */
     void sync() {
+        updateTilt();
         applyStyle(style().southstar21);
         if (getVisibility() != bar.getVisibility()) setVisibility(bar.getVisibility());
         // Centered on the bar, however the parent lays the taller view out.
@@ -862,16 +930,71 @@ final class LiquidGlassLens extends View {
         }
 
         if (p > 0.02f) {
-            rim.setShader(new LinearGradient(lens.left, lens.top, lens.left + lens.width() * 0.4f, lens.bottom,
-                    new int[]{Color.argb(Math.round(0xE0 * p), 0xFF, 0xFF, 0xFF),
-                            Color.argb(Math.round(0x10 * p), 0xFF, 0xFF, 0xFF),
-                            Color.argb(Math.round(0x50 * p), 0xFF, 0xFF, 0xFF)},
-                    new float[]{0f, 0.55f, 1f}, Shader.TileMode.CLAMP));
+            applyLensRim(p);
             canvas.drawRoundRect(lens, r, r, rim);
         }
     }
 
     private final Paint dropShadow = new Paint(Paint.ANTI_ALIAS_FLAG);
+
+    private final Matrix shaderMatrix = new Matrix();
+    private LinearGradient lensRimShader;
+    private float lensRimAlpha = -1f;
+
+    /**
+     * Sets the lit rim gradient on {@link #rim}: from the lens' top left towards 40% of its width
+     * across and down to its bottom. Built once per alpha as a unit gradient along +x, then scaled,
+     * rotated and moved onto that line (a similarity, so the bands stay perpendicular to it).
+     */
+    private void applyLensRim(float a) {
+        if (lensRimShader == null || lensRimAlpha != a) {
+            lensRimAlpha = a;
+            lensRimShader = new LinearGradient(0f, 0f, 1f, 0f,
+                    new int[]{Color.argb(Math.round(0xE0 * a), 0xFF, 0xFF, 0xFF),
+                            Color.argb(Math.round(0x10 * a), 0xFF, 0xFF, 0xFF),
+                            Color.argb(Math.round(0x50 * a), 0xFF, 0xFF, 0xFF)},
+                    new float[]{0f, 0.55f, 1f}, Shader.TileMode.CLAMP);
+        }
+        float dx = lens.width() * 0.4f, dy = lens.height();
+        float len = Math.max(0.001f, (float) Math.hypot(dx, dy));
+        shaderMatrix.setScale(len, len);
+        shaderMatrix.postRotate((float) Math.toDegrees(Math.atan2(dy, dx)));
+        shaderMatrix.postTranslate(lens.left, lens.top);
+        lensRimShader.setLocalMatrix(shaderMatrix);
+        rim.setShader(lensRimShader);
+    }
+
+    private LinearGradient glassyBodyShader, glassyGlossShader, glassyRimShader;
+    private float glassyAlpha = -1f;
+    private boolean glassyDark;
+
+    /** Vertical unit gradients (0..1 down the shape) for the resting capsule, rebuilt when the fade or mode changes. */
+    private void ensureGlassyShaders(boolean dark, float alpha) {
+        if (glassyBodyShader != null && glassyAlpha == alpha && glassyDark == dark) return;
+        glassyAlpha = alpha;
+        glassyDark = dark;
+        int top = dark ? Color.argb(Math.round(0x48 * alpha), 0xFF, 0xFF, 0xFF)
+                : Color.argb(Math.round(0x70 * alpha), 0xFF, 0xFF, 0xFF);
+        int bottom = dark ? Color.argb(Math.round(0x14 * alpha), 0xFF, 0xFF, 0xFF)
+                : Color.argb(Math.round(0x22 * alpha), 0, 0, 0);
+        glassyBodyShader = new LinearGradient(0, 0, 0, 1, top, bottom, Shader.TileMode.CLAMP);
+        glassyGlossShader = new LinearGradient(0, 0, 0, 1,
+                Color.argb(Math.round((dark ? 0x38 : 0x60) * alpha), 0xFF, 0xFF, 0xFF),
+                Color.argb(0, 0xFF, 0xFF, 0xFF), Shader.TileMode.CLAMP);
+        glassyRimShader = new LinearGradient(0, 0, 0, 1,
+                new int[]{Color.argb(Math.round((dark ? 0x90 : 0xE0) * alpha), 0xFF, 0xFF, 0xFF),
+                        Color.argb(Math.round(0x10 * alpha), 0xFF, 0xFF, 0xFF),
+                        Color.argb(Math.round((dark ? 0x40 : 0x70) * alpha), 0xFF, 0xFF, 0xFF)},
+                new float[]{0f, 0.55f, 1f}, Shader.TileMode.CLAMP);
+    }
+
+    /** Puts a unit vertical gradient over {@code top} to {@code bottom} on {@code paint}. */
+    private void placeVertical(Paint paint, LinearGradient g, float top, float bottom) {
+        shaderMatrix.setScale(1f, bottom - top);
+        shaderMatrix.postTranslate(0f, top);
+        g.setLocalMatrix(shaderMatrix);
+        paint.setShader(g);
+    }
 
     /**
      * The southstar21 style selection: a flat grey pill at rest that, pressed,
@@ -934,11 +1057,7 @@ final class LiquidGlassLens extends View {
 
         // With the shader, Kyant's highlight is drawn inside it; otherwise a lit rim stroke.
         if (!open || shaded && !dropShaderFailed) return;
-        rim.setShader(new LinearGradient(lens.left, lens.top, lens.left + lens.width() * 0.4f, lens.bottom,
-                new int[]{Color.argb(Math.round(0xE0 * openAlpha), 0xFF, 0xFF, 0xFF),
-                        Color.argb(Math.round(0x10 * openAlpha), 0xFF, 0xFF, 0xFF),
-                        Color.argb(Math.round(0x50 * openAlpha), 0xFF, 0xFF, 0xFF)},
-                new float[]{0f, 0.55f, 1f}, Shader.TileMode.CLAMP));
+        applyLensRim(openAlpha);
         canvas.drawRoundRect(lens, r, r, rim);
     }
 
@@ -978,30 +1097,21 @@ final class LiquidGlassLens extends View {
         canvas.drawRoundRect(lens, r, r, glassyShadow);
 
         // Body: lighter at the top, a little darker at the bottom.
-        int top = dark ? Color.argb(Math.round(0x48 * alpha), 0xFF, 0xFF, 0xFF)
-                : Color.argb(Math.round(0x70 * alpha), 0xFF, 0xFF, 0xFF);
-        int bottom = dark ? Color.argb(Math.round(0x14 * alpha), 0xFF, 0xFF, 0xFF)
-                : Color.argb(Math.round(0x22 * alpha), 0, 0, 0);
-        glassyBody.setShader(new LinearGradient(0, lens.top, 0, lens.bottom, top, bottom, Shader.TileMode.CLAMP));
+        ensureGlassyShaders(dark, alpha);
+        placeVertical(glassyBody, glassyBodyShader, lens.top, lens.bottom);
         canvas.drawRoundRect(lens, r, r, glassyBody);
 
         // Gloss over the upper half.
         float inset = Math.min(r * 0.45f, 6f * density);
         gloss.set(lens.left + inset, lens.top + 1.5f * density, lens.right - inset, lens.centerY());
         float gr = gloss.height() / 2f;
-        glassyGloss.setShader(new LinearGradient(0, gloss.top, 0, gloss.bottom,
-                Color.argb(Math.round((dark ? 0x38 : 0x60) * alpha), 0xFF, 0xFF, 0xFF),
-                Color.argb(0, 0xFF, 0xFF, 0xFF), Shader.TileMode.CLAMP));
+        placeVertical(glassyGloss, glassyGlossShader, gloss.top, gloss.bottom);
         canvas.drawRoundRect(gloss, gr, gr, glassyGloss);
 
         // Rim: bright along the top, faint in the middle, a soft glint at the bottom.
         glassyRim.setStyle(Paint.Style.STROKE);
         glassyRim.setStrokeWidth(Math.max(1f, 1f * density));
-        glassyRim.setShader(new LinearGradient(0, lens.top, 0, lens.bottom,
-                new int[]{Color.argb(Math.round((dark ? 0x90 : 0xE0) * alpha), 0xFF, 0xFF, 0xFF),
-                        Color.argb(Math.round(0x10 * alpha), 0xFF, 0xFF, 0xFF),
-                        Color.argb(Math.round((dark ? 0x40 : 0x70) * alpha), 0xFF, 0xFF, 0xFF)},
-                new float[]{0f, 0.55f, 1f}, Shader.TileMode.CLAMP));
+        placeVertical(glassyRim, glassyRimShader, lens.top, lens.bottom);
         float half = glassyRim.getStrokeWidth() / 2f;
         gloss.set(lens.left + half, lens.top + half, lens.right - half, lens.bottom - half);
         canvas.drawRoundRect(gloss, r - half, r - half, glassyRim);
@@ -1015,12 +1125,25 @@ final class LiquidGlassLens extends View {
         float strength = 6f * density * p;
         float dispersion = 5f * density * p * style().edgeColors;
         if (shader == null) shader = new RuntimeShader(LENS_SHADER);
-        shader.setFloatUniform("mag", 1f);
-        shader.setFloatUniform("bezel", Math.max(1f, Math.min(r, 16f * density)));
-        shader.setFloatUniform("strength", strength);
-        shader.setFloatUniform("wash", dark ? 0.85f : 1f, dark ? 0.85f : 1f, dark ? 0.85f : 1f, dark ? 0.16f : 0.32f);
-        shader.setFloatUniform("dispersion", dispersion);
-        shader.setFloatUniform("dark", dark ? 1f : 0f);
+        float bezel = Math.max(1f, Math.min(r, 16f * density));
+        sig[0] = bezel;
+        sig[1] = strength;
+        sig[2] = dispersion;
+        sig[3] = dark ? 1f : 0f;
+        sig[4] = 0f;
+        sig[5] = 0f;
+        sig[6] = 0f;
+        setGlintSig(r, dark ? 0.6f : 0.75f);
+        if (!sameSig(shader)) {
+            shader.setFloatUniform("light", -0.44721f, -0.89443f);
+            applyGlint(shader);
+            shader.setFloatUniform("mag", 1f);
+            shader.setFloatUniform("bezel", bezel);
+            shader.setFloatUniform("strength", strength);
+            shader.setFloatUniform("wash", dark ? 0.85f : 1f, dark ? 0.85f : 1f, dark ? 0.85f : 1f, dark ? 0.16f : 0.32f);
+            shader.setFloatUniform("dispersion", dispersion);
+            shader.setFloatUniform("dark", dark ? 1f : 0f);
+        }
         drawThroughShader(canvas, r, dark, shader, Math.round(strength + dispersion + 4 * density),
                 Math.min(1f, p * 1.4f));
     }
@@ -1045,18 +1168,37 @@ final class LiquidGlassLens extends View {
         }
         // As on iOS: no magnification. The drop is clear glass over what's really beneath it,
         // the page and the bar itself (see drawThroughShader).
+        float band = 10f * density * scale;
+        float innerRadius = (3f + 5f * p) * density * scale;
+        float innerAlpha = 0.15f * alpha;
+        float highlightWidth = 1.5f * density * scale;
+        float highlight = 0.5f * alpha;
+        sig[0] = band;
+        sig[1] = amount;
+        sig[2] = ca;
+        sig[3] = innerRadius;
+        sig[4] = innerAlpha;
+        sig[5] = highlightWidth;
+        sig[6] = highlight;
+        setGlintSig(r, (dark ? 0.6f : 0.75f) * alpha);
+        if (sameSig(dropShader)) {
+            drawThroughShader(canvas, r, dark, dropShader, Math.round(amount * (1f + ca) + 4 * density), alpha);
+            return;
+        }
         dropShader.setFloatUniform("mag", 1f);
-        dropShader.setFloatUniform("band", 10f * density * scale);
+        dropShader.setFloatUniform("band", band);
         // Positive: the rim bends in what's just outside the drop, so where the drop sticks out
         // past the bar, the bar's edge curves into its rim with the page beyond it, in rainbow
         // fringes; over the bar, the bar itself shows through unchanged.
         dropShader.setFloatUniform("amount", amount);
         dropShader.setFloatUniform("chromaticAberration", ca);
         dropShader.setFloatUniform("darken", 0f);
-        dropShader.setFloatUniform("innerRadius", (3f + 5f * p) * density * scale);
-        dropShader.setFloatUniform("innerAlpha", 0.15f * alpha);
-        dropShader.setFloatUniform("highlightWidth", 1.5f * density * scale);
-        dropShader.setFloatUniform("highlight", 0.5f * alpha);
+        dropShader.setFloatUniform("innerRadius", innerRadius);
+        dropShader.setFloatUniform("innerAlpha", innerAlpha);
+        dropShader.setFloatUniform("highlightWidth", highlightWidth);
+        dropShader.setFloatUniform("highlight", highlight);
+        dropShader.setFloatUniform("light", 0.70710678f, 0.70710678f);
+        applyGlint(dropShader);
         drawThroughShader(canvas, r, dark, dropShader, Math.round(amount * (1f + ca) + 4 * density), alpha);
     }
 
@@ -1065,6 +1207,50 @@ final class LiquidGlassLens extends View {
      * px to spare for samples outside it, and draws it through {@code effect} clipped to the lens.
      * Sets the {@code center}, {@code halfSize} and {@code radius} uniforms.
      */
+    /** Uniform inputs of the effect being drawn, written by the caller, and those last applied. */
+    private final float[] sig = new float[15];
+    private final float[] appliedSig = new float[15];
+    private final float[] glintAt = new float[5];
+    private RuntimeShader appliedShader;
+    private boolean sigDirty = true;
+    private final Outline clipOutline = new Outline();
+    private int outlineW = -1, outlineH = -1;
+    private float outlineRadius = -1f;
+    private int appliedW = -1, appliedH = -1;
+    private float appliedLensW = -1f, appliedLensH = -1f, appliedRadius = -1f;
+
+    /**
+     * Writes the tilt glint into {@link #sig}[7..14]: anchor, sigma, peak, opposite anchor. The
+     * peak is 0 with the setting off, which leaves the shader's look as it was.
+     */
+    private void setGlintSig(float r, float peak) {
+        if (!style().tiltLight || peak <= 0f) {
+            for (int i = 7; i < 15; i++) sig[i] = 0f;
+            sig[9] = 1f;
+            return;
+        }
+        TiltLight.glint(lens.width() / 2f, lens.height() / 2f, r, TiltLight.angle(), glintAt);
+        sig[7] = glintAt[0];
+        sig[8] = glintAt[1];
+        sig[9] = glintAt[4];
+        sig[10] = peak;
+        sig[11] = glintAt[2];
+        sig[12] = glintAt[3];
+        sig[13] = 0f;
+        sig[14] = 0f;
+    }
+
+    private void applyGlint(RuntimeShader s) {
+        s.setFloatUniform("glint", sig[7], sig[8], sig[9], sig[10]);
+        s.setFloatUniform("glintOpp", sig[11], sig[12]);
+    }
+
+    /** True when {@link #sig} and the shader match what was last applied to the scene effect. */
+    private boolean sameSig(RuntimeShader effect) {
+        sigDirty = effect != appliedShader || !java.util.Arrays.equals(sig, appliedSig);
+        return !sigDirty;
+    }
+
     private void drawThroughShader(Canvas canvas, float r, boolean dark, RuntimeShader effect, int pad, float alpha) {
         if (!(bar.getParent() instanceof ViewGroup)) return;
         ViewGroup parent = (ViewGroup) bar.getParent();
@@ -1088,6 +1274,11 @@ final class LiquidGlassLens extends View {
         RecordingCanvas rc = scene.beginRecording(w, h);
         try {
             rc.translate(-originX, -originY);
+            // The bar is recorded too (i <= barIndex), on purpose: the drop is opaque and sits over
+            // the real tab icons and the bar's glass, so it has to refract those to show them
+            // (the selected icon inside the drop, the bar's edge curving into its rim). Recording
+            // only the content below would make the drop a window onto the page with the icons
+            // missing. The cost is the bar's own backdrop being re-recorded under the drop.
             for (int i = 0; i <= barIndex; i++) {
                 View child = parent.getChildAt(i);
                 if (child.getVisibility() != VISIBLE || child.getAlpha() == 0f) continue;
@@ -1098,24 +1289,47 @@ final class LiquidGlassLens extends View {
             }
             // Videos under the bar are holes in the recording: fill them, then the base.
             SurfaceSnapshots snapshots = glass.snapshots();
-            if (snapshots != null) snapshots.draw(rc);
-            rc.drawColor(dark ? Color.BLACK : Color.WHITE, android.graphics.PorterDuff.Mode.DST_OVER);
+            // Uncopied videos are left open so the live video shows through the drop, as in the
+            // bar's own glass; without snapshots, a plain base.
+            if (snapshots != null) {
+                snapshots.draw(rc);
+                snapshots.drawBase(rc, dark ? Color.BLACK : Color.WHITE);
+            } else {
+                rc.drawColor(dark ? Color.BLACK : Color.WHITE, android.graphics.PorterDuff.Mode.DST_OVER);
+            }
         } finally {
             scene.endRecording();
         }
 
-        effect.setFloatUniform("center", w / 2f, h / 2f);
-        effect.setFloatUniform("halfSize", lens.width() / 2f, lens.height() / 2f);
-        effect.setFloatUniform("radius", r);
-        scene.setRenderEffect(RenderEffect.createRuntimeShaderEffect(effect, "content"));
+        // A RenderEffect only picks up changed uniforms when recreated, so do that only when an
+        // input moved since the last frame; a static drop keeps its effect.
+        if (sigDirty || w != appliedW || h != appliedH || lens.width() != appliedLensW
+                || lens.height() != appliedLensH || r != appliedRadius) {
+            effect.setFloatUniform("center", w / 2f, h / 2f);
+            effect.setFloatUniform("halfSize", lens.width() / 2f, lens.height() / 2f);
+            effect.setFloatUniform("radius", r);
+            scene.setRenderEffect(RenderEffect.createRuntimeShaderEffect(effect, "content"));
+            appliedShader = effect;
+            System.arraycopy(sig, 0, appliedSig, 0, sig.length);
+            appliedW = w;
+            appliedH = h;
+            appliedLensW = lens.width();
+            appliedLensH = lens.height();
+            appliedRadius = r;
+            sigDirty = false;
+        }
 
         int lw = Math.round(lens.width());
         int lh = Math.round(lens.height());
         clip.setPosition(0, 0, lw, lh);
-        Outline outline = new Outline();
-        outline.setRoundRect(0, 0, lw, lh, r);
-        clip.setOutline(outline);
-        clip.setClipToOutline(true);
+        if (lw != outlineW || lh != outlineH || r != outlineRadius) {
+            outlineW = lw;
+            outlineH = lh;
+            outlineRadius = r;
+            clipOutline.setRoundRect(0, 0, lw, lh, r);
+            clip.setOutline(clipOutline);
+            clip.setClipToOutline(true);
+        }
         clip.setAlpha(alpha);
         RecordingCanvas cc = clip.beginRecording();
         try {

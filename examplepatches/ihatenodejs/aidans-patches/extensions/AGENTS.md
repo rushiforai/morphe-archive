@@ -43,9 +43,10 @@ Use neighboring bridges as patterns: `sezzle/ConsentGate.java` for a small guard
 
 ```bash
 ./gradlew :extensions:extension:compileReleaseJavaWithJavac --console=plain
+./gradlew :extensions:extension:testReleaseUnitTest --console=plain
 ./gradlew :patches:buildAndroid
 ```
 
 Then run the matching real-artifact compatibility check and device smoke from `../tools/apk-lab/AGENTS.md`. Exercise the exact UI/runtime path and monitor for crashes, ANRs, leaks, and main-thread spin. Finish code changes with root `bun run audit`.
 
-There is no synthetic extension unit suite. Compilation does not verify reflection targets, injected descriptors, Android lifecycle behavior, or target-app UI integration; real APK/device proof is required.
+Synthetic unit tests in `src/test/` verify transaction rollback logic, recovery state transitions, coordinator mappings, and JNI constant alignment. However, unit tests cannot verify reflection targets or target-app lifecycle behavior; real APK deployment and device testing remain mandatory.

@@ -288,7 +288,7 @@ An operator code is five or six digits, like 310260	Код оператора с
 An override changes the value TikTok reads from this gate. It doesn't change TikTok's saved copy or prove the named feature changed.	Переопределение меняет значение, которое TikTok читает из этого переключателя. Оно не меняет сохранённую копию TikTok и не доказывает, что названная функция изменилась.
 Animated sticker format	Формат анимированных стикеров
 Save box for chat stickers	Окно сохранения стикеров в чате
-Tapping a sticker someone sent you in a chat opens a box with Save media. Turn this off to skip it.	Если нажать на стикер, который вам прислали в чате, откроется окно с кнопкой сохранения. Выключите, чтобы его пропускать.
+Tapping a sticker someone sent you in a chat opens a box with Save media. Holding one of TikTok's own stickers in a chat puts Save media in its menu too. Turn this off to skip both.	Если нажать на стикер, который вам прислали в чате, откроется окно с кнопкой сохранения. Если удерживать в чате один из стикеров самого TikTok, пункт сохранения появится и в его меню. Выключите, чтобы пропускать и то, и другое.
 TikTok gets no location from your phone. The Region settings change your country and time zone. This switch stops the exact position.	TikTok не получает местоположение с вашего телефона. Настройки региона меняют страну и часовой пояс. Этот переключатель останавливает передачу точных координат.
 TikTok sees an empty contact list instead of yours. Find Friends and People you may know can no longer use your contacts.	TikTok видит пустой список контактов вместо вашего. «Найти друзей» и «Возможно, вы знакомы» больше не могут использовать ваши контакты.
 TikTok sees an empty list of apps instead of the apps on your phone. Checks for one specific app, such as when TikTok opens an app you tap, still work.	TikTok видит пустой список приложений вместо приложений на вашем телефоне. Проверки одного конкретного приложения, например когда TikTok открывает приложение, на которое вы нажали, продолжают работать.
@@ -2512,7 +2512,7 @@ On the main feed, a raised bubble of glass sits behind the tab you're on and sli
 Slide across the tabs	Скольжение по вкладкам
 On the main feed, slide a finger along the tabs and the lens follows it. Let go and that tab opens. Taps and long presses work as before. Needs Glass lens on the current tab.	В основной ленте проведите пальцем по вкладкам, и линза последует за ним. Отпустите, и откроется эта вкладка. Нажатия и долгие нажатия работают как раньше. Нужна «Стеклянная линза на текущей вкладке».
 Liquid glass when held	Жидкое стекло при удержании
-On the main feed, hold a finger on the tabs and the glass lens swells, then wobbles back when you let go. With Blur the video behind the bar on Android 13 and up, the video under it bends harder and splits into color at its edge. Needs Glass lens on the current tab.	В основной ленте удерживайте палец на вкладках, и стеклянная линза раздуется, а когда отпустите, вернётся, покачиваясь. С «Размывать видео за панелью» на Android 13 и новее видео под ней изгибается сильнее и распадается на цвета по краю. Нужна «Стеклянная линза на текущей вкладке».
+On the main feed, hold a finger on the tabs and the glass lens slides under it and swells, the tab beneath it grows, and they wobble back when you let go. On Android 13 and up the tabs bend at the lens's edge and split into color, and with Blur the video behind the bar so does the video. Needs Glass lens on the current tab.	В основной ленте удерживайте палец на вкладках, и стеклянная линза переместится под него и раздуется, вкладка под ней увеличится, а когда отпустите, всё вернётся, покачиваясь. На Android 13 и новее вкладки изгибаются у края линзы и распадаются на цвета, а с «Размывать видео за панелью» так же и видео. Нужна «Стеклянная линза на текущей вкладке».
 Haptics on the tabs	Вибрация на вкладках
 On the main feed, a light tick each time the glass lens passes a tab, as it slides after a tap or under your finger. Needs Glass lens on the current tab.	В основной ленте лёгкий щелчок каждый раз, когда стеклянная линза проходит вкладку, после нажатия или под вашим пальцем. Нужна «Стеклянная линза на текущей вкладке».
 Haptic style	Стиль вибрации
@@ -2572,10 +2572,11 @@ Most viewed first	Сначала самые просматриваемые
 Least viewed first	Сначала наименее просматриваемые
 Most liked first	Сначала с наибольшим числом лайков
 Least liked first	Сначала с наименьшим числом лайков
-Sorts a profile or Liked grid with pinned videos first. While an order is on, the grid keeps loading by itself up to 300 videos, so the order covers more than the first screen. A button in the grid's top corner changes the order right there.	Сортирует сетку профиля или раздела «Понравившиеся», закреплённые видео остаются первыми. Пока выбран порядок, сетка сама подгружает до 300 видео, чтобы порядок охватывал больше первого экрана. Кнопка в верхнем углу сетки меняет порядок прямо там.
+Sorts a profile or Liked grid with pinned videos first. While an order is on, the grid keeps loading by itself up to %1$s videos, so the order covers more than the first screen. A button in the grid's top corner changes the order right there.	Сортирует сетку профиля или раздела «Понравившиеся», закреплённые видео остаются первыми. Пока выбран порядок, сетка сама подгружает до %1$s видео, чтобы порядок охватывал больше первого экрана. Кнопка в верхнем углу сетки меняет порядок прямо там.
+Tap to see the order now	Нажмите, чтобы увидеть порядок сейчас
 Sort loaded videos on Liked grids	Сортировать загруженные видео в сетках «Понравилось»
 Sort loaded videos on sound pages	Сортировать загруженные видео на страницах звуков
-Sorts the videos on a sound's page the same way, loading up to 300 of them while an order is on.	Так же сортирует видео на странице звука и подгружает до 300 из них, пока выбран порядок.
+Sorts the videos on a sound's page the same way, loading up to %1$s of them while an order is on.	Так же сортирует видео на странице звука и подгружает до %1$s из них, пока выбран порядок.
 Same as profile grids	Как в сетках профиля
 Sort this grid	Сортировка этой сетки
 Blur the video behind the bar	Размывать видео за панелью
@@ -2796,7 +2797,7 @@ Use this phone's own IDs	Использовать ID этого телефона
 Wipes TikTok's data once, on the next start, and goes back to this phone's real Android ID and advertising ID. You'll be signed out and lose your drafts.	Один раз, при следующем запуске, стирает данные TikTok и возвращает настоящие Android ID и рекламный ID этого телефона. Вы выйдете из аккаунта и потеряете черновики.
 TikTok goes back to this phone's IDs after the restart. Tap again to cancel.	После перезапуска TikTok вернётся к ID этого телефона. Нажмите ещё раз, чтобы отменить.
 On a one-photo post, Download video makes an MP4 with the post's sound and no TikTok logo or end card. On a post with several photos, Download asks if you want the originals or one video. A photo story saves as a video too.	В посте с одним фото «Скачать видео» делает MP4 со звуком поста, без логотипа TikTok и заключительной заставки. В посте с несколькими фото «Скачать» спрашивает, нужны ли оригиналы или одно видео. Фотоистория тоже сохраняется как видео.
-How long each photo stays on screen in a video made from a photo post. A story's video runs as long as the story does.	Сколько каждое фото остаётся на экране в видео из фотопубликации. Видео из истории длится столько же, сколько сама история.
+How long each photo stays on screen in a video made from a photo post. A post with just one photo runs as long as its sound. A story's video runs as long as the story does.	Сколько каждое фото остаётся на экране в видео из фотопубликации. Публикация с одним фото длится столько же, сколько её звук. Видео из истории длится столько же, сколько сама история.
 Stop loading	Остановить загрузку
 Recording files deleted	Файлы записи удалены
 Hide story views	Скрыть просмотры историй
@@ -3098,6 +3099,10 @@ Cover the whole window without cropping anything. The video gets a little taller
 Sort loaded videos on Favorites grids	Сортировать загруженные видео в сетках «Избранное»
 Show the country and date under the caption	Показывать страну и дату под описанием
 Moves the country and the post date off the creator's row onto a line of their own below the caption.	Переносит страну и дату публикации из строки автора на отдельную строку под описанием.
+# context: picture-in-picture window button that moves TikTok's LIVE rooms
+Previous LIVE	Предыдущий LIVE
+# context: picture-in-picture window button that moves TikTok's LIVE rooms
+Next LIVE	Следующий LIVE
 # context: picture-in-picture window button that moves TikTok's feed
 Previous video	Предыдущее видео
 # context: picture-in-picture window button that moves TikTok's feed

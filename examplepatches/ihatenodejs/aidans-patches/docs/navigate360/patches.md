@@ -4,10 +4,10 @@
 
 This document describes telemetry-removal patches for **Navigate360 Student** (`com.eab.se`) version `26.19.22`.
 
-| Patch Name | Type | Default | Description |
-|---|---|---|---|
-| [Remove Tracking and Telemetry](#remove-tracking-and-telemetry) | `bytecodePatch` | `true` | Disables the native Gainsight PX SDK and its Cordova bridge. |
-| [Remove Web Telemetry](#remove-web-telemetry) | `rawResourcePatch` | `true` | Removes Sentry reporting and neutralizes the embedded Gainsight JavaScript layers. |
+| Patch Name                                                      | Type               | Default | Description                                                                        |
+| --------------------------------------------------------------- | ------------------ | ------- | ---------------------------------------------------------------------------------- |
+| [Remove Tracking and Telemetry](#remove-tracking-and-telemetry) | `bytecodePatch`    | `true`  | Disables the native Gainsight PX SDK and its Cordova bridge.                       |
+| [Remove Web Telemetry](#remove-web-telemetry)                   | `rawResourcePatch` | `true`  | Removes Sentry reporting and neutralizes the embedded Gainsight JavaScript layers. |
 
 ---
 
@@ -19,12 +19,12 @@ The native Gainsight PX Cordova plugin initializes behavioral analytics before t
 
 ### Injection Points
 
-| Class descriptor | Methods | Replacement |
-|---|---|---|
-| `Lcom/native360/gainsight/GainsightPlugin;` | `pluginInitialize()V`, `onStart()V`, `onNewIntent(Landroid/content/Intent;)V`, `handleGainsightIntent(Landroid/content/Intent;)V`, `initializeNativeSDK(Ljava/lang/String;)V` | `return-void` |
-| `Lcom/native360/gainsight/GainsightPlugin;` | `attachNativeBridge()Z`, `loadBridgeScript(Ljava/lang/String;)Z`, `execute(Ljava/lang/String;Lorg/json/JSONArray;Lorg/apache/cordova/CallbackContext;)Z` | `const/4 v0, 0x0; return v0` |
-| `Lcom/gainsight/px/mobile/GainsightPX;` | `attachToWebView`, `loadScript`, `setSingletonInstance`, `enterEditingMode`, `enableEngagements`, `custom`, `screen`, `identify`, `flush` void overloads | `return-void` |
-| `Lcom/gainsight/px/mobile/GainsightPX$Builder;` | `build()Lcom/gainsight/px/mobile/GainsightPX;` | `const/4 v0, 0x0; return-object v0` |
+| Class descriptor                                | Methods                                                                                                                                                                       | Replacement                         |
+| ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
+| `Lcom/native360/gainsight/GainsightPlugin;`     | `pluginInitialize()V`, `onStart()V`, `onNewIntent(Landroid/content/Intent;)V`, `handleGainsightIntent(Landroid/content/Intent;)V`, `initializeNativeSDK(Ljava/lang/String;)V` | `return-void`                       |
+| `Lcom/native360/gainsight/GainsightPlugin;`     | `attachNativeBridge()Z`, `loadBridgeScript(Ljava/lang/String;)Z`, `execute(Ljava/lang/String;Lorg/json/JSONArray;Lorg/apache/cordova/CallbackContext;)Z`                      | `const/4 v0, 0x0; return v0`        |
+| `Lcom/gainsight/px/mobile/GainsightPX;`         | `attachToWebView`, `loadScript`, `setSingletonInstance`, `enterEditingMode`, `enableEngagements`, `custom`, `screen`, `identify`, `flush` void overloads                      | `return-void`                       |
+| `Lcom/gainsight/px/mobile/GainsightPX$Builder;` | `build()Lcom/gainsight/px/mobile/GainsightPX;`                                                                                                                                | `const/4 v0, 0x0; return-object v0` |
 
 Patch-time validation requires every target class and method group to exist. A changed target APK fails with `PatchException` instead of emitting a partially patched APK.
 
@@ -38,11 +38,11 @@ Cordova assets independently start Sentry Browser reporting and expose Gainsight
 
 ### Asset Changes
 
-| Asset | Change |
-|---|---|
-| `assets/www/index.html` | Removes the `Reporting-Endpoints` Sentry group, the CSP `report-to sentry-csp` directive, the `./bin/sentry.js` script include, and the Sentry initialization/lifecycle breadcrumb block. |
-| `assets/bundle.js` | Replaces the Gainsight `sendMessage` and `startEngine` export implementations with no-ops. |
-| `assets/www/plugins/cordova-gainsight/www/gainsight.js` | Replaces `attach`, `getDiagnostics`, and `getApiKey` Cordova calls with resolved inert responses; no call reaches `cordova/exec`. |
+| Asset                                                   | Change                                                                                                                                                                                    |
+| ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `assets/www/index.html`                                 | Removes the `Reporting-Endpoints` Sentry group, the CSP `report-to sentry-csp` directive, the `./bin/sentry.js` script include, and the Sentry initialization/lifecycle breadcrumb block. |
+| `assets/bundle.js`                                      | Replaces the Gainsight `sendMessage` and `startEngine` export implementations with no-ops.                                                                                                |
+| `assets/www/plugins/cordova-gainsight/www/gainsight.js` | Replaces `attach`, `getDiagnostics`, and `getApiKey` Cordova calls with resolved inert responses; no call reaches `cordova/exec`.                                                         |
 
 Each replacement is exact and mandatory. A missing expected asset sequence causes `PatchException`, preserving the target-version guard.
 

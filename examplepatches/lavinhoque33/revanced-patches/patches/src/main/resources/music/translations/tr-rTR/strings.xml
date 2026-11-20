@@ -136,6 +136,7 @@ Adımlar:
     <string name="morphe_music_downloads_sort">Sırala</string>
     <string name="morphe_music_downloads_started">İndirme başladı</string>
     <string name="morphe_music_downloads_starting">İndirme başlatılıyor…</string>
+    <string name="morphe_music_downloads_waiting_for_connection">Bağlantı bekleniyor</string>
     <string name="morphe_music_downloads_unknown_track">İndirilecek parça tanımlanamadı</string>
     <string name="morphe_music_hide_you_may_also_like_section_title">\'Bunlar da hoşunuza gidebilir\' bölümünü gizle</string>
     <string name="morphe_music_hide_your_downloads_shelf_title">\'İndirilenleriniz\' rafını gizle</string>
@@ -1046,4 +1047,8 @@ APl anahtarının nasıl verileceğini görmek için tıklayın"</string>
     <string name="revanced_webview_toast_unavailable">WebView kullanılamıyor</string>
     <string name="morphe_music_auto_song_version_title">Her zaman şarkı sürümünü çal</string>
     <string name="morphe_music_auto_song_version_summary">Sıradaki resmî müzik videolarını eşleşen şarkıyla değiştirir. Uygulamanın Müzik videolarını oynatma ayarı açık olmalıdır. Tam eşleşmesi olmayan parçalar değiştirilmez</string>
+    <string name="morphe_music_playlist_download_connect">İndirmeye devam etmek için internete bağlanın</string>
+    <string name="morphe_music_playlist_ready">%2$d parçadan %1$d tanesi hazır</string>
+    <string name="morphe_music_playlist_resume">%2$d parçadan %1$d tanesi hazır · Devam et</string>
+    <string name="morphe_music_playlist_partial_failed">%2$d parçadan %1$d tanesi hazır (%3$d başarısız) · Devam et</string>
 </resources>

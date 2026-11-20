@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-19.
  * Written by lavinhoque33, 2026-11-07.
  */
 package app.morphe.patches.music.interaction.downloads
@@ -14,6 +15,7 @@ import app.morphe.util.Utils.printInfo
 import app.morphe.util.Utils.printWarn
 import app.morphe.util.fingerprint.matchSingle
 import app.morphe.util.findMutableMethodOf
+import app.morphe.util.returnEarly
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -74,6 +76,7 @@ internal fun BytecodePatchContext.installDownloadedMarkers() {
     }
     try {
         installHeaderMarker()
+        mutableClassDefBy(PLAYLIST_SYNC).methods.single { it.name == "autoResumeSupported" }.returnEarly(true)
     } catch (ex: Exception) {
         printWarn("Downloaded checkmark on the playlist header is unavailable on this Music version: ${ex.message}")
     }

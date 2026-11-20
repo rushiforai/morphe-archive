@@ -18,9 +18,9 @@ repos:
       - id: check-merge-conflict
       - id: check-case-conflict
       - id: trailing-whitespace
-        exclude: '(\.(so|mpe|mpp|apk|apkm|ttf|png|svg|lock)$|patches-(list|bundle)\.json)'
+        exclude: '(\.(so|mpe|mpp|apk|apkm|ttf|png|svg|lock|pdf)$|patches-(list|bundle)\.json)'
       - id: end-of-file-fixer
-        exclude: '(\.(so|mpe|mpp|apk|apkm|ttf|png|svg|lock)$|patches-(list|bundle)\.json)'
+        exclude: '(\.(so|mpe|mpp|apk|apkm|ttf|png|svg|lock|pdf)$|patches-(list|bundle)\.json)'
       - id: check-yaml
         args: ['--unsafe']
       - id: check-toml

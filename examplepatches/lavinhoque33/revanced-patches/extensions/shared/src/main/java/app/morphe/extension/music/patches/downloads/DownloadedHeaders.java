@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-18.
  * Written by lavinhoque33, 2026-11-07.
  * Modified by lavinhoque33, 2026-11-10.
  */
@@ -59,12 +60,14 @@ final class DownloadedHeaders {
         boolean applyQueued;
         String lastLogged = "";
         final DownloadedAlbumRows.State albumRows = new DownloadedAlbumRows.State();
+        final PlaylistHeaderProgress progress = new PlaylistHeaderProgress();
     }
 
     private DownloadedHeaders() {}
 
     static void apply(ViewGroup container, State state) {
         listenForLayouts(container, state);
+        state.progress.apply(container, state.sourceIds);
         // The track rows of the page are looked at from its header: the header is what names the album.
         DownloadedAlbumRows.apply(container, state.albumRows, state.sourceIds);
 

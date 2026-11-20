@@ -102,7 +102,7 @@ Local imports do not update automatically; import the new `.mpp` for each update
 | `Fullscreen video scale` | Adds options to stretch or zoom videos to fill the screen in fullscreen mode. | 21.39.525 ~ 20.05.46 |
 | `Gemini` | Adds options to use Gemini for video summaries, transcription, and settings search. | 21.39.525 ~ 20.05.46 |
 | `GmsCore support` | Allows the app to work without root by using a different package name when patched using a GmsCore instead of Google Play Services. | 21.39.525 ~ 20.05.46 |
-| `Hide Shorts dimming` | Removes, at compile time, the dimming effect at the top and bottom of Shorts videos. | 21.39.525 ~ 20.05.46 |
+| `Hide Shorts dimming` | Adds an in-app setting to hide the dimming effect at the top and bottom of Shorts videos. | 21.39.525 ~ 20.05.46 |
 | `Hide accessibility controls dialog` | Removes, at compile time, accessibility controls dialog 'Turn on accessibility controls for the video player?'. | 21.39.525 ~ 20.05.46 |
 | `Hide action buttons` | Adds options to hide action buttons under videos. | 21.39.525 ~ 20.05.46 |
 | `Hide ads` | Adds options to hide ads. | 21.39.525 ~ 20.05.46 |

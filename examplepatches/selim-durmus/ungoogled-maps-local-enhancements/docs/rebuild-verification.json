@@ -1,0 +1,21 @@
+{
+  "package": "org.ungoogled.android.apps.maps",
+  "version": "26.36.04.973607363",
+  "input_sha256": "a863ee0f1e8c539693b935bbae107377fca655bfed9b17d16abafd7211e39797",
+  "output_sha256": "7ec9a0ea355bc83af9afddac722b3721a55d74167601f847e51a405cf58d6d27",
+  "certificate_sha256": [
+    "62461247f71808fae15f63b8f489b5bf0d820b461b93394a663ec7c6ff29feed"
+  ],
+  "modified_original_classes": [
+    "smali/org/ungoogled/ui/SavedPlaces$Front.smali"
+  ],
+  "replaced_apk_entries": [
+    "classes.dex"
+  ],
+  "added_apk_entries": [
+    "classes12.dex"
+  ],
+  "route_ownership_checks": 12,
+  "installed": false,
+  "runtime_verified": false
+}

@@ -1,3 +1,515 @@
+# Haiagaru 1.46.0 (2026-11-19)
+
+### 修正
+
+- resolve plugin artifacts from Maven Central
+
+- cache optional image moderation assets
+
+下部フィルターの透過を初期OFFへ変更。表示処理・設定画面・設定プロファイルの既定値を統一し、保存済みの選択は維持します。
+
+- preserve thread delete arguments during NG cleanup
+
+- prevent archive crash and heavy default DAT refresh
+
+Reject private-use Unicode regex ranges across native ID, name, and word registrations, enforce six code points for new NG words, and migrate unsafe stored patterns. Keep existing shorter words and short IDs/names intact. Route Eddi archive links through ChMate and constrain tablet bottom filters to the response pane.
+
+更新後の初回起動時に、保存済みの下部フィルター透過も一度だけOFFへ移行します。移行後に利用者がONに戻した選択は維持します。
+
+- 191の複数画像で戻るジェスチャーが効かない問題を修正。画像切り替え設定OFFでも戻る判定を受け取ります。
+- お気に入り・履歴一覧の重複変換と並び替え、不要な全レス本文解析を削減。表示されていないフィルターの遅延件数集計を抑止し、起動済みの設定再読込も削減。
+- 過去ログ検索の設定と結果へ区切り線を追加（従来/元サイト表示）。
+- 「選んだ投稿から共有NGを報告」を設定画面から削除。送信待ちがある場合は本送信で送信元登録と受領確認を行い、事前登録失敗による停止を回避。受領確認までキューを保持。
+- Mi Note 10 Android11で画像操作191=25/226=18/242=18項目成功、共有NG判定11309項目成功。OPPO Android16での速度改善・実共有NG送信は未確認です。
+
+👑 Kitadai 氏の多大なご支援に感謝申し上げます。
+
+226の全レス画像移動で旧インデックス読み取りを呼び一覧収集に失敗する問題を修正。自分フィルターと同じlive indexのb(int,int)を使用し、非表示/NGフラグの除外は維持します。実機の合成インデックスで読み取りを確認。
+
+Default thread overflow search to on while preserving saved choices. Persist native response ordering immediately in 191/226/242. Decode valid UTF-8 notification DAT before board legacy encodings and preserve the original history title on optional metadata OOM. Local build, three APK applications, signing and DEX checks passed. Real external thread comparison was not run.
+
+- use fallback mirror for ONNX runtime
+
+- 履歴削除時にThreadScopedNgへのアクセスでクラッシュする問題を修正（191／226／242共通）。
+- 191の閲覧履歴をジェスチャー削除した際、保持した一覧コピーから復元される問題を修正。
+- 226の「自分」フィルターを最新の投稿情報から判定するよう修正。
+- Haiagaru設定の最上部にパッチバージョンを表示。
+- 3版のビルド・署名・DEXフック・隔離アプリ起動、242の設定版表示を確認。Android15報告端末での削除、実履歴削除と226実投稿抽出は未確認。追加実機確認は利用者指示で省略。
+
+👑 Kitadai 氏の多大なご支援に感謝申し上げます。
+
+
+### 追加機能
+
+- add Haiagaru options and fixes
+
+- count emoji units and cap livegalileo lines
+
+- 起動時の重複初期化・設定読み込み最適化は機能ごと削除しました。フィルター全体の最適化はフィルター設定へ移し、初期状態をOFFにしました。位置スナップショットはエキスパート設定で個別に切り替えられます。
+- 件数表示がONのとき、抽出後に件数を集計します。下部フィルターの件数表示と、3ボタンナビゲーションでツールバーに隠れない配置を調整しました。191のマップ・レーダー表示ではスクロールバーのドラッグ操作を修正しました。
+- 191の「取得済みスレから検索」に、端末へ取り込んだエッヂ過去ログを検索結果として追加します。過去ログ専用ビューア1を新規導入時の標準にし、ビューアの起動に失敗した場合は元サイト表示へ切り替えます。
+- 共有NGに一致したレスを透過表示で隠し、連鎖あぼーんと区別します。背景更新のNG登録処理からスレ別NGの確認UIを呼び出さないようにしました。
+- 191の過去ログ起動時に起こる拡張クラスのアクセスエラーを避けるため、フッククラスを難読化後も保持します。履歴ポップアップの選択タブと、全レス画像ビューアのスワイプ操作も修正しました。
+
+Exclude reply handles from X truncation checks, restore rich URL cards inside X previews, and add an opt-in 242 new-arrival count that excludes transparent NG replies. Add ChMate and Haiagaru versions to crash and ANR logs while preserving the existing Version field.
+
+おすすめプリセット利用中の既存環境でも、レスからのID・NGName・NGワード登録をChMate標準動作に戻します。記者IDのNGThreadをスレ一覧に反映し、登録後の保存確認を追加します。
+
+ワッチョイ全文コピーの括弧除去を任意化し、括弧付きの上下4桁コピーと正規表現追加を修正します。上4桁はaabb-、下4桁は-XXXXでコピーできます。スレタイ長押しから記者IDもコピーできます。
+
+Twitter投稿のmediaDetailsを全件処理し、16件の固定上限をなくしました。191／226／242の隔離版で64枚の合成メディアをFrida検証しています。実際のX投稿が返す応答内容は未確認です。
+
+
+## 謝辞
+
+ご支援いただいている皆様、ありがとうございます。README掲載の支援者の皆様へ感謝申し上げます。
+
+👑 Kitadai 様
+- yujirox 様
+- ﾜｯﾁｮｲ 8f01-uDul 様
+- toya0717 様
+- MUMEI 様
+- タケヨシキ 様
+- 無名 様
+- ｵｲｺﾗﾐﾈｵ 様
+- Red Frame X 様
+- ﾜｯﾁｮｲ 3f3c-gNc7 様
+- chikuwadon 様（外部チェッカーとの連携をご快諾いただき、ありがとうございます）
+- rikunode 様
+
+## 開発継続へのご支援のお願い
+
+開発の継続を応援していただける場合は、よろしければ[GitHubのStar](https://github.com/areteruhiro/Haiagaru-Morphe)だけでもお願いします。励みになります。さらにご支援いただける場合は、以下から寄付を受け付けています。
+
+- [Amazon Gift Card](https://www.amazon.co.jp/gp/product/B004N3APGO) Send to (areteruhiro@gmail.com)
+- [PayPay](https://qr.paypay.ne.jp/p2p01_FSEj08sDQx0enogO)
+
+皆様からのご報告・検証・ご支援が開発の励みになっています。
+
+# Haiagaru 1.46.0-dev.11 (2026-11-19)
+
+### 追加機能
+
+Twitter投稿のmediaDetailsを全件処理し、16件の固定上限をなくしました。191／226／242の隔離版で64枚の合成メディアをFrida検証しています。実際のX投稿が返す応答内容は未確認です。
+
+
+## 謝辞
+
+ご支援いただいている皆様、ありがとうございます。README掲載の支援者の皆様へ感謝申し上げます。
+
+👑 Kitadai 様
+- yujirox 様
+- ﾜｯﾁｮｲ 8f01-uDul 様
+- toya0717 様
+- MUMEI 様
+- タケヨシキ 様
+- 無名 様
+- ｵｲｺﾗﾐﾈｵ 様
+- Red Frame X 様
+- ﾜｯﾁｮｲ 3f3c-gNc7 様
+- chikuwadon 様（外部チェッカーとの連携をご快諾いただき、ありがとうございます）
+- rikunode 様
+
+## 開発継続へのご支援のお願い
+
+開発の継続を応援していただける場合は、よろしければ[GitHubのStar](https://github.com/areteruhiro/Haiagaru-Morphe)だけでもお願いします。励みになります。さらにご支援いただける場合は、以下から寄付を受け付けています。
+
+- [Amazon Gift Card](https://www.amazon.co.jp/gp/product/B004N3APGO) Send to (areteruhiro@gmail.com)
+- [PayPay](https://qr.paypay.ne.jp/p2p01_FSEj08sDQx0enogO)
+
+皆様からのご報告・検証・ご支援が開発の励みになっています。
+
+# Haiagaru 1.46.0-dev.10 (2026-11-19)
+
+### 追加機能
+
+Exclude reply handles from X truncation checks, restore rich URL cards inside X previews, and add an opt-in 242 new-arrival count that excludes transparent NG replies. Add ChMate and Haiagaru versions to crash and ANR logs while preserving the existing Version field.
+
+
+## 謝辞
+
+ご支援いただいている皆様、ありがとうございます。README掲載の支援者の皆様へ感謝申し上げます。
+
+- yujirox 様
+- ﾜｯﾁｮｲ 8f01-uDul 様
+- toya0717 様
+- MUMEI 様
+- タケヨシキ 様
+- 無名 様
+
+今回のご報告・動作確認・連携へのご協力にも感謝します。
+
+- ｵｲｺﾗﾐﾈｵ 様
+- Red Frame X 様
+- ﾜｯﾁｮｲ 3f3c-gNc7 様
+- chikuwadon 様（外部チェッカーとの連携をご快諾いただき、ありがとうございます）
+- rikunode 様（226／242のDroid＋ツールバー対応）
+
+## 開発継続へのご支援のお願い
+
+開発の継続を応援していただける場合は、よろしければ[GitHubのStar](https://github.com/areteruhiro/Haiagaru-Morphe)だけでもお願いします。励みになります。さらにご支援いただける場合は、以下から寄付を受け付けています。
+
+- [Amazon Gift Card](https://www.amazon.co.jp/gp/product/B004N3APGO) Send to (areteruhiro@gmail.com)
+- [PayPay](https://qr.paypay.ne.jp/p2p01_FSEj08sDQx0enogO)
+
+皆様からのご報告・検証・ご支援が開発の励みになっています。
+
+# Haiagaru 1.46.0-dev.9 (2026-11-19)
+
+### 修正
+
+Reject private-use Unicode regex ranges across native ID, name, and word registrations, enforce six code points for new NG words, and migrate unsafe stored patterns. Keep existing shorter words and short IDs/names intact. Route Eddi archive links through ChMate and constrain tablet bottom filters to the response pane.
+
+
+## 謝辞
+
+ご支援いただいている皆様、ありがとうございます。README掲載の支援者の皆様へ感謝申し上げます。
+
+- yujirox 様
+- ﾜｯﾁｮｲ 8f01-uDul 様
+- toya0717 様
+- MUMEI 様
+- タケヨシキ 様
+- 無名 様
+
+今回のご報告・動作確認・連携へのご協力にも感謝します。
+
+- ｵｲｺﾗﾐﾈｵ 様
+- Red Frame X 様
+- ﾜｯﾁｮｲ 3f3c-gNc7 様
+- chikuwadon 様（外部チェッカーとの連携をご快諾いただき、ありがとうございます）
+- rikunode 様（226／242のDroid＋ツールバー対応）
+
+## 開発継続へのご支援のお願い
+
+開発の継続を応援していただける場合は、よろしければ[GitHubのStar](https://github.com/areteruhiro/Haiagaru-Morphe)だけでもお願いします。励みになります。さらにご支援いただける場合は、以下から寄付を受け付けています。
+
+- [Amazon Gift Card](https://www.amazon.co.jp/gp/product/B004N3APGO) Send to (areteruhiro@gmail.com)
+- [PayPay](https://qr.paypay.ne.jp/p2p01_FSEj08sDQx0enogO)
+
+皆様からのご報告・検証・ご支援が開発の励みになっています。
+
+# Haiagaru 1.46.0-dev.8 (2026-11-19)
+
+### 追加機能
+
+- count emoji units and cap livegalileo lines
+
+
+## 謝辞
+
+ご支援いただいている皆様、ありがとうございます。README掲載の支援者の皆様へ感謝申し上げます。
+
+- yujirox 様
+- ﾜｯﾁｮｲ 8f01-uDul 様
+- toya0717 様
+- MUMEI 様
+- タケヨシキ 様
+- 無名 様
+
+今回のご報告・動作確認・連携へのご協力にも感謝します。
+
+- ｵｲｺﾗﾐﾈｵ 様
+- Red Frame X 様
+- ﾜｯﾁｮｲ 3f3c-gNc7 様
+- chikuwadon 様（外部チェッカーとの連携をご快諾いただき、ありがとうございます）
+- rikunode 様（226／242のDroid＋ツールバー対応）
+
+## 開発継続へのご支援のお願い
+
+開発の継続を応援していただける場合は、よろしければ[GitHubのStar](https://github.com/areteruhiro/Haiagaru-Morphe)だけでもお願いします。励みになります。さらにご支援いただける場合は、以下から寄付を受け付けています。
+
+- [Amazon Gift Card](https://www.amazon.co.jp/gp/product/B004N3APGO) Send to (areteruhiro@gmail.com)
+- [PayPay](https://qr.paypay.ne.jp/p2p01_FSEj08sDQx0enogO)
+
+皆様からのご報告・検証・ご支援が開発の励みになっています。
+
+# Haiagaru 1.46.0-dev.7 (2026-11-19)
+
+### 修正
+
+- prevent archive crash and heavy default DAT refresh
+
+
+## 謝辞
+
+ご支援いただいている皆様、ありがとうございます。README掲載の支援者の皆様へ感謝申し上げます。
+
+- yujirox 様
+- ﾜｯﾁｮｲ 8f01-uDul 様
+- toya0717 様
+- MUMEI 様
+- タケヨシキ 様
+- 無名 様
+
+今回のご報告・動作確認・連携へのご協力にも感謝します。
+
+- ｵｲｺﾗﾐﾈｵ 様
+- Red Frame X 様
+- ﾜｯﾁｮｲ 3f3c-gNc7 様
+- chikuwadon 様（外部チェッカーとの連携をご快諾いただき、ありがとうございます）
+- rikunode 様（226／242のDroid＋ツールバー対応）
+
+## 開発継続へのご支援のお願い
+
+開発の継続を応援していただける場合は、よろしければ[GitHubのStar](https://github.com/areteruhiro/Haiagaru-Morphe)だけでもお願いします。励みになります。さらにご支援いただける場合は、以下から寄付を受け付けています。
+
+- [Amazon Gift Card](https://www.amazon.co.jp/gp/product/B004N3APGO) Send to (areteruhiro@gmail.com)
+- [PayPay](https://qr.paypay.ne.jp/p2p01_FSEj08sDQx0enogO)
+
+皆様からのご報告・検証・ご支援が開発の励みになっています。
+
+# Haiagaru 1.46.0-dev.6 (2026-11-18)
+
+### 修正
+
+- resolve plugin artifacts from Maven Central
+
+
+### 追加機能
+
+- 起動時の重複初期化・設定読み込み最適化は機能ごと削除しました。フィルター全体の最適化はフィルター設定へ移し、初期状態をOFFにしました。位置スナップショットはエキスパート設定で個別に切り替えられます。
+- 件数表示がONのとき、抽出後に件数を集計します。下部フィルターの件数表示と、3ボタンナビゲーションでツールバーに隠れない配置を調整しました。191のマップ・レーダー表示ではスクロールバーのドラッグ操作を修正しました。
+- 191の「取得済みスレから検索」に、端末へ取り込んだエッヂ過去ログを検索結果として追加します。過去ログ専用ビューア1を新規導入時の標準にし、ビューアの起動に失敗した場合は元サイト表示へ切り替えます。
+- 共有NGに一致したレスを透過表示で隠し、連鎖あぼーんと区別します。背景更新のNG登録処理からスレ別NGの確認UIを呼び出さないようにしました。
+- 191の過去ログ起動時に起こる拡張クラスのアクセスエラーを避けるため、フッククラスを難読化後も保持します。履歴ポップアップの選択タブと、全レス画像ビューアのスワイプ操作も修正しました。
+
+
+## 謝辞
+
+ご支援いただいている皆様、ありがとうございます。README掲載の支援者の皆様へ感謝申し上げます。
+
+- yujirox 様
+- ﾜｯﾁｮｲ 8f01-uDul 様
+- toya0717 様
+- MUMEI 様
+- タケヨシキ 様
+- 無名 様
+
+今回のご報告・動作確認・連携へのご協力にも感謝します。
+
+- ｵｲｺﾗﾐﾈｵ 様
+- Red Frame X 様
+- ﾜｯﾁｮｲ 3f3c-gNc7 様
+- chikuwadon 様（外部チェッカーとの連携をご快諾いただき、ありがとうございます）
+- rikunode 様（226／242のDroid＋ツールバー対応）
+
+## 開発継続へのご支援のお願い
+
+開発の継続を応援していただける場合は、よろしければ[GitHubのStar](https://github.com/areteruhiro/Haiagaru-Morphe)だけでもお願いします。励みになります。さらにご支援いただける場合は、以下から寄付を受け付けています。
+
+- [Amazon Gift Card](https://www.amazon.co.jp/gp/product/B004N3APGO) Send to (areteruhiro@gmail.com)
+- [PayPay](https://qr.paypay.ne.jp/p2p01_FSEj08sDQx0enogO)
+
+皆様からのご報告・検証・ご支援が開発の励みになっています。
+
+# Haiagaru 1.46.0-dev.5 (2026-11-18)
+
+### 修正
+
+下部フィルターの透過を初期OFFへ変更。表示処理・設定画面・設定プロファイルの既定値を統一し、保存済みの選択は維持します。
+
+更新後の初回起動時に、保存済みの下部フィルター透過も一度だけOFFへ移行します。移行後に利用者がONに戻した選択は維持します。
+
+226の全レス画像移動で旧インデックス読み取りを呼び一覧収集に失敗する問題を修正。自分フィルターと同じlive indexのb(int,int)を使用し、非表示/NGフラグの除外は維持します。実機の合成インデックスで読み取りを確認。
+
+
+## 謝辞
+
+ご支援いただいている皆様、ありがとうございます。README掲載の支援者の皆様へ感謝申し上げます。
+
+- yujirox 様
+- ﾜｯﾁｮｲ 8f01-uDul 様
+- toya0717 様
+- MUMEI 様
+- タケヨシキ 様
+- 無名 様
+
+今回のご報告・動作確認・連携へのご協力にも感謝します。
+
+- ｵｲｺﾗﾐﾈｵ 様
+- Red Frame X 様
+- ﾜｯﾁｮｲ 3f3c-gNc7 様
+- chikuwadon 様（外部チェッカーとの連携をご快諾いただき、ありがとうございます）
+- rikunode 様（226／242のDroid＋ツールバー対応）
+
+## 開発継続へのご支援のお願い
+
+開発の継続を応援していただける場合は、よろしければ[GitHubのStar](https://github.com/areteruhiro/Haiagaru-Morphe)だけでもお願いします。励みになります。さらにご支援いただける場合は、以下から寄付を受け付けています。
+
+- [Amazon Gift Card](https://www.amazon.co.jp/gp/product/B004N3APGO) Send to (areteruhiro@gmail.com)
+- [PayPay](https://qr.paypay.ne.jp/p2p01_FSEj08sDQx0enogO)
+
+皆様からのご報告・検証・ご支援が開発の励みになっています。
+
+# Haiagaru 1.46.0-dev.4 (2026-11-18)
+
+### 修正
+
+- 191の複数画像で戻るジェスチャーが効かない問題を修正。画像切り替え設定OFFでも戻る判定を受け取ります。
+- お気に入り・履歴一覧の重複変換と並び替え、不要な全レス本文解析を削減。表示されていないフィルターの遅延件数集計を抑止し、起動済みの設定再読込も削減。
+- 過去ログ検索の設定と結果へ区切り線を追加（従来/元サイト表示）。
+- 「選んだ投稿から共有NGを報告」を設定画面から削除。送信待ちがある場合は本送信で送信元登録と受領確認を行い、事前登録失敗による停止を回避。受領確認までキューを保持。
+- Mi Note 10 Android11で画像操作191=25/226=18/242=18項目成功、共有NG判定11309項目成功。OPPO Android16での速度改善・実共有NG送信は未確認です。
+
+👑 Kitadai 氏の多大なご支援に感謝申し上げます。
+
+Default thread overflow search to on while preserving saved choices. Persist native response ordering immediately in 191/226/242. Decode valid UTF-8 notification DAT before board legacy encodings and preserve the original history title on optional metadata OOM. Local build, three APK applications, signing and DEX checks passed. Real external thread comparison was not run.
+
+
+## 謝辞
+
+ご支援いただいている皆様、ありがとうございます。README掲載の支援者の皆様へ感謝申し上げます。
+
+- yujirox 様
+- ﾜｯﾁｮｲ 8f01-uDul 様
+- toya0717 様
+- MUMEI 様
+- タケヨシキ 様
+- 無名 様
+
+今回のご報告・動作確認・連携へのご協力にも感謝します。
+
+- ｵｲｺﾗﾐﾈｵ 様
+- Red Frame X 様
+- ﾜｯﾁｮｲ 3f3c-gNc7 様
+- chikuwadon 様（外部チェッカーとの連携をご快諾いただき、ありがとうございます）
+- rikunode 様（226／242のDroid＋ツールバー対応）
+
+## 開発継続へのご支援のお願い
+
+開発の継続を応援していただける場合は、よろしければ[GitHubのStar](https://github.com/areteruhiro/Haiagaru-Morphe)だけでもお願いします。励みになります。さらにご支援いただける場合は、以下から寄付を受け付けています。
+
+- [Amazon Gift Card](https://www.amazon.co.jp/gp/product/B004N3APGO) Send to (areteruhiro@gmail.com)
+- [PayPay](https://qr.paypay.ne.jp/p2p01_FSEj08sDQx0enogO)
+
+皆様からのご報告・検証・ご支援が開発の励みになっています。
+
+# Haiagaru 1.46.0-dev.3 (2026-11-18)
+
+### 修正
+
+- 履歴削除時にThreadScopedNgへのアクセスでクラッシュする問題を修正（191／226／242共通）。
+- 191の閲覧履歴をジェスチャー削除した際、保持した一覧コピーから復元される問題を修正。
+- 226の「自分」フィルターを最新の投稿情報から判定するよう修正。
+- Haiagaru設定の最上部にパッチバージョンを表示。
+- 3版のビルド・署名・DEXフック・隔離アプリ起動、242の設定版表示を確認。Android15報告端末での削除、実履歴削除と226実投稿抽出は未確認。追加実機確認は利用者指示で省略。
+
+👑 Kitadai 氏の多大なご支援に感謝申し上げます。
+
+
+## 謝辞
+
+ご支援いただいている皆様、ありがとうございます。README掲載の支援者の皆様へ感謝申し上げます。
+
+- yujirox 様
+- ﾜｯﾁｮｲ 8f01-uDul 様
+- toya0717 様
+- MUMEI 様
+- タケヨシキ 様
+- 無名 様
+
+今回のご報告・動作確認・連携へのご協力にも感謝します。
+
+- ｵｲｺﾗﾐﾈｵ 様
+- Red Frame X 様
+- ﾜｯﾁｮｲ 3f3c-gNc7 様
+- chikuwadon 様（外部チェッカーとの連携をご快諾いただき、ありがとうございます）
+- rikunode 様（226／242のDroid＋ツールバー対応）
+
+## 開発継続へのご支援のお願い
+
+開発の継続を応援していただける場合は、よろしければ[GitHubのStar](https://github.com/areteruhiro/Haiagaru-Morphe)だけでもお願いします。励みになります。さらにご支援いただける場合は、以下から寄付を受け付けています。
+
+- [Amazon Gift Card](https://www.amazon.co.jp/gp/product/B004N3APGO) Send to (areteruhiro@gmail.com)
+- [PayPay](https://qr.paypay.ne.jp/p2p01_FSEj08sDQx0enogO)
+
+皆様からのご報告・検証・ご支援が開発の励みになっています。
+
+# Haiagaru 1.46.0-dev.2 (2026-11-18)
+
+### 修正
+
+- preserve thread delete arguments during NG cleanup
+
+
+### 追加機能
+
+おすすめプリセット利用中の既存環境でも、レスからのID・NGName・NGワード登録をChMate標準動作に戻します。記者IDのNGThreadをスレ一覧に反映し、登録後の保存確認を追加します。
+
+ワッチョイ全文コピーの括弧除去を任意化し、括弧付きの上下4桁コピーと正規表現追加を修正します。上4桁はaabb-、下4桁は-XXXXでコピーできます。スレタイ長押しから記者IDもコピーできます。
+
+
+## 謝辞
+
+ご支援いただいている皆様、ありがとうございます。README掲載の支援者の皆様へ感謝申し上げます。
+
+- yujirox 様
+- ﾜｯﾁｮｲ 8f01-uDul 様
+- toya0717 様
+- MUMEI 様
+- タケヨシキ 様
+- 無名 様
+
+今回のご報告・動作確認・連携へのご協力にも感謝します。
+
+- ｵｲｺﾗﾐﾈｵ 様
+- Red Frame X 様
+- ﾜｯﾁｮｲ 3f3c-gNc7 様
+- chikuwadon 様（外部チェッカーとの連携をご快諾いただき、ありがとうございます）
+- rikunode 様（226／242のDroid＋ツールバー対応）
+
+## 開発継続へのご支援のお願い
+
+開発の継続を応援していただける場合は、よろしければ[GitHubのStar](https://github.com/areteruhiro/Haiagaru-Morphe)だけでもお願いします。励みになります。さらにご支援いただける場合は、以下から寄付を受け付けています。
+
+- [Amazon Gift Card](https://www.amazon.co.jp/gp/product/B004N3APGO) Send to (areteruhiro@gmail.com)
+- [PayPay](https://qr.paypay.ne.jp/p2p01_FSEj08sDQx0enogO)
+
+皆様からのご報告・検証・ご支援が開発の励みになっています。
+
+# Haiagaru 1.46.0-dev.1 (2026-11-17)
+
+### 修正
+
+- cache optional image moderation assets
+
+- use fallback mirror for ONNX runtime
+
+
+### 追加機能
+
+- add Haiagaru options and fixes
+
+
+## 謝辞
+
+ご支援いただいている皆様、ありがとうございます。README掲載の支援者の皆様へ感謝申し上げます。
+
+- yujirox 様
+- ﾜｯﾁｮｲ 8f01-uDul 様
+- toya0717 様
+- MUMEI 様
+- タケヨシキ 様
+- 無名 様
+
+今回のご報告・動作確認・連携へのご協力にも感謝します。
+
+- ｵｲｺﾗﾐﾈｵ 様
+- Red Frame X 様
+- ﾜｯﾁｮｲ 3f3c-gNc7 様
+- chikuwadon 様（外部チェッカーとの連携をご快諾いただき、ありがとうございます）
+- rikunode 様（226／242のDroid＋ツールバー対応）
+
+## 開発継続へのご支援のお願い
+
+開発の継続を応援していただける場合は、よろしければ[GitHubのStar](https://github.com/areteruhiro/Haiagaru-Morphe)だけでもお願いします。励みになります。さらにご支援いただける場合は、以下から寄付を受け付けています。
+
+- [Amazon Gift Card](https://www.amazon.co.jp/gp/product/B004N3APGO) Send to (areteruhiro@gmail.com)
+- [PayPay](https://qr.paypay.ne.jp/p2p01_FSEj08sDQx0enogO)
+
+皆様からのご報告・検証・ご支援が開発の励みになっています。
+
 # Haiagaru 1.45.0 (2026-11-17)
 
 ### 追加機能

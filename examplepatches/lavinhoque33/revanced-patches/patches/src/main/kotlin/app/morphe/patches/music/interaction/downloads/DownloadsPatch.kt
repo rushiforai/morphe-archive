@@ -3,6 +3,7 @@
  * https://github.com/MorpheApp/morphe-patches/pull/1881
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
+ * Modified by lavinhoque33, 2026-11-19.
  *
  * Modified by lavinhoque33, 2026-11-11.
  */
@@ -33,6 +34,7 @@ import app.morphe.patches.music.utils.settings.addCustomPreference
 import app.morphe.patches.music.utils.settings.addListPreference
 import app.morphe.patches.music.utils.settings.addSwitchPreference
 import app.morphe.patches.music.utils.settings.settingsPatch
+import app.morphe.patches.shared.mainactivity.injectOnCreateMethodCall
 import app.morphe.patches.shared.misc.fix.proto.fixProtoLibraryPatch
 import app.morphe.patches.shared.misc.fix.proto.parseByteArrayMethodRef
 import app.morphe.patches.shared.misc.media.MediaSessionSetMetadataFingerprint
@@ -181,6 +183,8 @@ val downloadsPatch = bytecodePatch(
         // After the patches this one depends on added their rows, so the external downloader rows are grouped too.
         groupDownloadPreferences()
 
+        installDownloadKeepAlive()
+
         if (!is_7_25_or_greater) {
             printWarn("\"${DOWNLOADS.title}\" is not supported in this version. Use YouTube Music v7.25 or later.")
             return@execute
@@ -253,6 +257,12 @@ val downloadsPatch = bytecodePatch(
             return-void
         """)
         installOfflineReplay()
+        try {
+            injectOnCreateMethodCall(PLAYLIST_SYNC, "install")
+        } catch (failure: Exception) {
+            printWarn("Playlist auto-resume and sync unavailable on Music ${packageMetadata.versionName}: " +
+                failure.message)
+        }
 
         // Wrap the existing async repository instead of opening Music's SQLite file independently.
         val constructor = nativePlaylistDatabaseFingerprint.method

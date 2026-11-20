@@ -18,14 +18,18 @@ jobs:
       - name: Check pending apps needing authenticated version
         id: check-pending
         env:
-          WORKER_STATUS_URL: ${{ vars.WORKER_STATUS_URL || 'https://worker.patch.p0ntus.com' }}
+          WORKER_STATUS_URL: ${{ vars.WORKER_STATUS_URL || 'https://aidans-patches-worker.aidan-is-confused.workers.dev' }}
         run: |
           set -euo pipefail
-          STATUS_JSON=$(curl -fsSL "${WORKER_STATUS_URL}/api/status")
-          PACKAGES_NEEDING=$(echo "$STATUS_JSON" | jq -r '[.apps | to_entries[] | select(.value.needsAuthenticatedVersion == true) | {packageName: .key, updatedAt: .value.updatedAt}]')
+          STATUS_JSON=$(curl -fsSL -A "aidans-patches-ci" "${WORKER_STATUS_URL}/api/status")
+          PACKAGES_NEEDING=$(echo "$STATUS_JSON" | jq -c '[.apps | to_entries[] | select(.value.needsAuthenticatedVersion == true) | {packageName: .key, updatedAt: .value.updatedAt}]')
           COUNT=$(echo "$PACKAGES_NEEDING" | jq 'length')
           echo "count=$COUNT" >> "$GITHUB_OUTPUT"
-          echo "packages=$PACKAGES_NEEDING" >> "$GITHUB_OUTPUT"
+          {
+            echo "packages<<EOF"
+            echo "$PACKAGES_NEEDING"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
           echo "Found $COUNT package(s) requiring authenticated version resolution."
 
       - name: Install Rust toolchain
@@ -43,7 +47,7 @@ jobs:
         env:
           APKEEP_ACCOUNTS: ${{ secrets.APKEEP_ACCOUNTS }}
           COMPATIBILITY_STATUS_SECRET: ${{ secrets.COMPATIBILITY_STATUS_SECRET }}
-          WORKER_STATUS_URL: ${{ vars.WORKER_STATUS_URL || 'https://worker.patch.p0ntus.com' }}
+          WORKER_STATUS_URL: ${{ vars.WORKER_STATUS_URL || 'https://aidans-patches-worker.aidan-is-confused.workers.dev' }}
           PENDING_PACKAGES: ${{ steps.check-pending.outputs.packages }}
         run: |
           set -euo pipefail
@@ -76,7 +80,7 @@ jobs:
 
           SUBMISSION_PAYLOAD=$(jq -n --argjson r "$SUBMISSION_RESULTS" '{"results": $r}')
 
-          curl -fsSL -X POST "${WORKER_STATUS_URL}/api/play-metadata" \
+          curl -fsSL -A "aidans-patches-ci" -X POST "${WORKER_STATUS_URL}/api/play-metadata" \
             -H "Authorization: Bearer ${COMPATIBILITY_STATUS_SECRET}" \
             -H "Content-Type: application/json" \
             -d "$SUBMISSION_PAYLOAD"

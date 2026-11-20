@@ -18,6 +18,7 @@ internal object Constants {
     val COMPATIBILITY = Compatibility(
         packageName = CHESSCOM_PACKAGE,
         name = "Chess.com",
+        appIconColor = 0x69923E,
         targets = listOf(
             AppTarget(version = CHESSCOM_VERSION_41027),
             AppTarget(version = CHESSCOM_VERSION_41023),

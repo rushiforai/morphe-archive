@@ -29,7 +29,6 @@ public final class Features {
     public static final String GAME_REVIEW = "game_review";
     public static final String COMPUTER_REVIEW = "computer_review";
     public static final String NETWORK_SCAN = "network_scan";
-    public static final String GREAT_MOVES = "great_moves";
 
     public static final String PAGE_HOME = "home";
     public static final String PAGE_TABS = "tabs";
@@ -39,6 +38,8 @@ public final class Features {
     public static final String PAGE_STOCKFISH = "stockfish";
     public static final String PAGE_PUZZLES = "lichess_puzzles";
     public static final String PAGE_GAME_REVIEW = "game_review";
+    public static final String PAGE_COMPUTER_REVIEW = "computer_review";
+    public static final String PAGE_NETWORK_SCAN = "network_scan";
     /** The screens shown the first time the patched app opens. */
     public static final String PAGE_WELCOME = "welcome";
 
@@ -77,99 +78,67 @@ public final class Features {
 
     private static final Feature[] ALL = {
         new Feature(ARCADE, "Board", "glyph_element_spark_trio", "Arcade animations",
-            "The website's Arcade piece animations: light trails, bursts when a piece is picked up, "
-                + "dropped or captured, a flash on check and animated move hints.",
+            "As on the chess.com website.",
             PAGE_ARCADE, Features::arcadePatched),
         new Feature(BOARD_COLORS, "Board", "glyph_board_simple_brush", "Board colors",
-            "Your own light and dark square colours on every board, or one of chess.com's colour themes.",
+            "Your own squares or chess.com's.",
             PAGE_BOARD_COLORS, Features::boardColorsPatched),
         new Feature(ARROWS, "Board", "glyph_arrow_line_diagonal_top_right", "Arrows in games",
-            "An Arrows button in games: while it is on, dragging on the board draws an arrow and "
-                + "tapping marks a square, instead of moving pieces. Clear removes them.",
+            "As on the website, in game bars.",
             null, Features::arrowsPatched),
         new Feature(ARROWS_REVIEWS, "Board", "glyph_board_analysis", "Arrows in reviews",
-            "Arrows and Clear in Game Review and on the Analysis boards: while it is on, dragging on the "
-                + "board draws an arrow and tapping marks a square. Clear removes them.",
+            "In Game Review and analysis.",
             null, Features::arrowsReviewsPatched),
         new Feature(AMOLED, "Look", "glyph_circle_fill_contrast", "AMOLED black",
-            "Pure black backgrounds instead of chess.com's dark grey. Restart the app after switching it.",
+            "Pure black instead of dark grey.",
             null, Features::amoledPatched),
         new Feature(ACCENT, "Look", "glyph_element_droplet", "Accent color",
-            "Your own colour in place of chess.com's green: buttons, highlights, icons and text. "
-                + "Restart the app after changing it.",
+            "In place of chess.com's green.",
             PAGE_ACCENT, Features::accentPatched),
         new Feature(CUSTOM_HOME, "Look", "glyph_dots_grid_3x3", "Home screen",
-            "Choose which tiles and sections the Home screen shows, and the order of the tiles.",
+            "Tiles, sections and their order.",
             PAGE_HOME, Features::customHomePatched),
         new Feature(CUSTOM_TABS, "Look", "glyph_layout_list_bullet", "Bottom bar",
-            "Choose the tabs between Home and More, and their order.",
+            "Tabs between Home and More.",
             PAGE_TABS, Features::customTabsPatched),
         new Feature(SHORT_TIME_CONTROLS, "Games", "glyph_board_simple_badge_clock", "Time controls under a minute",
-            "The custom time slider goes below one minute: 10, 15, 20, 30 and 45 seconds, with or "
-                + "without increment.",
+            "Down to 10 seconds.",
             null, Features::shortTimeControlsPatched),
         new Feature(STOCKFISH, "Games", "glyph_device_chip", "Stockfish analysis",
-            "Stockfish 19 on your phone, offline: best-move arrows on finished games, the analysis boards, "
-                + "the game explorer and Game Review (in a Lichess review, on the moves Lichess didn't mark), "
-                + "and an eval bar where chess.com has none of its own. Never during a game or in puzzles.",
+            "Offline Stockfish 19 on your phone.",
             PAGE_STOCKFISH, Features::stockfishPatched),
         new Feature(LICHESS_PUZZLES, "Games", "glyph_game_type_puzzle", "Lichess Puzzles",
-            "Puzzles from Lichess is the Puzzles tab's big button: Lichess's puzzles in chess.com's "
-                + "own puzzle screen, rated on your phone the way Lichess rates them.",
+            "Rated here, solved offline.",
             PAGE_PUZZLES, Features::lichessPuzzlesPatched),
         new Feature(BOT_UNLOCK, "Games", "glyph_device_computer_versus", "Unlock all bots",
-            "Every bot in Versus Bots can be played, including ones only Premium members may play.",
+            "Versus Bots, Premium-only too.",
             null, Features::botUnlockPatched),
         new Feature(UNLIMITED_COACH, "Games", "glyph_game_lesson_student", "Unlimited Play Coach",
-            "Removes the one-free-game-per-day limit on Play Coach, a bot-only practice mode.",
+            "No one-game-a-day limit.",
             null, Features::unlimitedCoachPatched),
         new Feature(PREMIUM_UNLOCK, "Games", "glyph_membership_tier_diamond", "Unlock Premium content",
-            "The app's own premium-tier check always answers with the top tier, so content gated "
-                + "on it treats the account as a member. The server still decides what you may "
-                + "actually play online.",
+            "Premium checks always pass.",
             null, Features::premiumUnlockPatched),
         new Feature(GAME_REVIEW, "Games", "glyph_board_analysis", "Unlimited Game Review",
-            "Game Review asks who reviews: chess.com, Lichess's servers (with your Lichess account) or, "
-                + "with Stockfish analysis, Stockfish on your phone. The phone and Lichess both judge moves "
-                + "the Lichess way: ?! ? ??, accuracy and centipawn loss. The phone also marks the moves "
-                + "Lichess leaves unmarked Best, Excellent or Good, as chess.com does. Reviews are saved, "
-                + "so a game opens straight away the next time. Two more patches in this bundle add "
-                + "Stockfish on your computer, and Great (!) and Brilliant (!!) marks.",
+            "Lichess or Stockfish, no daily limit.",
             PAGE_GAME_REVIEW, Features::gameReviewPatched),
         new Feature(COMPUTER_REVIEW, "Games", "glyph_device_computer_versus", "Game Review on your computer",
-            "Adds a fourth reviewer to Game Review: Stockfish on your own computer, over Wi-Fi, much "
-                + "faster than the phone. The settings hold its address and token, its own depth and "
-                + "thread count, a connection test and a benchmark. It needs Unlimited Game Review, "
-                + "from this bundle: two Unlimited Game Review patches cannot be applied to one app.",
-            PAGE_GAME_REVIEW, Features::computerReviewPatched),
+            "Over Wi-Fi, instead of the phone.",
+            PAGE_COMPUTER_REVIEW, Features::computerReviewPatched),
         new Feature(NETWORK_SCAN, "Games", "glyph_device_computer_versus", "Find the computer on the network",
-            "In the computer review settings, Find on the network sweeps this Wi-Fi and fills in the "
-                + "address sf-bridge answers on. Addresses that worked are kept, and a review finds the "
-                + "computer by itself when the set address no longer answers. It needs Game Review on "
-                + "your computer, from this bundle.",
-            PAGE_GAME_REVIEW, Features::networkScanPatched),
-        new Feature(GREAT_MOVES, "Games", "glyph_element_star_hollow", "Great and Brilliant moves analysis",
-            "In a review by Local Stockfish or Stockfish on your computer, also marks chess.com's Great "
-                + "(!) and Brilliant (!!): the engine's own best move when it was the only one keeping "
-                + "the position good, and a best or nearly best move that offers material for good. It "
-                + "needs the engine's second-best line, so a review asks for two lines at once. It needs "
-                + "Unlimited Game Review, from this bundle: two Unlimited Game Review patches cannot be "
-                + "applied to one app.",
-            PAGE_GAME_REVIEW, Features::greatMovesPatched),
+            "Finds sf-bridge on your Wi-Fi.",
+            PAGE_NETWORK_SCAN, Features::networkScanPatched),
         new Feature(LIMIT_TOASTS, "Less clutter", "glyph_message_bubble_fill_pair", "Limits as toasts",
-            "When you reach a free limit (Game Review, puzzles, lessons, drills…) a short toast says "
-                + "so instead of a full-screen Premium offer. Promotional pop-ups are not shown.",
+            "A toast instead of a Premium offer.",
             null, Features::limitToastsPatched),
         new Feature(HIDE_PREMIUM, "Less clutter", "glyph_game_suit_diamonds", "Hide Premium-only content",
-            "Bots only Premium members can play are not listed, and the Premium diamond, banners, "
-                + "Membership and Upgrade rows are gone. Free accounts see exactly what they can use.",
+            "Bots and upgrade banners are hidden.",
             null, Features::hidePremiumPatched),
         new Feature(NO_ADS, "Less clutter", "glyph_circle_block_megaphone", "No ads",
-            "Banner, full-screen and game-over ads are not loaded or shown, as for members, and "
-                + "neither are their Remove Ads links. Restart the app after switching it.",
+            "Banner and game-over ads are gone.",
             null, Features::noAdsPatched),
         new Feature(NO_RATING_PROMPTS, "Less clutter", "glyph_element_star_hollow", "No rating prompts",
-            "The app doesn't ask you to rate it on Google Play.",
+            "No Google Play rating prompts.",
             null, Features::noRatingPromptsPatched),
     };
 

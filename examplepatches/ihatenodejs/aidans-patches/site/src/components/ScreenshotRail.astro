@@ -59,3 +59,63 @@ const railId = 'app-screenshots-rail';
     <div data-screenshots-container class="flex gap-4 items-start"></div>
   </div>
 </section>
+
+<script>
+  (() => {
+    const railId = 'app-screenshots-rail';
+    const rail = document.getElementById(railId);
+    const prevBtn = document.querySelector<HTMLButtonElement>(
+      `[data-carousel-prev="${railId}"]`,
+    );
+    const nextBtn = document.querySelector<HTMLButtonElement>(
+      `[data-carousel-next="${railId}"]`,
+    );
+    if (!rail || !prevBtn || !nextBtn) return;
+
+    const scrollAmount = () => Math.max(280, rail.clientWidth * 0.85);
+
+    function updateRailControls() {
+      if (!rail || !prevBtn || !nextBtn) return;
+      const maxScroll = rail.scrollWidth - rail.clientWidth;
+      const current = rail.scrollLeft;
+
+      prevBtn.disabled = current <= 2;
+      nextBtn.disabled = current >= maxScroll - 2;
+    }
+
+    prevBtn.addEventListener('click', () => {
+      rail.scrollBy({ left: -scrollAmount(), behavior: 'smooth' });
+    });
+
+    nextBtn.addEventListener('click', () => {
+      rail.scrollBy({ left: scrollAmount(), behavior: 'smooth' });
+    });
+
+    rail.addEventListener('scroll', () => updateRailControls(), {
+      passive: true,
+    });
+    window.addEventListener('resize', () => updateRailControls(), {
+      passive: true,
+    });
+
+    const section = document.getElementById('screenshots-section');
+    if (section) {
+      const observer = new MutationObserver(() => {
+        updateRailControls();
+      });
+      observer.observe(section, {
+        attributes: true,
+        attributeFilter: ['class'],
+        childList: true,
+        subtree: true,
+      });
+    }
+
+    if (window.ResizeObserver) {
+      const ro = new ResizeObserver(() => updateRailControls());
+      ro.observe(rail);
+    }
+
+    updateRailControls();
+  })();
+</script>

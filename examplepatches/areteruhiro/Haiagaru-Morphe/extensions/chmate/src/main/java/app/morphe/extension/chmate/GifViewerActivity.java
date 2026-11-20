@@ -149,6 +149,7 @@ public final class GifViewerActivity extends HaiagaruComposeActivity {
         menu.getMenu().add(0, 4, 3, "GIFを保存");
         menu.getMenu().add(0, 5, 4, "画面を回転");
         menu.getMenu().add(0, 6, 5, "ビューアの操作設定");
+        menu.getMenu().add(0, 7, 6, "拡大をリセット");
         menu.setOnMenuItemClickListener(item -> {
             switch (item.getItemId()) {
                 case 1: forceReload=true;load();forceReload=false;return true;
@@ -165,6 +166,7 @@ public final class GifViewerActivity extends HaiagaruComposeActivity {
                         ? android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
                         : android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE); return true;
                 case 6: VideoViewerSettings.show(this);return true;
+                case 7: image.resetZoom();return true;
                 default: return false;
             }
         }); menu.show();
@@ -197,7 +199,54 @@ public final class GifViewerActivity extends HaiagaruComposeActivity {
         private android.graphics.drawable.Drawable animation;
         private boolean animating;
         private long elapsed, started;
-        GifCanvas() { super(GifViewerActivity.this); setLayerType(View.LAYER_TYPE_SOFTWARE, null); setContentDescription("GIFアニメーション"); }
+        private float zoom = 1f, offsetX, offsetY, lastX, lastY;
+        private boolean dragging;
+        private final android.view.ScaleGestureDetector scaleDetector;
+        GifCanvas() {
+            super(GifViewerActivity.this); setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+            setContentDescription("GIFアニメーション。ピンチで拡大、拡大中にドラッグで移動");
+            scaleDetector = new android.view.ScaleGestureDetector(GifViewerActivity.this,
+                    new android.view.ScaleGestureDetector.SimpleOnScaleGestureListener() {
+                        @Override public boolean onScale(android.view.ScaleGestureDetector detector) {
+                            float previous=zoom;
+                            zoom=Math.max(1f,Math.min(8f,zoom*detector.getScaleFactor()));
+                            float cx=getWidth()/2f,cy=getHeight()/2f;
+                            offsetX=(offsetX+detector.getFocusX()-cx)*zoom/previous-(detector.getFocusX()-cx);
+                            offsetY=(offsetY+detector.getFocusY()-cy)*zoom/previous-(detector.getFocusY()-cy);
+                            clampOffset();invalidate();return true;
+                        }
+                    });
+            setOnTouchListener((view,event)->{
+                scaleDetector.onTouchEvent(event);
+                switch(event.getActionMasked()){
+                    case android.view.MotionEvent.ACTION_DOWN:
+                        lastX=event.getX();lastY=event.getY();dragging=false;return true;
+                    case android.view.MotionEvent.ACTION_POINTER_DOWN:
+                        dragging=false;return true;
+                    case android.view.MotionEvent.ACTION_MOVE:
+                        if(!scaleDetector.isInProgress()&&zoom>1f&&event.getPointerCount()==1){
+                            float x=event.getX(),y=event.getY();offsetX+=x-lastX;offsetY+=y-lastY;
+                            lastX=x;lastY=y;dragging=true;clampOffset();invalidate();
+                        }
+                        return true;
+                    case android.view.MotionEvent.ACTION_UP:
+                    case android.view.MotionEvent.ACTION_CANCEL:
+                        return true;
+                    default:return true;
+                }
+            });
+        }
+        void resetZoom(){zoom=1f;offsetX=offsetY=0;invalidate();}
+        private void clampOffset(){
+            float sourceWidth=contentWidth(),sourceHeight=contentHeight();
+            if(sourceWidth<=0||sourceHeight<=0||getWidth()<=0||getHeight()<=0){offsetX=offsetY=0;return;}
+            float fit=Math.min(getWidth()/sourceWidth,getHeight()/sourceHeight);
+            float width=sourceWidth*fit*zoom,height=sourceHeight*fit*zoom;
+            float maxX=Math.max(0,(width-getWidth())/2f),maxY=Math.max(0,(height-getHeight())/2f);
+            offsetX=Math.max(-maxX,Math.min(maxX,offsetX));offsetY=Math.max(-maxY,Math.min(maxY,offsetY));
+        }
+        private float contentWidth(){return animation!=null?animation.getIntrinsicWidth():movie==null?0:movie.width();}
+        private float contentHeight(){return animation!=null?animation.getIntrinsicHeight():movie==null?0:movie.height();}
         void setMovie(Movie value) {
             if(animation!=null){if(android.os.Build.VERSION.SDK_INT>=28)ModernGif.stop(animation);animation.setCallback(null);animation=null;}
             setLayerType(value==null?View.LAYER_TYPE_NONE:View.LAYER_TYPE_SOFTWARE,null);
@@ -216,17 +265,19 @@ public final class GifViewerActivity extends HaiagaruComposeActivity {
         @Override protected boolean verifyDrawable(android.graphics.drawable.Drawable value){return value==animation||super.verifyDrawable(value);}
         @Override protected void onDraw(Canvas canvas) {
             super.onDraw(canvas);
+            canvas.setDrawFilter(new android.graphics.PaintFlagsDrawFilter(0,
+                    android.graphics.Paint.FILTER_BITMAP_FLAG|android.graphics.Paint.ANTI_ALIAS_FLAG));
             if(animation!=null){
-                float ratio=Math.min((float)getWidth()/Math.max(1,animation.getIntrinsicWidth()),(float)getHeight()/Math.max(1,animation.getIntrinsicHeight()));
+                float ratio=Math.min((float)getWidth()/Math.max(1,animation.getIntrinsicWidth()),(float)getHeight()/Math.max(1,animation.getIntrinsicHeight()))*zoom;
                 int width=Math.round(animation.getIntrinsicWidth()*ratio),height=Math.round(animation.getIntrinsicHeight()*ratio);
-                int left=(getWidth()-width)/2,top=(getHeight()-height)/2;
+                int left=Math.round((getWidth()-width)/2f+offsetX),top=Math.round((getHeight()-height)/2f+offsetY);
                 animation.setBounds(left,top,left+width,top+height);animation.draw(canvas);return;
             }
             if (movie == null) return;
             int duration = Math.max(1, movie.duration());
             movie.setTime((int)((elapsed + (animating ? SystemClock.uptimeMillis() - started : 0)) % duration));
-            float scale = Math.min((float)getWidth()/movie.width(), (float)getHeight()/movie.height());
-            canvas.save(); canvas.translate((getWidth()-movie.width()*scale)/2, (getHeight()-movie.height()*scale)/2);
+            float scale = Math.min((float)getWidth()/movie.width(), (float)getHeight()/movie.height())*zoom;
+            canvas.save(); canvas.translate((getWidth()-movie.width()*scale)/2+offsetX, (getHeight()-movie.height()*scale)/2+offsetY);
             canvas.scale(scale, scale); movie.draw(canvas, 0, 0); canvas.restore();
             if (animating && movie.duration() > 0) postInvalidateDelayed(16);
         }

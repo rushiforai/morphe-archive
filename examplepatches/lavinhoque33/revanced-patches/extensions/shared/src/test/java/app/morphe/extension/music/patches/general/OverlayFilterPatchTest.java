@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-19.
  * Written by lavinhoque33, 2026-11-18.
  */
 
@@ -14,6 +15,7 @@ import static org.junit.Assert.assertSame;
 import static org.robolectric.Shadows.shadowOf;
 
 import android.app.Activity;
+import android.app.Dialog;
 import android.content.pm.PackageInfo;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -86,6 +88,35 @@ public class OverlayFilterPatchTest {
             Settings.HIDE_OVERLAY_FILTER.save(false);
             OverlayFilterPatch.updateWindowDim(window);
             assertEquals(stockFlags & ~FLAG_DIM_BEHIND, window.getAttributes().flags);
+        }
+    }
+
+    @Test
+    public void reopeningPlayerDialogRestoresItsOriginalDimAmountAndKeepsTheOtherWindowFlags() {
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            var dialog = new Dialog(controller.get());
+            var window = dialog.getWindow();
+            window.addFlags(FLAG_DIM_BEHIND | FLAG_KEEP_SCREEN_ON);
+            window.setDimAmount(0.375f);
+
+            try {
+                dialog.show();
+                int stockFlags = window.getAttributes().flags;
+                Settings.HIDE_OVERLAY_FILTER.save(true);
+                OverlayFilterPatch.updateDialogDim(dialog);
+                assertEquals(stockFlags & ~FLAG_DIM_BEHIND, window.getAttributes().flags);
+                assertEquals(0.375f, window.getAttributes().dimAmount, 0);
+                dialog.hide();
+
+                Settings.HIDE_OVERLAY_FILTER.save(false);
+                dialog.show();
+                OverlayFilterPatch.updateDialogDim(dialog);
+                assertEquals(stockFlags, window.getAttributes().flags);
+                assertEquals(0.375f, window.getAttributes().dimAmount, 0);
+                assertEquals(window, dialog.getWindow());
+            } finally {
+                dialog.dismiss();
+            }
         }
     }
 

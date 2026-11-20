@@ -128,6 +128,7 @@ Lecture SABR (Falsifier les flux vidéo désactivés)"</string>
     <string name="morphe_music_downloads_sort">Trier</string>
     <string name="morphe_music_downloads_started">Téléchargement démarré</string>
     <string name="morphe_music_downloads_starting">Démarrage du téléchargement…</string>
+    <string name="morphe_music_downloads_waiting_for_connection">En attente de connexion</string>
     <string name="morphe_music_downloads_unknown_track">Impossible d\'identifier le morceau à télécharger</string>
     <string name="morphe_music_hide_you_may_also_like_section_title">Masquer la section \'Vous aimerez aussi\'</string>
     <string name="morphe_music_hide_your_downloads_shelf_title">Masquer l\'étagère \'Vos téléchargements\'</string>
@@ -1014,4 +1015,8 @@ L'identifiant de la vidéo que vous regardez est envoyé à l'API de Return YouT
     <string name="revanced_webview_toast_unavailable">WebView n\'est pas disponible</string>
     <string name="morphe_music_auto_song_version_title">Toujours lire la version chanson</string>
     <string name="morphe_music_auto_song_version_summary">Remplace les clips officiels dans la file par la chanson correspondante. Nécessite d’activer « Ne pas lire les clips musicaux » dans l’application. Les titres sans correspondance exacte restent inchangés</string>
+    <string name="morphe_music_playlist_download_connect">Connectez-vous à Internet pour poursuivre ce téléchargement</string>
+    <string name="morphe_music_playlist_ready">%1$d sur %2$d prêtes</string>
+    <string name="morphe_music_playlist_resume">%1$d sur %2$d prêtes · Reprendre</string>
+    <string name="morphe_music_playlist_partial_failed">%1$d sur %2$d prêtes (%3$d en échec) · Reprendre</string>
 </resources>

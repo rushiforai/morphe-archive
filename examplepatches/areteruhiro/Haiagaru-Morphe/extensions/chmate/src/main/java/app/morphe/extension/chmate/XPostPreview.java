@@ -19,10 +19,13 @@ import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.json.JSONObject;
 
 /** Native, display-only previews. Never changes DAT, NG input or outgoing post text. */
 public final class XPostPreview {
+    private static final Pattern BODY_URL = Pattern.compile("(?i)(?:https?://|www\\.)[^\\s<>]+|t\\.co/[^\\s<>]+");
     static void addCacheSettings(android.widget.LinearLayout layout, android.app.Activity activity) {
         android.widget.TextView note = new android.widget.TextView(activity);
         note.setText("X投稿プレビューの取得済みデータは端末内に7日間保存します（最大128投稿・16MiB）。再起動後やオフライン時も有効なキャッシュを使用します。投稿が変更・削除されても保存期間中は以前の内容を表示する場合があります。画像・動画ファイルのキャッシュとは別です。");
@@ -67,6 +70,14 @@ public final class XPostPreview {
     // Native body TextViews call onBound from their overridden setText. Our own
     // preview writes must not enter that binding hook again (191/226/242).
     private static final ThreadLocal<TextView> WRITING = new ThreadLocal<>();
+
+    static void thresholdModeChanged() {
+        revision++;
+        MAIN.post(() -> {
+            List<TextView> views = new ArrayList<>(BOUND.keySet());
+            for (TextView view : views) if (view != null && view.isAttachedToWindow()) apply(view, true);
+        });
+    }
     private static final class RowState {
         final String source;
         final java.util.HashSet<String> expanded = new java.util.HashSet<>();
@@ -131,19 +142,24 @@ public final class XPostPreview {
     static final class Data {
         final String id, author, handle, text, date, excerpt;
         final boolean truncated,possiblyTruncated;
+        final int visibleBytes;
         Data(String id, String author, String handle, String text, String date) {
             this(id,author,handle,text,date,false,false);
         }
         Data(String id, String author, String handle, String text, String date,boolean truncated,boolean possiblyTruncated) {
+            this(id,author,handle,text,date,truncated,possiblyTruncated,XPostLength.visibleBytes(text,null));
+        }
+        Data(String id, String author, String handle, String text, String date,boolean truncated,boolean possiblyTruncated,int visibleBytes) {
             this.id = id; this.author = author; this.handle = handle; this.text = text; this.date = date;
             this.truncated=truncated;this.possiblyTruncated=possiblyTruncated;
+            this.visibleBytes=visibleBytes;
             excerpt = text.codePointCount(0, text.length()) > 140
                     ? text.substring(0, text.offsetByCodePoints(0, 140)) + "…" : text;
         }
         String notice(boolean full){
             if(!full&&text.codePointCount(0,text.length())>140)return "［表示を140文字で省略しています］";
-            if(truncated)return "［投稿の一部のみ取得しています。続きは元の投稿で確認］";
-            return possiblyTruncated?"［全文を取得できていない可能性があります。元の投稿で確認］":"";
+            if(truncated)return "［以下省略］";
+            return possiblyTruncated?"［省略の可能性］":"";
         }
     }
 
@@ -151,8 +167,11 @@ public final class XPostPreview {
         JSONObject post = new JSONObject(json);
         if (!expectedId.equals(post.optString("id_str"))) return null;
         JSONObject user = post.optJSONObject("user");
+        JSONObject legacy = post.optJSONObject("legacy");
         String text = post.optString("text", "");
+        if (text.isEmpty() && legacy != null) text = legacy.optString("text", "");
         String full = post.optString("full_text", "");
+        if (full.isEmpty() && legacy != null) full = legacy.optString("full_text", "");
         JSONObject extended = post.optJSONObject("extended_tweet");
         if (extended != null && extended.optString("full_text").length() > full.length())
             full = extended.optString("full_text");
@@ -171,11 +190,18 @@ public final class XPostPreview {
         if (user == null || text.isEmpty() || text.length() > 50_000) return null;
         String handle = user.optString("screen_name", "");
         if (!handle.matches("[A-Za-z0-9_]{1,50}")) return null;
-        return new Data(expectedId, user.optString("name", "").substring(0,
+        int warningStart = XPostLength.replyMentionPrefixEnd(text, post);
+        int visibleBytes = XPostLength.visibleBytes(text, post, warningStart);
+        int detailedPoints = XPostLength.detailedPoints(text, post, warningStart);
+        boolean thresholdReached = Haiagaru.xPostWarningThresholdMode() == 0
+                ? detailedPoints > XPostLength.POSSIBLE_TRUNCATION_POINTS
+                : visibleBytes >= XPostLength.POSSIBLE_TRUNCATION_BYTES;
+        Data data = new Data(expectedId, user.optString("name", "").substring(0,
                 Math.min(200, user.optString("name", "").length())), handle, text,
                 post.optString("created_at", ""),post.optBoolean("truncated",false)&&!fullProvided,
-                !noteComplete&&(post.optBoolean("is_note_tweet",false)||note!=null)
-                        ||!fullProvided&&(text.codePointCount(0,text.length())>=140||text.endsWith("…")||text.endsWith("...")));
+                !noteComplete&&post.optBoolean("is_note_tweet",false)
+                        ||!fullProvided&&(thresholdReached||text.endsWith("…")||text.endsWith("...")));
+        return new Data(data.id,data.author,data.handle,data.text,data.date,data.truncated,data.possiblyTruncated,visibleBytes);
     }
 
     static void apply(TextView view) {
@@ -272,6 +298,14 @@ public final class XPostPreview {
         return source.toString();
     }
 
+    /** Text appended to the native response by this preview, excluding the original post body. */
+    static String appendedPreviewText(CharSequence source){
+        if(!(source instanceof Spanned))return "";
+        Spanned spans=(Spanned)source;Marker[] markers=spans.getSpans(0,source.length(),Marker.class);
+        if(markers.length==0)return "";
+        int start=spans.getSpanStart(markers[0]);return start>=0&&start<source.length()?source.subSequence(start,source.length()).toString():"";
+    }
+
     static void toggle(TextView view, String id) {
         CharSequence source=view.getText();
         if (!(source instanceof Spanned)) return;
@@ -336,7 +370,7 @@ public final class XPostPreview {
             else result.append(data.author).append("  @").append(data.handle).append("  · X\n");
             result.setSpan(new StyleSpan(Typeface.BOLD), author, result.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
             String body = Haiagaru.xPostPreviewFullText() ? data.text : data.excerpt;
-            result.append(body);
+            appendBody(result, body);
             String notice=data.notice(Haiagaru.xPostPreviewFullText());
             if(!notice.isEmpty())result.append("\n").append(notice);
             if (!data.date.isEmpty()) result.append(card ? "\n\n" : "\n").append(XPostTime.japan(data.date));
@@ -368,6 +402,30 @@ public final class XPostPreview {
         int start = result.length();
         result.append(label);
         result.setSpan(new XPostPreviewTouch.ActionLink(url, copy), start, result.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+    }
+
+    private static void appendBody(SpannableStringBuilder result, String body) {
+        int base = result.length();
+        result.append(body);
+        Matcher matcher = BODY_URL.matcher(body);
+        while (matcher.find()) {
+            int end = trimUrlEnd(body, matcher.start(), matcher.end());
+            if (end <= matcher.start()) continue;
+            String url = body.substring(matcher.start(), end);
+            if (url.regionMatches(true, 0, "www.", 0, 4)) url = "https://" + url;
+            else if (url.regionMatches(true, 0, "t.co/", 0, 5)) url = "https://" + url;
+            result.setSpan(new XPostPreviewTouch.PostLink(url), base + matcher.start(), base + end,
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+    }
+
+    private static int trimUrlEnd(String body, int start, int end) {
+        while (end > start) {
+            char c = body.charAt(end - 1);
+            if (".,!?;:、。，．！？)]}」』】〉》”’\"'".indexOf(c) >= 0) { end--; continue; }
+            break;
+        }
+        return end;
     }
 
     private static Data lookup(String id, TextView view) {

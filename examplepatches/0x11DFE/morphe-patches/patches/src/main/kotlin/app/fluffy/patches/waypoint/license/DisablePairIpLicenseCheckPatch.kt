@@ -8,8 +8,8 @@ import app.morphe.patcher.patch.bytecodePatch
 @Suppress("unused")
 val disablePairIpLicenseCheckPatch = bytecodePatch(
     name = "Disable PairIP license check",
-    description = "Empties com.pairip.licensecheck.LicenseClient.checkLicense so the re-signed patched APK is not killed by Google Play PairIP license enforcement. Generic: works on any PairIP-protected app with this class.",
-) {
+    description = "Empties com.pairip.licensecheck.LicenseClient.checkLicense so PairIP does " +
+        "not kill the re-signed APK. Works on any app that ships this class.",) {
     compatibleWith(COMPATIBILITY_WAYPOINT)
 
     execute {

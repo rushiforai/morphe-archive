@@ -38,6 +38,12 @@ final class KeepMiddle {
     static final String SURFACE_VIEW_GATE = "player_enable_surface_surfaceview";
 
     /**
+     * Search's own key for its player's view, read once and kept: an odd answer puts search
+     * videos on a SurfaceView, an even one on a TextureView. Search never asks the feed's key.
+     */
+    static final String SEARCH_SURFACE_VIEW_GATE = "search_player_surface_view";
+
+    /**
      * How the picture is drawn at the screen's edge, as a share of its own scale: three quarters
      * is a third taller, the most Stretch takes before it leaves a video alone.
      */
@@ -77,6 +83,15 @@ final class KeepMiddle {
      */
     static volatile boolean videoInWindow;
 
+    /**
+     * Whether TikTok has handed over a SurfaceView in this process. It reads
+     * {@link #SURFACE_VIEW_GATE} again for later players, which set {@link #videoInWindow} again,
+     * so this is kept apart and never cleared: a cover bound after such a read took the window's
+     * size and the shader while its video, still on its own layer, was cropped and stretched, and
+     * it showed at the wrong size and flickered as the video replaced it (#468).
+     */
+    static volatile boolean ownLayerSeen;
+
     /** The views drawn with the shader. Weak, because a view that is gone has nothing to undo. */
     private static final Map<View, Boolean> WARPED = Collections.synchronizedMap(new WeakHashMap<>());
 
@@ -102,14 +117,18 @@ final class KeepMiddle {
     /**
      * Whether the shader can reach the picture of {@code view}. A SurfaceView handed over says
      * TikTok is playing on its own layer whatever the key came back as, and the video and its
-     * cover both go by that from then on.
+     * cover both go by that from then on, whatever the key comes back as later.
      */
     static boolean canWarp(View view) {
         if (view instanceof SurfaceView) {
-            videoInWindow = false;
+            if (!ownLayerSeen) {
+                ownLayerSeen = true;
+                Logger.printInfo(() -> "TikTok played a video on a layer of its own, so Keep the middle "
+                        + "crops and stretches its videos and covers from here on");
+            }
             return false;
         }
-        return supported() && videoInWindow && !broken;
+        return supported() && videoInWindow && !ownLayerSeen && !broken;
     }
 
     /** What the shader is given for one video in one space. */
@@ -219,6 +238,7 @@ final class KeepMiddle {
         WARPED.clear();
         SHADERS.clear();
         videoInWindow = false;
+        ownLayerSeen = false;
         broken = false;
     }
 }

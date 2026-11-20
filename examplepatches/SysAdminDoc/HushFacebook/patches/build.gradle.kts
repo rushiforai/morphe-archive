@@ -987,10 +987,10 @@ val reviewedBouncyCastleRequests = setOf("1.77", "1.79", safeBouncyCastleVersion
 // Guarded by hand rather than with a synchronized collection wrapper: in a Kotlin build script
 // `java` is the Java extension, so the java.util package cannot be named here.
 val requestedBouncyCastleVersions = sortedSetOf<String>()
-// GHSA-xxph-c9ww-hj94 covers every Guava before 33.7.2. The implementation pin below only sets
-// the graphs this module compiles and tests with: the patcher and smali ask for 33.3.1 and
-// 33.5.0, and patcherProvidedClasspath, the graph of what the patcher brings, took those as
-// asked. Every request is rewritten to the catalog's release, as Bouncy Castle's are.
+// GHSA-xxph-c9ww-hj94 covers Guava 4.0 through 33.7.1 and GHSA-v5x9-67m3-7m56 13.0 through
+// 33.7.2. The implementation pin below only sets the graphs this module compiles and tests with:
+// the patcher and smali ask for 33.3.1 and 33.5.0, and patcherProvidedClasspath, the graph of
+// what the patcher brings, took those as asked. Every request is rewritten to the catalog's release, as Bouncy Castle's are.
 val safeGuavaVersion = libs.versions.guava.get()
 
 configurations.configureEach {
@@ -1008,7 +1008,7 @@ configurations.configureEach {
         }
         if (requested.group == "com.google.guava" && requested.name == "guava") {
             useVersion(safeGuavaVersion)
-            because("GHSA-xxph-c9ww-hj94 covers every Guava before 33.7.2.")
+            because("GHSA-v5x9-67m3-7m56 covers Guava 13.0 through 33.7.2.")
         }
     }
 }

@@ -1,0 +1,32 @@
+name: Build
+
+on:
+  push:
+    branches: [dev, main]
+  pull_request:
+    branches: [dev, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+      - name: Validate canonical MetaConfig payload and stage build asset
+        run: |
+          python3 scripts/validate_config.py
+          install -D config/mc_overrides.json extensions/extension/src/main/assets/mc_overrides.json
+          cmp config/mc_overrides.json extensions/extension/src/main/assets/mc_overrides.json
+      - name: Build Morphe patch bundle
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew :patches:buildAndroid --no-daemon

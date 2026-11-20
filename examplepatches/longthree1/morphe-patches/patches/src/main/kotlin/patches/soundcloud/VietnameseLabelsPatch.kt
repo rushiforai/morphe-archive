@@ -9,7 +9,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 
-/** Only server-owned section labels are eligible; entity titles and search input are excluded. */
+/** Only server-owned section labels and system playlist prefixes are eligible; entity titles and search input are excluded. */
 internal val vietnameseUiLabelsPatch = bytecodePatch {
     dependsOn(originalInput)
     extendWith("extensions/soundcloud.mpe")
@@ -20,18 +20,40 @@ internal val vietnameseUiLabelsPatch = bytecodePatch {
         val fieldsByModel = mapOf(
             "sdui/components/SDUIView\$Header" to listOf("b", "c"),
             "sdui/components/SDUIView\$Banner" to listOf("b", "c"),
+            "sdui/components/SDUIView\$Shortcuts" to listOf("c", "d"),
+            "sdui/components/SDUIView\$Suggestions" to listOf("b", "c"),
+            "sdui/components/SDUIView\$PromoCarousel" to listOf("e", "g"),
             "sdui/components/HeaderAction" to listOf("b"),
             "sdui/components/FilterAction" to listOf("b"),
             "sdui/components/BannerAction" to listOf("b"),
+            "sdui/components/ImageBannerAction" to listOf("b"),
             "sdui/components/ShortcutAction" to listOf("b"),
+            "sdui/components/UpdateCarouselAction" to listOf("b"),
+            "sdui/components/composables/listpreview/HeaderInfo" to listOf("a", "b"),
             "sdui/components/supportingmodels/CarouselItem" to listOf("b"),
+            "sdui/components/supportingmodels/PairItem" to listOf("b"),
+            "sdui/components/supportingmodels/SuggestionReason" to listOf("a"),
+            "sections/ui/models/GridViewItem" to listOf("c"),
+            "sections/ui/models/PillItem" to listOf("c"),
+            "sections/ui/models/SectionItem\$Banner" to listOf("b", "c"),
             "sections/ui/models/SectionItem\$Header" to listOf("b", "c"),
             "sections/ui/models/SectionItem\$Headline" to listOf("b"),
             "sections/ui/models/SectionItem\$PageHeader" to listOf("b"),
+            "sections/ui/models/SectionItem\$PromoCampaign" to listOf("d", "e", "j"),
+            "sections/ui/models/SectionItem\$Shortcuts" to listOf("c", "d"),
+            "sections/ui/models/SectionItem\$Suggestions" to listOf("c", "d"),
+            "sections/ui/models/SectionItem\$UpsellPlaceholder" to listOf("b", "c"),
             "sections/domain/Choice" to listOf("b"),
+            "sections/domain/ContentWallFilter" to listOf("a"),
+            "sections/domain/GridItem" to listOf("b"),
             "sections/domain/Pill" to listOf("b"),
             "sections/domain/LinkAction" to listOf("b"),
             "sections/domain/CarouselMetadata" to listOf("a", "b"),
+            "sections/domain/PairMetadata" to listOf("a"),
+            "sections/domain/PromoHeader" to listOf("b"),
+            "sections/domain/Reason\$Match" to listOf("a"),
+            "sections/domain/Reason\$Mutual" to listOf("a"),
+            "sections/domain/SuggestionsReason" to listOf("b"),
         )
         val displayFields = mutableMapOf<String, String>()
         val models = fieldsByModel.keys.map { "Lcom/soundcloud/android/$it;" }.toSet()
@@ -45,11 +67,30 @@ internal val vietnameseUiLabelsPatch = bytecodePatch {
             }
         }
 
+        val playlistType = "Lcom/soundcloud/android/foundation/domain/playlists/Playlist;"
+        val playlistTitleField = classDefBy(playlistType).fields.singleOrNull {
+            it.name == "title" && it.type == "Ljava/lang/String;"
+        } ?: throw PatchException("SoundCloud Playlist.title field changed")
+        val playlistTitleKey = fieldKey(playlistTitleField)
+
         // Translate at the consumer, leaving JSON/cache objects untouched when locales change.
         data class Hook(val index: Int, val register: Int, val function: String)
         val targets = mutableListOf<Pair<Method, List<Hook>>>()
         classDefForEach { klass ->
-            if (klass.type !in models && !klass.type.contains("/data/") && !klass.type.contains("/domain/") &&
+            if (klass.type == playlistType) {
+                val getTitle = klass.methods.singleOrNull {
+                    it.name == "getTitle" && it.parameterTypes.isEmpty() && it.returnType == "Ljava/lang/String;"
+                } ?: throw PatchException("SoundCloud Playlist.getTitle() changed")
+                val instructions = getTitle.implementation?.instructions?.toList().orEmpty()
+                val hooks = instructions.withIndex().mapNotNull { (index, instruction) ->
+                    val reference = (instruction as? ReferenceInstruction)?.reference
+                    if (instruction.opcode == Opcode.IGET_OBJECT && reference is FieldReference && fieldKey(reference) == playlistTitleKey) {
+                        Hook(index + 1, (instruction as TwoRegisterInstruction).registerA, "translateSystemPlaylist")
+                    } else null
+                }
+                if (hooks.isEmpty()) throw PatchException("SoundCloud Playlist.getTitle() implementation changed")
+                targets += getTitle to hooks
+            } else if (klass.type !in models && !klass.type.contains("/data/") && !klass.type.contains("/domain/") &&
                 !klass.type.startsWith("Lcom/fasterxml/") && !klass.type.startsWith("Lnl/")) {
                 for (method in klass.methods) {
                     val instructions = method.implementation?.instructions?.toList() ?: continue

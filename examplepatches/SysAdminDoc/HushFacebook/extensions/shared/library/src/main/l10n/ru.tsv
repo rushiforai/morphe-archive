@@ -2673,6 +2673,14 @@ After %1$d seconds	Через %1$d секунд
 # context: Reels: Burn-in guard's switch that keeps the faded buttons faded while you tap
 Stay dim when I tap	Не осветлять при касании
 Once Burn-in guard fades the buttons, they stay faded on Reels whatever you tap or swipe, the next reel too. They still work. Leaving Reels brings them back.	После затемнения кнопок защитой от выгорания они остаются затемненными в Reels при любых нажатиях и свайпах, в том числе при переходе к следующему Reels. Кнопки продолжают работать. При выходе из Reels они снова отображаются.
+# context: Reels: Burn-in guard's row for how much of the dimmed buttons, caption and bars still shows, a percent typed in
+Dim to	Затемнять до
+How much of the buttons, caption and bars still shows once they dim, in percent, from %1$s to %2$s. Leave it blank for %3$s.	Насколько видны кнопки, подпись и панели после затемнения, в процентах, от %1$s до %2$s. Оставьте поле пустым для значения %3$s.
+Once dimmed, the buttons, caption and bars show at %1$s percent. Type a number to change it.	После затемнения кнопки, подпись и панели видны на %1$s из 100. Введите число, чтобы изменить.
+Once dimmed, the buttons, caption and bars show at %1$s percent.	После затемнения кнопки, подпись и панели видны на %1$s из 100.
+# context: Reels: Burn-in guard's switch that fades the buttons out and back in slowly instead of at once
+Smooth fade	Плавное затемнение
+The buttons, caption and bars fade out slowly as they dim and fade back in when they return, rather than changing at once.	Кнопки, подпись и панели затемняются и возвращаются плавно, а не сразу.
 # context: Reels: switch that shows the Reels screen and its video in black and white
 Show Reels in gray	Reels в оттенках серого
 Reels and their buttons show in black and white, which makes them easier to put down. Your feed, stories, photos and chats keep their colors. It starts from the next reel, and Reels use a little more battery.	Reels и их кнопки показываются чёрно-белыми, так от них легче оторваться. Лента, истории, фото и чаты остаются цветными. Это начнётся со следующего Reels, а Reels будут расходовать чуть больше заряда.
@@ -3075,3 +3083,45 @@ A reel you take out of Clean mode will go back into it when the comments or a me
 A reel you take out of Clean mode will go back into it after %1$d seconds without a touch.	Reels, выведенный из чистого режима, вернётся в него через %1$d секунд без касания.
 Hide New for you on reels	Скрывать «Новое для вас» в Reels
 Takes "New for you", and other reasons Facebook gives for showing you a reel, off the line under its author, so the date and the song show right away. A change shows from the next reel.	Убирает «Новое для вас» и другие причины, по которым Facebook показывает вам Reels, из строки под именем автора, чтобы дата и песня были видны сразу. Изменение применяется начиная со следующего Reels.
+# context: switch title under Comments and writing; it turns Facebook's own comment translation on for every comment as it loads
+Translate every comment	Переводить все комментарии
+# context: description of that switch; See translation is the name of Facebook's own link under a comment that translates it on request
+Comments in another language show Facebook's translation as they load, as if you'd tapped See translation on each one.	Комментарии на другом языке сразу при загрузке показываются в переводе Facebook, как если бы вы нажали «Посмотреть перевод» под каждым.
+# context: switch title under Downloads; holding a finger on a photo opened full screen from a Marketplace listing saves that photo to the phone
+Long press to save Marketplace photos	Сохранять фото Marketplace долгим нажатием
+# context: description of that switch; Save any photo is the title of the Downloads switch it needs, Marketplace is Facebook's buy-and-sell section
+With Save any photo on, a long press on a photo you open from a Marketplace listing saves it.	Когда включено «Сохранять любые фото», долгое нажатие на фото, открытое из объявления Marketplace, сохраняет его.
+# context: the eight switches under Hide posts with words you choose and Hide link posts that pick where each hides; Home, the Reels tab, the Groups tab and Pages are Facebook's own names for them
+Your words on Home	Ваши слова на Главной
+Your words on the Reels tab	Ваши слова во вкладке Reels
+Your words in groups	Ваши слова в группах
+Your words on profiles and Pages	Ваши слова в профилях и на Страницах
+Link posts on Home	Публикации со ссылками на Главной
+Link reels on the Reels tab	Reels со ссылками во вкладке Reels
+Link posts in groups	Публикации со ссылками в группах
+Link posts on profiles and Pages	Публикации со ссылками в профилях и на Страницах
+Posts on Home, the feed Facebook opens on.	Публикации на Главной, в ленте, с которой открывается Facebook.
+Reels on the Reels tab, going by their captions.	Видео во вкладке Reels, по их подписи.
+Posts in a group's feed, on the Groups tab and in a member's posts in a group. Posts waiting for an admin stay.	Публикации в ленте группы, во вкладке «Группы» и в публикациях участника в группе. Публикации, ожидающие администратора, остаются.
+Posts on people's profiles and on Pages.	Публикации в профилях людей и на Страницах.
+# context: the search results switches under Hide posts with words you choose and Hide link posts, which start off; search results is Facebook's own name for the page a search opens
+Your words in search results	Ваши слова в результатах поиска
+Link posts in search results	Публикации со ссылками в результатах поиска
+Posts in search results. Off to begin with, so what you search for still shows.	Публикации в результатах поиска. Сначала выключено, чтобы то, что вы ищете, по-прежнему показывалось.
+# context: title of the list under Video quality that picks how much of a video loads before it starts and while it plays
+Video buffer	Буфер видео
+# context: the three sizes in the Video buffer list, from the least loaded ahead to the most
+Low	Низкий
+Medium	Средний
+Maximum	Максимальный
+# context: the line under Video buffer for each size, and for Facebook's choice
+Videos start once half a second has loaded, and load less ahead.	Видео запускаются, когда загружено полсекунды, и подгружают меньше наперёд.
+Videos wait for 1.5 seconds to load before they start, and load more ahead.	Видео ждут загрузки 1,5 секунды перед запуском и подгружают больше наперёд.
+Videos wait for 3 seconds to load before they start, and load up to a minute ahead.	Видео ждут загрузки 3 секунд перед запуском и подгружают до минуты наперёд.
+Facebook decides how much of a video loads before and while it plays.	Facebook сам решает, сколько видео загружается до и во время воспроизведения.
+# context: what importing a settings file will do to the Video buffer list; %1$s is Low, Medium or Maximum
+Facebook will decide how much of a video loads.	Facebook будет сам решать, сколько видео загружается.
+Video buffer will be set to %1$s.	Буфер видео будет установлен на %1$s.
+Recently watched in the Menu	«Недавно просмотренное» в меню
+Adds a Recently watched row at the end of Settings and privacy in Facebook's Menu. It opens the list that Remember what you watch keeps.	Добавляет пункт «Недавно просмотренное» в конец раздела «Настройки и конфиденциальность» в меню Facebook. Он открывает список, который ведет «Запоминать просмотренное».
+Recently watched can't open here.	Здесь нельзя открыть «Недавно просмотренное».

@@ -1,0 +1,207 @@
+4 ficheros DEX, 164880 cadenas distintas
+
+=== Cadenas candidatas (claves de prefs, campos JSON, SKUs) ===
+  
+VIP
+  
+isPro: 
+  
+isPro=
+  
+isVipSubscriber=
+   (_id integer primary key autoincrement, skinid text, skintype integer, themetype integer, fontcolor integer, googleid text, time long, version integer, account text, contribute_state integer, backup_state integer, server_id text ,is_vip integer ,can_vip_use integer ); 
+   ,purchase = 
+   ,purchaseList = 
+   ,purchaseState = 
+   ,purchaseToken = 
+   and billing's responseCode: 
+   and its super classes have no public methods with the @Subscribe annotation
+   is a illegal @Subscribe method: must be public, non-static, and non-abstract
+   to subscribing class 
+   过滤Vip Sticker : 
+  ', subscriptionOfferDetails=
+  ()Lcom/google/firebase/sessions/api/SessionSubscriber$Name;
+  ()Lcom/google/firebase/sessions/api/SessionSubscriber;
+  (?:(?:(?:[a-zA-Z0-9[ -퟿豈-﷏ﷰ-￯������-������������-������������-������������-������������-������������-������������-������������-������������-������������-������������-������������-������������-������������-������&&[^ [ - ]   　]]](?:[a-zA-Z0-9[ -퟿豈-﷏ﷰ-￯������-������������-������������-������������-������������-������������-������������-������������-������������-������������-������������-������������-������������-������������-������&&[^ [ - ]   　]]_\-]{0,61}[a-zA-Z0-9[ -퟿豈-﷏ﷰ-￯������-������������-������������-������������-������������-������������-������������-������������-������������-������������-������������-������������-������������-������������-������&&[^ [ - ]   　]]]){0,1}\.)+(?:(?:(?:aaa|aarp|abb|abbott|abbvie|abc|able|abogado|abudhabi|academy|accenture|accountant|accountants|aco|actor|ads|adult|aeg|aero|aetna|afl|africa|agakhan|agency|aig|airbus|airforce|airtel|akdn|alibaba|alipay|allfinanz|allstate|ally|alsace|alstom|amazon|americanexpress|americanfamily|amex|amfam|amica|amsterdam|analytics|android|anquan|anz|aol|apartments|app|apple|aquarelle|arab|aramco|archi|army|arpa|art|arte|asda|asia|associates|athleta|attorney|auction|audi|audible|audio|auspost|author|auto|autos|avianca|aws|axa|azure|a[cdefgilmoqrstuwxz])|(?:baby|baidu|banamex|bananarepublic|band|bank|bar|barcelona|barclaycard|barclays|barefoot|bargains|baseball|basketball|bauhaus|bayern|bbc|bbt|bbva|bcg|bcn|beats|beauty|beer|bentley|berlin|best|bestbuy|bet|bharti|bible|bid|bike|bing|bingo|bio|biz|black|blackfriday|blockbuster|blog|bloomberg|blue|bms|bmw|bnpparibas|boats|boehringer|bofa|bom|bond|boo|book|booking|bosch|bostik|boston|bot|boutique|box|bradesco|bridgestone|broadway|broker|brother|brussels|build|builders|business|buy|buzz|bzh|b[abdefghijmnorstvwyz])|(?:cab|cafe|cal|call|calvinklein|cam|camera|camp|canon|capetown|capital|capitalone|car|caravan|cards|care|career|careers|cars|casa|case|cash|casino|cat|catering|catholic|cba|cbn|cbre|cbs|center|ceo|cern|cfa|cfd|chanel|channel|charity|chase|chat|cheap|chintai|christmas|chrome|church|cipriani|circle|cisco|citadel|citi|citic|city|cityeats|claims|cleaning|click|clinic|clinique|clothing|cloud|club|clubmed|coach|codes|coffee|college|cologne|com|comcast|commbank|community|company|compare|computer|comsec|condos|construction|consulting|contact|contractors|cooking|cool|coop|corsica|country|coupon|coupons|courses|cpa|credit|creditcard|creditunion|cricket|crown|crs|cruise|cruises|cuisinella|cymru|cyou|c[acdfghiklmnoruvwxyz])|(?:dabur|dad|dance|data|date|dating|datsun|day|dclk|dds|deal|dealer|deals|degree|delivery|dell|deloitte|delta|democrat|dental|dentist|desi|design|dev|dhl|diamonds|diet|digital|direct|directory|discount|discover|dish|diy|dnp|docs|doctor|dog|domains|dot|download|drive|dtv|dubai|dunlop|dupont|durban|dvag|dvr|d[ejkmoz])|(?:earth|eat|eco|edeka|edu|education|email|emerck|energy|engineer|engineering|enterprises|epson|equipment|ericsson|erni|esq|estate|etisalat|eurovision|eus|events|exchange|expert|exposed|express|extraspace|e[cegrstu])|(?:fage|fail|fairwinds|faith|family|fan|fans|farm|farmers|fashion|fast|fedex|feedback|ferrari|ferrero|fidelity|fido|film|final|finance|financial|fire|firestone|firmdale|fish|fishing|fit|fitness|flickr|flights|flir|florist|flowers|fly|foo|food|football|ford|forex|forsale|forum|foundation|fox|free|fresenius|frl|frogans|frontdoor|frontier|ftr|fujitsu|fun|fund|furniture|futbol|fyi|f[ijkmor])|(?:gal|gallery|gallo|gallup|game|games|gap|garden|gay|gbiz|gdn|gea|gent|genting|george|ggee|gift|gifts|gives|giving|glass|gle|global|globo|gmail|gmbh|gmo|gmx|godaddy|gold|goldpoint|golf|goo|goodyear|goog|google|gop|got|gov|grainger|graphics|gratis|green|gripe|grocery|group|guardian|gucci|guge|guide|guitars|guru|g[abdefghilmnpqrstuwy])|(?:hair|hamburg|hangout|haus|hbo|hdfc|hdfcbank|health|healthcare|help|helsinki|here|hermes|hiphop|hisamitsu|hitachi|hiv|hkt|hockey|holdings|holiday|homedepot|homegoods|homes|homesense|honda|horse|hospital|host|hosting|hot|hotels|hotmail|house|how|hsbc|hughes|hyatt|hyundai|h[kmnrtu])|(?:ibm|icbc|ice|icu|ieee|ifm|ikano|imamat|imdb|immo|immobilien|inc|industries|infiniti|info|ing|ink|institute|insurance|insure|int|international|intuit|investments|ipiranga|irish|ismaili|ist|istanbul|itau|itv|i[delmnoqrst])|(?:jaguar|java|jcb|jeep|jetzt|jewelry|jio|jll|jmp|jnj|jobs|joburg|jot|joy|jpmorgan|jprs|juegos|juniper|j[emop])|(?:kaufen|kddi|kerryhotels|kerrylogistics|kerryproperties|kfh|kia|kids|kim|kinder|kindle|kitchen|kiwi|koeln|komatsu|kosher|kpmg|kpn|krd|kred|kuokgroup|kyoto|k[eghimnprwyz])|(?:lacaixa|lamborghini|lamer|lancaster|land|landrover|lanxess|lasalle|lat|latino|latrobe|law|lawyer|lds|lease|leclerc|lefrak|legal|lego|lexus|lgbt|lidl|life|lifeinsurance|lifestyle|lighting|like|lilly|limited|limo|lincoln|link|lipsy|live|living|llc|llp|loan|loans|locker|locus|lol|london|lotte|lotto|love|lpl|lplfinancial|ltd|ltda|lundbeck|luxe|luxury|l[abcikrstuvy])|(?:madrid|maif|maison|makeup|man|management|mango|map|market|marketing|markets|marriott|marshalls|mattel|mba|mckinsey|med|media|meet|melbourne|meme|memorial|men|menu|merckmsd|miami|microsoft|mil|mini|mint|mit|mitsubishi|mlb|mls|mma|mobi|mobile|moda|moe|moi|mom|monash|money|monster|mormon|mortgage|moscow|moto|motorcycles|mov|movie|msd|mtn|mtr|museum|music|m[acdeghklmnopqrstuvwxyz])|(?:nab|nagoya|name|natura|navy|nba|nec|net|netbank|netflix|network|neustar|new|news|next|nextdirect|nexus|nfl|ngo|nhk|nico|nike|nikon|ninja|nissan|nissay|nokia|norton|now|nowruz|nowtv|nra|nrw|ntt|nyc|n[acefgilopruz])|(?:obi|observer|office|okinawa|olayan|olayangroup|oldnavy|ollo|omega|one|ong|onl|online|ooo|open|oracle|orange|org|organic|origins|osaka|otsuka|ott|ovh|om)|(?:page|panasonic|paris|pars|partners|parts|party|pay|pccw|pet|pfizer|pharmacy|phd|philips|phone|photo|photography|photos|physio|pics|pictet|pictures|pid|pin|ping|pink|pioneer|pizza|place|play|playstation|plumbing|plus|pnc|pohl|poker|politie|porn|post|pramerica|praxi|press|prime|pro|prod|productions|prof|progressive|promo|properties|property|protection|pru|prudential|pub|pwc|p[aefghklmnrstwy])|(?:qpon|quebec|quest|qa)|(?:racing|radio|read|realestate|realtor|realty|recipes|red|redstone|redumbrella|rehab|reise|reisen|reit|reliance|ren|rent|rentals|repair|report|republican|rest|restaurant|review|reviews|rexroth|rich|richardli|ricoh|ril|rio|rip|rocher|rocks|rodeo|rogers|room|rsvp|rugby|ruhr|run|rwe|ryukyu|r[eosuw])|(?:saarland|safe|safety|sakura|sale|salon|samsclub|samsung|sandvik|sandvikcoromant|sanofi|sap|sarl|sas|save|saxo|sbi|sbs|sca|scb|schaeffler|schmidt|scholarships|school|schule|schwarz|science|scot|search|seat|secure|security|seek|select|sener|services|seven|sew|sex|sexy|sfr|shangrila|sharp|shaw|shell|shia|shiksha|shoes|shop|shopping|shouji|show|showtime|silk|sina|singles|site|ski|skin|sky|skype|sling|smart|smile|sncf|soccer|social|softbank|software|sohu|solar|solutions|song|sony|soy|spa|space|sport|spot|srl|stada|staples|star|statebank|statefarm|stc|stcgroup|stockholm|storage|store|stream|studio|study|style|sucks|supplies|supply|support|surf|surgery|suzuki|swatch|swiss|sydney|systems|s[abcdeghijklmnorstuvxyz])|(?:tab|taipei|talk|taobao|target|tatamotors|tatar|tattoo|tax|taxi|tci|tdk|team|tech|technology|tel|temasek|tennis|teva|thd|theater|theatre|tiaa|tickets|tienda|tips|tires|tirol|tjmaxx|tjx|tkmaxx|tmall|today|tokyo|tools|top|toray|toshiba|total|tours|town|toyota|toys|trade|trading|training|travel|travelers|travelersinsurance|trust|trv|tube|tui|tunes|tushu|tvs|t[cdfghjklmnortvwz])|(?:ubank|ubs|unicom|university|uno|uol|ups|u[agksyz])|(?:vacations|vana|vanguard|vegas|ventures|verisign|versicherung|vet|viajes|video|vig|viking|villas|vin|vip|virgin|visa|vision|viva|vivo|vlaanderen|vodka|volkswagen|volvo|vote|voting|voto|voyage|v[aceginu])|(?:wales|walmart|walter|wang|wanggou|watch|watches|weather|weatherchannel|webcam|weber|website|wed|wedding|weibo|weir|whoswho|wien|wiki|williamhill|win|windows|wine|winners|wme|wolterskluwer|woodside|work|works|world|wow|wtc|wtf|w[fs])|(?:ελ|ευ|бг|бел|дети|ею|католик|ком|мкд|мон|москва|онлайн|орг|рус|рф|сайт|срб|укр|қаз|հայ|ישראל|קום|ابوظبي|اتصالات|ارامكو|الاردن|البحرين|الجزائر|السعودية|العليان|المغرب|امارات|ایران|بارت|بازار|بيتك|بھارت|تونس|سودان|سورية|شبكة|عراق|عرب|عمان|فلسطين|قطر|كاثوليك|كوم|مصر|مليسيا|موريتانيا|موقع|همراه|پاکستان|ڀارت|कॉम|नेट|भारत|भारतम्|भारोत|संगठन|বাংলা|ভারত|ভাৰত|ਭਾਰਤ|ભારત|ଭାରତ|இந்தியா|இலங்கை|சிங்கப்பூர்|భారత్|ಭಾರತ|ഭാരതം|ලංකා|คอม|ไทย|ລາວ|გე|みんな|アマゾン|クラウド|グーグル|コム|ストア|セール|ファッション|ポイント|世界|中信|中国|中國|中文网|亚马逊|企业|佛山|信息|健康|八卦|公司|公益|台湾|台灣|商城|商店|商标|嘉里|嘉里大酒店|在线|大拿|天主教|娱乐|家電|广东|微博|慈善|我爱你|手机|招聘|政务|政府|新加坡|新闻|时尚|書籍|机构|淡马锡|游戏|澳門|点看|移动|组织机构|网址|网店|网站|网络|联通|谷歌|购物|通販|集团|電訊盈科|飞利浦|食品|餐厅|香格里拉|香港|닷넷|닷컴|삼성|한국|xbox|xerox|xfinity|xihuan|xin|xn\-\-11b4c3d|xn\-\-1ck2e1b|xn\-\-1qqw23a|xn\-\-2scrj9c|xn\-\-30rr7y|xn\-\-3bst00m|xn\-\-3ds443g|xn\-\-3e0b707e|xn\-\-3hcrj9c|xn\-\-3pxu8k|xn\-\-42c2d9a|xn\-\-45br5cyl|xn\-\-45brj9c|xn\-\-45q11c|xn\-\-4dbrk0ce|xn\-\-4gbrim|xn\-\-54b7fta0cc|xn\-\-55qw42g|xn\-\-55qx5d|xn\-\-5su34j936bgsg|xn\-\-5tzm5g|xn\-\-6frz82g|xn\-\-6qq986b3xl|xn\-\-80adxhks|xn\-\-80ao21a|xn\-\-80aqecdr1a|xn\-\-80asehdb|xn\-\-80aswg|xn\-\-8y0a063a|xn\-\-90a3ac|xn\-\-90ae|xn\-\-90ais|xn\-\-9dbq2a|xn\-\-9et52u|xn\-\-9krt00a|xn\-\-b4w605ferd|xn\-\-bck1b9a5dre4c|xn\-\-c1avg|xn\-\-c2br7g|xn\-\-cck2b3b|xn\-\-cckwcxetd|xn\-\-cg4bki|xn\-\-clchc0ea0b2g2a9gcd|xn\-\-czr694b|xn\-\-czrs0t|xn\-\-czru2d|xn\-\-d1acj3b|xn\-\-d1alf|xn\-\-e1a4c|xn\-\-eckvdtc9d|xn\-\-efvy88h|xn\-\-fct429k|xn\-\-fhbei|xn\-\-fiq228c5hs|xn\-\-fiq64b|xn\-\-fiqs8s|xn\-\-fiqz9s|xn\-\-fjq720a|xn\-\-flw351e|xn\-\-fpcrj9c3d|xn\-\-fzc2c9e2c|xn\-\-fzys8d69uvgm|xn\-\-g2xx48c|xn\-\-gckr3f0f|xn\-\-gecrj9c|xn\-\-gk3at1e|xn\-\-h2breg3eve|xn\-\-h2brj9c|xn\-\-h2brj9c8c|xn\-\-hxt814e|xn\-\-i1b6b1a6a2e|xn\-\-imr513n|xn\-\-io0a7i|xn\-\-j1aef|xn\-\-j1amh|xn\-\-j6w193g|xn\-\-jlq480n2rg|xn\-\-jvr189m|xn\-\-kcrx77d1x4a|xn\-\-kprw13d|xn\-\-kpry57d|xn\-\-kput3i|xn\-\-l1acc|xn\-\-lgbbat1ad8j|xn\-\-mgb9awbf|xn\-\-mgba3a3ejt|xn\-\-mgba3a4f16a|xn\-\-mgba7c0bbn0a|xn\-\-mgbaakc7dvf|xn\-\-mgbaam7a8h|xn\-\-mgbab2bd|xn\-\-mgbah1a3hjkrd|xn\-\-mgbai9azgqp6j|xn\-\-mgbayh7gpa|xn\-\-mgbbh1a|xn\-\-mgbbh1a71e|xn\-\-mgbc0a9azcg|xn\-\-mgbca7dzdo|xn\-\-mgbcpq6gpa1a|xn\-\-mgberp4a5d4ar|xn\-\-mgbgu82a|xn\-\-mgbi4ecexp|xn\-\-mgbpl2fh|xn\-\-mgbt3dhd|xn\-\-mgbtx2b|xn\-\-mgbx4cd0ab|xn\-\-mix891f|xn\-\-mk1bu44c|xn\-\-mxtq1m|xn\-\-ngbc5azd|xn\-\-ngbe9e0a|xn\-\-ngbrx|xn\-\-node|xn\-\-nqv7f|xn\-\-nqv7fs00ema|xn\-\-nyqy26a|xn\-\-o3cw4h|xn\-\-ogbpf8fl|xn\-\-otu796d|xn\-\-p1acf|xn\-\-p1ai|xn\-\-pgbs0dh|xn\-\-pssy2u|xn\-\-q7ce6a|xn\-\-q9jyb4c|xn\-\-qcka1pmc|xn\-\-qxa6a|xn\-\-qxam|xn\-\-rhqv96g|xn\-\-rovu88b|xn\-\-rvc1e0am3e|xn\-\-s9brj9c|xn\-\-ses554g|xn\-\-t60b56a|xn\-\-tckwe|xn\-\-tiq49xqyj|xn\-\-unup4y|xn\-\-vermgensberater\-ctb|xn\-\-vermgensberatung\-pwb|xn\-\-vhquv|xn\-\-vuq861b|xn\-\-w4r85el8fhu5dnra|xn\-\-w4rs40l|xn\-\-wgbh1c|xn\-\-wgbl6a|xn\-\-xhq521b|xn\-\-xkc2al3hye2a|xn\-\-xkc2dl3a5ee0h|xn\-\-y9a3aq|xn\-\-yfro4i67o|xn\-\-ygbi2ammx|xn\-\-zfr164b|xxx|xyz)|(?:yachts|yahoo|yamaxun|yandex|yodobashi|yoga|yokohama|you|youtube|yun|y[et])|(?:zappos|zara|zero|zip|zone|zuerich|z[amw]))|xn\-\-[\w\-]{0,58}\w))|
+  (Lcom/baidu/simeji/subscription/SubscriptionListBannerNew;)V
+  (Lcom/baidu/simeji/subscription/SubscriptionListBannerNew;Landroid/content/Context;Landroid/view/animation/Interpolator;)V
+  (Lcom/baidu/simeji/subscription/SubscriptionPurchaseNewActivity;Ljava/lang/String;)V
+  (Lcom/google/firebase/sessions/api/SessionSubscriber$Name;)Lcom/google/firebase/sessions/api/SessionSubscriber;
+  (Lcom/google/firebase/sessions/api/SessionSubscriber;)V
+  (Lg20/a;Lcom/google/firebase/sessions/api/SessionSubscriber;)V
+  , creating GenmojiSubscriptionPage
+  , highlightSubscribe=
+  , isVip=
+  , isVipSubscriber=
+  , oneDayVipRate=
+  , oneMonthVipRate=
+  , oneYearVipRate=
+  , subscriber=
+  /vip
+  @Subscribe method 
+  A DeveloperProvidedBillingListener must be provided when initializing the BillingClient in order to use multiple payment options for this billing program.
+  ACKNOWLEDGE_PURCHASE
+  ACKNOWLEDGE_PURCHASE_SERVICE_CALL_EXCEPTION
+  ACTION_GENMOJI_SUBSCRIPTION_CLOSED
+  ALTER TABLE LocalSkin ADD can_vip_use INTEGER;
+  ALTER TABLE LocalSkin ADD is_vip INTEGER;
+  ALTERNATIVE_BILLING_ACTION
+  ALTERNATIVE_BILLING_ONLY
+  ALTERNATIVE_BILLING_ONLY_DIALOG_INTENT
+  ALTERNATIVE_BILLING_ONLY_NOT_SUPPORTED
+  ALTERNATIVE_BILLING_USER_CHOICE_DATA
+  APP_key_skin_had_purchased_
+  Alternative billing only dialog finished with resultCode 
+  An error occurred while retrieving billing override.
+  Asynchronous call to Billing Override Service timed out.
+  BILLING_API_VERSION_KEY
+  BILLING_API_VERSION_NOT_SET_IN_BUNDLE
+  BILLING_CHOICE
+  BILLING_CLIENT_CLOSED
+  BILLING_CLIENT_CONNECTING
+  BILLING_CLIENT_TRANSITIONED_OUT_OF_CONNECTING
+  BILLING_CONFIG
+  BILLING_OVERRIDE_SERVICE_CALL_EXCEPTION
+  BILLING_OVERRIDE_SERVICE_CALL_TIMEOUT
+  BILLING_OVERRIDE_SERVICE_CONNECTION_NOT_READY
+  BILLING_OVERRIDE_SERVICE_FALLBACK_ERROR
+  BILLING_PROGRAM_NOT_SUPPORTED
+  BILLING_RESULT_RECEIVED_FROM_PHONESKY
+  BILLING_SERVICE_BLOCKED
+  BILLING_UNAVAILABLE
+  BasePurchaseController
+  BasePurchaseController:onPurchaseStateUpdate
+  Billing API version not found in response bundle.
+  Billing Override Service Client was already closed and can't be reused. Please create another instance.
+  Billing Override Service connected.
+  Billing Override Service connection is disconnected.
+  Billing Override Service connection is valid. No need to re-initialize.
+  Billing Override Service disconnected.
+  Billing Override Service is not ready.
+  Billing Override Service unavailable on device.
+  Billing Override Service was bonded successfully.
+  Billing client should have a valid listener but the provided is null.
+  Billing dialog closed.
+  Billing override value was set by a license tester.
+  Billing program info dialog finished with resultCode 
+  Billing service connected.
+  Billing service died.
+  Billing service disconnected.
+  Billing service unavailable on device.
+  BillingBroadcastManager
+  BillingClient
+  BillingClientTesting
+  BillingHelper
+  BillingLogger
+  BillingManager
+  BillingManager:handlePurchase
+  BillingManager:launchPurchaseFlow
+  BillingManager:launchPurchaseFlowWithOffer
+  BillingManager:offerTokenEmpty
+  BillingManager:onPurchasesUpdated
+  BillingManager:onQueryPurchasesFinished
+  BillingManager:queryPurchases
+  BillingManager:queryPurchasesAsync
+  BillingProgram
+  BillingResponseCode
+  Bundle returned from %s contains null purchases list.
+  CLASSNAME_BILLING_CLIENT
+  CLASSNAME_BILLING_CLIENT_BUILDER
+  CLASSNAME_BILLING_CLIENT_STATE_LISTENER
+  CLASSNAME_PURCHASE
+  CLASSNAME_PURCHASES_RESULT
+  CLASSNAME_PURCHASE_HISTORY_RECORD
+  CLASSNAME_PURCHASE_HISTORY_RESPONSE_LISTENER
+  CLASSNAME_PURCHASE_UPDATED_LISTENER
+  CONSUME_PURCHASE_SERVICE_CALL_EXCEPTION
+  COOL_FONTS_CLICK_VIP
+  COOL_VIP_FONT_CLICK_AD
+  COOL_VIP_FONT_CLICK_SUBSCRIBE
+  COOL_VIP_FONT_REWARD_UNLOCK
+  COOL_VIP_FONT_SHOW_UNLOCK_VIEW
+  CREATE_ALTERNATIVE_BILLING_ONLY_TOKEN_SERVICE_CALL_EXCEPTION
+  Client does not support get purchase history.
+  Client does not support launching subscription management action flow.
+  Client does not support multi-item purchases.
+  Client does not support subscriptions update.
+  Client does not support subscriptions.
+  Client does not support user choice billing.
+  Client is already in the process of connecting to Billing Override Service.
+  Client is already in the process of connecting to billing service.
+  Connection to Billing Override Service is blocked.
+  Connection to Billing service is blocked.
+  Consuming purchase with token: 
+  CoolFontVipController.kt
+  Couldn't find single purchase data as well.
+  Currency.getInstance(sku…g("price_currency_code"))
+  Current Play Store version doesn't support gift code purchase.
+  Current client doesn't support multi-item purchases.
+  Current client doesn't support purchases with ProductDetails.
+  Current client doesn't support subscriptions.
+  DEVELOPER_BILLING_TYPE_UNSPECIFIED
+  DOWNLOAD_TYPE_VIP
+  Data Collection is disabled for all subscribers. Skipping this Event
+  Data Collection is enabled for at least one Subscriber
+  EMPTY_PURCHASE_TOKEN
+  ENABLED_SUBSCRIPTION_CLIENT_ACTIONS_KEY
+  ENTRANCE_VIP_GUIDE_PAGE
+  ENTRANCE_VIP_SHOW_PAGE
+  ENTRY_TYPE_KEYBOARD_CANDIDATE_COOL_FONT_VIP
+  ENTRY_TYPE_KEYBOARD_CONTAINER_COOL_FONT_VIP
+  ENTRY_TYPE_KEYBOARD_TEXT_BOMB_VIP
+  ERROR_DECODING_ALTERNATIVE_BILLING_ONLY_AVAILABILITY
+  ERROR_DECODING_ALTERNATIVE_BILLING_ONLY_REPORTING_DETAILS
+  ERROR_DECODING_BILLING_CONFIG_DATA
+  ERROR_DECODING_DELEGATE_TO_BACKEND_BILLING_RESULT
+  ERROR_DECODING_PURCHASE_DATA
+  EVENT_BILLING_SERVICE_STATE_CHANGED
+  ... y 1547 mas
+
+=== Metodos candidatos (clase -> metodo) ===
+  Lcom/appsflyer/AppsFlyerLib;->subscribeForDeepLink
+  Lcom/appsflyer/AppsFlyerLib;->subscribeForDeepLink
+  Lcom/baidu/simeji/bean/ContainerCoolFontSwitch;->getHighlightSubscribe
+  Lcom/baidu/simeji/bean/LotteryRecruitConfig;->getOneDayVipRate
+  Lcom/baidu/simeji/bean/LotteryRecruitConfig;->getOneMonthVipRate
+  Lcom/baidu/simeji/bean/LotteryRecruitConfig;->getOneYearVipRate
+  Lcom/baidu/simeji/coolfont/CoolFontBean;->getVipIsUnLock
+  Lcom/baidu/simeji/coolfont/CoolFontBean;->getVipLockMap
+  Lcom/baidu/simeji/coolfont/CoolFontBean;->isFontStateLockOrVip
+  Lcom/baidu/simeji/coolfont/CoolFontBean;->isVip
+  Lcom/baidu/simeji/coolfont/CoolFontBean;->isVipUnLockByVideoOrSubscribe
+  Lcom/baidu/simeji/coolfont/CoolFontBean;->unLockVipByVideo
+  Lcom/appsflyer/internal/AFb1vSDK;->subscribeForDeepLink
+  Lcom/appsflyer/internal/AFb1vSDK;->subscribeForDeepLink
+  Lcom/baidu/simeji/skins/content/itemdata/StickerItem;->isSeriesVip
+  Lcom/baidu/simeji/sticker/series/SeriesStickerItem;->isSeriesVip
+  Lcom/baidu/simeji/subscription/SubscriptionListBannerNew;->getSubscriptionBannerData
+  Lcom/baidu/simeji/inputview/convenient/textbomb/TextBombBean;->getVip
+  Lcom/baidu/simeji/inputview/convenient/textbomb/TextBombBean;->isVip
+  Lcom/baidu/simeji/inputview/convenient/textbomb/TextBombBean;->setVip
+  Lcom/gbu/ime/kmm/biz/chatgpt/bean/rizzKeyboard/RizzConfigInfoDetail2;->isVip$annotations
+  Lcom/gbu/ime/kmm/biz/chatgpt/bean/rizzKeyboard/RizzConfigInfoDetail2;->isVip
+  Lcom/gbu/ime/kmm/biz/chatgpt/bean/rizzKeyboard/RizzConfigInfoDetail;->isVip$annotations
+  Lcom/gbu/ime/kmm/biz/chatgpt/bean/rizzKeyboard/RizzConfigInfoDetail;->isVip
+  Lcom/gbu/ime/kmm/biz/chatgpt/bean/rizzKeyboard/RizzIceBreakerConfigInfoDetail;->isVip$annotations
+  Lcom/gbu/ime/kmm/biz/chatgpt/bean/rizzKeyboard/RizzIceBreakerConfigInfoDetail;->isVip
+  Lcom/google/firebase/crashlytics/AnalyticsDeferredProxy;->subscribeToAnalyticsEvents
+  Lcom/google/firebase/events/Subscriber;->subscribe
+  Lcom/google/firebase/events/Subscriber;->subscribe
+  Lcom/google/firebase/events/Subscriber;->unsubscribe
+  Lcom/google/firebase/iid/MessagingChannel;->subscribeToTopic
+  Lcom/google/firebase/iid/MessagingChannel;->unsubscribeFromTopic
+  Lcom/google/firebase/messaging/FirebaseMessaging;->subscribeToTopic
+  Lcom/google/firebase/messaging/FirebaseMessaging;->unsubscribeFromTopic
+  Lcom/google/firebase/remoteconfig/interop/FirebaseRemoteConfigInterop;->registerRolloutsStateSubscriber
+  Lcom/google/firebase/sessions/api/FirebaseSessionsDependencies$Dependency;->getSubscriber
+  Lcom/google/firebase/sessions/api/FirebaseSessionsDependencies$Dependency;->setSubscriber
+  Lcom/google/firebase/sessions/api/FirebaseSessionsDependencies;->getRegisteredSubscribers$com_google_firebase_firebase_sessions
+  Lcom/google/firebase/sessions/api/FirebaseSessionsDependencies;->getSubscriber$com_google_firebase_firebase_sessions
+  Lcom/google/firebase/sessions/api/SessionSubscriber;->getSessionSubscriberName
+  Lcom/google/firebase/components/EventBus;->subscribe
+  Lcom/google/firebase/components/EventBus;->subscribe
+  Lcom/google/firebase/components/EventBus;->unsubscribe
+  Lcom/google/firebase/crashlytics/internal/common/CrashlyticsAppQualitySessionsSubscriber;->getSessionSubscriberName
+  Lcom/google/firebase/iid/zzr;->subscribeToTopic
+  Lcom/google/firebase/iid/zzr;->unsubscribeFromTopic
+  Lsdk/SDKType;->isPro

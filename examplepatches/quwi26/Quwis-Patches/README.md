@@ -2,7 +2,7 @@
 
 <p align="center">
   A fork of <a href="https://github.com/ImNoammm/Noams-Morphe-Patches">Noam's Morphe Patches</a> for chess.com only,
-  with Game Review on your own computer and Great/Brilliant marks as separate patches.
+  with Game Review on your own computer as an add-on patch.
 </p>
 
 <p align="center">
@@ -20,20 +20,19 @@ https://raw.githubusercontent.com/quwi26/Quwis-Patches/main/patches-bundle.json
 
 ## What this fork adds
 
-Five patches, all for chess.com:
+Four patches, all for chess.com:
 
-- **Great and Brilliant moves analysis** - marks chess.com's “!” and “!!” in a review by Local Stockfish or by
-  Stockfish on your computer. Great is the engine's own best move when it was also the only one that kept the
-  game good (PrathxmOp's `greatFind` rule, on the second-best line's expected points); Brilliant is a best or
-  nearly best move that offers material for good (the sacrifice is read by static exchange on the position
-  after the move - in the engine's line an ordinary trade is briefly down a piece too, which used to mark
-  quiet moves). Great needs two lines from the engine, so it has a switch in the settings; Lichess's own
-  reviews stay as Lichess sends them. The settings list the brilliant moves the saved reviews found -
-  chess.com counts its own Insights on its servers, and only for Diamond.
 - **Unlimited Game Review** - the base. Game Review asks who reviews the game: chess.com, Lichess's servers
   (with your Lichess account) or, with Stockfish analysis, Stockfish on your phone, offline and without the
   daily limit. The phone and Lichess judge moves the Lichess way (?! ? ??, accuracy and centipawn loss) in
   chess.com's own review screen, and the phone marks the rest Best, Excellent or Good, as chess.com does.
+  A review by Local Stockfish also marks chess.com's “!” and “!!”. Great is the engine's own best move when
+  it was also the only one that kept the game good (PrathxmOp's `greatFind` rule, on the second-best line's
+  expected points); Brilliant is a best or nearly best move that offers material for good (the sacrifice is
+  read by static exchange on the position after the move - in the engine's line an ordinary trade is briefly
+  down a piece too, which used to mark quiet moves). Great needs two lines from the engine, so it has a
+  switch in the settings; Lichess's own reviews stay as Lichess sends them. The settings list the brilliant
+  moves the saved reviews found - chess.com counts its own Insights on its servers, and only for Diamond.
   Reviews are saved, so a game opens straight away the next time.
 - **Game Review on your computer** - adds the fourth reviewer, “Stockfish on your computer”: instead of
   searching on the phone, the review is searched by [`sf-bridge`](#stockfish-on-your-computer) on your
@@ -45,12 +44,12 @@ Five patches, all for chess.com:
 - **Global Crash Handler** - if the app crashes, a screen of its own shows what went wrong, with the details
   ready to copy into a report. Turn it off for chess.com's usual crash dialog.
 
-The two add-ons work only with **Unlimited Game Review from this bundle**: select it too. Two Unlimited Game
+The add-on works only with **Unlimited Game Review from this bundle**: select it too. Two Unlimited Game
 Review patches, one from this bundle and one from Noam's or hyzor's, cannot be applied to the same app - they
 hook the same methods and share the same extension, so the second one fails.
 
-Both add-ons are selected by default. Uncheck them for a plain Unlimited Game Review, the way Noam's and
-hyzor's patch is.
+The add-on is selected by default. Uncheck it for a plain Unlimited Game Review, the way Noam's and hyzor's
+patch is.
 
 The patches for other apps (Block Blast, Gboard, Geocaching) are **not** in this bundle.
 
@@ -109,7 +108,7 @@ server: auth ok
 ```
 
 Patch your app with **Unlimited Game Review** and **Game Review on your computer** from this bundle, then in the app:
-**More → Quwi's Patches → Game Review → Stockfish on your computer**, and fill in
+**More → Quwi's Patches → Game Review on your computer**, and fill in
 
 - **Computer address** - `192.168.1.10:7892` (the computer's address on the same Wi-Fi), or press **Find on the network** and let the app fill it in;
 - **Token** - the one sf-bridge prints when it starts (`token.txt` next to it);

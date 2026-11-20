@@ -20,5 +20,5 @@
 # PY
 
 # python3 .github/scripts/generate_patches_readme.py sqzass/lustx-patches dev patches-list.json README.md
-
+rm patches/build/libs/patches-1.23.0.mpp
 ./gradlew :patches:ktlintFormat :patches:buildAndroid

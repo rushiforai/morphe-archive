@@ -1,0 +1,10 @@
+4 ficheros DEX, 164880 cadenas distintas
+
+Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->onCreate(Landroid/os/Bundle;)V
+      v4, v5, Landroid/preference/PreferenceFragment;->addPreferencesFromResource(I)V
+Lcom/baidu/simeji/settings/SettingsCorrectionFragment;->onCreate(Landroid/os/Bundle;)V
+      v0, v1, Landroid/preference/PreferenceFragment;->addPreferencesFromResource(I)V
+Lcom/baidu/simeji/settings/SettingsGustureFragment;->onCreate(Landroid/os/Bundle;)V
+      v0, v1, Landroid/preference/PreferenceFragment;->addPreferencesFromResource(I)V
+
+3 metodos coinciden con addPreferencesFromResource

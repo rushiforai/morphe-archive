@@ -47,6 +47,7 @@ public final class ReadingPosition {
             View list = FilterPosition.findListForBinding(root);
             XPostPreviewPosition.opening(list);
             ThreadWatchNavigation.register(fragment, list);
+            ResponseNoteIndicator.register(fragment,list);
             if (!FeatureSwitches.enabled(ENABLED, true)) return;
             Activity activity = (Activity) fragment.getClass().getMethod("getActivity").invoke(fragment);
             if (list == null || activity == null) return;
@@ -141,7 +142,7 @@ public final class ReadingPosition {
         return target.invoke(value, args);
     }
 
-    private static Object response(Object row) throws Exception {
+    static Object response(Object row) throws Exception {
         if (row == null) return null;
         if (responseType(row.getClass().getName())) return row;
         for (Class<?> type = row.getClass(); type != null; type = type.getSuperclass()) {
@@ -159,7 +160,7 @@ public final class ReadingPosition {
                 || name.equals("o.BouncyCastleSocketAdapterCompanion") || name.equals("o.KeJ11");
     }
 
-    private static int number(Object value) throws Exception {
+    static int number(Object value) throws Exception {
         if (value == null) return -1;
         return ((Number) ResponseArchiveEntry.field(value,
                 value.getClass().getName().equals("o.BouncyCastleSocketAdapterCompanion") ? "l" : "o")).intValue();

@@ -129,6 +129,7 @@ SABR再生（動画ストリームのスプーフがオフ）"</string>
     <string name="morphe_music_downloads_sort">並べ替え</string>
     <string name="morphe_music_downloads_started">ダウンロードを開始しました</string>
     <string name="morphe_music_downloads_starting">ダウンロードを開始しています…</string>
+    <string name="morphe_music_downloads_waiting_for_connection">接続を待機しています</string>
     <string name="morphe_music_downloads_unknown_track">ダウンロードする楽曲を特定できませんでした</string>
     <string name="morphe_music_hide_you_may_also_like_section_title">「おすすめ」セクションを非表示</string>
     <string name="morphe_music_hide_your_downloads_shelf_title">「ダウンロード済み」欄を非表示</string>
@@ -978,4 +979,8 @@ API キーの発行方法については、ここをタップしてください�
     <string name="revanced_webview_toast_unavailable">WebView は利用できません。</string>
     <string name="morphe_music_auto_song_version_title">常に楽曲バージョンを再生</string>
     <string name="morphe_music_auto_song_version_summary">キュー内の公式ミュージックビデオを一致する楽曲に置き換えます。アプリの「ミュージックビデオを再生しない」をオンにする必要があります。完全に一致する楽曲がない場合は変更しません</string>
+    <string name="morphe_music_playlist_download_connect">ダウンロードを続けるにはインターネットに接続してください</string>
+    <string name="morphe_music_playlist_ready">%2$d 曲中 %1$d 曲が準備完了</string>
+    <string name="morphe_music_playlist_resume">%2$d 曲中 %1$d 曲が準備完了 · 再開</string>
+    <string name="morphe_music_playlist_partial_failed">%2$d 曲中 %1$d 曲が準備完了（%3$d 曲失敗） · 再開</string>
 </resources>

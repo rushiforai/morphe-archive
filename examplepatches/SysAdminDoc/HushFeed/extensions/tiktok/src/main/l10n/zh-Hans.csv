@@ -238,7 +238,7 @@ And one more save,还有一个保存
 "Android stops telling TikTok a VPN is on, and the VPN's tunnel is left out of the network list. TikTok can still see the VPN's IP address. Leave this off if you need a feature that checks for a VPN.",Android 停止告诉 TikTok VPN 已打开，并且 VPN 的隧道被排除在网络列表之外。 TikTok 仍然可以看到 VPN 的 IP 地址。如果你需要检查 VPN 的功能，请保留此选项.
 Animated sticker format,动画贴纸格式
 Save box for chat stickers,聊天贴纸的保存框
-Tapping a sticker someone sent you in a chat opens a box with Save media. Turn this off to skip it.,点按聊天中别人发来的贴纸会打开一个带有保存媒体的框。关闭此项即可跳过.
+Tapping a sticker someone sent you in a chat opens a box with Save media. Holding one of TikTok's own stickers in a chat puts Save media in its menu too. Turn this off to skip both.,点按聊天中别人发来的贴纸会打开一个带有保存媒体的框。在聊天中长按 TikTok 自带的贴纸，它的菜单里也会出现保存媒体。关闭此项即可同时跳过两者.
 "Animated stickers and GIFs decode each frame as it's shown instead of a few ahead, so they use a little less memory. Applies to the next ones that load.",动画贴纸和 GIF 在显示时解码每一帧，而不是前面的几帧，因此它们使用的内存较少。适用于下一个加载的内容.
 App,应用程序
 App AB,应用程序AB
@@ -1692,7 +1692,7 @@ How much of the video shows through the glass pill on the main feed. Most see-th
 Slide across the tabs,在选项卡上滑动
 "On the main feed, slide a finger along the tabs and the lens follows it. Let go and that tab opens. Taps and long presses work as before. Needs Glass lens on the current tab.",在主信息流上，手指沿选项卡滑动，透镜会跟着手指移动。松开手指就会打开那个选项卡。点按和长按照常使用。需要当前选项卡上的玻璃透镜.
 Liquid glass when held,按住时呈现液态玻璃
-"On the main feed, hold a finger on the tabs and the glass lens swells, then wobbles back when you let go. With Blur the video behind the bar on Android 13 and up, the video under it bends harder and splits into color at its edge. Needs Glass lens on the current tab.",在主信息流上，手指按住选项卡，玻璃透镜会鼓起，松开后晃动着恢复原状。在 Android 13 及以上版本开启模糊栏后面的视频时，透镜下的视频会弯曲得更明显，边缘还会分出彩色光。需要当前选项卡上的玻璃透镜.
+"On the main feed, hold a finger on the tabs and the glass lens slides under it and swells, the tab beneath it grows, and they wobble back when you let go. On Android 13 and up the tabs bend at the lens's edge and split into color, and with Blur the video behind the bar so does the video. Needs Glass lens on the current tab.",在主信息流上，手指按住选项卡，玻璃透镜会滑到手指下并鼓起，下面的选项卡会变大，松开后它们晃动着恢复原状。在 Android 13 及以上版本，选项卡会在透镜边缘弯曲并分出彩色光，开启模糊栏后面的视频时，视频也会这样。需要当前选项卡上的玻璃透镜.
 Haptics on the tabs,选项卡触感反馈
 "On the main feed, a light tick each time the glass lens passes a tab, as it slides after a tap or under your finger. Needs Glass lens on the current tab.",在主信息流上，玻璃透镜每经过一个选项卡就轻震一下，无论是点按后滑动还是在手指下滑动。需要当前选项卡上的玻璃透镜.
 Haptic style,触感样式
@@ -2344,10 +2344,11 @@ Most viewed first,播放最多的在前
 Least viewed first,播放最少的在前
 Most liked first,点赞最多的在前
 Least liked first,点赞最少的在前
-"Sorts a profile or Liked grid with pinned videos first. While an order is on, the grid keeps loading by itself up to 300 videos, so the order covers more than the first screen. A button in the grid's top corner changes the order right there.",对个人资料或喜欢网格排序，置顶视频仍排在最前。选择排序后，网格会自动继续加载，最多 300 个视频，让排序覆盖的不只是第一屏。网格顶部角落的按钮可直接更改排序.
+"Sorts a profile or Liked grid with pinned videos first. While an order is on, the grid keeps loading by itself up to %1$s videos, so the order covers more than the first screen. A button in the grid's top corner changes the order right there.",对个人资料或喜欢网格排序，置顶视频仍排在最前。选择排序后，网格会自动继续加载，最多 %1$s 个视频，让排序覆盖的不只是第一屏。网格顶部角落的按钮可直接更改排序.
+Tap to see the order now,点击以立即查看顺序
 Sort loaded videos on Liked grids,对“喜欢”网格中已加载的视频排序
 Sort loaded videos on sound pages,对声音页中已加载的视频排序
-"Sorts the videos on a sound's page the same way, loading up to 300 of them while an order is on.",以同样方式对声音页面上的视频排序，选定顺序时最多加载 300 个视频.
+"Sorts the videos on a sound's page the same way, loading up to %1$s of them while an order is on.",以同样方式对声音页面上的视频排序，选定顺序时最多加载 %1$s 个视频.
 Same as profile grids,与个人资料网格相同
 Sort this grid,排序此网格
 Blur the video behind the bar,模糊栏后面的视频
@@ -2558,7 +2559,7 @@ Use this phone's own IDs,使用这部手机自己的 ID
 "Wipes TikTok's data once, on the next start, and goes back to this phone's real Android ID and advertising ID. You'll be signed out and lose your drafts.","在下次启动时清除一次 TikTok 的数据,并换回这部手机真实的 Android ID 和广告 ID. 你会退出登录并丢失草稿."
 TikTok goes back to this phone's IDs after the restart. Tap again to cancel.,重启后 TikTok 会换回这部手机的 ID. 再次点按可取消.
 "On a one-photo post, Download video makes an MP4 with the post's sound and no TikTok logo or end card. On a post with several photos, Download asks if you want the originals or one video. A photo story saves as a video too.",在一张照片帖子中，下载视频会生成带有帖子声音的 MP4，但没有 TikTok 徽标或结束卡。在包含多张照片的帖子中，“下载”会询问你是否想要原件或一个视频。照片故事也会保存为视频.
-How long each photo stays on screen in a video made from a photo post. A story's video runs as long as the story does.,由照片帖子制作的视频中每张照片在屏幕上停留的时间。故事的视频时长与故事相同.
+How long each photo stays on screen in a video made from a photo post. A post with just one photo runs as long as its sound. A story's video runs as long as the story does.,由照片帖子制作的视频中每张照片在屏幕上停留的时间。只有一张照片的帖子，视频时长与其声音相同。故事的视频时长与故事相同.
 Stop loading,停止加载
 Recording files deleted,录制文件已删除
 Hide story views,隐藏故事观看
@@ -2773,6 +2774,8 @@ Cover the whole window without cropping anything. The video gets a little taller
 Sort loaded videos on Favorites grids,对“收藏”网格中已加载的视频排序
 Show the country and date under the caption,在说明文字下方显示国家和日期
 Moves the country and the post date off the creator's row onto a line of their own below the caption.,将国家和发布日期从创作者那一行移到说明文字下方单独的一行.
+Previous LIVE,上一个LIVE
+Next LIVE,下一个LIVE
 Previous video,上一个视频
 Next video,下一个视频
 Sort loaded videos in collections,对收藏夹中已加载的视频排序

@@ -27,7 +27,8 @@ public final class ThreadTitleActions {
     private static final class MenuThread {
         final Object info;
         final ThreadWatchRules.Target target;
-        MenuThread(Object info,ThreadWatchRules.Target target){this.info=info;this.target=target;}
+        final String reporterId;
+        MenuThread(Object info,ThreadWatchRules.Target target,String reporterId){this.info=info;this.target=target;this.reporterId=reporterId;}
     }
     private static MenuThread thread(Object fragment,Activity a)throws Exception{
         String version=a.getPackageManager().getPackageInfo(a.getPackageName(),0).versionName;
@@ -40,8 +41,19 @@ public final class ThreadTitleActions {
         String server=(String)NativeFields.find(info.getClass(),old?"i":middle?"g":"f").get(info);
         String board=(String)NativeFields.find(info.getClass(),old?"b":middle?"f":"g").get(info);
         Object id=NativeFields.find(info.getClass(),middle?"c":"e").get(info);
-        ReporterArchiveLookup.request(a,server,board,id,args.getString("threadTitle"));
-        return new MenuThread(info,ThreadWatchRules.fromParts(server,board,id));
+        String title=args.getString("threadTitle");if(title==null)title=DisplayNames.threadTitle(fragment);
+        ReporterArchiveLookup.request(a,server,board,id,title);
+        String reporter=EdgeReporterId.reporterId(EdgeReporterHistory.resolveTitle(info,title));
+        return new MenuThread(info,ThreadWatchRules.fromParts(server,board,id),reporter);
+    }
+    private static void copyReporterId(Activity activity,String reporter){
+        try{
+            android.content.ClipboardManager clipboard=(android.content.ClipboardManager)activity.getSystemService(android.content.Context.CLIPBOARD_SERVICE);
+            if(clipboard==null)throw new IllegalStateException("Clipboard unavailable");
+            ClipboardHistory.setPrimaryClip(clipboard,android.content.ClipData.newPlainText("記者ID",reporter));
+            if(android.os.Build.VERSION.SDK_INT<33)android.widget.Toast.makeText(activity,"記者IDをコピーしました",android.widget.Toast.LENGTH_SHORT).show();
+        }catch(RuntimeException error){android.util.Log.w("Haiagaru","Cannot copy reporter ID",error);
+            android.widget.Toast.makeText(activity,"記者IDをコピーできませんでした",android.widget.Toast.LENGTH_SHORT).show();}
     }
     // Use ChMate's own Compose runtime. The extension's isolated Compose state
     // cannot invalidate a native composition. Each menu row has its own token.
@@ -117,6 +129,7 @@ public final class ThreadTitleActions {
                 labels.add("スレの名前を変更");
                 actions.add(()->DisplayNames.editThread(a,menu.info,DisplayNames.threadTitle(fragment)));
             }
+            if(menu.reporterId!=null){labels.add("記者IDをコピー");actions.add(()->copyReporterId(a,menu.reporterId));}
             if(labels.isEmpty())return middle?twoNativeColumns(original):original;
             ClassLoader loader=fragment.getClass().getClassLoader();
             Class<?> row=loader.loadClass(middle?"o.getTtAdContainer$IconCompatParcelizer":"o.zzbbs$RemoteActionCompatParcelizer");
@@ -243,6 +256,8 @@ public final class ThreadTitleActions {
             entries.add(legacyItem(template,"エッヂの閲覧認証",()->ReadingAuth.open(a,t.url)));
         if(FeatureSwitches.enabled(DisplayNames.SHOW_RENAME,true))
             entries.add(legacyItem(template,"スレの名前を変更",()->DisplayNames.editThread(a,menu.info,DisplayNames.threadTitle(fragment))));
+        if(menu.reporterId!=null)
+            entries.add(legacyItem(template,"記者IDをコピー",()->copyReporterId(a,menu.reporterId)));
         int leftCount=visibleItems(left),rightCount=visibleItems(right);
         for(Button entry:entries){
             LinearLayout column=leftCount<=rightCount?left:right;

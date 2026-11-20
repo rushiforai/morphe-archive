@@ -1,3 +1,28 @@
+## [1.6.0](https://github.com/Ikuradachi/Kageroll/compare/v1.5.0...v1.6.0) (2026-11-19)
+
+### ✨ New Features
+
+* add Crunchyroll player timing and HUD patches ([7b6f04a](https://github.com/Ikuradachi/Kageroll/commit/7b6f04a519606e90dce48df25963d540fa655e69))
+* add Hide feed & show promos patches ([f16e1a6](https://github.com/Ikuradachi/Kageroll/commit/f16e1a64e48c038346363ff03a9d4709b091b79a))
+* add player gestures, screen lock, aspect mode, defaults, and remaining time patches ([d86ad1b](https://github.com/Ikuradachi/Kageroll/commit/d86ad1b60e94830547be9ef88664a61964efbc2b))
+* add Startup splash and modals patches ([004d9c8](https://github.com/Ikuradachi/Kageroll/commit/004d9c809a5b7ec5d2e79edd370f6566a00665ea))
+* add subtitle styling patch ([2d68d70](https://github.com/Ikuradachi/Kageroll/commit/2d68d70a2e040451584369f3bf0ade64346ffa5c))
+
+## [1.6.0-dev.2](https://github.com/Ikuradachi/Kageroll/compare/v1.6.0-dev.1...v1.6.0-dev.2) (2026-11-19)
+
+### ✨ New Features
+
+* add player gestures, screen lock, aspect mode, defaults, and remaining time patches ([d86ad1b](https://github.com/Ikuradachi/Kageroll/commit/d86ad1b60e94830547be9ef88664a61964efbc2b))
+* add subtitle styling patch ([2d68d70](https://github.com/Ikuradachi/Kageroll/commit/2d68d70a2e040451584369f3bf0ade64346ffa5c))
+
+## [1.6.0-dev.1](https://github.com/Ikuradachi/Kageroll/compare/v1.5.0...v1.6.0-dev.1) (2026-11-18)
+
+### ✨ New Features
+
+* add Crunchyroll player timing and HUD patches ([7b6f04a](https://github.com/Ikuradachi/Kageroll/commit/7b6f04a519606e90dce48df25963d540fa655e69))
+* add Hide feed & show promos patches ([f16e1a6](https://github.com/Ikuradachi/Kageroll/commit/f16e1a64e48c038346363ff03a9d4709b091b79a))
+* add Startup splash and modals patches ([004d9c8](https://github.com/Ikuradachi/Kageroll/commit/004d9c809a5b7ec5d2e79edd370f6566a00665ea))
+
 ## [1.5.0](https://github.com/Ikuradachi/Kageroll/compare/v1.4.0...v1.5.0) (2026-11-17)
 
 ### ⚠ BREAKING CHANGES

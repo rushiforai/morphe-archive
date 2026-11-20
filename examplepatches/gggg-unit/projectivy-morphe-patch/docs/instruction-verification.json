@@ -1,0 +1,28 @@
+[
+  {
+    "version": "4.71",
+    "instructionVerification": "PASS",
+    "changes": [
+      "trial",
+      "premium"
+    ]
+  },
+  {
+    "version": "4.72",
+    "instructionVerification": "PASS",
+    "changes": [
+      "premium",
+      "trial",
+      "accessibility"
+    ]
+  },
+  {
+    "version": "4.73",
+    "instructionVerification": "PASS",
+    "changes": [
+      "premium",
+      "trial",
+      "accessibility"
+    ]
+  }
+]

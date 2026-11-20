@@ -1,0 +1,20 @@
+4 ficheros DEX, 164880 cadenas distintas
+
+SDK detectados (busqueda por cadenas del DEX):
+
+  [x] Google AdMob: 67 referencias
+  [ ] Facebook Audience Network: no encontrado
+  [ ] Facebook Core (eventos): no encontrado
+  [ ] Unity Ads: no encontrado
+  [ ] AppLovin: no encontrado
+  [x] Pangle / CSJ (ByteDance): 2019 referencias
+  [ ] ironSource / LevelPlay: no encontrado
+  [ ] Mintegral: no encontrado
+  [ ] Vungle / Liftoff: no encontrado
+  [x] Firebase Analytics: 36 referencias
+  [x] Firebase Crashlytics: 400 referencias
+  [x] AppsFlyer: 414 referencias
+  [ ] Adjust: no encontrado
+  [x] Google UMP (consentimiento): 10 referencias
+
+Nota: los marcadores son descriptores de tipo (Lpaquete/Clase;), por eso la busqueda es fiable aunque el DEX este ofuscado en el codigo propio de la app.

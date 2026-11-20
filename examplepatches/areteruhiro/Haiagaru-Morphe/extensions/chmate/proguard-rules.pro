@@ -9,6 +9,8 @@
 -keep class app.morphe.extension.chmate.NativeToolFragment { *; }
 -keep class app.morphe.extension.chmate.NativeToolTabs { *; }
 -keep class app.morphe.extension.chmate.NativeThemeColors { *; }
+-keep class app.morphe.extension.chmate.ThreadScopedNg { *; }
+-keep class app.morphe.extension.chmate.EdgeArchiveLocalSearch { *; }
 
 # Coroutines' Android fast loader instantiates this factory by class-name string.
 # Preserve its constructor while keeping the library isolated from ChMate's copy.

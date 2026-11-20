@@ -36,20 +36,23 @@ Or
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.16.0](https://github.com/mich111discord/MightyMichs-Patches/releases/tag/v1.16.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;80 patches total
+> **[v1.17.0](https://github.com/mich111discord/MightyMichs-Patches/releases/tag/v1.17.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;81 patches total
 <details open>
-<summary>📦 WhatsApp&nbsp;&nbsp;•&nbsp;&nbsp;9 patches</summary>
+<summary>📦 WhatsApp&nbsp;&nbsp;•&nbsp;&nbsp;12 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 2.26.43.76 | 2.26.43.75 | 🧪&nbsp;2.26.43.74 | 🧪&nbsp;2.26.43.72 |
-| :---: | :---: | :---: | :---: |
+| 2.26.45.93 | 2.26.43.76 | 2.26.43.75 | 🧪&nbsp;2.26.43.74 | 🧪&nbsp;2.26.43.72 | 🧪&nbsp;2.26.44.70 | 🧪&nbsp;2.26.42.70 |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [App icon](#app-icon) | Choose a classic / premium launcher icon, or pick a PNG from your phone. | • Style<br>• Custom icon PNG |
+| [Enable local backup (gates)](#enable-local-backup-gates) | Soft-bypasses client gates that block local chat backup when Google Drive / Play Services appear missing. Prefer offline Databases folder. |  |
+| [Enable local backup (manifest)](#enable-local-backup-manifest) | Sets android:allowBackup=true so the package can participate in device backup agents (Seedvault / adb). Does not implement Drive. |  |
 | [Keep deleted messages](#keep-deleted-messages) | Show messages that were deleted for everyone. Client-side only; already-wiped history cannot be restored. | • Highlight deleted messages |
+| [MicroG compatibility](#microg-compatibility) | Treats Google Play Services checks as successful so WhatsApp works better with microG. Does not replace microG itself. |  |
 | [Mods settings entry](#mods-settings-entry) | Reserves a MightyMich row in Settings. Full dialog wiring needs the settings-list fingerprint for this WhatsApp build. |  |
 | [Mods settings resources](#mods-settings-resources) | Adds English strings for the MightyMich section in WhatsApp Settings. |  |
 | [Read receipts](#read-receipts) | If enabled, you won't send read receipts (blue ticks). | • Always off |
@@ -89,22 +92,6 @@ Or
 |----------|----------------|-----------|
 | [Bypass Play install gate](#bypass-play-install-gate) | Skips PairIP / Play installer checks that block sideloaded Screen Translate builds with the "Get this app from Play" dialog. |  |
 | [Unlock Premium Features](#unlock-premium-features) | Unlocks Screen Translate Premium features and disables premium-only gates. |  |
-
-</details>
-
-<details open>
-<summary>📦 CCleaner&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 26.08.0 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Disable Telemetry](#disable-telemetry) | Disables analytics and telemetry event tracking. |  |
-| [Unlock Premium](#unlock-premium) | Unlocks CCleaner Premium / Pro features (Ultimate Multi + Lifetime style). |  |
 
 </details>
 
@@ -163,8 +150,8 @@ Or
 
 **🎯 Supported versions:**
 
-| 2.214.1539 | 2.243.1555 |
-| :---: | :---: |
+| 2.243.1555 | 2.214.1539 | 🧪&nbsp;2.240.1552 | 🧪&nbsp;2.238.1550 | 🧪&nbsp;2.230.1545 |
+| :---: | :---: | :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -399,7 +386,7 @@ Or
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Unlock Premium](#unlock-premium) | Forces DramaBox VIP checks (UserInfo, LoginResult, SubInfo) so premium UI and local gates unlock. Server-locked episodes may still apply. |  |
+| [Unlock Premium](#unlock-premium) | Forces DramaBox VIP checks and unlocks section/chapter lock flags so premium episodes do not freeze. Server-side DRM may still apply. |  |
 
 </details>
 
@@ -536,12 +523,12 @@ Or
 
 **🎯 Supported versions:**
 
-| 4.2.60 | 4.2.20 | 🧪&nbsp;4.2.00 |
-| :---: | :---: | :---: |
+| 4.2.60 | 4.2.20 | 🧪&nbsp;4.2.00 | 🧪&nbsp;4.1.90 |
+| :---: | :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Unlock Premium Features](#unlock-premium-features) | Forces local VIP membership (status, type, expire far in the future) and unlocks ad/paywall episode flags. Does not forge server purchases. |  |
+| [Unlock Premium Features](#unlock-premium-features) | Forces local VIP membership and unlocks episode lock / paywall flags so locked chapters do not freeze the player. Does not forge server purchases. |  |
 
 </details>
 
@@ -768,7 +755,7 @@ Or
 | [Disable PairIP license check](#disable-pairip-license-check) | Bypasses PairIP LicenseClient installer/license checks that block sideloaded or re-signed apps with a Play Store paywall dialog. |  |
 | [Disable ads (basic)](#disable-ads-basic) | Best-effort no-op of common ad SDK load/show methods. |  |
 | [Disable all telemetry](#disable-all-telemetry) | Best-effort disable of Firebase/AppsFlyer/Mixpanel/Segment style track methods. |  |
-| [Disable screenshot restriction](#disable-screenshot-restriction) | Best-effort bypass of FLAG_SECURE screenshot blocks. |  |
+| [Remove Flag Secure](#remove-flag-secure) | Best-effort clear of FLAG_SECURE so screenshots and screen recording are not blocked. |  |
 | [Remove INTERNET permission](#remove-internet-permission) | Removes INTERNET / ACCESS_NETWORK_STATE permissions from the manifest. |  |
 | [Spoof device & network](#spoof-device-network) | Spoofs device model/manufacturer, hides common root/emulator signals, and can force simple in-app network type checks. | • Device model<br>• Manufacturer<br>• Hide root<br>• Hide emulator<br>• Connection type |
 

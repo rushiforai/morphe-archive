@@ -1,5 +1,17 @@
 package app.brokenn.patches.jiohotstar.watchpage
 
+import app.brokenn.patches.jiohotstar.shared.Constants.BFF_PILL_SUB_MENU_ITEM
+import app.brokenn.patches.jiohotstar.shared.Constants.BFF_PILL_WIDGET
+import app.brokenn.patches.jiohotstar.shared.Constants.COMPATIBILITY_JIOHOTSTAR
+import app.brokenn.patches.jiohotstar.shared.Constants.ILLUSTRATION
+import app.brokenn.patches.jiohotstar.shared.Constants.ILLUSTRATION_PILL_SEGMENT
+import app.brokenn.patches.jiohotstar.shared.Constants.LOTTIE
+import app.brokenn.patches.jiohotstar.shared.Constants.TAB_WIDGET
+import app.brokenn.patches.jiohotstar.shared.Constants.TAB_WIDGET_DATA
+import app.brokenn.patches.jiohotstar.shared.Constants.TAB_WIDGET_URL
+import app.brokenn.patches.shared.instrs
+import app.brokenn.patches.shared.prevInstructionIndex
+import app.brokenn.patches.shared.referenceText
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.booleanOption
@@ -8,8 +20,6 @@ import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
-import app.brokenn.patches.jiohotstar.shared.Constants.COMPATIBILITY_JIOHOTSTAR
 
 @Suppress("unused")
 val hideWatchPageElementsPatch = bytecodePatch(
@@ -55,30 +65,26 @@ val hideWatchPageElementsPatch = bytecodePatch(
         val brandCut = hideBrandTabs == true
 
         val tabContainer = AdaptiveTabConverterFingerprint.method
-        val tabImpl = tabContainer.implementation!!.instructions
+        val tabImpl = tabContainer.instrs()
         val castIdx = tabImpl.indexOfFirst { ins ->
             ins.opcode == Opcode.CHECK_CAST &&
-                (ins as? ReferenceInstruction)?.reference.toString()
-                    .contains("Lcom/hotstar/ui/model/widget/TabWidget;")
+                ins.referenceText()?.contains(TAB_WIDGET) == true
         }
         require(castIdx > 0) { "TabConverter: TabWidget cast not found" }
         val tabReg = tabContainer.getInstruction<OneRegisterInstruction>(castIdx).registerA
         require(tabReg == 1) { "TabConverter: unexpected tab register v$tabReg" }
-        var tabHead = -1
-        for (j in castIdx downTo 0) {
-            val ins = tabImpl[j]
-            if (ins.opcode == Opcode.INVOKE_INTERFACE &&
-                (ins as? ReferenceInstruction)?.reference.toString().contains("Iterator;->hasNext")
-            ) { tabHead = j; break }
+        val tabHead = tabContainer.prevInstructionIndex(castIdx) { ins ->
+            ins.opcode == Opcode.INVOKE_INTERFACE &&
+                ins.referenceText()?.contains("Iterator;->hasNext") == true
         }
         require(tabHead >= 0) { "TabConverter: loop head not found" }
 
         val block = buildString {
             if (brandCut) {
                 // v4 = tab data url, v5 = needle/result; v4 is reused for the title below.
-                append("invoke-virtual {v1}, Lcom/hotstar/ui/model/widget/TabWidget;->getData()Lcom/hotstar/ui/model/widget/TabWidget${'$'}Data;\n")
+                append("invoke-virtual {v1}, ${TAB_WIDGET}->getData()${TAB_WIDGET_DATA}\n")
                 append("move-result-object v4\n")
-                append("invoke-virtual {v4}, Lcom/hotstar/ui/model/widget/TabWidget${'$'}Data;->getUrl()Lcom/hotstar/ui/model/widget/TabWidget${'$'}Url;\n")
+                append("invoke-virtual {v4}, ${TAB_WIDGET_DATA}->getUrl()${TAB_WIDGET_URL}\n")
                 append("move-result-object v4\n")
                 append("if-eqz v4, :tab_titles\n")
                 append("invoke-virtual {v4}, Lcom/hotstar/ui/model/widget/TabWidget${'$'}Url;->getSpaceUrl()Ljava/lang/String;\n")
@@ -90,7 +96,7 @@ val hideWatchPageElementsPatch = bytecodePatch(
                 append("goto/16 :tab_skip\n")
             }
             append(":tab_titles\n")
-            append("invoke-virtual {v1}, Lcom/hotstar/ui/model/widget/TabWidget;->getData()Lcom/hotstar/ui/model/widget/TabWidget${'$'}Data;\n")
+            append("invoke-virtual {v1}, ${TAB_WIDGET}->getData()${TAB_WIDGET_DATA}\n")
             append("move-result-object v4\n")
             append("invoke-virtual {v4}, Lcom/hotstar/ui/model/widget/TabWidget${'$'}Data;->getTitle()Ljava/lang/String;\n")
             append("move-result-object v4\n")
@@ -102,8 +108,7 @@ val hideWatchPageElementsPatch = bytecodePatch(
                 append("goto/16 :tab_skip\n")
                 append(":tab_next$i\n")
             }
-            // nop pins the trailing label to a real instruction; a block-final label
-            // otherwise resolves to the external target (every tab gets skipped).
+            // nop anchors the trailing label; a block-final label would resolve to the external target.
             append(":tab_keep\n")
             append("nop\n")
         }
@@ -113,36 +118,31 @@ val hideWatchPageElementsPatch = bytecodePatch(
             ExternalLabel("tab_skip", tabImpl[tabHead])
         )
 
-        // Pills: the converter drops swiggy/instamart-branded segments at the source, and
-        // the row parser skips pills left with no segments. Uses the loop's own scratch
-        // regs (v5/v6, rewritten each iteration before use); addFreeRegisters + labeled
-        // insertion silently loses the block in the patcher.
+        // Pills: converter drops swiggy/instamart segments at the source; the parser skips empty pills.
+        // Uses the loop's own scratch registers — addFreeRegisters + labeled insertion loses the block.
         if (hideSponsoredPills == true) {
             val conv = PillConverterFingerprint.method
 
-            val convImpl = conv.implementation!!.instructions
+            val convImpl = conv.instrs()
             val hasIllIdx = convImpl.indexOfFirst { ins ->
                 ins.opcode == Opcode.INVOKE_VIRTUAL &&
-                    (ins as? ReferenceInstruction)?.reference.toString().contains("Segment;->hasIllustration")
+                    ins.referenceText()?.contains("Segment;->hasIllustration") == true
             }
             require(hasIllIdx > 0) { "PillConverter: segment loop not found" }
             val segReg = conv.getInstruction<FiveRegisterInstruction>(hasIllIdx).registerC
             require(segReg == 3) { "PillConverter: unexpected segment register v$segReg" }
-            var head = -1
-            for (j in hasIllIdx downTo 0) {
-                val ins = convImpl[j]
-                if (ins.opcode == Opcode.INVOKE_INTERFACE &&
-                    (ins as? ReferenceInstruction)?.reference.toString().contains("Iterator;->hasNext")
-                ) { head = j; break }
+            val head = conv.prevInstructionIndex(hasIllIdx) { ins ->
+                ins.opcode == Opcode.INVOKE_INTERFACE &&
+                    ins.referenceText()?.contains("Iterator;->hasNext") == true
             }
             require(head >= 0) { "PillConverter: loop head not found" }
 
             val pillBlock = buildString {
-                append("invoke-virtual {v3}, Lcom/hotstar/ui/model/widget/IllustrationPillWidget" + '$' + "Segment;->getIllustration()Lcom/hotstar/ui/model/feature/image/Illustration;\n")
+                append("invoke-virtual {v3}, ${ILLUSTRATION_PILL_SEGMENT}->getIllustration()${ILLUSTRATION}\n")
                 append("move-result-object v5\n")
-                append("invoke-virtual {v5}, Lcom/hotstar/ui/model/feature/image/Illustration;->getLottie()Lcom/hotstar/ui/model/feature/image/Lottie;\n")
+                append("invoke-virtual {v5}, ${ILLUSTRATION}->getLottie()${LOTTIE}\n")
                 append("move-result-object v5\n")
-                append("invoke-virtual {v5}, Lcom/hotstar/ui/model/feature/image/Lottie;->getName()Ljava/lang/String;\n")
+                append("invoke-virtual {v5}, ${LOTTIE}->getName()Ljava/lang/String;\n")
                 append("move-result-object v5\n")
                 append("const-string v6, \"swiggy\"\n")
                 append("invoke-virtual {v5, v6}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z\n")
@@ -157,8 +157,7 @@ val hideWatchPageElementsPatch = bytecodePatch(
                 append("if-eqz v6, :sw_ok\n")
                 append("const/4 v4, 0x0\n")
                 append("goto/16 :sw_skip\n")
-                // nop pins the trailing label to a real instruction; a block-final label
-                // otherwise resolves to the external target (every segment gets skipped).
+                // nop anchors the trailing label; a block-final label would resolve to the external target.
                 append(":sw_ok\n")
                 append("nop\n")
             }
@@ -169,41 +168,35 @@ val hideWatchPageElementsPatch = bytecodePatch(
             )
 
             val parser = SubNavParserFingerprint.method
-            val parserImpl = parser.implementation!!.instructions
+            val parserImpl = parser.instrs()
             val convIdx = parserImpl.indexOfFirst { ins ->
                 ins.opcode == Opcode.INVOKE_STATIC &&
-                    (ins as? ReferenceInstruction)?.reference.toString()
-                        .contains("(Lcom/hotstar/ui/model/widget/IllustrationPillWidget;)Lcom/hotstar/bff/models/widget/BffIllustrationPillWidget;")
+                    ins.referenceText()?.contains("(Lcom/hotstar/ui/model/widget/IllustrationPillWidget;)Lcom/hotstar/bff/models/widget/BffIllustrationPillWidget;") == true
             }
             require(convIdx > 0) { "SubNavParser: pill converter call not found" }
             val pillReg = parser.getInstruction<OneRegisterInstruction>(convIdx + 1).registerA
             val wrapperReg = (0 until convIdx).last { i ->
                 parserImpl[i].opcode == Opcode.NEW_INSTANCE &&
-                    (parserImpl[i] as? ReferenceInstruction)?.reference.toString().contains("BffIllustrationPillSubMenuItem")
+                    parserImpl[i].referenceText()?.contains("BffIllustrationPillSubMenuItem") == true
             }.let { parser.getInstruction<OneRegisterInstruction>(it).registerA }
-            var head2 = -1
-            for (j in convIdx downTo 0) {
-                val ins = parserImpl[j]
-                if (ins.opcode == Opcode.INVOKE_INTERFACE &&
-                    (ins as? ReferenceInstruction)?.reference.toString().contains("Iterator;->hasNext")
-                ) { head2 = j; break }
+            val head2 = parser.prevInstructionIndex(convIdx) { ins ->
+                ins.opcode == Opcode.INVOKE_INTERFACE &&
+                    ins.referenceText()?.contains("Iterator;->hasNext") == true
             }
             require(head2 >= 0) { "SubNavParser: loop head not found" }
 
-            // The wrapper register doubles as the scratch: at this point it holds an
-            // uninitialized ref (legal to overwrite); the non-empty path re-allocates it
-            // before the original ctor, and the empty path nulls it (verifier-safe).
+            // Reuses the wrapper register as scratch, ensuring verifier-safe initialization.
             parser.addInstructionsWithLabels(
                 convIdx + 2,
                 """
-                iget-object v$wrapperReg, v$pillReg, Lcom/hotstar/bff/models/widget/BffIllustrationPillWidget;->d:Ljava/util/ArrayList;
+                iget-object v$wrapperReg, v$pillReg, ${BFF_PILL_WIDGET}->d:Ljava/util/ArrayList;
                 invoke-virtual {v$wrapperReg}, Ljava/util/ArrayList;->isEmpty()Z
                 move-result v$wrapperReg
                 if-nez v$wrapperReg, :sw_keep
                 const/4 v$wrapperReg, 0x0
                 goto/16 :sw_loop_head
                 :sw_keep
-                new-instance v$wrapperReg, Lcom/hotstar/bff/models/widget/BffIllustrationPillSubMenuItem;
+                new-instance v$wrapperReg, $BFF_PILL_SUB_MENU_ITEM
                 """.trimIndent(),
                 ExternalLabel("sw_loop_head", parserImpl[head2])
             )

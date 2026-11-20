@@ -93,7 +93,7 @@ final class ArchivedThreadImporter {
 
     static boolean importIfNeeded(Activity activity, String originalUrl, String browserFallback) {
         ThreadInfo info = ThreadInfo.parse(originalUrl);
-        if (info == null) return false;
+        if (info == null || !supportsImport(info, originalUrl)) return false;
 
         File directory = activity.getExternalFilesDir("2chMate/dat");
         if (directory == null) return false;
@@ -105,6 +105,7 @@ final class ArchivedThreadImporter {
         }
         File datFile = new File(directory, cacheBoard + "_" + info.thread + ".dat");
         if (datFile.isFile() && datFile.length() > 0) {
+            EdgeArchiveLocalSearch.remember(activity, datFile, originalUrl, "");
             Log.i(LOG_TAG, "Using existing cached DAT " + datFile.getName()
                     + " (" + datFile.length() + " bytes)");
             // Let ChMate continue normally when the imported DAT is already
@@ -139,6 +140,7 @@ final class ArchivedThreadImporter {
                         return;
                     }
                     publishDat(directory, datFile, info, dat);
+                    EdgeArchiveLocalSearch.remember(activity, datFile, originalUrl, "");
                     Log.i(LOG_TAG, "Imported " + dat.length + " Talk DAT bytes for " + importKey);
                     reopen(activity, originalUrl, null);
                     return;
@@ -152,6 +154,7 @@ final class ArchivedThreadImporter {
                 }
                 byte[] dat = fetchArchivedDat(activity, info);
                 publishDat(directory, datFile, info, dat);
+                EdgeArchiveLocalSearch.remember(activity, datFile, originalUrl, "");
                 Log.i(LOG_TAG, "Imported " + dat.length + " DAT bytes for " + importKey);
                 reopen(activity, originalUrl, "過去ログを取得しました");
             } catch (Throwable error) {
@@ -163,6 +166,21 @@ final class ArchivedThreadImporter {
             }
         }, "Haiagaru-archive-import").start();
         return true;
+    }
+
+    /**
+     * The configured archive routes below are 5ch/2ch.sc routes. In particular,
+     * Eddi archive results point back to bbs.eddibb.cc and must continue through
+     * ChMate's external-board handling instead of probing a fabricated
+     * "bbs.5ch.io" host and then every unrelated mirror.
+     */
+    static boolean supportsImportUrl(String url) {
+        ThreadInfo info = ThreadInfo.parse(url);
+        return info != null && supportsImport(info, url);
+    }
+
+    private static boolean supportsImport(ThreadInfo info, String url) {
+        return info.talk || info.vip || ArchiveThreadLinks.is5chThread(url);
     }
 
     private static boolean isTabletActivity(Activity activity) {

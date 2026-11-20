@@ -302,7 +302,7 @@ An operator code is five or six digits, like 310260	رمز المشغل يتكو
 An override changes the value TikTok reads from this gate. It doesn't change TikTok's saved copy or prove the named feature changed.	التجاوز يغيّر القيمة التي يقرؤها TikTok من هذه البوابة. لا يغيّر نسخة TikTok المحفوظة ولا يثبت أن الميزة المذكورة تغيرت.
 Animated sticker format	صيغة الملصقات المتحركة
 Save box for chat stickers	مربع حفظ لملصقات الدردشة
-Tapping a sticker someone sent you in a chat opens a box with Save media. Turn this off to skip it.	النقر على ملصق أرسله لك شخص ما في محادثة يفتح صندوقا يحتوي على حفظ الوسائط. أوقف هذا الخيار لتجاوزه.
+Tapping a sticker someone sent you in a chat opens a box with Save media. Holding one of TikTok's own stickers in a chat puts Save media in its menu too. Turn this off to skip both.	النقر على ملصق أرسله لك شخص ما في محادثة يفتح صندوقا يحتوي على حفظ الوسائط. والضغط المطوّل على أحد ملصقات TikTok نفسه في محادثة يضع حفظ الوسائط في قائمته أيضًا. أوقف هذا الخيار لتجاوز الاثنين.
 TikTok gets no location from your phone. The Region settings change your country and time zone. This switch stops the exact position.	لا يحصل TikTok على موقع من هاتفك. تغيّر إعدادات المنطقة بلدك ومنطقتك الزمنية. يمنع هذا المفتاح تمرير الموقع الدقيق.
 TikTok sees an empty contact list instead of yours. Find Friends and People you may know can no longer use your contacts.	يرى TikTok قائمة جهات اتصال فارغة بدلاً من قائمتك. لن يتمكن خيار العثور على الأصدقاء وخيار الأشخاص الذين قد تعرفهم من استخدام جهات اتصالك بعد الآن.
 TikTok sees an empty list of apps instead of the apps on your phone. Checks for one specific app, such as when TikTok opens an app you tap, still work.	يرى TikTok قائمة فارغة من التطبيقات بدلا من التطبيقات الموجودة على هاتفك. لا تزال عمليات التحقق من تطبيق واحد معين، مثل عندما يفتح TikTok تطبيقا تضغط عليه، تعمل.
@@ -2575,7 +2575,7 @@ On the main feed, a raised bubble of glass sits behind the tab you're on and sli
 Slide across the tabs	التمرير عبر التبويبات
 On the main feed, slide a finger along the tabs and the lens follows it. Let go and that tab opens. Taps and long presses work as before. Needs Glass lens on the current tab.	في الخلاصة الرئيسية، مرر إصبعك على التبويبات وستتبعه العدسة. اترك إصبعك وسيفتح هذا التبويب. النقرات والضغط المطول يعملان كما في السابق. يتطلب عدسة زجاجية على التبويب الحالي.
 Liquid glass when held	زجاج سائل عند الإمساك
-On the main feed, hold a finger on the tabs and the glass lens swells, then wobbles back when you let go. With Blur the video behind the bar on Android 13 and up, the video under it bends harder and splits into color at its edge. Needs Glass lens on the current tab.	في الخلاصة الرئيسية، أبقِ إصبعك على التبويبات فتنتفخ العدسة الزجاجية، ثم تعود متمايلة عندما ترفع إصبعك. مع ضبابية الفيديو خلف الشريط على Android 13 وأحدث، ينحني الفيديو تحتها أكثر وينقسم إلى ألوان عند حافتها. يتطلب عدسة زجاجية على التبويب الحالي.
+On the main feed, hold a finger on the tabs and the glass lens slides under it and swells, the tab beneath it grows, and they wobble back when you let go. On Android 13 and up the tabs bend at the lens's edge and split into color, and with Blur the video behind the bar so does the video. Needs Glass lens on the current tab.	في الخلاصة الرئيسية، أبقِ إصبعك على التبويبات فتنزلق العدسة الزجاجية تحته وتنتفخ، ويكبر التبويب الذي تحتها، ثم تعود متمايلة عندما ترفع إصبعك. على Android 13 وأحدث تنحني التبويبات عند حافة العدسة وتنقسم إلى ألوان، ومع ضبابية الفيديو خلف الشريط يحدث ذلك للفيديو أيضًا. يتطلب عدسة زجاجية على التبويب الحالي.
 Haptics on the tabs	الاهتزاز على التبويبات
 On the main feed, a light tick each time the glass lens passes a tab, as it slides after a tap or under your finger. Needs Glass lens on the current tab.	في الخلاصة الرئيسية، صوت نقرة خفيفة في كل مرة تمر فيها العدسة الزجاجية فوق تبويب، أثناء انزلاقها بعد النقر أو تحت إصبعك. يتطلب «عدسة زجاجية على التبويب الحالي».
 Haptic style	نمط الاهتزاز
@@ -2635,10 +2635,11 @@ Most viewed first	الأكثر مشاهدة أولا
 Least viewed first	الأقل مشاهدة أولا
 Most liked first	الأكثر إعجابا أولا
 Least liked first	الأقل إعجابا أولا
-Sorts a profile or Liked grid with pinned videos first. While an order is on, the grid keeps loading by itself up to 300 videos, so the order covers more than the first screen. A button in the grid's top corner changes the order right there.	يرتب شبكة الملف الشخصي أو شبكة أعجبني بحيث تكون الفيديوهات المثبتة أولا. أثناء تفعيل الترتيب، تستمر الشبكة بالتحميل تلقائيا حتى 300 فيديو، بحيث يغطي الترتيب أكثر من الشاشة الأولى. زر في الزاوية العلوية للشبكة يغير الترتيب من هناك مباشرة.
+Sorts a profile or Liked grid with pinned videos first. While an order is on, the grid keeps loading by itself up to %1$s videos, so the order covers more than the first screen. A button in the grid's top corner changes the order right there.	يرتب شبكة الملف الشخصي أو شبكة أعجبني بحيث تكون الفيديوهات المثبتة أولا. أثناء تفعيل الترتيب، تستمر الشبكة بالتحميل تلقائيا حتى %1$s فيديو، بحيث يغطي الترتيب أكثر من الشاشة الأولى. زر في الزاوية العلوية للشبكة يغير الترتيب من هناك مباشرة.
+Tap to see the order now	اضغط لرؤية الترتيب الآن
 Sort loaded videos on Liked grids	رتب الفيديوهات المحملة في شبكات أعجبني
 Sort loaded videos on sound pages	رتب الفيديوهات المحملة في صفحات الأصوات
-Sorts the videos on a sound's page the same way, loading up to 300 of them while an order is on.	يفرز مقاطع الفيديو في صفحة الصوت بالطريقة نفسها، ويحمّل ما يصل إلى 300 مقطعًا منها أثناء تفعيل الترتيب.
+Sorts the videos on a sound's page the same way, loading up to %1$s of them while an order is on.	يفرز مقاطع الفيديو في صفحة الصوت بالطريقة نفسها، ويحمّل ما يصل إلى %1$s مقطعًا منها أثناء تفعيل الترتيب.
 Same as profile grids	مثل شبكات الملف الشخصي
 Sort this grid	فرز هذه الشبكة
 Blur the video behind the bar	ضبابية الفيديو خلف الشريط
@@ -2859,7 +2860,7 @@ Use this phone's own IDs	استخدم IDs هذا الهاتف
 Wipes TikTok's data once, on the next start, and goes back to this phone's real Android ID and advertising ID. You'll be signed out and lose your drafts.	يمسح بيانات TikTok مرة واحدة، عند بدء التشغيل التالي، ويعود إلى معرف Android الحقيقي ومعرف الإعلانات لهذا الهاتف. ستخرج من حسابك وتفقد مسوداتك.
 TikTok goes back to this phone's IDs after the restart. Tap again to cancel.	يعود TikTok إلى معرفات هذا الهاتف بعد إعادة التشغيل. اضغط مرة أخرى للإلغاء.
 On a one-photo post, Download video makes an MP4 with the post's sound and no TikTok logo or end card. On a post with several photos, Download asks if you want the originals or one video. A photo story saves as a video too.	في منشور بصورة واحدة، زر «تنزيل الفيديو» ينشئ ملف MP4 مع صوت المنشور وبدون شعار TikTok أو بطاقة النهاية. في منشور يضم عدة صور، يسأل «تنزيل» إن كنت تريد النسخ الأصلية أو فيديو واحد. قصة الصور تُحفظ كفيديو أيضًا.
-How long each photo stays on screen in a video made from a photo post. A story's video runs as long as the story does.	مدة بقاء كل صورة على الشاشة في فيديو مصنوع من منشور صور. يعمل فيديو القصة بنفس مدة القصة.
+How long each photo stays on screen in a video made from a photo post. A post with just one photo runs as long as its sound. A story's video runs as long as the story does.	مدة بقاء كل صورة على الشاشة في فيديو مصنوع من منشور صور. يستمر فيديو المنشور ذي الصورة الواحدة بطول صوته. يعمل فيديو القصة بنفس مدة القصة.
 Stop loading	أوقف التحميل
 Recording files deleted	تم حذف ملفات التسجيل
 Hide story views	إخفاء مشاهدات القصة
@@ -3162,6 +3163,10 @@ Cover the whole window without cropping anything. The video gets a little taller
 Sort loaded videos on Favorites grids	رتب الفيديوهات المحملة في شبكات المفضلات
 Show the country and date under the caption	اعرض البلد والتاريخ تحت الوصف
 Moves the country and the post date off the creator's row onto a line of their own below the caption.	ينقل البلد وتاريخ النشر من صف صانع المحتوى إلى سطر خاص بهما أسفل الوصف.
+# context: picture-in-picture window button that moves TikTok's LIVE rooms
+Previous LIVE	LIVE السابق
+# context: picture-in-picture window button that moves TikTok's LIVE rooms
+Next LIVE	LIVE التالي
 # context: picture-in-picture window button that moves TikTok's feed
 Previous video	الفيديو السابق
 # context: picture-in-picture window button that moves TikTok's feed

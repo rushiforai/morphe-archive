@@ -13,6 +13,7 @@
  *
  * Modified by lavinhoque33, 2026-11-13
  * Modified by lavinhoque33, 2026-11-17.
+ * Modified by lavinhoque33, 2026-11-19.
  */
 
 package app.morphe.extension.shared.spoof.requests;
@@ -70,6 +71,8 @@ import app.morphe.extension.shared.requests.Requester;
 import app.morphe.extension.shared.requests.Route;
 import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.shared.spoof.ClientType;
+import app.morphe.extension.shared.spoof.MwebSiteSession;
+import app.morphe.extension.shared.spoof.MwebStream;
 import app.morphe.extension.shared.spoof.PreferredClientCheck;
 import app.morphe.extension.shared.spoof.SpoofVideoStreamsPatch;
 import app.morphe.extension.shared.spoof.potoken.PoTokenManager;
@@ -82,7 +85,7 @@ public class StreamOrDetailsDataRequest {
      * @param client Client the streams are of.
      */
     public record StreamData(byte[] streamingData, @Nullable byte[] playerConfig, boolean hasAndroidMedia,
-                             ClientType client) {
+                             ClientType client, @Nullable MwebStream webStream) {
     }
 
     public static boolean getLastSpoofedClientUseSABR() {
@@ -93,6 +96,7 @@ public class StreamOrDetailsDataRequest {
     private static volatile ClientType[] clientStreamOrderToUse =
             Arrays.stream(ClientType.values())
                     .filter(client -> client.usePlayerEndpoint)
+                    .filter(client -> !isOptInClient(client))
                     .toArray(ClientType[]::new);
 
     public static void setClientOrderToUse(List<ClientType> availableClients, ClientType preferredClient) {
@@ -100,6 +104,14 @@ public class StreamOrDetailsDataRequest {
 
         clientStreamOrderToUse = orderToUse.toArray(new ClientType[0]);
         Logger.printDebug(() -> "Available spoof clients: " + orderToUse);
+    }
+
+    private static boolean isOptInClient(ClientType client) {
+        return switch (client) {
+            case ANDROID_VR_EXPERIMENTAL, ANDROID_XR_EXPERIMENTAL,
+                 VISIONOS_1_06, VISIONOS_1_06_AV1, MWEB -> true;
+            default -> false;
+        };
     }
 
     public static List<ClientType> buildClientOrder(List<ClientType> availableClients,
@@ -113,14 +125,23 @@ public class StreamOrDetailsDataRequest {
         if (preferredClient == ClientType.TV_SABR) {
             orderToUse.add(ClientType.TV_SABR_WII_U);
         }
+        // A failed or unavailable web session should fall back as the regular default would.
+        if (preferredClient == ClientType.MWEB) {
+            orderToUse.add(ClientType.VISIONOS_1_02);
+        }
 
         for (ClientType client : availableClients) {
+            if (isOptInClient(client)) {
+                continue;
+            }
+
             if (client.requireJS && !supportsJavaScriptEngine()) {
                 Logger.printDebug(() -> "Could not find JavaScript engine. Skipping JavaScript client: " + client.name());
                 continue;
             }
 
-            if (client != preferredClient) {
+            if (client != preferredClient
+                    && (preferredClient != ClientType.MWEB || client != ClientType.VISIONOS_1_02)) {
                 orderToUse.add(client);
             }
         }
@@ -132,6 +153,7 @@ public class StreamOrDetailsDataRequest {
     private static final String PAGE_ID_HEADER = "X-Goog-PageId";
     private static final String API_FORMAT_VERSION_HEADER = "X-GOOG-API-FORMAT-VERSION";
     private static final String VISITOR_ID_HEADER = "X-Goog-Visitor-Id";
+    private static final int MWEB_METADATA_TIMEOUT_MILLISECONDS = 3_000;
 
     private static final int HTTP_TIMEOUT_MILLISECONDS = 10 * 1000;
     private static final int MAX_MILLISECONDS_TO_WAIT_FOR_FETCH = 20 * 1000;
@@ -258,6 +280,9 @@ public class StreamOrDetailsDataRequest {
             playerClients.remove(videoId);
         } else {
             playerClients.put(videoId, client);
+            if (client == ClientType.MWEB) {
+                Logger.printDebug(() -> "Mobile Web: selected player client MWEB for " + videoId);
+            }
         }
     }
 
@@ -462,6 +487,9 @@ public class StreamOrDetailsDataRequest {
                                           @Nullable String videoId,
                                           Map<String, String> playerHeaders,
                                           boolean showErrorToasts, boolean forDownload) {
+        // Mobile Web takes only the captured website identity, never the native request headers.
+        if (clientType == ClientType.MWEB) return null;
+
         Objects.requireNonNull(clientType);
         Objects.requireNonNull(videoId);
 
@@ -570,6 +598,45 @@ public class StreamOrDetailsDataRequest {
     }
 
     @Nullable
+    private static Object fetchMobileWebMetadata(String videoId, boolean isInline, MwebSiteSession.Session session,
+                                                 String visitorData) {
+        authHeadersOverrides = false;
+        HttpURLConnection connection = null;
+        try {
+            connection = PlayerRoutes.getPlayerResponseConnectionFromRoute(ClientType.MWEB, false);
+            connection.setConnectTimeout(MWEB_METADATA_TIMEOUT_MILLISECONDS);
+            connection.setReadTimeout(MWEB_METADATA_TIMEOUT_MILLISECONDS);
+            connection.setRequestProperty(API_FORMAT_VERSION_HEADER, "2");
+            if (!visitorData.isEmpty()) {
+                connection.setRequestProperty(VISITOR_ID_HEADER, visitorData);
+            }
+
+            String metadata = PlayerRoutes.createInnertubeBody(ClientType.MWEB, videoId, visitorData,
+                    session.signatureTimestamp());
+            byte[] requestBody = metadata.getBytes(StandardCharsets.UTF_8);
+            connection.setFixedLengthStreamingMode(requestBody.length);
+            try (var output = connection.getOutputStream()) {
+                output.write(requestBody);
+            }
+
+            final int status = connection.getResponseCode();
+            if (status != HttpURLConnection.HTTP_OK) {
+                Logger.printDebug(() -> "Mobile Web: metadata HTTP " + status + " for " + videoId);
+                return null;
+            }
+
+            return buildPlayerStreamOrDetailsResponse(ClientType.MWEB, connection, videoId, isInline, false, session);
+        } catch (SocketTimeoutException ignored) {
+            Logger.printDebug(() -> "Mobile Web: metadata transport timeout for " + videoId);
+        } catch (IOException | RuntimeException ignored) {
+            Logger.printDebug(() -> "Mobile Web: metadata transport failure for " + videoId);
+        } finally {
+            if (connection != null) connection.disconnect();
+        }
+        return null;
+    }
+
+    @Nullable
     private static Object buildPlayerStreamOrDetailsResponse(@Nullable ClientType clientType,
                                                              @Nullable HttpURLConnection connection,
                                                              String videoId,
@@ -582,6 +649,14 @@ public class StreamOrDetailsDataRequest {
                                                              @Nullable HttpURLConnection connection,
                                                              String videoId,
                                                              boolean isInline, boolean forDownload) {
+        return buildPlayerStreamOrDetailsResponse(clientType, connection, videoId, isInline, forDownload, null);
+    }
+
+    @Nullable
+    private static Object buildPlayerStreamOrDetailsResponse(@Nullable ClientType clientType,
+                                                            @Nullable HttpURLConnection connection,
+                                                            String videoId, boolean isInline, boolean forDownload,
+                                                            @Nullable MwebSiteSession.Session webSession) {
         if (connection == null) {
             return null;
         }
@@ -590,6 +665,10 @@ public class StreamOrDetailsDataRequest {
                 && clientType != ClientType.SAVE_TO_WATCH_LATER;
 
         if (connection.getContentLength() == 0) {
+            if (webSession != null) {
+                Logger.printDebug(() -> "Mobile Web: empty metadata response for " + videoId);
+                return null;
+            }
             noteDownloadOutcome(forDownload, clientType, videoId, "empty response");
             handleDebugToast(String.format("Debug: Ignoring empty %s client (%%s)", returnStreamObject ? "spoof stream" : "get details"), clientType);
             return null;
@@ -600,7 +679,14 @@ public class StreamOrDetailsDataRequest {
                 PlayerResponse playerResponse;
                 if (clientType.usePlayerEndpoint) {
                     playerResponse = PlayerResponse.parseFrom(inputStream);
-                    VisitorIdRequester.updateVisitorIdIfNeed(clientType, playerResponse.getResponseContext().getVisitorData());
+                    if (webSession != null && playerResponse.equals(PlayerResponse.getDefaultInstance())) {
+                        Logger.printDebug(() -> "Mobile Web: empty metadata response for " + videoId);
+                        return null;
+                    }
+                    if (webSession == null) {
+                        VisitorIdRequester.updateVisitorIdIfNeed(
+                                clientType, playerResponse.getResponseContext().getVisitorData());
+                    }
                 } else {
                     ReelItemWatchResponse reelItemWatchResponse = ReelItemWatchResponse.parseFrom(inputStream);
                     VisitorIdRequester.updateVisitorIdIfNeed(clientType, reelItemWatchResponse.getResponseContext().getVisitorData());
@@ -610,6 +696,10 @@ public class StreamOrDetailsDataRequest {
                 String status = playabilityStatus.getStatus().name();
 
                 if (!"OK".equals(status)) {
+                    if (webSession != null) {
+                        Logger.printDebug(() -> "Mobile Web: metadata playability " + status + " for " + videoId);
+                        return null;
+                    }
                     noteDownloadOutcome(forDownload, clientType, videoId, "playability " + status + " "
                             + playabilityStatus.getReason());
                     return null;
@@ -617,6 +707,10 @@ public class StreamOrDetailsDataRequest {
 
                 PlayerResponse.Builder responseBuilder = playerResponse.toBuilder();
                 if (!playerResponse.hasStreamingData()) {
+                    if (webSession != null) {
+                        Logger.printDebug(() -> "Mobile Web: metadata missing streaming data for " + videoId);
+                        return null;
+                    }
                     noteDownloadOutcome(forDownload, clientType, videoId, "no streamingData");
                     return null;
                 }
@@ -636,6 +730,10 @@ public class StreamOrDetailsDataRequest {
                     }
                 }
                 if (streamingData.getAdaptiveFormatsCount() == 0) {
+                    if (webSession != null) {
+                        Logger.printDebug(() -> "Mobile Web: metadata has no adaptive formats for " + videoId);
+                        return null;
+                    }
                     noteDownloadOutcome(forDownload, clientType, videoId, "no adaptive formats");
                     return null;
                 }
@@ -680,6 +778,12 @@ public class StreamOrDetailsDataRequest {
                     responseBuilder.setStreamingData(deobfuscatedStreamingData);
                 }
 
+                if (webSession != null) {
+                    // The website has already decoded this media URL for the captured, anonymous SABR session.
+                    responseBuilder.setStreamingData(responseBuilder.getStreamingData().toBuilder()
+                            .setServerAbrStreamingUrl(webSession.serverAbrStreamingUrl()));
+                }
+
                 // Strip VP9 formats when Force AVC is on (Morphe bb3e3ff0).
                 // 'Force AVC' only keeps the player from using VP9, its formats are still in the stream.
                 // A default quality that only VP9 formats reach then has no format the player can use,
@@ -715,6 +819,12 @@ public class StreamOrDetailsDataRequest {
                 if (clientType.requireSABR && playerResponse.hasPlayerConfig()) {
                     PlayerConfig.Builder playerConfigBuilder = playerResponse.getPlayerConfig().toBuilder();
 
+                    if (!forDownload && (clientType == ClientType.ANDROID_VR_EXPERIMENTAL
+                            || clientType == ClientType.ANDROID_XR_EXPERIMENTAL || webSession != null)) {
+                        // Dynamic ad handling with these SABR sessions can cause a playback reload loop.
+                        playerConfigBuilder.clearDaiConfig();
+                    }
+
                     // If 'androidMedialibConfig' exists in the response, all playerConfigs are compatible.
                     // Override all playerConfigs.
                     hasAndroidMedia = playerConfigBuilder.hasAndroidMedialibConfig();
@@ -735,7 +845,12 @@ public class StreamOrDetailsDataRequest {
                 }
 
                 noteDownloadOutcome(forDownload, clientType, videoId, "OK");
-                return new StreamData(streamingDataBuffer, playerConfigBuffer, hasAndroidMedia, clientType);
+                MwebStream webStream = webSession == null ? null : MwebStream.register(videoId, webSession);
+                if (webStream != null && !webStream.isUsable()) {
+                    Logger.printDebug(() -> "Mobile Web: unusable SABR session for " + videoId);
+                    return null;
+                }
+                return new StreamData(streamingDataBuffer, playerConfigBuffer, hasAndroidMedia, clientType, webStream);
             } else {
                 String response = new BufferedReader(new InputStreamReader(inputStream))
                         .lines()
@@ -752,9 +867,49 @@ public class StreamOrDetailsDataRequest {
                 }
             }
         } catch (IOException | JSONException ex) {
-            Logger.printException(() -> "Failed to write player response", ex);
+            if (webSession == null) {
+                Logger.printException(() -> "Failed to write player response", ex);
+            } else if (ex instanceof InvalidProtocolBufferException proto && proto.unwrapIOException() == proto) {
+                Logger.printDebug(() -> "Mobile Web: invalid metadata protobuf for " + videoId);
+            } else {
+                Logger.printDebug(() -> "Mobile Web: metadata read failure for " + videoId);
+            }
         }
         return null;
+    }
+
+    @Nullable
+    private static Object fetchMobileWeb(String videoId, boolean isInline) {
+        if (!MwebSiteSession.isSupported()) {
+            Logger.printDebug(() -> "Mobile Web: required WebView or media hook unavailable for " + videoId);
+            return null;
+        }
+        if (!Utils.isNetworkConnected()) {
+            Logger.printDebug(() -> "Mobile Web: network unavailable for " + videoId);
+            return null;
+        }
+        if (MwebStream.recentlyFailed(videoId)) {
+            Logger.printDebug(() -> "Mobile Web: skipping recently rejected session for " + videoId);
+            return null;
+        }
+
+        try (MwebSiteSession page = MwebSiteSession.start(videoId)) {
+            MwebSiteSession.Session session = page == null ? null : page.await();
+            if (session == null) {
+                Logger.printDebug(() -> "Mobile Web: no website session for " + videoId);
+                return null;
+            }
+
+            if (session.signatureTimestamp() <= 0) {
+                Logger.printDebug(() -> "Mobile Web: no website signature timestamp for " + videoId);
+                return null;
+            }
+
+            return fetchMobileWebMetadata(videoId, isInline, session, session.visitorData());
+        } catch (IOException ex) {
+            Logger.printDebug(() -> "Mobile Web: invalid website session for " + videoId);
+            return null;
+        }
     }
 
     private static Object fetch(@Nullable Route.CompiledRoute videoDetailsEndpoint,
@@ -780,6 +935,16 @@ public class StreamOrDetailsDataRequest {
             int i = 0;
             for (ClientType clientTypeStream : clientOrderToUse) {
                 final boolean showErrorToast = ((++i == clientOrderToUse.length) || debugEnabled) && !isDownload;
+                if (clientTypeStream == ClientType.MWEB) {
+                    if (!isDownload) {
+                        Object streams = fetchMobileWeb(videoId, isInline);
+                        if (streams != null) {
+                            PreferredClientCheck.onStreamsFetched(videoId, i == 1, ClientType.MWEB);
+                            return streams;
+                        }
+                    }
+                    continue;
+                }
 
                 if (clientTypeStream.requireJS) {
                     JavaScriptManager.warmUpInBackground();
@@ -942,6 +1107,14 @@ public class StreamOrDetailsDataRequest {
             return true;
         }
         final long age = System.currentTimeMillis() - fetchStartTime;
+        if (clientOrder != null && clientOrder.length > 0 && clientOrder[0] == ClientType.MWEB) {
+            StreamData stream = getStream();
+            if (stream != null && stream.webStream() != null) {
+                return age < MAX_MILLISECONDS_TO_REUSE_STREAMS && stream.webStream().isUsable();
+            }
+            // Native fallback is useful for a reload, not for the next deliberate start of this video.
+            return age < MAX_MILLISECONDS_TO_REUSE_FAILED_FETCH;
+        }
         return age < MAX_MILLISECONDS_TO_REUSE_FAILED_FETCH
                 || (age < MAX_MILLISECONDS_TO_REUSE_STREAMS && getStreamDetails() instanceof StreamData);
     }

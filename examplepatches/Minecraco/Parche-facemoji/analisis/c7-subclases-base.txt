@@ -1,0 +1,39 @@
+4 ficheros DEX, 164880 cadenas distintas
+
+Lcom/baidu/simeji/admaster/AdMasterTestActivity;  extends  Lcom/baidu/simeji/components/b;
+Lcom/baidu/simeji/debug/DebugActivity;  extends  Lcom/baidu/simeji/components/b;
+Lcom/baidu/simeji/debug/VoiceProDebugActivity;  extends  Lcom/baidu/simeji/components/b;
+Lcom/baidu/simeji/inputview/candidate/operation/OperationWebActivity;  extends  Lcom/baidu/simeji/components/b;
+Lcom/baidu/simeji/permission/PermissionGuideActivity;  extends  Lcom/baidu/simeji/components/b;
+Lcom/baidu/simeji/ranking/view/container/DicDialogActivity;  extends  Lcom/baidu/simeji/components/b;
+Lcom/baidu/simeji/ranking/view/container/RankingTagActivity;  extends  Lcom/baidu/simeji/components/b;
+Lcom/baidu/simeji/ranking/view/container/RankingTipsActivity;  extends  Lcom/baidu/simeji/components/b;
+Lcom/baidu/simeji/settings/AgreementActivity;  extends  Lcom/baidu/simeji/components/b;
+Lcom/baidu/simeji/settings/EmojiStyleSettingActivity;  extends  Lcom/baidu/simeji/components/b;
+Lcom/baidu/simeji/settings/FaqActivity;  extends  Lcom/baidu/simeji/components/b;
+Lcom/baidu/simeji/settings/FeedbackActivity;  extends  Lcom/baidu/simeji/components/b;
+Lcom/baidu/simeji/settings/GameModeSwitchActivity;  extends  Lcom/baidu/simeji/components/b;
+Lcom/baidu/simeji/settings/InputMethodSubtypeSettingActivity;  extends  Lcom/baidu/simeji/components/b;
+Lcom/baidu/simeji/settings/InvokeIMEActivity;  extends  Lcom/baidu/simeji/components/b;
+Lcom/baidu/simeji/settings/ManageSpaceActivity;  extends  Lcom/baidu/simeji/components/b;
+Lcom/baidu/simeji/settings/MixedInputLanguageActivity;  extends  Lcom/baidu/simeji/components/b;
+Lcom/baidu/simeji/settings/PowerSaveActivity;  extends  Lcom/baidu/simeji/components/b;
+Lcom/baidu/simeji/settings/PrivacyActivity;  extends  Lcom/baidu/simeji/components/b;
+Lcom/baidu/simeji/settings/SettingsActivity;  extends  Lcom/baidu/simeji/components/b;
+Lcom/baidu/simeji/settings/SettingsNoneActivity;  extends  Lcom/baidu/simeji/components/b;
+Lcom/baidu/simeji/settings/Voice2SettingActivity;  extends  Lcom/baidu/simeji/components/b;
+Lcom/baidu/simeji/settings/guide/GuideNewCustomSkinActivity;  extends  Lcom/baidu/simeji/components/b;
+Lcom/baidu/simeji/settings/guide/GuideSelectLanguageActivity;  extends  Lcom/baidu/simeji/components/b;
+Lcom/baidu/simeji/settings/guide/GuidingForUserActivity;  extends  Lcom/baidu/simeji/components/b;
+Lcom/baidu/simeji/settings/guide/MicrophonePermissionGuideActivity;  extends  Lcom/baidu/simeji/components/b;
+Lcom/baidu/simeji/skins/MessengerEntryActivity;  extends  Lcom/baidu/simeji/components/b;
+Lcom/baidu/simeji/skins/SkinMoreActivity;  extends  Lcom/baidu/simeji/components/b;
+Lcom/baidu/simeji/skins/customskin/CustomSkinActivity;  extends  Lcom/baidu/simeji/components/b;
+Lcom/baidu/simeji/skins/i0;  extends  Lcom/baidu/simeji/components/b;
+Lcom/baidu/simeji/sticker/StickerDetailActivity;  extends  Lcom/baidu/simeji/components/b;
+Lcom/baidu/simeji/sticker/StickerMessengerActivity;  extends  Lcom/baidu/simeji/components/b;
+Lcom/baidu/simeji/util/MessengerShareActivity;  extends  Lcom/baidu/simeji/components/b;
+Lth/c;  extends  Lcom/baidu/simeji/components/b;
+Luf/b;  extends  Lcom/baidu/simeji/components/b;
+
+35 clases

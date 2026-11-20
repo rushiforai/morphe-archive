@@ -131,6 +131,7 @@
     <string name="morphe_music_downloads_sort">فرز</string>
     <string name="morphe_music_downloads_started">بدأ التنزيل</string>
     <string name="morphe_music_downloads_starting">جارٍ بدء التنزيل…</string>
+    <string name="morphe_music_downloads_waiting_for_connection">في انتظار الاتصال</string>
     <string name="morphe_music_downloads_unknown_track">تعذّر تحديد المسار المطلوب تنزيله</string>
     <string name="morphe_music_hide_you_may_also_like_section_title">إخفاء قسم \"قد يعجبك أيضاً\"</string>
     <string name="morphe_music_hide_your_downloads_shelf_title">إخفاء رف \'تنزيلاتك\'</string>
@@ -1017,4 +1018,8 @@
     <string name="revanced_webview_toast_unavailable">WebView غير متاح</string>
     <string name="morphe_music_auto_song_version_title">تشغيل نسخة الأغنية دائمًا</string>
     <string name="morphe_music_auto_song_version_summary">يستبدل الفيديوهات الموسيقية الرسمية في قائمة الانتظار بالأغنية المطابقة. يتطلب تفعيل إعداد التطبيق «عدم تشغيل الفيديوهات الموسيقية». تبقى المقاطع التي لا يوجد لها تطابق تام دون تغيير</string>
+    <string name="morphe_music_playlist_download_connect">اتصل بالإنترنت لمتابعة هذا التنزيل</string>
+    <string name="morphe_music_playlist_ready">%1$d من %2$d جاهزة</string>
+    <string name="morphe_music_playlist_resume">%1$d من %2$d جاهزة · استئناف</string>
+    <string name="morphe_music_playlist_partial_failed">%1$d من %2$d جاهزة (تعذّر تنزيل %3$d) · استئناف</string>
 </resources>

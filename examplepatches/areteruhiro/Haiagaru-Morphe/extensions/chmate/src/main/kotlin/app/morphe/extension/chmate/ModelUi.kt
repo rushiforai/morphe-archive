@@ -492,6 +492,7 @@ internal fun prepareNativeSurfaces(root: ViewGroup) {
                 Text((root.getChildAt(2) as TextView).text.toString(),
                     style = MaterialTheme.typography.bodySmall, maxLines = 2,
                     overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                ModelContent(root.getChildAt(3), revision, changed = changed)
                 }
                 CompositionLocalProvider(LocalDensity provides resultsDensity) {
                     val refresh = root.getTag(EddiArchiveSearchUi.REFRESH_ACTION_TAG) as? Runnable
@@ -501,13 +502,13 @@ internal fun prepareNativeSurfaces(root: ViewGroup) {
                             isRefreshing = root.getTag(EddiArchiveSearchUi.SEARCH_BUSY_TAG) == true,
                             onRefresh = { refresh?.run(); changed() }, modifier = Modifier.weight(1f).fillMaxWidth()
                         ) {
-                            ModelContent(root.getChildAt(3), revision, Modifier.fillMaxSize(), changed = changed)
+                            ModelContent(root.getChildAt(4), revision, Modifier.fillMaxSize(), changed = changed)
                         }
-                    } else ModelContent(root.getChildAt(3), revision, Modifier.weight(1f), changed = changed)
+                    } else ModelContent(root.getChildAt(4), revision, Modifier.weight(1f), changed = changed)
                 }
                 CompositionLocalProvider(LocalDensity provides controlsDensity) {
-                ModelContent(root.getChildAt(4), revision, changed = changed)
-                val original = root.getChildAt(5) as Button
+                ModelContent(root.getChildAt(5), revision, changed = changed)
+                val original = root.getChildAt(6) as Button
                 TextButton(onClick = { original.performClick(); changed() }) {
                     Text(original.text.toString(), maxLines = 1)
                 }

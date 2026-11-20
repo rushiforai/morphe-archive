@@ -50,7 +50,7 @@ public final class ProfileTabs {
     }
 
     /**
-     * The checklist's rows, the first seven in the order your own profile shows them on 47.9.1,
+     * The checklist's rows, the first seven in the order your own profile shows them on 47.9.2,
      * so the list you reorder starts out as the strip you see.
      */
     public static final List<Row> ROWS = List.of(
@@ -147,7 +147,13 @@ public final class ProfileTabs {
                 arranged.add(type);
             } else {
                 // In TikTok's order, so the two Shop tabs, or a drama's three, stay as they were.
-                lifted.computeIfAbsent(key, unused -> new ArrayList<>()).add(type);
+                // Not computeIfAbsent: Map's default methods are API 24.
+                List<Object> group = lifted.get(key);
+                if (group == null) {
+                    group = new ArrayList<>();
+                    lifted.put(key, group);
+                }
+                group.add(type);
             }
         }
         // From the end of the order back, so the row after a moved one is already in place.

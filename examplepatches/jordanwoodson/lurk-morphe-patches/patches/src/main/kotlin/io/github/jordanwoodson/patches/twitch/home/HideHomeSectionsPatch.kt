@@ -34,7 +34,8 @@ private const val RECAPS = "hide_home_recaps"
 val hideHomeSectionsPatch = bytecodePatch(
     name = "Hide Home sections",
     description = "Hides Stories on Home and, each with its own switch, the Continue watching, offline " +
-        "channels and recommended channels sections of Following and the recent streams shelf of the Live tab.",
+        "channels and recommended channels sections of Following, the recent streams shelf of the Live tab and the " +
+        "Live tab itself.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_TWITCH)
@@ -54,6 +55,9 @@ val hideHomeSectionsPatch = bytecodePatch(
                 "Recommended live channels in Following.", Section.INTERFACE, restart = true),
             SwitchSetting(RECAPS, "Hide recent streams",
                 "The \"From channels you follow\" shelf of past streams on Home's Live tab.", Section.INTERFACE,
+                default = false, restart = true),
+            SwitchSetting(HIDE_LIVE_TAB, "Hide Live tab",
+                "Home's Live tab, signed in on a phone, so Home opens on Following.", Section.INTERFACE,
                 default = false, restart = true),
         )
     }
@@ -127,6 +131,8 @@ internal fun HermesBundle.hideHomeSections() {
     // shelf of recent streams on the Live tab (discussion 50) are components of their own.
     returnNull("FollowingOfflineChannels", OFFLINE, defaultEnabled = false)
     returnNull("RecapsShelf", RECAPS, defaultEnabled = false)
+    // The Live tab itself (issue 73), in its own file so the host probes compile it without Morphe's bytecode API.
+    hideHomeLiveTab()
 }
 
 /**

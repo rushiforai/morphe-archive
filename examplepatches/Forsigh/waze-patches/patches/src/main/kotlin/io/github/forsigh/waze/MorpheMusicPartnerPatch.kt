@@ -1,7 +1,10 @@
 package io.github.forsigh.waze
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.methodCall
@@ -13,6 +16,7 @@ import app.morphe.patcher.patch.resourcePatch
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction11n
 import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction11x
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import io.github.forsigh.waze.WazeConstants.COMPATIBILITY_WAZE
 import org.w3c.dom.Element
@@ -65,6 +69,14 @@ private const val MORPHE_MUSIC_LABEL = "Morphe Music"
 /** Label for the stock package id, which is what Morphe's root build presents as. */
 private const val YOUTUBE_MUSIC_LABEL = "YouTube Music"
 
+/**
+ * Waze's feature bit for an audio partner with an SDK (`FEATURE_AUDIO`). The value is copied from
+ * the stock YouTube Music entry when the server lists it; this is the fallback used by the arrays.
+ */
+private const val PARTNER_SCOPE = 0x200001
+
+private const val SDK_CONFIGURATION = "Lcom/waze/sdk/SdkConfiguration;"
+
 /** Every partner id this row registers, with the label Waze shows for it. */
 private val PARTNER_ENTRIES = listOf(
     MORPHE_MUSIC_PACKAGE to MORPHE_MUSIC_LABEL,
@@ -73,34 +85,6 @@ private val PARTNER_ENTRIES = listOf(
 
 /** Plain media apps, added alongside the Morphe entry when their gear is on. */
 
-/**
- * `au.g(Context)` - the per-partner availability check. Stock, it only takes the install-check path
- * for package equal to the Spotify literal; everything else is asked for a
- * `com.waze.sdk.audio.ACTION_INIT` broadcast receiver, which a plain media app never ships, so it reads
- * as unavailable: the settings row goes dead and the car side drops it. BitChord (1.8.1) and Smart
- * AudioBook Player (11.9.0) both ship a MediaBrowserService but no Waze SDK receiver (their manifests
- * were pulled off the device and read), so this is the gate that keeps them out.
- */
-internal val PartnerAvailabilityFingerprint = Fingerprint(
-    definingClass = "Lcom/waze/sdk/au;",
-    name = "g",
-    parameters = listOf("Landroid/content/Context;"),
-    returnType = "Z",
-)
-
-/**
- * `aw.g(Context)` - 5.27.90.900. `au` became a plain server DTO (four fields, no behaviour), and the
- * runtime partner object is `aw`: package, label, scope, url, cached installed flag. The availability
- * decision moved here, and it is the same shape as the old one - compare the package to
- * "com.spotify.music", then branch. Pinned by `g`'s name and signature; the pin below proves the
- * literal is inside it before touching anything.
- */
-internal val PartnerAvailabilityV2Fingerprint = Fingerprint(
-    definingClass = "Lcom/waze/sdk/aw;",
-    name = "g",
-    parameters = listOf("Landroid/content/Context;"),
-    returnType = "Z",
-)
 
 /**
  * `SdkConfiguration.updateAppList()` - the roster refresh that rebuilds `appConfigs` and persists each
@@ -178,8 +162,8 @@ val morpheMusicSupportPatch = resourcePatch(
 
 @Suppress("unused")
 val morpheMusicPartnerPatch = bytecodePatch(
-    name = "Morphe YouTube Music as a Waze audio partner",
-    description = "Lets Morphe YouTube Music play through Waze.",
+    name = "YouTube Music as a Waze audio partner",
+    description = "Lets Morphe YouTube Music and stock YouTube Music play through Waze's audio player.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_WAZE)
@@ -190,104 +174,115 @@ val morpheMusicPartnerPatch = bytecodePatch(
     dependsOn(configOverridesPatch)
 
     execute {
-        val method = AppListRefreshFingerprint.method
-        val matches = AppListRefreshFingerprint.instructionMatches
-        if (matches.isEmpty()) {
-            throw PatchException(
-                "morpheMusicPartnerPatch: updateAppList no longer calls savePackageScopesToSharedPref - " +
-                    "refusing to inject into a roster refresh that has moved"
-            )
-        }
+        // The append runs after Waze's own null checks on the four server arrays: at cold start they
+        // are still null and getPartners()/updateAppList() treat that as "no roster yet". Writing
+        // before those checks is what crashed 0.30.63-dev.4 on launch.
+        val configClass = mutableClassDefBy(SDK_CONFIGURATION)
+        val implementation: MutableMethodImplementation
+        val host: MutableMethod
+        val instance: String
+        val registers: Triple<Int, Int, Int>
+        val insertIndex: Int
 
-        // Upstream's insertion point: right AFTER the last scope-save call, where the rebuilt map is in
-        // hand and non-null. Registers v4-v10 are free there; v1 (the monitor) is not touched.
-        val insertIndex = matches.last().index + 1
-        // Both ids always: the install check in au.g drops whichever package is absent, so a phone
-        // carrying only the renamed Morphe build or only stock YouTube Music gets exactly one entry.
-        val entries = PARTNER_ENTRIES
-        // 5.27.90.900: appConfigs holds the runtime partner object `aw`, not `au` - `au` is now a
-        // four-field server DTO with no behaviour. `aw`'s three-argument constructor takes package,
-        // label and scope flags and leaves the install url null, which is exactly what we inject.
-        val runtimeClass = if (boundMethodOrNull(PartnerAvailabilityV2Fingerprint) != null) {
-            "Lcom/waze/sdk/aw;"
+        val partnersMethod = configClass.methods.firstOrNull {
+            it.name == "getPartners" && it.parameterTypes.isEmpty() &&
+                it.returnType == "Ljava/util/List;"
+        }
+        if (partnersMethod != null) {
+            // 5.27.9x: the roster is assembled in its own method, on the instance.
+            host = partnersMethod
+            implementation = partnersMethod.implementation
+                ?: throw PatchException("morpheMusicPartnerPatch: getPartners() has no body")
+            instance = "p0"
+            registers = Triple(5, 6, 7)
+            insertIndex = implementation.instructions.indexOfFirst { it.opcode == Opcode.NEW_ARRAY }
+            if (insertIndex < 0) throw PatchException(
+                "morpheMusicPartnerPatch: getPartners() no longer builds an array"
+            )
         } else {
-            "Lcom/waze/sdk/au;"
-        }
-        val block = buildString {
-            entries.forEachIndexed { index, (pkg, label) ->
-                // `aw` takes the same flags but has no byte[] argument, and updateAppList only has
-                // v0-v9 to play with (.locals 10), so the 5-register range form would address v10 and
-                // fail to assemble. Use the three-argument constructor there and the old range form
-                // on the builds where the entry class is still `au`.
-                val constructor = if (runtimeClass == "Lcom/waze/sdk/aw;") {
-                    """
-                    const v8, 0x200001
-                    invoke-direct {v5, v6, v7, v8}, Lcom/waze/sdk/aw;-><init>(Ljava/lang/String;Ljava/lang/String;I)V
-                    """.trimIndent()
-                } else {
-                    """
-                    const v8, 0x200001
-                    const/4 v9, 0x0
-                    const/4 v10, 0x0
-                    invoke-direct/range {v5 .. v10}, Lcom/waze/sdk/au;-><init>(Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;[B)V
-                    """.trimIndent()
-                }
-                append(
-                    """
-                    sget-object v4, Lcom/waze/sdk/SdkConfiguration;->appConfigs:Ljava/util/Map;
-                    const-string v6, "$pkg"
-                    invoke-interface {v4, v6}, Ljava/util/Map;->containsKey(Ljava/lang/Object;)Z
-                    move-result v7
-                    if-nez v7, :cond_skip_partner_$index
-                    new-instance v5, $runtimeClass
-                    const-string v7, "$label"
-                    $constructor
-                    invoke-interface {v4, v6, v5}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
-                    :cond_skip_partner_$index
-                    nop
-                    """.trimIndent() + "\n",
-                )
-            }
-        }
-        method.addInstructionsWithLabels(insertIndex, block)
-        println("morpheMusicPartnerPatch: injected ${entries.size} partner entries after the scope save " +
-            "(missing packages are dropped by the install check at runtime)")
-
-        // One instruction in au.g(Context): after the "com.spotify.music" comparison, stock branches on
-        // the equals result and only Spotify gets the install check. Pinning the result to true sends
-        // every partner down that path, so an installed player is available instead of waiting for a
-        // Waze SDK receiver it does not ship. The branch itself is untouched.
-        val availability = resolveAnchor(
-            "partner availability", PartnerAvailabilityFingerprint, PartnerAvailabilityV2Fingerprint,
-        )
-        val implementation = availability.implementation
-            ?: throw PatchException("morpheMusicPartnerPatch: au.g has no implementation to patch")
-        val instructions = implementation.instructions
-        var pinned = false
-        for (i in 0 until instructions.size - 2) {
-            val insn = instructions.elementAt(i)
-            if (insn.opcode != Opcode.CONST_STRING) continue
-            val literal = (insn as? ReferenceInstruction)?.reference?.toString() ?: continue
-            if (literal != "com.spotify.music") continue
-            // Shape: const-string "com.spotify.music" -> invoke-virtual String.equals -> move-result
-            // -> if-eqz. The equals call sits between the literal and the result, so scan forward.
-            for (j in i + 1 until minOf(i + 5, instructions.size)) {
-                val move = instructions.elementAt(j)
-                if (move.opcode != Opcode.MOVE_RESULT) continue
-                availability.replaceInstruction(j, BuilderInstruction11n(Opcode.CONST_4, (move as Instruction11x).registerA, 1))
-                pinned = true
-                break
-            }
-            if (pinned) break
-        }
-        if (!pinned) {
-            throw PatchException(
-                "morpheMusicPartnerPatch: au.g no longer compares the Spotify literal before a " +
-                    "move-result - refusing to report an availability fix that was not applied"
+            // 5.27.4 and earlier: no helper, updateAppList does everything itself.
+            host = configClass.methods.firstOrNull {
+                it.name == "updateAppList" && it.parameterTypes.isEmpty()
+            } ?: throw PatchException(
+                "morpheMusicPartnerPatch: neither getPartners() nor updateAppList() is present - " +
+                    "refusing to guess where the partner roster is assembled"
             )
+            implementation = host.implementation
+                ?: throw PatchException("morpheMusicPartnerPatch: updateAppList() has no body")
+            val instructions = implementation.instructions
+            val configIndex = instructions.indexOfFirst { instruction ->
+                (instruction as? ReferenceInstruction)?.reference?.toString()
+                    ?.contains("configGetSdkConfigurationNTV") == true
+            }
+            if (configIndex < 0) throw PatchException(
+                "morpheMusicPartnerPatch: updateAppList() no longer fetches the SDK configuration"
+            )
+            instance = "v" + host.getInstruction<OneRegisterInstruction>(configIndex + 1).registerA
+            registers = Triple(10, 9, 8)
+            val hashMapIndex = instructions.drop(configIndex).indexOfFirst { instruction ->
+                instruction.opcode == Opcode.NEW_INSTANCE &&
+                    (instruction as? ReferenceInstruction)?.reference?.toString()
+                        ?.contains("Ljava/util/HashMap;") == true
+            }
+            if (hashMapIndex < 0) throw PatchException(
+                "morpheMusicPartnerPatch: updateAppList() no longer builds its app config map"
+            )
+            insertIndex = configIndex + hashMapIndex
         }
-        println("morpheMusicPartnerPatch: partner availability pinned to the install check in " +
-            availability.definingClass.substringAfterLast('/'))
+        if (implementation.registerCount <= registers.third) throw PatchException(
+            "morpheMusicPartnerPatch: ${host.name} has only ${implementation.registerCount} registers"
+        )
+
+        val (rArray, rIndex, rValue) = registers
+        fun stringArray(field: String, values: List<String>): String = buildString {
+            append("iget-object v$rArray, $instance, Lcom/waze/sdk/SdkConfiguration;->$field:[Ljava/lang/String;\n")
+            append("array-length v$rIndex, v$rArray\n")
+            append("add-int/lit8 v$rIndex, v$rIndex, ${values.size}\n")
+            append("invoke-static {v$rArray, v$rIndex}, Ljava/util/Arrays;->copyOf([Ljava/lang/Object;I)[Ljava/lang/Object;\n")
+            append("move-result-object v$rArray\n")
+            append("check-cast v$rArray, [Ljava/lang/String;\n")
+            append("array-length v$rIndex, v$rArray\n")
+            append("add-int/lit8 v$rIndex, v$rIndex, -${values.size}\n")
+            values.forEachIndexed { position, value ->
+                if (position > 0) append("add-int/lit8 v$rIndex, v$rIndex, 0x1\n")
+                append("const-string v$rValue, \"$value\"\n")
+                append("aput-object v$rValue, v$rArray, v$rIndex\n")
+            }
+            append("iput-object v$rArray, $instance, Lcom/waze/sdk/SdkConfiguration;->$field:[Ljava/lang/String;\n")
+        }
+        fun intArray(field: String, values: List<Int>): String = buildString {
+            append("iget-object v$rArray, $instance, Lcom/waze/sdk/SdkConfiguration;->$field:[I\n")
+            append("array-length v$rIndex, v$rArray\n")
+            append("add-int/lit8 v$rIndex, v$rIndex, ${values.size}\n")
+            append("invoke-static {v$rArray, v$rIndex}, Ljava/util/Arrays;->copyOf([II)[I\n")
+            append("move-result-object v$rArray\n")
+            append("array-length v$rIndex, v$rArray\n")
+            append("add-int/lit8 v$rIndex, v$rIndex, -${values.size}\n")
+            values.forEachIndexed { position, value ->
+                if (position > 0) append("add-int/lit8 v$rIndex, v$rIndex, 0x1\n")
+                append("const v$rValue, 0x${value.toString(16)}\n")
+                append("aput v$rValue, v$rArray, v$rIndex\n")
+            }
+            append("iput-object v$rArray, $instance, Lcom/waze/sdk/SdkConfiguration;->$field:[I\n")
+        }
+
+        val packages = PARTNER_ENTRIES.map { it.first }
+        val labels = PARTNER_ENTRIES.map { it.second }
+        host.addInstructions(
+            insertIndex,
+            buildString {
+                append(stringArray("PackageNames", packages))
+                append(stringArray("AppNames", labels))
+                append(stringArray("InstallationUrls", packages.map { "https://play.google.com/store/apps/details?id=$it" }))
+                append(intArray("Scopes", packages.map { PARTNER_SCOPE }))
+            }.trimIndent(),
+        )
+        println(
+            "morpheMusicPartnerPatch: appended ${packages.size} partner entries to Waze's own " +
+                "arrays inside ${host.name} (scope 0x${PARTNER_SCOPE.toString(16)})"
+        )
+
+
 
         // Icon half: Waze builds a partner's icon url from its package name, and the CDN only carries
         // art for ids Waze ships. A repackaged player therefore shows an empty tile. Rewrite the id to

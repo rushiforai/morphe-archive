@@ -10,10 +10,13 @@ object WhatsAppCompatibility {
         packageName = "com.whatsapp",
         apkFileType = ApkFileType.APK,
         targets = listOf(
+            AppTarget(version = "2.26.45.93"),
             AppTarget(version = "2.26.43.76"),
             AppTarget(version = "2.26.43.75"),
             AppTarget(version = "2.26.43.74", isExperimental = true),
             AppTarget(version = "2.26.43.72", isExperimental = true),
+            AppTarget(version = "2.26.44.70", isExperimental = true),
+            AppTarget(version = "2.26.42.70", isExperimental = true),
         ),
         appIconColor = 0x25D366,
     )

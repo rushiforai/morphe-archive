@@ -12,12 +12,13 @@ import subprocess
 import sys
 import threading
 import time
+import xml.etree.ElementTree as ET
 from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 
-from apk_lab.models import ExitCode
+from apk_lab.models import ExitCode, UiNode
 
 logger = logging.getLogger(__name__)
 
@@ -374,7 +375,7 @@ def resolve_frame_in_smali(frame_str: str, smali_root: Path) -> ResolvedFrame:
     if not match:
         return ResolvedFrame(raw_frame=frame_str, class_name="", method_name="")
 
-    class_name, method_name, _, _ = match.groups()
+    class_name, method_name, _, line_num_str = match.groups()
     # Outer class handling for inner classes (e.g. Foo$Bar -> Foo$Bar.smali)
     rel_path = Path(*class_name.split(".")).with_suffix(".smali")
 
@@ -402,7 +403,7 @@ def resolve_frame_in_smali(frame_str: str, smali_root: Path) -> ResolvedFrame:
         )
 
     method_re = re.compile(
-        r"^(\.method\b[^\n]*?\b" + re.escape(method_name) + r"\([^\n]*\)[^\n]*)",
+        r"^(\.method\b[^\n]*\s+" + re.escape(method_name) + r"\([^\n]*\)[^\n]*)",
         re.MULTILINE,
     )
     m_match = method_re.search(content)
@@ -418,16 +419,27 @@ def resolve_frame_in_smali(frame_str: str, smali_root: Path) -> ResolvedFrame:
 
     method_sig = m_match.group(1).strip()
     rest_of_text = content[m_match.end() :]
-    snippet_lines: list[str] = []
+    method_lines: list[str] = []
     for line in rest_of_text.splitlines():
         stripped = line.strip()
         if stripped == ".end method":
             break
         if stripped:
-            snippet_lines.append(stripped)
-        if len(snippet_lines) >= 15:
-            break
+            method_lines.append(stripped)
 
+    snippet_lines: list[str] = []
+    if line_num_str:
+        marker_re = re.compile(rf"^\s*\.line\s+{re.escape(line_num_str)}\b")
+        for idx, line in enumerate(method_lines):
+            if marker_re.search(line):
+                start = max(0, idx - 4)
+                end = min(len(method_lines), idx + 8)
+                snippet_lines = method_lines[start:end]
+                break
+        else:
+            snippet_lines = method_lines[:15]
+    else:
+        snippet_lines = method_lines[:15]
     return ResolvedFrame(
         raw_frame=frame_str,
         class_name=class_name,
@@ -1066,3 +1078,66 @@ def run_monitor(args: argparse.Namespace) -> int:
         timeout=args.timeout,
         dump_threads=args.dump_threads,
     )
+
+
+def parse_bounds(bounds_str: str) -> tuple[int, int, int, int]:
+    """Parses [left,top][right,bottom] into (left, top, right, bottom)."""
+    m = re.match(r"\[(-?\d+),(-?\d+)\]\[(-?\d+),(-?\d+)\]", bounds_str)
+    if not m:
+        raise ValueError(f"Invalid bounds string: {bounds_str}")
+    return int(m.group(1)), int(m.group(2)), int(m.group(3)), int(m.group(4))
+
+
+def dump_ui_hierarchy(device: str | None = None) -> list[UiNode]:
+    """Dumps device UI hierarchy and parses all UI nodes."""
+    raw = run_adb(device, ["exec-out", "uiautomator", "dump", "/dev/tty"])
+    start = raw.find("<?xml")
+    if start == -1:
+        start = raw.find("<hierarchy")
+    end = raw.find("</hierarchy>")
+    if start == -1 or end == -1:
+        raise RuntimeError(f"Failed to find UI hierarchy in output: {raw[:200]}")
+    xml_content = raw[start : end + len("</hierarchy>")]
+    root = ET.fromstring(xml_content)
+    nodes: list[UiNode] = []
+    for elem in root.iter("node"):
+        attrib = elem.attrib
+        bounds_str = attrib.get("bounds", "[0,0][0,0]")
+        bounds = parse_bounds(bounds_str)
+        clickable = attrib.get("clickable", "false").lower() == "true"
+        nodes.append(
+            UiNode(
+                text=attrib.get("text", ""),
+                content_desc=attrib.get("content-desc", ""),
+                resource_id=attrib.get("resource-id", ""),
+                class_name=attrib.get("class", ""),
+                clickable=clickable,
+                bounds=bounds,
+            )
+        )
+    return nodes
+
+
+def click_ui_node(device: str | None, node: UiNode) -> None:
+    """Clicks on the center coordinates of the given UI node."""
+    x, y = node.center
+    run_adb(device, ["shell", "input", "tap", str(x), str(y)])
+
+
+def find_ui_nodes(
+    nodes: list[UiNode],
+    *,
+    text: str | None = None,
+    desc: str | None = None,
+    resource_id: str | None = None,
+    clickable_only: bool = False,
+) -> list[UiNode]:
+    """Filters UI nodes by text, desc, resource_id, and/or clickable status."""
+    results: list[UiNode] = []
+    for node in nodes:
+        if clickable_only and not node.clickable:
+            continue
+        if not node.matches(text=text, desc=desc, resource_id=resource_id):
+            continue
+        results.append(node)
+    return results

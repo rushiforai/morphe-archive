@@ -1,3 +1,84 @@
+## [1.3.0](https://github.com/southstar21dev/southstar21-patches/compare/v1.2.1...v1.3.0) (2026-11-19)
+
+### 🐛 Bug Fixes
+
+* **Disable Reels:** Keep the Reels tab scrollable with Stop scrolling on ([6fc3983](https://github.com/southstar21dev/southstar21-patches/commit/6fc3983e2c2c351e126fdd8f9252fe8e11593a72))
+* **Liquid Glass navigation bar:** Keep the reel comment box above the navigation bar ([65d607d](https://github.com/southstar21dev/southstar21-patches/commit/65d607d6417c1cf057e5b21334c65f2422501e49))
+* **YouTube Music:** Keep the full player's glass whole and steady ([89414e1](https://github.com/southstar21dev/southstar21-patches/commit/89414e1c438b3a1fb692c41e77f8531e213c3744))
+* **YouTube Music:** Start the tab lens on Home after a cold start ([5bf34c4](https://github.com/southstar21dev/southstar21-patches/commit/5bf34c4bbd9f852b8cfd9167e266ed526b7ea2ae))
+
+### ✨ New Features
+
+* **Liquid Glass navigation bar:** Frosted header on Home and Explore ([f825ac6](https://github.com/southstar21dev/southstar21-patches/commit/f825ac68b5db35c2ca6d3685f88f04490e233f25))
+* **Liquid Glass navigation bar:** Glass share menu, glass header buttons and tilt light ([37542c8](https://github.com/southstar21dev/southstar21-patches/commit/37542c8d234e6e357aa4a3d46c7629ebf348c40f))
+* **Spotify:** Liquid Glass navigation bar and mini player ([9963b4a](https://github.com/southstar21dev/southstar21-patches/commit/9963b4ac5a579b33dab4c45bc29f5aa1d6b35589))
+* **YouTube Music:** Dock the mini player beside the tab bar ([9c6043f](https://github.com/southstar21dev/southstar21-patches/commit/9c6043fe6bb37875b19417e042389b31d3990aef))
+* **YouTube Music:** Liquid Glass navigation bar and mini player ([3f0cccc](https://github.com/southstar21dev/southstar21-patches/commit/3f0cccc4b3f5fc920f6e9364008992616afa612b))
+* **YouTube Music:** Liquid glass on the full player ([a606c1c](https://github.com/southstar21dev/southstar21-patches/commit/a606c1ce040701e4af2e19975ed7a429fca86680))
+* **YouTube Music:** Stop the build without Morphe's GmsCore support ([94421de](https://github.com/southstar21dev/southstar21-patches/commit/94421defad0d9baf9ff1d420152765fad28583c6))
+
+## [1.3.0-dev.9](https://github.com/southstar21dev/southstar21-patches/compare/v1.3.0-dev.8...v1.3.0-dev.9) (2026-11-19)
+
+### ✨ New Features
+
+* **Liquid Glass navigation bar:** Glass share menu, glass header buttons and tilt light ([37542c8](https://github.com/southstar21dev/southstar21-patches/commit/37542c8d234e6e357aa4a3d46c7629ebf348c40f))
+
+## [1.3.0-dev.8](https://github.com/southstar21dev/southstar21-patches/compare/v1.3.0-dev.7...v1.3.0-dev.8) (2026-11-18)
+
+### 🐛 Bug Fixes
+
+* **YouTube Music:** Keep the full player's glass whole and steady ([89414e1](https://github.com/southstar21dev/southstar21-patches/commit/89414e1c438b3a1fb692c41e77f8531e213c3744))
+
+## [1.3.0-dev.7](https://github.com/southstar21dev/southstar21-patches/compare/v1.3.0-dev.6...v1.3.0-dev.7) (2026-11-18)
+
+### 🐛 Bug Fixes
+
+* **YouTube Music:** Start the tab lens on Home after a cold start ([5bf34c4](https://github.com/southstar21dev/southstar21-patches/commit/5bf34c4bbd9f852b8cfd9167e266ed526b7ea2ae))
+
+### ✨ New Features
+
+* **YouTube Music:** Liquid glass on the full player ([a606c1c](https://github.com/southstar21dev/southstar21-patches/commit/a606c1ce040701e4af2e19975ed7a429fca86680))
+
+## [1.3.0-dev.6](https://github.com/southstar21dev/southstar21-patches/compare/v1.3.0-dev.5...v1.3.0-dev.6) (2026-11-18)
+
+### ✨ New Features
+
+* **YouTube Music:** Dock the mini player beside the tab bar ([9c6043f](https://github.com/southstar21dev/southstar21-patches/commit/9c6043fe6bb37875b19417e042389b31d3990aef))
+
+## [1.3.0-dev.5](https://github.com/southstar21dev/southstar21-patches/compare/v1.3.0-dev.4...v1.3.0-dev.5) (2026-11-18)
+
+### ✨ New Features
+
+* **YouTube Music:** Stop the build without Morphe's GmsCore support ([94421de](https://github.com/southstar21dev/southstar21-patches/commit/94421defad0d9baf9ff1d420152765fad28583c6))
+
+## [1.3.0-dev.4](https://github.com/southstar21dev/southstar21-patches/compare/v1.3.0-dev.3...v1.3.0-dev.4) (2026-11-18)
+
+### ✨ New Features
+
+* **YouTube Music:** Liquid Glass navigation bar and mini player ([3f0cccc](https://github.com/southstar21dev/southstar21-patches/commit/3f0cccc4b3f5fc920f6e9364008992616afa612b))
+
+## [1.3.0-dev.3](https://github.com/southstar21dev/southstar21-patches/compare/v1.3.0-dev.2...v1.3.0-dev.3) (2026-11-15)
+
+### 🐛 Bug Fixes
+
+* **Liquid Glass navigation bar:** Keep the reel comment box above the navigation bar ([65d607d](https://github.com/southstar21dev/southstar21-patches/commit/65d607d6417c1cf057e5b21334c65f2422501e49))
+
+## [1.3.0-dev.2](https://github.com/southstar21dev/southstar21-patches/compare/v1.3.0-dev.1...v1.3.0-dev.2) (2026-11-14)
+
+### 🐛 Bug Fixes
+
+* **Disable Reels:** Keep the Reels tab scrollable with Stop scrolling on ([6fc3983](https://github.com/southstar21dev/southstar21-patches/commit/6fc3983e2c2c351e126fdd8f9252fe8e11593a72))
+
+### ✨ New Features
+
+* **Liquid Glass navigation bar:** Frosted header on Home and Explore ([f825ac6](https://github.com/southstar21dev/southstar21-patches/commit/f825ac68b5db35c2ca6d3685f88f04490e233f25))
+
+## [1.3.0-dev.1](https://github.com/southstar21dev/southstar21-patches/compare/v1.2.1...v1.3.0-dev.1) (2026-11-14)
+
+### ✨ New Features
+
+* **Spotify:** Liquid Glass navigation bar and mini player ([9963b4a](https://github.com/southstar21dev/southstar21-patches/commit/9963b4ac5a579b33dab4c45bc29f5aa1d6b35589))
+
 ## [1.2.1](https://github.com/southstar21dev/southstar21-patches/compare/v1.2.0...v1.2.1) (2026-11-14)
 
 ### 🐛 Bug Fixes

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="72" height="72" viewBox="0 0 72 72" role="img" aria-label="Tinder icon">
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FF6B6B"/><stop offset="1" stop-color="#D4145A"/></linearGradient><radialGradient id="glow"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient></defs>
+<rect x="1" y="1" width="70" height="70" rx="19" fill="url(#g)"/><circle cx="16" cy="13" r="33" fill="url(#glow)"/><path d="M8 56c14-9 29-10 56-1" fill="none" stroke="#fff" stroke-opacity=".10" stroke-width="7"/>
+<g transform="translate(8 3) scale(.8)"><path d="M38 10c2 13-7 16-5 26 1-5 6-8 9-12 7 8 15 16 15 27a23 23 0 0 1-46 0c0-10 6-20 18-31-1 10 2 13 4 15 1-9 8-15 5-25z" fill="white"/><path d="M35 43c-5 6-8 10-8 15a8 8 0 0 0 16 0c0-5-3-9-8-15z" fill="#F43F5E" opacity=".65"/></g>
+</svg>

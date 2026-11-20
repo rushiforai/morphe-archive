@@ -18,6 +18,10 @@ concurrency:
   group: repair-v2.1.1-release-asset
   cancel-in-progress: false
 
+# Keep the Base64 intrinsic disabled as defense in depth until CI is verified.
+env:
+  JAVA_TOOL_OPTIONS: '-XX:-UseBASE64Intrinsics'
+
 jobs:
   repair:
     name: Verify and replace v2.1.1 release asset
@@ -60,6 +64,9 @@ jobs:
         with:
           distribution: temurin
           java-version: '25'
+          check-latest: true
+      - name: Verify patched Java 25 runtime
+        run: python3 .github/scripts/verify-java25-cspu.py
       - name: Build Kotlin MPP and stage verified v2.1.1-dev.12 bytecode
         run: |
           set -euo pipefail

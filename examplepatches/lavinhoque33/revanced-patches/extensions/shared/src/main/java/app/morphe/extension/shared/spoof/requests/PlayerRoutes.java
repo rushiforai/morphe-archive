@@ -5,6 +5,7 @@
  * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to this code.
  *
  * Modified by lavinhoque33, 2026-10-13.
+ * Modified by lavinhoque33, 2026-11-19.
  */
 
 package app.morphe.extension.shared.spoof.requests;
@@ -22,6 +23,7 @@ import java.util.Locale;
 import app.morphe.extension.shared.requests.Requester;
 import app.morphe.extension.shared.requests.Route;
 import app.morphe.extension.shared.spoof.ClientType;
+import app.morphe.extension.shared.spoof.MwebSiteSession;
 import app.morphe.extension.shared.spoof.SpoofVideoStreamsPatch;
 import app.morphe.extension.shared.spoof.js.JavaScriptManager;
 import app.morphe.extension.shared.spoof.potoken.PoTokenManager;
@@ -79,18 +81,26 @@ public final class PlayerRoutes {
     }
 
     static String createInnertubeBody(ClientType clientType, String videoId, String visitorId) {
+        return createInnertubeBody(clientType, videoId, visitorId, 0);
+    }
+
+    static String createInnertubeBody(ClientType clientType, String videoId, String visitorId,
+                                      int webSignatureTimestamp) {
         JSONObject innerTubeBody = new JSONObject();
 
         try {
             JSONObject context = new JSONObject();
 
             JSONObject client = new JSONObject();
+            final boolean mobileWeb = clientType == ClientType.MWEB;
             client.put("clientName", clientType.clientName);
             client.put("clientVersion", clientType.clientVersion);
             if (visitorId != null && !visitorId.isEmpty()) {
                 client.put("visitorData", visitorId);
             }
-            if (clientType.deviceModel != null) {
+            if (mobileWeb) {
+                client.put("userAgent", clientType.getUserAgent());
+            } else if (clientType.deviceModel != null) {
                 client.put("deviceMake", clientType.deviceMake);
                 client.put("deviceModel", clientType.deviceModel);
                 client.put("osName", clientType.osName);
@@ -101,7 +111,7 @@ public final class PlayerRoutes {
                 }
             }
             String platform = clientType.clientPlatform;
-            if (platform != null && !platform.isEmpty()) {
+            if (!mobileWeb && platform != null && !platform.isEmpty()) {
                 client.put("platform", platform);
             }
 
@@ -138,7 +148,7 @@ public final class PlayerRoutes {
                 }
             }
 
-            if (clientType.requireJS) {
+            if (clientType.requireJS || mobileWeb) {
                 JSONObject configInfo = new JSONObject();
                 configInfo.put("appInstallData", "");
                 client.put("configInfo", configInfo);
@@ -148,12 +158,17 @@ public final class PlayerRoutes {
                 JSONObject contentPlaybackContext = new JSONObject();
                 contentPlaybackContext.put(
                         "referer",
-                        String.format("https://www.youtube.com/tv#/watch?v=%s", videoId)
+                        mobileWeb ? MwebSiteSession.ORIGIN + "/watch?v=" + videoId
+                                : String.format("https://www.youtube.com/tv#/watch?v=%s", videoId)
                 );
                 contentPlaybackContext.put("html5Preference", "HTML5_PREF_WANTS");
-                Integer signatureTimestamp = JavaScriptManager.getSignatureTimestamp();
-                if (signatureTimestamp != null) {
-                    contentPlaybackContext.put("signatureTimestamp", signatureTimestamp);
+                if (mobileWeb) {
+                    contentPlaybackContext.put("signatureTimestamp", webSignatureTimestamp);
+                } else {
+                    Integer signatureTimestamp = JavaScriptManager.getSignatureTimestamp();
+                    if (signatureTimestamp != null) {
+                        contentPlaybackContext.put("signatureTimestamp", signatureTimestamp);
+                    }
                 }
 
                 JSONObject devicePlaybackCapabilities = new JSONObject();
@@ -203,10 +218,13 @@ public final class PlayerRoutes {
         var connection = Requester.getConnectionFromCompiledRoute(YT_API_URL, route);
 
         connection.setRequestProperty("Content-Type", "application/json");
-        connection.setRequestProperty("User-Agent", clientType.userAgent);
+        connection.setRequestProperty("User-Agent", clientType.getUserAgent());
         // Not a typo. "Client-Name" uses the client type id (ported from Morphe).
         connection.setRequestProperty("X-YouTube-Client-Name", String.valueOf(clientType.id));
         connection.setRequestProperty("X-YouTube-Client-Version", clientType.clientVersion);
+        if (clientType == ClientType.MWEB) {
+            connection.setInstanceFollowRedirects(false);
+        }
 
         connection.setUseCaches(false);
         connection.setDoOutput(true);

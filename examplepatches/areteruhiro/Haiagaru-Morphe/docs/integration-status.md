@@ -1,4 +1,24 @@
+2026-11-20 1.46.0-dev.10 プレリリース公開済み: X返信先@handleを省略警告の詳細／簡易判定から除外し、詳細版は280ポイントちょうどを許容。X本文URLから通常リンクカードを抽出。242限定・初期OFFで、更新直後の新着数から透明NGレスを除く設定を追加。Crash/ANRログは既存Version項目を保ち、ChMate版とHaiagaru版を追加。Frida 17.18.0でX 7項目、新着件数5項目、ログ版数を確認。新着toastの実画面確認は未実施。CI Release `44551628678`／Attest成功。MPP SHA-256 `1799925e4e668445c8a33b749fdc689600f04cd11b6abd16a739eb5adf7a73f8`。Pre bundle version `1.46.0-dev.10`を照合。公開先 https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.46.0-dev.10。
+
 # 主開発先と統合状況
+
+2026-11-19 1.46.0-dev.9 プレリリース公開済み: NG ID/NAME/WORDの私用領域regex登録拒否・起動時移行、NGWord新規条件6コードポイント以上、Eddi過去ログ遷移、タブレット下部フィルターpane配置を同梱。Frida各版18件／Edge191 7件／Expert242 7件成功、CI Release `44503814635` 成功。公開MPP SHA-256 `4e09e8f10395579b54b30b6c32a2e2adcfd07d27d3a362227003bfb6528de395`。公開先 https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.46.0-dev.9。
+
+2026-11-19 NG登録安全制限（1.46.0-dev.9 プレリリース公開済み）: native NGWord・Haiagaru NGストア更新/置換・レス複数選択登録で、私用領域BMP/補助面に交差するUnicode regex rangeをID・NGName・NGワードに追加不可とし、起動時に既存の3カテゴリから該当regexだけ削除。WORDカテゴリの新規条件はtrim後Unicode codepointで6文字以上、短いID/NAMEと既存短文は保持。Host16項目成功、Frida17.18.0でreporter191/226/242各18項目成功。一時NGデータを使い移行で該当1件だけ削除・短い旧語と通常語を保持、試験後は元一覧へ復元。`:patches:buildAndroid`成功、3版隔離アプリ導入・起動。通常アプリのNG一覧は未変更。詳細`docs/ng-word-safety-20261119.md`、導入`docs/android-installations.md`。
+
+2026-11-19 エッヂ過去ログ遷移・タブレット下部フィルター・エキスパート設定即時反映（1.46.0-dev.9 プレリリース公開済み）: エッヂ過去ログ専用ビューア1から外部板スレを開く際、5ch/2ch.sc用のアーカイブ取得経路へ誤って入りタイムアウトしていたため、該当hostは取得を試さずChMate標準の外部板遷移へ戻す。タブレットの下部フィルターはレス一覧paneの表示範囲内にPopupWindowを置き、板paneへはみ出さないようにする。Frida 17.18.0でEddi/5ch/Talkのroute判定・外部ネットワーク未実行・250ms以内復帰とtablet frame geometryの7項目成功。さらにMi Note 10のreporter242でExpert設定コントロールからON/OFFし、即時のView表示、保存値、Compose row一覧の増減をFridaで7項目検証。191/242の隔離パッケージは署名一致・install-r成功。実Eddi取得と実タブレット画面は未確認。詳細`docs/edge-archive-filter-20261119.md`。
+
+2026-11-19 なんG投稿上限・絵文字文字数（1.46.0-dev.8 公開済み）: nova.5ch.io/.netのlivegalileoに公開設定がない場合の1行上限を1024バイトとし、他板へ波及しないfallbackを追加。表示文字数はUTF-16コード単位で数え、補助平面絵文字は2文字として表示しつつ超過spanはコードポイント境界を維持。`:patches:buildAndroid`成功、ホスト50項目成功、Frida17.18.0でreporter191/226/242それぞれ実装済みparser・counterの板限定/1024・1025境界・絵文字spanを検証。各版の投稿UI結合は模擬下書きダイアログで26項目成功、投稿送信なし。CI Release `44449401344` 成功、MPP SHA-256 `ee6c2d0498e75320766d561050869c70c00b7cd9967d3f7e672b5daf42a214af`。詳細`docs/posting-limits-nova-20261119.md`、導入`docs/android-installations.md`。
+
+2026-11-18 画像戻る・HOME/返信負荷・共有NG（プレ公開準備）: 静止画ギャラリーの混在paging横取りを防ぎnative Backを独立受信。19125/22618/24218画像gesture項目成功、3版署名・隔離導入・履歴DEX成功。共有NG本文不要時のHTML解析省略11309項目、server personal148項目成功。HOME変換重複削減、表示UIなしの遅延集計抑止、初期化済みprefs読込省略、検索境界線/不要共有報告ボタン削除/personal送信時inline binding使用。OPPO実測と実共有投稿は未実施。詳細docs/performance-gallery-20261118.md。
+
+2026-11-18 検索初期ON・順序保持・通知文字化け・履歴OOM（未公開）: 検索メニューの未保存時初期値をONへ統一。191/226/242の順序切替直後にnative resListOrderを保存。UTF-8優先の厳密復号＋旧文字コードfallback、保存DATはstreaming判定。履歴タイトル補完OOM時は元タイトルへ退避。最終build成功、3版適用・署名照合・DEX・隔離アプリ導入成功。242順序全2値のnative保存確認、文字コードhost試験成功、既存writer14項目成功。実際の通知再現・複数スレでの表示比較は未確認。詳細docs/thread-preferences-notification-20261118.md。
+
+2026-11-18 履歴削除・226自分フィルター・設定版表示（未公開）: ThreadScopedNgをpublicにしてnative削除callbackのIllegalAccessErrorを解消。191のHOME履歴削除後にソート用sourceコピーを同期（スレIDはh）。226の自分判定はadapter Kのlive indexからbit0を読む。Compose/旧設定ヘッダーへPatch版表示。通常Lint/R8 build成功、3版適用・署名照合・隔離package導入・起動・DEX検査成功、新規fatalなし。242設定版表示確認。実データ削除・226実投稿・Android15は未確認。証跡build/bugfix-20261118-rebuilt、導入台帳参照。
+
+2026-11-18 NG登録・ワッチョイ・記者ID修正（1.46.0-dev.2 プレリリース公開済み）: おすすめプリセットが有効な既存環境では、新設定キー未保存時もレス起点のNG登録をChMate標準動作にする。通常構成は従来どおりスレ限定選択を使え、明示ON/OFFも優先する。NGルール登録後にnativeストアから再読込して保存を検証。記者IDのNGThreadルールを記者ID付きスレ一覧へ適用。ワッチョイ括弧除去を任意化し、括弧付きの上下コピー・正規表現追加を修正。上側は`aabb-`、下側は`-XXXX`。スレタイトル長押しに記者IDコピーを追加。`:patches:buildAndroid`成功、純Java 7+5+12項目成功。修正版MPP SHA-256 `0cedcb750952f4d8f1b6f705c6eb36473726b1600bb961db12f663e760678f79`で191/226/242全てへ適用、カスタムメニューcallback bridge 191=2/226=1/242=1検査成功、署名一致。Mi Note 10 Android 11の隔離パッケージへデータ保持導入、各版起動成功。専用focused instrumentationは3版各12項目成功。既存reporter/archive/UI回帰は191/226各39項目成功、242はreporter・archive関連20項目後、画像プレビューの`2/2`スワイプ待ちで失敗（今回変更していないviewer経路、原因未特定）。導入前後のcrash bufferに差分なし。Pixel 11 Pro実機ではなくMi Note 10での検証。公開MPP SHA-256 `249e2cc62ee9ae9e7e531343d491d2afd3798f547f7d06dbeae1e5f1659377c0`。詳細は`build/ng-fixes-20261118`と`docs/android-installations.md`。
+
+2026-11-18 1.46.0-dev.1 閲覧履歴削除クラッシュ修正候補（未公開）: 242版クラッシュバッファに`o.initView.a(BoardID,long)`のART `VerifyError`を確認。削除後処理のために元メソッドをラップする際、native呼び出しをまたいでワイド引数レジスターを再利用していた。板IDとスレIDを専用ローカルへ退避してから元の削除処理・スレ別NG後処理を呼ぶ形へ修正。`:patches:buildAndroid`成功、CLIで191/226/242すべてへ適用・署名照合成功、242の生成DEXでコールバックが退避レジスターを使うことを確認。実機への導入・履歴削除操作の再確認・公開は未実施。台帳`docs/android-installations.md`。
 
 2026-11-13 設定整理・過去ログ調整を実機191へ更新（未公開）: GENERAL/DISPLAY/SOCIALを用途別に整理、子項目の折りたたみと親OFF時の無効化。タブの追加先選択は全体ON/OFFではないためラベル明確化。重複フィルター設定を入口へ集約し関連語検索/旧リンクを保持。内側丸カードを廃止、背景統一。過去ログは一覧URL非表示、検索欄3〜70%つまみ・高さ固定・元サイトで開く設定、元サイトの不要な外側ヘッダー省略。最終Lint/R8 build3分28秒、191適用成功。検索49+12/高さ19/既存スレURL検査成功。XIG05/730eae72の既存Haiagaru（jp.co.airfrt.android.chMate.haiagartu）へ利用者指定install-r Success、23:20:19 JST、初回導入日時保持、端末APK SHA一致。設定cold起動/検索入口1件/背景とカードの最終画面確認。新規fatalなし。詳細docs/settings-organization-archive-20261113.md、台帳docs/android-installations.md。
 
@@ -2107,3 +2127,16 @@ Release 43996385293はタグ／生成コミット01cc8d1fの作成後、Gradle p
 ## 2026-11-17 投稿上限・残量表示の公開前確認
 
 板のSETTING.TXT／したらばAPI／外部板の投稿フォームから上限を取得。新規スレのスレタイ、本文、行数の残量を表示し、超過部分を赤色にする。Haiagaru設定でON/OFF（初期ON）、カウンター長押しで再取得。下書きは変更しない。上限非公開は未取得表示。Lint/R8 build2m41s、ホスト36、実機3版各26、gateway本文・画像等657／663／660項目成功、新規製品クラッシュなし。隔離reporterのみ更新、台帳記録済み。詳細docs/post-input-limits-20261117.md。未公開1.44.1の位置ずれ修正と合わせ、既存Semantic Releaseで次版公開へ進む。
+
+
+## 2026-11-17 Haiagaru 1.45.0 正式公開
+
+投稿上限・残量表示とON/OFF、未公開だったリンクカードの位置ずれ修正を正式公開。Release 44018811823（Release／Attest）とBuild Haiagaru 44018811942成功。生成030b7615をmaster／devへ反映。公開9アセットのサイズ・GitHub SHA-256・ZIP整合性、MPPの投稿上限設定と位置保持処理、画像検出／VPN統合資材を検証。master／devの両バンドルJSONは正式1.45.0と公開MPPを指す。MPP SHA-256 `3b1367dfac61b9b92ffde8e89570df3a5617f588629402cc963849c909d0a242`。証跡build/post-input-limits-20261117/verified-1.45.0.json。公開先 https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.45.0 。
+
+## 2026-11-19 アーカイブ検索クラッシュ・画像ジェスチャー初期化・242更新遅延（1.46.0-dev.7公開済み）
+
+ModelUiのアーカイブ検索画面で、区切り線追加後も古い子View番号を使っていたため、navigationのLinearLayoutをButtonへcastしていた。divider 3、results 4、navigation 5、元サイトButton 6へ合わせた。画像ジェスチャーの初期化は方向指定だけを消し、ENABLED=trueを必ず保存する。242の更新経路では条件付きヘッダーを省く設定が初期ONで大きいDATの不要な取得を招くため、ChMate標準の条件付き／Range取得を初期値にし、古い更新日時で取りこぼす場合の切替は残した。更新履歴にも設定と通信量の説明を表示する。
+
+Patch buildAndroid成功。Frida 17.18.0／Java bridge 7.1.0で191・226・242を確認。画像設定のreset handlerと条件付き更新option各7チェック/版が成功し、テスト後に設定値を復元。実アーカイブActivityは各版で起動し、native childが7個、Compose navigation index 5はLinearLayout、元サイトButton index 6はButtonであることを確認。試験後のlogcatにClassCastException、VerifyError、fatal app crashなし。可視設定のタップ操作は端末がKeyguard中のため行わず、Fridaから同じreset handlerを呼び出した。242の更新所要時間を実スレで比較した試験ではない。
+
+署名済みreporter候補を191／226／242へ導入し、通常ChMate packageは変更していない。コミット`68ae442a`、dev CI `44425793532`成功。1.46.0-dev.7をプレリリースし、公開9 assetを確認。公開MPP SHA-256 `a2ec7f76dd620155253c1d2d2b1ca62670b387fd48ef816276fdddf3b8a8f1a4`。devはSemantic Release生成`fb6c9f33`まで同期。APK署名・SHA・導入時刻はdocs/android-installations.md、試験詳細はdocs/bugfix-frida-20261119.md。リリース https://github.com/areteruhiro/Haiagaru-Morphe/releases/tag/1.46.0-dev.7 。

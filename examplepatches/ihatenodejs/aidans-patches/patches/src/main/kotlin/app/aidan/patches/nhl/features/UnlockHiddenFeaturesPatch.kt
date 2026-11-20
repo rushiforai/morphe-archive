@@ -130,15 +130,22 @@ private fun BytecodePatchContext.forceGameZoneShownOnHome() {
     val implementation = constructor.implementation
         ?: throw PatchException("GameZoneConfigResponse constructor has no implementation")
 
-    if (implementation.instructions.lastOrNull()?.opcode != Opcode.RETURN_VOID) {
-        throw PatchException("Unexpected GameZoneConfigResponse constructor terminator")
+    val returnIndices = implementation.instructions.withIndex()
+        .filter { it.value.opcode == Opcode.RETURN_VOID }
+        .map { it.index }
+        .reversed()
+
+    if (returnIndices.isEmpty()) {
+        throw PatchException("GameZoneConfigResponse constructor has no return instructions")
     }
 
-    constructor.addInstructions(
-        implementation.instructions.size - 1,
-        """
-        sget-object v0, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;
-        iput-object v0, p0, Lhv7;->a:Ljava/lang/Boolean;
-        """.trimIndent()
-    )
+    for (returnIdx in returnIndices) {
+        constructor.addInstructions(
+            returnIdx,
+            """
+            sget-object v0, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;
+            iput-object v0, p0, Lhv7;->a:Ljava/lang/Boolean;
+            """.trimIndent()
+        )
+    }
 }

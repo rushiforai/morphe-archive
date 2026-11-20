@@ -60,7 +60,9 @@ public final class ThreadWatchNavigation {
     public static void onResume(Object fragment){
         try {
             View root=(View)fragment.getClass().getMethod("getView").invoke(fragment);
-            register(fragment,FilterPosition.findListForBinding(root));
+            View list=FilterPosition.findListForBinding(root);
+            register(fragment,list);
+            ResponseNoteIndicator.register(fragment,list);
         }catch(Exception error){Log.w("Haiagaru","Watched navigation resume unavailable",error);}
     }
 

@@ -1,36 +1,36 @@
 # 🧩 Lustx Patches
 
-> **Lustx Patches by sqzass**  
-> Custom patches for use with the Morphe app patcher.
+> Custom patches for [Morphe](https://morphe.software) - mostly universal, some per-app - by [sqzass](https://github.com/sqzass).
 
-## ❓ About
+## About
 
-**Lustx Patches** is a custom patch bundle by **sqzass**, built for compatibility with the [Morphe](https://morphe.software) patcher ecosystem and based on prior work of the Morphe and [ReVanced](https://github.com/ReVanced) projects.
+A grab-bag of patches for apps I actually use... mostly. Most of it is universal patches that work across a bunch of apps, with a few app-specific ones thrown in.
 
-### How to use these patches
+## Get started
 
-Add this repository source to Morphe Manager:
-`https://github.com/sqzass/lustx-patches`
+Add this repo as a patch source in Morphe Manager:
 
+```bash
+https://github.com/sqzass/lustx-patches
+```
+
+That'll pull in all the current patches automatically.
 ---
 
-## 🛠️ Tools & Development
+## Developing
 
-This repository includes a local helper tool for decompiling Android apps and split packages (`.apk`, `.apks`, `.xapk`, `.apkm`, `.aab`, `.zip`) to inspect Java sources, Smali bytecode, and Android resources when developing custom patches:
+There's a little helper script in `scripts/` for decompiling the apps you're patching. Point it at whatever's in `apks/`, and it'll spit out Java, Smali, and resource output you can actually read.
 
-- **Decompile all app packages in `apks/`**:
-  ```bash
-  python scripts/decompile.py
-  ```
+```bash
+python scripts/decompile.py
+```
 
-_Note: All app files placed in `apks/` are processed and automatically deleted once decompilation successfully completes._
-
-&nbsp;
+Note: anything you put in `apks/` gets processed and deleted once it's done. Nothing sticks around, unless you pass the `-k` flag (pass `-h` or `--help` in the `decompile.py` script).
 
 ## 🩹 Patches list
 
 <!-- PATCHES_START -->
-> **[v1.23.0](https://github.com/sqzass/lustx-patches/releases/tag/v1.23.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;31 patches total
+> **[v1.24.0](https://github.com/sqzass/lustx-patches/releases/tag/v1.24.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;31 patches total
 <details>
 <summary>📦 PortDroid - Network Analysis&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -131,16 +131,13 @@ _Note: All app files placed in `apks/` are processed and automatically deleted o
 
 ## Contributing
 
-If you have developed patches for other apps, you are encouraged to release your patches in a third party repository rather than request them to be added to mine (unless you don't want to deal with pushing... for whatever reason).
-See the [Patches template](https://github.com/morpheapp/morphe-patches-template) for more information.
+If you've got your own patches for other apps, feel free to host them in a separate repo and link them — no need to shove them in here. If you do open a PR, read the [contribution guidelines](CONTRIBUTING.md) first. Not sure how to structure a patch repo? The [Morphe patches template](https://github.com/morpheapp/morphe-patches-template) has a solid example.
 
-Before opening a pull request, read the [contribution guidelines](CONTRIBUTING.md).
+## License
 
-## 📜 License
+Lustx Patches are licensed under the [GNU General Public License v3.0](LICENSE), with a few extra conditions under GPLv3 Section 7 for keeping upstream notices and disclaimers.
 
-Lustx Patches are licensed under the [GNU General Public License v3.0](LICENSE), with additional conditions under GPLv3 Section 7 preserving upstream notices and disclaimers.
+- **Attribution (7b):** any use of this code, including derivative works, must keep all original notices and disclaimers.
+- **Name & branding (7c & 7e):** derivative works must use their own distinct branding. The **Morphe** name, logos, and trademarks may not be used for the title or branding of derivative works (e.g., "Morphe Plus", "Morphe Expanded", "Morphe UserXYZ" are off-limits).
 
-- **Attribution (7b):** Any use of this code, including derivative works, must preserve all original notices and disclaimers.
-- **Name & Branding Restrictions (7c & 7e):** Derivative works must use their own distinct branding. The **"Morphe"** name, logos, and trademarks may not be used for the branding or title of derivative works (e.g., names like _"Morphe Plus"_, _"Morphe Expanded"_, or _"Morphe UserXYZ"_ are strictly prohibited).
-
-See the [LICENSE](LICENSE) file for full GPLv3 terms and the [NOTICE](NOTICE) file for full conditions of GPLv3 Section 7 and upstream attributions.
+Full GPLv3 terms are in [LICENSE](LICENSE), and [NOTICE](NOTICE) covers Section 7 conditions and upstream attributions.

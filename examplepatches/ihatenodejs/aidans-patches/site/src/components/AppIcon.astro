@@ -197,6 +197,7 @@ const fallbackStyle = fallbackColor
 
       img.onerror = () => {
         if (this.requestToken !== token) return;
+        img.onerror = null;
         img.src = '';
         img.classList.remove('opacity-100');
         img.classList.add('opacity-0');

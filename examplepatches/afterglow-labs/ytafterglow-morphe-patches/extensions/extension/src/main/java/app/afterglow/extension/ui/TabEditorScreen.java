@@ -38,13 +38,24 @@ final class TabEditorScreen extends SettingsScreen {
     // drag state
     private boolean dragging;
     private View dragRow;
+    private View dragPlaceholder;
+    private int dragRowHeight;
     private String dragTab;
     private boolean dragFromShown;
+    private boolean dropShown;
+    private int dropIndex;
     private ImageView ghost;
     private float downRawY;
     private float lastRawY;
     private float rowCenterAtDown;
     private boolean autoScrolling;
+
+    private final View.OnAttachStateChangeListener dragAttachment = new View.OnAttachStateChangeListener() {
+        @Override public void onViewAttachedToWindow(View view) {}
+        @Override public void onViewDetachedFromWindow(View view) {
+            if (view == dragRow) endDrag(false);
+        }
+    };
 
     /** Scrolls while the finger rests near the top or bottom edge (iOS reorder auto-scroll). */
     private final Runnable autoScroll = new Runnable() {
@@ -57,7 +68,7 @@ final class TabEditorScreen extends SettingsScreen {
             }
             host.scrollView().scrollBy(0, step);
             updateTarget(lastRawY);
-            host.scrollView().postOnAnimation(this);
+            if (dragging) host.scrollView().postOnAnimation(this);
         }
     };
 
@@ -82,6 +93,7 @@ final class TabEditorScreen extends SettingsScreen {
 
     @Override
     void build(LinearLayout content) {
+        endDrag(false);
         // Shown tabs always come from the store. Hidden tabs keep their order for the life of
         // the editor (iOS keeps its inactiveTabs array: a tapped tab goes to the top); new
         // hidden tabs are appended in ytag_allTabIds order, which is also the initial order.
@@ -187,8 +199,10 @@ final class TabEditorScreen extends SettingsScreen {
                 if (dragging) moveDrag(event.getRawY());
                 return true;
             case MotionEvent.ACTION_UP:
+                endDrag(true);
+                return true;
             case MotionEvent.ACTION_CANCEL:
-                if (dragging) endDrag();
+                endDrag(false);
                 return true;
             default:
                 return false;
@@ -196,11 +210,15 @@ final class TabEditorScreen extends SettingsScreen {
     }
 
     private void startDrag(View row, float rawY) {
-        if (row.getWidth() == 0 || row.getHeight() == 0) return;
+        if (dragging || row.getWidth() == 0 || row.getHeight() == 0) return;
+        ViewGroup parent = (ViewGroup) row.getParent();
+        if (parent != activeList && parent != hiddenList) return;
         dragging = true;
         dragRow = row;
         dragTab = (String) row.getTag();
         dragFromShown = active.contains(dragTab);
+        dropShown = dragFromShown;
+        dropIndex = parent.indexOfChild(row);
         host.scrollView().requestDisallowInterceptTouchEvent(true);
 
         Bitmap bitmap = Bitmap.createBitmap(row.getWidth(), row.getHeight(), Bitmap.Config.ARGB_8888);
@@ -221,14 +239,28 @@ final class TabEditorScreen extends SettingsScreen {
         overlay.addView(ghost, params);
 
         downRawY = rawY;
+        lastRawY = rawY;
         rowCenterAtDown = rowLocation[1] + row.getHeight() / 2f;
+
+        // Keep the handle's row attached for the entire touch stream. Moving that
+        // row with removeView() synchronously sends ACTION_CANCEL to the handle,
+        // which used to end the drag in the middle of updateTarget(). Only the
+        // untouchable placeholder moves between the two lists.
+        dragPlaceholder = new View(row.getContext());
+        parent.addView(dragPlaceholder, dropIndex,
+                new LinearLayout.LayoutParams(row.getWidth(), row.getHeight()));
+        ViewGroup.LayoutParams rowParams = row.getLayoutParams();
+        dragRowHeight = rowParams.height;
+        rowParams.height = 0;
+        row.setLayoutParams(rowParams);
         row.setVisibility(View.INVISIBLE);
+        row.addOnAttachStateChangeListener(dragAttachment);
     }
 
     private void moveDrag(float rawY) {
         lastRawY = rawY;
         updateTarget(rawY);
-        if (!autoScrolling && edgeStep(rawY) != 0) {
+        if (dragging && !autoScrolling && edgeStep(rawY) != 0) {
             autoScrolling = true;
             host.scrollView().postOnAnimation(autoScroll);
         }
@@ -245,6 +277,7 @@ final class TabEditorScreen extends SettingsScreen {
 
     /** Moves the ghost with the finger and the gap row to the slot under it. */
     private void updateTarget(float rawY) {
+        if (!dragging) return;
         float dy = rawY - downRawY;
         ghost.setTranslationY(dy);
         float center = rowCenterAtDown + dy;
@@ -265,35 +298,55 @@ final class TabEditorScreen extends SettingsScreen {
         int index = 0;
         for (int i = 0; i < target.getChildCount(); i++) {
             View child = target.getChildAt(i);
-            if (child == dragRow) continue;
+            if (child == dragRow || child == dragPlaceholder) continue;
             float childCenter = targetLocation[1] + child.getTop() + child.getHeight() / 2f;
             if (childCenter < center) index++;
         }
-        ViewGroup parent = (ViewGroup) dragRow.getParent();
-        int currentIndex = parent == null ? -1 : parent.indexOfChild(dragRow);
-        if (parent != target || currentIndex != index) {
-            if (parent != null) parent.removeView(dragRow);
-            target.addView(dragRow, Math.min(index, target.getChildCount()));
+        if (dropShown != toShown || dropIndex != index) {
+            ViewGroup parent = (ViewGroup) dragPlaceholder.getParent();
+            if (parent != null) parent.removeView(dragPlaceholder);
+            // The collapsed source row is still a child, but is not a drop slot.
+            int insertion = 0;
+            int rows = 0;
+            while (insertion < target.getChildCount()) {
+                if (target.getChildAt(insertion) != dragRow) {
+                    if (rows == index) break;
+                    rows++;
+                }
+                insertion++;
+            }
+            target.addView(dragPlaceholder, insertion);
+            dropShown = toShown;
+            dropIndex = index;
         }
     }
 
-    private void endDrag() {
+    private void endDrag(boolean commit) {
+        if (!dragging) return;
+        // Cleanup can itself detach views or refresh the screen. Finish the
+        // gesture before doing so, and save only a real finger-up drop.
+        dragging = false;
         host.scrollView().removeCallbacks(autoScroll);
         autoScrolling = false;
+        dragRow.removeOnAttachStateChangeListener(dragAttachment);
         host.overlay().removeView(ghost);
         ghost = null;
+        ViewGroup parent = (ViewGroup) dragPlaceholder.getParent();
+        if (parent != null) parent.removeView(dragPlaceholder);
+        dragPlaceholder = null;
+        ViewGroup.LayoutParams rowParams = dragRow.getLayoutParams();
+        rowParams.height = dragRowHeight;
+        dragRow.setLayoutParams(rowParams);
         dragRow.setVisibility(View.VISIBLE);
         host.scrollView().requestDisallowInterceptTouchEvent(false);
-        ViewGroup parent = (ViewGroup) dragRow.getParent();
-        boolean toShown = parent == activeList;
-        int index = parent == null ? 0 : parent.indexOfChild(dragRow);
-        dragging = false;
-
-        List<String> source = dragFromShown ? active : hidden;
-        List<String> destination = toShown ? active : hidden;
-        source.remove(dragTab);
-        destination.add(Math.max(0, Math.min(index, destination.size())), dragTab);
         dragRow = null;
-        persist();
+        if (commit) {
+            List<String> source = dragFromShown ? active : hidden;
+            List<String> destination = dropShown ? active : hidden;
+            source.remove(dragTab);
+            destination.add(Math.max(0, Math.min(dropIndex, destination.size())), dragTab);
+        }
+        dragTab = null;
+        if (commit) persist();
     }
 }

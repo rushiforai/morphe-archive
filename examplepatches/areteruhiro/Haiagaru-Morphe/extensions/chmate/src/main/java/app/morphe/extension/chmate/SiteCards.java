@@ -54,14 +54,22 @@ final class SiteCards {
         LinkedHashSet<String> result=new LinkedHashSet<>();
         int maximum=Haiagaru.siteCardMaxPerResponse();
         List<SiteCardExclusions.Rule> ignored=excludedRules();
-        for(String candidate:PreviewUrls.extract(XPostPreview.originalText(strip(source)),32)){
-            String url=SiteCardMetadata.safeUrl(candidate);
-            if(url==null||SiteCardExclusions.excluded(ignored,url))continue;
-            android.net.Uri uri=android.net.Uri.parse(url);String host=uri.getHost().toLowerCase(Locale.ROOT),path=uri.getPath();
-            if(host.equals("x.com")||host.endsWith(".x.com")||host.equals("twitter.com")||host.endsWith(".twitter.com")
-                    ||host.equals("youtu.be")||host.endsWith("youtube.com")||host.endsWith("5ch.io")||host.endsWith("5ch.net")
-                    ||path!=null&&path.matches("(?i).+\\.(gif|jpe?g|png|webp|mp4|webm|mp3|pdf|zip|apk)(/.*)?"))continue;
-            result.add(url);
+        CharSequence unwrapped=strip(source);
+        ArrayList<String> searchText=new ArrayList<>(2);
+        String preview=XPostPreview.appendedPreviewText(unwrapped);
+        if(!preview.isEmpty())searchText.add(preview);
+        searchText.add(XPostPreview.originalText(unwrapped));
+        for(String text:searchText){
+            for(String candidate:PreviewUrls.extract(text,32)){
+                String url=SiteCardMetadata.safeUrl(candidate);
+                if(url==null||SiteCardExclusions.excluded(ignored,url))continue;
+                android.net.Uri uri=android.net.Uri.parse(url);String host=uri.getHost().toLowerCase(Locale.ROOT),path=uri.getPath();
+                if(host.equals("x.com")||host.endsWith(".x.com")||host.equals("twitter.com")||host.endsWith(".twitter.com")
+                        ||host.equals("youtu.be")||host.endsWith("youtube.com")||host.endsWith("5ch.io")||host.endsWith("5ch.net")
+                        ||path!=null&&path.matches("(?i).+\\.(gif|jpe?g|png|webp|mp4|webm|mp3|pdf|zip|apk)(/.*)?"))continue;
+                result.add(url);
+                if(result.size()>=maximum)break;
+            }
             if(result.size()>=maximum)break;
         }return new ArrayList<>(result);
     }

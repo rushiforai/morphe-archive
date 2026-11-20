@@ -82,6 +82,31 @@ internal fun BytecodePatchContext.patchGroupedBrowsingHistory(version: String) {
             """.trimIndent())
             adapterClass.methods.add(hook)
         }
+        if(version=="0.8.10.191 dev"){
+            // ChMate's swipe callback removes the row from its display wrapper.
+            // Keep Haiagaru's retained pre-sort source copy in sync afterwards,
+            // or the next notifyDataSetChanged can restore the deleted row.
+            val removal=klass.methods.single {
+                it.name=="a"&&it.parameterTypes==listOf("I","J")&&it.returnType=="Z"
+            }
+            val delegateName="haiagaruNativeHistoryDelete"
+            val delegate=MutableMethod(ImmutableMethod(owner,delegateName,removal.parameters,
+                removal.returnType,removal.accessFlags,removal.annotations,removal.hiddenApiRestrictions,removal.implementation))
+            val wrapper=MutableMethod(ImmutableMethod(owner,"a",removal.parameters,removal.returnType,
+                removal.accessFlags,removal.annotations,removal.hiddenApiRestrictions,
+                ImmutableMethodImplementation(5,emptyList(),emptyList(),emptyList())))
+            val call=if(removal.accessFlags and 2!=0)"invoke-direct/range" else "invoke-virtual/range"
+            wrapper.addInstructions(0,"""
+                invoke-static {p0, p1, p2, p3}, $HISTORY->nativeHistoryDeleteStart(Ljava/lang/Object;IJ)V
+                $call {p0 .. p3}, $owner->$delegateName(IJ)Z
+                move-result v0
+                invoke-static {p0, p1, p2, p3, v0}, $HISTORY->nativeHistoryDeleteResult(Ljava/lang/Object;IJZ)V
+                return v0
+            """.trimIndent())
+            klass.methods.remove(removal)
+            klass.methods.add(delegate)
+            klass.methods.add(wrapper)
+        }
     }
     println("Board-grouped normal browsing history: $version (refresh target popup entry added)")
     if(version=="0.8.10.191 dev"){

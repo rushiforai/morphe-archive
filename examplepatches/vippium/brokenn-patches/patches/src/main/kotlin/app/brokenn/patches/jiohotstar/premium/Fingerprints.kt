@@ -4,19 +4,19 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.AccessFlags
 
-object IsSubscribedFingerprint : Fingerprint(
+internal object IsSubscribedFingerprint : Fingerprint(
     definingClass = "Lcom/hotstar/ui/model/pagedata/MyPageData;",
     name = "getIsSubscribed",
     returnType = "Z"
 )
 
-object IsPremiumFingerprint : Fingerprint(
+internal object IsPremiumFingerprint : Fingerprint(
     definingClass = "Lcom/hotstar/ui/model/feature/download/DownloadInfo;",
     name = "getIsPremium",
     returnType = "Z"
 )
 
-object SubscriptionNudgeFingerprint : Fingerprint(
+internal object SubscriptionNudgeFingerprint : Fingerprint(
     returnType = "V",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     filters = listOf(

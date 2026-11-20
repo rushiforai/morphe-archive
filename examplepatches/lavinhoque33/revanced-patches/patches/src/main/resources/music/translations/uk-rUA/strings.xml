@@ -136,6 +136,7 @@
     <string name="morphe_music_downloads_sort">Сортувати</string>
     <string name="morphe_music_downloads_started">Завантаження розпочато</string>
     <string name="morphe_music_downloads_starting">Розпочато завантаження…</string>
+    <string name="morphe_music_downloads_waiting_for_connection">Очікування з’єднання</string>
     <string name="morphe_music_downloads_unknown_track">Не вдалося визначити трек для завантаження</string>
     <string name="morphe_music_hide_you_may_also_like_section_title">Приховати секцію \"Вам також може сподобатися\"</string>
     <string name="morphe_music_hide_your_downloads_shelf_title">Приховати полицю \"Ваші завантаження\"</string>
@@ -1049,4 +1050,8 @@
     <string name="revanced_webview_toast_unavailable">WebView недоступний</string>
     <string name="morphe_music_auto_song_version_title">Завжди відтворювати версію пісні</string>
     <string name="morphe_music_auto_song_version_summary">Замінює офіційні кліпи в черзі відповідними піснями. Потрібно ввімкнути налаштування додатка «Не відтворювати музичні відео». Треки без точного збігу залишаються без змін</string>
+    <string name="morphe_music_playlist_download_connect">Підключіться до Інтернету, щоб продовжити завантаження</string>
+    <string name="morphe_music_playlist_ready">Готово: %1$d з %2$d</string>
+    <string name="morphe_music_playlist_resume">Готово: %1$d з %2$d · Продовжити</string>
+    <string name="morphe_music_playlist_partial_failed">Готово: %1$d з %2$d (помилок: %3$d) · Продовжити</string>
 </resources>

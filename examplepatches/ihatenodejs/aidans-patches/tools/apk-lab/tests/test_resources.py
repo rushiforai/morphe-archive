@@ -75,6 +75,16 @@ def test_normalize_resource_query_valid():
     assert q_val3.kind == "value"
     assert q_val3.text_value == "test"
 
+    q_val_ellipsis = normalize_resource_query("text:Loading...")
+    assert q_val_ellipsis.kind == "value"
+    assert q_val_ellipsis.text_value == "Loading..."
+
+
+def test_normalize_resource_query_text_with_ellipses():
+    parsed = normalize_resource_query("text:Loading...")
+    assert parsed.kind == "value"
+    assert parsed.text_value == "Loading..."
+
 
 def test_normalize_resource_query_invalid():
     with pytest.raises(ValueError, match="empty"):

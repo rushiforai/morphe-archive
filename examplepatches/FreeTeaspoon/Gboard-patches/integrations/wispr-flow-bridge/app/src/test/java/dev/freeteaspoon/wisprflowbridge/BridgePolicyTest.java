@@ -4,6 +4,14 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 public class BridgePolicyTest {
+    @Test public void onlyVerifiedWisprVersionsEnableTheBridge() {
+        assertTrue(BridgePolicy.supportsVersion("2.8.5"));
+        assertTrue(BridgePolicy.supportsVersion("2.8.7"));
+        assertFalse(BridgePolicy.supportsVersion("2.8.6"));
+        assertFalse(BridgePolicy.supportsVersion("2.8.8"));
+        assertFalse(BridgePolicy.supportsVersion(null));
+    }
+
     @Test public void commandsRequireTheRealCurrentImeUid() {
         assertTrue(BridgePolicy.acceptsSender(10400, 10400));
         assertFalse(BridgePolicy.acceptsSender(10401, 10400));

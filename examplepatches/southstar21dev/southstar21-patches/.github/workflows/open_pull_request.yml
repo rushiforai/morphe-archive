@@ -14,9 +14,10 @@ jobs:
   pull-request:
     name: Open pull request
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Open pull request
         env:
@@ -38,6 +39,7 @@ jobs:
           fi
 
           # Try to create the PR
+          # shellcheck disable=SC2016 # the backticks in the title are literal
           gh pr create \
             --base "$TARGET_BRANCH" \
             --head "$SOURCE_BRANCH" \

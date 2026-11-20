@@ -132,10 +132,11 @@ val gameReviewPatch = bytecodePatch(
         "Lichess account) or, with the Stockfish analysis patch, Stockfish on your phone (offline, no daily " +
         "limit). The phone and Lichess judge moves the Lichess way (?! inaccuracies, ? mistakes, ?? blunders, " +
         "accuracy and centipawn loss) in chess.com's own review screen, and the phone marks the moves Lichess " +
-        "leaves unmarked Best, Excellent or Good, as chess.com does. Finished games only; a live game on " +
-        "screen is never analysed. Two more patches in this bundle add Stockfish on your computer and Great " +
-        "(!) and Brilliant (!!) marks. Select Unlimited Game Review from this bundle only: a second one from " +
-        "another source cannot be applied to the same app.",
+        "leaves unmarked Best, Excellent or Good, as chess.com does. A review by Local Stockfish or Stockfish " +
+        "on your computer also marks chess.com's Great (!) and Brilliant (!!). Finished games only; a live " +
+        "game on screen is never analysed. One more patch in this bundle adds Stockfish on your computer. " +
+        "Select Unlimited Game Review from this bundle only: a second one from another source cannot be " +
+        "applied to the same app.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 
@@ -143,6 +144,8 @@ val gameReviewPatch = bytecodePatch(
 
     execute {
         markFeaturePatched("gameReviewPatched")
+        // Great and Brilliant marks live in the same review flow as the rest of the local review.
+        markFeaturePatched("greatMovesPatched")
 
         // Opening Game Review asks who reviews: navigate(activity, directions) for the full
         // screen and show(router, direction, fragmentManager) for the dialog are held back

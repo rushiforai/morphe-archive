@@ -129,6 +129,7 @@ SABR 播放（模拟视频流已关闭）"</string>
     <string name="morphe_music_downloads_sort">排序</string>
     <string name="morphe_music_downloads_started">下载已开始</string>
     <string name="morphe_music_downloads_starting">正在开始下载…</string>
+    <string name="morphe_music_downloads_waiting_for_connection">正在等待网络连接</string>
     <string name="morphe_music_downloads_unknown_track">无法识别要下载的曲目</string>
     <string name="morphe_music_hide_you_may_also_like_section_title">隐藏“猜你喜欢”板块</string>
     <string name="morphe_music_hide_your_downloads_shelf_title">隐藏“你的下载”内容</string>
@@ -934,4 +935,8 @@ SABR 播放（模拟视频流已关闭）"</string>
     <string name="revanced_webview_toast_unavailable">WebView 不可用。</string>
     <string name="morphe_music_auto_song_version_title">始终播放歌曲版本</string>
     <string name="morphe_music_auto_song_version_summary">将队列中的官方音乐视频替换为匹配的歌曲。需要开启应用的“不播放音乐视频”设置。没有精确匹配的曲目将保持不变</string>
+    <string name="morphe_music_playlist_download_connect">连接互联网以继续下载</string>
+    <string name="morphe_music_playlist_ready">%2$d 首中有 %1$d 首可离线播放</string>
+    <string name="morphe_music_playlist_resume">%2$d 首中有 %1$d 首可离线播放 · 继续下载</string>
+    <string name="morphe_music_playlist_partial_failed">%2$d 首中有 %1$d 首可离线播放（%3$d 首失败） · 继续下载</string>
 </resources>

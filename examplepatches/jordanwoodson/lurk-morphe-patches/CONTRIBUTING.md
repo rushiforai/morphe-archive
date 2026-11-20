@@ -63,7 +63,9 @@ the test probes and how releases work. Read it first, then:
   With the setting off, the app must behave exactly as unpatched. Say "applies after a
   restart" when the value is only read at startup. Changes that can only be made while
   patching (the icon, the app name, a clone, removed permissions) have no setting, and their
-  description says so.
+  description says so. The one exception is *Lurk icon*: it adds a second launcher entry with the
+  app's own icon, and its App icon choice switches between the two (not on a root mount install,
+  which keeps the original manifest).
 - **Defaults: selected, switched off.** A new patch is selected in Manager by default and its
   switch starts off, so a freshly patched app behaves like the stock one until you turn
   things on. The description ends with "Starts off. Turn it on in Lurk settings > <Section>."

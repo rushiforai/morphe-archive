@@ -8,15 +8,15 @@
  "required": {
   "class:message-container": {
    "present": true,
-   "for": "7TV emotes, Chat keywords, Chat timestamps (each chat line)"
+   "for": "7TV emotes, Chat keywords, Chat search, Chat timestamps (each chat line)"
   },
   "class:message-content": {
    "present": true,
-   "for": "7TV emotes, Chat keywords (a line's text)"
+   "for": "7TV emotes, Chat keywords, Chat search (a line's text)"
   },
   "class:username": {
    "present": true,
-   "for": "Chat keywords (a line's sender)"
+   "for": "Chat keywords, Chat search (a line's sender)"
   },
   "class:emote": {
    "present": true,

@@ -54,10 +54,11 @@ public final class ClipboardHistory {
     }
     public static void setPrimaryClip(ClipboardManager manager, ClipData clip) {
         clip=SiteNativeBoards.exportedClip(clip);
+        Context context = Haiagaru.applicationContextForExtension();
+        clip=WacchoiClipboard.stripIfEnabled(context,clip);
         // Preserve the original copy operation and exceptions; recording failure never breaks copying.
         manager.setPrimaryClip(clip);
         try {
-            Context context = Haiagaru.applicationContextForExtension();
             if (context == null || !context.getSharedPreferences(PREFS, 0).getBoolean("enabled", false)
                     || clip == null || clip.getItemCount() != 1) return;
             if (Build.VERSION.SDK_INT >= 24 && clip.getDescription().getExtras() != null

@@ -26,6 +26,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstructio
 import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ThreeRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -196,8 +197,16 @@ class FeedVideoAloneFixtureTest {
                 // The data source: the loader's first boolean interface call, answered by one class.
                 val check = seedCheck(loader)
                     ?: throw AssertionError("$name: the loader's fetch more asks no boolean interface method first")
+                // 588's Android 9 build calls the check's body straight, a helper's method handed the data source.
+                val held = isHeldSeedCheck(check)
                 val sources = mutableListOf<Pair<ClassDef, Method>>()
-                FixtureDex.forEach(bundle) { dex ->
+                if (held) {
+                    val helper = FixtureDex.classes(bundle, setOf(check.definingClass)).getValue(check.definingClass)
+                    helper.methods.filter {
+                        it.name == check.name && it.returnType == "Z" && it.implementation != null &&
+                            it.parameterTypes.map(CharSequence::toString) == check.parameterTypes.map(CharSequence::toString)
+                    }.mapTo(sources) { helper to it }
+                } else FixtureDex.forEach(bundle) { dex ->
                     for (classDef in dex.classes) {
                         if (classDef.type.startsWith(EXTENSION_PACKAGE) || check.definingClass !in classDef.interfaces) continue
                         val copy = ImmutableClassDef.of(classDef)
@@ -206,9 +215,27 @@ class FeedVideoAloneFixtureTest {
                 }
                 assertEquals("$name: classes answering $check", 1, sources.size)
                 val (sourceOwner, source) = sources.single()
+                val dataSourceType = if (held) check.parameterTypes.single().toString() else sourceOwner.type
+                val dataSource = if (held) FixtureDex.classes(bundle, setOf(dataSourceType)).getValue(dataSourceType) else sourceOwner
+                // Positive control: the held shape's data source keeps the helper in a field of its own.
+                if (held) assertTrue("$name: $dataSourceType holds no ${check.definingClass}", dataSource.fields.any { it.type == check.definingClass })
 
-                val classes = (listOf(warionOwner, entryOwner, fetchOwner, loaderOwner, fragment, sourceOwner, listOwner, params,
-                    ExtensionDex.classDef(FEED_VIDEO_ALONE)) + pageOwners + nameHolders).distinctBy { it.type }
+                // The loader's vend, and the videos it reads from the data source through a public
+                // interface the data source implements, the read the extension's stub makes (#457).
+                val vends = loaderOwner.methods.filter { it.returnType == "V" && holdsString(it, SEED_VEND) }
+                assertEquals("$name: void methods beside the loader holding $SEED_VEND", 1, vends.size)
+                val vend = vends.single()
+                val vendCode = vend.code()
+                val vendAt = vendAsk(vend, check) ?: throw AssertionError("$name: the vend doesn't branch on $check past a page")
+                val videos = sourceVideosRead(vend, vendAt)
+                    ?: throw AssertionError("$name: the vend reads no $IMMUTABLE_LIST from its data source past the branch")
+                val videosOwner = FixtureDex.classes(bundle, setOf(videos.definingClass)).getValue(videos.definingClass)
+                assertTrue("$name: ${videos.definingClass} isn't a public interface",
+                    AccessFlags.PUBLIC.isSet(videosOwner.accessFlags) && AccessFlags.INTERFACE.isSet(videosOwner.accessFlags))
+                assertTrue("$name: the data source doesn't implement ${videos.definingClass}", videos.definingClass in dataSource.interfaces)
+
+                val classes = (listOf(warionOwner, entryOwner, fetchOwner, loaderOwner, fragment, sourceOwner, dataSource, listOwner, params,
+                    videosOwner, ExtensionDex.classDef(FEED_VIDEO_ALONE)) + pageOwners + nameHolders).distinctBy { it.type }
                 // Positive control: Clean up Reels refuses when the opening hooks it rests on aren't in.
                 val unhooked = assertThrows(PatchException::class.java) { PatchContexts.of(classes).keepFeedVideosAlone() }
                 assertTrue("$name: ${unhooked.message}", unhooked.message.orEmpty().contains("doesn't tell the extension"))
@@ -248,6 +275,13 @@ class FeedVideoAloneFixtureTest {
                     ((stub[0] as ReferenceInstruction).reference as TypeReference).type)
                 assertEquals("$name: and reads the field the entry reads", originField.toString(),
                     ((stub[1] as ReferenceInstruction).reference as FieldReference).toString())
+                val videosStub = context.mutableClassDefBy(FEED_VIDEO_ALONE).methods.single { it.name == SOURCE_VIDEOS }.code()
+                assertEquals("$name: the videos stub's shape",
+                    listOf(Opcode.CHECK_CAST, Opcode.INVOKE_INTERFACE, Opcode.MOVE_RESULT_OBJECT, Opcode.RETURN_OBJECT),
+                    videosStub.take(4).map { it.opcode })
+                assertEquals("$name: the stub casts to the interface", videos.definingClass,
+                    ((videosStub[0] as ReferenceInstruction).reference as TypeReference).type)
+                assertEquals("$name: and makes the vend's call", videos.toString(), called(videosStub[1]))
 
                 val tapped = context.mutableClassDefBy(warionOwner.type).methods.single { it.sameAs(warion) }.code()
                 assertEquals("$name: one instruction added to the Warion step", warion.code().size + 1, tapped.size)
@@ -283,22 +317,24 @@ class FeedVideoAloneFixtureTest {
                     assertEquals("$where: the rest is Facebook's",
                         method.code().map { it.opcode }, asked.drop(6).map { it.opcode })
                 }
+                if (held) {
+                    val helper = context.mutableClassDefBy(sourceOwner.type).methods.single { it.sameAs(source) }
+                    assertEquals("$name: the seed check's helper hands over the data source it's given, p1",
+                        helper.implementation!!.registerCount - 1, (helper.code()[0] as TwoRegisterInstruction).registerB)
+                }
                 // #421: the loader's vend hands the extension the data source and the page just ahead of
-                // its branch on the seed check, and the branch still lands where it did.
-                val vends = loaderOwner.methods.filter { it.returnType == "V" && holdsString(it, SEED_VEND) }
-                assertEquals("$name: void methods beside the loader holding $SEED_VEND", 1, vends.size)
-                val vend = vends.single()
-                val vendCode = vend.code()
-                val vendAt = vendAsk(vend, check) ?: throw AssertionError("$name: the vend doesn't branch on $check past a page")
+                // its branch on the seed check, or's its answer into the check's (#457), and the branch
+                // still lands where it did.
                 val landed = branchTarget(vendCode, vendAt.index)!!
                 val vended = context.mutableClassDefBy(loaderOwner.type).methods.single { it.sameAs(vend) }.code()
-                // Seven code units in front of a switch payload put it off its four-byte boundary, and
+                // Code units in front of a switch payload can put it off its four-byte boundary, and
                 // dexlib pads it with a nop (the A9 build's vend ends in a sparse-switch payload).
-                assertEquals("$name: three instructions added to the vend, not counting alignment nops",
-                    vendCode.count { it.opcode != Opcode.NOP } + 3, vended.count { it.opcode != Opcode.NOP })
-                val (fromSource, fromPage, told421) = vended.subList(vendAt.index, vendAt.index + 3)
-                assertEquals("$name: the vend's copies and call", listOf(Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_FROM16, Opcode.INVOKE_STATIC),
-                    listOf(fromSource.opcode, fromPage.opcode, told421.opcode))
+                assertEquals("$name: five instructions added to the vend, not counting alignment nops",
+                    vendCode.count { it.opcode != Opcode.NOP } + 5, vended.count { it.opcode != Opcode.NOP })
+                val (fromSource, fromPage, told421, answered, merged) = vended.subList(vendAt.index, vendAt.index + 5)
+                assertEquals("$name: the vend's copies, call and answer",
+                    listOf(Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_FROM16, Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT, Opcode.OR_INT),
+                    listOf(fromSource.opcode, fromPage.opcode, told421.opcode, answered.opcode, merged.opcode))
                 fromSource as TwoRegisterInstruction
                 fromPage as TwoRegisterInstruction
                 assertEquals("$name: copied from the data source, then the page", listOf(vendAt.source, vendAt.reels),
@@ -307,13 +343,18 @@ class FeedVideoAloneFixtureTest {
                 told421 as FiveRegisterInstruction
                 assertEquals("$name: with both copies", listOf(2, fromSource.registerA, fromPage.registerA),
                     listOf(told421.registerCount, told421.registerC, told421.registerD))
-                val branch = vended[vendAt.index + 3]
+                assertEquals("$name: its answer goes into the data source's copy", fromSource.registerA,
+                    (answered as OneRegisterInstruction).registerA)
+                merged as ThreeRegisterInstruction
+                assertEquals("$name: and is or'd into the seed check's", listOf(vendAt.answer, vendAt.answer, fromSource.registerA),
+                    listOf(merged.registerA, merged.registerB, merged.registerC))
+                val branch = vended[vendAt.index + 5]
                 assertEquals("$name: Facebook's branch follows", Opcode.IF_EQZ, branch.opcode)
-                assertTrue("$name: the copies leave the answer alone", (branch as OneRegisterInstruction).registerA !in
-                    setOf(fromSource.registerA, fromPage.registerA))
-                assertEquals("$name: the branch lands where it did", landed + 3, branchTarget(vended, vendAt.index + 3))
+                assertEquals("$name: on the seed check's answer", vendAt.answer, (branch as OneRegisterInstruction).registerA)
+                assertTrue("$name: the copies leave the answer alone", vendAt.answer !in setOf(fromSource.registerA, fromPage.registerA))
+                assertEquals("$name: the branch lands where it did", landed + 5, branchTarget(vended, vendAt.index + 5))
                 assertEquals("$name: the rest of the vend is Facebook's", vendCode.map { it.opcode }.filter { it != Opcode.NOP },
-                    vended.filterIndexed { at, _ -> at !in vendAt.index until vendAt.index + 3 }.map { it.opcode }.filter { it != Opcode.NOP })
+                    vended.filterIndexed { at, _ -> at !in vendAt.index until vendAt.index + 5 }.map { it.opcode }.filter { it != Opcode.NOP })
 
                 // Positive control: three separate roads, so no hook stands in for another.
                 assertEquals("$name: the loader, the data controller and the data source share a class",
@@ -351,12 +392,14 @@ class FeedVideoAloneFixtureTest {
 
     @Test
     fun `the extension has every hook`() {
-        val stub = ExtensionDex.classDef(FEED_VIDEO_ALONE).methods.singleOrNull { it.name == VIEWER_ORIGIN }
-        assertNotNull("the extension has no $VIEWER_ORIGIN stub", stub)
-        assertEquals("the stub's shape", "$FEED_VIDEO_ALONE->$VIEWER_ORIGIN(Ljava/lang/Object;)Ljava/lang/Object;",
-            "${stub!!.definingClass}->${stub.name}(${stub.parameterTypes.joinToString("")})${stub.returnType}")
-        assertTrue("the stub isn't public static",
-            AccessFlags.STATIC.isSet(stub.accessFlags) && AccessFlags.PUBLIC.isSet(stub.accessFlags))
+        for (name in listOf(VIEWER_ORIGIN, SOURCE_VIDEOS)) {
+            val stub = ExtensionDex.classDef(FEED_VIDEO_ALONE).methods.singleOrNull { it.name == name }
+            assertNotNull("the extension has no $name stub", stub)
+            assertEquals("$name's shape", "$FEED_VIDEO_ALONE->$name(Ljava/lang/Object;)Ljava/lang/Object;",
+                "${stub!!.definingClass}->${stub.name}(${stub.parameterTypes.joinToString("")})${stub.returnType}")
+            assertTrue("$name isn't public static",
+                AccessFlags.STATIC.isSet(stub.accessFlags) && AccessFlags.PUBLIC.isSet(stub.accessFlags))
+        }
         for (hook in listOf(FEED_VIDEO_TAPPED, VIEWER_OPENING, HOLDS_BACK, WARION_OPENING, WARION_CLOSED, SEED_CHECK, MORE_REELS_COMING,
             VENDING)) {
             val type = hook.substringBefore("->")

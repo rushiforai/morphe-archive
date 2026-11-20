@@ -37,8 +37,7 @@ pluginManagement {
 // CVE-2026-53914 (GHSA-r937-wjx7-w2jp), a deserialisation flaw in the Kotlin build cache, covers
 // every release before 2.4.20, so Kotlin needs no force here any more;
 // gradle/verification-metadata.xml says which version actually resolved. kotlin-stdlib and
-// kotlin-reflect on this classpath still resolve to 2.4.10, the copies Gradle 9.8.2 ships and
-// pins; they aren't the build cache code.
+// kotlin-reflect on this classpath resolve to 2.4.21, the copies Gradle 9.9.2 ships and pins.
 //
 // The same classpath brings Bouncy Castle 1.79, the version AGP's apkzlib, builder and
 // sdk-common ask for (the plugin itself asks for 1.77), and 1.79 is inside six of the
@@ -46,17 +45,17 @@ pluginManagement {
 // :patches and :extensions:facebook each force their own graphs to
 // the reviewed release, but neither reaches this one: a force on a project configuration cannot
 // touch the classpath the plugins themselves resolve on, and that classpath is where the
-// signing code actually runs. 1.86 is spelled out here rather than read from
+// signing code actually runs. 1.87 is spelled out here rather than read from
 // gradle/libs.versions.toml because the version catalog does not exist yet at this point in the
 // build; the catalog pins the same value and says why it is that one. Move both together.
 buildscript {
     configurations.all {
         resolutionStrategy.eachDependency {
             if (requested.group == "org.bouncycastle") {
-                useVersion("1.86")
+                useVersion("1.87")
             }
             when ("${requested.group}:${requested.name}") {
-                "com.google.guava:guava" -> useVersion("33.7.2-jre")
+                "com.google.guava:guava" -> useVersion("33.8.0-jre")
                 "org.apache.commons:commons-lang3" -> useVersion("3.21.0")
                 "org.bitbucket.b_c:jose4j" -> useVersion("0.9.6")
                 // Jetifier introduces JDOM only through the settings-plugin classpath.
@@ -98,7 +97,7 @@ gradle.beforeProject {
     buildscript.configurations.configureEach {
         resolutionStrategy.eachDependency {
             when ("${requested.group}:${requested.name}") {
-                "com.google.guava:guava" -> useVersion("33.7.2-jre")
+                "com.google.guava:guava" -> useVersion("33.8.0-jre")
                 "org.apache.commons:commons-lang3" -> useVersion("3.21.0")
                 "org.bitbucket.b_c:jose4j" -> useVersion("0.9.6")
             }

@@ -3,6 +3,28 @@ name: Release
 on:
   workflow_dispatch:
   push:
+    branches:
+      - dev
+      - main
+    # Changes that can't alter the patches. Other branches are built by ci.yml.
+    paths-ignore:
+      - '**.md'
+      - 'LICENSE'
+      - 'NOTICE'
+      - '.editorconfig'
+      - '.githooks/**'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/readme/**'
+      - '.github/dependabot.yml'
+      - '.github/ktlint-baseline.xml'
+      - '.github/workflows/ci.yml'
+      - '.github/workflows/lint.yml'
+      - '.github/workflows/open_pull_request.yml'
+
+# One release at a time per branch. A run that is already publishing is never cancelled.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   # Nothing is released unless every patch applies to the supported versions.
@@ -12,7 +34,8 @@ jobs:
       contents: read
       packages: read
     uses: ./.github/workflows/verify.yml
-    secrets: inherit
+    secrets:
+      TEST_APKS_TOKEN: ${{ secrets.TEST_APKS_TOKEN }}
 
   release:
     name: Release
@@ -23,46 +46,89 @@ jobs:
       id-token: write
       attestations: write
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
 
       - name: Setup Java
-        uses: actions/setup-java@v6
+        uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
         with:
           distribution: 'temurin'
           java-version: '21'
 
+      # Semantic release builds with this Gradle too, so it reuses what the verify job compiled.
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/dev' }}
+
       - name: Setup Node.js
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 'lts/*'
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       # Semantic release runs its own Gradle build command.
       # Only dev and main branch will generate a release as specified by .releaserc
       - name: Release
-        uses: cycjimmy/semantic-release-action@v6
+        uses: cycjimmy/semantic-release-action@b12c8f6015dc215fe37bc154d4ad456dd3833c90 # v6.0.0
         id: release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Attest
         if: steps.release.outputs.new_release_published == 'true'
-        uses: actions/attest-build-provenance@v4
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           subject-name: 'Morphe Patches ${{ steps.release.outputs.new_release_git_tag }}'
           subject-path: patches/build/libs/patches-*.mpp
 
-      # Always verify compilation when semantic-release did not publish a release.
-      # This covers non-main/dev branches, chore commits, docs commits, etc.
-      - name: Verify project compiles
-        if: steps.release.outputs.new_release_published != 'true'
+      # Morphe Manager downloads the patches from the URL in patches-bundle.json. Make sure that
+      # URL serves the file that was just built. The file is read from the release tag, as the
+      # backmerge can leave another branch checked out.
+      - name: Check the published bundle
+        if: steps.release.outputs.new_release_published == 'true'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew :patches:buildAndroid clean --no-daemon
+          VERSION: ${{ steps.release.outputs.new_release_version }}
+          TAG: ${{ steps.release.outputs.new_release_git_tag }}
+        run: |
+          built="patches/build/libs/patches-$VERSION.mpp"
+          bundle=$(git show "$TAG:patches-bundle.json")
+          url=$(jq -r '.download_url' <<< "$bundle")
+          if [ "$(jq -r '.version' <<< "$bundle")" != "$VERSION" ]; then
+            echo "::error title=Bundle not updated::patches-bundle.json in $TAG is not at version $VERSION"
+            exit 1
+          fi
+          if ! curl -fsSL --retry 5 --retry-delay 5 --retry-all-errors -o "$RUNNER_TEMP/published.mpp" "$url"; then
+            echo "::error title=Bundle not downloadable::$url from patches-bundle.json can't be downloaded"
+            exit 1
+          fi
+          if ! cmp -s "$built" "$RUNNER_TEMP/published.mpp"; then
+            echo "::error title=Bundle differs::$url is not the $built that was built"
+            exit 1
+          fi
+          echo "$url serves $(basename "$built")"
+
+      # A commit whose type isn't in .releaserc is skipped without an error, so say so.
+      - name: Summary
+        if: always() && steps.release.conclusion == 'success'
+        env:
+          PUBLISHED: ${{ steps.release.outputs.new_release_published }}
+          TAG: ${{ steps.release.outputs.new_release_git_tag }}
+        run: |
+          if [ "$PUBLISHED" = "true" ]; then
+            echo "### Released $TAG" >> "$GITHUB_STEP_SUMMARY"
+          else
+            {
+              echo "### No release"
+              echo
+              echo "No commit since the last release has a releasing type: \`feat\`, \`fix\`, \`perf\`, \`bump\` or \`build(Needs bump)\`. Releases are also only made from \`dev\` and \`main\`."
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "::notice title=No release::No commit since the last release has a releasing type"
+          fi

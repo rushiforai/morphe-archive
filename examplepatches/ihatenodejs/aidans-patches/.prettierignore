@@ -21,7 +21,5 @@ bun.lock
 uv.lock
 tools.lock.json
 patches-list.json
-*.md
-docs/
 patches-bundle.json
 CHANGELOG.md

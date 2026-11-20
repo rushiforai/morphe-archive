@@ -6,15 +6,23 @@ Every Hushfeed release, newest first.
 
 ### Features
 
+* TikTok Lite 47.8.2 gets its first Hushfeed patches: Settings, Diagnostic tools, Feed filter, Change app name, Trust user certificates, Disable screen capture detection, Network request report, Block contact list access, Block installed app scanning, In-app browser privacy guard and Camera and microphone indicator. Lite has no For You tab to hold, so press and hold the app's icon and pick Open Hushfeed settings. The Feed filter works on For You and leaves a profile's videos and a video you opened alone. More patches will follow as each one is made to work in Lite's own code (#48).
+* `Liquid glass when held` brings the glass lens to your finger now, and it swells more. Move your finger along the bar and the lens goes with it, tab to tab, then slides back to your tab when you let go. The tab under it grows, and on Android 13 and up the tabs bend and split into color at the lens's edge, the way the video does with `Blur the video behind the bar` (#440).
+* With `Keep watching in a small window` on, a LIVE's small window now has previous and next buttons, like a video's. They move to the LIVE above or below the way a swipe does, Record (or TikTok's own button) sits between them, and the one with no LIVE its way shows dimmed (#413).
+* A save that a server turns down now shows up in the diagnostic report's new SAVE REFUSALS section. It names the server, says how it refused (like HTTP 403), and tells whether the save's link had already expired. Before, each refused address only read "url omitted" (#464).
+* The diagnostic report's DOWNLOAD PICKER section also lists what's in the video models TikTok keeps beside a video's qualities, each rendition by name and height, so a report can show whether one of them is taller than what Save offers (#471).
+* When TikTok freezes ("isn't responding") or crashes in native code, the last exits in the diagnostic report now show the stack Android kept. A freeze lists the main thread's top 40 frames, and a native crash lists its signal and the crashing thread. Android 17's memory limiter and anomaly exits are named too, where the report used to show a bare number.
+* Holding one of TikTok's own stickers in a chat now shows Save media in the menu that opens. It saves the full sticker the same way Save in the sticker box does, and turning off `Save box for chat stickers` takes it away too (#470).
 * `Show the picture before saving`, under `Save a profile picture on a long press`, opens a held profile picture full screen at full size first. Save under it saves the picture, and a tap anywhere else closes it. It starts off (#467).
 * `Report a newer phone to game LIVE` under App tells TikTok's LIVE server you have a Galaxy S25 Ultra while you set up a LIVE. If the server keeps a game LIVE under 1080p 60fps because of your phone, this gives it another chance. It starts off (#459).
 * `Seconds per photo` now goes up to 300, so a photo can stay on screen for up to five minutes in a video made from a photo post (#465).
+* A video made from a post with just one photo runs as long as the post's sound now, up to five minutes, so the music plays to its end instead of stopping when `Seconds per photo` runs out (#469).
 * `Sort pinned videos with the rest` lets a profile's sort put pinned videos in the order with everything else, so Newest first shows them at the date they were posted instead of at the top. It starts off (#466).
 * `Hide or reorder profile tabs` (it used to be `Hide profile tabs`) now has arrows on each tab. Move Liked to the top and it's first on your profile, while the tabs you didn't touch stay where TikTok puts them. `Original order` puts TikTok's back (#466).
 * `Hide Add bio` under App takes the Add bio prompt off your own profile while it has no bio. Edit profile still lets you add one. It starts off (#466).
 * `Hide the people you may know tag` under Feed screen takes that tag away from beside a creator's name. The Friends and Following labels stay (#462).
 * `Hide stories from accounts you don't follow` clears the recommended stories TikTok mixes into the Inbox's stories tray. Stories from accounts you follow, and your own, stay (#462).
-* `LIVE buttons in the long-press menu` takes Record and Auto tap off the video and puts them in the menu you get by holding the middle of a LIVE (#359).
+* `LIVE buttons in the long-press menu` takes Record and Auto tap off the video and puts them in the menu you get by holding the middle of a LIVE. TikTok won't open that menu right after a like, so while Auto tap runs, holding the LIVE stops it instead. Hold again and the menu opens (#359).
 * `Fade the name, date and caption` gives the creator's name, the date, the caption and the music line their own opacity over the video (#462).
 * `Write the month as a word` shows TikTok's date by the creator's name as Oct 12, or 12 Oct with `Day before month` on (#461).
 * `Use an imported emoji font` draws emoji in a font file you pick, separately from the text font. It's part of `Use system font` and needs Android 12 or newer (#458).
@@ -22,10 +30,21 @@ Every Hushfeed release, newest first.
 * Double tap and Long press can mark the video on screen as not interested, with the same follow-up choices as the button. It needs the Not interested patch (#452).
 * The diagnostic report says when TikTok's main screen starts over while the app is still running, and what happened to the screen before it. That's what a feed jumping back to the top with no crash looks like (#419).
 * With `Stop recording watch history` in the patch set, the diagnostic report counts TikTok's view reports, the ones Watch history is built from. It shows how many were made and how many TikTok groups into one send. Then it counts the ones sent on their own, sent together, dropped because TikTok's server told the app to slow down, held back by `Keep videos out of Watch history` or failed, with the last failure's reason (#448).
-* Hushfeed moves to TikTok 47.9.1, and only that one. 47.8.3 isn't supported anymore. Get the 47.9.1 bundle or APK from APKMirror and patch it with your usual signing key.
+* The diagnostic report's IMAGE LOADS section counts failed images by how they failed, not one line per picture, so a few hundred refusals from one server read as one line with a count. Request headers in a failure show their names only, never their values. The section also says which country TikTok has placed your phone in and how it decided, next to the SIM country Hushfeed is showing it, so a report can tell when the two don't match (#415).
+* Hushfeed moves to TikTok 47.9.2, and only that one. 47.8.3 isn't supported anymore. Get the 47.9.2 bundle or APK from APKMirror and patch it with your usual signing key.
 
 ### Bug Fixes
 
+* TikTok no longer crashes a few seconds after launch on some phones with "Final field cannot be written to". The Feed filter's check on videos TikTok saved for later wrote a value TikTok had marked read-only (#472).
+* With `Log diagnostics` on, Hushfeed settings no longer log a failure for the App icon row each time the page opens or refreshes. It stays out of the diagnostic report, and `Show failures on screen` doesn't pop an error for it anymore. That row saves nothing, so it was never a missing setting.
+* `Copy quick report` puts the report together in the background, so the settings page no longer stalls while it reads saved crashes. The other patch bundles line is filled in on the first copy too, where it used to ask you to copy again.
+* Native crash lines in the diagnostic report keep their function names. A name like `HttpNetworkSession::GetSocketPool` read as a session value and was blanked.
+* The Feature gate lab's list of TikTok settings is right where TikTok's code branches. A few entries were named after a setting loaded on another path, or showed another setting's default, and some settings read after a jump weren't listed at all.
+* `Show account country` and `Block this commenter` show up when you hold a comment on accounts where TikTok is trying out its newer share-style comment menu. That menu never got the rows. With either switch on, TikTok opens its regular menu instead, and the share button on comments stays (#417).
+* With `Keep the middle unstretched` on, search results play in the app's window like the feed does. A search video on a layer of its own used to leave every video cropped and stretched until the next restart (#468).
+* With `Keep the middle unstretched` on, a video's cover picture keeps the same size as its video. When TikTok played a video on a layer of its own, the cover could still take the whole screen, so it showed at the wrong size and flickered as the video replaced it. Once that happens the video and its cover are both cropped and stretched evenly, and the diagnostic report says so (#468).
+* Searching the settings for `SIM country preset`, or just "preset", finds that row now. It used to find nothing.
+* With `Auto-advance videos` and `Keep playing in the background` both on, a creator's videos keep coming after you start one from their profile and leave the app. TikTok used to play that first video and stop. `Auto-advance session limit` counts these too, and screen-time holds stop them the same way (D292).
 * A copy made with Morphe's `Clone app` can log in with the default selection now. `Run beside the store app` is part of Simple mode, and it does nothing on a copy that keeps TikTok's own package name. Without it, TikTok's servers wouldn't give the renamed copy a device ID, so every login said you'd hit the maximum number of attempts (#455, #284).
 * The date and length on profile grids don't get cut in half anymore. The label's bar now grows when it needs a third line (#449, #462).
 * Patching no longer stops at `Settings` when TikTok's Open Debug row can't be found. You lose only the Hushfeed row in TikTok's settings, and holding Home still opens the page (#460).
@@ -38,10 +57,15 @@ Every Hushfeed release, newest first.
 * `Keep captions in Clear display` shows a video's first caption right away, sits near TikTok's own caption spot when it hasn't seen one yet, and stays above the progress bar (#456).
 * The country and date line doesn't get cut off anymore when you open a long caption, and the caption above it keeps every line after you open or close it with more and less (#457).
 * `Show the country and date under the caption` keeps the two together on photo posts and on videos with no caption. With no caption they go right under the creator's name (#453).
+* A sorted profile grid loads up to 1,000 videos on its own before it sorts, up from 300, so a long profile's oldest and longest videos make it into the order. On a long profile that takes around 35 seconds. Tap the loading grid to see the order it has right away, and your scrolling loads the rest. A slow connection stops after 45 seconds the same way. The notes under the profile and sound page sort settings say 1,000 now too, where they still said 300 (#180).
 
 ### Build
 
 * The GitHub release notes leave out the Build changes and the What was checked list now. Build changes are still listed here in the changelog.
+* The build runs on Gradle 9.9.1, which fixes the three Gradle security advisories published on November 10. The wrapper jar and the distribution checksum come from services.gradle.org.
+* The scripts that move the patches to a new TikTok build are in `scripts/retarget/` now. `retarget.ps1` takes the old and new fixture folders and runs the whole renaming pass, and concepts/patch-development.md says how to read what it reports.
+* `Custom offline videos limit` stops the patch with an error if TikTok ever puts a branch between its clean-up answer and the return the patch rewrites. The check for that never matched an if or a goto before.
+* The README's advice for a 32-bit Manager now says to leave out `AMOLED dark theme`, where it used to say to pick only one of AMOLED and `Region spoof`. In 1 GB tests on TikTok 47.9.2 every other patch fit together, Region spoof included, while AMOLED ran out of memory even beside Simple mode's patches.
 
 ## 0.83.0 (2026-11-17)
 

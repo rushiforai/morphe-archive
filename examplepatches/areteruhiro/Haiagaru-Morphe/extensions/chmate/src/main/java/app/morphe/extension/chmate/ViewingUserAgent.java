@@ -18,7 +18,7 @@ public final class ViewingUserAgent {
         // Retire the experimental switch without changing the user's fixed template.
         if(prefs.contains("randomUserAgentEveryFiveSeconds"))prefs.edit().remove("randomUserAgentEveryFiveSeconds").apply();
         String saved = prefs.getString("userAgent", null);
-        String updated = BrowserUaTemplates.resolve(saved);
+        String updated = BrowserUaTemplates.normalizeSetting(saved);
         if (saved != null && !saved.equals(updated)) prefs.edit().putString("userAgent", updated).apply();
         defaultAgent = fallback;
         preferences = prefs;

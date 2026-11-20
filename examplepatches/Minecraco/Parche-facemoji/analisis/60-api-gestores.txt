@@ -1,0 +1,87 @@
+4 ficheros DEX, 164880 cadenas distintas
+
+### Lg00/a;
+    private constructor    <init>()V  -> V
+    public static          n()Lg00/a;  -> Lg00/a;
+    public                 a(Lh00/a;)V  -> V
+    public                 b(Li00/a;)V  -> V
+    public                 c(Lj00/a;)V  -> V
+    public                 d(Lcom/preff/router/keyboard/a;)V  -> V
+    public                 e(Lk00/a;)V  -> V
+    public                 f(Lm00/a;)V  -> V
+    public                 g(Lk00/b;)V  -> V
+    public                 h(Lo00/b;)V  -> V
+    public                 i(Ln00/a;)V  -> V
+    public                 j()Lh00/a;  -> Lh00/a;
+    public                 k()Li00/a;  -> Li00/a;
+    public                 l()Lj00/a;  -> Lj00/a;
+    public                 m()Lcom/preff/router/keyboard/a;  -> Lcom/preff/router/keyboard/a;
+    public                 o()Lk00/a;  -> Lk00/a;
+    public                 p()Lm00/a;  -> Lm00/a;
+    public                 q()Lk00/b;  -> Lk00/b;
+    public                 r()Lo00/b;  -> Lo00/b;
+    public                 s()Ln00/a;  -> Ln00/a;
+
+### Lh00/b;
+    public abstract        a()Z  -> Z
+
+### Lh00/c;
+    public abstract        a(I)V  -> V
+
+### Lh00/d;
+    public abstract        a(Z)V  -> V
+
+### Lh00/a;
+    public abstract        A()Z  -> Z
+    public abstract        B(Landroid/content/Context;)Ljava/lang/String;  -> Ljava/lang/String;
+    public abstract        C()V  -> V
+    public abstract        D(Lh00/d;)V  -> V
+    public abstract        E(Ljava/lang/String; Ljava/lang/String;)V  -> V
+    public abstract        F(Ljava/lang/String; Ljava/lang/String; Lcom/preff/kb/common/share/IShareCompelete;)V  -> V
+    public abstract        G()Z  -> Z
+    public abstract        H(Ljava/lang/String;)V  -> V
+    public abstract        I(Ljava/lang/String;)Ljava/lang/String;  -> Ljava/lang/String;
+    public abstract        J(Landroid/content/Context;)Z  -> Z
+    public abstract        K(Lcom/preff/kb/sticker/callback/IStickerListCallback;)V  -> V
+    public abstract        L()Z  -> Z
+    public abstract        M()Z  -> Z
+    public abstract        N(Landroid/content/Context; Landroid/view/inputmethod/EditorInfo;)V  -> V
+    public abstract        O(Lcom/preff/kb/theme/ITheme;)V  -> V
+    public abstract        P(Landroid/content/Context;)V  -> V
+    public abstract        Q(Ljava/lang/String; Z)V  -> V
+    public abstract        R()Z  -> Z
+    public abstract        S(Landroid/view/View;)V  -> V
+    public abstract        T()Ljava/lang/String;  -> Ljava/lang/String;
+    public abstract        U(Ljava/lang/String;)V  -> V
+    public abstract        V()Lh00/c;  -> Lh00/c;
+    public abstract        W()Z  -> Z
+    public abstract        X()Z  -> Z
+    public abstract        Y()Z  -> Z
+    public abstract        Z()V  -> V
+    public abstract        a0()I  -> I
+    public abstract        b0()Z  -> Z
+    public abstract        c0(Landroid/content/Context; Landroid/content/Intent;)V  -> V
+    public abstract        d0()V  -> V
+    public abstract        e()Z  -> Z
+    public abstract        e0()Z  -> Z
+    public abstract        f()V  -> V
+    public abstract        f0(Lh00/c;)V  -> V
+    public abstract        getAppVersion()I  -> I
+    public abstract        k()Z  -> Z
+    public abstract        l()Lh00/d;  -> Lh00/d;
+    public abstract        m(I)Z  -> Z
+    public abstract        n()Z  -> Z
+    public abstract        o()Z  -> Z
+    public abstract        p()Z  -> Z
+    public abstract        q()Ll00/a;  -> Ll00/a;
+    public abstract        r()Z  -> Z
+    public abstract        s(Ljava/lang/String;)Z  -> Z
+    public abstract        t(Ljava/lang/String;)Ljava/lang/String;  -> Ljava/lang/String;
+    public abstract        u(Landroid/content/Context;)V  -> V
+    public abstract        updateConfig(Ljava/lang/String;)V  -> V
+    public abstract        v(Z)V  -> V
+    public abstract        w()Z  -> Z
+    public abstract        x()V  -> V
+    public abstract        y()V  -> V
+    public abstract        z()Z  -> Z
+

@@ -65,8 +65,8 @@ public final class PostEditorLimits {
                 Object m=model.get();if(m==null)return new PostLimitSource.Values(0,0,0,false);
                 boolean old=version.contains("191"),middle=version.contains("226");Object settings=field(m,old?"y":middle?"M":"K");if(settings==null)return new PostLimitSource.Values(0,0,0,false);
                 Method get=settings.getClass().getDeclaredMethod(old?"c":middle?"e":"d",String.class,int.class);get.setAccessible(true);Map<String,String> values=new HashMap<>();
-                for(String name:new String[]{"BBS_SUBJECT_COUNT","BBS_MESSAGE_COUNT","BBS_LINE_NUMBER","BBS_MAX_LINES"})values.put(name,String.valueOf(get.invoke(settings,name,0)));
-                return new PostLimitSource.Values(PostLimitRules.positive(values.get("BBS_SUBJECT_COUNT")),PostLimitRules.positive(values.get("BBS_MESSAGE_COUNT")),PostLimitRules.lines(values,java.net.URI.create(board).getHost()),false);
+                for(String name:new String[]{"BBS_SUBJECT_COUNT","BBS_MESSAGE_COUNT","BBS_LINE_NUMBER","BBS_MAX_LINES","BBS_MAX_LINE_CHARS","BBS_MAX_LINE_BYTES"})values.put(name,String.valueOf(get.invoke(settings,name,0)));
+                return new PostLimitSource.Values(PostLimitRules.positive(values.get("BBS_SUBJECT_COUNT")),PostLimitRules.positive(values.get("BBS_MESSAGE_COUNT")),PostLimitRules.lines(values,java.net.URI.create(board).getHost()),false,PostLimitRules.lineMaximum(values,board),PostLimitRules.lineCharacters(values,board));
             }catch(Exception notReady){return new PostLimitSource.Values(0,0,0,false);}
         }
         void retryNative(){if(!active)return;render();if(++attempts<12)root.postDelayed(retry,500);}
@@ -83,7 +83,11 @@ public final class PostEditorLimits {
                 PostLimitRules.Result bodyResult=PostLimitRules.inspect(body.getText(),bodyLimit,lines);SpannableStringBuilder text=new SpannableStringBuilder();
                 if(title!=null){PostLimitRules.Limit titleLimit=limit(titleMax,remote!=null&&remote.characters&&remote.title>0,titleMeasure);PostLimitRules.Result result=PostLimitRules.inspect(title.getText(),titleLimit,0);highlight(title,result);append(text,PostLimitRules.summary("スレタイ",result,titleLimit),result.excessStart>=0);}
                 highlight(body,bodyResult);append(text,PostLimitRules.summary("本文",bodyResult,bodyLimit),bodyLimit.maximum>0&&bodyResult.used>bodyLimit.maximum);
-                append(text,PostLimitRules.lineSummary(bodyResult,lines),lines>0&&bodyResult.lines>lines);if(!text.toString().contentEquals(row.getText()))row.setText(text);
+                append(text,PostLimitRules.lineSummary(bodyResult,lines),lines>0&&bodyResult.lines>lines);
+                int columns=remote!=null&&remote.columns>0?remote.columns:nativeData.columns;boolean columnCharacters=remote!=null&&remote.columns>0?remote.columnCharacters:nativeData.columnCharacters;
+                PostLimitRules.Limit columnLimit=limit(columns,columnCharacters,bodyMeasure);PostLimitRules.LineResult perLine=PostLimitRules.inspectLines(body.getText(),columnLimit);
+                for(int[] range:perLine.excess)body.getText().setSpan(new Excess(red()),range[0],range[1],Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                append(text,PostLimitRules.summary("1行（最長）",perLine.longest,columnLimit),!perLine.excess.isEmpty());if(!text.toString().contentEquals(row.getText()))row.setText(text);
             }catch(Exception unavailable){clear(body);if(title!=null)clear(title);row.setText("投稿上限を確認できませんでした");android.util.Log.w("Haiagaru","Posting-limit calculation unavailable",unavailable);}
             finally{writing=false;}
         }

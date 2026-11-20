@@ -1,0 +1,5 @@
+4 ficheros DEX, 164880 cadenas distintas
+
+Lcom/baidu/simeji/settings/SettingsActivity;  (base.apk:classes2.dex)
+
+1 clases coinciden con ^Lcom/baidu/simeji/settings/SettingsActivity[^;]*;

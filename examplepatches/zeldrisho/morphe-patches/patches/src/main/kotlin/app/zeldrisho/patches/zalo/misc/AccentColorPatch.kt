@@ -7,7 +7,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.string
 import app.morphe.patcher.util.returnEarly
-import app.zeldrisho.patches.shared.Constants.COMPATIBILITY_ZALO_261002
+import app.zeldrisho.patches.shared.Constants.COMPATIBILITY_ZALO_STABLE
 import app.zeldrisho.patches.zalo.navigation.zeldrisSettingsPatch
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -85,7 +85,7 @@ private val darkBrandColors = linkedMapOf(
 
 /** Appends one overlay style per preset and mode; the extension applies it after the native theme. */
 private val accentOverlayResources = resourcePatch {
-    compatibleWith(COMPATIBILITY_ZALO_261002)
+    compatibleWith(COMPATIBILITY_ZALO_STABLE)
     execute {
         document("res/values/styles.xml").use { document ->
             val existing = document.getElementsByTagName("style")
@@ -117,7 +117,7 @@ val zaloAccentColorPatch = bytecodePatch(
         "images and third-party branding keep their native values.",
     default = false,
 ) {
-    compatibleWith(COMPATIBILITY_ZALO_261002)
+    compatibleWith(COMPATIBILITY_ZALO_STABLE)
     dependsOn(zeldrisSettingsPatch, accentOverlayResources)
     execute {
         val capability = mutableClassDefBy("Lapp/zeldrisho/zalo/extension/ZeldrisSettingsContent;")
@@ -149,7 +149,7 @@ val zaloAccentColorPatch = bytecodePatch(
 }
 
 private object AccentThemeSetup : Fingerprint(
-    definingClass = "Lef1/c;", name = "a",
+    definingClass = "Lil1;", name = "a",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.FINAL),
     parameters = listOf("I", "I", "Ljava/util/ArrayList;", "Z"), returnType = "V",
     filters = listOf(string("SAVE_SETTING_THEME_SELECTED_POSITION"),

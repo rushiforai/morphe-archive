@@ -1,0 +1,17 @@
+4 ficheros DEX, 164880 cadenas distintas
+
+Lcom/baidu/simeji/coolfont/CoolFontBean;->getVipIsUnLock()Ljava/lang/Boolean;
+Lcom/baidu/simeji/coolfont/CoolFontBean;->getVipLockMap()Ljava/util/HashMap;
+Lcom/baidu/simeji/coolfont/CoolFontBean;->isVip()Z
+Lcom/baidu/simeji/coolfont/CoolFontBean;->isVipUnLockByVideoOrSubscribe()Z
+Lcom/baidu/simeji/inputview/convenient/textbomb/TextBombBean;->getVip()Ljava/lang/Integer;
+Lcom/baidu/simeji/inputview/convenient/textbomb/TextBombBean;->isVip()Z
+Lcom/baidu/simeji/inputview/convenient/textbomb/TextBombBean;->setVip(Ljava/lang/Integer;)V
+Lcom/gbu/ime/kmm/biz/chatgpt/bean/rizzKeyboard/RizzConfigInfoDetail2;->isVip$annotations()V
+Lcom/gbu/ime/kmm/biz/chatgpt/bean/rizzKeyboard/RizzConfigInfoDetail2;->isVip()I
+Lcom/gbu/ime/kmm/biz/chatgpt/bean/rizzKeyboard/RizzConfigInfoDetail;->isVip$annotations()V
+Lcom/gbu/ime/kmm/biz/chatgpt/bean/rizzKeyboard/RizzConfigInfoDetail;->isVip()I
+Lcom/gbu/ime/kmm/biz/chatgpt/bean/rizzKeyboard/RizzIceBreakerConfigInfoDetail;->isVip$annotations()V
+Lcom/gbu/ime/kmm/biz/chatgpt/bean/rizzKeyboard/RizzIceBreakerConfigInfoDetail;->isVip()I
+
+13 metodos coinciden con ^(is|get|set)?Vip|^(is|get|set)?VIP

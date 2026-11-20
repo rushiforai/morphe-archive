@@ -27,7 +27,9 @@ public class SpoofVideoStreamsPatch {
         public boolean isAvailable() {
             ClientType client = Settings.SPOOF_VIDEO_STREAMS_CLIENT_TYPE.get();
             return Settings.SPOOF_VIDEO_STREAMS_CLIENT_TYPE.isAvailable()
-                    && (client == ClientType.ANDROID_VR_DASH || client == ClientType.ANDROID_VR_SABR || client == ClientType.VISIONOS_1_02);
+                    && (client == ClientType.ANDROID_VR_DASH || client == ClientType.ANDROID_VR_SABR
+                    || client == ClientType.ANDROID_VR_EXPERIMENTAL
+                    || client == ClientType.VISIONOS_1_02 || client == ClientType.VISIONOS_1_06);
         }
 
         @Override
@@ -42,17 +44,16 @@ public class SpoofVideoStreamsPatch {
     public static void setClientOrderToUse() {
         ClientType client = Settings.SPOOF_VIDEO_STREAMS_CLIENT_TYPE.get();
 
-        // Use [Android XR, Android XR Downgraded, visonOS 1.03] client that has AV1 if user settings allow it.
-        // AVC cannot be forced with [Android XR, Android XR Downgraded, visonOS 1.03] because it uses VP9 and AV1.
-        // If both settings are on, then force AVC takes priority and [Android VR, Android VR Downgraded, visonOS 1.02] is used.
-        if (Settings.SPOOF_VIDEO_STREAMS_AV1.get() && !Settings.FORCE_AVC_CODEC.get() ) {
-            if (client == ClientType.ANDROID_VR_DASH) {
-                client = ClientType.ANDROID_XR_DASH;
-            } else if (client == ClientType.ANDROID_VR_SABR) {
-                client = ClientType.ANDROID_XR_SABR;
-            } else if (client == ClientType.VISIONOS_1_02) {
-                client = ClientType.VISIONOS_1_03;
-            }
+        // Keep the selected version; only substitute its AV1-capable device if Force AVC is off.
+        if (Settings.SPOOF_VIDEO_STREAMS_AV1.get() && !Settings.FORCE_AVC_CODEC.get()) {
+            client = switch (client) {
+                case ANDROID_VR_DASH -> ClientType.ANDROID_XR_DASH;
+                case ANDROID_VR_SABR -> ClientType.ANDROID_XR_SABR;
+                case ANDROID_VR_EXPERIMENTAL -> ClientType.ANDROID_XR_EXPERIMENTAL;
+                case VISIONOS_1_02 -> ClientType.VISIONOS_1_03;
+                case VISIONOS_1_06 -> ClientType.VISIONOS_1_06_AV1;
+                default -> client;
+            };
         }
 
         // Pass Force AVC so VP9 formats are stripped (Morphe bb3e3ff0).

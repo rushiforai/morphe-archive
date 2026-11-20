@@ -114,8 +114,9 @@ internal object ResourceUtils {
     }
 
     /**
-     * These flags are the existing settings inclusion records, not patcher execution results.
-     * In particular, an absent record cannot distinguish exclusions, version gates or failures.
+     * These flags record settings inclusion, not patch execution results. Manager and CLI hand
+     * the patcher a positive selection, which this context cannot read. Neither the bundle
+     * inventory nor an absent flag is evidence that a patch was explicitly excluded.
      */
     fun writePatchInformation() {
         context.document(RVX_PREFERENCE_PATH).use { document ->

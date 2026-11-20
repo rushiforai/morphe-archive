@@ -254,21 +254,35 @@ public final class MediaViewerNavigation {
         }
         activity.startActivity(destination(activity,links,next));activity.finish();activity.overridePendingTransition(0,0);return true;
     }
+    private static final java.util.Map<Activity,MediaViewerBackGesture> STILL_BACK=new java.util.WeakHashMap<>();
     public static boolean onNativeTouch(Activity activity,MotionEvent event) {
-        if(event.getActionMasked()==MotionEvent.ACTION_DOWN&&NativeImagePaging.enabled(activity)&&!NativeImagePaging.mixed(activity)){
+        if(event.getActionMasked()==MotionEvent.ACTION_DOWN)STILL_BACK.remove(activity);
+        if(event.getActionMasked()==MotionEvent.ACTION_DOWN&&NativeImagePaging.enabled(activity)&&!NativeImagePaging.mixed(activity)
+                &&!activity.getIntent().getBooleanExtra(THREAD_EXTRA,false)){
             SWIPES.remove(activity);return false; // The native-only hook turns the page in place.
         }
         if (event.getActionMasked() == MotionEvent.ACTION_DOWN
-                && hasNativeStillPager(activity)
                 && !activity.getIntent().getBooleanExtra(THREAD_EXTRA,false)) {
             Intent intent = activity.getIntent();
             ArrayList<String> gallery = intent.getStringArrayListExtra(EXTRA);
             if (gallery == null) gallery = intent.getStringArrayListExtra("links");
             if (!MediaGallery.needsExternalPaging(gallery,VideoViewerSettings.nativeGif(activity),VideoViewerSettings.nativeVideo(activity))) {
-                // Do not cancel the native drag or replace the Activity for each still image.
-                // Its live pager index can differ from the original launch Intent index.
-                SWIPES.remove(activity); return false;
+                // Legacy 191/226 also own their still-image paging and close gestures.
+                // The mixed-media handler must not cancel their native drag-to-close.
+                SWIPES.remove(activity);
+                if(!zoomed(activity.getWindow().getDecorView())&&!controlAt(activity.getWindow().getDecorView(),event.getRawX(),event.getRawY())){
+                    MediaViewerBackGesture back=new MediaViewerBackGesture(activity);
+                    STILL_BACK.put(activity,back);back.dispatch(event);
+                }
+                return false;
             }
+        }
+        MediaViewerBackGesture back=STILL_BACK.get(activity);
+        if(back!=null){
+            boolean handled=back.dispatch(event);
+            int action=event.getActionMasked();
+            if(action==MotionEvent.ACTION_UP||action==MotionEvent.ACTION_CANCEL||event.getPointerCount()>1)STILL_BACK.remove(activity);
+            return handled;
         }
         return onTouch(activity,event,null);
     }

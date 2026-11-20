@@ -1,0 +1,13 @@
+4 ficheros DEX, 164880 cadenas distintas
+
+Lcom/bytedance/sdk/openadsdk/TTAdConstant;  (base.apk:classes2.dex)
+Lcom/bytedance/sdk/openadsdk/TTC2Proxy;  (base.apk:classes2.dex)
+Lcom/bytedance/sdk/openadsdk/TTC3Proxy;  (base.apk:classes2.dex)
+Lcom/bytedance/sdk/openadsdk/TTC5Proxy;  (base.apk:classes2.dex)
+Lcom/bytedance/sdk/openadsdk/TTC;  (base.apk:classes2.dex)
+Lcom/bytedance/sdk/openadsdk/TTClientBidding;  (base.apk:classes2.dex)
+Lcom/bytedance/sdk/openadsdk/TTImage;  (base.apk:classes2.dex)
+Lcom/bytedance/sdk/openadsdk/TTM;  (base.apk:classes2.dex)
+Lcom/bytedance/sdk/openadsdk/TTDislikeDialogAbstract;  (base.apk:classes2.dex)
+
+9 clases coinciden con ^Lcom/bytedance/sdk/openadsdk/TT[^$]*;

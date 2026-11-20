@@ -16,4 +16,4 @@ const versions = fs.readdirSync(adapters).filter(x=>/^\d+\.\d+\.\d+\.properties$
 fs.writeFileSync(path.join(adapters, 'index.properties'), 'versions='+versions.join(',')+'\n');
 // Support scope: the three newest versions; older adapters are deleted with their index entries.
 require('node:child_process').execFileSync('python3', ['-I', path.join(repo, 'scripts/compat/prune_versions.py'), 'joplin'], { stdio: 'inherit' });
-console.log('Registered UI adapters: ' + versions.join(', '));
+console.log('Registered UI ' + fs.readFileSync(path.join(adapters, 'index.properties'), 'utf8').trim());

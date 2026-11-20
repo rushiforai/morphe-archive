@@ -1,0 +1,13 @@
+4 ficheros DEX, 164880 cadenas distintas
+
+### Lsdk/SDKType;
+    static constructor     <clinit>()V  -> V
+    public constructor     <init>()V  -> V
+    public static          isGlobal()Z  -> Z
+    public static          isHuawei()Z  -> Z
+    private static         isLite()Z  -> Z
+    public static          isMi()Z  -> Z
+    private static         isPro()Z  -> Z
+    public static          setPkgName(Ljava/lang/String;)V  -> V
+    public static          setType(Lsdk/SDKType$Type;)V  -> V
+

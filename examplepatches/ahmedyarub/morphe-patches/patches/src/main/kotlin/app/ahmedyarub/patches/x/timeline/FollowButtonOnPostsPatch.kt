@@ -219,6 +219,7 @@ val followButtonOnPostsPatch = bytecodePatch(
             val endGroup: MethodReference,
         )
         val slots = mutableListOf<Slot>()
+        val postOptions = postState.substringBeforeLast('/') + "/options/"
         classDefForEach { classDef ->
             classDef.methods.forEach { method ->
                 val instructions = method.implementation?.instructions?.toList() ?: return@forEach
@@ -235,18 +236,32 @@ val followButtonOnPostsPatch = bytecodePatch(
                             it.params() == listOf("I") && it.returnType == "V"
                         } == true
                     } ?: continue
-                    // The menu button: an icon from the icon set, drawn by a composable taking it first.
+                    // The group before the menu: an icon from the icon set, drawn by a composable
+                    // taking it first (up to 12.43) ...
                     val window = (group + 1 until minOf(group + 80, instructions.size))
                     val icon = window.firstOrNull { i ->
                         instructions[i].opcode == Opcode.SGET_OBJECT &&
                             instructions[i].getReference<FieldReference>()?.type?.startsWith("Lcom/x/icons/") == true
-                    } ?: continue
-                    val iconType = instructions[icon].getReference<FieldReference>()!!.type
-                    val drawsIcon = (icon + 1 until minOf(icon + 12, instructions.size)).any { i ->
-                        instructions[i].opcode.let { it == Opcode.INVOKE_STATIC || it == Opcode.INVOKE_STATIC_RANGE } &&
-                            instructions[i].methodRef()?.parameterTypes?.firstOrNull()?.toString() == iconType
                     }
-                    if (!drawsIcon) continue
+                    val drawsIcon = icon != null && instructions[icon].getReference<FieldReference>()!!.type.let { iconType ->
+                        (icon + 1 until minOf(icon + 12, instructions.size)).any { i ->
+                            instructions[i].opcode.let { it == Opcode.INVOKE_STATIC || it == Opcode.INVOKE_STATIC_RANGE } &&
+                                instructions[i].methodRef()?.parameterTypes?.firstOrNull()?.toString() == iconType
+                        }
+                    }
+                    // ... or, from 12.44 (where that group draws the Grok button through its own
+                    // composable), the group whose end is followed by the post's ⋯ menu state,
+                    // with no other post flag in between.
+                    val beforeMenu = !drawsIcon && (group + 1 until minOf(group + 200, instructions.size)).firstNotNullOfOrNull { i ->
+                        val field = instructions[i].getReference<FieldReference>()?.takeIf { it.definingClass == postState }
+                        when {
+                            field == null -> null
+                            instructions[i].opcode == Opcode.IGET_BOOLEAN -> false
+                            instructions[i].opcode == Opcode.IGET_OBJECT && field.type.startsWith(postOptions) -> true
+                            else -> null
+                        }
+                    } == true
+                    if (!drawsIcon && !beforeMenu) continue
 
                     val startGroup = instructions[group].methodRef()!!
                     // The menu button's group is closed by the composer's end call: either the one

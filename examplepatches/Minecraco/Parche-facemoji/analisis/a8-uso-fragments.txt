@@ -1,0 +1,14 @@
+4 ficheros DEX, 164880 cadenas distintas
+
+Lcom/baidu/simeji/settings/SettingsCorrectionFragment;->onCreate(Landroid/os/Bundle;)V
+      v1, v0, Lcom/baidu/simeji/settings/SettingsCorrectionFragment;->mSharedPrefs Landroid/content/SharedPreferences;
+Lcom/baidu/simeji/settings/SettingsCorrectionFragment;->onResume()V
+      v0, Lcom/baidu/simeji/settings/SettingsCorrectionFragment;->ensureConsistencyOfAutoCorrectionSettings()V
+Lcom/baidu/simeji/settings/SettingsCorrectionFragment;->onSharedPreferenceChanged(Landroid/content/SharedPreferences; Ljava/lang/String;)V
+      v2, Lcom/baidu/simeji/settings/SettingsCorrectionFragment;->ensureConsistencyOfAutoCorrectionSettings()V
+Lcom/baidu/simeji/settings/SettingsGustureFragment;->onCreate(Landroid/os/Bundle;)V
+      v1, v0, Lcom/baidu/simeji/settings/SettingsGustureFragment;->mSharedPrefs Landroid/content/SharedPreferences;
+Lcom/baidu/simeji/settings/SettingsGustureFragment;->onSharedPreferenceChanged(Landroid/content/SharedPreferences; Ljava/lang/String;)V
+      v3, v2, Lcom/baidu/simeji/settings/SettingsGustureFragment;->mSharedPrefs Landroid/content/SharedPreferences;
+
+5 metodos coinciden con SettingsGustureFragment|SettingsCorrectionFragment

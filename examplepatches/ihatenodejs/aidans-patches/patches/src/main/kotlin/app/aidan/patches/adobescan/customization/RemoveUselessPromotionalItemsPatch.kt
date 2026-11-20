@@ -17,11 +17,7 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private const val SETTINGS_FRAGMENT = "Ljt/v2;"
 
-private const val FILE_OPTIONS_MENU_HELPER = "Lqt/u;"
-private const val FILE_LIST_TOOLS = "Lut/p0;"
-private const val FILE_LIST_TOOLS_ACTIONS = "Lut/r0;"
 private const val FILE_LIST_TOOLS_ACTIONS_B = "Lut/r0${'$'}b;"
-private const val FILE_LIST_TOOLS_ACTIONS_C = "Lut/r0${'$'}c;"
 private const val PREVIEW_BOTTOM_TOOLBAR = "Lvt/b2;"
 private const val PREVIEW_TOOLBAR_ITEMS = "Lvt/r4;"
 
@@ -36,7 +32,7 @@ private const val RES_SHARE_APP = 0x7f141f79
 @Suppress("unused")
 val removeUselessPromotionalItemsPatch = bytecodePatch(
     name = "Remove Useless/Promotional Items",
-    description = "Removes promotional, feedback, and support items from Settings and file menus.",
+    description = "Removes promotional, feedback, and broken cloud items from Settings and file menus.",
     default = false
 ) {
     category("Interface")
@@ -76,17 +72,47 @@ val removeUselessPromotionalItemsPatch = bytecodePatch(
         title = "Share This App",
         description = "Removes the Share this app item from the Settings menu."
     )
+
     val removeFillAndSign = booleanOption(
         key = "removeFillAndSign",
         default = true,
         title = "Fill & Sign",
         description = "Removes the Fill & Sign item from file option menus and Recent scan cards."
     )
+
     val removeOpenInAcrobat = booleanOption(
         key = "removeOpenInAcrobat",
         default = false,
         title = "Open in Adobe Acrobat",
         description = "Removes the Open in Adobe Acrobat option from file option menus, the preview screen, and Recent scan cards."
+    )
+
+    val removeGenerativeSummary = booleanOption(
+        key = "removeGenerativeSummary",
+        default = true,
+        title = "Generative Summary",
+        description = "Removes Generative summary actions from the File Options bottom sheet."
+    )
+
+    val removeEditText = booleanOption(
+        key = "removeEditText",
+        default = true,
+        title = "Edit Text",
+        description = "Removes Edit text from file option menus, the preview bottom toolbar, and scan cards."
+    )
+
+    val removeMove = booleanOption(
+        key = "removeMove",
+        default = true,
+        title = "Move",
+        description = "Removes Move file from file option menus across all surfaces."
+    )
+
+    val removeCompressPdf = booleanOption(
+        key = "removeCompressPdf",
+        default = true,
+        title = "Compress PDF",
+        description = "Removes Compress PDF from file option menus and Send compressed from the Share sheet. Automatically skipped if Local PDF Compression is enabled."
     )
 
     execute {
@@ -98,13 +124,8 @@ val removeUselessPromotionalItemsPatch = bytecodePatch(
             if (removeShareApp.value != false) add(RES_SHARE_APP)
         }
 
-        val hideCategory = removeHelp.value != false &&
-            removeRateApp.value != false &&
-            removeSupportForum.value != false &&
-            removeShareApp.value != false
-
-        if (selectedResourceIds.isNotEmpty() || hideCategory) {
-            hideSettingsPreferences(selectedResourceIds, hideCategory)
+        if (selectedResourceIds.isNotEmpty()) {
+            hideSettingsPreferences(selectedResourceIds)
         }
 
         if (removeRateApp.value != false) {
@@ -116,14 +137,29 @@ val removeUselessPromotionalItemsPatch = bytecodePatch(
         if (removeOpenInAcrobat.value != false) {
             removeOpenInAcrobat()
         }
+        if (removeGenerativeSummary.value != false) {
+            removeGenerativeSummary()
+        }
+        if (removeEditText.value != false) {
+            removeEditText()
+        }
+        if (removeMove.value != false) {
+            removeMove()
+        }
+    }
+
+    finalize {
+        if (removeCompressPdf.value != false) {
+            removeCompressPdf()
+        }
     }
 }
 
 /**
- * Hides selected preferences and optionally the bottom PreferenceCategory (gray bar)
- * right after XML resource inflation in SettingsFragment.E.
+ * Hides selected preferences right after XML resource inflation in SettingsFragment.E.
+ * Uses straight-line bytecode without labels to avoid Dexlib2 branch offset miscalculations.
  */
-private fun BytecodePatchContext.hideSettingsPreferences(resourceIds: List<Int>, hideCategory: Boolean) {
+private fun BytecodePatchContext.hideSettingsPreferences(resourceIds: List<Int>) {
     val settingsFragment = mutableClassDefByOrNull(SETTINGS_FRAGMENT)
         ?: throw PatchException("SettingsFragment not found")
     val preferenceLoader = settingsFragment.methods.singleOrNull {
@@ -143,12 +179,12 @@ private fun BytecodePatchContext.hideSettingsPreferences(resourceIds: List<Int>,
             reference.returnType == "V"
     }
     if (loadIndex < 0) {
-        throw PatchException("SettingsFragment XML loader invocation not found")
+        throw PatchException("Could not find setPreferencesFromResource call in SettingsFragment")
     }
 
-    val individualItemsSmali = resourceIds.joinToString("\n") { resId ->
+    val hidePreferencesSmali = resourceIds.joinToString("\n") { resourceId ->
         """
-        const v0, 0x${resId.toString(16)}
+        const v0, $resourceId
         invoke-virtual {p0, v0}, Landroidx/fragment/app/Fragment;->getString(I)Ljava/lang/String;
         move-result-object v0
         invoke-virtual {p0, v0}, Landroidx/preference/b;->o(Ljava/lang/String;)Landroidx/preference/Preference;
@@ -158,26 +194,7 @@ private fun BytecodePatchContext.hideSettingsPreferences(resourceIds: List<Int>,
         """.trimIndent()
     }
 
-    val categorySmali = if (hideCategory) {
-        """
-        const v0, 0x7f141f73
-        invoke-virtual {p0, v0}, Landroidx/fragment/app/Fragment;->getString(I)Ljava/lang/String;
-        move-result-object v0
-        invoke-virtual {p0, v0}, Landroidx/preference/b;->o(Ljava/lang/String;)Landroidx/preference/Preference;
-        move-result-object v0
-        iget-object v0, v0, Landroidx/preference/Preference;->J:Landroidx/preference/PreferenceGroup;
-        const/4 p1, 0x0
-        invoke-virtual {v0, p1}, Landroidx/preference/Preference;->C(Z)V
-        """.trimIndent()
-    } else {
-        ""
-    }
-
-    val combinedSmali = listOf(individualItemsSmali, categorySmali)
-        .filter { it.isNotBlank() }
-        .joinToString("\n")
-
-    preferenceLoader.addInstructions(loadIndex + 1, combinedSmali)
+    preferenceLoader.addInstructions(loadIndex + 1, hidePreferencesSmali)
 }
 
 /**
@@ -196,25 +213,25 @@ private fun BytecodePatchContext.neutralizeRateAppOnCreate() {
     val instructions = onCreateMethod.implementation?.instructions
         ?: throw PatchException("SettingsFragment.onCreate has no implementation")
 
-    val lastCIndex = instructions.indexOfLast { instruction ->
+    val rateAppStringIndex = instructions.indexOfFirst { instruction ->
+        val narrow = instruction as? NarrowLiteralInstruction
+        narrow?.narrowLiteral == RES_RATE_APP
+    }
+    if (rateAppStringIndex < 0) {
+        throw PatchException("Could not find R.string.rate_adobe_scan reference in SettingsFragment.onCreate")
+    }
+
+    val setVisibleIndex = (rateAppStringIndex + 1..minOf(instructions.size - 1, rateAppStringIndex + 15)).firstOrNull { idx ->
+        val instruction = instructions[idx]
         val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
         instruction.opcode == Opcode.INVOKE_VIRTUAL &&
             reference?.definingClass == "Landroidx/preference/Preference;" &&
             reference.name == "C" &&
             reference.parameterTypes.map(CharSequence::toString) == listOf("Z") &&
             reference.returnType == "V"
-    }
-    if (lastCIndex < 0) {
-        throw PatchException("SettingsFragment.onCreate Rate app C(Z) invocation not found")
-    }
+    } ?: throw PatchException("Could not find Preference.setVisible call for Rate app in SettingsFragment.onCreate")
 
-    onCreateMethod.addInstructions(
-        lastCIndex + 1,
-        """
-        const/4 p1, 0x0
-        invoke-virtual {v0, p1}, Landroidx/preference/Preference;->C(Z)V
-        """.trimIndent()
-    )
+    onCreateMethod.replaceInstruction(setVisibleIndex, "nop")
 }
 
 /**
@@ -234,45 +251,45 @@ private fun BytecodePatchContext.removeFillAndSign() {
     val instructions = optionsMethod.implementation?.instructions
         ?: throw PatchException("FileOptionsMenuBottomSheet options method has no implementation")
 
-    // Find the literal loading RES_FILL_AND_SIGN (0x7f142619)
-    val fillSignStringIndex = instructions.indexOfFirst {
+    val fillAndSignIndex = instructions.indexOfFirst {
         it is NarrowLiteralInstruction && it.narrowLiteral == RES_FILL_AND_SIGN
     }
-    if (fillSignStringIndex < 0) {
+    if (fillAndSignIndex < 0) {
         throw PatchException("Could not find Fill & Sign resource id in FileOptionsMenuBottomSheet")
     }
 
-    // Walk backwards to find the nearest IF_EQZ guarding the creation of the menu item
-    val ifEqzIdx = (fillSignStringIndex - 1 downTo maxOf(0, fillSignStringIndex - 10)).firstOrNull {
-        instructions[it].opcode == Opcode.IF_EQZ
-    } ?: throw PatchException("Could not find IF_EQZ guard for Fill & Sign")
+    val addIndex = (fillAndSignIndex + 1..minOf(instructions.size - 1, fillAndSignIndex + 15)).firstOrNull { idx ->
+        val ref = (instructions[idx] as? ReferenceInstruction)?.reference as? MethodReference
+        instructions[idx].opcode == Opcode.INVOKE_VIRTUAL &&
+            ref?.name == "add"
+    } ?: throw PatchException("Could not find add instruction for Fill & Sign")
 
-    // The instruction right before IF_EQZ is MOVE_RESULT
-    val moveResult = instructions[ifEqzIdx - 1] as? OneRegisterInstruction
-        ?: throw PatchException("Could not find MOVE_RESULT for Fill & Sign guard")
-    if (moveResult.opcode == Opcode.CONST_4) {
-        return
-    }
-    if (moveResult.opcode != Opcode.MOVE_RESULT) {
-        throw PatchException("Expected MOVE_RESULT before IF_EQZ guard for Fill & Sign, found ${moveResult.opcode}")
-    }
+    optionsMethod.replaceInstruction(addIndex, "nop")
 
-    optionsMethod.addInstructions(ifEqzIdx, "const/4 v${moveResult.registerA}, 0x0")
     val bClass = mutableClassDefByOrNull(FILE_LIST_TOOLS_ACTIONS_B)
-        ?: throw PatchException("FileListTools actions class $FILE_LIST_TOOLS_ACTIONS_B not found")
+        ?: throw PatchException("FileListTools actions subclass B not found")
     val clinitMethod = bClass.methods.firstOrNull {
-        it.name == "<clinit>" &&
-            it.implementation != null
+        it.name == "<clinit>" && it.implementation != null
     } ?: throw PatchException("FileListTools actions subclass B <clinit> not found")
 
-    clinitMethod.addInstructions(
-        0,
-        """
-        sget-object v0, $FILE_LIST_TOOLS_ACTIONS_C->h:$FILE_LIST_TOOLS_ACTIONS_C
-        sput-object v0, $FILE_LIST_TOOLS_ACTIONS_B->h:$FILE_LIST_TOOLS_ACTIONS_B
-        return-void
-        """.trimIndent()
-    )
+    val clinitInstructions = clinitMethod.implementation?.instructions
+        ?: throw PatchException("FileListTools actions subclass B <clinit> has no implementation")
+
+    val fillSignSgetIndex = clinitInstructions.indexOfFirst { inst ->
+        val ref = (inst as? ReferenceInstruction)?.reference as? FieldReference
+        inst.opcode == Opcode.SGET_OBJECT &&
+            ref?.definingClass == FILE_LIST_TOOLS &&
+            ref.name == "f"
+    }
+    if (fillSignSgetIndex >= 0) {
+        val sgetInst = clinitInstructions[fillSignSgetIndex] as? OneRegisterInstruction
+            ?: throw PatchException("Expected OneRegisterInstruction for FileListTools.f sget-object")
+
+        clinitMethod.replaceInstruction(
+            fillSignSgetIndex,
+            "sget-object v${sgetInst.registerA}, $FILE_LIST_TOOLS->h:Lod/ll;"
+        )
+    }
 }
 
 /**
@@ -296,28 +313,27 @@ private fun BytecodePatchContext.removeOpenInAcrobat() {
         it is NarrowLiteralInstruction && it.narrowLiteral == RES_OPEN_IN_ACROBAT
     }
     if (acrobatStringIndex < 0) {
-        throw PatchException("Could not find Open in Acrobat resource id in FileOptionsMenuBottomSheet")
+        throw PatchException("Could not find Open in Adobe Acrobat resource id in FileOptionsMenuBottomSheet")
     }
 
-    val addIndex = (acrobatStringIndex + 1..minOf(instructions.size - 1, acrobatStringIndex + 10)).firstOrNull { idx ->
+    val addIndex = (acrobatStringIndex + 1..minOf(instructions.size - 1, acrobatStringIndex + 15)).firstOrNull { idx ->
         val ref = (instructions[idx] as? ReferenceInstruction)?.reference as? MethodReference
         instructions[idx].opcode == Opcode.INVOKE_VIRTUAL &&
-            ref?.definingClass == "Lm90/b;" &&
-            ref.name == "add"
-    } ?: throw PatchException("Could not find Lm90/b;->add for Open in Acrobat")
+            ref?.name == "add"
+    } ?: throw PatchException("Could not find add instruction for Open in Adobe Acrobat")
 
     optionsMethod.replaceInstruction(addIndex, "nop")
 
-    val toolbarClass = mutableClassDefByOrNull(PREVIEW_BOTTOM_TOOLBAR)
-        ?: throw PatchException("PreviewBottomToolbar class $PREVIEW_BOTTOM_TOOLBAR not found")
-    val toolbarMethod = toolbarClass.methods.firstOrNull {
+    val previewToolbarClass = mutableClassDefByOrNull(PREVIEW_BOTTOM_TOOLBAR)
+        ?: throw PatchException("Preview bottom toolbar class $PREVIEW_BOTTOM_TOOLBAR not found")
+    val toolbarMethod = previewToolbarClass.methods.firstOrNull {
         it.name == "a" &&
             it.returnType == "V" &&
             it.implementation != null
-    } ?: throw PatchException("PreviewBottomToolbar method not found")
+    } ?: throw PatchException("Preview bottom toolbar method not found")
 
     val tbInstructions = toolbarMethod.implementation?.instructions
-        ?: throw PatchException("PreviewBottomToolbar method has no implementation")
+        ?: throw PatchException("Preview bottom toolbar method has no implementation")
 
     val acrobatSgetIndex = tbInstructions.indexOfFirst { inst ->
         val ref = (inst as? ReferenceInstruction)?.reference as? FieldReference
@@ -326,21 +342,20 @@ private fun BytecodePatchContext.removeOpenInAcrobat() {
             ref.name == "e"
     }
     if (acrobatSgetIndex < 0) {
-        throw PatchException("Could not find r4.e reference in PreviewBottomToolbar")
+        throw PatchException("Could not find r4.e reference in Preview bottom toolbar")
     }
 
     val arrayIndex = (acrobatSgetIndex + 1..minOf(tbInstructions.size - 1, acrobatSgetIndex + 100)).firstOrNull { idx ->
         val inst = tbInstructions[idx]
         inst.opcode == Opcode.FILLED_NEW_ARRAY &&
             (inst as? ReferenceInstruction)?.reference?.toString() == "[Lod/kl;"
-    } ?: throw PatchException("Could not find filled-new-array for PreviewBottomToolbar")
+    } ?: throw PatchException("Could not find filled-new-array for Preview bottom toolbar")
 
     val filledArrayInst = tbInstructions[arrayIndex] as? FiveRegisterInstruction
-        ?: throw PatchException("Expected FiveRegisterInstruction for filled-new-array in PreviewBottomToolbar")
+        ?: throw PatchException("Expected FiveRegisterInstruction for filled-new-array in Preview bottom toolbar")
     val acrobatReg = filledArrayInst.registerF
 
     toolbarMethod.addInstructions(arrayIndex, "const/16 v$acrobatReg, 0x0")
-
     val toolsClass = mutableClassDefByOrNull(FILE_LIST_TOOLS_ACTIONS)
         ?: throw PatchException("FileListTools actions class $FILE_LIST_TOOLS_ACTIONS not found")
     val initMethod = toolsClass.methods.firstOrNull {
@@ -351,6 +366,7 @@ private fun BytecodePatchContext.removeOpenInAcrobat() {
 
     val initInstructions = initMethod.implementation?.instructions
         ?: throw PatchException("FileListTools actions constructor has no implementation")
+
     val acrobatSgetIndexInInit = initInstructions.indexOfFirst { inst ->
         val ref = (inst as? ReferenceInstruction)?.reference as? FieldReference
         inst.opcode == Opcode.SGET_OBJECT &&
@@ -363,7 +379,7 @@ private fun BytecodePatchContext.removeOpenInAcrobat() {
         }
         if (filledArrayIdxInInit != null) {
             val filledInst = initInstructions[filledArrayIdxInInit] as? FiveRegisterInstruction
-            if (filledInst != null) {
+            if (filledInst != null && filledInst.registerCount == 3) {
                 initMethod.replaceInstruction(
                     filledArrayIdxInInit,
                     "filled-new-array {v${filledInst.registerC}, v${filledInst.registerE}}, [Lod/ll;"

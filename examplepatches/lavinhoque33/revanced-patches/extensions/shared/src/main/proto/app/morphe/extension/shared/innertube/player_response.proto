@@ -143,11 +143,16 @@ message PlayerConfig {
   // Music 9.40.51 Laolg.f (Lakrx): its first field is the bool the app's ExoPlayer engine requires (Lyvb.S).
   optional ExoPlayerConfig exoPlayerConfig = 57825011;
   optional AndroidMedialibConfig androidMedialibConfig = 78958444;
+  optional DaiConfig daiConfig = 182822664;
   // Dex-verified on the three supported Music versions; preserve unrelated config when stripping SABR.
   optional MediaCommonConfig mediaCommonConfig = 215771584;
   optional PlayerGestureConfig playerGestureConfig = 262192541;
   optional InlinePlaybackConfig inlinePlaybackConfig = 399288314;
   optional PlaybackRoutingConfig playbackRoutingConfig = 470799370;
+}
+
+// Dynamic ad insertion in the SABR player configuration.
+message DaiConfig {
 }
 
 message MediaCommonConfig {

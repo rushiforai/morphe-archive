@@ -1,0 +1,116 @@
+4 ficheros DEX, 164880 cadenas distintas
+
+Lcom/baidu/simeji/cloudinput/CloudInputUtils;->k()Z
+      v0, Landroid/preference/PreferenceManager;->getDefaultSharedPreferences(Landroid/content/Context;)Landroid/content/SharedPreferences;
+Lcom/baidu/simeji/cloudinput/CloudInputUtils;->o()V
+      v0, Landroid/preference/PreferenceManager;->getDefaultSharedPreferences(Landroid/content/Context;)Landroid/content/SharedPreferences;
+Lcom/baidu/simeji/common/statistic/i;->C(Landroid/content/Context;)V
+      v4, Landroid/preference/PreferenceManager;->getDefaultSharedPreferences(Landroid/content/Context;)Landroid/content/SharedPreferences;
+Lcom/baidu/simeji/components/o;-><init>()V
+      v0, Landroid/preference/PreferenceFragment;-><init>()V
+Lcom/baidu/simeji/components/o;->setPreferenceEnabled(Ljava/lang/String; Z Landroid/preference/PreferenceScreen;)V
+      v2, v0, Landroid/preference/PreferenceGroup;->findPreference(Ljava/lang/CharSequence;)Landroid/preference/Preference;
+Lcom/baidu/simeji/components/o;->onActivityCreated(Landroid/os/Bundle;)V
+      v0, v1, Landroid/preference/PreferenceFragment;->onActivityCreated(Landroid/os/Bundle;)V
+Lcom/baidu/simeji/components/o;->onDestroy()V
+      v0, Landroid/preference/PreferenceFragment;->onDestroy()V
+Lcom/baidu/simeji/initializer/tasks/main/ManageAppVersionPipeLineTask;->I(I I)V
+      v0, Landroid/preference/PreferenceManager;->getDefaultSharedPreferences(Landroid/content/Context;)Landroid/content/SharedPreferences;
+Lcom/baidu/simeji/App;->attachBaseContext(Landroid/content/Context;)V
+      v2, Landroid/preference/PreferenceManager;->getDefaultSharedPreferences(Landroid/content/Context;)Landroid/content/SharedPreferences;
+Lcom/baidu/simeji/settings/SettingsAdvancedFragment$d;->onClick(Landroid/view/View;)V
+      v2, v0, Landroid/preference/TwoStatePreference;->setChecked(Z)V
+Lcom/baidu/simeji/settings/guide/AgreeGuideActivity;->g()V
+      v3, Landroid/preference/PreferenceManager;->getDefaultSharedPreferences(Landroid/content/Context;)Landroid/content/SharedPreferences;
+Lcom/baidu/simeji/widget/CheckBoxPreferenceItem;-><init>(Landroid/content/Context;)V
+      v0, v1, Landroid/preference/CheckBoxPreference;-><init>(Landroid/content/Context;)V
+Lcom/baidu/simeji/widget/CheckBoxPreferenceItem;->onBindView(Landroid/view/View;)V
+      v2, v3, Landroid/preference/CheckBoxPreference;->onBindView(Landroid/view/View;)V
+Lcom/baidu/simeji/widget/CheckBoxPreferenceItem;->onCheckedChanged(Landroid/widget/CompoundButton; Z)V
+      v1, Landroid/preference/Preference;->getKey()Ljava/lang/String;
+Lcom/baidu/simeji/widget/CheckBoxPreferenceItem;->onClick(Landroid/view/View;)V
+      v3, Landroid/preference/Preference;->getKey()Ljava/lang/String;
+Lcom/baidu/simeji/widget/CheckBoxPreferenceItem;->onCreateView(Landroid/view/ViewGroup;)Landroid/view/View;
+      v3, Landroid/preference/Preference;->getContext()Landroid/content/Context;
+Lcom/baidu/simeji/widget/CheckBoxPreferenceItem;->onSetInitialValue(Z Ljava/lang/Object;)V
+      v1, v2, v3, Landroid/preference/CheckBoxPreference;->onSetInitialValue(Z Ljava/lang/Object;)V
+Lcom/baidu/simeji/widget/CheckBoxPreferenceItem;->setChecked(Z)V
+      v0, v1, Landroid/preference/CheckBoxPreference;->setChecked(Z)V
+Lcom/baidu/simeji/widget/PreferenceItem;-><init>(Landroid/content/Context;)V
+      v0, v1, Landroid/preference/Preference;-><init>(Landroid/content/Context;)V
+Lcom/baidu/simeji/widget/PreferenceItem;->onClick()V
+      v6, Landroid/preference/Preference;->onClick()V
+Lcom/baidu/simeji/widget/PreferenceItem;->onCreateView(Landroid/view/ViewGroup;)Landroid/view/View;
+      v3, Landroid/preference/Preference;->getLayoutResource()I
+Lcom/baidu/simeji/widget/PreferenceItem;->setIntent(Landroid/content/Intent;)V
+      v1, Landroid/preference/Preference;->getContext()Landroid/content/Context;
+Lcom/baidu/simeji/widget/SeekBarPreferenceItem;-><init>(Landroid/content/Context;)V
+      v1, v2, Landroid/preference/Preference;-><init>(Landroid/content/Context;)V
+Lcom/baidu/simeji/widget/SeekBarPreferenceItem;->d(Landroid/util/AttributeSet; I)V
+      v3, Landroid/preference/Preference;->getContext()Landroid/content/Context;
+Lcom/baidu/simeji/widget/SeekBarPreferenceItem;->onAttachedToHierarchy(Landroid/preference/PreferenceManager;)V
+      v2, v3, Landroid/preference/Preference;->onAttachedToHierarchy(Landroid/preference/PreferenceManager;)V
+Lcom/baidu/simeji/widget/SeekBarPreferenceItem;->onBindView(Landroid/view/View;)V
+      v3, v4, Landroid/preference/Preference;->onBindView(Landroid/view/View;)V
+Lcom/baidu/simeji/widget/SeekBarPreferenceItem;->onCreateView(Landroid/view/ViewGroup;)Landroid/view/View;
+      v3, Landroid/preference/Preference;->getContext()Landroid/content/Context;
+Lcom/baidu/simeji/widget/SeekBarPreferenceItem;->onDependencyChanged(Landroid/preference/Preference; Z)V
+      v0, v1, v2, Landroid/preference/Preference;->onDependencyChanged(Landroid/preference/Preference; Z)V
+Lcom/baidu/simeji/widget/SeekBarPreferenceItem;->persistInt(I)Z
+      v2, v3, Landroid/preference/Preference;->persistInt(I)Z
+Lcom/baidu/simeji/widget/UnCheckBoxPreferenceItem$a;->onClick(Landroid/view/View;)V
+      v1, Landroid/preference/Preference;->getContext()Landroid/content/Context;
+Lcom/baidu/simeji/widget/UnCheckBoxPreferenceItem;-><init>(Landroid/content/Context;)V
+      v0, v1, Landroid/preference/CheckBoxPreference;-><init>(Landroid/content/Context;)V
+Lcom/baidu/simeji/widget/UnCheckBoxPreferenceItem;->onBindView(Landroid/view/View;)V
+      v5, v6, Landroid/preference/CheckBoxPreference;->onBindView(Landroid/view/View;)V
+Lcom/baidu/simeji/widget/UnCheckBoxPreferenceItem;->onCheckedChanged(Landroid/widget/CompoundButton; Z)V
+      v1, v0, Lcom/baidu/simeji/widget/UnCheckBoxPreferenceItem;->b Landroid/preference/Preference$OnPreferenceClickListener;
+Lcom/baidu/simeji/widget/UnCheckBoxPreferenceItem;->onClick(Landroid/view/View;)V
+      v1, v0, Lcom/baidu/simeji/widget/UnCheckBoxPreferenceItem;->b Landroid/preference/Preference$OnPreferenceClickListener;
+Lcom/baidu/simeji/widget/UnCheckBoxPreferenceItem;->onCreateView(Landroid/view/ViewGroup;)Landroid/view/View;
+      v3, Landroid/preference/Preference;->getContext()Landroid/content/Context;
+Lcom/baidu/simeji/widget/UnCheckBoxPreferenceItem;->setOnPreferenceClickListener(Landroid/preference/Preference$OnPreferenceClickListener;)V
+      v1, v0, Lcom/baidu/simeji/widget/UnCheckBoxPreferenceItem;->b Landroid/preference/Preference$OnPreferenceClickListener;
+Lcom/baidu/simeji/inputview/candidate/subcandidate/CandidateMushroomSettingsEntryView;->onAttachedToWindow()V
+      v0, Landroid/preference/PreferenceManager;->getDefaultSharedPreferences(Landroid/content/Context;)Landroid/content/SharedPreferences;
+Lcom/baidu/simeji/inputview/candidate/subcandidate/CandidateMushroomSoundVibrationView;->e()V
+      v0, Landroid/preference/PreferenceManager;->getDefaultSharedPreferences(Landroid/content/Context;)Landroid/content/SharedPreferences;
+Lcom/baidu/simeji/settings/SettingsAdvancedFragment$a;->a(Lcom/google/android/ump/FormError;)V
+      v2, Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->c(Lcom/baidu/simeji/settings/SettingsAdvancedFragment;)Landroid/preference/PreferenceCategory;
+Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->c(Lcom/baidu/simeji/settings/SettingsAdvancedFragment;)Landroid/preference/PreferenceCategory;
+      v0, v0, Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->mSessionCategory Landroid/preference/PreferenceCategory;
+Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->onCreate(Landroid/os/Bundle;)V
+      v4, v5, Landroid/preference/PreferenceFragment;->onCreate(Landroid/os/Bundle;)V
+Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->onDestroy()V
+      v1, Landroid/preference/PreferenceFragment;->getPreferenceManager()Landroid/preference/PreferenceManager;
+Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->onPreferenceClick(Landroid/preference/Preference;)Z
+      v4, Landroid/preference/Preference;->getKey()Ljava/lang/String;
+Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->onResume()V
+      v1, Landroid/preference/PreferenceFragment;->onResume()V
+Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->onSharedPreferenceChanged(Landroid/content/SharedPreferences; Ljava/lang/String;)V
+      v8, v1, Landroid/preference/PreferenceFragment;->findPreference(Ljava/lang/CharSequence;)Landroid/preference/Preference;
+Lcom/baidu/simeji/settings/SettingsAdvancedFragment;->onStop()V
+      v1, Landroid/preference/PreferenceFragment;->onStop()V
+Lcom/baidu/simeji/settings/SettingsCorrectionFragment;->ensureConsistencyOfAutoCorrectionSettings()V
+      v2, v1, Landroid/preference/PreferenceFragment;->findPreference(Ljava/lang/CharSequence;)Landroid/preference/Preference;
+Lcom/baidu/simeji/settings/SettingsCorrectionFragment;->onCreate(Landroid/os/Bundle;)V
+      v0, v1, Landroid/preference/PreferenceFragment;->onCreate(Landroid/os/Bundle;)V
+Lcom/baidu/simeji/settings/SettingsCorrectionFragment;->onDestroy()V
+      v1, Landroid/preference/PreferenceFragment;->getPreferenceManager()Landroid/preference/PreferenceManager;
+Lcom/baidu/simeji/settings/SettingsCorrectionFragment;->onResume()V
+      v0, Landroid/preference/PreferenceFragment;->onResume()V
+Lcom/baidu/simeji/settings/SettingsGustureFragment;->onCreate(Landroid/os/Bundle;)V
+      v0, v1, Landroid/preference/PreferenceFragment;->onCreate(Landroid/os/Bundle;)V
+Lcom/baidu/simeji/settings/SettingsGustureFragment;->onDestroy()V
+      v1, Landroid/preference/PreferenceFragment;->getPreferenceManager()Landroid/preference/PreferenceManager;
+Lcom/baidu/simeji/widget/ListPreferenceItem;->d()Landroid/app/Dialog;
+      v8, Landroid/preference/Preference;->getContext()Landroid/content/Context;
+Lcom/baidu/simeji/widget/ListPreferenceItem;->o(Ljava/lang/CharSequence;)V
+      v0, v1, Landroid/preference/Preference;->persistString(Ljava/lang/String;)Z
+Lcom/baidu/simeji/widget/ListPreferenceItem;->onAttachedToHierarchy(Landroid/preference/PreferenceManager;)V
+      v0, v1, Landroid/preference/Preference;->onAttachedToHierarchy(Landroid/preference/PreferenceManager;)V
+Lcom/baidu/simeji/settings/feedbackpro/FeedbackProActivity$k;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;
+      v11, Landroid/preference/PreferenceManager;->getDefaultSharedPreferences(Landroid/content/Context;)Landroid/content/SharedPreferences;
+
+56 metodos coinciden con Landroid/preference/

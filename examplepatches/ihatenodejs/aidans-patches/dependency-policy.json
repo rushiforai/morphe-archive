@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "holds": [
+    {
+      "id": "npm:package.json#devDependencies/conventional-changelog-conventionalcommits",
+      "value": "^9.3.1",
+      "reason": "Preserve release-note generation compatibility; see https://github.com/conventional-changelog/conventional-changelog/issues/1495"
+    }
+  ]
+}

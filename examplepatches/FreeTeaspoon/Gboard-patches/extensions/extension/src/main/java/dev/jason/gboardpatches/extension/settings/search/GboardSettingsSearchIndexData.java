@@ -233,6 +233,8 @@ final class GboardSettingsSearchIndexData {
             {35, R.string.gboard_patches_frosted_glass_transparency_title, R.string.gboard_patches_frosted_glass_transparency_summary, 0},
             {35, R.string.gboard_patches_frosted_glass_key_transparency_title, R.string.gboard_patches_frosted_glass_key_transparency_summary, 0},
             {35, R.string.gboard_patches_frosted_glass_seamless_nav_bar_title, R.string.gboard_patches_frosted_glass_seamless_nav_bar_summary, 0},
+            {35, R.string.gboard_patches_frosted_glass_faq_not_working_title, 0, 0},
+            {35, R.string.gboard_patches_frosted_glass_faq_flickering_title, 0, 0},
             {36, R.string.gboard_patches_clipboard_title, R.string.gboard_patches_clipboard_summary, 1},
             {36, R.string.gboard_patches_clipboard_show_sensitive_content_title, R.string.gboard_patches_clipboard_show_sensitive_content_summary, 0},
             {36, R.string.gboard_patches_clipboard_card_preview_limit_title, R.string.gboard_patches_clipboard_card_preview_limit_summary, 0},

@@ -45,6 +45,8 @@ public final class ReelsButtons {
     private static final String OPTION_CLASS = "com.instagram.feed.media.mediaoption.MediaOption$Option";
     private static final String COLUMN_TAG = "morphe_reels_buttons";
     private static final long PENDING_TIMEOUT_MS = 4000;
+    /** The least time between two searches for side bars outside a layout pass. */
+    private static final long RECOLLECT_MS = 150;
 
     private static volatile WeakReference<LinearLayout> currentColumn = new WeakReference<>(null);
     private static volatile WeakReference<View> currentLike = new WeakReference<>(null);
@@ -133,17 +135,40 @@ public final class ReelsButtons {
             column.setTag(COLUMN_TAG);
             column.setOrientation(LinearLayout.VERTICAL);
             column.setVisibility(View.GONE);
-            column.addView(button(activity, "instagram_thumb_up_outline_24", "Interested", () -> request(INTERESTED, shown[0])));
-            column.addView(button(activity, "instagram_thumb_down_outline_24", "Not interested", () -> request(NOT_INTERESTED, shown[0])));
+            column.addView(button(activity, "instagram_thumb_up_outline_24", "Interested", () -> request(INTERESTED, column)));
+            column.addView(button(activity, "instagram_thumb_down_outline_24", "Not interested", () -> request(NOT_INTERESTED, column)));
             content.addView(column, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
             ViewTreeObserver observer = decor.getViewTreeObserver();
+            long[] collectedAt = new long[1];
+            boolean[] recheckPosted = new boolean[1];
             observer.addOnGlobalLayoutListener(() -> {
                 sideBars.clear();
                 collect(decor, sideBars);
+                collectedAt[0] = SystemClock.uptimeMillis();
             });
             observer.addOnPreDrawListener(() -> {
-                shown[0] = place(column, sideBars);
+                SideBar best = place(column, sideBars);
+                // Litho mounts the next reel's side bar as it scrolls in, without a layout pass,
+                // so the side bars found at the last layout can all be off screen, or recycled
+                // into other components. Look again, at most every RECOLLECT_MS; when skipped,
+                // one later frame looks again so the last frame of a scroll is not missed.
+                if (!sideBars.isEmpty() && !settled(best)) {
+                    long now = SystemClock.uptimeMillis();
+                    if (now - collectedAt[0] >= RECOLLECT_MS) {
+                        sideBars.clear();
+                        collect(decor, sideBars);
+                        collectedAt[0] = now;
+                        best = place(column, sideBars);
+                    } else if (!recheckPosted[0]) {
+                        recheckPosted[0] = true;
+                        decor.postDelayed(() -> {
+                            recheckPosted[0] = false;
+                            decor.invalidate();
+                        }, RECOLLECT_MS);
+                    }
+                }
+                shown[0] = best;
                 if (shown[0] != null) {
                     currentColumn = new WeakReference<>(column);
                     currentLike = shown[0].like;
@@ -231,19 +256,43 @@ public final class ReelsButtons {
         }
     }
 
-    /** Puts the column above the like button of the side bar most on screen, or hides it. */
-    private static SideBar place(LinearLayout column, List<SideBar> sideBars) {
+    /** Whether both buttons of the side bar still carry their tags: Litho reuses views. */
+    private static boolean tagged(SideBar sideBar) {
+        View more = sideBar.more.get();
+        View like = sideBar.like.get();
+        if (more == null || like == null || !LIKE_TAG.equals(like.getTag())) return false;
+        Object moreTag = more.getTag();
+        int tagId = moreTagId();
+        return MORE_TAG.equals(moreTag) || (tagId != 0 && moreTag instanceof Integer && (Integer) moreTag == tagId);
+    }
+
+    /** The side bar is still tagged and its like button wholly on screen, so no other can be more. */
+    private static boolean settled(SideBar sideBar) {
+        if (sideBar == null || !tagged(sideBar)) return false;
+        View like = sideBar.like.get();
+        Rect rect = new Rect();
+        return like != null && like.getGlobalVisibleRect(rect) && rect.height() >= like.getHeight();
+    }
+
+    /** The side bar whose like button is most on screen, if any. */
+    private static SideBar mostVisible(List<SideBar> sideBars) {
         SideBar best = null;
         int bestVisible = 0;
         Rect rect = new Rect();
         for (SideBar sideBar : sideBars) {
             View like = sideBar.like.get();
-            if (like == null || !like.isShown() || !like.getGlobalVisibleRect(rect)) continue;
+            if (like == null || !tagged(sideBar) || !like.isShown() || !like.getGlobalVisibleRect(rect)) continue;
             if (rect.height() > bestVisible) {
                 bestVisible = rect.height();
                 best = sideBar;
             }
         }
+        return best;
+    }
+
+    /** Puts the column above the like button of the side bar most on screen, or hides it. */
+    private static SideBar place(LinearLayout column, List<SideBar> sideBars) {
+        SideBar best = mostVisible(sideBars);
         View like = best == null ? null : best.like.get();
         View container = column.getParent() instanceof View ? (View) column.getParent() : null;
         if (like == null || container == null) {
@@ -264,9 +313,20 @@ public final class ReelsButtons {
         return best;
     }
 
-    private static void request(String action, SideBar sideBar) {
+    /**
+     * Opens the ⋯ menu of the reel on screen now. The side bars are looked up again rather than
+     * taken from the last frame, whose ⋯ button may since have scrolled away or been reused.
+     */
+    private static void request(String action, View column) {
+        List<SideBar> sideBars = new ArrayList<>();
+        collect(column.getRootView(), sideBars);
+        SideBar sideBar = mostVisible(sideBars);
         View more = sideBar == null ? null : sideBar.more.get();
-        if (more == null) return;
+        Rect rect = new Rect();
+        if (more == null || !more.isShown() || !more.getGlobalVisibleRect(rect)) {
+            Logger.printInfo(() -> "ReelsButtons: no ⋯ button on screen for " + action + " (" + sideBars.size() + " side bars)");
+            return;
+        }
         pendingAction = action;
         pendingSince = SystemClock.uptimeMillis();
         tap(more);
@@ -304,7 +364,11 @@ public final class ReelsButtons {
             // Only the Reels menu the button opened: its helper built the rows since the tap.
             // Any other sheet is left alone.
             String action = pendingAction;
-            if (action == null || menuBuiltAt < pendingSince) return;
+            if (action == null) return;
+            if (menuBuiltAt < pendingSince) {
+                Logger.printInfo(() -> "ReelsButtons: a sheet opened for " + action + " but no ⋯ menu rows were built since the tap");
+                return;
+            }
             pendingAction = null;
             if (SystemClock.uptimeMillis() - pendingSince > PENDING_TIMEOUT_MS) return;
 

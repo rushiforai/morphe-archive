@@ -14,6 +14,7 @@ import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragme
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.favoritesTabRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.feedAutoScrollTimeRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.feedSeekBarLookRow;
+import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.captionLinesRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.feedSeekShapeRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.feedSkipLengthRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.homeSwipeRow;
@@ -67,10 +68,12 @@ final class FeedCategory {
         boolean fullScreen = build.contains(PatchFamily.FULL_SCREEN_BARS);
         boolean feedFollow = build.contains(PatchFamily.FEED_FOLLOW);
         boolean editsLabel = build.contains(PatchFamily.EDITS_LABEL);
+        boolean headerLine = build.contains(PatchFamily.FEED_HEADER_LINE);
         boolean feedSave = build.contains(PatchFamily.FEED_SAVE);
         boolean menuItems = build.contains(PatchFamily.MENU_ITEMS);
         boolean watchAgain = build.contains(PatchFamily.WATCH_AGAIN);
         boolean hideCaptions = build.contains(PatchFamily.HIDE_CAPTIONS);
+        boolean expandCaptions = build.contains(PatchFamily.EXPAND_CAPTIONS);
         boolean feedAudioIcon = build.contains(PatchFamily.FEED_AUDIO_ICON);
         boolean feedAutoScroll = build.contains(PatchFamily.FEED_AUTO_SCROLL);
         boolean homeTopBar = build.contains(PatchFamily.HOME_TOP_BAR);
@@ -79,7 +82,7 @@ final class FeedCategory {
         PreferenceCategory feed = suggestions || following || swipe || fullResolution || homeFeed || feedViewHistory || tabSwipe
                 || askLike || askRefresh || saveTray || postTime || hiddenLikes || backHome || homePlace || feedSound || feedTapPause || feedHoldFast || feedSeekBar || longPressZoom
                 || roundedCorners || carouselArrows || ambientLight
-                || fullScreen || feedFollow || editsLabel || feedSave || watchAgain || hideCaptions || feedAudioIcon || feedAutoScroll || homeTopBar
+                || fullScreen || feedFollow || editsLabel || headerLine || feedSave || watchAgain || hideCaptions || expandCaptions || feedAudioIcon || feedAutoScroll || homeTopBar
                 || activityBubbles || menuItems
                 ? category(screen, L10n.t("Feed"), SettingsIcons.FEED,
                         L10n.t("Choose what Home shows and how it behaves.")) : null;
@@ -182,6 +185,8 @@ final class FeedCategory {
             feed.addPreference(toggle(context, Settings.STOP_SWIPE_TO_CREATE, L10n.t("Stop swipe to create"),
                     L10n.t("A sideways swipe on Home no longer opens the camera. The + button and every other way "
                             + "into the camera still work.")));
+            feed.addPreference(toggle(context, Settings.STOP_SWIPE_TO_MESSAGES, L10n.t("Stop swipe to Messages"),
+                    L10n.t("A swipe left on Home no longer opens Messages. The Messages button still does.")));
             feed.addPreference(homeSwipeRow(context));
             if (PatchFamily.homeLeftSwipeInBuild()) {
                 feed.addPreference(toggle(context, Settings.SWIPE_LEFT_MESSAGES, L10n.t("Swipe left for Messages"),
@@ -372,6 +377,12 @@ final class FeedCategory {
                     L10n.t("Takes the \"Made with Edits\" label out of the line under a post's author. The song, the "
                             + "place and the other labels keep taking turns there.")));
         }
+        if (headerLine) {
+            feed.addPreference(toggle(context, Settings.HIDE_FEED_HEADER_LINE, L10n.t("Hide the line under names"),
+                    L10n.t("Takes the song, the place and the other labels off the line under the "
+                            + "name on posts in your feed. Sponsored and Paid partnership stay. Posts already on screen "
+                            + "change when they load again.")));
+        }
         if (feedSave) {
             feed.addPreference(toggle(context, Settings.SAVE_IN_POST_MENU, L10n.t("Save in the post menu"),
                     L10n.t("Adds Save to the menu behind a post's three dots, or Remove from saved when you saved it already.")));
@@ -398,6 +409,12 @@ final class FeedCategory {
                     L10n.t("Takes the caption off posts in your feed and off reels. The post stays, and the comments sheet "
                             + "still shows it.")),
                     HideCaptions::switchChanged));
+        }
+        if (expandCaptions) {
+            feed.addPreference(toggle(context, Settings.EXPAND_CAPTIONS, L10n.t("Expand captions"),
+                    L10n.t("Shows more of a post's caption in your feed before \"more\", the whole caption to start. "
+                            + "Reels and stories stay as they are.")));
+            feed.addPreference(captionLinesRow(context));
         }
         if (homeTopBar) {
             feed.addPreference(toggle(context, Settings.KEEP_HOME_TOP_BAR, L10n.t("Keep Home's top bar"),

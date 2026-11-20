@@ -33,8 +33,9 @@ val autoClaimChannelPointsPatch = bytecodePatch(
     name = "Auto-claim channel points",
     description = "Adds a switch that claims the channel points bonus for your account as soon as its chest " +
         "appears in a channel's chat, with the same request as tapping the chest. Each bonus is claimed once. " +
-        "Needs a signed-in account. Checked against Twitch's code and with a stand-in for the claim service, not " +
-        "yet with a real account. The claim leaves out the chat mode a tap sends, which Twitch only adds to its " +
+        "Needs a signed-in account. Twitch only offers points and the chest for watch time it is told about, so " +
+        "while Disable analytics is on, this also lets its minute-watched event through; every other analytics " +
+        "event stays blocked. The claim leaves out the chat mode a tap sends, which Twitch only adds to its " +
         "analytics event. Starts off. Turn it on in Lurk settings > Chat.",
 ) {
     compatibleWith(COMPATIBILITY_TWITCH)
@@ -42,7 +43,7 @@ val autoClaimChannelPointsPatch = bytecodePatch(
     execute {
         autoClaimBonus()
         twitchSettings.add(SwitchSetting(KEY, "Auto-claim channel points",
-            "Claim the bonus chest for your account as soon as it appears in chat.", Section.CHAT, default = false))
+            "Claim the bonus chest for your account as soon as it appears in chat. Also sends the watch-time event that earns points, which Disable analytics otherwise blocks.", Section.CHAT, default = false))
     }
 }
 

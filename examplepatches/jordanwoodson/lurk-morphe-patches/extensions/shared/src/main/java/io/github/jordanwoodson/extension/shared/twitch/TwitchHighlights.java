@@ -3,6 +3,7 @@ package io.github.jordanwoodson.extension.shared.twitch;
 import android.view.View;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -21,6 +22,8 @@ public final class TwitchHighlights {
     static final String PINNED_CHEERS = "hide_pinned_cheers";
     static final String WATCH_STREAKS = "hide_watch_streaks";
     static final String CELEBRATIONS = "hide_celebrations";
+    static final String EXTENSIONS = "hide_extensions";
+    static final String CHAT_MODE_POPUP = "hide_chat_mode_popup";
     static final String CLIP_BUTTON = "hide_clip_button";
     static final String CAST_BUTTON = "hide_cast_button";
     static final String SHARE_BUTTON = "hide_share_button";
@@ -119,6 +122,21 @@ public final class TwitchHighlights {
     /** For cast buttons made in code (Compose AndroidView), which never call setVisibility. */
     public static void hideCastButton(View button) {
         if (button != null && Settings.isEnabled(CAST_BUTTON)) button.setVisibility(View.GONE);
+    }
+
+    /**
+     * Injection point: the extensions about to be shown as icons above chat or in its header (issue 81). While
+     * hidden, the row's view is gone and gets no icons, so neither the icons nor the extensions button show.
+     */
+    public static List<?> extensionIcons(View row, List<?> extensions) {
+        if (!Settings.isEnabled(EXTENSIONS)) return extensions;
+        if (row != null) row.setVisibility(View.GONE);
+        return Collections.emptyList();
+    }
+
+    /** Injection point: whether the "Changed to Column Chat" pop-up, with Next Mode, is skipped (issue 85). */
+    public static boolean hideChatModePopup() {
+        return Settings.isEnabled(CHAT_MODE_POPUP);
     }
 
     /** A share button that is only shown by its layout default. */

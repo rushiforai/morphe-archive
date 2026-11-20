@@ -109,6 +109,7 @@ import app.hushgram.extension.instagram.media.ResumePlayback;
 import app.hushgram.extension.instagram.feed.HiddenAccounts;
 import app.hushgram.extension.instagram.feed.AmbientSpeed;
 import app.hushgram.extension.instagram.feed.AmbientSpread;
+import app.hushgram.extension.instagram.feed.CaptionLines;
 import app.hushgram.extension.instagram.feed.CornerSize;
 import app.hushgram.extension.instagram.feed.LikeAnimation;
 import app.hushgram.extension.instagram.feed.MenuItems;
@@ -140,6 +141,7 @@ import app.hushgram.extension.instagram.stories.StoryTimeMode;
 import app.hushgram.extension.instagram.stories.TrayBadge;
 import app.hushgram.extension.instagram.profile.FollowerHistory;
 import app.hushgram.extension.instagram.profile.FollowLabelPlace;
+import app.hushgram.extension.instagram.profile.NotificationKinds;
 import app.hushgram.extension.instagram.profile.ProfileTabs;
 import app.hushgram.extension.instagram.misc.GlassCorners;
 import app.hushgram.extension.instagram.misc.GlassHeight;
@@ -359,7 +361,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     private final List<CategoryGroups.Label> groupLabels = new ArrayList<>();
     /** The group whose chip was picked, which the list of categories shows alone, or -1 for all. */
     private int shownGroup = -1;
-    /** HushGram's name over the page while the black look is on and nothing is searched (#455). */
+    /** HushGram's name over the page while the black or the light look is on (#455, #762). */
     @Nullable private Preference header;
     /** Before you sign in, while no tap has hidden it. The home page's, like the status card. */
     @Nullable private Preference beforeSignIn;
@@ -645,7 +647,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         Settings.HIDE_ADS.get();
 
         // Every row inflates with the theme of the context it was built with. Instagram's activity
-        // theme can be light, and its near-black text would vanish on this screen's black page.
+        // theme can be light or dark, and the wrong one's text would vanish on this screen's page.
         ScreenColors.shown = null;
         Context context = themed(getContext());
         PreferenceScreen screen = getPreferenceManager().createPreferenceScreen(context);
@@ -823,6 +825,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                     aliases.append(" amoled oled black theme");
                 }
                 if (Settings.SETTINGS_BLACK_LOOK.key.equals(key)) aliases.append(" amoled oled dark theme layout");
+                if (Settings.SETTINGS_LIGHT_LOOK.key.equals(key)) aliases.append(" white bright day theme layout");
                 if (NotificationsCategory.movedFromProfiles(key)) aliases.append(' ').append(L10n.t("Profiles"));
                 if (Settings.HIDE_REELS_TAB.key.equals(key) || Settings.SHOW_REELS_TAB.key.equals(key)) {
                     aliases.append(' ').append(L10n.t("Reels"));
@@ -836,7 +839,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 if (Settings.REMOVE_BUILD_EXPIRED_POPUP.key.equals(key)) aliases.append(' ').append(L10n.t("Updates"));
                 // Instagram's menu calls clear mode Full screen (#480).
                 if (Settings.KEEP_REEL_CLEAR_MODE.key.equals(key) || Settings.START_REEL_CLEAR_MODE.key.equals(key)
-                        || Settings.QUIET_REEL_CLEAR_MODE.key.equals(key) || Settings.CLEAR_MODE_SEEK_BAR.key.equals(key)) {
+                        || Settings.QUIET_REEL_CLEAR_MODE.key.equals(key) || Settings.CLEAR_MODE_SEEK_BAR.key.equals(key)
+                        || Settings.PINCH_CLEAR_MODE.key.equals(key) || Settings.HIDE_CLEAR_MODE_EXIT_BUTTON.key.equals(key)) {
                     aliases.append(' ').append(L10n.t("Full screen")).append(" fullscreen");
                 }
                 for (PatchFamily family : build) {
@@ -873,6 +877,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                     belongs |= family == PatchFamily.REEL_DOUBLE_TAP_SKIP
                             && Settings.DOUBLE_TAP_SKIP_REELS_SECONDS.key.equals(key);
                     belongs |= family == PatchFamily.FEED_AUTO_SCROLL && Settings.FEED_AUTO_SCROLL_SECONDS.key.equals(key);
+                    belongs |= family == PatchFamily.EXPAND_CAPTIONS && Settings.CAPTION_LINES.key.equals(key);
                     belongs |= family == PatchFamily.MEDIA_CACHE && (Settings.MEDIA_CACHE_LIMIT_MB.key.equals(key)
                             || CLEAR_MEDIA_CACHE_NOW.equals(key));
                     belongs |= family == PatchFamily.STORY_SEEK_BAR && (Settings.STORY_SEEK_BAR_LOOK.key.equals(key)
@@ -902,6 +907,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                     belongs |= family == PatchFamily.REEL_DOWNLOAD && Settings.TEXT_BUTTON_ON_REELS.key.equals(key);
                     belongs |= (family == PatchFamily.REEL_DOWNLOAD || family == PatchFamily.KEEP_REEL_SPEED)
                             && (Settings.SPEED_BUTTON_ON_REELS.key.equals(key) || Settings.SPEED_IN_REEL_MENU.key.equals(key));
+                    belongs |= (family == PatchFamily.REEL_DOWNLOAD || family == PatchFamily.REEL_AUTO_SCROLL)
+                            && Settings.AUTO_SCROLL_IN_REEL_MENU.key.equals(key);
                     belongs |= (family == PatchFamily.REEL_DOWNLOAD || family == PatchFamily.REEL_DECLUTTER)
                             && Settings.FULL_SCREEN_BUTTON_ON_REELS.key.equals(key);
                     belongs |= (family == PatchFamily.REEL_DOWNLOAD || family == PatchFamily.REEL_TAP_AND_VOLUME)
@@ -919,6 +926,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                     belongs |= family == PatchFamily.APP_ICON && Settings.APP_ICON.key.equals(key);
                     belongs |= family == PatchFamily.SETTINGS_ROWS && Settings.HIDDEN_SETTINGS_ROWS.key.equals(key);
                     belongs |= family == PatchFamily.NOTIFICATION_GROUPS && Settings.MUTED_NOTIFICATION_CHANNELS.key.equals(key);
+                    belongs |= family == PatchFamily.PROFILE_SUGGESTIONS && Settings.HIDDEN_NOTIFICATION_KINDS.key.equals(key);
                     belongs |= family == PatchFamily.SHARE_SHEET && Settings.HIDDEN_SHARE_SHEET_BUTTONS.key.equals(key);
                     belongs |= family == PatchFamily.PROFILE_TABS && (Settings.HIDDEN_PROFILE_TABS.key.equals(key)
                             || Settings.HIDDEN_OWN_PROFILE_TABS.key.equals(key));
@@ -934,7 +942,11 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                             || Settings.HIDE_CAPTION_WORD_HOME.key.equals(key)
                             || Settings.REELS_KEPT_LANGUAGES.key.equals(key) || Settings.HIDE_OTHER_LANGUAGE_HOME.key.equals(key));
                     belongs |= family == PatchFamily.LOW_VIEW_REELS
-                            && (Settings.MIN_REEL_VIEWS.key.equals(key) || Settings.MIN_REEL_LIKES.key.equals(key));
+                            && (Settings.MIN_REEL_VIEWS.key.equals(key) || Settings.MIN_REEL_LIKES.key.equals(key)
+                            || Settings.MAX_REEL_VIEWS.key.equals(key) || Settings.MIN_REEL_LIKES_PER_1000.key.equals(key)
+                            || Settings.MIN_REEL_COMMENTS_PER_1000.key.equals(key) || Settings.MIN_REEL_SECONDS.key.equals(key)
+                            || Settings.MAX_REEL_SECONDS.key.equals(key) || Settings.MAX_REEL_AGE_DAYS.key.equals(key)
+                            || Settings.REELS_NEWEST_FIRST.key.equals(key) || Settings.HIDE_LOW_VIEW_HOME.key.equals(key));
                     belongs |= family == PatchFamily.STORY_UPLOAD_QUALITY && (Settings.UPLOAD_QUALITY_APPLIES_TO.key.equals(key)
                             || Settings.UPLOAD_VIDEO_BITRATE.key.equals(key) || Settings.UPLOAD_VIDEO_RESOLUTION.key.equals(key)
                             || Settings.UPLOAD_FRAME_RATE.key.equals(key) || Settings.UPLOAD_PHOTO_QUALITY.key.equals(key)
@@ -977,6 +989,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                     aliases.append(' ').append(family.patchName);
                     if (family == PatchFamily.FOLLOWING_FEED) aliases.append(" following home feed");
                     if (Settings.REEL_AUTO_ADVANCE.key.equals(key)) aliases.append(" auto advance autoloop loop next reels");
+                    if (Settings.AUTO_SCROLL_IN_REEL_MENU.key.equals(key)) aliases.append(" auto advance three dots menu toggle reels");
                     if (Settings.STOP_VIDEO_LOOPING.key.equals(key)) aliases.append(" autoloop loop replay repeat reels");
                     if (Settings.KEEP_PLAYING_IN_BACKGROUND.key.equals(key)) {
                         aliases.append(" background audio minimized screen off notification music");
@@ -1266,8 +1279,14 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         if (list != null) list.invalidateViews();
     }
 
-    /** Black settings page shows at once: the header, the category lines and every row's colours (#455). */
+    /**
+     * Black or Light settings page shows at once: the header, the category lines, every row's
+     * colours, and the page, bar and Restart now around them (#455, #762).
+     */
     void applyLook() {
+        ListView list = listView();
+        if (list != null) list.setBackgroundColor(ScreenColors.current().background);
+        if (getParentFragment() instanceof SettingsDialog) ((SettingsDialog) getParentFragment()).repaint();
         filterSettings();
         rebindRows();
     }
@@ -1528,6 +1547,16 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 return L10n.t("Why you're seeing this post");
             case "PLAYBACK_SPEED":
                 return L10n.t("Playback speed");
+            case "REMIX":
+                return L10n.t("Remix and sequence");
+            case "REFERENCE":
+                return L10n.t("Use as reference");
+            case "TEMPLATE":
+                return L10n.t("Use template");
+            case "GET_EDITS":
+                return L10n.t("Get Edits");
+            case "LOOP":
+                return L10n.t("Loop this video");
             default:
                 return L10n.t("Playback");
         }
@@ -1827,7 +1856,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         PreferenceCategory under = pages ? shownPage() : null;
         PreferenceCategory page = listing ? under : null;
         boolean own = listing && ownPages();
-        boolean black = Settings.SETTINGS_BLACK_LOOK.savedValue();
+        // Either look puts HushGram's name at the top (#455, #762).
+        boolean named = Settings.SETTINGS_BLACK_LOOK.savedValue() || Settings.SETTINGS_LIGHT_LOOK.savedValue();
         for (Preference top : new Preference[]{header, statusCard, beforeSignIn, viewToggle, gridToggle, search}) {
             if (top == null) continue;
             // A tap hid the notice for good and took it off the screen. It stays off.
@@ -1835,7 +1865,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             // The header stays while searching. Taking a row off above the field moved the field's
             // place in the list mid-word, and a hardware keyboard's next key was dropped.
             boolean hidden = under != null && top != search || (top == statusCard ? !HushgramPause.isPaused()
-                    : top == gridToggle ? !listing : top == header && !black);
+                    : top == gridToggle ? !listing : top == header && !named);
             if (hidden) {
                 if (top.getParent() == screen) screen.removePreference(top);
             } else if (top.getParent() != screen) screen.addPreference(top);
@@ -1912,7 +1942,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                     else if (!expanded && lastCarouselSave.getParent() == group) group.removePreference(lastCarouselSave);
                 }
             }
-            if (group instanceof Heading) ((Heading) group).display(listing && !held && page == null, expanded, black);
+            if (group instanceof Heading) ((Heading) group).display(listing && !held && page == null, expanded, named);
             boolean tile = gridOn && filled && group instanceof Heading && !outside;
             if (tile) tiles.add((Heading) group);
             if (page != null && filled && group instanceof Heading && !outside) chips.add((Heading) group);
@@ -3258,6 +3288,9 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         filterSettings();
     }
 
+    /** Marks the search row's clear cross, so a repaint finds it. */
+    private static final String SEARCH_CLEAR = "hushgram-settings-search-clear";
+
     /** Inline input. Its query is local to this page and never becomes a stored setting. */
     private final class SearchRow extends Preference {
         SearchRow(Context context) { super(context); }
@@ -3288,18 +3321,10 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             // The whole search row owns the surface, including its clear action.
             field.setBackground(null);
             field.setPaddingRelative(0, Math.round(10 * density), 0, Math.round(10 * density));
-            field.setTextColor(ScreenColors.DEFAULT.title);
             field.setHint(L10n.t("Search settings"));
             field.setContentDescription(L10n.t("Search settings"));
             // The hint and the query start by the magnifier, on the right in a right-to-left layout.
             field.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_START);
-            // A magnifier at the field's start, as every row starts with an icon. A screen reader
-            // already hears the field's name, and a compound drawable isn't read.
-            android.graphics.drawable.Drawable glass = SettingsIcons.icon(context, SettingsIcons.SEARCH,
-                    ScreenColors.DEFAULT.summary);
-            int glassSize = Math.round(20 * context.getResources().getDisplayMetrics().density);
-            glass.setBounds(0, 0, glassSize, glassSize);
-            field.setCompoundDrawablesRelative(glass, null, null, null);
             field.setCompoundDrawablePadding(Math.round(12 * context.getResources().getDisplayMetrics().density));
             field.setMinimumHeight(touch);
             field.setText(searchQuery);
@@ -3308,16 +3333,11 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             row.addOnAttachStateChangeListener(focus);
             row.addView(field, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1));
             Button clear = new Button(context);
+            clear.setTag(SEARCH_CLEAR);
             clear.setText("");
             clear.setAllCaps(false);
             clear.setTextSize(24);
-            clear.setTextColor(ScreenColors.DEFAULT.heading);
-            android.graphics.drawable.Drawable cross = SettingsIcons.icon(context, SettingsIcons.CLOSE,
-                    ScreenColors.DEFAULT.heading);
             int crossSize = Math.round(20 * density);
-            cross.setBounds(0, 0, crossSize, crossSize);
-            clear.setCompoundDrawablesRelative(cross, null, null, null);
-            ScreenColors.styleIconAction(clear);
             clear.setContentDescription(L10n.t("Clear search"));
             clear.setTooltipText(L10n.t("Clear search"));
             int crossPadding = (touch - crossSize) / 2;
@@ -3355,7 +3375,38 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                     clear.setVisibility(text.length() == 0 ? View.INVISIBLE : View.VISIBLE);
                 }
             });
+            paintSearch(row);
             return row;
+        }
+
+        /**
+         * The query, its placeholder, the magnifier at the field's start and the clear cross, in the
+         * colours on show, so a flip of Light settings page repaints them with the card (#762).
+         */
+        private void paintSearch(View row) {
+            ScreenColors colors = ScreenColors.current();
+            Context context = row.getContext();
+            int size = Math.round(20 * context.getResources().getDisplayMetrics().density);
+            View found = row.findViewWithTag("hushgram-settings-search");
+            if (found instanceof EditText) {
+                EditText field = (EditText) found;
+                field.setTextColor(colors.title);
+                field.setHintTextColor(ScreenColors.dimmedWhenDisabled(colors.hint));
+                field.setHighlightColor(ScreenColors.half(colors.accent));
+                // A magnifier at the field's start, as every row starts with an icon. A screen reader
+                // already hears the field's name, and a compound drawable isn't read.
+                android.graphics.drawable.Drawable glass = SettingsIcons.icon(context, SettingsIcons.SEARCH, colors.summary);
+                glass.setBounds(0, 0, size, size);
+                field.setCompoundDrawablesRelative(glass, null, null, null);
+            }
+            View clear = row.findViewWithTag(SEARCH_CLEAR);
+            if (clear instanceof Button) {
+                ((Button) clear).setTextColor(colors.heading);
+                android.graphics.drawable.Drawable cross = SettingsIcons.icon(context, SettingsIcons.CLOSE, colors.heading);
+                cross.setBounds(0, 0, size, size);
+                ((Button) clear).setCompoundDrawablesRelative(cross, null, null, null);
+                ScreenColors.styleIconAction(clear);
+            }
         }
 
         /**
@@ -3390,7 +3441,9 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
          */
         @Override protected void onBindView(View view) {
             super.onBindView(view);
-            if (!Integer.valueOf(ScreenColors.current().card).equals(view.getTag())) paint(view);
+            if (Integer.valueOf(ScreenColors.current().card).equals(view.getTag())) return;
+            paint(view);
+            paintSearch(view);
         }
     }
 
@@ -3456,7 +3509,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         card.setPersistent(false);
         card.setEnabled(!resumingFromOverview);
         boolean paused = HushgramPause.isPaused();
-        ScreenColors palette = ScreenColors.DEFAULT;
+        ScreenColors palette = ScreenColors.current();
         card.setIcon(SettingsIcons.icon(context, paused ? SettingsIcons.PAUSE : SettingsIcons.PATCHED,
                 paused ? palette.summary : palette.heading));
         statusCard = card;
@@ -3487,7 +3540,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         Row notice = new Row(context);
         notice.setPersistent(false);
         notice.setKey(SIGN_IN_NOTICE_KEY);
-        notice.setIcon(SettingsIcons.icon(context, SettingsIcons.ABOUT, ScreenColors.DEFAULT.heading));
+        notice.setIcon(SettingsIcons.icon(context, SettingsIcons.ABOUT, ScreenColors.current().heading));
         notice.setTitle(L10n.t("Before you sign in"));
         notice.setSummary(L10n.t("Nobody outside Meta knows what gets an account suspended. A patched Instagram "
                 + "can't pass Google's check that it came from the Play Store, and no patch changes that. If you'd "
@@ -3673,7 +3726,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         return "Android/data/" + packageName + "/files";
     }
 
-    /** The dark Material theme every row and dialog on this screen is built with. */
+    /** The Material theme every row and dialog on this screen is built with: the light one under the light look. */
     static Context themed(Context base) {
         return new ContextThemeWrapper(base, ScreenColors.themeFor(base));
     }
@@ -5464,18 +5517,37 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 return L10n.t("Everywhere but Reels");
             case ONLY_REELS:
                 return L10n.t("Only in Reels");
+            case OUTSIDE_EXPLORE:
+                return L10n.t("Everywhere but Explore");
+            case ONLY_EXPLORE:
+                return L10n.t("Only in Explore");
+            case REELS_AND_EXPLORE:
+                return L10n.t("Reels and Explore");
+            case OUTSIDE_REELS_AND_EXPLORE:
+                return L10n.t("Everywhere but Reels and Explore");
             default:
                 return L10n.t("Everywhere");
         }
     }
 
-    /** What waits for a tap with [scope], for the row's summary. Reels in the feed go with the feed. */
+    /**
+     * What waits for a tap with [scope], for the row's summary. Reels in the feed go with the feed,
+     * and a reel opened from Explore goes with Reels (#762).
+     */
     static String tapToPlayScopeSummary(TapToPlayScope scope) {
         switch (scope) {
             case OUTSIDE_REELS:
                 return L10n.t("Feed videos and stories wait for your tap. Reels play as you swipe to them.");
             case ONLY_REELS:
                 return L10n.t("Reels wait for your tap. Feed videos and stories play as Instagram plays them.");
+            case OUTSIDE_EXPLORE:
+                return L10n.t("Feed videos, reels and stories wait for your tap. Videos in Explore play as Instagram plays them.");
+            case ONLY_EXPLORE:
+                return L10n.t("Videos in Explore wait for your tap. Feed videos, reels and stories play as Instagram plays them.");
+            case REELS_AND_EXPLORE:
+                return L10n.t("Reels and videos in Explore wait for your tap. Feed videos and stories play as Instagram plays them.");
+            case OUTSIDE_REELS_AND_EXPLORE:
+                return L10n.t("Feed videos and stories wait for your tap. Reels and videos in Explore play as Instagram plays them.");
             default:
                 return L10n.t("Feed videos, reels and stories all wait for your tap.");
         }
@@ -6607,6 +6679,81 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         });
     }
 
+    /** The row that opens the list of notification kinds to take off your notifications (#756). Its summary says how many are. */
+    Row hiddenKindsRow(Context context) {
+        Row row = new Row(context);
+        row.setKey(Settings.HIDDEN_NOTIFICATION_KINDS.key);
+        row.setPersistent(false);
+        row.setTitle(L10n.t("Hide notifications by type"));
+        row.setSummary(hiddenKindsSummary(Settings.HIDDEN_NOTIFICATION_KINDS.savedValue()));
+        row.setOnPreferenceClickListener(tapped -> {
+            showHiddenKinds(row);
+            return true;
+        });
+        return row;
+    }
+
+    /** What the notification kinds hidden in [saved] mean, for the row's summary. */
+    static String hiddenKindsSummary(String saved) {
+        int hidden = NotificationKinds.parse(saved).size();
+        if (hidden == 0) {
+            return L10n.t("Takes the kinds of notifications you tick off the Notifications page. The list fills in "
+                    + "as Instagram sends them.");
+        }
+        return L10n.quantity(hidden, "%1$d kind of notification is hidden.", "%1$d kinds of notification are hidden.", hidden);
+    }
+
+    /**
+     * The kinds of notification this phone has seen, each with a check, ticked while hidden, with a line
+     * from one of them and the server's name for the kind. A change saves at once and shows on the next
+     * load of the notifications. Until the notifications have loaded once there's nothing to list, and the
+     * list says so.
+     */
+    void showHiddenKinds(Row row) {
+        Context context = getActivity();
+        if (context == null) return;
+        Set<String> hidden = NotificationKinds.parse(Settings.HIDDEN_NOTIFICATION_KINDS.savedValue());
+        List<String[]> kinds = NotificationKinds.offered(context, hidden);
+        AlertDialog.Builder builder = new AlertDialog.Builder(context).setTitle(L10n.t("Hide notifications by type"));
+        if (kinds.isEmpty()) {
+            show(builder.setMessage(L10n.t("No notifications seen yet. Open your notifications in Instagram once, "
+                    + "then come back here.")).setPositiveButton(L10n.t("OK"), null));
+            return;
+        }
+        CharSequence[] names = new CharSequence[kinds.size()];
+        boolean[] ticked = new boolean[kinds.size()];
+        for (int i = 0; i < names.length; i++) {
+            names[i] = kinds.get(i)[1];
+            ticked[i] = hidden.contains(kinds.get(i)[0]);
+        }
+        // The dialog keeps [ticked] and re-applies its checks at each layout, so every change to a check changes it too.
+        builder.setMultiChoiceItems(names, ticked, (dialog, which, on) -> {
+            if (!allowMutation(row, true)) {
+                ticked[which] = hidden.contains(kinds.get(which)[0]);
+                setChecked((AlertDialog) dialog, which, ticked[which]);
+                return;
+            }
+            if (on) hidden.add(kinds.get(which)[0]);
+            else hidden.remove(kinds.get(which)[0]);
+            Settings.HIDDEN_NOTIFICATION_KINDS.save(NotificationKinds.join(hidden));
+            row.setSummary(hiddenKindsSummary(Settings.HIDDEN_NOTIFICATION_KINDS.savedValue()));
+        });
+        AlertDialog dialog = show(builder.setNeutralButton(L10n.t("Show all"), null)
+                .setPositiveButton(L10n.t("OK"), null));
+        if (dialog == null) return;
+        // A click listener of its own, so Show all clears every check without closing the list.
+        dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(tapped -> {
+            if (!allowMutation(row, true)) return;
+            hidden.clear();
+            Settings.HIDDEN_NOTIFICATION_KINDS.save("");
+            row.setSummary(hiddenKindsSummary(""));
+            for (int i = 0; i < kinds.size(); i++) {
+                ticked[i] = false;
+                dialog.getListView().setItemChecked(i, false);
+            }
+        });
+    }
+
     /** The row that opens the tab order list. Its summary names the order chosen. */
     Row tabOrderRow(Context context) {
         Row row = new Row(context);
@@ -7057,6 +7204,34 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 L10n.t("Expressive"),
                 L10n.t("Wave"),
         }, title);
+        return row;
+    }
+
+    /**
+     * How much of a feed post's caption Expand captions shows (#771): the whole caption to start, or
+     * a number of lines with "more" after them. Its values are the choices' own names. A count's
+     * summary starts with that count, so the row shows which one is picked.
+     */
+    static ChoiceRow<CaptionLines> captionLinesRow(Context context) {
+        String title = L10n.t("Caption lines before more");
+        String cut = L10n.t("Captions longer than that end with \"more\", which opens the rest.");
+        String[] labels = {
+                L10n.t("Whole caption"),
+                L10n.t("1 line"),
+                L10n.t("2 lines"),
+                L10n.t("3 lines"),
+                L10n.t("4 lines"),
+                L10n.t("5 lines"),
+                L10n.t("6 lines"),
+                L10n.t("8 lines"),
+                L10n.t("10 lines"),
+        };
+        String[] summaries = new String[labels.length];
+        summaries[0] = L10n.t("The whole caption shows, with no \"more\" to tap.");
+        for (int i = 1; i < labels.length; i++) summaries[i] = labels[i] + "\n" + cut;
+        ChoiceRow<CaptionLines> row = new ChoiceRow<>(context, Settings.CAPTION_LINES, CaptionLines.values(), summaries,
+                L10n.t("Turn on Expand captions to use this choice."));
+        fill(row, Settings.CAPTION_LINES, CaptionLines.values(), labels, title);
         return row;
     }
 
@@ -7856,7 +8031,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     }
 
     static Preference mark(Preference row, String icon) {
-        row.setIcon(SettingsIcons.icon(row.getContext(), icon, ScreenColors.DEFAULT.heading));
+        row.setIcon(SettingsIcons.icon(row.getContext(), icon, ScreenColors.current().heading));
         return row;
     }
 
@@ -8425,16 +8600,54 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         }
     }
 
-    /** The view count Hide reels with few views keeps a reel at, typed as a number (#444). */
+    /** The view count Hide reels with few views keeps a reel at, typed as a number, 0 leaving views alone (#444, #780). */
     static MinCountRow minViewsRow(Context context) {
         return minCountRow(context, Settings.MIN_REEL_VIEWS, L10n.t("Minimum views"),
-                L10n.t("Reels with fewer views than this are left out. Type a whole number."));
+                L10n.t("Reels with fewer views than this are left out. Type a whole number, or 0 to not look at views."));
     }
 
     /** The like count it keeps a reel at, typed as a number, 0 leaving likes alone (#444). */
     static MinCountRow minLikesRow(Context context) {
         return minCountRow(context, Settings.MIN_REEL_LIKES, L10n.t("Minimum likes"),
                 L10n.t("Reels with fewer likes than this are left out. Type a whole number, or 0 to not look at likes."));
+    }
+
+    /** The most views a reel can have and stay, 0 for no maximum (#780). */
+    static MinCountRow maxViewsRow(Context context) {
+        return minCountRow(context, Settings.MAX_REEL_VIEWS, L10n.t("Maximum views"),
+                L10n.t("Reels with more views than this are left out. Type a whole number, or 0 for no maximum."));
+    }
+
+    /** The likes a reel needs for each 1,000 views, 0 leaving it alone (#780). */
+    static MinCountRow likesPerThousandRow(Context context) {
+        return minCountRow(context, Settings.MIN_REEL_LIKES_PER_1000, L10n.t("Likes per 1,000 views"),
+                L10n.t("Reels with fewer likes than this for every 1,000 views are left out. Only reels that show "
+                        + "their views are checked. Type a whole number, or 0 to not look at it."));
+    }
+
+    /** The comments a reel needs for each 1,000 views, 0 leaving it alone (#780). */
+    static MinCountRow commentsPerThousandRow(Context context) {
+        return minCountRow(context, Settings.MIN_REEL_COMMENTS_PER_1000, L10n.t("Comments per 1,000 views"),
+                L10n.t("Reels with fewer comments than this for every 1,000 views are left out. Only reels that show "
+                        + "their views are checked. Type a whole number, or 0 to not look at it."));
+    }
+
+    /** The shortest video a reel can be, in seconds, 0 for no shortest (#780). */
+    static MinCountRow shortestReelRow(Context context) {
+        return minCountRow(context, Settings.MIN_REEL_SECONDS, L10n.t("Shortest video"),
+                L10n.t("Reels shorter than this many seconds are left out. Type a whole number, or 0 for no shortest."));
+    }
+
+    /** The longest video a reel can be, in seconds, 0 for no longest (#780). */
+    static MinCountRow longestReelRow(Context context) {
+        return minCountRow(context, Settings.MAX_REEL_SECONDS, L10n.t("Longest video"),
+                L10n.t("Reels longer than this many seconds are left out. Type a whole number, or 0 for no longest."));
+    }
+
+    /** The most days since a reel went up, 0 for any age (#780). */
+    static MinCountRow oldestReelRow(Context context) {
+        return minCountRow(context, Settings.MAX_REEL_AGE_DAYS, L10n.t("Oldest post"),
+                L10n.t("Reels posted more than this many days ago are left out. Type a whole number, or 0 for any age."));
     }
 
     private static MinCountRow minCountRow(Context context, IntegerSetting setting, String title, String message) {
@@ -8453,17 +8666,40 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         return row;
     }
 
-    /** What a minimum row says under its title, the count written in Instagram's language. */
+    /** What a count row says under its title, the count written in Instagram's language, and what 0 means. */
     static String minCountSummary(IntegerSetting setting, String stored) {
         int count = MinCountRow.valueOf(setting, stored);
         String number = java.text.NumberFormat.getIntegerInstance(L10n.locale()).format(count);
-        if (setting != Settings.MIN_REEL_LIKES) return L10n.f("Fewer than %1$s views", number);
-        return count == 0 ? L10n.t("Likes aren't looked at") : L10n.f("Fewer than %1$s likes", number);
+        if (setting == Settings.MIN_REEL_LIKES) {
+            return count == 0 ? L10n.t("Likes aren't looked at") : L10n.f("Fewer than %1$s likes", number);
+        }
+        if (setting == Settings.MAX_REEL_VIEWS) {
+            return count == 0 ? L10n.t("No maximum") : L10n.f("More than %1$s views", number);
+        }
+        if (setting == Settings.MIN_REEL_LIKES_PER_1000) {
+            return count == 0 ? L10n.t("Not looked at") : L10n.f("Fewer than %1$s likes per 1,000 views", number);
+        }
+        if (setting == Settings.MIN_REEL_COMMENTS_PER_1000) {
+            return count == 0 ? L10n.t("Not looked at") : L10n.f("Fewer than %1$s comments per 1,000 views", number);
+        }
+        if (setting == Settings.MIN_REEL_SECONDS) {
+            return count == 0 ? L10n.t("No shortest")
+                    : L10n.quantity(count, "Shorter than %1$s second", "Shorter than %1$s seconds", number);
+        }
+        if (setting == Settings.MAX_REEL_SECONDS) {
+            return count == 0 ? L10n.t("No longest")
+                    : L10n.quantity(count, "Longer than %1$s second", "Longer than %1$s seconds", number);
+        }
+        if (setting == Settings.MAX_REEL_AGE_DAYS) {
+            return count == 0 ? L10n.t("Any age")
+                    : L10n.quantity(count, "Posted more than %1$s day ago", "Posted more than %1$s days ago", number);
+        }
+        return count == 0 ? L10n.t("Views aren't looked at") : L10n.f("Fewer than %1$s views", number);
     }
 
     /**
-     * A minimum count row (views or likes), a number typed in a dialog. Its text is always a whole
-     * number inside its setting's range, and its summary follows it, whoever sets it.
+     * A count row (views, likes, length or age), a number typed in a dialog. Its text is always a
+     * whole number inside its setting's range, and its summary follows it, whoever sets it.
      */
     static final class MinCountRow extends EditTextPreference {
         final IntegerSetting setting;
@@ -10887,8 +11123,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         text.setLineSpacing(Math.round(2 * context.getResources().getDisplayMetrics().density), 1.04f);
         ScrollView scroll = new ScrollView(context);
         scroll.addView(text);
-        text.setTextColor(ScreenColors.DEFAULT.summary);
-        text.setLinkTextColor(ScreenColors.DEFAULT.heading);
+        text.setTextColor(ScreenColors.current().summary);
+        text.setLinkTextColor(ScreenColors.current().heading);
         Linkify.addLinks(text, Linkify.WEB_URLS);
         show(new AlertDialog.Builder(context)
                 .setTitle(L10n.t("Licenses"))

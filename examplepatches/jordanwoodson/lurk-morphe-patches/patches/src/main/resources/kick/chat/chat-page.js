@@ -12,6 +12,8 @@
 //   sevenTvBadges show the 7TV badge each chatter chose, as 7TV's event service reports it for the channel of
 //                 sevenTvUser (its owner's Kick user ID); nothing without it.
 //   keywords     Chat keywords: send each chat line to the app and tint or hide it by the app's verdict.
+//   search       Chat search: a button at the top right opens a box; while it holds text, only the lines whose
+//                sender or text contain it stay shown, new ones included.
 //   generation    this page's token, which the app requires on every message the page sends it.
 // The page is served by Kick and can change at any time, so every step only touches what it finds and does
 // nothing otherwise.
@@ -149,6 +151,11 @@
     if (options.sevenTvBadges) {
         if (sevenTvBadges(options.sevenTvUser)) applied.push('7tv badges ' + options.sevenTvUser);
         else applied.push('7tv badges: channel owner unknown');
+    }
+
+    if (options.search) {
+        whenReady(search);
+        applied.push('search');
     }
 
     if (options.keywords && options.generation && window.ReactNativeWebView) {
@@ -303,6 +310,75 @@
         window.lurkChat.sevenTvBadges = {badges, holders};
         connect();
         return true;
+    }
+
+    // Chat search (issue 83): only the lines whose sender or text contain the query (any case) stay shown while the
+    // box holds text. The page keeps only its recent lines, so older ones can't be found.
+    function search(app) {
+        let query = '', observer = null;
+        const style = document.createElement('style');
+        style.textContent = '.message-container.lurk-search-miss{display:none!important}' +
+            '#lurk-search{position:fixed;top:6px;right:6px;z-index:2147483647;display:flex;gap:4px;align-items:center}' +
+            '#lurk-search button{width:32px;height:32px;padding:0;border:0;border-radius:16px;' +
+            'background:rgba(0,0,0,.55);color:#fff;font-size:16px;line-height:32px}' +
+            '#lurk-search input{display:none;width:55vw;height:32px;box-sizing:border-box;padding:0 12px;' +
+            'border:1px solid #53fc18;border-radius:16px;background:rgba(0,0,0,.85);color:#fff;font-size:14px}' +
+            '#lurk-search.lurk-open input{display:block}';
+        (document.head || document.documentElement).appendChild(style);
+        const box = document.createElement('div');
+        box.id = 'lurk-search';
+        const input = document.createElement('input');
+        input.type = 'search';
+        input.placeholder = 'Search chat';
+        input.setAttribute('aria-label', 'Search chat');
+        const toggle = document.createElement('button');
+        toggle.type = 'button';
+        toggle.setAttribute('aria-label', 'Search chat');
+        toggle.textContent = '\u{1F50D}';
+        box.append(input, toggle);
+        document.body.appendChild(box);
+        const words = (line) => {
+            const name = line.dataset.senderUsername || (line.querySelector('.username') || {}).textContent || '';
+            const content = line.dataset.originalContent != null ? line.dataset.originalContent
+                : (line.querySelector('.message-content') || {}).textContent || '';
+            return (name + ' ' + content).toLowerCase();
+        };
+        const apply = (line) => line.classList.toggle('lurk-search-miss', query !== '' && !words(line).includes(query));
+        const all = () => app.querySelectorAll('.message-container').forEach(apply);
+        const watch = (on) => {
+            if (on && !observer) {
+                observer = new MutationObserver((records) => {
+                    for (const record of records) for (const node of record.addedNodes) {
+                        if (node.nodeType !== 1) continue;
+                        if (node.matches('.message-container')) apply(node);
+                        node.querySelectorAll('.message-container').forEach(apply);
+                    }
+                });
+                observer.observe(app, {childList: true, subtree: true});
+            } else if (!on && observer) {
+                observer.disconnect();
+                observer = null;
+            }
+        };
+        input.addEventListener('input', () => {
+            query = input.value.trim().toLowerCase();
+            all();
+            watch(query !== '');
+        });
+        toggle.addEventListener('click', () => {
+            const open = box.classList.toggle('lurk-open');
+            toggle.textContent = open ? '\u2715' : '\u{1F50D}';
+            toggle.setAttribute('aria-label', open ? 'Close chat search' : 'Search chat');
+            if (open) {
+                input.focus();
+                return;
+            }
+            input.value = '';
+            query = '';
+            all();
+            watch(false);
+        });
+        window.addEventListener('pagehide', () => watch(false), {once: true});
     }
 
     // Chat keywords: each chat line, already shown or new, goes to the app (sender's name and kick.com handle, the

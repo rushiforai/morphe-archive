@@ -123,6 +123,7 @@ public final class FamilyNames {
     public static final String PROFILE_POSTS_LIST = "Profile posts as a list";
     public static final String PROFILE_GRID_JUMP = "Jump a profile's posts to a date";
     public static final String PROFILE_REEL_SORT = "Sort reels on profiles";
+    public static final String PROFILE_FOLLOW_COUNTS = "Hide Followers and Following on profiles";
     public static final String COMMENT_COPY = "Copy comment";
     public static final String COMMENT_PHOTO = "Save comment photo";
     public static final String PROFILE_PICTURE = "Save profile picture";
@@ -134,11 +135,13 @@ public final class FamilyNames {
     public static final String COMMENT_SEARCH = "Search comments";
     public static final String FEED_FOLLOW = "Hide Follow on feed posts";
     public static final String EDITS_LABEL = "Hide Made with Edits";
+    public static final String FEED_HEADER_LINE = "Hide the line under names";
     public static final String FEED_SAVE = "Save in the post menu";
     public static final String MENU_ITEMS = "Three-dot menu items";
     public static final String WATCH_AGAIN = "Watch again in the feed";
     public static final String ACTIVITY_BUBBLES = "Hide activity bubbles";
     public static final String HIDE_CAPTIONS = "Hide captions";
+    public static final String EXPAND_CAPTIONS = "Expand captions";
     public static final String FEED_AUDIO_ICON = "Hide the audio icon on posts";
     public static final String FEED_AUTO_SCROLL = "Auto scroll in Home";
     public static final String HOME_TOP_BAR = "Keep Home's top bar";
@@ -157,6 +160,7 @@ public final class FamilyNames {
     public static final String KEEP_REEL_SPEED = "Keep the reel speed";
     public static final String REEL_ABOVE_COMMENTS = "Control the reel above comments";
     public static final String REEL_LINKS = "Open reel links on that reel";
+    public static final String REEL_SCREEN_SLEEP = "Let the screen sleep when a reel stops";
     public static final String REEL_POST_TIME = "Show a reel's exact time";
     public static final String REEL_SEEK_BAR = "Keep a seek bar on Reels";
     public static final String REEL_BLUR_BARS = "Blur the bars around Reels";
@@ -197,6 +201,7 @@ public final class FamilyNames {
     public static final String MESSAGE_BOX = "Message box buttons";
     public static final String PLUS_MENU = "Chat plus menu";
     public static final String GLASS_CHAT = "Glass in chats";
+    public static final String CENTER_CHAT_NAME = "Center names in chats";
     public static final String ASK_BEFORE_LIKE = "Ask before a like";
     public static final String ASK_BEFORE_REFRESH = "Ask before a refresh";
     public static final String ASK_BEFORE_FOLLOW = "Ask before a follow";

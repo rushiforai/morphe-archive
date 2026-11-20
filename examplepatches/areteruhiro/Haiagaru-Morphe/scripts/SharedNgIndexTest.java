@@ -44,6 +44,14 @@ public final class SharedNgIndexTest {
         check(!bulk.matches("5ch/all","","neutral","条件999末尾"));
         check(!new SharedNgIndex(many,3,Set.of(),Set.of(),255).matches("5ch/all","","条件1末尾","条件2末尾"));
         check(!new SharedNgIndex(many,1,Set.of(),Set.of("*","5ch/all"),255).matches("5ch/all","","条件1末尾","条件2末尾"));
+        SharedNgIndex identityOnly=new SharedNgIndex(List.of(rules.get(0)),1,Set.of(),Set.of(),255);
+        int[] bodyDecodes={0};
+        NgResponseDecisionCache.Decoder decoder=html->{if(html.startsWith("BODY"))bodyDecodes[0]++;return html;};
+        for(int i=0;i<1000;i++)check(!identityOnly.matchesHtml("5ch/all","safe"+i,"name","BODY"+i,decoder));
+        check(bodyDecodes[0]==0);
+        SharedNgIndex withWords=new SharedNgIndex(List.of(new SharedNgRules.Rule("a".repeat(64),"*","keyword","BODYhit","",3,false)),1,Set.of(),Set.of(),255);
+        check(withWords.matchesHtml("5ch/all","safe","name","BODYhit",decoder));
+        check(bodyDecodes[0]==1);
         System.out.println("PASS shared NG index equivalence and no-strength "+checks);
     }
 }

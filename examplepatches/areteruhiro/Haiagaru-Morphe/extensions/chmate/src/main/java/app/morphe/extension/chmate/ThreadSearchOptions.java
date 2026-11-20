@@ -12,7 +12,7 @@ final class ThreadSearchOptions {
     static final String MENU_SEARCH="threadOverflowSearch",MENU_SELECTION="threadOverflowResponseSelection";
     static boolean menuEnabled(String key){
         android.content.Context c=Haiagaru.applicationContextForExtension();
-        boolean fallback=MENU_SELECTION.equals(key);
+        boolean fallback=MENU_SEARCH.equals(key)||MENU_SELECTION.equals(key);
         return c==null?fallback:c.getSharedPreferences(WacchoiSearchOptions.PREFS,0).getBoolean(key,fallback);
     }
     static boolean enabled(String key){
@@ -26,7 +26,7 @@ final class ThreadSearchOptions {
         String[] menuLabels={"3点メニューに検索を表示","3点メニューにレス複数選択を表示"};
         for(int i=0;i<menuKeys.length;i++){
             String key=menuKeys[i];Switch toggle=new Switch(activity);toggle.setText(menuLabels[i]);
-            toggle.setChecked(prefs.getBoolean(key,MENU_SELECTION.equals(key)));toggle.setTag(SettingLinkEntry.KEY_TAG,key);box.addView(toggle);
+            toggle.setChecked(prefs.getBoolean(key,true));toggle.setTag(SettingLinkEntry.KEY_TAG,key);box.addView(toggle);
             toggle.setOnCheckedChangeListener((v,on)->{prefs.edit().putBoolean(key,on).apply();activity.invalidateOptionsMenu();});
         }
         String[] keys={ID,WACCHOI,NAME},labels={"スレ内検索にIDを含める","スレ内検索にワッチョイを含める","スレ内検索に名前を含める"};

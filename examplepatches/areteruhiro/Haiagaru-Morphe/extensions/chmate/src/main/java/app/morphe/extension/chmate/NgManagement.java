@@ -123,12 +123,22 @@ public final class NgManagement {
     }
 
     private static void editScope(Activity activity, NativeNgStore store, NativeNgStore.Entry entry, Runnable done) {
-        NgBoardScopePicker picker = new NgBoardScopePicker(activity, null, entry.board);
-        HaiagaruDialog dialog = new HaiagaruDialog.Builder(activity).setTitle("NGの対象板: " + entry.pattern)
-                .setView(picker).setNegativeButton("キャンセル", null).setPositiveButton("保存", null).create();
+        boolean threadScoped=NgBoardScope.isThread(entry.board);
+        String baseBoard=threadScoped?NgBoardScope.threadBoard(entry.board):null;
+        long threadId=threadScoped?NgBoardScope.threadId(entry.board):-1;
+        NgBoardScopePicker picker = new NgBoardScopePicker(activity, baseBoard, threadScoped?baseBoard:entry.board);
+        LinearLayout scopeContent=new LinearLayout(activity);scopeContent.setOrientation(LinearLayout.VERTICAL);
+        CheckBox onlyThread=null;
+        if(threadScoped){onlyThread=new CheckBox(activity);onlyThread.setText("このスレのみを対象にする");onlyThread.setChecked(true);scopeContent.addView(onlyThread);}
+        scopeContent.addView(picker);
+        CheckBox threadToggle=onlyThread;
+        if(threadToggle!=null)threadToggle.setOnCheckedChangeListener((button,on)->picker.setVisibility(on?View.GONE:View.VISIBLE));
+        HaiagaruDialog dialog = new HaiagaruDialog.Builder(activity).setTitle("NGの対象: " + entry.pattern)
+                .setView(scopeContent).setNegativeButton("キャンセル", null).setPositiveButton("保存", null).create();
         dialog.setOnShowListener(d -> dialog.getButton(HaiagaruDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
             try {
-                String scope = picker.value();
+                String scope = threadToggle!=null&&threadToggle.isChecked()
+                        ? NgBoardScope.thread(baseBoard,threadId):picker.value();
                 if (store.entries().stream().noneMatch(entry::same))
                     throw new IllegalStateException("NGが変更されました。開き直してください");
                 store.update(entry.nativeItem, store.item(entry.pattern, entry.flags, entry.timestamp, scope));

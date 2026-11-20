@@ -15,14 +15,17 @@
 package app.morphe.patches.tiktok.misc.extension
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.tiktok.misc.settings.configurableBytecodePatch as bytecodePatch
 import app.morphe.patches.shared.misc.extension.ExtensionHook
 import app.morphe.patches.shared.misc.extension.sharedExtensionPatch as extendShared
 import app.morphe.patches.tiktok.misc.diagnostics.buildDetailsPatch
 import app.morphe.patches.tiktok.misc.diagnostics.ownClassesPatch
 import app.morphe.patches.tiktok.misc.diagnostics.targetBuildPatch
+import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstructionOrThrow
+import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private const val MAIN_ACTIVITY_CLASS = "Lcom/ss/android/ugc/aweme/main/MainActivity;"
@@ -59,38 +62,108 @@ internal object StoreRegionInitTaskRunFingerprint : Fingerprint(
     parameters = listOf("Landroid/content/Context;"),
 )
 
+/** TikTok Lite's application and launcher activity (#48): Lite starts up through its own classes. */
+internal const val LITE_APPLICATION_CLASS = "Lcom/zhiliaoapp/musically/go/mini/MiniApplication;"
+internal const val LITE_MAIN_ACTIVITY_CLASS = "Lcom/zhiliaoapp/musically/go/mini/MainActivity;"
+
+/**
+ * The main screen Lite really opens. Its Instrumentation creates this class in place of
+ * [LITE_MAIN_ACTIVITY_CLASS] whenever the feature module is in the APK, which it always is in a
+ * patched one, so a hook only on the launcher's own onCreate never ran.
+ */
+internal const val LITE_HOME_ACTIVITY_CLASS = "Lcom/ss/android/ugc/aweme/main/homepage/MainActivity;"
+
+internal object LiteApplicationAttachBaseContextFingerprint : Fingerprint(
+    definingClass = LITE_APPLICATION_CLASS,
+    name = "attachBaseContext",
+    returnType = "V",
+    parameters = listOf("Landroid/content/Context;"),
+)
+
+internal object LiteMainActivityOnCreateFingerprint : Fingerprint(
+    definingClass = LITE_MAIN_ACTIVITY_CLASS,
+    name = "onCreate",
+    returnType = "V",
+    parameters = listOf("Landroid/os/Bundle;"),
+)
+
+internal object LiteHomeActivityOnCreateFingerprint : Fingerprint(
+    definingClass = LITE_HOME_ACTIVITY_CLASS,
+    name = "onCreate",
+    returnType = "V",
+    parameters = listOf("Landroid/os/Bundle;"),
+)
+
+/**
+ * Each onCreate the app's main screen can start from: TikTok's MainActivity, or in Lite (#48) the
+ * home screen it opens and the launcher it falls back to without its feature module.
+ */
+internal fun launcherOnCreates(packageName: String): List<MutableMethod> =
+    if (packageName == AppCompatibilities.TIKTOK_LITE_PACKAGE) {
+        listOf(LiteHomeActivityOnCreateFingerprint.method, LiteMainActivityOnCreateFingerprint.method)
+    } else {
+        listOf(MainActivityOnCreateFingerprint.method)
+    }
+
+private val TIKTOK_ONLY = setOf(AppCompatibilities.TIKTOK_PACKAGE)
+private val LITE_ONLY = setOf(AppCompatibilities.TIKTOK_LITE_PACKAGE)
+
+/** Right after the application's call to Application.attachBaseContext, so the base context is set. */
+internal fun afterSuperAttachBaseContext(method: Method): Int = method.indexOfFirstInstructionOrThrow {
+    getReference<MethodReference>()?.let { reference ->
+        reference.definingClass == "Landroid/app/Application;" &&
+            reference.name == "attachBaseContext" &&
+            reference.parameterTypes == listOf("Landroid/content/Context;")
+    } == true
+} + 1
+
 // The Home tab's long press into Hushfeed's settings follows the main activity from here; it
 // stays inert unless Feed tab navigation is in the bundle.
 private val initHook = ExtensionHook(
     fingerprint = MainActivityOnCreateFingerprint,
     postContextClassDescriptor = "Lapp/morphe/extension/tiktok/navigation/HomeTabSettingsShortcut;",
     postContextMethodName = "install",
+    packageNames = TIKTOK_ONLY,
 )
 
 private val hostApplicationInitHook = ExtensionHook(
     fingerprint = HostApplicationAttachBaseContextFingerprint,
-    insertIndexResolver = { method ->
-        method.indexOfFirstInstructionOrThrow {
-            getReference<MethodReference>()?.let { reference ->
-                reference.definingClass == "Landroid/app/Application;" &&
-                    reference.name == "attachBaseContext" &&
-                    reference.parameterTypes == listOf("Landroid/content/Context;")
-            } == true
-        } + 1
-    },
+    insertIndexResolver = ::afterSuperAttachBaseContext,
     contextRegisterResolver = { "p1" },
     postContextClassDescriptor = MEDIA_CACHE_CLASS,
     postContextMethodName = "reconcileAsync",
+    packageNames = TIKTOK_ONLY,
 )
 
 private val jatoInitHook = ExtensionHook(
     fingerprint = JatoInitTaskRunFingerprint,
     contextRegisterResolver = { "p1" },
+    packageNames = TIKTOK_ONLY,
 )
 
 private val storeRegionInitHook = ExtensionHook(
     fingerprint = StoreRegionInitTaskRunFingerprint,
     contextRegisterResolver = { "p1" },
+    packageNames = TIKTOK_ONLY,
+)
+
+// Lite has no Jato or store-region start-up tasks, and none of Hushfeed's saved-video cache
+// yet, so the context is all its application and launcher hand over.
+private val liteApplicationInitHook = ExtensionHook(
+    fingerprint = LiteApplicationAttachBaseContextFingerprint,
+    insertIndexResolver = ::afterSuperAttachBaseContext,
+    contextRegisterResolver = { "p1" },
+    packageNames = LITE_ONLY,
+)
+
+private val liteInitHook = ExtensionHook(
+    fingerprint = LiteMainActivityOnCreateFingerprint,
+    packageNames = LITE_ONLY,
+)
+
+private val liteHomeInitHook = ExtensionHook(
+    fingerprint = LiteHomeActivityOnCreateFingerprint,
+    packageNames = LITE_ONLY,
 )
 
 private val tiktokExtensionPatch = extendShared(
@@ -100,6 +173,9 @@ private val tiktokExtensionPatch = extendShared(
     initHook,
     jatoInitHook,
     storeRegionInitHook,
+    liteApplicationInitHook,
+    liteInitHook,
+    liteHomeInitHook,
 )
 
 val sharedExtensionPatch = bytecodePatch {

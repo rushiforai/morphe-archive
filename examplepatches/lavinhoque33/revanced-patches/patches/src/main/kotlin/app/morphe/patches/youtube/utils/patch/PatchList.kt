@@ -186,7 +186,7 @@ internal enum class PatchList(
     ),
     HIDE_SHORTS_DIMMING(
         "Hide Shorts dimming",
-        "Removes, at compile time, the dimming effect at the top and bottom of Shorts videos."
+        "Adds an in-app setting to hide the dimming effect at the top and bottom of Shorts videos."
     ),
     HIDE_ACTION_BUTTONS(
         "Hide action buttons",

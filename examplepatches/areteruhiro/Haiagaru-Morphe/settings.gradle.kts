@@ -3,6 +3,7 @@ rootProject.name = "Haiagaru-Morphe"
 pluginManagement {
     repositories {
         mavenLocal()
+        mavenCentral()
         gradlePluginPortal()
         google()
         maven {

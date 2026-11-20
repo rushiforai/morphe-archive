@@ -14,7 +14,9 @@ import java.util.Set;
  * The feed is the container with component id 30001. A post is not one child but a run of children
  * (separator, header, text, media, actions) sharing the same group id (X.0hd.A0w). A sponsored post's
  * header is tappable (A2Z, A2m) and has the references in X.0hg.A0M, which organic headers lack; this
- * holds whatever the language of the "Sponsored" label.
+ * holds whatever the language of the "Sponsored" label. The header must also hold a text with letters (the
+ * advertiser name): the per-photo action rows of a multi-photo post are tappable with references too, and
+ * hiding their group hid the photos.
  *
  * Children are never removed, because the server updates the feed by child index. They are marked
  * hidden (A2c, which the renderer and hit testing skip) and get height 0, and the feed list stacks
@@ -66,7 +68,8 @@ public final class SponsoredPosts {
         Set<Integer> sponsored = null;
         for (Object child : posts) {
             int g = (Integer) group.get(child);
-            if (g != 0 && (Boolean) tappable.get(child) && (Boolean) tappableFlag.get(child) && references.get(child) != null) {
+            if (g != 0 && (Boolean) tappable.get(child) && (Boolean) tappableFlag.get(child) && references.get(child) != null
+                    && AdTrace.hasNameText(child)) {
                 if (sponsored == null) sponsored = new HashSet<>();
                 sponsored.add(g);
             }

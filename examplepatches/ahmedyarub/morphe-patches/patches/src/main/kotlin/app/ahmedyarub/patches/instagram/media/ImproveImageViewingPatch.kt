@@ -19,7 +19,8 @@ import app.morphe.util.indexOfFirstInstruction
 import app.morphe.util.registersUsed
 import com.android.tools.smali.dexlib2.Opcode
 
-private const val EXTENDED_IMAGE_URL_CLASS = "Lcom/instagram/model/mediasize/ExtendedImageUrl;"
+/** What the picker returns: an ExtendedImageUrl up to 455, typed as the ImageUrl interface since 456. */
+private const val IMAGE_URL_CLASS = "Lcom/instagram/common/typedurl/ImageUrl;"
 
 /** piko's MAX_IMAGE_SIZE. */
 private const val MAX_IMAGE_SIZE = 4096
@@ -35,7 +36,7 @@ internal object SetDPIMetricsFingerprint : Fingerprint(
  * (preferred shape, candidates, requested width).
  */
 internal object ReturnExtendedImageUrlFingerprint : Fingerprint(
-    returnType = EXTENDED_IMAGE_URL_CLASS,
+    returnType = IMAGE_URL_CLASS,
     parameters = listOf("Ljava/lang/Integer;", "Ljava/util/List;", "I"),
 )
 

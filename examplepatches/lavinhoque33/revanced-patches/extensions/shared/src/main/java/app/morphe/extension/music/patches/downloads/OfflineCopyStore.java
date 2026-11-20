@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-18.
  * Modified by lavinhoque33, 2026-11-17.
  * Modified by lavinhoque33, 2026-11-13
  * Written by lavinhoque33, 2026-11-07.
@@ -64,11 +65,15 @@ final class OfflineCopyStore {
         if (!loadStarted.compareAndSet(false, true)) return;
 
         Utils.runOnBackgroundThread(() -> {
-            Storage.copies.ensureLoaded();
+            loadPlaybackData();
             Storage.sources.ensureLoaded();
             OfflineBrowsePages.load();
             VideoCopyStore.warmUp();
         });
+    }
+
+    static void loadPlaybackData() {
+        Storage.copies.ensureLoaded();
     }
 
     /**
@@ -105,10 +110,12 @@ final class OfflineCopyStore {
         return Storage.sources.readBrowsePage(sourceId);
     }
 
-    static void overlaySyncedTrackLists(Map<String, List<String>> tracks) {
+    static void overlaySourceTrackLists(Map<String, List<String>> tracks, Set<String> pending) {
         Storage.sources.ensureLoaded();
         for (OfflineSourceStore.Source source : Storage.sources.sources()) {
-            if (source.browsePage() != null) tracks.put(source.id(), source.videoIds());
+            if (source.browsePage() != null || source.explicitStream() && pending.contains(source.id())) {
+                tracks.put(source.id(), source.videoIds());
+            }
         }
     }
 
@@ -371,6 +378,7 @@ final class OfflineCopyStore {
         Logger.printDebug(() -> "OfflineCopyStore: stored v=" + metadata.videoId() + " response="
                 + written.responseBytes() + "B thumb=" + written.thumbnailBytes() + "B source="
                 + metadata.responseSource());
+        DownloadedMarkers.onPlaylistActivityChanged();
         AndroidAutoPatch.onPlaylistsChanged();
         return written;
     }
@@ -380,15 +388,11 @@ final class OfflineCopyStore {
      * Play downloads locally is off, so a file-only download writes no stream data.
      */
     static void rememberSource(String sourceId, @Nullable SourceHeader header, List<String> videoIds,
-                               boolean explicitStream) {
+                               boolean explicitStream) throws IOException, JSONException {
         if (!StreamSwap.supported()) return;
-        try {
-            Utils.verifyOffMainThread();
-            Storage.sources.remember(sourceId, header, videoIds, System.currentTimeMillis(), explicitStream);
-            AndroidAutoPatch.onPlaylistsChanged();
-        } catch (Exception ex) {
-            Logger.printException(() -> "OfflineCopyStore: could not remember the source " + sourceId, ex);
-        }
+        Utils.verifyOffMainThread();
+        Storage.sources.remember(sourceId, header, videoIds, System.currentTimeMillis(), explicitStream);
+        AndroidAutoPatch.onPlaylistsChanged();
     }
 
     /**
@@ -430,7 +434,9 @@ final class OfflineCopyStore {
     static void clearAll() {
         try {
             Storage.copies.clear();
-            Storage.sources.clear();
+            Set<String> pending = DownloadedMarkers.pendingPlaylistIds();
+            if (pending.isEmpty()) Storage.sources.clear();
+            else Storage.sources.retainWithCopies(Collections.emptySet(), pending);
             OfflineBrowsePages.retainOnly(Collections.emptySet());
         } catch (Exception ex) {
             Logger.printException(() -> "OfflineCopyStore: could not clear the stored data", ex);
@@ -447,7 +453,9 @@ final class OfflineCopyStore {
             Storage.copies.retainOnly(copyIds, copyIdsReadAt);
             Set<String> retained = new HashSet<>(copyIds);
             retained.addAll(RawAudioStore.aliases().keySet());
-            Storage.sources.retainWithCopies(retained);
+            synchronized (PlaylistSync.MUTATION) {
+                Storage.sources.retainWithCopies(retained, DownloadedMarkers.pendingPlaylistIds());
+            }
             OfflineBrowsePages.retainOnly(Storage.sources.ids());
         } catch (Exception ex) {
             Logger.printException(() -> "OfflineCopyStore: could not clean up the stored data", ex);

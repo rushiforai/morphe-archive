@@ -1,0 +1,22 @@
+4 ficheros DEX, 164880 cadenas distintas
+
+Lcom/baidu/simeji/settings/SettingsActivity;->P0(Landroid/content/Intent;)Ljava/lang/String;
+      v3, v2, Lcom/baidu/simeji/settings/SettingsActivity;->o0 Ljava/lang/String;
+Lcom/baidu/simeji/settings/SettingsActivity;->Q0(Landroid/content/Context; Ljava/lang/String;)V
+      v1, Lcom/baidu/simeji/settings/SettingsActivity;
+Lcom/baidu/simeji/settings/SettingsActivity;->O0()Ljava/lang/String;
+      v0, v1, Lcom/baidu/simeji/settings/SettingsActivity;->o0 Ljava/lang/String;
+Lcom/baidu/simeji/settings/SettingsActivity;->onBackPressed()V
+      v0, v1, Lcom/baidu/simeji/settings/SettingsActivity;->n0 Ljava/lang/ref/WeakReference;
+Lcom/baidu/simeji/settings/SettingsActivity;->onBackStackChanged()V
+      v0, v2, Lcom/baidu/simeji/settings/SettingsActivity;->n0 Ljava/lang/ref/WeakReference;
+Lcom/baidu/simeji/settings/SettingsActivity;->onCreate(Landroid/os/Bundle;)V
+      v3, v4, Lcom/baidu/simeji/settings/SettingsActivity;->P0(Landroid/content/Intent;)Ljava/lang/String;
+Lcom/baidu/simeji/settings/SettingsActivity;->onPause()V
+      v0, v1, Lcom/baidu/simeji/settings/SettingsActivity;->n0 Ljava/lang/ref/WeakReference;
+Lcom/baidu/simeji/settings/SettingsActivity;->onResume()V
+      v0, v1, Lcom/baidu/simeji/settings/SettingsActivity;->n0 Ljava/lang/ref/WeakReference;
+Lcom/baidu/simeji/skins/v0;->V2(Lcom/baidu/simeji/skins/v0; Landroid/view/View; Lcom/gclub/global/jetpackmvvm/base/BaseItemUIData; I)Lkotlin/Unit;
+      v2, v3, Lcom/baidu/simeji/settings/SettingsActivity;->Q0(Landroid/content/Context; Ljava/lang/String;)V
+
+9 metodos coinciden con Lcom/baidu/simeji/settings/SettingsActivity;

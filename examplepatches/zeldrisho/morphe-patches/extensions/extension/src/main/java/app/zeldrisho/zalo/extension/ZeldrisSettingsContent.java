@@ -29,6 +29,7 @@ public final class ZeldrisSettingsContent {
   public static boolean hasAccentColorSettings() { return false; }
   public static boolean hasCustomRingtoneSettings() { return false; }
   public static boolean hasNotificationSoundSettings() { return false; }
+  public static boolean hasAmoledThemeSettings() { return false; }
 
   /**
    * Appends the installed features' settings rows to {@code parent} and returns it.
@@ -88,18 +89,16 @@ public final class ZeldrisSettingsContent {
         ((ViewGroup) backup.getParent()).removeView(backup);
         parent.addView(backup);
       }
-      if (hasCustomRingtoneSettings()) {
-        addRingtoneChoice(parent, layout, notifications, preferences, vi);
-      }
-      if (hasNotificationSoundSettings()) {
-        addNotificationSoundChoice(parent, layout, notifications, vi);
-      }
       if (hasAccentColorSettings()) {
         addAccentColorChoice(parent, layout, privacy, preferences, vi);
       }
       if (hasRecallSettings()) {
         addToggle(parent, layout, privacy, vi ? "Giữ tin nhắn đã thu hồi" : "Keep recalled messages",
             "keep_recalled_messages", "zds_ic_backup_message_line_24", false, preferences, vi);
+      }
+      if (hasAmoledThemeSettings()) {
+        addToggle(parent, layout, privacy, vi ? "Chế độ AMOLED" : "AMOLED dark theme",
+            AmoledTheme.KEY, "zds_ic_setting_line_24", false, preferences, vi);
       }
     } catch (ReflectiveOperationException | RuntimeException ignored) {
       // A host ABI mismatch must not crash the app.

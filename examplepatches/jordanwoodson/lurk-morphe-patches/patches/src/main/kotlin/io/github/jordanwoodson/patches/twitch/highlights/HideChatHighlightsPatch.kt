@@ -2,6 +2,7 @@ package io.github.jordanwoodson.patches.twitch.highlights
 
 import io.github.jordanwoodson.patches.shared.Locators
 import io.github.jordanwoodson.patches.twitch.shared.addInstructionsWithLabels
+import io.github.jordanwoodson.patches.twitch.shared.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
@@ -36,13 +37,14 @@ private const val SUB_NOTICES = "hide_sub_notices"
 private const val PINNED_CHEERS = "hide_pinned_cheers"
 private const val WATCH_STREAKS = "hide_watch_streaks"
 private const val CELEBRATIONS = "hide_celebrations"
+private const val EXTENSIONS = "hide_extensions"
 
 @Suppress("unused")
 val hideChatHighlightsPatch = bytecodePatch(
     name = "Hide chat highlights",
     description = "Hides the Hype Train, Bits and gift leaderboards, other viewers' sub and gift messages and " +
-        "gift banners, pinned cheers and watch-streak pop-ups, each with its own switch. Celebrations can be " +
-        "hidden too. Other chat messages are unchanged.",
+        "gift banners, pinned cheers and watch-streak pop-ups, each with its own switch. Celebrations and the " +
+        "extension icons above chat can be hidden too. Other chat messages are unchanged.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_TWITCH)
@@ -57,6 +59,7 @@ val hideChatHighlightsPatch = bytecodePatch(
         hidePrivateCallouts()
         filterUiFlag(CelebrationEnableEventFingerprint, "EnableEvent(shouldEnable=", "$HIGHLIGHTS_CLASS->celebrationsEnabled(Z)Z")
         filterUiFlag(CelebrationEnableEventFingerprint, ", shouldUpdateState=", "$HIGHLIGHTS_CLASS->celebrationsUpdate(Z)Z")
+        hideExtensionIcons()
         twitchHermes.hideChatHighlights()
 
         twitchSettings.add(
@@ -75,8 +78,35 @@ val hideChatHighlightsPatch = bytecodePatch(
                 Section.INTERFACE, restart = true),
             SwitchSetting(CELEBRATIONS, "Hide celebrations",
                 "Full-screen celebration animations over the video.", Section.INTERFACE, default = false),
+            SwitchSetting(EXTENSIONS, "Hide extensions",
+                "The channel's extension icons and the extensions button above chat (native chat).",
+                Section.INTERFACE, default = false, restart = true),
         )
     }
+}
+
+/**
+ * The extension icons above native chat and in its header (issue 81): the row's view delegate lays out one icon per
+ * extension. While the switch is on, the extension gets the row's view, hides it, and hands back no extensions.
+ */
+private fun BytecodePatchContext.hideExtensionIcons() {
+    val method = ExtensionIconsFingerprint.twitchMatch("extension icons").method
+    val delegate = classDefBy(method.definingClass)
+    val base = classDefBy(delegate.superclass ?: throw PatchException("Twitch: extension icons have no view delegate"))
+    val view = instanceFields(base).singleOrNull { it.type == "Landroid/view/View;" }
+        ?: throw PatchException("Twitch: extension icons' view delegate has no unique view")
+    if (base.type != "Ltv/twitch/android/core/mvp/viewdelegate/BaseViewDelegate;") {
+        throw PatchException("Twitch: extension icons aren't a view delegate")
+    }
+    method.requireLocals(2)
+    method.addInstructions(0, """
+        move-object/from16 v0, p0
+        iget-object v0, v0, ${view.reference()}
+        move-object/from16 v1, p1
+        invoke-static { v0, v1 }, $HIGHLIGHTS_CLASS->extensionIcons(Landroid/view/View;Ljava/util/List;)Ljava/util/List;
+        move-result-object v1
+        move-object/from16 p1, v1
+    """)
 }
 
 private fun instanceFields(type: ClassDef) = type.fields.filter { !AccessFlags.STATIC.isSet(it.accessFlags) }

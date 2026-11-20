@@ -39,6 +39,7 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 import app.hushgram.extension.instagram.direct.MessagesLock;
+import app.hushgram.extension.instagram.media.SettingsPause;
 import app.hushgram.extension.instagram.misc.Fonts;
 import app.hushgram.extension.shared.L10n;
 import app.hushgram.extension.shared.Logger;
@@ -67,6 +68,9 @@ public final class SettingsDialog extends DialogFragment {
     private Button retry;
     private TextView heading;
     private TextView restart;
+    private ImageButton backArrow;
+    /** Whether this screen counts as up for the settings' own colours. */
+    private boolean countedOpen;
     /** The lock's checks on this dialog's window while it's started. */
     private Window lockWindow;
     private ViewTreeObserver.OnPreDrawListener lockDraw;
@@ -106,6 +110,8 @@ public final class SettingsDialog extends DialogFragment {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        // Before anything is built: Light settings page keeps to this screen (#762).
+        countOpen(true);
         failed = savedInstanceState != null && savedInstanceState.getBoolean(PAGE_FAILED);
         try {
             super.onCreate(savedInstanceState);
@@ -116,7 +122,13 @@ public final class SettingsDialog extends DialogFragment {
             failed = true;
             Logger.printException(() -> "Could not restore the preference list", failure);
         }
-        setStyle(STYLE_NO_TITLE, android.R.style.Theme_Material_NoActionBar);
+        setStyle(STYLE_NO_TITLE, ScreenColors.current().theme());
+    }
+
+    @Override
+    public void onDestroy() {
+        countOpen(false);
+        super.onDestroy();
     }
 
     @Override
@@ -133,7 +145,9 @@ public final class SettingsDialog extends DialogFragment {
         };
         Window window = dialog.getWindow();
         if (window != null) {
-            window.setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(ScreenColors.current().background));
+            ScreenColors palette = ScreenColors.current();
+            window.setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(palette.background));
+            // The bar icons wait for onStart: the window has no decor view yet.
             window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
             // With three-button navigation Android lays a grey scrim under the buttons; the
             // screen is black edge to edge, so the scrim only shows as a grey band. Android 9 has
@@ -154,7 +168,7 @@ public final class SettingsDialog extends DialogFragment {
             closing = true;
             return new FrameLayout(getContext());
         }
-        ScreenColors palette = ScreenColors.DEFAULT;
+        ScreenColors palette = ScreenColors.current();
         LinearLayout root = new LinearLayout(getContext()) {
             /**
              * Focus that arrives from nowhere (the first key press, a field giving its focus up) goes
@@ -177,14 +191,9 @@ public final class SettingsDialog extends DialogFragment {
         bar.setPaddingRelative(dp(4), dp(4), dp(18), dp(4));
 
         ImageButton back = new ImageButton(getContext());
-        android.graphics.drawable.Drawable arrow = SettingsIcons.icon(getContext(), SettingsIcons.BACK, palette.title);
-        arrow.setBounds(0, 0, dp(24), dp(24));
-        arrow.setLayoutDirection(rightToLeft() ? View.LAYOUT_DIRECTION_RTL : View.LAYOUT_DIRECTION_LTR);
-        back.setImageDrawable(arrow);
+        backArrow = back;
         back.setPadding(dp(12), dp(12), dp(12), dp(12));
-        back.setBackground(new android.graphics.drawable.RippleDrawable(
-                android.content.res.ColorStateList.valueOf(ScreenColors.half(palette.heading)), null,
-                new android.graphics.drawable.ColorDrawable(Color.WHITE)));
+        paintBack(back, palette);
         back.setMinimumWidth(dp(48));
         back.setMinimumHeight(dp(48));
         back.setContentDescription(L10n.t(getContext(), "Back"));
@@ -259,22 +268,12 @@ public final class SettingsDialog extends DialogFragment {
         restart = bar;
         bar.setId(RESTART_ID);
         bar.setText(L10n.t(getContext(), "Some changes apply when Instagram restarts. Tap to restart it now."));
-        bar.setTextColor(palette.title);
         bar.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
         bar.setGravity(Gravity.CENTER_VERTICAL);
         bar.setMinHeight(dp(56));
         bar.setPaddingRelative(dp(16), dp(12), dp(20), dp(12));
-        // A restart arrow and the heading blue's edge mark it as something to tap, not a notice.
-        android.graphics.drawable.Drawable arrow = SettingsIcons.icon(getContext(), SettingsIcons.TOOLS, palette.heading);
-        arrow.setBounds(0, 0, dp(24), dp(24));
-        bar.setCompoundDrawablesRelative(arrow, null, null, null);
         bar.setCompoundDrawablePadding(dp(14));
-        android.graphics.drawable.GradientDrawable surface = new android.graphics.drawable.GradientDrawable();
-        surface.setColor(palette.card);
-        surface.setCornerRadius(dp(12));
-        surface.setStroke(dp(1), palette.heading);
-        bar.setBackground(new android.graphics.drawable.RippleDrawable(
-                android.content.res.ColorStateList.valueOf(ScreenColors.half(palette.heading)), surface, surface));
+        paintRestart(bar, palette);
         bar.setFocusable(true);
         bar.setClickable(true);
         bar.setAccessibilityDelegate(new View.AccessibilityDelegate() {
@@ -290,6 +289,52 @@ public final class SettingsDialog extends DialogFragment {
         });
         bar.setVisibility(View.GONE);
         return bar;
+    }
+
+    /** The Back arrow in [palette]'s title colour, mirrored in a right-to-left language. */
+    private void paintBack(ImageButton back, ScreenColors palette) {
+        android.graphics.drawable.Drawable arrow = SettingsIcons.icon(getContext(), SettingsIcons.BACK, palette.title);
+        arrow.setBounds(0, 0, dp(24), dp(24));
+        arrow.setLayoutDirection(rightToLeft() ? View.LAYOUT_DIRECTION_RTL : View.LAYOUT_DIRECTION_LTR);
+        back.setImageDrawable(arrow);
+        back.setBackground(new android.graphics.drawable.RippleDrawable(
+                android.content.res.ColorStateList.valueOf(ScreenColors.half(palette.heading)), null,
+                new android.graphics.drawable.ColorDrawable(Color.WHITE)));
+    }
+
+    /** Restart now's colours from [palette]. */
+    private void paintRestart(TextView bar, ScreenColors palette) {
+        bar.setTextColor(palette.title);
+        // A restart arrow and the heading blue's edge mark it as something to tap, not a notice.
+        android.graphics.drawable.Drawable arrow = SettingsIcons.icon(getContext(), SettingsIcons.TOOLS, palette.heading);
+        arrow.setBounds(0, 0, dp(24), dp(24));
+        bar.setCompoundDrawablesRelative(arrow, null, null, null);
+        android.graphics.drawable.GradientDrawable surface = new android.graphics.drawable.GradientDrawable();
+        surface.setColor(palette.card);
+        surface.setCornerRadius(dp(12));
+        surface.setStroke(dp(1), palette.heading);
+        bar.setBackground(new android.graphics.drawable.RippleDrawable(
+                android.content.res.ColorStateList.valueOf(ScreenColors.half(palette.heading)), surface, surface));
+    }
+
+    /**
+     * Paints this screen's own parts again after Black or Light settings page flipped (#762): the
+     * page, the window under it, the bar icons, Back and Restart now. The rows repaint themselves.
+     */
+    void repaint() {
+        View root = getView();
+        if (closing || root == null) return;
+        ScreenColors palette = ScreenColors.current();
+        root.setBackgroundColor(palette.background);
+        Dialog dialog = getDialog();
+        Window window = dialog == null ? null : dialog.getWindow();
+        if (window != null) {
+            window.setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(palette.background));
+            palette.paintBars(window);
+        }
+        if (backArrow != null) paintBack(backArrow, palette);
+        if (restart != null) paintRestart(restart, palette);
+        if (heading != null) heading.invalidate();
     }
 
     private LinearLayout.LayoutParams restartBarSpace() {
@@ -367,10 +412,14 @@ public final class SettingsDialog extends DialogFragment {
 
     @Override
     public void onStart() {
+        countOpen(true);
         super.onStart();
+        Dialog shown = getDialog();
+        if (shown != null) ScreenColors.current().paintBars(shown.getWindow());
         watchLock();
         watchFont();
         quietFeed();
+        SettingsPause.opened();
         ShortcutCover.offOnceDrawn(getDialog());
     }
 
@@ -379,7 +428,27 @@ public final class SettingsDialog extends DialogFragment {
         unwatchLock();
         unwatchFont();
         unquietFeed();
+        // The video under the settings plays again once they close (#762). A stop under them
+        // (Home, another app) keeps it paused for when they close, and a finishing screen has
+        // nothing left to play.
+        Activity activity = getActivity();
+        if (isRemoving()) SettingsPause.closed();
+        else if (activity == null || activity.isFinishing()) SettingsPause.dropped();
+        else SettingsPause.hidden();
         super.onStop();
+        countOpen(false);
+    }
+
+    /**
+     * Counts this screen as up for {@link ScreenColors#current()}, from onCreate, so the page
+     * builds in its own colours, until it stops or goes. A dialog over the Instagram screen that
+     * covers stopped settings keeps its own look (#762).
+     */
+    private void countOpen(boolean open) {
+        if (open == countedOpen) return;
+        countedOpen = open;
+        if (open) ScreenColors.settingsOpened();
+        else ScreenColors.settingsClosed();
     }
 
     /**
@@ -602,6 +671,7 @@ public final class SettingsDialog extends DialogFragment {
         retry = null;
         heading = null;
         restart = null;
+        backArrow = null;
         super.onDestroyView();
     }
 
@@ -673,7 +743,7 @@ public final class SettingsDialog extends DialogFragment {
     private void showFailure(View owner) {
         // No page, so no header: the bar names the screen again.
         showTitle(null, false);
-        ScreenColors palette = ScreenColors.DEFAULT;
+        ScreenColors palette = ScreenColors.current();
         ScrollView scroll = new ScrollView(getContext());
         LinearLayout content = new LinearLayout(getContext());
         content.setOrientation(LinearLayout.VERTICAL);

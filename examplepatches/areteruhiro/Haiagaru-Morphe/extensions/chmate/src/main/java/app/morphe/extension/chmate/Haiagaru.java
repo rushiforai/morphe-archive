@@ -241,6 +241,9 @@ public final class Haiagaru {
             + "9kQy5kSVkF2kCALI9DxTEE3yuzZFKw7f7pKGZzs3wZCyeMCZNCC2MRQ=";
 
     private static volatile Context applicationContext;
+
+    /** Application context for callbacks originating from native singletons. */
+    public static Context applicationContext() { return applicationContext; }
     private static volatile WeakReference<Activity> resumedActivity = new WeakReference<>(null);
     private static volatile boolean activityTrackingInstalled;
     private static volatile boolean crashLoggerInstalled;
@@ -984,10 +987,18 @@ public final class Haiagaru {
         return ExternalEmojiPost.prepareBody(url, body);
     }
 
-    private static void initializeApplicationContext(Context context) {
+    private static synchronized void initializeApplicationContext(Context context) {
         Context resolvedContext = context.getApplicationContext();
         Context appContext = resolvedContext == null ? context : resolvedContext;
         applicationContext = appContext;
+        ThreadScopedNg.removeUnsafeRegexRules(appContext);
+        SharedPreferences startupPreferences=preferences(appContext);
+        if(!startupPreferences.getBoolean("bottomFilterOpaqueMigrationV1",false))
+            startupPreferences.edit().putBoolean(QuickFilterOptions.TRANSPARENT,false)
+                    .putBoolean("bottomFilterOpaqueMigrationV1",true).apply();
+        WacchoiSuffixNg.scheduleExpiry(appContext);
+        runtimePackageName = appContext.getPackageName();
+        migrateRestoredPackageReferences(appContext);
         LocalAutoBackup.initialize(appContext);
         HistoryLimits.initialize(appContext);
         ImgurWebUpload.init(appContext);
@@ -1007,8 +1018,6 @@ public final class Haiagaru {
         ProgrammableNgController.initialize(appContext);
         HiddenIdNg.initialize(appContext);
         PosterHighlight.initialize(appContext);
-        runtimePackageName = appContext.getPackageName();
-        migrateRestoredPackageReferences(appContext);
         HttpsTransport.setEnabled(preferences(appContext).getBoolean("forceHttps", false));
         ViewingUserAgent.init(preferences(appContext),BrowserUaTemplates.DEFAULT);
     }
@@ -1089,11 +1098,19 @@ public final class Haiagaru {
                 + "Time: " + timestamp + "\n"
                 + "Package: " + context.getPackageName() + "\n"
                 + "Version: " + versionName + " (" + versionCode + ")\n"
+                + logVersionLines(context)
                 + "Android: " + Build.VERSION.RELEASE + " (SDK " + Build.VERSION.SDK_INT + ")\n"
                 + "Device: " + Build.MANUFACTURER + " " + Build.MODEL + "\n"
                 + "Thread: " + thread.getName() + "\n\n"
                 + stackTrace;
         writeDownloadLog(context, "chmate-crash-" + fileTimestamp + ".txt", report);
+    }
+
+    /** Shared, explicit version fields for crash and Android-confirmed ANR reports. */
+    static String logVersionLines(Context context){
+        String chmateVersion="unknown";
+        if(context!=null)try{chmateVersion=context.getPackageManager().getPackageInfo(context.getPackageName(),0).versionName;}catch(Throwable ignored){}
+        return "ChMate version: "+chmateVersion+"\nHaiagaru version: "+BuildConfig.HAIAGARU_VERSION+"\n";
     }
 
     /** Save a recoverable archive-viewer failure beside crash logs and return its code. */
@@ -2523,6 +2540,7 @@ public final class Haiagaru {
         String original = intent.getData().toString();
         boolean talkThread = ArchivedThreadImporter.isTalkThreadUrl(original);
         boolean vipThread = ArchiveRouteVariables.isVipThread(original);
+        boolean archiveRetry = intent.getBooleanExtra("haiagaru.archive.retry", false);
         if (talkThread) {
             try {
                 String version = activity.getPackageManager()
@@ -2535,15 +2553,15 @@ public final class Haiagaru {
             } catch (android.content.pm.PackageManager.NameNotFoundException ignored) {
             }
         }
-        if (!talkThread && !vipThread && !isChtoioEnabled()) return;
+        boolean edgeArchive = EdgeArchiveLocalSearch.consumeArchiveResult(original);
+        if (!talkThread && !vipThread && !isChtoioEnabled() && !edgeArchive && !archiveRetry) return;
         String rewritten = talkThread || vipThread ? original : rewriteLegacyThreadUrl(original);
-        boolean archiveRetry = intent.getBooleanExtra("haiagaru.archive.retry", false);
         if (archiveRetry) {
             // The retry marker is valid only for the Activity opened immediately
             // after publishing a DAT. Do not let ChMate copy it into later intents.
             intent.removeExtra("haiagaru.archive.retry");
         }
-        boolean shouldImport = talkThread
+        boolean shouldImport = edgeArchive || talkThread
                 || (isAutomaticDatEnabled(activity) && (vipThread || isLegacyServerThreadUrl(original)));
         if (!archiveRetry && shouldImport
                 && ArchivedThreadImporter.importIfNeeded(activity, original, rewritten)) {
@@ -2582,10 +2600,11 @@ public final class Haiagaru {
 
         boolean talkThread = ArchivedThreadImporter.isTalkThreadUrl(original);
         boolean vipThread = ArchiveRouteVariables.isVipThread(original);
-        if (!talkThread && !vipThread && !isChtoioEnabled()) return false;
-        String rewritten = talkThread || vipThread ? original : rewriteLegacyThreadUrl(original);
         boolean archiveRetry = bundle.getBoolean("haiagaru.archive.retry", false);
-        boolean shouldImport = talkThread
+        boolean edgeArchive = EdgeArchiveLocalSearch.consumeArchiveResult(original);
+        if (!talkThread && !vipThread && !isChtoioEnabled() && !edgeArchive && !archiveRetry) return false;
+        String rewritten = talkThread || vipThread ? original : rewriteLegacyThreadUrl(original);
+        boolean shouldImport = edgeArchive || talkThread
                 || (isAutomaticDatEnabled(activity) && (vipThread || isLegacyServerThreadUrl(original)));
         if (!archiveRetry && shouldImport
                 && ArchivedThreadImporter.importIfNeeded(activity, original, rewritten)) {
@@ -3639,6 +3658,8 @@ public final class Haiagaru {
         LinearLayout lists=SettingsSection.add(layout,text("スレ一覧・HOME・履歴の表示", "Thread lists, HOME and history"),text("並び順、表示するスレ、履歴タブ", "Ordering, thread visibility and history tabs"),true);
         LinearLayout search=SettingsSection.add(layout,text("スレ内検索・記者ID", "Thread search and reporter IDs"),text("検索対象と記者IDの表示・検索", "Search targets and reporter ID display/search"),true);
         ThreadSearchOptions.add(search,activity);
+        Switch noteIndicators=addSwitch(lists,activity,"メモ済みレスの右下にアイコンを表示（タップで編集）",SettingsProfiles.prefs(activity).getBoolean(ResponseNoteIndicator.KEY,true));
+        noteIndicators.setOnCheckedChangeListener((button,on)->SettingsProfiles.prefs(activity).edit().putBoolean(ResponseNoteIndicator.KEY,on).apply());
         Switch homeNotes=addSwitch(lists,activity,"HOMEの3点メニューにメモを表示",SettingsProfiles.prefs(activity).getBoolean("homeResponseNotesMenu",true));
         homeNotes.setOnCheckedChangeListener((button,on)->{SettingsProfiles.prefs(activity).edit().putBoolean("homeResponseNotesMenu",on).apply();activity.invalidateOptionsMenu();});
         Switch homeOrder=addSwitch(lists,activity,"HOMEのお気に入りの並び替え・固定を使う",SettingsProfiles.prefs(activity).getBoolean(HomeThreadOrder.ENABLED,true));
@@ -3829,7 +3850,13 @@ public final class Haiagaru {
         live.toggle(historyRefreshTargets,RefreshTargetHistory.VISIBLE_KEY);
         Switch excludeHiddenNgUnread=addSwitch(lists,activity,"非表示NGのレスを未読件数に含めない",preferences.getBoolean(HiddenNgUnread.KEY,false));
         live.toggle(excludeHiddenNgUnread,HiddenNgUnread.KEY);
-        TextView unreadNgHelp=new TextView(activity);unreadNgHelp.setText("既読位置は変えず、取得してNG判定できた非表示レスだけを件数から除きます。未取得・未判定のレスは除きません。変更後はスレを開き直してください。");lists.addView(unreadNgHelp);
+        String unreadCountVersion="";
+        try{unreadCountVersion=activity.getPackageManager().getPackageInfo(activity.getPackageName(),0).versionName;}catch(Exception ignored){}
+        if(unreadCountVersion.contains(".242")){
+            Switch excludeHiddenNgNew=addSwitch(lists,activity,"スレ更新後の「新着件数」から非表示NGのレスを除く",preferences.getBoolean(HiddenNgUnread.NEW_ARRIVAL_KEY,false));
+            live.toggle(excludeHiddenNgNew,HiddenNgUnread.NEW_ARRIVAL_KEY);
+        }
+        TextView unreadNgHelp=new TextView(activity);unreadNgHelp.setText("上の設定はHOME・スレ一覧の未読件数が対象です。下の設定は今回のスレ更新後に表示する新着件数だけが対象で、既読位置は変えません。取得して透明あぼーん判定できたレスだけを除外します。変更後はスレを開き直してください。");lists.addView(unreadNgHelp);
         Switch hideDroppedDrafts=addSwitch(lists,activity,
                 text("DAT落ちスレの下書きを非表示", "Hide drafts for dropped threads"),
                 preferences.getBoolean(HiddenDroppedThreads.DRAFTS,false));
@@ -3865,11 +3892,11 @@ public final class Haiagaru {
                 preferences.getBoolean("threadCommandsEnabled", true));
         live.toggle(threadCommands, "threadCommandsEnabled");
         Switch postingLimits=addSwitch(layout,activity,
-                text("投稿上限・残り文字数・行数と超過部分を表示", "Show posting limits, remaining length and excess text"),
+                text("投稿上限・残り文字数・行数・1行上限と超過部分を表示", "Show posting limits, remaining length and excess text"),
                 preferences.getBoolean(PostEditorLimits.KEY,true));
         live.toggle(postingLimits,PostEditorLimits.KEY);
         TextView postingLimitsHelp=new TextView(activity);
-        postingLimitsHelp.setText(text("板設定からスレタイ・本文・行数の上限を取得し、超えた部分を赤色で表示します。バイト制限の板はバイト数で判定します。取得できない上限は「上限未取得」と表示します。カウンターの長押しで再取得できます。OFFで上限表示と赤色表示を解除し、入力内容は保持します。",
+        postingLimitsHelp.setText(text("板設定からスレタイ・本文・行数・1行の上限を取得し、超えた部分を赤色で表示します。1行は改行までとして判定します。バイト制限の板はバイト数で判定します。取得できない上限は「上限未取得」と表示します。カウンターの長押しで再取得できます。OFFで上限表示と赤色表示を解除し、入力内容は保持します。",
                 "Reads board limits and highlights excess text in red. Byte-limited boards use their posting byte count. Missing limits stay unknown. Long-press a counter to refresh. Turning this off removes counters and highlights while retaining the draft."));
         layout.addView(postingLimitsHelp);
         Switch threadNames=addSwitch(layout,activity,
@@ -4046,8 +4073,8 @@ public final class Haiagaru {
                     Toast.makeText(activity,"UAテンプレートを保存しました。開いている認証画面は一度閉じてください。",Toast.LENGTH_LONG).show();
                 }).setNegativeButton("閉じる",null).show());
         TextView uaHelp = new TextView(activity);
-        uaHelp.setText(text("閲覧・投稿・認証に選択したAndroid情報を適用します。ChMateが付ける識別名と版番号は保持します。Cookie・SessionIDを保持し、テンプレートの自動切替は行いません。開いている認証画面のUAは変更しないため、認証中の切替は避けてください。UAの変更は、投稿制限や認証の解除を保証するものではありません。",
-                "Applies the selected Android information to reading, posting and authentication, retaining ChMate's client name and version where provided. Keeps cookies and SessionID; no automatic rotation. Existing authentication windows keep their original UA, so avoid switching during authentication. UA does not guarantee removal of restrictions or authentication."));
+        uaHelp.setText(text("閲覧・投稿・認証に選択したAndroid版を適用し、機種名はこの端末から取得します。3つのテンプレートはAndroid版だけが異なり、ChMateが付ける識別名と版番号は保持します。Cookie・SessionIDを保持します。開いている認証画面のUAは変更しないため、認証中の切替は避けてください。UAの変更は、投稿制限や認証の解除を保証するものではありません。",
+                "Applies the selected Android release to reading, posting and authentication and reads the model name from this device. The three templates differ only by Android release; ChMate's client name and version are retained. Cookies and SessionID are preserved. Existing authentication windows keep their original UA, so avoid switching during authentication. UA does not guarantee removal of restrictions or authentication."));
         layout.addView(uaHelp);
         Switch boardCookies=addSwitch(layout,activity,text("Cookieを板ごとに管理する","Manage cookies separately for each board"),preferences.getBoolean(BoardCookies.KEY,false));
         live.toggle(boardCookies,BoardCookies.KEY);
@@ -4556,6 +4583,25 @@ public final class Haiagaru {
                 xPostPreviewEnabled());
         SettingsSection xDetails=SettingsSection.add(x,text("Xカードの詳細", "X card details"),text("本文の表示とリンク操作", "Text presentation and link actions"),true);
         xDetails.available=xPostPreview::isChecked;xDetails.unavailableMessage="Xの投稿内容の表示をオンにすると変更できます。";
+        Button xWarningMode = new Button(activity);
+        Runnable updateXWarningMode = () -> xWarningMode.setText("省略の可能性を知らせる基準："
+                + (xPostWarningThresholdMode() == 0 ? "詳細判定（280ポイント）" : "簡易判定（420バイト）"));
+        updateXWarningMode.run();
+        xWarningMode.setOnClickListener(v -> {
+            int selected = xPostWarningThresholdMode();
+            new HaiagaruDialog.Builder(activity).setTitle("X投稿の省略判定")
+                    .setSingleChoiceItems(new String[]{"詳細判定（日本語・絵文字・URLを考慮）", "簡易判定（420バイト）"}, selected,
+                            (dialog, which) -> {
+                                preferences.edit().putInt("xPostWarningThresholdMode", which).apply();
+                                updateXWarningMode.run();
+                                XPostPreview.thresholdModeChanged();
+                                dialog.dismiss();
+                            }).setNegativeButton("閉じる", null).show();
+        });
+        xDetails.addView(xWarningMode);
+        TextView xWarningHelp = new TextView(activity);
+        xWarningHelp.setText("投稿全体が取得できず、選んだ基準を超えた場合に「省略の可能性」と表示します。返信先の@ユーザー名と添付メディアの短縮URLは文字数に含めません。簡易判定は420バイトを目安にし、通常のURLと改行を含みます。");
+        xDetails.addView(xWarningHelp);
         Switch xPostFullText = addSwitch(xDetails, activity,
                 text("X投稿の本文を全文表示（オフは冒頭のみ）", "Show full X post text (off: excerpt only)"),
                 xPostPreviewFullText());
@@ -4579,7 +4625,7 @@ public final class Haiagaru {
         XPostPreview.addCacheSettings(x, activity);
 
         live.toggle(xPostPreview,"xPostPreviewEnabled");
-        live.toggle(xPostFullText,"xPostPreviewFullText");
+        live.toggle(xPostFullText,"xPostPreviewFullText",XPostPreview::thresholdModeChanged);
         live.toggle(xPostCollapsible,"xPostPreviewCollapsible");
         live.toggle(xPostCard,"xPostPreviewCard");
         live.toggle(xPostActions,"xPostPreviewActions");
@@ -4627,10 +4673,10 @@ public final class Haiagaru {
             thumbnailAppearance.addView(help);
         }
         Button imageNg = new Button(activity);
-        imageNg.setText("登録画像によるあぼーん（判定レベル・一致枚数）");
+        imageNg.setText("登録画像をあぼーんにする（判定レベル・一致枚数）");
         imageNg.setOnClickListener(view -> activity.startActivity(new Intent(activity, RegisteredImageNgSettingsActivity.class)));
         safety.addView(imageNg, rowParams(activity));
-        Switch registeredImageNg = addSwitch(safety, activity, "登録画像に一致するレスをあぼーん",
+        Switch registeredImageNg = addSwitch(safety, activity, "登録画像をあぼーんにする",
                 RegisteredImageNg.prefs(activity).getBoolean(RegisteredImageNg.ENABLE, false));
         registeredImageNg.setOnCheckedChangeListener((button, checked) -> {
             RegisteredImageNg.prefs(activity).edit().putBoolean(RegisteredImageNg.ENABLE, checked).apply();
@@ -4689,6 +4735,16 @@ public final class Haiagaru {
                 "When one NG word rule enables chain, hidden and also block poster ID, also hides replies to that author's other responses and subsequent replies. Off by default. Close and reopen the thread after changing this setting."));
         posterIdChainDescription.setTextSize(13);
         layout.addView(posterIdChainDescription, rowParams(activity));
+        Switch threadScopedNg = addSwitch(layout, activity,
+                text("レスからNG登録するときに対象範囲を選べるようにする", "Offer a thread-only scope when registering NG from a response"),
+                ThreadScopedNg.enabled(activity));
+        live.toggle(threadScopedNg, ThreadScopedNg.ENABLED);
+        TextView threadScopedNgHelp = new TextView(activity);
+        threadScopedNgHelp.setText(text(
+                "ONで、レスからID・NGName・NGワードを追加するときに「このスレのみ」を選べます。OFFではChMate標準の登録処理をそのまま使います。おすすめプリセットではOFFです。",
+                "When on, response-based ID, NGName and NG word registration offers a thread-only choice. When off, ChMate's native registration runs unchanged. The recommended preset turns this off."));
+        threadScopedNgHelp.setTextSize(13);
+        layout.addView(threadScopedNgHelp, rowParams(activity));
         Switch wacchoiNgFirstMenu = addSwitch(layout, activity,
                 "ワッチョイ長押しメニューをNG登録優先の順番にする",
                 preferences.getBoolean("wacchoiNgFirstMenu", false));
@@ -4831,10 +4887,10 @@ public final class Haiagaru {
             Log.w(LOG_TAG, "Unable to add automatic DAT route controls", error);
         }
         final EditText archiveRouteTemplates = archiveRouteTemplatesValue;
-        Switch archiveOriginalSite=addSwitch(layout,activity,
-                text("エッヂ過去ログを元サイトで開く", "Open Edge archive in the original site"),
-                ArchiveSearchLayout.originalSite(activity));
-        live.toggle(archiveOriginalSite,ArchiveSearchLayout.ORIGINAL_SITE);
+        Button archiveOriginalSite = new Button(activity);
+        archiveOriginalSite.setText(text("エッヂ過去ログ：専用ビューア1／2を選ぶ", "Edge archive: choose viewer 1 or 2"));
+        archiveOriginalSite.setOnClickListener(v->ArchiveSearchLayout.choose(activity));
+        layout.addView(archiveOriginalSite);
         Switch archiveThreadStandalone = addSwitch(layout, activity,
                 text("エッヂ過去ログのスレをタブレットモードを解除して開く",
                         "Open Edge archive threads outside tablet mode"),
@@ -5953,9 +6009,14 @@ public final class Haiagaru {
         return prefs != null && prefs.getBoolean("xPostPreviewEnabled", false);
     }
 
+    public static int xPostWarningThresholdMode() {
+        SharedPreferences prefs = preferencesOrNull();
+        return prefs == null ? 1 : prefs.getInt("xPostWarningThresholdMode", 1);
+    }
+
     public static boolean xPostPreviewFullText() {
         SharedPreferences prefs = preferencesOrNull();
-        return prefs == null || prefs.getBoolean("xPostPreviewFullText", true);
+        return prefs != null && prefs.getBoolean("xPostPreviewFullText", false);
     }
 
     public static boolean xPostPreviewCollapsible() {

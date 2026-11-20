@@ -1,0 +1,29 @@
+--- upstream/smali/org/ungoogled/ui/SavedPlaces$Front.smali
++++ patched/smali/org/ungoogled/ui/SavedPlaces$Front.smali
+@@ -67,6 +67,8 @@
+ .method public onActivityDestroyed(Landroid/app/Activity;)V
+     .locals 0
+ 
++    invoke-static {p1}, Lorg/ungoogled/ui/HomeWorkShortcuts;->pause(Landroid/app/Activity;)V
++    invoke-static {p1}, Lorg/ungoogled/ui/LocalMarkers;->pause(Landroid/app/Activity;)V
+ 
+     return-void
+ .end method
+@@ -74,6 +76,8 @@
+ .method public onActivityPaused(Landroid/app/Activity;)V
+     .locals 0
+ 
++    invoke-static {p1}, Lorg/ungoogled/ui/HomeWorkShortcuts;->pause(Landroid/app/Activity;)V
++    invoke-static {p1}, Lorg/ungoogled/ui/LocalMarkers;->pause(Landroid/app/Activity;)V
+ 
+     return-void
+ .end method
+@@ -81,6 +85,8 @@
+ .method public onActivityResumed(Landroid/app/Activity;)V
+     .locals 3
+ 
++    invoke-static {p1}, Lorg/ungoogled/ui/HomeWorkShortcuts;->resume(Landroid/app/Activity;)V
++    invoke-static {p1}, Lorg/ungoogled/ui/LocalMarkers;->resume(Landroid/app/Activity;)V
+ 
+     .line 86
+     new-instance p0, Ljava/lang/ref/WeakReference;

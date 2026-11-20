@@ -4,19 +4,20 @@
 
 This document describes the Morphe bytecode and resource patches available for **AfterShip: Package Tracker** (`com.aftership.AfterShip`).
 
-| Patch | Type | Default | Description |
-|---|---|---|---|
-| **Add Copy Tracking Number Option** | `bytecodePatch` | `true` | Adds an option to copy tracking numbers in the multi-shipment selection menu. |
-| **Bypass Native Signature Check** | `rawResourcePatch` | `true` | Neutralizes native `checkApkSha` in `libandroidsig-lib.so` so API requests succeed on custom-signed builds. |
-| **Custom Google Maps API Key** | `resourcePatch` | `false` | Replaces the embedded Google Maps API key with a personal Google Cloud API key so native Google Maps renders on re-signed builds. Note: To use native Google Maps, disable the OpenStreetMap Drop-in Replacement patch. |
-| **Full AMOLED Theme** | `resourcePatch` | `true` | Themes AfterShip in pure AMOLED black by removing dark gray backgrounds from the bottom navigation bar, account items, cards, and windows. |
-| **Hide Broken Tracking Map** | `bytecodePatch` | `false` | Suppresses the unauthenticated blank white Google Maps view when neither a custom Google Maps API key nor OpenStreetMap is used. |
-| **OpenStreetMap Drop-in Replacement** | `bytecodePatch` | `true` | Replaces the broken Google Maps view with a Leaflet/OpenStreetMap engine that renders routes, checkpoints, and day/night styled tiles without requiring an API key. |
-| **Remove Ads and Tracking** | `bytecodePatch` | `true` | Neutralizes in-app advertisements (Disco Network SDK shopping/cashback ads and list placements), removes the 'Leave us a 5-star review' in-app rating prompt dialogs, zeros the Google Play Advertising ID (AAID), disables first-party behavioral and impression analytics (StatisticsCenter, AbsListImpEventHelper, AutoUploadManager), and blocks diagnostic telemetry (Firebase Analytics, Crashlytics, Logan logging). |
-| **Remove AfterShip Account Page Links** | `bytecodePatch` | `true` | Removes About the app, Share the app, and Feedback links from the Account screen. |
-| **Remove Feedback** | `bytecodePatch` | `true` | Removes feedback prompts, Feedback buttons, and star rating component on shipments. |
-| **Remove Login** | `bytecodePatch` | `true` | Forces permanent guest mode, removes login carousels and buttons, and suppresses login prompts. |
-| **Remove Shipment Sync** | `bytecodePatch` | `true` | Removes email shipment synchronization features, including prompts, banners, dialogs, empty state sync cards, and account settings. |
+| Patch                                   | Type               | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| --------------------------------------- | ------------------ | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Add Copy Tracking Number Option**     | `bytecodePatch`    | `true`  | Adds an option to copy tracking numbers in the multi-shipment selection menu.                                                                                                                                                                                                                                                                                                                                               |
+| **Bypass Native Signature Check**       | `rawResourcePatch` | `true`  | Neutralizes native `checkApkSha` in `libandroidsig-lib.so` so API requests succeed on custom-signed builds.                                                                                                                                                                                                                                                                                                                 |
+| **Custom Google Maps API Key**          | `resourcePatch`    | `false` | Replaces the embedded Google Maps API key with a personal Google Cloud API key so native Google Maps renders on re-signed builds. Note: To use native Google Maps, disable the OpenStreetMap Drop-in Replacement patch.                                                                                                                                                                                                     |
+| **Full AMOLED Theme**                   | `resourcePatch`    | `true`  | Themes AfterShip in pure AMOLED black by removing dark gray backgrounds from the bottom navigation bar, account items, cards, and windows.                                                                                                                                                                                                                                                                                  |
+| **Hide Broken Tracking Map**            | `bytecodePatch`    | `false` | Suppresses the unauthenticated blank white Google Maps view when neither a custom Google Maps API key nor OpenStreetMap is used.                                                                                                                                                                                                                                                                                            |
+| **OpenStreetMap Drop-in Replacement**   | `bytecodePatch`    | `true`  | Replaces the broken Google Maps view with a Leaflet/OpenStreetMap engine that renders routes, checkpoints, and day/night styled tiles without requiring an API key.                                                                                                                                                                                                                                                         |
+| **Remove Ads and Tracking**             | `bytecodePatch`    | `true`  | Neutralizes in-app advertisements (Disco Network SDK shopping/cashback ads and list placements), removes the 'Leave us a 5-star review' in-app rating prompt dialogs, zeros the Google Play Advertising ID (AAID), disables first-party behavioral and impression analytics (StatisticsCenter, AbsListImpEventHelper, AutoUploadManager), and blocks diagnostic telemetry (Firebase Analytics, Crashlytics, Logan logging). |
+| **Remove AfterShip Account Page Links** | `bytecodePatch`    | `true`  | Removes About the app, Share the app, and Feedback links from the Account screen.                                                                                                                                                                                                                                                                                                                                           |
+| **Remove Feedback**                     | `bytecodePatch`    | `true`  | Removes feedback prompts, Feedback buttons, and star rating component on shipments.                                                                                                                                                                                                                                                                                                                                         |
+| **Remove Login**                        | `bytecodePatch`    | `true`  | Forces permanent guest mode, removes login carousels and buttons, and suppresses login prompts.                                                                                                                                                                                                                                                                                                                             |
+| **Remove Shipment Sync**                | `bytecodePatch`    | `true`  | Removes email shipment synchronization features, including prompts, banners, dialogs, empty state sync cards, and account settings.                                                                                                                                                                                                                                                                                         |
+
 ---
 
 ## Patch: Add Copy Tracking Number Option
@@ -33,6 +34,7 @@ This document describes the Morphe bytecode and resource patches available for *
 In AfterShip, activating the multi-selection mode on the Home screen displays a bottom action bar with only "Mark as delivered" and "Delete". When all selected shipments are already delivered, "Mark as delivered" is disabled, leaving "Delete" as the only action.
 
 The **Add Copy Tracking Number Option** patch dynamically inserts a **Copy** action into the bottom action bar directly to the left of the "Delete" button. When selected:
+
 - Extracts tracking numbers from all currently selected shipments.
 - Filters blank entries and deduplicates duplicate numbers while preserving selection order.
 - Joins the tracking numbers with newlines and copies them to the system clipboard (`android.content.ClipboardManager`).
@@ -51,6 +53,7 @@ The patch injects `app.aidan.extension.aftership.CopyTrackingBridge` into the Da
    - `p4`: `isDeleteEnabled`
 
    The patch injects a call directly before `return-void`:
+
    ```smali
    invoke-static {p0, p3, p4}, Lapp/aidan/extension/aftership/CopyTrackingBridge;->onUpdateButtons(Landroid/app/Activity;ZZ)V
    ```
@@ -86,10 +89,11 @@ When AfterShip is patched and re-signed by Morphe, the embedded Google Maps API 
   - Active/latest delivery location renders a smooth CSS `@keyframes pulse-anim` halo and solid center marker.
   - Intermediate checkpoints render clean circular waypoint dots (`#9E9E9E`).
 - **Smart Camera Bounds:** Automatically centers and bounds the viewport around all checkpoints with top and bottom offsets (`SlidingUpPanelLayout` clearance).
+
 ### 2. Configuration Option
 
-| Option Key | Type | Default | Description |
-|---|---|---|---|
+| Option Key       | Type      | Default | Description                                            |
+| ---------------- | --------- | ------- | ------------------------------------------------------ |
 | `addZoomButtons` | `Boolean` | `false` | Displays floating `+` and `−` zoom buttons on the map. |
 
 ### 3. Technical Implementation & Bytecode Hook
@@ -103,7 +107,9 @@ const/4 v0, 0x0 # or 0x1 if addZoomButtons is enabled
 invoke-static {p0, v0}, Lapp/aidan/extension/aftership/OsmMapBridge;->updateMap(Ljava/lang/Object;Z)V
 return-void
 ```
-`OsmMapBridge` inspects the fragment's ViewModel (`G6.i` via `a3()`), extracts coordinate pairs from `geoList` (or nested coordinate fields in `f()`), and injects or updates `OsmMapView` inside `tracking_map_container` (`0x7f0a0512`). The embedded WebView enables JavaScript, DOM storage, database, and cache. If no coordinates are available, it displays AfterShip's native fallback card (`tracking_map_default_img` / `tracking_map_tips_tv`).
+
+`OsmMapBridge` inspects the fragment's ViewModel (`G6.i` via `a3()`), extracts coordinate pairs from `geoList` (or nested coordinate fields in `f()`), and injects or updates `OsmMapView` inside `tracking_map_container` (`0x7f0a0512`). The embedded WebView enables JavaScript, DOM storage, database, and cache. If no coordinates are available, it displays AfterShip's native fallback card (`tracking_map_default_img` / `tracking_map_tips_tv`)
+
 ---
 
 ## Patch: Full AMOLED Theme
@@ -118,6 +124,7 @@ return-void
 ### 1. Motivation & Purpose
 
 In default dark mode, AfterShip uses prominent dark gray backgrounds across key UI components:
+
 - The bottom navigation bar uses `#ff272727` (`color_bottom_tab_background`).
 - Account item rows and home guide cards use `#333333` (`white_highlight`).
 - Window and activity backgrounds use `#121212` (`color_windows_background`, `color_f6f6f6`).
@@ -133,22 +140,24 @@ The **Full AMOLED Theme** patch modifies dark mode color definitions in `res/val
 
 The patch opens `res/values-night/colors.xml` and mutates the text content of matching `<color>` elements:
 
-| Color Resource Name | Original Night Hex | Patched Hex | Target UI Component |
-|---|---|---|---|
-| `color_bottom_tab_background` | `#ff272727` | `#000000` | Bottom navigation bar (`layout_home_navigation_view.xml`) |
-| `white_highlight` | `#333333` | `#000000` | Account items (`account_item_layout.xml`), Account header (`fragment_account.xml`), Home guide cards (`layout_guide_add_item_view.xml`, `layout_guide_sync_item_view.xml`), Transit calc (`activity_calc_transit_time.xml`) |
-| `color_f6f6f6` | `#121212` | `#000000` | Account spacers (`fragment_account.xml`), Order details (`layout_activity_order_details.xml`), Report issue (`activity_report_issue.xml`), Location picker |
-| `color_windows_background` | `#121212` | `#000000` | Window background across all activities (`Theme.AppCompat.DayNight` in `styles.xml`) |
-| `tracking_detail_holder_bg_color` | `#121212` | `#000000` | Shipment tracking detail view holder |
-| `color_0a000000` | `#f01d1d1d` | `#000000` | Transit time cards (`tracking_transit_time_out_bg.xml`) and status cards (`tracking_final_status_message_bg.xml`) |
-| `background_quaternary_color` | `#3e4042` | `#000000` | Connector platform shapes (`shape_connector_platform_*.xml`) |
-| `insurance_card_container_bg` | `#3e4042` | `#000000` | Insurance card container (`layout_activity_insurance_detail.xml`) |
-| `insurance_page_bg` | `#2b2f33` | `#000000` | Insurance page background (`layout_activity_insurance_detail.xml`) |
+| Color Resource Name               | Original Night Hex | Patched Hex | Target UI Component                                                                                                                                                                                                         |
+| --------------------------------- | ------------------ | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `color_bottom_tab_background`     | `#ff272727`        | `#000000`   | Bottom navigation bar (`layout_home_navigation_view.xml`)                                                                                                                                                                   |
+| `white_highlight`                 | `#333333`          | `#000000`   | Account items (`account_item_layout.xml`), Account header (`fragment_account.xml`), Home guide cards (`layout_guide_add_item_view.xml`, `layout_guide_sync_item_view.xml`), Transit calc (`activity_calc_transit_time.xml`) |
+| `color_f6f6f6`                    | `#121212`          | `#000000`   | Account spacers (`fragment_account.xml`), Order details (`layout_activity_order_details.xml`), Report issue (`activity_report_issue.xml`), Location picker                                                                  |
+| `color_windows_background`        | `#121212`          | `#000000`   | Window background across all activities (`Theme.AppCompat.DayNight` in `styles.xml`)                                                                                                                                        |
+| `tracking_detail_holder_bg_color` | `#121212`          | `#000000`   | Shipment tracking detail view holder                                                                                                                                                                                        |
+| `color_0a000000`                  | `#f01d1d1d`        | `#000000`   | Transit time cards (`tracking_transit_time_out_bg.xml`) and status cards (`tracking_final_status_message_bg.xml`)                                                                                                           |
+| `background_quaternary_color`     | `#3e4042`          | `#000000`   | Connector platform shapes (`shape_connector_platform_*.xml`)                                                                                                                                                                |
+| `insurance_card_container_bg`     | `#3e4042`          | `#000000`   | Insurance card container (`layout_activity_insurance_detail.xml`)                                                                                                                                                           |
+| `insurance_page_bg`               | `#2b2f33`          | `#000000`   | Insurance page background (`layout_activity_insurance_detail.xml`)                                                                                                                                                          |
 
 #### Contrast Preservation Invariants
+
 Text resources (`color_base_text0` -> `#ffffff`, `color_base_text4` -> `#52ffffff`, `color_99000000` -> `#99ffffff`, `black` -> `#ffffff`) and dividers (`color_divider` -> `#1fffffff`, `outline_primary_color` -> `#1fffffff`) in `res/values-night/colors.xml` are already tuned for dark/black surfaces in the base APK and remain untouched.
 
 ---
+
 ## Patch: Bypass Native Signature Check
 
 - **Name:** Bypass Native Signature Check
@@ -169,6 +178,7 @@ The **Bypass Native Signature Check** patch neutralizes `checkApkSha` across all
 ### 2. Technical Implementation & Binary Modifications
 
 #### Binary Patch Sites (`libandroidsig-lib.so`)
+
 The patch overrides the prologue of `checkApkSha` in both arm64-v8a and armeabi-v7a to immediately return `true` (`1`):
 
 1. **`lib/arm64-v8a/libandroidsig-lib.so` (Offset `0x48dd8`):**
@@ -179,7 +189,6 @@ The patch overrides the prologue of `checkApkSha` in both arm64-v8a and armeabi-
    - **Replacement Bytes:** `01 20 70 47` (`movs r0, #1; bx lr`)
 
 The patch enforces byte verification: if the target binary is already patched, it succeeds idempotently; if byte patterns do not match expected opcodes, it fails fast by throwing `PatchException`.
-
 
 ---
 
@@ -195,16 +204,19 @@ The patch enforces byte verification: if the target binary is already patched, i
 ### 1. Motivation & Purpose
 
 On first install, AfterShip blocks the user with `LoginRegisterStateActivity`, presenting:
+
 1. Fullscreen promotional carousels.
 2. Prominent third-party and native login buttons ("CONTINUE WITH GOOGLE", Outlook icon, Email icon).
 3. Terms of use and Privacy Policy acceptance text.
 4. A small "Continue as guest" button (`login_register_skip_tv`) in the top right header.
 
 Furthermore, throughout normal usage:
+
 - The **Account tab** features a large "SIGN UP/LOGIN" card (`account_header_ll`) and an "Account" menu item (`layout_account`) that repeatedly prompts the user to authenticate.
 - When an anonymous user tracks 2 shipments, `HomePresenter` triggers `AnonymousGuideLoginDialogFragment` (`M5.e`), displaying a persistent popup urging the user to link Google or Outlook for email synchronization.
 
 The **Remove Login** patch transforms AfterShip into a seamless guest-first package tracker:
+
 - **Instant Guest Onboarding:** On first launch, the app skips the login screen and immediately initializes an anonymous guest session, navigating directly to the main tracking interface (`HomeActivity`).
 - **Elimination of Login Components:** The Google, Outlook, Email, and carousel views are never inflated or displayed.
 - **De-bloated Account Tab:** The "SIGN UP/LOGIN" header and "Account" menu item are completely hidden (`View.GONE`), displaying only functional utility settings (Add orders automatically, Notifications, Language, About, Feedback).
@@ -215,14 +227,18 @@ The **Remove Login** patch transforms AfterShip into a seamless guest-first pack
 ## 2. Technical Implementation & Bytecode Modifications
 
 ### Modification 1: Force Guest Flow in `LoginRegisterStateActivity`
+
 - **Class:** `Lcom/aftership/shopper/views/login/LoginRegisterStateActivity;`
 - **Method:** `onCreate(Landroid/os/Bundle;)V`
 
-#### Original Behavior:
+#### Original Behavior
+
 Instantiates `AsyncLayoutInflater` (`p.a`), queues `layout_login_register_carousel_a` (`0x7f0d00c1`) onto an async thread, binds Google/Outlook/Email click listeners, and waits for manual user interaction.
 
-#### Patched Behavior:
+#### Patched Behavior
+
 Replaces the body of `onCreate` to execute the exact guest flow defined in `A6.M` (case 7):
+
 1. Invokes `super.onCreate(bundle)`.
 2. Registers with `EventBus.getDefault()`.
 3. Sets account auth intent to `d8.b.a.ANONYMOUS` (`sget-object v0, Ld8/b$a;->f:Ld8/b$a; iput-object v0, p0, Lcom/aftership/shopper/views/login/LoginRegisterStateActivity;->r:Ld8/b$a;`).
@@ -261,15 +277,19 @@ return-void
 ---
 
 ### Modification 2: Remove Login Controls from Account Tab (`AccountFragment`)
+
 - **Class:** `LN5/k;` (`com.aftership.shopper.views.home.fragment.AccountFragment`)
 - **Method:** `onViewCreated(Landroid/view/View;Landroid/os/Bundle;)V`
 
-#### Target Components:
+#### Target Components
+
 - `c1702p.f31259d`: `LinearLayout` holding `account_header_ll` ("SIGN UP/LOGIN").
 - `c1702p.f31261f.f5507b`: `View` root of `layout_account` ("Account" menu row).
 
-#### Patched Behavior:
+#### Patched Behavior
+
 Injects bytecode after `super.onViewCreated` (fallback instruction index 3) to set both components to `View.GONE` (`0x8`):
+
 ```smali
 const/16 v0, 0x8
 iget-object v1, p0, LN5/k;->p:Lz2/p;
@@ -292,15 +312,18 @@ invoke-virtual {v1, v0}, Landroid/view/View;->setVisibility(I)V
 ### Modification 3: Suppress In-App Login Prompts & Nags
 
 #### A. 2-Shipments Added Login Nag
+
 - **Class:** `Lcom/aftership/shopper/views/home/presenter/HomePresenter;`
 - **Method:** `handleAnonymousLoginBeforeAddTwoTracking()V`
 - **Action:** Prepends `return-void` at instruction offset 0. Prevents the remote-config gate from firing `getView().e0()`.
 
 #### B. Anonymous Guide Login Modal Dialog
+
 - **Class:** `LM5/e;` (`com.aftership.shopper.views.dialog.AnonymousGuideLoginDialogFragment`)
 - **Methods:**
   - `onStart()V`: Prepends `invoke-virtual {p0}, Landroidx/fragment/app/DialogFragment;->dismissAllowingStateLoss()V` followed by `return-void`. Guarantees that if the dialog is instantiated through any edge-case navigation, it immediately dismisses without crashing on state loss.
   - `onCreateView(Landroid/view/LayoutInflater;Landroid/view/ViewGroup;Landroid/os/Bundle;)Landroid/view/View;`: Prepends `const/4 v0, 0x0 \n return-object v0`, preventing view hierarchy construction.
+
 ---
 
 ## Patch: Remove AfterShip Account Page Links
@@ -311,9 +334,11 @@ invoke-virtual {v1, v0}, Landroid/view/View;->setVisibility(I)V
 - **Default State:** `true` (Enabled by default)
 - **Type:** Dalvik Bytecode Patch (`bytecodePatch`)
 - **Dependencies:** `Bypass Native Signature Check`
+
 ### 1. Motivation & Purpose
 
 The Account screen (`AccountFragment`) includes a group of non-essential navigation rows at the bottom:
+
 1. **About the app** (`layout_about` / `R.string.navigation_drawer_menu_about`): Opens `AboutActivity`.
 2. **Share the app** (`layout_share` / `R.string.account_item_share_text`): Dispatches an Android share intent with an AfterShip promotional URL.
 3. **Feedback** (`layout_feedback` / `R.string.navigation_drawer_menu_feedback`): Opens `FeedbackActivity`.
@@ -331,7 +356,8 @@ The **Remove AfterShip Account Page Links** patch strips these three links from 
   - `v:LM0/d;`: Root wrapper for `layout_share` ("Share the app")
   - `r:LM0/d;`: Root wrapper for `layout_feedback` ("Feedback")
 
-#### Injected Bytecode:
+#### Injected Bytecode
+
 The patch locates the `invoke-super` call in `onViewCreated` and inserts straight-line bytecode immediately following it:
 
 ```smali
@@ -371,6 +397,7 @@ invoke-virtual {v1, v0}, Landroid/view/View;->setVisibility(I)V
 ### 1. Motivation & Purpose
 
 On shipment tracking detail views, AfterShip displays several user feedback and review mechanisms:
+
 1. A floating feedback container (`floating_container_ll` in `layout_tracking_detail`) containing a "Feedback" button (`panel_up_report`) and interactive star ratings (`panel_up_review`) over the map.
 2. A fallback "Report issue" / Feedback button (`report_issue_rl`) shown when no map is visible.
 3. Interactive dialogs launching `FeedbackIssueActivity` and `ReviewDetailSheetFragment`.
@@ -382,6 +409,7 @@ The **Remove Feedback** patch eliminates all feedback prompts, buttons, star rat
 1. **`TrackingDetailPresenter` helper (`LZ6/l;`):**
    - **Method:** `g(Lcom/aftership/shopper/views/shipment/adapter/ReviewEntity;Z)V`
    - **Action:** Injects bytecode setting `floating_container_ll` (`Lz2/x;->b:Landroid/widget/LinearLayout;`) and `report_issue_rl` (`Lz2/x;->p:Lz2/y;->c:Landroid/widget/RelativeLayout;`) to `View.GONE` (`0x8`) and returns immediately before review exposure telemetry is reported:
+
    ```smali
    const/16 v0, 0x8
    iget-object v1, p0, LZ6/l;->b:Lz2/x;
@@ -398,6 +426,7 @@ The **Remove Feedback** patch eliminates all feedback prompts, buttons, star rat
    :cond_skip_g
    return-void
    ```
+
 2. **`TrackingDetailFragment` (`LA6/X;`):**
    - `k3()V` (starts `FeedbackIssueActivity`): Injects `return-void` at instruction index 0.
    - `l3(I)V` (opens `ReviewDetailSheetFragment`): Injects `return-void` at instruction index 0.
@@ -416,11 +445,12 @@ The **Remove Feedback** patch eliminates all feedback prompts, buttons, star rat
 ### 1. Motivation & Purpose
 
 By default, AfterShip aggressively pushes users to connect their personal email accounts (Gmail, Outlook, etc.) to automatically scan and import package tracking numbers:
-1. **Shipments Screen Toolbar Banner:** Displays a prominent banner urging: *"Enable email sync in order to add shipments automatically from your inbox."* with an **ENABLE** button (`R.string.google_grant_authorization_normal_content`, `R.string.common_dialog_enable`).
-2. **Empty State Guide Card:** When the tracking list is empty, a *"Sync shipment"* card (`R.string.text_guide_sync_title`: *"Auto sync tracking from your email by one click."*) is shown alongside the manual *"Add shipment"* option.
-3. **Account Screen Navigation Row:** The Account screen includes an *"Add orders automatically"* setting row (`layout_email` / `R.string.email_manage_add_orders_automatically`) that opens `EmailActivity`.
-4. **Recurring Enable Sync Dialog:** A 7-day recurring popup modal dialog (`R.string.enable_email_syn_text`: *"Add shipments automatically from your inbox."*) interrupts the user.
-5. **Add Shipment Screen Entrypoint:** The manual tracking creation screen includes a *"Copy tracking numbers from email"* button (`copy_tracking_number_ll`).
+
+1. **Shipments Screen Toolbar Banner:** Displays a prominent banner urging: _"Enable email sync in order to add shipments automatically from your inbox."_ with an **ENABLE** button (`R.string.google_grant_authorization_normal_content`, `R.string.common_dialog_enable`).
+2. **Empty State Guide Card:** When the tracking list is empty, a _"Sync shipment"_ card (`R.string.text_guide_sync_title`: _"Auto sync tracking from your email by one click."_) is shown alongside the manual _"Add shipment"_ option.
+3. **Account Screen Navigation Row:** The Account screen includes an _"Add orders automatically"_ setting row (`layout_email` / `R.string.email_manage_add_orders_automatically`) that opens `EmailActivity`.
+4. **Recurring Enable Sync Dialog:** A 7-day recurring popup modal dialog (`R.string.enable_email_syn_text`: _"Add shipments automatically from your inbox."_) interrupts the user.
+5. **Add Shipment Screen Entrypoint:** The manual tracking creation screen includes a _"Copy tracking numbers from email"_ button (`copy_tracking_number_ll`).
 6. **Authorization Failure & Expiry Dialogs:** Alert dialogs and push triggers prompt for re-authorization (`R.string.google_grant_authorization_expired_dialog_content`, `R.string.google_grant_authorization_duplicate_dialog_content`, `R.string.email_grant_fail_dialog_title`).
 
 The **Remove Shipment Sync** patch completely strips all email synchronization features, banners, guide cards, account options, and dialog prompts across the entire app.
@@ -447,6 +477,7 @@ The **Remove Shipment Sync** patch completely strips all email synchronization f
    - `EmailActivity.onCreate`: Invokes `BaseMvpActivity.onCreate`, then immediately invokes `finish()` and `return-void`.
 9. **Manual Tracking Add Entrypoint (`TrackingAddActivity`):**
    - In `onResume()V`, after `super.onResume`, injects bytecode setting `Lz2/w;->b` ("Copy tracking numbers from email") to `View.GONE` (`0x8`).
+
 ---
 
 ## Patch: Remove Ads and Tracking
@@ -467,6 +498,7 @@ The **Remove Ads and Tracking** patch neutralizes all ad SDK initialization and 
 ### 2. Technical Implementation & Bytecode Modifications
 
 #### Modification 1: Neutralize Disco Ad Network SDK & Placements
+
 1. **SDK Initialization:**
    - `Le3/c;->p(Lcom/aftership/shopper/AfterShipApplication;)V`: Injects `return-void` at index 0, preventing Disco SDK startup and live API key registration.
    - `Lcom/disconetwork/discosdk/Disco;`: Injects `return-void` into `initSdk`, `execute`, `events`, `doExecute$discosdk_publicRelease`, and `setDebugLogsEnabled`.
@@ -478,20 +510,24 @@ The **Remove Ads and Tracking** patch neutralizes all ad SDK initialization and 
    - `LY6/i;->f3(...)Ljava/util/List;`: Replaces implementation with `return-object p1`, passing the original shipments list through unmodified without injecting sponsored items.
 
 #### Modification 2: Spoof Google Play Advertising ID (AAID)
+
 - **Class:** `Lm9/a;` (`com.google.android.gms.ads.identifier.AdvertisingIdClient`)
 - **Method:** `a(Landroid/content/Context;)Lm9/a$a;`
 - **Patched Behavior:** Instantiates and returns `new AdvertisingIdClient.Info("00000000-0000-0000-0000-000000000000", true)` (opt-out enabled).
 
 #### Modification 3: Neutralize Central Analytics & Event Dispatchers
+
 - **`Lx3/d;` (`FirebaseStatisticsManage`):** Injects `return-void` into event dispatchers `b`, `c`, `d`, `e`, `f`.
 - **`Lx3/i;` (`StatisticsCenter`):** Injects `return-void` into central dispatcher `v` and logging helpers `B`, `E`, `J`, `K`, `b`, `c`, `d`, `e`, `f`, `I`, `i`, `j`, `n`, `s`, `t`, `z`, `G`, `H`, `p`, `q`, `w`, `y`.
 
 #### Modification 4: Disable Upload Strategies, Impression Telemetry & Loggers
+
 - **Upload Strategies:** Injects `return-void` into `Lo4/a;->a`, `Lo4/b;->a`, `Lo4/d;->a` (`AbsUploadStrategy.a`), and `Lx3/k;->d` (`UploadStatisticsHelper` OkHttp upload).
 - **Impression Telemetry:** Injects `return-void` into `AbsListImpEventHelper` (`postEvent`, `checkAndPostEvent`).
 - **Diagnostic Loggers:** Injects `return-void` into `LF2/k;` (`c`, `i`, `j`), `Lcom/dianping/logan/a;->a`, `FirebaseCrashlytics`, and `FirebaseAnalytics.setCurrentScreen`.
 
 #### Modification 5: Neutralize In-App 5-Star Review Rating Prompts
+
 1. **`HomePresenter` Review Logic:**
    - `Lcom/aftership/shopper/views/home/presenter/HomePresenter;`: Injects `return-void` into `checkAndShowReviewsDialog`, `checkAndShowReviewsDialogNewStrategy`, `checkAndShowReviewsDialogOldStrategy`, `showRatingDialog`, `showRatingDialogNewStyle`, and `showRatingDialogOldStyle`.
 2. **`HomeActivity` Dialog Inflation:**
@@ -528,9 +564,9 @@ The **Custom Google Maps API Key** patch allows users to supply their own person
 
 ### 2. Configuration Option
 
-| Option Key | Type | Default | Description |
-|---|---|---|---|
-| `apiKey` | `String` | `""` | Personal Google Maps API key with Maps SDK for Android enabled. |
+| Option Key | Type     | Default | Description                                                     |
+| ---------- | -------- | ------- | --------------------------------------------------------------- |
+| `apiKey`   | `String` | `""`    | Personal Google Maps API key with Maps SDK for Android enabled. |
 
 ---
 
@@ -555,6 +591,7 @@ The **Hide Broken Tracking Map** patch suppresses Google Map fragment attachment
 - **Method:** `b3()V`
 - **Patched Behavior:**
   Prepends bytecode at instruction index 0 to force execution of the fallback illustration branch, remove any child `SupportMapFragment`, and return immediately:
+
   ```smali
   const/4 v0, 0x1
   const-string v5, "tracking-map"
@@ -592,6 +629,7 @@ The **Hide Broken Tracking Map** patch suppresses Google Map fragment attachment
   ```
 
 > **Map Selection Note:** Because `OpenStreetMap Drop-in Replacement`, `Hide Broken Tracking Map`, and `Custom Google Maps API Key` all target the map setup method in `LA6/c0;->b3()V`, only one map strategy should be used at a time:
+>
 > - **OpenStreetMap (Default):** Leave `OpenStreetMap Drop-in Replacement` enabled (`true`).
 > - **Native Google Maps:** Disable `OpenStreetMap Drop-in Replacement` (`false`) and provide your API key in `Custom Google Maps API Key`.
 > - **No Maps:** Disable `OpenStreetMap Drop-in Replacement` (`false`) and enable `Hide Broken Tracking Map` (`true`).

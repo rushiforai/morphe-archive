@@ -42,9 +42,22 @@ public final class TwitchEmotes {
     static final String KEY_BTTV = "emotes_bttv";
     static final String KEY_FFZ = "emotes_ffz";
     static final String KEY_PICKER = "emotes_picker";
-    /** Autocomplete without ':': emote suggestions for a plain word of {@link #BARE_MIN} characters or more. */
+    /** Autocomplete without ':': emote suggestions for a plain word of {@link #bareMin} characters or more. */
     static final String KEY_BARE = "emotes_autocomplete_bare";
+    /** How many characters a plain word needs (2 to 4; 3 when unset). */
+    static final String KEY_BARE_MIN = "emotes_autocomplete_bare_min";
+    /** Where a plain word may match an emote name: 0 at its start, 1 anywhere (issue 65). */
+    static final String KEY_BARE_MATCH = "emotes_autocomplete_bare_match";
     static final int BARE_MIN = 3;
+
+    static int bareMin() {
+        int min = Settings.getInt(KEY_BARE_MIN);
+        return min >= 2 && min <= 4 ? min : BARE_MIN;
+    }
+
+    static boolean bareAnywhere() {
+        return Settings.getInt(KEY_BARE_MATCH) == 1;
+    }
 
     private static final int SEVENTV = 0;
     private static final int BTTV = 1;
@@ -424,9 +437,10 @@ public final class TwitchEmotes {
     public static ArrayList autocomplete(Object source, CharSequence typed) {
         ArrayList found = sourceMatches(source, typed);
         if (found == null || typed == null) return found;
-        // A word typed without ':' (see bareTrigger) only gets emotes that start with it: "the" shouldn't
-        // suggest every emote with "the" inside.
+        // A word typed without ':' (see bareTrigger) only gets emotes that start with it, so "the" doesn't
+        // suggest every emote with "the" inside, unless the choice says anywhere: then it matches like ':'.
         boolean bare = typed.length() > 0 && typed.charAt(0) != ':' && Settings.isEnabled(KEY_BARE);
+        boolean startOnly = bare && !bareAnywhere();
         boolean picker = Settings.isEnabled(KEY_PICKER);
         if (!bare && !picker) return found;
         try {
@@ -435,7 +449,7 @@ public final class TwitchEmotes {
             if (text.startsWith(":")) text = text.substring(1);
             if (text.isEmpty()) return found;
             String lower = text.toLowerCase(Locale.ROOT);
-            if (bare) found = startingWith(found, lower);
+            if (startOnly) found = startingWith(found, lower);
             Object channel = chatChannel;
             if (!picker || channel == null) return found;
             Picked picked = picked(channel);
@@ -445,7 +459,7 @@ public final class TwitchEmotes {
             for (int i = 0; i < picked.codes.length; i++) {
                 String code = picked.codes[i].toLowerCase(Locale.ROOT);
                 boolean start = code.startsWith(lower);
-                if (!start && (bare || !code.contains(lower))) continue;
+                if (!start && (startOnly || !code.contains(lower))) continue;
                 if (sourceHas(source, picked.codes[i])) continue;
                 (start ? ownStart : ownRest).add(picked.emotes[i]);
             }
@@ -511,15 +525,16 @@ public final class TwitchEmotes {
     /**
      * The start of the word right before the cursor when it can be an emote typed without ':': the switch is on,
      * the message isn't a command ("/..."), and the word (after the last space, as Twitch splits it) has at
-     * least {@link #BARE_MIN} characters and starts with a letter or digit. -1 otherwise.
+     * least {@link #bareMin} characters and starts with a letter or digit. -1 otherwise.
      */
     static int bareStart(CharSequence before) {
-        if (before == null || before.length() < BARE_MIN || before.charAt(0) == '/') return -1;
+        if (before == null || before.length() < 2 || before.charAt(0) == '/') return -1;
         if (!Settings.isEnabled(KEY_BARE)) return -1;
+        int min = bareMin();
         int end = before.length();
         int start = end;
         while (start > 0 && before.charAt(start - 1) != ' ') start--;
-        if (end - start < BARE_MIN || !Character.isLetterOrDigit(before.charAt(start))) return -1;
+        if (end - start < min || !Character.isLetterOrDigit(before.charAt(start))) return -1;
         for (int i = start; i < end; i++) {
             if (Character.isWhitespace(before.charAt(i))) return -1;
         }

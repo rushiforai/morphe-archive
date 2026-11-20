@@ -8,7 +8,7 @@ import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
-object UseSecureViewFingerprint : Fingerprint(
+internal object UseSecureViewFingerprint : Fingerprint(
     definingClass = "Lcom/hotstar/player/models/config/ABConfig;",
     name = "getUseSecureView",
     returnType = "Z"
@@ -16,7 +16,7 @@ object UseSecureViewFingerprint : Fingerprint(
 
 // The Activity window `FLAG_SECURE` (0x2000) setter.
 
-object ComposeFlagSecureFingerprint : Fingerprint(
+internal object ComposeFlagSecureFingerprint : Fingerprint(
     returnType = "V",
     filters = listOf(
         string("null cannot be cast to non-null type android.app.Activity"),
@@ -26,7 +26,7 @@ object ComposeFlagSecureFingerprint : Fingerprint(
     )
 )
 
-object SurfaceSetSecureFingerprint : Fingerprint(
+internal object SurfaceSetSecureFingerprint : Fingerprint(
     custom = { method, _ -> method.callsSurfaceViewSetSecure() }
 )
 

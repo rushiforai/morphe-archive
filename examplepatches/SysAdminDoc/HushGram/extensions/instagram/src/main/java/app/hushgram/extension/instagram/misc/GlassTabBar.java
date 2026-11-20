@@ -363,20 +363,23 @@ public final class GlassTabBar {
     /**
      * Gives [view], a reel's video or cover, the bottom margin {@link #reelsMediaMargin} works out for its
      * parent's room, on top of the margin it had before this gave it one, which [given] remembers. Says
-     * whether that changed it.
+     * whether that changed it. [given] is keyed by the layout params, not the view: Instagram's reel binder
+     * hands the video and its cover one params object, so a margin kept per view read the half slot the
+     * video just got as the cover's own and gave it again, a whole slot that put the reel up at the top (#763).
      */
-    static boolean placeReelMedia(View view, boolean keep, boolean behind, int slot, Map<View, Integer> given) {
+    static boolean placeReelMedia(View view, boolean keep, boolean behind, int slot,
+                                  Map<ViewGroup.LayoutParams, Integer> given) {
         if (!(view.getLayoutParams() instanceof FrameLayout.LayoutParams) || !(view.getParent() instanceof View)) {
             return false;
         }
         FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) view.getLayoutParams();
         View parent = (View) view.getParent();
-        Integer before = given.get(view);
+        Integer before = given.get(params);
         int own = before != null ? before : params.bottomMargin;
         int room = parent.getHeight() - parent.getPaddingTop() - parent.getPaddingBottom();
         int margin = parent.getHeight() <= 0 ? 0 : reelsMediaMargin(keep, behind, slot, room, params.height, params.gravity);
-        if (margin == 0) given.remove(view);
-        else given.put(view, own);
+        if (margin == 0) given.remove(params);
+        else given.put(params, own);
         if (params.bottomMargin == own + margin) return false;
         params.bottomMargin = own + margin;
         view.setLayoutParams(params);
@@ -690,6 +693,30 @@ public final class GlassTabBar {
             ring.setCallback(callback);
         }
         return false;
+    }
+
+    /**
+     * Puts back the liquid look's shift ([shifted]), fade ([faded]) and tuck ([tucked]) on every tab that is no
+     * longer in [bar], wherever nothing else changed it since, and forgets that tab. Unfolding a foldable has
+     * Instagram move the bar's own tabs into its side rail, and the tabs took their shifts along: out of line
+     * there, or off the rail altogether (#764). Folding moves them back, and the look arranges them again.
+     * Returns how many tabs it let go.
+     */
+    static int tabsThatLeft(ViewGroup bar, Map<View, Float> shifted, Map<View, Float> faded,
+                            Map<View, Boolean> tucked) {
+        if (shifted.isEmpty() && faded.isEmpty() && tucked.isEmpty()) return 0;
+        java.util.Set<View> gone = new java.util.HashSet<>();
+        for (View tab : shifted.keySet()) if (tab != null && tab.getParent() != bar) gone.add(tab);
+        for (View tab : faded.keySet()) if (tab != null && tab.getParent() != bar) gone.add(tab);
+        for (View tab : tucked.keySet()) if (tab != null && tab.getParent() != bar) gone.add(tab);
+        for (View tab : gone) {
+            Float shift = shifted.remove(tab);
+            if (shift != null && tab.getTranslationX() == shift) tab.setTranslationX(0f);
+            Float alpha = faded.remove(tab);
+            if (alpha != null && tab.getAlpha() == alpha) tab.setAlpha(1f);
+            if (tucked.remove(tab) != null && tab.getVisibility() == View.INVISIBLE) tab.setVisibility(View.VISIBLE);
+        }
+        return gone.size();
     }
 
     /** Whether [drawable] is a ripple with nothing in it but its mask: a touch's feedback, which draws nothing at rest. */
@@ -1142,6 +1169,8 @@ public final class GlassTabBar {
     static final String COUNT_CHAT_ASIDE = "Bar hidden over a chat";
     /** Counted once for each bar whose Search tab the liquid look puts in a circle of its own (#65). */
     static final String COUNT_SEARCH_APART = "Search put in its own circle";
+    /** Counted each time tabs Instagram moved out of the bar, as into a foldable's side rail, are put back (#764). */
+    static final String COUNT_TABS_LEFT = "Tabs out of the bar put back";
     /** Counted each time a tab badge's ring, new to the glass, is made clear (#315). */
     static final String COUNT_BADGE_RING = "Tab badge's ring made clear";
 
@@ -1895,8 +1924,11 @@ public final class GlassTabBar {
         private final WeakHashMap<View, View> bands = new WeakHashMap<>();
         /** The footers laid over a reel's bottom (#260), each with the top margin it was given. */
         private final WeakHashMap<View, Integer> overlapped = new WeakHashMap<>();
-        /** The reel videos and covers moved up for a reel behind the pill (#450), each with the margin it had before. */
-        private final WeakHashMap<View, Integer> mediaMargins = new WeakHashMap<>();
+        /**
+         * The layout params of the reel videos and covers moved up for a reel behind the pill (#450), each
+         * with the margin it had before. A video and its cover share one (#763).
+         */
+        private final WeakHashMap<ViewGroup.LayoutParams, Integer> mediaMargins = new WeakHashMap<>();
         private final java.util.ArrayList<View> media = new java.util.ArrayList<>();
         private final java.util.ArrayList<View> anchors = new java.util.ArrayList<>();
         private final java.util.ArrayList<View> footerViews = new java.util.ArrayList<>();
@@ -2172,6 +2204,10 @@ public final class GlassTabBar {
          * moved goes back.
          */
         private void arrangeTabs() {
+            if (tabsThatLeft(bar, shifted, faded, tucked) > 0) {
+                HookStatus.counted(FamilyNames.GLASS_TAB_BAR, COUNT_TABS_LEFT);
+                diagnose("tabs moved out of the bar, put back as Instagram had them", null);
+            }
             if (!liquidNow() || !pill.pillBounds(whole)) {
                 if (!shifted.isEmpty() || !faded.isEmpty() || !tucked.isEmpty()) putTabsBack();
                 return;

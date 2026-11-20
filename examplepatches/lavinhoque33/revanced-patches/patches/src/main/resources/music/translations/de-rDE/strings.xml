@@ -130,6 +130,7 @@ Schritte:
     <string name="morphe_music_downloads_sort">Sortieren</string>
     <string name="morphe_music_downloads_started">Download gestartet</string>
     <string name="morphe_music_downloads_starting">Download wird gestartet…</string>
+    <string name="morphe_music_downloads_waiting_for_connection">Warten auf Verbindung</string>
     <string name="morphe_music_downloads_storage_permission">Erlaube der App Speicherzugriff, dann tippe Download erneut</string>
     <string name="morphe_music_downloads_unknown_track">Der Titel zum Herunterladen konnte nicht identifiziert werden</string>
     <string name="morphe_music_hide_you_may_also_like_section_title">Bereich „Das könnte dir auch gefallen“ ausblenden</string>
@@ -593,4 +594,8 @@ Die ID des Videos, das du dir ansiehst, wird an die Return YouTube Dislike-API g
     <string name="revanced_spoof_app_version_title">App-Version spoofen</string>
     <string name="morphe_music_auto_song_version_title">Immer die Songversion abspielen</string>
     <string name="morphe_music_auto_song_version_summary">Ersetzt offizielle Musikvideos in der Warteschlange durch den passenden Song. Erfordert die App-Einstellung „Keine Musikvideos abspielen“. Titel ohne exakte Übereinstimmung bleiben unverändert</string>
+    <string name="morphe_music_playlist_download_connect">Stelle eine Internetverbindung her, um den Download fortzusetzen</string>
+    <string name="morphe_music_playlist_ready">%1$d von %2$d bereit</string>
+    <string name="morphe_music_playlist_resume">%1$d von %2$d bereit · Fortsetzen</string>
+    <string name="morphe_music_playlist_partial_failed">%1$d von %2$d bereit (%3$d fehlgeschlagen) · Fortsetzen</string>
 </resources>

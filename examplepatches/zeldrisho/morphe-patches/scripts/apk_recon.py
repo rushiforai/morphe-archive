@@ -2,6 +2,7 @@
 """Identify an APK and emit a Phase-0 recon report."""
 
 import argparse
+import hashlib
 import re
 import shutil
 import subprocess
@@ -9,7 +10,24 @@ import tempfile
 import zipfile
 from pathlib import Path
 
-from extract_smali import extract_apks
+from disassemble_apk import extract_apks
+
+
+def sha256(path):
+    with path.open("rb") as source:
+        return hashlib.file_digest(source, "sha256").hexdigest()
+
+
+def preserve_base(source, workspace):
+    """Reuse or preserve the selected bundle base without replacing evidence."""
+    destination = workspace / "recon" / "base.apk"
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    if destination.exists():
+        if sha256(destination) != sha256(source):
+            raise SystemExit(f"Existing base APK does not match selected source: {destination}")
+    else:
+        shutil.copy2(source, destination)
+    return destination
 
 
 def run_apkid(apk):
@@ -66,6 +84,9 @@ def main():
             (x for x in sources if x.name in ("base.apk", "base-master.apk")),
             sources[0],
         )
+        base_reference = str(target)
+        if apk.suffix.lower() in {".apkm", ".xapk", ".apks"}:
+            base_reference = str(preserve_base(target, a.output.parent.parent))
         badging = subprocess.run(
             ["aapt", "dump", "badging", str(target)],
             text=True,
@@ -118,7 +139,12 @@ def main():
 - Permissions: {" ".join(re.findall(r"uses-permission: name='([^']+)", badging)) or "none listed"}
 
 ## Recommended next step
-Run scripts/extract_smali.py, then scripts/hunt_signals.py against the extracted smali.
+Decompile the relevant APK with JADX for Java-oriented navigation, then verify candidate methods with scripts/disassemble_apk.py and exact smali instructions. For example:
+```bash
+jadx -d analysis/<package>/<version>/recon/java --show-bad-code {base_reference}
+rg -n -i '<feature-or-symbol>' analysis/<package>/<version>/recon/java
+python3 scripts/disassemble_apk.py <input> analysis/<package>/<version>/smali-<run-id>
+```
 """
         a.output.parent.mkdir(parents=True, exist_ok=True)
         a.output.write_text(report, encoding="utf-8")

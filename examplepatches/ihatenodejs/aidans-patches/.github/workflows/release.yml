@@ -15,10 +15,93 @@ on:
       - 'gradle.properties'
       - '.releaserc'
       - '.github/scripts/prepare_emoji_font.py'
+      - '.github/scripts/generate_patches_readme.py'
       - '.github/workflows/release.yml'
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
 jobs:
+  verify:
+    name: Verify Pre-Release Gate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GITHUB_ACTOR: ${{ github.actor }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@v6.0.1
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Cache font assets
+        uses: actions/cache@v6
+        with:
+          path: ~/.gradle/caches/aidans-patches/fonts
+          key: emoji-font-${{ hashFiles('.github/scripts/prepare_emoji_font.py') }}
+          restore-keys: |
+            emoji-font-
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@1.97.1
+        with:
+          targets: aarch64-linux-android
+          components: rustfmt, clippy
+
+      - name: Setup Android NDK
+        id: setup-ndk
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r28c
+          add-to-path: false
+          link-to-sdk: true
+
+      - name: Configure Android NDK environment
+        run: |
+          echo "ANDROID_NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK_ROOT=${{ steps.setup-ndk.outputs.ndk-path }}" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK=${{ steps.setup-ndk.outputs.ndk-path }}" >> "$GITHUB_ENV"
+
+      - name: Install system test tools
+        timeout-minutes: 5
+        run: |
+          sudo apt-get update -y -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15
+          sudo apt-get install -y -o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15 poppler-utils ninja-build clang-format
+
+      - name: Install root dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Audit android domain
+        run: bun scripts/audit.ts all --domain android
+
+      - name: Audit rust domain
+        run: bun scripts/audit.ts all --domain rust
+
+      - name: Audit native domain
+        env:
+          AIDAN_REQUIRE_EXTERNAL_TOOLS: '1'
+        run: bun scripts/audit.ts all --domain native
+
+      - name: Build and verify patches
+        run: ./gradlew :patches:buildAndroid --no-daemon
+
   release:
     name: Release
+    needs: [verify]
+    if: needs.verify.result == 'success'
     outputs:
       new_release_published: ${{ steps.release.outputs.new_release_published }}
     permissions:
@@ -50,6 +133,25 @@ jobs:
           restore-keys: |
             emoji-font-
 
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@1.97.1
+        with:
+          targets: aarch64-linux-android
+
+      - name: Setup Android NDK
+        id: setup-ndk
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r28c
+          add-to-path: false
+          link-to-sdk: true
+
+      - name: Configure Android NDK environment
+        run: |
+          echo "ANDROID_NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK_ROOT=${{ steps.setup-ndk.outputs.ndk-path }}" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK=${{ steps.setup-ndk.outputs.ndk-path }}" >> "$GITHUB_ENV"
       - name: Setup Node.js
         uses: actions/setup-node@v7
         with:
@@ -58,6 +160,14 @@ jobs:
 
       - name: Install dependencies
         run: npm install
+
+      - name: Fast-forward to remote ref
+        run: |
+          PREV_HEAD=$(git rev-parse HEAD)
+          git pull --ff-only origin "${{ github.ref_name }}"
+          if ! git diff --quiet "$PREV_HEAD" HEAD -- package.json package-lock.json; then
+            npm install
+          fi
 
       # Semantic release runs its own Gradle build command on main.
       - name: Release
@@ -75,14 +185,6 @@ jobs:
         with:
           subject-name: 'Morphe Patches ${{ steps.release.outputs.new_release_git_tag }}'
           subject-path: patches/build/libs/patches-*.mpp
-
-      # Always verify compilation when semantic-release did not publish a release.
-      # This covers non-main/dev branches, chore commits, docs commits, etc.
-      - name: Verify project compiles
-        if: steps.release.outputs.new_release_published != 'true'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew :patches:buildAndroid clean --no-daemon
 
   deploy-site:
     name: Deploy Website

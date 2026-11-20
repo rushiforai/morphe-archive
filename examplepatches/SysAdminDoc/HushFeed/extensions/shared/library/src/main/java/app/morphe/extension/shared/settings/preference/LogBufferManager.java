@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
@@ -45,6 +46,7 @@ import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.diagnostics.DiagnosticEvent;
 import app.morphe.extension.shared.diagnostics.DiagnosticRedactor;
+import app.morphe.extension.shared.diagnostics.ExitTraces;
 import app.morphe.extension.shared.diagnostics.BuildDetails;
 import app.morphe.extension.shared.diagnostics.OtherBundles;
 import app.morphe.extension.shared.settings.BaseSettings;
@@ -83,6 +85,10 @@ public final class LogBufferManager {
     private static final int BUFFER_MAX_SIZE = 10_000;
     private static final int CLIPBOARD_MAX_CHARS = 60_000;
     private static final int CRASH_MAX_BYTES = 64_000;
+    /** Characters of exit traces in one report: one full trace and most of a second. */
+    static final int EXIT_TRACE_MAX_CHARS = 12_000;
+    /** The line that ends the traces when they reach {@link #EXIT_TRACE_MAX_CHARS}. */
+    private static final String TRACE_CUT = "\n  trace: cut here, the section is at its size cap";
     private static final String CRASH_FILE = "morphe_java_crash_report_v1.txt";
     private static final String NPTH_CRASH_FILE = "morphe_npth_crash_report_v1.txt";
 
@@ -91,6 +97,8 @@ public final class LogBufferManager {
     private static final Object CRASH_FILE_LOCK = new Object();
     private static final Object CLEAR_UNDO_LOCK = new Object();
     private static final AtomicBoolean FILE_EXPORT_RUNNING = new AtomicBoolean();
+    /** One quick copy at a time: a second tap while one builds would race it to the clipboard. */
+    private static final AtomicBoolean COPY_RUNNING = new AtomicBoolean();
     private static ClearSnapshot lastClear;
 
     /** Everything the clear row removes, kept in memory until its next tap. */
@@ -166,28 +174,54 @@ public final class LogBufferManager {
     }
 
     public static void exportToClipboard() {
-        try {
-            String exportText = buildExportText(CLIPBOARD_MAX_CHARS);
-            if (exportText.isEmpty()) {
-                Utils.showToastShort(say(nothingToExportMessage, "No matching diagnostics found."));
-                return;
+        // Built on a thread of its own: the report reads the saved crashes and the traces
+        // Android kept with the last exits, a few MB each, and the tap shouldn't wait for that.
+        // The copy itself goes back to the main thread. A tap while a copy is still being built
+        // is dropped; the first one's toast follows.
+        if (!COPY_RUNNING.compareAndSet(false, true)) return;
+        boolean started = Utils.runOnOwnThread("morphe-diagnostic-copy", () -> {
+            try {
+                String built = buildExportText(CLIPBOARD_MAX_CHARS);
+                if (built.isEmpty()) {
+                    Utils.showToastShort(say(nothingToExportMessage, "No matching diagnostics found."));
+                    return;
+                }
+                // Only when the sections around the events are over the limit on their own.
+                if (built.length() > CLIPBOARD_MAX_CHARS) {
+                    String head = "MORPHE DIAGNOSTIC REPORT\n"
+                            + "clipboard_note: older content omitted; use Save full report for everything\n\n";
+                    // The head counts toward the limit too.
+                    built = head + built.substring(built.length() - (CLIPBOARD_MAX_CHARS - head.length()));
+                }
+                String exportText = built;
+                Utils.runOnMainThread(() -> {
+                    try {
+                        Utils.setClipboard(exportText);
+                        Utils.showToastShort(say(copiedMessage, "Diagnostic report copied to the clipboard."));
+                    } catch (Throwable ex) {
+                        copyFailed(ex);
+                    }
+                });
+            } catch (Throwable ex) {
+                // An OutOfMemoryError while the report is built ends here too, with a toast
+                // instead of a silent thread death.
+                copyFailed(ex);
+            } finally {
+                // Built copies land on the main thread in the order they were built.
+                COPY_RUNNING.set(false);
             }
-            // Only when the sections around the events are over the limit on their own.
-            if (exportText.length() > CLIPBOARD_MAX_CHARS) {
-                String head = "MORPHE DIAGNOSTIC REPORT\n"
-                        + "clipboard_note: older content omitted; use Save full report for everything\n\n";
-                // The head counts toward the limit too.
-                exportText = head + exportText.substring(
-                        exportText.length() - (CLIPBOARD_MAX_CHARS - head.length()));
-            }
-            Utils.setClipboard(exportText);
-            Utils.showToastShort(say(copiedMessage, "Diagnostic report copied to the clipboard."));
-        } catch (Exception ex) {
-            // The exception's own text stays in the log. It can carry a path or a signed URL,
-            // and a reader on a phone cannot act on it from a toast.
-            Utils.showToastLong(say(exportFailedMessage, "The diagnostic report couldn't be saved. Try again."));
-            Logger.printException(() -> "Failed to export diagnostics", ex);
+        });
+        if (!started) {
+            COPY_RUNNING.set(false);
+            Utils.showToastLong(say(couldNotStartMessage, "Couldn't start the report export. Try again shortly."));
         }
+    }
+
+    private static void copyFailed(Throwable ex) {
+        // The exception's own text stays in the log. It can carry a path or a signed URL,
+        // and a reader on a phone cannot act on it from a toast.
+        Utils.showToastLong(say(exportFailedMessage, "The diagnostic report couldn't be saved. Try again."));
+        Logger.printException(() -> "Failed to export diagnostics", ex);
     }
 
     public static void exportToFile() {
@@ -553,7 +587,9 @@ public final class LogBufferManager {
      * behind either. One line turns an unexplained restart into something a maintainer can act on.
      *
      * <p>The last five, newest first, one line each: a single exit can't show a pattern, such as
-     * a memory kill every time a LIVE opens.
+     * a memory kill every time a LIVE opens. An ANR, or a native crash from Android 12 on, also
+     * gets the stack Android kept with it ({@link ExitTraces}), within
+     * {@link #EXIT_TRACE_MAX_CHARS} for the whole section.
      *
      * <p>Read only from API 30, where the history exists at all. It follows the same filter as
      * the hook table, because it is the same kind of evidence.
@@ -585,18 +621,53 @@ public final class LogBufferManager {
             }
             Collections.sort(exits, (a, b) -> Long.compare(b.getTimestamp(), a.getTimestamp()));
             StringBuilder lines = new StringBuilder();
+            int traceChars = 0;
+            boolean traceCapped = false;
             for (ApplicationExitInfo exit : exits.subList(0, Math.min(5, exits.size()))) {
                 if (lines.length() > 0) lines.append('\n');
-                lines.append("at: ").append(utcOf(exit.getTimestamp()))
+                StringBuilder header = new StringBuilder("at: ").append(utcOf(exit.getTimestamp()))
                         .append(", reason: ").append(exitReasonName(exit.getReason()))
                         .append(", status: ").append(exit.getStatus())
                         .append(", importance: ").append(exit.getImportance());
                 String description = exit.getDescription();
                 if (description != null && !description.isEmpty()) {
-                    lines.append(", description: ").append(description.replace('\n', ' '));
+                    header.append(", description: ").append(description.replace('\n', ' '));
+                }
+                // Each line is redacted as it goes in, so the trace budget counts what's shown:
+                // redaction can lengthen a line ("ab::cd" becomes "[address omitted]").
+                lines.append(DiagnosticRedactor.redact(header.toString()));
+                // A freeze or a native crash leaves no Java exception, so the stack Android kept
+                // with the record is the only one there is. Indented under its exit, within one
+                // budget for the whole section.
+                boolean anr = exit.getReason() == ApplicationExitInfo.REASON_ANR;
+                boolean nativeCrash = exit.getReason() == ApplicationExitInfo.REASON_CRASH_NATIVE
+                        && Build.VERSION.SDK_INT >= 31;
+                if (traceCapped || !(anr || nativeCrash)) continue;
+                List<String> trace;
+                try (InputStream stream = exit.getTraceInputStream()) {
+                    if (stream == null) {
+                        trace = Collections.singletonList("trace: none kept");
+                    } else {
+                        trace = anr ? ExitTraces.anr(stream, exit.getPid()) : ExitTraces.nativeCrash(stream);
+                    }
+                } catch (Throwable unreadable) {
+                    trace = Collections.singletonList(
+                            "trace: unreadable (" + unreadable.getClass().getSimpleName() + ")");
+                }
+                for (String traceLine : trace) {
+                    String shown = "\n  " + DiagnosticRedactor.redact(traceLine);
+                    // Room is kept for the cut line, so the section never passes the cap.
+                    if (traceChars + shown.length() + TRACE_CUT.length() > EXIT_TRACE_MAX_CHARS) {
+                        lines.append(TRACE_CUT);
+                        traceChars += TRACE_CUT.length();
+                        traceCapped = true;
+                        break;
+                    }
+                    lines.append(shown);
+                    traceChars += shown.length();
                 }
             }
-            return DiagnosticRedactor.redact(lines.toString());
+            return lines.toString();
         } catch (Throwable unavailable) {
             // A build that cannot answer this is not a build that should fail to export.
             return "";
@@ -621,6 +692,9 @@ public final class LogBufferManager {
             case 14: return "FREEZER";
             case 15: return "PACKAGE_STATE_CHANGE";
             case 16: return "PACKAGE_UPDATED";
+            // Android 17: the memory limiter's kill, and an exit the system flagged as abnormal.
+            case 17: return "MEMORY_LIMITER";
+            case 18: return "ANOMALY";
             case 0: return "UNKNOWN";
             default: return "REASON " + reason;
         }

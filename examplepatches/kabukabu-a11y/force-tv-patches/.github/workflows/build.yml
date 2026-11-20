@@ -1,0 +1,61 @@
+name: Build patches
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-patches
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.9.1'
+
+      - name: Build patch bundle
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
+          MORPHE_SIGNING_KEY: ${{ secrets.MORPHE_SIGNING_KEY }}
+        run: |
+          gradle buildAndroid --console=plain
+          ls -la patches/build/libs/
+
+      - name: Prepare release assets
+        run: |
+          MPP=$(ls patches/build/libs/*.mpp | head -1)
+          cp "$MPP" force-tv-patches.mpp
+          SIG=$(ls patches/build/libs/*.sig 2>/dev/null | head -1 || true)
+          if [ -n "$SIG" ]; then cp "$SIG" force-tv-patches.mpp.sig; fi
+          ls -la force-tv-patches.mpp*
+
+      - name: Publish rolling latest release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete latest --yes --cleanup-tag || true
+                    for i in $(seq 1 15); do
+                                if ! gh release view latest >/dev/null 2>&1; then break; fi
+                                            sleep 2
+                                                      done
+                                                      ASSETS="force-tv-patches.mpp"
+          if [ -f force-tv-patches.mpp.sig ]; then ASSETS="$ASSETS force-tv-patches.mpp.sig"; fi
+          gh release create latest \
+            --title "Force TV patches (latest build)" \
+            --notes "Automated build from the main branch. The .mpp asset is the Morphe patch bundle; the .sig asset is its signature." \
+            $ASSETS

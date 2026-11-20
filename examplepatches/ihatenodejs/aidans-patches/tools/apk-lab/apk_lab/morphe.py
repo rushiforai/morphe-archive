@@ -2,11 +2,13 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import re
 import subprocess
 import tempfile
 import time
 import zipfile
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -30,6 +32,8 @@ from apk_lab.models import (
 from apk_lab.tools import ToolManager
 from apk_lab.workspace import WorkspaceManager
 
+# Backward-compatible alias for test_cases attribute
+PatchCompatibilityReport.test_case_results = property(lambda self: self.test_cases)  # type: ignore[attr-defined]
 logger = logging.getLogger(__name__)
 
 
@@ -831,6 +835,7 @@ def run_compatibility_check(
     force: bool = False,
     keep_workspace: bool = False,
     workspace_root: str | Path = ".apk-lab",
+    jobs: int | None = None,
 ) -> tuple[PatchCompatibilityReport, ExitCode]:
     """Runs full patch compatibility check against an artifact."""
     art_path = Path(artifact_path).resolve()
@@ -843,24 +848,24 @@ def run_compatibility_check(
 
     # Inspect input artifact
     input_inspection = inspect_artifact(art_path)
-    if expected_package and input_inspection.package_name != expected_package:
+    pkg = expected_package.strip() if expected_package else None
+    if pkg and input_inspection.package_name != pkg:
         raise ValueError(
             f"Artifact package '{input_inspection.package_name}' does not match requested '{expected_package}'"
         )
+    target_package = pkg or input_inspection.package_name
 
     # Load patches metadata
     patches_list_data = load_patches_list()
     patch_defs = get_compatible_patches(
-        package_name=input_inspection.package_name,
+        package_name=target_package,
         patches_list_data=patches_list_data,
         requested_patches=requested_patches,
         all_patches=all_patches,
     )
 
     if not patch_defs:
-        raise ValueError(
-            f"No compatible patches found for {input_inspection.package_name}"
-        )
+        raise ValueError(f"No compatible patches found for {target_package}")
 
     # Tool versions & git revision
     tool_mgr = ToolManager()
@@ -884,12 +889,21 @@ def run_compatibility_check(
 
     ws_mgr = WorkspaceManager(root=workspace_root)
 
+    default_workers = min(os.cpu_count() or 4, 8)
+    max_workers = max(1, jobs if jobs is not None else default_workers)
+
+    all_cases = [
+        (idx, case)
+        for idx, case in enumerate(
+            case for p_def in patch_defs for case in generate_test_cases(p_def)
+        )
+    ]
+
     test_case_results: list[PatchTestCaseResult] = []
     failed_reasons: list[str] = []
 
-    for p_def in patch_defs:
-        cases = generate_test_cases(p_def)
-        for case in cases:
+    if max_workers == 1 or len(all_cases) <= 1:
+        for _idx, case in all_cases:
             res = run_single_patch_case(
                 artifact_path=art_path,
                 mpp_path=m_path,
@@ -901,9 +915,34 @@ def run_compatibility_check(
                 tool_mgr=tool_mgr,
             )
             test_case_results.append(res)
-            if not res.success:
-                failed_reasons.append(f"[{res.patch_name}] {res.error_message}")
+    else:
+        with ThreadPoolExecutor(
+            max_workers=min(max_workers, len(all_cases))
+        ) as executor:
+            future_to_idx = {
+                executor.submit(
+                    run_single_patch_case,
+                    artifact_path=art_path,
+                    mpp_path=m_path,
+                    test_case=case,
+                    input_inspection=input_inspection,
+                    force=force,
+                    keep_workspace=keep_workspace,
+                    ws_mgr=ws_mgr,
+                    tool_mgr=tool_mgr,
+                ): idx
+                for idx, case in all_cases
+            }
+            results_by_idx: dict[int, PatchTestCaseResult] = {}
+            for future in as_completed(future_to_idx):
+                idx = future_to_idx[future]
+                results_by_idx[idx] = future.result()
 
+        test_case_results = [results_by_idx[i] for i in range(len(all_cases))]
+
+    for res in test_case_results:
+        if not res.success:
+            failed_reasons.append(f"[{res.patch_name}] {res.error_message}")
     total_cases = len(test_case_results)
     passed_cases = sum(1 for r in test_case_results if r.success)
     failed_cases = total_cases - passed_cases

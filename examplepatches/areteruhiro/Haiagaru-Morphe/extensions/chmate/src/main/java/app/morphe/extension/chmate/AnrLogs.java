@@ -28,6 +28,7 @@ final class AnrLogs {
                 String key=exit.getTimestamp()+":"+exit.getPid()+":"+exit.getProcessName();if(done.contains(key))continue;
                 StringBuilder report=new StringBuilder("Haiagaru ANR log\nType: Android confirmed ANR exit\n");
                 try{report.append("Installed version at collection: ").append(context.getPackageManager().getPackageInfo(context.getPackageName(),0).versionName).append("\n");}catch(Exception ignored){}
+                report.append(Haiagaru.logVersionLines(context));
                 report.append("Time: ").append(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ",Locale.US).format(new Date(exit.getTimestamp()))).append("\nPackage: ").append(context.getPackageName())
                     .append("\nProcess: ").append(exit.getProcessName()).append("\nPID: ").append(exit.getPid())
                     .append("\nAndroid: ").append(Build.VERSION.RELEASE).append("\nDevice: ").append(Build.MANUFACTURER).append(' ').append(Build.MODEL)

@@ -150,7 +150,9 @@ public final class ImagePagingInstrumentation extends Instrumentation {
   SharedPreferences nativePrefs=android.preference.PreferenceManager.getDefaultSharedPreferences(app);
   Map<String,Object> prior=new HashMap<>();for(String k:KEYS)prior.put(k,p.getAll().get(k));
   Object back=nativePrefs.getAll().get("gestureBack");
-  for(String k:KEYS)p.edit().remove(k).commit();nativePrefs.edit().putInt("gestureBack",0).commit();
+  Object gesture=nativePrefs.getAll().get("gesture");
+  nativePrefs.edit().putBoolean("gesture",true).commit();
+  for(String k:KEYS)p.edit().remove(k).commit();p.edit().putBoolean(KEYS[0],true).commit();nativePrefs.edit().putInt("gestureBack",0).commit();
   try(ServerSocket server=new ServerSocket(0,10,InetAddress.getLoopbackAddress())){
    Thread thread=new Thread(()->serve(server,data));thread.setDaemon(true);thread.start();
    ArrayList<String> urls=new ArrayList<>();
@@ -203,6 +205,13 @@ public final class ImagePagingInstrumentation extends Instrumentation {
    check(!(Boolean)enabled.invoke(null,app),"old disable choice delegates to native operation");
    check(!(Boolean)disabled.invoke(null,app),"old disable choice never suppresses native paging");
    open(app,urls,1);waitIndex(1,"native-mode gallery starts at middle");Thread.sleep(600);
+   if(app.getPackageName().endsWith("191")){
+    int code=nativeHorizontalCode(app,1);check(code!=0,"native-mode Back gesture code available");
+    nativePrefs.edit().putInt("gestureBack",code).commit();
+    swipe(1,0);waitClosed("native-mode multi-image gallery Back closes viewer");
+    nativePrefs.edit().putInt("gestureBack",0).commit();
+    open(app,urls,1);waitIndex(1,"native-mode gallery reopens after Back");Thread.sleep(600);
+   }
    p.edit().putBoolean("imagePagingDisabled",false).putBoolean(KEYS[0],true).putInt(KEYS[1],3).putInt(KEYS[2],4).commit();
    swipe(-1,0);waitIndex(2,"configured left advances in every version");
    swipe(1,0);waitIndex(1,"configured right reverses in every version");
@@ -211,6 +220,7 @@ public final class ImagePagingInstrumentation extends Instrumentation {
    if(viewer!=null)main(()->{viewer.finish();return null;});
    SharedPreferences.Editor e=p.edit();for(String k:KEYS){Object v=prior.get(k);if(v instanceof Integer)e.putInt(k,(Integer)v);else if(v instanceof Boolean)e.putBoolean(k,(Boolean)v);else e.remove(k);}e.commit();
    if(back instanceof Integer)nativePrefs.edit().putInt("gestureBack",(Integer)back).commit();else nativePrefs.edit().remove("gestureBack").commit();
+   if(gesture instanceof Boolean)nativePrefs.edit().putBoolean("gesture",(Boolean)gesture).commit();else nativePrefs.edit().remove("gesture").commit();
   }
  }
 }

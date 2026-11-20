@@ -1,0 +1,45 @@
+# Daily: checks bearinmind's latest release against what Tutto Enhancements needs
+# (tools/check-upstream.py) and opens one issue per release that needs changes here.
+name: bearinmind watch
+
+on:
+  schedule:
+    - cron: "17 13 * * *"   # daily, 06:17 Calgary (MST)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check the latest bearinmind release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          UPSTREAM: bearinmindcat/morphe-patches
+        run: |
+          set -euo pipefail
+          tag=$(gh release view --repo "$UPSTREAM" --json tagName --jq .tagName)
+          ours=$(jq -r .upstream_release config/morphe-source-lock.json)
+          echo "Latest bearinmind release: $tag. Tutto is locked to $ours." | tee -a "$GITHUB_STEP_SUMMARY"
+          mkdir -p work
+          gh release download "$tag" --repo "$UPSTREAM" --pattern 'patches-*.mpp' --dir work
+          gh api -H "Accept: application/vnd.github.raw" "repos/$UPSTREAM/contents/patches-list.json?ref=$tag" > work/list.json
+          gh api -H "Accept: application/vnd.github.raw" "repos/$UPSTREAM/contents/patches-list.json?ref=$ours" > work/previous.json || rm -f work/previous.json
+          set +e
+          python3 tools/check-upstream.py --mpp work/patches-*.mpp --list work/list.json \
+            --previous-list work/previous.json --report work/report.md
+          code=$?
+          set -e
+          cat work/report.md >> "$GITHUB_STEP_SUMMARY"
+          [ "$code" -eq 2 ] && exit 1
+          if [ "$code" -eq 1 ]; then
+            title="bearinmind $tag needs Tutto changes"
+            if ! gh issue list --state all --limit 200 --json title --jq '.[].title' | grep -Fxq "$title"; then
+              gh issue create --title "$title" --body-file work/report.md
+            fi
+          fi

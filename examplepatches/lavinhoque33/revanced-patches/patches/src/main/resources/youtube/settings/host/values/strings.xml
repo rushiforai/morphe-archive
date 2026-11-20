@@ -73,10 +73,8 @@ Restart the app, check if the behavior is present, then answer below"</string>
     <string name="morphe_settings_save">Save</string>
     <string name="revanced_about_app_info">App info</string>
     <string name="revanced_about_patch_inclusion">Recorded patch inclusion</string>
-    <string name="revanced_about_patch_inclusion_summary"
-        >Inclusion records are not execution results. <!--
-        -->Final applied/failed/skipped/excluded outcomes are unavailable; <!--
-        -->unrecorded patches are not necessarily excluded.</string>
+    <string name="revanced_about_patch_inclusion_summary">Included means a patch left a settings record,
+        not that patching succeeded.\n\nNot recorded does not tell you whether a patch was excluded.</string>
     <string name="revanced_about_patch_not_recorded">Not recorded</string>
     <string name="revanced_about_actions">Actions</string>
     <string name="revanced_about_more">More</string>
@@ -644,6 +642,8 @@ Not used while Unlock queue or Premium-style queue is on"</string>
     <string name="morphe_splash_screen_animation_style_entry_3">Monochrome</string>
     <string name="morphe_splash_screen_animation_style_title">Splash screen style</string>
     <string name="morphe_spoof_video_streams_about_end_early">• Playback may end 1 second early</string>
+    <string name="morphe_spoof_video_streams_about_mobile_web">• Experimental signed-out playback. Startup may take longer.</string>
+    <string name="morphe_spoof_video_streams_about_mobile_web_unavailable">• Mobile Web is unavailable. Using the default client.</string>
     <string name="morphe_spoof_video_streams_about_js">• If deobfuscation fails, playback may fail</string>
     <!-- Morphe #4733; Modified by lavinhoque33, 2026-11-13 -->
     <string name="morphe_spoof_video_streams_about_webview_missing">• Android System WebView is turned off or not installed.
@@ -936,7 +936,9 @@ If there are server-side changes, the background color of the snack bar may not 
     <string name="revanced_snack_bar_light_fill_summary">Used for light snack bars, normally shown in the dark app theme</string>
     <string name="revanced_snack_bar_dark_fill_title">Dark background color</string>
     <string name="revanced_snack_bar_dark_fill_summary">Used for dark snack bars, normally shown in the light app theme</string>
-    <string name="revanced_snack_bar_stroke_color_title">Border color</string>
+    <string name="revanced_snack_bar_border_preset_title">Border color preset</string>
+    <string name="revanced_snack_bar_border_preset_entry_chip">Chip</string>
+    <string name="revanced_snack_bar_stroke_color_title">Custom border color</string>
     <string name="revanced_snack_bar_stroke_width_title">Border width</string>
     <string name="revanced_snack_bar_stroke_width_summary">Set to zero for no border</string>
     <string name="revanced_snack_bar_playlist_radius_title">Apply corner radius to playlist bottom bar</string>
@@ -1981,6 +1983,9 @@ Info:
     <string name="revanced_hide_shorts_comments_panel_summary_off">Comments panel is shown</string>
     <string name="revanced_hide_shorts_comments_panel_summary_on">Comments panel is hidden</string>
     <string name="revanced_hide_shorts_comments_panel_title">Hide comments panel</string>
+    <string name="revanced_hide_shorts_dimming_summary_off">Top and bottom dimming on Shorts is shown</string>
+    <string name="revanced_hide_shorts_dimming_summary_on">Top and bottom dimming on Shorts is hidden</string>
+    <string name="revanced_hide_shorts_dimming_title">Hide Shorts dimming</string>
     <string name="revanced_hide_shorts_floating_button_summary_off">Floating buttons in Shorts pages are shown</string>
     <string name="revanced_hide_shorts_floating_button_summary_on">Floating buttons in Shorts pages are hidden</string>
     <string name="revanced_hide_shorts_floating_button_title">Hide floating buttons</string>

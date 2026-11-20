@@ -26,6 +26,14 @@
         <item>MORPHING_TIME</item>
         <item>CUSTOM</item>
     </string-array>
+    <string-array name="revanced_snack_bar_border_preset_entries">
+        <item>@string/revanced_icon_custom</item>
+        <item>@string/revanced_snack_bar_border_preset_entry_chip</item>
+    </string-array>
+    <string-array name="revanced_snack_bar_border_preset_entry_values" translatable="false">
+        <item>CUSTOM</item>
+        <item>CHIP</item>
+    </string-array>
     <string-array name="revanced_auto_captions_style_entries">
         <item>@string/revanced_auto_captions_style_entry_1</item>
         <item>@string/revanced_auto_captions_style_entry_2</item>
@@ -616,17 +624,23 @@
         <item>Android Studio</item>
         <item>Android VR</item>
         <item>Android VR Downgraded</item>
+        <item>Android VR Experimental</item>
+        <item>Mobile Web</item>
         <item>TV</item>
         <item>TV Simply</item>
         <item>visionOS</item>
+        <item>visionOS Experimental</item>
     </string-array>
     <string-array name="morphe_spoof_video_streams_client_type_entry_values">
         <item>ANDROID_CREATOR</item>
         <item>ANDROID_VR_SABR</item>
         <item>ANDROID_VR_DASH</item>
+        <item>ANDROID_VR_EXPERIMENTAL</item>
+        <item>MWEB</item>
         <item>TV_SABR</item>
         <item>TV_SIMPLY</item>
         <item>VISIONOS_1_02</item>
+        <item>VISIONOS_1_06</item>
     </string-array>
     <string-array name="morphe_spoof_video_streams_player_js_variant_entries">
         <item>House Brand</item>

@@ -1,5 +1,13 @@
 package app.brokenn.patches.jiohotstar.player
 
+import app.brokenn.patches.jiohotstar.shared.Constants.COMPATIBILITY_JIOHOTSTAR
+import app.brokenn.patches.jiohotstar.shared.Constants.TAB_WIDGET
+import app.brokenn.patches.jiohotstar.shared.Constants.TAB_WIDGET_DATA
+import app.brokenn.patches.jiohotstar.watchpage.AdaptiveTabConverterFingerprint
+import app.brokenn.patches.shared.instrs
+import app.brokenn.patches.shared.instructionIndices
+import app.brokenn.patches.shared.prevInstructionIndex
+import app.brokenn.patches.shared.referenceText
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.booleanOption
@@ -7,9 +15,6 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
-import app.brokenn.patches.jiohotstar.shared.Constants.COMPATIBILITY_JIOHOTSTAR
-import app.brokenn.patches.jiohotstar.watchpage.AdaptiveTabConverterFingerprint
 
 @Suppress("unused")
 val hidePlayerButtonsPatch = bytecodePatch(
@@ -54,33 +59,25 @@ val hidePlayerButtonsPatch = bytecodePatch(
         }
         if (titles.isEmpty()) return@execute
 
-        // PlayerWidget converts menu items into settings sheet entries, 
-        // ignoring hidden titles. Reverse-order patching preserves indices and ensures
-        // safe register reassignment.
+        // Filters control-menu items by title. Reverse-order patching keeps indices
+        // stable for safe register reassignment.
         val dConv = PlayerWidgetConverterFingerprint.method
-        val dImpl = dConv.implementation!!.instructions
+        val dImpl = dConv.instrs()
 
         data class Site(val idx: Int, val elemReg: Int, val loopHead: Int, val itemType: String)
-        val sites = mutableListOf<Site>()
-        dImpl.forEachIndexed { idx, ins ->
-            if (ins.opcode == Opcode.INVOKE_STATIC) {
-                val ref = (ins as? ReferenceInstruction)?.reference.toString()
-                if (ref.contains("PlayerControlMenuItem;)")) {
-                    val elemReg = dConv.getInstruction<OneRegisterInstruction>(idx + 1).registerA
-                    var head = -1
-                    for (j in idx downTo 0) {
-                        val l = dImpl[j]
-                        if (l.opcode == Opcode.INVOKE_INTERFACE &&
-                            (l as? ReferenceInstruction)?.reference.toString().contains("Iterator;->hasNext")
-                        ) { head = j; break }
-                    }
-                    require(head >= 0) { "PlayerWidgetConverter: loop head not found" }
-                    // the item interface type is the converter call's return type — it is
-                    // R8-obfuscated and must never be hardcoded
-                    val itemType = ref.substringAfterLast(')')
-                    sites.add(Site(idx, elemReg, head, itemType))
-                }
+        val sites = dImpl.mapIndexedNotNull { idx, ins ->
+            val ref = ins.referenceText()
+            if (ins.opcode != Opcode.INVOKE_STATIC || ref?.contains("PlayerControlMenuItem;)") != true) {
+                return@mapIndexedNotNull null
             }
+            val elemReg = dConv.getInstruction<OneRegisterInstruction>(idx + 1).registerA
+            val head = dConv.prevInstructionIndex(idx + 1) { l ->
+                l.opcode == Opcode.INVOKE_INTERFACE &&
+                    l.referenceText()?.contains("Iterator;->hasNext") == true
+            }
+            require(head >= 0) { "PlayerWidgetConverter: loop head not found" }
+            // item type comes from the invoke's return type — never hardcode R8 names
+            Site(idx, elemReg, head, ref.substringAfterLast(')'))
         }
         require(sites.isNotEmpty()) { "PlayerWidgetConverter: menu item sites not found" }
 
@@ -110,34 +107,30 @@ val hidePlayerButtonsPatch = bytecodePatch(
             )
         }
 
-        // The fullscreen bottom tab bar uses the landscape converter loop,
-        // so it needs a separate title-based filter. The existing patch only handles
-        // portrait; side-sheet and peek lists are excluded because they aren't shown on phones.
+        // The fullscreen bottom tab bar rides the landscape converter loop; side-sheet and
+        // peek lists are phone-invisible, so only the landscape cast is filtered.
         val tabContainer = AdaptiveTabConverterFingerprint.method
-        val tabImpl = tabContainer.implementation!!.instructions
-        val castSites = tabImpl.withIndex().filter { (_, ins) ->
+        val castSites = tabContainer.instructionIndices { ins ->
             ins.opcode == Opcode.CHECK_CAST &&
-                (ins as? ReferenceInstruction)?.reference.toString()
-                    .contains("Lcom/hotstar/ui/model/widget/TabWidget;")
+                ins.referenceText()?.contains(TAB_WIDGET) == true
         }
         require(castSites.size >= 2) { "TabConverter: expected portrait and landscape casts" }
-        val landscapeSite = castSites[1].index
+        val landscapeSite = castSites[1]
         val itemReg = tabContainer.getInstruction<OneRegisterInstruction>(landscapeSite).registerA
-        var landscapeHead = -1
-        for (j in landscapeSite downTo 0) {
-            val ins = tabImpl[j]
-            if (ins.opcode == Opcode.INVOKE_INTERFACE &&
-                (ins as? ReferenceInstruction)?.reference.toString().contains("Iterator;->hasNext")
-            ) { landscapeHead = j; break }
+        val landscapeHead = tabContainer.prevInstructionIndex(landscapeSite) { ins ->
+            ins.opcode == Opcode.INVOKE_INTERFACE &&
+                ins.referenceText()?.contains("Iterator;->hasNext") == true
         }
         require(landscapeHead >= 0) { "TabConverter: landscape loop head not found" }
+        // Snapshot before the insert below shifts indices; the label anchors to the object.
+        val tabImpl = tabContainer.instrs()
 
         // The row's swiggy tab is titled "Order Food"
         val landscapeTitles = titles.toMutableList()
         if (hideShop == true && !landscapeTitles.contains("Order Food")) landscapeTitles.add("Order Food")
 
         val landscapeBlock = buildString {
-            append("invoke-virtual {v$itemReg}, Lcom/hotstar/ui/model/widget/TabWidget;->getData()Lcom/hotstar/ui/model/widget/TabWidget${'$'}Data;\n")
+            append("invoke-virtual {v$itemReg}, ${TAB_WIDGET}->getData()${TAB_WIDGET_DATA}\n")
             append("move-result-object v5\n")
             append("invoke-virtual {v5}, Lcom/hotstar/ui/model/widget/TabWidget${'$'}Data;->getTitle()Ljava/lang/String;\n")
             append("move-result-object v5\n")

@@ -1,0 +1,47 @@
+name: Support new app versions
+
+# Once a day, check the patched apps' release sources (APKMirror feed or the
+# project's GitHub releases) for new versions. When one
+# appears, add it to the supported versions on main and start a release, so
+# Morphe Manager shows "App update available".
+
+on:
+  schedule:
+    - cron: '23 5 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  bump:
+    name: Check for new app versions
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          ref: main
+
+      - name: Check feeds and update Constants.kt
+        id: bump
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 .github/scripts/bump_app_versions.py
+
+      - name: Commit and push
+        if: steps.bump.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "${{ steps.bump.outputs.message }}"
+          git push origin main
+
+      # Pushes made with GITHUB_TOKEN don't trigger other workflows,
+      # but workflow_dispatch does, so start the release explicitly.
+      - name: Start release
+        if: steps.bump.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh workflow run release.yml --ref main

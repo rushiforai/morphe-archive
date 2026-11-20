@@ -1,0 +1,69 @@
+4 ficheros DEX, 164880 cadenas distintas
+
+
+### La9/b;
+  .method <init>(Landroid/content/Context; I I I Ljava/lang/String;)V
+      invoke-direct           v1, Lcom/gclub/global/jetpackmvvm/base/BaseItemUIData;-><init>()V
+      invoke-virtual          v2, Landroid/content/Context;->getResources()Landroid/content/res/Resources;
+      move-result-object      v0
+      invoke-virtual          v0, v3, Landroid/content/res/Resources;->getString(I)Ljava/lang/String;
+      move-result-object      v3
+      iput-object             v3, v1, La9/b;->a Ljava/lang/String;
+      invoke-virtual          v2, Landroid/content/Context;->getResources()Landroid/content/res/Resources;
+      move-result-object      v2
+      invoke-virtual          v2, v4, Landroid/content/res/Resources;->getDrawable(I)Landroid/graphics/drawable/Drawable;
+      move-result-object      v2
+      iput-object             v2, v1, La9/b;->b Landroid/graphics/drawable/Drawable;
+      iput                    v5, v1, La9/b;->c I
+      iput-object             v6, v1, La9/b;->d Ljava/lang/String;
+      return-void             
+  .method <init>(Ljava/lang/String; Landroid/graphics/drawable/Drawable; I Ljava/lang/String;)V
+      invoke-direct           v0, Lcom/gclub/global/jetpackmvvm/base/BaseItemUIData;-><init>()V
+      iput-object             v1, v0, La9/b;->a Ljava/lang/String;
+      iput-object             v2, v0, La9/b;->b Landroid/graphics/drawable/Drawable;
+      iput                    v3, v0, La9/b;->c I
+      iput-object             v4, v0, La9/b;->d Ljava/lang/String;
+      return-void             
+  .method copyData()Lcom/gclub/global/jetpackmvvm/base/BaseItemUIData;
+      new-instance            v0, La9/b;
+      iget-object             v1, v5, La9/b;->a Ljava/lang/String;
+      iget-object             v2, v5, La9/b;->b Landroid/graphics/drawable/Drawable;
+      iget                    v3, v5, La9/b;->c I
+      iget-object             v4, v5, La9/b;->d Ljava/lang/String;
+      invoke-direct           v0, v1, v2, v3, v4, La9/b;-><init>(Ljava/lang/String; Landroid/graphics/drawable/Drawable; I Ljava/lang/String;)V
+      return-object           v0
+  .method getKey()Ljava/lang/String;
+      iget-object             v0, v1, La9/b;->d Ljava/lang/String;
+      return-object           v0
+  .method isRedPointAvailable(Landroid/content/Context;)Z
+      invoke-static           Lcom/baidu/simeji/common/redpoint/a;->m()Lcom/baidu/simeji/common/redpoint/a;
+      move-result-object      v0
+      iget-object             v1, v2, La9/b;->d Ljava/lang/String;
+      invoke-virtual          v0, v3, v1, Lcom/baidu/simeji/common/redpoint/a;->s(Landroid/content/Context; Ljava/lang/String;)Z
+      move-result             v3
+      return                  v3
+  .method onRedPointClicked(Landroid/content/Context;)V
+      invoke-virtual          v2, v3, La9/b;->isRedPointAvailable(Landroid/content/Context;)Z
+      move-result             v0
+      if-eqz                  v0, +02eh
+      invoke-static           Lcom/baidu/simeji/common/redpoint/a;->m()Lcom/baidu/simeji/common/redpoint/a;
+      move-result-object      v0
+      iget-object             v1, v2, La9/b;->d Ljava/lang/String;
+      invoke-virtual          v0, v3, v1, Lcom/baidu/simeji/common/redpoint/a;->h(Landroid/content/Context; Ljava/lang/String;)V
+      const                   v3, 200198
+      invoke-virtual          v2, La9/b;->getKey()Ljava/lang/String;
+      move-result-object      v0
+      invoke-static           v3, v0, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I Ljava/lang/String;)V
+      iget-object             v3, v2, La9/b;->e Ljava/lang/ref/WeakReference;
+      if-eqz                  v3, +017h
+      invoke-virtual          v3, Ljava/lang/ref/Reference;->get()Ljava/lang/Object;
+      move-result-object      v3
+      if-eqz                  v3, +011h
+      iget-object             v3, v2, La9/b;->e Ljava/lang/ref/WeakReference;
+      invoke-virtual          v3, Ljava/lang/ref/Reference;->get()Ljava/lang/Object;
+      move-result-object      v3
+      check-cast              v3, La9/f;
+      iget-object             v3, v3, La9/f;->a Landroid/widget/ImageView;
+      const/16                v0, 8
+      invoke-virtual          v3, v0, Landroid/widget/ImageView;->setVisibility(I)V
+      return-void             

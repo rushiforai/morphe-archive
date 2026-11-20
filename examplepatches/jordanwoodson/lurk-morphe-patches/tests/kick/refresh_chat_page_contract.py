@@ -27,9 +27,9 @@ USER_AGENT = "Mozilla/5.0 (Linux; Android 16) AppleWebKit/537.36 (KHTML, like Ge
 # What Lurk's chat page scripts and KickChat need, with the patch that needs it. "class" entries must be class
 # names the page uses; "code" entries are patterns that must match the page's script, "css" ones its stylesheet.
 REQUIRED = {
-    "class:message-container": "7TV emotes, Chat keywords, Chat timestamps (each chat line)",
-    "class:message-content": "7TV emotes, Chat keywords (a line's text)",
-    "class:username": "Chat keywords (a line's sender)",
+    "class:message-container": "7TV emotes, Chat keywords, Chat search, Chat timestamps (each chat line)",
+    "class:message-content": "7TV emotes, Chat keywords, Chat search (a line's text)",
+    "class:username": "Chat keywords, Chat search (a line's sender)",
     "class:emote": "7TV emotes (Kick's own emote images)",
     "class:subscription-container": "Hide chat highlights: Hide sub and gift messages",
     "class:subgift-container": "Hide chat highlights: Hide sub and gift messages",

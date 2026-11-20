@@ -4,7 +4,7 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.AccessFlags
 
-object Is4kSupportedFingerprint : Fingerprint(
+internal object Is4kSupportedFingerprint : Fingerprint(
     returnType = "Z",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
     parameters = listOf("Landroid/content/Context;"),
@@ -13,7 +13,7 @@ object Is4kSupportedFingerprint : Fingerprint(
     )
 )
 
-object IsCodecSupportedFingerprint : Fingerprint(
+internal object IsCodecSupportedFingerprint : Fingerprint(
     returnType = "Z",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
     filters = listOf(

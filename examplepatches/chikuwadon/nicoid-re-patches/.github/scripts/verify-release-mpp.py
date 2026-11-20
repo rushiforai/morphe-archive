@@ -10,14 +10,25 @@ import sys
 import tempfile
 from pathlib import Path
 from zipfile import BadZipFile, ZipFile
+from verify_android_mpp import validate_manager_dex
 
 ROOT = Path(__file__).resolve().parents[2]
 REQUIRED = (
+    "classes.dex",
     "META-INF/MANIFEST.MF",
     "nicoid/helpers.mpe",
     "nicoid/method-delta.dex",
     "nicoid/resources.zip",
     "nicoid/input-hashes.txt",
+)
+V212_MARKERS = (
+    b"PlaylistBackup213",
+    b"AppResume253",
+    b"ResumeModes272",
+    b"Media3Diagnostics276",
+    b"AmbientCard217",
+    b"NativeMylistMove215",
+    b"TabFolderNav214",
 )
 V211_MARKERS = (
     b"NativeMylistMove215",
@@ -46,12 +57,53 @@ def inspect(bundle: Path, version: str, baseline: Path | None = None) -> dict:
             require(archive.testzip() is None, "Corrupt release MPP ZIP")
             missing = set(REQUIRED) - set(archive.namelist())
             require(not missing, f"Missing MPP entries: {sorted(missing)}")
+            manager_dex = archive.read("classes.dex")
+            validate_manager_dex(manager_dex)
             manifest = archive.read("META-INF/MANIFEST.MF")
             require(("Version: " + version).encode() in manifest, "Wrong MPP manifest version")
             helpers = archive.read("nicoid/helpers.mpe")
             native = archive.read("nicoid/method-delta.dex")
             require(helpers.startswith(b"dex\n"), "Invalid helper DEX signature")
             require(native.startswith(b"dex\n"), "Invalid native DEX signature")
+            if version == "2.1.4":
+                require(b"2.1.4" in helpers, "v2.1.4 runtime version missing")
+                require(b"2.1.4-dev.3" not in helpers, "Development version leaked into stable MPP")
+                require(b"v2.1.4 @chikuwadon" in helpers, "Shorts still displays an obsolete patch version")
+                require(b"v2.1.3 @chikuwadon" not in helpers, "v2.1.3 Shorts version remains")
+                extension = archive.read("extensions/extension.mpe")
+                require(extension.startswith(b"dex\n"), "Invalid extension DEX signature")
+                require(b"v2.1.4 @chikuwadon" in extension, "Extension still has obsolete patch version")
+                require(b"v2.1.3 @chikuwadon" not in extension, "v2.1.3 extension banner leaked")
+                for marker in (
+                    b"CommentClock", b"CommentSource280", b"ScrollingComments267",
+                    b"ScrollingTimeline267", b"PageCache", b"VideoCounts$CountIcon",
+                    b"Media3Diagnostics276", b"AmbientCard217", b"NativeMylistMove215",
+                ):
+                    require(marker in helpers, f"Missing v2.1.4 helper: {marker!r}")
+                original = baseline or ROOT / "patches/src/main/resources/nicoid/helpers.mpe"
+                if original.is_file() and not b"2.1.4" in original.read_bytes():
+                    require(sha256(helpers) != sha256(original.read_bytes()),
+                            "Unstaged v2.1.4 MPP was used instead of approved reviewed payload")
+            if version == "2.1.3":
+                require(b"2.1.3" in helpers, "v2.1.3 runtime version missing")
+                require(b"2.1.3-dev.1" not in helpers, "Development version leaked into v2.1.3 MPP")
+                require(b"2.1.0-dev.28" not in helpers, "Reviewed Media3 development version remains")
+                for marker in V212_MARKERS:
+                    require(marker in helpers, f"Missing v2.1.3 helper: {marker!r}")
+                original = baseline or ROOT / "patches/src/main/resources/nicoid/helpers.mpe"
+                if original.is_file():
+                    require(sha256(helpers) != sha256(original.read_bytes()),
+                            "Staged v2.1.3 helper DEX was replaced by repository baseline")
+            if version == "2.1.2":
+                require(b"2.1.2" in helpers, "v2.1.2 runtime version missing")
+                require(b"2.1.2-dev.14" not in helpers, "Development version leaked into v2.1.2 MPP")
+                require(b"2.1.0-dev.28" not in helpers, "Reviewed Media3 development version remains")
+                for marker in V212_MARKERS:
+                    require(marker in helpers, f"Missing v2.1.2 helper: {marker!r}")
+                original = baseline or ROOT / "patches/src/main/resources/nicoid/helpers.mpe"
+                if original.is_file():
+                    require(sha256(helpers) != sha256(original.read_bytes()),
+                            "Staged v2.1.2 helper DEX was replaced by repository baseline")
             if version == "2.1.1":
                 require(b"2.1.1" in helpers, "v2.1.1 runtime version is missing")
                 require(b"2.1.0-dev.28" not in helpers, "Reviewed development version remains")
@@ -67,6 +119,7 @@ def inspect(bundle: Path, version: str, baseline: Path | None = None) -> dict:
         "version": version,
         "sha256": sha256(bundle.read_bytes()),
         "size": bundle.stat().st_size,
+        "manager_dex_sha256": sha256(manager_dex),
         "helper_sha256": sha256(helpers),
         "native_sha256": sha256(native),
     }

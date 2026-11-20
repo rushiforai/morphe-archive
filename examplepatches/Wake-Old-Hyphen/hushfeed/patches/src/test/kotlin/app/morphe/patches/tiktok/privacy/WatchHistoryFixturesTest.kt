@@ -25,7 +25,7 @@ class WatchHistoryFixturesTest {
     @Test
     fun `each declared host has exactly one view report and one batch send`() {
         val items = mapOf(
-            "47.9.1" to "LX/09Mg;",
+            "47.9.2" to "LX/09Md;",
         )
         assertEquals(Fixtures.declaredVersions().toSet(), items.keys)
         Fixtures.forEachDeclared { apk ->
@@ -50,6 +50,43 @@ class WatchHistoryFixturesTest {
             assertTrue("$version: every other AwemeStatsApi method only builds data: ${others.map { it.name }}",
                 others.all(::onlyBuildsData))
 
+            // The diagnostic report's counts (#448): each sender waits for its request once, and the
+            // batch send's one catch is the one around that wait.
+            for (method in reports + flushes) {
+                val instructions = method.implementation!!.instructions.toList()
+                val sent = method.afterSent()
+                assertTrue("$version ${method.name}: a wait for the request", sent != null)
+                assertEquals("$version ${method.name}: one wait", 1, instructions.count {
+                    it.getReference<MethodReference>()?.let { r ->
+                        r.definingClass == "Ljava/util/concurrent/Future;" && r.name == "get"
+                    } == true
+                })
+                assertTrue("$version ${method.name}: the count lands before the method ends",
+                    sent!! < instructions.size)
+            }
+            val report = reports.single()
+            val (sizeAt, sizeRegister) = report.afterBatchSizeRead()!!
+            val sizeCall = report.implementation!!.instructions.toList()[sizeAt - 2]
+                .getReference<MethodReference>()!!
+            assertEquals("$version: the batch size is an int read", "I", sizeCall.returnType)
+            assertTrue("$version: the size is read before the report decides", sizeAt < report.afterSent()!!)
+            assertTrue("$version: the size sits in a local, not a parameter",
+                sizeRegister < report.implementation!!.registerCount - 1)
+            val heldAt = report.whereTikTokHoldsBack()
+            assertTrue("$version: TikTok's own request limit is asked first", heldAt != null)
+            val limit = report.implementation!!.instructions.toList()[heldAt!! - 3]
+                .getReference<MethodReference>()!!
+            assertEquals("$version: the limit check is asked of its own instance",
+                limit.definingClass, limit.parameterTypes.single().toString())
+            assertTrue("$version: the limit is asked before the batch size", heldAt < sizeAt)
+            val flush = flushes.single()
+            val (caughtAt, _) = flush.caught()!!
+            val sentAt = flush.afterSent()!!
+            assertTrue("$version: the catch follows the wait", caughtAt >= sentAt)
+            assertEquals("$version: the catch hands the error to TikTok's checker",
+                "doCheck", flush.implementation!!.instructions.toList()[caughtAt + 1]
+                    .getReference<MethodReference>()?.name)
+
             for (method in reports + flushes) {
                 assertTrue("$version ${method.name}: TikTok already leaves it early",
                     method.implementation!!.instructions.count { it.opcode == Opcode.RETURN_VOID } > 1)
@@ -62,19 +99,19 @@ class WatchHistoryFixturesTest {
 
     @Test
     fun `a sender without its own strings, or off the stats class, is not taken`() {
-        val report = method(AWEME_STATS_API, "LX/08z6;", static = true,
+        val report = method(AWEME_STATS_API, "LX/08z3;", static = true,
             "const-string v0, \"basic_vv_batch_size\"\nconst-string v0, \"homepage_hot\"\nreturn-void")
         assertTrue(isViewReport(report))
         assertFalse("the batch list is the flush's", isViewReport(
             method(AWEME_STATS_API, "Ljava/util/List;", static = true,
                 "const-string v0, \"basic_vv_batch_size\"\nconst-string v0, \"homepage_hot\"\nreturn-void")))
         assertFalse("both strings are needed", isViewReport(
-            method(AWEME_STATS_API, "LX/08z6;", static = true, "const-string v0, \"basic_vv_batch_size\"\nreturn-void")))
+            method(AWEME_STATS_API, "LX/08z3;", static = true, "const-string v0, \"basic_vv_batch_size\"\nreturn-void")))
         assertFalse("an instance method is not the sender", isViewReport(
-            method(AWEME_STATS_API, "LX/08z6;", static = false,
+            method(AWEME_STATS_API, "LX/08z3;", static = false,
                 "const-string v0, \"basic_vv_batch_size\"\nconst-string v0, \"homepage_hot\"\nreturn-void")))
         assertFalse("another class reading the same setting", isViewReport(
-            method("LX/0DPI;", "LX/08z6;", static = true,
+            method("LX/0DPF;", "LX/08z3;", static = true,
                 "const-string v0, \"basic_vv_batch_size\"\nconst-string v0, \"homepage_hot\"\nreturn-void")))
 
         val flush = method(AWEME_STATS_API, "Ljava/util/List;", static = true,
@@ -82,7 +119,7 @@ class WatchHistoryFixturesTest {
         assertTrue(isViewReportFlush(flush))
         assertFalse("a void method is a sender, not a helper", onlyBuildsData(flush))
         assertFalse("the one-item report also loads it", isViewReportFlush(
-            method(AWEME_STATS_API, "LX/08z6;", static = true, "const-string v0, \"first_install_time\"\nreturn-void")))
+            method(AWEME_STATS_API, "LX/08z3;", static = true, "const-string v0, \"first_install_time\"\nreturn-void")))
     }
 
     /** The guard asks first, leaves through return-void, and the native body follows untouched. */

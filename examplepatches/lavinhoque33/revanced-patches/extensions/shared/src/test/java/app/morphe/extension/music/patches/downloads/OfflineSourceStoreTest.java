@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-18.
  * Written by lavinhoque33, 2026-11-07.
  * Modified by lavinhoque33, 2026-11-10
  */
@@ -120,7 +121,7 @@ public class OfflineSourceStoreTest {
         OfflineSourceStore store = store();
         store.remember("one", null, List.of("a", "b"), 1);
         store.remember("two", null, List.of("c"), 2);
-        store.retainWithCopies(Set.of("b"));
+        store.retainWithCopies(Set.of("b"), Set.of());
         assertNotNull(store.get("one"));
         assertNull(store.get("two"));
         OfflineSourceStore reloaded = store();

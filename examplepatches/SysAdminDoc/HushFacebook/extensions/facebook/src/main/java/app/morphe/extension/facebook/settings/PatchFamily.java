@@ -16,6 +16,7 @@ import java.util.Set;
 import app.morphe.extension.facebook.feed.SeenPosts;
 import app.morphe.extension.facebook.misc.AppLock;
 import app.morphe.extension.facebook.notifications.PushDiagnostics;
+import app.morphe.extension.facebook.reels.BurnInGuard;
 import app.morphe.extension.facebook.reels.BurnInMode;
 import app.morphe.extension.facebook.theme.MaterialYouTheme;
 import app.morphe.extension.shared.L10n;
@@ -62,9 +63,12 @@ public enum PatchFamily {
             Settings.HIDE_AI_DETECTED_POSTS, Settings.HIDE_AI_LABELLED_POSTS, Settings.HIDE_AI_DETECTED_REELS,
             Settings.HIDE_META_AI_FEED_UNITS, Settings.HIDE_AI_CHARACTER_POSTS),
     POST_WORDS(FamilyNames.POST_WORDS, "postWords", null,
-            Settings.HIDE_POSTS_WITH_WORDS, Settings.POST_WORDS_WHOLE_WORDS, Settings.HIDE_POSTS_FROM_SOURCES,
+            Settings.HIDE_POSTS_WITH_WORDS, Settings.POST_WORDS_WHOLE_WORDS, Settings.POST_WORDS_ON_FEED,
+            Settings.POST_WORDS_ON_REELS, Settings.POST_WORDS_IN_GROUPS, Settings.POST_WORDS_ON_TIMELINES,
+            Settings.POST_WORDS_IN_SEARCH, Settings.HIDE_POSTS_FROM_SOURCES,
             Settings.HIDE_PHOTO_POSTS, Settings.HIDE_VIDEO_POSTS, Settings.HIDE_LINK_POSTS,
-            Settings.HIDE_BACKGROUND_POSTS, Settings.HIDE_REPOSTS, Settings.HIDE_PAGE_POSTS,
+            Settings.LINK_POSTS_ON_FEED, Settings.LINK_POSTS_ON_REELS, Settings.LINK_POSTS_IN_GROUPS,
+            Settings.LINK_POSTS_ON_TIMELINES, Settings.LINK_POSTS_IN_SEARCH, Settings.HIDE_BACKGROUND_POSTS, Settings.HIDE_REPOSTS, Settings.HIDE_PAGE_POSTS,
             Settings.ONLY_FRIENDS_POSTS, Settings.HIDE_OTHER_LANGUAGES),
     POST_PROMPTS(FamilyNames.POST_PROMPTS, "postPrompts", null,
             Settings.HIDE_POST_PROMPTS, Settings.HIDE_POST_FOLLOW_LINK, Settings.HIDE_POST_SUBSCRIBE_LINK,
@@ -92,7 +96,7 @@ public enum PatchFamily {
     PHOTO_CAROUSEL(FamilyNames.PHOTO_CAROUSEL, "photoCarousel", null,
             Settings.PHOTO_CAROUSEL),
     AUTO_TRANSLATION(FamilyNames.AUTO_TRANSLATION, "autoTranslation", null,
-            Settings.TURN_OFF_AUTO_TRANSLATION),
+            Settings.TURN_OFF_AUTO_TRANSLATION, Settings.TRANSLATE_EVERY_COMMENT),
     FEEDS_HEADER(FamilyNames.FEEDS_HEADER, "feedsHeader", null,
             Settings.HIDE_FEEDS_HEADER),
     SPONSORED_STORIES(FamilyNames.SPONSORED_STORIES, "sponsoredStories", null,
@@ -148,7 +152,7 @@ public enum PatchFamily {
             Settings.FOLLOWED_REELS_ONLY,
             Settings.REEL_CLEAN_MODE, Settings.REEL_CLEAN_BUTTON, Settings.PLAY_REELS_ONCE,
             Settings.ORIGINAL_AUDIO, Settings.HIDE_REEL_SEARCH_PILL, Settings.HIDE_VIEWER_TOP_BUTTONS, Settings.HIDE_REELS_TAB_TITLE,
-            Settings.HIDE_VIEWER_BACK_BUTTON, Settings.BURN_IN_STAY_DIM,
+            Settings.HIDE_VIEWER_BACK_BUTTON, Settings.BURN_IN_STAY_DIM, Settings.BURN_IN_FADE,
             Settings.GRAY_REELS, Settings.REELS_MINUTES, Settings.HIDE_REEL_COUNTS,
             Settings.HIDE_REEL_SAVE_BUTTON, Settings.HIDE_REEL_WHATSAPP_BUTTON, Settings.HIDE_REEL_LIKE_BUTTON,
             Settings.HIDE_REEL_COMMENT_BUTTON, Settings.HIDE_REEL_REPOST_BUTTON, Settings.HIDE_REEL_SHARE_BUTTON,
@@ -218,7 +222,8 @@ public enum PatchFamily {
             Settings.FEED_VIDEO_SKIP_BUTTONS, Settings.FEED_VIDEO_DOUBLE_TAP_SKIP, Settings.FEED_VIDEO_SPEED_BUTTON,
             Settings.CENTER_FULL_SCREEN_VIDEOS, Settings.STORY_SEEK_BAR, Settings.STORY_SEEK_BAR_FADE),
     RESUME_LONG_VIDEOS(FamilyNames.RESUME_LONG_VIDEOS, "resumeLongVideos", null,
-            Settings.RESUME_LONG_VIDEOS, Settings.RECENTLY_WATCHED, Settings.BREAK_AFTER_REELS),
+            Settings.RESUME_LONG_VIDEOS, Settings.RECENTLY_WATCHED, Settings.RECENTLY_WATCHED_MENU_ROW,
+            Settings.BREAK_AFTER_REELS),
     FRAME_STEP(FamilyNames.FRAME_STEP, "frameStep", null,
             Settings.FRAME_STEP),
     PLAYBACK_QUALITY(FamilyNames.PLAYBACK_QUALITY, "defaultPlaybackQuality", null,
@@ -231,6 +236,8 @@ public enum PatchFamily {
             Settings.TURN_OFF_HDR_BRIGHTNESS, Settings.PREFER_SDR_RENDITIONS, Settings.DRAW_VIDEOS_WITH_THE_SCREEN),
     SKIP_SILENCE(FamilyNames.SKIP_SILENCE, "skipSilentParts", null,
             Settings.SKIP_SILENT_PARTS),
+    /** Set by its list, which starts at Facebook's choice (#526). */
+    VIDEO_BUFFER(FamilyNames.VIDEO_BUFFER, "videoBuffer", Settings.VIDEO_BUFFER),
     KEEP_FEED_VIDEOS_MUTED(FamilyNames.KEEP_FEED_VIDEOS_MUTED, "keepFeedVideosMuted", null,
             Settings.KEEP_FEED_VIDEOS_MUTED, Settings.MUTE_STORIES, Settings.RESTORE_FEED_SOUND),
     PROGRESS_BAR(FamilyNames.PROGRESS_BAR, "keepProgressBar", null,
@@ -264,7 +271,8 @@ public enum PatchFamily {
             Settings.DOWNLOAD_VIDEOS, Settings.CLIPBOARD_DOWNLOAD, Settings.POST_MENU_DOWNLOAD_FIRST,
             Settings.OPEN_IN_ANOTHER_APP),
     PHOTO_DOWNLOAD(FamilyNames.PHOTO_DOWNLOAD, "photoDownload", null,
-            Settings.DOWNLOAD_PHOTOS, Settings.POST_MENU_PHOTO_SAVE, Settings.POST_MENU_PHOTO_SEARCH),
+            Settings.DOWNLOAD_PHOTOS, Settings.POST_MENU_PHOTO_SAVE, Settings.POST_MENU_PHOTO_SEARCH,
+            Settings.MARKETPLACE_PHOTO_SAVE),
     START_TAB(FamilyNames.START_TAB, "startTab", null,
             Settings.OPEN_ON_CHOSEN_TAB),
     FOLLOWING_HOME(FamilyNames.FOLLOWING_HOME, "followingHome", null,
@@ -626,11 +634,13 @@ public enum PatchFamily {
                 if (setting != Settings.NOTIFICATION_QUIET_HOURS) anyOn |= setting.savedValue();
             }
         }
-        // Burn-in guard runs by its list; Stay dim when I tap does nothing with the guard off (#288).
+        // Burn-in guard runs by its list; Stay dim when I tap and Smooth fade do nothing with the guard off (#288, #523).
         if (this == REEL_DECLUTTER) {
             anyOn = Settings.BURN_IN_GUARD.savedValue() != BurnInMode.OFF;
             for (BooleanSetting setting : switches) {
-                if (setting != Settings.BURN_IN_STAY_DIM) anyOn |= setting.savedValue();
+                if (setting != Settings.BURN_IN_STAY_DIM && setting != Settings.BURN_IN_FADE) {
+                    anyOn |= setting.savedValue();
+                }
             }
         }
         if (this == POST_WORDS) {
@@ -649,10 +659,12 @@ public enum PatchFamily {
         for (int i = 0; i < switches.size(); i++) {
             if (i > 0) line.append(", ");
             BooleanSetting setting = switches.get(i);
-            // Burn-in guard's two lists, which no switch holds, sit before its switch (#288).
+            // Burn-in guard's two lists and its Dim to percent, which no switch holds, sit before its switch (#288, #523).
             if (setting == Settings.BURN_IN_STAY_DIM) {
                 line.append(Settings.BURN_IN_GUARD.key).append('=').append(Settings.BURN_IN_GUARD.savedValue()).append(", ")
-                        .append(Settings.BURN_IN_WAIT.key).append('=').append(Settings.BURN_IN_WAIT.savedValue()).append(", ");
+                        .append(Settings.BURN_IN_WAIT.key).append('=').append(Settings.BURN_IN_WAIT.savedValue()).append(", ")
+                        .append(Settings.BURN_IN_LEVEL.key).append('=')
+                        .append(BurnInGuard.levelPercent(Settings.BURN_IN_LEVEL.savedValue())).append(", ");
             }
             line.append(setting.key).append(setting.savedValue() ? "=on" : "=off");
             // How the post date is worded follows its switch (#357).

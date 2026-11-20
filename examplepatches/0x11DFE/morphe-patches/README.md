@@ -1,6 +1,6 @@
 # 0x11DFE Morphe patches
 
-Patches for use with [Morphe](https://morphe.software) by **0x11DFE**. The patch list
+Patches for use with [Morphe](https://morphe.software) by 0x11DFE. The patch list
 below shows every supported app and version. Notes, download sources and update steps
 for each app live in `docs/<app>/README.md`.
 
@@ -23,7 +23,7 @@ are responsible for what you do with it.
 ## Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.12.4](https://github.com/0x11DFE/morphe-patches/releases/tag/v1.12.4)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;10 patches total
+> **[v1.12.5](https://github.com/0x11DFE/morphe-patches/releases/tag/v1.12.5)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;10 patches total
 <details open>
 <summary>📦 Scene&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
@@ -37,10 +37,10 @@ are responsible for what you do with it.
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Daemon gate bypass](docs/scene/README.md#daemon-gate-bypass) | Keeps the root scene-daemon's monitor gate open so live stats (dashboard cards, system/mini/FPS overlays) keep updating instead of freezing ~40s after connect on rooted devices. Extends the daemon launcher script (raw resource 'up') with a validated gate poker that runs on every daemon start; unknown daemon layouts fail safe. Requires root (the daemon itself runs as root). |  |
-| [Random device ID](docs/scene/README.md#random-device-id) | Replaces the device SN (serial_id/serial_no/cpu_id/gid read by the root scene-daemon) with a random one everywhere the app itself uses it: the user page display and the SN-keyed cloud sync / API calls to omarea. The SN is baked per patch run. The daemon's own server report during real code activation is native and not affected. |  |
-| [Unlock Scene N1](docs/scene/README.md#unlock-scene-n1) | Unlocks Scene N1: the license state parser and the activation request are forced to a perpetual success (configurable expiry), the activation code type is reported as perpetual, and the APK signature MD5 the app reports to omarea's activation binding is spoofed to the original signing key so re-signed builds still match. | • License expiry date |
-| [Unlock optional features](docs/scene/README.md#unlock-optional-features) | Shows the gated entries of the tuner's Optional features dialog: Refresh rate (Samsung panels report no discrete 60Hz mode through the display API, so Scene hides the control), FAS in games (cloud lp-branch gated) and CPU limiters (online-profile gated). The features themselves work locally; Bypass power supply stays hidden on devices without a supported charging sysfs node. |  |
+| [Daemon gate bypass](docs/scene/README.md#daemon-gate-bypass) | Keeps the scene-daemon monitor gate open so live stats (dashboard cards, overlays) keep updating instead of freezing ~40s after connect. The daemon launcher script re-asserts the gate on every start and fails safe on unknown daemon layouts. Requires root. |  |
+| [Random device ID](docs/scene/README.md#random-device-id) | Replaces the device SN with a random value everywhere the app uses it: user page, cloud sync and API calls to omarea. Baked per patch run. The daemon's own activation report is native and not affected. |  |
+| [Unlock Scene N1](docs/scene/README.md#unlock-scene-n1) | Unlocks Scene N1 with a perpetual license and a configurable expiry date. The signature MD5 reported to omarea is spoofed to the original signing key, so re-signed builds still pass the activation binding. | • License expiry date |
+| [Unlock optional features](docs/scene/README.md#unlock-optional-features) | Shows the gated Optional features entries: Refresh rate, FAS in games and CPU limiters. The gates are cloud-profile and display-API checks, not device limits, so the features work locally. Bypass power supply stays hidden without a supported charging node. |  |
 
 </details>
 
@@ -57,9 +57,9 @@ are responsible for what you do with it.
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Disable PairIP license check](docs/waypoint/README.md#disable-pairip-license-check) | Empties com.pairip.licensecheck.LicenseClient.checkLicense so the re-signed patched APK is not killed by Google Play PairIP license enforcement. Generic: works on any PairIP-protected app with this class. |  |
-| [Skip Waypoint onboarding paywall](docs/waypoint/README.md#skip-waypoint-onboarding-paywall) | The paywall screen shown after the Waypoint tutorial immediately invokes the app's own free-choice handler (completeOnboarding + navigate home) and renders nothing. Matches the PaywallScreen bytecode pattern and fails cleanly when the app is rebuilt. |  |
-| [Unlock Waypoint Pro](docs/waypoint/README.md#unlock-waypoint-pro) | Resolves the RN bridge getCustomerInfo promise with a fabricated CustomerInfo carrying an active lifetime 'Waypoint Pro' entitlement (product waypoint_lifetime), and injects the same entitlement into the hybridcommon mapper. Works even when api.revenuecat.com is unreachable. |  |
+| [Disable PairIP license check](docs/waypoint/README.md#disable-pairip-license-check) | Empties com.pairip.licensecheck.LicenseClient.checkLicense so PairIP does not kill the re-signed APK. Works on any app that ships this class. |  |
+| [Skip Waypoint onboarding paywall](docs/waypoint/README.md#skip-waypoint-onboarding-paywall) | Skips the paywall after the tutorial: it runs the app's own free-choice handler (completeOnboarding, then home) and renders nothing. Fails cleanly when the bundle changes. |  |
+| [Unlock Waypoint Pro](docs/waypoint/README.md#unlock-waypoint-pro) | Unlocks Waypoint Pro. The getCustomerInfo bridge and the hybridcommon mapper report a fake active lifetime entitlement (waypoint_lifetime), so it works even when api.revenuecat.com is unreachable. |  |
 
 </details>
 

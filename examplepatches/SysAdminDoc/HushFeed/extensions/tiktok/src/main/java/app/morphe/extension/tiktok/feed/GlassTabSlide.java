@@ -42,8 +42,10 @@ import java.util.WeakHashMap;
  *
  * <p>With Liquid glass when held (#440) a finger that goes down on the pill also holds the lens
  * ({@link Host#hold}) until it lifts, slides or not, so the window is watched with either switch
- * on. Only a finger that turns out to be a swipe up or down, a second finger, or a failure lets
- * go early. Holding keeps nothing from TikTok.
+ * on. The host learns where the finger went down, so the held lens can go to it, and where it
+ * moves along the bar after that without Slide across the tabs ({@link #HOLDING}). Only a finger
+ * that turns out to be a swipe up or down, a second finger, or a failure lets go early. Holding
+ * keeps nothing from TikTok.
  */
 final class GlassTabSlide {
     /** What a slide needs from the glass it moves. */
@@ -54,8 +56,11 @@ final class GlassTabSlide {
         /** Puts the lens's middle at {@code x}, in the bar's own pixels, or sends it back to the selected tab for NaN. */
         void follow(float x);
 
-        /** A finger went down on the pill and holds the lens ({@code true}), or let go of it. */
-        void hold(boolean held);
+        /**
+         * A finger went down on the pill at {@code x}, in the bar's own pixels, and holds the lens
+         * ({@code true}), or let go of it ({@code x} is NaN then).
+         */
+        void hold(boolean held, float x);
     }
 
     /** Whether slides may start and go on right now; java.util.function needs API 24. */
@@ -72,6 +77,8 @@ final class GlassTabSlide {
     static final int REFUSED = 3;
     /** A slide stopped by the switch going off. TikTok already had its cancel, so the rest goes nowhere. */
     static final int DROPPED = 4;
+    /** Held without Slide across the tabs: the lens follows the finger, and its touches go on to TikTok. */
+    static final int HOLDING = 5;
 
     /** The watcher in each window's callbacks, held weakly both ways so a closed window takes it along. */
     private static final WeakHashMap<Window, WeakReference<Watcher>> WATCHERS = new WeakHashMap<>();
@@ -203,7 +210,7 @@ final class GlassTabSlide {
             state = WATCHING;
             if (holds.now()) {
                 holding = true;
-                host.hold(true);
+                host.hold(true, x);
             }
             return false;
         }
@@ -227,8 +234,10 @@ final class GlassTabSlide {
                     return false;
                 }
                 if (!running.now()) {
-                    // Held without Slide across the tabs: the finger keeps the lens until it lifts.
-                    state = REFUSED;
+                    // Held without Slide across the tabs: the lens goes along the bar with the
+                    // finger until it lifts, and TikTok still gets every touch.
+                    state = HOLDING;
+                    host.hold(true, event.getRawX() - barLeft);
                     return false;
                 }
                 if (tabHolds && event.getEventTime() - event.getDownTime() >= ViewConfiguration.getLongPressTimeout()) {
@@ -257,6 +266,14 @@ final class GlassTabSlide {
             case DROPPED:
                 if (ends) state = IDLE;
                 return true;
+            case HOLDING:
+                if (ends || action == MotionEvent.ACTION_POINTER_DOWN || !holds.now()) {
+                    state = ends ? IDLE : REFUSED;
+                    letGo();
+                } else if (action == MotionEvent.ACTION_MOVE) {
+                    host.hold(true, event.getRawX() - barLeft);
+                }
+                return false;
             case REFUSED:
                 if (ends) {
                     state = IDLE;
@@ -285,7 +302,7 @@ final class GlassTabSlide {
     private void letGo() {
         if (!holding) return;
         holding = false;
-        host.hold(false);
+        host.hold(false, Float.NaN);
     }
 
     /** Whether the bar is attached, shown and not moved off its place by an animation. */

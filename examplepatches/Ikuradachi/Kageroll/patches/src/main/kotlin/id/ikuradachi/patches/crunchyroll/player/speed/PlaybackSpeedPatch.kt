@@ -3,6 +3,7 @@ package id.ikuradachi.patches.crunchyroll.player.speed
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.stringOption
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -12,7 +13,7 @@ import id.ikuradachi.patches.crunchyroll.shared.Constants.COMPATIBILITY_CRUNCHYR
 @Suppress("unused")
 val playbackSpeedPatch = bytecodePatch(
     name = "Playback speed",
-    description = "Unhides the player's speed menu and fills it out to 0.5x-2.0x.",
+    description = "Unhides the player's speed menu and expands playback speed options up to 4.0x.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_CRUNCHYROLL)
@@ -20,7 +21,40 @@ val playbackSpeedPatch = bytecodePatch(
 
     extendWith("extensions/extension.mpe")
 
+    val maxPlaybackSpeed = stringOption(
+        key = "maxPlaybackSpeed",
+        default = "4.0",
+        values = mapOf(
+            "2.0x" to "2.0",
+            "2.5x" to "2.5",
+            "3.0x" to "3.0",
+            "3.5x" to "3.5",
+            "4.0x (default)" to "4.0",
+        ),
+        title = "Maximum playback speed",
+        description = "Highest playback speed multiplier shown in the player speed menu.",
+        validator = { raw ->
+            val parsed = raw?.toFloatOrNull()
+            parsed != null && parsed >= 2.0f && parsed <= 4.0f
+        },
+    )
+
     execute {
+        val maxSpeed = requireNotNull(
+            maxPlaybackSpeed.value?.toFloatOrNull()?.takeIf { it in 2.0f..4.0f },
+        ) {
+            "Maximum playback speed must be between 2.0 and 4.0"
+        }
+        val maxSpeedBits = java.lang.Float.floatToIntBits(maxSpeed)
+        val maxSpeedMethod = SpeedHelperMaxSpeedFingerprint.matchAll(1..1).single().method
+        maxSpeedMethod.addInstructions(
+            0,
+            """
+                const v0, 0x${Integer.toHexString(maxSpeedBits)}
+                return v0
+            """.trimIndent(),
+        )
+
         // ── 1. Unhide the menu ──
         val configClassName = PlaybackSpeedConfigToStringFingerprint.classDef.type
 

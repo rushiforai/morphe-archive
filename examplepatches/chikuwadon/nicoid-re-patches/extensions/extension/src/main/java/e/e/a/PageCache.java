@@ -111,18 +111,22 @@ public final class PageCache {
         return false;
     }
     private static byte[] fetch(HttpURLConnection connection) throws IOException {
-        long started = System.nanoTime();
-        byte[] data;
-        try (InputStream input = connection.getInputStream(); ByteArrayOutputStream body = new ByteArrayOutputStream()) {
-            byte[] buffer = new byte[8192];
-            for (int n; (n = input.read(buffer)) != -1;) {
-                if (body.size() + n > 8 * 1024 * 1024) throw new IOException("Oversized list page");
-                body.write(buffer, 0, n);
+        try {
+            long started = System.nanoTime();
+            byte[] data;
+            try (InputStream input = connection.getInputStream(); ByteArrayOutputStream body = new ByteArrayOutputStream()) {
+                byte[] buffer = new byte[8192];
+                for (int n; (n = input.read(buffer)) != -1;) {
+                    if (body.size() + n > 8 * 1024 * 1024) throw new IOException("Oversized list page");
+                    body.write(buffer, 0, n);
+                }
+                data = body.toByteArray();
             }
-            data = body.toByteArray();
+            record("List page fetched in " + ((System.nanoTime() - started) / 1000000) + " ms, " + data.length + " bytes");
+            return data;
+        } finally {
+            connection.disconnect();
         }
-        record("List page fetched in " + ((System.nanoTime() - started) / 1000000) + " ms, " + data.length + " bytes");
-        return data;
     }
     private static void record(String message) {
         try { Class.forName("e.e.a.ModernDebug").getMethod("record", String.class).invoke(null, message); }

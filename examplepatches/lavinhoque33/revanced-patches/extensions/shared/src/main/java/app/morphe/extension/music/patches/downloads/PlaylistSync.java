@@ -1,9 +1,12 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-19.
  * Written by lavinhoque33, 2026-11-17.
  */
 package app.morphe.extension.music.patches.downloads;
+
+import static app.morphe.extension.shared.utils.StringRef.str;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -29,8 +32,10 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.function.BooleanSupplier;
 
 import app.morphe.extension.music.patches.misc.requests.MusicBrowseRequest;
 import app.morphe.extension.music.settings.Settings;
@@ -38,7 +43,7 @@ import app.morphe.extension.shared.requests.Requester;
 import app.morphe.extension.shared.utils.Logger;
 import app.morphe.extension.shared.utils.Utils;
 
-/** Only the running phone app refreshes its retained stream playlists. No Android job survives the process. */
+/** Foreground scheduling for interrupted downloads and saved-playlist refreshes. No jobs wake Music. */
 public final class PlaylistSync {
     /** Serializes explicit removal, sync publication and first-download membership writes, not network work. */
     static final Object MUTATION = new Object();
@@ -47,21 +52,34 @@ public final class PlaylistSync {
     private static final long SOURCE_INTERVAL = 600_000;
     private static final long VISIT_INTERVAL = 45_000;
     private static final long INTERRUPTED_INTERVAL = 15_000;
+    private static final long RESUME_RECHECK = 15_000;
     private static final int SOURCES_PER_SWEEP = 3;
 
     private static final Handler main = new Handler(Looper.getMainLooper());
     private static final Runnable TICK = PlaylistSync::tick;
+    private static final Runnable RESUME_SCAN = PlaylistSync::scanPending;
     private static final Map<String, Long> attempts = new HashMap<>();
+    private static final Map<String, DownloadRetryPlan.Attempt> resumes = new HashMap<>();
+    private static final ThreadLocal<Run> worker = new ThreadLocal<>();
     private static ConnectivityManager manager;
-    private static Activity visible;
+    private static volatile Activity visible;
     private static Network wifi;
     private static long nextTick = Long.MAX_VALUE;
+    private static long nextResumeScan = Long.MAX_VALUE;
+    private static long resumeScanNotBefore;
+    private static boolean checkedWithoutWifi;
     private static String visited;
+    private static boolean readingPending;
+    private static String resuming;
     private static volatile Run active;
 
     private PlaylistSync() {}
 
-    /** Injected into MainActivity only with a working native offline browse hook. */
+    // Patched independently: Resume also exists on versions without the native offline browse hook.
+    static boolean autoResumeSupported() { return false; }
+    static boolean syncSupported() { return false; }
+
+    /** Injected early in MainActivity.onCreate, before it first becomes visible. */
     @SuppressLint("MissingPermission")
     public static synchronized void install(Activity activity) {
         if (manager != null || Build.VERSION.SDK_INT < 24) return;
@@ -75,12 +93,12 @@ public final class PlaylistSync {
             manager = connectivity;
             activity.getApplication().registerActivityLifecycleCallbacks(new Visibility(activity.getClass()));
         } catch (RuntimeException failure) {
-            Logger.printException(() -> "PlaylistSync: could not monitor foreground Wi-Fi", failure);
+            Logger.printException(() -> "PlaylistSync: could not monitor Music visibility and Wi-Fi", failure);
         }
     }
 
     static synchronized void onBrowse(String browseId) {
-        if (visible == null || !browseId.startsWith("VL")) return;
+        if (!syncSupported() || visible == null || !browseId.startsWith("VL")) return;
         String id = OfflineReplayLogic.sourceOfBrowseId(browseId);
         OfflineSourceStore.Source source = OfflineCopyStore.source(id);
         if (source == null || source.kind() != OfflineSourceStore.Kind.PLAYLIST) return;
@@ -90,24 +108,32 @@ public final class PlaylistSync {
     }
 
     private static synchronized void shown(Activity activity) {
-        visible = activity;
-        schedule(START_DELAY);
+        if (visible != activity) {
+            visible = activity;
+            schedule(START_DELAY);
+        }
+        checkedWithoutWifi = false;
+        scheduleResumeScan(START_DELAY);
     }
 
     private static synchronized void hidden(Activity activity) {
         if (visible != activity) return;
         visible = null;
         visited = null;
-        cancel();
+        cancelBrowsing();
         main.removeCallbacks(TICK);
         nextTick = Long.MAX_VALUE;
+        main.removeCallbacks(RESUME_SCAN);
+        nextResumeScan = Long.MAX_VALUE;
     }
 
     private static synchronized void wifiChanged(@Nullable Network network) {
-        if (java.util.Objects.equals(wifi, network)) return;
+        if (Objects.equals(wifi, network)) return;
         wifi = network;
-        cancel();
+        cancelBrowsing();
         schedule(START_DELAY);
+        checkedWithoutWifi = false;
+        scheduleResumeScan(START_DELAY);
     }
 
     private static synchronized void schedule(long delay) {
@@ -125,38 +151,140 @@ public final class PlaylistSync {
         schedule(SWEEP_INTERVAL);
         if (active != null || !enabled()) return;
 
-        Run run = new Run(manager, wifi);
+        Run run = new Run(wifi);
         active = run;
         Utils.runOnBackgroundThread(() -> sweep(run));
     }
 
+    private static synchronized void scheduleResumeScan(long delay) {
+        long due = Math.max(SystemClock.uptimeMillis() + delay, resumeScanNotBefore);
+        if (!autoResumeSupported() || visible == null || due >= nextResumeScan) return;
+
+        main.removeCallbacks(RESUME_SCAN);
+        main.postAtTime(RESUME_SCAN, due);
+        nextResumeScan = due;
+    }
+
+    private static synchronized void scanPending() {
+        nextResumeScan = Long.MAX_VALUE;
+        if (visible == null || readingPending || resuming != null
+                || !LocalDownloadManager.downloadMode().streamCopy()) return;
+
+        resumeScanNotBefore = SystemClock.uptimeMillis() + RESUME_RECHECK;
+        Logger.printDebug(() -> "PlaylistSync: checking pending automatic resumes");
+
+        readingPending = true;
+        Utils.runOnBackgroundThread(() -> {
+            Set<String> pending = Set.of();
+            try {
+                pending = DownloadedMarkers.pendingPlaylistIds();
+            } catch (RuntimeException failure) {
+                Logger.printWarn(() -> "PlaylistDownloads: could not read pending sources", failure);
+            } finally {
+                Set<String> candidates = pending;
+                main.post(() -> selectPending(candidates));
+            }
+        });
+    }
+
+    private static synchronized void selectPending(Set<String> pending) {
+        readingPending = false;
+        boolean streamMode = LocalDownloadManager.downloadMode().streamCopy();
+        if (visible == null || resuming != null || pending.isEmpty() || !streamMode) return;
+
+        long now = SystemClock.elapsedRealtime();
+        long delay = Long.MAX_VALUE;
+        for (String source : pending) {
+            long remaining = DownloadRetryPlan.delayUntilAutomaticResume(
+                    PlaylistDownloads.isRunning(source), resumes.get(source), now);
+            if (remaining > 0) {
+                delay = Math.min(delay, remaining);
+                continue;
+            }
+
+            PlaylistDownloads.ResumeStart result = PlaylistDownloads.resumeAutomatically(source);
+            if (result == PlaylistDownloads.ResumeStart.STARTED) {
+                resuming = source;
+                return;
+            }
+            Logger.printDebug(() -> "PlaylistSync: auto-resume deferred for " + source + ": " + result
+                    + " (Wi-Fi callback eligible=" + (wifi != null) + ")");
+            if (result == PlaylistDownloads.ResumeStart.WIFI_UNAVAILABLE) {
+                // The uid's active network can lag the default-network callback on foreground return.
+                // If both lack Wi-Fi, probe just once before waiting for a network or visibility event.
+                if (wifi != null || !checkedWithoutWifi) {
+                    checkedWithoutWifi = true;
+                    delay = RESUME_RECHECK;
+                }
+                break;
+            }
+        }
+        if (delay != Long.MAX_VALUE) scheduleResumeScan(delay);
+    }
+
+    static void resumeFinished(String sourceId, long startedAt, boolean madeProgress, boolean interrupted) {
+        main.post(() -> {
+            DownloadRetryPlan.Attempt attempt;
+            synchronized (PlaylistSync.class) {
+                attempt = DownloadRetryPlan.finish(resumes.get(sourceId), startedAt, madeProgress, interrupted);
+                resumes.put(sourceId, attempt);
+                resuming = null;
+                scheduleResumeScan(0);
+            }
+            if (!madeProgress && !interrupted) {
+                Logger.printInfo(() -> "PlaylistDownloads: auto-resume idle " + attempt.idleAttempts()
+                        + "/" + DownloadRetryPlan.IDLE_LIMIT + " for " + sourceId);
+            }
+            if (attempt.held()) Logger.printInfo(() -> "PlaylistDownloads: auto-resume held for " + sourceId);
+        });
+    }
+
+    static void manualTransferPending() {
+        scheduleResumeScan(SWEEP_INTERVAL);
+    }
+
     private static boolean enabled() {
-        return OfflineReplayHooks.usable() && LocalDownloadManager.downloadMode().streamCopy();
+        return syncSupported() && OfflineReplayHooks.usable() && LocalDownloadManager.downloadMode().streamCopy();
+    }
+
+    private static void cancelBrowsing() {
+        Run run = active;
+        if (run != null && run.hold == null) run.cancelled = true;
     }
 
     static void cancel() {
         Run run = active;
-        if (run != null) run.cancelled = true;
+        if (run != null) {
+            run.cancelled = true;
+            DownloadNetwork.wakeWaiters();
+        }
     }
 
-    /** Work delegated by the ordinary downloaders is pinned to this run's Wi-Fi, including its range workers. */
+    /** Browse on the visible Wi-Fi; once additions start, finish this source even if the activity stops. */
     private static final class Run implements Requester.ConnectionProvider {
-        private final ConnectivityManager manager;
         private final Network network;
         private volatile boolean cancelled;
+        private volatile DownloadKeepAlive.Hold hold;
 
-        Run(ConnectivityManager manager, Network network) {
-            this.manager = manager;
+        Run(Network network) {
             this.network = network;
         }
 
-        @SuppressLint("MissingPermission")
         boolean allowed() {
-            try {
-                return !cancelled && enabled() && network.equals(manager.getActiveNetwork())
-                        && eligible(manager.getNetworkCapabilities(network)) && !Thread.currentThread().isInterrupted();
-            } catch (RuntimeException unknown) {
-                return false;
+            return !cancelled && visible != null && enabled() && network.equals(DownloadNetwork.eligibleWifi())
+                    && !Thread.currentThread().isInterrupted();
+        }
+
+        boolean mayCommit() {
+            return hold == null ? allowed() : !cancelled() && enabled();
+        }
+
+        boolean beginTransfer(OfflineSourceStore.Source source) {
+            synchronized (PlaylistSync.class) {
+                if (!allowed()) return false;
+
+                hold = DownloadKeepAlive.acquire("playlist:" + source.id(), source.title());
+                return true;
             }
         }
 
@@ -167,7 +295,10 @@ public final class PlaylistSync {
             }
         }
 
-        @Override public boolean cancelled() { return cancelled; }
+        @Override public boolean cancelled() {
+            DownloadKeepAlive.Hold current = hold;
+            return cancelled || (current != null && current.timedOut());
+        }
 
         @Override public HttpURLConnection openConnection(URL url) throws IOException {
             check();
@@ -175,19 +306,27 @@ public final class PlaylistSync {
         }
     }
 
-    static boolean automaticTransfer() {
-        return Requester.scopedConnection() instanceof Run;
+    static boolean transferring() {
+        return worker.get() != null;
+    }
+
+    @Nullable
+    static BooleanSupplier stopSignal() {
+        Run run = worker.get();
+        return run == null ? null : run::cancelled;
     }
 
     static <T> T publishMedia(Callable<T> write) throws Exception {
-        if (!(Requester.scopedConnection() instanceof Run run)) return write.call();
+        Run run = worker.get();
+        if (run == null) return write.call();
         synchronized (MUTATION) {
-            run.check();
+            if (!run.mayCommit()) throw new IOException("Playlist sync was stopped");
             return write.call();
         }
     }
 
     private static void sweep(Run run) {
+        worker.set(run);
         try {
             run.check();
             List<OfflineSourceStore.Source> sources = candidates();
@@ -208,6 +347,7 @@ public final class PlaylistSync {
         } catch (Exception failure) {
             if (run.allowed()) Logger.printException(() -> "PlaylistSync: could not scan saved playlists", failure);
         } finally {
+            worker.remove();
             finished(run);
         }
     }
@@ -262,30 +402,52 @@ public final class PlaylistSync {
         if (source.browsePage() != null && source.videoIds().equals(fresh.tracks())) return;
 
         Set<String> additions = PlaylistSyncPlan.additions(source.videoIds(), fresh.tracks());
+        if (additions.isEmpty()) {
+            applyRefresh(run, source, fresh, additions, null);
+        } else if (run.beginTransfer(source)) {
+            try (DownloadKeepAlive.Hold hold = run.hold) {
+                Logger.printInfo(() -> "PlaylistSync: downloading additions for " + id);
+                applyRefresh(run, source, fresh, additions, new DownloadNetwork(true,
+                        () -> run.cancelled() || !enabled(), hold));
+            } finally {
+                if (run.cancelled()) run.cancelled = true;
+                run.hold = null;
+            }
+        }
+    }
+
+    private static void applyRefresh(Run run, OfflineSourceStore.Source source, PlaylistSyncPage.Snapshot fresh,
+                                     Set<String> additions, @Nullable DownloadNetwork network) throws Exception {
+        String id = source.id();
         DownloadQuality quality = Settings.DOWNLOAD_QUALITY.get();
         Set<String> own = RawAudioStore.copyIds();
         Map<String, String> aliases = RawAudioStore.aliases();
         Map<String, String> ready = new HashMap<>();
-        for (String videoId : additions) {
-            run.check();
-            ready.put(videoId, ensureAudio(videoId, OfflineCopyStore.copyId(videoId, own, aliases), quality));
-        }
-        if (!additions.isEmpty()) {
-            run.check();
+        if (network != null) {
+            int index = 0;
+            for (String videoId : additions) {
+                run.hold.progress(source.title(), index * 100 / additions.size(),
+                        str("morphe_music_playlist_ready", index, additions.size()));
+                String copyId = OfflineCopyStore.copyId(videoId, own, aliases);
+                ready.put(videoId, network.transfer(() -> ensureAudio(videoId, copyId, quality)));
+                index++;
+            }
             VideoCopyDownloader.ensureForSync(id, source.title(), PlaylistPage.available(fresh.tracks()), additions,
-                    ready::get, quality);
+                    ready::get, quality, network, run.hold);
+            if (!network.awaitTransferConnection()) throw new IOException("Playlist sync lost its transfer Wi-Fi");
         }
         if (!hasPlayableTrack(fresh.tracks(), ready, own, aliases)) {
             throw new IOException("The refreshed playlist would have no playable copy");
         }
 
-        run.check();
+        if (!run.mayCommit()) throw new IOException("Playlist sync was stopped");
         File staged = OfflineCopyStore.stagePlaylistPage(fresh.browseBytes());
         boolean committed = false;
         try {
             synchronized (MUTATION) {
-                if (canRefresh(source) && ready.values().stream().allMatch(OfflineCopyStore::has)) {
-                    committed = OfflineCopyStore.commitPlaylist(source, fresh.tracks(), staged, run::allowed);
+                if (canRefresh(source) && ready.values().stream().allMatch(OfflineCopyStore::has)
+                        && (run.hold == null || run.hold.finish())) {
+                    committed = OfflineCopyStore.commitPlaylist(source, fresh.tracks(), staged, run::mayCommit);
                     if (committed) DownloadedMarkers.onPlaylistSynced(id, fresh.tracks());
                 }
             }
@@ -318,22 +480,28 @@ public final class PlaylistSync {
         return false;
     }
 
-    private static boolean eligible(@Nullable NetworkCapabilities caps) {
-        return caps != null && PlaylistSyncPlan.wifiEligible(caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI),
-                caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET),
-                caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED),
-                caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED));
-    }
-
     private static final class WifiChanges extends ConnectivityManager.NetworkCallback {
+        private Network current;
+
         @Override public void onCapabilitiesChanged(Network network, NetworkCapabilities caps) {
-            wifiChanged(eligible(caps) ? network : null);
+            current = network;
+            boolean internet = caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                    && caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED);
+            Network eligible = DownloadNetwork.eligible(caps) ? network : null;
+            DownloadNetwork.changed(internet ? network : null, eligible);
+            wifiChanged(eligible);
+        }
+
+        @Override public void onBlockedStatusChanged(Network network, boolean blocked) {
+            if (!blocked && network.equals(current)) scheduleResumeScan(START_DELAY);
         }
 
         @Override public void onLost(Network network) {
-            synchronized (PlaylistSync.class) {
-                if (network.equals(wifi)) wifiChanged(null);
-            }
+            if (!network.equals(current)) return;
+
+            current = null;
+            DownloadNetwork.changed(null, null);
+            wifiChanged(null);
         }
     }
 
@@ -350,7 +518,9 @@ public final class PlaylistSync {
 
         @Override public void onActivityStopped(Activity activity) { hidden(activity); }
         @Override public void onActivityCreated(Activity activity, Bundle state) {}
-        @Override public void onActivityResumed(Activity activity) {}
+        @Override public void onActivityResumed(Activity activity) {
+            if (mainActivity.isInstance(activity)) shown(activity);
+        }
         @Override public void onActivityPaused(Activity activity) {}
         @Override public void onActivitySaveInstanceState(Activity activity, Bundle state) {}
         @Override public void onActivityDestroyed(Activity activity) { hidden(activity); }

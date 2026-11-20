@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="72" height="72" viewBox="0 0 72 72" role="img" aria-label="Native Camera icon">
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#94A3B8"/><stop offset="1" stop-color="#334155"/></linearGradient><radialGradient id="glow"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient></defs>
+<rect x="1" y="1" width="70" height="70" rx="19" fill="url(#g)"/><circle cx="16" cy="13" r="33" fill="url(#glow)"/><path d="M8 56c14-9 29-10 56-1" fill="none" stroke="#fff" stroke-opacity=".10" stroke-width="7"/>
+<circle cx="34" cy="36" r="23" fill="none" stroke="white" stroke-width="4"/><circle cx="34" cy="36" r="7" fill="white"/><path d="m34 13 10 17M56 25 37 32M55 49 38 40M34 59 28 40M12 47l16-11M13 23l16 8" fill="none" stroke="white" stroke-width="5" stroke-linecap="round"/>
+</svg>

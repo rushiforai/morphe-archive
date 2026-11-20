@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# Rejects commit subjects semantic-release can't read. A mistyped type ("feature:", "Fix:") would
+# otherwise be skipped silently and never released.
+#
+# Enable once per clone: git config core.hooksPath .githooks
+subject=$(head -n 1 "$1")
+
+case "$subject" in
+  Merge\ *|Revert\ *|fixup!\ *|squash!\ *|amend!\ *) exit 0 ;;
+esac
+
+types='feat|fix|perf|bump|build|chore|ci|docs|refactor|revert|style|test'
+if ! printf '%s\n' "$subject" | grep -qE "^($types)(\([^)]+\))?!?: .+"; then
+  {
+    echo "Commit subject is not a conventional commit:"
+    echo "  $subject"
+    echo
+    echo "Expected: <type>(<optional scope>): <description>"
+    echo "Types:    ${types//|/, }"
+    echo "Released: feat (minor), fix, perf, bump, build(Needs bump) (patch)"
+  } >&2
+  exit 1
+fi

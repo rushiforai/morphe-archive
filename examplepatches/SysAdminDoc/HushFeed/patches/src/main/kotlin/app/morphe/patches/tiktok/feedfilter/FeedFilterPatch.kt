@@ -16,7 +16,9 @@ import app.morphe.util.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patches.tiktok.misc.settings.configurableBytecodePatch as bytecodePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.util.removeFlags
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.misc.extension.MainActivityOnCreateFingerprint
@@ -25,6 +27,7 @@ import app.morphe.patches.tiktok.misc.navigation.MainNewIntentFingerprint
 import app.morphe.patches.tiktok.misc.navigation.writes
 import app.morphe.patches.tiktok.misc.optimizer.isBranchTarget
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
+import app.morphe.patches.tiktok.misc.settings.isTikTokLite
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
 import app.morphe.patches.tiktok.misc.theme.declaredVersions
 import app.morphe.patches.tiktok.privacy.invokeSitesOf
@@ -89,9 +92,14 @@ val feedFilterPatch = bytecodePatch(
         sharedExtensionPatch,
     )
 
-    compatibleWith(*AppCompatibilities.tiktok())
+    compatibleWith(*AppCompatibilities.tiktokAndLite())
 
     execute {
+        if (isTikTokLite(packageMetadata.packageName)) {
+            filterLiteFeed()
+            return@execute
+        }
+
         // Enables the feed filter extension after settings were loaded.
         SettingsStatusLoadFingerprint.method.addInstruction(
             0,
@@ -335,7 +343,7 @@ val feedFilterPatch = bytecodePatch(
         // The same handler fills the LIVE rows outside the feed: the Following tab's row of
         // creators who are LIVE, the Inbox's LIVE line and the feed behind it, a push's room
         // (#212). The provider (p0) names which with its request type, through the getter the
-        // handler (on 47.9.1 the provider method it calls) uses right after loading
+        // handler (on 47.9.2 the provider method it calls) uses right after loading
         // following_window_live_cell_loadmore to compare the two, so the filter gets the type as
         // well and leaves those rows to the block list. At index 0 no local holds anything yet,
         // so v1 and v2 carry the arguments into reach.
@@ -493,6 +501,7 @@ val feedFilterPatch = bytecodePatch(
                         "Cache normalizer and CacheLoadResult toString use different result contracts",
                     )
                 }
+                mutableClassDefBy(cacheResultType).letOtherClassesWrite(cachePayloadField)
                 cacheNormalizer.filterNormalizedCacheDelivery(cachePayloadField, cachedAwemeField)
             }
             legacyCacheChain != null -> {
@@ -523,7 +532,8 @@ val feedFilterPatch = bytecodePatch(
         // The golden cache method, the offline cache method and the orchestrator that runs them
         // both. The golden hit-cache step is a method of its own with one store, and the two parse
         // stores sit in an orchestrator that calls the golden and the offline method in turn, five
-        // stores in all. (Up to 47.0.3 the golden method ran the cold start itself.)
+        // stores in all. (Up to 47.0.3 the golden method ran the cold start itself. 47.9.2 moved
+        // one of the orchestrator's stores into a static helper it calls.)
         val golden = ColdStartGoldenCacheFingerprint.method
         val offline = ColdStartOfflineCacheFingerprint.method
         val orchestrators = findColdStartOrchestrators(golden, offline)
@@ -533,7 +543,15 @@ val feedFilterPatch = bytecodePatch(
                     "where one orchestrator was expected",
             )
         }
-        val coldStartMethods = (listOf(golden, offline) + orchestrators).distinctBy { method ->
+        // A store R8 outlined out of the orchestrator is filtered where it now sits. Each helper is
+        // read before it is made mutable, since the orchestrator calls dozens of static flags.
+        val outlinedStores = coldStartHelperCalls(orchestrators.single(), golden, offline).mapNotNull { call ->
+            val owner = classDefByOrNull(call.definingClass) ?: return@mapNotNull null
+            val helper = owner.methods.firstOrNull { it.coldStartCall() == call.coldStartCall() }
+            if (helper == null || helper.countColdStartFeedItemListStores() == 0) return@mapNotNull null
+            mutableClassDefBy(call.definingClass).findMutableMethodOf(call)
+        }
+        val coldStartMethods = (listOf(golden, offline) + orchestrators + outlinedStores).distinctBy { method ->
             "${method.definingClass}->${method.name}${method.parameterTypes}${method.returnType}"
         }
         coldStartMethods.forEach { method ->
@@ -705,7 +723,7 @@ val feedFilterPatch = bytecodePatch(
         }
 
         // The view model swaps the served list in only when it holds as many tabs as TikTok's own
-        // default list, and otherwise keeps the default with every tab on it (47.9.1), so the
+        // default list, and otherwise keeps the default with every tab on it (47.9.2), so the
         // same tabs go from the default at each of its fills. The source list is filtered before
         // the clear-and-add-all, so the fallback the setup hands on is the filtered one too.
         SearchDefaultTabsFillFingerprint.method.apply {
@@ -1444,6 +1462,16 @@ internal fun MutableMethod.filterDramaFeedOnConstruct() {
 }
 
 /**
+ * Lets the cache normalizer null the result's payload. The normalizer is a different class from
+ * the result, and 47.8.3 declares the payload field final, so ART threw IllegalAccessError at
+ * that write ("Final field ... cannot be written to") wherever it checked the class at run time,
+ * seconds after launch (#472).
+ */
+internal fun MutableClass.letOtherClassesWrite(field: FieldReference) {
+    fields.single { it.name == field.name && it.type == field.type }.removeFlags(AccessFlags.FINAL)
+}
+
+/**
  * Filters the result before the rebuilt cache stack forwards it to any callback.
  *
  * The host's one local is v0 and its only parameter is p0. A rejected payload becomes null,
@@ -1512,7 +1540,7 @@ private fun MutableMethod.filterChainedCacheDelivery(
     // The block used to do its work in the payload's own register, so both labels it re-enters
     // at were reached with a boolean sitting in a register the native path holds a reference in.
     // On 46.2.3 the instruction at each label writes that register before anything reads it
-    // (index 6 and index 8 of LX/0o5x;->LIZ), so nothing was actually wrong; the block no longer
+    // (index 6 and index 8 of LX/0jUJ;->LIZ), so nothing was actually wrong; the block no longer
     // depends on the host doing that. A register of its own also leaves the payload read the
     // patcher branched on exactly as the host wrote it.
     val scratchRegister = getFreeRegisterProvider(

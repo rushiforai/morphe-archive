@@ -1,3 +1,68 @@
+## [0.30.64](https://github.com/Forsigh/waze-patches/releases/tag/v0.30.64) (2026-11-19)
+
+Promotes the experimental line since 0.30.61 to stable.
+
+### Added
+* **Any audio app as a Waze audio partner** - declare any package in `<queries>`, add it to Waze's partner roster, report it as installed, carry it past the `getPartnerAudioApps()` filter, register it without the Waze SDK callback and write it into `appConfigs`. Verified with BitChord: it appears in Waze's audio partner list and is detected as a partner.
+
+### Fixed
+* **Picture-in-picture** crashed Waze on 5.26.90.901 and later (issue #22). The injected `onResume` called `invoke-super` on a hardcoded `com.waze.bv`, which stopped being `FreeMapAppActivity`'s superclass once Waze re-obfuscated it (`bq` on 5.27.9x, `br` on 5.27.4.900), so ART rejected the class at load. The superclass is now read from the class being patched.
+* The audio partner row no longer crashes the settings screen: the injected roster code reads the real register frame (`aq.e` is `.registers 6`, `aq.d` is `.registers 2`) instead of the padded frame the patcher reports.
+
+### Changed
+* Every patch pins an explicit Waze version list instead of a catch-all, so unsupported versions no longer offer a patch that cannot apply.
+
+## [0.30.63-dev.11](https://github.com/Forsigh/waze-patches/releases/tag/v0.30.63-dev.11) (2026-11-19)
+
+### Fixed
+* **Picture-in-picture** crashed Waze on 5.26.90.901 and later: the injected `onResume` called `invoke-super` on a hardcoded `com.waze.bv`, which stopped being the superclass once Waze re-obfuscated the activity. ART rejected the class at load. The superclass is now read from the class being patched (closes #22).
+
+## [0.30.63-dev.10](https://github.com/Forsigh/waze-patches/releases/tag/v0.30.63-dev.10) (2026-11-18)
+
+### Changed
+* The custom audio app is now written into the map the audio partner list is built from, and again at the top of the list call itself, so the row no longer depends on when Waze refreshes its partner roster.
+
+## [0.30.63-dev.9](https://github.com/Forsigh/waze-patches/releases/tag/v0.30.63-dev.9) (2026-11-18)
+
+### Fixed
+* The custom audio app never appeared in Waze's audio player list even though it no longer crashed. The roster append ran after Waze had already measured the partner arrays, so the extra entry was never copied, and the list filter rejected any package without an `ACTION_INIT` receiver. Both are handled now; the filter bypass is limited to the configured package.
+
+## [0.30.63-dev.7](https://github.com/Forsigh/waze-patches/releases/tag/v0.30.63-dev.7) (2026-11-18)
+
+### Fixed
+* Waze crashed as soon as the audio partner switch was turned on with 0.30.63-dev.6 installed. The new custom audio app row is withdrawn from the bundle until it is reworked; everything else is unchanged.
+
+## [0.30.63-dev.8](https://github.com/Forsigh/waze-patches/releases/tag/v0.30.63-dev.8) (2026-11-18)
+
+### Fixed
+* The custom audio app row crashed Waze because its injected code used registers outside the method frame; Waze rejected the class as soon as the audio partner list was touched. The frame is now read from the untouched original method, and the patch refuses to build if its code would not fit.
+
+### Added
+* The row is back, off by default: **Any audio app as a Waze audio partner** (package and label are options, default BitChord).
+
+## [0.30.63-dev.6](https://github.com/Forsigh/waze-patches/releases/tag/v0.30.63-dev.6) (2026-11-18)
+
+### Added
+* New row, **Any audio app as a Waze audio partner**: adds a music app of your choice to Waze's audio player even though it has no Waze SDK. It needs a media browser service, the same one Android Auto uses; default is BitChord, and any package name can be typed in the row's options. Tested to apply on 5.27.90.900 and 5.27.4.900.
+
+### Changed
+* The YouTube row is now called **YouTube Music as a Waze audio partner**, and its description names both apps it covers.
+
+## [0.30.63-dev.5](https://github.com/Forsigh/waze-patches/releases/tag/v0.30.63-dev.5) (2026-11-18)
+
+### Fixed
+* Launch crash in 0.30.63-dev.4. The audio partner entries were appended before Waze had loaded its partner arrays, and those arrays are null at cold start, so the app died on open. The append now happens inside `getPartners()` after Waze's own null checks, and the entries carry their Play Store link instead of an empty string.
+
+## [0.30.63-dev.4](https://github.com/Forsigh/waze-patches/releases/tag/v0.30.63-dev.4) (2026-11-18)
+
+### Changed
+* The audio partner row now adds its entries to Waze's own partner arrays instead of building a partner object itself, so Waze builds every entry and runs its own install check. The forced availability result is gone with it.
+
+## [0.30.63-dev.3](https://github.com/Forsigh/waze-patches/releases/tag/v0.30.63-dev.3) (2026-11-17)
+
+### Fixed
+* Audio partners (YouTube Music, Morphe YouTube Music) stopped connecting after the dev builds. This build is the 0.30.61 source exactly - the Android Auto heads-up distance row is out as well, since its three config keys were never confirmed on 5.27.90.900 and a wrong key can poison the wait for the audio-extension flags.
+
 ## [0.30.61](https://github.com/Forsigh/waze-patches/releases/tag/v0.30.61) (2026-11-16)
 
 ### Fixed

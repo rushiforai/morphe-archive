@@ -1,0 +1,8 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="app.afterglow.qa.tabpresentation">
+    <uses-sdk android:minSdkVersion="29" android:targetSdkVersion="35" />
+    <queries><package android:name="app.morphe.android.youtube" /></queries>
+    <application android:debuggable="true" android:label="Afterglow tab presentation QA"
+        android:theme="@android:style/Theme.Material.Light.NoActionBar" />
+    <instrumentation android:name="app.afterglow.extension.navigation.TabPresentationRegression"
+        android:targetPackage="app.afterglow.qa.tabpresentation" android:label="Native tab layout regression" />
+</manifest>

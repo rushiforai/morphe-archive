@@ -5,6 +5,7 @@ import os
 import shutil
 import subprocess
 import tempfile
+import zipfile
 from pathlib import Path
 from typing import Literal
 
@@ -68,6 +69,16 @@ def build_patch_bundle(repo_root: Path) -> Path:
     return mpp_files[0]
 
 
+def is_derivative_artifact_name(name: str) -> bool:
+    """Returns True if the artifact name indicates it is a patched output rather than a clean source."""
+    name_lower = name.lower()
+    return (
+        name_lower.endswith(("-patched.apk", ".mpe"))
+        or "-patches-" in name_lower
+        or "_patched" in name_lower
+    )
+
+
 def find_app_artifact(target: str, repo_root: Path) -> Path | None:
     """Searches apk/, ~/Downloads/, and .apk-lab/ for matching APK/APKM/XAPK/APKS artifacts."""
     search_dirs = [
@@ -94,14 +105,13 @@ def find_app_artifact(target: str, repo_root: Path) -> Path | None:
             continue
 
         if candidates:
-            # Prefer non-patched artifacts, then sort by mtime descending
-            candidates.sort(
-                key=lambda p: (
-                    not p.name.endswith("-patched.apk"),
-                    p.stat().st_mtime,
-                ),
-                reverse=True,
-            )
+            # Prefer clean artifacts, then split containers, then sort by mtime descending
+            def _candidate_rank(p: Path) -> tuple[bool, bool, float]:
+                is_clean = not is_derivative_artifact_name(p.name)
+                is_split_bundle = p.suffix.lower() in {".apkm", ".xapk", ".apks"}
+                return (is_clean, is_split_bundle, p.stat().st_mtime)
+
+            candidates.sort(key=_candidate_rank, reverse=True)
             return candidates[0]
 
     return None
@@ -159,15 +169,44 @@ def zipalign_and_sign(
     apksigner = find_build_tools_bin("apksigner")
     ks = ensure_debug_keystore(keystore_path)
 
-    # 1. zipalign
-    align_cmd = [
-        str(zipalign),
-        "-f",
-        "4",
-        str(unsigned_apk.resolve()),
-        str(aligned_and_signed_apk.resolve()),
-    ]
+    # 0. Ensure native libraries are uncompressed (ZIP_STORED) for direct mmap on Android
+    has_compressed_so = False
+    if zipfile.is_zipfile(unsigned_apk):
+        with zipfile.ZipFile(unsigned_apk, "r") as zf:
+            for info in zf.infolist():
+                if (
+                    info.filename.endswith(".so")
+                    and info.compress_type != zipfile.ZIP_STORED
+                ):
+                    has_compressed_so = True
+                    break
+    apk_to_align = unsigned_apk
+    if has_compressed_so:
+        temp_uncompressed = unsigned_apk.with_suffix(".uncompressed.apk")
+        with (
+            zipfile.ZipFile(unsigned_apk, "r") as zin,
+            zipfile.ZipFile(temp_uncompressed, "w") as zout,
+        ):
+            for item in zin.infolist():
+                data = zin.read(item.filename)
+                if item.filename.endswith(".so"):
+                    zinfo = zipfile.ZipInfo(item.filename, item.date_time)
+                    zinfo.compress_type = zipfile.ZIP_STORED
+                    zout.writestr(zinfo, data)
+                else:
+                    zout.writestr(item, data)
+        apk_to_align = temp_uncompressed
+
+    # 1. zipalign with 4-byte / page alignment (-p if native libraries were adjusted)
+    align_cmd = [str(zipalign), "-f"]
+    if has_compressed_so:
+        align_cmd.append("-p")
+    align_cmd.extend(
+        ["4", str(apk_to_align.resolve()), str(aligned_and_signed_apk.resolve())]
+    )
     res_align = subprocess.run(align_cmd, capture_output=True, text=True, check=False)
+    if has_compressed_so and apk_to_align.exists():
+        apk_to_align.unlink(missing_ok=True)
     if res_align.returncode != 0:
         raise RuntimeError(f"zipalign failed: {res_align.stderr}")
 
@@ -415,17 +454,29 @@ def run_deploy(args: argparse.Namespace) -> int:
         assert mpp_arg is not None
         mpp_path = Path(mpp_arg)
 
+    artifact_path = Path(args.artifact)
+    package_name = getattr(args, "package", None)
+    if package_name is None:
+        package_name = inspect_artifact(artifact_path).package_name
+
+    enable = getattr(args, "enable", None) or []
+    all_defaults = getattr(args, "all", False)
+    if not all_defaults and not enable:
+        all_defaults = True
+
     result = deploy_artifact(
-        artifact_path=Path(args.artifact),
+        artifact_path=artifact_path,
         mpp_path=mpp_path,
-        package_name=args.package,
-        all_defaults=args.all,
-        enabled_patches=args.enable,
-        raw_options=args.options,
-        device_serial=args.device,
-        launch=args.launch,
-        clean_install=args.clean_install,
-        out_apk_path=Path(args.out) if args.out else None,
+        package_name=package_name,
+        all_defaults=all_defaults,
+        enabled_patches=enable,
+        raw_options=getattr(args, "options", None)
+        or getattr(args, "option", None)
+        or [],
+        device_serial=getattr(args, "device", None),
+        launch=getattr(args, "launch", False),
+        clean_install=getattr(args, "clean_install", False),
+        out_apk_path=Path(args.out) if getattr(args, "out", None) else None,
         keystore_path=Path(args.keystore) if getattr(args, "keystore", None) else None,
         ks_alias=getattr(args, "ks_alias", None),
         ks_pass=getattr(args, "ks_pass", None),

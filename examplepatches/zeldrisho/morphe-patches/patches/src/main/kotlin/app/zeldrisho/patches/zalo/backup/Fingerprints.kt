@@ -38,6 +38,14 @@ internal object BackupScheduler261002 : Fingerprint(
     definingClass = "Lxm/c;", name = "g", accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "Z", parameters = listOf("I"), filters = listOf(string("SERVER_CONFIG_SYNC_MESSAGE_INTERVAL_")),
 )
+internal object MediaBackupEligibility261101 : Fingerprint(
+    definingClass = "Loqy;", name = "l", accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.FINAL),
+    returnType = "Z", parameters = listOf("Lcom/zing/zalo/data/backuprestore/model/TargetBackupInfo;"),
+    filters = listOf(
+        app.morphe.patcher.fieldAccess(definingClass = "Landroid/util/Patterns;", name = "EMAIL_ADDRESS"),
+        methodCall(definingClass = "Ljava/util/regex/Matcher;", name = "matches", returnType = "Z"),
+    ),
+)
 internal object MediaBackupEligibility261002 : Fingerprint(
     definingClass = "Lxn/j;", name = "n", accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.FINAL),
     returnType = "Z", parameters = listOf("Lcom/zing/zalo/data/backuprestore/model/TargetBackupInfo;"),
@@ -53,6 +61,18 @@ internal object BackupConfiguration261002 : Fingerprint(
     filters = listOf(
         string("ENABLE_BACKUP_MEDIA"),
         methodCall(definingClass = "Lp60/p0;", name = "x", returnType = "V", parameters = listOf("Ljava/lang/String;", "Z", "Z")),
+    ),
+)
+
+internal object BackupConfiguration261101 : Fingerprint(
+    definingClass = "Lq41;", name = "h",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "V",
+    parameters = listOf("Lorg/json/JSONObject;", "Lorg/json/JSONObject;", "Lorg/json/JSONObject;", "Z"),
+    filters = listOf(
+        string("ENABLE_BACKUP_MEDIA"),
+        methodCall(definingClass = "Lcfj;", name = "r1", returnType = "V",
+            parameters = listOf("Ljava/lang/String;", "Z", "Z")),
     ),
 )
 

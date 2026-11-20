@@ -85,7 +85,36 @@ public final class PreviewTest {
         String note = new org.json.JSONObject(json).put("note_tweet", new org.json.JSONObject()
                 .put("note_tweet_results", new org.json.JSONObject().put("result", new org.json.JSONObject().put("text",longText)))).toString();
         check(XPostPreview.parse(note, "123").text.equals(longText), "Long-form note text retained");
-
+        String nearLimitReply = new org.json.JSONObject(json).put("text", "@a " + "漢".repeat(139))
+                .put("in_reply_to_status_id_str", "1").put("note_tweet", new org.json.JSONObject().put("id", "stub")).toString();
+        Haiagar.warningMode=1;
+        check(!XPostPreview.parse(nearLimitReply,"123").possiblyTruncated,"420-byte mode ignores reply handle and metadata-only note stub");
+        Haiagar.warningMode=0;
+        check(!XPostPreview.parse(nearLimitReply,"123").possiblyTruncated,"280-point mode ignores reply handle");
+        String exact280=new org.json.JSONObject(json).put("text","漢".repeat(140)).toString();
+        check(!XPostPreview.parse(exact280,"123").possiblyTruncated,"Detailed 280-point boundary remains displayable");
+        String above280=new org.json.JSONObject(json).put("text","漢".repeat(140)+"a").toString();
+        check(XPostPreview.parse(above280,"123").possiblyTruncated,"Detailed warning starts above 280 points");
+        String quoteAndImage = "@a " + "漢".repeat(114)
+                + " https://x.com/a/status/1 https://x.com/b/status/2 https://t.co/photo";
+        int mediaStart=quoteAndImage.indexOf("https://t.co/photo");
+        org.json.JSONObject mediaPost=new org.json.JSONObject(json).put("text",quoteAndImage)
+                .put("in_reply_to_status_id_str","1")
+                .put("entities",new org.json.JSONObject().put("media",new org.json.JSONArray()
+                        .put(new org.json.JSONObject().put("indices",new org.json.JSONArray().put(mediaStart).put(quoteAndImage.length())))));
+        Haiagar.warningMode=0;
+        check(!XPostPreview.parse(mediaPost.toString(),"123").possiblyTruncated,
+                "Detailed score excludes reply handle and attached t.co, counting quote-post URLs");
+        org.json.JSONObject noMediaMetadata=new org.json.JSONObject(json).put("text",quoteAndImage)
+                .put("in_reply_to_status_id_str","1");
+        check(XPostPreview.parse(noMediaMetadata.toString(),"123").possiblyTruncated,
+                "Detailed score counts quoted URLs and an unclassified t.co as text URLs");
+        String exact420 = new org.json.JSONObject(json).put("text", "漢".repeat(140)).toString();
+        Haiagar.warningMode=1;
+        check(XPostPreview.parse(exact420,"123").possiblyTruncated,"420-byte boundary warns at threshold");
+        String legacy = new org.json.JSONObject(json).put("text", "短文")
+                .put("legacy",new org.json.JSONObject().put("full_text",longText)).toString();
+        check(XPostPreview.parse(legacy,"123").text.equals(longText),"Legacy full_text takes precedence over excerpt");
         Class<?> entryType = Class.forName("app.morphe.extension.chmate.XPostPreview$Entry");
         var constructor = entryType.getDeclaredConstructor(); constructor.setAccessible(true);
         Object entry = constructor.newInstance();
@@ -108,6 +137,7 @@ public final class PreviewTest {
         check(view.getText().toString().startsWith(original + "\n\n"), "Inline preview appended only");
         check(view.getText().toString().contains("投稿者  @example"), "Author shown");
         check(view.getText().toString().contains(data.text), "Tweet literal content shown");
+        check(!Haiagaru.full,"Full text option defaults OFF in isolated settings fixture");
         check(source.toString().equals(original), "Native source not mutated");
         Spanned displayed = (Spanned) view.getText();
         check(displayed.getSpanStart(originalLink) == start && displayed.getSpanEnd(originalLink) == end,
@@ -153,6 +183,23 @@ public final class PreviewTest {
         MotionEvent moved=MotionEvent.obtain(100,125,MotionEvent.ACTION_MOVE,x,y+200,0);
         XPostPreviewTouch.onTouch(clickable,moved);XPostPreviewTouch.onTouch(clickable,up);
         check(recording.opened==null,"Dragging link never opens post");
+        Haiagaru.card=true;
+        XPostPreview.Data linked=XPostPreview.parse(new org.json.JSONObject(json)
+                .put("text","本文のリンク https://example.com/path). 続き")
+                .toString(),"123");
+        dataField.set(entry,linked);
+        TextView cardView=new ShownTextView(recording);
+        cardView.setText(XPostPreview.prepare(source),TextView.BufferType.SPANNABLE);
+        Spanned cardText=(Spanned)cardView.getText();
+        XPostPreviewTouch.PostLink[] bodyLinks=cardText.getSpans(0,cardText.length(),XPostPreviewTouch.PostLink.class);
+        XPostPreviewTouch.PostLink bodyLink=null;
+        for(XPostPreviewTouch.PostLink candidate:bodyLinks)if(candidate.getURL().equals("https://example.com/path"))bodyLink=candidate;
+        check(bodyLink!=null,"URL inside X post card is a clickable link");
+        check(cardText.subSequence(cardText.getSpanStart(bodyLink),cardText.getSpanEnd(bodyLink)).toString().equals("https://example.com/path"),"Card URL excludes trailing punctuation");
+        java.lang.reflect.Method cardUrls=Class.forName("app.morphe.extension.chmate.SiteCards").getDeclaredMethod("urls",CharSequence.class);
+        cardUrls.setAccessible(true);
+        java.util.List<?> previews=(java.util.List<?>)cardUrls.invoke(null,cardText);
+        check(previews.contains("https://example.com/path"),"Ordinary rich link-card extraction includes URLs inside the X preview");
         MotionEvent nativeDown=MotionEvent.obtain(200,200,MotionEvent.ACTION_DOWN,2,2,0);
         check(!XPostPreviewTouch.onTouch(clickable,nativeDown),"Native text touches not intercepted");
         down.recycle();up.recycle();moved.recycle();nativeDown.recycle();

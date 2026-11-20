@@ -136,6 +136,7 @@ Pasos:
     <string name="morphe_music_downloads_sort">Ordenar</string>
     <string name="morphe_music_downloads_started">Descarga iniciada</string>
     <string name="morphe_music_downloads_starting">Iniciando descarga…</string>
+    <string name="morphe_music_downloads_waiting_for_connection">Esperando conexión</string>
     <string name="morphe_music_downloads_storage_permission">Permite el acceso al almacenamiento y luego pulsa de nuevo Descargar</string>
     <string name="morphe_music_downloads_unknown_track">No se pudo identificar la pista que descargar</string>
     <string name="morphe_music_hide_you_may_also_like_section_title">Ocultar sección \'Quizás también te guste\'</string>
@@ -1052,4 +1053,8 @@ El ID del video que ves se envía a la API de Return YouTube Dislike, y tus me g
     <string name="revanced_webview_toast_unavailable">WebView no está disponible</string>
     <string name="morphe_music_auto_song_version_title">Reproducir siempre la versión de la canción</string>
     <string name="morphe_music_auto_song_version_summary">Reemplaza los vídeos musicales oficiales de la cola por la canción correspondiente. Requiere activar «No reproducir vídeos musicales» en la aplicación. Las pistas sin coincidencia exacta no cambian</string>
+    <string name="morphe_music_playlist_download_connect">Conéctate a Internet para continuar esta descarga</string>
+    <string name="morphe_music_playlist_ready">%1$d de %2$d listas</string>
+    <string name="morphe_music_playlist_resume">%1$d de %2$d listas · Reanudar</string>
+    <string name="morphe_music_playlist_partial_failed">%1$d de %2$d listas (%3$d fallidas) · Reanudar</string>
 </resources>

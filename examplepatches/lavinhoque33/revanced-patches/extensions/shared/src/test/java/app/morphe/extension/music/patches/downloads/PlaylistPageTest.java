@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-18.
  * Written by lavinhoque33, 2026-11-08.
  */
 package app.morphe.extension.music.patches.downloads;
@@ -123,6 +124,30 @@ public class PlaylistPageTest {
         } catch (IOException expected) {
             assertTrue(expected.getMessage().contains("playlist shelf"));
         }
+    }
+
+    @Test public void currentStreamMembershipIncludesOnlyTheCompleteNativePlaylist() throws Exception {
+        var first = firstPage(track(THIRD), unavailable(), continuationItem("page-2"));
+        assertEquals(List.of(THIRD, GHOST, FIRST, THIRD),
+                PlaylistPage.readPlaylist("PLtest", first, token -> {
+                    assertEquals("page-2", token);
+                    return nextPage(track(FIRST), track(THIRD));
+                }));
+    }
+
+    @Test public void truncatedOrForeignContinuationCannotReplacePendingMembership() throws Exception {
+        var first = firstPage(track(FIRST), continuationItem("page-2"));
+        assertThrows(IOException.class, () -> PlaylistPage.readPlaylist("PLtest", first, token -> nextPage()));
+        assertThrows(IOException.class, () -> PlaylistPage.readPlaylist("PLtest", first, token ->
+                firstPage(track(SECOND))));
+        assertThrows(IOException.class, () -> PlaylistPage.readPlaylist("PLtest", first, token ->
+                nextPage(track(SECOND), continuationItem(""))));
+        assertThrows(IOException.class, () -> PlaylistPage.readPlaylist("PLtest", first, token ->
+                nextPage(track(SECOND), continuationItem("page-2"))));
+        assertThrows(IOException.class, () -> PlaylistPage.readPlaylist("PLtest", first, token -> new JSONObject()));
+        var foreign = new JSONObject().put("musicPlaylistShelfRenderer", new JSONObject()
+                .put("playlistId", "PLdifferent").put("contents", new JSONArray().put(track(FIRST))));
+        assertThrows(IOException.class, () -> PlaylistPage.readPlaylist("PLtest", foreign, token -> nextPage()));
     }
 
     @Test public void aPlaylistOfOnlyUnavailableTracksHasNothingToDownload() throws Exception {

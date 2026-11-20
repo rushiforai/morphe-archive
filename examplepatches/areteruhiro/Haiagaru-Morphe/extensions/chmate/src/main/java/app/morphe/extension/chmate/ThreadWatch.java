@@ -80,6 +80,10 @@ public final class ThreadWatch {
         android.widget.Switch ng=new android.widget.Switch(a);ng.setText("NGされたレスの返信通知を無効にする");
         ng.setChecked(NotificationNg.enabled(a));box.addView(ng);
         ng.setOnCheckedChangeListener((button,value)->FeatureSwitches.prefs(a).edit().putBoolean(NotificationNg.KEY,value).apply());
+        android.widget.Switch chain=new android.widget.Switch(a);chain.setText("連鎖NGされたレスへの返信も通知しない");
+        chain.setChecked(FeatureSwitches.prefs(a).getBoolean(NotificationNg.CHAIN_KEY,false));box.addView(chain);
+        chain.setOnCheckedChangeListener((button,value)->FeatureSwitches.prefs(a).edit().putBoolean(NotificationNg.CHAIN_KEY,value).apply());
+        android.widget.TextView chainHelp=new android.widget.TextView(a);chainHelp.setText("OFFでは、NGレスにアンカーしただけの別IDの返信は通知されます。ONにすると、連鎖NGの対象も通知から除外します。");box.addView(chainHelp);
         android.widget.Button button=new android.widget.Button(a);button.setText("スレの新着通知・書き込み後の自動監視");button.setAllCaps(false);box.addView(button);
         button.setOnClickListener(v->showDefaults(a));
         ThreadWatchManagement.addButton(box,a);
@@ -339,7 +343,7 @@ public final class ThreadWatch {
             try(InputStream in=c.getInputStream();ByteArrayOutputStream out=new ByteArrayOutputStream()){
                 byte[] b=new byte[8192];int n;while((n=in.read(b))!=-1){if(stopped.get())throw new InterruptedIOException();if(out.size()+n>4*1024*1024)throw new IOException("Size");out.write(b,0,n);}
                 String type=c.getContentType();java.util.regex.Matcher charset=java.util.regex.Pattern.compile("charset\\s*=\\s*[\"']?([^;\\s\"']+)",2).matcher(type==null?"":type);
-                return new String(out.toByteArray(),Charset.forName(charset.find()?charset.group(1):url.contains("eddibb.cc/")?"UTF-8":url.contains("jbbs.shitaraba.net/")?"EUC-JP":"MS932"));
+                return NotificationDatText.decode(out.toByteArray(),charset.find()?charset.group(1):url.contains("eddibb.cc/")?"UTF-8":url.contains("jbbs.shitaraba.net/")?"EUC-JP":"MS932");
             }
         }finally{c.disconnect();}
     }

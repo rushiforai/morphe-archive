@@ -1,0 +1,22 @@
+[versions]
+morphe-patcher = "2.4.0"
+#noinspection GradleDependency
+smali = "5eaff5a2c9"
+gson = "2.15.0"
+# Versions bundled by Meesho; the extension compiles against them but never ships them.
+okhttp = "4.9.2"
+retrofit = "2.9.0"
+kotlin-stdlib = "2.2.0"
+json = "20180813"
+junit = "4.13.2"
+
+[libraries]
+okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
+retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
+kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin-stdlib" }
+json = { module = "org.json:json", version.ref = "json" }
+junit = { module = "junit:junit", version.ref = "junit" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+# Gradle plugins adds the dependency during build, this declaration is here only for dependabot to provide updates.
+#noinspection UnusedVersionCatalogEntry
+morphe-patcher = { module = "app.morphe:morphe-patcher", version.ref = "morphe-patcher" }

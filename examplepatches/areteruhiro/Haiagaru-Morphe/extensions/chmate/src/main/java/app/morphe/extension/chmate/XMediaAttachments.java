@@ -129,7 +129,7 @@ public final class XMediaAttachments {
         if (media == null || media.length()==0){
             media=new JSONArray();JSONObject video=post.optJSONObject("video");if(video!=null)media.put(video);
         }
-        for (int i = 0; i < media.length() && i < 16; i++) {
+        for (int i = 0; i < media.length(); i++) {
             JSONObject item = media.optJSONObject(i);
             if (item == null) continue;
             String thumbnail = item.optString("media_url_https");

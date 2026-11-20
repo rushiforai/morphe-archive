@@ -11,6 +11,7 @@ import type {
   PatchCompatibilityStatus,
   PlayMediaAsset,
   PlayMetadataSubmission,
+  PlayReview,
   PlayStoreMetadata,
   PlayVersionSource,
   WorkerEnv,
@@ -49,6 +50,70 @@ export function timingSafeEqual(a: string, b: string): boolean {
     c |= a.charCodeAt(i) ^ b.charCodeAt(i);
   }
   return c === 0;
+}
+
+export function reconcileMediaAsset(
+  newAsset: PlayMediaAsset | null | undefined,
+  priorAsset: PlayMediaAsset | null | undefined,
+): PlayMediaAsset | null {
+  if (!newAsset) {
+    return null;
+  }
+  if (
+    priorAsset &&
+    priorAsset.fallbackPath &&
+    newAsset.sourceUrl === priorAsset.sourceUrl
+  ) {
+    return {
+      ...newAsset,
+      fallbackPath: newAsset.fallbackPath ?? priorAsset.fallbackPath,
+    };
+  }
+  return newAsset;
+}
+
+export function reconcileMediaAssetsList(
+  newAssets: PlayMediaAsset[],
+  priorAssets: PlayMediaAsset[] | null | undefined,
+): PlayMediaAsset[] {
+  if (!priorAssets || priorAssets.length === 0) {
+    return newAssets;
+  }
+  const priorMap = new Map<string, PlayMediaAsset>();
+  for (const asset of priorAssets) {
+    if (asset?.sourceUrl) {
+      priorMap.set(asset.sourceUrl, asset);
+    }
+  }
+  return newAssets.map((asset) => {
+    const prior = priorMap.get(asset.sourceUrl);
+    return reconcileMediaAsset(asset, prior) ?? asset;
+  });
+}
+
+export function reconcileReviews(
+  newReviews: PlayReview[],
+  priorReviews: PlayReview[] | null | undefined,
+): PlayReview[] {
+  if (!priorReviews || priorReviews.length === 0) {
+    return newReviews;
+  }
+  const priorAvatarMap = new Map<string, PlayMediaAsset>();
+  for (const review of priorReviews) {
+    if (review?.avatar?.sourceUrl) {
+      priorAvatarMap.set(review.avatar.sourceUrl, review.avatar);
+    }
+  }
+  return newReviews.map((review) => {
+    if (!review.avatar) {
+      return review;
+    }
+    const priorAvatar = priorAvatarMap.get(review.avatar.sourceUrl);
+    return {
+      ...review,
+      avatar: reconcileMediaAsset(review.avatar, priorAvatar),
+    };
+  });
 }
 
 export function appRecordKey(packageName: string): string {
@@ -189,7 +254,7 @@ export async function performVersionCheck(
     let iconAsset: PlayMediaAsset | null = scraped.iconUrl
       ? buildMediaAsset(scraped.iconUrl, null, null, `${app.name} icon`)
       : (priorRecord?.iconAsset ?? null);
-
+    iconAsset = reconcileMediaAsset(iconAsset, priorRecord?.iconAsset);
     let updatedAt = scraped.updatedAt || priorRecord?.updatedAt || null;
     let updatedOn = scraped.updatedOn || priorRecord?.updatedOn || null;
     let status: FreshnessStatus;
@@ -319,7 +384,10 @@ export async function performVersionCheck(
             : (priorMeta?.contentRating ?? null),
         contentRatingIcon:
           sMeta?.contentRatingIcon !== undefined
-            ? sMeta.contentRatingIcon
+            ? reconcileMediaAsset(
+                sMeta.contentRatingIcon,
+                priorMeta?.contentRatingIcon,
+              )
             : (priorMeta?.contentRatingIcon ?? null),
         releasedOn:
           sMeta?.releasedOn !== undefined
@@ -334,16 +402,22 @@ export async function performVersionCheck(
             ? sMeta.inAppPurchases
             : (priorMeta?.inAppPurchases ?? null),
         permissionGroups:
-          sMeta?.permissionGroups !== undefined
+          sMeta?.permissionGroups && sMeta.permissionGroups.length > 0
             ? sMeta.permissionGroups
             : (priorMeta?.permissionGroups ?? []),
         screenshots:
-          sMeta?.screenshots !== undefined
-            ? sMeta.screenshots
+          sMeta?.screenshots && sMeta.screenshots.length > 0
+            ? reconcileMediaAssetsList(
+                sMeta.screenshots,
+                priorMeta?.screenshots,
+              )
             : (priorMeta?.screenshots ?? []),
         featuredReviews:
-          sMeta?.featuredReviews !== undefined
-            ? sMeta.featuredReviews
+          sMeta?.featuredReviews && sMeta.featuredReviews.length > 0
+            ? reconcileReviews(
+                sMeta.featuredReviews,
+                priorMeta?.featuredReviews,
+              )
             : (priorMeta?.featuredReviews ?? []),
       };
     }
@@ -666,7 +740,14 @@ export default {
       const updatedRecord: AppVersionRecord = {
         appName: body.appName,
         playVersion: prior?.playVersion ?? null,
+        playVersionCode: prior?.playVersionCode ?? null,
+        playVersionSource: prior?.playVersionSource ?? null,
+        playVersionVerifiedForUpdatedAt:
+          prior?.playVersionVerifiedForUpdatedAt ?? null,
+        needsAuthenticatedVersion: prior?.needsAuthenticatedVersion ?? false,
         iconUrl: prior?.iconUrl ?? null,
+        iconAsset: prior?.iconAsset ?? null,
+        playMetadata: prior?.playMetadata ?? null,
         updatedAt: prior?.updatedAt ?? null,
         updatedOn: prior?.updatedOn ?? null,
         checkedAt: prior?.checkedAt ?? now,
@@ -681,7 +762,6 @@ export default {
         outstandingRequest,
         outstandingRequestId: body.requestId,
       };
-
       await saveAppRecord(env, body.packageName, updatedRecord);
 
       return new Response(
@@ -1395,6 +1475,61 @@ export default {
           'Cache-Control': 'public, max-age=3600, s-maxage=3600',
         },
       });
+    }
+
+    // 4.5. Dedicated lightweight version API endpoint: GET /api/version/:packageName
+    if (
+      (url.pathname === '/api/version' ||
+        url.pathname.startsWith('/api/version/')) &&
+      (request.method === 'GET' || request.method === 'HEAD')
+    ) {
+      const rawPkg = url.pathname.replace(/^\/api\/version\/?/, '').trim();
+      let packageName = decodeURIComponent(rawPkg);
+      if (packageName.toLowerCase() === 'fizz') {
+        packageName = 'com.ashtoncofer.Buzz';
+      }
+      if (!packageName) {
+        return new Response(JSON.stringify({ error: 'Missing package name' }), {
+          status: 400,
+          headers: {
+            ...PUBLIC_CORS_HEADERS,
+            'Content-Type': 'application/json',
+          },
+        });
+      }
+
+      const record = await loadAppRecord(env, packageName);
+      if (!record || !record.playVersion) {
+        return new Response(
+          JSON.stringify({ error: 'App version not found' }),
+          {
+            status: 404,
+            headers: {
+              ...PUBLIC_CORS_HEADERS,
+              'Content-Type': 'application/json',
+            },
+          },
+        );
+      }
+
+      const payload = {
+        packageName,
+        versionName: record.playVersion,
+        versionCode: record.playVersionCode ?? null,
+        updatedAt: record.updatedAt ?? record.checkedAt ?? null,
+      };
+
+      return new Response(
+        request.method === 'HEAD' ? null : JSON.stringify(payload),
+        {
+          status: 200,
+          headers: {
+            ...PUBLIC_CORS_HEADERS,
+            'Content-Type': 'application/json',
+            'Cache-Control': 'public, max-age=3600',
+          },
+        },
+      );
     }
 
     // 5. Public Status endpoint (GET / or GET /api/status)

@@ -47,16 +47,16 @@ public final class GlobalTitleSearch {
         LiveSettings.Toggle toggle=new LiveSettings.Toggle(activity);toggle.setText("全板検索に登録済みの外部板・bbspinkも含める");toggle.setChecked(prefs.getBoolean(KEY,false));root.addView(toggle);
         TextView help=new TextView(activity);help.setText("HOMEの「全板から検索」に、有効な外部板とbbspinkを含めます。\n\n高速：取得済みの一覧を端末内で検索します。検索中の追加通信はありません。\n最新：未取得の板や新しいスレを含めるため、対象板の一覧を取得して検索します（2並列・最大30秒）。取得できた結果だけを表示します。\n\n本文はスレを開いたときに取得します。");help.setTextSize(13);help.setSingleLine(false);help.setMaxLines(Integer.MAX_VALUE);help.setHorizontallyScrolling(false);help.setEllipsize(null);help.setIncludeFontPadding(true);help.setPadding(0,8,0,8);root.addView(help,new LinearLayout.LayoutParams(-1,-2));
         Spinner mode=new Spinner(activity);mode.setAdapter(new ArrayAdapter<>(activity,android.R.layout.simple_spinner_dropdown_item,new String[]{"高速：保存済みのスレ一覧から検索","最新：対象板のスレ一覧を取得して検索"}));
-        mode.setSelection(prefs.getInt(MODE,0)==1?1:0);root.addView(mode);
-        mode.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener(){public void onNothingSelected(AdapterView<?> parent){}public void onItemSelected(AdapterView<?> parent,android.view.View view,int position,long id){if(prefs.getInt(MODE,0)!=position){prefs.edit().putInt(MODE,position).apply();Job job=ACTIVE.getAndSet(null);if(job!=null)job.cancel();}}});
+        mode.setSelection(prefs.getInt(MODE,1)==1?1:0);root.addView(mode);
+        mode.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener(){public void onNothingSelected(AdapterView<?> parent){}public void onItemSelected(AdapterView<?> parent,android.view.View view,int position,long id){if(prefs.getInt(MODE,1)!=position){prefs.edit().putInt(MODE,position).apply();Job job=ACTIVE.getAndSet(null);if(job!=null)job.cancel();}}});
         Button choose=new Button(activity);choose.setText("検索対象の外部板を選ぶ");choose.setOnClickListener(v->GlobalTitleSearchBoards.show(activity));root.addView(choose);
-        toggle.setOnCheckedChangeListener((button,on)->{prefs.edit().putBoolean(KEY,on).apply();if(!on){Job job=ACTIVE.getAndSet(null);if(job!=null)job.cancel();}});
+        toggle.setOnCheckedChangeListener((button,on)->{SharedPreferences.Editor edit=prefs.edit().putBoolean(KEY,on);if(on&&!prefs.contains(MODE))edit.putInt(MODE,1);edit.apply();if(!on){Job job=ACTIVE.getAndSet(null);if(job!=null)job.cancel();}});
     }
     private static boolean enabled(Context c){return c!=null&&c.getSharedPreferences(PREFS,0).getBoolean(KEY,false);}
     public static void capture(Object provider,String query){
         Context context=Haiagaru.applicationContextForExtension();
         if(!enabled(context)||query==null||query.trim().isEmpty()||query.length()>512)return;
-        Job job=new Job(query,context.getSharedPreferences(PREFS,0).getInt(MODE,0)!=1);Job old=ACTIVE.getAndSet(job);if(old!=null)old.cancel();QUERIES.put(provider,job);
+        Job job=new Job(query,context.getSharedPreferences(PREFS,0).getInt(MODE,1)!=1);Job old=ACTIVE.getAndSet(job);if(old!=null)old.cancel();QUERIES.put(provider,job);
     }
     /** Called on the native network worker, before its original TSV parser. */
     public static String extend(Object provider,String original){

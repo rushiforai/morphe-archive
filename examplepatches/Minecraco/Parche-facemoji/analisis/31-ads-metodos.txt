@@ -1,0 +1,190 @@
+4 ficheros DEX, 164880 cadenas distintas
+
+### Lcom/baidu/simeji/admaster/AdMasterTestActivity;
+    static constructor     <clinit>()V  -> V
+    public constructor     <init>()V  -> V
+    public static synthetic O0(Lcom/baidu/simeji/admaster/AdMasterTestActivity; Landroid/view/View;)V  -> V
+    public static synthetic P0(Lcom/baidu/simeji/admaster/AdMasterTestActivity; Landroid/view/View;)V  -> V
+    public static synthetic Q0(Lcom/baidu/simeji/admaster/AdMasterTestActivity; Landroid/view/View;)V  -> V
+    public static synthetic R0(Landroid/view/View;)V  -> V
+    public static synthetic S0(Lcom/baidu/simeji/admaster/AdMasterTestActivity; Landroid/view/View;)V  -> V
+    public static synthetic T0(Lcom/baidu/simeji/admaster/AdMasterTestActivity; Landroid/view/View;)V  -> V
+    private static final   U0(Landroid/view/View;)V  -> V
+    private static final   V0(Lcom/baidu/simeji/admaster/AdMasterTestActivity; Landroid/view/View;)V  -> V
+    private static final   W0(Lcom/baidu/simeji/admaster/AdMasterTestActivity; Landroid/view/View;)V  -> V
+    private static final   X0(Lcom/baidu/simeji/admaster/AdMasterTestActivity; Landroid/view/View;)V  -> V
+    private static final   Y0(Lcom/baidu/simeji/admaster/AdMasterTestActivity; Landroid/view/View;)V  -> V
+    private static final   Z0(Lcom/baidu/simeji/admaster/AdMasterTestActivity; Landroid/view/View;)V  -> V
+    protected              onCreate(Landroid/os/Bundle;)V  -> V
+
+### Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;
+    static constructor     <clinit>()V  -> V
+    private constructor    <init>()V  -> V
+    public static final    b()Z  -> Z
+    public static final    c()Z  -> Z
+    public static final    f()Ljava/lang/String;  -> Ljava/lang/String;
+    public static final    h()J  -> J
+    public static final    i()Z  -> Z
+    public static final    j()Z  -> Z
+    public static final    k()Z  -> Z
+    public static final    l(Landroid/content/Context;)Z  -> Z
+    public static final    m()Z  -> Z
+    public static final    n()Z  -> Z
+    private static final   o()Z  -> Z
+    public static final    p()V  -> V
+    public static final    q()V  -> V
+    public static final    r(Ljava/lang/String;)V  -> V
+    public final           a()Z  -> Z
+    public final           d()Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$EcommerceSuggestionSwitch;  -> Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$EcommerceSuggestionSwitch;
+    public final           e()Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;  -> Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;
+    public final           g()Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$AdSuggestionSwitch;  -> Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$AdSuggestionSwitch;
+
+### Lcom/baidu/simeji/plutus/adsuggestion/c;
+    static constructor     <clinit>()V  -> V
+    private constructor    <init>()V  -> V
+    public static synthetic a()Lokhttp3/v;  -> Lokhttp3/v;
+    public static synthetic b(Ljava/lang/String; Ljava/lang/String; Lkotlin/text/MatchResult;)Ljava/lang/CharSequence;  -> Ljava/lang/CharSequence;
+    public static final synthetic c(Lcom/baidu/simeji/plutus/adsuggestion/c; Ljava/lang/String; Ljava/lang/String;)Ljava/lang/String;  -> Ljava/lang/String;
+    public static final synthetic d(Lcom/baidu/simeji/plutus/adsuggestion/c; Ljava/lang/String; Ljava/lang/String;)Ljava/lang/String;  -> Ljava/lang/String;
+    public static final synthetic e(Lcom/baidu/simeji/plutus/adsuggestion/c; Ljava/lang/String; Ljava/lang/String; Ljava/lang/String; Lkotlin/coroutines/d;)Ljava/lang/Object;  -> Ljava/lang/Object;
+    public static final synthetic f(Lcom/baidu/simeji/plutus/adsuggestion/c; Landroid/content/Context; Ljava/lang/String; Ljava/lang/String;)V  -> V
+    private final          g(Ljava/lang/String; Ljava/lang/String;)Ljava/lang/String;  -> Ljava/lang/String;
+    private final          h(Ljava/lang/String; Ljava/lang/String; Ljava/lang/String;)Ljava/lang/String;  -> Ljava/lang/String;
+    private final          i(Landroid/net/Uri; Ljava/lang/String;)Landroid/content/Intent;  -> Landroid/content/Intent;
+    private final          k()Lokhttp3/v;  -> Lokhttp3/v;
+    private static final   l()Lokhttp3/v;  -> Lokhttp3/v;
+    private final          n(Landroid/content/Context; Landroid/net/Uri; Ljava/lang/String;)V  -> V
+    private final          o(Ljava/lang/String; Ljava/lang/String; Ljava/lang/String;)Ljava/lang/String;  -> Ljava/lang/String;
+    private static final   p(Ljava/lang/String; Ljava/lang/String; Lkotlin/text/MatchResult;)Ljava/lang/CharSequence;  -> Ljava/lang/CharSequence;
+    private final          q(Ljava/lang/String; Ljava/lang/String;)Ljava/lang/String;  -> Ljava/lang/String;
+    private final          r(Ljava/lang/String; Ljava/lang/String; Ljava/lang/String; Lkotlin/coroutines/d;)Ljava/lang/Object;  -> Ljava/lang/Object;
+    private final          s(Landroid/content/Context; Ljava/lang/String; Ljava/lang/String;)V  -> V
+    public final           j(Ljava/lang/String; Ljava/lang/String; Ljava/lang/String;)V  -> V
+    public final           m(Landroid/content/Context; I Ljava/lang/String; Ljava/lang/String; Ljava/lang/String; Ljava/lang/String;)V  -> V
+
+### Lcom/baidu/simeji/plutus/adsuggestion/data/BusinessSugModel;
+    public constructor     <init>()V  -> V
+    public final           getActionText()Ljava/lang/String;  -> Ljava/lang/String;
+    public final           getCategory()Ljava/lang/String;  -> Ljava/lang/String;
+    public final           getClickId()Ljava/lang/String;  -> Ljava/lang/String;
+    public final           getClickUrl()Ljava/lang/String;  -> Ljava/lang/String;
+    public final           getClickUrls()Ljava/util/List;  -> Ljava/util/List;
+    public final           getDelayTime()I  -> I
+    public final           getDestUrl()Ljava/lang/String;  -> Ljava/lang/String;
+    public final           getDevloper()Ljava/lang/String;  -> Ljava/lang/String;
+    public final           getDownloadCount()Ljava/lang/String;  -> Ljava/lang/String;
+    public final           getHighLightPosStr()Ljava/lang/String;  -> Ljava/lang/String;
+    public final           getIcon()Ljava/lang/String;  -> Ljava/lang/String;
+    public final           getId()Ljava/lang/String;  -> Ljava/lang/String;
+    public final           getImpUrl()Ljava/lang/String;  -> Ljava/lang/String;
+    public final           getImpUrls()Ljava/util/List;  -> Ljava/util/List;
+    public final           getJumpType()Ljava/lang/String;  -> Ljava/lang/String;
+    public final           getLimit()I  -> I
+    public final           getName()Ljava/lang/String;  -> Ljava/lang/String;
+    public final           getPackageName()Ljava/lang/String;  -> Ljava/lang/String;
+    public final           getPid()Ljava/lang/String;  -> Ljava/lang/String;
+    public final           getPosition()I  -> I
+    public final           getPreTrackUrl()Ljava/lang/String;  -> Ljava/lang/String;
+    public final           getPrefix()Ljava/lang/String;  -> Ljava/lang/String;
+    public final           getReferrerType()Ljava/lang/String;  -> Ljava/lang/String;
+    public final           getScore()Ljava/lang/String;  -> Ljava/lang/String;
+    public final           getSrc()Ljava/lang/String;  -> Ljava/lang/String;
+    public final           getStore()Ljava/lang/String;  -> Ljava/lang/String;
+    public final           getSugModel()Ljava/lang/Object;  -> Ljava/lang/Object;
+    public final           getTYPE_DETAIL()Ljava/lang/String;  -> Ljava/lang/String;
+    public final           getTYPE_HEADER()Ljava/lang/String;  -> Ljava/lang/String;
+    public final           getTYPE_SEARCH()Ljava/lang/String;  -> Ljava/lang/String;
+    public final           getType()I  -> I
+    public final           isAd()Z  -> Z
+    public final           parseData(Lorg/json/JSONObject;)Z  -> Z
+    public final           setActionText(Ljava/lang/String;)V  -> V
+    public final           setAd(Z)V  -> V
+    public final           setCategory(Ljava/lang/String;)V  -> V
+    public final           setClickId(Ljava/lang/String;)V  -> V
+    public final           setClickUrl(Ljava/lang/String;)V  -> V
+    public final           setClickUrls(Ljava/util/List;)V  -> V
+    public final           setDelayTime(I)V  -> V
+    public final           setDestUrl(Ljava/lang/String;)V  -> V
+    public final           setDevloper(Ljava/lang/String;)V  -> V
+    public final           setDownloadCount(Ljava/lang/String;)V  -> V
+    public final           setHighLightPosStr(Ljava/lang/String;)V  -> V
+    public final           setIcon(Ljava/lang/String;)V  -> V
+    public final           setId(Ljava/lang/String;)V  -> V
+    public final           setImpUrl(Ljava/lang/String;)V  -> V
+    public final           setImpUrls(Ljava/util/List;)V  -> V
+    public final           setJumpType(Ljava/lang/String;)V  -> V
+    public final           setLimit(I)V  -> V
+    public final           setName(Ljava/lang/String;)V  -> V
+    public final           setPackageName(Ljava/lang/String;)V  -> V
+    public final           setPid(Ljava/lang/String;)V  -> V
+    public final           setPosition(I)V  -> V
+    public final           setPreTrackUrl(Ljava/lang/String;)V  -> V
+    public final           setPrefix(Ljava/lang/String;)V  -> V
+    public final           setReferrerType(Ljava/lang/String;)V  -> V
+    public final           setScore(Ljava/lang/String;)V  -> V
+    public final           setSrc(Ljava/lang/String;)V  -> V
+    public final           setStore(Ljava/lang/String;)V  -> V
+    public final           setSugModel(Ljava/lang/Object;)V  -> V
+    public final           setType(I)V  -> V
+
+### Lcom/baidu/simeji/plutus/adsuggestion/data/b;
+    static constructor     <clinit>()V  -> V
+    private constructor    <init>()V  -> V
+    public static synthetic b(Lcom/baidu/simeji/plutus/adsuggestion/data/b; Ljava/lang/String; Z I Ljava/lang/Object;)Ljava/util/List;  -> Ljava/util/List;
+    public final           a(Ljava/lang/String; Z)Ljava/util/List;  -> Ljava/util/List;
+
+### Lcom/baidu/simeji/plutus/adsuggestion/data/c;
+    public abstract        a(Ljava/lang/String; Ljava/lang/String; Lkotlin/coroutines/d;)Ljava/lang/Object;  -> Ljava/lang/Object;
+    public abstract        b(Ljava/lang/Object; Lkotlin/coroutines/d;)Ljava/lang/Object;  -> Ljava/lang/Object;
+
+### Lcom/baidu/simeji/plutus/adsuggestion/data/d;
+    static constructor     <clinit>()V  -> V
+    private constructor    <init>()V  -> V
+    public static synthetic b(Lcom/baidu/simeji/plutus/adsuggestion/data/d; Ljava/lang/String; I I Ljava/lang/Object;)V  -> V
+    public final           a(Ljava/lang/String; I)V  -> V
+    public final           c(Ljava/lang/String;)I  -> I
+
+### Lcom/baidu/simeji/plutus/adsuggestion/data/AdSuggestionNetInputFetcher;
+    static constructor     <clinit>()V  -> V
+    public constructor     <init>()V  -> V
+    private final          A(Ljava/lang/String; Ljava/lang/String;)Lcom/baidu/simeji/plutus/adsuggestion/data/AdSuggestionNetInputFetcher$EcommerceSugNetData;  -> Lcom/baidu/simeji/plutus/adsuggestion/data/AdSuggestionNetInputFetcher$EcommerceSugNetData;
+    private final          B(Ljava/lang/String;)Ljava/util/List;  -> Ljava/util/List;
+    public static synthetic c()Lcom/preff/kb/common/cache/LruCache;  -> Lcom/preff/kb/common/cache/LruCache;
+    public static final synthetic d(Lcom/baidu/simeji/plutus/adsuggestion/data/AdSuggestionNetInputFetcher; Ljava/lang/String;)Ljava/lang/String;  -> Ljava/lang/String;
+    public static final synthetic e(Lcom/baidu/simeji/plutus/adsuggestion/data/AdSuggestionNetInputFetcher;)Lcom/preff/kb/common/cache/LruCache;  -> Lcom/preff/kb/common/cache/LruCache;
+    public static final synthetic f(Lcom/baidu/simeji/plutus/adsuggestion/data/AdSuggestionNetInputFetcher; Ljava/lang/String;)Ljava/util/List;  -> Ljava/util/List;
+    public static final synthetic g(Lcom/baidu/simeji/plutus/adsuggestion/data/AdSuggestionNetInputFetcher; Ljava/lang/String; Ljava/lang/String;)Ljava/util/List;  -> Ljava/util/List;
+    public static final synthetic h(Lcom/baidu/simeji/plutus/adsuggestion/data/AdSuggestionNetInputFetcher; Ljava/lang/String; Ljava/lang/String;)Ljava/util/List;  -> Ljava/util/List;
+    public static final synthetic i(Lcom/baidu/simeji/plutus/adsuggestion/data/AdSuggestionNetInputFetcher;)Ljava/lang/String;  -> Ljava/lang/String;
+    public static final synthetic j(Lcom/baidu/simeji/plutus/adsuggestion/data/AdSuggestionNetInputFetcher;)Ljava/lang/String;  -> Ljava/lang/String;
+    public static final synthetic k(Lcom/baidu/simeji/plutus/adsuggestion/data/AdSuggestionNetInputFetcher;)Ljava/util/List;  -> Ljava/util/List;
+    public static final synthetic l(Lcom/baidu/simeji/plutus/adsuggestion/data/AdSuggestionNetInputFetcher; Ljava/lang/String;)V  -> V
+    public static final synthetic m(Lcom/baidu/simeji/plutus/adsuggestion/data/AdSuggestionNetInputFetcher; Ljava/lang/String; Lkotlin/coroutines/d;)Ljava/lang/Object;  -> Ljava/lang/Object;
+    public static final synthetic n(Lcom/baidu/simeji/plutus/adsuggestion/data/AdSuggestionNetInputFetcher; Ljava/lang/String;)V  -> V
+    public static final synthetic o(Lcom/baidu/simeji/plutus/adsuggestion/data/AdSuggestionNetInputFetcher; Ljava/lang/String;)V  -> V
+    public static final synthetic p(Lcom/baidu/simeji/plutus/adsuggestion/data/AdSuggestionNetInputFetcher; Ljava/util/List;)V  -> V
+    private final          q(Ljava/lang/String;)Ljava/lang/String;  -> Ljava/lang/String;
+    private static final   r()Lcom/preff/kb/common/cache/LruCache;  -> Lcom/preff/kb/common/cache/LruCache;
+    private final          s(Ljava/lang/String;)Ljava/util/List;  -> Ljava/util/List;
+    private final          t()Lcom/preff/kb/common/cache/LruCache;  -> Lcom/preff/kb/common/cache/LruCache;
+    private final          v(Ljava/lang/String;)Ljava/util/List;  -> Ljava/util/List;
+    private final          w(Ljava/lang/String; Ljava/lang/String;)Ljava/util/List;  -> Ljava/util/List;
+    private final          x(Ljava/lang/String; Ljava/lang/String;)Ljava/util/List;  -> Ljava/util/List;
+    private final          y(Ljava/lang/String;)V  -> V
+    private final          z(Ljava/lang/String; Lkotlin/coroutines/d;)Ljava/lang/Object;  -> Ljava/lang/Object;
+    public                 a(Ljava/lang/String; Ljava/lang/String; Lkotlin/coroutines/d;)Ljava/lang/Object;  -> Ljava/lang/Object;
+    public                 b(Ljava/lang/Object; Lkotlin/coroutines/d;)Ljava/lang/Object;  -> Ljava/lang/Object;
+    public final           u(Ljava/lang/String; Ljava/lang/String; Lkotlin/coroutines/d;)Ljava/lang/Object;  -> Ljava/lang/Object;
+
+### Lcom/baidu/simeji/plutus/adsuggestion/a;
+    public synthetic constructor <init>()V  -> V
+    public final           invoke()Ljava/lang/Object;  -> Ljava/lang/Object;
+
+### Lcom/baidu/simeji/plutus/adsuggestion/b;
+    public synthetic constructor <init>(Ljava/lang/String; Ljava/lang/String;)V  -> V
+    public final           invoke(Ljava/lang/Object;)Ljava/lang/Object;  -> Ljava/lang/Object;
+
+### Lcom/baidu/simeji/plutus/adsuggestion/data/a;
+    public synthetic constructor <init>()V  -> V
+    public final           invoke()Ljava/lang/Object;  -> Ljava/lang/Object;
+

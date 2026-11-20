@@ -38,6 +38,7 @@ private val CLONE_STRING_COUNTS_260801 = mapOf(
 internal fun expectedCloneStringCounts(version: String?): Map<String, Int> = when (version) {
     "26.08.01" -> CLONE_STRING_COUNTS_260801
     "26.10.02" -> CLONE_STRING_COUNTS_260801 + ("$ORIGINAL_ZALO_PACKAGE.provider" to 7)
+    "26.11.01" -> CLONE_STRING_COUNTS_260801 + ("$ORIGINAL_ZALO_PACKAGE.provider" to 7)
     else -> error("Zalo package rename: unsupported version $version")
 }
 

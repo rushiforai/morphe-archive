@@ -1,47 +1,13 @@
 package app.brokenn.patches.octogram.shared
 
-import com.android.tools.smali.dexlib2.iface.ClassDef
+import app.brokenn.patches.shared.instrs
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
-import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
-// Anchors that survive R8: kept org.telegram.tgnet class/field names, string
-// constants and TL constructors. All patches locate targets through these.
-
-fun Method.instrs() = implementation?.instructions?.toList() ?: emptyList()
-
-fun Method.stringConstants(): Set<String> =
-    instrs().mapNotNull { (it as? ReferenceInstruction)?.reference as? StringReference }
-        .map { it.string }.toSet()
-
-fun Method.fieldRefKeys(): Set<String> =
-    instrs().mapNotNull { (it as? ReferenceInstruction)?.reference as? FieldReference }
-        .map { "${it.definingClass}->${it.name}:${it.type}" }.toSet()
-
-fun Method.typeRefKeys(): Set<String> =
-    instrs().mapNotNull { (it as? ReferenceInstruction)?.reference as? TypeReference }
-        .map { it.type }.toSet()
-
-fun Method.constructsType(type: String): Boolean =
-    instrs().any {
-        (it as? ReferenceInstruction)?.reference is TypeReference &&
-            (it.reference as TypeReference).type == type
-    }
-
-fun Method.instanceOfs(type: String): Boolean =
-    instrs().any {
-        (it as? ReferenceInstruction)?.reference is TypeReference &&
-            (it.reference as TypeReference).type == type
-    }
-
-fun Method.readsField(fieldKey: String): Boolean = fieldKey in fieldRefKeys()
-
-fun Method.isStatic(): Boolean =
-    accessFlags and 0x0008 != 0
-
-fun ClassDef.classStrings(): Set<String> = methods.flatMap { it.stringConstants() }.toSet()
+// Anchors that survive R8: kept org.telegram.tgnet names, strings and TL constructors.
+// Generic instruction helpers live in app.brokenn.patches.shared.
 
 // isSecretMedia: first instruction reads messageOwner, second checks TL_message_secret.
 fun Method.startsWithMessageOwnerSecretCheck(): Boolean {

@@ -15,7 +15,7 @@ public final class SiteThreadMetadata {
     private static final Map<String,Long> CACHE=Collections.synchronizedMap(new LinkedHashMap<String,Long>(128,.75f,true){protected boolean removeEldestEntry(Map.Entry<String,Long> e){return size()>2000;}});
     private static final Map<String,Long> FAILED=Collections.synchronizedMap(new LinkedHashMap<String,Long>(128,.75f,true){protected boolean removeEldestEntry(Map.Entry<String,Long> e){return size()>2000;}});
     private static final Set<String> PENDING=ConcurrentHashMap.newKeySet();
-    private static final Map<Object,Boolean> ADAPTERS=Collections.synchronizedMap(new WeakHashMap<>());
+    private static final Map<Object,String> ADAPTERS=Collections.synchronizedMap(new WeakHashMap<>());
     private static final Map<String,Field> FIELDS=new ConcurrentHashMap<>();
     private static final ThreadLocal<Binding> CURRENT=new ThreadLocal<>();
     private static final AtomicBoolean REFRESH=new AtomicBoolean();
@@ -53,7 +53,7 @@ public final class SiteThreadMetadata {
             if(key==null)return;
             initialize(context);
             CURRENT.set(new Binding(gateway,key));
-            ADAPTERS.put(adapter,true);
+            ADAPTERS.put(adapter,key);
         }catch(Exception ignored){/* Only the exact registered site namespace is eligible. */}
     }
     public static void subject(Object row){
@@ -128,7 +128,7 @@ public final class SiteThreadMetadata {
         }catch(Exception unavailable){FAILED.put(key,SystemClock.elapsedRealtime()+15*60*1000);}finally{PENDING.remove(key);}});
     }
     private static void refresh(){
-        if(!REFRESH.compareAndSet(false,true))return;new Handler(Looper.getMainLooper()).postDelayed(()->{REFRESH.set(false);List<Object> adapters;synchronized(ADAPTERS){adapters=new ArrayList<>(ADAPTERS.keySet());}for(Object adapter:adapters)if(adapter!=null)try{adapter.getClass().getMethod("notifyDataSetChanged").invoke(adapter);}catch(Exception ignored){/* The next ordinary rebind still reads the cache. */}},500);
+        if(!REFRESH.compareAndSet(false,true))return;new Handler(Looper.getMainLooper()).postDelayed(()->{REFRESH.set(false);Map<Object,String> adapters;synchronized(ADAPTERS){adapters=new HashMap<>(ADAPTERS);}for(Map.Entry<Object,String> entry:adapters.entrySet()){Object adapter=entry.getKey();if(adapter!=null)try{SiteMomentumSort.refresh(adapter,entry.getValue());adapter.getClass().getMethod("notifyDataSetChanged").invoke(adapter);}catch(Exception ignored){/* The next ordinary rebind still reads the cache. */}}},500);
     }
     private SiteThreadMetadata(){}
 }

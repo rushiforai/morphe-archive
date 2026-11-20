@@ -46,6 +46,7 @@ import java.util.TimeZone;
 import app.morphe.extension.facebook.coexist.FamilySignatureTrust;
 import app.morphe.extension.facebook.comments.CommentOrder;
 import app.morphe.extension.facebook.comments.CommentsHeight;
+import app.morphe.extension.facebook.reels.BurnInGuard;
 import app.morphe.extension.facebook.reels.BurnInMode;
 import app.morphe.extension.facebook.reels.BurnInWait;
 import app.morphe.extension.facebook.reels.CleanReturn;
@@ -70,6 +71,7 @@ import app.morphe.extension.facebook.feed.ReactionCeiling;
 import app.morphe.extension.facebook.feed.TopicPacks;
 import app.morphe.extension.facebook.feed.TranslateLanguages;
 import app.morphe.extension.facebook.feed.SeenPosts;
+import app.morphe.extension.facebook.media.BufferSize;
 import app.morphe.extension.facebook.media.PlaybackQuality;
 import app.morphe.extension.facebook.media.RecentlyWatched;
 import app.morphe.extension.facebook.media.SurfaceQuality;
@@ -116,6 +118,7 @@ import app.morphe.extension.facebook.settings.ValueRows.BurnInGuardRow;
 import app.morphe.extension.facebook.settings.ValueRows.BurnInWaitRow;
 import app.morphe.extension.facebook.settings.ValueRows.CleanReturnRow;
 import app.morphe.extension.facebook.settings.ValueRows.FoldLinesRow;
+import app.morphe.extension.facebook.settings.ValueRows.VideoBufferRow;
 import app.morphe.extension.facebook.settings.ValueRows.HoldReactionRow;
 import app.morphe.extension.facebook.settings.ValueRows.NewRowMarkRow;
 import app.morphe.extension.facebook.settings.ValueRows.ReelDateStyleRow;
@@ -2890,6 +2893,25 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         return L10n.f("The dark boxes are %1$s percent black.", CaptionBackdrop.darknessPercent(text));
     }
 
+    /** Burn-in guard's Dim to row: how much of the dimmed controls still shows (#523). */
+    static ValueRows.PercentRow burnInLevelRow(Context context) {
+        return percentRow(context, Settings.BURN_IN_LEVEL, L10n.t("Dim to"),
+                L10n.f("How much of the buttons, caption and bars still shows once they dim, in percent, from %1$s "
+                        + "to %2$s. Leave it blank for %3$s.", BurnInGuard.MIN_LEVEL, BurnInGuard.MAX_LEVEL,
+                        BurnInGuard.DEFAULT_LEVEL),
+                BurnInGuard.DEFAULT_LEVEL, HushfacebookPreferenceFragment::burnInLevelSummary);
+    }
+
+    /** What the Dim to row says for [text], the digits typed there. */
+    static String burnInLevelSummary(String text) {
+        if (text == null || text.trim().isEmpty()) {
+            return L10n.f("Once dimmed, the buttons, caption and bars show at %1$s percent. Type a number to "
+                    + "change it.", BurnInGuard.DEFAULT_LEVEL);
+        }
+        return L10n.f("Once dimmed, the buttons, caption and bars show at %1$s percent.",
+                BurnInGuard.levelPercent(text));
+    }
+
     /** Rounded tab bar's Tab bar width row (#425). */
     static ValueRows.PercentRow tabBarWidthRow(Context context) {
         return percentRow(context, Settings.TAB_BAR_WIDTH, L10n.t("Tab bar width"),
@@ -3011,6 +3033,57 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
                 : L10n.t("Video stories follow the Default quality row.");
     }
 
+    /**
+     * How much of a video loads before it plays and stays loaded ahead (#526), under the Video
+     * quality heading. Its values are the setting's own names, as the quality rows' are.
+     */
+    static VideoBufferRow videoBufferRow(Context context) {
+        VideoBufferRow row = new VideoBufferRow(context);
+        row.setKey(Settings.VIDEO_BUFFER.key);
+        row.setTitle(L10n.t("Video buffer"));
+        row.setDialogTitle(L10n.t("Video buffer"));
+        row.setNegativeButtonText(L10n.t("Cancel"));
+        BufferSize[] choices = BufferSize.values();
+        CharSequence[] entries = new CharSequence[choices.length];
+        CharSequence[] values = new CharSequence[choices.length];
+        for (int i = 0; i < choices.length; i++) {
+            entries[i] = videoBufferLabel(choices[i]);
+            values[i] = choices[i].name();
+        }
+        row.setEntries(entries);
+        row.setEntryValues(values);
+        row.setValue(Settings.VIDEO_BUFFER.savedValue().name());
+        return row;
+    }
+
+    /** What the list and the import sentence call [size]. */
+    static String videoBufferLabel(BufferSize size) {
+        switch (size) {
+            case LOW:
+                return L10n.t("Low");
+            case MEDIUM:
+                return L10n.t("Medium");
+            case MAXIMUM:
+                return L10n.t("Maximum");
+            default:
+                return L10n.t("Facebook's choice");
+        }
+    }
+
+    /** What a video does with [size], for the row's summary. */
+    static String videoBufferSummary(BufferSize size) {
+        switch (size) {
+            case LOW:
+                return L10n.t("Videos start once half a second has loaded, and load less ahead.");
+            case MEDIUM:
+                return L10n.t("Videos wait for 1.5 seconds to load before they start, and load more ahead.");
+            case MAXIMUM:
+                return L10n.t("Videos wait for 3 seconds to load before they start, and load up to a minute ahead.");
+            default:
+                return L10n.t("Facebook decides how much of a video loads before and while it plays.");
+        }
+    }
+
     /** What the list calls [quality]: Auto, as Facebook's own quality menu calls it, and a ceiling by its label. */
     static String playbackQualityLabel(PlaybackQuality quality) {
         switch (quality) {
@@ -3122,6 +3195,8 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
             ((HoldReactionRow) listPreference).showSummary();
         } else if (listPreference instanceof FoldLinesRow) {
             ((FoldLinesRow) listPreference).showSummary();
+        } else if (listPreference instanceof VideoBufferRow) {
+            ((VideoBufferRow) listPreference).showSummary();
         } else if (listPreference instanceof ReelDateStyleRow) {
             ((ReelDateStyleRow) listPreference).showSummary();
         } else if (listPreference instanceof CommentsHeightRow) {

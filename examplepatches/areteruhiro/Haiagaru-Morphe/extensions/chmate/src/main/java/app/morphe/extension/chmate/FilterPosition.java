@@ -17,6 +17,8 @@ import java.util.WeakHashMap;
 
 /** One bounded, filter-specific anchor restoration; never changes filtering or network requests. */
 public final class FilterPosition {
+    static final String DELAYED_SNAPSHOT="filterDelayedPositionSnapshot";
+    static boolean delayedSnapshot(){return FeatureSwitches.enabled(DELAYED_SNAPSHOT,false);}
     private static final ArrayList<WeakReference<Object>> fragments = new ArrayList<>();
     private static final WeakHashMap<View, Pending> pending = new WeakHashMap<>();
     private static final java.util.HashMap<Class<?>, Field> responseFields = new java.util.HashMap<>();
@@ -36,7 +38,31 @@ public final class FilterPosition {
             }catch(Exception ignored){}
         }return null;
     }
+    static ThreadTarget currentVisibleThread(){
+        for(int i=fragments.size()-1;i>=0;i--){Object fragment=fragments.get(i).get();if(fragment==null)continue;
+            try{
+                View root=(View)fragment.getClass().getMethod("getView").invoke(fragment);
+                if(root==null||!root.isShown())continue;
+                android.app.Activity activity=Haiagaru.toolbarActivity(fragment);if(activity==null||activity.isFinishing())continue;
+                String version=activity.getPackageManager().getPackageInfo(activity.getPackageName(),0).versionName;
+                Object board=NativeThreadContext.board(fragment,version);if(board==null)continue;
+                String url=NativeThreadContext.url(board,version,1);if(url==null)continue;
+                java.util.regex.Matcher id=java.util.regex.Pattern.compile("(?:/|=)([0-9]{6,24})(?:/|\\?|#|&|$)").matcher(url);
+                long threadId=-1;while(id.find())threadId=Long.parseLong(id.group(1));
+                if(threadId>0)return new ThreadTarget(activity,board.toString(),threadId,HiddenNgUnread.key(url));
+            }catch(Exception ignored){}
+        }
+        return null;
+    }
+    static final class ThreadTarget{
+        final android.app.Activity activity;final String board;final long threadId;final String ngKey;
+        ThreadTarget(android.app.Activity activity,String board,long threadId,String ngKey){this.activity=activity;this.board=board;this.threadId=threadId;this.ngKey=ngKey;}
+    }
+    private static final ThreadLocal<Integer> CAPTURED_ACTION=new ThreadLocal<>();
+    static void beginCapturedAction(){Integer depth=CAPTURED_ACTION.get();CAPTURED_ACTION.set(depth==null?1:depth+1);}
+    static void endCapturedAction(){Integer depth=CAPTURED_ACTION.get();if(depth==null||depth<=1)CAPTURED_ACTION.remove();else CAPTURED_ACTION.set(depth-1);}
     public static void beforeModel(Object model) {
+        if(CAPTURED_ACTION.get()!=null)return;
         for (WeakReference<Object> ref : new ArrayList<>(fragments)) {
             Object fragment = ref.get();
             if (fragment == null) continue;
@@ -188,7 +214,11 @@ public final class FilterPosition {
         final Method item, count;
         final List<Object> before;
         final Object firstRow;
+        final Object presentation;
+        final boolean lazySnapshot;
         final int anchor, offset;
+        final Object anchorKey;
+        final int anchorResponse;
         final Handler handler = new Handler(Looper.getMainLooper());
         final Runnable timeout = this::close;
         boolean closed;
@@ -208,8 +238,10 @@ public final class FilterPosition {
             item = legacy ? adapter.getClass().getMethod("getItem", int.class) : findItem(adapter);
             count.setAccessible(true);
             item.setAccessible(true);
-            before = rows();
-            firstRow = before.isEmpty() ? null : item.invoke(adapter, 0);
+            presentation=presentation(adapter);
+            lazySnapshot=delayedSnapshot()&&presentation!=null;
+            before = lazySnapshot ? java.util.Collections.emptyList() : rows();
+            firstRow = ((Number)count.invoke(adapter)).intValue()==0 ? null : item.invoke(adapter, 0);
             ViewGroup group = (ViewGroup) list;
             int position = -1, top = 0;
             for (int i = 0; i < group.getChildCount(); i++) {
@@ -217,7 +249,8 @@ public final class FilterPosition {
                 if (child.getBottom() <= list.getPaddingTop()) continue;
                 int index = legacy ? ((ListView) list).getPositionForView(child)
                         : (Integer) call(list, "getChildAdapterPosition", new Class<?>[]{View.class}, child);
-                if (index >= 0 && index < before.size() && before.get(index) != null) {
+                if (index >= 0 && index < (lazySnapshot?(Integer)count.invoke(adapter):before.size())
+                        && (lazySnapshot||before.get(index) != null)) {
                     position = index;
                     top = child.getTop() - list.getPaddingTop();
                     break;
@@ -225,8 +258,14 @@ public final class FilterPosition {
             }
             anchor = position;
             offset = top;
+            anchorKey=position>=0?responseKey(item.invoke(adapter,position)):null;
+            anchorResponse=position>=0?responseNumber(item.invoke(adapter,position)):-1;
         }
 
+        private static Object presentation(Object adapter){
+            if(!adapter.getClass().getName().equals("o.zzacr"))return null;
+            try{Object differ=NativeFields.find(adapter.getClass(),"b").get(adapter);return call(differ,"c",new Class<?>[0]);}catch(Exception unavailable){return null;}
+        }
         private List<Object> rows() throws Exception {
             int size = (Integer) count.invoke(adapter);
             ArrayList<Object> result = new ArrayList<>(size);
@@ -244,6 +283,21 @@ public final class FilterPosition {
             if ((!required && !Haiagaru.keepQuickFilterPosition()) || !list.isShown()) { close(); return true; }
             try {
                 if (call(list, "getAdapter", new Class<?>[0]) != adapter) { close(); return true; }
+                // ListView notifies at commit; 242 publishes an immutable current list.
+                // Do not scan every response on every frame while native work is pending.
+                Object currentPresentation=presentation==null?null:presentation(adapter);
+                if(lazySnapshot&&!changed&&presentation!=null&&currentPresentation==presentation)return true;
+                if(lazySnapshot&&presentation!=null&&currentPresentation!=presentation){
+                    List<Object> after=rows();int target=-1;boolean exact=false;
+                    for(int i=0;i<after.size();i++)if(anchorKey!=null&&anchorKey==after.get(i)){target=i;exact=true;break;}
+                    if(target<0&&anchorResponse>0){int closest=Integer.MAX_VALUE;for(int i=0;i<after.size();i++){int number=responseNumber(item.invoke(adapter,i));if(number>0&&Math.abs(number-anchorResponse)<closest){closest=Math.abs(number-anchorResponse);target=i;}}}
+                    close();if(target<0)return true;
+                    if(target==anchor)return true;
+                    int top=exact?offset:0;
+                    if(list instanceof ListView)((ListView)list).setSelectionFromTop(target,top);
+                    else{Object manager=call(list,"getLayoutManager",new Class<?>[0]);call(list,"scrollToPosition",new Class<?>[]{int.class},target);Field pendingOffset=inheritedField(manager.getClass(),"k");pendingOffset.setAccessible(true);pendingOffset.setInt(manager,top);list.requestLayout();}
+                    return false;
+                }
                 List<Object> after = rows();
                 if (!changed && before.equals(after) && (after.isEmpty() || item.invoke(adapter, 0) == firstRow))
                     return true; // Wait for the asynchronous native list commit.

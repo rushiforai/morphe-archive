@@ -1,0 +1,24 @@
+4 ficheros DEX, 164880 cadenas distintas
+
+Lcom/baidu/simeji/bean/NewConvenientTabLayoutConfig;  (base.apk:classes.dex)
+Lcom/baidu/simeji/chatgpt/rizz2/view/RizzReplyRewriteTabView;  (base.apk:classes.dex)
+Lcom/baidu/simeji/database/DuKeyboardProvider;  (base.apk:classes.dex)
+Lcom/baidu/simeji/gamekbd/view/TabViewImpl;  (base.apk:classes.dex)
+Lcom/baidu/simeji/inputview/convenient/aa/Entry/DataBean;  (base.apk:classes2.dex)
+Lcom/baidu/simeji/lenses/LensesDataBean;  (base.apk:classes2.dex)
+Lcom/baidu/simeji/lottery/bean/LotteryDataBean;  (base.apk:classes2.dex)
+Lcom/baidu/simeji/ranking/widget/TabStripView;  (base.apk:classes2.dex)
+Lcom/baidu/simeji/skins/CommentListDataBean;  (base.apk:classes2.dex)
+Lcom/baidu/simeji/skins/customskin/CustomSkinTabStripView;  (base.apk:classes2.dex)
+Lcom/baidu/simeji/suggesticon/SuggestIconDataBean;  (base.apk:classes2.dex)
+Lcom/baidu/simeji/voice/pro/ui/VoiceDataBanner;  (base.apk:classes2.dex)
+Lcom/baidu/simeji/ranking/widget/RankingViewPagerTab;  (base.apk:classes2.dex)
+Lcom/baidu/simeji/skins/customskin/CustomSkinViewPagerTab;  (base.apk:classes2.dex)
+Lcom/baidu/simeji/widget/ClipboardConvenientTabView;  (base.apk:classes2.dex)
+Lcom/baidu/simeji/widget/ConvenientTabView;  (base.apk:classes2.dex)
+Lcom/baidu/simeji/widget/KpopConvenientTabView;  (base.apk:classes2.dex)
+Lcom/baidu/simeji/widget/SelectableRoundedImageView;  (base.apk:classes2.dex)
+Lcom/baidu/simeji/widget/TextEditConvenientTabView;  (base.apk:classes2.dex)
+Lcom/baidu/simeji/widget/ViewPagerTabs;  (base.apk:classes2.dex)
+
+20 clases coinciden con (?i)^Lcom/baidu/simeji/[^$]*(home|mainactivity|mainfragment|tab)[^$]*;

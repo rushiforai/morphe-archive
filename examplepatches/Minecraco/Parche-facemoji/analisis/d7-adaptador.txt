@@ -1,0 +1,12 @@
+4 ficheros DEX, 164880 cadenas distintas
+
+
+### Lcom/baidu/simeji/skins/u0;
+  .method <init>(Lcom/baidu/simeji/skins/v0;)V
+      invoke-direct           v0, Ljava/lang/Object;-><init>()V
+      iput-object             v1, v0, Lcom/baidu/simeji/skins/u0;->a Lcom/baidu/simeji/skins/v0;
+      return-void             
+  .method onClick(Landroid/view/View;)V
+      iget-object             v0, v1, Lcom/baidu/simeji/skins/u0;->a Lcom/baidu/simeji/skins/v0;
+      invoke-static           v0, v2, Lcom/baidu/simeji/skins/v0;->J2(Lcom/baidu/simeji/skins/v0; Landroid/view/View;)V
+      return-void             

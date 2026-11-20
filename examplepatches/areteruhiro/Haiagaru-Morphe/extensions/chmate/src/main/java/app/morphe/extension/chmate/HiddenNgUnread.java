@@ -7,6 +7,7 @@ import java.lang.reflect.*;
 /** Display-only unread adjustment. Never changes the native read position or database. */
 public final class HiddenNgUnread {
     public static final String KEY="excludeHiddenNgUnread";
+    public static final String NEW_ARRIVAL_KEY="excludeHiddenNgNewArrivals";
     private static volatile android.content.SharedPreferences preferences;
     // Called once per response on legacy renderers: do not resolve ContextImpl's
     // preferences file/cache on every row. Read the boolean itself live for toggles/imports.
@@ -16,6 +17,13 @@ public final class HiddenNgUnread {
             preferences=prefs=context.getSharedPreferences(WacchoiSearchOptions.PREFS,0);}
         return prefs.getBoolean(KEY,false);
     }
+    private static boolean newArrivalEnabled(){
+        android.content.SharedPreferences prefs=preferences;
+        if(prefs==null){Context context=Haiagaru.applicationContextForExtension();if(context==null)return false;
+            preferences=prefs=context.getSharedPreferences(WacchoiSearchOptions.PREFS,0);}
+        return prefs.getBoolean(NEW_ARRIVAL_KEY,false);
+    }
+    private static boolean trackingEnabled(){return enabled()||newArrivalEnabled();}
     private static final Map<Object,String> OWNERS=Collections.synchronizedMap(new WeakHashMap<>());
     private static final Map<Object,String> MODERN=Collections.synchronizedMap(new WeakHashMap<>());
     private static final java.util.concurrent.ConcurrentMap<Class<?>,Map<String,Field>> FIELDS=new java.util.concurrent.ConcurrentHashMap<>();
@@ -87,7 +95,7 @@ public final class HiddenNgUnread {
         }catch(Exception ignored){return null;}
     }
     static void begin(Object owner){
-        if(!enabled())return;
+        if(!trackingEnabled())return;
         try{boolean old=owner.getClass().getName().equals("o.m9ExternalSyntheticLambda1");
             Object list=field(owner,old?"K":"J"),board=field(field(owner,old?"M":"E"),old?"f":"j");
             List<?> rows=PopularReplies.fullList(list);if(rows.isEmpty())return;
@@ -98,7 +106,7 @@ public final class HiddenNgUnread {
         }catch(Exception ignored){OWNERS.remove(owner);}
     }
     static int observe(Object owner,Object response,int flags){
-        if(!enabled())return flags;
+        if(!trackingEnabled())return flags;
         try{String k=OWNERS.get(owner);if(k==null){begin(owner);k=OWNERS.get(owner);}if(k==null)return flags;
             synchronized(HIDDEN){Set<Integer> rows=HIDDEN.get(k);if(rows==null||((flags&0x1000)==0&&rows.isEmpty()))return flags;
                 int n=((Number)field(response,response.getClass().getName().equals("o.BouncyCastleSocketAdapterCompanion")?"l":"o")).intValue();
@@ -121,9 +129,26 @@ public final class HiddenNgUnread {
         int count=0;for(int n:hidden)if(n>read&&n<=total)count++;
         return Math.max(Math.min(read,total),total-count);
     }
-    static void bind242(Object result){try{List<?> rows=PopularReplies.fullList(field(result,"a"));if(rows.isEmpty())return;String k=key(responseUrl(rows.get(0),field(result,"d")));if(k!=null)MODERN.put(rows.get(0),k);}catch(Exception ignored){}}
+    /** Adjust only the per-update toast count. HOME/list unread calculations stay unchanged. */
+    public static int newArrivalCount(int previousTotal,int currentTotal){
+        int raw=Math.max(0,currentTotal-previousTotal);
+        if(raw==0||!newArrivalEnabled())return raw;
+        FilterPosition.ThreadTarget target=FilterPosition.currentVisibleThread();
+        if(target==null||target.ngKey==null)return raw;
+        synchronized(HIDDEN){
+            Set<Integer> hidden=HIDDEN.get(target.ngKey);if(hidden==null||hidden.isEmpty())return raw;
+            return adjustNewArrivalCount(previousTotal,currentTotal,hidden);
+        }
+    }
+    /** Pure range adjustment, also used by focused runtime verification. */
+    public static int adjustNewArrivalCount(int previousTotal,int currentTotal,Set<Integer> hidden){
+        int raw=Math.max(0,currentTotal-previousTotal);if(raw==0||hidden==null||hidden.isEmpty())return raw;
+        int excluded=0;for(int n:hidden)if(n>previousTotal&&n<=currentTotal)excluded++;
+        return Math.max(0,raw-excluded);
+    }
+    static void bind242(Object result){if(!trackingEnabled())return;try{List<?> rows=PopularReplies.fullList(field(result,"a"));if(rows.isEmpty())return;String k=key(responseUrl(rows.get(0),field(result,"d")));if(k!=null)MODERN.put(rows.get(0),k);}catch(Exception ignored){}}
     static Map modern(Object source,Map flags){
-        if(!enabled()||flags==null)return flags;
+        if(!trackingEnabled()||flags==null)return flags;
         try{List<?> rows=PopularReplies.fullList(source);if(rows.isEmpty())return flags;String k=MODERN.get(rows.get(0));if(k==null)return flags;
             Set<Integer> candidates=new HashSet<>();for(Object item:flags.entrySet()){
                 Map.Entry entry=(Map.Entry)item;Object n=entry.getKey(),f=entry.getValue();

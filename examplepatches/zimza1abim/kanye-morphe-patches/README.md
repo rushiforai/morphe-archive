@@ -7,7 +7,7 @@
 [![License: GPLv3](https://img.shields.io/badge/license-GPLv3-blue.svg)](LICENSE)
 ![Platform](https://img.shields.io/badge/platform-Android-3DDC84?logo=android&logoColor=white)
 ![Morphe](https://img.shields.io/badge/for%20use%20with-Morphe-7C4DFF)
-![Apps](https://img.shields.io/badge/apps-7-orange)
+![Apps](https://img.shields.io/badge/apps-8-orange)
 
 <a href="https://morphe.software/add-source?github=zimza1abim/kanye-morphe-patches">
   <img src=".github/assets/add-to-morphe.svg" alt="Add to Morphe" height="48">
@@ -34,6 +34,7 @@
 | 📓 | **Notesnook** | `com.streetwriters.notesnook` | App-wide custom font |
 | 🗒️ | **Joplin** | `net.cozic.joplin` | Flash-free custom font · Blush Pink theme |
 | 🧩 | **Anytype** | `io.anytype.app` | App-wide custom font |
+| 🤖 | **OpenBot** | `run.openbot.mobile` | App-wide custom font · System default · Installed fonts |
 | 🔐 | **Bitwarden** | `com.x8bit.bitwarden` | Passphrase length · Custom special characters · Passkeys in patched browsers |
 
 Get the original APKs from each app's official GitHub releases.
@@ -46,6 +47,7 @@ Get the original APKs from each app's official GitHub releases.
 | Notesnook | [streetwriters/notesnook](https://github.com/streetwriters/notesnook/releases) (`Notesnook Android v…`) | `notesnook-arm64-v8a.apk` |
 | Joplin | [laurent22/joplin-android](https://github.com/laurent22/joplin-android/releases) | `joplin-v<version>.apk` |
 | Anytype | [anyproto/anytype-kotlin](https://github.com/anyproto/anytype-kotlin/releases) | `anytype-<version>-arm64-v8a.apk` |
+| OpenBot | [nightly-labs/openbot](https://github.com/nightly-labs/openbot/releases) (`OpenBot for Android …`) | `OpenBot-<version>.apk` |
 | Bitwarden | [bitwarden/android](https://github.com/bitwarden/android/releases) (`Password Manager …`) | `com.x8bit.bitwarden.apk` |
 
 > [!IMPORTANT]
@@ -130,6 +132,7 @@ flowchart LR
 | Notesnook | <kbd>Settings</kbd> → <kbd>Customization</kbd> → <kbd>Appearance</kbd> → <kbd>Font</kbd><br>or long-press the app icon → <kbd>Font</kbd> | Tap <kbd>Restart</kbd> to redraw open screens |
 | Joplin | <kbd>Settings</kbd> → <kbd>Appearance</kbd> → <kbd>Custom font</kbd> | Blush Pink is in the theme list |
 | Anytype | <kbd>Settings</kbd> → <kbd>Application</kbd> → <kbd>Font</kbd> → <kbd>Choose custom font…</kbd> | TTF or OTF files |
+| OpenBot | <kbd>Settings</kbd> → <kbd>Appearance</kbd> → <kbd>Font</kbd> | System default follows the phone font |
 
 > [!TIP]
 > To go back to the original font, pick the default option on the same screen (Joplin: <kbd>Turn off custom font</kbd>).
@@ -169,11 +172,12 @@ Each listed version passed patching and verification. Other versions may fail to
 |---|---|---|
 | Anytype | `io.anytype.app` | `0.48.10` `0.49.0` `0.50.4` |
 | Titanium Browser | `io.github.jqssun.helium` | `157.0.8103.38` `157.0.8103.50` `157.0.8103.78` |
-| Bare Browser | `org.barebrowser` | `2.0.3` `2.0.4` `2.0.5` |
-| Bitwarden | `com.x8bit.bitwarden` | `2026.10.1` |
+| Bare Browser | `org.barebrowser` | `2.0.4` `2.0.5` `2.0.7` |
+| Bitwarden | `com.x8bit.bitwarden` | `2026.10.1` `2026.11.1` |
 | Brave Browser | `com.brave.browser` | `1.98.63` `1.99.55` `1.100.56` |
 | Joplin | `net.cozic.joplin` | `3.7.8` `3.7.10` `3.7.11` |
 | Notesnook | `com.streetwriters.notesnook` | `3.4.14` `3.4.15` `3.4.16` |
+| OpenBot | `run.openbot.mobile` | `1.4.11` |
 <!-- VERSIONS_END -->
 
 > [!NOTE]
@@ -182,7 +186,7 @@ Each listed version passed patching and verification. Other versions may fail to
 ## 🩹 Patches
 
 <!-- PATCHES_START -->
-> **[v0.0.19](../../releases/tag/v0.0.19)**&nbsp;&nbsp;•&nbsp;&nbsp;17 patches total
+> **[v0.1.2](../../releases/tag/v0.1.2)**&nbsp;&nbsp;•&nbsp;&nbsp;18 patches total
 <details>
 <summary>📦 Anytype&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -222,7 +226,7 @@ Each listed version passed patching and verification. Other versions may fail to
 
 **🎯 Supported versions:**
 
-| 2.0.3 | 2.0.4 | 2.0.5 |
+| 2.0.4 | 2.0.5 | 2.0.7 |
 | :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -240,8 +244,8 @@ Each listed version passed patching and verification. Other versions may fail to
 
 **🎯 Supported versions:**
 
-| 2026.10.1 |
-| :---: |
+| 2026.10.1 | 2026.11.1 |
+| :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -295,6 +299,21 @@ Each listed version passed patching and verification. Other versions may fail to
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Notesnook custom font](#notesnook-custom-font) | Use a device font or a TTF, OTF or TTC file across Notesnook. Icons, emoji and math keep theirs. |  |
+
+</details>
+
+<details>
+<summary>📦 OpenBot&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 1.4.11 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [OpenBot custom font](#openbot-custom-font) | Follow the system font or choose an installed device font in Settings > Appearance > Font. |  |
 
 </details>
 

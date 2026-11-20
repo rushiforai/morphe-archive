@@ -1,0 +1,21 @@
+4 ficheros DEX, 164880 cadenas distintas
+
+### Lef/l;
+    public constructor     <init>()V  -> V
+    public                 onActivityCreated(Landroid/os/Bundle;)V  -> V
+    public                 onCreate(Landroid/os/Bundle;)V  -> V
+    public                 onPreferenceClick(Landroid/preference/Preference;)Z  -> Z
+    public                 onSharedPreferenceChanged(Landroid/content/SharedPreferences; Ljava/lang/String;)V  -> V
+    public                 resetTitle()V  -> V
+
+### Lef/n;
+    public constructor     <init>()V  -> V
+    private                a()V  -> V
+    public                 onActivityCreated(Landroid/os/Bundle;)V  -> V
+    public                 onCreate(Landroid/os/Bundle;)V  -> V
+    public                 onDestroy()V  -> V
+    public                 onPreferenceClick(Landroid/preference/Preference;)Z  -> Z
+    public                 onResume()V  -> V
+    public                 onSharedPreferenceChanged(Landroid/content/SharedPreferences; Ljava/lang/String;)V  -> V
+    public                 resetTitle()V  -> V
+

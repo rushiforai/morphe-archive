@@ -1,3 +1,24 @@
+## [0.1.2](https://github.com/zimza1abim/kanye-morphe-patches/compare/v0.1.1...v0.1.2) (2026-11-20)
+
+### 🚀 Updated App Support
+
+* support Bitwarden 2026.11.1
+
+
+## [0.1.1](https://github.com/zimza1abim/kanye-morphe-patches/compare/v0.1.0...v0.1.1) (2026-11-19)
+
+### 🔧 Improvements
+
+* update the mirror's documentation and release setup
+
+
+## [0.1.0](https://github.com/zimza1abim/kanye-morphe-patches/compare/v0.0.19...v0.1.0) (2026-11-19)
+
+### ✨ New Features
+
+* add OpenBot custom font patch and support Bare 2.0.7
+
+
 ## [0.0.19](https://github.com/zimza1abim/kanye-morphe-patches/compare/v0.0.18...v0.0.19) (2026-11-18)
 
 ### 🔧 Improvements

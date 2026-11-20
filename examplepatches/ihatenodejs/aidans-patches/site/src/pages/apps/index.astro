@@ -695,10 +695,12 @@ for (const key of allCategoryKeys) {
             }
           }
           // Update search index on card
-          const title = card.querySelector('h3')?.textContent || '';
+          const existingSearch = card.dataset.search || '';
           const summary =
             card.querySelector('[data-app-summary]')?.textContent || '';
-          card.dataset.search = `${title} ${pkg} ${summary}`.toLowerCase();
+          if (summary && !existingSearch.includes(summary.toLowerCase())) {
+            card.dataset.search = `${existingSearch} ${summary}`.toLowerCase();
+          }
         });
 
         // Recompute unique counts per category button

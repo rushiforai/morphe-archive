@@ -35,16 +35,18 @@ expected = sorted([
     "AMOLED dark theme",
     "Disable analytics",
     "Disable consent popup",
-    "Enable SoundCloud Go+ (experimental)",
+    "Enable SoundCloud Go",
     "Hide Cast icon",
+    "Hide Message icon",
     "Home in Android Auto",
     "Remove ads and upsells",
     "Vietnamese language",
 ])
 assert names == expected, f"Unexpected patch list: {names} != {expected}"
-non_default = [p["name"] for p in patches if not p.get("default")]
-assert not non_default, f"Expected all 8 patches default=true, found disabled: {non_default}"
-print(f"Verified {len(patches)} patches in patches-list.json (all default=true, version={data.get('version')})")
+non_default = sorted(p["name"] for p in patches if not p.get("default"))
+expected_opt_in = ["Hide Cast icon", "Hide Message icon"]
+assert non_default == expected_opt_in, f"Expected opt-in patches {expected_opt_in}, found: {non_default}"
+print(f"Verified {len(patches)} patches in patches-list.json (7 default=true, 2 opt-in, version={data.get('version')})")
 PY
 
 echo "Verified MPP bundle entries in $MPP:"

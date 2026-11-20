@@ -6,15 +6,18 @@ export const GITHUB_REPO = 'https://github.com/ihatenodejs/aidans-patches';
 export const GITHUB_BLOB_BASE = `${GITHUB_REPO}/blob/main`;
 
 const APP_DIR_TO_APP_ID: Record<string, string> = {
+  adobereader: 'adobe-reader',
   adobescan: 'adobe-scan',
   aftership: 'aftership',
   blackjack: 'blackjack',
   canvas: 'canvas-student',
+  creditkarma: 'credit-karma',
   fizz: 'fizz',
   geocaching: 'geocaching',
   navigate360: 'navigate360-student',
   nhl: 'nhl',
   pay365: '365-pay',
+  prometronome: 'pro-metronome',
   sezzle: 'sezzle',
   sidelineswap: 'sidelineswap',
 };

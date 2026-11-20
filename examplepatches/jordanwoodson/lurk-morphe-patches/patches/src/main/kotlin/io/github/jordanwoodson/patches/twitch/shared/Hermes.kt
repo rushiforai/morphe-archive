@@ -17,6 +17,10 @@ internal class HermesBundle(input: ByteArray, compiledPredicate: Boolean = false
     internal val functions: List<HermesFunction>
     private val literalStart: Int
     private val literalSize: Int
+    private val keyStart: Int
+    private val keySize: Int
+    private val shapeStart: Int
+    private val shapeCount: Int
     private val changes = mutableListOf<HermesEdit>()
     val edits: List<HermesEdit> get() = changes.toList()
     internal var delayedAppend: DelayedAppend? = null
@@ -63,7 +67,13 @@ internal class HermesBundle(input: ByteArray, compiledPredicate: Boolean = false
         }
         literalStart = align(cursor)
         literalSize = u32(80)
-        checkedEnd(literalStart, literalSize, 1)
+        // Object literals: their values follow the literal values, their key lists the object key buffer,
+        // and each NewObjectWithBuffer names a shape (key list offset and count) in the shape table after it.
+        keyStart = align(checkedEnd(literalStart, literalSize, 1))
+        keySize = u32(84)
+        shapeStart = align(checkedEnd(keyStart, keySize, 1))
+        shapeCount = u32(88)
+        checkedEnd(shapeStart, shapeCount, 8)
         functions = List(functionCount) { id ->
             val position = 128 + id * 12
             val first = u32Bits(position)
@@ -252,6 +262,70 @@ internal class HermesBundle(input: ByteArray, compiledPredicate: Boolean = false
         val offset = function.body.positions(before).singleOrNull()
             ?: fail("expected one pattern in ${function.name.ifEmpty { "anonymous function" }}")
         add(function, key, offset, before, after, defaultEnabled)
+    }
+
+    /** The offset in [function] of [pattern], which must occur there exactly once. */
+    fun find(function: HermesFunction, pattern: ByteArray): Int = function.body.positions(pattern).singleOrNull()
+        ?: fail("expected one ${pattern.toHex()} in ${function.name.ifEmpty { "anonymous function" }}")
+
+    /**
+     * Like [replace], at [relative] in [function], whose bytes there must be [before]: for an instruction whose bytes
+     * recur in the function, found through a longer unique pattern with [find].
+     */
+    fun replaceAt(function: HermesFunction, key: String, relative: Int, before: ByteArray, after: ByteArray,
+                  defaultEnabled: Boolean = true): HermesEdit {
+        ensure(before.isNotEmpty() && relative >= 0 && relative.toLong() + before.size <= function.body.size &&
+            function.body.copyOfRange(relative, relative + before.size).contentEquals(before),
+            "unexpected bytes at ${relative.toString(16)} of ${function.name.ifEmpty { "anonymous function" }}")
+        return add(function, key, relative, before, after, defaultEnabled)
+    }
+
+    /** The keys of object literal shape [index], the shape operand of NewObjectWithBuffer: strings, numbers or null. */
+    fun objectShapeKeys(index: Int): List<Any?> {
+        ensure(index in 0 until shapeCount, "object shape $index outside the shape table")
+        return literals(keyStart, keySize, u32(shapeStart + index * 8), u32(shapeStart + index * 8 + 4))
+    }
+
+    /** The one object literal shape with exactly these keys, in this order. */
+    fun objectShape(vararg keys: String): Int = (0 until shapeCount).singleOrNull { objectShapeKeys(it) == keys.toList() }
+        ?: fail("expected one object shape {${keys.joinToString()}}")
+
+    /** [count] values of the literal value buffer from [offset], the value operand of NewObjectWithBuffer. */
+    fun literalValues(offset: Int, count: Int): List<Any?> = literals(literalStart, literalSize, offset, count)
+
+    /**
+     * Hermes' serialized literals: runs of one type, each a tag byte (type in bits 4-6, the run's length in the low
+     * four bits, extended by a second byte when bit 7 is set) and the values. In v98 type 6 is undefined, not a
+     * one-byte string ID.
+     */
+    private fun literals(start: Int, size: Int, offset: Int, count: Int): List<Any?> {
+        ensure(offset in 0..size && count >= 0, "literal outside its buffer")
+        val end = start + size
+        var at = start + offset
+        val values = mutableListOf<Any?>()
+        while (values.size < count) {
+            ensure(at < end, "literal outside its buffer")
+            val tag = u8(at++)
+            val length = if (tag and 0x80 != 0) ((tag and 0x0f) shl 8) or u8(at++).also { ensure(at <= end, "truncated literal") }
+                else tag and 0x0f
+            val type = (tag ushr 4) and 7
+            val width = when (type) { 3 -> 8; 4, 7 -> 4; 5 -> 2; else -> 0 }
+            ensure(at.toLong() + length.toLong() * width <= end, "truncated literal")
+            repeat(length) {
+                values += when (type) {
+                    0 -> null
+                    1 -> true
+                    2 -> false
+                    3 -> java.lang.Double.longBitsToDouble(u32Bits(at) or (u32Bits(at + 4) shl 32))
+                    4 -> u32(at).also { ensure(it < strings.size, "literal string outside table") }.let { strings[it] }
+                    5 -> (u8(at) or (u8(at + 1) shl 8)).also { ensure(it < strings.size, "literal string outside table") }.let { strings[it] }
+                    6 -> Unit
+                    else -> u32Bits(at).toInt()
+                }
+                at += width
+            }
+        }
+        return values.take(count)
     }
 
     fun replaceBody(functionName: String, key: String, body: ByteArray, defaultEnabled: Boolean = true): HermesEdit {

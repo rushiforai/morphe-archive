@@ -6,6 +6,7 @@ import android.widget.TextView;
 /** Display-only options, independent of native filter states. */
 final class QuickFilterOptions {
     static final String HANDLE="bottomQuickFilterResizeHandle",HEIGHT="bottomQuickFilterHeightDp";
+    static final String TRANSPARENT="bottomQuickFilterTransparent";
     static boolean resizeHandle(){return FeatureSwitches.enabled(HANDLE,true);}
     static boolean counts(){return FeatureSwitches.enabled("quickFilterCounts",false);}
     static boolean extras(){return FeatureSwitches.enabled("quickFilterExtras",true);}
@@ -14,29 +15,27 @@ final class QuickFilterOptions {
     static boolean visible(int index){return index>=0&&index<7&&(index<4 || extras()&&FeatureSwitches.enabled(new String[]{"quickFilterAA","quickFilterMine","quickFilterReplies"}[index-4],true));}
     static void addSettings(LinearLayout root,Activity activity){
         add(root,activity,"quickFilterCounts","フィルターに件数を表示",false);
+        add(root,activity,ExtraQuickFilters.OPTIMIZATION,"フィルターの抽出・位置保持・件数集計を最適化",false);
         Switch extra=add(root,activity,"quickFilterExtras","フィルターにAA・自分・返信を追加",true);
         SettingsSection kinds=SettingsSection.add(root,"追加するフィルターの種類","AA・自分・返信を個別に選択",true);
         kinds.available=extra::isChecked;kinds.unavailableMessage="上の「AA・自分・返信を追加」をオンにすると変更できます。";
         add(kinds,activity,"quickFilterAA","AAフィルターを追加",true);
         add(kinds,activity,"quickFilterMine","自分フィルターを追加",true);
         add(kinds,activity,"quickFilterReplies","返信フィルターを追加",true);
-        SettingsSection bottom=SettingsSection.add(root,"下部フィルターパネル","表示方法と高さ調整",true);
-        Switch temporary=add(bottom,activity,"bottomQuickFilterPanel","下部フィルターパネルを使う（外側タップで閉じる）",false);
-        Switch pinned=add(bottom,activity,"persistentBottomQuickFilters","下部フィルターを常に表示",false);
+        SettingsSection bottom=SettingsSection.add(root,"下部フィルターパネル","表示方法",true);
+        add(bottom,activity,"bottomQuickFilterPanel","下部フィルターパネルを使う（外側タップで閉じる）",false);
+        add(bottom,activity,"persistentBottomQuickFilters","下部フィルターを常に表示",false);
+        add(bottom,activity,TRANSPARENT,"下部フィルターの背景を透過する",false);
         TextView pinnedHelp=new TextView(activity);pinnedHelp.setText("スレ本文の下端にフィルターを固定します。外側をタップしても閉じず、上部フィルターとも併用できます。オフにすると固定表示を解除します。");bottom.addView(pinnedHelp);
-        SettingsSection resize=SettingsSection.add(bottom,"高さ調整","つまみの表示と固定",true);
-        resize.available=()->temporary.isChecked()||pinned.isChecked();resize.unavailableMessage="下部パネルの表示をオンにすると変更できます。";
-        add(resize,activity,HANDLE,"下部フィルターの高さ調整つまみを表示",true);
-        TextView resizeHelp=new TextView(activity);resizeHelp.setText("パネル上端のつまみを上下にドラッグすると高さを変更・保存できます。つまみを隠しても保存した高さを維持します。小さくしたパネル内は上下スクロールできます。");resize.addView(resizeHelp);
         add(root,activity,"floatingQuickFilterButton","フィルターのフローティングボタンを表示",false);
-        TextView help=new TextView(activity);help.setText("上部フィルターと下部パネルは個別に表示できます。下部パネルは上部フィルターを隠しません。長押ししてドラッグすると位置を変更できます。必死チェッカーの表示領域は「同じIDの投稿を調べる」設定で上部タイトルを省略して広げられます。");root.addView(help);
+        TextView help=new TextView(activity);help.setText("件数表示をオンにすると、レスの抽出後に件数を集計します。包括的な最適化は初期OFFです。上部フィルターと下部パネルは個別に表示できます。下部パネルは上部フィルターを隠しません。長押ししてドラッグすると位置を変更できます。必死チェッカーの表示領域は「同じIDの投稿を調べる」設定で上部タイトルを省略して広げられます。");root.addView(help);
     }
     static void showToolbarSettings(Activity activity){
         LinearLayout panel=new LinearLayout(activity);panel.setOrientation(1);addSettings(panel,activity);
         new HaiagaruDialog.Builder(activity).setTitle("ツールバーとフィルターの設定").setView(panel).setPositiveButton("閉じる",null).show();
     }
     static void addToolbarEntry(LinearLayout root,Activity activity){android.widget.Button button=new android.widget.Button(activity);button.setText("ツールバーとフィルターの設定");button.setOnClickListener(v->showToolbarSettings(activity));root.addView(button);
-        button.setTag(SettingsSection.KEYWORDS_TAG,"フィルターに件数を表示 フィルターにAA・自分・返信を追加 AAフィルターを追加 自分フィルターを追加 返信フィルターを追加 下部フィルターパネルを使う 下部フィルターを常に表示 下部フィルターの高さ調整つまみを表示 フィルターのフローティングボタンを表示 人気レス リンク 画像 動画 固定 toolbar filter counts own replies bottom panel resize handle floating");
+        button.setTag(SettingsSection.KEYWORDS_TAG,"フィルターに件数を表示 フィルターにAA・自分・返信を追加 AAフィルターを追加 自分フィルターを追加 返信フィルターを追加 下部フィルターパネルを使う 下部フィルターを常に表示 フィルターのフローティングボタンを表示 人気レス リンク 画像 動画 固定 toolbar filter counts own replies bottom panel floating");
         android.widget.TextView help=new android.widget.TextView(activity);help.setText("件数は読み込み済みの全レスです。AA・自分・返信は既存のフィルターに重ねて絞り込みます。画像の長押しで画像一覧を開きます。");root.addView(help);}
     private static Switch add(LinearLayout root,Activity activity,String key,String label,boolean initial){
         Switch toggle=new Switch(activity);toggle.setText(label);

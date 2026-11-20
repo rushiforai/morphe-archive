@@ -3,7 +3,7 @@ group = "app.template"
 patches {
     about {
         name = "Kanye's Patches"
-        description = "Patches for Brave, Bare, Titanium, Notesnook, Joplin, Anytype, and Bitwarden"
+        description = "Patches for Brave, Bare, Titanium, Notesnook, Joplin, Anytype, Bitwarden, and OpenBot"
         source = ""
         author = "kanye"
         contact = "na"
@@ -50,3 +50,6 @@ tasks {
 }
 
 apply(from = "framework-runtimes.gradle.kts")
+
+// Private app sources are omitted from the public mirror.
+rootProject.file("openbot/openbot.gradle.kts").takeIf { it.isFile }?.let { apply(from = it) }

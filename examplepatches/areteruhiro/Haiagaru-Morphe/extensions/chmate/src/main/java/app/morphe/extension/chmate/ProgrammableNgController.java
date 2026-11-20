@@ -32,9 +32,13 @@ public final class ProgrammableNgController {
     private static final NgPlainTextCache PLAIN_TEXT=new NgPlainTextCache(512,1_000_000);
     private static final Map<Object, Set<Integer>> LEGACY_RESPONSE_MATCHES =
             Collections.synchronizedMap(new WeakHashMap<>());
+    private static final Map<Object, Set<Integer>> LEGACY_SHARED_RESPONSE_MATCHES =
+            Collections.synchronizedMap(new WeakHashMap<>());
     private static final ThreadLocal<Object> PENDING_SUBJECT_LIST = new ThreadLocal<>();
     private static final ThreadLocal<Object> PENDING_RESPONSE_LIST = new ThreadLocal<>();
     private static final Map<Object, Set<Integer>> MODERN_RESPONSE_MATCHES =
+            Collections.synchronizedMap(new WeakHashMap<>());
+    private static final Map<Object, Set<Integer>> MODERN_SHARED_RESPONSE_MATCHES =
             Collections.synchronizedMap(new WeakHashMap<>());
     private static final Map<Object, String> RESPONSE_BOARDS =
             Collections.synchronizedMap(new WeakHashMap<>());
@@ -85,7 +89,9 @@ public final class ProgrammableNgController {
             report("設定読込", error);
         }
         LEGACY_RESPONSE_MATCHES.clear();
+        LEGACY_SHARED_RESPONSE_MATCHES.clear();
         MODERN_RESPONSE_MATCHES.clear();
+        MODERN_SHARED_RESPONSE_MATCHES.clear();
     }
 
     static ProgrammableNgRuleSet currentRules() {
@@ -247,6 +253,7 @@ public final class ProgrammableNgController {
         HiddenIdNg.prepare(adapter);
         try{previewSource=new java.lang.ref.WeakReference<>(field(adapter,"K"));previewBoard=boardUrl(field(field(adapter,"M"),"f"));}catch(Exception ignored){}
         LEGACY_RESPONSE_MATCHES.put(adapter, Collections.emptySet());
+        LEGACY_SHARED_RESPONSE_MATCHES.put(adapter, Collections.emptySet());
         if (context == null || !bodyRulesEnabled()) return;
         try {
             Object state = field(adapter, "M");
@@ -257,7 +264,7 @@ public final class ProgrammableNgController {
             List<?> responses = originalResponses(responseList);
             if(!enabled&&SharedNg.enabled()){
                 Set<Integer> shared=SharedNg.matchNativeRows(responses,board);
-                if(shared!=null){lastBodies=Collections.emptyList();LEGACY_RESPONSE_MATCHES.put(adapter,shared);return;}
+                if(shared!=null){lastBodies=Collections.emptyList();LEGACY_RESPONSE_MATCHES.put(adapter,shared);LEGACY_SHARED_RESPONSE_MATCHES.put(adapter,shared);return;}
             }
             ArrayList<ProgrammableNgScript.Input> inputs = new ArrayList<>();
             ArrayList<Integer> numbers = new ArrayList<>();
@@ -278,11 +285,19 @@ public final class ProgrammableNgController {
             lastBodies = inputs;
             if (!enabled && !SharedNg.enabled()) return;
             ProgrammableNgRuleSet active = rules;
-            boolean[] matches = evaluateBodies(inputs);
+            boolean[] sharedMatches = new boolean[inputs.size()];
+            boolean[] matches = evaluateBodies(inputs,sharedMatches);
             HashSet<Integer> matched = new HashSet<>();
-            for (int index = 0; index < matches.length; index++) if (matches[index]) matched.add(numbers.get(index));
+            HashSet<Integer> sharedMatched = new HashSet<>();
+            for (int index = 0; index < matches.length; index++) {
+                if (matches[index]) matched.add(numbers.get(index));
+                if (sharedMatches[index]) sharedMatched.add(numbers.get(index));
+            }
             synchronized (LEGACY_RESPONSE_MATCHES) {
-                if ((enabled || SharedNg.enabled()) && active == rules) LEGACY_RESPONSE_MATCHES.put(adapter, matched);
+                if ((enabled || SharedNg.enabled()) && active == rules) {
+                    LEGACY_RESPONSE_MATCHES.put(adapter, matched);
+                    LEGACY_SHARED_RESPONSE_MATCHES.put(adapter, sharedMatched);
+                }
             }
         } catch (Exception error) {
             report("191レス一覧", error);
@@ -297,7 +312,11 @@ public final class ProgrammableNgController {
             if (!LEGACY_RESPONSE_MATCHES.containsKey(adapter)) prepareLegacyResponses(adapter);
             Set<Integer> matches = LEGACY_RESPONSE_MATCHES.get(adapter);
             if (matches != null && matches.contains(((Number) field(response, "o")).intValue())) {
-                return observeResponseFlags(adapter,response,"o",original | 0x10);
+                int number=((Number)field(response,"o")).intValue();
+                Set<Integer> shared=LEGACY_SHARED_RESPONSE_MATCHES.get(adapter);
+                int flags=original|0x10;
+                if(shared!=null&&shared.contains(number))flags|=0x1000;
+                return observeResponseFlags(adapter,response,"o",flags);
             }
         } catch (Exception error) {
             report("191レスフラグ", error);
@@ -359,7 +378,8 @@ public final class ProgrammableNgController {
                 if(shared!=null){
                     lastBodies=Collections.emptyList();Map map=null;
                     for(Integer number:shared){if(map==null)map=new LinkedHashMap(originalMap);Object previous=map.get(number);
-                        map.put(number,(previous instanceof Number?((Number)previous).intValue():0)|0x10);}
+                        int combined=(previous instanceof Number?((Number)previous).intValue():0)|0x1010;
+                        map.put(number,FirstResponseNg.visibleFlags(number,combined));}
                     return map==null?originalMap:map;
                 }
             }
@@ -373,7 +393,8 @@ public final class ProgrammableNgController {
             lastBodies = inputs;
             if ((!enabled && !SharedNg.enabled()) || inputs.isEmpty()) return originalMap;
             ProgrammableNgRuleSet active = rules;
-            boolean[] matches = evaluateBodies(inputs);
+            boolean[] sharedMatches = new boolean[inputs.size()];
+            boolean[] matches = evaluateBodies(inputs,sharedMatches);
             Map map = null;
             for (int index = 0; index < matches.length; index++) {
                 if (!matches[index]) continue;
@@ -381,7 +402,8 @@ public final class ProgrammableNgController {
                 Integer number = numbers.get(index);
                 Object previous = map.get(number);
                 int original = previous instanceof Number ? ((Number) previous).intValue() : 0;
-                map.put(number, original | 0x10);
+                int combined=original|0x10|(sharedMatches[index]?0x1000:0);
+                map.put(number,FirstResponseNg.visibleFlags(number,combined));
             }
             return (!enabled && !SharedNg.enabled()) || active != rules || map == null ? originalMap : map;
         } catch (Exception error) {
@@ -397,6 +419,7 @@ public final class ProgrammableNgController {
         HiddenIdNg.prepare(owner);
         try{previewSource=new java.lang.ref.WeakReference<>(field(owner,"J"));previewBoard=boardUrl(field(field(owner,"E"),"j"));}catch(Exception ignored){}
         MODERN_RESPONSE_MATCHES.put(owner, Collections.emptySet());
+        MODERN_SHARED_RESPONSE_MATCHES.put(owner, Collections.emptySet());
         if (context == null || !bodyRulesEnabled()) return;
         try {
             String board = boardUrl(field(field(owner, "E"), "j"));
@@ -404,7 +427,7 @@ public final class ProgrammableNgController {
             List<?> responses = originalResponses(field(owner, "J"));
             if(!enabled&&SharedNg.enabled()){
                 Set<Integer> shared=SharedNg.matchNativeRows(responses,board);
-                if(shared!=null){lastBodies=Collections.emptyList();MODERN_RESPONSE_MATCHES.put(owner,shared);return;}
+                if(shared!=null){lastBodies=Collections.emptyList();MODERN_RESPONSE_MATCHES.put(owner,shared);MODERN_SHARED_RESPONSE_MATCHES.put(owner,shared);return;}
             }
             ArrayList<ProgrammableNgScript.Input> inputs = new ArrayList<>(responses.size());
             ArrayList<Integer> numbers = new ArrayList<>(responses.size());
@@ -415,11 +438,18 @@ public final class ProgrammableNgController {
             lastBodies = inputs;
             if (!enabled && !SharedNg.enabled()) return;
             ProgrammableNgRuleSet active = rules;
-            boolean[] matches = evaluateBodies(inputs);
-            Set<Integer> matched = new HashSet<>();
-            for (int i = 0; i < matches.length; i++) if (matches[i]) matched.add(numbers.get(i));
+            boolean[] sharedMatches = new boolean[inputs.size()];
+            boolean[] matches = evaluateBodies(inputs,sharedMatches);
+            Set<Integer> matched = new HashSet<>(),sharedMatched=new HashSet<>();
+            for (int i = 0; i < matches.length; i++) {
+                if(matches[i])matched.add(numbers.get(i));
+                if(sharedMatches[i])sharedMatched.add(numbers.get(i));
+            }
             synchronized (MODERN_RESPONSE_MATCHES) {
-                if ((enabled || SharedNg.enabled()) && active == rules) MODERN_RESPONSE_MATCHES.put(owner, matched);
+                if ((enabled || SharedNg.enabled()) && active == rules) {
+                    MODERN_RESPONSE_MATCHES.put(owner, matched);
+                    MODERN_SHARED_RESPONSE_MATCHES.put(owner,sharedMatched);
+                }
             }
         } catch (Exception error) { report("226レス一覧", error); }
     }
@@ -434,7 +464,10 @@ public final class ProgrammableNgController {
             // This boundary only needs the response number. Constructing ResponseData
             // here also parsed the whole body/name again for every native flag query.
             int number=((Number)field(response,"l")).intValue();
-            return observeResponseFlags(owner,response,"l",matches != null && matches.contains(number) ? original | 0x10 : original);
+            Set<Integer> shared=MODERN_SHARED_RESPONSE_MATCHES.get(owner);
+            int flags=matches != null && matches.contains(number) ? original | 0x10 : original;
+            if(shared!=null&&shared.contains(number))flags|=0x1000;
+            return observeResponseFlags(owner,response,"l",flags);
         } catch (Exception error) {
             report("226レスフラグ", error);
             return original;
@@ -654,10 +687,62 @@ public final class ProgrammableNgController {
         }}catch(Exception error){report("共有NGの投稿選択",error);return Collections.emptyList();}
         return inputs;
     }
-    static void sharedNgChanged(){LEGACY_RESPONSE_MATCHES.clear();MODERN_RESPONSE_MATCHES.clear();}
-    private static boolean[] evaluateBodies(List<ProgrammableNgScript.Input> inputs){
+    static void sharedNgChanged(){
+        LEGACY_RESPONSE_MATCHES.clear();LEGACY_SHARED_RESPONSE_MATCHES.clear();
+        MODERN_RESPONSE_MATCHES.clear();MODERN_SHARED_RESPONSE_MATCHES.clear();
+    }
+    /** Shared NG rows use ChMate's separate transparent map, like registered images. */
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public static void applySharedHidden(Object owner) {
+        if (owner == null || !SharedNg.enabled()) return;
+        try {
+            String className = owner.getClass().getSimpleName();
+            String rowsField, mapField, numberField;
+            Set<Integer> matches;
+            String board;
+            if ("m9ExternalSyntheticLambda1".equals(className)) {
+                rowsField = "K"; mapField = "N"; numberField = "o";
+                board = boardUrl(field(field(owner, "M"), "f"));
+                matches = LEGACY_SHARED_RESPONSE_MATCHES.get(owner);
+                if (matches == null) { prepareLegacyResponses(owner); matches = LEGACY_SHARED_RESPONSE_MATCHES.get(owner); }
+            } else if ("listener".equals(className)) {
+                rowsField = "J"; mapField = "K"; numberField = "l";
+                board = boardUrl(field(field(owner, "E"), "j"));
+                matches = MODERN_SHARED_RESPONSE_MATCHES.get(owner);
+                if (matches == null) { prepareModernResponses(owner); matches = MODERN_SHARED_RESPONSE_MATCHES.get(owner); }
+            } else if ("zzaW".equals(className)) {
+                rowsField = "a"; mapField = "j"; numberField = "o";
+                List<?> rows = originalResponses(field(owner, rowsField));
+                board = rows.isEmpty() ? null : RESPONSE_BOARDS.get(rows.get(0));
+                Set<Integer> current = board == null ? null : SharedNg.matchNativeRows(rows, board);
+                matches = current;
+            } else return;
+            if (matches == null || matches.isEmpty()) return;
+            Object target = field(owner, mapField);
+            List<?> rows = originalResponses(field(owner, rowsField));
+            if (target instanceof android.util.SparseIntArray) {
+                android.util.SparseIntArray map = (android.util.SparseIntArray) target;
+                for (Object row : rows) {
+                    int number = ((Number) field(row, numberField)).intValue();
+                    if (matches.contains(number) && FirstResponseNg.protectedNumber(number) != 0)
+                        map.put(number, map.get(number, 0) | 0x1000);
+                }
+            } else if (target instanceof Map) {
+                Map map = (Map) target;
+                for (Object row : rows) {
+                    int number = ((Number) field(row, numberField)).intValue();
+                    if (matches.contains(number) && FirstResponseNg.protectedNumber(number) != 0) {
+                        Object previous = map.get(number);
+                        map.put(number, (previous instanceof Number ? ((Number) previous).intValue() : 0) | 0x1000);
+                    }
+                }
+            }
+        } catch (Exception error) { report("共有NGの透明あぼーん", error); }
+    }
+    private static boolean[] evaluateBodies(List<ProgrammableNgScript.Input> inputs){return evaluateBodies(inputs,null);}
+    private static boolean[] evaluateBodies(List<ProgrammableNgScript.Input> inputs,boolean[] sharedMatches){
         boolean[] result=enabled?rules.evaluate(inputs):new boolean[inputs.size()];
-        boolean[] shared=SharedNg.match(inputs);for(int i=0;i<result.length;i++)result[i]|=shared[i];return result;
+        boolean[] shared=SharedNg.match(inputs);for(int i=0;i<result.length;i++){if(sharedMatches!=null)sharedMatches[i]=shared[i];result[i]|=shared[i];}return result;
     }
     static boolean[] notificationMatches(List<ProgrammableNgScript.Input> inputs){
         return evaluateBodies(inputs);

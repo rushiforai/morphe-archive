@@ -2,7 +2,7 @@
 
 Some apps I patched and other apps that were requested if you would like to request an app please drop a comment in my reddit discussion for patches: https://www.reddit.com/r/MorpheApp/s/xRx6wdTYA5
 
-**27 apps · 47 patches** · current bundle: [v0.0.2](https://github.com/mwbra130/Retro-Bowl-College/releases/tag/v0.0.2)
+**26 apps · 44 patches** · current bundle: [v0.0.2](https://github.com/mwbra130/Retro-Bowl-College/releases/tag/v0.0.2)
 
 ## Apps
 
@@ -45,10 +45,6 @@ Some apps I patched and other apps that were requested if you would like to requ
 <br><a href="#app-com-yodo1-crossyroad"><b>Crossy Road</b></a>
 </td>
 <td align="center" width="20%">
-<img src="https://play-lh.googleusercontent.com/TPqLaLJ8Sr30eRUb_24jZ1cc-4JcYZTViVaVB0E2K4rUdCx08AsXEZvDZ5kpmXBRkIJkYRH5jcb_QITrx02CgQ=w128-h128" width="72" height="72" alt="Drapes icon">
-<br><a href="#app-com-codeswitch-drapes"><b>Drapes</b></a>
-</td>
-<td align="center" width="20%">
 <img src="https://play-lh.googleusercontent.com/CTnZKfZowST3s4ZCC-NC21uh05IwUVr4HznYUb-TepWC43fZ3qPlUCxtz5x682PGQ9VqG743zUtGBJGlo5cDcqs=w128-h128" width="72" height="72" alt="DroidCam icon">
 <br><a href="#app-com-dev47apps-obsdroidcam"><b>DroidCam</b></a>
 </td>
@@ -60,12 +56,12 @@ Some apps I patched and other apps that were requested if you would like to requ
 <img src="https://play-lh.googleusercontent.com/n-VW4rcGGAZNvcAxpAA6gM64UTXU2iuPuCXBluW83Kd21zGhNgOThvhsYTo25mME4VioiXXbg3oL3S_BIk5QvYQ=w128-h128" width="72" height="72" alt="Games In One - Watch Games icon">
 <br><a href="#app-com-mustbefun-gamesinonewatchgames"><b>Games In One</b></a>
 </td>
-</tr>
-<tr>
 <td align="center" width="20%">
 <img src="https://play-lh.googleusercontent.com/04xiToIui2lD8Co9xPb-_V3JW90vSS8ej7aEAMqzdA9uadnjkGbPFvtkQPxB4okIIkrZquPYnxE3Eg6d6Ik_XQ=w128-h128" width="72" height="72" alt="Gradient Weather icon">
 <br><a href="#app-com-subtlesignals-gradientweather"><b>Gradient Weather</b></a>
 </td>
+</tr>
+<tr>
 <td align="center" width="20%">
 <img src="https://play-lh.googleusercontent.com/SrSr_L4l99jgmGMy79N0_mEhpdn-fBqpg1hxobrs_daqRyZU-IUaiz3_07Bx-c5fB8JtHE0R5HpB2S8V3XAfJTs=w128-h128" width="72" height="72" alt="Happy Color icon">
 <br><a href="#app-com-pixel-art-coloring-color-number"><b>Happy Color</b></a>
@@ -83,12 +79,12 @@ Some apps I patched and other apps that were requested if you would like to requ
 <img src="https://play-lh.googleusercontent.com/77S-ulWheY_54z8acN5T5tmgJnnXBt01mmNAtBMlE5SvReKz2LfmO1s6UUMTY12lWugDzgWlmPxHp2li2132Ges=w128-h128" width="72" height="72" alt="Luminar icon">
 <br><a href="#app-com-skylum-luminar"><b>Luminar</b></a>
 </td>
-</tr>
-<tr>
 <td align="center" width="20%">
 <img src="https://play-lh.googleusercontent.com/-21ASw97RWIu-CnDVbEEtTrfVIDqpfhY4eofgk5aT98q4E8jnrMVxNqI0J7JYgRTkHjoOoWM58ScUzu30cxevQ=w128-h128" width="72" height="72" alt="Poweramp icon">
 <br><a href="#app-com-maxmpz-audioplayer"><b>Poweramp</b></a>
 </td>
+</tr>
+<tr>
 <td align="center" width="20%">
 <img src="https://play-lh.googleusercontent.com/DrvO8zMElYMrKfmdRtxwyH_kkvk6MJD87mBaC_38Bw1Pkq0DJB0h-SpfbK5SOAkoJQRJ2TpUU0QvW3bSdUe8=w128-h128" width="72" height="72" alt="Retro Bowl College icon">
 <br><a href="#app-com-newstargames-retrobowlcollege"><b>Retro Bowl College</b></a>
@@ -105,12 +101,12 @@ Some apps I patched and other apps that were requested if you would like to requ
 <img src="https://play-lh.googleusercontent.com/OdQDxdeo_WyMUftwJbJHF4PALrfSJ4B4vpOWkXPKar1_JN3NKc9ULakQ5o3mjzcuRRTDheF36xSh9mxVRnjD=w128-h128" width="72" height="72" alt="Smart MP3 Tagger icon">
 <br><a href="#app-tageditor-automatictageditor-audiotagging-audioedit-mp3edit"><b>Smart MP3 Tagger</b></a>
 </td>
-</tr>
-<tr>
 <td align="center" width="20%">
 <img src="https://play-lh.googleusercontent.com/c-cyyIsMn659H-p3XFezpj3wjkC9Z7XhmZIz-WiZuVGZyMWp7t_pGUdpS0_be_Qu8_9UewBqVxFtONQ4-GiwaQ=w128-h128" width="72" height="72" alt="Smashy Road 2 icon">
 <br><a href="#app-com-rkgames-basisgame"><b>Smashy Road 2</b></a>
 </td>
+</tr>
+<tr>
 <td align="center" width="20%">
 <img src="https://play-lh.googleusercontent.com/G1eIJ3yor1yW20izrYjOfCzHgVkRtewlfPFG9CEFTHzSI2m0Lwds_Y1xYgeg21CFok_UXrol-ox2IwqL4JMrLQ=w128-h128" width="72" height="72" alt="Subway Surfers icon">
 <br><a href="#app-com-kiloo-subwaysurf"><b>Subway Surfers</b></a>
@@ -127,12 +123,12 @@ Some apps I patched and other apps that were requested if you would like to requ
 <img src="https://play-lh.googleusercontent.com/o2AAUlWu7gGP5WwbE7eg0aP3vqNKjna0HbfFP3LIFVAHpUpT3KfLxnGv3R8Nn6z0XUP9hsly0SBR4jniSW08Dw=w128-h128" width="72" height="72" alt="Unified Remote icon">
 <br><a href="#app-com-relmtech-remote"><b>Unified Remote</b></a>
 </td>
-</tr>
-<tr>
 <td align="center" width="20%">
 <img src="https://play-lh.googleusercontent.com/z74H5YZukP3qJGkbJGUZj39y_1rDADZI_rkRUB04ID1x9WjhpuBA_t_FMdMQ7vFm0MFwLWkMFQPInRq-kC7MXg=w128-h128" width="72" height="72" alt="Video Cutter icon">
 <br><a href="#app-com-losslessvideocutter"><b>Video Cutter</b></a>
 </td>
+</tr>
+<tr>
 <td align="center" width="20%">
 <img src="https://play-lh.googleusercontent.com/79Q266gifrq0sHAhSLlPk2Bur1fgWIZJW-B4vWPpoEcvlIOCFIFooR7OV3qXhWMNJbE8MTTmtIoHwWUYj0hLVA=w128-h128" width="72" height="72" alt="VPN Gate icon">
 <br><a href="#app-com-giamping-sevpn"><b>VPN Gate</b></a>
@@ -166,7 +162,7 @@ Some apps I patched and other apps that were requested if you would like to requ
 ## Patch descriptions
 
 <!-- PATCHES_START -->
-> **[v0.0.2](https://github.com/mwbra130/Retro-Bowl-College/releases/tag/v0.0.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;47 patches total
+> **[v0.0.2](https://github.com/mwbra130/Retro-Bowl-College/releases/tag/v0.0.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;44 patches total
 <a id="app-com-jamworks-alwaysondisplay" name="app-com-jamworks-alwaysondisplay"></a>
 <details>
 <summary>aodNotify&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
@@ -199,24 +195,6 @@ Some apps I patched and other apps that were requested if you would like to requ
 | [Bypass PairIP license check](#bypass-pairip-license-check) | Required for re-signed builds: PairIP asks Google Play to license the app at startup and sends unlicensed installs to a Play Store block page. Disables that check, its verdict handler and both block-page launchers so the patched app can open. |  |
 | [Enable Premium](#enable-premium) | Turns on Premium permanently (Front/Back, Photos, 4K, 60fps, manual controls, teleprompter, timelapse, unlimited projects, trim in review), as if the one-time Lifetime purchase were bought. |  |
 | [Remove telemetry](#remove-telemetry) | Disables the unused Google datatransport upload services in the manifest. ContentCam ships no analytics or crash-reporting SDKs; this removes the one piece of inert upload plumbing it carries. All features are unaffected. ContentCam 2.8.0 only. |  |
-
-</details>
-
-<a id="app-com-codeswitch-drapes" name="app-com-codeswitch-drapes"></a>
-<details>
-<summary>Drapes - Wallpapers&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
-<br>
-
-**Supported versions:**
-
-| 3.9.3 |
-| :---: |
-
-| Patch | Description | Options |
-|----------|----------------|-----------|
-| [Bypass PairIP license check](#bypass-pairip-license-check) | Lets the patched app run: stubs out PairIP's license check, which otherwise blocks re-signed builds with a license dialog. Drapes 3.9.3 only. |  |
-| [Enable Pro](#enable-pro) | Enables Drapes Pro: no advertisements, image effects (blur, grayscale, dimming), auto wallpapers, and favorites sync. Requires 'Bypass PairIP license check'. Drapes 3.9.3 only. |  |
-| [Remove telemetry](#remove-telemetry) | Disables Firebase Analytics and Crashlytics collection, stops the AppMeasurement upload services, and removes the advertising ID permissions. Sign-in, favorites sync and all other features are unaffected. Drapes 3.9.3 only. |  |
 
 </details>
 

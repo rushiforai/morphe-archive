@@ -1,0 +1,12 @@
+/.local/
+/Compte_test.txt
+/morphe/Compte_test.txt
+/morphe/build/
+__pycache__/
+*.apk
+*.apkm
+*.xapk
+*.p12
+*.jks
+*.keystore
+*.log

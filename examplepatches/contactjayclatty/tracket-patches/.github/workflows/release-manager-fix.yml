@@ -23,12 +23,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '17'
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.12'
       - name: Build and verify JVM discovery and DEX structure
@@ -57,16 +57,16 @@ jobs:
           script: |
             adb push build/manager.apk /data/local/tmp/manager.apk
             adb push build/android-probe/probe.jar /data/local/tmp/probe.jar
-            adb push dist/patches-1.0.1.mpp /data/local/tmp/patches-1.0.1.mpp
-            adb shell chmod 444 /data/local/tmp/manager.apk /data/local/tmp/probe.jar /data/local/tmp/patches-1.0.1.mpp
-            adb shell dalvikvm -cp /data/local/tmp/manager.apk:/data/local/tmp/probe.jar AndroidBundleSmoke /data/local/tmp/patches-1.0.1.mpp | tee build/android-loader.log
+            adb push dist/patches-1.0.2.mpp /data/local/tmp/patches-1.0.2.mpp
+            adb shell chmod 444 /data/local/tmp/manager.apk /data/local/tmp/probe.jar /data/local/tmp/patches-1.0.2.mpp
+            adb shell dalvikvm -cp /data/local/tmp/manager.apk:/data/local/tmp/probe.jar AndroidBundleSmoke /data/local/tmp/patches-1.0.2.mpp | tee build/android-loader.log
             grep -q ANDROID_LOADER_PASS build/android-loader.log
       - uses: actions/upload-artifact@v7
         with:
           name: manager-compatible-bundle
           path: |
-            dist/patches-1.0.1.mpp
-            dist/patches-1.0.1.mpp.sha256
+            dist/patches-1.0.2.mpp
+            dist/patches-1.0.2.mpp.sha256
             build/android-loader.log
 
   release:
@@ -84,4 +84,4 @@ jobs:
           GH_REPO: ${{ github.repository }}
           RELEASE_COMMIT: ${{ github.sha }}
         run: |
-          gh release create v1.0.1 dist/patches-1.0.1.mpp dist/patches-1.0.1.mpp.sha256 --target "$RELEASE_COMMIT" --title '1.0.1 — Morphe Manager packaging fix' --notes 'Fixes missing Android DEX and missing bundle name/version metadata reported in #5. Includes Java classes for desktop and classes.dex for Android. Verified by desktop patch discovery, DEX instruction decoding, and the Morphe Manager 2.3.0 patcher loading the bundle on Android 35. Gameplay patch logic and supported Tracket version (0.9.38) are unchanged. This release does not claim patched-app runtime verification.'
+          gh release create v1.0.2 dist/patches-1.0.2.mpp dist/patches-1.0.2.mpp.sha256 --target "$RELEASE_COMMIT" --title '1.0.2 — Morphe Manager packaging fix' --notes 'Fixes missing Android DEX and missing bundle name/version metadata reported in #5. Includes Java classes for desktop and classes.dex for Android. Verified by desktop patch discovery, DEX instruction decoding, and the Morphe Manager 2.3.0 patcher loading the bundle on Android 35. Gameplay patch logic and supported Tracket version (0.9.38) are unchanged. This release does not claim patched-app runtime verification.'

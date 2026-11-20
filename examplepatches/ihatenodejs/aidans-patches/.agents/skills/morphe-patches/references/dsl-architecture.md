@@ -13,7 +13,7 @@ Morphe provides four primary declaration functions under `app.morphe.patcher.pat
 | `bytecodePatch(...) { ... }` | `BytecodePatchContext` | Dalvik/DEX modifications using Dexlib2 AST and Smali injection. |
 | `resourcePatch(...) { ... }` | `ResourcePatchContext` | Decoded Android XML resources (`res/**/*.xml`) and `AndroidManifest.xml` DOM edits. |
 | `rawResourcePatch(...) { ... }` | `ResourcePatchContext` | Raw archive entries: Hermes bytecode (`index.android.bundle`), ELF shared libraries (`lib/**/*.so`), fonts, web assets. |
-| `compositeFeaturePatch(...) { ... }` | `CompositePatchBuilder` | Unified 1-to-1 feature combining bytecode with an internal companion XML or raw resource patch. |
+| `compositeFeaturePatch(...) { ... }` | `CompositePatchBuilder` | Unified 1-to-1 feature combining bytecode with internal companion XML and/or raw resource patches. |
 
 ### Canonical Patch Declaration Pattern
 
@@ -59,7 +59,7 @@ val customMapTilePatch = bytecodePatch(
 ### Why Composite Patches Exist
 A `bytecodePatch` operates strictly over Dalvik DEX bytecode. It cannot directly read or mutate APK asset files (`assets/`), raw resources, or `res/xml` documents. When a single logical feature requires Dalvik bytecode changes *and* companion XML or raw assets, declaring two separate public patches pollutes the UI and `patches-list.json`.
 
-`compositeFeaturePatch` solves this by creating a user-facing bytecode patch and an internal companion patch tagged with category `"Internal"`. Metadata generation in `PatchListGenerator.kt` automatically filters out `"Internal"` patches, exposing only the user-facing feature.
+`compositeFeaturePatch` solves this by creating a user-facing bytecode patch and internal companion patches tagged with category `"Internal"`. Because companion patches are instantiated as local objects within the builder function rather than top-level class members, Morphe's reflective `PatchLoader` never exposes them in UI patch lists or `patches-list.json`.
 
 ### Composite DSL Structure & Invariants
 Defined in `app.aidan.patches.shared.CompositePatch.kt`:
@@ -100,10 +100,10 @@ val hideBannerAdsPatch = compositeFeaturePatch(
 ```
 
 ### Invariants for Composite Patches
-1. **Mutual Exclusivity**: A composite patch may have either `resources { ... }` or `rawResources { ... }`, **never both**. Calling both throws `IllegalStateException`.
-2. **Category Propagation**: The user-facing bytecode patch gets the specified `category(...)` (e.g. `"Ads"`). The companion patch automatically receives `category("Internal")`.
-3. **Compatibility Propagation**: Declared `compatibleWith(...)` targets are propagated to both the bytecode patch and the internal companion patch.
-4. **Dependency Linking**: The bytecode patch automatically declares `dependsOn(companionPatch)`.
+1. **Concurrent Layer Support**: A composite patch can declare `resources { ... }`, `rawResources { ... }`, or both alongside `bytecode { ... }`. Both companion patches are instantiated as private local objects inside `build()`, keeping them encapsulated from reflective discovery while automatically executing them when the parent feature is selected.
+2. **Category Propagation**: The user-facing bytecode patch gets the specified `category(...)` (e.g. `"Ads"`). The companion patches automatically receive `category("Internal")`.
+3. **Compatibility Propagation**: Declared `compatibleWith(...)` targets are propagated to both the bytecode patch and the internal companion patches.
+4. **Dependency Linking**: The bytecode patch automatically declares `dependsOn(companion)` for all configured companion layers.
 
 ---
 
@@ -140,10 +140,8 @@ val removeLoginPatch = bytecodePatch(
 ```
 
 ### Scenario 2: Multi-Layer Requirements (XML + Raw Assets + Bytecode)
-If a feature requires both Android XML edits and raw asset edits alongside bytecode:
-1. Declare a standalone `resourcePatch` for XML.
-2. Declare a standalone `rawResourcePatch` for raw assets.
-3. Link both in the `bytecodePatch` via `dependsOn(xmlPatch, rawPatch)`.
+When a single logical feature requires both Android XML edits and raw asset edits alongside Dalvik bytecode:
+Use a single `compositeFeaturePatch` declaring both `resources { ... }` and `rawResources { ... }`. Standalone `resourcePatch` or `rawResourcePatch` declarations should only be used if the resource layer is a shared prerequisite needed by multiple independent features (as in Scenario 1).
 
 ### Scenario 3: Linking Java Extension Bridges (`extendWith`)
 Whenever Dalvik Smali invokes code compiled from `extensions/extension/src/main/java/`:

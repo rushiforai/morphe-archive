@@ -3,6 +3,7 @@
  * https://github.com/MorpheApp/morphe-patches/pull/4316
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ * Modified by lavinhoque33, 2026-11-19.
  */
 
 package app.morphe.extension.shared.spoof;
@@ -23,6 +24,7 @@ import java.util.Locale;
  */
 public final class SabrRequestBody {
     // VideoPlaybackAbrRequest.streamerContext.
+    static final int REQUEST_USTREAMER_CONFIG_FIELD = 5;
     static final int REQUEST_STREAMER_CONTEXT_FIELD = 19;
     // StreamerContext.clientInfo and StreamerContext.poToken.
     static final int STREAMER_CONTEXT_CLIENT_INFO_FIELD = 1;
@@ -67,9 +69,17 @@ public final class SabrRequestBody {
      * The other fields are kept as they are.
      */
     static byte[] replaceClientInfo(byte[] body, byte[] clientInfo) throws IOException {
+        return replaceClientInfo(body, clientInfo, null, null, null);
+    }
+
+    static byte[] replaceClientInfo(byte[] body, byte[] clientInfo, @Nullable byte[] poToken,
+                                    @Nullable SabrContexts.ToSend contexts,
+                                    @Nullable byte[] ustreamerConfig) throws IOException {
         ByteArrayOutputStream bytes = new ByteArrayOutputStream(body.length + clientInfo.length);
         CodedOutputStream output = CodedOutputStream.newInstance(bytes);
         CodedInputStream input = CodedInputStream.newInstance(body);
+        boolean contextWritten = false;
+        boolean configWritten = false;
         while (true) {
             final int start = input.getTotalBytesRead();
             final int tag = input.readTag();
@@ -78,16 +88,30 @@ public final class SabrRequestBody {
             }
             if (isMessageField(tag, REQUEST_STREAMER_CONTEXT_FIELD)) {
                 output.writeByteArray(REQUEST_STREAMER_CONTEXT_FIELD,
-                        replaceStreamerContextClient(input.readByteArray(), clientInfo));
+                        replaceStreamerContextClient(input.readByteArray(), clientInfo, poToken, contexts));
+                contextWritten = true;
+            } else if (ustreamerConfig != null && isMessageField(tag, REQUEST_USTREAMER_CONFIG_FIELD)) {
+                input.skipField(tag);
+                output.writeByteArray(REQUEST_USTREAMER_CONFIG_FIELD, ustreamerConfig);
+                configWritten = true;
             } else {
                 copyField(body, start, input, tag, output);
             }
+        }
+        if (ustreamerConfig != null && !configWritten) {
+            output.writeByteArray(REQUEST_USTREAMER_CONFIG_FIELD, ustreamerConfig);
+        }
+        if (poToken != null && !contextWritten) {
+            output.writeByteArray(REQUEST_STREAMER_CONTEXT_FIELD,
+                    replaceStreamerContextClient(new byte[0], clientInfo, poToken, contexts));
         }
         output.flush();
         return bytes.toByteArray();
     }
 
-    private static byte[] replaceStreamerContextClient(byte[] streamerContext, byte[] clientInfo) throws IOException {
+    private static byte[] replaceStreamerContextClient(byte[] streamerContext, byte[] clientInfo,
+                                                       @Nullable byte[] poToken,
+                                                       @Nullable SabrContexts.ToSend contexts) throws IOException {
         ByteArrayOutputStream bytes = new ByteArrayOutputStream(streamerContext.length + clientInfo.length);
         CodedOutputStream output = CodedOutputStream.newInstance(bytes);
         CodedInputStream input = CodedInputStream.newInstance(streamerContext);
@@ -105,7 +129,9 @@ public final class SabrRequestBody {
                     output.writeByteArray(STREAMER_CONTEXT_CLIENT_INFO_FIELD, clientInfo);
                     clientInfoWritten = true;
                 }
-            } else if (field == STREAMER_CONTEXT_PO_TOKEN_FIELD) {
+            } else if (field == STREAMER_CONTEXT_PO_TOKEN_FIELD
+                    || (contexts != null && (field == SabrContexts.STREAMER_CONTEXT_SABR_CONTEXTS_FIELD
+                    || field == SabrContexts.STREAMER_CONTEXT_UNSENT_SABR_CONTEXTS_FIELD))) {
                 input.skipField(tag);
             } else {
                 copyField(streamerContext, start, input, tag, output);
@@ -113,6 +139,17 @@ public final class SabrRequestBody {
         }
         if (!clientInfoWritten) {
             output.writeByteArray(STREAMER_CONTEXT_CLIENT_INFO_FIELD, clientInfo);
+        }
+        if (poToken != null) {
+            output.writeByteArray(STREAMER_CONTEXT_PO_TOKEN_FIELD, poToken);
+        }
+        if (contexts != null) {
+            for (byte[] context : contexts.contexts()) {
+                output.writeByteArray(SabrContexts.STREAMER_CONTEXT_SABR_CONTEXTS_FIELD, context);
+            }
+            for (int type : contexts.unsentTypes()) {
+                output.writeInt32(SabrContexts.STREAMER_CONTEXT_UNSENT_SABR_CONTEXTS_FIELD, type);
+            }
         }
         output.flush();
         return bytes.toByteArray();

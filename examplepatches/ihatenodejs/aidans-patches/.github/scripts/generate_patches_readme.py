@@ -12,6 +12,8 @@ python3 generate_patches_readme.py <owner/repo> <branch> [patches-list.json] [RE
 
 import json
 import re
+import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -69,11 +71,6 @@ for patch in data["patches"]:
             by_pkg[pkg]["patches"][patch["name"]] = patch
 
 
-def anchor(name):
-    """Convert a patch name to a GitHub-compatible anchor slug."""
-    return re.sub(r"-+", "-", re.sub(r"[^a-z0-9]+", "-", name.lower())).strip("-")
-
-
 def patches_table(patches):
     """Render a sorted markdown table of patches with name, description, and options."""
     rows = [
@@ -81,7 +78,6 @@ def patches_table(patches):
         "|----------|----------------|-----------|",
     ]
     for p in sorted(patches, key=lambda x: x["name"]):
-        a = anchor(p["name"])
         options = p.get("options") or []
         if options:
             # Show only option titles as a bullet list
@@ -90,7 +86,7 @@ def patches_table(patches):
         else:
             opts_cell = ""
         desc = (p.get("description") or "").replace("\n", "<br>")
-        rows.append(f"| [{p['name']}](#{a}) | {desc} | {opts_cell} |")
+        rows.append(f"| **{p['name']}** | {desc} | {opts_cell} |")
     return "\n".join(rows)
 
 
@@ -242,6 +238,27 @@ new_readme = re.sub(
     flags=re.DOTALL,
 )
 readme_path.write_text(new_readme, encoding="utf-8")
+
+prettier_bin = shutil.which("prettier")
+if prettier_bin:
+    subprocess.run(
+        [prettier_bin, "--write", str(readme_path)],
+        check=False,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+else:
+    for runner in ("bunx", "npx"):
+        runner_bin = shutil.which(runner)
+        if runner_bin:
+            subprocess.run(
+                [runner_bin, "prettier", "--write", str(readme_path)],
+                check=False,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            break
+
 print(
     f"✅ Injected patches section into {readme_path} (v{ver}, branch={branch}, {total} patches, expanded={expanded})"
 )

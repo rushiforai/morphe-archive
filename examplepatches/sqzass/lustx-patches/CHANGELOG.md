@@ -1,3 +1,9 @@
+## [1.24.0](https://github.com/sqzass/lustx-patches/compare/v1.23.0...v1.24.0) (2026-11-19)
+
+### ✨ New Features
+
+* add more checks to the `Remove PairIp` patch ([6aa4749](https://github.com/sqzass/lustx-patches/commit/6aa4749b812c6a0bbb4b9ed00d56f01d8439b6ee))
+
 ## [1.23.0](https://github.com/sqzass/lustx-patches/compare/v1.22.3...v1.23.0) (2026-11-19)
 
 ### ✨ New Features

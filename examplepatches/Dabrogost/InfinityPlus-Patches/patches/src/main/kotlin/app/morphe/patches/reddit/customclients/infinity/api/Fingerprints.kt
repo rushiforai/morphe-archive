@@ -14,6 +14,7 @@ import app.morphe.patcher.methodCall
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.value.StringEncodedValue
 
@@ -43,8 +44,12 @@ internal val clientIdFingerprint = Fingerprint(
     )
 )
 
-internal fun userAgentFingerprint(versionName: String) = Fingerprint(
-    strings = listOf("android:ml.docilealligator.infinityforreddit:$versionName (by /u/Hostilenemy)")
+internal val userAgentFingerprint = Fingerprint(
+    // Match all Infinity Reddit User-Agent literals regardless of whether a version bump
+    // or the "android:" prefix was omitted (e.g. leftover 8.3.5 strings in 8.4.0).
+    // Exclude the injected defaults, which must not call their own user-agent getter.
+    strings = listOf("ml.docilealligator.infinityforreddit:"),
+    custom = { _, classDef -> !classDef.type.startsWith("Lapp/morphe/extension/") }
 )
 
 internal val redirectUriFingerprint = Fingerprint(
@@ -88,14 +93,13 @@ internal val billingClientOnServiceConnectedFingerprint = Fingerprint(
     strings = listOf("Billing service connected")
 )
 
-// Both supported 8.3.x layouts must identify the same single lockout method.
+// All supported layouts must identify the same single lockout method.
 // The first method-call filter identifies its subscription-state setter.
 
-// Infinity+ 8.3.4: Infinity.f() no longer builds the subscription Intent itself. It checks a
-// flag and then hands the Context, a boolean and the Intent flags (0x10008000) to a static
-// helper that creates and starts SubscriptionActivityNew. The helper's name is obfuscated
-// (za3.X in 8.3.4), so match on its signature, built only from framework types, rather than
-// on its name.
+// Infinity+ 8.3.4+ moved SubscriptionActivityNew Intent creation into an obfuscated static
+// helper (e.g. za3.X in 8.3.4, su7.Q in 8.4.0). R8 may retain or specialize away boolean
+// extra parameters between Context and Integer, so match the static void call after
+// 0x10008000 and validate its (Context, Z*, Integer)V signature in custom.
 internal val infinityStartSubscriptionActivityHelperFingerprint = Fingerprint(
     definingClass = "Lml/docilealligator/infinityforreddit/Infinity;",
     parameters = emptyList(),
@@ -105,16 +109,21 @@ internal val infinityStartSubscriptionActivityHelperFingerprint = Fingerprint(
         literal(8),
         methodCall(parameters = listOf("I"), returnType = "V", opcode = Opcode.INVOKE_VIRTUAL),
         literal(0x10008000),
-        methodCall(
-            parameters = listOf(
-                "Landroid/content/Context;",
-                "Z",
-                "Ljava/lang/Integer;"
-            ),
-            returnType = "V",
-            opcode = Opcode.INVOKE_STATIC
-        )
-    )
+        methodCall(returnType = "V", opcode = Opcode.INVOKE_STATIC)
+    ),
+    custom = { method, _ ->
+        method.implementation?.instructions?.any { insn ->
+            insn.opcode == Opcode.INVOKE_STATIC &&
+                ((insn as? ReferenceInstruction)?.reference as? MethodReference)?.let { ref ->
+                    val params = ref.parameterTypes.map { it.toString() }
+                    ref.returnType == "V" &&
+                        params.size in 2..4 &&
+                        params.first() == "Landroid/content/Context;" &&
+                        params.last() == "Ljava/lang/Integer;" &&
+                        params.subList(1, params.size - 1).all { it == "Z" }
+                } == true
+        } == true
+    }
 )
 
 // Infinity+ 8.3.0 introduced this SubscriptionActivityNew companion layout.

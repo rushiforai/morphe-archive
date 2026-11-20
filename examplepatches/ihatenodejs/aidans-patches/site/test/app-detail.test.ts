@@ -10,9 +10,7 @@ describe('App Detail HTML Output Tests', () => {
   const adobeHtmlPath = path.join(distDir, 'apps/adobe-scan/index.html');
 
   before(() => {
-    if (!fs.existsSync(adobeHtmlPath)) {
-      execSync('bun run build', { cwd: siteRoot, stdio: 'pipe' });
-    }
+    execSync('bun run build', { cwd: siteRoot, stdio: 'pipe' });
   });
 
   it('renders app detail page with correct breadcrumb padding and profile alignment', () => {

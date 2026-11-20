@@ -12,12 +12,9 @@ import app.morphe.patcher.patch.bytecodePatch
 @Suppress("unused")
 val randomDeviceIdPatch = bytecodePatch(
     name = "Random device ID",
-    description = "Replaces the device SN (serial_id/serial_no/cpu_id/gid read by the " +
-        "root scene-daemon) with a random one everywhere the app itself uses it: the user " +
-        "page display and the SN-keyed cloud sync / API calls to omarea. The SN is baked " +
-        "per patch run. The daemon's own server report during real code activation is " +
-        "native and not affected.",
-    default = false,
+    description = "Replaces the device SN with a random value everywhere the app uses it: " +
+        "user page, cloud sync and API calls to omarea. Baked per patch run. The daemon's " +
+        "own activation report is native and not affected.",    default = false,
 ) {
     compatibleWith(COMPATIBILITY_SCENE)
 

@@ -19,6 +19,7 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
+import io.github.jordanwoodson.patches.shared.settings.ChoiceSetting
 import io.github.jordanwoodson.patches.shared.settings.Section
 import io.github.jordanwoodson.patches.shared.settings.SwitchSetting
 import io.github.jordanwoodson.patches.twitch.settings.twitchSettings
@@ -76,10 +77,16 @@ val thirdPartyEmotesPatch = bytecodePatch(
                     "autocomplete after ':'. Uses the lists chat already loads and sends nothing else.",
                 Section.CHAT, default = false),
             SwitchSetting("emotes_autocomplete_bare", "Autocomplete without ':'",
-                "Suggests emotes whose name starts with the word you are typing once it has three characters, " +
-                    "without typing ':' first. Twitch's emotes, plus the services' above while Emotes in the picker is on. " +
+                "Suggests emotes for the word you are typing once it has a few characters, without typing ':' " +
+                    "first. Twitch's emotes, plus the services' above while Emotes in the picker is on. " +
                     "Not after a command (/...).",
                 Section.CHAT, default = false),
+            ChoiceSetting("emotes_autocomplete_bare_min", "Autocomplete after", "", Section.CHAT, "3",
+                listOf("2 characters" to "2", "3 characters" to "3", "4 characters" to "4"),
+                parent = "emotes_autocomplete_bare"),
+            ChoiceSetting("emotes_autocomplete_bare_match", "Autocomplete matches", "", Section.CHAT, "0",
+                listOf("Start of the name" to "0", "Anywhere in the name" to "1"),
+                parent = "emotes_autocomplete_bare"),
             SwitchSetting("emotes_favorites", "Favorite emotes",
                 "Long-press an emote in the emote picker to add it to a Favorites section at the top; long-press a " +
                     "favorite to remove it. Twitch's and the services' emotes. Emotes with Twitch's own variants " +

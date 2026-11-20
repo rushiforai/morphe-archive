@@ -14,6 +14,11 @@ concurrency:
   group: private-build-v203dev18-${{ github.ref }}
   cancel-in-progress: true
 
+# Interim mitigation for CVE-2026-114938 until patched Temurin 25 is verified.
+# Disables the vulnerable x86-64 Base64 intrinsic for all Java subprocesses.
+env:
+  JAVA_TOOL_OPTIONS: '-XX:-UseBASE64Intrinsics'
+
 jobs:
   build:
     if: >-
@@ -34,6 +39,9 @@ jobs:
         with:
           distribution: temurin
           java-version: '25'
+          check-latest: true
+      - name: Verify patched Java 25 runtime
+        run: python3 .github/scripts/verify-java25-cspu.py
       - name: Check short gesture policy
         run: |
           javac -d /tmp/nicoid-shorts-tests extensions/extension/src/main/java/e/e/a/ShortsRules.java porting/tests/ShortsRulesTest.java
@@ -430,6 +438,9 @@ jobs:
         with:
           distribution: temurin
           java-version: '25'
+          check-latest: true
+      - name: Verify patched Java 25 runtime
+        run: python3 .github/scripts/verify-java25-cspu.py
       - name: Check source-only v2 live regression contracts
         run: python3 porting/revisions/v2.0.0-dev.1/tests/verify-dev12.py
       - name: Verify v2.0.1 stable release configuration without publishing
@@ -712,7 +723,17 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 porting/revisions/v2.0.6-dev.11/tests/verify.py
+          # Archived version assertions apply only to v2.0.6-dev.11-13.
+          # Run JVM behavioral regressions for v2.1.0 as well.
+          current_version=$(sed -n 's/^version *= *//p' gradle.properties | head -n 1)
+          case "$current_version" in
+            2.0.6-dev.11|2.0.6-dev.12|2.0.6-dev.13)
+              python3 porting/revisions/v2.0.6-dev.11/tests/verify.py
+              ;;
+            *)
+              echo "Skip legacy version assertion for $current_version"
+              ;;
+          esac
           python3 porting/revisions/v2.0.6-dev.11/tests/run_resume_test.py
           python3 porting/revisions/v2.0.6-dev.13/tests/menu_test.py
           mkdir -p /tmp/nicoid-settings-v270
@@ -768,7 +789,230 @@ jobs:
             fi
           fi
           output="/tmp/nicoid-re-$version.mpp"
-          if [[ -n "$builder" ]]; then
+          if [[ "$GITHUB_REF" == "refs/heads/dev" && "$version" == "2.1.3-dev.1" ]]; then
+            compiled="patches/build/libs/patches-$version.mpp"
+            test -s "$compiled"
+            python3 .github/scripts/verify_android_mpp.py "$compiled" "$version"
+            # Reproduce the real 2.1.2 release ordering. This must not overwrite classes.dex.
+            ./gradlew :patches:generatePatchesList --no-daemon
+            python3 .github/scripts/verify_android_mpp.py "$compiled" "$version"
+            python3 porting/tests/test_release_mpp_integrity.py
+            python3 porting/revisions/v2.1.2-dev.14/tests/test_backup_playlist.py
+            python3 porting/revisions/v2.1.2-dev.14/tests/test_backup_runtime.py
+            python3 porting/revisions/v2.1.0-release/prepare_smali_tools.py
+            python3 porting/revisions/v2.1.3-dev.1/stage_candidate.py --compiled "$compiled" --output "$output" --tools "$revision/tools"
+            python3 .github/scripts/verify_android_mpp.py "$output" "$version"
+          elif [[ "$GITHUB_REF" == "refs/heads/dev" && "$version" == "2.1.2-dev.14" ]]; then
+            compiled="patches/build/libs/patches-$version.mpp"
+            test -s "$compiled"
+            python3 porting/revisions/v2.1.2-dev.14/tests/test_backup_playlist.py
+            python3 porting/revisions/v2.1.2-dev.14/tests/test_backup_runtime.py
+            python3 porting/revisions/v2.1.2-dev.12/tests/test_playback_intent.py
+            python3 porting/revisions/v2.1.2-dev.12/tests/test_popup_startup.py
+            python3 porting/revisions/v2.1.2-dev.12/tests/test_paused_return_seek.py
+            python3 porting/revisions/v2.1.2-dev.12/tests/test_resume_split_ambient_mini.py
+            python3 porting/revisions/v2.1.2-dev.12/tests/test_dev5_wiring.py
+            python3 porting/revisions/v2.1.2-dev.12/tests/test_resume_guard_runtime.py
+            python3 porting/revisions/v2.1.2-dev.12/tests/test_ambient.py
+            python3 porting/revisions/v2.1.2-dev.12/tests/test_mini_handoff_runtime.py
+            python3 porting/revisions/v2.1.2-dev.12/tests/test_local_move_runtime.py
+            python3 porting/revisions/v2.1.2-dev.12/tests/test_dev6_handoff_theme.py
+            python3 porting/revisions/v2.1.2-dev.12/tests/test_media3_stall.py
+            python3 porting/revisions/v2.1.0-release/prepare_smali_tools.py
+            python3 porting/revisions/v2.1.2-dev.14/stage_candidate.py \
+              --compiled "$compiled" --output "$output" --tools "$revision/tools"
+          elif [[ "$GITHUB_REF" == "refs/heads/dev" && "$version" == "2.1.2-dev.13" ]]; then
+            compiled="patches/build/libs/patches-$version.mpp"
+            test -s "$compiled"
+            python3 porting/revisions/v2.1.2-dev.13/tests/test_backup_playlist.py
+            python3 porting/revisions/v2.1.2-dev.12/tests/test_playback_intent.py
+            python3 porting/revisions/v2.1.2-dev.12/tests/test_popup_startup.py
+            python3 porting/revisions/v2.1.2-dev.12/tests/test_paused_return_seek.py
+            python3 porting/revisions/v2.1.2-dev.12/tests/test_resume_split_ambient_mini.py
+            python3 porting/revisions/v2.1.2-dev.12/tests/test_dev5_wiring.py
+            python3 porting/revisions/v2.1.2-dev.12/tests/test_resume_guard_runtime.py
+            python3 porting/revisions/v2.1.2-dev.12/tests/test_ambient.py
+            python3 porting/revisions/v2.1.2-dev.12/tests/test_mini_handoff_runtime.py
+            python3 porting/revisions/v2.1.2-dev.12/tests/test_local_move_runtime.py
+            python3 porting/revisions/v2.1.2-dev.12/tests/test_dev6_handoff_theme.py
+            python3 porting/revisions/v2.1.2-dev.12/tests/test_media3_stall.py
+            python3 porting/revisions/v2.1.0-release/prepare_smali_tools.py
+            python3 porting/revisions/v2.1.2-dev.13/stage_candidate.py \
+              --compiled "$compiled" --output "$output" --tools "$revision/tools"
+          elif [[ "$GITHUB_REF" == "refs/heads/dev" && "$version" == "2.1.2-dev.12" ]]; then
+            compiled="patches/build/libs/patches-$version.mpp"
+            test -s "$compiled"
+            python3 porting/revisions/v2.1.2-dev.12/tests/test_playback_intent.py
+            python3 porting/revisions/v2.1.2-dev.12/tests/test_popup_startup.py
+            python3 porting/revisions/v2.1.2-dev.12/tests/test_paused_return_seek.py
+            python3 porting/revisions/v2.1.2-dev.12/tests/test_resume_split_ambient_mini.py
+            python3 porting/revisions/v2.1.2-dev.12/tests/test_dev5_wiring.py
+            python3 porting/revisions/v2.1.2-dev.12/tests/test_resume_guard_runtime.py
+            python3 porting/revisions/v2.1.2-dev.12/tests/test_ambient.py
+            python3 porting/revisions/v2.1.2-dev.12/tests/test_mini_handoff_runtime.py
+            python3 porting/revisions/v2.1.2-dev.12/tests/test_local_move_runtime.py
+            python3 porting/revisions/v2.1.2-dev.12/tests/test_dev6_handoff_theme.py
+            python3 porting/revisions/v2.1.2-dev.12/tests/test_media3_stall.py
+            python3 porting/revisions/v2.1.0-release/prepare_smali_tools.py
+            python3 porting/revisions/v2.1.2-dev.12/stage_candidate.py \
+              --compiled "$compiled" --output "$output" --tools "$revision/tools"
+          elif [[ "$GITHUB_REF" == "refs/heads/dev" && "$version" == "2.1.2-dev.11" ]]; then
+            compiled="patches/build/libs/patches-$version.mpp"
+            test -s "$compiled"
+            python3 porting/revisions/v2.1.2-dev.11/tests/test_playback_intent.py
+            python3 porting/revisions/v2.1.2-dev.11/tests/test_popup_startup.py
+            python3 porting/revisions/v2.1.2-dev.11/tests/test_paused_return_seek.py
+            python3 porting/revisions/v2.1.2-dev.11/tests/test_resume_split_ambient_mini.py
+            python3 porting/revisions/v2.1.2-dev.11/tests/test_dev5_wiring.py
+            python3 porting/revisions/v2.1.2-dev.11/tests/test_resume_guard_runtime.py
+            python3 porting/revisions/v2.1.2-dev.11/tests/test_ambient.py
+            python3 porting/revisions/v2.1.2-dev.11/tests/test_dev6_handoff_theme.py
+            python3 porting/revisions/v2.1.2-dev.11/tests/test_media3_stall.py
+            python3 porting/revisions/v2.1.0-release/prepare_smali_tools.py
+            python3 porting/revisions/v2.1.2-dev.11/stage_candidate.py \
+              --compiled "$compiled" --output "$output" --tools "$revision/tools"
+          elif [[ "$GITHUB_REF" == "refs/heads/dev" && "$version" == "2.1.2-dev.10" ]]; then
+            compiled="patches/build/libs/patches-$version.mpp"
+            test -s "$compiled"
+            python3 porting/revisions/v2.1.2-dev.10/tests/test_playback_intent.py
+            python3 porting/revisions/v2.1.2-dev.10/tests/test_popup_startup.py
+            python3 porting/revisions/v2.1.2-dev.10/tests/test_paused_return_seek.py
+            python3 porting/revisions/v2.1.2-dev.10/tests/test_resume_split_ambient_mini.py
+            python3 porting/revisions/v2.1.2-dev.10/tests/test_dev5_wiring.py
+            python3 porting/revisions/v2.1.2-dev.10/tests/test_resume_guard_runtime.py
+            python3 porting/revisions/v2.1.2-dev.10/tests/test_ambient.py
+            python3 porting/revisions/v2.1.2-dev.10/tests/test_dev6_handoff_theme.py
+            python3 porting/revisions/v2.1.2-dev.10/tests/test_media3_stall.py
+            python3 porting/revisions/v2.1.0-release/prepare_smali_tools.py
+            python3 porting/revisions/v2.1.2-dev.10/stage_candidate.py \
+              --compiled "$compiled" --output "$output" --tools "$revision/tools"
+          elif [[ "$GITHUB_REF" == "refs/heads/dev" && "$version" == "2.1.2-dev.9" ]]; then
+            compiled="patches/build/libs/patches-$version.mpp"
+            test -s "$compiled"
+            python3 porting/revisions/v2.1.2-dev.9/tests/test_playback_intent.py
+            python3 porting/revisions/v2.1.2-dev.9/tests/test_popup_startup.py
+            python3 porting/revisions/v2.1.2-dev.9/tests/test_paused_return_seek.py
+            python3 porting/revisions/v2.1.2-dev.9/tests/test_resume_split_ambient_mini.py
+            python3 porting/revisions/v2.1.2-dev.9/tests/test_dev5_wiring.py
+            python3 porting/revisions/v2.1.2-dev.9/tests/test_resume_guard_runtime.py
+            python3 porting/revisions/v2.1.2-dev.9/tests/test_ambient.py
+            python3 porting/revisions/v2.1.2-dev.9/tests/test_dev6_handoff_theme.py
+            python3 porting/revisions/v2.1.2-dev.9/tests/test_media3_stall.py
+            python3 porting/revisions/v2.1.0-release/prepare_smali_tools.py
+            python3 porting/revisions/v2.1.2-dev.9/stage_candidate.py \
+              --compiled "$compiled" --output "$output" --tools "$revision/tools"
+          elif [[ "$GITHUB_REF" == "refs/heads/dev" && "$version" == "2.1.2-dev.8" ]]; then
+            compiled="patches/build/libs/patches-$version.mpp"
+            test -s "$compiled"
+            python3 porting/revisions/v2.1.2-dev.8/tests/test_playback_intent.py
+            python3 porting/revisions/v2.1.2-dev.8/tests/test_popup_startup.py
+            python3 porting/revisions/v2.1.2-dev.8/tests/test_paused_return_seek.py
+            python3 porting/revisions/v2.1.2-dev.8/tests/test_resume_split_ambient_mini.py
+            python3 porting/revisions/v2.1.2-dev.8/tests/test_dev5_wiring.py
+            python3 porting/revisions/v2.1.2-dev.8/tests/test_resume_guard_runtime.py
+            python3 porting/revisions/v2.1.2-dev.8/tests/test_ambient.py
+            python3 porting/revisions/v2.1.2-dev.8/tests/test_dev6_handoff_theme.py
+            python3 porting/revisions/v2.1.2-dev.8/tests/test_media3_stall.py
+            python3 porting/revisions/v2.1.0-release/prepare_smali_tools.py
+            python3 porting/revisions/v2.1.2-dev.8/stage_candidate.py \
+              --compiled "$compiled" --output "$output" --tools "$revision/tools"
+          elif [[ "$GITHUB_REF" == "refs/heads/dev" && "$version" == "2.1.2-dev.7" ]]; then
+            compiled="patches/build/libs/patches-$version.mpp"
+            test -s "$compiled"
+            python3 porting/revisions/v2.1.2-dev.7/tests/test_playback_intent.py
+            python3 porting/revisions/v2.1.2-dev.7/tests/test_popup_startup.py
+            python3 porting/revisions/v2.1.2-dev.7/tests/test_paused_return_seek.py
+            python3 porting/revisions/v2.1.2-dev.7/tests/test_resume_split_ambient_mini.py
+            python3 porting/revisions/v2.1.2-dev.7/tests/test_dev5_wiring.py
+            python3 porting/revisions/v2.1.2-dev.7/tests/test_resume_guard_runtime.py
+            python3 porting/revisions/v2.1.2-dev.7/tests/test_ambient.py
+            python3 porting/revisions/v2.1.2-dev.7/tests/test_dev6_handoff_theme.py
+            python3 porting/revisions/v2.1.2-dev.7/tests/test_media3_stall.py
+            python3 porting/revisions/v2.1.2-dev.7/tests/test_dev7_pending_play.py
+            python3 porting/revisions/v2.1.0-release/prepare_smali_tools.py
+            python3 porting/revisions/v2.1.2-dev.7/stage_candidate.py \
+              --compiled "$compiled" --output "$output" --tools "$revision/tools"
+          elif [[ "$GITHUB_REF" == "refs/heads/dev" && "$version" == "2.1.2-dev.6" ]]; then
+            compiled="patches/build/libs/patches-$version.mpp"
+            test -s "$compiled"
+            python3 porting/revisions/v2.1.2-dev.6/tests/test_playback_intent.py
+            python3 porting/revisions/v2.1.2-dev.6/tests/test_popup_startup.py
+            python3 porting/revisions/v2.1.2-dev.6/tests/test_paused_return_seek.py
+            python3 porting/revisions/v2.1.2-dev.6/tests/test_resume_split_ambient_mini.py
+            python3 porting/revisions/v2.1.2-dev.6/tests/test_dev5_wiring.py
+            python3 porting/revisions/v2.1.2-dev.6/tests/test_resume_guard_runtime.py
+            python3 porting/revisions/v2.1.2-dev.6/tests/test_ambient.py
+            python3 porting/revisions/v2.1.2-dev.6/tests/test_dev6_handoff_theme.py
+            python3 porting/revisions/v2.1.0-release/prepare_smali_tools.py
+            python3 porting/revisions/v2.1.2-dev.6/stage_candidate.py \
+              --compiled "$compiled" --output "$output" --tools "$revision/tools"
+          elif [[ "$GITHUB_REF" == "refs/heads/dev" && "$version" == "2.1.2-dev.5" ]]; then
+            compiled="patches/build/libs/patches-$version.mpp"
+            test -s "$compiled"
+            python3 porting/revisions/v2.1.2-dev.5/tests/test_playback_intent.py
+            python3 porting/revisions/v2.1.2-dev.5/tests/test_popup_startup.py
+            python3 porting/revisions/v2.1.2-dev.5/tests/test_paused_return_seek.py
+            python3 porting/revisions/v2.1.2-dev.5/tests/test_resume_split_ambient_mini.py
+            python3 porting/revisions/v2.1.2-dev.5/tests/test_dev5_wiring.py
+            python3 porting/revisions/v2.1.2-dev.5/tests/test_resume_guard_runtime.py
+            python3 porting/revisions/v2.1.2-dev.5/tests/test_ambient.py
+            python3 porting/revisions/v2.1.0-release/prepare_smali_tools.py
+            python3 porting/revisions/v2.1.2-dev.5/stage_candidate.py \
+              --compiled "$compiled" --output "$output" --tools "$revision/tools"
+          elif [[ "$GITHUB_REF" == "refs/heads/dev" && "$version" == "2.1.2-dev.4" ]]; then
+            compiled="patches/build/libs/patches-$version.mpp"
+            test -s "$compiled"
+            python3 porting/revisions/v2.1.2-dev.4/tests/test_playback_intent.py
+            python3 porting/revisions/v2.1.2-dev.4/tests/test_popup_startup.py
+            python3 porting/revisions/v2.1.2-dev.4/tests/test_paused_return_seek.py
+            python3 porting/revisions/v2.1.2-dev.4/tests/test_resume_split_ambient_mini.py
+            python3 porting/revisions/v2.1.0-release/prepare_smali_tools.py
+            python3 porting/revisions/v2.1.2-dev.4/stage_candidate.py \
+              --compiled "$compiled" --output "$output" --tools "$revision/tools"
+          elif [[ "$GITHUB_REF" == "refs/heads/dev" && "$version" == "2.1.2-dev.3" ]]; then
+            compiled="patches/build/libs/patches-$version.mpp"
+            test -s "$compiled"
+            python3 porting/revisions/v2.1.2-dev.3/tests/test_playback_intent.py
+            python3 porting/revisions/v2.1.2-dev.3/tests/test_popup_startup.py
+            python3 porting/revisions/v2.1.2-dev.3/tests/test_paused_return_seek.py
+            python3 porting/revisions/v2.1.0-release/prepare_smali_tools.py
+            python3 porting/revisions/v2.1.2-dev.3/stage_candidate.py \
+              --compiled "$compiled" --output "$output" --tools "$revision/tools"
+          elif [[ "$GITHUB_REF" == "refs/heads/dev" && "$version" == "2.1.2-dev.2" ]]; then
+            compiled="patches/build/libs/patches-$version.mpp"
+            test -s "$compiled"
+            python3 porting/revisions/v2.1.2-dev.2/tests/test_playback_intent.py
+            python3 porting/revisions/v2.1.2-dev.2/tests/test_popup_startup.py
+            python3 porting/revisions/v2.1.0-release/prepare_smali_tools.py
+            python3 porting/revisions/v2.1.2-dev.2/stage_candidate.py \
+              --compiled "$compiled" --output "$output" --tools "$revision/tools"
+          elif [[ "$GITHUB_REF" == "refs/heads/dev" && "$version" == "2.1.2-dev.1" ]]; then
+            compiled="patches/build/libs/patches-$version.mpp"
+            test -s "$compiled"
+            python3 porting/revisions/v2.1.2-dev.1/tests/test_playback_intent.py
+            python3 porting/revisions/v2.1.0-release/prepare_smali_tools.py
+            python3 porting/revisions/v2.1.2-dev.1/stage_candidate.py \
+              --compiled "$compiled" --output "$output" --tools "$revision/tools"
+          elif [[ "$GITHUB_REF" == "refs/heads/dev" && "$version" == "2.1.1-dev.6" ]]; then
+            # Build the new development candidate from the immutable reviewed Media3 Smali.
+            compiled="patches/build/libs/patches-$version.mpp"
+            test -s "$compiled"
+            python3 porting/revisions/v2.1.0-release/prepare_smali_tools.py
+            python3 porting/revisions/v2.1.1-dev.6/stage_candidate.py \
+              --compiled "$compiled" --output "$output" --tools "$revision/tools"
+          elif [[ "$GITHUB_REF" == "refs/heads/dev" && "$version" == "2.1.0" ]]; then
+            # Stage the same reviewed dev.28 behavior as the official main build.
+            # Never distribute the raw, unstaged Gradle MPP as a verified v2.1.0 candidate.
+            compiled="patches/build/libs/patches-$version.mpp"
+            test -s "$compiled"
+            approved_base=$(mktemp /tmp/nicoid-v210-dev-compiled-XXXXXXXX.mpp)
+            trap 'rm -f "$approved_base"' EXIT
+            cp "$compiled" "$approved_base"
+            python3 porting/revisions/v2.1.0-release/verify_dev28.py
+            python3 porting/revisions/v2.1.0-release/prepare_smali_tools.py
+            python3 porting/revisions/v2.1.0-release/stage_verified.py \
+              --compiled "$approved_base" --output "$output" --tools "$revision/tools"
+          elif [[ -n "$builder" ]]; then
             payload="/tmp/nicoid-re-$version-payload.mpp"
             python3 "$builder/build_mpp.py" \
               --base /tmp/stable-nicoid.mpp \
@@ -792,6 +1036,7 @@ jobs:
             python3 porting/revisions/v2.0.6-dev.12/verify_settings_links.py "$output" "$revision/tools"
           fi
           unzip -tq "$output"
+          python3 .github/scripts/verify_android_mpp.py "$output" "$version"
           unzip -p "$output" META-INF/MANIFEST.MF | grep -Fq "Version: $version"
           mkdir -p /tmp/nicoid-v2-delivery
           cp "$output" /tmp/nicoid-v2-delivery/

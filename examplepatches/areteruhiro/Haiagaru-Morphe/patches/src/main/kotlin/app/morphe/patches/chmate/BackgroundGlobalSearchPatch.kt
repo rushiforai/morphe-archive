@@ -1,6 +1,8 @@
 package app.morphe.patches.chmate
 
 import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
@@ -15,6 +17,19 @@ private const val GLOBAL_HOME="Lapp/morphe/extension/chmate/GlobalSearchHome;"
 
 internal fun BytecodePatchContext.patchBackgroundGlobalSearch(version:String){
     if(version !in setOf("0.8.10.191 dev","0.8.10.226 dev","0.8.10.242 dev"))return
+    if(version.contains("242")){
+        val row=mutableClassDefBy("Lo/getAvailabilityStatus\$r8lambdawJ5MHcSJed_CjC7r4OWD0UxyJsQ;")
+        val resolve=row.methods.single{it.name=="e"&&it.parameterTypes==listOf("Landroid/content/Context;")&&it.returnType=="Ljp/syoboi/a2chMate/client/BBSUrlInfo;"}
+        check(resolve.implementation!!.registerCount-2>=1){"242 cached thread resolver needs a local register"}
+        val native=resolve.implementation!!.instructions.first()
+        resolve.addInstructionsWithLabels(0,"""
+            invoke-static/range {p0 .. p1}, Lapp/morphe/extension/chmate/CachedHomeThreadInfo;->resolve(Ljava/lang/Object;Landroid/content/Context;)Ljava/lang/Object;
+            move-result-object v0
+            if-eqz v0, :native_cached_thread_info
+            check-cast v0, Ljp/syoboi/a2chMate/client/BBSUrlInfo;
+            return-object v0
+        """.trimIndent(),ExternalLabel("native_cached_thread_info",native))
+    }
     val toolbarType=when{
         version.contains("191")->"Lo/r8lambdaBgNelb8wzuneQt5bGzKp1rt5TaY;"
         version.contains("226")->"Lo/PAGBannerAd;"

@@ -1,0 +1,39 @@
+4 ficheros DEX, 164880 cadenas distintas
+
+Modo de comprobacion: exacto (androguard)
+
+=== Eliminar anuncios ===
+  [x] Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;->b
+  [x] Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils;->c
+  [x] Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$AdSuggestionSwitch;->getEnable
+  [x] Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$EcommerceSuggestionSwitch;->getEnable
+  [x] Lcom/baidu/simeji/plutus/adsuggestion/AdSuggestionUtils$GpAdSugConfig;->getEnable
+  => 5/5 huellas disponibles.
+
+=== Desbloquear VIP ===
+  [x] Lcom/baidu/simeji/coolfont/CoolFontBean;->isVip
+  [x] Lcom/baidu/simeji/coolfont/CoolFontBean;->isFontLock
+  [x] Lcom/baidu/simeji/coolfont/CoolFontBean;->isFontStateLockOrVip
+  [x] Lcom/baidu/simeji/coolfont/CoolFontBean;->isLockType
+  [x] Lcom/baidu/simeji/coolfont/CoolFontBean;->isVipUnLockByVideoOrSubscribe
+  [x] Lcom/baidu/simeji/coolfont/CoolFontBean;->getVipIsUnLock
+  [x] Lcom/baidu/simeji/sticker/series/SeriesStickerItem;->isSeriesVip
+  [x] Lcom/baidu/simeji/skins/content/itemdata/StickerItem;->isSeriesVip
+  [x] Lcom/baidu/simeji/inputview/convenient/textbomb/TextBombBean;->isVip
+  [x] Lcom/gbu/ime/kmm/biz/chatgpt/bean/rizzKeyboard/RizzConfigInfoDetail;->isVip
+  [x] Lcom/gbu/ime/kmm/biz/chatgpt/bean/rizzKeyboard/RizzConfigInfoDetail2;->isVip
+  [x] Lcom/gbu/ime/kmm/biz/chatgpt/bean/rizzKeyboard/RizzIceBreakerConfigInfoDetail;->isVip
+  => 12/12 huellas disponibles.
+
+=== Desactivar rastreo ===
+  [x] Lcom/google/firebase/analytics/FirebaseAnalytics;->logEvent
+  [x] Lcom/google/firebase/analytics/FirebaseAnalytics;->setUserProperty
+  [x] Lcom/google/firebase/analytics/FirebaseAnalytics;->setUserId
+  [x] Lcom/google/firebase/analytics/FirebaseAnalytics;->setDefaultEventParameters
+  [x] Lcom/google/firebase/crashlytics/FirebaseCrashlytics;->log
+  [x] Lcom/google/firebase/crashlytics/FirebaseCrashlytics;->setUserId
+  [x] Lcom/google/firebase/crashlytics/FirebaseCrashlytics;->recordException
+  [ ] Lcom/facebook/appevents/AppEventsLogger;->logEvent
+  [x] Lcom/appsflyer/AppsFlyerLib;->logEvent
+  => 8/9 huellas disponibles.
+

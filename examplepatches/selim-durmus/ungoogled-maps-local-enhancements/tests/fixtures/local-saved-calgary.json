@@ -1,0 +1,24 @@
+{
+ "app": "Ungoogled Maps",
+ "version": 2,
+ "lists": [
+  {"id": "want_to_go", "name": "Want to go"},
+  {"id": "travel_plans", "name": "Travel plans"},
+  {"id": "starred", "name": "Starred places"},
+  {"id": "favourites", "name": "Favorites"},
+  {"id": "test_coffee", "name": "Coffee"}
+ ],
+ "places": [
+  {"name": "Peace Bridge", "category": "Bridge", "lat": 51.0546, "lng": -114.0784, "added": 1763300000000, "lists": ["starred"]},
+  {"name": "Costco Beacon Hill", "note": "bulk groceries and gas", "category": "Warehouse store", "lat": 51.1268, "lng": -114.2050, "added": 1763300100000, "lists": ["want_to_go"]},
+  {"name": "Prince's Island Park", "category": "Park", "lat": 51.0539, "lng": -114.0698, "added": 1763300200000, "lists": ["favourites", "starred"]},
+  {"name": "Analog Coffee 17th Ave", "category": "Coffee shop", "lat": 51.0379, "lng": -114.0855, "added": 1763300300000, "lists": ["test_coffee"]},
+  {"name": "Calgary Zoo", "note": "membership card in wallet", "category": "Zoo", "lat": 51.0459, "lng": -114.0281, "added": 1763300400000, "lists": []}
+ ],
+ "home": {"name": "Central Library", "lat": 51.0455, "lng": -114.0549, "added": 1763300000000, "lists": []},
+ "work": {"name": "Bow Building", "lat": 51.0478, "lng": -114.0626, "added": 1763300000000, "lists": []},
+ "labels": [
+  {"label": "Gym", "place": {"name": "Repsol Sport Centre", "lat": 51.0367, "lng": -114.0592, "added": 1763300000000, "lists": []}},
+  {"label": "Café Mum", "place": {"name": "Mission coffee spot", "lat": 51.0340, "lng": -114.0700, "added": 1763300000000, "lists": []}}
+ ]
+}

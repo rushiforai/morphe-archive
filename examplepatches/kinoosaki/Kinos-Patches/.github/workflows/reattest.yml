@@ -1,0 +1,163 @@
+name: Re-attest a published release
+
+# Rebuilds the patch bundle of an already published release and, only if the rebuild is
+# byte-identical to the published asset, attaches a build-provenance attestation to it.
+# For releases whose Release run failed after publishing and so skipped the Attest step
+# (v1.17.0). Nothing is uploaded or changed in the release itself.
+#
+# The Morphe Gradle plugin writes the build time (System.currentTimeMillis) into the bundle's
+# META-INF/MANIFEST.MF as "Timestamp", so a plain rebuild can never be byte-identical. The rebuild
+# therefore pins that one manifest value to the published bundle's own Timestamp (Gradle init
+# script, no repo change); every other byte must come out of the build unchanged. Checked on
+# v1.17.0: with the pin the rebuild reproduces the published sha256 exactly.
+#
+# The provenance records this workflow run (the branch it was dispatched from and that branch's
+# commit) as its source, because a dispatched workflow must exist on the dispatching ref and
+# older tags do not contain this file. The bundle itself is built from the tag's commit, and the
+# job summary records that commit next to the attested digest.
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to rebuild and attest (vX.Y.Z or vX.Y.Z-dev.N)
+        required: true
+        default: v1.17.0
+      expected_sha256:
+        description: sha256 (hex) of the published patches-<version>.mpp asset
+        required: true
+        default: 9c7622c0119c856fef49eac12b2e078536bcceb29ed22f7b8a8273ce3c038c5b
+
+permissions:
+  contents: read
+  # Same as the Release workflow: the Morphe Gradle plugin and libraries come from the
+  # MorpheApp GitHub Packages registry, which needs a token with packages: read.
+  packages: read
+  id-token: write
+  attestations: write
+
+jobs:
+  reattest:
+    name: Rebuild and attest ${{ inputs.tag }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check inputs
+        id: check
+        env:
+          TAG: ${{ inputs.tag }}
+          EXPECTED: ${{ inputs.expected_sha256 }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if ! [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-dev\.[0-9]+)?$ ]]; then
+            echo "::error::'$TAG' is not a release tag (vX.Y.Z or vX.Y.Z-dev.N)"
+            exit 1
+          fi
+          expected="$(tr '[:upper:]' '[:lower:]' <<<"${EXPECTED#sha256:}")"
+          if ! [[ "$expected" =~ ^[0-9a-f]{64}$ ]]; then
+            echo "::error::expected_sha256 must be 64 hex characters"
+            exit 1
+          fi
+          version="${TAG#v}"
+          name="patches-${version}.mpp"
+
+          # The expected hash must also be what the release actually serves.
+          published="$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json assets \
+            --jq ".assets[] | select(.name == \"${name}\") | .digest")"
+          if [ "$published" != "sha256:${expected}" ]; then
+            echo "::error::Release ${TAG} asset ${name} has digest '${published}', not sha256:${expected}"
+            exit 1
+          fi
+
+          # Read the build Timestamp from the published bundle's manifest.
+          mkdir -p "$RUNNER_TEMP/published"
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern "$name" \
+            --dir "$RUNNER_TEMP/published" --clobber
+          downloaded="$(sha256sum "$RUNNER_TEMP/published/${name}" | cut -d' ' -f1)"
+          if [ "$downloaded" != "$expected" ]; then
+            echo "::error::Downloaded ${name} has sha256 ${downloaded}, not ${expected}"
+            exit 1
+          fi
+          timestamp="$(unzip -p "$RUNNER_TEMP/published/${name}" META-INF/MANIFEST.MF \
+            | tr -d '\r' | sed -n 's/^Timestamp: *//p' | head -n1)"
+          if ! [[ "$timestamp" =~ ^[0-9]+$ ]]; then
+            echo "::error::No numeric Timestamp in ${name}'s META-INF/MANIFEST.MF"
+            exit 1
+          fi
+          echo "Published bundle Timestamp: ${timestamp}"
+          {
+            echo "expected=${expected}"
+            echo "bundle=patches/build/libs/${name}"
+            echo "timestamp=${timestamp}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: refs/tags/${{ inputs.tag }}
+          persist-credentials: false
+
+      - name: Setup Java
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      # Same Gradle build the Release workflow runs through semantic-release; GITHUB_TOKEN
+      # (with GITHUB_ACTOR) authenticates to the Morphe GitHub Packages registry. The init script
+      # only replaces the manifest "Timestamp" value (see the note at the top).
+      - name: Build bundle
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MORPHE_BUNDLE_TIMESTAMP: ${{ steps.check.outputs.timestamp }}
+        run: |
+          set -euo pipefail
+          cat > "$RUNNER_TEMP/pin-timestamp.init.gradle" <<'EOF'
+          def ts = System.getenv('MORPHE_BUNDLE_TIMESTAMP')
+          allprojects {
+              tasks.withType(org.gradle.jvm.tasks.Jar).configureEach { jarTask ->
+                  jarTask.doFirst {
+                      if (jarTask.manifest.attributes.containsKey('Timestamp')) {
+                          jarTask.manifest.attributes['Timestamp'] = ts
+                      }
+                  }
+              }
+          }
+          EOF
+          ./gradlew :patches:buildAndroid --no-daemon --init-script "$RUNNER_TEMP/pin-timestamp.init.gradle"
+
+      - name: Compare with the published asset
+        env:
+          TAG: ${{ inputs.tag }}
+          BUNDLE: ${{ steps.check.outputs.bundle }}
+          EXPECTED: ${{ steps.check.outputs.expected }}
+          TIMESTAMP: ${{ steps.check.outputs.timestamp }}
+        run: |
+          set -euo pipefail
+          if [ ! -f "$BUNDLE" ]; then
+            echo "::error::The build did not produce ${BUNDLE}"
+            ls -la patches/build/libs || true
+            exit 1
+          fi
+          actual="$(sha256sum "$BUNDLE" | cut -d' ' -f1)"
+          echo "rebuilt:   ${actual}"
+          echo "published: ${EXPECTED}"
+          if [ "$actual" != "$EXPECTED" ]; then
+            echo "::error::The rebuilt bundle is not byte-identical to the published asset (rebuilt ${actual}, published ${EXPECTED}). Not attesting: apart from the pinned manifest Timestamp, the build is not reproducible for this tag."
+            exit 1
+          fi
+          echo "Rebuilt bundle matches the published asset."
+          {
+            echo "### Re-attested ${TAG}"
+            echo ""
+            echo "- Bundle: \`${BUNDLE}\`"
+            echo "- sha256: \`${actual}\` (matches the published asset)"
+            echo "- Built from the tag commit: \`$(git rev-parse HEAD)\`"
+            echo "- Manifest Timestamp pinned to the published value: \`${TIMESTAMP}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Attest
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-name: 'Morphe Patches ${{ inputs.tag }}'
+          subject-path: ${{ steps.check.outputs.bundle }}

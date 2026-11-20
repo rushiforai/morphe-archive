@@ -12,11 +12,12 @@
   <sub>The Liquid Glass bar in its iOS style (left) and southstar21 style (right), recorded in the settings' live preview.</sub>
 </p>
 
-<h3 align="center">Patches for Instagram, made with Morphe.</h3>
+<h3 align="center">Patches for Instagram, Spotify and YouTube Music, made with Morphe.</h3>
 
 <p align="center">
   A Liquid Glass tab bar from iOS 26, Reels gone from your feed, a daily time budget for scrolling,<br>
-  full size profile pictures and a settings menu inside the app to switch each one on and off.
+  full size profile pictures and a settings menu inside the app to switch each one on and off.<br>
+  On Spotify and YouTube Music, the same glass for the tab bar and the mini player.
 </p>
 
 <p align="center">
@@ -32,6 +33,8 @@
   <a href="https://github.com/southstar21dev/southstar21-patches/releases"><img alt="Downloads" src="https://img.shields.io/github/downloads/southstar21dev/southstar21-patches/total?label=downloads&style=flat-square&color=1F1A17"></a>
   <a href="https://github.com/southstar21dev/southstar21-patches/actions/workflows/release.yml"><img alt="Release" src="https://img.shields.io/github/actions/workflow/status/southstar21dev/southstar21-patches/release.yml?branch=main&label=build&style=flat-square"></a>
   <img alt="Instagram 454.0.0.54.77" src="https://img.shields.io/badge/Instagram-454.0.0.54.77-1F1A17?style=flat-square&logo=instagram&logoColor=F5ECD7">
+  <img alt="Spotify 9.2.0.2053" src="https://img.shields.io/badge/Spotify-9.2.0.2053-1F1A17?style=flat-square&logo=spotify&logoColor=F5ECD7">
+  <img alt="YouTube Music 9.46.51" src="https://img.shields.io/badge/YouTube%20Music-9.46.51-1F1A17?style=flat-square&logo=youtubemusic&logoColor=F5ECD7">
   <a href="https://morphe.software"><img alt="Morphe" src="https://img.shields.io/badge/Morphe-patches-1F1A17?style=flat-square"></a>
   <a href="LICENSE"><img alt="License GPL-3.0" src="https://img.shields.io/badge/license-GPL--3.0-1F1A17?style=flat-square"></a>
 </p>
@@ -40,18 +43,28 @@
 
 1. Install [Morphe Manager](https://morphe.software) on your phone.
 2. Add this repo as a patch source: **[add southstar21 Patches to Morphe](https://morphe.software/add-source?github=southstar21dev/southstar21-patches)**. Or download `patches-x.y.z.mpp` from [Releases](https://github.com/southstar21dev/southstar21-patches/releases) and add it as a local file.
-3. Download the Instagram **APKM** bundle from APKMirror, in a version listed under [Patches](#patches).
+3. Download the Instagram, Spotify or YouTube Music **APKM** bundle from APKMirror, in a version listed under [Patches](#patches).
 4. Patch it in Morphe Manager, choose the patches you want and install the result.
 
 Patched apps are signed with a different key, so uninstall the Play Store version first.
 
+Spotify checks the app when you log in: a patched Spotify logs in on a regular phone, but is refused on emulators and other devices that fail Google's integrity check.
+
+YouTube Music needs Morphe Patches too, which Morphe Manager ships with: a patched YouTube Music can only sign in to Google through their **GmsCore support** and [MicroG-RE](https://github.com/MorpheApp/MicroG-RE).
+
+1. In Morphe Manager, turn on **Expert mode** (Settings, Patching). In the default Simple mode only one source is used per app.
+2. Patch YouTube Music and keep both sources ticked: **GmsCore support** from Morphe Patches, and the patches from this repo.
+3. Open the patched app. If MicroG-RE isn't installed yet, it asks you to install it.
+
+Patching YouTube Music without GmsCore support stops with a message saying so, rather than giving you an app that can't sign in.
+
 > [!WARNING]
-> Instagram's terms don't allow modified clients. Use these patches at your own risk.
+> The terms of Instagram, Spotify and YouTube Music don't allow modified clients. Use these patches at your own risk.
 
 ## Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.2.1](https://github.com/southstar21dev/southstar21-patches/releases/tag/v1.2.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;8 patches total
+> **[v1.3.0](https://github.com/southstar21dev/southstar21-patches/releases/tag/v1.3.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;10 patches total
 <details open>
 <summary>📦 Instagram&nbsp;&nbsp;•&nbsp;&nbsp;8 patches</summary>
 <br>
@@ -68,15 +81,45 @@ Patched apps are signed with a different key, so uninstall the Play Store versio
 | [Disable Reels](#disable-reels) | Removes reels from the home feed and Explore, and stops scrolling from one reel to the next. Each part is off until you switch it on in the settings. |  |
 | [Hide ads](#hide-ads) | Removes sponsored posts, stories and reels, and ad units in the home feed. Each part can be switched off in the settings. |  |
 | [Hide navigation buttons](#hide-navigation-buttons) | Adds settings to hide Search, Reels, Create, Messages and other tabs from the bottom bar. Every tab stays until you hide it in the settings. |  |
-| [Liquid Glass navigation bar](#liquid-glass-navigation-bar) | Turns the bottom tab bar into a floating iOS 26 style Liquid Glass pill with live background blur and edge refraction. Refraction needs Android 13+, blur needs Android 12+, older versions get a tinted pill. | • Blur radius<br>• Refraction strength<br>• Extend content behind bar |
+| [Liquid Glass navigation bar](#liquid-glass-navigation-bar-instagram) | Turns the bottom tab bar into a floating iOS 26 style Liquid Glass pill with live background blur and edge refraction. Refraction needs Android 13+, blur needs Android 12+, older versions get a tinted pill. | • Blur radius<br>• Refraction strength<br>• Extend content behind bar |
 | [Remove build expired popup](#remove-build-expired-popup) | Removes the popup that appears after a while, when the app version ages. |  |
 | [View profile picture](#view-profile-picture) | Adds a button on the profile picture of profile pages that shows the profile picture in full resolution and saves it to the gallery. |  |
 
 </details>
 
+<details open>
+<summary>📦 Spotify&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 9.2.0.2053 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Liquid Glass navigation bar](#liquid-glass-navigation-bar-spotify) | Turns the bottom tab bar and the mini player above it into floating iOS 26 style Liquid Glass with live background blur and edge refraction, and colors the selected tab Spotify green. Refraction needs Android 13+, blur needs Android 12+, older versions get a tinted pill. | • Blur radius<br>• Refraction strength<br>• southstar21 style |
+
+</details>
+
+<details open>
+<summary>📦 YouTube Music&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 9.46.51 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Liquid Glass navigation bar](#liquid-glass-navigation-bar-youtube-music) | Turns the bottom tab bar into floating iOS 26 style Liquid Glass with live background blur and edge refraction, with the mini player docked beside it as round album art with a progress ring, a glass playback bar above, and the content scrolling on behind them. Refraction needs Android 13+, blur needs Android 12+, older versions get a tinted pill. Requires Morphe Patches with GmsCore support, applied together in Expert mode. | • Blur radius<br>• Refraction strength<br>• southstar21 style |
+
+</details>
+
 <!-- PATCHES_END -->
 
-### Liquid Glass navigation bar
+### Liquid Glass navigation bar (Instagram)
 
 Instagram's iOS 26 Liquid Glass design on Android, matched against screen recordings of the iOS app.
 
@@ -84,6 +127,7 @@ Instagram's iOS 26 Liquid Glass design on Android, matched against screen record
 - **Shrinks while scrolling.** Scrolling down scales the whole bar down (every tab stays visible and tappable), scrolling up brings it back.
 - **Gliding selection.** Drag along the bar to slide the grey selection capsule between tabs, as on iOS, with a haptic tick per tab; let go to open the tab underneath. Switch on *Glass while dragging* to turn the capsule into clear glass while it moves.
 - **Adaptive tint.** The glass frosts more when what's behind it would make the icons hard to read, and turns dark on Reels and in dark mode.
+- **Frosted header.** On Home and Explore the feed runs up under the header and the status bar, blurred and faded towards the top edge of the screen, like the blur behind the bar at the bottom. When the header slides away the status bar stays frosted. *Blur under the header* (on by default) turns it off. As on iOS, the header's buttons (new post, notifications, saved, more) blend into it at rest and get glass circles while the feed scrolls fast (*Glass header buttons*).
 - **Videos blur too.** Instagram normally plays videos in a separate layer apps can't see, which would leave the glass solid over them. *Blur videos behind the bar* (on by default) switches the player to Instagram's other way of drawing video, so the glass and the blur at the bottom of the screen blur videos like the rest of the feed.
 - **southstar21 style.** An optional switch in the settings menu (off by default) gives the bar thicker glass that bends what's behind it towards the edges. A press swells the selection into a drop of clear glass that bends what's under its rim outward, with rainbow fringes at the edge; it wobbles, stretches as you drag it and ticks over each tab. The bar shrinks back behind the drop, leans and glows under your finger.
 - **Customize navbar.** A page in the settings menu with a live preview of the bar pinned at the top: tap and drag along it, scroll the sample feed under it, and it changes as you move each slider.
@@ -200,6 +244,48 @@ Instagram checks its own signature, which a patched app no longer matches. This 
 ### Remove build expired popup
 
 Removes the popup Instagram shows once the installed version has aged, asking you to update.
+
+### Liquid Glass navigation bar (Spotify)
+
+Spotify's bottom tab bar and the mini player above it as Liquid Glass, in the southstar21 style.
+
+- **Floating glass tab bar.** A clear glass pill, 8 dp from the screen edges, with live blur and a strongly refracting rim. The selected tab's icon and label turn Spotify green.
+- **Glass mini player.** The now playing card above the bar gets the same glass, corners and width, instead of its album-colored background.
+- **Gliding selection.** Press the selected tab and it swells into a drop of clear glass you can drag between tabs, with a tick per tab; let go to open the tab underneath. Taps go to Spotify untouched.
+- **Easy on the battery.** The glass only redraws while what's behind it can move (scrolling, layout changes), not every frame.
+
+Spotify has no settings menu yet, so the look comes from the patch options in Morphe Manager. Android 13+ gets the full effect, Android 12 gets blur without refraction, and older versions get a translucent tinted pill.
+
+| Option | Default | |
+|---|---|---|
+| Blur radius | 4 dp | How frosted the glass is (0 to 40). |
+| Refraction strength | 100 | How strongly the rim bends what's behind it (0 to 100). |
+| southstar21 style | on | Thick glass and the swelling drop. Off gives the iOS style grey capsule. |
+
+<details>
+<summary>How it works</summary>
+
+A hook in `SpotifyMainActivity.onWindowFocusChanged` (unobfuscated) starts the extension, which finds the tab bar and the mini player by their resource names and gives them the glass background used for Instagram. Spotify draws all its tabs in one Compose view, so the selection follows stand-in views laid over each tab, and the selected tab is read from which label Spotify draws white. A small shader on the tab bar turns that white into Spotify green.
+
+</details>
+
+### Liquid Glass navigation bar (YouTube Music)
+
+YouTube Music's bottom tab bar and the mini player as Liquid Glass, with the same glass as on Spotify, and the mini player docked beside the tabs.
+
+- **Floating glass tab bar.** A clear glass capsule, 8 dp from the screen edges, with live blur and a strongly refracting rim. Pressing a tab no longer shows Android's ripple: the glass is the feedback.
+- **Docked mini player.** While something plays, the tab bar narrows and the mini player shrinks to its round album art beside it, ringed by the song's progress. Above them a full width glass bar shows the title and artist with previous, play/pause and next buttons; tap the title or the art to open the player. Opening the full player fades the glass out and grows the art from its spot by the tabs, bringing YouTube Music's own background and artwork corners back.
+- **Content behind the glass.** Pages scroll on behind the bar and the mini player instead of stopping above them.
+- **Gliding selection.** Press the selected tab and it swells into a drop of clear glass you can drag between tabs; let go to open the tab underneath.
+
+Like on Spotify, the look comes from the patch options in Morphe Manager (blur radius, refraction strength, southstar21 style). Android 13+ gets the full effect, Android 12 gets blur without refraction, and older versions get a translucent tinted pill.
+
+<details>
+<summary>How it works</summary>
+
+A hook in `MusicActivity.onWindowFocusChanged` (unobfuscated) starts the extension. The tab bar is a Material `TabLayout` (`pivot_bar`); its tab strip's padding shapes the capsule, so the bar's own padding, which YouTube Music keeps resetting, is never touched. `WatchWhileLayout` measures the bar and rests the player (a bottom sheet) just above it; two hooks in its `onMeasure` give the content the full height so it runs on behind the glass, and lower the player's resting height so the mini player sits in the bar's row. The bar then narrows with a right margin and the mini player with margins of its own, so each keeps its own touches. The album art is placed and sized from the docked slot, blended with YouTube Music's own animation as the player opens. The progress ring, the title and the playback buttons use YouTube Music's media session. The mini player is the top of the player page, whose background is wrapped so it shows the glass while the player is collapsed.
+
+</details>
 
 ## Settings menu
 

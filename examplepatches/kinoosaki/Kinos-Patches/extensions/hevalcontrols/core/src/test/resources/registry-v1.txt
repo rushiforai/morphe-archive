@@ -1,0 +1,5 @@
+hevalcontrols-registry:1
+demo.hide_ads	Hide ads	Removes banner and feed ads.	Ads	1	0	0	
+demo.read_receipts	Hide read receipts	Chats stay unread for the sender.\nApplies to new chats.	Privacy	0	1	0	demo.hide_ads
+demo.telemetry	Block telemetry	Removed at patch time: analytics provider and meta-data.	Privacy	1	0	1	
+demo.rtl_text	إخفاء القصص	Tab\there, backslash \\ and émoji ✓	Feed	1	0	0	demo.hide_ads,demo.telemetry

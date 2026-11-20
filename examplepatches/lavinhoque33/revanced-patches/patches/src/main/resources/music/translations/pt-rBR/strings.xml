@@ -136,6 +136,7 @@ Etapas:
     <string name="morphe_music_downloads_sort">Ordenar</string>
     <string name="morphe_music_downloads_started">Download iniciado</string>
     <string name="morphe_music_downloads_starting">Iniciando download…</string>
+    <string name="morphe_music_downloads_waiting_for_connection">Aguardando conexão</string>
     <string name="morphe_music_downloads_unknown_track">Não foi possível identificar a faixa para download</string>
     <string name="morphe_music_hide_you_may_also_like_section_title">Ocultar a seção \"Você também pode gostar\"</string>
     <string name="morphe_music_hide_your_downloads_shelf_title">Ocultar a estante \"Seus downloads\"</string>
@@ -1044,4 +1045,8 @@ O ID do vídeo que você assiste é enviado para a API do Return YouTube Dislike
     <string name="revanced_webview_toast_unavailable">O WebView não está disponível</string>
     <string name="morphe_music_auto_song_version_title">Sempre reproduzir a versão da música</string>
     <string name="morphe_music_auto_song_version_summary">Substitui os videoclipes oficiais na fila pela música correspondente. Requer ativar a opção Não reproduzir videoclipes nas configurações do app. Faixas sem correspondência exata permanecem inalteradas</string>
+    <string name="morphe_music_playlist_download_connect">Conecte-se à internet para continuar este download</string>
+    <string name="morphe_music_playlist_ready">%1$d de %2$d prontas</string>
+    <string name="morphe_music_playlist_resume">%1$d de %2$d prontas · Retomar</string>
+    <string name="morphe_music_playlist_partial_failed">%1$d de %2$d prontas (%3$d falharam) · Retomar</string>
 </resources>

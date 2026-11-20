@@ -1,0 +1,12 @@
+manifiesto: OK, actividad declarada
+icono propio: OK, categoria LAUNCHER presente
+version marcada: OK, aparece el sufijo -Mod
+OK   VIP: el gancho pregunta por el ajuste antes de forzar la bandera
+OK   Anuncios: el gancho pregunta por el ajuste antes de apagar la sugerencia
+OK   Rastreo: el gancho pregunta por el ajuste antes de neutralizar el envio
+OK   Ajustes: la lista real (SettingFragment) mete la fila la primera
+OK   Ajustes: el toque de la fila abre los ajustes del parche
+OK   Ajustes: la pantalla principal (SettingsMainFragment) anyade la fila del parche
+OK   Ajustes: la pantalla avanzada anyade la fila del parche
+
+RESULTADO: todo correcto

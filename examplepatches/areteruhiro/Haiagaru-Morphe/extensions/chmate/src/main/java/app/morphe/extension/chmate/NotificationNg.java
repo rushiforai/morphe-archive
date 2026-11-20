@@ -9,9 +9,11 @@ import java.util.regex.*;
 /** Read-only native registration checks for notification DATs. No rule copies or writes. */
 final class NotificationNg {
     static final String KEY="suppressNgReplyNotifications";
+    static final String CHAIN_KEY="suppressChainedNgReplyNotifications";
     private final Object board;
     private final Map<String,NativeNgStore> stores=new LinkedHashMap<>();
     private final Method match;
+    private final boolean suppressChainedReplies;
     private final Set<Integer> manual=new HashSet<>(),chained=new HashSet<>();
     private static final Pattern ID=Pattern.compile("(?:^|\\s)ID:([^\\s<>]+)");
     private static final Pattern ANCHOR=Pattern.compile(">>([1-9][0-9]{0,6})(?:-([1-9][0-9]{0,6}))?");
@@ -22,6 +24,7 @@ final class NotificationNg {
         Object parsed=info.getMethod(version.contains("242")?"d":"c",String.class).invoke(null,target.url);
         if(parsed==null)throw new IOException("Notification thread unavailable");
         board=RefreshTargets.nativeBoard(parsed,version);
+        suppressChainedReplies=FeatureSwitches.prefs(context).getBoolean(CHAIN_KEY,false);
         for(String kind:new String[]{"ID","NAME","WORD","BE","IMAGE"})stores.put(kind,new NativeNgStore(context,kind));
         NativeNgStore store=stores.get("ID");Method found=null;
         for(Method method:store.store.getClass().getMethods()){
@@ -44,7 +47,7 @@ final class NotificationNg {
     }
     boolean blocked(int number,String name,String date,String body)throws Exception{
         if(number==1&&FirstResponseNg.disabled())return false;
-        if(manual.contains(number)){chained.add(number);return true;}
+        if(manual.contains(number)){if(suppressChainedReplies)chained.add(number);return true;}
         String plain=android.text.Html.fromHtml(body).toString();
         Matcher id=ID.matcher(android.text.Html.fromHtml(date).toString());
         String identity=id.find()?id.group(1):"";
@@ -56,7 +59,7 @@ final class NotificationNg {
             Object item=match.invoke(entry.getValue().store,value,board);
             if(item!=null){
                 NativeNgStore.Entry rule=new NativeNgStore.Entry(item);
-                if((rule.flags&8)!=0)chained.add(number);
+                if(suppressChainedReplies&&(rule.flags&8)!=0)chained.add(number);
                 return true;
             }
         }
@@ -65,7 +68,7 @@ final class NotificationNg {
         Matcher image=Pattern.compile("https?://[^\\s<>\"']{1,1024}").matcher(plain);
         while(image.find())if(match.invoke(stores.get("IMAGE").store,image.group(),board)!=null)return true;
         Matcher anchors=ANCHOR.matcher(plain);
-        while(anchors.find()){
+        while(suppressChainedReplies&&anchors.find()){
             int first=Integer.parseInt(anchors.group(1)),last=anchors.group(2)==null?first:Integer.parseInt(anchors.group(2));
             for(int ng:chained)if(ng<number&&ng>=first&&ng<=last){chained.add(number);return true;}
         }
@@ -100,5 +103,5 @@ final class NotificationNg {
         for(int i=0;i<extension.length;i++)if(extension[i]&&!(numbers.get(i)==1&&FirstResponseNg.disabled()))blocked.add(numbers.get(i));
         candidates.keySet().removeAll(blocked);return candidates;
     }
-    private NotificationNg(){board=null;match=null;}
+    private NotificationNg(){board=null;match=null;suppressChainedReplies=false;}
 }

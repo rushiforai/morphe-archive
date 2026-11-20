@@ -363,6 +363,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean profileFollowCounts() {
+        return false;
+    }
+
     public static boolean messageBox() {
         return false;
     }
@@ -498,6 +502,11 @@ public final class SettingsStatus {
         return false;
     }
 
+    /** Rewritten by Hide comments when the heart and like count on a comment row were found too. */
+    public static boolean commentLikes() {
+        return false;
+    }
+
     public static boolean commentEmojiRow() {
         return false;
     }
@@ -523,6 +532,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean feedHeaderLine() {
+        return false;
+    }
+
     public static boolean feedSave() {
         return false;
     }
@@ -541,6 +554,10 @@ public final class SettingsStatus {
     }
 
     public static boolean hideCaptions() {
+        return false;
+    }
+
+    public static boolean expandCaptions() {
         return false;
     }
 
@@ -623,6 +640,14 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean savedOnAll() {
+        return false;
+    }
+
+    public static boolean savedNewCollection() {
+        return false;
+    }
+
     public static boolean stopHeartbeat() {
         return false;
     }
@@ -643,6 +668,11 @@ public final class SettingsStatus {
 
     /** Rewritten by the Open reel links on that reel patch. */
     public static boolean reelLinks() {
+        return false;
+    }
+
+    /** Rewritten by the Let the screen sleep when a reel stops patch. */
+    public static boolean reelScreenSleep() {
         return false;
     }
 
@@ -778,6 +808,11 @@ public final class SettingsStatus {
 
     /** Rewritten by the Glass in chats patch. */
     public static boolean glassChat() {
+        return false;
+    }
+
+    /** Rewritten by the Center names in chats patch. */
+    public static boolean centerChatName() {
         return false;
     }
 

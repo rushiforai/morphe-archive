@@ -28,8 +28,9 @@ imported from that release in Manager or Desktop.
 
 ## Current preview
 
-The [build134 preview](docs/release-build134.md) provides **128 selectable patches**, with **105 selected
-by default**. It adds the [Afterglow app icon](docs/app-icon.md) and includes **Afterglow's downloader, queue and Vault**, **Theme
+The [build135 preview](docs/release-build135.md) provides **128 selectable patches**, with **105 selected
+by default**. It fixes tab dragging, missing labels and icon alignment with labels shown or hidden.
+It retains the [Afterglow app icon](docs/app-icon.md) and includes **Afterglow's downloader, queue and Vault**, **Theme
 Studio**, Control Center, AB Lab and AI Home Studio. Morphe supplies **Return
 YouTube Dislike**, **DeArrow**, **Copy text**, **GmsCore support** and **Spoof
 video streams**.

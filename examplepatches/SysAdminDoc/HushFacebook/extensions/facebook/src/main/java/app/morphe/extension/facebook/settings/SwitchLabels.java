@@ -80,6 +80,7 @@ final class SwitchLabels {
         if (setting == Settings.SEE_WHO_SHARED) return L10n.t("See who shared");
         if (setting == Settings.PHOTO_CAROUSEL) return L10n.t("Photo carousel");
         if (setting == Settings.TURN_OFF_AUTO_TRANSLATION) return L10n.t("Turn off auto-translation");
+        if (setting == Settings.TRANSLATE_EVERY_COMMENT) return L10n.t("Translate every comment");
         if (setting == Settings.HIDE_FEEDS_HEADER) return L10n.t("Hide the Feeds header");
         if (setting == Settings.BLOCK_RETURN_REFRESH) return L10n.t("Keep feed position on return");
         if (setting == Settings.RETURN_REFRESH_NO_LIMIT) return L10n.t("No time limit");
@@ -92,9 +93,19 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_POSTS_WITH_WORDS) return L10n.t("Hide posts with words you choose");
         if (setting == Settings.HIDE_POSTS_FROM_SOURCES) return L10n.t("Hide posts from people, Pages and sites");
         if (setting == Settings.POST_WORDS_WHOLE_WORDS) return L10n.t("Match whole words");
+        if (setting == Settings.POST_WORDS_ON_FEED) return L10n.t("Your words on Home");
+        if (setting == Settings.POST_WORDS_ON_REELS) return L10n.t("Your words on the Reels tab");
+        if (setting == Settings.POST_WORDS_IN_GROUPS) return L10n.t("Your words in groups");
+        if (setting == Settings.POST_WORDS_ON_TIMELINES) return L10n.t("Your words on profiles and Pages");
+        if (setting == Settings.POST_WORDS_IN_SEARCH) return L10n.t("Your words in search results");
         if (setting == Settings.HIDE_PHOTO_POSTS) return L10n.t("Hide photo posts");
         if (setting == Settings.HIDE_VIDEO_POSTS) return L10n.t("Hide video posts");
         if (setting == Settings.HIDE_LINK_POSTS) return L10n.t("Hide link posts");
+        if (setting == Settings.LINK_POSTS_ON_FEED) return L10n.t("Link posts on Home");
+        if (setting == Settings.LINK_POSTS_ON_REELS) return L10n.t("Link reels on the Reels tab");
+        if (setting == Settings.LINK_POSTS_IN_GROUPS) return L10n.t("Link posts in groups");
+        if (setting == Settings.LINK_POSTS_ON_TIMELINES) return L10n.t("Link posts on profiles and Pages");
+        if (setting == Settings.LINK_POSTS_IN_SEARCH) return L10n.t("Link posts in search results");
         if (setting == Settings.HIDE_BACKGROUND_POSTS) return L10n.t("Hide posts on a colored background");
         if (setting == Settings.HIDE_REPOSTS) return L10n.t("Hide reposts");
         if (setting == Settings.HIDE_PAGE_POSTS) return L10n.t("Hide posts from Pages");
@@ -207,6 +218,7 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_REELS_TAB_TITLE) return L10n.t("Hide the Reels title");
         if (setting == Settings.HIDE_VIEWER_BACK_BUTTON) return L10n.t("Hide Back on opened videos");
         if (setting == Settings.BURN_IN_STAY_DIM) return L10n.t("Stay dim when I tap");
+        if (setting == Settings.BURN_IN_FADE) return L10n.t("Smooth fade");
         if (setting == Settings.GRAY_REELS) return L10n.t("Show Reels in gray");
         if (setting == Settings.REELS_MINUTES) return L10n.t("Show time in Reels");
         if (setting == Settings.HIDE_REEL_COUNTS) return L10n.t("Hide counts on reels");
@@ -309,6 +321,7 @@ final class SwitchLabels {
         if (setting == Settings.STORY_SEEK_BAR_FADE) return L10n.t("Fade the story seek bar");
         if (setting == Settings.RESUME_LONG_VIDEOS) return L10n.t("Resume long videos");
         if (setting == Settings.RECENTLY_WATCHED) return L10n.t("Remember what you watch");
+        if (setting == Settings.RECENTLY_WATCHED_MENU_ROW) return L10n.t("Recently watched in the Menu");
         if (setting == Settings.FRAME_STEP) return L10n.t("Frame step");
         if (setting == Settings.DEFAULT_PLAYBACK_QUALITY) return L10n.t("Default playback quality");
         if (setting == Settings.PICTURE_IN_PICTURE) return L10n.t("Picture-in-picture");
@@ -332,6 +345,7 @@ final class SwitchLabels {
         if (setting == Settings.DOWNLOAD_PHOTOS) return L10n.t("Save any photo");
         if (setting == Settings.POST_MENU_PHOTO_SAVE) return L10n.t("Save photo in post menus");
         if (setting == Settings.POST_MENU_PHOTO_SEARCH) return L10n.t("Search photo in post menus");
+        if (setting == Settings.MARKETPLACE_PHOTO_SAVE) return L10n.t("Long press to save Marketplace photos");
         if (setting == Settings.OPEN_IN_ANOTHER_APP) return L10n.t("Open videos in another app");
         if (setting == Settings.POST_MENU_DOWNLOAD_FIRST) return L10n.t("Download first in post menus");
         if (setting == Settings.DOWNLOAD_COMPATIBLE) return L10n.t("Save videos other apps can open");

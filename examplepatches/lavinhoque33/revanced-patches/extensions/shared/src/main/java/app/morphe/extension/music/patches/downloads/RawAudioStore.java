@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-18.
  * Written by lavinhoque33, 2026-11-07.
  * Modified by lavinhoque33, 2026-11-10
  */
@@ -127,7 +128,7 @@ final class RawAudioStore {
     }
 
     /** The copy that may be played, or null. Hashes the file the first time. */
-    static RawAudioFiles.Entry find(String videoId) throws Exception {
+    static RawAudioFiles.Entry find(String videoId) {
         Utils.verifyOffMainThread();
         return Storage.files.find(videoId, RawAudioStore::nativeUri);
     }

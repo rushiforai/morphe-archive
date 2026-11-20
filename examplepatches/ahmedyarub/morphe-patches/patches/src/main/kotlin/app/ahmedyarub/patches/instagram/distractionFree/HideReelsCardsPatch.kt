@@ -27,13 +27,6 @@ import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 private const val REELS_FEED_CLASS = "Lapp/ahmedyarub/extension/instagram/ReelsFeed;"
 private const val IS_LIVE_HELPER = "morpheIsLiveReel"
 
-/** The Reels feed's data source adding a page of items. */
-private object ReelsAddItemsFingerprint : Fingerprint(
-    returnType = "V",
-    parameters = listOf("Ljava/util/List;"),
-    strings = listOf(string("ClipsStandaloneAdapterDataSource_addItems", StringComparisonType.CONTAINS)),
-)
-
 /** The Reels feed's data source inserting items at a position, as injected units are. */
 private object ReelsInsertItemsFingerprint : Fingerprint(
     returnType = "Z",
@@ -62,11 +55,26 @@ val hideReelsCardsPatch = bytecodePatch(
 
     execute {
         val insertItems = ReelsInsertItemsFingerprint.method
-        val addItems = ReelsAddItemsFingerprint.method
 
         // The Reels item, as both methods cast each element they take.
         val itemClass = insertItems.instructions.first { it.opcode == Opcode.CHECK_CAST }
             .getReference<TypeReference>()!!.type
+
+        // The data source adding a page of items: of its methods taking a list, the one looking up
+        // each item's live payload (a static key, then the item's lookup). It was found by its log
+        // string until 456 dropped it.
+        val addItems = mutableClassDefBy(insertItems.definingClass).methods.filter { method ->
+            method.returnType == "V" && method.parameterTypes.map { it.toString() } == listOf("Ljava/util/List;") &&
+                method.implementation?.instructions?.toList()?.let { code ->
+                    code.withIndex().any { (index, instruction) ->
+                        index > 0 && code[index - 1].opcode == Opcode.SGET_OBJECT &&
+                            instruction.opcode == Opcode.INVOKE_VIRTUAL &&
+                            instruction.getReference<MethodReference>()?.let {
+                                it.definingClass == itemClass && it.parameterTypes.size == 1 && it.returnType == "Ljava/lang/Object;"
+                            } == true
+                    }
+                } == true
+        }.singleOrNull() ?: throw PatchException("No single method of the Reels data source adds a page of items")
 
         // Its type, an enum listing what an item is: ORGANIC, AD, MIDCARD, NETEGO_SUGGESTED_USERS, ...
         // Instagram tells cards apart from reels with a static check on that enum; it is the
@@ -120,11 +128,31 @@ val hideReelsCardsPatch = bytecodePatch(
         val flagsField = addInstructions[flagsRead].getReference<FieldReference>()!!
         val lambdaNew = after(flagsRead) { addInstructions[it].opcode == Opcode.NEW_INSTANCE }
         val lambdaArgument = (addInstructions[lambdaNew - 1] as NarrowLiteralInstruction).narrowLiteral
-        val lambdaInit = addInstructions[after(lambdaNew) { addInstructions[it].opcode == Opcode.INVOKE_DIRECT }]
-            .getReference<MethodReference>()!!
-        val flagRead = after(lambdaNew) { addInstructions[it].opcode == Opcode.INVOKE_INTERFACE }
-        val flagKey = (addInstructions[flagRead - 1] as NarrowLiteralInstruction).narrowLiteral
+        val lambdaInitIndex = after(lambdaNew) { addInstructions[it].opcode == Opcode.INVOKE_DIRECT }
+        val lambdaInit = addInstructions[lambdaInitIndex].getReference<MethodReference>()!!
+        // Up to 455 the flags object's own getter took (key, lambda over the payload); from 456 a
+        // static helper takes (flags, lambda, key) and the lambda no longer holds the payload.
+        val flagRead = after(lambdaInitIndex + 1) {
+            (addInstructions[it].opcode == Opcode.INVOKE_INTERFACE || addInstructions[it].opcode == Opcode.INVOKE_STATIC) &&
+                addInstructions[it].getReference<MethodReference>()?.returnType == "Ljava/lang/Object;"
+        }
+        val flagKey = (lambdaInitIndex + 1 until flagRead).map { addInstructions[it] }
+            .lastOrNull { it is NarrowLiteralInstruction }?.let { (it as NarrowLiteralInstruction).narrowLiteral }
+            ?: throw PatchException("The Reels feed's live flag has no key")
         val flagGetter = addInstructions[flagRead].getReference<MethodReference>()!!
+        val flagGetterIsStatic = addInstructions[flagRead].opcode == Opcode.INVOKE_STATIC
+        // The lambda takes the payload too when its constructor has room for it.
+        val lambdaArguments = if (lambdaInit.parameterTypes.size == 2) "v3, v0, v2" else "v3, v2"
+        // v1 holds the flags object, v2 the key, v3 the lambda.
+        val flagArguments = (if (flagGetterIsStatic) emptyList() else listOf("v1")) +
+            flagGetter.parameterTypes.map { type ->
+                when {
+                    type.toString() == "I" -> "v2"
+                    type.toString().startsWith("Lkotlin/jvm/functions/Function") -> "v3"
+                    else -> "v1"
+                }
+            }
+        val flagInvoke = if (flagGetterIsStatic) "invoke-static" else "invoke-interface"
 
         val dataSource = mutableClassDefBy(addItems.definingClass)
         dataSource.methods.add(
@@ -150,9 +178,9 @@ val hideReelsCardsPatch = bytecodePatch(
                         iget-object v1, v0, $flagsField
                         const v2, $lambdaArgument
                         new-instance v3, ${lambdaInit.definingClass}
-                        invoke-direct { v3, v0, v2 }, $lambdaInit
+                        invoke-direct { $lambdaArguments }, $lambdaInit
                         const v2, $flagKey
-                        invoke-interface { v1, v2, v3 }, $flagGetter
+                        $flagInvoke { ${flagArguments.joinToString()} }, $flagGetter
                         move-result-object v0
                         if-eqz v0, :not_live
                         check-cast v0, Ljava/lang/Boolean;

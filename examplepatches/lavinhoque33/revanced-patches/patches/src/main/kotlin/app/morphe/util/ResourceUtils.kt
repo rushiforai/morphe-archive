@@ -238,37 +238,6 @@ fun ResourcePatchContext.copyFile(
     return false
 }
 
-fun ResourcePatchContext.removeOverlayBackground(
-    files: Array<String>,
-    targetId: Array<String>,
-) {
-    files.forEach { file ->
-        val targetXmlPath = get("res/layout/$file")
-
-        if (targetXmlPath.exists()) {
-            targetId.forEach { identifier ->
-                document("res/layout/$file").use { document ->
-                    document.doRecursively {
-                        arrayOf("height", "width").forEach replacement@{ replacement ->
-                            if (it !is Element) return@replacement
-
-                            if (it.attributes.getNamedItem("android:id")?.nodeValue?.endsWith(
-                                    identifier
-                                ) == true
-                            ) {
-                                it.getAttributeNode("android:layout_$replacement")
-                                    ?.let { attribute ->
-                                        attribute.textContent = "0.0dip"
-                                    }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
 fun ResourcePatchContext.removeStringsElements(
     replacements: Array<String>
 ) {

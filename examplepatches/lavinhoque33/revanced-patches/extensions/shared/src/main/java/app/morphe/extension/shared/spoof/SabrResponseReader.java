@@ -3,6 +3,7 @@
  * https://github.com/MorpheApp/morphe-patches/pull/4316
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ * Modified by lavinhoque33, 2026-11-19.
  */
 
 package app.morphe.extension.shared.spoof;
@@ -21,6 +22,12 @@ public final class SabrResponseReader {
         void onPart(long partType, byte[] part);
     }
 
+    interface PartFilter {
+        boolean isHidden(ByteBuffer chunk, int offset, int length);
+    }
+
+    // Native code skips unknown types. Rewriting a one-byte type leaves the UMP size unchanged.
+    private static final byte UNKNOWN_PART_TYPE = 127;
     private static final int PART_MEDIA = 21;
     private static final int PART_STREAM_PROTECTION_STATUS = 58;
     private static final int MAX_COPIED_PART_SIZE = 1024;
@@ -28,6 +35,9 @@ public final class SabrResponseReader {
     @Nullable
     private final PartListener listener;
     private final int[] listenedPartTypes;
+    private final long hiddenPartType;
+    @Nullable
+    private final PartFilter hiddenPartFilter;
     private final byte[] header = new byte[5];
     private int headerLength;
     private long partType = -1;
@@ -46,8 +56,15 @@ public final class SabrResponseReader {
      * @param listenedPartTypes Types of the parts that are copied and given to the listener.
      */
     public SabrResponseReader(@Nullable PartListener listener, int... listenedPartTypes) {
+        this(listener, -1, null, listenedPartTypes);
+    }
+
+    SabrResponseReader(@Nullable PartListener listener, long hiddenPartType,
+                       @Nullable PartFilter hiddenPartFilter, int... listenedPartTypes) {
         this.listener = listener;
         this.listenedPartTypes = listenedPartTypes;
+        this.hiddenPartType = hiddenPartType;
+        this.hiddenPartFilter = hiddenPartFilter;
     }
 
     public boolean sawMedia() {
@@ -70,13 +87,23 @@ public final class SabrResponseReader {
         // A duplicate, so the position native code reads from is not changed.
         ByteBuffer buffer = chunk.duplicate();
         int status = -1;
+        int partTypeStart = -1;
         while (buffer.hasRemaining()) {
-            if (partType < 0 && (partType = readInteger(buffer)) < 0) {
-                break;
+            if (partType < 0) {
+                int start = headerLength == 0 ? buffer.position() : -1;
+                if ((partType = readInteger(buffer)) < 0) {
+                    break;
+                }
+                partTypeStart = start >= 0 && buffer.position() == start + 1 ? start : -1;
             }
             if (partRemaining < 0) {
                 if ((partRemaining = readInteger(buffer)) < 0) {
                     break;
+                }
+                if (partType == hiddenPartType && hiddenPartFilter != null && partTypeStart >= 0
+                        && partRemaining <= buffer.remaining() && !buffer.isReadOnly()
+                        && hiddenPartFilter.isHidden(buffer.asReadOnlyBuffer(), buffer.position(), (int) partRemaining)) {
+                    buffer.put(partTypeStart, UNKNOWN_PART_TYPE);
                 }
                 if (partType == PART_MEDIA) {
                     sawMedia = true;

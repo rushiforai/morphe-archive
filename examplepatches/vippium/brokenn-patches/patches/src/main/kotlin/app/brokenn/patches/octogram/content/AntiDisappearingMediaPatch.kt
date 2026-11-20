@@ -1,11 +1,11 @@
 package app.brokenn.patches.octogram.content
 
 import app.brokenn.patches.octogram.shared.Constants.COMPATIBILITY_OCTOGRAM
-import app.brokenn.patches.octogram.shared.constructsType
-import app.brokenn.patches.octogram.shared.isStatic
+import app.brokenn.patches.shared.constructsType
+import app.brokenn.patches.shared.isStatic
 import app.brokenn.patches.octogram.shared.startsWithInstanceOf
 import app.brokenn.patches.octogram.shared.startsWithMessageOwnerSecretCheck
-import app.brokenn.patches.octogram.shared.stringConstants
+import app.brokenn.patches.shared.stringConstants
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch

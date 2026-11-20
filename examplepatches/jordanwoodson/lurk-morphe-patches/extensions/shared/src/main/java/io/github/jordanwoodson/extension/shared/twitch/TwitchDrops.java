@@ -9,13 +9,19 @@ import io.github.jordanwoodson.extension.shared.Logger;
 import io.github.jordanwoodson.extension.shared.settings.Settings;
 
 /**
- * Auto-claim Drops: when Twitch's drops notification in a channel shows a drop as claimable, its Claim button is
+ * Twitch Drops in the native player.
+ *
+ * <p>Auto-claim Drops: when Twitch's drops notification in a channel shows a drop as claimable, its Claim button is
  * pressed for you, through the same handler a tap goes to (Twitch's claim mutation with your account). Each drop
  * instance is claimed once per app start.
+ *
+ * <p>Keep Drops banner: the channel's Drops banner above chat gets no countdown, so Twitch doesn't remove it after a
+ * minute.
  */
 @SuppressWarnings("unused")
 public final class TwitchDrops {
     static final String KEY = "drops_auto_claim";
+    static final String BANNER_KEY = "drops_banner_keep";
     private static final int MAX_CLAIMED = 256;
 
     /** Drop instance IDs already claimed in this process. */
@@ -32,6 +38,17 @@ public final class TwitchDrops {
     static volatile int claims;
 
     private TwitchDrops() {
+    }
+
+    /**
+     * Injection point: the countdown Twitch just made for the channel's Drops banner above chat. When it runs out,
+     * Twitch dismisses the banner for the rest of the visit. While the switch is on the banner gets none (null, as
+     * for highlights without a countdown) and stays until the viewer dismisses it.
+     */
+    public static Object bannerCountdown(Object countdown) {
+        if (countdown == null || !Settings.isEnabled(BANNER_KEY)) return countdown;
+        Logger.d("drops: keeping the Drops banner up");
+        return null;
     }
 
     /**

@@ -1,0 +1,13 @@
+4 ficheros DEX, 164880 cadenas distintas
+
+8 coincidencias:
+
+  
+isVipSubscriber=
+   (_id integer primary key autoincrement, skinid text, skintype integer, themetype integer, fontcolor integer, googleid text, time long, version integer, account text, contribute_state integer, backup_state integer, server_id text ,is_vip integer ,can_vip_use integer ); 
+  , isVipSubscriber=
+  ALTER TABLE LocalSkin ADD is_vip INTEGER;
+  VIP_TYPE
+  isVipSubscriber
+  is_vip
+  is_vip_subscriber

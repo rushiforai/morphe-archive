@@ -1,0 +1,390 @@
+4 ficheros DEX, 164880 cadenas distintas
+
+
+### Lcom/baidu/simeji/components/b;
+  .method <init>()V
+      invoke-direct           v1, Landroidx/fragment/app/j;-><init>()V
+      new-instance            v0, Lcom/baidu/simeji/components/b$a;
+      invoke-direct           v0, v1, Lcom/baidu/simeji/components/b$a;-><init>(Lcom/baidu/simeji/components/b;)V
+      iput-object             v0, v1, Lcom/baidu/simeji/components/b;->m0 Landroid/view/View$OnClickListener;
+      return-void             
+  .method B0()Z
+      invoke-static           Lcom/baidu/simeji/App;->g()Lcom/baidu/simeji/App;
+      move-result-object      v0
+      invoke-virtual          v0, Lcom/baidu/simeji/App;->i()Lki/b;
+      move-result-object      v0
+      invoke-virtual          v0, Lki/b;->b()Z
+      move-result             v0
+      const/4                 v1, 0
+      if-eqz                  v0, +015h
+      invoke-static           Lcom/baidu/simeji/App;->g()Lcom/baidu/simeji/App;
+      move-result-object      v0
+      const-string            v2, "key_use_had_agree_privacy"
+      invoke-static           v0, v2, v1, Lcom/preff/kb/preferences/PreffMultiProcessPreference;->getBooleanPreference(Landroid/content/Context; Ljava/lang/String; Z)Z
+      move-result             v0
+      if-nez                  v0, +009h
+      invoke-static           Lcom/android/inputmethod/latin/utils/UncachedInputMethodManagerUtils;->isFacemojiIme()Z
+      move-result             v0
+      if-nez                  v0, +003h
+      const/4                 v1, 1
+      return                  v1
+  .method E0(Landroid/app/Activity;)V
+      new-instance            v0, Landroid/content/Intent;
+      const-class             v1, Lcom/baidu/simeji/settings/guide/AgreeGuideActivity;
+      invoke-direct           v0, v2, v1, Landroid/content/Intent;-><init>(Landroid/content/Context; Ljava/lang/Class;)V
+      const/high16            v1, 67108864
+      invoke-virtual          v0, v1, Landroid/content/Intent;->addFlags(I)Landroid/content/Intent;
+      invoke-virtual          v2, v0, Landroid/app/Activity;->startActivity(Landroid/content/Intent;)V
+      invoke-virtual          v2, Landroid/app/Activity;->finish()V
+      goto                    +ch
+      move-exception          v2
+      const-string            v0, "com/baidu/simeji/components/BaseActivity"
+      const-string            v1, "openAgreeGuidePage"
+      invoke-static           v2, v0, v1, Lb7/b;->d(Ljava/lang/Throwable; Ljava/lang/String; Ljava/lang/String;)V
+      invoke-static           v2, Lcom/preff/kb/util/DebugLog;->e(Ljava/lang/Throwable;)V
+      return-void             
+  .method M0()V
+      iget-object             v0, v1, Lcom/baidu/simeji/components/b;->g0 Lcom/baidu/simeji/components/b$e;
+      if-eqz                  v0, +008h
+      invoke-virtual          v1, v0, Landroid/content/Context;->unregisterReceiver(Landroid/content/BroadcastReceiver;)V
+      const/4                 v0, 0
+      iput-object             v0, v1, Lcom/baidu/simeji/components/b;->g0 Lcom/baidu/simeji/components/b$e;
+      return-void             
+  .method N0()V
+      iget-object             v0, v1, Lcom/baidu/simeji/components/b;->i0 Lcom/baidu/simeji/components/b$f;
+      if-eqz                  v0, +008h
+      invoke-virtual          v1, v0, Landroid/content/Context;->unregisterReceiver(Landroid/content/BroadcastReceiver;)V
+      const/4                 v0, 0
+      iput-object             v0, v1, Lcom/baidu/simeji/components/b;->i0 Lcom/baidu/simeji/components/b$f;
+      return-void             
+  .method t0(Lcom/baidu/simeji/components/b;)Ljava/util/List;
+      iget-object             v0, v0, Lcom/baidu/simeji/components/b;->k0 Ljava/util/List;
+      return-object           v0
+  .method u0(Landroid/os/Bundle; Landroid/app/Activity;)V
+      if-eqz                  v1, +009h
+      const-string            v0, "h5_share"
+      invoke-virtual          v1, v0, Landroid/os/BaseBundle;->getBoolean(Ljava/lang/String;)Z
+      move-result             v1
+      goto                    +2h
+      const/4                 v1, 0
+      instance-of             v0, v2, Lcom/baidu/simeji/skins/SkinIndexActivity;
+      if-nez                  v0, +015h
+      instance-of             v0, v2, Lcom/baidu/simeji/settings/PrivacyActivity;
+      if-nez                  v0, +011h
+      instance-of             v0, v2, Lcom/baidu/simeji/settings/AgreementActivity;
+      if-nez                  v0, +00dh
+      invoke-static           Lcom/baidu/simeji/components/b;->B0()Z
+      move-result             v0
+      if-eqz                  v0, +007h
+      if-nez                  v1, +005h
+      invoke-static           v2, Lcom/baidu/simeji/components/b;->E0(Landroid/app/Activity;)V
+      return-void             
+  .method x0()V
+      const                   v0, 2131427414
+      invoke-virtual          v3, v0, Landroid/app/Activity;->findViewById(I)Landroid/view/View;
+      move-result-object      v0
+      check-cast              v0, Lcom/baidu/simeji/widget/ActionbarView;
+      const/4                 v1, 0
+      invoke-virtual          v0, v1, Landroid/view/View;->setVisibility(I)V
+      new-instance            v1, Lz8/a;
+      invoke-direct           v1, v0, Lz8/a;-><init>(Lcom/baidu/simeji/widget/ActionbarView;)V
+      iput-object             v1, v3, Lcom/baidu/simeji/components/b;->Z Lz8/a;
+      iget-object             v0, v3, Lcom/baidu/simeji/components/b;->m0 Landroid/view/View$OnClickListener;
+      invoke-virtual          v1, v0, Lz8/a;->e(Landroid/view/View$OnClickListener;)V
+      iget-object             v0, v3, Lcom/baidu/simeji/components/b;->Z Lz8/a;
+      invoke-virtual          v3, Landroid/content/Context;->getResources()Landroid/content/res/Resources;
+      move-result-object      v1
+      const                   v2, 2131230825
+      invoke-virtual          v1, v2, Landroid/content/res/Resources;->getDrawable(I)Landroid/graphics/drawable/Drawable;
+      move-result-object      v1
+      invoke-virtual          v0, v1, Lz8/a;->c(Landroid/graphics/drawable/Drawable;)V
+      const                   v0, 2131427425
+      invoke-virtual          v3, v0, Landroid/app/Activity;->findViewById(I)Landroid/view/View;
+      move-result-object      v0
+      iput-object             v0, v3, Lcom/baidu/simeji/components/b;->d0 Landroid/view/View;
+      if-eqz                  v0, +00ah
+      new-instance            v1, Lcom/baidu/simeji/components/b$b;
+      invoke-direct           v1, v3, Lcom/baidu/simeji/components/b$b;-><init>(Lcom/baidu/simeji/components/b;)V
+      invoke-virtual          v0, v1, Landroid/view/View;->setOnClickListener(Landroid/view/View$OnClickListener;)V
+      return-void             
+  .method y0()V
+      const                   v0, 16908290
+      invoke-virtual          v3, v0, Landroid/app/Activity;->findViewById(I)Landroid/view/View;
+      move-result-object      v1
+      const/4                 v2, 0
+      invoke-virtual          v1, v2, Landroid/view/View;->setId(I)V
+      const                   v1, 2131429619
+      invoke-virtual          v3, v1, Landroid/app/Activity;->findViewById(I)Landroid/view/View;
+      move-result-object      v1
+      check-cast              v1, Landroid/widget/LinearLayout;
+      iput-object             v1, v3, Lcom/baidu/simeji/components/b;->b0 Landroid/widget/LinearLayout;
+      const                   v1, 2131429197
+      invoke-virtual          v3, v1, Landroid/app/Activity;->findViewById(I)Landroid/view/View;
+      move-result-object      v1
+      check-cast              v1, Landroid/widget/FrameLayout;
+      iput-object             v1, v3, Lcom/baidu/simeji/components/b;->a0 Landroid/widget/FrameLayout;
+      invoke-virtual          v1, v0, Landroid/view/View;->setId(I)V
+      return-void             
+  .method A0()Z
+      iget-boolean            v0, v1, Lcom/baidu/simeji/components/b;->c0 Z
+      return                  v0
+  .method C0()V
+      invoke-static           Ljava/lang/System;->currentTimeMillis()J
+      move-result-wide        v0
+      iget-wide               v2, v4, Lcom/baidu/simeji/components/b;->l0 J
+      sub-long/2addr          v0, v2
+      new-instance            v2, Ljava/lang/StringBuilder;
+      invoke-direct           v2, Ljava/lang/StringBuilder;-><init>()V
+      invoke-virtual          v4, Ljava/lang/Object;->getClass()Ljava/lang/Class;
+      move-result-object      v3
+      invoke-virtual          v3, Ljava/lang/Class;->getSimpleName()Ljava/lang/String;
+      move-result-object      v3
+      invoke-virtual          v2, v3, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      const-string            v3, "|"
+      invoke-virtual          v2, v3, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      invoke-virtual          v2, v0, v1, Ljava/lang/StringBuilder;->append(J)Ljava/lang/StringBuilder;
+      invoke-virtual          v2, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+      move-result-object      v0
+      const                   v1, 200796
+      invoke-static           v1, v0, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I Ljava/lang/String;)V
+      sget-boolean            v0, Lcom/preff/kb/util/DebugLog;->DEBUG Z
+      if-eqz                  v0, +020h
+      new-instance            v0, Ljava/lang/StringBuilder;
+      invoke-direct           v0, Ljava/lang/StringBuilder;-><init>()V
+      invoke-virtual          v4, Ljava/lang/Object;->getClass()Ljava/lang/Class;
+      move-result-object      v1
+      invoke-virtual          v1, Ljava/lang/Class;->getName()Ljava/lang/String;
+      move-result-object      v1
+      invoke-virtual          v0, v1, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      const-string            v1, " onFullyDrawn"
+      invoke-virtual          v0, v1, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+      invoke-virtual          v0, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+      move-result-object      v0
+      const-string            v1, "Displayed"
+      invoke-static           v1, v0, Lcom/preff/kb/util/DebugLog;->d(Ljava/lang/String; Ljava/lang/String;)I
+      return-void             
+  .method D0()V
+      invoke-virtual          v0, Lcom/baidu/simeji/components/b;->onBackPressed()V
+      return-void             
+  .method F0(Ljava/lang/Runnable;)V
+      if-nez                  v3, +003h
+      return-void             
+      invoke-virtual          v2, Landroid/app/Activity;->getWindow()Landroid/view/Window;
+      move-result-object      v0
+      invoke-virtual          v0, Landroid/view/Window;->getDecorView()Landroid/view/View;
+      move-result-object      v0
+      new-instance            v1, Lcom/baidu/simeji/components/b$d;
+      invoke-direct           v1, v2, v3, Lcom/baidu/simeji/components/b$d;-><init>(Lcom/baidu/simeji/components/b; Ljava/lang/Runnable;)V
+      invoke-virtual          v0, v1, Landroid/view/View;->post(Ljava/lang/Runnable;)Z
+      return-void             
+  .method G0()V
+      new-instance            v0, Lcom/baidu/simeji/components/b$e;
+      invoke-direct           v0, v3, Lcom/baidu/simeji/components/b$e;-><init>(Lcom/baidu/simeji/components/b;)V
+      iput-object             v0, v3, Lcom/baidu/simeji/components/b;->g0 Lcom/baidu/simeji/components/b$e;
+      new-instance            v0, Landroid/content/IntentFilter;
+      invoke-direct           v0, Landroid/content/IntentFilter;-><init>()V
+      const-string            v1, "android.intent.action.CLOSE_SYSTEM_DIALOGS"
+      invoke-virtual          v0, v1, Landroid/content/IntentFilter;->addAction(Ljava/lang/String;)V
+      sget                    v1, Landroid/os/Build$VERSION;->SDK_INT I
+      const/16                v2, 33
+      if-lt                   v1, v2, +009h
+      iget-object             v1, v3, Lcom/baidu/simeji/components/b;->g0 Lcom/baidu/simeji/components/b$e;
+      const/4                 v2, 4
+      invoke-static           v3, v1, v0, v2, Lcom/baidu/simeji/components/a;->a(Lcom/baidu/simeji/components/b; Landroid/content/BroadcastReceiver; Landroid/content/IntentFilter; I)Landroid/content/Intent;
+      goto                    +6h
+      iget-object             v1, v3, Lcom/baidu/simeji/components/b;->g0 Lcom/baidu/simeji/components/b$e;
+      invoke-virtual          v3, v1, v0, Landroid/content/Context;->registerReceiver(Landroid/content/BroadcastReceiver; Landroid/content/IntentFilter;)Landroid/content/Intent;
+      return-void             
+  .method H0()V
+      new-instance            v0, Lcom/baidu/simeji/components/b$f;
+      const/4                 v1, 0
+      invoke-direct           v0, v3, v1, Lcom/baidu/simeji/components/b$f;-><init>(Lcom/baidu/simeji/components/b; Lcom/baidu/simeji/components/c;)V
+      iput-object             v0, v3, Lcom/baidu/simeji/components/b;->i0 Lcom/baidu/simeji/components/b$f;
+      new-instance            v0, Landroid/content/IntentFilter;
+      invoke-direct           v0, Landroid/content/IntentFilter;-><init>()V
+      const-string            v1, "android.net.conn.CONNECTIVITY_CHANGE"
+      invoke-virtual          v0, v1, Landroid/content/IntentFilter;->addAction(Ljava/lang/String;)V
+      sget                    v1, Landroid/os/Build$VERSION;->SDK_INT I
+      const/16                v2, 33
+      if-lt                   v1, v2, +009h
+      iget-object             v1, v3, Lcom/baidu/simeji/components/b;->i0 Lcom/baidu/simeji/components/b$f;
+      const/4                 v2, 4
+      invoke-static           v3, v1, v0, v2, Lcom/baidu/simeji/components/a;->a(Lcom/baidu/simeji/components/b; Landroid/content/BroadcastReceiver; Landroid/content/IntentFilter; I)Landroid/content/Intent;
+      goto                    +6h
+      iget-object             v1, v3, Lcom/baidu/simeji/components/b;->i0 Lcom/baidu/simeji/components/b$f;
+      invoke-virtual          v3, v1, v0, Landroid/content/Context;->registerReceiver(Landroid/content/BroadcastReceiver; Landroid/content/IntentFilter;)Landroid/content/Intent;
+      return-void             
+  .method I0(Lcom/baidu/simeji/components/b$g;)V
+      iput-object             v1, v0, Lcom/baidu/simeji/components/b;->h0 Lcom/baidu/simeji/components/b$g;
+      return-void             
+  .method J0(Lcom/baidu/simeji/components/b$h;)V
+      iput-object             v1, v0, Lcom/baidu/simeji/components/b;->j0 Lcom/baidu/simeji/components/b$h;
+      return-void             
+  .method K0()V
+      const                   v0, 2131624536
+      invoke-virtual          v1, v0, Lcom/baidu/simeji/components/b;->L0(I)V
+      return-void             
+  .method L0(I)V
+      invoke-super            v0, v1, Landroidx/activity/ComponentActivity;->setContentView(I)V
+      return-void             
+  .method onBackPressed()V
+      invoke-virtual          v1, Lcom/baidu/simeji/components/b;->A0()Z
+      move-result             v0
+      if-nez                  v0, +005h
+      invoke-super            v1, Landroidx/activity/ComponentActivity;->onBackPressed()V
+      return-void             
+  .method onCreate(Landroid/os/Bundle;)V
+      invoke-static           Ljava/lang/System;->currentTimeMillis()J
+      move-result-wide        v0
+      iput-wide               v0, v2, Lcom/baidu/simeji/components/b;->l0 J
+      const/4                 v0, 1
+      iput-boolean            v0, v2, Lcom/baidu/simeji/components/b;->f0 Z
+      invoke-virtual          v2, v0, Landroid/app/Activity;->requestWindowFeature(I)Z
+      invoke-static           v3, v2, Lcom/baidu/simeji/components/b;->u0(Landroid/os/Bundle; Landroid/app/Activity;)V
+      invoke-super            v2, v3, Landroidx/fragment/app/j;->onCreate(Landroid/os/Bundle;)V
+      const/4                 v3, 0
+      iput-boolean            v3, v2, Lcom/baidu/simeji/components/b;->c0 Z
+      invoke-virtual          v2, Lcom/baidu/simeji/components/b;->K0()V
+      invoke-virtual          v2, Lcom/baidu/simeji/components/b;->w0()Z
+      move-result             v0
+      if-eqz                  v0, +005h
+      invoke-direct           v2, Lcom/baidu/simeji/components/b;->x0()V
+      invoke-direct           v2, Lcom/baidu/simeji/components/b;->y0()V
+      iput-boolean            v3, v2, Lcom/baidu/simeji/components/b;->e0 Z
+      return-void             
+  .method onDestroy()V
+      iget-object             v0, v1, Lcom/baidu/simeji/components/b;->k0 Ljava/util/List;
+      if-eqz                  v0, +00dh
+      invoke-interface        v0, Ljava/util/List;->size()I
+      move-result             v0
+      if-lez                  v0, +007h
+      iget-object             v0, v1, Lcom/baidu/simeji/components/b;->k0 Ljava/util/List;
+      invoke-interface        v0, Ljava/util/List;->clear()V
+      const/4                 v0, 0
+      iput-object             v0, v1, Lcom/baidu/simeji/components/b;->k0 Ljava/util/List;
+      invoke-super            v1, Landroidx/fragment/app/j;->onDestroy()V
+      invoke-direct           v1, Lcom/baidu/simeji/components/b;->M0()V
+      invoke-direct           v1, Lcom/baidu/simeji/components/b;->N0()V
+      invoke-static           v1, Lcom/baidu/simeji/App;->p(Ljava/lang/Object;)V
+      const/4                 v0, 1
+      iput-boolean            v0, v1, Lcom/baidu/simeji/components/b;->e0 Z
+      return-void             
+  .method onPause()V
+      invoke-super            v0, Landroidx/fragment/app/j;->onPause()V
+      invoke-static           Lcom/preff/kb/common/statistic/StatisticUtil;->disableBatchSendMode()V
+      return-void             
+  .method onRequestPermissionsResult(I [Ljava/lang/String; [I)V
+      invoke-super            v1, v2, v3, v4, Landroidx/fragment/app/j;->onRequestPermissionsResult(I [Ljava/lang/String; [I)V
+      if-eqz                  v3, +027h
+      if-eqz                  v4, +025h
+      array-length            v0, v3
+      if-lez                  v0, +022h
+      array-length            v0, v4
+      if-gtz                  v0, +003h
+      goto                    +1dh
+      const/16                v0, 105
+      if-eq                   v2, v0, +004h
+      if-nez                  v2, +018h
+      const/4                 v2, 0
+      aget                    v4, v4, v2
+      if-nez                  v4, +00bh
+      const                   v4, 200635
+      aget-object             v2, v3, v2
+      invoke-static           v4, v2, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I Ljava/lang/String;)V
+      goto                    +9h
+      const                   v4, 200651
+      aget-object             v2, v3, v2
+      invoke-static           v4, v2, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I Ljava/lang/String;)V
+      return-void             
+  .method onResume()V
+      invoke-super            v3, Landroidx/fragment/app/j;->onResume()V
+      goto                    +ch
+      move-exception          v0
+      const-string            v1, "com/baidu/simeji/components/BaseActivity"
+      const-string            v2, "onResume"
+      invoke-static           v0, v1, v2, Lb7/b;->d(Ljava/lang/Throwable; Ljava/lang/String; Ljava/lang/String;)V
+      invoke-static           v0, Lcom/preff/kb/util/DebugLog;->e(Ljava/lang/Throwable;)V
+      const                   v0, 101099
+      invoke-static           v0, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I)V
+      invoke-static           Lcom/preff/kb/common/statistic/StatisticUtil;->enableBatchMode()V
+      invoke-virtual          v3, Ljava/lang/Object;->getClass()Ljava/lang/Class;
+      move-result-object      v0
+      invoke-virtual          v0, Ljava/lang/Class;->getName()Ljava/lang/String;
+      move-result-object      v0
+      const-string            v1, "Activity"
+      invoke-static           v1, v0, Lcom/baidu/simeji/util/p;->d(Ljava/lang/String; Ljava/lang/String;)V
+      const/4                 v0, 0
+      iput-boolean            v0, v3, Lcom/baidu/simeji/components/b;->c0 Z
+      return-void             
+  .method onSaveInstanceState(Landroid/os/Bundle;)V
+      const/4                 v0, 1
+      iput-boolean            v0, v1, Lcom/baidu/simeji/components/b;->c0 Z
+      invoke-super            v1, v2, Landroidx/activity/ComponentActivity;->onSaveInstanceState(Landroid/os/Bundle;)V
+      return-void             
+  .method onStart()V
+      invoke-super            v1, Landroidx/fragment/app/j;->onStart()V
+      const/4                 v0, 0
+      iput-boolean            v0, v1, Lcom/baidu/simeji/components/b;->c0 Z
+      return-void             
+  .method onStop()V
+      const/4                 v0, 1
+      iput-boolean            v0, v1, Lcom/baidu/simeji/components/b;->c0 Z
+      invoke-super            v1, Landroidx/fragment/app/j;->onStop()V
+      return-void             
+  .method onTitleChanged(Ljava/lang/CharSequence; I)V
+      invoke-super            v0, v1, v2, Landroid/app/Activity;->onTitleChanged(Ljava/lang/CharSequence; I)V
+      iget-object             v2, v0, Lcom/baidu/simeji/components/b;->Z Lz8/a;
+      if-eqz                  v2, +005h
+      invoke-virtual          v2, v1, Lz8/a;->j(Ljava/lang/CharSequence;)V
+      return-void             
+  .method onWindowFocusChanged(Z)V
+      invoke-super            v1, v2, Landroid/app/Activity;->onWindowFocusChanged(Z)V
+      iget-boolean            v0, v1, Lcom/baidu/simeji/components/b;->f0 Z
+      if-eqz                  v0, +00fh
+      if-eqz                  v2, +00dh
+      const/4                 v2, 0
+      iput-boolean            v2, v1, Lcom/baidu/simeji/components/b;->f0 Z
+      new-instance            v2, Lcom/baidu/simeji/components/b$c;
+      invoke-direct           v2, v1, Lcom/baidu/simeji/components/b$c;-><init>(Lcom/baidu/simeji/components/b;)V
+      invoke-static           v2, Lcom/preff/kb/util/HandlerUtils;->runOnUiThread(Ljava/lang/Runnable;)V
+      return-void             
+  .method r0(Landroidx/fragment/app/Fragment;)V
+      invoke-super            v1, v2, Landroidx/fragment/app/j;->r0(Landroidx/fragment/app/Fragment;)V
+      iget-object             v0, v1, Lcom/baidu/simeji/components/b;->k0 Ljava/util/List;
+      if-nez                  v0, +009h
+      new-instance            v0, Ljava/util/ArrayList;
+      invoke-direct           v0, Ljava/util/ArrayList;-><init>()V
+      iput-object             v0, v1, Lcom/baidu/simeji/components/b;->k0 Ljava/util/List;
+      iget-object             v0, v1, Lcom/baidu/simeji/components/b;->k0 Ljava/util/List;
+      invoke-interface        v0, v2, Ljava/util/List;->add(Ljava/lang/Object;)Z
+      return-void             
+  .method setContentView(I)V
+      const/4                 v0, 0
+      invoke-static           v1, v2, v0, Landroid/view/View;->inflate(Landroid/content/Context; I Landroid/view/ViewGroup;)Landroid/view/View;
+      move-result-object      v2
+      iget-object             v0, v1, Lcom/baidu/simeji/components/b;->a0 Landroid/widget/FrameLayout;
+      invoke-virtual          v0, Landroid/view/ViewGroup;->removeAllViews()V
+      iget-object             v0, v1, Lcom/baidu/simeji/components/b;->a0 Landroid/widget/FrameLayout;
+      invoke-virtual          v0, v2, Landroid/view/ViewGroup;->addView(Landroid/view/View;)V
+      return-void             
+  .method setContentView(Landroid/view/View;)V
+      iget-object             v0, v1, Lcom/baidu/simeji/components/b;->a0 Landroid/widget/FrameLayout;
+      invoke-virtual          v0, Landroid/view/ViewGroup;->removeAllViews()V
+      iget-object             v0, v1, Lcom/baidu/simeji/components/b;->a0 Landroid/widget/FrameLayout;
+      invoke-virtual          v0, v2, Landroid/view/ViewGroup;->addView(Landroid/view/View;)V
+      return-void             
+  .method setContentView(Landroid/view/View; Landroid/view/ViewGroup$LayoutParams;)V
+      iget-object             v0, v1, Lcom/baidu/simeji/components/b;->a0 Landroid/widget/FrameLayout;
+      invoke-virtual          v0, Landroid/view/ViewGroup;->removeAllViews()V
+      iget-object             v0, v1, Lcom/baidu/simeji/components/b;->a0 Landroid/widget/FrameLayout;
+      invoke-virtual          v0, v2, v3, Landroid/view/ViewGroup;->addView(Landroid/view/View; Landroid/view/ViewGroup$LayoutParams;)V
+      return-void             
+  .method v0()Lz8/a;
+      iget-object             v0, v1, Lcom/baidu/simeji/components/b;->Z Lz8/a;
+      return-object           v0
+  .method w0()Z
+      const/4                 v0, 1
+      return                  v0
+  .method z0()Z
+      iget-boolean            v0, v1, Lcom/baidu/simeji/components/b;->e0 Z
+      return                  v0

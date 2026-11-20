@@ -1,0 +1,3 @@
+4 ficheros DEX, 164880 cadenas distintas
+
+Lcom/baidu/simeji/skins/v0;  (V2(Lcom/baidu/simeji/skins/v0; Landroid/view/View; Lcom/gclub/global/jetpackmvvm/base/BaseItemUIData; I)Lkotlin/Unit;)

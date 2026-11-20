@@ -38,7 +38,7 @@ private val ringtonePickerManifest = resourcePatch {
 @Suppress("unused")
 val customZaloCallRingtonePatch = bytecodePatch(
     name = "Custom Zalo call ringtone",
-    description = "Adds a global incoming-call audio file choice in Zeldris Patches; notification and per-friend sounds are unchanged.",
+    description = "Adds a global incoming-call audio file choice; the setting is unavailable in the current Zeldris settings screen, so the native ringtone is used by default.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_ZALO_261002_AND_EXPERIMENTAL)
@@ -47,9 +47,6 @@ val customZaloCallRingtonePatch = bytecodePatch(
         val version261101 = packageMetadata.versionName == "26.11.01"
         val method = (if (version261101) IncomingRingtone261101 else IncomingRingtone).matchAll(1..1).single().method
         check(method.implementation?.registerCount == 9) { "Incoming ringtone registers changed" }
-        val capability = mutableClassDefBy("Lapp/zeldrisho/zalo/extension/ZeldrisSettingsContent;")
-            .methods.single { it.name == "hasCustomRingtoneSettings" && it.parameterTypes.isEmpty() && it.returnType == "Z" }
-        capability.returnEarly(true)
         // v0 is immediately overwritten by the original entry; p1 is the ringtone URI.
         val injection = if (version261101) """
             iget-object v0, p0, Ljyl;->d:Ljava/lang/Object;

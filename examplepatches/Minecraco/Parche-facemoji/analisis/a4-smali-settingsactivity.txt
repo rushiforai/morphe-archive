@@ -1,0 +1,137 @@
+4 ficheros DEX, 164880 cadenas distintas
+
+
+### Lcom/baidu/simeji/settings/SettingsActivity;
+  .method <init>()V
+      invoke-direct           v0, Lcom/baidu/simeji/components/b;-><init>()V
+      return-void             
+  .method P0(Landroid/content/Intent;)Ljava/lang/String;
+      if-eqz                  v3, +010h
+      const-string            v0, "start_by_who"
+      invoke-virtual          v3, v0, Landroid/content/Intent;->getStringExtra(Ljava/lang/String;)Ljava/lang/String;
+      move-result-object      v1
+      if-eqz                  v1, +008h
+      invoke-virtual          v3, v0, Landroid/content/Intent;->getStringExtra(Ljava/lang/String;)Ljava/lang/String;
+      move-result-object      v3
+      iput-object             v3, v2, Lcom/baidu/simeji/settings/SettingsActivity;->o0 Ljava/lang/String;
+      iget-object             v3, v2, Lcom/baidu/simeji/settings/SettingsActivity;->o0 Ljava/lang/String;
+      return-object           v3
+  .method Q0(Landroid/content/Context; Ljava/lang/String;)V
+      new-instance            v0, Landroid/content/Intent;
+      const-class             v1, Lcom/baidu/simeji/settings/SettingsActivity;
+      invoke-direct           v0, v2, v1, Landroid/content/Intent;-><init>(Landroid/content/Context; Ljava/lang/Class;)V
+      instance-of             v1, v2, Landroid/app/Activity;
+      if-nez                  v1, +007h
+      const/high16            v1, 268435456
+      invoke-virtual          v0, v1, Landroid/content/Intent;->addFlags(I)Landroid/content/Intent;
+      const-string            v1, "SettingsActivity"
+      invoke-virtual          v0, v1, v3, Landroid/content/Intent;->putExtra(Ljava/lang/String; Ljava/lang/String;)Landroid/content/Intent;
+      const-string            v3, "extra_entry_type"
+      const/4                 v1, -2
+      invoke-virtual          v0, v3, v1, Landroid/content/Intent;->putExtra(Ljava/lang/String; I)Landroid/content/Intent;
+      invoke-virtual          v2, v0, Landroid/content/Context;->startActivity(Landroid/content/Intent;)V
+      return-void             
+  .method O0()Ljava/lang/String;
+      iget-object             v0, v1, Lcom/baidu/simeji/settings/SettingsActivity;->o0 Ljava/lang/String;
+      return-object           v0
+  .method onBackPressed()V
+      invoke-virtual          v1, Lcom/baidu/simeji/components/b;->A0()Z
+      move-result             v0
+      if-nez                  v0, +01bh
+      iget-object             v0, v1, Lcom/baidu/simeji/settings/SettingsActivity;->n0 Ljava/lang/ref/WeakReference;
+      invoke-virtual          v0, Ljava/lang/ref/Reference;->get()Ljava/lang/Object;
+      move-result-object      v0
+      if-eqz                  v0, +013h
+      iget-object             v0, v1, Lcom/baidu/simeji/settings/SettingsActivity;->n0 Ljava/lang/ref/WeakReference;
+      invoke-virtual          v0, Ljava/lang/ref/Reference;->get()Ljava/lang/Object;
+      move-result-object      v0
+      check-cast              v0, Landroid/app/FragmentManager;
+      invoke-virtual          v0, Landroid/app/FragmentManager;->popBackStackImmediate()Z
+      move-result             v0
+      if-nez                  v0, +005h
+      invoke-super            v1, Lcom/baidu/simeji/components/b;->onBackPressed()V
+      return-void             
+  .method onBackStackChanged()V
+      iget-object             v0, v2, Lcom/baidu/simeji/settings/SettingsActivity;->n0 Ljava/lang/ref/WeakReference;
+      invoke-virtual          v0, Ljava/lang/ref/Reference;->get()Ljava/lang/Object;
+      move-result-object      v0
+      if-eqz                  v0, +018h
+      iget-object             v0, v2, Lcom/baidu/simeji/settings/SettingsActivity;->n0 Ljava/lang/ref/WeakReference;
+      invoke-virtual          v0, Ljava/lang/ref/Reference;->get()Ljava/lang/Object;
+      move-result-object      v0
+      check-cast              v0, Landroid/app/FragmentManager;
+      const                   v1, 16908290
+      invoke-virtual          v0, v1, Landroid/app/FragmentManager;->findFragmentById(I)Landroid/app/Fragment;
+      move-result-object      v0
+      check-cast              v0, Lcom/baidu/simeji/components/o;
+      if-eqz                  v0, +005h
+      invoke-virtual          v0, Lcom/baidu/simeji/components/o;->resetTitle()V
+      return-void             
+  .method onCreate(Landroid/os/Bundle;)V
+      invoke-super            v3, v4, Lcom/baidu/simeji/components/b;->onCreate(Landroid/os/Bundle;)V
+      invoke-virtual          v3, Landroid/app/Activity;->getIntent()Landroid/content/Intent;
+      move-result-object      v4
+      invoke-direct           v3, v4, Lcom/baidu/simeji/settings/SettingsActivity;->P0(Landroid/content/Intent;)Ljava/lang/String;
+      invoke-virtual          v3, Landroid/app/Activity;->getIntent()Landroid/content/Intent;
+      move-result-object      v4
+      const-string            v0, "SettingsActivity"
+      invoke-virtual          v4, v0, Landroid/content/Intent;->getStringExtra(Ljava/lang/String;)Ljava/lang/String;
+      move-result-object      v4
+      invoke-virtual          v3, Landroid/app/Activity;->getFragmentManager()Landroid/app/FragmentManager;
+      move-result-object      v0
+      invoke-virtual          v0, v4, Landroid/app/FragmentManager;->findFragmentByTag(Ljava/lang/String;)Landroid/app/Fragment;
+      move-result-object      v0
+      if-nez                  v0, +017h
+      const-string            v0, "SettingsAboutFragment"
+      invoke-virtual          v4, v0, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
+      move-result             v0
+      if-eqz                  v0, +008h
+      new-instance            v0, Lef/l;
+      invoke-direct           v0, Lef/l;-><init>()V
+      goto                    +8h
+      new-instance            v0, Lef/n;
+      invoke-direct           v0, Lef/n;-><init>()V
+      const-string            v4, "SettingsMainFragment"
+      new-instance            v1, Ljava/lang/ref/WeakReference;
+      invoke-virtual          v3, Landroid/app/Activity;->getFragmentManager()Landroid/app/FragmentManager;
+      move-result-object      v2
+      invoke-direct           v1, v2, Ljava/lang/ref/WeakReference;-><init>(Ljava/lang/Object;)V
+      iput-object             v1, v3, Lcom/baidu/simeji/settings/SettingsActivity;->n0 Ljava/lang/ref/WeakReference;
+      invoke-virtual          v1, Ljava/lang/ref/Reference;->get()Ljava/lang/Object;
+      move-result-object      v1
+      if-eqz                  v1, +018h
+      iget-object             v1, v3, Lcom/baidu/simeji/settings/SettingsActivity;->n0 Ljava/lang/ref/WeakReference;
+      invoke-virtual          v1, Ljava/lang/ref/Reference;->get()Ljava/lang/Object;
+      move-result-object      v1
+      check-cast              v1, Landroid/app/FragmentManager;
+      invoke-virtual          v1, Landroid/app/FragmentManager;->beginTransaction()Landroid/app/FragmentTransaction;
+      move-result-object      v1
+      const                   v2, 16908290
+      invoke-virtual          v1, v2, v0, v4, Landroid/app/FragmentTransaction;->replace(I Landroid/app/Fragment; Ljava/lang/String;)Landroid/app/FragmentTransaction;
+      move-result-object      v4
+      invoke-virtual          v4, Landroid/app/FragmentTransaction;->commit()I
+      return-void             
+  .method onPause()V
+      invoke-super            v1, Lcom/baidu/simeji/components/b;->onPause()V
+      iget-object             v0, v1, Lcom/baidu/simeji/settings/SettingsActivity;->n0 Ljava/lang/ref/WeakReference;
+      invoke-virtual          v0, Ljava/lang/ref/Reference;->get()Ljava/lang/Object;
+      move-result-object      v0
+      if-eqz                  v0, +00dh
+      iget-object             v0, v1, Lcom/baidu/simeji/settings/SettingsActivity;->n0 Ljava/lang/ref/WeakReference;
+      invoke-virtual          v0, Ljava/lang/ref/Reference;->get()Ljava/lang/Object;
+      move-result-object      v0
+      check-cast              v0, Landroid/app/FragmentManager;
+      invoke-virtual          v0, v1, Landroid/app/FragmentManager;->removeOnBackStackChangedListener(Landroid/app/FragmentManager$OnBackStackChangedListener;)V
+      return-void             
+  .method onResume()V
+      invoke-super            v1, Lcom/baidu/simeji/components/b;->onResume()V
+      iget-object             v0, v1, Lcom/baidu/simeji/settings/SettingsActivity;->n0 Ljava/lang/ref/WeakReference;
+      invoke-virtual          v0, Ljava/lang/ref/Reference;->get()Ljava/lang/Object;
+      move-result-object      v0
+      if-eqz                  v0, +00dh
+      iget-object             v0, v1, Lcom/baidu/simeji/settings/SettingsActivity;->n0 Ljava/lang/ref/WeakReference;
+      invoke-virtual          v0, Ljava/lang/ref/Reference;->get()Ljava/lang/Object;
+      move-result-object      v0
+      check-cast              v0, Landroid/app/FragmentManager;
+      invoke-virtual          v0, v1, Landroid/app/FragmentManager;->addOnBackStackChangedListener(Landroid/app/FragmentManager$OnBackStackChangedListener;)V
+      return-void             

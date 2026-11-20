@@ -26,6 +26,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -49,6 +51,7 @@ public final class TwitchAds {
     private static final String BLOCK = "block_display_ads";
     private static final String MUTE = "mute_stitched_ads";
     private static final String PROXY = "playlist_proxy";
+    private static final String PROXY_URL = "playlist_proxy_url";
     private static final String AD_HOST = "edge.ads.twitch.tv";
     private static final String USHER_HOST = "usher.ttvnw.net";
     private static final Pattern LIVE_CHANNEL = Pattern.compile(
@@ -471,7 +474,7 @@ public final class TwitchAds {
 
     /** Injection point: a React Native stream or preload URL. Same rewrite as {@link #proxyPlaylist(Uri)}. */
     public static String proxyPlaylistUrl(String url) {
-        String template = proxyTemplate();
+        String template = template();
         if (url == null || template == null || template.isEmpty() || !url.contains(USHER_HOST)) return url;
         if (!Settings.isEnabled(PROXY)) return url;
         try {
@@ -492,6 +495,54 @@ public final class TwitchAds {
             return base + path + (query == null ? "" : "?" + query);
         } catch (UnsupportedEncodingException | RuntimeException e) {
             return url;
+        }
+    }
+
+    /**
+     * The proxy URL: the one typed in Lurk settings when it can be used (issue 87), else the patch option's. A typed
+     * URL that can't be used is ignored rather than half-applied.
+     */
+    private static String template() {
+        String patched = proxyTemplate();
+        String typed = Settings.getText(PROXY_URL).trim();
+        if (typed.isEmpty() || typed.equals(patched)) return patched;
+        String problem = proxyProblem(typed, patched);
+        if (problem == null) return typed;
+        Logger.d("playlist proxy: the URL in Lurk settings " + problem + "; using the patch option's");
+        return patched;
+    }
+
+    /**
+     * Why a proxy URL typed in Lurk settings can't be used, or null: the patch option's rules (one kind of
+     * placeholder, {channel} only in the path or query, a host). It must be https://, or http:// to the patch
+     * option's host, the only one Twitch's HTTPS-only rule was opened for at patch time.
+     */
+    static String proxyProblem(String proxy, String patched) {
+        if (proxy.contains("{url}") && proxy.contains("{channel}")) return "uses both {url} and {channel}";
+        int scheme = proxy.indexOf("://");
+        if (scheme <= 0) return "is not a URL";
+        String rest = proxy.substring(scheme + 3);
+        int end = 0;
+        while (end < rest.length() && "/?#".indexOf(rest.charAt(end)) < 0) end++;
+        if (rest.substring(0, end).contains("{")) return "has a placeholder in its host";
+        int fragment = proxy.indexOf('#');
+        if (fragment >= 0 && proxy.indexOf("{channel}", fragment) >= 0) return "has {channel} after '#'";
+        String host = host(proxy);
+        if (host == null || host.isEmpty()) return "has no host";
+        String type = proxy.substring(0, scheme).toLowerCase(Locale.ROOT);
+        if (type.equals("https")) return null;
+        if (type.equals("http")) {
+            String allowed = patched == null ? null : host(patched);
+            return allowed != null && allowed.equalsIgnoreCase(host) ? null : "is http:// to a host the patch didn't allow";
+        }
+        return "doesn't start with https://";
+    }
+
+    private static String host(String proxy) {
+        try {
+            return new URI(proxy.replace("{url}", "").replace("{channel}", "")).getHost();
+        } catch (URISyntaxException e) {
+            return null;
         }
     }
 

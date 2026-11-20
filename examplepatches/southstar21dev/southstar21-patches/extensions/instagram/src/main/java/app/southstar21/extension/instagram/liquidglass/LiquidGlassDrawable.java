@@ -5,11 +5,13 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.LinearGradient;
+import android.graphics.Matrix;
 import android.graphics.Outline;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.RecordingCanvas;
 import android.graphics.Rect;
+import android.graphics.RadialGradient;
 import android.graphics.RectF;
 import android.graphics.RenderEffect;
 import android.graphics.RenderNode;
@@ -43,16 +45,29 @@ final class LiquidGlassDrawable extends Drawable {
             "uniform float radius;\n" +
             "uniform float bezel;\n" +     // width of the refracting edge band
             "uniform float strength;\n" +  // max displacement in px
+            "uniform float dispersion;\n" +  // red/blue split at the rim in px, signed like strength
             "uniform half4 tint;\n" +      // rgb + mix amount in alpha
             "uniform float dark;\n" +
             "uniform float saturation;\n" +
             "uniform float edgeClear;\n" +   // how much less tint right at the edge, 0..1
             "uniform float edgeWidth;\n" +   // px over which the tint comes back
             "uniform float sideGlare;\n" +   // white glare on the rounded ends
+            "uniform float2 light;\n" +      // unit direction towards the light, in screen axes
+            "uniform float4 glint;\n" +     // tilt glint: anchor x, y from the center (px), sigma (px), peak (0 = off)
+            "uniform float2 glintOpp;\n" +  // the weaker glint opposite it
 
             "float sdRoundRect(float2 p, float2 b, float r) {\n" +
             "  float2 q = abs(p) - b + r;\n" +
             "  return length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - r;\n" +
+            "}\n" +
+
+            // Bend profile, 0 at t=0 and 1 at t=1: t^5 * (4 - 3t). Flat in the middle and
+            // bending hardest near the rim like a convex squircle edge, but with a finite slope
+            // (2) at the rim. The old quarter circle had a vertical slope at t=1, which turned
+            // fine detail at the edge into a hard stretched line.
+            "float bendProfile(float t) {\n" +
+            "  float t2 = t * t;\n" +
+            "  return t2 * t2 * t * (4.0 - 3.0 * t);\n" +
             "}\n" +
 
             "half4 main(float2 coord) {\n" +
@@ -69,19 +84,25 @@ final class LiquidGlassDrawable extends Drawable {
             "    sdRoundRect(p + float2(0.0, e), half_size, radius) - sdRoundRect(p - float2(0.0, e), half_size, radius));\n" +
             "  n = n / max(length(n), 1e-4);\n" +
 
-            // Circular lens profile: flat in the middle, bending hard at the rim,
-            // so content from just outside the pill gets pulled in at the edges.
+            // Lens profile: flat in the middle, bending hard at the rim, so content from
+            // just outside the pill gets pulled in at the edges.
             "  float t = clamp(1.0 + d / bezel, 0.0, 1.0);\n" +  // 0 inside band, 1 at edge
-            "  float bend = 1.0 - sqrt(max(1.0 - t * t, 0.0));\n" +
+            "  float bend = bendProfile(t);\n" +
             "  float2 offset = n * bend * strength;\n" +
 
+            // Dispersion: red and blue split apart along the bend, so zero in the flat middle
+            // and widest at the rim. The shift follows the sign of strength (dispersion carries
+            // it), so red always lands further along the refraction than blue. Two taps per
+            // channel, averaged, smooth the fringe instead of leaving two hard copies.
+            "  float2 src = coord + offset;\n" +
+            "  float2 fringe = n * bend * dispersion;\n" +
             "  half4 col;\n" +
-            "  col.r = content.eval(coord + offset * 1.06).r;\n" +
-            "  col.g = content.eval(coord + offset).g;\n" +
-            "  col.b = content.eval(coord + offset * 0.94).b;\n" +
+            "  col.r = 0.5 * (content.eval(src + fringe).r + content.eval(src + fringe * 0.5).r);\n" +
+            "  col.g = content.eval(src).g;\n" +
+            "  col.b = 0.5 * (content.eval(src - fringe).b + content.eval(src - fringe * 0.5).b);\n" +
             // Kept, not forced opaque: a video plays in a hole of the recording (its own layer,
             // under the window), and the glass must let it show through rather than go solid.
-            "  col.a = content.eval(coord + offset).a;\n" +
+            "  col.a = content.eval(src).a;\n" +
 
             // Vibrancy: glass slightly boosts saturation of what's behind it.
             "  half luma = dot(col.rgb, half3(0.2126, 0.7152, 0.0722));\n" +
@@ -94,12 +115,18 @@ final class LiquidGlassDrawable extends Drawable {
             "  col.rgb = mix(col.rgb, tint.rgb, amount);\n" +
             "  col.a = mix(col.a, 1.0, amount);\n" +
 
-            // Specular rim, lit from the top left with a softer bounce bottom right.
+            // Specular rim, lit from the light's side (the top left at rest, moving as the phone
+            // tilts) with a softer bounce opposite.
             "  float rim = smoothstep(0.55, 1.0, t);\n" +
-            "  float2 light = normalize(float2(-0.45, -0.9));\n" +
             "  float spec = pow(max(dot(n, light), 0.0), 2.0) + 0.45 * pow(max(dot(n, -light), 0.0), 2.0);\n" +
             "  col.rgb += half3(rim * spec * mix(0.22, 0.18, dark));\n" +
             "  col.rgb += half3(rim * pow(abs(n.x), 3.0) * sideGlare);\n" +
+            // The tilt glint: a soft spot sliding along the rim, and a weaker one opposite it.
+            "  float2 ga = p - glint.xy;\n" +
+            "  float2 gb = p - glintOpp;\n" +
+            "  float gk = -0.5 / max(glint.z * glint.z, 1.0);\n" +
+            "  float g = exp(dot(ga, ga) * gk) + 0.35 * exp(dot(gb, gb) * gk);\n" +
+            "  col.rgb += half3(rim * g * glint.w);\n" +
 
             // Faint inner glow along the top for depth.
             "  float top = 1.0 - smoothstep(0.0, size.y * 0.55, coord.y - origin.y);\n" +
@@ -136,6 +163,11 @@ final class LiquidGlassDrawable extends Drawable {
     private float backdropLuminance = -1f;
     /** Current tint mix, eased towards {@link #tintTarget()} each frame. */
     private float tint = -1f;
+    /** Frame time of the last {@link #stepTint()}, for a frame-rate independent ease. */
+    private long tintTime;
+    /** The tint last handed to {@link #glassEffect}, to recreate only that wrapper when it moves. */
+    private float appliedTint = -1f;
+    private float tintR, tintG, tintB;
 
     private final Paint tintPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint rimPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -147,7 +179,24 @@ final class LiquidGlassDrawable extends Drawable {
     private RuntimeShader shader;
     private RenderEffect blurEffect;
     private RenderEffect glassEffect;
-    private String effectKey;
+    /** Inputs of the last {@link #updateEffects} build; compared field by field so no key is allocated. */
+    private boolean effectsValid;
+    private int keyW, keyH, keyPad, keyRadius, keyStrength, keyVersion, keyLiquid;
+    private boolean keyDark, keyRefract, keySouthstar21;
+    /** The tilt angle last handed to the shader's glint. */
+    private float appliedGlint = Float.NaN;
+    private final float[] glintAt = new float[5];
+    private final Outline clipOutline = new Outline();
+    private int outlineW = -1, outlineH = -1;
+    private float outlineRadius = -1f;
+    private final Matrix shaderMatrix = new Matrix();
+    private RadialGradient glowShader;
+    private LinearGradient edgeGlowShader;
+    private LinearGradient rimShader;
+    private float shaderRim = -1f;
+    private RadialGradient glintRimShader;
+    private float glintRimFor = -1f;
+    private final Paint glintRimPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
 
 
     LiquidGlassDrawable(View host, float density, NavbarStyle.Source styleSource) {
@@ -187,7 +236,7 @@ final class LiquidGlassDrawable extends Drawable {
     void setSouthstar21(boolean on) {
         if (southstar21 == on) return;
         southstar21 = on;
-        effectKey = null;
+        effectsValid = false;
         invalidateSelf();
     }
 
@@ -201,7 +250,7 @@ final class LiquidGlassDrawable extends Drawable {
     void setDark(boolean dark) {
         if (this.dark == dark) return;
         this.dark = dark;
-        effectKey = null;
+        effectsValid = false;
         invalidateSelf();
     }
 
@@ -251,10 +300,15 @@ final class LiquidGlassDrawable extends Drawable {
 
     private void stepTint() {
         float target = tintTarget();
+        long now = android.os.SystemClock.uptimeMillis();
+        // Clamped so a long gap since the last frame doesn't jump the whole way.
+        float dt = Math.max(0f, Math.min(50f, now - tintTime));
+        tintTime = now;
         if (tint < 0f) {
             tint = target;
         } else if (Math.abs(target - tint) > 0.005f) {
-            tint += (target - tint) * 0.18f;
+            // Exponential ease, 18% of the way per frame at 60Hz whatever the refresh rate.
+            tint += (target - tint) * (1f - (float) Math.pow(0.82, dt / 16.667f));
             invalidateSelf();
         } else {
             tint = target;
@@ -364,9 +418,17 @@ final class LiquidGlassDrawable extends Drawable {
         float spot = pill.height() * 1.5f;
         int c = Color.argb(Math.round(255 * Math.min(1f, 0.15f * g)), 0xFF, 0xFF, 0xFF);
         float x = Math.max(pill.left, Math.min(pill.right, glowX));
-        glowPaint.setShader(new android.graphics.RadialGradient(x, pill.centerY(), spot,
-                new int[]{c, c, Color.argb(0, 0xFF, 0xFF, 0xFF)}, new float[]{0f, 0.5f, 1f},
-                Shader.TileMode.CLAMP));
+        // One white unit gradient, moved and sized with a matrix; the strength is the paint's alpha.
+        if (glowShader == null) {
+            glowShader = new RadialGradient(0f, 0f, 1f,
+                    new int[]{Color.WHITE, Color.WHITE, Color.argb(0, 0xFF, 0xFF, 0xFF)},
+                    new float[]{0f, 0.5f, 1f}, Shader.TileMode.CLAMP);
+        }
+        shaderMatrix.setScale(spot, spot);
+        shaderMatrix.postTranslate(x, pill.centerY());
+        glowShader.setLocalMatrix(shaderMatrix);
+        glowPaint.setShader(glowShader);
+        glowPaint.setColor(c);
         canvas.drawRoundRect(pill, radius, radius, glowPaint);
     }
 
@@ -455,10 +517,15 @@ final class LiquidGlassDrawable extends Drawable {
 
         // Wrap in a node clipped to the pill outline: anti-aliased, unlike clipPath.
         clipped.setPosition(0, 0, Math.round(pill.width()), Math.round(pill.height()));
-        Outline outline = new Outline();
-        outline.setRoundRect(0, 0, Math.round(pill.width()), Math.round(pill.height()), radius);
-        clipped.setOutline(outline);
-        clipped.setClipToOutline(true);
+        int pw = Math.round(pill.width()), ph = Math.round(pill.height());
+        if (pw != outlineW || ph != outlineH || radius != outlineRadius) {
+            outlineW = pw;
+            outlineH = ph;
+            outlineRadius = radius;
+            clipOutline.setRoundRect(0, 0, pw, ph, radius);
+            clipped.setOutline(clipOutline);
+            clipped.setClipToOutline(true);
+        }
         RecordingCanvas cc = clipped.beginRecording();
         try {
             cc.translate(-pad, -pad);
@@ -482,11 +549,35 @@ final class LiquidGlassDrawable extends Drawable {
 
     private void updateEffects(int w, int h, int pad, float radius, float strength, boolean refract,
                                int blurRadiusPx) {
-        String key = w + "x" + h + ":" + pad + ":" + dark + ":" + refract + ":" + Math.round(tint * 100)
-                + ":" + southstar21 + ":" + Math.round(radius) + ":" + Math.round(strength) + ":" + style.version
-                + ":" + Math.round(liquid * 20);
-        if (key.equals(effectKey)) return;
-        effectKey = key;
+        int radiusKey = Math.round(radius), strengthKey = Math.round(strength);
+        int liquidKey = Math.round(liquid * 20);
+        boolean same = effectsValid && keyW == w && keyH == h && keyPad == pad && keyDark == dark
+                && keyRefract == refract && keySouthstar21 == southstar21 && keyRadius == radiusKey
+                && keyStrength == strengthKey && keyVersion == style.version && keyLiquid == liquidKey;
+        if (same) {
+            // Only the tint moved (it eases over frames): update the uniform and wrap the same
+            // shader again, leaving the blur effect alone. The RenderEffect has to be recreated
+            // for a changed uniform to be picked up.
+            if (glassEffect != null && shader != null
+                    && (appliedTint != tint || appliedGlint != glintTilt())) {
+                appliedTint = tint;
+                shader.setFloatUniform("tint", tintR, tintG, tintB, tint);
+                applyGlint(w - 2f * pad, h - 2f * pad, radius);
+                glassEffect = RenderEffect.createRuntimeShaderEffect(shader, "content");
+            }
+            return;
+        }
+        effectsValid = true;
+        keyW = w;
+        keyH = h;
+        keyPad = pad;
+        keyDark = dark;
+        keyRefract = refract;
+        keySouthstar21 = southstar21;
+        keyRadius = radiusKey;
+        keyStrength = strengthKey;
+        keyVersion = style.version;
+        keyLiquid = liquidKey;
 
         blurEffect = blurRadiusPx > 0
                 ? RenderEffect.createBlurEffect(blurRadiusPx, blurRadiusPx, Shader.TileMode.CLAMP)
@@ -504,6 +595,9 @@ final class LiquidGlassDrawable extends Drawable {
         // Pressed, the iOS bar's rim bends over a wider band too.
         shader.setFloatUniform("bezel", Math.min(radius, (southstar21 ? 20f : 22f + 12f * liquid) * density));
         shader.setFloatUniform("strength", strength);
+        // Subtle fringe, a few px at the very rim at most; negative with strength so it follows
+        // the same direction.
+        shader.setFloatUniform("dispersion", Math.max(-3f * density, Math.min(3f * density, strength * 0.12f)));
         // Vibrancy (125% by default); the southstar21 style's glass is a fifth more saturated.
         shader.setFloatUniform("saturation", style.vibrancy * (southstar21 ? 1.2f : 1f));
         // Measured on iOS Instagram: in dark mode the rim shows ~58% of what's beyond the edge,
@@ -513,10 +607,42 @@ final class LiquidGlassDrawable extends Drawable {
         shader.setFloatUniform("edgeWidth", 3.5f * density);
         shader.setFloatUniform("sideGlare", dark ? 0f : style.glare);
         int material = materialColor(255);
-        shader.setFloatUniform("tint", Color.red(material) / 255f, Color.green(material) / 255f,
-                Color.blue(material) / 255f, tint);
+        tintR = Color.red(material) / 255f;
+        tintG = Color.green(material) / 255f;
+        tintB = Color.blue(material) / 255f;
+        appliedTint = tint;
+        shader.setFloatUniform("tint", tintR, tintG, tintB, tint);
         shader.setFloatUniform("dark", dark ? 1f : 0f);
+        shader.setFloatUniform("light", REST_X, REST_Y);
+        applyGlint(w - 2f * pad, h - 2f * pad, radius);
         glassEffect = RenderEffect.createRuntimeShaderEffect(shader, "content");
+    }
+
+    /** The direction towards the light: up and to the left. */
+    private static final float REST_X = -0.44721f, REST_Y = -0.89443f;
+
+    /** The tilt the glint follows: the phone's, or 0 when the setting is off. */
+    private float glintTilt() {
+        return style.tiltLight ? TiltLight.angle() : 0f;
+    }
+
+    /** Peak of the glint added in the rim band: a little lower in dark mode. */
+    private float glintPeak() {
+        return style.tiltLight ? (dark ? 0.6f : 0.75f) : 0f;
+    }
+
+    /** Hands the shader the glint for a pill of {@code w} by {@code h} px; the peak is 0 when off. */
+    private void applyGlint(float w, float h, float radius) {
+        appliedGlint = glintTilt();
+        float peak = glintPeak();
+        if (peak <= 0f) {
+            shader.setFloatUniform("glint", 0f, 0f, 1f, 0f);
+            shader.setFloatUniform("glintOpp", 0f, 0f);
+            return;
+        }
+        TiltLight.glint(w / 2f, h / 2f, radius, appliedGlint, glintAt);
+        shader.setFloatUniform("glint", glintAt[0], glintAt[1], glintAt[4], peak);
+        shader.setFloatUniform("glintOpp", glintAt[2], glintAt[3]);
     }
 
     private final Paint edgeGlowPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -535,17 +661,34 @@ final class LiquidGlassDrawable extends Drawable {
     private void drawRim(Canvas canvas, float radius) {
         if (dark) {
             float glow = 5f * density;
-            edgeGlowPaint.setShader(new LinearGradient(0, pill.bottom - glow, 0, pill.bottom,
-                    Color.argb(0, 0xFF, 0xFF, 0xFF), Color.argb(rimAlpha(0x1C), 0xFF, 0xFF, 0xFF),
-                    Shader.TileMode.CLAMP));
+            if (edgeGlowShader == null || rimShader == null || shaderRim != style.rim) {
+                // Unit gradients (0..1 down the pill), sized and placed below with a matrix.
+                shaderRim = style.rim;
+                edgeGlowShader = new LinearGradient(0, 0, 0, 1,
+                        Color.argb(0, 0xFF, 0xFF, 0xFF), Color.argb(rimAlpha(0x1C), 0xFF, 0xFF, 0xFF),
+                        Shader.TileMode.CLAMP);
+                rimShader = new LinearGradient(0, 0, 0, 1,
+                        new int[]{Color.argb(rimAlpha(0x48), 0xFF, 0xFF, 0xFF),
+                                Color.argb(rimAlpha(0x0C), 0xFF, 0xFF, 0xFF),
+                                Color.argb(rimAlpha(0x66), 0xFF, 0xFF, 0xFF)},
+                        new float[]{0f, 0.5f, 1f}, Shader.TileMode.CLAMP);
+            }
+            shaderMatrix.setScale(1f, glow);
+            shaderMatrix.postTranslate(0f, pill.bottom - glow);
+            edgeGlowShader.setLocalMatrix(shaderMatrix);
+            edgeGlowPaint.setShader(edgeGlowShader);
             canvas.drawRoundRect(pill, radius, radius, edgeGlowPaint);
             rimPaint.setStrokeWidth(Math.max(1f, 0.6f * density));
             rimPaint.setColor(Color.WHITE);
-            rimPaint.setShader(new LinearGradient(0, pill.top, 0, pill.bottom,
-                    new int[]{Color.argb(rimAlpha(0x48), 0xFF, 0xFF, 0xFF),
-                            Color.argb(rimAlpha(0x0C), 0xFF, 0xFF, 0xFF),
-                            Color.argb(rimAlpha(0x66), 0xFF, 0xFF, 0xFF)},
-                    new float[]{0f, 0.5f, 1f}, Shader.TileMode.CLAMP));
+            shaderMatrix.setScale(1f, pill.height());
+            shaderMatrix.postTranslate(0f, pill.top);
+            rimShader.setLocalMatrix(shaderMatrix);
+            rimPaint.setShader(rimShader);
+        } else if (style.tiltLight) {
+            // Dimmer than at rest, so the glint sliding along it stands out.
+            rimPaint.setStrokeWidth(Math.max(1f, 0.8f * density));
+            rimPaint.setShader(null);
+            rimPaint.setColor(Color.argb(rimAlpha(0x99), 0xFF, 0xFF, 0xFF));
         } else {
             rimPaint.setStrokeWidth(Math.max(1f, 0.8f * density));
             rimPaint.setShader(null);
@@ -554,6 +697,34 @@ final class LiquidGlassDrawable extends Drawable {
         float half = rimPaint.getStrokeWidth() / 2f;
         rimRect.set(pill.left + half, pill.top + half, pill.right - half, pill.bottom - half);
         canvas.drawRoundRect(rimRect, radius - half, radius - half, rimPaint);
+        if (style.tiltLight) drawRimGlint(canvas, radius, half);
+    }
+
+    /**
+     * The tilt glint on the rim stroke: the stroke again, painted with a radial fade centered on
+     * the glint's anchor, then the weaker one opposite. The gradient is built once and moved with
+     * its matrix, so a frame allocates nothing.
+     */
+    private void drawRimGlint(Canvas canvas, float radius, float half) {
+        if (glintRimShader == null || glintRimFor != style.rim) {
+            glintRimFor = style.rim;
+            int peak = Color.argb(rimAlpha(0xFF), 0xFF, 0xFF, 0xFF);
+            int mid = Color.argb(rimAlpha(0x70), 0xFF, 0xFF, 0xFF);
+            glintRimShader = new RadialGradient(0f, 0f, 1f, new int[]{peak, mid, 0x00FFFFFF},
+                    new float[]{0f, 0.45f, 1f}, Shader.TileMode.CLAMP);
+            glintRimPaint.setStyle(Paint.Style.STROKE);
+            glintRimPaint.setShader(glintRimShader);
+        }
+        TiltLight.glint(rimRect.width() / 2f, rimRect.height() / 2f, radius - half, glintTilt(), glintAt);
+        glintRimPaint.setStrokeWidth(rimPaint.getStrokeWidth());
+        float reach = 2.4f * glintAt[4];
+        for (int i = 0; i < 2; i++) {
+            shaderMatrix.setScale(reach, reach);
+            shaderMatrix.postTranslate(rimRect.centerX() + glintAt[2 * i], rimRect.centerY() + glintAt[2 * i + 1]);
+            glintRimShader.setLocalMatrix(shaderMatrix);
+            glintRimPaint.setAlpha(i == 0 ? 255 : 90);
+            canvas.drawRoundRect(rimRect, radius - half, radius - half, glintRimPaint);
+        }
     }
 
     @Override

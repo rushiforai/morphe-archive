@@ -54,6 +54,7 @@ final class MessagesCategory {
                 || build.contains(PatchFamily.MESSAGE_BOX)
                 || build.contains(PatchFamily.PLUS_MENU)
                 || build.contains(PatchFamily.GLASS_CHAT)
+                || build.contains(PatchFamily.CENTER_CHAT_NAME)
                 || build.contains(PatchFamily.FULL_SCREEN_BARS)) {
             PreferenceCategory messages = category(screen, L10n.t("Messages"), SettingsIcons.CHATS,
                     L10n.t("Privacy and controls for your chats."));
@@ -109,6 +110,10 @@ final class MessagesCategory {
                         L10n.t("Mark a chat seen when you reply"),
                         L10n.t("Sending a message in a chat lets the other person see that you've read what they "
                                 + "sent before it. Chats you don't answer stay unseen to them.")));
+                messages.addPreference(toggle(context, Settings.MARK_SEEN_ON_REACTION,
+                        L10n.t("Mark a chat seen when you react"),
+                        L10n.t("Reacting to a message in a chat lets the other person see that you've read up to that "
+                                + "message. What they sent after it stays unseen to them.")));
                 if (build.contains(PatchFamily.MESSAGES_LOCK)) {
                     // Both buttons learn which chat is open from the lock patch's ChatLocks, the only
                     // hook that reads a chat's thread, so a build without it would show two dead rows.
@@ -260,6 +265,11 @@ final class MessagesCategory {
                         L10n.t("Top bar tint in chats")));
                 messages.addPreference(chatGlassTintRow(context, Settings.GLASS_CHAT_BOX_OPACITY,
                         L10n.t("Message bar tint")));
+            }
+            if (build.contains(PatchFamily.CENTER_CHAT_NAME)) {
+                messages.addPreference(toggle(context, Settings.CENTER_CHAT_NAME, L10n.t("Center names in chats"),
+                        L10n.t("Puts the name and username at the top of a chat in the middle of the bar. A long name "
+                                + "sits as near the middle as the call buttons leave room for.")));
             }
             if (build.contains(PatchFamily.FULL_SCREEN_BARS)) {
                 messages.addPreference(toggle(context, Settings.FULL_SCREEN_MESSAGES, L10n.t("Full screen Messages"),

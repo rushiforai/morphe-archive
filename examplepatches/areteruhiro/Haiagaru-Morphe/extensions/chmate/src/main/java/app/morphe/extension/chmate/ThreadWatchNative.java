@@ -88,7 +88,7 @@ public final class ThreadWatchNative {
         if(frame.dat.length()>32L*1024*1024)throw new IOException("Notification DAT too large");
         StringBuilder dat=new StringBuilder();
         List<Integer> rawReplies=new ArrayList<>();
-        try(BufferedReader reader=new BufferedReader(new InputStreamReader(new FileInputStream(frame.dat),Charset.forName(charset)))){
+        try(BufferedReader reader=new BufferedReader(NotificationDatText.reader(frame.dat,charset))){
             String line;int ordinal=0;while((line=reader.readLine())!=null){
                 dat.append(line).append('\n');ordinal++;String[] fields=line.split("<>",-1);if(fields.length<5)continue;
                 int number=ordinal,body=3;

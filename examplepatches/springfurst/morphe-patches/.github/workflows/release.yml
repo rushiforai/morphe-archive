@@ -1,0 +1,81 @@
+name: Release
+
+# Tag a commit (e.g. `git tag v1.0.0 && git push origin v1.0.0`) to publish the bundle:
+# the .mpp becomes a release asset and patches-bundle.json at the repo root is updated,
+# which is what Morphe's add-source link reads.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+jobs:
+  release:
+    name: Release bundle
+    permissions:
+      contents: write
+      packages: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Make wrapper executable
+        run: chmod +x ./gradlew
+
+      - name: Resolve version
+        id: version
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=$(grep -E '^version *=' gradle.properties | cut -d= -f2 | tr -d ' ')" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build bundle
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew :patches:buildAndroid --no-daemon
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="v${{ steps.version.outputs.version }}"
+          gh release view "$TAG" >/dev/null 2>&1 \
+            && gh release upload "$TAG" patches/build/libs/patches-*.mpp --clobber \
+            || gh release create "$TAG" patches/build/libs/patches-*.mpp \
+                 --title "$TAG" --generate-notes
+
+      - name: Update patches-bundle.json
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          REPO: ${{ github.repository }}
+        run: |
+          python3 - <<'PY'
+          import json, os, datetime
+          version = os.environ["VERSION"]
+          repo = os.environ["REPO"]
+          bundle = {
+              "created_at": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S"),
+              "description": f"Morphe patches bundle {version}",
+              "download_url": f"https://github.com/{repo}/releases/download/v{version}/patches-{version}.mpp",
+              "signature_download_url": "",
+              "version": version,
+          }
+          with open("patches-bundle.json", "w", encoding="utf-8") as f:
+              json.dump(bundle, f, indent=2)
+              f.write("\n")
+          PY
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add patches-bundle.json
+          git commit -m "chore(release): patches-bundle.json for v${VERSION}" || echo "no changes"
+          git push origin HEAD:main

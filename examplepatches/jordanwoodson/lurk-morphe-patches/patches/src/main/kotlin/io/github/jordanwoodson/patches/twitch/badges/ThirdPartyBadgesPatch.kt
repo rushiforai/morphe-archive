@@ -75,6 +75,11 @@ val thirdPartyBadgesPatch = bytecodePatch(
                     "connection to events.7tv.io while a channel's chat is open, which tells 7TV the channel; 7TV " +
                     "sends its chatters' badges, and the images load from cdn.7tv.app. No chatter is looked up.",
                 Section.CHAT, default = false),
+            SwitchSetting("badges_7tv_self", "My 7TV badge",
+                "Shows the 7TV badge you chose on your own messages. 7TV only reports chatters whose 7TV app or " +
+                    "extension announces them, so this looks yours up once per start: it sends your Twitch user ID to " +
+                    "7tv.io. Other viewers see it only if their 7TV client learns it from 7TV.",
+                Section.CHAT, default = false, parent = "badges_7tv"),
             SwitchSetting("badges_pronouns", "Pronouns",
                 "Shows chatters' pronouns from pronouns.alejo.io as a badge. Sends the username of each chatter " +
                     "whose message you see to pronouns.alejo.io (answers are kept for an hour).",

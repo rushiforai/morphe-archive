@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<baseline version="1.0">
+    <file name="patches/src/main/kotlin/app/southstar21/patches/instagram/layout/ads/HideAdsPatch.kt">
+        <error line="18" column="1" source="standard:indent" />
+        <error line="19" column="19" source="standard:trailing-comma-on-call-site" />
+        <error line="32" column="16" source="standard:trailing-comma-on-call-site" />
+        <error line="40" column="27" source="standard:trailing-comma-on-call-site" />
+    </file>
+    <file name="patches/src/main/kotlin/app/southstar21/patches/instagram/layout/consciousgate/ConsciousGatePatch.kt">
+        <error line="15" column="1" source="standard:indent" />
+        <error line="16" column="1" source="standard:indent" />
+        <error line="17" column="20" source="standard:trailing-comma-on-call-site" />
+    </file>
+    <file name="patches/src/main/kotlin/app/southstar21/patches/instagram/layout/liquidglass/LiquidGlassNavBarPatch.kt">
+        <error line="3" column="1" source="standard:import-ordering" />
+        <error line="19" column="1" source="standard:indent" />
+        <error line="20" column="1" source="standard:indent" />
+        <error line="21" column="19" source="standard:trailing-comma-on-call-site" />
+        <error line="59" column="1" source="standard:indent" />
+        <error line="69" column="16" source="standard:trailing-comma-on-call-site" />
+        <error line="77" column="16" source="standard:trailing-comma-on-call-site" />
+        <error line="85" column="16" source="standard:trailing-comma-on-call-site" />
+        <error line="105" column="24" source="standard:trailing-comma-on-call-site" />
+    </file>
+    <file name="patches/src/main/kotlin/app/southstar21/patches/instagram/layout/navbuttons/HideNavigationButtonsPatch.kt">
+        <error line="29" column="1" source="standard:indent" />
+        <error line="30" column="19" source="standard:trailing-comma-on-call-site" />
+        <error line="41" column="109" source="standard:trailing-comma-on-call-site" />
+    </file>
+    <file name="patches/src/main/kotlin/app/southstar21/patches/instagram/layout/profilepicture/Fingerprints.kt">
+        <error line="58" column="1" source="standard:no-consecutive-blank-lines" />
+    </file>
+    <file name="patches/src/main/kotlin/app/southstar21/patches/instagram/layout/profilepicture/ViewProfilePicturePatch.kt">
+        <error line="15" column="1" source="standard:indent" />
+        <error line="16" column="19" source="standard:trailing-comma-on-call-site" />
+        <error line="34" column="1" source="standard:indent" />
+        <error line="34" column="97" source="standard:trailing-comma-on-call-site" />
+        <error line="39" column="1" source="standard:indent" />
+        <error line="39" column="99" source="standard:trailing-comma-on-call-site" />
+    </file>
+    <file name="patches/src/main/kotlin/app/southstar21/patches/instagram/layout/reels/DisableReelsPatch.kt">
+        <error line="18" column="1" source="standard:indent" />
+        <error line="19" column="19" source="standard:trailing-comma-on-call-site" />
+        <error line="36" column="27" source="standard:trailing-comma-on-call-site" />
+        <error line="42" column="91" source="standard:trailing-comma-on-call-site" />
+        <error line="48" column="109" source="standard:trailing-comma-on-call-site" />
+        <error line="52" column="106" source="standard:trailing-comma-on-call-site" />
+        <error line="59" column="16" source="standard:trailing-comma-on-call-site" />
+    </file>
+    <file name="patches/src/main/kotlin/app/southstar21/patches/instagram/layout/reels/Fingerprints.kt">
+        <error line="46" column="1" source="standard:indent" />
+        <error line="47" column="1" source="standard:indent" />
+        <error line="59" column="1" source="standard:indent" />
+        <error line="60" column="1" source="standard:indent" />
+        <error line="61" column="1" source="standard:indent" />
+        <error line="61" column="114" source="standard:trailing-comma-on-call-site" />
+    </file>
+    <file name="patches/src/main/kotlin/app/southstar21/patches/instagram/misc/buildexpired/RemoveBuildExpiredPopupPatch.kt">
+        <error line="26" column="19" source="standard:trailing-comma-on-call-site" />
+        <error line="34" column="31" source="standard:trailing-comma-on-call-site" />
+    </file>
+    <file name="patches/src/main/kotlin/app/southstar21/patches/instagram/misc/extension/CallThrough.kt">
+        <error line="35" column="12" source="standard:trailing-comma-on-call-site" />
+    </file>
+    <file name="patches/src/main/kotlin/app/southstar21/patches/instagram/misc/extension/PatchIncluded.kt">
+        <error line="24" column="12" source="standard:trailing-comma-on-call-site" />
+    </file>
+    <file name="patches/src/main/kotlin/app/southstar21/patches/instagram/misc/extension/ReturnHook.kt">
+        <error line="35" column="16" source="standard:trailing-comma-on-call-site" />
+    </file>
+    <file name="patches/src/main/kotlin/app/southstar21/patches/instagram/misc/extension/SharedExtensionPatch.kt">
+        <error line="20" column="118" source="standard:trailing-comma-on-call-site" />
+    </file>
+    <file name="patches/src/main/kotlin/app/southstar21/patches/instagram/misc/signature/BypassSignatureCheckPatch.kt">
+        <error line="41" column="19" source="standard:trailing-comma-on-call-site" />
+        <error line="61" column="116" source="standard:trailing-comma-on-call-site" />
+        <error line="68" column="24" source="standard:trailing-comma-on-call-site" />
+    </file>
+    <file name="patches/src/main/kotlin/app/southstar21/patches/instagram/misc/tabs/TabListHookPatch.kt">
+        <error line="47" column="77" source="standard:trailing-comma-on-call-site" />
+    </file>
+    <file name="patches/src/main/kotlin/app/southstar21/patches/instagram/shared/Constants.kt">
+        <error line="18" column="42" source="standard:trailing-comma-on-call-site" />
+        <error line="22" column="38" source="standard:trailing-comma-on-call-site" />
+        <error line="23" column="14" source="standard:trailing-comma-on-call-site" />
+        <error line="24" column="10" source="standard:trailing-comma-on-call-site" />
+    </file>
+    <file name="patches/src/main/kotlin/app/southstar21/patches/instagram/shared/Fingerprints.kt">
+        <error line="1" column="1" source="standard:filename" />
+    </file>
+    <file name="patches/src/main/kotlin/app/southstar21/patches/spotify/layout/liquidglass/LiquidGlassNavBarPatch.kt">
+        <error line="26" column="1" source="standard:indent" />
+        <error line="27" column="1" source="standard:indent" />
+        <error line="28" column="19" source="standard:trailing-comma-on-call-site" />
+        <error line="66" column="1" source="standard:indent" />
+        <error line="76" column="16" source="standard:trailing-comma-on-call-site" />
+        <error line="83" column="16" source="standard:trailing-comma-on-call-site" />
+        <error line="90" column="16" source="standard:trailing-comma-on-call-site" />
+    </file>
+    <file name="patches/src/main/kotlin/app/southstar21/patches/spotify/misc/extension/SharedExtensionPatch.kt">
+        <error line="22" column="116" source="standard:trailing-comma-on-call-site" />
+        <error line="40" column="12" source="standard:trailing-comma-on-call-site" />
+    </file>
+    <file name="patches/src/main/kotlin/app/southstar21/patches/spotify/shared/Constants.kt">
+        <error line="17" column="39" source="standard:trailing-comma-on-call-site" />
+        <error line="21" column="38" source="standard:trailing-comma-on-call-site" />
+        <error line="22" column="14" source="standard:trailing-comma-on-call-site" />
+        <error line="23" column="10" source="standard:trailing-comma-on-call-site" />
+    </file>
+    <file name="patches/src/main/kotlin/app/southstar21/patches/spotify/shared/Fingerprints.kt">
+        <error line="1" column="1" source="standard:filename" />
+    </file>
+    <file name="patches/src/main/kotlin/util/PatchListGenerator.kt">
+        <error line="21" column="1" source="standard:indent" />
+        <error line="22" column="1" source="standard:indent" />
+        <error line="23" column="20" source="standard:trailing-comma-on-call-site" />
+        <error line="82" column="14" source="standard:trailing-comma-on-call-site" />
+        <error line="96" column="1" source="standard:indent" />
+        <error line="97" column="1" source="standard:indent" />
+        <error line="97" column="80" source="standard:trailing-comma-on-call-site" />
+    </file>
+</baseline>

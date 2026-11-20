@@ -1250,6 +1250,17 @@
     },
     {
       "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/media/BufferSize.java",
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/media/VideoBuffer.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/media/buffer/VideoBufferPatch.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: Video buffer, for issue #526, from Facebook 588. Facebook's players ask a load control two things over and over: whether enough of a video has loaded to start or to play on after a stall, and whether to load more. HeroPlayer's own load control, found by the shouldContinueLoading trace its keep-loading check opens with, and ExoPlayer's DefaultLoadControl, found by the warning its keep-loading check gives, each have a start check beside it taking the same parameters and loading C.TIME_UNSET. The start check's hook goes on the nearest jump target at or before that constant, where every way to the wait meets, under that spot's label so the jumps there run it too, and hands the extension the wait that the following Math.min caps with the parameters' first boolean, the after-a-stall flag. HeroPlayer's keep-loading check stores its final low mark in a wide field of its own once, and the low and high marks go to the extension right after that store, which is made again with the answer. ExoPlayer's raises its low mark with its one Math.max and compares against a high mark loaded as a constant right before that compare, so the low mark goes after the Math.max and the high one at its compare. Each check is found and checked before any is changed, and a check of another shape keeps Facebook's numbers with a warning. The extension's VideoBuffer caps every number at the Low size's and raises them to the Medium and Maximum sizes', never puts the high mark under the low one, and hands every number back as it came at Facebook's choice, while paused, before the settings are ready, or when anything in it fails. The byte and memory caps on what a player may hold are left alone."
+    },
+    {
+      "paths": [
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/media/FeedSound.java",
         "patches/src/main/kotlin/app/morphe/patches/facebook/media/feedsound/KeepFeedVideosMutedPatch.kt"
       ],
@@ -1693,6 +1704,16 @@
     },
     {
       "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/ListingPhoto.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/downloads/photo/ListingPhotoAnchors.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook for issue #515: Long press to save Marketplace photos. React Native's image manager on Fresco Vito (a kept name), which draws every photo on a Marketplace listing, in its photo strip and full screen, hands the extension its view and the array of sources first thing in its typed setSource and setSrc. The extension keeps the biggest web address among the sources (width times height, read through the bridge's ReadableArray and ReadableMap by reflection) and puts a touch listener on that view, an ImageView with no touch handling of its own, taking it off when the view's next photo keeps no address. The listener only notes a finger going down and never takes it, since React Native's responder takes the press from the photo for the listing's pressable. The rest of the press comes from React Native's touch dispatcher (obfuscated, found as the one method logging \"Got DOWN touch before receiving UP or CANCEL from last gesture\"), which each React Native root view hands every touch from onInterceptTouchEvent and which hands the extension each touch first thing. A finger held still for the long-press time on a photo at least two thirds of the screen wide saves it through Download any photo's save, then sends the window a cancel so React Native ends the press and the lift opens nothing. A move past the touch slop, a second finger, a lift, a cancel, a lost window focus, a smaller image or a press the root never heard saves nothing, and a tap or a swipe still reaches the listing."
+    },
+    {
+      "paths": [
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/ReelMenuDownload.java",
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/ReelSidebarDiagnostics.java",
         "patches/src/main/kotlin/app/morphe/patches/facebook/downloads/reel/ReelMoreSheet.kt"
@@ -1863,6 +1884,16 @@
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
       "changes": "Written for Hushfacebook: Turn off auto-translation. Posts: the one getter of the post translatability model's translation_type (a no-argument BaseModelWithTree method returning the enum whose static setup names AUTO_TRANSLATION and SEE_TRANSLATION, reading the field's key with getCachedEnum) hands its answer to the extension, which turns AUTO_TRANSLATION into SEE_TRANSLATION while the switch is on, so the feed picks its See translation plugin over its auto-translate one. Reels: the two reads of the caption's translatable flag in the class that records FbShortsViewerFooterComponent.updateAutoTranslateTriggered go through the extension, which answers false while the switch is on, so the footer never asks for a caption translation. Comments: the two reads of the comment's translation type (the enum whose static setup names AUTO_TRANSLATE, MACHINE_TRANSLATION and ORIGINAL) in the class that records CommentBodyComponent.updateIsTranslated, one for its starting state and one for its render, go through the extension, which answers ORIGINAL while the switch is on, so a comment starts in its own words and See translation fetches the translation on a tap."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/feed/TranslateComments.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/feed/autotranslation/CommentTranslationLink.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook for issue #522: Translate every comment. In the class that records CommentBodyComponent.updateIsTranslated, the render's one call that builds the See translation click handler (a builder whose last argument is the click id the event method also checks) hands the handler and the body's class to the extension as soon as it lands. Two helpers join the body: one passes the handler on, and one reads the comment's state the way the event method does (handler scope, component context, state with lazy updates applied) and, when neither of its two flags is set, sends the handler an event, which Facebook takes as a tap on See translation. While the switch is on, the extension calls that tap helper on the main thread, so a comment in another language shows Facebook's translation as it loads, through Facebook's own translation path."
     },
     {
       "paths": [

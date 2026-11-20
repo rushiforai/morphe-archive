@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Run Auto-claim Drops on ART with the real Twitch classes (drops need an account, so the notification can't
-# be shown in the app). ANDROID_SERIAL picks the device (default emulator-5580).
+# Run Auto-claim Drops and Keep Drops banner's countdown hook on ART with the real Twitch classes (drops need an
+# account, so the notification can't be shown in the app). ANDROID_SERIAL picks the device (default emulator-5580).
 source "$(dirname "$0")/lib/common.sh"
 compile_only=false
 if [[ ${1:-} == --compile-only ]]; then compile_only=true; shift; fi

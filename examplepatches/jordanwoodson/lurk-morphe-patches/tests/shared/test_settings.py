@@ -29,7 +29,11 @@ doubles (no Android SDK, APK or device) and cover:
   export-change-import restores every value, bad values and unknown keys are listed, not applied;
 - the bug report URL: the form's fields, every switch under On or Off, list contents never sent;
 - the launcher shortcut: on Android 11+ pushed back over the app's own conversation shortcuts on every start;
-  before that added once and refreshed when its label or the versions changed.
+  before that added once and refreshed when its label or the versions changed;
+- Lurk icon's App icon choice: registered in each app, the chosen launcher alias enabled before the other is
+  disabled (on the screen, after a reset, at a start that finds both or neither enabled), nothing disabled when
+  enabling fails, the settings shortcut published again, nothing touched on a mount install (no aliases, logged
+  once) or without Lurk icon.
 """
 import json
 import re
@@ -87,21 +91,44 @@ ANDROID = {
         long getLong(String k,long d); boolean getBoolean(String k,boolean d); boolean contains(String k); Editor edit();
         void registerOnSharedPreferenceChangeListener(OnSharedPreferenceChangeListener l);
         void unregisterOnSharedPreferenceChangeListener(OnSharedPreferenceChangeListener l); }''',
-    'android/content/ComponentName.java': 'package android.content; public class ComponentName {}',
+    'android/content/ComponentName.java': '''package android.content; public class ComponentName {
+        private String packageName,className; public ComponentName(){}
+        public ComponentName(String p,String c){packageName=p;className=c;}
+        public String getPackageName(){return packageName;} public String getClassName(){return className;} }''',
     'android/content/Intent.java': '''package android.content; public class Intent {
         public static final String ACTION_VIEW="android.intent.action.VIEW"; public static final int FLAG_ACTIVITY_NEW_TASK=0x10000000;
         public Intent(){} public Intent(String a){} public Intent(Context c,Class<?> t){}
         public Intent addFlags(int f){return this;} public Intent setClassName(Context c,String n){return this;}
         public ComponentName getComponent(){return null;}
         public static Intent makeRestartActivityTask(ComponentName c){return new Intent();} }''',
+    # Activities and aliases as the installed manifest declares them (class name to android:enabled), their states
+    # as set at runtime, and every state change in order. A class the manifest lacks is refused as Android does.
     'android/content/pm/PackageManager.java': '''package android.content.pm; public class PackageManager {
+        public static final int COMPONENT_ENABLED_STATE_DEFAULT=0,COMPONENT_ENABLED_STATE_ENABLED=1,
+          COMPONENT_ENABLED_STATE_DISABLED=2,DONT_KILL_APP=1,MATCH_DISABLED_COMPONENTS=0x200;
         public static String versionName="31.7.0";
         public static class NameNotFoundException extends Exception {}
         public static boolean declared=true;
+        public static final java.util.Map<String,Boolean> components=new java.util.HashMap<>();
+        public static final java.util.Map<String,Integer> states=new java.util.HashMap<>();
+        public static final java.util.List<String> calls=new java.util.ArrayList<>();
+        public static String refuse;
         public Object resolveActivity(android.content.Intent i,int flags){return declared?new Object():null;}
         public android.content.Intent getLaunchIntentForPackage(String p){return null;}
         public PackageInfo getPackageInfo(String p,int flags)throws NameNotFoundException{
-          PackageInfo info=new PackageInfo();info.versionName=versionName;return info;} }''',
+          PackageInfo info=new PackageInfo();info.versionName=versionName;return info;}
+        public ActivityInfo getActivityInfo(android.content.ComponentName c,int flags)throws NameNotFoundException{
+          Boolean enabled=components.get(c.getClassName());if(enabled==null||flags!=MATCH_DISABLED_COMPONENTS)throw new NameNotFoundException();
+          ActivityInfo info=new ActivityInfo();info.enabled=enabled;return info;}
+        public int getComponentEnabledSetting(android.content.ComponentName c){return states.getOrDefault(c.getClassName(),0);}
+        public void setComponentEnabledSetting(android.content.ComponentName c,int state,int flags){
+          String name=c.getClassName();
+          if(!components.containsKey(name))throw new IllegalArgumentException("Component class "+name+" does not exist");
+          if(name.equals(refuse))throw new SecurityException("refused");
+          calls.add((state==COMPONENT_ENABLED_STATE_ENABLED?"enable ":state==COMPONENT_ENABLED_STATE_DISABLED?"disable ":"reset ")
+            +name.substring(name.lastIndexOf('.')+1)+(flags==DONT_KILL_APP?"":" killing the app"));
+          states.put(name,state);} }''',
+    'android/content/pm/ActivityInfo.java': 'package android.content.pm; public class ActivityInfo {public boolean enabled=true;}',
     'android/content/pm/PackageInfo.java': 'package android.content.pm; public class PackageInfo {public String versionName;}',
     'android/content/pm/ApplicationInfo.java': 'package android.content.pm; public class ApplicationInfo {public int icon;}',
     'android/content/pm/ShortcutInfo.java': '''package android.content.pm; public class ShortcutInfo {
@@ -198,6 +225,10 @@ ANDROID = {
             return Report.settings(Settings.registry(),Settings.values(),false,changedOnly);}
           public static void publishShortcut()throws Exception{
             java.lang.reflect.Method m=Settings.class.getDeclaredMethod("publishShortcut");m.setAccessible(true);m.invoke(null);}
+          public static String[] iconAliases(){return new String[]{AppIcon.LURK,AppIcon.ORIGINAL};}
+          public static void iconInline(){AppIcon.background=Runnable::run;}
+          public static boolean iconStart(){return AppIcon.apply(Settings.appContext());}
+          public static void iconChanged(String key){AppIcon.changed(key);}
           public static String keptWhenPaused(){
             StringBuilder out=new StringBuilder();
             for(Registry.Entry e:Settings.registry().entries)if(e.keepWhenPaused)out.append(e.key).append(',');
@@ -260,6 +291,8 @@ public class SettingsProbe {
 
   public static void main(String[] args)throws Exception{
     Context.preferences=name->FILES.computeIfAbsent(name,n->new Preferences());
+    // App icon applies a change on a thread of its own; here on the caller's, so every scenario stays ordered.
+    Access.iconInline();
     String[] a=args[0].split("\\|");
     switch(a[0]){
       case "registry":registry(a[1],a[2]);break;
@@ -276,6 +309,7 @@ public class SettingsProbe {
       case "report":Access.context(new Context());report(read(a[1]));break;
       case "shortcut":shortcut();break;
       case "open":open();break;
+      case "appicon":Access.context(new Context());appIcon(read(a[1]));break;
       default:throw new AssertionError(args[0]);
     }
     System.out.println("PASS settings "+a[0]+(a.length>1?" "+Paths.get(a[1]).getFileName():"")+": "+checks+" checks");
@@ -706,6 +740,97 @@ public class SettingsProbe {
     android.os.Build.VERSION.SDK_INT=36;
   }
 
+  /**
+   * Lurk icon's App icon choice against the app's registry: the patch declares two launcher aliases, Lurk's enabled
+   * and the original disabled. Whatever happens, the chosen one is enabled before the other is disabled, so the
+   * app always keeps a launcher entry, and a start leaves exactly one enabled.
+   */
+  static void appIcon(String json)throws Exception{
+    install(json);
+    // Settings.init starts watching the settings, which is how a change on the screen reaches App icon.
+    Settings.changes();
+    check(Settings.isRegistered("app_icon"),"app_icon not registered, though Lurk icon is selected by default");
+    check(Arrays.asList(Settings.choiceValues("app_icon")).equals(Arrays.asList("0","1"))
+      &&Arrays.asList(Settings.choiceLabels("app_icon")).equals(Arrays.asList("Lurk","Original")),"App icon's choices");
+    check(Settings.getInt("app_icon")==0,"App icon doesn't start at Lurk's icon");
+    String lurk=Access.iconAliases()[0],original=Access.iconAliases()[1];
+    Map<String,Integer> states=android.content.pm.PackageManager.states;
+    List<String> calls=android.content.pm.PackageManager.calls;
+    android.content.pm.ShortcutManager shortcuts=new android.content.pm.ShortcutManager();
+    Context.services=type->type==android.content.pm.ShortcutManager.class?shortcuts:null;
+    // As patched: Lurk's entry is the launcher's.
+    android.content.pm.PackageManager.components.put(lurk,true);
+    android.content.pm.PackageManager.components.put(original,false);
+    check(!Access.iconStart()&&calls.isEmpty(),"a start as patched changed the entries: "+calls);
+
+    // Original, chosen on the screen: its entry first, then Lurk's off; the settings shortcut is published again.
+    Access.putString("app_icon","1");
+    check(calls.equals(Arrays.asList("enable OriginalIcon","disable LurkIcon")),"to the original icon: "+calls);
+    check(shortcuts.pushed==1,"the settings shortcut wasn't published again with the new entry");
+    calls.clear();
+    check(!Access.iconStart()&&calls.isEmpty(),"the next start changed the entries again: "+calls);
+    Access.putString("app_icon","0");
+    check(calls.equals(Arrays.asList("enable LurkIcon","disable OriginalIcon")),"back to Lurk's icon: "+calls);
+    calls.clear();
+
+    // A start repairs any other state, for either choice.
+    states.put(original,1);
+    check(Access.iconStart()&&calls.equals(Arrays.asList("disable OriginalIcon")),"both enabled: "+calls);
+    calls.clear();
+    states.put(lurk,2);
+    check(Access.iconStart()&&calls.equals(Arrays.asList("enable LurkIcon")),"neither enabled: "+calls);
+    calls.clear();
+    prefs().edit().putString("app_icon","1").commit();
+    calls.clear();
+    states.put(original,2);states.put(lurk,2);
+    check(Access.iconStart()&&calls.equals(Arrays.asList("enable OriginalIcon")),"neither enabled, original chosen: "+calls);
+    calls.clear();
+    states.put(lurk,1);
+    check(Access.iconStart()&&calls.equals(Arrays.asList("disable LurkIcon")),"both enabled, original chosen: "+calls);
+    calls.clear();
+
+    // Android refusing to enable the chosen entry leaves the enabled one alone.
+    android.content.pm.PackageManager.refuse=lurk;
+    int lines=android.util.Log.lines.size();
+    Access.putString("app_icon","0");
+    check(calls.isEmpty()&&states.get(original)==1,"the original entry was disabled though Lurk's couldn't be enabled: "+calls);
+    check(android.util.Log.lines.subList(lines,android.util.Log.lines.size()).stream().anyMatch(l->l.startsWith("W/lurk: app icon:")),
+      "the refusal wasn't logged");
+    android.content.pm.PackageManager.refuse=null;
+    check(Access.iconStart()&&calls.equals(Arrays.asList("enable LurkIcon","disable OriginalIcon")),"the next start: "+calls);
+    calls.clear();
+
+    // Other settings leave the entries alone; Reset to defaults (Android reports a cleared file as a null key) doesn't.
+    Access.putString("app_icon","1");
+    calls.clear();
+    Access.putBoolean("debug_logging",true);
+    Access.iconChanged("debug_logging");
+    check(calls.isEmpty(),"another setting changed the entries: "+calls);
+    Access.reset();
+    calls.clear();
+    states.put(lurk,2);states.put(original,1);
+    Access.iconChanged(null);
+    check(calls.equals(Arrays.asList("enable LurkIcon","disable OriginalIcon")),"a reset didn't go back to Lurk's icon: "+calls);
+    calls.clear();
+
+    // A root mount install keeps the original manifest: no aliases, so nothing is changed and it says so once.
+    android.content.pm.PackageManager.components.clear();
+    Access.putString("app_icon","1");
+    check(!Access.iconStart()&&calls.isEmpty(),"changed entries a mount install doesn't have: "+calls);
+    check(android.util.Log.lines.stream().filter(l->l.startsWith("W/lurk: app icon: the installed app has no Lurk launcher entries")).count()==1,
+      "a mount install wasn't logged once: "+android.util.Log.lines);
+
+    // Without Lurk icon there is no choice, and the launcher entries are never touched.
+    android.content.pm.PackageManager.components.put(lurk,true);
+    android.content.pm.PackageManager.components.put(original,false);
+    states.put(lurk,2);states.put(original,1);
+    install(registry(entry("debug_logging","switch","false",null)));
+    check(!Access.iconStart()&&calls.isEmpty(),"touched the entries without Lurk icon: "+calls);
+    prefs().edit().putString("app_icon","0").apply();
+    Access.iconChanged("app_icon");
+    check(calls.isEmpty(),"a stored App icon value changed the entries without Lurk icon: "+calls);
+  }
+
   static void unknownIsOff(){
     for(String key:new String[]{"lurk_test_unregistered","lurk_test_choice",""}){
       check(!Settings.isRegistered(key),key+" registered");
@@ -823,10 +948,11 @@ def main(argv):
             fixture.write_text(text, encoding='utf-8')
             scenarios += [f'registry|{fixture}|{Path(scratch) / (app + ".dump")}', f'defaults|{fixture}',
                           f'stored|{fixture}', f'nocontext|{fixture}', f'empty|{fixture}', f'pause|{fixture}',
-                          f'restart|{fixture}', f'backup|{fixture}', f'report|{fixture}']
+                          f'restart|{fixture}', f'backup|{fixture}', f'report|{fixture}', f'appicon|{fixture}']
         scenarios += ['empty', 'chatfilter', 'logger', 'crash', 'shortcut', 'open']
         run('SettingsProbe', ['settings/Settings.java', 'settings/Registry.java', 'settings/ResumedActivityTracker.java',
-                              'settings/Backup.java', 'settings/Report.java', 'Logger.java', 'ChatFilter.java'],
+                              'settings/Backup.java', 'settings/Report.java', 'settings/AppIcon.java', 'Logger.java',
+                              'ChatFilter.java'],
             PROBE, scenarios, extra=JSON_DOUBLE | ANDROID)
         for app, root in roots.items():
             compare_dump(app, root, Path(scratch) / f'{app}.dump')

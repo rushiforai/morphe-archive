@@ -596,8 +596,14 @@ public class Settings extends SharedYouTubeSettings {
             "revanced_snack_bar_dark_fill", "#FF0F0F0F");
     public static final StringSetting SNACK_BAR_LIGHT_FILL = new StringSetting(
             "revanced_snack_bar_light_fill", "#FFF1F1F1");
+
+    public enum SnackBarBorderPreset { CUSTOM, CHIP }
+
+    public static final EnumSetting<SnackBarBorderPreset> SNACK_BAR_BORDER_PRESET = new EnumSetting<>(
+            "revanced_snack_bar_border_preset", SnackBarBorderPreset.CUSTOM);
     public static final StringSetting SNACK_BAR_STROKE_COLOR = new StringSetting(
-            "revanced_snack_bar_stroke_color", "#FF3EA6FF");
+            "revanced_snack_bar_stroke_color", "#FF3EA6FF",
+            SNACK_BAR_BORDER_PRESET.availability(SnackBarBorderPreset.CUSTOM));
     public static final FloatSetting SNACK_BAR_STROKE_WIDTH = new FloatSetting(
             "revanced_snack_bar_stroke_width", 0f, new SliderConfig(0, 8, 0.5, "dp"));
     public static final BooleanSetting SNACK_BAR_PLAYLIST_RADIUS = new BooleanSetting(
@@ -1024,6 +1030,8 @@ public class Settings extends SharedYouTubeSettings {
     public static final BooleanSetting SHORTS_AUTOPLAY_BACKGROUND = new BooleanSetting("revanced_shorts_autoplay_background", TRUE);
     public static final EnumSetting<ShortsPlayerType> SHORTS_PLAYER_TYPE = new EnumSetting<>("revanced_shorts_player_type", ShortsPlayerType.SHORTS_PLAYER);
     public static final BooleanSetting SKIP_LIVE_SHORTS = new BooleanSetting("morphe_skip_live_shorts", FALSE);
+    public static final BooleanSetting HIDE_SHORTS_DIMMING =
+            new BooleanSetting("revanced_hide_shorts_dimming", FALSE);
     public static final EnumSetting<ShortsIcons.Style> SHORTS_ICON_STYLE = new EnumSetting<>("morphe_shorts_icon_style", ShortsIcons.Style.AUTO, true);
 
     // PreferenceScreen: Shorts - Shorts player components
@@ -1533,9 +1541,11 @@ public class Settings extends SharedYouTubeSettings {
             SPOOF_APP_VERSION_TARGET.resetToDefault();
         }
 
-        // Android XR, Android XR Downgraded, and visionOS 1.03 are not selectable in the settings and are selected by spoof stream patch if needed.
+        // AV1 device variants are selected by the spoof patch rather than directly in settings.
         ClientType client = SPOOF_VIDEO_STREAMS_CLIENT_TYPE.get();
-        if (client == ClientType.ANDROID_XR_SABR || client == ClientType.ANDROID_XR_DASH || client == ClientType.VISIONOS_1_03) {
+        if (client == ClientType.ANDROID_XR_SABR || client == ClientType.ANDROID_XR_DASH
+                || client == ClientType.ANDROID_XR_EXPERIMENTAL
+                || client == ClientType.VISIONOS_1_03 || client == ClientType.VISIONOS_1_06_AV1) {
             SPOOF_VIDEO_STREAMS_CLIENT_TYPE.resetToDefault();
         }
 

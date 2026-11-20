@@ -98,11 +98,10 @@ object Constants {
         description = "Only arm64-v8a has been validated; patching may retain other ABIs.",
     )
 
-    /** User-requested experimental target; default patch behavior is not fully qualified. */
-    private val ZALO_261101_EXPERIMENTAL_TARGET = AppTarget(
+    /** Stable Zalo 26.11.01 target, versionCode 261101901. */
+    private val ZALO_261101_TARGET = AppTarget(
         version = "26.11.01",
         versionCodes = mapOf(SupportedAbi.ARM64_V8A to 261101901),
-        isExperimental = true,
         minSdk = 29,
     )
 
@@ -122,28 +121,36 @@ object Constants {
         targets = listOf(ZALO_261002_TARGET),
     )
 
-    val COMPATIBILITY_ZALO_261101_EXPERIMENTAL = Compatibility(
+    val COMPATIBILITY_ZALO_261101 = Compatibility(
         name = "Zalo",
         packageName = "com.zing.zalo",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x0068FF,
-        targets = listOf(ZALO_261101_EXPERIMENTAL_TARGET),
+        targets = listOf(ZALO_261101_TARGET),
     )
 
-    val COMPATIBILITY_ZALO_261002_AND_EXPERIMENTAL = Compatibility(
+    val COMPATIBILITY_ZALO_261002_AND_261101 = Compatibility(
         name = "Zalo",
         packageName = "com.zing.zalo",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x0068FF,
-        targets = listOf(ZALO_261002_TARGET, ZALO_261101_EXPERIMENTAL_TARGET),
+        targets = listOf(ZALO_261002_TARGET, ZALO_261101_TARGET),
     )
+
+    /** @deprecated Use the stable 26.11.01 compatibility entry. */
+    @Deprecated("26.11.01 is stable")
+    val COMPATIBILITY_ZALO_261101_EXPERIMENTAL = COMPATIBILITY_ZALO_261101
+
+    /** @deprecated Use the 26.10.02 and 26.11.01 compatibility entry. */
+    @Deprecated("26.11.01 is stable")
+    val COMPATIBILITY_ZALO_261002_AND_EXPERIMENTAL = COMPATIBILITY_ZALO_261002_AND_261101
 
     val COMPATIBILITY_ZALO_STABLE = Compatibility(
         name = "Zalo",
         packageName = "com.zing.zalo",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x0068FF,
-        targets = listOf(ZALO_260801_TARGET, ZALO_261002_TARGET),
+        targets = listOf(ZALO_260801_TARGET, ZALO_261002_TARGET, ZALO_261101_TARGET),
     )
 
     val COMPATIBILITY_ZALO = Compatibility(
@@ -151,6 +158,6 @@ object Constants {
         packageName = "com.zing.zalo",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x0068FF,
-        targets = listOf(ZALO_260801_TARGET, ZALO_261002_TARGET, ZALO_261101_EXPERIMENTAL_TARGET),
+        targets = listOf(ZALO_260801_TARGET, ZALO_261002_TARGET, ZALO_261101_TARGET),
     )
 }

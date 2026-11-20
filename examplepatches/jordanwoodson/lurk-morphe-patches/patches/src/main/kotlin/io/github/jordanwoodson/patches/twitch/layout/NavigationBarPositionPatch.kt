@@ -14,6 +14,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import io.github.jordanwoodson.patches.shared.settings.ChoiceSetting
+import io.github.jordanwoodson.patches.shared.settings.SwitchSetting
 import io.github.jordanwoodson.patches.shared.settings.Section
 import io.github.jordanwoodson.patches.twitch.settings.twitchSettings
 import io.github.jordanwoodson.patches.twitch.settings.twitchSettingsPatch
@@ -74,7 +75,8 @@ private val navigationBarLayoutPatch = resourcePatch {
 val navigationBarPositionPatch = bytecodePatch(
     name = "Navigation bar position",
     description = "Adds a choice that moves Twitch's bottom navigation bar to the top of the screen and/or hides " +
-        "its labels, leaving only the icons. Twitch's own layout stays until another choice is made in Lurk settings.",
+        "its labels, leaving only the icons, and switches that hide its Create, Browse and Activity buttons. " +
+        "Twitch's own layout stays until another choice is made in Lurk settings.",
 ) {
     compatibleWith(COMPATIBILITY_TWITCH)
     dependsOn(twitchSettingsPatch, navigationBarLayoutPatch)
@@ -121,5 +123,13 @@ val navigationBarPositionPatch = bytecodePatch(
             Section.INTERFACE, "0",
             listOf("Bottom" to "0", "Bottom, icons only" to "1", "Top" to "2", "Top, icons only" to "3"),
             restart = true))
+        twitchSettings.add(
+            SwitchSetting("nav_hide_create", "Hide Create button", "The round + button in the middle of the navigation bar.",
+                Section.INTERFACE, default = false, restart = true),
+            SwitchSetting("nav_hide_browse", "Hide Browse button", "Browse in the navigation bar.",
+                Section.INTERFACE, default = false, restart = true),
+            SwitchSetting("nav_hide_activity", "Hide Activity button", "Activity (notifications) in the navigation bar.",
+                Section.INTERFACE, default = false, restart = true),
+        )
     }
 }

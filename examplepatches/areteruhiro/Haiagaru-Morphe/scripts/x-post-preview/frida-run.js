@@ -1,7 +1,7 @@
 /* Source-level Android preview tests, isolated loader, no network or real browser launch. */
 Java.perform(function () {
     const app=Java.use('android.app.ActivityThread').currentApplication();
-    if(!/^jp\.co\.airfront\.android\.a2chMate\.haiagaru\.responsearchive(191|226)$/.test(String(app.getPackageName())))
+    if(!/^jp\.co\.airfront\.android\.a2chMate\.haiagaru\.(?:responsearchive(191|226)|reporter(191|226|242))$/.test(String(app.getPackageName())))
         throw Error('Isolated preview test app required');
     const Loader=Java.use('dalvik.system.DexClassLoader');
     const loader=Loader.$new('/data/local/tmp/haiagaru-x-preview-cache-test.dex',String(app.getCodeCacheDir().getPath()),null,

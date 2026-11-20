@@ -1,0 +1,17 @@
+4 ficheros DEX, 164880 cadenas distintas
+
+Lcom/facemoji/common/R$attr;  (base.apk:classes3.dex)
+Lcom/facemoji/common/R$color;  (base.apk:classes3.dex)
+Lcom/facemoji/common/R$drawable;  (base.apk:classes3.dex)
+Lcom/facemoji/common/R$font;  (base.apk:classes3.dex)
+Lcom/facemoji/common/R$id;  (base.apk:classes3.dex)
+Lcom/facemoji/common/R$string;  (base.apk:classes3.dex)
+Lcom/facemoji/common/R$style;  (base.apk:classes3.dex)
+Lcom/facemoji/common/R$styleable;  (base.apk:classes3.dex)
+Lcom/facemoji/config/gp/R$attr;  (base.apk:classes3.dex)
+Lcom/facemoji/config/gp/R$drawable;  (base.apk:classes3.dex)
+Lcom/facemoji/config/gp/R$id;  (base.apk:classes3.dex)
+Lcom/facemoji/config/gp/R$layout;  (base.apk:classes3.dex)
+Lcom/facemoji/config/gp/R$string;  (base.apk:classes3.dex)
+Lcom/facemoji/config/gp/R$styleable;  (base.apk:classes3.dex)
+Lcom/facemoji/i18nstring/R$string;  (base.apk:classes3.dex)

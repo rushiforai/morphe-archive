@@ -1,0 +1,8 @@
+{
+  "build-bundle.py": "4f1a3fdd93e6c2417c47879142220f449526e839f2bbaa6cfd382c10b1c5ca54",
+  "morphe/GenerateCatalog.kt": "165948d1034741b69dab29e7231707e3f448724e1119bd168cb00f315423df76",
+  "morphe/TuttoEnhancements.kt": "0eecbb2a09263f3379e8e2fd8e17b980510f7b907a7a4a4c1730c752899ab407",
+  "src/org/ungoogled/ui/HomeWorkShortcuts.java": "fcc62f1c8f47ca46eedbd9850348cfabee2a57c1eddd46e9081dba2a0e34480e",
+  "stubs/org/ungoogled/ui/SavedPlaces.java": "1291c2580e302b44cc9ac07c8434c3991696a76e212982178680f925fc0dfa40",
+  "stubs/org/ungoogled/ui/SavedStore.java": "4b69bbdd8f5da19a1138026d4f1f0aa7893e259dfcee8669fd02a58026cf966d"
+}

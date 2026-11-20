@@ -9,6 +9,7 @@ import android.graphics.RectF;
 import android.graphics.drawable.Animatable;
 import android.graphics.drawable.Drawable;
 import android.text.Spanned;
+import android.text.style.LineHeightSpan;
 import android.text.style.ReplacementSpan;
 import android.util.DisplayMetrics;
 import android.widget.TextView;
@@ -25,7 +26,7 @@ import java.lang.ref.WeakReference;
  * <p>A GIF shows its still frame first. The animation then loads on Wi-Fi and replaces it; on a
  * metered network the still stays, with a play badge.
  */
-final class MediaSpan extends ReplacementSpan {
+final class MediaSpan extends ReplacementSpan implements LineHeightSpan {
     private static final float MAX_HEIGHT_OF_SCREEN = 0.6f;
     /**
      * Room left under the picture, in dp. A tap there is not on the picture, so it reaches the
@@ -131,6 +132,30 @@ final class MediaSpan extends ReplacementSpan {
             fm.bottom = fm.descent;
         }
         return size[0];
+    }
+
+    /**
+     * Relay spaces comment lines at 1.12 times their height, and Android adds that to every line
+     * but the last. On a picture's line that is 12% of the picture: a big gap under a picture
+     * with text below it. The picture's line keeps just {@link #SPACE_BELOW_DP} under it.
+     */
+    @Override
+    public void chooseHeight(CharSequence text, int start, int end, int spanstartv, int lineHeight,
+                             Paint.FontMetricsInt fm) {
+        if (!(text instanceof Spanned) || end >= text.length()) return;
+        int spanStart = ((Spanned) text).getSpanStart(this);
+        if (spanStart < start || spanStart >= end) return;
+        TextView view = host.get();
+        if (view == null) return;
+        float multiplier = view.getLineSpacingMultiplier();
+        float extra = view.getLineSpacingExtra();
+        if (multiplier == 1f && extra == 0f) return;
+        // Android adds (descent - ascent) * (multiplier - 1) + extra below the line; pick the
+        // descent that ends the line SPACE_BELOW_DP under the picture once that is added.
+        float above = -fm.ascent;
+        int descent = Math.round((dp(SPACE_BELOW_DP) - above * (multiplier - 1f) - extra) / multiplier);
+        fm.descent = descent;
+        fm.bottom = descent;
     }
 
     /** Hidden because the post is NSFW and Relay is set not to show NSFW thumbnails. */

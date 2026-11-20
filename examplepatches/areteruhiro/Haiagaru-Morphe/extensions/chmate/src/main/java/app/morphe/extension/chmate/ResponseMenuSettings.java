@@ -152,6 +152,13 @@ public final class ResponseMenuSettings {
         android.widget.LinearLayout layout=SettingsSection.add(root,"ﾜｯﾁｮｲ長押し操作","コピー・検索・NG登録の表示項目",true);
         addWacchoiLongPressToggle(layout,activity,"ワッチョイ長押しに「上4桁をコピー」を表示","wacchoiLongPressCopyPrefix",WacchoiLongPressMenu.COPY_PREFIX_ITEM_ID);
         addWacchoiLongPressToggle(layout,activity,"ワッチョイ長押しに「下4桁をコピー」を表示","wacchoiLongPressCopySuffix",WacchoiLongPressMenu.COPY_SUFFIX_ITEM_ID);
+        android.widget.Switch strip = new android.widget.Switch(activity);
+        strip.setText("ワッチョイ全文コピーで前後の括弧を除く");
+        strip.setChecked(activity.getSharedPreferences("haiagaru_response_actions",0)
+                .getBoolean(WacchoiClipboard.STRIP_PARENTHESES,false));
+        strip.setOnCheckedChangeListener((button,on)->activity.getSharedPreferences("haiagaru_response_actions",0)
+                .edit().putBoolean(WacchoiClipboard.STRIP_PARENTHESES,on).apply());
+        layout.addView(strip);
         addWacchoiLongPressToggle(layout, activity, "ワッチョイ長押しに「ワッチョイ検索」を表示",
                 "wacchoiLongPressSearch", 75);
         addWacchoiLongPressToggle(layout, activity, "ワッチョイ長押しに「下4桁で検索」を表示",

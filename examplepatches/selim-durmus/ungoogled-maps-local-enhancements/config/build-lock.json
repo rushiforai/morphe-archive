@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "maps_version": "26.44.06.1006895251",
+  "maps_version_code": "1068856906",
+  "upstream_commit": "35421159e2149d1ca972ffd0f16b79666569035c",
+  "upstream_release": "v1.3.0",
+  "morphe_desktop": "2.2.0",
+  "java": "Temurin 21.0.12.1+1 Windows x64",
+  "python": "3.11.9 embedded Windows x64",
+  "apktool": "3.0.3",
+  "sdk_platform": "android-36",
+  "sdk_build_tools": "36.0.0",
+  "patch_bundle_sha256": "72c1e94d736b3214f560414bb8c700f551d28ff9d3d5800a79abd6207f982e80",
+  "files": {
+    "inputs/maps-stock-26.44.06.apk": "8f3b829bbe8b0dae603f9936861e34ef0d3ff7b443d6446f1b1375bbf08acf7f",
+    "inputs/maps-baseline.apk": "a863ee0f1e8c539693b935bbae107377fca655bfed9b17d16abafd7211e39797",
+    "inputs/maps-working.apk": "808c2c10e60339d8f421818909cdeaf92ad5c6f2b74a8c28a9d76672c5c5bb06",
+    "tools/apktool.jar": "dbf930b076c6b9be08d57c449cacefc3bdd6b71ebd59b3066fc0e1f5b14f9423",
+    "tools/morphe-desktop.jar": "5ca0320ee05481df1ae3afd2f003bba3ff994d11d1f66ae48811ced71355e4fe",
+    "jdk/bin/java.exe": "82051fdab26319d77d20cc0065045d05ec00b3e3d05f44935d7c06b96b621d55",
+    "jdk/bin/javac.exe": "00f7c6f9ec89ebba4bb96cf8760403cccf1268df2eae8685900ba38e58a7aff9",
+    "python/python.exe": "5f7b89a612c9b8af1d6456cdfcd1dbe5ca630849e79aebced9bee9a6694952ec",
+    "sdk/build-tools/36.0.0/lib/d8.jar": "4097ff9c46c185c6e7214da7fe9b1befb5adeea5cc9ca349270e0249904f9240",
+    "sdk/build-tools/36.0.0/lib/apksigner.jar": "3716d9311e55d2b0918a2fd9d54ba9e406c5f6abeea700b287f11259bc163dec",
+    "sdk/build-tools/36.0.0/zipalign.exe": "c503c7da88bd4f6cddbcc8d3febd41e1e5022a525147f05f8caf4602353409c0",
+    "sdk/build-tools/36.0.0/aapt2.exe": "babf3122e515ddb954c5ac4669e085ce990536c035e3072de30127bddd6e3608",
+    "sdk/platforms/android-36/android.jar": "d9eb9da824d9e247a352f570f01e1169e725b2954bca9e283a71786c59b59f9a"
+  }
+}

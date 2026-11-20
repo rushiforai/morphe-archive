@@ -30,14 +30,13 @@ import app.morphe.extension.youtube.shared.VideoState;
 public final class BilibiliDanmakuController {
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
     private static final BilibiliDanmakuSource SOURCE = new BilibiliDanmakuSource();
-    private static final Object CLOCK = new Object();
+    private static final DanmakuPlaybackClock CLOCK = new DanmakuPlaybackClock();
     private static final String PREFS = "morphe_bilibili_danmaku";
     private static final String OVERLAY_TAG = "morphe_bilibili_danmaku_overlay";
 
     private static WeakReference<ViewGroup> rootRef = new WeakReference<>(null);
     private static WeakReference<BilibiliDanmakuOverlayView> overlayRef = new WeakReference<>(null);
     private static volatile String videoId = "";
-    private static volatile boolean playing;
     private static volatile boolean visible;
     private static boolean observed;
     private static volatile long generation;
@@ -50,10 +49,6 @@ public final class BilibiliDanmakuController {
     private static volatile boolean loginNeeded;
     private static boolean loginHintShown;
     private static List<DanmakuComment> currentData = Collections.emptyList();
-
-    private static long sampledVideoTimeMs = -1;
-    private static long sampledAtRealtimeMs;
-    private static double playbackSpeed = 1.0;
 
     private BilibiliDanmakuController() {}
 
@@ -74,8 +69,6 @@ public final class BilibiliDanmakuController {
                 observed = true;
                 app.morphe.extension.youtube.addon.AddOnApi.addVideoStateListener(BilibiliDanmakuController::setVideoState);
             }
-            setSpeed(VideoInformation.getPlaybackSpeed());
-
             BilibiliDanmakuOverlayView layer = (BilibiliDanmakuOverlayView) overlayRoot.findViewWithTag(OVERLAY_TAG);
             if (layer == null) {
                 layer = new BilibiliDanmakuOverlayView(overlayRoot.getContext());
@@ -103,8 +96,7 @@ public final class BilibiliDanmakuController {
         // Invalidate callbacks immediately: the video-id hook may run off the main thread.
         cancelTask();
         synchronized (CLOCK) {
-            sampledVideoTimeMs = -1;
-            sampledAtRealtimeMs = SystemClock.elapsedRealtime();
+            CLOCK.reset();
         }
         MAIN.post(() -> {
             if (!id.equals(videoId)) return;
@@ -126,10 +118,10 @@ public final class BilibiliDanmakuController {
     /** Injection point. Milliseconds of the current YouTube playback position. */
     public static void setVideoTime(long timeMs) {
         setPlayerType(PlayerType.getCurrent());
-        setSpeed(VideoInformation.getPlaybackSpeed());
         synchronized (CLOCK) {
-            sampledVideoTimeMs = timeMs;
-            sampledAtRealtimeMs = SystemClock.elapsedRealtime();
+            long now = SystemClock.elapsedRealtime();
+            CLOCK.setSpeed(VideoInformation.getPlaybackSpeed(), now);
+            CLOCK.sample(timeMs, now);
         }
         BilibiliDanmakuOverlayView overlay = overlayRef.get();
         if (overlay != null) overlay.postInvalidateOnAnimation();
@@ -137,9 +129,9 @@ public final class BilibiliDanmakuController {
 
     static long currentTimeMs() {
         synchronized (CLOCK) {
-            if (sampledVideoTimeMs < 0 || !playing) return sampledVideoTimeMs;
-            return sampledVideoTimeMs + Math.max(0, Math.round(
-                    (SystemClock.elapsedRealtime() - sampledAtRealtimeMs) * playbackSpeed));
+            long now = SystemClock.elapsedRealtime();
+            CLOCK.setSpeed(VideoInformation.getPlaybackSpeed(), now);
+            return CLOCK.position(now);
         }
     }
 
@@ -150,26 +142,9 @@ public final class BilibiliDanmakuController {
 
     public static void setVideoState(VideoState state) {
         synchronized (CLOCK) {
-            boolean next = state == VideoState.PLAYING;
-            if (playing && !next && sampledVideoTimeMs >= 0) {
-                sampledVideoTimeMs = sampledVideoTimeMs + Math.max(0, Math.round(
-                        (SystemClock.elapsedRealtime() - sampledAtRealtimeMs) * playbackSpeed));
-            }
-            sampledAtRealtimeMs = SystemClock.elapsedRealtime();
-            playing = next;
+            CLOCK.setPlaying(state == VideoState.PLAYING, SystemClock.elapsedRealtime());
         }
         MAIN.post(BilibiliDanmakuController::updateView);
-    }
-
-    private static void setSpeed(float speed) {
-        synchronized (CLOCK) {
-            if (playing && sampledVideoTimeMs >= 0) {
-                sampledVideoTimeMs += Math.max(0, Math.round(
-                        (SystemClock.elapsedRealtime() - sampledAtRealtimeMs) * playbackSpeed));
-            }
-            sampledAtRealtimeMs = SystemClock.elapsedRealtime();
-            playbackSpeed = speed > 0 && !Float.isNaN(speed) && !Float.isInfinite(speed) ? speed : 1.0;
-        }
     }
 
     static SharedPreferences prefs(Context context) {
@@ -194,7 +169,9 @@ public final class BilibiliDanmakuController {
                     p.getBoolean("hide_fixed", false), p.getString("keywords", ""),
                     p.getFloat("rate", 1f), p.getLong("offset_ms", 0));
             overlay.setActive(enabled && visible && !videoId.isEmpty());
-            overlay.setPlaying(playing);
+            synchronized (CLOCK) {
+                overlay.setPlaying(CLOCK.isPlaying());
+            }
         }
     }
 

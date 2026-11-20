@@ -1,0 +1,161 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+
+# Release runs on main and dev share one queue, so a stable release (which back-merges main into
+# dev) never races a dev prerelease that is moving dev at the same time. Runs are never cancelled
+# mid-release. Other branches only compile-check, so each gets its own group and cannot hold up
+# (or, as a newer pending run, displace) a queued release run.
+concurrency:
+  group: ${{ (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev') && 'release' || format('release-{0}', github.ref) }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Release
+    permissions:
+      contents: write
+      # Read-only: the Morphe Gradle plugin and libraries come from the MorpheApp GitHub Packages
+      # registry. The build itself only publishes to mavenLocal (the plugin's DummyMavenLocal).
+      packages: read
+      id-token: write
+      attestations: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+
+      # --allow-git=root: @MorpheApp/changelog is a git dependency of package.json; newer npm
+      # majors refuse git dependencies by default.
+      - name: Install dependencies
+        run: npm ci --allow-git=root
+
+      # Run the tests that need no APK before anything is released: the helper, registry and
+      # bundle-selection tests, the webviewads extension unit tests and the release-script tests. The
+      # per-app smoke tests skip here (their APKs are gitignored), so they stay a local check.
+      # A cold compile runs out of memory at Gradle's default heap, hence the explicit sizes.
+      # The tests build a bundle with the CURRENT version number. It is deleted afterwards: the release
+      # builds its own with the next version, and a leftover file would be published with it (it was
+      # once, as patches-2.3.0-dev.6.mpp inside the dev.7 release) and make the attest step skip.
+      - name: Test
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ./gradlew -Pkotlin.daemon.jvmargs=-Xmx4g -Dorg.gradle.jvmargs=-Xmx3g --no-daemon \
+            :patches:test :extensions:webviewads:testDebugUnitTest
+          python3 -m unittest discover -s .github/scripts/tests
+          rm -f patches/build/libs/*.mpp
+
+      # Semantic release runs its own Gradle build command.
+      # Only dev and main branch will generate a release as specified by .releaserc
+      - name: Release
+        uses: cycjimmy/semantic-release-action@ad51787758d9654d5a75150a89a6fa9b3ccef95e # v8.1.4
+        id: release
+        with:
+          # Keep in step with semantic-release in package-lock.json.
+          semantic_version: 25.0.9
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Decide whether this run published a release, independently of the Release step's outcome.
+      # semantic-release can fail AFTER the GitHub release and its assets are published (e.g. the
+      # main -> dev back-merge in the "success" step); the action then sets no outputs, so the
+      # outputs alone would skip attestation for a bundle that users already download (v1.17.0).
+      #
+      # A release counts as published by this run only if all of these hold:
+      #   1. exactly one bundle patches/build/libs/patches-<version>.mpp exists (it is only built
+      #      by semantic-release's prepare/publish steps; a run without a release has none yet),
+      #   2. the tag v<version> exists on the remote and points at this run's commit or at the
+      #      release commit made on top of it (so an older release of the same version never counts),
+      #   3. the GitHub release v<version> has a patches-<version>.mpp asset whose sha256 digest
+      #      equals the local file (so we attest exactly the bytes that were published). When 1 and 2
+      #      hold but this fails (asset missing or different bytes), the step fails the run.
+      - name: Check for a release published by this run
+        id: published
+        if: ${{ !cancelled() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          skip() {
+            echo "$1"
+            echo "published=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          }
+
+          shopt -s nullglob
+          bundles=()
+          for f in patches/build/libs/patches-*.mpp; do
+            case "$f" in *sources*|*javadoc*) continue ;; esac
+            bundles+=("$f")
+          done
+          if [ "${#bundles[@]}" -ne 1 ]; then
+            skip "No single release bundle in patches/build/libs (found ${#bundles[@]}); nothing to attest."
+          fi
+          bundle="${bundles[0]}"
+          name="$(basename "$bundle")"
+          version="${name#patches-}"
+          version="${version%.mpp}"
+          tag="v${version}"
+
+          # Peeled commit of the remote tag (the ^{} line exists only for annotated tags).
+          tag_commit="$(git ls-remote origin "refs/tags/${tag}" "refs/tags/${tag}^{}" | sort -k2 | tail -n1 | cut -f1)"
+          if [ -z "$tag_commit" ]; then
+            skip "Tag ${tag} is not on the remote; nothing to attest."
+          fi
+          git cat-file -e "${tag_commit}^{commit}" 2>/dev/null || git fetch --quiet origin "refs/tags/${tag}"
+          parent="$(git rev-parse --verify --quiet "${tag_commit}^1" || true)"
+          if [ "$tag_commit" != "$RUN_SHA" ] && [ "$parent" != "$RUN_SHA" ]; then
+            skip "Tag ${tag} (${tag_commit}) was not created from this run's commit ${RUN_SHA}; nothing to attest."
+          fi
+
+          local_digest="sha256:$(sha256sum "$bundle" | cut -d' ' -f1)"
+          remote_digest="$(gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json assets \
+            --jq ".assets[] | select(.name == \"${name}\") | .digest" || true)"
+          # The tag came from this run, so a missing or different asset is a broken release rather
+          # than "nothing published": fail the run visibly instead of skipping attestation quietly.
+          if [ "$remote_digest" != "$local_digest" ]; then
+            echo "published=false" >> "$GITHUB_OUTPUT"
+            echo "::error::Release ${tag} asset ${name} digest '${remote_digest}' does not match the local build ${local_digest}; not attesting."
+            exit 1
+          fi
+
+          echo "Release ${tag} was published by this run (${name}, ${local_digest})."
+          {
+            echo "published=true"
+            echo "tag=${tag}"
+            echo "bundle=${bundle}"
+          } >> "$GITHUB_OUTPUT"
+
+      # Runs even when the Release step failed after publishing (see the check above).
+      - name: Attest
+        if: ${{ !cancelled() && steps.published.outputs.published == 'true' }}
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-name: 'Morphe Patches ${{ steps.published.outputs.tag }}'
+          subject-path: ${{ steps.published.outputs.bundle }}
+
+      # Always verify compilation when semantic-release did not publish a release.
+      # This covers non-main/dev branches, chore commits, docs commits, etc.
+      - name: Verify project compiles
+        if: steps.release.outputs.new_release_published != 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew :patches:buildAndroid clean --no-daemon

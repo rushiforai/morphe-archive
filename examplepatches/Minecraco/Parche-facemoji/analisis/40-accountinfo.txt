@@ -1,0 +1,7 @@
+4 ficheros DEX, 164880 cadenas distintas
+
+### Lcom/baidu/simeji/account/AccountInfo;
+    public constructor     <init>()V  -> V
+    public static          accountDirName(Lcom/baidu/simeji/account/AccountInfo; Z)Ljava/lang/String;  -> Ljava/lang/String;
+    public                 toString()Ljava/lang/String;  -> Ljava/lang/String;
+

@@ -7,6 +7,7 @@
 package app.morphe.extension.facebook.settings;
 
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.burnInGuardRow;
+import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.burnInLevelRow;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.burnInWaitRow;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.category;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.cleanReturnRow;
@@ -27,6 +28,7 @@ import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragm
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.subheading;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.surfaceQualityRow;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.toggle;
+import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.videoBufferRow;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.watchedKeepRow;
 
 import android.content.Context;
@@ -193,9 +195,13 @@ final class VideoPages {
             // Burn-in guard (#288): read on each pass, so a change shows right away.
             reels.addPreference(burnInGuardRow(context));
             reels.addPreference(burnInWaitRow(context));
+            reels.addPreference(burnInLevelRow(context));
             reels.addPreference(toggle(context, Settings.BURN_IN_STAY_DIM,
                     L10n.t("Once Burn-in guard fades the buttons, they stay faded on Reels whatever you tap or swipe, "
                             + "the next reel too. They still work. Leaving Reels brings them back.")));
+            reels.addPreference(toggle(context, Settings.BURN_IN_FADE,
+                    L10n.t("The buttons, caption and bars fade out slowly as they dim and fade back in when they "
+                            + "return, rather than changing at once.")));
             // The gray needs the reel's player on a TextureView, a Turn off HDR brightness hook that
             // works as each player is built, and the screen stays in color over one that isn't, so
             // it starts from the next reel.
@@ -465,7 +471,8 @@ final class VideoPages {
                 || build.contains(PatchFamily.FRAME_STEP)
                 || build.contains(PatchFamily.PLAYBACK_QUALITY) || build.contains(PatchFamily.PICTURE_IN_PICTURE)
                 || build.contains(PatchFamily.BACKGROUND_PLAY) || build.contains(PatchFamily.HDR_BRIGHTNESS) || build.contains(PatchFamily.SKIP_SILENCE)
-                || build.contains(PatchFamily.KEEP_FEED_VIDEOS_MUTED) || build.contains(PatchFamily.PROGRESS_BAR)) {
+                || build.contains(PatchFamily.KEEP_FEED_VIDEOS_MUTED) || build.contains(PatchFamily.PROGRESS_BAR)
+                || build.contains(PatchFamily.VIDEO_BUFFER)) {
             PreferenceCategory playback = category(screen, L10n.t("Video and audio"));
             subheading(playback, L10n.t("Autoplay and resume"));
             if (build.contains(PatchFamily.TAP_TO_PLAY)) {
@@ -561,6 +568,8 @@ final class VideoPages {
                 playback.addPreference(surfaceQualityRow(context, true));
                 playback.addPreference(surfaceQualityRow(context, false));
             }
+            // Asked at each player's start and loading checks, so a change shows within a moment (#526).
+            if (build.contains(PatchFamily.VIDEO_BUFFER)) playback.addPreference(videoBufferRow(context));
             if (build.contains(PatchFamily.HDR_BRIGHTNESS)) {
                 // Asked as each screen comes to the front, so a change shows from the next one.
                 playback.addPreference(toggle(context, Settings.TURN_OFF_HDR_BRIGHTNESS,
@@ -681,6 +690,8 @@ final class VideoPages {
                         L10n.t("With Save any photo on, a post with photos gets Save photo in its three-dot menu too. A post with several saves each one, one after another.")));
                 downloads.addPreference(toggle(context, Settings.POST_MENU_PHOTO_SEARCH,
                         L10n.t("With Save any photo on, a post with one photo gets Search photo in its three-dot menu. It hands the photo to the app you pick, such as Google Lens, to look up what's in it or copy its text.")));
+                downloads.addPreference(toggle(context, Settings.MARKETPLACE_PHOTO_SAVE,
+                        L10n.t("With Save any photo on, a long press on a photo you open from a Marketplace listing saves it.")));
             }
             // Every save reads these, a story's and a reel's as much as a feed video's, so they're here
             // whichever download patch is in, the compatible ones above the quality they keep within.

@@ -92,14 +92,23 @@ def anchor(name):
     return re.sub(r"-+", "-", re.sub(r"[^a-z0-9]+", "-", name.lower())).strip("-")
 
 
-def patches_table(patches):
+# Patch names used by more than one app (e.g. "Liquid Glass navigation bar" for Instagram and
+# Spotify) link to "<name> (<app>)" sections, so each row reaches its own app's section.
+_name_apps = {}
+for _entry in by_pkg.values():
+    for _name in _entry["patches"]:
+        _name_apps.setdefault(_name, set()).add(_entry["name"])
+shared_names = {n for n, apps in _name_apps.items() if len(apps) > 1}
+
+
+def patches_table(patches, app=None):
     """Render a sorted markdown table of patches with name, description, and options."""
     rows = [
         "| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |",
         "|----------|----------------|-----------|",
     ]
     for p in sorted(patches, key=lambda x: x["name"]):
-        a = anchor(p["name"])
+        a = anchor(f"{p['name']} ({app})" if app and p["name"] in shared_names else p["name"])
         options = p.get("options") or []
         if options:
             # Show only option titles as a bullet list
@@ -172,7 +181,7 @@ def build_content(expanded=False):
     for entry in by_pkg.values():
         patches = list(entry["patches"].values())
         label   = f"{entry['emoji']} {entry['name']}"
-        lines.append(spoiler(label, len(patches), entry["targets"], patches_table(patches), expanded))
+        lines.append(spoiler(label, len(patches), entry["targets"], patches_table(patches, entry["name"]), expanded))
         lines.append("")
 
     # Universal patches (no specific app)

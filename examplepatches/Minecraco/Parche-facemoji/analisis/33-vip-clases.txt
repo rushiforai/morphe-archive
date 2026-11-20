@@ -1,0 +1,8 @@
+4 ficheros DEX, 164880 cadenas distintas
+
+Lcom/baidu/simeji/account/AccountInfo;  (base.apk:classes.dex)
+Lcom/baidu/simeji/inapp/provider/vip/VIPContent;  (base.apk:classes.dex)
+Lcom/baidu/simeji/inputview/convenient/textbomb/TextBombVipManager;  (base.apk:classes2.dex)
+Lcom/baidu/simeji/skins/account/AccountSkinSyncWorker;  (base.apk:classes2.dex)
+
+4 clases coinciden con ^L(com/baidu/simeji|sdk)/[^$]*(Vip|VIP|Premium|Member|Account|UserInfo|UserManager)[^$]*;

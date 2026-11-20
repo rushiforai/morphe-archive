@@ -23,6 +23,10 @@ fun main() {
         }!!.maxByOrNull { it.lastModified() }!!
     )
     val loadedPatches = loadPatchesFromJar(patchFiles)
+    val internalLoaded = loadedPatches.filter { isInternalPatch(it) }
+    check(internalLoaded.isEmpty()) {
+        "Discovered internal patches via PatchLoader: ${internalLoaded.map { it.name }}"
+    }
     val patchClassLoader = URLClassLoader(patchFiles.map { it.toURI().toURL() }.toTypedArray())
     val manifest = patchClassLoader.getResources("META-INF/MANIFEST.MF")
 

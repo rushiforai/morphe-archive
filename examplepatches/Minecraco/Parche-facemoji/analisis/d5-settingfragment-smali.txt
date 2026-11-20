@@ -1,0 +1,967 @@
+4 ficheros DEX, 164880 cadenas distintas
+
+
+### Lcom/baidu/simeji/skins/v0;
+  .method <clinit>()V
+      new-instance            v0, Lcom/baidu/simeji/skins/v0$a;
+      const/4                 v1, 0
+      invoke-direct           v0, v1, Lcom/baidu/simeji/skins/v0$a;-><init>(Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+      sput-object             v0, Lcom/baidu/simeji/skins/v0;->P0 Lcom/baidu/simeji/skins/v0$a;
+      const-string            v0, "SettingFragment"
+      sput-object             v0, Lcom/baidu/simeji/skins/v0;->Q0 Ljava/lang/String;
+      return-void             
+  .method <init>()V
+      invoke-direct           v0, Lcom/baidu/simeji/components/l;-><init>()V
+      return-void             
+  .method C2(Lcom/baidu/simeji/skins/v0; Ljava/lang/Boolean;)Lkotlin/Unit;
+      invoke-static           v0, v1, Lcom/baidu/simeji/skins/v0;->R2(Lcom/baidu/simeji/skins/v0; Ljava/lang/Boolean;)Lkotlin/Unit;
+      move-result-object      v0
+      return-object           v0
+  .method D2(Lcom/baidu/simeji/skins/v0; Ljava/lang/Integer;)Lkotlin/Unit;
+      invoke-static           v0, v1, Lcom/baidu/simeji/skins/v0;->P2(Lcom/baidu/simeji/skins/v0; Ljava/lang/Integer;)Lkotlin/Unit;
+      move-result-object      v0
+      return-object           v0
+  .method E2(Lcom/baidu/simeji/skins/v0; Landroid/view/View; Lcom/gclub/global/jetpackmvvm/base/BaseItemUIData; I)Z
+      invoke-static           v0, v1, v2, v3, Lcom/baidu/simeji/skins/v0;->U2(Lcom/baidu/simeji/skins/v0; Landroid/view/View; Lcom/gclub/global/jetpackmvvm/base/BaseItemUIData; I)Z
+      move-result             v0
+      return                  v0
+  .method F2(Lcom/baidu/simeji/skins/v0; Landroid/view/View;)V
+      invoke-static           v0, v1, Lcom/baidu/simeji/skins/v0;->O2(Lcom/baidu/simeji/skins/v0; Landroid/view/View;)V
+      return-void             
+  .method G2(Lcom/baidu/simeji/skins/v0; Landroid/view/View; Lcom/gclub/global/jetpackmvvm/base/BaseItemUIData; I)Lkotlin/Unit;
+      invoke-static           v0, v1, v2, v3, Lcom/baidu/simeji/skins/v0;->V2(Lcom/baidu/simeji/skins/v0; Landroid/view/View; Lcom/gclub/global/jetpackmvvm/base/BaseItemUIData; I)Lkotlin/Unit;
+      move-result-object      v0
+      return-object           v0
+  .method H2(Lcom/baidu/simeji/skins/v0; Landroid/view/View;)V
+      invoke-static           v0, v1, Lcom/baidu/simeji/skins/v0;->Q2(Lcom/baidu/simeji/skins/v0; Landroid/view/View;)V
+      return-void             
+  .method I2(Lcom/baidu/simeji/skins/v0; Lcom/baidu/simeji/account/AccountInfo;)Lkotlin/Unit;
+      invoke-static           v0, v1, Lcom/baidu/simeji/skins/v0;->W2(Lcom/baidu/simeji/skins/v0; Lcom/baidu/simeji/account/AccountInfo;)Lkotlin/Unit;
+      move-result-object      v0
+      return-object           v0
+  .method J2(Lcom/baidu/simeji/skins/v0; Landroid/view/View;)V
+      invoke-static           v0, v1, Lcom/baidu/simeji/skins/v0;->S2(Lcom/baidu/simeji/skins/v0; Landroid/view/View;)V
+      return-void             
+  .method K2(Lcom/baidu/simeji/skins/v0; Landroid/view/View;)V
+      invoke-static           v0, v1, Lcom/baidu/simeji/skins/v0;->T2(Lcom/baidu/simeji/skins/v0; Landroid/view/View;)V
+      return-void             
+  .method L2(I)V
+      invoke-virtual          v3, Loq/c;->r2()Landroidx/databinding/ViewDataBinding;
+      move-result-object      v0
+      check-cast              v0, Lq00/q1;
+      if-eqz                  v0, +01dh
+      iget-object             v0, v0, Lq00/q1;->K Landroid/widget/RelativeLayout;
+      if-nez                  v0, +003h
+      goto                    +17h
+      invoke-virtual          v0, Landroid/view/View;->getLayoutParams()Landroid/view/ViewGroup$LayoutParams;
+      move-result-object      v1
+      instance-of             v2, v1, Landroid/widget/RelativeLayout$LayoutParams;
+      if-eqz                  v2, +005h
+      check-cast              v1, Landroid/widget/RelativeLayout$LayoutParams;
+      goto                    +2h
+      const/4                 v1, 0
+      if-nez                  v1, +003h
+      return-void             
+      const/4                 v2, 3
+      invoke-virtual          v1, v2, v4, Landroid/widget/RelativeLayout$LayoutParams;->addRule(I I)V
+      invoke-virtual          v0, v1, Landroid/view/View;->setLayoutParams(Landroid/view/ViewGroup$LayoutParams;)V
+      return-void             
+  .method M2()V
+      invoke-static           Lcom/baidu/simeji/App;->g()Lcom/baidu/simeji/App;
+      move-result-object      v0
+      const/16                v1, 900
+      invoke-static           v0, v1, Ll8/e;->a(Landroid/content/Context; I)V
+      const                   v0, 200758
+      invoke-static           v0, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I)V
+      new-instance            v0, Landroid/content/Intent;
+      invoke-direct           v0, Landroid/content/Intent;-><init>()V
+      invoke-virtual          v3, Landroidx/fragment/app/Fragment;->T1()Landroidx/fragment/app/j;
+      move-result-object      v1
+      const-class             v2, Lcom/baidu/simeji/skins/SkinCommentListActivity;
+      invoke-virtual          v0, v1, v2, Landroid/content/Intent;->setClass(Landroid/content/Context; Ljava/lang/Class;)Landroid/content/Intent;
+      const-string            v1, "extra_entry_type"
+      const/4                 v2, -2
+      invoke-virtual          v0, v1, v2, Landroid/content/Intent;->putExtra(Ljava/lang/String; I)Landroid/content/Intent;
+      invoke-virtual          v3, v0, Landroidx/fragment/app/Fragment;->l2(Landroid/content/Intent;)V
+      return-void             
+  .method O2(Lcom/baidu/simeji/skins/v0; Landroid/view/View;)V
+      invoke-virtual          v0, Lcom/baidu/simeji/skins/v0;->N2()V
+      return-void             
+  .method P2(Lcom/baidu/simeji/skins/v0; Ljava/lang/Integer;)Lkotlin/Unit;
+      invoke-virtual          v2, Loq/c;->r2()Landroidx/databinding/ViewDataBinding;
+      move-result-object      v2
+      check-cast              v2, Lq00/q1;
+      if-eqz                  v2, +03fh
+      invoke-virtual          v3, Ljava/lang/Integer;->intValue()I
+      move-result             v0
+      if-lez                  v0, +032h
+      iget-object             v0, v2, Lq00/q1;->D Landroid/view/View;
+      const/4                 v1, 0
+      invoke-virtual          v0, v1, Landroid/view/View;->setVisibility(I)V
+      const                   v0, 200757
+      invoke-static           v0, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I)V
+      invoke-static           v3, Lkotlin/jvm/internal/Intrinsics;->d(Ljava/lang/Object;)V
+      invoke-virtual          v3, Ljava/lang/Number;->intValue()I
+      move-result             v3
+      const/16                v0, 99
+      invoke-static           v3, v0, Lkotlin/ranges/e;->g(I I)I
+      move-result             v3
+      invoke-static           v3, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+      move-result-object      v3
+      iget-object             v2, v2, Lq00/q1;->D Landroid/view/View;
+      const                   v0, 2131430341
+      invoke-virtual          v2, v0, Landroid/view/View;->findViewById(I)Landroid/view/View;
+      move-result-object      v2
+      check-cast              v2, Landroid/widget/TextView;
+      invoke-virtual          v3, Ljava/lang/Integer;->toString()Ljava/lang/String;
+      move-result-object      v3
+      invoke-virtual          v2, v3, Landroid/widget/TextView;->setText(Ljava/lang/CharSequence;)V
+      goto                    +8h
+      iget-object             v2, v2, Lq00/q1;->D Landroid/view/View;
+      const/16                v3, 8
+      invoke-virtual          v2, v3, Landroid/view/View;->setVisibility(I)V
+      sget-object             v2, Lkotlin/Unit;->a Lkotlin/Unit;
+      return-object           v2
+  .method Q2(Lcom/baidu/simeji/skins/v0; Landroid/view/View;)V
+      invoke-direct           v0, Lcom/baidu/simeji/skins/v0;->M2()V
+      return-void             
+  .method R2(Lcom/baidu/simeji/skins/v0; Ljava/lang/Boolean;)Lkotlin/Unit;
+      invoke-static           Lcom/baidu/simeji/App;->k()Z
+      move-result             v0
+      const/16                v1, 8
+      if-nez                  v0, +084h
+      invoke-static           Lth/i;->a()Lth/i;
+      move-result-object      v0
+      invoke-virtual          v0, Lth/i;->b()Z
+      move-result             v0
+      if-eqz                  v0, +008h
+      invoke-virtual          v3, Ljava/lang/Boolean;->booleanValue()Z
+      move-result             v0
+      if-eqz                  v0, +074h
+      invoke-static           Lth/i;->a()Lth/i;
+      move-result-object      v0
+      invoke-virtual          v0, Lth/i;->e()Z
+      move-result             v0
+      if-eqz                  v0, +003h
+      goto                    +68h
+      invoke-virtual          v3, Ljava/lang/Boolean;->booleanValue()Z
+      move-result             v3
+      const/4                 v0, 0
+      if-eqz                  v3, +027h
+      invoke-virtual          v2, Loq/c;->r2()Landroidx/databinding/ViewDataBinding;
+      move-result-object      v3
+      check-cast              v3, Lq00/q1;
+      if-eqz                  v3, +009h
+      iget-object             v3, v3, Lq00/q1;->C Landroid/widget/RelativeLayout;
+      if-eqz                  v3, +005h
+      invoke-virtual          v3, v0, Landroid/view/View;->setVisibility(I)V
+      invoke-virtual          v2, Loq/c;->r2()Landroidx/databinding/ViewDataBinding;
+      move-result-object      v3
+      check-cast              v3, Lq00/q1;
+      if-eqz                  v3, +009h
+      iget-object             v3, v3, Lq00/q1;->B Landroid/widget/RelativeLayout;
+      if-eqz                  v3, +005h
+      invoke-virtual          v3, v1, Landroid/view/View;->setVisibility(I)V
+      const                   v3, 2131427601
+      invoke-direct           v2, v3, Lcom/baidu/simeji/skins/v0;->L2(I)V
+      goto                    +39h
+      invoke-virtual          v2, Loq/c;->r2()Landroidx/databinding/ViewDataBinding;
+      move-result-object      v3
+      check-cast              v3, Lq00/q1;
+      if-eqz                  v3, +009h
+      iget-object             v3, v3, Lq00/q1;->C Landroid/widget/RelativeLayout;
+      if-eqz                  v3, +005h
+      invoke-virtual          v3, v1, Landroid/view/View;->setVisibility(I)V
+      invoke-virtual          v2, Loq/c;->r2()Landroidx/databinding/ViewDataBinding;
+      move-result-object      v3
+      check-cast              v3, Lq00/q1;
+      if-eqz                  v3, +009h
+      iget-object             v3, v3, Lq00/q1;->B Landroid/widget/RelativeLayout;
+      if-eqz                  v3, +005h
+      invoke-virtual          v3, v0, Landroid/view/View;->setVisibility(I)V
+      const                   v3, 2131427590
+      invoke-direct           v2, v3, Lcom/baidu/simeji/skins/v0;->L2(I)V
+      invoke-virtual          v2, Loq/c;->r2()Landroidx/databinding/ViewDataBinding;
+      move-result-object      v3
+      check-cast              v3, Lq00/q1;
+      if-eqz                  v3, +00eh
+      iget-object             v3, v3, Lq00/q1;->B Landroid/widget/RelativeLayout;
+      if-eqz                  v3, +00ah
+      new-instance            v0, Lcom/baidu/simeji/skins/u0;
+      invoke-direct           v0, v2, Lcom/baidu/simeji/skins/u0;-><init>(Lcom/baidu/simeji/skins/v0;)V
+      invoke-virtual          v3, v0, Landroid/view/View;->setOnClickListener(Landroid/view/View$OnClickListener;)V
+      sget-object             v2, Lkotlin/Unit;->a Lkotlin/Unit;
+      return-object           v2
+      invoke-virtual          v2, Loq/c;->r2()Landroidx/databinding/ViewDataBinding;
+      move-result-object      v3
+      check-cast              v3, Lq00/q1;
+      if-eqz                  v3, +009h
+      iget-object             v3, v3, Lq00/q1;->C Landroid/widget/RelativeLayout;
+      if-eqz                  v3, +005h
+      invoke-virtual          v3, v1, Landroid/view/View;->setVisibility(I)V
+      invoke-virtual          v2, Loq/c;->r2()Landroidx/databinding/ViewDataBinding;
+      move-result-object      v3
+      check-cast              v3, Lq00/q1;
+      if-eqz                  v3, +009h
+      iget-object             v3, v3, Lq00/q1;->B Landroid/widget/RelativeLayout;
+      if-eqz                  v3, +005h
+      invoke-virtual          v3, v1, Landroid/view/View;->setVisibility(I)V
+      const                   v3, 2131429737
+      invoke-direct           v2, v3, Lcom/baidu/simeji/skins/v0;->L2(I)V
+      sget-object             v2, Lkotlin/Unit;->a Lkotlin/Unit;
+      return-object           v2
+  .method S2(Lcom/baidu/simeji/skins/v0; Landroid/view/View;)V
+      sget-object             v3, Lcom/baidu/simeji/subscription/SubscriptionPurchaseNewActivity;->f2 Lcom/baidu/simeji/subscription/SubscriptionPurchaseNewActivity$a;
+      invoke-virtual          v2, Landroidx/fragment/app/Fragment;->T1()Landroidx/fragment/app/j;
+      move-result-object      v2
+      const-string            v0, "requireActivity(...)"
+      invoke-static           v2, v0, Lkotlin/jvm/internal/Intrinsics;->checkNotNullExpressionValue(Ljava/lang/Object; Ljava/lang/String;)V
+      const/4                 v0, 3
+      const/16                v1, 1002
+      invoke-virtual          v3, v2, v0, v1, Lcom/baidu/simeji/subscription/SubscriptionPurchaseNewActivity$a;->b(Landroid/app/Activity; I I)V
+      return-void             
+  .method T2(Lcom/baidu/simeji/skins/v0; Landroid/view/View;)V
+      sget-object             v2, Lcom/baidu/simeji/voice/pro/redeem/RedeemCodeActivity;->h0 Lcom/baidu/simeji/voice/pro/redeem/RedeemCodeActivity$a;
+      invoke-virtual          v1, Landroidx/fragment/app/Fragment;->T1()Landroidx/fragment/app/j;
+      move-result-object      v1
+      const-string            v0, "requireActivity(...)"
+      invoke-static           v1, v0, Lkotlin/jvm/internal/Intrinsics;->checkNotNullExpressionValue(Ljava/lang/Object; Ljava/lang/String;)V
+      sget-object             v0, Lvi/l;->c Lvi/l;
+      invoke-virtual          v2, v1, v0, Lcom/baidu/simeji/voice/pro/redeem/RedeemCodeActivity$a;->a(Landroid/content/Context; Lvi/l;)V
+      return-void             
+  .method U2(Lcom/baidu/simeji/skins/v0; Landroid/view/View; Lcom/gclub/global/jetpackmvvm/base/BaseItemUIData; I)Z
+      const-string            v0, "itemView"
+      invoke-static           v2, v0, Lkotlin/jvm/internal/Intrinsics;->checkNotNullParameter(Ljava/lang/Object; Ljava/lang/String;)V
+      const-string            v2, "item"
+      invoke-static           v3, v2, Lkotlin/jvm/internal/Intrinsics;->checkNotNullParameter(Ljava/lang/Object; Ljava/lang/String;)V
+      iget-object             v1, v1, Lcom/baidu/simeji/skins/v0;->N0 Ljava/util/ArrayList;
+      if-nez                  v1, +008h
+      const-string            v1, "menuItems"
+      invoke-static           v1, Lkotlin/jvm/internal/Intrinsics;->w(Ljava/lang/String;)V
+      const/4                 v1, 0
+      invoke-virtual          v1, v4, Ljava/util/ArrayList;->get(I)Ljava/lang/Object;
+      move-result-object      v1
+      const-string            v2, "get(...)"
+      invoke-static           v1, v2, Lkotlin/jvm/internal/Intrinsics;->checkNotNullExpressionValue(Ljava/lang/Object; Ljava/lang/String;)V
+      check-cast              v1, Lcom/gclub/global/jetpackmvvm/base/BaseItemUIData;
+      instance-of             v1, v1, La9/b;
+      const/4                 v1, 1
+      return                  v1
+  .method V2(Lcom/baidu/simeji/skins/v0; Landroid/view/View; Lcom/gclub/global/jetpackmvvm/base/BaseItemUIData; I)Lkotlin/Unit;
+      const-string            v0, "viewId"
+      invoke-static           v3, v0, Lkotlin/jvm/internal/Intrinsics;->checkNotNullParameter(Ljava/lang/Object; Ljava/lang/String;)V
+      const-string            v3, "item"
+      invoke-static           v4, v3, Lkotlin/jvm/internal/Intrinsics;->checkNotNullParameter(Ljava/lang/Object; Ljava/lang/String;)V
+      iget-object             v3, v2, Lcom/baidu/simeji/skins/v0;->N0 Ljava/util/ArrayList;
+      if-nez                  v3, +008h
+      const-string            v3, "menuItems"
+      invoke-static           v3, Lkotlin/jvm/internal/Intrinsics;->w(Ljava/lang/String;)V
+      const/4                 v3, 0
+      invoke-virtual          v3, v5, Ljava/util/ArrayList;->get(I)Ljava/lang/Object;
+      move-result-object      v3
+      const-string            v4, "get(...)"
+      invoke-static           v3, v4, Lkotlin/jvm/internal/Intrinsics;->checkNotNullExpressionValue(Ljava/lang/Object; Ljava/lang/String;)V
+      check-cast              v3, Lcom/gclub/global/jetpackmvvm/base/BaseItemUIData;
+      instance-of             v4, v3, La9/b;
+      if-eqz                  v4, +114h
+      check-cast              v3, La9/b;
+      invoke-virtual          v2, Landroidx/fragment/app/Fragment;->Q()Landroid/content/Context;
+      move-result-object      v4
+      invoke-virtual          v3, v4, La9/b;->onRedPointClicked(Landroid/content/Context;)V
+      iget                    v3, v3, La9/b;->c I
+      const/4                 v4, -2
+      const-string            v5, "extra_entry_type"
+      packed-switch           v3, +0000107h
+      goto/16                 +101h
+      const                   v3, 102017
+      invoke-static           v3, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I)V
+      new-instance            v3, Landroid/content/Intent;
+      const-string            v4, "android.intent.action.VIEW"
+      invoke-direct           v3, v4, Landroid/content/Intent;-><init>(Ljava/lang/String;)V
+      const-string            v4, "https://www.tiktok.com/@facemojikeyboard"
+      invoke-static           v4, Landroid/net/Uri;->parse(Ljava/lang/String;)Landroid/net/Uri;
+      move-result-object      v4
+      invoke-virtual          v3, v4, Landroid/content/Intent;->setData(Landroid/net/Uri;)Landroid/content/Intent;
+      invoke-virtual          v2, Landroidx/fragment/app/Fragment;->V1()Landroid/content/Context;
+      move-result-object      v4
+      invoke-virtual          v4, Landroid/content/Context;->getPackageManager()Landroid/content/pm/PackageManager;
+      move-result-object      v4
+      invoke-virtual          v3, v4, Landroid/content/Intent;->resolveActivity(Landroid/content/pm/PackageManager;)Landroid/content/ComponentName;
+      move-result-object      v4
+      if-eqz                  v4, +012h
+      const                   v4, 2132018151
+      invoke-virtual          v2, v4, Landroidx/fragment/app/Fragment;->s0(I)Ljava/lang/String;
+      move-result-object      v4
+      invoke-static           v3, v4, Landroid/content/Intent;->createChooser(Landroid/content/Intent; Ljava/lang/CharSequence;)Landroid/content/Intent;
+      move-result-object      v3
+      invoke-virtual          v2, v3, Landroidx/fragment/app/Fragment;->l2(Landroid/content/Intent;)V
+      goto/16                 +0cdh
+      invoke-static           Lcom/preff/kb/util/ToastShowHandler;->getInstance()Lcom/preff/kb/util/ToastShowHandler;
+      move-result-object      v2
+      const                   v3, 2132018053
+      invoke-virtual          v2, v3, Lcom/preff/kb/util/ToastShowHandler;->showToast(I)V
+      goto/16                 +0c1h
+      const                   v3, 200265
+      invoke-static           v3, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I)V
+      new-instance            v3, Lef/f;
+      invoke-direct           v3, Lef/f;-><init>()V
+      invoke-virtual          v2, Landroidx/fragment/app/Fragment;->Y()Landroidx/fragment/app/w;
+      move-result-object      v2
+      if-eqz                  v2, +0b0h
+      invoke-virtual          v2, Landroidx/fragment/app/w;->p()Landroidx/fragment/app/f0;
+      move-result-object      v2
+      if-eqz                  v2, +0aah
+      const-class             v4, Lef/f;
+      invoke-virtual          v4, Ljava/lang/Class;->getSimpleName()Ljava/lang/String;
+      move-result-object      v4
+      invoke-virtual          v2, v3, v4, Landroidx/fragment/app/f0;->d(Landroidx/fragment/app/Fragment; Ljava/lang/String;)Landroidx/fragment/app/f0;
+      move-result-object      v2
+      if-eqz                  v2, +09eh
+      invoke-virtual          v2, Landroidx/fragment/app/f0;->j()I
+      goto/16                 +099h
+      const                   v3, 100271
+      invoke-static           v3, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I)V
+      new-instance            v3, Landroid/content/Intent;
+      invoke-virtual          v2, Landroidx/fragment/app/Fragment;->Q()Landroid/content/Context;
+      move-result-object      v0
+      const-class             v1, Lcom/baidu/simeji/settings/FaqActivity;
+      invoke-direct           v3, v0, v1, Landroid/content/Intent;-><init>(Landroid/content/Context; Ljava/lang/Class;)V
+      invoke-virtual          v3, v5, v4, Landroid/content/Intent;->putExtra(Ljava/lang/String; I)Landroid/content/Intent;
+      invoke-virtual          v2, v3, Landroidx/fragment/app/Fragment;->l2(Landroid/content/Intent;)V
+      goto/16                 +080h
+      const                   v3, 100208
+      invoke-static           v3, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I)V
+      new-instance            v3, Landroid/content/Intent;
+      invoke-virtual          v2, Landroidx/fragment/app/Fragment;->Q()Landroid/content/Context;
+      move-result-object      v0
+      const-class             v1, Lcom/baidu/simeji/settings/EmojiStyleSettingActivity;
+      invoke-direct           v3, v0, v1, Landroid/content/Intent;-><init>(Landroid/content/Context; Ljava/lang/Class;)V
+      invoke-virtual          v3, v5, v4, Landroid/content/Intent;->putExtra(Ljava/lang/String; I)Landroid/content/Intent;
+      invoke-virtual          v2, v3, Landroidx/fragment/app/Fragment;->l2(Landroid/content/Intent;)V
+      goto                    +67h
+      const/16                v2, 171
+      invoke-static           v2, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I)V
+      goto                    +61h
+      const/16                v2, 86
+      invoke-static           v2, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I)V
+      goto                    +5bh
+      const                   v3, 100224
+      invoke-static           v3, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I)V
+      invoke-virtual          v2, Landroidx/fragment/app/Fragment;->J()Landroidx/fragment/app/j;
+      move-result-object      v2
+      const-string            v3, "SettingsAboutFragment"
+      invoke-static           v2, v3, Lcom/baidu/simeji/settings/SettingsActivity;->Q0(Landroid/content/Context; Ljava/lang/String;)V
+      goto                    +4bh
+      const                   v3, 100088
+      invoke-static           v3, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I)V
+      invoke-static           Lcom/baidu/simeji/App;->g()Lcom/baidu/simeji/App;
+      move-result-object      v3
+      const-string            v4, "key_block_monitor_switch"
+      const/4                 v5, 1
+      invoke-static           v3, v4, v5, Lcom/preff/kb/preferences/PreffMultiProcessPreference;->saveBooleanPreference(Landroid/content/Context; Ljava/lang/String; Z)V
+      sget-object             v3, Lcom/baidu/simeji/settings/feedbackpro/FeedbackProActivity;->v0 Lcom/baidu/simeji/settings/feedbackpro/FeedbackProActivity$a;
+      invoke-virtual          v2, Landroidx/fragment/app/Fragment;->T1()Landroidx/fragment/app/j;
+      move-result-object      v2
+      const-string            v4, "requireActivity(...)"
+      invoke-static           v2, v4, Lkotlin/jvm/internal/Intrinsics;->checkNotNullExpressionValue(Ljava/lang/Object; Ljava/lang/String;)V
+      const-class             v4, Lcom/baidu/simeji/settings/feedbackpro/FeedbackProActivity;
+      const-string            v5, "SettingFragment"
+      invoke-virtual          v3, v2, v4, v5, Lcom/baidu/simeji/settings/feedbackpro/FeedbackProActivity$a;->a(Landroid/content/Context; Ljava/lang/Class; Ljava/lang/String;)V
+      goto                    +28h
+      const                   v3, 100087
+      invoke-static           v3, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I)V
+      invoke-virtual          v2, Landroidx/fragment/app/Fragment;->J()Landroidx/fragment/app/j;
+      move-result-object      v2
+      const-string            v3, "SettingsMainFragment"
+      invoke-static           v2, v3, Lcom/baidu/simeji/settings/SettingsActivity;->Q0(Landroid/content/Context; Ljava/lang/String;)V
+      goto                    +18h
+      const                   v3, 100086
+      invoke-static           v3, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I)V
+      new-instance            v3, Landroid/content/Intent;
+      invoke-virtual          v2, Landroidx/fragment/app/Fragment;->Q()Landroid/content/Context;
+      move-result-object      v0
+      const-class             v1, Lcom/baidu/simeji/settings/InputMethodSubtypeSettingActivity;
+      invoke-direct           v3, v0, v1, Landroid/content/Intent;-><init>(Landroid/content/Context; Ljava/lang/Class;)V
+      invoke-virtual          v3, v5, v4, Landroid/content/Intent;->putExtra(Ljava/lang/String; I)Landroid/content/Intent;
+      invoke-virtual          v2, v3, Landroidx/fragment/app/Fragment;->l2(Landroid/content/Intent;)V
+      sget-object             v2, Lkotlin/Unit;->a Lkotlin/Unit;
+      return-object           v2
+      packed-switch-payload   1 2 3 4 5 6 7 8 9 a b c d
+  .method W2(Lcom/baidu/simeji/skins/v0; Lcom/baidu/simeji/account/AccountInfo;)Lkotlin/Unit;
+      invoke-direct           v0, v1, Lcom/baidu/simeji/skins/v0;->a3(Lcom/baidu/simeji/account/AccountInfo;)V
+      sget-object             v0, Lkotlin/Unit;->a Lkotlin/Unit;
+      return-object           v0
+  .method Y2(Landroid/content/Context;)V
+      iget-object             v0, v2, Lcom/baidu/simeji/skins/v0;->F0 La9/b;
+      const/4                 v1, 0
+      if-nez                  v0, +008h
+      const-string            v0, "languagesItem"
+      invoke-static           v0, Lkotlin/jvm/internal/Intrinsics;->w(Ljava/lang/String;)V
+      move-object             v0, v1
+      invoke-direct           v2, v3, v0, Lcom/baidu/simeji/skins/v0;->Z2(Landroid/content/Context; La9/b;)V
+      iget-object             v0, v2, Lcom/baidu/simeji/skins/v0;->I0 La9/b;
+      if-nez                  v0, +008h
+      const-string            v0, "fAQItem"
+      invoke-static           v0, Lkotlin/jvm/internal/Intrinsics;->w(Ljava/lang/String;)V
+      goto                    +2h
+      move-object             v1, v0
+      invoke-direct           v2, v3, v1, Lcom/baidu/simeji/skins/v0;->Z2(Landroid/content/Context; La9/b;)V
+      iget-object             v0, v2, Lcom/baidu/simeji/skins/v0;->H0 La9/b;
+      if-eqz                  v0, +005h
+      invoke-direct           v2, v3, v0, Lcom/baidu/simeji/skins/v0;->Z2(Landroid/content/Context; La9/b;)V
+      return-void             
+  .method Z2(Landroid/content/Context; La9/b;)V
+      invoke-virtual          v2, v1, La9/b;->isRedPointAvailable(Landroid/content/Context;)Z
+      move-result             v1
+      if-eqz                  v1, +00ch
+      const                   v1, 200197
+      invoke-virtual          v2, La9/b;->getKey()Ljava/lang/String;
+      move-result-object      v2
+      invoke-static           v1, v2, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I Ljava/lang/String;)V
+      return-void             
+  .method a3(Lcom/baidu/simeji/account/AccountInfo;)V
+      invoke-virtual          v1, Loq/c;->r2()Landroidx/databinding/ViewDataBinding;
+      move-result-object      v0
+      check-cast              v0, Lq00/q1;
+      if-eqz                  v0, +007h
+      iget-object             v0, v0, Lq00/q1;->H Lcom/baidu/simeji/widget/AvatarView;
+      invoke-virtual          v0, v2, Lcom/baidu/simeji/widget/AvatarView;->d(Lcom/baidu/simeji/account/AccountInfo;)V
+      return-void             
+  .method N2()V
+      const                   v0, 100494
+      invoke-static           v0, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I)V
+      new-instance            v0, Landroid/content/Intent;
+      invoke-direct           v0, Landroid/content/Intent;-><init>()V
+      invoke-virtual          v3, Landroidx/fragment/app/Fragment;->T1()Landroidx/fragment/app/j;
+      move-result-object      v1
+      const-class             v2, Lcom/baidu/simeji/self/SelfActivity;
+      invoke-virtual          v0, v1, v2, Landroid/content/Intent;->setClass(Landroid/content/Context; Ljava/lang/Class;)Landroid/content/Intent;
+      const-string            v1, "extra_entry_type"
+      const/4                 v2, -2
+      invoke-virtual          v0, v1, v2, Landroid/content/Intent;->putExtra(Ljava/lang/String; I)Landroid/content/Intent;
+      invoke-virtual          v3, v0, Landroidx/fragment/app/Fragment;->l2(Landroid/content/Intent;)V
+      return-void             
+  .method X2()V
+      iget-object             v0, v2, Lcom/baidu/simeji/skins/v0;->D0 Lcom/baidu/simeji/skins/w0;
+      if-nez                  v0, +008h
+      const-string            v0, "settingFragmentVM"
+      invoke-static           v0, Lkotlin/jvm/internal/Intrinsics;->w(Ljava/lang/String;)V
+      const/4                 v0, 0
+      invoke-static           Lth/i;->a()Lth/i;
+      move-result-object      v1
+      invoke-virtual          v1, Lth/i;->d()Z
+      move-result             v1
+      invoke-virtual          v0, v1, Lcom/baidu/simeji/skins/w0;->l(Z)V
+      return-void             
+  .method d1(Z)V
+      invoke-super            v1, v2, Landroidx/fragment/app/Fragment;->d1(Z)V
+      if-nez                  v2, +00eh
+      invoke-virtual          v1, Landroidx/fragment/app/Fragment;->V1()Landroid/content/Context;
+      move-result-object      v2
+      const-string            v0, "requireContext(...)"
+      invoke-static           v2, v0, Lkotlin/jvm/internal/Intrinsics;->checkNotNullExpressionValue(Ljava/lang/Object; Ljava/lang/String;)V
+      invoke-direct           v1, v2, Lcom/baidu/simeji/skins/v0;->Y2(Landroid/content/Context;)V
+      return-void             
+  .method j1()V
+      invoke-super            v1, Landroidx/fragment/app/Fragment;->j1()V
+      const/4                 v0, 1
+      sput-boolean            v0, Lcom/baidu/simeji/skins/v0;->R0 Z
+      return-void             
+  .method o1()V
+      invoke-super            v2, Landroidx/fragment/app/Fragment;->o1()V
+      invoke-virtual          v2, Landroidx/fragment/app/Fragment;->V1()Landroid/content/Context;
+      move-result-object      v0
+      const-string            v1, "requireContext(...)"
+      invoke-static           v0, v1, Lkotlin/jvm/internal/Intrinsics;->checkNotNullExpressionValue(Ljava/lang/Object; Ljava/lang/String;)V
+      invoke-direct           v2, v0, Lcom/baidu/simeji/skins/v0;->Y2(Landroid/content/Context;)V
+      invoke-static           Lth/i;->a()Lth/i;
+      move-result-object      v0
+      invoke-virtual          v0, Lth/i;->d()Z
+      move-result             v0
+      sput-boolean            v0, Lcom/baidu/simeji/skins/v0;->S0 Z
+      const/4                 v0, 0
+      sput-boolean            v0, Lcom/baidu/simeji/skins/v0;->R0 Z
+      invoke-virtual          v2, Lcom/baidu/simeji/skins/v0;->X2()V
+      const                   v0, 101343
+      invoke-static           v0, Lcom/preff/kb/common/statistic/StatisticUtil;->onEvent(I)V
+      return-void             
+  .method s2()Loq/b;
+      new-instance            v0, Lpq/e;
+      invoke-virtual          v5, Landroidx/fragment/app/Fragment;->V1()Landroid/content/Context;
+      move-result-object      v1
+      const-string            v2, "requireContext(...)"
+      invoke-static           v1, v2, Lkotlin/jvm/internal/Intrinsics;->checkNotNullExpressionValue(Ljava/lang/Object; Ljava/lang/String;)V
+      invoke-direct           v0, v1, Lpq/e;-><init>(Landroid/content/Context;)V
+      new-instance            v1, Lpq/b;
+      const                   v2, 2131624423
+      const/4                 v3, 6
+      invoke-direct           v1, v3, v2, Lpq/b;-><init>(I I)V
+      new-instance            v2, La9/e;
+      invoke-direct           v2, La9/e;-><init>()V
+      invoke-virtual          v1, v2, Lpq/b;->d(Lpq/a;)V
+      sget-object             v2, Lkotlin/Unit;->a Lkotlin/Unit;
+      const-class             v2, La9/b;
+      invoke-virtual          v0, v2, v1, Lpq/e;->s(Ljava/lang/Class; Lpq/b;)Lpq/e;
+      new-instance            v1, Lpq/b;
+      const                   v2, 2131624425
+      invoke-direct           v1, v3, v2, Lpq/b;-><init>(I I)V
+      const-class             v2, La9/d;
+      invoke-virtual          v0, v2, v1, Lpq/e;->s(Ljava/lang/Class; Lpq/b;)Lpq/e;
+      new-instance            v1, Lpq/b;
+      const                   v2, 2131624426
+      invoke-direct           v1, v3, v2, Lpq/b;-><init>(I I)V
+      const-class             v2, La9/c;
+      invoke-virtual          v0, v2, v1, Lpq/e;->s(Ljava/lang/Class; Lpq/b;)Lpq/e;
+      new-instance            v1, Lpq/b;
+      const                   v2, 2131624424
+      invoke-direct           v1, v3, v2, Lpq/b;-><init>(I I)V
+      const-class             v2, La9/a;
+      invoke-virtual          v0, v2, v1, Lpq/e;->s(Ljava/lang/Class; Lpq/b;)Lpq/e;
+      iput-object             v0, v5, Lcom/baidu/simeji/skins/v0;->O0 Lpq/e;
+      new-instance            v0, Loq/b;
+      iget-object             v1, v5, Lcom/baidu/simeji/skins/v0;->D0 Lcom/baidu/simeji/skins/w0;
+      const/4                 v2, 0
+      if-nez                  v1, +008h
+      const-string            v1, "settingFragmentVM"
+      invoke-static           v1, Lkotlin/jvm/internal/Intrinsics;->w(Ljava/lang/String;)V
+      move-object             v1, v2
+      const                   v3, 2131624188
+      const/16                v4, 14
+      invoke-direct           v0, v3, v4, v1, Loq/b;-><init>(I I Lnq/b;)V
+      iget-object             v1, v5, Lcom/baidu/simeji/skins/v0;->O0 Lpq/e;
+      if-nez                  v1, +008h
+      const-string            v1, "menuAdapter"
+      invoke-static           v1, Lkotlin/jvm/internal/Intrinsics;->w(Ljava/lang/String;)V
+      goto                    +2h
+      move-object             v2, v1
+      const/16                v1, 10
+      invoke-virtual          v0, v1, v2, Loq/b;->a(I Ljava/lang/Object;)Loq/b;
+      move-result-object      v0
+      return-object           v0
+  .method u2(Landroid/os/Bundle;)V
+      const-string            v0, "arguments"
+      invoke-static           v10, v0, Lkotlin/jvm/internal/Intrinsics;->checkNotNullParameter(Ljava/lang/Object; Ljava/lang/String;)V
+      invoke-super            v9, v10, Loq/c;->u2(Landroid/os/Bundle;)V
+      new-instance            v10, Ljava/util/ArrayList;
+      invoke-direct           v10, Ljava/util/ArrayList;-><init>()V
+      iput-object             v10, v9, Lcom/baidu/simeji/skins/v0;->N0 Ljava/util/ArrayList;
+      new-instance            v10, La9/b;
+      invoke-virtual          v9, Landroidx/fragment/app/Fragment;->Q()Landroid/content/Context;
+      move-result-object      v1
+      const                   v2, 2132018707
+      const                   v3, 2131232289
+      const/4                 v4, 1
+      const-string            v5, "menu_languages"
+      move-object             v0, v10
+      invoke-direct/range     v0 ... v5, La9/b;-><init>(Landroid/content/Context; I I I Ljava/lang/String;)V
+      iput-object             v10, v9, Lcom/baidu/simeji/skins/v0;->F0 La9/b;
+      iget-object             v10, v9, Lcom/baidu/simeji/skins/v0;->N0 Ljava/util/ArrayList;
+      const-string            v0, "menuItems"
+      const/4                 v1, 0
+      if-nez                  v10, +006h
+      invoke-static           v0, Lkotlin/jvm/internal/Intrinsics;->w(Ljava/lang/String;)V
+      move-object             v10, v1
+      iget-object             v2, v9, Lcom/baidu/simeji/skins/v0;->F0 La9/b;
+      if-nez                  v2, +008h
+      const-string            v2, "languagesItem"
+      invoke-static           v2, Lkotlin/jvm/internal/Intrinsics;->w(Ljava/lang/String;)V
+      move-object             v2, v1
+      invoke-virtual          v10, v2, Ljava/util/ArrayList;->add(Ljava/lang/Object;)Z
+      iget-object             v10, v9, Lcom/baidu/simeji/skins/v0;->N0 Ljava/util/ArrayList;
+      if-nez                  v10, +006h
+      invoke-static           v0, Lkotlin/jvm/internal/Intrinsics;->w(Ljava/lang/String;)V
+      move-object             v10, v1
+      new-instance            v2, La9/d;
+      invoke-direct           v2, La9/d;-><init>()V
+      invoke-virtual          v10, v2, Ljava/util/ArrayList;->add(Ljava/lang/Object;)Z
+      new-instance            v10, La9/b;
+      invoke-virtual          v9, Landroidx/fragment/app/Fragment;->Q()Landroid/content/Context;
+      move-result-object      v4
+      const                   v5, 2132018706
+      const                   v6, 2131232288
+      const/4                 v7, 2
+      const-string            v8, "menu_settings"
+      move-object             v3, v10
+      invoke-direct/range     v3 ... v8, La9/b;-><init>(Landroid/content/Context; I I I Ljava/lang/String;)V
+      iput-object             v10, v9, Lcom/baidu/simeji/skins/v0;->G0 La9/b;
+      iget-object             v10, v9, Lcom/baidu/simeji/skins/v0;->N0 Ljava/util/ArrayList;
+      if-nez                  v10, +006h
+      invoke-static           v0, Lkotlin/jvm/internal/Intrinsics;->w(Ljava/lang/String;)V
+      move-object             v10, v1
+      iget-object             v2, v9, Lcom/baidu/simeji/skins/v0;->G0 La9/b;
+      if-nez                  v2, +008h
+      const-string            v2, "inputItem"
+      invoke-static           v2, Lkotlin/jvm/internal/Intrinsics;->w(Ljava/lang/String;)V
+      move-object             v2, v1
+      invoke-virtual          v10, v2, Ljava/util/ArrayList;->add(Ljava/lang/Object;)Z
+      iget-object             v10, v9, Lcom/baidu/simeji/skins/v0;->N0 Ljava/util/ArrayList;
+      if-nez                  v10, +006h
+      invoke-static           v0, Lkotlin/jvm/internal/Intrinsics;->w(Ljava/lang/String;)V
+      move-object             v10, v1
+      new-instance            v2, La9/d;
+      invoke-direct           v2, La9/d;-><init>()V
+      invoke-virtual          v10, v2, Ljava/util/ArrayList;->add(Ljava/lang/Object;)Z
+      new-instance            v10, La9/b;
+      invoke-virtual          v9, Landroidx/fragment/app/Fragment;->Q()Landroid/content/Context;
+      move-result-object      v4
+      const                   v5, 2132018700
+      const                   v6, 2131232284
+      const/16                v7, 9
+      const-string            v8, "menu_emoji_style"
+      move-object             v3, v10
+      invoke-direct/range     v3 ... v8, La9/b;-><init>(Landroid/content/Context; I I I Ljava/lang/String;)V
+      iput-object             v10, v9, Lcom/baidu/simeji/skins/v0;->H0 La9/b;
+      iget-object             v2, v9, Lcom/baidu/simeji/skins/v0;->N0 Ljava/util/ArrayList;
+      if-nez                  v2, +006h
+      invoke-static           v0, Lkotlin/jvm/internal/Intrinsics;->w(Ljava/lang/String;)V
+      move-object             v2, v1
+      invoke-virtual          v2, v10, Ljava/util/ArrayList;->add(Ljava/lang/Object;)Z
+      iget-object             v10, v9, Lcom/baidu/simeji/skins/v0;->N0 Ljava/util/ArrayList;
+      if-nez                  v10, +006h
+      invoke-static           v0, Lkotlin/jvm/internal/Intrinsics;->w(Ljava/lang/String;)V
+      move-object             v10, v1
+      new-instance            v2, La9/c;
+      invoke-direct           v2, La9/c;-><init>()V
+      invoke-virtual          v10, v2, Ljava/util/ArrayList;->add(Ljava/lang/Object;)Z
+      iget-object             v10, v9, Lcom/baidu/simeji/skins/v0;->N0 Ljava/util/ArrayList;
+      if-nez                  v10, +006h
+      invoke-static           v0, Lkotlin/jvm/internal/Intrinsics;->w(Ljava/lang/String;)V
+      move-object             v10, v1
+      new-instance            v2, La9/a;
+      invoke-direct           v2, La9/a;-><init>()V
+      invoke-virtual          v10, v2, Ljava/util/ArrayList;->add(Ljava/lang/Object;)Z
+      iget-object             v10, v9, Lcom/baidu/simeji/skins/v0;->N0 Ljava/util/ArrayList;
+      if-nez                  v10, +006h
+      invoke-static           v0, Lkotlin/jvm/internal/Intrinsics;->w(Ljava/lang/String;)V
+      move-object             v10, v1
+      new-instance            v2, La9/c;
+      invoke-direct           v2, La9/c;-><init>()V
+      invoke-virtual          v10, v2, Ljava/util/ArrayList;->add(Ljava/lang/Object;)Z
+      new-instance            v10, La9/b;
+      invoke-virtual          v9, Landroidx/fragment/app/Fragment;->Q()Landroid/content/Context;
+      move-result-object      v4
+      const                   v5, 2132018704
+      const                   v6, 2131232287
+      const/16                v7, 12
+      const-string            v8, "menu_follow_us"
+      move-object             v3, v10
+      invoke-direct/range     v3 ... v8, La9/b;-><init>(Landroid/content/Context; I I I Ljava/lang/String;)V
+      iput-object             v10, v9, Lcom/baidu/simeji/skins/v0;->L0 La9/b;
+      iget-object             v10, v9, Lcom/baidu/simeji/skins/v0;->N0 Ljava/util/ArrayList;
+      if-nez                  v10, +006h
+      invoke-static           v0, Lkotlin/jvm/internal/Intrinsics;->w(Ljava/lang/String;)V
+      move-object             v10, v1
+      iget-object             v2, v9, Lcom/baidu/simeji/skins/v0;->L0 La9/b;
+      if-nez                  v2, +008h
+      const-string            v2, "followUsItem"
+      invoke-static           v2, Lkotlin/jvm/internal/Intrinsics;->w(Ljava/lang/String;)V
+      move-object             v2, v1
+      invoke-virtual          v10, v2, Ljava/util/ArrayList;->add(Ljava/lang/Object;)Z
+      iget-object             v10, v9, Lcom/baidu/simeji/skins/v0;->N0 Ljava/util/ArrayList;
+      if-nez                  v10, +006h
+      invoke-static           v0, Lkotlin/jvm/internal/Intrinsics;->w(Ljava/lang/String;)V
+      move-object             v10, v1
+      new-instance            v2, La9/d;
+      invoke-direct           v2, La9/d;-><init>()V
+      invoke-virtual          v10, v2, Ljava/util/ArrayList;->add(Ljava/lang/Object;)Z
+      new-instance            v10, La9/b;
+      invoke-virtual          v9, Landroidx/fragment/app/Fragment;->Q()Landroid/content/Context;
+      move-result-object      v4
+      const                   v5, 2132018716
+      const                   v6, 2131232290
+      const/16                v7, 13
+      const-string            v8, "menu_tiktok"
+      move-object             v3, v10
+      invoke-direct/range     v3 ... v8, La9/b;-><init>(Landroid/content/Context; I I I Ljava/lang/String;)V
+      iput-object             v10, v9, Lcom/baidu/simeji/skins/v0;->M0 La9/b;
+      iget-object             v10, v9, Lcom/baidu/simeji/skins/v0;->N0 Ljava/util/ArrayList;
+      if-nez                  v10, +006h
+      invoke-static           v0, Lkotlin/jvm/internal/Intrinsics;->w(Ljava/lang/String;)V
+      move-object             v10, v1
+      iget-object             v2, v9, Lcom/baidu/simeji/skins/v0;->M0 La9/b;
+      if-nez                  v2, +008h
+      const-string            v2, "tiktokItem"
+      invoke-static           v2, Lkotlin/jvm/internal/Intrinsics;->w(Ljava/lang/String;)V
+      move-object             v2, v1
+      invoke-virtual          v10, v2, Ljava/util/ArrayList;->add(Ljava/lang/Object;)Z
+      iget-object             v10, v9, Lcom/baidu/simeji/skins/v0;->N0 Ljava/util/ArrayList;
+      if-nez                  v10, +006h
+      invoke-static           v0, Lkotlin/jvm/internal/Intrinsics;->w(Ljava/lang/String;)V
+      move-object             v10, v1
+      new-instance            v2, La9/d;
+      invoke-direct           v2, La9/d;-><init>()V
+      invoke-virtual          v10, v2, Ljava/util/ArrayList;->add(Ljava/lang/Object;)Z
+      new-instance            v10, La9/b;
+      invoke-virtual          v9, Landroidx/fragment/app/Fragment;->Q()Landroid/content/Context;
+      move-result-object      v4
+      const                   v5, 2132018703
+      const                   v6, 2131232286
+      const/4                 v7, 3
+      const-string            v8, "menu_feedback"
+      move-object             v3, v10
+      invoke-direct/range     v3 ... v8, La9/b;-><init>(Landroid/content/Context; I I I Ljava/lang/String;)V
+      iput-object             v10, v9, Lcom/baidu/simeji/skins/v0;->J0 La9/b;
+      iget-object             v10, v9, Lcom/baidu/simeji/skins/v0;->N0 Ljava/util/ArrayList;
+      if-nez                  v10, +006h
+      invoke-static           v0, Lkotlin/jvm/internal/Intrinsics;->w(Ljava/lang/String;)V
+      move-object             v10, v1
+      iget-object             v2, v9, Lcom/baidu/simeji/skins/v0;->J0 La9/b;
+      if-nez                  v2, +008h
+      const-string            v2, "feedBackItem"
+      invoke-static           v2, Lkotlin/jvm/internal/Intrinsics;->w(Ljava/lang/String;)V
+      move-object             v2, v1
+      invoke-virtual          v10, v2, Ljava/util/ArrayList;->add(Ljava/lang/Object;)Z
+      iget-object             v10, v9, Lcom/baidu/simeji/skins/v0;->N0 Ljava/util/ArrayList;
+      if-nez                  v10, +006h
+      invoke-static           v0, Lkotlin/jvm/internal/Intrinsics;->w(Ljava/lang/String;)V
+      move-object             v10, v1
+      new-instance            v2, La9/d;
+      invoke-direct           v2, La9/d;-><init>()V
+      invoke-virtual          v10, v2, Ljava/util/ArrayList;->add(Ljava/lang/Object;)Z
+      new-instance            v10, La9/b;
+      invoke-virtual          v9, Landroidx/fragment/app/Fragment;->Q()Landroid/content/Context;
+      move-result-object      v4
+      const                   v5, 2132018702
+      const                   v6, 2131232285
+      const/16                v7, 10
+      const-string            v8, "menu_faq"
+      move-object             v3, v10
+      invoke-direct/range     v3 ... v8, La9/b;-><init>(Landroid/content/Context; I I I Ljava/lang/String;)V
+      iput-object             v10, v9, Lcom/baidu/simeji/skins/v0;->I0 La9/b;
+      iget-object             v10, v9, Lcom/baidu/simeji/skins/v0;->N0 Ljava/util/ArrayList;
+      if-nez                  v10, +006h
+      invoke-static           v0, Lkotlin/jvm/internal/Intrinsics;->w(Ljava/lang/String;)V
+      move-object             v10, v1
+      iget-object             v2, v9, Lcom/baidu/simeji/skins/v0;->I0 La9/b;
+      if-nez                  v2, +008h
+      const-string            v2, "fAQItem"
+      invoke-static           v2, Lkotlin/jvm/internal/Intrinsics;->w(Ljava/lang/String;)V
+      move-object             v2, v1
+      invoke-virtual          v10, v2, Ljava/util/ArrayList;->add(Ljava/lang/Object;)Z
+      iget-object             v10, v9, Lcom/baidu/simeji/skins/v0;->N0 Ljava/util/ArrayList;
+      if-nez                  v10, +006h
+      invoke-static           v0, Lkotlin/jvm/internal/Intrinsics;->w(Ljava/lang/String;)V
+      move-object             v10, v1
+      new-instance            v2, La9/c;
+      invoke-direct           v2, La9/c;-><init>()V
+      invoke-virtual          v10, v2, Ljava/util/ArrayList;->add(Ljava/lang/Object;)Z
+      iget-object             v10, v9, Lcom/baidu/simeji/skins/v0;->N0 Ljava/util/ArrayList;
+      if-nez                  v10, +006h
+      invoke-static           v0, Lkotlin/jvm/internal/Intrinsics;->w(Ljava/lang/String;)V
+      move-object             v10, v1
+      new-instance            v2, La9/a;
+      invoke-direct           v2, La9/a;-><init>()V
+      invoke-virtual          v10, v2, Ljava/util/ArrayList;->add(Ljava/lang/Object;)Z
+      iget-object             v10, v9, Lcom/baidu/simeji/skins/v0;->N0 Ljava/util/ArrayList;
+      if-nez                  v10, +006h
+      invoke-static           v0, Lkotlin/jvm/internal/Intrinsics;->w(Ljava/lang/String;)V
+      move-object             v10, v1
+      new-instance            v2, La9/c;
+      invoke-direct           v2, La9/c;-><init>()V
+      invoke-virtual          v10, v2, Ljava/util/ArrayList;->add(Ljava/lang/Object;)Z
+      new-instance            v10, La9/b;
+      invoke-virtual          v9, Landroidx/fragment/app/Fragment;->Q()Landroid/content/Context;
+      move-result-object      v4
+      const                   v5, 2132018697
+      const                   v6, 2131232283
+      const/4                 v7, 4
+      const-string            v8, "menu_about"
+      move-object             v3, v10
+      invoke-direct/range     v3 ... v8, La9/b;-><init>(Landroid/content/Context; I I I Ljava/lang/String;)V
+      iput-object             v10, v9, Lcom/baidu/simeji/skins/v0;->K0 La9/b;
+      iget-object             v10, v9, Lcom/baidu/simeji/skins/v0;->N0 Ljava/util/ArrayList;
+      if-nez                  v10, +006h
+      invoke-static           v0, Lkotlin/jvm/internal/Intrinsics;->w(Ljava/lang/String;)V
+      move-object             v10, v1
+      iget-object             v2, v9, Lcom/baidu/simeji/skins/v0;->K0 La9/b;
+      if-nez                  v2, +008h
+      const-string            v2, "aboutItem"
+      invoke-static           v2, Lkotlin/jvm/internal/Intrinsics;->w(Ljava/lang/String;)V
+      move-object             v2, v1
+      invoke-virtual          v10, v2, Ljava/util/ArrayList;->add(Ljava/lang/Object;)Z
+      iget-object             v10, v9, Lcom/baidu/simeji/skins/v0;->N0 Ljava/util/ArrayList;
+      if-nez                  v10, +006h
+      invoke-static           v0, Lkotlin/jvm/internal/Intrinsics;->w(Ljava/lang/String;)V
+      move-object             v10, v1
+      new-instance            v2, La9/c;
+      invoke-direct           v2, La9/c;-><init>()V
+      invoke-virtual          v10, v2, Ljava/util/ArrayList;->add(Ljava/lang/Object;)Z
+      iget-object             v10, v9, Lcom/baidu/simeji/skins/v0;->D0 Lcom/baidu/simeji/skins/w0;
+      const-string            v2, "settingFragmentVM"
+      if-nez                  v10, +006h
+      invoke-static           v2, Lkotlin/jvm/internal/Intrinsics;->w(Ljava/lang/String;)V
+      move-object             v10, v1
+      iget-object             v3, v9, Lcom/baidu/simeji/skins/v0;->N0 Ljava/util/ArrayList;
+      if-nez                  v3, +006h
+      invoke-static           v0, Lkotlin/jvm/internal/Intrinsics;->w(Ljava/lang/String;)V
+      move-object             v3, v1
+      invoke-virtual          v10, v3, Lcom/baidu/simeji/skins/w0;->k(Ljava/util/ArrayList;)Lx10/x1;
+      invoke-virtual          v9, Loq/c;->r2()Landroidx/databinding/ViewDataBinding;
+      move-result-object      v10
+      check-cast              v10, Lq00/q1;
+      if-eqz                  v10, +00eh
+      iget-object             v10, v10, Lq00/q1;->H Lcom/baidu/simeji/widget/AvatarView;
+      if-eqz                  v10, +00ah
+      new-instance            v0, Lcom/baidu/simeji/skins/m0;
+      invoke-direct           v0, v9, Lcom/baidu/simeji/skins/m0;-><init>(Lcom/baidu/simeji/skins/v0;)V
+      invoke-virtual          v10, v0, Landroid/view/View;->setOnClickListener(Landroid/view/View$OnClickListener;)V
+      invoke-virtual          v9, Loq/c;->r2()Landroidx/databinding/ViewDataBinding;
+      move-result-object      v10
+      check-cast              v10, Lq00/q1;
+      if-eqz                  v10, +00eh
+      iget-object             v10, v10, Lq00/q1;->D Landroid/view/View;
+      if-eqz                  v10, +00ah
+      new-instance            v0, Lcom/baidu/simeji/skins/n0;
+      invoke-direct           v0, v9, Lcom/baidu/simeji/skins/n0;-><init>(Lcom/baidu/simeji/skins/v0;)V
+      invoke-virtual          v10, v0, Landroid/view/View;->setOnClickListener(Landroid/view/View$OnClickListener;)V
+      invoke-static           Lcom/baidu/simeji/App;->k()Z
+      move-result             v10
+      const/16                v0, 8
+      if-nez                  v10, +016h
+      invoke-static           Lth/i;->a()Lth/i;
+      move-result-object      v10
+      invoke-virtual          v10, Lth/i;->b()Z
+      move-result             v10
+      if-nez                  v10, +00ch
+      invoke-static           Lth/i;->a()Lth/i;
+      move-result-object      v10
+      invoke-virtual          v10, Lth/i;->e()Z
+      move-result             v10
+      if-eqz                  v10, +026h
+      invoke-virtual          v9, Loq/c;->r2()Landroidx/databinding/ViewDataBinding;
+      move-result-object      v10
+      check-cast              v10, Lq00/q1;
+      if-eqz                  v10, +009h
+      iget-object             v10, v10, Lq00/q1;->C Landroid/widget/RelativeLayout;
+      if-eqz                  v10, +005h
+      invoke-virtual          v10, v0, Landroid/view/View;->setVisibility(I)V
+      invoke-virtual          v9, Loq/c;->r2()Landroidx/databinding/ViewDataBinding;
+      move-result-object      v10
+      check-cast              v10, Lq00/q1;
+      if-eqz                  v10, +009h
+      iget-object             v10, v10, Lq00/q1;->B Landroid/widget/RelativeLayout;
+      if-eqz                  v10, +005h
+      invoke-virtual          v10, v0, Landroid/view/View;->setVisibility(I)V
+      const                   v10, 2131429737
+      invoke-direct           v9, v10, Lcom/baidu/simeji/skins/v0;->L2(I)V
+      iget-object             v10, v9, Lcom/baidu/simeji/skins/v0;->D0 Lcom/baidu/simeji/skins/w0;
+      if-nez                  v10, +006h
+      invoke-static           v2, Lkotlin/jvm/internal/Intrinsics;->w(Ljava/lang/String;)V
+      move-object             v10, v1
+      invoke-virtual          v10, Lcom/baidu/simeji/skins/w0;->j()Landroidx/lifecycle/x;
+      move-result-object      v10
+      invoke-virtual          v9, Landroidx/fragment/app/Fragment;->y0()Landroidx/lifecycle/q;
+      move-result-object      v2
+      new-instance            v3, Lcom/baidu/simeji/skins/o0;
+      invoke-direct           v3, v9, Lcom/baidu/simeji/skins/o0;-><init>(Lcom/baidu/simeji/skins/v0;)V
+      new-instance            v4, Lcom/baidu/simeji/skins/v0$b;
+      invoke-direct           v4, v3, Lcom/baidu/simeji/skins/v0$b;-><init>(Lkotlin/jvm/functions/Function1;)V
+      invoke-virtual          v10, v2, v4, Landroidx/lifecycle/LiveData;->h(Landroidx/lifecycle/q; Landroidx/lifecycle/y;)V
+      sget-object             v10, Lcom/baidu/simeji/bean/OperationSubscribeConfig;->Companion Lcom/baidu/simeji/bean/OperationSubscribeConfig$Companion;
+      invoke-virtual          v10, Lcom/baidu/simeji/bean/OperationSubscribeConfig$Companion;->isRedeemEntryEnabled()Z
+      move-result             v10
+      if-eqz                  v10, +02eh
+      invoke-virtual          v9, Loq/c;->r2()Landroidx/databinding/ViewDataBinding;
+      move-result-object      v10
+      check-cast              v10, Lq00/q1;
+      if-eqz                  v10, +00ah
+      iget-object             v10, v10, Lq00/q1;->K Landroid/widget/RelativeLayout;
+      if-eqz                  v10, +006h
+      const/4                 v0, 0
+      invoke-virtual          v10, v0, Landroid/view/View;->setVisibility(I)V
+      invoke-virtual          v9, Loq/c;->r2()Landroidx/databinding/ViewDataBinding;
+      move-result-object      v10
+      check-cast              v10, Lq00/q1;
+      if-eqz                  v10, +00eh
+      iget-object             v10, v10, Lq00/q1;->K Landroid/widget/RelativeLayout;
+      if-eqz                  v10, +00ah
+      new-instance            v0, Lcom/baidu/simeji/skins/p0;
+      invoke-direct           v0, v9, Lcom/baidu/simeji/skins/p0;-><init>(Lcom/baidu/simeji/skins/v0;)V
+      invoke-virtual          v10, v0, Landroid/view/View;->setOnClickListener(Landroid/view/View$OnClickListener;)V
+      sget-object             v10, Lvi/i;->a Lvi/i;
+      sget-object             v0, Lvi/l;->c Lvi/l;
+      invoke-virtual          v10, v0, Lvi/i;->a(Lvi/l;)V
+      goto                    +10h
+      invoke-virtual          v9, Loq/c;->r2()Landroidx/databinding/ViewDataBinding;
+      move-result-object      v10
+      check-cast              v10, Lq00/q1;
+      if-eqz                  v10, +009h
+      iget-object             v10, v10, Lq00/q1;->K Landroid/widget/RelativeLayout;
+      if-eqz                  v10, +005h
+      invoke-virtual          v10, v0, Landroid/view/View;->setVisibility(I)V
+      invoke-virtual          v9, Loq/c;->r2()Landroidx/databinding/ViewDataBinding;
+      move-result-object      v10
+      check-cast              v10, Lq00/q1;
+      if-eqz                  v10, +01eh
+      invoke-virtual          v10, Lq00/q1;->S()Lpq/e;
+      move-result-object      v0
+      if-eqz                  v0, +00ah
+      new-instance            v2, Lcom/baidu/simeji/skins/q0;
+      invoke-direct           v2, v9, Lcom/baidu/simeji/skins/q0;-><init>(Lcom/baidu/simeji/skins/v0;)V
+      invoke-virtual          v0, v2, Lpq/e;->u(Lo10/n;)V
+      invoke-virtual          v10, Lq00/q1;->S()Lpq/e;
+      move-result-object      v10
+      if-eqz                  v10, +00ah
+      new-instance            v0, Lcom/baidu/simeji/skins/r0;
+      invoke-direct           v0, v9, Lcom/baidu/simeji/skins/r0;-><init>(Lcom/baidu/simeji/skins/v0;)V
+      invoke-virtual          v10, v0, Lpq/e;->t(Lo10/n;)V
+      iget-object             v10, v9, Lcom/baidu/simeji/skins/v0;->E0 Lm6/d;
+      const-string            v0, "appStateVm"
+      if-nez                  v10, +006h
+      invoke-static           v0, Lkotlin/jvm/internal/Intrinsics;->w(Ljava/lang/String;)V
+      move-object             v10, v1
+      invoke-virtual          v10, Lm6/d;->w()Landroidx/lifecycle/LiveData;
+      move-result-object      v10
+      invoke-virtual          v10, Landroidx/lifecycle/LiveData;->f()Ljava/lang/Object;
+      move-result-object      v10
+      check-cast              v10, Lcom/baidu/simeji/account/AccountInfo;
+      invoke-direct           v9, v10, Lcom/baidu/simeji/skins/v0;->a3(Lcom/baidu/simeji/account/AccountInfo;)V
+      iget-object             v10, v9, Lcom/baidu/simeji/skins/v0;->E0 Lm6/d;
+      if-nez                  v10, +006h
+      invoke-static           v0, Lkotlin/jvm/internal/Intrinsics;->w(Ljava/lang/String;)V
+      move-object             v10, v1
+      invoke-virtual          v10, Lm6/d;->w()Landroidx/lifecycle/LiveData;
+      move-result-object      v10
+      invoke-virtual          v9, Landroidx/fragment/app/Fragment;->y0()Landroidx/lifecycle/q;
+      move-result-object      v2
+      new-instance            v3, Lcom/baidu/simeji/skins/s0;
+      invoke-direct           v3, v9, Lcom/baidu/simeji/skins/s0;-><init>(Lcom/baidu/simeji/skins/v0;)V
+      new-instance            v4, Lcom/baidu/simeji/skins/v0$b;
+      invoke-direct           v4, v3, Lcom/baidu/simeji/skins/v0$b;-><init>(Lkotlin/jvm/functions/Function1;)V
+      invoke-virtual          v10, v2, v4, Landroidx/lifecycle/LiveData;->h(Landroidx/lifecycle/q; Landroidx/lifecycle/y;)V
+      iget-object             v10, v9, Lcom/baidu/simeji/skins/v0;->E0 Lm6/d;
+      if-nez                  v10, +006h
+      invoke-static           v0, Lkotlin/jvm/internal/Intrinsics;->w(Ljava/lang/String;)V
+      move-object             v10, v1
+      const/4                 v2, 1
+      invoke-virtual          v10, v2, Lm6/d;->G(Z)Lx10/x1;
+      iget-object             v10, v9, Lcom/baidu/simeji/skins/v0;->E0 Lm6/d;
+      if-nez                  v10, +006h
+      invoke-static           v0, Lkotlin/jvm/internal/Intrinsics;->w(Ljava/lang/String;)V
+      goto                    +2h
+      move-object             v1, v10
+      invoke-virtual          v1, Lm6/d;->A()Landroidx/lifecycle/LiveData;
+      move-result-object      v10
+      invoke-virtual          v9, Landroidx/fragment/app/Fragment;->y0()Landroidx/lifecycle/q;
+      move-result-object      v0
+      new-instance            v1, Lcom/baidu/simeji/skins/t0;
+      invoke-direct           v1, v9, Lcom/baidu/simeji/skins/t0;-><init>(Lcom/baidu/simeji/skins/v0;)V
+      new-instance            v2, Lcom/baidu/simeji/skins/v0$b;
+      invoke-direct           v2, v1, Lcom/baidu/simeji/skins/v0$b;-><init>(Lkotlin/jvm/functions/Function1;)V
+      invoke-virtual          v10, v0, v2, Landroidx/lifecycle/LiveData;->h(Landroidx/lifecycle/q; Landroidx/lifecycle/y;)V
+      return-void             
+  .method v2()V
+      const-class             v0, Lcom/baidu/simeji/skins/w0;
+      invoke-virtual          v1, v0, Loq/c;->t2(Ljava/lang/Class;)Lnq/b;
+      move-result-object      v0
+      check-cast              v0, Lcom/baidu/simeji/skins/w0;
+      iput-object             v0, v1, Lcom/baidu/simeji/skins/v0;->D0 Lcom/baidu/simeji/skins/w0;
+      const-class             v0, Lm6/d;
+      invoke-virtual          v1, v0, Loq/c;->q2(Ljava/lang/Class;)Lnq/b;
+      move-result-object      v0
+      check-cast              v0, Lm6/d;
+      iput-object             v0, v1, Lcom/baidu/simeji/skins/v0;->E0 Lm6/d;
+      return-void             
+  .method z2()Ljava/lang/String;
+      const/4                 v0, 0
+      return-object           v0

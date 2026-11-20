@@ -170,10 +170,57 @@ are in `~/build/lurk-morphe-patches/build-rumble/`; the launch screenshot is in
 adaptive icon from `drawable/ic_launcher_background.xml` and `drawable/ic_launcher_foreground.xml`
 (`mipmap-anydpi/ic_launcher[_round].xml`) and ships `.webp` fallbacks per density. The patch
 overwrites those files under the same names, so resource IDs and the manifest stay untouched, and
-adds a themed (monochrome) layer. It fails if any of the files is missing in a new version.
+adds a themed (monochrome) layer. It fails if any of the files is missing in a new version. Before
+overwriting them it copies each to `lurk_original_<name>` next to it, with the copied adaptive icons
+pointing at the copied layers, so Rumble's own icon stays in the APK as `@mipmap/lurk_original_ic_launcher`
+(and `_round`) for the App icon choice below.
 
 Regenerate the resources after changing the artwork with
 `bin/app-icon rumble <artwork.png>`.
+
+### App icon
+
+Lurk settings › Interface › **App icon** (`app_icon`: Lurk, `0`, the default; Original, `1`) picks the launcher
+icon without patching again. It works the same in all three apps (`shared/apps/LurkIconPatch.kt`, built from
+each app's `LurkApp.icon`; Twitch and Kick keep their own icon untouched and add Lurk's as
+`@mipmap/lurk_launcher`):
+
+- The patch moves the launcher activity's MAIN/LAUNCHER intent filter (`RumbleMainActivity` here) to two
+  `activity-alias`es of it: `io.github.jordanwoodson.extension.shared.settings.LurkIcon` with Lurk's icon,
+  enabled, and `...settings.OriginalIcon` with the app's own, `android:enabled="false"`, each with a fully
+  qualified `targetActivity`. The activity keeps its name and its link filters, so links, explicit intents
+  and Lurk's restart reach it whichever entry is enabled. The alias names are outside the app's package, so
+  Clone app leaves them as they are and the extension finds them in a clone; without a label they show the
+  app's (Change app name). The patch depends on the app's settings patch, which shows the choice.
+- `extensions/shared/.../settings/AppIcon.java` enables the chosen alias and then disables the other
+  (`setComponentEnabledSetting(..., DONT_KILL_APP)`), after the choice changes (also through Reset to
+  defaults and Import) and at every start, which repairs a state with both or neither enabled. If enabling
+  fails nothing is disabled, so the app always keeps a launcher entry. Android drops the Lurk settings
+  launcher shortcut with the entry it was published for, so the extension publishes it again after a switch.
+  The choice isn't a switch: Pause Lurk leaves it alone.
+- A root mount install keeps the original manifest, which has neither alias: the choice does nothing there
+  and logs `app icon: the installed app has no Lurk launcher entries` once per process.
+- Around a switch, Android and the launcher do the rest: the launcher can take a moment to update; Pixel
+  Launcher removes the app's home-screen shortcut, which points at the entry that was disabled (and once on
+  the first update from a build without the aliases, since the launcher entry moves from the activity to an
+  alias); a task started from the disabled entry leaves Recents, while the process and the settings screen
+  stay. Android's App info page shows the application's icon, which stays Lurk's.
+
+`tests/shared/test_settings.py` runs `AppIcon` on the JVM against each app's registry (order of the calls,
+both and neither enabled at a start, a refused enable, Reset, a mount install, a build without Lurk icon).
+`tests/verify_launcher_entries.py` checks the manifest and the kept original icon in a decoded patched APK
+against the stock one; it passed for the three apps and a Twitch clone on 2026-11-19.
+Verified on 2026-11-19 on the Android 16 emulator (Pixel Launcher) with Twitch 32.1.0, Kick 40.35.4 and
+Rumble 3.22.0, each built with the default patches: one launcher activity (`cmd package query-activities -a
+android.intent.action.MAIN -c android.intent.category.LAUNCHER`) with Lurk's icon after installing; after
+picking Original, one activity, the app's own icon in the app drawer, the app launching from it, a link
+opening the app (a Twitch channel, a Kick channel, a Rumble video), the long-press Lurk settings shortcut
+working, the app process still running; back to Lurk the same way; both and neither alias enabled with
+`pm enable`/`pm disable` repaired at the next start. A Twitch build with Clone app and Change app name
+("Twitch Lurk") switches on its own, next to the main install; a Twitch build without Lurk icon shows no App
+icon choice; a Rumble build with Lurk icon's code and a manifest without the aliases (standing in for a
+mount install) logs the line above, and picking Original changes nothing and doesn't crash. A clone opens a
+Twitch channel link on Home rather than the channel, with or without Lurk icon.
 
 Validated on 2026-10-14 with a local build: Morphe Desktop 1.18.1 applies `Lurk icon` and
 `Unlock Premium` to 3.21.0; the launcher and the Android 16 splash screen show the new icon and the
@@ -327,9 +374,11 @@ finds its switch off after updating, unless it was changed on the screen before.
 | No autoplay of the next video, No feed previews | `autoplay_next_video_off`, `feed_previews_off` | after a restart |
 | Background audio by default | `background_audio` | after a restart |
 | Unlock Premium | `unlock_premium` | at the next start, signed in |
+| App icon (a choice; "Lurk" is 0) | `app_icon` | when the launcher updates |
 
-Resource patches (Lurk icon, Remove tracking permissions, Disable tracking SDKs, Clone app, Change app
-name) change the APK itself, so they aren't listed.
+The other resource patches (Remove tracking permissions, Disable tracking SDKs, Clone app, Change app name)
+change the APK itself, so they aren't listed. Lurk icon changes it too, and its App icon choice switches
+between the two launcher entries it adds ([App icon](#app-icon)).
 
 How it works:
 

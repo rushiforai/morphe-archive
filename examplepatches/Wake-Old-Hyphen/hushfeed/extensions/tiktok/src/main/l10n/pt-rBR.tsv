@@ -243,7 +243,7 @@ An operator code is five or six digits, like 310260	Um código de operadora tem 
 An override changes the value TikTok reads from this gate. It doesn't change TikTok's saved copy or prove the named feature changed.	Uma substituição muda o valor que o TikTok lê desta chave. Ela não muda a cópia salva do TikTok nem prova que o recurso citado mudou.
 Animated sticker format	Formato dos stickers animados
 Save box for chat stickers	Janela para salvar stickers do chat
-Tapping a sticker someone sent you in a chat opens a box with Save media. Turn this off to skip it.	Tocar em um sticker que alguém te mandou no chat abre uma janela com Salvar a mídia. Desative isto para pular.
+Tapping a sticker someone sent you in a chat opens a box with Save media. Holding one of TikTok's own stickers in a chat puts Save media in its menu too. Turn this off to skip both.	Tocar em um sticker que alguém te mandou no chat abre uma janela com Salvar a mídia. Segurar um dos stickers do próprio TikTok no chat também coloca Salvar a mídia no menu dele. Desative isto para pular os dois.
 TikTok gets no location from your phone. The Region settings change your country and time zone. This switch stops the exact position.	O TikTok não recebe nenhuma localização do seu celular. As configurações de Região mudam seu país e seu fuso horário. Esta chave bloqueia a posição exata.
 TikTok sees an empty contact list instead of yours. Find Friends and People you may know can no longer use your contacts.	O TikTok vê uma lista de contatos vazia no lugar da sua. Encontrar amigos e Pessoas que você talvez conheça não conseguem mais usar seus contatos.
 TikTok sees an empty list of apps instead of the apps on your phone. Checks for one specific app, such as when TikTok opens an app you tap, still work.	O TikTok vê uma lista de apps vazia em vez dos apps do seu celular. Verificações de um app específico, como quando o TikTok abre um app em que você toca, continuam funcionando.
@@ -2332,7 +2332,7 @@ On the main feed, a raised bubble of glass sits behind the tab you're on and sli
 Slide across the tabs	Deslizar pelas abas
 On the main feed, slide a finger along the tabs and the lens follows it. Let go and that tab opens. Taps and long presses work as before. Needs Glass lens on the current tab.	No feed principal, deslize um dedo pelas abas e a lente acompanha. Solte e essa aba abre. Toques e toques longos funcionam como antes. Precisa de Lente de vidro na aba atual.
 Liquid glass when held	Vidro líquido ao segurar
-On the main feed, hold a finger on the tabs and the glass lens swells, then wobbles back when you let go. With Blur the video behind the bar on Android 13 and up, the video under it bends harder and splits into color at its edge. Needs Glass lens on the current tab.	No feed principal, segure um dedo nas abas e a lente de vidro incha, depois volta balançando quando você solta. Com Desfocar o vídeo atrás da barra no Android 13 ou superior, o vídeo embaixo dela se curva mais e se separa em cores na borda. Precisa de Lente de vidro na aba atual.
+On the main feed, hold a finger on the tabs and the glass lens slides under it and swells, the tab beneath it grows, and they wobble back when you let go. On Android 13 and up the tabs bend at the lens's edge and split into color, and with Blur the video behind the bar so does the video. Needs Glass lens on the current tab.	No feed principal, segure um dedo nas abas e a lente de vidro desliza para baixo dele e incha, a aba embaixo cresce, e elas voltam balançando quando você solta. No Android 13 ou superior as abas se curvam na borda da lente e se separam em cores, e com Desfocar o vídeo atrás da barra o vídeo também. Precisa de Lente de vidro na aba atual.
 Haptics on the tabs	Vibração nas abas
 On the main feed, a light tick each time the glass lens passes a tab, as it slides after a tap or under your finger. Needs Glass lens on the current tab.	No feed principal, um toque leve cada vez que a lente de vidro passa por uma aba, ao deslizar depois de um toque ou sob o seu dedo. Precisa de Lente de vidro na aba atual.
 Haptic style	Estilo da vibração
@@ -2392,10 +2392,11 @@ Most viewed first	Mais vistos primeiro
 Least viewed first	Menos vistos primeiro
 Most liked first	Mais curtidos primeiro
 Least liked first	Menos curtidos primeiro
-Sorts a profile or Liked grid with pinned videos first. While an order is on, the grid keeps loading by itself up to 300 videos, so the order covers more than the first screen. A button in the grid's top corner changes the order right there.	Ordena uma grade de perfil ou de Curtidos, com os vídeos fixados na frente. Enquanto uma ordem estiver escolhida, a grade continua carregando sozinha até 300 vídeos, assim a ordem cobre mais que a primeira tela. Um botão no canto superior da grade muda a ordem ali mesmo.
+Sorts a profile or Liked grid with pinned videos first. While an order is on, the grid keeps loading by itself up to %1$s videos, so the order covers more than the first screen. A button in the grid's top corner changes the order right there.	Ordena uma grade de perfil ou de Curtidos, com os vídeos fixados na frente. Enquanto uma ordem estiver escolhida, a grade continua carregando sozinha até %1$s vídeos, assim a ordem cobre mais que a primeira tela. Um botão no canto superior da grade muda a ordem ali mesmo.
+Tap to see the order now	Toque para ver a ordem agora
 Sort loaded videos on Liked grids	Ordenar os vídeos carregados nas grades de curtidas
 Sort loaded videos on sound pages	Ordenar os vídeos carregados nas páginas de sons
-Sorts the videos on a sound's page the same way, loading up to 300 of them while an order is on.	Ordena do mesmo jeito os vídeos da página de um som, carregando até 300 deles enquanto uma ordem estiver escolhida.
+Sorts the videos on a sound's page the same way, loading up to %1$s of them while an order is on.	Ordena do mesmo jeito os vídeos da página de um som, carregando até %1$s deles enquanto uma ordem estiver escolhida.
 Same as profile grids	Igual às grades de perfil
 Sort this grid	Ordenar esta grade
 Blur the video behind the bar	Desfocar o vídeo atrás da barra
@@ -2616,7 +2617,7 @@ Use this phone's own IDs	Usar os IDs deste celular
 Wipes TikTok's data once, on the next start, and goes back to this phone's real Android ID and advertising ID. You'll be signed out and lose your drafts.	Apaga os dados do TikTok uma vez, na próxima abertura, e volta ao ID do Android e ao ID de publicidade reais deste celular. Você sai da conta e perde os rascunhos.
 TikTok goes back to this phone's IDs after the restart. Tap again to cancel.	O TikTok volta aos IDs deste celular depois de reiniciar. Toque de novo para cancelar.
 On a one-photo post, Download video makes an MP4 with the post's sound and no TikTok logo or end card. On a post with several photos, Download asks if you want the originals or one video. A photo story saves as a video too.	Em uma publicação com uma foto, Baixar vídeo cria um MP4 com o som da publicação e sem logo do TikTok nem cartão final. Em uma publicação com várias fotos, Baixar pergunta se você quer os originais ou um só vídeo. Um story de foto também é salvo como vídeo.
-How long each photo stays on screen in a video made from a photo post. A story's video runs as long as the story does.	Quanto tempo cada foto fica na tela em um vídeo feito a partir de uma publicação de fotos. O vídeo de um story dura o mesmo que o story.
+How long each photo stays on screen in a video made from a photo post. A post with just one photo runs as long as its sound. A story's video runs as long as the story does.	Quanto tempo cada foto fica na tela em um vídeo feito a partir de uma publicação de fotos. Uma publicação com uma só foto dura o mesmo que o seu som. O vídeo de um story dura o mesmo que o story.
 Stop loading	Parar de carregar
 Recording files deleted	Arquivos de gravação excluídos
 Hide story views	Ocultar as visualizações de stories
@@ -2915,6 +2916,10 @@ Cover the whole window without cropping anything. The video gets a little taller
 Sort loaded videos on Favorites grids	Ordenar os vídeos carregados nas grades de Favoritos
 Show the country and date under the caption	Mostrar o país e a data abaixo da legenda
 Moves the country and the post date off the creator's row onto a line of their own below the caption.	Move o país e a data da publicação da linha do criador para uma linha própria abaixo da legenda.
+# context: picture-in-picture window button that moves TikTok's LIVE rooms
+Previous LIVE	LIVE anterior
+# context: picture-in-picture window button that moves TikTok's LIVE rooms
+Next LIVE	Próxima LIVE
 # context: picture-in-picture window button that moves TikTok's feed
 Previous video	Vídeo anterior
 # context: picture-in-picture window button that moves TikTok's feed

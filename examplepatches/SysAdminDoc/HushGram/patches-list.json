@@ -164,7 +164,7 @@
     {
       "name": "Ask before a call",
       "description": "Asks you to confirm before a call starts from a chat, so a stray tap on the call button doesn't ring anyone, and can take the call buttons, Blend and the back arrow off the top of a chat. All start off. Turn them on in HushGram settings > Messages.",
-      "category": "Messages",
+      "category": "Interaction",
       "use": true,
       "dependencies": [
         "BytecodePatch",
@@ -319,7 +319,7 @@
     },
     {
       "name": "Ask for VP9 instead of AV1",
-      "description": "Tells Instagram your phone has no AV1 decoder. Instagram doesn't always listen, so videos can still come as AV1. If they do, Convert to keep the full size gives you H.264. Takes a restart. Starts off. Turn it on in HushGram settings > Downloads.",
+      "description": "Tells Instagram your phone has no AV1 decoder, which takes a restart. A post or reel that still comes as AV1 is saved as VP9 from Instagram's website when it offers one. Stories can still be AV1, and Convert to keep the full size turns those into H.264. Starts off. Turn it on in HushGram settings > Downloads.",
       "category": "Downloads",
       "use": true,
       "dependencies": [
@@ -552,6 +552,45 @@
       "options": []
     },
     {
+      "name": "Center names in chats",
+      "description": "Puts the name and username at the top of a chat in the middle of the bar, or as near the middle as the call buttons leave room for. Starts off. Turn it on in HushGram settings > Messages.",
+      "category": "Messages",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "HushGram settings"
+      ],
+      "compatiblePackages": {
+        "com.instagram.android": [
+          "456.0.0.53.78"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Instagram",
+          "packageName": "com.instagram.android",
+          "description": null,
+          "appIconColor": 14757996,
+          "signatures": [
+            "3a10c50c18ba937506c2875e9047be74f8fd8b86fae2ff9feaa50a81fcb4c014",
+            "5f3e50f435583c9ae626302a71f7340044087a7e2c60adacfc254205a993e305"
+          ],
+          "targets": [
+            {
+              "version": "456.0.0.53.78",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 386214574,
+                "ARMEABI_V7A": 386214562,
+                "X86": 386214575
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Change the like animation",
       "description": "Lets you pick the animation that plays when you double tap a post to like it. The choices are animations Instagram made for its Rings creators. Starts off. Turn it on in HushGram settings > Reels.",
       "category": "Interaction",
@@ -709,7 +748,7 @@
     },
     {
       "name": "Clean up Reels",
-      "description": "Hides extra buttons and prompts on reels, such as Follow, Edits, templates, Meta AI, Ray-Ban Meta glasses, friends' activity, the Add a comment bar, the reply bar on reels from chats, the Like, Comment and Save buttons, the count under any of the buttons beside a reel, the pause icon on a paused reel, the Create and Your algorithm buttons, the Friends tab and the Reels tab's top bar. Each one has its own switch, and Burn-in guard can dim a reel's buttons, and a story's, while you aren't touching the screen. Keep clear mode on carries Instagram's clear mode to the next reels, and can start every reel in it. Starts off. Turn it on in HushGram settings > Reels.",
+      "description": "Hides extra buttons and prompts on reels, such as Follow, Edits, templates, Meta AI, Ray-Ban Meta glasses, friends' activity, the Add a comment bar, the reply bar on reels from chats, the Like, Comment and Save buttons, the count under any of the buttons beside a reel, the pause icon on a paused reel, the Create and Your algorithm buttons, the Friends tab and the Reels tab's top bar. Each one has its own switch, and Burn-in guard can dim a reel's buttons, and a story's, while you aren't touching the screen. Keep clear mode on carries Instagram's clear mode to the next reels, and can start every reel in it. Pinch for clear mode turns clear mode on and off with two fingers, and can hide the button that leaves it. Starts off. Turn it on in HushGram settings > Reels.",
       "category": "Reels",
       "use": true,
       "dependencies": [
@@ -827,7 +866,7 @@
     {
       "name": "Control the reel above comments",
       "description": "With a reel's comments open, a tap on the reel above them pauses or plays it and a hold plays it at 2x, and the comments stay open. Starts off. Turn it on in HushGram settings > Reels.",
-      "category": "Fixes",
+      "category": "Comments",
       "use": true,
       "dependencies": [
         "BytecodePatch",
@@ -866,7 +905,7 @@
     {
       "name": "Copy comment",
       "description": "Adds Copy and Copy username to the menu you get on a comment, so you can copy its text or the commenter's username. Starts off. Turn it on in HushGram settings > Comments.",
-      "category": "Interaction",
+      "category": "Comments",
       "use": true,
       "dependencies": [
         "BytecodePatch",
@@ -1218,7 +1257,7 @@
     },
     {
       "name": "Download any reel",
-      "description": "Adds Download to the menu of every reel and saves it without Instagram's watermark. You choose the quality, and best is the default. A separate Download cover switch also saves the reel's cover picture, the largest one the post carries, and Download audio saves just its sound. Download full song grabs the whole track when a reel uses a song from Instagram's music. Download as video on a carousel with music saves every page, in order. A separate switch under Downloads puts a download icon under Save beside each reel, and others add a Lens icon for copying a reel's text, a speed icon, a Full screen icon and a speaker icon, or put Playback speed in a reel's menu. On by default. Turn it off in HushGram settings > Reels.",
+      "description": "Adds Download to the menu of every reel and saves it without Instagram's watermark. You choose the quality, and best is the default. A separate Download cover switch also saves the reel's cover picture, the largest one the post carries, and Download audio saves just its sound. Download full song grabs the whole track when a reel uses a song from Instagram's music, and from a Download icon on that song's own page. Download as video on a carousel with music saves every page, in order. A separate switch under Downloads puts a download icon under Save beside each reel, and others add a Lens icon for copying a reel's text, a speed icon, a Full screen icon and a speaker icon, or put Playback speed in a reel's menu. On by default. Turn it off in HushGram settings > Reels.",
       "category": "Downloads",
       "use": true,
       "dependencies": [
@@ -1414,6 +1453,45 @@
       "options": []
     },
     {
+      "name": "Expand captions",
+      "description": "Shows the whole caption on posts in your feed, or as many lines as you pick, before \"more\", and on a switch of its own the whole caption on reels. Stories stay as they are. Starts off. Turn them on in HushGram settings > Feed and Reels.",
+      "category": "Interaction",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "HushGram settings"
+      ],
+      "compatiblePackages": {
+        "com.instagram.android": [
+          "456.0.0.53.78"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Instagram",
+          "packageName": "com.instagram.android",
+          "description": null,
+          "appIconColor": 14757996,
+          "signatures": [
+            "3a10c50c18ba937506c2875e9047be74f8fd8b86fae2ff9feaa50a81fcb4c014",
+            "5f3e50f435583c9ae626302a71f7340044087a7e2c60adacfc254205a993e305"
+          ],
+          "targets": [
+            {
+              "version": "456.0.0.53.78",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 386214574,
+                "ARMEABI_V7A": 386214562,
+                "X86": 386214575
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Explore without personalization",
       "description": "Opens Explore on the grid that isn't personalized every time and keeps it from switching back after ten minutes. Instagram only promises that grid in the EU. A second switch hides the EU menu button for it. Both start off. Turn them on in HushGram settings > Explore.",
       "category": "Privacy",
@@ -1454,7 +1532,7 @@
     },
     {
       "name": "Find the reel you came from",
-      "description": "Open a creator's profile from a reel, then their Reels tab, and it scrolls to that reel and outlines it for a moment. A photo reel is found in their posts. Stop looking ends the search, and Wait for a tap to find it holds it until you tap Find the reel. Starts off. Turn it on in HushGram settings > Reels.",
+      "description": "Open a creator's profile from a reel, then their Reels tab, and it scrolls to that reel and labels it You just watched for a few seconds. A photo reel is found in their posts. Stop looking ends the search, and Wait for a tap to find it holds it until you tap Find the reel. Starts off. Turn it on in HushGram settings > Reels.",
       "category": "Reels",
       "use": true,
       "dependencies": [
@@ -1843,9 +1921,48 @@
       "options": []
     },
     {
+      "name": "Hide Followers and Following on profiles",
+      "description": "Takes the Followers and Following buttons, or just their numbers, off the top of profiles. Starts off. Turn it on in HushGram settings > Profiles.",
+      "category": "Interface",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "HushGram settings"
+      ],
+      "compatiblePackages": {
+        "com.instagram.android": [
+          "456.0.0.53.78"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Instagram",
+          "packageName": "com.instagram.android",
+          "description": null,
+          "appIconColor": 14757996,
+          "signatures": [
+            "3a10c50c18ba937506c2875e9047be74f8fd8b86fae2ff9feaa50a81fcb4c014",
+            "5f3e50f435583c9ae626302a71f7340044087a7e2c60adacfc254205a993e305"
+          ],
+          "targets": [
+            {
+              "version": "456.0.0.53.78",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 386214574,
+                "ARMEABI_V7A": 386214562,
+                "X86": 386214575
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Hide GIFs in comments",
       "description": "Takes GIFs and stickers out of comments, and the GIF button off the comment box. A comment with words keeps them. One that's only a GIF goes, along with its replies. Starts off. Turn it on in HushGram settings > Comments.",
-      "category": "Interaction",
+      "category": "Comments",
       "use": true,
       "dependencies": [
         "BytecodePatch",
@@ -2273,8 +2390,8 @@
     },
     {
       "name": "Hide comments",
-      "description": "Takes the Comment button and the comment count off posts in your feed. A second switch takes Reply off each comment and keeps View more replies. Starts off. Turn it on in HushGram settings > Comments.",
-      "category": "Interaction",
+      "description": "Takes the Comment button and the comment count off posts in your feed. Other switches take Reply or the heart and like count off each comment, and the comment box off the comments. All start off. Turn them on in HushGram settings > Comments.",
+      "category": "Comments",
       "use": true,
       "dependencies": [
         "BytecodePatch",
@@ -2585,7 +2702,7 @@
     },
     {
       "name": "Hide reels with few views",
-      "description": "Leaves out reels in the Reels tab with fewer views or likes than numbers you pick. Accounts you follow stay. Starts off. Turn it on in HushGram settings > Reels.",
+      "description": "Leaves out reels in the Reels tab outside numbers you pick: views, likes, likes and comments per 1,000 views, video length and age. Can put reels newest first. Accounts you follow stay. Starts off. Turn it on in HushGram settings > Reels.",
       "category": "Reels",
       "use": true,
       "dependencies": [
@@ -2702,7 +2819,7 @@
     },
     {
       "name": "Hide suggested accounts in Reels",
-      "description": "Leaves out the cards of accounts to follow that Instagram puts between reels, and on a second switch its Catch up with friends pages of stories. Every reel still plays. Starts off. Turn them on in HushGram settings > Reels.",
+      "description": "Leaves out the cards of accounts to follow that Instagram puts between reels, and on switches of their own its Catch up with friends pages of stories and its Threads cards. Every reel still plays. Starts off. Turn them on in HushGram settings > Reels.",
       "category": "Profiles",
       "use": true,
       "dependencies": [
@@ -3210,7 +3327,7 @@
     {
       "name": "Hide the comment emoji row",
       "description": "Takes the row of quick emoji off above the comment box. The box itself stays. Starts off. Turn it on in HushGram settings > Comments.",
-      "category": "Interaction",
+      "category": "Comments",
       "use": true,
       "dependencies": [
         "BytecodePatch",
@@ -3250,6 +3367,45 @@
       "name": "Hide the home feed",
       "description": "Empties your home feed on purpose, so Home shows only the stories row. Profiles, Explore and Reels still show posts. Starts off. Turn it on in HushGram settings > Feed.",
       "category": "Feed",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "HushGram settings"
+      ],
+      "compatiblePackages": {
+        "com.instagram.android": [
+          "456.0.0.53.78"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Instagram",
+          "packageName": "com.instagram.android",
+          "description": null,
+          "appIconColor": 14757996,
+          "signatures": [
+            "3a10c50c18ba937506c2875e9047be74f8fd8b86fae2ff9feaa50a81fcb4c014",
+            "5f3e50f435583c9ae626302a71f7340044087a7e2c60adacfc254205a993e305"
+          ],
+          "targets": [
+            {
+              "version": "456.0.0.53.78",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 386214574,
+                "ARMEABI_V7A": 386214562,
+                "X86": 386214575
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Hide the line under names",
+      "description": "Takes the song, the place and the other labels off the line under the name on posts in your feed and on reels. Sponsored and Paid partnership stay. Starts off. Turn it on in HushGram settings > Feed and Reels.",
+      "category": "Interaction",
       "use": true,
       "dependencies": [
         "BytecodePatch",
@@ -3522,7 +3678,7 @@
     {
       "name": "HushGram launch screen",
       "description": "Shows HushGram's logo instead of Instagram's on the screen you see while Instagram starts, on Android 13 and newer, and can fill that screen with your accent color. Starts off. Turn it on in HushGram settings > Layout.",
-      "category": "Interface",
+      "category": "Settings",
       "use": true,
       "dependencies": [
         "BytecodePatch",
@@ -4251,6 +4407,45 @@
       "options": []
     },
     {
+      "name": "Let the screen sleep when a reel stops",
+      "description": "Instagram keeps the screen on while Reels is open, even with a reel paused. With this on, a paused reel lets your phone's screen timeout run, and a playing one keeps the screen on. Starts off. Turn it on in HushGram settings > Reels.",
+      "category": "Fixes",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "HushGram settings"
+      ],
+      "compatiblePackages": {
+        "com.instagram.android": [
+          "456.0.0.53.78"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Instagram",
+          "packageName": "com.instagram.android",
+          "description": null,
+          "appIconColor": 14757996,
+          "signatures": [
+            "3a10c50c18ba937506c2875e9047be74f8fd8b86fae2ff9feaa50a81fcb4c014",
+            "5f3e50f435583c9ae626302a71f7340044087a7e2c60adacfc254205a993e305"
+          ],
+          "targets": [
+            {
+              "version": "456.0.0.53.78",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 386214574,
+                "ARMEABI_V7A": 386214562,
+                "X86": 386214575
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Lock your messages",
       "description": "Covers your inbox and chats, all of Instagram, or just the single chats you pick under Locked chats, until your fingerprint, face or screen lock says it's you. Message notifications only say that a message came. Chats you pick under Hidden chats leave your inbox and their notifications don't post. Starts off. Turn it on in HushGram settings > Messages.",
       "category": "Privacy",
@@ -4448,7 +4643,7 @@
     {
       "name": "Open comments without the keyboard",
       "description": "Comments open with the keyboard down. A tap in the comment box, or on Reply, still brings it up. Starts off. Turn it on in HushGram settings > Comments.",
-      "category": "Interaction",
+      "category": "Comments",
       "use": true,
       "dependencies": [
         "BytecodePatch",
@@ -5230,7 +5425,7 @@
     },
     {
       "name": "Saved on your profile",
-      "description": "Adds a bookmark to the tabs on your own profile, beside posts, reels and tagged, that opens Saved, and a handle to drag through Saved and your collections. Both start off. Turn them on in HushGram settings > Profiles. The bookmark needs an Instagram restart.",
+      "description": "Adds a bookmark to the tabs on your own profile, beside posts, reels and tagged, that opens Saved on All, a handle to drag through Saved and your collections, and a switch that hides the + for a new collection. All start off. Turn them on in HushGram settings > Profiles. The bookmark needs an Instagram restart.",
       "category": "Profiles",
       "use": true,
       "dependencies": [
@@ -5309,7 +5504,7 @@
     {
       "name": "Search comments",
       "description": "Adds a search box above a post's comments. Type a word or a name and the comments scroll to the next one that has it, loading more as they go. The arrows step forward and back through the matches. Replies you haven't opened aren't searched. Starts off. Turn it on in HushGram settings > Comments.",
-      "category": "Interaction",
+      "category": "Comments",
       "use": true,
       "dependencies": [
         "BytecodePatch",
@@ -6440,7 +6635,7 @@
     },
     {
       "name": "Stop swipe to create",
-      "description": "Stops a sideways swipe on Home from opening the camera. The + button still opens it. It can also open Messages when you swipe left on Home, like Instagram used to. Both start off. Turn them on in HushGram settings > Feed.",
+      "description": "Stops a sideways swipe on Home from opening the camera, or from opening Messages. The + and Messages buttons still work. It can also open Messages when you swipe left on Home, like Instagram used to. All start off. Turn them on in HushGram settings > Feed.",
       "category": "Feed",
       "use": true,
       "dependencies": [
@@ -6908,7 +7103,7 @@
     },
     {
       "name": "Tap to play",
-      "description": "Makes videos, reels and stories wait for your tap instead of starting by themselves, like Instagram does when it saves mobile data. A choice under the switch can leave Reels out or hold only Reels. Starts off. Turn it on in HushGram settings > Playback.",
+      "description": "Makes videos, reels and stories wait for your tap instead of starting by themselves, like Instagram does when it saves mobile data. A choice under the switch picks where: Reels, Explore, both, or everything but them. Starts off. Turn it on in HushGram settings > Playback.",
       "category": "Playback",
       "use": true,
       "dependencies": [

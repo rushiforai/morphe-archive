@@ -14,6 +14,7 @@ import android.widget.Toast;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.List;
 
 /** Persists acquired Edge metadata independently of live subject/DAT availability. */
@@ -63,8 +64,13 @@ public final class EdgeReporterHistory {
     }
     public static String title(Object board, long thread, String title) {
         if (!ReporterMetadataWrites.headroom()) return title;
-        String resolved=metadataTitle(board,thread,title);
-        return EdgeReporterId.isBoard(board)&&!EdgeReporterOptions.menu()?EdgeReporterId.titleForNextThreadMatch(resolved):resolved;
+        try {
+            String resolved=metadataTitle(board,thread,title);
+            return EdgeReporterId.isBoard(board)&&!EdgeReporterOptions.menu()?EdgeReporterId.titleForNextThreadMatch(resolved):resolved;
+        } catch (OutOfMemoryError unavailable) {
+            // Optional reporter metadata must never abort the native history load.
+            return title;
+        }
     }
     private static String metadataTitle(Object board,long thread,String title){
         SharedPreferences prefs = cache;
@@ -132,13 +138,13 @@ public final class EdgeReporterHistory {
     private static String threadKey(String scope,long thread){return "edge:liveedge".equals(scope)?Long.toString(thread):scope+":"+thread;}
     private static String aliasKey(Object board,String title){String scope=EdgeReporterId.scope(board);return "edge:liveedge".equals(scope)?titleKey(title):scope+":"+titleKey(title);}
     public static void capture(Object url, Object result) {
-        if (!ReporterMetadataWrites.headroom()) return;
-        if (url == null || !(result instanceof List) || cache == null) return;
+        if (url == null || !(result instanceof List)) return;
         // BBSUrlInfo exposes server/name in its diagnostic representation on all supported versions.
         String scope=EdgeReporterId.scope(url);
         if(scope==null)return;
-        ReporterMetadataWrites metadata = metadata(cache);
-        try {
+        SharedPreferences prefs=cache;
+        if(prefs!=null&&ReporterMetadataWrites.headroom())try {
+            ReporterMetadataWrites metadata = metadata(prefs);
             for (Object item : (List<?>) result) {
                 long thread = 0;
                 String title = null;
@@ -158,6 +164,47 @@ public final class EdgeReporterHistory {
         } catch (ReflectiveOperationException error) {
             Log.w("HaiagaruReporter", "Unable to cache subject metadata", error);
         }
+        filterReporterNg((List<?>)result,scope);
+    }
+
+    /** Native NGThread matching runs before the display-only reporter suffix is restored. */
+    private static void filterReporterNg(List<?> rows,String scope){
+        Context context=Haiagaru.applicationContext();if(context==null||scope==null||rows.isEmpty())return;
+        try{
+            List<NativeNgStore.Entry> all=new NativeNgStore(context,"THREAD").entries();
+            ArrayList<EdgeReporterNg> rules=new ArrayList<>();
+            for(NativeNgStore.Entry rule:all){
+                EdgeReporterNg compiled=EdgeReporterNg.compile(rule.pattern,rule.flags);
+                if(compiled==null)continue;
+                if(rule.board!=null&&!rule.board.isEmpty()){
+                    String ruleScope=EdgeReporterId.scope(rule.board);
+                    if(ruleScope==null||!scope.equals(ruleScope))continue;
+                }
+                rules.add(compiled);
+            }
+            if(rules.isEmpty())return;
+            ArrayList<Integer> remove=new ArrayList<>();SharedPreferences prefs=cache;
+            for(int i=0;i<rows.size();i++){
+                Object row=rows.get(i);long thread=0;String title=null;
+                for(Field field:NativeFields.all(row.getClass())){
+                    if(Modifier.isStatic(field.getModifiers()))continue;
+                    field.setAccessible(true);
+                    if(field.getType()==long.class)thread=field.getLong(row);
+                    else if(field.getType()==String.class){String value=(String)field.get(row);if(value!=null&&!value.startsWith("http")&&(title==null||value.length()>title.length()))title=value;}
+                }
+                String suffix=EdgeReporterId.suffix(title);
+                if(suffix==null&&prefs!=null&&thread>0)suffix=metadata(prefs).get(threadKey(scope,thread));
+                if(suffix==null)continue;
+                boolean matched=false;
+                for(EdgeReporterNg rule:rules){
+                    if(rule.matches(suffix)){matched=true;break;}
+                }
+                if(matched)remove.add(i);
+            }
+            if(remove.isEmpty())return;
+            try{for(int n=remove.size()-1;n>=0;n--)((List<?>)rows).remove((int)remove.get(n));}
+            catch(UnsupportedOperationException immutable){Log.w("HaiagaruReporter","Native thread list cannot apply reporter NG",immutable);}
+        }catch(Exception error){Log.w("HaiagaruReporter","Unable to apply reporter-ID NG",error);}
     }
     /** Reporter shortcuts register directly; title editing retains the stock editor. */
     public static boolean choose(Activity activity, String title, Object type, Object board) {
@@ -254,7 +301,7 @@ public final class EdgeReporterHistory {
                 Toast.makeText(activity,"登録済みの記者NGを有効にしました",Toast.LENGTH_SHORT).show();return true;
             }
             if(entries.size()>=Haiagaru.getNgRegistrationLimit())throw new IllegalStateException("NG登録上限を超えます");
-            store.update(null,store.item(pattern,flags,System.currentTimeMillis(),board));
+            store.updateAndVerify(null,store.item(pattern,flags,System.currentTimeMillis(),board));
             PersonalNgSubmissions.changed();
             Toast.makeText(activity,"記者NGを登録しました",Toast.LENGTH_SHORT).show();return true;
         } catch(Exception error){Log.w("HaiagaruReporter","Unable to register reporter NG",error);Toast.makeText(activity,"NGを登録できませんでした",Toast.LENGTH_LONG).show();return false;}

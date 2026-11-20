@@ -105,11 +105,13 @@
           "Full screen Reels and Home",
           "Hide Follow on feed posts",
           "Hide captions",
+          "Expand captions",
           "Hide the audio icon on posts",
           "Auto scroll in Home",
           "Keep Home's top bar",
           "Hide activity bubbles",
           "Hide Made with Edits",
+          "Hide the line under names",
           "Save in the post menu",
           "Watch again in the feed"
         ]
@@ -264,6 +266,7 @@
           "Message box buttons",
           "Chat plus menu",
           "Glass in chats",
+          "Center names in chats",
           "Full screen Reels and Home"
         ]
       },
@@ -323,7 +326,8 @@
           "Keep the tab bar on a reel's profile",
           "Find the reel you came from",
           "Open reel links on that reel",
-          "Control the reel above comments"
+          "Control the reel above comments",
+          "Let the screen sleep when a reel stops"
         ]
       },
       "anchors": [
@@ -533,6 +537,7 @@
           "Show if a profile follows you",
           "Hide suggested people on profiles",
           "Hide highlights",
+          "Hide Followers and Following on profiles",
           "Hide the Threads button",
           "Hide Notes on profile pictures",
           "Hide profile tabs",

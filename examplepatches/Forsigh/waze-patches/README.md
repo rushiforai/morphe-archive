@@ -23,9 +23,9 @@ KingInstaller as a fallback).
 ## 🩹 Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v0.30.61](https://github.com/Forsigh/waze-patches/releases/tag/v0.30.61)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;35 patches total
+> **[v0.30.64](https://github.com/Forsigh/waze-patches/releases/tag/v0.30.64)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;36 patches total
 <details open>
-<summary>📦 Waze&nbsp;&nbsp;•&nbsp;&nbsp;35 patches</summary>
+<summary>📦 Waze&nbsp;&nbsp;•&nbsp;&nbsp;36 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -38,6 +38,7 @@ KingInstaller as a fallback).
 | **AMOLED Dark Mode For UI** | Makes the dark UI pure black. |  |
 | **Alert distances** | How early alerts sound, plus a speed-bump switch and per-alert distances. | • Alert distance level<br>• Speed bump (ramp) warnings<br>• Police<br>• Hazards<br>• Crashes<br>• Traffic jams<br>• Speed cams - streets<br>• Speed cams - highways<br>• Speed cams - freeways<br>• Blocked lanes<br>• Gap between alerts |
 | **Allow high refresh rate** | Runs above 60 Hz, up to your screen's limit. | • Target refresh rate (Hz) |
+| **Any audio app as a Waze audio partner** | Adds a music app of your choice to Waze's audio player, even though it does not ship Waze's SDK. It only needs a media browser service, like Android Auto. Default: BitChord. | • Audio app package name<br>• Audio app name |
 | **Auto zoom** | Keeps your auto-zoom choice from being reset. | • Auto-zoom mode |
 | **Bigger alert pins** | Grows the alert pins on the map, phone and car screen alike. | • Pin size |
 | **Brief voice guidance** | Shorter spoken directions. |  |
@@ -55,7 +56,6 @@ KingInstaller as a fallback).
 | **Lane guidance** | Shows lane guidance, including straight-ahead hints. |  |
 | **Launch screen background colour** | Colour behind the Waze logo while the app starts. #00000000 makes it transparent. | • Background colour<br>• Custom colour |
 | **Live drive sharing** | Adds the hidden share-your-drive link. |  |
-| **Morphe YouTube Music as a Waze audio partner** | Lets Morphe YouTube Music play through Waze. |  |
 | **New alert icons** | Uses Waze's newer alert icons. |  |
 | **No Android Auto telemetry** | Stops Waze sending Android Auto screen-switch timings to its analytics. |  |
 | **Picture-in-picture** | Floats Waze in a 9:16 window every time you leave it. Known issues: touch does not work on the floating window, and the UI does not scale down. |  |
@@ -70,6 +70,7 @@ KingInstaller as a fallback).
 | **Theme** | Picks the map theme for day and night. | • Day theme<br>• Night theme |
 | **Traffic meter** | Shows the traffic meter on the car screen. |  |
 | **Unlock driver moods** | Unlocks all moods on the device. |  |
+| **YouTube Music as a Waze audio partner** | Lets Morphe YouTube Music and stock YouTube Music play through Waze's audio player. |  |
 
 </details>
 

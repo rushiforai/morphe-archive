@@ -1,0 +1,10 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="app.afterglow.qa.tabeditor">
+    <uses-sdk android:minSdkVersion="29" android:targetSdkVersion="35" />
+    <application android:debuggable="true" android:label="Afterglow tab editor QA"
+        android:theme="@android:style/Theme.Material.Light.NoActionBar">
+        <activity android:name="app.afterglow.extension.ui.AfterglowActivity"
+            android:exported="true" android:screenOrientation="portrait" />
+    </application>
+    <instrumentation android:name="app.afterglow.extension.ui.TabEditorRegression"
+        android:targetPackage="app.afterglow.qa.tabeditor" android:label="Tab editor touch regression" />
+</manifest>

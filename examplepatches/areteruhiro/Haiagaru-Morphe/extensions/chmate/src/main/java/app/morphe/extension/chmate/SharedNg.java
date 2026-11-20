@@ -316,7 +316,6 @@ final class SharedNg {
                     IO.execute(()->{String result;try{long bytes=deleteDownloadedData();result=android.text.format.Formatter.formatFileSize(a,bytes)+"の受信データを削除しました";}catch(IOException error){result=error.getMessage();}final String message=result;
                         a.runOnUiThread(()->{if(a.isFinishing()||a.isDestroyed())return;clearing[0]=false;on.setChecked(false);on.setEnabled(true);state.setText(status);clear.setEnabled(true);update.setEnabled(true);Toast.makeText(a,message,Toast.LENGTH_LONG).show();});});
                 }).show());
-        Button report=new Button(a);report.setText("選んだ投稿から共有NGを報告");box.addView(report);report.setOnClickListener(v->report(a));
         Button list=new Button(a);list.setText("受信した条件・端末内編集・個別解除");box.addView(list);list.setOnClickListener(v->SharedNgExceptions.show(a,rules));
         ScrollView scroll=new ScrollView(a);scroll.addView(box);new HaiagaruDialog.Builder(a).setTitle("オンライン共有NG（開発中）").setView(scroll).setPositiveButton("閉じる",null).show();
     }

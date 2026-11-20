@@ -49,6 +49,7 @@ import app.morphe.extension.facebook.feed.FeedTypeNames;
 import app.morphe.extension.facebook.feed.PostSources;
 import app.morphe.extension.facebook.feed.PostWords;
 import app.morphe.extension.facebook.menu.MenuTiles;
+import app.morphe.extension.facebook.media.BufferSize;
 import app.morphe.extension.facebook.media.PlaybackQuality;
 import app.morphe.extension.facebook.media.RecentlyWatched;
 import app.morphe.extension.facebook.media.SurfaceQuality;
@@ -166,9 +167,19 @@ public final class SettingsBackup {
             Settings.HIDE_POSTS_WITH_WORDS,
             Settings.HIDE_POSTS_FROM_SOURCES,
             Settings.POST_WORDS_WHOLE_WORDS,
+            Settings.POST_WORDS_ON_FEED,
+            Settings.POST_WORDS_ON_REELS,
+            Settings.POST_WORDS_IN_GROUPS,
+            Settings.POST_WORDS_ON_TIMELINES,
+            Settings.POST_WORDS_IN_SEARCH,
             Settings.HIDE_PHOTO_POSTS,
             Settings.HIDE_VIDEO_POSTS,
             Settings.HIDE_LINK_POSTS,
+            Settings.LINK_POSTS_ON_FEED,
+            Settings.LINK_POSTS_ON_REELS,
+            Settings.LINK_POSTS_IN_GROUPS,
+            Settings.LINK_POSTS_ON_TIMELINES,
+            Settings.LINK_POSTS_IN_SEARCH,
             Settings.HIDE_BACKGROUND_POSTS,
             Settings.HIDE_REPOSTS,
             Settings.HIDE_PAGE_POSTS,
@@ -202,6 +213,7 @@ public final class SettingsBackup {
             Settings.SEE_WHO_SHARED,
             Settings.PHOTO_CAROUSEL,
             Settings.TURN_OFF_AUTO_TRANSLATION,
+            Settings.TRANSLATE_EVERY_COMMENT,
             Settings.HIDE_FEEDS_HEADER,
             Settings.HIDE_SPONSORED_STORIES,
             Settings.HIDE_SUGGESTED_STORIES,
@@ -274,6 +286,7 @@ public final class SettingsBackup {
             Settings.HIDE_REELS_TAB_TITLE,
             Settings.HIDE_VIEWER_BACK_BUTTON,
             Settings.BURN_IN_STAY_DIM,
+            Settings.BURN_IN_FADE,
             Settings.GRAY_REELS,
             Settings.REELS_MINUTES,
             Settings.HIDE_REEL_COUNTS,
@@ -401,6 +414,7 @@ public final class SettingsBackup {
             Settings.STORY_SEEK_BAR_FADE,
             Settings.RESUME_LONG_VIDEOS,
             Settings.RECENTLY_WATCHED,
+            Settings.RECENTLY_WATCHED_MENU_ROW,
             Settings.FRAME_STEP,
             Settings.DEFAULT_PLAYBACK_QUALITY,
             Settings.PICTURE_IN_PICTURE,
@@ -440,6 +454,7 @@ public final class SettingsBackup {
             Settings.DOWNLOAD_PHOTOS,
             Settings.POST_MENU_PHOTO_SAVE,
             Settings.POST_MENU_PHOTO_SEARCH,
+            Settings.MARKETPLACE_PHOTO_SAVE,
             Settings.OPEN_IN_ANOTHER_APP,
             Settings.POST_MENU_DOWNLOAD_FIRST,
             Settings.DOWNLOAD_COMPATIBLE,
@@ -793,6 +808,12 @@ public final class SettingsBackup {
     static final EnumSetting<FoldLines> FOLD_COMMENTS = Settings.FOLD_COMMENTS;
 
     /**
+     * Video buffer's size (#526), held in a file as its {@link BufferSize#fileValue}. Anything else
+     * refuses the whole file, as a fold does.
+     */
+    static final EnumSetting<BufferSize> VIDEO_BUFFER = Settings.VIDEO_BUFFER;
+
+    /**
      * How large Facebook's text is, held in a file as its {@link TextSize.Scale#fileValue}, the
      * percentage. Anything else refuses the whole file, as a lock time does.
      */
@@ -863,7 +884,7 @@ public final class SettingsBackup {
     /** The settings a file carries that aren't switches, in the order Settings declares them. */
     static final List<Setting<?>> VALUES = Collections.unmodifiableList(
             Arrays.<Setting<?>>asList(HIDDEN, KEPT, SOURCES, FEED_TYPES, CEILING, CLEAN_RETURN, BURN_IN, BURN_IN_WAIT, GRAY_OVER, DATE_STYLE, REELS_ORDER, HOLD_REACTION, COMMENTS_HEIGHT, WATCHED_KEEP, SHARE_ITEMS, POST_MENU_ITEMS, MENU_TILES, HOME_FEED, TAB_ORDER, BACKGROUND, LIGHT_BACKGROUND, HEADER_TEXT, SEEN_KEEP, FOLD_POSTS, FOLD_COMMENTS, TO, FOLDER, VIDEO_SUBFOLDER, PHOTO_SUBFOLDER, QUALITY,
-                    FILE_NAME, PHOTO_NAME, ACTION, APP, START, SUBTAB, ORDER, PLAYBACK, REELS_QUALITY, STORIES_QUALITY,
+                    FILE_NAME, PHOTO_NAME, ACTION, APP, START, SUBTAB, ORDER, PLAYBACK, REELS_QUALITY, STORIES_QUALITY, VIDEO_BUFFER,
                     QUIET_FROM, QUIET_UNTIL, LOCK_AFTER, PAUSE_LENGTH, BREAK_AFTER, BREAK_LENGTH, TEXT_SIZE, REFRESH_RATE, NEW_ROW_MARK, ACCENT, ACCENT_CUSTOM, LOGO_EMOJI,
                     BADGE, LOGO, TAB));
 
@@ -995,6 +1016,7 @@ public final class SettingsBackup {
         private static final String HOLD_REACTION_NAME = "hold_reaction";
         private static final String FOLD_POSTS_NAME = "fold_post_text";
         private static final String FOLD_COMMENTS_NAME = "fold_comments";
+        private static final String VIDEO_BUFFER_NAME = "video_buffer";
         private static final String GRAY_OVER_NAME = "gray_reels_over";
         private static final String NEW_ROW_MARK_NAME = "new_row_mark";
         private static final String REFRESH_RATE_NAME = "refresh_rate";
@@ -1153,6 +1175,9 @@ public final class SettingsBackup {
         /** The Fold long comments choice the file holds, the same way. */
         @Nullable
         FoldLines foldComments;
+        /** The Video buffer choice the file holds, the same way. */
+        @Nullable
+        BufferSize videoBuffer;
         /** The Turn gray over choice the file holds, the same way. */
         @Nullable
         GrayOver grayOver;
@@ -1424,6 +1449,8 @@ public final class SettingsBackup {
             if (foldPostsChange != null) changes.put(FOLD_POSTS, foldPostsChange);
             FoldLines foldCommentsChange = foldCommentsChange();
             if (foldCommentsChange != null) changes.put(FOLD_COMMENTS, foldCommentsChange);
+            BufferSize videoBufferChange = videoBufferChange();
+            if (videoBufferChange != null) changes.put(VIDEO_BUFFER, videoBufferChange);
             GrayOver grayOverChange = grayOverChange();
             if (grayOverChange != null) changes.put(GRAY_OVER, grayOverChange);
             NewRowMark newRowMarkChange = newRowMarkChange();
@@ -1759,6 +1786,12 @@ public final class SettingsBackup {
             return foldComments == null || foldComments == FOLD_COMMENTS.savedValue() ? null : foldComments;
         }
 
+        /** The Video buffer choice after this file, the same way. */
+        @Nullable
+        BufferSize videoBufferChange() {
+            return videoBuffer == null || videoBuffer == VIDEO_BUFFER.savedValue() ? null : videoBuffer;
+        }
+
         /** The Turn gray over choice after this file, the same way. */
         @Nullable
         GrayOver grayOverChange() {
@@ -1853,6 +1886,7 @@ public final class SettingsBackup {
             if (holdReaction != null) state.putString(HOLD_REACTION_NAME, holdReaction.fileValue);
             if (foldPosts != null) state.putString(FOLD_POSTS_NAME, foldPosts.fileValue);
             if (foldComments != null) state.putString(FOLD_COMMENTS_NAME, foldComments.fileValue);
+            if (videoBuffer != null) state.putString(VIDEO_BUFFER_NAME, videoBuffer.fileValue);
             if (grayOver != null) state.putString(GRAY_OVER_NAME, grayOver.fileValue);
             if (newRowMark != null) state.putString(NEW_ROW_MARK_NAME, newRowMark.fileValue);
             if (refreshRate != null) state.putString(REFRESH_RATE_NAME, refreshRate.fileValue);
@@ -1938,6 +1972,7 @@ public final class SettingsBackup {
             read.holdReaction = HoldReaction.fromFile(state.get(HOLD_REACTION_NAME));
             read.foldPosts = FoldLines.fromFile(state.get(FOLD_POSTS_NAME));
             read.foldComments = FoldLines.fromFile(state.get(FOLD_COMMENTS_NAME));
+            read.videoBuffer = BufferSize.fromFile(state.get(VIDEO_BUFFER_NAME));
             read.grayOver = GrayOver.fromFile(state.get(GRAY_OVER_NAME));
             read.newRowMark = NewRowMark.fromFile(state.get(NEW_ROW_MARK_NAME));
             read.refreshRate = RefreshRate.Rate.fromFile(state.get(REFRESH_RATE_NAME));
@@ -2022,6 +2057,7 @@ public final class SettingsBackup {
             switches.put(HOLD_REACTION.key, of(HOLD_REACTION).fileValue);
             switches.put(FOLD_POSTS.key, of(FOLD_POSTS).fileValue);
             switches.put(FOLD_COMMENTS.key, of(FOLD_COMMENTS).fileValue);
+            switches.put(VIDEO_BUFFER.key, of(VIDEO_BUFFER).fileValue);
             switches.put(GRAY_OVER.key, of(GRAY_OVER).fileValue);
             switches.put(DATE_STYLE.key, of(DATE_STYLE).fileValue);
             switches.put(COMMENTS_HEIGHT.key, of(COMMENTS_HEIGHT).fileValue);
@@ -2219,6 +2255,7 @@ public final class SettingsBackup {
         HoldReaction holdReaction = null;
         FoldLines foldPosts = null;
         FoldLines foldComments = null;
+        BufferSize videoBuffer = null;
         GrayOver grayOver = null;
         NewRowMark newRowMark = null;
         RefreshRate.Rate refreshRate = null;
@@ -2402,6 +2439,11 @@ public final class SettingsBackup {
             if (FOLD_COMMENTS.key.equals(name)) {
                 foldComments = FoldLines.fromFile(values.opt(name));
                 if (foldComments == null) throw new Rejected(Reason.VALUE, "Not a comment fold: " + name);
+                continue;
+            }
+            if (VIDEO_BUFFER.key.equals(name)) {
+                videoBuffer = BufferSize.fromFile(values.opt(name));
+                if (videoBuffer == null) throw new Rejected(Reason.VALUE, "Not a video buffer: " + name);
                 continue;
             }
             if (GRAY_OVER.key.equals(name)) {
@@ -2635,6 +2677,7 @@ public final class SettingsBackup {
         read.holdReaction = holdReaction;
         read.foldPosts = foldPosts;
         read.foldComments = foldComments;
+        read.videoBuffer = videoBuffer;
         read.grayOver = grayOver;
         read.newRowMark = newRowMark;
         read.refreshRate = refreshRate;

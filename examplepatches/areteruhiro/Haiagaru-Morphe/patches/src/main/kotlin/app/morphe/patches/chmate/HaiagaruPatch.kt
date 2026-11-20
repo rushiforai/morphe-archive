@@ -223,9 +223,33 @@ private fun BytecodePatchContext.patchNgEditGesture(version: String) {
         val board = if (version == "0.8.10.191 dev") "Ljp/syoboi/a2chMate/client/BBSUrlInfo\$BoardID;"
             else "Ljp/syoboi/a2chMate/client/BoardID;"
         val name = when (version) { "0.8.10.191 dev" -> "e"; "0.8.10.226 dev" -> "b"; else -> "a" }
-        check(mutableClassDefBy(table).methods.count {
+        val klass = mutableClassDefBy(table)
+        val deletes = klass.methods.filter {
             it.name == name && it.parameterTypes == listOf(board, "J") && it.returnType == "V"
-        } == 1) { "Native delete-with-cache API changed: $version" }
+        }
+        check(deletes.size == 1) { "Native delete-with-cache API changed: $version" }
+        val native = deletes.single()
+        check(native.accessFlags and 8 == 0) { "Native delete-with-cache API became static: $version" }
+        val delegateName = "haiagaruNativeDeleteThread"
+        val delegate = MutableMethod(ImmutableMethod(klass.type, delegateName, native.parameters, native.returnType,
+            native.accessFlags, native.annotations, native.hiddenApiRestrictions, native.implementation))
+        // Keep copies of the board and wide thread ID in local registers. The
+        // native body reuses incoming parameter registers as scratch; reading
+        // p2/p3 after delegation can therefore fail ART's verifier on return.
+        val wrapper = MutableMethod(ImmutableMethod(klass.type, name, native.parameters, native.returnType,
+            native.accessFlags, native.annotations, native.hiddenApiRestrictions,
+            ImmutableMethodImplementation(7, emptyList(), emptyList(), emptyList())))
+        val invoke = if (native.accessFlags and 2 != 0) "invoke-direct/range" else "invoke-virtual/range"
+        wrapper.addInstructions(0, """
+            move-object v0, p1
+            move-wide v1, p2
+            $invoke {p0 .. p3}, $table->$delegateName(${board}J)V
+            invoke-static/range {v0 .. v2}, Lapp/morphe/extension/chmate/ThreadScopedNg;->nativeThreadDeleted(Ljava/lang/Object;J)V
+            return-void
+        """.trimIndent())
+        klass.methods.remove(native)
+        klass.methods.add(delegate)
+        klass.methods.add(wrapper)
     }
 }
 
@@ -425,6 +449,18 @@ private fun BytecodePatchContext.patchPostedThreadDisplayCount(version: String) 
  */
 private fun BytecodePatchContext.patchNgRegistrationLimit() {
     val ngWord = mutableClassDefBy("Ljp/syoboi/a2chMate/ng/NGWord;")
+    val itemType = "Ljp/syoboi/a2chMate/ng/NGWord\$Item;"
+    val updater = ngWord.methods.single {
+        it.returnType == "I" && it.parameterTypes.map(CharSequence::toString) == listOf(itemType,itemType)
+    }
+    val updaterStart=updater.implementation!!.instructions.first()
+    updater.addInstructionsWithLabels(0,"""
+        invoke-static {p0, p1, p2}, Lapp/morphe/extension/chmate/ThreadScopedNg;->interceptRegistration(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Z
+        move-result v0
+        if-eqz v0, :native_ng_registration
+        const/4 v0, 0x0
+        return v0
+    """.trimIndent(),ExternalLabel("native_ng_registration",updaterStart))
     val candidates = ngWord.methods.filter { method ->
         method.returnType == "V"
             && method.parameters.map(CharSequence::toString).singleOrNull() ==
@@ -1267,6 +1303,19 @@ private fun BytecodePatchContext.patchQuickFilterPosition(version: String) {
             bind.replaceInstruction(index,"invoke-static/range {p0 .. p0}, $extension->register(Ljava/lang/Object;)V")
             bind.addInstruction(index+1,"return-void")
         }
+        // Persist explicit ordering immediately, before another thread is opened.
+        val order = mutableClassDefBy("Lo/pa;").methods.single {
+            it.name == "b" && it.parameterTypes == listOf("I") && it.returnType == "V"
+        }
+        val assignment = order.implementation!!.instructions.withIndex().single { (_, instruction) ->
+            instruction.opcode == Opcode.IPUT && (instruction as? ReferenceInstruction)?.reference?.toString() == "Lo/pa;->x:I"
+        }
+        val value = (assignment.value as TwoRegisterInstruction).registerA
+        val scratch = order.findFreeRegister(assignment.index + 1)
+        order.addInstructions(assignment.index + 1, """
+            sget-object v$scratch, Ljp/syoboi/a2chMate/Prefs;->ax:Lo/m1b${'$'}setContentView;
+            invoke-static {v$scratch, v$value}, Ljp/syoboi/a2chMate/Prefs;->a(Lo/m1b${'$'}setContentView;I)V
+        """.trimIndent())
         val owner = "Lo/pa\$21;"
         val callback = mutableClassDefBy(owner).methods.single {
             it.name == "e" && it.parameterTypes.isEmpty() && it.returnType == "V"
@@ -1285,6 +1334,16 @@ private fun BytecodePatchContext.patchQuickFilterPosition(version: String) {
         return
     }
     if (version !in setOf("0.8.10.226 dev", "0.8.10.241", "0.8.10.242 dev")) return
+    if (version == "0.8.10.242 dev") {
+        val selectOrder = mutableClassDefBy("Lo/zzabe;").methods.single {
+            it.name == "c" && it.parameterTypes == listOf("Ljp/syoboi/a2chMate/ui/reslist/ResListFragment;", "Lo/zzacn;") && it.returnType == "V"
+        }
+        val update = selectOrder.implementation!!.instructions.withIndex().single { (_, instruction) ->
+            (instruction as? ReferenceInstruction)?.reference?.toString() == "Lo/zzcpf;->b(Ljava/lang/Object;)V"
+        }
+        val selected = (update.value as FiveRegisterInstruction).registerD
+        selectOrder.addInstructions(update.index + 1, "invoke-static/range {v$selected .. v$selected}, Lapp/morphe/extension/chmate/NativeResponseOrder;->save242(Ljava/lang/Object;)V")
+    }
     val fragment = mutableClassDefBy("Ljp/syoboi/a2chMate/ui/reslist/ResListFragment;")
     val bind = fragment.methods.single { it.name == "onViewCreated" && it.returnType == "V" }
     bind.implementation!!.instructions.withIndex().filter { it.value.opcode == Opcode.RETURN_VOID }
@@ -1293,6 +1352,19 @@ private fun BytecodePatchContext.patchQuickFilterPosition(version: String) {
                 invoke-static/range {p0 .. p0}, $extension->register(Ljava/lang/Object;)V
             """.trimIndent())
         }
+    if (version == "0.8.10.226 dev") {
+        val order = fragment.methods.single { it.name == "f" && it.parameterTypes == listOf("I") && it.returnType == "V" }
+        val assignment = order.implementation!!.instructions.withIndex().single { (_, instruction) ->
+            instruction.opcode == Opcode.IPUT && (instruction as? ReferenceInstruction)?.reference?.toString() == "Ljp/syoboi/a2chMate/ui/reslist/ResListFragment;->t:I"
+        }
+        val value = (assignment.value as TwoRegisterInstruction).registerA
+        val scratch = order.findFreeRegister(assignment.index + 1)
+        order.addInstructions(assignment.index + 1, """
+            invoke-static {}, Ljp/syoboi/a2chMate/Prefs;->ao()Lo/readToken${'$'}ComponentActivity;
+            move-result-object v$scratch
+            invoke-static {v$scratch, v$value}, Ljp/syoboi/a2chMate/Prefs;->d(Lo/readToken${'$'}ComponentActivity;I)V
+        """.trimIndent())
+    }
     if (version == "0.8.10.226 dev") {
         val toggle = mutableClassDefBy("Lo/listener\$setContentView\$ComponentActivity;").methods.single {
             it.name == "invoke" && it.returnType == "Ljava/lang/Object;"
@@ -1567,8 +1639,10 @@ private val haiagaruBytecodePatch = bytecodePatch {
         patchNativeToolTabs(packageMetadata.versionName)
         patchReadingPosition(packageMetadata.versionName)
         patchNativeImagePaging(packageMetadata.versionName)
+        patchRadarScrollbarTouch(packageMetadata.versionName)
         patchUnreadToolbarCount(packageMetadata.versionName)
         patchHiddenNgUnread(packageMetadata.versionName)
+        patchHiddenNgNewArrivalCount(packageMetadata.versionName)
         patchHomeBoardMultiSelect(packageMetadata.versionName, profile.homeFragmentClass)
         if (packageMetadata.versionName == "0.8.10.242 dev") {
             mutableClassDefBy(profile.homeFragmentClass).methods.single {
@@ -1840,6 +1914,7 @@ private val haiagaruBytecodePatch = bytecodePatch {
             "0.8.10.191 dev" -> {
                 patchLegacySettingsPaneDivider("Lo/pq;")
                 patchLegacyExternalWebSearch191()
+                patchLegacyEdgeArchiveLocalSearch191()
                 patchLegacyBeResponseBody(
                     "Lo/processAdDisplayErrorPostbackForUserError;", "c")
                 patchProgrammableNg191()
@@ -1987,6 +2062,7 @@ private val haiagaruBytecodePatch = bytecodePatch {
         patchImageListResolvedMedia(packageMetadata.versionName)
         patchThumbnailClickAttachments(packageMetadata.versionName)
         patchNativeImageCloseLifecycle(packageMetadata.versionName)
+        patchRegisteredImageLongPress(packageMetadata.versionName)
         patchThumbnailRebind242(packageMetadata.versionName)
         patchThumbnailAppearance(packageMetadata.versionName)
         if (packageMetadata.versionName in setOf("0.8.10.191 dev", "0.8.10.226 dev", "0.8.10.241", "0.8.10.242 dev")) {
@@ -2012,6 +2088,19 @@ private val haiagaruBytecodePatch = bytecodePatch {
         patchExternalBoardEditor(packageMetadata.versionName)
         patchPosterHighlight(packageMetadata.versionName)
     }
+}
+
+/** Add an opt-in registered-image NG action to the response image long-press menu. */
+private fun BytecodePatchContext.patchRegisteredImageLongPress(versionName: String) {
+    val profile=when(versionName){
+        "0.8.10.226 dev"->Triple("Lo/getImgAcceptedHeight;","b",listOf("Lo/getImgAcceptedHeight;","Lo/setDomStorageEnabled;","Lo/GNkKjv;","Lo/BouncyCastleSocketAdapterCompanion;"))
+        "0.8.10.242 dev"->Triple("Ljp/syoboi/a2chMate/ui/reslist/ResListFragmentViewModel;","d",listOf("Ljp/syoboi/a2chMate/ui/reslist/ResListFragmentViewModel;","Lo/isDataValid;","Lo/getMinApkVersion;","Lo/KeJ11;"))
+        else->return
+    }
+    val owner=mutableClassDefBy(profile.first)
+    val menu=owner.methods.single{it.name==profile.second&&it.accessFlags and 8!=0&&it.returnType=="V"
+        &&it.parameterTypes.map(CharSequence::toString)==profile.third}
+    menu.addInstructions(0,"invoke-static/range {p1 .. p2}, Lapp/morphe/extension/chmate/RegisteredImageNg;->appendLongPressAction(Ljava/lang/Object;Ljava/lang/Object;)V")
 }
 
 /**
@@ -2225,6 +2314,19 @@ private fun BytecodePatchContext.patchLegacyExternalWebSearch191() {
     method.addInstructions(0, """
         invoke-static/range {p0 .. p1}, Lapp/morphe/extension/chmate/ExternalWebSearch;->open(Landroid/content/Context;Ljava/lang/String;)V
         return-void
+    """.trimIndent())
+}
+
+/** Append imported Edge archive DAT hits to ChMate 191's acquired-thread search. */
+private fun BytecodePatchContext.patchLegacyEdgeArchiveLocalSearch191() {
+    val observer = mutableClassDefBy("Ljp/syoboi/a2chMate/fragment/SearchFragment\$1;")
+    val callback = observer.methods.single {
+        it.name == "c" && it.returnType == "V"
+            && it.parameterTypes == listOf("Ljava/lang/Object;")
+    }
+    callback.addInstructions(0, """
+        check-cast p1, Ljava/util/ArrayList;
+        invoke-static {p0, p1}, Lapp/morphe/extension/chmate/EdgeArchiveLocalSearch;->appendFromSearchObserver(Ljava/lang/Object;Ljava/util/ArrayList;)V
     """.trimIndent())
 }
 
@@ -2839,7 +2941,9 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchWacchoiLongPressM
             val mutableMethod = mutableClassDefBy(classDef).findMutableMethodOf(method)
             upperBounds.forEach { (index, literal) ->
                 val register = (instructions[index] as OneRegisterInstruction).registerA
-                val expandedBoundary = if (literal == 74) 75 else 76
+                // Keep the legacy native popup dispatcher open through the two
+                // Wacchoi copy actions (77/78), while leaving later IDs native.
+                val expandedBoundary = 79
                 mutableMethod.replaceInstruction(index,
                     "const/16 v$register, 0x${expandedBoundary.toString(16)}")
                 dispatcherCount++

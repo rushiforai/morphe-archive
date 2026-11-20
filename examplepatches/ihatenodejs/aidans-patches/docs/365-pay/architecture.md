@@ -2,17 +2,17 @@
 
 ## Overview
 
-| Attribute | Specification |
-|---|---|
-| **Application Name** | 365 Pay |
-| **Package Name** | `com.avinside` |
-| **Supported Version** | `10.2605.0` (Morphe Compatibility: `10.2605.0`, `minSdk` 27) |
-| **Analyzed Version Code** | `2026519590` |
-| **Target SDK** | `36` (Android 16) |
-| **Minimum SDK** | `27` (Android 8.1) |
-| **APK Format** | APKM (`base.apk`, `config.arm64_v8a.apk`, `config.en.apk`, `config.xhdpi.apk`) |
-| **Package Signing SHA-256** | `8709f6fd781c4ba9a4f50df8c44f8c5a4ccb2fd2b114b71912e79eacf8857b1d` |
-| **Architecture** | React Native with Hermes Bytecode (`assets/index.android.bundle`, HBC v96), Scandit Barcode SDK, Stripe Payment Sheet, Auth0, OneSignal SDK, Firebase (Analytics, Crashlytics), Instana APM, Branch Metrics |
+| Attribute                   | Specification                                                                                                                                                                                               |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Application Name**        | 365 Pay                                                                                                                                                                                                     |
+| **Package Name**            | `com.avinside`                                                                                                                                                                                              |
+| **Supported Version**       | `10.2605.0` (Morphe Compatibility: `10.2605.0`, `minSdk` 27)                                                                                                                                                |
+| **Analyzed Version Code**   | `2026519590`                                                                                                                                                                                                |
+| **Target SDK**              | `36` (Android 16)                                                                                                                                                                                           |
+| **Minimum SDK**             | `27` (Android 8.1)                                                                                                                                                                                          |
+| **APK Format**              | APKM (`base.apk`, `config.arm64_v8a.apk`, `config.en.apk`, `config.xhdpi.apk`)                                                                                                                              |
+| **Package Signing SHA-256** | `8709f6fd781c4ba9a4f50df8c44f8c5a4ccb2fd2b114b71912e79eacf8857b1d`                                                                                                                                          |
+| **Architecture**            | React Native with Hermes Bytecode (`assets/index.android.bundle`, HBC v96), Scandit Barcode SDK, Stripe Payment Sheet, Auth0, OneSignal SDK, Firebase (Analytics, Crashlytics), Instana APM, Branch Metrics |
 
 365 Pay (developed by 365 Retail Markets / AV Inside) is a cashless point-of-sale and micro-market checkout application. The app combines a native Dalvik bootstrap container and hardware integrations (camera barcode scanning via Scandit, Bluetooth beacon reception, brightness elevation for kiosk barcode presentation) with a central React Native Hermes runtime.
 

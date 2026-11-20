@@ -229,7 +229,7 @@ Couldn't recover a change. Restore a backup if needed.,Proses gagal dipulihkan. 
 An override changes the value TikTok reads from this gate. It doesn't change TikTok's saved copy or prove the named feature changed.,Penimpaan mengubah nilai yang dibaca TikTok dari gate ini. Penimpaan tidak mengubah salinan tersimpan TikTok dan tidak membuktikan fitur yang disebut berubah.
 Animated sticker format,Format stiker animasi
 Save box for chat stickers,Kotak simpan untuk stiker obrolan
-Tapping a sticker someone sent you in a chat opens a box with Save media. Turn this off to skip it.,Mengetuk stiker yang dikirim seseorang di obrolan membuka kotak dengan Simpan media. Matikan ini untuk melewatinya.
+Tapping a sticker someone sent you in a chat opens a box with Save media. Holding one of TikTok's own stickers in a chat puts Save media in its menu too. Turn this off to skip both.,Mengetuk stiker yang dikirim seseorang di obrolan membuka kotak dengan Simpan media. Menahan salah satu stiker bawaan TikTok di obrolan juga menambahkan Simpan media ke menunya. Matikan ini untuk melewati keduanya.
 TikTok gets no location from your phone. The Region settings change your country and time zone. This switch stops the exact position.,TikTok tidak mendapat lokasi dari ponselmu. Pengaturan Wilayah mengubah negara dan zona waktumu. Sakelar ini menghentikan posisi yang tepat.
 TikTok sees an empty contact list instead of yours. Find Friends and People you may know can no longer use your contacts.,"TikTok melihat daftar kontak kosong, bukan daftar kontakmu. Find Friends dan People you may know tidak bisa lagi memakai kontakmu."
 "TikTok sees an empty list of apps instead of the apps on your phone. Checks for one specific app, such as when TikTok opens an app you tap, still work.","TikTok melihat daftar aplikasi kosong, bukan aplikasi di ponselmu. Pengecekan satu aplikasi tertentu, misalnya saat TikTok membuka aplikasi yang kamu ketuk, tetap berfungsi."
@@ -2285,7 +2285,7 @@ How much of the video shows through the glass pill on the main feed. Most see-th
 Slide across the tabs,Geser di sepanjang tab
 "On the main feed, slide a finger along the tabs and the lens follows it. Let go and that tab opens. Taps and long presses work as before. Needs Glass lens on the current tab.","Di feed utama, geser jari di sepanjang tab dan lensanya ikut. Lepas jari dan tab itu terbuka. Ketuk dan tekan lama tetap seperti biasa. Perlu Lensa kaca di tab saat ini."
 Liquid glass when held,Kaca cair saat ditahan
-"On the main feed, hold a finger on the tabs and the glass lens swells, then wobbles back when you let go. With Blur the video behind the bar on Android 13 and up, the video under it bends harder and splits into color at its edge. Needs Glass lens on the current tab.","Di feed utama, tahan jari di tab dan lensa kacanya membesar, lalu bergoyang kembali saat dilepas. Dengan Buramkan video di belakang bilah di Android 13 ke atas, video di bawahnya melengkung lebih kuat dan terpecah jadi warna di tepinya. Perlu Lensa kaca di tab saat ini."
+"On the main feed, hold a finger on the tabs and the glass lens slides under it and swells, the tab beneath it grows, and they wobble back when you let go. On Android 13 and up the tabs bend at the lens's edge and split into color, and with Blur the video behind the bar so does the video. Needs Glass lens on the current tab.","Di feed utama, tahan jari di tab dan lensa kacanya bergeser ke bawah jari lalu membesar, tab di bawahnya ikut membesar, lalu semuanya bergoyang kembali saat dilepas. Di Android 13 ke atas, tab melengkung di tepi lensa dan terpecah jadi warna, dan dengan Buramkan video di belakang bilah videonya juga. Perlu Lensa kaca di tab saat ini."
 Haptics on the tabs,Getaran di tab
 "On the main feed, a light tick each time the glass lens passes a tab, as it slides after a tap or under your finger. Needs Glass lens on the current tab.","Di feed utama, getaran ringan setiap kali lensa kaca melewati sebuah tab, saat bergeser setelah ketukan atau di bawah jarimu. Perlu Lensa kaca di tab saat ini."
 Haptic style,Gaya getaran
@@ -2346,10 +2346,11 @@ Most viewed first,Paling banyak ditonton dulu
 Least viewed first,Paling sedikit ditonton dulu
 Most liked first,Paling banyak disukai dulu
 Least liked first,Paling sedikit disukai dulu
-"Sorts a profile or Liked grid with pinned videos first. While an order is on, the grid keeps loading by itself up to 300 videos, so the order covers more than the first screen. A button in the grid's top corner changes the order right there.","Mengurutkan kisi profil atau Disukai, dan video yang disematkan tetap di depan. Selama urutan dipilih, kisi terus memuat sendiri hingga 300 video, jadi urutannya mencakup lebih dari layar pertama. Tombol di sudut atas kisi mengubah urutan langsung di sana."
+"Sorts a profile or Liked grid with pinned videos first. While an order is on, the grid keeps loading by itself up to %1$s videos, so the order covers more than the first screen. A button in the grid's top corner changes the order right there.","Mengurutkan kisi profil atau Disukai, dan video yang disematkan tetap di depan. Selama urutan dipilih, kisi terus memuat sendiri hingga %1$s video, jadi urutannya mencakup lebih dari layar pertama. Tombol di sudut atas kisi mengubah urutan langsung di sana."
+Tap to see the order now,Ketuk untuk melihat urutan sekarang
 Sort loaded videos on Liked grids,Urutkan video yang dimuat di kisi Disukai
 Sort loaded videos on sound pages,Urutkan video yang dimuat di halaman suara
-"Sorts the videos on a sound's page the same way, loading up to 300 of them while an order is on.","Mengurutkan video di halaman suara dengan cara yang sama, memuat hingga 300 video selama urutan dipilih."
+"Sorts the videos on a sound's page the same way, loading up to %1$s of them while an order is on.","Mengurutkan video di halaman suara dengan cara yang sama, memuat hingga %1$s video selama urutan dipilih."
 Same as profile grids,Sama seperti kisi profil
 Sort this grid,Urutkan kisi ini
 Blur the video behind the bar,Buramkan video di belakang bilah
@@ -2560,7 +2561,7 @@ Use this phone's own IDs,Pakai ID asli ponsel ini
 "Wipes TikTok's data once, on the next start, and goes back to this phone's real Android ID and advertising ID. You'll be signed out and lose your drafts.","Menghapus data TikTok sekali, saat mulai berikutnya, dan kembali ke Android ID serta ID iklan asli ponsel ini. Anda akan keluar dan kehilangan draf."
 TikTok goes back to this phone's IDs after the restart. Tap again to cancel.,TikTok kembali ke ID ponsel ini setelah dimulai ulang. Ketuk lagi untuk membatalkan.
 "On a one-photo post, Download video makes an MP4 with the post's sound and no TikTok logo or end card. On a post with several photos, Download asks if you want the originals or one video. A photo story saves as a video too.","Pada kiriman satu foto, Unduh video membuat MP4 dengan suara kiriman tanpa logo TikTok dan kartu penutup. Pada kiriman dengan beberapa foto, Unduh menanyakan apakah kamu mau foto asli atau satu video. Story foto juga disimpan sebagai video."
-How long each photo stays on screen in a video made from a photo post. A story's video runs as long as the story does.,Berapa lama setiap foto tampil di layar dalam video yang dibuat dari unggahan foto. Video dari Story berdurasi sama dengan Story-nya.
+How long each photo stays on screen in a video made from a photo post. A post with just one photo runs as long as its sound. A story's video runs as long as the story does.,Berapa lama setiap foto tampil di layar dalam video yang dibuat dari unggahan foto. Unggahan dengan satu foto saja berdurasi sama dengan suaranya. Video dari Story berdurasi sama dengan Story-nya.
 Stop loading,Berhenti memuat
 Recording files deleted,File rekaman dihapus
 Hide story views,Sembunyikan tayangan cerita
@@ -2775,6 +2776,8 @@ Cover the whole window without cropping anything. The video gets a little taller
 Sort loaded videos on Favorites grids,Urutkan video yang dimuat di kisi Favorit
 Show the country and date under the caption,Tampilkan negara dan tanggal di bawah keterangan
 Moves the country and the post date off the creator's row onto a line of their own below the caption.,Memindahkan negara dan tanggal posting dari baris kreator ke baris tersendiri di bawah keterangan.
+Previous LIVE,LIVE sebelumnya
+Next LIVE,LIVE berikutnya
 Previous video,Video sebelumnya
 Next video,Video berikutnya
 Sort loaded videos in collections,Urutkan video yang dimuat di koleksi

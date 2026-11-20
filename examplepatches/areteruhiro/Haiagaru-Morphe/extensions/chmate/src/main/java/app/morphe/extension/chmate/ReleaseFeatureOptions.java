@@ -18,26 +18,44 @@ final class ReleaseFeatureOptions {
         GLOBAL_SEARCH_BACKGROUND("1.40.0"), GLOBAL_SEARCH_HISTORY("1.40.0"), GLOBAL_SEARCH_PARTIAL("1.40.0"),
         VIEWER_DOUBLE_BACK("1.40.0"), ALWAYS_MOSAIC_GRAY("1.40.0"), ALWAYS_MOSAIC_STRENGTH("1.40.0"),
         MODERATION_ADULT("1.40.0"), MODERATION_GORE("1.40.0"), MODERATION_LIST("1.40.0"),
-        UPLOAD_DESTINATION("1.40.0"), NG_REPLY_NOTIFICATIONS("1.40.0"), THREAD_RENAME("1.41.0"), KEYWORD_NAMES("1.41.0");
+        UPLOAD_DESTINATION("1.40.0"), NG_REPLY_NOTIFICATIONS("1.40.0"), THREAD_RENAME("1.41.0"), KEYWORD_NAMES("1.41.0"),
+        HOME_THREAD_ORDER("1.42.0"), KEYWORD_MENU("1.42.0"),
+        RESPONSE_NOTES_MENU("1.43.0"), ROTATION_MENU("1.43.0"), EXTERNAL_VIDEO_CACHE("1.43.0"),
+        POST_LIMIT_DISPLAY("1.46.0"), FILTER_OPTIMIZATION("1.46.0"), DELAYED_POSITION_SNAPSHOT("1.46.0"), CONDITIONAL_REFRESH("1.46.0"),
+        NOTE_INDICATOR("1.46.0"), HOME_NOTES_MENU("1.46.0"), ARCHIVE_VIEWER_MODE("1.46.0"),
+        NG_CHAIN_REPLY_NOTIFICATIONS("1.46.0"), FILTER_TRANSPARENT_BACKGROUND("1.46.0"),
+        IMAGE_PAGING_GESTURES("1.46.0"), GIF_DEDICATED_VIEWER("1.46.0"), THREAD_SCOPED_NG("1.46.0"),
+        X_POST_TRUNCATION_MODE("1.46.0"), WACCHOI_NG_EXPIRY("1.46.0"),
+        WACCHOI_COPY_PARENS("1.47.0"), THREAD_REPORTER_COPY("1.47.0"), HIDDEN_NG_NEW_ARRIVAL_COUNT("1.47.0");
 
         final String version;
         Option(String version) { this.version = version; }
         String category() {
             switch(this){
                 case SETTINGS_LINKS:case SITE_GROUPS:case EDGE:case ORG:case BAKUSAI:case FUTABA:case ANIMAN:return "アプリ・通信";
-                case WACCHOI_COPY_UPPER:case WACCHOI_COPY_LOWER:case REPORTER_SEARCH:case REPORTER_MENU:case REPORTER_BOARD:return "表示・検索";
-                case THREAD_RENAME:case KEYWORD_NAMES:case GLOBAL_SEARCH_BACKGROUND:case GLOBAL_SEARCH_HISTORY:case GLOBAL_SEARCH_PARTIAL:return "表示・検索";
+                case WACCHOI_COPY_UPPER:case WACCHOI_COPY_LOWER:case WACCHOI_COPY_PARENS:
+                case THREAD_REPORTER_COPY:case REPORTER_SEARCH:case REPORTER_MENU:case REPORTER_BOARD:return "表示・検索";
+                case NG_CHAIN_REPLY_NOTIFICATIONS:return "通知";
+                case HIDDEN_NG_NEW_ARRIVAL_COUNT:return "スレ更新";
+                case FILTER_TRANSPARENT_BACKGROUND:return "表示・検索";
+                case CONDITIONAL_REFRESH:return "スレ更新";
+                case X_POST_TRUNCATION_MODE:return "表示・検索";
+                case WACCHOI_NG_EXPIRY:return "NG・文字列置換";
+                case THREAD_RENAME:case KEYWORD_NAMES:case GLOBAL_SEARCH_BACKGROUND:case GLOBAL_SEARCH_HISTORY:case GLOBAL_SEARCH_PARTIAL:
+                case HOME_THREAD_ORDER:case KEYWORD_MENU:case HOME_NOTES_MENU:return "表示・検索";
                 case VIEWER_DOUBLE_BACK:case ALWAYS_MOSAIC_GRAY:case ALWAYS_MOSAIC_STRENGTH:
                 case MODERATION_ADULT:case MODERATION_GORE:case MODERATION_LIST:case UPLOAD_DESTINATION:
-                case LOCAL_IMAGES:case THREAD_THUMBNAILS:case VIDEO_THUMBNAILS:case VIDEO_IMMERSIVE:return "画像・動画";
-                case IMAGE_NG:case COPY_PASTE_NG:case REPLACE_TXT:case IMAGE_NG_SETTINGS:return "NG・文字列置換";
+                case LOCAL_IMAGES:case THREAD_THUMBNAILS:case VIDEO_THUMBNAILS:case VIDEO_IMMERSIVE:
+                case ROTATION_MENU:case EXTERNAL_VIDEO_CACHE:case NOTE_INDICATOR:case ARCHIVE_VIEWER_MODE:
+                case IMAGE_PAGING_GESTURES:case GIF_DEDICATED_VIEWER:return "画像・動画";
+                case IMAGE_NG:case COPY_PASTE_NG:case REPLACE_TXT:case IMAGE_NG_SETTINGS:case THREAD_SCOPED_NG:return "NG・文字列置換";
                 default:return "履歴・投稿";
             }
         }
         String description() {
             switch(this){
                 case LOCAL_IMAGES:return "保存画像の内容と元URLを照合して表示します。追加の検索フォルダや、改名済み画像との手動関連付けも設定できます。";
-                case WACCHOI_COPY_UPPER:case WACCHOI_COPY_LOWER:return "ワッチョイ部分の長押しから、上4桁・下4桁をそれぞれコピーできます。ハイフンを含めず、大文字・小文字・記号を保持します。";
+                case WACCHOI_COPY_UPPER:case WACCHOI_COPY_LOWER:return "ワッチョイ部分の長押しから、上4桁はaabb-、下4桁は-XXXXの形式でコピーできます。元の大文字・小文字・記号を保持します。";
                 case SETTINGS_LINKS:return "本文に書かれたHaiagaruの設定リンクから、設定を開いたり切り替えたりできます。";
                 case SITE_GROUPS:return "標準の分類にない外部板を、ホストごとの項目にまとめます。反映には再起動が必要です。";
                 case EDGE:case ORG:case BAKUSAI:case FUTABA:case ANIMAN:return "このサイトを使用するか切り替えます。板の追加・取得はChMateの掲示板設定から行います。OFFにしても保存済みのログは削除しません。";
@@ -66,8 +84,30 @@ final class ReleaseFeatureOptions {
                 case MODERATION_LIST:return "スレ一覧の画像にも有効な自動検出を適用します。画像検出ZIPが必要です。";
                 case UPLOAD_DESTINATION:return "書き込み画面から画像・動画を添付するときに、送信先を選べます。";
                 case NG_REPLY_NOTIFICATIONS:return "NGに該当する返信を新着通知の対象から外します。";
+                case NG_CHAIN_REPLY_NOTIFICATIONS:return "連鎖NGの対象も通知から除外します。OFFでは、NGレスにアンカーしただけの別IDの返信は通知されます。";
+                case HIDDEN_NG_NEW_ARRIVAL_COUNT:return "ChMate 0.8.10.242で、スレ更新直後の「新着件数」から透明あぼーんとして判定されたレスを除きます。HOMEやスレ一覧の未読件数・既読位置は変えません。初期状態はOFFです。";
+                case FILTER_TRANSPARENT_BACKGROUND:return "下部フィルターパネルの背景を透明にするか、テーマ色の不透明背景を使うか切り替えます。";
+                case IMAGE_PAGING_GESTURES:return "ONではHaiagaruの方向指定を使い、OFFではChMate標準の画像切り替え操作を使います。初期状態はOFFです。";
+                case GIF_DEDICATED_VIEWER:return "GIFをHaiagaru専用ビューアで開くか切り替えます。初期状態はOFFです。";
+                case THREAD_SCOPED_NG:return "NG ID・名前・ワードを登録時にこのスレだけへ限定できます。ﾜｯﾁｮｲ上下4桁NGはこの板だけにも限定できます。スレ削除時は対応するスレ限定NGを削除します。";
+                case X_POST_TRUNCATION_MODE:return "Xの全文が取得できない場合に省略の可能性を知らせる基準を、詳細な280ポイント判定か簡易な420バイト判定から選べます。返信先の@ユーザー名は判定から除きます。";
+                case WACCHOI_NG_EXPIRY:return "5chは次の日曜日、エッヂはUnix週境界（木曜日）に、ワッチョイ関連NGを自動解除する期限を登録ごとに設定できます。";
+                case WACCHOI_COPY_PARENS:return "ワッチョイの全文コピー時に、IDコードを含む丸括弧を任意で取り除けます。上4桁・下4桁コピーはNG登録に使えるハイフン付き形式です。";
+                case THREAD_REPORTER_COPY:return "スレタイ長押しに記者IDのコピーを追加し、記者IDのNGを一覧表示時にも適用します。";
                 case THREAD_RENAME:return "スレタイトル長押しに「スレの名前を変更」を表示します。表示名はHOMEとスレ一覧で使います。";
                 case KEYWORD_NAMES:return "検索条件ごとに短い表示名を付けられます。縦棒やカンマも使用できます。";
+                case HOME_THREAD_ORDER:return "HOMEのお気に入りスレを並び替え・固定できます。OFFにしても保存した並び順は保持します。";
+                case KEYWORD_MENU:return "HOMEの3点メニューにキーワード表示名の設定入口を表示します。";
+                case RESPONSE_NOTES_MENU:return "レス長押しメニューに「メモ」を表示します。OFFにしても保存済みのメモは保持します。";
+                case ROTATION_MENU:return "画像ビューアの回転操作を画面上のボタンと︙メニューのどちらへ置くか切り替えます。";
+                case EXTERNAL_VIDEO_CACHE:return "専用ビューアを使わないとき、imgpile動画を一時取得して外部プレイヤーへ渡します。";
+                case POST_LIMIT_DISPLAY:return "投稿欄に板ごとのスレタイ・本文・行数・1行あたりの上限と超過位置を表示します。";
+                case FILTER_OPTIMIZATION:return "レスフィルター全体の抽出・位置保持などの処理を任意で最適化します。初期状態はOFFです。";
+                case DELAYED_POSITION_SNAPSHOT:return "エキスパート設定で遅延位置スナップショットを切り替えられます。初期状態はOFFです。";
+                case CONDITIONAL_REFRESH:return "初期OFFではChMate標準の条件付き・Range更新を使います。更新日時だけで新着を取りこぼす場合にONにすると条件付きヘッダーを省きます。通信量が増えることがあります。";
+                case NOTE_INDICATOR:return "メモ済みレスの右下にアイコンを表示します。タップしてメモを開き、編集できます。";
+                case HOME_NOTES_MENU:return "HOMEの3点メニューにメモの一覧を表示します。";
+                case ARCHIVE_VIEWER_MODE:return "エッヂ過去ログの専用ビューア1（従来画面）／2（元サイト表示）を選びます。";
                 default:throw new AssertionError(this);
             }
         }

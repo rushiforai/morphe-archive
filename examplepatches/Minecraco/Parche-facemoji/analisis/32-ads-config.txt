@@ -1,0 +1,87 @@
+4 ficheros DEX, 164880 cadenas distintas
+
+### Lcom/baidu/simeji/bean/AdPopupConfig;
+    static constructor     <clinit>()V  -> V
+    public constructor     <init>()V  -> V
+    public constructor     <init>(I Ljava/lang/String; Ljava/util/List; Ljava/util/List; Ljava/lang/String;)V  -> V
+    public synthetic constructor <init>(I Ljava/lang/String; Ljava/util/List; Ljava/util/List; Ljava/lang/String; I Lkotlin/jvm/internal/DefaultConstructorMarker;)V  -> V
+    public static final synthetic access$getA_TYPE$cp()I  -> I
+    public static final synthetic access$getB_TYPE$cp()I  -> I
+    public static final synthetic access$getC_TYPE$cp()I  -> I
+    public static final synthetic access$getD_TYPE$cp()I  -> I
+    public static synthetic copy$default(Lcom/baidu/simeji/bean/AdPopupConfig; I Ljava/lang/String; Ljava/util/List; Ljava/util/List; Ljava/lang/String; I Ljava/lang/Object;)Lcom/baidu/simeji/bean/AdPopupConfig;  -> Lcom/baidu/simeji/bean/AdPopupConfig;
+    public final           component1()I  -> I
+    public final           component2()Ljava/lang/String;  -> Ljava/lang/String;
+    public final           component3()Ljava/util/List;  -> Ljava/util/List;
+    public final           component4()Ljava/util/List;  -> Ljava/util/List;
+    public final           component5()Ljava/lang/String;  -> Ljava/lang/String;
+    public final           copy(I Ljava/lang/String; Ljava/util/List; Ljava/util/List; Ljava/lang/String;)Lcom/baidu/simeji/bean/AdPopupConfig;  -> Lcom/baidu/simeji/bean/AdPopupConfig;
+    public                 equals(Ljava/lang/Object;)Z  -> Z
+    public final           getAbType()I  -> I
+    public final           getMessageList()Ljava/util/List;  -> Ljava/util/List;
+    public final           getOkText()Ljava/lang/String;  -> Ljava/lang/String;
+    public final           getShortMessageList()Ljava/util/List;  -> Ljava/util/List;
+    public final           getTitle()Ljava/lang/String;  -> Ljava/lang/String;
+    public                 hashCode()I  -> I
+    public final           isAType()Z  -> Z
+    public final           isBType()Z  -> Z
+    public final           isCType()Z  -> Z
+    public final           isDType()Z  -> Z
+    public final           isOldType()Z  -> Z
+    public                 toString()Ljava/lang/String;  -> Ljava/lang/String;
+
+### Lcom/baidu/simeji/bean/AdVideoConfig;
+    static constructor     <clinit>()V  -> V
+    public constructor     <init>()V  -> V
+    public constructor     <init>(Z F Z)V  -> V
+    public synthetic constructor <init>(Z F Z I Lkotlin/jvm/internal/DefaultConstructorMarker;)V  -> V
+    public static synthetic copy$default(Lcom/baidu/simeji/bean/AdVideoConfig; Z F Z I Ljava/lang/Object;)Lcom/baidu/simeji/bean/AdVideoConfig;  -> Lcom/baidu/simeji/bean/AdVideoConfig;
+    public final           component1()Z  -> Z
+    public final           component2()F  -> F
+    public final           component3()Z  -> Z
+    public final           copy(Z F Z)Lcom/baidu/simeji/bean/AdVideoConfig;  -> Lcom/baidu/simeji/bean/AdVideoConfig;
+    public                 equals(Ljava/lang/Object;)Z  -> Z
+    public final           getDowngradeRAMGB()F  -> F
+    public final           getEnableDowngrade()Z  -> Z
+    public final           getUnbindAdService()Z  -> Z
+    public                 hashCode()I  -> I
+    public                 toString()Ljava/lang/String;  -> Ljava/lang/String;
+
+### Lcom/baidu/simeji/bean/AppendAdStrategyConfig;
+    static constructor     <clinit>()V  -> V
+    public constructor     <init>()V  -> V
+    public constructor     <init>(Ljava/lang/String; Ljava/util/List; J)V  -> V
+    public synthetic constructor <init>(Ljava/lang/String; Ljava/util/List; J I Lkotlin/jvm/internal/DefaultConstructorMarker;)V  -> V
+    public static synthetic copy$default(Lcom/baidu/simeji/bean/AppendAdStrategyConfig; Ljava/lang/String; Ljava/util/List; J I Ljava/lang/Object;)Lcom/baidu/simeji/bean/AppendAdStrategyConfig;  -> Lcom/baidu/simeji/bean/AppendAdStrategyConfig;
+    public final           component1()Ljava/lang/String;  -> Ljava/lang/String;
+    public final           component2()Ljava/util/List;  -> Ljava/util/List;
+    public final           component3()J  -> J
+    public final           copy(Ljava/lang/String; Ljava/util/List; J)Lcom/baidu/simeji/bean/AppendAdStrategyConfig;  -> Lcom/baidu/simeji/bean/AppendAdStrategyConfig;
+    public                 equals(Ljava/lang/Object;)Z  -> Z
+    public final           getAppendAdTypes()Ljava/util/List;  -> Ljava/util/List;
+    public final           getSwitch()Ljava/lang/String;  -> Ljava/lang/String;
+    public final           getWaitTime()J  -> J
+    public                 hashCode()I  -> I
+    public                 toString()Ljava/lang/String;  -> Ljava/lang/String;
+
+### Lcom/baidu/simeji/bean/OnlyShowAdRewardConfig;
+    static constructor     <clinit>()V  -> V
+    public constructor     <init>()V  -> V
+    public constructor     <init>(Z Ljava/util/List; Ljava/lang/String; Ljava/lang/String; Ljava/util/List;)V  -> V
+    public synthetic constructor <init>(Z Ljava/util/List; Ljava/lang/String; Ljava/lang/String; Ljava/util/List; I Lkotlin/jvm/internal/DefaultConstructorMarker;)V  -> V
+    public static synthetic copy$default(Lcom/baidu/simeji/bean/OnlyShowAdRewardConfig; Z Ljava/util/List; Ljava/lang/String; Ljava/lang/String; Ljava/util/List; I Ljava/lang/Object;)Lcom/baidu/simeji/bean/OnlyShowAdRewardConfig;  -> Lcom/baidu/simeji/bean/OnlyShowAdRewardConfig;
+    public final           component1()Z  -> Z
+    public final           component2()Ljava/util/List;  -> Ljava/util/List;
+    public final           component3()Ljava/lang/String;  -> Ljava/lang/String;
+    public final           component4()Ljava/lang/String;  -> Ljava/lang/String;
+    public final           component5()Ljava/util/List;  -> Ljava/util/List;
+    public final           copy(Z Ljava/util/List; Ljava/lang/String; Ljava/lang/String; Ljava/util/List;)Lcom/baidu/simeji/bean/OnlyShowAdRewardConfig;  -> Lcom/baidu/simeji/bean/OnlyShowAdRewardConfig;
+    public                 equals(Ljava/lang/Object;)Z  -> Z
+    public final           getEnable()Z  -> Z
+    public final           getRegionWithSubYear()Ljava/util/List;  -> Ljava/util/List;
+    public final           getSubIds()Ljava/util/List;  -> Ljava/util/List;
+    public final           getSubPriceOffMonth()Ljava/lang/String;  -> Ljava/lang/String;
+    public final           getSubPriceOffYear()Ljava/lang/String;  -> Ljava/lang/String;
+    public                 hashCode()I  -> I
+    public                 toString()Ljava/lang/String;  -> Ljava/lang/String;
+

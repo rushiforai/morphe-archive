@@ -5,6 +5,7 @@ Scope: maintained technical documentation under `docs/`.
 ## Documentation Ownership
 
 - `apk-lab.md`: canonical CLI, toolchain, storage, command, exit-code, compatibility, and safety reference for `tools/apk-lab/`.
+- `dependencies.md`: canonical CLI, approval model, coverage boundaries, and policy reference for `scripts/deps.ts`.
 - `<app>/architecture.md`: observed target-app architecture, classes/resources/assets, data flow, reverse-engineering evidence, and compatibility-sensitive anchors.
 - `<app>/patches.md`: implemented patch behavior, options, dependencies, affected layers, verification, and user-visible limitations.
 - App-specific feature catalogs such as `hidden_feature_flags.md`: evidence-backed reverse-engineering notes that do not belong in general architecture or patch behavior.

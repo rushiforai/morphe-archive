@@ -201,6 +201,11 @@
             <app.morphe.extension.shared.settings.preference.ColorPickerWithOpacitySliderPreference
                 android:key="revanced_snack_bar_dark_fill" android:title="@string/revanced_snack_bar_dark_fill_title"
                 android:summary="@string/revanced_snack_bar_dark_fill_summary" />
+            <app.morphe.extension.shared.settings.preference.CustomDialogListPreference
+                android:key="revanced_snack_bar_border_preset"
+                android:title="@string/revanced_snack_bar_border_preset_title"
+                android:entries="@array/revanced_snack_bar_border_preset_entries"
+                android:entryValues="@array/revanced_snack_bar_border_preset_entry_values" />
             <app.morphe.extension.shared.settings.preference.ColorPickerWithOpacitySliderPreference
                 android:key="revanced_snack_bar_stroke_color"
                 android:title="@string/revanced_snack_bar_stroke_color_title" />
@@ -1036,6 +1041,12 @@
     <!-- PREFERENCE_SCREEN: SHORTS
     <PreferenceScreen android:title="@string/revanced_change_start_page_entry_shorts" android:key="revanced_preference_screen_shorts">PREFERENCE_SCREEN: SHORTS -->
 
+        <!-- SETTINGS: HIDE_SHORTS_DIMMING
+        <SwitchPreference android:title="@string/revanced_hide_shorts_dimming_title"
+            android:key="revanced_hide_shorts_dimming"
+            android:summaryOn="@string/revanced_hide_shorts_dimming_summary_on"
+            android:summaryOff="@string/revanced_hide_shorts_dimming_summary_off" />SETTINGS: HIDE_SHORTS_DIMMING -->
+
         <!-- SETTINGS: SHORTS_COMPONENTS
         <PreferenceScreen android:title="@string/revanced_preference_screen_shorts_player_title" android:key="revanced_preference_screen_shorts_player" android:summary="@string/revanced_preference_screen_shorts_player_summary">
             <SwitchPreference android:title="@string/revanced_hide_shorts_auto_dubbed_label_title" android:key="revanced_hide_shorts_auto_dubbed_label" android:summaryOn="@string/revanced_hide_shorts_auto_dubbed_label_summary_on" android:summaryOff="@string/revanced_hide_shorts_auto_dubbed_label_summary_off" />
@@ -1397,7 +1408,11 @@
 
             <!-- SETTINGS: SPOOF_VIDEO_STREAMS
             <SwitchPreference android:title="@string/morphe_spoof_video_streams_screen_title" android:key="morphe_spoof_video_streams" android:summaryOn="@string/morphe_spoof_video_streams_summary_on" android:summaryOff="@string/morphe_spoof_video_streams_summary_off" />
-            <app.morphe.extension.shared.settings.preference.SortedListPreference android:entries="@array/morphe_spoof_video_streams_client_type_entries" android:title="@string/morphe_spoof_video_streams_client_type_title" android:key="morphe_spoof_video_streams_client_type" android:entryValues="@array/morphe_spoof_video_streams_client_type_entry_values" />
+            <app.morphe.extension.shared.settings.preference.SpoofClientListPreference
+                android:entries="@array/morphe_spoof_video_streams_client_type_entries"
+                android:title="@string/morphe_spoof_video_streams_client_type_title"
+                android:key="morphe_spoof_video_streams_client_type"
+                android:entryValues="@array/morphe_spoof_video_streams_client_type_entry_values" />
             <app.morphe.extension.youtube.settings.preference.SpoofVideoStreamsSideEffectsPreference android:title="@string/morphe_spoof_video_streams_about_title" />
             <SwitchPreference android:title="@string/morphe_spoof_video_streams_stats_for_nerds_title" android:key="morphe_spoof_video_streams_stats_for_nerds" android:summaryOn="@string/morphe_spoof_video_streams_stats_for_nerds_summary_on" android:summaryOff="@string/morphe_spoof_video_streams_stats_for_nerds_summary_off" />
 

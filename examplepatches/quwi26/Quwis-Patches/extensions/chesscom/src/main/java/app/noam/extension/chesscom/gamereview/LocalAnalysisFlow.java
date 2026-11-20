@@ -543,15 +543,15 @@ final class LocalAnalysisFlow {
             Class<?> glyphsClass = types.agd("$ReportCard$Report$Glyphs");
 
             Constructor<?> rcConstructor = rcClass.getConstructor(repClass, repClass, String.class);
-            Constructor<?> repConstructor = repClass.getConstructor(Integer.class, glyphsClass, List.class);
+            Constructor<?> repConstructor = reportConstructor(repClass, glyphsClass);
             Constructor<?> glyphsConstructor = glyphsClass.getConstructor(String.class, String.class, String.class);
 
-            Object whiteReport = repConstructor.newInstance(0, glyphsConstructor.newInstance(
-                phaseGlyph(data.whitePhases[0]), phaseGlyph(data.whitePhases[1]), phaseGlyph(data.whitePhases[2])),
-                new ArrayList<>());
-            Object blackReport = repConstructor.newInstance(0, glyphsConstructor.newInstance(
-                phaseGlyph(data.blackPhases[0]), phaseGlyph(data.blackPhases[1]), phaseGlyph(data.blackPhases[2])),
-                new ArrayList<>());
+            Object whiteReport = repConstructor.newInstance(reportArgs(repConstructor, glyphsClass,
+                glyphsConstructor.newInstance(
+                    phaseGlyph(data.whitePhases[0]), phaseGlyph(data.whitePhases[1]), phaseGlyph(data.whitePhases[2]))));
+            Object blackReport = repConstructor.newInstance(reportArgs(repConstructor, glyphsClass,
+                glyphsConstructor.newInstance(
+                    phaseGlyph(data.blackPhases[0]), phaseGlyph(data.blackPhases[1]), phaseGlyph(data.blackPhases[2]))));
 
             String summary = LichessMath.summary(opening != null ? opening.name : null,
                 data.whiteAccuracy, data.whiteAcpl, data.whiteMarks[0], data.whiteMarks[1], data.whiteMarks[2],
@@ -812,7 +812,7 @@ final class LocalAnalysisFlow {
      * The mark a move gets, once. Lichess marks inaccuracies, mistakes and blunders (a lost forced
      * mate shows as a Miss); moves of the opening Lichess names are Book and the engine's own best
      * move is Brilliant, Great or Best (a sacrifice within 2% of the best can be Brilliant too).
-     * Brilliant and Great only come with the Great and Brilliant moves analysis patch. Local
+     * Brilliant and Great only come with Unlimited Game Review. Local
      * Stockfish marks the rest Excellent or Good, as chess.com would; Lichess's review leaves them
      * unmarked, as Lichess does.
      */
@@ -1058,6 +1058,54 @@ final class LocalAnalysisFlow {
         } catch (NoSuchMethodException ignored) {
             return csrmm.getClass().getMethod("d").invoke(csrmm);
         }
+    }
+
+    /**
+     * The report's constructor: (effectiveElo, glyphs, categories) up to 4.10.23, and with the new
+     * gameRatingV2 between the two reasonable values from 4.10.27 on. The serialisation constructor
+     * (it starts with the seen-fields bitmask) is left out.
+     */
+    private static Constructor<?> reportConstructor(Class<?> reportClass, Class<?> glyphsClass) {
+        Constructor<?> found = null;
+        for (Constructor<?> candidate : reportClass.getConstructors()) {
+            Class<?>[] types = candidate.getParameterTypes();
+            if (types.length < 3 || types[0] != Integer.class) continue;
+            boolean glyphs = false, categories = false, synthetic = false;
+            for (Class<?> type : types) {
+                if (type == glyphsClass) glyphs = true;
+                else if (type == List.class) categories = true;
+                else if (type == int.class) synthetic = true;
+            }
+            if (!glyphs || !categories || synthetic) continue;
+            if (found == null || types.length > found.getParameterTypes().length) found = candidate;
+        }
+        if (found == null) throw new IllegalStateException("The review report constructor was not found");
+        return found;
+    }
+
+    /**
+     * A report's arguments by type: the rating estimate stays 0 (chess.com then hides its Game
+     * Rating row) and any newer rating field stays absent, as for a game the server has none for.
+     */
+    private static Object[] reportArgs(Constructor<?> constructor, Class<?> glyphsClass, Object glyphs) {
+        Class<?>[] types = constructor.getParameterTypes();
+        Object[] args = new Object[types.length];
+        boolean glyphsPlaced = false, ratingPlaced = false;
+        for (int i = 0; i < types.length; i++) {
+            Class<?> type = types[i];
+            if (type == glyphsClass && !glyphsPlaced) {
+                args[i] = glyphs;
+                glyphsPlaced = true;
+            } else if (type == List.class) {
+                args[i] = new ArrayList<>();
+            } else if (type == Integer.class) {
+                args[i] = ratingPlaced ? null : Integer.valueOf(0);
+                ratingPlaced = true;
+            } else {
+                args[i] = AppTypes.defaultFor(type);
+            }
+        }
+        return args;
     }
 
     /** The position as a FEN with all six fields, or null (same shape Analysis.fen() expects). */

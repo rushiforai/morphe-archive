@@ -36,7 +36,7 @@ private fun target(owner: String, name: String, result: String, vararg parameter
 val hideCastIconPatch = bytecodePatch(
     name = "Hide Cast icon",
     description = "Hides SoundCloud's Cast button in both the toolbar menu and standalone media route views.",
-    default = true,
+    default = false,
 ) {
     compatibleWith(soundcloud)
     dependsOn(originalInput)

@@ -1,0 +1,12 @@
+{
+  "build-bundle.py": "bb187f5ad6690d6d38cfcc660065270a940cbb8577bfacdf38f2f8af947db22c",
+  "morphe/GenerateCatalog.kt": "165948d1034741b69dab29e7231707e3f448724e1119bd168cb00f315423df76",
+  "morphe/TuttoEnhancements.kt": "9437ecdb808e93594d158c2a3879a677e9ea04366c944d8ce7b20abe8a4dd3a7",
+  "src/org/ungoogled/ui/HomeWorkShortcuts.java": "fcc62f1c8f47ca46eedbd9850348cfabee2a57c1eddd46e9081dba2a0e34480e",
+  "src/org/ungoogled/ui/LabelIndex.java": "c6b6f36de65572b7f5619217f7905f787d7b920c15bfdf8107538d010ebb66eb",
+  "src/org/ungoogled/ui/LocalLabels.java": "2f94f4bf81b50a0eb45206206fa2fd4d91effb1d0b194fe9b26c3b5e7b5d3ade",
+  "src/org/ungoogled/ui/LocalMarkers.java": "e3178187e2821b894d5baf8d35b7a26a08c4fbaa15f6fd7a0bb93e8de7d65413",
+  "src/org/ungoogled/ui/MarkerGeometry.java": "d166b7c70fefbc5186232e4af18a579b25455390cec7f473444a881eb5d348f8",
+  "stubs/org/ungoogled/ui/SavedPlaces.java": "e113719cc61843c6ac01a0ed1c1833f6ef517d82b60a3ec0787dd026395ef7ad",
+  "stubs/org/ungoogled/ui/SavedStore.java": "9b772847c57e88e724f2f2d3a389ffed086d5f2ac618d7b13b501e54052693b3"
+}

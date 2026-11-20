@@ -51,6 +51,13 @@ public class TwitchSevenTvBadgesProbe {
             + twitchId + "\",\"platform\":\"TWITCH\",\"username\":\"x\"}]}}}}}";
     }
 
+    /** The native badge path for a sender with {@code id}, through TwitchSevenTvBadges.add. */
+    static List badgesFor(long id) throws Exception {
+        Method m = cls().getDeclaredMethod("add", List.class, List.class, long.class, Class.class); m.setAccessible(true);
+        List out = (List) m.invoke(null, null, new ArrayList(List.of("stock")), id, Model.class);
+        return out == null ? List.of("stock") : out;
+    }
+
     /** A badge model double: Twitch's (name, url) constructor. */
     public static final class Model { public final String name, url; Model(String n, String u) { name = n; url = u; } }
 
@@ -169,6 +176,58 @@ public class TwitchSevenTvBadgesProbe {
                 if (alive != null) alive.setAccessible(true);
                 check(alive == null || !(Boolean) alive.invoke(connection), "connection ended");
                 server.close();
+                break;
+            }
+            case "self": {
+                // My 7TV badge (issue 60): one lookup of the signed-in account's own badge, by its Twitch user ID.
+                Settings.values.put("badges_7tv", "true");
+                transport(host -> { throw new IOException("no event service in this scenario"); });
+                java.util.List<String> asked = java.util.Collections.synchronizedList(new ArrayList<>());
+                String profile = "{\"id\":\"424242\",\"user\":{\"id\":\"01USER\",\"style\":{\"color\":1,\"badge_id\":\"01MINE\"}}}";
+                String gql = "{\"data\":{\"cosmetics\":{\"badges\":[{\"id\":\"01MINE\",\"name\":\"Event Winner\",\"tooltip\":\"Event Winner\","
+                    + "\"host\":{\"url\":\"//cdn.7tv.app/badge/01MINE\",\"files\":[" + file("1x.webp", 18, 100) + "," + file("2x.webp", 36, 100) + "]}}]}}}";
+                Class<?> fetchType = Class.forName(ROOT + "TwitchSevenTvBadges$Fetch");
+                set("fetch", java.lang.reflect.Proxy.newProxyInstance(fetchType.getClassLoader(), new Class<?>[]{fetchType}, (proxy, method, a) -> {
+                    if (!method.getName().equals("get")) return null;
+                    asked.add(a[0] + (a[1] == null ? "" : " POST"));
+                    return ((String) a[0]).endsWith("/gql") ? gql : profile;
+                }));
+                set("signedInUser", (java.util.function.LongSupplier) () -> 424242L);
+                // Off (unregistered or false): no lookup.
+                call("ensureSelf", new Class[]{});
+                Settings.values.put("badges_7tv_self", "false");
+                call("ensureSelf", new Class[]{});
+                Thread.sleep(200);
+                check(asked.isEmpty(), "no lookup while My 7TV badge is off: " + asked);
+                Settings.values.put("badges_7tv_self", "true");
+                call("ensureSelf", new Class[]{});
+                for (int i = 0; i < 50 && rn("424242").isEmpty(); i++) Thread.sleep(20);
+                check(asked.equals(List.of("https://7tv.io/v3/users/twitch/424242", "https://7tv.io/v3/gql POST")),
+                    "one profile and one badge request: " + asked);
+                List<?> mine = rn("424242");
+                check(mine.size() == 1 && ((String[]) mine.get(0))[0].equals("Event Winner")
+                    && ((String[]) mine.get(0))[1].equals("https://cdn.7tv.app/badge/01MINE/2x_static.webp"), "own badge, still image");
+                check(rn("555").isEmpty(), "nobody else gets it");
+                List out = TwitchSevenTvBadgesProbe.badgesFor(424242L);
+                check(out.size() == 2, "native line gets it too: " + out.size());
+                call("ensureSelf", new Class[]{});
+                Thread.sleep(100);
+                check(asked.size() == 2, "looked up once per account");
+                // No badge chosen: nothing, and no definition request.
+                set("selfUser", 0L); set("selfBadge", null); asked.clear();
+                String none = "{\"id\":\"424242\",\"user\":{\"id\":\"01USER\",\"style\":{\"color\":1}}}";
+                set("fetch", java.lang.reflect.Proxy.newProxyInstance(fetchType.getClassLoader(), new Class<?>[]{fetchType},
+                    (proxy, method, a) -> { asked.add((String) a[0]); return none; }));
+                map("BADGES").clear();
+                call("ensureSelf", new Class[]{});
+                Thread.sleep(200);
+                check(asked.size() == 1 && rn("424242").isEmpty(), "no badge chosen: one request, no badge");
+                // Signed out: nothing.
+                set("selfUser", 0L); asked.clear();
+                set("signedInUser", (java.util.function.LongSupplier) () -> 0L);
+                call("ensureSelf", new Class[]{});
+                Thread.sleep(100);
+                check(asked.isEmpty(), "signed out: no lookup");
                 break;
             }
             case "off": {

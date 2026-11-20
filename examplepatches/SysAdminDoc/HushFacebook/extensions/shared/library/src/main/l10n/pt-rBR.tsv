@@ -2503,6 +2503,14 @@ After %1$d seconds	Depois de %1$d segundos
 # context: Reels: Burn-in guard's switch that keeps the faded buttons faded while you tap
 Stay dim when I tap	Continuar escurecido quando eu tocar
 Once Burn-in guard fades the buttons, they stay faded on Reels whatever you tap or swipe, the next reel too. They still work. Leaving Reels brings them back.	Depois que a Proteção contra burn-in esmaece os botões, eles continuam esmaecidos no Reels, não importa o que você toque ou deslize, inclusive no próximo reel. Eles continuam funcionando. Sair do Reels traz os botões de volta.
+# context: Reels: Burn-in guard's row for how much of the dimmed buttons, caption and bars still shows, a percent typed in
+Dim to	Escurecer até
+How much of the buttons, caption and bars still shows once they dim, in percent, from %1$s to %2$s. Leave it blank for %3$s.	Quanto dos botões, da legenda e das barras ainda aparece depois de escurecer, em porcentagem, de %1$s a %2$s. Deixe em branco para %3$s.
+Once dimmed, the buttons, caption and bars show at %1$s percent. Type a number to change it.	Escurecidos, os botões, a legenda e as barras aparecem a %1$s por cento. Digite um número para mudar.
+Once dimmed, the buttons, caption and bars show at %1$s percent.	Escurecidos, os botões, a legenda e as barras aparecem a %1$s por cento.
+# context: Reels: Burn-in guard's switch that fades the buttons out and back in slowly instead of at once
+Smooth fade	Transição suave
+The buttons, caption and bars fade out slowly as they dim and fade back in when they return, rather than changing at once.	Os botões, a legenda e as barras escurecem devagar e voltam aos poucos, em vez de mudar de uma vez.
 # context: Reels: switch that shows the Reels screen and its video in black and white
 Show Reels in gray	Mostrar Reels em cinza
 Reels and their buttons show in black and white, which makes them easier to put down. Your feed, stories, photos and chats keep their colors. It starts from the next reel, and Reels use a little more battery.	Os Reels e os botões deles aparecem em preto e branco, o que facilita largar. Seu feed, stories, fotos e conversas mantêm as cores. Começa a partir do próximo reel, e o Reels gasta um pouco mais de bateria.
@@ -2903,3 +2911,45 @@ A reel you take out of Clean mode will go back into it when the comments or a me
 A reel you take out of Clean mode will go back into it after %1$d seconds without a touch.	Um reel que você tirar do modo limpo vai voltar para ele depois de %1$d segundos sem toque.
 Hide New for you on reels	Ocultar “Novo para você” nos reels
 Takes "New for you", and other reasons Facebook gives for showing you a reel, off the line under its author, so the date and the song show right away. A change shows from the next reel.	Tira “Novo para você” e outros motivos que o Facebook dá para mostrar um reel da linha abaixo do nome de quem publicou, para que a data e a música apareçam na hora. A mudança aparece a partir do próximo reel.
+# context: switch title under Comments and writing; it turns Facebook's own comment translation on for every comment as it loads
+Translate every comment	Traduzir todos os comentários
+# context: description of that switch; See translation is the name of Facebook's own link under a comment that translates it on request
+Comments in another language show Facebook's translation as they load, as if you'd tapped See translation on each one.	Comentários em outro idioma mostram a tradução do Facebook ao carregar, como se você tivesse tocado em Ver tradução em cada um.
+# context: switch title under Downloads; holding a finger on a photo opened full screen from a Marketplace listing saves that photo to the phone
+Long press to save Marketplace photos	Toque longo para salvar fotos do Marketplace
+# context: description of that switch; Save any photo is the title of the Downloads switch it needs, Marketplace is Facebook's buy-and-sell section
+With Save any photo on, a long press on a photo you open from a Marketplace listing saves it.	Com Salvar qualquer foto ativado, um toque longo em uma foto que você abre de um anúncio do Marketplace salva a foto.
+# context: the eight switches under Hide posts with words you choose and Hide link posts that pick where each hides; Home, the Reels tab, the Groups tab and Pages are Facebook's own names for them
+Your words on Home	Suas palavras na Página inicial
+Your words on the Reels tab	Suas palavras na aba Reels
+Your words in groups	Suas palavras em grupos
+Your words on profiles and Pages	Suas palavras em perfis e Páginas
+Link posts on Home	Publicações com links na Página inicial
+Link reels on the Reels tab	Reels com links na aba Reels
+Link posts in groups	Publicações com links em grupos
+Link posts on profiles and Pages	Publicações com links em perfis e Páginas
+Posts on Home, the feed Facebook opens on.	Publicações na Página inicial, o feed que o Facebook abre primeiro.
+Reels on the Reels tab, going by their captions.	Reels da aba Reels, pela legenda.
+Posts in a group's feed, on the Groups tab and in a member's posts in a group. Posts waiting for an admin stay.	Publicações no feed de um grupo, na aba Grupos e nas publicações de um membro em um grupo. Publicações aguardando um administrador ficam.
+Posts on people's profiles and on Pages.	Publicações em perfis de pessoas e em Páginas.
+# context: the search results switches under Hide posts with words you choose and Hide link posts, which start off; search results is Facebook's own name for the page a search opens
+Your words in search results	Suas palavras nos resultados da pesquisa
+Link posts in search results	Publicações com links nos resultados da pesquisa
+Posts in search results. Off to begin with, so what you search for still shows.	Publicações nos resultados da pesquisa. Desativado no início, para que o que você pesquisa continue aparecendo.
+# context: title of the list under Video quality that picks how much of a video loads before it starts and while it plays
+Video buffer	Buffer de vídeo
+# context: the three sizes in the Video buffer list, from the least loaded ahead to the most
+Low	Baixo
+Medium	Médio
+Maximum	Máximo
+# context: the line under Video buffer for each size, and for Facebook's choice
+Videos start once half a second has loaded, and load less ahead.	Os vídeos começam assim que meio segundo é carregado e carregam menos à frente.
+Videos wait for 1.5 seconds to load before they start, and load more ahead.	Os vídeos esperam carregar 1,5 segundo antes de começar e carregam mais à frente.
+Videos wait for 3 seconds to load before they start, and load up to a minute ahead.	Os vídeos esperam carregar 3 segundos antes de começar e carregam até um minuto à frente.
+Facebook decides how much of a video loads before and while it plays.	O Facebook decide quanto de um vídeo carrega antes e durante a reprodução.
+# context: what importing a settings file will do to the Video buffer list; %1$s is Low, Medium or Maximum
+Facebook will decide how much of a video loads.	O Facebook vai decidir quanto de um vídeo carrega.
+Video buffer will be set to %1$s.	O buffer de vídeo será %1$s.
+Recently watched in the Menu	Assistidos recentemente no Menu
+Adds a Recently watched row at the end of Settings and privacy in Facebook's Menu. It opens the list that Remember what you watch keeps.	Adiciona uma linha Assistidos recentemente no fim de “Configurações e privacidade” no Menu do Facebook. Ela abre a lista que Lembrar o que você assiste guarda.
+Recently watched can't open here.	Assistidos recentemente não pode ser aberto aqui.

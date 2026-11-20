@@ -15,6 +15,7 @@ import app.morphe.extension.shared.settings.IntegerSetting;
 import app.morphe.extension.tiktok.captions.CaptionStyle;
 import app.morphe.extension.tiktok.feed.BurnInGuard;
 import app.morphe.extension.tiktok.feed.FeedTextSize;
+import app.morphe.extension.tiktok.feed.GridSort;
 import app.morphe.extension.tiktok.interaction.TapConfirmation;
 import app.morphe.extension.tiktok.settings.L10n;
 import app.morphe.extension.tiktok.settings.Settings;
@@ -381,7 +382,8 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                                 "Most liked first", "Least liked first"},
                         new String[]{"off", "newest", "oldest", "longest", "shortest", "most_viewed",
                                 "least_viewed", "most_liked", "least_liked"})
-                        .withNote("Sorts a profile or Liked grid with pinned videos first. While an order is on, the grid keeps loading by itself up to 300 videos, so the order covers more than the first screen. A button in the grid's top corner changes the order right there."));
+                        .withNote(L10n.f(context, "Sorts a profile or Liked grid with pinned videos first. While an order is on, the grid keeps loading by itself up to %1$s videos, so the order covers more than the first screen. A button in the grid's top corner changes the order right there.",
+                                java.text.NumberFormat.getIntegerInstance().format(GridSort.LOAD_CAP))));
                 addPreference(new TogglePreference(
                         context,
                         "Sort pinned videos with the rest",
@@ -437,7 +439,8 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                                     "Most liked first", "Least liked first"},
                             new String[]{"off", "newest", "oldest", "longest", "shortest", "most_viewed",
                                     "least_viewed", "most_liked", "least_liked"})
-                            .withNote("Sorts the videos on a sound's page the same way, loading up to 300 of them while an order is on."));
+                            .withNote(L10n.f(context, "Sorts the videos on a sound's page the same way, loading up to %1$s of them while an order is on.",
+                                    java.text.NumberFormat.getIntegerInstance().format(GridSort.LOAD_CAP))));
                 }
                 addPreference(new TogglePreference(
                         context,
@@ -941,7 +944,7 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
             addPreference(new TogglePreference(
                     context,
                     "Liquid glass when held",
-                    "On the main feed, hold a finger on the tabs and the glass lens swells, then wobbles back when you let go. With Blur the video behind the bar on Android 13 and up, the video under it bends harder and splits into color at its edge. Needs Glass lens on the current tab.",
+                    "On the main feed, hold a finger on the tabs and the glass lens slides under it and swells, the tab beneath it grows, and they wobble back when you let go. On Android 13 and up the tabs bend at the lens's edge and split into color, and with Blur the video behind the bar so does the video. Needs Glass lens on the current tab.",
                     Settings.GLASS_LIQUID_HOLD
             ));
             addPreference(new TogglePreference(

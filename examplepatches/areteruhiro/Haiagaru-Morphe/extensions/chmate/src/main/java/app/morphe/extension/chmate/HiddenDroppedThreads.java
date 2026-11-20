@@ -14,7 +14,7 @@ public final class HiddenDroppedThreads {
     private static final Map<String,Boolean> nativeStatus=new LinkedHashMap<>();
     private static final List<Original> originals=new ArrayList<>();
     private static final class Original {
-        final java.lang.ref.WeakReference<Object> wrapper;final List<?> source;
+        final java.lang.ref.WeakReference<Object> wrapper;List<?> source;
         Original(Object w,List<?> s){wrapper=new java.lang.ref.WeakReference<>(w);source=s;}
     }
     static boolean option(String key){Context c=Haiagaru.applicationContextForExtension();return c!=null&&c.getSharedPreferences(WacchoiSearchOptions.PREFS,0).getBoolean(key,false);}
@@ -136,5 +136,30 @@ public final class HiddenDroppedThreads {
     // Native legacy list wrappers are recreated during sorting. Remember their source to restore OFF.
     static List<?> source(Object wrapper,List<?> fallback){synchronized(originals){for(Original o:originals)if(o.wrapper.get()==wrapper)return o.source;return fallback;}}
     static void remember(Object wrapper,List<?> source){synchronized(originals){originals.removeIf(o->o.wrapper.get()==null||o.wrapper.get()==wrapper);if(originals.size()>=64)originals.remove(0);originals.add(new Original(wrapper,source));}}
+    static void removeRememberedHistoryThread(String board,long threadId){
+        if(threadId<=0)return;
+        synchronized(originals){
+            originals.removeIf(o->o.wrapper.get()==null);
+            IdentityHashMap<List<?>,List<?>> changed=new IdentityHashMap<>();
+            for(Original original:originals){
+                List<?> source=original.source;List<?> replacement=changed.get(source);
+                if(replacement==null){
+                    ArrayList<Object> kept=new ArrayList<>(source.size());boolean removed=false;
+                    for(Object row:source){if(historyThread(row,board,threadId))removed=true;else kept.add(row);}
+                    replacement=removed?kept:source;changed.put(source,replacement);
+                }
+                original.source=replacement;
+            }
+        }
+    }
+    private static boolean historyThread(Object row,String board,long threadId){
+        if(row==null||!row.getClass().getName().equals("o.onAdDisplayed$setIcon"))return false;
+        try{
+            Field id=row.getClass().getDeclaredField("h");id.setAccessible(true);if(id.getLong(row)!=threadId)return false;
+            if(board==null)return true;
+            Field value=row.getClass().getDeclaredField("g");value.setAccessible(true);Object actual=value.get(row);
+            return actual!=null&&board.equals(actual.toString());
+        }catch(Exception ignored){return false;}
+    }
     private HiddenDroppedThreads(){}
 }

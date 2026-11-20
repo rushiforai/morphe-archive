@@ -13,7 +13,7 @@ import app.noam.patches.chesscom.shared.markFeaturePatched
 @Suppress("unused")
 val networkScanPatch = bytecodePatch(
     name = "Find the computer on the network",
-    description = "Adds Find on the network to the computer review settings: it sweeps the phone's Wi-Fi " +
+    description = "Adds Find on the network to its own settings page: it sweeps the phone's Wi-Fi " +
         "and fills in the address sf-bridge answers on, keeps the addresses that worked, and lets a review " +
         "find the computer by itself when the set address no longer answers. In a guest, office or " +
         "co-working network the devices are often kept apart, and then nothing is found. Needs Game Review " +

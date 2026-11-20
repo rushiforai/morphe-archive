@@ -8,7 +8,7 @@ import patches.shared.uniqueMatch
 /** V4n1X's local feature/plan overrides, using the existing ad/upsell patch once. */
 @Suppress("unused")
 val enableSoundCloudGoPatch = bytecodePatch(
-    name = "Enable SoundCloud Go+ (experimental)",
+    name = "Enable SoundCloud Go",
     description = "Enables client-side Go+ UI flags and standard-quality (SQ) offline track/playlist caching. " +
         "High-quality audio streaming (HQ / 256kbps AAC) and high-quality downloads do NOT work because stream quality entitlements are enforced server-side.",
     default = true,

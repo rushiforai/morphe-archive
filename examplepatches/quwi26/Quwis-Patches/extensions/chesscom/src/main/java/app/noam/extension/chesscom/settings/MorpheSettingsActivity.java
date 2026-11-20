@@ -197,6 +197,8 @@ public final class MorpheSettingsActivity extends Activity {
         if (Features.PAGE_STOCKFISH.equals(page)) return "Stockfish analysis";
         if (Features.PAGE_PUZZLES.equals(page)) return "Lichess Puzzles";
         if (Features.PAGE_GAME_REVIEW.equals(page)) return "Game Review";
+        if (Features.PAGE_COMPUTER_REVIEW.equals(page)) return "Game Review on your computer";
+        if (Features.PAGE_NETWORK_SCAN.equals(page)) return "Find the computer";
         if (Features.PAGE_WELCOME.equals(page)) return "Welcome";
         return TITLE;
     }
@@ -236,6 +238,8 @@ public final class MorpheSettingsActivity extends Activity {
         else if (Features.PAGE_STOCKFISH.equals(page)) renderStockfish();
         else if (Features.PAGE_PUZZLES.equals(page)) renderPuzzles();
         else if (Features.PAGE_GAME_REVIEW.equals(page)) renderGameReview();
+        else if (Features.PAGE_COMPUTER_REVIEW.equals(page)) renderComputerReview();
+        else if (Features.PAGE_NETWORK_SCAN.equals(page)) renderNetworkScan();
         else if (Features.PAGE_WELCOME.equals(page)) renderWelcome();
         else renderMain();
     }
@@ -327,8 +331,7 @@ public final class MorpheSettingsActivity extends Activity {
                     restartNeeded();
                 }));
         }
-        list.addView(caption("Restart the app to apply your changes. chess.com's own "
-            + "Home settings (streak, Chess TV, recommendations) stay in its Settings."));
+        list.addView(caption("Restart the app to apply your changes."));
     }
 
     private void moveTile(List<String> order, int index, int delta) {
@@ -354,8 +357,7 @@ public final class MorpheSettingsActivity extends Activity {
                 index > 0 ? () -> moveTab(order, index, -1) : null,
                 index < order.size() - 1 ? () -> moveTab(order, index, 1) : null));
         }
-        list.addView(caption("Up to " + HomeTabs.MAX_MIDDLE_TABS + " tabs. Bots and Train are tabs "
-            + "chess.com shows only in some experiments. The new bar shows after a restart."));
+        list.addView(caption("Up to " + HomeTabs.MAX_MIDDLE_TABS + " tabs. The new bar shows after a restart."));
     }
 
     private String tabTitle(String name) {
@@ -421,8 +423,7 @@ public final class MorpheSettingsActivity extends Activity {
         custom.addView(colorRow("Light squares", light, color -> BoardColors.set(BoardColors.dark(), color)));
         custom.addView(divider(56));
         custom.addView(colorRow("Dark squares", dark, color -> BoardColors.set(color, BoardColors.light())));
-        list.addView(caption("Every board uses these colours while Board colors is on. Boards already "
-            + "open change when they next redraw."));
+        list.addView(caption("Every board uses these colours while Board colors is on."));
     }
 
     private void renderArcade() {
@@ -431,11 +432,7 @@ public final class MorpheSettingsActivity extends Activity {
         preview.addView(new ArcadePreview(this), new LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT, dp(156)));
         list.addView(preview, cardParams(16));
-        list.addView(caption("A light trail follows each move, the square lights up where the piece "
-            + "lands and captures burst. In games, pieces also flash as you pick them up and drop "
-            + "them, a king in check flashes and move hints are animated."));
-        list.addView(caption("The effects are chess.com's own Arcade images from its website, "
-            + "downloaded once and kept in the app."));
+        list.addView(caption("The effects are chess.com's own Arcade images from its website."));
     }
 
     private void renderAccent() {
@@ -459,8 +456,7 @@ public final class MorpheSettingsActivity extends Activity {
         list.addView(custom, cardParams());
         custom.addView(colorRow("Accent color", chosen, this::setAccent));
 
-        String note = "chess.com's green becomes this colour, with its lighter and darker shades: "
-            + "buttons, highlights, icons and text. It shows everywhere after a restart.";
+        String note = "chess.com's green becomes this colour. Restart the app to apply it.";
         if (!Features.isEnabled(Features.ACCENT)) note = "Accent color is switched off on the main page. " + note;
         list.addView(caption(note));
     }
@@ -489,42 +485,29 @@ public final class MorpheSettingsActivity extends Activity {
         for (int i = 0; i < depths.length; i++) depths[i] = Analysis.DEPTH_NAMES[i] + " (" + Analysis.DEPTHS[i] + ")";
         list.addView(segments(depths, Analysis.depthIndex(), Analysis::setDepthIndex), cardParams());
 
-        list.addView(caption("Stockfish draws its arrows on finished games, the analysis boards, the game "
-            + "explorer and Game Review; in a review by Lichess, on the moves Lichess didn't mark. Its eval "
-            + "bar only shows where chess.com has none, so Game Review and the analysis board keep chess.com's "
-            + "own. It never shows while a game is being played or in puzzles. Deeper searches take longer and "
-            + "use more battery."));
+        list.addView(caption("Never during a game or in puzzles; deeper takes longer."));
     }
 
     private void renderGameReview() {
         lichessMethodChoice();
-        // Local Stockfish needs the engine, which comes with the Stockfish analysis patch; Stockfish
-        // on the computer and Great and Brilliant marks have patches of their own.
+        // Local Stockfish needs the engine, which comes with the Stockfish analysis patch. Great and
+        // Brilliant marks are part of this patch.
         boolean stockfish = Features.stockfishPatched();
         boolean computer = GameReview.computerReview();
         boolean marks = GameReview.marksMoves();
         if (stockfish) reviewDepthChoice();
         if (marks && (stockfish || computer)) {
-            list.addView(switchRow("Great moves", "chess.com's \"!\" for the move that was the only one "
-                + "keeping the position good.", GameReview.greatMoves(), GameReview::setGreatMoves));
-            list.addView(caption("Great needs the engine's second-best line, so a review asks Stockfish "
-                + "for two lines at once (MultiPV 2) instead of one. At the same node budget that costs "
-                + "no extra time, but the best line ends a ply or two shallower - most noticeable at Fast "
-                + "(100,000 nodes a move), barely at all from 300,000 up. Brilliant is marked either way: "
-                + "it needs no second line. Both are marked in Local Stockfish and on your computer; "
-                + "Lichess's own review stays as Lichess sends it, and a review saved earlier keeps the "
-                + "marks it was made with."));
+            list.addView(switchRow("Great moves", "chess.com's \"!\" for the only good move.",
+                GameReview.greatMoves(), GameReview::setGreatMoves));
+            list.addView(caption("Brilliant is marked either way; Great needs a second line."));
         }
         if (stockfish) {
             list.addView(header("Local Stockfish engines"));
             list.addView(segments(new String[]{"Auto", "1", "2", "3", "4"}, GameReview.reviewEnginesSetting(),
                 GameReview::setReviewEngines), cardParams());
-            list.addView(caption("Stockfish 19 engines working on a review at once. More finish sooner but use "
-                + "more memory and battery; Auto runs " + GameReview.reviewEngines(this) + " on this phone. "
-                + "chess.com's own Game Review settings (Chess Engine, Analysis Depth) only change Review on "
-                + "chess.com; its Torch Human engine only runs on chess.com's servers."));
+            list.addView(caption("More engines finish sooner but use more memory. Auto runs "
+                + GameReview.reviewEngines(this) + " here."));
         }
-        if (computer) renderComputerBridge();
 
         list.addView(header("Saved reviews"));
         int saved = GameReview.savedReviews();
@@ -564,23 +547,14 @@ public final class MorpheSettingsActivity extends Activity {
             LinearLayout report = card();
             list.addView(report, cardParams());
             report.addView(actionRow("Report a wrong mark",
-                "Opens a GitHub issue: the game, the move, and what chess.com says.",
+                "Opens a GitHub issue with the game and the move.",
                 () -> browse(REPORT_BRILLIANT)));
             list.addView(caption(brilliants.games > 0
-                ? "A move the engine found best that gives up material for good, as chess.com's \"!!\". Read from "
-                    + "the reviews saved on this phone, which chess.com's own stats cannot see. A move opens the "
-                    + "game at that move on chess.com when the review saved its link."
-                : "None yet: a game reviewed after this version can show one here. chess.com's own Brilliant "
-                    + "stat is counted on its servers and needs Diamond; this one comes from your reviews."));
+                ? "Read from the reviews saved on this phone."
+                : "None yet: a reviewed game can show one here."));
         }
 
-        String reviewers = stockfish && computer
-            ? "Local Stockfish, Stockfish on your computer or Lichess's servers"
-            : computer ? "Stockfish on your computer or Lichess's servers"
-            : stockfish ? "Local Stockfish or Lichess's servers" : "Lichess's servers";
-        list.addView(caption("A game you review with " + reviewers + " is saved on this phone and opens "
-            + "straight away the next time." + (stockfish || computer
-                ? " Choosing a deeper depth than it was saved with analyses it again." : "")));
+        list.addView(caption("Reviews are saved on this phone and open straight away next time."));
     }
 
     private void lichessMethodChoice() {
@@ -590,11 +564,8 @@ public final class MorpheSettingsActivity extends Activity {
             index -> GameReview.setLichessMethod(index == 1 ? GameReview.LICHESS_BOARD : GameReview.LICHESS_SERVERS)),
             cardParams());
         list.addView(caption(board
-            ? "Your game is imported to Lichess (no account needed) and opens on Lichess's own analysis "
-                + "board inside the app, where Lichess's engine looks at it in your phone's browser."
-            : "Lichess's servers analyse your game for your Lichess account and the review shows in "
-                + "chess.com's own screen, with Lichess's marks. You log in to Lichess once. Lichess "
-                + "allows 40 analyses a day."));
+            ? "Opens on Lichess's analysis board; no account needed."
+            : "Lichess analyses for your account; 40 a day. Log in once."));
     }
 
     /** How hard Local Stockfish looks: each depth is a budget Lichess's own servers use. */
@@ -609,52 +580,36 @@ public final class MorpheSettingsActivity extends Activity {
                 + "match Analyze with Lichess. About three times as long as Standard.",
             "5,000,000 positions a move, the most. About five times as long as Deep.",
         };
-        list.addView(caption(meaning[depth] + " Local Stockfish works offline on this phone. It judges moves "
-            + "the Lichess way and marks the rest Best, Excellent or Good, as chess.com does."));
+        list.addView(caption(meaning[depth] + " Works offline on this phone."));
     }
 
     /**
-     * Stockfish on the computer: sf-bridge's address and token, your computer's own thread count, and a
-     * button that asks the computer whether it is really there.
+     * Stockfish on the computer: sf-bridge's address and token, its own depth and thread count, a
+     * connection test and a benchmark.
      */
-    private void renderComputerBridge() {
-        list.addView(header("Stockfish on your computer"));
+    private void renderComputerReview() {
+        list.addView(header("Connection"));
         String host = BridgeSettings.host();
         String token = BridgeSettings.token();
         LinearLayout rows = card();
         list.addView(rows, cardParams());
         rows.addView(actionRow("Computer address",
             host.isEmpty() ? "Not set" : BridgeSettings.address(), this::askComputerAddress));
-        if (GameReview.networkScan()) {
-            rows.addView(divider(16));
-            rows.addView(actionRow("Find on the network",
-                "Sweeps this Wi-Fi on port " + BridgeSettings.port() + " and fills in what answers.",
-                this::findComputerBridge));
-            rows.addView(divider(16));
-            rows.addView(actionRow("Saved addresses", savedAddressesText(), this::showSavedAddresses));
-            rows.addView(divider(16));
-            rows.addView(switchRow("Find the computer automatically",
-                "When no address answers, a review sweeps the Wi-Fi once and searches where it found it.",
-                BridgeSettings.autoScan(), BridgeSettings::setAutoScan));
-        }
         rows.addView(divider(16));
         rows.addView(actionRow("Token",
             token.isEmpty() ? "Not set" : "…" + token.substring(Math.max(0, token.length() - 4)),
             this::askComputerToken));
         rows.addView(divider(16));
         rows.addView(actionRow("Test the connection",
-            "Connects to the computer and asks its Stockfish to say hello.", this::testComputerBridge));
+            "Asks the computer's Stockfish to say hello.", this::testComputerBridge));
         rows.addView(divider(16));
         rows.addView(actionRow("Benchmark your computer",
-            "Times 100k, 300k, 1M and 5M nodes a move there, start-up kept apart.", this::benchmarkComputer));
+            "Times the four depths on the computer.", this::benchmarkComputer));
 
         list.addView(header("Computer Stockfish depth"));
         list.addView(segments(GameReview.REVIEW_DEPTH_NAMES, GameReview.computerDepthIndex(),
             GameReview::setComputerDepthIndex), cardParams());
-        list.addView(caption("How hard the computer looks, on its own scale: a budget this phone can just "
-            + "afford costs a computer seconds, so Standard (300,000 nodes a move) or Deep (1,000,000) "
-            + "are sensible there, and Maximum is still a few seconds. The phone has its own depth above; "
-            + "both are the same numbers Lichess's servers use."));
+        list.addView(caption("A phone budget is seconds here; Standard or Deep is enough."));
 
         int[] threadChoices = {0, 2, 4, 6, 8, 12};
         String[] threadNames = {"Auto", "2", "4", "6", "8", "12"};
@@ -665,23 +620,33 @@ public final class MorpheSettingsActivity extends Activity {
         list.addView(header("Computer Stockfish threads"));
         list.addView(segments(threadNames, selected, index -> BridgeSettings.setThreads(threadChoices[index])),
             cardParams());
-        list.addView(caption("A review picked as “Stockfish on your computer” is searched on the computer instead "
-            + "of this phone: sf-bridge there starts Stockfish 19, and the moves come back exactly as this "
-            + "phone's own engine would give them, only much sooner. Both devices need to be on the same "
-            + "Wi-Fi; the address is your computer's, and the token is the one sf-bridge prints when it starts "
-            + "(token.txt next to it). Auto gives Stockfish every core the computer has — sf-bridge says how "
-            + "many — and 32 MB of hash for each of them."));
-        if (GameReview.networkScan()) {
-            list.addView(caption("An address is worth keeping only if your network keeps it: a router that hands "
-                + "addresses out by lease can give the computer's to another device tomorrow. That is what "
-                + "Find on the network is for, and why a review can look around by itself."));
-        }
+        list.addView(caption("Auto uses every core the computer has, 32 MB of hash each."));
+    }
+
+    /** Find the computer on the network: sweeps this Wi-Fi and keeps the addresses that answered. */
+    private void renderNetworkScan() {
+        String host = BridgeSettings.host();
+        list.addView(header("This network"));
+        LinearLayout rows = card();
+        list.addView(rows, cardParams());
+        rows.addView(infoRow("Computer address", host.isEmpty() ? "Not set" : BridgeSettings.address()));
+        rows.addView(divider(16));
+        rows.addView(actionRow("Find on the network",
+            "Sweeps this Wi-Fi on port " + BridgeSettings.port() + " and fills in what answers.",
+            this::findComputerBridge));
+        rows.addView(divider(16));
+        rows.addView(actionRow("Saved addresses", savedAddressesText(), this::showSavedAddresses));
+        rows.addView(divider(16));
+        rows.addView(switchRow("Find the computer automatically",
+            "When no address answers, a review sweeps the Wi-Fi once.",
+            BridgeSettings.autoScan(), BridgeSettings::setAutoScan));
+        list.addView(caption("Keep only an address your router does not hand out by lease."));
     }
 
     /** "2 addresses", or the note that nothing has worked yet. */
     private static String savedAddressesText() {
         int count = BridgeSettings.saved().size();
-        if (count == 0) return "None yet: an address is kept after a review connects through it.";
+        if (count == 0) return "None yet: saved after a review connects.";
         return count == 1 ? "1 address" : count + " addresses";
     }
 
@@ -691,9 +656,8 @@ public final class MorpheSettingsActivity extends Activity {
         if (saved.isEmpty()) {
             new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
                 .setTitle("Saved addresses")
-                .setMessage("An address is saved here after a review connected through it, so the computer is "
-                    + "found again when the router hands it a different one. Only save an address your network "
-                    + "keeps: one it hands out by lease can belong to another device tomorrow.")
+                .setMessage("Addresses are kept after a review connects through them. Keep only addresses "
+                    + "your router does not hand out by lease.")
                 .setPositiveButton("OK", null)
                 .show();
             return;
@@ -879,7 +843,7 @@ public final class MorpheSettingsActivity extends Activity {
         record.setPadding(dp(16), dp(2), dp(16), dp(12));
         rating.addView(record);
         rating.addView(divider(16));
-        rating.addView(actionRow("Reset rating", "Start over from 1500 and let it settle again, as on a new Lichess account.",
+        rating.addView(actionRow("Reset rating", "Start over from 1500; it settles again.",
             () -> {
                 LichessPuzzles.resetRating();
                 render();
@@ -894,9 +858,7 @@ public final class MorpheSettingsActivity extends Activity {
 
         list.addView(header("Offline puzzles"));
         list.addView(offlinePuzzles(), cardParams());
-        list.addView(caption("Puzzles come from Lichess's open puzzle database and are solved offline in "
-            + "chess.com's own puzzle screen. Your rating is worked out on this phone the way Lichess "
-            + "rates puzzles (Glicko-2); a ? means it is still settling. Nothing is sent to chess.com."));
+        list.addView(caption("Lichess's puzzles, solved offline and rated on this phone."));
     }
 
     /** What is on the phone, a download's progress, or the packs to download. */

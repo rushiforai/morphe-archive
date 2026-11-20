@@ -7,6 +7,7 @@ import app.morphe.patches.tiktok.feedfilter.TAKO_COMMENT_TOP_BAR_BRIDGE
 import app.morphe.patches.tiktok.feedfilter.TAKO_COMMENT_TOP_BAR_SERVICE
 import app.morphe.patches.tiktok.feedfilter.COLD_START_STORES
 import app.morphe.patches.tiktok.feedfilter.coldStartCall
+import app.morphe.patches.tiktok.feedfilter.coldStartHelperCalls
 import app.morphe.patches.tiktok.feedfilter.coldStartOrchestrators
 import app.morphe.patches.tiktok.feedfilter.countColdStartFeedItemListStores
 import app.morphe.patches.tiktok.feedfilter.isCommentTopBarCanShow
@@ -719,7 +720,7 @@ class TikTokPatchAnchorsMatchFixturesTest {
      * Show engagement rate hooks the profile grid adapter's bind right after the cell's view count
      * is formatted, and hands the extension the text and the cell's Aweme. One bind per declared
      * build, the item in the register its statistics were asked of, and the text the one the
-     * cell's next setText writes (v9 and v13 on 47.8.3, v1 and v12 on 47.7.3).
+     * cell's next setText writes (v7 and v12 on 47.9.2, v9 and v13 on 47.8.3).
      */
     @Test
     fun `profile grid view count site for engagement rate resolves on every declared build`() {
@@ -731,7 +732,7 @@ class TikTokPatchAnchorsMatchFixturesTest {
             assertEquals("profile grid binds", 1, binds.size)
             val bind = binds.single()
             val site = runCatching { bind.gridCountSite() }.getOrElse { throw AssertionError(it.message, it) }
-            assertEquals("text and item registers", 9 to 13, site.textRegister to site.itemRegister)
+            assertEquals("text and item registers", 7 to 12, site.textRegister to site.itemRegister)
             val instructions = bind.implementation!!.instructions.toList()
             val result = instructions[site.insertAt - 1]
             assertEquals(Opcode.MOVE_RESULT_OBJECT, result.opcode)
@@ -1419,7 +1420,17 @@ class TikTokPatchAnchorsMatchFixturesTest {
                 }.toMap()
             val orchestrators = coldStartOrchestrators(goldenCache.single(), offlineCache.single(), calls)
             assertEquals("${apk.name}: cold-start orchestrators", 1, orchestrators.size)
-            val coldMethods = (goldenCache + offlineCache + orchestrators).distinctBy { it.anchorSignature() }
+            // And the static helpers holding a store R8 outlined out of the orchestrator.
+            val helperCalls = coldStartHelperCalls(orchestrators.single(), goldenCache.single(), offlineCache.single())
+            val helperTypes = helperCalls.map { it.definingClass }.toSet()
+            val helperCallNames = helperCalls.map { it.coldStartCall() }.toSet()
+            val helpers = container.dexEntryNames.asSequence()
+                .flatMap { container.getEntry(it)!!.dexFile.classes.asSequence() }
+                .filter { it.type in helperTypes }
+                .flatMap { it.methods.asSequence() }
+                .filter { it.coldStartCall() in helperCallNames && it.countColdStartFeedItemListStores() > 0 }
+                .toList()
+            val coldMethods = (goldenCache + offlineCache + orchestrators + helpers).distinctBy { it.anchorSignature() }
             assertEquals(
                 "${apk.name}: cold-cache FeedItemList stores",
                 COLD_START_STORES,

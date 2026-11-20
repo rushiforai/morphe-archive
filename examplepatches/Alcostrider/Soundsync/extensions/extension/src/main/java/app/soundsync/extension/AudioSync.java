@@ -9,6 +9,7 @@ import android.content.IntentFilter;
 import android.content.res.Configuration;
 import android.database.ContentObserver;
 import android.database.Cursor;
+import android.hardware.display.DisplayManager;
 import android.media.AudioTimestamp;
 import android.media.AudioTrack;
 import android.net.Uri;
@@ -17,6 +18,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.SystemClock;
 import android.util.Log;
+import android.view.Display;
 
 import java.util.Collections;
 import java.util.Map;
@@ -72,6 +74,9 @@ public final class AudioSync {
     private static volatile long carCheckedAt = -CAR_CHECK_INTERVAL_MS;
     private static volatile boolean carCheckQueued;
     private static volatile boolean lastActive;
+    /** The app is on a DriveDeck car screen, where DriveDeck's own Video delay syncs it. */
+    private static volatile boolean onCarScreen;
+    private static String lastScreen = "";
     private static String lastCarState = "";
     private static Handler handler;
 
@@ -183,6 +188,9 @@ public final class AudioSync {
             default:
                 active = false;
         }
+        // On DriveDeck's car screen DriveDeck holds the picture itself (its per-app Video delay);
+        // the delay here is for the phone's own screen, so the two never add up.
+        if (onCarScreen) active = false;
         if (active != lastActive) {
             lastActive = active;
             Log.i(TAG, (active ? "On" : "Off") + ": delay " + (delayUs / 1000) + " ms, mode " + mode);
@@ -230,9 +238,52 @@ public final class AudioSync {
                     : "Android Auto status not available (" + aa + "), car mode off";
         }
         inCar = connected;
+        checkScreen(c);
         if (!state.equals(lastCarState)) {
             lastCarState = state;
             Log.i(TAG, "Car check: " + state);
+        }
+    }
+
+    /**
+     * Whether the app is shown on a DriveDeck car screen. DriveDeck gives each app it shows in
+     * the car a display of its own named drivedeck-guest-[package]; an app sees such a display
+     * only while it is on it. Runs on the SoundSync thread.
+     */
+    private static void checkScreen(Context c) {
+        boolean car = false;
+        try {
+            DisplayManager dm = (DisplayManager) c.getSystemService(Context.DISPLAY_SERVICE);
+            if (dm != null) for (Display d : dm.getDisplays()) {
+                String name = d.getName();
+                if (name != null && name.startsWith(DRIVEDECK_SCREEN)) { car = true; break; }
+            }
+        } catch (Throwable t) {
+            car = false;
+        }
+        onCarScreen = car;
+        String screen = car ? "on DriveDeck's car screen: DriveDeck's Video delay applies there, none here"
+                : "on the phone's screen";
+        if (!screen.equals(lastScreen)) {
+            lastScreen = screen;
+            Log.i(TAG, "Screen: " + screen);
+        }
+    }
+
+    private static final String DRIVEDECK_SCREEN = "drivedeck-guest-";
+
+    /** Moving between the phone and the car screen is noticed at once, not at the next check. */
+    private static void listenForScreens(final Context c) {
+        try {
+            DisplayManager dm = (DisplayManager) c.getSystemService(Context.DISPLAY_SERVICE);
+            if (dm == null) return;
+            dm.registerDisplayListener(new DisplayManager.DisplayListener() {
+                @Override public void onDisplayAdded(int displayId) { checkScreen(c); }
+                @Override public void onDisplayRemoved(int displayId) { checkScreen(c); }
+                @Override public void onDisplayChanged(int displayId) { }
+            }, handler);
+        } catch (Throwable t) {
+            // checked with the car every few seconds instead
         }
     }
 
@@ -310,6 +361,7 @@ public final class AudioSync {
         context = c;
         loadSettings();
         listenForCar(c);
+        listenForScreens(c);
         checkCar();
         try {
             c.getContentResolver().registerContentObserver(CONFIG, false, new ContentObserver(handler) {

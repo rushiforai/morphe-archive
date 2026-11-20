@@ -1,0 +1,61 @@
+name: Lint
+
+# Style checks. They never block a release.
+
+on:
+  push:
+    paths:
+      - '.github/workflows/**'
+      - '.github/ktlint-baseline.xml'
+      - '.editorconfig'
+      - '**.kt'
+      - '**.kts'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lint-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Not updated by Dependabot.
+  ACTIONLINT_VERSION: 1.7.12
+  KTLINT_VERSION: 1.8.0
+
+jobs:
+  actionlint:
+    name: Workflows
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # Also runs shellcheck, which the runner has, over every run: script.
+      - name: Lint workflows
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release download "v$ACTIONLINT_VERSION" -R rhysd/actionlint \
+            -p "actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz" -O - | tar -xz -C "$RUNNER_TEMP" actionlint
+          "$RUNNER_TEMP/actionlint" -color
+
+  ktlint:
+    name: Kotlin
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # Style rules come from .editorconfig. Violations that were already there are listed in the
+      # baseline, so only new ones fail.
+      - name: Lint Kotlin
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release download "$KTLINT_VERSION" -R pinterest/ktlint -p ktlint -D "$RUNNER_TEMP"
+          chmod +x "$RUNNER_TEMP/ktlint"
+          git ls-files -z '*.kt' '*.kts' | xargs -0 "$RUNNER_TEMP/ktlint" --baseline=.github/ktlint-baseline.xml

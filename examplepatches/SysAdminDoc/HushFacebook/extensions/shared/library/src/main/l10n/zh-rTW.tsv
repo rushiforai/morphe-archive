@@ -2621,6 +2621,14 @@ After %1$d seconds	%1$d 秒後
 # context: Reels: Burn-in guard's switch that keeps the faded buttons faded while you tap
 Stay dim when I tap	點擊時保持淡化
 Once Burn-in guard fades the buttons, they stay faded on Reels whatever you tap or swipe, the next reel too. They still work. Leaving Reels brings them back.	防烙印保護淡化按鈕後，無論在 Reels 點擊或滑動什麼，按鈕都會維持淡化，下一則 Reel 也一樣。按鈕仍可操作，離開 Reels 後會恢復顯示。
+# context: Reels: Burn-in guard's row for how much of the dimmed buttons, caption and bars still shows, a percent typed in
+Dim to	淡化程度
+How much of the buttons, caption and bars still shows once they dim, in percent, from %1$s to %2$s. Leave it blank for %3$s.	按鈕、說明文字與列淡化後仍顯示的程度，以百分比計，範圍 %1$s 到 %2$s。留空則使用 %3$s。
+Once dimmed, the buttons, caption and bars show at %1$s percent. Type a number to change it.	淡化後，按鈕、說明文字與列以百分之 %1$s 顯示。輸入數字即可變更。
+Once dimmed, the buttons, caption and bars show at %1$s percent.	淡化後，按鈕、說明文字與列以百分之 %1$s 顯示。
+# context: Reels: Burn-in guard's switch that fades the buttons out and back in slowly instead of at once
+Smooth fade	平滑淡化
+The buttons, caption and bars fade out slowly as they dim and fade back in when they return, rather than changing at once.	按鈕、說明文字與列會慢慢淡化，再慢慢恢復，而不是立即切換。
 # context: Reels: switch that shows the Reels screen and its video in black and white
 Show Reels in gray	以灰階顯示 Reels
 Reels and their buttons show in black and white, which makes them easier to put down. Your feed, stories, photos and chats keep their colors. It starts from the next reel, and Reels use a little more battery.	Reels 及其按鈕以黑白顯示，讓你更容易放下手機。你的動態、限時動態、相片和聊天保持原本的顏色。從下一則 reel 開始生效，Reels 會稍微多耗一點電。
@@ -3021,3 +3029,45 @@ A reel you take out of Clean mode will go back into it when the comments or a me
 A reel you take out of Clean mode will go back into it after %1$d seconds without a touch.	你離開簡潔模式的 Reel 會在 %1$d 秒沒有觸碰後回到簡潔模式。
 Hide New for you on reels	在 Reels 上隱藏「為你推薦」
 Takes "New for you", and other reasons Facebook gives for showing you a reel, off the line under its author, so the date and the song show right away. A change shows from the next reel.	把「為你推薦」以及 Facebook 推薦某個 Reel 給你的其他原因從發佈者名字下方那一行移除，這樣日期和歌曲會馬上顯示。從下一個 Reel 開始生效。
+# context: switch title under Comments and writing; it turns Facebook's own comment translation on for every comment as it loads
+Translate every comment	翻譯每則留言
+# context: description of that switch; See translation is the name of Facebook's own link under a comment that translates it on request
+Comments in another language show Facebook's translation as they load, as if you'd tapped See translation on each one.	其他語言的留言在載入時就顯示 Facebook 的翻譯，就像你在每則留言上都點了「查看翻譯」.
+# context: switch title under Downloads; holding a finger on a photo opened full screen from a Marketplace listing saves that photo to the phone
+Long press to save Marketplace photos	長按儲存 Marketplace 相片
+# context: description of that switch; Save any photo is the title of the Downloads switch it needs, Marketplace is Facebook's buy-and-sell section
+With Save any photo on, a long press on a photo you open from a Marketplace listing saves it.	開啟「儲存任何相片」後，長按從 Marketplace 商品開啟的相片即可儲存.
+# context: the eight switches under Hide posts with words you choose and Hide link posts that pick where each hides; Home, the Reels tab, the Groups tab and Pages are Facebook's own names for them
+Your words on Home	在首頁使用你的字詞
+Your words on the Reels tab	在 Reels 分頁使用你的字詞
+Your words in groups	在社團中使用你的字詞
+Your words on profiles and Pages	在個人檔案和粉絲專頁使用你的字詞
+Link posts on Home	首頁上的連結貼文
+Link reels on the Reels tab	Reels 分頁中的連結 Reels
+Link posts in groups	社團中的連結貼文
+Link posts on profiles and Pages	個人檔案和粉絲專頁上的連結貼文
+Posts on Home, the feed Facebook opens on.	首頁上的貼文，也就是 Facebook 開啟時顯示的動態。
+Reels on the Reels tab, going by their captions.	Reels 分頁中的 Reels，依說明文字判斷。
+Posts in a group's feed, on the Groups tab and in a member's posts in a group. Posts waiting for an admin stay.	社團動態、社團分頁以及成員在社團中的貼文。等待管理員處理的貼文會保留。
+Posts on people's profiles and on Pages.	個人檔案和粉絲專頁上的貼文。
+# context: the search results switches under Hide posts with words you choose and Hide link posts, which start off; search results is Facebook's own name for the page a search opens
+Your words in search results	在搜尋結果中使用你的字詞
+Link posts in search results	搜尋結果中的連結貼文
+Posts in search results. Off to begin with, so what you search for still shows.	搜尋結果中的貼文。預設為關閉，你搜尋的內容仍會顯示。
+# context: title of the list under Video quality that picks how much of a video loads before it starts and while it plays
+Video buffer	影片緩衝
+# context: the three sizes in the Video buffer list, from the least loaded ahead to the most
+Low	低
+Medium	中
+Maximum	最大
+# context: the line under Video buffer for each size, and for Facebook's choice
+Videos start once half a second has loaded, and load less ahead.	影片載入半秒後就開始播放，並減少預先載入。
+Videos wait for 1.5 seconds to load before they start, and load more ahead.	影片會先載入 1.5 秒再開始播放，並預先載入更多。
+Videos wait for 3 seconds to load before they start, and load up to a minute ahead.	影片會先載入 3 秒再開始播放，並最多預先載入一分鐘。
+Facebook decides how much of a video loads before and while it plays.	由 Facebook 決定影片在播放前和播放時載入多少。
+# context: what importing a settings file will do to the Video buffer list; %1$s is Low, Medium or Maximum
+Facebook will decide how much of a video loads.	將由 Facebook 決定影片載入多少。
+Video buffer will be set to %1$s.	影片緩衝將設為 %1$s。
+Recently watched in the Menu	選單中的最近觀看
+Adds a Recently watched row at the end of Settings and privacy in Facebook's Menu. It opens the list that Remember what you watch keeps.	在 Facebook 選單的「設定和隱私」末尾新增「最近觀看」一列，開啟「記住觀看內容」保存的清單。
+Recently watched can't open here.	無法從這裡開啟「最近觀看」。
