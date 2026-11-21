@@ -1,18 +1,4 @@
-# Repos reported by the last notification (17)
-AWTMODS/AWT-Patches
-AudioPatchLab/deezer-morphe-patches
-ClmentCch/Richees
-EagerGoose32/jaybyte-morphe-patches
-Minecraco/Parche-facemoji
-MuguDEV/ben-thamizha-patches
-TgSeed/Morpheeeps
-deconta/deconta-patches
-georgewoodall82/songsterr-patches
-hemk651/meta-patches
-kabukabu-a11y/force-tv-patches
-kinoosaki/Kinos-Patches
-manot40/morphe-patches
-needfish/channel-blocker-patches
-rathmerdominik/nick-patches
-selim-durmus/ungoogled-maps-local-enhancements
-semi-column/window-shopper
+# Repos reported by the last notification (3)
+MOD-PROD/signal-patch
+gomjirak0803/line-notification-patches
+rikunode/hatena-bookmark-hide-pr-patches
